@@ -266,6 +266,8 @@ MAPC_OBJS := \
 	share/list.o        \
 	share/mapc.o
 BALL_OBJS := \
+	share/account_transfer.o \
+	share/st_transfer_source.o \
 	share/lang.o        \
 	share/st_common.o   \
 	share/vec3.o        \

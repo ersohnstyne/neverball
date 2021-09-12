@@ -208,11 +208,11 @@ static int conf_gui(void)
         int name_id, ball_id, lang_id;
 
         conf_header(id, _("Options"), GUI_BACK);
-
+#if defined(_WIN32) && !defined(__EMSCRIPTEN__)
         conf_state(id, _("Pennyball Transfer Tool"), _("Start"), CONF_SYSTEMTRANSFER_SOURCE);
 
         gui_space(id);
-
+#endif
         conf_state(id, _("Graphics"), _("Configure"), CONF_VIDEO);
 
         gui_space(id);

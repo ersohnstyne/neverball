@@ -266,7 +266,6 @@ MAPC_OBJS := \
 	share/list.o        \
 	share/mapc.o
 BALL_OBJS := \
-	share/account_transfer.o \
 	share/st_transfer_source.o \
 	share/lang.o        \
 	share/st_common.o   \
@@ -385,6 +384,10 @@ PUTT_OBJS := \
 
 BALL_OBJS += share/solid_sim_sol.o
 PUTT_OBJS += share/solid_sim_sol.o
+
+ifeq ($(PLATFORM),mingw)
+BALL_OBJS += share/account_transfer.o \
+endif
 
 ifeq ($(ENABLE_FS),stdio)
 BALL_OBJS += share/fs_stdio.o share/miniz.o

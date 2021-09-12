@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2021 Microsoft / Neverball Authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,6 +12,8 @@
  * General Public License for more details.
  */
 
+#include "demo.h"
+#include "demo_dir.h"
 #include "gui.h"
 #include "hud.h"
 #include "geom.h"
@@ -33,6 +35,8 @@
 #include "st_ball.h"
 #include "st_shared.h"
 
+#include "st_transfer.h"
+
 extern const char TITLE[];
 extern const char ICON[];
 
@@ -40,7 +44,8 @@ extern const char ICON[];
 
 enum
 {
-    CONF_VIDEO = GUI_LAST,
+    CONF_SYSTEMTRANSFER_SOURCE = GUI_LAST,
+    CONF_VIDEO,
     CONF_LANGUAGE,
     CONF_MOUSE_SENSE,
     CONF_JOYSTICK,
@@ -76,6 +81,43 @@ static int sound_id[11];
 #define MOUSE_RANGE_UNMAP(i) \
     (MOUSE_RANGE_MAX - (i * MOUSE_RANGE_INC))
 
+#if defined(_WIN32) && !defined(__EMSCRIPTEN__)
+void demo_transfer_request_addreplay_dispatch_event(int status_limit)
+{
+    Array items = demo_dir_scan();
+    int total = array_len(items);
+    demo_dir_load(items, 0, total - 1);
+
+    for (int i = 0; i < total; i++)
+    {
+        struct demo* demoplayable = ((struct demo*)((struct dir_item*)array_get(items, i))->data);
+
+        if (demoplayable)
+        {
+            int limit = status_limit;
+            int max = 0;
+
+            if (demoplayable->status == 3) {
+                max = 3;
+            }
+            else if (demoplayable->status == 1 || demoplayable->status == 0) {
+                max = 2;
+            }
+            else if (demoplayable->status == 2) {
+                max = 1;
+            }
+
+            if (max <= limit)
+                transfer_addreplay(demoplayable->path);
+            else
+                transfer_addreplay_exceeded();
+        }
+    }
+
+    demo_dir_free(items);
+}
+#endif
+
 static int conf_action(int tok, int val)
 {
     int sound = config_get_d(CONFIG_SOUND_VOLUME);
@@ -90,6 +132,13 @@ static int conf_action(int tok, int val)
     case GUI_BACK:
         goto_state(&st_title);
         break;
+
+#if defined(_WIN32) && !defined(__EMSCRIPTEN__)
+    case CONF_SYSTEMTRANSFER_SOURCE:
+        transfer_add_dispatch_event(demo_transfer_request_addreplay_dispatch_event);
+        goto_state(&st_transfer);
+        break;
+#endif
 
     case CONF_VIDEO:
         goto_state(&st_video);
@@ -159,6 +208,10 @@ static int conf_gui(void)
         int name_id, ball_id, lang_id;
 
         conf_header(id, _("Options"), GUI_BACK);
+
+        conf_state(id, _("Pennyball Transfer Tool"), _("Start"), CONF_SYSTEMTRANSFER_SOURCE);
+
+        gui_space(id);
 
         conf_state(id, _("Graphics"), _("Configure"), CONF_VIDEO);
 

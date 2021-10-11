@@ -52,8 +52,8 @@
 #define SOURCE_TRANSFER_WARNING_EXTERNAL "Do not touch the External Drive, exit the\\game or turn off the PC, otherwise data\\may be lost."
 #define SOURCE_TRANSFER_WARNING_INTERNAL "Do not exit the game or turn off the PC,\\otherwise data may be lost."
 
-#define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_COVID "There are all level status currently stored in the\\Replay of this game. The Replay in the target game\\has an COVID-19 feature, so the Replays\\will be lost, if you perform this transfer now."
-#define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_USER "There are all level status currently stored in the\\Replay of this game. The Replay in the target game\\has an premade filters, so the Replays\\will be lost, if you perform this transfer now."
+#define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_COVID "There are exceeded level status currently stored in the\\Replay of this game. The Replay in the target game\\has an COVID-19 feature, so the Replays\\will be lost, if you perform this transfer now."
+#define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_USER "There are exceeded level status currently stored in the\\Replay of this game. The Replay in the target game\\has an premade filters, so the Replays\\will be lost, if you perform this transfer now."
 #define SOURCE_TRANSFER_WARNING_REPLAY_BACKUP "If you do not want to delete these Replays,\\you should move them to the backup folder\\before performing this transfer."
 #define SOURCE_TRANSFER_WARNING_REPLAY_CONTINUE "Do you wish to continue with the transfer?"
 

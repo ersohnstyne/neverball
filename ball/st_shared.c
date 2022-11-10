@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima - 2006 Jean Privat
- * Part of the Neverball Project http://icculus.org/neverball/
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,6 +11,10 @@
  * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
  * General Public License for more details.
  */
+
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#include "console_control_gui.h"
+#endif
 
 #include "gui.h"
 #include "config.h"
@@ -51,6 +54,11 @@ int shared_point_basic(int id, int x, int y)
 
 void shared_point(int id, int x, int y, int dx, int dy)
 {
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+    if (current_platform == PLATFORM_PC)
+        xbox_toggle_gui(0);
+#endif
+
     shared_point_basic(id, x, y);
 }
 
@@ -66,6 +74,9 @@ int shared_stick_basic(int id, int a, float v, int bump)
 
 void shared_stick(int id, int a, float v, int bump)
 {
+#if !defined(__EMSCRIPTEN__)
+    xbox_toggle_gui(1);
+#endif
     shared_stick_basic(id, a, v, bump);
 }
 

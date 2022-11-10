@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,9 +12,15 @@
  * General Public License for more details.
  */
 
+#if _WIN32 && __GNUC__
+#include <SDL2/SDL.h>
+#else
 #include <SDL.h>
+#endif
 #include <math.h>
 #include <assert.h>
+
+#include "checkpoints.h" // New: Checkpoints
 
 #include "glext.h"
 #include "vec3.h"
@@ -26,12 +32,17 @@
 #include "config.h"
 #include "video.h"
 
+#include "solid_chkp.h"
 #include "solid_draw.h"
 
 #include "game_client.h"
 #include "game_common.h"
 #include "game_proxy.h"
 #include "game_draw.h"
+
+#include "progress.h"
+#include "state.h"
+#include "st_level.h"
 
 #include "cmd.h"
 
@@ -47,10 +58,13 @@ int game_compat_map;                    /* Client/server map compat flag     */
 static struct game_draw gd;
 static struct game_lerp gl;
 
-static float timer  = 0.0f;             /* Clock time                        */
-static int   gained = 0;                /* Time increased mid-level          */
-static int   status = GAME_NONE;        /* Outcome of the game               */
-static int   coins  = 0;                /* Collected coins                   */
+static float timer       = 0.0f;        /* Clock time                        */
+static int   timer_down  = 1;           /* Timer go up or down?              */
+static int   gained      = 0;           /* Time increased mid-level          */
+static int   status      = GAME_NONE;   /* Outcome of the game               */
+static int   coins       = 0;           /* Collected coins                   */
+static int   max_coins   = 0;           /* Maximum coin amount               */
+static float speedometer = 0.f;         /* New: Speedometer                  */
 
 static struct cmd_state cs;             /* Command state                     */
 
@@ -99,7 +113,7 @@ static void game_run_cmd(const union cmd *cmd)
 
             /* Compute gravity for particle effects. */
 
-            if (status == GAME_GOAL)
+            if (status == GAME_GOAL && !campaign_used())
                 game_tilt_grav(v, GRAVITY_UP, tilt);
             else
                 game_tilt_grav(v, GRAVITY_DN, tilt);
@@ -112,6 +126,11 @@ static void game_run_cmd(const union cmd *cmd)
 
                 if (gd.goal_e && gl.goal_k[CURR] < 1.0f)
                     gl.goal_k[CURR] += dt;
+
+#ifdef MAPC_INCLUDES_CHKP
+                if (!gd.chkp_e && gl.chkp_k[CURR] > 0.f)
+                    gl.chkp_k[CURR] -= dt;
+#endif
 
                 if (gd.jump_b)
                 {
@@ -137,6 +156,7 @@ static void game_run_cmd(const union cmd *cmd)
             {
                 vary->hv = hp;
                 hp = &vary->hv[vary->hc];
+
                 vary->hc++;
 
                 memset(hp, 0, sizeof (*hp));
@@ -145,6 +165,11 @@ static void game_run_cmd(const union cmd *cmd)
 
                 hp->t = cmd->mkitem.t;
                 hp->n = cmd->mkitem.n;
+
+#ifdef MAPC_INCLUDES_CHKP
+                if (!last_active)
+#endif
+                    max_coins += cmd->mkitem.n;
             }
 
             break;
@@ -164,6 +189,9 @@ static void game_run_cmd(const union cmd *cmd)
             break;
 
         case CMD_TILT_ANGLES:
+            tilt->rx = cmd->tiltangles.x;
+            tilt->rz = cmd->tiltangles.z;
+
             if (!cs.got_tilt_axes)
             {
                 /*
@@ -174,23 +202,32 @@ static void game_run_cmd(const union cmd *cmd)
                  * tilt axes, we use the view vectors.
                  */
 
-                game_tilt_axes(tilt, view->e);
+                game_tilt_calc(tilt, view->e);
             }
+            else
+            {
+                /* Use the axes we received via CMD_TILT_AXES. */
 
-            tilt->rx = cmd->tiltangles.x;
-            tilt->rz = cmd->tiltangles.z;
+                game_tilt_calc(tilt, NULL);
+            }
             break;
 
         case CMD_SOUND:
             /* Play the sound. */
 
             if (cmd->sound.n)
-                audio_play(cmd->sound.n, cmd->sound.a);
+            {
+                if (strcmp("snd/time.ogg", cmd->sound.n) == 0 ||
+                    strcmp("snd/fall.ogg", cmd->sound.n) == 0)
+                    audio_narrator_play(cmd->sound.n);
+                else audio_play(cmd->sound.n, cmd->sound.a);
+            }
 
             break;
 
         case CMD_TIMER:
-            timer = cmd->timer.t;
+            //if (!gd.jump_b)
+                timer = cmd->timer.t;
             break;
 
         case CMD_STATUS:
@@ -315,9 +352,51 @@ static void game_run_cmd(const union cmd *cmd)
 
         case CMD_TILT_AXES:
             cs.got_tilt_axes = 1;
+
             v_cpy(tilt->x, cmd->tiltaxes.x);
             v_cpy(tilt->z, cmd->tiltaxes.z);
             break;
+
+        case CMD_TILT:
+            q_cpy(tilt->q, cmd->tilt.q);
+            break;
+
+#ifdef MAPC_INCLUDES_CHKP
+        case CMD_CHKP_ENTER:
+            if ((idx = cmd->chkpenter.ci) >= 0 && idx < vary->cc)
+                vary->cv[idx].e = 1;
+            break;
+
+        case CMD_CHKP_TOGGLE:
+            if ((idx = cmd->chkptoggle.ci) >= 0 && idx < vary->cc)
+                vary->cv[idx].f = !vary->cv[idx].f;
+            break;
+
+        case CMD_CHKP_EXIT:
+            if ((idx = cmd->chkpexit.ci) >= 0 && idx < vary->cc)
+                vary->cv[idx].e = 0;
+            break;
+#endif
+
+        case CMD_SPEEDOMETER:
+            speedometer = cmd->speedometer.xi;
+            break;
+
+        case CMD_ZOOM:
+            /*
+             * New: Zoom; Store with the zoom differences (just like a Switchball)
+             */
+            game_view_zoom(view, cmd->zoom.xi);
+            break;
+
+#ifdef MAPC_INCLUDES_CHKP
+        case CMD_CHKP_DISABLE:
+            if (gd.chkp_e)
+            {
+                gd.chkp_e = 0;
+                gl.chkp_k[CURR] = cs.first_update ? 0.0f : 1.0f;
+            }
+#endif
 
         case CMD_NONE:
         case CMD_MAX:
@@ -348,39 +427,124 @@ int  game_client_init(const char *file_name)
     char *back_name = "", *grad_name = "";
     int i;
 
+    /*
+     * --- CHECKPOINT DATA ---
+     * If you haven't loaded Level data for each checkpoints,
+     * Levels for your default data will be used.
+     */
+
+#ifdef MAPC_INCLUDES_CHKP
+    if (!last_active)
+#endif
+        max_coins = 0;
+
+#ifdef MAPC_INCLUDES_CHKP
+    coins  = last_active ? last_coins : 0;
+#else
     coins  = 0;
+#endif
     status = GAME_NONE;
 
-    game_client_free(file_name);
+#ifdef MAPC_INCLUDES_CHKP
+    /*
+     * --- CHECKPOINT DATA ---
+     * If you haven't loaded your vary data for each checkpoints,
+     * Varys for your default will be used.
+     */
+    if (!last_active)
+#endif
+        game_client_free(file_name);
 
     /* Load SOL data. */
 
-    if (!game_base_load(file_name))
-        return (gd.state = 0);
+    /*
+     * --- CHECKPOINT DATA ---
+     * If you haven't loaded solid data for each checkpoints,
+     * Solid for your default data will be used.
+     */
 
-    if (!sol_load_vary(&gd.vary, &game_base))
+#ifdef MAPC_INCLUDES_CHKP
+    if (!last_active)
     {
-        game_base_free(NULL);
-        return (gd.state = 0);
-    }
+#endif
+        if (!game_base_load(file_name))
+            return (gd.state = 0);
 
-    if (!sol_load_draw(&gd.draw, &gd.vary, config_get_d(CONFIG_SHADOW)))
-    {
-        sol_free_vary(&gd.vary);
-        game_base_free(NULL);
-        return (gd.state = 0);
+#ifdef MAPC_INCLUDES_CHKP
     }
+    else
+        log_errorf("Loading client's game base is blocked during checkpoints is active!: %s\n", file_name);
+#endif
+
+#ifdef MAPC_INCLUDES_CHKP
+    /*
+     * --- CHECKPOINT DATA ---
+     * If you haven't loaded vary data for each checkpoints,
+     * Varys for your default data will be used.
+     */
+
+    if (last_active)
+        log_errorf("Loading client's vary from game base is blocked during checkpoints is active!\n");
+    else
+    {
+#endif
+        if (!sol_load_vary(&gd.vary, &game_base))
+        {
+            game_base_free(NULL);
+            return (gd.state = 0);
+        }
+
+        if (!sol_load_draw(&gd.draw, &gd.vary, config_get_d(CONFIG_SHADOW)))
+        {
+            sol_free_vary(&gd.vary);
+            game_base_free(NULL);
+            return (gd.state = 0);
+        }
+#ifdef MAPC_INCLUDES_CHKP
+    }
+#endif
 
     gd.state = 1;
 
     /* Initialize game state. */
 
     game_tilt_init(&gd.tilt);
-    game_view_init(&gd.view);
+
+#ifdef MAPC_INCLUDES_CHKP
+    /*
+     * --- CHECKPOINT DATA ---
+     * If you haven't loaded your view data for each checkpoints,
+     * Data of view for your default will be used.
+     */
+    if (!last_active)
+#endif
+        game_view_init(&gd.view);
+#ifdef MAPC_INCLUDES_CHKP
+    else
+        log_errorf("Loading client's view is blocked during checkpoints is active!\n");
+#endif
 
     gd.jump_e  = 1;
     gd.jump_b  = 0;
     gd.jump_dt = 0.0f;
+
+#ifdef MAPC_INCLUDES_CHKP
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if (curr_mode() == MODE_HARDCORE || curr_balls() == 0)
+#else
+    if (curr_balls() == 0)
+#endif
+    {
+        /* All checkpoints were removed in HARDCORE MODE!or last balls. */
+        gd.chkp_e = 0;
+        gd.chkp_k = 0.0f;
+    }
+    else
+    {
+        gd.chkp_e = 1;
+        gd.chkp_k = 1.0f;
+    }
+#endif
 
     gd.goal_e = 0;
     gd.goal_k = 0.0f;
@@ -408,7 +572,11 @@ int  game_client_init(const char *file_name)
         if (strcmp(k, "grad") == 0) grad_name = v;
 
         if (strcmp(k, "version") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v, "%d.%d", &version.x, &version.y);
+#else
             sscanf(v, "%d.%d", &version.x, &version.y);
+#endif
     }
 
     /*
@@ -431,6 +599,7 @@ int  game_client_init(const char *file_name)
     /* Initialize background. */
 
     back_init(grad_name);
+
     sol_load_full(&gd.back, back_name, 0);
 
     /* Initialize lighting. */
@@ -457,6 +626,11 @@ void game_client_free(const char *next)
         back_free();
     }
     gd.state = 0;
+}
+
+int game_client_get_jump_b(void)
+{
+    return gd.jump_b;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -504,9 +678,19 @@ int curr_coins(void)
     return coins;
 }
 
+int curr_max_coins(void)
+{
+    return max_coins;
+}
+
 int curr_status(void)
 {
     return status;
+}
+
+float curr_speedometer(void)
+{
+    return speedometer;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -553,13 +737,178 @@ void game_fade(float d)
     gd.fade_d = d;
 }
 
+void game_fade_color(float r, float g, float b)
+{
+    sol_fade_color(r, g, b);
+}
+
 /*---------------------------------------------------------------------------*/
 
 void game_client_fly(float k)
 {
-    game_view_fly(&gl.view[CURR], &gd.vary, k);
+    /* TODO: Add player index for multiplayers. */
+
+    game_view_fly(&gl.view[CURR], &gd.vary, 0, k);
 
     gl.view[PREV] = gl.view[CURR];
+}
+
+/*---------------------------------------------------------------------------*/
+
+#define STUDIO_CAM_SCALE 0.015625f
+#define STUDIO_TRANSITION 1.0f
+
+#define STUDIO_MAX_TIME_MEDIUM 2.5f
+#define STUDIO_MAX_TIME_FAST 1.0f
+
+static int studio_map_index = 12;
+static float studio_time_length;
+
+static const char studio_map[15][256] =
+{
+    "map-easy/coins.sol",
+    "map-medium/accordian.sol",
+    "map-hard/curbs.sol",
+    "map-easy/lollipop.sol",
+    "map-tones/blue.sol",
+    "map-hard/sync.sol",
+    "map-easy/hole.sol",
+    "map-medium/learngrow.sol",
+    "map-hard/frogger.sol",
+    "map-easy/corners.sol",
+    "map-mym/scrambling.sol",
+    "map-hard/ring.sol",
+    "map-easy/mover.sol",
+    "map-medium/timer.sol",
+    "map-hard/movers.sol"
+};
+
+/* Netradiant position coordinates */
+static float studio_cam_from_pos[15][2][3] =
+{
+    { { 232, -96, 544 } , { 304, -96, 544 } },
+    { { -80, -1184, 744 } , { 16, -1184, 744 } },
+    { { 784, -416, 554 } , { 832, -320, 568 } },
+    { { -1152, 514, 640 } , { -1259, 544, 723 } },
+    { { 640, -224, 421 } , { 672, -128, 448 } },
+    { { 512, -256, 192 } , { 536, -214, 112 } },
+    { { -828, 272, 360 } , { -512, 128, 704 } },
+    { { -232, -1584, 444 } , { -608, -1416, 143 } },
+    { { -152, -136, 160 } , { 104, -80, 145 } },
+    { { 656, -176, 160 } , { 656, -176, -48 } },
+    { { -768, -576, 448 } , { -768, -208, -128 } },
+    { { 0, -576, 320 } , { 256, -576, -32 } },
+    { { 688, -120, 80 } , { 104, -328, 152 } },
+    { { -456, 8, 360 } , { -112, -322, 156 } },
+    { { -560, -400, 576 } , { 544, -424, -120 } }
+};
+
+/* Netradiant position coordinates */
+static float studio_cam_center_pos[15][2][3] =
+{
+    { { 96, 288, 16 } , { 74, 288, 16 } },
+    { { -48, -624, 312 } , { -16, -624, 312 } },
+    { { 128, 272, 24 } , { 128, 320, 24 } },
+    { { 0, 1141, 6 } , { 0, 1141, 6 } },
+    { { 256, 256, 0 } , { 352, 160, 0 } },
+    { { 88, 432, 95 } , { 104, 376, 64 } },
+    { { 64, 576, 4 } , { 67, 566, 4 } },
+    { { 0, 0, 144 } , { 0, 0, 144 } },
+    { { 64, 384, 32 } , { 64, 384, 32 } },
+    { { 88, 736, 120 } , { 88, 736, 120 } },
+    { { 0, 1048, -40 } , { 0, 1048, -40 } },
+    { { 192, 576, 28 } , { 192, 576, 28 } },
+    { { 64, 576, 32 } , { 64, 576, 32 } },
+    { { 608, 192, 56 } , { 336, 56, 56 } },
+    { { -120, 728, 56 } , { 88, 728, 56 } }
+};
+
+static float studio_cam_rot_roll[15][2] =
+{
+    { 0.0f, 0.0f },
+    { 0.0f, 0.0f },
+    { 0.0f, 0.0f },
+    { 0.0f, 0.0f },
+    { 0.0f, 0.0f },
+    { -7.0f, 4.0f },
+    { -9.0f, 3.0f },
+    { -5.0f, 5.0f },
+    { 8.0f, -3.0f },
+    { 5.0f, -6.0f },
+    { -2.0f, 4.0f },
+    { -3.0f, 2.5f },
+    { 3.0f, -5.0f },
+    { -4.0f, 0.0f },
+    { 5.0f, -5.0f }
+};
+
+static void game_client_next_studio_map(void)
+{
+    if (studio_map_index == 14)
+        studio_map_index = 0;
+    else
+        studio_map_index++;
+
+    if (game_client_init(studio_map[studio_map_index]))
+    {
+        union cmd cmd;
+
+        cmd.type = CMD_GOAL_OPEN;
+        game_proxy_enq(&cmd);
+        game_client_sync(NULL);
+
+        game_kill_fade();
+    }
+    else
+        studio_map_index--;
+}
+
+void game_client_step_studio(float deltatime)
+{
+    if (deltatime > 0.017f)
+        return;
+
+    float studio_max_time = STUDIO_MAX_TIME_MEDIUM + STUDIO_TRANSITION;
+
+    if (studio_time_length > studio_max_time)
+    {
+        studio_time_length = 0;
+        game_client_next_studio_map();
+    }
+    else
+    {
+        studio_time_length += deltatime;
+    }
+
+    float pos[3];
+    float center[3];
+
+    v_lerp(pos, studio_cam_from_pos[studio_map_index][0], studio_cam_from_pos[studio_map_index][1], (studio_time_length / studio_max_time));
+    v_lerp(center, studio_cam_center_pos[studio_map_index][0], studio_cam_center_pos[studio_map_index][1], (studio_time_length / studio_max_time));
+
+    v_scl(pos, pos, STUDIO_CAM_SCALE);
+    v_scl(center, center, STUDIO_CAM_SCALE);
+
+    float realPos[3] = { pos[0], pos[2], -pos[1] };
+    float realCenter[3] = { center[0], center[2], -center[1] };
+
+    game_view_set_pos_and_target(&gl.view, &gd.vary, realPos, realCenter);
+
+    gd_rotate_roll = CLAMP(-45, flerp(studio_cam_rot_roll[studio_map_index][0], studio_cam_rot_roll[studio_map_index][1], (studio_time_length / studio_max_time)), 45);
+}
+
+void game_client_init_studio(void)
+{
+    if (game_client_init(studio_map[studio_map_index]))
+    {
+        union cmd cmd;
+
+        cmd.type = CMD_GOAL_OPEN;
+        game_proxy_enq(&cmd);
+        game_client_sync(NULL);
+
+        game_kill_fade();
+    }
 }
 
 /*---------------------------------------------------------------------------*/

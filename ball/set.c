@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -16,14 +16,22 @@
 #include <string.h>
 #include <assert.h>
 
+#if NB_HAVE_PB_BOTH==1
+#include "campaign.h"
+#include "networking.h"
+#endif
+
 #include "glext.h"
+#include "account.h"
 #include "config.h"
 #include "video.h"
 #include "image.h"
 #include "set.h"
 #include "common.h"
 #include "fs.h"
+#ifndef FS_VERSION_1
 #include "package.h"
+#endif
 
 #include "game_server.h"
 #include "game_client.h"
@@ -49,7 +57,7 @@ struct set
     /* Level info                                                            */
 
     int   count;                        /* Number of levels                  */
-    char *level_name_v[MAXLVL];         /* List of level file names          */
+    char *level_name_v[MAXLVL_SET];         /* List of level file names          */
 };
 
 #define SET_GET(a, i) ((struct set *) array_get((a), (i)))
@@ -57,7 +65,7 @@ struct set
 static Array sets;
 static int   curr;
 
-static struct level level_v[MAXLVL];
+static struct level level_v[MAXLVL_SET];
 
 /*---------------------------------------------------------------------------*/
 
@@ -87,7 +95,11 @@ static int get_score(fs_file fp, struct score *s)
 
         strip_newline(line);
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        if (sscanf_s(line, "%d %d %n", &s->timer[i], &s->coins[i], &n) < 2)
+#else
         if (sscanf(line, "%d %d %n", &s->timer[i], &s->coins[i], &n) < 2)
+#endif
             return 0;
 
         if (n < 0)
@@ -103,8 +115,19 @@ void set_store_hs(void)
 {
     const struct set *s = SET_GET(sets, curr);
     fs_file fp;
-
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#ifdef FS_VERSION_1
+    if ((fp = fs_open(config_cheat() ? s->cheat_scores : s->user_scores, "w")))
+#else
     if ((fp = fs_open_write(config_cheat() ? s->cheat_scores : s->user_scores)))
+#endif
+#else
+#ifdef FS_VERSION_1
+    if ((fp = fs_open(s->user_scores, "w")))
+#else
+    if ((fp = fs_open_write(s->user_scores)))
+#endif
+#endif
     {
         int i;
 
@@ -131,6 +154,11 @@ void set_store_hs(void)
 
         fs_close(fp);
     }
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+    else log_errorf("Save set highscores failed!: %s / %s\n", config_cheat() ? s->cheat_scores : s->user_scores, fs_error());
+#else
+    else log_errorf("Save set highscores failed!: %s / %s\n", s->user_scores, fs_error());
+#endif
 }
 
 static void set_load_hs_v1(fs_file fp, struct set *s, char *buf, int size)
@@ -197,7 +225,11 @@ static void set_load_hs_v2(fs_file fp, struct set *s, char *buf, int size)
 
             set_score = 1;
         }
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        else if (sscanf_s(buf, "level %d %d %n", &flags, &version, &n) >= 2)
+#else
         else if (sscanf(buf, "level %d %d %n", &flags, &version, &n) >= 2)
+#endif
         {
             struct level *l;
 
@@ -234,8 +266,19 @@ static void set_load_hs(void)
 {
     struct set *s = SET_GET(sets, curr);
     fs_file fp;
-
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#ifdef FS_VERSION_1
+    if ((fp = fs_open(config_cheat() ? s->cheat_scores : s->user_scores, "r")))
+#else
     if ((fp = fs_open_read(config_cheat() ? s->cheat_scores : s->user_scores)))
+#endif
+#else
+#ifdef FS_VERSION_1
+    if ((fp = fs_open(s->user_scores, "r")))
+#else
+    if ((fp = fs_open_read(s->user_scores)))
+#endif
+#endif
     {
         char buf[MAXSTR];
 
@@ -243,7 +286,11 @@ static void set_load_hs(void)
         {
             strip_newline(buf);
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            if (sscanf_s(buf, "version %d", &score_version) == 1)
+#else
             if (sscanf(buf, "version %d", &score_version) == 1)
+#endif
             {
                 switch (score_version)
                 {
@@ -260,6 +307,7 @@ static void set_load_hs(void)
 
 /*---------------------------------------------------------------------------*/
 
+#ifndef FS_VERSION_1
 /*
  * Create a placeholder "set" from package data.
  *
@@ -282,31 +330,60 @@ static int set_package_placeholder(struct set *s, int package_id)
 
     return 0;
 }
+#endif
 
 static int set_load(struct set *s, const char *filename)
 {
     fs_file fin;
     char *scores, *level_name;
 
-    /* Skip "Misc" set when not in dev mode. */
+    /* Skip "Misc" or deprecated set when not in dev mode. */
 
-    if (strcmp(filename, SET_MISC) == 0 && !config_cheat())
+    if ((strcmp(filename, SET_MISC) == 0 || strcmp(filename, "set-htst.txt") == 0)
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+        && !config_cheat()
+#endif
+        ) { return 0; }
+
+#if NB_HAVE_PB_BOTH==1
+#ifdef CONFIG_INCLUDES_ACCOUNT
+    /* Add more level sets when products bought. */
+    if ((strcmp(filename, "set-easy.txt") != 0 && strcmp(filename, "set-medium.txt") != 0 && strcmp(filename, "set-hard.txt") != 0 &&
+        strcmp(filename, "set-mym.txt") != 0 && strcmp(filename, "set-mym2.txt") != 0 && strcmp(filename, "set-fwp.txt") != 0 &&
+        strcmp(filename, "set-tones.txt") != 0 && strcmp(filename, "set-misc.txt") != 0) && (account_get_d(ACCOUNT_PRODUCT_LEVELS) == 0
+        && !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))) { return 0; }
+#else
+    if ((strcmp(filename, "set-easy.txt") != 0 && strcmp(filename, "set-medium.txt") != 0 && strcmp(filename, "set-hard.txt") != 0 &&
+        strcmp(filename, "set-mym.txt") != 0 && strcmp(filename, "set-mym2.txt") != 0 && strcmp(filename, "set-fwp.txt") != 0 &&
+        strcmp(filename, "set-tones.txt") != 0 && strcmp(filename, "set-misc.txt") != 0)
+            && !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))) {
         return 0;
+    }
+#endif
+#endif
 
+#ifdef FS_VERSION_1
+    fin = fs_open(filename, "r");
+#else
     fin = fs_open_read(filename);
+#endif
 
     if (!fin)
     {
-        log_printf("Failure to load set file %s\n", filename);
+        log_errorf("Failure to load set file %s\n", filename);
         return 0;
     }
 
     memset(s, 0, sizeof (struct set));
 
-    /* Set some sane values in case the scores are missing. */
+    /* Set some same values in case the scores are missing. */
 
     score_init_hs(&s->time_score, 359999, 0);
     score_init_hs(&s->coin_score, 359999, 0);
+
+#if NB_STEAM_API==1
+    score_steam_init_hs(s->id, 1);
+#endif
 
     SAFECPY(s->file, filename);
 
@@ -316,7 +393,11 @@ static int set_load(struct set *s, const char *filename)
         read_line(&s->shot, fin) &&
         read_line(&scores,  fin))
     {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sscanf_s(scores, "%d %d %d %d %d %d",
+#else
         sscanf(scores, "%d %d %d %d %d %d",
+#endif
                &s->time_score.timer[RANK_HARD],
                &s->time_score.timer[RANK_MEDM],
                &s->time_score.timer[RANK_EASY],
@@ -331,7 +412,7 @@ static int set_load(struct set *s, const char *filename)
 
         s->count = 0;
 
-        while (s->count < MAXLVL && read_line(&level_name, fin))
+        while (s->count < MAXLVL_SET && read_line(&level_name, fin))
         {
             s->level_name_v[s->count] = level_name;
             s->count++;
@@ -342,7 +423,7 @@ static int set_load(struct set *s, const char *filename)
         return 1;
     }
 
-    log_printf("Failure to load set file %s\n", filename);
+    log_errorf("Failure to load set file %s\n", filename);
 
     free(s->name);
     free(s->desc);
@@ -390,15 +471,23 @@ static int is_unseen_set(struct dir_item *item)
             !set_is_loaded(item->path));
 }
 
-int set_init()
+static int is_unseen_boost(struct dir_item *item)
+{
+    return (str_starts_with(base_name(item->path), "boost-") &&
+            str_ends_with(item->path, ".txt") &&
+            !set_is_loaded(item->path));
+}
+
+int set_init(int boost_active)
 {
     fs_file fin;
     char *name;
 
     Array items;
     int i;
-
+#ifndef FS_VERSION_1
     int package_id;
+#endif
 
     if (sets)
         set_quit();
@@ -409,8 +498,11 @@ int set_init()
     /*
      * First, load the sets listed in the set file, preserving order.
      */
-
-    if ((fin = fs_open_read(SET_FILE)))
+#ifdef FS_VERSION_1
+    if ((fin = fs_open( boost_active == 1 ? BOOST_FILE : SET_FILE, "r")))
+#else
+    if ((fin = fs_open_read(boost_active == 1 ? BOOST_FILE : SET_FILE)))
+#endif
     {
         while (read_line(&name, fin))
         {
@@ -429,7 +521,7 @@ int set_init()
      * them after the first group in alphabetic order.
      */
 
-    if ((items = fs_dir_scan("", is_unseen_set)))
+    if ((items = fs_dir_scan("", (boost_active ? is_unseen_boost : is_unseen_set))))
     {
         array_sort(items, cmp_dir_items);
 
@@ -444,6 +536,7 @@ int set_init()
         fs_dir_free(items);
     }
 
+#ifndef FS_VERSION_1
     /*
      * Add placeholders for each package that provides a level set.
      *
@@ -470,6 +563,7 @@ int set_init()
             }
         }
     }
+#endif
 
     return array_len(sets);
 }
@@ -487,6 +581,7 @@ void set_quit(void)
 
 /*---------------------------------------------------------------------------*/
 
+#ifndef FS_VERSION_1
 /*
  * Figure out if a package can be downloaded for this level set.
  */
@@ -501,8 +596,8 @@ int set_is_downloadable(int i)
             enum package_status status = package_get_status(package_id);
 
             return (status == PACKAGE_AVAILABLE ||
-                    status == PACKAGE_PARTIAL ||
-                    status == PACKAGE_ERROR);
+                status == PACKAGE_PARTIAL ||
+                status == PACKAGE_ERROR);
         }
     }
 
@@ -653,7 +748,7 @@ int set_download(int i, struct fetch_callback callback)
                 callback.done = set_download_done;
                 callback.data = sfi;
 
-                return (package_fetch(package_id, callback) > 0);
+                return (package_fetch(package_id, callback, PACKAGE_CATEGORY_LEVELSET) > 0);
             }
         }
     }
@@ -662,6 +757,8 @@ int set_download(int i, struct fetch_callback callback)
 }
 
 /*---------------------------------------------------------------------------*/
+
+#endif
 
 int set_exists(int i)
 {
@@ -681,6 +778,11 @@ const char *set_id(int i)
 const char *set_name(int i)
 {
     return set_exists(i) ? _(SET_GET(sets, i)->name) : NULL;
+}
+
+const char *set_name_n(int i)
+{
+    return set_exists(i) ? N_(SET_GET(sets, i)->name) : NULL;
 }
 
 const char *set_desc(int i)
@@ -705,27 +807,38 @@ const struct score *set_score(int i, int s)
 
 /*---------------------------------------------------------------------------*/
 
+#define SET_DEFAULT_MAX_TIME_LIMIT 359999
+static int default_set_maxtimelimit;
+static int default_set_mincoinrequered;
+
 static void set_load_levels(void)
 {
     static const char *roman[] = {
         "",
-        "I", "II", "III", "IV", "V",
-        "VI", "VII", "VIII", "IX", "X",
-        "XI", "XII", "XIII", "XIV", "XV",
-        "XVI", "XVII", "XVIII", "XIX", "XX",
-        "XXI", "XXII", "XXIII", "XXIV", "XXV"
+        "I", "II", "III", "IV", "V", // 1 - 5
+        "VI", "VII", "VIII", "IX", "X", // 6 - 10
+        "XI", "XII", "XIII", "XIV", "XV", // 11 - 15
+        "XVI", "XVII", "XVIII", "XIX", "XX", // 16 - 20
+        "XXI", "XXII", "XXIII", "XXIV", "XXV", // 21 - 25
+        "XXVI", "XXVII", "XXVIII", "XXIX", "XXX", // 26 - 30
+        "XXXI", "XXXII", "XXXIII", "XXXIV", "XXXV", // 31 - 35
+        "XXXVI", "XXXVII", "XXXVIII", "XIL", "XL", // 36 - 40
+        "XLI", "XLII", "XLIII", "XLIV", "XLV", // 41 - 45
+        "XLVI", "XLVII", "XLVIII", "IL", "L", // 46 - 50
     };
 
     struct set *s = SET_GET(sets, curr);
     int regular = 1, bonus = 1;
     int i;
 
+    default_set_maxtimelimit = 0;
+    default_set_mincoinrequered = 0;
+
     for (i = 0; i < s->count; i++)
     {
         struct level *l = &level_v[i];
 
-        level_load(s->level_name_v[i], l);
-
+        int lvl_was_offered = level_load(s->level_name_v[i], l);
         l->number = i;
 
         if (l->is_bonus)
@@ -735,15 +848,59 @@ static void set_load_levels(void)
         }
         else
         {
-            sprintf(l->name, "%02d", regular);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            if (regular + 1 > 100)
+                sprintf_s(l->name, dstSize, "%03d", regular);
+            else if (regular + 1 > 10)
+                sprintf_s(l->name, dstSize, "%02d", regular);
+            else
+                sprintf_s(l->name, dstSize, "%01d", regular);
+#else
+            if (regular + 1 > 100)
+                sprintf(l->name, "%03d", regular);
+            else if (regular + 1 > 10)
+                sprintf(l->name, "%02d", regular);
+            else
+                sprintf(l->name, "%01d", regular);
+#endif
+
             regular++;
         }
 
         l->is_locked = (i > 0);
-        l->is_completed = 0;
+
+        if (lvl_was_offered)
+        {
+            l->is_completed = 0;
+
+            if (l->time > 0)
+                default_set_maxtimelimit += l->time;
+            else if (default_set_maxtimelimit < SET_DEFAULT_MAX_TIME_LIMIT)
+            {
+                log_printf("No time limit on this level, so time limit for level set has been lifted.\n");
+                default_set_maxtimelimit = SET_DEFAULT_MAX_TIME_LIMIT;
+            }
+
+            if (l->goal)
+                default_set_mincoinrequered += l->goal;
+        }
 
         if (i > 0)
             level_v[i - 1].next = l;
+    }
+
+    for (int r = 0; r < 3; r++)
+    {
+        /* Most coins and Best Time built-in limitations. */
+
+        if (s->coin_score.coins[r] < default_set_mincoinrequered)
+            s->coin_score.coins[r] = default_set_mincoinrequered;
+        if (s->coin_score.timer[r] > default_set_maxtimelimit)
+            s->coin_score.timer[r] = default_set_maxtimelimit;
+        if (s->time_score.coins[r] < default_set_mincoinrequered)
+            s->time_score.coins[r] = default_set_mincoinrequered;
+        if (s->time_score.timer[r] > default_set_maxtimelimit)
+            s->time_score.timer[r] = default_set_maxtimelimit;
     }
 }
 
@@ -783,6 +940,10 @@ struct level *get_level(int i)
 
 int set_score_update(int timer, int coins, int *score_rank, int *times_rank)
 {
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    assert(!campaign_used());
+#endif
+
     struct set *s = SET_GET(sets, curr);
     const char *player = config_get_s(CONFIG_PLAYER);
 
@@ -830,11 +991,18 @@ void level_snap(int i, const char *path)
         /* Render the level and grab the screen. */
 
         video_clear();
+
+        if (viewport_wireframe)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
         game_client_fly(1.0f);
         game_kill_fade();
         game_client_draw(POSE_LEVEL, 0);
         video_snap(filename);
         video_swap();
+
+        if (viewport_wireframe == 1)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
 
     free(filename);
@@ -848,6 +1016,19 @@ void set_cheat(void)
     {
         level_v[i].is_locked    = 0;
         level_v[i].is_completed = 1;
+    }
+}
+
+void set_detect_bonus_product(void)
+{
+    int i;
+
+    for (i = 0; i < SET_GET(sets, curr)->count; i++)
+    {
+        if (level_v[i].is_bonus) {
+            level_v[i].is_locked    = 0;
+            level_v[i].is_completed = 0;
+        }
     }
 }
 

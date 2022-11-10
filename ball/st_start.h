@@ -4,7 +4,9 @@
 #include "state.h"
 
 extern struct state st_start;
-
-int goto_end_level(void);
+#if NB_HAVE_PB_BOTH == 1
+extern struct state st_start_unavailable;
+#endif
+extern struct state st_start_compat;
 
 #endif

@@ -49,15 +49,48 @@ endif
 ifeq ($(DEBUG),1)
 	CFLAGS   := -g
 	CXXFLAGS := -g
-	CPPFLAGS :=
+	CPPFLAGS := -D_DEBUG
+ifeq ($(BUILD),release)
+	# Release builds cannot be continue
+	CFLAGS   := -O2
+	CXXFLAGS := -O2
+	CPPFLAGS := -DNDEBUG
+endif
 else
 	CFLAGS   := -O2
 	CXXFLAGS := -O2
 	CPPFLAGS := -DNDEBUG
 endif
 
+ifneq ($(BUILD),release)
+	CFLAGS   += -DDEVEL_BUILD
+	CXXFLAGS += -DDEVEL_BUILD
+endif
+
+ifneq ($(CRT_SECURE_NO_WARNINGS),0)
+	CFLAGS   += -D_CRT_SECURE_NO_WARNINGS
+	CXXFLAGS += -D_CRT_SECURE_NO_WARNINGS
+endif
+
 #------------------------------------------------------------------------------
 # Mandatory flags
+
+# New design specifications for entities in Pennyball
+#
+# We're introducing new design specifications for entities in Neverball.
+# If you do not do so,  your Entities will be displayed in legacy mode.
+# Entities created after June 20, 2020 must be meet the new electricity
+# before the level is compiled.
+
+ifeq ($(LEGACY_MODE),0)
+	# Entities for SOL file uses an old specification.
+	ALL_CPPFLAGS := -DLEGACY_MODE=0
+else
+	# Legacy mode for original Entities enabled.
+	ALL_CPPFLAGS := -DLEGACY_MODE=1
+endif
+
+ALL_CPPFLAGS += -DENABLE_ACCOUNT_BINARY
 
 # Compiler...
 
@@ -75,10 +108,21 @@ ALL_CXXFLAGS := -fno-rtti -fno-exceptions $(CXXFLAGS)
 
 # Preprocessor...
 
+# New: Steam support
+ifeq ($(ENABLE_STEAM),1)
+	STEAM_CPPFLAGS := -I/usr/local/include -DSTEAM_GAMES=1
+endif
+
+# New: Dedicated server
+ifeq ($(ENABLE_DEDICATED_SERVER),1)
+	DEDICATED_CPPFLAGS := -DENABLE_DEDICATED_SERVER=1
+endif
+
 SDL_CPPFLAGS := $(shell sdl2-config --cflags)
 PNG_CPPFLAGS := $(shell libpng-config --cflags)
 
-ALL_CPPFLAGS := $(SDL_CPPFLAGS) $(PNG_CPPFLAGS) -Ishare
+ALL_CPPFLAGS := $(DEDICATED_CPPFLAGS) $(STEAM_CPPFLAGS) \
+	$(SDL_CPPFLAGS) $(PNG_CPPFLAGS) -Ishare
 
 ALL_CPPFLAGS += \
 	-DCONFIG_USER=\"$(USERDIR)\" \
@@ -145,6 +189,11 @@ ALL_CPPFLAGS += $(HMD_CPPFLAGS)
 
 #------------------------------------------------------------------------------
 # Libraries
+
+# New: Steam support
+ifeq ($(ENABLE_STEAM),1)
+	STEAM_LIBS := -L/usr/local/lib/steam/libsteam_api.so -lsteam_api
+endif
 
 SDL_LIBS := $(shell sdl2-config --libs)
 PNG_LIBS := $(shell libpng-config --libs)
@@ -223,7 +272,7 @@ ifeq ($(ENABLE_FETCH),curl)
 	CURL_LIBS := $(shell curl-config --libs)
 endif
 
-ALL_LIBS := $(HMD_LIBS) $(TILT_LIBS) $(INTL_LIBS) $(TTF_LIBS) \
+ALL_LIBS := $(STEAM_LIBS) $(HMD_LIBS) $(TILT_LIBS) $(INTL_LIBS) $(TTF_LIBS) \
 	$(CURL_LIBS) $(OGG_LIBS) $(SDL_LIBS) $(OGL_LIBS) $(BASE_LIBS)
 
 MAPC_LIBS := $(BASE_LIBS)
@@ -266,7 +315,8 @@ MAPC_OBJS := \
 	share/list.o        \
 	share/mapc.o
 BALL_OBJS := \
-	share/lang.o        \
+	share/accessibility.o\
+	share/lang_gettext.o\
 	share/st_common.o   \
 	share/vec3.o        \
 	share/base_image.o  \
@@ -291,6 +341,7 @@ BALL_OBJS := \
 	share/audio.o       \
 	share/text.o        \
 	share/common.o      \
+	share/st_end_support.o\
 	share/list.o        \
 	share/queue.o       \
 	share/cmd.o         \
@@ -304,7 +355,7 @@ BALL_OBJS := \
 	share/fs_ov.o       \
 	share/log.o         \
 	share/joy.o         \
-	share/package.o     \
+	share/console_control_gui.o\
 	ball/hud.o          \
 	ball/game_common.o  \
 	ball/game_client.o  \
@@ -314,10 +365,18 @@ BALL_OBJS := \
 	ball/score.o        \
 	ball/level.o        \
 	ball/progress.o     \
+	ball/boost_rush.o   \
+	ball/campaign.o     \
+	ball/checkpoints.o  \
+	ball/powerup.o      \
+	ball/mediation.o    \
 	ball/set.o          \
 	ball/demo.o         \
 	ball/demo_dir.o     \
 	ball/util.o         \
+	ball/st_intro.o     \
+	ball/st_tutorial.o  \
+	ball/st_campaign_setup.o\
 	ball/st_conf.o      \
 	ball/st_demo.o      \
 	ball/st_save.o      \
@@ -328,6 +387,7 @@ BALL_OBJS := \
 	ball/st_over.o      \
 	ball/st_play.o      \
 	ball/st_set.o       \
+	ball/st_playmodes.o \
 	ball/st_start.o     \
 	ball/st_title.o     \
 	ball/st_help.o      \
@@ -335,9 +395,12 @@ BALL_OBJS := \
 	ball/st_shared.o    \
 	ball/st_pause.o     \
 	ball/st_ball.o      \
+	ball/st_beam_style.o\
+	ball/st_malfunction.o\
 	ball/main.o
 PUTT_OBJS := \
-	share/lang.o        \
+	share/accessibility.o\
+	share/lang_gettext.o\
 	share/st_common.o   \
 	share/vec3.o        \
 	share/base_image.o  \
@@ -373,6 +436,7 @@ PUTT_OBJS := \
 	share/array.o       \
 	share/log.o         \
 	share/joy.o         \
+	share/console_control_gui.o\
 	putt/hud.o          \
 	putt/game.o         \
 	putt/hole.o         \
@@ -384,10 +448,76 @@ PUTT_OBJS := \
 BALL_OBJS += share/solid_sim_sol.o
 PUTT_OBJS += share/solid_sim_sol.o
 
+ifeq ($(ENABLE_DEDICATED_SERVER),1)
+# Dedicated server, most of people worldwide internet
+$(info You had been choosen dedicated server)
+BALL_OBJS += share/networking_dedicated.o
+PUTT_OBJS += share/networking_dedicated.o
+else
+ifeq ($(EDITION),home)
+BALL_OBJS += share/networking_home.o
+PUTT_OBJS += share/networking_home.o
+else
+ifeq ($(EDITION),pro)
+BALL_OBJS += share/networking_pro.o
+PUTT_OBJS += share/networking_pro.o
+else
+ifeq ($(EDITION),enterprise)
+BALL_OBJS += share/networking_enterprise.o
+PUTT_OBJS += share/networking_enterprise.o
+else
+ifeq ($(EDITION),education)
+BALL_OBJS += share/networking_education.o
+PUTT_OBJS += share/networking_education.o
+else
+ifeq ($(EDITION),server_standard)
+BALL_OBJS += share/networking_srv_standard.o
+PUTT_OBJS += share/networking_srv_standard.o
+else
+ifeq ($(EDITION),server_datacenter)
+BALL_OBJS += share/networking_srv_datacenter.o
+PUTT_OBJS += share/networking_srv_datacenter.o
+else
+BALL_OBJS += share/networking_opensource.o
+PUTT_OBJS += share/networking_opensource.o
+endif
+endif
+endif
+endif
+endif
+endif
+endif
+
+ifeq ($(FS_VERSION),1)
+ifeq ($(ENABLE_FS),stdio)
+BALL_OBJS += share/fs_stdio_v1.o
+PUTT_OBJS += share/fs_stdio_v1.o
+MAPC_OBJS += share/fs_stdio_v1.o
+endif
+ifeq ($(ENABLE_FS),physfs)
+BALL_OBJS += share/fs_physfs.o
+PUTT_OBJS += share/fs_physfs.o
+MAPC_OBJS += share/fs_physfs.o
+endif
+else
 ifeq ($(ENABLE_FS),stdio)
 BALL_OBJS += share/fs_stdio.o share/zip.o
 PUTT_OBJS += share/fs_stdio.o share/zip.o
 MAPC_OBJS += share/fs_stdio.o share/zip.o
+endif
+endif
+
+ifeq ($(ENABLE_STEAM),1)
+BALL_OBJS += share/account_steam.o
+PUTT_OBJS += share/account_steam.o
+else
+BALL_OBJS += share/account_binary.o
+PUTT_OBJS += share/account_binary.o
+endif
+
+ifneq ($(FS_VERSION),1)
+BALL_OBJS += share/package.o
+PUTT_OBJS += share/package.o
 endif
 
 ifeq ($(ENABLE_TILT),wii)
@@ -467,7 +597,9 @@ WINDRES ?= windres
 
 #------------------------------------------------------------------------------
 
-all : $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) sols locales desktops
+all : $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) locales
+
+publish : $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) sols locales desktops
 
 ifeq ($(ENABLE_HMD),libovr)
 LINK := $(CXX) $(ALL_CXXFLAGS)

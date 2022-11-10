@@ -367,6 +367,69 @@ values follow.
         Neverball.
 
 
+* DEDICATED GAME NETWORK SUPPORT
+
+For  information on how to build the game  with dedicated game network
+support on Windows and Linux,  see instructions  in the source file in
+the source archive.
+
+To use it,  first make sure you've set up  all the Wi-Fi  or  Ethernet
+in  your  kernel.  Ethernet  is  best  recommended  for  this  server.
+Once this is done,  you'll need to find out your server's  IP  address
+like this:
+
+    RPI4:
+
+        $ ip a
+        1: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc
+        pfifo_fast state UP group default qlen 1000
+            link/ether b8:27:eb:e8:5b:61 brd ff:ff:ff:ff:ff:ff
+            inet 192.168.8.249/24 brd 192.168.8.255 scope global
+        noprefixroute eth0
+               valid_lft forever preferred_lft forever
+            inet6 2a04:4540:7312:2700:2fef:27f9:3dd6:ac66/64 scope
+        global dynamic mngtmpaddr noprefixroute 
+               valid_lft 6993sec preferred_lft 3393sec
+            inet6 fe80::2021:7fef:4dca:f819/64 scope link 
+               valid_lft forever preferred_lft forever
+
+    Ubuntu OCI:
+
+        $ ip a
+        1: ens3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc
+        pfifo_fast state UP group default qlen 1000
+            link/ether 02:00:17:00:d7:c3 brd ff:ff:ff:ff:ff:ff
+            altname enp0s3
+            inet 10.0.0.199/24 brd 10.0.0.255 scope global ens3
+               valid_lft forever preferred_lft forever
+            inet6 fe80::17ff:fe00:d7c3/64 scope link
+               valid_lft forever preferred_lft forever
+
+    Windows PC:
+
+        C:\>ping 192.168.8.249
+
+        Ping wird ausgeführt für 192.168.8.249 mit 32 Bytes Daten:
+        Antwort von 192.168.8.249: Bytes=32 Zeit=1ms TTL=64
+
+        Ping-Statistik für 192.168.8.249:
+            Pakete: Gesendet = 1, Empfangen = 1, Verloren = 0
+            (0% Verlust),
+        Ca. Zeitangaben in Millisek.:
+            Minimum = 1ms, Maximum = 1ms, Mittelwert = 1ms
+
+This   IPv4   address   must   go   in   the   neverballrc   file   as
+"dedicated_ipaddress 192.168.8.249"  so   that  the  game  knows  that
+there's a game network to be used.
+
+Now, when  you start the game  everything will proceed normally  but a
+background thread will trying to connect the internet.  If  not except
+the server,  you'll need to reconfigure the router in order.
+
+When connected to server,  your client's network packet will instantly
+increase than previous one.
+
+
 * WIIMOTE SUPPORT
 
 For information  on how to build  the game with Wiimote  support under

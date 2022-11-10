@@ -4,13 +4,14 @@
 
 * REQUIREMENTS
 
-    SDL 2.0           http://libsdl.org/download-2.0.php
-    SDL2_ttf          http://libsdl.org/projects/SDL_ttf/
-    libvorbis         http://xiph.org/vorbis/
-    libpng            http://libpng.org/pub/png/libpng.html
-    libjpeg           http://ijg.org/
-    libcurl           optional, see below
-    libintl           optional, see below
+    SDL 2.0           https://libsdl.org/download-2.0.php
+    SDL2_ttf          https://libsdl.org/projects/SDL_ttf/
+    libogg            https://github.com/gcp/libogg
+    libvorbis         https://github.com/Distrotech/libvorbis
+    libpng            https://github.com/glennrp/libpng
+    libjpeg           https://github.com/winlibs/libjpeg
+    gettext           https://www.gnu.org/software/gettext/
+    cURL              optional, see below
 
 
 * COMPILATION
@@ -19,9 +20,10 @@ Under Unix and Linux, simply run
 
     make
 
-Under Windows, install the MSYS2 environment and run
+Under Windows, either build from the Visual Studio 2022 solution,  or
+install the MSYS2 environment and run
 
-    make
+    make CRT_SECURE_NO_WARNINGS=1
 
 Cross-compilation for Windows is also supported. On Fedora Linux, run
 
@@ -34,6 +36,25 @@ Cross-compilation for Windows is also supported. On Fedora Linux, run
 Optional features  can be enabled  at compile  time by passing  one or
 more additional  arguments to  make.  Most  of these  features require
 additional libraries to be installed.
+
+make CRT_SECURE_NO_WARNINGS=0
+    Microsoft Elite Development Lifecycle for Windows.
+    Requires Visual Studio 2022.
+
+make FS_VERSION=1
+    Time travel back to the original standard I/O without ZIP archives.
+    If you use this, then fetch and libcurl will ignored.
+
+make ENABLE_STEAM=1
+    Steam support.
+
+    Steamworks        https://partner.steamgames.com/
+
+make ENABLE_FS=physfs
+    Alternate  file  system  backend  that replaces standard I/O  with
+    PhysicsFS. Requires FS_VERSION=1.
+
+    PhysicsFS         https://icculus.org/physfs/
 
 make ENABLE_NLS=0
     Native language support.  This is  enabled by default. Requires an

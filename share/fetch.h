@@ -17,7 +17,7 @@ struct fetch_progress
  */
 struct fetch_done
 {
-    unsigned int finished:1;
+    unsigned int finished : 1;
 };
 
 /*
@@ -35,7 +35,7 @@ void fetch_handle_event(void *);
 void fetch_quit(void);
 
 unsigned int fetch_url(const char *url,
-                       const char *dst,
-                       struct fetch_callback);
+    const char *dst,
+    struct fetch_callback);
 
 #endif

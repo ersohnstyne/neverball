@@ -1,7 +1,7 @@
 #ifndef JOY_H
 #define JOY_H
 
-void joy_init();
+int  joy_init();
 void joy_quit();
 
 void joy_add(int device);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Neverball authors
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -62,9 +62,17 @@ enum cmd_type
     CMD_PATH_FLAG,
     CMD_STEP_SIMULATION,
     CMD_MAP,
-    CMD_TILT_AXES,
+    CMD_TILT_AXES, // DEPRECATED - Commands were replaced to CMD_TILT
     CMD_MOVE_PATH,
     CMD_MOVE_TIME,
+    CMD_TILT,
+    CMD_CHKP_ENTER,
+    CMD_CHKP_TOGGLE,
+    CMD_CHKP_EXIT,
+    CMD_SPEEDOMETER,
+    CMD_SAVED_SPAWNPOINT, // DEPRECATED - Commands were removed in the next version
+    CMD_ZOOM,
+    CMD_CHKP_DISABLE,
 
     CMD_MAX
 };
@@ -289,6 +297,53 @@ struct cmd_move_time
     float t;
 };
 
+struct cmd_tilt
+{
+    CMD_HEADER;
+    float q[4];
+};
+
+struct cmd_chkp_enter
+{
+    CMD_HEADER;
+    int ci;
+};
+
+struct cmd_chkp_toggle
+{
+    CMD_HEADER;
+    int ci;
+};
+
+struct cmd_chkp_exit
+{
+    CMD_HEADER;
+    int ci;
+};
+
+struct cmd_speedometer
+{
+    CMD_HEADER;
+    float xi;
+};
+
+/*struct cmd_saved_spawnpoint
+{
+    CMD_HEADER;
+    int xi;
+};*/
+
+struct cmd_zoom
+{
+    CMD_HEADER;
+    float xi;
+};
+
+struct cmd_chkp_disable
+{
+    CMD_HEADER;
+};
+
 union cmd
 {
     enum cmd_type type;
@@ -329,6 +384,14 @@ union cmd
     struct cmd_tilt_axes          tiltaxes;
     struct cmd_move_path          movepath;
     struct cmd_move_time          movetime;
+    struct cmd_tilt               tilt;
+    struct cmd_chkp_enter         chkpenter;
+    struct cmd_chkp_toggle        chkptoggle;
+    struct cmd_chkp_exit          chkpexit;
+    struct cmd_speedometer        speedometer;
+    /*struct cmd_saved_spawnpoint   spawnpoint;*/
+    struct cmd_zoom               zoom;
+    struct cmd_chkp_disable       chkpdisable;
 };
 
 #undef CMD_HEADER

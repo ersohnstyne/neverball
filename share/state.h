@@ -1,9 +1,18 @@
 #ifndef STATE_H
 #define STATE_H
 
-#include "SDL_events.h"
+#if _WIN32 && __GNUC__
+#include <SDL2/SDL_events.h>
+#else
+#include <SDL_events.h>
+#endif
 
 /*---------------------------------------------------------------------------*/
+
+/*
+ * Things throttles, just find the keyword regex
+ * with "struct state [^*]+= {\n"
+ */
 
 struct state
 {
@@ -18,19 +27,29 @@ struct state
     int  (*keybd)(int c,  int d);
     int  (*buttn)(int b,  int d);
     void (*wheel)(int x,  int y);
+    int  (*touch)(const SDL_TouchFingerEvent*);
+    void (*fade)(float alpha);
 
     int gui_id;
-
-    int  (*touch)(const SDL_TouchFingerEvent *);
 };
 
 struct state *curr_state(void);
 
 float time_state(void);
 void  init_state(struct state *);
-int   goto_state(struct state *);
 
-void st_paint(float);
+/*
+ * This screenstate transition will be replaced into the goto_state_full.
+ * Your functions will be replaced using four parameters.
+ */
+#if _MSC_VER && !defined(_CRT_OBSOLETE_NO_WARNINGS)
+_CRT_OBSOLETE(goto_state_full)
+#endif
+int  goto_state(struct state *st);
+
+int  goto_state_full(struct state *st, int fromdirection, int todirection, int noanimation);
+
+void st_paint(float, int);
 void st_timer(float);
 void st_point(int, int, int, int);
 void st_stick(int, float);
@@ -39,7 +58,7 @@ void st_wheel(int, int);
 int  st_click(int, int);
 int  st_keybd(int, int);
 int  st_buttn(int, int);
-int  st_touch(const SDL_TouchFingerEvent *);
+int  st_touch(const SDL_TouchFingerEvent*);
 
 /*---------------------------------------------------------------------------*/
 

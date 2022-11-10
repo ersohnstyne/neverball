@@ -1,8 +1,13 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
+#if _WIN32 && __GNUC__
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#else
 #include <SDL.h>
 #include <SDL_ttf.h>
+#endif
 
 #include "glext.h"
 #include "base_image.h"
@@ -22,6 +27,8 @@
 #define BMASK 0x00FF0000
 #define AMASK 0xFF000000
 #endif
+
+extern int donot_allow_mip_and_aniso_during_gui;
 
 void   image_snap(const char *);
 

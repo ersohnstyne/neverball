@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -124,6 +124,10 @@ void sol_back(const struct s_draw *, struct s_rend *, float, float, float);
 void sol_refl(const struct s_draw *, struct s_rend *);
 void sol_draw(const struct s_draw *, struct s_rend *, int, int);
 void sol_bill(const struct s_draw *, struct s_rend *, const float *, float);
+
+/*---------------------------------------------------------------------------*/
+
+void sol_fade_color(float, float, float);
 void sol_fade(const struct s_draw *, struct s_rend *, float);
 
 /*---------------------------------------------------------------------------*/

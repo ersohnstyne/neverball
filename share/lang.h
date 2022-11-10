@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Jean Privat
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * this file is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -17,18 +17,25 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ENABLE_NLS
+#if ENABLE_NLS && !_WIN32
 
 #include <libintl.h>
 #define _(s) gettext(s)
 #define gt_plural(msgid, msgid_plural, n) ngettext(msgid, msgid_plural, n)
+
+#elif _WIN32
+
+const char *ms_nls_gettext(const char *);
+
+#define _(s) ms_nls_gettext(s)
+#define gt_plural(msgid, msgid_plural, n) ((n) == 1 ? (msgid) : (msgid_plural))
 
 #else
 
 #define _(s) (s)
 #define gt_plural(msgid, msgid_plural, n) ((n) == 1 ? (msgid) : (msgid_plural))
 
-#endif /* ENABLE_NLS */
+#endif /* ENABLE_NLS && !_WIN32 */
 
 /* No-op, useful for marking up strings for extraction-only. */
 #define N_(s) s

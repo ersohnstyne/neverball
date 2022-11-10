@@ -9,10 +9,11 @@
 #define IMG_SHAD "png/shadow.png"
 
 #define BACK_DIST   256.0f
-#define FAR_DIST    512.0f
+#define FAR_DIST    10000.0f /* Default is 512; Setting to 10000 uses Unity! */
 #define JUMP_HEIGHT   2.00f
 #define SWCH_HEIGHT   2.00f
 #define GOAL_HEIGHT   3.00f
+#define CHKP_HEIGHT   2.00f
 #define ITEM_RADIUS   0.15f
 #define GOAL_SPARKS  64
 
@@ -25,6 +26,7 @@ void geom_step(float);
 void beam_draw(struct s_rend *, const GLfloat *, const GLfloat *, GLfloat, GLfloat);
 void goal_draw(struct s_rend *, const GLfloat *, GLfloat, GLfloat, GLfloat);
 void jump_draw(struct s_rend *, const GLfloat *, GLfloat, GLfloat);
+void chkp_draw(struct s_rend *, const GLfloat *, GLfloat, GLfloat);
 void flag_draw(struct s_rend *, const GLfloat *);
 void mark_draw(struct s_rend *);
 void vect_draw(struct s_rend *);

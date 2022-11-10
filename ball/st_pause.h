@@ -4,5 +4,6 @@
 #include "state.h"
 
 extern struct state st_pause;
+extern struct state st_pause_quit;
 
 #endif

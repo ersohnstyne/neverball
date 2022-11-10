@@ -101,7 +101,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;PENNYBALL_FAMILY_API=0;VERSION="2.1.0";PENNYBALL_EDITION=10002;ENABLE_DEDICATED_SERVER=1;NB_STEAM_API=0;NB_EOS_SDK=0;DEVEL_BUILD;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;NEVERBALL_FAMILY_API=0;VERSION="2.1.0";NEVERBALL_EDITION=10002;ENABLE_DEDICATED_SERVER=1;NB_STEAM_API=0;NB_EOS_SDK=0;DEVEL_BUILD;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -117,7 +117,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;PENNYBALL_FAMILY_API=0;VERSION="2.1.0";PENNYBALL_EDITION=10002;ENABLE_DEDICATED_SERVER=1;NB_STEAM_API=0;NB_EOS_SDK=0;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;NEVERBALL_FAMILY_API=0;VERSION="2.1.0";NEVERBALL_EDITION=10002;ENABLE_DEDICATED_SERVER=1;NB_STEAM_API=0;NB_EOS_SDK=0;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -133,7 +133,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;PENNYBALL_FAMILY_API=0;VERSION="2.1.0";PENNYBALL_EDITION=10002;ENABLE_DEDICATED_SERVER=1;NB_STEAM_API=0;NB_EOS_SDK=0;DEVEL_BUILD;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;NEVERBALL_FAMILY_API=0;VERSION="2.1.0";NEVERBALL_EDITION=10002;ENABLE_DEDICATED_SERVER=1;NB_STEAM_API=0;NB_EOS_SDK=0;DEVEL_BUILD;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -152,7 +152,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;PENNYBALL_FAMILY_API=0;VERSION="2.1.0";PENNYBALL_EDITION=10002;ENABLE_DEDICATED_SERVER=1;NB_STEAM_API=0;NB_EOS_SDK=0;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;NEVERBALL_FAMILY_API=0;VERSION="2.1.0";NEVERBALL_EDITION=10002;ENABLE_DEDICATED_SERVER=1;NB_STEAM_API=0;NB_EOS_SDK=0;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\Ersohn\source\repos\c++ sdk\libsdl2\include;C:\Users\Ersohn\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\Ersohn\source\repos\c++ sdk\libogg\include;C:\Users\Ersohn\source\repos\c++ sdk\libvorbis\include;C:\Users\Ersohn\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\Ersohn\source\repos\c++ sdk\libpng;C:\Users\Ersohn\source\repos\c++ sdk\libjpeg;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.67.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>

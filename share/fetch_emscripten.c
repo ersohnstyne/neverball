@@ -1,3 +1,17 @@
+/*
+ * Copyright (C) 2022 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #include <emscripten/fetch.h>
 
 #include "fetch.h"
@@ -11,8 +25,8 @@ struct fetch_info
 {
     struct fetch_callback callback;
 
-    emscripten_fetch_t *handle;
-    char *dest_filename;
+    emscripten_fetch_t* handle;
+    char* dest_filename;
     unsigned int fetch_id;
 };
 
@@ -21,9 +35,9 @@ static List fetch_list = NULL;
 /*
  * Allocate a new fetch_info struct.
  */
-static struct fetch_info *create_fetch_info(void)
+static struct fetch_info* create_fetch_info(void)
 {
-    struct fetch_info *fi = calloc(sizeof (*fi), 1);
+    struct fetch_info* fi = calloc(sizeof(*fi), 1);
 
     if (fi)
         fi->fetch_id = ++last_fetch_id;
@@ -34,9 +48,9 @@ static struct fetch_info *create_fetch_info(void)
 /*
  * Allocate a new fetch_info struct and add it to the transfer list.
  */
-static struct fetch_info *create_and_link_fetch_info(void)
+static struct fetch_info* create_and_link_fetch_info(void)
 {
-    struct fetch_info *fi = create_fetch_info();
+    struct fetch_info* fi = create_fetch_info();
 
     if (fi)
         fetch_list = list_cons(fi, fetch_list);
@@ -47,7 +61,7 @@ static struct fetch_info *create_and_link_fetch_info(void)
 /*
  * Clean up a fetch_info struct and associated resources.
  */
-static void free_fetch_info(struct fetch_info *fi)
+static void free_fetch_info(struct fetch_info* fi)
 {
     if (fi)
     {
@@ -68,7 +82,7 @@ static void free_fetch_info(struct fetch_info *fi)
 /*
  * Remove a fetch_info from the transfer list and then free it.
  */
-static void unlink_and_free_fetch_info(struct fetch_info *fi)
+static void unlink_and_free_fetch_info(struct fetch_info* fi)
 {
     if (fi)
     {
@@ -94,12 +108,12 @@ static void unlink_and_free_fetch_info(struct fetch_info *fi)
     }
 }
 
-void fetch_init(void (*dispatch_event)(void *))
+void fetch_init(void (*dispatch_event)(void*))
 {
     /* Just compile with -s FETCH=1 */
 }
 
-void fetch_handle_event(void *data)
+void fetch_handle_event(void* data)
 {
 }
 
@@ -113,9 +127,9 @@ void fetch_quit(void)
     fetch_list = NULL;
 }
 
-static void fetch_success_func(emscripten_fetch_t *handle)
+static void fetch_success_func(emscripten_fetch_t* handle)
 {
-    struct fetch_info *fi = handle->userData;
+    struct fetch_info* fi = handle->userData;
 
     if (fi)
     {
@@ -150,9 +164,9 @@ static void fetch_success_func(emscripten_fetch_t *handle)
     }
 }
 
-static void fetch_error_func(emscripten_fetch_t *handle)
+static void fetch_error_func(emscripten_fetch_t* handle)
 {
-    struct fetch_info *fi = handle->userData;
+    struct fetch_info* fi = handle->userData;
 
     if (fi)
     {
@@ -169,9 +183,9 @@ static void fetch_error_func(emscripten_fetch_t *handle)
     }
 }
 
-static void fetch_progress_func(emscripten_fetch_t *handle)
+static void fetch_progress_func(emscripten_fetch_t* handle)
 {
-    struct fetch_info *fi = handle->userData;
+    struct fetch_info* fi = handle->userData;
 
     if (fi)
     {
@@ -179,18 +193,18 @@ static void fetch_progress_func(emscripten_fetch_t *handle)
         {
             struct fetch_progress extra_data = { 0 };
 
-            extra_data.now = (double) handle->dataOffset;
-            extra_data.total = (double) handle->totalBytes;
+            extra_data.now = (double)handle->dataOffset;
+            extra_data.total = (double)handle->totalBytes;
 
             fi->callback.progress(fi->callback.data, &extra_data);
         }
     }
 }
 
-unsigned int fetch_url(const char *url, const char *dst, struct fetch_callback callback)
+unsigned int fetch_url(const char* url, const char* dst, struct fetch_callback callback)
 {
     unsigned int fetch_id = 0;
-    struct fetch_info *fi = create_and_link_fetch_info();
+    struct fetch_info* fi = create_and_link_fetch_info();
 
     if (fi)
     {

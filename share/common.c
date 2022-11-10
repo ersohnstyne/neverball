@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2007  Neverball authors
+ *  Copyright (C) 2021 Microsoft / Neverball authors
  *
  *  This  program is  free software;  you can  redistribute  it and/or
  *  modify it  under the  terms of the  GNU General Public  License as
@@ -17,24 +17,28 @@
  *  02111-1307 USA
  */
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS && !_MSC_VER
+#include <sec_api/stdlib_s.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <ctype.h>
-#include <stdarg.h>
 #include <assert.h>
 
+#include <sys/stat.h>
+#if !_MSC_VER
 /*
  * No platform checking, relying on MinGW to provide.
  */
-#include <sys/stat.h> /* stat() */
 #include <unistd.h>   /* access() */
+#endif
 
 #include "common.h"
 #include "fs.h"
 
-#define MAXSTR 256
+size_t dstSize = 256;
 
 /*---------------------------------------------------------------------------*/
 
@@ -42,7 +46,7 @@ int read_line(char **dst, fs_file fin)
 {
     char buff[MAXSTR];
 
-    char *line, *new;
+    char *line, *newLine;
     size_t len0, len1;
 
     line = NULL;
@@ -53,9 +57,9 @@ int read_line(char **dst, fs_file fin)
 
         if (line)
         {
-            new  = concat_string(line, buff, NULL);
+            newLine = concat_string(line, buff, NULL);
             free(line);
-            line = new;
+            line = newLine;
         }
         else
         {
@@ -71,13 +75,25 @@ int read_line(char **dst, fs_file fin)
         if (len1 != len0)
         {
             /* We hit a newline, clean up and break. */
-            line = realloc(line, len1 + 1);
+            line = (char *) realloc(line, len1 + 1);
             break;
         }
     }
 
     return (*dst = line) ? 1 : 0;
 }
+
+#if defined(_UNICODE)
+wchar_t *wcsip_newline(wchar_t *wstr)
+{
+    wchar_t *c = wstr + wcslen(wstr) - 1;
+
+    while (c >= wstr && (*c == '\n' || *c =='\r'))
+        *c-- = '\0';
+
+    return wstr;
+}
+#endif
 
 char *strip_newline(char *str)
 {
@@ -89,19 +105,42 @@ char *strip_newline(char *str)
     return str;
 }
 
+#if !_MSC_VER
+#if _UNICODE
+wchar_t *dupe_wstring(const wchar_t *src)
+{
+    wchar_t *dst = NULL;
+
+    if (src && (dst = (wchar_t *) malloc(wcslen(src) + 1)))
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        wcscpy_s(dst, wcslen(src) + 1, src);
+#else
+        wcscpy(dst, src);
+#endif
+
+    return dst;
+}
+#endif
+
 char *dupe_string(const char *src)
 {
     char *dst = NULL;
 
-    if (src && (dst = malloc(strlen(src) + 1)))
+    //if (src && (dst = (char *) malloc(strlen(src) + 1)))
+    if (src && (dst = (char *) malloc(strlen(src) + 1)))
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        strcpy_s(dst, strlen(src) + 1, src);
+#else
         strcpy(dst, src);
+#endif
 
     return dst;
 }
+#endif
 
 char *concat_string(const char *first, ...)
 {
-    char *full;
+    char *full = NULL;
 
     if ((full = strdup(first)))
     {
@@ -114,10 +153,16 @@ char *concat_string(const char *first, ...)
         {
             char *new;
 
-            if ((new = realloc(full, strlen(full) + strlen(part) + 1)))
+            if (!part) continue;
+
+            if ((new = (char *) realloc(full, strlen(full) + strlen(part) + 1)))
             {
                 full = new;
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                strcat_s(full, strlen(full) + strlen(part) + 1, part);
+#else
                 strcat(full, part);
+#endif
             }
             else
             {
@@ -135,34 +180,59 @@ char *concat_string(const char *first, ...)
 
 time_t make_time_from_utc(struct tm *tm)
 {
-    struct tm local, *utc;
+    struct tm local, utc;
     time_t t;
 
     t = mktime(tm);
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    localtime_s(&local, &t);
+    gmtime_s(&utc, &t);
+#else
     local = *localtime(&t);
-    utc   =  gmtime(&t);
+    utc   = *gmtime(&t);
+#endif
 
-    local.tm_year += local.tm_year - utc->tm_year;
-    local.tm_mon  += local.tm_mon  - utc->tm_mon ;
-    local.tm_mday += local.tm_mday - utc->tm_mday;
-    local.tm_hour += local.tm_hour - utc->tm_hour;
-    local.tm_min  += local.tm_min  - utc->tm_min ;
-    local.tm_sec  += local.tm_sec  - utc->tm_sec ;
+    local.tm_year += local.tm_year - utc.tm_year;
+    local.tm_mon  += local.tm_mon  - utc.tm_mon ;
+    local.tm_mday += local.tm_mday - utc.tm_mday;
+    local.tm_hour += local.tm_hour - utc.tm_hour;
+    local.tm_min  += local.tm_min  - utc.tm_min ;
+    local.tm_sec  += local.tm_sec  - utc.tm_sec ;
 
     return mktime(&local);
 }
 
 const char *date_to_str(time_t i)
 {
-    static char str[sizeof ("YYYY-mm-dd HH:MM:SS")];
-    strftime(str, sizeof (str), "%Y-%m-%d %H:%M:%S", localtime(&i));
+    static char str[sizeof ("dd.mm.YYYY HH:MM:SS")];
+#if _MSC_VER
+    struct tm output_tm;
+    localtime_s(&output_tm, &i);
+    strftime(str, sizeof (str), "%d.%m.%Y %H:%M:%S", &output_tm);
+#else
+    strftime(str, sizeof (str), "%d.%m.%Y %H:%M:%S", localtime(&i));
+#endif
     return str;
 }
 
 int file_exists(const char *path)
 {
+#if _MSC_VER
+    FILE *fp;
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    if (fopen_s(&fp, path, "r") == 0)
+#else
+    if ((fp = fopen(path, "r")))
+#endif
+    {
+        fclose(fp);
+        return 1;
+    }
+    return 0;
+#else
     return (access(path, F_OK) == 0);
+#endif
 }
 
 int file_rename(const char *src, const char *dst)
@@ -174,21 +244,28 @@ int file_rename(const char *src, const char *dst)
     return rename(src, dst);
 }
 
+#ifndef FS_VERSION_1
 int file_size(const char *path)
 {
     struct stat buf;
     if (stat(path, &buf) == 0)
-        return (int) buf.st_size;
+        return (int)buf.st_size;
     return 0;
 }
+#endif
 
-void file_copy(FILE *fin, FILE *fout)
+void file_copy(FILE* fin, FILE* fout)
 {
     char   buff[MAXSTR];
-    size_t size;
+    size_t size = 0;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    while (fread_s(buff, size, 1, sizeof (buff), fin) > 0)
+        fwrite(buff, 1, size, fout);
+#else
     while ((size = fread(buff, 1, sizeof (buff), fin)) > 0)
         fwrite(buff, 1, size, fout);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -217,7 +294,11 @@ int path_is_abs(const char *path)
 
 char *path_join(const char *head, const char *tail)
 {
+#ifdef _WIN32
+    return *head ? concat_string(head, "\\", tail, NULL) : strdup(tail);
+#else
     return *head ? concat_string(head, "/", tail, NULL) : strdup(tail);
+#endif
 }
 
 const char *path_last_sep(const char *path)
@@ -299,10 +380,10 @@ const char *base_name(const char *name)
 
 const char *dir_name(const char *name)
 {
-    if (name && *name)
-    {
-        static char buff[MAXSTR];
+    static char buff[MAXSTR];
 
+    if (name && *name)
+        {
         char *sep;
 
         SAFECPY(buff, name);
@@ -342,9 +423,17 @@ int set_env_var(const char *name, const char *value)
         char str[MAXSTR];
 
         if (value)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(str, dstSize, "%s=%s", name, value);
+#else
             sprintf(str, "%s=%s", name, value);
+#endif
         else
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(str, dstSize, "%s=", name);
+#else
             sprintf(str, "%s=", name);
+#endif
 
         return (_putenv(str) == 0);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Neverball authors
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -15,8 +15,13 @@
 #include <string.h>
 #include <stdlib.h>
 
+#if _WIN32 && __GNUC__
+#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_rwops.h>
+#else
 #include <SDL_ttf.h>
 #include <SDL_rwops.h>
+#endif
 
 #include "font.h"
 #include "common.h"

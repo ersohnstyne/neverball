@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -710,6 +710,7 @@ static void sol_move_once(struct s_vary *vary, cmd_fn cmd_func, float dt)
 
     sol_move_step(vary, cmd_func, dt, ms);
     sol_swch_step(vary, cmd_func, dt, ms);
+    sol_chkp_step(vary, cmd_func, dt, ms);
     sol_ball_step(vary, cmd_func, dt);
 }
 
@@ -745,6 +746,10 @@ float sol_step(struct s_vary *vary, cmd_fn cmd_func,
 
     if (ui < vary->uc)
     {
+#ifdef SIM_PHYSX_ENGINE
+#else
+        /* No PhysX detected. Use this! */
+
         struct v_ball *up = vary->uv + ui;
 
         /* If the ball is in contact with a surface, apply friction. */
@@ -818,6 +823,7 @@ float sol_step(struct s_vary *vary, cmd_fn cmd_func,
         v_sub(a, up->v, a);
 
         sol_pendulum(up, a, g, dt);
+#endif
     }
 
     return b;

@@ -1,6 +1,26 @@
+/*
+ * Copyright (C) 2022 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
+#if _WIN32 && __GNUC__
+#include <SDL/SDL.h>
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL_joystick.h>
+#else
 #include <SDL.h>
 #include <SDL_events.h>
 #include <SDL_joystick.h>
+#endif
 
 #include "joy.h"
 #include "state.h"
@@ -8,6 +28,8 @@
 #include "log.h"
 
 #define JOY_MAX 16
+
+static int joy_is_init = 0;
 
 static struct
 {
@@ -20,7 +42,7 @@ static SDL_JoystickID joy_curr = -1;
 /*
  * Initialize joystick state.
  */
-void joy_init()
+int joy_init()
 {
     size_t i = 0;
 
@@ -36,7 +58,9 @@ void joy_init()
         joysticks[i].id = -1;
     }
 
-    SDL_JoystickEventState(SDL_ENABLE);
+    joy_is_init = SDL_JoystickEventState(SDL_ENABLE) == 1;
+
+    return joy_is_init;
 }
 
 /*
@@ -44,6 +68,13 @@ void joy_init()
  */
 void joy_quit()
 {
+    if (!joy_is_init)
+    {
+        log_errorf("Joystick must be initialized!\n");
+        exit(1);
+        return;
+    }
+
     size_t i = 0;
 
     for (i = 0; i < ARRAYSIZE(joysticks); ++i)
@@ -58,11 +89,18 @@ void joy_quit()
  */
 void joy_add(int device)
 {
+    if (!joy_is_init)
+    {
+        log_errorf("Joystick must be initialized!\n", device);
+        exit(1);
+        return;
+    }
+
     log_printf("Joystick added (device %d)\n", device);
 
     SDL_Joystick *joy = SDL_JoystickOpen(device);
 
-    if (joy)
+    if (joy != NULL)
     {
         size_t i = 0;
 
@@ -84,7 +122,7 @@ void joy_add(int device)
         if (i == ARRAYSIZE(joysticks))
         {
             SDL_JoystickClose(joy);
-            log_printf("Joystick %d not opened, %ud open joysticks reached\n", device, ARRAYSIZE(joysticks));
+            log_errorf("Joystick %d not opened, %ud open joysticks reached\n", device, ARRAYSIZE(joysticks));
         }
     }
 }
@@ -94,6 +132,13 @@ void joy_add(int device)
  */
 void joy_remove(int instance)
 {
+    if (!joy_is_init)
+    {
+        log_errorf("Joystick must be initialized!\n");
+        exit(1);
+        return;
+    }
+
     size_t i;
 
     log_printf("Joystick removed (instance %d)\n", instance);
@@ -115,6 +160,13 @@ void joy_remove(int instance)
  */
 int joy_button(int instance, int b, int d)
 {
+    if (!joy_is_init)
+    {
+        log_errorf("Joystick must be initialized!\n");
+        exit(1);
+        return 0;
+    }
+
     if (joy_curr == instance)
     {
         /* Process button event normally. */
@@ -134,6 +186,13 @@ int joy_button(int instance, int b, int d)
  */
 void joy_axis(int instance, int a, float v)
 {
+    if (!joy_is_init)
+    {
+        log_errorf("Joystick must be initialized!\n");
+        exit(1);
+        return;
+    }
+
     if (joy_curr == instance)
     {
         /* Process axis events from current joystick only. */

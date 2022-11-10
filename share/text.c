@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,7 +12,12 @@
  * General Public License for more details.
  */
 
+#if _WIN32 && __GNUC__
+#include <SDL2/SDL.h>
+#else
 #include <SDL.h>
+#endif
+
 #include <string.h>
 
 #include "common.h"
@@ -92,6 +97,9 @@ char text_input[MAXSTR];
 
 static void (*on_text_input)(int);
 
+#ifdef CALLBACK
+#undef CALLBACK
+#endif
 #define CALLBACK(typing) do {                   \
         if (on_text_input)                      \
             on_text_input(typing);              \

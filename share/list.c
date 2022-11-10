@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Neverball authors
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -17,7 +17,7 @@
 
 /*
  * Allocate and return a list cell initialised with FIRST and REST as
- * "data" and "next" members, respectively.
+ * "data" and "next" members, respectively).
  */
 List list_cons(void *first, List rest)
 {

@@ -1,14 +1,35 @@
+/*
+ * Copyright (C) 2022 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #include "fetch.h"
 #include "common.h"
+#ifndef VERSION
 #include "version.h"
+#endif
 #include "list.h"
 #include "log.h"
 #include "fs.h"
 
 #include <curl/curl.h>
 
+#if _WIN32 && __GNUC__
+#include <SDL2/SDL_mutex.h>
+#include <SDL2/SDL_thread.h>
+#else
 #include <SDL_mutex.h>
 #include <SDL_thread.h>
+#endif
 
 /*
  * The thing that lets us do async transfers in a single thread.
@@ -86,6 +107,8 @@ struct fetch_event
     void *extra_data;
 };
 
+static int lock_hold_mutex = 0;
+
 /*
  * Dispatch a wrapped callback to the thread that calls fetch_handle_event.
  */
@@ -96,7 +119,7 @@ static void (*fetch_dispatch_event)(void *) = NULL;
  */
 static struct fetch_progress *create_extra_progress(double total, double now)
 {
-    struct fetch_progress *pr = calloc(sizeof (*pr), 1);
+    struct fetch_progress *pr = (fetch_progress *) calloc(sizeof (*pr), 1);
 
     if (pr)
     {
@@ -112,7 +135,7 @@ static struct fetch_progress *create_extra_progress(double total, double now)
  */
 static struct fetch_done *create_extra_done(int finished)
 {
-    struct fetch_done *dn = calloc(sizeof (*dn), 1);
+    struct fetch_done *dn = (fetch_done *) calloc(sizeof (*dn), 1);
 
     if (dn)
         dn->finished = !!finished;
@@ -137,7 +160,7 @@ static void free_extra_data(void *extra_data)
  */
 static struct fetch_event *create_fetch_event(void)
 {
-    struct fetch_event *fe = calloc(sizeof (*fe), 1);
+    struct fetch_event *fe = (fetch_event *) calloc(sizeof (*fe), 1);
 
     return fe;
 }
@@ -159,7 +182,7 @@ static void free_fetch_event(struct fetch_event *fe)
  */
 void fetch_handle_event(void *data)
 {
-    struct fetch_event *fe = data;
+    struct fetch_event *fe = (fetch_event *) data;
 
     if (fe->callback)
         fe->callback(fe->callback_data, fe->extra_data);
@@ -190,7 +213,7 @@ static int count_active_transfers(void)
  */
 static struct fetch_info *create_fetch_info(void)
 {
-    struct fetch_info *fi = calloc(sizeof (*fi), 1);
+    struct fetch_info *fi = (fetch_info *)calloc(sizeof (*fi), 1);
 
     if (fi)
         fi->fetch_id = ++last_fetch_id;
@@ -275,7 +298,7 @@ static void free_all_fetch_infos(void)
 
     for (l = fetch_list; l; l = list_rest(l))
     {
-        free_fetch_info(l->data);
+        free_fetch_info((fetch_info *)l->data);
         l->data = NULL;
     }
 
@@ -289,7 +312,7 @@ static void free_all_fetch_infos(void)
  */
 static size_t fetch_write_func(void *buffer, size_t size, size_t nmemb, void *user_data)
 {
-    struct fetch_info *fi = user_data;
+    struct fetch_info *fi = (fetch_info *)user_data;
 
     if (fi)
     {
@@ -313,7 +336,7 @@ static size_t fetch_write_func(void *buffer, size_t size, size_t nmemb, void *us
  */
 static int fetch_progress_func(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
 {
-    struct fetch_info *fi = clientp;
+    struct fetch_info *fi = (fetch_info *)clientp;
 
     if (fi && fi->callback.progress)
     {
@@ -360,9 +383,9 @@ static void fetch_step(void)
                     if (code != CURLE_OK)
                     {
                         if (code == CURLE_ABORTED_BY_CALLBACK)
-                            log_printf("Transfer %u aborted\n", fi->fetch_id);
+                            log_errorf("Transfer %u aborted\n", fi->fetch_id);
                         else
-                            log_printf("Transfer %u error: %s\n", fi->fetch_id, curl_easy_strerror(code));
+                            log_errorf("Transfer %u error: %s\n", fi->fetch_id, curl_easy_strerror(code));
 
                         finished = 0;
                     }
@@ -428,13 +451,17 @@ static int fetch_thread_func(void *data)
 
         if (code == CURLM_OK)
         {
+            while (lock_hold_mutex) {}
+
+            lock_hold_mutex = 1;
             SDL_LockMutex(fetch_mutex);
             fetch_step();
             SDL_UnlockMutex(fetch_mutex);
+            lock_hold_mutex = 0;
         }
         else
         {
-            log_printf("libcurl poll failure: %s\n", curl_multi_strerror(code));
+            log_errorf("libcurl poll failure: %s\n", curl_multi_strerror(code));
             SDL_AtomicSet(&fetch_thread_running, 0);
         }
     };
@@ -473,6 +500,8 @@ static void fetch_thread_quit(void)
  */
 static int fetch_lock_mutex(void)
 {
+    while (lock_hold_mutex) {}
+
     if (multi_handle)
     {
         /* Wake from curl_multi_poll first. */
@@ -480,6 +509,7 @@ static int fetch_lock_mutex(void)
     }
 
     /* Then, attempt to acquire mutex. */
+    lock_hold_mutex = 1;
     return SDL_LockMutex(fetch_mutex);
 }
 
@@ -488,6 +518,7 @@ static int fetch_lock_mutex(void)
  */
 static int fetch_unlock_mutex(void)
 {
+    lock_hold_mutex = 0;
     return SDL_UnlockMutex(fetch_mutex);
 }
 
@@ -510,13 +541,13 @@ void fetch_init(void (*dispatch_event)(void *))
 
     if (!multi_handle)
     {
-        log_printf("Failure to create a CURL multi handle\n");
+        log_errorf("Failure to create a CURL multi handle\n");
         return;
     }
 
     /* Process FETCH_MAX connections in parallel, while the rest wait in a queue. */
 
-    curl_multi_setopt(multi_handle, CURLMOPT_MAX_TOTAL_CONNECTIONS, FETCH_MAX);
+    curl_multi_setopt(multi_handle, CURLMOPT_MAX_TOTAL_CONNECTIONS, 1);
 
     fetch_dispatch_event = dispatch_event;
 
@@ -545,8 +576,8 @@ void fetch_quit(void)
  * Download from URL into FILENAME.
  */
 unsigned int fetch_url(const char *url,
-                       const char *filename,
-                       struct fetch_callback callback)
+    const char *filename,
+    struct fetch_callback callback)
 {
     unsigned int fetch_id = 0;
     CURL *handle;
@@ -583,9 +614,9 @@ unsigned int fetch_url(const char *url,
             curl_easy_setopt(handle, CURLOPT_USERAGENT, "neverball/" VERSION);
             curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
 
-            #if defined(_WIN32) && defined(CURLSSLOPT_NATIVE_CA)
+#if _WIN32 && defined(CURLSSLOPT_NATIVE_CA)
             curl_easy_setopt(handle, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
-            #endif
+#endif
 
             /* curl_easy_setopt(handle, CURLOPT_VERBOSE, 1); */
 

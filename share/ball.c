@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -14,6 +14,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+#if NB_HAVE_PB_BOTH==1
+#include "account.h"
+#endif
 
 #include "vec3.h"
 #include "glext.h"
@@ -74,11 +78,17 @@ static int ball_opts(const struct s_base *base)
 
 void ball_init(void)
 {
-    char *solid_file = concat_string(config_get_s(CONFIG_BALL_FILE),
+#ifdef CONFIG_INCLUDES_ACCOUNT
+    const char *model_name = account_get_s(ACCOUNT_BALL_FILE);
+#else
+    const char *model_name = config_get_s(CONFIG_BALL_FILE);
+#endif
+
+    char *solid_file = concat_string(model_name,
                                      "-solid.sol", NULL);
-    char *inner_file = concat_string(config_get_s(CONFIG_BALL_FILE),
+    char *inner_file = concat_string(model_name,
                                      "-inner.sol", NULL);
-    char *outer_file = concat_string(config_get_s(CONFIG_BALL_FILE),
+    char *outer_file = concat_string(model_name,
                                      "-outer.sol", NULL);
 
     solid_flags = 0;
@@ -138,9 +148,11 @@ static void ball_draw_solid(struct s_rend *rend,
             {
                 if (test == 0) glDisable(GL_DEPTH_TEST);
                 if (mask == 0) glDepthMask(GL_FALSE);
+                glDisable(GL_LIGHTING);
                 {
                     sol_bill(&solid.draw, rend, ball_bill_M, t);
                 }
+                glEnable(GL_LIGHTING);
                 if (mask == 0) glDepthMask(GL_TRUE);
                 if (test == 0) glEnable(GL_DEPTH_TEST);
             }
@@ -182,12 +194,14 @@ static void ball_draw_inner(struct s_rend *rend,
         {
             if (test == 0) glDisable(GL_DEPTH_TEST);
             if (mask == 0) glDepthMask(GL_FALSE);
+            glDisable(GL_LIGHTING);
             {
                 if (pend)
                     sol_bill(&inner.draw, rend, pend_bill_M, t);
                 else
                     sol_bill(&inner.draw, rend, bill_M,      t);
             }
+            glEnable(GL_LIGHTING);
             if (mask == 0) glDepthMask(GL_TRUE);
             if (test == 0) glEnable(GL_DEPTH_TEST);
         }
@@ -226,12 +240,14 @@ static void ball_draw_outer(struct s_rend *rend,
         {
             if (test == 0) glDisable(GL_DEPTH_TEST);
             if (mask == 0) glDepthMask(GL_FALSE);
+            glDisable(GL_LIGHTING);
             {
                 if (pend)
                     sol_bill(&outer.draw, rend, pend_bill_M, t);
                 else
                     sol_bill(&outer.draw, rend, bill_M,      t);
             }
+            glEnable(GL_LIGHTING);
             if (mask == 0) glDepthMask(GL_TRUE);
             if (test == 0) glEnable(GL_DEPTH_TEST);
         }

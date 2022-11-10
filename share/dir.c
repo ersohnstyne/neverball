@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Neverball authors
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,7 +12,11 @@
  * General Public License for more details.
  */
 
+#if _MSC_VER
+#include <Windows.h>
+#else
 #include <dirent.h>
+#endif
 
 #include <string.h>
 #include <stdlib.h>
@@ -22,9 +26,9 @@
 #include "common.h"
 
 /*
- * HACK: MinGW provides numerous POSIX extensions to MSVCRT, including
- * dirent.h, so parasti ever so lazily has not bothered to port the
- * code below to FindFirstFile et al.
+ * HACK: Thank god using FindFirstFileA by Microsoft Elite Developers!
+ * On Unix and linux, include headers will be used as: dirent.h
+ * - Ersohn Styne
  */
 
 /*
@@ -32,9 +36,39 @@
  */
 List dir_list_files(const char *path)
 {
+#if __GNUC__
     DIR *dir;
+#endif
+
     List files = NULL;
 
+#if _WIN32 && _MSC_VER
+    WIN32_FIND_DATAA findDataFiles;
+
+    char outpath[MAXSTR];
+    sprintf_s(outpath, 256U, "%s\\*", path);
+
+    HANDLE hFind = FindFirstFileA(outpath, &findDataFiles);
+
+    if (hFind != INVALID_HANDLE_VALUE)
+    {
+        if (strcmp(findDataFiles.cFileName, ".") == 0 || strcmp(findDataFiles.cFileName, "..") == 0) {}
+        else if (findDataFiles.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ||
+            findDataFiles.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE)
+            files = list_cons(strdup(findDataFiles.cFileName), files);
+
+        while (FindNextFileA(hFind, &findDataFiles))
+        {
+            if (strcmp(findDataFiles.cFileName, ".") == 0 || strcmp(findDataFiles.cFileName, "..") == 0) {}
+            else if (findDataFiles.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ||
+                findDataFiles.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE)
+                files = list_cons(strdup(findDataFiles.cFileName), files);
+        }
+
+        FindClose(hFind);
+        hFind = 0;
+    }
+#else
     if ((dir = opendir(path)))
     {
         struct dirent *ent;
@@ -49,6 +83,7 @@ List dir_list_files(const char *path)
 
         closedir(dir);
     }
+#endif
 
     return files;
 }
@@ -147,6 +182,10 @@ void dir_free(Array items)
  */
 int dir_exists(const char *path)
 {
+#if _WIN32 && _MSC_VER
+    DWORD attr = GetFileAttributesA(path);
+    return attr & FILE_ATTRIBUTE_DIRECTORY;
+#elif __GNUC__
     DIR *dir;
 
     if ((dir = opendir(path)))
@@ -155,4 +194,7 @@ int dir_exists(const char *path)
         return 1;
     }
     return 0;
+#else
+#error No implementation for dir_exists found!
+#endif
 }

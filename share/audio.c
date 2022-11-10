@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,7 +12,15 @@
  * General Public License for more details.
  */
 
+#include <assert.h>
+
+#if _WIN32 && __GNUC__
+#include <SDL2/SDL.h>
+#else
 #include <SDL.h>
+#endif
+
+#define AUDIO_USE_LEGACY_SDL
 
 #define OV_EXCLUDE_STATIC_CALLBACKS
 #include <vorbis/codec.h>
@@ -21,6 +29,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "accessibility.h"
 #include "config.h"
 #include "audio.h"
 #include "common.h"
@@ -31,6 +40,10 @@
 
 #define AUDIO_RATE 44100
 #define AUDIO_CHAN 2
+
+static int lock_hold;
+static float speed_multiply = 1.0f;
+static int speed_freezes;
 
 struct voice
 {
@@ -45,23 +58,36 @@ struct voice
 };
 
 static int   audio_state = 0;
-static float sound_vol   = 1.0f;
-static float music_vol   = 1.0f;
+
+static float master_vol   = 1.0f;
+static float sound_vol    = 1.0f;
+static float music_vol    = 1.0f;
+static float narrator_vol = 1.0f;
 
 static SDL_AudioSpec spec;
+static SDL_AudioSpec out_spec;
+#if _MSC_VER
+/* HACK: Have fun using AudioDevice for MSVC++ */
+static SDL_AudioSpec device_spec;
+#endif
 
-static struct voice *music  = NULL;
-static struct voice *queue  = NULL;
-static struct voice *voices = NULL;
-static short        *buffer = NULL;
+static struct voice *music     = NULL;
+static struct voice *queue     = NULL;
+static struct voice *voices    = NULL;
+static struct voice *narrators = NULL;
+static short        *buffer    = NULL;
 
 static ov_callbacks callbacks = {
     fs_ov_read, fs_ov_seek, fs_ov_close, fs_ov_tell
 };
 
+static int   has_multiple_music;
+static char *next_music_filename;
+
 /*---------------------------------------------------------------------------*/
 
-#define LOG_VOLUME(v) ((float) pow((double) (v), 2.0))
+#define LOGF_VOLUME(v) ((float) powf((v), 2.f))
+#define LOG_VOLUME(v) ((float) pow((double)(v), 2.0))
 
 #define MIX(d, s) {                           \
         int T = (int) (d) + (int) (s);        \
@@ -101,7 +127,7 @@ static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
             if (V->chan == 1)
                 for (i = 0; i < n / 2; i += 1)
                 {
-                    short M = (short) (LOG_VOLUME(V->amp) * volume * buffer[i]);
+                    short M = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i]);
 
                     MIX(obuf[c], M); c++;
                     MIX(obuf[c], M); c++;
@@ -117,8 +143,8 @@ static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
             if (V->chan == 2)
                 for (i = 0; i < n / 2; i += 2)
                 {
-                    short L = (short) (LOG_VOLUME(V->amp) * volume * buffer[i + 0]);
-                    short R = (short) (LOG_VOLUME(V->amp) * volume * buffer[i + 1]);
+                    short L = (short)(LOGF_VOLUME(V->amp) * volume * buffer[i + 0]);
+                    short R = (short)(LOGF_VOLUME(V->amp) * volume * buffer[i + 1]);
 
                     MIX(obuf[c], L); c++;
                     MIX(obuf[c], R); c++;
@@ -160,8 +186,11 @@ static struct voice *voice_init(const char *filename, float a)
         V->name = strdup(filename);
 
         /* Attempt to open the named Ogg stream. */
-
+#ifdef FS_VERSION_1
+        if ((fp = fs_open(filename, "r")))
+#else
         if ((fp = fs_open_read(filename)))
+#endif
         {
             if (ov_open_callbacks(fp, &V->vf, NULL, 0, callbacks) == 0)
             {
@@ -199,6 +228,7 @@ static void voice_free(struct voice *V)
 static void audio_step(void *data, Uint8 *stream, int length)
 {
     struct voice *V = voices;
+    struct voice *N = narrators;
     struct voice *P = NULL;
 
     /* Zero the output buffer. */
@@ -231,14 +261,14 @@ static void audio_step(void *data, Uint8 *stream, int length)
         {
             /* Delete a finished voice... */
 
-            struct voice *T = V;
+            struct voice *T1 = V;
 
             if (P)
                 V = P->next = V->next;
             else
                 V = voices  = V->next;
 
-            voice_free(T);
+            voice_free(T1);
         }
         else
         {
@@ -248,64 +278,218 @@ static void audio_step(void *data, Uint8 *stream, int length)
             V = V->next;
         }
     }
+
+    /* Iterate over narrator active voices. */
+
+    while (N)
+    {
+        /* Mix this voice. */
+
+        if (N->play && voice_step(N, narrator_vol, stream, length))
+        {
+            /* Delete a finished voice... */
+
+            struct voice *T2 = N;
+
+            if (P)
+                N = P->next   = N->next;
+            else
+                N = narrators = N->next;
+
+            //voice_free(T2);
+        }
+        else
+        {
+            /* ... or continue to the next. */
+
+            P = N;
+            N = N->next;
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
+int audio_available(void)
+{
+    return audio_state;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static SDL_AudioDeviceID audio_device_id;
+
+void audio_tick(void)
+{
+    //out_spec.callback;
+}
+
+void audio_setspeed(float speed)
+{
+    /*if (audio_state)
+    {
+        if (audio_state)
+            SDL_CloseAudio();
+
+        free(buffer);
+
+        speed_freezes = !(speed > 0.0f);
+
+        spec.format = AUDIO_S16SYS;
+        spec.channels = AUDIO_CHAN;
+        spec.samples = config_get_d(CONFIG_AUDIO_BUFF);
+        spec.freq = AUDIO_RATE * (!speed_freezes ? speed : 1.0f);
+        spec.callback = audio_step;
+
+        if ((buffer = (short*) malloc(spec.samples * 4)))
+        {
+            if (SDL_OpenAudio(&spec, NULL) == 0)
+            {
+                audio_state = 1;
+                speed_multiply = 1.0f;
+                SDL_PauseAudio(speed_freezes);
+            }
+            else log_errorf("Failure to open audio device (%s)\n", SDL_GetError());
+        }
+    }*/
+}
+
 void audio_init(void)
 {
-    audio_state = 0;
+    if (audio_state) return;
+    if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 40)
+        return;
 
     /* Configure the audio. */
 
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+    memset(&device_spec, 0, sizeof (device_spec));
+    device_spec.format = AUDIO_S16SYS;
+    device_spec.channels = AUDIO_CHAN;
+    device_spec.samples = config_get_d(CONFIG_AUDIO_BUFF);
+    device_spec.freq = AUDIO_RATE * (float) (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100.f);
+    device_spec.callback = audio_step;
+#endif
+    memset(&out_spec, 0, sizeof (out_spec));
+    memset(&spec, 0, sizeof (spec));
     spec.format   = AUDIO_S16SYS;
     spec.channels = AUDIO_CHAN;
     spec.samples  = config_get_d(CONFIG_AUDIO_BUFF);
-    spec.freq     = AUDIO_RATE;
+    spec.freq     = AUDIO_RATE * (float) (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100.f);
     spec.callback = audio_step;
 
     /* Allocate an input buffer. */
 
     if ((buffer = (short *) malloc(spec.samples * 4)))
     {
-        /* Start the audio thread. */
-
+        /**
+         * Start the audio thread.
+         */
+        
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        if ((audio_device_id = SDL_OpenAudioDevice(
+                0,
+                0,
+                &spec,
+                &device_spec,
+                SDL_AUDIO_ALLOW_ANY_CHANGE
+            )) > 0)
+#else
         if (SDL_OpenAudio(&spec, NULL) == 0)
+#endif
         {
             audio_state = 1;
+            speed_multiply = 1.0f;
+
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+            log_printf("Audio device name: %s\n",
+                SDL_GetAudioDeviceName(audio_device_id - 1, 0));
+
+            spec.size = device_spec.size;
+            spec.silence = device_spec.silence;
+            
+            SDL_PauseAudioDevice(audio_device_id, 0);
+#else
             SDL_PauseAudio(0);
+#endif
         }
-        else log_printf("Failure to open audio device (%s)\n", SDL_GetError());
+        else log_errorf("Failure to open audio device (%s)\n", SDL_GetError());
+    }
+
+    if (audio_state != 1)
+    {
+        free(buffer);
+        buffer = NULL;
     }
 
     /* Set the initial volumes. */
 
-    audio_volume(config_get_d(CONFIG_SOUND_VOLUME),
-                 config_get_d(CONFIG_MUSIC_VOLUME));
+    int assert_master = config_get_d(CONFIG_MASTER_VOLUME);
+    int assert_snd = config_get_d(CONFIG_SOUND_VOLUME);
+    int assert_mus = config_get_d(CONFIG_MUSIC_VOLUME);
+    int assert_narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
+
+    assert(assert_master >= 0 &&
+        assert_snd >= 0 &&
+        assert_mus >= 0 &&
+        assert_narrator >= 0 &&
+    "Values cannot be negative");
+
+    audio_volume(config_get_d(CONFIG_MASTER_VOLUME),
+        config_get_d(CONFIG_SOUND_VOLUME),
+        config_get_d(CONFIG_MUSIC_VOLUME),
+        config_get_d(CONFIG_NARRATOR_VOLUME)
+        );
 }
 
 void audio_free(void)
 {
+    if (!audio_state) return;
+
     /* Halt the audio thread. */
 
-    SDL_CloseAudio();
+    if (audio_state)
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        SDL_CloseAudioDevice(audio_device_id);
+#else
+        SDL_CloseAudio();
+#endif
 
     /* Release the input buffer. */
 
+    audio_music_stop();
+
+    if (voices)
+        voice_free(voices);
+    voices = NULL;
+
+    if (narrators)
+        voice_free(narrators);
+    narrators = NULL;
+
     free(buffer);
+    buffer = NULL;
 
     /* Ogg streams and voice structure remain open to allow quality setting. */
+
+    audio_state = 0;
 }
 
 void audio_play(const char *filename, float a)
 {
     if (audio_state)
     {
+        while (lock_hold) {}
         struct voice *V;
 
         /* If we're already playing this sound, preempt the running copy. */
 
+        lock_hold = 1;
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        SDL_LockAudioDevice(audio_device_id);
+#else
         SDL_LockAudio();
+#endif
         {
             for (V = voices; V; V = V->next)
                 if (strcmp(V->name, filename) == 0)
@@ -317,11 +501,21 @@ void audio_play(const char *filename, float a)
                     if (V->amp > 1.0f) V->amp = 1.0;
                     if (V->amp < 0.0f) V->amp = 0.0;
 
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+                    SDL_UnlockAudioDevice(audio_device_id);
+#else
                     SDL_UnlockAudio();
+#endif
+                    lock_hold = 0;
                     return;
                 }
         }
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        SDL_UnlockAudioDevice(audio_device_id);
+#else
         SDL_UnlockAudio();
+#endif
+        lock_hold = 0;
 
         /* Create a new voice structure. */
 
@@ -329,13 +523,94 @@ void audio_play(const char *filename, float a)
 
         /* Add it to the list of sounding voices. */
 
+        lock_hold = 1;
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        SDL_LockAudioDevice(audio_device_id);
+#else
         SDL_LockAudio();
+#endif
         {
             V->next = voices;
             voices  = V;
         }
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        SDL_UnlockAudioDevice(audio_device_id);
+#else
         SDL_UnlockAudio();
+#endif
+        lock_hold = 0;
     }
+    else if (!audio_state)
+        log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n", filename);
+}
+
+void audio_narrator_play(const char *filename)
+{
+    if (audio_state && config_get_d(CONFIG_NARRATOR_VOLUME))
+    {
+        while (lock_hold) {}
+        struct voice *V;
+
+        /* If we're already playing this sound, preempt the running copy. */
+
+        lock_hold = 1;
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        SDL_LockAudioDevice(audio_device_id);
+#else
+        SDL_LockAudio();
+#endif
+        {
+            for (V = narrators; V; V = V->next)
+                if (strcmp(V->name, filename) == 0)
+                {
+                    ov_raw_seek(&V->vf, 0);
+
+                    V->amp = 1.0f;
+
+                    if (V->amp > 1.0f) V->amp = 1.0;
+                    if (V->amp < 0.0f) V->amp = 0.0;
+
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+                    SDL_UnlockAudioDevice(audio_device_id);
+#else
+                    SDL_UnlockAudio();
+#endif
+                    lock_hold = 0;
+                    return;
+                }
+        }
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        SDL_UnlockAudioDevice(audio_device_id);
+#else
+        SDL_UnlockAudio();
+#endif
+        lock_hold = 0;
+
+        /* Create a new voice structure. */
+
+        V = voice_init(filename, 1.0f);
+
+        /* Add it to the list of sounding voices. */
+
+        lock_hold = 1;
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        SDL_LockAudioDevice(audio_device_id);
+#else
+        SDL_LockAudio();
+#endif
+        {
+            V->next = narrators;
+            narrators = V;
+        }
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        SDL_UnlockAudioDevice(audio_device_id);
+#else
+        SDL_UnlockAudio();
+#endif
+        lock_hold = 0;
+    }
+    else if (!audio_state)
+        log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n", filename);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -344,50 +619,84 @@ void audio_music_play(const char *filename)
 {
     if (audio_state)
     {
+        while (lock_hold) {}
         audio_music_stop();
 
+        lock_hold = 1;
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        SDL_LockAudioDevice(audio_device_id);
+#else
         SDL_LockAudio();
+#endif
         {
             if ((music = voice_init(filename, 0.0f)))
-            {
                 music->loop = 1;
-            }
         }
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        SDL_UnlockAudioDevice(audio_device_id);
+#else
         SDL_UnlockAudio();
+#endif
+        lock_hold = 0;
     }
+    else log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n", filename);
 }
 
 void audio_music_queue(const char *filename, float t)
 {
+    float clampedTime = MIN(t, 1.0f);
+
     if (audio_state)
     {
+        while (lock_hold) {}
+        lock_hold = 1;
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        SDL_LockAudioDevice(audio_device_id);
+#else
         SDL_LockAudio();
+#endif
         {
             if ((queue = voice_init(filename, 0.0f)))
             {
                 queue->loop = 1;
 
-                if (t > 0.0f)
-                    queue->damp = +1.0f / (AUDIO_RATE * t);
+                if (clampedTime > 0.0f)
+                    queue->damp = +1.0f / (AUDIO_RATE * clampedTime);
             }
         }
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        SDL_UnlockAudioDevice(audio_device_id);
+#else
         SDL_UnlockAudio();
+#endif
+        lock_hold = 0;
     }
+    else log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n", filename);
 }
 
 void audio_music_stop(void)
 {
     if (audio_state)
     {
+        while (lock_hold) {}
+        lock_hold = 1;
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        SDL_LockAudioDevice(audio_device_id);
+#else
         SDL_LockAudio();
+#endif
         {
             if (music)
-            {
                 voice_free(music);
-            }
+
             music = NULL;
         }
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+        SDL_UnlockAudioDevice(audio_device_id);
+#else
         SDL_UnlockAudio();
+#endif
+        lock_hold = 0;
     }
 }
 
@@ -395,30 +704,55 @@ void audio_music_stop(void)
 
 void audio_music_fade_out(float t)
 {
+    float clampedTime = CLAMP(0.001f, t, 1.0f);
+    while (lock_hold) {}
+    lock_hold = 1;
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+    SDL_LockAudioDevice(audio_device_id);
+#else
     SDL_LockAudio();
+#endif
     {
-        if (music) music->damp = -1.0f / (AUDIO_RATE * t);
+        if (music) music->damp = -1.0f / (AUDIO_RATE * clampedTime);
     }
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+    SDL_UnlockAudioDevice(audio_device_id);
+#else
     SDL_UnlockAudio();
+#endif
+    lock_hold = 0;
 }
 
 void audio_music_fade_in(float t)
 {
+    float clampedTime = CLAMP(0.001f, t, 1.0f);
+    while (lock_hold) {}
+    lock_hold = 1;
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+    SDL_LockAudioDevice(audio_device_id);
+#else
     SDL_LockAudio();
+#endif
     {
-        if (music) music->damp = +1.0f / (AUDIO_RATE * t);
+        if (music) music->damp = +1.0f / (AUDIO_RATE * clampedTime);
     }
+#if _MSC_VER && !defined(AUDIO_USE_LEGACY_SDL)
+    SDL_UnlockAudioDevice(audio_device_id);
+#else
     SDL_UnlockAudio();
+#endif
+    lock_hold = 0;
 }
 
 void audio_music_fade_to(float t, const char *filename)
 {
+    float clampedTime = CLAMP(0.001f, t, 1.0f);
     if (music)
     {
         if (strcmp(filename, music->name) != 0)
         {
             audio_music_fade_out(t);
-            audio_music_queue(filename, t);
+            audio_music_queue(filename, clampedTime);
         }
         else
         {
@@ -434,26 +768,63 @@ void audio_music_fade_to(float t, const char *filename)
                 queue = NULL;
             }
 
-            audio_music_fade_in(t);
+            audio_music_fade_in(clampedTime);
         }
     }
     else
     {
         audio_music_play(filename);
-        audio_music_fade_in(t);
+        audio_music_fade_in(clampedTime);
     }
 }
+
+/*void audio_music_fade_to(float time, const char *file1, const char *file2)
+{
+    // New music filename at the end of the first music segment: next_music_filename
+    SAFECPY(next_music_filename, file2);
+
+    if (music)
+    {
+        if (strcmp(file1, music->name) != 0)
+        {
+            audio_music_fade_out(time);
+            audio_music_queue(file1, time);
+        }
+        else
+        {
+
+            if (queue)
+            {
+                voice_free(queue);
+                queue = NULL;
+            }
+
+            audio_music_fade_in(time);
+        }
+    }
+    else
+    {
+        audio_music_play(file1);
+        audio_music_fade_in(time);
+    }
+}*/
+
+/*---------------------------------------------------------------------------*/
 
 /*
  * Logarithmic volume control.
  */
-void audio_volume(int s, int m)
+void audio_volume(int master, int snd, int mus, int narrator)
 {
-    float sl = (float) s / 10.0f;
-    float ml = (float) m / 10.0f;
+    float master_logaritmic = (float) master / 10.0f;
+    float sound_logaritmic = (float) (snd / 10.0f) * master_logaritmic;
+    float music_logaritmic = (float) (mus / 10.0f) * master_logaritmic;
+    float narrator_logaritmic = (float) (narrator / 10.0f);
 
-    sound_vol = LOG_VOLUME(sl);
-    music_vol = LOG_VOLUME(ml);
+    master_vol = LOGF_VOLUME(master_logaritmic);
+    sound_vol = LOGF_VOLUME(sound_logaritmic);
+    music_vol = LOGF_VOLUME(music_logaritmic);
+    narrator_vol = LOGF_VOLUME(narrator_logaritmic);
 }
 
 /*---------------------------------------------------------------------------*/

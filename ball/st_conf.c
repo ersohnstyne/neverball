@@ -991,7 +991,7 @@ int conf_control_gui(void)
             config_get_d(CONFIG_TILTING_FLOOR), _("On"), 1, _("Off"), 0);
 
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-        if (current_platform != PLATFORM_PC)
+        if (current_platform == PLATFORM_PC)
 #endif
         {
             gui_space(id);

@@ -1,0 +1,400 @@
+{
+"classname" "worldspawn"
+}
+// ****** Planet ******
+{
+"classname" "info_null"
+"image"     "png/premium-planet"
+"width"     "400"
+"height"    "215"
+"xrot"      "-12"
+"yrot"      "0"
+"zrot"      "0"
+"dist"      "400"
+"flag"      "1"
+}
+
+// ****** Begin Logo Compass ******
+{
+"classname" "info_null"
+"image"     "png/premium-title-1"
+"width"     "68"
+"height"    "10"
+"xrot"      "-15"
+"yrot"      "+0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-title-2"
+"width"     "68"
+"height"    "10"
+"xrot"      "-15"
+"yrot"      "+90"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-title-1"
+"width"     "68"
+"height"    "10"
+"xrot"      "-15"
+"yrot"      "-180"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-title-2"
+"width"     "68"
+"height"    "10"
+"xrot"      "-15"
+"yrot"      "-90"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+}
+// ****** End Logo Compass ******
+
+// ****** Begin Large Logo Compass ******
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-1"
+"width"     "60"
+"height"    "60"
+"xrot"      "-10"
+"yrot"      "+0 -6 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "60"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-1"
+"width"     "60"
+"height"    "60"
+"xrot"      "-10"
+"yrot"      "+90 -6 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "60"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-1"
+"width"     "60"
+"height"    "60"
+"xrot"      "-10"
+"yrot"      "-180 -6 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "60"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-1"
+"width"     "60"
+"height"    "60"
+"xrot"      "-10"
+"yrot"      "-90 -6 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "60"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-2"
+"width"     "60"
+"height"    "60"
+"xrot"      "-10"
+"yrot"      "+45 -6 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "60"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-2"
+"width"     "60"
+"height"    "60"
+"xrot"      "-10"
+"yrot"      "+135 -6 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "60"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-2"
+"width"     "60"
+"height"    "60"
+"xrot"      "-10"
+"yrot"      "-135 -6 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "60"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-2"
+"width"     "60"
+"height"    "60"
+"xrot"      "-10"
+"yrot"      "-45 -6 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "60"
+}
+// ****** End Large Logo Compass ******
+
+// ****** Begin Negative Compass ******
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-negative"
+"width"     "25"
+"height"    "25"
+"xrot"      "-25"
+"yrot"      "+0 12 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "30"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-negative"
+"width"     "25"
+"height"    "25"
+"xrot"      "-25"
+"yrot"      "+90 12 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "30"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-negative"
+"width"     "25"
+"height"    "25"
+"xrot"      "-25"
+"yrot"      "-180 12 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "30"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-negative"
+"width"     "25"
+"height"    "25"
+"xrot"      "-25"
+"yrot"      "-90 12 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "30"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-negative"
+"width"     "25"
+"height"    "25"
+"xrot"      "-25"
+"yrot"      "+45 12 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "30"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-negative"
+"width"     "25"
+"height"    "25"
+"xrot"      "-25"
+"yrot"      "+135 12 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "30"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-negative"
+"width"     "25"
+"height"    "25"
+"xrot"      "-25"
+"yrot"      "-135 12 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "30"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-terrain-negative"
+"width"     "25"
+"height"    "25"
+"xrot"      "-25"
+"yrot"      "-45 12 0"
+"zrot"      "0"
+"dist"      "250"
+"flag"      "1"
+"time"      "30"
+}
+// ****** End Negative Compass ******
+
+// ****** Begin Meteor Compass ******
+{
+"classname" "info_null"
+"image"     "png/premium-meteor-l"
+"width"     "64"
+"height"    "8"
+"alpha"     "0 +2 -1"
+"xrot"      "+90 -36 0"
+"yrot"      "+0 36 0"
+"zrot"      "45"
+"dist"      "300"
+"flag"      "1"
+"time"      "10"
+}
+{
+"classname" "info_null"
+"image"     "png/premium-meteor-r"
+"width"     "64"
+"height"    "8"
+"alpha"     "0 +2 -1"
+"xrot"      "+90 -36 0"
+"yrot"      "+0 -36 0"
+"zrot"      "-45"
+"dist"      "300"
+"flag"      "1"
+"time"      "10"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-meteor-l"
+"width"     "64"
+"height"    "8"
+"alpha"     "0 +2 -1"
+"xrot"      "+90 -36 0"
+"yrot"      "+90 36 0"
+"zrot"      "45"
+"dist"      "300"
+"flag"      "1"
+"time"      "10"
+}
+{
+"classname" "info_null"
+"image"     "png/premium-meteor-r"
+"width"     "64"
+"height"    "8"
+"alpha"     "0 +2 -1"
+"xrot"      "+90 -36 0"
+"yrot"      "+90 -36 0"
+"zrot"      "-45"
+"dist"      "300"
+"flag"      "1"
+"time"      "10"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-meteor-l"
+"width"     "64"
+"height"    "8"
+"alpha"     "0 +2 -1"
+"xrot"      "+90 -36 0"
+"yrot"      "+180 36 0"
+"zrot"      "45"
+"dist"      "300"
+"flag"      "1"
+"time"      "10"
+}
+{
+"classname" "info_null"
+"image"     "png/premium-meteor-r"
+"width"     "64"
+"height"    "8"
+"alpha"     "0 +2 -1"
+"xrot"      "+90 -36 0"
+"yrot"      "+180 -36 0"
+"zrot"      "-45"
+"dist"      "300"
+"flag"      "1"
+"time"      "10"
+}
+
+{
+"classname" "info_null"
+"image"     "png/premium-meteor-l"
+"width"     "64"
+"height"    "8"
+"alpha"     "0 +2 -1"
+"xrot"      "+90 -36 0"
+"yrot"      "-90 36 0"
+"zrot"      "45"
+"dist"      "300"
+"flag"      "1"
+"time"      "10"
+}
+{
+"classname" "info_null"
+"image"     "png/premium-meteor-r"
+"width"     "64"
+"height"    "8"
+"alpha"     "0 +2 -1"
+"xrot"      "+90 -36 0"
+"yrot"      "-90 -36 0"
+"zrot"      "-45"
+"dist"      "300"
+"flag"      "1"
+"time"      "10"
+}
+// ****** End Meteor Compass ******
+
+// ****** Electro Floor ******
+{
+"classname" "info_null"
+"image"     "png/premium-floor"
+"flag"      "2"
+"width"     "1024"
+"height"    "1024"
+"xrot"      "-90.0"
+"yrot"      "0.0"
+"zrot"      "0.0"
+"dist"      "260"
+}

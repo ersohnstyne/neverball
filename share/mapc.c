@@ -35,7 +35,8 @@
 #include <SDL_net.h>
 #endif
 
-#include "solid_chkp.h"
+// Uncomment, if checkpoints is implemented
+//#include "solid_chkp.h"
 #include "solid_base.h"
 
 #include "vec3.h"

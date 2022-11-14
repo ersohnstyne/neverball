@@ -1,6 +1,22 @@
 #ifndef STATE_H
 #define STATE_H
 
+#if _MSC_VER
+#define _CRT_NB_SCREENSTATE_DEPRECATED(_ItemReplacement)                  \
+    __declspec(deprecated(                                                \
+        "This screenstate function or variable has been superceded by "   \
+        "newer library functionality. Consider using " #_ItemReplacement  \
+        " instead."                                                       \
+    ))
+#else
+#define _CRT_NB_SCREENSTATE_DEPRECATED(_ItemReplacement)                  \
+    __attribute__((deprecated(                                            \                                                \
+        "This screenstate function or variable has been superceded by "   \
+        "newer library functionality. Consider using " #_ItemReplacement  \
+        " instead."                                                       \
+    )))
+#endif
+
 #if _WIN32 && __GNUC__
 #include <SDL2/SDL_events.h>
 #else
@@ -16,19 +32,19 @@
 
 struct state
 {
-    int  (*enter)(struct state *, struct state *prev);
-    void (*leave)(struct state *, struct state *next, int id);
-    void (*paint)(int id, float t);
-    void (*timer)(int id, float dt);
-    void (*point)(int id, int x, int y, int dx, int dy);
-    void (*stick)(int id, int a, float v, int bump);
-    void (*angle)(int id, float x, float z);
-    int  (*click)(int b,  int d);
-    int  (*keybd)(int c,  int d);
-    int  (*buttn)(int b,  int d);
-    void (*wheel)(int x,  int y);
-    int  (*touch)(const SDL_TouchFingerEvent*);
-    void (*fade)(float alpha);
+    int  (*enter) (struct state *, struct state *prev);
+    void (*leave) (struct state *, struct state *next, int id);
+    void (*paint) (int id, float t);
+    void (*timer) (int id, float dt);
+    void (*point) (int id, int x, int y, int dx, int dy);
+    void (*stick) (int id, int a, float v, int bump);
+    void (*angle) (int id, float x, float z);
+    int  (*click) (int b,  int d);
+    int  (*keybd) (int c,  int d);
+    int  (*buttn) (int b,  int d);
+    void (*wheel) (int x,  int y);
+    int  (*touch) (const SDL_TouchFingerEvent*);
+    void (*fade)  (float alpha);
 
     int gui_id;
 };
@@ -42,10 +58,13 @@ void  init_state(struct state *);
  * This screenstate transition will be replaced into the goto_state_full.
  * Your functions will be replaced using four parameters.
  */
-#if _MSC_VER && !defined(_CRT_OBSOLETE_NO_WARNINGS)
-_CRT_OBSOLETE(goto_state_full)
-#endif
+#if _MSC_VER && !__GNUC__
+_CRT_NB_SCREENSTATE_DEPRECATED(goto_state_full)
 int  goto_state(struct state *st);
+#else
+int  goto_state(struct state* st)
+     _CRT_NB_SCREENSTATE_DEPRECATED(goto_state_full);
+#endif
 
 int  goto_state_full(struct state *st, int fromdirection, int todirection, int noanimation);
 

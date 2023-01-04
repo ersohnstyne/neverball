@@ -316,17 +316,20 @@ void progress_buy_balls(int amount)
 
 void progress_step(void)
 {
-    if ((level_time(level) != 0 && !mediation_enabled()))
+    if (level)
     {
-        if (curr_clock() >= 10 && lvl_warn_timer)
+        if ((level_time(level) != 0 && !mediation_enabled()))
         {
-            lvl_warn_timer = 0;
-            audio_music_fade_to(1.0f, level_song(level));
-        }
-        else if (!lvl_warn_timer)
-        {
-            lvl_warn_timer = 1;
-            audio_music_fade_to(0.1f, "bgm/time-warning.ogg");
+            if (curr_clock() >= 10 && lvl_warn_timer)
+            {
+                lvl_warn_timer = 0;
+                audio_music_fade_to(1.0f, level_song(level));
+            }
+            else if (!lvl_warn_timer)
+            {
+                lvl_warn_timer = 1;
+                audio_music_fade_to(0.1f, "bgm/time-warning.ogg");
+            }
         }
     }
 

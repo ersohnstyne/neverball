@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2022 Microsoft / Neverball authors
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -235,14 +235,14 @@ int  progress_play(struct level *l)
     game_fade_color(mode == MODE_HARDCORE ? 0.25f : 0.0f, 0.0f, 0.0f);
 #endif
 
+    lvl_warn_timer = 0;
+
     if (l && (level_opened(l)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
         || config_cheat()
 #endif
         ))
     {
-        lvl_warn_timer = 0;
-
         level = l;
 
         next   = NULL;
@@ -316,20 +316,21 @@ void progress_buy_balls(int amount)
 
 void progress_step(void)
 {
-    if (level && !replay)
+    if (level && !replay && level_time(level) != 0
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        && !mediation_enabled()
+#endif
+        )
     {
-        if ((level_time(level) != 0 && !mediation_enabled()))
+        if (curr_clock() >= 1000 && lvl_warn_timer)
         {
-            if (curr_clock() >= 10 && lvl_warn_timer)
-            {
-                lvl_warn_timer = 0;
-                audio_music_fade_to(1.0f, level_song(level));
-            }
-            else if (!lvl_warn_timer)
-            {
-                lvl_warn_timer = 1;
-                audio_music_fade_to(0.1f, "bgm/time-warning.ogg");
-            }
+            lvl_warn_timer = 0;
+            audio_music_fade_to(.5f, level_song(level));
+        }
+        else if (curr_clock() < 1000 && !lvl_warn_timer)
+        {
+            lvl_warn_timer = 1;
+            audio_music_fade_to(.1f, "bgm/time-warning.ogg");
         }
     }
 

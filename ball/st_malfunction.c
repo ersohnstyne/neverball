@@ -14,7 +14,7 @@
 
 #include "st_malfunction.h"
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
 
@@ -29,6 +29,11 @@
 
 #include "st_shared.h"
 #include "st_conf.h"
+
+/*---------------------------------------------------------------------------*/
+
+struct state st_malfunction;
+struct state st_handsoff;
 
 /*---------------------------------------------------------------------------*/
 
@@ -158,7 +163,7 @@ static int malfunction_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             && current_platform == PLATFORM_PC
 #endif
             )
@@ -234,7 +239,7 @@ static int handsoff_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             && current_platform == PLATFORM_PC
 #endif
             )

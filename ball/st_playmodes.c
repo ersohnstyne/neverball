@@ -17,7 +17,7 @@
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
 #include "accessibility.h"
@@ -78,6 +78,10 @@ static int switchball_useable(void)
 
 /*---------------------------------------------------------------------------*/
 
+struct state st_hardcore_start;
+
+/*---------------------------------------------------------------------------*/
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
 
 static int playmodes_state(int id, int tok, int val, int unlocked, char *title, char *unlock_desc, char *lock_desc)
@@ -110,7 +114,9 @@ enum {
 static int playmodes_action(int tok, int val)
 {
     audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
-    switch (tok) {
+
+    switch (tok)
+    {
     case GUI_BACK:
         return goto_state_full(&st_campaign, GUI_ANIMATION_S_CURVE, GUI_ANIMATION_N_CURVE, 0);
     case PLAYMODES_CAREER_MODE:
@@ -136,7 +142,7 @@ static int playmodes_gui(void)
             gui_label(jd, _("Play Modes"), GUI_SML, 0, 0);
             gui_filler(jd);
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             if (current_platform == PLATFORM_PC)
 #endif
                 gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
@@ -210,7 +216,7 @@ static void playmodes_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     if (xbox_show_gui())
         xbox_control_list_gui_paint();
 #endif
@@ -225,7 +231,7 @@ static int playmodes_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
             return playmodes_action(GUI_BACK, 0);
 #else
@@ -297,7 +303,7 @@ static int hardcore_start_gui(void)
 
         if ((jd = gui_harray(id)))
         {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             if (current_platform == PLATFORM_PC)
 #endif
             {
@@ -305,7 +311,7 @@ static int hardcore_start_gui(void)
                 gui_state(jd, _("No"), GUI_SML, PLAYMODES_HARDCORE, 1);
                 gui_state(jd, _("Yes"), GUI_SML, PLAYMODES_HARDCORE, 0);
             }
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             else
             {
                 gui_state(jd, _("No"), GUI_SML, PLAYMODES_HARDCORE, 1);
@@ -339,7 +345,7 @@ static int hardcore_start_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
             return hardcore_start_action(GUI_BACK, 0);
 #else

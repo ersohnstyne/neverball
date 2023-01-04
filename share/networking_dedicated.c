@@ -215,6 +215,8 @@ static int authenticate_networking()
         log_errorf("Can't connect to server: %s:%d",
             CLIENT_IPADDR,
             CLIENT_PORT);
+
+        PBNetwork_Quit();
         connected = 0;
     }
 
@@ -232,25 +234,25 @@ static int networking_thread_func(void *data)
 
         if (result == 0)
         {
-            SDL_mutexP(networking_mutex);
+            SDL_LockMutex(networking_mutex);
             PBNetwork_IsChallengePlayable(&res_connected);
-            SDL_mutexV(networking_mutex);
+            SDL_UnlockMutex(networking_mutex);
             net_error = res_connected;
             networking_error_dispatch_event(res_connected);
-            SDL_mutexP(networking_mutex);
+            SDL_LockMutex(networking_mutex);
             networking_dispatch_event(0);
-            SDL_mutexV(networking_mutex);
+            SDL_UnlockMutex(networking_mutex);
 
             SDL_AtomicSet(&networking_thread_running, 0);
         }
         else
         {
-            SDL_mutexP(networking_mutex);
+            SDL_LockMutex(networking_mutex);
             networking_error_dispatch_event(0);
-            SDL_mutexV(networking_mutex);
-            SDL_mutexP(networking_mutex);
+            SDL_UnlockMutex(networking_mutex);
+            SDL_LockMutex(networking_mutex);
             networking_dispatch_event(0);
-            SDL_mutexV(networking_mutex);
+            SDL_UnlockMutex(networking_mutex);
         }
     }
 
@@ -323,6 +325,7 @@ void networking_quit(void)
 
     networking_busy = 1;
 
+    PBNetwork_Quit();
     SDL_AtomicSet(&networking_thread_running, 0);
 
     if (networking_thread)

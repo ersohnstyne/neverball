@@ -165,13 +165,13 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
                 if (state->fade != NULL) state->fade(alpha);
                 gui_set_alpha(state->gui_id, alpha, fromdirection);
             }
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             xbox_control_gui_set_alpha(alpha);
 #endif
 
             if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 20) accessibility_set_d(ACCESSIBILITY_SLOWDOWN, 20);
             if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) > 100) accessibility_set_d(ACCESSIBILITY_SLOWDOWN, 100);
-            float speedPercent = (float)accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
+            float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
 
             st_timer((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ? MIN(state_frame_smooth, dt) : dt)) * speedPercent);
             hmd_step();
@@ -197,7 +197,7 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
         if (state->fade != NULL) state->fade(alpha);
         gui_set_alpha(state->gui_id, alpha, fromdirection);
     }
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     xbox_control_gui_set_alpha(alpha);
 #endif
 
@@ -232,13 +232,13 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
                 if (state->fade != NULL) state->fade(alpha);
                 gui_set_alpha(state->gui_id, alpha, todirection);
             }
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             xbox_control_gui_set_alpha(alpha);
 #endif
 
             if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 20) accessibility_set_d(ACCESSIBILITY_SLOWDOWN, 20);
             if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) > 100) accessibility_set_d(ACCESSIBILITY_SLOWDOWN, 100);
-            float speedPercent = (float)accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
+            float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
 
             st_timer((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ? MIN(state_frame_smooth, dt) : dt)) * speedPercent);
             hmd_step();
@@ -264,7 +264,7 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
         if (state->fade != NULL) state->fade(alpha);
         gui_set_alpha(state->gui_id, alpha, todirection);
     }
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     xbox_control_gui_set_alpha(alpha);
 #endif
 

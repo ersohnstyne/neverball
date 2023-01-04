@@ -126,16 +126,16 @@ static int tilt_func(void *data)
             wiimote.mode.bits = WIIMOTE_MODE_ACC;
             wiimote.led.one   = 1;
 
-            SDL_mutexP(mutex);
+            SDL_LockMutex(mutex);
             state.status = running;
-            SDL_mutexV(mutex);
+            SDL_UnlockMutex(mutex);
 
             while (mutex && running && wiimote_is_open(&wiimote))
             {
                 if (wiimote_update(&wiimote) < 0)
                     break;
 
-                SDL_mutexP(mutex);
+                SDL_LockMutex(mutex);
                 {
                     running = state.status;
 
@@ -160,7 +160,7 @@ static int tilt_func(void *data)
                                    wiimote.tilt.x) / FILTER;
                     }
                 }
-                SDL_mutexV(mutex);
+                SDL_UnlockMutex(mutex);
             }
 
             wiimote_disconnect(&wiimote);
@@ -185,10 +185,10 @@ void tilt_free(void)
     {
         /* Get/set the status of the tilt sensor thread. */
 
-        SDL_mutexP(mutex);
+        SDL_LockMutex(mutex);
         b = state.status;
         state.status = 0;
-        SDL_mutexV(mutex);
+        SDL_UnlockMutex(mutex);
 
         /* Kill the thread and destroy the mutex. */
 
@@ -206,7 +206,7 @@ int tilt_get_button(int *b, int *s)
 
     if (mutex)
     {
-        SDL_mutexP(mutex);
+        SDL_LockMutex(mutex);
         {
             if      ((ch = get_button(&state.A)))
             {
@@ -254,7 +254,7 @@ int tilt_get_button(int *b, int *s)
                 *s = (ch == BUTTON_DN);
             }
         }
-        SDL_mutexV(mutex);
+        SDL_UnlockMutex(mutex);
     }
     return ch;
 }
@@ -265,9 +265,9 @@ float tilt_get_x(void)
 
     if (mutex)
     {
-        SDL_mutexP(mutex);
+        SDL_LockMutex(mutex);
         x = state.x;
-        SDL_mutexV(mutex);
+        SDL_UnlockMutex(mutex);
     }
 
     return x;
@@ -279,9 +279,9 @@ float tilt_get_z(void)
 
     if (mutex)
     {
-        SDL_mutexP(mutex);
+        SDL_LockMutex(mutex);
         z = state.z;
-        SDL_mutexV(mutex);
+        SDL_UnlockMutex(mutex);
     }
 
     return z;
@@ -293,9 +293,9 @@ int tilt_stat(void)
 
     if (mutex)
     {
-        SDL_mutexP(mutex);
+        SDL_LockMutex(mutex);
         b = state.status;
-        SDL_mutexV(mutex);
+        SDL_UnlockMutex(mutex);
     }
     return b;
 }

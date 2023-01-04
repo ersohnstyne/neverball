@@ -37,7 +37,7 @@ void  game_fade_color(float, float, float);
 void  game_client_fly(float);
 
 void  game_client_step_studio(float);
-void  game_client_init_studio(void);
+void  game_client_init_studio(int);
 
 int   game_client_get_jump_b(void);
 

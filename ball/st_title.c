@@ -20,7 +20,7 @@
 #include <SDL.h>
 #endif
 
-#if defined(__EMSCRIPTEN__)
+#ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
 
@@ -30,7 +30,7 @@
 #if NB_HAVE_PB_BOTH == 1
 #include "networking.h"
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
 
@@ -280,7 +280,6 @@ enum
 };
 
 int edition_id;
-int title_id;
 int system_version_build_id;
 int copyright_id;
 
@@ -327,31 +326,10 @@ static int title_action(int tok, int val)
         break;
 
     case TITLE_PLAY:
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         if (strlen(config_get_s(CONFIG_PLAYER)) < 3 || !title_check_playername(config_get_s(CONFIG_PLAYER)))
-        {
-            if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
-                return goto_name(&st_campaign, &st_title, 0);
-            else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET))
-                return goto_name(&st_set, &st_title, 0);
-            else
-                return goto_name(&st_levelgroup, &st_title, 0);
-        }
+            return goto_playgame_register();
         else
-        {
-            if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
-                return goto_state(&st_campaign);
-            else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET))
-                return goto_state(&st_set);
-            else
-                return goto_state(&st_levelgroup);
-        }
-#else
-        if (strlen(config_get_s(CONFIG_PLAYER)) < 3 || !title_check_playername(config_get_s(CONFIG_PLAYER)))
-            return goto_name(&st_set, &st_title, 0);
-        else
-            return goto_state(&st_set);
-#endif
+            return goto_playgame();
         break;
 
 #if defined(LEVELGROUPS_INCLUDES_CAMPAIGN) && defined(CONFIG_INCLUDES_ACCOUNT)
@@ -371,9 +349,9 @@ static int title_action(int tok, int val)
     case TITLE_DEMO: return goto_state(&st_demo); break;
     case TITLE_CONF:
         game_fade(+4.0);
-        return goto_conf(&st_title, 0);
+        return goto_conf(&st_title, 0, 0);
         break;
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && defined(DEVEL_BUILD)
     case GUI_CHAR:
 
@@ -574,7 +552,7 @@ static int title_gui(void)
     {
         char os_env[MAXSTR], dev_env[MAXSTR];
 #if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || !defined(TITLE_USE_DVD_BOX_OR_EMAIL)
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 #if ENABLE_HMD
         sprintf(dev_env, _(editions_developer[EDITION_CURRENT]), "OpenHMD", _("Developer Mode"));
         sprintf(os_env, _(editions_common[EDITION_CURRENT]), "OpenHMD");
@@ -665,6 +643,7 @@ static int title_gui(void)
                 gui_set_rect(jd, GUI_ALL);
             }
         }
+
 #elif NB_HAVE_PB_BOTH == 1
         if (server_policy_get_d(SERVER_POLICY_EDITION) == 10002)
         {
@@ -786,7 +765,7 @@ static int title_gui(void)
                 gui_state(kd, gt_prefix("menu^Options"), video.aspect_ratio < 1.0f ? GUI_SML : GUI_MED, TITLE_CONF, 0);
 #endif
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
                 /* Have some full screens? (Pressing ALT+F4 is not recommended) */
                 //if (support_exit && config_get_d(CONFIG_FULLSCREEN) && current_platform == PLATFORM_PC)
                     //gui_state(kd, gt_prefix("menu^Exit"),    GUI_MED, GUI_BACK, 0);
@@ -954,7 +933,7 @@ static void title_paint(int id, float t)
     gui_paint(system_version_build_id);
     gui_paint(copyright_id);
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     xbox_control_title_gui_paint();
 #endif
 }
@@ -1095,13 +1074,13 @@ static void title_timer(int id, float dt)
 
 static int title_keybd(int c, int d)
 {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     xbox_toggle_gui(0);
 #endif
 
     if (d)
     {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
         if (c == KEY_EXIT && support_exit)
             return title_action(GUI_BACK, 0);
 #endif
@@ -1122,7 +1101,7 @@ static int title_buttn(int b, int d)
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return title_action(gui_token(active), gui_value(active));
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b) && support_exit)
             return title_action(GUI_BACK, 0);
 #endif

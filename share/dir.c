@@ -27,9 +27,15 @@
 
 /*
  * HACK: Thank god using FindFirstFileA by Microsoft Elite Developers!
- * On Unix and linux, include headers will be used as: dirent.h
+ * On Unix and linux, or using MinGW, include headers will be used as: dirent.h
  * - Ersohn Styne
  */
+
+#if _MSC_VER
+#pragma message("Using directory list for code compilation: Microsoft Visual Studio")
+#else
+#pragma message("Using directory list for code compilation: MinGW")
+#endif
 
 /*
  * Enumerate files in a system directory. Returns a List of allocated filenames.
@@ -68,7 +74,7 @@ List dir_list_files(const char *path)
         FindClose(hFind);
         hFind = 0;
     }
-#else
+#elif __GNUC__
     if ((dir = opendir(path)))
     {
         struct dirent *ent;
@@ -83,6 +89,8 @@ List dir_list_files(const char *path)
 
         closedir(dir);
     }
+#else
+#error No implementation for dir_list_files found!
 #endif
 
     return files;
@@ -183,8 +191,8 @@ void dir_free(Array items)
 int dir_exists(const char *path)
 {
 #if _WIN32 && _MSC_VER
-    DWORD attr = GetFileAttributesA(path);
-    return attr & FILE_ATTRIBUTE_DIRECTORY;
+    return GetFileAttributesA(path) & FILE_ATTRIBUTE_DIRECTORY
+        || GetFileAttributesA(path) & FILE_ATTRIBUTE_ARCHIVE;
 #elif __GNUC__
     DIR *dir;
 

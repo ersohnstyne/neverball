@@ -17,7 +17,7 @@
 
 /*
  * Allocate and return a list cell initialised with FIRST and REST as
- * "data" and "next" members, respectively).
+ * "data" and "next" members, respectively.
  */
 List list_cons(void *first, List rest)
 {

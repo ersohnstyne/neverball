@@ -80,7 +80,6 @@
 
 struct state st_zen_warning;
 struct state st_ask_more;
-struct state st_ask_more_purchased;
 
 struct state st_dedicated_buyballsqueue;
 
@@ -122,15 +121,15 @@ void detect_replay_filters(int exceeded);
 
 static int fail_action(int tok, int val)
 {
-    int save = config_get_d(CONFIG_ACCOUNT_SAVE);
     audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+
+    int save = config_get_d(CONFIG_ACCOUNT_SAVE);
 
     /* Some tokens were FINALLY removed in this future! */
     switch (tok)
     {
     case GUI_BACK:
     case FAIL_OVER:
-        progress_stop();
         detect_replay_filters(
             (status == GAME_FALL && save < 3) || (status == GAME_TIME && save < 2) ||
             (campaign_hardcore() && campaign_hardcore_norecordings())
@@ -146,7 +145,7 @@ static int fail_action(int tok, int val)
 #ifdef MAPC_INCLUDES_CHKP
     /* New: Checkpoints */
     case FAIL_CHECKPOINT_RESPAWN:
-        if (progress_same_avail())
+        if (progress_same_avail() && !progress_dead())
         {
             powerup_stop();
             checkpoints_respawn();
@@ -174,7 +173,7 @@ static int fail_action(int tok, int val)
 
     case FAIL_SAME:
 #ifdef MAPC_INCLUDES_CHKP
-        if (progress_same_avail())
+        if (progress_same_avail() && !progress_dead())
             checkpoints_stop();
 #endif
 
@@ -263,7 +262,7 @@ static int fail_gui(void)
                     audio_music_fade_out(0.f);
                     audio_play(AUD_INTRO_SHATTER, 1.0f);
 
-#if defined(COVID_HIGH_RISK)
+#ifdef COVID_HIGH_RISK
                     /* Unsaved replay files dissapear during covid high risks! */
                     demo_play_stop(1);
                     nosaveid = gui_multi(jd, FAIL_ERROR_REPLAY_COVID_HIGHRISK, GUI_SML, gui_red, gui_red);
@@ -273,30 +272,35 @@ static int fail_gui(void)
 #endif
                     gui_pulse(nosaveid, 1.2f);
 
+#ifdef MAPC_INCLUDES_CHKP
                     if (last_active)
                     {
-                        if (((last_time > 60.0f && last_timer_down) || !last_timer_down) && progress_same_avail() && !campaign_hardcore())
+                        if (!campaign_hardcore())
                         {
-                            audio_play(AUD_RESPAWN, 1.0f);
-                            gui_multi(jd, _("Respawn is still available during active!"), GUI_SML, gui_grn, gui_grn);
+                            if (((last_time > 60.0f && last_timer_down) || !last_timer_down) && progress_same_avail())
+                            {
+                                audio_play(AUD_RESPAWN, 1.0f);
+                                gui_multi(jd, _("Respawn is still available during active!"), GUI_SML, gui_grn, gui_grn);
+                            }
+                            else if (progress_same_avail() && !progress_dead())
+                            {
+                                audio_music_fade_out(0.f);
+                                gui_multi(jd, FAIL_ERROR_RESPAWN_1, GUI_SML, gui_red, gui_red);
+                            }
+                            else
+                            {
+                                audio_music_fade_out(0.f);
+                                gui_multi(jd, FAIL_ERROR_RESPAWN_2, GUI_SML, gui_red, gui_red);
+                            }
                         }
-                        else if (progress_same_avail() && !campaign_hardcore())
-                        {
-                            audio_music_fade_out(0.f);
-                            gui_multi(jd, FAIL_ERROR_RESPAWN_1, GUI_SML, gui_red, gui_red);
-                        }
-                        else if (!campaign_hardcore() && progress_dead())
-                        {
-                            audio_music_fade_out(0.f);
-                            gui_multi(jd, FAIL_ERROR_RESPAWN_2, GUI_SML, gui_red, gui_red);
-                        }
-                        else if (progress_dead())
+                        else
                         {
                             audio_music_fade_out(0.f);
                             gui_multi(jd, FAIL_ERROR_RESPAWN_3, GUI_SML, gui_red, gui_red);
                         }
                     }
-
+                    else
+#endif
                     if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
                     {
                         if (progress_dead() && server_policy_get_d(SERVER_POLICY_EDITION) == -1)
@@ -331,29 +335,32 @@ static int fail_gui(void)
 #ifdef MAPC_INCLUDES_CHKP
                     if (last_active)
                     {
-                        if (((last_time > 60.0f && last_timer_down) || !last_timer_down) && progress_same_avail() && !campaign_hardcore())
+                        if (!campaign_hardcore())
                         {
-                            audio_play(AUD_RESPAWN, 1.0f);
-                            gui_multi(jd, _("Respawn is still available during active!"), GUI_SML, gui_grn, gui_grn);
+                            if (((last_time > 60.0f && last_timer_down) || !last_timer_down) && progress_same_avail())
+                            {
+                                audio_play(AUD_RESPAWN, 1.0f);
+                                gui_multi(jd, _("Respawn is still available during active!"), GUI_SML, gui_grn, gui_grn);
+                            }
+                            else if (progress_same_avail() && !progress_dead())
+                            {
+                                audio_music_fade_out(0.f);
+                                gui_multi(jd, FAIL_ERROR_RESPAWN_1, GUI_SML, gui_red, gui_red);
+                            }
+                            else
+                            {
+                                audio_music_fade_out(0.f);
+                                gui_multi(jd, FAIL_ERROR_RESPAWN_2, GUI_SML, gui_red, gui_red);
+                            }
                         }
-                        else if (progress_same_avail() && !campaign_hardcore())
-                        {
-                            audio_music_fade_out(0.f);
-                            gui_multi(jd, FAIL_ERROR_RESPAWN_1, GUI_SML, gui_red, gui_red);
-                        }
-                        else if (!campaign_hardcore() && progress_dead())
-                        {
-                            audio_music_fade_out(0.f);
-                            gui_multi(jd, FAIL_ERROR_RESPAWN_2, GUI_SML, gui_red, gui_red);
-                        }
-                        else if (progress_dead())
+                        else
                         {
                             audio_music_fade_out(0.f);
                             gui_multi(jd, FAIL_ERROR_RESPAWN_3, GUI_SML, gui_red, gui_red);
                         }
                     }
+                    else
 #endif
-
                     if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
                     {
                         if (progress_dead() && server_policy_get_d(SERVER_POLICY_EDITION) == -1)
@@ -487,57 +494,58 @@ static int fail_gui(void)
         {
 #if NB_HAVE_PB_BOTH==1
 #if defined(MAPC_INCLUDES_CHKP) && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
-            if (respawnable && progress_same_avail() && !campaign_hardcore())
+            if ((respawnable && progress_same_avail()) && !campaign_hardcore())
             {
                 gui_start(jd, _("Cancel"), GUI_SML, FAIL_CHECKPOINT_CANCEL, 0);
 
                 /* New: Checkpoints; An optional can be respawn last location */
-                if (progress_same_avail() && last_active && ((last_time > 60.0f && last_timer_down) || !last_timer_down))
+                if ((progress_same_avail() && last_active) && ((last_time > 60.0f && last_timer_down) || !last_timer_down))
                     gui_state(jd, _("Respawn"), GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
-                else if (!campaign_hardcore() && progress_dead() && server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+                else if ((!campaign_hardcore() && progress_dead()) && (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
                     gui_state(jd, _("Buy more balls!"), GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
                 else if (!campaign_hardcore() && server_policy_get_d(SERVER_POLICY_EDITION) > -1 && progress_dead())
                     gui_state(jd, _("Upgrade edition!"), GUI_SML, FAIL_UPGRADE_EDITION, 0);
             }
-            else
 #elif defined(MAPC_INCLUDES_CHKP)
             if (respawnable && progress_same_avail())
             {
                 gui_start(jd, _("Cancel"), GUI_SML, FAIL_CHECKPOINT_CANCEL, 0);
 
                 /* New: Checkpoints; An optional can be respawn last location */
-                if (progress_same_avail() && last_active && ((last_time > 60.0f && last_timer_down) || !last_timer_down))
+                if ((progress_same_avail() && last_active) && ((last_time > 60.0f && last_timer_down) || !last_timer_down))
                     gui_state(jd, _("Respawn"), GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
-                else if (progress_dead() && server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+                else if (progress_dead() && (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
                     gui_state(jd, _("Buy more balls!"), GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
                 else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && progress_dead())
                     gui_state(jd, _("Upgrade edition!"), GUI_SML, FAIL_UPGRADE_EDITION, 0);
             }
+#endif
             else
 #endif
-#endif
             {
+#ifdef MAPC_INCLUDES_CHKP
+                respawnable = 0;
+#endif
+
                 /* Some buttons were FINALLY removed in this future (e.g. death_screen.json in Minecraft Android, iOS or Windows)! */
                 gui_start(jd, _("Exit"), GUI_SML, FAIL_OVER, 0);
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (progress_same_avail() && !campaign_hardcore())
-                    gui_state(jd, _("Retry Level"), GUI_SML, FAIL_SAME, 0);
+
+#if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
+                if (!campaign_hardcore())
+#endif
+                {
+                    if ((progress_same_avail() && !progress_dead()))
+                        gui_state(jd, _("Retry Level"), GUI_SML, FAIL_SAME, 0);
+#ifdef NB_HAVE_PB_BOTH
+                    else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+                        gui_state(jd, _("Buy more balls!"), GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
+                    else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                        gui_state(jd, _("Upgrade edition!"), GUI_SML, FAIL_UPGRADE_EDITION, 0);
 #else
-                if (progress_same_avail())
-                    gui_state(jd, _("Retry Level"), GUI_SML, FAIL_SAME, 0);
-#ifndef NB_HAVE_PB_BOTH
-                else
-                    gui_state(jd, _("Join PB"), GUI_SML, FAIL_TRANSFER_MEMBER, 0);
+                    else
+                        gui_state(jd, _("Join PB"), GUI_SML, FAIL_TRANSFER_MEMBER, 0);
 #endif
-#endif
-#ifdef CONFIG_INCLUDES_ACCOUNT
-                else if (!campaign_hardcore() && !respawnable && progress_dead() && server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-                    gui_state(jd, _("Buy more balls!"), GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
-#endif
-#if NB_HAVE_PB_BOTH==1
-                else if (!campaign_hardcore() && server_policy_get_d(SERVER_POLICY_EDITION) == -1 && progress_dead())
-                    gui_state(jd, _("Upgrade edition!"), GUI_SML, FAIL_UPGRADE_EDITION, 0);
-#endif
+                }
 
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(NB_HAVE_PB_BOTH)
                 if (account_get_d(ACCOUNT_PRODUCT_MEDIATION) == 1 && status == GAME_TIME && curr_mode() == MODE_NORMAL)
@@ -590,7 +598,7 @@ static void fail_paint(int id, float t)
     game_client_draw(0, t);
     
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     if (xbox_show_gui())
         xbox_control_death_gui_paint();
     if (hud_visibility())
@@ -613,11 +621,10 @@ static void fail_timer(int id, float dt)
             int record_modes = curr_mode() != MODE_NONE;
             int record_campaign = !campaign_hardcore_norecordings();
 
-            if (!resume)
-                game_client_sync(record_screenanimations
-                              && record_modes
-                              && record_campaign ? demo_fp : NULL);
-            else game_client_sync(NULL);
+            game_client_sync(!resume
+                          && record_screenanimations
+                          && record_modes
+                          && record_campaign ? demo_fp : NULL);
             game_client_blend(game_server_blend());
         }*/
     }
@@ -646,11 +653,16 @@ static int fail_keybd(int c, int d)
          * but if you permanent restart the default location,
          * all checkpoints will erased.
          */
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
-        if (config_tst_d(CONFIG_KEY_RESTART, c) && progress_same_avail() && !campaign_hardcore() && !respawnable && current_platform == PLATFORM_PC)
-#else
-        if (config_tst_d(CONFIG_KEY_RESTART, c) && progress_same_avail())
+        if (config_tst_d(CONFIG_KEY_RESTART, c) && progress_same_avail()
+#if NB_HAVE_PB_BOTH==1
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            && !campaign_hardcore()
 #endif
+#ifndef __EMSCRIPTEN__
+            && current_platform == PLATFORM_PC
+#endif
+#endif
+            )
         {
             if (progress_same())
             {
@@ -684,8 +696,7 @@ static int fail_buttn(int b, int d)
 
 enum
 {
-    ZEN_SWITCH_CANCEL = GUI_LAST,
-    ZEN_SWITCH_ACCEPT
+    ZEN_SWITCH_ACCEPT = GUI_LAST
 };
 
 static int zen_warning_action(int tok, int val)
@@ -694,7 +705,7 @@ static int zen_warning_action(int tok, int val)
 
     switch (tok)
     {
-    case ZEN_SWITCH_CANCEL:
+    case GUI_BACK:
         return goto_state(&st_fail);
         break;
     case ZEN_SWITCH_ACCEPT:
@@ -726,7 +737,7 @@ static int zen_warning_enter(struct state *st, struct state *prev)
 
         if ((jd = gui_harray(id)))
         {
-            gui_start(jd, _("Cancel"), GUI_SML, ZEN_SWITCH_CANCEL, 0);
+            gui_start(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
             gui_state(jd, _("Switch"), GUI_SML, ZEN_SWITCH_ACCEPT, 0);
         }
     }
@@ -740,7 +751,7 @@ static int zen_warning_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT)
-            return zen_warning_action(ZEN_SWITCH_CANCEL, 0);
+            return zen_warning_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -754,7 +765,7 @@ static int zen_warning_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return zen_warning_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return zen_warning_action(ZEN_SWITCH_CANCEL, 0);
+            return zen_warning_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -767,12 +778,13 @@ static int zen_warning_buttn(int b, int d)
 
 enum
 {
-    ASK_MORE_CANCEL = GUI_LAST,
-    ASK_MORE_GET_COINS,
+    ASK_MORE_GET_COINS = GUI_LAST,
     ASK_MORE_GET_GEMS,
     ASK_MORE_ACCEPT,
     ASK_MORE_BUY
 };
+
+int ask_more_purchased(struct state *ok_state);
 
 static int ask_more_action(int tok, int val)
 {
@@ -780,15 +792,15 @@ static int ask_more_action(int tok, int val)
 
     switch (tok)
     {
-    case ASK_MORE_CANCEL:
+    case GUI_BACK:
         return goto_state(&st_fail);
         break;
     case ASK_MORE_GET_COINS:
-        return goto_shop_iap(&st_ask_more_purchased, &st_fail, val, 0, 0);
+        return goto_shop_iap(0, &st_fail, ask_more_purchased, 0, val, 0, 0);
         break;
 #if NB_STEAM_API==1 || NB_EOS_SDK==1
     case ASK_MORE_GET_GEMS:
-        return goto_shop_iap(&st_ask_more_purchased, &st_fail, val, 1, 0);
+        return goto_shop_iap(0, &st_fail, ask_more_purchased, 0, val, 1, 0);
         break;
 #endif
     case ASK_MORE_ACCEPT:
@@ -839,20 +851,10 @@ static int ask_more_action(int tok, int val)
             }
         }
 #endif
-
         else if (account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= 15 && ask_more_target == ASK_MORE_BALLS)
         {
             audio_play("snd/buyproduct.ogg", 1.0f);
 
-#if ENABLE_DEDICATED_SERVER==1
-            int net_marker_result = -1;
-            net_marker_result = networking_dedicated_buyballs_send(1);
-
-            if (net_marker_result == -1)
-            {
-                /* Waiting for approval */
-            }
-#else
             int coinwallet = account_get_d(ACCOUNT_DATA_WALLET_GEMS) - 15;
             account_set_d(ACCOUNT_DATA_WALLET_GEMS, coinwallet);
             account_save();
@@ -867,7 +869,6 @@ static int ask_more_action(int tok, int val)
                 return goto_state(campaign_used() ? &st_play_ready : &st_level);
             else
                 return goto_state(&st_fail); /* An error occured, because the level is not loaded! */
-#endif
         }
 #endif
         break;
@@ -987,16 +988,16 @@ static int ask_more_enter(struct state *st, struct state *prev)
             {
                 if (gemswallet >= 15)
                 {
-                    gui_start(jd, _("No, thanks!"), GUI_SML, ASK_MORE_CANCEL, 0);
+                    gui_start(jd, _("No, thanks!"), GUI_SML, GUI_BACK, 0);
                     gui_state(jd, _("Buy now!"), GUI_SML, ASK_MORE_BUY, 0);
                 }
                 else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP))
                 {
-                    gui_start(jd, _("No, thanks!"), GUI_SML, ASK_MORE_CANCEL, 0);
+                    gui_start(jd, _("No, thanks!"), GUI_SML, GUI_BACK, 0);
                     gui_state(jd, _("Get Gems"), GUI_SML, ASK_MORE_GET_GEMS, 15);
                 }
                 else
-                    gui_start(jd, _("OK"), GUI_SML, ASK_MORE_CANCEL, 0);
+                    gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
             }
         }
         else
@@ -1016,14 +1017,14 @@ static int ask_more_enter(struct state *st, struct state *prev)
                 {
                     if (coinwallet >= 120)
                     {
-                        gui_start(jd, _("No, thanks!"), GUI_SML, ASK_MORE_CANCEL, 0);
+                        gui_start(jd, _("No, thanks!"), GUI_SML, GUI_BACK, 0);
                         if (!progress_extended())
                             gui_state(jd, approveattr, GUI_SML, ASK_MORE_ACCEPT, extendvalue);
                         gui_state(jd, _("Purchase"), GUI_SML, ASK_MORE_BUY, 0);
                     }
                     if (gemswallet >= 50)
                     {
-                        gui_start(jd, _("No, thanks!"), GUI_SML, ASK_MORE_CANCEL, 0);
+                        gui_start(jd, _("No, thanks!"), GUI_SML, GUI_BACK, 0);
                         if (!progress_extended())
                             gui_state(jd, approveattr, GUI_SML, ASK_MORE_ACCEPT, extendvalue);
                         gui_state(jd, _("Purchase"), GUI_SML, ASK_MORE_BUY, 0);
@@ -1037,7 +1038,7 @@ static int ask_more_enter(struct state *st, struct state *prev)
                     else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP) && !progress_extended())
 #endif
                     {
-                        gui_start(jd, _("No, thanks!"), GUI_SML, ASK_MORE_CANCEL, 0);
+                        gui_start(jd, _("No, thanks!"), GUI_SML, GUI_BACK, 0);
                         if (!progress_extended())
                             gui_state(jd, approveattr, GUI_SML, ASK_MORE_ACCEPT, extendvalue);
 #if NB_STEAM_API==1 || NB_EOS_SDK==1
@@ -1045,17 +1046,17 @@ static int ask_more_enter(struct state *st, struct state *prev)
 #endif
                     }
                     else
-                        gui_start(jd, _("OK"), GUI_SML, ASK_MORE_CANCEL, 0);
+                        gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
                 }
                 else if (!progress_extended())
                 {
-                    gui_start(jd, _("No, thanks!"), GUI_SML, ASK_MORE_CANCEL, 0);
+                    gui_start(jd, _("No, thanks!"), GUI_SML, GUI_BACK, 0);
                     gui_state(jd, approveattr, GUI_SML, ASK_MORE_ACCEPT, extendvalue);
                 }
                 else
                 {
                     assert(0 && "Unknown state");
-                    gui_start(jd, _("OK"), GUI_SML, ASK_MORE_CANCEL, 0);
+                    gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
                 }
             }
         }
@@ -1070,7 +1071,7 @@ static int ask_more_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT)
-            return ask_more_action(ASK_MORE_CANCEL, 0);
+            return ask_more_action(GUI_BACK, 0);
 
     }
     return 1;
@@ -1085,7 +1086,7 @@ static int ask_more_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return ask_more_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return ask_more_action(ASK_MORE_CANCEL, 0);
+            return ask_more_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -1094,49 +1095,8 @@ static int ask_more_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-#if UNUSED
-
-int buyballs_was_connected;
-
-int ask_more_dedicated_buyballsqueue_gui(void)
+int ask_more_purchased(struct state *ok_state)
 {
-    int id;
-
-    if ((id = gui_vstack(0)))
-    {
-        gui_title_header(id, _("Purchase sent"), GUI_MED, gui_gry, gui_red);
-        gui_space(id);
-        gui_multi(id, _("Your purchase was sent\\and is waiting for delivery."), GUI_SML, gui_wht, gui_wht);
-    }
-
-    return id;
-}
-
-int ask_more_dedicated_buyballsqueue_enter(struct state *st, struct state *prev)
-{
-    return ask_more_dedicated_buyballsqueue_gui();
-}
-
-void ask_more_dedicated_buyballsqueue_timer(int id, float dt)
-{
-    buyballs_was_connected=networking_connected();
-    if (!networking_connected())
-    {
-        /* Go back, if offline. */
-        goto_state(&st_fail);
-    }
-
-    gui_timer(id, dt);
-}
-
-#endif
-
-/*---------------------------------------------------------------------------*/
-
-int ask_more_purchased_enter(struct state *st, struct state *prev)
-{
-    audio_play("snd/buyproduct.ogg", 1.0f);
-
 #ifdef CONFIG_INCLUDES_ACCOUNT
     if (ask_more_target == ASK_MORE_BALLS)
     {
@@ -1200,8 +1160,6 @@ struct state st_zen_warning = {
     zen_warning_buttn
 };
 
-#if UNUSED
-
 struct state st_ask_more = {
     ask_more_enter,
     shared_leave,
@@ -1213,21 +1171,6 @@ struct state st_ask_more = {
     shared_click,
     ask_more_keybd,
     ask_more_buttn
-};
-
-struct state st_dedicated_buyballsqueue = {
-    ask_more_dedicated_buyballsqueue_enter,
-    shared_leave,
-    shared_paint,
-    ask_more_dedicated_buyballsqueue_timer,
-    NULL, NULL, NULL, NULL, NULL, NULL
-};
-
-#endif
-
-struct state st_ask_more_purchased = {
-    ask_more_purchased_enter,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
 
 #endif

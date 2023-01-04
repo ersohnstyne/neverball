@@ -309,19 +309,19 @@ static int scan_campaign_level(const struct s_base *base,
 
     const char sbtheme_limitation_grad[][MAXSTR] =
     {
-        "back/skyS.png",
-        "back/iceS.png",
-        "back/caveS.png",
-        "back/cloudS.png",
-        "back/lavaS.png"
+        "back/sky-SB.png",
+        "back/ice-SB.png",
+        "back/cave-SB.png",
+        "back/cloud-SB.png",
+        "back/lava-SB.png"
     };
     const char sbtheme_limitation_back[][MAXSTR] =
     {
-        "map-back/skyS.sol",
-        "map-back/iceS.sol",
-        "map-back/caveS.sol",
-        "map-back/cloudS.sol",
-        "map-back/lavaS.sol"
+        "map-back/sky-SB.sol",
+        "map-back/ice-SB.sol",
+        "map-back/cave-SB.sol",
+        "map-back/clouds-SB.sol",
+        "map-back/lava-SB.sol"
     };
     const char sbtheme_substitute_song[][MAXSTR] =
     {
@@ -333,11 +333,11 @@ static int scan_campaign_level(const struct s_base *base,
     };
     const char sbtheme_limitation_song[][MAXSTR] =
     {
-        "bgm/trackS1.ogg",
-        "bgm/trackS2.ogg",
-        "bgm/trackS3.ogg",
-        "bgm/trackS4.ogg",
-        "bgm/trackS5.ogg"
+        "bgm/track-SB1.ogg",
+        "bgm/track-SB2.ogg",
+        "bgm/track-SB3.ogg",
+        "bgm/track-SB4.ogg",
+        "bgm/track-SB5.ogg"
     };
 
     for (int i = 0; i < base->dc; i++)
@@ -350,19 +350,19 @@ static int scan_campaign_level(const struct s_base *base,
             if (campaign)
             {
                 if (str_starts_with(filename, "buildin-map-campaign/sky"))
-                    SAFECPY(target_back, "map-back/skyS.sol");
+                    SAFECPY(target_back, sbtheme_limitation_back[0]);
                 else if (str_starts_with(filename, "buildin-map-campaign/ice"))
-                    SAFECPY(target_back, "map-back/iceS.sol");
+                    SAFECPY(target_back, sbtheme_limitation_back[1]);
                 else if (str_starts_with(filename, "buildin-map-campaign/cave"))
-                    SAFECPY(target_back, "map-back/caveS.sol");
+                    SAFECPY(target_back, sbtheme_limitation_back[2]);
                 else if (str_starts_with(filename, "buildin-map-campaign/cloud"))
-                    SAFECPY(target_back, "map-back/cloudS.sol");
+                    SAFECPY(target_back, sbtheme_limitation_back[3]);
                 else if (str_starts_with(filename, "buildin-map-campaign/lava"))
-                    SAFECPY(target_back, "map-back/lavaS.sol");
+                    SAFECPY(target_back, sbtheme_limitation_back[4]);
                 else
                 {
                     log_errorf("%s:\n    Switchball does not offer different backgrounds!\n", filename);
-                    return 0;
+                    if (werror_campaign) return 0;
                 }
 
                 accept_back = strcmp(v, target_back) == 0;
@@ -370,7 +370,7 @@ static int scan_campaign_level(const struct s_base *base,
                 if (!accept_back)
                 {
                     log_errorf("%s:\n    Switchball requires identical background environment!\n", filename);
-                    return 0;
+                    if (werror_campaign) return 0;
                 }
             }
             else if (pre_campaign)
@@ -407,19 +407,19 @@ static int scan_campaign_level(const struct s_base *base,
             if (campaign)
             {
                 if (str_starts_with(filename, "buildin-map-campaign/sky"))
-                    SAFECPY(target_grad, "back/skyS.png");
+                    SAFECPY(target_grad, sbtheme_limitation_grad[0]);
                 else if (str_starts_with(filename, "buildin-map-campaign/ice"))
-                    SAFECPY(target_grad, "back/iceS.png");
+                    SAFECPY(target_grad, sbtheme_limitation_grad[1]);
                 else if (str_starts_with(filename, "buildin-map-campaign/cave"))
-                    SAFECPY(target_grad, "back/caveS.png");
+                    SAFECPY(target_grad, sbtheme_limitation_grad[2]);
                 else if (str_starts_with(filename, "buildin-map-campaign/cloud"))
-                    SAFECPY(target_grad, "back/cloudS.png");
+                    SAFECPY(target_grad, sbtheme_limitation_grad[3]);
                 else if (str_starts_with(filename, "buildin-map-campaign/lava"))
-                    SAFECPY(target_grad, "back/lavaS.png");
+                    SAFECPY(target_grad, sbtheme_limitation_grad[4]);
                 else
                 {
                     log_errorf("%s:\n    Switchball does not offer different gradients!\n", filename);
-                    return 0;
+                    if (werror_campaign) return 0;
                 }
 
                 accept_grad = strcmp(v, target_grad) == 0;
@@ -427,7 +427,7 @@ static int scan_campaign_level(const struct s_base *base,
                 if (!accept_grad)
                 {
                     log_errorf("%s:\n    Switchball requires identical gradient!\n", filename);
-                    return 0;
+                    if (werror_campaign) return 0;
                 }
             }
             else if (pre_campaign)
@@ -464,19 +464,19 @@ static int scan_campaign_level(const struct s_base *base,
             if (campaign)
             {
                 if (str_starts_with(filename, "buildin-map-campaign/sky"))
-                    SAFECPY(target_song, "bgm/trackS1.ogg");
+                    SAFECPY(target_song, sbtheme_limitation_song[0]);
                 else if (str_starts_with(filename, "buildin-map-campaign/ice"))
-                    SAFECPY(target_song, "bgm/trackS2.ogg");
+                    SAFECPY(target_song, sbtheme_limitation_song[1]);
                 else if (str_starts_with(filename, "buildin-map-campaign/cave"))
-                    SAFECPY(target_song, "bgm/trackS3.ogg");
+                    SAFECPY(target_song, sbtheme_limitation_song[2]);
                 else if (str_starts_with(filename, "buildin-map-campaign/cloud"))
-                    SAFECPY(target_song, "bgm/trackS4.ogg");
+                    SAFECPY(target_song, sbtheme_limitation_song[3]);
                 else if (str_starts_with(filename, "buildin-map-campaign/lava"))
-                    SAFECPY(target_song, "bgm/trackS5.ogg");
+                    SAFECPY(target_song, sbtheme_limitation_song[4]);
                 else
                 {
                     log_errorf("%s:\n    Switchball does not offer different music!\n", filename);
-                    return 0;
+                    if (werror_campaign) return 0;
                 }
 
                 accept_song = strcmp(v, target_song) == 0;
@@ -484,7 +484,7 @@ static int scan_campaign_level(const struct s_base *base,
                 if (!accept_song)
                 {
                     log_errorf("%s:\n    Switchball requires identical music!\n", filename);
-                    return 0;
+                    if (werror_campaign) return 0;
                 }
             }
             else if (pre_campaign)

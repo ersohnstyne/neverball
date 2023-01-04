@@ -13,7 +13,7 @@
  */
 
 #if NB_HAVE_PB_BOTH==1
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
 
@@ -35,6 +35,7 @@
 #include "game_draw.h"
 
 #include "st_malfunction.h"
+#include "st_name.h"
 #include "st_level.h"
 #include "st_set.h"
 #include "st_title.h"
@@ -50,7 +51,11 @@
 #define SET_ALWAYS_UNLOCKED
 #endif
 
- /*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+struct state st_levelgroup;
+
+/*---------------------------------------------------------------------------*/
 
 static int switchball_useable(void)
 {
@@ -88,6 +93,8 @@ static int switchball_useable(void)
 /*---------------------------------------------------------------------------*/
 
 #define SET_STEP 7
+
+static int set_manual_hotreload = 0;
 
 static int total = 0;
 static int first = 0;
@@ -696,20 +703,23 @@ static int set_gui(void)
 
 static int set_enter(struct state *st, struct state *prev)
 {
-    if (do_init)
+    if (do_init || set_manual_hotreload)
     {
+        if (set_manual_hotreload)
+            first = 0;
+
         total = set_init(boost_on);
         first = MIN(first, (total - 1) - ((total - 1) % SET_STEP));
-
-        //audio_music_fade_to(0.5f, boost_on ? "bgm/boostrush.ogg" : switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
 
         audio_music_fade_to(0.5f, boost_on ? "bgm/boostrush.ogg" : "bgm/inter_world.ogg");
 
         if (total != 0)
         {
-            if (prev != &st_set)
+            if (prev != &st_set || set_manual_hotreload)
                 audio_narrator_play(AUD_START);
         }
+
+        set_manual_hotreload = 0;
     }
     else do_init = 1;
 
@@ -768,7 +778,7 @@ static void set_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     if (xbox_show_gui())
         xbox_control_list_gui_paint();
 #endif
@@ -801,7 +811,7 @@ static void set_over(int i)
 
 static void set_point(int id, int x, int y, int dx, int dy)
 {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     xbox_toggle_gui(0);
 #endif
     int jd = shared_point_basic(id, x, y);
@@ -812,7 +822,7 @@ static void set_point(int id, int x, int y, int dx, int dy)
 
 static void set_stick(int id, int a, float v, int bump)
 {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     xbox_toggle_gui(1);
 #endif
     int jd = shared_stick_basic(id, a, v, bump);
@@ -832,6 +842,11 @@ static int set_keybd(int c, int d)
         if (c == KEY_EXIT)
             return set_action(GUI_BACK, 0);
 #endif
+        if (c == KEY_LOOKAROUND)
+        {
+            set_manual_hotreload = 1;
+            return goto_state(&st_set);
+        }
     }
     return 1;
 }
@@ -928,11 +943,11 @@ static char *campaign_label_clock(int timer)
     return timeclock;
 }
 
-static int campaign_action(int token, int value)
+static int campaign_action(int tok, int val)
 {
-    audio_play(GUI_BACK == token ? AUD_BACK : AUD_MENU, 1.0f);
+    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
 
-    switch (token)
+    switch (tok)
     {
     case GUI_BACK:
         if (campaign_theme_used())
@@ -970,7 +985,7 @@ static int campaign_action(int token, int value)
         audio_music_stop();
         audio_play(AUD_STARTGAME, 1.0f);
         game_fade(+4.0);
-        if (progress_play(campaign_get_level(value)))
+        if (progress_play(campaign_get_level(val)))
         {
             campaign_load_camera_box_trigger(level_name(curr_level()));
 
@@ -1035,7 +1050,7 @@ static int campaign_gui(void)
             gui_space(jd);
             gui_filler(jd);
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             if (current_platform == PLATFORM_PC)
 #endif
                 gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
@@ -1059,7 +1074,7 @@ static int campaign_gui(void)
         {
             gui_filler(kd);
             /* Arrows are very tricky. But now, in REVERSE! */
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             if (!campaign_theme_used() && current_platform == PLATFORM_PC)
 #else
             if (!campaign_theme_used())
@@ -1068,7 +1083,7 @@ static int campaign_gui(void)
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(kd, "gui/navig/arrow_right_disabled.png", "gui/navig/arrow_right.png", GUI_NEXT, GUI_NONE, 1);
 #else
-                gui_maybe(kd, ">", GUI_NEXT, GUI_NONE, 1);
+                gui_maybe(kd, GUI_ARROW_RGHT, GUI_NEXT, GUI_NONE, 1);
 #endif
                 gui_space(kd);
             }
@@ -1145,7 +1160,7 @@ static int campaign_gui(void)
                 }
             }
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             if (!campaign_theme_used() && current_platform == PLATFORM_PC)
 #else
             if (!campaign_theme_used())
@@ -1155,7 +1170,7 @@ static int campaign_gui(void)
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(kd, "gui/navig/arrow_left_disabled.png", "gui/navig/arrow_left.png", GUI_PREV, GUI_NONE, 1);
 #else
-                gui_maybe(kd, "<", GUI_PREV, GUI_NONE, 1);
+                gui_maybe(kd, GUI_ARROW_LFT, GUI_PREV, GUI_NONE, 1);
 #endif
             }
 
@@ -1203,7 +1218,7 @@ static void campaign_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     if (xbox_show_gui())
         xbox_control_list_gui_paint();
 #endif
@@ -1213,7 +1228,7 @@ static int campaign_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
             return campaign_action(GUI_BACK, 0);
 #else
@@ -1361,10 +1376,11 @@ static void campaign_download_done(void *data1, void *data2)
 
 #endif
 
-static int levelgroup_action(int token, int value)
+static int levelgroup_action(int tok, int val)
 {
-    audio_play(GUI_BACK == token ? AUD_BACK : AUD_MENU, 1.0f);
-    switch (token)
+    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+
+    switch (tok)
     {
     case GUI_BACK:
         return goto_state(&st_title);
@@ -1383,8 +1399,6 @@ static int levelgroup_gui(void)
     int w = video.device_w;
     int h = video.device_h;
 
-    campaign_init();
-
     campaign_level_unlocks[0] = 0;
     campaign_level_unlocks[1] = 0;
     campaign_level_unlocks[2] = 0;
@@ -1402,7 +1416,7 @@ static int levelgroup_gui(void)
 
             gui_filler(jd);
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             if (current_platform == PLATFORM_PC)
 #endif
                 gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
@@ -1493,6 +1507,8 @@ static int levelgroup_gui(void)
 
 static int levelgroup_enter(struct state *st, struct state *prev)
 {
+    campaign_init();
+
     if (prev == &st_campaign)
         progress_init(MODE_NORMAL);
 
@@ -1512,7 +1528,7 @@ static int levelgroup_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
             return levelgroup_action(GUI_BACK, 0);
 #else
@@ -1538,6 +1554,47 @@ static int levelgroup_buttn(int b, int d)
 }
 
 #endif
+
+/*---------------------------------------------------------------------------*/
+
+int goto_playgame(void)
+{
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
+        return goto_state(&st_campaign);
+    else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET))
+#endif
+        return goto_state(&st_set);
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    else
+        return goto_state(&st_levelgroup);
+#endif
+}
+
+int goto_playgame_register(void)
+{
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
+        return goto_name(&st_campaign, &st_title, 0, 0, 0);
+    else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET))
+#endif
+        return goto_name(&st_set, &st_title, 0, 0, 0);
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    else
+        return goto_name(&st_levelgroup, &st_title, 0, 0, 0);
+#endif
+}
+
+int goto_playmenu(int m)
+{
+    switch (m)
+    {
+    case MODE_CAMPAIGN: return goto_state(&st_campaign);
+    case MODE_BOOST_RUSH: return goto_state(&st_set);
+    }
+
+    return goto_state(&st_start);
+}
 
 /*---------------------------------------------------------------------------*/
 

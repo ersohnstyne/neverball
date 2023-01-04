@@ -103,7 +103,6 @@ struct widget
     const GLubyte *color0;
     const GLubyte *color1;
 
-    int     offsx, offsy;
     int     x, y;
     int     w, h;
     int     car;
@@ -487,12 +486,14 @@ static void gui_font_init(int s)
         
         if (!fonts[fi].ttf)
         {
-            log_errorf("Unable to load font!: %s\n", *curr_lang.font ? curr_lang.font : GUI_FACE);
+            log_errorf("Unable to load font!: %s / %s\n",
+                       *curr_lang.font ? curr_lang.font : GUI_FACE);
             gui_font_quit();
         }
     }
     else
-        log_errorf("Unable to init font!: %s\n", SDL_GetError());
+        log_errorf("Unable to init font!: %s\n",
+                   SDL_GetError() ? SDL_GetError() : "Unknown error");
 }
 
 static void gui_font_quit(void)
@@ -546,7 +547,6 @@ static void gui_glyphs_init(void)
         digit_id[i][9] = gui_label(0, "9", i, 0, 0);
         digit_id[i][10] = gui_label(0, ":", i, 0, 0);
     }
-
 
     for (i = 0; i < 3; i++)
         for (j = 0; j < 11; ++j)
@@ -1077,8 +1077,8 @@ static void gui_widget_size(int id)
     case GUI_IMAGE:
         /* Convert from integer-encoded fractions to window pixels. */
 
-        widget[id].w = ROUND(((float)widget[id].text_w / 1000.0f) * (float)video.device_w);
-        widget[id].h = ROUND(((float)widget[id].text_h / 1000.0f) * (float)video.device_h);
+        widget[id].w = ROUND(((float) widget[id].text_w / 1000.0f) * (float) video.device_w);
+        widget[id].h = ROUND(((float) widget[id].text_h / 1000.0f) * (float) video.device_h);
 
         break;
 
@@ -1134,8 +1134,8 @@ int gui_image_widescreen(int pd, const char *file, int w, int h)
     if ((id = gui_widget(pd, GUI_IMAGE)))
     {
         donot_allow_mip_and_aniso_during_gui = 1;
-        widget[id].image = make_image_from_file(file, IF_MIPMAP);
-        widget[id].text_w = ((ROUND(((float)w / (float)video.device_w) * 1000.0f)) * ((video.aspect_ratio / (16 / 9)) / 2));
+        widget[id].image  = make_image_from_file(file, IF_MIPMAP);
+        widget[id].text_w = ((ROUND(((float) w / (float) video.device_w) * 1000.0f)) * ((video.aspect_ratio / (16 / 9)) / 2));
         widget[id].text_h = ROUND(((float) h / (float) video.device_h) * 1000.0f);
         widget[id].flags |= GUI_RECT;
         gui_widget_size(id);
@@ -1840,8 +1840,8 @@ static void gui_paint_image(int id)
 
     glPushMatrix();
     {
-        glTranslatef((GLfloat) (widget[id].x + widget[id].offsx + widget[id].w / 2),
-                     (GLfloat) (widget[id].y + widget[id].offsy + widget[id].h / 2), 0.f);
+        glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2),
+                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.f);
 
         glScalef(widget[id].scale,
                  widget[id].scale,
@@ -1863,8 +1863,8 @@ static void gui_paint_count(int id)
     {
         /* Translate to the widget center, and apply the pulse scale. */
 
-        glTranslatef((GLfloat) (widget[id].x + widget[id].offsx + widget[id].w / 2),
-                     (GLfloat) (widget[id].y + widget[id].offsy + widget[id].h / 2), 0.f);
+        glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2),
+                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.f);
 
         glScalef(widget[id].scale,
                  widget[id].scale,
@@ -1939,8 +1939,8 @@ static void gui_paint_clock(int id)
     {
         /* Translate to the widget center, and apply the pulse scale. */
 
-        glTranslatef((GLfloat) (widget[id].x + widget[id].offsx + widget[id].w / 2),
-                     (GLfloat) (widget[id].y + widget[id].offsy + widget[id].h / 2), 0.f);
+        glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2),
+                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.f);
 
         glScalef(widget[id].scale,
                  widget[id].scale,
@@ -2088,8 +2088,8 @@ static void gui_paint_label(int id)
 
     glPushMatrix();
     {
-        glTranslatef((GLfloat) (widget[id].x + widget[id].offsx + widget[id].w / 2),
-                     (GLfloat) (widget[id].y + widget[id].offsy + widget[id].h / 2), 0.f);
+        glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2),
+                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.f);
 
         glScalef(widget[id].scale,
                  widget[id].scale,
@@ -2125,7 +2125,8 @@ static void gui_paint_text(int id)
 
 void gui_animate(int id)
 {
-    glTranslatef(video.device_w / 2, video.device_h / 2, 0.0f);
+    glTranslatef((GLfloat) (video.device_w / 2),
+                 (GLfloat) (video.device_h / 2), 0.0f);
 
     float animation_rotation_treshold = (widget[id].alpha - 1.0f) * 4;
 
@@ -2157,8 +2158,7 @@ void gui_animate(int id)
         break;
     }
 
-
-    // Animation positions
+    /* Animation positions */
     switch (widget[id].animation_direction)
     {
     /* Single direction (No Pow) */
@@ -2218,8 +2218,9 @@ void gui_animate(int id)
         glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f);
         break;
     }
-
-    glTranslatef(-video.device_w / 2, -video.device_h / 2, 0.0f);
+    
+    glTranslatef((GLfloat) (-video.device_w / 2),
+                 (GLfloat) (-video.device_h / 2), 0.0f);
 }
 
 void gui_paint(int id)
@@ -2287,15 +2288,6 @@ void gui_paint(int id)
             glEnable(GL_LIGHTING);
         }
         video_pop_matrix();
-    }
-}
-
-void gui_move_widget(int id, int x, int y)
-{
-    if (id)
-    {
-        widget[id].x = x;
-        widget[id].y = y;
     }
 }
 
@@ -2779,7 +2771,7 @@ int gui_navig(int id, int total, int first, int step)
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png", "gui/navig/arrow_right.png", GUI_NEXT, GUI_NONE, next);
 #else
-                gui_maybe(jd, " > ", GUI_NEXT, GUI_NONE, next);
+                gui_maybe(jd, GUI_ARROW_RGHT, GUI_NEXT, GUI_NONE, next);
 #endif
             }
 
@@ -2800,7 +2792,7 @@ int gui_navig(int id, int total, int first, int step)
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png", "gui/navig/arrow_left.png", GUI_PREV, GUI_NONE, prev);
 #else
-                gui_maybe(jd, " < ", GUI_PREV, GUI_NONE, prev);
+                gui_maybe(jd, GUI_ARROW_LFT, GUI_PREV, GUI_NONE, prev);
 #endif
             }
         }

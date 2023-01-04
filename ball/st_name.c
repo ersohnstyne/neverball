@@ -16,7 +16,7 @@
 #include <ctype.h>
 
 #if NB_HAVE_PB_BOTH == 1
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
 #include "networking.h"
@@ -38,7 +38,6 @@
 #include "game_server.h"
 #include "game_client.h"
 
-
 #include "st_name.h"
 #include "st_shared.h"
 
@@ -47,14 +46,23 @@
 static struct state *ok_state;
 static struct state *cancel_state;
 
+int (*ok_fn)(struct state *);
+int (*cancel_fn)(struct state *);
+
 static unsigned int draw_back;
 static int newplayers;
 
-int goto_name(struct state *ok, struct state *cancel, unsigned int back)
+int goto_name(struct state *ok, struct state *cancel,
+	          int (*new_ok_fn)(struct state *), int (*new_cancel_fn)(struct state *),
+	          unsigned int back)
 {
     ok_state     = ok;
     cancel_state = cancel;
-    draw_back    = back;
+
+    ok_fn     = new_ok_fn;
+    cancel_fn = new_cancel_fn;
+
+    draw_back = back;
 
     return goto_state(&st_name);
 }
@@ -74,10 +82,21 @@ static void on_text_input(int typing);
 
 static void name_update_enter_btn(void)
 {
-    gui_set_state(enter_id, strlen(text_input) < 3 ? GUI_NONE : NAME_OK, 0);
+    int name_accepted = text_length(text_input) > 2;
+
+    for (int i = 0; i < text_length(text_input); i++)
+    {
+        if (text_input[i] == '\\' || text_input[i] == '/' || text_input[i] == ':' || text_input[i] == '*' || text_input[i] == '?' || text_input[i] == '"' || text_input[i] == '<' || text_input[i] == '>' || text_input[i] == '|')
+        {
+            name_accepted = 0;
+            break;
+        }
+    }
+
+    gui_set_state(enter_id, name_accepted ? NAME_OK : GUI_NONE, 0);
     gui_set_color(enter_id,
-                  strlen(text_input) < 3 ? gui_gry : gui_wht,
-                  strlen(text_input) < 3 ? gui_gry : gui_wht);
+                  name_accepted ? gui_wht : gui_gry,
+                  name_accepted ? gui_wht : gui_gry);
 }
 
 static int name_action(int tok, int val)
@@ -89,6 +108,9 @@ static int name_action(int tok, int val)
     case GUI_BACK:
         account_init();
         account_load();
+        
+        if (cancel_fn)
+            return cancel_fn(cancel_state);
 
         return goto_state(cancel_state);
 
@@ -96,49 +118,17 @@ static int name_action(int tok, int val)
         newplayers = 0;
 
 #if ENABLE_DEDICATED_SERVER==1
-        networking_quit();
+        //networking_quit();
 #endif
         account_save();
 
-        const char *backupPlayername = config_get_s(CONFIG_PLAYER);
-        char newPlayername[MAXSTR];
         config_set_s(CONFIG_PLAYER, text_input);
         text_input_stop();
-        config_save();
-        config_init();
-        config_load();
 
-        SAFECPY(newPlayername, config_get_s(CONFIG_PLAYER));
-
-        for (int i = 0; i < strlen(newPlayername); i++)
-        {
-            if (newPlayername[i] == '\\' || newPlayername[i] == '/' || newPlayername[i] == ':' || newPlayername[i] == '*' || newPlayername[i] == '?' || newPlayername[i] == '"' || newPlayername[i] == '<' || newPlayername[i] == '>' || newPlayername[i] == '|')
-            {
-                log_errorf("Can't accept other charsets!\n", text_input[i]);
-                config_set_s(CONFIG_PLAYER, backupPlayername);
-                config_save();
-                config_init();
-                config_load();
-                text_input_start(on_text_input);
-                return 1;
-            }
-        }
-
-        if (strlen(config_get_s(CONFIG_PLAYER)) < 3 || strlen(text_input) < 3)
-        {
-            config_set_s(CONFIG_PLAYER, backupPlayername);
-            text_input_start(on_text_input);
-            config_save();
-            config_init();
-            config_load();
-            log_printf("Can't register via player names! Insufficent length!\n");
-            return 1;
-        }
-
-        if (!account_exists())
-            newplayers = 1;
 #ifdef CONFIG_INCLUDES_ACCOUNT
         account_init();
+        if (!account_exists())
+            newplayers = 1;
         account_load();
         account_set_s(ACCOUNT_PLAYER, text_input);
         ball_free();
@@ -148,37 +138,33 @@ static int name_action(int tok, int val)
 #endif
         config_save();
 
-        text_input_start(on_text_input);
 #if ENABLE_DEDICATED_SERVER==1 && NB_HAVE_PB_BOTH==1
-        networking_init(1);
-        networking_reinit_dedicated_event();
+        //networking_init(1);
+        //networking_reinit_dedicated_event();
 #endif
+        if (!newplayers && ok_fn)
+            return ok_fn(ok_state);
+
         return newplayers ? goto_state(&st_name) : goto_state(ok_state);
 
     case NAME_CONTINUE:
         newplayers = 0;
-        text_input_stop();
+
+        if (ok_fn)
+            return ok_fn(ok_state);
+
         return goto_state(ok_state);
 
     case GUI_CL:
         gui_keyboard_lock_en();
-        name_update_enter_btn();
         break;
 
     case GUI_BS:
         text_input_del();
-        name_update_enter_btn();
         break;
 
     case GUI_CHAR:
-        if (val == '\\' || val == '/' || val == ':' || val == '*' || val == '?' || val == '"' || val == '<' || val == '>' || val == '|')
-        {
-            log_errorf("Can't accept other charsets!\n", val);
-            return 1;
-        }
-
         text_input_char(val);
-        name_update_enter_btn();
         break;
     }
 
@@ -289,6 +275,12 @@ static void name_paint(int id, float t)
     gui_paint(id);
 }
 
+static void name_timer(int id, float dt)
+{
+    name_update_enter_btn();
+    gui_timer(id, dt);
+}
+
 static int name_keybd(int c, int d)
 {
     if (d)
@@ -335,7 +327,7 @@ struct state st_name = {
     name_enter,
     name_leave,
     name_paint,
-    shared_timer,
+    name_timer,
     shared_point,
     shared_stick,
     shared_angle,

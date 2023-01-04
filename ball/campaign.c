@@ -399,7 +399,7 @@ static void campaign_load_hs_v1(fs_file fp, char *buf, int size)
     {
         l = &campaign_lvl_v[i];
 
-        l->is_locked = (buf[i] == 'L');
+        l->is_locked    = (buf[i] == 'L');
         l->is_completed = (buf[i] == 'C');
     }
 
@@ -590,10 +590,7 @@ static void campaign_load_levels(void)
         if (i > 0)
             campaign_lvl_v[i - 1].next = l;
         else if (l->is_locked)
-        {
             l->is_locked = 0;
-            assert(!l->is_locked);
-        }
     }
 
     assert(!campaign_lvl_v[0].is_locked);

@@ -7,6 +7,7 @@ void hud_init(void);
 void hud_free(void);
 
 void hud_paint(void);
+void hud_set_alpha(float);
 
 /*---------------------------------------------------------------------------*/
 

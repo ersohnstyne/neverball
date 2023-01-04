@@ -80,7 +80,7 @@ static struct
 }
 account_d[] =
 {
-#if _DEBUG
+#if 0
     { &ACCOUNT_DATA_WALLET_COINS,      "wallet_coins",           16650 },
     { &ACCOUNT_DATA_WALLET_GEMS,       "wallet_gems",            16650 },
 #else
@@ -107,7 +107,7 @@ static struct
 } account_s[] =
 {
     { &ACCOUNT_PLAYER, "player", "" },
-    { &ACCOUNT_BALL_FILE, "ball_file", "ball/legacy-ball/legacy-ball" }
+    { &ACCOUNT_BALL_FILE, "ball_file", "ball/basic-ball/basic-ball" }
 };
 
 static int dirty = 0;
@@ -116,8 +116,6 @@ static int dirty = 0;
 
 int account_init(void)
 {
-    if (server_policy_get_d(SERVER_POLICY_EDITION) < 0) return 1;
-
     account_busy = 1;
 
     /*
@@ -157,8 +155,6 @@ int account_init(void)
 
 void account_quit(void)
 {
-    if (server_policy_get_d(SERVER_POLICY_EDITION) < 0) return;
-
     assert(!account_busy);
 
     int i;
@@ -180,8 +176,6 @@ void account_quit(void)
 
 int  account_exists(void)
 {
-    if (server_policy_get_d(SERVER_POLICY_EDITION) < 0) return 1;
-
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     char paths[MAXSTR]; sprintf_s(paths, dstSize, "Accounts/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
 #else
@@ -213,7 +207,6 @@ void account_load(void)
 
     assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
-    if (server_policy_get_d(SERVER_POLICY_EDITION) < 0) return;
 
     if (strlen(config_get_s(CONFIG_PLAYER)) < 1)
     {
@@ -225,7 +218,7 @@ void account_load(void)
     {
         if (config_get_s(CONFIG_PLAYER)[i] == '\\' || config_get_s(CONFIG_PLAYER)[i] == '/' || config_get_s(CONFIG_PLAYER)[i] == ':' || config_get_s(CONFIG_PLAYER)[i] == '*' || config_get_s(CONFIG_PLAYER)[i] == '?' || config_get_s(CONFIG_PLAYER)[i] == '"' || config_get_s(CONFIG_PLAYER)[i] == '<' || config_get_s(CONFIG_PLAYER)[i] == '>' || config_get_s(CONFIG_PLAYER)[i] == '|')
         {
-            log_errorf("Cannot load account! Can't accept other charsets!\n", config_get_s(CONFIG_PLAYER)[i]);
+            log_errorf("Cannot load account! Can't accept other charsets!\n");
             return;
         }
     }
@@ -292,7 +285,6 @@ void account_save(void)
 
     assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
-    if (server_policy_get_d(SERVER_POLICY_EDITION) < 0) return;
 
     if (strlen(config_get_s(CONFIG_PLAYER)) < 1)
     {

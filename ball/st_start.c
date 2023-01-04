@@ -15,7 +15,7 @@
 #if NB_HAVE_PB_BOTH == 1
 #include "networking.h"
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
 
@@ -42,6 +42,12 @@
 #include "st_start.h"
 #include "st_title.h"
 #include "st_shared.h"
+
+/*---------------------------------------------------------------------------*/
+
+struct state st_start_unavailable;
+struct state st_start_joinrequired;
+struct state st_start_upgraderequired;
 
 /*---------------------------------------------------------------------------*/
 
@@ -155,8 +161,10 @@ static void start_over_level(int i)
                         level_score(l, SCORE_TIME), -1,
                         level_score(l, SCORE_GOAL), -1);
 
-        if (file_id)
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+        if (config_cheat() && file_id)
             gui_set_label(file_id, level_file(l));
+#endif
     }
 }
 
@@ -168,9 +176,7 @@ static void start_over(int id, int pulse)
             gui_pulse(id, 1.2f);
 
         if (gui_token(id) == START_LEVEL)
-        {
             start_over_level(gui_value(id));
-        }
         else
         {
             if (shot_id)
@@ -243,7 +249,9 @@ static int start_action(int tok, int val)
         if (config_cheat())
 #endif
         {
-            if (check_handsoff())
+            if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
+                return goto_state(&st_start_upgraderequired);
+            else if (check_handsoff())
                 return goto_handsoff(&st_start);
             else
             {
@@ -262,20 +270,22 @@ static int start_action(int tok, int val)
 #if NB_HAVE_PB_BOTH == 1
             if (networking_error() > -3)
             {
-                if (check_handsoff())
+                if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
+                    return goto_state(&st_start_upgraderequired);
+                else if (check_handsoff())
                     return goto_handsoff(&st_start);
                 else
-#endif
                 {
                     progress_init(MODE_CHALLENGE);
-                        audio_play(AUD_STARTGAME, 1.0f);
-                        if (progress_play(get_level(0)))
-                            return goto_state(&st_level);
+                    audio_play(AUD_STARTGAME, 1.0f);
+                    if (progress_play(get_level(0)))
+                        return goto_state(&st_level);
                 }
-#if NB_HAVE_PB_BOTH == 1
             }
             else return goto_state(&st_start_unavailable);
-#endif
+#else
+            goto_state(&st_start_joinrequired);
+#endif 
         }
         break;
 
@@ -331,7 +341,6 @@ static int start_gui(void)
     {
         if ((jd = gui_hstack(id)))
         {
-
             gui_label(jd, set_name(curr_set()), GUI_SML, gui_yel, gui_red);
             gui_filler(jd);
             gui_navig(jd, total, first, LEVEL_STEP);
@@ -355,9 +364,7 @@ static int start_gui(void)
                 }
                 else
 #endif
-                {
                     shot_id = gui_image(jd, set_shot(curr_set()), 7 * w / 16, 7 * h / 16);
-                }
             }
 
             if ((kd = gui_varray(jd)))
@@ -371,9 +378,8 @@ static int start_gui(void)
                 if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
 #endif
                 {
-                    if ((md = gui_harray(kd))) {
+                    if ((md = gui_harray(kd)))
                         challenge_id = gui_state(md, _("Challenge"), GUI_SML, START_CHALLENGE, 0);
-                    }
 
                     gui_set_hilite(challenge_id, curr_mode() == MODE_CHALLENGE);
                 }
@@ -414,8 +420,10 @@ static int start_gui(void)
 
         gui_layout(id, 0, 0);
 
-        if (file_id)
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+        if (config_cheat() && file_id)
             gui_set_trunc(file_id, TRUNC_HEAD);
+#endif
 
         set_score_board(NULL, -1, NULL, -1, NULL, -1);
     }
@@ -427,7 +435,7 @@ static int start_gui(void)
 
 #if NB_HAVE_PB_BOTH == 1
 
-static int start_unavailable_gui()
+static int start_unavailable_enter(struct state *st, struct state *prev)
 {
     int id;
 
@@ -445,16 +453,11 @@ static int start_unavailable_gui()
         }
         else
             gui_multi(id, _("Challenge Mode is not available.\\Please check your account settings!"), GUI_SML, gui_wht, gui_wht);
-        
+
         gui_layout(id, 0, 0);
     }
 
     return id;
-}
-
-static int start_unavailable_enter(struct state *st, struct state *prev)
-{
-    return start_unavailable_gui();
 }
 
 static int start_unavailable_click(int b, int d)
@@ -469,7 +472,7 @@ static int start_unavailable_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
             return goto_state(&st_start);
 #else
@@ -515,14 +518,14 @@ static int start_compat_gui()
 
         if ((jd = gui_harray(id)))
         {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             if (current_platform == PLATFORM_PC)
 #endif
             {
                 gui_start(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
                 gui_state(jd, _("Play"), GUI_SML, START_LEVEL, 0);
             }
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             else
                 gui_start(jd, _("Play"), GUI_SML, START_LEVEL, 0);
 #endif
@@ -575,7 +578,9 @@ static int start_enter(struct state *st, struct state *prev)
 {
     /* Bonus levels will be unlocked automatically, if you use the bonus pack */
 #if NB_HAVE_PB_BOTH == 1
-    if ((server_policy_get_d(SERVER_POLICY_LEVELSET_UNLOCKED_BONUS) || account_get_d(ACCOUNT_PRODUCT_BONUS) == 1) && server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_BONUS))
+    if ((server_policy_get_d(SERVER_POLICY_LEVELSET_UNLOCKED_BONUS)
+         || account_get_d(ACCOUNT_PRODUCT_BONUS) == 1)
+        && server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_BONUS))
         set_detect_bonus_product();
 #endif
 
@@ -588,7 +593,6 @@ static int start_enter(struct state *st, struct state *prev)
 
     progress_init(MODE_NORMAL);
 
-    //audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" : switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
     audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" : "bgm/inter_world.ogg");
 
     return start_gui();
@@ -606,7 +610,7 @@ static void start_point(int id, int x, int y, int dx, int dy)
 
 static void start_stick(int id, int a, float v, int bump)
 {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     xbox_toggle_gui(1);
 #endif
     start_over(gui_stick(id, a, v, bump), 1);
@@ -711,11 +715,120 @@ static int start_buttn(int b, int d)
     return 1;
 }
 
-static int start_click(int b, int d)
+/*---------------------------------------------------------------------------*/
+
+enum
 {
-    if (gui_click(b, d))
+    START_JOINREQUIRED_OPEN = GUI_LAST,
+    START_JOINREQUIRED_SKIP
+};
+
+static int start_joinrequired_action(int tok, int val)
+{
+    audio_play(tok == GUI_BACK ? AUD_BACK : AUD_MENU, 1.f);
+
+    switch (tok)
     {
-        return start_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
+    case GUI_BACK:
+        return goto_state(&st_start);
+    case START_JOINREQUIRED_OPEN:
+#if _WIN32
+        system("start msedge https://discord.gg/qnJR263Hm2/");
+#elif __APPLE__
+        system("open https://discord.gg/qnJR263Hm2/");
+#else
+        system("x-www-browser https://discord.gg/qnJR263Hm2/");
+#endif
+        break;
+    case START_JOINREQUIRED_SKIP:
+        progress_init(MODE_CHALLENGE);
+        audio_play(AUD_STARTGAME, 1.0f);
+        if (progress_play(get_level(0)))
+            return goto_state(&st_level);
+        break;
+    }
+
+    return 1;
+}
+
+static int start_upgraderequired_enter(struct state *st, struct state *prev)
+{
+    int id, jd;
+
+    if ((id = gui_vstack(0)))
+    {
+        gui_title_header(id, _("Powerups available"), GUI_MED, 0, 0);
+        gui_space(id);
+        gui_multi(id,
+                  _("Pennyball offers some of the most creative ways to\\"
+                  "compete with powerups! We just need you to upgrade\\"
+                  "to Pro edition so that we can make sure you have\\"
+                  "permission to use it."),
+            GUI_SML, gui_wht, gui_wht);
+        gui_space(id);
+
+        if ((jd = gui_harray(id)))
+        {
+            gui_start(jd, _("Join/Upgrade"), GUI_SML, START_JOINREQUIRED_OPEN, 0);
+            gui_state(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
+            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+        }
+    }
+
+    gui_layout(id, 0, 0);
+
+    return id;
+}
+
+static int start_joinrequired_enter(struct state *st, struct state *prev)
+{
+    int id, jd;
+
+    if ((id = gui_vstack(0)))
+    {
+        gui_title_header(id, _("Powerups available"), GUI_MED, 0, 0);
+        gui_space(id);
+        gui_multi(id,
+                  _("Pennyball offers some of the most creative ways to\\"
+                    "compete with powerups! We just need you to join\\"
+                    "and verify Discord server so that we can make sure\\"
+                    "you have permission to use it."),
+                  GUI_SML, gui_wht, gui_wht);
+        gui_space(id);
+
+        if ((jd = gui_harray(id)))
+        {
+            gui_start(jd, _("Join"), GUI_SML, START_JOINREQUIRED_OPEN, 0);
+            gui_state(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
+            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+        }
+    }
+
+    gui_layout(id, 0, 0);
+
+    return id;
+}
+
+static int start_joinrequired_keybd(int c, int d)
+{
+    if (d)
+    {
+        if (c == KEY_EXIT)
+            return start_joinrequired_action(GUI_BACK, 0);
+    }
+    return 1;
+}
+
+static int start_joinrequired_buttn(int b, int d)
+{
+    if (d)
+    {
+        int active = gui_active();
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+            return start_joinrequired_action(gui_token(active), gui_value(active));
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            return start_joinrequired_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -730,7 +843,7 @@ struct state st_start = {
     start_point,
     start_stick,
     shared_angle,
-    start_click,
+    shared_click,
     start_keybd,
     start_buttn,
     start_wheel
@@ -765,3 +878,29 @@ struct state st_start_compat = {
 };
 
 #endif
+
+struct state st_start_joinrequired = {
+    start_joinrequired_enter,
+    shared_leave,
+    shared_paint,
+    shared_timer,
+    shared_point,
+    shared_stick,
+    shared_angle,
+    shared_click,
+    start_joinrequired_keybd,
+    start_joinrequired_buttn
+};
+
+struct state st_start_upgraderequired = {
+    start_upgraderequired_enter,
+    shared_leave,
+    shared_paint,
+    shared_timer,
+    shared_point,
+    shared_stick,
+    shared_angle,
+    shared_click,
+    start_joinrequired_keybd,
+    start_joinrequired_buttn
+};

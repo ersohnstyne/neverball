@@ -536,9 +536,7 @@ void config_load(void)
                             i == CONFIG_MOUSE_CAMERA_TOGGLE ||
                             i == CONFIG_MOUSE_CAMERA_L      ||
                             i == CONFIG_MOUSE_CAMERA_R)
-                        {
                             config_mouse(val, i);
-                        }
                         else if (i == CONFIG_KEY_FORWARD       ||
                                  i == CONFIG_KEY_BACKWARD      ||
                                  i == CONFIG_KEY_LEFT          ||
@@ -552,11 +550,12 @@ void config_load(void)
                                  i == CONFIG_KEY_RESTART       ||
                                  i == CONFIG_KEY_SCORE_NEXT    ||
                                  i == CONFIG_KEY_ROTATE_FAST)
-                        {
                             config_key(val, i);
-                        }
                         else
+#if _DEBUG && NB_STEAM_API==0 && NB_EOS_SDK==0
+                        if (i != CONFIG_CHEAT)
                             config_set_d(i, atoi(val));
+#endif
 
                         /* Stop looking. */
 
@@ -638,9 +637,7 @@ void config_save(void)
                 i == CONFIG_MOUSE_CAMERA_TOGGLE ||
                 i == CONFIG_MOUSE_CAMERA_L      ||
                 i == CONFIG_MOUSE_CAMERA_R)
-            {
                 s = config_mouse_name(option_d[i].cur);
-            }
             else if (i == CONFIG_KEY_FORWARD       ||
                      i == CONFIG_KEY_BACKWARD      ||
                      i == CONFIG_KEY_LEFT          ||
@@ -654,10 +651,8 @@ void config_save(void)
                      i == CONFIG_KEY_RESTART       ||
                      i == CONFIG_KEY_SCORE_NEXT    ||
                      i == CONFIG_KEY_ROTATE_FAST)
-            {
                 s = SDL_GetKeyName((SDL_Keycode) option_d[i].cur);
-            }
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if _DEBUG && NB_STEAM_API==0 && NB_EOS_SDK==0
             else if (i == CONFIG_CHEAT)
             {
                 if (!config_cheat())

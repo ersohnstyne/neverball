@@ -21,7 +21,7 @@
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
 
@@ -52,6 +52,7 @@
 #include "game_client.h"
 #include "game_common.h"
 
+#include "st_pause.h"
 #include "st_level.h"
 #include "st_play.h"
 #include "st_start.h"
@@ -64,6 +65,11 @@
 #include "st_tutorial.h"
 #endif
 #include "st_name.h"
+
+/*---------------------------------------------------------------------------*/
+
+struct state st_poser;
+struct state st_level_signin_required;
 
 /*---------------------------------------------------------------------------*/
 
@@ -116,14 +122,14 @@ static int level_action(int tok, int val)
         }
         show_info = 0;
 
-#if defined(SWITCHBALL_HAVE_TIP_AND_TUTORIAL)
+#ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
         if (!tutorial_check())
         {
             if (!hint_check())
-                return goto_state_full(&st_play_ready, 0, 0, 1);
+                return goto_state(&st_play_ready);
         }
 #else
-        return goto_state_full(&st_play_ready, 0, 0, 1);
+        return goto_state(&st_play_ready);
 #endif
         break;
     }
@@ -349,7 +355,7 @@ static void level_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     if (xbox_show_gui())
     {
         hud_cam_paint();
@@ -404,9 +410,9 @@ static int level_click(int b, int d)
 #endif
         {
 #if defined(SWITCHBALL_HAVE_TIP_AND_TUTORIAL)
-            return tutorial_check() ? 1 : goto_state_full(&st_play_ready, 0, 0, 1);
+            return tutorial_check() ? 1 : goto_state(&st_play_ready);
 #else
-            return goto_state_full(&st_play_ready, 0, 0, 1);
+            return goto_state(&st_play_ready);
 #endif
         }
     }
@@ -419,16 +425,12 @@ static int level_keybd(int c, int d)
     {
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-        {
-            return goto_exit();
-        }
+            return goto_pause(curr_state());
         if (c == KEY_POSE && current_platform == PLATFORM_PC)
             return goto_state(&st_poser);
 #else
         if (c == KEY_EXIT)
-        {
-            return goto_exit();
-        }
+            return goto_pause(curr_state());
         if (c == KEY_POSE)
             return goto_state(&st_poser);
 #endif
@@ -459,21 +461,15 @@ static int level_buttn(int b, int d)
             else
 #endif
             {
-#if defined(SWITCHBALL_HAVE_TIP_AND_TUTORIAL)
-                return tutorial_check() ? 1 : goto_state_full(&st_play_ready, 0, 0, 1);
+#ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
+                return tutorial_check() ? 1 : goto_state(&st_play_ready);
 #else
-                return goto_state_full(&st_play_ready, 0, 0, 1);
+                return goto_state(&st_play_ready);
 #endif
             }
         }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-        {
-#ifdef MAPC_INCLUDES_CHKP
-            checkpoints_stop();
-#endif
-            progress_stop();
-            return goto_exit();
-        }
+            return goto_pause(curr_state());
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b))
         {
             if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH))
@@ -484,11 +480,6 @@ static int level_buttn(int b, int d)
         }
     }
     return 1;
-}
-
-static void level_fade(float alpha)
-{
-    hud_set_alpha(alpha);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -595,13 +586,13 @@ static int nodemo_buttn(int b, int d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            return goto_state(campaign_used() ? &st_play_ready : &st_play_ready);
+            return goto_state(campaign_used() ? &st_play_ready : &st_level);
 #else
             return goto_state(&st_play_ready);
 #endif
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            return goto_state(campaign_used() ? &st_play_ready : &st_play_ready);
+            return goto_state(campaign_used() ? &st_play_ready : &st_level);
 #else
             return goto_state(&st_play_ready);
 #endif
@@ -639,10 +630,10 @@ static int level_signin_required_keybd(int c, int d)
     {
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return goto_exit();
+            return goto_pause(curr_state());
 #else
         if (c == KEY_EXIT)
-            return goto_exit();
+            return goto_pause(curr_state());
 #endif
     }
     return 1;
@@ -653,9 +644,9 @@ static int level_signin_required_buttn(int b, int d)
     if (d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return goto_name(&st_level, &st_level_signin_required, 0);
+            return goto_name(&st_level, &st_level_signin_required, 0, 0, 0);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return goto_exit();
+            return goto_pause(curr_state());
     }
     return 1;
 }
@@ -683,11 +674,8 @@ int goto_exit(void)
     checkpoints_stop();
 #endif
 
-    //progress_stop();
+    progress_stop();
     progress_exit();
-
-    /* Check, if there is already have a checkpoint before delete replay. */
-    //if (last_active) demo_replay_stop(1);
 
     struct state *dst = NULL;
 
@@ -696,7 +684,7 @@ int goto_exit(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (campaign_used())
     {
-        dst = &st_campaign;
+        //dst = &st_campaign;
 
         /* End of the level. */
 
@@ -718,8 +706,11 @@ int goto_exit(void)
                 game_fade_color(0.25f, 0.0f, 0.0f);
                 game_fade(+0.333f);
             }
-            dst = curr_times() > 0 && progress_dead() ? &st_over : (progress_done() ? &st_done : &st_campaign);
+            else if (progress_done())
+                dst = curr_times() > 0 && !progress_dead() ? &st_done : &st_over;
         }
+        else
+            return goto_playmenu(curr_mode());
     }
     else
 #endif
@@ -729,11 +720,11 @@ int goto_exit(void)
         game_fade(+0.333f);
         dst = &st_done;
     }
-#if defined(REQUIRES_COMPLEX_MODE)
+#ifdef REQUIRES_COMPLEX_MODE
     else if (curr_mode() == MODE_BOOST_RUSH)
     {
         boost_rush_stop();
-        dst = &st_set;
+        return goto_playmenu(curr_mode());
     }
 #endif
     else if (curr_mode() == MODE_CHALLENGE)
@@ -755,10 +746,7 @@ int goto_exit(void)
     else if (curr_mode() != MODE_NONE && !campaign_used())
         dst = &st_start;
     else
-    {
-        assert(curr_mode() == MODE_NONE && !campaign_used());
         dst = &st_title;
-    }
 #else
     else dst = &st_start;
 #endif
@@ -768,7 +756,7 @@ int goto_exit(void)
         /* Visit the auxilliary screen or exit to level selection. */
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        goto_state(dst != curr ? dst : (campaign_used() ? &st_campaign : &st_start));
+        goto_state(dst != curr ? dst : &st_start);
 #else
         goto_state(&st_start);
 #endif
@@ -798,8 +786,7 @@ struct state st_level = {
     level_keybd,
     level_buttn,
     NULL,
-    NULL,
-    level_fade
+    NULL
 };
 
 struct state st_poser = {

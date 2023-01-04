@@ -14,7 +14,7 @@
 
 #include <assert.h>
 
-#if defined(__EMSCRIPTEN__)
+#ifdef __EMSCRIPTEN__
 #include <gl4esinit.h>
 #endif
 
@@ -38,7 +38,6 @@
 #include "hmd.h"
 
 #define ENABLE_MULTISAMPLE_SOLUTION
-//#define NB_STEAM_API
 #define FPS_REALTIME
 
 extern const char TITLE[];
@@ -156,7 +155,7 @@ int video_fullscreen(int f)
     if (code == 0)
         config_set_d(CONFIG_FULLSCREEN, f ? 1 : 0);
     else
-        log_errorf("Failure to %s fullscreen (%s)\n", f ? "enter" : "exit", SDL_GetError());
+        log_errorf("Failure to %s fullscreen (%s)\n", f ? "enter" : "exit", SDL_GetError() ? SDL_GetError() : "Unknown error");
 
     return (code == 0);
 }
@@ -185,13 +184,13 @@ void video_resize(int window_w, int window_h)
 
         SDL_GL_GetDrawableSize(window, &video.device_w, &video.device_h);
 
-        video.device_scale = (float)video.device_h / (float)video.window_h;
+        video.device_scale = (float) video.device_h / (float) video.window_h;
 
         /* Update viewport. */
 
         glViewport(0, 0, video.device_w, video.device_h);
 
-        video.aspect_ratio = (float)video.device_w / (float)video.window_h;
+        video.aspect_ratio = (float) video.device_w / (float) video.window_h;
     }
 }
 
@@ -360,7 +359,7 @@ int video_mode(int f, int w, int h)
 
         if ((context = SDL_GL_CreateContext(window)))
         {
-#if defined(__EMSCRIPTEN__)
+#ifdef __EMSCRIPTEN__
             initialize_gl4es();
 #endif
 
@@ -756,7 +755,7 @@ int video_mode_auto_config(int f, int w, int h)
         config_set_d(CONFIG_HIGHDPI, 1);
         if ((context = SDL_GL_CreateContext(window)))
         {
-#if defined(__EMSCRIPTEN__)
+#ifdef __EMSCRIPTEN__
             initialize_gl4es();
 #endif
             int buf, smp;
@@ -861,7 +860,7 @@ int video_mode_auto_config(int f, int w, int h)
         config_set_d(CONFIG_DISPLAY, dpy);
         config_set_d(CONFIG_WIDTH, video.window_w);
         config_set_d(CONFIG_HEIGHT, video.window_h);
-        video.aspect_ratio = (float)video.window_w / video.window_h;
+        video.aspect_ratio = (float) video.window_w / video.window_h;
 
         config_save();
 
@@ -926,7 +925,7 @@ void video_swap(void)
 
     last   += dt;
 
-#if defined(FPS_REALTIME)
+#ifdef FPS_REALTIME
     /* Compute frame time and frames-per-second stats. */
 
     fps = 1 / (0.001f * dt);
@@ -936,7 +935,7 @@ void video_swap(void)
     /* Output statistics if configured. */
 
     if (config_get_d(CONFIG_STATS))
-        fprintf(stdout, "%4d %8.4f\n", fps, (double)ms);
+        fprintf(stdout, "%4d %8.4f\n", fps, (double) ms);
 #endif
 #else
     frames += 1;
@@ -1203,16 +1202,16 @@ void video_push_persp(float fov, float n, float f)
 
             glMultMatrixf(&m[0][0]);
         }
+
         glMatrixMode(GL_MODELVIEW);
-        {
-            glLoadIdentity();
-        }
+        glLoadIdentity();
     }
 }
 
 void video_push_ortho(void)
 {
     //glPushMatrix();
+
     if (hmd_stat())
         hmd_ortho();
     else
@@ -1221,18 +1220,16 @@ void video_push_ortho(void)
         GLfloat h = (GLfloat) video.device_h;
 
         glMatrixMode(GL_PROJECTION);
-        {
-            glLoadIdentity();
+
+        glLoadIdentity();
 #if defined(__EMSCRIPTEN__)
-            glOrtho(0.0, w, h, 0.0f, -1.0f, 1.0f);
+        glOrtho(0.0, w, h, 0.0f, -1.0f, 1.0f);
 #else
-            glOrtho_(0.0, w, 0.0, h, -1.0, +1.0);
+        glOrtho_(0.0, w, 0.0, h, -1.0, +1.0);
 #endif
-        }
+
         glMatrixMode(GL_MODELVIEW);
-        {
-            glLoadIdentity();
-        }
+        glLoadIdentity();
     }
 }
 
@@ -1241,7 +1238,7 @@ void video_pop_matrix(void)
     //glPopMatrix();
 }
 
-void video_clear()
+void video_clear(void)
 {
     GLbitfield bufferBit = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
 

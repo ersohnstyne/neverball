@@ -74,7 +74,7 @@ int shared_stick_basic(int id, int a, float v, int bump)
 
 void shared_stick(int id, int a, float v, int bump)
 {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     xbox_toggle_gui(1);
 #endif
     shared_stick_basic(id, a, v, bump);

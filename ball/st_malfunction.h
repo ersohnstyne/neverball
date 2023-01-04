@@ -12,8 +12,12 @@ extern int char_downcounter[128];
 extern int arrow_downcounter[5];
 extern int fwindow_downcounter[13];
 
-extern struct state st_malfunction;
-extern struct state st_handsoff;
+/*
+ * HACK: Does not makes any sense
+ *
+ * extern struct state st_malfunction;
+ * extern struct state st_handsoff;
+ */
 
 int check_malfunctions(void);
 int check_handsoff(void);

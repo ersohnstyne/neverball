@@ -34,8 +34,8 @@ enum console_platforms {
 #define XBOX_RT_BUTTON     "RT"    /* Right Trigger  */
 #define XBOX_LS_BUTTON     "LS"    /* Left Stick     */
 #define XBOX_RS_BUTTON     "RS"    /* Right Stick    */
-#define XBOX_START_BUTTON  "<"     /* Start */
-#define XBOX_SELECT_BUTTON ">"     /* Select */
+#define XBOX_START_BUTTON  "◀️"     /* Start */
+#define XBOX_SELECT_BUTTON "▶️"     /* Select */
 
 
 /* PlayStation 4 */
@@ -50,8 +50,8 @@ enum console_platforms {
 #define PS4_RT_BUTTON     "R2"    /* Right Trigger  */
 #define PS4_LS_BUTTON     "L3"    /* Left Stick     */
 #define PS4_RS_BUTTON     "R3"    /* Right Stick    */
-#define PS4_START_BUTTON  "<"     /* Start */
-#define PS4_SELECT_BUTTON ">"     /* Select */
+#define PS4_START_BUTTON  "◀️"     /* Start */
+#define PS4_SELECT_BUTTON "▶️"     /* Select */
 
 
 /* Steam Deck */

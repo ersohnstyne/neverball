@@ -1,18 +1,34 @@
 
 #------------------------------------------------------------------------------
 
-# Build: devel, release
 BUILD := $(shell cat neverball-build.txt 2> /dev/null || echo release)
 
+# Build: devel, release
+VERSION := 2.0.2
 VERSION := $(shell sh scripts/version.sh)
 
 $(info Will make a "$(BUILD)" build of Neverball $(VERSION).)
+
+ifeq ($(FS_VERSION),1)
+ifeq ($(ENABLE_FETCH),curl)
+$(error The codelib cURL for Pennyball + Neverball requires latest FS version!)
+endif
+ifeq ($(ENABLE_IAP),paypal)
+$(error The Paypal payment for Pennyball + Neverball requires latest FS version!)
+endif
+endif
+
+ENABLE_ACCOUNT_BINARY := 1
+
+ifneq ($(ENABLE_ACCOUNT_BINARY),1)
+$(error ENABLE_ACCOUNT_BINARY!=1 is not allowed to use!)
+endif
 
 #------------------------------------------------------------------------------
 # Provide a target system hint for the Makefile.
 # Recognized PLATFORM values: darwin, mingw, haiku.
 
-ifeq ($(shell uname), Darwin)
+ifeq ($(shell uname),Darwin)
 	PLATFORM := darwin
 endif
 
@@ -20,7 +36,7 @@ ifeq ($(shell uname -o),Msys)
 	PLATFORM := mingw
 endif
 
-ifeq ($(shell uname), Haiku)
+ifeq ($(shell uname),Haiku)
 	PLATFORM := haiku
 endif
 
@@ -31,8 +47,14 @@ USERDIR   := .neverball
 DATADIR   := ./data
 LOCALEDIR := ./locale
 
+ifneq ($(FS_VERSION),1)
+    $(info PLUS ZIPARCHIVES)
+	ENABLE_FETCH := curl
+	DATADIR := ./data
+endif
+
 ifeq ($(PLATFORM),mingw)
-	USERDIR := Neverball
+	USERDIR := Neverball_$(VERSION)
 endif
 
 ifeq ($(PLATFORM),haiku)
@@ -75,7 +97,7 @@ endif
 #------------------------------------------------------------------------------
 # Mandatory flags
 
-# New design specifications for entities in Pennyball
+# New design specifications for entities in Neverball
 #
 # We're introducing new design specifications for entities in Neverball.
 # If you do not do so,  your Entities will be displayed in legacy mode.
@@ -90,10 +112,57 @@ else
 	ALL_CPPFLAGS := -DLEGACY_MODE=1
 endif
 
-ALL_CPPFLAGS += -DENABLE_ACCOUNT_BINARY
+ifeq ($(NEVERBALL_FAMILY_API),xbox)
+	# Xbox
+	ALL_CPPFLAGS += -DNEVERBALL_FAMILY_API=1
+endif
+ifeq ($(NEVERBALL_FAMILY_API),xbox360)
+	# Xbox 360
+	ALL_CPPFLAGS += -DNEVERBALL_FAMILY_API=2
+endif
+ifeq ($(NEVERBALL_FAMILY_API),ps4)
+	# PS4
+	ALL_CPPFLAGS += -DNEVERBALL_FAMILY_API=3
+endif
+ifeq ($(NEVERBALL_FAMILY_API),switch)
+	# Switch
+	ALL_CPPFLAGS += -DNEVERBALL_FAMILY_API=4
+endif
+ifeq ($(NEVERBALL_FAMILY_API),handset)
+	# Handset
+	ALL_CPPFLAGS += -DNEVERBALL_FAMILY_API=5
+endif
+
+$(info You had been choosen edition $(EDITION))
+ifeq ($(EDITION),home)
+ALL_CPPFLAGS += -DNEVERBALL_EDITION=0
+else
+ifeq ($(EDITION),pro)
+ALL_CPPFLAGS += -DNEVERBALL_EDITION=1
+else
+ifeq ($(EDITION),enterprise)
+ALL_CPPFLAGS += -DNEVERBALL_EDITION=2
+else
+ifeq ($(EDITION),education)
+ALL_CPPFLAGS += -DNEVERBALL_EDITION=3
+else
+ifeq ($(EDITION),server_standard)
+ALL_CPPFLAGS += -DNEVERBALL_EDITION=10001
+else
+ifeq ($(EDITION),server_datacenter)
+ALL_CPPFLAGS += -DNEVERBALL_EDITION=10002
+else
+ALL_CPPFLAGS += -DNEVERBALL_EDITION=-1
+endif
+endif
+endif
+endif
+endif
+endif
+
+# ALL_CPPFLAGS += -DENABLE_ACCOUNT_BINARY
 
 # Compiler...
-
 ifeq ($(ENABLE_TILT),wii)
 	# -std=c99 because we need isnormal and -fms-extensions because
 	# libwiimote headers make heavy use of the "unnamed fields" GCC
@@ -101,16 +170,30 @@ ifeq ($(ENABLE_TILT),wii)
 
 	ALL_CFLAGS := -Wall -Wshadow -std=c99 -pedantic -fms-extensions $(CFLAGS)
 else
+	# Standard C++17 or C99
 	ALL_CFLAGS := -Wall -Wshadow -std=c99 -pedantic $(CFLAGS)
 endif
 
 ALL_CXXFLAGS := -fno-rtti -fno-exceptions $(CXXFLAGS)
 
 # Preprocessor...
+# New: Game Transfer
+ifeq ($(ENABLE_GAME_TRANSFER_SOURCE),1)
+	GAMETRANSFER_CPPFLAGS := -DENABLE_GAME_TRANSFER=1
+endif
+
+ifeq ($(ENABLE_GAME_TRANSFER),1)
+	GAMETRANSFER_CPPFLAGS := -DENABLE_GAME_TRANSFER=1 -DGAME_TRANSFER_TARGET=1
+endif
 
 # New: Steam support
 ifeq ($(ENABLE_STEAM),1)
 	STEAM_CPPFLAGS := -I/usr/local/include -DSTEAM_GAMES=1
+endif
+
+# New: MySQL
+ifeq ($(ENABLE_SQL),1)
+	SQL_CPPFLAGS := $(shell mysql_config --cflags) -DENABLE_SQL
 endif
 
 # New: Dedicated server
@@ -118,11 +201,11 @@ ifeq ($(ENABLE_DEDICATED_SERVER),1)
 	DEDICATED_CPPFLAGS := -DENABLE_DEDICATED_SERVER=1
 endif
 
+# Basically used
 SDL_CPPFLAGS := $(shell sdl2-config --cflags)
 PNG_CPPFLAGS := $(shell libpng-config --cflags)
 
-ALL_CPPFLAGS := $(DEDICATED_CPPFLAGS) $(STEAM_CPPFLAGS) \
-	$(SDL_CPPFLAGS) $(PNG_CPPFLAGS) -Ishare
+ALL_CPPFLAGS += $(GAMETRANSFER_CPPFLAGS) $(DEDICATED_CPPFLAGS) $(STEAM_CPPFLAGS) $(SDL_CPPFLAGS) $(PNG_CPPFLAGS) $(SQL_CPPFLAGS) -Ishare
 
 ALL_CPPFLAGS += \
 	-DCONFIG_USER=\"$(USERDIR)\" \
@@ -150,11 +233,28 @@ ifeq ($(ENABLE_RADIANT_CONSOLE),1)
 	ALL_CPPFLAGS += -DENABLE_RADIANT_CONSOLE=1
 endif
 
-# Enable libcurl by default, disable w/ ENABLE_FETCH=0.
-ENABLE_FETCH := curl
+MKLOCALVAR_CURL_PREPARED := 0
+
+ifneq ($(FS_VERSION),1)
+# Paypal payment support
+ifeq ($(ENABLE_IAP),paypal)
+	#$(shell curl-config --cflags)
+	ALL_CPPFLAGS +=               \
+		-DENABLE_IAP=1            \
+		-I"C:/msys64/usr/include" \
+		-DCURL_STATICLIB
+	MKLOCALVAR_CURL_PREPARED := 1
+endif
+endif
 
 ifeq ($(ENABLE_FETCH),curl)
-	ALL_CPPFLAGS += $(shell curl-config --cflags)
+ifneq ($(MKLOCALVAR_CURL_PREPARED),1)
+	#$(shell curl-config --cflags)
+	ALL_CPPFLAGS +=               \
+		-I"C:/msys64/usr/include" \
+		-DCURL_STATICLIB 
+endif
+	ALL_CPPFLAGS += -DENABLE_FETCH=1
 endif
 
 ifeq ($(PLATFORM),darwin)
@@ -189,18 +289,46 @@ ALL_CPPFLAGS += $(HMD_CPPFLAGS)
 
 #------------------------------------------------------------------------------
 # Libraries
-
 # New: Steam support
 ifeq ($(ENABLE_STEAM),1)
 	STEAM_LIBS := -L/usr/local/lib/steam/libsteam_api.so -lsteam_api
 endif
 
+# New: MySQL
+ifeq ($(ENABLE_SQL),1)
+	SQL_LIBS := $(shell mysql_config --libs)
+endif
+
+# New: Dedicated server
+ifeq ($(ENABLE_DEDICATED_SERVER),1)
+	DEDICATED_LIBS := -L"." \
+		-lneverball_net_client
+endif
+
+# Basically used
 SDL_LIBS := $(shell sdl2-config --libs)
 PNG_LIBS := $(shell libpng-config --libs)
 
 ENABLE_FS := stdio
 ifeq ($(ENABLE_FS),stdio)
 FS_LIBS :=
+endif
+ifeq ($(FS_VERSION),1)
+ALL_CPPFLAGS += -DFS_VERSION_1
+ifeq ($(ENABLE_FS),physfs)
+FS_LIBS := -lphysfs
+endif
+endif
+
+# -L"C:/msys64/usr/lib/libcurl.a"
+ifneq ($(FS_VERSION),1)
+ifeq ($(ENABLE_FETCH),curl)
+	FETCH_LIBS += -L"C:/msys64/usr/lib" -lcurl # $(shell curl-config --libs) 
+endif
+# Paypal payment support
+ifeq ($(ENABLE_IAP),paypal)
+	PAYPAL_LIBS += -L"C:/msys64/usr/lib" -lcurl # $(shell curl-config --libs) 
+endif
 endif
 
 # The  non-conditionalised values  below  are specific  to the  native
@@ -237,6 +365,7 @@ ifeq ($(PLATFORM),mingw)
 		INTL_LIBS := -lintl
 	endif
 
+	TILT_LIBS :=
 	OGL_LIBS  := -lopengl32
 endif
 
@@ -245,6 +374,7 @@ ifeq ($(PLATFORM),darwin)
 		INTL_LIBS := -lintl
 	endif
 
+	TILT_LIBS :=
 	OGL_LIBS  := -framework OpenGL
 endif
 
@@ -264,7 +394,7 @@ endif
 OGG_LIBS := -lvorbisfile
 TTF_LIBS := -lSDL2_ttf
 
-ifeq ($(PLATFORM),haiku)
+ifeq ($(PLATFORM), haiku)
 	TTF_LIBS := -lSDL2_ttf -lfreetype
 endif
 
@@ -272,10 +402,15 @@ ifeq ($(ENABLE_FETCH),curl)
 	CURL_LIBS := $(shell curl-config --libs)
 endif
 
-ALL_LIBS := $(STEAM_LIBS) $(HMD_LIBS) $(TILT_LIBS) $(INTL_LIBS) $(TTF_LIBS) \
-	$(CURL_LIBS) $(OGG_LIBS) $(SDL_LIBS) $(OGL_LIBS) $(BASE_LIBS)
+ALL_LIBS := $(DEDICATED_LIBS) $(STEAM_LIBS) $(HMD_LIBS) $(TILT_LIBS) \
+    $(INTL_LIBS) $(TTF_LIBS) $(CURL_LIBS) $(OGG_LIBS) $(SDL_LIBS) \
+	$(OGL_LIBS) $(BASE_LIBS) $(SQL_LIBS) $(FETCH_LIBS) $(PAYPAL_LIBS)
 
 MAPC_LIBS := $(BASE_LIBS)
+
+ifeq ($(PLATFORM), haiku)
+	TTF_LIBS := -lSDL2_ttf -lfreetype
+endif
 
 ifeq ($(ENABLE_RADIANT_CONSOLE),1)
 	MAPC_LIBS += -lSDL2_net
@@ -354,7 +489,7 @@ BALL_OBJS := \
 	share/fs_jpg.o      \
 	share/fs_ov.o       \
 	share/log.o         \
-	share/joy.o         \
+	share/package.o     \
 	share/console_control_gui.o\
 	ball/hud.o          \
 	ball/game_common.o  \
@@ -393,6 +528,7 @@ BALL_OBJS := \
 	ball/st_help.o      \
 	ball/st_name.o      \
 	ball/st_shared.o    \
+	ball/st_shop.o      \
 	ball/st_pause.o     \
 	ball/st_ball.o      \
 	ball/st_beam_style.o\
@@ -435,7 +571,6 @@ PUTT_OBJS := \
 	share/glsl.o        \
 	share/array.o       \
 	share/log.o         \
-	share/joy.o         \
 	share/console_control_gui.o\
 	putt/hud.o          \
 	putt/game.o         \
@@ -445,8 +580,43 @@ PUTT_OBJS := \
 	putt/st_conf.o      \
 	putt/main.o
 
-BALL_OBJS += share/solid_sim_sol.o
-PUTT_OBJS += share/solid_sim_sol.o
+ifeq ($(PLATFORM),mingw)
+	BALL_OBJS += share/joy_xbox.o
+	PUTT_OBJS += share/joy_xbox.o
+else
+	BALL_OBJS += share/joy.o
+	PUTT_OBJS += share/joy.o
+endif
+
+ifneq ($(FS_VERSION),1)
+ifeq ($(ENABLE_IAP),paypal)
+	BALL_OBJS += payments/game_payment_curl.o
+endif
+endif
+
+ifeq ($(ENABLE_FS),stdio)
+BALL_OBJS += share/fs_stdio.o share/zip.o
+PUTT_OBJS += share/fs_stdio.o share/zip.o
+MAPC_OBJS += share/fs_stdio.o share/zip.o
+endif
+
+ifeq ($(ENABLE_STEAM),1)
+BALL_OBJS += share/account_steam.o
+PUTT_OBJS += share/account_steam.o
+else
+BALL_OBJS += share/account_binary.o
+PUTT_OBJS += share/account_binary.o
+endif
+
+ifeq ($(ENABLE_GAME_TRANSFER_SOURCE),1)
+BALL_OBJS += share/account_transfer.o
+BALL_OBJS += share/st_transfer_source.o
+endif
+
+ifeq ($(ENABLE_GAME_TRANSFER),1)
+BALL_OBJS += share/account_transfer.o
+BALL_OBJS += share/st_transfer_target.o
+endif
 
 ifeq ($(ENABLE_DEDICATED_SERVER),1)
 # Dedicated server, most of people worldwide internet
@@ -488,6 +658,10 @@ endif
 endif
 endif
 
+ifeq ($(ENABLE_SQL),1)
+BALL_OBJS += online/account_database.o
+endif
+
 ifeq ($(FS_VERSION),1)
 ifeq ($(ENABLE_FS),stdio)
 BALL_OBJS += share/fs_stdio_v1.o
@@ -505,14 +679,6 @@ BALL_OBJS += share/fs_stdio.o share/zip.o
 PUTT_OBJS += share/fs_stdio.o share/zip.o
 MAPC_OBJS += share/fs_stdio.o share/zip.o
 endif
-endif
-
-ifeq ($(ENABLE_STEAM),1)
-BALL_OBJS += share/account_steam.o
-PUTT_OBJS += share/account_steam.o
-else
-BALL_OBJS += share/account_binary.o
-PUTT_OBJS += share/account_binary.o
 endif
 
 ifneq ($(FS_VERSION),1)
@@ -562,13 +728,16 @@ FETCH_OBJS := share/fetch_curl.o
 endif
 
 BALL_OBJS += $(FETCH_OBJS)
+PUTT_OBJS += $(FETCH_OBJS)
 
 BALL_DEPS := $(BALL_OBJS:.o=.d)
 PUTT_DEPS := $(PUTT_OBJS:.o=.d)
 MAPC_DEPS := $(MAPC_OBJS:.o=.d)
 
-MAPS := $(shell find data -name "*.map" \! -name "*.autosave.map")
+MAPS := $(shell find data_standard -name "*.map" \! -name "*.autosave.map")
+CMAPS := $(shell find data_campaign -name "*.cmap")
 SOLS := $(MAPS:%.map=%.sol)
+CSOLS := $(CMAPS:%.cmap=%.csol)
 
 DESKTOPS := $(basename $(wildcard dist/*.desktop.in))
 
@@ -579,15 +748,22 @@ WINDRES ?= windres
 #------------------------------------------------------------------------------
 
 %.o : %.c
-	$(CC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) -MM -MP -MF $*.d -MT "$@" $<
-	$(CC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) -o $@ -c $<
+	@$(CC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) -MM -MP -MF $*.d -MT "$@" $<
+	@$(CC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) -o $@ -c $<
+	@echo "$(CC) $<"
 
 %.o : %.cpp
-	$(CXX) $(ALL_CXXFLAGS) $(ALL_CPPFLAGS) -MM -MP -MF $*.d -MT "$@" $<
-	$(CXX) $(ALL_CXXFLAGS) $(ALL_CPPFLAGS) -o $@ -c $<
+	@$(CXX) $(ALL_CXXFLAGS) $(ALL_CPPFLAGS) -MM -MP -MF $*.d -MT "$@" $<
+	@$(CXX) $(ALL_CXXFLAGS) $(ALL_CPPFLAGS) -o $@ -c $<
+	@echo "$(CXX) $<"
 
 %.sol : %.map $(MAPC_TARG)
-	$(MAPC) $< data
+	$(MAPC) $< data_development --skip_verify
+	@echo "$(MAPC) $<"
+
+%.csol : %.cmap $(MAPC_TARG)
+	$(MAPC) $< data_development --skip_verify --campaign
+	@echo "$(MAPC) $<"
 
 %.desktop : %.desktop.in
 	sh scripts/translate-desktop.sh < $< > $@
@@ -597,9 +773,13 @@ WINDRES ?= windres
 
 #------------------------------------------------------------------------------
 
+# Don't compile the sols yet, until the game binaries are finished.
+
 all : $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) locales
 
 publish : $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) sols locales desktops
+
+test : $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG)
 
 ifeq ($(ENABLE_HMD),libovr)
 LINK := $(CXX) $(ALL_CXXFLAGS)
@@ -607,18 +787,25 @@ else
 ifeq ($(ENABLE_TILT),leapmotion)
 LINK := $(CXX) $(ALL_CXXFLAGS)
 else
+ifeq ($(ENABLE_STEAM),1)
+LINK := $(CXX) $(ALL_CXXFLAGS)
+else
 LINK := $(CC) $(ALL_CFLAGS)
+endif
 endif
 endif
 
 $(BALL_TARG) : $(BALL_OBJS)
 	$(LINK) -o $(BALL_TARG) $(BALL_OBJS) $(LDFLAGS) $(ALL_LIBS)
+	@echo "$(LINK) $<"
 
 $(PUTT_TARG) : $(PUTT_OBJS)
 	$(LINK) -o $(PUTT_TARG) $(PUTT_OBJS) $(LDFLAGS) $(ALL_LIBS)
+	@echo "$(LINK) $<"
 
 $(MAPC_TARG) : $(MAPC_OBJS)
 	$(CC) $(ALL_CFLAGS) -o $(MAPC_TARG) $(MAPC_OBJS) $(LDFLAGS) $(MAPC_LIBS)
+	@echo "$(CC) $<"
 
 # Work around some extremely helpful sdl-config scripts.
 
@@ -627,6 +814,8 @@ $(MAPC_TARG) : ALL_CPPFLAGS := $(ALL_CPPFLAGS) -Umain
 endif
 
 sols : $(SOLS)
+
+csols : $(CSOLS)
 
 locales :
 ifneq ($(ENABLE_NLS),0)
@@ -640,14 +829,19 @@ clean-src :
 	find ball share putt \( -name '*.o' -o -name '*.d' \) -delete
 	$(RM) neverball.ico.o neverputt.ico.o
 
+clean-sols :
+	$(RM) $(SOLS)
+	$(RM) $(CSOLS)
+
 clean : clean-src
 	$(RM) $(SOLS)
+	$(RM) $(CSOLS)
 	$(RM) $(DESKTOPS)
 	$(MAKE) -C po clean
 
 #------------------------------------------------------------------------------
 
-.PHONY : all sols locales desktops clean-src clean
+.PHONY : all sols csols locales desktops clean-src clean
 
 -include $(BALL_DEPS) $(PUTT_DEPS) $(MAPC_DEPS)
 

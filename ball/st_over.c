@@ -66,7 +66,7 @@ static int over_action(int tok, int val)
         return goto_state(&st_start);
 
     case GUI_NAME:
-        return goto_name(&st_over, &st_over, 0);
+        return goto_name(&st_over, &st_over, 0, 0, 0);
 
     case GUI_SCORE:
         gui_score_set(val);
@@ -77,7 +77,7 @@ static int over_action(int tok, int val)
         campaign_hardcore_quit();
         campaign_theme_quit();
         campaign_quit();
-        return goto_state(&st_levelgroup);
+        return goto_playmenu(curr_mode());
 #endif
 
     case OVER_SHOP:
@@ -217,7 +217,7 @@ static int over_gui(void)
         if ((jd = gui_harray(id)))
             gui_start(jd, _("Select Level"), GUI_SML, GUI_BACK, 0);
 
-        if (!resume)
+        if (!resume && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
         {
             gui_pulse(gid, 1.2f);
 #ifdef CONFIG_INCLUDES_ACCOUNT

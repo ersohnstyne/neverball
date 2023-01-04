@@ -58,7 +58,6 @@ int game_compat_map;                    /* Client/server map compat flag     */
 static struct game_draw gd;
 static struct game_lerp gl;
 
-static float timer       = 0.0f;        /* Clock time                        */
 static int   timer_down  = 1;           /* Timer go up or down?              */
 static int   gained      = 0;           /* Time increased mid-level          */
 static int   status      = GAME_NONE;   /* Outcome of the game               */
@@ -217,8 +216,8 @@ static void game_run_cmd(const union cmd *cmd)
 
             if (cmd->sound.n)
             {
-                if (strcmp("snd/time.ogg", cmd->sound.n) == 0 ||
-                    strcmp("snd/fall.ogg", cmd->sound.n) == 0)
+                if (strcmp(AUD_TIME, cmd->sound.n) == 0 ||
+                    strcmp(AUD_FALL, cmd->sound.n) == 0)
                     audio_narrator_play(cmd->sound.n);
                 else audio_play(cmd->sound.n, cmd->sound.a);
             }
@@ -226,8 +225,12 @@ static void game_run_cmd(const union cmd *cmd)
             break;
 
         case CMD_TIMER:
-            //if (!gd.jump_b)
-                timer = cmd->timer.t;
+            gl.timer[PREV] = gl.timer[CURR];
+            gl.timer[CURR] = cmd->timer.t;
+
+            if (cs.first_update)
+                gl.timer[PREV] = gl.timer[CURR] = cmd->timer.t;
+
             break;
 
         case CMD_STATUS:
@@ -445,84 +448,32 @@ int  game_client_init(const char *file_name)
 #endif
     status = GAME_NONE;
 
-#ifdef MAPC_INCLUDES_CHKP
-    /*
-     * --- CHECKPOINT DATA ---
-     * If you haven't loaded your vary data for each checkpoints,
-     * Varys for your default will be used.
-     */
-    if (!last_active)
-#endif
-        game_client_free(file_name);
+    game_client_free(file_name);
 
     /* Load SOL data. */
 
-    /*
-     * --- CHECKPOINT DATA ---
-     * If you haven't loaded solid data for each checkpoints,
-     * Solid for your default data will be used.
-     */
+    if (!game_base_load(file_name))
+        return (gd.state = 0);
 
-#ifdef MAPC_INCLUDES_CHKP
-    if (!last_active)
+    if (!sol_load_vary(&gd.vary, &game_base))
     {
-#endif
-        if (!game_base_load(file_name))
-            return (gd.state = 0);
-
-#ifdef MAPC_INCLUDES_CHKP
+        game_base_free(NULL);
+        return (gd.state = 0);
     }
-    else
-        log_errorf("Loading client's game base is blocked during checkpoints is active!: %s\n", file_name);
-#endif
 
-#ifdef MAPC_INCLUDES_CHKP
-    /*
-     * --- CHECKPOINT DATA ---
-     * If you haven't loaded vary data for each checkpoints,
-     * Varys for your default data will be used.
-     */
-
-    if (last_active)
-        log_errorf("Loading client's vary from game base is blocked during checkpoints is active!\n");
-    else
+    if (!sol_load_draw(&gd.draw, &gd.vary, config_get_d(CONFIG_SHADOW)))
     {
-#endif
-        if (!sol_load_vary(&gd.vary, &game_base))
-        {
-            game_base_free(NULL);
-            return (gd.state = 0);
-        }
-
-        if (!sol_load_draw(&gd.draw, &gd.vary, config_get_d(CONFIG_SHADOW)))
-        {
-            sol_free_vary(&gd.vary);
-            game_base_free(NULL);
-            return (gd.state = 0);
-        }
-#ifdef MAPC_INCLUDES_CHKP
+        sol_free_vary(&gd.vary);
+        game_base_free(NULL);
+        return (gd.state = 0);
     }
-#endif
 
     gd.state = 1;
 
     /* Initialize game state. */
 
     game_tilt_init(&gd.tilt);
-
-#ifdef MAPC_INCLUDES_CHKP
-    /*
-     * --- CHECKPOINT DATA ---
-     * If you haven't loaded your view data for each checkpoints,
-     * Data of view for your default will be used.
-     */
-    if (!last_active)
-#endif
-        game_view_init(&gd.view);
-#ifdef MAPC_INCLUDES_CHKP
-    else
-        log_errorf("Loading client's view is blocked during checkpoints is active!\n");
-#endif
+    game_view_init(&gd.view);
 
     gd.jump_e  = 1;
     gd.jump_b  = 0;
@@ -535,7 +486,7 @@ int  game_client_init(const char *file_name)
     if (curr_balls() == 0)
 #endif
     {
-        /* All checkpoints were removed in HARDCORE MODE!or last balls. */
+        /* All checkpoints were removed in HARDCORE MODE! or last balls. */
         gd.chkp_e = 0;
         gd.chkp_k = 0.0f;
     }
@@ -635,14 +586,9 @@ int game_client_get_jump_b(void)
 
 /*---------------------------------------------------------------------------*/
 
-int enable_interpolation = 1;
-
 void game_client_blend(float a)
 {
-    if (enable_interpolation)
-        gl.alpha = a;
-    else
-        gl.alpha = 1.0f;
+    gl.alpha = a;
 }
 
 void game_client_draw(int pose, float t)
@@ -655,7 +601,7 @@ void game_client_draw(int pose, float t)
 
 int curr_clock(void)
 {
-    return (int) (timer * 100.f);
+    return (int) (flerp(gl.timer[PREV], gl.timer[CURR], gl.alpha) * 100.f);
 }
 
 int curr_gained(void)
@@ -761,6 +707,8 @@ void game_client_fly(float k)
 #define STUDIO_MAX_TIME_MEDIUM 2.5f
 #define STUDIO_MAX_TIME_FAST 1.0f
 
+static int studio_safetyintro;
+
 static int studio_map_index = 12;
 static float studio_time_length;
 
@@ -863,10 +811,18 @@ static void game_client_next_studio_map(void)
         studio_map_index--;
 }
 
+void game_client_step_safetyintro(float);
+
 void game_client_step_studio(float deltatime)
 {
     if (deltatime > 0.017f)
         return;
+
+    if (studio_safetyintro)
+    {
+        game_client_step_safetyintro(deltatime);
+        return;
+    }
 
     float studio_max_time = STUDIO_MAX_TIME_MEDIUM + STUDIO_TRANSITION;
 
@@ -876,9 +832,7 @@ void game_client_step_studio(float deltatime)
         game_client_next_studio_map();
     }
     else
-    {
         studio_time_length += deltatime;
-    }
 
     float pos[3];
     float center[3];
@@ -892,13 +846,23 @@ void game_client_step_studio(float deltatime)
     float realPos[3] = { pos[0], pos[2], -pos[1] };
     float realCenter[3] = { center[0], center[2], -center[1] };
 
-    game_view_set_pos_and_target(&gl.view, &gd.vary, realPos, realCenter);
+    for (int i = 0; i < 2; i++)
+        game_view_set_pos_and_target(&gl.view[i], &gd.vary, realPos, realCenter);
 
     gd_rotate_roll = CLAMP(-45, flerp(studio_cam_rot_roll[studio_map_index][0], studio_cam_rot_roll[studio_map_index][1], (studio_time_length / studio_max_time)), 45);
 }
 
-void game_client_init_studio(void)
+void game_client_init_safetyintro(void);
+
+void game_client_init_studio(int alternatives)
 {
+    if (alternatives)
+    {
+        studio_safetyintro = 1;
+        game_client_init_safetyintro();
+        return;
+    }
+
     if (game_client_init(studio_map[studio_map_index]))
     {
         union cmd cmd;
@@ -909,6 +873,69 @@ void game_client_init_studio(void)
 
         game_kill_fade();
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static float safetyintro_totaltime = 0;
+
+float safetyintro_cam_center_pos[3] =
+{
+    0, 80, 0
+};
+
+void game_client_step_safetyintro(float deltatime)
+{
+    float pos[3];
+    float center[3];
+
+    if (safetyintro_totaltime > 8)
+        safetyintro_totaltime -= 8;
+
+    safetyintro_totaltime += deltatime / 3;
+
+    pos[0] = fsinf((safetyintro_totaltime / 4) * V_PI) * (192 * 1.5f);
+    pos[1] = flerp(180, 192, fcosf((safetyintro_totaltime / 4) * V_PI));
+    pos[2] = -fcosf((safetyintro_totaltime / 4) * V_PI) * (192 * 1.5f);
+
+    v_cpy(center, safetyintro_cam_center_pos);
+
+    v_scl(pos, pos, STUDIO_CAM_SCALE);
+    v_scl(center, center, STUDIO_CAM_SCALE);
+
+    /* Should be used this tilt? */
+
+    gd.tilt.rx = flerp(0, 10, fsinf((safetyintro_totaltime / 2) * V_PI));
+
+    game_tilt_calc(&gd.tilt, 0);
+
+    v_cpy(gl.tilt[CURR].q, gd.tilt.q);
+    gl.tilt[CURR].q[3] = gd.tilt.q[3];
+
+    for (int i = 0; i < 2; i++)
+        game_view_set_pos_and_target(&gl.view[i], &gd.vary, pos, center);
+}
+
+void game_client_init_safetyintro(void)
+{
+    if (game_client_init("gui/safety-intro.sol"))
+    {
+        /* HACK: Does not have a goal. */
+        
+        back_init("back/skyS.png");
+
+        sol_load_full(&gd.back, "map-back/skyS.sol", 0);
+
+        /* Initialize lighting. */
+
+        light_reset();
+        
+        game_kill_fade();
+
+        return;
+    }
+
+    assert(0 && "No safety feature intro loaded!");
 }
 
 /*---------------------------------------------------------------------------*/

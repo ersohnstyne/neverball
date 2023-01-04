@@ -44,7 +44,10 @@
 #include "st_conf.h"
 #include "st_shared.h"
 
+#if NB_HAVE_PB_BOTH==1
 int super_environment = 1;
+#endif
+
 int model_studio = 0;
 
 static int switchball_useable(void)
@@ -81,6 +84,8 @@ static int switchball_useable(void)
 }
 
 /*---------------------------------------------------------------------------*/
+
+static int ball_manual_hotreload = 0;
 
 static Array balls;
 static int   curr_ball;
@@ -150,20 +155,20 @@ static int has_ball_sols(struct dir_item *item)
     }*/
 
     solid = concat_string(tmp_path,
-            "/",
-            base_name(tmp_path),
-            "-solid.sol",
-            NULL);
+                          "/",
+                          base_name(tmp_path),
+                          "-solid.sol",
+                          NULL);
     inner = concat_string(tmp_path,
-            "/",
-            base_name(tmp_path),
-            "-inner.sol",
-            NULL);
+                          "/",
+                          base_name(tmp_path),
+                          "-inner.sol",
+                          NULL);
     outer = concat_string(tmp_path,
-            "/",
-            base_name(tmp_path),
-            "-outer.sol",
-            NULL);
+                          "/",
+                          base_name(tmp_path),
+                          "-outer.sol",
+                          NULL);
 
     yes = (fs_exists(solid) || fs_exists(inner) || fs_exists(outer));
 
@@ -186,7 +191,7 @@ static void scan_balls(void)
 {
     int i;
 
-#ifdef CONFIG_INCLUDES_ACCOUNT && NB_HAVE_PB_BOTH==1
+#if defined(CONFIG_INCLUDES_ACCOUNT) && NB_HAVE_PB_BOTH==1
     SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE));
 #else
     SAFECPY(ball_file, config_get_s(CONFIG_BALL_FILE));
@@ -227,7 +232,7 @@ static void set_curr_ball(void)
             base_name(DIR_ITEM_GET(balls, curr_ball)->path));
 #endif
 
-#ifdef CONFIG_INCLUDES_ACCOUNT && NB_HAVE_PB_BOTH==1
+#if defined(CONFIG_INCLUDES_ACCOUNT) && NB_HAVE_PB_BOTH==1
     account_set_s(ACCOUNT_BALL_FILE, ball_file);
 #else
     config_set_s(CONFIG_BALL_FILE, ball_file);
@@ -236,7 +241,7 @@ static void set_curr_ball(void)
     ball_free();
     ball_init();
     config_save();
-#ifdef CONFIG_INCLUDES_ACCOUNT && NB_HAVE_PB_BOTH==1
+#if defined(CONFIG_INCLUDES_ACCOUNT) && NB_HAVE_PB_BOTH==1
     account_save();
 #endif
     gui_set_label(name_id, base_name(ball_file));
@@ -255,7 +260,7 @@ static int ball_action(int tok, int val)
     switch (tok)
     {
     case MODEL_ONLINE:
-#ifdef CONFIG_INCLUDES_ACCOUNT && NB_HAVE_PB_BOTH==1
+#if defined(CONFIG_INCLUDES_ACCOUNT) && NB_HAVE_PB_BOTH==1
         if (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1)
         {
 #if _WIN32
@@ -330,8 +335,9 @@ static void load_ball_demo(void)
             ball_action(GUI_BACK, 0);
             return;
         }
-
+#if NB_HAVE_PB_BOTH==1
         demo_replay_speed(super_environment ? SPEED_SLOWER : SPEED_NORMAL);
+#endif
     }
 
     audio_music_fade_to(0.0f, switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
@@ -341,7 +347,9 @@ static void load_ball_demo(void)
     if (!config_get_d(CONFIG_SCREEN_ANIMATIONS))
         game_kill_fade();
 
+#if NB_HAVE_PB_BOTH==1
     if (super_environment == 0)
+#endif
         back_init("back/premium.png");
 }
 
@@ -355,12 +363,11 @@ static int ball_gui(void)
         if ((jd = gui_hstack(id)))
         {
             gui_label(jd, _("Ball Model"), GUI_SML, 0, 0);
-
             gui_filler(jd);
             gui_space(jd);
 
 #if NB_HAVE_PB_BOTH==1
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             if (current_platform == PLATFORM_PC)
                 gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
             else
@@ -378,14 +385,15 @@ static int ball_gui(void)
 
 #if NB_HAVE_PB_BOTH==1
 #if NB_STEAM_API==1
-        const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) == -1 ? "Upgrade to Home Edition!" : "Open Steam Workshop!";
+        const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ? "Open Steam Workshop!"
 #else
-        const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) == -1 ? "Upgrade to Home Edition!" : "Get more Balls!";
+        const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ? "Get more Balls!"
 #endif
+            : "Upgrade to Home Edition!";
 
-        if (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
-            server_policy_get_d(SERVER_POLICY_EDITION) == -1
-#if !defined(__EMSCRIPTEN__)
+        if ((account_get_d(ACCOUNT_PRODUCT_BALLS) == 1
+            || server_policy_get_d(SERVER_POLICY_EDITION) < 0)
+#ifndef __EMSCRIPTEN__
             && !xbox_show_gui()
 #endif
             )
@@ -399,7 +407,7 @@ static int ball_gui(void)
                     gui_set_state(online_id, MODEL_ONLINE, 0);
             }
         }
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
         else if (!xbox_show_gui())
             gui_label(id, _(more_balls_text), GUI_SML, gui_gry, gui_gry);
 #endif
@@ -410,7 +418,7 @@ static int ball_gui(void)
         {
             int total_ball_name = array_len(balls);
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             if (!xbox_show_gui() && total_ball_name > 1)
 #else
             if (total_ball_name > 1)
@@ -418,7 +426,7 @@ static int ball_gui(void)
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png", "gui/navig/arrow_right.png", GUI_NEXT, GUI_NONE, 1);
 #else
-                gui_maybe(jd, ">", GUI_NEXT, GUI_NONE, 1);
+                gui_maybe(jd, GUI_ARROW_RGHT, GUI_NEXT, GUI_NONE, 1);
 #endif
 
             name_id = gui_label(jd, "very-long-ball-name", GUI_SML,
@@ -427,7 +435,7 @@ static int ball_gui(void)
             gui_set_trunc(name_id, TRUNC_TAIL);
             gui_set_fill(name_id);
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             if (!xbox_show_gui() && total_ball_name > 1)
 #else
             if (total_ball_name > 1)
@@ -435,7 +443,7 @@ static int ball_gui(void)
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png", "gui/navig/arrow_left.png", GUI_PREV, GUI_NONE, 1);
 #else
-                gui_maybe(jd, "<", GUI_PREV, GUI_NONE, 1);
+                gui_maybe(jd, GUI_ARROW_LFT, GUI_PREV, GUI_NONE, 1);
 #endif
         }
 
@@ -452,17 +460,28 @@ static int ball_gui(void)
 
 static int ball_enter(struct state *st, struct state *prev)
 {
-    game_proxy_filter(filter_cmd);
     scan_balls();
-    load_ball_demo();
+
+    if (prev != &st_ball)
+    {
+        game_proxy_filter(filter_cmd);
+        load_ball_demo();
+    }
+
+    ball_manual_hotreload = 0;
+
     return ball_gui();
 }
 
 static void ball_leave(struct state *st, struct state *next, int id)
 {
-    gui_delete(id);
-    back_free();
-    demo_replay_stop(0);
+    if (next != &st_ball)
+    {
+        gui_delete(id);
+        back_free();
+        demo_replay_stop(0);
+    }
+
     free_balls();
 }
 
@@ -470,15 +489,21 @@ static void ball_paint(int id, float t)
 {
     video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
 
+#if NB_HAVE_PB_BOTH==1
     if (super_environment == 0)
+#endif
         back_draw_easy();
 
     video_pop_matrix();
 
+#if NB_HAVE_PB_BOTH==1
     game_client_draw(super_environment ? 0 : POSE_BALL, t);
+#else
+    game_client_draw(POSE_BALL);
+#endif
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     xbox_control_model_gui_paint();
 #endif
 }
@@ -494,7 +519,9 @@ static void ball_timer(int id, float dt)
     {
         demo_replay_stop(0);
         load_ball_demo();
+#if NB_HAVE_PB_BOTH==1
         demo_replay_speed(super_environment ? SPEED_SLOWER : SPEED_NORMAL);
+#endif
         game_client_blend(demo_replay_blend());
     }
 }
@@ -505,6 +532,11 @@ static int ball_keybd(int c, int d)
     {
         if (c == KEY_EXIT)
             return ball_action(GUI_BACK, 0);
+        if (c == KEY_LOOKAROUND)
+        {
+            ball_manual_hotreload = 1;
+            return goto_state(&st_ball);
+        }
     }
     return 1;
 }
@@ -534,6 +566,8 @@ static int ball_buttn(int b, int d)
     }
     return 1;
 }
+
+/*---------------------------------------------------------------------------*/
 
 struct state st_ball = {
     ball_enter,

@@ -547,10 +547,10 @@ void back_init(const char *name)
         mp->o = make_image_from_file(name, IF_MIPMAP);
 
         if (!mp->o)
-        {
             log_errorf("Failed to load background image \"%s\"\n", name);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        }
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+
         back_state = 1;
     }
 }
@@ -590,12 +590,22 @@ void goal_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h, GLfl
     {
         glTranslatef(p[0], p[1], p[2]);
         glScalef(r, h, r);
+
+        if (goal.base.rc)
+        {
+            float M[16];
+            m_ident(M);
+            glDisable(GL_LIGHTING);
+            sol_bill(&goal.draw, rend, M, t);
+            glEnable(GL_LIGHTING);
+        }
+
         sol_draw(&goal.draw, rend, 1, 1);
     }
     glPopMatrix();
 }
 
-void jump_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h)
+void jump_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h, GLfloat t)
 {
     GLfloat height = (hmd_stat() ? 0.3f : 1.0f) * video.device_h;
 
@@ -605,6 +615,16 @@ void jump_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h)
     {
         glTranslatef(p[0], p[1], p[2]);
         glScalef(r, h, r);
+
+        if (jump.base.rc)
+        {
+            float M[16];
+            m_ident(M);
+            glDisable(GL_LIGHTING);
+            sol_bill(&jump.draw, rend, M, t);
+            glEnable(GL_LIGHTING);
+        }
+
         sol_draw(&jump.draw, rend, 1, 1);
     }
     glPopMatrix();

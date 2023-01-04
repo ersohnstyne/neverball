@@ -12,7 +12,7 @@
  * General Public License for more details.
  */
 
-#if defined(__EMSCRIPTEN__)
+#ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
 
@@ -348,7 +348,7 @@ void fs_persistent_sync(void)
 {
     /* This synchronizes in-memory state to persistent storage. The persistent
      * store is created/loaded during Emscripten's Module['preInit'].  */
-#if defined(__EMSCRIPTEN__)
+#ifdef __EMSCRIPTEN__
     EM_ASM({
         console.log('Synchronizing to persistent storage...');
 

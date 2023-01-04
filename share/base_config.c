@@ -24,6 +24,10 @@
 
 #ifdef _WIN32
 #include <shlobj.h>
+
+#if _MSC_VER
+#pragma message("Pennyball + Neverball " VERSION " for Microsoft Visual Studio")
+#endif
 #endif
 
 /*---------------------------------------------------------------------------*/

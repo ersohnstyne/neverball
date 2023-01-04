@@ -43,6 +43,7 @@ int checkpoints_busy;
 struct chkp_ballsize last_chkp_ballsize[1024];
 struct chkp_ball last_chkp_ball[1024];
 struct chkp_path last_chkp_path[2048];
+struct chkp_body last_chkp_body[1024];
 struct chkp_move last_chkp_move[1024];
 struct chkp_item last_chkp_item[2048];
 struct chkp_swch last_chkp_swch[1024];
@@ -64,76 +65,86 @@ float respawn_timer;
 
 void checkpoints_save_spawnpoint(struct s_vary saved_vary,
                                  struct game_view saved_view,
-                                 int vi)
+                                 int ui)
 {
+    last_active = 1;
+    memset(&last_view, 0, sizeof(saved_view));
+    last_view[ui].a = saved_view.a;
+
+    while (last_view[ui].a > 180.0f)
+        last_view[ui].a -= 180.f;
+
+    while (last_view[ui].a < -180.0f)
+        last_view[ui].a += 180.f;
+
+    /* Backed up from the gameplay */
+    for (int backupidx = 0; backupidx < saved_vary.uc; backupidx++)
     {
-        last_active = 1;
-        memset(&last_view, 0, sizeof (saved_view));
-        last_view[vi].a = saved_view.a;
+        struct v_ball* up = saved_vary.uv + backupidx;
+        struct chkp_ball* c_up = last_chkp_ball + backupidx;
 
-        while (last_view[vi].a > 180.0f)
-            last_view[vi].a -= 180.f;
+        e_cpy(c_up->e, up->e);
+        v_cpy(c_up->p, up->p);
+        e_cpy(c_up->E, up->E);
+        c_up->r = up->r;
+    }
 
-        while (last_view[vi].a < -180.0f)
-            last_view[vi].a += 180.f;
+    /* Backed up from the gameplay (path) */
+    for (int backupidx = 0; backupidx < saved_vary.pc; backupidx++)
+    {
+        struct v_path    *pp   = saved_vary.pv + backupidx;
+        struct chkp_path *c_pp = last_chkp_path + backupidx;
 
-        /* Backed up from the gameplay */
-        for (int backupidx = 0; backupidx < saved_vary.uc; backupidx++)
-        {
-            struct v_ball    *up   = saved_vary.uv + backupidx;
-            struct chkp_ball *c_up = last_chkp_ball + backupidx;
+        c_pp->f = pp->f;
+    }
 
-            v_cpy(c_up->p,  up->p);
-                  c_up->r = up->r;
-        }
+    /* Backed up from the gameplay (body) */
+    for (int backupidx = 0; backupidx < saved_vary.bc; backupidx++)
+    {
+        struct v_body    *bp   = saved_vary.bv + backupidx;
+        struct chkp_body *c_bp = last_chkp_body + backupidx;
 
-        /* Backed up from the gameplay (path) */
-        for (int backupidx = 0; backupidx < saved_vary.pc; backupidx++)
-        {
-            struct v_path    *pp   = saved_vary.pv + backupidx;
-            struct chkp_path *c_pp = last_chkp_path + backupidx;
+        c_bp->mi = bp->mi;
+        c_bp->mj = bp->mj;
+    }
 
-            c_pp->f = pp->f;
-        }
+    /* Backed up from the gameplay (mover) (no saving SOL to files) */
+    for (int backupidx = 0; backupidx < saved_vary.mc; backupidx++)
+    {
+        struct v_move    *mp   = saved_vary.mv + backupidx;
+        struct chkp_move *c_mp = last_chkp_move + backupidx;
 
-        /* Backed up from the gameplay (mover) (no saving SOL to files) */
-        for (int backupidx = 0; backupidx < saved_vary.mc; backupidx++)
-        {
-            struct v_move    *mp   = saved_vary.mv + backupidx;
-            struct chkp_move *c_mp = last_chkp_move + backupidx;
+        c_mp->t = mp->t;
+        c_mp->tm = mp->tm;
+        c_mp->pi = mp->pi;
+    }
 
-            c_mp->t  = mp->t;
-            c_mp->tm = mp->tm;
-            c_mp->pi = mp->pi;
-        }
+    /* Backed up from the gameplay (coins) */
+    for (int backupidx = 0; backupidx < saved_vary.hc; backupidx++)
+    {
+        struct v_item    *hp   = saved_vary.hv + backupidx;
+        struct chkp_item *c_hp = last_chkp_item + backupidx;
 
-        /* Backed up from the gameplay (coins) */
-        for (int backupidx = 0; backupidx < saved_vary.hc; backupidx++)
-        {
-            struct v_item    *hp   = saved_vary.hv + backupidx;
-            struct chkp_item *c_hp = last_chkp_item + backupidx;
+        v_cpy(c_hp->p, hp->p);
+        c_hp->t = hp->t;
+        c_hp->n = hp->n;
+    }
 
-            v_cpy(c_hp->p, hp->p);
-            c_hp->t = hp->t;
-            c_hp->n = hp->n;
-        }
+    /* Backed up from the gameplay (switch) */
+    for (int backupidx = 0; backupidx < saved_vary.xc; backupidx++)
+    {
+        struct v_swch    *xp   = saved_vary.xv + backupidx;
+        struct chkp_swch *c_xp = last_chkp_swch + backupidx;
 
-        /* Backed up from the gameplay (switch) */
-        for (int backupidx = 0; backupidx < saved_vary.xc; backupidx++)
-        {
-            struct v_swch    *xp   = saved_vary.xv + backupidx;
-            struct chkp_swch *c_xp = last_chkp_swch + backupidx;
-
-            c_xp->f  = xp->f;
-            c_xp->t  = xp->t;
-            c_xp->tm = xp->tm;
-        }
+        c_xp->f = xp->f;
+        c_xp->t = xp->t;
+        c_xp->tm = xp->tm;
+    }
 
 #ifndef NDEBUG
-        log_printf("Gameplay data has been backed up!\n");
+    log_printf("Gameplay data has been backed up!\n");
 #endif
-        v_cpy(last_pos[vi], saved_vary.uv[vi].p);
-    }
+    v_cpy(last_pos[ui], saved_vary.uv[ui].p);
 }
 
 void checkpoints_respawn(void)

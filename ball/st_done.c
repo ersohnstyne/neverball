@@ -68,13 +68,13 @@ static int done_action(int tok, int val)
             campaign_quit();
         }
 #endif
-        return goto_state(curr_mode() == MODE_BOOST_RUSH ? &st_set : &st_start);
+        return goto_playmenu(curr_mode());
 
     case GUI_NAME:
 #ifdef CONFIG_INCLUDES_ACCOUNT
         return goto_shop_rename(&st_done, &st_done, 0);
 #else
-        return goto_name(&st_done, &st_done, 0);
+        return goto_name(&st_done, &st_done, 0, 0, 0);
 #endif
 
     case GUI_SCORE:
@@ -98,7 +98,7 @@ static int done_action(int tok, int val)
             campaign_theme_quit();
             campaign_quit();
         }
-        return goto_state(&st_levelgroup);
+        return goto_playmenu(curr_mode());
 #endif
     }
     return 1;

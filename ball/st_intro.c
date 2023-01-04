@@ -23,7 +23,7 @@
 
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
 #include "lang_switchball.h"
@@ -39,6 +39,7 @@
 #include "image.h"
 #include "video.h"
 
+#include "game_server.h"
 #include "game_client.h"
 #include "game_common.h"
 
@@ -54,6 +55,17 @@
 
 #define INTRO_ANIMATION_60_FPS (1 / 60)
 #define MAINTENANCE_HOLD 0 > 0
+
+/*---------------------------------------------------------------------------*/
+
+struct state st_intro_accn_disabled;
+struct state st_intro_restore;
+struct state st_intro_nointernet;
+struct state st_intro_waitinternet;
+
+struct state st_server_maintenance;
+
+/*---------------------------------------------------------------------------*/
 
 static int iframe;
 static int image_id;
@@ -115,7 +127,7 @@ static void intro_create_tip(void)
     int index_affect = config_get_d(CONFIG_TIPS_INDEX) + 1;
 
 #if !defined(COVID_HIGH_RISK)
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     if (current_platform != PLATFORM_PC)
         max_index = 5;
 #endif
@@ -124,7 +136,7 @@ static void intro_create_tip(void)
         index_affect = 0;
 
     config_set_d(CONFIG_TIPS_INDEX, index_affect);
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     if (current_platform == PLATFORM_PC)
     {
         if ((tip_id = gui_multi(0, _(intro_tip[index_affect]), GUI_SML, gui_wht, gui_wht)))
@@ -366,11 +378,11 @@ static int intro_accn_disabled_action(int tok, int val)
     case ACCOUNT_DISBALED_OPEN:
         audio_play(AUD_MENU, 1.f);
 #if _WIN32
-        //system("start msedge https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
+        system("start msedge https://neverball.org/community-standards.php");
 #elif __APPLE__
-        //system("open https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
+        system("open https://neverball.org/community-standards.php");
 #else
-        //system("x-www-browser https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
+        system("x-www-browser https://neverball.org/community-standards.php");
 #endif
 
     case ACCOUNT_DISBALED_CANCEL:
@@ -387,14 +399,15 @@ static int intro_accn_disabled_enter(struct state *st, struct state *prev)
 
     if ((id = gui_vstack(0)))
     {
-        gui_label(id, _("Account permanently banned"), GUI_SML, gui_gry, gui_red);
+        gui_title_header(id, _("Account permanently banned"), GUI_SML, gui_gry, gui_red);
         gui_space(id);
 
         if ((jd = gui_vstack(id)))
         {
             gui_multi(jd,
                 _("We recenty received a report for bad behaviour\\"
-                  "by your account."),
+                  "by your account. Our moderators have reviewed in case\\"
+                  "and identified that goes against Pennyball Community Standards."),
                 GUI_SML, gui_wht, gui_wht);
             gui_multi(jd,
                 _("Your account is permanently banned, which means\\"
@@ -408,7 +421,7 @@ static int intro_accn_disabled_enter(struct state *st, struct state *prev)
         if ((jd = gui_harray(id)))
         {
             gui_state(jd, _("Cancel"), GUI_SML, ACCOUNT_DISBALED_CANCEL, 0);
-            //gui_state(jd, _("Open"), GUI_SML, ACCOUNT_DISBALED_OPEN, 0);
+            gui_state(jd, _("Review"), GUI_SML, ACCOUNT_DISBALED_OPEN, 0);
             gui_start(jd, _("Exit"), GUI_SML, GUI_BACK, 0);
         }
     }
@@ -424,7 +437,7 @@ static int intro_accn_disabled_keybd(int c, int d)
     {
         if (c == KEY_EXIT)
         {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             goto_state(&st_null); /* bye! */
             return 0;
 #endif
@@ -441,7 +454,7 @@ static int intro_accn_disabled_buttn(int b, int d)
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return intro_accn_disabled_action(gui_token(active), gui_value(active));
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
         {
             goto_state(&st_null); /* bye! */
@@ -456,8 +469,7 @@ static int intro_accn_disabled_buttn(int b, int d)
 
 enum
 {
-    RESTORE_ACCEPT = GUI_LAST,
-    RESTORE_CANCEL
+    RESTORE_ACCEPT = GUI_LAST
 };
 
 enum RestoredGraphics
@@ -636,7 +648,7 @@ static int intro_restore_action(int tok, int val)
 
         break;
 
-    case RESTORE_CANCEL:
+    case GUI_BACK:
         config_set_d(CONFIG_GRAPHIC_RESTORE_ID, -1);
         config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, 0);
         config_set_d(CONFIG_GRAPHIC_RESTORE_VAL2, 0);
@@ -736,7 +748,7 @@ static int intro_restore_gui(void)
             break;
         }
 
-        gui_label(id, _("Restore Graphics"), GUI_MED, 0, 0);
+        gui_title_header(id, _("Restore Graphics"), GUI_MED, 0, 0);
         gui_space(id);
 
         if (doubles) {
@@ -761,7 +773,7 @@ static int intro_restore_gui(void)
 
         if ((jd = gui_harray(id)))
         {
-            gui_state(jd, _("Cancel"), GUI_SML, RESTORE_CANCEL, 0);
+            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
             gui_start(jd, _("Restore now!"), GUI_SML, RESTORE_ACCEPT, 0);
         }
     }
@@ -779,14 +791,14 @@ static int intro_restore_enter(struct state *st, struct state *prev)
 
 static int intro_restore_keybd(int c, int d)
 {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     xbox_toggle_gui(0);
 #endif
 
     if (d)
     {
         if (c == KEY_EXIT)
-            return intro_restore_action(RESTORE_CANCEL, 0);
+            return intro_restore_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -800,7 +812,7 @@ static int intro_restore_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return intro_restore_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return intro_restore_action(RESTORE_CANCEL, 0);
+            return intro_restore_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -815,7 +827,7 @@ static int nointernet_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        gui_label(id, _("No internet connection!"), GUI_MED, gui_gry, gui_red);
+        gui_title_header(id, _("No internet connection!"), GUI_MED, gui_gry, gui_red);
         gui_space(id);
         if (networking_standalone())
             gui_multi(id, _("Not to worry, you can play offline!"),
@@ -853,7 +865,7 @@ static int nointernet_keybd(int c, int d)
     {
         if (c == KEY_EXIT)
         {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             goto_state(&st_null); /* bye! */
             return 0;
 #endif
@@ -919,41 +931,6 @@ static int waitinternet_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-static int screensaver_enter(struct state *st, struct state *prev)
-{
-    intro_soundqueue[0] = 0;
-    intro_soundqueue[1] = 0;
-    intro_done = 0;
-    iframe = 0;
-
-#if defined(DEVEL_BUILD)
-    intro_create_devel_info();
-#endif
-    game_client_init_studio();
-
-    return 0;
-}
-
-static void screensaver_leave(struct state *st, struct state *next, int id)
-{
-    gui_delete(id);
-}
-
-static void screensaver_paint(int id, float t)
-{
-    game_client_draw(0, t);
-    gui_paint(id);
-}
-
-static void screensaver_timer(int id, float dt)
-{
-    float fixDeltatime = CLAMP(0.0f, dt, 1.0f);
-    geom_step(fixDeltatime);
-    game_client_step_studio(fixDeltatime);
-}
-
-/*---------------------------------------------------------------------------*/
-
 enum {
     MAINTENANCE_OFFLINE = GUI_LAST
 };
@@ -983,7 +960,7 @@ static int server_maintenance_enter(struct state *st, struct state *prev)
 
     if ((id = gui_vstack(0)))
     {
-        gui_label(id, _("Server under maintenance!"), GUI_MED, gui_gry, gui_red);
+        gui_title_header(id, _("Server under maintenance!"), GUI_MED, gui_gry, gui_red);
         gui_space(id);
         if (networking_standalone())
             gui_multi(id, _("It might take a wihle until\\the server maintenance is finished.\\You can play offline instead!"),
@@ -1035,6 +1012,81 @@ static int server_maintenance_buttn(int b, int d)
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) && networking_standalone())
             return server_maintenance_action(gui_token(active), gui_value(active));
+    }
+    return 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static int screensaver_done = 0;
+
+static void cleanup_screensaver(void)
+{
+    game_server_free(NULL);
+    game_client_free(NULL);
+    game_base_free(NULL);
+
+    screensaver_done = 1;
+}
+
+static int screensaver_enter(struct state* st, struct state* prev)
+{
+    intro_soundqueue[0] = 0;
+    intro_soundqueue[1] = 0;
+    intro_done = 0;
+    iframe = 0;
+
+#if defined(DEVEL_BUILD)
+    intro_create_devel_info();
+#endif
+    game_client_init_studio(1);
+
+    return 0;
+}
+
+static void screensaver_leave(struct state* st, struct state* next, int id)
+{
+    gui_delete(id);
+}
+
+static void screensaver_paint(int id, float t)
+{
+    game_client_draw(0, t);
+    gui_paint(id);
+}
+
+static void screensaver_timer(int id, float dt)
+{
+    if (!screensaver_done)
+    {
+        float fixDeltatime = CLAMP(0.0f, dt, 1.0f);
+        geom_step(fixDeltatime);
+        game_client_step_studio(fixDeltatime);
+    }
+}
+
+static int screensaver_keybd(int c, int d)
+{
+    if (d)
+    {
+        if (c == KEY_EXIT)
+        {
+            cleanup_screensaver();
+            return 0;
+        }
+    }
+    return 1;
+}
+
+static int screensaver_buttn(int b, int d)
+{
+    if (d)
+    {
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+        {
+            cleanup_screensaver();
+            return 0;
+        }
     }
     return 1;
 }
@@ -1109,22 +1161,6 @@ struct state st_intro_waitinternet = {
     waitinternet_buttn
 };
 
-struct state st_screensaver = {
-    screensaver_enter,
-    screensaver_leave,
-    screensaver_paint,
-    screensaver_timer,
-    NULL,
-    NULL,
-    shared_angle,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL
-};
-
 struct state st_server_maintenance = {
     server_maintenance_enter,
     server_maintenance_leave,
@@ -1139,4 +1175,20 @@ struct state st_server_maintenance = {
     NULL,
     NULL,
     server_maintenance_fade
+};
+
+struct state st_screensaver = {
+    screensaver_enter,
+    screensaver_leave,
+    screensaver_paint,
+    screensaver_timer,
+    NULL,
+    NULL,
+    shared_angle,
+    NULL,
+    screensaver_keybd,
+    screensaver_buttn,
+    NULL,
+    NULL,
+    NULL
 };

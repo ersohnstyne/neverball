@@ -22,10 +22,15 @@
 
 #if _MSC_VER
 #include <Windows.h>
+
 #if _DEBUG
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
+
+/* Shall the Xbox live begin? */
+#define NB_PB_WITH_XBOX 1
+#include <XInput.h>
 #endif
 
 #include <stdio.h>
@@ -53,7 +58,7 @@
 /* User config directory */
 #ifndef CONFIG_USER
 #ifdef _WIN32
-#define CONFIG_USER   "Pennyball_2.1.0"
+#define CONFIG_USER   "Neverball_2.1.0"
 #else
 #define CONFIG_USER   ".neverball_2.1.0"
 #endif

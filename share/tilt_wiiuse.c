@@ -79,25 +79,25 @@ static int tilt_thread(void *data)
     }
     wm = wiimotes[0];
 
-    pitch_sensitivity = ((float)config_get_d(CONFIG_WIIMOTE_PITCH_SENSITIVITY) / 100);
+    pitch_sensitivity = ((float) config_get_d(CONFIG_WIIMOTE_PITCH_SENSITIVITY) / 100);
     pitch_sensitivity *= (config_get_d(CONFIG_WIIMOTE_INVERT_PITCH)) ? -1 : 1;
-    roll_sensitivity = ((float)config_get_d(CONFIG_WIIMOTE_ROLL_SENSITIVITY) / 100);
+    roll_sensitivity = ((float) config_get_d(CONFIG_WIIMOTE_ROLL_SENSITIVITY) / 100);
     roll_sensitivity *= (config_get_d(CONFIG_WIIMOTE_INVERT_ROLL)) ? -1 : 1;
-    smooth_alpha = (float)config_get_d(CONFIG_WIIMOTE_SMOOTH_ALPHA) / 100;
+    smooth_alpha = (float) config_get_d(CONFIG_WIIMOTE_SMOOTH_ALPHA) / 100;
 
     wiiuse_motion_sensing(wm, 1);
     wiiuse_set_smooth_alpha(wm, smooth_alpha);
     wiiuse_set_leds(wm, WIIMOTE_LED_1);
 
-    SDL_mutexP(mutex);
+    SDL_LockMutex(mutex);
     current_state.status = 1;
-    SDL_mutexV(mutex);
+    SDL_UnlockMutex(mutex);
 
     while (mutex && current_state.status && WIIMOTE_IS_CONNECTED(wm)) {
         if (wiiuse_poll(wiimotes, NB_WIIMOTES)) {
             switch (wm->event) {
             case WIIUSE_EVENT:
-                SDL_mutexP(mutex);
+                SDL_LockMutex(mutex);
                 /* start on 4 because the 4 first buttons are for the nunchuk */
                 for (i = 4; i < NB_WIIMOTE_BUTTONS; i++) {
                     current_state.buttons[i] = IS_PRESSED(wm, wiiUseButtons[i][0]);
@@ -123,7 +123,7 @@ static int tilt_thread(void *data)
                         current_state.z = wm->orient.roll * roll_sensitivity;
                     }
                 }
-                SDL_mutexV(mutex);
+                SDL_UnlockMutex(mutex);
                 break;
             default:
                 break;
@@ -189,9 +189,9 @@ void tilt_free(void)
     {
         /* Get/set the status of the tilt sensor thread. */
 
-        SDL_mutexP(mutex);
+        SDL_LockMutex(mutex);
         current_state.status = 0;
-        SDL_mutexV(mutex);
+        SDL_UnlockMutex(mutex);
 
         /* Wait for the thread to terminate and destroy the mutex. */
 
@@ -207,7 +207,7 @@ int tilt_get_button(int *b, int *s)
     int i = NB_WIIMOTE_BUTTONS;
 
     if (mutex) {
-        SDL_mutexP(mutex);
+        SDL_LockMutex(mutex);
         if (current_state.status) {
             for (i = 0; i < NB_WIIMOTE_BUTTONS; i++) {
                 if (current_state.buttons[i] != polled_state.buttons[i]) {
@@ -218,7 +218,7 @@ int tilt_get_button(int *b, int *s)
                 }
             }
         }
-        SDL_mutexV(mutex);
+        SDL_UnlockMutex(mutex);
     }
 
     return i < NB_WIIMOTE_BUTTONS;
@@ -230,9 +230,9 @@ float tilt_get_x(void)
 
     if (mutex)
     {
-        SDL_mutexP(mutex);
+        SDL_LockMutex(mutex);
         x = current_state.x;
-        SDL_mutexV(mutex);
+        SDL_UnlockMutex(mutex);
     }
 
     return x;
@@ -244,9 +244,9 @@ float tilt_get_z(void)
 
     if (mutex)
     {
-        SDL_mutexP(mutex);
+        SDL_LockMutex(mutex);
         z = current_state.z;
-        SDL_mutexV(mutex);
+        SDL_UnlockMutex(mutex);
     }
 
     return z;
@@ -258,9 +258,9 @@ int tilt_stat(void)
 
     if (mutex)
     {
-        SDL_mutexP(mutex);
+        SDL_LockMutex(mutex);
         b = current_state.status;
-        SDL_mutexV(mutex);
+        SDL_UnlockMutex(mutex);
     }
     return b;
 }

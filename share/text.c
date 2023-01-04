@@ -85,8 +85,10 @@ int text_length(const char *string)
     int result = 0;
 
     while (*string != '\0')
+    {
         if ((*string++ & 0xC0) != 0x80)
             result++;
+    }
 
     return result;
 }

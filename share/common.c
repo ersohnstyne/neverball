@@ -126,7 +126,6 @@ char *dupe_string(const char *src)
 {
     char *dst = NULL;
 
-    //if (src && (dst = (char *) malloc(strlen(src) + 1)))
     if (src && (dst = (char *) malloc(strlen(src) + 1)))
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         strcpy_s(dst, strlen(src) + 1, src);

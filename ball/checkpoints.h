@@ -13,13 +13,20 @@ struct chkp_ballsize
 
 struct chkp_ball
 {
+    float e[3][3];
     float p[3];
+    float E[3][3];
     float r;
 };
 
 struct chkp_path
 {
     int f;
+};
+
+struct chkp_body
+{
+    int mi, mj;
 };
 
 struct chkp_move
@@ -50,6 +57,7 @@ extern int checkpoints_busy;
 extern struct chkp_ballsize last_chkp_ballsize[1024];
 extern struct chkp_ball last_chkp_ball[1024];
 extern struct chkp_path last_chkp_path[2048];
+extern struct chkp_body last_chkp_body[1024];
 extern struct chkp_move last_chkp_move[1024];
 extern struct chkp_item last_chkp_item[2048];
 extern struct chkp_swch last_chkp_swch[1024];

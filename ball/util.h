@@ -25,9 +25,11 @@ void set_score_board(const struct score *, int,
                      const struct score *, int);
 
 void gui_keyboard(int);
-void gui_keyboard_en(int);
 void gui_keyboard_lock(void);
+void gui_keyboard_en(int);
 void gui_keyboard_lock_en(void);
+void gui_keyboard_de(int);
+void gui_keyboard_lock_de(void);
 char gui_keyboard_char(char);
 
 /*---------------------------------------------------------------------------*/

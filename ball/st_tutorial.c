@@ -91,10 +91,13 @@ const char tutorial_desc_xbox[][128] =
     TUTORIAL_10_DESC,
 };
 
-/*---------------------------------------------------------------------------*/
-
 static int tutorial_index = 0;
+static int hint_index = 0;
+
 static int tutorial_before_play = 0;
+static int hint_before_play = 0;
+
+/*---------------------------------------------------------------------------*/
 
 int tutorial_check(void)
 {
@@ -138,17 +141,13 @@ int tutorial_check(void)
                 }
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
                 if (strcmp(ln, _("4")) == 0 && current_platform == PLATFORM_PC)
-                {
-                    goto_tutorial_before_play(2);
-                    return 1;
-                }
 #else
                 if (strcmp(ln, _("4")) == 0)
+#endif
                 {
                     goto_tutorial_before_play(2);
                     return 1;
                 }
-#endif
             }
             else if (strcmp(sn, _("Neverball Medium")) == 0)
             {
@@ -261,7 +260,7 @@ static void tutorial_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     if (xbox_show_gui())
         xbox_control_death_gui_paint();
 #endif
@@ -269,7 +268,7 @@ static void tutorial_paint(int id, float t)
 
 static void tutorial_timer(int id, float dt)
 {
-    if (tutorial_before_play)
+    if (tutorial_before_play || hint_before_play)
         geom_step(dt);
 
     gui_timer(id, dt);
@@ -281,11 +280,10 @@ static int tutorial_keybd(int c, int d)
     {
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return tutorial_action(GUI_BACK, 0);
 #else
         if (c == KEY_EXIT)
-            return tutorial_action(GUI_BACK, 0);
 #endif
+            return tutorial_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -318,9 +316,6 @@ const char hint_desc[][128] =
 };
 
 /*---------------------------------------------------------------------------*/
-
-static int hint_index = 0;
-static int hint_before_play = 0;
 
 int hint_check(void)
 {
@@ -432,25 +427,16 @@ static int hint_enter(struct state *st, struct state *prev)
     return id;
 }
 
-static void hint_timer(int id, float dt)
-{
-    if (hint_before_play)
-        geom_step(dt);
-
-    gui_timer(id, dt);
-}
-
 static int hint_keybd(int c, int d)
 {
     if (d)
     {
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return hint_action(GUI_BACK, 0);
 #else
         if (c == KEY_EXIT)
-            return hint_action(GUI_BACK, 0);
 #endif
+            return hint_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -486,7 +472,7 @@ struct state st_hint = {
     hint_enter,
     shared_leave,
     tutorial_paint,
-    hint_timer,
+    tutorial_timer,
     shared_point,
     shared_stick,
     shared_angle,

@@ -5,10 +5,11 @@
 
 int audio_available(void);
 
-void audio_tick(void);
-void audio_setspeed(float);
 void audio_init(void);
 void audio_free(void);
+void audio_suspend(void);
+void audio_resume(void);
+
 void audio_play(const char *, float);
 
 void audio_narrator_play(const char *);

@@ -209,7 +209,7 @@ void log_init(const char *name, const char *path)
             OutputDebugStringA("[!] NB ERROR: ");
             OutputDebugStringA("Failure to open ");
             OutputDebugStringA(path);
-            OutputDebugStringA("!: / ");
+            OutputDebugStringA("!: ");
             OutputDebugStringA(fs_error());
             OutputDebugStringA("\n");
 #endif

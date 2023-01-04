@@ -35,9 +35,9 @@ static List fetch_list = NULL;
 /*
  * Allocate a new fetch_info struct.
  */
-static struct fetch_info* create_fetch_info(void)
+static struct fetch_info *create_fetch_info(void)
 {
-    struct fetch_info* fi = calloc(sizeof(*fi), 1);
+    struct fetch_info *fi = calloc(sizeof(*fi), 1);
 
     if (fi)
         fi->fetch_id = ++last_fetch_id;
@@ -48,9 +48,9 @@ static struct fetch_info* create_fetch_info(void)
 /*
  * Allocate a new fetch_info struct and add it to the transfer list.
  */
-static struct fetch_info* create_and_link_fetch_info(void)
+static struct fetch_info *create_and_link_fetch_info(void)
 {
-    struct fetch_info* fi = create_fetch_info();
+    struct fetch_info *fi = create_fetch_info();
 
     if (fi)
         fetch_list = list_cons(fi, fetch_list);
@@ -61,7 +61,7 @@ static struct fetch_info* create_and_link_fetch_info(void)
 /*
  * Clean up a fetch_info struct and associated resources.
  */
-static void free_fetch_info(struct fetch_info* fi)
+static void free_fetch_info(struct fetch_info *fi)
 {
     if (fi)
     {
@@ -82,7 +82,7 @@ static void free_fetch_info(struct fetch_info* fi)
 /*
  * Remove a fetch_info from the transfer list and then free it.
  */
-static void unlink_and_free_fetch_info(struct fetch_info* fi)
+static void unlink_and_free_fetch_info(struct fetch_info *fi)
 {
     if (fi)
     {
@@ -113,6 +113,11 @@ void fetch_init(void (*dispatch_event)(void*))
     /* Just compile with -s FETCH=1 */
 }
 
+void fetch_reinit(void)
+{
+    /* No possible, compile with -s FETCH=1! */
+}
+
 void fetch_handle_event(void* data)
 {
 }
@@ -129,7 +134,7 @@ void fetch_quit(void)
 
 static void fetch_success_func(emscripten_fetch_t* handle)
 {
-    struct fetch_info* fi = handle->userData;
+    struct fetch_info *fi = handle->userData;
 
     if (fi)
     {
@@ -166,7 +171,7 @@ static void fetch_success_func(emscripten_fetch_t* handle)
 
 static void fetch_error_func(emscripten_fetch_t* handle)
 {
-    struct fetch_info* fi = handle->userData;
+    struct fetch_info *fi = handle->userData;
 
     if (fi)
     {
@@ -185,7 +190,7 @@ static void fetch_error_func(emscripten_fetch_t* handle)
 
 static void fetch_progress_func(emscripten_fetch_t* handle)
 {
-    struct fetch_info* fi = handle->userData;
+    struct fetch_info *fi = handle->userData;
 
     if (fi)
     {
@@ -193,8 +198,8 @@ static void fetch_progress_func(emscripten_fetch_t* handle)
         {
             struct fetch_progress extra_data = { 0 };
 
-            extra_data.now = (double)handle->dataOffset;
-            extra_data.total = (double)handle->totalBytes;
+            extra_data.now   = (double) handle->dataOffset;
+            extra_data.total = (double) handle->totalBytes;
 
             fi->callback.progress(fi->callback.data, &extra_data);
         }
@@ -204,7 +209,7 @@ static void fetch_progress_func(emscripten_fetch_t* handle)
 unsigned int fetch_url(const char* url, const char* dst, struct fetch_callback callback)
 {
     unsigned int fetch_id = 0;
-    struct fetch_info* fi = create_and_link_fetch_info();
+    struct fetch_info *fi = create_and_link_fetch_info();
 
     if (fi)
     {

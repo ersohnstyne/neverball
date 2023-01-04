@@ -15,7 +15,7 @@
 #include <assert.h>
 
 #if NB_HAVE_PB_BOTH==1
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
 
@@ -45,6 +45,12 @@
 #include "st_shared.h"
 #include "st_conf.h"
 
+/*---------------------------------------------------------------------------*/
+
+struct state st_pause_quit;
+
+/*---------------------------------------------------------------------------*/
+
 enum
 {
     PAUSE_CONF = GUI_LAST,
@@ -62,6 +68,25 @@ static int quit_uses_restart = 0;
 
 /*---------------------------------------------------------------------------*/
 
+int goto_pause(struct state *returnable)
+{
+    st_continue = returnable;
+
+    /* Set it up some those states? */
+    if (st_continue == &st_play_ready
+        || st_continue == &st_play_set
+        || st_continue == &st_play_loop
+        || st_continue == &st_look)
+    {
+        if (st_continue == &st_play_set)
+            st_continue = &st_play_ready;
+        if (st_continue == &st_look)
+            st_continue = &st_play_loop;
+    }
+
+    return goto_state(&st_pause);
+}
+
 static int pause_action(int tok, int val)
 {
     audio_play(curr_state() == &st_pause_quit && tok == PAUSE_CONTINUE ? AUD_BACK : AUD_MENU, 1.0f);
@@ -69,13 +94,16 @@ static int pause_action(int tok, int val)
     switch (tok)
     {
     case PAUSE_CONF:
-        return goto_conf(&st_pause, 1);
+        return goto_conf(&st_pause, 1, 0);
         break;
     case PAUSE_CONTINUE:
         if (curr_state() == &st_pause)
         {
             audio_music_fade_in(0.5f);
-            video_set_grab(0);
+
+            if (st_continue != &st_level)
+                video_set_grab(0);
+
             return goto_state(st_continue);
         }
         else
@@ -159,7 +187,8 @@ static int pause_action(int tok, int val)
 
     case PAUSE_EXIT:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (curr_mode() == MODE_NONE || campaign_used())
+        if (curr_mode() == MODE_NONE || campaign_used()
+            || curr_times() > 0)
         {
             if (curr_state() == &st_pause_quit)
             {
@@ -185,6 +214,7 @@ static int pause_action(int tok, int val)
         }
 #else
         if (curr_status() == GAME_NONE) progress_stat(GAME_NONE);
+        progress_stop();
         audio_music_stop();
         return goto_exit();
 #endif
@@ -337,21 +367,13 @@ static int pause_gui(void)
 
 static int pause_enter(struct state *st, struct state *prev)
 {
-    /* Set it up some those states? */
-    if (prev == &st_play_ready || prev == &st_play_set || prev == &st_play_loop || prev == &st_look)
-    {
-        st_continue = prev;
-        if (prev == &st_play_set)
-            st_continue = &st_play_ready;
-        if (prev == &st_look)
-            st_continue = &st_play_loop;
-    }
-
     video_clr_grab();
 
     /* Cannot pause the game in home room. */
     if (curr_mode() != MODE_NONE)
         audio_music_fade_out(0.5f);
+
+    hud_update(0, 0.f);
 
     return pause_gui();
 }
@@ -360,7 +382,7 @@ static void pause_paint(int id, float t)
 {
     shared_paint(id, t);
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     if (xbox_show_gui())
         xbox_control_paused_gui_paint();
     else if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
@@ -423,13 +445,14 @@ static int pause_quit_gui(void)
     if ((id = gui_vstack(0)))
     {
         int warn_title = gui_label(id, _("Quit"), GUI_MED, gui_red, gui_red);
-        gui_pulse(warn_title, 1.2f);
 
         if (quit_uses_restart)
             gui_set_label(warn_title, _("Restart"));
 
         if (quit_uses_resetpuzzle)
             gui_set_label(warn_title, _("Reset Puzzle"));
+
+        gui_pulse(warn_title, 1.2f);
 
         gui_space(id);
 
@@ -439,6 +462,9 @@ static int pause_quit_gui(void)
 
         if (quit_uses_resetpuzzle)
             quit_warn = "Are you sure?\\You will restart at the last checkpoint.";
+
+        if (!campaign_used() && curr_times() > 0)
+            quit_warn = "Are you sure?\\You will lose all progress on this level set.";
 
         gui_multi(id, _(quit_warn), GUI_SML, gui_wht, gui_wht);
 

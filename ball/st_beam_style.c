@@ -98,13 +98,14 @@ static int beam_style_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        if ((jd = gui_harray(id)))
+        if ((jd = gui_hstack(id)))
         {
             gui_label(jd, _("Beam Style"), GUI_SML, 0, 0);
-
             gui_filler(jd);
+            gui_space(jd);
+
 #if NB_HAVE_PB_BOTH==1
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             if (current_platform == PLATFORM_PC)
                 gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
             else
@@ -119,13 +120,13 @@ static int beam_style_gui(void)
 
         if ((jd = gui_hstack(id)))
         {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             if (!xbox_show_gui())
 #endif
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png", "gui/navig/arrow_right.png", GUI_NEXT, GUI_NONE, 1);
 #else
-                gui_maybe(jd, ">", GUI_NEXT, GUI_NONE, 1);
+                gui_maybe(jd, GUI_ARROW_RGHT, GUI_NEXT, GUI_NONE, 1);
 #endif
 
             name_id = gui_label(jd, "very-long-beam-style-name", GUI_SML,
@@ -134,13 +135,13 @@ static int beam_style_gui(void)
             gui_set_trunc(name_id, TRUNC_TAIL);
             gui_set_fill(name_id);
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
             if (!xbox_show_gui())
 #endif
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png", "gui/navig/arrow_left.png", GUI_PREV, GUI_NONE, 1);
 #else
-                gui_maybe(jd, "<", GUI_PREV, GUI_NONE, 1);
+                gui_maybe(jd, GUI_ARROW_LFT, GUI_PREV, GUI_NONE, 1);
 #endif
         }
     }
@@ -211,7 +212,7 @@ static void beam_style_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     xbox_control_beam_style_gui_paint();
 #endif
 }

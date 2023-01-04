@@ -37,6 +37,7 @@
 #include "image.h"
 #include "video.h"
 
+#include "game_payment.h"
 #include "game_client.h"
 #include "game_common.h"
 
@@ -45,6 +46,13 @@
 #include "st_title.h"
 #include "st_shared.h"
 #include "st_name.h"
+
+/*---------------------------------------------------------------------------*/
+
+struct state st_shop_rename;
+struct state st_shop_unregistered;
+struct state st_shop_iap;
+struct state st_shop_buy;
 
 /*---------------------------------------------------------------------------*/
 
@@ -58,40 +66,21 @@ static int fvalue;
 static int svalue;
 static int lvalue;
 
-/*
- * The enumerations was merged together into products :
- * Extra Levels, Extra Balls, Bonus Pack, Mediation
- * incl. (Earninator, Floatifier, Speedifier)
- */
-/*static const char products[][16] = {
-    "extralevels",
-    "onlineballs",
-    "bonuspack",
-    "mediation",
-    "earninator",
-    "floatifier",
-    "speedifier",
-};*/
-
 enum
 {
-    SHOP_BACK = GUI_LAST,
-    SHOP_CHANGE_NAME,
+    SHOP_CHANGE_NAME = GUI_LAST,
     SHOP_IAP,
     SHOP_BUY
 };
 
-#if defined(__EMSCRIPTEN__) || _MSC_VER
-int goto_shop_rename(struct state *ok, struct state *cancel, unsigned int back);
-void set_product_key(int newkey);
-#endif
+void shop_set_product_key(int newkey);
 
 static int purchase_product_usegems = 0;
 static int inaccept_playername = 0;
 
 static int shop_action(int tok, int val)
 {
-    audio_play(SHOP_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
     
     inaccept_playername = 0;
 
@@ -106,7 +95,7 @@ static int shop_action(int tok, int val)
 
     switch (tok)
     {
-    case SHOP_BACK:
+    case GUI_BACK:
         return goto_state_full(&st_title, GUI_ANIMATION_N_CURVE, 0, 0);
         break;
     case SHOP_CHANGE_NAME:
@@ -115,16 +104,16 @@ static int shop_action(int tok, int val)
     case SHOP_IAP:
         if (!inaccept_playername && strlen(config_get_s(CONFIG_PLAYER)) >= 3)
         {
-#if NB_STEAM_API==1 || NB_EOS_SDK==1 || NB_IAP_PREVIEW==1
-            return goto_shop_iap(&st_shop, &st_shop, 0, 0, 1);
+#if NB_STEAM_API==1 || NB_EOS_SDK==1 || ENABLE_IAP==1
+            return goto_shop_iap(&st_shop, &st_shop, 0, 0, 0, 0, 1);
 #else
-            return goto_shop_iap(&st_shop, &st_shop, 0, 0, 0);
+            return goto_shop_iap(&st_shop, &st_shop, 0, 0, 0, 0, 0);
 #endif
         }
         break;
     case SHOP_BUY:
         purchase_product_usegems = val == 7;
-        set_product_key(val);
+        shop_set_product_key(val);
         if (inaccept_playername)
             return goto_state(&st_shop_unregistered);
         else if (strlen(config_get_s(CONFIG_PLAYER)) < 3)
@@ -174,7 +163,6 @@ static int shop_gui(void)
             gui_space(jd);
 
             char coinsattr[MAXSTR];
-
             char currency_name[4];
 
 #define LANG_CURRENCY_RESET_DEFAULTS                            \
@@ -227,11 +215,12 @@ static int shop_gui(void)
             {
                 gui_space(jd);
                 int player_id;
-                if ((player_id = gui_label(jd, "XXXXXXXXXXXXXX", GUI_SML, gui_wht, gui_yel)))
+                if ((player_id = gui_label(jd, "XXXXXXXXXXXX", GUI_SML, gui_wht, gui_yel)))
                 {
+                    gui_set_trunc(player_id, TRUNC_TAIL);
+
                     const char *player = config_get_s(CONFIG_PLAYER);
                     gui_set_label(player_id, player);
-                    gui_set_trunc(player_id, TRUNC_TAIL);
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
                     if (!online_mode) gui_set_state(player_id, SHOP_CHANGE_NAME, 0);
@@ -247,7 +236,7 @@ static int shop_gui(void)
 #endif
             {
                 gui_space(jd);
-                gui_start(jd, _("Back"), GUI_SML, SHOP_BACK, 0);
+                gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
             }
         }
 
@@ -268,9 +257,16 @@ static int shop_gui(void)
                 int temp_lives = lvalue;
 
                 /*
-                 * Three crowns: 1110 balls = 16650 gems
-                 * Two crowns: +1100 balls = 16500 gems
-                 * One crown: +1000 balls = 15000 gems
+                 * One crown (Player): +1000 balls = 15000 gems
+                 * Two crowns (Player): +1100 balls = 16500 gems
+                 * Three crowns (Player): 1110 balls = 16650 gems
+                 * 
+                 * One crown (Game Banker): +1000000 balls = 15000000 gems
+                 * Two crowns (Game Banker): +1100000 balls = 16500000 gems
+                 * Three crowns (Game Banker): +1110000 balls = 16650000 gems
+                 * Four crowns (Game Banker): +1111000 balls = 16665000 gems
+                 * Five crowns (Game Banker): +1111100 balls = 16666500 gems
+                 * Six crowns (Game Banker): +1111110 balls = 16666650 gems
                  */
 
                 if (temp_lives >= 1110)
@@ -484,7 +480,7 @@ static int shop_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT)
-            return shop_action(SHOP_BACK, 0);
+            return shop_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -498,7 +494,7 @@ static int shop_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return shop_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return shop_action(SHOP_BACK, 0);
+            return shop_action(GUI_BACK, 0);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_Y, b) && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP))
             return shop_action(SHOP_IAP, 0);
     }
@@ -522,7 +518,7 @@ int shop_unlocked_gui(void)
 #endif
         {
             gui_space(id);
-            gui_state(id, _("Back"), GUI_SML, SHOP_BACK, 0);
+            gui_state(id, _("Back"), GUI_SML, GUI_BACK, 0);
         }
     }
     gui_layout(id, 0, 0);
@@ -539,8 +535,7 @@ int shop_unlocked_enter(struct state *st, struct state *prev)
 
 enum
 {
-    SHOP_RENAME_CANCEL = GUI_LAST,
-    SHOP_RENAME_YES
+    SHOP_RENAME_YES = GUI_LAST
 };
 
 static struct state *ok_state;
@@ -556,22 +551,22 @@ int goto_shop_rename(struct state *ok, struct state *cancel, unsigned int back)
     draw_back = back;
 
     if (strlen(config_get_s(CONFIG_PLAYER)) < 3)
-        return goto_name(ok_state, cancel_state, draw_back);
+        return goto_name(ok_state, cancel_state, 0, 0, draw_back);
 
     return goto_state(&st_shop_rename);
 }
 
 static int shop_rename_action(int tok, int val)
 {
-    audio_play(SHOP_RENAME_CANCEL == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
 
     switch (tok)
     {
     case SHOP_RENAME_YES:
         account_save();
-        return goto_name(ok_state, cancel_state, draw_back);
+        return goto_name(ok_state, cancel_state, 0, 0, draw_back);
         break;
-    case SHOP_RENAME_CANCEL:
+    case GUI_BACK:
         return goto_state(cancel_state);
         break;
     }
@@ -597,7 +592,7 @@ static int shop_rename_gui(void)
             if (current_platform == PLATFORM_PC)
 #endif
             {
-                gui_start(jd, _("No"), GUI_SML, SHOP_RENAME_CANCEL, 0);
+                gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
                 gui_state(jd, _("Yes"), GUI_SML, SHOP_RENAME_YES, 0);
             }
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
@@ -651,7 +646,7 @@ static int shop_rename_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT)
-            return shop_rename_action(SHOP_RENAME_CANCEL, 0);
+            return shop_rename_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -665,7 +660,7 @@ static int shop_rename_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return shop_rename_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return shop_rename_action(SHOP_RENAME_CANCEL, 0);
+            return shop_rename_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -674,20 +669,19 @@ static int shop_rename_buttn(int b, int d)
 
 enum
 {
-    SHOP_UNREGISTERED_CANCEL = GUI_LAST,
-    SHOP_UNREGISTERED_YES
+    SHOP_UNREGISTERED_YES = GUI_LAST
 };
 
 static int shop_unregistered_action(int tok, int val)
 {
-    audio_play(SHOP_UNREGISTERED_CANCEL == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
     
     switch (tok)
     {
     case SHOP_UNREGISTERED_YES:
-        return goto_name(&st_shop_buy, &st_shop, 0);
+        return goto_name(&st_shop_buy, &st_shop, 0, 0, 0);
         break;
-    case SHOP_UNREGISTERED_CANCEL:
+    case GUI_BACK:
         return goto_state(&st_shop);
         break;
     }
@@ -719,7 +713,7 @@ static int shop_unregistered_gui(void)
             if (current_platform == PLATFORM_PC)
 #endif
             {
-                gui_start(jd, _("No"), GUI_SML, SHOP_UNREGISTERED_CANCEL, 0);
+                gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
                 gui_state(jd, yestxt, GUI_SML, SHOP_UNREGISTERED_YES, 0);
             }
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
@@ -743,7 +737,7 @@ static int shop_unregistered_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT)
-            return shop_unregistered_action(SHOP_UNREGISTERED_CANCEL, 0);
+            return shop_unregistered_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -757,7 +751,7 @@ static int shop_unregistered_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return shop_unregistered_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return shop_unregistered_action(SHOP_UNREGISTERED_CANCEL, 0);
+            return shop_unregistered_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -826,29 +820,37 @@ static int iapgemvalue[] = {
 
 enum
 {
-    SHOP_IAP_GET_CANCEL = GUI_LAST,
-    SHOP_IAP_GET_BUY,
-    SHOP_IAP_GET_SWITCH
+    SHOP_IAP_GET_BUY = GUI_LAST,
+    SHOP_IAP_GET_SWITCH,
+    SHOP_IAP_ENTERCODE
 };
 
 static struct state *ok_state;
 static struct state *cancel_state;
+
+static int (*curr_ok_fn)(struct state *) = NULL;
+static int (*curr_cancel_fn)(struct state *) = NULL;
+
 static int curr_min;
 static int multipage;
 static int iappage;
 
 int goto_shop_iap(struct state *ok, struct state *cancel,
+                  int (*new_ok_fn)(struct state *), int (*new_cancel_fn)(struct state *),
                   int newmin, int display_gems, int allow_multipage)
 {
     ok_state = ok;
     cancel_state = cancel;
+
+    curr_ok_fn = new_ok_fn;
+    curr_cancel_fn = new_cancel_fn;
 
     curr_min = newmin;
 
     multipage = allow_multipage;
     iappage = display_gems;
 
-    return goto_state_full(&st_shop_iap, GUI_ANIMATION_S_CURVE, GUI_ANIMATION_N_CURVE, 0);
+    return goto_state_full(&st_shop_iap, 0, 0, 0);
 }
 
 static void shop_convert_to_coins(int gems, int coins)
@@ -868,15 +870,15 @@ static void shop_convert_to_coins(int gems, int coins)
 
 static int shop_iap_action(int tok, int val)
 {
-    audio_play(SHOP_IAP_GET_CANCEL == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
     
     switch (tok)
     {
-    case SHOP_IAP_GET_CANCEL:
-        return goto_state_full(cancel_state,
-            GUI_ANIMATION_N_CURVE,
-            GUI_ANIMATION_S_CURVE,
-            0);
+    case GUI_BACK:
+        if (curr_cancel_fn)
+            return curr_cancel_fn(cancel_state);
+
+        return goto_state(cancel_state);
         break;
     case SHOP_IAP_GET_BUY:
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -891,15 +893,19 @@ static int shop_iap_action(int tok, int val)
         }
         else
         {
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && ENABLE_IAP==1
+            game_payment_browse(val);
+#endif
         }
 
         if (purchased)
         {
             audio_play("snd/buyproduct.ogg", 1.0f);
-            return goto_state_full(ok_state,
-                GUI_ANIMATION_N_CURVE,
-                GUI_ANIMATION_S_CURVE,
-                0);
+
+            if (curr_ok_fn)
+                return curr_ok_fn(ok_state);
+
+            return goto_state(ok_state);
         }
 #endif
 
@@ -912,6 +918,12 @@ static int shop_iap_action(int tok, int val)
             iappage ? GUI_ANIMATION_E_CURVE : GUI_ANIMATION_W_CURVE,
             0);
         break;
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && ENABLE_IAP==1
+    case SHOP_IAP_ENTERCODE:
+        return goto_shop_activate(ok_state, cancel_state,
+                                  curr_ok_fn, curr_cancel_fn);
+        break;
+#endif
     }
     return 1;
 }
@@ -944,7 +956,7 @@ static int shop_iap_gui(void)
 
             gui_label(jd, walletattr, GUI_SML, gui_yel, gui_red);
 
-#if NB_STEAM_API==1 || NB_EOS_SDK==1 || NB_IAP_PREVIEW==1
+#if NB_STEAM_API==1 || NB_EOS_SDK==1 || ENABLE_IAP==1
             if (multipage && video.aspect_ratio >= 1.0f)
             {
                 gui_space(jd);
@@ -961,10 +973,10 @@ static int shop_iap_gui(void)
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
             if (current_platform == PLATFORM_PC)
 #endif
-                gui_start(jd, _("Back"), GUI_SML, SHOP_IAP_GET_CANCEL, 0);
+                gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
         }
 
-#if NB_STEAM_API==1 || NB_EOS_SDK==1 || NB_IAP_PREVIEW==1
+#if NB_STEAM_API==1 || NB_EOS_SDK==1 || ENABLE_IAP==1
         if (multipage && video.aspect_ratio < 1.0f)
         {
             if (iappage)
@@ -1013,19 +1025,26 @@ static int shop_iap_gui(void)
                         if (iapcoinvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS)))
                             if ((kd = gui_vstack(jd)))
                             {
+                                const GLubyte *sufficent_col =
+                                    account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ?
+                                    gui_wht : gui_red;
+                                int sufficent_action =
+                                    account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ?
+                                    SHOP_IAP_GET_BUY : GUI_NONE;
+
                                 char iapattr[MAXSTR], imgattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                                 sprintf_s(imgattr, dstSize, "gui/shop/coins-%s.png", iaptiers[multiply - 1]);
-                                sprintf_s(iapattr, dstSize, "%d G", iapcoinfromgems[multiply - 1]);
+                                sprintf_s(iapattr, dstSize, GUI_DIAMOND " %d", iapcoinfromgems[multiply - 1]);
 #else
                                 sprintf(imgattr, "gui/shop/coins-%s.png", iaptiers[multiply - 1]);
-                                sprintf(iapattr, "%d G", iapcoinfromgems[multiply - 1]);
+                                sprintf(iapattr, GUI_DIAMOND " %d", iapcoinfromgems[multiply - 1]);
 #endif
 
                                 gui_image(kd, imgattr, w / 7, h / 5);
-                                gui_label(kd, iapattr, GUI_SML, account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? gui_wht : gui_red, account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? gui_wht : gui_red);
+                                gui_label(kd, iapattr, GUI_SML, sufficent_col, sufficent_col);
                                 gui_filler(kd);
-                                gui_set_state(kd, account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? SHOP_IAP_GET_BUY : GUI_NONE, multiply - 1);
+                                gui_set_state(kd, sufficent_action, multiply - 1);
                             }
 #endif
                         break;
@@ -1070,9 +1089,9 @@ static int shop_iap_gui(void)
                         if (iapcoinvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS)))
                         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                            sprintf_s(iapattr, dstSize, _("%d Coins (%d Gems)"), iapcoinvalue[multiply - 1], iapcoinfromgems[multiply - 1]);
+                            sprintf_s(iapattr, dstSize, _("%d Coins (" GUI_DIAMOND " %d)"), iapcoinvalue[multiply - 1], iapcoinfromgems[multiply - 1]);
 #else
-                            sprintf(iapattr, _("%d Coins (%d Gems)"), iapcoinvalue[multiply - 1], iapcoinfromgems[multiply - 1]);
+                            sprintf(iapattr, _("%d Coins (" GUI_DIAMOND " %d)"), iapcoinvalue[multiply - 1], iapcoinfromgems[multiply - 1]);
 #endif
                             btniapmobile = gui_label(jd, iapattr, GUI_SML, account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? gui_wht : gui_red, account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? gui_wht : gui_red);
                             gui_set_state(btniapmobile, account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? SHOP_IAP_GET_BUY : GUI_NONE, multiply - 1);
@@ -1097,6 +1116,16 @@ static int shop_iap_gui(void)
                 }
             }
         }
+
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && ENABLE_IAP==1
+        if (iappage)
+        {
+            gui_space(id);
+
+            int enterkey_btn_id = gui_state(id, _("I have an order code!"), GUI_SML, SHOP_IAP_ENTERCODE, 0);
+        }
+#endif
+
         gui_layout(id, 0, 0);
     }
     return id;
@@ -1116,7 +1145,7 @@ static void shop_iap_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     xbox_control_shop_getcoins_gui_paint();
 #endif
 }
@@ -1126,7 +1155,7 @@ static int shop_iap_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT)
-            return shop_iap_action(SHOP_IAP_GET_CANCEL, 0);
+            return shop_iap_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -1140,7 +1169,7 @@ static int shop_iap_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return shop_iap_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return shop_iap_action(SHOP_IAP_GET_CANCEL, 0);
+            return shop_iap_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -1173,14 +1202,13 @@ int confirm_multiple_items = 0;
 
 static int max_balls_limit = 1110;
 
-void set_product_key(int newkey) {
+void shop_set_product_key(int newkey) {
     productkey = newkey;
 }
 
 enum
 {
-    SHOP_BUY_CANCEL = GUI_LAST,
-    SHOP_BUY_YES,
+    SHOP_BUY_YES = GUI_LAST,
     SHOP_BUY_FIVE,
     SHOP_BUY_WHOLE,
     SHOP_BUY_IAP
@@ -1188,7 +1216,7 @@ enum
 
 static int shop_buy_action(int tok, int val)
 {
-    audio_play(SHOP_BUY_CANCEL == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
     
     int prodcost = 0;
 
@@ -1344,7 +1372,7 @@ static int shop_buy_action(int tok, int val)
                 break;
 
             case 1:
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
                 xbox_control_gui_free();
 #endif
                 hud_free();
@@ -1352,7 +1380,7 @@ static int shop_buy_action(int tok, int val)
                 account_set_d(ACCOUNT_PRODUCT_BALLS, 1);
                 gui_init();
                 hud_init();
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
                 xbox_control_gui_init();
 #endif
                 break;
@@ -1395,10 +1423,10 @@ static int shop_buy_action(int tok, int val)
         break;
 
     case SHOP_BUY_IAP:
-        return goto_shop_iap(&st_shop_buy, &st_shop, prodcost, purchase_product_usegems, 0);
+        return goto_shop_iap(&st_shop_buy, &st_shop, 0, 0, prodcost, purchase_product_usegems, 0);
         break;
 
-    case SHOP_BUY_CANCEL:
+    case GUI_BACK:
         confirm_multiple_items = 0;
         return goto_state(&st_shop);
         break;
@@ -1516,7 +1544,7 @@ static int shop_buy_gui(void)
 #endif
             gui_multi(id, limitattr, GUI_SML, gui_wht, gui_wht);
             gui_space(id);
-            gui_start(id, _("Sorry, I'm too excited!"), GUI_SML, SHOP_BUY_CANCEL, 0);
+            gui_start(id, _("Sorry, I'm too excited!"), GUI_SML, GUI_BACK, 0);
         }
         else if (!has_owned())
         {
@@ -1528,7 +1556,7 @@ static int shop_buy_gui(void)
             {
                 if (has_enough_gems(prodcost))
                     sprintf_s(prodattr, dstSize, _("Would you like buy this Products?\\%s costs %i gems."), prodname, prodcost);
-#if NB_STEAM_API==1 || NB_EOS_SDK==1 || NB_IAP_PREVIEW==1
+#if NB_STEAM_API==1 || NB_EOS_SDK==1 || ENABLE_IAP==1
                 else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP) && prodcost <= 1920)
                     sprintf_s(prodattr, dstSize, _("You need at least %i gems to buy %s,\\but you can review from IAP."), prodcost, prodname);
 #endif
@@ -1549,7 +1577,7 @@ static int shop_buy_gui(void)
             {
                 if (has_enough_gems(prodcost))
                     sprintf(prodattr, _("Would you like buy this Products?\\%s costs %i gems."), prodname, prodcost);
-#if NB_STEAM_API==1 || NB_EOS_SDK==1 || NB_IAP_PREVIEW==1
+#if NB_STEAM_API==1 || NB_EOS_SDK==1 || ENABLE_IAP==1
                 else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP) && prodcost <= 1920)
                     sprintf(prodattr, _("You need at least %i gems to buy %s,\\but you can review from IAP."), prodcost, prodname);
 #endif
@@ -1606,7 +1634,7 @@ static int shop_buy_gui(void)
                         if (current_platform == PLATFORM_PC)
 #endif
                         {
-                            gui_start(jd, _("No"), GUI_SML, SHOP_BUY_CANCEL, 0);
+                            gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
                             gui_state(jd, _("Yes"), GUI_SML, SHOP_BUY_YES, prodcost);
                         }
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
@@ -1626,8 +1654,8 @@ static int shop_buy_gui(void)
                         if (current_platform == PLATFORM_PC)
 #endif
                         {
-                            gui_start(jd, _("Back"), GUI_SML, SHOP_BUY_CANCEL, 0);
-#if NB_STEAM_API==1 || NB_EOS_SDK==1 || NB_IAP_PREVIEW==1
+                            gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+#if NB_STEAM_API==1 || NB_EOS_SDK==1 || ENABLE_IAP==1
                             getcoins_id = gui_state(jd, _("Get Gems!"), GUI_SML, SHOP_BUY_IAP, 0);
 #endif
                         }
@@ -1648,7 +1676,7 @@ static int shop_buy_gui(void)
                     if (current_platform == PLATFORM_PC)
 #endif
                     {
-                        gui_start(jd, _("No"), GUI_SML, SHOP_BUY_CANCEL, 0);
+                        gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
                         gui_state(jd, _("Yes"), GUI_SML, SHOP_BUY_YES, prodcost);
                     }
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
@@ -1668,7 +1696,7 @@ static int shop_buy_gui(void)
                     if (current_platform == PLATFORM_PC)
 #endif
                     {
-                        gui_start(jd, _("Back"), GUI_SML, SHOP_BUY_CANCEL, 0);
+                        gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
                         getcoins_id = gui_state(jd, _("Get coins!"), GUI_SML, SHOP_BUY_IAP, 0);
                     }
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
@@ -1690,7 +1718,7 @@ static int shop_buy_gui(void)
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
             if (current_platform == PLATFORM_PC)
 #endif
-                gui_start(id, _("Buy more!"), GUI_SML, SHOP_BUY_CANCEL, 0);
+                gui_start(id, _("Buy more!"), GUI_SML, GUI_BACK, 0);
         }
 
         gui_layout(id, 0, 0);
@@ -1737,13 +1765,11 @@ static int shop_buy_confirmmulti_gui(void)
         char prodattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(prodattr, dstSize,
-            _("You're trying to buy multiple Products!\\%d %s costs %d %s."),
-            piece_times, prodname, auction_value, _(purchase_product_usegems ? "Gems" : "Coins"));
 #else
         sprintf(prodattr,
-            _("You're trying to buy multiple Products!\\%d %s costs %d %s."),
-            piece_times, prodname, auction_value, _(purchase_product_usegems ? "Gems" : "Coins"));
 #endif
+                _("You're trying to buy multiple Products!\\%d %s costs %d %s."),
+                piece_times, prodname, auction_value, _(purchase_product_usegems ? "Gems" : "Coins"));
 
         gui_space(id);
         gui_multi(id, prodattr, GUI_SML, gui_wht, gui_wht);
@@ -1755,7 +1781,7 @@ static int shop_buy_confirmmulti_gui(void)
             if (current_platform == PLATFORM_PC)
 #endif
             {
-                gui_start(jd, _("No"), GUI_SML, SHOP_BUY_CANCEL, 0);
+                gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
                 gui_state(jd, _("Yes"), GUI_SML, confirm_multiple_items == 2 ? SHOP_BUY_WHOLE : SHOP_BUY_FIVE, auction_value);
             }
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
@@ -1780,7 +1806,7 @@ static int shop_buy_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT)
-            return shop_buy_action(SHOP_BUY_CANCEL, 0);
+            return shop_buy_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -1794,7 +1820,7 @@ static int shop_buy_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return shop_buy_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return shop_buy_action(SHOP_BUY_CANCEL, 0);
+            return shop_buy_action(GUI_BACK, 0);
     }
     return 1;
 }

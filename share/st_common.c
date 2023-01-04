@@ -353,10 +353,7 @@ static int video_action(int tok, int val)
 
     case VIDEO_FULLSCREEN:
         if (oldF == val)
-        {
-            log_printf("Fullscreen remains the same GL specifications!\n");
             return 1;
-        }
 
         goto_state_full(&st_null, 0, 0, 1);
         r = video_fullscreen(val);
@@ -386,10 +383,7 @@ static int video_action(int tok, int val)
 
     case VIDEO_HMD:
         if (oldHmd == val)
-        {
-            log_printf("HMD remains the same GL specifications!\n");
             return 1;
-        }
 
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
         goto_state(&st_restart_required);
@@ -420,10 +414,7 @@ static int video_action(int tok, int val)
 
     case VIDEO_TEXTURES:
         if (oldText == val)
-        {
-            log_printf("Textures remains the same GL specifications!\n");
             return 1;
-        }
 
         goto_state(&st_null);
         config_set_d(CONFIG_TEXTURES, val);
@@ -466,7 +457,7 @@ static int video_gui(void)
 
 #ifdef SWITCHBALL_GUI
 
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
         SDL_DisplayMode dpyMode;
         SDL_GetCurrentDisplayMode(config_get_d(CONFIG_DISPLAY), &dpyMode);
 
@@ -515,7 +506,7 @@ static int video_gui(void)
 #endif
 
         /* This ignores resolution and fullscreen configurations. */
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 #ifndef RESIZEABLE_WINDOW
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(resolution, dstSize, "%d x %d",
@@ -639,10 +630,7 @@ static int video_advanced_action(int tok, int val)
 
     case VIDEO_ADVANCED_FULLSCREEN:
         if (oldF == val)
-        {
-            log_printf("Fullscreen remains the same GL specifications!\n");
             return 1;
-        }
 
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
         goto_state(&st_restart_required);
@@ -671,10 +659,7 @@ static int video_advanced_action(int tok, int val)
 
     case VIDEO_ADVANCED_HMD:
         if (oldHmd == val)
-        {
-            log_printf("HMD remains the same GL specifications!\n");
             return 1;
-        }
 
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
         config_set_d(CONFIG_HMD, val);
@@ -706,10 +691,7 @@ static int video_advanced_action(int tok, int val)
 
     case VIDEO_ADVANCED_REFLECTION:
         if (oldRefl == val)
-        {
-            log_printf("Reflection remains the same GL specifications!\n");
             return 1;
-        }
 
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
         config_set_d(CONFIG_REFLECTION, val);
@@ -764,10 +746,7 @@ static int video_advanced_action(int tok, int val)
 
     case VIDEO_ADVANCED_VSYNC:
         if (oldVsync == val)
-        {
-            log_printf("V-Sync remains the same GL specifications!\n");
             return 1;
-        }
 
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
         config_set_d(CONFIG_VSYNC, val);
@@ -799,10 +778,7 @@ static int video_advanced_action(int tok, int val)
 
     case VIDEO_ADVANCED_TEXTURES:
         if (oldText == val)
-        {
-            log_printf("Textures remains the same GL specifications!\n");
             return 1;
-        }
 
         goto_state(&st_null);
         config_set_d(CONFIG_TEXTURES, val);
@@ -814,10 +790,7 @@ static int video_advanced_action(int tok, int val)
 
     case VIDEO_ADVANCED_MULTISAMPLE:
         if (oldSamp == val)
-        {
-            log_printf("Multisample remains the same GL specifications!\n");
             return 1;
-        }
 
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
         config_set_d(CONFIG_MULTISAMPLE, val);
@@ -958,7 +931,7 @@ static int video_advanced_gui(void)
         conf_header(id, _("Graphics"), GUI_BACK);
 
         /* This ignores display configurations and resolutions. */
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
         if ((jd = conf_state(id, _("Display"), "Super Longest Name", VIDEO_ADVANCED_DISPLAY)))
         {
             gui_set_trunc(jd, TRUNC_TAIL);
@@ -1098,8 +1071,10 @@ static int display_gui(void)
             sprintf(name, "%d: %s", i + 1, SDL_GetDisplayName(i));
 #endif
 
-            jd = gui_state(id, name, GUI_SML, DISPLAY_SELECT, i);
+            jd = gui_state(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, DISPLAY_SELECT, i);
             gui_set_hilite(jd, (i == config_get_d(CONFIG_DISPLAY)));
+            gui_set_trunc(jd, TRUNC_TAIL);
+            gui_set_label(jd, name);
         }
 
         gui_layout(id, 0, 0);
@@ -1442,7 +1417,9 @@ static int lang_gui(void)
             gui_set_hilite(default_id, !*config_get_s(CONFIG_LANGUAGE));
         }
 
-        for (i = first; i < first + step; i++)
+        for (i = (step < LANG_STEP ? first : first - 1);
+            i < (step < LANG_STEP ? first : first - 1) + step;
+            i++)
         {
             if (i < array_len(langs))
             {
@@ -1457,10 +1434,7 @@ static int lang_gui(void)
                 gui_set_hilite(lang_id, (strcmp(config_get_s(CONFIG_LANGUAGE),
                                                 desc->code) == 0));
 
-                /* Set font and rebuild texture. */
-
-                gui_set_font(lang_id, desc->font);
-                //gui_set_label(lang_id, lang_name(desc));
+                /* Set detailed locale informations. */
 
                 char lang_infotext[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1468,13 +1442,13 @@ static int lang_gui(void)
 #else
                 sprintf(lang_infotext, "%s / %s", desc->name1, lang_name(desc));
 #endif
+                /* Set font and rebuild texture. */
 
+                gui_set_font(lang_id, desc->font);
                 gui_set_label(lang_id, lang_infotext);
             }
             else
-            {
                 gui_label(id, " ", GUI_SML, 0, 0);
-            }
         }
 
         gui_layout(id, 0, 0);

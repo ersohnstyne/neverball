@@ -517,9 +517,7 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
                 if (game_client_init(demo_replay.file))
                 {
                     if (g)
-                    {
                         audio_music_fade_to(0.5f, level.song);
-                    }
                     else
                     {
                         union cmd cmd;
@@ -573,8 +571,6 @@ void demo_replay_speed(int speed)
 {
     if (SPEED_NONE <= speed && speed < SPEED_MAX)
         lockstep_scl(&update_step, SPEED_FACTORS[speed]);
-
-    audio_setspeed(SPEED_FACTORS[speed]);
 }
 
 void demo_replay_manual_speed(float speeddir)

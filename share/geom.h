@@ -25,7 +25,7 @@ void geom_step(float);
 
 void beam_draw(struct s_rend *, const GLfloat *, const GLfloat *, GLfloat, GLfloat);
 void goal_draw(struct s_rend *, const GLfloat *, GLfloat, GLfloat, GLfloat);
-void jump_draw(struct s_rend *, const GLfloat *, GLfloat, GLfloat);
+void jump_draw(struct s_rend *, const GLfloat *, GLfloat, GLfloat, GLfloat);
 void chkp_draw(struct s_rend *, const GLfloat *, GLfloat, GLfloat);
 void flag_draw(struct s_rend *, const GLfloat *);
 void mark_draw(struct s_rend *);

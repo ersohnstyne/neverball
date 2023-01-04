@@ -203,7 +203,7 @@ const char *config_get_s(int);
 int  config_cheat(void);
 #else
 /* This keys is not available for cheat */
-#define config_cheat() 0
+#define config_cheat() ((int) 0)
 #endif
 void config_set_cheat(void);
 void config_clr_cheat(void);

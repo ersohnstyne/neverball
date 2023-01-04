@@ -1,3 +1,7 @@
+# Microsoft Vidual Studio support
+*.vs
+
+# Others
 *.[od]
 *.bc
 *.sol
@@ -13,6 +17,7 @@
 
 *.bak
 *.autosave.map
+.vs
 .vscode
 
 /neverball.exe

@@ -75,9 +75,7 @@ static int score_version;
 
 static void put_score(fs_file fp, const struct score *s)
 {
-    int i;
-
-    for (i = RANK_HARD; i <= RANK_EASY; i++)
+    for (int i = RANK_HARD; i <= RANK_EASY; i++)
         fs_printf(fp, "%d %d %s\n", s->timer[i], s->coins[i], s->player[i]);
 }
 
@@ -350,7 +348,7 @@ static int set_load(struct set *s, const char *filename)
     /* Add more level sets when products bought. */
     if ((strcmp(filename, "set-easy.txt") != 0 && strcmp(filename, "set-medium.txt") != 0 && strcmp(filename, "set-hard.txt") != 0 &&
         strcmp(filename, "set-mym.txt") != 0 && strcmp(filename, "set-mym2.txt") != 0 && strcmp(filename, "set-fwp.txt") != 0 &&
-        strcmp(filename, "set-tones.txt") != 0 && strcmp(filename, "set-misc.txt") != 0) && (account_get_d(ACCOUNT_PRODUCT_LEVELS) == 0
+        strcmp(filename, "set-tones.txt") != 0 && strcmp(filename, "set-misc.txt") != 0) && (!account_get_d(ACCOUNT_PRODUCT_LEVELS)
         && !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))) { return 0; }
 #else
     if ((strcmp(filename, "set-easy.txt") != 0 && strcmp(filename, "set-medium.txt") != 0 && strcmp(filename, "set-hard.txt") != 0 &&
@@ -809,7 +807,7 @@ const struct score *set_score(int i, int s)
 
 #define SET_DEFAULT_MAX_TIME_LIMIT 359999
 static int default_set_maxtimelimit;
-static int default_set_mincoinrequered;
+static int default_set_mincoinrequired;
 
 static void set_load_levels(void)
 {
@@ -820,11 +818,36 @@ static void set_load_levels(void)
         "XI", "XII", "XIII", "XIV", "XV", // 11 - 15
         "XVI", "XVII", "XVIII", "XIX", "XX", // 16 - 20
         "XXI", "XXII", "XXIII", "XXIV", "XXV", // 21 - 25
+
         "XXVI", "XXVII", "XXVIII", "XXIX", "XXX", // 26 - 30
         "XXXI", "XXXII", "XXXIII", "XXXIV", "XXXV", // 31 - 35
         "XXXVI", "XXXVII", "XXXVIII", "XIL", "XL", // 36 - 40
         "XLI", "XLII", "XLIII", "XLIV", "XLV", // 41 - 45
         "XLVI", "XLVII", "XLVIII", "IL", "L", // 46 - 50
+
+        "LI", "LII", "LIII", "LIV", "LV", // 51 - 55
+        "LVI", "LVII", "LVIII", "LIX", "LX", // 56 - 60
+        "LXI", "LXII", "LXIII", "LXIV", "LXV", // 61 - 65
+        "LXVI", "LXVII", "LXVIII", "LXIX", "LXX", // 66 - 70
+        "LXXI", "LXXII", "LXXIII", "LXXIV", "LXXV", // 71 - 75
+
+        "LXXVI", "LXXVII", "LXXVIII", "LXXIX", "LXXX", // 76 - 80
+        "LXXXI", "LXXXII", "LXXXIII", "LXXXIV", "LXXXV", // 81 - 85
+        "LXXXVI", "LXXXVII", "LXXXVIII", "LXXXIX", "XC", // 86 - 90
+        "XCI", "XCII", "XCIII", "XCIV", "XCV", // 91 - 95
+        "XCVI", "XCVII", "XCVIII", "XCIX", "C", // 96 - 100
+
+        "CI", "CII", "CIII", "CIV", "CV", // 101 - 105
+        "CVI", "CVII", "CVIII", "CIX", "CX", // 106 - 110
+        "CXI", "CXII", "CXIII", "CXIV", "CXV", // 111 - 115
+        "CXVI", "CXVII", "CXVIII", "CXIX", "CXX", // 116 - 120
+        "CXXI", "CXXII", "CXXIII", "CXXIV", "CXXV", // 121 - 125
+
+        "CXXVI", "CXXVII", "CXXVIII", "CXXIX", "CXXX", // 126 - 130
+        "CXXXI", "CXXXII", "CXXXIII", "CXXXIV", "CXXXV", // 131 - 135
+        "CXXXVI", "CXXXVII", "CXXXVIII", "CXIL", "CXL", // 136 - 140
+        "CXLI", "CXLII", "CXLIII", "CXLIV", "CXLV", // 141 - 145
+        "CXLVI", "CXLVII", "CXLVIII", "CIL", "CL", // 146 - 150
     };
 
     struct set *s = SET_GET(sets, curr);
@@ -832,7 +855,7 @@ static void set_load_levels(void)
     int i;
 
     default_set_maxtimelimit = 0;
-    default_set_mincoinrequered = 0;
+    default_set_mincoinrequired = 0;
 
     for (i = 0; i < s->count; i++)
     {
@@ -849,19 +872,9 @@ static void set_load_levels(void)
         else
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            if (regular + 1 > 100)
-                sprintf_s(l->name, dstSize, "%03d", regular);
-            else if (regular + 1 > 10)
-                sprintf_s(l->name, dstSize, "%02d", regular);
-            else
-                sprintf_s(l->name, dstSize, "%01d", regular);
+            sprintf_s(l->name, dstSize, "%d", regular);
 #else
-            if (regular + 1 > 100)
-                sprintf(l->name, "%03d", regular);
-            else if (regular + 1 > 10)
-                sprintf(l->name, "%02d", regular);
-            else
-                sprintf(l->name, "%01d", regular);
+            sprintf(l->name, "%d", regular);
 #endif
 
             regular++;
@@ -873,16 +886,16 @@ static void set_load_levels(void)
         {
             l->is_completed = 0;
 
-            if (l->time > 0)
+            if (l->time > 0 && !l->is_bonus)
                 default_set_maxtimelimit += l->time;
-            else if (default_set_maxtimelimit < SET_DEFAULT_MAX_TIME_LIMIT)
+            else if (default_set_maxtimelimit < SET_DEFAULT_MAX_TIME_LIMIT && !l->is_bonus)
             {
                 log_printf("No time limit on this level, so time limit for level set has been lifted.\n");
                 default_set_maxtimelimit = SET_DEFAULT_MAX_TIME_LIMIT;
             }
 
-            if (l->goal)
-                default_set_mincoinrequered += l->goal;
+            if (l->goal && !l->is_bonus)
+                default_set_mincoinrequired += l->goal;
         }
 
         if (i > 0)
@@ -893,12 +906,12 @@ static void set_load_levels(void)
     {
         /* Most coins and Best Time built-in limitations. */
 
-        if (s->coin_score.coins[r] < default_set_mincoinrequered)
-            s->coin_score.coins[r] = default_set_mincoinrequered;
+        if (s->coin_score.coins[r] < default_set_mincoinrequired)
+            s->coin_score.coins[r] = default_set_mincoinrequired;
         if (s->coin_score.timer[r] > default_set_maxtimelimit)
             s->coin_score.timer[r] = default_set_maxtimelimit;
-        if (s->time_score.coins[r] < default_set_mincoinrequered)
-            s->time_score.coins[r] = default_set_mincoinrequered;
+        if (s->time_score.coins[r] < default_set_mincoinrequired)
+            s->time_score.coins[r] = default_set_mincoinrequired;
         if (s->time_score.timer[r] > default_set_maxtimelimit)
             s->time_score.timer[r] = default_set_maxtimelimit;
     }
@@ -1001,7 +1014,7 @@ void level_snap(int i, const char *path)
         video_snap(filename);
         video_swap();
 
-        if (viewport_wireframe == 1)
+        if (viewport_wireframe)
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
 

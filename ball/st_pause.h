@@ -4,6 +4,7 @@
 #include "state.h"
 
 extern struct state st_pause;
-extern struct state st_pause_quit;
+
+int goto_pause(struct state *);
 
 #endif

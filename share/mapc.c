@@ -35,8 +35,7 @@
 #include <SDL_net.h>
 #endif
 
-// Uncomment, if checkpoints is implemented
-//#include "solid_chkp.h"
+#include "solid_chkp.h"
 #include "solid_base.h"
 
 #include "vec3.h"
@@ -975,6 +974,7 @@ static void make_plane(int   pi, float x0, float y0, float      z0,
 static int map_token(fs_file fin, int pi, char key[MAXSTR], char val[MAXSTR])
 {
     int doit = 1;
+    char stderr_buf[MAXSTR];
     char buf[MAXSTR];
 
     if (fs_gets(buf, MAXSTR, fin))
@@ -994,7 +994,8 @@ static int map_token(fs_file fin, int pi, char key[MAXSTR], char val[MAXSTR])
         {
             if (bracket_stack > 10)
             {
-                fprintf(stderr, "Stack overflow!\n\t%s / Line: %d\n", buf, linenum);
+                sprintf(stderr_buf, "Stack overflow!\n\t%s / Line: %d\n", buf, linenum);
+                MAPC_LOG_ERROR(stderr_buf);
                 exit(1);
             }
 
@@ -1008,7 +1009,8 @@ static int map_token(fs_file fin, int pi, char key[MAXSTR], char val[MAXSTR])
         {
             if (bracket_stack - 1 < 0)
             {
-                fprintf(stderr, "Expected {\n\t%s / Line: %d\n", buf, linenum);
+                sprintf(stderr_buf, "Expected: {\n\t%s / Line: %d\n", buf, linenum);
+                MAPC_LOG_ERROR(stderr_buf);
                 exit(1);
             }
             if (bracket_linenum[bracket_stack - 1] != 0)
@@ -1022,22 +1024,6 @@ static int map_token(fs_file fin, int pi, char key[MAXSTR], char val[MAXSTR])
 
         if (doit == 1 && buf[0] == '\"')
         {
-            /*int length = strlen(buf);
-
-            for (int i = 0; i < length; i++)
-            {
-                if (buf[i] = '\"')
-                {
-                    //if (dquote_stack == 0) dquote_stack = 1; else dquote_stack = 0;
-                }
-            }
-
-            if (dquote_stack == 1)
-            {
-                fprintf(stderr, "Unclosed \"\n");
-                fprintf(stderr, "\t%s / Line: %d; Column: %d\n", buf, linenum, length);
-                exit(1);
-            }*/
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
             strcpy_s(key, strlen(key), strtok(buf,  "\""));
             (void)                     strtok(NULL, "\"");
@@ -1139,43 +1125,20 @@ static int read_dict_entries = 0;
 #if LEGACY_MODE
 // This variables uses legacy mode
 #define LEGACY_Z_OFFSET 1
-#define FAST_LEGACY_MODE
-
-static int use_old_specifications;
-static int keep_legacy;
 
 const char* switch_material = "mtrl/info-camp-switch-specifications";
 static char specification_type[MAXSTR];
 
 static float specification_radius = 0.0f;
-static int found_complex_start = 0;
-#endif
-
-#if LEGACY_MODE
-#define DATELEN sizeof("YYYY.MM.DDTHH:MM:SS")
-
 
 static int request_legacy(char k[][MAXSTR],
                           char v[][MAXSTR], int c)
 {
-#if !defined(FAST_LEGACY_MODE)
-    char leg_datestr[DATELEN];
-    time_t legacy_date = time(NULL);
-    
-    struct tm legacy_tm;
-
-    legacy_tm.tm_year -= 1900;
-    legacy_tm.tm_mon -= 1;
-    legacy_tm.tm_isdst = -1;
-#endif
-
     int leg;
     for (leg = 0; leg < c; leg++)
     {
         if (strcmp(k[leg], "radius") == 0)
-        {
             sscanf(v[leg], "%f", &specification_radius);
-        }
     }
     for (leg = 0; leg < c; leg++)
     {
@@ -1183,72 +1146,16 @@ static int request_legacy(char k[][MAXSTR],
         {
             if (strcmp(specification_type, "ball") == 0)
             {
-                if ((strcmp(v[leg], "vehicle") == 0 || strcmp(v[leg], "electricity") == 0 || strcmp(v[leg], "platform") == 0) || specification_radius < 0.25f) {
-                    found_complex_start = 1;
-                    keep_legacy = 0;
-                    use_old_specifications = 1;
+                if ((strcmp(v[leg], "vehicle") == 0
+                    || strcmp(v[leg], "electricity") == 0
+                    || strcmp(v[leg], "platform") == 0)
+                    || specification_radius < 0.25f)
                     return 0;
-                }
             }
         }
     }
 
-#if !defined(FAST_LEGACY_MODE)
-    if (legacy_tm.tm_year <= 2020)
-    {
-        if ((legacy_tm.tm_mon + 1) <= 6)
-        {
-            static char buf[MAXSTR];
-            char str[2] = "-1";
-            int asked = 0;
-
-            SAFECPY(buf, "Entities on Neverball are changing. From 20 June 2020,\n");
-            SAFECAT(buf, "Simple start position will no longer allowed, and Neverball\n");
-            SAFECAT(buf, "dynamically add electricity like airport to entities.\n\n");
-            MAPC_LOG_WARNING(buf);
-
-            if (keep_legacy) return 1;
-
-            if (use_old_specifications) return 0;
-
-            if ((legacy_tm.tm_mday) <= 19)
-            {
-                /* Request to use old specifications. */
-
-                while (asked == 0)
-                {
-                    SAFECPY(buf, "Let us know when your start position meets the new specification.\n");
-                    SAFECAT(buf, "If you are not ready, you can keep the old specification for now.\n");
-                    SAFECAT(buf, "We'll move up your ball on 20 June 2020 (+1 Z-Units).\n\n");
-                    MAPC_LOG_WARNING(buf);
-
-                    printf("(%d): Use existing start position. We'll move up your ball on 20 June 2020 (+1 Z-Units).\n(%d): Use the old specification for now.\n> ", 1, 0);
-                    scanf("%s", str);
-                    if (isdigit(str[0]))
-                    {
-                        int accepted = atoi(str);
-                        if (accepted == 0 || accepted == 1)
-                        {
-                            asked = 1;
-                            use_old_specifications = accepted;
-
-                            keep_legacy = 1;
-                            return !use_old_specifications;
-                        }
-                    }
-                }
-            }
-            else
-                return 1;
-        }
-        else if ((legacy_tm.tm_mon + 1) > 6)
-            return 1;
-    }
-    else
-        return 1;
-#else
     return 1;
-#endif
 }
 #endif
 
@@ -1758,14 +1665,10 @@ static void make_ball(struct s_base *fp,
     for (i = 0; i < c; i++)
     {
         if (strcmp(k[i], "radius") == 0)
-        {
             sscanf(v[i], "%f", &up->r);
-        }
 #if defined(START_POS_ANGULAR_BETA)
         if (strcmp(k[i], "angle") == 0)
-        {
             sscanf(v[i], "%f", &up->a);
-        }
 #endif
         if (strcmp(k[i], "origin") == 0)
         {
@@ -1775,18 +1678,17 @@ static void make_ball(struct s_base *fp,
 
 #if LEGACY_MODE
             up->p[0] = +(x)      / SCALE;
-
-            if (!use_old_specifications || keep_legacy)
-                up->p[1] = +(z - (24 - LEGACY_Z_OFFSET)) / SCALE;
-            else
-                up->p[1] = +(z - 24) / SCALE;
-
+            up->p[1] = +(z - (24 - LEGACY_Z_OFFSET)) / SCALE;
             up->p[2] = -(y)      / SCALE;
             int leg;
             for (leg = 0; leg < c; leg++)
             {
-                if (strcmp(k[leg], "type") == 0) {
-                    if (strcmp(v[leg], "vehicle") == 0 || strcmp(v[leg], "electricity") == 0 || strcmp(v[leg], "platform") == 0 || up->r != 0.25f) {
+                if (strcmp(k[leg], "type") == 0)
+                {
+                    if ((strcmp(v[leg], "vehicle") == 0
+                        || strcmp(v[leg], "electricity") == 0
+                        || strcmp(v[leg], "platform") == 0)
+                        || up->r != .25f) {
                         up->p[1] = +(z - 24) / SCALE;
                     }
                 }
@@ -1849,9 +1751,7 @@ static void make_legacy(struct s_base* fp,
     for (leg = 0; leg < c; leg++)
     {
         if (strcmp(k[leg], "radius") == 0)
-        {
             sscanf(v[leg], "%f", &specification_radius);
-        }
     }
     for (leg = 0; leg < c; leg++)
     {
@@ -1859,7 +1759,11 @@ static void make_legacy(struct s_base* fp,
         {
             if (strcmp(specification_type, "ball") == 0)
             {
-                if ((strcmp(v[leg], "vehicle") == 0 || strcmp(v[leg], "electricity") == 0 || strcmp(v[leg], "platform") == 0) || specification_radius < 0.25f) return;
+                if ((strcmp(v[leg], "vehicle") == 0
+                    || strcmp(v[leg], "electricity") == 0
+                    || strcmp(v[leg], "platform") == 0)
+                    || specification_radius != .25f)
+                    return;
             }
         }
     }
@@ -1913,10 +1817,9 @@ static void make_legacy(struct s_base* fp,
     p[1] = +z / SCALE;
     p[2] = -y / SCALE;
 
-    if (strcmp(specification_type, "ball") == 0 || strcmp(specification_type, "goal") == 0)
-    {
+    if (strcmp(specification_type, "ball") == 0
+        || strcmp(specification_type, "goal") == 0)
         p[1] = +(z - 24) / SCALE;
-    }
 
     for (i = v0; i < fp->vc; i++)
         v_add(fp->vv[i].p, fp->vv[i].p, p);
@@ -1939,15 +1842,11 @@ static void read_ent(struct s_base *fp, fs_file fin)
     {
         if (t == T_KEY)
         {
-            if (strcmp(k[c], "classname") == 0)
+            if (!strcmp(k[c], "classname"))
                 i = c;
 
-            if (!strcmp(k[c], "author")) {
-                if (campaign_output && strlen(v[c]) > 2)
-                {
-                    campaign_use_author_encrypt = 1;
-                }
-            }
+            if (!strcmp(k[c], "author") && campaign_output && strlen(v[c]) > 2)
+                campaign_use_author_encrypt = 1;
 
             c++;
         }
@@ -1965,9 +1864,8 @@ static void read_ent(struct s_base *fp, fs_file fin)
 #if LEGACY_MODE
         memset(&specification_type, 0, sizeof(specification_type));
         SAFECPY(specification_type, "ball");
-        if (!use_old_specifications || !keep_legacy) request_legacy(k, v, c);
-
-        if ((!use_old_specifications || keep_legacy) && !found_complex_start)
+        
+        if (request_legacy(k, v, c))
         {
             read_dict_entries = 1;
             make_legacy(fp, k, v, c, l0, "obj/player-start-specification.obj", "mtrl/player-start-specification");
@@ -1975,7 +1873,7 @@ static void read_ent(struct s_base *fp, fs_file fin)
 #endif
         make_ball(fp, k, v, c, l0);
     }
-#if defined(MAPC_INCLUDES_CHKP)
+#ifdef MAPC_INCLUDES_CHKP
     if (!strcmp(v[i], "info_player_checkpoint")) {
         if (campaign_output || only_complex_sol) campaign_cost += 66;
         make_chkp(fp, k, v, c, l0);
@@ -3045,6 +2943,13 @@ static int node_node(struct s_base *fp, int l0, int lc, float bsphere[][4])
 
         for (si = 0; si < fp->sc; si++)
         {
+            /*if (si > 1500)
+            {
+                char stdout_buf[MAXSTR];
+                sprintf(stdout_buf, "Finding sides...: %d/%d\n", si + 1, fp->sc);
+                MAPC_LOG_MESSAGE(stdout_buf);
+            }*/
+
             int o = 0;
             int d = 0;
             int k = 0;
@@ -3072,10 +2977,12 @@ static int node_node(struct s_base *fp, int l0, int lc, float bsphere[][4])
 
         for (li = 0; li < lc; li++)
         {
-#if _DEBUG
             if (li > 500)
-                fprintf(stdout, "Flag lumps...: %d/%d\n", li, lc - 1);
-#endif
+            {
+                char stdout_buf[MAXSTR];
+                sprintf(stdout_buf, "Flag lumps...: %d/%d\n", li + 1, lc);
+                MAPC_LOG_MESSAGE(stdout_buf);
+            }
 
             if (debug_output)
                 fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x20;
@@ -3105,10 +3012,12 @@ static int node_node(struct s_base *fp, int l0, int lc, float bsphere[][4])
 
         for (li = 1; li < lc; li++)
         {
-#if _DEBUG
             if (li > 500)
-                fprintf(stdout, "Sorting lumps...: %d/%d\n", li, lc - 1);
-#endif
+            {
+                char stdout_buf[MAXSTR];
+                sprintf(stdout_buf, "Sorting lumps...: %d/%d\n", li, lc - 1);
+                MAPC_LOG_MESSAGE(stdout_buf);
+            }
 
             for (lj = 0; lj < li; lj++)
                 if (fp->lv[l0 + li].fl < fp->lv[l0 + lj].fl)
@@ -3612,9 +3521,6 @@ int main(int argc, char *argv[])
 
     if (argc > 2)
     {
-#if LEGACY_MODE
-        use_old_specifications = 0; keep_legacy = 1;
-#endif
         input_file = argv[1];
 
         for (int argi = 3; argi < argc; ++argi)
@@ -3625,10 +3531,6 @@ int main(int argc, char *argv[])
 #if ENABLE_RADIANT_CONSOLE
             if (strcmp(argv[argi], "--bcast")       == 0) bcast_init();
 #endif
-#if LEGACY_MODE
-            //if (strcmp(argv[argi], "--nospec")      == 0) { use_old_specifications = 1; keep_legacy = 0; }
-            //if (strcmp(argv[argi], "--keep")        == 0) { use_old_specifications = 0; keep_legacy = 1; }
-#endif
             if (strcmp(argv[argi], "--campaign")    == 0) campaign_output = 1;
 
             if (strcmp(argv[argi], "--data")        == 0)
@@ -3636,12 +3538,6 @@ int main(int argc, char *argv[])
                 if (++argi < argc)
                     fs_add_path(argv[argi]);
             }
-        }
-
-        if ((!campaign_output && strlen(input_file) <= 4) || (campaign_output && strlen(input_file) <= 5))
-        {
-            fprintf(stderr, "No map file name specified!\n");
-            return 1;
         }
 
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
@@ -3652,75 +3548,49 @@ int main(int argc, char *argv[])
         strncpy(dst, argv[1], MAXSTR - 1);
 #endif
 
-        if (strcmp(dst + strlen(dst) - 4, ".map") == 0 || strcmp(dst + strlen(dst) - 5, ".cmap") == 0)
+        if ((!campaign_output && strlen(input_file) <= 4)
+            || (campaign_output && strlen(input_file) <= 5))
         {
-            if (campaign_output)
+            fprintf(stderr, "No map file name specified!\n");
+            return 1;
+        }
+
+        if (campaign_output)
+        {
+            if (strcmp(dst + strlen(dst) - 5, ".cmap") == 0)
             {
-                if (strcmp(dst + strlen(dst) - 4, ".map") == 0)
-                {
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
-                    strcpy_s(dst + strlen(dst) - 4, MAXSTR, ".csol");
+                strcpy_s(dst + strlen(dst) - 5, MAXSTR, ".csol");
 #else
-                    strcpy(dst + strlen(dst) - 4, ".csol");
+                strcpy(dst + strlen(dst) - 5, ".csol");
 #endif
-                }
-                else if (strcmp(dst + strlen(dst) - 5, ".cmap") == 0)
-                {
+            }
+            else if (strcmp(dst + strlen(dst) - 4, ".map") == 0)
+            {
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
-                    strcpy_s(dst + strlen(dst) - 5, MAXSTR, ".csol");
+                strcpy_s(dst + strlen(dst) - 4, MAXSTR, ".csol");
 #else
-                    strcpy(dst + strlen(dst) - 5, ".csol");
+                strcpy(dst + strlen(dst) - 4, ".csol");
 #endif
-                }
-                else
-                {
-                    fprintf(stderr, "Unable to create CSOL!: Only MAP or CMAP files are allowed!\n");
-                    return 1;
-                }
             }
             else
             {
-                if (strcmp(dst + strlen(dst) - 4, ".map") == 0)
-                {
-#if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
-                    strcpy_s(dst + strlen(dst) - 4, MAXSTR, ".sol");
-#else
-                    strcpy(dst + strlen(dst) - 4, ".sol");
-#endif
-                }
-                /*else if (strcmp(dst + strlen(dst) - 5, ".cmap") == 0)
-                {
-#if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
-                    strcpy_s(dst + strlen(dst) - 5, dstSize, ".sol");
-#else
-                    strcpy(dst + strlen(dst) - 5, ".sol");
-#endif
-                }*/
-                else
-                {
-                    fprintf(stderr, "Unable to create SOL!: Only MAP files are allowed!\n");
-                    return 1;
-                }
+                fprintf(stderr, "Unable to create CSOL!: Only CMAP or MAP files are allowed!\n");
+                return 1;
             }
+        }
+        else if (strcmp(dst + strlen(dst) - 4, ".map") == 0)
+        {
+#if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
+            strcpy_s(dst + strlen(dst) - 4, MAXSTR, ".sol");
+#else
+            strcpy(dst + strlen(dst) - 4, ".sol");
+#endif
         }
         else
         {
-            if (campaign_output)
-            {
-#if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
-                strcat_s(dst, MAXSTR, ".csol");
-#else
-                strcat(dst, ".csol");
-#endif
-            }
-            else
-            {
-#if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
-                strcat_s(dst, MAXSTR, ".sol");
-#else
-                strcat(dst, ".sol");
-#endif
-            }
+            fprintf(stderr, "Unable to create SOL!: Only MAP files are allowed!\n");
+            return 1;
         }
 
         fs_add_path     (dir_name(src));
@@ -3756,6 +3626,24 @@ int main(int argc, char *argv[])
                 init_file(&f);
                 read_map(&f, fin);
 
+                /* This uses Microsoft mode for Linux (as this should) */
+
+                char stderr_buf[MAXSTR];
+
+                if (bracket_stack > 0)
+                {
+                    for (int i = 0; i < 256; i++)
+                    {
+                        int src_linenum = bracket_linenum[i];
+                        if (src_linenum > 0)
+                        {
+                            sprintf(stderr_buf, "Expected: }\n\t{ / Line: %d\n", linenum);
+                            MAPC_LOG_ERROR(stderr_buf);
+                            return 1;
+                        }
+                    }
+                }
+
                 resolve();
                 targets(&f);
 
@@ -3766,57 +3654,34 @@ int main(int argc, char *argv[])
                 sort_file(&f);
                 node_file(&f);
 
-                // This uses Microsoft mode for Linux (as this should)
-
-//#if defined(__linux__)
-                if (bracket_stack > 0)
-                {
-                    for (int i = 0; i < 256; i++)
-                    {
-                        int src_linenum = bracket_linenum[i];
-                        if (src_linenum > 0)
-                        {
-                            fprintf(stderr, "Expected }\n\t{ / Line: %d\n", src_linenum);
-                            return 1;
-                        }
-                    }
-                }
-                /*if (dquote_stack == 1)
-                {
-                    fprintf(stderr, "Unclosed \"\n");
-                    return 1;
-                }*/
-//#endif
-
                 if (campaign_output)
                 {
-                    if (check_profile_balls(dst))
+                    if (!check_campaign_level(src))
                     {
-                        fprintf(stderr, "Unable to create balls for CSOL!: Only SOL files are allowed!\n");
+                        MAPC_LOG_ERROR("Unable to create campaign level for CSOL!: Only CMAP files are allowed!\n");
                         return 1;
                     }
 
-                    if (!check_campaign_level(src))
+                    if (check_profile_balls(dst))
                     {
-                        fprintf(stderr, "Unable to create campaign level for CSOL!: Only CMAP files are allowed!\n");
+                        MAPC_LOG_ERROR("Unable to create balls for CSOL!: Only levels are allowed!\n");
                         return 1;
                     }
 
                     if (!campaign_use_author_encrypt)
                     {
-                        fprintf(stderr, "Unable to create campaign level for CSOL!: You need to verify the signed level map!\nWithout a signature can therefore be dangerous.\n");
+                        MAPC_LOG_ERROR("Unable to create campaign level for CSOL!: You need to verify the signed level map!\nWithout a signature can therefore be dangerous.\n");
                         return 1;
                     }
 
                     if (!campaign_check_budget(&f))
                     {
-                        fprintf(stderr, "Unable to create campaign for CSOL!: Overbudget!\n\tCampaign lump cost: %d\n\tCampaign lump budget: %d\n", campaign_cost, campaign_budget);
+                        sprintf(stderr_buf, "Unable to create campaign for CSOL!: Overbudget!\n\tCampaign lump cost: %d\n\tCampaign lump budget: %d\n", campaign_cost, campaign_budget);
+                        MAPC_LOG_ERROR(stderr_buf);
                         return 1;
                     }
                     else if (campaign_budget != 0)
-                    {
                         fprintf(stdout, "Succesfully completed transaction for CSOL!\n\tLump cost: %d\n\tLump budget: %d\n\n", campaign_cost, campaign_budget);
-                    }
                 }
 #if ENABLE_COMPLEX_SOL_ONLY
                 else
@@ -3825,13 +3690,12 @@ int main(int argc, char *argv[])
                     {
                         if (!campaign_check_budget(&f))
                         {
-                            fprintf(stderr, "Unable to create for SOL!: Overbudget!\n\tLump cost: %d\n\tLump budget: %d\n", campaign_cost, campaign_budget);
+                            sprintf(stderr_buf, "Unable to create for SOL!: Overbudget!\n\tLump cost: %d\n\tLump budget: %d\n", campaign_cost, campaign_budget);
+                            MAPC_LOG_ERROR(stderr_buf);
                             return 1;
                         }
                         else if (campaign_budget != 0)
-                        {
                             fprintf(stdout, "Succesfully completed transaction for SOL!\n\tLump cost: %d\n\tLump budget: %d\n", campaign_cost, campaign_budget);
-                        }
                     }
                 }
 #endif
@@ -3846,7 +3710,7 @@ int main(int argc, char *argv[])
                     > 60.0f)
 #endif
                 {
-                    fprintf(stderr, "Compile timed out after 60 seconds!\n");
+                    MAPC_LOG_ERROR("Compile timed out after 60 seconds!\n");
                     return 1;
                 }
 
@@ -3875,7 +3739,7 @@ int main(int argc, char *argv[])
 #endif
 
     }
-    else fprintf(stderr, "Usage: %s <map> <data> [--debug] [--csv] [--campaign]\n", argv[0]);
+    else fprintf(stderr, "Usage: %s <map> <data> [--debug] [--csv] [--campaign] [--skip_verify]\n", argv[0]);
 
     return 0;
 }

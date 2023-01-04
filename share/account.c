@@ -94,7 +94,7 @@ static struct
 } account_s[] =
 {
     { &ACCOUNT_PLAYER, "player", "" },
-    { &ACCOUNT_BALL_FILE, "ball_file", "ball/legacy-ball/legacy-ball" }
+    { &ACCOUNT_BALL_FILE, "ball_file", "ball/basic-ball/basic-ball" }
 };
 
 static int dirty = 0;
@@ -182,8 +182,6 @@ void account_quit(void)
 
 int  account_exists(void)
 {
-    if (server_policy_get_d(SERVER_POLICY_EDITION) < 0) return 1;
-
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     char paths[MAXSTR]; sprintf_s(paths, dstSize, "Accounts/account-%s.dat", config_get_s(CONFIG_PLAYER));
 #else
@@ -215,7 +213,6 @@ void account_load(void)
 
     assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
-    if (server_policy_get_d(SERVER_POLICY_EDITION) < 0) return;
 
     if (strlen(config_get_s(CONFIG_PLAYER)) < 1)
     {
@@ -227,7 +224,7 @@ void account_load(void)
     {
         if (config_get_s(CONFIG_PLAYER)[i] == '\\' || config_get_s(CONFIG_PLAYER)[i] == '/' || config_get_s(CONFIG_PLAYER)[i] == ':' || config_get_s(CONFIG_PLAYER)[i] == '*' || config_get_s(CONFIG_PLAYER)[i] == '?' || config_get_s(CONFIG_PLAYER)[i] == '"' || config_get_s(CONFIG_PLAYER)[i] == '<' || config_get_s(CONFIG_PLAYER)[i] == '>' || config_get_s(CONFIG_PLAYER)[i] == '|')
         {
-            log_errorf("Cannot load account! Can't accept other charsets!\n", config_get_s(CONFIG_PLAYER)[i]);
+            log_errorf("Cannot load account! Can't accept other charsets!\n");
             return;
         }
     }
@@ -315,7 +312,6 @@ void account_save(void)
 
     assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
-    if (server_policy_get_d(SERVER_POLICY_EDITION) < 0) return;
 
     if (strlen(config_get_s(CONFIG_PLAYER)) < 1)
     {

@@ -1240,7 +1240,7 @@ void init_xbox_replay_eof(void)
 {
     if ((xbox_control_replay_eof_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_replay_eof_id, _("Keep"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_replay_eof_id, _("Quit"), GUI_SML, gui_wht, gui_wht);
 
         create_b_button(xbox_control_replay_eof_id, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
 
@@ -1372,17 +1372,16 @@ void init_xbox_putt_stroke()
 {
     if ((xbox_control_putt_stroke_id = gui_hstack(0)))
     {
+        gui_label(xbox_control_putt_stroke_id, _("Change club"), GUI_SML, gui_wht, gui_wht);
+
+        create_lt_button(xbox_control_putt_stroke_id, config_get_d(CONFIG_JOYSTICK_BUTTON_L2));
+        create_lb_button(xbox_control_putt_stroke_id, config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
+
         gui_label(xbox_control_putt_stroke_id, _("Shot"), GUI_SML, gui_wht, gui_wht);
 
         create_a_button(xbox_control_putt_stroke_id, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
 
         create_controller_spacer(xbox_control_putt_stroke_id);
-
-        /*gui_label(xbox_control_putt_stroke_id, _("Aim"), GUI_SML, gui_wht, gui_wht);
-
-        create_ls_button(xbox_control_putt_stroke_id, config_get_d(CONFIG_JOYSTICK_AXIS_X0));
-
-        create_controller_spacer(xbox_control_putt_stroke_id);*/
 
         gui_label(xbox_control_putt_stroke_id, _("Fine aim"), GUI_SML, gui_wht, gui_wht);
 

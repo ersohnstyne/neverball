@@ -12,8 +12,6 @@
  * General Public License for more details.
  */
 
-#include <assert.h>
-
 #if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
 #include "campaign.h" // New: Campaign levels
@@ -71,6 +69,8 @@ static int score_rank = RANK_LAST;
 static int times_rank = RANK_LAST;
 
 /* Level stats. */
+
+static int lvl_warn_timer;
 
 static int status = GAME_NONE;
 
@@ -154,7 +154,8 @@ void progress_init(int m)
 #ifdef CONFIG_INCLUDES_ACCOUNT
     /* HACK: Those purchased balls are associated from the shop. */
 
-    if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0)
+    if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0
+        && (mode == MODE_CHALLENGE || mode == MODE_HARDCORE || mode == MODE_BOOST_RUSH))
     {
         curr.balls -= account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);
 
@@ -194,7 +195,16 @@ static int init_level(void)
 #else
     if (curr_mode() != MODE_NONE && config_get_d(CONFIG_ACCOUNT_SAVE) > 0)
 #endif
-        demo_play_init(USER_REPLAY_FILE, level, mode, curr.score, curr.balls, curr.times, curr.speedpercent);
+        demo_play_init(USER_REPLAY_FILE,
+                      level, mode,
+                      curr.score,
+#ifdef CONFIG_INCLUDES_ACCOUNT
+                      curr.balls + account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES),
+#else
+                      curr.balls,
+#endif
+                      curr.times,
+                      curr.speedpercent);
 
     /*
      * Init both client and server, then process the first batch
@@ -231,6 +241,8 @@ int  progress_play(struct level *l)
 #endif
         ))
     {
+        lvl_warn_timer = 0;
+
         level = l;
 
         next   = NULL;
@@ -280,7 +292,6 @@ int  progress_play(struct level *l)
             goal = 0;
             goal_e = 1;
         }
-        else assert(0 && "Unknown level groups!");
 #else
         goal_e = (((mode != MODE_CHALLENGE && mode != MODE_BOOST_RUSH)
             && level_completed(level) && config_get_d(CONFIG_LOCK_GOALS) == 0) || goal == 0)
@@ -305,6 +316,20 @@ void progress_buy_balls(int amount)
 
 void progress_step(void)
 {
+    if ((level_time(level) != 0 && !mediation_enabled()))
+    {
+        if (curr_clock() >= 10 && lvl_warn_timer)
+        {
+            lvl_warn_timer = 0;
+            audio_music_fade_to(1.0f, level_song(level));
+        }
+        else if (!lvl_warn_timer)
+        {
+            lvl_warn_timer = 1;
+            audio_music_fade_to(0.1f, "bgm/time-warning.ogg");
+        }
+    }
+
     if (goal > 0)
     {
         goal = (goal_i - curr_coins());
@@ -368,10 +393,19 @@ void progress_stat(int s)
         }
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        int career_unlocked =
+            server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER)
+            && (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER)
+                || campaign_career_unlocked());
+
         if (!campaign_used())
             dirty = level_score_update(level,
                 timer,
+#ifdef ENABLE_POWERUP
                 coins / get_coin_multiply(),
+#else
+                coins,
+#endif
                 &time_rank,
                 goal == 0 ? &goal_rank : NULL,
                 &coin_rank);
@@ -380,20 +414,28 @@ void progress_stat(int s)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
                  !config_cheat() &&
 #endif
-                 (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 55)))
+                     (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25)))
         {
             dirty = level_score_update(level,
                 timer,
+#ifdef ENABLE_POWERUP
                 coins / get_coin_multiply(),
+#else
+                coins,
+#endif
                 &time_rank,
-                (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER) || campaign_career_unlocked()) && goal == 0 ? &goal_rank : NULL,
-                (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER) || campaign_career_unlocked()) ? &coin_rank : 0);
+                career_unlocked && goal == 0 ? &goal_rank : NULL,
+                career_unlocked ? &coin_rank : 0);
         }
 #else
         dirty = level_score_update(
             level,
             timer,
+#ifdef ENABLE_POWERUP
             coins / get_coin_multiply(),
+#else
+            coins,
+#endif
             &time_rank,
             goal == 0 ? &goal_rank : NULL,
             &coin_rank);
@@ -456,19 +498,10 @@ void progress_stat(int s)
 #ifdef CONFIG_INCLUDES_ACCOUNT
             /* Unlock the next set. */
 
-            if (account_get_d(ACCOUNT_SET_UNLOCKS) == curr_set() + 1 && server_policy_get_d(SERVER_POLICY_EDITION) < 1)
+            if (account_get_d(ACCOUNT_SET_UNLOCKS) == curr_set() + 1 && server_policy_get_d(SERVER_POLICY_EDITION) == 0)
                 account_set_d(ACCOUNT_SET_UNLOCKS, curr_set() + 2);
 
             account_save();
-#endif
-
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (campaign_used() && mode == MODE_HARDCORE)
-            {
-                campaign_score_update(curr.times, curr.score,
-                    campaign_career_unlocked() ? &coin_rank : 0,
-                    &time_rank);
-            }
 #endif
         }
 
@@ -479,35 +512,25 @@ void progress_stat(int s)
         if (done && (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH))
 #endif
         {
-            account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_score() + account_get_d(ACCOUNT_DATA_WALLET_COINS));
+            if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+            {
+                account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_score() + account_get_d(ACCOUNT_DATA_WALLET_COINS));
 
-            /* This gems won't earn in hardcore mode */
+                /* This gems won't earn in hardcore mode */
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (mode != MODE_HARDCORE)
+                if (mode != MODE_HARDCORE)
 #endif
-            {
-                account_set_d(ACCOUNT_DATA_WALLET_GEMS,
-                    ((account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) - curr_balls()) * 5)
-                    + account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+                {
+                    account_set_d(ACCOUNT_DATA_WALLET_GEMS,
+                        (curr.balls * 5)
+                        + account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+                }
+
                 account_save();
             }
         }
 #endif
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (!campaign_used() && done && mode != MODE_NONE)
-#else
-        if (done && mode != MODE_NONE)
-#endif
-        {
-            if (set_score_update(curr.times, curr.score, &score_rank, &times_rank))
-                set_store_hs();
-
-#if NB_STEAM_API==1
-            score_steam_hs_save(curr.score, curr.times);
-#endif
-        }
-
         break;
 
     case GAME_FALL:
@@ -540,6 +563,7 @@ void progress_stat(int s)
                     int temp_account_balls = account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);
                     temp_account_balls--;
                     account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, temp_account_balls);
+                    account_save();
                 }
                 else
 #endif
@@ -609,23 +633,28 @@ void progress_stop(void)
 
 void progress_exit(void)
 {
-    /*
-     * NOTE: This challenge set highscores is saved
-     * after last level in this set is completed.
-     */
-
-    /*
-    assert(done && mode != MODE_NONE);
-
-    if (!campaign_used())
+    if (done)
     {
-        if (set_score_update(curr.times, curr.score, &score_rank, &times_rank))
-            set_store_hs();
-
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        if (campaign_used() && mode == MODE_HARDCORE)
+        {
+            campaign_score_update(curr.times, curr.score,
+                campaign_career_unlocked() ? &coin_rank : 0,
+                &time_rank);
 #if NB_STEAM_API==1
             score_steam_hs_save(curr.score, curr.times);
 #endif
-    */
+        }
+#endif
+        else if (!campaign_used())
+        {
+            if (set_score_update(curr.times, curr.score, &score_rank, &times_rank))
+                set_store_hs();
+#if NB_STEAM_API==1
+            score_steam_hs_save(curr.score, curr.times);
+#endif
+        }
+    }
 }
 
 int  progress_replay(const char *filename)
@@ -699,24 +728,30 @@ int  progress_same_avail(void)
 
 int  progress_next(void)
 {
-    /* Remember, that is used by the powerful protections. */
-    assert(next && status == GAME_GOAL);
-    progress_stop();
-    return progress_play(next);
+    if (next && status == GAME_GOAL)
+    {
+        progress_stop();
+        return progress_play(next);
+    }
+
+    return 0;
 }
 
 int  progress_same(void)
 {
-    /* Remember, that is used by the powerful protections. */
-    assert(!progress_dead());
-    progress_stop();
+    if (!progress_dead())
+    {
+        progress_stop();
 
-    /* Reset progress and goal enabled state. */
+        /* Reset progress and goal enabled state. */
 
-    if (status == GAME_GOAL)
-        curr = prev;
+        if (status == GAME_GOAL)
+            curr = prev;
 
-    return progress_play(level);
+        return progress_play(level);
+    }
+
+    return 0;
 }
 
 int  progress_dead(void)
@@ -748,9 +783,9 @@ int  progress_done(void)
 int  progress_last(void)
 {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    return (mode != MODE_CHALLENGE && mode != MODE_HARDCORE || mode != MODE_BOOST_RUSH) && status == GAME_GOAL && !next && campaign_used() == 1;
+    return campaign_used() && (mode != MODE_CHALLENGE && mode != MODE_HARDCORE && mode != MODE_BOOST_RUSH) && status == GAME_GOAL && !next;
 #else
-    return (mode != MODE_CHALLENGE || mode != MODE_BOOST_RUSH) && status == GAME_GOAL && !next;
+    return (mode != MODE_CHALLENGE && mode != MODE_BOOST_RUSH) && status == GAME_GOAL && !next;
 #endif
 }
 
@@ -814,10 +849,11 @@ float curr_speed_percent(void) { return curr.speedpercent; }
 int curr_balls(void)
 {
 #ifdef CONFIG_INCLUDES_ACCOUNT
-    return curr.balls + account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);
-#else
-    return curr.balls;
+    if (!replay)
+        return curr.balls + account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);
 #endif
+
+    return curr.balls;
 }
 
 int curr_score(void) { return curr.score; }

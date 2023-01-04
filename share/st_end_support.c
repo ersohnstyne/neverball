@@ -31,7 +31,7 @@
  * TODO: If you don't have an gamepad controllers,
  * comment it in the include header below.
  */
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 //#include "console_control_gui.h"
 #endif
 
@@ -61,11 +61,11 @@
 
 #define END_SUPPORT_IMAGE    "gui/end_support_%d.png" /* DO NOT EDIT! */
 
-#define END_SUPPORT_DESC_1   "After %d years, support for Neverball 1.6 is coming to an end.\\The best two things you can do to prepare for the transition are,\\back up your levels, and then get ready for what's next.\\We have tools to help you with both." /* DO NOT EDIT! */
-#define END_SUPPORT_DESC_2   "May 21, 2024 is the last day Jānis Rūcis will offer\\simple entities and technical support for running Neverball 1.6.\\We know change can be difficult, that's why we're reaching out early\\to help you back up your levels and prepare for what's next." /* DO NOT EDIT! */
-#define END_SUPPORT_DESC_3_1 "As of May 21, 2024, support for Neverball 1.6\\has come to an end. Your entities is\\more vulnerable to legacies due to:" /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_1   "After %d years, support for Neverball 1.6 is coming to an end.\\The best two things you can do to prepare for the transition are,\\back up your levels and highscores, and then get ready for what's next.\\We have tools to help you with both." /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_2   "May 21st, 2024 is the last day Jānis Rūcis will offer\\simple entities and technical support for running Neverball 1.6.\\We know change can be difficult, that's why we're reaching out early\\to help you back up your levels and highscores, and prepare for what's next." /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_3_1 "As of May 21st, 2024, support for Neverball 1.6\\has come to an end. Your entities is\\more vulnerable to legacies due to:" /* DO NOT EDIT! */
 #define END_SUPPORT_DESC_3_2 "- No simple start position\\- No goal decals\\- No simple switch and simple platform" /* DO NOT EDIT! */
-#define END_SUPPORT_DESC_3_3 "PennySchloss requires using\\Neverball 2.1.0 on a new campaigns\\for the latest huge guideline features." /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_3_3 "PennySchloss requires using\\Pennyball 2.1.0 on a new campaigns\\for the latest huge guideline features." /* DO NOT EDIT! */
 
 /*---------------------------------------------------------------------------*/
 
@@ -311,7 +311,8 @@ static int switchball_useable(void)
 /*---------------------------------------------------------------------------*/
 
 /* DO NOT EDIT! */
-enum {
+enum
+{
     END_SUPPORT_INVITE = GUI_LAST
 };
 
@@ -418,7 +419,7 @@ static int end_support_gui(void)
             if ((kd = gui_varray(jd)))
             {
                 gui_start(jd, _("Transfer now!"), GUI_SML, END_SUPPORT_INVITE, 0);
-                gui_state(jd, _("Remind me later"), GUI_SML, GUI_BACK, 1);
+                gui_state(jd, _("Remind me later"), GUI_SML, GUI_BACK, 0);
             }
 
             //gui_state(jd, _("Do not remind me again"), GUI_SML, GUI_BACK, 0);

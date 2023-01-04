@@ -42,8 +42,9 @@ static Array available_packages;
 
 #define PACKAGE_GET(a, i) ((struct package *) array_get((a), (i)))
 
-#define NB_DOWNLOADPATH "DLC/"
-#define NB_DOWNLOADPATH_ROOT "/DLC/"
+#define PACKAGE_DIR "DLC"
+#define NB_DOWNLOADPATH PACKAGE_DIR "/"
+#define NB_DOWNLOADPATH_ROOT "/" PACKAGE_DIR "/"
 
 /*---------------------------------------------------------------------------*/
 

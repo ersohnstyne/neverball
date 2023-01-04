@@ -10,7 +10,7 @@
     ))
 #else
 #define _CRT_NB_SCREENSTATE_DEPRECATED(_ItemReplacement)                  \
-    __attribute__((deprecated(                                            \
+    __attribute__((deprecated(                                            \                                                \
         "This screenstate function or variable has been superceded by "   \
         "newer library functionality. Consider using " #_ItemReplacement  \
         " instead."                                                       \
@@ -77,7 +77,7 @@ void st_wheel(int, int);
 int  st_click(int, int);
 int  st_keybd(int, int);
 int  st_buttn(int, int);
-int  st_touch(const SDL_TouchFingerEvent*);
+int  st_touch(const SDL_TouchFingerEvent *);
 
 /*---------------------------------------------------------------------------*/
 

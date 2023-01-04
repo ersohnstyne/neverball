@@ -69,7 +69,7 @@ PFNGLCHECKFRAMEBUFFERSTATUS_PROC glCheckFramebufferStatus_;
 PFNGLSTRINGMARKERGREMEDY_PROC    glStringMarkerGREMEDY_;
 
 #if _WIN32 || _WIN64
-#ifdef ENABLE_GL_NV
+#if ENABLE_GL_NV
 PFNGLVIEWPORTPOSITIONWSCALENV_PROC glViewportPositionWScaleNV_;
 
 PFNGLGENOCCLUSIONQUERIESNV_PROC    glGenOcclusionQueriesNV_;
@@ -135,6 +135,27 @@ int glext_check_ext(const char *needle)
     return 0;
 }
 
+/*---------------------------------------------------------------------------*/
+
+#if _DEBUG
+int glext_fail(const char* title, const char* message);
+
+int glext_assert_dbg(const char* ext)
+{
+    int have_ext = glext_check_ext(ext);
+
+    if (!have_ext)
+    {
+        char outStr[32]; sprintf(outStr, "Missing required OpenGL extension (%s)", ext);
+        have_ext = glext_fail("Missing extensions!", outStr);
+        SDL_TriggerBreakpoint();
+    }
+
+    return have_ext;
+}
+
+#define glext_assert(ext) glext_assert_dbg(ext)
+#else
 int glext_assert(const char *ext)
 {
     if (!glext_check_ext(ext))
@@ -144,13 +165,30 @@ int glext_assert(const char *ext)
     }
     return 1;
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
-#define SDL_GL_GFPA(fun, str) do {       \
-    ptr = SDL_GL_GetProcAddress(str);    \
-    memcpy(&fun, &ptr, sizeof (void *)); \
+#if _DEBUG
+#define SDL_GL_GFPA(fun, str) do {                       \
+    ptr = SDL_GL_GetProcAddress(str);                    \
+    while (!ptr)                                         \
+    {                                                    \
+        char outStr[32]; sprintf(outStr, "Missing OpenGL function: (%s)", str); \
+        glext_fail("Missing function!", outStr);         \
+        SDL_TriggerBreakpoint();                         \
+        ptr = SDL_GL_GetProcAddress(str);                \
+    }                                                    \
+    memcpy(&fun, &ptr, sizeof (void *));                 \
 } while(0)
+#else
+#define SDL_GL_GFPA(fun, str) do {                       \
+    ptr = SDL_GL_GetProcAddress(str);                    \
+    if (!ptr)                                            \
+        log_errorf("Missing OpenGL function: %s\n", str);\
+    memcpy(&fun, &ptr, sizeof (void *));                 \
+} while(0)
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -164,15 +202,6 @@ static void log_opengl(void)
         glGetString(GL_RENDERER),
         glGetString(GL_VERSION),
         glGetString(GL_EXTENSIONS));
-
-    int num_GLextensions = 0;
-    const GLubyte *haystack;
-
-    for (haystack = glGetString(GL_EXTENSIONS); *haystack; haystack++)
-        num_GLextensions++;
-
-    if (num_GLextensions > 99)
-        log_printf("Too many GL extensions on PC! Number of extensions: %d\n", num_GLextensions);
 }
 
 int glext_fail(const char *title, const char *message)
@@ -185,12 +214,30 @@ int glext_init(void)
 {
     void *ptr = 0;
 
+    int num_GLextensions = 0;
+    const GLubyte *haystack, *c;
+
+    for (haystack = glGetString(GL_EXTENSIONS); *haystack; haystack++)
+    {
+        for (c = "GL_"; *c && *haystack; c++, haystack++)
+        {
+            if (*c == *haystack) num_GLextensions++;
+            else break;
+        }
+    }
+
+    if (num_GLextensions > 99)
+        log_printf("Too many GL extensions on this PC! Number of extensions: %d\n", num_GLextensions);
+
     memset(&gli, 0, sizeof (struct gl_info));
 
     /* Common init. */
 
     glGetIntegerv(GL_MAX_TEXTURE_SIZE,  &gli.max_texture_size);
     glGetIntegerv(GL_MAX_TEXTURE_UNITS, &gli.max_texture_units);
+
+    if (glext_check_ext("GL_EXT_texture_filter_anisotropic"))
+        gli.texture_filter_anisotropic = 1;
 
     /* Desktop init. */
 
@@ -199,8 +246,11 @@ int glext_init(void)
     if (glext_assert("ARB_multitexture"))
     {
         SDL_GL_GFPA(glClientActiveTexture_, "glClientActiveTextureARB");
-        SDL_GL_GFPA(glActiveTexture_,       "glActiveTextureARB");
+        SDL_GL_GFPA(glActiveTexture_, "glActiveTextureARB");
     }
+#if _DEBUG
+    else return 0;
+#endif
 
     if (glext_assert("ARB_vertex_buffer_object"))
     {
@@ -211,12 +261,18 @@ int glext_init(void)
         SDL_GL_GFPA(glDeleteBuffers_,       "glDeleteBuffersARB");
         SDL_GL_GFPA(glIsBuffer_,            "glIsBufferARB");
     }
+#if _DEBUG
+    else return 0;
+#endif
 
     if (glext_assert("ARB_point_parameters"))
     {
         SDL_GL_GFPA(glPointParameterf_,    "glPointParameterfARB");
         SDL_GL_GFPA(glPointParameterfv_,   "glPointParameterfvARB");
     }
+#if _DEBUG
+    else return 0;
+#endif
 
     if (glext_check_ext("ARB_shader_objects"))
     {
@@ -260,7 +316,7 @@ int glext_init(void)
 
     /* NVIDIA init. */
 
-#if defined(ENABLE_GL_NV)
+#if ENABLE_GL_NV
     if (glext_check_ext("GL_NV_clip_space_w_scaling"))
     {
         SDL_GL_GFPA(glViewportPositionWScaleNV_, "glViewportPositionWScaleNV");

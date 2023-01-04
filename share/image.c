@@ -42,6 +42,7 @@
 
 /*---------------------------------------------------------------------------*/
 
+/* Do not allow mipmap and anisotropic in GUI. */
 int donot_allow_mip_and_aniso_during_gui = 0;
 
 /*---------------------------------------------------------------------------*/
@@ -178,7 +179,8 @@ GLuint make_texture(const void *p, int w, int h, int b, int fl)
     }
 #endif
 #ifdef GL_TEXTURE_MAX_ANISOTROPY_EXT
-    if (a && !donot_allow_mip_and_aniso_during_gui)
+    if (a && gli.texture_filter_anisotropic
+        && !donot_allow_mip_and_aniso_during_gui)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, a);
 #endif
 

@@ -24,10 +24,15 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define GUI_ELLIPSIS "…"
-#define GUI_ARROW_DN "⇩"
-#define GUI_CROWN    "♕"
-#define GUI_DIAMOND  "◈"
+#define GUI_ELLIPSIS   "…"
+#define GUI_ARROW_DN   "⇩"
+#define GUI_ARROW_LFT  "◀️"
+#define GUI_ARROW_RGHT "▶️"
+#define GUI_CROWN      "♕"
+#define GUI_DIAMOND    "◈"
+#define GUI_GAMEPAD    "🎮"
+
+#define GUI_BATTERY "🔋"
 
 #define GUI_FINANCE_CH  "₣"  /* Swiss     */
 #define GUI_FINANCE_EU  "€"  /* Europe    */
@@ -89,6 +94,7 @@
 extern const GLubyte gui_wht[4];
 extern const GLubyte gui_yel[4];
 extern const GLubyte gui_cya[4];
+extern const GLubyte gui_twi[4];
 extern const GLubyte gui_vio[4];
 extern const GLubyte gui_pnk[4];
 extern const GLubyte gui_red[4];
@@ -155,6 +161,7 @@ int  gui_delete(int);
 void gui_remove(int);
 
 /*---------------------------------------------------------------------------*/
+
 void gui_set_alpha(int, float, int);
 void gui_animate(int);
 void gui_paint(int);

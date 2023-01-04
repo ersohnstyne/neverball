@@ -197,7 +197,7 @@ static void game_draw_jumps(struct s_rend *rend,
     int i;
 
     for (i = 0; i < base->jc; i++)
-        jump_draw(rend, base->jv[i].p, base->jv[i].r, 1.0f);
+        jump_draw(rend, base->jv[i].p, base->jv[i].r, 1.0f, t);
 }
 
 static void game_draw_chkps(struct s_rend *rend,
@@ -475,6 +475,7 @@ static void game_draw_fore(struct s_rend *rend,
 static void game_draw_fog()
 {
     GLfloat fog_color[4]; fog_color[0] = 1.0f; fog_color[1] = 1.0f; fog_color[2] = 1.0f; fog_color[3] = 1.0f;
+    glDisable(GL_FOG);
     glFogfv(GL_FOG_COLOR, fog_color);
     glFogf(GL_FOG_MODE, GL_EXP);
     glFogf(GL_FOG_DENSITY, 0.0125f);
@@ -527,8 +528,6 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
     //if (gd->jump_b) fov *= 2.f * fabsf(gd->jump_dt - 0.5f);
     if (gd->jump_b) fov *= (fcosf(gd->jump_dt * (2 * V_PI)) / 2) + 0.5f;
-
-    glDisable(GL_FOG);
 
     if (gd->state)
     {
@@ -616,7 +615,8 @@ void game_draw(struct game_draw *gd, int pose, float t)
                         game_draw_light(gd, -1, t);
                         
                         game_draw_back(&rend, gd, pose,    -1, t, 1);
-                        glEnable(GL_FOG);
+                        if (!config_cheat())
+                            glEnable(GL_FOG);
                         game_draw_fore(&rend, gd, pose, U, -1, t, 1);
                         glDisable(GL_FOG);
                     }
@@ -648,8 +648,11 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
             /* Draw the mirrors and the rest of the foreground. */
 
-            game_refl_all (&rend, gd, 0); glEnable(GL_FOG);
-            game_draw_fore(&rend, gd, pose, T, +1, t, 0); glDisable(GL_FOG);
+            game_refl_all (&rend, gd, 0);
+            if (!config_cheat())
+                glEnable(GL_FOG);
+            game_draw_fore(&rend, gd, pose, T, +1, t, 0);
+            glDisable(GL_FOG);
         }
         glPopMatrix();
         video_pop_matrix();

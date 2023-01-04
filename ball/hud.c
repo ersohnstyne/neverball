@@ -63,7 +63,6 @@ static int affect_id;
 #endif
 static int ball_id;
 static int scor_id;
-static int gemearn_id;
 static int goal_id;
 static int cam_id;
 static int fps_id;
@@ -80,7 +79,6 @@ static int text_coins_id;
 static int text_goal_id;
 static int text_balls_id;
 static int text_score_id;
-static int text_gemearn_id;
 static int text_speed_id;
 
 static const char *speed_labels[SPEED_MAX] = {
@@ -138,8 +136,8 @@ void hud_init(void)
         }
         if ((id = gui_vstack(Rhud_id)))
         {
-            coin_id        = gui_count(id, 100, GUI_SML);
-            goal_id        = gui_count(id, 10,  GUI_SML);
+            coin_id        = gui_count(id, 1000, GUI_SML);
+            goal_id        = gui_count(id, 1000, GUI_SML);
         }
         gui_set_rect(Rhud_id, GUI_NW);
         gui_layout(Rhud_id, +1, -1);
@@ -158,19 +156,11 @@ void hud_init(void)
         {
             ball_id = gui_count(id, 1000, GUI_SML);
             scor_id = gui_count(id, 1000, GUI_SML);
-#if NB_HAVE_PB_PREMIUM==1
-            if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
-                gemearn_id = gui_count(id, 5000, GUI_SML);
-#endif
         }
         if ((id = gui_vstack(Lhud_id)))
         {
             text_balls_id = gui_label(id, _("Balls"), GUI_SML, gui_wht, gui_wht);
             text_score_id = gui_label(id, _("Total"), GUI_SML, gui_wht, gui_wht);
-#if NB_HAVE_PB_PREMIUM==1
-            if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
-                text_gemearn_id = gui_label(id, _("Gems"), GUI_SML, gui_wht, gui_wht);
-#endif
         }
         gui_set_rect(Lhud_id, GUI_NE);
         gui_layout(Lhud_id, -1, -1);
@@ -179,13 +169,11 @@ void hud_init(void)
     if ((FSLhud_id = gui_hstack(0)))
     {
         if ((id = gui_vstack(FSLhud_id)))
-        {
             text_speedometer_id = gui_label(id, _("km/h"), GUI_SML, gui_wht, gui_wht);
-        }
+
         if ((id = gui_vstack(FSLhud_id)))
-        {
             speedometer_id = gui_count(id, 9999, GUI_SML);
-        }
+
         gui_set_rect(FSLhud_id, GUI_RGT);
         gui_layout(FSLhud_id, -1, 0);
     }
@@ -193,6 +181,7 @@ void hud_init(void)
     /* Default is 59999 (24h = 360000 * 24) */
     if ((time_id = gui_clock(0, 8640000, GUI_MED)))
     {
+        gui_set_clock(time_id, 0);
         gui_set_rect(time_id, GUI_TOP);
         gui_layout(time_id, 0, -1);
     }
@@ -201,13 +190,11 @@ void hud_init(void)
     if ((speedbar_hud_id = gui_hstack(0)))
     {
         if ((id = gui_vstack(speedbar_hud_id)))
-        {
             speed_percent_id = gui_label(id, "--- %", GUI_SML, gui_yel, gui_yel);
-        }
+
         if ((id = gui_vstack(speedbar_hud_id)))
-        {
             text_speed_id = gui_label(id, _("Speed"), GUI_SML, gui_wht, gui_wht);
-        }
+
         gui_set_rect(speedbar_hud_id, GUI_BOT);
         gui_layout(speedbar_hud_id, 0, +1);
     }
@@ -268,7 +255,6 @@ void hud_free(void)
     gui_delete(text_goal_id);
     gui_delete(text_balls_id);
     gui_delete(text_score_id);
-    gui_delete(text_gemearn_id);
     gui_delete(text_speed_id);
 
     gui_delete(speedbar_hud_id);
@@ -282,7 +268,7 @@ void hud_free(void)
     gui_delete(fps_id);
 
 #if ENABLE_COMPASS==1
-    //gui_delete(camcompass_id);
+    gui_delete(camcompass_id);
 #endif
 
     gui_delete(speed_id);
@@ -404,7 +390,6 @@ void hud_update(int pulse, float animdt)
     int score = curr_score();
     float ballspeed = curr_speedometer();
 
-
     int c_id;
     int last;
 
@@ -416,7 +401,6 @@ void hud_update(int pulse, float animdt)
         gui_set_color(text_goal_id, gui_wht, gui_wht);
         gui_set_color(text_balls_id, gui_wht, gui_wht);
         gui_set_color(text_score_id, gui_wht, gui_wht);
-        gui_set_color(text_gemearn_id, gui_wht, gui_wht);
         gui_set_color(text_speed_id, gui_wht, gui_wht);
 
         gui_pulse(ball_id, 0.f);
@@ -449,16 +433,6 @@ void hud_update(int pulse, float animdt)
     {
         gui_set_clock(time_id, clock);
 
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (clock <= 1000 && ((last / 25) > (clock / 25)) && (curr_mode() != MODE_CAMPAIGN && curr_mode() != MODE_ZEN) && (pulse || !show_hud))
-#else
-        if (clock <= 1000 && ((last / 25) > (clock / 25)) && curr_mode() != MODE_ZEN && (pulse || !show_hud))
-#endif
-        {
-            if (clock > 5)
-                audio_music_fade_to(0.1f, "bgm/time-warning.ogg");
-        }
-
         if (pulse)
         {
             if (last > clock && clock > 5)
@@ -470,7 +444,6 @@ void hud_update(int pulse, float animdt)
                     gui_set_color(text_goal_id, gui_red, gui_red);
                     gui_set_color(text_balls_id, gui_red, gui_red);
                     gui_set_color(text_score_id, gui_red, gui_red);
-                    gui_set_color(text_gemearn_id, gui_red, gui_red);
                     gui_set_color(text_speed_id, gui_red, gui_red);
 
                     audio_play(AUD_TICK, 1.f);
@@ -483,7 +456,6 @@ void hud_update(int pulse, float animdt)
                     gui_set_color(text_goal_id, gui_vio, gui_vio);
                     gui_set_color(text_balls_id, gui_vio, gui_vio);
                     gui_set_color(text_score_id, gui_vio, gui_vio);
-                    gui_set_color(text_gemearn_id, gui_vio, gui_vio);
                     gui_set_color(text_speed_id, gui_vio, gui_vio);
 
                     audio_play(AUD_TOCK, 1.f);
@@ -496,7 +468,6 @@ void hud_update(int pulse, float animdt)
                     gui_set_color(text_goal_id, gui_wht, gui_wht);
                     gui_set_color(text_balls_id, gui_wht, gui_wht);
                     gui_set_color(text_score_id, gui_wht, gui_wht);
-                    gui_set_color(text_gemearn_id, gui_wht, gui_wht);
                     gui_set_color(text_speed_id, gui_wht, gui_wht);
                 }
             }
@@ -516,19 +487,11 @@ void hud_update(int pulse, float animdt)
 
     int livecoins = score + coins;
 
-#ifdef CONFIG_INCLUDES_ACCOUNT
-    int account_balls = account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);
-    int gemearn = (balls - account_balls) * 5;
-#else
-    int gemearn = balls * 5;
-#endif
-
     switch (curr_mode())
     {
     case MODE_CHALLENGE:
         if (gui_value(ball_id) != balls) gui_set_count(ball_id, balls);
         if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
-        if (gui_value(gemearn_id) != gemearn) gui_set_count(gemearn_id, gemearn);
 
         c_id = coin_id;
         break;
@@ -539,7 +502,6 @@ void hud_update(int pulse, float animdt)
 
         if (gui_value(ball_id) != balls) gui_set_count(ball_id, balls);
         if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
-        if (gui_value(gemearn_id) != gemearn) gui_set_count(gemearn_id, gemearn);
 
         c_id = coin_id;
         break;
@@ -548,7 +510,6 @@ void hud_update(int pulse, float animdt)
     case MODE_HARDCORE:
         if (gui_value(ball_id) != balls) gui_set_count(ball_id, 0);
         if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
-        if (gui_value(gemearn_id) != gemearn) gui_set_count(gemearn_id, gemearn);
 
         c_id = coin_id;
         break;
@@ -567,10 +528,8 @@ void hud_update(int pulse, float animdt)
     else
         ballspeed = ballspeed * 3600.0f / 1609.34f / 64.0f;  /* convert to mph */
 
-    if ((int)ballspeed != gui_value(speedometer_id))
-    {
+    if ((int) ballspeed != gui_value(speedometer_id))
         gui_set_count(speedometer_id, (int) ballspeed);
-    }
 
     /* coins and pulse */
 
@@ -718,9 +677,9 @@ void hud_update_camera_direction(float rot_direction)
     if (hdg_num > 180) hdg_num -= 360;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(camdirref, dstSize, "%i Deg (%s)", (int)round(hdg_num), hdg_name);
+    sprintf_s(camdirref, dstSize, "%i Deg (%s)", (int) round(hdg_num), hdg_name);
 #else
-    sprintf(camdirref, "%i Deg (%s)", (int)round(hdg_num), hdg_name);
+    sprintf(camdirref, "%i Deg (%s)", (int) round(hdg_num), hdg_name);
 #endif
 #if ENABLE_COMPASS==1
     gui_set_label(camcompass_id, camdirref);

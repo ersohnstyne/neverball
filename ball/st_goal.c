@@ -99,7 +99,6 @@ static int goal_action(int tok, int val)
     {
     case GUI_BACK:
     case GOAL_LAST:
-        progress_stop();
         return goto_exit();
 
     case GOAL_SAVE:
@@ -111,12 +110,10 @@ static int goal_action(int tok, int val)
 #ifdef CONFIG_INCLUDES_ACCOUNT
         return goto_shop_rename(&st_goal, &st_goal, 0);
 #else
-        return goto_name(&st_goal, &st_goal, 0);
+        return goto_name(&st_goal, &st_goal, 0, 0, 0);
 #endif
 
     case GOAL_DONE:
-        progress_stop();
-        powerup_stop();
         return goto_exit();
 
     case GUI_SCORE:
@@ -169,7 +166,7 @@ static int goal_gui(void)
     challenge_caught_extra = 0;
     challenge_disable_all_buttons = 0;
 
-    if (!resume && config_get_d(CONFIG_NOTIFICATION_SHOP))
+    if (!resume && config_get_d(CONFIG_NOTIFICATION_SHOP) && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
     {
         if (curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -214,7 +211,7 @@ static int goal_gui(void)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
                 && !config_cheat()
 #endif
-                && (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 55))))
+                && (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25))))
                 gid = gui_title_header(jd, s1, GUI_MED, gui_grn, gui_grn);
             else
                 gid = gui_title_header(jd, s2, GUI_LRG, gui_blu, gui_grn);
@@ -434,7 +431,7 @@ static int goal_gui(void)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
             && !config_cheat()
 #endif
-            && (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 55)))
+            && (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25)))
         {
             gui_score_board(id, ((campaign_career_unlocked() ? GUI_SCORE_COIN : 0) | GUI_SCORE_TIME | (campaign_career_unlocked() ? GUI_SCORE_GOAL : 0)), 1,
                 !resume && (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
@@ -511,7 +508,7 @@ static int goal_gui(void)
         }
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        if (!resume) {
+        if (!resume && server_policy_get_d(SERVER_POLICY_EDITION) > -1) {
             gui_pulse(gid, 1.2f);
             if (curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -574,7 +571,7 @@ static void goal_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     xbox_control_death_gui_paint();
 #endif
 }
@@ -594,14 +591,12 @@ static void goal_timer(int id, float dt)
         int record_modes = curr_mode() != MODE_NONE;
         int record_campaign = !campaign_hardcore_norecordings();
 
-        if (!resume)
-            game_client_sync(record_screenanimations
-                          && record_modes
-                          && record_campaign ? demo_fp : NULL);
-        else game_client_sync(NULL);
-
         game_client_blend(game_server_blend());
-        
+        game_client_sync(!resume
+                      && record_screenanimations
+                      && record_modes
+                      && record_campaign ? demo_fp : NULL);
+
         if ((t > 0.05f && coins_id)
             && (!resume && time_state() > (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.5f : 1.f)))
         {
@@ -679,7 +674,7 @@ static int goal_keybd(int c, int d)
          * This is revealed in death_screen.json.
          * This methods can't use this: fail_action(GUI_BACK, 0);
          */
-#if !defined(__EMSCRIPTEN__) && NB_PB_HAVE_BOTH==1
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
             return 1;
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c) && current_platform == PLATFORM_PC)
@@ -743,7 +738,7 @@ static int goal_extraballs_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__) && NB_PB_HAVE_BOTH==1
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
             return goto_state(&st_goal);
 #else
@@ -830,7 +825,7 @@ static int goal_shop_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__) && NB_PB_HAVE_BOTH==1
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
             return goto_state(&st_goal);
 #else
@@ -863,7 +858,6 @@ static int goal_hardcore_enter(struct state *st, struct state *prev)
     restrict_hardcore_nextstate = 0;
     powerup_stop();
 
-    //audio_music_fade_out(1.0f);
     video_clr_grab();
 
     resume = (prev != &st_play_loop);

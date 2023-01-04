@@ -31,6 +31,7 @@ struct fetch_callback
 };
 
 void fetch_init(void (*dispatch_event)(void *));
+void fetch_reinit(void);
 void fetch_handle_event(void *);
 void fetch_quit(void);
 

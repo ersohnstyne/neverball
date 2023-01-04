@@ -11,6 +11,6 @@
 
 extern struct state st_end_support;
 
-int goto_end_support(struct state*);
+int goto_end_support(struct state *);
 
 #endif

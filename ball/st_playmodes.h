@@ -4,6 +4,5 @@
 #include "state.h"
 
 extern struct state st_playmodes;
-extern struct state st_hardcore_start;
 
 #endif

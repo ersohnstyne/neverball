@@ -75,6 +75,7 @@ static struct
     { &SERVER_POLICY_EDITION, "edition", -1 },
     { &SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN, "levelgroup_only_campaign", 0 },
     { &SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET, "levelgroup_only_levelset", 1 },
+
     { &SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET, "levelgroup_unlocked_levelset", 1 },
 
     { &SERVER_POLICY_LEVELSET_ENABLED_BONUS, "levelset_enabled_bonus", 1 },

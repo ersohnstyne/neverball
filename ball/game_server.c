@@ -98,6 +98,9 @@ static float goal_lock_p[3];
 
 static char curr_file_name[MAXSTR];
 
+static float player_min_area[3];
+static float player_max_area[3];
+
 /*---------------------------------------------------------------------------*/
 
 /*
@@ -538,7 +541,6 @@ static void grow_step(int ui, float dt)
         grow_t[ui] = GROW_TIME;
     }
 
-    //dr = grow_strt[ui] + ((grow_goal[ui] - grow_strt[ui]) * (1.0f / (GROW_TIME / grow_t[ui])));
     dr = flerp(grow_strt[ui], grow_goal[ui], (1.0f / (GROW_TIME / grow_t[ui])));
 
     /* No sinking through the floor! Keeps ball's bottom constant. */
@@ -555,13 +557,104 @@ static struct lockstep server_step;
 
 void game_update_view(float dt);
 
+static int game_check_map_border(int ui, float offset)
+{
+    float temp_offset = MAX(offset, 0);
+
+    /*
+     * Those are pushing altitude limits that can't proceed above
+     * the max altitude limit: Y Player pos < Max Y Border
+     */
+
+    /*
+    int border_ok = vary.uv[ui].p[0] > (player_min_area[0] - (temp_offset * 8.f))
+        && vary.uv[ui].p[1] > (player_min_area[1] - temp_offset)
+        && vary.uv[ui].p[2] > (player_min_area[2] - (temp_offset * 8.f))
+        && vary.uv[ui].p[0] < (player_max_area[0] + (temp_offset * 8.f))
+        && vary.uv[ui].p[2] < (player_max_area[2] + (temp_offset * 8.f));
+    */
+
+    /*
+     * HACK: This is bad, when I've use the level border using X and Z axis.
+     * Only those open world version, what I've made.
+     */
+
+    int border_ok = vary.uv[ui].p[1] > (player_min_area[1] - temp_offset);
+
+    return border_ok;
+}
+
+static void game_init_map_border(int ui)
+{
+    player_min_area[0] = 65535;
+    player_min_area[1] = 65535;
+    player_min_area[2] = 65535;
+
+    player_max_area[0] = -65535;
+    player_max_area[1] = -65535;
+    player_max_area[2] = -65535;
+
+    int i;
+
+    for (i = 0; i < vary.base->vc; i++)
+    {
+        if (vary.base->vv[i].p[0] < player_min_area[0])
+            player_min_area[0] = vary.base->vv[i].p[0];
+        if (vary.base->vv[i].p[1] < player_min_area[1])
+            player_min_area[1] = vary.base->vv[i].p[1];
+        if (vary.base->vv[i].p[2] < player_min_area[2])
+            player_min_area[2] = vary.base->vv[i].p[2];
+
+        if (vary.base->vv[i].p[0] > player_max_area[0])
+            player_max_area[0] = vary.base->vv[i].p[0];
+        if (vary.base->vv[i].p[1] > player_max_area[1])
+            player_max_area[1] = vary.base->vv[i].p[1];
+        if (vary.base->vv[i].p[2] > player_max_area[2])
+            player_max_area[2] = vary.base->vv[i].p[2];
+    }
+
+    for (i = 0; i < vary.base->hc; i++)
+    {
+        if (vary.base->hv[i].p[0] < player_min_area[0])
+            player_min_area[0] = vary.base->hv[i].p[0];
+        if (vary.base->hv[i].p[1] < player_min_area[1])
+            player_min_area[1] = vary.base->hv[i].p[1];
+        if (vary.base->hv[i].p[2] < player_min_area[2])
+            player_min_area[2] = vary.base->hv[i].p[2];
+
+        if (vary.base->hv[i].p[0] > player_max_area[0])
+            player_max_area[0] = vary.base->hv[i].p[0];
+        if (vary.base->hv[i].p[1] > player_max_area[1])
+            player_max_area[1] = vary.base->hv[i].p[1];
+        if (vary.base->hv[i].p[2] > player_max_area[2])
+            player_max_area[2] = vary.base->hv[i].p[2];
+    }
+
+    assert(player_min_area[0] < player_max_area[0]
+        && player_min_area[1] < player_max_area[1]
+        && player_min_area[2] < player_max_area[2]);
+
+    for (i = 0; i < vary.base->uc; i++)
+    {
+        if (vary.uv[i].p[0] < player_min_area[0])
+            vary.uv[i].p[0] = player_min_area[0];
+        if (vary.uv[i].p[0] > player_max_area[0])
+            vary.uv[i].p[0] = player_max_area[0];
+        if (vary.uv[i].p[1] < player_min_area[1])
+            vary.uv[i].p[1] = player_min_area[1];
+        if (vary.uv[i].p[2] < player_min_area[2])
+            vary.uv[i].p[2] = player_min_area[2];
+        if (vary.uv[i].p[2] > player_max_area[2])
+            vary.uv[i].p[2] = player_max_area[2];
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 int game_server_init(const char *file_name, int t, int e)
 {
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    strcpy_s(curr_file_name, dstSize, file_name);
-#else
-    strcpy(curr_file_name, file_name);
-#endif
+    memset(curr_file_name, 0, MAXSTR);
+    SAFECPY(curr_file_name, file_name);
 
     struct { int x, y; } version;
     int i;
@@ -572,10 +665,8 @@ int game_server_init(const char *file_name, int t, int e)
      */
     int mayhem_time = 359999;
     if (t > 0 && (!campaign_used() && curr_mode() != MODE_BOOST_RUSH && curr_mode() != MODE_ZEN))
-    {
         mayhem_time = (int) t * 0.75f;
-    }
-
+    
 #ifdef MAPC_INCLUDES_CHKP
     /*
      * --- CHECKPOINT DATA ---
@@ -589,19 +680,18 @@ int game_server_init(const char *file_name, int t, int e)
     coins      = last_active ? last_coins : 0;
 #else
 
-    timer = config_get_d(CONFIG_ACCOUNT_MAYHEM) ? ((float)mayhem_time / 100.f) : ((float)t / 100.f);
-        config_get_d(CONFIG_ACCOUNT_MAYHEM) ? ((float)mayhem_time / 100.f) : ((float)t / 100.f);
+    timer = config_get_d(CONFIG_ACCOUNT_MAYHEM) ? ((float) mayhem_time / 100.f) : ((float) t / 100.f);
     timer_down = (t > 0);
     timer_hold = 1;
     coins = 0;
 #endif
     status = GAME_NONE;
 
-    if (
+    if ((campaign_used() || curr_mode() == MODE_BOOST_RUSH || curr_mode() == MODE_ZEN)
 #ifdef MAPC_INCLUDES_CHKP
-        !last_active &&
+        && !last_active
 #endif
-        (campaign_used() || curr_mode() == MODE_BOOST_RUSH || curr_mode() == MODE_ZEN))
+        )
     {
         timer_down = 0;
         timer = 0.0f;
@@ -623,60 +713,35 @@ int game_server_init(const char *file_name, int t, int e)
      * If you use an Zen mode, all Achevements will disabled
      * and sets to unlimited time.
      */
+    if (mediation_enabled() == 1
 #ifdef MAPC_INCLUDES_CHKP
-    if (mediation_enabled() == 1 && !last_active)
-    {
-        timer = last_active ? last_time : 0;
-        timer_down = 0;
-    }
-#else
-    if (mediation_enabled() == 1)
-    {
-        timer = 0;
-        timer_down = 0;
-    }
+        && !last_active
 #endif
+        )
+    {
+        timer =
+#ifdef MAPC_INCLUDES_CHKP
+            last_active ? last_time :
+#endif
+            0;
+        timer_down = 0;
+    }
 #endif
 
-#ifdef MAPC_INCLUDES_CHKP
-    /*
-     * --- CHECKPOINT DATA ---
-     * If you haven't loaded your vary data for each checkpoints,
-     * Varys for your default will be used.
-     */
-    if (!last_active)
-#endif
-        game_server_free(file_name);
+    game_server_free(file_name);
 
     /* Load SOL data. */
 
-#ifdef MAPC_INCLUDES_CHKP
-    /*
-     * --- CHECKPOINT DATA ---
-     * If you haven't loaded your vary data for each checkpoints,
-     * Varys for your default will be used.
-     */
-    if (last_active)
-        log_errorf("Loading game base for server is blocked during checkpoints is active!\n");
-    else
-#endif
     if (!game_base_load(file_name))
         return (server_state = 0);
-#ifdef MAPC_INCLUDES_CHKP
-    /*
-     * --- CHECKPOINT DATA ---
-     * If you haven't loaded your vary data for each checkpoints,
-     * Varys for your default will be used.
-     */
-    if (last_active)
-        log_errorf("Loading server's vary is blocked during checkpoints is active!\n");
-    else
-#endif
+
     if (!sol_load_vary(&vary, &game_base))
     {
         game_base_free(NULL);
         return (server_state = 0);
     }
+
+    game_init_map_border(CURR_PLAYER);
 
     for (int i = 0; i < vary.xc; i++)
         curr_path_enabled_orcondition[i] = vary.xv[i].f;
@@ -716,7 +781,7 @@ int game_server_init(const char *file_name, int t, int e)
     automode = 2;
     autorotspeed = 0;
 
-    //game_cmd_zoom(-95.0f);
+    /* game_cmd_zoom(-95.0f); */
 
     /* Initialize jump, chkp and goal states. */
 
@@ -853,6 +918,17 @@ int game_server_init(const char *file_name, int t, int e)
             grow_orig[ui] = last_chkp_ballsize[ui].size_orig;
             grow_state[ui] = last_chkp_ballsize[ui].size_state;
 
+            e_cpy(vary.uv[ui].e, last_chkp_ball[ui].e);
+
+            v_cpy(vary.uv[ui].p, vary.base->cv[chkp_id].p);
+            vary.uv[ui].p[1] += .5f;
+
+            vary.uv[ui].v[0] = 0.0f;
+            vary.uv[ui].v[1] = 0.0f;
+            vary.uv[ui].v[2] = 0.0f;
+
+            e_cpy(vary.uv[ui].E, last_chkp_ball[ui].E);
+
             switch (grow_state[ui])
             {
             case -2:
@@ -876,34 +952,11 @@ int game_server_init(const char *file_name, int t, int e)
                 vary.uv[ui].r = vary.base->uv[ui].r * GROW_XL;
                 break;
             }
-        }
-#endif
-    }
-
-#ifdef MAPC_INCLUDES_CHKP
-    /*
-     * --- CHECKPOINT DATA ---
-     * If you haven't loaded transform data for each checkpoints,
-     * transform for your default data will be used.
-     */
-    if (last_active)
-    {
-        for (int ui = 0; ui < vary.base->uc && ui < MAX_PLAYERS; ui++)
-        {
-            if (ui != CURR_PLAYER) continue;
-
-            v_cpy(vary.uv[ui].p, vary.base->cv[chkp_id].p);
-            vary.uv[ui].p[1] += .5f;
-
-            vary.uv[ui].v[0] = 0.0f;
-            vary.uv[ui].v[1] = 0.0f;
-            vary.uv[ui].v[2] = 0.0f;
-            vary.uv[ui].r = last_chkp_ball[0].r;
 
             game_view_fly(&view, &vary, ui, 0.0f);
         }
-    }
 #endif
+    }
 
     /* Initialize simulation. */
 
@@ -995,6 +1048,16 @@ int game_server_init(const char *file_name, int t, int e)
             }
         }
 
+        /* Restored from the checkpoints (body) */
+        for (int resetidx = 0; resetidx < vary.bc; resetidx++)
+        {
+            struct chkp_body *c_bp = last_chkp_body + resetidx;
+            struct v_body    *bp   = vary.bv + resetidx;
+
+            bp->mi = c_bp->mi;
+            bp->mj = c_bp->mj;
+        }
+
         /* Restored from the checkpoints (mover) (no loading SOL from files) */
         for (int resetidx = 0; resetidx < vary.mc; resetidx++)
         {
@@ -1028,6 +1091,17 @@ int game_server_init(const char *file_name, int t, int e)
                 cmd.movepath.pi = mp->pi;
                 game_proxy_enq(&cmd);
             }
+        }
+
+        /* Restored from the checkpoints (coins) */
+        for (int resetidx = 0; resetidx < vary.hc; resetidx++)
+        {
+            struct chkp_item* last_hp = last_chkp_item + resetidx;
+            struct v_item*    hp      = vary.hv + resetidx;
+
+            v_cpy(hp->p, last_hp->p);
+            hp->t = last_hp->t;
+            hp->n = last_hp->n;
         }
 
         /* Restored from the checkpoints (switch) */
@@ -1098,7 +1172,7 @@ int game_server_init(const char *file_name, int t, int e)
 #ifdef MAPC_INCLUDES_CHKP
     /*
      * --- CHECKPOINT DATA ---
-     * If you haven’t sent commands for each checkpoints,
+     * If you haven't sent commands for each checkpoints,
      * the method can't be use it.
      */
     if (last_active && coins != 0)
@@ -1110,19 +1184,7 @@ int game_server_init(const char *file_name, int t, int e)
 
     /* Reset lockstep state. */
 
-#ifdef MAPC_INCLUDES_CHKP
-    /*
-     * --- CHECKPOINT DATA ---
-     * If you haven't loaded lockstep for each checkpoints,
-     * Locksteps for your default data will be used.
-     */
-    if (!last_active)
-        lockstep_clr(&server_step);
-    else
-        log_errorf("Cleaning server lockstep is blocked during checkpoints is active!\n");
-#else
     lockstep_clr(&server_step);
-#endif
 
     return server_state;
 }
@@ -1151,7 +1213,9 @@ void game_update_view(float dt)
     {
         if (ui != CURR_PLAYER) continue;
 
-        fix_cam_used[ui] = ((input_get_c() == CAM_AUTO && automode == CAM_2) || input_get_c() == CAM_2);
+        fix_cam_used[ui] =
+            ((input_get_c() == CAM_AUTO && automode == CAM_2) || input_get_c() == CAM_2)
+            && (cam_speed(input_get_c() == CAM_AUTO ? automode : input_get_c()) == 0);
 
         if (fix_cam_lock[ui]) fix_cam_alpha[ui] = 1;
 
@@ -1218,7 +1282,7 @@ void game_update_view(float dt)
             if (input_get_c() != CAM_AUTO)
                 automode = input_get_c();
 
-            float spd = (float)cam_speed(input_get_c() == CAM_AUTO ? automode : input_get_c()) / 1000.0f;
+            float spd = (float) cam_speed(input_get_c() == CAM_AUTO ? automode : input_get_c()) / 1000.0f;
 
             /* Track manual rotation time. */
 
@@ -1303,7 +1367,6 @@ void game_update_view(float dt)
 
             if (automode != CAM_1 && input_get_c() == CAM_AUTO && jump_b == 0)
             {
-                /* If it uses 0.25f, then it uses automatic rotation for the best position. */
                 if (da == 0.0f && jump_b == 0)
                 {
                     float s;
@@ -1311,22 +1374,19 @@ void game_update_view(float dt)
                     v_sub(multiview1.e[2], multiview1.p, multiview1.c);
                     v_nrm(multiview1.e[2], multiview1.e[2]);
 
-                    s = fpowf(view_time, 3.0f) / fpowf(view_fade, 3.0f);
-                    s = CLAMP(0.0f, s, 1.0f);
-
                     float direction_v[3];
 
                     /* Multiply the speeds */
 
-                    direction_v[2] = fcosf(last_diraxis / 180 * V_PI) * 5;
-                    direction_v[0] = fsinf(last_diraxis / -180 * V_PI) * 5;
+                    direction_v[2] = fcosf(last_diraxis / 180 * V_PI) / 10000;
+                    direction_v[0] = fsinf(last_diraxis / -180 * V_PI) / 10000;
 
                     /* Gradually restore view vector convergence rate. */
 
                     s = fpowf(view_time, 3.0f) / fpowf(view_fade, 3.0f);
-                    s = CLAMP(0.001f, s, 1.0f);
+                    s = CLAMP(0.0f, s, 1.0f);
 
-                    v_mad(multiview1.e[2], multiview1.e[2], direction_v, v_len(direction_v) * 0.25f * s * dt);
+                    v_mad(multiview1.e[2], multiview1.e[2], direction_v, v_len(direction_v) / 2000 * s * dt);
                 }
             }
 
@@ -1391,9 +1451,7 @@ void game_update_view(float dt)
     game_cmd_updview();
 }
 
-#if defined(__EMSCRIPTEN__) || _MSC_VER
 void game_disable_chkp(void);
-#endif
 
 static void game_update_time(float dt, int b)
 {
@@ -1478,7 +1536,7 @@ static int game_update_state(int bt)
                 /* Clocks are only effective on timed levels */
                 int seconds = hp->n;
 
-                game_update_time((float)-seconds, bt);
+                game_update_time((float) -seconds, bt);
                 incr_gained(seconds);
             }
 
@@ -1502,7 +1560,7 @@ static int game_update_state(int bt)
 
                 if (last_diraxis != campaign_get_camera_box_trigger(cami).camdirection)
                 {
-                    view_fade = 1.0f;
+                    view_fade = CLAMP(VIEW_FADE_MIN, -view_time, VIEW_FADE_MAX);
                     view_time = 0.0f;
                     last_diraxis = campaign_get_camera_box_trigger(cami).camdirection;
                 }
@@ -1601,7 +1659,8 @@ static int game_update_state(int bt)
 
     /* Test for a goal. */
 
-    if (bt && !timer_hold && goal_e && (zp = sol_goal_test(&vary, p, CURR_PLAYER)))
+    if (bt && !timer_hold
+        && goal_e && (zp = sol_goal_test(&vary, p, CURR_PLAYER)))
     {
 #if ENABLE_DEDICATED_SERVER==1
         networking_dedicated_levelstatus_send(curr_file_name, GAME_GOAL, p);
@@ -1616,7 +1675,8 @@ static int game_update_state(int bt)
 
     /* Border controls */
 
-    if (bt && !timer_hold && (vary.base->vc == 0 || vary.uv[CURR_PLAYER].p[1] < vary.base->vv[0].p[1] - (0.875f * 2.0f)))
+    if (bt && !timer_hold
+        && (vary.base->vc == 0 || !game_check_map_border(CURR_PLAYER, 0.875f * 2.0f)))
     {
         v_cpy(fix_cam_pos, view.p);
         fix_cam_lock[CURR_PLAYER] = 1;
@@ -1636,7 +1696,8 @@ static int game_update_state(int bt)
 
     /* Time controls */
 
-    if (bt && !timer_hold && timer_down && timer < 0.f)
+    if (bt && !timer_hold
+        && timer_down && timer < 0.f)
     {
         assert(curr_mode() != MODE_ZEN);
 
@@ -1793,7 +1854,7 @@ static void game_server_iter(float dt)
             game_cmd_status();
         break;
 #else
-    case GAME_GOAL: game_step(!checkpoints_busy ? GRAVITY_DN : GRAVITY_BUSY, dt, 0); break;
+    case GAME_GOAL: game_step(!checkpoints_busy ? GRAVITY_UP : GRAVITY_BUSY, dt, 0); break;
     case GAME_FALL: game_step(!checkpoints_busy ? GRAVITY_DN : GRAVITY_BUSY, dt, 0); break;
     case GAME_NONE:
         if ((status = game_step(!checkpoints_busy ? GRAVITY_DN : GRAVITY_BUSY, dt, !checkpoints_busy ? 1 : 0)) != GAME_NONE)
@@ -1801,7 +1862,7 @@ static void game_server_iter(float dt)
         break;
 #endif
 #else
-    case GAME_GOAL: game_step(campaign_used() ? GRAVITY_DN : GRAVITY_UP, dt, 0); break;
+    case GAME_GOAL: game_step(GRAVITY_UP, dt, 0); break;
     case GAME_FALL: game_step(GRAVITY_DN, dt, 0); break;
     case GAME_NONE:
         if ((status = game_step(GRAVITY_DN, dt, 1)) != GAME_NONE)

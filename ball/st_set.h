@@ -10,8 +10,8 @@ extern int is_boost_on(void);
 extern struct state st_set;
 extern struct state st_campaign;
 
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-extern struct state st_levelgroup;
-#endif
+int goto_playgame(void);
+int goto_playgame_register(void);
+int goto_playmenu(int);
 
 #endif

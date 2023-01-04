@@ -52,6 +52,7 @@ struct game_lerp
     struct game_tilt tilt[2];
     struct game_view view[2];
 
+    float timer[2];                     /* Clock time                        */
     float goal_k[2];
     float jump_dt[2];
 	float chkp_k[2];

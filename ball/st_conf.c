@@ -23,6 +23,7 @@
 #include "st_beam_style.h"
 #endif
 
+#include "log.h"
 #include "demo.h"
 #include "demo_dir.h"
 #include "gui.h"
@@ -57,13 +58,27 @@ extern const char ICON[];
 
 /*---------------------------------------------------------------------------*/
 
+struct state st_conf_covid_extend;
+struct state st_conf_social;
+struct state st_conf_notification;
+struct state st_conf_control;
+struct state st_conf_calibrate;
+struct state st_conf_controllers;
+struct state st_conf_audio;
+
+/*---------------------------------------------------------------------------*/
+
+static int ingame_demo = 0;
 static int mainmenu_conf = 1;
 static struct state *conf_back_state;
 
-int goto_conf(struct state *back_state, int using_game)
+int goto_conf(struct state *back_state, int using_game, int demo)
 {
-    mainmenu_conf = !using_game;
     conf_back_state = back_state;
+
+    ingame_demo = demo;
+    mainmenu_conf = !using_game;
+
     return goto_state(&st_conf);
 }
 
@@ -91,7 +106,7 @@ static int conf_covid_extend_method;
  * will removed. So, if it falls before saving your replays again its
  * because they were bugged. Sorry :/
  */
-int conf_covid_extended;
+int conf_covid_extended = 0;
 
 /**
  * de_DE:
@@ -117,10 +132,10 @@ int conf_covid_extended;
  */
 
 static struct state *returnstate;
-static int covid_register_with_mask = 0;
 
-int goto_conf_covid_extend(struct state *returnable, int auto_extend, int draw_back)
+int goto_conf_covid_extend(struct state *returnable)
 {
+    conf_covid_extend_method = 1;
     returnstate = returnable;
 
     return goto_state_full(&st_conf_covid_extend, 0, 0, 0);
@@ -223,6 +238,30 @@ static int conf_covid_extend_enter(struct state *st, struct state *prev)
 
 /*---------------------------------------------------------------------------*/
 
+#define CONF_ACCOUNT_DEMO_LOCKED_DESC_INGAME \
+    _("You can't change save filters\\during the game.")
+
+#define CONF_ACCOUNT_DEMO_LOCKED_DESC_INTRODUCTIVE \
+    _("Some filters restricts replays.\\Locked level status: %s")
+
+#define CONF_ACCOUNT_DEMO_LOCKED_DESC_HARDLOCK \
+    _("Replays have locked down\\until the next future update.")
+
+#define CONF_ACCOUNT_DEMO_LOCKED_DESC_HIGHRISK \
+    _("Replays have locked down\\during high risks!")
+
+#define CONF_ACCOUNT_DEMO_LOCKED_DESC_NIGHT \
+    _("Replays have locked down\\between 16:00 - 8:00 (4:00 PM - 8:00 AM).")
+
+#define CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1 \
+    _("Only Finish")
+
+#define CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2 \
+    _("Keep on board")
+
+#define CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3 \
+    _("Always active")
+
 int save_id, load_id;
 int online_mode;
 
@@ -264,8 +303,7 @@ static int conf_account_action(int tok, int val)
         break;
 
     case CONF_ACCOUNT_COVID_EXTEND:
-        conf_covid_extend_method = 1;
-        goto_conf_covid_extend(&st_conf_account, 0, 1);
+        goto_conf_covid_extend(&st_conf_account);
         break;
 
     case CONF_ACCOUNT_MAYHEM:
@@ -294,7 +332,7 @@ static int conf_account_action(int tok, int val)
 #ifdef CONFIG_INCLUDES_ACCOUNT
         goto_shop_rename(&st_conf_account, &st_conf_account, 1);
 #else
-        goto_name(&st_conf_account, &st_conf_account, 1);
+        goto_name(&st_conf_account, &st_conf_account, 0, 0, 1);
 #endif
         break;
 
@@ -319,17 +357,17 @@ static int conf_account_action(int tok, int val)
         }
         else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 2)
         {
-            gui_set_label(save_id, _("Always active"));
+            gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3);
             config_set_d(CONFIG_ACCOUNT_SAVE, 3);
         }
         else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 1)
         {
-            gui_set_label(save_id, _("Keep on board"));
+            gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
             config_set_d(CONFIG_ACCOUNT_SAVE, 2);
         }
         else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 0)
         {
-            gui_set_label(save_id, _("Only Finish"));
+            gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1);
             config_set_d(CONFIG_ACCOUNT_SAVE, 1);
         }
 #else
@@ -342,7 +380,7 @@ static int conf_account_action(int tok, int val)
         {
             if (conf_covid_extended)
             {
-                gui_set_label(save_id, _("Always active"));
+                gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3);
                 config_set_d(CONFIG_ACCOUNT_SAVE, 3);
             }
             else
@@ -353,12 +391,12 @@ static int conf_account_action(int tok, int val)
         }
         else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 1)
         {
-            gui_set_label(save_id, _("Keep on board"));
+            gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
             config_set_d(CONFIG_ACCOUNT_SAVE, 2);
         }
         else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 0)
         {
-            gui_set_label(save_id, _("Only Finish"));
+            gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1);
             config_set_d(CONFIG_ACCOUNT_SAVE, 1);
         }
 #endif
@@ -369,40 +407,40 @@ static int conf_account_action(int tok, int val)
 #ifndef DEMO_QUARANTINED_MODE
         if (config_get_d(CONFIG_ACCOUNT_LOAD) == 3)
         {
-            gui_set_label(load_id, _("Only Finish"));
+            gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1);
             config_set_d(CONFIG_ACCOUNT_LOAD, 1);
         }
         else if (config_get_d(CONFIG_ACCOUNT_LOAD) == 1)
         {
-            gui_set_label(load_id, _("Keep on board"));
+            gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
             config_set_d(CONFIG_ACCOUNT_LOAD, 2);
         }
         else if (config_get_d(CONFIG_ACCOUNT_LOAD) == 2)
         {
-            gui_set_label(load_id, _("All"));
+            gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3);
             config_set_d(CONFIG_ACCOUNT_LOAD, 3);
         }
 #else
         if (config_get_d(CONFIG_ACCOUNT_LOAD) == 3)
         {
-            gui_set_label(load_id, _("Only Finish"));
+            gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1);
             config_set_d(CONFIG_ACCOUNT_LOAD, 1);
         }
         else if (config_get_d(CONFIG_ACCOUNT_LOAD) == 1)
         {
-            gui_set_label(load_id, _("Keep on board"));
+            gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
             config_set_d(CONFIG_ACCOUNT_LOAD, 2);
         }
         else if (config_get_d(CONFIG_ACCOUNT_LOAD) == 2)
         {
             if (conf_covid_extended)
             {
-                gui_set_label(load_id, _("All"));
+                gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3);
                 config_set_d(CONFIG_ACCOUNT_LOAD, 3);
             }
-            else
+            else if (config_get_d(CONFIG_ACCOUNT_SAVE) <= 1)
             {
-                gui_set_label(load_id, _("Only Finish"));
+                gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1);
                 config_set_d(CONFIG_ACCOUNT_LOAD, 1);
             }
         }
@@ -446,26 +484,50 @@ static int conf_account_gui(void)
         int name_id, ball_id, beam_id;
 
         conf_header(id, _("Account"), GUI_BACK);
+
+        if (!ingame_demo && !mainmenu_conf)
+        {
+            gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_DESC_INGAME,
+                      GUI_SML, gui_red, gui_red);
+            gui_space(id);
+        }
+        else
+        {
 #ifdef COVID_HIGH_RISK
-        time_remain_lbl_id = gui_multi(id, _("Replays have locked down\\during high risks!"), GUI_SML, gui_red, gui_red);
-        gui_space(id);
+            time_remain_lbl_id = gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_HIGHRISK_DESC,
+                                           GUI_SML, gui_red, gui_red);
+            gui_space(id);
 #else
 #ifdef DEMO_QUARANTINED_MODE
 #ifdef DEMO_LOCKDOWN_COMPLETE
-        time_remain_lbl_id = gui_multi(id, _("Replays have locked down\\until the next future update."), GUI_SML, gui_red, gui_red);
+            time_remain_lbl_id = gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_HARDLOCK_DESC,
+                                           GUI_SML, gui_red, gui_red);
+            gui_space(id);
 #else
-        /* Lockdown duration time. DO NOT EDIT!*/
-        int nolockdown; DEMO_LOCKDOWN_RANGE_NIGHT(
-            nolockdown,
-            DEMO_LOCKDOWN_RANGE_NIGHT_START_HOUR_DEFAULT,
-            DEMO_LOCKDOWN_RANGE_NIGHT_END_HOUR_DEFAULT
-        );
+            /* Lockdown duration time. DO NOT EDIT!*/
+            int nolockdown; DEMO_LOCKDOWN_RANGE_NIGHT(
+                nolockdown,
+                DEMO_LOCKDOWN_RANGE_NIGHT_START_HOUR_DEFAULT,
+                DEMO_LOCKDOWN_RANGE_NIGHT_END_HOUR_DEFAULT
+            );
 
-        if (nolockdown)
-        {
-            if (conf_covid_extended != 1)
+            if (nolockdown)
             {
-                time_remain_lbl_id = gui_multi(id, _("Some exeeded status (such Aborted\\or Time-out) restricts replays."), GUI_SML, gui_red, gui_red);
+                char filter_introductive_attr[MAXSTR];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s
+#else
+                sprintf
+#endif
+                       (filter_introductive_attr,
+                       CONF_ACCOUNT_DEMO_LOCKED_DESC_INTRODUCTIVE,
+                       _(status_to_str(3)));
+
+                time_remain_lbl_id = gui_multi(id,
+                                               filter_introductive_attr,
+                                               GUI_SML, gui_red, gui_red);
+
                 if (conf_covid_extended == 0)
                 {
                     gui_space(id);
@@ -473,14 +535,14 @@ static int conf_account_gui(void)
                 }
             }
             else
-                time_remain_lbl_id = gui_multi(id, _("Full access valid until locked down.\\Time Remaining: - h - m - s"), GUI_SML, gui_red, gui_red);
+                gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_DESC_NIGHT,
+                          GUI_SML, gui_red, gui_red);
+
+            gui_space(id);
+#endif
+#endif
+#endif
         }
-        else
-            gui_multi(id, _("Replays have locked down\\between 16:00 - 8:00 (4:00 PM - 8:00 AM)."), GUI_SML, gui_red, gui_red);
-#endif
-        gui_space(id);
-#endif
-#endif
 
 #ifdef ENABLE_SQL
         int signin_id = gui_state(id, _("Sign in as Neverball"), GUI_SML, CONF_ACCOUNT_SIGNIN, 0);
@@ -511,11 +573,14 @@ static int conf_account_gui(void)
                 //config_get_d(CONFIG_ACCOUNT_AUTOUPDATE), _("On"), 1, _("Off"), 0);
 #endif
 
-            name_id = conf_state(id, _("Player Name"), "                            ", CONF_ACCOUNT_PLAYER);
+            name_id = conf_state(id, _("Player Name"), "XXXXXXXXXXXXXX",
+                                 CONF_ACCOUNT_PLAYER);
 #if NB_HAVE_PB_BOTH==1
-            ball_id = conf_state(id, _("Ball Model"), "                            ", CONF_ACCOUNT_BALL);
+            ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX",
+                                 CONF_ACCOUNT_BALL);
 #ifdef CONFIG_INCLUDES_ACCOUNT
-            beam_id = conf_state(id, _("Beam Style"), "                            ", CONF_ACCOUNT_BEAM);
+            beam_id = conf_state(id, _("Beam Style"), "XXXXXXXXXXXXXX",
+                                 CONF_ACCOUNT_BEAM);
 #endif
 #endif
 
@@ -531,7 +596,7 @@ static int conf_account_gui(void)
 #endif
             {
                 /*
-                 * If the account is signed in,
+                 * If the account is signed in e.g. Steam,
                  * you cannot change the player name.
                  */
 
@@ -572,11 +637,11 @@ static int conf_account_gui(void)
         switch (save)
         {
         /* All save filters: Goal, Aborted, Time-out, Fall-out */
-        case 3: savefilter = _("Always active"); break;
+        case 3: savefilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3; break;
         /* Keep filters: Goal, Aborted, Time-out */
-        case 2: savefilter = _("Keep on board"); break;
+        case 2: savefilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2; break;
         /* Only Goal filters: Goal */
-        case 1: savefilter = _("Only Finish"); break;
+        case 1: savefilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1; break;
         case 0: savefilter = _("Off"); break;
         }
 
@@ -584,23 +649,28 @@ static int conf_account_gui(void)
         switch (load)
         {
         /* All save filters: Goal, Aborted, Time-out, Fall-out */
-        case 3: loadfilter = _("Always active"); break;
+        case 3: loadfilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3; break;
         /* Keep filters: Goal, Aborted, Time-out */
-        case 2: loadfilter = _("Keep on board"); break;
+        case 2: loadfilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2; break;
         /* Only Goal filters: Goal */
-        case 1: loadfilter = _("Only Finish"); break;
+        case 1: loadfilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1; break;
         }
 
-        save_id = conf_state(id, _("Save Replay"), " ", CONF_ACCOUNT_SAVE);
-        load_id = conf_state(id, _("Replay Filter"), " ", CONF_ACCOUNT_LOAD);
+        save_id = conf_state(id, _("Save Replay"), "XXXXXXXXXXXXXX",
+                             !ingame_demo && !mainmenu_conf ? GUI_NONE : CONF_ACCOUNT_SAVE);
+        load_id = conf_state(id, _("Replay Filter"), "XXXXXXXXXXXXXX",
+                             CONF_ACCOUNT_LOAD);
 
-        gui_layout(id, 0, 0);
+        if (!ingame_demo && !mainmenu_conf)
+            gui_set_color(save_id, gui_gry, gui_gry);
 
         gui_set_trunc(save_id, TRUNC_TAIL);
         gui_set_trunc(load_id, TRUNC_TAIL);
 
         gui_set_label(save_id, savefilter);
         gui_set_label(load_id, loadfilter);
+
+        gui_layout(id, 0, 0);
     }
 
     return id;
@@ -608,27 +678,6 @@ static int conf_account_gui(void)
 
 static int conf_account_enter(struct state *st, struct state *prev)
 {
-#ifdef DEMO_QUARANTINED_MODE
-#ifndef DEMO_LOCKDOWN_COMPLETE
-    time_t lockdown_date = time(NULL);
-    int clockhour = localtime(&lockdown_date)->tm_hour;
-
-    int nolockdown; DEMO_LOCKDOWN_RANGE_NIGHT(
-        nolockdown,
-        DEMO_LOCKDOWN_RANGE_NIGHT_START_HOUR_DEFAULT,
-        DEMO_LOCKDOWN_RANGE_NIGHT_END_HOUR_DEFAULT
-    );
-    if (covid_register_with_mask)
-    {
-        covid_register_with_mask = 0;
-        if (nolockdown)
-        {
-            goto_conf_covid_extend(&st_conf_account, 0, 1);
-            return 0;
-        }
-    }
-#endif
-#endif
     if (prev == &st_ball) game_fade(-6.0f);
 
     if (mainmenu_conf)
@@ -663,27 +712,31 @@ static void conf_account_timer(int id, float dt)
         int clock_sec  = (int) MAX(0, (sec) % 60);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(cv19_infoattr, dstSize, ("Full access valid until locked down.\\Time Remaining: %i h %i m %i s"),
+        sprintf_s(cv19_infoattr, dstSize,
 #else
-        sprintf(cv19_infoattr, ("Full access valid until locked down.\\Time Remaining: %i h %i m %i s"),
+        sprintf(cv19_infoattr,
 #endif
+            _("Full access valid until locked down.\\Time Remaining: %i h %i m %i s"),
             clock_hour, clock_min, clock_sec);
 
         if (time_remain_lbl_id != 0)
             gui_set_multi(time_remain_lbl_id, cv19_infoattr);
     }
-    else if (conf_covid_extended != 0 && sec < 0)
+    else if (conf_covid_extended != 0 && !nolockdown)
     {
+        log_errorf("You can access all replay filters, but it's too late! "
+            "Reason: %s\n", strerror(EACCES));
+
         conf_covid_extended = 0;
         
         if (config_get_d(CONFIG_ACCOUNT_SAVE) > 2)
         {
-            gui_set_label(save_id, _("Keep on board"));
+            gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
             config_set_d(CONFIG_ACCOUNT_SAVE, 2);
             config_save();
         }
 
-        gui_set_multi(time_remain_lbl_id, _("Replays have locked down\\between 16:00 - 8:00 (4:00 PM - 8:00 AM)."));
+        gui_set_multi(time_remain_lbl_id, CONF_ACCOUNT_DEMO_LOCKED_DESC_NIGHT);
     }
 }
 
@@ -711,9 +764,11 @@ static int conf_social_action(int tok, int val)
 #else
         system("x-www-browser https://discord.gg/qnJR263Hm2/");
 #endif
-
-        goto_state(&st_null);
-        return 0;
+        if (mainmenu_conf)
+        {
+            goto_state(&st_null);
+            return 0; /* bye! */
+        }
     }
     return 1;
 }
@@ -731,18 +786,21 @@ static int conf_social_gui(void)
         if ((jd = gui_vstack(id)))
         {
             gui_label(jd,
-                _("Inviting Discord server will allow to:"),
-                GUI_SML, 0, 0);
+                      _("Inviting Discord server will allow to:"),
+                      GUI_SML, gui_wht, gui_cya);
 
             gui_multi(jd,
-                _("- Access the game edition for you\\"
-                  "- Adds your checkpoints from map compiler\\"
-                  "- Share any levels from MAPC for PB\\"),
-                GUI_SML, gui_wht, gui_wht);
+                      _("- Access the game edition to you\\"
+                        "- Keep collected coins into your account\\"
+                        "- Use powerups in Challenge mode\\"
+                        "- Adds your checkpoints from map compiler\\"
+                        "- Share any levels from MAPC for PB\\"),
+                        GUI_SML, gui_wht, gui_wht);
 
-            gui_label(jd,
-                _("This may take a while, and the game will exit."),
-                GUI_SML, gui_cya, gui_cya);
+            if (mainmenu_conf)
+                gui_label(jd,
+                          _("This may take a while, and the game will then exit."),
+                          GUI_SML, gui_twi, gui_vio);
 
             gui_set_rect(jd, GUI_ALL);
         }
@@ -1125,8 +1183,8 @@ static const char *conf_controllers_option_values_ps[] = {
     N_("L2"),
     N_("R1"),
     N_("R2"),
-    N_("<"),
-    N_(">"),
+    N_(GUI_ARROW_LFT),
+    N_(GUI_ARROW_RGHT),
 
     "",
 
@@ -1191,8 +1249,8 @@ static const char *conf_controllers_option_values_handset[] = {
     N_(""),
     N_("R"),
     N_(""),
-    N_("<"),
-    N_(">"),
+    N_(GUI_ARROW_LFT),
+    N_(GUI_ARROW_RGHT),
 
     "",
 
@@ -1354,7 +1412,7 @@ static int conf_controllers_gui(void)
 
             if (i == 10)
             {
-                //Switch the GUI token / assignment type.
+                /* Switch the GUI token / assignment type. */
                 token = CONF_CONTROLLERS_ASSIGN_AXIS;
 
                 gui_filler(id);
@@ -1622,13 +1680,9 @@ void conf_calibrate_stick(int id, int a, float v, int bump)
     if (calibrate_method == 1)
     {
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))
-        {
             calib_x0 = v;
-        }
         else if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y0, a))
-        {
             calib_y0 = v;
-        }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(axisattr, dstSize, "X: %f; Y: %f", (calib_x0 + axis_offset[0]), (calib_y0 + axis_offset[1]));
@@ -1639,13 +1693,9 @@ void conf_calibrate_stick(int id, int a, float v, int bump)
     else if (calibrate_method == 2)
     {
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X1, a))
-        {
             calib_x1 = v;
-        }
         else if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y1, a))
-        {
             calib_y1 = v;
-        }
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(axisattr, dstSize, "X: %f; Y: %f", (calib_x1 + axis_offset[2]), (calib_y1 + axis_offset[3]));
 #else
@@ -1749,7 +1799,8 @@ static int narrator_id[11];
 #if NB_HAVE_PB_BOTH==1
 enum
 {
-    CONF_AUDIO_MASTER_VOLUME = GUI_LAST,
+    CONF_AUDIO_CHANGEDEVICE = GUI_LAST,
+    CONF_AUDIO_MASTER_VOLUME,
     CONF_AUDIO_MUSIC_VOLUME,
     CONF_AUDIO_SOUND_VOLUME,
     CONF_AUDIO_NARRATOR_VOLUME
@@ -1810,7 +1861,7 @@ static int conf_audio_action(int tok, int val)
         break;
 #endif
     case GUI_BACK:
-        goto_state(&st_conf);
+        return goto_state(&st_conf);
         break;
     }
 
@@ -1832,18 +1883,18 @@ static int conf_audio_gui(void)
 
 #if NB_HAVE_PB_BOTH==1
         conf_slider(id, _("Master Volume"), CONF_AUDIO_MASTER_VOLUME, master,
-            master_id, ARRAYSIZE(master_id));
+                    master_id, ARRAYSIZE(master_id));
 
         gui_space(id);
 
         conf_slider(id, _("Music Volume"), CONF_AUDIO_MUSIC_VOLUME, music,
-            music_id, ARRAYSIZE(music_id));
+                    music_id, ARRAYSIZE(music_id));
         conf_slider(id, _("Sound Volume"), CONF_AUDIO_SOUND_VOLUME, sound,
-            sound_id, ARRAYSIZE(sound_id));
+                    sound_id, ARRAYSIZE(sound_id));
         conf_slider(id, _("Narrator Volume"), CONF_AUDIO_NARRATOR_VOLUME, narrator,
-            narrator_id, ARRAYSIZE(narrator_id));
+                    narrator_id, ARRAYSIZE(narrator_id));
 #else
-        gui_multi(id, _("Switchball requires\\NB_HAVE_PB_BOTH\\preprocessor definitions"), GUI_SML, gui_red, gui_red);
+        gui_multi(id, _("Switchball configurations\\requires NB_HAVE_PB_BOTH\\preprocessor definitions"), GUI_SML, gui_red, gui_red);
 #endif
     }
     gui_layout(id, 0, 0);
@@ -1959,18 +2010,11 @@ static int conf_action(int tok, int val)
     case CONF_MANAGE_ACCOUNT:
 #if NB_HAVE_PB_BOTH==1
         if (strlen(config_get_s(CONFIG_PLAYER)) < 3 || !conf_check_playername(config_get_s(CONFIG_PLAYER)))
-        {
-#ifdef DEMO_QUARANTINED_MODE
-#ifndef DEMO_LOCKDOWN_COMPLETE
-            covid_register_with_mask = 1;
-#endif
-#endif
-            goto_name(&st_conf_account, &st_conf, 1);
-        }
+            goto_name(&st_conf_account, &st_conf, goto_conf_covid_extend, 0, 1);
         else
             goto_state(&st_conf_account);
 #else
-        goto_name(&st_conf_account, &st_conf, 1);
+        goto_name(&st_conf_account, &st_conf, 0, 0, 1);
 #endif
         break;
 
@@ -2057,7 +2101,7 @@ static int conf_gui(void)
     /*
      * Initialize the configuration GUI.
      *
-     * In order: Game settings, video settings, audio settings controls settings
+     * In order: Game settings, video settings, audio settings, controls settings
      */
 
     if ((id = gui_vstack(0)))
@@ -2070,13 +2114,14 @@ static int conf_gui(void)
 #if GAME_TRANSFER_TARGET==1
             conf_state(id, _("Neverball Game Transfer"), _("Start"), CONF_SYSTEMTRANSFER_TARGET);
 #else
-            conf_state(id, _("Neverball Transfer Tool"), _("Start"), CONF_SYSTEMTRANSFER_SOURCE);
+            conf_state(id, _("Pennyball Transfer Tool"), _("Start"), CONF_SYSTEMTRANSFER_SOURCE);
 #endif
             gui_space(id);
         }
 #endif
 
-        conf_state(id, _("Social (Discord)"), _("Join"), CONF_SOCIAL);
+        int rd = conf_state(id, _("Community (Discord)"), _("Join"), CONF_SOCIAL);
+        gui_set_color(rd, gui_wht, gui_cya);
 
 #if NB_HAVE_PB_BOTH==1
         gui_space(id);
@@ -2122,13 +2167,26 @@ static int conf_gui(void)
 
         int name_id, ball_id;
         gui_space(id);
-        name_id = conf_state(id, _("Player Name"), "                            ", CONF_MANAGE_ACCOUNT);
+        name_id = conf_state(id, _("Player Name"), "XXXXXXXXXXXXXX", CONF_MANAGE_ACCOUNT);
         gui_set_trunc(name_id, TRUNC_TAIL);
-        ball_id = conf_state(id, _("Ball Model"), "                            ", CONF_BALL);
+        ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX", CONF_BALL);
         gui_set_trunc(ball_id, TRUNC_TAIL);
 
         gui_set_label(name_id, player);
         gui_set_label(ball_id, base_name(ball));
+
+#if NB_EOS_SDK==0 || NB_STEAM_API==0
+        if (online_mode || !account_changeable)
+#endif
+        {
+            /*
+             * If the account is signed in e.g. Steam,
+             * you cannot change the player name.
+             */
+
+            gui_set_state(name_id, GUI_NONE, 0);
+            gui_set_color(name_id, gui_gry, gui_gry);
+        }
 #endif
 
         if (mainmenu_conf)
@@ -2184,7 +2242,7 @@ static void conf_shared_timer(int id, float dt)
 
 static int null_enter(struct state *st, struct state *prev)
 {
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     xbox_control_gui_free();
 #endif
     hud_free();
@@ -2218,7 +2276,7 @@ static void null_leave(struct state *st, struct state *next, int id)
 
     gui_init();
     hud_init();
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     xbox_control_gui_init();
 #endif
 

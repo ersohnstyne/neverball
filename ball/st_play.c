@@ -15,7 +15,7 @@
 #include <assert.h>
 
 #if NB_HAVE_PB_BOTH==1
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
 
@@ -151,9 +151,7 @@ static void __countdown_preparation_draw()
 static void __countdown_preparation_setgreen()
 {
     for (int i = 0; i < 12; i++)
-    {
         local_countdown_preparation[i].isgreen = 1;
-    }
 }
 
 #undef COUNTDOWN_PREPARATION_CROSS_LEN
@@ -225,6 +223,9 @@ static void play_shared_fade(float alpha)
 
 /*---------------------------------------------------------------------------*/
 
+#ifdef MAPC_INCLUDES_CHKP
+static int restart_cancel_allchkp;
+#endif
 static int play_freeze_all;
 static int use_mouse;
 static int use_keyboard;
@@ -245,7 +246,9 @@ static int play_ready_gui(void)
 static int play_ready_enter(struct state *st, struct state *prev)
 {
     __countdown_preparation_init();
-
+#ifdef MAPC_INCLUDES_CHKP
+    restart_cancel_allchkp = 0;
+#endif
     play_freeze_all = 0;
     if (curr_mode() == MODE_NONE)
     {
@@ -298,7 +301,6 @@ static void play_ready_timer(int id, float dt)
     float t = time_state();
 
     game_client_fly(1.0f - 0.5f * t);
-    hud_update(0, dt);
     
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (current_platform != PLATFORM_PC)
@@ -313,16 +315,17 @@ static void play_ready_timer(int id, float dt)
         goto_state_full(&st_play_set, 0, 0, 1);
 
     game_step_fade(dt);
+    game_client_blend(game_server_blend());
     game_client_sync(!campaign_hardcore_norecordings() && curr_mode() != MODE_NONE ? demo_fp : NULL);
 
-#if !defined(__EMSCRIPTEN__)
+    gui_timer(id, dt);
+
+#ifndef __EMSCRIPTEN__
     if (xbox_show_gui())
         hud_cam_timer(dt);
     else if (hud_visibility())
 #endif
         hud_timer(dt);
-
-    gui_timer(id, dt);
 }
 
 static void play_ready_stick(int id, int a, float v, int bump)
@@ -355,7 +358,7 @@ static int play_ready_keybd(int c, int d)
 #endif
         {
             hud_speedup_reset();
-            goto_state(&st_pause);
+            goto_pause(curr_state());
         }
     }
     return 1;
@@ -372,7 +375,7 @@ static int play_ready_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
         {
             hud_speedup_reset();
-            return goto_state(&st_pause);
+            return goto_pause(curr_state());
         }
     }
     return 1;
@@ -395,6 +398,9 @@ static int play_set_gui(void)
 
 static int play_set_enter(struct state *st, struct state *prev)
 {
+#ifdef MAPC_INCLUDES_CHKP
+    restart_cancel_allchkp = 0;
+#endif
     play_freeze_all = 0;
     if (curr_mode() == MODE_NONE) return 0; /* Cannot run traffic in home room. */
     audio_narrator_play(AUD_SET);
@@ -431,17 +437,7 @@ static void play_set_timer(int id, float dt)
     float t = time_state();
 
     game_client_fly(0.5f - 0.5f * t);
-    hud_update(0, dt);
     
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    if (current_platform != PLATFORM_PC)
-    {
-        xbox_control_gui_set_alpha(CLAMP(0.0f, flerp(6.0f, 0.0f, t), 1.0f));
-        hud_set_alpha(CLAMP(0.0f, flerp(-5.0f, 1.0f, t), 1.0f));
-        hud_timer(dt);
-    }
-#endif
-
     if (dt > 0.0f && t > 1.0f)
     {
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
@@ -451,17 +447,23 @@ static void play_set_timer(int id, float dt)
     }
 
     game_step_fade(dt);
+    game_client_blend(game_server_blend());
     game_client_sync(!campaign_hardcore_norecordings() && curr_mode() != MODE_NONE ? demo_fp : NULL);
 
-    hud_cam_timer(dt);
-#if !defined(__EMSCRIPTEN__)
+    gui_timer(id, dt);
+
+#ifndef __EMSCRIPTEN__
+    if (current_platform != PLATFORM_PC)
+    {
+        xbox_control_gui_set_alpha(CLAMP(0.0f, flerp(6.0f, 0.0f, t), 1.0f));
+        hud_set_alpha(CLAMP(0.0f, flerp(-5.0f, 1.0f, t), 1.0f));
+    }
+
     if (xbox_show_gui() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_cam_timer(dt);
     else if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
 #endif
         hud_timer(dt);
-
-    gui_timer(id, dt);
 }
 
 static void play_set_stick(int id, int a, float v, int bump)
@@ -495,7 +497,7 @@ static int play_set_keybd(int c, int d)
 #endif
         {
             hud_speedup_reset();
-            goto_state(&st_pause);
+            goto_pause(curr_state());
         }
     }
     return 1;
@@ -512,7 +514,7 @@ static int play_set_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
         {
             hud_speedup_reset();
-            return goto_state(&st_pause);
+            return goto_pause(curr_state());
         }
     }
     return 1;
@@ -610,12 +612,14 @@ static int play_loop_gui(void)
 }
 
 struct state *global_prev;
-static float smoothfix_slowdown;
+static float smoothfix_slowdown_time;
 
 static int play_loop_enter(struct state *st, struct state *prev)
 {
-    smoothfix_slowdown = 0;
-
+    smoothfix_slowdown_time = 0;
+#ifdef MAPC_INCLUDES_CHKP
+    restart_cancel_allchkp = 0;
+#endif
     play_freeze_all = 0;
     play_block_state = 0;
     rot_init();
@@ -680,30 +684,27 @@ static void play_loop_paint(int id, float t)
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_paint();
 
-    if (time_state() < 1.f)
+    if (time_state() < 1.f && id)
     {
-        if (id)
-        {
-            __countdown_preparation_draw();
-            gui_paint(id);
-        }
+        __countdown_preparation_draw();
+        gui_paint(id);
     }
 }
 
 static void play_loop_timer(int id, float dt)
 {
-    if (!config_get_d(CONFIG_FORCE_SMOOTH_FIX) && config_get_d(CONFIG_SMOOTH_FIX) && video_perf() < 25.f)
+    if (config_get_d(CONFIG_SMOOTH_FIX) && video_perf() < 25.f)
     {
-        smoothfix_slowdown += dt;
+        smoothfix_slowdown_time += dt;
 
-        if (!config_get_d(CONFIG_FORCE_SMOOTH_FIX) && smoothfix_slowdown >= 30)
+        if (smoothfix_slowdown_time >= 30)
         {
-            config_set_d(CONFIG_SMOOTH_FIX, 0);
-            smoothfix_slowdown = 0;
+            config_set_d(CONFIG_SMOOTH_FIX, config_get_d(CONFIG_FORCE_SMOOTH_FIX));
+            smoothfix_slowdown_time = 0;
         }
     }
     else
-        smoothfix_slowdown = 0;
+        smoothfix_slowdown_time = 0;
 
     game_lerp_pose_point_tick(dt);
 
@@ -768,8 +769,8 @@ static void play_loop_timer(int id, float dt)
          * and holding down both rotation buttons freezes the camera
          * rotation.
          */
-         //game_set_rot(0.0f);
-         //game_set_cam(CAM_3);
+         /* game_set_rot(0.0f);  */
+         /* game_set_cam(CAM_3); */
         break;
 
     case ROT_ROTATE:
@@ -787,7 +788,9 @@ static void play_loop_timer(int id, float dt)
 
     game_step_fade(dt);
 
-    game_server_step(dt);
+    if (!play_freeze_all)
+        game_server_step(dt);
+
     game_client_blend(game_server_blend());
     game_client_sync(!campaign_hardcore_norecordings() && curr_mode() != MODE_NONE ? demo_fp : NULL);
 
@@ -841,7 +844,7 @@ static void play_loop_point(int id, int x, int y, int dx, int dy)
 {
 #if NDEBUG
     /* Good news: This isn't controlled with mouse while debug mode. */
-#if !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
     if (current_platform == PLATFORM_PC)
 #endif
     {
@@ -860,8 +863,8 @@ static void play_loop_point(int id, int x, int y, int dx, int dy)
                 game_set_pos(0, 0);
 
                 float k = (fast_rotate ?
-                    (float)config_get_d(CONFIG_ROTATE_FAST) / 100.0f :
-                    (float)config_get_d(CONFIG_ROTATE_SLOW) / 100.0f);
+                    (float) config_get_d(CONFIG_ROTATE_FAST) / 100.0f :
+                    (float) config_get_d(CONFIG_ROTATE_SLOW) / 100.0f);
 
                 rotation_offset = (-50 * dx) / config_get_d(CONFIG_MOUSE_SENSE);
             }
@@ -979,56 +982,67 @@ static int play_loop_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-        if (config_tst_d(CONFIG_KEY_CAMERA_R, c) && current_platform == PLATFORM_PC)
-            rot_set(DIR_R, 1.0f, 0);
-        if (config_tst_d(CONFIG_KEY_CAMERA_L, c) && current_platform == PLATFORM_PC)
-            rot_set(DIR_L, 1.0f, 0);
-        if (config_tst_d(CONFIG_KEY_ROTATE_FAST, c) && current_platform == PLATFORM_PC)
-            fast_rotate = 1;
-
-        keybd_camera(c);
-
-        if (config_tst_d(CONFIG_KEY_RESTART, c) &&
-            progress_same_avail() && current_platform == PLATFORM_PC)
-        {
-            play_freeze_all = 1;
-            if (progress_same())
-                goto_state(&st_play_ready);
-        }
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-        {
-            play_freeze_all = 1;
-            hud_speedup_reset();
-            goto_state(&st_pause);
-        }
-#else
-        if (config_tst_d(CONFIG_KEY_CAMERA_R, c))
-            rot_set(DIR_R, 1.0f, 0);
-        if (config_tst_d(CONFIG_KEY_CAMERA_L, c))
-            rot_set(DIR_L, 1.0f, 0);
-        if (config_tst_d(CONFIG_KEY_ROTATE_FAST, c))
-            fast_rotate = 1;
-
-        keybd_camera(c);
-
-        if (config_tst_d(CONFIG_KEY_RESTART, c) &&
-            progress_same_avail())
-        {
-            play_freeze_all = 1;
-            if (progress_same())
-                goto_state(&st_play_ready);
-        }
-        if (c == KEY_EXIT)
-        {
-            play_freeze_all = 1;
-            hud_speedup_reset();
-            goto_state(&st_pause);
-        }
+#ifdef MAPC_INCLUDES_CHKP
+        if (c == SDLK_LCTRL || c == SDLK_LGUI)
+            restart_cancel_allchkp = 1;
 #endif
+
+        if (config_tst_d(CONFIG_KEY_CAMERA_R, c)
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+            && current_platform == PLATFORM_PC
+#endif
+            )
+            rot_set(DIR_R, 1.0f, 0);
+        if (config_tst_d(CONFIG_KEY_CAMERA_L, c)
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+            && current_platform == PLATFORM_PC
+#endif
+            )
+            rot_set(DIR_L, 1.0f, 0);
+        if (config_tst_d(CONFIG_KEY_ROTATE_FAST, c)
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+            && current_platform == PLATFORM_PC
+#endif
+            )
+            fast_rotate = 1;
+
+        keybd_camera(c);
+
+        if (config_tst_d(CONFIG_KEY_RESTART, c)
+            && progress_same_avail()
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+            && current_platform == PLATFORM_PC
+#endif
+            )
+        {
+            play_freeze_all = 1;
+
+#ifdef MAPC_INCLUDES_CHKP
+            if (restart_cancel_allchkp)
+                checkpoints_stop();
+            if (last_active)
+                checkpoints_respawn();
+#endif
+            if (progress_same())
+                goto_state(&st_play_ready);
+        }
+        if (c == KEY_EXIT
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+            && current_platform == PLATFORM_PC
+#endif
+            )
+        {
+            play_freeze_all = 1;
+            hud_speedup_reset();
+            goto_pause(curr_state());
+        }
     }
     else
     {
+#ifdef MAPC_INCLUDES_CHKP
+        if (c == SDLK_LCTRL || c == SDLK_LGUI)
+            restart_cancel_allchkp = 1;
+#endif
         if (config_tst_d(CONFIG_KEY_CAMERA_R, c))
             rot_clr(DIR_R);
         if (config_tst_d(CONFIG_KEY_CAMERA_L, c))
@@ -1061,7 +1075,7 @@ static int play_loop_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
         {
             hud_speedup_reset();
-            goto_state(&st_pause);
+            goto_pause(curr_state());
         }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b))
             rot_set(DIR_R, 1.0f, 0);
@@ -1088,8 +1102,8 @@ static int play_loop_touch(const SDL_TouchFingerEvent *event)
 {
     if (event->type == SDL_FINGERMOTION)
     {
-        int dx = (int)((float)video.device_w * event->dx);
-        int dy = (int)((float)video.device_h * -event->dy);
+        int dx = (int) ((float) video.device_w * event->dx);
+        int dy = (int) ((float) video.device_h * -event->dy);
 
         game_set_pos(dx, dy);
     }
@@ -1104,8 +1118,8 @@ static void play_loop_wheel(int x, int y)
     if (config_get_d(CONFIG_VIEW_DP) == 75 && config_get_d(CONFIG_VIEW_DC) == 25 && config_get_d(CONFIG_VIEW_DZ) == 200)
     {
         /* For some reasons, this may not work on zoom functions. */
-        //if (y > 0) game_set_zoom(-1.0f);
-        //if (y < 0) game_set_zoom(1.0f);
+        /* if (y > 0) game_set_zoom(-1.0f); */
+        /* if (y < 0) game_set_zoom(1.0f); */
     }
     return;
 }
@@ -1115,9 +1129,7 @@ static void play_loop_wheel(int x, int y)
 void play_shared_leave(struct state *st, struct state *next, int id)
 {
     if (curr_mode() == MODE_NONE)
-    {
         game_set_pos(0, 0);
-    }
 
     gui_delete(id);
 }

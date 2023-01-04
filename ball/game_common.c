@@ -54,7 +54,8 @@ const char *cam_to_str(int c)
     s = cam_speed(c);
 
     if (s <    0) return _("Manual Camera");
-    if (s <= 100) return _("Static Camera");
+    if (s <=   0) return _("Static Camera");
+    if (s <= 100) return _("Lazy Camera");
     if (s <= 500) return _("Chase Camera");
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS

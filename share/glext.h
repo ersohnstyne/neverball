@@ -24,7 +24,7 @@
 
 #if _MSC_VER
 #include <wingdi.h>
-#define ENABLE_GL_NV
+//#define ENABLE_GL_NV
 #endif
 #endif
 
@@ -35,7 +35,8 @@
 #endif
 
 #if _WIN32 || defined(__EMSCRIPTEN__)
-#include <GL/glext.h>
+/* glext.lib can be used it later. */
+//#include <GL/glext.h>
 #endif
 
 /* Windows calling convention cruft. */
@@ -273,7 +274,7 @@
 #define GL_DRAW_ELEMENTS_INSTANCED_COMMAND_NV   0x0006
 #endif
 
-#ifndef GL_DRAW_ELEMENTS_INSTANCED_COMMAND_NV
+#ifndef GL_DRAW_ARRAYS_INSTANCED_COMMAND_NV
 #define GL_DRAW_ARRAYS_INSTANCED_COMMAND_NV     0x0007
 #endif
 
@@ -293,7 +294,7 @@
 #define GL_BLEND_COLOR_COMMAND_NV               0x000B
 #endif
 
-#ifndef GL_BLEND_COLOR_COMMAND_NV
+#ifndef GL_STENCIL_REF_COMMAND_NV
 #define GL_STENCIL_REF_COMMAND_NV               0x000C
 #endif
 
@@ -373,12 +374,12 @@ extern PFNGLACTIVETEXTURE_PROC       glActiveTexture_;
 /*---------------------------------------------------------------------------*/
 /* ARB_vertex_buffer_object                                                  */
 
-typedef void      (APIENTRYP PFNGLGENBUFFERS_PROC)(GLsizei, GLuint *);
-typedef void      (APIENTRYP PFNGLBINDBUFFER_PROC)(GLenum, GLuint);
-typedef void      (APIENTRYP PFNGLBUFFERDATA_PROC)(GLenum, long, const GLvoid *, GLenum);
-typedef void      (APIENTRYP PFNGLBUFFERSUBDATA_PROC)(GLenum, long, long, const GLvoid *);
-typedef void      (APIENTRYP PFNGLDELETEBUFFERS_PROC)(GLsizei, const GLuint *);
-typedef GLboolean (APIENTRYP PFNGLISBUFFER_PROC)(GLuint);
+typedef void      (APIENTRYP PFNGLGENBUFFERS_PROC) (GLsizei, GLuint *);
+typedef void      (APIENTRYP PFNGLBINDBUFFER_PROC) (GLenum, GLuint);
+typedef void      (APIENTRYP PFNGLBUFFERDATA_PROC) (GLenum, long, const GLvoid *, GLenum);
+typedef void      (APIENTRYP PFNGLBUFFERSUBDATA_PROC) (GLenum, long, long, const GLvoid *);
+typedef void      (APIENTRYP PFNGLDELETEBUFFERS_PROC) (GLsizei, const GLuint *);
+typedef GLboolean (APIENTRYP PFNGLISBUFFER_PROC) (GLuint);
 
 extern PFNGLGENBUFFERS_PROC    glGenBuffers_;
 extern PFNGLBINDBUFFER_PROC    glBindBuffer_;
@@ -390,7 +391,7 @@ extern PFNGLISBUFFER_PROC      glIsBuffer_;
 /*---------------------------------------------------------------------------*/
 /* ARB_point_parameters                                                      */
 
-typedef void (APIENTRYP PFNGLPOINTPARAMETERFV_PROC)(GLenum, const GLfloat *);
+typedef void (APIENTRYP PFNGLPOINTPARAMETERFV_PROC) (GLenum, const GLfloat *);
 typedef void (APIENTRYP PFNGLPOINTPARAMETERF_PROC) (GLenum, const GLfloat);
 
 extern PFNGLPOINTPARAMETERFV_PROC glPointParameterfv_;
@@ -399,24 +400,24 @@ extern PFNGLPOINTPARAMETERF_PROC  glPointParameterf_;
 /*---------------------------------------------------------------------------*/
 /* OpenGL Shading Language                                                   */
 
-typedef void   (APIENTRYP PFNGLGETSHADERIV_PROC)(GLuint, GLenum, GLint *);
-typedef void   (APIENTRYP PFNGLGETSHADERINFOLOG_PROC)(GLuint, GLsizei, GLsizei *, char *);
-typedef void   (APIENTRYP PFNGLGETPROGRAMIV_PROC)(GLuint, GLenum, GLint *);
-typedef void   (APIENTRYP PFNGLGETPROGRAMINFOLOG_PROC)(GLuint, GLsizei, GLsizei *, char *);
-typedef GLuint (APIENTRYP PFNGLCREATESHADER_PROC)(GLenum);
-typedef GLuint (APIENTRYP PFNGLCREATEPROGRAM_PROC)(void);
-typedef void   (APIENTRYP PFNGLSHADERSOURCE_PROC)(GLuint, GLsizei, const char * const *, const GLint *);
-typedef void   (APIENTRYP PFNGLCOMPILESHADER_PROC)(GLuint);
-typedef void   (APIENTRYP PFNGLDELETESHADER_PROC)(GLuint);
-typedef void   (APIENTRYP PFNGLDELETEPROGRAM_PROC)(GLuint);
-typedef void   (APIENTRYP PFNGLATTACHSHADER_PROC)(GLuint, GLuint);
-typedef void   (APIENTRYP PFNGLLINKPROGRAM_PROC)(GLuint);
-typedef void   (APIENTRYP PFNGLUSEPROGRAM_PROC)(GLuint);
-typedef GLint  (APIENTRYP PFNGLGETUNIFORMLOCATION_PROC)(GLuint, const char *);
-typedef void   (APIENTRYP PFNGLUNIFORM1F_PROC)(GLint, GLfloat);
-typedef void   (APIENTRYP PFNGLUNIFORM2F_PROC)(GLint, GLfloat, GLfloat);
-typedef void   (APIENTRYP PFNGLUNIFORM3F_PROC)(GLint, GLfloat, GLfloat, GLfloat);
-typedef void   (APIENTRYP PFNGLUNIFORM4F_PROC)(GLint, GLfloat, GLfloat, GLfloat, GLfloat);
+typedef void   (APIENTRYP PFNGLGETSHADERIV_PROC) (GLuint, GLenum, GLint *);
+typedef void   (APIENTRYP PFNGLGETSHADERINFOLOG_PROC) (GLuint, GLsizei, GLsizei *, char *);
+typedef void   (APIENTRYP PFNGLGETPROGRAMIV_PROC) (GLuint, GLenum, GLint *);
+typedef void   (APIENTRYP PFNGLGETPROGRAMINFOLOG_PROC) (GLuint, GLsizei, GLsizei *, char *);
+typedef GLuint (APIENTRYP PFNGLCREATESHADER_PROC) (GLenum);
+typedef GLuint (APIENTRYP PFNGLCREATEPROGRAM_PROC) (void);
+typedef void   (APIENTRYP PFNGLSHADERSOURCE_PROC) (GLuint, GLsizei, const char * const *, const GLint *);
+typedef void   (APIENTRYP PFNGLCOMPILESHADER_PROC) (GLuint);
+typedef void   (APIENTRYP PFNGLDELETESHADER_PROC) (GLuint);
+typedef void   (APIENTRYP PFNGLDELETEPROGRAM_PROC) (GLuint);
+typedef void   (APIENTRYP PFNGLATTACHSHADER_PROC) (GLuint, GLuint);
+typedef void   (APIENTRYP PFNGLLINKPROGRAM_PROC) (GLuint);
+typedef void   (APIENTRYP PFNGLUSEPROGRAM_PROC) (GLuint);
+typedef GLint  (APIENTRYP PFNGLGETUNIFORMLOCATION_PROC) (GLuint, const char *);
+typedef void   (APIENTRYP PFNGLUNIFORM1F_PROC) (GLint, GLfloat);
+typedef void   (APIENTRYP PFNGLUNIFORM2F_PROC) (GLint, GLfloat, GLfloat);
+typedef void   (APIENTRYP PFNGLUNIFORM3F_PROC) (GLint, GLfloat, GLfloat, GLfloat);
+typedef void   (APIENTRYP PFNGLUNIFORM4F_PROC) (GLint, GLfloat, GLfloat, GLfloat, GLfloat);
 
 extern PFNGLGETSHADERIV_PROC         glGetShaderiv_;
 extern PFNGLGETSHADERINFOLOG_PROC    glGetShaderInfoLog_;
@@ -440,11 +441,11 @@ extern PFNGLUNIFORM4F_PROC           glUniform4f_;
 /*---------------------------------------------------------------------------*/
 /* ARB_framebuffer_object                                                    */
 
-typedef void (APIENTRYP PFNGLBINDFRAMEBUFFER_PROC)(GLenum, GLuint);
-typedef void (APIENTRYP PFNGLDELETEFRAMEBUFFERS_PROC)(GLsizei, const GLuint *);
-typedef void (APIENTRYP PFNGLGENFRAMEBUFFERS_PROC)(GLsizei, GLuint *);
-typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTURE2D_PROC)(GLenum, GLenum, GLenum, GLuint, GLint);
-typedef GLenum (APIENTRYP PFNGLCHECKFRAMEBUFFERSTATUS_PROC)(GLenum);
+typedef void (APIENTRYP PFNGLBINDFRAMEBUFFER_PROC) (GLenum, GLuint);
+typedef void (APIENTRYP PFNGLDELETEFRAMEBUFFERS_PROC) (GLsizei, const GLuint *);
+typedef void (APIENTRYP PFNGLGENFRAMEBUFFERS_PROC) (GLsizei, GLuint *);
+typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTURE2D_PROC) (GLenum, GLenum, GLenum, GLuint, GLint);
+typedef GLenum (APIENTRYP PFNGLCHECKFRAMEBUFFERSTATUS_PROC) (GLenum);
 
 extern PFNGLBINDFRAMEBUFFER_PROC        glBindFramebuffer_;
 extern PFNGLDELETEFRAMEBUFFERS_PROC     glDeleteFramebuffers_;
@@ -463,7 +464,7 @@ extern PFNGLSTRINGMARKERGREMEDY_PROC glStringMarkerGREMEDY_;
     if (glStringMarkerGREMEDY_) \
         glStringMarkerGREMEDY_(0, (s))
 
-#if defined(ENABLE_GL_NV)
+#if ENABLE_GL_NV
 /*---------------------------------------------------------------------------*/
 /* GL_NV_clip_space_w_scaling                                                */
 
@@ -552,8 +553,9 @@ struct gl_info
     GLint max_texture_units;
     GLint max_texture_size;
 
-    unsigned int shader_objects     : 1;
-    unsigned int framebuffer_object : 1;
+    unsigned int texture_filter_anisotropic : 1;
+    unsigned int shader_objects             : 1;
+    unsigned int framebuffer_object         : 1;
 };
 
 extern struct gl_info gli;

@@ -21,6 +21,7 @@
 #include "st_intro_covid.h"
 #endif
 
+#include "log.h"
 #include "gui.h"
 #include "util.h"
 #include "audio.h"
@@ -36,6 +37,13 @@
 #include "st_conf.h"
 #include "st_save.h"
 #include "st_shared.h"
+
+/*---------------------------------------------------------------------------*/
+
+struct state st_save;
+struct state st_clobber;
+struct state st_lockdown;
+struct state st_save_error;
 
 /*---------------------------------------------------------------------------*/
 
@@ -67,8 +75,29 @@ static int file_id;
 
 enum
 {
-    SAVE_SAVE = GUI_LAST
+    SAVE_OK = GUI_LAST
 };
+
+static int enter_id;
+
+static void save_update_enter_btn(void)
+{
+    int name_accepted = text_length(text_input) > 2;
+
+    for (int i = 0; i < text_length(text_input); i++)
+    {
+        if (text_input[i] == '\\' || text_input[i] == '/' || text_input[i] == ':' || text_input[i] == '*' || text_input[i] == '?' || text_input[i] == '"' || text_input[i] == '<' || text_input[i] == '>' || text_input[i] == '|')
+        {
+            name_accepted = 0;
+            break;
+        }
+    }
+
+    gui_set_state(enter_id, name_accepted ? SAVE_OK : GUI_NONE, 0);
+    gui_set_color(enter_id,
+                  name_accepted ? gui_wht : gui_gry,
+                  name_accepted ? gui_wht : gui_gry);
+}
 
 static int save_action(int tok, int val)
 {
@@ -79,7 +108,7 @@ static int save_action(int tok, int val)
     case GUI_BACK:
         return goto_state(cancel_state);
 
-    case SAVE_SAVE:
+    case SAVE_OK:
 #ifdef DEMO_QUARANTINED_MODE
         /* Lockdown duration time. DO NOT EDIT! */
         int nolockdown; DEMO_LOCKDOWN_RANGE_NIGHT(nolockdown, 16, 8);
@@ -129,8 +158,6 @@ static int save_action(int tok, int val)
     return 1;
 }
 
-static int enter_id;
-
 static int save_gui(void)
 {
     int id, jd;
@@ -153,7 +180,7 @@ static int save_gui(void)
 
         if ((jd = gui_harray(id)))
         {
-            enter_id = gui_start(jd, _("Save"), GUI_SML, SAVE_SAVE, 0);
+            enter_id = gui_start(jd, _("Save"), GUI_SML, SAVE_OK, 0);
             gui_space(jd);
             gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
         }
@@ -218,6 +245,12 @@ static void save_leave(struct state *st, struct state *next, int id)
     gui_delete(id);
 }
 
+static void save_timer(int id, float dt)
+{
+    save_update_enter_btn();
+    gui_timer(id, dt);
+}
+
 static int save_keybd(int c, int d)
 {
     if (d)
@@ -264,12 +297,10 @@ static int clobber_action(int tok, int val)
 {
     audio_play(AUD_MENU, 1.0f);
 
-    if (tok == SAVE_SAVE)
+    if (tok == SAVE_OK)
     {
         if (curr_status() == GAME_FALL)
-        {
             conf_covid_retract();
-        }
 
         int r = demo_rename(text_input);
         return goto_state(r ? ok_state : &st_save_error);
@@ -291,7 +322,7 @@ static int clobber_gui(void)
         if ((jd = gui_harray(id)))
         {
             gui_start(jd, _("Cancel"),    GUI_SML, GUI_BACK, 0);
-            gui_state(jd, _("Overwrite"), GUI_SML, SAVE_SAVE, 0);
+            gui_state(jd, _("Overwrite"), GUI_SML, SAVE_OK, 0);
         }
 
         gui_pulse(kd, 1.2f);
@@ -369,6 +400,8 @@ static int lockdown_gui(void)
 
 static int lockdown_enter(struct state *st, struct state *prev)
 {
+    log_errorf("You can save your replays, but it's too late! "
+        "Reason: %s\n", strerror(EACCES));
     return lockdown_gui();
 }
 
@@ -445,7 +478,7 @@ struct state st_save = {
     save_enter,
     save_leave,
     shared_paint,
-    shared_timer,
+    save_timer,
     shared_point,
     shared_stick,
     shared_angle,

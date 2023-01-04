@@ -263,7 +263,7 @@ int  gui_score_get(void)
 static int lock = 1;
 static int keyd[127];
 static int keyd_en[127];
-static int keyd_de[127];
+static int keyd_de[256];
 
 /* Generic Keyboards */
 void gui_keyboard(int id)
@@ -326,7 +326,7 @@ void gui_keyboard(int id)
             if ((ld = gui_hstack(kd)))
             {
                 gui_filler(ld);
-                gui_state(ld, "<", GUI_SML, GUI_BS, 0);
+                gui_state(ld, GUI_ARROW_LFT, GUI_SML, GUI_BS, 0);
                 keyd['Z'] = gui_state(ld, "Z", GUI_SML, GUI_CHAR, 'Z');
                 keyd['Y'] = gui_state(ld, "Y", GUI_SML, GUI_CHAR, 'Y');
                 keyd['X'] = gui_state(ld, "X", GUI_SML, GUI_CHAR, 'X');
@@ -341,7 +341,40 @@ void gui_keyboard(int id)
     }
 }
 
-/* European Keyboards */
+/* Generic Keyboards */
+void gui_keyboard_lock(void)
+{
+    lock = lock ? 0 : 1;
+
+    gui_set_label(keyd['A'], lock ? "A" : "a");
+    gui_set_label(keyd['B'], lock ? "B" : "b");
+    gui_set_label(keyd['C'], lock ? "C" : "c");
+    gui_set_label(keyd['D'], lock ? "D" : "d");
+    gui_set_label(keyd['E'], lock ? "E" : "e");
+    gui_set_label(keyd['F'], lock ? "F" : "f");
+    gui_set_label(keyd['G'], lock ? "G" : "g");
+    gui_set_label(keyd['H'], lock ? "H" : "h");
+    gui_set_label(keyd['I'], lock ? "I" : "i");
+    gui_set_label(keyd['J'], lock ? "J" : "j");
+    gui_set_label(keyd['K'], lock ? "K" : "k");
+    gui_set_label(keyd['L'], lock ? "L" : "l");
+    gui_set_label(keyd['M'], lock ? "M" : "m");
+    gui_set_label(keyd['N'], lock ? "N" : "n");
+    gui_set_label(keyd['O'], lock ? "O" : "o");
+    gui_set_label(keyd['P'], lock ? "P" : "p");
+    gui_set_label(keyd['Q'], lock ? "Q" : "q");
+    gui_set_label(keyd['R'], lock ? "R" : "r");
+    gui_set_label(keyd['S'], lock ? "S" : "s");
+    gui_set_label(keyd['T'], lock ? "T" : "t");
+    gui_set_label(keyd['U'], lock ? "U" : "u");
+    gui_set_label(keyd['V'], lock ? "V" : "v");
+    gui_set_label(keyd['W'], lock ? "W" : "w");
+    gui_set_label(keyd['X'], lock ? "X" : "x");
+    gui_set_label(keyd['Y'], lock ? "Y" : "y");
+    gui_set_label(keyd['Z'], lock ? "Z" : "z");
+}
+
+/* Britain Keyboards */
 void gui_keyboard_en(int id)
 {
     int jd, kd, ld;
@@ -357,7 +390,7 @@ void gui_keyboard_en(int id)
             if ((ld = gui_hstack(kd)))
             {
                 gui_filler(ld);
-                gui_state(ld, "<", GUI_SML, GUI_BS, 0);
+                gui_state(ld, GUI_ARROW_LFT, GUI_SML, GUI_BS, 0);
                 keyd_en['='] = gui_state(ld, "+", GUI_SML, GUI_CHAR, '+');
                 keyd_en['-'] = gui_state(ld, "_", GUI_SML, GUI_CHAR, '_');
                 keyd_en['0'] = gui_state(ld, ")", GUI_SML, GUI_CHAR, ')');
@@ -419,39 +452,6 @@ void gui_keyboard_en(int id)
     }
 }
 
-/* Generic Keyboards */
-void gui_keyboard_lock(void)
-{
-    lock = lock ? 0 : 1;
-
-    gui_set_label(keyd['A'], lock ? "A" : "a");
-    gui_set_label(keyd['B'], lock ? "B" : "b");
-    gui_set_label(keyd['C'], lock ? "C" : "c");
-    gui_set_label(keyd['D'], lock ? "D" : "d");
-    gui_set_label(keyd['E'], lock ? "E" : "e");
-    gui_set_label(keyd['F'], lock ? "F" : "f");
-    gui_set_label(keyd['G'], lock ? "G" : "g");
-    gui_set_label(keyd['H'], lock ? "H" : "h");
-    gui_set_label(keyd['I'], lock ? "I" : "i");
-    gui_set_label(keyd['J'], lock ? "J" : "j");
-    gui_set_label(keyd['K'], lock ? "K" : "k");
-    gui_set_label(keyd['L'], lock ? "L" : "l");
-    gui_set_label(keyd['M'], lock ? "M" : "m");
-    gui_set_label(keyd['N'], lock ? "N" : "n");
-    gui_set_label(keyd['O'], lock ? "O" : "o");
-    gui_set_label(keyd['P'], lock ? "P" : "p");
-    gui_set_label(keyd['Q'], lock ? "Q" : "q");
-    gui_set_label(keyd['R'], lock ? "R" : "r");
-    gui_set_label(keyd['S'], lock ? "S" : "s");
-    gui_set_label(keyd['T'], lock ? "T" : "t");
-    gui_set_label(keyd['U'], lock ? "U" : "u");
-    gui_set_label(keyd['V'], lock ? "V" : "v");
-    gui_set_label(keyd['W'], lock ? "W" : "w");
-    gui_set_label(keyd['X'], lock ? "X" : "x");
-    gui_set_label(keyd['Y'], lock ? "Y" : "y");
-    gui_set_label(keyd['Z'], lock ? "Z" : "z");
-}
-
 /* Britain Keyboards */
 void gui_keyboard_lock_en(void)
 {
@@ -496,6 +496,145 @@ void gui_keyboard_lock_en(void)
     gui_set_label(keyd_en['X'], lock ? "X" : "x");
     gui_set_label(keyd_en['Y'], lock ? "Y" : "y");
     gui_set_label(keyd_en['Z'], lock ? "Z" : "z");
+}
+
+/* German Keyboards */
+void gui_keyboard_de(int id)
+{
+    int jd, kd, ld;
+
+    lock = 1;
+
+    if ((jd = gui_hstack(id)))
+    {
+        gui_filler(jd);
+
+        if ((kd = gui_vstack(jd)))
+        {
+            if ((ld = gui_hstack(kd)))
+            {
+                gui_filler(ld);
+                gui_state(ld, GUI_ARROW_LFT, GUI_SML, GUI_BS, 0);
+                keyd_de[(unsigned char) '´'] = gui_state(ld, "`", GUI_SML, GUI_CHAR, '`');
+                keyd_de[(unsigned char) 'ß'] = gui_state(ld, "?", GUI_SML, GUI_CHAR, '?');
+                keyd_de['0'] = gui_state(ld, "=", GUI_SML, GUI_CHAR, '=');
+                keyd_de['9'] = gui_state(ld, ")", GUI_SML, GUI_CHAR, ')');
+                keyd_de['8'] = gui_state(ld, "(", GUI_SML, GUI_CHAR, '(');
+                keyd_de['7'] = gui_state(ld, "/", GUI_SML, GUI_CHAR, '/');
+                keyd_de['6'] = gui_state(ld, "&", GUI_SML, GUI_CHAR, '&');
+                keyd_de['5'] = gui_state(ld, "%", GUI_SML, GUI_CHAR, '%');
+                keyd_de['4'] = gui_state(ld, "$", GUI_SML, GUI_CHAR, '$');
+                keyd_de['3'] = gui_state(ld, "§", GUI_SML, GUI_CHAR, '§');
+                keyd_de['2'] = gui_state(ld, "\"", GUI_SML, GUI_CHAR, '"');
+                keyd_de['1'] = gui_state(ld, "!", GUI_SML, GUI_CHAR, '!');
+                keyd_de['^'] = gui_state(ld, "°", GUI_SML, GUI_CHAR, '°');
+                gui_filler(ld);
+            }
+            if ((ld = gui_hstack(kd)))
+            {
+                gui_filler(ld);
+                keyd_de['\''] = gui_state(ld, "'", GUI_SML, GUI_CHAR, '\'');
+                keyd_de['*'] = gui_state(ld, "*", GUI_SML, GUI_CHAR, '*');
+                keyd_de[(unsigned char) 'Ü'] = gui_state(ld, "Ü", GUI_SML, GUI_CHAR, 'Ü');
+                keyd_de['P'] = gui_state(ld, "P", GUI_SML, GUI_CHAR, 'P');
+                keyd_de['O'] = gui_state(ld, "O", GUI_SML, GUI_CHAR, 'O');
+                keyd_de['I'] = gui_state(ld, "I", GUI_SML, GUI_CHAR, 'I');
+                keyd_de['U'] = gui_state(ld, "U", GUI_SML, GUI_CHAR, 'U');
+                keyd_de['Z'] = gui_state(ld, "Z", GUI_SML, GUI_CHAR, 'Z');
+                keyd_de['T'] = gui_state(ld, "T", GUI_SML, GUI_CHAR, 'T');
+                keyd_de['R'] = gui_state(ld, "R", GUI_SML, GUI_CHAR, 'R');
+                keyd_de['E'] = gui_state(ld, "E", GUI_SML, GUI_CHAR, 'E');
+                keyd_de['W'] = gui_state(ld, "W", GUI_SML, GUI_CHAR, 'W');
+                keyd_de['Q'] = gui_state(ld, "Q", GUI_SML, GUI_CHAR, 'Q');
+                gui_filler(ld);
+            }
+            if ((ld = gui_hstack(kd)))
+            {
+                gui_filler(ld);
+                keyd_de[(unsigned char) 'Ä'] = gui_state(ld, "Ä", GUI_SML, GUI_CHAR, 'Ä');
+                keyd_de[(unsigned char) 'Ö'] = gui_state(ld, "Ö", GUI_SML, GUI_CHAR, 'Ö');
+                keyd_de['L'] = gui_state(ld, "L", GUI_SML, GUI_CHAR, 'L');
+                keyd_de['K'] = gui_state(ld, "K", GUI_SML, GUI_CHAR, 'K');
+                keyd_de['J'] = gui_state(ld, "J", GUI_SML, GUI_CHAR, 'J');
+                keyd_de['H'] = gui_state(ld, "H", GUI_SML, GUI_CHAR, 'H');
+                keyd_de['G'] = gui_state(ld, "G", GUI_SML, GUI_CHAR, 'G');
+                keyd_de['F'] = gui_state(ld, "F", GUI_SML, GUI_CHAR, 'F');
+                keyd_de['D'] = gui_state(ld, "D", GUI_SML, GUI_CHAR, 'D');
+                keyd_de['S'] = gui_state(ld, "S", GUI_SML, GUI_CHAR, 'S');
+                keyd_de['A'] = gui_state(ld, "A", GUI_SML, GUI_CHAR, 'A');
+                gui_state(ld, _("caps"), GUI_SML, GUI_CL, 0);
+                gui_filler(ld);
+            }
+            if ((ld = gui_hstack(kd)))
+            {
+                gui_filler(ld);
+                keyd_de['_'] = gui_state(ld, "_", GUI_SML, GUI_CHAR, '_');
+                keyd_de[':'] = gui_state(ld, ":", GUI_SML, GUI_CHAR, ':');
+                keyd_de[';'] = gui_state(ld, ";", GUI_SML, GUI_CHAR, ';');
+                keyd_de['M'] = gui_state(ld, "M", GUI_SML, GUI_CHAR, 'M');
+                keyd_de['N'] = gui_state(ld, "N", GUI_SML, GUI_CHAR, 'N');
+                keyd_de['B'] = gui_state(ld, "B", GUI_SML, GUI_CHAR, 'B');
+                keyd_de['V'] = gui_state(ld, "V", GUI_SML, GUI_CHAR, 'V');
+                keyd_de['C'] = gui_state(ld, "C", GUI_SML, GUI_CHAR, 'C');
+                keyd_de['X'] = gui_state(ld, "X", GUI_SML, GUI_CHAR, 'X');
+                keyd_de['Y'] = gui_state(ld, "Y", GUI_SML, GUI_CHAR, 'Y');
+                gui_filler(ld);
+            }
+        }
+    }
+}
+
+void gui_keyboard_lock_de(void)
+{
+    lock = lock ? 0 : 1;
+
+    gui_set_label(keyd_de['^'], lock ? "°" : "^");
+    gui_set_label(keyd_de['1'], lock ? "!" : "1");
+    gui_set_label(keyd_de['2'], lock ? "\"" : "2");
+    gui_set_label(keyd_de['3'], lock ? "§" : "3");
+    gui_set_label(keyd_de['4'], lock ? "$" : "4");
+    gui_set_label(keyd_de['5'], lock ? "%" : "5");
+    gui_set_label(keyd_de['6'], lock ? "&" : "6");
+    gui_set_label(keyd_de['7'], lock ? "/" : "7");
+    gui_set_label(keyd_de['8'], lock ? "(" : "8");
+    gui_set_label(keyd_de['9'], lock ? ")" : "9");
+    gui_set_label(keyd_de['0'], lock ? "=" : "0");
+    gui_set_label(keyd_de[(unsigned char) 'ß'], lock ? "?" : "ß");
+    gui_set_label(keyd_de[(unsigned char) '´'], lock ? "`" : "´");
+    gui_set_label(keyd_de['*'], lock ? "*" : "+");
+    gui_set_label(keyd_de['\''], lock ? "'" : "#");
+    gui_set_label(keyd_de[';'], lock ? ";" : ",");
+    gui_set_label(keyd_de[':'], lock ? ":" : ".");
+    gui_set_label(keyd_de['_'], lock ? "_" : "-");
+    gui_set_label(keyd_de['A'], lock ? "A" : "a");
+    gui_set_label(keyd_de['B'], lock ? "B" : "b");
+    gui_set_label(keyd_de['C'], lock ? "C" : "c");
+    gui_set_label(keyd_de['D'], lock ? "D" : "d");
+    gui_set_label(keyd_de['E'], lock ? "E" : "e");
+    gui_set_label(keyd_de['F'], lock ? "F" : "f");
+    gui_set_label(keyd_de['G'], lock ? "G" : "g");
+    gui_set_label(keyd_de['H'], lock ? "H" : "h");
+    gui_set_label(keyd_de['I'], lock ? "I" : "i");
+    gui_set_label(keyd_de['J'], lock ? "J" : "j");
+    gui_set_label(keyd_de['K'], lock ? "K" : "k");
+    gui_set_label(keyd_de['L'], lock ? "L" : "l");
+    gui_set_label(keyd_de['M'], lock ? "M" : "m");
+    gui_set_label(keyd_de['N'], lock ? "N" : "n");
+    gui_set_label(keyd_de['O'], lock ? "O" : "o");
+    gui_set_label(keyd_de['P'], lock ? "P" : "p");
+    gui_set_label(keyd_de['Q'], lock ? "Q" : "q");
+    gui_set_label(keyd_de['R'], lock ? "R" : "r");
+    gui_set_label(keyd_de['S'], lock ? "S" : "s");
+    gui_set_label(keyd_de['T'], lock ? "T" : "t");
+    gui_set_label(keyd_de['U'], lock ? "U" : "u");
+    gui_set_label(keyd_de['V'], lock ? "V" : "v");
+    gui_set_label(keyd_de['W'], lock ? "W" : "w");
+    gui_set_label(keyd_de['X'], lock ? "X" : "x");
+    gui_set_label(keyd_de['Y'], lock ? "Y" : "y");
+    gui_set_label(keyd_de['Z'], lock ? "Z" : "z");
+    gui_set_label(keyd_de[(unsigned char) 'Ä'], lock ? "Ä" : "ä");
+    gui_set_label(keyd_de[(unsigned char) 'Ö'], lock ? "Ö" : "ö");
+    gui_set_label(keyd_de[(unsigned char) 'Ü'], lock ? "Ü" : "ü");
 }
 
 char gui_keyboard_char(char c)

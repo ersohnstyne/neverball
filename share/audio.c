@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2022 Microsoft / Neverball authors
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -651,14 +651,9 @@ void audio_music_fade_to(float t, const char *filename)
 {
     float clampedTime = CLAMP(0.001f, t, 1.0f);
 
-    if (music)
+    if (music && music->name)
     {
-        if (strcmp(filename, music->name) != 0)
-        {
-            audio_music_fade_out(t);
-            audio_music_queue(filename, clampedTime);
-        }
-        else
+        if (strcmp(filename, music->name) == 0)
         {
             /*
              * We're fading to the current track.  Chances are,
@@ -674,9 +669,16 @@ void audio_music_fade_to(float t, const char *filename)
 
             audio_music_fade_in(clampedTime);
         }
+        else
+        {
+            audio_music_fade_out(t);
+            audio_music_queue(filename, clampedTime);
+        }
     }
     else
     {
+        audio_music_stop();
+
         audio_music_play(filename);
         audio_music_fade_in(clampedTime);
     }

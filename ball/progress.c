@@ -316,7 +316,7 @@ void progress_buy_balls(int amount)
 
 void progress_step(void)
 {
-    if (level)
+    if (level && !replay)
     {
         if ((level_time(level) != 0 && !mediation_enabled()))
         {

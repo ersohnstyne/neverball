@@ -255,7 +255,7 @@ enum
 
 static int ball_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -385,11 +385,11 @@ static int ball_gui(void)
 
 #if NB_HAVE_PB_BOTH==1
 #if NB_STEAM_API==1
-        const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ? "Open Steam Workshop!"
+        const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ? N_("Open Steam Workshop!")
 #else
-        const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ? "Get more Balls!"
+        const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ? N_("Get more Balls!")
 #endif
-            : "Upgrade to Home Edition!";
+            : N_("Upgrade to Home Edition!");
 
         if ((account_get_d(ACCOUNT_PRODUCT_BALLS) == 1
             || server_policy_get_d(SERVER_POLICY_EDITION) < 0)

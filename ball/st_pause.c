@@ -89,7 +89,7 @@ int goto_pause(struct state *returnable)
 
 static int pause_action(int tok, int val)
 {
-    audio_play(curr_state() == &st_pause_quit && tok == PAUSE_CONTINUE ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -456,17 +456,17 @@ static int pause_quit_gui(void)
 
         gui_space(id);
 
-        char *quit_warn = campaign_hardcore() ? "Return to World selection?" : "Are you sure?\\You will lose all progress on this level.";
+        char *quit_warn = campaign_hardcore() ? _("Return to World selection?") : _("Are you sure?\\You will lose all progress on this level.");
         if (curr_mode() == MODE_NONE)
-            quit_warn = "Return to main menu?";
+            quit_warn = _("Return to main menu?");
 
         if (quit_uses_resetpuzzle)
-            quit_warn = "Are you sure?\\You will restart at the last checkpoint.";
+            quit_warn = _("Are you sure?\\You will restart at the last checkpoint.");
 
         if (!campaign_used() && curr_times() > 0)
-            quit_warn = "Are you sure?\\You will lose all progress on this level set.";
+            quit_warn = _("Are you sure?\\You will lose all progress on this level set.");
 
-        gui_multi(id, _(quit_warn), GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, quit_warn, GUI_SML, gui_wht, gui_wht);
 
         gui_space(id);
 

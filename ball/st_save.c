@@ -101,7 +101,7 @@ static void save_update_enter_btn(void)
 
 static int save_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -295,7 +295,7 @@ static int save_buttn(int b, int d)
 
 static int clobber_action(int tok, int val)
 {
-    audio_play(AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     if (tok == SAVE_OK)
     {

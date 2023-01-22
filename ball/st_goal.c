@@ -90,7 +90,7 @@ static int resume_hold;
 
 static int goal_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     /* Waiting for extra balls by collecting 100 coins */
     if (challenge_disable_all_buttons) return 1;
@@ -114,6 +114,7 @@ static int goal_action(int tok, int val)
 #endif
 
     case GOAL_DONE:
+        
         return goto_exit();
 
     case GUI_SCORE:
@@ -780,33 +781,32 @@ static int goal_shop_gui(void)
 #ifdef CONFIG_INCLUDES_ACCOUNT
 #ifdef LEVELGROUPS_INCLUDES_ZEN
         if (!account_get_d(ACCOUNT_PRODUCT_MEDIATION) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 120)
-            prodname = "Mediation";
+            prodname = _("Mediation");
         else if (!account_get_d(ACCOUNT_PRODUCT_BONUS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 180)
-            prodname = "Bonus Pack";
+            prodname = _("Bonus Pack");
         else if (!account_get_d(ACCOUNT_PRODUCT_BALLS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 250)
-            prodname = "Online Balls";
+            prodname = _("Online Balls");
         else if(!account_get_d(ACCOUNT_PRODUCT_LEVELS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 310)
-            prodname = "Extra Levels";
+            prodname = _("Extra Levels");
 #else
         if (!account_get_d(ACCOUNT_PRODUCT_BONUS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 180)
-            prodname = "Bonus Pack";
+            prodname = _("Bonus Pack");
         else if (!account_get_d(ACCOUNT_PRODUCT_BALLS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 250)
-            prodname = "Online Balls";
+            prodname = _("Online Balls");
         else if (!account_get_d(ACCOUNT_PRODUCT_LEVELS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 310)
-            prodname = "Extra Levels";
+            prodname = _("Extra Levels");
 #endif
 #endif
 
         char productmsg[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(productmsg, dstSize, "You have enough coins to buy\\%s.\\Try it out!", prodname);
+        sprintf_s(productmsg, dstSize, _("You have enough coins to buy\\%s.\\Try it out!"), prodname);
 #else
-        sprintf(productmsg, "You have enough coins to buy\\%s.\\Try it out!", prodname);
+        sprintf(productmsg, _("You have enough coins to buy\\%s.\\Try it out!"), prodname);
 #endif
 
-        gui_multi(id, _(productmsg),
-            GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, productmsg, GUI_SML, gui_wht, gui_wht);
 
         gui_pulse(msgid, 1.2f);
         gui_layout(id, 0, 0);

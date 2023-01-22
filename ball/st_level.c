@@ -105,7 +105,7 @@ enum {
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
 static int level_action(int tok, int val)
 {
-    audio_play(AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -674,6 +674,10 @@ int goto_exit(void)
     checkpoints_stop();
 #endif
 
+#ifdef CONFIG_INCLUDES_ACCOUNT
+    int prev_wallet_gems = account_get_d(ACCOUNT_DATA_WALLET_GEMS);
+#endif
+
     progress_stop();
     progress_exit();
 
@@ -716,9 +720,20 @@ int goto_exit(void)
 #endif
     if (progress_done() && !progress_dead())
     {
-        game_fade_color(0.0f, 0.25f, 0.0f);
         game_fade(+0.333f);
-        dst = &st_done;
+/*#ifdef CONFIG_INCLUDES_ACCOUNT
+        if (prev_wallet_gems < account_get_d(ACCOUNT_DATA_WALLET_GEMS) &&
+            account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= 1500)
+        {
+            game_fade_color(0.25f, 0.25f, 0.125f);
+            dst = &st_capital;
+        }
+        else
+#endif*/
+        {
+            game_fade_color(0.0f, 0.25f, 0.0f);
+            dst = &st_done;
+        }
     }
 #ifdef REQUIRES_COMPLEX_MODE
     else if (curr_mode() == MODE_BOOST_RUSH)

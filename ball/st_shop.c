@@ -53,6 +53,7 @@ struct state st_shop_rename;
 struct state st_shop_unregistered;
 struct state st_shop_iap;
 struct state st_shop_buy;
+struct state st_expenses_export;
 
 /*---------------------------------------------------------------------------*/
 
@@ -80,7 +81,7 @@ static int inaccept_playername = 0;
 
 static int shop_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
     
     inaccept_playername = 0;
 
@@ -326,7 +327,7 @@ static int shop_gui(void)
                     if ((ld = gui_vstack(kd)))
                     {
                         gui_space(ld);
-                        int nid = gui_label(ld, N_("Speedifier"), GUI_SML, gui_wht, gui_wht);
+                        int nid = gui_label(ld, "XXXXXXXX", GUI_SML, gui_wht, gui_wht);
                         gui_set_trunc(nid, TRUNC_TAIL);
                         gui_set_label(nid, _("Speedifier"));
                         gui_image(ld, "gui/shop/consum_speedifier.jpg", w / 7, h / 6);
@@ -337,7 +338,7 @@ static int shop_gui(void)
                     if ((ld = gui_vstack(kd)))
                     {
                         gui_space(ld);
-                        int nid = gui_label(ld, N_("Extra Balls"), GUI_SML, gui_wht, gui_wht);
+                        int nid = gui_label(ld, "XXXXXXXX", GUI_SML, gui_wht, gui_wht);
                         gui_set_trunc(nid, TRUNC_TAIL);
                         gui_set_label(nid, _("Extra Balls"));
                         gui_image(ld, "gui/shop/consum_balls.jpg", w / 7, h / 6);
@@ -353,7 +354,7 @@ static int shop_gui(void)
                     if ((ld = gui_vstack(kd)))
                     {
                         gui_space(ld);
-                        int nid = gui_label(ld, N_("Earninator"), GUI_SML, gui_wht, gui_wht);
+                        int nid = gui_label(ld, "XXXXXXXX", GUI_SML, gui_wht, gui_wht);
                         gui_set_trunc(nid, TRUNC_TAIL);
                         gui_set_label(nid, _("Earninator"));
                         gui_image(ld, "gui/shop/consum_earninator.jpg", w / 7, h / 6);
@@ -364,7 +365,7 @@ static int shop_gui(void)
                     if ((ld = gui_vstack(kd)))
                     {
                         gui_space(ld);
-                        int nid = gui_label(ld, N_("Floatifier"), GUI_SML, gui_wht, gui_wht);
+                        int nid = gui_label(ld, "XXXXXXXX", GUI_SML, gui_wht, gui_wht);
                         gui_set_trunc(nid, TRUNC_TAIL);
                         gui_set_label(nid, _("Floatifier"));
                         gui_image(ld, "gui/shop/consum_floatifier.jpg", w / 7, h / 6);
@@ -389,7 +390,9 @@ static int shop_gui(void)
                     if ((ld = gui_vstack(kd)))
                     {
                         gui_space(ld);
-                        gui_label(ld, _("Bonus Pack"), GUI_SML, gui_wht, account_get_d(ACCOUNT_PRODUCT_BONUS) ? gui_grn : gui_wht);
+                        int nid = gui_label(ld, "XXXXXXXXX", GUI_SML, gui_wht, account_get_d(ACCOUNT_PRODUCT_BONUS) ? gui_grn : gui_wht);
+                        gui_set_trunc(nid, TRUNC_TAIL);
+                        gui_set_label(nid, _("Bonus Pack"));
                         gui_image(ld, "gui/shop/bonus.jpg", w / 6, h / 6);
                         gui_filler(ld);
                         gui_set_state(ld, (account_get_d(ACCOUNT_PRODUCT_BONUS) ? GUI_NONE : SHOP_BUY), 2);
@@ -398,7 +401,9 @@ static int shop_gui(void)
                     if ((ld = gui_vstack(kd)))
                     {
                         gui_space(ld);
-                        gui_label(ld, _("Mediation"), GUI_SML, gui_wht, account_get_d(ACCOUNT_PRODUCT_MEDIATION) ? gui_grn : gui_wht);
+                        int nid = gui_label(ld, "XXXXXXXXX", GUI_SML, gui_wht, account_get_d(ACCOUNT_PRODUCT_MEDIATION) ? gui_grn : gui_wht);
+                        gui_set_trunc(nid, TRUNC_TAIL);
+                        gui_set_label(nid, _("Mediation"));
                         gui_image(ld, "gui/shop/mediation.jpg", w / 6, h / 6);
                         gui_filler(ld);
                         gui_set_state(ld, (account_get_d(ACCOUNT_PRODUCT_MEDIATION) ? GUI_NONE : SHOP_BUY), 3);
@@ -407,7 +412,9 @@ static int shop_gui(void)
                     if ((ld = gui_vstack(kd)))
                     {
                         gui_space(ld);
-                        gui_label(ld, _("Mediation"), GUI_SML, gui_gry, gui_gry);
+                        int nid = gui_label(ld, "XXXXXXXXX", GUI_SML, gui_gry, gui_gry);
+                        gui_set_trunc(nid, TRUNC_TAIL);
+                        gui_set_label(nid, _("Mediation"));
                         gui_image(ld, "gui/shop/mediation.jpg", w / 6, h / 6);
                         gui_filler(ld);
                         gui_set_state(ld, GUI_NONE, 3);
@@ -420,7 +427,9 @@ static int shop_gui(void)
                     if ((ld = gui_vstack(kd)))
                     {
                         gui_space(ld);
-                        gui_label(ld, _("Extra Levels"), GUI_SML, gui_wht, account_get_d(ACCOUNT_PRODUCT_LEVELS) ? gui_grn : gui_wht);
+                        int nid = gui_label(ld, "XXXXXXXXX", GUI_SML, gui_wht, account_get_d(ACCOUNT_PRODUCT_LEVELS) ? gui_grn : gui_wht);
+                        gui_set_trunc(nid, TRUNC_TAIL);
+                        gui_set_label(nid, _("Extra Levels"));
                         gui_image(ld, "gui/shop/levels.jpg", w / 6, h / 6);
                         gui_filler(ld);
                         gui_set_state(ld, (account_get_d(ACCOUNT_PRODUCT_LEVELS) ? GUI_NONE : SHOP_BUY), 0);
@@ -429,7 +438,9 @@ static int shop_gui(void)
                     if ((ld = gui_vstack(kd)))
                     {
                         gui_space(ld);
-                        gui_label(ld, _("Online Balls"), GUI_SML, gui_wht, account_get_d(ACCOUNT_PRODUCT_BALLS) ? gui_grn : gui_wht);
+                        int nid = gui_label(ld, "XXXXXXXXX", GUI_SML, gui_wht, account_get_d(ACCOUNT_PRODUCT_BALLS) ? gui_grn : gui_wht);
+                        gui_set_trunc(nid, TRUNC_TAIL);
+                        gui_set_label(nid, _("Online Balls"));
                         gui_image(ld, "gui/shop/balls.jpg", w / 6, h / 6);
                         gui_filler(ld);
                         gui_set_state(ld, (account_get_d(ACCOUNT_PRODUCT_BALLS) ? GUI_NONE : SHOP_BUY), 1);
@@ -558,7 +569,7 @@ int goto_shop_rename(struct state *ok, struct state *cancel, unsigned int back)
 
 static int shop_rename_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -674,7 +685,7 @@ enum
 
 static int shop_unregistered_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
     
     switch (tok)
     {
@@ -822,7 +833,8 @@ enum
 {
     SHOP_IAP_GET_BUY = GUI_LAST,
     SHOP_IAP_GET_SWITCH,
-    SHOP_IAP_ENTERCODE
+    SHOP_IAP_ENTERCODE,
+    SHOP_IAP_EXPORT
 };
 
 static struct state *ok_state;
@@ -870,7 +882,7 @@ static void shop_convert_to_coins(int gems, int coins)
 
 static int shop_iap_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
     
     switch (tok)
     {
@@ -924,6 +936,9 @@ static int shop_iap_action(int tok, int val)
                                   curr_ok_fn, curr_cancel_fn);
         break;
 #endif
+    case SHOP_IAP_EXPORT:
+        goto_state(&st_expenses_export);
+        break;
     }
     return 1;
 }
@@ -1089,9 +1104,9 @@ static int shop_iap_gui(void)
                         if (iapcoinvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS)))
                         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                            sprintf_s(iapattr, dstSize, _("%d Coins (" GUI_DIAMOND " %d)"), iapcoinvalue[multiply - 1], iapcoinfromgems[multiply - 1]);
+                            sprintf_s(iapattr, dstSize, _("%d Coins (%s %d)"), GUI_DIAMOND, iapcoinvalue[multiply - 1], iapcoinfromgems[multiply - 1]);
 #else
-                            sprintf(iapattr, _("%d Coins (" GUI_DIAMOND " %d)"), iapcoinvalue[multiply - 1], iapcoinfromgems[multiply - 1]);
+                            sprintf(iapattr, _("%d Coins (%s %d)"), GUI_DIAMOND, iapcoinvalue[multiply - 1], iapcoinfromgems[multiply - 1]);
 #endif
                             btniapmobile = gui_label(jd, iapattr, GUI_SML, account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? gui_wht : gui_red, account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? gui_wht : gui_red);
                             gui_set_state(btniapmobile, account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? SHOP_IAP_GET_BUY : GUI_NONE, multiply - 1);
@@ -1121,10 +1136,17 @@ static int shop_iap_gui(void)
         if (iappage)
         {
             gui_space(id);
-
             int enterkey_btn_id = gui_state(id, _("I have an order code!"), GUI_SML, SHOP_IAP_ENTERCODE, 0);
         }
 #endif
+
+        if (server_policy_get_d(SERVER_POLICY_EDITION) >= 10000
+            && ((account_get_d(ACCOUNT_DATA_WALLET_COINS) / 5) >= 1
+                || account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= 1))
+        {
+            gui_space(id);
+            gui_state(id, _("Export to Expenses"), GUI_SML, SHOP_IAP_EXPORT, 0);
+        }
 
         gui_layout(id, 0, 0);
     }
@@ -1216,7 +1238,7 @@ enum
 
 static int shop_buy_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
     
     int prodcost = 0;
 
@@ -1826,6 +1848,134 @@ static int shop_buy_buttn(int b, int d)
 }
 
 /*---------------------------------------------------------------------------*/
+
+enum
+{
+    EXPENSES_EXPORT_START = GUI_LAST
+};
+
+static int expenses_exported = 0;
+static int export_totalvalue = 0;
+
+static int expenses_export_action(int tok, int val)
+{
+    GENERIC_GAMEMENU_ACTION;
+
+    switch (tok)
+    {
+    case GUI_BACK:
+        return goto_state(&st_shop);
+        break;
+    case EXPENSES_EXPORT_START:
+        audio_play("snd/buyproduct.ogg", 1.0f);
+        export_totalvalue = (account_get_d(ACCOUNT_DATA_WALLET_COINS) / 5) * 16;
+        export_totalvalue += account_get_d(ACCOUNT_DATA_WALLET_GEMS) * 16;
+        account_set_d(ACCOUNT_DATA_WALLET_COINS, 0);
+        account_set_d(ACCOUNT_DATA_WALLET_GEMS, 0);
+        account_save();
+        expenses_exported = 1;
+        goto_state(curr_state());
+        break;
+    }
+
+    return 1;
+}
+
+static int expenses_export_gui(void)
+{
+    int id, jd;
+
+    if ((id = gui_vstack(0)))
+    {
+        char desc_attr[MAXSTR];
+
+        if (expenses_exported)
+        {
+            gui_title_header(id, _("Exported to Expenses"), GUI_MED, 0, 0);
+            int cents = export_totalvalue % 100;
+            int whole = floor(export_totalvalue / 100);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(desc_attr, dstSize,
+#else
+            sprintf(desc_attr,
+#endif
+                    _("We have %d,%02d € on your file.\\Consider entering to your Expenses app."), whole, cents);
+        }
+        else
+        {
+            gui_title_header(id, _("Export to Expenses?"), GUI_MED, 0, 0);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(desc_attr, dstSize,
+#else
+            sprintf(desc_attr,
+#endif
+                    _("Export Gems and transfer to Expenses app?"));
+        }
+
+        gui_space(id);
+        gui_multi(id, desc_attr, GUI_SML, gui_wht, gui_wht);
+        gui_space(id);
+
+        if (expenses_exported)
+            gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
+        else if ((jd = gui_harray(id)))
+        {
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+            if (current_platform == PLATFORM_PC)
+#endif
+            {
+                gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
+                gui_state(jd, _("Yes"), GUI_SML, EXPENSES_EXPORT_START, 0);
+            }
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+            else
+                gui_start(jd, _("Yes"), GUI_SML, EXPENSES_EXPORT_START, 0);
+#endif
+        }
+
+        gui_layout(id, 0, 0);
+    }
+
+    return id;
+}
+
+static int expenses_export_enter(struct state* st, struct state* prev)
+{
+    if (prev == &st_shop_iap)
+    {
+        expenses_exported = 0;
+        export_totalvalue = 0;
+    }
+
+    return expenses_export_gui();
+}
+
+static int expenses_export_keybd(int c, int d)
+{
+    if (d)
+    {
+        if (c == KEY_EXIT)
+            return expenses_export_action(GUI_BACK, 0);
+    }
+    return 1;
+}
+
+static int expenses_export_buttn(int b, int d)
+{
+    if (d)
+    {
+        int active = gui_active();
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+            return expenses_export_action(gui_token(active), gui_value(active));
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            return expenses_export_action(GUI_BACK, 0);
+    }
+    return 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
 struct state st_shop = {
     shop_enter,
     shared_leave,
@@ -1902,4 +2052,17 @@ struct state st_shop_buy = {
     shared_click,
     shop_buy_keybd,
     shop_buy_buttn
+};
+
+struct state st_expenses_export = {
+    expenses_export_enter,
+    shared_leave,
+    shared_paint,
+    shared_timer,
+    shared_point,
+    shared_stick,
+    shared_angle,
+    shared_click,
+    expenses_export_keybd,
+    expenses_export_buttn
 };

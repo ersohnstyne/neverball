@@ -206,7 +206,7 @@ static int get_widescreen()
 
 static int start_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GAMEPAD_GAMEMENU_ACTION_SCROLL(START_XBOX_LB, START_XBOX_RB, LEVEL_STEP);
 
     switch (tok)
     {
@@ -218,13 +218,10 @@ static int start_action(int tok, int val)
         break;
 
     case START_XBOX_RB:
-        if (first < total)
+        if (first + LEVEL_STEP < total)
         {
             first += LEVEL_STEP;
-            if (first >= total)
-                first -= LEVEL_STEP;
-            else
-                return goto_state_full(&st_start, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
+            return goto_state_full(&st_start, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
         }
         break;
 
@@ -725,7 +722,7 @@ enum
 
 static int start_joinrequired_action(int tok, int val)
 {
-    audio_play(tok == GUI_BACK ? AUD_BACK : AUD_MENU, 1.f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -760,10 +757,10 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev)
         gui_title_header(id, _("Powerups available"), GUI_MED, 0, 0);
         gui_space(id);
         gui_multi(id,
-                  _("Pennyball offers some of the most creative ways to\\"
-                  "compete with powerups! We just need you to upgrade\\"
-                  "to Pro edition so that we can make sure you have\\"
-                  "permission to use it."),
+            _("Pennyball offers some of the most creative ways to\\"
+              "compete with powerups! We just need you to upgrade\\"
+              "to Pro edition so that we can make sure you have\\"
+              "permission to use it."),
             GUI_SML, gui_wht, gui_wht);
         gui_space(id);
 

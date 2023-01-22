@@ -777,9 +777,9 @@ int level_score_update(struct level *l,
     score_time_insert(&l->scores[SCORE_GOAL], goal_rank, player, timer, coins);
     score_coin_insert(&l->scores[SCORE_COIN], coin_rank, player, timer, coins);
 
-    if ((time_rank && *time_rank < 3) ||
-        (goal_rank && *goal_rank < 3) ||
-        (coin_rank && *coin_rank < 3))
+    if ((time_rank && *time_rank < RANK_LAST) ||
+        (goal_rank && *goal_rank < RANK_LAST) ||
+        (coin_rank && *coin_rank < RANK_LAST))
         return 1;
     else
         return 0;

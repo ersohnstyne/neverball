@@ -111,7 +111,7 @@ static int help_page_category = PAGE_INTRODUCTION;
 
 static int help_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
 #if defined(SWITCHBALL_HELP)
     switch (tok)
@@ -508,7 +508,7 @@ static void controls_pc(int id)
 
     gui_multi(id, s_rotate_new, GUI_SML, gui_wht, gui_wht);
     gui_space(id);
-    gui_multi(id, _("Note that you can change keyboard and\\controller controls in the Controls Settings menu"), GUI_SML, gui_wht, gui_wht);
+    gui_multi(id, _("Note that you can change keyboard and\\controller controls in the Controls Settings menu."), GUI_SML, gui_wht, gui_wht);
 }
 
 #ifndef __EMSCRIPTEN__

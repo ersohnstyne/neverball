@@ -9,29 +9,30 @@
 #define AUD_INTRO_THROW   "snd/intro-throw.ogg"
 #define AUD_INTRO_SHATTER "snd/intro-shatter.ogg"
 
-#define AUD_FOCUS   "snd/focus.ogg"
-#define AUD_MENU    "snd/menu.ogg"
-#define AUD_START _("snd/select.ogg")
-#define AUD_READY _("snd/ready.ogg")
-#define AUD_SET   _("snd/set.ogg")
-#define AUD_GO    _("snd/go.ogg")
-#define AUD_BALL    "snd/ball.ogg"
-#define AUD_BUMPS   "snd/bumplil.ogg"
-#define AUD_BUMPM   "snd/bump.ogg"
-#define AUD_BUMPL   "snd/bumpbig.ogg"
-#define AUD_COIN    "snd/coin.ogg"
-#define AUD_TICK    "snd/tick.ogg"
-#define AUD_TOCK    "snd/tock.ogg"
-#define AUD_SWITCH  "snd/switch.ogg"
-#define AUD_JUMP    "snd/jump.ogg"
-#define AUD_GOAL    "snd/goal.ogg"
-#define AUD_SCORE _("snd/record.ogg")
-#define AUD_FALL  _("snd/fall.ogg")
-#define AUD_TIME  _("snd/time.ogg")
-#define AUD_OVER  _("snd/over.ogg")
-#define AUD_GROW    "snd/grow.ogg"
-#define AUD_SHRINK  "snd/shrink.ogg"
-#define AUD_CLOCK   "snd/clock.ogg"
+#define AUD_DISABLED "snd/disabled.ogg"
+#define AUD_FOCUS    "snd/focus.ogg"
+#define AUD_MENU     "snd/menu.ogg"
+#define AUD_START  _("snd/select.ogg")
+#define AUD_READY  _("snd/ready.ogg")
+#define AUD_SET    _("snd/set.ogg")
+#define AUD_GO     _("snd/go.ogg")
+#define AUD_BALL     "snd/ball.ogg"
+#define AUD_BUMPS    "snd/bumplil.ogg"
+#define AUD_BUMPM    "snd/bump.ogg"
+#define AUD_BUMPL    "snd/bumpbig.ogg"
+#define AUD_COIN     "snd/coin.ogg"
+#define AUD_TICK     "snd/tick.ogg"
+#define AUD_TOCK     "snd/tock.ogg"
+#define AUD_SWITCH   "snd/switch.ogg"
+#define AUD_JUMP     "snd/jump.ogg"
+#define AUD_GOAL     "snd/goal.ogg"
+#define AUD_SCORE  _("snd/record.ogg")
+#define AUD_FALL   _("snd/fall.ogg")
+#define AUD_TIME   _("snd/time.ogg")
+#define AUD_OVER   _("snd/over.ogg")
+#define AUD_GROW     "snd/grow.ogg"
+#define AUD_SHRINK   "snd/shrink.ogg"
+#define AUD_CLOCK    "snd/clock.ogg"
 
 /* And with Switchball features? */
 
@@ -41,6 +42,33 @@
 #define AUD_CHKP      "snd/checkpoint.ogg"
 #define AUD_RESPAWN   "snd/respawn.ogg"
 #define AUD_GOAL_N    "snd/goal_noninvert.ogg"
+
+/*---------------------------------------------------------------------------*/
+
+/* Macros helps with the action game menu. */
+
+#define GENERIC_GAMEMENU_ACTION                      \
+        if (st_global_animating()) {                 \
+            audio_play(AUD_DISABLED, 1.f);           \
+            return 1;                                \
+        } else audio_play(GUI_BACK == tok ?          \
+                          AUD_BACK :                 \
+                          (GUI_NONE == tok ?         \
+                           AUD_DISABLED : AUD_MENU), \
+                          1.f)
+
+#define GAMEPAD_GAMEMENU_ACTION_SCROLL(tok1, tok2, itemstep) \
+        if (st_global_animating()) {                         \
+            audio_play(AUD_DISABLED, 1.f);                   \
+            return 1;                                        \
+        } else if (tok == tok1 || tok == tok2) {             \
+            if (tok == tok1)                                 \
+                audio_play(first > 1 ?                       \
+                           AUD_DISABLED : AUD_MENU, 1.f);    \
+            if (tok == tok2)                                 \
+                audio_play(first + itemstep < total ?        \
+                           AUD_DISABLED : AUD_MENU, 1.f);    \
+        } else GENERIC_GAMEMENU_ACTION
 
 /*---------------------------------------------------------------------------*/
 
@@ -67,7 +95,7 @@ enum
     CAM_2, /* Static Camera */
     CAM_3, /* Manual / Free camera */
 
-	CAM_AUTO, /* Switchball uses an automatic camera */
+    CAM_AUTO, /* Switchball uses an automatic camera */
 
     CAM_MAX
 };
@@ -168,8 +196,8 @@ enum
 
     SPEED_SLOWESTESTEST,
     SPEED_SLOWESTESTER,
-	SPEED_SLOWESTEST,
-	SPEED_SLOWESTER,
+    SPEED_SLOWESTEST,
+    SPEED_SLOWESTER,
     SPEED_SLOWEST,
     SPEED_SLOWER,
     SPEED_SLOW,
@@ -178,9 +206,9 @@ enum
     SPEED_FASTER,
     SPEED_FASTEST,
     SPEED_FASTESTER,
-	SPEED_FASTESTEST,
+    SPEED_FASTESTEST,
     SPEED_FASTESTESTER,
-	SPEED_FASTESTESTEST,
+    SPEED_FASTESTESTEST,
 
     SPEED_MAX
 };

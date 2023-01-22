@@ -10,5 +10,6 @@
 #define LEADERBOARD_ALLOWANCE
 
 extern struct state st_done;
+extern struct state st_capital;
 
 #endif

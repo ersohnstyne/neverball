@@ -229,7 +229,7 @@ static int paused_indiv_ctrl_index = -1;
 
 static void shared_stick(int id, int a, float v, int bump)
 {
-	xbox_toggle_gui(1);
+    xbox_toggle_gui(1);
 
     if (paused_indiv_ctrl_index != -1 || joy_get_active_cursor(0))
         shared_stick_basic(id, a, v, bump);
@@ -249,12 +249,12 @@ static void shared_fade(float alpha)
 
 static int title_action(int i)
 {
-    audio_play(AUD_MENU, 1.0f);
+    PUTT_GAMEMENU_ACTION(-1);
 
     switch (i)
     {
     case TITLE_PLAY: return goto_state(&st_course);
-	case TITLE_HELP: return goto_state(&st_help);
+    case TITLE_HELP: return goto_state(&st_help);
     case TITLE_CONF: return goto_state(&st_conf);
     case TITLE_EXIT:
     {
@@ -298,28 +298,28 @@ static int title_enter(struct state *st, struct state *prev)
     {
         char os_env[MAXSTR];
 #if ENABLE_HMD
-		sprintf(os_env, _("%s Edition"), "OpenHMD");
+        sprintf(os_env, _("%s Edition"), "OpenHMD");
 #else
-		if (current_platform == PLATFORM_PC)
-		{
+        if (current_platform == PLATFORM_PC)
+        {
 #ifdef __linux__
-			sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_CINMAMON);
+            sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_CINMAMON);
 #else
-			sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_WINDOWS);
+            sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_WINDOWS);
 #endif
-		}
-		else if (current_platform == PLATFORM_XBOX)
-		{
+        }
+        else if (current_platform == PLATFORM_XBOX)
+        {
 #if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
-			sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_360);
+            sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_360);
 #else
-			sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_ONE);
+            sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_ONE);
 #endif
-		}
-		else if (current_platform == PLATFORM_PS)
-			sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_PS);
-		else if (current_platform == PLATFORM_SWITCH)
-			sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_SWITCH);
+        }
+        else if (current_platform == PLATFORM_PS)
+            sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_PS);
+        else if (current_platform == PLATFORM_SWITCH)
+            sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_SWITCH);
 #endif
 
         if ((jd = gui_vstack(id)))
@@ -342,7 +342,7 @@ static int title_enter(struct state *st, struct state *prev)
             if ((kd = gui_varray(jd)))
             {
                 gui_start(kd, gt_prefix("menu^Play"),    GUI_MED, TITLE_PLAY, 1);
-				gui_state(kd, gt_prefix("menu^Help"),    GUI_MED, TITLE_HELP, 0);
+                gui_state(kd, gt_prefix("menu^Help"),    GUI_MED, TITLE_HELP, 0);
                 gui_state(kd, gt_prefix("menu^Options"), GUI_MED, TITLE_CONF, 0);
 
                 /* Comment it, if you avoid quit the game */
@@ -398,7 +398,7 @@ static void title_paint(int id, float t)
     gui_paint(id);
     gui_paint(gamepadinfo_id);
 
-	xbox_control_title_gui_paint();
+    xbox_control_title_gui_paint();
 }
 
 static void title_timer(int id, float dt)
@@ -406,7 +406,7 @@ static void title_timer(int id, float dt)
     float g[3] = { 0.f, 0.f, 0.f };
 
     game_step(g, dt);
-	game_set_fly(fcosf(V_PI * time_state() / 10.f)); // Default is 10 seconds; Default methods: fcosf(time_state() / 2.5f)
+    game_set_fly(fcosf(V_PI * time_state() / 10.f)); // Default is 10 seconds; Default methods: fcosf(time_state() / 2.5f)
 
     int battery_level, gamepad_wired; 
 
@@ -483,7 +483,7 @@ static void title_timer(int id, float dt)
 
 static void title_point(int id, int x, int y, int dx, int dy)
 {
-	xbox_toggle_gui(0);
+    xbox_toggle_gui(0);
     gui_pulse(gui_point(id, x, y), 1.2f);
 }
 
@@ -520,73 +520,73 @@ static void title_fade(float alpha)
 
 /*---------------------------------------------------------------------------*/
 
-#define HELP_BACK -2
+#define HELP_BACK -1
 
 static int help_action(int i)
 {
-	audio_play(AUD_BACK, 1.0f);
+    PUTT_GAMEMENU_ACTION(HELP_BACK);
 
-	switch (i)
-	{
-	case HELP_BACK: return goto_state(&st_title);
-	}
-	return 1;
+    switch (i)
+    {
+    case HELP_BACK: return goto_state(&st_title);
+    }
+    return 1;
 }
 
 static int help_enter(struct state *st, struct state *prev)
 {
-	int id, jd;
+    int id, jd;
 
-	/* Build the help GUI. */
+    /* Build the help GUI. */
 
-	if ((id = gui_vstack(0)))
-	{
-		if ((jd = gui_hstack(id)))
-		{
-			gui_label(jd, gt_prefix("menu^Help"), GUI_SML, 0, 0);
-			gui_filler(jd);
-			gui_start(jd, _("Back"), GUI_SML, HELP_BACK, 0);
-		}
+    if ((id = gui_vstack(0)))
+    {
+        if ((jd = gui_hstack(id)))
+        {
+            gui_label(jd, gt_prefix("menu^Help"), GUI_SML, 0, 0);
+            gui_filler(jd);
+            gui_start(jd, _("Back"), GUI_SML, HELP_BACK, 0);
+        }
 
-		gui_space(id);
+        gui_space(id);
 
-		gui_multi(id, _("Move the mouse from the direction you wish to shoot.\\"
-			"A power indicator will show you which direction\\"
-			"is going to roll. The longer line is, the more powerful\\"
-			"your shot will be. Once you have your shot aimed\\"
-			"click LMB on your mouse to shoot."), GUI_SML, gui_wht, gui_wht);
-	}
+        gui_multi(id, _("Move the mouse from the direction you wish to shoot.\\"
+            "A power indicator will show you which direction\\"
+            "is going to roll. The longer line is, the more powerful\\"
+            "your shot will be. Once you have your shot aimed\\"
+            "click LMB on your mouse to shoot."), GUI_SML, gui_wht, gui_wht);
+    }
 
-	gui_layout(id, 0, 0);
+    gui_layout(id, 0, 0);
 
-	return id;
+    return id;
 }
 
 static void help_paint(int id, float t)
 {
-	game_draw(0, t);
-	gui_paint(id);
+    game_draw(0, t);
+    gui_paint(id);
 
-	xbox_control_list_gui_paint();
+    xbox_control_list_gui_paint();
 }
 
 static void help_point(int id, int x, int y, int dx, int dy)
 {
-	xbox_toggle_gui(0);
-	int jd;
+    xbox_toggle_gui(0);
+    int jd;
 
-	if ((jd = gui_point(id, x, y)))
-	{
-		int i = gui_token(jd);
+    if ((jd = gui_point(id, x, y)))
+    {
+        int i = gui_token(jd);
 
-		gui_pulse(jd, 1.2f);
-	}
+        gui_pulse(jd, 1.2f);
+    }
 }
 
 static void help_stick(int id, int a, float v, int bump)
 {
-	xbox_toggle_gui(1);
-	int jd;
+    xbox_toggle_gui(1);
+    int jd;
 
     if (joy_get_cursor_actions(0))
     {
@@ -601,7 +601,7 @@ static void help_stick(int id, int a, float v, int bump)
 
 static int help_click(int b, int d)
 {
-	return gui_click(b, d) ? help_action(gui_token(gui_active())) : 1;
+    return gui_click(b, d) ? help_action(gui_token(gui_active())) : 1;
 }
 
 static int help_keybd(int c, int d)
@@ -614,14 +614,14 @@ static int help_keybd(int c, int d)
 
 static int help_buttn(int b, int d)
 {
-	if (d && joy_get_cursor_actions(0))
-	{
-		if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-			return help_action(gui_token(gui_active()));
-		if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-			return help_action(HELP_BACK);
-	}
-	return 1;
+    if (d && joy_get_cursor_actions(0))
+    {
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+            return help_action(gui_token(gui_active()));
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            return help_action(HELP_BACK);
+    }
+    return 1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -634,7 +634,7 @@ static int shot_id;
 
 static int course_action(int i)
 {
-    audio_play(i == COURSE_BACK ? AUD_BACK : AUD_MENU, 1.0f);
+    PUTT_GAMEMENU_ACTION(COURSE_BACK);
 
     if (i == COURSE_GETONLINE)
     {
@@ -790,12 +790,12 @@ static void course_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-	xbox_control_list_gui_paint();
+    xbox_control_list_gui_paint();
 }
 
 static void course_point(int id, int x, int y, int dx, int dy)
 {
-	xbox_toggle_gui(0);
+    xbox_toggle_gui(0);
     int jd;
 
     if ((jd = gui_point(id, x, y)))
@@ -813,7 +813,7 @@ static void course_point(int id, int x, int y, int dx, int dy)
 
 static void course_stick(int id, int a, float v, int bump)
 {
-	xbox_toggle_gui(1);
+    xbox_toggle_gui(1);
     int jd;
 
     if ((jd = shared_stick_basic(id, a, v, bump)))
@@ -861,13 +861,13 @@ static int course_buttn(int b, int d)
 #define PARTY_2 2
 #define PARTY_3 3
 #define PARTY_4 4
-#define PARTY_B 5
+#define PARTY_B -1
 
 static int holdage_player_count = 1;
 
 static int party_action(int i)
 {
-    audio_play(i == PARTY_B ? AUD_BACK : AUD_MENU, 1.0f);
+    PUTT_GAMEMENU_ACTION(PARTY_B);
 
     switch (i)
     {
@@ -951,12 +951,12 @@ static void party_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-	xbox_control_list_gui_paint();
+    xbox_control_list_gui_paint();
 }
 
 static void party_point(int id, int x, int y, int dx, int dy)
 {
-	xbox_toggle_gui(0);
+    xbox_toggle_gui(0);
     gui_pulse(gui_point(id, x, y), 1.2f);
 }
 
@@ -990,12 +990,14 @@ static int party_buttn(int b, int d)
 #define CONTROLTYPE_T 0
 #define CONTROLTYPE_M 1
 #define CONTROLTYPE_1 2
-#define CONTROLTYPE_B 3
+#define CONTROLTYPE_B -1
 
 static int ctrltype_name_id = 0, ctrltype_desc_id = 0;
 
 static int controltype_action(int i)
 {
+    PUTT_GAMEMENU_ACTION(CONTROLTYPE_B);
+
     switch (i)
     {
     case CONTROLTYPE_M:
@@ -1148,7 +1150,7 @@ int goto_pause(struct state *s, int use_keybd)
 
 static int pause_action(int i)
 {
-    audio_play(AUD_MENU, 1.0f);
+    PUTT_GAMEMENU_ACTION(-1);
 
     switch(i)
     {
@@ -1165,7 +1167,7 @@ static int pause_action(int i)
 
 static int pause_enter(struct state *st, struct state *prev)
 {
-	int pdid;
+    int pdid;
     int id, jd, td;
 
     audio_music_fade_out(0.2f);
@@ -1175,31 +1177,31 @@ static int pause_enter(struct state *st, struct state *prev)
         td = gui_title_header(id, _("Paused"), GUI_LRG, gui_gry, gui_red);
         gui_space(id);
 
-		/* Info display (UNDER DEVELOPMENT!) */
-		if (curr_party() > 1)
-		{
-			if ((pdid = gui_harray(id)))
-			{
-				if (curr_party() > 3)
-				{
-					gui_label(pdid, curr_scr_profile(4), GUI_SML, gui_yel, gui_wht);
-					gui_label(pdid, _("P4"), GUI_SML, gui_yel, gui_wht);
-				}
-				if (curr_party() > 2)
-				{
-					gui_label(pdid, curr_scr_profile(3), GUI_SML, gui_blu, gui_wht);
-					gui_label(pdid, _("P3"), GUI_SML, gui_blu, gui_wht);
-				}
+        /* Info display (UNDER DEVELOPMENT!) */
+        if (curr_party() > 1)
+        {
+            if ((pdid = gui_harray(id)))
+            {
+                if (curr_party() > 3)
+                {
+                    gui_label(pdid, curr_scr_profile(4), GUI_SML, gui_yel, gui_wht);
+                    gui_label(pdid, _("P4"), GUI_SML, gui_yel, gui_wht);
+                }
+                if (curr_party() > 2)
+                {
+                    gui_label(pdid, curr_scr_profile(3), GUI_SML, gui_blu, gui_wht);
+                    gui_label(pdid, _("P3"), GUI_SML, gui_blu, gui_wht);
+                }
 
-				gui_label(pdid, curr_scr_profile(2), GUI_SML, gui_grn, gui_wht);
-				gui_label(pdid, _("P2"), GUI_SML, gui_grn, gui_wht);
+                gui_label(pdid, curr_scr_profile(2), GUI_SML, gui_grn, gui_wht);
+                gui_label(pdid, _("P2"), GUI_SML, gui_grn, gui_wht);
 
-				gui_label(pdid, curr_scr_profile(1), GUI_SML, gui_red, gui_wht);
-				gui_label(pdid, _("P1"), GUI_SML, gui_red, gui_wht);
-			}
-			gui_set_rect(pdid, GUI_ALL);
-			gui_space(id);
-		}
+                gui_label(pdid, curr_scr_profile(1), GUI_SML, gui_red, gui_wht);
+                gui_label(pdid, _("P1"), GUI_SML, gui_red, gui_wht);
+            }
+            gui_set_rect(pdid, GUI_ALL);
+            gui_space(id);
+        }
 
         if ((jd = gui_harray(id)))
         {
@@ -1232,7 +1234,7 @@ static void pause_paint(int id, float t)
 
 static void pause_point(int id, int x, int y, int dx, int dy)
 {
-	xbox_toggle_gui(0);
+    xbox_toggle_gui(0);
     gui_pulse(gui_point(id, x, y), 1.2f);
 }
 
@@ -1355,7 +1357,7 @@ static void next_paint(int id, float t)
 
 static void next_point(int id, int x, int y, int dx, int dy)
 {
-	xbox_toggle_gui(0);
+    xbox_toggle_gui(0);
     gui_pulse(gui_point(id, x, y), 1.2f);
 }
 
@@ -1565,7 +1567,7 @@ static void stroke_paint(int id, float t)
     game_draw(0, t);
     hud_paint();
 
-	xbox_control_putt_stroke_gui_paint();
+    xbox_control_putt_stroke_gui_paint();
 }
 
 static void stroke_timer(int id, float dt)
@@ -1594,14 +1596,14 @@ static void stroke_timer(int id, float dt)
 
 static void stroke_point(int id, int x, int y, int dx, int dy)
 {
-	xbox_toggle_gui(0);
+    xbox_toggle_gui(0);
     game_set_rot(dx);
     game_set_mag(dy);
 }
 
 static void stroke_stick(int id, int a, float v, int bump)
 {
-	xbox_toggle_gui(1);
+    xbox_toggle_gui(1);
 
     if (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers)
     {
@@ -1675,7 +1677,7 @@ static int stroke_buttn(int b, int d)
             return goto_state_full(&st_stroke, 0, 0, 1);
         }
     }
-	else if (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers)
+    else if (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b))
             stroke_rotate_alt = 0;
@@ -1787,7 +1789,7 @@ static int goal_enter(struct state *st, struct state *prev)
 
     if (scr_v == 1)
     {
-        sprintf(hole_statname, _("Hole in One"));
+        sprintf(hole_statname, _("Hole in one"));
         c0 = gui_wht;
         c1 = gui_yel;
     }
@@ -1837,7 +1839,7 @@ static void goal_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-	xbox_control_putt_stop_gui_paint();
+    xbox_control_putt_stop_gui_paint();
 }
 
 static void goal_timer(int id, float dt)
@@ -1911,7 +1913,7 @@ static void stop_paint(int id, float t)
 {
     game_draw(0, t);
 
-	xbox_control_putt_stop_gui_paint();
+    xbox_control_putt_stop_gui_paint();
 }
 
 static void stop_timer(int id, float dt)
@@ -2019,7 +2021,7 @@ static void fall_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-	xbox_control_putt_stop_gui_paint();
+    xbox_control_putt_stop_gui_paint();
 }
 
 static void fall_timer(int id, float dt)
@@ -2113,7 +2115,7 @@ static void score_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-	xbox_control_putt_scores_gui_paint();
+    xbox_control_putt_scores_gui_paint();
 }
 
 static int score_click(int b, int d)
@@ -2181,7 +2183,7 @@ static void over_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-	xbox_control_putt_scores_gui_paint();
+    xbox_control_putt_scores_gui_paint();
 }
 
 static int over_click(int b, int d)
@@ -2232,16 +2234,16 @@ struct state st_title = {
 };
 
 struct state st_help = {
-	help_enter,
+    help_enter,
     shared_leave,
-	help_paint,
-	shared_timer,
-	help_point,
-	shared_stick,
-	NULL,
-	help_click,
+    help_paint,
+    shared_timer,
+    help_point,
+    shared_stick,
+    NULL,
+    help_click,
     help_keybd,
-	help_buttn
+    help_buttn
 };
 
 struct state st_course = {

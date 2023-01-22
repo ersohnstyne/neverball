@@ -129,20 +129,20 @@ int tutorial_check(void)
         {
             if (strcmp(sn, _("Neverball Easy")) == 0)
             {
-                if (strcmp(ln, _("1")) == 0)
+                if (strcmp(ln, "1") == 0)
                 {
                     goto_tutorial_before_play(1);
                     return 1;
                 }
-                if (strcmp(ln, _("2")) == 0)
+                if (strcmp(ln, "2") == 0)
                 {
                     goto_tutorial_before_play(3);
                     return 1;
                 }
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-                if (strcmp(ln, _("4")) == 0 && current_platform == PLATFORM_PC)
+                if (strcmp(ln, "4") == 0 && current_platform == PLATFORM_PC)
 #else
-                if (strcmp(ln, _("4")) == 0)
+                if (strcmp(ln, "4") == 0)
 #endif
                 {
                     goto_tutorial_before_play(2);
@@ -151,12 +151,12 @@ int tutorial_check(void)
             }
             else if (strcmp(sn, _("Neverball Medium")) == 0)
             {
-                if (strcmp(ln, _("1")) == 0)
+                if (strcmp(ln, "1") == 0)
                 {
                     goto_tutorial_before_play(5);
                     return 1;
                 }
-                if (strcmp(ln, _("14")) == 0)
+                if (strcmp(ln, "14") == 0)
                 {
                     goto_tutorial_before_play(7);
                     return 1;
@@ -164,7 +164,7 @@ int tutorial_check(void)
             }
             else if (strcmp(sn, _("Neverball Hard")) == 0)
             {
-                if (strcmp(ln, _("IV")) == 0)
+                if (strcmp(ln, "IV") == 0)
                 {
                     goto_tutorial_before_play(6);
                     return 1;
@@ -203,7 +203,8 @@ int goto_tutorial_before_play(int idx)
 
 static int tutorial_action(int tok, int val)
 {
-    audio_play(AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
+
     switch (tok)
     {
     case TUTORIAL_TOGGLE:
@@ -245,7 +246,7 @@ static int tutorial_enter(struct state *st, struct state *prev)
         gui_space(id);
         if ((jd = gui_harray(id)))
         {
-            gui_state(jd, _(config_get_d(CONFIG_ACCOUNT_TUTORIAL) ? "Tutorial Off" : "Tutorial On"), GUI_SML, TUTORIAL_TOGGLE, 0);
+            gui_state(jd, config_get_d(CONFIG_ACCOUNT_TUTORIAL) ? _("Tutorial Off") : _("Tutorial On"), GUI_SML, TUTORIAL_TOGGLE, 0);
             gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
         }
     }
@@ -341,7 +342,7 @@ int hint_check(void)
         {
             if (strcmp(sn, _("Neverball Easy")) == 0)
             {
-                if (strcmp(ln, _("13")) == 0)
+                if (strcmp(ln, "13") == 0)
                 {
                     goto_hint_before_play(3);
                     return 1;
@@ -349,7 +350,7 @@ int hint_check(void)
             }
             else if (strcmp(sn, _("Neverball Medium")) == 0)
             {
-                if (strcmp(ln, _("9")) == 0)
+                if (strcmp(ln, "9") == 0)
                 {
                     goto_hint_before_play(1);
                     return 1;
@@ -417,7 +418,7 @@ static int hint_enter(struct state *st, struct state *prev)
         gui_space(id);
         if ((jd = gui_harray(id)))
         {
-            gui_state(jd, _(config_get_d(CONFIG_ACCOUNT_TUTORIAL) ? "Hint Off" : "Hint On"), GUI_SML, HINT_TOGGLE, 0);
+            gui_state(jd, config_get_d(CONFIG_ACCOUNT_TUTORIAL) ? _("Hint Off") : _("Hint On"), GUI_SML, HINT_TOGGLE, 0);
             gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
         }
     }

@@ -53,8 +53,8 @@ static unsigned int draw_back;
 static int newplayers;
 
 int goto_name(struct state *ok, struct state *cancel,
-	          int (*new_ok_fn)(struct state *), int (*new_cancel_fn)(struct state *),
-	          unsigned int back)
+              int (*new_ok_fn)(struct state *), int (*new_cancel_fn)(struct state *),
+              unsigned int back)
 {
     ok_state     = ok;
     cancel_state = cancel;
@@ -101,7 +101,7 @@ static void name_update_enter_btn(void)
 
 static int name_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {

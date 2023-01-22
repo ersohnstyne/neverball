@@ -51,7 +51,7 @@ enum {
 
 static int done_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     campaign_hardcore_quit();
@@ -229,10 +229,12 @@ static int done_enter(struct state *st, struct state *prev)
 
     int high = progress_set_high();
 
-    if (high && prev == &st_goal)
+    if (high && (prev == &st_goal || prev == &st_capital))
         audio_narrator_play(AUD_SCORE);
 
-    resume = (prev == &st_done || prev == &st_goal);
+    resume = (prev == &st_done ||
+              prev == &st_goal ||
+              prev == &st_capital);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     return campaign_used() ? done_gui_campaign() : done_gui_set();
@@ -276,6 +278,65 @@ static int done_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
+static int wealthlogo_done = 0;
+
+static int capital_enter(struct state* st, struct state* prev)
+{
+    wealthlogo_done = 0;
+
+    int id;
+
+    if ((id = gui_vstack(0)))
+    {
+        int logo_id = gui_label(id, GUI_CROWN, GUI_LRG, gui_yel, gui_yel);
+        int aid = gui_label(id, GUI_DIAMOND " 1500", GUI_MED, gui_wht, gui_yel);
+        int bid = gui_label(id, _("Wealthiest Capital"), GUI_SML, gui_wht, gui_wht);
+
+        gui_pulse(logo_id, 1.2f);
+        gui_pulse(aid, 1.2f);
+        gui_pulse(bid, 1.2f);
+
+        gui_set_rect(id, GUI_ALL);
+        gui_layout(id, 0, 0);
+    }
+
+    return id;
+}
+
+static void capital_timer(int id, float dt)
+{
+    gui_timer(id, dt);
+
+    if (time_state() > 3.f && !wealthlogo_done)
+    {
+        wealthlogo_done = 1;
+        goto_state(&st_done);
+    }
+}
+
+static int capital_keybd(int c, int d)
+{
+    if (d && c == KEY_EXIT)
+    {
+        wealthlogo_done = 1;
+        goto_state(&st_done);
+    }
+    return 1;
+}
+
+static int capital_buttn(int b, int d)
+{
+    if (d && (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b)
+        || config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b)))
+    {
+        wealthlogo_done = 1;
+        goto_state(&st_done);
+    }
+    return 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
 struct state st_done = {
     done_enter,
     shared_leave,
@@ -288,3 +349,18 @@ struct state st_done = {
     done_keybd,
     done_buttn
 };
+
+struct state st_capital = {
+    capital_enter,
+    shared_leave,
+    shared_paint,
+    capital_timer,
+    NULL,
+    NULL,
+    NULL,
+    shared_click_basic,
+    capital_keybd,
+    capital_buttn
+};
+
+/*---------------------------------------------------------------------------*/

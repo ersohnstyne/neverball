@@ -18,34 +18,34 @@
 
 struct campaign_hardcore_mode
 {
-	int used;
-	int norecordings;
-	int level_theme;
-	int level_number;
-	float coordinates[2];
+    int used;
+    int norecordings;
+    int level_theme;
+    int level_number;
+    float coordinates[2];
 };
 
 struct campaign_medal_data
 {
-	int unlocks;
-	int bronze;
-	int silver;
-	int gold;
+    int unlocks;
+    int bronze;
+    int silver;
+    int gold;
 
-	int curr_rank;
+    int curr_rank;
 };
 
 struct campaign_cam_box_trigger
 {
-	int activated;         /* Check if the cam box trigger is activated */
-	int inside;            /* Is the ball inside of it                  */
+    int activated;         /* Check if the cam box trigger is activated */
+    int inside;            /* Is the ball inside of it                  */
 
-	float positions[3];
-	float triggerSize[3];
+    float positions[3];
+    float triggerSize[3];
 
-	int cammode;           /* Uses multiple camera mode                 */
-	float campositions[3]; /* Uses camera stationary                    */
-	float camdirection;    /* Uses camera direction                     */
+    int cammode;           /* Uses multiple camera mode                 */
+    float campositions[3]; /* Uses camera stationary                    */
+    float camdirection;    /* Uses camera direction                     */
 };
 
 /*---------------------------------------------------------------------------*/

@@ -67,7 +67,7 @@ static void set_curr_beam(void)
 
 static int beam_style_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {

@@ -67,10 +67,10 @@
 #define FAIL_ERROR_SERVER_POLICY_SHOP         _("Shop is disabled with server policy!")
 #define FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED _("Managed product is disabled with server policy!")
 
-#define FAIL_UPGRADE_EDITION_1 _("Upgrade to Enterprise edition, to buy Mediation!")
+#define FAIL_UPGRADE_EDITION_1 _("Upgrade to Home edition, to buy Mediation!")
 #define FAIL_UPGRADE_EDITION_2 _("Upgrade to Pro edition, to buy more balls!")
 
-#define FAIL_TRANSFER_MEMBER_1 _("Join Pennyball Discord, to buy more balls!")
+#define FAIL_TRANSFER_MEMBER_1 _("Join Discord and upgrade to Pro, to buy more balls!")
 
 /*---------------------------------------------------------------------------*/
 
@@ -121,7 +121,7 @@ void detect_replay_filters(int exceeded);
 
 static int fail_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     int save = config_get_d(CONFIG_ACCOUNT_SAVE);
 
@@ -701,7 +701,7 @@ enum
 
 static int zen_warning_action(int tok, int val)
 {
-    audio_play(AUD_MENU, 1.f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -788,7 +788,7 @@ int ask_more_purchased(struct state *ok_state);
 
 static int ask_more_action(int tok, int val)
 {
-    audio_play(AUD_MENU, 1.f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {

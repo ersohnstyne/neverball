@@ -28,8 +28,8 @@ struct game_draw
     float jump_dt;                      /* Jump duration                             */
 
 #ifdef MAPC_INCLUDES_CHKP
-	int   chkp_e;                       /* New: Checkpoints; Checkpoint enabled flag */
-	int   chkp_k;                       /* New: Checkpoints; Checkpoint animation    */
+    int   chkp_e;                       /* New: Checkpoints; Checkpoint enabled flag */
+    int   chkp_k;                       /* New: Checkpoints; Checkpoint animation    */
 #endif
 
     float fade_k;                       /* Fade in/out level                         */
@@ -55,7 +55,7 @@ struct game_lerp
     float timer[2];                     /* Clock time                        */
     float goal_k[2];
     float jump_dt[2];
-	float chkp_k[2];
+    float chkp_k[2];
 };
 
 void game_lerp_init(struct game_lerp *, struct game_draw *);

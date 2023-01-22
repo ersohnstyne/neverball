@@ -262,11 +262,11 @@ int curr_stroke_type(void) { return stroke_type_v[player]; }
 
 const char *curr_scr_profile(int i)
 {
-	static char buf[8];
+    static char buf[8];
 
-	sprintf(buf, "%d", score_v[hole][i]);
+    sprintf(buf, "%d", score_v[hole][i]);
 
-	return buf;
+    return buf;
 }
 
 const char *curr_scr(void)
@@ -391,7 +391,7 @@ void hole_goal(void)
 
 void hole_stop(void)
 {
-    int stroke_limit = 65536;
+    int stroke_limit = score_v[hole][0] + 4; // 65536;
     score_v[hole][player]++;
 
     /* Cap scores at specific stroke limit or par plus 3. */
@@ -407,7 +407,7 @@ void hole_stop(void)
 
 void hole_fall(int split)
 {
-    int stroke_limit = 65536;
+    int stroke_limit = score_v[hole][0] + 4; // 65536;
     audio_narrator_play(AUD_PENALTY);
 
     /* Reset to the position of the putt, and apply a one-stroke penalty. */

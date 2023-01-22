@@ -13,7 +13,7 @@
  */
 
 #if _WIN32 && __GNUC__
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #else
 #include <SDL.h>
 #endif

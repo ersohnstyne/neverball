@@ -258,7 +258,7 @@ static int conf_enter(struct state *st, struct state *prev)
             gui_label(jd, _("Player Name"),  GUI_SML, 0, 0);*/
 
 #if ENABLE_NLS==1 || _WIN32
-            int lang_id = gui_state(kd, _("                            "), GUI_SML, CONF_LANG, 0);
+            int lang_id = gui_state(kd, "                            ", GUI_SML, CONF_LANG, 0);
             gui_label(jd, _("Language"),  GUI_SML, 0, 0);
 
             gui_set_trunc(lang_id, TRUNC_TAIL);
@@ -338,7 +338,7 @@ static int conf_buttn(int b, int d)
 
 static int null_enter(struct state *st, struct state *prev)
 {
-	xbox_control_gui_free();
+    xbox_control_gui_free();
     gui_free();
     geom_free();
     ball_free();
@@ -355,7 +355,7 @@ static void null_leave(struct state *st, struct state *next, int id)
     ball_init();
     geom_init();
     gui_init();
-	xbox_control_gui_init();
+    xbox_control_gui_init();
 }
 
 /*---------------------------------------------------------------------------*/

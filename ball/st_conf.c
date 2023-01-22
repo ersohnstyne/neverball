@@ -155,7 +155,7 @@ void conf_covid_retract(void)
 
 static int conf_covid_extend_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -285,7 +285,7 @@ enum
 
 static int conf_account_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -749,7 +749,7 @@ enum
 
 static int conf_social_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -965,7 +965,7 @@ static int conf_control_action(int tok, int val)
 {
     int mouse = MOUSE_RANGE_MAP(config_get_d(CONFIG_MOUSE_SENSE));
 
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -1153,113 +1153,113 @@ static const char *conf_controllers_option_names[] = {
 };
 
 static const char* conf_controllers_option_values_xbox[] = {
-    N_("X"),
-    N_("Y"),
-    N_("A"),
-    N_("B"),
-    N_("LB"),
-    N_("LT"),
-    N_("RB"),
-    N_("RT"),
-    N_("-"),
-    N_("+"),
+    "X",
+    "Y",
+    "A",
+    "B",
+    "LB",
+    "LT",
+    "RB",
+    "RT",
+    "-",
+    "+",
 
     "",
 
-    N_("X (LS)"),
-    N_("Y (LS)"),
-    N_("LS"),
-    N_("X (RS)"),
-    N_("Y (RS)"),
-    N_("RS"),
+    "X (LS)",
+    "Y (LS)",
+    "LS",
+    "X (RS)",
+    "Y (RS)",
+    "RS",
 };
 
 static const char *conf_controllers_option_values_ps[] = {
-    N_("◻"),
-    N_("○"),
-    N_("X"),
-    N_("△"),
-    N_("L1"),
-    N_("L2"),
-    N_("R1"),
-    N_("R2"),
-    N_(GUI_ARROW_LFT),
-    N_(GUI_ARROW_RGHT),
+    "◻",
+    "○",
+    "X",
+    "△",
+    "L1",
+    "L2",
+    "R1",
+    "R2",
+    GUI_ARROW_LFT,
+    GUI_ARROW_RGHT,
 
     "",
 
-    N_("X (L3)"),
-    N_("Y (L3)"),
-    N_("L3"),
-    N_("X (R3)"),
-    N_("Y (R3)"),
-    N_("R3"),
+    "X (L3)",
+    "Y (L3)",
+    "L3",
+    "X (R3)",
+    "Y (R3)",
+    "R3",
 };
 
 static const char* conf_controllers_option_values_steamdeck[] = {
-    N_("X"),
-    N_("Y"),
-    N_("A"),
-    N_("B"),
-    N_("L1"),
-    N_("L2"),
-    N_("R1"),
-    N_("R2"),
-    N_("-"),
-    N_("+"),
+    "X",
+    "Y",
+    "A",
+    "B",
+    "L1",
+    "L2",
+    "R1",
+    "R2",
+    "-",
+    "+",
 
     "",
 
-    N_("X (L3)"),
-    N_("Y (L3)"),
-    N_("L3"),
-    N_("X (R3)"),
-    N_("Y (R3)"),
-    N_("R3"),
+    "X (L3)",
+    "Y (L3)",
+    "L3",
+    "X (R3)",
+    "Y (R3)",
+    "R3",
 };
 
 static const char *conf_controllers_option_values_switch[] = {
-    N_("X"),
-    N_("Y"),
-    N_("A"),
-    N_("B"),
-    N_("L"),
-    N_("ZL"),
-    N_("R"),
-    N_("ZR"),
-    N_("-"),
-    N_("+"),
+    "X",
+    "Y",
+    "A",
+    "B",
+    "L",
+    "ZL",
+    "R",
+    "ZR",
+    "-",
+    "+",
 
     "",
 
-    N_("X (LS)"),
-    N_("Y (LS)"),
-    N_("LS"),
-    N_("X (RS)"),
-    N_("Y (RS)"),
-    N_("RS"),
+    "X (LS)",
+    "Y (LS)",
+    "LS",
+    "X (RS)",
+    "Y (RS)",
+    "RS",
 };
 
 static const char *conf_controllers_option_values_handset[] = {
-    N_("X"),
-    N_("Y"),
-    N_("A"),
-    N_("B"),
-    N_("L"),
-    N_(""),
-    N_("R"),
-    N_(""),
-    N_(GUI_ARROW_LFT),
-    N_(GUI_ARROW_RGHT),
+    "X",
+    "Y",
+    "A",
+    "B",
+    "L",
+    "",
+    "R",
+    "",
+    GUI_ARROW_LFT,
+    GUI_ARROW_RGHT,
 
     "",
 
-    N_("X (LS)"),
-    N_("Y (LS)"),
-    N_("LS"),
-    N_(""),
-    N_(""),
-    N_(""),
+    "X (LS)",
+    "Y (LS)",
+    "LS",
+    "",
+    "",
+    "",
 };
 
 static int conf_controllers_option_ids[ARRAYSIZE(conf_controllers_options)];
@@ -1355,7 +1355,7 @@ static void conf_controllers_set_option(int index, int value)
 
 static int conf_controllers_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -1604,7 +1604,7 @@ static void change_method(void)
 
 static int conf_calibrate_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -1723,7 +1723,7 @@ enum
 
 static int conf_notification_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -1809,7 +1809,7 @@ enum
 
 static int conf_audio_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     int master = config_get_d(CONFIG_MASTER_VOLUME);
     int sound = config_get_d(CONFIG_SOUND_VOLUME);
@@ -1981,7 +1981,7 @@ static int conf_action(int tok, int val)
     int music = config_get_d(CONFIG_MUSIC_VOLUME);
     int narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
 
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {

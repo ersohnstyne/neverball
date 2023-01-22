@@ -113,7 +113,7 @@ enum {
 
 static int playmodes_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -149,12 +149,12 @@ static int playmodes_gui(void)
         }
 
         int career_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER) || campaign_career_unlocked());
-        char *career_title = config_get_d(CONFIG_LOCK_GOALS) ? "Career Mode (Currently ENABLED!)" : "Career Mode (Currently disabled)";
-        char *career_text = "Toggle career mode in the entire game.\\Compatible with Level Set.";
+        char *career_title = config_get_d(CONFIG_LOCK_GOALS) ? _("Career Mode (Currently ENABLED!)") : _("Career Mode (Currently disabled)");
+        char *career_text = _("Toggle career mode in the entire game.\\Compatible with Level Set.");
 
         playmodes_state(id, PLAYMODES_CAREER_MODE, 0,
             career_unlocked && server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER),
-            career_unlocked && server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER) ? _(career_title) : _("Career Mode"),
+            career_unlocked && server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER) ? career_title : _("Career Mode"),
             _(career_text),
             server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER) ? _("Complete the game to unlock.") : _("Career mode is not available\\with server group policy."));
 
@@ -190,7 +190,7 @@ static int playmodes_gui(void)
         }
         else
             playmodes_state(id, GUI_NONE, 0, 0,
-                _("Hardcore Mode"), _(""),
+                _("Hardcore Mode"), "",
                 _("Hardcore Mode is not available.\\Please check your account settings!"));
     }
 
@@ -260,7 +260,8 @@ static int playmodes_buttn(int b, int d)
 
 static int hardcore_start_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
+
     switch (tok) {
     case GUI_BACK:
         progress_init(MODE_CAMPAIGN);

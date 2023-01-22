@@ -38,7 +38,7 @@
 #endif
 
 #if _WIN32 && __GNUC__
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -170,6 +170,11 @@ static void initialize_fetch(void)
 
 /*---------------------------------------------------------------------------*/
 
+int st_global_loop(void)
+{
+    return loop();
+}
+
 static int loop(void)
 {
     SDL_Event e;
@@ -185,8 +190,8 @@ static int loop(void)
 
     emscripten_get_element_css_size("#canvas", &clientWidth, &clientHeight);
 
-    w = (int)clientWidth;
-    h = (int)clientHeight;
+    w = (int) clientWidth;
+    h = (int) clientHeight;
 
     if (w != video.window_w || h != video.window_h)
         video_set_window_size(w, h);
@@ -230,7 +235,8 @@ static int loop(void)
             ax = +e.motion.x;
             ay = -e.motion.y + video.window_h;
             dx = +e.motion.xrel;
-            dy = -e.motion.yrel;
+            dy = (config_get_d(CONFIG_MOUSE_INVERT) ?
+                  +e.motion.yrel : -e.motion.yrel);
 
             /* Scale to viewport pixels. */
 
@@ -242,12 +248,8 @@ static int loop(void)
             if (wireframe_splitview)
             {
                 splitview_crossed = 0;
-                ax *= 2;
-                if (ax > video.device_w)
-                {
+                if (ax > video.device_w / 2)
                     splitview_crossed = 1;
-                    ax -= video.device_w;
-                }
             }
 
             st_point(ax, ay, dx, dy);
@@ -414,7 +416,7 @@ static int loop(void)
 
 #if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
         case SDL_JOYAXISMOTION:
-			joy_axis(e.jaxis.which, e.jaxis.axis, JOY_VALUE(e.jaxis.value));
+            joy_axis(e.jaxis.which, e.jaxis.axis, JOY_VALUE(e.jaxis.value));
             break;
 
         case SDL_JOYBUTTONDOWN:
@@ -423,15 +425,15 @@ static int loop(void)
 
         case SDL_JOYBUTTONUP:
             joy_button(e.jbutton.which, e.jbutton.button, 0);
-			break;
+            break;
 
-		case SDL_JOYDEVICEADDED:
-			joy_add(e.jdevice.which);
-			break;
+        case SDL_JOYDEVICEADDED:
+            joy_add(e.jdevice.which);
+            break;
 
         case SDL_JOYDEVICEREMOVED:
-			joy_remove(e.jdevice.which);
-			break;
+            joy_remove(e.jdevice.which);
+            break;
 #endif
 
         default:
@@ -512,8 +514,11 @@ static void step(void* data)
             /* Step the game state. */
 #define frame_smooth (1.f / 25.f) * 1000.f
             float deltaTime = config_get_d(CONFIG_SMOOTH_FIX) ? MIN(frame_smooth, dt) : MIN(100.f, dt);
-#undef frame_smooth 
+#undef frame_smooth
 
+            if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 20
+                || accessibility_get_d(ACCESSIBILITY_SLOWDOWN) > 100)
+                accessibility_set_d(ACCESSIBILITY_SLOWDOWN, CLAMP(20, accessibility_get_d(ACCESSIBILITY_SLOWDOWN), 100));
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
             st_timer((0.001f * deltaTime) * speedPercent);
 
@@ -521,7 +526,7 @@ static void step(void* data)
 
             hmd_step();
 
-            if (viewport_wireframe == 2 || viewport_wireframe == 3)
+            if (viewport_wireframe > 1)
             {
                 video_render_fill_or_line(0);
                 st_paint(0.001f * now, 1);
@@ -688,14 +693,14 @@ int main(int argc, char *argv[])
 #endif
 
 #if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
-		joy_init();
+        joy_init();
 #endif
 
 #if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
-		init_controller_type(PLATFORM_PC);
+        init_controller_type(PLATFORM_PC);
 #endif
 #if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_FAMILY_API
-		init_controller_type(PLATFORM_XBOX);
+        init_controller_type(PLATFORM_XBOX);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
@@ -705,17 +710,17 @@ int main(int argc, char *argv[])
         config_save();
 #endif
 #if PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API
-		init_controller_type(PLATFORM_PS);
+        init_controller_type(PLATFORM_PS);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
 #if PENNYBALL_FAMILY_API == PENNYBALL_SWITCH_FAMILY_API
-		init_controller_type(PLATFORM_SWITCH);
+        init_controller_type(PLATFORM_SWITCH);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
 #if PENNYBALL_FAMILY_API == PENNYBALL_HANDSET_FAMILY_API
-		init_controller_type(PLATFORM_HANDSET);
+        init_controller_type(PLATFORM_HANDSET);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif

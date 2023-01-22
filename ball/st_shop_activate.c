@@ -123,7 +123,7 @@ static void shop_activate_update_enter_btn(void)
 
 static int shop_activate_action(int tok, int val)
 {
-    audio_play(tok == GUI_BACK ? AUD_BACK : AUD_MENU, 1.f);
+    GENERIC_GAMEMENU_ACTION;
 
     int tmp_txtlen = text_length(text_input);
 
@@ -204,7 +204,7 @@ int shop_activate_gui_introducory(void)
         gui_space(id);
         gui_multi(id,
                   _("Your order code should be in an email\\"
-                    "from whoever sold Pennyball IAP to you.\\\\"
+                    "from whoever sold Neverball IAP to you.\\\\"
                     "The order code should be following like this:\\"
                     "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"), 
                   GUI_SML, gui_wht, gui_wht);
@@ -419,8 +419,8 @@ static int shop_activate_buttn(int b, int d)
             int val = gui_value(gui_active());
 
             return shop_activate_action(tok, (tok == GUI_CHAR ?
-                gui_keyboard_char(val) :
-                val));
+                                        gui_keyboard_char(val) :
+                                        val));
         }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             shop_activate_action(GUI_BACK, 0);

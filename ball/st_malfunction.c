@@ -116,7 +116,8 @@ int check_handsoff(void)
 
 static int malfunction_action(int tok, int val)
 {
-    audio_play(AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
+
     switch (tok)
     {
     case GUI_BACK:
@@ -202,7 +203,8 @@ int goto_handsoff(struct state *back)
 
 static int handsoff_action(int tok, int val)
 {
-    audio_play(AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
+
     switch (tok)
     {
     case GUI_BACK:

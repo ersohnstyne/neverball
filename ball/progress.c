@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2022 Microsoft / Neverball authors
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -258,8 +258,8 @@ int  progress_play(struct level *l)
         coins  = last_active ? last_coins : 0;
         timer  = last_active ? last_time / 1000 : 0;
 #else
-        coins = 0;
-        timer = 0;
+        coins  = 0;
+        timer  = 0;
 #endif
         goal_i = level_goal(level);
         goal   = goal_i;
@@ -365,12 +365,12 @@ void progress_stat(int s)
      */
 #ifdef LEVELGROUPS_INCLUDES_ZEN
     timer = (level_time(level) == 0 || mediation_enabled() ?
-        curr_clock() + curr_gained() :
-        level_time(level) + curr_gained() - curr_clock());
+             curr_clock() + curr_gained() :
+             level_time(level) + curr_gained() - curr_clock());
 #else
     timer = (level_time(level) == 0 ?
-        curr_clock() + curr_gained() :
-        level_time(level) + curr_gained() - curr_clock());
+             curr_clock() + curr_gained() :
+             level_time(level) + curr_gained() - curr_clock());
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -508,33 +508,6 @@ void progress_stat(int s)
             account_save();
 #endif
         }
-
-#ifdef CONFIG_INCLUDES_ACCOUNT
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (done && (mode == MODE_CHALLENGE || mode == MODE_HARDCORE || mode == MODE_BOOST_RUSH))
-#else
-        if (done && (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH))
-#endif
-        {
-            if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
-            {
-                account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_score() + account_get_d(ACCOUNT_DATA_WALLET_COINS));
-
-                /* This gems won't earn in hardcore mode */
-
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (mode != MODE_HARDCORE)
-#endif
-                {
-                    account_set_d(ACCOUNT_DATA_WALLET_GEMS,
-                        (curr.balls * 5)
-                        + account_get_d(ACCOUNT_DATA_WALLET_GEMS));
-                }
-
-                account_save();
-            }
-        }
-#endif
         break;
 
     case GAME_FALL:
@@ -630,7 +603,15 @@ void progress_stop(void)
     if (mode == MODE_NONE) return;
 
     if (level)
-        d = (curr_clock() == level_time(level));
+    {
+#ifdef MAPC_INCLUDES_CHKP
+        d = (level_time(level) == 0 || mediation_enabled() ?
+             curr_clock() - checkpoints_respawn_timer() <= 0 :
+             curr_clock() + checkpoints_respawn_timer() == level_time(level));
+#else
+        d = curr_clock() == level_time(level);
+#endif
+    }
 
     demo_play_stop(d);
 }
@@ -642,21 +623,45 @@ void progress_exit(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         if (campaign_used() && mode == MODE_HARDCORE)
         {
-            campaign_score_update(curr.times, curr.score,
-                campaign_career_unlocked() ? &coin_rank : 0,
-                &time_rank);
+            campaign_score_update(curr.times,
+                                  curr.score,
+                                  campaign_career_unlocked() ? &coin_rank : 0,
+                                  done ? &time_rank : NULL);
 #if NB_STEAM_API==1
-            score_steam_hs_save(curr.score, curr.times);
+            if (done)
+                score_steam_hs_save(curr.score, curr.times);
 #endif
         }
 #endif
         else if (!campaign_used())
         {
-            if (set_score_update(curr.times, curr.score, &score_rank, &times_rank))
+            if (set_score_update(curr.times,
+                                 curr.score,
+                                 &score_rank,
+                                 done ? &times_rank : NULL))
                 set_store_hs();
 #if NB_STEAM_API==1
-            score_steam_hs_save(curr.score, curr.times);
+            if (done)
+                score_steam_hs_save(curr.score, curr.times);
 #endif
+        }
+
+        if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+        {
+            account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_score() + account_get_d(ACCOUNT_DATA_WALLET_COINS));
+
+            /* This gems won't earn in hardcore mode */
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            if (mode != MODE_HARDCORE)
+#endif
+            {
+                account_set_d(ACCOUNT_DATA_WALLET_GEMS,
+                    (curr.balls * 5)
+                    + account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+            }
+
+            account_save();
         }
     }
 }
@@ -703,10 +708,10 @@ int  progress_same_avail(void)
     case GAME_NONE:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         return (mode != MODE_CHALLENGE && mode != MODE_HARDCORE && mode != MODE_BOOST_RUSH)
-            || config_cheat() == 1;
+            || config_cheat();
 #else
         return (mode != MODE_CHALLENGE && mode != MODE_BOOST_RUSH)
-            || config_cheat() == 1;
+            || config_cheat();
 #endif
 
     default:
@@ -822,9 +827,7 @@ void progress_rename(int set_only)
 #endif
     {
         if (set_only)
-        {
             set_rename_player(score_rank, times_rank, player);
-        }
         else
         {
             level_rename_player(level, time_rank, goal_rank, coin_rank, player);

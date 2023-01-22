@@ -14,8 +14,8 @@
 
 //#define SKIP_BUILDIN_REPLAY
 
-#if _WIN32 && __GNUC__
-#include <SDL2/SDL.h>
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -68,7 +68,6 @@
 #include "st_play.h"
 
 #define TITLE_USE_DVD_BOX_OR_EMAIL
-//#define TITLE_USE_STADIA
 
 #define WINDOWS_SIMPLIFIED
 #define SWITCHBALL_TITLE
@@ -304,7 +303,7 @@ static int title_action(int tok, int val)
 
     size_t queue_len = strlen(queue);
 
-    audio_play(AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -494,16 +493,6 @@ static int title_action(int tok, int val)
         }
 #endif
 
-#ifdef TITLE_USE_STADIA
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(dev_env, dstSize, _("Stadia / %s"), _("Developer Mode"));
-        sprintf_s(os_env, dstSize, _("Stadia Edition"));
-#else
-        sprintf(dev_env, _("Stadia / %s"), _("Developer Mode"));
-        sprintf(os_env, _("Stadia Edition"));
-#endif
-#endif
-
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
         if (strcmp(queue, keyphrase) == 0)
         {
@@ -563,7 +552,7 @@ static int title_gui(void)
         if (current_platform == PLATFORM_PC)
         {
 #if defined(__linux__)
-            sprintf(dev_env, _("$s Edition / %s"), TITLE_PLATFORM_CINMAMON, _("Developer Mode"));
+            sprintf(dev_env, _("%s Edition / %s"), TITLE_PLATFORM_CINMAMON, _("Developer Mode"));
             sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_CINMAMON);
 #else
             sprintf(dev_env, _(editions_developer[EDITION_CURRENT]), TITLE_PLATFORM_WINDOWS, _("Developer Mode"));
@@ -595,16 +584,6 @@ static int title_gui(void)
             sprintf(dev_env, _("%s Edition / %s"), TITLE_PLATFORM_SWITCH, _("Developer Mode"));
             sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_SWITCH);
         }
-#endif
-
-#ifdef TITLE_USE_STADIA
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(dev_env, dstSize, _("Stadia / %s"), _("Developer Mode"));
-        sprintf_s(os_env, dstSize, _("Stadia Edition"));
-#else
-        sprintf(dev_env, _("Stadia / %s"), _("Developer Mode"));
-        sprintf(os_env, _("Stadia Edition"));
-#endif
 #endif
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0

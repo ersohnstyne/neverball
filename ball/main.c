@@ -39,8 +39,8 @@
 #include <emscripten/html5.h>
 #endif
 
-#if _WIN32 && __GNUC__
-#include <SDL2/SDL.h>
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -348,6 +348,11 @@ static void dispatch_networking_error_event(int ec)
 
 #endif
 
+int st_global_loop(void)
+{
+    return loop();
+}
+
 static int loop(void)
 {
     SDL_Event e;
@@ -422,12 +427,8 @@ static int loop(void)
             if (wireframe_splitview)
             {
                 splitview_crossed = 0;
-                ax *= 2;
-                if (ax > video.device_w)
-                {
+                if (ax > video.device_w / 2)
                     splitview_crossed = 1;
-                    ax -= video.device_w;
-                }
             }
 
             st_point(ax, ay, dx, dy);
@@ -918,9 +919,9 @@ static void step(void *data)
 
             float deltaTime = config_get_d(CONFIG_SMOOTH_FIX) ? MIN(frame_smooth, dt) : MIN(100.f, dt);
 
-            if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 20) accessibility_set_d(ACCESSIBILITY_SLOWDOWN, 20);
-            if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) > 100) accessibility_set_d(ACCESSIBILITY_SLOWDOWN, 100);
-            
+            if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 20
+                || accessibility_get_d(ACCESSIBILITY_SLOWDOWN) > 100)
+                accessibility_set_d(ACCESSIBILITY_SLOWDOWN, CLAMP(20, accessibility_get_d(ACCESSIBILITY_SLOWDOWN), 100));
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
             st_timer((0.001f * deltaTime) * speedPercent);
 
@@ -933,11 +934,11 @@ static void step(void *data)
 
             hmd_step();
 
-            if (viewport_wireframe == 2 || viewport_wireframe == 3)
+            if (viewport_wireframe > 1)
             {
-                video_render_fill_or_line(1);
-                st_paint(0.001f * now, 1);
                 video_render_fill_or_line(0);
+                st_paint(0.001f * now, 1);
+                video_render_fill_or_line(1);
                 st_paint(0.001f * now, 0);
             }
             else
@@ -1390,11 +1391,8 @@ int main(int argc, char *argv[])
     }
     else
     {
-#ifdef SKIP_END_SUPPORT
+        log_printf("Attempt to show intro\n");
         goto_state_full(&st_title, 0, 0, 1);
-#else
-        goto_state_full(&st_end_support, 0, 0, 1);
-#endif
     }
 #pragma endregion
 

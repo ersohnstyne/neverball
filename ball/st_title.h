@@ -66,10 +66,6 @@
 
 #define TITLE_PLATFORM_SWITCH _("Nintendo Switch")
 
-/* For Google Games */
-
-#define TITLE_PLATFORM_STADIA _("Stadia")
-
 /* For Handsets when in aircraft */
 
 #define TITLE_PLATFORM_EMIRATES _("Emirates")

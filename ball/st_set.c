@@ -244,7 +244,7 @@ static void set_download_done(void *data1, void *data2)
 
 static int set_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GAMEPAD_GAMEMENU_ACTION_SCROLL(SET_XBOX_LB, SET_XBOX_RB, SET_STEP);
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
     int set_name_locked = (account_get_d(ACCOUNT_SET_UNLOCKS) <= val
@@ -269,16 +269,11 @@ static int set_action(int tok, int val)
         break;
 
     case SET_XBOX_RB:
-        if (first < total)
+        if (first + SET_STEP < total)
         {
             first += SET_STEP;
-            if (first >= total)
-                first -= SET_STEP;
-            else
-            {
-                do_init = 0;
-                return goto_state_full(&st_set, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
-            }
+            do_init = 0;
+            return goto_state_full(&st_set, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
         }
         break;
 
@@ -887,11 +882,11 @@ struct campaign_ranker
 {
     const char *img_rank; const char *text_rank;
 } campaign_ranks[] = {
-    { "gui/ranks/rank_cadet.png", "NB Cadet" },
-    { "gui/ranks/rank_bronze.png", "Bronze Commander" },
-    { "gui/ranks/rank_silver.png", "Silver Commander" },
-    { "gui/ranks/rank_gold.png", "Gold Commander" },
-    { "gui/ranks/rank_elite.png", "Elite Commander" },
+    { "gui/ranks/rank_cadet.png", N_("NB Cadet") },
+    { "gui/ranks/rank_bronze.png", N_("Bronze Commander") },
+    { "gui/ranks/rank_silver.png", N_("Silver Commander") },
+    { "gui/ranks/rank_gold.png", N_("Gold Commander") },
+    { "gui/ranks/rank_elite.png", N_("Elite Commander") },
 };
 
 int campaign_level_unlocks[] = {
@@ -904,11 +899,11 @@ int campaign_level_unlocks[] = {
 
 static const char campaign_theme_texts[][12] =
 {
-    "Sky World",
-    "Ice World",
-    "Cave World",
-    "Cloud World",
-    "Lava World"
+    N_("Sky World"),
+    N_("Ice World"),
+    N_("Cave World"),
+    N_("Cloud World"),
+    N_("Lava World")
 };
 
 static const char campaign_theme_images[][23] =
@@ -945,7 +940,7 @@ static char *campaign_label_clock(int timer)
 
 static int campaign_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -1378,7 +1373,7 @@ static void campaign_download_done(void *data1, void *data2)
 
 static int levelgroup_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {

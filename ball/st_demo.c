@@ -195,7 +195,7 @@ enum
 
 static int demo_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -1474,7 +1474,7 @@ enum
 
 static int demo_end_action(int tok, int val)
 {
-    audio_play(AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -1629,7 +1629,7 @@ static int demo_end_buttn(int b, int d)
 
 static int demo_del_action(int tok, int val)
 {
-    audio_play(AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     if (tok != GUI_NONE)
         demo_replay_stop(tok == DEMO_DEL);

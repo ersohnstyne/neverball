@@ -655,15 +655,15 @@ int campaign_init(void)
                 medal_datas.unlocks++;
 
                 if (strcmp(campaign_get_level(i)->scores->player[0], N_("Hard")) != 0
-                    && strcmp(campaign_get_level(i)->scores->player[0], N_("")) != 0)
+                    && strcmp(campaign_get_level(i)->scores->player[0], "") != 0)
                     medal_datas.gold++;
 
                 else if (strcmp(campaign_get_level(i)->scores->player[1], N_("Medium")) != 0
-                    && strcmp(campaign_get_level(i)->scores->player[1], N_("")) != 0)
+                    && strcmp(campaign_get_level(i)->scores->player[1], "") != 0)
                     medal_datas.silver++;
 
                 else if (strcmp(campaign_get_level(i)->scores->player[2], N_("Easy")) == 0
-                    && strcmp(campaign_get_level(i)->scores->player[2], N_("")) == 0)
+                    && strcmp(campaign_get_level(i)->scores->player[2], "") == 0)
                     medal_datas.bronze++;
             }
         }
@@ -759,7 +759,7 @@ int campaign_hardcore_unlocked(void)
 #if !defined(HARDCORE_PERMA_UNLOCKED)
     for (int i = 0; i < 30; i++)
         if (strcmp(campaign_get_level(i)->scores->player[1], N_("Medium")) == 0
-            || strcmp(campaign_get_level(i)->scores->player[1], N_("")) == 0)
+            || strcmp(campaign_get_level(i)->scores->player[1], "") == 0)
             return 0;
 #endif
     return 1;

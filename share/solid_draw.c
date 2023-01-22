@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,8 +12,13 @@
  * General Public License for more details.
  */
 
+#if _WIN32 && __GNUC__
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_rwops.h>
+#else
 #include <SDL.h>
 #include <SDL_rwops.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,7 +34,9 @@
 #include "config.h"
 #include "base_config.h"
 #include "lang.h"
+#include "log.h"
 
+#include "solid_chkp.h"
 #include "solid_draw.h"
 #include "solid_all.h"
 
@@ -215,8 +222,17 @@ static int sol_count_geom(const struct s_base *base, int g0, int gc, int mi)
     /* given material                                                        */
 
     for (gi = 0; gi < gc; gi++)
-        if (base->gv[base->iv[g0 + gi]].mi == mi)
-            c++;
+        if (base->gv)
+        {
+            if (base->iv)
+            {
+                if (base->gv[base->iv[g0 + gi]].mi == mi)
+                    c++;
+            }
+            else log_errorf("base->iv returned NULL!\n");
+        }
+        else log_errorf("base->gv returned NULL!\n");
+        
 
     return c;
 }
@@ -229,12 +245,20 @@ static int sol_count_body(const struct b_body *bp,
     /* Count all lump geoms with the given material. */
 
     for (li = 0; li < bp->lc; li++)
-        c += sol_count_geom(base, base->lv[bp->l0 + li].g0,
-                                  base->lv[bp->l0 + li].gc, mi);
+    {
+        if (base->lv)
+            c += sol_count_geom(base, base->lv[bp->l0 + li].g0,
+                                      base->lv[bp->l0 + li].gc, mi);
+        else
+            log_errorf("base->lv returned NULL!\n");
+    }
 
     /* Count all body geoms with the given material. */
 
-    c += sol_count_geom(base, bp->g0, bp->gc, mi);
+    if (bp)
+        c += sol_count_geom(base, bp->g0, bp->gc, mi);
+    else
+        log_errorf("bp returned NULL!\n");
 
     return c;
 }
@@ -291,21 +315,33 @@ static void sol_mesh_geom(struct d_vert *vv,   int *vn,
         {
             /* Insert a d_vert into the VBO data for each referenced b_off. */
 
-            if (iv[gq->oi] == -1)
+            if (gq->oi > -1)
             {
-                iv[gq->oi] = *vn;
-                sol_mesh_vert(vv + (*vn)++, base, gq->oi);
+                if (iv[gq->oi] == -1)
+                {
+                    iv[gq->oi] = *vn;
+                    sol_mesh_vert(vv + (*vn)++, base, gq->oi);
+                }
             }
-            if (iv[gq->oj] == -1)
+            else iv[gq->oi] = -1;
+            if (gq->oj > -1)
             {
-                iv[gq->oj] = *vn;
-                sol_mesh_vert(vv + (*vn)++, base, gq->oj);
+                if (iv[gq->oj] == -1)
+                {
+                    iv[gq->oj] = *vn;
+                    sol_mesh_vert(vv + (*vn)++, base, gq->oj);
+                }
             }
-            if (iv[gq->ok] == -1)
+            else iv[gq->oj] = -1;
+            if (gq->ok > -1)
             {
-                iv[gq->ok] = *vn;
-                sol_mesh_vert(vv + (*vn)++, base, gq->ok);
+                if (iv[gq->ok] == -1)
+                {
+                    iv[gq->ok] = *vn;
+                    sol_mesh_vert(vv + (*vn)++, base, gq->ok);
+                }
             }
+            else iv[gq->ok] = -1;
 
             /* Populate the EBO data using remapped b_off indices. */
 
@@ -347,9 +383,14 @@ static void sol_load_mesh(struct d_mesh *mp,
         /* Include all matching lump geoms in the arrays. */
 
         for (li = 0; li < bp->lc; li++)
-            sol_mesh_geom(vv, &vn, gv, &gn, draw->base, iv,
-                          draw->base->lv[bp->l0 + li].g0,
-                          draw->base->lv[bp->l0 + li].gc, mi);
+        {
+            if (draw->base->lv)
+                sol_mesh_geom(vv, &vn, gv, &gn, draw->base, iv,
+                              draw->base->lv[bp->l0 + li].g0,
+                              draw->base->lv[bp->l0 + li].gc, mi);
+            else
+                log_errorf("draw->base->lv returned NULL!\n");
+        }
 
         /* Include all matching body geoms in the arrays. */
 
@@ -421,7 +462,7 @@ void sol_draw_mesh(const struct d_mesh *mp, struct s_rend *rend, int p)
         glTexCoordPointer(2, T, s, (GLvoid *) offsetof (struct d_vert, t));
 
         /* Draw the mesh. */
-
+        
         if (rend->curr_mtrl.base.fl & M_PARTICLE)
             glDrawArrays(GL_POINTS, 0, mp->vbc);
         else
@@ -517,7 +558,7 @@ int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
 
     if (draw->base->bc)
     {
-        if ((draw->bv = calloc(draw->base->bc, sizeof (*draw->bv))))
+        if ((draw->bv = (struct d_body*) (calloc(draw->base->bc, sizeof (*draw->bv)))))
         {
             draw->bc = draw->base->bc;
 
@@ -549,6 +590,10 @@ void sol_free_draw(struct s_draw *draw)
 
 static void sol_draw_all(const struct s_draw *draw, struct s_rend *rend, int p)
 {
+    if (draw == NULL) return;
+    if (draw->vary == NULL) return;
+    if (draw->vary->bv == NULL) return;
+
     int bi;
 
     /* Draw all meshes of all bodies matching the given material flags. */
@@ -622,6 +667,7 @@ void sol_back(const struct s_draw *draw,
     if (!(draw && draw->base && draw->base->rc))
         return;
 
+    glDisable(GL_LIGHTING);
     glDepthMask(GL_FALSE);
 
     sol_bill_enable(draw);
@@ -682,6 +728,7 @@ void sol_back(const struct s_draw *draw,
     sol_bill_disable();
 
     glDepthMask(GL_TRUE);
+    glEnable(GL_LIGHTING);
 }
 
 void sol_bill(const struct s_draw *draw,
@@ -713,7 +760,8 @@ void sol_bill(const struct s_draw *draw,
             {
                 glTranslatef(rp->p[0], rp->p[1], rp->p[2]);
 
-                if (M && ((rp->fl & B_NOFACE) == 0)) glMultMatrixf(M);
+                if (M && ((rp->fl & B_NOFACE) == 0))
+                    glMultMatrixf(M);
 
                 if (fabsf(rx) > 0.0f) glRotatef(rx, 1.0f, 0.0f, 0.0f);
                 if (fabsf(ry) > 0.0f) glRotatef(ry, 0.0f, 1.0f, 0.0f);
@@ -729,6 +777,17 @@ void sol_bill(const struct s_draw *draw,
     sol_bill_disable();
 }
 
+/*---------------------------------------------------------------------------*/
+
+static float fade_color[3];
+
+void sol_fade_color(float r, float g, float b)
+{
+    fade_color[0] = r;
+    fade_color[1] = g;
+    fade_color[2] = b;
+}
+
 void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
 {
     if (k > 0.0f)
@@ -740,10 +799,11 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
         glPushMatrix();
         glLoadIdentity();
         {
+            glDisable(GL_LIGHTING);
             glDisable(GL_DEPTH_TEST);
             glDisable(GL_TEXTURE_2D);
 
-            glColor4f(0.0f, 0.0f, 0.0f, k);
+            glColor4f(fade_color[0], fade_color[1], fade_color[2], k);
 
             sol_bill_enable(draw);
             r_apply_mtrl(rend, default_mtrl);
@@ -755,6 +815,7 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
 
             glEnable(GL_TEXTURE_2D);
             glEnable(GL_DEPTH_TEST);
+            glEnable(GL_LIGHTING);
         }
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
@@ -812,7 +873,11 @@ static void check_mtrl(const char *name, GLenum pname, GLuint curr)
 
     if (real != curr)
     {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(buff, dstSize, "%s mismatch (0x%08X -> 0x%08X)", name, real, curr);
+#else
         sprintf(buff, "%s mismatch (0x%08X -> 0x%08X)", name, real, curr);
+#endif
         glStringMarker_(buff);
     }
 }
@@ -991,23 +1056,18 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
             glEnable (GL_POINT_SPRITE);
             glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
             glPointParameterfv_(GL_POINT_DISTANCE_ATTENUATION, c);
+#if !defined(__EMSCRIPTEN__)
             glPointParameterf_ (GL_POINT_SIZE_MIN, 1);
             glPointParameterf_ (GL_POINT_SIZE_MAX, s);
+#else
+            glPointParameterf(GL_POINT_SIZE_MIN, 1);
+            glPointParameterf(GL_POINT_SIZE_MAX, s);
+#endif
         }
         else
         {
             glDisable(GL_POINT_SPRITE);
         }
-    }
-
-    /* Lighting. */
-
-    if ((mp_flags & M_LIT) ^ (mq_flags & M_LIT))
-    {
-        if (mp_flags & M_LIT)
-            glEnable(GL_LIGHTING);
-        else
-            glDisable(GL_LIGHTING);
     }
 
     /* Update current material state. */

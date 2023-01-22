@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -14,6 +14,12 @@
 
 #include <string.h>
 
+#if NB_HAVE_PB_BOTH==1
+#include "networking.h"
+#include "campaign.h" // New: Campaign
+#include "account.h"
+#endif
+
 #include "gui.h"
 #include "set.h"
 #include "util.h"
@@ -23,64 +29,191 @@
 #include "config.h"
 
 #include "game_common.h"
+#include "game_client.h"
 
 #include "st_done.h"
+#include "st_goal.h"
 #include "st_start.h"
 #include "st_name.h"
+#include "st_set.h"
 #include "st_shared.h"
+
+#include "st_shop.h"
 
 /*---------------------------------------------------------------------------*/
 
 static int resume;
 
+enum {
+    DONE_SHOP = GUI_LAST,
+    DONE_TO_GROUP
+};
+
 static int done_action(int tok, int val)
 {
-    audio_play(AUD_MENU, 1.0f);
+    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    campaign_hardcore_quit();
+#endif
 
     switch (tok)
     {
     case GUI_BACK:
-        return goto_state(&st_start);
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        if (campaign_used())
+        {
+            campaign_hardcore_quit();
+            campaign_theme_quit();
+            campaign_quit();
+        }
+#endif
+        return goto_playmenu(curr_mode());
 
     case GUI_NAME:
-        return goto_name(&st_done, &st_done, 0);
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        return goto_shop_rename(&st_done, &st_done, 0);
+#else
+        return goto_name(&st_done, &st_done, 0, 0, 0);
+#endif
 
     case GUI_SCORE:
         gui_score_set(val);
         return goto_state(&st_done);
+
+    case DONE_SHOP:
+        if (campaign_used())
+        {
+            campaign_hardcore_quit();
+            campaign_theme_quit();
+            campaign_quit();
+        }
+        return goto_state(&st_shop);
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    case DONE_TO_GROUP:
+        if (campaign_used())
+        {
+            campaign_hardcore_quit();
+            campaign_theme_quit();
+            campaign_quit();
+        }
+        return goto_playmenu(curr_mode());
+#endif
     }
     return 1;
 }
 
-static int done_gui(void)
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+static int done_gui_campaign(void)
+{
+    int id, jd;
+    if ((id = gui_vstack(0)))
+    {
+        char sdescHardcore[MAXSTR];
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(sdescHardcore, dstSize, "You completed all levels\\And you collected %d coins.\\ \\A new trophy has been awarded to\\acknowledge your achievement!", curr_score());
+#else
+        sprintf(sdescHardcore, "You completed all levels\\And you collected %d coins.\\ \\A new trophy has been awarded to\\acknowledge your achievement!", curr_score());
+#endif
+        const char *stitle = campaign_hardcore() ? "WOW" : "Campaign Complete";
+        const char *sdesc = campaign_hardcore() ? sdescHardcore : "If you want to keep exploring\\more levels, select LEVEL SET\\from the level group.";
+
+        gui_title_header(id, _(stitle), GUI_LRG, gui_blu, gui_grn);
+        gui_space(id);
+        gui_multi(id, _(sdesc), GUI_SML, gui_wht, gui_wht);
+        gui_space(id);
+
+        if ((jd = gui_harray(id)))
+        {
+            gui_start(jd, _("Return to group"), GUI_SML, DONE_TO_GROUP, 0);
+#ifdef CONFIG_INCLUDES_ACCOUNT
+            if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+                gui_state(jd, _("Shop"), GUI_SML, DONE_SHOP, 0);
+#endif
+        }
+
+        gui_layout(id, 0, 0);
+    }
+
+    return id;
+}
+#endif
+
+static int done_gui_set(void)
 {
     const char *s1 = _("New Set Record");
     const char *s2 = _("Set Complete");
 
-    int id;
+    int id, jd, kd;
 
     int high = progress_set_high();
+
+    if (high)
+        audio_narrator_play(AUD_SCORE);
 
     if ((id = gui_vstack(0)))
     {
         int gid;
 
         if (high)
-            gid = gui_label(id, s1, GUI_MED, gui_grn, gui_grn);
+            gid = gui_title_header(id, s1, GUI_MED, gui_grn, gui_grn);
         else
-            gid = gui_label(id, s2, GUI_MED, gui_blu, gui_grn);
+            gid = gui_title_header(id, s2, GUI_MED, gui_blu, gui_grn);
+
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+        {
+            gui_space(id);
+
+            if ((jd = gui_hstack(id)))
+            {
+                int calc_new_wallet_coin_id, calc_new_wallet_gem_id;
+
+                gui_filler(jd);
+
+                if ((kd = gui_harray(jd)))
+                {
+                    calc_new_wallet_gem_id = gui_count(kd, 1000, GUI_MED);
+                    gui_label(kd, _("Gems"), GUI_SML, gui_wht, gui_wht);
+                    calc_new_wallet_coin_id = gui_count(kd, 100000, GUI_MED);
+                    gui_label(kd, _("Coins"), GUI_SML, gui_wht, gui_wht);
+
+                    gui_set_count(calc_new_wallet_coin_id, account_get_d(ACCOUNT_DATA_WALLET_COINS));
+                    gui_set_count(calc_new_wallet_gem_id, account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+                }
+
+                gui_filler(jd);
+
+                gui_set_rect(jd, GUI_ALL);
+            }
+        }
+#endif
+
+        /* View the file in st_over.c */
 
         gui_space(id);
         gui_score_board(id, GUI_SCORE_COIN | GUI_SCORE_TIME, 1, high);
         gui_space(id);
 
-        gui_start(id, _("Select Level"), GUI_SML, GUI_BACK, 0);
+        if ((jd = gui_harray(id)))
+        {
+            gui_start(jd, _("Select Level"), GUI_SML, GUI_BACK, 0);
+#ifdef CONFIG_INCLUDES_ACCOUNT
+            if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+                gui_state(jd, _("Shop"), GUI_SML, DONE_SHOP, 0);
+#endif
+        }
 
         if (!resume)
+        {
             gui_pulse(gid, 1.2f);
+        }
 
         gui_layout(id, 0, 0);
     }
+
+    /* View the file in st_over.c */
 
     set_score_board(set_score(curr_set(), SCORE_COIN), progress_score_rank(),
                     set_score(curr_set(), SCORE_TIME), progress_times_rank(),
@@ -94,9 +227,24 @@ static int done_enter(struct state *st, struct state *prev)
     if (prev == &st_name)
         progress_rename(1);
 
-    resume = (prev == &st_done);
+    int high = progress_set_high();
 
-    return done_gui();
+    if (high && prev == &st_goal)
+        audio_narrator_play(AUD_SCORE);
+
+    resume = (prev == &st_done || prev == &st_goal);
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    return campaign_used() ? done_gui_campaign() : done_gui_set();
+#else
+    return done_gui_set();
+#endif
+}
+
+static void done_timer(int id, float dt)
+{
+    gui_timer(id, dt);
+    game_step_fade(dt);
 }
 
 static int done_keybd(int c, int d)
@@ -132,7 +280,7 @@ struct state st_done = {
     done_enter,
     shared_leave,
     shared_paint,
-    shared_timer,
+    done_timer,
     shared_point,
     shared_stick,
     shared_angle,

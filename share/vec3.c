@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -28,7 +28,8 @@
 
 /*---------------------------------------------------------------------------*/
 
-void v_nrm(float *n, const float *v)
+// Normalize (Vector)
+void v_nrm(float n[3], const float v[3])
 {
     float d = v_len(v);
 
@@ -46,11 +47,22 @@ void v_nrm(float *n, const float *v)
     }
 }
 
-void v_crs(float *u, const float *v, const float *w)
+// Cross (Vector)
+void v_crs(float u[3], const float v[3], const float w[3])
 {
     u[0] = v[1] * w[2] - v[2] * w[1];
     u[1] = v[2] * w[0] - v[0] * w[2];
     u[2] = v[0] * w[1] - v[1] * w[0];
+}
+
+void v_reflect(float u[3], const float v[3], const float n[3])
+{
+    float w[3];
+
+    v_scl(w, n, 2.0f * v_dot(n, v));
+    w[0] *= -1;
+    w[2] *= -1;
+    v_sub(u, w, v);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -63,6 +75,7 @@ void m_cpy(float *M, const float *N)
     M[C] = N[C]; M[D] = N[D]; M[E] = N[E]; M[F] = N[F];
 }
 
+// Transpose (Matrix)
 void m_xps(float *M, const float *N)
 {
     M[0] = N[0]; M[1] = N[4]; M[2] = N[8]; M[3] = N[C];
@@ -71,6 +84,7 @@ void m_xps(float *M, const float *N)
     M[C] = N[3]; M[D] = N[7]; M[E] = N[B]; M[F] = N[F];
 }
 
+// Inverse (Matrix)
 int  m_inv(float *I, const float *N)
 {
     double T[16], M[16];
@@ -160,6 +174,7 @@ int  m_inv(float *I, const float *N)
 
 /*---------------------------------------------------------------------------*/
 
+// Identity (Matrix)
 void m_ident(float *M)
 {
     M[0] = 1.f; M[4] = 0.f; M[8] = 0.f; M[C] = 0.f;
@@ -181,7 +196,8 @@ void m_basis(float *M,
 
 /*---------------------------------------------------------------------------*/
 
-void m_xlt(float *M, const float *v)
+// Translation (Matrix)
+void m_xlt(float *M, const float v[3])
 {
     M[0] = 1.f; M[4] = 0.f; M[8] = 0.f; M[C] = v[0];
     M[1] = 0.f; M[5] = 1.f; M[9] = 0.f; M[D] = v[1];
@@ -189,7 +205,8 @@ void m_xlt(float *M, const float *v)
     M[3] = 0.f; M[7] = 0.f; M[B] = 0.f; M[F] =  1.f;
 }
 
-void m_scl(float *M, const float *v)
+// Scale (Matrix)
+void m_scl(float *M, const float v[3])
 {
     M[0] = v[0]; M[4] =  0.f; M[8] =  0.f; M[C] = 0.f;
     M[1] =  0.f; M[5] = v[1]; M[9] =  0.f; M[D] = 0.f;
@@ -197,7 +214,8 @@ void m_scl(float *M, const float *v)
     M[3] =  0.f; M[7] =  0.f; M[B] =  0.f; M[F] = 1.f;
 }
 
-void m_rot(float *M, const float *v, float a)
+// Rotate Axis (Matrix)
+void m_rot(float *M, const float v[3], float a)
 {
     float u[3];
     float U[16];
@@ -236,6 +254,7 @@ void m_rot(float *M, const float *v, float a)
 
 /*---------------------------------------------------------------------------*/
 
+// Multiply (Matrix)
 void m_mult(float *M, const float *N, const float *O)
 {
     M[0] = N[0] * O[0] + N[4] * O[1] + N[8] * O[2] + N[C] * O[3];
@@ -268,6 +287,7 @@ void m_pxfm(float *v, const float *M, const float *w)
     v[2] = (w[0] * M[2] + w[1] * M[6] + w[2] * M[A] + M[E]) / d;
 }
 
+// Transform (Matrix)
 void m_vxfm(float *v, const float *M, const float *w)
 {
     v[0] = (w[0] * M[0] + w[1] * M[4] + w[2] * M[8]);
@@ -297,6 +317,7 @@ void q_by_axisangle(float q[4], const float u[3], float a)
     q[3] = n[2] * s;
 }
 
+// Normalize (Quaternion)
 void q_nrm(float q[4], const float r[4])
 {
     float d = q_len(r);
@@ -317,6 +338,7 @@ void q_nrm(float q[4], const float r[4])
     }
 }
 
+// Multiply (Quaternion)
 void q_mul(float q[4], const float a[4], const float b[4])
 {
     q[0] = a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3];
@@ -325,6 +347,7 @@ void q_mul(float q[4], const float a[4], const float b[4])
     q[3] = a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0];
 }
 
+// Rotate (Quaternion)
 void q_rot(float v[3], const float r[4], const float w[3])
 {
     float a[4], b[4], c[4];
@@ -348,6 +371,7 @@ void q_rot(float v[3], const float r[4], const float w[3])
     v[2] = c[3];
 }
 
+// Euler (Quaternion)
 void q_euler(float v[3], const float q[4])
 {
     float m11 = (2 * q[0] * q[0]) + (2 * q[1] * q[1]) - 1;

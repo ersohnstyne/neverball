@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,9 +12,16 @@
  * General Public License for more details.
  */
 
+#include <assert.h>
 #include <string.h>
 #include <ctype.h>
 
+#if NB_HAVE_PB_BOTH==1
+#include "campaign.h"
+#include "st_intro_covid.h"
+#endif
+
+#include "log.h"
 #include "gui.h"
 #include "util.h"
 #include "audio.h"
@@ -24,10 +31,19 @@
 #include "text.h"
 #include "common.h"
 
+#include "game_client.h"
 #include "game_common.h"
 
+#include "st_conf.h"
 #include "st_save.h"
 #include "st_shared.h"
+
+/*---------------------------------------------------------------------------*/
+
+struct state st_save;
+struct state st_clobber;
+struct state st_lockdown;
+struct state st_save_error;
 
 /*---------------------------------------------------------------------------*/
 
@@ -39,7 +55,18 @@ int goto_save(struct state *ok, struct state *cancel)
     ok_state     = ok;
     cancel_state = cancel;
 
+#if defined(COVID_HIGH_RISK)
+    return goto_state(&st_lockdown);
+#elif defined(DEMO_QUARANTINED_MODE)
+    /* Lockdown duration time. DO NOT EDIT! */
+    int nolockdown; DEMO_LOCKDOWN_RANGE_NIGHT(nolockdown, 16, 8);
+    if (!nolockdown && curr_status() == GAME_FALL)
+        return goto_state(&st_lockdown);
+    else
+        return goto_state(&st_save);
+#else
     return goto_state(&st_save);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -48,20 +75,57 @@ static int file_id;
 
 enum
 {
-    SAVE_SAVE = GUI_LAST
+    SAVE_OK = GUI_LAST
 };
+
+static int enter_id;
+
+static void save_update_enter_btn(void)
+{
+    int name_accepted = text_length(text_input) > 2;
+
+    for (int i = 0; i < text_length(text_input); i++)
+    {
+        if (text_input[i] == '\\' || text_input[i] == '/' || text_input[i] == ':' || text_input[i] == '*' || text_input[i] == '?' || text_input[i] == '"' || text_input[i] == '<' || text_input[i] == '>' || text_input[i] == '|')
+        {
+            name_accepted = 0;
+            break;
+        }
+    }
+
+    gui_set_state(enter_id, name_accepted ? SAVE_OK : GUI_NONE, 0);
+    gui_set_color(enter_id,
+                  name_accepted ? gui_wht : gui_gry,
+                  name_accepted ? gui_wht : gui_gry);
+}
 
 static int save_action(int tok, int val)
 {
-    audio_play(AUD_MENU, 1.0f);
+    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
 
     switch (tok)
     {
     case GUI_BACK:
         return goto_state(cancel_state);
 
-    case SAVE_SAVE:
-        if (strlen(text_input) == 0)
+    case SAVE_OK:
+#ifdef DEMO_QUARANTINED_MODE
+        /* Lockdown duration time. DO NOT EDIT! */
+        int nolockdown; DEMO_LOCKDOWN_RANGE_NIGHT(nolockdown, 16, 8);
+        if (!nolockdown && curr_status() == GAME_FALL)
+            return goto_state(&st_lockdown);
+#endif
+
+        for (int i = 0; i < strlen(text_input); i++)
+        {
+            if (text_input[i] == '\\' || text_input[i] == '/' || text_input[i] == ':' || text_input[i] == '*' || text_input[i] == '?' || text_input[i] == '"' || text_input[i] == '<' || text_input[i] == '>' || text_input[i] == '|')
+            {
+                log_errorf("Can't accept other charsets!\n", text_input[i]);
+                return 1;
+            }
+        }
+
+        if (strlen(text_input) < 3)
             return 1;
 
         if (demo_exists(text_input))
@@ -70,12 +134,17 @@ static int save_action(int tok, int val)
         }
         else
         {
-            demo_rename(text_input);
-            return goto_state(ok_state);
+            if (curr_status() == GAME_FALL)
+            {
+                conf_covid_retract();
+            }
+
+            int r = demo_rename(text_input);
+            return goto_state(r ? ok_state : &st_save_error);
         }
 
     case GUI_CL:
-        gui_keyboard_lock();
+        gui_keyboard_lock_en();
         break;
 
     case GUI_BS:
@@ -89,26 +158,29 @@ static int save_action(int tok, int val)
     return 1;
 }
 
-static int enter_id;
-
 static int save_gui(void)
 {
     int id, jd;
 
     if ((id = gui_vstack(0)))
     {
-        gui_label(id, _("Replay Name"), GUI_MED, 0, 0);
+        gui_title_header(id, _("Replay Name"), GUI_MED, 0, 0);
         gui_space(id);
 
-        file_id = gui_label(id, " ", GUI_MED, gui_yel, gui_yel);
+        file_id = gui_label(id, "XXXXXXXXXXXXXXXX", GUI_MED, gui_yel, gui_yel);
 
         gui_space(id);
-        gui_keyboard(id);
+        if ((jd = gui_hstack(id)))
+        {
+            gui_filler(jd);
+            gui_keyboard_en(jd);
+            gui_filler(jd);
+        }
         gui_space(id);
 
         if ((jd = gui_harray(id)))
         {
-            enter_id = gui_start(jd, _("Save"), GUI_SML, SAVE_SAVE, 0);
+            enter_id = gui_start(jd, _("Save"), GUI_SML, SAVE_OK, 0);
             gui_space(jd);
             gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
         }
@@ -136,10 +208,29 @@ static void on_text_input(int typing)
 static int save_enter(struct state *st, struct state *prev)
 {
     const char *name;
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if (campaign_used())
+    {
+        name = demo_format_name(config_get_s(CONFIG_REPLAY_NAME),
+            "campaign",
+            level_name(curr_level()),
+            curr_status());
 
-    name = demo_format_name(config_get_s(CONFIG_REPLAY_NAME),
-                            set_id(curr_set()),
-                            level_name(curr_level()));
+        if (curr_mode() == MODE_HARDCORE)
+            name = demo_format_name(config_get_s(CONFIG_REPLAY_NAME),
+                "hardcore",
+                level_name(curr_level()),
+                curr_status());
+    }
+    else
+#endif
+    if (curr_mode() == MODE_STANDALONE)
+        name = "standalone";
+    else
+        name = demo_format_name(config_get_s(CONFIG_REPLAY_NAME),
+            set_id(curr_set()),
+            level_name(curr_level()),
+            curr_status());
 
     text_input_start(on_text_input);
     text_input_str(name, 0);
@@ -152,6 +243,12 @@ static void save_leave(struct state *st, struct state *next, int id)
     text_input_stop();
 
     gui_delete(id);
+}
+
+static void save_timer(int id, float dt)
+{
+    save_update_enter_btn();
+    gui_timer(id, dt);
 }
 
 static int save_keybd(int c, int d)
@@ -200,10 +297,13 @@ static int clobber_action(int tok, int val)
 {
     audio_play(AUD_MENU, 1.0f);
 
-    if (tok == SAVE_SAVE)
+    if (tok == SAVE_OK)
     {
-        demo_rename(text_input);
-        return goto_state(ok_state);
+        if (curr_status() == GAME_FALL)
+            conf_covid_retract();
+
+        int r = demo_rename(text_input);
+        return goto_state(r ? ok_state : &st_save_error);
     }
     return goto_state(&st_save);
 }
@@ -214,13 +314,15 @@ static int clobber_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        kd = gui_label(id, _("Overwrite?"), GUI_MED, gui_red, gui_red);
+        kd = gui_title_header(id, _("Overwrite?"), GUI_MED, gui_red, gui_red);
+        gui_space(id);
         ld = gui_label(id, "MMMMMMMM", GUI_MED, gui_yel, gui_yel);
+        gui_space(id);
 
         if ((jd = gui_harray(id)))
         {
             gui_start(jd, _("Cancel"),    GUI_SML, GUI_BACK, 0);
-            gui_state(jd, _("Overwrite"), GUI_SML, SAVE_SAVE, 0);
+            gui_state(jd, _("Overwrite"), GUI_SML, SAVE_OK, 0);
         }
 
         gui_pulse(kd, 1.2f);
@@ -264,11 +366,119 @@ static int clobber_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
+static int lockdown_action(int tok, int val)
+{
+    audio_play(AUD_BACK, 1.0f);
+
+    if (curr_status() == GAME_FALL)
+        conf_covid_retract();
+
+    return goto_state(cancel_state);
+}
+
+static int lockdown_gui(void)
+{
+    int id, jd;
+
+    if ((id = gui_vstack(0)))
+    {
+        jd = gui_title_header(id, _("Locked"), GUI_MED, gui_gry, gui_red);
+        gui_space(id);
+#ifdef COVID_HIGH_RISK
+        gui_multi(id, _("Replays have locked down\\during high risks!"), GUI_SML, gui_red, gui_red);
+#else
+        gui_multi(id, _("Replays have locked down\\between 16:00 - 8:00 (4:00 PM - 8:00 AM)."), GUI_SML, gui_red, gui_red);
+#endif
+        gui_space(id);
+        gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
+        gui_pulse(jd, 1.2f);
+        gui_layout(id, 0, 0);
+    }
+
+    return id;
+}
+
+static int lockdown_enter(struct state *st, struct state *prev)
+{
+    log_errorf("You can save your replays, but it's too late! "
+        "Reason: %s\n", strerror(EACCES));
+    return lockdown_gui();
+}
+
+static int lockdown_keybd(int c, int d)
+{
+    if (d)
+    {
+        if (c == KEY_EXIT)
+            return lockdown_action(GUI_BACK, 0);
+    }
+    return 1;
+}
+
+static int lockdown_buttn(int b, int d)
+{
+    if (d)
+    {
+        int active = gui_active();
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+            return lockdown_action(gui_token(active), gui_value(active));
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            return lockdown_action(GUI_BACK, 0);
+    }
+    return 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static int save_error_gui(void)
+{
+    int id;
+
+    if ((id = gui_vstack(0)))
+    {
+        char desc[MAXSTR];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(desc, dstSize
+#else
+        sprintf(desc,
+#endif
+            _("Please check your permissions\\before save your replay.\\%s"),
+            fs_error());
+
+        gui_title_header(id, _("Save failed!"), GUI_MED, gui_gry, gui_red);
+        gui_space(id);
+        gui_multi(id, desc, GUI_SML, gui_wht, gui_wht);
+    }
+
+    gui_layout(id, 0, 0);
+
+    return id;
+}
+
+static int save_error_enter(struct state* st, struct state* prev)
+{
+    return save_error_gui();
+}
+
+static int save_error_keybd(int c, int d)
+{
+    return goto_state(&st_save);
+}
+
+static int save_error_buttn(int b, int d)
+{
+    return goto_state(&st_save);
+}
+
+/*---------------------------------------------------------------------------*/
+
 struct state st_save = {
     save_enter,
     save_leave,
     shared_paint,
-    shared_timer,
+    save_timer,
     shared_point,
     shared_stick,
     shared_angle,
@@ -288,4 +498,30 @@ struct state st_clobber = {
     shared_click,
     clobber_keybd,
     clobber_buttn
+};
+
+struct state st_lockdown = {
+    lockdown_enter,
+    shared_leave,
+    shared_paint,
+    shared_timer,
+    shared_point,
+    shared_stick,
+    shared_angle,
+    shared_click,
+    lockdown_keybd,
+    lockdown_buttn
+};
+
+struct state st_save_error = {
+    save_error_enter,
+    shared_leave,
+    shared_paint,
+    shared_timer,
+    shared_point,
+    shared_stick,
+    shared_angle,
+    shared_click_basic,
+    save_error_keybd,
+    save_error_buttn
 };

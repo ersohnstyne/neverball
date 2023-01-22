@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -13,6 +13,7 @@
  */
 
 #include <stdlib.h>
+#include <assert.h>
 
 #include "solid_vary.h"
 #include "common.h"
@@ -30,8 +31,9 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 
     if (fp->base->pc)
     {
-        fp->pv = calloc(fp->base->pc, sizeof (*fp->pv));
         fp->pc = fp->base->pc;
+        fp->pv = calloc(fp->pc, sizeof (*fp->pv));
+        if (fp->pv == 0) return 0;
 
         for (i = 0; i < fp->base->pc; i++)
         {
@@ -47,8 +49,9 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
     {
         struct alloc mv;
 
-        fp->bv = calloc(fp->base->bc, sizeof (*fp->bv));
         fp->bc = fp->base->bc;
+        fp->bv = calloc(fp->bc, sizeof (*fp->bv));
+        if (fp->bv == 0) return 0;
 
         alloc_new(&mv, sizeof (*fp->mv), (void **) &fp->mv, &fp->mc);
 
@@ -72,9 +75,7 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
             }
 
             if (bbody->pj == bbody->pi)
-            {
                 vbody->mj = vbody->mi;
-            }
             else if (bbody->pj >= 0 && (vmove = alloc_add(&mv)))
             {
                 memset(vmove, 0, sizeof (*vmove));
@@ -87,8 +88,9 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 
     if (fp->base->hc)
     {
-        fp->hv = calloc(fp->base->hc, sizeof (*fp->hv));
         fp->hc = fp->base->hc;
+        fp->hv = calloc(fp->hc, sizeof (*fp->hv));
+        if (fp->hv == 0) return 0;
 
         for (i = 0; i < fp->base->hc; i++)
         {
@@ -104,8 +106,9 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 
     if (fp->base->xc)
     {
-        fp->xv = calloc(fp->base->xc, sizeof (*fp->xv));
         fp->xc = fp->base->xc;
+        fp->xv = calloc(fp->xc, sizeof (*fp->xv));
+        if (fp->xv == 0) return 0;
 
         for (i = 0; i < fp->base->xc; i++)
         {
@@ -121,8 +124,9 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 
     if (fp->base->uc)
     {
-        fp->uv = calloc(fp->base->uc, sizeof (*fp->uv));
         fp->uc = fp->base->uc;
+        fp->uv = calloc(fp->uc, sizeof (*fp->uv));
+        if (fp->uv == 0) return 0;
 
         for (i = 0; i < fp->base->uc; i++)
         {
@@ -147,6 +151,195 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
         }
     }
 
+#ifdef MAPC_INCLUDES_CHKP
+    if (fp->base->cc)
+    {
+        fp->cc = fp->base->cc;
+        fp->cv = calloc(fp->cc, sizeof (*fp->cv));
+        if (fp->cv == 0) return 0;
+
+        for (i = 0; i < fp->base->cc; i++)
+        {
+            struct v_chkp *cp = fp->cv + i;
+            struct b_chkp *cq = fp->base->cv + i;
+
+            cp->base = cq;
+        }
+    }
+#endif
+
+    return 1;
+}
+
+int sol_respawn_vary(struct s_vary *fp, struct s_vary *last_fp)
+{
+    int i;
+
+    memset(fp, 0, sizeof (*fp));
+
+    fp->base = last_fp->base;
+
+    if (fp->base->pc)
+    {
+        fp->pc = fp->base->pc;
+        fp->pv = calloc(fp->base->pc, sizeof (*fp->base->pv));
+        if (fp->pv == 0) return 0;
+        
+        for (i = 0; i < fp->base->pc; i++)
+        {
+            struct v_path *last_pp = last_fp->pv + i;
+            struct v_path *pp      = fp->pv + i;
+
+            pp->base = last_pp->base;
+            pp->f    = last_pp->f;
+        }
+    }
+
+    if (fp->base->bc)
+    {
+        struct alloc mv;
+
+        fp->bc = fp->base->bc;
+        fp->bv = calloc(fp->base->pc, sizeof (*fp->base->bv));
+        if (fp->bv == 0) return 0;
+
+        alloc_new(&mv, sizeof (*fp->base->mv), (void**) &fp->base->mv, &fp->base->mc);
+
+        for (i = 0; i < fp->base->bc; i++)
+        {
+            struct v_body *last_vbody = last_fp->bv + i;
+            struct v_body *vbody      = fp->bv + i;
+            struct v_move *last_vmove = last_fp->mv + i;
+            struct v_move *vmove;
+
+            vbody->base = last_vbody->base;
+
+            vbody->mi = -1;
+            vbody->mj = -1;
+
+            if (last_vbody->base->pi >= 0 && (vmove = alloc_add(&mv)))
+            {
+                memset(vmove, 0, sizeof (*vmove));
+
+                /*
+                 * We do not guranteed, where was saved from the data:
+                 * bbody->pi
+                 */
+
+                vbody->mi = last_fp->mc - 1;
+                vmove->pi = last_vmove->pi;
+                vmove->t  = last_vmove->t;
+                vmove->tm = last_vmove->tm;
+            }
+
+            if (last_vbody->base->pj == last_vbody->base->pi)
+                vbody->mj = vbody->mi;
+            else if (last_vbody->base->pj >= 0 && (vmove = alloc_add(&mv)))
+            {
+                memset(vmove, 0, sizeof (*vmove));
+
+                vbody->mj = last_fp->mc - 1;
+                vmove->pi = last_vbody->base->pj;
+            }
+        }
+    }
+
+    if (fp->base->mc)
+    {
+        fp->mc = fp->base->mc;
+        fp->mv = calloc(fp->base->mc, sizeof (*fp->base->mv));
+        if (fp->mv == 0) return 0;
+
+        for (i = 0; i < fp->base->mc; i++)
+        {
+            struct v_move *last_vmove = last_fp->mv + i;
+            struct v_move *vmove      = fp->mv + i;
+
+            vmove->t  = last_vmove->t;
+            vmove->tm = last_vmove->tm;
+            vmove->pi = last_vmove->pi;
+        }
+    }
+
+    if (fp->base->hc)
+    {
+        fp->hc = fp->base->hc;
+        fp->hv = calloc(fp->base->hc, sizeof (*fp->base->hv));
+        if (fp->hv == 0) return 0;
+
+        for (i = 0; i < fp->base->hc; i++)
+        {
+            struct v_item *last_hp = last_fp->hv + i;
+            struct v_item *hp      = fp->hv + i;
+
+            v_cpy(hp->p, last_hp->p);
+
+            hp->t = last_hp->t;
+            hp->n = last_hp->n;
+        }
+    }
+
+    if (fp->base->xc)
+    {
+        fp->xc = fp->base->xc;
+        fp->xv = calloc(fp->base->xc, sizeof (*fp->base->xv));
+        if (fp->xv == 0) return 0;
+
+        for (i = 0; i < fp->base->xc; i++)
+        {
+            struct v_swch *last_xp = last_fp->xv + i;
+            struct v_swch *xp      = fp->xv + i;
+
+            xp->base = last_xp->base;
+            xp->t    = last_xp->t;
+            xp->tm   = last_xp->tm;
+            xp->f    = last_xp->f;
+        }
+    }
+
+    if (fp->base->uc)
+    {
+        fp->uc = fp->base->uc;
+        fp->uv = calloc(fp->base->uc, sizeof (*fp->base->uv));
+        if (fp->uv == 0) return 0;
+
+        for (i = 0; i < fp->base->uc; i++)
+        {
+            struct v_ball *last_up = last_fp->uv + i;
+            struct v_ball *up      = fp->uv + i;
+
+            v_cpy(up->p, last_up->p);
+
+            up->r = last_up->r;
+
+            v_cpy(up->e[0], last_up->e[0]);
+            v_cpy(up->e[1], last_up->e[1]);
+            v_cpy(up->e[2], last_up->e[2]);
+            v_cpy(up->E[0], last_up->E[0]);
+            v_cpy(up->E[1], last_up->E[1]);
+            v_cpy(up->E[2], last_up->E[2]);
+        }
+    }
+
+#ifdef MAPC_INCLUDES_CHKP
+    if (fp->base->cc)
+    {
+        fp->cc = fp->base->cc;
+        fp->cv = calloc(fp->base->cc, sizeof (*fp->base->cv));
+        if (fp->cv == 0) return 0;
+
+        for (i = 0; i < fp->base->cc; i++)
+        {
+            struct v_chkp *last_cp = last_fp->cv + i;
+            struct v_chkp *cp      = fp->cv + i;
+
+            cp->base = last_cp->base;
+            cp->f    = last_cp->f;
+            cp->e    = last_cp->e;
+        }
+    }
+#endif
+
     return 1;
 }
 
@@ -158,6 +351,9 @@ void sol_free_vary(struct s_vary *fp)
     free(fp->hv);
     free(fp->xv);
     free(fp->uv);
+#ifdef MAPC_INCLUDES_CHKP
+    free(fp->cv);
+#endif
 
     memset(fp, 0, sizeof (*fp));
 }
@@ -363,6 +559,7 @@ int sol_load_lerp(struct s_lerp *fp, struct s_vary *vary)
     if (fp->vary->mc)
     {
         fp->mv = calloc(fp->vary->mc, sizeof (*fp->mv));
+        if (fp->mv == 0) return 0;
         fp->mc = fp->vary->mc;
 
         for (i = 0; i < fp->vary->mc; i++)
@@ -372,6 +569,44 @@ int sol_load_lerp(struct s_lerp *fp, struct s_vary *vary)
     if (fp->vary->uc)
     {
         fp->uv = calloc(fp->vary->uc, sizeof (*fp->uv));
+        if (fp->uv == 0) return 0;
+        fp->uc = fp->vary->uc;
+
+        for (i = 0; i < fp->vary->uc; i++)
+        {
+            e_cpy(fp->uv[i][CURR].e, fp->vary->uv[i].e);
+            v_cpy(fp->uv[i][CURR].p, fp->vary->uv[i].p);
+            e_cpy(fp->uv[i][CURR].E, fp->vary->uv[i].E);
+
+            fp->uv[i][CURR].r = fp->vary->uv[i].r;
+        }
+    }
+
+    sol_lerp_copy(fp);
+
+    return 1;
+}
+
+int  sol_respawn_lerp(struct s_lerp *fp, struct s_vary *vary)
+{
+    int i;
+
+    fp->vary = vary;
+
+    if (fp->vary->mc)
+    {
+        fp->mv = calloc(fp->vary->mc, sizeof (*fp->mv));
+        if (fp->mv == 0) return 0;
+        fp->mc = fp->vary->mc;
+
+        for (i = 0; i < fp->vary->mc; i++)
+            fp->mv[i][CURR].pi = fp->vary->mv[i].pi;
+    }
+
+    if (fp->vary->uc)
+    {
+        fp->uv = calloc(fp->vary->uc, sizeof (*fp->uv));
+        if (fp->uv == 0) return 0;
         fp->uc = fp->vary->uc;
 
         for (i = 0; i < fp->vary->uc; i++)

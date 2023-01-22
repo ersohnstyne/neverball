@@ -12,6 +12,8 @@
  * General Public License for more details.
  */
 
+#include <assert.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,6 +23,8 @@
 #include "course.h"
 #include "hole.h"
 #include "fs.h"
+
+#include "log.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -49,8 +53,11 @@ static int course_load(struct course *crs, const char *filename)
     memset(crs, 0, sizeof (*crs));
 
     strncpy(crs->holes, filename, MAXSTR - 1);
-
+#if defined(FS_VERSION_1)
+    if ((fin = fs_open(filename, "r")))
+#else
     if ((fin = fs_open_read(filename)))
+#endif
     {
         if (fs_gets(crs->shot, sizeof (crs->shot), fin) &&
             fs_gets(crs->desc, sizeof (crs->desc), fin))
@@ -104,7 +111,11 @@ void course_init()
 
     count = 0;
 
+#if defined(FS_VERSION_1)
+    if ((fin = fs_open(COURSE_FILE, "r")))
+#else
     if ((fin = fs_open_read(COURSE_FILE)))
+#endif
     {
         while (count < MAXCRS && read_line(&line, fin))
         {
@@ -118,6 +129,8 @@ void course_init()
 
         course_state = 1;
     }
+    else
+        log_errorf("Unable to load course file: %s\n", stderr);
 
     if ((items = fs_dir_scan("", is_unseen_course)))
     {
@@ -131,6 +144,8 @@ void course_init()
 
         course_state = 1;
     }
+    else
+        log_errorf("Unable to load course file collection: %s\n", stderr);
 }
 
 int course_exists(int i)
@@ -162,11 +177,18 @@ void course_free(void)
 
 void course_rand(void)
 {
+    if (count == 0) return;
+
     course_goto(rand() % count);
     hole_goto(rand() % curr_count(), 4);
 }
 
 /*---------------------------------------------------------------------------*/
+
+const char *course_name(int i)
+{
+    return "";
+}
 
 const char *course_desc(int i)
 {

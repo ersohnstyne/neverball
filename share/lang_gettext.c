@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2006 Jean Privat
- * Part of the Neverball Project http://icculus.org/neverball/
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -27,11 +26,12 @@
 
 /*---------------------------------------------------------------------------*/
 
+#if _WIN32 && __GNUC__
+
 #define GT_CODESET "UTF-8"
 
 void gt_init(const char *domain, const char *pref)
 {
-#if ENABLE_NLS
     static char default_lang[MAXSTR];
     static int  default_lang_init;
 
@@ -53,7 +53,7 @@ void gt_init(const char *domain, const char *pref)
 
     if (!setlocale(LC_ALL, ""))
     {
-        log_printf("Failure to set LC_ALL to native locale (%s)\n",
+        log_errorf("Failure to set LC_ALL to native locale (%s)\n",
                    errno ? strerror(errno) : "Unknown error");
     }
 
@@ -78,16 +78,15 @@ void gt_init(const char *domain, const char *pref)
     else
         set_env_var("LANGUAGE", default_lang);
 
+#if ENABLE_NLS
     /* Set up gettext. */
 
     bindtextdomain(domain, dir);
     bind_textdomain_codeset(domain, GT_CODESET);
     textdomain(domain);
+#endif
 
     free(dir);
-#else
-    return;
-#endif
 }
 
 const char *gt_prefix(const char *msgid)
@@ -132,8 +131,11 @@ int lang_load(struct lang_desc *desc, const char *path)
         fs_file fp;
 
         memset(desc, 0, sizeof (*desc));
-
+#ifdef FS_VERSION_1
+        if ((fp = fs_open(path, "r")))
+#else
         if ((fp = fs_open_read(path)))
+#endif
         {
             char buf[MAXSTR];
 
@@ -231,19 +233,25 @@ static int lang_status;
 
 void lang_init(void)
 {
+#if ENABLE_NLS
     lang_quit();
     lang_load(&curr_lang, lang_path(config_get_s(CONFIG_LANGUAGE)));
     gt_init("neverball", curr_lang.code);
     lang_status = 1;
+#endif
 }
 
 void lang_quit(void)
 {
+#if ENABLE_NLS
     if (lang_status)
     {
         lang_free(&curr_lang);
         lang_status = 0;
     }
+#endif
 }
+
+#endif
 
 /*---------------------------------------------------------------------------*/

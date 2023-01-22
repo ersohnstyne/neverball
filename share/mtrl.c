@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Neverball authors
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -20,6 +20,12 @@
 #include "common.h"
 #include "image.h"
 #include "lang.h"
+
+/* GL_CLAMP_TO_EDGE turns into the GL_CLAMP */
+#ifdef GL_CLAMP_TO_EDGE
+//#undef GL_CLAMP_TO_EDGE
+//#define GL_CLAMP_TO_EDGE 0x2900
+#endif
 
 /*
  * Material cache.
@@ -124,7 +130,7 @@ static void load_mtrl_objects(struct mtrl *mp)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     }
     else
-        log_printf("Failed to load texture \"%s\"\n", _(mp->base.f));
+        log_errorf("Failed to load texture \"%s\"\n", _(mp->base.f));
 }
 
 /*

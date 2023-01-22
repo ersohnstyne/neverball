@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Neverball authors
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -243,6 +243,9 @@ void sol_pendulum(struct v_ball *up,
 
 /*---------------------------------------------------------------------------*/
 
+int last_path_enabled_orcondition[1024];
+int curr_path_enabled_orcondition[1024];
+
 static void sol_path_flag(struct s_vary *vary, cmd_fn cmd_func, int pi, int f)
 {
     if (pi < 0 || pi >= vary->pc)
@@ -322,7 +325,27 @@ void sol_swch_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
 
             if (xp->tm >= xp->base->tm)
             {
-                sol_path_loop(vary, cmd_func, xp->base->pi, xp->base->f);
+                /* First additive, then substractive, and so on */
+
+                if (xp->base->f == 1)
+                    curr_path_enabled_orcondition[xp->base->pi]++;
+                else
+                    curr_path_enabled_orcondition[xp->base->pi]--;
+
+#if _DEBUG
+                if (curr_path_enabled_orcondition[xp->base->pi] > 1)
+                    log_printf("Path index %d uses OR SWITCH condition: %d\n", xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
+                else if (curr_path_enabled_orcondition[xp->base->pi] > 0)
+                    log_printf("Path index %d is ENABLED\n", xp->base->pi);
+                else if (curr_path_enabled_orcondition[xp->base->pi] == 0)
+                    log_printf("Path index %d is DISABLED\n", xp->base->pi);
+                else
+                    log_printf("Path index %d uses NOR SWITCH condition: %d\n", xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
+#endif
+
+                sol_path_loop(vary, cmd_func, xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
+
+                //sol_path_loop(vary, cmd_func, xp->base->pi, xp->base->f);
 
                 xp->f = xp->base->f;
 
@@ -335,6 +358,30 @@ void sol_swch_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
             }
         }
     }
+}
+
+/*
+ * New: Checkpoints: Compute the states of all checkpoints after DT seconds have passed.
+ */
+void sol_chkp_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
+{
+    int xi;
+
+#ifdef MAPC_INCLUDES_CHKP
+    for (xi = 0; xi < vary->cc; xi++)
+    {
+        struct v_chkp *cp = vary->cv + xi;
+
+        //cp->f = cp->base->f;
+
+        /*if (cmd_func)
+        {
+            union cmd cmd = { CMD_CHKP_TOGGLE };
+            cmd.chkptoggle.xi = xi;
+            cmd_func(&cmd);
+        }*/
+    }
+#endif
 }
 
 /*
@@ -565,7 +612,27 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
                         cmd_func(&cmd);
                     }
 
-                    sol_path_loop(vary, cmd_func, xp->base->pi, xp->f);
+                    // First additive, then substractive, and so on
+
+                    if (xp->f == 1)
+                        curr_path_enabled_orcondition[xp->base->pi]++;
+                    else
+                        curr_path_enabled_orcondition[xp->base->pi]--;
+
+#if _DEBUG
+                    if (curr_path_enabled_orcondition[xp->base->pi] > 1)
+                        log_printf("Path index %d uses OR SWITCH condition: %d\n", xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
+                    else if (curr_path_enabled_orcondition[xp->base->pi] > 0)
+                        log_printf("Path index %d is ENABLED\n", xp->base->pi);
+                    else if (curr_path_enabled_orcondition[xp->base->pi] == 0)
+                        log_printf("Path index %d is DISABLED\n", xp->base->pi);
+                    else
+                        log_printf("Path index %d uses NOR SWITCH condition: %d\n", xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
+#endif
+
+                    sol_path_loop(vary, cmd_func, xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
+
+                    //sol_path_loop(vary, cmd_func, xp->base->pi, xp->f);
 
                     /* It toggled to non-default state, start the timer. */
 
@@ -598,6 +665,98 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
         }
     }
     return rc;
+}
+
+/*
+ * New: Checkpoints; Test for a ball entering a checkpoints.
+ */
+int sol_chkp_test(struct s_vary *vary, cmd_fn cmd_func, int ui, int *ci)
+{
+    const float *ball_p = vary->uv[ui].p;
+    const float  ball_r = vary->uv[ui].r;
+
+    int xi, rc = CHKP_OUTSIDE;
+
+#ifdef MAPC_INCLUDES_CHKP
+    for (xi = 0; xi < vary->cc; xi++)
+    {
+        struct v_chkp *cp = vary->cv + xi;
+
+        float d, r[3];
+
+        r[0] = ball_p[0] - cp->base->p[0];
+        r[1] = ball_p[2] - cp->base->p[2];
+        r[2] = 0;
+
+        /* Distance of the far side from the edge of the halo. */
+
+        d = v_len(r) + ball_r - cp->base->r;
+
+        /*
+         * The  "touch"  distance, which  must  be cleared  before
+         * being able to trigger a switch, is the ball's diameter.
+         * (This is different from teleporters.)
+         */
+
+        if (d <= ball_r * 2 &&
+            ball_p[1] > cp->base->p[1] &&
+            ball_p[1] < cp->base->p[1] + CHKP_HEIGHT / 2)
+        {
+            if (!cp->e && d <= 0.0f)
+            {
+                /* The ball enters. */
+
+                cp->e = 1;
+
+                if (cmd_func)
+                {
+                    union cmd cmd = { CMD_CHKP_ENTER };
+                    cmd.chkpenter.ci = xi;
+                    cmd_func(&cmd);
+                }
+
+				/* Disabled? */
+
+				if (cp->f == 0)
+				{
+					/* Toggle the state. */
+                    ci = &xi;
+
+					cp->f = 1;
+
+					if (cmd_func)
+					{
+						union cmd cmd = { CMD_CHKP_TOGGLE };
+						cmd.chkptoggle.ci = xi;
+						cmd_func(&cmd);
+					}
+				}
+
+                /* If visible, set the result. */
+
+                /*if (!cp->base->i)*/
+                    rc = CHKP_INSIDE;
+            }
+        }
+
+        /* The ball exits. */
+
+        else if (cp->e)
+        {
+            cp->e = 0;
+
+            if (cmd_func)
+            {
+                union cmd cmd = { CMD_CHKP_EXIT };
+                cmd.chkpexit.ci = xi;
+                cmd_func(&cmd);
+            }
+        }
+    }
+    return rc;
+#else
+    return CHKP_OUTSIDE;
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

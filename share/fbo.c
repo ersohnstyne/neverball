@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Robert Kooima
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -15,6 +15,12 @@
 #include <string.h>
 
 #include "fbo.h"
+
+/* GL_CLAMP_TO_EDGE turns into the GL_CLAMP */
+#ifdef GL_CLAMP_TO_EDGE
+#undef GL_CLAMP_TO_EDGE
+#define GL_CLAMP_TO_EDGE 0x2900
+#endif
 
 /*---------------------------------------------------------------------------*/
 

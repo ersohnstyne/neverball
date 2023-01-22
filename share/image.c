@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,8 +12,14 @@
  * General Public License for more details.
  */
 
+#if _WIN32 && __GNUC__
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#else
 #include <SDL.h>
 #include <SDL_ttf.h>
+#endif
+
 #include <string.h>
 #include <math.h>
 #include <png.h>
@@ -27,6 +33,17 @@
 
 #include "fs.h"
 #include "fs_png.h"
+
+/* GL_CLAMP_TO_EDGE turns into the GL_CLAMP */
+#ifdef GL_CLAMP_TO_EDGE
+//#undef GL_CLAMP_TO_EDGE
+//#define GL_CLAMP_TO_EDGE 0x2900
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/* Do not allow mipmap and anisotropic in GUI. */
+int donot_allow_mip_and_aniso_during_gui = 0;
 
 /*---------------------------------------------------------------------------*/
 
@@ -45,7 +62,11 @@ void image_snap(const char *filename)
 
     /* Initialize all PNG export data structures. */
 
+#ifdef FS_VERSION_1
+    if (!(filep = fs_open(filename, "w")))
+#else
     if (!(filep = fs_open_write(filename)))
+#endif
         return;
     if (!(writep = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0)))
         return;
@@ -117,7 +138,14 @@ GLuint make_texture(const void *p, int w, int h, int b, int fl)
 #ifdef GL_GENERATE_MIPMAP_SGIS
     int m = (fl & IF_MIPMAP) ? config_get_d(CONFIG_MIPMAP) : 0;
 #endif
-    int k = config_get_d(CONFIG_TEXTURES);
+
+    /*
+     * If "textures" is set to 0, then the value will stay to 1.
+     * It causes more problems, when they initialize the image support.
+     * See Issues #210, how to fix the problem.
+     */
+    int k = CLAMP(1, config_get_d(CONFIG_TEXTURES), 4);
+
     int W = w;
     int H = h;
 
@@ -143,7 +171,7 @@ GLuint make_texture(const void *p, int w, int h, int b, int fl)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 #ifdef GL_GENERATE_MIPMAP_SGIS
-    if (m)
+    if (m && !donot_allow_mip_and_aniso_during_gui)
     {
         glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
@@ -151,7 +179,9 @@ GLuint make_texture(const void *p, int w, int h, int b, int fl)
     }
 #endif
 #ifdef GL_TEXTURE_MAX_ANISOTROPY_EXT
-    if (a && gli.texture_filter_anisotropic) glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, a);
+    if (a && gli.texture_filter_anisotropic
+        && !donot_allow_mip_and_aniso_during_gui)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, a);
 #endif
 
     /* Copy the image to an OpenGL texture. */
@@ -161,7 +191,6 @@ GLuint make_texture(const void *p, int w, int h, int b, int fl)
                  format[b], GL_UNSIGNED_BYTE, q ? q : p);
 
     if (q) free(q);
-
 
     return o;
 }
@@ -277,15 +306,18 @@ void size_image_from_font(int *W, int *H,
 {
     int text_w, text_h, w2, h2;
 
-    TTF_SizeUTF8(font, text, &text_w, &text_h);
+    if (font)
+    {
+        TTF_SizeUTF8(font, text, &text_w, &text_h);
 
-    if (w) *w = text_w;
-    if (h) *h = text_h;
+        if (w) *w = text_w;
+        if (h) *h = text_h;
 
-    image_size(&w2, &h2, text_w, text_h);
+        image_size(&w2, &h2, text_w, text_h);
 
-    if (W) *W = w2;
-    if (H) *H = h2;
+        if (W) *W = w2;
+        if (H) *H = h2;
+    }
 }
 
 /*---------------------------------------------------------------------------*/

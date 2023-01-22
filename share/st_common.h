@@ -37,7 +37,7 @@ int  common_buttn(int b, int d);
 
 /*---------------------------------------------------------------------------*/
 
-void conf_common_init(int (*action_fn)(int, int));
+void conf_common_init(int (*action_fn)(int, int), int allowfade);
 void conf_common_leave(struct state *st, struct state *next, int id);
 void conf_common_paint(int id, float t);
 
@@ -53,10 +53,13 @@ extern struct state st_null;
  * These are actually implemented by this module.
  */
 extern struct state st_video;
+extern struct state st_video_advanced;
 extern struct state st_display;
+#if !defined(RESIZEABLE_WINDOW)
 extern struct state st_resol;
+#endif
 extern struct state st_lang;
-extern struct state st_joystick;
+extern struct state st_restart_required;
 
 /*---------------------------------------------------------------------------*/
 

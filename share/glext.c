@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2011 Neverball authors
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,7 +12,11 @@
  * General Public License for more details.
  */
 
+#if _WIN32 && __GNUC__
+#include <SDL2/SDL.h>
+#else
 #include <SDL.h>
+#endif
 #include <stdio.h>
 
 #include "glext.h"
@@ -64,11 +68,55 @@ PFNGLCHECKFRAMEBUFFERSTATUS_PROC glCheckFramebufferStatus_;
 
 PFNGLSTRINGMARKERGREMEDY_PROC    glStringMarkerGREMEDY_;
 
+#if _WIN32 || _WIN64
+#if ENABLE_GL_NV
+PFNGLVIEWPORTPOSITIONWSCALENV_PROC glViewportPositionWScaleNV_;
+
+PFNGLGENOCCLUSIONQUERIESNV_PROC    glGenOcclusionQueriesNV_;
+PFNGLDELETEOCCLUSIONQUERIESNV_PROC glDeleteOcclusionQueriesNV_;
+PFNGLISOCCLUSIONQUERYNV_PROC       glIsOcclusionQueryNV_;
+PFNGLBEGINOCCLUSIONQUERYNV_PROC    glBeginOcclusionQueryNV_;
+PFNGLENDOCCLUSIONQUERYNV_PROC      glEndOcclusionQueryNV_;
+PFNGLGETOCCLUSIONQUERYIVNV_PROC    glGetOcclusionQueryivNV_;
+PFNGLGETOCCLUSIONQUERYUIVNV_PROC   glGetOcclusionQueryuivNV_;
+
+PFNGLFLUSHVERTEXARRAYRANGENV_PROC  glFlushVertexArrayRangeNV_;
+PFNGLVERTEXARRAYRANGENV_PROC       glVertexArrayRangeNV_;
+
+PFNGLCREATESTATESNV_PROC glCreateStatesNV_;
+PFNGLDELETESTATESNV_PROC glDeleteStatesNV_;
+PFNGLISSTATENV_PROC glIsStateNV_;
+PFNGLSTATECAPTURENV_PROC glStateCaptureNV_;
+PFNGLGETCOMMANDHEADERNV_PROC glGetCommandHeaderNV_;
+PFNGLGETSTAGEINDEXNV_PROC glGetStageIndexNV_;
+PFNGLDRAWCOMMANDSNV_PROC glDrawCommandsNV_;
+PFNGLDRAWCOMMANDSADDRESSNV_PROC glDrawCommandsAddressNV_;
+PFNGLDRAWCOMMANDSSTATESNV_PROC glDrawCommandsStatesNV_;
+PFNGLDRAWCOMMANDSSTATESADDRESSNV_PROC glDrawCommandsStatesAddressNV_;
+PFNGLCREATECOMMANDLISTSNV_PROC glCreateCommandListsNV_;
+PFNGLDELETECOMMANDLISTSNV_PROC glDeleteCommandListsNV_;
+PFNGLISCOMMANDLISTNV_PROC glIsCommandListNV_;
+PFNGLLISTDRAWCOMMANDSSTATESCLIENTNV_PROC glListDrawCommandsStatesClientNV_;
+PFNGLCOMMANDLISTSEGMENTSNV_PROC glCommandListSegmentsNV_;
+PFNGLCOMPILECOMMANDLISTNV_PROC glCompileCommandListNV_;
+PFNGLCALLCOMMANDLISTNV_PROC glCallCommandListNV_;
+#endif
+#endif
+
 #endif
 
 /*---------------------------------------------------------------------------*/
 
-int glext_check(const char *needle)
+#define str_starts_with(s, h) (strncmp((s), (h), strlen(h)) == 0)
+
+/*---------------------------------------------------------------------------*/
+
+int glext_check_renderer(const char *renderer)
+{
+    return str_starts_with((const char *) glGetString(GL_RENDERER), renderer);
+}
+
+int glext_check_ext(const char *needle)
 {
     const GLubyte *haystack, *c;
 
@@ -87,37 +135,73 @@ int glext_check(const char *needle)
     return 0;
 }
 
+/*---------------------------------------------------------------------------*/
+
+#if _DEBUG
+int glext_fail(const char* title, const char* message);
+
+int glext_assert_dbg(const char* ext)
+{
+    int have_ext = glext_check_ext(ext);
+
+    if (!have_ext)
+    {
+        char outStr[32]; sprintf(outStr, "Missing required OpenGL extension (%s)", ext);
+        have_ext = glext_fail("Missing extensions!", outStr);
+        SDL_TriggerBreakpoint();
+    }
+
+    return have_ext;
+}
+
+#define glext_assert(ext) glext_assert_dbg(ext)
+#else
 int glext_assert(const char *ext)
 {
-    if (!glext_check(ext))
+    if (!glext_check_ext(ext))
     {
-        log_printf("Missing required OpenGL extension (%s)\n", ext);
+        log_errorf("Missing required OpenGL extension (%s)\n", ext);
         return 0;
     }
     return 1;
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
+#if _DEBUG
+#define SDL_GL_GFPA(fun, str) do {                       \
+    ptr = SDL_GL_GetProcAddress(str);                    \
+    while (!ptr)                                         \
+    {                                                    \
+        char outStr[32]; sprintf(outStr, "Missing OpenGL function: (%s)", str); \
+        glext_fail("Missing function!", outStr);         \
+        SDL_TriggerBreakpoint();                         \
+        ptr = SDL_GL_GetProcAddress(str);                \
+    }                                                    \
+    memcpy(&fun, &ptr, sizeof (void *));                 \
+} while(0)
+#else
 #define SDL_GL_GFPA(fun, str) do {                       \
     ptr = SDL_GL_GetProcAddress(str);                    \
     if (!ptr)                                            \
-        log_printf("Missing OpenGL function %s\n", str); \
+        log_errorf("Missing OpenGL function: %s\n", str);\
     memcpy(&fun, &ptr, sizeof (void *));                 \
 } while(0)
+#endif
 
 /*---------------------------------------------------------------------------*/
 
 static void log_opengl(void)
 {
     log_printf("GL vendor: %s\n"
-               "GL renderer: %s\n"
-               "GL version: %s\n"
-               "GL extensions: %s\n",
-               glGetString(GL_VENDOR),
-               glGetString(GL_RENDERER),
-               glGetString(GL_VERSION),
-               glGetString(GL_EXTENSIONS));
+        "GL renderer: %s\n"
+        "GL version: %s\n"
+        "GL extensions: %s\n",
+        glGetString(GL_VENDOR),
+        glGetString(GL_RENDERER),
+        glGetString(GL_VERSION),
+        glGetString(GL_EXTENSIONS));
 }
 
 int glext_fail(const char *title, const char *message)
@@ -128,6 +212,23 @@ int glext_fail(const char *title, const char *message)
 
 int glext_init(void)
 {
+    void *ptr = 0;
+
+    int num_GLextensions = 0;
+    const GLubyte *haystack, *c;
+
+    for (haystack = glGetString(GL_EXTENSIONS); *haystack; haystack++)
+    {
+        for (c = "GL_"; *c && *haystack; c++, haystack++)
+        {
+            if (*c == *haystack) num_GLextensions++;
+            else break;
+        }
+    }
+
+    if (num_GLextensions > 99)
+        log_printf("Too many GL extensions on this PC! Number of extensions: %d\n", num_GLextensions);
+
     memset(&gli, 0, sizeof (struct gl_info));
 
     /* Common init. */
@@ -135,19 +236,21 @@ int glext_init(void)
     glGetIntegerv(GL_MAX_TEXTURE_SIZE,  &gli.max_texture_size);
     glGetIntegerv(GL_MAX_TEXTURE_UNITS, &gli.max_texture_units);
 
-    if (glext_check("GL_EXT_texture_filter_anisotropic"))
+    if (glext_check_ext("GL_EXT_texture_filter_anisotropic"))
         gli.texture_filter_anisotropic = 1;
 
     /* Desktop init. */
 
 #if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
-    void *ptr = 0;
-
+    
     if (glext_assert("ARB_multitexture"))
     {
         SDL_GL_GFPA(glClientActiveTexture_, "glClientActiveTextureARB");
-        SDL_GL_GFPA(glActiveTexture_,       "glActiveTextureARB");
+        SDL_GL_GFPA(glActiveTexture_, "glActiveTextureARB");
     }
+#if _DEBUG
+    else return 0;
+#endif
 
     if (glext_assert("ARB_vertex_buffer_object"))
     {
@@ -158,14 +261,20 @@ int glext_init(void)
         SDL_GL_GFPA(glDeleteBuffers_,       "glDeleteBuffersARB");
         SDL_GL_GFPA(glIsBuffer_,            "glIsBufferARB");
     }
+#if _DEBUG
+    else return 0;
+#endif
 
     if (glext_assert("ARB_point_parameters"))
     {
         SDL_GL_GFPA(glPointParameterf_,    "glPointParameterfARB");
         SDL_GL_GFPA(glPointParameterfv_,   "glPointParameterfvARB");
     }
+#if _DEBUG
+    else return 0;
+#endif
 
-    if (glext_check("ARB_shader_objects"))
+    if (glext_check_ext("ARB_shader_objects"))
     {
         SDL_GL_GFPA(glGetShaderiv_,        "glGetShaderiv");
         SDL_GL_GFPA(glGetShaderInfoLog_,   "glGetShaderInfoLog");
@@ -189,7 +298,7 @@ int glext_init(void)
         gli.shader_objects = 1;
     }
 
-    if (glext_check("ARB_framebuffer_object"))
+    if (glext_check_ext("ARB_framebuffer_object"))
     {
         SDL_GL_GFPA(glBindFramebuffer_,        "glBindFramebuffer");
         SDL_GL_GFPA(glDeleteFramebuffers_,     "glDeleteFramebuffers");
@@ -200,8 +309,56 @@ int glext_init(void)
         gli.framebuffer_object = 1;
     }
 
-    if (glext_check("GREMEDY_string_marker"))
+    if (glext_check_ext("GREMEDY_string_marker"))
         SDL_GL_GFPA(glStringMarkerGREMEDY_, "glStringMarkerGREMEDY");
+
+#endif
+
+    /* NVIDIA init. */
+
+#if ENABLE_GL_NV
+    if (glext_check_ext("GL_NV_clip_space_w_scaling"))
+    {
+        SDL_GL_GFPA(glViewportPositionWScaleNV_, "glViewportPositionWScaleNV");
+    }
+
+    if (glext_check_ext("GL_NV_occlusion_query"))
+    {
+        SDL_GL_GFPA(glGenOcclusionQueriesNV_,    "glGenOcclusionQueriesNV");
+        SDL_GL_GFPA(glDeleteOcclusionQueriesNV_, "glDeleteOcclusionQueriesNV");
+        SDL_GL_GFPA(glIsOcclusionQueryNV_,       "glIsOcclusionQueryNV");
+        SDL_GL_GFPA(glBeginOcclusionQueryNV_,    "glBeginOcclusionQueryNV");
+        SDL_GL_GFPA(glEndOcclusionQueryNV_,      "glEndOcclusionQueryNV");
+        SDL_GL_GFPA(glGetOcclusionQueryivNV_,    "glGetOcclusionQueryivNV");
+        SDL_GL_GFPA(glGetOcclusionQueryuivNV_,   "glGetOcclusionQueryuivNV");
+    }
+
+    if (glext_assert("GL_NV_vertex_array_range"))
+    {
+        SDL_GL_GFPA(glFlushVertexArrayRangeNV_, "glFlushVertexArrayRangeNV");
+        SDL_GL_GFPA(glVertexArrayRangeNV_, "glVertexArrayRangeNV");
+    }
+
+    if (glext_assert("GL_NV_command_list"))
+    {
+        SDL_GL_GFPA(glCreateStatesNV_, "glCreateStatesNV");
+        SDL_GL_GFPA(glDeleteStatesNV_, "glDeleteStatesNV");
+        SDL_GL_GFPA(glIsStateNV_, "glIsStateNV");
+        SDL_GL_GFPA(glStateCaptureNV_, "glStateCaptureNV");
+        SDL_GL_GFPA(glGetCommandHeaderNV_, "glGetCommandHeaderNV");
+        SDL_GL_GFPA(glGetStageIndexNV_, "glGetStageIndexNV");
+        SDL_GL_GFPA(glDrawCommandsNV_, "glDrawCommandsNV");
+        SDL_GL_GFPA(glDrawCommandsAddressNV_, "glDrawCommandsAddressNV");
+        SDL_GL_GFPA(glDrawCommandsStatesNV_, "glDrawCommandsStatesNV");
+        SDL_GL_GFPA(glDrawCommandsStatesAddressNV_, "glDrawCommandsStatesAddressNV");
+        SDL_GL_GFPA(glCreateCommandListsNV_, "glCreateCommandListsNV");
+        SDL_GL_GFPA(glDeleteCommandListsNV_, "glDeleteCommandListsNV");
+        SDL_GL_GFPA(glIsCommandListNV_, "glIsCommandListNV");
+        SDL_GL_GFPA(glListDrawCommandsStatesClientNV_, "glListDrawCommandsStatesClientNV");
+        SDL_GL_GFPA(glCommandListSegmentsNV_, "glCommandListSegmentsNV");
+        SDL_GL_GFPA(glCompileCommandListNV_, "glCompileCommandListNV");
+        SDL_GL_GFPA(glCallCommandListNV_, "glCallCommandListNV");
+    }
 
 #endif
 
@@ -223,7 +380,8 @@ void glClipPlane4f_(GLenum p, GLfloat a, GLfloat b, GLfloat c, GLfloat d)
     v[2] = c;
     v[3] = d;
 
-    glClipPlanef(p, v);
+    // implicit declaration of function 'glClipPlanef' is invalid in C99
+    glClipPlane(p, v);
 
 #else
 

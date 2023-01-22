@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Neverball authors
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,8 +12,14 @@
  * General Public License for more details.
  */
 
+#if _WIN32
+#include <SDL2/SDL.h>
+#include <SDL/SDL_thread.h>
+#else
 #include <SDL.h>
 #include <SDL_thread.h>
+#endif
+
 #include <math.h>
 #include <stdio.h>
 
@@ -145,7 +151,7 @@ static int tilt_func(void *data)
     d.inhibitPowerManager = 0;
     d.enableMouseMovement = 1;
     d.disableFreespace = 0;
-    rc = freespace_encodeDataMotionControl(&d, buffer, sizeof(buffer));
+    rc = freespace_encodeDataMotionControl(&d, buffer, sizeof (buffer));
     if (rc > 0) {
         rc = freespace_send(deviceId, buffer, rc);
         if (rc != FREESPACE_SUCCESS) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Robert Kooima
+ * Copyright (C) 2022 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -141,18 +141,21 @@ void hmd_common_init(int w, int h)
 
     /* Create and initialize the distortion shader. */
 
-    glsl_create(&distortion, sizeof (hmd_vert) / sizeof (char *), hmd_vert,
+    GLboolean result = glsl_create(&distortion, sizeof (hmd_vert) / sizeof (char *), hmd_vert,
                              sizeof (hmd_frag) / sizeof (char *), hmd_frag);
 
-    /* Initialize VBOs for the on-screen rectangles. */
+    if (result = GL_TRUE)
+    {
+        /* Initialize VBOs for the on-screen rectangles. */
 
-    glGenBuffers_(1, &L_vbo);
-    glBindBuffer_(GL_ARRAY_BUFFER, L_vbo);
-    glBufferData_(GL_ARRAY_BUFFER, sizeof (L_rect), L_rect, GL_STATIC_DRAW);
-    glGenBuffers_(1, &R_vbo);
-    glBindBuffer_(GL_ARRAY_BUFFER, R_vbo);
-    glBufferData_(GL_ARRAY_BUFFER, sizeof (R_rect), R_rect, GL_STATIC_DRAW);
-    glBindBuffer_(GL_ARRAY_BUFFER, 0);
+        glGenBuffers_(1, &L_vbo);
+        glBindBuffer_(GL_ARRAY_BUFFER, L_vbo);
+        glBufferData_(GL_ARRAY_BUFFER, sizeof (L_rect), L_rect, GL_STATIC_DRAW);
+        glGenBuffers_(1, &R_vbo);
+        glBindBuffer_(GL_ARRAY_BUFFER, R_vbo);
+        glBufferData_(GL_ARRAY_BUFFER, sizeof (R_rect), R_rect, GL_STATIC_DRAW);
+        glBindBuffer_(GL_ARRAY_BUFFER, 0);
+    }
 }
 
 void hmd_common_left()

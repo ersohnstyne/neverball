@@ -3,22 +3,27 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define AUD_BIRDIE  "snd/birdie.ogg"
-#define AUD_BOGEY   "snd/bogey.ogg"
-#define AUD_BUMP    "snd/bink.ogg"
-#define AUD_DOUBLE  "snd/double.ogg"
-#define AUD_EAGLE   "snd/eagle.ogg"
-#define AUD_JUMP    "snd/jump.ogg"
-#define AUD_MENU    "snd/menu.ogg"
-#define AUD_ONE     "snd/one.ogg"
-#define AUD_PAR     "snd/par.ogg"
-#define AUD_PENALTY "snd/penalty.ogg"
-#define AUD_PLAYER1 "snd/player1.ogg"
-#define AUD_PLAYER2 "snd/player2.ogg"
-#define AUD_PLAYER3 "snd/player3.ogg"
-#define AUD_PLAYER4 "snd/player4.ogg"
-#define AUD_SWITCH  "snd/switch.ogg"
-#define AUD_SUCCESS "snd/success.ogg"
+#define AUD_BIRDIE   "snd/birdie.ogg"
+#define AUD_BOGEY    "snd/bogey.ogg"
+#define AUD_BUMP     "snd/bink.ogg"
+#define AUD_DOUBLE   "snd/double.ogg"
+#define AUD_EAGLE    "snd/eagle.ogg"
+#define AUD_JUMP     "snd/jump.ogg"
+#define AUD_MENU     "snd/menu.ogg"
+#define AUD_NEXTTURN "snd/nextturn.ogg"
+#define AUD_ONE      "snd/one.ogg"
+#define AUD_PAR      "snd/par.ogg"
+#define AUD_PENALTY  "snd/penalty.ogg"
+#define AUD_PLAYER1  "snd/player1.ogg"
+#define AUD_PLAYER2  "snd/player2.ogg"
+#define AUD_PLAYER3  "snd/player3.ogg"
+#define AUD_PLAYER4  "snd/player4.ogg"
+#define AUD_SWITCH   "snd/switch.ogg"
+#define AUD_SUCCESS  "snd/success.ogg"
+
+/* Same as Neverball? */
+
+#define AUD_BACK    "snd/back.ogg"
 
 /*---------------------------------------------------------------------------*/
 

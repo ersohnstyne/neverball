@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -18,8 +18,8 @@
 #include <gl4esinit.h>
 #endif
 
-#if _WIN32 && __GNUC__
-#include <SDL2/SDL.h>
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -126,14 +126,9 @@ void video_snap(const char *path)
 static SDL_Window    *window;
 static SDL_GLContext  context;
 
-static void set_window_title(const char *title)
-{
-    SDL_SetWindowTitle(window, title);
-}
-
+#if !_MSC_VER
 static void set_window_icon(const char *filename)
 {
-#if !__APPLE__ && __GNUC__
     SDL_Surface *icon;
 
     if ((icon = load_surface(filename)))
@@ -142,8 +137,8 @@ static void set_window_icon(const char *filename)
         free(icon->pixels);
         SDL_FreeSurface(icon);
     }
-#endif
 }
+#endif
 
 /*
  * Enter/exit fullscreen mode.
@@ -182,13 +177,20 @@ void video_resize(int window_w, int window_h)
 
         /* Update drawable size (for rendering). */
 
+        int wszW, wszH;
+        
+        SDL_GetWindowSize(window, &wszW, &wszH);
         SDL_GL_GetDrawableSize(window, &video.device_w, &video.device_h);
+        
+        video.scale_w = floorf((float) wszW / (float) video.device_w);
+        video.scale_h = floorf((float) wszH / (float) video.device_h);
 
         video.device_scale = (float) video.device_h / (float) video.window_h;
 
         /* Update viewport. */
 
-        glViewport(0, 0, video.device_w, video.device_h);
+        glViewport(0, 0,
+                   video.device_w * video.scale_w, video.device_h * video.scale_h);
 
         video.aspect_ratio = (float) video.device_w / (float) video.window_h;
     }
@@ -215,8 +217,33 @@ void video_set_window_size(int w, int h)
 
 void video_set_display(int dpy)
 {
-    int X = SDL_WINDOWPOS_CENTERED_DISPLAY(dpy);
-    int Y = SDL_WINDOWPOS_CENTERED_DISPLAY(dpy);
+    SDL_DisplayMode ddm;
+    if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
+    {
+        log_errorf("No display connected!: %d\n", dpy);
+        return;
+    }
+
+    SDL_Rect monitor_area_location;
+    SDL_GetDisplayBounds(dpy, &monitor_area_location);
+
+    int X = monitor_area_location.x + (ddm.w / 2) - (video.window_w / 2);
+    int Y = monitor_area_location.y + (ddm.h / 2) - (video.window_h / 2);
+
+    if (video.window_w > ddm.w ||
+        video.window_h > ddm.h)
+    {
+        log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n", video.window_w, video.window_h, ddm.w, ddm.h);
+        video_set_window_size(ddm.w, ddm.h);
+    }
+
+    if (X - monitor_area_location.x > ddm.w + monitor_area_location.x / 2 ||
+        Y - monitor_area_location.y > ddm.h + monitor_area_location.y / 2)
+    {
+        log_errorf("Window position exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n", X, Y, ddm.w, ddm.h);
+        X = MAX((ddm.w / 2) - (video.window_w / 2), 0) + monitor_area_location.x;
+        Y = MAX((ddm.h / 2) - (video.window_h / 2), 0) + monitor_area_location.y;
+    }
 
     SDL_SetWindowPosition(window, X, Y);
 }
@@ -250,13 +277,13 @@ void video_quit(void)
         context = NULL;
     }
 
+#if NB_STEAM_API==0 && !defined(__EMSCRIPTEN__)
     if (window)
     {
-#if NB_STEAM_API==0 && !defined(__EMSCRIPTEN__)
         SDL_DestroyWindow(window);
         window = NULL;
-#endif
     }
+#endif
 
     hmd_free();
 }
@@ -272,15 +299,48 @@ int video_mode(int f, int w, int h)
     int hmd      = config_get_d(CONFIG_HMD)         ? 1 : 0;
     int highdpi  = config_get_d(CONFIG_HIGHDPI)     ? 1 : 0;
 
+    int num_displays = SDL_GetNumVideoDisplays();
+    if (num_displays < 1)
+    {
+        log_errorf("No displays provided!\n");
+        return 0;
+    }
+
 #if defined(__EMSCRIPTEN__)
     int dpy = config_get_d(CONFIG_DISPLAY);
 #else
     int dpy =
-        CLAMP(0, config_get_d(CONFIG_DISPLAY), SDL_GetNumVideoDisplays() - 1);
+        CLAMP(0, config_get_d(CONFIG_DISPLAY), num_displays - 1);
 #endif
 
-    int X = SDL_WINDOWPOS_CENTERED_DISPLAY(dpy);
-    int Y = SDL_WINDOWPOS_CENTERED_DISPLAY(dpy);
+    SDL_DisplayMode ddm;
+    if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
+    {
+        log_errorf("No display connected!: %d\n", dpy);
+        return 0;
+    }
+    
+    SDL_Rect monitor_area_location;
+    SDL_GetDisplayBounds(dpy, &monitor_area_location);
+
+    int X = monitor_area_location.x + (ddm.w / 2) - (w / 2);
+    int Y = monitor_area_location.y + (ddm.h / 2) - (h / 2);
+
+    if (w > ddm.w ||
+        h > ddm.h)
+    {
+        log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n", w, h, ddm.w, ddm.h);
+        w = ddm.w;
+        h = ddm.h;
+    }
+
+    if (X - monitor_area_location.x > ddm.w + monitor_area_location.x / 2 ||
+        Y - monitor_area_location.y > ddm.h + monitor_area_location.y / 2)
+    {
+        log_errorf("Window position exeeds the desktop resolution limit during creation!: Current: %d/%d; Limit: %d/%d\n", X, Y, ddm.w, ddm.h);
+        X = MAX((ddm.w / 2) - (w / 2), 0) + monitor_area_location.x;
+        Y = MAX((ddm.h / 2) - (h / 2), 0) + monitor_area_location.y;
+    }
 
     hmd_free();
 
@@ -319,26 +379,22 @@ int video_mode(int f, int w, int h)
 #if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
     if (!window) {
 #endif
-#if _WIN32
-        window = SDL_CreateWindow("", X, Y, MAX(w, 800), MAX(h, 600),
-#else
-        window = SDL_CreateWindow("", X, Y, MAX(w, 320), MAX(h, 240),
-#endif
-
-            (config_get_d(CONFIG_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0) |
-            SDL_WINDOW_OPENGL |
-            SDL_WINDOW_ALLOW_HIGHDPI |
-#if !defined(__EMSCRIPTEN__) && defined(RESIZEABLE_WINDOW)
-            (f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) |
+        window = SDL_CreateWindow(TITLE, X, Y, MAX(w, 320), MAX(h, 240),
+            SDL_WINDOW_OPENGL
+            | SDL_WINDOW_ALLOW_HIGHDPI
+#ifndef __EMSCRIPTEN__
 #ifdef RESIZEABLE_WINDOW
-            SDL_WINDOW_RESIZABLE |
+            | SDL_WINDOW_RESIZABLE
+            | (config_get_d(CONFIG_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0)
 #endif
+            | (f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)
 #endif
-            0
         );
-
+        
+#ifdef RESIZEABLE_WINDOW
         if (config_get_d(CONFIG_MAXIMIZED))
             SDL_MaximizeWindow(window);
+#endif
 #if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
     }
     else
@@ -407,8 +463,9 @@ int video_mode(int f, int w, int h)
 
     if (window && context)
     {
-        set_window_title(TITLE);
+#if !_MSC_VER
         set_window_icon(ICON);
+#endif
 
         log_printf("Created a window (%u, %dx%d, %s)\n",
                    SDL_GetWindowID(window),
@@ -474,7 +531,7 @@ int video_mode(int f, int w, int h)
             SDL_WarpMouseInWindow(window,
                 video.window_w / 2,
                 video.window_h / 2);
-
+        
         config_set_d(CONFIG_DISPLAY, dpy);
         config_set_d(CONFIG_WIDTH, video.window_w);
         config_set_d(CONFIG_HEIGHT, video.window_h);
@@ -598,6 +655,13 @@ int video_mode_auto_config(int f, int w, int h)
     int stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
     int hmd      = config_get_d(CONFIG_HMD)         ? 1 : 0;
 
+    int num_displays = SDL_GetNumVideoDisplays();
+    if (num_displays < 1)
+    {
+        log_errorf("No displays provided!\n");
+        return 0;
+    }
+
 #if defined(__EMSCRIPTEN__)
     int dpy = config_get_d(CONFIG_DISPLAY);
 #else
@@ -605,8 +669,34 @@ int video_mode_auto_config(int f, int w, int h)
         CLAMP(0, config_get_d(CONFIG_DISPLAY), SDL_GetNumVideoDisplays() - 1);
 #endif
 
-    int X = SDL_WINDOWPOS_CENTERED_DISPLAY(dpy);
-    int Y = SDL_WINDOWPOS_CENTERED_DISPLAY(dpy);
+    SDL_DisplayMode ddm;
+    if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
+    {
+        log_errorf("No display connected!: %d\n", dpy);
+        return 0;
+    }
+
+    SDL_Rect monitor_area_location;
+    SDL_GetDisplayBounds(dpy, &monitor_area_location);
+
+    int X = monitor_area_location.x + (ddm.w / 2) - (w / 2);
+    int Y = monitor_area_location.y + (ddm.h / 2) - (h / 2);
+
+    if (w > ddm.w ||
+        h > ddm.h)
+    {
+        log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n", w, h, ddm.w, ddm.h);
+        w = ddm.w;
+        h = ddm.h;
+    }
+
+    if (X - monitor_area_location.x > ddm.w + monitor_area_location.x / 2 ||
+        Y - monitor_area_location.y > ddm.h + monitor_area_location.y / 2)
+    {
+        log_errorf("Window position exeeds the desktop resolution limit during creation!: Current: %d/%d; Limit: %d/%d\n", X, Y, ddm.w, ddm.h);
+        X = MAX((ddm.w / 2) - (w / 2), 0) + monitor_area_location.x;
+        Y = MAX((ddm.h / 2) - (h / 2), 0) + monitor_area_location.y;
+    }
 
     hmd_free();
 
@@ -641,26 +731,22 @@ int video_mode_auto_config(int f, int w, int h)
 #if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
     if (!window) {
 #endif
-#if _WIN32
-        window = SDL_CreateWindow("", X, Y, MAX(w, 800), MAX(h, 600),
-#else
-        window = SDL_CreateWindow("", X, Y, MAX(w, 320), MAX(h, 240),
-#endif
-
-            (config_get_d(CONFIG_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0) |
-            SDL_WINDOW_OPENGL |
-            SDL_WINDOW_ALLOW_HIGHDPI |
-#if !defined(__EMSCRIPTEN__) && defined(RESIZEABLE_WINDOW)
-            (f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) |
+        window = SDL_CreateWindow(TITLE, X, Y, MAX(w, 320), MAX(h, 240),
+            SDL_WINDOW_OPENGL
+            | SDL_WINDOW_ALLOW_HIGHDPI
+#ifndef __EMSCRIPTEN__
 #ifdef RESIZEABLE_WINDOW
-            SDL_WINDOW_RESIZABLE |
+            | SDL_WINDOW_RESIZABLE
+            | (config_get_d(CONFIG_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0)
 #endif
+            | (f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)
 #endif
-            0
         );
 
+#ifdef RESIZEABLE_WINDOW
         if (config_get_d(CONFIG_MAXIMIZED))
             SDL_MaximizeWindow(window);
+#endif
 #if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
     }
     else
@@ -775,8 +861,9 @@ int video_mode_auto_config(int f, int w, int h)
 
     if (window && context)
     {
-        set_window_title(TITLE);
+#if !_MSC_VER
         set_window_icon(ICON);
+#endif
 
         log_printf("Created a window (%u, %dx%d, %s (auto configuration))\n",
             SDL_GetWindowID(window),
@@ -1048,7 +1135,7 @@ void video_set_wire(int wire)
         glDisable(GL_TEXTURE_2D);
         glDisable(GL_LIGHTING);
         viewport_wireframe = 1;
-        glViewport(0, 0, video.device_w, video.device_h);
+        glViewport(0, 0, video.device_w * video.scale_w, video.device_h * video.scale_h);
     }
     else
     {
@@ -1056,7 +1143,7 @@ void video_set_wire(int wire)
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_LIGHTING);
         viewport_wireframe = 0;
-        glViewport(0, 0, video.device_w, video.device_h);
+        glViewport(0, 0, video.device_w * video.scale_w, video.device_h * video.scale_h);
     }
 #endif
 }
@@ -1088,7 +1175,7 @@ void video_render_fill_or_line(int lined)
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glEnable(GL_TEXTURE_2D);
             glEnable(GL_LIGHTING);
-            glColor4f(1.f, 1.f, 1.f, .5f);
+            glColor4f(.5f, .5f, .5f, .5f);
         }
     }
     else if (lined && viewport_wireframe == 2 || viewport_wireframe == 3)
@@ -1101,10 +1188,10 @@ void video_render_fill_or_line(int lined)
         if (viewport_wireframe == 2)
         {
             render_right_viewport = 1;
-            glViewport((int)video.device_w / 2, 0, video.device_w / 2, video.device_h);
+            glViewport((int) video.device_w / 2, 0, (video.device_w / 2) * video.scale_w, video.device_h * video.scale_h);
         }
         else
-            glViewport(0, 0, video.device_w, video.device_h);
+            glViewport(0, 0, video.device_w * video.scale_w, video.device_h * video.scale_h);
     }
     else if (viewport_wireframe == 2 || viewport_wireframe == 3)
     {
@@ -1117,10 +1204,10 @@ void video_render_fill_or_line(int lined)
         if (viewport_wireframe == 2)
         {
             render_left_viewport = 1;
-            glViewport(0, 0, video.device_w / 2, video.device_h);
+            glViewport(0, 0, (video.device_w / 2) * video.scale_w, video.device_h * video.scale_h);
         }
         else
-            glViewport(0, 0, video.device_w, video.device_h);
+            glViewport(0, 0, video.device_w * video.scale_w, video.device_h * video.scale_h);
     }
     else if (viewport_wireframe == 0)
     {
@@ -1130,7 +1217,7 @@ void video_render_fill_or_line(int lined)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_LIGHTING);
-        glViewport(0, 0, video.device_w, video.device_h);
+        glViewport(0, 0, video.device_w * video.scale_w, video.device_h * video.scale_h);
     }
 #endif
 }
@@ -1170,7 +1257,7 @@ void video_push_persp(float fov, float n, float f)
         hmd_persp(n, f);
     else
     {
-        GLfloat m[4][4];
+        GLfloat m[16];
 
         GLfloat r = fov / 2 * V_PI / 180;
         GLfloat s = fsinf(r);
@@ -1179,28 +1266,33 @@ void video_push_persp(float fov, float n, float f)
         GLfloat a = ((GLfloat) video.device_w /
                      (GLfloat) video.device_h);
 
+        if (viewport_wireframe == 2)
+            a = ((GLfloat) (video.device_w / 2) /
+                 (GLfloat) video.device_h);
+
         glMatrixMode(GL_PROJECTION);
         {
-            glLoadIdentity();
+            m[0 ] = c / a;
+            m[1 ] = 0.0f;
+            m[2 ] = 0.0f;
+            m[3 ] = 0.0f;
 
-            m[0][0] = c / a;
-            m[0][1] =  0.0f;
-            m[0][2] =  0.0f;
-            m[0][3] =  0.0f;
-            m[1][0] =  0.0f;
-            m[1][1] =     c;
-            m[1][2] =  0.0f;
-            m[1][3] =  0.0f;
-            m[2][0] =  0.0f;
-            m[2][1] =  0.0f;
-            m[2][2] = -(f + n) / (f - n);
-            m[2][3] = -1.0f;
-            m[3][0] =  0.0f;
-            m[3][1] =  0.0f;
-            m[3][2] = -2.0f * n * f / (f - n);
-            m[3][3] =  0.0f;
+            m[4 ] = 0.0f;
+            m[5 ] = c;
+            m[6 ] = 0.0f;
+            m[7 ] = 0.0f;
 
-            glMultMatrixf(&m[0][0]);
+            m[8 ] = 0.0f;
+            m[9 ] = 0.0f;
+            m[10] = -(f + n) / (f - n);
+            m[11] = -1.0f;
+
+            m[12] = 0.0f;
+            m[13] = 0.0f;
+            m[14] = -2.0f * n * f / (f - n);
+            m[15] = 0.0f;
+
+            glLoadMatrixf(m);
         }
 
         glMatrixMode(GL_MODELVIEW);
@@ -1219,6 +1311,9 @@ void video_push_ortho(void)
         GLfloat w = (GLfloat) video.device_w;
         GLfloat h = (GLfloat) video.device_h;
 
+        if (viewport_wireframe == 2)
+            w /= 2;
+
         glMatrixMode(GL_PROJECTION);
 
         glLoadIdentity();
@@ -1230,6 +1325,9 @@ void video_push_ortho(void)
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
+
+        if (viewport_wireframe == 2 && render_right_viewport)
+            glTranslatef(-w, 0, 0);
     }
 }
 

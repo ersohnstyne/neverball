@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -596,11 +596,7 @@ int level_load(const char *filename, struct level *level)
 
     int level_offered = 0;
 
-#if NDEBUG
-    int campaign_werror = 1;
-#else
-    int campaign_werror = 1;
-#endif
+    int campaign_werror = !config_cheat();
 
     if (curr_setname)
     {

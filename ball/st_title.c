@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -161,7 +161,7 @@ static const char *check_unlocked_demo(struct demo *rawdemo)
         max = 1;
     }
 
-#ifndef NDEBUG
+#ifdef _DEBUG
     if (max > limit)
     {
         log_errorf("Exceeded level status limit, return NULL (%s)\n", rawdemo->path);

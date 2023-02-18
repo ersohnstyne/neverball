@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -26,7 +26,7 @@
 #include <shlobj.h>
 
 #if _MSC_VER
-#pragma message("Pennyball + Neverball " VERSION " for Microsoft Visual Studio")
+#pragma message("Neverball + Neverball " VERSION " for Microsoft Visual Studio")
 #endif
 #endif
 
@@ -178,7 +178,7 @@ void config_paths(const char *arg_data_path)
 
 void config_log_userpath()
 {
-    const char *home, * user;
+    const char *home, *user;
 
     home = pick_home_path();
 #if defined(__EMSCRIPTEN__)

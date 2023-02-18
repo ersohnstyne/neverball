@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -13,8 +13,8 @@
  */
 
 #if _WIN32
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_thread.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_thread.h>
 #else
 #include <SDL.h>
 #include <SDL_thread.h>
@@ -99,17 +99,17 @@ static int tilt_thread(void *data)
             case WIIUSE_EVENT:
                 SDL_LockMutex(mutex);
                 /* start on 4 because the 4 first buttons are for the nunchuk */
-                for (i = 4; i < NB_WIIMOTE_BUTTONS; i++)
+                for (i = 4; i < NB_WIIMOTE_BUTTONS; i++) {
                     current_state.buttons[i] = IS_PRESSED(wm, wiiUseButtons[i][0]);
-
+                }
                 /* if the nunchuk is connected, use it, else use the wiimote */
                 if (wm->exp.type == EXP_NUNCHUK || wm->exp.type == EXP_MOTION_PLUS_NUNCHUK) {
                     struct nunchuk_t *nc = (nunchuk_t *) &wm->exp.nunchuk;
                     current_state.buttons[NUNCHUK_CAMERA_LEFT] = (nc->js.x < -0.3);
                     current_state.buttons[NUNCHUK_CAMERA_RIGHT] = (nc->js.x > 0.3);
-                    for (i = 2; i < 4; i++)
+                    for (i = 2; i < 4; i++) {
                         current_state.buttons[i] = IS_PRESSED(nc, wiiUseButtons[i][0]);
-
+                    }
                     current_state.x = nc->orient.pitch * pitch_sensitivity;
                     current_state.z = nc->orient.roll * roll_sensitivity;
                 }

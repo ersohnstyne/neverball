@@ -1,8 +1,8 @@
 #ifndef TEXT_H
 #define TEXT_H
 
-#if _WIN32 && __GNUC__
-#include <SDL2/SDL.h>
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
 #else
 #include <SDL.h>
 #endif

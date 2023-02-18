@@ -7,6 +7,8 @@
 // Should be required as connected server?
 //#define NETWORKING_NO_STANDALONE
 
+#define CHECK_ACCOUNT_ENABLED networking_error() > -3
+
 extern int networking_busy;
 
 extern int SERVER_POLICY_EDITION;
@@ -44,6 +46,7 @@ int networking_error(void);
 int server_policy_get_d(int);
 
 #if ENABLE_DEDICATED_SERVER==1
+int networking_dedicated_refresh_login(const char *);
 int networking_dedicated_levelstatus_send(const char *, int, float *);
 int networking_dedicated_buyballs_send(int);
 #endif

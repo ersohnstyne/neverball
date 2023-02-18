@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -2130,6 +2130,67 @@ void gui_animate(int id)
 
     float animation_rotation_treshold = (widget[id].alpha - 1.0f) * 4;
 
+    /* Animation positions */
+    switch (widget[id].animation_direction)
+    {
+        /* Single direction (No Pow) */
+    case GUI_ANIMATION_N_LINEAR:
+        glTranslatef(0.0f, (video.device_h / -3) * (widget[id].alpha - 1), 0.0f);
+        break;
+    case GUI_ANIMATION_E_LINEAR:
+        glTranslatef((video.device_h / -3) * (widget[id].alpha - 1), 0.0f, 0.0f);
+        break;
+    case GUI_ANIMATION_S_LINEAR:
+        glTranslatef(0.0f, (video.device_h / 3) * (widget[id].alpha - 1), 0.0f);
+        break;
+    case GUI_ANIMATION_W_LINEAR:
+        glTranslatef((video.device_h / 3) * (widget[id].alpha - 1), 0.0f, 0.0f);
+        break;
+
+        /* Multiple directions (No Pow) */
+    case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_E_LINEAR:
+        glTranslatef((video.device_h / -3) * (widget[id].alpha - 1), (video.device_h / -3) * (widget[id].alpha - 1), 0.0f);
+        break;
+    case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_W_LINEAR:
+        glTranslatef((video.device_h / 3) * (widget[id].alpha - 1), (video.device_h / -3) * (widget[id].alpha - 1), 0.0f);
+        break;
+    case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_E_LINEAR:
+        glTranslatef((video.device_h / -3) * (widget[id].alpha - 1), (video.device_h / 3) * (widget[id].alpha - 1), 0.0f);
+        break;
+    case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_W_LINEAR:
+        glTranslatef((video.device_h / 3) * (widget[id].alpha - 1), (video.device_h / 3) * (widget[id].alpha - 1), 0.0f);
+        break;
+
+
+        /* Single direction (Pow) */
+    case GUI_ANIMATION_N_CURVE:
+        glTranslatef(0.0f, fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f);
+        break;
+    case GUI_ANIMATION_E_CURVE:
+        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f, 0.0f);
+        break;
+    case GUI_ANIMATION_S_CURVE:
+        glTranslatef(0.0f, fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f);
+        break;
+    case GUI_ANIMATION_W_CURVE:
+        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f, 0.0f);
+        break;
+
+        /* Multiple directions (Pow) */
+    case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE:
+        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f);
+        break;
+    case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE:
+        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f);
+        break;
+    case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE:
+        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f);
+        break;
+    case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE:
+        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f);
+        break;
+    }
+
     /* Animation rotations */
     switch (widget[id].animation_direction)
     {
@@ -2158,67 +2219,6 @@ void gui_animate(int id)
         break;
     }
 
-    /* Animation positions */
-    switch (widget[id].animation_direction)
-    {
-    /* Single direction (No Pow) */
-    case GUI_ANIMATION_N_LINEAR:
-        glTranslatef(0.0f, (video.device_h / -3) * (widget[id].alpha - 1), 0.0f);
-        break;
-    case GUI_ANIMATION_E_LINEAR:
-        glTranslatef((video.device_h / -3) * (widget[id].alpha - 1), 0.0f, 0.0f);
-        break;
-    case GUI_ANIMATION_S_LINEAR:
-        glTranslatef(0.0f, (video.device_h / 3) * (widget[id].alpha - 1), 0.0f);
-        break;
-    case GUI_ANIMATION_W_LINEAR:
-        glTranslatef((video.device_h / 3) * (widget[id].alpha - 1), 0.0f, 0.0f);
-        break;
-
-    /* Multiple directions (No Pow) */
-    case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_E_LINEAR:
-        glTranslatef((video.device_h / -3) * (widget[id].alpha - 1), (video.device_h / -3) * (widget[id].alpha - 1), 0.0f);
-        break;
-    case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_W_LINEAR:
-        glTranslatef((video.device_h / 3) * (widget[id].alpha - 1), (video.device_h / -3) * (widget[id].alpha - 1), 0.0f);
-        break;
-    case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_E_LINEAR:
-        glTranslatef((video.device_h / -3) * (widget[id].alpha - 1), (video.device_h / 3) * (widget[id].alpha - 1), 0.0f);
-        break;
-    case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_W_LINEAR:
-        glTranslatef((video.device_h / 3) * (widget[id].alpha - 1), (video.device_h / 3) * (widget[id].alpha - 1), 0.0f);
-        break;
-
-
-    /* Single direction (Pow) */
-    case GUI_ANIMATION_N_CURVE:
-        glTranslatef(0.0f, fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f);
-        break;
-    case GUI_ANIMATION_E_CURVE:
-        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f, 0.0f);
-        break;
-    case GUI_ANIMATION_S_CURVE:
-        glTranslatef(0.0f, fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f);
-        break;
-    case GUI_ANIMATION_W_CURVE:
-        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f, 0.0f);
-        break;
-
-    /* Multiple directions (Pow) */
-    case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE:
-        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f);
-        break;
-    case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE:
-        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f);
-        break;
-    case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE:
-        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f);
-        break;
-    case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE:
-        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f);
-        break;
-    }
-    
     glTranslatef((GLfloat) (-video.device_w / 2),
                  (GLfloat) (-video.device_h / 2), 0.0f);
 }

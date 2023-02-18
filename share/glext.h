@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -441,10 +441,10 @@ extern PFNGLUNIFORM4F_PROC           glUniform4f_;
 /*---------------------------------------------------------------------------*/
 /* ARB_framebuffer_object                                                    */
 
-typedef void (APIENTRYP PFNGLBINDFRAMEBUFFER_PROC) (GLenum, GLuint);
-typedef void (APIENTRYP PFNGLDELETEFRAMEBUFFERS_PROC) (GLsizei, const GLuint *);
-typedef void (APIENTRYP PFNGLGENFRAMEBUFFERS_PROC) (GLsizei, GLuint *);
-typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTURE2D_PROC) (GLenum, GLenum, GLenum, GLuint, GLint);
+typedef void   (APIENTRYP PFNGLBINDFRAMEBUFFER_PROC) (GLenum, GLuint);
+typedef void   (APIENTRYP PFNGLDELETEFRAMEBUFFERS_PROC) (GLsizei, const GLuint *);
+typedef void   (APIENTRYP PFNGLGENFRAMEBUFFERS_PROC) (GLsizei, GLuint *);
+typedef void   (APIENTRYP PFNGLFRAMEBUFFERTEXTURE2D_PROC) (GLenum, GLenum, GLenum, GLuint, GLint);
 typedef GLenum (APIENTRYP PFNGLCHECKFRAMEBUFFERSTATUS_PROC) (GLenum);
 
 extern PFNGLBINDFRAMEBUFFER_PROC        glBindFramebuffer_;
@@ -475,13 +475,13 @@ extern PFNGLVIEWPORTPOSITIONWSCALENV_PROC glViewportPositionWScaleNV_;
 /*---------------------------------------------------------------------------*/
 /* GL_NV_occlusion_query                                                     */
 
-typedef void (APIENTRYP PFNGLGENOCCLUSIONQUERIESNV_PROC) (GLsizei n, GLuint* ids);
-typedef void (APIENTRYP PFNGLDELETEOCCLUSIONQUERIESNV_PROC) (GLsizei n, const GLuint* ids);
-typedef GLboolean(APIENTRYP PFNGLISOCCLUSIONQUERYNV_PROC) (GLuint id);
-typedef void (APIENTRYP PFNGLBEGINOCCLUSIONQUERYNV_PROC) (GLuint id);
-typedef void (APIENTRYP PFNGLENDOCCLUSIONQUERYNV_PROC) (void);
-typedef void (APIENTRYP PFNGLGETOCCLUSIONQUERYIVNV_PROC) (GLuint id, GLenum pname, GLint* params);
-typedef void (APIENTRYP PFNGLGETOCCLUSIONQUERYUIVNV_PROC) (GLuint id, GLenum pname, GLuint* params);
+typedef void      (APIENTRYP PFNGLGENOCCLUSIONQUERIESNV_PROC) (GLsizei n, GLuint* ids);
+typedef void      (APIENTRYP PFNGLDELETEOCCLUSIONQUERIESNV_PROC) (GLsizei n, const GLuint* ids);
+typedef GLboolean (APIENTRYP PFNGLISOCCLUSIONQUERYNV_PROC) (GLuint id);
+typedef void      (APIENTRYP PFNGLBEGINOCCLUSIONQUERYNV_PROC) (GLuint id);
+typedef void      (APIENTRYP PFNGLENDOCCLUSIONQUERYNV_PROC) (void);
+typedef void      (APIENTRYP PFNGLGETOCCLUSIONQUERYIVNV_PROC) (GLuint id, GLenum pname, GLint* params);
+typedef void      (APIENTRYP PFNGLGETOCCLUSIONQUERYUIVNV_PROC) (GLuint id, GLenum pname, GLuint* params);
 
 extern PFNGLGENOCCLUSIONQUERIESNV_PROC    glGenOcclusionQueriesNV_;
 extern PFNGLDELETEOCCLUSIONQUERIESNV_PROC glDeleteOcclusionQueriesNV_;
@@ -503,23 +503,23 @@ extern PFNGLVERTEXARRAYRANGENV_PROC glVertexArrayRangeNV_;
 /*---------------------------------------------------------------------------*/
 /* GL_NV_command_list                                                        */
 
-typedef void (APIENTRYP PFNGLCREATESTATESNV_PROC) (GLsizei n, GLuint* states);
-typedef void (APIENTRYP PFNGLDELETESTATESNV_PROC) (GLsizei n, const GLuint* states);
-typedef GLboolean(APIENTRYP PFNGLISSTATENV_PROC) (GLuint state);
-typedef void (APIENTRYP PFNGLSTATECAPTURENV_PROC) (GLuint state, GLenum mode);
-typedef GLuint(APIENTRYP PFNGLGETCOMMANDHEADERNV_PROC) (GLenum tokenID, GLuint size);
-typedef GLushort(APIENTRYP PFNGLGETSTAGEINDEXNV_PROC) (GLenum shadertype);
-typedef void (APIENTRYP PFNGLDRAWCOMMANDSNV_PROC) (GLenum primitiveMode, GLuint buffer, const GLintptr* indirects, const GLsizei* sizes, GLuint count);
-typedef void (APIENTRYP PFNGLDRAWCOMMANDSADDRESSNV_PROC) (GLenum primitiveMode, const GLuint64* indirects, const GLsizei* sizes, GLuint count);
-typedef void (APIENTRYP PFNGLDRAWCOMMANDSSTATESNV_PROC) (GLuint buffer, const GLintptr* indirects, const GLsizei* sizes, const GLuint* states, const GLuint* fbos, GLuint count);
-typedef void (APIENTRYP PFNGLDRAWCOMMANDSSTATESADDRESSNV_PROC) (const GLuint64* indirects, const GLsizei* sizes, const GLuint* states, const GLuint* fbos, GLuint count);
-typedef void (APIENTRYP PFNGLCREATECOMMANDLISTSNV_PROC) (GLsizei n, GLuint* lists);
-typedef void (APIENTRYP PFNGLDELETECOMMANDLISTSNV_PROC) (GLsizei n, const GLuint* lists);
-typedef GLboolean(APIENTRYP PFNGLISCOMMANDLISTNV_PROC) (GLuint list);
-typedef void (APIENTRYP PFNGLLISTDRAWCOMMANDSSTATESCLIENTNV_PROC) (GLuint list, GLuint segment, const void** indirects, const GLsizei* sizes, const GLuint* states, const GLuint* fbos, GLuint count);
-typedef void (APIENTRYP PFNGLCOMMANDLISTSEGMENTSNV_PROC) (GLuint list, GLuint segments);
-typedef void (APIENTRYP PFNGLCOMPILECOMMANDLISTNV_PROC) (GLuint list);
-typedef void (APIENTRYP PFNGLCALLCOMMANDLISTNV_PROC) (GLuint list);
+typedef void      (APIENTRYP PFNGLCREATESTATESNV_PROC) (GLsizei n, GLuint* states);
+typedef void      (APIENTRYP PFNGLDELETESTATESNV_PROC) (GLsizei n, const GLuint* states);
+typedef GLboolean (APIENTRYP PFNGLISSTATENV_PROC) (GLuint state);
+typedef void      (APIENTRYP PFNGLSTATECAPTURENV_PROC) (GLuint state, GLenum mode);
+typedef GLuint    (APIENTRYP PFNGLGETCOMMANDHEADERNV_PROC) (GLenum tokenID, GLuint size);
+typedef GLushort  (APIENTRYP PFNGLGETSTAGEINDEXNV_PROC) (GLenum shadertype);
+typedef void      (APIENTRYP PFNGLDRAWCOMMANDSNV_PROC) (GLenum primitiveMode, GLuint buffer, const GLintptr* indirects, const GLsizei* sizes, GLuint count);
+typedef void      (APIENTRYP PFNGLDRAWCOMMANDSADDRESSNV_PROC) (GLenum primitiveMode, const GLuint64* indirects, const GLsizei* sizes, GLuint count);
+typedef void      (APIENTRYP PFNGLDRAWCOMMANDSSTATESNV_PROC) (GLuint buffer, const GLintptr* indirects, const GLsizei* sizes, const GLuint* states, const GLuint* fbos, GLuint count);
+typedef void      (APIENTRYP PFNGLDRAWCOMMANDSSTATESADDRESSNV_PROC) (const GLuint64* indirects, const GLsizei* sizes, const GLuint* states, const GLuint* fbos, GLuint count);
+typedef void      (APIENTRYP PFNGLCREATECOMMANDLISTSNV_PROC) (GLsizei n, GLuint* lists);
+typedef void      (APIENTRYP PFNGLDELETECOMMANDLISTSNV_PROC) (GLsizei n, const GLuint* lists);
+typedef GLboolean (APIENTRYP PFNGLISCOMMANDLISTNV_PROC) (GLuint list);
+typedef void      (APIENTRYP PFNGLLISTDRAWCOMMANDSSTATESCLIENTNV_PROC) (GLuint list, GLuint segment, const void** indirects, const GLsizei* sizes, const GLuint* states, const GLuint* fbos, GLuint count);
+typedef void      (APIENTRYP PFNGLCOMMANDLISTSEGMENTSNV_PROC) (GLuint list, GLuint segments);
+typedef void      (APIENTRYP PFNGLCOMPILECOMMANDLISTNV_PROC) (GLuint list);
+typedef void      (APIENTRYP PFNGLCALLCOMMANDLISTNV_PROC) (GLuint list);
 
 extern PFNGLCREATESTATESNV_PROC glCreateStatesNV_;
 extern PFNGLDELETESTATESNV_PROC glDeleteStatesNV_;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -179,13 +179,7 @@ void sol_rotate(float e[3][3], const float w[3], float dt)
 
         /* Re-orthonormalize the basis. */
 
-        v_crs(e[2], f[0], f[1]);
-        v_crs(e[1], f[2], f[0]);
-        v_crs(e[0], f[1], f[2]);
-
-        v_nrm(e[0], e[0]);
-        v_nrm(e[1], e[1]);
-        v_nrm(e[2], e[2]);
+        e_orthonrm_hard(e, f);
     }
 }
 
@@ -715,22 +709,22 @@ int sol_chkp_test(struct s_vary *vary, cmd_fn cmd_func, int ui, int *ci)
                     cmd_func(&cmd);
                 }
 
-				/* Disabled? */
+                /* Disabled? */
 
-				if (cp->f == 0)
-				{
-					/* Toggle the state. */
+                if (cp->f == 0)
+                {
+                    /* Toggle the state. */
                     ci = &xi;
 
-					cp->f = 1;
+                    cp->f = 1;
 
-					if (cmd_func)
-					{
-						union cmd cmd = { CMD_CHKP_TOGGLE };
-						cmd.chkptoggle.ci = xi;
-						cmd_func(&cmd);
-					}
-				}
+                    if (cmd_func)
+                    {
+                        union cmd cmd = { CMD_CHKP_TOGGLE };
+                        cmd.chkptoggle.ci = xi;
+                        cmd_func(&cmd);
+                    }
+                }
 
                 /* If visible, set the result. */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -78,6 +78,8 @@ enum
 static int name_id;
 static int enter_id;
 
+static int player_renamed = 0;
+
 static void on_text_input(int typing);
 
 static void name_update_enter_btn(void)
@@ -117,9 +119,9 @@ static int name_action(int tok, int val)
     case NAME_OK:
         newplayers = 0;
 
-#if ENABLE_DEDICATED_SERVER==1
-        //networking_quit();
-#endif
+        if (strcmp(config_get_s(CONFIG_PLAYER), text_input) != 0)
+            player_renamed = 1;
+
         account_save();
 
         config_set_s(CONFIG_PLAYER, text_input);
@@ -138,10 +140,6 @@ static int name_action(int tok, int val)
 #endif
         config_save();
 
-#if ENABLE_DEDICATED_SERVER==1 && NB_HAVE_PB_BOTH==1
-        //networking_init(1);
-        //networking_reinit_dedicated_event();
-#endif
         if (!newplayers && ok_fn)
             return ok_fn(ok_state);
 
@@ -236,6 +234,8 @@ static void on_text_input(int typing)
 
 static int name_enter(struct state *st, struct state *prev)
 {
+    player_renamed = 0;
+
     if (draw_back)
     {
         game_client_free(NULL);
@@ -257,6 +257,14 @@ static void name_leave(struct state *st, struct state *next, int id)
         back_free();
 
     gui_delete(id);
+
+#if ENABLE_DEDICATED_SERVER==1 && NB_HAVE_PB_BOTH==1
+    if (player_renamed)
+    {
+        Sleep(1000);
+        networking_dedicated_refresh_login(config_get_s(CONFIG_PLAYER));
+    }
+#endif
 }
 
 static void name_paint(int id, float t)

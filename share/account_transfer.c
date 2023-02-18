@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,8 +12,8 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __GNUC__
-#include <SDL2/SDL.h>
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -85,7 +85,7 @@ static struct
 }
 account_transfer_d[] =
 {
-#if _DEBUG
+#if 0
     { &ACCOUNT_TRANSFER_DATA_WALLET_COINS,      "wallet_coins",           16650 },
     { &ACCOUNT_TRANSFER_DATA_WALLET_GEMS,       "wallet_gems",            16650 },
 #else
@@ -96,7 +96,7 @@ account_transfer_d[] =
     { &ACCOUNT_TRANSFER_PRODUCT_BALLS,          "product_balls",          0 },
     { &ACCOUNT_TRANSFER_PRODUCT_BONUS,          "product_bonus",          0 },
     { &ACCOUNT_TRANSFER_PRODUCT_MEDIATION,      "product_mediation",      0 },
-    { &ACCOUNT_TRANSFER_SET_UNLOCKS,            "set_unlocks",            0 },
+    { &ACCOUNT_TRANSFER_SET_UNLOCKS,            "set_unlocks",            1 },
     { &ACCOUNT_TRANSFER_CONSUMEABLE_EARNINATOR, "consumeable_earninator", 0 },
     { &ACCOUNT_TRANSFER_CONSUMEABLE_FLOATIFIER, "consumeable_floatifier", 0 },
     { &ACCOUNT_TRANSFER_CONSUMEABLE_SPEEDIFIER, "consumeable_speedifier", 0 },
@@ -197,20 +197,28 @@ int account_transfer_init(void)
 
 void account_transfer_quit(void)
 {
+    if (!account_transfer_is_init) return;
+
     int i;
 
 #if ENABLE_ACCOUNT_BINARY
     for (i = 0; i < ARRAYSIZE(steam_account_s); i++)
     {
-        free(steam_account_s[i].curr);
-        steam_account_s[i].curr = NULL;
+        if (steam_account_s[i].curr)
+        {
+            free(steam_account_s[i].curr);
+            steam_account_s[i].curr = NULL;
+        }
     }
 #endif
 
     for (i = 0; i < ARRAYSIZE(account_transfer_s); i++)
     {
-        free(account_transfer_s[i].cur);
-        account_transfer_s[i].cur = NULL;
+        if (account_transfer_s[i].cur)
+        {
+            free(account_transfer_s[i].cur);
+            account_transfer_s[i].cur = NULL;
+        }
     }
     account_transfer_is_init = 0;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -383,7 +383,7 @@ static void gui_set_download(int id, int i)
         && (server_policy_get_d(SERVER_POLICY_EDITION) < SET_UNLOCKABLE_EDITION &&
             server_policy_get_d(SERVER_POLICY_EDITION) != -1);
 #else
-    int set_name_locked = 0;
+    int set_name_locked = 0xfffffff;
 #endif
 
     if ((jd = gui_hstack(id)))
@@ -706,7 +706,7 @@ static int set_enter(struct state *st, struct state *prev)
         total = set_init(boost_on);
         first = MIN(first, (total - 1) - ((total - 1) % SET_STEP));
 
-        audio_music_fade_to(0.5f, boost_on ? "bgm/boostrush.ogg" : "bgm/inter_world.ogg");
+        audio_music_fade_to(0.5f, "bgm/inter.ogg");
 
         if (total != 0)
         {
@@ -1186,8 +1186,7 @@ static int campaign_gui(void)
 
 static int campaign_enter(struct state *st, struct state *prev)
 {
-    //audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
-    audio_music_fade_to(0.5f, "bgm/inter_local.ogg");
+    audio_music_fade_to(0.5f, "bgm/title.ogg");
 
     for (int i = 0; i < 5; i++)
     {
@@ -1513,8 +1512,6 @@ static int levelgroup_enter(struct state *st, struct state *prev)
         return goto_state(&st_set);
 
     set_boost_on(0);
-    //audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
-    audio_music_fade_to(0.5f, "bgm/inter_local.ogg");
 
     return levelgroup_gui();
 }
@@ -1584,7 +1581,9 @@ int goto_playmenu(int m)
 {
     switch (m)
     {
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     case MODE_CAMPAIGN: return goto_state(&st_campaign);
+#endif
     case MODE_BOOST_RUSH: return goto_state(&st_set);
     }
 

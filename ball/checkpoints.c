@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -141,7 +141,7 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
         c_xp->tm = xp->tm;
     }
 
-#ifndef NDEBUG
+#ifdef _DEBUG
     log_printf("Gameplay data has been backed up!\n");
 #endif
     v_cpy(last_pos[ui], saved_vary.uv[ui].p);

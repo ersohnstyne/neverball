@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -860,10 +860,7 @@ int game_server_init(const char *file_name, int t, int e)
             /* Orthonormalize the view basis */
 
             v_sub(view.e[2], view.p, view.c);
-            v_crs(view.e[0], view.e[1], view.e[2]);
-            v_crs(view.e[2], view.e[0], view.e[1]);
-            v_nrm(view.e[0], view.e[0]);
-            v_nrm(view.e[2], view.e[2]);
+            e_orthonrm_xz(view.e);
 
             game_view_set_static_cam_view(1, fix_cam_pos);
 #pragma endregion
@@ -1119,7 +1116,7 @@ int game_server_init(const char *file_name, int t, int e)
                 game_proxy_enq(&cmd);
             }
         }
-#ifndef NDEBUG
+#ifdef _DEBUG
         log_printf("Gameplay data has been restored!\n");
 #endif
         checkpoints_respawn_done();
@@ -1257,10 +1254,7 @@ void game_update_view(float dt)
             /* Orthonormalize the view basis */
 
             v_sub(multiview2.e[2], multiview2.p, multiview2.c);
-            v_crs(multiview2.e[0], multiview2.e[1], multiview2.e[2]);
-            v_crs(multiview2.e[2], multiview2.e[0], multiview2.e[1]);
-            v_nrm(multiview2.e[0], multiview2.e[0]);
-            v_nrm(multiview2.e[2], multiview2.e[2]);
+            e_orthonrm_xz(multiview2.e);
 
             /* Note the current view angle. */
 
@@ -1407,10 +1401,7 @@ void game_update_view(float dt)
 
             /* Orthonormalize the new view reference frame. */
 
-            v_crs(multiview1.e[0], multiview1.e[1], multiview1.e[2]);
-            v_crs(multiview1.e[2], multiview1.e[0], multiview1.e[1]);
-            v_nrm(multiview1.e[0], multiview1.e[0]);
-            v_nrm(multiview1.e[2], multiview1.e[2]);
+            e_orthonrm_xz(multiview1.e);
 
             /* Compute the new view position. */
 

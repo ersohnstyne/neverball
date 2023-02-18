@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -64,6 +64,9 @@ struct d_mesh
     GLuint vbc;                                /* Vertex  buffer count       */
     GLuint ebo;                                /* Element buffer object      */
     GLuint ebc;                                /* Element buffer count       */
+
+    GLfloat vp[3][3];
+    GLfloat vn[3];
 };
 
 struct d_body

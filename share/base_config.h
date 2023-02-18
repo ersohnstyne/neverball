@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -48,10 +48,10 @@
 #endif
 
 #ifndef CONFIG_LOCALE
-#if _WIN32
-#define CONFIG_LOCALE "./po"          /* Game localisation */
-#else
+#if ENABLE_NLS==1 && NLS_GETTEXT==1
 #define CONFIG_LOCALE "./locale"      /* Game localisation */
+#else
+#define CONFIG_LOCALE "./po"          /* Game localisation */
 #endif
 #endif
 

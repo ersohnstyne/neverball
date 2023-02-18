@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -104,18 +104,27 @@ static int bump_stick(int a)
 
 /*---------------------------------------------------------------------------*/
 
+#define LOOP_DURING_SCREENANIMATE                                          \
+    do { if (!st_global_loop()) {                                          \
+        log_errorf("UI will animating, but the game attempts to exit!\n"); \
+        SDL_TriggerBreakpoint();                                           \
+        exit(1);                                                           \
+    } } while (0)
+
+/*---------------------------------------------------------------------------*/
+
 /* SCREEN ANIMATIONS */
 #define state_frame_smooth (1.f / 25.f) * 1000
 #define state_anim_speed 6.f
-static float alpha = 0;
-static int intransition = 0;
+
+static float alpha      = 0;
+static int   anim_queue = 0;
+static int   anim_done  = 0;
 
 static float         state_time;
 static int           state_drawn;
 static struct state *state;
 static struct state *anim_next_state;
-
-static int anim_queue = 0;
 
 struct state *curr_state(void)
 {
@@ -133,6 +142,10 @@ void init_state(struct state *st)
     alpha = 1.0f;
     video_clear();
     video_swap();
+
+#if _DEBUG
+    Sleep(500);
+#endif
 }
 
 int goto_state(struct state *st)
@@ -147,16 +160,17 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
 
     prevtime = SDL_GetTicks();
 
-    if (intransition && anim_queue) return 1;
+    if (anim_queue) return 1;
 
+    anim_done  = 0;
     anim_queue = 1;
 
-    if (intransition == 0 &&
-        (!noanimation && config_get_d(CONFIG_SCREEN_ANIMATIONS)))
+    if (!noanimation && config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {
-        intransition = 1;
         while (alpha > 0.01)
         {
+            //LOOP_DURING_SCREENANIMATE;
+
             currtime = SDL_GetTicks();
             dt = MAX(currtime - prevtime, 0);
             alpha = alpha - ((config_get_d(CONFIG_SMOOTH_FIX) ? MIN(state_frame_smooth, dt) : MIN(100.f, dt)) * state_anim_speed) * 0.001;
@@ -169,8 +183,7 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
             xbox_control_gui_set_alpha(alpha);
 #endif
 
-            if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 20) accessibility_set_d(ACCESSIBILITY_SLOWDOWN, 20);
-            if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) > 100) accessibility_set_d(ACCESSIBILITY_SLOWDOWN, 100);
+            CHECK_GAMESPEED(20, 100);
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
 
             st_timer((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ? MIN(state_frame_smooth, dt) : dt)) * speedPercent);
@@ -211,19 +224,15 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
     memset(&stick_cache, 0, sizeof (stick_cache));
     stick_count = 0;
 
-    anim_queue = 0;
-
     if (state && state->enter)
         state->gui_id = state->enter(state, prev);
 
-    intransition = 0;
-
-    if (intransition == 0 &&
-        (!noanimation && config_get_d(CONFIG_SCREEN_ANIMATIONS)))
+    if (!noanimation && config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {
-        intransition = 1;
-        while (alpha < 0.99)
+        while (alpha < 0.99 && !anim_done)
         {
+            LOOP_DURING_SCREENANIMATE;
+
             currtime = SDL_GetTicks();
             dt = MAX(currtime - prevtime, 0);
             alpha = alpha + ((config_get_d(CONFIG_SMOOTH_FIX) ? MIN(state_frame_smooth, dt) : MIN(100.f, dt)) * state_anim_speed) * 0.001;
@@ -236,8 +245,7 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
             xbox_control_gui_set_alpha(alpha);
 #endif
 
-            if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 20) accessibility_set_d(ACCESSIBILITY_SLOWDOWN, 20);
-            if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) > 100) accessibility_set_d(ACCESSIBILITY_SLOWDOWN, 100);
+            CHECK_GAMESPEED(20, 100);
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
 
             st_timer((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ? MIN(state_frame_smooth, dt) : dt)) * speedPercent);
@@ -268,9 +276,15 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
     xbox_control_gui_set_alpha(alpha);
 #endif
 
-    intransition = 0;
+    anim_queue = 0;
+    anim_done = 1;
 
     return 1;
+}
+
+int st_global_animating(void)
+{
+    return anim_queue;
 }
 
 /*---------------------------------------------------------------------------*/

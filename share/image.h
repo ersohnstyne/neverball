@@ -1,9 +1,9 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#if _WIN32 && __GNUC__
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_ttf.h>
 #else
 #include <SDL.h>
 #include <SDL_ttf.h>

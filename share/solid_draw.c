@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,9 +12,9 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __GNUC__
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_rwops.h>
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_rwops.h>
 #else
 #include <SDL.h>
 #include <SDL_rwops.h>
@@ -301,7 +301,9 @@ static void sol_mesh_vert(struct d_vert *vp,
 
 static void sol_mesh_geom(struct d_vert *vv,   int *vn,
                           struct d_geom *gv,   int *gn,
-                          const struct s_base *base, int *iv, int g0, int gc, int mi)
+                          const struct s_base *base, int *iv,
+                          int g0, int gc,
+                          int mi, struct d_mesh *mp)
 {
     int gi;
 
@@ -349,6 +351,20 @@ static void sol_mesh_geom(struct d_vert *vv,   int *vn,
             gv[*gn].j = iv[gq->oj];
             gv[*gn].k = iv[gq->ok];
 
+            mp->vp[0][0] = vv[gq->oi].p[0];
+            mp->vp[0][1] = vv[gq->oi].p[1];
+            mp->vp[0][2] = vv[gq->oi].p[2];
+
+            mp->vp[1][0] = vv[gq->oj].p[0];
+            mp->vp[1][1] = vv[gq->oj].p[1];
+            mp->vp[1][2] = vv[gq->oj].p[2];
+
+            mp->vp[2][0] = vv[gq->ok].p[0];
+            mp->vp[2][1] = vv[gq->ok].p[1];
+            mp->vp[2][2] = vv[gq->ok].p[2];
+
+            v_cpy(mp->vn, vv[gq->oi].n);
+
             (*gn)++;
         }
     }
@@ -387,14 +403,14 @@ static void sol_load_mesh(struct d_mesh *mp,
             if (draw->base->lv)
                 sol_mesh_geom(vv, &vn, gv, &gn, draw->base, iv,
                               draw->base->lv[bp->l0 + li].g0,
-                              draw->base->lv[bp->l0 + li].gc, mi);
+                              draw->base->lv[bp->l0 + li].gc, mi, mp);
             else
                 log_errorf("draw->base->lv returned NULL!\n");
         }
 
         /* Include all matching body geoms in the arrays. */
 
-        sol_mesh_geom(vv, &vn, gv, &gn, draw->base, iv, bp->g0, bp->gc, mi);
+        sol_mesh_geom(vv, &vn, gv, &gn, draw->base, iv, bp->g0, bp->gc, mi, mp);
 
         /* Initialize buffer objects for all data. */
 
@@ -466,7 +482,34 @@ void sol_draw_mesh(const struct d_mesh *mp, struct s_rend *rend, int p)
         if (rend->curr_mtrl.base.fl & M_PARTICLE)
             glDrawArrays(GL_POINTS, 0, mp->vbc);
         else
+        {
+            /*float vp[3];
+            vp[0] = flerp(mp->vp[0][0], flerp(mp->vp[1][0], mp->vp[2][0], .5f), .5f);
+            vp[1] = flerp(mp->vp[0][1], flerp(mp->vp[1][1], mp->vp[2][1], .5f), .5f);
+            vp[2] = flerp(mp->vp[0][2], flerp(mp->vp[1][2], mp->vp[2][2], .5f), .5f);
+            
+            float refl_e[3][3];
+            float refl_m[16];
+
+            refl_e[0][0] = mp->vn[1];
+            refl_e[0][1] = mp->vn[2];
+            refl_e[0][2] = mp->vn[0];
+
+            refl_e[1][0] = mp->vn[0];
+            refl_e[1][1] = mp->vn[1];
+            refl_e[1][2] = mp->vn[2];
+
+            refl_e[2][0] = mp->vn[0];
+            refl_e[2][1] = mp->vn[2];
+            refl_e[2][2] = mp->vn[1];
+
+            e_orthonrm_xz(refl_e);*/
+
+            //glPushMatrix();
+            //glRotatef(V_DEG(fatan2f(refl_e[0][0], refl_e[0][2])), 1.f, 0.f, 0.f);
             glDrawElements(GL_TRIANGLES, mp->ebc, GL_UNSIGNED_SHORT, 0);
+            //glPopMatrix();
+        }
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -71,7 +71,7 @@ int fs_init(const char *argv0)
     fs_dir_write = NULL;
     fs_path = NULL;
 
-    return 1;
+    return fs_dir_base != 0;
 }
 
 int fs_quit(void)
@@ -395,11 +395,7 @@ fs_file fs_open_read(const char *path)
                 char *real = path_join(path_item->path, path);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-#if _MSC_VER
                 if ((fopen_s(&fh->handle, real, "rb")) == 0)
-#else
-                if ((fopen_s(&fh->handle, real, "rb")) == 0)
-#endif
 #else
                 if ((fh->handle = fopen(real, "rb")))
 #endif
@@ -516,12 +512,7 @@ int fs_mkdir(const char *path)
     if (fs_dir_write)
     {
         char *real = path_join(fs_dir_write, path);
-#if _MSC_VER
-        if (CreateDirectoryA(real, NULL) || ERROR_ALREADY_EXISTS == GetLastError())
-            success = 1;
-#else
         success = dir_make(real) == 0;
-#endif
         free((void *) real);
     }
 

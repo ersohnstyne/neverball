@@ -84,11 +84,11 @@
 #include "st_all.h"
 
 #if NB_STEAM_API==1
-const char TITLE[] = "Pennyputt - Steam";
+const char TITLE[] = "Neverputt - Steam";
 #elif NB_EOS_SDK==1
-const char TITLE[] = "Pennyputt - Epic Games";
+const char TITLE[] = "Neverputt - Epic Games";
 #else
-const char TITLE[] = "Pennyputt " VERSION;
+const char TITLE[] = "Neverputt " VERSION;
 #endif
 const char ICON[] = "icon/pennyputt.png";
 
@@ -217,10 +217,10 @@ static int loop(void)
                 break;
 
             case USER_EVENT_PAUSE:
-#if NDEBUG
+//#if NDEBUG
                 if (video_get_grab())
-                    goto_pause(&st_over);
-#endif
+                    goto_pause(1);
+//#endif
                 break;
             }
             break;
@@ -367,10 +367,10 @@ static int loop(void)
             {
             case SDL_WINDOWEVENT_FOCUS_LOST:
                 audio_suspend();
-#if NDEBUG
+//#if NDEBUG
                 if (video_get_grab())
-                    goto_pause(&st_over);
-#endif
+                    goto_pause(1);
+//#endif
                 break;
 
             case SDL_WINDOWEVENT_FOCUS_GAINED:
@@ -516,9 +516,7 @@ static void step(void* data)
             float deltaTime = config_get_d(CONFIG_SMOOTH_FIX) ? MIN(frame_smooth, dt) : MIN(100.f, dt);
 #undef frame_smooth
 
-            if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 20
-                || accessibility_get_d(ACCESSIBILITY_SLOWDOWN) > 100)
-                accessibility_set_d(ACCESSIBILITY_SLOWDOWN, CLAMP(20, accessibility_get_d(ACCESSIBILITY_SLOWDOWN), 100));
+            CHECK_GAMESPEED(20, 100);
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
             st_timer((0.001f * deltaTime) * speedPercent);
 
@@ -552,7 +550,7 @@ static void step(void* data)
     }
 
     EM_ASM({
-        Pennyputt.quit();
+        Neverputt.quit();
         });
 #endif
 }
@@ -578,7 +576,7 @@ static int main_init(int argc, char* argv[])
 
     opt_parse(argc, argv);
 
-    log_init("Pennyputt", "pennyputt.log");
+    log_init("Neverputt", "pennyputt.log");
     config_paths(opt_data);
     fs_mkdir("Screenshots");
 

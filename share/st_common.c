@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,8 +12,8 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __GNUC__
-#include <SDL2/SDL.h>
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -34,6 +34,32 @@
 
 #define AUD_MENU "snd/menu.ogg"
 #define AUD_BACK "snd/back.ogg"
+#define AUD_DISABLED "snd/disabled.ogg"
+
+/* Macros helps with the action game menu. */
+
+#define GENERIC_GAMEMENU_ACTION                      \
+        if (st_global_animating()) {                 \
+            audio_play(AUD_DISABLED, 1.f);           \
+            return 1;                                \
+        } else audio_play(GUI_BACK == tok ?          \
+                          AUD_BACK :                 \
+                          (GUI_NONE == tok ?         \
+                           AUD_DISABLED : AUD_MENU), \
+                          1.0f)
+
+#define GAMEPAD_GAMEMENU_ACTION_SCROLL(tok1, tok2, itemstep) \
+        if (st_global_animating()) {                         \
+            audio_play(AUD_DISABLED, 1.f);                   \
+            return 1;                                        \
+        } else if (tok == tok1 || tok == tok2) {             \
+            if (tok == tok1)                                 \
+                audio_play(first > 1 ?                       \
+                           AUD_DISABLED : AUD_MENU, 1.0f);   \
+            if (tok == tok2)                                 \
+                audio_play(first + itemstep < total ?        \
+                           AUD_DISABLED : AUD_MENU, 1.0f);   \
+        } else GENERIC_GAMEMENU_ACTION
 
 /*---------------------------------------------------------------------------*/
 
@@ -269,7 +295,7 @@ void conf_common_init(int (*action_fn)(int, int), int allowfade)
     {
         back_init(config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "back/gui-mayhem.png" : "back/gui.png");
         is_common_bg = 1;
-        audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
+        audio_music_fade_to(0.5f, "bgm/inter.ogg");
     }
 
     common_init(action_fn);
@@ -318,7 +344,7 @@ static struct state *video_back;
 
 static int video_action(int tok, int val)
 {
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     int f = config_get_d(CONFIG_FULLSCREEN);
     int w = config_get_d(CONFIG_WIDTH);
@@ -390,6 +416,8 @@ static int video_action(int tok, int val)
 #else
         goto_state(&st_null);
         config_set_d(CONFIG_HMD, val);
+        config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 6);
+        config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
         r = video_mode(f, w, h);
 
         if (r)
@@ -400,11 +428,6 @@ static int video_action(int tok, int val)
             r = video_mode(f, w, h);
             if (r)
                 goto_state(&st_video);
-            else
-            {
-                config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 6);
-                config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
-            }
         }
 #endif
 
@@ -461,14 +484,19 @@ static int video_gui(void)
         SDL_DisplayMode dpyMode;
         SDL_GetCurrentDisplayMode(config_get_d(CONFIG_DISPLAY), &dpyMode);
 
+        int dpy = config_get_d(CONFIG_DISPLAY);
+        const char* display;
+        if (!(display = SDL_GetDisplayName(dpy)))
+            display = _("Unknown Display");
+
         char dpy_info[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(dpy_info, "%s\\%d x %d - %d Hz",
-            SDL_GetDisplayName(dpy),
+            display,
             dpyMode.w, dpyMode.h, dpyMode.refresh_rate);
 #else
         sprintf(dpy_info, "%s\\%d x %d - %d Hz",
-            SDL_GetDisplayName(config_get_d(CONFIG_DISPLAY)),
+            display,
             dpyMode.w, dpyMode.h, dpyMode.refresh_rate);
 #endif
         gui_multi(id, dpy_info, GUI_SML, gui_wht, gui_wht);
@@ -488,20 +516,18 @@ static int video_gui(void)
 #if !defined(__EMSCRIPTEN__) && !defined(RESIZEABLE_WINDOW)
         char resolution[sizeof ("12345678 x 12345678")];
 #endif
-        const char *display;
-        int dpy = config_get_d(CONFIG_DISPLAY);
-
-        if (!(display = SDL_GetDisplayName(dpy)))
-            display = _("Unknown Display");
 
         gui_space(id);
 
         /* This ignores display configurations, sorry for incoherence problems. */
 #if !defined(__EMSCRIPTEN__) && NB_STEAM_API==0
-        if ((jd = conf_state(id, _("Display"), "Super Longest Name", VIDEO_DISPLAY)))
+        if (SDL_GetNumVideoDisplays() > 1)
         {
-            gui_set_trunc(jd, TRUNC_TAIL);
-            gui_set_label(jd, display);
+            if ((jd = conf_state(id, _("Display"), "Super Longest Name", VIDEO_DISPLAY)))
+            {
+                gui_set_trunc(jd, TRUNC_TAIL);
+                gui_set_label(jd, display);
+            }
         }
 #endif
 
@@ -596,6 +622,7 @@ static struct state * video_advanced_back;
 
 static int video_advanced_action(int tok, int val)
 {
+    int backups = 0;
     int f = config_get_d(CONFIG_FULLSCREEN);
     int w = config_get_d(CONFIG_WIDTH);
     int h = config_get_d(CONFIG_HEIGHT);
@@ -609,7 +636,7 @@ static int video_advanced_action(int tok, int val)
     int oldSamp = config_get_d(CONFIG_MULTISAMPLE);
     int oldText = config_get_d(CONFIG_TEXTURES);
 
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -632,9 +659,13 @@ static int video_advanced_action(int tok, int val)
         if (oldF == val)
             return 1;
 
+        backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
         goto_state(&st_restart_required);
 #else
+        config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 0);
+        config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
+        config_save();
         goto_state_full(&st_null, 0, 0, 1);
         r = video_fullscreen(val);
 
@@ -645,28 +676,25 @@ static int video_advanced_action(int tok, int val)
             r = video_fullscreen(val);
             if (r)
                 goto_state_full(&st_video_advanced, 0, 0, 1);
-            else
-            {
-                config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 0);
-                config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
-            }
         }
 #endif
-
-        config_save();
-
         break;
 
     case VIDEO_ADVANCED_HMD:
         if (oldHmd == val)
             return 1;
 
+        backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
         config_set_d(CONFIG_HMD, val);
         goto_state(&st_restart_required);
 #else
-        goto_state(&st_null);
         config_set_d(CONFIG_HMD, val);
+        config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 6);
+        config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
+        config_save();
+        goto_state(&st_null);
+
         r = video_mode(f, w, h);
 
         if (r)
@@ -677,28 +705,25 @@ static int video_advanced_action(int tok, int val)
             r = video_mode(f, w, h);
             if (r)
                 goto_state(&st_video_advanced);
-            else
-            {
-                config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 6);
-                config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
-            }
         }
 #endif
-
-        config_save();
-
         break;
 
     case VIDEO_ADVANCED_REFLECTION:
         if (oldRefl == val)
             return 1;
 
+        backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
         config_set_d(CONFIG_REFLECTION, val);
         goto_state(&st_restart_required);
 #else
-        goto_state(&st_null);
         config_set_d(CONFIG_REFLECTION, val);
+        config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 5);
+        config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
+        config_save();
+        goto_state(&st_null);
+
         r = video_mode(f, w, h);
 
         if (r)
@@ -709,30 +734,26 @@ static int video_advanced_action(int tok, int val)
             r = video_mode(f, w, h);
             if (r)
                 goto_state(&st_video_advanced);
-            else
-            {
-                config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 5);
-                config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
-            }
         }
 #endif
-
-        config_save();
 
         break;
 
     case VIDEO_ADVANCED_BACKGROUND:
         config_set_d(CONFIG_BACKGROUND, val);
+        config_save();
         goto_state_full(&st_video_advanced, 0, 0, 1);
         break;
 
     case VIDEO_ADVANCED_SHADOW:
         config_set_d(CONFIG_SHADOW, val);
+        config_save();
         goto_state_full(&st_video_advanced, 0, 0, 1);
         break;
 #ifdef GL_GENERATE_MIPMAP_SGIS
     case VIDEO_ADVANCED_MIPMAP:
         config_set_d(CONFIG_MIPMAP, val);
+        config_save();
         goto_state_full(&st_video_advanced, 0, 0, 1);
         break;
 #endif
@@ -740,6 +761,7 @@ static int video_advanced_action(int tok, int val)
 #ifdef GL_TEXTURE_MAX_ANISOTROPY_EXT
     case VIDEO_ADVANCED_ANISO:
         config_set_d(CONFIG_ANISO, val);
+        config_save();
         goto_state_full(&st_video_advanced, 0, 0, 1);
         break;
 #endif
@@ -748,12 +770,17 @@ static int video_advanced_action(int tok, int val)
         if (oldVsync == val)
             return 1;
 
+        backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
         config_set_d(CONFIG_VSYNC, val);
         goto_state(&st_restart_required);
 #else
-        goto_state(&st_null);
         config_set_d(CONFIG_VSYNC, val);
+        config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 3);
+        config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
+        config_save();
+        goto_state(&st_null);
+
         r = video_mode(f, w, h);
 
         if (r)
@@ -764,15 +791,8 @@ static int video_advanced_action(int tok, int val)
             r = video_mode(f, w, h);
             if (r)
                 goto_state(&st_video_advanced);
-            else
-            {
-                config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 3);
-                config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
-            }
         }
 #endif
-
-        config_save();
 
         break;
 
@@ -780,11 +800,10 @@ static int video_advanced_action(int tok, int val)
         if (oldText == val)
             return 1;
 
-        goto_state(&st_null);
+        backups = 1;
         config_set_d(CONFIG_TEXTURES, val);
-        goto_state(&st_video_advanced);
-
         config_save();
+        goto_state(&st_video_advanced);
 
         break;
 
@@ -792,12 +811,17 @@ static int video_advanced_action(int tok, int val)
         if (oldSamp == val)
             return 1;
 
+        backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
         config_set_d(CONFIG_MULTISAMPLE, val);
         goto_state(&st_restart_required);
 #else
-        goto_state(&st_null);
         config_set_d(CONFIG_MULTISAMPLE, val);
+        config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 4);
+        config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
+        config_save();
+        goto_state(&st_null);
+
         r = video_mode(f, w, h);
         if (r)
             goto_state(&st_video_advanced);
@@ -807,20 +831,14 @@ static int video_advanced_action(int tok, int val)
             r = video_mode(f, w, h);
             if (r)
                 goto_state(&st_video_advanced);
-            else
-            {
-                config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 4);
-                config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
-            }
         }
 #endif
-
-        config_save();
 
         break;
 
     case VIDEO_ADVANCED_SMOOTH_FIX:
         config_set_d(CONFIG_SMOOTH_FIX, val);
+        config_save();
         goto_state_full(&st_video_advanced, 0, 0, 1);
 
         config_save();
@@ -828,10 +846,16 @@ static int video_advanced_action(int tok, int val)
 
     case VIDEO_ADVANCED_FORCE_SMOOTH_FIX:
         config_set_d(CONFIG_FORCE_SMOOTH_FIX, val);
-        goto_state_full(&st_video_advanced, 0, 0, 1);
-
         config_save();
+        goto_state_full(&st_video_advanced, 0, 0, 1);
         break;
+    }
+
+    if (r && backups)
+    {
+        config_set_d(CONFIG_GRAPHIC_RESTORE_ID, -1);
+        config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, -1);
+        config_save();
     }
 
     return r;
@@ -926,16 +950,20 @@ static int video_advanced_gui(void)
             video.window_h);
 #endif
 
+        
         if (!(display = SDL_GetDisplayName(dpy)))
             display = _("Unknown Display");
         conf_header(id, _("Graphics"), GUI_BACK);
 
         /* This ignores display configurations and resolutions. */
 #ifndef __EMSCRIPTEN__
-        if ((jd = conf_state(id, _("Display"), "Super Longest Name", VIDEO_ADVANCED_DISPLAY)))
+        if (SDL_GetNumVideoDisplays() > 1)
         {
-            gui_set_trunc(jd, TRUNC_TAIL);
-            gui_set_label(jd, display);
+            if ((jd = conf_state(id, _("Display"), "Super Longest Name", VIDEO_ADVANCED_DISPLAY)))
+            {
+                gui_set_trunc(jd, TRUNC_TAIL);
+                gui_set_label(jd, display);
+            }
         }
 
         conf_toggle(id, _("Fullscreen"), VIDEO_ADVANCED_FULLSCREEN,
@@ -1024,7 +1052,7 @@ static int display_action(int tok, int val)
 {
     int r = 1;
 
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -1188,7 +1216,7 @@ static int resol_action(int tok, int val)
 {
     int r = 1;
 
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     int oldW = config_get_d(CONFIG_WIDTH);
     int oldH = config_get_d(CONFIG_HEIGHT);
@@ -1332,7 +1360,9 @@ static int lang_action(int tok, int val)
 
     struct lang_desc *desc;
 
-    audio_play(GUI_BACK == tok ? AUD_BACK : AUD_MENU, 1.0f);
+    int total = 10;
+
+    GAMEPAD_GAMEMENU_ACTION_SCROLL(GUI_XBOX_LB, GUI_XBOX_RB, LANG_STEP);
 
     switch (tok)
     {
@@ -1349,10 +1379,9 @@ static int lang_action(int tok, int val)
         break;
 
     case GUI_XBOX_RB:
-        if (first < 10)
+        if (first + LANG_STEP < total)
         {
             first += LANG_STEP;
-            if (first > 40) first -= LANG_STEP;
             return goto_state(&st_lang);
         }
         break;

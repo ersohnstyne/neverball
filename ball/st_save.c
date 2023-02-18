@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -82,7 +82,7 @@ static int enter_id;
 
 static void save_update_enter_btn(void)
 {
-    int name_accepted = text_length(text_input) > 2;
+    int name_accepted = text_length(text_input) > 2 && strcmp("Last", text_input);
 
     for (int i = 0; i < text_length(text_input); i++)
     {
@@ -129,9 +129,7 @@ static int save_action(int tok, int val)
             return 1;
 
         if (demo_exists(text_input))
-        {
             return goto_state(&st_clobber);
-        }
         else
         {
             if (curr_status() == GAME_FALL)

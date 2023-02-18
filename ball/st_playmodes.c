@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -158,7 +158,7 @@ static int playmodes_gui(void)
             _(career_text),
             server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER) ? _("Complete the game to unlock.") : _("Career mode is not available\\with server group policy."));
 
-        if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE) && networking_error() > -3)
+        if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE) && CHECK_ACCOUNT_ENABLED)
         {
             int hardc_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE) || campaign_hardcore_unlocked());
             int hardc_requirement = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100
@@ -177,7 +177,7 @@ static int playmodes_gui(void)
 #endif
                 : _("Achieve all Silver Medals or above in Best Time\\to unlock this Mode."));
         }
-        else if (networking_error() > -3)
+        else if (CHECK_ACCOUNT_ENABLED)
         {
             if (server_policy_get_d(SERVER_POLICY_EDITION) == 0)
                 playmodes_state(id, GUI_NONE, 0, 0,

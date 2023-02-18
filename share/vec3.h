@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -97,6 +97,22 @@
 #define e_orthonrm(e) do {         \
     v_crs((e)[0], (e)[1], (e)[2]); \
     v_crs((e)[2], (e)[0], (e)[1]); \
+    v_nrm((e)[0], (e)[0]);         \
+    v_nrm((e)[1], (e)[1]);         \
+    v_nrm((e)[2], (e)[2]);         \
+} while (0)
+
+#define e_orthonrm_xz(e) do {      \
+    v_crs((e)[0], (e)[1], (e)[2]); \
+    v_crs((e)[2], (e)[0], (e)[1]); \
+    v_nrm((e)[0], (e)[0]);         \
+    v_nrm((e)[2], (e)[2]);         \
+} while (0)
+
+#define e_orthonrm_hard(e, f) do { \
+    v_crs((e)[2], (f)[0], (f)[1]); \
+    v_crs((e)[1], (f)[2], (f)[0]); \
+    v_crs((e)[0], (f)[1], (f)[2]); \
     v_nrm((e)[0], (e)[0]);         \
     v_nrm((e)[1], (e)[1]);         \
     v_nrm((e)[2], (e)[2]);         \

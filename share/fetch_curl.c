@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -23,9 +23,9 @@
 
 #include <curl/curl.h>
 
-#if _WIN32 && __GNUC__
-#include <SDL2/SDL_mutex.h>
-#include <SDL2/SDL_thread.h>
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL_mutex.h>
+#include <SDL3/SDL_thread.h>
 #else
 #include <SDL_mutex.h>
 #include <SDL_thread.h>

@@ -31,7 +31,7 @@ below for details.
     3      Manual Camera
 
     F9     Toggle frame counter
-    F10    Hide HUD
+    F1     Hide HUD
     F12    Snap a screenshot
 
     UP     Tilt the floor forward
@@ -61,7 +61,7 @@ were  removed  and  the  game  cannot  be  saved  with only  one ball.
 * LEVEL PROGRESSION
 
 Neverball levels are also grouped  in  level sets.  To unlock the sets
-in Home and Pro Editions, you need to complete the game.
+in Home Editions, you need to complete the game.
 
 There are three game modes or ways of progressing through the  levels: 
 the Classic, Challenge and Boost rush mode.
@@ -152,9 +152,14 @@ In Steam, it is stored under game data directory only.
 
 This ranks is only for Home edition and above.
 
-This  is  the  rank held  by  all  trainee  campaigns.   Once you have
-completed the first three levels,  you will be given  your  wings  and
-awarded one of the following ranks:
+In the Tradition of Space Agency 2D  and 2138,  the rank system tracks
+the player's progress through Campaign mode.
+
+    NB Cadet
+
+        This is the rank held by all trainee campaigns.  Once you have
+        completed the first three levels, you will be given your wings
+        and awarded one of the following ranks...
 
     Bronze Commander
 
@@ -173,7 +178,7 @@ awarded one of the following ranks:
 
     Elite Commander
 
-        Elite Commander  is  awarded  to those extraordinary campaigns
+        Elite Commander  is awarded  to  those extraordinary campaigns
         who achieve Gold in every mission they attempt.  You must have
         flown at least 12 levels before you will be considered for the
         Elite status.
@@ -220,9 +225,9 @@ You can also restrict save and load replay filters in the Account menu,
 which is default by the Options menu.
 
 Exceeded level status above the limits, which unsuccessful level plays,
-will also permanently deleted!  In addition,  Neverball Discord estate
+will also permanently deleted!  In addition,  Pennyball Discord estate
 Hamburg scans a lots of replays and deleted it from the server,  which
-has an Discord server rule.
+has an Discord community server rule.
 
 
 * SHOP
@@ -270,6 +275,7 @@ default values follow.
 
         This key controls neither tilt the floor nor move the ball. If
         you're  using  Campaign,    you  cannot  enable  this  option.
+        (Only for version 1.8+)
 
     mouse_sense 300
 
@@ -395,6 +401,7 @@ default values follow.
     screen_animation 1
 
         This  key  enables  the  graphic  interface screen animations.
+        (Only for version 1.8+)
 
     ball_file ball/basic-ball/basic-ball
 
@@ -531,13 +538,13 @@ default values follow.
         For more  information, see the  section on using  Wiimote with
         Neverball.
 
-    dedicated_ipaddress
+    dedicated_ipaddress neverball.github.io
     dedicated_ipport    5000
 
-        This  key  specifies  the  IPv4/IPv6  address and port of your
-        dedicated server.  For more information,  see  the section  on
-        using dedicated server with Neverball.
+        This  key  specifies the IPv4/IPv6 address or host and port of
+        your dedicated server. For more information,  see  the section
+        on using dedicated server with Neverball.
 
 
 Web: <https://neverball.org/>
-Discord: <https://discord.gg/bmBfHKZaQR>
+Discord: <https://discord.gg/HhMfr4N6H6>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -27,6 +27,7 @@
 #ifdef CONFIG_INCLUDES_ACCOUNT
 #include "powerup.h"
 #endif
+#include "currency.h"
 #include "common.h"
 #include "config.h"
 #include "geom.h"
@@ -189,21 +190,25 @@ static int shop_gui(void)
                 || str_starts_with(pChar, "fr")
                 || str_starts_with(pChar, "it")
                 || str_starts_with(pChar, "nl"))
-                SAFECPY(currency_name, GUI_FINANCE_EU);
+                SAFECPY(currency_name, CURRENCY_FINANCE_EU);
+            else if (str_starts_with(pChar, "br"))
+                SAFECPY(currency_name, CURRENCY_FINANCE_BR);
             else if (str_starts_with(pChar, "ch"))
-                SAFECPY(currency_name, GUI_FINANCE_CH);
+                SAFECPY(currency_name, CURRENCY_FINANCE_CH);
             else if (str_starts_with(pChar, "en_GB"))
-                SAFECPY(currency_name, GUI_FINANCE_GB);
+                SAFECPY(currency_name, CURRENCY_FINANCE_GB);
             else if (str_starts_with(pChar, "hu"))
-                SAFECPY(currency_name, GUI_FINANCE_HU);
+                SAFECPY(currency_name, CURRENCY_FINANCE_HU);
             else if (str_starts_with(pChar, "ja"))
-                SAFECPY(currency_name, GUI_FINANCE_JA);
+                SAFECPY(currency_name, CURRENCY_FINANCE_JA);
             else if (str_starts_with(pChar, "ko"))
-                SAFECPY(currency_name, GUI_FINANCE_KR);
+                SAFECPY(currency_name, CURRENCY_FINANCE_KR);
             else if (str_starts_with(pChar, "id"))
-                SAFECPY(currency_name, GUI_FINANCE_ID);
+                SAFECPY(currency_name, CURRENCY_FINANCE_ID);
+            else if (str_starts_with(pChar, "th"))
+                SAFECPY(currency_name, CURRENCY_FINANCE_TH);
             else
-                SAFECPY(currency_name, GUI_FINANCE_USA);
+                SAFECPY(currency_name, CURRENCY_FINANCE_US);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sprintf_s(coinsattr, dstSize, "%s: %d", currency_name, coinwallet);
@@ -811,13 +816,13 @@ static int iapcoinvalue[] = {
 };
 
 /* Gems in IAP (1 gem = 0,16 €) */
-static const char iapgemlabel[][16] = {
-    "€ 0.59",
-    "€ 1.14",
-    "€ 2.29",
-    "€ 5.49",
-    "€ 10.99",
-    "€ 21.99"
+static const float iapgemcost[] = {
+    0.59,
+    1.14,
+    2.29,
+    5.49,
+    10.99,
+    21.99
 };
 
 static int iapgemvalue[] = {
@@ -1068,13 +1073,22 @@ static int shop_iap_gui(void)
                         if (iapgemvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_GEMS)))
                             if ((kd = gui_vstack(jd)))
                             {
+                                wchar_t pWLocaleName[MAXSTR];
+                                size_t pCharC;
+                                char pCharExt[MAXSTR], pChar[MAXSTR];
+                                if (strlen(config_get_s(CONFIG_LANGUAGE)) < 2)
+                                    LANG_CURRENCY_RESET_DEFAULTS;
+                                else
+                                    SAFECPY(pChar, config_get_s(CONFIG_LANGUAGE));
+
                                 char iapattr[MAXSTR], imgattr[MAXSTR];
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                                 sprintf_s(imgattr, dstSize, "gui/shop/gems-%s.png", iaptiers[multiply - 1]);
-                                sprintf_s(iapattr, dstSize, "%s", iapgemlabel[multiply - 1]);
+                                sprintf_s(iapattr, dstSize, "%s", currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
 #else
                                 sprintf(imgattr, "gui/shop/gems-%s.png", iaptiers[multiply - 1]);
-                                sprintf(iapattr, "%s", iapgemlabel[multiply - 1]);
+                                sprintf(iapattr, "%s", currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
 #endif
 
                                 gui_image(kd, imgattr, w / 7, h / 5);
@@ -1117,10 +1131,18 @@ static int shop_iap_gui(void)
 #ifdef CONFIG_INCLUDES_ACCOUNT
                         if (iapgemvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_GEMS)))
                         {
+                            wchar_t pWLocaleName[MAXSTR];
+                            size_t pCharC;
+                            char pCharExt[MAXSTR], pChar[MAXSTR];
+                            if (strlen(config_get_s(CONFIG_LANGUAGE)) < 2)
+                                LANG_CURRENCY_RESET_DEFAULTS;
+                            else
+                                SAFECPY(pChar, config_get_s(CONFIG_LANGUAGE));
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                            sprintf_s(iapattr, dstSize, _("%d Gems (%s)"), iapgemvalue[multiply - 1], iapgemlabel[multiply - 1]);
+                            sprintf_s(iapattr, dstSize, _("%d Gems (%s)"), iapgemvalue[multiply - 1], currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
 #else
-                            sprintf(iapattr, _("%d Gems (%s)"), iapgemvalue[multiply - 1], iapgemlabel[multiply - 1]);
+                            sprintf(iapattr, _("%d Gems (%s)"), iapgemvalue[multiply - 1], currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
 #endif
                             btniapmobile = gui_label(jd, iapattr, GUI_SML, gui_wht, gui_wht);
                             gui_set_state(btniapmobile, SHOP_IAP_GET_BUY, multiply - 1);
@@ -1142,7 +1164,8 @@ static int shop_iap_gui(void)
 
         if (server_policy_get_d(SERVER_POLICY_EDITION) >= 10000
             && ((account_get_d(ACCOUNT_DATA_WALLET_COINS) / 5) >= 1
-                || account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= 1))
+                || account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= 1)
+            && curr_min == 0)
         {
             gui_space(id);
             gui_state(id, _("Export to Expenses"), GUI_SML, SHOP_IAP_EXPORT, 0);
@@ -1198,25 +1221,27 @@ static int shop_iap_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-#define INIT_AUCTION_OVERBID() \
-do { \
-    if (purchase_product_usegems) \
-    { \
-        while (auction_value + prodcost <= account_get_d(ACCOUNT_DATA_WALLET_GEMS)) \
+#define INIT_AUCTION_OVERBID \
+    do { \
+        if (purchase_product_usegems) \
         { \
-            auction_value += prodcost; \
-            piece_times++; \
+            while (auction_value + prodcost \
+                   < account_get_d(ACCOUNT_DATA_WALLET_GEMS)) \
+            { \
+                auction_value += prodcost; \
+                piece_times++; \
+            } \
         } \
-    } \
-    else \
-    { \
-        while (auction_value + prodcost <= account_get_d(ACCOUNT_DATA_WALLET_COINS)) \
+        else \
         { \
-            auction_value += prodcost; \
-            piece_times++; \
+            while (auction_value + prodcost \
+                   < account_get_d(ACCOUNT_DATA_WALLET_COINS)) \
+            { \
+                auction_value += prodcost; \
+                piece_times++; \
+            } \
         } \
-    } \
-} while (0)
+    } while (0)
 
 int prodcost1 = 0;
 int prodcost2 = 0;
@@ -1239,7 +1264,12 @@ enum
 static int shop_buy_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
-    
+
+#ifdef CONFIG_INCLUDES_ACCOUNT
+    gemwallet = account_get_d(ACCOUNT_DATA_WALLET_GEMS);
+    coinwallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
+#endif
+
     int prodcost = 0;
 
     switch (productkey)
@@ -1267,14 +1297,20 @@ static int shop_buy_action(int tok, int val)
         if (confirm_multiple_items == 0)
         {
             confirm_multiple_items = 2;
-            return goto_state(&st_shop_buy);
+            return goto_state(curr_state());
         }
 
         confirm_multiple_items = 0;
         audio_play("snd/buyproduct.ogg", 1.0f);
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        INIT_AUCTION_OVERBID();
+        if (confirm_multiple_items == 2)
+            INIT_AUCTION_OVERBID;
+        else
+        {
+            piece_times = 5;
+            auction_value = prodcost * piece_times;
+        }
 
         if (productkey == 7)
         {
@@ -1288,11 +1324,13 @@ static int shop_buy_action(int tok, int val)
         if (purchase_product_usegems)
         {
             gemwallet -= auction_value;
+            assert(gemwallet >= 0);
             account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
         }
         else
         {
             coinwallet -= auction_value;
+            assert(coinwallet >= 0 && coinwallet <= 1000000);
             account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
         }
 
@@ -1327,7 +1365,7 @@ static int shop_buy_action(int tok, int val)
         if (confirm_multiple_items == 0)
         {
             confirm_multiple_items = 1;
-            return goto_state(&st_shop_buy);
+            return goto_state(curr_state());
         }
 
         confirm_multiple_items = 0;
@@ -1336,12 +1374,14 @@ static int shop_buy_action(int tok, int val)
 #ifdef CONFIG_INCLUDES_ACCOUNT
         if (purchase_product_usegems)
         {
-            gemwallet -= val * 5;
+            gemwallet -= prodcost * 5;
+            assert(gemwallet >= 0);
             account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
         }
         else
         {
-            coinwallet -= val * 5;
+            coinwallet -= prodcost * 5;
+            assert(coinwallet >= 0 && coinwallet <= 1000000);
             account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
         }
 
@@ -1378,12 +1418,14 @@ static int shop_buy_action(int tok, int val)
 #ifdef CONFIG_INCLUDES_ACCOUNT
         if (purchase_product_usegems)
         {
-            gemwallet -= val;
+            gemwallet -= prodcost;
+            assert(gemwallet >= 0);
             account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
         }
         else
         {
-            coinwallet -= val;
+            coinwallet -= prodcost;
+            assert(coinwallet >= 0 && coinwallet <= 1000000);
             account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
         }
 
@@ -1767,7 +1809,7 @@ static int shop_buy_confirmmulti_gui(void)
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
         if (confirm_multiple_items == 2)
-            INIT_AUCTION_OVERBID();
+            INIT_AUCTION_OVERBID;
         else
         {
             piece_times = 5;
@@ -1856,6 +1898,31 @@ enum
 
 static int expenses_exported = 0;
 static int export_totalvalue = 0;
+static int export_totalgems = 0;
+
+static void expenses_export_start(void)
+{
+    export_totalvalue = 0;
+    export_totalgems = 0;
+
+    int temp_totalcoins = account_get_d(ACCOUNT_DATA_WALLET_COINS);
+
+    while (temp_totalcoins >= 5)
+    {
+        temp_totalcoins -= 5;
+        export_totalgems++;
+    }
+
+    account_set_d(ACCOUNT_DATA_WALLET_COINS, temp_totalcoins);
+
+    export_totalgems += account_get_d(ACCOUNT_DATA_WALLET_GEMS);
+
+    export_totalvalue += export_totalgems * 16;
+    account_set_d(ACCOUNT_DATA_WALLET_GEMS, 0);
+    account_save();
+
+    expenses_exported = 1;
+}
 
 static int expenses_export_action(int tok, int val)
 {
@@ -1868,12 +1935,7 @@ static int expenses_export_action(int tok, int val)
         break;
     case EXPENSES_EXPORT_START:
         audio_play("snd/buyproduct.ogg", 1.0f);
-        export_totalvalue = (account_get_d(ACCOUNT_DATA_WALLET_COINS) / 5) * 16;
-        export_totalvalue += account_get_d(ACCOUNT_DATA_WALLET_GEMS) * 16;
-        account_set_d(ACCOUNT_DATA_WALLET_COINS, 0);
-        account_set_d(ACCOUNT_DATA_WALLET_GEMS, 0);
-        account_save();
-        expenses_exported = 1;
+        expenses_export_start();
         goto_state(curr_state());
         break;
     }
@@ -1892,14 +1954,23 @@ static int expenses_export_gui(void)
         if (expenses_exported)
         {
             gui_title_header(id, _("Exported to Expenses"), GUI_MED, 0, 0);
-            int cents = export_totalvalue % 100;
-            int whole = floor(export_totalvalue / 100);
+
+            int cents = export_totalvalue;
+            int whole = 0;
+            while (cents >= 100)
+            {
+                cents -= 100;
+                whole++;
+            }
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sprintf_s(desc_attr, dstSize,
 #else
             sprintf(desc_attr,
 #endif
-                    _("We have %d,%02d € on your file.\\Consider entering to your Expenses app."), whole, cents);
+                    _("We have %d,%02d € on your file.\\"
+                      "%d Gems has been transferred.\\"
+                      "Consider entering to your Expenses app."), whole, cents, export_totalgems);
         }
         else
         {

@@ -61,6 +61,6 @@
 extern struct state st_title;
 extern struct state st_next;
 
-int goto_pause(struct state *);
+int goto_pause(int);
 
 #endif

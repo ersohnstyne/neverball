@@ -1,9 +1,9 @@
 #ifndef FONT_H
 #define FONT_H
 
-#if _WIN32 && __GNUC__
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_rwops.h>
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL_ttf.h>
+#include <SDL3/SDL_rwops.h>
 #else
 #include <SDL_ttf.h>
 #include <SDL_rwops.h>

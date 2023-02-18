@@ -1,33 +1,65 @@
-# Microsoft Vidual Studio support
-*.vs
+# Microsoft Visual Studio Community / Code
+*.VC.*db*
+/.vs/*
+/msvc/*
+!/msvc/*.vcxproj
+!/msvc/*.vcxproj.filters
+!/msvc/*.vcxproj.user
+.vscode
 
-# Others
-*.[od]
-*.bc
-*.sol
+# Signed certificates for Powershell scripts
+/certificates/*
+
+# Distros
 *.desktop
+
+# Radiant Mappers
+*.bak
+*.autosave.map
+
+# Localizations
 /locale
+
+# Compiled campaign and custom mappers
+*.sol
+*.csol
+
+# Compiled sources
+*.bc
+*.[do]
+
+/.version
+/share/version.h
+
+# All editions except opensource standard or dedicated server
+/share/networking_*.c
+!/share/networking_opensource.c
+!/share/networking_dedicated.c
+
+# Should not included the code as text file
+/ball/*.c.txt
+/ball/*.cpp.txt
+/putt/*.c.txt
+/putt/*.cpp.txt
+/share/*.c.txt
+/share/*.cpp.txt
+
+# Runtime
+/*.bat
+/*.dll
+/*.exe
+
 /neverball
 /neverputt
 /mapc
 /contrib/curve
 
-/.version
-/share/version.h
-
-*.bak
-*.autosave.map
-.vs
-.vscode
-
-/neverball.exe
-/neverputt.exe
-/mapc.exe
-/contrib/curve.exe
-/*.dll
-
+# Emscripten Runtime
 /js/neverball.data
 /js/neverball.js
 /js/neverball.wasm
 /js/packages
+
+# ZIP archives
+/*.tar
 /*.zip

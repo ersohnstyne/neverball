@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,8 +12,8 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __GNUC__
-#include <SDL2/SDL.h>
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -207,19 +207,25 @@ void accessibility_save(void)
 void accessibility_set_d(int i, int d)
 {
     assert(!account_busy && !config_busy && "This account or config data is busy and cannot be edit there!");
-    account_busy = 1;
-    accessibility_d[i].cur = d;
-    dirty = 1;
-    account_busy = 0;
+    if (!account_busy && !config_busy)
+    {
+        account_busy = 1;
+        accessibility_d[i].cur = d;
+        dirty = 1;
+        account_busy = 0;
+    }
 }
 
 void accessibility_tgl_d(int i)
 {
     assert(!account_busy && !config_busy && "This account or config data is busy and cannot be edit there!");
-    account_busy = 1;
-    accessibility_d[i].cur = (accessibility_d[i].cur ? 0 : 1);
-    dirty = 1;
-    account_busy = 0;
+    if (!account_busy && !config_busy)
+    {
+        account_busy = 1;
+        accessibility_d[i].cur = (accessibility_d[i].cur ? 0 : 1);
+        dirty = 1;
+        account_busy = 0;
+    }
 }
 
 int accessibility_tst_d(int i, int d)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -24,6 +24,7 @@ struct video
 {
     int device_w, device_h;
     int window_w, window_h;
+    float scale_w, scale_h;
 
     float device_scale;
     float aspect_ratio;

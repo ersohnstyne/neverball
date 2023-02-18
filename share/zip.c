@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,7 +12,7 @@
  * General Public License for more details.
  */
 
-/* miniz.c with Neverball and Pennyball. */
+/* miniz.c with Neverball and Neverball. */
 
 #include "zip.h"
 #include "miniz.c"

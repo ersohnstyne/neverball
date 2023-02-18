@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -21,6 +21,7 @@
 #include "account.h"
 #include "st_intro_covid.h"
 #include "st_beam_style.h"
+#include "networking.h"
 #endif
 
 #include "log.h"
@@ -136,9 +137,9 @@ static struct state *returnstate;
 int goto_conf_covid_extend(struct state *returnable)
 {
     conf_covid_extend_method = 1;
-    returnstate = returnable;
 
-    return goto_state_full(&st_conf_covid_extend, 0, 0, 0);
+    conf_covid_extended = 1;
+    return goto_state_full(returnable, 0, 0, 0);
 }
 
 void conf_covid_retract(void)
@@ -252,6 +253,9 @@ static int conf_covid_extend_enter(struct state *st, struct state *prev)
 
 #define CONF_ACCOUNT_DEMO_LOCKED_DESC_NIGHT \
     _("Replays have locked down\\between 16:00 - 8:00 (4:00 PM - 8:00 AM).")
+
+#define CONF_ACCOUNT_DEMO_LOCKED_DESC_EXTREME_CASES \
+    _("Replays have locked down\\for extreme cases.")
 
 #define CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1 \
     _("Only Finish")
@@ -511,7 +515,7 @@ static int conf_account_gui(void)
                 DEMO_LOCKDOWN_RANGE_NIGHT_END_HOUR_DEFAULT
             );
 
-            if (nolockdown)
+            if (nolockdown && CHECK_ACCOUNT_ENABLED)
             {
                 char filter_introductive_attr[MAXSTR];
 
@@ -525,7 +529,8 @@ static int conf_account_gui(void)
                        _(status_to_str(3)));
 
                 time_remain_lbl_id = gui_multi(id,
-                                               filter_introductive_attr,
+                                               "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\"
+                                               "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
                                                GUI_SML, gui_red, gui_red);
 
                 if (conf_covid_extended == 0)
@@ -533,9 +538,14 @@ static int conf_account_gui(void)
                     gui_space(id);
                     gui_state(id, _("Request Lift"), GUI_SML, CONF_ACCOUNT_COVID_EXTEND, 0);
                 }
+
+                gui_set_multi(time_remain_lbl_id, filter_introductive_attr);
             }
-            else
+            else if (CHECK_ACCOUNT_ENABLED)
                 gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_DESC_NIGHT,
+                          GUI_SML, gui_red, gui_red);
+            else
+                gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_DESC_EXTREME_CASES,
                           GUI_SML, gui_red, gui_red);
 
             gui_space(id);

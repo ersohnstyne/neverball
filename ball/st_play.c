@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -652,7 +652,7 @@ static int play_loop_enter(struct state *st, struct state *prev)
         evalue -= 1;
         account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, evalue);
     }
-    if (get_gravity_multiply() == 2)
+    if (get_gravity_multiply() <= 0.51f)
     {
         fvalue -= 1;
         account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, fvalue);

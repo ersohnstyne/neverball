@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -90,10 +90,14 @@ static int resume_hold;
 
 static int goal_action(int tok, int val)
 {
-    GENERIC_GAMEMENU_ACTION;
-
     /* Waiting for extra balls by collecting 100 coins */
-    if (challenge_disable_all_buttons) return 1;
+    if (challenge_disable_all_buttons)
+    {
+        audio_play(AUD_DISABLED, 1.f);
+        return 1;
+    }
+
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -114,7 +118,6 @@ static int goal_action(int tok, int val)
 #endif
 
     case GOAL_DONE:
-        
         return goto_exit();
 
     case GUI_SCORE:
@@ -345,6 +348,8 @@ static int goal_gui(void)
             } else {
                 coins = 0;
                 wallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
+
+                coins = MAX((wallet + curr_coins()) - 1000000, 0);
             }
 
             if ((jd = gui_hstack(id)))
@@ -364,47 +369,6 @@ static int goal_gui(void)
                     gui_wht, gui_wht);
                 }
 
-                gui_set_count(coins_id, coins);
-                gui_set_count(wallet_id, wallet);
-
-                gui_filler(jd);
-
-                gui_set_rect(jd, GUI_ALL);
-            }
-
-            gui_space(id);
-        }
-#elif defined(CONFIG_INCLUDES_ACCOUNT)
-        else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-        {
-            balls_id = score_id = 0;
-
-            int coins, wallet;
-
-            if (!resume) {
-                coins = curr_coins();
-                wallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
-            } else {
-                coins = 0;
-                wallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
-            }
-
-            if ((jd = gui_hstack(id)))
-            {
-                gui_filler(jd);
-
-                if ((kd = gui_harray(jd)))
-                {
-                    wallet_id = gui_count(kd, 100000, GUI_MED);
-                    gui_label(kd, _("Wallet"), GUI_SML,
-                    gui_wht, gui_wht);
-                }
-                if ((kd = gui_harray(jd)))
-                {
-                    coins_id = gui_count(kd, 100, GUI_MED);
-                    gui_label(kd, _("Coins"), GUI_SML,
-                    gui_wht, gui_wht);
-                }
 
                 gui_set_count(coins_id, coins);
                 gui_set_count(wallet_id, wallet);
@@ -517,7 +481,7 @@ static int goal_gui(void)
 #endif
                 )
             {
-                int curr_wallet = account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_coins();
+                int curr_wallet = MIN(1000000, account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_coins());
                 account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_wallet);
                 account_save();
             }
@@ -603,7 +567,18 @@ static void goal_timer(int id, float dt)
         {
             int coins = gui_value(coins_id);
 
-            if (coins > 0)
+#ifdef CONFIG_INCLUDES_ACCOUNT
+            int wallet = gui_value(wallet_id);
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            if ((curr_mode() == MODE_CAMPAIGN || curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN) && server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+#else
+            if ((curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN) && server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+#endif
+                wallet = 0;
+#endif
+
+            if (coins > 0 && (wallet < 1000000))
             {
                 int score = gui_value(score_id);
 
@@ -612,8 +587,9 @@ static void goal_timer(int id, float dt)
                 if (curr_mode() != MODE_HARDCORE)
 #endif
                     balls = gui_value(balls_id);
+
 #ifdef CONFIG_INCLUDES_ACCOUNT
-                int wallet = gui_value(wallet_id);
+                wallet = gui_value(wallet_id);
 #endif
 
                 gui_set_count(coins_id, coins - 1);

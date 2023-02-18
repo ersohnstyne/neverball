@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -14,8 +14,8 @@
 
 #include <assert.h>
 
-#if _WIN32 && __GNUC__
-#include <SDL2/SDL.h>
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -55,9 +55,9 @@ struct voice
 static int   lock_hold;
 static int   speed_freezes;
 
-static int   audio_paused = 0;
-static int   audio_state = 0;
-static SDL_AudioDeviceID audio_device_id;
+static int   audio_paused    = 0;
+static int   audio_state     = 0;
+static int   audio_device_id = -1;
 
 static float master_vol   = 1.0f;
 static float sound_vol    = 1.0f;
@@ -133,9 +133,7 @@ static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
                     MIX(obuf[c], M); c++;
 
                     V->amp += V->damp;
-
-                    if (V->amp < 0.0f) V->amp = 0.0;
-                    if (V->amp > 1.0f) V->amp = 1.0;
+                    V->amp = CLAMP(0, V->amp + V->damp, 1);
                 }
 
             /* Mix stereo audio. */
@@ -143,16 +141,14 @@ static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
             if (V->chan == 2)
                 for (i = 0; i < n / 2; i += 2)
                 {
-                    short L = (short)(LOGF_VOLUME(V->amp) * volume * buffer[i + 0]);
-                    short R = (short)(LOGF_VOLUME(V->amp) * volume * buffer[i + 1]);
+                    short L = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 0]);
+                    short R = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 1]);
 
                     MIX(obuf[c], L); c++;
                     MIX(obuf[c], R); c++;
 
                     V->amp += V->damp;
-
-                    if (V->amp < 0.0f) V->amp = 0.0;
-                    if (V->amp > 1.0f) V->amp = 1.0;
+                    V->amp = CLAMP(0, V->amp + V->damp, 1);
                 }
 
             r -= n;
@@ -243,7 +239,7 @@ static void audio_step(void *data, Uint8 *stream, int length)
 
         /* If the track has faded out, move to a queued track. */
 
-        if (music->amp <= 0.0f && music->damp < 0.0f && queue)
+        if (music && music->amp <= 0.0f && music->damp < 0.0f && queue)
         {
             voice_free(music);
             music = queue;
@@ -326,10 +322,10 @@ void audio_init(void)
     /* Configure the audio. */
 
     memset(&device_spec, 0, sizeof (device_spec));
-    device_spec.format = AUDIO_S16SYS;
+    device_spec.format   = AUDIO_S16SYS;
     device_spec.channels = AUDIO_CHAN;
-    device_spec.samples = config_get_d(CONFIG_AUDIO_BUFF);
-    device_spec.freq = AUDIO_RATE * (float) (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100.f);
+    device_spec.samples  = config_get_d(CONFIG_AUDIO_BUFF);
+    device_spec.freq     = AUDIO_RATE * (float) (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100.f);
     device_spec.callback = audio_step;
 
     memset(&out_spec, 0, sizeof (out_spec));
@@ -359,18 +355,6 @@ void audio_init(void)
         {
             audio_state = SDL_GetNumAudioDevices(0);
 
-            for (int i = 0; i < audio_state; i++)
-            {
-                char src_auddev[MAXSTR];
-                char targ_auddev[MAXSTR];
-
-                SAFECPY(src_auddev, SDL_GetAudioDeviceName(i, 0));
-                SAFECPY(targ_auddev, SDL_GetAudioDeviceName(audio_state - 1, 0));
-
-                if (strcmp(src_auddev, targ_auddev) == 0)
-                    audio_device_id = i;
-            }
-
             audio_paused = 1;
             audio_resume();
         }
@@ -386,22 +370,21 @@ void audio_init(void)
 
     /* Set the initial volumes. */
 
-    int assert_master = config_get_d(CONFIG_MASTER_VOLUME);
-    int assert_snd = config_get_d(CONFIG_SOUND_VOLUME);
-    int assert_mus = config_get_d(CONFIG_MUSIC_VOLUME);
+    int assert_master   = config_get_d(CONFIG_MASTER_VOLUME);
+    int assert_snd      = config_get_d(CONFIG_SOUND_VOLUME);
+    int assert_mus      = config_get_d(CONFIG_MUSIC_VOLUME);
     int assert_narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
 
-    assert(assert_master >= 0 &&
-        assert_snd >= 0 &&
-        assert_mus >= 0 &&
-        assert_narrator >= 0 &&
-    "Values cannot be negative");
+    assert(assert_master   >= 0 &&
+           assert_snd      >= 0 &&
+           assert_mus      >= 0 &&
+           assert_narrator >= 0 &&
+           "Values cannot be negative");
 
     audio_volume(config_get_d(CONFIG_MASTER_VOLUME),
-        config_get_d(CONFIG_SOUND_VOLUME),
-        config_get_d(CONFIG_MUSIC_VOLUME),
-        config_get_d(CONFIG_NARRATOR_VOLUME)
-        );
+                 config_get_d(CONFIG_SOUND_VOLUME),
+                 config_get_d(CONFIG_MUSIC_VOLUME),
+                 config_get_d(CONFIG_NARRATOR_VOLUME));
 }
 
 void audio_free(void)
@@ -411,8 +394,9 @@ void audio_free(void)
     /* Halt the audio thread. */
 
     if (audio_state)
-        for (int i = 0; i < audio_state; i++)
-            SDL_CloseAudioDevice(i);
+        SDL_CloseAudioDevice(audio_device_id);
+
+    audio_device_id = -1;
 
     /* Release the input buffer. */
 
@@ -436,20 +420,18 @@ void audio_free(void)
 
 void audio_suspend(void)
 {
-    if (audio_paused) return;
+    if (!audio_state || audio_paused) return;
 
     audio_paused = 1;
-    for (int i = 0; i < audio_state; i++)
-        SDL_PauseAudioDevice(i, 1);
+    SDL_PauseAudioDevice(audio_device_id, 1);
 }
 
 void audio_resume(void)
 {
-    if (!audio_paused) return;
+    if (!audio_state || !audio_paused) return;
 
     audio_paused = 0;
-    for (int i = 0; i < audio_state; i++)
-        SDL_PauseAudioDevice(i, 0);
+    SDL_PauseAudioDevice(audio_device_id, 0);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -651,8 +633,16 @@ void audio_music_fade_to(float t, const char *filename)
 {
     float clampedTime = CLAMP(0.001f, t, 1.0f);
 
-    if (music && music->name)
+    if (music)
     {
+        if (!music->name)
+        {
+            audio_music_stop();
+            audio_music_play(filename);
+            audio_music_fade_in(clampedTime);
+            return;
+        }
+
         if (strcmp(filename, music->name) == 0)
         {
             /*
@@ -677,8 +667,6 @@ void audio_music_fade_to(float t, const char *filename)
     }
     else
     {
-        audio_music_stop();
-
         audio_music_play(filename);
         audio_music_fade_in(clampedTime);
     }

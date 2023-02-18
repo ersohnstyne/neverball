@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -628,8 +628,7 @@ void progress_exit(void)
                                   campaign_career_unlocked() ? &coin_rank : 0,
                                   done ? &time_rank : NULL);
 #if NB_STEAM_API==1
-            if (done)
-                score_steam_hs_save(curr.score, curr.times);
+            score_steam_hs_save(curr.score, curr.times);
 #endif
         }
 #endif
@@ -641,14 +640,14 @@ void progress_exit(void)
                                  done ? &times_rank : NULL))
                 set_store_hs();
 #if NB_STEAM_API==1
-            if (done)
-                score_steam_hs_save(curr.score, curr.times);
+            score_steam_hs_save(curr.score, curr.times);
 #endif
         }
 
         if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
         {
-            account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_score() + account_get_d(ACCOUNT_DATA_WALLET_COINS));
+            account_set_d(ACCOUNT_DATA_WALLET_COINS,
+                MIN(account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score(), 1000000));
 
             /* This gems won't earn in hardcore mode */
 

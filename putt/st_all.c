@@ -278,7 +278,7 @@ static int title_enter(struct state *st, struct state *prev)
 {
 /*#if defined(__EMSCRIPTEN__)
     EM_ASM({
-        Pennyputt.isTitleScreen = true;
+        Neverputt.isTitleScreen = true;
         });
 #endif*/
 
@@ -324,7 +324,7 @@ static int title_enter(struct state *st, struct state *prev)
 
         if ((jd = gui_vstack(id)))
         {
-            gui_title_header(jd, "  Pennyputt  ", GUI_LRG, 0, 0);
+            gui_title_header(jd, "  Neverputt  ", GUI_LRG, 0, 0);
 #if NB_STEAM_API==1
             gui_label(jd, _("Steam Valve Edition"), GUI_SML, gui_wht, gui_wht);
 #else
@@ -375,7 +375,7 @@ static void title_leave(struct state *st, struct state *next, int id)
 {
 /*#if defined(__EMSCRIPTEN__)
     EM_ASM({
-        Pennyputt.isTitleScreen = false;
+        Neverputt.isTitleScreen = false;
         });
 #endif*/
 
@@ -780,7 +780,7 @@ static int course_enter(struct state *st, struct state *prev)
         gui_layout(id, 0, 0);
     }
 
-    audio_music_fade_to(0.5f, "bgm/title.ogg");
+    audio_music_fade_to(0.5f, "bgm/inter.ogg");
 
     return id;
 }
@@ -1130,8 +1130,9 @@ static struct state *st_quit;
 
 #define PAUSE_CONTINUE 1
 #define PAUSE_QUIT     2
+#define PAUSE_SKIP     3
 
-int goto_pause(struct state *s, int use_keybd)
+int goto_pause(int use_keybd)
 {
     if (curr_state() == &st_pause)
         return 1;
@@ -1142,7 +1143,7 @@ int goto_pause(struct state *s, int use_keybd)
         paused_indiv_ctrl_index = joy_get_gamepad_action_index();
 
     st_continue = curr_state();
-    st_quit = s;
+    st_quit = &st_over;
     paused = 1;
 
     return goto_state(&st_pause);
@@ -1156,6 +1157,10 @@ static int pause_action(int i)
     {
     case PAUSE_CONTINUE:
         return goto_state(st_continue ? st_continue : &st_title);
+
+    case PAUSE_SKIP:
+        hole_skip();
+        return goto_state(&st_score);
 
     case PAUSE_QUIT:
         stroke_type = 0;
@@ -1206,7 +1211,8 @@ static int pause_enter(struct state *st, struct state *prev)
         if ((jd = gui_harray(id)))
         {
             gui_state(jd, _("Quit"), GUI_SML, PAUSE_QUIT, 0);
-            gui_start(jd, _("Continue"), GUI_SML, PAUSE_CONTINUE, 1);
+            gui_start(jd, _("Skip"), GUI_SML, PAUSE_SKIP, 1);
+            gui_start(jd, _("Continue"), GUI_SML, PAUSE_CONTINUE, 2);
         }
 
         gui_pulse(td, 1.2f);
@@ -1271,7 +1277,7 @@ static int shared_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT)
-            return goto_pause(&st_over, 1);
+            return goto_pause(1);
     }
     return 1;
 }
@@ -1373,9 +1379,11 @@ static int next_keybd(int c, int d)
         if (c == KEY_POSE)
             return goto_state(&st_poser);
         if (c == KEY_EXIT)
-            return goto_pause(&st_over, 1);
+            return goto_pause(1);
+#ifndef NDEBUG
         if ('0' <= c && c <= '9')
             num = num * 10 + c - '0';
+#endif
     }
     return 1;
 }
@@ -1387,6 +1395,7 @@ static int next_buttn(int b, int d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
         {
+#ifndef NDEBUG
             if (num > 0)
             {
                 if (hole_goto(num, -1))
@@ -1400,12 +1409,13 @@ static int next_buttn(int b, int d)
                     return 1;
                 }
             }
+#endif
             return goto_state(&st_flyby);
         }
     }
 
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        return goto_pause(&st_over, 0);
+        return goto_pause(0);
 
     return 1;
 }
@@ -1517,7 +1527,7 @@ static int flyby_buttn(int b, int d)
     }
 
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        return goto_pause(&st_over, 0);
+        return goto_pause(0);
 
     return 1;
 }
@@ -1630,7 +1640,7 @@ static int stroke_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT)
-            return goto_pause(&st_over, 1);
+            return goto_pause(1);
         if (c == KEY_PUTT_UPGRADE && stroke_type < 3)
         {
             stroke_type++;
@@ -1684,7 +1694,7 @@ static int stroke_buttn(int b, int d)
     }
 
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        return goto_pause(&st_over, 0);
+        return goto_pause(0);
 
     return 1;
 }
@@ -1762,7 +1772,7 @@ static void roll_timer(int id, float dt)
 static int roll_buttn(int b, int d)
 {
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        return goto_pause(&st_over, 0);
+        return goto_pause(0);
 
     return 1;
 }
@@ -1880,7 +1890,7 @@ static int goal_buttn(int b, int d)
     }
 
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        return goto_pause(&st_over, 0);
+        return goto_pause(0);
 
     return 1;
 }
@@ -1977,7 +1987,7 @@ static int stop_buttn(int b, int d)
     }
 
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        return goto_pause(&st_over, 0);
+        return goto_pause(0);
 
     return 1;
 }
@@ -2085,7 +2095,7 @@ static int fall_buttn(int b, int d)
     }
 
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        return goto_pause(&st_over, 0);
+        return goto_pause(0);
 
     return 1;
 }
@@ -2134,7 +2144,7 @@ static int score_keybd(int c, int d)
         (joy_get_cursor_actions(0) || !party_indiv_controllers))
     {
         if (c == KEY_EXIT)
-            return goto_pause(&st_over, 1);
+            return goto_pause(1);
     }
     return 1;
 }
@@ -2150,7 +2160,7 @@ static int score_buttn(int b, int d)
                 goto_state(&st_next);
         }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return goto_pause(&st_over, 0);
+            return goto_pause(0);
     }
     return 1;
 }

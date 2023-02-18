@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -39,11 +39,11 @@
 #define AUD_BACK "snd/back.ogg"
 
 #define TRANSFER_OFFLINE_ONLY
-#define TITLE_TARGET_TRANSFER "Neverball Game Transfer"
+#define TITLE_TARGET_TRANSFER N_("Neverball Game Transfer")
 
-#define TARGET_TRANSFER_WARNING_EXTERNAL "Do not touch the External Drive, exit the\\game or turn off the PC, otherwise data\\may be lost."
-#define TARGET_TRANSFER_WARNING_INTERNAL "Do not exit the game or turn off the PC,\\otherwise data may be lost."
-#define TARGET_TRANSFER_WARNING "Do not exit the game or turn off the PC."
+#define TARGET_TRANSFER_WARNING_EXTERNAL N_("Do not touch the External Drive, exit the\\game or turn off the PC, otherwise data\\may be lost.")
+#define TARGET_TRANSFER_WARNING_INTERNAL N_("Do not exit the game or turn off the PC,\\otherwise data may be lost.")
+#define TARGET_TRANSFER_WARNING N_("Do not exit the game or turn off the PC.")
 
 static int transfer_process;
 static int transfer_ui_transition_busy;
@@ -128,7 +128,7 @@ int transfer_about_transferring_gui(void)
             switch (about_pageindx)
             {
             case 1:
-                gui_multi(jd, _("A game transfer requires\\- One source Neverball game and one target\\Pennyball game with highest version"), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("A game transfer requires\\- One source Neverball game and one target\\Neverball game with highest version"), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("- At least one keyboard and mouse"), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("- An External Drive with at least 1 GB of free space"), GUI_SML, gui_wht, gui_wht);
 #if ENABLE_DEDICATED_SERVER==1 && !defined(TRANSFER_OFFLINE_ONLY)
@@ -150,7 +150,7 @@ int transfer_about_transferring_gui(void)
                 break;
             case 5:
                 gui_label(jd, _("Step 3: Transfer to target game"), GUI_SML, 0, 0);
-                gui_multi(jd, _("Take out the External Drive from the source Neverball,\\and insert back into this target Pennyball\\to complete the game transfer."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Take out the External Drive from the source Neverball,\\and insert back into this target Neverball\\to complete the game transfer."), GUI_SML, gui_wht, gui_wht);
                 break;
             case 6:
                 gui_label(jd, _("The following data will be transferred:"), GUI_SML, gui_grn, gui_grn);
@@ -166,7 +166,7 @@ int transfer_about_transferring_gui(void)
                 gui_label(jd, _("Other notes:"), GUI_SML, gui_yel, gui_yel);
                 gui_multi(jd, _("Save data that may already exist cannot be\\transferred per hand."), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("For save data, transfer it from the External Drive\\to the source Neverball, before performing\\the transfer.\\"
-                    "For level set, either transfer it back to the\\source Neverball, before performing the transfer,\\or redownload it after the transfer\\using the Pennyball."), GUI_SML, gui_wht, gui_wht);
+                    "For level set, either transfer it back to the\\source Neverball, before performing the transfer,\\or redownload it after the transfer\\using the Neverball."), GUI_SML, gui_wht, gui_wht);
                 break;
             case 9:
                 gui_label(jd, _("Other notes:"), GUI_SML, gui_yel, gui_yel);

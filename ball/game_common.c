@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -318,10 +318,7 @@ void game_view_fly(struct game_view *view, const struct s_vary *vary, int ui, fl
     /* Orthonormalize the view basis. */
 
     v_sub(view->e[2], view->p, view->c);
-    v_crs(view->e[0], view->e[1], view->e[2]);
-    v_crs(view->e[2], view->e[0], view->e[1]);
-    v_nrm(view->e[0], view->e[0]);
-    v_nrm(view->e[2], view->e[2]);
+    e_orthonrm_xz(view->e);
 }
 
 void game_view_set_pos_and_target(struct game_view *view,
@@ -348,10 +345,7 @@ void game_view_set_pos_and_target(struct game_view *view,
         /* Orthonormalize the view basis. */
 
         v_sub(local_e[2], view->p, view->c);
-        v_crs(local_e[0], local_e[1], local_e[2]);
-        v_crs(local_e[2], local_e[0], local_e[1]);
-        v_nrm(local_e[0], local_e[0]);
-        v_nrm(local_e[2], local_e[2]);
+        e_orthonrm_xz(local_e);
 
         e_cpy(view->e, local_e);
     }

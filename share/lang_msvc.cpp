@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2022 Microsoft / Neverball authors
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -10,6 +10,15 @@
  * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
  * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
  * General Public License for more details.
+ */
+
+/*
+ * HACK: Remembering the code file differences:
+ * Developers who programming C++ can see more bedrock declaration
+ * than C. Developers who programming C can see few procedural
+ * declaration than C++. Keep in mind when making sure that your
+ * extern code must associated. The valid file types are *.c and *.cpp,
+ * so it's always best when making cross C++ compiler to keep both.
  */
 
 #include <assert.h>
@@ -25,6 +34,8 @@
 extern "C"
 {
 #include "lang.h"
+
+#include "array.h"
 #include "common.h"
 #include "config.h"
 #include "base_config.h"
@@ -33,7 +44,7 @@ extern "C"
 
 /*---------------------------------------------------------------------------*/
 
-#if _WIN32 && _MSC_VER
+#if _WIN32 && _MSC_VER && NLS_GETTEXT!=1
 
 std::ostringstream lang_splitstr(std::string str, std::string delim = "\\")
 {
@@ -60,24 +71,45 @@ std::ostringstream lang_splitstr(std::string str, std::string delim = "\\")
     return finalres;
 }
 
+/*---------------------------------------------------------------------------*/
+
 std::vector<bool> lang_text_found;
 std::vector<char*> src_lang_text;
 std::vector<char*> targ_lang_text;
 
 static char *targ_lang_code;
 
-#define DEBUG_LOCALE_PATH "..\\po"
+void ms_nls_free(void)
+{
+    int i;
+
+    for (i = 0; i < lang_text_found.size(); i++)
+        lang_text_found[i] = false;
+
+    lang_text_found.clear();
+
+    for (i = 0; i < src_lang_text.size(); i++)
+    {
+        free(src_lang_text[i]);
+        src_lang_text[i] = NULL;
+    }
+
+    src_lang_text.clear();
+
+    for (i = 0; i < targ_lang_text.size(); i++)
+    {
+        free(targ_lang_text[i]);
+        targ_lang_text[i] = NULL;
+    }
+
+    targ_lang_text.clear();
+}
 
 void ms_nls_init(const char *pref)
 {
-    static char default_lang[MAXSTR];
-    static int  default_lang_init;
+    ms_nls_free();
 
-#if _DEBUG
-    char *dir = strdup(DEBUG_LOCALE_PATH);
-#else
-    char *dir = strdup(getenv("NEVERBALL_LOCALE"));
-#endif
+    char* dir = strdup(getenv("PENNYBALL_LOCALE"));
 
     /* Select the location of message catalogs. */
 
@@ -184,8 +216,8 @@ void ms_nls_init(const char *pref)
                     std::string _targ_std_lang(targ_lang_stack_final); \
                     std::ostringstream _src_std_final = lang_splitstr(_src_std_lang); \
                     std::ostringstream _targ_std_final = lang_splitstr(_targ_std_lang); \
-                    src_lang_text.push_back(strdup(_src_std_final.str().c_str())); \
-                    targ_lang_text.push_back(strdup(_targ_std_final.str().c_str())); \
+                    src_lang_text.push_back(strdup (_src_std_final.str().c_str())); \
+                    targ_lang_text.push_back(strdup (_targ_std_final.str().c_str())); \
                     lang_text_found.push_back(strlen(_targ_std_final.str().c_str()) > 0); \
                 } \
             } \
@@ -201,8 +233,8 @@ void ms_nls_init(const char *pref)
                 { \
                     std::string _src_std_lang(src_lang_stack_final); \
                     std::ostringstream _src_std_final = lang_splitstr(_src_std_lang); \
-                    src_lang_text.push_back(strdup(_src_std_final.str().c_str())); \
-                    targ_lang_text.push_back(strdup("")); \
+                    src_lang_text.push_back(strdup (_src_std_final.str().c_str())); \
+                    targ_lang_text.push_back(strdup ("")); \
                     lang_text_found.push_back(false); \
                 } \
             } \
@@ -320,7 +352,7 @@ const char *ms_nls_gettext(const char *s)
             strlen(s) == strlen(src_lang_text[i]))
             if (lang_text_found[i])
             {
-                outS = strdup(targ_lang_text[i]);
+                outS = targ_lang_text[i];
                 lang_was_found = true;
                 break;
             }
@@ -403,28 +435,6 @@ int lang_load(struct lang_desc *desc, const char *path)
 
 void lang_free(struct lang_desc *desc)
 {
-    int i;
-
-    for (i = 0; i < lang_text_found.size(); i++)
-        lang_text_found[i] = false;
-
-    lang_text_found.clear();
-
-    for (i = 0; i < src_lang_text.size(); i++)
-    {
-        free(src_lang_text[i]);
-        src_lang_text[i] = NULL;
-    }
-
-    src_lang_text.clear();
-
-    for (i = 0; i < targ_lang_text.size(); i++)
-    {
-        free(targ_lang_text[i]);
-        targ_lang_text[i] = NULL;
-    }
-
-    targ_lang_text.clear();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -505,6 +515,9 @@ extern "C" void lang_quit(void)
     if (lang_status)
     {
         lang_free(&curr_lang);
+
+        ms_nls_free();
+
         lang_status = 0;
     }
 }

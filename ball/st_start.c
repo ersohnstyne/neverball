@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -265,7 +265,7 @@ static int start_action(int tok, int val)
 #endif
         {
 #if NB_HAVE_PB_BOTH == 1
-            if (networking_error() > -3)
+            if (CHECK_ACCOUNT_ENABLED)
             {
                 if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
                     return goto_state(&st_start_upgraderequired);
@@ -441,7 +441,7 @@ static int start_unavailable_enter(struct state *st, struct state *prev)
         gui_label(id, _("Not Available"), GUI_MED, gui_gry, gui_red);
         gui_space(id);
 
-        if (networking_error() > -3)
+        if (CHECK_ACCOUNT_ENABLED)
         {
             if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
                 gui_multi(id, _("Challenge Mode is not available\\with server group policy."), GUI_SML, gui_wht, gui_wht);
@@ -590,7 +590,7 @@ static int start_enter(struct state *st, struct state *prev)
 
     progress_init(MODE_NORMAL);
 
-    audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" : "bgm/inter_world.ogg");
+    audio_music_fade_to(0.5f, "bgm/inter.ogg");
 
     return start_gui();
 }
@@ -757,11 +757,11 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev)
         gui_title_header(id, _("Powerups available"), GUI_MED, 0, 0);
         gui_space(id);
         gui_multi(id,
-            _("Pennyball offers some of the most creative ways to\\"
-              "compete with powerups! We just need you to upgrade\\"
-              "to Pro edition so that we can make sure you have\\"
-              "permission to use it."),
-            GUI_SML, gui_wht, gui_wht);
+                  _("Pennyball offers some of the most creative ways to\\"
+                    "compete with powerups! We just need you to\\"
+                    "upgrade to Pro edition so that we can make sure\\"
+                    "you have permission to use it."),
+                  GUI_SML, gui_wht, gui_wht);
         gui_space(id);
 
         if ((jd = gui_harray(id)))

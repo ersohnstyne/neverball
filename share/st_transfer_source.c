@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -39,7 +39,7 @@
 
 /**
  * We will transfer user datas from the multiple source Neverball game to ONLY
- * Pennyball game user datas.
+ * Neverball game user datas.
  *
  * FIXME: Copy this function reference into the file ball/st_conf.c below:
  *
@@ -96,23 +96,23 @@
 #define AUD_BACK "snd/back.ogg"
 
 #define TRANSFER_OFFLINE_ONLY
-#define TITLE_SOURCE_TRANSFER "Pennyball Transfer Tool"
+#define TITLE_SOURCE_TRANSFER N_("Neverball Transfer Tool")
 
-#define SOURCE_TRANSFER_WARNING_DELETE_DATA "Once deleted, this data cannot be restored.\\Do you want to continue?"
+#define SOURCE_TRANSFER_WARNING_DELETE_DATA N_("Once deleted, this data cannot be restored.\\Do you want to continue?")
 
-#define SOURCE_TRANSFER_WARNING_EXTERNAL "Do not touch the External Drive, exit the\\game or turn off the PC, otherwise data\\may be lost."
-#define SOURCE_TRANSFER_WARNING_INTERNAL "Do not exit the game or turn off the PC,\\otherwise data may be lost."
+#define SOURCE_TRANSFER_WARNING_EXTERNAL N_("Do not touch the External Drive, exit the\\game or turn off the PC, otherwise data\\may be lost.")
+#define SOURCE_TRANSFER_WARNING_INTERNAL N_("Do not exit the game or turn off the PC,\\otherwise data may be lost.")
 
-#define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_COVID "There are exceeded level status currently stored in the\\Replay of this game. The Replay in the target Pennyball game\\has an COVID-19 feature, so the Replays\\will be lost, if you perform this transfer now."
-#define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_USER "There are exceeded level status currently stored in the\\Replay of this game. The Replay in the target Pennyball game\\has an premade filters, so the Replays\\will be lost, if you perform this transfer now."
-#define SOURCE_TRANSFER_WARNING_REPLAY_BACKUP "If you do not want to delete these Replays,\\you should move them to the backup folder\\before performing this transfer."
-#define SOURCE_TRANSFER_WARNING_REPLAY_CONTINUE "Do you wish to continue with the transfer?"
+#define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_COVID N_("There are exceeded level status currently stored in the\\Replay of this game. The Replay in the target Neverball game\\has an COVID-19 feature, so the Replays\\will be lost, if you perform this transfer now.")
+#define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_USER N_("There are exceeded level status currently stored in the\\Replay of this game. The Replay in the target Neverball game\\has an premade filters, so the Replays\\will be lost, if you perform this transfer now.")
+#define SOURCE_TRANSFER_WARNING_REPLAY_BACKUP N_("If you do not want to delete these Replays,\\you should move them to the backup folder\\before performing this transfer.")
+#define SOURCE_TRANSFER_WARNING_REPLAY_CONTINUE N_("Do you wish to continue with the transfer?")
 
-#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_1 "There are same replay name on both games."
-#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_2 "Would you like delete the replay from the\\target game and replace with new ones?\\(Replays will be deleted after the transfer.)"
+#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_1 N_("There are same replay name on both games.")
+#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_2 N_("Would you like delete the replay from the\\target game and replace with new ones?\\(Replays will be deleted after the transfer.)")
 
-#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_CONFIRM_1 "The saved replays will be overwritten\\with that of this game.\\Do you really want to continue?"
-#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_CONFIRM_2 "(Replays, that you used on the target game\\before the transfer, will no longer be\\used after the transfer.)"
+#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_CONFIRM_1 N_("The saved replays will be overwritten\\with that of this game.\\Do you really want to continue?")
+#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_CONFIRM_2 N_("(Replays, that you used on the target game\\before the transfer, will no longer be\\used after the transfer.)")
 
 /*---------------------------------------------------------------------------*/
 
@@ -177,12 +177,12 @@ int transfer_introducory_gui(void)
             switch (transfer_pageindx)
             {
             case 0:
-                gui_multi(jd, _("This apps allows you to transfer data from\\this game to a target Pennyball game."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("This apps allows you to transfer data from\\this game to a target Neverball game."), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("Do you have a target game and an external drive?\\(These are required to perform a transfer.)"), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("If you are under the age of 18, call an adult\\and have them perform the transfer."), GUI_SML, gui_blu, gui_blu);
                 break;
             case 1:
-                gui_multi(jd, _("Select Neverball Game Transfer\\and make all preparations on the\\target game neccesary."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Select Neverball Game Transfer\\and make all preparations on the\\target game necessary."), GUI_SML, gui_wht, gui_wht);
                 break;
             }
             gui_set_rect(jd, GUI_ALL);
@@ -349,7 +349,7 @@ int transfer_gui(void)
                 }
                 else
                 {
-                    gui_multi(jd, _("Insert the External Drive prepared on the target\\Pennyball game into this game, and then press Next."), GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _("Insert the External Drive prepared on the target\\Neverball game into this game, and then press Next."), GUI_SML, gui_wht, gui_wht);
                     gui_multi(jd, _(SOURCE_TRANSFER_WARNING_EXTERNAL), GUI_SML, gui_red, gui_red);
                 }
                 break;
@@ -381,7 +381,7 @@ int transfer_gui(void)
                     sprintf(wallet_infotext, _("%d coins and %d gems have been transferred."), transfer_walletamount[0], transfer_walletamount[1]);
 #endif
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these coins and gems in\\game shop on the target Pennyball game."), GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _("You can use these coins and gems in\\game shop on the target Neverball game."), GUI_SML, gui_wht, gui_wht);
                 }
                 else if (transfer_walletamount[1] > 0)
                 {
@@ -391,7 +391,7 @@ int transfer_gui(void)
                     sprintf(wallet_infotext, _("%d gems have been transferred."), transfer_walletamount[1]);
 #endif
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these gems in the\\game shop on the target Pennyball game."), GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _("You can use these gems in the\\game shop on the target Neverball game."), GUI_SML, gui_wht, gui_wht);
                 }
                 else if (transfer_walletamount[0] > 0)
                 {
@@ -401,7 +401,7 @@ int transfer_gui(void)
                     sprintf(wallet_infotext, _("%d coins have been transferred."), transfer_walletamount[0]);
 #endif
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these coins in the\\game shop on the target Pennyball game."), GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _("You can use these coins in the\\game shop on the target Neverball game."), GUI_SML, gui_wht, gui_wht);
                 }
                 break;
             case 6:

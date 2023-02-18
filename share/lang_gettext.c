@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -26,7 +26,13 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if _WIN32 && __GNUC__
+#if ENABLE_NLS==1
+#if NLS_GETTEXT!=1
+#error Complete the compiled source code by using NLS_GETTEXT=1
+#endif
+#endif
+
+#if NLS_GETTEXT==1
 
 #define GT_CODESET "UTF-8"
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -78,7 +78,7 @@ static const char *theme_path(const char *name, const char *file)
 
     if ((name && *name) && (file && *file))
     {
-        SAFECPY(path, "gui/themes/");
+        SAFECPY(path, "gui/");
         SAFECAT(path, name);
         SAFECAT(path, "/");
         SAFECAT(path, file);

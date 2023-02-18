@@ -4,17 +4,17 @@
 BUILD := $(shell cat neverball-build.txt 2> /dev/null || echo release)
 
 # Build: devel, release
-VERSION := 2.0.2
+VERSION := 2.1.0
 VERSION := $(shell sh scripts/version.sh)
 
 $(info Will make a "$(BUILD)" build of Neverball $(VERSION).)
 
 ifeq ($(FS_VERSION),1)
 ifeq ($(ENABLE_FETCH),curl)
-$(error The codelib cURL for Pennyball + Neverball requires latest FS version!)
+$(error The codelib cURL for Neverball requires latest FS version!)
 endif
 ifeq ($(ENABLE_IAP),paypal)
-$(error The Paypal payment for Pennyball + Neverball requires latest FS version!)
+$(error The Paypal payment for Neverball requires latest FS version!)
 endif
 endif
 
@@ -22,6 +22,10 @@ ENABLE_ACCOUNT_BINARY := 1
 
 ifneq ($(ENABLE_ACCOUNT_BINARY),1)
 $(error ENABLE_ACCOUNT_BINARY!=1 is not allowed to use!)
+endif
+
+ifeq ($(LEGACY_MODE),0)
+$(error Sorry, original start position for Neverball are converted to legacy mode)
 endif
 
 #------------------------------------------------------------------------------
@@ -95,6 +99,21 @@ ifneq ($(CRT_SECURE_NO_WARNINGS),0)
 endif
 
 #------------------------------------------------------------------------------
+# Auto-install dependencies (note: they must be connected to the internet)
+
+LBITS := $(shell getconf LONG_BIT)
+
+ifeq ($(PLATFORM),mingw)
+ifeq ($(LBITS),64)
+$(shell sh scripts/install-deps-msys2-x86_64.sh)
+else
+$(shell sh scripts/install-deps-msys2-i686.sh)
+endif
+else
+$(shell sh scripts/install-devel-linux.sh)
+endif
+
+#------------------------------------------------------------------------------
 # Mandatory flags
 
 # New design specifications for entities in Neverball
@@ -104,13 +123,7 @@ endif
 # Entities created after June 20, 2020 must be meet the new electricity
 # before the level is compiled.
 
-ifeq ($(LEGACY_MODE),0)
-	# Entities for SOL file uses an old specification.
-	ALL_CPPFLAGS := -DLEGACY_MODE=0
-else
-	# Legacy mode for original Entities enabled.
-	ALL_CPPFLAGS := -DLEGACY_MODE=1
-endif
+ALL_CPPFLAGS := -DLEGACY_MODE=1
 
 ifeq ($(NEVERBALL_FAMILY_API),xbox)
 	# Xbox
@@ -219,7 +232,7 @@ endif
 ifeq ($(ENABLE_NLS),0)
 	ALL_CPPFLAGS += -DENABLE_NLS=0
 else
-	ALL_CPPFLAGS += -DENABLE_NLS=1
+	ALL_CPPFLAGS += -DENABLE_NLS=1 -DNLS_GETTEXT=1
 endif
 
 ifeq ($(ENABLE_HMD),openhmd)
@@ -301,8 +314,12 @@ endif
 
 # New: Dedicated server
 ifeq ($(ENABLE_DEDICATED_SERVER),1)
-	DEDICATED_LIBS := -L"." \
-		-lneverball_net_client
+	DEDICATED_LIBS := -L"C:/msys64/mingw64/x86_64-w64-mingw32/lib" \
+					  -L"." \
+					  -lneverball_net_client \
+					  -lws2_32               \
+					  -lws2help              \
+					  -lwsock32
 endif
 
 # Basically used
@@ -658,10 +675,6 @@ endif
 endif
 endif
 
-ifeq ($(ENABLE_SQL),1)
-BALL_OBJS += online/account_database.o
-endif
-
 ifeq ($(FS_VERSION),1)
 ifeq ($(ENABLE_FS),stdio)
 BALL_OBJS += share/fs_stdio_v1.o
@@ -734,8 +747,8 @@ BALL_DEPS := $(BALL_OBJS:.o=.d)
 PUTT_DEPS := $(PUTT_OBJS:.o=.d)
 MAPC_DEPS := $(MAPC_OBJS:.o=.d)
 
-MAPS := $(shell find data_standard -name "*.map" \! -name "*.autosave.map")
-CMAPS := $(shell find data_campaign -name "*.cmap")
+MAPS := $(shell find data -name "*.map" \! -name "*.autosave.map")
+CMAPS := $(shell find data -name "*.cmap")
 SOLS := $(MAPS:%.map=%.sol)
 CSOLS := $(CMAPS:%.cmap=%.csol)
 
@@ -758,11 +771,11 @@ WINDRES ?= windres
 	@echo "$(CXX) $<"
 
 %.sol : %.map $(MAPC_TARG)
-	$(MAPC) $< data_development --skip_verify
+	$(MAPC) $< data --skip_verify
 	@echo "$(MAPC) $<"
 
 %.csol : %.cmap $(MAPC_TARG)
-	$(MAPC) $< data_development --skip_verify --campaign
+	$(MAPC) $< data --skip_verify --campaign
 	@echo "$(MAPC) $<"
 
 %.desktop : %.desktop.in
@@ -773,13 +786,25 @@ WINDRES ?= windres
 
 #------------------------------------------------------------------------------
 
-# Don't compile the sols yet, until the game binaries are finished.
+ALTERNATIVE_BUILDENV :=
 
-all : $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) locales
+BALL_BUILDCOND :=
+PUTT_BUILDCOND :=
+MAPC_BUILDCOND :=
 
-publish : $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) sols locales desktops
+ifeq ($(PLATFORM),mingw)
+ifneq ($(ALTERNATIVE_BUILDENV),Msys2)
+	BALL_BUILDCOND := error Don't compile this project with makefile! Use Microsoft Visual Studio instead, where was premaded. To bypass requirements, use ALTERNATIVE_BUILDENV=Msys2
+	PUTT_BUILDCOND := error Don't compile this project with makefile! Use Microsoft Visual Studio instead, where was premaded. To bypass requirements, use ALTERNATIVE_BUILDENV=Msys2
+	MAPC_BUILDCOND := error Don't compile this project with makefile! Use Microsoft Visual Studio instead, where was premaded. To bypass requirements, use ALTERNATIVE_BUILDENV=Msys2
+endif
+endif
 
-test : $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG)
+all : $(BALL_BUILDCOND) $(PUTT_BUILDCOND) $(MAPC_BUILDCOND) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) sols locales desktops
+
+publish : $(BALL_BUILDCOND) $(PUTT_BUILDCOND) $(MAPC_BUILDCOND) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) sols locales desktops
+
+test : $(BALL_BUILDCOND) $(PUTT_BUILDCOND) $(MAPC_BUILDCOND) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG)
 
 ifeq ($(ENABLE_HMD),libovr)
 LINK := $(CXX) $(ALL_CXXFLAGS)
@@ -796,15 +821,15 @@ endif
 endif
 
 $(BALL_TARG) : $(BALL_OBJS)
-	$(LINK) -o $(BALL_TARG) $(BALL_OBJS) $(LDFLAGS) $(ALL_LIBS)
+	@$(LINK) -o $(BALL_TARG) $(BALL_OBJS) $(LDFLAGS) $(ALL_LIBS)
 	@echo "$(LINK) $<"
 
 $(PUTT_TARG) : $(PUTT_OBJS)
-	$(LINK) -o $(PUTT_TARG) $(PUTT_OBJS) $(LDFLAGS) $(ALL_LIBS)
+	@$(LINK) -o $(PUTT_TARG) $(PUTT_OBJS) $(LDFLAGS) $(ALL_LIBS)
 	@echo "$(LINK) $<"
 
 $(MAPC_TARG) : $(MAPC_OBJS)
-	$(CC) $(ALL_CFLAGS) -o $(MAPC_TARG) $(MAPC_OBJS) $(LDFLAGS) $(MAPC_LIBS)
+	@$(CC) $(ALL_CFLAGS) -o $(MAPC_TARG) $(MAPC_OBJS) $(LDFLAGS) $(MAPC_LIBS)
 	@echo "$(CC) $<"
 
 # Work around some extremely helpful sdl-config scripts.
@@ -819,25 +844,23 @@ csols : $(CSOLS)
 
 locales :
 ifneq ($(ENABLE_NLS),0)
-	$(MAKE) -C po
+	@$(MAKE) -C po
 endif
 
 desktops : $(DESKTOPS)
 
 clean-src :
-	$(RM) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG)
-	find ball share putt \( -name '*.o' -o -name '*.d' \) -delete
-	$(RM) neverball.ico.o neverputt.ico.o
+	@$(RM) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG)
+	@find ball share putt \( -name '*.o' -o -name '*.d' \) -delete
+	@$(RM) neverball.ico.o neverputt.ico.o
 
 clean-sols :
-	$(RM) $(SOLS)
-	$(RM) $(CSOLS)
+	@$(RM) $(SOLS)
+	@$(RM) $(CSOLS)
 
-clean : clean-src
-	$(RM) $(SOLS)
-	$(RM) $(CSOLS)
-	$(RM) $(DESKTOPS)
-	$(MAKE) -C po clean
+clean : clean-src clean-sols
+	@$(RM) $(DESKTOPS)
+	@$(MAKE) -C po clean
 
 #------------------------------------------------------------------------------
 

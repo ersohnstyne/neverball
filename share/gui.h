@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -33,17 +33,6 @@
 #define GUI_GAMEPAD    "🎮"
 
 #define GUI_BATTERY "🔋"
-
-#define GUI_FINANCE_CH  "₣"  /* Swiss     */
-#define GUI_FINANCE_EU  "€"  /* Europe    */
-#define GUI_FINANCE_GB  "£"  /* British   */
-#define GUI_FINANCE_HU  "Ft" /* Hungary   */
-#define GUI_FINANCE_ID  "Rp" /* Indonesia */
-#define GUI_FINANCE_JA  "¥"  /* Japanese  */
-#define GUI_FINANCE_KR  "₩"  /* Korean    */
-#define GUI_FINANCE_NO  "kr" /* Norwegian */
-#define GUI_FINANCE_PL  "zł" /* Polnish   */
-#define GUI_FINANCE_USA "$"  /* USA       */
 
 /*
  * DejaVu Sans V1: DejaVuSans-Bold.ttf

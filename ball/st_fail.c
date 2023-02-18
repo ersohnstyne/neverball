@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -67,10 +67,10 @@
 #define FAIL_ERROR_SERVER_POLICY_SHOP         _("Shop is disabled with server policy!")
 #define FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED _("Managed product is disabled with server policy!")
 
-#define FAIL_UPGRADE_EDITION_1 _("Upgrade to Home edition, to buy Mediation!")
+#define FAIL_UPGRADE_EDITION_1 _("Upgrade to Enterprise edition, to buy Mediation!")
 #define FAIL_UPGRADE_EDITION_2 _("Upgrade to Pro edition, to buy more balls!")
 
-#define FAIL_TRANSFER_MEMBER_1 _("Join Discord and upgrade to Pro, to buy more balls!")
+#define FAIL_TRANSFER_MEMBER_1 _("Join Pennyballball Discord, to buy more balls!")
 
 /*---------------------------------------------------------------------------*/
 

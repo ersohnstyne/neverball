@@ -391,7 +391,9 @@ void hole_goal(void)
 
 void hole_stop(void)
 {
-    int stroke_limit = score_v[hole][0] + 4; // 65536;
+    /* Default stroke limit for open-world: 65536 */
+
+    int stroke_limit = score_v[hole][0] + 4;
     score_v[hole][player]++;
 
     /* Cap scores at specific stroke limit or par plus 3. */
@@ -405,9 +407,30 @@ void hole_stop(void)
     }
 }
 
+void hole_skip(void)
+{
+    /* Default stroke limit for open-world: 65536 */
+
+    int stroke_limit = score_v[hole][0] + 4;
+
+    /* Cap scores at specific stroke limit or par plus 3. */
+
+    int maxscore = (score_v[hole][0] > stroke_limit - 3) ? score_v[hole][0] + 3 : stroke_limit;
+    
+    for (int i = 1; i <= party; i++)
+    {
+        score_v[hole][i] = maxscore;
+        stat_v[i] = 1;
+    }
+
+    done = party;
+}
+
 void hole_fall(int split)
 {
-    int stroke_limit = score_v[hole][0] + 4; // 65536;
+    /* Default stroke limit for open-world: 65536 */
+
+    int stroke_limit = score_v[hole][0] + 4;
     audio_narrator_play(AUD_PENALTY);
 
     /* Reset to the position of the putt, and apply a one-stroke penalty. */

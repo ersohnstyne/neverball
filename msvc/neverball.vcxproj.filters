@@ -28,6 +28,12 @@
     <Filter Include="Ressourcendateien\resource">
       <UniqueIdentifier>{824ae6ce-9423-4d79-8831-5dd3576d95c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Quelldateien\payments">
+      <UniqueIdentifier>{608aace0-7b0a-48b8-902b-8b38842c9ed1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\payments">
+      <UniqueIdentifier>{0605c8f1-5e20-47e5-8974-ed798aff59e9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\share\video.c">
@@ -153,7 +159,25 @@
     <ClCompile Include="..\share\networking_dedicated.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
+    <ClCompile Include="..\share\networking_education.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\networking_enterprise.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\networking_home.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
     <ClCompile Include="..\share\networking_opensource.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\networking_pro.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\networking_srv_datacenter.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\networking_srv_standard.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\package.c">
@@ -217,6 +241,9 @@
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\vec3.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\account_steam.cpp">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\hmd_libovr.cpp">
@@ -366,8 +393,29 @@
     <ClCompile Include="..\share\zip.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
+    <ClCompile Include="..\share\account_eos_sdk.cpp">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\score_steam.cpp">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
     <ClCompile Include="..\share\lang_msvc.cpp">
       <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\networking_srv_essentials.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\joy_xbox.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\payments\game_payment_curl.c">
+      <Filter>Quelldateien\payments</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_shop_activate.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\payments\currency_curl.c">
+      <Filter>Quelldateien\payments</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -668,23 +716,29 @@
     <ClInclude Include="..\ball\st_intro_covid.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
-    <ClInclude Include="..\dist\pennyball_rc.h">
+    <ClInclude Include="..\dist\neverball_rc.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="..\ball\score_online.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
+    <ClInclude Include="..\payments\game_payment.h">
+      <Filter>Headerdateien\payments</Filter>
+    </ClInclude>
+    <ClInclude Include="..\payments\currency.h">
+      <Filter>Headerdateien\payments</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\dist\pennyball_rc.rc">
+    <ResourceCompile Include="..\dist\neverball_rc.rc">
       <Filter>Ressourcendateien\resource</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="ico\pennyball.ico">
+    <Image Include="ico\neverball.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
-    <Image Include="..\dist\ico\pennyball.ico">
+    <Image Include="..\dist\ico\neverball.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
   </ItemGroup>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -92,6 +92,7 @@
 #ifndef FS_VERSION_1
 #include "package.h"
 #endif
+#include "currency.h"
 
 #include "st_malfunction.h"
 #include "st_conf.h"
@@ -463,13 +464,13 @@ static int loop(void)
             {
             case SDL_WINDOWEVENT_FOCUS_LOST:
                 audio_suspend();
-#if NDEBUG
+//#if NDEBUG
                 if (video_get_grab())
                 {
                     if (curr_state() == &st_play_ready || curr_state() == &st_play_set || curr_state() == &st_play_loop)
                         goto_pause(curr_state());
                 }
-#endif
+//#endif
                 break;
 
             case SDL_WINDOWEVENT_FOCUS_GAINED:
@@ -919,16 +920,9 @@ static void step(void *data)
 
             float deltaTime = config_get_d(CONFIG_SMOOTH_FIX) ? MIN(frame_smooth, dt) : MIN(100.f, dt);
 
-            if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 20
-                || accessibility_get_d(ACCESSIBILITY_SLOWDOWN) > 100)
-                accessibility_set_d(ACCESSIBILITY_SLOWDOWN, CLAMP(20, accessibility_get_d(ACCESSIBILITY_SLOWDOWN), 100));
+            CHECK_GAMESPEED(20, 100);
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
             st_timer((0.001f * deltaTime) * speedPercent);
-
-#if ENABLE_DEDICATED_SERVER==1
-            if (networking_connected() != 0)
-                PBNetwork_Update(0.001f * now, dt);
-#endif
 
             /* Render. */
 
@@ -1102,6 +1096,8 @@ static int main_init(int argc, char *argv[])
         }
 #endif
 
+        currency_init();
+
         initialize_fetch();
 
 #ifndef FS_VERSION_1
@@ -1152,8 +1148,6 @@ static int main_init(int argc, char *argv[])
     config_save();
 #endif
 #endif
-
-#pragma region Initialization
 
 #if NB_STEAM_API==1 || NB_EOS_SDK==1
     config_set_d(CONFIG_FPS, 0);
@@ -1377,25 +1371,13 @@ int main(int argc, char *argv[])
         else log_errorf("File %s is not in game path\n", opt_level);
 
         if (!loaded)
-        {
-#ifdef SKIP_END_SUPPORT
             goto_state_full(&st_title, 0, 0, 1);
-#else
-            goto_state_full(&st_end_support, 0, 0, 1);
-#endif
-        }
     }
     else if (opt_screensaver)
-    {
         goto_state_full(&st_screensaver, 0, 0, 1);
-    }
     else
-    {
-        log_printf("Attempt to show intro\n");
         goto_state_full(&st_title, 0, 0, 1);
-    }
-#pragma endregion
-
+	
     /* Run the main game loop. */
 
     mainloop.now = SDL_GetTicks();

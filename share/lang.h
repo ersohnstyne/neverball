@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * this file is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -17,9 +17,18 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ENABLE_NLS && !_WIN32
+#if ENABLE_NLS==1 && NLS_GETTEXT==1
 
+#if _MSC_VER
+/*
+ * TODO: To compile single localization file on WSL2 or Ubuntu CLI, run:
+ *       msgfmt --directory=./po <LANG_NAME>.po --output-file=./locale/<LANG_NAME>/LC_MESSAGES/neverball.mo
+ */
+
+#include <libgnuintl.h>
+#else
 #include <libintl.h>
+#endif
 #define _(s) gettext(s)
 #define gt_plural(msgid, msgid_plural, n) ngettext(msgid, msgid_plural, n)
 
@@ -35,7 +44,7 @@ const char *ms_nls_gettext(const char *);
 #define _(s) (s)
 #define gt_plural(msgid, msgid_plural, n) ((n) == 1 ? (msgid) : (msgid_plural))
 
-#endif /* ENABLE_NLS && !_WIN32 */
+#endif /* ENABLE_NLS==1 && NLS_GETTEXT==1 */
 
 /* No-op, useful for marking up strings for extraction-only. */
 #define N_(s) s

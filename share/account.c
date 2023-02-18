@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,8 +12,8 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __GNUC__
-#include <SDL2/SDL.h>
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -398,19 +398,25 @@ void account_save(void)
 void account_set_d(int i, int d)
 {
     assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
-    account_busy = 1;
-    account_d[i].cur = d;
-    dirty = 1;
-    account_busy = 0;
+    if (!networking_busy && !config_busy && !accessibility_busy)
+    {
+        account_busy = 1;
+        account_d[i].cur = d;
+        dirty = 1;
+        account_busy = 0;
+    }
 }
 
 void account_tgl_d(int i)
 {
     assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
-    account_busy = 1;
-    account_d[i].cur = (account_d[i].cur ? 0 : 1);
-    dirty = 1;
-    account_busy = 0;
+    if (!networking_busy && !config_busy && !accessibility_busy)
+    {
+        account_busy = 1;
+        account_d[i].cur = (account_d[i].cur ? 0 : 1);
+        dirty = 1;
+        account_busy = 0;
+    }
 }
 
 int account_tst_d(int i, int d)
@@ -428,15 +434,18 @@ int account_get_d(int i)
 void account_set_s(int i, const char *src)
 {
     assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
-    account_busy = 1;
+    if (!networking_busy && !config_busy && !accessibility_busy)
+    {
+        account_busy = 1;
 
-    if (account_s[i].cur)
-        free(account_s[i].cur);
+        if (account_s[i].cur)
+            free(account_s[i].cur);
 
-    account_s[i].cur = dupe_string(src);
+        account_s[i].cur = dupe_string(src);
 
-    dirty = 1;
-    account_busy = 0;
+        dirty = 1;
+        account_busy = 0;
+    }
 }
 
 const char *account_get_s(int i)

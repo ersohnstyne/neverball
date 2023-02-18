@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,8 +12,8 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __GNUC__
-#include <SDL2/SDL.h>
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -337,13 +337,13 @@ static struct
 #endif
     { &CONFIG_PLAYER,                  "player",          "" },
 #if !defined(CONFIG_INCLUDES_ACCOUNT)
-    { &CONFIG_BALL_FILE,               "ball_file",    "ball/basic-ball/basic-ball" },
+    { &CONFIG_BALL_FILE,               "ball_file",       "ball/basic-ball/basic-ball" },
 #endif
     { &CONFIG_WIIMOTE_ADDR,            "wiimote_addr",    "" },
     { &CONFIG_REPLAY_NAME,             "replay_name",     "%s-%l-%r" },
     { &CONFIG_LANGUAGE,                "language",        "" },
     { &CONFIG_THEME,                   "theme",           "classic" },
-    { &CONFIG_DEDICATED_IPADDRESS,     "dedicated_ipaddress", "" },
+    { &CONFIG_DEDICATED_IPADDRESS,     "dedicated_ipaddress", "neverball.stynegame.de" },
     { &CONFIG_DEDICATED_IPPORT,        "dedicated_ipport", "5000" }
 };
 
@@ -429,12 +429,17 @@ void config_init(void)
 
 void config_quit(void)
 {
+    if (!config_is_init) return;
+
     int i;
 
     for (i = 0; i < ARRAYSIZE(option_s); i++)
     {
-        free(option_s[i].cur);
-        option_s[i].cur = NULL;
+        if (option_s[i].cur)
+        {
+            free(option_s[i].cur);
+            option_s[i].cur = NULL;
+        }
     }
     config_is_init = 0;
 }
@@ -552,10 +557,10 @@ void config_load(void)
                                  i == CONFIG_KEY_ROTATE_FAST)
                             config_key(val, i);
                         else
-#if _DEBUG && NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NDEBUG || NB_STEAM_API!=0 && NB_EOS_SDK!=0
                         if (i != CONFIG_CHEAT)
-                            config_set_d(i, atoi(val));
 #endif
+                            config_set_d(i, atoi(val));
 
                         /* Stop looking. */
 
@@ -689,26 +694,34 @@ void config_set_d(int i, int d)
 {
 #if NB_HAVE_PB_BOTH==1
     assert(!networking_busy && !accessibility_busy && !account_busy && "This networking, accessibility or account data is busy and cannot be edit there!");
+    if (!networking_busy && !accessibility_busy && !account_busy)
 #else
-    assert(!accessibility_busy && "This networking, accessibility data is busy and cannot be edit there!");
+    assert(!accessibility_busy && "This networking or accessibility data is busy and cannot be edit there!");
+    if (!accessibility_busy)
 #endif
-    config_busy = 1;
-    option_d[i].cur = d;
-    dirty = 1;
-    config_busy = 0;
+    {
+        config_busy = 1;
+        option_d[i].cur = d;
+        dirty = 1;
+        config_busy = 0;
+    }
 }
 
 void config_tgl_d(int i)
 {
 #if NB_HAVE_PB_BOTH==1
     assert(!networking_busy && !accessibility_busy && !account_busy && "This networking, accessibility or account data is busy and cannot be edit there!");
+    if (!networking_busy && !accessibility_busy && !account_busy)
 #else
-    assert(!accessibility_busy && "This networking, accessibility data is busy and cannot be edit there!");
+    assert(!accessibility_busy && "This networking or accessibility data is busy and cannot be edit there!");
+    if (!accessibility_busy)
 #endif
-    config_busy = 1;
-    option_d[i].cur = (option_d[i].cur ? 0 : 1);
-    dirty = 1;
-    config_busy = 0;
+    {
+        config_busy = 1;
+        option_d[i].cur = (option_d[i].cur ? 0 : 1);
+        dirty = 1;
+        config_busy = 0;
+    }
 }
 
 int config_tst_d(int i, int d)
@@ -727,21 +740,25 @@ void config_set_s(int i, const char *src)
 {
 #if NB_HAVE_PB_BOTH==1
     assert(!networking_busy && !accessibility_busy && !account_busy && "This networking, accessibility or account data is busy and cannot be edit there!");
+    if (!networking_busy && !accessibility_busy && !account_busy)
 #else
     assert(!accessibility_busy && "This accessibility data is busy and cannot be edit there!");
+    if (!accessibility_busy)
 #endif
-    config_busy = 1;
-
-    if (option_s[i].cur)
     {
-        free(option_s[i].cur);
-        option_s[i].cur = NULL;
+        config_busy = 1;
+
+        if (option_s[i].cur)
+        {
+            free(option_s[i].cur);
+            option_s[i].cur = NULL;
+        }
+
+        option_s[i].cur = strdup(src);
+
+        dirty = 1;
+        config_busy = 0;
     }
-
-    option_s[i].cur = strdup(src);
-
-    dirty = 1;
-    config_busy = 0;
 }
 
 const char *config_get_s(int i)
@@ -761,24 +778,32 @@ void config_set_cheat(void)
 {
 #if NB_HAVE_PB_BOTH==1
     assert(!networking_busy && !accessibility_busy && !account_busy && "This networking, accessibility or account data is busy and cannot be edit there!");
+    if (!networking_busy && !accessibility_busy && !account_busy)
 #else
     assert(!accessibility_busy && "This networking, accessibility data is busy and cannot be edit there!");
+    if (!accessibility_busy)
 #endif
-    config_busy = 1;
-    config_set_d(CONFIG_CHEAT, 1);
-    config_busy = 0;
+    {
+        config_busy = 1;
+        config_set_d(CONFIG_CHEAT, 1);
+        config_busy = 0;
+    }
 }
 
 void config_clr_cheat(void)
 {
 #if NB_HAVE_PB_BOTH==1
     assert(!networking_busy && !accessibility_busy && !account_busy && "This networking, accessibility or account data is busy and cannot be edit there!");
+    if (!networking_busy && !accessibility_busy && !account_busy)
 #else
     assert(!accessibility_busy && "This networking, accessibility data is busy and cannot be edit there!");
+    if (!accessibility_busy)
 #endif
-    config_busy = 1;
-    config_set_d(CONFIG_CHEAT, 0);
-    config_busy = 0;
+    {
+        config_busy = 1;
+        config_set_d(CONFIG_CHEAT, 0);
+        config_busy = 0;
+    }
 }
 #endif
 

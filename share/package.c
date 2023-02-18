@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -19,10 +19,10 @@
 #include "fs.h"
 
 /*
- * Premium: pennygames.neverball.net
+ * Premium: pennyball.stynegame.de
  * Legacy downloads: neverball.github.io
  */
-#define NB_CURRDOMAIN_PREMIUM "pennygames.neverball.net"
+#define NB_CURRDOMAIN_PREMIUM "neverball.github.io"
 
 struct package
 {
@@ -477,12 +477,12 @@ void package_init(void)
 
     if (write_dir)
     {
-        char *package_dir = concat_string(write_dir, "/", "DLC", NULL);
+        char *package_dir = concat_string(write_dir, "/", PACKAGE_DIR, NULL);
 
         if (package_dir)
         {
             if (!dir_exists(package_dir))
-                fs_mkdir("DLC");
+                fs_mkdir(PACKAGE_DIR);
 
             free(package_dir);
             package_dir = NULL;

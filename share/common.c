@@ -1,20 +1,15 @@
 /*
- *  Copyright (C) 2021 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
- *  This  program is  free software;  you can  redistribute  it and/or
- *  modify it  under the  terms of the  GNU General Public  License as
- *  published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
  *
- *  This program  is distributed in the  hope that it  will be useful,
- *  but  WITHOUT ANY WARRANTY;  without even  the implied  warranty of
- *  MERCHANTABILITY or FITNESS FOR  A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a  copy of the GNU General Public License
- *  along  with this  program;  if  not, write  to  the Free  Software
- *  Foundation,  Inc.,   59  Temple  Place,  Suite   330,  Boston,  MA
- *  02111-1307 USA
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
  */
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS && !_MSC_VER
@@ -30,7 +25,7 @@
 #include <sys/stat.h>
 #if !_MSC_VER
 /*
- * No platform checking, relying on MinGW to provide.
+ * Relying on MinGW to provide, that uses from GetFileAttributes.
  */
 #include <unistd.h>   /* access() */
 #endif
@@ -218,17 +213,17 @@ const char *date_to_str(time_t i)
 int file_exists(const char *path)
 {
 #if _MSC_VER
-    FILE *fp;
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    if (fopen_s(&fp, path, "r") == 0)
-#else
-    if ((fp = fopen(path, "r")))
-#endif
-    {
-        fclose(fp);
-        return 1;
-    }
-    return 0;
+    DWORD file_attr = GetFileAttributesA(path);
+    
+    if (file_attr & FILE_ATTRIBUTE_OFFLINE
+        || file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED
+        || file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA)
+        return 0;
+
+    return file_attr & FILE_ATTRIBUTE_NORMAL
+        || file_attr & FILE_ATTRIBUTE_ARCHIVE
+        || file_attr & FILE_ATTRIBUTE_READONLY
+        || file_attr & FILE_ATTRIBUTE_HIDDEN;
 #else
     return (access(path, F_OK) == 0);
 #endif

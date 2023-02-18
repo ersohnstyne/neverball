@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -234,7 +234,7 @@ static void game_draw_tilt(const struct game_draw *gd, int d, int flip)
      * See Git-issues #167, which you don't include tilting the floor.
      */
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    if (config_get_d(CONFIG_TILTING_FLOOR) && (curr_mode() != MODE_CAMPAIGN && curr_mode() != MODE_HARDCORE))
+    if (config_get_d(CONFIG_TILTING_FLOOR) && !campaign_used())
 #else
     if (config_get_d(CONFIG_TILTING_FLOOR))
 #endif
@@ -477,10 +477,8 @@ static void game_draw_fog()
     GLfloat fog_color[4]; fog_color[0] = 1.0f; fog_color[1] = 1.0f; fog_color[2] = 1.0f; fog_color[3] = 1.0f;
     glDisable(GL_FOG);
     glFogfv(GL_FOG_COLOR, fog_color);
-    glFogf(GL_FOG_MODE, GL_EXP);
-    glFogf(GL_FOG_DENSITY, 0.0125f);
-    glFogf(GL_FOG_START, 480);
-    glFogf(GL_FOG_END, 512);
+    glFogf(GL_FOG_MODE, GL_EXP2);
+    glFogf(GL_FOG_DENSITY, 0.0125);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -586,6 +584,8 @@ void game_draw(struct game_draw *gd, int pose, float t)
             game_draw_back(&rend, gd, pose, +1, t, 0);
 
             /* Draw the reflection. */
+
+            game_draw_light(gd, 1, t);
 
             if (gd->draw.reflective && config_get_d(CONFIG_REFLECTION))
             {

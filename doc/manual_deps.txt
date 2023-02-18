@@ -120,4 +120,4 @@ menus.  When the  game is playing, the left  and right buttons control
 the camera and the middle button will bring up a pause menu.
 
 Web: <https://neverball.org/>
-Discord: <https://discord.gg/bmBfHKZaQR>
+Discord: <https://discord.gg/HhMfr4N6H6>

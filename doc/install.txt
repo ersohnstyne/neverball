@@ -13,13 +13,14 @@
     gettext           https://www.gnu.org/software/gettext/
     cURL              https://curl.se/
 
-By default development,  it is placed by the file under Unix and Linux
+By  default development during compilation,  it is placed by the file
+under Unix and Linux when running the script.
 
     install-devel-linux.sh
 
 Under Msys2 for Windows, it is placed by the file
 
-    Msys2             install-devel-msys2.bat
+    Msys2             install-deps-msys2-<architecture>.sh
 
 Any kind of differences platforms such WINE does not supported.
 
@@ -36,7 +37,7 @@ Under Unix and Linux, simply run
 Under Windows,  either build from the Visual Studio 2022 solution, or
 install the MSYS2 environment and run
 
-    make CRT_SECURE_NO_WARNINGS=1
+    make CRT_SECURE_NO_WARNINGS=1 ALTERNATIVE_BUILDENV=Msys2
 
 Cross-compilation for Windows is also supported. On Fedora Linux, run
 
@@ -65,7 +66,7 @@ make ENABLE_STEAM=1
 
 make ENABLE_FS=physfs
     Alternate  file  system  backend  that replaces standard I/O  with
-    PhysicsFS. Requires FS_VERSION=1.
+    PhysicsFS. May causes some bugs or crashes. Requires FS_VERSION=1.
 
     PhysicsFS         https://icculus.org/physfs/
 
@@ -73,7 +74,7 @@ make ENABLE_NLS=0
     Native language support.  This is  enabled by default. Requires an
     additional library on non-GLIBC systems.
 
-    gettext           https://www.gnu.org/software/gettext/
+    gettext           https://github.com/winlibs/gettext
 
 make ENABLE_IAP=paypal
     Paypal support for all platforms.  Requires libcurl for Windows or
@@ -143,4 +144,4 @@ Or, once you've purchased the edition,  you can use  a valid editions:
 
 
 Web: <https://neverball.org/>
-Discord: <https://discord.gg/bmBfHKZaQR>
+Discord: <https://discord.gg/HhMfr4N6H6>

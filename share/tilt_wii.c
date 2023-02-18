@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -13,7 +13,7 @@
  */
 
 #if _WIN32
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <SDL/SDL_thread.h>
 #else
 #include <SDL.h>
@@ -179,11 +179,14 @@ void tilt_init(void)
 
 void tilt_free(void)
 {
+    int b = 0;
+
     if (mutex)
     {
         /* Get/set the status of the tilt sensor thread. */
 
         SDL_LockMutex(mutex);
+        b = state.status;
         state.status = 0;
         SDL_UnlockMutex(mutex);
 

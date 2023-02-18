@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -24,14 +24,17 @@
 
 #if ENABLE_DEDICATED_SERVER==1
 #if _WIN32
-#if __GNUC__
-#error Use the combined library, that you've compiled from MSVC!
+#if !_MSC_VER
+#error Use the combined library, that you've compiled from Microsoft Visual Studio!
+#else
+#pragma message("Pennyball + Neverball Dedicated Network for Microsoft Visual Studio")
 #endif
 #if _WIN64
 #pragma comment(lib, "D:\\source_ersohn_network\\c++\\neverball-game-network\\x64\\Release\\neverball_net_client.lib")
 #else
 #pragma comment(lib, "D:\\source_ersohn_network\\c++\\neverball-game-network\\Release\\neverball_net_client.lib")
 #endif
+//#pragma comment(lib, "ws2_32.lib")
 #else
 #error Dedicated networks requires Windows x86 or x64!
 #endif
@@ -151,13 +154,12 @@ struct networking_event
     void *extra_data;
 };
 
+/* Neverball netfunc system */
+
 static void (*networking_dispatch_event)(void *) = NULL;
-
-/* Neverball networking system */
-
 static void (*networking_error_dispatch_event)(int) = NULL;
 
-/* End Neverball networking system */
+/* End Neverball netfunc system */
 
 static SDL_mutex *networking_mutex;
 static SDL_Thread *networking_thread;
@@ -180,13 +182,14 @@ static void server_policy_init(void)
     }
 }
 
-#if NDEBUG
 #define CLIENT_IPADDR config_get_s(CONFIG_DEDICATED_IPADDRESS)
 #define CLIENT_PORT config_get_s(CONFIG_DEDICATED_IPPORT)
-#else
-#define CLIENT_IPADDR "192.168.8.249"
-#define CLIENT_PORT "5001"
-#endif
+
+#define CHECK_IPNUM_RANGE(n) \
+    (n[0] >= 0 && n[0] <= 255) && \
+    (n[1] >= 0 && n[1] <= 255) && \
+    (n[2] >= 0 && n[2] <= 255) && \
+    (n[3] >= 0 && n[3] <= 255)
 
 static int authenticate_networking()
 {
@@ -196,11 +199,75 @@ static int authenticate_networking()
 
     int net_port = atoi(CLIENT_PORT);
 
-    if (net_port == 0) net_port = 5000;
+    if (net_port <= 0 || net_port > 65535) net_port = 5000;
 
     connected = -1;
 
-    if (PBNetwork_Connect(CLIENT_IPADDR, net_port) == 1)
+#if _MSC_VER
+    /*char hostname[MAXSTR], net_ipv4[MAXSTR];
+    SAFECPY(hostname, CLIENT_IPADDR);
+
+    int ipap[4];
+    if (sscanf(CLIENT_IPADDR, "%d.%d.%d.%d", &ipap[0], &ipap[1], &ipap[2], &ipap[3]) != 4)
+    {
+        WSADATA wsData;
+        int res;
+        if ((res = WSAStartup(MAKEWORD(2, 2), &wsData)) != 0)
+        {
+            log_errorf("Can't launch the WSA\n");
+            return (connected = 0);
+        }
+
+        struct hostent *host_info;
+        struct in_addr addr;
+        DWORD dw;
+
+        host_info = gethostbyname(hostname);
+
+        if (host_info == NULL)
+        {
+            dw = WSAGetLastError();
+            if (dw != 0)
+            {
+                if (dw == WSAHOST_NOT_FOUND)
+                {
+                    log_errorf("Host is not found\n");
+                    WSACleanup();
+                    return (connected = 0);
+                }
+                else if (dw == WSANO_DATA)
+                {
+                    log_errorf("No data record is found");
+                    WSACleanup();
+                    return (connected = 0);
+                }
+                else
+                {
+                    log_errorf("Function failed with an error: %ul", dw);
+                    WSACleanup();
+                    return (connected = 0);
+                }
+            }
+        }
+        else
+        {
+            addr.s_addr = *(unsigned long *) host_info->h_addr_list[0];
+            log_printf("Hostname: %s; IPv4: %s\n", host_info->h_name, inet_ntoa(addr));
+            SAFECPY(net_ipv4, inet_ntoa(addr));
+        }
+
+        WSACleanup();
+        Sleep(3000);
+    }
+    else if (CHECK_IPNUM_RANGE(ipap))
+        SAFECPY(net_ipv4, hostname);
+    else return (connected = 0);*/
+
+    char net_ipv4[MAXSTR];
+    SAFECPY(net_ipv4, CLIENT_IPADDR);
+#endif
+
+    if (PBNetwork_Connect(net_ipv4, net_port) == 1)
     {
         Sleep(1000);
 
@@ -213,8 +280,8 @@ static int authenticate_networking()
     if (PBNetwork_IsConnected() == 0)
     {
         log_errorf("Can't connect to server: %s:%d",
-            CLIENT_IPADDR,
-            CLIENT_PORT);
+                   CLIENT_IPADDR,
+                   CLIENT_PORT);
 
         PBNetwork_Quit();
         connected = 0;
@@ -227,8 +294,12 @@ static int networking_thread_func(void *data)
 {
     SDL_AtomicSet(&networking_thread_running, authenticate_networking());
 
+    Uint32 last_time = SDL_GetTicks();
+    Uint32 start_time = last_time;
+
     while (SDL_AtomicGet(&networking_thread_running))
     {
+        UINT32 curr_time = SDL_GetTicks();
         int result = PBNetwork_IsConnected();
         int res_connected = 0;
 
@@ -247,13 +318,20 @@ static int networking_thread_func(void *data)
         }
         else
         {
-            SDL_LockMutex(networking_mutex);
-            networking_error_dispatch_event(0);
-            SDL_UnlockMutex(networking_mutex);
+            if ((curr_time - last_time) > 0)
+            {
+                SDL_LockMutex(networking_mutex);
+                PBNetwork_Update((float) ((curr_time - start_time) * 0.001f),
+                                 (float) ((curr_time - last_time) * 0.001f));
+                networking_error_dispatch_event(0);
+                SDL_UnlockMutex(networking_mutex);
+            }
             SDL_LockMutex(networking_mutex);
             networking_dispatch_event(0);
             SDL_UnlockMutex(networking_mutex);
         }
+
+        last_time = curr_time;
     }
 
     PBNetwork_Quit();
@@ -274,7 +352,8 @@ void networking_init_dedicated_event(
 
     SDL_AtomicSet(&networking_thread_running, 1);
     networking_mutex = SDL_CreateMutex();
-    networking_thread = SDL_CreateThread(networking_thread_func, "networking", NULL);
+    networking_thread = SDL_CreateThread(networking_thread_func,
+                                         "networking", NULL);
 }
 
 int networking_reinit_dedicated_event(void)
@@ -285,7 +364,8 @@ int networking_reinit_dedicated_event(void)
     connected = -1;
     SDL_AtomicSet(&networking_thread_running, 1);
     networking_mutex = SDL_CreateMutex();
-    networking_thread = SDL_CreateThread(networking_thread_func, "networking", NULL);
+    networking_thread = SDL_CreateThread(networking_thread_func,
+                                         "networking", NULL);
 
     authenticate_networking();
 
@@ -377,6 +457,19 @@ int server_policy_get_d(int i)
 }
 
 /*---------------------------------------------------------------------------*/
+
+int networking_dedicated_refresh_login(const char *name)
+{
+    if (PBNetwork_IsConnected())
+    {
+        if (strlen(config_get_s(CONFIG_PLAYER)) > 2)
+            PBNetwork_Login(config_get_s(CONFIG_PLAYER), 0);
+
+        return 1;
+    }
+
+    return 0;
+}
 
 int networking_dedicated_levelstatus_send(const char *levelmap, int status, float *p)
 {

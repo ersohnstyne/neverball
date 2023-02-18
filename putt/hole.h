@@ -5,7 +5,6 @@
 
 #define MAXHOL 28
 #define MAXPLY 5
-#define MAXTYP 4
 
 void  hole_init(const char *);
 void  hole_free(void);
@@ -37,6 +36,7 @@ int  hole_next(void);
 int  hole_move(void);
 void hole_goal(void);
 void hole_stop(void);
+void hole_skip(void);
 void hole_fall(int);
 
 void hole_song(void);

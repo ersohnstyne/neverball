@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -191,8 +191,15 @@ void dir_free(Array items)
 int dir_exists(const char *path)
 {
 #if _WIN32 && _MSC_VER
-    return GetFileAttributesA(path) & FILE_ATTRIBUTE_DIRECTORY
-        || GetFileAttributesA(path) & FILE_ATTRIBUTE_ARCHIVE;
+    DWORD file_attr = GetFileAttributesA(path);
+
+    if (file_attr & FILE_ATTRIBUTE_OFFLINE
+        || file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED
+        || file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA)
+        return 0;
+
+    return file_attr & FILE_ATTRIBUTE_DIRECTORY
+        || file_attr & FILE_ATTRIBUTE_ARCHIVE;
 #elif __GNUC__
     DIR *dir;
 

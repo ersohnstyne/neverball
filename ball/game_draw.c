@@ -234,7 +234,7 @@ static void game_draw_tilt(const struct game_draw *gd, int d, int flip)
      * See Git-issues #167, which you don't include tilting the floor.
      */
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    if (config_get_d(CONFIG_TILTING_FLOOR) && !campaign_used())
+    if (config_get_d(CONFIG_TILTING_FLOOR) && (curr_mode() != MODE_CAMPAIGN && curr_mode() != MODE_HARDCORE))
 #else
     if (config_get_d(CONFIG_TILTING_FLOOR))
 #endif

@@ -27,7 +27,7 @@
 #if !_MSC_VER
 #error Use the combined library, that you've compiled from Microsoft Visual Studio!
 #else
-#pragma message("Pennyball + Neverball Dedicated Network for Microsoft Visual Studio")
+#pragma message("Neverball Dedicated Network for Microsoft Visual Studio")
 #endif
 #if _WIN64
 #pragma comment(lib, "D:\\source_ersohn_network\\c++\\neverball-game-network\\x64\\Release\\neverball_net_client.lib")

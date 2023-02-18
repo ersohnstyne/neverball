@@ -1377,7 +1377,7 @@ int main(int argc, char *argv[])
         goto_state_full(&st_screensaver, 0, 0, 1);
     else
         goto_state_full(&st_title, 0, 0, 1);
-	
+
     /* Run the main game loop. */
 
     mainloop.now = SDL_GetTicks();

@@ -82,12 +82,17 @@ static int done_action(int tok, int val)
         return goto_state(&st_done);
 
     case DONE_SHOP:
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         if (campaign_used())
         {
             campaign_hardcore_quit();
             campaign_theme_quit();
             campaign_quit();
         }
+        else
+#endif
+            set_quit();
+
         return goto_state(&st_shop);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -112,12 +117,18 @@ static int done_gui_campaign(void)
     {
         char sdescHardcore[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(sdescHardcore, dstSize, "You completed all levels\\And you collected %d coins.\\ \\A new trophy has been awarded to\\acknowledge your achievement!", curr_score());
+        sprintf_s(sdescHardcore, dstSize,
 #else
-        sprintf(sdescHardcore, "You completed all levels\\And you collected %d coins.\\ \\A new trophy has been awarded to\\acknowledge your achievement!", curr_score());
+        sprintf(sdescHardcore,
 #endif
-        const char *stitle = campaign_hardcore() ? "WOW" : "Campaign Complete";
-        const char *sdesc = campaign_hardcore() ? sdescHardcore : "If you want to keep exploring\\more levels, select LEVEL SET\\from the level group.";
+                _("You completed all levels\\"
+                  "And you collected %d coins.\\ \\"
+                  "A new trophy has been awarded to\\"
+                  "acknowledge your achievement!"),
+                curr_score());
+
+        const char *stitle = campaign_hardcore() ? N_("WOW") : N_("Campaign Complete");
+        const char *sdesc = campaign_hardcore() ? sdescHardcore : N_("If you want to keep exploring\\more levels, select LEVEL SET\\from the level group.");
 
         gui_title_header(id, _(stitle), GUI_LRG, gui_blu, gui_grn);
         gui_space(id);

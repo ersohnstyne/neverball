@@ -868,7 +868,7 @@ static int video_advanced_gui(void)
         { N_("2x"), 2 },
         { N_("4x"), 4 },
         { N_("8x"), 8 },
-        { "16x", 16 },
+        { N_("16x"), 16 },
     };
 
     static const struct conf_option multisample_opts_eight[] = {

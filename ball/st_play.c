@@ -635,6 +635,8 @@ static int play_loop_enter(struct state *st, struct state *prev)
     global_prev = prev;
     video_set_grab(0);
 
+    tilt_x = 0; tilt_y = 0;
+
     if (curr_mode() == MODE_NONE) return 0; /* Cannot run traffic in home room. */
 
     if ((prev != &st_play_ready && prev != &st_play_set && prev != &st_tutorial) || prev == &st_play_loop)
@@ -795,32 +797,6 @@ static void play_loop_timer(int id, float dt)
     game_client_sync(!campaign_hardcore_norecordings() && curr_mode() != MODE_NONE ? demo_fp : NULL);
 
     if (curr_mode() == MODE_NONE) return; /* Cannot update state in home room. */
-
-    /*
-     * For some reasons, this may not work in switch cases
-     *
-     * switch (curr_status())
-     * {
-     * case GAME_GOAL:
-     *     progress_stat(GAME_GOAL);
-     *     goto_state(&st_goal);
-     *     break;
-     *
-     * case GAME_FALL:
-     *     progress_stat(GAME_FALL);
-     *     goto_state(&st_fail);
-     *     break;
-     *
-     * case GAME_TIME:
-     *     progress_stat(GAME_TIME);
-     *     goto_state(&st_fail);
-     *     break;
-     *
-     * default:
-     *     progress_step();
-     *     break;
-     * }
-     */
 
     if (curr_status() == GAME_NONE && !play_freeze_all)
         progress_step();

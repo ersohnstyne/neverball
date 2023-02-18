@@ -87,6 +87,20 @@ int goto_pause(struct state *returnable)
     return goto_state(&st_pause);
 }
 
+#define PAUSED_ACTION_CONTINUE              \
+    do {                                    \
+        if (curr_state() == &st_pause) {    \
+            audio_music_fade_in(0.5f);      \
+            if (st_continue != &st_level)   \
+                video_set_grab(0);          \
+            return goto_state(st_continue); \
+        } else {                            \
+            quit_uses_resetpuzzle = 0;      \
+            quit_uses_restart = 0;          \
+            return goto_state(&st_pause);   \
+        } \
+    } while (0)
+
 static int pause_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
@@ -97,21 +111,7 @@ static int pause_action(int tok, int val)
         return goto_conf(&st_pause, 1, 0);
         break;
     case PAUSE_CONTINUE:
-        if (curr_state() == &st_pause)
-        {
-            audio_music_fade_in(0.5f);
-
-            if (st_continue != &st_level)
-                video_set_grab(0);
-
-            return goto_state(st_continue);
-        }
-        else
-        {
-            quit_uses_resetpuzzle = 0;
-            quit_uses_restart = 0;
-            return goto_state(&st_pause);
-        }
+        PAUSED_ACTION_CONTINUE;
         break;
 
     case PAUSE_RESPAWN:
@@ -412,10 +412,23 @@ static int pause_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT)
-            return pause_action(PAUSE_CONTINUE, 0);
+        {
+            if (!st_global_animating())
+            {
+                audio_play(AUD_BACK, 1.f);
+                PAUSED_ACTION_CONTINUE;
+            }
+            else
+                audio_play(AUD_DISABLED, 1.f);
+        }
 
-        if (config_tst_d(CONFIG_KEY_RESTART, c) && progress_same_avail())
-            return pause_action(PAUSE_RESTART, 0);
+        if (config_tst_d(CONFIG_KEY_RESTART, c))
+        {
+            if (progress_same_avail())
+                return pause_action(PAUSE_RESTART, 0);
+            else
+                audio_play(AUD_DISABLED, 1.f);
+        }
     }
     return 1;
 }
@@ -429,9 +442,16 @@ static int pause_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return pause_action(gui_token(active), gui_value(active));
 
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b) ||
-            config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-            return pause_action(PAUSE_CONTINUE, 0);
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
+        {
+            if (!st_global_animating())
+            {
+                audio_play(AUD_BACK, 1.f);
+                PAUSED_ACTION_CONTINUE;
+            }
+            else
+                audio_play(AUD_DISABLED, 1.f);
+        }
     }
     return 1;
 }

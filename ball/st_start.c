@@ -757,11 +757,11 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev)
         gui_title_header(id, _("Powerups available"), GUI_MED, 0, 0);
         gui_space(id);
         gui_multi(id,
-                  _("Pennyball offers some of the most creative ways to\\"
-                    "compete with powerups! We just need you to\\"
-                    "upgrade to Pro edition so that we can make sure\\"
-                    "you have permission to use it."),
-                  GUI_SML, gui_wht, gui_wht);
+            _("Pennyball offers some of the most creative ways to\\"
+              "compete with powerups! We just need you to upgrade\\"
+              "to Pro edition so that we can make sure you have\\"
+              "permission to use it."),
+            GUI_SML, gui_wht, gui_wht);
         gui_space(id);
 
         if ((jd = gui_harray(id)))

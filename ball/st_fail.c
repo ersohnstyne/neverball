@@ -70,7 +70,7 @@
 #define FAIL_UPGRADE_EDITION_1 _("Upgrade to Enterprise edition, to buy Mediation!")
 #define FAIL_UPGRADE_EDITION_2 _("Upgrade to Pro edition, to buy more balls!")
 
-#define FAIL_TRANSFER_MEMBER_1 _("Join Pennyballball Discord, to buy more balls!")
+#define FAIL_TRANSFER_MEMBER_1 _("Join Pennyball Discord, to buy more balls!")
 
 /*---------------------------------------------------------------------------*/
 

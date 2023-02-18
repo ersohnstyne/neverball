@@ -349,7 +349,7 @@ static int goal_gui(void)
                 coins = 0;
                 wallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
 
-                coins = MAX((wallet + curr_coins()) - 1000000, 0);
+                coins = MAX((wallet + curr_coins()) - 10000000, 0);
             }
 
             if ((jd = gui_hstack(id)))
@@ -481,7 +481,7 @@ static int goal_gui(void)
 #endif
                 )
             {
-                int curr_wallet = MIN(1000000, account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_coins());
+                int curr_wallet = MIN(10000000, account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_coins());
                 account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_wallet);
                 account_save();
             }
@@ -578,7 +578,7 @@ static void goal_timer(int id, float dt)
                 wallet = 0;
 #endif
 
-            if (coins > 0 && (wallet < 1000000))
+            if (coins > 0 && (wallet < 10000000))
             {
                 int score = gui_value(score_id);
 

@@ -647,7 +647,7 @@ void progress_exit(void)
         if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
         {
             account_set_d(ACCOUNT_DATA_WALLET_COINS,
-                MIN(account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score(), 1000000));
+                MIN(account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score(), 10000000));
 
             /* This gems won't earn in hardcore mode */
 

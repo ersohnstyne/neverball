@@ -312,7 +312,6 @@ static int conf_account_action(int tok, int val)
 
     case CONF_ACCOUNT_MAYHEM:
         config_set_d(CONFIG_ACCOUNT_MAYHEM, val);
-        //audio_music_fade_to(0.5f,  /*config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "bgm/title-mayhem.ogg" :*/ "bgm/title.ogg");
         goto_state(&st_conf_account);
         config_save();
         break;

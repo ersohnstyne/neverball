@@ -177,7 +177,7 @@ int transfer_introducory_gui(void)
             switch (transfer_pageindx)
             {
             case 0:
-                gui_multi(jd, _("This apps allows you to transfer data from\\this game to a target Neverball game."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("This apps allows you to transfer data from\\this game to a target Pennyball game."), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("Do you have a target game and an external drive?\\(These are required to perform a transfer.)"), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("If you are under the age of 18, call an adult\\and have them perform the transfer."), GUI_SML, gui_blu, gui_blu);
                 break;
@@ -349,7 +349,7 @@ int transfer_gui(void)
                 }
                 else
                 {
-                    gui_multi(jd, _("Insert the External Drive prepared on the target\\Neverball game into this game, and then press Next."), GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _("Insert the External Drive prepared on the target\\Pennyball game into this game, and then press Next."), GUI_SML, gui_wht, gui_wht);
                     gui_multi(jd, _(SOURCE_TRANSFER_WARNING_EXTERNAL), GUI_SML, gui_red, gui_red);
                 }
                 break;
@@ -381,7 +381,7 @@ int transfer_gui(void)
                     sprintf(wallet_infotext, _("%d coins and %d gems have been transferred."), transfer_walletamount[0], transfer_walletamount[1]);
 #endif
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these coins and gems in\\game shop on the target Neverball game."), GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _("You can use these coins and gems in\\game shop on the target Pennyball game."), GUI_SML, gui_wht, gui_wht);
                 }
                 else if (transfer_walletamount[1] > 0)
                 {
@@ -391,7 +391,7 @@ int transfer_gui(void)
                     sprintf(wallet_infotext, _("%d gems have been transferred."), transfer_walletamount[1]);
 #endif
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these gems in the\\game shop on the target Neverball game."), GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _("You can use these gems in the\\game shop on the target Pennyball game."), GUI_SML, gui_wht, gui_wht);
                 }
                 else if (transfer_walletamount[0] > 0)
                 {
@@ -401,7 +401,7 @@ int transfer_gui(void)
                     sprintf(wallet_infotext, _("%d coins have been transferred."), transfer_walletamount[0]);
 #endif
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these coins in the\\game shop on the target Neverball game."), GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _("You can use these coins in the\\game shop on the target Pennyball game."), GUI_SML, gui_wht, gui_wht);
                 }
                 break;
             case 6:

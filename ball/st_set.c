@@ -706,7 +706,7 @@ static int set_enter(struct state *st, struct state *prev)
         total = set_init(boost_on);
         first = MIN(first, (total - 1) - ((total - 1) % SET_STEP));
 
-        audio_music_fade_to(0.5f, "bgm/inter.ogg");
+        audio_music_fade_to(0.5f, boost_on ? "bgm/boostrush.ogg" : "bgm/inter.ogg");
 
         if (total != 0)
         {
@@ -1192,7 +1192,6 @@ static int campaign_enter(struct state *st, struct state *prev)
     {
         for (int j = 0; j < 6; j++)
         {
-            //log_printf("Campaign: Theme index %d / Level %d %s\n", i, ((i * 6) + j) + 1, campaign_get_level((i * 6) + j)->is_locked ? "Locked" : "Unlocked");
             campaign_level_unlocks[i] += campaign_get_level((i * 6) + j)->is_locked ? 0 : 1;
             //campaign_level_unlocks[i] += 1;
         }
@@ -1512,6 +1511,7 @@ static int levelgroup_enter(struct state *st, struct state *prev)
         return goto_state(&st_set);
 
     set_boost_on(0);
+    audio_music_fade_to(0.5f, "bgm/title.ogg");
 
     return levelgroup_gui();
 }
@@ -1579,15 +1579,14 @@ int goto_playgame_register(void)
 
 int goto_playmenu(int m)
 {
-    switch (m)
-    {
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    case MODE_CAMPAIGN: return goto_state(&st_campaign);
-#endif
-    case MODE_BOOST_RUSH: return goto_state(&st_set);
-    }
+    if (m == MODE_BOOST_RUSH)
+        return goto_state(&st_set);
 
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    return goto_state(campaign_used() ? &st_campaign : &st_start);
+#else
     return goto_state(&st_start);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

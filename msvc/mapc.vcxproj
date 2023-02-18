@@ -70,40 +70,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-    <NMakeOutput>$(SolutionDir)neverball_education.exe</NMakeOutput>
-    <NMakePreprocessorDefinitions>_DEBUG</NMakePreprocessorDefinitions>
-    <SourcePath>C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\src;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libogg\src;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\lib;$(SolutionDir)share;$(SourcePath)</SourcePath>
-    <IncludePath>$(SolutionDir)share;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-    <NMakeOutput>$(SolutionDir)neverball_education.exe</NMakeOutput>
-    <NMakePreprocessorDefinitions>NDEBUG</NMakePreprocessorDefinitions>
-    <SourcePath>C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\src;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libogg\src;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\lib;$(SolutionDir)share;$(SourcePath)</SourcePath>
-    <IncludePath>$(SolutionDir)share;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
-    <NMakeOutput>$(SolutionDir)neverball_education.exe</NMakeOutput>
-    <NMakePreprocessorDefinitions>_DEBUG</NMakePreprocessorDefinitions>
-    <SourcePath>C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\src;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libogg\src;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\lib;$(SolutionDir)share;$(SourcePath)</SourcePath>
-    <IncludePath>$(SolutionDir)share;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
-    <NMakeOutput>$(SolutionDir)neverball_education.exe</NMakeOutput>
-    <NMakePreprocessorDefinitions>NDEBUG</NMakePreprocessorDefinitions>
-    <SourcePath>C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\src;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libogg\src;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\lib;$(SolutionDir)share;$(SourcePath)</SourcePath>
-    <IncludePath>$(SolutionDir)share;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.67.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk lib\sdl3\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -111,20 +83,27 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>C:\Users\Ersohn\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\Debug\libpng16_staticd.lib;C:\Users\Ersohn\source\repos\c++ sdk\zlib\projects\vstudio2022_x86\Debug\zlibstaticd.lib;C:\Users\Ersohn\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86\debug\libjpeg_a.lib;C:\Users\Ersohn\source\repos\c++ sdk\libogg\win32\VS2022\Win32\Debug\libogg_static.lib;C:\Users\Ersohn\source\repos\c++ sdk\libvorbis\win32\VS2022\Win32\Debug\libvorbis_static.lib;C:\Users\Ersohn\source\repos\c++ sdk\libvorbis\win32\VS2022\Win32\Debug\libvorbisfile_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
-      <Command>"$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Platform)\$(Configuration)\mapc.exe" "$(SolutionDir)data"</Command>
+      <Command>"$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Configuration)\mapc.exe" "$(SolutionDir)data_development"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>del "$(ProjectDir)$(Configuration)\*.obj"
+del "$(SolutionDir)share\*.bc"
+del "$(SolutionDir)share\*.d"
+del "$(SolutionDir)share\*.o"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.67.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk lib\sdl3\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -134,18 +113,25 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>C:\Users\Ersohn\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\Release\libpng16_static.lib;C:\Users\Ersohn\source\repos\c++ sdk\zlib\projects\vstudio2022_x86\Release\zlibstatic.lib;C:\Users\Ersohn\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86\release\libjpeg_a.lib;C:\Users\Ersohn\source\repos\c++ sdk\libogg\win32\VS2022\Win32\Release\libogg_static.lib;C:\Users\Ersohn\source\repos\c++ sdk\libvorbis\win32\VS2022\Win32\Release\libvorbis_static.lib;C:\Users\Ersohn\source\repos\c++ sdk\libvorbis\win32\VS2022\Win32\Release\libvorbisfile_static.lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib\glext.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
-      <Command>"$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Platform)\$(Configuration)\mapc.exe" "$(SolutionDir)data"</Command>
+      <Command>"$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Configuration)\mapc.exe" "$(SolutionDir)data_development"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>del "$(ProjectDir)$(Configuration)\*.obj"
+del "$(SolutionDir)share\*.bc"
+del "$(SolutionDir)share\*.d"
+del "$(SolutionDir)share\*.o"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.67.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk lib\sdl3\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -153,21 +139,27 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\Debug\libpng16_staticd.lib;C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x64\Debug\zlibstaticd.lib;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\Debug\jpeg-static.lib;C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\x64\Debug\libogg_static.lib;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\x64\Debug\libvorbis_static.lib;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\x64\Debug\libvorbisfile_static.lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib\glext.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>C:\Users\Ersohn\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\Debug\libpng16_staticd.lib;C:\Users\Ersohn\source\repos\c++ sdk\zlib\projects\vstudio2022_x64\Debug\zlibstaticd.lib;C:\Users\Ersohn\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64\Debug\libjpeg_a.lib;C:\Users\Ersohn\source\repos\c++ sdk\libogg\win32\VS2022\x64\Debug\libogg_static.lib;C:\Users\Ersohn\source\repos\c++ sdk\libvorbis\win32\VS2022\x64\Debug\libvorbis_static.lib;C:\Users\Ersohn\source\repos\c++ sdk\libvorbis\win32\VS2022\x64\Debug\libvorbisfile_static.lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib\glext.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
-      <Command>"$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Platform)\$(Configuration)\mapc.exe" "$(SolutionDir)data"</Command>
+      <Command>"$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Platform)\$(Configuration)\mapc.exe" "$(SolutionDir)data_development"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>del "$(ProjectDir)$(Platform)\$(Configuration)\*.obj"
+del "$(SolutionDir)share\*.bc"
+del "$(SolutionDir)share\*.d"
+del "$(SolutionDir)share\*.o"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.67.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk lib\sdl3\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -177,12 +169,18 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\Release\libpng16_static.lib;C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x64\Release\zlibstatic.lib;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\release\jpeg-static.lib;C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\x64\Release\libogg_static.lib;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\x64\Release\libvorbis_static.lib;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\x64\Release\libvorbisfile_static.lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib\glext.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>C:\Users\Ersohn\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\Release\libpng16_static.lib;C:\Users\Ersohn\source\repos\c++ sdk\zlib\projects\vstudio2022_x64\Release\zlibstatic.lib;C:\Users\Ersohn\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64\release\libjpeg_a.lib;C:\Users\Ersohn\source\repos\c++ sdk\libogg\win32\VS2022\x64\Release\libogg_static.lib;C:\Users\Ersohn\source\repos\c++ sdk\libvorbis\win32\VS2022\x64\Release\libvorbis_static.lib;C:\Users\Ersohn\source\repos\c++ sdk\libvorbis\win32\VS2022\x64\Release\libvorbisfile_static.lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib\glext.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
-      <Command>"$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Platform)\$(Configuration)\mapc.exe" "$(SolutionDir)data"</Command>
+      <Command>"$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Platform)\$(Configuration)\mapc.exe" "$(SolutionDir)data_development"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>del "$(ProjectDir)$(Platform)\$(Configuration)\*.obj"
+del "$(SolutionDir)share\*.bc"
+del "$(SolutionDir)share\*.d"
+del "$(SolutionDir)share\*.o"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\share\array.c" />
@@ -198,6 +196,12 @@
     <ClCompile Include="..\share\list.c" />
     <ClCompile Include="..\share\log.c" />
     <ClCompile Include="..\share\mapc.c" />
+    <ClCompile Include="..\share\miniz.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\share\solid_base.c" />
     <ClCompile Include="..\share\vec3.c" />
     <ClCompile Include="..\share\zip.c" />

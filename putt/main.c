@@ -90,7 +90,7 @@ const char TITLE[] = "Neverputt - Epic Games";
 #else
 const char TITLE[] = "Neverputt " VERSION;
 #endif
-const char ICON[] = "icon/pennyputt.png";
+const char ICON[] = "icon/neverputt.png";
 
 // This fixes some malfunctions instead
 #define SDL_EVENT_ANTI_MALFUNCTIONS(events) do { events.type = 0; } while (0)
@@ -576,7 +576,7 @@ static int main_init(int argc, char* argv[])
 
     opt_parse(argc, argv);
 
-    log_init("Neverputt", "pennyputt.log");
+    log_init("Neverputt", "neverputt.log");
     config_paths(opt_data);
     fs_mkdir("Screenshots");
 

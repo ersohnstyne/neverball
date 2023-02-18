@@ -1881,6 +1881,8 @@ float game_server_blend(void)
 
 void game_set_goal(void)
 {
+    if (goal_e) return;
+    
     audio_play(AUD_SWITCH, 1.0f);
     goal_e = 1;
 

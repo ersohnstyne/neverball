@@ -12,8 +12,6 @@
  * General Public License for more details.
  */
 
-//#define SKIP_BUILDIN_REPLAY
-
 #if _WIN32 && __MINGW32__
 #include <SDL3/SDL.h>
 #else
@@ -785,104 +783,14 @@ static int title_enter(struct state *st, struct state *prev)
 
     game_fade_color(0.0f, 0.0f, 0.0f);
 
-#ifdef WIP_REPLAY_TITLE
-    mode = TITLE_MODE_LEVEL_FADE;
-#else
-    if (switchball_useable())
-    {
-#if !defined(SKIP_BUILDIN_REPLAY)
-        if (init_title_level())
-            mode = TITLE_MODE_LEVEL;
-        else
-            mode = TITLE_MODE_NONE;
-#else
-        const char *demo = NULL;
-        int title_gamemode;
-        if (!items)
-            items = demo_dir_scan();
-
-        if ((demo = pick_demo(items)))
-        {
-            if (demo_replay_init(demo, NULL, &title_gamemode, NULL, NULL, NULL, NULL))
-            {
-                progress_init(title_gamemode);
-                game_client_fly(0.0f);
-                real_time = 0.0f;
-                mode = TITLE_MODE_DEMO;
-            }
-            else if (demo_replay_init(left_handed ? "gui/title/title-l.nbr" : "gui/title/title-r.nbr",
-                NULL, &title_gamemode, NULL, NULL, NULL, NULL))
-            {
-                progress_init(title_gamemode);
-                game_client_fly(0.0f);
-                real_time = 0.0f;
-                mode = TITLE_MODE_BUILD_IN;
-            }
-            else
-            {
-                init_title_level();
-                mode = TITLE_MODE_LEVEL;
-            }
-        }
-        else if (demo_replay_init(left_handed ? "gui/title/title-l.nbr" : "gui/title/title-r.nbr",
-            NULL, &title_gamemode, NULL, NULL, NULL, NULL))
-        {
-            progress_init(title_gamemode);
-            game_fade(-1.0f);
-            real_time = 0.0f;
-            mode = TITLE_MODE_BUILD_IN;
-        }
-#endif
-    }
+    if (switchball_useable() && init_title_level())
+        mode = TITLE_MODE_LEVEL;
+    else if (demo_replay_init(config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "gui/title/title-l-mayhem.nbr" : "gui/title/title-l.nbr", NULL, NULL, NULL, NULL, NULL, NULL))
+        mode = TITLE_MODE_BUILD_IN;
+    else if (init_title_level())
+        mode = TITLE_MODE_LEVEL;
     else
-    {
-#if !defined(SKIP_BUILDIN_REPLAY)
-        if (demo_replay_init(config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "gui/title/title-l-mayhem.nbr" : "gui/title/title-l.nbr", NULL, NULL, NULL, NULL, NULL, NULL))
-            mode = TITLE_MODE_BUILD_IN;
-        else if (init_title_level())
-            mode = TITLE_MODE_LEVEL;
-        else
-            mode = TITLE_MODE_NONE;
-#else
-        const char *demo = NULL;
-        int title_gamemode;
-        if (!items)
-            items = demo_dir_scan();
-
-        if ((demo = pick_demo(items)))
-        {
-            if (demo_replay_init(demo, NULL, &title_gamemode, NULL, NULL, NULL, NULL))
-            {
-                progress_init(title_gamemode);
-                game_client_fly(0.0f);
-                real_time = 0.0f;
-                mode = TITLE_MODE_DEMO;
-            }
-            else if (demo_replay_init(left_handed ? "gui/title/title-l.nbr" : "gui/title/title-r.nbr",
-                NULL, &title_gamemode, NULL, NULL, NULL, NULL))
-            {
-                progress_init(title_gamemode);
-                game_client_fly(0.0f);
-                real_time = 0.0f;
-                mode = TITLE_MODE_BUILD_IN;
-            }
-            else
-            {
-                init_title_level();
-                mode = TITLE_MODE_LEVEL;
-            }
-        }
-        else if (demo_replay_init(left_handed ? "gui/title/title-l.nbr" : "gui/title/title-r.nbr",
-            NULL, &title_gamemode, NULL, NULL, NULL, NULL))
-        {
-            progress_init(title_gamemode);
-            game_fade(-1.0f);
-            real_time = 0.0f;
-            mode = TITLE_MODE_BUILD_IN;
-        }
-#endif
-    }
-#endif
+        mode = TITLE_MODE_NONE;
 
     real_time = 0.0f;
 

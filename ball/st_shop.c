@@ -58,6 +58,41 @@ struct state st_expenses_export;
 
 /*---------------------------------------------------------------------------*/
 
+static int switchball_useable(void)
+{
+    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
+    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
+
+    SDL_Keycode k_arrowkey[4];
+    k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
+    k_arrowkey[1] = config_get_d(CONFIG_KEY_LEFT);
+    k_arrowkey[2] = config_get_d(CONFIG_KEY_BACKWARD);
+    k_arrowkey[3] = config_get_d(CONFIG_KEY_RIGHT);
+
+    if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
+        && k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT
+        && k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
+        return 1;
+    else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
+        && k_caml == SDLK_d && k_camr == SDLK_a
+        && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
+        return 1;
+
+    /*
+     * If the Switchball input preset is not detected,
+     * Try it with the Neverball by default.
+     */
+
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static int productkey;
 
 static int coinwallet;
@@ -464,6 +499,8 @@ static int shop_gui(void)
 
 static int shop_enter(struct state *st, struct state *prev)
 {
+    audio_music_fade_to(0.5f, "bgm/title.ogg");
+
     char newPlayername[MAXSTR];
     SAFECPY(newPlayername, config_get_s(CONFIG_PLAYER));
     inaccept_playername = 0;
@@ -1031,7 +1068,13 @@ static int shop_iap_gui(void)
 
         gui_space(id);
 
-        if (video.aspect_ratio >= 1.0f)
+        if (account_get_d(ACCOUNT_DATA_WALLET_COINS) >= 10000000 && iappage == 0)
+        {
+            gui_multi(id,
+                      _("Can't buy more coins!\\Max coin stack full!"),
+                      GUI_SML, gui_red, gui_red);
+        }
+        else if (video.aspect_ratio >= 1.0f)
         {
             if ((jd = gui_hstack(id)))
             {
@@ -1042,7 +1085,8 @@ static int shop_iap_gui(void)
                     {
                     case 0:
 #ifdef CONFIG_INCLUDES_ACCOUNT
-                        if (iapcoinvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS)))
+                        if (iapcoinvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS))
+                            && iapcoinvalue[multiply - 1] + account_get_d(ACCOUNT_DATA_WALLET_COINS) <= 10000000)
                             if ((kd = gui_vstack(jd)))
                             {
                                 const GLubyte *sufficent_col =
@@ -1115,7 +1159,8 @@ static int shop_iap_gui(void)
                     {
                     case 0:
 #ifdef CONFIG_INCLUDES_ACCOUNT
-                        if (iapcoinvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS)))
+                        if (iapcoinvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS))
+                            && iapcoinvalue[multiply - 1] + account_get_d(ACCOUNT_DATA_WALLET_COINS) <= 10000000)
                         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                             sprintf_s(iapattr, dstSize, _("%d Coins (%s %d)"), GUI_DIAMOND, iapcoinvalue[multiply - 1], iapcoinfromgems[multiply - 1]);
@@ -1330,7 +1375,7 @@ static int shop_buy_action(int tok, int val)
         else
         {
             coinwallet -= auction_value;
-            assert(coinwallet >= 0 && coinwallet <= 1000000);
+            assert(coinwallet >= 0 && coinwallet <= 10000000);
             account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
         }
 
@@ -1381,7 +1426,7 @@ static int shop_buy_action(int tok, int val)
         else
         {
             coinwallet -= prodcost * 5;
-            assert(coinwallet >= 0 && coinwallet <= 1000000);
+            assert(coinwallet >= 0 && coinwallet <= 10000000);
             account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
         }
 
@@ -1425,7 +1470,7 @@ static int shop_buy_action(int tok, int val)
         else
         {
             coinwallet -= prodcost;
-            assert(coinwallet >= 0 && coinwallet <= 1000000);
+            assert(coinwallet >= 0 && coinwallet <= 10000000);
             account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
         }
 

@@ -132,18 +132,15 @@ static int over_gui_hardcore(void)
         }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(hardcore_report, dstSize, "You completed %d levels\\and collected %d coins.\\ \\You managed to reach:\\%s (X: %f; Y: %f)\\ \\%s",
-        (campaign_get_hardcore_data().level_number + ((campaign_get_hardcore_data().level_theme - 1) * 6)) - 1,
-            curr_score(),
-            report_themename, campaign_get_hardcore_data().coordinates[0], campaign_get_hardcore_data().coordinates[1],
-            report_lastline);
+        sprintf_s(hardcore_report, dstSize,
 #else
-        sprintf(hardcore_report, "You completed %d levels\\and collected %d coins.\\ \\You managed to reach:\\%s (X: %f; Y: %f)\\ \\%s",
-            (campaign_get_hardcore_data().level_number + ((campaign_get_hardcore_data().level_theme - 1) * 6)) - 1,
-            curr_score(),
-            report_themename, campaign_get_hardcore_data().coordinates[0], campaign_get_hardcore_data().coordinates[1],
-            report_lastline);
+        sprintf(hardcore_report,
 #endif
+               _("You completed %d levels\\and collected %d coins.\\ \\You managed to reach:\\%s (X: %f; Y: %f)\\ \\%s"),
+               (campaign_get_hardcore_data().level_number + ((campaign_get_hardcore_data().level_theme - 1) * 6)) - 1,
+               curr_score(),
+               report_themename, campaign_get_hardcore_data().coordinates[0], campaign_get_hardcore_data().coordinates[1],
+               report_lastline);
 
         gui_multi(id, _(hardcore_report), GUI_SML, gui_wht, gui_wht);
 
@@ -198,11 +195,11 @@ static int over_gui(void)
             if ((kd = gui_harray(jd)))
             {
                 calc_new_wallet_id = gui_count(kd, 100000, GUI_MED);
-                gui_label(kd, _("New Wallet"), GUI_SML,
+                gui_label(kd, _("Coins"), GUI_SML,
                     gui_wht, gui_wht);
-            }
 
-            gui_set_count(calc_new_wallet_id, !resume ? ((curr_balls() * 100) + curr_score()) + account_get_d(ACCOUNT_DATA_WALLET_COINS) : account_get_d(ACCOUNT_DATA_WALLET_COINS));
+                gui_set_count(calc_new_wallet_id, !resume ? ((curr_balls() * 100) + curr_score()) + account_get_d(ACCOUNT_DATA_WALLET_COINS) : account_get_d(ACCOUNT_DATA_WALLET_COINS));
+            }
 
             gui_filler(jd);
 
@@ -231,8 +228,8 @@ static int over_gui(void)
     }
 
     set_score_board(set_score(curr_set(), SCORE_COIN), progress_score_rank(),
-        set_score(curr_set(), SCORE_TIME), progress_times_rank(),
-        NULL, -1);
+                    set_score(curr_set(), SCORE_TIME), progress_times_rank(),
+                    NULL, -1);
 
 #endif
     return id;

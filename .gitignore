@@ -58,6 +58,8 @@
 /js/neverball.data
 /js/neverball.js
 /js/neverball.wasm
+/js/mapc.js
+/js/mapc.wasm
 /js/packages
 
 # ZIP archives

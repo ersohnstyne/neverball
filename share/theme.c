@@ -78,7 +78,11 @@ static const char *theme_path(const char *name, const char *file)
 
     if ((name && *name) && (file && *file))
     {
+#if NB_HAVE_PB_BOTH==1
+        SAFECPY(path, "gui/themes/");
+#else
         SAFECPY(path, "gui/");
+#endif
         SAFECAT(path, name);
         SAFECAT(path, "/");
         SAFECAT(path, file);
@@ -113,18 +117,17 @@ int theme_load(struct theme *theme, const char *name)
 
                 if (strncmp(buff, "slice ", 6) == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sscanf_s(buff + 6, "%f %f %f %f", &s[0], &s[1], &s[2], &s[3]);
+                    sscanf_s(buff + 6,
 #else
-                    sscanf(buff + 6, "%f %f %f %f", &s[0], &s[1], &s[2], &s[3]);
+                    sscanf(buff + 6,
 #endif
+                           "%f %f %f %f", &s[0], &s[1], &s[2], &s[3]);
             }
 
             fs_close(fp);
         }
         else
-        {
             log_errorf("Failure to open \"%s\" theme file\n", name);
-        }
 
         theme->s[0] =  0.0f;
         theme->s[1] =  s[0];

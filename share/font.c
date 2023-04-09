@@ -23,6 +23,12 @@
 #include <SDL_rwops.h>
 #endif
 
+#if _MSC_VER
+#pragma comment(lib, "SDL2_ttf.lib")
+#endif
+
+#include "dbg_config.h"
+
 #include "font.h"
 #include "common.h"
 #include "fs.h"
@@ -60,7 +66,7 @@ int font_load(struct font *ft, const char *path, int sizes[3])
         }
     }
     else
-        log_errorf("Failure to load font! TTF must be initialized!: %s\n", SDL_GetError() ? SDL_GetError() : "Unknown error");
+        log_errorf("Failure to load font! TTF must be initialized!: %s\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
 
     return 0;
 }

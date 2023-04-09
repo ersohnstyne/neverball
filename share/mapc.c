@@ -19,7 +19,7 @@
 #include <stddef.h> /* offsetof */
 #include <string.h>
 #include <math.h>
-#if __GNUC__
+#if __GNUC__ || __MINGW32__
 #include <sys/time.h>
 #endif
 #include <assert.h>
@@ -3210,11 +3210,11 @@ static int campaign_check_budget(struct s_base* p)
 static int check_profile_balls(const char* filename)
 {
     return strcmp(filename + strlen(filename) - 11, "-solid.csol") == 0 ||
-        strcmp(filename + strlen(filename) - 11, "-inner.csol") == 0 ||
-        strcmp(filename + strlen(filename) - 11, "-outer.csol") == 0 ||
-        strcmp(filename + strlen(filename) - 11, "-solid.sol") == 0 ||
-        strcmp(filename + strlen(filename) - 11, "-inner.sol") == 0 ||
-        strcmp(filename + strlen(filename) - 11, "-outer.sol") == 0;
+           strcmp(filename + strlen(filename) - 11, "-inner.csol") == 0 ||
+           strcmp(filename + strlen(filename) - 11, "-outer.csol") == 0 ||
+           strcmp(filename + strlen(filename) - 11, "-solid.sol")  == 0 ||
+           strcmp(filename + strlen(filename) - 11, "-inner.sol")  == 0 ||
+           strcmp(filename + strlen(filename) - 11, "-outer.sol")  == 0;
 }
 
 static int check_campaign_level(const char* filename)
@@ -3497,8 +3497,8 @@ static void interactive_web()
 #endif
 }
 
-// NOTE!: If you want to compile some balls and/or geometrys only,
-// use the argument as --skip_verify
+// TODO: If you want to compile some balls and/or geometrys only,
+// use the option as --skip_verify. - Ersohn Styne
 
 int main(int argc, char *argv[])
 {
@@ -3507,7 +3507,7 @@ int main(int argc, char *argv[])
     struct s_base f;
     fs_file fin;
 
-#if __GNUC__
+#if __GNUC__ || __MINGW32__
     struct timeval time0;
     struct timeval time1;
 #endif
@@ -3549,7 +3549,7 @@ int main(int argc, char *argv[])
 #endif
 
         if ((!campaign_output && strlen(input_file) <= 4)
-            || (campaign_output && strlen(input_file) <= 5))
+         || (campaign_output && strlen(input_file) <= 5))
         {
             fprintf(stderr, "No map file name specified!\n");
             return 1;
@@ -3626,7 +3626,7 @@ int main(int argc, char *argv[])
                 init_file(&f);
                 read_map(&f, fin);
 
-                /* This uses Microsoft mode for Linux (as this should) */
+                /* This uses MSA for Linux (as this should) */
 
                 char stderr_buf[MAXSTR];
 

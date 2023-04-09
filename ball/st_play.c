@@ -351,11 +351,12 @@ static int play_ready_keybd(int c, int d)
     if (d)
     {
         keybd_camera(c);
+
+        if (c == KEY_EXIT
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-#else
-        if (c == KEY_EXIT)
+            && current_platform == PLATFORM_PC
 #endif
+            )
         {
             hud_speedup_reset();
             goto_pause(curr_state());
@@ -490,11 +491,11 @@ static int play_set_keybd(int c, int d)
     {
         keybd_camera(c);
 
+        if (c == KEY_EXIT
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-#else
-        if (c == KEY_EXIT)
+            && current_platform == PLATFORM_PC
 #endif
+            )
         {
             hud_speedup_reset();
             goto_pause(curr_state());
@@ -718,8 +719,8 @@ static void play_loop_timer(int id, float dt)
         game_set_x(curr_speed_percent() / 100.f * -0.875f + (time_state() < 1.0f && global_prev != &st_pause ? -0.5f : 0));
 
     float k = (fast_rotate ?
-        (float) config_get_d(CONFIG_ROTATE_FAST) / 100.0f :
-        (float) config_get_d(CONFIG_ROTATE_SLOW) / 100.0f);
+               (float) config_get_d(CONFIG_ROTATE_FAST) :
+               (float) config_get_d(CONFIG_ROTATE_SLOW)) / 100.f;
 
     float r = 0.0f;
 
@@ -796,7 +797,9 @@ static void play_loop_timer(int id, float dt)
     game_client_blend(game_server_blend());
     game_client_sync(!campaign_hardcore_norecordings() && curr_mode() != MODE_NONE ? demo_fp : NULL);
 
-    if (curr_mode() == MODE_NONE) return; /* Cannot update state in home room. */
+    /* Cannot update state in home room. */
+
+    if (curr_mode() == MODE_NONE) return;
 
     if (curr_status() == GAME_NONE && !play_freeze_all)
         progress_step();
@@ -1017,7 +1020,7 @@ static int play_loop_keybd(int c, int d)
     {
 #ifdef MAPC_INCLUDES_CHKP
         if (c == SDLK_LCTRL || c == SDLK_LGUI)
-            restart_cancel_allchkp = 1;
+            restart_cancel_allchkp = 0;
 #endif
         if (config_tst_d(CONFIG_KEY_CAMERA_R, c))
             rot_clr(DIR_R);
@@ -1175,11 +1178,8 @@ static void look_stick(int id, int a, float v, int bump)
 
 static int look_keybd(int c, int d)
 {
-    if (d)
-    {
-        if (c == KEY_EXIT || c == KEY_LOOKAROUND)
-            return goto_state(&st_play_loop);
-    }
+    if (d && (c == KEY_EXIT || c == KEY_LOOKAROUND))
+        return goto_state(&st_play_loop);
 
     return 1;
 }

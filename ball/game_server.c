@@ -766,10 +766,11 @@ int game_server_init(const char *file_name, int t, int e)
 
         if (strcmp(k, "version") == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(v, "%d.%d", &version.x, &version.y);
+            sscanf_s(v,
 #else
-            sscanf(v, "%d.%d", &version.x, &version.y);
+            sscanf(v,
 #endif
+                   "%d.%d", &version.x, &version.y);
     }
 
     input_init();

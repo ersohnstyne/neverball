@@ -191,19 +191,6 @@ static void start_over(int id, int pulse)
 
 /*---------------------------------------------------------------------------*/
 
-/* Widescreen mode */
-static int get_widescreen()
-{
-    int w = video.device_w;
-    int h = video.device_h;
-
-    float result = w / h;
-
-    if (result >= 1.6f) {return 1;} else {return 0;}
-}
-
-/*---------------------------------------------------------------------------*/
-
 static int start_action(int tok, int val)
 {
     GAMEPAD_GAMEMENU_ACTION_SCROLL(START_XBOX_LB, START_XBOX_RB, LEVEL_STEP);
@@ -252,7 +239,7 @@ static int start_action(int tok, int val)
                 return goto_handsoff(&st_start);
             else
             {
-#if defined(DEVEL_BUILD)
+#if DEVEL_BUILD
                 progress_init(curr_mode() == MODE_CHALLENGE ? (is_boost_on() ? MODE_BOOST_RUSH : MODE_NORMAL) : MODE_CHALLENGE);
                 gui_toggle(challenge_id);
                 return 1;
@@ -469,13 +456,12 @@ static int start_unavailable_keybd(int c, int d)
 {
     if (d)
     {
+        if (c == KEY_EXIT
 #ifndef __EMSCRIPTEN__
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return goto_state(&st_start);
-#else
-        if (c == KEY_EXIT)
-            return goto_state(&st_start);
+            && current_platform == PLATFORM_PC
 #endif
+            )
+            return goto_state(&st_start);
     }
     return 1;
 }
@@ -504,10 +490,11 @@ static int start_compat_gui()
         char multiattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(multiattr, dstSize, "%s (%s)", set_name(curr_set()), set_id(curr_set()));
+        sprintf_s(multiattr, dstSize,
 #else
-        sprintf(multiattr, "%s (%s)", set_name(curr_set()), set_id(curr_set()));
+        sprintf(multiattr,
 #endif
+                "%s (%s)", set_name(curr_set()), set_id(curr_set()));
 
         gui_multi(id, multiattr, GUI_SML, gui_wht, gui_wht);
 
@@ -590,7 +577,7 @@ static int start_enter(struct state *st, struct state *prev)
 
     progress_init(MODE_NORMAL);
 
-    audio_music_fade_to(0.5f, "bgm/inter.ogg");
+    audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" : "bgm/inter.ogg");
 
     return start_gui();
 }
@@ -680,16 +667,13 @@ static int start_keybd(int c, int d)
 
 static int start_compat_keybd(int c, int d)
 {
-    if (d)
-    {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH == 1
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return start_action(GUI_BACK, 0);
-#else
-        if (c == KEY_EXIT)
-            return start_action(GUI_BACK, 0);
+    if (d && (c == KEY_EXIT
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+        && current_platform == PLATFORM_PC
 #endif
-    }
+        ))
+        return start_action(GUI_BACK, 0);
+
     return 1;
 }
 
@@ -808,11 +792,12 @@ static int start_joinrequired_enter(struct state *st, struct state *prev)
 
 static int start_joinrequired_keybd(int c, int d)
 {
-    if (d)
-    {
-        if (c == KEY_EXIT)
-            return start_joinrequired_action(GUI_BACK, 0);
-    }
+    if (d && (c == KEY_EXIT
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+        && current_platform == PLATFORM_PC
+#endif
+        ))
+        return start_joinrequired_action(GUI_BACK, 0);
     return 1;
 }
 
@@ -846,8 +831,6 @@ struct state st_start = {
     start_wheel
 };
 
-#if NB_HAVE_PB_BOTH == 1
-
 struct state st_start_unavailable = {
     start_unavailable_enter,
     shared_leave,
@@ -860,6 +843,8 @@ struct state st_start_unavailable = {
     start_unavailable_keybd,
     start_unavailable_buttn
 };
+
+#if NB_HAVE_PB_BOTH == 1
 
 struct state st_start_compat = {
     start_compat_enter,

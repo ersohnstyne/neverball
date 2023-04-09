@@ -76,13 +76,13 @@ int joy_init(void)
         joy_is_init = SDL_JoystickEventState(SDL_ENABLE) == 1;
 
         if (joy_is_init < 0)
-            log_printf("Failure to enable joystick (%s)\n", SDL_GetError() ? SDL_GetError() : "Unknown error");
+            log_printf("Failure to enable joystick (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
         else
             joy_active_cursor(0, 1);
     }
     else
     {
-        log_printf("Failure to initialize joystick (%s)\n", SDL_GetError() ? SDL_GetError() : "Unknown error");
+        log_printf("Failure to initialize joystick (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
         return 0;
     }
 

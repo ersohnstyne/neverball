@@ -241,7 +241,7 @@ static int handsoff_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
             && current_platform == PLATFORM_PC
 #endif
             )

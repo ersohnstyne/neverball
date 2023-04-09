@@ -105,9 +105,6 @@
     <ClCompile Include="..\share\fs_stdio.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\fs_stdio_v1.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
     <ClCompile Include="..\share\geom.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
@@ -144,34 +141,13 @@
     <ClCompile Include="..\share\log.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\miniz.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
     <ClCompile Include="..\share\mtrl.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\networking_dedicated.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\networking_education.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\networking_enterprise.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\networking_home.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
     <ClCompile Include="..\share\networking_opensource.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\networking_pro.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\networking_srv_datacenter.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\networking_srv_standard.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\package.c">
@@ -219,16 +195,7 @@
     <ClCompile Include="..\share\theme.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\tilt_loop.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
     <ClCompile Include="..\share\tilt_null.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\tilt_wii.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\tilt_wiiuse.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\tts.c">
@@ -284,6 +251,9 @@
     </ClCompile>
     <ClCompile Include="..\putt\st_conf.c">
       <Filter>Quelldateien\putt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\dbg_config.c">
+      <Filter>Quelldateien\share</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -386,9 +356,6 @@
     <ClInclude Include="..\share\log.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
-    <ClInclude Include="..\share\miniz.h">
-      <Filter>Headerdateien\share</Filter>
-    </ClInclude>
     <ClInclude Include="..\share\mtrl.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
@@ -472,6 +439,9 @@
     </ClInclude>
     <ClInclude Include="..\dist\neverputt_rc.h">
       <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\dbg_config.h">
+      <Filter>Headerdateien\share</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

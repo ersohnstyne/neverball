@@ -177,7 +177,7 @@ int transfer_introducory_gui(void)
             switch (transfer_pageindx)
             {
             case 0:
-                gui_multi(jd, _("This apps allows you to transfer data from\\this game to a target Pennyball game."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("This apps allows you to transfer data from\\this game to a target Neverball game."), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("Do you have a target game and an external drive?\\(These are required to perform a transfer.)"), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("If you are under the age of 18, call an adult\\and have them perform the transfer."), GUI_SML, gui_blu, gui_blu);
                 break;
@@ -349,7 +349,7 @@ int transfer_gui(void)
                 }
                 else
                 {
-                    gui_multi(jd, _("Insert the External Drive prepared on the target\\Pennyball game into this game, and then press Next."), GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _("Insert the External Drive prepared on the target\\Neverball game into this game, and then press Next."), GUI_SML, gui_wht, gui_wht);
                     gui_multi(jd, _(SOURCE_TRANSFER_WARNING_EXTERNAL), GUI_SML, gui_red, gui_red);
                 }
                 break;
@@ -376,32 +376,35 @@ int transfer_gui(void)
                 if (transfer_walletamount[0] > 0 && transfer_walletamount[1])
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, dstSize, _("%d coins and %d gems have been transferred."), transfer_walletamount[0], transfer_walletamount[1]);
+                    sprintf_s(wallet_infotext, dstSize,
 #else
-                    sprintf(wallet_infotext, _("%d coins and %d gems have been transferred."), transfer_walletamount[0], transfer_walletamount[1]);
+                    sprintf(wallet_infotext,
 #endif
+                            _("%d coins and %d gems have been transferred."), transfer_walletamount[0], transfer_walletamount[1]);
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these coins and gems in\\game shop on the target Pennyball game."), GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _("You can use these coins and gems in\\game shop on the target Neverball game."), GUI_SML, gui_wht, gui_wht);
                 }
                 else if (transfer_walletamount[1] > 0)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, dstSize, _("%d gems have been transferred."), transfer_walletamount[1]);
+                    sprintf_s(wallet_infotext, dstSize,
 #else
-                    sprintf(wallet_infotext, _("%d gems have been transferred."), transfer_walletamount[1]);
+                    sprintf(wallet_infotext,
 #endif
+                            _("%d gems have been transferred."), transfer_walletamount[1]);
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these gems in the\\game shop on the target Pennyball game."), GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _("You can use these gems in the\\game shop on the target Neverball game."), GUI_SML, gui_wht, gui_wht);
                 }
                 else if (transfer_walletamount[0] > 0)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, dstSize, _("%d coins have been transferred."), transfer_walletamount[0]);
+                    sprintf_s(wallet_infotext, dstSize,
 #else
-                    sprintf(wallet_infotext, _("%d coins have been transferred."), transfer_walletamount[0]);
+                    sprintf(wallet_infotext,
 #endif
+                            _("%d coins have been transferred."), transfer_walletamount[0]);
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these coins in the\\game shop on the target Pennyball game."), GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _("You can use these coins in the\\game shop on the target Neverball game."), GUI_SML, gui_wht, gui_wht);
                 }
                 break;
             case 6:
@@ -723,10 +726,11 @@ void transfer_timer_preprocess_source(float dt)
                             char outstr_replayfile[MAXSTR], outstr_group[MAXSTR];
                             fgets(outstr_replayfile, MAXSTR, external_file);
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                            sscanf_s(outstr_replayfile, "restricted-replays: %s\n", outstr_group);
+                            sscanf_s(outstr_replayfile,
 #else
-                            sscanf(outstr_replayfile, "restricted-replays: %s\n", outstr_group);
+                            sscanf(outstr_replayfile,
 #endif
+                                   "restricted-replays: %s\n", outstr_group);
 
                             pretransfer_replay_status_limit = 3;
                             pretransfer_replay_status_covid = 0;
@@ -1044,10 +1048,11 @@ void transfer_timer_process_source(float dt)
                     SAFECPY(account_transfer_values_source.player, account_transfer_get_s(ACCOUNT_TRANSFER_PLAYER));
                     SAFECPY(account_transfer_values_source.ball_file, account_transfer_get_s(ACCOUNT_TRANSFER_BALL_FILE));
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(outwallet_result_csv, dstSize, "coins:%d ;gems:%d ;p_levels:%d ;p_balls:%d ;p_bonus:%d ;p_mediation:%d ;set_unlocks:%d ;c_earninator:%d ;c_floatifier:%d ;c_speedifier:%d ;ballfile: %s ; player: %s ;\n",
+                    sprintf_s(outwallet_result_csv, dstSize,
 #else
-                    sprintf(outwallet_result_csv, "coins:%d ;gems:%d ;p_levels:%d ;p_balls:%d ;p_bonus:%d ;p_mediation:%d ;set_unlocks:%d ;c_earninator:%d ;c_floatifier:%d ;c_speedifier:%d ;c_extralives:%d ;ballfile: %s ; player: %s ;\n",
+                    sprintf(outwallet_result_csv,
 #endif
+                        "coins:%d ;gems:%d ;p_levels:%d ;p_balls:%d ;p_bonus:%d ;p_mediation:%d ;set_unlocks:%d ;c_earninator:%d ;c_floatifier:%d ;c_speedifier:%d ;ballfile: %s ; player: %s ;\n",
                         account_transfer_values_source.wallet_coins,
                         account_transfer_values_source.wallet_gems,
                         account_transfer_values_source.product_levels,

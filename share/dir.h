@@ -35,8 +35,8 @@ int dir_exists(const char *);
 
 #include <Windows.h>
 #define dir_make(path) \
-    !(CreateDirectoryA(path, 0) || GetLastError() == ERROR_ALREADY_EXISTS)
-#elif _WIN32 && __GNUC__
+    !(CreateDirectoryA(path, 0) != 0 || GetLastError() == ERROR_ALREADY_EXISTS)
+#elif _WIN32 && __MINGW32__
 #include <direct.h>
 #define dir_make(path) _mkdir(path)
 #else

@@ -228,7 +228,11 @@ static int beam_style_keybd(int c, int d)
 {
     if (d)
     {
+#ifndef __EMSCRIPTEN__
+        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
+#else
         if (c == KEY_EXIT)
+#endif
             return beam_style_action(GUI_BACK, 0);
     }
     return 1;

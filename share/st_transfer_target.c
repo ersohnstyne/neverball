@@ -35,6 +35,14 @@
 
 #include "st_common.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 #define AUD_MENU "snd/menu.ogg"
 #define AUD_BACK "snd/back.ogg"
 
@@ -128,7 +136,7 @@ int transfer_about_transferring_gui(void)
             switch (about_pageindx)
             {
             case 1:
-                gui_multi(jd, _("A game transfer requires\\- One source Neverball game and one target\\Pennyball game with highest version"), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("A game transfer requires\\- One source Neverball game and one target\\Neverball game with highest version"), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("- At least one keyboard and mouse"), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("- An External Drive with at least 1 GB of free space"), GUI_SML, gui_wht, gui_wht);
 #if ENABLE_DEDICATED_SERVER==1 && !defined(TRANSFER_OFFLINE_ONLY)
@@ -150,7 +158,7 @@ int transfer_about_transferring_gui(void)
                 break;
             case 5:
                 gui_label(jd, _("Step 3: Transfer to target game"), GUI_SML, 0, 0);
-                gui_multi(jd, _("Take out the External Drive from the source Neverball,\\and insert back into this target Pennyball\\to complete the game transfer."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Take out the External Drive from the source Neverball,\\and insert back into this target Neverball\\to complete the game transfer."), GUI_SML, gui_wht, gui_wht);
                 break;
             case 6:
                 gui_label(jd, _("The following data will be transferred:"), GUI_SML, gui_grn, gui_grn);
@@ -166,7 +174,7 @@ int transfer_about_transferring_gui(void)
                 gui_label(jd, _("Other notes:"), GUI_SML, gui_yel, gui_yel);
                 gui_multi(jd, _("Save data that may already exist cannot be\\transferred per hand."), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("For save data, transfer it from the External Drive\\to the source Neverball, before performing\\the transfer.\\"
-                    "For level set, either transfer it back to the\\source Neverball, before performing the transfer,\\or redownload it after the transfer\\using the Pennyball."), GUI_SML, gui_wht, gui_wht);
+                    "For level set, either transfer it back to the\\source Neverball, before performing the transfer,\\or redownload it after the transfer\\using the Neverball."), GUI_SML, gui_wht, gui_wht);
                 break;
             case 9:
                 gui_label(jd, _("Other notes:"), GUI_SML, gui_yel, gui_yel);
@@ -461,30 +469,33 @@ int transfer_gui(void)
                 if (transfer_walletamount[0] > 0 && transfer_walletamount[1] > 0)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, _("Transfer of %d coins and %d gems complete."), transfer_walletamount[0], transfer_walletamount[1]);
+                    sprintf_s(wallet_infotext, dstSize,
 #else
-                    sprintf(wallet_infotext, _("Transfer of %d coins and %d gems complete."), transfer_walletamount[0], transfer_walletamount[1]);
+                    sprintf(wallet_infotext,
 #endif
+                            _("Transfer of %d coins and %d gems complete."), transfer_walletamount[0], transfer_walletamount[1]);
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
                     gui_multi(jd, _("You can use these coins and gems in\\the game shop on this game."), GUI_SML, gui_wht, gui_wht);
                 }
                 else if (transfer_walletamount[1] > 0)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, _("Transfer of %d gems complete."), transfer_walletamount[1]);
+                    sprintf_s(wallet_infotext, dstSize,
 #else
-                    sprintf(wallet_infotext, _("Transfer of %d gems complete."), transfer_walletamount[1]);
+                    sprintf(wallet_infotext,
 #endif
+                            _("Transfer of %d gems complete."), transfer_walletamount[1]);
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
                     gui_multi(jd, _("You can use these gems in the\\game shop on this PC."), GUI_SML, gui_wht, gui_wht);
                 }
                 else if (transfer_walletamount[0] > 0)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, _("Transfer of %d coins complete."), transfer_walletamount[0]);
+                    sprintf_s(wallet_infotext, dstSize,
 #else
-                    sprintf(wallet_infotext, _("Transfer of %d coins complete."), transfer_walletamount[0]);
+                    sprintf(wallet_infotext,
 #endif
+                            _("Transfer of %d coins complete."), transfer_walletamount[0]);
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
                     gui_multi(jd, _("You can use these coins in the\\game shop on this PC."), GUI_SML, gui_wht, gui_wht);
                 }
@@ -1173,24 +1184,24 @@ void transfer_timer_process_target(float dt)
             {
                 account_transfer_init();
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sscanf_s(ext_line, "coins:%d ;gems:%d ;p_levels:%d ;p_balls:%d ;p_bonus:%d ;p_mediation:%d ;set_unlocks:%d ;c_earninator:%d ;c_floatifier:%d ;c_speedifier:%d ;ballfile: %s ;player: %s ;",
+                sscanf_s(ext_line,
 #else
-                sscanf(ext_line, "coins:%d ;gems:%d ;p_levels:%d ;p_balls:%d ;p_bonus:%d ;p_mediation:%d ;set_unlocks:%d ;c_earninator:%d ;c_floatifier:%d ;c_speedifier:%d ;c_extralives:%d ;ballfile: %s ;player: %s ;",
+                sscanf(ext_line,
 #endif
-                    &account_transfer_values_source.wallet_coins,
-                    &account_transfer_values_source.wallet_gems,
-                    &account_transfer_values_source.product_levels,
-                    &account_transfer_values_source.product_balls,
-                    &account_transfer_values_source.product_bonus,
-                    &account_transfer_values_source.product_mediation,
-                    &account_transfer_values_source.set_unlocks,
-                    &account_transfer_values_source.consumeable_earninator,
-                    &account_transfer_values_source.consumeable_floatifier,
-                    &account_transfer_values_source.consumeable_speedifier,
-                    &account_transfer_values_source.consumeable_extralives,
-                    account_transfer_values_source.ball_file,
-                    account_transfer_values_source.player
-                );
+                       "coins:%d ;gems:%d ;p_levels:%d ;p_balls:%d ;p_bonus:%d ;p_mediation:%d ;set_unlocks:%d ;c_earninator:%d ;c_floatifier:%d ;c_speedifier:%d ;ballfile: %s ;player: %s ;",
+                       &account_transfer_values_source.wallet_coins,
+                       &account_transfer_values_source.wallet_gems,
+                       &account_transfer_values_source.product_levels,
+                       &account_transfer_values_source.product_balls,
+                       &account_transfer_values_source.product_bonus,
+                       &account_transfer_values_source.product_mediation,
+                       &account_transfer_values_source.set_unlocks,
+                       &account_transfer_values_source.consumeable_earninator,
+                       &account_transfer_values_source.consumeable_floatifier,
+                       &account_transfer_values_source.consumeable_speedifier,
+                       &account_transfer_values_source.consumeable_extralives,
+                       account_transfer_values_source.ball_file,
+                       account_transfer_values_source.player);
 
                 account_transfer_load(concat_string("Accounts/account-", account_transfer_values_source.player, ".nbaccount", NULL));
 
@@ -1260,10 +1271,11 @@ void transfer_timer_process_target(float dt)
 #endif
                 char movecmd_account[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(movecmd_account, "move /y \"%s\" \"%s\"", src_dirpath_account, target_dirpath_account);
+                sprintf_s(movecmd_account,
 #else
-                sprintf(movecmd_account, "move /y \"%s\" \"%s\"", src_dirpath_account, target_dirpath_account);
+                sprintf(movecmd_account,
 #endif
+                        "move /y \"%s\" \"%s\"", src_dirpath_account, target_dirpath_account);
                 system(movecmd_account);
             }
 

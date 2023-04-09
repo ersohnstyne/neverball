@@ -32,8 +32,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define PARTICLEVBO 1
-
+//#define PARTICLEVBO 1
 
 struct part_vary
 {

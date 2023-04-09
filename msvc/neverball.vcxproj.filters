@@ -111,9 +111,6 @@
     <ClCompile Include="..\share\fs_stdio.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\fs_stdio_v1.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
     <ClCompile Include="..\share\geom.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
@@ -150,34 +147,13 @@
     <ClCompile Include="..\share\log.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\miniz.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
     <ClCompile Include="..\share\mtrl.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\networking_dedicated.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\networking_education.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\networking_enterprise.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\networking_home.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
     <ClCompile Include="..\share\networking_opensource.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\networking_pro.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\networking_srv_datacenter.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\networking_srv_standard.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\package.c">
@@ -417,6 +393,9 @@
     <ClCompile Include="..\payments\currency_curl.c">
       <Filter>Quelldateien\payments</Filter>
     </ClCompile>
+    <ClCompile Include="..\share\dbg_config.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\share\zip.h">
@@ -516,9 +495,6 @@
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
     <ClInclude Include="..\share\log.h">
-      <Filter>Headerdateien\share</Filter>
-    </ClInclude>
-    <ClInclude Include="..\share\miniz.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
     <ClInclude Include="..\share\mtrl.h">
@@ -727,6 +703,9 @@
     </ClInclude>
     <ClInclude Include="..\payments\currency.h">
       <Filter>Headerdateien\payments</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\dbg_config.h">
+      <Filter>Headerdateien\share</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

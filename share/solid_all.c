@@ -12,7 +12,6 @@
  * General Public License for more details.
  */
 
-
 /* Random code used in more than one place. */
 
 #include "solid_all.h"

@@ -293,7 +293,7 @@ void conf_common_init(int (*action_fn)(int, int), int allowfade)
     common_allowfade = allowfade;
     if (common_allowfade)
     {
-        back_init(config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "back/gui-mayhem.png" : "back/gui.png");
+        back_init("back/gui.png");
         is_common_bg = 1;
         audio_music_fade_to(0.5f, "bgm/inter.ogg");
     }
@@ -491,14 +491,13 @@ static int video_gui(void)
 
         char dpy_info[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(dpy_info, "%s\\%d x %d - %d Hz",
-            display,
-            dpyMode.w, dpyMode.h, dpyMode.refresh_rate);
+        sprintf_s(dpy_info,
 #else
-        sprintf(dpy_info, "%s\\%d x %d - %d Hz",
-            display,
-            dpyMode.w, dpyMode.h, dpyMode.refresh_rate);
+        sprintf(dpy_info,
 #endif
+                "%s\\%d x %d - %d Hz",
+                display,
+                dpyMode.w, dpyMode.h, dpyMode.refresh_rate);
         gui_multi(id, dpy_info, GUI_SML, gui_wht, gui_wht);
 
         gui_space(id);
@@ -535,14 +534,13 @@ static int video_gui(void)
 #ifndef __EMSCRIPTEN__
 #ifndef RESIZEABLE_WINDOW
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(resolution, dstSize, "%d x %d",
-            video.window_w,
-            video.window_h);
+        sprintf_s(resolution, dstSize,
 #else
-        sprintf(resolution, "%d x %d",
-            video.window_w,
-            video.window_h);
+        sprintf(resolution,
 #endif
+                "%d x %d",
+                video.window_w,
+                video.window_h);
 
         if ((jd = conf_state(id, _("Resolution"), resolution,
             VIDEO_RESOLUTION)))
@@ -941,14 +939,13 @@ static int video_advanced_gui(void)
         int dpy = config_get_d(CONFIG_DISPLAY);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(resolution, dstSize, "%d x %d",
-            video.window_w,
-            video.window_h);
+        sprintf_s(resolution, dstSize,
 #else
-        sprintf(resolution, "%d x %d",
-            video.window_w,
-            video.window_h);
+        sprintf(resolution,
 #endif
+                "%d x %d",
+                video.window_w,
+                video.window_h);
 
         
         if (!(display = SDL_GetDisplayName(dpy)))
@@ -1089,20 +1086,40 @@ static int display_gui(void)
     {
         conf_header(id, _("Display"), GUI_BACK);
 
+#if _WIN32
+        if (n > 1)
+        {
+            gui_multi(id,
+                      _("Go to settings or press WIN+P\\"
+                        "to change the multiple Displays."),
+                      GUI_SML, gui_wht, gui_cya);
+
+            gui_space(id);
+        }
+#endif
+
         for (i = 0; i < n; i++)
         {
             char name[MAXSTR];
+            SDL_DisplayMode dpyMode;
+            SDL_GetCurrentDisplayMode(i, &dpyMode);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dpy_name, dstSize, "%d: %s", i + 1, SDL_GetDisplayName(i));
+            sprintf_s(dpy_name, dstSize,
 #else
-            sprintf(name, "%d: %s", i + 1, SDL_GetDisplayName(i));
+            sprintf(name,
 #endif
+                    "%d: %s\\%d x %d - %d Hz",
+                    i + 1, SDL_GetDisplayName(i), dpyMode.w, dpyMode.h, dpyMode.refresh_rate);
 
-            jd = gui_state(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, DISPLAY_SELECT, i);
+            jd = gui_multi(id,
+                           "XXXXXXXXXXXXXXXXXXX\\"
+                           "XXXXXXXXXXXXXXXXXXX",
+                           GUI_SML, gui_wht, gui_wht);
+            gui_set_state(jd, DISPLAY_SELECT, i);
             gui_set_hilite(jd, (i == config_get_d(CONFIG_DISPLAY)));
             gui_set_trunc(jd, TRUNC_TAIL);
-            gui_set_label(jd, name);
+            gui_set_multi(jd, name);
         }
 
         gui_layout(id, 0, 0);
@@ -1296,10 +1313,11 @@ static int resol_gui(void)
                         SDL_DisplayMode dm;
 
 #if !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(buff, dstSize, "%d x %d", customresol_modes[m].w, customresol_modes[m].h);
+                        sprintf_s(buff, dstSize,
 #else
-                        sprintf(buff, "%d x %d", customresol_modes[m].w, customresol_modes[m].h);
+                        sprintf(buff,
 #endif
+                            "%d x %d", customresol_modes[m].w, customresol_modes[m].h);
 
                         kd = gui_state(jd, buff, GUI_SML, RESOL_MODE, m);
                         gui_set_hilite(kd, (customresol_modes[m].w == W && customresol_modes[m].h == H));
@@ -1467,10 +1485,12 @@ static int lang_gui(void)
 
                 char lang_infotext[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(lang_infotext, dstSize, "%s / %s", desc->name1, lang_name(desc));
+                sprintf_s(lang_infotext, dstSize,
 #else
-                sprintf(lang_infotext, "%s / %s", desc->name1, lang_name(desc));
+                sprintf(lang_infotext,
 #endif
+                        "%s / %s", desc->name1, lang_name(desc));
+
                 /* Set font and rebuild texture. */
 
                 gui_set_font(lang_id, desc->font);

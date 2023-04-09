@@ -96,7 +96,7 @@ int rand_between(int low, int high);
 
 extern size_t dstSize;
 
-#if _UNICODE
+#if UNICODE
 /**
  * Copy a wstring SRC into a zero-terminated fixed-size array of char DST.
  */
@@ -138,9 +138,9 @@ extern size_t dstSize;
     (dst)[_len + _max] = 0; \
 } while (0)
 
-#if _UNICODE
+#if UNICODE
 wchar_t *wcsip_newline(wchar_t *);
-#if _MSC_VER
+#if _MSC_VER && !_NONSTDC
 #define dupe_wstring _wcsdup
 #else
 wchar_t *dupe_wstring(const wchar_t *);
@@ -149,7 +149,7 @@ wchar_t *dupe_wstring(const wchar_t *);
 
 int   read_line(char **, fs_file);
 char *strip_newline(char *);
-#if _MSC_VER
+#if _MSC_VER && !_NONSTDC
 #define dupe_string _strdup
 #else
 char *dupe_string(const char *);
@@ -159,29 +159,32 @@ char *concat_string(const char *first, ...) NULL_TERMINATED;
 #ifdef strdup
 #undef strdup
 #endif
-#if _MSC_VER
+#if _MSC_VER && !_NONSTDC
 #define strdup _strdup
 #else 
 #define strdup dupe_string
 #endif
-#if _UNICODE
+#if UNICODE
 #ifdef wcsdup
 #undef wcsdup
 #endif
-#if _MSC_VER
+#if _MSC_VER && !_NONSTDC
 #define wcsdup _wcsdup
 #else 
 #define wcsdup dupe_wstring
 #endif
 #endif
 
-#if _UNICODE
-#define wcs_starts_with(s, h) (wcsncmp((s), (h), wcslen(h)) == 0)
-#define wcs_ends_with(s, t) ((wcslen(s) >= wcslen(t)) && wcscmp((s) + wcslen(s) - wcslen(t), (t)) == 0)
+#if UNICODE
+#define wcs_starts_with(s, h) \
+    (wcsncmp((s), (h), wcslen(h)) == 0)
+#define wcs_ends_with(s, t) \
+    ((wcslen(s) >= wcslen(t)) && wcscmp((s) + wcslen(s) - wcslen(t), (t)) == 0)
 #endif
-#define str_starts_with(s, h) (strncmp((s), (h), strlen(h)) == 0)
-#define str_ends_with(s, t) ((strlen(s) >= strlen(t)) && strcmp((s) + strlen(s) - strlen(t), (t)) == 0)
-
+#define str_starts_with(s, h) \
+    (strncmp((s), (h), strlen(h)) == 0)
+#define str_ends_with(s, t) \
+    ((strlen(s) >= strlen(t)) && strcmp((s) + strlen(s) - strlen(t), (t)) == 0)
 
 /*
  * Declaring vsnprintf with the C99 signature, even though we're

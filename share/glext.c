@@ -146,7 +146,13 @@ int glext_assert_dbg(const char* ext)
 
     if (!have_ext)
     {
-        char outStr[32]; sprintf(outStr, "Missing required OpenGL extension (%s)", ext);
+        char outStr[32];
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(outStr, 32
+#else
+        sprintf(outStr,
+#endif
+                "Missing required OpenGL extension (%s)", ext);
         have_ext = glext_fail("Missing extensions!", outStr);
         SDL_TriggerBreakpoint();
     }
@@ -206,7 +212,13 @@ static void log_opengl(void)
 
 int glext_fail(const char *title, const char *message)
 {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title, message, NULL);
+    if (SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title, message, NULL) != 0)
+    {
+#if _WIN32
+        // Use with Windows message box instead.
+        MessageBoxA(0, message, title, MB_ICONERROR);
+#endif
+    }
     return 0;
 }
 
@@ -246,11 +258,9 @@ int glext_init(void)
     if (glext_assert("ARB_multitexture"))
     {
         SDL_GL_GFPA(glClientActiveTexture_, "glClientActiveTextureARB");
-        SDL_GL_GFPA(glActiveTexture_, "glActiveTextureARB");
+        SDL_GL_GFPA(glActiveTexture_,       "glActiveTextureARB");
     }
-#if _DEBUG
     else return 0;
-#endif
 
     if (glext_assert("ARB_vertex_buffer_object"))
     {
@@ -261,18 +271,14 @@ int glext_init(void)
         SDL_GL_GFPA(glDeleteBuffers_,       "glDeleteBuffersARB");
         SDL_GL_GFPA(glIsBuffer_,            "glIsBufferARB");
     }
-#if _DEBUG
     else return 0;
-#endif
 
     if (glext_assert("ARB_point_parameters"))
     {
         SDL_GL_GFPA(glPointParameterf_,    "glPointParameterfARB");
         SDL_GL_GFPA(glPointParameterfv_,   "glPointParameterfvARB");
     }
-#if _DEBUG
     else return 0;
-#endif
 
     if (glext_check_ext("ARB_shader_objects"))
     {
@@ -317,6 +323,35 @@ int glext_init(void)
     /* NVIDIA init. */
 
 #if ENABLE_GL_NV
+    if (glext_assert("GL_NV_vertex_array_range"))
+    {
+        SDL_GL_GFPA(glFlushVertexArrayRangeNV_, "glFlushVertexArrayRangeNV");
+        SDL_GL_GFPA(glVertexArrayRangeNV_,      "glVertexArrayRangeNV");
+    }
+    else return 0;
+
+    if (glext_assert("GL_NV_command_list"))
+    {
+        SDL_GL_GFPA(glCreateStatesNV_,                 "glCreateStatesNV");
+        SDL_GL_GFPA(glDeleteStatesNV_,                 "glDeleteStatesNV");
+        SDL_GL_GFPA(glIsStateNV_,                      "glIsStateNV");
+        SDL_GL_GFPA(glStateCaptureNV_,                 "glStateCaptureNV");
+        SDL_GL_GFPA(glGetCommandHeaderNV_,             "glGetCommandHeaderNV");
+        SDL_GL_GFPA(glGetStageIndexNV_,                "glGetStageIndexNV");
+        SDL_GL_GFPA(glDrawCommandsNV_,                 "glDrawCommandsNV");
+        SDL_GL_GFPA(glDrawCommandsAddressNV_,          "glDrawCommandsAddressNV");
+        SDL_GL_GFPA(glDrawCommandsStatesNV_,           "glDrawCommandsStatesNV");
+        SDL_GL_GFPA(glDrawCommandsStatesAddressNV_,    "glDrawCommandsStatesAddressNV");
+        SDL_GL_GFPA(glCreateCommandListsNV_,           "glCreateCommandListsNV");
+        SDL_GL_GFPA(glDeleteCommandListsNV_,           "glDeleteCommandListsNV");
+        SDL_GL_GFPA(glIsCommandListNV_,                "glIsCommandListNV");
+        SDL_GL_GFPA(glListDrawCommandsStatesClientNV_, "glListDrawCommandsStatesClientNV");
+        SDL_GL_GFPA(glCommandListSegmentsNV_,          "glCommandListSegmentsNV");
+        SDL_GL_GFPA(glCompileCommandListNV_,           "glCompileCommandListNV");
+        SDL_GL_GFPA(glCallCommandListNV_,              "glCallCommandListNV");
+    }
+    else return 0;
+
     if (glext_check_ext("GL_NV_clip_space_w_scaling"))
     {
         SDL_GL_GFPA(glViewportPositionWScaleNV_, "glViewportPositionWScaleNV");
@@ -331,33 +366,6 @@ int glext_init(void)
         SDL_GL_GFPA(glEndOcclusionQueryNV_,      "glEndOcclusionQueryNV");
         SDL_GL_GFPA(glGetOcclusionQueryivNV_,    "glGetOcclusionQueryivNV");
         SDL_GL_GFPA(glGetOcclusionQueryuivNV_,   "glGetOcclusionQueryuivNV");
-    }
-
-    if (glext_assert("GL_NV_vertex_array_range"))
-    {
-        SDL_GL_GFPA(glFlushVertexArrayRangeNV_, "glFlushVertexArrayRangeNV");
-        SDL_GL_GFPA(glVertexArrayRangeNV_, "glVertexArrayRangeNV");
-    }
-
-    if (glext_assert("GL_NV_command_list"))
-    {
-        SDL_GL_GFPA(glCreateStatesNV_, "glCreateStatesNV");
-        SDL_GL_GFPA(glDeleteStatesNV_, "glDeleteStatesNV");
-        SDL_GL_GFPA(glIsStateNV_, "glIsStateNV");
-        SDL_GL_GFPA(glStateCaptureNV_, "glStateCaptureNV");
-        SDL_GL_GFPA(glGetCommandHeaderNV_, "glGetCommandHeaderNV");
-        SDL_GL_GFPA(glGetStageIndexNV_, "glGetStageIndexNV");
-        SDL_GL_GFPA(glDrawCommandsNV_, "glDrawCommandsNV");
-        SDL_GL_GFPA(glDrawCommandsAddressNV_, "glDrawCommandsAddressNV");
-        SDL_GL_GFPA(glDrawCommandsStatesNV_, "glDrawCommandsStatesNV");
-        SDL_GL_GFPA(glDrawCommandsStatesAddressNV_, "glDrawCommandsStatesAddressNV");
-        SDL_GL_GFPA(glCreateCommandListsNV_, "glCreateCommandListsNV");
-        SDL_GL_GFPA(glDeleteCommandListsNV_, "glDeleteCommandListsNV");
-        SDL_GL_GFPA(glIsCommandListNV_, "glIsCommandListNV");
-        SDL_GL_GFPA(glListDrawCommandsStatesClientNV_, "glListDrawCommandsStatesClientNV");
-        SDL_GL_GFPA(glCommandListSegmentsNV_, "glCommandListSegmentsNV");
-        SDL_GL_GFPA(glCompileCommandListNV_, "glCompileCommandListNV");
-        SDL_GL_GFPA(glCallCommandListNV_, "glCallCommandListNV");
     }
 
 #endif

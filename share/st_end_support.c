@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -21,8 +21,8 @@
 /* Uncomment, if you want to start the end support. */
 //#define TEST_END_SUPPORT
 
-#if _WIN32 && __GNUC__
-#include <SDL2/SDL.h>
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -62,10 +62,10 @@
 #define END_SUPPORT_IMAGE    "gui/end_support_%d.png" /* DO NOT EDIT! */
 
 #define END_SUPPORT_DESC_1   "After %d years, support for Neverball 1.6 is coming to an end.\\The best two things you can do to prepare for the transition are,\\back up your levels and highscores, and then get ready for what's next.\\We have tools to help you with both." /* DO NOT EDIT! */
-#define END_SUPPORT_DESC_2   "May 21st, 2024 is the last day Jānis Rūcis will offer\\simple entities and technical support for running Neverball 1.6.\\We know change can be difficult, that's why we're reaching out early\\to help you back up your levels and highscores, and prepare for what's next." /* DO NOT EDIT! */
-#define END_SUPPORT_DESC_3_1 "As of May 21st, 2024, support for Neverball 1.6\\has come to an end. Your entities is\\more vulnerable to legacies due to:" /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_2   "May 21, 2024 is the last day Jānis Rūcis will offer\\simple entities and technical support for running Neverball 1.6.\\We know change can be difficult, that's why we're reaching out early\\to help you back up your levels and highscores, and prepare for what's next." /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_3_1 "As of May 21, 2024, support for Neverball 1.6\\has come to an end. Your entities is\\more vulnerable to legacies due to:" /* DO NOT EDIT! */
 #define END_SUPPORT_DESC_3_2 "- No simple start position\\- No goal decals\\- No simple switch and simple platform" /* DO NOT EDIT! */
-#define END_SUPPORT_DESC_3_3 "PennySchloss requires using\\Pennyball 2.1.0 on a new campaigns\\for the latest huge guideline features." /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_3_3 "PennySchloss requires using\\Neverball 2.1.0 on a new campaigns\\for the latest huge guideline features." /* DO NOT EDIT! */
 
 /*---------------------------------------------------------------------------*/
 
@@ -448,7 +448,15 @@ void end_support_leave(struct state *st, struct state *next, int id)
 int goto_end_support(struct state *scontinue)
 {
     st_hide = scontinue;
-    return goto_state(&st_end_support);
+
+    time_t local = time(0);
+    struct tm timestamp;
+    gmtime_s(&timestamp, &local);
+
+    int curryear = timestamp.tm_year + 1900;
+    long long int diff = difference_of_days(timestamp.tm_mday, timestamp.tm_mon, curryear, END_SUPPORT_DAY, END_SUPPORT_MONTH - 1, END_SUPPORT_YEAR);
+
+    return goto_state(diff > 30 ? st_hide : &st_end_support);
 }
 
 /*---------------------------------------------------------------------------*/

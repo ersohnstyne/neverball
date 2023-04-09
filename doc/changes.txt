@@ -6,6 +6,7 @@ New in 2.1
 * Changed policy: Always match the level world with pre- and suffixed filename
   as Switchball pre-campaign for level set: map-back/*-SB.sol, back/*-SB.png,
   bgm/track-SB*.ogg
+* New: Assistant companion for purchasing products by raising cash.
 * New: Added Join Discord server from options screen.
 * New: Coin clocks.
 * New: Refreshable list for level set and replay list (F5 key).
@@ -18,6 +19,7 @@ New in 2.1
 * New: Optional dedicated game network support.
 * New: Optional IAP and order code activation support (source only).
 * New: Increased replay speed factor up to 128.
+* New: Added invalid menu action sound effects, when clicking the disabled button.
 * New: libogg, libpng, libvorbis, libjpeg and zlib can be used with GitHub
   source.
 * Update: Improved traffic light and countdown clock ready/set signals after

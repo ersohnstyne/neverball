@@ -138,6 +138,9 @@ int goto_conf_covid_extend(struct state *returnable)
 {
     conf_covid_extend_method = 1;
 
+    //returnstate = returnable;
+    //return goto_state_full(&st_conf_covid_extend, 0, 0, 0);
+
     conf_covid_extended = 1;
     return goto_state_full(returnable, 0, 0, 0);
 }
@@ -341,13 +344,19 @@ static int conf_account_action(int tok, int val)
 
 #if NB_HAVE_PB_BOTH==1
     case CONF_ACCOUNT_BALL:
-        game_fade(+6.0f);
-        goto_state(&st_ball);
+        if (fs_exists("gui/ball.sol") && fs_exists("gui/ball.nbr"))
+        {
+            game_fade(+6.0f);
+            goto_state(&st_ball);
+        }
         break;
 
     case CONF_ACCOUNT_BEAM:
-        game_fade(+6.0f);
-        goto_state(&st_beam_style);
+        if (fs_exists("gui/beam-style.sol"))
+        {
+            game_fade(+6.0f);
+            goto_state(&st_beam_style);
+        }
         break;
 #endif
 
@@ -641,28 +650,30 @@ static int conf_account_gui(void)
 
             gui_set_label(beam_id, beam_version_name);
         }
+
         /* Those filters will use some replays */
         const char *savefilter = _("None");
         switch (save)
         {
-        /* All save filters: Goal, Aborted, Time-out, Fall-out */
-        case 3: savefilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3; break;
-        /* Keep filters: Goal, Aborted, Time-out */
-        case 2: savefilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2; break;
-        /* Only Goal filters: Goal */
-        case 1: savefilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1; break;
-        case 0: savefilter = _("Off"); break;
+            /* All save filters: Goal, Aborted, Time-out, Fall-out */
+            case 3: savefilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3; break;
+            /* Keep filters: Goal, Aborted, Time-out */
+            case 2: savefilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2; break;
+            /* Only Goal filters: Goal */
+            case 1: savefilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1; break;
+            /* Disabled */
+            case 0: savefilter = _("Off"); break;
         }
 
         const char *loadfilter = _("None");
         switch (load)
         {
-        /* All save filters: Goal, Aborted, Time-out, Fall-out */
-        case 3: loadfilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3; break;
-        /* Keep filters: Goal, Aborted, Time-out */
-        case 2: loadfilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2; break;
-        /* Only Goal filters: Goal */
-        case 1: loadfilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1; break;
+            /* All save filters: Goal, Aborted, Time-out, Fall-out */
+            case 3: loadfilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3; break;
+            /* Keep filters: Goal, Aborted, Time-out */
+            case 2: loadfilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2; break;
+            /* Only Goal filters: Goal */
+            case 1: loadfilter = CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1; break;
         }
 
         save_id = conf_state(id, _("Save Replay"), "XXXXXXXXXXXXXX",
@@ -838,6 +849,23 @@ static int conf_social_enter(struct state *st, struct state *prev)
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * Should be set the preset keys as well?
+ */
+#define CONF_CONTROL_SET_PRESET_KEYS(cam_tgl, cam1, cam2, cam3, camL, camR, axYP, axXN, axYN, axXP) \
+    do {                                                 \
+        config_set_d(CONFIG_KEY_CAMERA_TOGGLE, cam_tgl); \
+        config_set_d(CONFIG_KEY_CAMERA_1, cam1);         \
+        config_set_d(CONFIG_KEY_CAMERA_2, cam2);         \
+        config_set_d(CONFIG_KEY_CAMERA_3, cam3);         \
+        config_set_d(CONFIG_KEY_CAMERA_L, camL);         \
+        config_set_d(CONFIG_KEY_CAMERA_R, camR);         \
+        config_set_d(CONFIG_KEY_FORWARD, axYP);          \
+        config_set_d(CONFIG_KEY_LEFT, axXN);             \
+        config_set_d(CONFIG_KEY_BACKWARD, axYN);         \
+        config_set_d(CONFIG_KEY_RIGHT, axXP);            \
+    } while (0)
+
 enum
 {
     CONF_CONTROL_INPUT_PRESET = GUI_LAST,
@@ -922,48 +950,27 @@ static void control_set_input()
 {
     if (key_preset_id == CONTROL_SWITCHBALL_V1)
     {
-        config_set_d(CONFIG_KEY_CAMERA_TOGGLE, SDLK_c);
-        config_set_d(CONFIG_KEY_CAMERA_1, SDLK_3);
-        config_set_d(CONFIG_KEY_CAMERA_2, SDLK_1);
-        config_set_d(CONFIG_KEY_CAMERA_3, SDLK_2);
-        config_set_d(CONFIG_KEY_CAMERA_L, SDLK_RIGHT);
-        config_set_d(CONFIG_KEY_CAMERA_R, SDLK_LEFT);
-        config_set_d(CONFIG_KEY_FORWARD, SDLK_w);
-        config_set_d(CONFIG_KEY_LEFT, SDLK_a);
-        config_set_d(CONFIG_KEY_BACKWARD, SDLK_s);
-        config_set_d(CONFIG_KEY_RIGHT, SDLK_d);
+        CONF_CONTROL_SET_PRESET_KEYS(SDLK_c, SDLK_3, SDLK_1, SDLK_2,
+                                     SDLK_RIGHT, SDLK_LEFT,
+                                     SDLK_w, SDLK_a, SDLK_s, SDLK_d);
 
         gui_set_label(preset_id, "Switchball HD");
         key_preset_id = CONTROL_SWITCHBALL_V2;
     }
     else if (key_preset_id == CONTROL_NEVERBALL)
     {
-        config_set_d(CONFIG_KEY_CAMERA_TOGGLE, SDLK_c);
-        config_set_d(CONFIG_KEY_CAMERA_1, SDLK_3);
-        config_set_d(CONFIG_KEY_CAMERA_2, SDLK_1);
-        config_set_d(CONFIG_KEY_CAMERA_3, SDLK_2);
-        config_set_d(CONFIG_KEY_CAMERA_L, SDLK_d);
-        config_set_d(CONFIG_KEY_CAMERA_R, SDLK_a);
-        config_set_d(CONFIG_KEY_FORWARD, SDLK_UP);
-        config_set_d(CONFIG_KEY_LEFT, SDLK_LEFT);
-        config_set_d(CONFIG_KEY_BACKWARD, SDLK_DOWN);
-        config_set_d(CONFIG_KEY_RIGHT, SDLK_RIGHT);
+        CONF_CONTROL_SET_PRESET_KEYS(SDLK_c, SDLK_3, SDLK_1, SDLK_2,
+                                     SDLK_d, SDLK_a,
+                                     SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT);
 
         gui_set_label(preset_id, "Switchball");
         key_preset_id = CONTROL_SWITCHBALL_V1;
     }
     else
     {
-        config_set_d(CONFIG_KEY_CAMERA_TOGGLE, SDLK_e);
-        config_set_d(CONFIG_KEY_CAMERA_1, SDLK_1);
-        config_set_d(CONFIG_KEY_CAMERA_2, SDLK_2);
-        config_set_d(CONFIG_KEY_CAMERA_3, SDLK_3);
-        config_set_d(CONFIG_KEY_CAMERA_L, SDLK_s);
-        config_set_d(CONFIG_KEY_CAMERA_R, SDLK_d);
-        config_set_d(CONFIG_KEY_FORWARD, SDLK_UP);
-        config_set_d(CONFIG_KEY_LEFT, SDLK_LEFT);
-        config_set_d(CONFIG_KEY_BACKWARD, SDLK_DOWN);
-        config_set_d(CONFIG_KEY_RIGHT, SDLK_RIGHT);
+        CONF_CONTROL_SET_PRESET_KEYS(SDLK_c, SDLK_1, SDLK_2, SDLK_3,
+                                     SDLK_s, SDLK_d,
+                                     SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT);
 
         gui_set_label(preset_id, "Neverball");
         key_preset_id = CONTROL_NEVERBALL;
@@ -1039,15 +1046,15 @@ int conf_control_gui(void)
         switch (control_get_input())
         {
         case CONTROL_NEVERBALL:
-            key_preset_id = CONTROL_NEVERBALL;
+            key_preset_id = control_get_input();
             presetname = "Neverball";
             break;
         case CONTROL_SWITCHBALL_V1:
-            key_preset_id = CONTROL_SWITCHBALL_V1;
+            key_preset_id = control_get_input();
             presetname = "Switchball";
             break;
         case CONTROL_SWITCHBALL_V2:
-            key_preset_id = CONTROL_SWITCHBALL_V2;
+            key_preset_id = control_get_input();
             presetname = "Switchball HD";
             break;
         }
@@ -1282,53 +1289,59 @@ static void conf_controllers_set_label(int id, int value)
     if (conf_controllers_option_values_xbox[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 256, "%s", conf_controllers_option_values_xbox[value % 100000]);
+        sprintf_s(str, 256,
 #else
-        sprintf(str, "%s", conf_controllers_option_values_xbox[value % 100000]);
+        sprintf(str,
 #endif
+                "%s", conf_controllers_option_values_xbox[value % 100000]);
     }
 #elif NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
     if (conf_controllers_option_values_ps[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 256, "%s", conf_controllers_option_values_ps[value % 100000]);
+        sprintf_s(str, 256,
 #else
-        sprintf(str, "%s", conf_controllers_option_values_ps[value % 100000]);
+        sprintf(str,
 #endif
+                "%s", conf_controllers_option_values_ps[value % 100000]);
     }
 #elif NEVERBALL_FAMILY_API == NEVERBALL_STEAMDECK_FAMILY_API
     if (conf_controllers_option_values_steamdeck[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 256, "%s", conf_controllers_option_values_steamdeck[value % 100000]);
+        sprintf_s(str, 256,
 #else
-        sprintf(str, "%s", conf_controllers_option_values_steamdeck[value % 100000]);
+        sprintf(str,
 #endif
+                "%s", conf_controllers_option_values_steamdeck[value % 100000]);
     }
 #elif NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
     if (conf_controllers_option_values_switch[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 256, "%s", conf_controllers_option_values_switch[value % 100000]);
+        sprintf_s(str, 256,
 #else
-        sprintf(str, "%s", conf_controllers_option_values_switch[value % 100000]);
+        sprintf(str,
 #endif
+                "%s", conf_controllers_option_values_switch[value % 100000]);
     }
 #elif NEVERBALL_FAMILY_API == NEVERBALL_HANDSET_FAMILY_API
     if (conf_controllers_option_values_switch[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 256, "%s", conf_controllers_option_values_switch[value % 100000]);
+        sprintf_s(str, 256,
 #else
-        sprintf(str, "%s", conf_controllers_option_values_switch[value % 100000]);
+        sprintf(str,
 #endif
+                "%s", conf_controllers_option_values_switch[value % 100000]);
     }
 #else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(str, 256, "%d", value % 100000);
+    sprintf_s(str, 256,
 #else
-    sprintf(str, "%d", value % 100000);
+    sprintf(str,
 #endif
+            "%d", value % 100000);
 #endif
 
 #if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API
@@ -1604,10 +1617,12 @@ static void change_method(void)
 {
     char titleattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(titleattr, dstSize, _("Method %i"), calibrate_method);
+    sprintf_s(titleattr, dstSize,
 #else
-    sprintf(titleattr, _("Method %i"), calibrate_method);
+    sprintf(titleattr,
 #endif
+            _("Method %i"), calibrate_method);
+
     gui_set_label(axis_title_id, titleattr);
 }
 
@@ -1654,10 +1669,12 @@ static int conf_calibrate_gui(void)
         char titleattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(titleattr, dstSize, _("Method %i"), calibrate_method);
+        sprintf_s(titleattr, dstSize,
 #else
-        sprintf(titleattr, _("Method %i"), calibrate_method);
+        sprintf(titleattr,
 #endif
+                _("Method %i"), calibrate_method);
+
         gui_set_label(axis_title_id, titleattr);
 
         gui_space(id);
@@ -1694,10 +1711,11 @@ void conf_calibrate_stick(int id, int a, float v, int bump)
             calib_y0 = v;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(axisattr, dstSize, "X: %f; Y: %f", (calib_x0 + axis_offset[0]), (calib_y0 + axis_offset[1]));
+        sprintf_s(axisattr, dstSize,
 #else
-        sprintf(axisattr, "X: %f; Y: %f", (calib_x0 + axis_offset[0]), (calib_y0 + axis_offset[1]));
+        sprintf(axisattr,
 #endif
+                "X: %f; Y: %f", (calib_x0 + axis_offset[0]), (calib_y0 + axis_offset[1]));
     }
     else if (calibrate_method == 2)
     {
@@ -1706,17 +1724,19 @@ void conf_calibrate_stick(int id, int a, float v, int bump)
         else if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y1, a))
             calib_y1 = v;
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(axisattr, dstSize, "X: %f; Y: %f", (calib_x1 + axis_offset[2]), (calib_y1 + axis_offset[3]));
+        sprintf_s(axisattr, dstSize,
 #else
-        sprintf(axisattr, "X: %f; Y: %f", (calib_x1 + axis_offset[2]), (calib_y1 + axis_offset[3]));
+        sprintf(axisattr,
 #endif
+                "X: %f; Y: %f", (calib_x1 + axis_offset[2]), (calib_y1 + axis_offset[3]));
     }
     else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(axisattr, dstSize, "X: -; Y: -");
+        sprintf_s(axisattr, dstSize,
 #else
-        sprintf(axisattr, "X: -; Y: -");
+        sprintf(axisattr,
 #endif
+                "X: -; Y: -");
 
     gui_set_label(axis_display_id, axisattr);
 }
@@ -2035,7 +2055,12 @@ static int conf_action(int tok, int val)
 
 #if NB_HAVE_PB_BOTH!=1
     case CONF_BALL:
-        goto_state(&st_ball);
+        // HACK: This avoids spamming stuff
+        if (fs_exists("gui/ball.sol") && fs_exists("gui/ball.nbr"))
+        {
+            game_fade(+6.0);
+            goto_state(&st_ball);
+        }
         break;
 #endif
 
@@ -2094,7 +2119,6 @@ static int conf_action(int tok, int val)
         break;
 #endif
 
-
     case CONF_LANGUAGE:
         goto_state(&st_lang);
         break;
@@ -2123,7 +2147,7 @@ static int conf_gui(void)
 #if GAME_TRANSFER_TARGET==1
             conf_state(id, _("Neverball Game Transfer"), _("Start"), CONF_SYSTEMTRANSFER_TARGET);
 #else
-            conf_state(id, _("Pennyball Transfer Tool"), _("Start"), CONF_SYSTEMTRANSFER_SOURCE);
+            conf_state(id, _("Neverball Transfer Tool"), _("Start"), CONF_SYSTEMTRANSFER_SOURCE);
 #endif
             gui_space(id);
         }

@@ -144,7 +144,7 @@ void init_state(struct state *st)
     video_swap();
 
 #if _DEBUG
-    Sleep(500);
+    //Sleep(500);
 #endif
 }
 

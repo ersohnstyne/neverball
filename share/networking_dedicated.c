@@ -34,7 +34,7 @@
 #else
 #pragma comment(lib, "D:\\source_ersohn_network\\c++\\neverball-game-network\\Release\\neverball_net_client.lib")
 #endif
-//#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "ws2_32.lib")
 #else
 #error Dedicated networks requires Windows x86 or x64!
 #endif
@@ -123,10 +123,11 @@ static int scan_key_and_value(char **dst_key, char **dst_val, char *line)
         ke = -1;
         vs = -1;
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sscanf_s(line, " %n%*s%n %n", &ks, &ke, &vs);
+        sscanf_s(line,
 #else
-        sscanf(line, " %n%*s%n %n", &ks, &ke, &vs);
+        sscanf(line,
 #endif
+               " %n%*s%n %n", &ks, &ke, &vs);
 
         if (ks < 0 || ke < 0 || vs < 0)
             return 0;
@@ -262,32 +263,32 @@ static int authenticate_networking()
     else if (CHECK_IPNUM_RANGE(ipap))
         SAFECPY(net_ipv4, hostname);
     else return (connected = 0);*/
-
+#else
     char net_ipv4[MAXSTR];
     SAFECPY(net_ipv4, CLIENT_IPADDR);
 #endif
 
-    if (PBNetwork_Connect(net_ipv4, net_port) == 1)
+    if (NBNetwork_Connect(net_ipv4, net_port) == 1)
     {
         Sleep(1000);
 
         if (strlen(config_get_s(CONFIG_PLAYER)) > 2)
-            PBNetwork_Login(config_get_s(CONFIG_PLAYER), 0);
+            NBNetwork_Login(config_get_s(CONFIG_PLAYER), 0);
 
         connected = 1;
     }
     
-    if (PBNetwork_IsConnected() == 0)
+    if (NBNetwork_IsConnected() == 0)
     {
         log_errorf("Can't connect to server: %s:%d",
                    CLIENT_IPADDR,
                    CLIENT_PORT);
 
-        PBNetwork_Quit();
+        NBNetwork_Quit();
         connected = 0;
     }
 
-    return (connected = PBNetwork_IsConnected());
+    return (connected = NBNetwork_IsConnected());
 }
 
 static int networking_thread_func(void *data)
@@ -300,13 +301,13 @@ static int networking_thread_func(void *data)
     while (SDL_AtomicGet(&networking_thread_running))
     {
         UINT32 curr_time = SDL_GetTicks();
-        int result = PBNetwork_IsConnected();
+        int result = NBNetwork_IsConnected();
         int res_connected = 0;
 
         if (result == 0)
         {
             SDL_LockMutex(networking_mutex);
-            PBNetwork_IsChallengePlayable(&res_connected);
+            NBNetwork_IsChallengePlayable(&res_connected);
             SDL_UnlockMutex(networking_mutex);
             net_error = res_connected;
             networking_error_dispatch_event(res_connected);
@@ -321,7 +322,7 @@ static int networking_thread_func(void *data)
             if ((curr_time - last_time) > 0)
             {
                 SDL_LockMutex(networking_mutex);
-                PBNetwork_Update((float) ((curr_time - start_time) * 0.001f),
+                NBNetwork_Update((float) ((curr_time - start_time) * 0.001f),
                                  (float) ((curr_time - last_time) * 0.001f));
                 networking_error_dispatch_event(0);
                 SDL_UnlockMutex(networking_mutex);
@@ -334,7 +335,7 @@ static int networking_thread_func(void *data)
         last_time = curr_time;
     }
 
-    PBNetwork_Quit();
+    NBNetwork_Quit();
 
     return 0;
 }
@@ -369,7 +370,7 @@ int networking_reinit_dedicated_event(void)
 
     authenticate_networking();
 
-    return (connected = PBNetwork_IsConnected());
+    return (connected = NBNetwork_IsConnected());
 }
 
 int networking_init(int support_online)
@@ -389,7 +390,7 @@ int networking_init(int support_online)
 
     networking_busy = 0;
 
-    int tmp_res = PBNetwork_IsConnected();
+    int tmp_res = NBNetwork_IsConnected();
 
     if (tmp_res)
         netlib_init = 1;
@@ -405,7 +406,7 @@ void networking_quit(void)
 
     networking_busy = 1;
 
-    PBNetwork_Quit();
+    NBNetwork_Quit();
     SDL_AtomicSet(&networking_thread_running, 0);
 
     if (networking_thread)
@@ -424,10 +425,12 @@ void networking_quit(void)
 
 int networking_connected(void)
 {
-    connected = PBNetwork_IsConnected();
+    connected = NBNetwork_IsConnected() ? 1 : 0;
 
     if (connected == 0)
         networking_quit();
+    else if (NBNetwork_IsWaitingForLogin())
+        connected = 2;
 
     return connected;
 }
@@ -460,10 +463,10 @@ int server_policy_get_d(int i)
 
 int networking_dedicated_refresh_login(const char *name)
 {
-    if (PBNetwork_IsConnected())
+    if (NBNetwork_IsConnected())
     {
         if (strlen(config_get_s(CONFIG_PLAYER)) > 2)
-            PBNetwork_Login(config_get_s(CONFIG_PLAYER), 0);
+            NBNetwork_Login(config_get_s(CONFIG_PLAYER), 0);
 
         return 1;
     }
@@ -473,10 +476,10 @@ int networking_dedicated_refresh_login(const char *name)
 
 int networking_dedicated_levelstatus_send(const char *levelmap, int status, float *p)
 {
-    if (!PBNetwork_IsConnected())
+    if (!NBNetwork_IsConnected())
         return 0;
 
-    PBNetwork_PlaceMarker(levelmap, p, status);
+    NBNetwork_PlaceMarker(levelmap, p, status);
     return 1;
 }
 

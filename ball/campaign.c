@@ -33,13 +33,21 @@
 
 #include "game_client.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 #ifndef MAPC_INCLUDES_CHKP
 #if NB_HAVE_PB_BOTH==1
 #error Campaign is added, but requires Checkpoints!
 #endif
 #endif
 
-#if defined(DEVEL_BUILD)
+#if DEVEL_BUILD
 //#define CAREER_PERMA_UNLOCKED
 //#define HARDCORE_PERMA_UNLOCKED
 #endif
@@ -266,10 +274,11 @@ static int campaign_get_times(fs_file fp, struct score *s)
         strip_newline(line);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        if (sscanf_s(line, "%d %d %n", &s->timer[i], &s->coins[i], &n) < 2)
+        if (sscanf_s(line,
 #else
-        if (sscanf(line, "%d %d %n", &s->timer[i], &s->coins[i], &n) < 2)
-#endif
+        if (sscanf(line,
+#endif 
+                   "%d %d %n", &s->timer[i], &s->coins[i], &n) < 2)
             return 0;
 
         if (n < 0)
@@ -352,10 +361,11 @@ static void campaign_load_hs_v2(fs_file fp, char *buf, int size)
             campaign_score = 1;
         }
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        else if (sscanf_s(buf, "level %d %d %n", &flags, &version, &n) >= 2)
+        else if (sscanf_s(buf,
 #else
-        else if (sscanf(buf, "level %d %d %n", &flags, &version, &n) >= 2)
+        else if (sscanf(buf,
 #endif
+                        "level %d %d %n", & flags, & version, & n) >= 2)
         {
             struct level *l;
 
@@ -433,10 +443,11 @@ static void campaign_load_hs(void)
             strip_newline(buf);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            if (sscanf_s(buf, "version %d", &time_trial_version) == 1)
+            if (sscanf_s(buf,
 #else
-            if (sscanf(buf, "version %d", &time_trial_version) == 1)
+            if (sscanf(buf,
 #endif
+                       "version %d", & time_trial_version) == 1)
             {
                 switch (time_trial_version)
                 {
@@ -511,7 +522,7 @@ int campaign_load(const char *filename)
 
     read_line(&campaign_name, fin);
 
-    if (strcmp(campaign_name, "Campaign"))
+    if (strcmp(campaign_name, "Campaign") != 0)
     {
         free(campaign_name); return 0;
     }
@@ -519,16 +530,17 @@ int campaign_load(const char *filename)
     if (read_line(&scores, fin))
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sscanf_s(scores, "%d %d %d %d %d %d",
+        sscanf_s(scores,
 #else
-        sscanf(scores, "%d %d %d %d %d %d",
+        sscanf(scores,
 #endif
-            &time_trials.timer[RANK_HARD],
-            &time_trials.timer[RANK_MEDM],
-            &time_trials.timer[RANK_EASY],
-            &time_trials.coins[RANK_HARD],
-            &time_trials.coins[RANK_MEDM],
-            &time_trials.coins[RANK_EASY]);
+              "%d %d %d %d %d %d",
+              &time_trials.timer[RANK_HARD],
+              &time_trials.timer[RANK_MEDM],
+              &time_trials.timer[RANK_EASY],
+              &time_trials.coins[RANK_HARD],
+              &time_trials.coins[RANK_MEDM],
+              &time_trials.coins[RANK_EASY]);
 
         free(scores);
 
@@ -569,20 +581,11 @@ static void campaign_load_levels(void)
 
         l->number = i;
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        if (regular + 1 > 100)
-            sprintf_s(l->name, dstSize, "%03d", regular++);
-        else if (regular + 1 > 10)
-            sprintf_s(l->name, dstSize, "%02d", regular++);
-        else
-            sprintf_s(l->name, dstSize, "%01d", regular++);
+        sprintf_s(l->name, dstSize,
 #else
-        if (regular + 1 > 100)
-            sprintf(l->name, "%03d", regular++);
-        else if (regular + 1 > 10)
-            sprintf(l->name, "%02d", regular++);
-        else
-            sprintf(l->name, "%01d", regular++);
+        sprintf(l->name,
 #endif
+                "%d", regular++);
 
         l->is_locked = (i > 0);
         l->is_completed = 0;
@@ -802,10 +805,11 @@ int campaign_load_camera_box_trigger(const char *levelname)
     char camLinePrefix[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(camFilename, dstSize, "buildin-map-campaign/autocam-level-%s.txt", levelname);
+    sprintf_s(camFilename, dstSize,
 #else
-    sprintf(camFilename, "buildin-map-campaign/autocam-level-%s.txt", levelname);
+    sprintf(camFilename,
 #endif
+            "buildin-map-campaign/autocam-level-%s.txt", levelname);
 
     campaign_reset_camera_box_trigger();
 
@@ -856,20 +860,16 @@ int campaign_load_camera_box_trigger(const char *levelname)
              * test your camera modes in a single level.
              */
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(camLinePrefix, "pos:%f %f %f size:%f %f %f mode:%d campos:%f %f %f dir:%f",
-                &cam_box_triggers[camBoxIdx].positions[0], &cam_box_triggers[camBoxIdx].positions[2], &cam_box_triggers[camBoxIdx].positions[1],
-                &cam_box_triggers[camBoxIdx].triggerSize[0], &cam_box_triggers[camBoxIdx].triggerSize[2], &cam_box_triggers[camBoxIdx].triggerSize[1],
-                &cam_box_triggers[camBoxIdx].cammode,
-                &cam_box_triggers[camBoxIdx].campositions[0], &cam_box_triggers[camBoxIdx].campositions[2], &cam_box_triggers[camBoxIdx].campositions[1],
-                &cam_box_triggers[camBoxIdx].camdirection);
+            sscanf_s(camLinePrefix,
 #else
-            sscanf(camLinePrefix, "pos:%f %f %f size:%f %f %f mode:%d campos:%f %f %f dir:%f",
-                &cam_box_triggers[camBoxIdx].positions[0], &cam_box_triggers[camBoxIdx].positions[2], &cam_box_triggers[camBoxIdx].positions[1],
-                &cam_box_triggers[camBoxIdx].triggerSize[0], &cam_box_triggers[camBoxIdx].triggerSize[2], &cam_box_triggers[camBoxIdx].triggerSize[1],
-                &cam_box_triggers[camBoxIdx].cammode,
-                &cam_box_triggers[camBoxIdx].campositions[0], &cam_box_triggers[camBoxIdx].campositions[2], &cam_box_triggers[camBoxIdx].campositions[1],
-                &cam_box_triggers[camBoxIdx].camdirection);
+            sscanf(camLinePrefix,
 #endif
+                   "pos:%f %f %f size:%f %f %f mode:%d campos:%f %f %f dir:%f",
+                   &cam_box_triggers[camBoxIdx].positions[0], & cam_box_triggers[camBoxIdx].positions[2], & cam_box_triggers[camBoxIdx].positions[1],
+                   &cam_box_triggers[camBoxIdx].triggerSize[0], & cam_box_triggers[camBoxIdx].triggerSize[2], & cam_box_triggers[camBoxIdx].triggerSize[1],
+                   &cam_box_triggers[camBoxIdx].cammode,
+                   &cam_box_triggers[camBoxIdx].campositions[0], & cam_box_triggers[camBoxIdx].campositions[2], & cam_box_triggers[camBoxIdx].campositions[1],
+                   &cam_box_triggers[camBoxIdx].camdirection);
 
             cam_box_triggers[camBoxIdx].positions[0] /= 64;
             cam_box_triggers[camBoxIdx].positions[1] /= 64;

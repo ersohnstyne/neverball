@@ -89,19 +89,15 @@ int shared_click_basic(int b, int d)
 {
     /* Activate on left click. */
 
-    if (b == SDL_BUTTON_LEFT && d)
-        return st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
-    else
-        return 1;
+    return (b == SDL_BUTTON_LEFT && d) ?
+           st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
 }
 
 int shared_click(int b, int d)
 {
     /* Activate based on GUI state. */
 
-    if (gui_click(b, d))
-        return st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
-    else
-        return 1;
+    return gui_click(b, d) ?
+           st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
 }
 

@@ -24,6 +24,9 @@ void progress_stat(int status);
 void progress_stop(void);
 void progress_exit(void);
 
+#if NB_HAVE_PB_BOTH==1
+int  progress_raise_gems(int, int, int *, int *, int *, int *);
+#endif
 int  progress_same_avail(void);
 int  progress_next_avail(void);
 

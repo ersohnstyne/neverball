@@ -450,11 +450,11 @@ static void controls_pc(int id)
 #else
     sprintf(s_rotate_new,
 #endif
-        _("Use %s / %s buttons to rotate the view.\\"
-          "Hold %s for faster view rotation."),
-        temp_k_rot_l,
-        temp_k_rot_r,
-        SDL_GetKeyName(config_get_d(CONFIG_KEY_ROTATE_FAST)));
+            _("Use %s / %s buttons to rotate the view.\\"
+              "Hold %s for faster view rotation."),
+            temp_k_rot_l,
+            temp_k_rot_r,
+            SDL_GetKeyName(config_get_d(CONFIG_KEY_ROTATE_FAST)));
 
     int jd, kd;
 
@@ -1250,7 +1250,11 @@ static int help_demo_keybd(int c, int d)
 {
     if (d)
     {
-        if (c == KEY_EXIT)
+        if (c == KEY_EXIT
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+            && current_platform == PLATFORM_PC
+#endif
+            )
             return goto_state(&st_help);
     }
     return 1;

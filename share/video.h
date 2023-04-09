@@ -20,6 +20,11 @@
 
 /*---------------------------------------------------------------------------*/
 
+#if __cplusplus
+extern const char TITLE[];
+extern const char ICON[];
+#endif
+
 struct video
 {
     int device_w, device_h;
@@ -41,7 +46,7 @@ extern int render_line_overlay;
 extern int render_left_viewport;
 extern int render_right_viewport;
 
-int video_init(void);
+int  video_init(void);
 void video_quit(void);
 
 /*---------------------------------------------------------------------------*/

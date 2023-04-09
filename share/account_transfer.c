@@ -39,6 +39,14 @@
 #include "common.h"
 #include "fs.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 int account_transfer_is_init = 0;
@@ -133,10 +141,11 @@ static int scan_key_and_value(char **dst_key, char **dst_val, char *line)
         ke = -1;
         vs = -1;
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sscanf_s(line, " %n%*s%n %n", &ks, &ke, &vs);
+        sscanf_s(line,
 #else
-        sscanf(line, " %n%*s%n %n", &ks, &ke, &vs);
+        sscanf(line,
 #endif
+               " %n%*s%n %n", &ks, &ke, &vs);
 
         if (ks < 0 || ke < 0 || vs < 0)
             return 0;
@@ -225,11 +234,13 @@ void account_transfer_quit(void)
 
 int  account_transfer_exists(void)
 {
+    char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    char paths[MAXSTR]; sprintf_s(paths, dstSize, "Accounts_transfer/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
+    sprintf_s(paths, dstSize,
 #else
-    char paths[MAXSTR]; sprintf(paths, "Accounts_transfer/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
+    sprintf(paths,
 #endif
+            "Accounts_transfer/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
 
 #ifdef FS_VERSION_1
     fs_file input = fs_open(paths, "r");
@@ -403,11 +414,13 @@ void account_transfer_save(const char *playername)
 
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
     
+    char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    char paths[MAXSTR]; sprintf_s(paths, dstSize, "Accounts_transfer/%s", playername);
+    sprintf_s(paths, dstSize,
 #else
-    char paths[MAXSTR]; sprintf(paths, "Accounts_transfer/%s", playername);
+    sprintf(paths,
 #endif
+            "Accounts_transfer/%s", playername);
 
     if (!account_transfer_is_init)
     {

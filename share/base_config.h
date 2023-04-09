@@ -21,6 +21,9 @@
  */
 
 #if _MSC_VER
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #include <Windows.h>
 
 #if _DEBUG
@@ -33,34 +36,48 @@
 #include <XInput.h>
 #endif
 
+#include <signal.h>
 #include <stdio.h>
 
 #include "log.h"
 
+#include "dbg_config.h"
+
 /*---------------------------------------------------------------------------*/
 
 #ifndef VERSION
-#define VERSION "unknown"
+#define VERSION       "unknown"       /* Game version */
 #endif
 
 #ifndef CONFIG_DATA
+#ifdef _WIN32
+#define CONFIG_DATA   ".\\data"       /* Game data directory */
+#else
 #define CONFIG_DATA   "./data"        /* Game data directory */
+#endif
 #endif
 
 #ifndef CONFIG_LOCALE
-#if ENABLE_NLS==1 && NLS_GETTEXT==1
-#define CONFIG_LOCALE "./locale"      /* Game localisation */
+#ifdef _WIN32
+#define CONFIG_LOCALE ".\\locale"     /* Game localisation */
 #else
-#define CONFIG_LOCALE "./po"          /* Game localisation */
+#define CONFIG_LOCALE "./locale"     /* Game localisation */
 #endif
 #endif
 
 /* User config directory */
 #ifndef CONFIG_USER
+#if NDEBUG
 #ifdef _WIN32
-#define CONFIG_USER   "Neverball_2.1.0"
+#define CONFIG_USER   "Neverball_" VERSION
 #else
-#define CONFIG_USER   ".neverball_2.1.0"
+#define CONFIG_USER   ".neverball"
+#endif
+#endif
+#ifdef _WIN32
+#define CONFIG_USER   "Neverball_" VERSION "-dev"
+#else
+#define CONFIG_USER   ".neverball-dev"
 #endif
 #endif
 
@@ -77,13 +94,9 @@
 
 /*---------------------------------------------------------------------------*/
 
-#ifdef _WIN32
+#define FMODE_AB "ab"
 #define FMODE_RB "rb"
 #define FMODE_WB "wb"
-#else
-#define FMODE_RB "r"
-#define FMODE_WB "w"
-#endif
 
 #define AUDIO_BUFF_HI 2048
 #define AUDIO_BUFF_LO 1024

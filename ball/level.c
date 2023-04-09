@@ -128,16 +128,14 @@ static int scan_level_attribs(struct level *l,
         else if (strcmp(k, "time_hs") == 0)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            switch (sscanf_s(v, "%d %d %d",
+            switch (sscanf_s(v,
+#else
+            switch (sscanf(v,
+#endif
+                           "%d %d %d",
                            &l->scores[SCORE_TIME].timer[RANK_HARD],
                            &l->scores[SCORE_TIME].timer[RANK_MEDM],
                            &l->scores[SCORE_TIME].timer[RANK_EASY]))
-#else
-            switch (sscanf(v, "%d %d %d",
-                &l->scores[SCORE_TIME].timer[RANK_HARD],
-                &l->scores[SCORE_TIME].timer[RANK_MEDM],
-                &l->scores[SCORE_TIME].timer[RANK_EASY]))
-#endif
             {
             case 1:
             {
@@ -166,16 +164,14 @@ static int scan_level_attribs(struct level *l,
         else if (strcmp(k, "goal_hs") == 0)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            switch (sscanf_s(v, "%d %d %d",
+            switch (sscanf_s(v,
+#else
+            switch (sscanf(v,
+#endif
+                           "%d %d %d",
                            &l->scores[SCORE_GOAL].timer[RANK_HARD],
                            &l->scores[SCORE_GOAL].timer[RANK_MEDM],
                            &l->scores[SCORE_GOAL].timer[RANK_EASY]))
-#else
-            switch (sscanf(v, "%d %d %d",
-                &l->scores[SCORE_GOAL].timer[RANK_HARD],
-                &l->scores[SCORE_GOAL].timer[RANK_MEDM],
-                &l->scores[SCORE_GOAL].timer[RANK_EASY]))
-#endif
             {
             case 1:
             {
@@ -204,16 +200,14 @@ static int scan_level_attribs(struct level *l,
         else if (strcmp(k, "coin_hs") == 0)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            switch (sscanf_s(v, "%d %d %d",
-                           &l->scores[SCORE_COIN].coins[RANK_HARD],
-                           &l->scores[SCORE_COIN].coins[RANK_MEDM],
-                           &l->scores[SCORE_COIN].coins[RANK_EASY]))
+            switch (sscanf_s(v,
 #else
-            switch (sscanf(v, "%d %d %d",
+            switch (sscanf(v,
+#endif
+                           "%d %d %d",
                            &l->scores[SCORE_COIN].coins[RANK_HARD],
                            &l->scores[SCORE_COIN].coins[RANK_MEDM],
                            &l->scores[SCORE_COIN].coins[RANK_EASY]))
-#endif
             {
             case 1: need_coin_medm = 2; break;
             case 2: need_coin_easy = 1; break;
@@ -224,10 +218,11 @@ static int scan_level_attribs(struct level *l,
         {
             SAFECPY(l->version_str, v);
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(v, "%d", &l->version_num);
+            sscanf_s(v,
 #else
-            sscanf(v, "%d", &l->version_num);
+            sscanf(v,
 #endif
+                   "%d", & l->version_num);
         }
         else if (strcmp(k, "author") == 0)
             SAFECPY(l->author, v);

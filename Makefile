@@ -4,7 +4,7 @@
 BUILD := $(shell cat neverball-build.txt 2> /dev/null || echo release)
 
 # Build: devel, release
-VERSION := 2.1.0
+VERSION := 1.6.0
 VERSION := $(shell sh scripts/version.sh)
 
 $(info Will make a "$(BUILD)" build of Neverball $(VERSION).)
@@ -251,21 +251,25 @@ MKLOCALVAR_CURL_PREPARED := 0
 ifneq ($(FS_VERSION),1)
 # Paypal payment support
 ifeq ($(ENABLE_IAP),paypal)
-	#$(shell curl-config --cflags)
-	ALL_CPPFLAGS +=               \
-		-DENABLE_IAP=1            \
-		-I"C:/msys64/usr/include" \
+	# $(shell curl-config --cflags) =	\
+		-DENABLE_IAP=1					\
+		-I"C:/msys64/usr/include"		\
 		-DCURL_STATICLIB
+
+	ALL_CPPFLAGS +=               \
+		$(shell curl-config --cflags)
 	MKLOCALVAR_CURL_PREPARED := 1
 endif
 endif
 
 ifeq ($(ENABLE_FETCH),curl)
 ifneq ($(MKLOCALVAR_CURL_PREPARED),1)
-	#$(shell curl-config --cflags)
-	ALL_CPPFLAGS +=               \
-		-I"C:/msys64/usr/include" \
-		-DCURL_STATICLIB 
+	# $(shell curl-config --cflags) =	\
+		-I"C:/msys64/usr/include"		\
+		-DCURL_STATICLIB
+
+	ALL_CPPFLAGS +=						\
+		$(shell curl-config --cflags)
 endif
 	ALL_CPPFLAGS += -DENABLE_FETCH=1
 endif
@@ -785,6 +789,8 @@ WINDRES ?= windres
 	echo "1 ICON \"$<\"" | $(WINDRES) -o $@
 
 #------------------------------------------------------------------------------
+
+# Don't compile the sols yet, until the game binaries are finished.
 
 ALTERNATIVE_BUILDENV :=
 

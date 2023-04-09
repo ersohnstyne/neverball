@@ -46,9 +46,18 @@
 
 #include "cmd.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 int game_compat_map;                    /* Client/server map compat flag     */
+int game_compat_campaign;               /* Campaign compat flag              */
 
 /*---------------------------------------------------------------------------*/
 
@@ -229,7 +238,10 @@ static void game_run_cmd(const union cmd *cmd)
             gl.timer[CURR] = cmd->timer.t;
 
             if (cs.first_update)
+            {
                 gl.timer[PREV] = gl.timer[CURR] = cmd->timer.t;
+                game_compat_campaign = 0;
+            }
 
             break;
 
@@ -524,10 +536,11 @@ int  game_client_init(const char *file_name)
 
         if (strcmp(k, "version") == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(v, "%d.%d", &version.x, &version.y);
+            sscanf_s(v,
 #else
-            sscanf(v, "%d.%d", &version.x, &version.y);
+            sscanf(v,
 #endif
+                   "%d.%d", & version.x, & version.y);
     }
 
     /*
@@ -535,6 +548,11 @@ int  game_client_init(const char *file_name)
      * match with the server.  In this way 1.5.0 replays don't trigger
      * bogus map compatibility warnings.  Post-1.5.0 replays will have
      * CMD_MAP override this.
+     */
+
+    /*
+     * 1.5.0 replays will not be able to trigger any map compatibility
+     * warnings, 2.1 are not affected.
      */
 
     game_compat_map = version.x == 1;

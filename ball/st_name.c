@@ -51,6 +51,7 @@ int (*cancel_fn)(struct state *);
 
 static unsigned int draw_back;
 static int newplayers;
+static int name_error;
 
 int goto_name(struct state *ok, struct state *cancel,
               int (*new_ok_fn)(struct state *), int (*new_cancel_fn)(struct state *),
@@ -95,10 +96,10 @@ static void name_update_enter_btn(void)
         }
     }
 
-    gui_set_state(enter_id, name_accepted ? NAME_OK : GUI_NONE, 0);
+    gui_set_state(enter_id, name_accepted && !player_renamed ? NAME_OK : GUI_NONE, 0);
     gui_set_color(enter_id,
-                  name_accepted ? gui_wht : gui_gry,
-                  name_accepted ? gui_wht : gui_gry);
+                  name_accepted && !player_renamed ? gui_wht : gui_gry,
+                  name_accepted && !player_renamed ? gui_wht : gui_gry);
 }
 
 static int name_action(int tok, int val)
@@ -115,9 +116,11 @@ static int name_action(int tok, int val)
             return cancel_fn(cancel_state);
 
         return goto_state(cancel_state);
+        break;
 
     case NAME_OK:
         newplayers = 0;
+        name_error = 0;
 
         if (strcmp(config_get_s(CONFIG_PLAYER), text_input) != 0)
             player_renamed = 1;
@@ -128,30 +131,41 @@ static int name_action(int tok, int val)
         text_input_stop();
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        account_init();
-        if (!account_exists())
-            newplayers = 1;
-        account_load();
-        account_set_s(ACCOUNT_PLAYER, text_input);
-        ball_free();
-        ball_init();
+        if (text_length(text_input) < 3)
+            name_error = 1;
+        else
+        {
+            account_init();
+            if (text_length(text_input) < 3)
+                name_error = 1;
+            else if (account_exists())
+                account_load();
+            else
+                newplayers = 1;
 
-        account_save();
+            account_set_s(ACCOUNT_PLAYER, text_input);
+            ball_free();
+            ball_init();
+
+            account_save();
+        }
 #endif
         config_save();
 
-        if (!newplayers && ok_fn)
+        if (!name_error && !newplayers && ok_fn)
             return ok_fn(ok_state);
 
-        return newplayers ? goto_state(&st_name) : goto_state(ok_state);
+        return goto_state(newplayers || name_error ? &st_name : ok_state);
+        break;
 
     case NAME_CONTINUE:
         newplayers = 0;
 
-        if (ok_fn)
+        if (!name_error && ok_fn)
             return ok_fn(ok_state);
 
-        return goto_state(ok_state);
+        return goto_state(name_error ? &st_name : ok_state);
+        break;
 
     case GUI_CL:
         gui_keyboard_lock_en();
@@ -209,9 +223,20 @@ static int name_gui(void)
         }
         else
         {
-            gui_title_header(id, _("New Players!"), GUI_MED, 0, 0);
+            const char* t_header = name_error ?
+                                   _("Sign in failed!") : _("New Players!"),
+                      * t_desc   = name_error ?
+                                   _("Player names didn't meet the length requirements!\\"
+                                     "- Minimum length: 3 letters") :
+                                   _("As of new players, you can\\"
+                                     "start new Campaign levels first\\"
+                                     "before select other game modes.");
+
+            gui_title_header(id, t_header, GUI_MED,
+                             name_error ? gui_gry : 0,
+                             name_error ? gui_red : 0);
             gui_space(id);
-            gui_multi(id, _("As of new players, you can\\start new Campaign levels first\\before select other game modes."), GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, t_desc, GUI_SML, gui_wht, gui_wht);
             gui_space(id);
             gui_start(id, _("OK"), GUI_SML, NAME_CONTINUE, 0);
         }
@@ -293,7 +318,11 @@ static int name_keybd(int c, int d)
 {
     if (d)
     {
-        if (c == KEY_EXIT)
+        if (c == KEY_EXIT
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+            && current_platform == PLATFORM_PC
+#endif
+            )
             return name_action(GUI_BACK, 0);
 
         if (c == '\b' || c == 0x7F)

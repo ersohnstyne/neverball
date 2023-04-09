@@ -19,12 +19,14 @@
 /* Include the system OpenGL headers.                                        */
 
 #ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 
 #if _MSC_VER
 #include <wingdi.h>
-//#define ENABLE_GL_NV
+//#define ENABLE_GL_NV 1
 #endif
 #endif
 
@@ -365,8 +367,8 @@ int glext_init(void);
 /*---------------------------------------------------------------------------*/
 /* ARB_multitexture                                                          */
 
-typedef void (APIENTRYP PFNGLACTIVETEXTURE_PROC)(GLenum);
-typedef void (APIENTRYP PFNGLCLIENTACTIVETEXTURE_PROC)(GLenum);
+typedef void (APIENTRYP PFNGLACTIVETEXTURE_PROC) (GLenum);
+typedef void (APIENTRYP PFNGLCLIENTACTIVETEXTURE_PROC) (GLenum);
 
 extern PFNGLCLIENTACTIVETEXTURE_PROC glClientActiveTexture_;
 extern PFNGLACTIVETEXTURE_PROC       glActiveTexture_;

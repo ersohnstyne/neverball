@@ -12,6 +12,16 @@
  * General Public License for more details.
  */
 
+/*
+ * HACK: Remembering the code file differences:
+ * Developers  who  programming  C++  can see more bedrock declaration
+ * than C.  Developers  who  programming  C  can  see  few  procedural
+ * declaration than  C++.  Keep  in  mind  when making  sure that your
+ * extern code must associated. The valid file types are *.c and *.cpp,
+ * so it's always best when making cross C++ compiler to keep both.
+ * - Ersohn Styne
+ */
+
 /*---------------------------------------------------------------------------*/
 
 #if NB_STEAM_API==1
@@ -37,17 +47,26 @@
 #include <emscripten/html5.h>
 #endif
 
-#if _WIN32 && __GNUC__
+#if _WIN32 && __MINGW32__
 #include <SDL3/SDL.h>
 #else
 #include <SDL.h>
 #endif
+
+#if _MSC_VER
+#pragma comment(lib, "SDL2.lib")
+#pragma comment(lib, "SDL2main.lib")
+#endif
+
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
 
+#if __cplusplus
+extern "C" {
+#endif
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 #include "account.h"
@@ -57,10 +76,17 @@
 #endif
 
 #include "accessibility.h"
+#if __cplusplus
+}
+#endif
 
 #ifndef VERSION
 #include "version.h"
 #endif
+#if __cplusplus
+extern "C" {
+#endif
+#include "dbg_config.h"
 #include "glext.h"
 #include "audio.h"
 #include "image.h"
@@ -82,6 +108,9 @@
 
 #include "st_conf.h"
 #include "st_all.h"
+#if __cplusplus
+}
+#endif
 
 #if NB_STEAM_API==1
 const char TITLE[] = "Neverputt - Steam";
@@ -103,7 +132,12 @@ static void shot(void)
 
     int secdecimal = roundf(config_screenshot() / 10000);
 
-    sprintf(filename, "Screenshots/screen_%04d-%04d.png", secdecimal, config_screenshot());
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf(filename, MAXSTR,
+#else
+    sprintf(filename,
+#endif
+            "Screenshots/screen_%04d-%04d.png", secdecimal, config_screenshot());
     video_snap(filename);
 }
 
@@ -228,7 +262,7 @@ static int loop(void)
 
         switch (e.type)
         {
-#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
         case SDL_MOUSEMOTION:
             /* Convert to OpenGL coordinates. */
 
@@ -414,7 +448,7 @@ static int loop(void)
             }
             break;
 
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
         case SDL_JOYAXISMOTION:
             joy_axis(e.jaxis.which, e.jaxis.axis, JOY_VALUE(e.jaxis.value));
             break;
@@ -492,6 +526,8 @@ static void opt_parse(int argc, char **argv)
 
 /*---------------------------------------------------------------------------*/
 
+static int em_cached_cam;
+
 struct main_loop
 {
     Uint32 now;
@@ -551,12 +587,14 @@ static void step(void* data)
 
     EM_ASM({
         Neverputt.quit();
-        });
+    });
 #endif
 }
 
 static int main_init(int argc, char* argv[])
 {
+    GAMEDBG_SIGFUNC_PREPARE;
+
 #if NB_STEAM_API==1    
     if (!SteamAPI_Init())
     {
@@ -580,16 +618,16 @@ static int main_init(int argc, char* argv[])
     config_paths(opt_data);
     fs_mkdir("Screenshots");
 
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_FAMILY_API \
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API \
     && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX, "1");
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API \
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API \
     && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360) && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360_PLAYER_LED)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360_PLAYER_LED, "1");
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
 #if defined(SDL_HINT_JOYSTICK_HIDAPI_PS5) && defined(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "1");
@@ -601,21 +639,40 @@ static int main_init(int argc, char* argv[])
 #error No Playstation HIDAPI specified!
 #endif
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_SWITCH_FAMILY_API \
+#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API \
     && defined(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS, "1");
 #endif
 
-    return SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != -1;
+#if _cplusplus
+    try {
+#endif
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) == -1)
+    {
+        log_errorf("Failure to initialize SDL (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
+        return 0;
+    }
+#if _cplusplus
+    } catch (const char *xS) {
+        log_errorf("Failure to initialize SDL: Exception caught! (%s - %s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL, xS);
+        return 0;
+    } catch (...) {
+        log_errorf("Failure to initialize SDL: Exception caught! (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
+        return 0;
+    }
+#endif
+
+    return 1;
 }
 
-static void main_quit(int cam)
+static void main_quit()
 {
+    mtrl_quit();
     video_quit();
 
-    /* Restore Pennyball's camera setting. */
+    /* Restore Neverball's camera setting. */
 
-    config_set_d(CONFIG_CAMERA, cam);
+    config_set_d(CONFIG_CAMERA, em_cached_cam);
     config_save();
 
     accessibility_save();
@@ -625,7 +682,7 @@ static void main_quit(int cam)
 
     lang_quit();
 
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
     joy_quit();
 #endif
 
@@ -642,14 +699,21 @@ static void main_quit(int cam)
 
     log_quit();
     fs_quit();
-    SDL_Quit();
+
+#if _cplusplus
+    try {
+#endif
+        SDL_Quit();
+#if _cplusplus
+    } catch (...) {}
+#endif
 
 #if NB_STEAM_API==1
     /* We're done here */
     SteamAPI_Shutdown();
 #endif
 
-#if _WIN32 && _DEBUG
+#if _WIN32 && _MSC_VER && _DEBUG && defined(_CRTDBG_MAP_ALLOC)
     _CrtDumpMemoryLeaks();
 #endif
 }
@@ -657,8 +721,10 @@ static void main_quit(int cam)
 int main(int argc, char *argv[])
 {
     int retval = 0;
-    int camera = 0;
 
+#if _cplusplus
+    try {
+#endif
     if (main_init(argc, argv))
     {
         config_init();
@@ -690,34 +756,34 @@ int main(int argc, char *argv[])
         package_init();
 #endif
 
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
         joy_init();
 #endif
 
-#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
         init_controller_type(PLATFORM_PC);
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API
         init_controller_type(PLATFORM_XBOX);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
         init_controller_type(PLATFORM_XBOX);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
         init_controller_type(PLATFORM_PS);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_SWITCH_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
         init_controller_type(PLATFORM_SWITCH);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_HANDSET_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_HANDSET_FAMILY_API
         init_controller_type(PLATFORM_HANDSET);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
@@ -738,9 +804,9 @@ int main(int argc, char *argv[])
 
         lang_init();
 
-        /* Cache Pennyball's camera setting. */
+        /* Cache Neverball's camera setting. */
 
-        camera = config_get_d(CONFIG_CAMERA);
+        em_cached_cam = config_get_d(CONFIG_CAMERA);
 
         /* Initialize the video. */
 
@@ -782,25 +848,24 @@ int main(int argc, char *argv[])
             else
                 goto_state(&st_title);
 
-#if defined(__EMSCRIPTEN__)
+#ifdef __EMSCRIPTEN__
             emscripten_set_main_loop_arg(step, (void*) &mainloop, 0, 1);
 #else
             while (!mainloop.done)
                 step(&mainloop);
 #endif
-
-            mtrl_quit();
         }
         else
             retval = 1;
-
-        main_quit(camera);
     }
     else
     {
-        log_errorf("Failure to initialize SDL (%s)\n", SDL_GetError() ? SDL_GetError() : "Unknown error");
+        log_errorf("Failure to initialize SDL (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
         retval = 1;
     }
+#if _cplusplus
+    } catch (...) { return 1; }
+#endif
 
     return retval;
 }

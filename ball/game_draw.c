@@ -594,7 +594,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
                     /* Draw the mirrors only into the stencil buffer. */
 
                     glStencilFunc(GL_ALWAYS, 1, 0xFFFFFFFF);
-                    glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+                    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
                     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
                     glDepthMask(GL_FALSE);
 

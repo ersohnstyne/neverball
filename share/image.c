@@ -20,6 +20,10 @@
 #include <SDL_ttf.h>
 #endif
 
+#if _MSC_VER
+#pragma comment(lib, "SDL2_ttf.lib")
+#endif
+
 #include <string.h>
 #include <math.h>
 #include <png.h>
@@ -33,6 +37,14 @@
 
 #include "fs.h"
 #include "fs_png.h"
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
 
 /* GL_CLAMP_TO_EDGE turns into the GL_CLAMP */
 #ifdef GL_CLAMP_TO_EDGE

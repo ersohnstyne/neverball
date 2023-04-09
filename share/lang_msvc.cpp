@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Microsoft / Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -14,11 +14,12 @@
 
 /*
  * HACK: Remembering the code file differences:
- * Developers who programming C++ can see more bedrock declaration
- * than C. Developers who programming C can see few procedural
- * declaration than C++. Keep in mind when making sure that your
+ * Developers  who  programming  C++  can see more bedrock declaration
+ * than C.  Developers  who  programming  C  can  see  few  procedural
+ * declaration than  C++.  Keep  in  mind  when making  sure that your
  * extern code must associated. The valid file types are *.c and *.cpp,
  * so it's always best when making cross C++ compiler to keep both.
+ * - Ersohn Styne
  */
 
 #include <assert.h>
@@ -115,10 +116,10 @@ void ms_nls_init(const char *pref)
 
     if (!dir)
     {
-        if (path_is_abs(CONFIG_LOCALE))
-            dir = strdup(CONFIG_LOCALE);
+        if (path_is_abs(CONFIG_LOCALE "\\..\\po"))
+            dir = strdup(CONFIG_LOCALE "\\..\\po");
         else
-            dir = concat_string(fs_base_dir(), "\\", CONFIG_LOCALE, NULL);
+            dir = concat_string(fs_base_dir(), "\\", CONFIG_LOCALE, "\\..\\po", NULL);
     }
 
     bool lang_available = false;

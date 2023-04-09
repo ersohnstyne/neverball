@@ -94,10 +94,11 @@ static int get_score(fs_file fp, struct score *s)
         strip_newline(line);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        if (sscanf_s(line, "%d %d %n", &s->timer[i], &s->coins[i], &n) < 2)
+        if (sscanf_s(line,
 #else
-        if (sscanf(line, "%d %d %n", &s->timer[i], &s->coins[i], &n) < 2)
+        if (sscanf(line,
 #endif
+                   "%d %d %n", &s->timer[i], &s->coins[i], &n) < 2)
             return 0;
 
         if (n < 0)
@@ -224,10 +225,11 @@ static void set_load_hs_v2(fs_file fp, struct set *s, char *buf, int size)
             set_score = 1;
         }
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        else if (sscanf_s(buf, "level %d %d %n", &flags, &version, &n) >= 2)
+        else if (sscanf_s(buf,
 #else
-        else if (sscanf(buf, "level %d %d %n", &flags, &version, &n) >= 2)
+        else if (sscanf(buf,
 #endif
+                        "level %d %d %n", &flags, &version, &n) >= 2)
         {
             struct level *l;
 
@@ -285,10 +287,11 @@ static void set_load_hs(void)
             strip_newline(buf);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            if (sscanf_s(buf, "version %d", &score_version) == 1)
+            if (sscanf_s(buf,
 #else
-            if (sscanf(buf, "version %d", &score_version) == 1)
+            if (sscanf(buf,
 #endif
+                       "version %d", &score_version) == 1)
             {
                 switch (score_version)
                 {
@@ -392,10 +395,11 @@ static int set_load(struct set *s, const char *filename)
         read_line(&scores,  fin))
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sscanf_s(scores, "%d %d %d %d %d %d",
+        sscanf_s(scores,
 #else
-        sscanf(scores, "%d %d %d %d %d %d",
+        sscanf(scores,
 #endif
+               "%d %d %d %d %d %d",
                &s->time_score.timer[RANK_HARD],
                &s->time_score.timer[RANK_MEDM],
                &s->time_score.timer[RANK_EASY],
@@ -872,10 +876,11 @@ static void set_load_levels(void)
         else
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(l->name, dstSize, "%d", regular);
+            sprintf_s(l->name, dstSize,
 #else
-            sprintf(l->name, "%d", regular);
+            sprintf(l->name,
 #endif
+                    "%d", regular);
 
             regular++;
         }

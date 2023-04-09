@@ -25,6 +25,8 @@
 #include "console_control_gui.h"
 #endif
 
+#include "dbg_config.h"
+
 #include "config.h"
 #include "video.h"
 #include "glext.h"
@@ -36,7 +38,16 @@
 #include "theme.h"
 
 #include "fs.h"
+
 #include <assert.h>
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -493,7 +504,7 @@ static void gui_font_init(int s)
     }
     else
         log_errorf("Unable to init font!: %s\n",
-                   SDL_GetError() ? SDL_GetError() : "Unknown error");
+                   GAMEDBG_GETSTRERROR_CHOICES_SDL);
 }
 
 static void gui_font_quit(void)
@@ -2779,10 +2790,11 @@ int gui_navig(int id, int total, int first, int step)
             {
                 char str[16];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(str, dstSize, "%d/%d", page, pages);
+                sprintf_s(str, 16,
 #else
-                sprintf(str, "%d/%d", page, pages);
+                sprintf(str,
 #endif
+                        "%d/%d", page, pages);
                 gui_set_label(kd, str);
             }
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1

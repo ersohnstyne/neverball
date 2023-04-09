@@ -18,6 +18,14 @@
 #include "fetch.h"
 #include "fs.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 /*
  * Premium: pennyball.stynegame.de
  * Legacy downloads: neverball.github.io
@@ -331,11 +339,12 @@ static Array load_packages_from_file(const char *filename)
             else if (strncmp(line, "size ", 5) == 0)
             {
                 if (pkg)
-#if _MSC_VER
-                    sscanf_s(line + 5, "%u", &pkg->size);
+#if _MSC_VER && _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sscanf_s(line + 5,
 #else
-                    sscanf(line + 5, "%u", &pkg->size);
+                    sscanf(line + 5,
 #endif
+                           "%u", & pkg->size);
             }
             else if (strncmp(line, "files ", 6) == 0)
             {

@@ -273,7 +273,7 @@ static int conf_enter(struct state *st, struct state *prev)
         gui_layout(id, 0, 0);
     }
 
-    audio_music_fade_to(0.5f, "bgm/title.ogg");
+    audio_music_fade_to(0.5f, "bgm/inter.ogg");
 
     return id;
 }

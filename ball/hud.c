@@ -200,9 +200,7 @@ void hud_init(void)
     }
 
     if ((speedup_logo_id = gui_label(0, _("Max acceleration!"), GUI_MED, gui_grn, gui_grn)))
-    {
         gui_layout(speedup_logo_id, 0, 0);
-    }
 
     /* Find the longest camera name. */
 
@@ -378,10 +376,11 @@ void hud_update(int pulse, float animdt)
     float speedpercent = curr_speed_percent();
     char speedattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(speedattr, MAXSTR, "%d %%", ((int) roundf(speedpercent)));
+    sprintf_s(speedattr, MAXSTR,
 #else
-    sprintf(speedattr, "%d %%", ((int) roundf(speedpercent)));
+    sprintf(speedattr,
 #endif
+            "%d %%", ((int) roundf(speedpercent)));
 
     int clock = curr_clock();
     int coins = curr_coins();
@@ -677,10 +676,12 @@ void hud_update_camera_direction(float rot_direction)
     if (hdg_num > 180) hdg_num -= 360;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(camdirref, dstSize, "%i Deg (%s)", (int) round(hdg_num), hdg_name);
+    sprintf_s(camdirref, dstSize,
 #else
-    sprintf(camdirref, "%i Deg (%s)", (int) round(hdg_num), hdg_name);
+    sprintf(camdirref,
 #endif
+            "%i Deg (%s)", (int) round(hdg_num), hdg_name);
+
 #if ENABLE_COMPASS==1
     gui_set_label(camcompass_id, camdirref);
 #endif

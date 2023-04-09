@@ -38,17 +38,20 @@ void boost_rush_stop(void)
 void collect_coin_value(int coin_val)
 {
     need_coins = need_coins + coin_val;
+
     while (need_coins > 9)
     {
         if (curr_speed >= 100.f)
         {
-            /* Exeed some speed for 5 seconds */
+            /* Exceed some speed for 5 seconds */
+
             sonic_timer += 5.f;
             need_coins -= 10;
             return;
         }
 
         /* Increase the speed */
+
         increase_speed();
         hud_speedup_pulse();
         need_coins -= 10;
@@ -60,9 +63,7 @@ void increase_speed(void)
     curr_speed += 14.28571429f;
     
     if (curr_speed >= 100.f)
-    {
         curr_speed = 100.f;
-    }
 }
 
 void substract_speed(void)
@@ -74,9 +75,7 @@ void substract_speed(void)
 void boost_rush_timer(float dt)
 {
     if (sonic_timer > 0)
-    {
         sonic_timer += dt;
-    }
 }
 
 float get_speed_indicator(void)

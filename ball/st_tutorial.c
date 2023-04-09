@@ -277,15 +277,13 @@ static void tutorial_timer(int id, float dt)
 
 static int tutorial_keybd(int c, int d)
 {
-    if (d)
-    {
+    if (d && (c == KEY_EXIT
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-#else
-        if (c == KEY_EXIT)
+        && current_platform == PLATFORM_PC
 #endif
-            return tutorial_action(GUI_BACK, 0);
-    }
+        ))
+        return tutorial_action(GUI_BACK, 0);
+
     return 1;
 }
 
@@ -430,15 +428,13 @@ static int hint_enter(struct state *st, struct state *prev)
 
 static int hint_keybd(int c, int d)
 {
-    if (d)
-    {
+    if (d && (c == KEY_EXIT
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-#else
-        if (c == KEY_EXIT)
+        && current_platform == PLATFORM_PC
 #endif
-            return hint_action(GUI_BACK, 0);
-    }
+        ))
+        return hint_action(GUI_BACK, 0);
+
     return 1;
 }
 

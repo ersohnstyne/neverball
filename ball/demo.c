@@ -44,10 +44,12 @@ static const char *demo_path(const char *name)
 {
     static char path[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(path, dstSize, "Replays/%s.nbr", name);
+    sprintf_s(path, dstSize,
 #else
-    sprintf(path, "Replays/%s.nbr", name);
+    sprintf(path,
 #endif
+            "Replays/%s.nbr", name);
+
     return path;
 }
 
@@ -330,10 +332,11 @@ const char *demo_format_name(const char *fmt,
     for (i = 1; i < 100; i++)
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(numpart, MAXSTR, "_%02d", name);
+        sprintf_s(numpart, MAXSTR,
 #else
-        sprintf(numpart, "_%02d", i);
+        sprintf(numpart,
 #endif
+                "_%02d", i);
 
         if (!demo_exists(name))
             break;
@@ -344,11 +347,14 @@ const char *demo_format_name(const char *fmt,
 
 /*---------------------------------------------------------------------------*/
 
+//#define DISABLE_RECORDINGS 1
+
 static struct demo demo_play;
 
 int demo_play_init(const char *name, const struct level *level,
                    int mode, int scores, int balls, int times, float speedpercent)
 {
+#if !DISABLE_RECORDINGS
     struct demo *d = &demo_play;
 
     memset(d, 0, sizeof (*d));
@@ -377,6 +383,7 @@ int demo_play_init(const char *name, const struct level *level,
         demo_header_write(demo_fp, d);
         return 1;
     }
+#endif
     return 0;
 }
 
@@ -516,14 +523,17 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
 
                 if (game_client_init(demo_replay.file))
                 {
-                    if (g)
+                    /*if (g)
                         audio_music_fade_to(0.5f, level.song);
                     else
                     {
                         union cmd cmd;
                         cmd.type = CMD_GOAL_OPEN;
                         game_proxy_enq(&cmd);
-                    }
+                    }*/
+
+                    if (g)
+                        audio_music_fade_to(0.5f, level.song);
 
                     demo_update_read(0);
 

@@ -64,7 +64,12 @@ static char *number(int i)
 {
     static char str[MAXSTR];
 
-    sprintf(str, "%02d", i);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf(str, MAXSTR,
+#else
+    sprintf(str,
+#endif
+            "%02d", i);
 
     return str;
 }
@@ -215,6 +220,20 @@ static void shared_timer(int id, float dt)
     gui_timer(id, dt);
 }
 
+static void shared_point(int id, int x, int y, int dx, int dy)
+{
+    xbox_toggle_gui(0);
+    gui_pulse(gui_point(id, x, y), 1.2f);
+}
+
+static int shared_click_basic(int b, int d)
+{
+    /* Activate on left click. */
+
+    return (b == SDL_BUTTON_LEFT && d) ?
+           st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
+}
+
 static int shared_stick_basic(int id, int a, float v, int bump)
 {
     int jd;
@@ -276,11 +295,11 @@ static int gamepadinfo_controller_ids[4];
 
 static int title_enter(struct state *st, struct state *prev)
 {
-/*#if defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__)
     EM_ASM({
         Neverputt.isTitleScreen = true;
         });
-#endif*/
+#endif
 
     if (party_indiv_controllers)
     {
@@ -310,7 +329,7 @@ static int title_enter(struct state *st, struct state *prev)
         }
         else if (current_platform == PLATFORM_XBOX)
         {
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
             sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_360);
 #else
             sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_ONE);
@@ -373,11 +392,11 @@ static int title_enter(struct state *st, struct state *prev)
 
 static void title_leave(struct state *st, struct state *next, int id)
 {
-/*#if defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__)
     EM_ASM({
         Neverputt.isTitleScreen = false;
         });
-#endif*/
+#endif
 
     gui_delete(gamepadinfo_id);
     gui_delete(id);
@@ -481,12 +500,6 @@ static void title_timer(int id, float dt)
     gui_timer(id, dt);
 }
 
-static void title_point(int id, int x, int y, int dx, int dy)
-{
-    xbox_toggle_gui(0);
-    gui_pulse(gui_point(id, x, y), 1.2f);
-}
-
 static int title_click(int b, int d)
 {
     return gui_click(b, d) ? title_action(gui_token(gui_active())) : 1;
@@ -551,10 +564,11 @@ static int help_enter(struct state *st, struct state *prev)
         gui_space(id);
 
         gui_multi(id, _("Move the mouse from the direction you wish to shoot.\\"
-            "A power indicator will show you which direction\\"
-            "is going to roll. The longer line is, the more powerful\\"
-            "your shot will be. Once you have your shot aimed\\"
-            "click LMB on your mouse to shoot."), GUI_SML, gui_wht, gui_wht);
+                        "A power indicator will show you which direction\\"
+                        "is going to roll. The longer line is, the more powerful\\"
+                        "your shot will be. Once you have your shot aimed\\"
+                        "click LMB on your mouse to shoot."),
+                        GUI_SML, gui_wht, gui_wht);
     }
 
     gui_layout(id, 0, 0);
@@ -954,12 +968,6 @@ static void party_paint(int id, float t)
     xbox_control_list_gui_paint();
 }
 
-static void party_point(int id, int x, int y, int dx, int dy)
-{
-    xbox_toggle_gui(0);
-    gui_pulse(gui_point(id, x, y), 1.2f);
-}
-
 static int party_click(int b, int d)
 {
     return gui_click(b, d) ? party_action(gui_token(gui_active())) : 1;
@@ -996,11 +1004,17 @@ static int ctrltype_name_id = 0, ctrltype_desc_id = 0;
 
 static int controltype_action(int i)
 {
+    int i, indiv_ctrltype_ready = 1;
     PUTT_GAMEMENU_ACTION(CONTROLTYPE_B);
 
     switch (i)
     {
     case CONTROLTYPE_M:
+        for (i = 0; i < holdage_player_count && indiv_ctrltype_ready; i++)
+        {
+            if (!joy_connected(i, 0, 0))
+                return 1;
+        }
         party_indiv_controllers = 1;
     case CONTROLTYPE_1:
         if (hole_goto(1, holdage_player_count))
@@ -1029,11 +1043,13 @@ static int controltype_enter(struct state* st, struct state* prev)
 
         gui_space(id);
 
-
         if ((jd = gui_vstack(id)))
         {
             ctrltype_name_id = gui_label(jd, _("1 Controller/Player"), GUI_SML, 0, 0);
-            ctrltype_desc_id = gui_label(jd, _("Each Player has one Controller"), GUI_SML, gui_wht, gui_wht);
+            ctrltype_desc_id = gui_multi(jd,
+                                         "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\"
+                                         "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                                         GUI_SML, gui_wht, gui_wht);
             gui_set_rect(jd, GUI_ALL);
             gui_set_state(jd, CONTROLTYPE_M, 0);
         }
@@ -1071,10 +1087,15 @@ static void controltype_timer(int id, float dt)
         if (!joy_connected(i, 0, 0))
         {
             char descattr[64];
-            sprintf(descattr, _("Connect %d more Controller\\to play this game."), i - holdage_player_count);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf(descattr, 64
+#else
+            sprintf(descattr,
+#endif
+                    _("Connect %d more Controller\\to play this game."), i - holdage_player_count);
 
             gui_set_color(ctrltype_name_id, gui_gry, gui_red);
-            gui_set_label(ctrltype_desc_id, descattr);
+            gui_set_multi(ctrltype_desc_id, descattr);
             
             indiv_ctrltype_ready = 0;
             break;
@@ -1090,12 +1111,6 @@ static void controltype_timer(int id, float dt)
     gui_timer(id, dt);
 }
 
-static void controltype_point(int id, int x, int y, int dx, int dy)
-{
-    xbox_toggle_gui(0);
-    gui_pulse(gui_point(id, x, y), 1.2f);
-}
-
 static int controltype_click(int b, int d)
 {
     return gui_click(b, d) ? party_action(gui_token(gui_active())) : 1;
@@ -1103,8 +1118,8 @@ static int controltype_click(int b, int d)
 
 static int controltype_keybd(int c, int d)
 {
-    if (d && c == KEY_EXIT)
-        return controltype_action(PARTY_B);
+    if (d && c == KEY_EXIT && joy_get_cursor_actions(0))
+        return controltype_action(CONTROLTYPE_B);
 
     return 1;
 }
@@ -1116,7 +1131,7 @@ static int controltype_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return controltype_action(gui_token(gui_active()));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return controltype_action(PARTY_B);
+            return controltype_action(CONTROLTYPE_B);
     }
     return 1;
 }
@@ -1238,12 +1253,6 @@ static void pause_paint(int id, float t)
     hud_paint();
 }
 
-static void pause_point(int id, int x, int y, int dx, int dy)
-{
-    xbox_toggle_gui(0);
-    gui_pulse(gui_point(id, x, y), 1.2f);
-}
-
 static int pause_click(int b, int d)
 {
     return gui_click(b, d) ? pause_action(gui_token(gui_active())) : 1;
@@ -1253,6 +1262,7 @@ static int pause_keybd(int c, int d)
 {
     if (d && c == KEY_EXIT)
         return pause_action(PAUSE_CONTINUE);
+
     return 1;
 }
 
@@ -1274,11 +1284,9 @@ static int pause_buttn(int b, int d)
 
 static int shared_keybd(int c, int d)
 {
-    if (d)
-    {
-        if (c == KEY_EXIT)
-            return goto_pause(1);
-    }
+    if (d && (c == KEY_EXIT))
+        return goto_pause(1);
+
     return 1;
 }
 
@@ -1294,7 +1302,12 @@ static int next_enter(struct state *st, struct state *prev)
     stroke_type = 0;
     stroke_set_type(0);
 
-    sprintf(str, _("Hole %02d"), curr_hole());
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(str, MAXSTR
+#else
+    sprintf(str,
+#endif
+            _("Hole %02d"), curr_hole());
 
     if ((id = gui_vstack(0)))
     {
@@ -1359,17 +1372,6 @@ static void next_paint(int id, float t)
     game_draw(0, t);
     hud_paint();
     gui_paint(id);
-}
-
-static void next_point(int id, int x, int y, int dx, int dy)
-{
-    xbox_toggle_gui(0);
-    gui_pulse(gui_point(id, x, y), 1.2f);
-}
-
-static int next_click(int b, int d)
-{
-    return (d && b == SDL_BUTTON_LEFT) ? goto_state(&st_flyby) : 1;
 }
 
 static int next_keybd(int c, int d)
@@ -1504,16 +1506,6 @@ static void flyby_timer(int id, float dt)
     gui_timer(id, dt);
 }
 
-static int flyby_click(int b, int d)
-{
-    if (d && b == SDL_BUTTON_LEFT)
-    {
-        game_set_fly(0.f);
-        return goto_state(&st_stroke);
-    }
-    return 1;
-}
-
 static int flyby_buttn(int b, int d)
 {
     if (d &&
@@ -1622,17 +1614,6 @@ static void stroke_stick(int id, int a, float v, int bump)
         else if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y0, a))
             stroke_mag = -6 * v;
     }
-}
-
-static int stroke_click(int b, int d)
-{
-    if (d && b == SDL_BUTTON_LEFT)
-    {
-        game_putt();
-        return goto_state(&st_roll);
-    }
-
-    return 1;
 }
 
 static int stroke_keybd(int c, int d)
@@ -1863,18 +1844,6 @@ static void goal_timer(int id, float dt)
     }
 }
 
-static int goal_click(int b, int d)
-{
-    if (b == SDL_BUTTON_LEFT && d == 1)
-    {
-        if (hole_next())
-            goto_state(&st_next);
-        else
-            goto_state(&st_score);
-    }
-    return 1;
-}
-
 static int goal_buttn(int b, int d)
 {
     if (d &&
@@ -1946,24 +1915,6 @@ static void stop_timer(int id, float dt)
         else
             goto_state(&st_score);
     }
-}
-
-static int stop_click(int b, int d)
-{
-    if (b == SDL_BUTTON_LEFT && d == 1)
-    {
-        if (hole_next())
-        {
-            /* In single players: You do not make the hole infos again and again! */
-            if (curr_party() > 1)
-                goto_state(&st_next);
-            else
-                goto_state(&st_stroke);
-        }
-        else
-            goto_state(&st_score);
-    }
-    return 1;
 }
 
 static int stop_buttn(int b, int d)
@@ -2056,24 +2007,6 @@ static void fall_timer(int id, float dt)
     gui_timer(id, dt);
 }
 
-static int fall_click(int b, int d)
-{
-    if (b == SDL_BUTTON_LEFT && d == 1)
-    {
-        if (hole_next())
-        {
-            /* In single players: You do not make the hole infos again and again! */
-            if (curr_party() > 1)
-                goto_state(&st_next);
-            else
-                goto_state(&st_stroke);
-        }
-        else
-            goto_state(&st_score);
-    }
-    return 1;
-}
-
 static int fall_buttn(int b, int d)
 {
     if (d &&
@@ -2126,16 +2059,6 @@ static void score_paint(int id, float t)
     gui_paint(id);
 
     xbox_control_putt_scores_gui_paint();
-}
-
-static int score_click(int b, int d)
-{
-    if (b == SDL_BUTTON_LEFT && d == 1)
-    {
-        if (hole_move())
-            return goto_state(&st_next);
-    }
-    return 1;
 }
 
 static int score_keybd(int c, int d)
@@ -2196,11 +2119,6 @@ static void over_paint(int id, float t)
     xbox_control_putt_scores_gui_paint();
 }
 
-static int over_click(int b, int d)
-{
-    return (d && b == SDL_BUTTON_LEFT) ? goto_state(&st_title) : 1;
-}
-
 static int over_keybd(int c, int d)
 {
     if (d &&
@@ -2232,7 +2150,7 @@ struct state st_title = {
     title_leave,
     title_paint,
     title_timer,
-    title_point,
+    shared_point,
     shared_stick,
     NULL,
     title_click,
@@ -2274,7 +2192,7 @@ struct state st_party = {
     shared_leave,
     party_paint,
     shared_timer,
-    party_point,
+    shared_point,
     shared_stick,
     NULL,
     party_click,
@@ -2287,7 +2205,7 @@ struct state st_controltype = {
     shared_leave,
     controltype_paint,
     controltype_timer,
-    controltype_point,
+    shared_point,
     shared_stick,
     NULL,
     controltype_click,
@@ -2300,10 +2218,10 @@ struct state st_next = {
     shared_leave,
     next_paint,
     shared_timer,
-    next_point,
+    shared_point,
     shared_stick,
     NULL,
-    next_click,
+    shared_click_basic,
     next_keybd,
     next_buttn
 };
@@ -2329,7 +2247,7 @@ struct state st_flyby = {
     NULL,
     NULL,
     NULL,
-    flyby_click,
+    shared_click_basic,
     shared_keybd,
     flyby_buttn
 };
@@ -2342,7 +2260,7 @@ struct state st_stroke = {
     stroke_point,
     stroke_stick,
     NULL,
-    stroke_click,
+    shared_click_basic,
     stroke_keybd,
     stroke_buttn,
     stroke_wheel,
@@ -2371,10 +2289,10 @@ struct state st_goal = {
     shared_leave,
     goal_paint,
     goal_timer,
+    shared_point,
     NULL,
     NULL,
-    NULL,
-    goal_click,
+    shared_click_basic,
     shared_keybd,
     goal_buttn,
     NULL,
@@ -2387,10 +2305,10 @@ struct state st_stop = {
     stop_leave,
     stop_paint,
     stop_timer,
+    shared_point,
     NULL,
     NULL,
-    NULL,
-    stop_click,
+    shared_click_basic,
     shared_keybd,
     stop_buttn,
     NULL,
@@ -2403,10 +2321,10 @@ struct state st_fall = {
     fall_leave,
     fall_paint,
     fall_timer,
+    shared_point,
     NULL,
     NULL,
-    NULL,
-    fall_click,
+    shared_click_basic,
     shared_keybd,
     fall_buttn,
     NULL,
@@ -2419,10 +2337,10 @@ struct state st_score = {
     shared_leave,
     score_paint,
     shared_timer,
+    shared_point,
     NULL,
     NULL,
-    NULL,
-    score_click,
+    shared_click_basic,
     score_keybd,
     score_buttn,
     NULL,
@@ -2435,10 +2353,10 @@ struct state st_over = {
     over_leave,
     over_paint,
     shared_timer,
+    shared_point,
     NULL,
     NULL,
-    NULL,
-    over_click,
+    shared_click_basic,
     over_keybd,
     over_buttn,
     NULL,
@@ -2451,7 +2369,7 @@ struct state st_pause = {
     pause_leave,
     pause_paint,
     shared_timer,
-    pause_point,
+    shared_point,
     shared_stick,
     NULL,
     pause_click,

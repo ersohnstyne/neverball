@@ -12,6 +12,16 @@
  * General Public License for more details.
  */
 
+/*
+ * HACK: Remembering the code file differences:
+ * Developers  who  programming  C++  can see more bedrock declaration
+ * than C.  Developers  who  programming  C  can  see  few  procedural
+ * declaration than  C++.  Keep  in  mind  when making  sure that your
+ * extern code must associated. The valid file types are *.c and *.cpp,
+ * so it's always best when making cross C++ compiler to keep both.
+ * - Ersohn Styne
+ */
+
 /*---------------------------------------------------------------------------*/
 
 #define DISABLE_PANORAMA
@@ -45,6 +55,11 @@
 #include <SDL.h>
 #endif
 
+#if _MSC_VER
+#pragma comment(lib, "SDL2.lib")
+#pragma comment(lib, "SDL2main.lib")
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -53,6 +68,9 @@
 #include <PB_Network_Client.h>
 #endif
 
+#if __cplusplus
+extern "C" {
+#endif
 #include "game_client.h"
 
 #include "st_end_support.h"
@@ -67,10 +85,17 @@
 #endif
 
 #include "accessibility.h"
+#if __cplusplus
+}
+#endif
 
 #ifndef VERSION
 #include "version.h"
 #endif
+#if __cplusplus
+extern "C" {
+#endif
+#include "dbg_config.h"
 #include "glext.h"
 #include "config.h"
 #include "video.h"
@@ -95,6 +120,7 @@
 #include "currency.h"
 
 #include "st_malfunction.h"
+#include "st_intro.h"
 #include "st_conf.h"
 #include "st_title.h"
 #include "st_demo.h"
@@ -102,6 +128,9 @@
 #include "st_pause.h"
 #include "st_play.h"
 #include "st_fail.h"
+#if __cplusplus
+}
+#endif
 
 #if NB_STEAM_API==1
 const char TITLE[] = "Neverball - Steam";
@@ -129,7 +158,7 @@ static void shot(void)
 #else
     sprintf(filename,
 #endif
-        "Screenshots/screen_%04d-%04d.png", secdecimal, config_screenshot());
+            "Screenshots/screen_%04d-%04d.png", secdecimal, config_screenshot());
     video_snap(filename);
 #endif
 }
@@ -970,6 +999,8 @@ static void panorama_snap(char *panorama_sides)
     log_printf("Creating panorama image (%s)\n", panorama_sides);
     video_snap(filename);
     video_swap();
+
+    free(filename);
 }
 
 static void panorama_snap_sides(void)
@@ -1001,6 +1032,8 @@ static void panorama_snap_sides(void)
 
 static int main_init(int argc, char *argv[])
 {
+    GAMEDBG_SIGFUNC_PREPARE;
+
 #if NB_STEAM_API==1    
     if (!SteamAPI_Init())
     {
@@ -1059,11 +1092,23 @@ static int main_init(int argc, char *argv[])
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS, "1");
 #endif
 
+#if _cplusplus
+    try {
+#endif
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) == -1)
     {
-        log_errorf("Failure to initialize SDL (%s)\n", SDL_GetError() ? SDL_GetError() : "Unknown error");
+        log_errorf("Failure to initialize SDL (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
         return 0;
     }
+#if _cplusplus
+    } catch (const char *xS) {
+        log_errorf("Failure to initialize SDL: Exception caught! (%s - %s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL, xS);
+        return 0;
+    } catch (...) {
+        log_errorf("Failure to initialize SDL: Exception caught! (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
+        return 0;
+    }
+#endif
 
     /* Initialize configuration. */
 
@@ -1075,6 +1120,10 @@ static int main_init(int argc, char *argv[])
     if (!opt_panorama)
     {
 #endif
+
+        /* Initialize currency units. */
+
+        currency_init();
 
 #if ENABLE_DEDICATED_SERVER==1
         if (opt_ipaddr)
@@ -1095,8 +1144,6 @@ static int main_init(int argc, char *argv[])
             );
         }
 #endif
-
-        currency_init();
 
         initialize_fetch();
 
@@ -1277,7 +1324,14 @@ static void main_quit(void)
 
     log_quit();
     fs_quit();
-    SDL_Quit();
+
+#if _cplusplus
+    try {
+#endif
+        SDL_Quit();
+#if _cplusplus
+    } catch (...) {}
+#endif
 
 #if NB_EOS_SDK==1
     /* TODO: Add the EOS SDK shutdown! */
@@ -1288,7 +1342,7 @@ static void main_quit(void)
     SteamAPI_Shutdown();
 #endif
 
-#if _WIN32 && _DEBUG
+#if _WIN32 && _MSC_VER && _DEBUG && defined(_CRTDBG_MAP_ALLOC)
     _CrtDumpMemoryLeaks();
 #endif
 
@@ -1300,8 +1354,14 @@ int main(int argc, char *argv[])
     SDL_Joystick *joy = NULL;
     struct main_loop mainloop = { 0 };
 
+#if _cplusplus
+    try {
+#endif
     if (!main_init(argc, argv))
         return 1;
+#if _cplusplus
+    } catch (...) { return 1; }
+#endif
 
 #ifndef DISABLE_PANORAMA
     if (opt_panorama)

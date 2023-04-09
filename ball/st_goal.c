@@ -653,15 +653,14 @@ static int goal_keybd(int c, int d)
          */
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
+#else
+        if (c == KEY_EXIT)
+#endif
             return 1;
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c) && current_platform == PLATFORM_PC)
             return goal_action(GUI_SCORE, GUI_SCORE_NEXT(gui_score_get()));
         if (config_tst_d(CONFIG_KEY_RESTART, c) && progress_same_avail() && !campaign_hardcore() && current_platform == PLATFORM_PC)
             return goal_action(GOAL_SAME, 0);
-#else
-        if (c == KEY_EXIT)
-            return 1;
-#endif
     }
 
     return 1;
@@ -717,11 +716,10 @@ static int goal_extraballs_keybd(int c, int d)
     {
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return goto_state(&st_goal);
 #else
         if (c == KEY_EXIT)
-            return goto_state(&st_goal);
 #endif
+            return goto_state(&st_goal);
     }
 
     return 1;
@@ -777,10 +775,11 @@ static int goal_shop_gui(void)
         char productmsg[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(productmsg, dstSize, _("You have enough coins to buy\\%s.\\Try it out!"), prodname);
+        sprintf_s(productmsg, dstSize,
 #else
-        sprintf(productmsg, _("You have enough coins to buy\\%s.\\Try it out!"), prodname);
+        sprintf(productmsg,
 #endif
+                _("You have enough coins to buy\\%s.\\Try it out!"), prodname);
 
         gui_multi(id, productmsg, GUI_SML, gui_wht, gui_wht);
 
@@ -803,11 +802,10 @@ static int goal_shop_keybd(int c, int d)
     {
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return goto_state(&st_goal);
 #else
         if (c == KEY_EXIT)
-            return goto_state(&st_goal);
 #endif
+            return goto_state(&st_goal);
     }
 
     return 1;

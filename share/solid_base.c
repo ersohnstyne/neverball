@@ -389,7 +389,7 @@ static void sol_load_indx(fs_file fin, struct s_base *fp)
     fp->uc = get_index(fin);
 #ifdef MAPC_INCLUDES_CHKP
     /* New: Checkpoints */
-    if (sol_version > 8)
+    if (sol_version > SOL_VERSION_1_7)
         fp->cc = get_index(fin);
 #endif
     fp->wc = get_index(fin);
@@ -442,7 +442,7 @@ static int sol_load_file(fs_file fin, struct s_base *fp)
     if (fp->uc)
         fp->uv = (struct b_ball *) calloc(fp->uc, sizeof (*fp->uv));
 #ifdef MAPC_INCLUDES_CHKP
-    if (sol_version > 8)
+    if (sol_version > SOL_VERSION_1_7)
     {
         /* New: Checkpoints */
         if (fp->cc)
@@ -480,7 +480,7 @@ static int sol_load_file(fs_file fin, struct s_base *fp)
     for (i = 0; i < fp->uc; i++) sol_load_ball(fin, fp->uv + i);
 #ifdef MAPC_INCLUDES_CHKP
     /* New: Checkpoints */
-    if (sol_version > 8)
+    if (sol_version > SOL_VERSION_1_7)
         for (i = 0; i < fp->cc; i++) sol_load_chkp(fin, fp->cv + i);
 #endif
     for (i = 0; i < fp->wc; i++) sol_load_view(fin, fp->wv + i);
@@ -593,7 +593,7 @@ void sol_free_base(struct s_base *fp)
     if (fp->uv) free(fp->uv);
 #ifdef MAPC_INCLUDES_CHKP
     /* New: Checkpoints */
-    if (sol_version > 8)
+    if (sol_version > SOL_VERSION_1_7)
         if (fp->cv) free(fp->cv);
 #endif
     if (fp->wv) free(fp->wv);

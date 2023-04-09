@@ -184,11 +184,13 @@ void account_quit(void)
 
 int  account_exists(void)
 {
+    char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    char paths[MAXSTR]; sprintf_s(paths, dstSize, "Accounts/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
+    sprintf_s(paths, dstSize,
 #else
-    char paths[MAXSTR]; sprintf(paths, "Accounts/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
+    sprintf(paths,
 #endif
+            "Accounts/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
 
     assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
 #ifdef FS_VERSION_1
@@ -237,11 +239,13 @@ void account_load(void)
         return;
     }
 
+    char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    char paths[MAXSTR]; sprintf_s(paths, dstSize, "Accounts/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
+    sprintf_s(paths, dstSize,
 #else
-    char paths[MAXSTR]; sprintf(paths, "Accounts/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
+    sprintf(paths,
 #endif
+            "Accounts/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
 
     if (!account_is_init)
     {
@@ -315,11 +319,13 @@ void account_save(void)
         return;
     }
 
+    char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    char paths[MAXSTR]; sprintf_s(paths, dstSize, "Accounts/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
+    sprintf_s(paths, dstSize,
 #else
-    char paths[MAXSTR]; sprintf(paths, "Accounts/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
+    sprintf(paths,
 #endif
+            "Accounts/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
 
     if (!account_is_init)
     {

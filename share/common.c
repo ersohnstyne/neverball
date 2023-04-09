@@ -33,6 +33,14 @@
 #include "common.h"
 #include "fs.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 size_t dstSize = 256;
 
 /*---------------------------------------------------------------------------*/
@@ -57,9 +65,7 @@ int read_line(char **dst, fs_file fin)
             line = newLine;
         }
         else
-        {
             line = strdup(buff);
-        }
 
         /* Strip newline, if any. */
 
@@ -78,13 +84,13 @@ int read_line(char **dst, fs_file fin)
     return (*dst = line) ? 1 : 0;
 }
 
-#if defined(_UNICODE)
+#if UNICODE
 wchar_t *wcsip_newline(wchar_t *wstr)
 {
     wchar_t *c = wstr + wcslen(wstr) - 1;
 
-    while (c >= wstr && (*c == '\n' || *c =='\r'))
-        *c-- = '\0';
+    while (c >= wstr && (*c == L'\n' || *c == L'\r'))
+        *c-- = L'\0';
 
     return wstr;
 }
@@ -100,8 +106,8 @@ char *strip_newline(char *str)
     return str;
 }
 
-#if !_MSC_VER
-#if _UNICODE
+#if !_MSC_VER || _NONSTDC
+#if UNICODE
 wchar_t *dupe_wstring(const wchar_t *src)
 {
     wchar_t *dst = NULL;
@@ -243,7 +249,7 @@ int file_size(const char *path)
 {
     struct stat buf;
     if (stat(path, &buf) == 0)
-        return (int)buf.st_size;
+        return (int) buf.st_size;
     return 0;
 }
 #endif
@@ -255,11 +261,10 @@ void file_copy(FILE* fin, FILE* fout)
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     while (fread_s(buff, size, 1, sizeof (buff), fin) > 0)
-        fwrite(buff, 1, size, fout);
 #else
     while ((size = fread(buff, 1, sizeof (buff), fin)) > 0)
-        fwrite(buff, 1, size, fout);
 #endif
+        fwrite(buff, 1, size, fout);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -303,9 +308,7 @@ const char *path_last_sep(const char *path)
 
 #ifdef _WIN32
     if (!sep)
-    {
         sep = strrchr(path, '\\');
-    }
     else
     {
         const char *tmp;
@@ -370,18 +373,15 @@ const char *base_name(const char *name)
 {
     static char buff[MAXSTR];
 
-    char *sep;
+    char* sep;
 
-    if (!name) {
-        return name;
-    }
+    if (!name) return name;
 
     SAFECPY(buff, name);
 
     // Remove trailing slashes.
-    while ((sep = (char *) path_last_sep(buff)) && !sep[1]) {
+    while ((sep = (char *) path_last_sep(buff)) && !sep[1])
         *sep = 0;
-    }
 
     return (sep = (char *) path_last_sep(buff)) ? sep + 1 : buff;
 }
@@ -391,15 +391,14 @@ const char *dir_name(const char *name)
     static char buff[MAXSTR];
 
     if (name && *name)
-        {
+    {
         char *sep;
 
         SAFECPY(buff, name);
 
         // Remove trailing slashes.
-        while ((sep = (char *) path_last_sep(buff)) && !sep[1]) {
+        while ((sep = (char *) path_last_sep(buff)) && !sep[1])
             *sep = 0;
-        }
 
         if ((sep = (char *) path_last_sep(buff)))
         {
@@ -437,16 +436,18 @@ int set_env_var(const char *name, const char *value)
 
         if (value)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(str, dstSize, "%s=%s", name, value);
+            sprintf_s(str, dstSize,
 #else
-            sprintf(str, "%s=%s", name, value);
+            sprintf(str,
 #endif
+                    "%s=%s", name, value);
         else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(str, dstSize, "%s=", name);
+            sprintf_s(str, dstSize,
 #else
-            sprintf(str, "%s=", name);
+            sprintf(str,
 #endif
+                    "%s=", name);
 
         return (_putenv(str) == 0);
     }

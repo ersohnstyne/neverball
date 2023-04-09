@@ -445,7 +445,8 @@ static void sol_free_mesh(struct d_mesh *mp)
     glDeleteBuffers_(1, &mp->vbo);
 }
 
-void sol_draw_mesh(const struct d_mesh *mp, struct s_rend *rend, int p)
+static void sol_draw_mesh(const struct d_mesh *mp,
+                          struct s_rend *rend, int p)
 {
     /* If this mesh has material matching the given flags... */
 
@@ -917,10 +918,11 @@ static void check_mtrl(const char *name, GLenum pname, GLuint curr)
     if (real != curr)
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(buff, dstSize, "%s mismatch (0x%08X -> 0x%08X)", name, real, curr);
+        sprintf_s(buff, dstSize,
 #else
-        sprintf(buff, "%s mismatch (0x%08X -> 0x%08X)", name, real, curr);
+        sprintf(buff,
 #endif
+                "%s mismatch (0x%08X -> 0x%08X)", name, real, curr);
         glStringMarker_(buff);
     }
 }

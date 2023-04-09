@@ -12,6 +12,22 @@
  * General Public License for more details.
  */
 
+/*
+ * HACK: Remembering the code file differences:
+ * Developers  who  programming  C++  can see more bedrock declaration
+ * than C.  Developers  who  programming  C  can  see  few  procedural
+ * declaration than  C++.  Keep  in  mind  when making  sure that your
+ * extern code must associated. The valid file types are *.c and *.cpp,
+ * so it's always best when making cross C++ compiler to keep both.
+ * - Ersohn Styne
+ */
+
+#define ENABLE_MULTISAMPLE_SOLUTION
+#define FPS_REALTIME
+
+#if __cplusplus
+#include <vcruntime_exception.h>
+#endif
 #include <assert.h>
 
 #ifdef __EMSCRIPTEN__
@@ -24,9 +40,14 @@
 #include <SDL.h>
 #endif
 
+#if __cplusplus
+extern "C" {
+#endif
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
 #include "console_control_gui.h"
 #endif
+
+#include "dbg_config.h"
 
 #include "video.h"
 #include "common.h"
@@ -36,12 +57,14 @@
 #include "config.h"
 #include "gui.h"
 #include "hmd.h"
+#if __cplusplus
+}
+#endif
 
-#define ENABLE_MULTISAMPLE_SOLUTION
-#define FPS_REALTIME
-
+#if !__cplusplus
 extern const char TITLE[];
 extern const char ICON[];
+#endif
 
 struct video video;
 
@@ -50,25 +73,30 @@ struct video video;
 /* Normally...... show the system cursor and hide the virtual cursor.        */
 /* In HMD mode... show the virtual cursor and hide the system cursor.        */
 
+#if __cplusplus
+extern "C"
+#endif
 void video_show_cursor()
 {
+    int cursor_visible = 0;
+
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (current_platform == PLATFORM_PC)
 #endif
     {
 #ifdef SWITCHBALL_GUI
         gui_set_cursor(1);
-        SDL_ShowCursor(SDL_DISABLE);
+        cursor_visible = SDL_DISABLE;
 #else
         if (hmd_stat())
         {
             gui_set_cursor(1);
-            SDL_ShowCursor(SDL_DISABLE);
+            cursor_visible = SDL_DISABLE;
         }
         else
         {
             gui_set_cursor(0);
-            SDL_ShowCursor(SDL_ENABLE);
+            cursor_visible = SDL_ENABLE;
         }
 #endif
     }
@@ -78,17 +106,23 @@ void video_show_cursor()
         /* You won't be able to use the cursor, while using the
          * Nintendo Switch, PS4 or Xbox */
         gui_set_cursor(0);
-        SDL_ShowCursor(SDL_DISABLE);
+        cursor_visible = SDL_DISABLE;
     }
 #endif
+
+    SDL_ShowCursor(cursor_visible);
 }
 
 /* When the cursor is to be hidden, make sure neither the virtual cursor     */
 /* nor the system cursor is visible.                                         */
 
+#if __cplusplus
+extern "C"
+#endif
 void video_hide_cursor()
 {
     gui_set_cursor(0);
+
     SDL_ShowCursor(SDL_DISABLE);
 }
 
@@ -116,6 +150,9 @@ static void snapshot_take(void)
     }
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_snap(const char *path)
 {
     snapshot_prep(path);
@@ -143,6 +180,9 @@ static void set_window_icon(const char *filename)
 /*
  * Enter/exit fullscreen mode.
  */
+#if __cplusplus
+extern "C"
+#endif
 int video_fullscreen(int f)
 {
     int code = SDL_SetWindowFullscreen(window, f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
@@ -150,7 +190,7 @@ int video_fullscreen(int f)
     if (code == 0)
         config_set_d(CONFIG_FULLSCREEN, f ? 1 : 0);
     else
-        log_errorf("Failure to %s fullscreen (%s)\n", f ? "enter" : "exit", SDL_GetError() ? SDL_GetError() : "Unknown error");
+        log_errorf("Failure to %s fullscreen (%s)\n", f ? "enter" : "exit", GAMEDBG_GETSTRERROR_CHOICES_SDL);
 
     return (code == 0);
 }
@@ -158,6 +198,9 @@ int video_fullscreen(int f)
 /*
  * Handle a window resize event.
  */
+#if __cplusplus
+extern "C"
+#endif
 void video_resize(int window_w, int window_h)
 {
     if (window)
@@ -196,6 +239,9 @@ void video_resize(int window_w, int window_h)
     }
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_set_window_size(int w, int h)
 {
     /*
@@ -206,15 +252,18 @@ void video_set_window_size(int w, int h)
      *   3) triggers a SDL_WINDOWEVENT_SIZE_CHANGED event, which updates our viewport/UI.
      */
 
-     /*
-      * BTW, for this to work with element.requestFullscreen(),
-      * a change needs to be applied to the SDL2 Emscripten port:
-      * https://github.com/emscripten-ports/SDL2/issues/138
-      */
+    /*
+     * BTW, for this to work with element.requestFullscreen(),
+     * a change needs to be applied to the SDL2 Emscripten port:
+     * https://github.com/emscripten-ports/SDL2/issues/138
+     */
 
     SDL_SetWindowSize(window, w, h);
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_set_display(int dpy)
 {
     SDL_DisplayMode ddm;
@@ -248,6 +297,9 @@ void video_set_display(int dpy)
     SDL_SetWindowPosition(window, X, Y);
 }
 
+#if __cplusplus
+extern "C"
+#endif
 int video_display(void)
 {
     if (window)
@@ -256,19 +308,25 @@ int video_display(void)
         return -1;
 }
 
+#if __cplusplus
+extern "C"
+#endif
 int video_init(void)
 {
     if (!video_mode(config_get_d(CONFIG_FULLSCREEN),
                     config_get_d(CONFIG_WIDTH),
                     config_get_d(CONFIG_HEIGHT)))
     {
-        log_errorf("Failure to create window (%s)\n", SDL_GetError() ? SDL_GetError() : "Unknown error");
+        log_errorf("Failure to create window (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
         return 0;
     }
 
     return 1;
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_quit(void)
 {
     if (context)
@@ -288,6 +346,9 @@ void video_quit(void)
     hmd_free();
 }
 
+#if __cplusplus
+extern "C"
+#endif
 int video_mode(int f, int w, int h)
 {
     int stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
@@ -353,9 +414,9 @@ int video_mode(int f, int w, int h)
 #endif
     
 #ifndef ENABLE_HMD
-    /* If the HMD is not ready, use without stereo. */
-    config_set_d(CONFIG_STEREO, 0);
-    stereo = 0;
+    /* If the HMD is not ready, use these. */
+    config_set_d(CONFIG_HMD, 0);
+    hmd = 0;
 #endif
 
     SDL_GL_SetAttribute(SDL_GL_STEREO,             stereo);
@@ -365,10 +426,13 @@ int video_mode(int f, int w, int h)
 
     /* Require 16-bit double buffer with 16-bit depth buffer. */
 
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     5);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   5);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    5);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,  16);
+    // Default RGB size: 5
+    int rgb_size[] = { 5, 5, 5 };
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     rgb_size[0]);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   rgb_size[1]);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    rgb_size[2]);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,  
+                        rgb_size[0] + rgb_size[1] + rgb_size[2] + 1);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     /* Try to set the currently specified mode. */
@@ -379,21 +443,41 @@ int video_mode(int f, int w, int h)
 #if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
     if (!window) {
 #endif
-        window = SDL_CreateWindow(TITLE, X, Y, MAX(w, 320), MAX(h, 240),
-            SDL_WINDOW_OPENGL
-            | SDL_WINDOW_ALLOW_HIGHDPI
+#if __cplusplus
+        try {
+#endif
+        if (w && h && TITLE);
+        {
+            window = SDL_CreateWindow(TITLE, X, Y, MAX(w, 320), MAX(h, 240),
+                SDL_WINDOW_OPENGL
+                | SDL_WINDOW_ALLOW_HIGHDPI
 #ifndef __EMSCRIPTEN__
 #ifdef RESIZEABLE_WINDOW
-            | SDL_WINDOW_RESIZABLE
-            | (config_get_d(CONFIG_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0)
+                | SDL_WINDOW_RESIZABLE
+                | (config_get_d(CONFIG_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0)
 #endif
-            | (f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)
+                | (f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)
 #endif
-        );
-        
+            );
+        }
+
+        GAMEDBG_CHECK_SEGMENTATIONS_BOOL(UNREFERENCED_PARAMETER(0));
+
 #ifdef RESIZEABLE_WINDOW
         if (config_get_d(CONFIG_MAXIMIZED))
             SDL_MaximizeWindow(window);
+#endif
+#if __cplusplus
+        } catch (const std::exception& xO) {
+            log_errorf("Failure to create window!: Exception caught! (%s)\n", xO.what());
+            return 0;
+        } catch (const char *xS) {
+            log_errorf("Failure to create window!: Exception caught! (%s)\n", xS);
+            return 0;
+        } catch (...) {
+            log_errorf("Failure to create window!: Exception caught! (Unknown type)\n");
+            return 0;
+        }
 #endif
 #if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
     }
@@ -469,7 +553,7 @@ int video_mode(int f, int w, int h)
 
         log_printf("Created a window (%u, %dx%d, %s)\n",
                    SDL_GetWindowID(window),
-                   video.window_w, video.window_h,
+                   w, h,
                    (f ? "fullscreen" : "windowed"));
 
         config_set_d(CONFIG_DISPLAY,    video_display());
@@ -529,8 +613,8 @@ int video_mode(int f, int w, int h)
 
         if (config_get_d(CONFIG_FULLSCREEN))
             SDL_WarpMouseInWindow(window,
-                video.window_w / 2,
-                video.window_h / 2);
+                                  video.window_w / 2,
+                                  video.window_h / 2);
         
         config_set_d(CONFIG_DISPLAY, dpy);
         config_set_d(CONFIG_WIDTH, video.window_w);
@@ -650,6 +734,9 @@ int video_mode(int f, int w, int h)
     return 0;
 }
 
+#if __cplusplus
+extern "C"
+#endif
 int video_mode_auto_config(int f, int w, int h)
 {
     int stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
@@ -731,6 +818,9 @@ int video_mode_auto_config(int f, int w, int h)
 #if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
     if (!window) {
 #endif
+#if __cplusplus
+        try {
+#endif
         window = SDL_CreateWindow(TITLE, X, Y, MAX(w, 320), MAX(h, 240),
             SDL_WINDOW_OPENGL
             | SDL_WINDOW_ALLOW_HIGHDPI
@@ -746,6 +836,18 @@ int video_mode_auto_config(int f, int w, int h)
 #ifdef RESIZEABLE_WINDOW
         if (config_get_d(CONFIG_MAXIMIZED))
             SDL_MaximizeWindow(window);
+#endif
+#if __cplusplus
+        } catch (const std::exception& xO) {
+            log_errorf("Failure to create window!: Exception caught! (%s)\n", xO.what());
+            return 0;
+        } catch (const char *xS) {
+            log_errorf("Failure to create window!: Exception caught! (%s)\n", xS);
+            return 0;
+        } catch (...) {
+            log_errorf("Failure to create window!: Exception caught! (Unknown type)\n");
+            return 0;
+        }
 #endif
 #if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
     }
@@ -867,7 +969,7 @@ int video_mode_auto_config(int f, int w, int h)
 
         log_printf("Created a window (%u, %dx%d, %s (auto configuration))\n",
             SDL_GetWindowID(window),
-            video.window_w, video.window_h,
+            w, h,
             (f ? "fullscreen" : "windowed"));
 
         config_set_d(CONFIG_DISPLAY, video_display());
@@ -891,7 +993,7 @@ int video_mode_auto_config(int f, int w, int h)
 
 #if !ENABLE_OPENGLES
         glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL,
-            GL_SEPARATE_SPECULAR_COLOR);
+                      GL_SEPARATE_SPECULAR_COLOR);
 #endif
 
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -941,8 +1043,8 @@ int video_mode_auto_config(int f, int w, int h)
 
         if (config_get_d(CONFIG_FULLSCREEN))
         SDL_WarpMouseInWindow(window,
-            video.window_w / 2,
-            video.window_h / 2);
+                              video.window_w / 2,
+                              video.window_h / 2);
 
         config_set_d(CONFIG_DISPLAY, dpy);
         config_set_d(CONFIG_WIDTH, video.window_w);
@@ -988,11 +1090,17 @@ static int   last   = 0;
 static int   ticks  = 0;
 static int   frames = 0;
 
+#if __cplusplus
+extern "C"
+#endif
 int  video_perf(void)
 {
     return fps;
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_swap(void)
 {
     int dt;
@@ -1062,6 +1170,9 @@ void video_swap(void)
 
 static int grabbed = 0;
 
+#if __cplusplus
+extern "C"
+#endif
 void video_set_grab(int w)
 {
     if (w)
@@ -1082,6 +1193,9 @@ void video_set_grab(int w)
     grabbed = 1;
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_clr_grab(void)
 {
     SDL_SetRelativeMouseMode(SDL_FALSE);
@@ -1096,6 +1210,9 @@ void video_clr_grab(void)
     grabbed = 0;
 }
 
+#if __cplusplus
+extern "C"
+#endif
 int  video_get_grab(void)
 {
     return grabbed;
@@ -1112,18 +1229,17 @@ int render_line_overlay = 0;
 int render_left_viewport = 0;
 int render_right_viewport = 0;
 
+#if __cplusplus
+extern "C"
+#endif
 void video_set_wire(int wire)
 {
 #if !ENABLE_OPENGLES
     wireframe_splitview = 0;
     if (wire == 4)
-    {
         viewport_wireframe = 4;
-    }
     if (wire == 3)
-    {
         viewport_wireframe = 3;
-    }
     else if (wire == 2)
     {
         viewport_wireframe = 2;
@@ -1148,6 +1264,9 @@ void video_set_wire(int wire)
 #endif
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_render_fill_or_line(int lined)
 {
 #if !ENABLE_OPENGLES
@@ -1222,6 +1341,9 @@ void video_render_fill_or_line(int lined)
 #endif
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_toggle_wire(void)
 {
     viewport_wireframe++;
@@ -1231,6 +1353,9 @@ void video_toggle_wire(void)
     video_set_wire(viewport_wireframe);
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_calc_view(float *M, const float *c,
                                const float *p,
                                const float *u)
@@ -1250,6 +1375,9 @@ void video_calc_view(float *M, const float *c,
 
 /*---------------------------------------------------------------------------*/
 
+#if __cplusplus
+extern "C"
+#endif
 void video_push_persp(float fov, float n, float f)
 {
     //glPushMatrix();
@@ -1300,6 +1428,9 @@ void video_push_persp(float fov, float n, float f)
     }
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_push_ortho(void)
 {
     //glPushMatrix();
@@ -1331,11 +1462,17 @@ void video_push_ortho(void)
     }
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_pop_matrix(void)
 {
     //glPopMatrix();
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_clear(void)
 {
     GLbitfield bufferBit = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;

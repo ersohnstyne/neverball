@@ -22,6 +22,14 @@
 #include "array.h"
 #include "common.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 /*
  * This file implements the low-level virtual file system routines
  * using the PhysicsFS 1.0 API.

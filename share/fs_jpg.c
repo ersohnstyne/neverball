@@ -130,8 +130,7 @@ fill_input_buffer (j_decompress_ptr cinfo)
 
   if (src->infile)
     nbytes = fs_read(src->buffer, INPUT_BUF_SIZE, src->infile);
-  else
-  {
+  else {
     log_errorf("Failure to fill JPG buffer! JPG must be opened the file!\n"); return FALSE;
   }
 

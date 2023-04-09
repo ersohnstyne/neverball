@@ -411,7 +411,11 @@ static int pause_keybd(int c, int d)
 {
     if (d)
     {
-        if (c == KEY_EXIT)
+        if (c == KEY_EXIT
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+            && current_platform == PLATFORM_PC
+#endif
+            )
         {
             if (!st_global_animating())
             {

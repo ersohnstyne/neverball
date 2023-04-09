@@ -142,41 +142,38 @@ static int shop_activate_action(int tok, int val)
             activate_introducory = 0;
             return goto_state(curr_state());
         }
-        else
+        else if (game_payment_activate(text_input) == 0)
         {
-            if (game_payment_activate(text_input) == 0)
-            {
-                text_input_stop();
+            text_input_stop();
 
-                int new_coins = account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_orderpack().Wallets[0];
-                int new_gems = account_get_d(ACCOUNT_DATA_WALLET_GEMS) + curr_orderpack().Wallets[1];
-                int new_lives = account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + curr_orderpack().Balls;
+            int new_coins = account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_orderpack().Wallets[0];
+            int new_gems = account_get_d(ACCOUNT_DATA_WALLET_GEMS) + curr_orderpack().Wallets[1];
+            int new_lives = account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + curr_orderpack().Balls;
 
-                int prev_powers[3];
-                int new_powers[3];
-                prev_powers[0] = account_get_d(ACCOUNT_CONSUMEABLE_EARNINATOR);
-                prev_powers[1] = account_get_d(ACCOUNT_CONSUMEABLE_FLOATIFIER);
-                prev_powers[2] = account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER);
-                v_add(new_powers, prev_powers, curr_orderpack().Powerups);
+            int prev_powers[3];
+            int new_powers[3];
+            prev_powers[0] = account_get_d(ACCOUNT_CONSUMEABLE_EARNINATOR);
+            prev_powers[1] = account_get_d(ACCOUNT_CONSUMEABLE_FLOATIFIER);
+            prev_powers[2] = account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER);
+            v_add(new_powers, prev_powers, curr_orderpack().Powerups);
 
-                /* Do the same as well? */
+            /* Do the same as well? */
 
-                account_set_d(ACCOUNT_DATA_WALLET_COINS, new_coins);
-                account_set_d(ACCOUNT_DATA_WALLET_GEMS, new_gems);
-                account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, new_lives);
-                account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, new_powers[0]);
-                account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, new_powers[1]);
-                account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, new_powers[2]);
+            account_set_d(ACCOUNT_DATA_WALLET_COINS, new_coins);
+            account_set_d(ACCOUNT_DATA_WALLET_GEMS, new_gems);
+            account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, new_lives);
+            account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, new_powers[0]);
+            account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, new_powers[1]);
+            account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, new_powers[2]);
 
-                account_save();
+            account_save();
 
-                audio_play("snd/import.ogg", 1.f);
+            audio_play("snd/import.ogg", 1.f);
 
-                if (curr_ok_fn)
-                    curr_ok_fn(ok_state);
+            if (curr_ok_fn)
+                curr_ok_fn(ok_state);
 
-                return goto_state(ok_state);
-            }
+            return goto_state(ok_state);
         }
         break;
 

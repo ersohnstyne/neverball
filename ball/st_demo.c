@@ -307,8 +307,10 @@ static int demo_action(int tok, int val)
             if (progress_replay(DIR_ITEM_GET(demo_items, val)->path))
             {
                 last_viewed = val;
+                allow_exact_versions = 1;
                 demo_play_goto(0);
-                return goto_state(&st_demo_play);
+                return goto_state(game_compat_map ?
+                                  &st_demo_play : &st_demo_compat);
             }
         }
         break;
@@ -420,7 +422,9 @@ static void gui_demo_update_thumbs(void)
         
         if (stat_max > stat_limit && demo)
         {
-            gui_set_image(thumbs[i].shot, stat_limit == 1 ? "gui/filters/single_filters.jpg" : "gui/filters/keep_filters.jpg");
+            gui_set_image(thumbs[i].shot,
+                          stat_limit == 1 ?
+                          "gui/filters/single_filters.jpg" : "gui/filters/keep_filters.jpg");
             gui_set_color(thumbs[i].name, gui_red, gui_red);
         }
         else if (demo_requires_update && demo)
@@ -638,10 +642,12 @@ static int demo_restricted_gui(void)
         {
             char infoattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(infoattr, dstSize, "%s: %s > %s", _("Player"), reported_player_name, reported_status);
+            sprintf_s(infoattr, dstSize,
 #else
-            sprintf(infoattr, "%s: %s > %s", _("Player"), reported_player_name, reported_status);
+            sprintf(infoattr,
 #endif
+                    "%s: %s > %s", _("Player"), reported_player_name, reported_status);
+            
             if (demo_requires_update)
                 repid = gui_label(jd, _("Update required!"), GUI_MED, gui_gry, gui_red);
             else if (time_max_minutes > time_limit_minutes)
@@ -708,7 +714,11 @@ static int demo_restricted_keybd(int c, int d)
 {
     if (d)
     {
+#ifndef __EMSCRIPTEN__
+        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
+#else
         if (c == KEY_EXIT)
+#endif
             if (is_opened)
                 return goto_state(&st_demo_end);
             else
@@ -745,10 +755,12 @@ static int demo_scan_allowance_gui()
 {
     char cancelattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(cancelattr, dstSize, _("Scan in progress...\\To cancel scanning, press %s"), SDL_GetKeyName(KEY_EXIT));
+    sprintf_s(cancelattr, dstSize,
 #else
-    sprintf(cancelattr, _("Scan in progress...\\To cancel scanning, press %s"), SDL_GetKeyName(KEY_EXIT));
+    sprintf(cancelattr,
 #endif
+            _("Scan in progress...\\To cancel scanning, press %s"), SDL_GetKeyName(KEY_EXIT));
+    
     detailpanel = gui_multi(0, cancelattr, GUI_SML, gui_wht, gui_wht);
     gui_layout(detailpanel, 0, 0);
     return detailpanel;
@@ -798,9 +810,7 @@ static void demo_scan_allowance_timer(int id, float dt)
         {
             threshold++;
             if (threshold == 5)
-            {
                 goto_state(&st_demo_play);
-            }
         }
     }
     else
@@ -838,7 +848,11 @@ static int demo_scan_allowance_keybd(int c, int d)
 {
     if (d)
     {
+#ifndef __EMSCRIPTEN__
+        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
+#else
         if (c == KEY_EXIT)
+#endif
         {
             demo_replay_stop(0);
             return standalone ? 0 : goto_state(&st_demo);
@@ -880,10 +894,11 @@ static int demo_gui(void)
                 char availibility_header_monitor[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(availibility_header_monitor, dstSize, _("Replays unlocked: %d/%d"), availibility, total);
+                sprintf_s(availibility_header_monitor, dstSize,
 #else
-                sprintf(availibility_header_monitor, _("Replays unlocked: %d/%d"), availibility, total);
+                sprintf(availibility_header_monitor,
 #endif
+                        _("Replays unlocked: %d/%d"), availibility, total);
 
                 int header_id = gui_label(jd, availibility_header_monitor, GUI_SML, 0, 0);
 
@@ -899,9 +914,7 @@ static int demo_gui(void)
                     gui_set_color(header_id, gui_gry, gui_red);
             }
             else
-            {
                 gui_label(jd, _("Select Replay"), GUI_SML, 0, 0);
-            }
 
             gui_filler(jd);
             gui_navig(jd, total, first, DEMO_STEP);
@@ -1101,11 +1114,10 @@ static int demo_keybd(int c, int d)
     {
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return demo_action(GUI_BACK, 0);
 #else
         if (c == KEY_EXIT)
-            return demo_action(GUI_BACK, 0);
 #endif
+            return demo_action(GUI_BACK, 0);
         if (c == KEY_LOOKAROUND)
         {
             demo_manual_hotreload = 1;
@@ -1217,17 +1229,6 @@ static int demo_play_enter(struct state *st, struct state *prev)
         goto_state(&st_demo_restricted);
         return 0;
     }
-
-    if (check_compat && !game_compat_map)
-    {
-        if (!game_compat_map)
-            allow_exact_versions = 0;
-
-        goto_state(&st_demo_compat);
-        return 0;
-    }
-    else if (game_compat_map)
-        allow_exact_versions = 1;
 
     prelude = 1.0f;
 
@@ -1763,6 +1764,7 @@ static int demo_compat_gui(void)
     {
         gui_title_header(id, _("Warning!"), GUI_MED, gui_red, gui_red);
         gui_space(id);
+
         gui_multi(id, _("The current replay was recorded with a\\"
                         "different (or unknown) version of this level.\\"
                         "Be prepared to encounter visual errors.\\"),
@@ -1777,6 +1779,7 @@ static int demo_compat_gui(void)
 static int demo_compat_enter(struct state *st, struct state *prev)
 {
     check_compat = 0;
+    allow_exact_versions = 0;
 
     return demo_compat_gui();
 }

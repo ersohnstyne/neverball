@@ -13,10 +13,9 @@
  */
 
 #if _WIN32 && _MSC_VER
-#include <Windows.h>
-#include <sdkddkver.h>
+//#include <Windows.h>
+//#include <sdkddkver.h>
 #endif
-#include <assert.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,6 +26,14 @@
 #include "version.h"
 #endif
 #include "fs.h"
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
 
 static char    log_header[MAXSTR];
 static fs_file log_fp;
@@ -125,10 +132,6 @@ void log_errorf(const char *fmt, ...)
 
     if ((str = (char *) malloc(len)))
     {
-#if defined(_DEBUG)
-        assert(str);
-#endif
-
         va_start(ap, fmt);
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         //vsnprintf_s(str, len, MAXSTR, fmt, ap);
@@ -194,14 +197,13 @@ void log_init(const char *name, const char *path)
             /* Printed on first message. */
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(log_header, dstSize, "%s - %s %s",
-                    date_to_str(time(NULL)),
-                    name, VERSION);
+            sprintf_s(log_header,
 #else
-            sprintf(log_header, "%s - %s %s",
+            sprintf(log_header,
+#endif
+                    "%s - %s %s",
                     date_to_str(time(NULL)),
                     name, VERSION);
-#endif
         }
         else
         {

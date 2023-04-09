@@ -229,16 +229,13 @@ static void playmodes_timer(int id, float dt)
 
 static int playmodes_keybd(int c, int d)
 {
-    if (d)
-    {
-#ifndef __EMSCRIPTEN__
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return playmodes_action(GUI_BACK, 0);
-#else
-        if (c == KEY_EXIT)
-            return playmodes_action(GUI_BACK, 0);
+    if (d && (c == KEY_EXIT
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+        && current_platform == PLATFORM_PC
 #endif
-    }
+        ))
+        return playmodes_action(GUI_BACK, 0);
+
     return 1;
 }
 
@@ -344,16 +341,12 @@ static int hardcore_start_enter(struct state *st, struct state *prev)
 
 static int hardcore_start_keybd(int c, int d)
 {
-    if (d)
-    {
-#ifndef __EMSCRIPTEN__
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return hardcore_start_action(GUI_BACK, 0);
-#else
-        if (c == KEY_EXIT)
-            return hardcore_start_action(GUI_BACK, 0);
+    if (d && (c == KEY_EXIT
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+        && current_platform == PLATFORM_PC
 #endif
-    }
+        ))
+        return hardcore_start_action(GUI_BACK, 0);
     return 1;
 }
 

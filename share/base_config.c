@@ -26,7 +26,7 @@
 #include <shlobj.h>
 
 #if _MSC_VER
-#pragma message("Neverball + Neverball " VERSION " for Microsoft Visual Studio")
+#pragma message("Neverball " VERSION " for Microsoft Visual Studio")
 #endif
 #endif
 

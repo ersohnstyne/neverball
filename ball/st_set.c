@@ -47,6 +47,14 @@
 
 #include <assert.h>
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
 #define SET_ALWAYS_UNLOCKED
 #endif
@@ -183,10 +191,11 @@ static void set_download_progress(void *data1, void *data2)
 
                 if (pr->total > 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(label, dstSize, "%3d%%", (int)(pr->now * 100.0 / pr->total) % 1000);
+                    sprintf_s(label, dstSize,
 #else
-                    sprintf(label, "%3d%%", (int)(pr->now * 100.0 / pr->total) % 1000);
+                    sprintf(label,
 #endif
+                            "%3d%%", (int) (pr->now * 100.0 / pr->total) % 1000);
 
                 /* Compare against current label so we're not calling GL constantly. */
                 /* TODO: just do this in gui_set_label. */
@@ -383,7 +392,7 @@ static void gui_set_download(int id, int i)
         && (server_policy_get_d(SERVER_POLICY_EDITION) < SET_UNLOCKABLE_EDITION &&
             server_policy_get_d(SERVER_POLICY_EDITION) != -1);
 #else
-    int set_name_locked = 0xfffffff;
+    int set_name_locked = 0;
 #endif
 
     if ((jd = gui_hstack(id)))
@@ -830,13 +839,13 @@ static int set_keybd(int c, int d)
 {
     if (d)
     {
+        if (c == KEY_EXIT
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return set_action(GUI_BACK, 0);
-#else
-        if (c == KEY_EXIT)
-            return set_action(GUI_BACK, 0);
+            && current_platform == PLATFORM_PC
 #endif
+            )
+            return set_action(GUI_BACK, 0);
+
         if (c == KEY_LOOKAROUND)
         {
             set_manual_hotreload = 1;
@@ -930,10 +939,11 @@ static char *campaign_label_clock(int timer)
     int clock_min = ROUND(timer / 60000) % 60;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(timeclock, dstSize, "%d:%02d.%02d", clock_min, clock_sec, clock_ms);
+    sprintf_s(timeclock, dstSize,
 #else
-    sprintf(timeclock, "%d:%02d.%02d", clock_min, clock_sec, clock_ms);
+    sprintf(timeclock,
 #endif
+           "%d:%02d.%02d", clock_min, clock_sec, clock_ms);
 
     return timeclock;
 }
@@ -1191,10 +1201,7 @@ static int campaign_enter(struct state *st, struct state *prev)
     for (int i = 0; i < 5; i++)
     {
         for (int j = 0; j < 6; j++)
-        {
             campaign_level_unlocks[i] += campaign_get_level((i * 6) + j)->is_locked ? 0 : 1;
-            //campaign_level_unlocks[i] += 1;
-        }
     }
 
     if (prev == &st_levelgroup)
@@ -1219,16 +1226,13 @@ static void campaign_paint(int id, float t)
 
 static int campaign_keybd(int c, int d)
 {
-    if (d)
-    {
-#ifndef __EMSCRIPTEN__
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return campaign_action(GUI_BACK, 0);
-#else
-        if (c == KEY_EXIT)
-            return campaign_action(GUI_BACK, 0);
+    if (d && (c == KEY_EXIT
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+        && current_platform == PLATFORM_PC
 #endif
-    }
+        ))
+        return campaign_action(GUI_BACK, 0);
+
     return 1;
 }
 
@@ -1242,10 +1246,14 @@ static int campaign_buttn(int b, int d)
             return campaign_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return campaign_action(GUI_BACK, 0);
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b))
-            return campaign_action(SET_XBOX_LB, 0);
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b))
-            return campaign_action(SET_XBOX_RB, 0);
+
+        if (!campaign_theme_used())
+        {
+            if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b))
+                return campaign_action(SET_XBOX_LB, 0);
+            if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b))
+                return campaign_action(SET_XBOX_RB, 0);
+        }
     }
     return 1;
 }
@@ -1312,10 +1320,11 @@ static void campaign_download_progress(void *data1, void *data2)
 
                 if (pr->total > 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(label, dstSize, "%3d%%", (int)(pr->now * 100.0 / pr->total) % 1000);
+                    sprintf_s(label, dstSize,
 #else
-                    sprintf(label, "%3d%%", (int)(pr->now * 100.0 / pr->total) % 1000);
+                    sprintf(label,
 #endif
+                            "%3d%%", (int)(pr->now * 100.0 / pr->total) % 1000);
 
                 if (strcmp(label, dli->label) != 0)
                 {
@@ -1509,6 +1518,11 @@ static int levelgroup_enter(struct state *st, struct state *prev)
         return goto_state(&st_campaign);
     else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET))
         return goto_state(&st_set);
+    else if (server_policy_get_d(SERVER_POLICY_EDITION) > 1 &&
+             account_get_d(ACCOUNT_SET_UNLOCKS) == 0)
+    {
+        account_set_d(ACCOUNT_SET_UNLOCKS, 1);
+    }
 
     set_boost_on(0);
     audio_music_fade_to(0.5f, "bgm/title.ogg");
@@ -1518,16 +1532,13 @@ static int levelgroup_enter(struct state *st, struct state *prev)
 
 static int levelgroup_keybd(int c, int d)
 {
-    if (d)
-    {
-#ifndef __EMSCRIPTEN__
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return levelgroup_action(GUI_BACK, 0);
-#else
-        if (c == KEY_EXIT)
-            return levelgroup_action(GUI_BACK, 0);
+    if (d && (c == KEY_EXIT
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+        && current_platform == PLATFORM_PC
 #endif
-    }
+        ))
+        return levelgroup_action(GUI_BACK, 0);
+
     return 1;
 }
 

@@ -183,7 +183,13 @@ char *hole_score(int h, int p)
     {
         if (h <= hole && 0 <= p && p <= party)
         {
-            sprintf(str, "%d", score_v[h][p]);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf(str, MAXSTR,
+#else
+            sprintf(str,
+#endif
+                    "%d", score_v[h][p]);
+
             return str;
         }
     }
@@ -201,7 +207,12 @@ char *hole_tot(int p)
         for (h = 1; h <= hole && h < count; h++)
             T += score_v[h][p];
 
-        sprintf(str, "%d", T);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf(str, MAXSTR,
+#else
+        sprintf(str,
+#endif
+                "%d", T);
 
         return str;
     }
@@ -219,7 +230,12 @@ char *hole_out(int p)
         for (h = 1; h <= hole && h <= count / 2; h++)
             T += score_v[h][p];
 
-        sprintf(str, "%d", T);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf(str, MAXSTR,
+#else
+        sprintf(str,
+#endif
+                "%d", T);
 
         return str;
     }
@@ -238,7 +254,12 @@ char *hole_in(int p)
         for (h = out + 1; h <= hole && h < count; h++)
             T += score_v[h][p];
 
-        sprintf(str, "%d", T);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf(str, MAXSTR,
+#else
+        sprintf(str,
+#endif
+                "%d", T);
 
         return str;
     }
@@ -264,7 +285,12 @@ const char *curr_scr_profile(int i)
 {
     static char buf[8];
 
-    sprintf(buf, "%d", score_v[hole][i]);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf(buf, 8,
+#else
+    sprintf(buf,
+#endif
+            "%d", score_v[hole][i]);
 
     return buf;
 }
@@ -273,7 +299,12 @@ const char *curr_scr(void)
 {
     static char buf[8];
 
-    sprintf(buf, "%d", score_v[hole][player]);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf(buf, 8,
+#else
+    sprintf(buf,
+#endif
+            "%d", score_v[hole][player]);
 
     return buf;
 }
@@ -282,7 +313,12 @@ const char *curr_par(void)
 {
     static char buf[8];
 
-    sprintf(buf, "%d", score_v[hole][0]);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf(buf, 8,
+#else
+    sprintf(buf,
+#endif
+            "%d", score_v[hole][0]);
 
     return buf;
 }

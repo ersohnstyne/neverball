@@ -223,14 +223,13 @@ static void free_balls(void)
 static void set_curr_ball(void)
 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(ball_file, dstSize, "%s/%s",
-        DIR_ITEM_GET(balls, curr_ball)->path,
-        base_name(DIR_ITEM_GET(balls, curr_ball)->path));
+    sprintf_s(ball_file, dstSize,
 #else
-    sprintf(ball_file, "%s/%s",
+    sprintf(ball_file,
+#endif
+            "%s/%s",
             DIR_ITEM_GET(balls, curr_ball)->path,
             base_name(DIR_ITEM_GET(balls, curr_ball)->path));
-#endif
 
 #if defined(CONFIG_INCLUDES_ACCOUNT) && NB_HAVE_PB_BOTH==1
     account_set_s(ACCOUNT_BALL_FILE, ball_file);
@@ -530,7 +529,11 @@ static int ball_keybd(int c, int d)
 {
     if (d)
     {
+#ifndef __EMSCRIPTEN__
+        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
+#else
         if (c == KEY_EXIT)
+#endif
             return ball_action(GUI_BACK, 0);
         if (c == KEY_LOOKAROUND)
         {

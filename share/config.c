@@ -379,13 +379,14 @@ static void config_mouse(const char *s, int i)
 
 static const char *config_mouse_name(int b)
 {
-    static char buff[sizeof ("256")];
+    static char buff[4]; // Previous was: sizeof ("256")
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(buff, dstSize, "%d", b);
+    sprintf_s(buff, 4,
 #else
-    sprintf(buff, "%d", b);
+    sprintf(buff,
 #endif
+           "%d", b);
 
     switch (b)
     {
@@ -460,10 +461,11 @@ static int scan_key_and_value(char **dst_key, char **dst_val, char *line)
         ke = -1;
         vs = -1;
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sscanf_s(line, " %n%*s%n %n", &ks, &ke, &vs);
+        sscanf_s(line,
 #else
-        sscanf(line, " %n%*s%n %n", &ks, &ke, &vs);
+        sscanf(line,
 #endif
+               " %n%*s%n %n", &ks, &ke, &vs);
 
         if (ks < 0 || ke < 0 || vs < 0)
             return 0;
@@ -492,7 +494,7 @@ void config_load(void)
 #endif
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
 
-    char *filename = USER_CONFIG_FILE;
+    const char *filename = USER_CONFIG_FILE;
 
     if (!config_is_init)
     {
@@ -599,7 +601,7 @@ void config_save(void)
 #endif
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
 
-    char *filename = USER_CONFIG_FILE;
+    const char *filename = USER_CONFIG_FILE;
 
     if (!config_is_init)
     {
@@ -681,8 +683,6 @@ void config_save(void)
     }
     else if (dirty)
         log_errorf("Failure to save configuration file!: %s / %s\n", filename, fs_error());
-
-    //free(filename);
 
     dirty = 0;
     config_busy = 0;

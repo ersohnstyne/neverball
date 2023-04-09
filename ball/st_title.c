@@ -65,11 +65,6 @@
 #include "st_shared.h"
 #include "st_play.h"
 
-#define TITLE_USE_DVD_BOX_OR_EMAIL
-
-#define WINDOWS_SIMPLIFIED
-#define SWITCHBALL_TITLE
-
 /*---------------------------------------------------------------------------*/
 
 static int switchball_useable(void)
@@ -349,7 +344,7 @@ static int title_action(int tok, int val)
         return goto_conf(&st_title, 0, 0);
         break;
 #ifndef __EMSCRIPTEN__
-#if NB_STEAM_API==0 && NB_EOS_SDK==0 && defined(DEVEL_BUILD)
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD
     case GUI_CHAR:
 
         /* Let the queue fill up. */
@@ -972,7 +967,7 @@ static int title_keybd(int c, int d)
             return title_action(GUI_BACK, 0);
 #endif
 
-#if NB_STEAM_API==0 && NB_EOS_SDK==0 && defined(DEVEL_BUILD)
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD
         if (c >= SDLK_a && c <= SDLK_z)
             return title_action(GUI_CHAR, c);
 #endif

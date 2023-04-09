@@ -27,12 +27,22 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "dbg_config.h"
+
 #include "accessibility.h"
 #include "config.h"
 #include "audio.h"
 #include "common.h"
 #include "fs.h"
 #include "fs_ov.h"
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -51,7 +61,6 @@ struct voice
     struct voice *next;
 };
 
-
 static int   lock_hold;
 static int   speed_freezes;
 
@@ -66,10 +75,9 @@ static float narrator_vol = 1.0f;
 
 static SDL_AudioSpec spec;
 static SDL_AudioSpec out_spec;
-#if _MSC_VER
+
 /* HACK: Have fun using AudioDevice for MSVC++ */
 static SDL_AudioSpec device_spec;
-#endif
 
 static struct voice *music     = NULL;
 static struct voice *queue     = NULL;
@@ -359,7 +367,7 @@ void audio_init(void)
             audio_resume();
         }
         else
-            log_errorf("Failure to open audio device (%s)\n", SDL_GetError() ? SDL_GetError() : "Unknown error");
+            log_errorf("Failure to open audio device (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
     }
 
     if (audio_state == 0)

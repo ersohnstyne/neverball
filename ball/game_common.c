@@ -59,10 +59,11 @@ const char *cam_to_str(int c)
     if (s <= 500) return _("Chase Camera");
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(str, dstSize, _("Camera %d"), c + 1);
+    sprintf_s(str, dstSize,
 #else
-    sprintf(str, _("Camera %d"), c + 1);
+    sprintf(str,
 #endif
+            _("Camera %d"), c + 1);
 
     return str;
 }

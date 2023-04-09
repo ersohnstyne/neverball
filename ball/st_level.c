@@ -91,14 +91,17 @@ static int level_check_playername(const char *regname)
 
 static int show_info = 0;
 
-static int demo_warn_only_once = 0;
 static int check_nodemo = 1;
+static int nodemo_warnonlyonce = 1;
+
+static int check_campaign = 1;
 
 static int evalue;
 static int fvalue;
 static int svalue;
 
-enum {
+enum
+{
     START_LEVEL_POWERUP = GUI_LAST
 };
 
@@ -261,10 +264,12 @@ static int level_gui(void)
                 char pow1attr[MAXSTR], pow2attr[MAXSTR], pow3attr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(pow3attr, dstSize, _("Speedifier (%i)"), svalue);
+                sprintf_s(pow3attr, dstSize,
 #else
-                sprintf(pow3attr, _("Speedifier (%i)"), svalue);
+                sprintf(pow3attr,
 #endif
+                        _("Speedifier (%i)"), svalue);
+
                 if ((csd = gui_varray(jd)))
                 {
                     gui_label(csd, pow3attr, GUI_SML,
@@ -277,10 +282,12 @@ static int level_gui(void)
                 }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(pow2attr, dstSize, _("Floatifier (%i)"), fvalue);
+                sprintf_s(pow2attr, dstSize,
 #else
-                sprintf(pow2attr, _("Floatifier (%i)"), fvalue);
+                sprintf(pow2attr,
 #endif
+                        _("Floatifier (%i)"), fvalue);
+
                 if ((cfd = gui_varray(jd)))
                 {
                     gui_label(cfd, pow2attr, GUI_SML,
@@ -293,10 +300,12 @@ static int level_gui(void)
                 }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(pow1attr, dstSize, _("Earninator (%i)"), evalue);
+                sprintf_s(pow1attr, dstSize,
 #else
-                sprintf(pow1attr, _("Earninator (%i)"), evalue);
+                sprintf(pow1attr,
 #endif
+                        _("Earninator (%i)"), evalue);
+
                 if ((ced = gui_varray(jd)))
                 {
 #ifndef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -335,9 +344,9 @@ static int level_enter(struct state *st, struct state *prev)
 {
     game_lerp_pose_point_reset();
     game_client_fly(1.0f);
-    
-    demo_warn_only_once = prev == &st_nodemo;
-    check_nodemo = 1;
+
+    nodemo_warnonlyonce = prev != &st_level && prev != &st_nodemo && prev != &st_pause;
+    check_nodemo = nodemo_warnonlyonce;
 
     if (prev != &st_level)
         show_info = 0;
@@ -370,14 +379,14 @@ static void level_timer(int id, float dt)
 {
     /* HACK: This shouldn't have a bug. This has been fixed. */
 
-    if (!demo_warn_only_once && config_get_d(CONFIG_ACCOUNT_SAVE) > 0)
+    if (strlen(config_get_s(CONFIG_PLAYER)) < 3 || !level_check_playername(config_get_s(CONFIG_PLAYER)))
     {
-        if (strlen(config_get_s(CONFIG_PLAYER)) < 3 || !level_check_playername(config_get_s(CONFIG_PLAYER)))
-        {
-            goto_state(&st_level_signin_required);
-            return;
-        }
+        goto_state(&st_level_signin_required);
+        return;
+    }
 
+    if (nodemo_warnonlyonce && config_get_d(CONFIG_ACCOUNT_SAVE) > 0)
+    {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         if (check_nodemo == 1 && !demo_fp && !campaign_hardcore_norecordings() && curr_mode() != MODE_NONE)
 #else
@@ -403,8 +412,12 @@ static int level_click(int b, int d)
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
         if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
         {
-            int active = gui_active();
-            return level_action(gui_token(active), gui_value(active));
+            if (curr_state() == &st_level)
+            {
+                int active = gui_active();
+                return level_action(gui_token(active), gui_value(active));
+            }
+            else return goto_state(&st_level);
         }
         else
 #endif
@@ -425,12 +438,12 @@ static int level_keybd(int c, int d)
     {
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return goto_pause(curr_state());
+            return goto_pause(&st_level);
         if (c == KEY_POSE && current_platform == PLATFORM_PC)
             return goto_state(&st_poser);
 #else
         if (c == KEY_EXIT)
-            return goto_pause(curr_state());
+            return goto_pause(&st_level);
         if (c == KEY_POSE)
             return goto_state(&st_poser);
 #endif
@@ -455,8 +468,12 @@ static int level_buttn(int b, int d)
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
             if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
             {
-                int active = gui_active();
-                return level_action(gui_token(active), gui_value(active));
+                if (curr_state() == &st_level)
+                {
+                    int active = gui_active();
+                    return level_action(gui_token(active), gui_value(active));
+                }
+                else goto_state(&st_level);
             }
             else
 #endif
@@ -470,7 +487,7 @@ static int level_buttn(int b, int d)
         }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return goto_pause(curr_state());
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b))
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b) && curr_state() == &st_level)
         {
             if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH))
             {
@@ -525,8 +542,14 @@ static int poser_buttn(int c, int d)
 
 /*---------------------------------------------------------------------------*/
 
-static int nodemo_gui(void)
+static int nodemo_enter(struct state *st, struct state *prev)
 {
+    nodemo_warnonlyonce = 0;
+    check_nodemo = 0;
+
+    game_lerp_pose_point_reset();
+    game_client_fly(1.0f);
+
     int id;
 
     if ((id = gui_vstack(0)))
@@ -535,19 +558,12 @@ static int nodemo_gui(void)
         gui_space(id);
         gui_multi(id, _("A replay file could not be opened for writing.\\"
                         "This game will not be recorded.\\"),
-                  GUI_SML, gui_wht, gui_wht);
+                        GUI_SML, gui_wht, gui_wht);
 
         gui_layout(id, 0, 0);
     }
 
     return id;
-}
-
-static int nodemo_enter(struct state *st, struct state *prev)
-{
-    check_nodemo = 0;
-
-    return nodemo_gui();
 }
 
 static void nodemo_timer(int id, float dt)
@@ -557,6 +573,7 @@ static void nodemo_timer(int id, float dt)
     gui_timer(id, dt);
 }
 
+/*
 static int nodemo_keybd(int c, int d)
 {
     if (d)
@@ -599,6 +616,7 @@ static int nodemo_buttn(int b, int d)
     }
     return 1;
 }
+*/
 
 /*---------------------------------------------------------------------------*/
 
@@ -630,11 +648,10 @@ static int level_signin_required_keybd(int c, int d)
     {
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return goto_pause(curr_state());
 #else
         if (c == KEY_EXIT)
-            return goto_pause(curr_state());
 #endif
+            return goto_exit();
     }
     return 1;
 }
@@ -646,7 +663,7 @@ static int level_signin_required_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return goto_name(&st_level, &st_level_signin_required, 0, 0, 0);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return goto_pause(curr_state());
+            return goto_exit();
     }
     return 1;
 }
@@ -827,9 +844,9 @@ struct state st_nodemo = {
     shared_point,
     shared_stick,
     shared_angle,
-    shared_click_basic,
-    nodemo_keybd,
-    nodemo_buttn,
+    level_click,  // Replaced from: shared_click_basic
+    level_keybd,  // Replaced from: nodemo_basic
+    level_buttn,  // Replaced from: nodemo_basic
     NULL,
     NULL
 };

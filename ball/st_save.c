@@ -133,9 +133,7 @@ static int save_action(int tok, int val)
         else
         {
             if (curr_status() == GAME_FALL)
-            {
                 conf_covid_retract();
-            }
 
             int r = demo_rename(text_input);
             return goto_state(r ? ok_state : &st_save_error);
@@ -297,6 +295,13 @@ static int clobber_action(int tok, int val)
 
     if (tok == SAVE_OK)
     {
+#ifdef DEMO_QUARANTINED_MODE
+        /* Lockdown duration time. DO NOT EDIT! */
+        int nolockdown; DEMO_LOCKDOWN_RANGE_NIGHT(nolockdown, 16, 8);
+        if (!nolockdown && curr_status() == GAME_FALL)
+            return goto_state(&st_lockdown);
+#endif
+
         if (curr_status() == GAME_FALL)
             conf_covid_retract();
 
@@ -340,11 +345,9 @@ static int clobber_enter(struct state *st, struct state *prev)
 
 static int clobber_keybd(int c, int d)
 {
-    if (d)
-    {
-        if (c == KEY_EXIT)
-            return clobber_action(GUI_BACK, 0);
-    }
+    if (d && c == KEY_EXIT)
+        return clobber_action(GUI_BACK, 0);
+
     return 1;
 }
 
@@ -405,11 +408,9 @@ static int lockdown_enter(struct state *st, struct state *prev)
 
 static int lockdown_keybd(int c, int d)
 {
-    if (d)
-    {
-        if (c == KEY_EXIT)
-            return lockdown_action(GUI_BACK, 0);
-    }
+    if (d && c == KEY_EXIT)
+        return lockdown_action(GUI_BACK, 0);
+
     return 1;
 }
 

@@ -139,7 +139,9 @@ int joy_button(int instance, int b, int d)
     if (joy_curr != instance)
     {
         /* Make joystick current. */
+        
         joy_curr = instance;
+
         /* log_printf("Joystick %d made current via button press\n", joy_curr); */
     }
 
@@ -152,9 +154,18 @@ int joy_button(int instance, int b, int d)
  */
 void joy_axis(int instance, int a, float v)
 {
-    if (joy_curr == instance)
+    if (joy_curr != instance)
     {
-        /* Process axis events from current joystick only. */
+        /* Make joystick current. */
+
+        joy_curr = instance;
+
+        /* log_printf("Joystick %d made current via button press\n", joy_curr); */
+    }
+
+    // if (joy_curr == instance)
+    {
+        /* Process axis events. */
         st_stick(a, v);
     }
 }
@@ -304,7 +315,7 @@ void joy_update(void)
 
                 if (prevRX != currRX || prevRY != currRY)
                 {
-                    if (magnitudeR > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
+                    if (magnitudeR > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
                     {
                         joy_axis(i, config_get_d(CONFIG_JOYSTICK_AXIS_X1), normalizedRX);
                         joy_axis(i, config_get_d(CONFIG_JOYSTICK_AXIS_Y1), normalizedRY);

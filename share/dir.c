@@ -42,55 +42,43 @@
  */
 List dir_list_files(const char *path)
 {
-#if __GNUC__
-    DIR *dir;
-#endif
-
     List files = NULL;
-
-#if _WIN32 && _MSC_VER
-    WIN32_FIND_DATAA findDataFiles;
 
     char outpath[MAXSTR];
     sprintf_s(outpath, 256U, "%s\\*", path);
 
-    HANDLE hFind = FindFirstFileA(outpath, &findDataFiles);
+#if _WIN32 && _MSC_VER
+    WIN32_FIND_DATAA findDataFiles;
+    HANDLE hFind;
 
-    if (hFind != INVALID_HANDLE_VALUE)
+    if ((hFind = FindFirstFileA(outpath, &findDataFiles)) != INVALID_HANDLE_VALUE)
     {
-        if (strcmp(findDataFiles.cFileName, ".") == 0 || strcmp(findDataFiles.cFileName, "..") == 0) {}
-        else if (findDataFiles.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ||
-            findDataFiles.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE)
-            files = list_cons(strdup(findDataFiles.cFileName), files);
-
-        while (FindNextFileA(hFind, &findDataFiles))
-        {
-            if (strcmp(findDataFiles.cFileName, ".") == 0 || strcmp(findDataFiles.cFileName, "..") == 0) {}
+        do {
+            if (strcmp(findDataFiles.cFileName, ".") == 0 || strcmp(findDataFiles.cFileName, "..") == 0)
+                continue;
             else if (findDataFiles.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ||
                 findDataFiles.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE)
                 files = list_cons(strdup(findDataFiles.cFileName), files);
-        }
+        } while (FindNextFileA(hFind, &findDataFiles));
 
         FindClose(hFind);
         hFind = 0;
     }
-#elif __GNUC__
+#else
+    DIR* dir;
     if ((dir = opendir(path)))
     {
         struct dirent *ent;
 
-        while ((ent = readdir(dir)))
-        {
+        do {
             if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
                 continue;
 
             files = list_cons(strdup(ent->d_name), files);
-        }
+        } while ((ent = readdir(dir)))
 
         closedir(dir);
     }
-#else
-#error No implementation for dir_list_files found!
 #endif
 
     return files;
@@ -198,9 +186,11 @@ int dir_exists(const char *path)
         || file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA)
         return 0;
 
-    return file_attr & FILE_ATTRIBUTE_DIRECTORY
-        || file_attr & FILE_ATTRIBUTE_ARCHIVE;
-#elif __GNUC__
+    /*return file_attr & FILE_ATTRIBUTE_DIRECTORY
+        || file_attr & FILE_ATTRIBUTE_ARCHIVE;*/
+
+    return file_attr & FILE_ATTRIBUTE_DIRECTORY;
+#else
     DIR *dir;
 
     if ((dir = opendir(path)))
@@ -209,7 +199,5 @@ int dir_exists(const char *path)
         return 1;
     }
     return 0;
-#else
-#error No implementation for dir_exists found!
 #endif
 }

@@ -14,6 +14,10 @@
 
 #include <string.h>
 
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#include "console_control_gui.h"
+#endif
+
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 #include "campaign.h" // New: Campaign
@@ -264,7 +268,11 @@ static int done_keybd(int c, int d)
 {
     if (d)
     {
+#ifndef __EMSCRIPTEN__
+        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
+#else
         if (c == KEY_EXIT)
+#endif
             return done_action(GUI_BACK, 0);
 
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c))
@@ -327,7 +335,11 @@ static void capital_timer(int id, float dt)
 
 static int capital_keybd(int c, int d)
 {
+#ifndef __EMSCRIPTEN__
+    if (d && c == KEY_EXIT && current_platform == PLATFORM_PC)
+#else
     if (d && c == KEY_EXIT)
+#endif
     {
         wealthlogo_done = 1;
         goto_state(&st_done);

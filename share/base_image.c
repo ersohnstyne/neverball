@@ -337,22 +337,17 @@ void image_white(void *p, int w, int h, int b)
     assert(b >= 1 && b <= 4);
 
     if (b == 1 || b == 3)
-    {
         memset(s, 0xFF, w * h * b);
-    }
     else if (b == 2)
     {
         for (i = 0; i < w * h * b; i += 2)
             s[i] = 0xFF;
     }
-    else
+    else for (i = 0; i < w * h * b; i += 4)
     {
-        for (i = 0; i < w * h * b; i += 4)
-        {
-            s[i + 0] = 0xFF;
-            s[i + 1] = 0xFF;
-            s[i + 2] = 0xFF;
-        }
+        s[i + 0] = 0xFF;
+        s[i + 1] = 0xFF;
+        s[i + 2] = 0xFF;
     }
 }
 

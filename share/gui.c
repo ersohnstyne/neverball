@@ -635,18 +635,16 @@ void gui_resize(void)
 
             if (widget[i].init_text)
             {
-                TTF_Font *ttf;
-                memset(&ttf, 0, sizeof (TTF_Font *));
-                ttf = fonts[widget[i].font].ttf[widget[i].size];
-                assert(&ttf);
+                TTF_Font *ttf = fonts[widget[i].font].ttf[widget[i].size];
 
                 widget[i].text_w = 0;
                 widget[i].text_h = 0;
-
-                size_image_from_font(NULL, NULL,
-                    &widget[i].text_w,
-                    &widget[i].text_h,
-                    widget[i].init_text, ttf);
+                
+                if (ttf)
+                    size_image_from_font(NULL, NULL,
+                                        &widget[i].text_w,
+                                        &widget[i].text_h,
+                                        widget[i].init_text,
             }
 
             /* Actually compute the stuff. */

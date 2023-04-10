@@ -5,6 +5,8 @@
 
 extern struct state st_name;
 
-int goto_name(struct state *, struct state *, unsigned int);
+int goto_name(struct state *ok, struct state *cancel,
+	          int (*new_ok_fn)(struct state *), int (*new_cancel_fn)(struct state *),
+	          unsigned int back);
 
 #endif

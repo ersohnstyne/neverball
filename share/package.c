@@ -1,8 +1,36 @@
+/*
+ * Copyright (C) 2023 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #include "package.h"
 #include "array.h"
 #include "common.h"
 #include "fetch.h"
 #include "fs.h"
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
+/*
+ * Premium: pennyball.stynegame.de
+ * Legacy downloads: neverball.github.io
+ */
+#define NB_CURRDOMAIN_PREMIUM "neverball.github.io"
 
 struct package
 {
@@ -22,14 +50,16 @@ static Array available_packages;
 
 #define PACKAGE_GET(a, i) ((struct package *) array_get((a), (i)))
 
-#define PACKAGE_DIR "Downloads"
+#define PACKAGE_DIR "DLC"
+#define NB_DOWNLOADPATH PACKAGE_DIR "/"
+#define NB_DOWNLOADPATH_ROOT "/" PACKAGE_DIR "/"
 
 /*---------------------------------------------------------------------------*/
 
 /*
  * Get a download URL.
  */
-static const char *get_package_url(const char *filename)
+static const char *get_package_url(const char *filename, int category)
 {
     if (filename && *filename)
     {
@@ -38,10 +68,39 @@ static const char *get_package_url(const char *filename)
         memset(url, 0, sizeof (url));
 
 #ifdef __EMSCRIPTEN__
-        /* Same origin. */
-        SAFECPY(url, "/packages/");
+#if defined(NB_PACKAGES_PREMIUM)
+        switch (category)
+        {
+        case PACKAGE_CATEGORY_LEVELSET:
+            /* Uses premium sets */
+            SAFECPY(url, "/packages/levelsets/");
+            break;
+        case PACKAGE_CATEGORY_CAMPAIGN:
+            /* Uses campaign */
+            SAFECPY(url, "/packages/campaign/");
+            break;
+        }
 #else
+        /* Uses standard vanilla game */
+        SAFECPY(url, "/packages/");
+#endif
+#else
+#if defined(NB_PACKAGES_PREMIUM)
+        switch (category)
+        {
+        case PACKAGE_CATEGORY_LEVELSET:
+            /* Uses premium sets */
+            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/levelsets/");
+            break;
+        case PACKAGE_CATEGORY_CAMPAIGN:
+            /* Uses campaign */
+            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/campaign/");
+            break;
+        }
+#else
+        /* Uses standard vanilla game */
         SAFECPY(url, "https://neverball.github.io/packages/");
+#endif
 #endif
         SAFECAT(url, filename);
 
@@ -62,7 +121,7 @@ static const char *get_package_path(const char *filename)
 
         memset(path, 0, sizeof (path));
 
-        SAFECPY(path, PACKAGE_DIR "/");
+        SAFECPY(path, NB_DOWNLOADPATH);
         SAFECAT(path, filename);
 
         return path;
@@ -73,7 +132,7 @@ static const char *get_package_path(const char *filename)
 /*---------------------------------------------------------------------------*/
 
 /*
- * We keep a separate list of installed packages, so that we don't have to scan
+ * We also track the installed packages separately, just so we don't have to scan
  * the package directory and figure out which ZIP files can be added to the FS
  * and which ones can't.
  */
@@ -89,7 +148,7 @@ static int mount_package(const char *filename)
 
     if (write_dir)
     {
-        char *path = concat_string(write_dir, "/" PACKAGE_DIR "/", filename, NULL);
+        char *path = concat_string(write_dir, NB_DOWNLOADPATH_ROOT, filename, NULL);
 
         if (path)
         {
@@ -132,7 +191,11 @@ static int mount_installed_package(const char *filename)
  */
 static int load_installed_packages(void)
 {
+#ifdef FS_VERSION_1
+    fs_file fp = fs_open(get_package_path("installed-packages.txt"), "r");
+#else
     fs_file fp = fs_open_read(get_package_path("installed-packages.txt"));
+#endif
 
     if (fp)
     {
@@ -206,8 +269,6 @@ static void free_installed_packages(void)
 
 /*
  * Figure out package statuses.
- *
- * Packages that are found to exist are marked as installed and added to the FS.
  */
 static void load_package_statuses(Array packages)
 {
@@ -278,7 +339,12 @@ static Array load_packages_from_file(const char *filename)
             else if (strncmp(line, "size ", 5) == 0)
             {
                 if (pkg)
-                    sscanf(line + 5, "%u", &pkg->size);
+#if _MSC_VER && _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sscanf_s(line + 5,
+#else
+                    sscanf(line + 5,
+#endif
+                           "%u", & pkg->size);
             }
             else if (strncmp(line, "files ", 6) == 0)
             {
@@ -340,7 +406,7 @@ static void fetch_package_images(Array packages)
 
             if (filename && *filename && !fs_exists(filename))
             {
-                const char *url = get_package_url(pkg->shot);
+                const char *url = get_package_url(pkg->shot, PACKAGE_CATEGORY_LEVELSET);
 
                 if (url)
                 {
@@ -355,9 +421,6 @@ static void fetch_package_images(Array packages)
 
 /*---------------------------------------------------------------------------*/
 
-/*
- * Load the list of available packages and initiate image downloads.
- */
 static void available_packages_done(void *data, void *extra_data)
 {
     struct fetch_done *fd = extra_data;
@@ -385,12 +448,12 @@ static void available_packages_done(void *data, void *extra_data)
 /*
  * Download the package list.
  */
-static void fetch_available_packages(void)
+static void fetch_available_packages(int category)
 {
 #ifdef __EMSCRIPTEN__
-    const char *url = get_package_url("available-packages-emscripten.txt");
+    const char *url = get_package_url("available-packages-emscripten.txt", category);
 #else
-    const char *url = get_package_url("available-packages.txt");
+    const char *url = get_package_url("available-packages.txt", category);
 #endif
 
     if (url)
@@ -441,7 +504,7 @@ void package_init(void)
 
     /* Download package list. */
 
-    fetch_available_packages();
+    fetch_available_packages(PACKAGE_CATEGORY_LEVELSET);
 }
 
 void package_quit(void)
@@ -647,14 +710,14 @@ static void package_fetch_done(void *data, void *extra_data)
     }
 }
 
-unsigned int package_fetch(int package_id, struct fetch_callback callback)
+unsigned int package_fetch(int package_id, struct fetch_callback callback, int category)
 {
     unsigned int fetch_id = 0;
 
     if (package_id >= 0 && package_id < array_len(available_packages))
     {
         struct package *pkg = array_get(available_packages, package_id);
-        const char *url = get_package_url(pkg->filename);
+        const char *url = get_package_url(pkg->filename, category);
 
         if (url)
         {

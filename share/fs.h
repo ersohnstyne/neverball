@@ -18,9 +18,14 @@ int fs_exists(const char *);
 int fs_remove(const char *);
 int fs_rename(const char *, const char *);
 
+#ifdef FS_VERSION_1
+fs_file fs_open(const char *path, const char *mode);
+#else
 fs_file fs_open_read(const char *);
 fs_file fs_open_write(const char *);
 fs_file fs_open_append(const char *);
+#endif
+
 int     fs_close(fs_file);
 
 int  fs_read(void *data, int bytes, fs_file);
@@ -29,7 +34,10 @@ int  fs_flush(fs_file);
 long fs_tell(fs_file);
 int  fs_seek(fs_file, long offset, int whence);
 int  fs_eof(fs_file);
+#ifndef FS_VERSION_1
 int  fs_size(const char *);
+#endif
+int  fs_length(fs_file);
 
 int   fs_getc(fs_file);
 char *fs_gets(char *dst, int count, fs_file fh);

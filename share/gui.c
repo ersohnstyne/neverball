@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -17,6 +17,16 @@
 #include <stdio.h>
 #include <limits.h>
 
+#if !_MSC_VER
+#include <unistd.h>
+#endif
+
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#include "console_control_gui.h"
+#endif
+
+#include "dbg_config.h"
+
 #include "config.h"
 #include "video.h"
 #include "glext.h"
@@ -29,22 +39,36 @@
 
 #include "fs.h"
 
+#include <assert.h>
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 /* Very pure colors for the GUI. I was watching BANZAI when I designed this. */
 
-const GLubyte gui_wht[4] = { 0xFF, 0xFF, 0xFF, 0xFF };  /* White  */
-const GLubyte gui_yel[4] = { 0xFF, 0xFF, 0x00, 0xFF };  /* Yellow */
-const GLubyte gui_red[4] = { 0xFF, 0x00, 0x00, 0xFF };  /* Red    */
-const GLubyte gui_grn[4] = { 0x00, 0xFF, 0x00, 0xFF };  /* Green  */
-const GLubyte gui_blu[4] = { 0x00, 0x00, 0xFF, 0xFF };  /* Blue   */
-const GLubyte gui_blk[4] = { 0x00, 0x00, 0x00, 0xFF };  /* Black  */
-const GLubyte gui_gry[4] = { 0x55, 0x55, 0x55, 0xFF };  /* Gray   */
-const GLubyte gui_shd[4] = { 0x00, 0x00, 0x00, 0x80 };  /* Shadow */
+const GLubyte gui_wht[4] = { 0xFF, 0xFF, 0xFF, 0xFF };  /* White    */
+const GLubyte gui_yel[4] = { 0xFF, 0xFF, 0x00, 0xFF };  /* Yellow   */
+const GLubyte gui_cya[4] = { 0x00, 0xFF, 0xFF, 0xFF };  /* Cyan     */
+const GLubyte gui_twi[4] = { 0x80, 0x00, 0xFF, 0xFF };  /* Twilight */
+const GLubyte gui_vio[4] = { 0xFF, 0x00, 0xFF, 0xFF };  /* Violet   */
+const GLubyte gui_pnk[4] = { 0xFF, 0x55, 0xFF, 0xFF };  /* Pink     */
+const GLubyte gui_red[4] = { 0xFF, 0x00, 0x00, 0xFF };  /* Red      */
+const GLubyte gui_grn[4] = { 0x00, 0xFF, 0x00, 0xFF };  /* Green    */
+const GLubyte gui_blu[4] = { 0x00, 0x00, 0xFF, 0xFF };  /* Blue     */
+const GLubyte gui_blk[4] = { 0x00, 0x00, 0x00, 0xFF };  /* Black    */
+const GLubyte gui_gry[4] = { 0x55, 0x55, 0x55, 0xFF };  /* Gray     */
+const GLubyte gui_shd[4] = { 0x00, 0x00, 0x00, 0x80 };  /* Shadow   */
 
 /*---------------------------------------------------------------------------*/
 
-#define WIDGET_MAX 256
+#define WIDGET_MAX 512 /* Twice as high (previous is 256) */
 
 #define GUI_FREE   0
 #define GUI_HARRAY 1
@@ -102,6 +126,9 @@ struct widget
     int     text_h;
 
     enum trunc trunc;
+
+    float   alpha;
+    int     animation_direction;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -462,12 +489,22 @@ static void gui_font_init(int s)
     {
         font_sizes[0] = s / 26;
         font_sizes[1] = s / 13;
-        font_sizes[2] = s /  7;
+        font_sizes[2] = s / 7;
 
         /* Load the default font at index 0. */
 
-        gui_font_load(*curr_lang.font ? curr_lang.font : GUI_FACE);
+        int fi = gui_font_load(*curr_lang.font ? curr_lang.font : GUI_FACE);
+        
+        if (!fonts[fi].ttf)
+        {
+            log_errorf("Unable to load font!: %s / %s\n",
+                       *curr_lang.font ? curr_lang.font : GUI_FACE);
+            gui_font_quit();
+        }
     }
+    else
+        log_errorf("Unable to init font!: %s\n",
+                   GAMEDBG_GETSTRERROR_CHOICES_SDL);
 }
 
 static void gui_font_quit(void)
@@ -492,7 +529,6 @@ static void gui_theme_quit(void)
 static void gui_theme_init(void)
 {
     gui_theme_quit();
-
     theme_load(&curr_theme, config_get_s(CONFIG_THEME));
 }
 
@@ -510,16 +546,16 @@ static void gui_glyphs_init(void)
 
     for (i = 0; i < 3; i++)
     {
-        digit_id[i][ 0] = gui_label(0, "0", i, 0, 0);
-        digit_id[i][ 1] = gui_label(0, "1", i, 0, 0);
-        digit_id[i][ 2] = gui_label(0, "2", i, 0, 0);
-        digit_id[i][ 3] = gui_label(0, "3", i, 0, 0);
-        digit_id[i][ 4] = gui_label(0, "4", i, 0, 0);
-        digit_id[i][ 5] = gui_label(0, "5", i, 0, 0);
-        digit_id[i][ 6] = gui_label(0, "6", i, 0, 0);
-        digit_id[i][ 7] = gui_label(0, "7", i, 0, 0);
-        digit_id[i][ 8] = gui_label(0, "8", i, 0, 0);
-        digit_id[i][ 9] = gui_label(0, "9", i, 0, 0);
+        digit_id[i][0] = gui_label(0, "0", i, 0, 0);
+        digit_id[i][1] = gui_label(0, "1", i, 0, 0);
+        digit_id[i][2] = gui_label(0, "2", i, 0, 0);
+        digit_id[i][3] = gui_label(0, "3", i, 0, 0);
+        digit_id[i][4] = gui_label(0, "4", i, 0, 0);
+        digit_id[i][5] = gui_label(0, "5", i, 0, 0);
+        digit_id[i][6] = gui_label(0, "6", i, 0, 0);
+        digit_id[i][7] = gui_label(0, "7", i, 0, 0);
+        digit_id[i][8] = gui_label(0, "8", i, 0, 0);
+        digit_id[i][9] = gui_label(0, "9", i, 0, 0);
         digit_id[i][10] = gui_label(0, ":", i, 0, 0);
     }
 
@@ -529,9 +565,15 @@ static void gui_glyphs_init(void)
 
     /* Cache an image for the cursor. Scale it to the same size as a digit. */
 
-    if ((cursor_id = gui_image(0, "gui/cursor.png", widget[digit_id[1][0]].w,
-                                                    widget[digit_id[1][0]].h)))
+#ifdef SWITCHBALL_GUI
+    if ((cursor_id = gui_image(0, "gui/cursor.png", widget[digit_id[1][0]].w * 2,
+        widget[digit_id[1][0]].h * 2)))
         gui_layout(cursor_id, 0, 0);
+#else
+    if ((cursor_id = gui_image(0, "gui/cursor.png", widget[digit_id[1][0]].w,
+        widget[digit_id[1][0]].h)))
+        gui_layout(cursor_id, 0, 0);
+#endif
 }
 
 static void gui_glyphs_free(void)
@@ -550,7 +592,6 @@ static void gui_glyphs_free(void)
 }
 
 /*---------------------------------------------------------------------------*/
-
 static void gui_widget_size(int);
 
 /*
@@ -596,13 +637,14 @@ void gui_resize(void)
             {
                 TTF_Font *ttf = fonts[widget[i].font].ttf[widget[i].size];
 
+                widget[i].text_w = 0;
+                widget[i].text_h = 0;
+                
                 if (ttf)
-                {
                     size_image_from_font(NULL, NULL,
                                         &widget[i].text_w,
                                         &widget[i].text_h,
-                                        widget[i].init_text, ttf);
-                }
+                                        widget[i].init_text,
             }
 
             /* Actually compute the stuff. */
@@ -625,7 +667,6 @@ void gui_resize(void)
         if (widget[i].type != GUI_FREE && widget[i].text)
             gui_set_label(i, widget[i].text);
 
-    /* Whew. */
 }
 
 void gui_init(void)
@@ -729,10 +770,8 @@ static int gui_widget(int pd, int type)
             widget[id].trunc  = TRUNC_NONE;
             widget[id].text_w = 0;
             widget[id].text_h = 0;
-
             widget[id].init_text = NULL;
             widget[id].init_value = 0;
-
             widget[id].layout_xd = 0;
             widget[id].layout_yd = 0;
 
@@ -753,7 +792,7 @@ static int gui_widget(int pd, int type)
             return id;
         }
 
-    log_printf("Out of widget IDs\n");
+    log_errorf("Out of widget IDs\n");
 
     return 0;
 }
@@ -868,13 +907,17 @@ static char *gui_truncate(const char *text,
 void gui_set_image(int id, const char *file)
 {
     glDeleteTextures(1, &widget[id].image);
-
+    donot_allow_mip_and_aniso_during_gui = 1;
     widget[id].image = make_image_from_file(file, IF_MIPMAP);
+    donot_allow_mip_and_aniso_during_gui = 0;
 }
 
 void gui_set_label(int id, const char *text)
 {
-    TTF_Font *ttf = fonts[widget[id].font].ttf[widget[id].size];
+    TTF_Font *ttf;
+    memset(&ttf, 0, sizeof (TTF_Font *));
+    ttf = fonts[widget[id].font].ttf[widget[id].size];
+    assert(&ttf);
 
     int w = 0;
     int h = 0;
@@ -902,7 +945,7 @@ void gui_set_label(int id, const char *text)
     }
 
     widget[id].text = str2;
-
+    
     widget[id].image = make_image_from_font(NULL, NULL,
                                             &widget[id].text_w,
                                             &widget[id].text_h,
@@ -913,8 +956,6 @@ void gui_set_label(int id, const char *text)
     gui_geom_text(id, -w / 2, -h / 2, w, h,
                   widget[id].color0,
                   widget[id].color1);
-
-    /* Last but not least. */
 
     free(str);
 }
@@ -967,7 +1008,11 @@ void gui_set_multi(int id, const char *text)
 
     for (p = text, sc = 0; *p && sc < lc; sc++)
     {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        strncpy_s(s[sc], dstSize, p, (n = strcspn(p, "\\")));
+#else
         strncpy(s[sc], p, (n = strcspn(p, "\\")));
+#endif
         s[sc][n] = 0;
 
         if (*(p += n) == '\\') p++;
@@ -1038,39 +1083,39 @@ static void gui_widget_size(int id)
 
     switch (widget[id].type)
     {
-        case GUI_IMAGE:
-            /* Convert from integer-encoded fractions to window pixels. */
+    case GUI_IMAGE:
+        /* Convert from integer-encoded fractions to window pixels. */
 
-            widget[id].w = ROUND(((float) widget[id].text_w / 1000.0f) * (float) video.device_w);
-            widget[id].h = ROUND(((float) widget[id].text_h / 1000.0f) * (float) video.device_h);
+        widget[id].w = ROUND(((float) widget[id].text_w / 1000.0f) * (float) video.device_w);
+        widget[id].h = ROUND(((float) widget[id].text_h / 1000.0f) * (float) video.device_h);
 
-            break;
+        break;
 
-        case GUI_BUTTON:
-        case GUI_LABEL:
-            widget[id].w = widget[id].text_w;
-            widget[id].h = widget[id].text_h;
-            break;
+    case GUI_BUTTON:
+    case GUI_LABEL:
+        widget[id].w = widget[id].text_w;
+        widget[id].h = widget[id].text_h;
+        break;
 
-        case GUI_COUNT:
-            widget[id].w = 0;
+    case GUI_COUNT:
+        widget[id].w = 0;
 
-            for (i = widget[id].init_value; i; i /= 10)
-                widget[id].w += widget[digit_id[widget[id].size][0]].text_w;
+        for (i = widget[id].init_value; i; i /= 10)
+            widget[id].w += widget[digit_id[widget[id].size][0]].text_w;
 
-            widget[id].h = widget[digit_id[widget[id].size][0]].text_h;
+        widget[id].h = widget[digit_id[widget[id].size][0]].text_h;
 
-            break;
+        break;
 
-        case GUI_CLOCK:
-            widget[id].w = widget[digit_id[widget[id].size][0]].text_w * 6;
-            widget[id].h = widget[digit_id[widget[id].size][0]].text_h;
-            break;
+    case GUI_CLOCK:
+        widget[id].w = widget[digit_id[widget[id].size][0]].text_w * 6;
+        widget[id].h = widget[digit_id[widget[id].size][0]].text_h;
+        break;
 
-        default:
-            widget[id].w = 0;
-            widget[id].h = 0;
-            break;
+    default:
+        widget[id].w = 0;
+        widget[id].h = 0;
+        break;
     }
 }
 
@@ -1080,16 +1125,30 @@ int gui_image(int pd, const char *file, int w, int h)
 
     if ((id = gui_widget(pd, GUI_IMAGE)))
     {
+        donot_allow_mip_and_aniso_during_gui = 1;
         widget[id].image  = make_image_from_file(file, IF_MIPMAP);
-
-        /* Convert window pixels to integer-encoded fractions. */
-
-        widget[id].text_w = ROUND(((float) w / (float) video.device_w) * 1000.0f);
+        widget[id].text_w = ((ROUND(((float) w / (float) video.device_w) * 1000.0f)) * ((video.aspect_ratio / (4 / 3)) / 2));
         widget[id].text_h = ROUND(((float) h / (float) video.device_h) * 1000.0f);
-
         widget[id].flags |= GUI_RECT;
-
         gui_widget_size(id);
+        donot_allow_mip_and_aniso_during_gui = 0;
+    }
+    return id;
+}
+
+int gui_image_widescreen(int pd, const char *file, int w, int h)
+{
+    int id;
+
+    if ((id = gui_widget(pd, GUI_IMAGE)))
+    {
+        donot_allow_mip_and_aniso_during_gui = 1;
+        widget[id].image  = make_image_from_file(file, IF_MIPMAP);
+        widget[id].text_w = ((ROUND(((float) w / (float) video.device_w) * 1000.0f)) * ((video.aspect_ratio / (16 / 9)) / 2));
+        widget[id].text_h = ROUND(((float) h / (float) video.device_h) * 1000.0f);
+        widget[id].flags |= GUI_RECT;
+        gui_widget_size(id);
+        donot_allow_mip_and_aniso_during_gui = 0;
     }
     return id;
 }
@@ -1122,11 +1181,10 @@ int gui_state(int pd, const char *text, int size, int token, int value)
                                                 &widget[id].text_w,
                                                 &widget[id].text_h,
                                                 text, ttf, 0);
-
+        
         widget[id].size  = size;
         widget[id].token = token;
         widget[id].value = value;
-
         gui_widget_size(id);
     }
     return id;
@@ -1139,7 +1197,10 @@ int gui_label(int pd, const char *text, int size, const GLubyte *c0,
 
     if ((id = gui_widget(pd, GUI_LABEL)))
     {
-        TTF_Font *ttf = fonts[widget[id].font].ttf[size];
+        TTF_Font *ttf;
+        memset(&ttf, 0, sizeof (TTF_Font *));
+        ttf = fonts[widget[id].font].ttf[size];
+        assert(&ttf);
 
         widget[id].init_text = strdup(text);
 
@@ -1149,14 +1210,34 @@ int gui_label(int pd, const char *text, int size, const GLubyte *c0,
                                                 &widget[id].text_w,
                                                 &widget[id].text_h,
                                                 text, ttf, 0);
+        widget[id].w      = widget[id].text_w;
+        widget[id].h      = widget[id].text_h;
         widget[id].size   = size;
         widget[id].color0 = c0 ? c0 : gui_yel;
         widget[id].color1 = c1 ? c1 : gui_red;
         widget[id].flags |= GUI_RECT;
-
         gui_widget_size(id);
     }
     return id;
+}
+
+int gui_title_header(int pd, const char *text, int size, const GLubyte *c0,
+                                                         const GLubyte *c1)
+{
+    int i = size;
+    int width_fit = 0;
+
+    while (i > 0 && width_fit == 0)
+    {
+        int max_width = gui_measure(text, i).w;
+
+        width_fit = max_width < (video.device_w * .85f) ? 1 : 0;
+
+        if (!width_fit)
+            i--;
+    }
+
+    return gui_label(pd, text, i, c0, c1);
 }
 
 int gui_count(int pd, int value, int size)
@@ -1166,7 +1247,6 @@ int gui_count(int pd, int value, int size)
     if ((id = gui_widget(pd, GUI_COUNT)))
     {
         widget[id].init_value = value;
-
         widget[id].value  = value;
         widget[id].size   = size;
         widget[id].color0 = gui_yel;
@@ -1185,13 +1265,11 @@ int gui_clock(int pd, int value, int size)
     if ((id = gui_widget(pd, GUI_CLOCK)))
     {
         widget[id].init_value = value;
-
         widget[id].value  = value;
         widget[id].size   = size;
         widget[id].color0 = gui_yel;
         widget[id].color1 = gui_red;
         widget[id].flags |= GUI_RECT;
-
         gui_widget_size(id);
     }
     return id;
@@ -1199,7 +1277,7 @@ int gui_clock(int pd, int value, int size)
 
 int gui_space(int pd)
 {
-    return gui_widget(pd, GUI_SPACE);
+    return gui_widget(pd, GUI_SPACE);;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1228,7 +1306,11 @@ int gui_multi(int pd, const char *text, int size, const GLubyte *c0,
 
         for (p = text, j = 0; *p && j < GUI_LINES; j++)
         {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            strncpy_s(s[j], dstSize, p, (n = strcspn(p, "\\")));
+#else
             strncpy(s[j], p, (n = strcspn(p, "\\")));
+#endif
             s[j][n] = 0;
 
             if (*(p += n) == '\\') p++;
@@ -1705,6 +1787,10 @@ static void gui_paint_rect(int id, int st, int flags)
             glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2),
                          (GLfloat) (widget[id].y + widget[id].h / 2), 0.f);
 
+            /*glScalef(widget[id].scale,
+                     widget[id].scale,
+                     widget[id].scale);*/
+
             glBindTexture(GL_TEXTURE_2D, curr_theme.tex[i]);
             draw_rect(id);
         }
@@ -1719,7 +1805,6 @@ static void gui_paint_rect(int id, int st, int flags)
     case GUI_VARRAY:
     case GUI_HSTACK:
     case GUI_VSTACK:
-
         /* Recursively paint all subwidgets. */
 
         for (jd = widget[id].car; jd; jd = widget[jd].cdr)
@@ -1773,6 +1858,7 @@ static void gui_paint_image(int id)
 
         glBindTexture(GL_TEXTURE_2D, widget[id].image);
         glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], gui_wht[3]);
+        glColor4f(1, 1, 1, widget[id].alpha);
         draw_image(id);
     }
     glPopMatrix();
@@ -1811,6 +1897,7 @@ static void gui_paint_count(int id)
                 int jd = digit_id[i][j % 10];
 
                 glBindTexture(GL_TEXTURE_2D, widget[jd].image);
+                glColor4f(1, 1, 1, widget[id].alpha);
                 draw_text(jd);
                 glTranslatef((GLfloat) -widget[jd].text_w, 0.0f, 0.0f);
             }
@@ -1820,6 +1907,7 @@ static void gui_paint_count(int id)
             /* If the value is zero, just display a zero in place. */
 
             glBindTexture(GL_TEXTURE_2D, widget[digit_id[i][0]].image);
+            glColor4f(1, 1, 1, widget[id].alpha);
             draw_text(digit_id[i][0]);
         }
     }
@@ -1828,19 +1916,33 @@ static void gui_paint_count(int id)
 
 static void gui_paint_clock(int id)
 {
-    int i  =   widget[id].size;
-    int mt =  (widget[id].value / 6000) / 10;
-    int mo =  (widget[id].value / 6000) % 10;
-    int st = ((widget[id].value % 6000) / 100) / 10;
-    int so = ((widget[id].value % 6000) / 100) % 10;
-    int ht = ((widget[id].value % 6000) % 100) / 10;
-    int ho = ((widget[id].value % 6000) % 100) % 10;
-
-    GLfloat dx_large = (GLfloat) widget[digit_id[i][0]].text_w;
-    GLfloat dx_small = (GLfloat) widget[digit_id[i][0]].text_w * 0.75f;
+    int i   =   widget[id].size;
 
     if (widget[id].value < 0)
         return;
+
+    /*int dyh = ((widget[id].value / 864000000) / 100) % 100;
+    int dyt = ((widget[id].value / 864000000) / 10) % 10;
+    int dyo =  (widget[id].value / 864000000) % 10;*/
+
+    int temp_value = widget[id].value;
+
+    /* Overlength above 24 hours. */
+
+    while (((temp_value / 360000) / 100) >= 24)
+        temp_value -= 864000000;
+
+    int hrt =  (temp_value / 360000) / 1000;
+    int hro = ((temp_value / 360000) / 100) % 10;
+    int mt  = ((temp_value / 6000) / 10) % 6;
+    int mo  =  (temp_value / 6000) % 10;
+    int st  = ((temp_value % 6000) / 100) / 10;
+    int so  = ((temp_value % 6000) / 100) % 10;
+    int ht  = ((temp_value % 6000) % 100) / 10;
+    int ho  = ((temp_value % 6000) % 100) % 10;
+
+    GLfloat dx_large = (GLfloat) widget[digit_id[i][0]].text_w;
+    GLfloat dx_small = (GLfloat) widget[digit_id[i][0]].text_w * 0.75f;
 
     glPushMatrix();
     {
@@ -1855,37 +1957,116 @@ static void gui_paint_clock(int id)
 
         /* Translate left by half the total width of the rendered value. */
 
-        if (mt > 0)
+        /*if (dyh > 0)
+            glTranslatef(-5.25f * dx_large, 0.0f, 0.0f);
+        else if (dyt > 0)
+            glTranslatef(-4.75f * dx_large, 0.0f, 0.0f);
+        else if (dyo > 0)
+            glTranslatef(-4.25f * dx_large, 0.0f, 0.0f);
+        else*/ if (hrt > 0)
+            glTranslatef(-3.75f * dx_large, 0.0f, 0.0f);
+        else if (hro > 0)
+            glTranslatef(-3.25f * dx_large, 0.0f, 0.0f);
+        else if (mt > 0)
             glTranslatef(-2.25f * dx_large, 0.0f, 0.0f);
         else
             glTranslatef(-1.75f * dx_large, 0.0f, 0.0f);
 
+        /* Render the day counter. */
+
+        /*if (dyh > 0)
+        {
+            glBindTexture(GL_TEXTURE_2D, widget[digit_id[i][dyh]].image);
+            glColor4f(1, 1, 1, widget[id].alpha);
+            draw_text(digit_id[i][dyh]);
+            glTranslatef(dx_large, 0.0f, 0.0f);
+        }
+
+        if (dyt > 0 || dyh > 0)
+        {
+            glBindTexture(GL_TEXTURE_2D, widget[digit_id[i][dyt]].image);
+            glColor4f(1, 1, 1, widget[id].alpha);
+            draw_text(digit_id[i][dyt]);
+            glTranslatef(dx_large, 0.0f, 0.0f);
+        }
+
+        if (dyo > 0 || dyt > 0 || dyh > 0)
+        {
+            glBindTexture(GL_TEXTURE_2D, widget[digit_id[i][dyo]].image);
+            glColor4f(1, 1, 1, widget[id].alpha);
+            draw_text(digit_id[i][dyo]);
+            glTranslatef(dx_small, 0.0f, 0.0f);
+        }*/
+
+        /* Render the hyphen (before hours). */
+
+        /*if (dyo > 0 || dyt > 0 || dyh > 0)
+        {
+            glBindTexture(GL_TEXTURE_2D, widget[digit_id[i][10]].image);
+            glColor4f(1, 1, 1, widget[id].alpha);
+            draw_text(digit_id[i][11]);
+            glTranslatef(dx_small, 0.0f, 0.0f);
+        }*/
+
+        /* Render the hour counter. */
+
+        if (hrt > 0)
+        {
+            glBindTexture(GL_TEXTURE_2D, widget[digit_id[i][hrt]].image);
+            glColor4f(1, 1, 1, widget[id].alpha);
+            draw_text(digit_id[i][hrt]);
+            glTranslatef(dx_large, 0.0f, 0.0f);
+        }
+
+        if (hro > 0 || hrt > 0)
+        {
+            glBindTexture(GL_TEXTURE_2D, widget[digit_id[i][hro]].image);
+            glColor4f(1, 1, 1, widget[id].alpha);
+            draw_text(digit_id[i][hro]);
+            glTranslatef(dx_small, 0.0f, 0.0f);
+        }
+
+        /* Render the colon (before minutes). */
+
+        if (hro > 0 || hrt > 0)
+        {
+            glBindTexture(GL_TEXTURE_2D, widget[digit_id[i][10]].image);
+            glColor4f(1, 1, 1, widget[id].alpha);
+            draw_text(digit_id[i][10]);
+            glTranslatef(dx_small, 0.0f, 0.0f);
+        }
+
         /* Render the minutes counter. */
 
-        if (mt > 0)
+        if (mt > 0 || hro > 0)
         {
             glBindTexture(GL_TEXTURE_2D, widget[digit_id[i][mt]].image);
+            glColor4f(1, 1, 1, widget[id].alpha);
             draw_text(digit_id[i][mt]);
             glTranslatef(dx_large, 0.0f, 0.0f);
         }
 
         glBindTexture(GL_TEXTURE_2D, widget[digit_id[i][mo]].image);
+        glColor4f(1, 1, 1, widget[id].alpha);
         draw_text(digit_id[i][mo]);
         glTranslatef(dx_small, 0.0f, 0.0f);
 
-        /* Render the colon. */
+        /* Render the colon (before seconds). */
 
         glBindTexture(GL_TEXTURE_2D, widget[digit_id[i][10]].image);
+        glColor4f(1, 1, 1, widget[id].alpha);
         draw_text(digit_id[i][10]);
         glTranslatef(dx_small, 0.0f, 0.0f);
 
         /* Render the seconds counter. */
 
         glBindTexture(GL_TEXTURE_2D, widget[digit_id[i][st]].image);
+        glColor4f(1, 1, 1, widget[id].alpha);
         draw_text(digit_id[i][st]);
         glTranslatef(dx_large, 0.0f, 0.0f);
 
         glBindTexture(GL_TEXTURE_2D, widget[digit_id[i][so]].image);
+        glColor4f(1, 1, 1, widget[id].alpha);
         draw_text(digit_id[i][so]);
         glTranslatef(dx_small, 0.0f, 0.0f);
 
@@ -1894,10 +2075,12 @@ static void gui_paint_clock(int id)
         glScalef(0.5f, 0.5f, 1.0f);
 
         glBindTexture(GL_TEXTURE_2D, widget[digit_id[i][ht]].image);
+        glColor4f(1, 1, 1, widget[id].alpha);
         draw_text(digit_id[i][ht]);
         glTranslatef(dx_large, 0.0f, 0.0f);
 
         glBindTexture(GL_TEXTURE_2D, widget[digit_id[i][ho]].image);
+        glColor4f(1, 1, 1, widget[id].alpha);
         draw_text(digit_id[i][ho]);
     }
     glPopMatrix();
@@ -1922,6 +2105,7 @@ static void gui_paint_label(int id)
                  widget[id].scale);
 
         glBindTexture(GL_TEXTURE_2D, widget[id].image);
+        glColor4f(1, 1, 1, widget[id].alpha);
         draw_text(id);
     }
     glPopMatrix();
@@ -1929,19 +2113,123 @@ static void gui_paint_label(int id)
 
 static void gui_paint_text(int id)
 {
+    if (widget[id].alpha < .5f) return;
     switch (widget[id].type)
     {
     case GUI_SPACE:  break;
     case GUI_FILLER: break;
-    case GUI_HARRAY: gui_paint_array(id); break;
-    case GUI_VARRAY: gui_paint_array(id); break;
-    case GUI_HSTACK: gui_paint_array(id); break;
+
+    /* Should not include same methods, but THIS! */
+    case GUI_HARRAY:
+    case GUI_VARRAY:
+    case GUI_HSTACK:
     case GUI_VSTACK: gui_paint_array(id); break;
+
     case GUI_IMAGE:  gui_paint_image(id); break;
     case GUI_COUNT:  gui_paint_count(id); break;
     case GUI_CLOCK:  gui_paint_clock(id); break;
     default:         gui_paint_label(id); break;
     }
+}
+
+void gui_animate(int id)
+{
+    glTranslatef((GLfloat) (video.device_w / 2),
+                 (GLfloat) (video.device_h / 2), 0.0f);
+
+    float animation_rotation_treshold = (widget[id].alpha - 1.0f) * 4;
+
+    /* Animation positions */
+    switch (widget[id].animation_direction)
+    {
+        /* Single direction (No Pow) */
+    case GUI_ANIMATION_N_LINEAR:
+        glTranslatef(0.0f, (video.device_h / -3) * (widget[id].alpha - 1), 0.0f);
+        break;
+    case GUI_ANIMATION_E_LINEAR:
+        glTranslatef((video.device_h / -3) * (widget[id].alpha - 1), 0.0f, 0.0f);
+        break;
+    case GUI_ANIMATION_S_LINEAR:
+        glTranslatef(0.0f, (video.device_h / 3) * (widget[id].alpha - 1), 0.0f);
+        break;
+    case GUI_ANIMATION_W_LINEAR:
+        glTranslatef((video.device_h / 3) * (widget[id].alpha - 1), 0.0f, 0.0f);
+        break;
+
+        /* Multiple directions (No Pow) */
+    case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_E_LINEAR:
+        glTranslatef((video.device_h / -3) * (widget[id].alpha - 1), (video.device_h / -3) * (widget[id].alpha - 1), 0.0f);
+        break;
+    case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_W_LINEAR:
+        glTranslatef((video.device_h / 3) * (widget[id].alpha - 1), (video.device_h / -3) * (widget[id].alpha - 1), 0.0f);
+        break;
+    case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_E_LINEAR:
+        glTranslatef((video.device_h / -3) * (widget[id].alpha - 1), (video.device_h / 3) * (widget[id].alpha - 1), 0.0f);
+        break;
+    case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_W_LINEAR:
+        glTranslatef((video.device_h / 3) * (widget[id].alpha - 1), (video.device_h / 3) * (widget[id].alpha - 1), 0.0f);
+        break;
+
+
+        /* Single direction (Pow) */
+    case GUI_ANIMATION_N_CURVE:
+        glTranslatef(0.0f, fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f);
+        break;
+    case GUI_ANIMATION_E_CURVE:
+        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f, 0.0f);
+        break;
+    case GUI_ANIMATION_S_CURVE:
+        glTranslatef(0.0f, fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f);
+        break;
+    case GUI_ANIMATION_W_CURVE:
+        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f, 0.0f);
+        break;
+
+        /* Multiple directions (Pow) */
+    case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE:
+        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f);
+        break;
+    case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE:
+        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f);
+        break;
+    case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE:
+        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f);
+        break;
+    case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE:
+        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f);
+        break;
+    }
+
+    /* Animation rotations */
+    switch (widget[id].animation_direction)
+    {
+    /* Single direction (No Pow) */
+    case GUI_ANIMATION_W_LINEAR:
+    case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_W_LINEAR:
+    case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_W_LINEAR:
+        glRotatef(animation_rotation_treshold, 0.0f, 0.0f, 1.0f);
+        break;
+    case GUI_ANIMATION_E_LINEAR:
+    case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_E_LINEAR:
+    case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_E_LINEAR:
+        glRotatef(animation_rotation_treshold, 0.0f, 0.0f, -1.0f);
+        break;
+
+    /* Multiple directions (No Pow) */
+    case GUI_ANIMATION_W_CURVE:
+    case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE:
+    case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE:
+        glRotatef(fpowf(animation_rotation_treshold, 2), 0.0f, 0.0f, 1.0f);
+        break;
+    case GUI_ANIMATION_E_CURVE:
+    case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE:
+    case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE:
+        glRotatef(fpowf(animation_rotation_treshold, 2), 0.0f, 0.0f, -1.0f);
+        break;
+    }
+
+    glTranslatef((GLfloat) (-video.device_w / 2),
+                 (GLfloat) (-video.device_h / 2), 0.0f);
 }
 
 void gui_paint(int id)
@@ -1950,23 +2238,76 @@ void gui_paint(int id)
     {
         video_push_ortho();
         {
+            glDisable(GL_LIGHTING);
             glDisable(GL_DEPTH_TEST);
             {
+                gui_animate(id);
+
                 draw_enable(GL_FALSE, GL_TRUE, GL_TRUE);
+                glColor4f(1, 1, 1, widget[id].alpha);
                 gui_paint_rect(id, 0, 0);
 
                 draw_enable(GL_TRUE, GL_TRUE, GL_TRUE);
+                glColor4f(1, 1, 1, widget[id].alpha);
                 gui_paint_text(id);
-
-                if (cursor_st && cursor_id)
-                    gui_paint_image(cursor_id);
 
                 draw_disable();
                 glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], gui_wht[3]);
+                glColor4f(1.f, 1.f, 1.f, viewport_wireframe == 4 && render_fill_overlay == 1 ? .5f : 1.f);
             }
             glEnable(GL_DEPTH_TEST);
+            glEnable(GL_LIGHTING);
         }
         video_pop_matrix();
+    }
+
+    /* Should be used within the splitview? */
+    if (!video_get_grab() && cursor_st && cursor_id)
+    {
+        video_push_ortho();
+        {
+            glDisable(GL_LIGHTING);
+            glDisable(GL_DEPTH_TEST);
+
+            draw_enable(GL_TRUE, GL_TRUE, GL_TRUE);
+
+            if (viewport_wireframe == 2)
+            {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                glEnable(GL_TEXTURE_2D);
+
+                if (render_left_viewport && !splitview_crossed)
+                    gui_paint_image(cursor_id);
+                if (render_right_viewport && splitview_crossed)
+                    gui_paint_image(cursor_id);
+
+                if (render_right_viewport)
+                {
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                    glDisable(GL_TEXTURE_2D);
+                }
+            }
+            else
+                gui_paint_image(cursor_id);
+
+            draw_disable();
+            glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], gui_wht[3]);
+
+            glEnable(GL_DEPTH_TEST);
+            glEnable(GL_LIGHTING);
+        }
+        video_pop_matrix();
+    }
+}
+
+void gui_set_alpha(int id, float alpha, int direction)
+{
+    if (id)
+    {
+        widget[id].alpha = CLAMP(0.0f, alpha, 1.0f);
+        widget[id].animation_direction = direction;
+        gui_set_alpha(widget[id].cdr, alpha, GUI_ANIMATION_NONE);
+        gui_set_alpha(widget[id].car, alpha, GUI_ANIMATION_NONE);
     }
 }
 
@@ -2006,22 +2347,25 @@ void gui_dump(int id, int d)
 
 void gui_pulse(int id, float k)
 {
-    if (id) widget[id].scale = k;
+    if (id)
+    {
+        if (widget[id].scale < k)
+            widget[id].scale = k;
+    }
 }
 
 void gui_timer(int id, float dt)
 {
     int jd;
 
-    if (id)
+    if (id && widget[id].alpha >= .5f)
     {
         for (jd = widget[id].car; jd; jd = widget[jd].cdr)
             gui_timer(jd, dt);
+        
+        //if (widget[id].scale - 1.0f < dt) widget[id].scale = 1.0f; else widget[id].scale -= dt;
 
-        if (widget[id].scale - 1.0f < dt)
-            widget[id].scale = 1.0f;
-        else
-            widget[id].scale -= dt;
+        widget[id].scale = flerp(1.0f, widget[id].scale, 0.8f);
     }
 }
 
@@ -2067,6 +2411,11 @@ int gui_point(int id, int x, int y)
         return 0;
     else
         return active = jd;
+}
+
+void gui_alpha(int id, float alpha)
+{
+    widget[id].alpha;
 }
 
 void gui_focus(int i)
@@ -2372,13 +2721,13 @@ int gui_stick(int id, int a, float v, int bump)
 
     if      (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))
     {
-        if (v < 0) jd = gui_wrap_L(id, active);
-        if (v > 0) jd = gui_wrap_R(id, active);
+        if (v + axis_offset[0] < 0) jd = gui_wrap_L(id, active);
+        if (v + axis_offset[0] > 0) jd = gui_wrap_R(id, active);
     }
     else if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y0, a))
     {
-        if (v < 0) jd = gui_wrap_U(id, active);
-        if (v > 0) jd = gui_wrap_D(id, active);
+        if (v + axis_offset[1] < 0) jd = gui_wrap_U(id, active);
+        if (v + axis_offset[1] > 0) jd = gui_wrap_D(id, active);
     }
 
     /* If the active widget has changed, return the new active id. */
@@ -2424,25 +2773,60 @@ int gui_navig(int id, int total, int first, int step)
     {
         if (next || prev)
         {
-            gui_maybe(jd, " > ", GUI_NEXT, GUI_NONE, next);
-
-            if ((kd = gui_label(jd, "999/999", GUI_SML, gui_wht, gui_wht)))
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+            if (current_platform == PLATFORM_PC)
+#endif
             {
-                char str[16];
-                sprintf(str, "%d/%d", page, pages);
-                gui_set_label(kd, str);
+#ifdef SWITCHBALL_GUI
+                gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png", "gui/navig/arrow_right.png", GUI_NEXT, GUI_NONE, next);
+#else
+                gui_maybe(jd, GUI_ARROW_RGHT, GUI_NEXT, GUI_NONE, next);
+#endif
             }
 
-            gui_maybe(jd, " < ", GUI_PREV, GUI_NONE, prev);
+            if ((kd = gui_label(jd, "9999/9999", GUI_SML, gui_wht, gui_wht)))
+            {
+                char str[16];
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(str, 16,
+#else
+                sprintf(str,
+#endif
+                        "%d/%d", page, pages);
+                gui_set_label(kd, str);
+            }
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+            if (current_platform == PLATFORM_PC)
+#endif
+            {
+#ifdef SWITCHBALL_GUI
+                gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png", "gui/navig/arrow_left.png", GUI_PREV, GUI_NONE, prev);
+#else
+                gui_maybe(jd, GUI_ARROW_LFT, GUI_PREV, GUI_NONE, prev);
+#endif
+            }
         }
-
-        gui_space(jd);
-
-        gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+        if (current_platform == PLATFORM_PC)
+#endif
+        {
+            gui_space(jd);
+            gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+        }
     }
     return jd;
 }
 
+#ifdef SWITCHBALL_GUI
+int gui_maybe_img(int id, const char *dimage, const char *eimage, int etoken, int dtoken, int enabled)
+{
+    int bd = gui_image(id, enabled ? eimage : dimage, widget[digit_id[1][0]].w * 0.4f, widget[digit_id[1][0]].h * 0.4f);
+
+    gui_set_state(bd, enabled ? etoken : dtoken, 0);
+
+    return bd;
+}
+#else
 int gui_maybe(int id, const char *label, int etoken, int dtoken, int enabled)
 {
     int bd;
@@ -2457,5 +2841,6 @@ int gui_maybe(int id, const char *label, int etoken, int dtoken, int enabled)
 
     return bd;
 }
+#endif
 
 /*---------------------------------------------------------------------------*/

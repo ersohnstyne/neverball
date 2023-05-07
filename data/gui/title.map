@@ -5,14 +5,14 @@
 "version" "2.1"
 "shot" "shot-medium/title.jpg"
 "song" "bgm/title.ogg"
-"back" "map-back/jupiter.sol"
-"grad" "back/space.png"
+"back" "map-back/premium.sol"
+"grad" "back/premium.png"
 "coin_hs" "40 28"
 "time_hs" "1200 2000"
 "goal_hs" "1750 4000"
 "goal" "25"
 "time" "6000"
-"message" "Neverball\\http://neverball.org\\Created by Robert Kooima\"
+"message" "Neverball\http://neverball.org\\Created by Robert Kooima\Lead Developer: Ersohn Styne"
 // brush 0
 {
 ( -1416 -128 -16 ) ( -1416 0 -16 ) ( -1408 0 0 ) mtrl/chrome-faceted 0 0 0 0.5 0.5 0 0 0

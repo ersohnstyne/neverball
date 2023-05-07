@@ -6,12 +6,13 @@
 /*---------------------------------------------------------------------------*/
 
 #define IMG_PART_STAR     "png/part"
+#define IMG_PART_SQUIGGLE "png/squiggle"
 
 #define PART_MAX_COIN  64
 #define PART_MAX_GOAL  64
 #define PART_MAX_JUMP  64
 
-#define PART_SIZE       0.1f
+#define PART_SIZE      0.1f
 
 /*---------------------------------------------------------------------------*/
 

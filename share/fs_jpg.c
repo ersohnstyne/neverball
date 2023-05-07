@@ -42,6 +42,8 @@
 #include "fs.h"
 #include "fs_jpg.h"
 
+#include "log.h"
+
 /* -------------------------------------------------------------------------- */
 
 /* this is not a core library module, so it doesn't define JPEG_INTERNALS */
@@ -56,12 +58,14 @@ typedef struct {
   fs_file infile;		/* source stream */
   JOCTET * buffer;		/* start of buffer */
   boolean start_of_file;	/* have we gotten any data yet? */
-} my_source_mgr;
+  int jpeg_init;
+} NBSourcePtr;
 
-typedef my_source_mgr * my_src_ptr;
+typedef NBSourcePtr * nb_src_ptr;
 
-#define INPUT_BUF_SIZE  4096	/* choose an efficiently fread'able size */
-
+// choose an efficiently fread'able size
+// Default is 4096 (x2 = 8192)
+#define INPUT_BUF_SIZE 8192
 
 /*
  * Initialize source --- called by jpeg_read_header
@@ -71,13 +75,14 @@ typedef my_source_mgr * my_src_ptr;
 METHODDEF(void)
 init_source (j_decompress_ptr cinfo)
 {
-  my_src_ptr src = (my_src_ptr) cinfo->src;
+  nb_src_ptr src = (nb_src_ptr) cinfo->src;
 
   /* We reset the empty-input-file flag for each image,
    * but we don't clear the input buffer.
    * This is correct behavior for reading a series of images from one source.
    */
   src->start_of_file = TRUE;
+  src->jpeg_init = 1;
 }
 
 
@@ -117,10 +122,17 @@ init_source (j_decompress_ptr cinfo)
 METHODDEF(boolean)
 fill_input_buffer (j_decompress_ptr cinfo)
 {
-  my_src_ptr src = (my_src_ptr) cinfo->src;
+  nb_src_ptr src = (nb_src_ptr) cinfo->src;
   size_t nbytes;
+  if (!src->jpeg_init) {
+    log_errorf("Failure to fill JPG buffer! JPG must be initialized!\n"); return FALSE;
+  }
 
-  nbytes = fs_read(src->buffer, INPUT_BUF_SIZE, src->infile);
+  if (src->infile)
+    nbytes = fs_read(src->buffer, INPUT_BUF_SIZE, src->infile);
+  else {
+    log_errorf("Failure to fill JPG buffer! JPG must be opened the file!\n"); return FALSE;
+  }
 
   if (nbytes <= 0) {
     if (src->start_of_file)	/* Treat empty input file as fatal error */
@@ -155,7 +167,10 @@ fill_input_buffer (j_decompress_ptr cinfo)
 METHODDEF(void)
 skip_input_data (j_decompress_ptr cinfo, long num_bytes)
 {
-  my_src_ptr src = (my_src_ptr) cinfo->src;
+  nb_src_ptr src = (nb_src_ptr) cinfo->src;
+  if (!src->jpeg_init) {
+    log_errorf("Failure to skip data! JPG must be initialized!\n"); return;
+  }
 
   /* Just a dumb implementation for now.  Could use fseek() except
    * it doesn't work on pipes.  Not clear that being smart is worth
@@ -186,7 +201,7 @@ skip_input_data (j_decompress_ptr cinfo, long num_bytes)
 
 /*
  * Terminate source --- called by jpeg_finish_decompress
- * after all data has been read.  Often a no-op.
+ * after all data has been read.
  *
  * NB: *not* called by jpeg_abort or jpeg_destroy; surrounding
  * application must deal with any cleanup that should happen even
@@ -196,7 +211,8 @@ skip_input_data (j_decompress_ptr cinfo, long num_bytes)
 METHODDEF(void)
 term_source (j_decompress_ptr cinfo)
 {
-  /* no work necessary here */
+  nb_src_ptr src = (nb_src_ptr)cinfo->src;
+  src->jpeg_init = 0;
 }
 
 
@@ -209,7 +225,7 @@ term_source (j_decompress_ptr cinfo)
 GLOBAL(void)
 fs_jpg_src (j_decompress_ptr cinfo, fs_file infile)
 {
-  my_src_ptr src;
+  nb_src_ptr src;
 
   /* The source object and input buffer are made permanent so that a series
    * of JPEG images can be read from the same file by calling jpeg_stdio_src
@@ -220,15 +236,13 @@ fs_jpg_src (j_decompress_ptr cinfo, fs_file infile)
    */
   if (cinfo->src == NULL) {	/* first time for this JPEG object? */
     cinfo->src = (struct jpeg_source_mgr *)
-      (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT,
-				  sizeof (my_source_mgr));
-    src = (my_src_ptr) cinfo->src;
+      (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT, sizeof (NBSourcePtr));
+    src = (nb_src_ptr) cinfo->src;
     src->buffer = (JOCTET *)
-      (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT,
-				  INPUT_BUF_SIZE * sizeof (JOCTET));
+      (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT, INPUT_BUF_SIZE * sizeof (JOCTET));
   }
 
-  src = (my_src_ptr) cinfo->src;
+  src = (nb_src_ptr) cinfo->src;
   src->pub.init_source = init_source;
   src->pub.fill_input_buffer = fill_input_buffer;
   src->pub.skip_input_data = skip_input_data;

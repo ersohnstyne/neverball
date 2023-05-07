@@ -3,6 +3,9 @@
 
 #include "solid_vary.h"
 
+extern int last_path_enabled_orcondition[1024];
+extern int curr_path_enabled_orcondition[1024];
+
 typedef void (*cmd_fn)(const union cmd *);
 
 void sol_body_p(float p[3],
@@ -27,6 +30,7 @@ void sol_pendulum(struct v_ball *up,
                   const float g[3], float dt);
 
 void sol_swch_step(struct s_vary *, cmd_fn, float dt, int ms);
+void sol_chkp_step(struct s_vary *, cmd_fn, float dt, int ms);
 void sol_move_step(struct s_vary *, cmd_fn, float dt, int ms);
 void sol_ball_step(struct s_vary *, cmd_fn, float dt);
 
@@ -44,9 +48,17 @@ enum
     SWCH_TOUCH
 };
 
+enum
+{
+    CHKP_OUTSIDE = 0,
+    CHKP_INSIDE,
+    CHKP_TOUCH
+};
+
 int            sol_item_test(struct s_vary *, float *p, float item_r);
 struct b_goal *sol_goal_test(struct s_vary *, float *p, int ui);
 int            sol_jump_test(struct s_vary *, float *p, int ui);
 int            sol_swch_test(struct s_vary *, cmd_fn, int ui);
+int            sol_chkp_test(struct s_vary *, cmd_fn, int ui, int *ci);
 
 #endif

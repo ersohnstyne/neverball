@@ -82,6 +82,7 @@ const GLubyte gui_shd[4] = { 0x00, 0x00, 0x00, 0x80 };  /* Shadow   */
 #define GUI_CLOCK  9
 #define GUI_SPACE  10
 #define GUI_BUTTON 11
+#define GUI_ROOT   12
 
 #define GUI_STATE  1
 #define GUI_FILL   2
@@ -761,6 +762,8 @@ static int gui_widget(int pd, int type)
             widget[id].font   = 0;
             widget[id].size   = 0;
             widget[id].rect   = GUI_ALL;
+            widget[id].x      = 0;
+            widget[id].y      = 0;
             widget[id].w      = 0;
             widget[id].h      = 0;
             widget[id].image  = 0;
@@ -802,6 +805,22 @@ int gui_varray(int pd) { return gui_widget(pd, GUI_VARRAY); }
 int gui_hstack(int pd) { return gui_widget(pd, GUI_HSTACK); }
 int gui_vstack(int pd) { return gui_widget(pd, GUI_VSTACK); }
 int gui_filler(int pd) { return gui_widget(pd, GUI_FILLER); }
+
+/*
+ * For when you really want to use gui_layout on multiple widgets.
+ */
+int gui_root()
+{
+    int id;
+
+    if ((id = gui_widget(0, GUI_ROOT)))
+    {
+        // Get gui_stick() working.
+        widget[id].w = INT_MAX;
+        widget[id].h = INT_MAX;
+    }
+    return id;
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -1669,8 +1688,10 @@ int gui_search(int id, int x, int y)
 
     /* Search the hierarchy for the widget containing the given point. */
 
-    if (id && (widget[id].x <= x && x < widget[id].x + widget[id].w &&
-               widget[id].y <= y && y < widget[id].y + widget[id].h))
+    if (id &&
+        (widget[id].type == GUI_ROOT ||
+         (widget[id].x <= x && x < widget[id].x + widget[id].w &&
+          widget[id].y <= y && y < widget[id].y + widget[id].h)))
     {
         if (gui_hot(id))
             return id;
@@ -1805,6 +1826,7 @@ static void gui_paint_rect(int id, int st, int flags)
     case GUI_VARRAY:
     case GUI_HSTACK:
     case GUI_VSTACK:
+    case GUI_ROOT:
         /* Recursively paint all subwidgets. */
 
         for (jd = widget[id].car; jd; jd = widget[jd].cdr)
@@ -2124,7 +2146,7 @@ static void gui_paint_text(int id)
     case GUI_VARRAY:
     case GUI_HSTACK:
     case GUI_VSTACK: gui_paint_array(id); break;
-
+    case GUI_ROOT:   gui_paint_array(id); break;
     case GUI_IMAGE:  gui_paint_image(id); break;
     case GUI_COUNT:  gui_paint_count(id); break;
     case GUI_CLOCK:  gui_paint_clock(id); break;
@@ -2333,6 +2355,8 @@ void gui_dump(int id, int d)
         case GUI_COUNT:  type = "count";  break;
         case GUI_CLOCK:  type = "clock";  break;
         case GUI_BUTTON: type = "button"; break;
+        case GUI_SPACE:  type = "space";  break;
+        case GUI_ROOT:   type = "root";   break;
         }
 
         for (i = 0; i < d; i++)

@@ -115,11 +115,6 @@ static int do_init = 1;
 static int boost_id;
 static int boost_on;
 
-#ifndef FS_VERSION_1
-static int *download_ids = NULL;
-static int *name_ids = NULL;
-#endif
-
 int is_boost_on(void)
 {
     return boost_on == 1;
@@ -138,118 +133,6 @@ enum
     SET_XBOX_RB,
     SET_GET_MORE
 };
-
-#ifndef FS_VERSION_1
-struct set_download_info
-{
-    char *set_file;
-    char label[32];
-};
-
-static struct set_download_info *create_set_download_info(const char *set_file)
-{
-    struct set_download_info *dli = calloc(sizeof (*dli), 1);
-
-    if (dli)
-        dli->set_file = strdup(set_file);
-
-    return dli;
-}
-
-static void free_set_download_info(struct set_download_info *dli)
-{
-    if (dli)
-    {
-        if (dli->set_file)
-        {
-            free(dli->set_file);
-            dli->set_file = NULL;
-        }
-
-        free(dli);
-        dli = NULL;
-    }
-}
-
-static void set_download_progress(void *data1, void *data2)
-{
-    struct set_download_info *dli = (struct set_download_info *) data1;
-    struct fetch_progress *pr = (struct fetch_progress *) data2;
-
-    if (dli)
-    {
-        /* Sets may change places, so we can't keep set index around. */
-        int set_index = set_find(dli->set_file);
-
-        if (download_ids && set_index >= 0 && set_index < total)
-        {
-            int id = download_ids[set_index];
-
-            if (id)
-            {
-                char label[32] = GUI_ELLIPSIS;
-
-                if (pr->total > 0)
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(label, dstSize,
-#else
-                    sprintf(label,
-#endif
-                            "%3d%%", (int) (pr->now * 100.0 / pr->total) % 1000);
-
-                /* Compare against current label so we're not calling GL constantly. */
-                /* TODO: just do this in gui_set_label. */
-
-                if (strcmp(label, dli->label) != 0)
-                {
-                    SAFECPY(dli->label, label);
-                    gui_set_label(id, label);
-                }
-            }
-        }
-    }
-}
-
-static void set_download_done(void *data1, void *data2)
-{
-    struct set_download_info *dli = (struct set_download_info *) data1;
-    struct fetch_done *dn = (struct fetch_done *) data2;
-
-    if (dli)
-    {
-        int set_index = set_find(dli->set_file);
-
-        if (download_ids && set_index >= 0 && set_index < total)
-        {
-            int id = download_ids[set_index];
-
-            if (id)
-            {
-                if (dn->finished)
-                {
-                    gui_remove(id);
-
-                    download_ids[set_index] = 0;
-
-                    if (name_ids && name_ids[set_index])
-                    {
-                        gui_set_label(name_ids[set_index], set_name(set_index));
-                        gui_pulse(name_ids[set_index], 1.2f);
-                    }
-                }
-                else
-                {
-                    gui_set_label(id, "!");
-                    gui_set_color(id, gui_red, gui_red);
-                }
-            }
-        }
-
-        free_set_download_info(dli);
-        dli = NULL;
-    }
-}
-#endif
 
 static int set_action(int tok, int val)
 {
@@ -317,43 +200,9 @@ static int set_action(int tok, int val)
     case SET_SELECT:
         if (set_name_locked) return 1;
 
-#ifndef FS_VERSION_1
-        if (set_is_installed(val))
-        {
-#endif
-            set_goto(val);
-            return goto_state_full(&st_start, GUI_ANIMATION_N_CURVE, GUI_ANIMATION_S_CURVE, 0);
-#ifndef FS_VERSION_1
-        }
-        else if (set_is_downloadable(val))
-        {
-            struct fetch_callback callback = { 0 };
+        set_goto(val);
+        return goto_state_full(&st_start, GUI_ANIMATION_N_CURVE, GUI_ANIMATION_S_CURVE, 0);
 
-            callback.progress = set_download_progress;
-            callback.done = set_download_done;
-            callback.data = create_set_download_info(set_file(val));
-
-            if (!set_download(val, callback))
-            {
-                free_set_download_info(callback.data);
-                callback.data = NULL;
-            }
-            else
-            {
-                if (download_ids && download_ids[val])
-                {
-                    gui_set_label(download_ids[val], GUI_ELLIPSIS);
-                    gui_set_color(download_ids[val], gui_grn, gui_grn);
-                }
-            }
-
-            return 1;
-        }
-        else if (set_is_downloading(val))
-        {
-            return 1;
-        }
-#endif
         break;
 
     case SET_TOGGLE_BOOST:
@@ -379,56 +228,6 @@ static int set_action(int tok, int val)
     return 1;
 }
 
-#ifndef FS_VERSION_1
-static void gui_set_download(int id, int i)
-{
-    int jd;
-
-#ifdef CONFIG_INCLUDES_ACCOUNT
-    int set_name_locked = account_get_d(ACCOUNT_SET_UNLOCKS) <= i && !is_boost_on()
-#if NB_STEAM_API == 0 && NB_EOS_SDK == 0
-        && !config_cheat()
-#endif
-        && (server_policy_get_d(SERVER_POLICY_EDITION) < SET_UNLOCKABLE_EDITION &&
-            server_policy_get_d(SERVER_POLICY_EDITION) != -1);
-#else
-    int set_name_locked = 0;
-#endif
-
-    if ((jd = gui_hstack(id)))
-    {
-        /* Create an illusion of center alignment. */
-        char *label = concat_string("         ", set_name(i), NULL);
-
-        int button_id, name_id;
-
-        button_id = gui_label(jd, "100%", GUI_SML, gui_grn, gui_grn);
-
-        if (set_is_downloading(i))
-            gui_set_label(button_id, GUI_ELLIPSIS);
-        else
-            gui_set_label(button_id, GUI_ARROW_DN);
-
-        if (download_ids)
-            download_ids[i] = button_id;
-        
-        name_id = gui_label(jd, "TTTTTTTTTTTTTT", GUI_SML, set_name_locked ? gui_gry : gui_wht, set_name_locked ? gui_gry : gui_wht);
-
-        gui_set_trunc(name_id, TRUNC_TAIL);
-        gui_set_label(name_id, set_name_locked ? _("Locked") : label);
-        gui_set_fill(name_id);
-
-        if (name_ids)
-            name_ids[i] = name_id;
-
-        gui_set_state(jd, SET_SELECT, i);
-        gui_set_rect(jd, GUI_ALL);
-
-        free(label);
-    }
-}
-#endif
-
 static void gui_set(int id, int i)
 {
     int set_text_name_id;
@@ -446,75 +245,64 @@ static void gui_set(int id, int i)
 
     if (set_exists(i))
     {
-#ifndef FS_VERSION_1
-        if (set_is_downloadable(i) || set_is_downloading(i))
+        if (i % SET_STEP == 0)
         {
-            gui_set_download(id, i);
-        }
-        else
-        {
-#endif
-            if (i % SET_STEP == 0)
+            if (gui_measure(set_name(i), GUI_SML).w > config_get_d(CONFIG_WIDTH) / 2.3f)
             {
-                if (gui_measure(set_name(i), GUI_SML).w > config_get_d(CONFIG_WIDTH) / 2.3f)
+                set_text_name_id = gui_label(id, "TTTTTTTTTTTTTTTTTTTTTT", GUI_SML, gui_wht, gui_wht);
+                gui_set_trunc(set_text_name_id, TRUNC_TAIL);
+                gui_set_state(set_text_name_id, SET_SELECT, i);
+                gui_set_label(set_text_name_id, set_name(i));
+
+                if (set_name_locked)
                 {
-                    set_text_name_id = gui_label(id, "TTTTTTTTTTTTTTTTTTTTTT", GUI_SML, gui_wht, gui_wht);
                     gui_set_trunc(set_text_name_id, TRUNC_TAIL);
-                    gui_set_state(set_text_name_id, SET_SELECT, i);
-                    gui_set_label(set_text_name_id, set_name(i));
-
-                    if (set_name_locked)
-                    {
-                        gui_set_trunc(set_text_name_id, TRUNC_TAIL);
-                        gui_set_label(set_text_name_id, _("Locked"));
-                        gui_set_color(set_text_name_id, gui_gry, gui_gry);
-                    }
-                }
-                else
-                {
-                    set_text_name_id = gui_start(id, "TTTTTTTTTTTTTTTTTTTTTT", GUI_SML, SET_SELECT, i);
-                    gui_set_label(set_text_name_id, set_name(i));
-
-                    if (set_name_locked)
-                    {
-                        gui_set_trunc(set_text_name_id, TRUNC_TAIL);
-                        gui_set_label(set_text_name_id, _("Locked"));
-                        gui_set_color(set_text_name_id, gui_gry, gui_gry);
-                    }
+                    gui_set_label(set_text_name_id, _("Locked"));
+                    gui_set_color(set_text_name_id, gui_gry, gui_gry);
                 }
             }
             else
             {
-                if (gui_measure(set_name(i), GUI_SML).w > config_get_d(CONFIG_WIDTH) / 2.3f)
+                set_text_name_id = gui_start(id, "TTTTTTTTTTTTTTTTTTTTTT", GUI_SML, SET_SELECT, i);
+                gui_set_label(set_text_name_id, set_name(i));
+
+                if (set_name_locked)
                 {
-                    set_text_name_id = gui_label(id, "TTTTTTTTTTTTTTTTTTTTTT", GUI_SML, gui_wht, gui_wht);
-                    gui_set_state(set_text_name_id, SET_SELECT, i);
                     gui_set_trunc(set_text_name_id, TRUNC_TAIL);
-                    gui_set_label(set_text_name_id, set_name(i));
-
-                    if (set_name_locked)
-                    {
-                        gui_set_trunc(set_text_name_id, TRUNC_TAIL);
-                        gui_set_label(set_text_name_id, _("Locked"));
-                        gui_set_color(set_text_name_id, gui_gry, gui_gry);
-                    }
-                }
-                else
-                {
-                    set_text_name_id = gui_state(id, "TTTTTTTTTTTTTTTTTTTTTT", GUI_SML, SET_SELECT, i);
-                    gui_set_label(set_text_name_id, set_name(i));
-
-                    if (set_name_locked)
-                    {
-                        gui_set_trunc(set_text_name_id, TRUNC_TAIL);
-                        gui_set_label(set_text_name_id, _("Locked"));
-                        gui_set_color(set_text_name_id, gui_gry, gui_gry);
-                    }
+                    gui_set_label(set_text_name_id, _("Locked"));
+                    gui_set_color(set_text_name_id, gui_gry, gui_gry);
                 }
             }
-#ifndef FS_VERSION_1
         }
-#endif
+        else
+        {
+            if (gui_measure(set_name(i), GUI_SML).w > config_get_d(CONFIG_WIDTH) / 2.3f)
+            {
+                set_text_name_id = gui_label(id, "TTTTTTTTTTTTTTTTTTTTTT", GUI_SML, gui_wht, gui_wht);
+                gui_set_state(set_text_name_id, SET_SELECT, i);
+                gui_set_trunc(set_text_name_id, TRUNC_TAIL);
+                gui_set_label(set_text_name_id, set_name(i));
+
+                if (set_name_locked)
+                {
+                    gui_set_trunc(set_text_name_id, TRUNC_TAIL);
+                    gui_set_label(set_text_name_id, _("Locked"));
+                    gui_set_color(set_text_name_id, gui_gry, gui_gry);
+                }
+            }
+            else
+            {
+                set_text_name_id = gui_state(id, "TTTTTTTTTTTTTTTTTTTTTT", GUI_SML, SET_SELECT, i);
+                gui_set_label(set_text_name_id, set_name(i));
+
+                if (set_name_locked)
+                {
+                    gui_set_trunc(set_text_name_id, TRUNC_TAIL);
+                    gui_set_label(set_text_name_id, _("Locked"));
+                    gui_set_color(set_text_name_id, gui_gry, gui_gry);
+                }
+            }
+        }
     }
     else
         gui_label(id, "", GUI_SML, 0, 0);
@@ -727,24 +515,6 @@ static int set_enter(struct state *st, struct state *prev)
     }
     else do_init = 1;
 
-#ifndef FS_VERSION_1
-    if (download_ids)
-    {
-        free(download_ids);
-        download_ids = NULL;
-    }
-
-    download_ids = (int *) calloc(total, sizeof (*download_ids));
-
-    if (name_ids)
-    {
-        free(name_ids);
-        name_ids = NULL;
-    }
-
-    name_ids = (int *) calloc(total, sizeof (*name_ids));
-#endif
-
     return set_gui();
 }
 
@@ -760,32 +530,7 @@ void set_leave(struct state *st, struct state *next, int id)
         )
         do_init = 1;
 
-#ifndef FS_VERSION_1
-    if (download_ids)
-    {
-        free(download_ids);
-        download_ids = NULL;
-    }
-
-    if (name_ids)
-    {
-        free(name_ids);
-        name_ids = NULL;
-    }
-#endif
-
     gui_delete(id);
-}
-
-static void set_paint(int id, float t)
-{
-    game_client_draw(0, t);
-
-    gui_paint(id);
-#ifndef __EMSCRIPTEN__
-    if (xbox_show_gui())
-        xbox_control_list_gui_paint();
-#endif
 }
 
 static void set_over(int i)

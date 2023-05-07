@@ -267,14 +267,10 @@ int common_buttn(int b, int d)
             return common_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return common_action(GUI_BACK, 0);
-
-        /*if (curr_state() == &st_lang)
-        {
-            if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b) && first > 0)
-                return common_action(GUI_XBOX_LB, 0);
-            if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b) && first + 10 < array_len(langs))
-                return common_action(GUI_XBOX_RB, 0);
-        }*/
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b))
+            return common_action(GUI_PREV, 0);
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b))
+            return common_action(GUI_NEXT, 0);
     }
     return 1;
 }

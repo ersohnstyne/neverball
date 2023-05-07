@@ -36,7 +36,7 @@ ifeq ($(shell uname),Darwin)
 	PLATFORM := darwin
 endif
 
-ifeq ($(shell uname -o),Msys)
+ifeq ($(shell uname -o 2> /dev/null),Msys)
 	PLATFORM := mingw
 endif
 
@@ -275,8 +275,11 @@ endif
 endif
 
 ifeq ($(PLATFORM),darwin)
-	ALL_CPPFLAGS += $(patsubst %, -I%, $(wildcard /opt/local/include \
-	                                              /usr/local/include))
+    ALL_CFLAGS += -Wno-newline-eof
+    ALL_CPPFLAGS += \
+        -DGL_SILENCE_DEPRECATION=1 \
+        $(patsubst %, -I%, $(wildcard /opt/local/include \
+                                      /usr/local/include))
 endif
 
 ALL_CPPFLAGS += $(CPPFLAGS)
@@ -511,6 +514,7 @@ BALL_OBJS := \
 	share/fs_ov.o       \
 	share/log.o         \
 	share/package.o     \
+	share/st_package.o  \
 	share/console_control_gui.o\
 	ball/hud.o          \
 	ball/game_common.o  \

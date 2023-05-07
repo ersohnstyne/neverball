@@ -29,13 +29,6 @@ int  set_find(const char *);
 
 int  curr_set(void);
 
-#ifndef FS_VERSION_1
-int  set_is_downloadable(int);
-int  set_is_downloading(int);
-int  set_is_installed(int);
-int  set_download(int, struct fetch_callback);
-#endif
-
 const char         *set_id(int);
 const char         *set_name(int);
 const char         *set_name_n(int);

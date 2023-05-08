@@ -1100,13 +1100,15 @@ static void gui_widget_size(int id)
 {
     int i;
 
+    const int s = MIN(video.device_w, video.device_h);
+
     switch (widget[id].type)
     {
     case GUI_IMAGE:
         /* Convert from integer-encoded fractions to window pixels. */
 
-        widget[id].w = ROUND(((float) widget[id].text_w / 1000.0f) * (float) video.device_w);
-        widget[id].h = ROUND(((float) widget[id].text_h / 1000.0f) * (float) video.device_h);
+        widget[id].w = ROUND(((float) widget[id].text_w / 1000.0f) * (float) s);
+        widget[id].h = ROUND(((float) widget[id].text_h / 1000.0f) * (float) s);
 
         break;
 
@@ -1142,30 +1144,19 @@ int gui_image(int pd, const char *file, int w, int h)
 {
     int id;
 
-    if ((id = gui_widget(pd, GUI_IMAGE)))
-    {
-        donot_allow_mip_and_aniso_during_gui = 1;
-        widget[id].image  = make_image_from_file(file, IF_MIPMAP);
-        widget[id].text_w = ((ROUND(((float) w / (float) video.device_w) * 1000.0f)) * ((video.aspect_ratio / (4 / 3)) / 2));
-        widget[id].text_h = ROUND(((float) h / (float) video.device_h) * 1000.0f);
-        widget[id].flags |= GUI_RECT;
-        gui_widget_size(id);
-        donot_allow_mip_and_aniso_during_gui = 0;
-    }
-    return id;
-}
-
-int gui_image_widescreen(int pd, const char *file, int w, int h)
-{
-    int id;
+    const int s = MIN(video.device_w, video.device_h);
 
     if ((id = gui_widget(pd, GUI_IMAGE)))
     {
         donot_allow_mip_and_aniso_during_gui = 1;
         widget[id].image  = make_image_from_file(file, IF_MIPMAP);
-        widget[id].text_w = ((ROUND(((float) w / (float) video.device_w) * 1000.0f)) * ((video.aspect_ratio / (16 / 9)) / 2));
-        widget[id].text_h = ROUND(((float) h / (float) video.device_h) * 1000.0f);
+
+        /* Convert window pixels to integer-encoded fractions. */
+
+        widget[id].text_w = ROUND(((float) w / (float) s) * 1000.0f);
+        widget[id].text_h = ROUND(((float) h / (float) s) * 1000.0f);
         widget[id].flags |= GUI_RECT;
+
         gui_widget_size(id);
         donot_allow_mip_and_aniso_during_gui = 0;
     }
@@ -1660,8 +1651,8 @@ void gui_layout(int id, int xd, int yd)
 
     gui_widget_up(id);
 
-    w = widget[id].w;
-    h = widget[id].h;
+    w = MIN(widget[id].w, W - padding * 2);
+    h = MIN(widget[id].h, H - padding * 2);
 
     if      (xd < 0) x = 0;
     else if (xd > 0) x = (W - w);

@@ -14,7 +14,7 @@
 
 /* Have some Switchball guides? */
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
 #endif
 
@@ -43,7 +43,7 @@
 #include "st_help.h"
 #include "st_shared.h"
 
-#if defined(LEVELGROUPS_INCLUDES_CAMPAIGN) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
 #define SWITCHBALL_HELP
 #endif
 
@@ -57,7 +57,6 @@ enum
 {
     HELP_SELECT = GUI_LAST,
     HELP_DEMO,
-    HELP_RULES_PREMIUM,
     HELP_NEXT
 };
 
@@ -171,7 +170,7 @@ static int help_action(int tok, int val)
         return goto_state(&st_title);
 
     case HELP_DEMO:
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (demo_replay_init(current_platform == PLATFORM_PC ?
                              demos[val] : demos_xbox[val],
 #else
@@ -240,14 +239,23 @@ static int help_menu(int id)
 }
 #endif
 
-static int get_premium_rules()
-{
-    return 1;
-}
-
 /*---------------------------------------------------------------------------*/
 
-#if defined(SWITCHBALL_HELP)
+#if NB_HAVE_PB_BOTH==1
+#define HELP_RULES_WITH_DEMO
+
+static int help_allow_demos(int id)
+{
+#ifndef __EMSCRIPTEN__
+    return fs_exists(current_platform == PLATFORM_PC ?
+                     demos[id] : demos_xbox[id]);
+#else
+    return fs_exists(demos[id]);
+#endif
+}
+#endif
+
+#ifdef SWITCHBALL_HELP
 static int page_introduction(int id)
 {
     int w = video.device_w;
@@ -256,6 +264,9 @@ static int page_introduction(int id)
     int jd, kd;
 
     gui_space(id);
+
+    const int ww = 5 * MIN(w, h) / 16;
+    const int hh = ww / 4 * 3;
 
     if (help_page_current == 1)
         gui_multi(id,
@@ -282,7 +293,7 @@ static int page_introduction(int id)
             gui_space(jd);
             if ((kd = gui_vstack(jd)))
             {
-                gui_image(kd, "gui/help/introduction1.jpg", 5 * w / 16, 5 * h / 16);
+                gui_image(kd, "gui/help/introduction1.jpg", ww, hh);
                 gui_filler(kd);
             }
         }
@@ -306,7 +317,7 @@ static int page_introduction(int id)
             gui_space(jd);
             if ((kd = gui_vstack(jd)))
             {
-                gui_image(kd, "gui/help/introduction2.jpg", 5 * w / 16, 5 * h / 16);
+                gui_image(kd, "gui/help/introduction2.jpg", ww, hh);
                 gui_filler(kd);
             }
         }
@@ -351,7 +362,7 @@ static int page_rules(int id)
             if ((ld = gui_vstack(kd)))
             {
                 gui_space(ld);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                 gui_multi(ld, current_platform == PLATFORM_PC ? s_pc : s_xbox, GUI_SML, gui_wht, gui_wht);
 #else
                 gui_multi(ld, s_pc, GUI_SML, gui_wht, gui_wht);
@@ -371,13 +382,17 @@ static int page_rules(int id)
 
         if ((kd = gui_varray(jd)))
         {
-            if (get_premium_rules())
+#ifdef HELP_RULES_WITH_DEMO
+            if (help_allow_control_demos(0) && help_allow_control_demos(1))
             {
+                const int ww = MIN(w, h) / 4;
+                const int hh = ww / 4 * 3;
+
                 /* This rule guides contains replays and is used with Premium */
                 if ((ld = gui_vstack(kd)))
                 {
                     gui_space(ld);
-                    gui_image(ld, "gui/rules1.jpg", w / 4, h / 4);
+                    gui_image(ld, "gui/rules1.jpg", ww, hh);
                     gui_state(ld, _("Watch demo"), GUI_SML, 0, 0);
                     gui_filler(ld);
                     gui_set_state(ld, HELP_DEMO, 0);
@@ -386,23 +401,29 @@ static int page_rules(int id)
                 if ((ld = gui_vstack(kd)))
                 {
                     gui_space(ld);
-                    gui_image(ld, "gui/rules2.jpg", w / 4, h / 4);
+                    gui_image(ld, "gui/rules2.jpg", ww, hh);
                     gui_state(ld, _("Watch demo"), GUI_SML, 0, 0);
                     gui_filler(ld);
                     gui_set_state(ld, HELP_DEMO, 1);
                 }
-            } else {
+            }
+            else
+#endif
+            {
+                const int ww = 5 * MIN(w, h) / 16;
+                const int hh = ww / 4 * 3;
+
                 if ((ld = gui_vstack(kd)))
                 {
                     gui_space(ld);
-                    gui_image(ld, "gui/help1.jpg", 5 * w / 16, 5 * h / 16);
+                    gui_image(ld, "gui/help1.jpg", ww, hh);
                     gui_filler(ld);
                 }
 
                 if ((ld = gui_vstack(kd)))
                 {
                     gui_space(ld);
-                    gui_image(ld, "gui/help2.jpg", 5 * w / 16, 5 * h / 16);
+                    gui_image(ld, "gui/help2.jpg", ww, hh);
                     gui_filler(ld);
                 }
             }
@@ -554,7 +575,7 @@ static void controls_console(int id)
 
 static int page_controls(int id)
 {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform == PLATFORM_PC)
         controls_pc(id);
     else
@@ -625,7 +646,8 @@ static int page_modes(int id)
             ))
         {
             if ((accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 || config_cheat())
-                || !server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
+                || !server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE)
+                || CHECK_ACCOUNT_BANKRUPT)
                 gui_label(jd, _("Challenge Mode"), GUI_SML, gui_gry, gui_red);
             else
                 gui_label(jd, _("Challenge Mode"), GUI_SML, 0, 0);
@@ -642,14 +664,18 @@ static int page_modes(int id)
             else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 || config_cheat())
                 gui_multi(jd, _("Challenge Mode is not available\\with slowdown."), GUI_SML, gui_wht, gui_wht);
 #endif
-#ifdef CONFIG_INCLUDES_ACCOUNT
-            else if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES))
+            else if (CHECK_ACCOUNT_BANKRUPT)
+                gui_multi(jd,
+                          _("Your player account is bankrupt.\\"
+                            "Restore from the backup or delete the\\"
+                            "local account and start over from scratch."),
+                          GUI_SML, gui_wht, gui_wht);
+            else if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0)
                 gui_multi(jd,
                           _("Start playing from the first level of the set.\\"
                             "You start with which you've already purchased from the shop.\\"
                             "Earn an extra ball for each 100 coins collected."),
                           GUI_SML, gui_wht, gui_wht);
-#endif
             else
                 gui_multi(jd,
                     _("Start playing from the first level of the set.\\"
@@ -680,7 +706,7 @@ static int page_modes(int id)
                 GUI_SML, gui_wht, gui_wht);
         }
 #else
-#if NB_HAVE_PB_BOTH == 1
+#if NB_HAVE_PB_BOTH==1
         if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE)
             && server_policy_get_d(SERVER_POLICY_EDITION) == 0)
         {
@@ -729,12 +755,13 @@ static int page_modes_special(int id)
 
     gui_space(id);
 
+#ifdef CONFIG_INCLUDES_ACCOUNT
     if ((jd = gui_vstack(id)))
     {
-#ifdef CONFIG_INCLUDES_ACCOUNT
         if (account_get_d(ACCOUNT_SET_UNLOCKS) > 0
             && (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER)
-                || campaign_career_unlocked()))
+                || campaign_career_unlocked())
+            && !CHECK_ACCOUNT_BANKRUPT)
         {
             if (account_get_d(ACCOUNT_PRODUCT_LEVELS))
             {
@@ -763,39 +790,43 @@ static int page_modes_special(int id)
         {
             gui_label(jd, _("Boost Rush Mode"), GUI_SML, gui_gry, gui_red);
 
-            if (account_get_d(ACCOUNT_PRODUCT_LEVELS))
-            {
+            if (server_policy_get_d(SERVER_POLICY_EDITION) < 0
+                && CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
                 gui_multi(jd,
-                          _("Complete the game to unlock this Mode."),
+                          _("Upgrade to Pro edition to play this Mode."),
                           GUI_SML, gui_wht, gui_wht);
-            }
-            else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
-            {
+            else if (CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
                 gui_multi(jd,
-                          _("Buy Extra Levels in the Shop to unlock this Mode."),
+                          _("Boost Rush Mode is not available\\with server group policy."),
                           GUI_SML, gui_wht, gui_wht);
-            }
+            else if (CHECK_ACCOUNT_ENABLED && CHECK_ACCOUNT_BANKRUPT)
+                gui_multi(jd,
+                          _("Your player account is bankrupt.\\"
+                            "Restore from the backup or delete the\\"
+                            "local account and start over from scratch."),
+                          GUI_SML, gui_wht, gui_wht);
             else
-            {
                 gui_multi(jd,
-                          _("Upgrade to Home edition to play this Mode."),
+                          _("Boost Rush Mode is not available\\please check your account settings."),
                           GUI_SML, gui_wht, gui_wht);
-            }
         }
-#else
-        gui_label(jd, _("Boost Rush Mode"), GUI_SML, gui_gry, gui_red);
-        gui_multi(jd, _("Neverball Game Modes\\requires Account configuration!"), GUI_SML, gui_red, gui_red);
-#endif
 
         gui_set_rect(jd, GUI_ALL);
     }
+#endif
     
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+#if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
     gui_space(id);
+#endif
 
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if ((jd = gui_vstack(id)))
     {
-        if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE))
+        if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE)
+#ifdef CONFIG_INCLUDES_ACCOUNT
+            && !CHECK_ACCOUNT_BANKRUPT && CHECK_ACCOUNT_ENABLED
+#endif
+            )
         {
             if ((accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
@@ -833,23 +864,36 @@ static int page_modes_special(int id)
         }
         else
         {
-            if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
-            {
-                gui_label(jd, _("Hardcore Mode"), GUI_SML, gui_gry, gui_red);
+            gui_label(jd, _("Hardcore Mode"), GUI_SML, gui_gry, gui_red);
+
+            if (server_policy_get_d(SERVER_POLICY_EDITION) < 0
+                && CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
                 gui_multi(jd,
                           _("Upgrade to Pro edition to play this Mode."),
                           GUI_SML, gui_wht, gui_wht);
-            }
-            else
-            {
-                gui_label(jd, _("Hardcore Mode"), GUI_SML, gui_gry, gui_red);
+            else if (CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
                 gui_multi(jd,
                           _("Hardcore Mode is not available\\with server group policy."),
                           GUI_SML, gui_wht, gui_wht);
-            }
+            else if (CHECK_ACCOUNT_ENABLED && CHECK_ACCOUNT_BANKRUPT)
+                gui_multi(jd,
+                          _("Your player account is bankrupt.\\"
+                            "Restore from the backup or delete the\\"
+                            "local account and start over from scratch."),
+                          GUI_SML, gui_wht, gui_wht);
+            else
+                gui_multi(jd,
+                          _("Hardcore Mode is not available\\please check your account settings."),
+                          GUI_SML, gui_wht, gui_wht);
         }
         gui_set_rect(jd, GUI_ALL);
     }
+#endif
+
+#if !defined(CONFIG_INCLUDES_ACCOUNT) && !defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
+    gui_multi(id,
+             _("Special game modes requires \\LEVELGROUPS_INCLUDES_CAMPAIGN\\or CONFIG_INCLUDES_ACCOUNT\\preprocessor definitions"),
+             GUI_SML, gui_red, gui_red);
 #endif
 
     return id;
@@ -864,6 +908,9 @@ static int page_morphs_and_generators(int id)
     int jd, kd;
 
     gui_space(id);
+
+    const int ww = 5 * MIN(w, h) / 16;
+    const int hh = ww / 4 * 3;
 
     if (help_page_current == 1)
     {
@@ -883,7 +930,7 @@ static int page_morphs_and_generators(int id)
             gui_space(jd);
             if ((kd = gui_vstack(jd)))
             {
-                gui_image(kd, "gui/help/mandg1.jpg", 5 * w / 16, 5 * h / 16);
+                gui_image(kd, "gui/help/mandg1.jpg", ww, hh);
                 gui_filler(kd);
             }
         }
@@ -906,7 +953,7 @@ static int page_morphs_and_generators(int id)
             gui_space(jd);
             if ((kd = gui_vstack(jd)))
             {
-                gui_image(kd, "gui/help/mandg2.jpg", 5 * w / 16, 5 * h / 16);
+                gui_image(kd, "gui/help/mandg2.jpg", ww, hh);
                 gui_filler(kd);
             }
         }*/
@@ -930,6 +977,9 @@ static int page_machines(int id)
 
     int jd, kd;
 
+    const int ww = 5 * MIN(w, h) / 16;
+    const int hh = ww / 4 * 3;
+
     gui_space(id);
 
     if (help_page_current == 1)
@@ -950,7 +1000,7 @@ static int page_machines(int id)
             gui_space(jd);
             if ((kd = gui_vstack(jd)))
             {
-                gui_image(kd, "gui/help/machines1.jpg", 5 * w / 16, 5 * h / 16);
+                gui_image(kd, "gui/help/machines1.jpg", ww, hh);
                 gui_filler(kd);
             }
         }
@@ -973,7 +1023,7 @@ static int page_machines(int id)
             gui_space(jd);
             if ((kd = gui_vstack(jd)))
             {
-                gui_image(kd, "gui/help/machines2.jpg", 5 * w / 16, 5 * h / 16);
+                gui_image(kd, "gui/help/machines2.jpg", ww, hh);
                 gui_filler(kd);
             }
         }
@@ -985,28 +1035,28 @@ static int page_machines(int id)
 
 static int page_tricks(int id)
 {
-    const char *s0 = _(
-        "Corners can be used to jump.\\"
-        "Get rolling and take aim\\"
-        "at the angle. You may be able\\"
-        "to reach new places.\\");
-    const char *s1 = _(
-        "Pushing in 2 directions increases\\"
-        "the roll speed. Use the manual\\"
-        "camera and turn the camera by 45\\"
-        "degrees for best results.\\");
+    const char *s0 = _("Corners can be used to jump.\\"
+                       "Get rolling and take aim\\"
+                       "at the angle. You may be able\\"
+                       "to reach new places.\\");
+    const char *s1 = _("Pushing in 2 directions increases\\"
+                       "the roll speed. Use the manual\\"
+                       "camera and turn the camera by 45\\"
+                       "degrees for best results.\\");
 
     if (config_get_d(CONFIG_TILTING_FLOOR))
-        s1 = _(
-            "Tilting in 2 directions increases\\"
-            "the slope. Use the manual camera\\"
-            "and turn the camera by 45\\"
-            "degrees for best results.\\");
+        s1 = _("Tilting in 2 directions increases\\"
+               "the slope. Use the manual camera\\"
+               "and turn the camera by 45\\"
+               "degrees for best results.\\");
 
     int w = video.device_w;
     int h = video.device_h;
 
     int jd, kd, ld;
+
+    const int ww = MIN(w, h) / 4;
+    const int hh = ww / 4 * 3;
 
     if ((jd = gui_hstack(id)))
     {
@@ -1017,7 +1067,7 @@ static int page_tricks(int id)
             if ((ld = gui_vstack(kd)))
             {
                 gui_space(ld);
-                gui_image(ld, "gui/tricks1.jpg", w / 4, h / 4);
+                gui_image(ld, "gui/tricks1.jpg", ww, hh);
                 gui_state(ld, _("Watch demo"), GUI_SML, 0, 0);
                 gui_filler(ld);
                 gui_set_state(ld, HELP_DEMO, 2);
@@ -1026,7 +1076,7 @@ static int page_tricks(int id)
             if ((ld = gui_vstack(kd)))
             {
                 gui_space(ld);
-                gui_image(ld, "gui/tricks2.jpg", w / 4, h / 4);
+                gui_image(ld, "gui/tricks2.jpg", ww, hh);
                 gui_state(ld, _("Watch demo"), GUI_SML, 0, 0);
                 gui_filler(ld);
                 gui_set_state(ld, HELP_DEMO, 3);
@@ -1173,7 +1223,7 @@ static void help_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (xbox_show_gui())
         xbox_control_list_gui_paint();
 #endif
@@ -1184,7 +1234,7 @@ static int help_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
@@ -1251,11 +1301,14 @@ static int help_demo_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
+        {
+            demo_freeze_all = 1;
             return goto_state(&st_help);
+        }
     }
     return 1;
 }
@@ -1265,7 +1318,10 @@ static int help_demo_buttn(int b, int d)
     if (d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+        {
+            demo_freeze_all = 1;
             return goto_state(&st_help);
+        }
     }
     return 1;
 }

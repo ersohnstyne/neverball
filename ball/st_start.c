@@ -12,13 +12,12 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH == 1
-#include "networking.h"
-
+#if NB_HAVE_PB_BOTH==1
 #ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
 
+#include "networking.h"
 #include "accessibility.h"
 #include "account.h"
 #include "boost_rush.h"
@@ -61,9 +60,7 @@ enum
     START_CHALLENGE = GUI_LAST,
     START_BOOST_RUSH,
     START_LOCK_GOALS,
-    START_LEVEL,
-    START_XBOX_LB,
-    START_XBOX_RB
+    START_LEVEL
 };
 
 static int shot_id;
@@ -193,18 +190,21 @@ static void start_over(int id, int pulse)
 
 static int start_action(int tok, int val)
 {
-    GAMEPAD_GAMEMENU_ACTION_SCROLL(START_XBOX_LB, START_XBOX_RB, LEVEL_STEP);
+    GAMEPAD_GAMEMENU_ACTION_SCROLL(GUI_PREV, GUI_NEXT, LEVEL_STEP);
 
     switch (tok)
     {
-    case START_XBOX_LB:
+    case GUI_BACK:
+        return goto_state_full(&st_set, curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_N_CURVE : GUI_ANIMATION_S_CURVE, curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_S_CURVE : GUI_ANIMATION_N_CURVE, 0);
+
+    case GUI_PREV:
         if (first > 1) {
             first -= LEVEL_STEP;
             return goto_state_full(&st_start, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_W_CURVE, 0);
         }
         break;
 
-    case START_XBOX_RB:
+    case GUI_NEXT:
         if (first + LEVEL_STEP < total)
         {
             first += LEVEL_STEP;
@@ -212,32 +212,21 @@ static int start_action(int tok, int val)
         }
         break;
 
-    case GUI_BACK:
-        return goto_state_full(&st_set, curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_N_CURVE : GUI_ANIMATION_S_CURVE, curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_S_CURVE : GUI_ANIMATION_N_CURVE, 0);
-
-    case GUI_PREV:
-        first -= LEVEL_STEP;
-        return goto_state_full(&st_start, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_W_CURVE, 0);
-
-        break;
-
-    case GUI_NEXT:
-        first += LEVEL_STEP;
-        return goto_state_full(&st_start, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
-
     case START_CHALLENGE:
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-#if NB_HAVE_PB_BOTH == 1
+#if NB_HAVE_PB_BOTH==1
         if (config_cheat() || !server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
 #else
         if (config_cheat())
 #endif
         {
+#if NB_HAVE_PB_BOTH==1
             if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
                 return goto_state(&st_start_upgraderequired);
             else if (check_handsoff())
                 return goto_handsoff(&st_start);
             else
+#endif
             {
 #if DEVEL_BUILD
                 progress_init(curr_mode() == MODE_CHALLENGE ? (is_boost_on() ? MODE_BOOST_RUSH : MODE_NORMAL) : MODE_CHALLENGE);
@@ -251,7 +240,7 @@ static int start_action(int tok, int val)
         else
 #endif
         {
-#if NB_HAVE_PB_BOTH == 1
+#if NB_HAVE_PB_BOTH==1
             if (CHECK_ACCOUNT_ENABLED)
             {
                 if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
@@ -325,7 +314,20 @@ static int start_gui(void)
     {
         if ((jd = gui_hstack(id)))
         {
-            gui_label(jd, set_name(curr_set()), GUI_SML, gui_yel, gui_red);
+            char set_name_final[MAXSTR];
+
+            if (str_starts_with(set_id(curr_set()), "SB")
+                || str_starts_with(set_id(curr_set()), "sb")
+                || str_starts_with(set_id(curr_set()), "Sb")
+                || str_starts_with(set_id(curr_set()), "sB"))
+            {
+                SAFECPY(set_name_final, GUI_AIRPLANE " ");
+                SAFECAT(set_name_final, set_name(curr_set()));
+            }
+            else
+                SAFECPY(set_name_final, set_name(curr_set()));
+
+            gui_label(jd, set_name_final, GUI_SML, gui_yel, gui_red);
             gui_filler(jd);
             gui_navig(jd, total, first, LEVEL_STEP);
         }
@@ -341,14 +343,22 @@ static int start_gui(void)
                 {
                     if ((kd = gui_vstack(jd)))
                     {
+                        const int ww = 6 * MIN(w, h) / 16;
+                        const int hh = ww / 4 * 3;
+
                         shot_id = gui_image(kd, set_shot(curr_set()),
-                            6 * w / 16, 6 * h / 16);
+                                                ww, hh);
                         file_id = gui_label(kd, " ", GUI_SML, gui_yel, gui_red);
                     }
                 }
                 else
 #endif
-                    shot_id = gui_image(jd, set_shot(curr_set()), 7 * w / 16, 7 * h / 16);
+                {
+                    const int ww = 7 * MIN(w, h) / 16;
+                    const int hh = ww / 4 * 3;
+
+                    shot_id = gui_image(jd, set_shot(curr_set()), ww, hh);
+                }
             }
 
             if ((kd = gui_varray(jd)))
@@ -358,14 +368,22 @@ static int start_gui(void)
                         for (j = 4; j >= 0; j--)
                             gui_level(ld, ((i * 5) + j) + first);
 
-#if !defined(COVID_HIGH_RISK) && NB_HAVE_PB_BOTH == 1
+#if NB_HAVE_PB_BOTH==1 && !defined(COVID_HIGH_RISK)
                 if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
 #endif
                 {
                     if ((md = gui_harray(kd)))
                         challenge_id = gui_state(md, _("Challenge"), GUI_SML, START_CHALLENGE, 0);
 
-                    gui_set_hilite(challenge_id, curr_mode() == MODE_CHALLENGE);
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+                    if (CHECK_ACCOUNT_BANKRUPT)
+                    {
+                        gui_set_state(challenge_id, GUI_NONE, 0);
+                        gui_set_color(challenge_id, gui_gry, gui_gry);
+                    }
+                    else
+#endif
+                        gui_set_hilite(challenge_id, curr_mode() == MODE_CHALLENGE);
                 }
             }
         }
@@ -417,7 +435,7 @@ static int start_gui(void)
 
 /*---------------------------------------------------------------------------*/
 
-#if NB_HAVE_PB_BOTH == 1
+#if NB_HAVE_PB_BOTH==1
 
 static int start_unavailable_enter(struct state *st, struct state *prev)
 {
@@ -535,7 +553,7 @@ static void start_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH == 1
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (xbox_show_gui())
         xbox_control_list_gui_paint();
 #endif
@@ -561,7 +579,7 @@ static int start_howmany()
 static int start_enter(struct state *st, struct state *prev)
 {
     /* Bonus levels will be unlocked automatically, if you use the bonus pack */
-#if NB_HAVE_PB_BOTH == 1
+#if NB_HAVE_PB_BOTH==1
     if ((server_policy_get_d(SERVER_POLICY_LEVELSET_UNLOCKED_BONUS)
          || account_get_d(ACCOUNT_PRODUCT_BONUS) == 1)
         && server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_BONUS))
@@ -577,14 +595,18 @@ static int start_enter(struct state *st, struct state *prev)
 
     progress_init(MODE_NORMAL);
 
-    audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" : "bgm/inter.ogg");
+#if NB_HAVE_PB_BOTH==1
+    audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" : "bgm/inter_world.ogg");
+#else
+    audio_music_fade_to(0.5f, "gui/bgm/inter.ogg");
+#endif
 
     return start_gui();
 }
 
 static void start_point(int id, int x, int y, int dx, int dy)
 {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH == 1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform == PLATFORM_PC)
         xbox_toggle_gui(0);
 #endif
@@ -620,7 +642,7 @@ static int start_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH == 1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
@@ -628,7 +650,7 @@ static int start_keybd(int c, int d)
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
         if (c == SDLK_c && config_cheat()
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH == 1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
@@ -637,7 +659,7 @@ static int start_keybd(int c, int d)
             return goto_state(&st_start);
         }
         else if (c == KEY_LEVELSHOTS && config_cheat()
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH == 1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
@@ -668,7 +690,7 @@ static int start_keybd(int c, int d)
 static int start_compat_keybd(int c, int d)
 {
     if (d && (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         && current_platform == PLATFORM_PC
 #endif
         ))
@@ -687,11 +709,10 @@ static int start_buttn(int b, int d)
             return start_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return start_action(GUI_BACK, 0);
-
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b))
-            return start_action(START_XBOX_LB, 0);
+            return start_action(GUI_PREV, 0);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b))
-            return start_action(START_XBOX_RB, 0);
+            return start_action(GUI_NEXT, 0);
     }
     return 1;
 }
@@ -793,7 +814,7 @@ static int start_joinrequired_enter(struct state *st, struct state *prev)
 static int start_joinrequired_keybd(int c, int d)
 {
     if (d && (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         && current_platform == PLATFORM_PC
 #endif
         ))
@@ -831,6 +852,8 @@ struct state st_start = {
     start_wheel
 };
 
+#if NB_HAVE_PB_BOTH==1
+
 struct state st_start_unavailable = {
     start_unavailable_enter,
     shared_leave,
@@ -843,8 +866,6 @@ struct state st_start_unavailable = {
     start_unavailable_keybd,
     start_unavailable_buttn
 };
-
-#if NB_HAVE_PB_BOTH == 1
 
 struct state st_start_compat = {
     start_compat_enter,

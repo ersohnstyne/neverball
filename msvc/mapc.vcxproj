@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{D1980005-1F42-4054-991C-7CF1B837751D}</ProjectGuid>
+    <RootNamespace>pennyball</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <ErrorReporting>Prompt</ErrorReporting>
+	  <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <AdditionalDependencies>runtimeobject.lib;libpng16_staticd.lib;libjpeg_a.lib;zlibstaticd.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x86\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>rem "$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Configuration)\mapc.exe" "$(SolutionDir)data_development"</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>del "$(ProjectDir)$(Configuration)\*.obj"
+del "$(SolutionDir)share\*.bc"
+del "$(SolutionDir)share\*.d"
+del "$(SolutionDir)share\*.o"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <ErrorReporting>Prompt</ErrorReporting>
+	  <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <AdditionalDependencies>runtimeobject.lib;libpng16_static.lib;libjpeg_a.lib;zlibstatic.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x86\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>rem "$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Configuration)\mapc.exe" "$(SolutionDir)data_development"</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>del "$(ProjectDir)$(Configuration)\*.obj"
+del "$(SolutionDir)share\*.bc"
+del "$(SolutionDir)share\*.d"
+del "$(SolutionDir)share\*.o"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <ErrorReporting>Prompt</ErrorReporting>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <AdditionalDependencies>runtimeobject.lib;libpng16_staticd.lib;libjpeg_a.lib;zlibstaticd.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x64\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>rem "$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Platform)\$(Configuration)\mapc.exe" "$(SolutionDir)data_development"</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>del "$(ProjectDir)$(Platform)\$(Configuration)\*.obj"
+del "$(SolutionDir)share\*.bc"
+del "$(SolutionDir)share\*.d"
+del "$(SolutionDir)share\*.o"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <ErrorReporting>Prompt</ErrorReporting>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <AdditionalDependencies>runtimeobject.lib;libpng16_static.lib;libjpeg_a.lib;zlibstatic.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x64\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>rem "$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Platform)\$(Configuration)\mapc.exe" "$(SolutionDir)data_development"</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>del "$(ProjectDir)$(Platform)\$(Configuration)\*.obj"
+del "$(SolutionDir)share\*.bc"
+del "$(SolutionDir)share\*.d"
+del "$(SolutionDir)share\*.o"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\share\array.c" />
+    <ClCompile Include="..\share\base_config.c" />
+    <ClCompile Include="..\share\base_image.c" />
+    <ClCompile Include="..\share\binary.c" />
+    <ClCompile Include="..\share\common.c" />
+    <ClCompile Include="..\share\dir.c" />
+    <ClCompile Include="..\share\fs_common.c" />
+    <ClCompile Include="..\share\fs_jpg.c" />
+    <ClCompile Include="..\share\fs_png.c" />
+    <ClCompile Include="..\share\fs_stdio.c" />
+    <ClCompile Include="..\share\list.c" />
+    <ClCompile Include="..\share\log.c" />
+    <ClCompile Include="..\share\mapc.c" />
+    <ClCompile Include="..\share\solid_base.c" />
+    <ClCompile Include="..\share\vec3.c" />
+    <ClCompile Include="..\share\zip.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\share\array.h" />
+    <ClInclude Include="..\share\base_config.h" />
+    <ClInclude Include="..\share\binary.h" />
+    <ClInclude Include="..\share\common.h" />
+    <ClInclude Include="..\share\dir.h" />
+    <ClInclude Include="..\share\fs.h" />
+    <ClInclude Include="..\share\list.h" />
+    <ClInclude Include="..\share\log.h" />
+    <ClInclude Include="..\share\solid_base.h" />
+    <ClInclude Include="..\share\solid_chkp.h" />
+    <ClInclude Include="..\share\vec3.h" />
+    <ClInclude Include="..\share\zip.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

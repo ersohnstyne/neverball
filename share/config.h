@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -15,16 +15,48 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+/*
+ * Statistics of the current frame time and frames-per-second,
+ * averaged over one second, is not permitted, as of later than 1.6.
+ */
+#define LOG_NO_STATS
+
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
+#else
 #include <SDL.h>
+#endif
 
 #include "base_config.h"
 #include "lang.h"
 
 /*---------------------------------------------------------------------------*/
 
+extern int config_busy;
+
 /* Integer options. */
 
+extern int CONFIG_ACCOUNT_MAYHEM;
+extern int CONFIG_ACCOUNT_TUTORIAL;
+extern int CONFIG_ACCOUNT_HINT;
+extern int CONFIG_ACCOUNT_BEAM_STYLE;
+extern int CONFIG_ACCOUNT_SAVE;
+extern int CONFIG_ACCOUNT_LOAD;
+
+extern int CONFIG_NOTIFICATION_CHKP;
+extern int CONFIG_NOTIFICATION_REWARD;
+extern int CONFIG_NOTIFICATION_SHOP;
+
+extern int CONFIG_GRAPHIC_RESTORE_ID;
+extern int CONFIG_GRAPHIC_RESTORE_VAL1;
+extern int CONFIG_GRAPHIC_RESTORE_VAL2;
+
+extern int CONFIG_TIPS_INDEX;
+extern int CONFIG_SCREEN_ANIMATIONS;
+extern int CONFIG_SMOOTH_FIX;
+extern int CONFIG_FORCE_SMOOTH_FIX;
 extern int CONFIG_FULLSCREEN;
+extern int CONFIG_MAXIMIZED;
 extern int CONFIG_DISPLAY;
 extern int CONFIG_WIDTH;
 extern int CONFIG_HEIGHT;
@@ -33,11 +65,16 @@ extern int CONFIG_CAMERA;
 extern int CONFIG_TEXTURES;
 extern int CONFIG_REFLECTION;
 extern int CONFIG_MULTISAMPLE;
+#ifdef GL_GENERATE_MIPMAP_SGIS
 extern int CONFIG_MIPMAP;
+#endif
+#ifdef GL_TEXTURE_MAX_ANISOTROPY_EXT
 extern int CONFIG_ANISO;
+#endif
 extern int CONFIG_BACKGROUND;
 extern int CONFIG_SHADOW;
 extern int CONFIG_AUDIO_BUFF;
+extern int CONFIG_TILTING_FLOOR;
 extern int CONFIG_MOUSE_SENSE;
 extern int CONFIG_MOUSE_RESPONSE;
 extern int CONFIG_MOUSE_INVERT;
@@ -52,8 +89,10 @@ extern int CONFIG_MOUSE_CAMERA_L;
 extern int CONFIG_MOUSE_CAMERA_R;
 extern int CONFIG_NICE;
 extern int CONFIG_FPS;
+extern int CONFIG_MASTER_VOLUME;
 extern int CONFIG_SOUND_VOLUME;
 extern int CONFIG_MUSIC_VOLUME;
+extern int CONFIG_NARRATOR_VOLUME;
 extern int CONFIG_JOYSTICK;
 extern int CONFIG_JOYSTICK_RESPONSE;
 extern int CONFIG_JOYSTICK_AXIS_X0;
@@ -106,22 +145,40 @@ extern int CONFIG_VIEW_DC;
 extern int CONFIG_VIEW_DZ;
 extern int CONFIG_ROTATE_FAST;
 extern int CONFIG_ROTATE_SLOW;
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
 extern int CONFIG_CHEAT;
+#if !defined(LOG_NO_STATS)
 extern int CONFIG_STATS;
+#endif
+#endif
 extern int CONFIG_SCREENSHOT;
 extern int CONFIG_LOCK_GOALS;
+extern int CONFIG_UNITS_METRIC;
 extern int CONFIG_CAMERA_1_SPEED;
 extern int CONFIG_CAMERA_2_SPEED;
 extern int CONFIG_CAMERA_3_SPEED;
 
 /* String options. */
 
+#ifdef __linux__
+extern int CONFIG_ACCOUNT_ONLINE_USERNAME;
+extern int CONFIG_ACCOUNT_ONLINE_PASSWORD;
+#endif
+
 extern int CONFIG_PLAYER;
+#if !defined(CONFIG_INCLUDES_ACCOUNT)
 extern int CONFIG_BALL_FILE;
+#endif
 extern int CONFIG_WIIMOTE_ADDR;
 extern int CONFIG_REPLAY_NAME;
 extern int CONFIG_LANGUAGE;
 extern int CONFIG_THEME;
+extern int CONFIG_DEDICATED_IPADDRESS;
+extern int CONFIG_DEDICATED_IPPORT;
+
+/*---------------------------------------------------------------------------*/
+
+extern float axis_offset[4];
 
 /*---------------------------------------------------------------------------*/
 
@@ -142,7 +199,12 @@ const char *config_get_s(int);
 
 /*---------------------------------------------------------------------------*/
 
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
 int  config_cheat(void);
+#else
+/* This keys is not available for cheat */
+#define config_cheat() ((int) 0)
+#endif
 void config_set_cheat(void);
 void config_clr_cheat(void);
 
@@ -162,8 +224,11 @@ int config_screenshot(void);
 #define KEY_LEVELSHOTS SDLK_F8
 
 #define KEY_FPS        SDLK_F9
-#define KEY_POSE       SDLK_F10
+#define KEY_POSE       SDLK_F1
 #define KEY_FULLSCREEN SDLK_F11
 #define KEY_SCREENSHOT SDLK_F12
+
+#define KEY_PUTT_UPGRADE SDLK_w
+#define KEY_PUTT_DNGRADE SDLK_s
 
 #endif

@@ -3,6 +3,13 @@
 
 #include "fetch.h"
 
+enum package_category
+{
+    PACKAGE_CATEGORY_LEVELSET = 0,
+    PACKAGE_CATEGORY_CAMPAIGN,
+    PACKAGE_CATEGORY_PROFILE
+};
+
 enum package_status
 {
     PACKAGE_NONE = 0,
@@ -22,7 +29,7 @@ int package_search(const char *file);
 int package_search_id(const char *package_id);
 int package_next(const char *type, int start);
 
-unsigned int package_fetch(int, struct fetch_callback);
+unsigned int package_fetch(int, struct fetch_callback, int);
 
 enum package_status package_get_status(int);
 

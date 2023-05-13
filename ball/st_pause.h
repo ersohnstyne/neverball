@@ -5,4 +5,6 @@
 
 extern struct state st_pause;
 
+int goto_pause(struct state *);
+
 #endif

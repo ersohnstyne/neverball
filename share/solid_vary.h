@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -15,6 +15,7 @@
 #ifndef SOLID_VARY_H
 #define SOLID_VARY_H
 
+#include "solid_chkp.h"
 #include "base_config.h"
 #include "solid_base.h"
 
@@ -51,6 +52,7 @@ struct v_item
 {
     float p[3];                                /* position                   */
     int   t;                                   /* type                       */
+    int   rt;                                  /* previous type              */
     int   n;                                   /* value                      */
 };
 
@@ -75,6 +77,17 @@ struct v_ball
     float r;                                   /* radius                     */
 };
 
+#ifdef MAPC_INCLUDES_CHKP
+/* New: Checkpoints */
+struct v_chkp
+{
+    const struct b_chkp *base;
+
+    int   f;                                   /* current state              */
+    int   e;                                   /* is a ball inside it?       */
+};
+#endif
+
 struct s_vary
 {
     struct s_base *base;
@@ -85,6 +98,10 @@ struct s_vary
     int hc;
     int xc;
     int uc;
+#ifdef MAPC_INCLUDES_CHKP
+    /* New: Checkpoints */
+    int cc;
+#endif
 
     struct v_path *pv;
     struct v_body *bv;
@@ -92,6 +109,10 @@ struct s_vary
     struct v_item *hv;
     struct v_swch *xv;
     struct v_ball *uv;
+#ifdef MAPC_INCLUDES_CHKP
+    /* New: Checkpoints */
+    struct v_chkp *cv;
+#endif
 
     /* Accumulator for tracking time in integer milliseconds. */
 
@@ -101,6 +122,7 @@ struct s_vary
 /*---------------------------------------------------------------------------*/
 
 int  sol_load_vary(struct s_vary *, struct s_base *);
+int  sol_respawn_vary(struct s_vary *, struct s_vary *);
 void sol_free_vary(struct s_vary *);
 
 /*---------------------------------------------------------------------------*/
@@ -140,6 +162,7 @@ struct s_lerp
 #include "cmd.h"
 
 int  sol_load_lerp(struct s_lerp *, struct s_vary *);
+int  sol_respawn_lerp(struct s_lerp *, struct s_vary *);
 void sol_free_lerp(struct s_lerp *);
 
 void sol_lerp_copy(struct s_lerp *);

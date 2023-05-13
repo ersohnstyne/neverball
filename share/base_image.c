@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -64,7 +64,11 @@ static void *image_load_png(const char *filename, int *width,
 
     /* Initialize all PNG import data structures. */
 
+#ifdef FS_VERSION_1
+    if (!(fh = fs_open(filename, "r")))
+#else
     if (!(fh = fs_open_read(filename)))
+#endif
         return NULL;
 
     if (!(readp = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0)))
@@ -161,10 +165,14 @@ static void *image_load_jpg(const char *filename, int *width,
     unsigned char *p = NULL;
     fs_file fp;
 
+#ifdef FS_VERSION_1
+    if ((fp = fs_open(filename, "r")))
+#else
     if ((fp = fs_open_read(filename)))
+#endif
     {
         struct jpeg_decompress_struct cinfo;
-        struct image_jpg_error err;
+        struct image_jpg_error        err;
 
         int w, h, b, i = 0;
 
@@ -197,7 +205,7 @@ static void *image_load_jpg(const char *filename, int *width,
 
             /* Allocate the final pixel buffer and copy pixels there. */
 
-            if ((p = (unsigned char *) malloc (w * h * b)))
+            if ((p = (unsigned char *) malloc(w * h * b)))
             {
                 while (cinfo.output_scanline < cinfo.output_height)
                 {
@@ -205,13 +213,14 @@ static void *image_load_jpg(const char *filename, int *width,
                     i += jpeg_read_scanlines(&cinfo, &buffer, 1);
                 }
 
-                if (width)  *width  = w;
+                if (width)  *width = w;
                 if (height) *height = h;
-                if (bytes)  *bytes  = b;
+                if (bytes)  *bytes = b;
             }
 
             jpeg_finish_decompress(&cinfo);
         }
+
         jpeg_destroy_decompress(&cinfo);
 
         fs_close(fp);
@@ -228,7 +237,7 @@ void *image_load(const char *filename, int *width,
     {
         const char *ext = filename + strlen(filename) - 4;
 
-        if      (strcmp(ext, ".png") == 0 || strcmp(ext, ".PNG") == 0)
+        if (strcmp(ext, ".png") == 0 || strcmp(ext, ".PNG") == 0)
             return image_load_png(filename, width, height, bytes);
         else if (strcmp(ext, ".jpg") == 0 || strcmp(ext, ".JPG") == 0)
             return image_load_jpg(filename, width, height, bytes);
@@ -328,22 +337,17 @@ void image_white(void *p, int w, int h, int b)
     assert(b >= 1 && b <= 4);
 
     if (b == 1 || b == 3)
-    {
         memset(s, 0xFF, w * h * b);
-    }
     else if (b == 2)
     {
         for (i = 0; i < w * h * b; i += 2)
             s[i] = 0xFF;
     }
-    else
+    else for (i = 0; i < w * h * b; i += 4)
     {
-        for (i = 0; i < w * h * b; i += 4)
-        {
-            s[i + 0] = 0xFF;
-            s[i + 1] = 0xFF;
-            s[i + 2] = 0xFF;
-        }
+        s[i + 0] = 0xFF;
+        s[i + 1] = 0xFF;
+        s[i + 2] = 0xFF;
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,11 +12,42 @@
  * General Public License for more details.
  */
 
+/*
+ * HACK: Remembering the code file differences:
+ * Developers  who  programming  C++  can see more bedrock declaration
+ * than C.  Developers  who  programming  C  can  see  few  procedural
+ * declaration than  C++.  Keep  in  mind  when making  sure that your
+ * extern code must associated. The valid file types are *.c and *.cpp,
+ * so it's always best when making cross C++ compiler to keep both.
+ * - Ersohn Styne
+ */
+
+#define ENABLE_MULTISAMPLE_SOLUTION
+#define FPS_REALTIME
+
+#if __cplusplus
+#include <vcruntime_exception.h>
+#endif
+#include <assert.h>
+
 #ifdef __EMSCRIPTEN__
 #include <gl4esinit.h>
 #endif
 
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
+#else
 #include <SDL.h>
+#endif
+
+#if __cplusplus
+extern "C" {
+#endif
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#include "console_control_gui.h"
+#endif
+
+#include "dbg_config.h"
 
 #include "video.h"
 #include "common.h"
@@ -26,9 +57,14 @@
 #include "config.h"
 #include "gui.h"
 #include "hmd.h"
+#if __cplusplus
+}
+#endif
 
+#if !__cplusplus
 extern const char TITLE[];
 extern const char ICON[];
+#endif
 
 struct video video;
 
@@ -37,26 +73,56 @@ struct video video;
 /* Normally...... show the system cursor and hide the virtual cursor.        */
 /* In HMD mode... show the virtual cursor and hide the system cursor.        */
 
+#if __cplusplus
+extern "C"
+#endif
 void video_show_cursor()
 {
-    if (hmd_stat())
+    int cursor_visible = 0;
+
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+    if (current_platform == PLATFORM_PC)
+#endif
     {
+#ifdef SWITCHBALL_GUI
         gui_set_cursor(1);
-        SDL_ShowCursor(SDL_DISABLE);
+        cursor_visible = SDL_DISABLE;
+#else
+        if (hmd_stat())
+        {
+            gui_set_cursor(1);
+            cursor_visible = SDL_DISABLE;
+        }
+        else
+        {
+            gui_set_cursor(0);
+            cursor_visible = SDL_ENABLE;
+        }
+#endif
     }
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     else
     {
+        /* You won't be able to use the cursor, while using the
+         * Nintendo Switch, PS4 or Xbox */
         gui_set_cursor(0);
-        SDL_ShowCursor(SDL_ENABLE);
+        cursor_visible = SDL_DISABLE;
     }
+#endif
+
+    SDL_ShowCursor(cursor_visible);
 }
 
 /* When the cursor is to be hidden, make sure neither the virtual cursor     */
 /* nor the system cursor is visible.                                         */
 
+#if __cplusplus
+extern "C"
+#endif
 void video_hide_cursor()
 {
     gui_set_cursor(0);
+
     SDL_ShowCursor(SDL_DISABLE);
 }
 
@@ -84,6 +150,9 @@ static void snapshot_take(void)
     }
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_snap(const char *path)
 {
     snapshot_prep(path);
@@ -94,14 +163,9 @@ void video_snap(const char *path)
 static SDL_Window    *window;
 static SDL_GLContext  context;
 
-static void set_window_title(const char *title)
-{
-    SDL_SetWindowTitle(window, title);
-}
-
+#if !_MSC_VER
 static void set_window_icon(const char *filename)
 {
-#if !defined(__APPLE__)
     SDL_Surface *icon;
 
     if ((icon = load_surface(filename)))
@@ -110,13 +174,15 @@ static void set_window_icon(const char *filename)
         free(icon->pixels);
         SDL_FreeSurface(icon);
     }
-#endif
-    return;
 }
+#endif
 
 /*
  * Enter/exit fullscreen mode.
  */
+#if __cplusplus
+extern "C"
+#endif
 int video_fullscreen(int f)
 {
     int code = SDL_SetWindowFullscreen(window, f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
@@ -124,7 +190,7 @@ int video_fullscreen(int f)
     if (code == 0)
         config_set_d(CONFIG_FULLSCREEN, f ? 1 : 0);
     else
-        log_printf("Failure to %s fullscreen (%s)\n", f ? "enter"  : "exit", SDL_GetError());
+        log_errorf("Failure to %s fullscreen (%s)\n", f ? "enter" : "exit", GAMEDBG_GETSTRERROR_CHOICES_SDL);
 
     return (code == 0);
 }
@@ -132,6 +198,9 @@ int video_fullscreen(int f)
 /*
  * Handle a window resize event.
  */
+#if __cplusplus
+extern "C"
+#endif
 void video_resize(int window_w, int window_h)
 {
     if (window)
@@ -142,7 +211,7 @@ void video_resize(int window_w, int window_h)
         video.window_h = window_h;
 
         /* User experience thing: don't save fullscreen size to config. */
-
+        
         if (!config_get_d(CONFIG_FULLSCREEN))
         {
             config_set_d(CONFIG_WIDTH, video.window_w);
@@ -151,16 +220,28 @@ void video_resize(int window_w, int window_h)
 
         /* Update drawable size (for rendering). */
 
+        int wszW, wszH;
+        
+        SDL_GetWindowSize(window, &wszW, &wszH);
         SDL_GL_GetDrawableSize(window, &video.device_w, &video.device_h);
+        
+        video.scale_w = floorf((float) wszW / (float) video.device_w);
+        video.scale_h = floorf((float) wszH / (float) video.device_h);
 
         video.device_scale = (float) video.device_h / (float) video.window_h;
 
         /* Update viewport. */
 
-        glViewport(0, 0, video.device_w, video.device_h);
+        glViewport(0, 0,
+                   video.device_w * video.scale_w, video.device_h * video.scale_h);
+
+        video.aspect_ratio = (float) video.device_w / (float) video.window_h;
     }
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_set_window_size(int w, int h)
 {
     /*
@@ -180,6 +261,45 @@ void video_set_window_size(int w, int h)
     SDL_SetWindowSize(window, w, h);
 }
 
+#if __cplusplus
+extern "C"
+#endif
+void video_set_display(int dpy)
+{
+    SDL_DisplayMode ddm;
+    if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
+    {
+        log_errorf("No display connected!: %d\n", dpy);
+        return;
+    }
+
+    SDL_Rect monitor_area_location;
+    SDL_GetDisplayBounds(dpy, &monitor_area_location);
+
+    int X = monitor_area_location.x + (ddm.w / 2) - (video.window_w / 2);
+    int Y = monitor_area_location.y + (ddm.h / 2) - (video.window_h / 2);
+
+    if (video.window_w > ddm.w ||
+        video.window_h > ddm.h)
+    {
+        log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n", video.window_w, video.window_h, ddm.w, ddm.h);
+        video_set_window_size(ddm.w, ddm.h);
+    }
+
+    if (X - monitor_area_location.x > ddm.w + monitor_area_location.x / 2 ||
+        Y - monitor_area_location.y > ddm.h + monitor_area_location.y / 2)
+    {
+        log_errorf("Window position exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n", X, Y, ddm.w, ddm.h);
+        X = MAX((ddm.w / 2) - (video.window_w / 2), 0) + monitor_area_location.x;
+        Y = MAX((ddm.h / 2) - (video.window_h / 2), 0) + monitor_area_location.y;
+    }
+
+    SDL_SetWindowPosition(window, X, Y);
+}
+
+#if __cplusplus
+extern "C"
+#endif
 int video_display(void)
 {
     if (window)
@@ -188,19 +308,25 @@ int video_display(void)
         return -1;
 }
 
+#if __cplusplus
+extern "C"
+#endif
 int video_init(void)
 {
     if (!video_mode(config_get_d(CONFIG_FULLSCREEN),
                     config_get_d(CONFIG_WIDTH),
                     config_get_d(CONFIG_HEIGHT)))
     {
-        log_printf("Failure to create window (%s)\n", SDL_GetError());
+        log_errorf("Failure to create window (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
         return 0;
     }
 
     return 1;
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_quit(void)
 {
     if (context)
@@ -209,29 +335,73 @@ void video_quit(void)
         context = NULL;
     }
 
+#if NB_STEAM_API==0 && !defined(__EMSCRIPTEN__)
     if (window)
     {
         SDL_DestroyWindow(window);
         window = NULL;
     }
+#endif
 
     hmd_free();
 }
 
+#if __cplusplus
+extern "C"
+#endif
 int video_mode(int f, int w, int h)
 {
-    int stereo  = config_get_d(CONFIG_STEREO)      ? 1 : 0;
-    int stencil = config_get_d(CONFIG_REFLECTION)  ? 1 : 0;
-    int buffers = config_get_d(CONFIG_MULTISAMPLE) ? 1 : 0;
-    int samples = config_get_d(CONFIG_MULTISAMPLE);
-    int vsync   = config_get_d(CONFIG_VSYNC)       ? 1 : 0;
-    int hmd     = config_get_d(CONFIG_HMD)         ? 1 : 0;
-    int highdpi = config_get_d(CONFIG_HIGHDPI)     ? 1 : 0;
+    int stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
+    int stencil  = config_get_d(CONFIG_REFLECTION)  ? 1 : 0;
+    int buffers  = config_get_d(CONFIG_MULTISAMPLE) ? 1 : 0;
+    int samples  = config_get_d(CONFIG_MULTISAMPLE);
+    int texture  = config_get_d(CONFIG_TEXTURES);
+    int vsync    = config_get_d(CONFIG_VSYNC)       ? 1 : 0;
+    int hmd      = config_get_d(CONFIG_HMD)         ? 1 : 0;
+    int highdpi  = config_get_d(CONFIG_HIGHDPI)     ? 1 : 0;
 
+    int num_displays = SDL_GetNumVideoDisplays();
+    if (num_displays < 1)
+    {
+        log_errorf("No displays provided!\n");
+        return 0;
+    }
+
+#if defined(__EMSCRIPTEN__)
     int dpy = config_get_d(CONFIG_DISPLAY);
+#else
+    int dpy =
+        CLAMP(0, config_get_d(CONFIG_DISPLAY), num_displays - 1);
+#endif
 
-    int X = SDL_WINDOWPOS_CENTERED_DISPLAY(dpy);
-    int Y = SDL_WINDOWPOS_CENTERED_DISPLAY(dpy);
+    SDL_DisplayMode ddm;
+    if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
+    {
+        log_errorf("No display connected!: %d\n", dpy);
+        return 0;
+    }
+    
+    SDL_Rect monitor_area_location;
+    SDL_GetDisplayBounds(dpy, &monitor_area_location);
+
+    int X = monitor_area_location.x + (ddm.w / 2) - (w / 2);
+    int Y = monitor_area_location.y + (ddm.h / 2) - (h / 2);
+
+    if (w > ddm.w ||
+        h > ddm.h)
+    {
+        log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n", w, h, ddm.w, ddm.h);
+        w = ddm.w;
+        h = ddm.h;
+    }
+
+    if (X - monitor_area_location.x > ddm.w + monitor_area_location.x / 2 ||
+        Y - monitor_area_location.y > ddm.h + monitor_area_location.y / 2)
+    {
+        log_errorf("Window position exeeds the desktop resolution limit during creation!: Current: %d/%d; Limit: %d/%d\n", X, Y, ddm.w, ddm.h);
+        X = MAX((ddm.w / 2) - (w / 2), 0) + monitor_area_location.x;
+        Y = MAX((ddm.h / 2) - (h / 2), 0) + monitor_area_location.y;
+    }
 
     hmd_free();
 
@@ -242,6 +412,12 @@ int video_mode(int f, int w, int h)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 #endif
+    
+#ifndef ENABLE_HMD
+    /* If the HMD is not ready, use these. */
+    config_set_d(CONFIG_HMD, 0);
+    hmd = 0;
+#endif
 
     SDL_GL_SetAttribute(SDL_GL_STEREO,             stereo);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,       stencil);
@@ -250,10 +426,13 @@ int video_mode(int f, int w, int h)
 
     /* Require 16-bit double buffer with 16-bit depth buffer. */
 
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     5);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   5);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    5);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,  16);
+    // Default RGB size: 5
+    int rgb_size[] = { 5, 5, 5 };
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     rgb_size[0]);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   rgb_size[1]);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    rgb_size[2]);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,  
+                        rgb_size[0] + rgb_size[1] + rgb_size[2] + 1);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     /* Try to set the currently specified mode. */
@@ -261,39 +440,105 @@ int video_mode(int f, int w, int h)
     log_printf("Creating a window (%dx%d, %s)\n",
                w, h, (f ? "fullscreen" : "windowed"));
 
-    window = SDL_CreateWindow("", X, Y, w, h,
-                              SDL_WINDOW_OPENGL |
-                              (highdpi ? SDL_WINDOW_ALLOW_HIGHDPI : 0) |
-#ifndef __EMSCRIPTEN__
-                              (f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) |
-                              SDL_WINDOW_RESIZABLE |
+#if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
+    if (!window) {
 #endif
-			      0);
+#if __cplusplus
+        try {
+#endif
+        if (w && h && TITLE);
+        {
+            window = SDL_CreateWindow(TITLE, X, Y, MAX(w, 320), MAX(h, 240),
+                SDL_WINDOW_OPENGL
+                | SDL_WINDOW_ALLOW_HIGHDPI
+#ifndef __EMSCRIPTEN__
+#ifdef RESIZEABLE_WINDOW
+                | SDL_WINDOW_RESIZABLE
+                | (config_get_d(CONFIG_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0)
+#endif
+                | (f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)
+#endif
+            );
+        }
+
+        GAMEDBG_CHECK_SEGMENTATIONS_BOOL(UNREFERENCED_PARAMETER(0));
+
+#ifdef RESIZEABLE_WINDOW
+        if (config_get_d(CONFIG_MAXIMIZED))
+            SDL_MaximizeWindow(window);
+#endif
+#if __cplusplus
+        } catch (const std::exception& xO) {
+            log_errorf("Failure to create window!: Exception caught! (%s)\n", xO.what());
+            return 0;
+        } catch (const char *xS) {
+            log_errorf("Failure to create window!: Exception caught! (%s)\n", xS);
+            return 0;
+        } catch (...) {
+            log_errorf("Failure to create window!: Exception caught! (Unknown type)\n");
+            return 0;
+        }
+#endif
+#if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
+    }
+    else
+    {
+        SDL_SetWindowFullscreen(window, f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+        SDL_SetWindowPosition(window, X, Y);
+        SDL_SetWindowSize(window, w, h);
+    }
+#endif
 
     if (window)
     {
+#if _WIN32
+        SDL_SetWindowMinimumSize(window, 800, 600);
+#else
+        SDL_SetWindowMinimumSize(window, 320, 240);
+#endif
+
         if ((context = SDL_GL_CreateContext(window)))
         {
-            int buf, smp;
 #ifdef __EMSCRIPTEN__
             initialize_gl4es();
 #endif
 
+            /* Check if the sampling and buffer values are NOT in negative. */
+
+            if (buffers < 0) {
+                log_errorf("Buffers cannot be negative!\n");
+
+                if (context) {
+                    SDL_GL_DeleteContext(context);
+                    context = NULL;
+                }
+
+                /* Ignore initializing and exit programm. */
+
+                return 0;
+            }
+
+            if (samples < 0) {
+                log_errorf("Samples cannot be negative!\n");
+
+                if (context) {
+                    SDL_GL_DeleteContext(context);
+                    context = NULL;
+                }
+
+                /* Ignore initializing and exit programm. */
+
+                return 0;
+            }
+
+            int buf, smp;
+
             SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buf);
             SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &smp);
 
-            /*
-             * Work around SDL+WGL returning pixel formats below
-             * minimum specifications instead of failing, thus
-             * bypassing our fallback path. SDL tries to ensure that
-             * WGL plays by the rules, but forgets about extended
-             * context attributes such as multisample. See SDL
-             * Bugzilla #77.
-             */
-
             if (buf < buffers || smp < samples)
             {
-                log_printf("GL context does not meet minimum specifications\n");
+                log_errorf("GL context does not meet minimum specifications!\n");
                 SDL_GL_DeleteContext(context);
                 context = NULL;
             }
@@ -302,8 +547,14 @@ int video_mode(int f, int w, int h)
 
     if (window && context)
     {
-        set_window_title(TITLE);
+#if !_MSC_VER
         set_window_icon(ICON);
+#endif
+
+        log_printf("Created a window (%u, %dx%d, %s)\n",
+                   SDL_GetWindowID(window),
+                   w, h,
+                   (f ? "fullscreen" : "windowed"));
 
         config_set_d(CONFIG_DISPLAY,    video_display());
         config_set_d(CONFIG_FULLSCREEN, f);
@@ -314,13 +565,13 @@ int video_mode(int f, int w, int h)
             return 0;
 
         video_resize(w, h);
-
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
         glEnable(GL_NORMALIZE);
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
+        glEnable(GL_LIGHTING);
         glEnable(GL_BLEND);
 
 #if !ENABLE_OPENGLES
@@ -336,7 +587,7 @@ int video_mode(int f, int w, int h)
 
         /* If GL supports multisample, and SDL got a multisample buffer... */
 
-        if (glext_check("ARB_multisample"))
+        if (glext_check_ext("ARB_multisample"))
         {
             SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buffers);
             if (buffers) glEnable(GL_MULTISAMPLE);
@@ -358,9 +609,23 @@ int video_mode(int f, int w, int h)
         if (hmd_stat())
             SDL_SetWindowGrab(window, SDL_TRUE);
 
+        /* Recenter the cursor back in full screen mode. */
+
+        if (config_get_d(CONFIG_FULLSCREEN))
+            SDL_WarpMouseInWindow(window,
+                                  video.window_w / 2,
+                                  video.window_h / 2);
+        
+        config_set_d(CONFIG_DISPLAY, dpy);
+        config_set_d(CONFIG_WIDTH, video.window_w);
+        config_set_d(CONFIG_HEIGHT, video.window_h);
+        video.aspect_ratio = (float) video.window_w / video.window_h;
+
+        config_save();
         return 1;
     }
-
+#if NB_STEAM_API==0 && !defined(__EMSCRIPTEN__)
+#if ENABLE_HMD
     /* If the mode failed, try it without stereo. */
 
     else if (stereo)
@@ -368,12 +633,21 @@ int video_mode(int f, int w, int h)
         config_set_d(CONFIG_STEREO, 0);
         return video_mode(f, w, h);
     }
+#endif
 
     /* If the mode failed, try decreasing the level of multisampling. */
 
     else if (buffers)
     {
         config_set_d(CONFIG_MULTISAMPLE, samples / 2);
+        return video_mode(f, w, h);
+    }
+
+    /* If the mode failed, try decreasing the level of textures. */
+
+    else if (texture != 2)
+    {
+        config_set_d(CONFIG_TEXTURES, 2);
         return video_mode(f, w, h);
     }
 
@@ -385,7 +659,425 @@ int video_mode(int f, int w, int h)
         return video_mode(f, w, h);
     }
 
+    /* If that mode failed, try it without v-sync. */
+
+    else if (vsync)
+    {
+        config_set_d(CONFIG_VSYNC, 0);
+        return video_mode(f, w, h);
+    }
+
+    /* If that mode failed, try it without background. */
+
+    else if (config_get_d(CONFIG_BACKGROUND) == 1)
+    {
+        config_set_d(CONFIG_BACKGROUND, 0);
+        return video_mode(f, w, h);
+    }
+
+    /* If that mode failed, try it without shadow. */
+
+    else if (config_get_d(CONFIG_SHADOW) == 1)
+    {
+        config_set_d(CONFIG_SHADOW, 0);
+        return video_mode(f, w, h);
+    }
+
+    /* If that mode failed, get the soloution. */
+
+    else if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
+    {
+        int solution_buf, solution_smp;
+        SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &solution_buf);
+        SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &solution_smp);
+
+        if (solution_buf < solution_smp)
+            config_set_d(CONFIG_MULTISAMPLE, solution_smp);
+        else if (solution_buf > solution_smp)
+            config_set_d(CONFIG_MULTISAMPLE, solution_buf);
+        else
+            config_set_d(CONFIG_MULTISAMPLE, solution_smp);
+
+        assert(solution_buf > -1 && solution_smp > -1);
+
+        return video_mode(f, w, h);
+    }
+
     /* If THAT mode failed, punt. */
+#else
+#if defined(ENABLE_MULTISAMPLE_SOLUTION)
+    /* Get the soloution first. */
+
+    if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
+    {
+        int solution_buf, solution_smp;
+        SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &solution_buf);
+        SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &solution_smp);
+
+        if (solution_buf < solution_smp)
+            config_set_d(CONFIG_MULTISAMPLE, solution_smp);
+        else if (solution_buf > solution_smp)
+            config_set_d(CONFIG_MULTISAMPLE, solution_buf);
+        else
+            config_set_d(CONFIG_MULTISAMPLE, solution_smp);
+
+        assert(solution_buf > -1 && solution_smp > -1);
+
+        return video_mode(f, w, h);
+    }
+#endif
+
+    /* For some reasons, this may not work on oldest hardware. */
+
+#endif
+
+    return 0;
+}
+
+#if __cplusplus
+extern "C"
+#endif
+int video_mode_auto_config(int f, int w, int h)
+{
+    int stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
+    int hmd      = config_get_d(CONFIG_HMD)         ? 1 : 0;
+
+    int num_displays = SDL_GetNumVideoDisplays();
+    if (num_displays < 1)
+    {
+        log_errorf("No displays provided!\n");
+        return 0;
+    }
+
+#if defined(__EMSCRIPTEN__)
+    int dpy = config_get_d(CONFIG_DISPLAY);
+#else
+    int dpy =
+        CLAMP(0, config_get_d(CONFIG_DISPLAY), SDL_GetNumVideoDisplays() - 1);
+#endif
+
+    SDL_DisplayMode ddm;
+    if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
+    {
+        log_errorf("No display connected!: %d\n", dpy);
+        return 0;
+    }
+
+    SDL_Rect monitor_area_location;
+    SDL_GetDisplayBounds(dpy, &monitor_area_location);
+
+    int X = monitor_area_location.x + (ddm.w / 2) - (w / 2);
+    int Y = monitor_area_location.y + (ddm.h / 2) - (h / 2);
+
+    if (w > ddm.w ||
+        h > ddm.h)
+    {
+        log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n", w, h, ddm.w, ddm.h);
+        w = ddm.w;
+        h = ddm.h;
+    }
+
+    if (X - monitor_area_location.x > ddm.w + monitor_area_location.x / 2 ||
+        Y - monitor_area_location.y > ddm.h + monitor_area_location.y / 2)
+    {
+        log_errorf("Window position exeeds the desktop resolution limit during creation!: Current: %d/%d; Limit: %d/%d\n", X, Y, ddm.w, ddm.h);
+        X = MAX((ddm.w / 2) - (w / 2), 0) + monitor_area_location.x;
+        Y = MAX((ddm.h / 2) - (h / 2), 0) + monitor_area_location.y;
+    }
+
+    hmd_free();
+
+    video_quit();
+
+#if ENABLE_OPENGLES
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+#endif
+
+    SDL_GL_SetAttribute(SDL_GL_STEREO,             stereo);
+
+    int auto_stencils = 1;
+    int stencil_ok = SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, auto_stencils);
+
+    int auto_samples = 16;
+    int smpbuf_ok = SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, auto_samples ? 1 : 0);
+    int smp_ok = SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, auto_samples);
+
+    /* Require 16-bit double buffer with 16-bit depth buffer. */
+
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+    log_printf("Creating a window (%dx%d, %s (auto configuration))\n",
+        w, h, (f ? "fullscreen" : "windowed"));
+
+#if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
+    if (!window) {
+#endif
+#if __cplusplus
+        try {
+#endif
+        window = SDL_CreateWindow(TITLE, X, Y, MAX(w, 320), MAX(h, 240),
+            SDL_WINDOW_OPENGL
+            | SDL_WINDOW_ALLOW_HIGHDPI
+#ifndef __EMSCRIPTEN__
+#ifdef RESIZEABLE_WINDOW
+            | SDL_WINDOW_RESIZABLE
+            | (config_get_d(CONFIG_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0)
+#endif
+            | (f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)
+#endif
+        );
+
+#ifdef RESIZEABLE_WINDOW
+        if (config_get_d(CONFIG_MAXIMIZED))
+            SDL_MaximizeWindow(window);
+#endif
+#if __cplusplus
+        } catch (const std::exception& xO) {
+            log_errorf("Failure to create window!: Exception caught! (%s)\n", xO.what());
+            return 0;
+        } catch (const char *xS) {
+            log_errorf("Failure to create window!: Exception caught! (%s)\n", xS);
+            return 0;
+        } catch (...) {
+            log_errorf("Failure to create window!: Exception caught! (Unknown type)\n");
+            return 0;
+        }
+#endif
+#if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
+    }
+    else
+    {
+        SDL_SetWindowFullscreen(window, f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+        SDL_SetWindowPosition(window, X, Y);
+        SDL_SetWindowSize(window, w, h);
+    }
+#endif
+
+    int got_geforce = 0;
+
+    while (auto_stencils > 0 && got_geforce == 0)
+    {
+        if (stencil_ok == 0)
+        {
+            if ((context = SDL_GL_CreateContext(window)))
+            {
+                int stn;
+
+                if (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stn) == -1)
+                    return 0;
+
+                if (stn >= auto_stencils)
+                {
+                    SDL_GL_DeleteContext(context);
+                    context = NULL;
+                    config_set_d(CONFIG_REFLECTION, auto_stencils);
+                    got_geforce = 1;
+                }
+                else if (auto_stencils != 0)
+                {
+                    SDL_GL_DeleteContext(context);
+                    context = NULL;
+                    auto_stencils /= 2;
+                    if (SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, auto_stencils) == -1)
+                        return 0;
+                }
+                else
+                    return 0;
+            }
+        }
+        else
+            return 0;
+    }
+
+    got_geforce = 0;
+    while (auto_samples > 0 && got_geforce == 0)
+    {
+        if (smpbuf_ok == 0 && smp_ok == 0)
+        {
+            if ((context = SDL_GL_CreateContext(window)))
+            {
+                int buf, smp;
+
+                if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buf) == -1 ||
+                    SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &smp) == -1)
+                    return 0;
+
+                if (buf >= 1 && smp >= auto_samples)
+                {
+                    SDL_GL_DeleteContext(context);
+                    context = NULL;
+                    config_set_d(CONFIG_MULTISAMPLE, auto_samples);
+                    got_geforce = 1;
+                }
+                else if (auto_samples != 0)
+                {
+                    SDL_GL_DeleteContext(context);
+                    context = NULL;
+                    auto_samples /= 2;
+                    if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, auto_samples) == -1
+                        && SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, auto_samples ? 1 : 0) == -1)
+                        return 0;
+                }
+                else
+                    return 0;
+            }
+        }
+        else
+            return 0;
+    }
+
+    if (window)
+    {
+#if _WIN32
+        SDL_SetWindowMinimumSize(window, 600, 600);
+#else
+        SDL_SetWindowMinimumSize(window, 320, 240);
+#endif
+
+        config_set_d(CONFIG_HIGHDPI, 1);
+        if ((context = SDL_GL_CreateContext(window)))
+        {
+#ifdef __EMSCRIPTEN__
+            initialize_gl4es();
+#endif
+            int buf, smp;
+
+            SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buf);
+            SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &smp);
+
+            if (buf < (auto_samples > 0 ? 1 : 0) || smp < auto_samples)
+            {
+                log_errorf("GL context does not meet minimum specifications!\n");
+                SDL_GL_DeleteContext(context);
+                context = NULL;
+                return 0;
+            }
+        }
+    }
+
+    if (window && context)
+    {
+#if !_MSC_VER
+        set_window_icon(ICON);
+#endif
+
+        log_printf("Created a window (%u, %dx%d, %s (auto configuration))\n",
+            SDL_GetWindowID(window),
+            w, h,
+            (f ? "fullscreen" : "windowed"));
+
+        config_set_d(CONFIG_DISPLAY, video_display());
+        config_set_d(CONFIG_FULLSCREEN, f);
+
+        if (SDL_GL_SetSwapInterval(1) == -1) return 0;
+        config_set_d(CONFIG_VSYNC, 1);
+
+        if (!glext_init())
+            return 0;
+
+        video_resize(w, h);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+        glEnable(GL_NORMALIZE);
+        glEnable(GL_CULL_FACE);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_LIGHTING);
+        glEnable(GL_BLEND);
+
+#if !ENABLE_OPENGLES
+        glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL,
+                      GL_SEPARATE_SPECULAR_COLOR);
+#endif
+
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDepthFunc(GL_LEQUAL);
+
+        /* If GL supports multisample, and SDL got a multisample buffer... */
+
+        if (glext_check_ext("ARB_multisample"))
+        {
+            int buffers;
+            SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buffers);
+            if (buffers) glEnable(GL_MULTISAMPLE);
+        }
+
+        /* Set up HMD display if requested. */
+
+        if (hmd)
+            hmd_init();
+
+        /* Initialize screen snapshotting. */
+
+        snapshot_init();
+
+        video_show_cursor();
+
+        /* Grab input immediately in HMD mode. */
+
+        if (hmd_stat())
+            SDL_SetWindowGrab(window, SDL_TRUE);
+
+        /* Set it back for recommended configurations. */
+
+        config_set_d(CONFIG_TEXTURES, 1);
+        config_set_d(CONFIG_SHADOW, 1);
+        config_set_d(CONFIG_BACKGROUND, 1);
+#ifdef GL_GENERATE_MIPMAP_SGIS
+        config_set_d(CONFIG_MIPMAP, 1);
+#endif
+#if defined(GL_TEXTURE_MAX_ANISOTROPY_EXT) && GL_TEXTURE_MAX_ANISOTROPY_EXT != 0 && GL_TEXTURE_MAX_ANISOTROPY_EXT != -1
+        config_set_d(CONFIG_ANISO, 2);
+#endif
+
+        /* Recenter the cursor back in full screen mode. */
+
+        if (config_get_d(CONFIG_FULLSCREEN))
+        SDL_WarpMouseInWindow(window,
+                              video.window_w / 2,
+                              video.window_h / 2);
+
+        config_set_d(CONFIG_DISPLAY, dpy);
+        config_set_d(CONFIG_WIDTH, video.window_w);
+        config_set_d(CONFIG_HEIGHT, video.window_h);
+        video.aspect_ratio = (float) video.window_w / video.window_h;
+
+        config_save();
+
+        return 1;
+    }
+
+#if defined(ENABLE_MULTISAMPLE_SOLUTION)
+    /* Get the soloution first. */
+
+    if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
+    {
+        int solution_buf, solution_smp;
+        SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &solution_buf);
+        SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &solution_smp);
+
+        if (solution_buf < solution_smp)
+            config_set_d(CONFIG_MULTISAMPLE, solution_smp);
+        else if (solution_buf > solution_smp)
+            config_set_d(CONFIG_MULTISAMPLE, solution_buf);
+        else
+            config_set_d(CONFIG_MULTISAMPLE, solution_smp);
+
+        assert(solution_buf > -1 && solution_smp > -1);
+
+        return video_mode(f, w, h);
+    }
+#endif
+    /* For some reasons, this may not work on oldest hardware. */
 
     return 0;
 }
@@ -398,11 +1090,17 @@ static int   last   = 0;
 static int   ticks  = 0;
 static int   frames = 0;
 
+#if __cplusplus
+extern "C"
+#endif
 int  video_perf(void)
 {
     return fps;
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_swap(void)
 {
     int dt;
@@ -420,9 +1118,23 @@ void video_swap(void)
 
     dt = (int) SDL_GetTicks() - last;
 
-    frames +=  1;
-    ticks  += dt;
     last   += dt;
+
+#ifdef FPS_REALTIME
+    /* Compute frame time and frames-per-second stats. */
+
+    fps = 1 / (0.001f * dt);
+    ms = 0.001f * dt;
+
+#if NB_STEAM_API==0 && !defined(LOG_NO_STATS)
+    /* Output statistics if configured. */
+
+    if (config_get_d(CONFIG_STATS))
+        fprintf(stdout, "%4d %8.4f\n", fps, (double) ms);
+#endif
+#else
+    frames += 1;
+    ticks += dt;
 
     /* Average over 250ms. */
 
@@ -444,17 +1156,23 @@ void video_swap(void)
         frames = 0;
         ticks  = 0;
 
+#if NB_STEAM_API==0 && !defined(LOG_NO_STATS)
         /* Output statistics if configured. */
 
         if (config_get_d(CONFIG_STATS))
             fprintf(stdout, "%4d %8.4f\n", fps, (double) ms);
+#endif
     }
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
 
 static int grabbed = 0;
 
+#if __cplusplus
+extern "C"
+#endif
 void video_set_grab(int w)
 {
     if (w)
@@ -475,6 +1193,9 @@ void video_set_grab(int w)
     grabbed = 1;
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_clr_grab(void)
 {
     SDL_SetRelativeMouseMode(SDL_FALSE);
@@ -485,9 +1206,13 @@ void video_clr_grab(void)
         SDL_SetWindowGrab(window, SDL_FALSE);
 
     video_show_cursor();
+
     grabbed = 0;
 }
 
+#if __cplusplus
+extern "C"
+#endif
 int  video_get_grab(void)
 {
     return grabbed;
@@ -495,6 +1220,142 @@ int  video_get_grab(void)
 
 /*---------------------------------------------------------------------------*/
 
+int viewport_wireframe = 0;
+int wireframe_splitview = 0;
+int splitview_crossed = 0;
+
+int render_fill_overlay = 0;
+int render_line_overlay = 0;
+int render_left_viewport = 0;
+int render_right_viewport = 0;
+
+#if __cplusplus
+extern "C"
+#endif
+void video_set_wire(int wire)
+{
+#if !ENABLE_OPENGLES
+    wireframe_splitview = 0;
+    if (wire == 4)
+        viewport_wireframe = 4;
+    if (wire == 3)
+        viewport_wireframe = 3;
+    else if (wire == 2)
+    {
+        viewport_wireframe = 2;
+        wireframe_splitview = 1;
+    }
+    else if (wire == 1)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_LIGHTING);
+        viewport_wireframe = 1;
+        glViewport(0, 0, video.device_w * video.scale_w, video.device_h * video.scale_h);
+    }
+    else
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_LIGHTING);
+        viewport_wireframe = 0;
+        glViewport(0, 0, video.device_w * video.scale_w, video.device_h * video.scale_h);
+    }
+#endif
+}
+
+#if __cplusplus
+extern "C"
+#endif
+void video_render_fill_or_line(int lined)
+{
+#if !ENABLE_OPENGLES
+    render_fill_overlay = 0;
+    render_line_overlay = 0;
+
+    render_left_viewport = 0;
+    render_right_viewport = 0;
+
+    if (viewport_wireframe == 4)
+    {
+        if (lined)
+        {
+            render_fill_overlay = 0;
+            render_line_overlay = 1;
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glDisable(GL_TEXTURE_2D);
+            glDisable(GL_LIGHTING);
+            glColor4f(1.f, 1.f, 1.f, 1.f);
+        }
+        else
+        {
+            render_line_overlay = 0;
+            render_fill_overlay = 1;
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glEnable(GL_TEXTURE_2D);
+            glEnable(GL_LIGHTING);
+            glColor4f(.5f, .5f, .5f, .5f);
+        }
+    }
+    else if (lined && viewport_wireframe == 2 || viewport_wireframe == 3)
+    {
+        render_line_overlay = 0;
+        render_fill_overlay = 0;
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_LIGHTING);
+        if (viewport_wireframe == 2)
+        {
+            render_right_viewport = 1;
+            glViewport((int) video.device_w / 2, 0, (video.device_w / 2) * video.scale_w, video.device_h * video.scale_h);
+        }
+        else
+            glViewport(0, 0, video.device_w * video.scale_w, video.device_h * video.scale_h);
+    }
+    else if (viewport_wireframe == 2 || viewport_wireframe == 3)
+    {
+        render_line_overlay = 0;
+        render_fill_overlay = 0;
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_LIGHTING);
+        if (viewport_wireframe == 2)
+        {
+            render_left_viewport = 1;
+            glViewport(0, 0, (video.device_w / 2) * video.scale_w, video.device_h * video.scale_h);
+        }
+        else
+            glViewport(0, 0, video.device_w * video.scale_w, video.device_h * video.scale_h);
+    }
+    else if (viewport_wireframe == 0)
+    {
+        render_line_overlay = 0;
+        render_fill_overlay = 0;
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_LIGHTING);
+        glViewport(0, 0, video.device_w * video.scale_w, video.device_h * video.scale_h);
+    }
+#endif
+}
+
+#if __cplusplus
+extern "C"
+#endif
+void video_toggle_wire(void)
+{
+    viewport_wireframe++;
+    if (viewport_wireframe > 3)
+        viewport_wireframe = 0;
+
+    video_set_wire(viewport_wireframe);
+}
+
+#if __cplusplus
+extern "C"
+#endif
 void video_calc_view(float *M, const float *c,
                                const float *p,
                                const float *u)
@@ -514,13 +1375,17 @@ void video_calc_view(float *M, const float *c,
 
 /*---------------------------------------------------------------------------*/
 
+#if __cplusplus
+extern "C"
+#endif
 void video_push_persp(float fov, float n, float f)
 {
+    //glPushMatrix();
     if (hmd_stat())
         hmd_persp(n, f);
     else
     {
-        GLfloat m[4][4];
+        GLfloat m[16];
 
         GLfloat r = fov / 2 * V_PI / 180;
         GLfloat s = fsinf(r);
@@ -529,38 +1394,47 @@ void video_push_persp(float fov, float n, float f)
         GLfloat a = ((GLfloat) video.device_w /
                      (GLfloat) video.device_h);
 
+        if (viewport_wireframe == 2)
+            a = ((GLfloat) (video.device_w / 2) /
+                 (GLfloat) video.device_h);
+
         glMatrixMode(GL_PROJECTION);
         {
-            glLoadIdentity();
+            m[0 ] = c / a;
+            m[1 ] = 0.0f;
+            m[2 ] = 0.0f;
+            m[3 ] = 0.0f;
 
-            m[0][0] = c / a;
-            m[0][1] =  0.0f;
-            m[0][2] =  0.0f;
-            m[0][3] =  0.0f;
-            m[1][0] =  0.0f;
-            m[1][1] =     c;
-            m[1][2] =  0.0f;
-            m[1][3] =  0.0f;
-            m[2][0] =  0.0f;
-            m[2][1] =  0.0f;
-            m[2][2] = -(f + n) / (f - n);
-            m[2][3] = -1.0f;
-            m[3][0] =  0.0f;
-            m[3][1] =  0.0f;
-            m[3][2] = -2.0f * n * f / (f - n);
-            m[3][3] =  0.0f;
+            m[4 ] = 0.0f;
+            m[5 ] = c;
+            m[6 ] = 0.0f;
+            m[7 ] = 0.0f;
 
-            glMultMatrixf(&m[0][0]);
+            m[8 ] = 0.0f;
+            m[9 ] = 0.0f;
+            m[10] = -(f + n) / (f - n);
+            m[11] = -1.0f;
+
+            m[12] = 0.0f;
+            m[13] = 0.0f;
+            m[14] = -2.0f * n * f / (f - n);
+            m[15] = 0.0f;
+
+            glLoadMatrixf(m);
         }
+
         glMatrixMode(GL_MODELVIEW);
-        {
-            glLoadIdentity();
-        }
+        glLoadIdentity();
     }
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_push_ortho(void)
 {
+    //glPushMatrix();
+
     if (hmd_stat())
         hmd_ortho();
     else
@@ -568,31 +1442,45 @@ void video_push_ortho(void)
         GLfloat w = (GLfloat) video.device_w;
         GLfloat h = (GLfloat) video.device_h;
 
+        if (viewport_wireframe == 2)
+            w /= 2;
+
         glMatrixMode(GL_PROJECTION);
-        {
-            glLoadIdentity();
-            glOrtho_(0.0, w, 0.0, h, -1.0, +1.0);
-        }
+
+        glLoadIdentity();
+#if defined(__EMSCRIPTEN__)
+        glOrtho(0.0, w, h, 0.0f, -1.0f, 1.0f);
+#else
+        glOrtho_(0.0, w, 0.0, h, -1.0, +1.0);
+#endif
+
         glMatrixMode(GL_MODELVIEW);
-        {
-            glLoadIdentity();
-        }
+        glLoadIdentity();
+
+        if (viewport_wireframe == 2 && render_right_viewport)
+            glTranslatef(-w, 0, 0);
     }
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_pop_matrix(void)
 {
+    //glPopMatrix();
 }
 
+#if __cplusplus
+extern "C"
+#endif
 void video_clear(void)
 {
+    GLbitfield bufferBit = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
+
     if (config_get_d(CONFIG_REFLECTION))
-        glClear(GL_COLOR_BUFFER_BIT |
-                GL_DEPTH_BUFFER_BIT |
-                GL_STENCIL_BUFFER_BIT);
-    else
-        glClear(GL_COLOR_BUFFER_BIT |
-                GL_DEPTH_BUFFER_BIT);
+        bufferBit |= GL_STENCIL_BUFFER_BIT;
+
+    glClear(bufferBit);
 }
 
 /*---------------------------------------------------------------------------*/

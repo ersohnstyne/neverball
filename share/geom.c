@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,7 +12,11 @@
  * General Public License for more details.
  */
 
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
+#else
 #include <SDL.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -28,8 +32,16 @@
 #include "video.h"
 #include "hmd.h"
 
+#include "log.h"
+
 #include "solid_draw.h"
 #include "solid_sim.h"
+
+/* GL_CLAMP_TO_EDGE turns into the GL_CLAMP */
+#ifdef GL_CLAMP_TO_EDGE
+#undef GL_CLAMP_TO_EDGE
+#define GL_CLAMP_TO_EDGE 0x2900
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -292,6 +304,9 @@ enum
     GEOM_COIN,
     GEOM_COIN5,
     GEOM_COIN10,
+    GEOM_COIN25,
+    GEOM_COIN50,
+    GEOM_COIN100,
     GEOM_GROW,
     GEOM_SHRINK,
     GEOM_CLOCK5,
@@ -301,10 +316,27 @@ enum
     GEOM_MAX
 };
 
+enum beam_style
+{
+    BEAM_STYLE_NONE = -1,
+
+    BEAM_STYLE_1_7_0,
+    BEAM_STYLE_1_6_0,
+    BEAM_STYLE_1_5_4,
+    BEAM_STYLE_1_5_3,
+
+    BEAM_MAX
+};
+
+static int beam_styles;
+
 static const char item_sols[GEOM_MAX][PATHMAX] = {
     "item/coin/coin.sol",
     "item/coin/coin5.sol",
     "item/coin/coin10.sol",
+    "item/coin/coin25.sol",
+    "item/coin/coin50.sol",
+    "item/coin/coin100.sol",
     "item/grow/grow.sol",
     "item/shrink/shrink.sol",
     "item/clock/clock5.sol",
@@ -320,29 +352,81 @@ static struct s_full mark;
 static struct s_full vect;
 static struct s_full back;
 static struct s_full item[GEOM_MAX];
+static struct s_full chkp;
 
 static int back_state = 0;
 
 /*---------------------------------------------------------------------------*/
+
+#define BEAM_INCLUDES_MULTISTYLE
 
 void geom_init(void)
 {
     int i;
 
     sol_load_full(&beam, "geom/beam/beam.sol", 0);
-    sol_load_full(&jump, "geom/jump/jump.sol", 0);
-    sol_load_full(&goal, "geom/goal/goal.sol", 0);
+    
+#if defined(BEAM_INCLUDES_MULTISTYLE)
+    beam_styles = config_get_d(CONFIG_ACCOUNT_BEAM_STYLE);
+
+    const char *style_name = "";
+    char jump_style[MAXSTR];
+    char goal_style[MAXSTR];
+
+    switch (beam_styles)
+    {
+    case BEAM_STYLE_1_7_0:
+        style_name = "rmst";
+        break;
+    case BEAM_STYLE_1_6_0:
+        style_name = "v1";
+        break;
+    case BEAM_STYLE_1_5_4:
+        style_name = "v2";
+        break;
+    case BEAM_STYLE_1_5_3:
+        style_name = "v3";
+        break;
+    }
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(jump_style, dstSize, "geom/jump%s/jump%s.sol", style_name, style_name);
+    sprintf_s(goal_style, dstSize, "geom/goal%s/goal%s.sol", style_name, style_name);
+#else
+    sprintf(jump_style, "geom/jump%s/jump%s.sol", style_name, style_name);
+    sprintf(goal_style, "geom/goal%s/goal%s.sol", style_name, style_name);
+#endif
+
+    if (!sol_load_full(&jump, jump_style, 0)) {
+        sol_free_full(&jump);
+        if (!sol_load_full(&jump, "geom/jump/jump.sol", 0)) { log_errorf("Unable to load teleporter!\n"); }
+    }
+    if (!sol_load_full(&goal, goal_style, 0)) {
+        sol_free_full(&goal);
+        if (!sol_load_full(&goal, "geom/goal/goal.sol", 0)) { log_errorf("Unable to load goal!\n"); }
+    }
+#else
+    if (!sol_load_full(&jump, "geom/jump/jump.sol", 0)) { log_errorf("Unable to load teleporter!\n"); }
+    if (!sol_load_full(&goal, "geom/goal/goal.sol", 0)) { log_errorf("Unable to load goal!\n"); }
+#endif
+
     sol_load_full(&flag, "geom/flag/flag.sol", 0);
     sol_load_full(&mark, "geom/mark/mark.sol", 0);
     sol_load_full(&vect, "geom/vect/vect.sol", 0);
 
     for (i = 0; i < GEOM_MAX; i++)
-        sol_load_full(&item[i], item_sols[i], 0);
+    {
+        if (!sol_load_full(&item[i], item_sols[i], 0)) { log_errorf("Unable to load item!: %s\n", item_sols[i]); }
+    }
+
+    sol_load_full(&chkp, "geom/chkp/chkp.sol", 0);
 }
 
 void geom_free(void)
 {
     int i;
+
+    sol_free_full(&chkp);
 
     sol_free_full(&vect);
     sol_free_full(&mark);
@@ -365,6 +449,8 @@ void geom_step(float dt)
     for (i = 0; i < GEOM_MAX; i++)
         sol_move(&item[i].vary, NULL, dt);
 
+    sol_move(&chkp.vary, NULL, dt);
+
     ball_step(dt);
 }
 
@@ -386,9 +472,12 @@ static struct s_draw *item_file(const struct v_item *hp)
             else                  g = GEOM_CLOCK5;
             break;
         default:
-            if      (hp->n >= 10) g = GEOM_COIN10;
-            else if (hp->n >= 5)  g = GEOM_COIN5;
-            else                  g = GEOM_COIN;
+            if      (hp->n >= 100) g = GEOM_COIN100;
+            else if (hp->n >= 50)  g = GEOM_COIN50;
+            else if (hp->n >= 25)  g = GEOM_COIN25;
+            else if (hp->n >= 10)  g = GEOM_COIN10;
+            else if (hp->n >= 5)   g = GEOM_COIN5;
+            else                   g = GEOM_COIN;
             break;
         }
     }
@@ -458,9 +547,10 @@ void back_init(const char *name)
         mp->o = make_image_from_file(name, IF_MIPMAP);
 
         if (!mp->o)
-            log_printf("Failed to load background image \"%s\"\n", name);
+            log_errorf("Failed to load background image \"%s\"\n", name);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+
         back_state = 1;
     }
 }
@@ -500,12 +590,22 @@ void goal_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h, GLfl
     {
         glTranslatef(p[0], p[1], p[2]);
         glScalef(r, h, r);
+
+        if (goal.base.rc)
+        {
+            float M[16];
+            m_ident(M);
+            glDisable(GL_LIGHTING);
+            sol_bill(&goal.draw, rend, M, t);
+            glEnable(GL_LIGHTING);
+        }
+
         sol_draw(&goal.draw, rend, 1, 1);
     }
     glPopMatrix();
 }
 
-void jump_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h)
+void jump_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h, GLfloat t)
 {
     GLfloat height = (hmd_stat() ? 0.3f : 1.0f) * video.device_h;
 
@@ -515,7 +615,32 @@ void jump_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h)
     {
         glTranslatef(p[0], p[1], p[2]);
         glScalef(r, h, r);
+
+        if (jump.base.rc)
+        {
+            float M[16];
+            m_ident(M);
+            glDisable(GL_LIGHTING);
+            sol_bill(&jump.draw, rend, M, t);
+            glEnable(GL_LIGHTING);
+        }
+
         sol_draw(&jump.draw, rend, 1, 1);
+    }
+    glPopMatrix();
+}
+
+void chkp_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h)
+{
+    GLfloat height = (hmd_stat() ? 0.3f : 1.0f) * video.device_h;
+
+    glPointSize(height / 12);
+
+    glPushMatrix();
+    {
+        glTranslatef(p[0], p[1], p[2]);
+        glScalef(r, h, r);
+        sol_draw(&chkp.draw, rend, 1, 1);
     }
     glPopMatrix();
 }
@@ -546,6 +671,7 @@ void back_draw(struct s_rend *rend)
 {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
+    glDisable(GL_LIGHTING);
     glDepthMask(GL_FALSE);
 
     glPushMatrix();
@@ -556,6 +682,7 @@ void back_draw(struct s_rend *rend)
     glPopMatrix();
 
     glDepthMask(GL_TRUE);
+    glEnable(GL_LIGHTING);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 }
@@ -570,6 +697,8 @@ void back_draw_easy(void)
 }
 
 /*---------------------------------------------------------------------------*/
+
+//#define SUPER_SHADOWS
 
 /*
  * A note about lighting and shadow: technically speaking, it's wrong.
@@ -591,6 +720,8 @@ static GLubyte clip_data[] = { 0xff, 0xff, 0x0, 0x0 };
 
 void shad_init(void)
 {
+#if defined(SUPER_SHADOWS)
+#else
     shad_text = make_image_from_file(IMG_SHAD, IF_MIPMAP);
 
     if (config_get_d(CONFIG_SHADOW) == 2)
@@ -613,16 +744,22 @@ void shad_init(void)
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#endif
 }
 
 void shad_free(void)
 {
+#if defined(SUPER_SHADOWS)
+#else
     glDeleteTextures(1, &shad_text);
     glDeleteTextures(1, &clip_text);
+#endif
 }
 
 void shad_draw_set(void)
 {
+#if defined(SUPER_SHADOWS)
+#else
     if (tex_env_stage(TEX_STAGE_SHADOW))
     {
         glEnable(GL_TEXTURE_2D);
@@ -640,10 +777,13 @@ void shad_draw_set(void)
 
         tex_env_stage(TEX_STAGE_TEXTURE);
     }
+#endif
 }
 
 void shad_draw_clr(void)
 {
+#if defined(SUPER_SHADOWS)
+#else
     if (tex_env_stage(TEX_STAGE_SHADOW))
     {
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -661,6 +801,7 @@ void shad_draw_clr(void)
 
         tex_env_stage(TEX_STAGE_TEXTURE);
     }
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -742,13 +883,48 @@ void light_load(void)
     int i;
 
     light_reset();
-
+#ifdef FS_VERSION_1
+    if ((fp = fs_open("lights.txt", "r")))
+#else
     if ((fp = fs_open_read("lights.txt")))
+#endif
     {
         while (fs_gets(buf, sizeof (buf), fp))
         {
             strip_newline(buf);
-
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            if (sscanf_s(buf, "light %d", &i) == 1)
+            {
+                if (i >= 0 && i < LIGHT_MAX)
+                    light = i;
+            }
+            else if (sscanf_s(buf, "position %f %f %f %f",
+                &v[0], &v[1], &v[2], &v[3]) == 4)
+            {
+                if (light >= 0)
+                    q_cpy(lights[light].p, v);
+            }
+            else if (sscanf_s(buf, "diffuse %f %f %f %f",
+                &v[0], &v[1], &v[2], &v[3]) == 4)
+            {
+                if (light >= 0)
+                    q_cpy(lights[light].d, v);
+            }
+            else if (sscanf_s(buf, "ambient %f %f %f %f",
+                &v[0], &v[1], &v[2], &v[3]) == 4)
+            {
+                if (light >= 0)
+                    q_cpy(lights[light].a, v);
+                else
+                    q_cpy(light_ambient, v);
+            }
+            else if (sscanf_s(buf, "specular %f %f %f %f",
+                &v[0], &v[1], &v[2], &v[3]) == 4)
+            {
+                if (light >= 0)
+                    q_cpy(lights[light].s, v);
+            }
+#else
             if      (sscanf(buf, "light %d", &i) == 1)
             {
                 if (i >= 0 && i < LIGHT_MAX)
@@ -780,6 +956,7 @@ void light_load(void)
                 if (light >= 0)
                     q_cpy(lights[light].s, v);
             }
+#endif
         }
         fs_close(fp);
     }

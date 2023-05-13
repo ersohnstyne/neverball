@@ -410,7 +410,7 @@ static int page_rules(int id)
             else
 #endif
             {
-                const int ww = 5 * MIN(w, h) / 16;
+                const int ww = MIN(w, h) * 5 / 12;
                 const int hh = ww / 4 * 3;
 
                 if ((ld = gui_vstack(kd)))
@@ -1055,7 +1055,7 @@ static int page_tricks(int id)
 
     int jd, kd, ld;
 
-    const int ww = MIN(w, h) / 4;
+    const int ww = MIN(w, h) * 2 / 9;
     const int hh = ww / 4 * 3;
 
     if ((jd = gui_hstack(id)))

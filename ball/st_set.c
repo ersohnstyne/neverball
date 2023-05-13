@@ -11,19 +11,6 @@
  * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
  * General Public License for more details.
  */
-/*
- * Copyright (C) 2023 Microsoft / Neverball authors
- *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
- * it under the  terms of the GNU General  Public License as published
- * by the Free  Software Foundation; either version 2  of the License,
- * or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
- * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
- * General Public License for more details.
- */
 
 #if NB_HAVE_PB_BOTH==1
 #ifndef __EMSCRIPTEN__
@@ -379,7 +366,7 @@ static int set_gui(void)
         {
             if (video.aspect_ratio >= 1.0f)
             {
-                const int ww = 7 * MIN(w, h) / 16;
+                const int ww = MIN(w, h) * 7 / 12;
                 const int hh = ww / 4 * 3;
 
                 shot_id = gui_image(jd, set_shot(first), ww, hh);

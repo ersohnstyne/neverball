@@ -15,8 +15,12 @@
 #include <assert.h>
 #include <string.h>
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
+#endif
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
 #endif
 
 #include "gui.h"
@@ -106,6 +110,7 @@ static int total = 0;
 static int last  = 0;
 static int availibility = 0;
 
+static int selected = 0;
 static int last_viewed = 0;
 
 static int target_timer = 0;   /* This is the target time limit */
@@ -187,26 +192,24 @@ static void demo_shared_fade(float alpha)
 
 enum
 {
-    DEMO_SELECT = GUI_LAST,
-    DEMO_UPGRADE_LIMIT,
-    DEMO_XBOX_LB,
-    DEMO_XBOX_RB
+    DEMO_PLAY = GUI_LAST,
+    DEMO_SELECT,
+    DEMO_DOWNLOAD,
+    DEMO_UPGRADE_LIMIT
 };
+
+static void demo_select(int i);
 
 static int demo_action(int tok, int val)
 {
-    GENERIC_GAMEMENU_ACTION;
+    GAMEPAD_GAMEMENU_ACTION_SCROLL(GUI_PREV, GUI_NEXT, DEMO_STEP);
 
     switch (tok)
     {
-    case DEMO_XBOX_LB:
-        if (first > 1) {
-            first -= DEMO_STEP;
-            return goto_state_full(&st_demo, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_W_CURVE, 0);
-        }
-        break;
+    case GUI_BACK:
+        return goto_state(&st_title);
 
-    case DEMO_XBOX_RB:
+    case GUI_NEXT:
         if (first < total)
         {
             first += DEMO_STEP;
@@ -217,18 +220,13 @@ static int demo_action(int tok, int val)
         }
         break;
 
-    case GUI_BACK:
-        return goto_state(&st_title);
-
-    case GUI_NEXT:
-        first += DEMO_STEP;
-        return goto_state_full(&st_demo, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
-        break;
-
     case GUI_PREV:
-        first -= DEMO_STEP;
-        return goto_state_full(&st_demo, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_W_CURVE, 0);
+        if (first > 1) {
+            first -= DEMO_STEP;
+            return goto_state_full(&st_demo, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_W_CURVE, 0);
+        }
         break;
+
     case DEMO_UPGRADE_LIMIT:
         if (val)
         {
@@ -243,10 +241,27 @@ static int demo_action(int tok, int val)
             config_save();
         }
         break;
+
+    case DEMO_DOWNLOAD:
+#ifdef __EMSCRIPTEN__
+        {
+            const char *path = DIR_ITEM_GET(items, selected)->path;
+
+            EM_ASM({
+                Neverball.downloadUserFile($0)
+            }, path);
+        }
+#endif
+        break;
+
     case DEMO_SELECT:
+        demo_select(val);
+        break;
+
+    case DEMO_PLAY:
     {
         struct demo *df;
-        df = DEMO_GET(demo_items, val < total ? val : 0);
+        df = DEMO_GET(demo_items, selected < total ? selected : 0);
 
         if (!df)
             return 1;
@@ -273,7 +288,7 @@ static int demo_action(int tok, int val)
             /* Make sure, that the status limit is underneath it. */
             if (get_maximum_status() > get_limit_status() || time_max_minutes > time_limit_minutes)
             {
-                /* Status exceeded! Set reported replay. */
+                /* Limit exceeded! Set reported replay. */
                 set_replay_report(df->player, status_to_str(df->status));
                 
                 /* Stop execution. */
@@ -284,13 +299,13 @@ static int demo_action(int tok, int val)
             {
                 fs_file fp;
 #ifdef FS_VERSION_1
-                if ((fp = fs_open(DIR_ITEM_GET(demo_items, val)->path, "r")))
+                if ((fp = fs_open(DIR_ITEM_GET(demo_items, selected)->path, "r")))
 #else
-                if ((fp = fs_open_read(DIR_ITEM_GET(demo_items, val)->path)))
+                if ((fp = fs_open_read(DIR_ITEM_GET(demo_items, selected)->path)))
 #endif
                 {
-                    SAFECPY(df->path, DIR_ITEM_GET(demo_items, val)->path);
-                    SAFECPY(df->name, base_name_sans(DIR_ITEM_GET(demo_items, val)->path, ".nbr"));
+                    SAFECPY(df->path, DIR_ITEM_GET(demo_items, selected)->path);
+                    SAFECPY(df->name, base_name_sans(DIR_ITEM_GET(demo_items, selected)->path, ".nbr"));
 
                     st_demo_version_read(fp, df);
 
@@ -304,9 +319,9 @@ static int demo_action(int tok, int val)
                 }
             }
 
-            if (progress_replay(DIR_ITEM_GET(demo_items, val)->path))
+            if (progress_replay(DIR_ITEM_GET(demo_items, selected)->path))
             {
-                last_viewed = val;
+                last_viewed = selected;
                 allow_exact_versions = 1;
                 demo_play_goto(0);
                 return goto_state(game_compat_map ?
@@ -324,8 +339,9 @@ static int demo_action(int tok, int val)
 static struct thumb
 {
     int item;
-    int shot;
-    int name;
+    int shot_id;
+    int name_id;
+    int thumb_id;
 } thumbs[DEMO_STEP];
 
 static int gui_demo_thumbs(int id)
@@ -357,20 +373,23 @@ static int gui_demo_thumbs(int id)
 
                             gui_space(ld);
 
-                            thumb->shot = gui_image(ld, " ", ww, hh);
-                            thumb->name = gui_label(ld, " ", GUI_SML,
-                                                    gui_wht, gui_wht);
+                            thumb->shot_id = gui_image(ld, " ", ww, hh);
+                            thumb->name_id = gui_label(ld, " ", GUI_SML,
+                                                       gui_wht, gui_wht);
 
-                            gui_set_trunc(thumb->name, TRUNC_TAIL);
+                            gui_set_trunc(thumb->name_id, TRUNC_TAIL);
                             gui_set_state(ld, DEMO_SELECT, j);
+
+                            thumb->thumb_id = ld;
                         }
                     }
                     else
                     {
                         gui_space(kd);
 
-                        thumb->shot = 0;
-                        thumb->name = 0;
+                        thumb->shot_id = 0;
+                        thumb->name_id = 0;
+                        thumb->thumb_id = 0;
                     }
                 }
             }
@@ -384,7 +403,7 @@ static void gui_demo_update_thumbs(void)
     struct demo *demo;
     int i;
 
-    for (i = 0; i < ARRAYSIZE(thumbs) && thumbs[i].shot && thumbs[i].name; i++)
+    for (i = 0; i < ARRAYSIZE(thumbs) && thumbs[i].shot_id && thumbs[i].name_id; i++)
     {
         int stat_limit = config_get_d(CONFIG_ACCOUNT_LOAD);
         int stat_max = 0;
@@ -419,31 +438,31 @@ static void gui_demo_update_thumbs(void)
                 stat_max = 1;
         }
 
-        gui_set_image(thumbs[i].shot, demo ? demo->shot : "");
-        gui_set_label(thumbs[i].name, demo ? demo->name : base_name(item->path));
-        gui_set_color(thumbs[i].name, gui_wht, gui_wht);
+        gui_set_image(thumbs[i].shot_id, demo ? demo->shot : "");
+        gui_set_label(thumbs[i].name_id, demo ? demo->name : base_name(item->path));
+        gui_set_color(thumbs[i].name_id, gui_wht, gui_wht);
         
         if (stat_max > stat_limit && demo)
         {
-            gui_set_image(thumbs[i].shot,
+            gui_set_image(thumbs[i].shot_id,
                           stat_limit == 1 ?
                           "gui/filters/single_filters.jpg" : "gui/filters/keep_filters.jpg");
-            gui_set_color(thumbs[i].name, gui_red, gui_red);
+            gui_set_color(thumbs[i].name_id, gui_red, gui_red);
         }
         else if (demo_requires_update && demo)
         {
-            gui_set_image(thumbs[i].shot, "gui/filters/upgrade.jpg");
-            gui_set_color(thumbs[i].name, gui_red, gui_red);
+            gui_set_image(thumbs[i].shot_id, "gui/filters/upgrade.jpg");
+            gui_set_color(thumbs[i].name_id, gui_red, gui_red);
         }
         else if (demo_old_detected && demo)
         {
-            gui_set_image(thumbs[i].shot, "gui/filters/downgrade.jpg");
-            gui_set_color(thumbs[i].name, gui_red, gui_red);
+            gui_set_image(thumbs[i].shot_id, "gui/filters/downgrade.jpg");
+            gui_set_color(thumbs[i].name_id, gui_red, gui_red);
         }
         else if (!demo)
         {
-            gui_set_image(thumbs[i].shot, "gui/filters/invalid.jpg");
-            gui_set_color(thumbs[i].name, gui_red, gui_red);
+            gui_set_image(thumbs[i].shot_id, "gui/filters/invalid.jpg");
+            gui_set_color(thumbs[i].name_id, gui_red, gui_red);
         }
     }
 
@@ -748,6 +767,15 @@ static int demo_restricted_buttn(int b, int d)
     return 1;
 }
 
+static void demo_select(int demo)
+{
+    gui_set_hilite(thumbs[selected % DEMO_STEP].thumb_id, 0);
+    selected = demo;
+    gui_set_hilite(thumbs[selected % DEMO_STEP].thumb_id, 1);
+
+    gui_demo_update_status(demo);
+}
+
 /*---------------------------------------------------------------------------*/
 
 int detailpanel;
@@ -884,7 +912,7 @@ static int demo_hotreload = 0;
 
 static int demo_gui(void)
 {
-    int id, jd;
+    int id, jd, kd;
 
     id = gui_vstack(0);
 
@@ -927,10 +955,39 @@ static int demo_gui(void)
         gui_space(id);
         gui_demo_status(id);
 
+#ifdef __EMSCRIPTEN__
+        gui_space(id);
+
+        if ((jd = gui_hstack(id)))
+        {
+            if ((kd = gui_hstack(jd)))
+            {
+                gui_label(kd, GUI_ARROW_DN, GUI_SML, gui_yel, gui_wht);
+                gui_label(kd, _("Save"), GUI_SML, gui_yel, gui_wht);
+
+                gui_set_rect(kd, GUI_ALL);
+                gui_set_state(kd, DEMO_DOWNLOAD, 0);
+            }
+
+            gui_space(jd);
+
+            if ((kd = gui_hstack(jd)))
+            {
+                gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, gui_yel, gui_wht);
+                gui_label(kd, _("Play"), GUI_SML, gui_yel, gui_wht);
+
+                gui_set_rect(kd, GUI_ALL);
+                gui_set_state(kd, DEMO_PLAY, 0);
+            }
+        }
+#endif
+
         gui_layout(id, 0, 0);
 
         gui_demo_update_thumbs();
         gui_demo_update_status(last_viewed);
+
+        demo_select(first);
     }
     else if (total && !availibility)
     {
@@ -1087,30 +1144,6 @@ static void demo_timer(int id, float dt)
     gui_timer(id, dt);
 }
 
-static void demo_point(int id, int x, int y, int dx, int dy)
-{
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    if (current_platform == PLATFORM_PC)
-        xbox_toggle_gui(0);
-#endif
-
-    int jd = shared_point_basic(id, x, y);
-
-    if (jd && gui_token(jd) == DEMO_SELECT)
-        gui_demo_update_status(gui_value(jd));
-}
-
-static void demo_stick(int id, int a, float v, int bump)
-{
-#ifndef __EMSCRIPTEN__
-    xbox_toggle_gui(1);
-#endif
-    int jd = shared_stick_basic(id, a, v, bump);
-
-    if (jd && gui_token(jd) == DEMO_SELECT)
-        gui_demo_update_status(gui_value(jd));
-}
-
 static int demo_keybd(int c, int d)
 {
     if (d)
@@ -1139,7 +1172,15 @@ static int demo_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
         {
             if (total)
-                return demo_action(gui_token(active), gui_value(active));
+            {
+                int token = gui_token(active);
+                int value = gui_value(active);
+
+                if (token == DEMO_SELECT && value == selected)
+                    return demo_action(DEMO_PLAY, 0);
+                else
+                    return demo_action(token, value);
+            }
             else
                 return demo_action(GUI_BACK, 0);
         }
@@ -1930,8 +1971,8 @@ struct state st_demo = {
     demo_leave,
     demo_paint,
     demo_timer,
-    demo_point,
-    demo_stick,
+    shared_point,
+    shared_stick,
     shared_angle,
     shared_click,
     demo_keybd,

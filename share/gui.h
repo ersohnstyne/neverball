@@ -24,19 +24,18 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define GUI_ELLIPSIS   "…"
-#define GUI_AIRPLANE   "✈"
-#define GUI_ARROW_DN   "⇩"
-#define GUI_ARROW_LFT  "◀️"
-#define GUI_ARROW_RGHT "▶️"
-#define GUI_CHECKMARK  "✔"
-#define GUI_BALLOT_X   "✘"
-#define GUI_COIN       "⛁"
-#define GUI_CROWN      "♕"
-#define GUI_DIAMOND    "♦"
-#define GUI_GAMEPAD    "🎮"
-
-#define GUI_BATTERY "🔋"
+#define GUI_ELLIPSIS       "…"
+#define GUI_AIRPLANE       "✈"
+#define GUI_ARROW_DN       "⇩"
+#define GUI_TRIANGLE_LEFT  "◀️"
+#define GUI_TRIANGLE_RIGHT "▶️"
+#define GUI_CHECKMARK      "✔"
+#define GUI_BALLOT_X       "✘"
+#define GUI_COIN           "⛁"
+#define GUI_CROWN          "♕"
+#define GUI_DIAMOND        "♦"
+#define GUI_GAMEPAD        "🎮"
+#define GUI_BATTERY        "🔋"
 
 /*
  * DejaVu Sans V1: DejaVuSans-Bold.ttf

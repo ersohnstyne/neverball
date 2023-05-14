@@ -48,6 +48,8 @@ static float       ball_e[MAXPLY][3][3];
 static struct hole hole_v[MAXHOL];
 static int        score_v[MAXHOL][MAXPLY];
 
+static int        stroke_type_v[MAXPLY];
+
 /*---------------------------------------------------------------------------*/
 
 static void hole_init_rc(const char *filename)
@@ -62,7 +64,11 @@ static void hole_init_rc(const char *filename)
 
     /* Load the holes list. */
 
+#if defined(FS_VERSION_1)
+    if ((fin = fs_open(filename, "r")))
+#else
     if ((fin = fs_open_read(filename)))
+#endif
     {
         /* Skip shot and description. */
 
@@ -119,6 +125,8 @@ int hole_load(int h, const char *filename)
         sol_free_base(&base);
         return 1;
     }
+
+    log_errorf("Unable to load hole in course: %s\n", stderr);
     return 0;
 }
 
@@ -175,7 +183,13 @@ char *hole_score(int h, int p)
     {
         if (h <= hole && 0 <= p && p <= party)
         {
-            sprintf(str, "%d", score_v[h][p]);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf(str, MAXSTR,
+#else
+            sprintf(str,
+#endif
+                    "%d", score_v[h][p]);
+
             return str;
         }
     }
@@ -193,7 +207,12 @@ char *hole_tot(int p)
         for (h = 1; h <= hole && h < count; h++)
             T += score_v[h][p];
 
-        sprintf(str, "%d", T);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf(str, MAXSTR,
+#else
+        sprintf(str,
+#endif
+                "%d", T);
 
         return str;
     }
@@ -211,7 +230,12 @@ char *hole_out(int p)
         for (h = 1; h <= hole && h <= count / 2; h++)
             T += score_v[h][p];
 
-        sprintf(str, "%d", T);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf(str, MAXSTR,
+#else
+        sprintf(str,
+#endif
+                "%d", T);
 
         return str;
     }
@@ -230,7 +254,12 @@ char *hole_in(int p)
         for (h = out + 1; h <= hole && h < count; h++)
             T += score_v[h][p];
 
-        sprintf(str, "%d", T);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf(str, MAXSTR,
+#else
+        sprintf(str,
+#endif
+                "%d", T);
 
         return str;
     }
@@ -239,16 +268,43 @@ char *hole_in(int p)
 
 /*---------------------------------------------------------------------------*/
 
-int curr_hole(void)   { return hole;   }
-int curr_party(void)  { return party;  }
-int curr_player(void) { return player; }
-int curr_count(void)  { return count;  }
+void stroke_set_type(int i)
+{
+    stroke_type_v[player] = i;
+}
+
+/*---------------------------------------------------------------------------*/
+
+int curr_hole(void)        { return hole;   }
+int curr_party(void)       { return party;  }
+int curr_player(void)      { return player; }
+int curr_count(void)       { return count;  }
+int curr_stroke_type(void) { return stroke_type_v[player]; }
+
+const char *curr_scr_profile(int i)
+{
+    static char buf[8];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf(buf, 8,
+#else
+    sprintf(buf,
+#endif
+            "%d", score_v[hole][i]);
+
+    return buf;
+}
 
 const char *curr_scr(void)
 {
     static char buf[8];
 
-    sprintf(buf, "%d", score_v[hole][player]);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf(buf, 8,
+#else
+    sprintf(buf,
+#endif
+            "%d", score_v[hole][player]);
 
     return buf;
 }
@@ -257,9 +313,25 @@ const char *curr_par(void)
 {
     static char buf[8];
 
-    sprintf(buf, "%d", score_v[hole][0]);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf(buf, 8,
+#else
+    sprintf(buf,
+#endif
+            "%d", score_v[hole][0]);
 
     return buf;
+}
+
+const char *curr_stroke_type_name(void)
+{
+    switch (stroke_type_v[player])
+    {
+    case 3: return _("Driver");
+    case 2: return _("Iron");
+    case 1: return _("Wedge");
+    default: return _("Putt");
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -331,20 +403,20 @@ void hole_goal(void)
     score_v[hole][player]++;
 
     if (score_v[hole][player] == 1)
-        audio_play(AUD_ONE, 1.0f);
+        audio_narrator_play(AUD_ONE);
 
     else if (score_v[hole][player] == score_v[hole][0] - 2)
-        audio_play(AUD_EAGLE, 1.0f);
+        audio_narrator_play(AUD_EAGLE);
     else if (score_v[hole][player] == score_v[hole][0] - 1)
-        audio_play(AUD_BIRDIE, 1.0f);
+        audio_narrator_play(AUD_BIRDIE);
     else if (score_v[hole][player] == score_v[hole][0])
-        audio_play(AUD_PAR, 1.0f);
+        audio_narrator_play(AUD_PAR);
     else if (score_v[hole][player] == score_v[hole][0] + 1)
-        audio_play(AUD_BOGEY, 1.0f);
+        audio_narrator_play(AUD_BOGEY);
     else if (score_v[hole][player] == score_v[hole][0] + 2)
-        audio_play(AUD_DOUBLE, 1.0f);
+        audio_narrator_play(AUD_DOUBLE);
     else
-        audio_play(AUD_SUCCESS, 1.0f);
+        audio_narrator_play(AUD_SUCCESS);
 
     stat_v[player] = 1;
     done++;
@@ -355,34 +427,59 @@ void hole_goal(void)
 
 void hole_stop(void)
 {
+    /* Default stroke limit for open-world: 65536 */
+
+    int stroke_limit = score_v[hole][0] + 4;
     score_v[hole][player]++;
 
-    /* Cap scores at 12 or par plus 3. */
+    /* Cap scores at specific stroke limit or par plus 3. */
 
-    if (score_v[hole][player] >= 12 &&
+    if (score_v[hole][player] >= stroke_limit &&
         score_v[hole][player] >= score_v[hole][0] + 3)
     {
-        score_v[hole][player] = (score_v[hole][0] > 12 - 3) ? score_v[hole][0] + 3 : 12;
+        score_v[hole][player] = (score_v[hole][0] > stroke_limit - 3) ? score_v[hole][0] + 3 : stroke_limit;
         stat_v[player] = 1;
         done++;
     }
 }
 
-void hole_fall(void)
+void hole_skip(void)
 {
-    audio_play(AUD_PENALTY, 1.0f);
+    /* Default stroke limit for open-world: 65536 */
+
+    int stroke_limit = score_v[hole][0] + 4;
+
+    /* Cap scores at specific stroke limit or par plus 3. */
+
+    int maxscore = (score_v[hole][0] > stroke_limit - 3) ? score_v[hole][0] + 3 : stroke_limit;
+    
+    for (int i = 1; i <= party; i++)
+    {
+        score_v[hole][i] = maxscore;
+        stat_v[i] = 1;
+    }
+
+    done = party;
+}
+
+void hole_fall(int split)
+{
+    /* Default stroke limit for open-world: 65536 */
+
+    int stroke_limit = score_v[hole][0] + 4;
+    audio_narrator_play(AUD_PENALTY);
 
     /* Reset to the position of the putt, and apply a one-stroke penalty. */
 
     game_set_pos(ball_p[player], ball_e[player]);
-    score_v[hole][player] += 2;
+    score_v[hole][player] += split ? 1 : 2;
 
-    /* Cap scores at 12 or par plus 3. */
+    /* Cap scores at specific stroke limit or par plus 3. */
 
-    if (score_v[hole][player] >= 12 &&
+    if (score_v[hole][player] >= stroke_limit &&
         score_v[hole][player] >= score_v[hole][0] + 3)
     {
-        score_v[hole][player] = (score_v[hole][0] > 12 - 3) ? score_v[hole][0] + 3 : 12;
+        score_v[hole][player] = (score_v[hole][0] > stroke_limit - 3) ? score_v[hole][0] + 3 : stroke_limit;
         stat_v[player] = 1;
         done++;
     }

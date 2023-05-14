@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -47,7 +47,7 @@ static int cmd_stats = 0;
     const char *cmd_name = #type;                                       \
                                                                         \
     /* This is a write, so BYTES should be safe to eval already. */     \
-    short cmd_bytes = (bytes);                                            \
+    short cmd_bytes = (bytes);                                          \
                                                                         \
     /* Write command size info (right after the command type). */       \
     put_short(fp, cmd_bytes);                                           \
@@ -90,72 +90,93 @@ DEFINE_CMD(CMD_MAKE_BALL, 0, {}, {});
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_MAKE_ITEM, ARRAY_BYTES(3) + INDEX_BYTES + INDEX_BYTES, {
-    put_array(fp, cmd->mkitem.p, 3);
-    put_index(fp, cmd->mkitem.t);
-    put_index(fp, cmd->mkitem.n);
-}, {
-    get_array(fp, cmd->mkitem.p, 3);
+DEFINE_CMD(CMD_MAKE_ITEM, ARRAY_BYTES(3) + INDEX_BYTES + INDEX_BYTES,
+    {
+        put_array(fp, cmd->mkitem.p, 3);
+        put_index(fp, cmd->mkitem.t);
+        put_index(fp, cmd->mkitem.n);
+    },
+    {
+        get_array(fp, cmd->mkitem.p, 3);
 
-    cmd->mkitem.t = get_index(fp);
-    cmd->mkitem.n = get_index(fp);
-});
+        cmd->mkitem.t = get_index(fp);
+        cmd->mkitem.n = get_index(fp);
+    }
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_PICK_ITEM, INDEX_BYTES, {
+DEFINE_CMD(CMD_PICK_ITEM, INDEX_BYTES,
+{
     put_index(fp, cmd->pkitem.hi);
-}, {
+},
+{
     cmd->pkitem.hi = get_index(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_TILT_ANGLES, FLOAT_BYTES + FLOAT_BYTES, {
+DEFINE_CMD(CMD_TILT_ANGLES, FLOAT_BYTES + FLOAT_BYTES,
+{
     put_float(fp, cmd->tiltangles.x);
     put_float(fp, cmd->tiltangles.z);
-}, {
+},
+{
     cmd->tiltangles.x = get_float(fp);
     cmd->tiltangles.z = get_float(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_SOUND, STRING_BYTES(cmd->sound.n) + FLOAT_BYTES, {
+DEFINE_CMD(CMD_SOUND, STRING_BYTES(cmd->sound.n) + FLOAT_BYTES,
+{
     put_string(fp, cmd->sound.n);
     put_float(fp, cmd->sound.a);
-}, {
+},
+{
     static char buff[MAXSTR];
 
     get_string(fp, buff, sizeof (buff));
 
     cmd->sound.a = get_float(fp);
     cmd->sound.n = strdup(buff);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_TIMER, FLOAT_BYTES, {
+DEFINE_CMD(CMD_TIMER, FLOAT_BYTES,
+{
     put_float(fp, cmd->timer.t);
-}, {
+},
+{
     cmd->timer.t = get_float(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_STATUS, INDEX_BYTES, {
+DEFINE_CMD(CMD_STATUS, INDEX_BYTES,
+{
     put_index(fp, cmd->status.t);
-}, {
+},
+{
     cmd->status.t = get_index(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_COINS, INDEX_BYTES, {
+DEFINE_CMD(CMD_COINS, INDEX_BYTES,
+{
     put_index(fp, cmd->coins.n);
-}, {
+},
+{
     cmd->coins.n = get_index(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
@@ -167,23 +188,29 @@ DEFINE_CMD(CMD_JUMP_EXIT, 0, {}, {});
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_BODY_PATH, INDEX_BYTES + INDEX_BYTES, {
+DEFINE_CMD(CMD_BODY_PATH, INDEX_BYTES + INDEX_BYTES,
+{
     put_index(fp, cmd->bodypath.bi);
     put_index(fp, cmd->bodypath.pi);
-}, {
+},
+{
     cmd->bodypath.bi = get_index(fp);
     cmd->bodypath.pi = get_index(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_BODY_TIME, INDEX_BYTES + FLOAT_BYTES, {
+DEFINE_CMD(CMD_BODY_TIME, INDEX_BYTES + FLOAT_BYTES,
+{
     put_index(fp, cmd->bodytime.bi);
     put_float(fp, cmd->bodytime.t);
-}, {
+},
+{
     cmd->bodytime.bi = get_index(fp);
     cmd->bodytime.t  = get_float(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
@@ -191,43 +218,92 @@ DEFINE_CMD(CMD_GOAL_OPEN, 0, {}, {});
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_SWCH_ENTER, INDEX_BYTES, {
+DEFINE_CMD(CMD_SWCH_ENTER, INDEX_BYTES,
+{
     put_index(fp, cmd->swchenter.xi);
-}, {
+},
+{
     cmd->swchenter.xi = get_index(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_SWCH_TOGGLE, INDEX_BYTES, {
+DEFINE_CMD(CMD_SWCH_TOGGLE, INDEX_BYTES,
+{
     put_index(fp, cmd->swchenter.xi);
-}, {
+},
+{
     cmd->swchenter.xi = get_index(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_SWCH_EXIT, INDEX_BYTES, {
+DEFINE_CMD(CMD_SWCH_EXIT, INDEX_BYTES,
+{
     put_index(fp, cmd->swchenter.xi);
-}, {
+},
+{
     cmd->swchenter.xi = get_index(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_UPDATES_PER_SECOND, INDEX_BYTES, {
+DEFINE_CMD(CMD_CHKP_ENTER, INDEX_BYTES,
+{
+    put_index(fp, cmd->chkpenter.ci);
+},
+{
+    cmd->chkpenter.ci = get_index(fp);
+}
+);
+
+/*---------------------------------------------------------------------------*/
+
+DEFINE_CMD(CMD_CHKP_TOGGLE, INDEX_BYTES,
+{
+    put_index(fp, cmd->chkpenter.ci);
+},
+{
+    cmd->chkpenter.ci = get_index(fp);
+}
+);
+
+/*---------------------------------------------------------------------------*/
+
+DEFINE_CMD(CMD_CHKP_EXIT, INDEX_BYTES,
+{
+    put_index(fp, cmd->chkpenter.ci);
+},
+{
+    cmd->chkpenter.ci = get_index(fp);
+}
+);
+
+/*---------------------------------------------------------------------------*/
+
+
+DEFINE_CMD(CMD_UPDATES_PER_SECOND, INDEX_BYTES,
+{
     put_index(fp, cmd->ups.n);
-}, {
+},
+{
     cmd->ups.n = get_index(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_BALL_RADIUS, FLOAT_BYTES, {
+DEFINE_CMD(CMD_BALL_RADIUS, FLOAT_BYTES,
+{
     put_float(fp, cmd->ballradius.r);
-}, {
+},
+{
     cmd->ballradius.r = get_float(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
@@ -239,92 +315,121 @@ DEFINE_CMD(CMD_CLEAR_BALLS, 0, {}, {});
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_BALL_POSITION, ARRAY_BYTES(3), {
+DEFINE_CMD(CMD_BALL_POSITION, ARRAY_BYTES(3),
+{
     put_array(fp, cmd->ballpos.p, 3);
-}, {
+},
+{
     get_array(fp, cmd->ballpos.p, 3);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_BALL_BASIS, ARRAY_BYTES(3) + ARRAY_BYTES(3), {
+DEFINE_CMD(CMD_BALL_BASIS, ARRAY_BYTES(3) + ARRAY_BYTES(3),
+{
     put_array(fp, cmd->ballbasis.e[0], 3);
     put_array(fp, cmd->ballbasis.e[1], 3);
-}, {
+},
+{
     get_array(fp, cmd->ballbasis.e[0], 3);
     get_array(fp, cmd->ballbasis.e[1], 3);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_BALL_PEND_BASIS, ARRAY_BYTES(3) + ARRAY_BYTES(3), {
+DEFINE_CMD(CMD_BALL_PEND_BASIS, ARRAY_BYTES(3) + ARRAY_BYTES(3),
+{
     put_array(fp, cmd->ballpendbasis.E[0], 3);
     put_array(fp, cmd->ballpendbasis.E[1], 3);
-}, {
+},
+{
     get_array(fp, cmd->ballpendbasis.E[0], 3);
     get_array(fp, cmd->ballpendbasis.E[1], 3);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_VIEW_POSITION, ARRAY_BYTES(3), {
+DEFINE_CMD(CMD_VIEW_POSITION, ARRAY_BYTES(3),
+{
     put_array(fp, cmd->viewpos.p, 3);
-}, {
+},
+{
     get_array(fp, cmd->viewpos.p, 3);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_VIEW_CENTER, ARRAY_BYTES(3), {
+DEFINE_CMD(CMD_VIEW_CENTER, ARRAY_BYTES(3),
+{
     put_array(fp, cmd->viewcenter.c, 3);
-}, {
+},
+{
     get_array(fp, cmd->viewcenter.c, 3);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_VIEW_BASIS, ARRAY_BYTES(3) + ARRAY_BYTES(3), {
+DEFINE_CMD(CMD_VIEW_BASIS, ARRAY_BYTES(3) + ARRAY_BYTES(3),
+{
     put_array(fp, cmd->viewbasis.e[0], 3);
     put_array(fp, cmd->viewbasis.e[1], 3);
-}, {
+},
+{
     get_array(fp, cmd->viewbasis.e[0], 3);
     get_array(fp, cmd->viewbasis.e[1], 3);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_CURRENT_BALL, INDEX_BYTES, {
+DEFINE_CMD(CMD_CURRENT_BALL, INDEX_BYTES,
+{
     put_index(fp, cmd->currball.ui);
-}, {
+},
+{
     cmd->currball.ui = get_index(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_PATH_FLAG, INDEX_BYTES + INDEX_BYTES, {
+DEFINE_CMD(CMD_PATH_FLAG, INDEX_BYTES + INDEX_BYTES,
+{
     put_index(fp, cmd->pathflag.pi);
     put_index(fp, cmd->pathflag.f);
-}, {
+},
+{
     cmd->pathflag.pi = get_index(fp);
     cmd->pathflag.f  = get_index(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_STEP_SIMULATION, FLOAT_BYTES, {
+DEFINE_CMD(CMD_STEP_SIMULATION, FLOAT_BYTES,
+{
     put_float(fp, cmd->stepsim.dt);
-}, {
+},
+{
     cmd->stepsim.dt = get_float(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_MAP, STRING_BYTES(cmd->map.name) + INDEX_BYTES * 2, {
+DEFINE_CMD(CMD_MAP, STRING_BYTES(cmd->map.name) + INDEX_BYTES * 2,
+{
     put_string(fp, cmd->map.name);
 
     put_index(fp, cmd->map.version.x);
     put_index(fp, cmd->map.version.y);
-}, {
+},
+{
     char buff[MAXSTR];
 
     get_string(fp, buff, sizeof (buff));
@@ -333,37 +438,93 @@ DEFINE_CMD(CMD_MAP, STRING_BYTES(cmd->map.name) + INDEX_BYTES * 2, {
 
     cmd->map.version.x = get_index(fp);
     cmd->map.version.y = get_index(fp);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_TILT_AXES, ARRAY_BYTES(3) * 2, {
+DEFINE_CMD(CMD_TILT_AXES, ARRAY_BYTES(3) * 2,
+{
     put_array(fp, cmd->tiltaxes.x, 3);
     put_array(fp, cmd->tiltaxes.z, 3);
-}, {
+},
+{
     get_array(fp, cmd->tiltaxes.x, 3);
     get_array(fp, cmd->tiltaxes.z, 3);
-});
+}
+);
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_MOVE_PATH, INDEX_BYTES + INDEX_BYTES, {
+DEFINE_CMD(CMD_MOVE_PATH, INDEX_BYTES + INDEX_BYTES,
+{
     put_index(fp, cmd->movepath.mi);
     put_index(fp, cmd->movepath.pi);
-}, {
+},
+{
     cmd->movepath.mi = get_index(fp);
     cmd->movepath.pi = get_index(fp);
+}
+);
+
+/*---------------------------------------------------------------------------*/
+
+DEFINE_CMD(CMD_MOVE_TIME, INDEX_BYTES + FLOAT_BYTES,
+{
+    put_index(fp, cmd->movetime.mi);
+    put_float(fp, cmd->movetime.t);
+},
+{
+    cmd->movetime.mi = get_index(fp);
+    cmd->movetime.t  = get_float(fp);
+}
+);
+
+/*---------------------------------------------------------------------------*/
+
+DEFINE_CMD(CMD_TILT, ARRAY_BYTES(4), {
+    put_array(fp, cmd->tilt.q, 4);
+}, {
+    get_array(fp, cmd->tilt.q, 4);
 });
 
 /*---------------------------------------------------------------------------*/
 
-DEFINE_CMD(CMD_MOVE_TIME, INDEX_BYTES + FLOAT_BYTES, {
-    put_index(fp, cmd->movetime.mi);
-    put_float(fp, cmd->movetime.t);
-}, {
-    cmd->movetime.mi = get_index(fp);
-    cmd->movetime.t  = get_float(fp);
-});
+DEFINE_CMD(CMD_SPEEDOMETER, INDEX_BYTES + FLOAT_BYTES,
+{
+    put_float(fp, cmd->speedometer.xi);
+},
+{
+    cmd->speedometer.xi = get_float(fp);
+}
+);
+
+/*---------------------------------------------------------------------------*/
+
+/*
+DEFINE_CMD(CMD_SAVED_SPAWNPOINT, INDEX_BYTES + FLOAT_BYTES,
+{
+    put_index(fp, cmd->spawnpoint.xi);
+},
+{
+    cmd->spawnpoint.xi = get_index(fp);
+}
+);*/
+
+/*---------------------------------------------------------------------------*/
+
+DEFINE_CMD(CMD_ZOOM, INDEX_BYTES + FLOAT_BYTES,
+{
+    put_float(fp, cmd->zoom.xi);
+},
+{
+    cmd->zoom.xi = get_float(fp);
+}
+);
+
+/*---------------------------------------------------------------------------*/
+
+DEFINE_CMD(CMD_CHKP_DISABLE, 0, {}, {});
 
 /*---------------------------------------------------------------------------*/
 
@@ -415,6 +576,14 @@ int cmd_put(fs_file fp, const union cmd *cmd)
         PUT_CASE(CMD_TILT_AXES);
         PUT_CASE(CMD_MOVE_PATH);
         PUT_CASE(CMD_MOVE_TIME);
+        PUT_CASE(CMD_TILT);
+        PUT_CASE(CMD_CHKP_ENTER);
+        PUT_CASE(CMD_CHKP_TOGGLE);
+        PUT_CASE(CMD_CHKP_EXIT);
+        PUT_CASE(CMD_SPEEDOMETER);
+        /*PUT_CASE(CMD_SAVED_SPAWNPOINT);*/
+        PUT_CASE(CMD_ZOOM);
+        PUT_CASE(CMD_CHKP_DISABLE);
 
     case CMD_NONE:
     case CMD_MAX:
@@ -482,6 +651,14 @@ int cmd_get(fs_file fp, union cmd *cmd)
             GET_CASE(CMD_TILT_AXES);
             GET_CASE(CMD_MOVE_PATH);
             GET_CASE(CMD_MOVE_TIME);
+            GET_CASE(CMD_TILT);
+            GET_CASE(CMD_CHKP_ENTER);
+            GET_CASE(CMD_CHKP_TOGGLE);
+            GET_CASE(CMD_CHKP_EXIT);
+            GET_CASE(CMD_SPEEDOMETER);
+            /*GET_CASE(CMD_SAVED_SPAWNPOINT);*/
+            GET_CASE(CMD_ZOOM);
+            GET_CASE(CMD_CHKP_DISABLE);
 
         case CMD_NONE:
         case CMD_MAX:

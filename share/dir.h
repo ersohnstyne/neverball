@@ -28,7 +28,15 @@ void dir_list_free (List);
 
 int dir_exists(const char *);
 
-#ifdef _WIN32
+#if _WIN32 && _MSC_VER
+// 1 - 0: Directory created
+// 0 - 1: Directory already exists
+// 0 - 0 or 1 - 1
+
+#include <Windows.h>
+#define dir_make(path) \
+    !(CreateDirectoryA(path, 0) != 0 || GetLastError() == ERROR_ALREADY_EXISTS)
+#elif _WIN32 && __MINGW32__
 #include <direct.h>
 #define dir_make(path) _mkdir(path)
 #else

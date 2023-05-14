@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -15,8 +15,19 @@
 #include <string.h>
 #include <stdlib.h>
 
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL_ttf.h>
+#include <SDL3/SDL_rwops.h>
+#else
 #include <SDL_ttf.h>
 #include <SDL_rwops.h>
+#endif
+
+#if _MSC_VER
+#pragma comment(lib, "SDL2_ttf.lib")
+#endif
+
+#include "dbg_config.h"
 
 #include "font.h"
 #include "common.h"
@@ -24,28 +35,39 @@
 
 /*---------------------------------------------------------------------------*/
 
+static int _ft_is_init = 0;
+
 int font_load(struct font *ft, const char *path, int sizes[3])
 {
-    if (ft && path && *path)
+    if (!_ft_is_init)
+        font_init();
+
+    if (_ft_is_init)
     {
-        memset(ft, 0, sizeof (*ft));
-
-        if ((ft->data = fs_load(path, &ft->datalen)))
+        if (ft && path && *path)
         {
-            int i;
+            memset(ft, 0, sizeof(*ft));
 
-            SAFECPY(ft->path, path);
-
-            ft->rwops = SDL_RWFromConstMem(ft->data, ft->datalen);
-
-            for (i = 0; i < ARRAYSIZE(ft->ttf); i++)
+            if ((ft->data = fs_load(path, &ft->datalen)))
             {
-                SDL_RWseek(ft->rwops, 0, SEEK_SET);
-                ft->ttf[i] = TTF_OpenFontRW(ft->rwops, 0, sizes[i]);
+                int i;
+
+                SAFECPY(ft->path, path);
+
+                ft->rwops = SDL_RWFromConstMem(ft->data, ft->datalen);
+
+                for (i = 0; i < ARRAYSIZE(ft->ttf); i++)
+                {
+                    SDL_RWseek(ft->rwops, 0, SEEK_SET);
+                    ft->ttf[i] = TTF_OpenFontRW(ft->rwops, 0, sizes[i]);
+                }
+                return 1;
             }
-            return 1;
         }
     }
+    else
+        log_errorf("Failure to load font! TTF must be initialized!: %s\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
+
     return 0;
 }
 
@@ -71,11 +93,17 @@ void font_free(struct font *ft)
 
 int font_init(void)
 {
-    return (TTF_Init() == 0);
+    if (_ft_is_init)
+        font_quit();
+
+    _ft_is_init = (TTF_Init() == 0);
+
+    return _ft_is_init;
 }
 
 void font_quit(void)
 {
+    _ft_is_init = 0;
     TTF_Quit();
 }
 

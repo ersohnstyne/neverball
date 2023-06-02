@@ -1,36 +1,85 @@
 #ifndef STATE_H
 #define STATE_H
 
-#include "SDL_events.h"
+#if _MSC_VER
+#define _CRT_NB_SCREENSTATE_DEPRECATED(_ItemReplacement)                  \
+    __declspec(deprecated(                                                \
+        "This screenstate function or variable has been superceded by "   \
+        "newer library functionality. Consider using " #_ItemReplacement  \
+        " instead."                                                       \
+    ))
+#else
+#define _CRT_NB_SCREENSTATE_DEPRECATED(_ItemReplacement)                  \
+    __attribute__ ((deprecated(                                           \
+        "This screenstate function or variable has been superceded by "   \
+        "newer library functionality. Consider using " #_ItemReplacement  \
+        " instead."                                                       \
+    )))
+#endif
+
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL_events.h>
+#else
+#include <SDL_events.h>
+#endif
 
 /*---------------------------------------------------------------------------*/
 
+#define CHECK_GAMESPEED(a, b) \
+    if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < a \
+        || accessibility_get_d(ACCESSIBILITY_SLOWDOWN) > b) \
+        accessibility_set_d(ACCESSIBILITY_SLOWDOWN, CLAMP(a, accessibility_get_d(ACCESSIBILITY_SLOWDOWN), b));
+
+extern int st_global_loop(void);
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * Things throttles, just find the keyword regex
+ * with "struct state [^*]+= {\n"
+ */
+
 struct state
 {
-    int  (*enter)(struct state *, struct state *prev);
-    void (*leave)(struct state *, struct state *next, int id);
-    void (*paint)(int id, float t);
-    void (*timer)(int id, float dt);
-    void (*point)(int id, int x, int y, int dx, int dy);
-    void (*stick)(int id, int a, float v, int bump);
-    void (*angle)(int id, float x, float z);
-    int  (*click)(int b,  int d);
-    int  (*keybd)(int c,  int d);
-    int  (*buttn)(int b,  int d);
-    void (*wheel)(int x,  int y);
+    int  (*enter) (struct state *, struct state *prev);
+    void (*leave) (struct state *, struct state *next, int id);
+    void (*paint) (int id, float t);
+    void (*timer) (int id, float dt);
+    void (*point) (int id, int x, int y, int dx, int dy);
+    void (*stick) (int id, int a, float v, int bump);
+    void (*angle) (int id, float x, float z);
+    int  (*click) (int b,  int d);
+    int  (*keybd) (int c,  int d);
+    int  (*buttn) (int b,  int d);
+    void (*wheel) (int x,  int y);
+    int  (*touch) (const SDL_TouchFingerEvent*);
+    void (*fade)  (float alpha);
 
     int gui_id;
-
-    int  (*touch)(const SDL_TouchFingerEvent *);
 };
 
 struct state *curr_state(void);
 
 float time_state(void);
 void  init_state(struct state *);
-int   goto_state(struct state *);
 
-void st_paint(float);
+/*
+ * This screenstate transition will be replaced into the goto_state_full.
+ * Your functions will be replaced using four parameters.
+ */
+#if _WIN32
+_CRT_NB_SCREENSTATE_DEPRECATED(goto_state_full)
+int  goto_state(struct state* st);
+#else
+int  goto_state(struct state* st)
+_CRT_NB_SCREENSTATE_DEPRECATED(goto_state_full);
+#endif
+
+int  goto_state_full(struct state *st, int fromdirection, int todirection, int noanimation);
+
+int  st_global_animating(void);
+
+void st_paint(float, int);
 void st_timer(float);
 void st_point(int, int, int, int);
 void st_stick(int, float);

@@ -1,0 +1,1 @@
+pacman -Sy make mingw-w64-x86_64-gcc mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg mingw-w64-x86_64-physfs mingw-w64-x86_64-libvorbis mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_ttf mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-libcurl

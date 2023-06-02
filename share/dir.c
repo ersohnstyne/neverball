@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,7 +12,11 @@
  * General Public License for more details.
  */
 
+#if _MSC_VER
+#include <Windows.h>
+#else
 #include <dirent.h>
+#endif
 
 #include <string.h>
 #include <stdlib.h>
@@ -22,33 +26,60 @@
 #include "common.h"
 
 /*
- * HACK: MinGW provides numerous POSIX extensions to MSVCRT, including
- * dirent.h, so parasti ever so lazily has not bothered to port the
- * code below to FindFirstFile et al.
+ * HACK: Thank god using FindFirstFileA by Microsoft Elite Developers!
+ * On Unix and linux, or using MinGW, include headers will be used as: dirent.h
+ * - Ersohn Styne
  */
+
+#if _MSC_VER
+#pragma message("Using directory list for code compilation: Microsoft Visual Studio")
+#else
+#pragma message("Using directory list for code compilation: MinGW")
+#endif
 
 /*
  * Enumerate files in a system directory. Returns a List of allocated filenames.
  */
 List dir_list_files(const char *path)
 {
-    DIR *dir;
     List files = NULL;
 
+    char outpath[MAXSTR];
+    sprintf_s(outpath, 256U, "%s\\*", path);
+
+#if _WIN32 && _MSC_VER
+    WIN32_FIND_DATAA findDataFiles;
+    HANDLE hFind;
+
+    if ((hFind = FindFirstFileA(outpath, &findDataFiles)) != INVALID_HANDLE_VALUE)
+    {
+        do {
+            if (strcmp(findDataFiles.cFileName, ".") == 0 || strcmp(findDataFiles.cFileName, "..") == 0)
+                continue;
+            else if (findDataFiles.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ||
+                findDataFiles.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE)
+                files = list_cons(strdup(findDataFiles.cFileName), files);
+        } while (FindNextFileA(hFind, &findDataFiles));
+
+        FindClose(hFind);
+        hFind = 0;
+    }
+#else
+    DIR* dir;
     if ((dir = opendir(path)))
     {
         struct dirent *ent;
 
-        while ((ent = readdir(dir)))
-        {
+        do {
             if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
                 continue;
 
             files = list_cons(strdup(ent->d_name), files);
-        }
+        } while ((ent = readdir(dir)))
 
         closedir(dir);
     }
+#endif
 
     return files;
 }
@@ -147,6 +178,19 @@ void dir_free(Array items)
  */
 int dir_exists(const char *path)
 {
+#if _WIN32 && _MSC_VER
+    DWORD file_attr = GetFileAttributesA(path);
+
+    if (file_attr & FILE_ATTRIBUTE_OFFLINE
+        || file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED
+        || file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA)
+        return 0;
+
+    /*return file_attr & FILE_ATTRIBUTE_DIRECTORY
+        || file_attr & FILE_ATTRIBUTE_ARCHIVE;*/
+
+    return file_attr & FILE_ATTRIBUTE_DIRECTORY;
+#else
     DIR *dir;
 
     if ((dir = opendir(path)))
@@ -155,4 +199,5 @@ int dir_exists(const char *path)
         return 1;
     }
     return 0;
+#endif
 }

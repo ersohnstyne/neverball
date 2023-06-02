@@ -5,4 +5,6 @@
 
 extern struct state st_fail;
 
+int goto_raise_gems(struct state *, int);
+
 #endif

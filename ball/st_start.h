@@ -4,7 +4,6 @@
 #include "state.h"
 
 extern struct state st_start;
-
-int goto_end_level(void);
+extern struct state st_start_compat;
 
 #endif

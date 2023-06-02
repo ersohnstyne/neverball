@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -78,7 +78,11 @@ static const char *theme_path(const char *name, const char *file)
 
     if ((name && *name) && (file && *file))
     {
+#if NB_HAVE_PB_BOTH==1
+        SAFECPY(path, "gui/themes/");
+#else
         SAFECPY(path, "gui/");
+#endif
         SAFECAT(path, name);
         SAFECAT(path, "/");
         SAFECAT(path, file);
@@ -101,23 +105,29 @@ int theme_load(struct theme *theme, const char *name)
         memset(theme, 0, sizeof (*theme));
 
         /* Load description. */
-
+#ifdef FS_VERSION_1
+        if ((fp = fs_open(theme_path(name, "theme.txt"), "r")))
+#else
         if ((fp = fs_open_read(theme_path(name, "theme.txt"))))
+#endif
         {
             while ((fs_gets(buff, sizeof (buff), fp)))
             {
                 strip_newline(buff);
 
                 if (strncmp(buff, "slice ", 6) == 0)
-                    sscanf(buff + 6, "%f %f %f %f", &s[0], &s[1], &s[2], &s[3]);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sscanf_s(buff + 6,
+#else
+                    sscanf(buff + 6,
+#endif
+                           "%f %f %f %f", &s[0], &s[1], &s[2], &s[3]);
             }
 
             fs_close(fp);
         }
         else
-        {
-            log_printf("Failure to open \"%s\" theme file\n", name);
-        }
+            log_errorf("Failure to open \"%s\" theme file\n", name);
 
         theme->s[0] =  0.0f;
         theme->s[1] =  s[0];

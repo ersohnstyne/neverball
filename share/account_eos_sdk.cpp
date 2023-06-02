@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Valve / Neverball Authors
+ * Copyright (C) 2023 Microsoft / Epic Games / Neverball Authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published

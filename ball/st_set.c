@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
@@ -206,9 +206,9 @@ static int set_action(int tok, int val)
 #else
 #if _WIN32
         system("start msedge https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV");
-#elif __APPLE__
+#elif defined(__APPLE__)
         system("open https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV");
-#else
+#elif defined(__linux__)
         system("x-www-browser https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV");
 #endif
 #endif
@@ -514,6 +514,9 @@ static int set_keybd(int c, int d)
 
         if (c == KEY_LOOKAROUND)
         {
+#ifndef NDEBUG
+            log_printf("Attempt to reload level set list.\n");
+#endif
             set_manual_hotreload = 1;
             return goto_state(&st_set);
         }
@@ -794,7 +797,7 @@ static int campaign_gui(void)
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(kd, "gui/navig/arrow_right_disabled.png", "gui/navig/arrow_right.png", GUI_NEXT, GUI_NONE, 1);
 #else
-                gui_maybe(kd, GUI_ARROW_RGHT, GUI_NEXT, GUI_NONE, 1);
+                gui_maybe(kd, GUI_TRIANGLE_RIGHT, GUI_NEXT, GUI_NONE, 1);
 #endif
                 gui_space(kd);
             }
@@ -884,7 +887,7 @@ static int campaign_gui(void)
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(kd, "gui/navig/arrow_left_disabled.png", "gui/navig/arrow_left.png", GUI_PREV, GUI_NONE, 1);
 #else
-                gui_maybe(kd, GUI_ARROW_LFT, GUI_PREV, GUI_NONE, 1);
+                gui_maybe(kd, GUI_TRIANGLE_LEFT, GUI_PREV, GUI_NONE, 1);
 #endif
             }
 

@@ -15,7 +15,9 @@
 #ifndef SOLID_VARY_H
 #define SOLID_VARY_H
 
+#if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
+#endif
 #include "base_config.h"
 #include "solid_base.h"
 

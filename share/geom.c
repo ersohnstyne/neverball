@@ -105,9 +105,7 @@ static void tex_env_conf_default(int stage, int enable)
             glMatrixMode(GL_MODELVIEW);
         }
         else
-        {
             glDisable(GL_TEXTURE_2D);
-        }
         break;
     }
 }
@@ -117,6 +115,8 @@ static void tex_env_conf_shadow(int stage, int enable)
     switch (stage)
     {
     case TEX_STAGE_SHADOW:
+        glDisable(GL_TEXTURE_2D);
+
         if (enable)
         {
             glDisable(GL_TEXTURE_2D);
@@ -141,17 +141,13 @@ static void tex_env_conf_shadow(int stage, int enable)
             glLoadIdentity();
             glMatrixMode(GL_MODELVIEW);
         }
-        else
-        {
-            glDisable(GL_TEXTURE_2D);
-        }
         break;
 
     case TEX_STAGE_CLIP:
+        glDisable(GL_TEXTURE_2D);
+
         if (enable)
         {
-            glDisable(GL_TEXTURE_2D);
-
             /* Interpolate shadowed and non-shadowed primary color. */
 
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
@@ -174,10 +170,6 @@ static void tex_env_conf_shadow(int stage, int enable)
             glLoadIdentity();
             glMatrixMode(GL_MODELVIEW);
         }
-        else
-        {
-            glDisable(GL_TEXTURE_2D);
-        }
         break;
 
     case TEX_STAGE_TEXTURE:
@@ -197,17 +189,13 @@ static void tex_env_conf_pose(int stage, int enable)
     switch (stage)
     {
     case TEX_STAGE_SHADOW:
+        glDisable(GL_TEXTURE_2D);
+
         if (enable)
         {
-            glDisable(GL_TEXTURE_2D);
-
             /* Make shadow texture override everything else. */
 
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-        }
-        else
-        {
-            glDisable(GL_TEXTURE_2D);
         }
         break;
 

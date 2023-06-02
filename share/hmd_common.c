@@ -144,7 +144,7 @@ void hmd_common_init(int w, int h)
     GLboolean result = glsl_create(&distortion, sizeof (hmd_vert) / sizeof (char *), hmd_vert,
                              sizeof (hmd_frag) / sizeof (char *), hmd_frag);
 
-    if (result = GL_TRUE)
+    if (result == GL_TRUE)
     {
         /* Initialize VBOs for the on-screen rectangles. */
 

@@ -1,3 +1,17 @@
+/*
+ * Copyright (C) 2023 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #ifndef LANG_SWITCHBALL_H
 #define LANG_SWITCHBALL_H
 
@@ -5,19 +19,24 @@
  * This file were converted from XML to Poedit
  *
  * To compile single localization file on WSL2 or Ubuntu CLI, run:
- *     msgfmt --directory=./po <LANG_NAME>.po --output-file=./locale/<LANG_NAME>/LC_MESSAGES/neverball.mo
+ *     msgfmt --directory=./po <LANG_NAME>.po \
+ *       --output-file=./locale/<LANG_NAME>/LC_MESSAGES/neverball.mo
  *
  * To test this language, run:
  *     make locales
  *
- * If you have an Msys2 for Windows, then run:
+ * If you have an Msys2 environment for Windows installed, then run:
  *     mingw32-make locales
  */
 
-/* Only specified limited outputs */
+#ifndef N_
+/* No-op, useful for marking up strings for extraction-only. */
 #define N_(s) s
+#endif
 
+#if NB_HAVE_PB_BOTH==1
 #define SWITCHBALL_HAVE_TIP_AND_TUTORIAL
+#endif
 
 #define TIP_1 N_("Tip: Complete a level quickly to earn\\Bronze, Silver, or Gold Medals!")
 #define TIP_2 N_("Tip: Look out for Hidden Paths that can help you\\get through levels more quickly")

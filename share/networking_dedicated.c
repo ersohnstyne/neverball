@@ -27,13 +27,14 @@
 #if !_MSC_VER
 #error Use the combined library, that you've compiled from Microsoft Visual Studio!
 #else
-#pragma message("Neverball Dedicated Network for Microsoft Visual Studio")
+#pragma message("Pennyball + Neverball Dedicated Network for Microsoft Visual Studio")
 #endif
 #if _WIN64
-#pragma comment(lib, "D:\\source_ersohn_network\\c++\\neverball-game-network\\x64\\Release\\neverball_net_client.lib")
+#pragma comment(lib, "x64\\neverball_net_client.lib")
 #else
-#pragma comment(lib, "D:\\source_ersohn_network\\c++\\neverball-game-network\\Release\\neverball_net_client.lib")
+#pragma comment(lib, "neverball_net_client.lib")
 #endif
+
 #pragma comment(lib, "ws2_32.lib")
 #else
 #error Dedicated networks requires Windows x86 or x64!
@@ -78,31 +79,31 @@ static struct
     const int   def;
     int         cur;
 } server_policy_d[] = {
-    { &SERVER_POLICY_EDITION, "edition", NEVERBALL_EDITION },
+    { &SERVER_POLICY_EDITION, "edition", PENNYBALL_EDITION },
     { &SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN, "levelgroup_only_campaign", 0 },
-    { &SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET, "levelgroup_only_levelset", NEVERBALL_EDITION==-1 ? 1 : 0 },
+    { &SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET, "levelgroup_only_levelset", PENNYBALL_EDITION==-1 ? 1 : 0 },
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    { &SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET, "levelgroup_unlocked_levelset", NEVERBALL_EDITION==0 || NEVERBALL_EDITION==1 ? 0 : 1 },
+    { &SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET, "levelgroup_unlocked_levelset", PENNYBALL_EDITION==0 || PENNYBALL_EDITION==1 ? 0 : 1 },
 #else
     { &SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET, "levelgroup_unlocked_levelset", 1 },
 #endif
 
     { &SERVER_POLICY_LEVELSET_ENABLED_BONUS, "levelset_enabled_bonus", 1 },
-    { &SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET, "levelset_enabled_customset", NEVERBALL_EDITION!=0 },
-    { &SERVER_POLICY_LEVELSET_UNLOCKED_BONUS, "levelset_unlocked_bonus", NEVERBALL_EDITION>1 },
+    { &SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET, "levelset_enabled_customset", PENNYBALL_EDITION!=0 },
+    { &SERVER_POLICY_LEVELSET_UNLOCKED_BONUS, "levelset_unlocked_bonus", PENNYBALL_EDITION>1 },
 
-    { &SERVER_POLICY_PLAYMODES_ENABLED, "playmodes_enabled", NEVERBALL_EDITION>-1 },
-    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER, "playmodes_enabled_mode_career", NEVERBALL_EDITION>-1 },
-    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE, "playmodes_enabled_mode_challenge", NEVERBALL_EDITION!=0 },
-    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE, "playmodes_enabled_mode_hardcore", NEVERBALL_EDITION>0 },
-    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER, "playmodes_unlocked_career", NEVERBALL_EDITION>1 },
-    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE, "playmodes_unlocked_hardcore", NEVERBALL_EDITION>2 },
+    { &SERVER_POLICY_PLAYMODES_ENABLED, "playmodes_enabled", PENNYBALL_EDITION>-1 },
+    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER, "playmodes_enabled_mode_career", PENNYBALL_EDITION>-1 },
+    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE, "playmodes_enabled_mode_challenge", PENNYBALL_EDITION!=0 },
+    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE, "playmodes_enabled_mode_hardcore", PENNYBALL_EDITION>0 },
+    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER, "playmodes_unlocked_career", PENNYBALL_EDITION>1 },
+    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE, "playmodes_unlocked_hardcore", PENNYBALL_EDITION>2 },
 
-    { &SERVER_POLICY_SHOP_ENABLED, "shop_enabled", NEVERBALL_EDITION!=-1 },
-    { &SERVER_POLICY_SHOP_ENABLED_IAP, "shop_enabled_iap", NEVERBALL_EDITION>-1 },
-    { &SERVER_POLICY_SHOP_ENABLED_MANAGED, "shop_enabled_managed", NEVERBALL_EDITION>-1 },
-    { &SERVER_POLICY_SHOP_ENABLED_CONSUMABLES, "shop_enabled_consumables", NEVERBALL_EDITION>0 ? 1 : 0 },
+    { &SERVER_POLICY_SHOP_ENABLED, "shop_enabled", PENNYBALL_EDITION!=-1 },
+    { &SERVER_POLICY_SHOP_ENABLED_IAP, "shop_enabled_iap", PENNYBALL_EDITION>-1 },
+    { &SERVER_POLICY_SHOP_ENABLED_MANAGED, "shop_enabled_managed", PENNYBALL_EDITION>-1 },
+    { &SERVER_POLICY_SHOP_ENABLED_CONSUMABLES, "shop_enabled_consumables", PENNYBALL_EDITION>0 ? 1 : 0 },
 };
 
 /*---------------------------------------------------------------------------*/
@@ -267,28 +268,28 @@ static int authenticate_networking()
     char net_ipv4[MAXSTR];
     SAFECPY(net_ipv4, CLIENT_IPADDR);
 #endif
-
-    if (NBNetwork_Connect(net_ipv4, net_port) == 1)
+    
+    if (PBNetwork_Connect(net_ipv4, net_port) == 1)
     {
         Sleep(1000);
 
         if (strlen(config_get_s(CONFIG_PLAYER)) > 2)
-            NBNetwork_Login(config_get_s(CONFIG_PLAYER), 0);
+            PBNetwork_Login(config_get_s(CONFIG_PLAYER), 0);
 
         connected = 1;
     }
     
-    if (NBNetwork_IsConnected() == 0)
+    if (PBNetwork_IsConnected() == 0)
     {
         log_errorf("Can't connect to server: %s:%d",
                    CLIENT_IPADDR,
                    CLIENT_PORT);
 
-        NBNetwork_Quit();
+        PBNetwork_Quit();
         connected = 0;
     }
 
-    return (connected = NBNetwork_IsConnected());
+    return (connected = PBNetwork_IsConnected());
 }
 
 static int networking_thread_func(void *data)
@@ -301,13 +302,13 @@ static int networking_thread_func(void *data)
     while (SDL_AtomicGet(&networking_thread_running))
     {
         UINT32 curr_time = SDL_GetTicks();
-        int result = NBNetwork_IsConnected();
+        int result = PBNetwork_IsConnected();
         int res_connected = 0;
 
         if (result == 0)
         {
             SDL_LockMutex(networking_mutex);
-            NBNetwork_IsChallengePlayable(&res_connected);
+            PBNetwork_IsChallengePlayable(&res_connected);
             SDL_UnlockMutex(networking_mutex);
             net_error = res_connected;
             networking_error_dispatch_event(res_connected);
@@ -322,7 +323,7 @@ static int networking_thread_func(void *data)
             if ((curr_time - last_time) > 0)
             {
                 SDL_LockMutex(networking_mutex);
-                NBNetwork_Update((float) ((curr_time - start_time) * 0.001f),
+                PBNetwork_Update((float) ((curr_time - start_time) * 0.001f),
                                  (float) ((curr_time - last_time) * 0.001f));
                 networking_error_dispatch_event(0);
                 SDL_UnlockMutex(networking_mutex);
@@ -335,7 +336,7 @@ static int networking_thread_func(void *data)
         last_time = curr_time;
     }
 
-    NBNetwork_Quit();
+    PBNetwork_Quit();
 
     return 0;
 }
@@ -370,7 +371,7 @@ int networking_reinit_dedicated_event(void)
 
     authenticate_networking();
 
-    return (connected = NBNetwork_IsConnected());
+    return (connected = PBNetwork_IsConnected());
 }
 
 int networking_init(int support_online)
@@ -390,7 +391,7 @@ int networking_init(int support_online)
 
     networking_busy = 0;
 
-    int tmp_res = NBNetwork_IsConnected();
+    int tmp_res = PBNetwork_IsConnected();
 
     if (tmp_res)
         netlib_init = 1;
@@ -406,7 +407,7 @@ void networking_quit(void)
 
     networking_busy = 1;
 
-    NBNetwork_Quit();
+    PBNetwork_Quit();
     SDL_AtomicSet(&networking_thread_running, 0);
 
     if (networking_thread)
@@ -425,11 +426,11 @@ void networking_quit(void)
 
 int networking_connected(void)
 {
-    connected = NBNetwork_IsConnected() ? 1 : 0;
+    connected = PBNetwork_IsConnected() ? 1 : 0;
 
     if (connected == 0)
         networking_quit();
-    else if (NBNetwork_IsWaitingForLogin())
+    else if (PBNetwork_IsWaitingForLogin())
         connected = 2;
 
     return connected;
@@ -463,10 +464,10 @@ int server_policy_get_d(int i)
 
 int networking_dedicated_refresh_login(const char *name)
 {
-    if (NBNetwork_IsConnected())
+    if (PBNetwork_IsConnected())
     {
         if (strlen(config_get_s(CONFIG_PLAYER)) > 2)
-            NBNetwork_Login(config_get_s(CONFIG_PLAYER), 0);
+            PBNetwork_Login(config_get_s(CONFIG_PLAYER), 0);
 
         return 1;
     }
@@ -476,10 +477,10 @@ int networking_dedicated_refresh_login(const char *name)
 
 int networking_dedicated_levelstatus_send(const char *levelmap, int status, float *p)
 {
-    if (!NBNetwork_IsConnected())
+    if (!PBNetwork_IsConnected())
         return 0;
 
-    NBNetwork_PlaceMarker(levelmap, p, status);
+    PBNetwork_PlaceMarker(levelmap, p, status);
     return 1;
 }
 

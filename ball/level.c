@@ -16,7 +16,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <assert.h>
 
 #if NB_HAVE_PB_BOTH==1
 #include "campaign.h"
@@ -386,7 +385,6 @@ static int scan_campaign_level(const struct s_base *base,
                 }
                 else if ((levelset_have_grad || levelset_have_song) && !levelset_have_back)
                     levelset_have_back = strcmp(v, target_back) == 0;
-                else assert(0 && "Unknown state");
 
                 if (!levelset_have_back)
                 {
@@ -443,7 +441,6 @@ static int scan_campaign_level(const struct s_base *base,
                 }
                 else if ((levelset_have_back || levelset_have_song) && !levelset_have_grad)
                     levelset_have_grad = strcmp(v, target_grad) == 0;
-                else assert(0 && "Unknown state");
 
                 if (!levelset_have_grad)
                 {
@@ -509,7 +506,6 @@ static int scan_campaign_level(const struct s_base *base,
                 }
                 else if ((levelset_have_back || levelset_have_grad) && !levelset_have_song)
                     levelset_have_song = strcmp(v, target_song) == 0;
-                else assert(0 && "Unknown state");
 
                 if (!levelset_have_song)
                 {

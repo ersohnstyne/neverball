@@ -1,3 +1,17 @@
+/*
+ * Copyright (C) 2023 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #ifndef GAME_SERVER_H
 #define GAME_SERVER_H
 
@@ -40,8 +54,6 @@ void  game_set_cam(int);
 void  game_set_rot(float);
 
 float game_get_ballspeed(void);        /* New: Speedometer                   */
-
-float game_get_view_angle(void);       /* New: Automatic camera              */
 
 void game_extend_time(float);          /* New: Time Extension                */
 

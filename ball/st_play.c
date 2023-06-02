@@ -12,35 +12,38 @@
  * General Public License for more details.
  */
 
-#include <assert.h>
-
 #if NB_HAVE_PB_BOTH==1
 #ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
-
-#include "checkpoints.h" // New: Checkpoints
 #include "powerup.h"
 #include "account.h"
+#include "solid_chkp.h"
+#endif
+
+#ifdef MAPC_INCLUDES_CHKP
+#include "checkpoints.h" // New: Checkpoints
 #endif
 
 #include "gui.h"
-#include "hud.h"
-#include "demo.h"
-#include "progress.h"
-#include "audio.h"
-#include "config.h"
-#include "video.h"
-#include "cmd.h"
+//#include "hud.h"
+//#include "demo.h"
+//#include "progress.h"
+//#include "audio.h"
+//#include "config.h"
+//#include "video.h"
+//#include "cmd.h"
 
-#include "geom.h"
-#include "vec3.h"
+//#include "geom.h"
+//#include "vec3.h"
 
-#include "game_draw.h"
-#include "game_common.h"
-#include "game_server.h"
-#include "game_proxy.h"
-#include "game_client.h"
+#include "st_play_sync.h"
+
+//#include "game_draw.h"
+//#include "game_common.h"
+//#include "game_server.h"
+//#include "game_proxy.h"
+//#include "game_client.h"
 
 #include "st_play.h"
 #include "st_goal.h"
@@ -158,6 +161,35 @@ static void __countdown_preparation_setgreen()
 
 /*---------------------------------------------------------------------------*/
 
+static void set_lvlinfo(void)
+{
+    if (curr_mode() != MODE_STANDALONE
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        && !campaign_used()
+#endif
+        )
+    {
+        char setname[MAXSTR];
+        char lvlname[MAXSTR];
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        if (curr_mode() == MODE_CAMPAIGN)
+            SAFECPY(setname, _("Campaign"));
+        else
+#endif
+            SAFECPY(setname, set_name(curr_set()));
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(lvlname, dstSize,
+#else
+        sprintf(lvlname,
+#endif
+                level_bonus(curr_level()) ? "%s - Bonus %s" : "%s - %s",
+                setname, level_name(curr_level()));
+        hud_lvlname_set(lvlname, level_bonus(curr_level()));
+    }
+}
+
 static void set_camera(int c)
 {
     config_set_d(CONFIG_CAMERA, c);
@@ -221,6 +253,13 @@ static void play_shared_fade(float alpha)
     hud_set_alpha(alpha);
 }
 
+static void play_shared_exit(int id)
+{
+    progress_stat(GAME_NONE);
+    progress_stop();
+    progress_exit();
+}
+
 /*---------------------------------------------------------------------------*/
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -267,6 +306,7 @@ static int play_ready_enter(struct state *st, struct state *prev)
 
     game_client_sync(!campaign_hardcore_norecordings() && curr_mode() != MODE_NONE ? demo_fp : NULL);
     hud_update(0, 0.0f);
+    hud_update_camera_direction(curr_viewangle());
 
     hud_cam_pulse(config_get_d(CONFIG_CAMERA));
     toggle_hud_visibility(1);
@@ -287,11 +327,17 @@ static void play_ready_paint(int id, float t)
         xbox_control_preparation_gui_paint();
 
         if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        {
             hud_paint();
+            hud_lvlname_paint();
+        }
     }
     else if (hud_visibility())
 #endif
+    {
         hud_paint();
+        hud_lvlname_paint();
+    }
 }
 
 static void play_ready_timer(int id, float dt)
@@ -313,6 +359,8 @@ static void play_ready_timer(int id, float dt)
 
     if (dt > 0.0f && t > 1.0f)
         goto_state_full(&st_play_set, 0, 0, 1);
+
+    set_lvlinfo();
 
     game_step_fade(dt);
     game_client_blend(game_server_blend());
@@ -353,7 +401,7 @@ static int play_ready_keybd(int c, int d)
         keybd_camera(c);
 
         if (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
@@ -424,11 +472,17 @@ static void play_set_paint(int id, float t)
         xbox_control_preparation_gui_paint();
 
         if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        {
             hud_paint();
+            hud_lvlname_paint();
+        }
     }
     else if (hud_visibility())
 #endif
+    {
         hud_paint();
+        hud_lvlname_paint();
+    }
 }
 
 static void play_set_timer(int id, float dt)
@@ -441,7 +495,7 @@ static void play_set_timer(int id, float dt)
     
     if (dt > 0.0f && t > 1.0f)
     {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform != PLATFORM_PC) hud_set_alpha(1.0f);
 #endif
         goto_state_full(&st_play_loop, 0, 0, 1);
@@ -453,7 +507,7 @@ static void play_set_timer(int id, float dt)
 
     gui_timer(id, dt);
 
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (current_platform != PLATFORM_PC)
     {
         xbox_control_gui_set_alpha(CLAMP(0.0f, flerp(6.0f, 0.0f, t), 1.0f));
@@ -492,7 +546,7 @@ static int play_set_keybd(int c, int d)
         keybd_camera(c);
 
         if (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
@@ -668,9 +722,6 @@ static int play_loop_enter(struct state *st, struct state *prev)
     account_save();
 #endif
 
-    /* Switchball uses automatic camera */
-    //game_set_view_angle();
-
     audio_narrator_play(AUD_GO);
 
     game_client_fly(0.0f);
@@ -685,7 +736,10 @@ static void play_loop_paint(int id, float t)
     game_client_draw(0, t);
 
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    {
         hud_paint();
+        hud_lvlname_paint();
+    }
 
     if (time_state() < 1.f && id)
     {
@@ -696,7 +750,7 @@ static void play_loop_paint(int id, float t)
 
 static void play_loop_timer(int id, float dt)
 {
-    if (config_get_d(CONFIG_SMOOTH_FIX) && video_perf() < 25.f)
+    if (config_get_d(CONFIG_SMOOTH_FIX) && video_perf() < 25)
     {
         smoothfix_slowdown_time += dt;
 
@@ -724,7 +778,7 @@ static void play_loop_timer(int id, float dt)
 
     float r = 0.0f;
 
-    hud_update_camera_direction(game_get_view_angle());
+    hud_update_camera_direction(curr_viewangle());
     gui_timer(id, dt);
     hud_timer(dt);
 
@@ -772,8 +826,8 @@ static void play_loop_timer(int id, float dt)
          * and holding down both rotation buttons freezes the camera
          * rotation.
          */
-         /* game_set_rot(0.0f);  */
-         /* game_set_cam(CAM_3); */
+         game_set_rot(0.0f);
+         game_set_cam(CAM_3);
         break;
 
     case ROT_ROTATE:
@@ -795,7 +849,11 @@ static void play_loop_timer(int id, float dt)
         game_server_step(dt);
 
     game_client_blend(game_server_blend());
-    game_client_sync(!campaign_hardcore_norecordings() && curr_mode() != MODE_NONE ? demo_fp : NULL);
+    game_client_sync(curr_mode() != MODE_NONE
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                  && !campaign_hardcore_norecordings()
+#endif
+                         ? demo_fp : NULL);
 
     /* Cannot update state in home room. */
 
@@ -814,7 +872,9 @@ static void play_loop_timer(int id, float dt)
                 : &st_fail,
             0, GUI_ANIMATION_E_CURVE, 0);
 #else
-        goto_state_full(curr_status() == GAME_GOAL ? &st_goal : &st_fail, 0, GUI_ANIMATION_E_CURVE, 0);
+        goto_state_full(curr_status() == GAME_GOAL ?
+                            &st_goal : &st_fail,
+                        0, GUI_ANIMATION_E_CURVE, 0);
 #endif
     }
 }
@@ -834,7 +894,8 @@ static void play_loop_point(int id, int x, int y, int dx, int dy)
             {
                 tilt_x = 0;
                 tilt_y = 0;
-                game_set_pos_max_speed(dx * get_tilt_multiply(), curr_mode() == MODE_BOOST_RUSH ? 0 : dy * get_tilt_multiply());
+                game_set_pos_max_speed(dx * get_tilt_multiply(),
+                                       curr_mode() == MODE_BOOST_RUSH ? 0 : dy * get_tilt_multiply());
             }
             else if (man_rot)
             {
@@ -851,14 +912,12 @@ static void play_loop_point(int id, int x, int y, int dx, int dy)
             {
                 tilt_x += (dx * 10);
                 tilt_y += (dy * 10);
-                game_set_pos((tilt_x * get_tilt_multiply()) * 10, curr_mode() == MODE_BOOST_RUSH ? 0 : (tilt_y * get_tilt_multiply()) * 10);
+                game_set_pos((tilt_x * get_tilt_multiply()) * 10,
+                             curr_mode() == MODE_BOOST_RUSH ? 0 : (tilt_y * get_tilt_multiply()) * 10);
             }
         }
         else
-        {
             use_mouse = 1; use_keyboard = 0;
-            assert(use_mouse && !use_keyboard);
-        }
     }
 #endif
 }
@@ -890,10 +949,7 @@ static void play_loop_stick(int id, int a, float v, int bump)
         game_set_x(tilt_y);
     }
     else
-    {
         use_mouse = 0; use_keyboard = 1;
-        assert(!use_mouse && use_keyboard);
-    }
 }
 
 static void play_loop_angle(int id, float x, float z)
@@ -907,7 +963,7 @@ static int play_loop_click(int b, int d)
 {
     if (d && use_mouse && !use_keyboard)
     {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b) && current_platform == PLATFORM_PC)
             lmb_holded = 1;
 
@@ -923,20 +979,12 @@ static int play_loop_click(int b, int d)
 
         click_camera(b);
     }
-    else if (use_mouse && !use_keyboard)
+    else if (use_mouse && !use_keyboard
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+          && current_platform == PLATFORM_PC
+#endif
+        )
     {
-        
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-        /*if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b) && current_platform == PLATFORM_PC)
-            rot_clr(DIR_L);
-        if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b) && current_platform == PLATFORM_PC)
-            rot_clr(DIR_R);*/
-
-        if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b) && current_platform == PLATFORM_PC)
-            lmb_holded = 0;
-        if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b) && current_platform == PLATFORM_PC)
-            rmb_holded = 0;
-#else
         /*if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
             rot_clr(DIR_L);
         if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
@@ -946,12 +994,10 @@ static int play_loop_click(int b, int d)
             lmb_holded = 0;
         if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
             rmb_holded = 0;
-#endif
     }
     else
     {
         use_mouse = 1; use_keyboard = 0;
-        assert(use_mouse && !use_keyboard);
     }
 
     return 1;
@@ -967,19 +1013,19 @@ static int play_loop_keybd(int c, int d)
 #endif
 
         if (config_tst_d(CONFIG_KEY_CAMERA_R, c)
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
             rot_set(DIR_R, 1.0f, 0);
         if (config_tst_d(CONFIG_KEY_CAMERA_L, c)
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
             rot_set(DIR_L, 1.0f, 0);
         if (config_tst_d(CONFIG_KEY_ROTATE_FAST, c)
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
@@ -989,7 +1035,7 @@ static int play_loop_keybd(int c, int d)
 
         if (config_tst_d(CONFIG_KEY_RESTART, c)
             && progress_same_avail()
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
@@ -999,14 +1045,12 @@ static int play_loop_keybd(int c, int d)
 #ifdef MAPC_INCLUDES_CHKP
             if (restart_cancel_allchkp)
                 checkpoints_stop();
-            if (last_active)
-                checkpoints_respawn();
 #endif
             if (progress_same())
                 goto_state(&st_play_ready);
         }
         if (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
@@ -1081,7 +1125,7 @@ static int play_loop_touch(const SDL_TouchFingerEvent *event)
 {
     if (event->type == SDL_FINGERMOTION)
     {
-        int dx = (int) ((float) video.device_w * event->dx);
+        int dx = (int) ((float) video.device_w *  event->dx);
         int dy = (int) ((float) video.device_h * -event->dy);
 
         game_set_pos(dx, dy);
@@ -1115,15 +1159,21 @@ void play_shared_leave(struct state *st, struct state *next, int id)
 
 /*---------------------------------------------------------------------------*/
 
-static float phi;
-static float theta;
+static float phi, theta;
 
-static float look_stick_x, look_stick_y;
+static int   look_panning;
+static float look_stick_x[2],
+             look_stick_y[2],
+             look_stick_z;
 
 static int look_enter(struct state *st, struct state *prev)
 {
-    look_stick_x = 0;
-    look_stick_y = 0;
+    look_panning = 0;
+    look_stick_x[0] = 0;
+    look_stick_y[0] = 0;
+    look_stick_x[1] = 0;
+    look_stick_y[1] = 0;
+    look_stick_z = 0;
     phi   = 0;
     theta = 0;
     return 0;
@@ -1135,16 +1185,25 @@ static void look_leave(struct state *st, struct state *next, int id)
 
 static void look_timer(int id, float dt)
 {
-    theta += look_stick_x * 2;
-    phi += look_stick_y * -2;
+    theta += look_stick_x[1] *  2 * (dt * 4000);
+    phi   += look_stick_y[1] * -2 * (dt * 4000);
 
-    if (phi > +90.0f) phi = +90.0f;
-    if (phi < -90.0f) phi = -90.0f;
+    if (phi > +90.0f)    phi    = +90.0f;
+    if (phi < -90.0f)    phi    = -90.0f;
 
     if (theta > +180.0f) theta -= 360.0f;
     if (theta < -180.0f) theta += 360.0f;
 
-    game_look(phi, theta);
+    float look_moves[2];
+    look_moves[0] = (fcosf((V_PI * theta) / 180) * look_stick_x[0])
+                  + (fsinf((V_PI * theta) / 180) * -look_stick_y[0]);
+    look_moves[1] = (fcosf((V_PI * theta) / 180) * look_stick_y[0])
+                  + (fsinf((V_PI * theta) / 180) * look_stick_x[0]);
+
+    game_look_v2(look_moves[0] * (dt * 5),
+                 look_stick_z  * (dt * 5),
+                 look_moves[1] * (dt * 5),
+                 phi, theta);
 }
 
 static void look_paint(int id, float t)
@@ -1154,32 +1213,57 @@ static void look_paint(int id, float t)
 
 static void look_point(int id, int x, int y, int dx, int dy)
 {
-#if NDEBUG
-    phi   +=  90.0f * dy / video.device_h;
-    theta += 180.0f * dx / video.device_w;
+    if (look_panning)
+    {
+        phi   += 90.0f  * dy / video.device_h;
+        theta += 180.0f * dx / video.device_w;
 
-    if (phi > +90.0f) phi = +90.0f;
-    if (phi < -90.0f) phi = -90.0f;
+        if (phi > +90.0f)    phi    = +90.0f;
+        if (phi < -90.0f)    phi    = -90.0f;
 
-    if (theta > +180.0f) theta -= 360.0f;
-    if (theta < -180.0f) theta += 360.0f;
+        if (theta > +180.0f) theta -= 360.0f;
+        if (theta < -180.0f) theta += 360.0f;
 
-    game_look(phi, theta);
-#endif
+        game_look(phi, theta);
+    }
 }
 
 static void look_stick(int id, int a, float v, int bump)
 {
     if (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))
-        look_stick_x = v;
+        look_stick_x[0] = v;
     if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y0, a))
-        look_stick_y = v;
+        look_stick_y[0] = v;
+    if (config_tst_d(CONFIG_JOYSTICK_AXIS_X1, a))
+        look_stick_x[1] = v;
+    if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y1, a))
+        look_stick_y[1] = v;
+}
+
+static int look_click(int b, int d)
+{
+    if (d && config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
+        look_panning = 1;
+    else if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
+        look_panning = 0;
 }
 
 static int look_keybd(int c, int d)
 {
-    if (d && (c == KEY_EXIT || c == KEY_LOOKAROUND))
-        return goto_state(&st_play_loop);
+    if (d)
+    {
+        if (c == KEY_EXIT || c == KEY_LOOKAROUND)
+            return goto_state(&st_play_loop);
+        if (c == SDLK_LSHIFT)
+            look_stick_z = -1;
+        if (c == SDLK_SPACE)
+            look_stick_z = 1;
+    }
+    else if (!d)
+    {
+        if (c == SDLK_LSHIFT || c == SDLK_SPACE)
+            look_stick_z = 0;
+    }
 
     return 1;
 }
@@ -1207,7 +1291,8 @@ struct state st_play_ready = {
     play_ready_buttn,
     NULL,
     NULL,
-    play_shared_fade
+    play_shared_fade,
+    play_shared_exit
 };
 
 struct state st_play_set = {
@@ -1223,7 +1308,8 @@ struct state st_play_set = {
     play_set_buttn,
     NULL,
     NULL,
-    play_shared_fade
+    play_shared_fade,
+    play_shared_exit
 };
 
 struct state st_play_loop = {
@@ -1239,7 +1325,8 @@ struct state st_play_loop = {
     play_loop_buttn,
     play_loop_wheel,
     play_loop_touch,
-    play_shared_fade
+    play_shared_fade,
+    play_shared_exit
 };
 
 struct state st_look = {
@@ -1250,7 +1337,11 @@ struct state st_look = {
     look_point,
     look_stick,
     NULL,
-    NULL,
+    look_click,
     look_keybd,
-    look_buttn
+    look_buttn,
+    NULL,
+    NULL,
+    play_shared_fade,
+    play_shared_exit
 };

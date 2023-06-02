@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2023 Microsoft / Neverball authors
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -107,6 +107,12 @@ static int switchball_useable(void)
 
 static int init_title_level(void)
 {
+#if NB_HAVE_PB_BOTH
+    game_client_toggle_show_balls(!CHECK_ACCOUNT_BANKRUPT);
+#else
+    game_client_toggle_show_balls(1);
+#endif
+
     if (switchball_useable())
     {
         if (game_client_init("gui/title/switchball-title.sol"))
@@ -349,8 +355,8 @@ static int title_action(int tok, int val)
         game_fade(+4.0);
         return goto_conf(&st_title, 0, 0);
         break;
-#ifndef SWITCHBALL_GUI
-    case TITLE_PACKAGES: return goto_state(&st_package); break;
+#if NB_HAVE_PB_BOTH!=1
+    case TITLE_PACKAGES: return goto_state(&st_packages); break;
 #endif
 #ifndef __EMSCRIPTEN__
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD
@@ -525,7 +531,7 @@ static void title_create_versions(void)
     const char *gameversion = VERSION;
 
     system_version_build_id = gui_label(0, gameversion, GUI_SML, gui_wht, gui_wht);
-    copyright_id = gui_label(0, "(c) PennyGames", GUI_SML, gui_wht, gui_wht);
+    copyright_id = gui_label(0, "© PennyGames", GUI_SML, gui_wht, gui_wht);
 
     gui_set_rect(system_version_build_id, GUI_NW);
     gui_layout(system_version_build_id, 1, -1);
@@ -595,7 +601,7 @@ static int title_gui(void)
             {
                 if ((jd = gui_vstack(id)))
                 {
-                    gui_title_header(jd, video.aspect_ratio < 1.0f ? "Pennyball" : "  Pennyball  ", video.aspect_ratio < 1.0f ? GUI_MED : GUI_LRG, 0, 0);
+                    gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" : "  Neverball  ", video.aspect_ratio < 1.0f ? GUI_MED : GUI_LRG, 0, 0);
 #if NB_STEAM_API==1
                     edition_id = gui_label(jd, _("Steam Valve Edition"), GUI_SML, gui_wht, gui_wht);
 #elif NB_EOS_SDK==1
@@ -613,7 +619,7 @@ static int title_gui(void)
                 if ((jd = gui_vstack(id)))
                 {
                     /* Use with edition below title */
-                    gui_title_header(jd, video.aspect_ratio < 1.0f ? "Pennyball" : "  Pennyball  ", video.aspect_ratio < 1.0f ? GUI_MED : GUI_LRG, 0, 0);
+                    gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" : "  Neverball  ", video.aspect_ratio < 1.0f ? GUI_MED : GUI_LRG, 0, 0);
 #if NB_STEAM_API==1
                     edition_id = gui_label(jd, _("Steam Valve Edition"), GUI_SML, gui_wht, gui_wht);
 #elif NB_EOS_SDK==1
@@ -625,7 +631,7 @@ static int title_gui(void)
 #endif
                     gui_set_rect(jd, GUI_ALL);
                 }
-    }
+            }
 
 #elif NB_HAVE_PB_BOTH==1
             if (server_policy_get_d(SERVER_POLICY_EDITION) == 10002)
@@ -637,7 +643,7 @@ static int title_gui(void)
                 sprintf(dev_env, _("Server Datacenter / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Server Datacenter Edition"));
 #endif
-}
+            }
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 10001)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -647,7 +653,7 @@ static int title_gui(void)
                 sprintf(dev_env, _("Server Standard / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Server Standard Edition"));
 #endif
-        }
+            }
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 10000)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -657,7 +663,7 @@ static int title_gui(void)
                 sprintf(dev_env, _("Server Essential / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Server Essential Edition"));
 #endif
-        }
+            }
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 3)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -667,7 +673,7 @@ static int title_gui(void)
                 sprintf(dev_env, _("Edu Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Edu Edition"));
 #endif
-        }
+            }
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 2)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -677,7 +683,7 @@ static int title_gui(void)
                 sprintf(dev_env, _("Enterprise Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Enterprise Edition"));
 #endif
-        }
+            }
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 1)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -687,7 +693,7 @@ static int title_gui(void)
                 sprintf(dev_env, _("Pro Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Pro Edition"));
 #endif
-        }
+            }
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 0)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -697,16 +703,16 @@ static int title_gui(void)
                 sprintf(dev_env, _("Home Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Home Edition"));
 #endif
-        }
+            }
 
             if ((jd = gui_vstack(id)))
             {
-                gui_title_header(jd, video.aspect_ratio < 1.0f ? "Pennyball" : "  Pennyball  ", video.aspect_ratio < 1.0f ? GUI_MED : GUI_LRG, 0, 0);
+                gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" : "  Neverball  ", video.aspect_ratio < 1.0f ? GUI_MED : GUI_LRG, 0, 0);
                 if (server_policy_get_d(SERVER_POLICY_EDITION) != -1) edition_id = gui_label(jd, config_cheat() ? dev_env : os_env, GUI_SML, gui_wht, gui_wht);
                 gui_set_rect(jd, GUI_ALL);
             }
 #else
-            gui_title_header(id, video.aspect_ratio < 1.0f ? "Pennyball" : "  Pennyball  ", video.aspect_ratio < 1.0f ? GUI_MED : GUI_LRG, 0, 0);
+            gui_title_header(id, video.aspect_ratio < 1.0f ? "Neverball" : "  Neverball  ", video.aspect_ratio < 1.0f ? GUI_MED : GUI_LRG, 0, 0);
 #endif
 
             gui_space(id);
@@ -761,7 +767,7 @@ static int title_gui(void)
         }
 
 #if !defined(SWITCHBALL_GUI) && ENABLE_FETCH==1
-        if ((id = gui_vstack(root_id)))
+        /*if ((id = gui_vstack(root_id)))
         {
             if ((jd = gui_hstack(id)))
             {
@@ -770,8 +776,9 @@ static int title_gui(void)
             }
             gui_space(id);
 
-            gui_layout(id, +1, -1);
-        }
+            // HACK: Buttons overlaps by the game version
+            gui_layout(id, +1, 0);
+        }*/
 #endif
     }
 
@@ -865,9 +872,7 @@ static void title_timer(int id, float dt)
     case TITLE_MODE_LEVEL: /* Pan across title level. */
 
         if (real_time <= 20.0f || title_prequit)
-        {
             game_client_fly(fcosf(V_PI * real_time / 20.0f));
-        }
         else
         {
             game_fade(+1.0f);
@@ -1056,3 +1061,4 @@ struct state st_title = {
     NULL,
     title_fade
 };
+

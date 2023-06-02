@@ -12,23 +12,24 @@
  * General Public License for more details.
  */
 
+#include <assert.h>
+#include "cmd.h"
+
 /*
  * Checkpoints discovered by: PennySchloss
  * Thanks for the Youtuber: PlayingWithMahWii
  */
 #include "checkpoints.h"
 
-#include <assert.h>
-
 #include "game_client.h"
 #include "game_common.h"
 #include "game_draw.h"
 #include "game_server.h"
 
+#if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
-#include "solid_base.h"
+#endif
 #include "solid_vary.h"
-#include "solid_draw.h"
 #include "vec3.h"
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -58,8 +59,9 @@ int last_goal;
 int last_timer_down;
 int last_gained;
 
-int respawn_coins;
-float respawn_timer;
+int respawn_coins = 0;
+float respawn_timer = 0;
+int respawn_gained = 0;
 
 /*---------------------------------------------------------------------------*/
 
@@ -147,16 +149,189 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
     v_cpy(last_pos[ui], saved_vary.uv[ui].p);
 }
 
-void checkpoints_respawn(void)
+int checkpoints_load(void)
 {
-    checkpoints_busy = 1;
+    if (last_active)
+    {
+        respawn_coins = last_coins;
+        respawn_timer = last_time;
+        respawn_gained = last_gained;
+
+        return 1;
+    }
+
+    return 0;
 }
 
-void checkpoints_respawn_done(void)
+void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int* ci)
 {
+    assert(ci);
+
+    checkpoints_busy = 1;
+
+    /* Restored from the checkpoints */
+    for (int resetidx = 0; resetidx < vary->cc; resetidx++)
+    {
+        struct v_chkp *cp = vary->cv + resetidx;
+
+        if (resetidx == *ci)
+        {
+            cp->e = 1;
+
+            if (cmd_func)
+            {
+                union cmd cmd    = { CMD_CHKP_ENTER };
+                cmd.chkpenter.ci = resetidx;
+                cmd_func(&cmd);
+            }
+
+            if (cp->f != 1)
+            {
+                cp->f = 1;
+
+                if (cmd_func)
+                {
+                    union cmd cmd     = { CMD_CHKP_TOGGLE };
+                    cmd.chkptoggle.ci = resetidx;
+                    cmd_func(&cmd);
+                }
+
+                if (*ci == -1)
+                    *ci = resetidx;
+            }
+        }
+    }
+
+    /* Restored from the checkpoints (path) */
+    for (int resetidx = 0; resetidx < vary->pc; resetidx++)
+    {
+        struct chkp_path *last_pp = last_chkp_path + resetidx;
+        struct v_path    *pp      = vary->pv + resetidx;
+
+        if (pp->f != last_pp->f)
+        {
+            pp->f = last_pp->f;
+
+            if (cmd_func)
+            {
+                union cmd cmd   = { CMD_PATH_FLAG };
+                cmd.pathflag.pi = resetidx;
+                cmd.pathflag.f  = pp->f;
+                cmd_func(&cmd);
+            }
+        }
+    }
+
+    /* Restored from the checkpoints (body) */
+    for (int resetidx = 0; resetidx < vary->bc; resetidx++)
+    {
+        struct chkp_body *c_bp = last_chkp_body + resetidx;
+        struct v_body    *bp   = vary->bv + resetidx;
+
+        bp->mi = c_bp->mi;
+        bp->mj = c_bp->mj;
+    }
+
+    /* Restored from the checkpoints (mover) (no loading SOL from files) */
+    for (int resetidx = 0; resetidx < vary->mc; resetidx++)
+    {
+        struct chkp_move *last_mp = last_chkp_move + resetidx;
+        struct v_move    *mp      = vary->mv + resetidx;
+
+        if (vary->pv[mp->pi].f)
+        {
+            struct v_path *pp = vary->pv + mp->pi;
+
+            mp->t  = last_mp->t;
+            mp->tm = last_mp->tm;
+            mp->pi = last_mp->pi;
+
+            if (mp->tm >= pp->base->tm)
+            {
+                mp->t = 0;
+                mp->tm = 0;
+                mp->pi = pp->base->pi;
+            }
+
+            if (cmd_func)
+            {
+                union cmd cmd;
+
+                cmd.type        = CMD_MOVE_TIME;
+                cmd.movetime.mi = resetidx;
+                cmd.movetime.t  = mp->t;
+                cmd_func(&cmd);
+
+                cmd.type        = CMD_MOVE_PATH;
+                cmd.movepath.mi = resetidx;
+                cmd.movepath.pi = mp->pi;
+                cmd_func(&cmd);
+            }
+        }
+    }
+
+    /* Restored from the checkpoints (coins) */
+    for (int resetidx = 0; resetidx < vary->hc; resetidx++)
+    {
+        struct chkp_item* last_hp = last_chkp_item + resetidx;
+        struct v_item*    hp      = vary->hv + resetidx;
+
+        v_cpy(hp->p, last_hp->p);
+        hp->t = last_hp->t;
+        hp->n = last_hp->n;
+    }
+
+    /* Restored from the checkpoints (switch) */
+    for (int resetidx = 0; resetidx < vary->xc; resetidx++)
+    {
+        struct chkp_swch *last_xp = last_chkp_swch + resetidx;
+        struct v_swch    *xp      = vary->xv + resetidx;
+
+        if (xp->f != last_xp->f)
+        {
+            xp->f = last_xp->f;
+
+            if (cmd_func)
+            {
+                union cmd cmd     = { CMD_SWCH_TOGGLE };
+                cmd.swchtoggle.xi = resetidx;
+                cmd_func(&cmd);
+            }
+        }
+    }
+
+    if (cmd_func)
+    {
+        union cmd cmd = { CMD_CLEAR_ITEMS };
+        cmd_func(&cmd);
+    }
+
+    /* Restored from the checkpoints (item) */
+    for (int resetidx = 0; resetidx < vary->hc; resetidx++)
+    {
+        struct v_item    *hp   = vary->hv + resetidx;
+        struct chkp_item *c_hp = last_chkp_item + resetidx;
+
+        v_cpy(hp->p, c_hp->p);
+
+        hp->t = c_hp->t;
+        hp->n = c_hp->n;
+
+        if (cmd_func)
+        {
+            union cmd cmd = { CMD_MAKE_ITEM };
+            v_cpy(cmd.mkitem.p, hp->p);
+            cmd.mkitem.t = hp->t;
+            cmd.mkitem.n = hp->n;
+            cmd_func(&cmd);
+        }
+    }
+
     checkpoints_busy = 0;
-    respawn_coins = last_coins;
-    respawn_timer = last_time;
+
+#ifdef _DEBUG
+    log_printf("Gameplay data has been restored!\n");
+#endif
 }
 
 int checkpoints_respawn_coins(void)
@@ -185,25 +360,27 @@ void checkpoints_stop(void)
 
     last_active = 0;
 
-    last_time = 0;
+    last_time  = 0;
     last_coins = 0;
-    last_goal = 0;
+    last_goal  = 0;
 
     last_timer_down = 0;
-    last_gained = 0;
+    last_gained     = 0;
 
-    respawn_coins = 0;
-    respawn_timer = 0;
+    respawn_coins  = 0;
+    respawn_timer  = 0;
+    respawn_gained = 0;
 
     float resetpos[3]; resetpos[0] = 0.0f; resetpos[1] = 0.0f; resetpos[2] = 0.0f;
 }
 
-void checkpoints_set_last_data(float time, int downward, int coins)
+void checkpoints_set_last_data(float time, int downward, int coins, int gained)
 {
     /* Set the last level data */
-    last_time = time;
+    last_time       = time;
     last_timer_down = downward;
-    last_coins = coins;
+    last_coins      = coins;
+    last_gained     = gained;
 }
 
 #endif

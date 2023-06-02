@@ -12,13 +12,13 @@
  * General Public License for more details.
  */
 
+#if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
-#include "solid_vary.h"
 #include "campaign.h"
+#include "solid_vary.h"
 
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
 #include "common.h"
 #include "config.h"
@@ -468,7 +468,8 @@ static void campaign_load_hs(void)
 
 int campaign_score_update(int timer, int coins, int *score_rank, int *times_rank)
 {
-    assert(campaign_used());
+    if (!campaign_used()) return 0;
+
     const char *player = config_get_s(CONFIG_PLAYER);
     
     int career_hs_unlocked = (campaign_career_unlocked() && config_get_d(CONFIG_LOCK_GOALS));
@@ -491,7 +492,12 @@ void campaign_rename_player(int times_rank, const char *player)
 
 int campaign_rank(void)
 {
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+    // Was: config_cheat() ? 4 : medal_datas.curr_rank;
     return medal_datas.curr_rank;
+#else
+    return medal_datas.curr_rank;
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -595,8 +601,6 @@ static void campaign_load_levels(void)
         else if (l->is_locked)
             l->is_locked = 0;
     }
-
-    assert(!campaign_lvl_v[0].is_locked);
 
     return;
 }
@@ -946,3 +950,5 @@ int campaign_camera_box_trigger_test(struct s_vary *vary, int ui)
 }
 
 /*---------------------------------------------------------------------------*/
+
+#endif

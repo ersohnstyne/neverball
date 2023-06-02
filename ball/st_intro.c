@@ -56,6 +56,7 @@
 #define INTRO_ANIMATION_60_FPS (1 / 60)
 #define MAINTENANCE_HOLD 0 > 0
 
+#if NB_HAVE_PB_BOTH==1
 #if defined(SKIP_END_SUPPORT)
 #define RETURN_INTROLOGO_FINISHED \
     do { \
@@ -93,6 +94,25 @@
                                  &st_intro_nointernet)); \
     } while (0)
 #endif
+#else
+#define RETURN_INTROLOGO_FINISHED \
+    do { \
+        return goto_end_support(networking_connected() == 1 ? \
+                                (MAINTENANCE_HOLD ? &st_server_maintenance : \
+                                 &st_title) : \
+                                (networking_connected() == -1 ? &st_intro_waitinternet : \
+                                 &st_intro_nointernet)); \
+    } while (0)
+
+#define RETURN_VOID_INTROLOGO_FINISHED \
+    do { \
+               goto_end_support(networking_connected() == 1 ? \
+                                (MAINTENANCE_HOLD ? &st_server_maintenance : \
+                                 &st_title) : \
+                                (networking_connected() == -1 ? &st_intro_waitinternet : \
+                                 &st_intro_nointernet)); \
+    } while (0)
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -117,7 +137,7 @@ static int devel_label_id;
 static int intro_init = 0;
 static int intro_done;
 
-#if defined(SWITCHBALL_HAVE_TIP_AND_TUTORIAL)
+#ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
 const char intro_tip[][256] =
 {
     TIP_1,
@@ -228,7 +248,7 @@ static void intro_create_devel_info(void)
 
 static int intro_gui(void)
 {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform != PLATFORM_PC)
         xbox_toggle_gui(1);
 #endif
@@ -237,7 +257,10 @@ static int intro_gui(void)
     int w = video.device_w;
     int h = video.device_h;
 
-    image_id = gui_image(0, "gui/intro/0000.jpg", w, h);
+    const int ww = h * MIN(w, h) / 16;
+    const int hh = ww / 16 * 9;
+
+    image_id = gui_image(0, "gui/intro/0000.jpg", ww, hh);
     gui_layout(image_id, 0, 0);
     return image_id;
 }
@@ -254,7 +277,7 @@ static int intro_enter(struct state *st, struct state *prev)
         intro_init = 1;
     }
 
-#if defined(SWITCHBALL_HAVE_TIP_AND_TUTORIAL)
+#ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
     intro_create_tip();
 #endif
 
@@ -402,9 +425,9 @@ static int intro_accn_disabled_action(int tok, int val)
     case ACCOUNT_DISBALED_OPEN:
 #if _WIN32
         system("start msedge https://neverball.org/community-standards.php");
-#elif __APPLE__
+#elif defined(__APPLE__)
         system("open https://neverball.org/community-standards.php");
-#else
+#elif defined(__linux__)
         system("x-www-browser https://neverball.org/community-standards.php");
 #endif
 
@@ -458,7 +481,7 @@ static int intro_accn_disabled_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
@@ -777,7 +800,7 @@ static int intro_restore_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
@@ -847,7 +870,7 @@ static int nointernet_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )

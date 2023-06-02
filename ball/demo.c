@@ -16,7 +16,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <assert.h>
 
 #include "campaign.h"
 #include "progress.h"
@@ -205,6 +204,8 @@ void demo_free(struct demo *d)
 
 /*---------------------------------------------------------------------------*/
 
+#define DEMO_FORMAT_DATETIME
+
 int demo_exists(const char *name)
 {
     return fs_exists(demo_path(name));
@@ -217,9 +218,9 @@ const char *demo_format_name(const char *fmt,
 {
     const char *d_status;
     static char name[MAXSTR];
-    int space_left;
-    char *numpart;
-    int i;
+    int         space_left;
+    char       *numpart;
+    int         i;
 
     if (!fmt)
         return NULL;
@@ -232,18 +233,10 @@ const char *demo_format_name(const char *fmt,
 
     switch (status)
     {
-    case GAME_GOAL:
-        d_status = "g";
-        break;
-    case GAME_FALL:
-        d_status = "xf";
-        break;
-    case GAME_TIME:
-        d_status = "xt";
-        break;
-    default:
-        d_status = "x";
-        break;
+    case GAME_GOAL: d_status = "g"; break;
+    case GAME_FALL: d_status = "xf"; break;
+    case GAME_TIME: d_status = "xt"; break;
+    default: d_status = "x"; break;
     }
 
     memset(name, 0, sizeof (name));
@@ -318,8 +311,37 @@ const char *demo_format_name(const char *fmt,
         fmt++;
     }
 
+#ifdef DEMO_FORMAT_DATETIME
+    struct tm date_src; time_t date_dst;
+
     /*
-     * Append a unique 2-digit number preceded by an underscore to the
+     * Append a unique datetime format preceded by an underscore to the
+     * file name, discarding characters if there's not enough space
+     * left in the buffer.
+     */
+
+    if (space_left < strlen("_YYYY-MM-DD_HH-MM-SS"))
+        numpart = name + MAXSTRLEN(name) - strlen("_YYYY-MM-DD_HH-MM-SS");
+    else
+        numpart = name + MAXSTRLEN(name) - space_left;
+
+    make_time_from_utc(&date_src);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(numpart, MAXSTR,
+#else
+    sprintf(numpart,
+#endif
+            "_%04d-%02d-%02d_%02d-%02d-%02d",
+            date_src.tm_year + 1900,
+            date_src.tm_mon + 1,
+            date_src.tm_mday,
+            date_src.tm_hour,
+            date_src.tm_min,
+            date_src.tm_sec);
+#else
+    /*
+     * Append a unique 4-digit number preceded by an underscore to the
      * file name, discarding characters if there's not enough space
      * left in the buffer.
      */
@@ -341,6 +363,7 @@ const char *demo_format_name(const char *fmt,
         if (!demo_exists(name))
             break;
     }
+#endif
 
     return name;
 }
@@ -523,6 +546,8 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
 
                 if (game_client_init(demo_replay.file))
                 {
+                    game_client_toggle_show_balls(1);
+
                     /*if (g)
                         audio_music_fade_to(0.5f, level.song);
                     else

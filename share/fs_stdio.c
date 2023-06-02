@@ -19,7 +19,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <errno.h>
 
@@ -192,7 +191,6 @@ int fs_add_path(const char *path)
             free(zip);
             zip = NULL;
         }
-
     }
 
     free(path_item);
@@ -529,19 +527,94 @@ int fs_mkdir(const char *path)
 
 int fs_exists(const char *path)
 {
-    fs_file fh;
+#if _MSC_VER
+    DWORD file_attr = GetFileAttributesA(path);
 
-    if ((fh = fs_open_read(path)))
+    if (!(file_attr & FILE_ATTRIBUTE_OFFLINE
+       || file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED
+       || file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA))
+        return file_attr & FILE_ATTRIBUTE_NORMAL
+            || file_attr & FILE_ATTRIBUTE_ARCHIVE
+            || file_attr & FILE_ATTRIBUTE_READONLY
+            || file_attr & FILE_ATTRIBUTE_HIDDEN;
+
+    if (fs_dir_write)
     {
-        fs_close(fh);
-        return 1;
+        char *real = path_join(fs_dir_write, path);
+
+        DWORD file_attr = GetFileAttributesA(real);
+        free(real);
+
+        if (!(file_attr & FILE_ATTRIBUTE_OFFLINE
+           || file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED
+           || file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA))
+            return file_attr & FILE_ATTRIBUTE_NORMAL
+                || file_attr & FILE_ATTRIBUTE_ARCHIVE
+                || file_attr & FILE_ATTRIBUTE_READONLY
+                || file_attr & FILE_ATTRIBUTE_HIDDEN;
     }
-    return 0;
+
+    List p;
+
+    for (p = fs_path; p; p = p->next)
+    {
+        struct fs_path_item *path_item = (struct fs_path_item *) p->data;
+
+        if (path_item->type == FS_PATH_DIRECTORY
+         || path_item->type == FS_PATH_ZIP)
+        {
+            char *real = path_join(path_item->path, path);
+
+            DWORD file_attr = GetFileAttributesA(real);
+            free(real);
+
+            if (!(file_attr & FILE_ATTRIBUTE_OFFLINE
+               || file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED
+               || file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA))
+                return file_attr & FILE_ATTRIBUTE_NORMAL
+                    || file_attr & FILE_ATTRIBUTE_ARCHIVE
+                    || file_attr & FILE_ATTRIBUTE_READONLY
+                    || file_attr & FILE_ATTRIBUTE_HIDDEN;
+        }
+    }
+#else
+    return (access(path, F_OK) == 0);
+#endif
+}
+
+int fs_recycle(const char* path)
+{
+    int success = 0;
+
+#if _WIN32 && _MSC_VER
+    if (fs_dir_write)
+    {
+        char *real = path_join(fs_dir_write, path);
+
+        // Windows makes to move this file to recycle bin.
+
+        SHFILEOPSTRUCTA operation = {0};
+        operation.hwnd = NULL;
+        operation.wFunc = FO_DELETE;
+        operation.pFrom = real;
+        operation.pTo = NULL;
+        operation.fFlags = FOF_ALLOWUNDO | FOF_NOERRORUI | FOF_NOCONFIRMATION | FOF_SILENT;
+
+        success = SHFileOperationA(&operation) == 0;
+
+        free(real);
+    }
+#endif
+
+    return success;
 }
 
 int fs_remove(const char *path)
 {
     int success = 0;
+
+    if (fs_recycle(path))
+        return 1;
 
     if (fs_dir_write)
     {

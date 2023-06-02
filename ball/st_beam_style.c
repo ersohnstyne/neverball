@@ -12,7 +12,7 @@
  * General Public License for more details.
  */
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
 #endif
 
@@ -126,7 +126,7 @@ static int beam_style_gui(void)
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png", "gui/navig/arrow_right.png", GUI_NEXT, GUI_NONE, 1);
 #else
-                gui_maybe(jd, GUI_ARROW_RGHT, GUI_NEXT, GUI_NONE, 1);
+                gui_maybe(jd, GUI_TRIANGLE_RIGHT, GUI_NEXT, GUI_NONE, 1);
 #endif
 
             name_id = gui_label(jd, "very-long-beam-style-name", GUI_SML,
@@ -141,7 +141,7 @@ static int beam_style_gui(void)
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png", "gui/navig/arrow_left.png", GUI_PREV, GUI_NONE, 1);
 #else
-                gui_maybe(jd, GUI_ARROW_LFT, GUI_PREV, GUI_NONE, 1);
+                gui_maybe(jd, GUI_TRIANGLE_LEFT, GUI_PREV, GUI_NONE, 1);
 #endif
         }
     }
@@ -192,6 +192,8 @@ static int beam_style_enter(struct state *st, struct state *prev)
         if (!config_get_d(CONFIG_SCREEN_ANIMATIONS))
             game_kill_fade();
 
+        game_client_toggle_show_balls(0);
+
         return beam_style_gui();
     }
 
@@ -212,7 +214,7 @@ static void beam_style_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     xbox_control_beam_style_gui_paint();
 #endif
 }
@@ -228,7 +230,7 @@ static int beam_style_keybd(int c, int d)
 {
     if (d)
     {
-#ifndef __EMSCRIPTEN__
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #else
         if (c == KEY_EXIT)

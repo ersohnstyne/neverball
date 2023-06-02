@@ -65,7 +65,7 @@
 #define END_SUPPORT_DESC_2   "May 21, 2024 is the last day Jānis Rūcis will offer\\simple entities and technical support for running Neverball 1.6.\\We know change can be difficult, that's why we're reaching out early\\to help you back up your levels and highscores, and prepare for what's next." /* DO NOT EDIT! */
 #define END_SUPPORT_DESC_3_1 "As of May 21, 2024, support for Neverball 1.6\\has come to an end. Your entities is\\more vulnerable to legacies due to:" /* DO NOT EDIT! */
 #define END_SUPPORT_DESC_3_2 "- No simple start position\\- No goal decals\\- No simple switch and simple platform" /* DO NOT EDIT! */
-#define END_SUPPORT_DESC_3_3 "PennySchloss requires using\\Neverball 2.1.0 on a new campaigns\\for the latest huge guideline features." /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_3_3 "PennySchloss requires using\\Pennyball 2.1.0 on a new campaigns\\for the latest huge guideline features." /* DO NOT EDIT! */
 
 /*---------------------------------------------------------------------------*/
 
@@ -330,9 +330,9 @@ static int end_support_action(int tok, int val)
     case END_SUPPORT_INVITE:
 #if _WIN32
         system("start msedge https://discord.gg/qnJR263Hm2");
-#elif __APPLE__
+#elif defined(__APPLE__)
         system("open https://discord.gg/qnJR263Hm2");
-#else
+#elif defined(__linux__)
         system("x-www-browser https://discord.gg/qnJR263Hm2");
 #endif
         break;
@@ -434,7 +434,7 @@ static int end_support_gui(void)
 static int end_support_enter(struct state *st, struct state *prev)
 {
     conf_common_init(end_support_action, 1);
-    audio_music_fade_to(0.5f, "bgm/inter.ogg");
+    audio_music_fade_to(0.5f, "gui/bgm/inter.ogg");
     return end_support_gui();
 }
 

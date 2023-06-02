@@ -173,30 +173,60 @@ int glext_assert(const char *ext)
 }
 #endif
 
+int glext_count(void)
+{
+    int n = 0;
+
+#if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
+    const GLubyte *haystack, *c;
+
+    for (haystack = glGetString(GL_EXTENSIONS); *haystack; haystack++)
+    {
+        for (c = "GL_"; *c && *haystack; c++, haystack++)
+        {
+            if (*c == *haystack) n++;
+            else break;
+        }
+    }
+#endif
+
+    return n;
+}
+
 /*---------------------------------------------------------------------------*/
 
 #if _DEBUG
-#define SDL_GL_GFPA(fun, str) do {                       \
-    ptr = SDL_GL_GetProcAddress(str);                    \
-    while (!ptr)                                         \
-    {                                                    \
-        char outStr[32]; sprintf(outStr, "Missing OpenGL function: (%s)", str); \
-        glext_fail("Missing function!", outStr);         \
-        SDL_TriggerBreakpoint();                         \
-        ptr = SDL_GL_GetProcAddress(str);                \
-    }                                                    \
-    memcpy(&fun, &ptr, sizeof (void *));                 \
+#define SDL_GL_GFPA(fun, str) do {                             \
+    ptr = SDL_GL_GetProcAddress(str);                          \
+    while (!ptr) {                                             \
+        char outStr[32];                                       \
+        sprintf(outStr, "Missing OpenGL function: (%s)", str); \
+        glext_fail("Missing function!", outStr);               \
+        SDL_TriggerBreakpoint();                               \
+        return 0;                                              \
+    } memcpy(&fun, &ptr, sizeof (void *));                     \
 } while(0)
 #else
 #define SDL_GL_GFPA(fun, str) do {                       \
     ptr = SDL_GL_GetProcAddress(str);                    \
-    if (!ptr)                                            \
+    if (!ptr) {                                          \
         log_errorf("Missing OpenGL function: %s\n", str);\
-    memcpy(&fun, &ptr, sizeof (void *));                 \
+        return 0;                                        \
+    } memcpy(&fun, &ptr, sizeof (void *));               \
 } while(0)
 #endif
 
 /*---------------------------------------------------------------------------*/
+
+#ifdef __EMSCRIPTEN__
+#define GLEXT_COUNT_LIMIT 500
+#else
+#define GLEXT_COUNT_LIMIT 1500
+#endif
+
+#if _DEBUG
+#define GLEXT_COUNT_LIMIT_WITH_BREAKPT
+#endif
 
 static void log_opengl(void)
 {
@@ -212,13 +242,23 @@ static void log_opengl(void)
 
 int glext_fail(const char *title, const char *message)
 {
-    if (SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title, message, NULL) != 0)
+#if _WIN32 && _MSC_VER
+    MessageBoxA(0, message, title, MB_ICONERROR);
+#else
+    if (SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title, message, NULL) < 0)
     {
-#if _WIN32
-        // Use with Windows message box instead.
-        MessageBoxA(0, message, title, MB_ICONERROR);
+#if defined(__linux__)
+        char msgbox_cmd[MAXSTR];
+        SAFECPY(msgbox_cmd, "zenity --error --title=\"");
+        SAFECAT(msgbox_cmd, title);
+        SAFECAT(msgbox_cmd, "\" --text=\"");
+        SAFECAT(msgbox_cmd, text);
+        SAFECAT(msgbox_cmd, "\" --ok-label=\"OK\"");
+
+        system(msgbox_cmd);
 #endif
     }
+#endif
     return 0;
 }
 
@@ -226,20 +266,16 @@ int glext_init(void)
 {
     void *ptr = 0;
 
-    int num_GLextensions = 0;
-    const GLubyte *haystack, *c;
-
-    for (haystack = glGetString(GL_EXTENSIONS); *haystack; haystack++)
+    if (glext_count() >= GLEXT_COUNT_LIMIT)
     {
-        for (c = "GL_"; *c && *haystack; c++, haystack++)
-        {
-            if (*c == *haystack) num_GLextensions++;
-            else break;
-        }
-    }
-
-    if (num_GLextensions > 99)
+#ifdef GLEXT_COUNT_LIMIT_WITH_BREAKPT
+        glext_fail("Extensions overloaded!", "Too many GL extensions on this PC!");
+        SDL_TriggerBreakpoint();
+        return 0;
+#else
         log_printf("Too many GL extensions on this PC! Number of extensions: %d\n", num_GLextensions);
+#endif
+    }
 
     memset(&gli, 0, sizeof (struct gl_info));
 
@@ -316,9 +352,11 @@ int glext_init(void)
     }
 
     if (glext_check_ext("GREMEDY_string_marker"))
+    {
         SDL_GL_GFPA(glStringMarkerGREMEDY_, "glStringMarkerGREMEDY");
 
-#endif
+        gli.string_marker = 1;
+    }
 
     /* NVIDIA init. */
 
@@ -370,6 +408,8 @@ int glext_init(void)
 
 #endif
 
+#endif
+
     log_opengl();
 
     return 1;
@@ -379,7 +419,7 @@ int glext_init(void)
 
 void glClipPlane4f_(GLenum p, GLfloat a, GLfloat b, GLfloat c, GLfloat d)
 {
-#if ENABLE_OPENGLES
+#if ENABLE_OPENGLES && !_WIN32
 
     GLfloat v[4];
 
@@ -388,8 +428,7 @@ void glClipPlane4f_(GLenum p, GLfloat a, GLfloat b, GLfloat c, GLfloat d)
     v[2] = c;
     v[3] = d;
 
-    // implicit declaration of function 'glClipPlanef' is invalid in C99
-    glClipPlane(p, v);
+    glClipPlanefOES(p, v);
 
 #else
 

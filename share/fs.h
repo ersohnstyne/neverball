@@ -1,3 +1,17 @@
+/*
+ * Copyright (C) 2023 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #ifndef FS_H
 #define FS_H
 
@@ -14,6 +28,9 @@ int         fs_add_path_with_archives(const char *);
 int         fs_set_write_dir(const char *);
 const char *fs_get_write_dir(void);
 
+#ifndef FS_VERSION_1
+int fs_recycle(const char *);
+#endif
 int fs_exists(const char *);
 int fs_remove(const char *);
 int fs_rename(const char *, const char *);

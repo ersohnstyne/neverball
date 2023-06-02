@@ -326,7 +326,7 @@ void gui_keyboard(int id)
             if ((ld = gui_hstack(kd)))
             {
                 gui_filler(ld);
-                gui_state(ld, GUI_ARROW_LFT, GUI_SML, GUI_BS, 0);
+                gui_state(ld, GUI_TRIANGLE_LEFT, GUI_SML, GUI_BS, 0);
                 keyd['Z'] = gui_state(ld, "Z", GUI_SML, GUI_CHAR, 'Z');
                 keyd['Y'] = gui_state(ld, "Y", GUI_SML, GUI_CHAR, 'Y');
                 keyd['X'] = gui_state(ld, "X", GUI_SML, GUI_CHAR, 'X');
@@ -390,7 +390,7 @@ void gui_keyboard_en(int id)
             if ((ld = gui_hstack(kd)))
             {
                 gui_filler(ld);
-                gui_state(ld, GUI_ARROW_LFT, GUI_SML, GUI_BS, 0);
+                gui_state(ld, GUI_TRIANGLE_LEFT, GUI_SML, GUI_BS, 0);
                 keyd_en['='] = gui_state(ld, "+", GUI_SML, GUI_CHAR, '+');
                 keyd_en['-'] = gui_state(ld, "_", GUI_SML, GUI_CHAR, '_');
                 keyd_en['0'] = gui_state(ld, ")", GUI_SML, GUI_CHAR, ')');
@@ -514,7 +514,7 @@ void gui_keyboard_de(int id)
             if ((ld = gui_hstack(kd)))
             {
                 gui_filler(ld);
-                gui_state(ld, GUI_ARROW_LFT, GUI_SML, GUI_BS, 0);
+                gui_state(ld, GUI_TRIANGLE_LEFT, GUI_SML, GUI_BS, 0);
                 keyd_de[(unsigned char) '´'] = gui_state(ld, "`", GUI_SML, GUI_CHAR, '`');
                 keyd_de[(unsigned char) 'ß'] = gui_state(ld, "?", GUI_SML, GUI_CHAR, '?');
                 keyd_de['0'] = gui_state(ld, "=", GUI_SML, GUI_CHAR, '=');

@@ -12,16 +12,15 @@
  * General Public License for more details.
  */
 
-#include <assert.h>
-
 #if NB_HAVE_PB_BOTH==1
-#include "networking.h"
-
 #ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
+
+#include "networking.h"
 #include "accessibility.h"
 #include "campaign.h"
+#include "account.h"
 #endif
 
 #include "hud.h"
@@ -34,7 +33,9 @@
 #include "game_client.h"
 #include "game_common.h"
 
+#if NB_HAVE_PB_BOTH==1
 #include "st_playmodes.h"
+#endif
 
 #include "st_set.h"
 #include "st_level.h"
@@ -158,17 +159,31 @@ static int playmodes_gui(void)
             _(career_text),
             server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER) ? _("Complete the game to unlock.") : _("Career mode is not available\\with server group policy."));
 
-        if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE) && CHECK_ACCOUNT_ENABLED)
-        {
-            int hardc_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE) || campaign_hardcore_unlocked());
-            int hardc_requirement = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100
+        int hardc_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE) || campaign_hardcore_unlocked());
+        int hardc_requirement = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-                && !config_cheat()
+            && !config_cheat()
 #endif
-                && (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25);
+            && (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25);
 
+        if (!CHECK_ACCOUNT_ENABLED)
+        {
+            playmodes_state(id, GUI_NONE, 0, 0,
+                mode_to_str(MODE_HARDCORE, 1), "",
+                _("Hardcore Mode is not available.\\Please check your account settings!"));
+        }
+        else if (CHECK_ACCOUNT_BANKRUPT)
+        {
+            playmodes_state(id, GUI_NONE, 0, 0,
+                mode_to_str(MODE_HARDCORE, 1), "",
+                _("Your player account is bankrupt.\\"
+                  "Restore from the backup or delete the\\"
+                  "local account and start over from scratch."));
+        }
+        else if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE))
+        {
             playmodes_state(id, PLAYMODES_HARDCORE, 0, hardc_unlocked && hardc_requirement,
-                _("Hardcore Mode"), _("Play the entire game without dying once."),
+                mode_to_str(MODE_HARDCORE, 1), _("Play the entire game without dying once."),
                 !hardc_requirement
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
                 ? _("Hardcore Mode is not available\\with slowdown, cheat or smooth fix.")
@@ -177,21 +192,17 @@ static int playmodes_gui(void)
 #endif
                 : _("Achieve all Silver Medals or above in Best Time\\to unlock this Mode."));
         }
-        else if (CHECK_ACCOUNT_ENABLED)
+        else
         {
             if (server_policy_get_d(SERVER_POLICY_EDITION) == 0)
                 playmodes_state(id, GUI_NONE, 0, 0,
-                    _("Hardcore Mode"), _("Play the entire game without dying once."),
+                    mode_to_str(MODE_HARDCORE, 1), "",
                     _("Upgrade to Pro edition to play this Mode."));
-            else
+            else if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE) == 0)
                 playmodes_state(id, GUI_NONE, 0, 0,
-                    _("Hardcore Mode"), _("Play the entire game without dying once."),
-                    _("Hardcore Mode is not available\\with server group policy."));
+                    mode_to_str(MODE_HARDCORE, 1), "",
+                    _("Hardcore Mode is not available\\with Server Group Policy."));
         }
-        else
-            playmodes_state(id, GUI_NONE, 0, 0,
-                _("Hardcore Mode"), "",
-                _("Hardcore Mode is not available.\\Please check your account settings!"));
     }
 
     gui_layout(id, 0, 0);
@@ -200,8 +211,11 @@ static int playmodes_gui(void)
 
 static int playmodes_enter(struct state *st, struct state *prev)
 {
-    //audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
+#if NB_HAVE_PB_BOTH==1
     audio_music_fade_to(0.5f, "bgm/inter_local.ogg");
+#else
+    audio_music_fade_to(0.0f, switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
+#endif
 
     if (&st_campaign == prev || &st_hardcore_start == prev)
         career_changed = 0;
@@ -216,7 +230,7 @@ static void playmodes_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (xbox_show_gui())
         xbox_control_list_gui_paint();
 #endif
@@ -230,7 +244,7 @@ static void playmodes_timer(int id, float dt)
 static int playmodes_keybd(int c, int d)
 {
     if (d && (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         && current_platform == PLATFORM_PC
 #endif
         ))
@@ -333,7 +347,7 @@ static void hardcore_start_timer(int id, float dt)
 static int hardcore_start_enter(struct state *st, struct state *prev)
 {
     progress_init(MODE_HARDCORE);
-    audio_music_fade_to(0.5f, "bgm/inter.ogg");
+    audio_music_fade_to(0.5f, "gui/bgm/inter.ogg");
     game_fade_color(0.25f, 0.0f, 0.0f);
     game_fade(+0.333f);
     return hardcore_start_gui();
@@ -342,7 +356,7 @@ static int hardcore_start_enter(struct state *st, struct state *prev)
 static int hardcore_start_keybd(int c, int d)
 {
     if (d && (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         && current_platform == PLATFORM_PC
 #endif
         ))

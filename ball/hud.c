@@ -12,10 +12,8 @@
  * General Public License for more details.
  */
 
-//#define ENABLE_AFFECT
-//#define ENABLE_COMPASS
-
-#include <assert.h>
+//#define ENABLE_AFFECT 1
+#define ENABLE_COMPASS 1 // Usable for campaign
 
 #if _WIN32 && __MINGW32__
 #include <SDL3/SDL.h>
@@ -66,9 +64,10 @@ static int scor_id;
 static int goal_id;
 static int cam_id;
 static int fps_id;
-#if ENABLE_COMPASS==1
+#if defined(LEVELGROUPS_INCLUDES_CAMPAIGN) && ENABLE_COMPASS==1
 static int camcompass_id;
 #endif
+static int lvlname_id;
 
 static int speed_id;
 static int speed_ids[SPEED_MAX];
@@ -224,10 +223,18 @@ void hud_init(void)
         gui_layout(fps_id, -1, 1);
     }
 
-#if ENABLE_COMPASS==1
-    if ((camcompass_id = gui_label(0, "199 Deg (NONE)", GUI_SML, gui_yel, gui_red)))
+    if ((lvlname_id = gui_label(0, "XXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, gui_yel, gui_wht)))
     {
-        gui_set_label(camcompass_id, "--- Deg");
+        gui_set_rect(lvlname_id, GUI_BOT);
+        gui_set_label(lvlname_id, "");
+        gui_set_trunc(lvlname_id, TRUNC_TAIL);
+        gui_layout(lvlname_id, 0, 1);
+    }
+
+#if defined(LEVELGROUPS_INCLUDES_CAMPAIGN) && ENABLE_COMPASS==1
+    if ((camcompass_id = gui_label(0, "199 Deg (NONE)", GUI_SML, gui_wht, gui_cya)))
+    {
+        gui_set_label(camcompass_id, "--- Deg (-)");
         gui_set_rect(camcompass_id, GUI_BOT);
         gui_layout(camcompass_id, 0, 1);
     }
@@ -264,8 +271,9 @@ void hud_free(void)
     gui_delete(time_id);
     gui_delete(cam_id);
     gui_delete(fps_id);
+    gui_delete(lvlname_id);
 
-#if ENABLE_COMPASS==1
+#if defined(LEVELGROUPS_INCLUDES_CAMPAIGN) && ENABLE_COMPASS==1
     gui_delete(camcompass_id);
 #endif
 
@@ -300,8 +308,12 @@ static void hud_update_alpha(void)
 
     gui_set_alpha(fps_id, standard_hud_alpha, GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE);
     gui_set_alpha(speed_id, replay_hud_alpha, GUI_ANIMATION_S_CURVE);
+    gui_set_alpha(lvlname_id, standard_hud_alpha, GUI_ANIMATION_N_CURVE);
+#if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
+    gui_set_alpha(camcompass_id, standard_hud_alpha, GUI_ANIMATION_N_CURVE);
+#endif
     gui_set_alpha(speedbar_hud_id, standard_hud_alpha, GUI_ANIMATION_N_CURVE);
-    gui_set_alpha(cam_id, cam_hud_alpha, GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE);
+    gui_set_alpha(cam_id, cam_hud_alpha * standard_hud_alpha, GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE);
     gui_set_alpha(time_id, standard_hud_alpha, GUI_ANIMATION_S_CURVE);
     gui_set_alpha(FSLhud_id, standard_hud_alpha, GUI_ANIMATION_W_CURVE);
     gui_set_alpha(Lhud_id, standard_hud_alpha, GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE);
@@ -330,40 +342,18 @@ void hud_paint(void)
         gui_paint(Lhud_id);
 #endif
 
-    if (curr_mode() == MODE_BOOST_RUSH && speed_timer_length < 0.0f)
-        gui_paint(speedbar_hud_id);
-
-    if ((speed_timer_length < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS)))
+    if ((speed_timer_length < 0.0f && !config_get_d(CONFIG_SCREEN_ANIMATIONS))
+      || config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {
         if (curr_coins() > 0 || curr_goal() > 0)
             gui_paint(Rhud_id);
 
         gui_paint(FSLhud_id);
-#if ENABLE_COMPASS==1
-        gui_paint(camcompass_id);
-#endif
-
         gui_paint(time_id);
     }
-    else if (!config_get_d(CONFIG_SCREEN_ANIMATIONS))
-    {
-        if (curr_coins() > 0 || curr_goal() > 0)
-            gui_paint(Rhud_id);
-
-        gui_paint(FSLhud_id);
-#if ENABLE_COMPASS==1
-        gui_paint(camcompass_id);
-#endif
-
-        gui_paint(time_id);
-    }
-    else
-        assert(0 && "Unknown methods!");
 
     if (config_get_d(CONFIG_FPS))
-    {
         gui_paint(fps_id);
-    }
 
     hud_cam_paint();
     hud_speed_paint();
@@ -380,7 +370,7 @@ void hud_update(int pulse, float animdt)
 #else
     sprintf(speedattr,
 #endif
-            "%d %%", ((int) roundf(speedpercent)));
+            "%d %%", ROUND(speedpercent));
 
     int clock = curr_clock();
     int coins = curr_coins();
@@ -568,10 +558,10 @@ void hud_update(int pulse, float animdt)
         gui_set_count(scor_id, livecoins);
     }
 
-    int hundred_score = (int)round(score / 100);
+    int hundred_score = ROUND(score / 100);
 
 #if ENABLE_AFFECT==1
-    if (hundred_score != (last = (int)round(gui_value(scor_id)) / 100))
+    if (hundred_score != (last = ROUND(gui_value(scor_id)) / 100))
     {
         /* GOT MY AFFECTS!!! */
 
@@ -630,59 +620,54 @@ void hud_timer(float dt)
 void hud_update_camera_direction(float rot_direction)
 {
     float hdg_area = 22.5f;
-    float hdg_num = rot_direction - (hdg_area / 2);
+    float hdg_num = (hdg_area / 2) - rot_direction;
+    hdg_num -= (hdg_area / 2);
 
     char camdirref[MAXSTR];
-    char *hdg_name = "";
+    char *hdg_name = "N";
 
-    if (0 >= hdg_num && hdg_num <= hdg_area * 1)
-        hdg_name = "N";
-    else if (hdg_area * 1 >= hdg_num && hdg_num <= hdg_area * 2)
-        hdg_name = "NNW";
-    else if (hdg_area * 2 >= hdg_num && hdg_num <= hdg_area * 3)
-        hdg_name = "NW";
-    else if (hdg_area * 3 >= hdg_num && hdg_num <= hdg_area * 4)
-        hdg_name = "WNW";
-    else if (hdg_area * 4 >= hdg_num && hdg_num <= hdg_area * 5)
-        hdg_name = "W";
-    else if (hdg_area * 5 >= hdg_num && hdg_num <= hdg_area * 6)
-        hdg_name = "WSW";
-    else if (hdg_area * 6 >= hdg_num && hdg_num <= hdg_area * 7)
-        hdg_name = "SW";
-    else if (hdg_area * 7 >= hdg_num && hdg_num <= hdg_area * 8)
-        hdg_name = "SSW";
-    else if (hdg_area * 8 >= hdg_num && hdg_num <= hdg_area * 9 || hdg_area * -8 >= hdg_num && hdg_num <= hdg_area * -9)
-        hdg_name = "S";
-    else if (hdg_area * -7 >= hdg_num && hdg_num <= hdg_area * -8)
-        hdg_name = "SSE";
-    else if (hdg_area * -6 >= hdg_num && hdg_num <= hdg_area * -7)
-        hdg_name = "SE";
-    else if (hdg_area * -5 >= hdg_num && hdg_num <= hdg_area * -6)
-        hdg_name = "ESE";
-    else if (hdg_area * -4 >= hdg_num && hdg_num <= hdg_area * -5)
-        hdg_name = "E";
-    else if (hdg_area * -3 >= hdg_num && hdg_num <= hdg_area * -4)
-        hdg_name = "ENE";
-    else if (hdg_area * -2 >= hdg_num && hdg_num <= hdg_area * -3)
-        hdg_name = "NE";
-    else if (hdg_area * -1 >= hdg_num && hdg_num <= hdg_area * -2)
+    if (hdg_num < 0)
+        do hdg_num += 360; while (hdg_num < 0);
+
+    if (hdg_area * 1.5f >= hdg_num && hdg_num <= hdg_area * 2.5f)
         hdg_name = "NNE";
-    else if (hdg_area * 0 >= hdg_num && hdg_num <= hdg_area * -1)
-        hdg_name = "N";
-
-    hdg_num += (hdg_area / 2);
-
-    if (hdg_num < -180) hdg_num += 360;
-    if (hdg_num > 180) hdg_num -= 360;
+    else if (hdg_area * 2.5f >= hdg_num && hdg_num <= hdg_area * 3.5f)
+        hdg_name = "NE";
+    else if (hdg_area * 3.5f >= hdg_num && hdg_num <= hdg_area * 4.5f)
+        hdg_name = "ENE";
+    else if (hdg_area * 4.5f >= hdg_num && hdg_num <= hdg_area * 5.5f)
+        hdg_name = "E";
+    else if (hdg_area * 5.5f >= hdg_num && hdg_num <= hdg_area * 6.5f)
+        hdg_name = "ESE";
+    else if (hdg_area * 6.5f >= hdg_num && hdg_num <= hdg_area * 7.5f)
+        hdg_name = "SE";
+    else if (hdg_area * 7.5f >= hdg_num && hdg_num <= hdg_area * 8.5f)
+        hdg_name = "SSE";
+    else if (hdg_area * 8.5f >= hdg_num && hdg_num <= hdg_area * 9.5f)
+        hdg_name = "S";
+    else if (hdg_area * 9.5f >= hdg_num && hdg_num <= hdg_area * 10.5f)
+        hdg_name = "SSW";
+    else if (hdg_area * 10.5f >= hdg_num && hdg_num <= hdg_area * 11.5f)
+        hdg_name = "SW";
+    else if (hdg_area * 11.5f >= hdg_num && hdg_num <= hdg_area * 12.5f)
+        hdg_name = "WSW";
+    else if (hdg_area * 12.5f >= hdg_num && hdg_num <= hdg_area * 13.5f)
+        hdg_name = "W";
+    else if (hdg_area * 13.5f >= hdg_num && hdg_num <= hdg_area * 14.5f)
+        hdg_name = "WNW";
+    else if (hdg_area * 14.5f >= hdg_num && hdg_num <= hdg_area * 15.5f)
+        hdg_name = "NW";
+    else if (hdg_area * 15.5f >= hdg_num && hdg_num <= hdg_area * 16.5f)
+        hdg_name = "NNW";
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(camdirref, dstSize,
 #else
     sprintf(camdirref,
 #endif
-            "%i Deg (%s)", (int) round(hdg_num), hdg_name);
+            "%i Deg (%s)", ROUND(hdg_num), hdg_name);
 
-#if ENABLE_COMPASS==1
+#if defined(LEVELGROUPS_INCLUDES_CAMPAIGN) && ENABLE_COMPASS==1
     gui_set_label(camcompass_id, camdirref);
 #endif
 }
@@ -711,6 +696,37 @@ void hud_speedup_paint(void)
 {
     if (speedup_logo_timer > 0.0f)
         gui_paint(speedup_logo_id);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hud_lvlname_set(const char *name, int b)
+{
+    gui_set_label(lvlname_id, name);
+    gui_set_color(lvlname_id, b ? gui_grn : gui_yel, gui_wht);
+}
+
+void hud_lvlname_paint(void)
+{
+    if ((speed_timer_length < 0.0f && !config_get_d(CONFIG_SCREEN_ANIMATIONS))
+      || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    {
+#if NB_HAVE_PB_BOTH==1
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        if (curr_mode() == MODE_CAMPAIGN)
+        {
+#if ENABLE_COMPASS==1
+            gui_paint(camcompass_id);
+#endif
+        }
+#endif
+        else if (curr_mode() == MODE_BOOST_RUSH)
+            gui_paint(speedbar_hud_id);
+        else
+#endif
+        if (curr_mode() != MODE_STANDALONE)
+            gui_paint(lvlname_id);
+    }
 }
 
 /*---------------------------------------------------------------------------*/

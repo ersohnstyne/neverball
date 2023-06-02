@@ -74,7 +74,6 @@ static float music_vol    = 1.0f;
 static float narrator_vol = 1.0f;
 
 static SDL_AudioSpec spec;
-static SDL_AudioSpec out_spec;
 
 /* HACK: Have fun using AudioDevice for MSVC++ */
 static SDL_AudioSpec device_spec;
@@ -227,6 +226,17 @@ static void voice_free(struct voice *V)
     free(V);
 }
 
+static void voice_quit(struct voice* V)
+{
+    if (V->next)
+    {
+        voice_quit(V->next);
+        V->next = NULL;
+    }
+
+    voice_free(V);
+}
+
 /*---------------------------------------------------------------------------*/
 
 static void audio_step(void *data, Uint8 *stream, int length)
@@ -336,7 +346,6 @@ void audio_init(void)
     device_spec.freq     = AUDIO_RATE * (float) (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100.f);
     device_spec.callback = audio_step;
 
-    memset(&out_spec, 0, sizeof (out_spec));
     memset(&spec, 0, sizeof (spec));
     spec.format   = AUDIO_S16SYS;
     spec.channels = AUDIO_CHAN;
@@ -411,11 +420,11 @@ void audio_free(void)
     audio_music_stop();
 
     if (voices)
-        voice_free(voices);
+        voice_quit(voices);
     voices = NULL;
 
     if (narrators)
-        voice_free(narrators);
+        voice_quit(narrators);
     narrators = NULL;
 
     free(buffer);

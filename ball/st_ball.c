@@ -12,7 +12,7 @@
  * General Public License for more details.
  */
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
 #endif
 
@@ -191,7 +191,7 @@ static void scan_balls(void)
 {
     int i;
 
-#if defined(CONFIG_INCLUDES_ACCOUNT) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE));
 #else
     SAFECPY(ball_file, config_get_s(CONFIG_BALL_FILE));
@@ -231,7 +231,7 @@ static void set_curr_ball(void)
             DIR_ITEM_GET(balls, curr_ball)->path,
             base_name(DIR_ITEM_GET(balls, curr_ball)->path));
 
-#if defined(CONFIG_INCLUDES_ACCOUNT) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_set_s(ACCOUNT_BALL_FILE, ball_file);
 #else
     config_set_s(CONFIG_BALL_FILE, ball_file);
@@ -240,7 +240,7 @@ static void set_curr_ball(void)
     ball_free();
     ball_init();
     config_save();
-#if defined(CONFIG_INCLUDES_ACCOUNT) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_save();
 #endif
     gui_set_label(name_id, base_name(ball_file));
@@ -259,14 +259,14 @@ static int ball_action(int tok, int val)
     switch (tok)
     {
     case MODEL_ONLINE:
-#if defined(CONFIG_INCLUDES_ACCOUNT) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
         if (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1)
         {
 #if _WIN32
             system("start msedge https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
-#elif __APPLE__
+#elif defined(__APPLE__)
             system("open https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
-#else
+#elif defined(__linux__)
             system("x-www-browser https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
 #endif
         }
@@ -275,9 +275,9 @@ static int ball_action(int tok, int val)
     case MODEL_UPGRADE_EDITION:
 #if _WIN32
         system("start msedge https://forms.gle/62iaMCNKan4z2SJs5");
-#elif __APPLE__
+#elif defined(__APPLE__)
         system("open https://forms.gle/62iaMCNKan4z2SJs5");
-#else
+#elif defined(__linux__)
         system("x-www-browser https://forms.gle/62iaMCNKan4z2SJs5");
 #endif
         break;
@@ -315,6 +315,10 @@ static int filter_cmd(const union cmd *cmd)
 
 static void load_ball_demo(void)
 {
+    /* "g" is a stupid hack to keep the goal locked. */
+
+    int g;
+
     if (model_studio)
     {
         if (!game_client_init("gui/model-studio.sol"))
@@ -322,24 +326,26 @@ static void load_ball_demo(void)
             ball_action(GUI_BACK, 0);
             return;
         }
+        else
+            game_client_toggle_show_balls(1);
+    }
+    else if (!demo_replay_init("gui/ball.nbr", &g, NULL, NULL, NULL, NULL, NULL))
+    {
+        ball_action(GUI_BACK, 0);
+        return;
     }
     else
-    {
-        int g;
+        game_client_toggle_show_balls(1);
 
-        /* "g" is a stupid hack to keep the goal locked. */
-
-        if (!demo_replay_init("gui/ball.nbr", &g, NULL, NULL, NULL, NULL, NULL))
-        {
-            ball_action(GUI_BACK, 0);
-            return;
-        }
 #if NB_HAVE_PB_BOTH==1
-        demo_replay_speed(super_environment ? SPEED_SLOWER : SPEED_NORMAL);
+    demo_replay_speed(super_environment ? SPEED_SLOWER : SPEED_NORMAL);
 #endif
-    }
 
+#if NB_HAVE_PB_BOTH==1
     audio_music_fade_to(0.0f, switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
+#else
+    audio_music_fade_to(0.0f, "gui/bgm/inter.ogg");
+#endif
     game_client_fly(0);
 
     game_fade(-4.0);
@@ -377,7 +383,7 @@ static int ball_gui(void)
 #endif
         }
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (!xbox_show_gui())
 #endif
             gui_space(id);
@@ -425,7 +431,7 @@ static int ball_gui(void)
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png", "gui/navig/arrow_right.png", GUI_NEXT, GUI_NONE, 1);
 #else
-                gui_maybe(jd, GUI_ARROW_RGHT, GUI_NEXT, GUI_NONE, 1);
+                gui_maybe(jd, GUI_TRIANGLE_RIGHT, GUI_NEXT, GUI_NONE, 1);
 #endif
 
             name_id = gui_label(jd, "very-long-ball-name", GUI_SML,
@@ -442,7 +448,7 @@ static int ball_gui(void)
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png", "gui/navig/arrow_left.png", GUI_PREV, GUI_NONE, 1);
 #else
-                gui_maybe(jd, GUI_ARROW_LFT, GUI_PREV, GUI_NONE, 1);
+                gui_maybe(jd, GUI_TRIANGLE_LEFT, GUI_PREV, GUI_NONE, 1);
 #endif
         }
 
@@ -498,11 +504,11 @@ static void ball_paint(int id, float t)
 #if NB_HAVE_PB_BOTH==1
     game_client_draw(super_environment ? 0 : POSE_BALL, t);
 #else
-    game_client_draw(POSE_BALL);
+    game_client_draw(POSE_BALL, t);
 #endif
 
     gui_paint(id);
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     xbox_control_model_gui_paint();
 #endif
 }
@@ -529,7 +535,7 @@ static int ball_keybd(int c, int d)
 {
     if (d)
     {
-#ifndef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #else
         if (c == KEY_EXIT)
@@ -562,7 +568,7 @@ static int ball_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b))
             return ball_action(GUI_NEXT, 0);
 
-#if defined(CONFIG_INCLUDES_ACCOUNT) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_Y, b))
             return ball_action(server_policy_get_d(SERVER_POLICY_EDITION) == -1 ? MODEL_UPGRADE_EDITION : MODEL_ONLINE, 0);
 #endif

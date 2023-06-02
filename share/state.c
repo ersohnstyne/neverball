@@ -124,7 +124,10 @@ static int   anim_done  = 0;
 static float         state_time;
 static int           state_drawn;
 static struct state *state;
-static struct state *anim_next_state;
+
+static struct state* anim_queue_state;
+static int           anim_queue_allowskip;
+static int           anim_queue_directions[2];
 
 struct state *curr_state(void)
 {
@@ -160,7 +163,13 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
 
     prevtime = SDL_GetTicks();
 
-    if (anim_queue) return 1;
+    anim_queue_state = st;
+    anim_queue_directions[0] = fromdirection;
+    anim_queue_directions[1] = todirection;
+    anim_queue_allowskip = noanimation;
+
+    if (anim_queue)
+        return 1;
 
     anim_done  = 0;
     anim_queue = 1;
@@ -179,7 +188,7 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
                 if (state->fade != NULL) state->fade(alpha);
                 gui_set_alpha(state->gui_id, alpha, fromdirection);
             }
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
             xbox_control_gui_set_alpha(alpha);
 #endif
 
@@ -210,7 +219,7 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
         if (state->fade != NULL) state->fade(alpha);
         gui_set_alpha(state->gui_id, alpha, fromdirection);
     }
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     xbox_control_gui_set_alpha(alpha);
 #endif
 
@@ -241,7 +250,7 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
                 if (state->fade != NULL) state->fade(alpha);
                 gui_set_alpha(state->gui_id, alpha, todirection);
             }
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
             xbox_control_gui_set_alpha(alpha);
 #endif
 
@@ -272,11 +281,23 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
         if (state->fade != NULL) state->fade(alpha);
         gui_set_alpha(state->gui_id, alpha, todirection);
     }
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     xbox_control_gui_set_alpha(alpha);
 #endif
 
     anim_queue = 0;
+
+    if (state != anim_queue_state)
+    {
+        goto_state_full(anim_queue_state,
+                        anim_queue_directions[0],
+                        anim_queue_directions[1],
+                        anim_queue_allowskip);
+        anim_queue_directions[0] = 0;
+        anim_queue_directions[1] = 0;
+        anim_queue_allowskip = 0;
+    }
+
     anim_done = 1;
 
     return 1;
@@ -437,6 +458,14 @@ int st_touch(const SDL_TouchFingerEvent *event)
         d = st_click(SDL_BUTTON_LEFT, 0);
 
     return d;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void st_exit(void)
+{
+    if (state && state->exit)
+        state->exit(state->gui_id);
 }
 
 /*---------------------------------------------------------------------------*/

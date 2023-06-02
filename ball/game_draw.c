@@ -12,7 +12,6 @@
  * General Public License for more details.
  */
 
-#include <assert.h>
 #include "progress.h"
 
 #include "vec3.h"
@@ -23,7 +22,9 @@
 #include "config.h"
 #include "video.h"
 
+#if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
+#endif
 #include "solid_draw.h"
 
 #include "game_draw.h"
@@ -126,54 +127,16 @@ static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
 
     for (int i = 0; i < base->xc; i++)
         if (!vary->xv[i].base->i)
-        {
-            if (vary->xv[i].f == 0)
-            {
-                assert(
-                    swch_c[vary->xv[i].f][vary->xv[i].e][0] == 1.0f &&
-                    swch_c[vary->xv[i].f][vary->xv[i].e][1] == 0.0f &&
-                    swch_c[vary->xv[i].f][vary->xv[i].e][2] == 0.0f
-                );
-            }
-            else
-            {
-                assert(
-                    swch_c[vary->xv[i].f][vary->xv[i].e][0] == 0.0f &&
-                    swch_c[vary->xv[i].f][vary->xv[i].e][1] == 1.0f &&
-                    swch_c[vary->xv[i].f][vary->xv[i].e][2] == 0.0f
-                );
-            }
-
             beam_draw(rend, base->xv[i].p, swch_c[vary->xv[i].f][vary->xv[i].e],
                 base->xv[i].r, 2.0f);
-        }
 
     /* Checkpoint beams */
 
 #ifdef MAPC_INCLUDES_CHKP
     if (gd->chkp_e)
         for (int i = 0; i < base->cc; i++)
-        {
-            if (vary->cv[i].f == 0)
-            {
-                assert(
-                    chkp_c[vary->cv[i].f][vary->cv[i].e][0] == 0.0f &&
-                    chkp_c[vary->cv[i].f][vary->cv[i].e][1] == 0.0f &&
-                    chkp_c[vary->cv[i].f][vary->cv[i].e][2] == 1.0f
-                );
-            }
-            else
-            {
-                assert(
-                    chkp_c[vary->cv[i].f][vary->cv[i].e][0] == 1.0f &&
-                    chkp_c[vary->cv[i].f][vary->cv[i].e][1] == 0.0f &&
-                    chkp_c[vary->cv[i].f][vary->cv[i].e][2] == 1.0f
-                );
-            }
-
             beam_draw(rend, base->cv[i].p, chkp_c[vary->cv[i].f][vary->cv[i].e],
                 base->cv[i].r, gd->chkp_k * 2.0f);
-        }
 #endif
 }
 
@@ -233,11 +196,13 @@ static void game_draw_tilt(const struct game_draw *gd, int d, int flip)
      * Rotate the environment about the position of the ball.
      * See Git-issues #167, which you don't include tilting the floor.
      */
+    if (config_get_d(CONFIG_TILTING_FLOOR)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    if (config_get_d(CONFIG_TILTING_FLOOR) && (curr_mode() != MODE_CAMPAIGN && curr_mode() != MODE_HARDCORE))
-#else
-    if (config_get_d(CONFIG_TILTING_FLOOR))
+     && !(campaign_used()
+      || (curr_mode() == MODE_CAMPAIGN
+       || curr_mode() == MODE_HARDCORE))
 #endif
+        )
     {
         glTranslatef(+ball_p[0], +ball_p[1] * d, +ball_p[2]);
 
@@ -310,22 +275,22 @@ static void game_draw_back(struct s_rend *rend,
                 v_reflect(axis, axis, Y);
 
             /* See Git-issues #167, which you don't include tilting the floor. */
+            if (config_get_d(CONFIG_TILTING_FLOOR)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (config_get_d(CONFIG_TILTING_FLOOR) && (curr_mode() != MODE_CAMPAIGN && curr_mode() != MODE_HARDCORE))
-#else
-            if (config_get_d(CONFIG_TILTING_FLOOR))
+             && !(campaign_used()
+              || (curr_mode() == MODE_CAMPAIGN
+               || curr_mode() == MODE_HARDCORE))
 #endif
+                )
                 glRotatef(V_DEG(angle), axis[0], axis[1], axis[2]);
         }
 
         glTranslatef(view->p[0], view->p[1] * d, view->p[2]);
 
+        back_draw(rend);
+
         if (config_get_d(CONFIG_BACKGROUND))
-        {
-            back_draw(rend);
             sol_back(&gd->back.draw, rend, 0, FAR_DIST, t);
-        }
-        else back_draw(rend);
     }
     glPopMatrix();
 }
@@ -402,6 +367,7 @@ static void game_draw_fore(struct s_rend *rend,
         switch (pose)
         {
         case POSE_LEVEL:
+            game_draw_items(rend, draw->vary, M, t);
             sol_draw(draw, rend, 0, 1);
             break;
 

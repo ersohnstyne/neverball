@@ -12,7 +12,7 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH == 1
+#if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 #include "campaign.h"
 #include "account.h"
@@ -36,8 +36,14 @@
 #include "st_name.h"
 #include "st_set.h"
 #include "st_shop.h"
+#include "st_fail.h"
 
 /*---------------------------------------------------------------------------*/
+
+#if /*NB_HAVE_PB_BOTH==1 &&*/ !defined(LEADERBOARD_ALLOWANCE)
+#error Always use preprocessors LEADERBOARD_ALLOWANCE, \
+       or it will not show up to be synced belonging st_done.h.
+#endif
 
 /*
  * Player wants to save and open the Leaderboard
@@ -102,7 +108,7 @@ static int over_gui_hardcore(void)
     {
         int gid;
 
-        gid = gui_title_header(id, _("GAME OVER"), GUI_MED, gui_gry, gui_red);
+        gid = gui_title_header(id, _("GAME OVER"), GUI_MED, gui_blk, gui_red);
 
         gui_space(id);
 
@@ -160,14 +166,12 @@ static int over_gui_hardcore(void)
 }
 #endif
 
-/* The game causes crash, if the Leaderboard attempts to open. */
 static int over_gui(void)
 {
-    
 #ifndef LEADERBOARD_ALLOWANCE
     int id;
 
-    if ((id = gui_title_header(0, _("GAME OVER"), GUI_LRG, gui_gry, gui_red)))
+    if ((id = gui_title_header(0, _("GAME OVER"), GUI_LRG, gui_blk, gui_red)))
     {
         gui_layout(id, 0, 0);
         gui_pulse(id, 1.2f);
@@ -182,10 +186,17 @@ static int over_gui(void)
     {
         int gid;
 
-        gid = gui_title_header(id, _("GAME OVER"), GUI_MED, gui_gry, gui_red);
+#if NB_HAVE_PB_BOTH==1
+        const char *s0 = CHECK_ACCOUNT_BANKRUPT ? _("Bankrupt") : _("GAME OVER");
+#else
+        const char *s0 = _("GAME OVER");
+#endif
+
+        gid = gui_title_header(id, s0, GUI_MED, gui_blk, gui_red);
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
         gui_space(id);
+        
         if ((jd = gui_hstack(id)))
         {
             int calc_new_wallet_id;
@@ -194,11 +205,11 @@ static int over_gui(void)
 
             if ((kd = gui_harray(jd)))
             {
-                calc_new_wallet_id = gui_count(kd, 100000, GUI_MED);
+                calc_new_wallet_id = gui_count(kd, 1000, GUI_MED);
                 gui_label(kd, _("Coins"), GUI_SML,
-                    gui_wht, gui_wht);
+                              gui_wht, gui_wht);
 
-                gui_set_count(calc_new_wallet_id, !resume ? ((curr_balls() * 100) + curr_score()) + account_get_d(ACCOUNT_DATA_WALLET_COINS) : account_get_d(ACCOUNT_DATA_WALLET_COINS));
+                gui_set_count(calc_new_wallet_id, curr_score());
             }
 
             gui_filler(jd);
@@ -214,7 +225,11 @@ static int over_gui(void)
         if ((jd = gui_harray(id)))
             gui_start(jd, _("Select Level"), GUI_SML, GUI_BACK, 0);
 
-        if (!resume && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+        if (!resume
+#if NB_HAVE_PB_BOTH==1
+            && server_policy_get_d(SERVER_POLICY_EDITION) > -1
+#endif
+            )
         {
             gui_pulse(gid, 1.2f);
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -230,7 +245,6 @@ static int over_gui(void)
     set_score_board(set_score(curr_set(), SCORE_COIN), progress_score_rank(),
                     set_score(curr_set(), SCORE_TIME), progress_times_rank(),
                     NULL, -1);
-
 #endif
     return id;
 }
@@ -243,6 +257,8 @@ static int over_enter(struct state *st, struct state *prev)
         progress_rename(1);
 #endif
 
+    resume = prev != &st_fail;
+
     if (!resume)
     {
 #ifdef LEADERBOARD_ALLOWANCE
@@ -252,10 +268,14 @@ static int over_enter(struct state *st, struct state *prev)
         audio_music_fade_out(0.0f);
         //audio_narrator_play(AUD_OVER);
         audio_play(AUD_INTRO_SHATTER, 1.0f);
+
+#if NB_HAVE_PB_BOTH==1
+        if (CHECK_ACCOUNT_BANKRUPT)
+            audio_play("snd/bankrupt.ogg", 1.f);
+#endif
     }
 
     video_clr_grab();
-
 
     return
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN

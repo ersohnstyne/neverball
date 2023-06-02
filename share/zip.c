@@ -12,7 +12,7 @@
  * General Public License for more details.
  */
 
-/* miniz.c with Neverball. */
+/* miniz.c with Neverball and Pennyball. */
 
 #include "zip.h"
 #include "miniz.c"

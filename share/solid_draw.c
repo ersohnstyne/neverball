@@ -36,7 +36,9 @@
 #include "lang.h"
 #include "log.h"
 
+#if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
+#endif
 #include "solid_draw.h"
 #include "solid_all.h"
 
@@ -923,7 +925,9 @@ static void check_mtrl(const char *name, GLenum pname, GLuint curr)
         sprintf(buff,
 #endif
                 "%s mismatch (0x%08X -> 0x%08X)", name, real, curr);
-        glStringMarker_(buff);
+
+        if (gli.string_marker)
+            glStringMarker_(buff);
     }
 }
 

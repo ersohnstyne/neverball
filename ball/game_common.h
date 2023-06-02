@@ -1,3 +1,17 @@
+/*
+ * Copyright (C) 2023 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #ifndef GAME_COMMON_H
 #define GAME_COMMON_H
 
@@ -43,6 +57,10 @@
 #define AUD_RESPAWN   "snd/respawn.ogg"
 #define AUD_GOAL_N    "snd/goal_noninvert.ogg"
 
+/* And with Geometry Dash features? */
+
+#define AUD_STARS     "snd/stars.ogg"
+
 /*---------------------------------------------------------------------------*/
 
 /* Macros helps with the action game menu. */
@@ -64,10 +82,10 @@
         } else if (tok == tok1 || tok == tok2) {             \
             if (tok == tok1)                                 \
                 audio_play(first > 1 ?                       \
-                           AUD_DISABLED : AUD_MENU, 1.f);    \
+                           AUD_MENU : AUD_DISABLED, 1.f);    \
             if (tok == tok2)                                 \
                 audio_play(first + itemstep < total ?        \
-                           AUD_DISABLED : AUD_MENU, 1.f);    \
+                           AUD_MENU : AUD_DISABLED, 1.f);    \
         } else GENERIC_GAMEMENU_ACTION
 
 /*---------------------------------------------------------------------------*/

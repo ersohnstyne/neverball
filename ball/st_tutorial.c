@@ -12,11 +12,9 @@
  * General Public License for more details.
  */
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
 #endif
-
-#include <assert.h>
 
 #include "lang_switchball.h"
 
@@ -110,21 +108,16 @@ int tutorial_check(void)
         )
     {
         if (config_get_d(CONFIG_ACCOUNT_HINT) == 1)
-        {
             return hint_check();
-        }
+
         return 0;
     }
-
-    assert(config_get_d(CONFIG_ACCOUNT_TUTORIAL) == 1);
 
     const char *ln = level_name(curr_level());
     const char *sn = set_name(curr_set());
 
     if (!campaign_used())
     {
-        assert(ln && sn);
-
         if (ln && sn)
         {
             if (strcmp(sn, _("Neverball Easy")) == 0)
@@ -139,7 +132,7 @@ int tutorial_check(void)
                     goto_tutorial_before_play(3);
                     return 1;
                 }
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                 if (strcmp(ln, "4") == 0 && current_platform == PLATFORM_PC)
 #else
                 if (strcmp(ln, "4") == 0)
@@ -176,9 +169,7 @@ int tutorial_check(void)
     /* No tutorial available, use hint instead! */
 
     if (config_get_d(CONFIG_ACCOUNT_HINT) == 1)
-    {
         return hint_check();
-    }
 
     return 0;
 }
@@ -198,7 +189,7 @@ int goto_tutorial_before_play(int idx)
 
     st_continue = &st_play_ready;
 
-    return goto_state_full(&st_tutorial, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
+    return goto_state_full(&st_tutorial, 0, GUI_ANIMATION_E_CURVE, 0);
 }
 
 static int tutorial_action(int tok, int val)
@@ -213,14 +204,11 @@ static int tutorial_action(int tok, int val)
         break;
     }
 
-    if (config_get_d(CONFIG_ACCOUNT_HINT))
-    {
-        if (hint_check())
-            return 1;
-    }
+    if (config_get_d(CONFIG_ACCOUNT_HINT) && hint_check())
+        return 1;
 
     video_set_grab(!tutorial_before_play);
-    return goto_state_full(st_continue, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_E_CURVE, 0);
+    return goto_state_full(st_continue, GUI_ANIMATION_E_CURVE, 0, 0);
 }
 
 static int tutorial_enter(struct state *st, struct state *prev)
@@ -236,7 +224,7 @@ static int tutorial_enter(struct state *st, struct state *prev)
     {
         gui_label(id, _(tutorial_title[tutorial_index]), GUI_MED, 0, 0);
         gui_space(id);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)
             gui_multi(id, _(tutorial_desc[tutorial_index]), GUI_SML, gui_wht, gui_wht);
         else
@@ -261,7 +249,7 @@ static void tutorial_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (xbox_show_gui())
         xbox_control_death_gui_paint();
 #endif
@@ -278,7 +266,7 @@ static void tutorial_timer(int id, float dt)
 static int tutorial_keybd(int c, int d)
 {
     if (d && (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         && current_platform == PLATFORM_PC
 #endif
         ))
@@ -327,15 +315,11 @@ int hint_check(void)
         )
         return 0;
 
-    assert(config_get_d(CONFIG_ACCOUNT_HINT) == 1);
-
     const char *ln = level_name(curr_level());
     const char *sn = set_name(curr_set());
 
     if (!campaign_used())
     {
-        assert(ln && sn);
-
         if (ln && sn)
         {
             if (strcmp(sn, _("Neverball Easy")) == 0)
@@ -380,7 +364,7 @@ int goto_hint_before_play(int idx)
 
     st_continue = &st_play_ready;
 
-    return goto_state_full(&st_hint, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
+    return goto_state_full(&st_hint, 0, GUI_ANIMATION_E_CURVE, 0);
 }
 
 static int hint_action(int tok, int val)
@@ -395,7 +379,7 @@ static int hint_action(int tok, int val)
     }
 
     video_set_grab(!hint_before_play);
-    return goto_state_full(st_continue, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_E_CURVE, 0);
+    return goto_state_full(st_continue, GUI_ANIMATION_E_CURVE, 0, 0);
 }
 
 static int hint_enter(struct state *st, struct state *prev)
@@ -429,7 +413,7 @@ static int hint_enter(struct state *st, struct state *prev)
 static int hint_keybd(int c, int d)
 {
     if (d && (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         && current_platform == PLATFORM_PC
 #endif
         ))

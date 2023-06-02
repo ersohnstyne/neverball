@@ -12,7 +12,6 @@
  * General Public License for more details.
  */
 
-#include <assert.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -69,6 +68,12 @@ int goto_save(struct state *ok, struct state *cancel)
 #endif
 }
 
+static void save_shared_exit(int id)
+{
+    progress_stop();
+    progress_exit();
+}
+
 /*---------------------------------------------------------------------------*/
 
 static int file_id;
@@ -82,7 +87,7 @@ static int enter_id;
 
 static void save_update_enter_btn(void)
 {
-    int name_accepted = text_length(text_input) > 2 && strcmp("Last", text_input);
+    int name_accepted = text_length(text_input) > 2 && strcmp("Last", text_input) != 0;
 
     for (int i = 0; i < text_length(text_input); i++)
     {
@@ -116,7 +121,7 @@ static int save_action(int tok, int val)
             return goto_state(&st_lockdown);
 #endif
 
-        for (int i = 0; i < strlen(text_input); i++)
+        for (int i = 0; i < text_length(text_input); i++)
         {
             if (text_input[i] == '\\' || text_input[i] == '/' || text_input[i] == ':' || text_input[i] == '*' || text_input[i] == '?' || text_input[i] == '"' || text_input[i] == '<' || text_input[i] == '>' || text_input[i] == '|')
             {
@@ -125,7 +130,7 @@ static int save_action(int tok, int val)
             }
         }
 
-        if (strlen(text_input) < 3)
+        if (text_length(text_input) < 3 || strcmp("Last", text_input) == 0)
             return 1;
 
         if (demo_exists(text_input))
@@ -163,7 +168,8 @@ static int save_gui(void)
         gui_title_header(id, _("Replay Name"), GUI_MED, 0, 0);
         gui_space(id);
 
-        file_id = gui_label(id, "XXXXXXXXXXXXXXXX", GUI_MED, gui_yel, gui_yel);
+        //file_id = gui_label(id, "XXXXXXXXXXXXXXXX", GUI_MED, gui_yel, gui_yel);
+        file_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, gui_yel, gui_yel);
 
         gui_space(id);
         if ((jd = gui_hstack(id)))
@@ -198,6 +204,8 @@ static void on_text_input(int typing)
 
         if (typing)
             audio_play(AUD_MENU, 1.0f);
+
+        save_update_enter_btn();
     }
 }
 
@@ -208,15 +216,15 @@ static int save_enter(struct state *st, struct state *prev)
     if (campaign_used())
     {
         name = demo_format_name(config_get_s(CONFIG_REPLAY_NAME),
-            "campaign",
-            level_name(curr_level()),
-            curr_status());
+                                "campaign",
+                                level_name(curr_level()),
+                                curr_status());
 
         if (curr_mode() == MODE_HARDCORE)
             name = demo_format_name(config_get_s(CONFIG_REPLAY_NAME),
-                "hardcore",
-                level_name(curr_level()),
-                curr_status());
+                                    "hardcore",
+                                    level_name(curr_level()),
+                                    curr_status());
     }
     else
 #endif
@@ -224,9 +232,9 @@ static int save_enter(struct state *st, struct state *prev)
         name = "standalone";
     else
         name = demo_format_name(config_get_s(CONFIG_REPLAY_NAME),
-            set_id(curr_set()),
-            level_name(curr_level()),
-            curr_status());
+                                set_id(curr_set()),
+                                level_name(curr_level()),
+                                curr_status());
 
     text_input_start(on_text_input);
     text_input_str(name, 0);
@@ -239,12 +247,6 @@ static void save_leave(struct state *st, struct state *next, int id)
     text_input_stop();
 
     gui_delete(id);
-}
-
-static void save_timer(int id, float dt)
-{
-    save_update_enter_btn();
-    gui_timer(id, dt);
 }
 
 static int save_keybd(int c, int d)
@@ -313,13 +315,14 @@ static int clobber_action(int tok, int val)
 
 static int clobber_gui(void)
 {
-    int id, jd, kd, ld;
+    int id, jd, kd, file_id;
 
     if ((id = gui_vstack(0)))
     {
         kd = gui_title_header(id, _("Overwrite?"), GUI_MED, gui_red, gui_red);
         gui_space(id);
-        ld = gui_label(id, "MMMMMMMM", GUI_MED, gui_yel, gui_yel);
+        //file_id = gui_label(id, "MMMMMMMM", GUI_MED, gui_yel, gui_yel);
+        file_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, gui_yel, gui_yel);
         gui_space(id);
 
         if ((jd = gui_harray(id)))
@@ -331,8 +334,8 @@ static int clobber_gui(void)
         gui_pulse(kd, 1.2f);
         gui_layout(id, 0, 0);
 
-        gui_set_trunc(ld, TRUNC_TAIL);
-        gui_set_label(ld, text_input);
+        gui_set_trunc(file_id, TRUNC_TAIL);
+        gui_set_label(file_id, text_input);
     }
 
     return id;
@@ -408,10 +411,7 @@ static int lockdown_enter(struct state *st, struct state *prev)
 
 static int lockdown_keybd(int c, int d)
 {
-    if (d && c == KEY_EXIT)
-        return lockdown_action(GUI_BACK, 0);
-
-    return 1;
+    return (d && c == KEY_EXIT) ? lockdown_action(GUI_BACK, 0) : 1;
 }
 
 static int lockdown_buttn(int b, int d)
@@ -463,12 +463,13 @@ static int save_error_enter(struct state* st, struct state* prev)
 
 static int save_error_keybd(int c, int d)
 {
-    return goto_state(&st_save);
+    return (d && c == KEY_EXIT) ? goto_state(&st_save) : 1;
 }
 
 static int save_error_buttn(int b, int d)
 {
-    return goto_state(&st_save);
+    return (d && b == config_get_d(CONFIG_JOYSTICK_BUTTON_A)) ?
+           goto_state(&st_save) : 1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -477,13 +478,17 @@ struct state st_save = {
     save_enter,
     save_leave,
     shared_paint,
-    save_timer,
+    shared_timer,
     shared_point,
     shared_stick,
     shared_angle,
     shared_click,
     save_keybd,
-    save_buttn
+    save_buttn,
+    NULL,
+    NULL,
+    NULL,
+    save_shared_exit,
 };
 
 struct state st_clobber = {
@@ -496,7 +501,11 @@ struct state st_clobber = {
     shared_angle,
     shared_click,
     clobber_keybd,
-    clobber_buttn
+    clobber_buttn,
+    NULL,
+    NULL,
+    NULL,
+    save_shared_exit,
 };
 
 struct state st_lockdown = {
@@ -509,7 +518,11 @@ struct state st_lockdown = {
     shared_angle,
     shared_click,
     lockdown_keybd,
-    lockdown_buttn
+    lockdown_buttn,
+    NULL,
+    NULL,
+    NULL,
+    save_shared_exit,
 };
 
 struct state st_save_error = {
@@ -522,5 +535,9 @@ struct state st_save_error = {
     shared_angle,
     shared_click_basic,
     save_error_keybd,
-    save_error_buttn
+    save_error_buttn,
+    NULL,
+    NULL,
+    NULL,
+    save_shared_exit,
 };

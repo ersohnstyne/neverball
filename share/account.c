@@ -24,16 +24,21 @@
 #include <ctype.h>
 #include <assert.h>
 
+#if __cplusplus
 extern "C"
 {
+#endif
 #include "accessibility.h"
 #include "account.h"
 #include "config.h"
 #include "networking.h"
+#include "text.h"
 
 #include "common.h"
 #include "fs.h"
+#if __cplusplus
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -117,10 +122,11 @@ static int scan_key_and_value(char **dst_key, char **dst_val, char *line)
         ke = -1;
         vs = -1;
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sscanf_s(line, " %n%*s%n %n", &ks, &ke, &vs);
+        sscanf_s(line,
 #else
-        sscanf(line, " %n%*s%n %n", &ks, &ke, &vs);
+        sscanf(line,
 #endif
+               " %n%*s%n %n", &ks, &ke, &vs);
 
         if (ks < 0 || ke < 0 || vs < 0)
             return 0;
@@ -182,11 +188,13 @@ void account_quit(void)
 
 int  account_exists(void)
 {
+    char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    char paths[MAXSTR]; sprintf_s(paths, dstSize, "Accounts/account-%s.dat", config_get_s(CONFIG_PLAYER));
+    sprintf_s(paths, dstSize,
 #else
-    char paths[MAXSTR]; sprintf(paths, "Accounts/account-%s.dat", config_get_s(CONFIG_PLAYER));
+    sprintf(paths,
 #endif
+            "Accounts/account-%s.txt", config_get_s(CONFIG_PLAYER));
 
     assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
 
@@ -214,13 +222,13 @@ void account_load(void)
     assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
 
-    if (strlen(config_get_s(CONFIG_PLAYER)) < 1)
+    if (text_length(config_get_s(CONFIG_PLAYER)) < 1)
     {
         log_errorf("Cannot load account! No player name!\n");
         return;
     }
 
-    for (int i = 0; i < strlen(config_get_s(CONFIG_PLAYER)); i++)
+    for (int i = 0; i < text_length(config_get_s(CONFIG_PLAYER)); i++)
     {
         if (config_get_s(CONFIG_PLAYER)[i] == '\\' || config_get_s(CONFIG_PLAYER)[i] == '/' || config_get_s(CONFIG_PLAYER)[i] == ':' || config_get_s(CONFIG_PLAYER)[i] == '*' || config_get_s(CONFIG_PLAYER)[i] == '?' || config_get_s(CONFIG_PLAYER)[i] == '"' || config_get_s(CONFIG_PLAYER)[i] == '<' || config_get_s(CONFIG_PLAYER)[i] == '>' || config_get_s(CONFIG_PLAYER)[i] == '|')
         {
@@ -229,17 +237,19 @@ void account_load(void)
         }
     }
 
-    if (strlen(config_get_s(CONFIG_PLAYER)) < 3)
+    if (text_length(config_get_s(CONFIG_PLAYER)) < 3)
     {
         log_errorf("Cannot load account! Too few characters!\n");
         return;
     }
 
+    char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    char paths[MAXSTR]; sprintf_s(paths, dstSize, "Accounts/account-%s.txt", config_get_s(CONFIG_PLAYER));
+    sprintf_s(paths, dstSize,
 #else
-    char paths[MAXSTR]; sprintf(paths, "Accounts/account-%s.txt", config_get_s(CONFIG_PLAYER));
+    sprintf(paths,
 #endif
+            "Accounts/account-%s.txt", config_get_s(CONFIG_PLAYER));
 
     if (!account_is_init)
     {
@@ -334,11 +344,13 @@ void account_save(void)
         return;
     }
 
+    char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    char paths[MAXSTR]; sprintf_s(paths, dstSize, "Accounts/account-%s.txt", config_get_s(CONFIG_PLAYER));
+    sprintf_s(paths, dstSize,
 #else
-    char paths[MAXSTR]; sprintf(paths, "Accounts/account-%s.txt", config_get_s(CONFIG_PLAYER));
+    sprintf(paths,
 #endif
+            "Accounts/account-%s.txt", config_get_s(CONFIG_PLAYER));
 
     if (!account_is_init)
     {

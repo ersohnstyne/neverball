@@ -70,7 +70,7 @@ void gt_init(const char *domain, const char *pref)
     static char default_lang[MAXSTR];
     static int  default_lang_init;
 
-    char *dir = strdup(getenv("NEVERBALL_LOCALE"));
+    char *dir = strdup(getenv("PENNYBALL_LOCALE"));
 
     /* Select the location of message catalogs. */
 

@@ -15,7 +15,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#if NB_HAVE_PB_BOTH == 1
+#if NB_HAVE_PB_BOTH==1
 #ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
@@ -81,6 +81,8 @@ static int enter_id;
 
 static int player_renamed = 0;
 
+static int keybd_typing = 0;
+
 static void on_text_input(int typing);
 
 static void name_update_enter_btn(void)
@@ -109,6 +111,12 @@ static int name_action(int tok, int val)
     switch (tok)
     {
     case GUI_BACK:
+        if (name_error)
+            return goto_state(&st_name);
+
+        if (newplayers)
+            return ok_fn ? ok_fn(ok_state) : goto_state(ok_state);
+
         account_init();
         account_load();
         
@@ -125,16 +133,17 @@ static int name_action(int tok, int val)
         if (strcmp(config_get_s(CONFIG_PLAYER), text_input) != 0)
             player_renamed = 1;
 
-        account_save();
-
-        config_set_s(CONFIG_PLAYER, text_input);
         text_input_stop();
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
         if (text_length(text_input) < 3)
             name_error = 1;
-        else
+        else if (player_renamed)
         {
+            account_save();
+
+            config_set_s(CONFIG_PLAYER, text_input);
+            
             account_init();
             if (text_length(text_input) < 3)
                 name_error = 1;
@@ -189,7 +198,7 @@ static int name_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        if (!newplayers)
+        if (!newplayers && !name_error)
         {
             gui_title_header(id, _("Player Name"), GUI_MED, 0, 0);
             gui_space(id);
@@ -208,7 +217,7 @@ static int name_gui(void)
             if ((jd = gui_harray(id)))
             {
                 enter_id = gui_start(jd, _("OK"), GUI_SML, NAME_OK, 0);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                 if (current_platform == PLATFORM_PC)
 #endif
                 {
@@ -223,10 +232,10 @@ static int name_gui(void)
         }
         else
         {
-            const char* t_header = name_error ?
-                                   _("Sign in failed!") : _("New Players!"),
-                      * t_desc   = name_error ?
-                                   _("Player names didn't meet the length requirements!\\"
+            const char *t_header = name_error ?
+                                   _("Register failed!") : _("New Players!"),
+                       *t_desc   = name_error ?
+                                   _("Player names didn't meet the requirements!\\"
                                      "- Minimum length: 3 letters") :
                                    _("As of new players, you can\\"
                                      "start new Campaign levels first\\"
@@ -254,6 +263,8 @@ static void on_text_input(int typing)
 
         if (typing)
             audio_play(AUD_MENU, 1.0f);
+
+        name_update_enter_btn();
     }
 }
 
@@ -283,7 +294,7 @@ static void name_leave(struct state *st, struct state *next, int id)
 
     gui_delete(id);
 
-#if ENABLE_DEDICATED_SERVER==1 && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && ENABLE_DEDICATED_SERVER==1
     if (player_renamed)
     {
         Sleep(1000);
@@ -308,18 +319,12 @@ static void name_paint(int id, float t)
     gui_paint(id);
 }
 
-static void name_timer(int id, float dt)
-{
-    name_update_enter_btn();
-    gui_timer(id, dt);
-}
-
 static int name_keybd(int c, int d)
 {
     if (d)
     {
         if (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
@@ -364,7 +369,7 @@ struct state st_name = {
     name_enter,
     name_leave,
     name_paint,
-    name_timer,
+    shared_timer,
     shared_point,
     shared_stick,
     shared_angle,

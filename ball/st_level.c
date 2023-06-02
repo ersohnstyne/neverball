@@ -12,27 +12,26 @@
  * General Public License for more details.
  */
 
-/* Uncomment, if complex game mode is implemented */
-#define REQUIRES_COMPLEX_MODE
-
 #include <stdio.h>
-#include <assert.h>
 
 #if NB_HAVE_PB_BOTH==1
-#include "networking.h"
-
 #ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
 
+#include "networking.h"
+
 #include "campaign.h" // New: Campaign
-#include "checkpoints.h" // New: Checkpoints
 #include "mediation.h"
 #include "boost_rush.h"
 #include "account.h"
-#endif
 
 #include "lang_switchball.h"
+#endif
+
+#ifdef MAPC_INCLUDES_CHKP
+#include "checkpoints.h" // New: Checkpoints
+#endif
 
 #include "gui.h"
 #include "hud.h"
@@ -61,7 +60,7 @@
 #include "st_done.h"
 #include "st_shared.h"
 #include "st_title.h"
-#if defined(SWITCHBALL_HAVE_TIP_AND_TUTORIAL)
+#ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
 #include "st_tutorial.h"
 #endif
 #include "st_name.h"
@@ -104,6 +103,13 @@ enum
 {
     START_LEVEL_POWERUP = GUI_LAST
 };
+
+static void level_shared_exit(int id)
+{
+    progress_stat(GAME_NONE);
+    progress_stop();
+    progress_exit();
+}
 
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
 static int level_action(int tok, int val)
@@ -191,7 +197,9 @@ static int level_gui(void)
                 char setattr[MAXSTR], lvlattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                if (b)
+                if (b && curr_mode() == MODE_STANDALONE)
+                    sprintf_s(lvlattr, _("Bonus Level"), ln);
+                else if (b)
                     sprintf_s(lvlattr, dstSize, _("Bonus Level %s"), ln);
                 else if (curr_mode() == MODE_STANDALONE)
                     sprintf_s(lvlattr, dstSize, _("Level ---"));
@@ -199,10 +207,9 @@ static int level_gui(void)
                     sprintf_s(lvlattr, dstSize, _("Level %s"), ln);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (curr_mode() == MODE_CAMPAIGN)
-                    sprintf_s(setattr, dstSize, "%s", mode_to_str(curr_mode(), 1));
-                else if (curr_mode() == MODE_HARDCORE)
-                    sprintf_s(setattr, dstSize, _(mode_to_str(curr_mode(), 1)));
+                if (curr_mode() == MODE_CAMPAIGN
+                 || curr_mode() == MODE_HARDCORE)
+                    sprintf_s(setattr, "%s", mode_to_str(curr_mode(), 1));
                 else
 #endif
                 if (curr_mode() == MODE_STANDALONE)
@@ -212,7 +219,9 @@ static int level_gui(void)
                 else if (curr_mode() != MODE_NONE)
                     sprintf_s(setattr, dstSize, _("%s: %s"), set_name(curr_set()), mode_to_str(curr_mode(), 1));
 #else
-                if (b)
+                if (b && curr_mode() == MODE_STANDALONE)
+                    sprintf(lvlattr, _("Bonus Level"), ln);
+                else if (b)
                     sprintf(lvlattr, _("Bonus Level %s"), ln);
                 else if (curr_mode() == MODE_STANDALONE)
                     sprintf(lvlattr, _("Level ---"));
@@ -220,10 +229,9 @@ static int level_gui(void)
                     sprintf(lvlattr, _("Level %s"), ln);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (curr_mode() == MODE_CAMPAIGN)
+                if (curr_mode() == MODE_CAMPAIGN
+                 || curr_mode() == MODE_HARDCORE)
                     sprintf(setattr, "%s", mode_to_str(curr_mode(), 1));
-                else if (curr_mode() == MODE_HARDCORE)
-                    sprintf(setattr, _(mode_to_str(curr_mode(), 1)));
                 else
 #endif
                 if (curr_mode() == MODE_STANDALONE)
@@ -273,8 +281,8 @@ static int level_gui(void)
                 if ((csd = gui_varray(jd)))
                 {
                     gui_label(csd, pow3attr, GUI_SML,
-                        svalue > 0 ? gui_grn : gui_gry,
-                        svalue > 0 ? gui_wht : gui_gry);
+                              svalue > 0 ? gui_grn : gui_gry,
+                              svalue > 0 ? gui_wht : gui_gry);
                     if (svalue > 0)
                         gui_set_state(csd, START_LEVEL_POWERUP, 3);
                     else
@@ -291,8 +299,8 @@ static int level_gui(void)
                 if ((cfd = gui_varray(jd)))
                 {
                     gui_label(cfd, pow2attr, GUI_SML,
-                        fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_blu : gui_gry,
-                        fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_wht : gui_gry);
+                              fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_blu : gui_gry,
+                              fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_wht : gui_gry);
                     if (fvalue > 0 && curr_mode() != MODE_BOOST_RUSH)
                         gui_set_state(cfd, START_LEVEL_POWERUP, 2);
                     else
@@ -310,12 +318,12 @@ static int level_gui(void)
                 {
 #ifndef LEVELGROUPS_INCLUDES_CAMPAIGN
                     gui_label(ced, pow1attr, GUI_SML,
-                        evalue > 0 ? gui_red : gui_gry,
-                        evalue > 0 ? gui_wht : gui_gry);
+                              evalue > 0 ? gui_red : gui_gry,
+                              evalue > 0 ? gui_wht : gui_gry);
 #else
                     gui_label(ced, pow1attr, GUI_SML,
-                        evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_red : gui_gry,
-                        evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_wht : gui_gry);
+                              evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_red : gui_gry,
+                              evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_wht : gui_gry);
 #endif
                     if (evalue > 0)
                         gui_set_state(ced, START_LEVEL_POWERUP, 1);
@@ -328,10 +336,11 @@ static int level_gui(void)
 #endif
         {
 #ifdef MAPC_INCLUDES_CHKP
-            gui_multi(id, last_active ? _("The checkpoint is in the\\last position as last time.\\ \\Click to continue.") : level_msg(curr_level()), GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, last_active ? _("The checkpoint is in the\\last position as last time.\\ \\Click to continue.") : level_msg(curr_level()),
 #else
-            gui_multi(id, level_msg(curr_level()), GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, level_msg(curr_level()),
 #endif
+                          GUI_SML, gui_wht, gui_wht);
         }
 
         gui_layout(id, 0, 0);
@@ -364,7 +373,7 @@ static void level_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (xbox_show_gui())
     {
         hud_cam_paint();
@@ -422,7 +431,7 @@ static int level_click(int b, int d)
         else
 #endif
         {
-#if defined(SWITCHBALL_HAVE_TIP_AND_TUTORIAL)
+#ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
             return tutorial_check() ? 1 : goto_state(&st_play_ready);
 #else
             return goto_state(&st_play_ready);
@@ -436,7 +445,7 @@ static int level_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
             return goto_pause(&st_level);
         if (c == KEY_POSE && current_platform == PLATFORM_PC)
@@ -578,7 +587,7 @@ static int nodemo_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             return goto_state(campaign_used() ? &st_play_ready : &st_level);
@@ -620,7 +629,7 @@ static int nodemo_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-static int level_signin_required_gui(void)
+static int level_signin_required_enter(struct state *st, struct state *prev)
 {
     int id;
 
@@ -628,7 +637,8 @@ static int level_signin_required_gui(void)
     {
         gui_title_header(id, _("Sign in required!"), GUI_MED, gui_red, gui_red);
         gui_space(id);
-        gui_multi(id, _("This account must be signed in,\\before you play this levels!"),
+        gui_multi(id, _("This account must be signed in,\\"
+            "before you play this levels!"),
             GUI_SML, gui_wht, gui_wht);
 
         gui_layout(id, 0, 0);
@@ -637,16 +647,11 @@ static int level_signin_required_gui(void)
     return id;
 }
 
-static int level_signin_required_enter(struct state *st, struct state *prev)
-{
-    return level_signin_required_gui();
-}
-
 static int level_signin_required_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #else
         if (c == KEY_EXIT)
@@ -695,6 +700,8 @@ int goto_exit(void)
     int prev_wallet_gems = account_get_d(ACCOUNT_DATA_WALLET_GEMS);
 #endif
 
+    int done = progress_done();
+
     progress_stop();
     progress_exit();
 
@@ -705,37 +712,31 @@ int goto_exit(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (campaign_used())
     {
-        //dst = &st_campaign;
-
-        /* End of the level. */
-
-        if (progress_done() && !progress_dead())
+        if (done && !progress_dead())
         {
+            /* End of the level. */
+
             game_fade_color(0.0f, 0.25f, 0.0f);
             game_fade(+0.333f);
+
+            dst = &st_done;
         }
-
-        /*
-         * If it manages to reach in there,
-         * it should be containing the coordinates.
-         */
-
         else if (campaign_hardcore())
         {
-            if (progress_dead() && !progress_done())
+            if (progress_dead() && !done)
             {
                 game_fade_color(0.25f, 0.0f, 0.0f);
                 game_fade(+0.333f);
+
+                dst = &st_over;
             }
-            else if (progress_done())
-                dst = curr_times() > 0 && !progress_dead() ? &st_done : &st_over;
+            else return goto_playmenu(curr_mode());
         }
-        else
-            return goto_playmenu(curr_mode());
+        else return goto_playmenu(curr_mode());
     }
     else
 #endif
-    if (progress_done() && !progress_dead())
+    if (done && !progress_dead())
     {
         game_fade(+0.333f);
 /*#ifdef CONFIG_INCLUDES_ACCOUNT
@@ -752,36 +753,36 @@ int goto_exit(void)
             dst = &st_done;
         }
     }
-#ifdef REQUIRES_COMPLEX_MODE
     else if (curr_mode() == MODE_BOOST_RUSH)
     {
         boost_rush_stop();
-        return goto_playmenu(curr_mode());
-    }
-#endif
-    else if (curr_mode() == MODE_CHALLENGE)
-    {
-        /*
-         * Player wants to save and open the Leaderboard in Challenge mode,
-         * but the game causes a crash.
-         */
 
         if (progress_dead() && !campaign_used())
         {
             game_fade_color(0.25f, 0.0f, 0.0f);
             game_fade(+0.333f);
         }
-        
-        dst = curr_times() > 0 && progress_dead() ? &st_over : &st_start;
+
+        dst = curr_times() > 0 && progress_dead() ? &st_over :
+                                                    &st_start;
     }
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    else if (curr_mode() != MODE_NONE && !campaign_used())
-        dst = &st_start;
+    else if (curr_mode() == MODE_CHALLENGE)
+    {
+        if (progress_dead() && !campaign_used())
+        {
+            game_fade_color(0.25f, 0.0f, 0.0f);
+            game_fade(+0.333f);
+        }
+        
+        dst = curr_times() > 0 && progress_dead() ? &st_over :
+                                                    &st_start;
+    }
     else
-        dst = &st_title;
-#else
-    else dst = &st_start;
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if (!campaign_used())
 #endif
+        dst = curr_times() > 0 && progress_dead() ? &st_over :
+                                                    &st_start;
 
     if (dst)
     {
@@ -833,7 +834,9 @@ struct state st_poser = {
     poser_keybd,
     poser_buttn,
     NULL,
-    NULL
+    NULL,
+    NULL,
+    level_shared_exit
 };
 
 struct state st_nodemo = {
@@ -848,7 +851,9 @@ struct state st_nodemo = {
     level_keybd,  // Replaced from: nodemo_basic
     level_buttn,  // Replaced from: nodemo_basic
     NULL,
-    NULL
+    NULL,
+    NULL,
+    level_shared_exit
 };
 
 struct state st_level_signin_required = {
@@ -863,5 +868,7 @@ struct state st_level_signin_required = {
     level_signin_required_keybd,
     level_signin_required_buttn,
     NULL,
-    NULL
+    NULL,
+    NULL,
+    level_shared_exit
 };

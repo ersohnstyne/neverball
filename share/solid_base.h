@@ -18,7 +18,7 @@
 /*
  * Comment it, if you don't have an header file
  * --- OR ---
- * Create the header using premaded preprocessors like
+ * Create the header using premaded preprocessors by following
  */
 #include "solid_chkp.h"
 
@@ -81,7 +81,7 @@
  * Those members that do not conform to this convention are explicitly
  * documented with a comment.
  *
- * These prefixes are still available: c k q y.
+ * These prefixes are still available: k q y.
  */
 #else
 /*

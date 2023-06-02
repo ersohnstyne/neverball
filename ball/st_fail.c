@@ -12,11 +12,11 @@
  * General Public License for more details.
  */
 
-#include <assert.h>
-
+#if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
+#endif
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
 #endif
 
@@ -74,7 +74,7 @@
     _("Managed product is disabled with server policy!")
 
 #define FAIL_UPGRADE_EDITION_1 \
-    _("Upgrade to Enterprise edition, to buy Mediation!")
+    _("Upgrade to Pro edition, to buy Mediation!")
 #define FAIL_UPGRADE_EDITION_2 _("Upgrade to Pro edition, to buy more balls!")
 
 #define FAIL_TRANSFER_MEMBER_1 _("Join Pennyball Discord, to buy more balls!")
@@ -96,7 +96,7 @@ struct state st_dedicated_buyballsqueue;
 
 enum
 {
-    /* Some enumerations were FINALLY removed in this future! */
+    /* Some enumerations were removed by Mojang in this future! */
     FAIL_SAME = GUI_LAST,
     FAIL_CHECKPOINT_RESPAWN,
     FAIL_CHECKPOINT_CANCEL,
@@ -110,6 +110,7 @@ enum
 
 enum ask_more_options
 {
+    ASK_MORE_DISABLED = 0,
     ASK_MORE_TIME,
     ASK_MORE_BALLS
 };
@@ -126,13 +127,19 @@ static int balls_bought;
 void detect_replay_filters(int exceeded);
 #endif
 
+static void fail_shared_exit(int id)
+{
+    progress_stop();
+    progress_exit();
+}
+
 static int fail_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
     int save = config_get_d(CONFIG_ACCOUNT_SAVE);
 
-    /* Some tokens were FINALLY removed in this future! */
+    /* Some tokens were removed by Mojang in this future! */
     switch (tok)
     {
     case GUI_BACK:
@@ -152,10 +159,9 @@ static int fail_action(int tok, int val)
 #ifdef MAPC_INCLUDES_CHKP
     /* New: Checkpoints */
     case FAIL_CHECKPOINT_RESPAWN:
-        if (progress_same_avail() && !progress_dead())
+        if (checkpoints_load() && progress_same_avail() && !progress_dead())
         {
             powerup_stop();
-            checkpoints_respawn();
             return progress_same() ? goto_state(campaign_used() ? &st_play_ready : &st_level) : 1;
         }
         break;
@@ -194,9 +200,9 @@ static int fail_action(int tok, int val)
     case FAIL_UPGRADE_EDITION:
 #if _WIN32
         system("start msedge https://forms.gle/62iaMCNKan4z2SJs5");
-#elif __APPLE__
+#elif defined(__APPLE__)
         system("open https://forms.gle/62iaMCNKan4z2SJs5");
-#else
+#elif defined(__linux__)
         system("x-www-browser https://forms.gle/62iaMCNKan4z2SJs5");
 #endif
         break;
@@ -204,9 +210,9 @@ static int fail_action(int tok, int val)
     case FAIL_TRANSFER_MEMBER:
 #if _WIN32
         system("start msedge https://discord.gg/qnJR263Hm2");
-#elif __APPLE__
+#elif defined(__APPLE__)
         system("open https://discord.gg/qnJR263Hm2");
-#else
+#elif defined(__linux__)
         system("x-www-browser https://discord.gg/qnJR263Hm2");
 #endif
         break;
@@ -350,21 +356,12 @@ static int fail_gui(void)
                                 gui_multi(jd, _("Respawn is still available during active!"), GUI_SML, gui_grn, gui_grn);
                             }
                             else if (progress_same_avail() && !progress_dead())
-                            {
-                                audio_music_fade_out(0.f);
                                 gui_multi(jd, FAIL_ERROR_RESPAWN_1, GUI_SML, gui_red, gui_red);
-                            }
                             else
-                            {
-                                audio_music_fade_out(0.f);
                                 gui_multi(jd, FAIL_ERROR_RESPAWN_2, GUI_SML, gui_red, gui_red);
-                            }
                         }
                         else
-                        {
-                            audio_music_fade_out(0.f);
                             gui_multi(jd, FAIL_ERROR_RESPAWN_3, GUI_SML, gui_red, gui_red);
-                        }
                     }
                     else
 #endif
@@ -380,17 +377,9 @@ static int fail_gui(void)
                             gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED, GUI_SML, gui_red, gui_red);
                     }
                     else if (((curr_mode() == MODE_NORMAL && progress_extended()) || progress_dead()) && !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
-                    {
-                        audio_music_fade_out(0.f);
                         gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP, GUI_SML, gui_red, gui_red);
-                    }
                     else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                    {
-                        audio_music_fade_out(0.f);
                         gui_multi(jd, FAIL_UPGRADE_EDITION_2, GUI_SML, gui_red, gui_red);
-                    }
-
-                    gui_space(id);
                 }
                 else
                 {
@@ -399,6 +388,7 @@ static int fail_gui(void)
                     nosaveid = gui_multi(jd, _("You can save new replays only once!"), GUI_SML, gui_red, gui_red);
                     gui_pulse(nosaveid, 1.2f);
 
+#ifdef MAPC_INCLUDES_CHKP
                     if (last_active)
                     {
                         /* Optional can be save */
@@ -408,60 +398,27 @@ static int fail_gui(void)
                             gui_multi(jd, _("Respawn is still available during active!"), GUI_SML, gui_grn, gui_grn);
                         }
                         else if (progress_same_avail() && !campaign_hardcore())
-                        {
-                            audio_music_fade_out(0.f);
-                            audio_play(AUD_INTRO_SHATTER, 1.0f);
                             gui_multi(jd, FAIL_ERROR_RESPAWN_1, GUI_SML, gui_red, gui_red);
-                        }
                         else if (!campaign_hardcore() && progress_dead())
-                        {
-                            audio_music_fade_out(0.f);
-                            audio_play(AUD_INTRO_SHATTER, 1.0f);
                             gui_multi(jd, FAIL_ERROR_RESPAWN_2, GUI_SML, gui_red, gui_red);
-                        }
                         else if (progress_dead())
-                        {
-                            audio_music_fade_out(0.f);
-                            audio_play(AUD_INTRO_SHATTER, 1.0f);
                             gui_multi(jd, FAIL_ERROR_RESPAWN_3, GUI_SML, gui_red, gui_red);
-                        }
-
-                        if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
-                        {
-                            if (progress_dead() && server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                            {
-                                audio_music_fade_out(0.f);
-                                audio_play(AUD_INTRO_SHATTER, 1.0f);
-                                gui_multi(jd, FAIL_UPGRADE_EDITION_2, GUI_SML, gui_red, gui_red);
-                            }
-                            else if (curr_mode() == MODE_NORMAL && progress_extended() && server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                            {
-                                audio_music_fade_out(0.f);
-                                audio_play(AUD_INTRO_SHATTER, 1.0f);
-                                gui_multi(jd, FAIL_UPGRADE_EDITION_1, GUI_SML, gui_red, gui_red);
-                            }
-                            else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED) == 0)
-                            {
-                                audio_music_fade_out(0.f);
-                                audio_play(AUD_INTRO_SHATTER, 1.0f);
-                                gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED, GUI_SML, gui_red, gui_red);
-                            }
-                        }
-                        else if (((curr_mode() == MODE_NORMAL && progress_extended()) || progress_dead()) && !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
-                        {
-                            audio_music_fade_out(0.f);
-                            audio_play(AUD_INTRO_SHATTER, 1.0f);
-                            gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP, GUI_SML, gui_red, gui_red);
-                        }
-                        else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                        {
-                            audio_music_fade_out(0.f);
-                            audio_play(AUD_INTRO_SHATTER, 1.0f);
-                            gui_multi(jd, FAIL_UPGRADE_EDITION_2, GUI_SML, gui_red, gui_red);
-                        }
-
-                        gui_space(id);
                     }
+                    else
+#endif
+                    if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+                    {
+                        if (progress_dead() && server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                            gui_multi(jd, FAIL_UPGRADE_EDITION_2, GUI_SML, gui_red, gui_red);
+                        else if (curr_mode() == MODE_NORMAL && progress_extended() && server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                            gui_multi(jd, FAIL_UPGRADE_EDITION_1, GUI_SML, gui_red, gui_red);
+                        else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED) == 0)
+                            gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED, GUI_SML, gui_red, gui_red);
+                    }
+                    else if (((curr_mode() == MODE_NORMAL && progress_extended()) || progress_dead()) && !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+                        gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP, GUI_SML, gui_red, gui_red);
+                    else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                        gui_multi(jd, FAIL_UPGRADE_EDITION_2, GUI_SML, gui_red, gui_red);
                 }
 #else
                 if (progress_dead())
@@ -480,22 +437,24 @@ static int fail_gui(void)
             gui_set_rect(jd, GUI_ALL);
         }
 
-#if defined(CONFIG_INCLUDES_ACCOUNT) && defined(NB_HAVE_PB_BOTH)
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
         if (progress_same_avail() && !respawnable) {
             if (account_get_d(ACCOUNT_PRODUCT_MEDIATION) == 0 && status == GAME_TIME && curr_mode() == MODE_NORMAL &&
                 (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED)))
             {
-                gui_state(id, _("Ask for more time!"), GUI_SML, FAIL_ASK_MORE, ASK_MORE_TIME);
                 gui_space(id);
+                gui_state(id, _("Ask for more time!"), GUI_SML, FAIL_ASK_MORE, ASK_MORE_TIME);
             }
             else if (curr_mode() == MODE_NORMAL && curr_mode() != MODE_ZEN && status == GAME_TIME && !progress_extended() &&
                 (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED)))
             {
-                gui_state(id, _("Buy Mediation!"), GUI_SML, FAIL_ASK_MORE, ASK_MORE_TIME);
                 gui_space(id);
+                gui_state(id, _("Buy Mediation!"), GUI_SML, FAIL_ASK_MORE, ASK_MORE_TIME);
             }
         }
 #endif
+
+        gui_space(id);
 
         if ((jd = gui_harray(id)))
         {
@@ -534,7 +493,10 @@ static int fail_gui(void)
                 respawnable = 0;
 #endif
 
-                /* Some buttons were FINALLY removed in this future (e.g. death_screen.json in Minecraft Android, iOS or Windows)! */
+                /*
+                 * Some buttons were removed by Mojang in this future!
+                 * (e.g. death_screen.json in Minecraft Android, iOS or Windows)
+                 */
                 gui_start(jd, _("Exit"), GUI_SML, FAIL_OVER, 0);
 
 #if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
@@ -543,7 +505,7 @@ static int fail_gui(void)
                 {
                     if ((progress_same_avail() && !progress_dead()))
                         gui_state(jd, _("Retry Level"), GUI_SML, FAIL_SAME, 0);
-#ifdef NB_HAVE_PB_BOTH
+#if NB_HAVE_PB_BOTH==1
                     else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
                         gui_state(jd, _("Buy more balls!"), GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
                     else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
@@ -554,7 +516,7 @@ static int fail_gui(void)
 #endif
                 }
 
-#if defined(CONFIG_INCLUDES_ACCOUNT) && defined(NB_HAVE_PB_BOTH)
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                 if (account_get_d(ACCOUNT_PRODUCT_MEDIATION) == 1 && status == GAME_TIME && curr_mode() == MODE_NORMAL)
                     gui_state(jd, _("Switch to Zen"), GUI_SML, FAIL_ZEN_SWITCH, 0);
 #endif
@@ -605,7 +567,7 @@ static void fail_paint(int id, float t)
     game_client_draw(0, t);
     
     gui_paint(id);
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (xbox_show_gui())
         xbox_control_death_gui_paint();
     if (hud_visibility())
@@ -619,8 +581,7 @@ static void fail_timer(int id, float dt)
     if (status == GAME_FALL)
     {
         /* Uncomment, if you have game "crash balls" implemented. */
-        /*
-        {
+        /*{
             geom_step(dt);
             game_server_step(dt);
 
@@ -647,7 +608,7 @@ static int fail_keybd(int c, int d)
          * This is revealed in death_screen.json.
          * This methods can't use this: fail_action(GUI_BACK, 0);
          */
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #else
         if (c == KEY_EXIT)
@@ -756,7 +717,7 @@ static int zen_warning_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #else
         if (c == KEY_EXIT)
@@ -804,6 +765,7 @@ static int ask_more_action(int tok, int val)
     switch (tok)
     {
     case GUI_BACK:
+        ask_more_target = ASK_MORE_DISABLED;
         return goto_state(&st_fail);
         break;
     case ASK_MORE_GET_COINS:
@@ -822,6 +784,7 @@ static int ask_more_action(int tok, int val)
         audio_music_fade_in(0.5f);
         game_extend_time(val);
         progress_extend();
+        ask_more_target = ASK_MORE_DISABLED;
         return goto_state(&st_play_loop);
         break;
 
@@ -861,6 +824,7 @@ static int ask_more_action(int tok, int val)
             if (progress_same())
             {
                 checkpoints_stop();
+                ask_more_target = ASK_MORE_DISABLED;
                 return goto_state(campaign_used() ? &st_play_ready : &st_level);
             }
         }
@@ -1091,10 +1055,7 @@ static int ask_more_enter(struct state *st, struct state *prev)
                     gui_state(jd, approveattr, GUI_SML, ASK_MORE_ACCEPT, extendvalue);
                 }
                 else
-                {
-                    assert(0 && "Unknown state");
                     gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
-                }
             }
         }
     }
@@ -1107,7 +1068,7 @@ static int ask_more_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #else
         if (c == KEY_EXIT)
@@ -1144,6 +1105,8 @@ static int gui_count_ids[4], num_amounts_curr[4], num_amounts_dst[4];
 enum
 {
     RAISEGEMS_START = GUI_LAST,
+    RAISEGEMS_IAP,
+    RAISEGEMS_BANKRUPTCY
 };
 
 int goto_raise_gems(struct state *returnable, int mingems)
@@ -1164,20 +1127,33 @@ static int raise_gems_action(int tok, int val)
         raisegems_working = 0;
         return goto_state(st_returnable);
         break;
-    case RAISEGEMS_START:
-        {
-            if (progress_raise_gems(1, raisegems_dst_amount,
-                                    &num_amounts_dst[0],
-                                    &num_amounts_dst[1],
-                                    &num_amounts_dst[2],
-                                    &num_amounts_dst[3]))
-            {
-                // raisegems_working = 1;
-                // goto_state(curr_state());
 
-                goto_state(st_returnable);
-            }
+    case RAISEGEMS_START:
+        if (progress_raise_gems(1, raisegems_dst_amount,
+                                &num_amounts_dst[0],
+                                &num_amounts_dst[1],
+                                &num_amounts_dst[2],
+                                &num_amounts_dst[3]))
+        {
+            // raisegems_working = 1;
+            // goto_state(curr_state());
+
+            goto_state(st_returnable);
         }
+        break;
+
+    case RAISEGEMS_IAP:
+        return goto_shop_iap(0, st_returnable, ask_more_purchased, 0, val, 1, 0);
+        break;
+
+    case RAISEGEMS_BANKRUPTCY:
+        account_set_d(ACCOUNT_DATA_WALLET_COINS, 0);
+        account_set_d(ACCOUNT_DATA_WALLET_GEMS, 0);
+        account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, 0);
+        account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, 0);
+        account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, 0);
+        account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, -1);
+        return goto_exit();
         break;
     }
 
@@ -1194,7 +1170,7 @@ static int raise_gems_working_gui(void)
 
         if ((jd = gui_hstack(id)))
         {
-            gui_count_ids[0] = gui_count(jd, 1000000, GUI_MED);
+            gui_count_ids[0] = gui_count(jd, ACCOUNT_WALLET_MAX_COINS, GUI_MED);
             gui_label(jd, _("Coins"), GUI_SML, gui_wht, gui_wht);
         }
         gui_set_rect(jd, GUI_ALL);
@@ -1264,34 +1240,48 @@ static int raise_gems_prepare_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        char infoattr[MAXSTR];
+        /* TODO: Detailed informations for assistants? */
+        char infoattr_full[MAXSTR], infoattr0[MAXSTR];
         
-        if (allow_raise)
-            SAFECPY(infoattr, _("If you sell some items, then you can raise gems."));
-        else
+        const char *bankrupt_str0 = _("Your debt of %d gems exceeds your net-worth.");
 #if NB_STEAM_API==1 || NB_EOS_SDK==1 || ENABLE_IAP==1
-        if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP))
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(infoattr, dstSize,
+        const char *bankrupt_str1 = _("You may attempt to increasing through skillful payers.");
+        const char *bankrupt_str2 = _("You may declare bankruptcy or you may attempt to\\"
+                                      "avoid bankruptcy through skillful payers.");
 #else
-            sprintf(infoattr,
-#endif
-                    _("Your debt of %d gems exceeds your net-worth.\\"
-                      "You may attempt to continue playing by\\"
-                      "increasing net-worth through skillful payers from IAP."),
-                    raisegems_dst_amount);
-        else
-#else
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(infoattr, dstSize,
-#else
-            sprintf(infoattr,
-#endif
-                    _("Your debt of %d gems exceeds your net-worth."),
-                    raisegems_dst_amount);
+        const char *bankrupt_str1 = "";
+        const char *bankrupt_str2 = _("You may declare bankruptcy.");
 #endif
 
-        gui_multi(id, infoattr, GUI_SML,
+        if (allow_raise)
+            SAFECPY(infoattr_full, _("If you sell some items, then you can raise gems."));
+        else
+        {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(infoattr0, dstSize,
+#else
+            sprintf(infoattr0,
+#endif
+                    bankrupt_str0, raisegems_dst_amount);
+
+            SAFECPY(infoattr_full, infoattr0);
+
+            if (curr_mode() == MODE_CHALLENGE
+             || curr_mode() == MODE_BOOST_RUSH)
+            {
+                SAFECAT(infoattr_full, "\\");
+                SAFECAT(infoattr_full, bankrupt_str2);
+            }
+#if NB_STEAM_API==1 || NB_EOS_SDK==1 || ENABLE_IAP==1
+            else
+            {
+                SAFECAT(infoattr_full, "\\");
+                SAFECAT(infoattr_full, bankrupt_str1);
+            }
+#endif
+        }
+
+        gui_multi(id, infoattr_full, GUI_SML,
                   allow_raise ? gui_wht : gui_red,
                   allow_raise ? gui_cya : gui_red);
 
@@ -1325,7 +1315,7 @@ static int raise_gems_prepare_gui(void)
 #else
                         sprintf(paramattr,
 #endif
-                                "%d %s > %d %s",
+                                "%d %s " GUI_TRIANGLE_RIGHT " %d %s",
                                 (num_amounts_curr[i] - num_amounts_dst[i]), _(details_names[i]),
                                 estimated_prices[i], i == 0 ? _("Gems") : _("Coins"));
 
@@ -1368,6 +1358,7 @@ static int raise_gems_prepare_gui(void)
                 gui_label(kd, elemattr, GUI_SML, gui_wht, gui_cya);
             }
 
+            // Was ww, hh, current in use: square
             if (((float) video.device_w / (float) video.device_h) > 1.f)
             {
                 gui_space(jd);
@@ -1385,13 +1376,24 @@ static int raise_gems_prepare_gui(void)
         if ((jd = gui_harray(id)))
         {
             int tmp_startbtn_id = gui_start(jd, _("OK, let's go!"), GUI_SML, RAISEGEMS_START, 0);
-            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
 
             if (!allow_raise && tmp_startbtn_id)
             {
+#if NB_STEAM_API==1 || NB_EOS_SDK==1 || ENABLE_IAP==1
+                gui_set_label(tmp_startbtn_id, _("Get gems!"));
+                gui_set_state(tmp_startbtn_id, RAISEGEMS_IAP, raisegems_dst_amount);
+#else
                 gui_set_state(tmp_startbtn_id, GUI_NONE, 0);
                 gui_set_color(tmp_startbtn_id, gui_gry, gui_gry);
+#endif
             }
+
+            if ((curr_mode() == MODE_CHALLENGE
+              || curr_mode() == MODE_BOOST_RUSH)
+             && !allow_raise)
+                gui_state(jd, _("Bankruptcy"), GUI_SML, RAISEGEMS_BANKRUPTCY, 0);
+            else
+                gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
         }
     }
 
@@ -1445,7 +1447,7 @@ static int raise_gems_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #else
         if (c == KEY_EXIT)
@@ -1485,18 +1487,22 @@ int ask_more_purchased(struct state *ok_state)
             gemswallet -= 15;
             balls_bought++;
             progress_buy_balls(1);
+            account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, 0);
         }
 
         account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemswallet);
         account_save();
+#ifdef MAPC_INCLUDES_CHKP
         if (last_active && status == GAME_FALL) /* Should be respawn, or not! */
-            return goto_state(&st_fail); /* Back to respawn state! */
-        else if (progress_same())
+            return goto_state(&st_fail); /* Back to checkpoints! */
+        else
+#endif
+        if (progress_same())
             return goto_state(campaign_used() ? &st_play_ready : &st_level);
         else
-            return goto_state(&st_fail); /* An error occured, because the level is not loaded! */
+            return goto_state(&st_fail); /* An error occured, the level is not loaded! */
     }
-    else
+    else if (ask_more_target == ASK_MORE_TIME)
     {
         int coinwallet = account_get_d(ACCOUNT_DATA_WALLET_COINS) - 120;
         account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
@@ -1504,8 +1510,12 @@ int ask_more_purchased(struct state *ok_state)
 
         return goto_state(&st_zen_warning);
     }
-#endif
+
+    return goto_state(st_returnable);
+#else
+    // NO POSSIBLE!
     return goto_state(&st_fail);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1520,7 +1530,11 @@ struct state st_fail = {
     shared_angle,
     shared_click,
     fail_keybd,
-    fail_buttn
+    fail_buttn,
+    NULL,
+    NULL,
+    NULL,
+    fail_shared_exit
 };
 
 #if NB_HAVE_PB_BOTH==1
@@ -1535,7 +1549,11 @@ struct state st_zen_warning = {
     shared_angle,
     shared_click,
     zen_warning_keybd,
-    zen_warning_buttn
+    zen_warning_buttn,
+    NULL,
+    NULL,
+    NULL,
+    fail_shared_exit
 };
 
 struct state st_ask_more = {
@@ -1548,7 +1566,11 @@ struct state st_ask_more = {
     shared_angle,
     shared_click,
     ask_more_keybd,
-    ask_more_buttn
+    ask_more_buttn,
+    NULL,
+    NULL,
+    NULL,
+    fail_shared_exit
 };
 
 struct state st_raise_gems = {
@@ -1561,7 +1583,11 @@ struct state st_raise_gems = {
     shared_angle,
     shared_click,
     raise_gems_keybd,
-    raise_gems_buttn
+    raise_gems_buttn,
+    NULL,
+    NULL,
+    NULL,
+    fail_shared_exit
 };
 
 #endif

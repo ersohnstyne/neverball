@@ -43,7 +43,7 @@
 #if __cplusplus
 extern "C" {
 #endif
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
 #endif
 
@@ -80,7 +80,7 @@ void video_show_cursor()
 {
     int cursor_visible = 0;
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform == PLATFORM_PC)
 #endif
     {
@@ -100,7 +100,7 @@ void video_show_cursor()
         }
 #endif
     }
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     else
     {
         /* You won't be able to use the cursor, while using the
@@ -351,6 +351,8 @@ extern "C"
 #endif
 int video_mode(int f, int w, int h)
 {
+video_mode_reconf:
+
     int stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
     int stencil  = config_get_d(CONFIG_REFLECTION)  ? 1 : 0;
     int buffers  = config_get_d(CONFIG_MULTISAMPLE) ? 1 : 0;
@@ -427,12 +429,19 @@ int video_mode(int f, int w, int h)
     /* Require 16-bit double buffer with 16-bit depth buffer. */
 
     // Default RGB size: 5
-    int rgb_size[] = { 5, 5, 5 };
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     rgb_size[0]);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   rgb_size[1]);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    rgb_size[2]);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,  
-                        rgb_size[0] + rgb_size[1] + rgb_size[2] + 1);
+    // TODO: Either 5 (16-bit) or 8 (32-bit)
+    int rgb_size_fixed = 5;
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    rgb_size_fixed);
+
+    if (rgb_size_fixed * 3 < 16)
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+    else if (rgb_size_fixed * 3 < 32)
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+    else if (rgb_size_fixed * 3 < 64)
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 64);
+
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     /* Try to set the currently specified mode. */
@@ -617,8 +626,8 @@ int video_mode(int f, int w, int h)
                                   video.window_h / 2);
         
         config_set_d(CONFIG_DISPLAY, dpy);
-        config_set_d(CONFIG_WIDTH, video.window_w);
-        config_set_d(CONFIG_HEIGHT, video.window_h);
+        config_set_d(CONFIG_WIDTH,   video.window_w);
+        config_set_d(CONFIG_HEIGHT,  video.window_h);
         video.aspect_ratio = (float) video.window_w / video.window_h;
 
         config_save();
@@ -631,7 +640,7 @@ int video_mode(int f, int w, int h)
     else if (stereo)
     {
         config_set_d(CONFIG_STEREO, 0);
-        return video_mode(f, w, h);
+        goto video_mode_reconf;
     }
 #endif
 
@@ -640,7 +649,7 @@ int video_mode(int f, int w, int h)
     else if (buffers)
     {
         config_set_d(CONFIG_MULTISAMPLE, samples / 2);
-        return video_mode(f, w, h);
+        goto video_mode_reconf;
     }
 
     /* If the mode failed, try decreasing the level of textures. */
@@ -648,7 +657,7 @@ int video_mode(int f, int w, int h)
     else if (texture != 2)
     {
         config_set_d(CONFIG_TEXTURES, 2);
-        return video_mode(f, w, h);
+        goto video_mode_reconf;
     }
 
     /* If that mode failed, try it without reflections. */
@@ -656,7 +665,7 @@ int video_mode(int f, int w, int h)
     else if (stencil)
     {
         config_set_d(CONFIG_REFLECTION, 0);
-        return video_mode(f, w, h);
+        goto video_mode_reconf;
     }
 
     /* If that mode failed, try it without v-sync. */
@@ -664,7 +673,7 @@ int video_mode(int f, int w, int h)
     else if (vsync)
     {
         config_set_d(CONFIG_VSYNC, 0);
-        return video_mode(f, w, h);
+        goto video_mode_reconf;
     }
 
     /* If that mode failed, try it without background. */
@@ -672,7 +681,7 @@ int video_mode(int f, int w, int h)
     else if (config_get_d(CONFIG_BACKGROUND) == 1)
     {
         config_set_d(CONFIG_BACKGROUND, 0);
-        return video_mode(f, w, h);
+        goto video_mode_reconf;
     }
 
     /* If that mode failed, try it without shadow. */
@@ -680,7 +689,7 @@ int video_mode(int f, int w, int h)
     else if (config_get_d(CONFIG_SHADOW) == 1)
     {
         config_set_d(CONFIG_SHADOW, 0);
-        return video_mode(f, w, h);
+        goto video_mode_reconf;
     }
 
     /* If that mode failed, get the soloution. */
@@ -700,7 +709,7 @@ int video_mode(int f, int w, int h)
 
         assert(solution_buf > -1 && solution_smp > -1);
 
-        return video_mode(f, w, h);
+        goto video_mode_reconf;
     }
 
     /* If THAT mode failed, punt. */
@@ -723,7 +732,7 @@ int video_mode(int f, int w, int h)
 
         assert(solution_buf > -1 && solution_smp > -1);
 
-        return video_mode(f, w, h);
+        goto video_mode_reconf;
     }
 #endif
 
@@ -739,6 +748,8 @@ extern "C"
 #endif
 int video_mode_auto_config(int f, int w, int h)
 {
+video_mode_auto_config_reconf:
+
     int stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
     int hmd      = config_get_d(CONFIG_HMD)         ? 1 : 0;
 
@@ -806,10 +817,19 @@ int video_mode_auto_config(int f, int w, int h)
 
     /* Require 16-bit double buffer with 16-bit depth buffer. */
 
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+    // TODO: Either 5 (16-bit) or 8 (32-bit)
+    int rgb_size_fixed = 5;
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    rgb_size_fixed);
+
+    if (rgb_size_fixed * 3 < 16)
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+    else if (rgb_size_fixed * 3 < 32)
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+    else if (rgb_size_fixed * 3 < 64)
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 64);
+
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     log_printf("Creating a window (%dx%d, %s (auto configuration))\n",
@@ -1042,13 +1062,13 @@ int video_mode_auto_config(int f, int w, int h)
         /* Recenter the cursor back in full screen mode. */
 
         if (config_get_d(CONFIG_FULLSCREEN))
-        SDL_WarpMouseInWindow(window,
-                              video.window_w / 2,
-                              video.window_h / 2);
+            SDL_WarpMouseInWindow(window,
+                                  video.window_w / 2,
+                                  video.window_h / 2);
 
         config_set_d(CONFIG_DISPLAY, dpy);
-        config_set_d(CONFIG_WIDTH, video.window_w);
-        config_set_d(CONFIG_HEIGHT, video.window_h);
+        config_set_d(CONFIG_WIDTH,   video.window_w);
+        config_set_d(CONFIG_HEIGHT,  video.window_h);
         video.aspect_ratio = (float) video.window_w / video.window_h;
 
         config_save();
@@ -1074,7 +1094,7 @@ int video_mode_auto_config(int f, int w, int h)
 
         assert(solution_buf > -1 && solution_smp > -1);
 
-        return video_mode(f, w, h);
+        goto video_mode_auto_config_reconf;
     }
 #endif
     /* For some reasons, this may not work on oldest hardware. */

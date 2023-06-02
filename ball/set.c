@@ -14,7 +14,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
 #if NB_HAVE_PB_BOTH==1
 #include "campaign.h"
@@ -38,12 +37,22 @@
 
 struct set
 {
+    /* Levelset info                                                         */
+
     char file[PATHMAX];
 
     char *id;                           /* Internal set identifier           */
     char *name;                         /* Set name                          */
     char *desc;                         /* Set description                   */
     char *shot;                         /* Set screen-shot                   */
+
+#if NB_HAVE_PB_BOTH==1
+    int   star;                         /* Set completition stars (set)      */
+    int   star_prev;                    /* Set completition stars (current)  */
+    int   star_obtained;                /* Set completition stars (current)  */
+#endif
+
+    /* HS Info                                                               */
 
     char *user_scores;                  /* User high-score file              */
     char *cheat_scores;                 /* Cheat mode score file             */
@@ -54,7 +63,7 @@ struct set
     /* Level info                                                            */
 
     int   count;                        /* Number of levels                  */
-    char *level_name_v[MAXLVL_SET];         /* List of level file names          */
+    char *level_name_v[MAXLVL_SET];     /* List of level file names          */
 };
 
 #define SET_GET(a, i) ((struct set *) array_get((a), (i)))
@@ -66,7 +75,7 @@ static struct level level_v[MAXLVL_SET];
 
 /*---------------------------------------------------------------------------*/
 
-#define SCORE_VERSION 2
+#define SCORE_VERSION 3
 
 static int score_version;
 
@@ -127,7 +136,11 @@ void set_store_hs(void)
     {
         int i;
 
-        fs_printf(fp, "version %d\nset %s\n", SCORE_VERSION, s->id);
+#if NB_HAVE_PB_BOTH==1
+        fs_printf(fp, "version %d\nset %s\nrewarded %d\n", SCORE_VERSION, s->id, s->star_obtained);
+#else
+        fs_printf(fp, "version %d\nset %s\n", 2, s->id);
+#endif
 
         put_score(fp, &s->time_score);
         put_score(fp, &s->coin_score);
@@ -157,36 +170,6 @@ void set_store_hs(void)
 #endif
 }
 
-static void set_load_hs_v1(fs_file fp, struct set *s, char *buf, int size)
-{
-    struct level *l;
-    int i, n;
-
-    /* First line holds level states. */
-
-    n = MIN(strlen(buf), s->count);
-
-    for (i = 0; i < n; i++)
-    {
-        l = &level_v[i];
-
-        l->is_locked    = (buf[i] == 'L');
-        l->is_completed = (buf[i] == 'C');
-    }
-
-    get_score(fp, &s->time_score);
-    get_score(fp, &s->coin_score);
-
-    for (i = 0; i < n; i++)
-    {
-        l = &level_v[i];
-
-        get_score(fp, &l->scores[SCORE_TIME]);
-        get_score(fp, &l->scores[SCORE_GOAL]);
-        get_score(fp, &l->scores[SCORE_COIN]);
-    }
-}
-
 static struct level *find_level(const struct set *s, const char *file)
 {
     int i;
@@ -196,6 +179,90 @@ static struct level *find_level(const struct set *s, const char *file)
             return &level_v[i];
 
     return NULL;
+}
+
+static void set_load_hs_v3(fs_file fp, struct set *s, char *buf, int size)
+{
+    struct score time_score;
+    struct score coin_score;
+
+#if NB_HAVE_PB_BOTH==1
+    int rewarded_stars = 0;
+    int set_stars = 0;
+#endif
+
+    int set_score = 0;
+    int set_match = 1;
+
+    while (fs_gets(buf, size, fp))
+    {
+
+        int version = 0;
+        int flags   = 0;
+        int n       = 0;
+
+        strip_newline(buf);
+
+        if (strncmp(buf, "set ", 4) == 0)
+        {
+            get_score(fp, &time_score);
+            get_score(fp, &coin_score);
+
+            set_score = 1;
+        }
+#if NB_HAVE_PB_BOTH==1
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        else if (sscanf_s(buf,
+#else
+        else if (sscanf(buf,
+#endif
+                        "rewarded %d", &rewarded_stars) >= 1)
+            set_stars = 1;
+#endif
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        else if (sscanf_s(buf,
+#else
+        else if (sscanf(buf,
+#endif
+                        "level %d %d %n", &flags, &version, &n) >= 2)
+        {
+            struct level* l;
+
+            if ((l = find_level(s, buf + n)))
+            {
+                /* Always prefer "locked" flag from the score file. */
+
+                l->is_locked = (flags & LEVEL_LOCKED);
+
+                /* Only use "completed" flag and scores on version match. */
+
+                if (version == l->version_num)
+                {
+                    l->is_completed = (flags & LEVEL_COMPLETED);
+
+                    get_score(fp, &l->scores[SCORE_TIME]);
+                    get_score(fp, &l->scores[SCORE_GOAL]);
+                    get_score(fp, &l->scores[SCORE_COIN]);
+                }
+                else set_match = 0;
+            }
+            else set_match = 0;
+        }
+    }
+
+#if NB_HAVE_PB_BOTH==1
+    if (set_match && set_stars && s->star > 0)
+    {
+        s->star_obtained = rewarded_stars;
+        s->star_prev = s->star_obtained;
+    }
+#endif
+
+    if (set_match && set_score)
+    {
+        s->time_score = time_score;
+        s->coin_score = coin_score;
+    }
 }
 
 static void set_load_hs_v2(fs_file fp, struct set *s, char *buf, int size)
@@ -209,8 +276,8 @@ static void set_load_hs_v2(fs_file fp, struct set *s, char *buf, int size)
     while (fs_gets(buf, size, fp))
     {
         int version = 0;
-        int flags = 0;
-        int n = 0;
+        int flags   = 0;
+        int n       = 0;
 
         strip_newline(buf);
 
@@ -234,13 +301,13 @@ static void set_load_hs_v2(fs_file fp, struct set *s, char *buf, int size)
             {
                 /* Always prefer "locked" flag from the score file. */
 
-                l->is_locked = !!(flags & LEVEL_LOCKED);
+                l->is_locked = (flags & LEVEL_LOCKED);
 
                 /* Only use "completed" flag and scores on version match. */
 
                 if (version == l->version_num)
                 {
-                    l->is_completed = !!(flags & LEVEL_COMPLETED);
+                    l->is_completed = (flags & LEVEL_COMPLETED);
 
                     get_score(fp, &l->scores[SCORE_TIME]);
                     get_score(fp, &l->scores[SCORE_GOAL]);
@@ -256,6 +323,36 @@ static void set_load_hs_v2(fs_file fp, struct set *s, char *buf, int size)
     {
         s->time_score = time_score;
         s->coin_score = coin_score;
+    }
+}
+
+static void set_load_hs_v1(fs_file fp, struct set *s, char *buf, int size)
+{
+    struct level *l;
+    int    i, n;
+
+    /* First line holds level states. */
+
+    n = MIN(strlen(buf), s->count);
+
+    for (i = 0; i < n; i++)
+    {
+        l = &level_v[i];
+
+        l->is_locked    = (buf[i] == 'L');
+        l->is_completed = (buf[i] == 'C');
+    }
+
+    get_score(fp, &s->time_score);
+    get_score(fp, &s->coin_score);
+
+    for (i = 0; i < n; i++)
+    {
+        l = &level_v[i];
+
+        get_score(fp, &l->scores[SCORE_TIME]);
+        get_score(fp, &l->scores[SCORE_GOAL]);
+        get_score(fp, &l->scores[SCORE_COIN]);
     }
 }
 
@@ -293,6 +390,7 @@ static void set_load_hs(void)
                 switch (score_version)
                 {
                 case 2: set_load_hs_v2(fp, s, buf, sizeof (buf)); break;
+                case 3: set_load_hs_v3(fp, s, buf, sizeof (buf)); break;
                 }
             }
             else
@@ -308,7 +406,7 @@ static void set_load_hs(void)
 static int set_load(struct set *s, const char *filename)
 {
     fs_file fin;
-    char *scores, *level_name;
+    char *scores, *level_name, *star_info;
 
     /* Skip "Misc" or deprecated set when not in dev mode. */
 
@@ -371,13 +469,21 @@ static int set_load(struct set *s, const char *filename)
 #else
         sscanf(scores,
 #endif
+#if NB_HAVE_PB_BOTH==1
+               "%d %d %d %d %d %d %d",
+#else
                "%d %d %d %d %d %d",
+#endif
                &s->time_score.timer[RANK_HARD],
                &s->time_score.timer[RANK_MEDM],
                &s->time_score.timer[RANK_EASY],
                &s->coin_score.coins[RANK_HARD],
                &s->coin_score.coins[RANK_MEDM],
-               &s->coin_score.coins[RANK_EASY]);
+               &s->coin_score.coins[RANK_EASY]
+#if NB_HAVE_PB_BOTH==1
+               , &s->star
+#endif
+        );
 
         free(scores);
 
@@ -403,6 +509,9 @@ static int set_load(struct set *s, const char *filename)
     free(s->desc);
     free(s->id);
     free(s->shot);
+#if NB_HAVE_PB_BOTH==1
+    s->star = 0;
+#endif
 
     fs_close(fin);
 
@@ -417,6 +526,9 @@ static void set_free(struct set *s)
     free(s->desc);
     free(s->id);
     free(s->shot);
+#if NB_HAVE_PB_BOTH==1
+    s->star = 0;
+#endif
 
     free(s->user_scores);
     free(s->cheat_scores);
@@ -523,6 +635,7 @@ void set_quit(void)
 
 /*---------------------------------------------------------------------------*/
 
+
 int set_exists(int i)
 {
     return sets ? 0 <= i && i < array_len(sets) : 0;
@@ -558,6 +671,24 @@ const char *set_shot(int i)
     return set_exists(i) ? SET_GET(sets, i)->shot : NULL;
 }
 
+#if NB_HAVE_PB_BOTH==1
+int set_star(int i)
+{
+    return set_exists(i) ? SET_GET(sets, i)->star : NULL;
+}
+
+int set_star_curr(int i)
+{
+    return set_exists(i) ? SET_GET(sets, i)->star_obtained : NULL;
+}
+
+int set_star_gained(int i)
+{
+    return set_exists(i) ?
+           SET_GET(sets, i)->star_prev < SET_GET(sets, i)->star_obtained : NULL;
+}
+#endif
+
 const struct score *set_score(int i, int s)
 {
     if (set_exists(i))
@@ -576,6 +707,8 @@ static int default_set_mincoinrequired;
 
 static void set_load_levels(void)
 {
+    // Legacy roman numbers doesn't: I V X C D M
+    // New roman numbers should work: Ⅰ Ⅱ Ⅲ Ⅳ Ⅴ Ⅵ Ⅶ Ⅷ Ⅸ Ⅹ Ⅺ Ⅻ Ⅼ Ⅽ Ⅾ Ⅿ
     static const char *roman[] = {
         "",
         "I", "II", "III", "IV", "V", // 1 - 5
@@ -717,10 +850,32 @@ struct level *get_level(int i)
 
 /*---------------------------------------------------------------------------*/
 
+#if NB_HAVE_PB_BOTH==1
+int set_star_update(int completed)
+{
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if (campaign_used()) return 0;
+#endif
+
+    struct set *s = SET_GET(sets, curr);
+
+    s->star_prev = s->star_obtained;
+
+    if (s->star == s->star_obtained) return 0;
+
+    if (completed)
+        s->star_obtained = s->star;
+    else
+        s->star_obtained = 0;
+
+    return completed;
+}
+#endif
+
 int set_score_update(int timer, int coins, int *score_rank, int *times_rank)
 {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    assert(!campaign_used());
+    if (campaign_used()) return 0;
 #endif
 
     struct set *s = SET_GET(sets, curr);
@@ -762,6 +917,10 @@ void level_snap(int i, const char *path)
 
     if (game_client_init(level_v[i].file))
     {
+        /* HACK: Can avoid placing balls before screenshots. */
+
+        game_client_toggle_show_balls(0);
+
         union cmd cmd;
         cmd.type = CMD_GOAL_OPEN;
         game_proxy_enq(&cmd);

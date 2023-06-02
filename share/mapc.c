@@ -3490,9 +3490,9 @@ static void interactive_web()
 {
 #if _WIN32
     system("start msedge https://docs.google.com/forms/d/e/1FAIpQLSdrpRKmyE0pjhB3-9-PD_pGYEsahPeL3QKHCwwafPscjVfiXQ/viewform?usp=sf_link");
-#elif __APPLE__
+#elif defined(__APPLE__)
     system("open https://docs.google.com/forms/d/e/1FAIpQLSdrpRKmyE0pjhB3-9-PD_pGYEsahPeL3QKHCwwafPscjVfiXQ/viewform?usp=sf_link");
-#else
+#elif defined(__linux__)
     system("x-www-browser https://docs.google.com/forms/d/e/1FAIpQLSdrpRKmyE0pjhB3-9-PD_pGYEsahPeL3QKHCwwafPscjVfiXQ/viewform?usp=sf_link");
 #endif
 }

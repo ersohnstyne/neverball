@@ -85,8 +85,8 @@ int fs_add_path_with_archives(const char *path)
 int fs_rename(const char *src, const char *dst)
 {
     const char *write_dir;
-    char *real_src, *real_dst;
-    int rc = 0;
+    char       *real_src, *real_dst;
+    int        rc = 0;
 
     if ((write_dir = fs_get_write_dir()))
     {

@@ -31,8 +31,10 @@
  * - Ersohn Styne
  */
 
-#if _MSC_VER
+#if _WIN32 && _MSC_VER
 #pragma message("Using directory list for code compilation: Microsoft Visual Studio")
+#elif defined(__linux__)
+#pragma message("Using directory list for code compilation: GCC + G++")
 #else
 #pragma message("Using directory list for code compilation: MinGW")
 #endif

@@ -18,7 +18,7 @@
 #include <SDL.h>
 #endif
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
 #endif
 
@@ -55,10 +55,10 @@
         } else if (tok == tok1 || tok == tok2) {             \
             if (tok == tok1)                                 \
                 audio_play(first > 1 ?                       \
-                           AUD_DISABLED : AUD_MENU, 1.0f);   \
+                           AUD_MENU : AUD_DISABLED, 1.0f);   \
             if (tok == tok2)                                 \
                 audio_play(first + itemstep < total ?        \
-                           AUD_DISABLED : AUD_MENU, 1.0f);   \
+                           AUD_MENU : AUD_DISABLED, 1.0f);   \
         } else GENERIC_GAMEMENU_ACTION
 
 /*---------------------------------------------------------------------------*/
@@ -166,7 +166,7 @@ void conf_header(int id, const char *text, int token)
         gui_filler(jd);
         gui_space(jd);
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)
 #endif
             gui_start(jd, _("Back"), GUI_SML, token, 0);
@@ -202,13 +202,6 @@ void conf_select(int id, const char *text, int token, int value,
  *
  * FIXME This probably makes ball/st_shared.c obsolete.
  */
-
-enum
-{
-    GUI_XBOX_LB = 9999,
-    GUI_XBOX_RB
-};
-
 
 static int (*common_action)(int tok, int val);
 
@@ -289,9 +282,13 @@ void conf_common_init(int (*action_fn)(int, int), int allowfade)
     common_allowfade = allowfade;
     if (common_allowfade)
     {
-        back_init("back/gui.png");
+        back_init(config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "back/gui-mayhem.png" : "back/gui.png");
         is_common_bg = 1;
-        audio_music_fade_to(0.5f, "bgm/inter.ogg");
+#if NB_HAVE_PB_BOTH==1
+        audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
+#else
+        audio_music_fade_to(0.5f, "gui/bgm/inter.ogg");
+#endif
     }
 
     common_init(action_fn);
@@ -1374,9 +1371,9 @@ static int lang_action(int tok, int val)
 
     struct lang_desc *desc;
 
-    int total = 10;
+    int total = 11;
 
-    GAMEPAD_GAMEMENU_ACTION_SCROLL(GUI_XBOX_LB, GUI_XBOX_RB, LANG_STEP);
+    GAMEPAD_GAMEMENU_ACTION_SCROLL(GUI_PREV, GUI_NEXT, LANG_STEP);
 
     switch (tok)
     {
@@ -1385,29 +1382,19 @@ static int lang_action(int tok, int val)
         lang_back = NULL;
         break;
 
-    case GUI_XBOX_LB:
+    case GUI_PREV:
         if (first > 1) {
             first -= LANG_STEP;
             return goto_state(&st_lang);
         }
         break;
 
-    case GUI_XBOX_RB:
+    case GUI_NEXT:
         if (first + LANG_STEP < total)
         {
             first += LANG_STEP;
             return goto_state(&st_lang);
         }
-        break;
-
-    case GUI_PREV:
-        first -= LANG_STEP;
-        goto_state(&st_lang);
-        break;
-
-    case GUI_NEXT:
-        first += LANG_STEP;
-        goto_state(&st_lang);
         break;
 
     case LANG_DEFAULT:
@@ -1538,11 +1525,10 @@ int lang_buttn(int b, int d)
             return common_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return common_action(GUI_BACK, 0);
-
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b) && first > 0)
-            return common_action(GUI_XBOX_LB, 0);
+            return common_action(GUI_PREV, 0);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b) && first + 10 < array_len(langs))
-            return common_action(GUI_XBOX_RB, 0);
+            return common_action(GUI_NEXT, 0);
     }
     return 1;
 }

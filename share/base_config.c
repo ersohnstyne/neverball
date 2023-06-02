@@ -26,7 +26,7 @@
 #include <shlobj.h>
 
 #if _MSC_VER
-#pragma message("Neverball " VERSION " for Microsoft Visual Studio")
+#pragma message("Pennyball + Neverball " VERSION " for Microsoft Visual Studio")
 #endif
 #endif
 
@@ -45,17 +45,17 @@ static const char *pick_data_path(const char *arg_data_path)
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     char *data_env_dir;
-    errno_t result = getenv_s(&requiredSize, 0, 0, "NEVERBALL_DATA");
+    errno_t result = getenv_s(&requiredSize, 0, 0, "PENNYBALL_DATA");
 
     if (result == 0 && requiredSize != 0)
     {
         data_env_dir = (char *) malloc(requiredSize * sizeof (char));
-        if (getenv_s(&requiredSize, data_env_dir, requiredSize, "NEVERBALL_DATA") == 0)
+        if (getenv_s(&requiredSize, data_env_dir, requiredSize, "PENNYBALL_DATA") == 0)
             return data_env_dir;
     }
 #else
     char *data_env_dir;
-    if ((data_env_dir = getenv("NEVERBALL_DATA")))
+    if ((data_env_dir = getenv("PENNYBALL_DATA")))
         return data_env_dir;
 #endif
 
@@ -78,17 +78,17 @@ static const char *pick_home_path(void)
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     char *userdir_env;
-    errno_t result = getenv_s(&requiredSize, 0, 0, "NEVERBALL_USERDIR");
+    errno_t result = getenv_s(&requiredSize, 0, 0, "PENNYBALL_USERDIR");
 
     if (result == 0 && requiredSize != 0)
     {
         userdir_env = (char *) malloc(requiredSize * sizeof (char));
-        if (getenv_s(&requiredSize, userdir_env, requiredSize, "NEVERBALL_USERDIR") == 0)
+        if (getenv_s(&requiredSize, userdir_env, requiredSize, "PENNYBALL_USERDIR") == 0)
             return userdir_env;
     }
 #else
     char *userdir_env;
-    if ((userdir_env = getenv("NEVERBALL_USERDIR")))
+    if ((userdir_env = getenv("PENNYBALL_USERDIR")))
         return userdir_env;
 #endif
 
@@ -108,7 +108,7 @@ static const char *pick_home_path(void)
         return fs_base_dir();
 #else
     char *userdir_env;
-    if ((userdir_env = getenv("NEVERBALL_USERDIR")))
+    if ((userdir_env = getenv("PENNYBALL_USERDIR")))
         return userdir_env;
 
     const char *path;

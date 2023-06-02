@@ -13,19 +13,20 @@
  */
 
 #include <stdio.h>
-#include <assert.h>
 
 #if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
 
 #include "account.h"
 #include "campaign.h" // New: Campaign
-#include "checkpoints.h" // New: Checkpoints
 #include "networking.h"
+#endif
+#ifdef MAPC_INCLUDES_CHKP
+#include "checkpoints.h" // New: Checkpoints
 #endif
 #include "accessibility.h"
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
 #endif
 
@@ -87,6 +88,12 @@ int wallet_id;
 
 static int resume;
 static int resume_hold;
+
+static void goal_shared_exit(int id)
+{
+    progress_stop();
+    progress_exit();
+}
 
 static int goal_action(int tok, int val)
 {
@@ -170,7 +177,11 @@ static int goal_gui(void)
     challenge_caught_extra = 0;
     challenge_disable_all_buttons = 0;
 
+#if NB_HAVE_PB_BOTH==1
     if (!resume && config_get_d(CONFIG_NOTIFICATION_SHOP) && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+#else
+    if (!resume)
+#endif
     {
         if (curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -219,6 +230,9 @@ static int goal_gui(void)
                 gid = gui_title_header(jd, s1, GUI_MED, gui_grn, gui_grn);
             else
                 gid = gui_title_header(jd, s2, GUI_LRG, gui_blu, gui_grn);
+
+            if (!resume)
+                gui_pulse(gid, 1.2f);
 
             if (curr_coins() == curr_max_coins() * get_coin_multiply())
                 gui_label(jd, _("Perfect!"), GUI_SML, gui_grn, gui_grn);
@@ -294,7 +308,7 @@ static int goal_gui(void)
                         }
                         if ((md = gui_harray(ld)))
                         {
-                            coins_id = gui_count(md, 100, GUI_MED);
+                            coins_id = gui_count(md, 1000, GUI_MED);
                             gui_label(md, _("Coins"), GUI_SML,
                                       gui_wht, gui_wht);
                         }
@@ -336,21 +350,13 @@ static int goal_gui(void)
             gui_space(id);
         }
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+        else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)
+              && !CHECK_ACCOUNT_BANKRUPT)
         {
             balls_id = score_id = 0;
 
-            int coins, wallet;
-
-            if (!resume) {
-                coins = curr_coins();
-                wallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
-            } else {
-                coins = 0;
-                wallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
-
-                coins = MAX((wallet + curr_coins()) - 10000000, 0);
-            }
+            int wallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
+            int coins = resume ? curr_coins() : MAX((wallet + curr_coins()) - ACCOUNT_WALLET_MAX_COINS, 0);
 
             if ((jd = gui_hstack(id)))
             {
@@ -358,17 +364,16 @@ static int goal_gui(void)
 
                 if ((kd = gui_harray(jd)))
                 {
-                    wallet_id = gui_count(kd, 100000, GUI_MED);
+                    wallet_id = gui_count(kd, ACCOUNT_WALLET_MAX_COINS, GUI_MED);
                     gui_label(kd, _("Wallet"), GUI_SML,
-                    gui_wht, gui_wht);
+                              gui_wht, gui_wht);
                 }
                 if ((kd = gui_harray(jd)))
                 {
-                    coins_id = gui_count(kd, 100, GUI_MED);
+                    coins_id = gui_count(kd, 1000, GUI_MED);
                     gui_label(kd, _("Coins"), GUI_SML,
-                    gui_wht, gui_wht);
+                              gui_wht, gui_wht);
                 }
-
 
                 gui_set_count(coins_id, coins);
                 gui_set_count(wallet_id, wallet);
@@ -387,9 +392,10 @@ static int goal_gui(void)
         {
             /* Waiting for extra balls by collecting 100 coins */
             gui_score_board(id, (GUI_SCORE_COIN |
-                GUI_SCORE_TIME |
-                GUI_SCORE_GOAL), 1,
-                !resume && (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
+                                 GUI_SCORE_TIME |
+                                 GUI_SCORE_GOAL), 1,
+                                !resume && (shop_product_available
+                                         || challenge_disable_all_buttons) ? 0 : high);
             gui_space(id);
         }
         else if (campaign_used() && (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100
@@ -398,8 +404,11 @@ static int goal_gui(void)
 #endif
             && (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25)))
         {
-            gui_score_board(id, ((campaign_career_unlocked() ? GUI_SCORE_COIN : 0) | GUI_SCORE_TIME | (campaign_career_unlocked() ? GUI_SCORE_GOAL : 0)), 1,
-                !resume && (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
+            gui_score_board(id, ((campaign_career_unlocked() ? GUI_SCORE_COIN : 0) |
+                                 GUI_SCORE_TIME |
+                                 (campaign_career_unlocked() ? GUI_SCORE_GOAL : 0)), 1,
+                                !resume && (shop_product_available
+                                         || challenge_disable_all_buttons) ? 0 : high);
             gui_space(id);
         }
 #else
@@ -474,14 +483,13 @@ static int goal_gui(void)
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
         if (!resume && server_policy_get_d(SERVER_POLICY_EDITION) > -1) {
-            gui_pulse(gid, 1.2f);
             if (curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 || curr_mode() == MODE_CAMPAIGN
 #endif
                 )
             {
-                int curr_wallet = MIN(10000000, account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_coins());
+                int curr_wallet = MIN(ACCOUNT_WALLET_MAX_COINS, account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_coins());
                 account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_wallet);
                 account_save();
             }
@@ -536,7 +544,7 @@ static void goal_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     xbox_control_death_gui_paint();
 #endif
 }
@@ -565,10 +573,16 @@ static void goal_timer(int id, float dt)
         if ((t > 0.05f && coins_id)
             && (!resume && time_state() > (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.5f : 1.f)))
         {
-            int coins = gui_value(coins_id);
+            int coins = 0;
+#ifdef CONFIG_INCLUDES_ACCOUNT
+            if (!CHECK_ACCOUNT_BANKRUPT)
+#endif
+                coins = gui_value(coins_id);
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-            int wallet = gui_value(wallet_id);
+            int wallet = 0;
+            if (!CHECK_ACCOUNT_BANKRUPT)
+                wallet = gui_value(wallet_id);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             if ((curr_mode() == MODE_CAMPAIGN || curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN) && server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
@@ -578,7 +592,11 @@ static void goal_timer(int id, float dt)
                 wallet = 0;
 #endif
 
-            if (coins > 0 && (wallet < 10000000))
+#ifdef CONFIG_INCLUDES_ACCOUNT
+            if (coins > 0 && (wallet < ACCOUNT_WALLET_MAX_COINS))
+#else
+            if (coins > 0)
+#endif
             {
                 int score = gui_value(score_id);
 
@@ -651,15 +669,23 @@ static int goal_keybd(int c, int d)
          * This is revealed in death_screen.json.
          * This methods can't use this: fail_action(GUI_BACK, 0);
          */
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #else
         if (c == KEY_EXIT)
 #endif
             return 1;
-        if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c) && current_platform == PLATFORM_PC)
+        if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c)
+#if NB_HAVE_PB_BOTH==1
+            && current_platform == PLATFORM_PC
+#endif
+            )
             return goal_action(GUI_SCORE, GUI_SCORE_NEXT(gui_score_get()));
-        if (config_tst_d(CONFIG_KEY_RESTART, c) && progress_same_avail() && !campaign_hardcore() && current_platform == PLATFORM_PC)
+        if (config_tst_d(CONFIG_KEY_RESTART, c) && progress_same_avail() && !campaign_hardcore()
+#if NB_HAVE_PB_BOTH==1
+            && current_platform == PLATFORM_PC
+#endif
+            )
             return goal_action(GOAL_SAME, 0);
     }
 
@@ -714,7 +740,7 @@ static int goal_extraballs_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #else
         if (c == KEY_EXIT)
@@ -800,7 +826,7 @@ static int goal_shop_keybd(int c, int d)
 {
     if (d)
     {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #else
         if (c == KEY_EXIT)
@@ -895,7 +921,11 @@ struct state st_goal = {
     shared_angle,
     shared_click,
     goal_keybd,
-    goal_buttn
+    goal_buttn,
+    NULL,
+    NULL,
+    NULL,
+    goal_shared_exit
 };
 
 struct state st_goal_hardcore = {
@@ -908,7 +938,11 @@ struct state st_goal_hardcore = {
     NULL,
     NULL,
     NULL,
-    NULL
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    goal_shared_exit
 };
 
 struct state st_goal_extraballs = {
@@ -921,7 +955,11 @@ struct state st_goal_extraballs = {
     shared_angle,
     shared_click_basic,
     goal_extraballs_keybd,
-    goal_extraballs_buttn
+    goal_extraballs_buttn,
+    NULL,
+    NULL,
+    NULL,
+    goal_shared_exit
 };
 
 struct state st_goal_shop = {
@@ -934,5 +972,9 @@ struct state st_goal_shop = {
     shared_angle,
     shared_click_basic,
     goal_shop_keybd,
-    goal_shop_buttn
+    goal_shop_buttn,
+    NULL,
+    NULL,
+    NULL,
+    goal_shared_exit
 };

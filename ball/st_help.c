@@ -1055,7 +1055,7 @@ static int page_tricks(int id)
 
     int jd, kd, ld;
 
-    const int ww = MIN(w, h) * 2 / 9;
+    const int ww = MIN(w, h) * 2 / 8;
     const int hh = ww / 4 * 3;
 
     if ((jd = gui_hstack(id)))

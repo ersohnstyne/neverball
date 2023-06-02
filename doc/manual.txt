@@ -73,10 +73,10 @@ and restarted at any point.
 In Challenge mode,  the player is given a limited  number of balls and
 attempts to  complete all  of the  levels in  turn, starting  with the
 first level.  The game ends once  the  balls run out and the wallet is
-insufficent. In addition,  Paypal API's sent from In-Game Purchases to
-it's developers by the payer (only Pro edition and above). A set score
-is  recorded  upon completion.  Levels cannot be restarted freely. You
-win, if set is completed.
+insufficent.  In addition,  Google Wallet API  is  sent  from  In-Game
+Purchases to it's developers by the payer (only Pro edition and above).
+A  set score  is  recorded upon completion. Levels cannot be restarted
+freely. You win, if set is completed.
 
 In Boost rush mode,  the  player  is  given  a speed indicator like an
 Challenge mode,  uses  for auto-forward levels.  The acceleration will
@@ -319,7 +319,7 @@ default values follow.
             key_camera_r      a
             key_camera_toggle c
 
-	key_camera_toggle toggles camera behaviour between 1 and 3.
+    key_camera_toggle toggles camera behaviour between 1 and 3.
 
     mouse_camera_1      none
     mouse_camera_2      none

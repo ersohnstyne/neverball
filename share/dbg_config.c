@@ -29,6 +29,7 @@ const char* GameDbg_GetError(void) { return dbg_strerror; }
 
 void GameDbg_SigNum_CtrlC(int signum) { dbg_sigint = signum; exit(0); }
 void GameDbg_SigNum_ElemAddr(int signum) { dbg_sigint = signum; }
+void GameDbg_SigNum_Breakpt(int signum) { dbg_sigint = signum; }
 void GameDbg_SigNum_FloatPoint(int signum) { dbg_sigint = signum; }
 void GameDbg_SigNum_Segments(int signum) { dbg_sigint = signum; }
 void GameDbg_SigNum_Term(int signum) { dbg_sigint = signum; exit(0); }
@@ -44,6 +45,8 @@ void GameDbg_Check_SegPerformed(void)
         DW_FORMAT_MSG(ERROR_DBG_CONTROL_C, dbg_strerror, 255); break;
     case SIGILL:
         DW_FORMAT_MSG(ERROR_ILLEGAL_ELEMENT_ADDRESS, dbg_strerror, 255); break;
+    case SIGTRAP:
+        DW_FORMAT_MSG(ERROR_SEGMENT_NOTIFICATION, dbg_strerror, 255); break;
     case SIGFPE:
         DW_FORMAT_MSG(ERROR_ILLEGAL_FLOAT_CONTEXT, dbg_strerror, 255); break;
     case SIGTERM:

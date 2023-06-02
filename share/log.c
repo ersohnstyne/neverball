@@ -12,11 +12,6 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && _MSC_VER
-//#include <Windows.h>
-//#include <sdkddkver.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 

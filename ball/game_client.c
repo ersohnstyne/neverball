@@ -18,9 +18,6 @@
 #include <SDL.h>
 #endif
 #include <math.h>
-#include <assert.h>
-
-#include "checkpoints.h" // New: Checkpoints
 
 #include "glext.h"
 #include "vec3.h"
@@ -32,8 +29,14 @@
 #include "config.h"
 #include "video.h"
 
+#if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
+#endif
 #include "solid_draw.h"
+
+#ifdef MAPC_INCLUDES_CHKP
+#include "checkpoints.h" // New: Checkpoints
+#endif
 
 #include "game_client.h"
 #include "game_common.h"
@@ -437,6 +440,8 @@ void game_client_sync(fs_file demo_fp)
 
 /*---------------------------------------------------------------------------*/
 
+static int ball_visible = 0;
+
 int  game_client_init(const char *file_name)
 {
     char *back_name = "", *grad_name = "";
@@ -454,7 +459,7 @@ int  game_client_init(const char *file_name)
         max_coins = 0;
 
 #ifdef MAPC_INCLUDES_CHKP
-    coins  = last_active ? last_coins : 0;
+    coins  = last_active ? respawn_coins : 0;
 #else
     coins  = 0;
 #endif
@@ -540,7 +545,7 @@ int  game_client_init(const char *file_name)
 #else
             sscanf(v,
 #endif
-                   "%d.%d", & version.x, & version.y);
+                   "%d.%d", &version.x, &version.y);
     }
 
     /*
@@ -578,6 +583,11 @@ int  game_client_init(const char *file_name)
     return gd.state;
 }
 
+void game_client_toggle_show_balls(int visible)
+{
+    ball_visible = visible;
+}
+
 void game_client_free(const char *next)
 {
     if (gd.state)
@@ -612,10 +622,17 @@ void game_client_blend(float a)
 void game_client_draw(int pose, float t)
 {
     game_lerp_apply(&gl, &gd);
-    game_draw(&gd, pose, t);
+
+    if (pose == POSE_NONE)
+        game_draw(&gd, ball_visible ? pose : POSE_LEVEL, t);
 }
 
 /*---------------------------------------------------------------------------*/
+
+int curr_viewangle(void)
+{
+    return V_DEG(fatan2f(gl.view[CURR].e[2][0], gl.view[CURR].e[2][2]));
+}
 
 int curr_clock(void)
 {
@@ -668,6 +685,17 @@ void game_look(float phi, float theta)
     view->c[2] = view->p[2] - fcosf(V_RAD(theta)) * fcosf(V_RAD(phi));
 
     gl.view[PREV] = gl.view[CURR];
+}
+
+void game_look_v2(float dx, float dy, float dz, float phi, float theta)
+{
+    struct game_view *view = &gl.view[CURR];
+
+    view->p[0] += dx;
+    view->p[1] += dy;
+    view->p[2] += dz;
+
+    game_look(phi, theta);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -817,6 +845,8 @@ static void game_client_next_studio_map(void)
 
     if (game_client_init(studio_map[studio_map_index]))
     {
+        game_client_toggle_show_balls(1);
+
         union cmd cmd;
 
         cmd.type = CMD_GOAL_OPEN;
@@ -870,19 +900,17 @@ void game_client_step_studio(float deltatime)
     gd_rotate_roll = CLAMP(-45, flerp(studio_cam_rot_roll[studio_map_index][0], studio_cam_rot_roll[studio_map_index][1], (studio_time_length / studio_max_time)), 45);
 }
 
-void game_client_init_safetyintro(void);
+int game_client_init_safetyintro(void);
 
-void game_client_init_studio(int alternatives)
+int game_client_init_studio(int alternatives)
 {
     if (alternatives)
-    {
-        studio_safetyintro = 1;
-        game_client_init_safetyintro();
-        return;
-    }
+        return game_client_init_safetyintro();
 
     if (game_client_init(studio_map[studio_map_index]))
     {
+        game_client_toggle_show_balls(1);
+
         union cmd cmd;
 
         cmd.type = CMD_GOAL_OPEN;
@@ -890,7 +918,11 @@ void game_client_init_studio(int alternatives)
         game_client_sync(NULL);
 
         game_kill_fade();
+
+        return 1;
     }
+
+    return 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -934,10 +966,12 @@ void game_client_step_safetyintro(float deltatime)
         game_view_set_pos_and_target(&gl.view[i], &gd.vary, pos, center);
 }
 
-void game_client_init_safetyintro(void)
+int game_client_init_safetyintro(void)
 {
     if (game_client_init("gui/safety-intro.sol"))
     {
+        game_client_toggle_show_balls(1);
+
         /* HACK: Does not have a goal. */
         
         back_init("back/skyS.png");
@@ -950,10 +984,10 @@ void game_client_init_safetyintro(void)
         
         game_kill_fade();
 
-        return;
+        return 1;
     }
 
-    assert(0 && "No safety feature intro loaded!");
+    return 0;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -60,7 +60,8 @@ enum
     START_CHALLENGE = GUI_LAST,
     START_BOOST_RUSH,
     START_LOCK_GOALS,
-    START_LEVEL
+    START_LEVEL,
+    START_CHECKSTARS
 };
 
 static int shot_id;
@@ -188,6 +189,8 @@ static void start_over(int id, int pulse)
 
 /*---------------------------------------------------------------------------*/
 
+static int set_star_view;
+
 static int start_action(int tok, int val)
 {
     GAMEPAD_GAMEMENU_ACTION_SCROLL(GUI_PREV, GUI_NEXT, LEVEL_STEP);
@@ -195,6 +198,12 @@ static int start_action(int tok, int val)
     switch (tok)
     {
     case GUI_BACK:
+        if (set_star_view)
+        {
+            set_star_view = 0;
+            return goto_state(&st_start);
+        }
+
         return goto_state_full(&st_set, curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_N_CURVE : GUI_ANIMATION_S_CURVE, curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_S_CURVE : GUI_ANIMATION_N_CURVE, 0);
 
     case GUI_PREV:
@@ -297,9 +306,62 @@ static int start_action(int tok, int val)
             return goto_state(&st_level);
 
         break;
+
+    case START_CHECKSTARS:
+        set_star_view = 1;
+        return goto_state(&st_start);
+        break;
     }
 
     return 1;
+}
+
+static int start_star_view_gui(void)
+{
+    int id;
+
+    if ((id = gui_vstack(0)))
+    {
+#if NB_HAVE_PB_BOTH==1
+        if (set_star(curr_set()) > 0)
+        {
+            char set_star_attr[MAXSTR];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(set_star_attr, MAXSTR,
+#else
+            sprintf(set_star_attr,
+#endif
+                    GUI_STAR " %d", set_star(curr_set()));
+
+            const char *s0 = _("Complete the level set and earn stars\\"
+                               "during playing Challenge Mode.");
+
+            gui_label(id, set_star_attr,
+                          GUI_LRG,
+                          CHECK_ACCOUNT_BANKRUPT ? gui_red : gui_wht,
+                          CHECK_ACCOUNT_BANKRUPT ? gui_blk : gui_yel);
+            gui_space(id);
+            gui_multi(id, s0, GUI_SML, gui_wht, gui_wht);
+        }
+        else
+            gui_multi(id,
+                      _("This set difficulty is unrated until completes\\"
+                        "Challenge Mode by the developer or moderator."),
+                      GUI_SML, gui_wht, gui_wht);
+#else
+            gui_multi(id,
+                      _("Set stars with Player level sets\\"
+                        "requires Premium version."),
+                      GUI_SML, gui_red, gui_red);
+#endif
+
+        gui_space(id);
+        gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
+        gui_layout(id, 0, 0);
+    }
+
+    return id;
 }
 
 static int start_gui(void)
@@ -315,6 +377,39 @@ static int start_gui(void)
         if ((jd = gui_hstack(id)))
         {
             char set_name_final[MAXSTR];
+#if NB_HAVE_PB_BOTH==1
+            if (set_star(curr_set()) > 0)
+            {
+                char set_star_attr[MAXSTR];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(set_star_attr, MAXSTR,
+#else
+                sprintf(set_star_attr,
+#endif
+                        GUI_STAR " %d", set_star(curr_set()));
+                
+                int star_completed = 
+                    set_star(curr_set()) == set_star_curr(curr_set());
+
+                int star_btn_id = gui_label(jd,
+                                            set_star_attr, GUI_SML,
+                                            star_completed ? gui_yel : gui_wht,
+                                            star_completed ? gui_grn : gui_yel);
+
+#ifdef CONFIG_INCLUDES_ACCOUNT
+                if (CHECK_ACCOUNT_BANKRUPT)
+                    gui_set_color(star_btn_id, gui_red, gui_blk);
+                if (!star_completed && !CHECK_ACCOUNT_BANKRUPT)
+                    gui_set_state(star_btn_id, START_CHECKSTARS, 0);
+#else
+                if (!star_completed)
+                    gui_set_state(star_btn_id, START_CHECKSTARS, 0);
+#endif
+
+                gui_space(jd);
+            }
+#endif
 
             if (str_starts_with(set_id(curr_set()), "SB")
                 || str_starts_with(set_id(curr_set()), "sb")
@@ -578,6 +673,8 @@ static int start_howmany()
 
 static int start_enter(struct state *st, struct state *prev)
 {
+    if (set_star_view) return start_star_view_gui();
+
     /* Bonus levels will be unlocked automatically, if you use the bonus pack */
 #if NB_HAVE_PB_BOTH==1
     if ((server_policy_get_d(SERVER_POLICY_LEVELSET_UNLOCKED_BONUS)
@@ -611,7 +708,10 @@ static void start_point(int id, int x, int y, int dx, int dy)
         xbox_toggle_gui(0);
 #endif
 
-    start_over(gui_point(id, x, y), 1);
+    if (!set_star_view)
+        start_over(gui_point(id, x, y), 1);
+    else
+        shared_point(id, x, y, dx, dy);
 }
 
 static void start_stick(int id, int a, float v, int bump)
@@ -619,11 +719,17 @@ static void start_stick(int id, int a, float v, int bump)
 #ifndef __EMSCRIPTEN__
     xbox_toggle_gui(1);
 #endif
-    start_over(gui_stick(id, a, v, bump), 1);
+
+    if (!set_star_view)
+        start_over(gui_stick(id, a, v, bump), 1);
+    else
+        shared_stick_basic(id, a, v, bump);
 }
 
 static int start_score(int d)
 {
+    if (!set_star_view) return 1;
+
     int s = (d < 0 ?
              GUI_SCORE_PREV(gui_score_get()) :
              GUI_SCORE_NEXT(gui_score_get()));
@@ -633,6 +739,8 @@ static int start_score(int d)
 
 static void start_wheel(int x, int y)
 {
+    if (!set_star_view) return 1;
+
     if (y > 0) start_score(-1);
     if (y < 0) start_score(+1);
 }
@@ -652,6 +760,7 @@ static int start_keybd(int c, int d)
         if (c == SDLK_c && config_cheat()
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
+            && !set_star_view
 #endif
             )
         {
@@ -661,6 +770,7 @@ static int start_keybd(int c, int d)
         else if (c == KEY_LEVELSHOTS && config_cheat()
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
+            && !set_star_view
 #endif
             )
         {
@@ -680,7 +790,11 @@ static int start_keybd(int c, int d)
         }
         else
 #endif
-        if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c))
+        if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c)
+#if NB_HAVE_PB_BOTH==1
+            && !set_star_view
+#endif
+            )
             return start_score(+1);
     }
 
@@ -709,10 +823,15 @@ static int start_buttn(int b, int d)
             return start_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return start_action(GUI_BACK, 0);
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b))
-            return start_action(GUI_PREV, 0);
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b))
-            return start_action(GUI_NEXT, 0);
+#if NB_HAVE_PB_BOTH==1
+        if (!set_star_view)
+#endif
+        {
+            if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b))
+                return start_action(GUI_PREV, 0);
+            if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b))
+                return start_action(GUI_NEXT, 0);
+        }
     }
     return 1;
 }
@@ -736,9 +855,9 @@ static int start_joinrequired_action(int tok, int val)
     case START_JOINREQUIRED_OPEN:
 #if _WIN32
         system("start msedge https://discord.gg/qnJR263Hm2/");
-#elif __APPLE__
+#elif defined(__APPLE__)
         system("open https://discord.gg/qnJR263Hm2/");
-#else
+#elif defined(__linux__)
         system("x-www-browser https://discord.gg/qnJR263Hm2/");
 #endif
         break;

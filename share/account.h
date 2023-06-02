@@ -17,6 +17,8 @@
 
 #define CONFIG_INCLUDES_ACCOUNT
 
+#define ACCOUNT_WALLET_MAX_COINS 1000000
+
 #if NB_STEAM_API == 1 && NB_EOS_SDK == 0
 #error Steam API and EOS SDK should not built at same time!
 #endif
@@ -40,6 +42,15 @@ extern int ACCOUNT_CONSUMEABLE_EXTRALIVES;
 
 extern int ACCOUNT_PLAYER;
 extern int ACCOUNT_BALL_FILE;
+
+#define CHECK_ACCOUNT_BANKRUPT \
+    (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) < 0)
+
+#define LOG_ACCOUNT_BANKRUPT \
+    if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) < 0) \
+        log_errorf("Player account is bankrupt!: %s\n", account_get_s(ACCOUNT_PLAYER)); \
+    else \
+        log_printf("Player is not bankrupt!: %s\n", account_get_s(ACCOUNT_PLAYER))
 
 int  account_init(void);
 void account_quit(void);

@@ -1427,7 +1427,7 @@ int xbox_show_gui(void)
 
 void xbox_toggle_gui(int active)
 {
-#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API
+#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API
     show_control_gui = 1;
 #else
     show_control_gui = 0;

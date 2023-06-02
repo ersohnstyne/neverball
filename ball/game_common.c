@@ -267,8 +267,6 @@ void game_view_fly(struct game_view *view, const struct s_vary *vary, int ui, fl
         c0[1] += view->dc;
     }
 
-    /* k = +1.0 view is s_view 0 */
-
     float chkp_campos[3];
     float chkp_campos_center[3];
 
@@ -283,6 +281,8 @@ void game_view_fly(struct game_view *view, const struct s_vary *vary, int ui, fl
         chkp_campos_center[2] = last_pos[ui][2];
     }
 #endif
+
+    /* k = +1.0 view is s_view 0 */
 
     if (k >= 0 && vary->base->wc > 0)
     {

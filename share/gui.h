@@ -31,6 +31,7 @@
 #define GUI_TRIANGLE_RIGHT "▶️"
 #define GUI_CHECKMARK      "✔"
 #define GUI_BALLOT_X       "✘"
+#define GUI_STAR           "✯"
 #define GUI_COIN           "⛁"
 #define GUI_CROWN          "♕"
 #define GUI_DIAMOND        "♦"
@@ -91,6 +92,7 @@ extern const GLubyte gui_vio[4];
 extern const GLubyte gui_pnk[4];
 extern const GLubyte gui_red[4];
 extern const GLubyte gui_blu[4];
+extern const GLubyte gui_brn[4];
 extern const GLubyte gui_grn[4];
 extern const GLubyte gui_blk[4];
 extern const GLubyte gui_gry[4];
@@ -132,10 +134,9 @@ int  gui_varray(int);
 int  gui_hstack(int);
 int  gui_vstack(int);
 int  gui_filler(int);
-int  gui_root();
+int  gui_root(void);
 
 int  gui_image(int, const char *, int, int);
-int  gui_image_widescreen(int, const char *, int, int);
 int  gui_start(int, const char *, int, int, int);
 int  gui_state(int, const char *, int, int, int);
 int  gui_label(int, const char *, int, const GLubyte *, const GLubyte *);

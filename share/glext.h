@@ -37,8 +37,10 @@
 #endif
 
 #if _WIN32 || defined(__EMSCRIPTEN__)
-/* glext.lib can be used it later. */
-//#include <GL/glext.h>
+#include <GL/glext.h>
+#if _MSC_VER && ENABLE_OPENGL_ES
+#pragma comment(lib, "glext.lib")
+#endif
 #endif
 
 /* Windows calling convention cruft. */
@@ -356,7 +358,7 @@ int glext_init(void);
 #define glIsBuffer_            glIsBuffer
 #define glPointParameterfv_    glPointParameterfv
 
-#define glOrtho_               glOrthof
+#define glOrtho_               glOrthofOES
 
 #define glStringMarker_(s) ((void) (s))
 
@@ -552,12 +554,13 @@ void glClipPlane4f_(GLenum, GLfloat, GLfloat, GLfloat, GLfloat);
 
 struct gl_info
 {
-    GLint max_texture_units;
-    GLint max_texture_size;
+    int max_texture_units;
+    int max_texture_size;
 
     unsigned int texture_filter_anisotropic : 1;
     unsigned int shader_objects             : 1;
     unsigned int framebuffer_object         : 1;
+    unsigned int string_marker              : 1;
 };
 
 extern struct gl_info gli;

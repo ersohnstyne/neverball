@@ -1,19 +1,34 @@
+/*
+ * Copyright (C) 2023 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #ifndef STATE_H
 #define STATE_H
 
 #if _MSC_VER
-#define _CRT_NB_SCREENSTATE_DEPRECATED(_ItemReplacement)                  \
-    __declspec(deprecated(                                                \
-        "This screenstate function or variable has been superceded by "   \
-        "newer library functionality. Consider using " #_ItemReplacement  \
-        " instead."                                                       \
-    ))
+#define _CRT_NB_SCREENSTATE_DEPRECATED(_Type, _Params, _Func, _Replaces) \
+    __declspec(deprecated(                                               \
+        "This screenstate function or variable has been superceded by "  \
+        "newer library functionality. Consider using " #_Replaces        \
+        " instead."                                                      \
+    )) _Type _Func _Params
 #else
-#define _CRT_NB_SCREENSTATE_DEPRECATED(_ItemReplacement)                  \
-    __attribute__ ((deprecated(                                           \
-        "This screenstate function or variable has been superceded by "   \
-        "newer library functionality. Consider using " #_ItemReplacement  \
-        " instead."                                                       \
+#define _CRT_NB_SCREENSTATE_DEPRECATED(_Type, _Params, _Func, _Replaces) \
+    _Type _Func _Params                                                  \
+    __attribute__ ((deprecated(                                          \
+        "This screenstate function or variable has been superceded by "  \
+        "newer library functionality. Consider using " #_Replaces        \
+        " instead."                                                      \
     )))
 #endif
 
@@ -54,6 +69,7 @@ struct state
     void (*wheel) (int x,  int y);
     int  (*touch) (const SDL_TouchFingerEvent*);
     void (*fade)  (float alpha);
+    void (*exit)  (int id);
 
     int gui_id;
 };
@@ -67,13 +83,7 @@ void  init_state(struct state *);
  * This screenstate transition will be replaced into the goto_state_full.
  * Your functions will be replaced using four parameters.
  */
-#if _WIN32
-_CRT_NB_SCREENSTATE_DEPRECATED(goto_state_full)
-int  goto_state(struct state* st);
-#else
-int  goto_state(struct state* st)
-_CRT_NB_SCREENSTATE_DEPRECATED(goto_state_full);
-#endif
+_CRT_NB_SCREENSTATE_DEPRECATED(int, (struct state* st), goto_state, goto_state_full);
 
 int  goto_state_full(struct state *st, int fromdirection, int todirection, int noanimation);
 
@@ -89,6 +99,7 @@ int  st_click(int, int);
 int  st_keybd(int, int);
 int  st_buttn(int, int);
 int  st_touch(const SDL_TouchFingerEvent *);
+void st_exit (void);
 
 /*---------------------------------------------------------------------------*/
 

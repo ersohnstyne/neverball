@@ -19,7 +19,6 @@
 #endif
 
 #include <string.h>
-#include <assert.h>
 
 #include "lang_switchball.h"
 
@@ -42,7 +41,7 @@
 #include "st_title.h"
 #include "st_shared.h"
 
-#define TARGET_DATA_OUTPUT "C:/Users/ersoh/source/C++ Games/neverball-mingw/data_ziparchives"
+#define TARGET_DATA_OUTPUT "YOUR_TARGET_DATA_DIR_HERE"
 #define CAMPAIGN_MAPC_ARGS " --campaign --skip_verify"
 
 int intro_phase;

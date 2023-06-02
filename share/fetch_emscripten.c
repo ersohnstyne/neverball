@@ -25,9 +25,9 @@ struct fetch_info
 {
     struct fetch_callback callback;
 
-    emscripten_fetch_t* handle;
-    char* dest_filename;
-    unsigned int fetch_id;
+    emscripten_fetch_t *handle;
+    char               *dest_filename;
+    unsigned int        fetch_id;
 };
 
 static List fetch_list = NULL;
@@ -108,7 +108,7 @@ static void unlink_and_free_fetch_info(struct fetch_info *fi)
     }
 }
 
-void fetch_init(void (*dispatch_event)(void*))
+void fetch_init(void (*dispatch_event)(void *))
 {
     /* Just compile with -s FETCH=1 */
 }
@@ -118,8 +118,9 @@ void fetch_reinit(void)
     /* No possible, compile with -s FETCH=1! */
 }
 
-void fetch_handle_event(void* data)
+void fetch_handle_event(void *data)
 {
+    /* No possible, compile with -s FETCH=1! */
 }
 
 void fetch_quit(void)
@@ -132,7 +133,7 @@ void fetch_quit(void)
     fetch_list = NULL;
 }
 
-static void fetch_success_func(emscripten_fetch_t* handle)
+static void fetch_success_func(emscripten_fetch_t *handle)
 {
     struct fetch_info *fi = handle->userData;
 
@@ -206,7 +207,9 @@ static void fetch_progress_func(emscripten_fetch_t* handle)
     }
 }
 
-unsigned int fetch_url(const char* url, const char* dst, struct fetch_callback callback)
+unsigned int fetch_url(const char *url,
+                       const char *dst,
+                       struct fetch_callback callback)
 {
     unsigned int fetch_id = 0;
     struct fetch_info *fi = create_and_link_fetch_info();
@@ -214,20 +217,56 @@ unsigned int fetch_url(const char* url, const char* dst, struct fetch_callback c
     if (fi)
     {
         emscripten_fetch_attr_t attr;
-
         emscripten_fetch_attr_init(&attr);
 
         strcpy(attr.requestMethod, "GET");
 
         attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
-        attr.onsuccess = fetch_success_func;
-        attr.onerror = fetch_error_func;
+        attr.onsuccess  = fetch_success_func;
+        attr.onerror    = fetch_error_func;
         attr.onprogress = fetch_progress_func;
-        attr.userData = fi;
+        attr.userData   = fi;
 
-        fi->callback = callback;
+        fi->callback      = callback;
         fi->dest_filename = strdup(dst);
-        fi->handle = emscripten_fetch(&attr, url);
+        fi->handle        = emscripten_fetch(&attr, url);
+
+        if (fi->handle)
+            fetch_id = fi->fetch_id;
+        else
+            unlink_and_free_fetch_info(fi);
+    }
+
+    return fetch_id;
+}
+
+unsigned int fetch_gdrive(const char *fileid,
+                          const char *filename,
+                          struct fetch_callback callback)
+{
+    unsigned int fetch_id = 0;
+    struct fetch_info *fi = create_and_link_fetch_info();
+
+    if (fi)
+    {
+        char gdrivelink_attr[MAXSTR];
+        SAFECPY(gdrivelink_attr, "https://drive.google.com/uc?export=download&id=");
+        SAFECAT(gdrivelink_attr, fileid);
+
+        emscripten_fetch_attr_t attr;
+        emscripten_fetch_attr_init(&attr);
+
+        strcpy(attr.requestMethod, "GET");
+
+        attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
+        attr.onsuccess  = fetch_success_func;
+        attr.onerror    = fetch_error_func;
+        attr.onprogress = fetch_progress_func;
+        attr.userData   = fi;
+
+        fi->callback      = callback;
+        fi->dest_filename = strdup(dst);
+        fi->handle        = emscripten_fetch(&attr, gdrivelink_attr);
 
         if (fi->handle)
             fetch_id = fi->fetch_id;

@@ -12,11 +12,10 @@
  * General Public License for more details.
  */
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
 #endif
 
-#include <assert.h>
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
 #include "st_intro_covid.h"
@@ -34,8 +33,10 @@
 #include "part.h"
 #include "audio.h"
 #include "config.h"
+#include "text.h"
 #include "video.h"
 #include "common.h"
+#include "progress.h"
 
 #include "game_common.h"
 #include "game_client.h"
@@ -48,8 +49,8 @@
 #include "st_ball.h"
 #include "st_shared.h"
 #include "st_shop.h"
+#include "st_package.h"
 
-//#define ENABLE_GAME_TRANSFER
 #ifdef ENABLE_GAME_TRANSFER
 #include "st_transfer.h"
 #endif
@@ -69,7 +70,7 @@ struct state st_conf_audio;
 
 /*---------------------------------------------------------------------------*/
 
-static int ingame_demo = 0;
+static int ingame_demo   = 0;
 static int mainmenu_conf = 1;
 static struct state *conf_back_state;
 
@@ -77,7 +78,7 @@ int goto_conf(struct state *back_state, int using_game, int demo)
 {
     conf_back_state = back_state;
 
-    ingame_demo = demo;
+    ingame_demo   = demo;
     mainmenu_conf = !using_game;
 
     return goto_state(&st_conf);
@@ -95,6 +96,16 @@ static int conf_check_playername(const char *regname)
     }
 
     return 1;
+}
+
+static void conf_shared_exit(int id)
+{
+    if (!mainmenu_conf)
+    {
+        progress_stat(GAME_NONE);
+        progress_stop();
+        progress_exit();
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -137,9 +148,6 @@ static struct state *returnstate;
 int goto_conf_covid_extend(struct state *returnable)
 {
     conf_covid_extend_method = 1;
-
-    //returnstate = returnable;
-    //return goto_state_full(&st_conf_covid_extend, 0, 0, 0);
 
     conf_covid_extended = 1;
     return goto_state_full(returnable, 0, 0, 0);
@@ -214,14 +222,14 @@ static int conf_covid_extend_gui(void)
 
         if ((jd = gui_harray(id)))
         {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (current_platform == PLATFORM_PC)
 #endif
             {
                 gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
                 gui_state(jd, _("Yes"), GUI_SML, GUI_NEXT, 0);
             }
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             else
                 gui_start(jd, _("Yes"), GUI_SML, GUI_NEXT, 0);
 #endif
@@ -277,10 +285,10 @@ enum
     CONF_ACCOUNT_SIGNIN = GUI_LAST,
     CONF_ACCOUNT_SIGNOUT,
     CONF_ACCOUNT_COVID_EXTEND,
+    CONF_ACCOUNT_AUTOUPDATE,
     CONF_ACCOUNT_MAYHEM,
     CONF_ACCOUNT_TUTORIAL,
     CONF_ACCOUNT_HINT,
-    CONF_ACCOUNT_AUTOUPDATE,
     CONF_ACCOUNT_PLAYER,
 #if NB_HAVE_PB_BOTH==1
     CONF_ACCOUNT_BALL,
@@ -306,11 +314,14 @@ static int conf_account_action(int tok, int val)
         break;
 #endif
 
+    case CONF_ACCOUNT_COVID_EXTEND:
+        goto_conf_covid_extend(&st_conf_account);
+        break;
+
     case CONF_ACCOUNT_SIGNOUT:
         break;
 
-    case CONF_ACCOUNT_COVID_EXTEND:
-        goto_conf_covid_extend(&st_conf_account);
+    case CONF_ACCOUNT_AUTOUPDATE:
         break;
 
     case CONF_ACCOUNT_MAYHEM:
@@ -329,9 +340,6 @@ static int conf_account_action(int tok, int val)
         config_set_d(CONFIG_ACCOUNT_HINT, val);
         goto_state_full(&st_conf_account, 0, 0, 1);
         config_save();
-        break;
-
-    case CONF_ACCOUNT_AUTOUPDATE:
         break;
 
     case CONF_ACCOUNT_PLAYER:
@@ -475,11 +483,11 @@ static int conf_account_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        const char *player = config_get_s(CONFIG_PLAYER);
+        const char* player = config_get_s(CONFIG_PLAYER);
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        const char *ball   = account_get_s(ACCOUNT_BALL_FILE);
+        const char* ball   = account_get_s(ACCOUNT_BALL_FILE);
 #else
-        const char *ball   = config_get_s(CONFIG_BALL_FILE);
+        const char* ball   = config_get_s(CONFIG_BALL_FILE);
 #endif
 
 #ifdef ENABLE_SQL
@@ -500,20 +508,20 @@ static int conf_account_gui(void)
         if (!ingame_demo && !mainmenu_conf)
         {
             gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_DESC_INGAME,
-                      GUI_SML, gui_red, gui_red);
+                GUI_SML, gui_red, gui_red);
             gui_space(id);
         }
         else
         {
 #ifdef COVID_HIGH_RISK
             time_remain_lbl_id = gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_HIGHRISK_DESC,
-                                           GUI_SML, gui_red, gui_red);
+                                               GUI_SML, gui_red, gui_red);
             gui_space(id);
 #else
 #ifdef DEMO_QUARANTINED_MODE
 #ifdef DEMO_LOCKDOWN_COMPLETE
             time_remain_lbl_id = gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_HARDLOCK_DESC,
-                                           GUI_SML, gui_red, gui_red);
+                                               GUI_SML, gui_red, gui_red);
             gui_space(id);
 #else
             /* Lockdown duration time. DO NOT EDIT!*/
@@ -523,7 +531,9 @@ static int conf_account_gui(void)
                 DEMO_LOCKDOWN_RANGE_NIGHT_END_HOUR_DEFAULT
             );
 
-            if (nolockdown && CHECK_ACCOUNT_ENABLED)
+#if NB_HAVE_PB_BOTH==1
+            if (nolockdown
+                && CHECK_ACCOUNT_ENABLED)
             {
                 char filter_introductive_attr[MAXSTR];
 
@@ -532,14 +542,14 @@ static int conf_account_gui(void)
 #else
                 sprintf
 #endif
-                       (filter_introductive_attr,
-                       CONF_ACCOUNT_DEMO_LOCKED_DESC_INTRODUCTIVE,
-                       _(status_to_str(3)));
+                    (filter_introductive_attr,
+                        CONF_ACCOUNT_DEMO_LOCKED_DESC_INTRODUCTIVE,
+                        _(status_to_str(3)));
 
                 time_remain_lbl_id = gui_multi(id,
-                                               "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\"
-                                               "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-                                               GUI_SML, gui_red, gui_red);
+                    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\"
+                    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                    GUI_SML, gui_red, gui_red);
 
                 if (conf_covid_extended == 0)
                 {
@@ -551,10 +561,11 @@ static int conf_account_gui(void)
             }
             else if (CHECK_ACCOUNT_ENABLED)
                 gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_DESC_NIGHT,
-                          GUI_SML, gui_red, gui_red);
+                              GUI_SML, gui_red, gui_red);
             else
                 gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_DESC_EXTREME_CASES,
-                          GUI_SML, gui_red, gui_red);
+                              GUI_SML, gui_red, gui_red);
+#endif
 
             gui_space(id);
 #endif
@@ -578,6 +589,15 @@ static int conf_account_gui(void)
 
         //gui_space(id);
 
+        if (mainmenu_conf)
+        {
+#if ENABLE_FETCH==1
+            conf_toggle(id, _("Auto-Update"), CONF_ACCOUNT_AUTOUPDATE,
+                 config_get_d(CONFIG_ACCOUNT_AUTOUPDATE), _("On"), 1, _("Off"), 0);
+            gui_space(id);
+#endif
+        }
+
         conf_toggle(id, _("Show Tutorial"), CONF_ACCOUNT_TUTORIAL,
             config_get_d(CONFIG_ACCOUNT_TUTORIAL), _("On"), 1, _("Off"), 0);
         conf_toggle(id, _("Show Hint"), CONF_ACCOUNT_HINT,
@@ -586,11 +606,6 @@ static int conf_account_gui(void)
         gui_space(id);
         if (mainmenu_conf)
         {
-#if ENABLE_FETCH==1
-            //conf_toggle(id, _("Auto-Update"), CONF_ACCOUNT_AUTOUPDATE,
-                //config_get_d(CONFIG_ACCOUNT_AUTOUPDATE), _("On"), 1, _("Off"), 0);
-#endif
-
             name_id = conf_state(id, _("Player Name"), "XXXXXXXXXXXXXX",
                                  CONF_ACCOUNT_PLAYER);
 #if NB_HAVE_PB_BOTH==1
@@ -756,11 +771,14 @@ static void conf_account_timer(int id, float dt)
             config_save();
         }
 
-        gui_set_multi(time_remain_lbl_id, CONF_ACCOUNT_DEMO_LOCKED_DESC_NIGHT);
+        if (time_remain_lbl_id != 0)
+            gui_set_multi(time_remain_lbl_id, CONF_ACCOUNT_DEMO_LOCKED_DESC_NIGHT);
     }
 }
 
 /*---------------------------------------------------------------------------*/
+
+static int conf_join_confirm = 0;
 
 enum
 {
@@ -771,24 +789,52 @@ static int conf_social_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
+    char linkstr_cmd[MAXSTR], linkstr_code[64];
+
     switch (tok)
     {
     case GUI_BACK:
+        conf_join_confirm = 0;
         return goto_state(&st_conf);
         break;
     case CONF_SOCIAL_DISCORD:
-#if _WIN32
-        system("start msedge https://discord.gg/qnJR263Hm2/");
-#elif __APPLE__
-        system("open https://discord.gg/qnJR263Hm2/");
-#else
-        system("x-www-browser https://discord.gg/qnJR263Hm2/");
+#if NB_HAVE_PB_BOTH==1
+        if (conf_join_confirm)
 #endif
-        if (mainmenu_conf)
         {
-            goto_state(&st_null);
-            return 0; /* bye! */
+#if NB_HAVE_PB_BOTH==1
+            SAFECPY(linkstr_code, "qnJR263Hm2");
+#else
+            SAFECPY(linkstr_code, "HhMfr4N6H6");
+#endif
+
+#if _WIN32
+            SAFECPY(linkstr_cmd, "start msedge https://discord.gg/");
+#elif defined(__APPLE__)
+            SAFECPY(linkstr_cmd, "open https://discord.gg/");
+#elif defined(__linux__)
+            SAFECPY(linkstr_cmd, "x-www-browser https://discord.gg/");
+#endif
+
+            SAFECAT(linkstr_cmd, linkstr_code);
+            SAFECAT(linkstr_cmd, "/");
+
+            system(linkstr_cmd);
+
+            if (mainmenu_conf)
+            {
+                goto_state(&st_null);
+                return 0; /* bye! */
+            }
         }
+#if NB_HAVE_PB_BOTH==1
+        else
+        {
+            conf_join_confirm = 1;
+            goto_state(curr_state());
+        }
+#endif
+        break;
     }
     return 1;
 }
@@ -805,22 +851,35 @@ static int conf_social_gui(void)
 
         if ((jd = gui_vstack(id)))
         {
-            gui_label(jd,
-                      _("Inviting Discord server will allow to:"),
-                      GUI_SML, gui_wht, gui_cya);
+            if (!conf_join_confirm)
+            {
+                gui_label(jd, _("Inviting Discord server will allow to:"),
+                              GUI_SML, gui_wht, gui_cya);
 
-            gui_multi(jd,
-                      _("- Access the game edition to you\\"
-                        "- Keep collected coins into your account\\"
-                        "- Use powerups in Challenge mode\\"
-                        "- Adds your checkpoints from map compiler\\"
-                        "- Share any levels from MAPC for PB\\"),
-                        GUI_SML, gui_wht, gui_wht);
+#if NB_HAVE_PB_BOTH==1
+                gui_multi(jd, _("- Access the game edition to you\\"
+                                "- Keep collected coins into your account\\"
+                                "- Use powerups in Challenge mode\\"
+                                "- Adds your checkpoints from map compiler\\"
+                                "- Share any levels from MAPC for PB\\"),
+                              GUI_SML, gui_wht, gui_wht);
+#else
+                gui_multi(jd, _("- Access all Discord public channels\\"
+                                "- Share any levels from MAPC for NB\\"),
+                              GUI_SML, gui_wht, gui_wht);
+#endif
+            }
+            else
+                gui_multi(jd, _("Please make sure that you've verified the\\"
+                                "new members after joined, before send messages,\\"
+                                "connect voice chats and watch streaming."),
+                              GUI_SML, gui_wht, gui_wht);
 
-            if (mainmenu_conf)
-                gui_label(jd,
-                          _("This may take a while, and the game will then exit."),
-                          GUI_SML, gui_twi, gui_vio);
+#if NB_HAVE_PB_BOTH==1
+            if (mainmenu_conf && conf_join_confirm)
+#endif
+                gui_label(jd, _("This may take a while, and the game will then exit."),
+                              GUI_SML, gui_twi, gui_vio);
 
             gui_set_rect(jd, GUI_ALL);
         }
@@ -880,7 +939,7 @@ enum InputType
 {
     CONTROL_NONE,
 
-    CONTROL_NEVERBALL,
+    CONTROL_PENNYBALL,
     CONTROL_SWITCHBALL_V1,
     CONTROL_SWITCHBALL_V2,
 
@@ -941,7 +1000,7 @@ static int control_get_input(void)
     else if (k_auto == SDLK_e && k_cam1 == SDLK_1 && k_cam2 == SDLK_2 && k_cam3 == SDLK_3
         && k_caml == SDLK_s && k_camr == SDLK_d
         && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
-        return CONTROL_NEVERBALL;
+        return CONTROL_PENNYBALL;
 
     return CONTROL_MAX;
 }
@@ -957,7 +1016,7 @@ static void control_set_input()
         gui_set_label(preset_id, "Switchball HD");
         key_preset_id = CONTROL_SWITCHBALL_V2;
     }
-    else if (key_preset_id == CONTROL_NEVERBALL)
+    else if (key_preset_id == CONTROL_PENNYBALL)
     {
         CONF_CONTROL_SET_PRESET_KEYS(SDLK_c, SDLK_3, SDLK_1, SDLK_2,
                                      SDLK_d, SDLK_a,
@@ -973,7 +1032,7 @@ static void control_set_input()
                                      SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT);
 
         gui_set_label(preset_id, "Neverball");
-        key_preset_id = CONTROL_NEVERBALL;
+        key_preset_id = CONTROL_PENNYBALL;
     }
 }
 
@@ -1045,7 +1104,7 @@ int conf_control_gui(void)
 
         switch (control_get_input())
         {
-        case CONTROL_NEVERBALL:
+        case CONTROL_PENNYBALL:
             key_preset_id = control_get_input();
             presetname = "Neverball";
             break;
@@ -1064,7 +1123,7 @@ int conf_control_gui(void)
         conf_toggle(id, _("Tilting Floor"), CONF_CONTROL_TILTING_FLOOR,
             config_get_d(CONFIG_TILTING_FLOOR), _("On"), 1, _("Off"), 0);
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)
 #endif
         {
@@ -1077,7 +1136,7 @@ int conf_control_gui(void)
                 config_get_d(CONFIG_MOUSE_INVERT), _("On"), 1, _("Off"), 0);
         }
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform != PLATFORM_PC)
 #endif
         {
@@ -1199,8 +1258,8 @@ static const char *conf_controllers_option_values_ps[] = {
     "L2",
     "R1",
     "R2",
-    GUI_ARROW_LFT,
-    GUI_ARROW_RGHT,
+    GUI_TRIANGLE_LEFT,
+    GUI_TRIANGLE_RIGHT,
 
     "",
 
@@ -1265,8 +1324,8 @@ static const char *conf_controllers_option_values_handset[] = {
     "",
     "R",
     "",
-    GUI_ARROW_LFT,
-    GUI_ARROW_RGHT,
+    GUI_TRIANGLE_LEFT,
+    GUI_TRIANGLE_RIGHT,
 
     "",
 
@@ -1284,8 +1343,8 @@ static void conf_controllers_set_label(int id, int value)
 {
     char str[20];
 
-#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API || \
-    NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_FAMILY_API || \
+    PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
     if (conf_controllers_option_values_xbox[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1295,7 +1354,7 @@ static void conf_controllers_set_label(int id, int value)
 #endif
                 "%s", conf_controllers_option_values_xbox[value % 100000]);
     }
-#elif NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
+#elif PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API
     if (conf_controllers_option_values_ps[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1305,7 +1364,7 @@ static void conf_controllers_set_label(int id, int value)
 #endif
                 "%s", conf_controllers_option_values_ps[value % 100000]);
     }
-#elif NEVERBALL_FAMILY_API == NEVERBALL_STEAMDECK_FAMILY_API
+#elif PENNYBALL_FAMILY_API == PENNYBALL_STEAMDECK_FAMILY_API
     if (conf_controllers_option_values_steamdeck[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1315,7 +1374,7 @@ static void conf_controllers_set_label(int id, int value)
 #endif
                 "%s", conf_controllers_option_values_steamdeck[value % 100000]);
     }
-#elif NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
+#elif PENNYBALL_FAMILY_API == PENNYBALL_SWITCH_FAMILY_API
     if (conf_controllers_option_values_switch[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1325,7 +1384,7 @@ static void conf_controllers_set_label(int id, int value)
 #endif
                 "%s", conf_controllers_option_values_switch[value % 100000]);
     }
-#elif NEVERBALL_FAMILY_API == NEVERBALL_HANDSET_FAMILY_API
+#elif PENNYBALL_FAMILY_API == PENNYBALL_HANDSET_FAMILY_API
     if (conf_controllers_option_values_switch[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1344,7 +1403,7 @@ static void conf_controllers_set_label(int id, int value)
             "%d", value % 100000);
 #endif
 
-#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API
+#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API
     else SAFECPY(str, "");
 #endif
 
@@ -1948,6 +2007,7 @@ enum
     CONF_SYSTEMTRANSFER_SOURCE,
     CONF_SOCIAL,
     CONF_MANAGE_ACCOUNT,
+    CONF_PACKAGES,
 #if NB_HAVE_PB_BOTH==1
     CONF_MANAGE_NOTIFICATIONS,
 #else
@@ -2038,8 +2098,8 @@ static int conf_action(int tok, int val)
 
     case CONF_MANAGE_ACCOUNT:
 #if NB_HAVE_PB_BOTH==1
-        if (strlen(config_get_s(CONFIG_PLAYER)) < 3 || !conf_check_playername(config_get_s(CONFIG_PLAYER)))
-            goto_name(&st_conf_account, &st_conf, goto_conf_covid_extend, 0, 1);
+        if (text_length(config_get_s(CONFIG_PLAYER)) < 3 || !conf_check_playername(config_get_s(CONFIG_PLAYER)))
+            goto_name(&st_conf_account, &st_conf, 0, 0, 1);
         else
             goto_state(&st_conf_account);
 #else
@@ -2054,6 +2114,12 @@ static int conf_action(int tok, int val)
 #endif
 
 #if NB_HAVE_PB_BOTH!=1
+    case CONF_PACKAGES:
+        #if ENABLE_FETCH==1
+        return goto_state(&st_package);
+        #endif
+        break;
+
     case CONF_BALL:
         // HACK: This avoids spamming stuff
         if (fs_exists("gui/ball.sol") && fs_exists("gui/ball.nbr"))
@@ -2147,7 +2213,7 @@ static int conf_gui(void)
 #if GAME_TRANSFER_TARGET==1
             conf_state(id, _("Neverball Game Transfer"), _("Start"), CONF_SYSTEMTRANSFER_TARGET);
 #else
-            conf_state(id, _("Neverball Transfer Tool"), _("Start"), CONF_SYSTEMTRANSFER_SOURCE);
+            conf_state(id, _("Pennyball Transfer Tool"), _("Start"), CONF_SYSTEMTRANSFER_SOURCE);
 #endif
             gui_space(id);
         }
@@ -2156,13 +2222,19 @@ static int conf_gui(void)
         int rd = conf_state(id, _("Community (Discord)"), _("Join"), CONF_SOCIAL);
         gui_set_color(rd, gui_wht, gui_cya);
 
-#if NB_HAVE_PB_BOTH==1
         gui_space(id);
 
+#if NB_HAVE_PB_BOTH==1
         conf_state(id, _("Account"), _((strlen(config_get_s(CONFIG_PLAYER)) < 3 || !conf_check_playername(config_get_s(CONFIG_PLAYER))) ? "Register" : "Manage"), CONF_MANAGE_ACCOUNT);
         conf_state(id, _("Notifications"), _("Manage"), CONF_MANAGE_NOTIFICATIONS);
-#endif
+
         gui_space(id);
+#endif
+
+#if ENABLE_FETCH==1
+        conf_state(id, _("Packages"), _("Manage"), CONF_PACKAGES);
+        gui_space(id);
+#endif
 
         conf_state(id, _("Controls"), _("Configure"), CONF_CONTROLS);
 
@@ -2207,9 +2279,11 @@ static int conf_gui(void)
 
         gui_set_label(name_id, player);
         gui_set_label(ball_id, base_name(ball));
+#endif
 
+#if NB_HAVE_PB_BOTH!=1
 #if NB_EOS_SDK==0 || NB_STEAM_API==0
-        if (online_mode || !account_changeable)
+        if (online_mode)
 #endif
         {
             /*
@@ -2275,7 +2349,7 @@ static void conf_shared_timer(int id, float dt)
 
 static int null_enter(struct state *st, struct state *prev)
 {
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     xbox_control_gui_free();
 #endif
     hud_free();
@@ -2309,7 +2383,7 @@ static void null_leave(struct state *st, struct state *next, int id)
 
     gui_init();
     hud_init();
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     xbox_control_gui_init();
 #endif
 
@@ -2352,7 +2426,11 @@ struct state st_conf_covid_extend = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn
+    common_buttn,
+    NULL,
+    NULL,
+    NULL,
+    conf_shared_exit,
 };
 
 struct state st_conf_account = {
@@ -2365,7 +2443,11 @@ struct state st_conf_account = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn
+    common_buttn,
+    NULL,
+    NULL,
+    NULL,
+    conf_shared_exit,
 };
 
 struct state st_conf_social = {
@@ -2378,7 +2460,11 @@ struct state st_conf_social = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn
+    common_buttn,
+    NULL,
+    NULL,
+    NULL,
+    conf_shared_exit,
 };
 
 struct state st_conf_notification = {
@@ -2391,7 +2477,11 @@ struct state st_conf_notification = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn
+    common_buttn,
+    NULL,
+    NULL,
+    NULL,
+    conf_shared_exit,
 };
 
 struct state st_conf_control = {
@@ -2404,7 +2494,11 @@ struct state st_conf_control = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn
+    common_buttn,
+    NULL,
+    NULL,
+    NULL,
+    conf_shared_exit,
 };
 
 struct state st_conf_calibrate = {
@@ -2417,7 +2511,11 @@ struct state st_conf_calibrate = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn
+    common_buttn,
+    NULL,
+    NULL,
+    NULL,
+    conf_shared_exit,
 };
 
 struct state st_conf_controllers = {
@@ -2430,7 +2528,11 @@ struct state st_conf_controllers = {
     NULL,
     common_click,
     common_keybd,
-    conf_controllers_buttn
+    conf_controllers_buttn,
+    NULL,
+    NULL,
+    NULL,
+    conf_shared_exit,
 };
 
 struct state st_conf_audio = {
@@ -2443,7 +2545,11 @@ struct state st_conf_audio = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn
+    common_buttn,
+    NULL,
+    NULL,
+    NULL,
+    conf_shared_exit,
 };
 
 struct state st_conf = {
@@ -2456,7 +2562,11 @@ struct state st_conf = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn
+    common_buttn,
+    NULL,
+    NULL,
+    NULL,
+    conf_shared_exit,
 };
 
 struct state st_null = {
@@ -2469,5 +2579,9 @@ struct state st_null = {
     NULL,
     NULL,
     NULL,
-    NULL
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    conf_shared_exit,
 };

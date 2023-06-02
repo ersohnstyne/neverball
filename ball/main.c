@@ -63,14 +63,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#if ENABLE_DEDICATED_SERVER==1
-#include <NB_Network_Client.h>
-#include <PB_Network_Client.h>
-#endif
-
 #if __cplusplus
 extern "C" {
 #endif
+#include "game_common.h"
 #include "game_client.h"
 
 #include "st_end_support.h"
@@ -81,7 +77,10 @@ extern "C" {
 #ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
-#include "checkpoints.h"
+#endif
+
+#ifdef MAPC_INCLUDES_CHKP
+#include "checkpoints.h" // New: Checkpoints
 #endif
 
 #include "accessibility.h"
@@ -151,7 +150,7 @@ static void shot(void)
 #if NB_STEAM_API==0
     static char filename[MAXSTR];
 
-    int secdecimal = (int) roundf(config_screenshot() / 10000);
+    int secdecimal = ROUND(config_screenshot() / 10000);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(filename, dstSize,
@@ -180,12 +179,14 @@ static int handle_key_dn(SDL_Event *e)
     /* SDL made me do it. */
 #ifdef __APPLE__
     if (c == SDLK_q && e->key.keysym.mod & KMOD_GUI)
-        return 0;
 #endif
 #ifdef _WIN32
     if (c == SDLK_F4 && e->key.keysym.mod & KMOD_ALT)
-        return 0;
 #endif
+    {
+        st_exit();
+        return 0;
+    }
 
     switch (c)
     {
@@ -378,6 +379,8 @@ static void dispatch_networking_error_event(int ec)
 
 #endif
 
+/*---------------------------------------------------------------------------*/
+
 int st_global_loop(void)
 {
     return loop();
@@ -416,6 +419,7 @@ static int loop(void)
         switch (e.type)
         {
         case SDL_QUIT:
+            st_exit();
             return 0;
 
 #ifdef __EMSCRIPTEN__
@@ -437,7 +441,7 @@ static int loop(void)
             break;
 #endif
 
-#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
         case SDL_MOUSEMOTION:
             /* Convert to bottom left origin. */
 
@@ -557,7 +561,7 @@ static int loop(void)
             text_input_str(e.text.text, 1);
             break;
 
-#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
+#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
         case SDL_JOYAXISMOTION:
             joy_axis(e.jaxis.which, e.jaxis.axis, JOY_VALUE(e.jaxis.value));
             break;
@@ -850,12 +854,12 @@ static int is_replay(struct dir_item *item)
 
 static int is_score_file(struct dir_item *item)
 {
-    return str_starts_with(item->path, "neverballhs-");
+    return str_starts_with(item->path, "pennyballhs-");
 }
 
 static int is_account_file(struct dir_item *item)
 {
-    return str_starts_with(item->path, "neverballaccount-");
+    return str_starts_with(item->path, "pennyballaccount-");
 }
 
 static void make_dirs_and_migrate(void)
@@ -873,7 +877,7 @@ static void make_dirs_and_migrate(void)
             for (i = 0; i < array_len(items); i++)
             {
                 src = DIR_ITEM_GET(items, i)->path;
-                dst = concat_string("Accounts/", src + sizeof ("neverballaccount-") - 1, NULL);
+                dst = concat_string("Accounts/", src + sizeof ("pennyballaccount-") - 1, NULL);
                 fs_rename(src, dst);
                 free(dst);
             }
@@ -908,7 +912,7 @@ static void make_dirs_and_migrate(void)
             {
                 src = DIR_ITEM_GET(items, i)->path;
                 dst = concat_string("Scores/",
-                                    src + sizeof ("neverballhs-") - 1,
+                                    src + sizeof ("pennyballhs-") - 1,
                                     ".txt",
                                     NULL);
                 fs_rename(src, dst);
@@ -1066,16 +1070,16 @@ static int main_init(int argc, char *argv[])
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 #endif
 
-#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API \
+#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_FAMILY_API \
     && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX, "1");
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API \
+#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API \
     && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360) && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360_PLAYER_LED)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360_PLAYER_LED, "1");
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API
 #if defined(SDL_HINT_JOYSTICK_HIDAPI_PS5) && defined(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "1");
@@ -1087,7 +1091,7 @@ static int main_init(int argc, char *argv[])
 #error No Playstation HIDAPI specified!
 #endif
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API \
+#if PENNYBALL_FAMILY_API == PENNYBALL_SWITCH_FAMILY_API \
     && defined(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS, "1");
 #endif
@@ -1108,6 +1112,10 @@ static int main_init(int argc, char *argv[])
         log_errorf("Failure to initialize SDL: Exception caught! (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
         return 0;
     }
+#endif
+
+#ifndef NDEBUG
+    SDL_LogSetPriority(SDL_LOG_CATEGORY_ERROR, SDL_LOG_PRIORITY_DEBUG);
 #endif
 
     /* Initialize configuration. */
@@ -1155,41 +1163,41 @@ static int main_init(int argc, char *argv[])
 #endif
 
     /* Enable joystick events. */
-#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
+#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
     if (!joy_init())
         return 0;
 #endif
 
 #if NB_HAVE_PB_BOTH==1
-#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
     init_controller_type(PLATFORM_PC);
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_FAMILY_API
     init_controller_type(PLATFORM_XBOX);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
     init_controller_type(PLATFORM_XBOX);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API
     init_controller_type(PLATFORM_PS);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_STEAMDECK_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_STEAMDECK_FAMILY_API
     init_controller_type(PLATFORM_STEAMDECK);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_SWITCH_FAMILY_API
     init_controller_type(PLATFORM_SWITCH);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_HANDSET_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_HANDSET_FAMILY_API
     init_controller_type(PLATFORM_HANDSET);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
@@ -1295,7 +1303,7 @@ static void main_quit(void)
     audio_free();
     lang_quit();
 
-#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
+#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
     joy_quit();
 #endif
 
@@ -1431,12 +1439,30 @@ int main(int argc, char *argv[])
         else log_errorf("File %s is not in game path\n", opt_level);
 
         if (!loaded)
+        {
+#ifdef SKIP_END_SUPPORT
             goto_state_full(&st_title, 0, 0, 1);
+#else
+            goto_state_full(&st_end_support, 0, 0, 1);
+#endif
+        }
     }
     else if (opt_screensaver)
         goto_state_full(&st_screensaver, 0, 0, 1);
     else
-        goto_state_full(&st_title, 0, 0, 1);
+    {
+#if NB_HAVE_PB_BOTH==1
+        log_printf("Attempt to show intro\n");
+        goto_state_full(&st_intro, 0, 0, 1);
+#else
+        int val = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
+
+        if (val == -1)
+            goto_end_support(&st_title);
+        else
+            goto_state_full(&st_intro_restore, 0, 0, 1);
+#endif
+    }
 
     /* Run the main game loop. */
 

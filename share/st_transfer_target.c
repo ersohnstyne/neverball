@@ -136,7 +136,7 @@ int transfer_about_transferring_gui(void)
             switch (about_pageindx)
             {
             case 1:
-                gui_multi(jd, _("A game transfer requires\\- One source Neverball game and one target\\Neverball game with highest version"), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("A game transfer requires\\- One source Neverball game and one target\\Pennyball game with highest version"), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("- At least one keyboard and mouse"), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("- An External Drive with at least 1 GB of free space"), GUI_SML, gui_wht, gui_wht);
 #if ENABLE_DEDICATED_SERVER==1 && !defined(TRANSFER_OFFLINE_ONLY)
@@ -158,7 +158,7 @@ int transfer_about_transferring_gui(void)
                 break;
             case 5:
                 gui_label(jd, _("Step 3: Transfer to target game"), GUI_SML, 0, 0);
-                gui_multi(jd, _("Take out the External Drive from the source Neverball,\\and insert back into this target Neverball\\to complete the game transfer."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Take out the External Drive from the source Neverball,\\and insert back into this target Pennyball\\to complete the game transfer."), GUI_SML, gui_wht, gui_wht);
                 break;
             case 6:
                 gui_label(jd, _("The following data will be transferred:"), GUI_SML, gui_grn, gui_grn);
@@ -172,17 +172,23 @@ int transfer_about_transferring_gui(void)
                 break;
             case 8:
                 gui_label(jd, _("Other notes:"), GUI_SML, gui_yel, gui_yel);
-                gui_multi(jd, _("Save data that may already exist cannot be\\transferred per hand."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Save data that may already exist on External Drive\\cannot be transferred directly."), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("For save data, transfer it from the External Drive\\to the source Neverball, before performing\\the transfer.\\"
-                    "For level set, either transfer it back to the\\source Neverball, before performing the transfer,\\or redownload it after the transfer\\using the Neverball."), GUI_SML, gui_wht, gui_wht);
+                                "After the transfer on this game, you must do so beforehand."), GUI_SML, gui_wht, gui_wht);
                 break;
             case 9:
                 gui_label(jd, _("Other notes:"), GUI_SML, gui_yel, gui_yel);
-                gui_multi(jd, _("Your wallet balance in the account on the\\source game will be added to your\\balance of wallet on this game."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("For level set, either transfer it back to the\\source Neverball, before performing the transfer,\\"
+                                "or redownload it after the transfer\\using the Pennyball."), GUI_SML, gui_wht, gui_wht);
                 break;
             case 10:
                 gui_label(jd, _("Other notes:"), GUI_SML, gui_yel, gui_yel);
-                gui_multi(jd, _("- Some features may be limited after the transfer."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Your wallet balance in the account on the\\source game will be added to your\\balance of wallet on this game.\\"
+                                "If the total would exceed the maximum\\balance of coins that can be stored,\\you will not be able to proceed."), GUI_SML, gui_wht, gui_wht);
+                break;
+            case 11:
+                gui_label(jd, _("Other notes:"), GUI_SML, gui_yel, gui_yel);
+                gui_multi(jd, _("- Depending on this app, some features\\may be limited after the transfer."), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("- Data may be lost if you turn off your PC\\or exit the game during the transfer."), GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("- All player models in the game of the target game\\will be replaced with the models."), GUI_SML, gui_wht, gui_wht);
                 break;
@@ -335,9 +341,7 @@ int transfer_preparing_gui(void)
                     gui_multi(jd, _(TARGET_TRANSFER_WARNING_EXTERNAL), GUI_SML, gui_red, gui_red);
                 }
                 else
-                {
                     gui_multi(jd, _("Created game transfer data."), GUI_SML, gui_wht, gui_wht);
-                }
                 break;
 
             case 6:
@@ -367,9 +371,7 @@ int transfer_preparing_gui(void)
                     gui_state(jd, _("Quit"), GUI_SML, GUI_BACK, 0);
                 }
                 else if (preparations_pageindx != 6)
-                {
                     gui_start(jd, _("Next"), GUI_SML, GUI_NEXT, 0);
-                }
             }
         }
     }
@@ -384,7 +386,7 @@ int transfer_preparing_gui(void)
 int transfer_process_have_wallet;
 int transfer_process_have_account;
 /*
- * insert the external drive (after startup and connect to the internet or remove from external drive after preparations)
+ * insert the external drive (after startup and connect to the internet and remove from external drive after preparations)
  * move data from external drive (after loaded from external drive's source game)
  * transfer of wallet complete, profile transfer complete and highscore transfer completed (after deleted game transfer data from local pc)
  */
@@ -529,17 +531,11 @@ int transfer_gui(void)
                     gui_state(jd, _("Quit"), GUI_SML, GUI_BACK, 0);
                 }
                 else if (transfer_pageindx == 2)
-                {
                     gui_start(jd, _("Transfer"), GUI_SML, GUI_NEXT, 0);
-                }
                 else if (transfer_pageindx == 6)
-                {
                     gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
-                }
                 else
-                {
                     gui_start(jd, _("Next"), GUI_SML, GUI_NEXT, 0);
-                }
             }
         }
     }
@@ -570,7 +566,7 @@ static int transfer_action(int tok, int val)
     switch (tok)
     {
     case GUI_NEXT:
-        if (show_about && (about_pageindx == 11 || val))
+        if (show_about && (about_pageindx == 12 || val))
         {
             show_about = 0;
             show_preparations = 1;
@@ -636,9 +632,7 @@ static int transfer_action(int tok, int val)
                 if (transfer_pageindx == 4)
                 {
                     if (!(transfer_walletamount[0] > 0 || transfer_walletamount[1] > 0))
-                    {
                         transfer_pageindx++;
-                    }
                 }
                 goto_state_full(&st_transfer, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
             }
@@ -695,12 +689,12 @@ static const char *pick_home_path(void)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     char userdir_env[MAX_PATH];
     memset(userdir_env, 0, sizeof (userdir_env));
-    getenv_s(&requiredSize, userdir_env, requiredSize, "NEVERBALL_USERDIR");
+    getenv_s(&requiredSize, userdir_env, requiredSize, "PENNYBALL_USERDIR");
     if (userdir_env)
         return userdir_env;
 #else
     char *userdir_env;
-    if ((userdir_env = getenv("NEVERBALL_USERDIR")))
+    if ((userdir_env = getenv("PENNYBALL_USERDIR")))
         return userdir_env;
 #endif
 
@@ -720,7 +714,7 @@ static const char *pick_home_path(void)
         return fs_base_dir();
 #else
     char *userdir_env;
-    if ((userdir_env = getenv("NEVERBALL_USERDIR")))
+    if ((userdir_env = getenv("PENNYBALL_USERDIR")))
         return userdir_env;
 
     const char *path;
@@ -765,7 +759,7 @@ void transfer_timer_preparation_target(float dt)
     FILE *internal_file, *transfer_file, *replayfilter_file;
 
     __int64 lpFreeBytesAvailable, lpTotalNumberOfBytes, lpTotalNumberOfFreeBytes;
-    int ext_drive_connected;
+    int ext_drive_connected, ext_drive_supported;
 
     switch (preparations_pageindx)
     {
@@ -784,11 +778,15 @@ void transfer_timer_preparation_target(float dt)
 
 #if _WIN32
             ext_drive_connected = GetDiskFreeSpaceExA(concat_string(drive_letters[i], ":", 0),
-                (PULARGE_INTEGER)&lpFreeBytesAvailable,
-                (PULARGE_INTEGER)&lpTotalNumberOfBytes,
-                (PULARGE_INTEGER)&lpTotalNumberOfFreeBytes);
+                                                      (PULARGE_INTEGER) &lpFreeBytesAvailable,
+                                                      (PULARGE_INTEGER) &lpTotalNumberOfBytes,
+                                                      (PULARGE_INTEGER) &lpTotalNumberOfFreeBytes);
+
+            ext_drive_supported = GetDriveTypeA(concat_string(drive_letters[i], ":\\", 0)) == DRIVE_REMOVEABLE;
 #endif
-            if (ext_drive_connected == 1 && lpTotalNumberOfFreeBytes >= (__int64)(1000000000))
+            if (ext_drive_connected == 1
+                && ext_drive_supported
+                && lpFreeBytesAvailable >= (__int64)(1000000000))
             {
                 if (dir_make(concat_string(drive_letters[i], ":/nvb_gametransfer", 0)) || GetLastError() == ERROR_ALREADY_EXISTS)
                 {
@@ -824,9 +822,14 @@ void transfer_timer_preparation_target(float dt)
             }
             else
             {
-                if (ext_drive_connected && lpTotalNumberOfFreeBytes > 1)
+                if (ext_drive_connected)
                 {
-                    if (lpTotalNumberOfFreeBytes < (long long)(1000000000))
+                    if (!ext_drive_supported)
+                    {
+                        log_errorf("For disk %s:, only removable drive is allowed!\n", drive_letters[i]);
+                        transfer_error_code = 2;
+                    }
+                    else if (lpFreeBytesAvailable < (__int64)(1000000000))
                     {
                         log_errorf("Not enough external drive space for %s:!\n", drive_letters[i]);
                         transfer_error_code = 12;
@@ -998,11 +1001,13 @@ void transfer_timer_preprocess_target(float dt)
 
 #if _WIN32
         ext_drive_connected = GetDiskFreeSpaceExA(concat_string(drive_letters[i], ":", 0),
-            (PULARGE_INTEGER)&lpFreeBytesAvailable,
-            (PULARGE_INTEGER)&lpTotalNumberOfBytes,
-            (PULARGE_INTEGER)&lpTotalNumberOfFreeBytes);
+                                                  (PULARGE_INTEGER) &lpFreeBytesAvailable,
+                                                  (PULARGE_INTEGER) &lpTotalNumberOfBytes,
+                                                  (PULARGE_INTEGER) &lpTotalNumberOfFreeBytes);
+
+        ext_drive_supported = GetDriveTypeA(concat_string(drive_letters[i], ":\\", 0)) == DRIVE_REMOVEABLE;
 #endif
-        if (ext_drive_connected)
+        if (ext_drive_connected && ext_drive_supported)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             fopen_s(&external_file, concat_string(drive_letters[i], ":/nvb_gametransfer/fromsource", 0), "r+t");
@@ -1383,7 +1388,7 @@ static int transfer_enter_target(struct state *st, struct state *prev)
     {
         if (about_pageindx == 0)
             return transfer_introducory_gui();
-        else if (about_pageindx == 11) { return transfer_starting_gui(); }
+        else if (about_pageindx == 12) { return transfer_starting_gui(); }
         else return transfer_about_transferring_gui();
     }
     else if (!show_about && !show_transfer)

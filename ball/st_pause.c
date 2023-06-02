@@ -12,18 +12,19 @@
  * General Public License for more details.
  */
 
-#include <assert.h>
-
 #if NB_HAVE_PB_BOTH==1
 #ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
 
 #include "campaign.h"
-#include "checkpoints.h" // New: Checkpoints
 #include "powerup.h"
 #include "mediation.h"
 #include "account.h"
+#endif
+
+#ifdef MAPC_INCLUDES_CHKP
+#include "checkpoints.h" // New: Checkpoints
 #endif
 
 #include "gui.h"
@@ -121,8 +122,7 @@ static int pause_action(int tok, int val)
             if (quit_uses_resetpuzzle)
             {
                 quit_uses_resetpuzzle = 0;
-                checkpoints_respawn();
-                if (progress_same())
+                if (checkpoints_load() && progress_same())
                 {
                     audio_music_fade_in(0.5f);
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -198,7 +198,6 @@ static int pause_action(int tok, int val)
                     campaign_hardcore_quit();
                 }
                 if (curr_status() == GAME_NONE) progress_stat(GAME_NONE);
-                progress_stop();
                 if (curr_mode() != MODE_NONE) audio_music_stop();
                 return goto_exit();
             }
@@ -208,7 +207,6 @@ static int pause_action(int tok, int val)
         else
         {
             if (curr_status() == GAME_NONE) progress_stat(GAME_NONE);
-            progress_stop();
             audio_music_stop();
             return goto_exit();
         }
@@ -223,6 +221,15 @@ static int pause_action(int tok, int val)
     }
 
     return 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void pause_shared_exit(int id)
+{
+    progress_stat(GAME_NONE);
+    progress_stop();
+    progress_exit();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -302,10 +309,8 @@ static int pause_gui(void)
             {
 #ifdef MAPC_INCLUDES_CHKP
                 if (progress_same_avail() && last_active)
-#else
-                if (progress_same_avail())
-#endif
                     gui_state(jd, _("Reset Puzzle"), GUI_SML, PAUSE_RESPAWN, 0);
+#endif
 
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
                 if (curr_mode() == MODE_NORMAL &&
@@ -321,7 +326,7 @@ static int pause_gui(void)
 
         if ((jd = gui_harray(id)))
         {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (current_platform == PLATFORM_PC)
 #endif
             {
@@ -332,7 +337,7 @@ static int pause_gui(void)
 
                 gui_start(jd, _("Continue"), GUI_SML, PAUSE_CONTINUE, 0);
             }
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             else
             {
                 gui_state(jd, _("Quit"), GUI_SML, PAUSE_EXIT, 0);
@@ -382,7 +387,7 @@ static void pause_paint(int id, float t)
 {
     shared_paint(id, t);
 
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (xbox_show_gui())
         xbox_control_paused_gui_paint();
     else if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
@@ -412,7 +417,7 @@ static int pause_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
             )
@@ -496,7 +501,7 @@ static int pause_quit_gui(void)
 
         if ((jd = gui_harray(id)))
         {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (current_platform == PLATFORM_PC)
 #endif
             {
@@ -505,7 +510,7 @@ static int pause_quit_gui(void)
                     quit_uses_restart ? PAUSE_RESTART :
                         quit_uses_resetpuzzle ? PAUSE_RESPAWN : PAUSE_EXIT, 0);
             }
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             else
                 gui_start(jd, _("Yes"), GUI_SML,
                     quit_uses_restart ? PAUSE_RESTART :
@@ -538,7 +543,11 @@ struct state st_pause = {
     shared_angle,
     shared_click,
     pause_keybd,
-    pause_buttn
+    pause_buttn,
+    NULL,
+    NULL,
+    NULL,
+    pause_shared_exit
 };
 
 struct state st_pause_quit = {
@@ -551,5 +560,9 @@ struct state st_pause_quit = {
     shared_angle,
     shared_click,
     pause_keybd,
-    pause_buttn
+    pause_buttn,
+    NULL,
+    NULL,
+    NULL,
+    pause_shared_exit
 };

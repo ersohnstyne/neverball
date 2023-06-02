@@ -12,8 +12,9 @@
  * General Public License for more details.
  */
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
+#include "account.h"
 #endif
 
 #include "gui.h"
@@ -34,6 +35,7 @@ void shared_leave(struct state *st, struct state *next, int id)
 void shared_paint(int id, float t)
 {
     game_client_draw(0, t);
+
     gui_paint(id);
 }
 
@@ -54,7 +56,7 @@ int shared_point_basic(int id, int x, int y)
 
 void shared_point(int id, int x, int y, int dx, int dy)
 {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform == PLATFORM_PC)
         xbox_toggle_gui(0);
 #endif

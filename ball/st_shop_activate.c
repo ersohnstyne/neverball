@@ -12,7 +12,7 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH == 1
+#if NB_HAVE_PB_BOTH==1
 #ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
@@ -201,7 +201,7 @@ int shop_activate_gui_introducory(void)
         gui_space(id);
         gui_multi(id,
                   _("Your order code should be in an email\\"
-                    "from whoever sold Neverball IAP to you.\\\\"
+                    "from whoever sold Pennyball IAP to you.\\\\"
                     "The order code should be following like this:\\"
                     "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"), 
                   GUI_SML, gui_wht, gui_wht);
@@ -356,7 +356,7 @@ int shop_activate_gui(void)
         if ((jd = gui_harray(id)))
         {
             enter_id = gui_start(jd, _("OK"), GUI_SML, ACTIVATE_OK, 0);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (current_platform == PLATFORM_PC)
 #endif
             {

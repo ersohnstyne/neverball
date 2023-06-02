@@ -16,7 +16,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
+#endif
 #include "solid_base.h"
 #include "base_config.h"
 #include "binary.h"
@@ -786,7 +788,7 @@ static void sol_stor_file(fs_file fout, struct s_base *fp)
 {
     int i;
     int magic   = SOL_MAGIC;
-    int version = SOL_VERSION_CURR;
+    int version = fp->cc > 0 ? SOL_VERSION_CURR : SOL_VERSION_1_7;
 
 #ifdef MAPC_INCLUDES_CHKP
     if (fp->cc == 0) version = 8;

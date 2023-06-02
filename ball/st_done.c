@@ -14,7 +14,7 @@
 
 #include <string.h>
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
 #endif
 
@@ -47,6 +47,7 @@
 /*---------------------------------------------------------------------------*/
 
 static int resume;
+static int stars_gained;
 
 enum {
     DONE_SHOP = GUI_LAST,
@@ -71,8 +72,13 @@ static int done_action(int tok, int val)
             campaign_theme_quit();
             campaign_quit();
         }
+        else
+#endif
+#if NB_HAVE_PB_BOTH==1
+            set_star_update(1);
 #endif
         return goto_playmenu(curr_mode());
+        break;
 
     case GUI_NAME:
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -80,10 +86,12 @@ static int done_action(int tok, int val)
 #else
         return goto_name(&st_done, &st_done, 0, 0, 0);
 #endif
+        break;
 
     case GUI_SCORE:
         gui_score_set(val);
-        return goto_state(&st_done);
+        return goto_state_full(&st_done, 0, 0, 0);
+        break;
 
     case DONE_SHOP:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -95,9 +103,15 @@ static int done_action(int tok, int val)
         }
         else
 #endif
+        {
+#if NB_HAVE_PB_BOTH==1
+            set_star_update(1);
+#endif
             set_quit();
+        }
 
         return goto_state(&st_shop);
+        break;
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     case DONE_TO_GROUP:
@@ -108,6 +122,7 @@ static int done_action(int tok, int val)
             campaign_quit();
         }
         return goto_playmenu(curr_mode());
+        break;
 #endif
     }
     return 1;
@@ -160,21 +175,52 @@ static int done_gui_set(void)
     const char *s1 = _("New Set Record");
     const char *s2 = _("Set Complete");
 
-    int id, jd, kd;
+    int id, jd, kd, ld, md;
 
     int high = progress_set_high();
 
-    if (high)
+    if (high && !resume)
         audio_narrator_play(AUD_SCORE);
 
     if ((id = gui_vstack(0)))
     {
         int gid;
 
-        if (high)
-            gid = gui_title_header(id, s1, GUI_MED, gui_grn, gui_grn);
-        else
-            gid = gui_title_header(id, s2, GUI_MED, gui_blu, gui_grn);
+        if ((jd = gui_hstack(id)))
+        {
+            gui_filler(jd);
+
+#if NB_HAVE_PB_BOTH==1
+            if (set_star(curr_set()) > 0 && set_star_gained(curr_set()))
+            {
+                char set_star_attr[MAXSTR];
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(set_star_attr, MAXSTR,
+#else
+                sprintf(set_star_attr,
+#endif
+                        GUI_STAR " +%d", set_star(curr_set()));
+                int sid = gui_label(jd, set_star_attr, GUI_MED, gui_wht, gui_yel);
+
+                if (!resume)
+                    gui_pulse(sid, 1.2f);
+
+                gui_space(jd);
+            }
+#endif
+
+            if (high)
+                gid = gui_title_header(jd, s1, GUI_MED, gui_grn, gui_grn);
+            else
+                gid = gui_title_header(jd, s2, GUI_MED, gui_blu, gui_grn);
+
+            if (!resume)
+                gui_pulse(gid, 1.2f);
+
+            gui_filler(jd);
+
+            gui_set_rect(jd, GUI_ALL);
+        }
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
         if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
@@ -191,7 +237,7 @@ static int done_gui_set(void)
                 {
                     calc_new_wallet_gem_id = gui_count(kd, 1000, GUI_MED);
                     gui_label(kd, _("Gems"), GUI_SML, gui_wht, gui_wht);
-                    calc_new_wallet_coin_id = gui_count(kd, 100000, GUI_MED);
+                    calc_new_wallet_coin_id = gui_count(kd, ACCOUNT_WALLET_MAX_COINS, GUI_MED);
                     gui_label(kd, _("Coins"), GUI_SML, gui_wht, gui_wht);
 
                     gui_set_count(calc_new_wallet_coin_id, account_get_d(ACCOUNT_DATA_WALLET_COINS));
@@ -220,11 +266,6 @@ static int done_gui_set(void)
 #endif
         }
 
-        if (!resume)
-        {
-            gui_pulse(gid, 1.2f);
-        }
-
         gui_layout(id, 0, 0);
     }
 
@@ -242,14 +283,19 @@ static int done_enter(struct state *st, struct state *prev)
     if (prev == &st_name)
         progress_rename(1);
 
+    resume = prev != &st_goal;
+
+#if NB_HAVE_PB_BOTH==1
+    if (campaign_used()
+    &&  set_star(curr_set()) > 0 && set_star_gained(curr_set())
+    && !resume)
+        audio_narrator_play(AUD_STARS);
+#endif
+
     int high = progress_set_high();
 
-    if (high && (prev == &st_goal || prev == &st_capital))
+    if (high && !resume)
         audio_narrator_play(AUD_SCORE);
-
-    resume = (prev == &st_done ||
-              prev == &st_goal ||
-              prev == &st_capital);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     return campaign_used() ? done_gui_campaign() : done_gui_set();
@@ -268,7 +314,7 @@ static int done_keybd(int c, int d)
 {
     if (d)
     {
-#ifndef __EMSCRIPTEN__
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #else
         if (c == KEY_EXIT)
@@ -308,7 +354,7 @@ static int capital_enter(struct state* st, struct state* prev)
     if ((id = gui_vstack(0)))
     {
         int logo_id = gui_label(id, GUI_CROWN, GUI_LRG, gui_yel, gui_yel);
-        int aid = gui_label(id, GUI_DIAMOND " 1500", GUI_MED, gui_wht, gui_yel);
+        int aid = gui_label(id, GUI_DIAMOND " 1500", GUI_SML, gui_wht, gui_yel);
         int bid = gui_label(id, _("Wealthiest Capital"), GUI_SML, gui_wht, gui_wht);
 
         gui_pulse(logo_id, 1.2f);
@@ -335,7 +381,7 @@ static void capital_timer(int id, float dt)
 
 static int capital_keybd(int c, int d)
 {
-#ifndef __EMSCRIPTEN__
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (d && c == KEY_EXIT && current_platform == PLATFORM_PC)
 #else
     if (d && c == KEY_EXIT)

@@ -485,6 +485,40 @@ void hole_fall(int split)
     }
 }
 
+int  hole_retry_avail(int split)
+{
+    int stroke_limit = score_v[hole][0] + 4;
+
+    return score_v[hole][player] + split ? 0 : 2 <= stroke_limit;
+}
+
+void hole_retry(int split)
+{
+    int stroke_limit = score_v[hole][0] + 4;
+    audio_play(AUD_RETRY, 1.f);
+
+    /* Reset to the position of the putt, and apply a one-stroke penalty. */
+
+    game_set_pos(ball_p[player], ball_e[player]);
+    score_v[hole][player] += split ? 0 : 2;
+
+    /* Cap scores at specific stroke limit or par plus 3. */
+
+    if (score_v[hole][player] >= stroke_limit &&
+        score_v[hole][player] >= score_v[hole][0] + 3)
+    {
+        score_v[hole][player] = (score_v[hole][0] > stroke_limit - 3) ? score_v[hole][0] + 3 : stroke_limit;
+        stat_v[player] = 1;
+        done++;
+    }
+}
+
+void hole_restart(void)
+{
+    memset(&score_v[hole][1], 0, sizeof(int) * party);
+    hole_goto(hole, party);
+}
+
 /*---------------------------------------------------------------------------*/
 
 void hole_song(void)

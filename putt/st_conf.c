@@ -65,9 +65,9 @@ static void init_changed_value(void)
 
 static int conf_action(int i)
 {
-    int ms = config_get_d(CONFIG_MASTER_VOLUME);
-    int snd = config_get_d(CONFIG_SOUND_VOLUME);
-    int mus = config_get_d(CONFIG_MUSIC_VOLUME);
+    int ms       = config_get_d(CONFIG_MASTER_VOLUME);
+    int snd      = config_get_d(CONFIG_SOUND_VOLUME);
+    int mus      = config_get_d(CONFIG_MUSIC_VOLUME);
     int narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
     int r = 1;
 

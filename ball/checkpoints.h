@@ -1,7 +1,23 @@
+/*
+ * Copyright (C) 2023 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #ifndef CHECKPOINTS_H
 #define CHECKPOINTS_H
 
+#if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
+#endif
 
 #ifdef MAPC_INCLUDES_CHKP
 
@@ -66,23 +82,23 @@ extern struct game_view last_view[1024];
 extern float last_pos[1024][3];
 
 extern float last_time;
-extern int last_coins;
-extern int last_goal;
-
 extern int last_timer_down;
-extern int last_gained;
 
 extern int respawn_coins;
 extern float respawn_timer;
+extern int respawn_gained;
 
 /*---------------------------------------------------------------------------*/
+
+typedef void (*cmd_fn_chkp)(const union cmd *);
 
 void checkpoints_save_spawnpoint(struct s_vary,
                                  struct game_view,
                                  int);
 
-void checkpoints_respawn(void);
-void checkpoints_respawn_done(void);
+int checkpoints_load(void);
+
+void checkpoints_respawn(struct s_vary *, cmd_fn_chkp, int *ci);
 
 int checkpoints_respawn_coins(void);
 int checkpoints_respawn_timer(void);
@@ -93,7 +109,7 @@ int checkpoints_respawn_timer(void);
  */
 void checkpoints_stop(void);
 
-void checkpoints_set_last_data(float, int, int);
+void checkpoints_set_last_data(float, int, int, int);
 
 #endif
 #endif

@@ -1,13 +1,31 @@
+/*
+ * Copyright (C) 2023 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #ifndef PACKAGE_H
 #define PACKAGE_H 1
 
 #include "fetch.h"
 
+#define NB_PACKAGES_PREMIUM
+
 enum package_category
 {
-    PACKAGE_CATEGORY_LEVELSET = 0,
+    PACKAGE_CATEGORY_NONE = 0,
     PACKAGE_CATEGORY_CAMPAIGN,
-    PACKAGE_CATEGORY_PROFILE
+    PACKAGE_CATEGORY_LEVELSET,
+    PACKAGE_CATEGORY_PROFILE,
+    PACKAGE_CATEGORY_COURSE
 };
 
 enum package_status

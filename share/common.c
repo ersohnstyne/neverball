@@ -237,11 +237,11 @@ int file_exists(const char *path)
 
 int file_rename(const char *src, const char *dst)
 {
-#ifdef _WIN32
+#if _WIN32
     if (file_exists(dst))
         remove(dst);
 #endif
-    return rename(src, dst);
+    return rename(src, dst) == 0;
 }
 
 #ifndef FS_VERSION_1

@@ -21,7 +21,7 @@
 #include <unistd.h>
 #endif
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
 #endif
 
@@ -62,6 +62,7 @@ const GLubyte gui_pnk[4] = { 0xFF, 0x55, 0xFF, 0xFF };  /* Pink     */
 const GLubyte gui_red[4] = { 0xFF, 0x00, 0x00, 0xFF };  /* Red      */
 const GLubyte gui_grn[4] = { 0x00, 0xFF, 0x00, 0xFF };  /* Green    */
 const GLubyte gui_blu[4] = { 0x00, 0x00, 0xFF, 0xFF };  /* Blue     */
+const GLubyte gui_brn[4] = { 0xCB, 0x4A, 0x00, 0xFF };  /* Brown    */
 const GLubyte gui_blk[4] = { 0x00, 0x00, 0x00, 0xFF };  /* Black    */
 const GLubyte gui_gry[4] = { 0x55, 0x55, 0x55, 0xFF };  /* Gray     */
 const GLubyte gui_shd[4] = { 0x00, 0x00, 0x00, 0x80 };  /* Shadow   */
@@ -645,12 +646,12 @@ void gui_resize(void)
 
                 widget[i].text_w = 0;
                 widget[i].text_h = 0;
-                
+
                 if (ttf)
                     size_image_from_font(NULL, NULL,
-                                        &widget[i].text_w,
-                                        &widget[i].text_h,
-                                        widget[i].init_text,
+                                         &widget[i].text_w,
+                                         &widget[i].text_h,
+                                         widget[i].init_text, ttf);
             }
 
             /* Actually compute the stuff. */
@@ -663,6 +664,7 @@ void gui_resize(void)
     for (i = 1; i < WIDGET_MAX; ++i)
         if (widget[i].type != GUI_FREE && (widget[i].flags & GUI_LAYOUT))
             gui_layout(i, widget[i].layout_xd, widget[i].layout_yd);
+
 }
 
 void gui_init(void)
@@ -804,15 +806,17 @@ int gui_filler(int pd) { return gui_widget(pd, GUI_FILLER); }
 /*
  * For when you really want to use gui_layout on multiple widgets.
  */
-int gui_root()
+int gui_root(void)
 {
     int id;
 
     if ((id = gui_widget(0, GUI_ROOT)))
     {
-        // Get gui_stick() working.
-        widget[id].w = INT_MAX;
-        widget[id].h = INT_MAX;
+        // Get gui_search() working.
+        widget[id].x = 0;
+        widget[id].y = 0;
+        widget[id].w = video.device_w;
+        widget[id].h = video.device_h;
     }
     return id;
 }
@@ -1191,7 +1195,7 @@ int gui_state(int pd, const char *text, int size, int token, int value)
                              &widget[id].text_w,
                              &widget[id].text_h,
                              text, ttf);
-
+        
         widget[id].size  = size;
         widget[id].token = token;
         widget[id].value = value;
@@ -1220,6 +1224,8 @@ int gui_label(int pd, const char *text, int size, const GLubyte *c0,
                              &widget[id].text_w,
                              &widget[id].text_h,
                              text, ttf);
+        widget[id].w      = widget[id].text_w;
+        widget[id].h      = widget[id].text_h;
         widget[id].size   = size;
         widget[id].color0 = c0 ? c0 : gui_yel;
         widget[id].color1 = c1 ? c1 : gui_red;
@@ -1693,8 +1699,8 @@ int gui_search(int id, int x, int y)
 
     if (id &&
         (widget[id].type == GUI_ROOT ||
-         (widget[id].x <= x && x < widget[id].x + widget[id].w &&
-          widget[id].y <= y && y < widget[id].y + widget[id].h)))
+            (widget[id].x <= x && x < widget[id].x + widget[id].w &&
+                widget[id].y <= y && y < widget[id].y + widget[id].h)))
     {
         if (gui_hot(id))
             return id;
@@ -2358,7 +2364,6 @@ void gui_dump(int id, int d)
         case GUI_COUNT:  type = "count";  break;
         case GUI_CLOCK:  type = "clock";  break;
         case GUI_BUTTON: type = "button"; break;
-        case GUI_SPACE:  type = "space";  break;
         case GUI_ROOT:   type = "root";   break;
         }
 
@@ -2800,14 +2805,14 @@ int gui_navig(int id, int total, int first, int step)
     {
         if (next || prev)
         {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (current_platform == PLATFORM_PC)
 #endif
             {
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png", "gui/navig/arrow_right.png", GUI_NEXT, GUI_NONE, next);
 #else
-                gui_maybe(jd, GUI_ARROW_RGHT, GUI_NEXT, GUI_NONE, next);
+                gui_maybe(jd, GUI_TRIANGLE_RIGHT, GUI_NEXT, GUI_NONE, next);
 #endif
             }
 
@@ -2822,18 +2827,18 @@ int gui_navig(int id, int total, int first, int step)
                         "%d/%d", page, pages);
                 gui_set_label(kd, str);
             }
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (current_platform == PLATFORM_PC)
 #endif
             {
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png", "gui/navig/arrow_left.png", GUI_PREV, GUI_NONE, prev);
 #else
-                gui_maybe(jd, GUI_ARROW_LFT, GUI_PREV, GUI_NONE, prev);
+                gui_maybe(jd, GUI_TRIANGLE_LEFT, GUI_PREV, GUI_NONE, prev);
 #endif
             }
         }
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)
 #endif
         {

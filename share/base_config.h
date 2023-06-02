@@ -104,19 +104,24 @@
 #define JOY_VALUE(k) ((float) (k) / ((k) < 0 ? 32768 : 32767))
 
 #if !defined(MAX_STR_BLOCKREASON)
-#if _WIN32
-#pragma message("Missing MAX_STR_BLOCKREASON! Redefined back to Microsoft Windows!")
+#if _WIN32 && !_MSC_VER
+#error This preprocessor is superceded with WinUser.h include headers. \
+       Consider using MAX_STR_BLOCKREASON from Windows.h with IDE \
+       or build tools for Microsoft Visual Studio Community instead.
 #endif
 #define MAX_STR_BLOCKREASON 256
 #endif
-#define MAXSTR MAX_STR_BLOCKREASON
 
 #if !defined(MAX_PATH)
-#if _WIN32
-#pragma message("Missing MAX_PATH! Redefined back to Microsoft Windows!")
+#if _WIN32 && !_MSC_VER
+#error This preprocessor is superceded with minwindef.h include headers. \
+       Consider using MAX_PATH from Windows.h with IDE or build tools \
+       for Microsoft Visual Studio Community instead.
 #endif
 #define MAX_PATH 260
 #endif
+
+#define MAXSTR MAX_STR_BLOCKREASON
 #define PATHMAX MAX_PATH
 
 /*---------------------------------------------------------------------------*/

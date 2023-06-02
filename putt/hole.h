@@ -38,6 +38,9 @@ void hole_goal(void);
 void hole_stop(void);
 void hole_skip(void);
 void hole_fall(int);
+int  hole_retry_avail(int);
+void hole_retry(int);
+void hole_restart(void);
 
 void hole_song(void);
 

@@ -14,6 +14,7 @@
 
 #include "fetch.h"
 #include "common.h"
+#include "text.h"
 #ifndef VERSION
 #include "version.h"
 #endif
@@ -75,9 +76,9 @@ struct fetch_info
 {
     struct fetch_callback callback;
 
-    CURL *handle;
-    char *dest_filename;
-    fs_file dest_file;
+    CURL        *handle;
+    char        *dest_filename;
+    fs_file      dest_file;
     unsigned int fetch_id;
 };
 
@@ -127,7 +128,7 @@ static List fetch_list = NULL;
  */
 struct fetch_event
 {
-    void (*callback)(void *, void *);
+    void (*callback) (void *, void *);
     void *callback_data;
     void *extra_data;
 };
@@ -144,7 +145,7 @@ static void (*fetch_dispatch_event)(void *) = NULL;
  */
 static struct fetch_progress *create_extra_progress(double total, double now)
 {
-    struct fetch_progress *pr = (fetch_progress *) calloc(sizeof (*pr), 1);
+    struct fetch_progress *pr = (struct fetch_progress *) calloc(sizeof (*pr), 1);
 
     if (pr)
     {
@@ -160,7 +161,7 @@ static struct fetch_progress *create_extra_progress(double total, double now)
  */
 static struct fetch_done *create_extra_done(int finished)
 {
-    struct fetch_done *dn = (fetch_done *) calloc(sizeof (*dn), 1);
+    struct fetch_done *dn = (struct fetch_done *) calloc(sizeof (*dn), 1);
 
     if (dn)
         dn->finished = !!finished;
@@ -185,7 +186,7 @@ static void free_extra_data(void *extra_data)
  */
 static struct fetch_event *create_fetch_event(void)
 {
-    struct fetch_event *fe = (fetch_event *) calloc(sizeof (*fe), 1);
+    struct fetch_event *fe = (struct fetch_event *) calloc(sizeof (*fe), 1);
 
     return fe;
 }
@@ -207,7 +208,7 @@ static void free_fetch_event(struct fetch_event *fe)
  */
 void fetch_handle_event(void *data)
 {
-    struct fetch_event *fe = (fetch_event *) data;
+    struct fetch_event *fe = (struct fetch_event *) data;
 
     if (fe->callback)
         fe->callback(fe->callback_data, fe->extra_data);
@@ -238,7 +239,7 @@ static int count_active_transfers(void)
  */
 static struct fetch_info *create_fetch_info(void)
 {
-    struct fetch_info *fi = (fetch_info *) calloc(sizeof (*fi), 1);
+    struct fetch_info *fi = (struct fetch_info *) calloc(sizeof (*fi), 1);
 
     if (fi)
         fi->fetch_id = ++last_fetch_id;
@@ -323,7 +324,7 @@ static void free_all_fetch_infos(void)
 
     for (l = fetch_list; l; l = list_rest(l))
     {
-        free_fetch_info((fetch_info *) l->data);
+        free_fetch_info((struct fetch_info *) l->data);
         l->data = NULL;
     }
 
@@ -337,13 +338,13 @@ static void free_all_fetch_infos(void)
  */
 static size_t fetch_write_func(void *buffer, size_t size, size_t nmemb, void *user_data)
 {
-    struct fetch_info *fi = (fetch_info *) user_data;
+    struct fetch_info *fi = (struct fetch_info *) user_data;
 
     if (fi)
     {
         if (!fi->dest_file)
         {
-            /* Open file on first write. TODO: write to a temporary file. */
+            /* Open file on first write. */
 
             if (fi->dest_filename && *fi->dest_filename)
                 fi->dest_file = fs_open_write(fi->dest_filename);
@@ -359,9 +360,9 @@ static size_t fetch_write_func(void *buffer, size_t size, size_t nmemb, void *us
 /*
  * Curl progress function.
  */
-static int fetch_progress_func(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+static int fetch_progress_func(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
 {
-    struct fetch_info *fi = (fetch_info *) clientp;
+    struct fetch_info *fi = (struct fetch_info *) clientp;
 
     if (fi && fi->callback.progress)
     {
@@ -454,8 +455,8 @@ static void fetch_step(void)
  * Thread stuff.
  */
 
-static SDL_mutex *fetch_mutex;
-static SDL_Thread *fetch_thread;
+static SDL_mutex   *fetch_mutex;
+static SDL_Thread  *fetch_thread;
 
 static SDL_atomic_t fetch_thread_running;
 
@@ -575,7 +576,12 @@ void fetch_init(void (*dispatch_event)(void *))
         return;
     }
 
-    /* Process FETCH_MAX connections in parallel, while the rest wait in a queue. */
+    /*
+     * Process FETCH_MAX connections in parallel,
+     * while the rest wait in a queue.
+     *
+     * You can use only one connection per download.
+     */
 
     curl_multi_setopt(multi_handle, CURLMOPT_MAX_TOTAL_CONNECTIONS, 1);
 
@@ -608,7 +614,12 @@ void fetch_reinit(void)
         return;
     }
 
-    /* Process FETCH_MAX connections in parallel, while the rest wait in a queue. */
+    /*
+     * Process FETCH_MAX connections in parallel,
+     * while the rest wait in a queue.
+     *
+     * You can use only one connection per download.
+     */
 
     curl_multi_setopt(multi_handle, CURLMOPT_MAX_TOTAL_CONNECTIONS, 1);
 
@@ -638,6 +649,161 @@ void fetch_quit(void)
     }
 }
 
+/*---------------------------------------------------------------------------*/
+
+// Convert the given filename extensions into temporary,
+// but we'll recommended to use the group name below.
+#define CURL_CONVERT_EXT_TMP(str, ext) \
+    do { \
+        if (strcmp(str + strlen(str) - (strlen(ext) - 1), ext)) \
+            strcpy(str + (strlen(ext) - 1), ".tmp"); \
+    } while (0)
+
+/*---------------------------------------------------------------------------*/
+
+#define CURL_CONVERT_EXT_TMP_APP(str) \
+    do { \
+        CURL_CONVERT_EXT_TMP(str, ".dll"); \
+        CURL_CONVERT_EXT_TMP(str, ".exe"); \
+        CURL_CONVERT_EXT_TMP(str, ".exp"); \
+        CURL_CONVERT_EXT_TMP(str, ".lib"); \
+        CURL_CONVERT_EXT_TMP(str, ".pdb"); \
+        CURL_CONVERT_EXT_TMP(str, ".so"); \
+    } while (0)
+
+#define CURL_CONVERT_EXT_TMP_ARCHIVE(str) \
+    do { \
+        CURL_CONVERT_EXT_TMP(str, ".7z"); \
+        CURL_CONVERT_EXT_TMP(str, ".gz"); \
+        CURL_CONVERT_EXT_TMP(str, ".pk3"); \
+        CURL_CONVERT_EXT_TMP(str, ".tar"); \
+        CURL_CONVERT_EXT_TMP(str, ".zip"); \
+    } while (0)
+
+#define CURL_CONVERT_EXT_TMP_ASM(str) \
+    do { \
+        CURL_CONVERT_EXT_TMP(str, ".asm"); \
+        CURL_CONVERT_EXT_TMP(str, ".wasm"); \
+    } while (0)
+
+#define CURL_CONVERT_EXT_TMP_BACKUP(str) \
+    do { \
+        CURL_CONVERT_EXT_TMP(str, ".bak"); \
+    } while (0)
+
+#define CURL_CONVERT_EXT_TMP_CODE(str) \
+    do { \
+        CURL_CONVERT_EXT_TMP(str, ".c"); \
+        CURL_CONVERT_EXT_TMP(str, ".cpp"); \
+        CURL_CONVERT_EXT_TMP(str, ".cs"); \
+        CURL_CONVERT_EXT_TMP(str, ".h"); \
+        CURL_CONVERT_EXT_TMP(str, ".hpp"); \
+        CURL_CONVERT_EXT_TMP(str, ".js"); \
+        CURL_CONVERT_EXT_TMP(str, ".py"); \
+        CURL_CONVERT_EXT_TMP(str, ".rs"); \
+        CURL_CONVERT_EXT_TMP(str, ".sql"); \
+        CURL_CONVERT_EXT_TMP(str, ".ts"); \
+    } while (0)
+
+#define CURL_CONVERT_EXT_TMP_DATABIN(str) \
+    do { \
+        CURL_CONVERT_EXT_TMP(str, ".bin"); \
+        CURL_CONVERT_EXT_TMP(str, ".dat"); \
+    } while (0)
+
+#define CURL_CONVERT_EXT_TMP_IMAGE(str) \
+    do { \
+        CURL_CONVERT_EXT_TMP(str, ".gif"); \
+        CURL_CONVERT_EXT_TMP(str, ".img"); \
+        CURL_CONVERT_EXT_TMP(str, ".jpg"); \
+        CURL_CONVERT_EXT_TMP(str, ".jpeg"); \
+        CURL_CONVERT_EXT_TMP(str, ".png"); \
+        CURL_CONVERT_EXT_TMP(str, ".tga"); \
+        CURL_CONVERT_EXT_TMP(str, ".tiff"); \
+    } while (0)
+
+#define CURL_CONVERT_EXT_TMP_MCPACK(str) \
+    do { \
+        CURL_CONVERT_EXT_TMP(str, ".mcpack"); \
+        CURL_CONVERT_EXT_TMP(str, ".mcworld"); \
+    } while (0)
+
+#define CURL_CONVERT_EXT_TMP_MEDIA(str) \
+    do { \
+        CURL_CONVERT_EXT_TMP(str, ".aiff"); \
+        CURL_CONVERT_EXT_TMP(str, ".flv"); \
+        CURL_CONVERT_EXT_TMP(str, ".m4a"); \
+        CURL_CONVERT_EXT_TMP(str, ".mov"); \
+        CURL_CONVERT_EXT_TMP(str, ".mp4"); \
+        CURL_CONVERT_EXT_TMP(str, ".nbr"); \
+        CURL_CONVERT_EXT_TMP(str, ".ogg"); \
+        CURL_CONVERT_EXT_TMP(str, ".wav"); \
+        CURL_CONVERT_EXT_TMP(str, ".wma"); \
+    } while (0)
+
+#define CURL_CONVERT_EXT_TMP_MS365(str) \
+    do { \
+        CURL_CONVERT_EXT_TMP(str, ".doc"); \
+        CURL_CONVERT_EXT_TMP(str, ".docx"); \
+        CURL_CONVERT_EXT_TMP(str, ".dotx"); \
+        CURL_CONVERT_EXT_TMP(str, ".odt"); \
+        CURL_CONVERT_EXT_TMP(str, ".odp"); \
+        CURL_CONVERT_EXT_TMP(str, ".ods"); \
+        CURL_CONVERT_EXT_TMP(str, ".pot"); \
+        CURL_CONVERT_EXT_TMP(str, ".potx"); \
+        CURL_CONVERT_EXT_TMP(str, ".ppt"); \
+        CURL_CONVERT_EXT_TMP(str, ".pptx"); \
+        CURL_CONVERT_EXT_TMP(str, ".rtf"); \
+        CURL_CONVERT_EXT_TMP(str, ".xls"); \
+        CURL_CONVERT_EXT_TMP(str, ".xlsx"); \
+        CURL_CONVERT_EXT_TMP(str, ".xltx"); \
+    } while (0)
+
+#define CURL_CONVERT_EXT_TMP_MSVC(str) \
+    do { \
+        CURL_CONVERT_EXT_TMP(str, ".sln"); \
+        CURL_CONVERT_EXT_TMP(str, ".vcproj"); \
+        CURL_CONVERT_EXT_TMP(str, ".vcsproj"); \
+        CURL_CONVERT_EXT_TMP(str, ".vcxproj"); \
+        CURL_CONVERT_EXT_TMP(str, ".user"); \
+    } while (0)
+
+#define CURL_CONVERT_EXT_TMP_SOLS(str) \
+    do { \
+        CURL_CONVERT_EXT_TMP(str, ".csol"); \
+        CURL_CONVERT_EXT_TMP(str, ".sol"); \
+    } while (0)
+
+#define CURL_CONVERT_EXT_TMP_TEXT(str) \
+    do { \
+        CURL_CONVERT_EXT_TMP(str, ".csv"); \
+        CURL_CONVERT_EXT_TMP(str, ".tsv"); \
+        CURL_CONVERT_EXT_TMP(str, ".md"); \
+        CURL_CONVERT_EXT_TMP(str, ".txt"); \
+    } while (0)
+
+/*---------------------------------------------------------------------------*/
+
+// Convert filename extensions into temporary, but much lags.
+#define CURL_CONVERT_EXT_TMP_ENTIRE(str) \
+    do { \
+        CURL_CONVERT_EXT_TMP_APP(str); \
+        CURL_CONVERT_EXT_TMP_ARCHIVE(str); \
+        CURL_CONVERT_EXT_TMP_ASM(str); \
+        CURL_CONVERT_EXT_TMP_BACKUP(str); \
+        CURL_CONVERT_EXT_TMP_CODE(str); \
+        CURL_CONVERT_EXT_TMP_DATABIN(str); \
+        CURL_CONVERT_EXT_TMP_IMAGE(str); \
+        CURL_CONVERT_EXT_TMP_MCPACK(str); \
+        CURL_CONVERT_EXT_TMP_MEDIA(str); \
+        CURL_CONVERT_EXT_TMP_MS365(str); \
+        CURL_CONVERT_EXT_TMP_MSVC(str); \
+        CURL_CONVERT_EXT_TMP_SOLS(str); \
+        CURL_CONVERT_EXT_TMP_TEXT(str); \
+    } while (0)
+
+/*---------------------------------------------------------------------------*/
+
 /*
  * Download from URL into FILENAME.
  */
@@ -658,30 +824,36 @@ unsigned int fetch_url(const char *url,
 
         if (fi)
         {
-            log_printf("Starting transfer %u\n", fi->fetch_id);
+            log_printf("URL: Starting transfer %u\n", fi->fetch_id);
 
-            log_printf("Downloading from %s\n", url);
-            log_printf("Saving to %s\n", filename);
+            log_printf("URL: Downloading from %s\n",  url);
+            log_printf("URL: Saving to %s\n",         filename);
 
-            fi->callback = callback;
-            fi->handle = handle;
+            fi->callback      = callback;
+            fi->handle        = handle;
             fi->dest_filename = strdup(filename);
 
-            curl_easy_setopt(handle, CURLOPT_PRIVATE, fi);
-            curl_easy_setopt(handle, CURLOPT_URL, url);
+            curl_easy_setopt(handle, CURLOPT_PRIVATE,       fi);
+            curl_easy_setopt(handle, CURLOPT_URL,           url);
             curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, fetch_write_func);
-            curl_easy_setopt(handle, CURLOPT_WRITEDATA, fi);
+            curl_easy_setopt(handle, CURLOPT_WRITEDATA,     fi);
 
-            curl_easy_setopt(handle, CURLOPT_PROGRESSFUNCTION, fetch_progress_func);
-            curl_easy_setopt(handle, CURLOPT_PROGRESSDATA, fi);
-            curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0);
+            // Used with curl_xferinfo rather than curl_progress
 
-            curl_easy_setopt(handle, CURLOPT_BUFFERSIZE, 102400L);
-            curl_easy_setopt(handle, CURLOPT_USERAGENT, "neverball/" VERSION);
+            curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, fetch_progress_func);
+            curl_easy_setopt(handle, CURLOPT_XFERINFODATA,     fi);
+            curl_easy_setopt(handle, CURLOPT_NOPROGRESS,       0);
+
+            curl_easy_setopt(handle, CURLOPT_BUFFERSIZE,      102400L);
+#if NB_HAVE_PB_BOTH==1
+            curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
+#else
+            curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
+#endif
             curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
 
 #if _WIN32 && defined(CURLSSLOPT_NATIVE_CA)
-            curl_easy_setopt(handle, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
+            curl_easy_setopt(handle, CURLOPT_SSL_OPTIONS,     CURLSSLOPT_NATIVE_CA);
 #endif
 
             /* curl_easy_setopt(handle, CURLOPT_VERBOSE, 1); */
@@ -690,11 +862,97 @@ unsigned int fetch_url(const char *url,
                 fetch_reinit();
 
             if (multi_handle)
+            {
                 curl_multi_add_handle(multi_handle, handle);
+                fetch_id = fi->fetch_id;
+            }
             else
-                log_errorf("Failure to add handle! Multi-Handle must be initialized!\n");
+            {
+                log_errorf("URL: Failure to add handle! Multi-Handle must be initialized!\n");
+                unlink_and_free_fetch_info(fi);
+                curl_easy_cleanup(handle);
+            }
+        }
+        else curl_easy_cleanup(handle);
+    }
 
-            fetch_id = fi->fetch_id;
+    fetch_unlock_mutex();
+
+    return fetch_id;
+}
+
+/*
+ * Download from Google Drive file ID into FILENAME.
+ */
+unsigned int fetch_gdrive(const char *fileid,
+                          const char *filename,
+                          struct fetch_callback callback)
+{
+    unsigned int fetch_id = 0;
+    CURL *handle;
+
+    fetch_lock_mutex();
+
+    handle = curl_easy_init();
+
+    if (handle)
+    {
+        struct fetch_info *fi = create_and_link_fetch_info();
+
+        if (fi)
+        {
+            char gdrivelink_attr[MAXSTR];
+            SAFECPY(gdrivelink_attr, "https://drive.google.com/uc?export=download&id=");
+            SAFECAT(gdrivelink_attr, fileid);
+
+            log_printf("Google Drive: Starting transfer %u\n", fi->fetch_id);
+
+            log_printf("Google Drive: Downloading from %s\n",  gdrivelink_attr);
+            log_printf("Google Drive: Saving to %s\n",         filename);
+
+            fi->callback      = callback;
+            fi->handle        = handle;
+            fi->dest_filename = strdup(filename);
+
+            curl_easy_setopt(handle, CURLOPT_PRIVATE,       fi);
+            curl_easy_setopt(handle, CURLOPT_URL,           gdrivelink_attr);
+            curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, fetch_write_func);
+            curl_easy_setopt(handle, CURLOPT_WRITEDATA,     fi);
+
+            // Used with curl_xferinfo rather than curl_progress
+
+            curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, fetch_progress_func);
+            curl_easy_setopt(handle, CURLOPT_XFERINFODATA,     fi);
+            curl_easy_setopt(handle, CURLOPT_NOPROGRESS,       0);
+
+            curl_easy_setopt(handle, CURLOPT_BUFFERSIZE,      102400L);
+#if NB_HAVE_PB_BOTH==1
+            //curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
+#else
+            //curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
+#endif
+            curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
+
+#if _WIN32 && defined(CURLSSLOPT_NATIVE_CA)
+            curl_easy_setopt(handle, CURLOPT_SSL_OPTIONS,     CURLSSLOPT_NATIVE_CA);
+#endif
+
+            /* curl_easy_setopt(handle, CURLOPT_VERBOSE, 1); */
+
+            if (!multi_handle)
+                fetch_reinit();
+
+            if (multi_handle)
+            {
+                curl_multi_add_handle(multi_handle, handle);
+                fetch_id = fi->fetch_id;
+            }
+            else
+            {
+                log_errorf("Google Drive: Failure to add handle! Multi-Handle must be initialized!\n");
+                unlink_and_free_fetch_info(fi);
+                curl_easy_cleanup(handle);
+            }
         }
         else curl_easy_cleanup(handle);
     }

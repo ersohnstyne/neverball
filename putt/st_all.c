@@ -52,6 +52,7 @@ struct state st_roll;
 struct state st_goal;
 struct state st_stop;
 struct state st_fall;
+struct state st_retry;
 struct state st_score;
 struct state st_over;
 struct state st_pause;
@@ -656,9 +657,9 @@ static int course_action(int i)
 #else
 #if _WIN32
         system("explorer https://drive.google.com/drive/folders/1YJzHckEBn15rNemvFy56Ig5skY3KX3Rp");
-#elif __APPLE__
+#elif defined(__APPLE__)
         system("open https://drive.google.com/drive/folders/1YJzHckEBn15rNemvFy56Ig5skY3KX3Rp");
-#else
+#elif defined(__linux__)
         system("x-www-browser https://drive.google.com/drive/folders/1YJzHckEBn15rNemvFy56Ig5skY3KX3Rp");
 #endif
 #endif
@@ -749,13 +750,16 @@ static int course_enter(struct state *st, struct state *prev)
 
         if ((jd = gui_hstack(id)))
         {
-            shot_id = gui_image(jd, course_shot(0), w / 3, h / 3);
+            const int ww = MIN(w, h) * 7 / 12;
+            const int hh = ww / 4 * 3;
+
+            shot_id = gui_image(jd, course_shot(0), ww, hh);
 
             gui_filler(jd);
 
             if ((kd = gui_varray(jd)))
             {
-                for(i = 0; i < r; i++)
+                for (i = 0; i < r; i++)
                 {
                     if ((ld = gui_harray(kd)))
                     {
@@ -765,8 +769,7 @@ static int course_enter(struct state *st, struct state *prev)
 
                             if (k < n)
                             {
-                                md = gui_image(ld, course_shot(k),
-                                               w / 3 / c, h / 3 / r);
+                                md = gui_image(ld, course_shot(k), ww / c, hh / c);
                                 gui_set_state(md, k, 0);
 
                                 if (k == 0)
@@ -794,7 +797,7 @@ static int course_enter(struct state *st, struct state *prev)
         gui_layout(id, 0, 0);
     }
 
-    audio_music_fade_to(0.5f, "bgm/inter.ogg");
+    audio_music_fade_to(0.5f, "bgm/title.ogg");
 
     return id;
 }
@@ -1143,9 +1146,13 @@ static int paused = 0;
 static struct state *st_continue;
 static struct state *st_quit;
 
-#define PAUSE_CONTINUE 1
-#define PAUSE_QUIT     2
-#define PAUSE_SKIP     3
+enum
+{
+    PAUSE_CONTINUE = 1,
+    PAUSE_QUIT,
+    PAUSE_SKIP,
+    PAUSE_RESHOT
+};
 
 int goto_pause(int use_keybd)
 {
@@ -1173,6 +1180,9 @@ static int pause_action(int i)
     case PAUSE_CONTINUE:
         return goto_state(st_continue ? st_continue : &st_title);
 
+    case PAUSE_RESHOT:
+        return goto_state(&st_retry);
+
     case PAUSE_SKIP:
         hole_skip();
         return goto_state(&st_score);
@@ -1184,6 +1194,8 @@ static int pause_action(int i)
     }
     return 1;
 }
+
+static int stroke_allowed = 0;
 
 static int pause_enter(struct state *st, struct state *prev)
 {
@@ -1226,8 +1238,12 @@ static int pause_enter(struct state *st, struct state *prev)
         if ((jd = gui_harray(id)))
         {
             gui_state(jd, _("Quit"), GUI_SML, PAUSE_QUIT, 0);
-            gui_start(jd, _("Skip"), GUI_SML, PAUSE_SKIP, 1);
-            gui_start(jd, _("Continue"), GUI_SML, PAUSE_CONTINUE, 2);
+            gui_state(jd, _("Skip"), GUI_SML, PAUSE_SKIP, 0);
+
+            if (!stroke_allowed && hole_retry_avail(stroke_allowed))
+                gui_state(jd, _("Retry"), GUI_SML, PAUSE_RESHOT, 0);
+
+            gui_start(jd, _("Continue"), GUI_SML, PAUSE_CONTINUE, 1);
         }
 
         gui_pulse(td, 1.2f);
@@ -1530,7 +1546,6 @@ static int stroke_rotate = 0;
 static int stroke_rotate_alt = 0;
 static int stroke_mag = 0;
 static int stroke_type = 0;
-static int stroke_allowed = 0;
 
 static int stroke_enter(struct state *st, struct state *prev)
 {
@@ -1969,6 +1984,8 @@ static int fall_enter(struct state *st, struct state *prev)
     else
         hole_fall(stroke_allowed);
 
+    stroke_allowed = 1;
+
     return id;
 }
 
@@ -2031,6 +2048,41 @@ static int fall_buttn(int b, int d)
         return goto_pause(0);
 
     return 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static int retry_enter(struct state* st, struct state* prev)
+{
+    int id;
+
+    if ((id = gui_title_header(0, _("Retry"), GUI_MED, gui_blk, gui_red)))
+    {
+        gui_pulse(id, 1.2f);
+        gui_layout(id, 0, 0);
+    }
+
+    if (paused)
+        paused = 0;
+    else
+        hole_retry(stroke_allowed);
+
+    stroke_allowed = 1;
+
+    return id;
+}
+
+static void retry_leave(struct state* st, struct state* next, int id)
+{
+    gui_delete(id);
+}
+
+static void retry_paint(int id, float t)
+{
+    game_draw(0, t);
+    gui_paint(id);
+
+    xbox_control_putt_stop_gui_paint();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2320,6 +2372,22 @@ struct state st_fall = {
     fall_enter,
     fall_leave,
     fall_paint,
+    fall_timer,
+    shared_point,
+    NULL,
+    NULL,
+    shared_click_basic,
+    shared_keybd,
+    fall_buttn,
+    NULL,
+    NULL,
+    shared_fade
+};
+
+struct state st_retry = {
+    retry_enter,
+    retry_leave,
+    retry_paint,
     fall_timer,
     shared_point,
     NULL,

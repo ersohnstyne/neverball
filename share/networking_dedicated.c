@@ -29,11 +29,7 @@
 #else
 #pragma message("Pennyball + Neverball Dedicated Network for Microsoft Visual Studio")
 #endif
-#if _WIN64
-#pragma comment(lib, "x64\\neverball_net_client.lib")
-#else
 #pragma comment(lib, "neverball_net_client.lib")
-#endif
 
 #pragma comment(lib, "ws2_32.lib")
 #else

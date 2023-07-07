@@ -577,6 +577,8 @@ int fs_exists(const char *path)
                     || file_attr & FILE_ATTRIBUTE_HIDDEN;
         }
     }
+
+    return 0;
 #else
     return (access(path, F_OK) == 0);
 #endif

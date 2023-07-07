@@ -275,7 +275,7 @@ void part_draw_coin(struct s_rend *rend)
     glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -426,14 +426,25 @@ video_mode_reconf:
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, buffers);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, samples);
 
-    /* Require 16-bit double buffer with 16-bit depth buffer. */
+    /*
+     * Optional 16-bit double buffer with 16-bit depth buffer.
+     */
+
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     0);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   0);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    0);
+
+    // TODO: Uncomment, if you want to set the required buffer.
 
     // Default RGB size: 5
     // TODO: Either 5 (16-bit) or 8 (32-bit)
     int rgb_size_fixed = 5;
+    /*
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    rgb_size_fixed);
+
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 
     if (rgb_size_fixed * 3 < 16)
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
@@ -441,6 +452,7 @@ video_mode_reconf:
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
     else if (rgb_size_fixed * 3 < 64)
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 64);
+    */
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
@@ -815,13 +827,25 @@ video_mode_auto_config_reconf:
     int smpbuf_ok = SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, auto_samples ? 1 : 0);
     int smp_ok = SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, auto_samples);
 
-    /* Require 16-bit double buffer with 16-bit depth buffer. */
+    /*
+     * Optional 16-bit double buffer with 16-bit depth buffer.
+     */
 
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     0);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   0);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    0);
+
+    // TODO: Uncomment, if you want to set the required buffer.
+
+    // Default RGB size: 5
     // TODO: Either 5 (16-bit) or 8 (32-bit)
     int rgb_size_fixed = 5;
+    /*
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    rgb_size_fixed);
+
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 
     if (rgb_size_fixed * 3 < 16)
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
@@ -829,11 +853,12 @@ video_mode_auto_config_reconf:
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
     else if (rgb_size_fixed * 3 < 64)
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 64);
+    */
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     log_printf("Creating a window (%dx%d, %s (auto configuration))\n",
-        w, h, (f ? "fullscreen" : "windowed"));
+               w, h, (f ? "fullscreen" : "windowed"));
 
 #if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
     if (!window) {
@@ -1174,7 +1199,7 @@ void video_swap(void)
         /* Reset the counters for the next update. */
 
         frames = 0;
-        ticks  = 0;
+        ticks  -= 1000;
 
 #if NB_STEAM_API==0 && !defined(LOG_NO_STATS)
         /* Output statistics if configured. */
@@ -1305,7 +1330,7 @@ void video_render_fill_or_line(int lined)
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glDisable(GL_TEXTURE_2D);
             glDisable(GL_LIGHTING);
-            glColor4f(1.f, 1.f, 1.f, 1.f);
+            glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
         }
         else
         {
@@ -1314,7 +1339,7 @@ void video_render_fill_or_line(int lined)
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glEnable(GL_TEXTURE_2D);
             glEnable(GL_LIGHTING);
-            glColor4f(.5f, .5f, .5f, .5f);
+            glColor4ub(0x80, 0x80, 0x80, 0x80);
         }
     }
     else if (lined && viewport_wireframe == 2 || viewport_wireframe == 3)

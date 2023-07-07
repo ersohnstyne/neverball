@@ -39,11 +39,7 @@
 #include <steam/steam_api.h>
 #include <steam/isteamuser.h>
 
-#if _WIN32 && _WIN64
-#pragma comment(lib, "D:\\source_ersohn\\win10_libraries\\steam\\redistributable_bin\\win64\\steam_api64.lib")
-#elif _WIN32
-#pragma comment(lib, "D:\\source_ersohn\\win10_libraries\\steam\\redistributable_bin\\steam_api.lib")
-#endif
+#pragma comment(lib, "steam_api.lib")
 
 extern "C"
 {

@@ -846,7 +846,7 @@ unsigned int fetch_url(const char *url,
 
             curl_easy_setopt(handle, CURLOPT_BUFFERSIZE,      102400L);
 #if NB_HAVE_PB_BOTH==1
-            curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
+            curl_easy_setopt(handle, CURLOPT_USERAGENT,       "pennyball/" VERSION);
 #else
             curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
 #endif
@@ -927,7 +927,7 @@ unsigned int fetch_gdrive(const char *fileid,
 
             curl_easy_setopt(handle, CURLOPT_BUFFERSIZE,      102400L);
 #if NB_HAVE_PB_BOTH==1
-            //curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
+            //curl_easy_setopt(handle, CURLOPT_USERAGENT,       "pennyball/" VERSION);
 #else
             //curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
 #endif

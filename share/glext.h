@@ -25,7 +25,7 @@
 #include <windows.h>
 
 #if _MSC_VER
-#include <wingdi.h>
+//#include <wingdi.h>
 //#define ENABLE_GL_NV 1
 #endif
 #endif

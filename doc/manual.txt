@@ -74,9 +74,9 @@ In Challenge mode,  the player is given a limited  number of balls and
 attempts to  complete all  of the  levels in  turn, starting  with the
 first level.  The game ends once  the  balls run out and the wallet is
 insufficent.  In addition,  Google Wallet API  is  sent  from  In-Game
-Purchases to it's developers by the payer (only Pro edition and above).
-A  set score  is  recorded upon completion. Levels cannot be restarted
-freely. You win, if set is completed.
+Purchases  to  it's developers by the payer (available on selected Pro
+edition and). A set score  is  recorded upon completion. Levels cannot
+be restarted freely.
 
 In Boost rush mode,  the  player  is  given  a speed indicator like an
 Challenge mode,  uses  for auto-forward levels.  The acceleration will
@@ -98,7 +98,7 @@ unlock instantly.
 
 * CHECKPOINTS
 
-This campaign is only for Home edition and above.
+This campaign is available on selected Home edition and above.
 
 Checkpoint  is  similar  like  an  teleporters.   You  will  save  the
 spawnpoint, when  you  reach  it.  If  anything bad happens,  you will
@@ -107,7 +107,7 @@ start over from here.
 
 * SPECIAL POWERS
 
-This special powers is only for Pro edition and above.
+This special powers is available on selected Pro edition and above.
 
 Special powers needs help to improve the level  but it gives a limited
 number of amounts. There are three special powers:
@@ -150,12 +150,12 @@ In Steam, it is stored under game data directory only.
 
 * RANKS
 
-This ranks is only for Home edition and above.
+This ranks is available on selected Home edition and above.
 
-In the Tradition of Space Agency 2D  and 2138,  the rank system tracks
-the player's progress through Campaign mode.
+In  the  Tradition  of  Space Agency Classic and 2138, the rank system
+tracks the player's progress through Campaign mode.
 
-    NB Cadet
+    Airline Cadet
 
         This is the rank held by all trainee campaigns.  Once you have
         completed the first three levels, you will be given your wings

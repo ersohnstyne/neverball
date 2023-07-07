@@ -849,7 +849,10 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
             glDisable(GL_DEPTH_TEST);
             glDisable(GL_TEXTURE_2D);
 
-            glColor4f(fade_color[0], fade_color[1], fade_color[2], k);
+            glColor4ub(ROUND(fade_color[0] * 255),
+                       ROUND(fade_color[1] * 255),
+                       ROUND(fade_color[2] * 255),
+                       ROUND(k * 255));
 
             sol_bill_enable(draw);
             r_apply_mtrl(rend, default_mtrl);
@@ -857,7 +860,7 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
             sol_draw_bill(GL_FALSE);
             sol_bill_disable();
 
-            glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+            glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
 
             glEnable(GL_TEXTURE_2D);
             glEnable(GL_DEPTH_TEST);
@@ -954,7 +957,7 @@ void r_color_mtrl(struct s_rend *rend, int enable)
     }
     else
     {
-        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
 
         glDisable(GL_COLOR_MATERIAL);
 

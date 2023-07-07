@@ -17,8 +17,6 @@
 
 #include "fetch.h"
 
-#define NB_PACKAGES_PREMIUM
-
 enum package_category
 {
     PACKAGE_CATEGORY_NONE = 0,

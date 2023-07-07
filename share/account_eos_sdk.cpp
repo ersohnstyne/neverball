@@ -39,11 +39,7 @@
 #include <eos_sdk.h>
 #include <eos_auth.h>
 
-#if _WIN32 && _WIN64
-#pragma comment(lib, "D:\\source_ersohn\\win10_libraries\\epicgames\\lib\\eossdk-win64-shipping.lib")
-#elif _WIN32
-#pragma comment(lib, "D:\\source_ersohn\\win10_libraries\\epicgames\\lib\\eossdk-win32-shipping.lib")
-#endif
+#pragma comment(lib, "eossdk-win32-shipping.lib")
 
 /*---------------------------------------------------------------------------*/
 

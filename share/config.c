@@ -343,7 +343,7 @@ static struct
     { &CONFIG_REPLAY_NAME,             "replay_name",     "%s-%l-%r" },
     { &CONFIG_LANGUAGE,                "language",        "" },
     { &CONFIG_THEME,                   "theme",           "classic" },
-    { &CONFIG_DEDICATED_IPADDRESS,     "dedicated_ipaddress", "neverball.stynegame.de" },
+    { &CONFIG_DEDICATED_IPADDRESS,     "dedicated_ipaddress", "neverball.github.io" },
     { &CONFIG_DEDICATED_IPPORT,        "dedicated_ipport", "5000" }
 };
 
@@ -509,7 +509,6 @@ void config_load(void)
             fs_remove(filename);
         }
 
-        free(filename);
         exit(1);
         return;
     }
@@ -616,7 +615,6 @@ void config_save(void)
             fs_remove(filename);
         }
         
-        free(filename);
         exit(1);
         return;
     }

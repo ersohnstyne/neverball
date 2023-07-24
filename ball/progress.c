@@ -89,9 +89,6 @@
 #ifdef MAPC_INCLUDES_CHKP
 /*
  * Paid debts after timer expires.
- *
- * You need to join Pennyball Discord Server in order
- * to activate the net-worth for player account.
  */
 #define PROGRESS_PLAYER_PAYDEBT_BALLS \
     do { curr.balls -= 1;             \
@@ -101,9 +98,6 @@
 #else
 /*
  * Paid debts after timer expires.
- *
- * You need to join Pennyball Discord Server in order
- * to activate the net-worth for player account.
  */
 #define PROGRESS_PLAYER_PAYDEBT_BALLS \
     do { curr.balls -= 1;             \
@@ -130,9 +124,6 @@
 #else
 /*
  * Their debt exceeds above the limit from the net-worth.
- *
- * You need to join Pennyball Discord Server in order
- * to activate the net-worth for player account.
  */
 #define PROGRESS_PLAYER_BANKRUPT \
     do { if (progress_dead()) {  \
@@ -342,6 +333,7 @@ int  progress_play(struct level *l)
 #endif
 
     lvl_warn_timer = 0;
+    done           = 0;
 
     if (l && (level_opened(l)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
@@ -597,6 +589,19 @@ void progress_stat(int s)
             for (next = level->next;
                 next && level_bonus(next) && !level_opened(next);
                 next = next->next) {}
+
+            /*
+             * HACK: For this purposes, I've unlocked the next given
+             * standard levels, if there's unlocked bonus levels.
+             */
+            if (next && level_bonus(next) && level_opened(next))
+            {
+                if (next->next && !level_opened(next->next))
+                {
+                    level_open(next->next);
+                    dirty = 1;
+                }
+            }
         }
 
         /* Open next level or complete the campaign or set. */
@@ -638,6 +643,20 @@ void progress_stat(int s)
                     account_set_d(ACCOUNT_SET_UNLOCKS, curr_set() + 2);
             }
 
+            if (!CHECK_ACCOUNT_BANKRUPT && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+            {
+                if (curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                    || curr_mode() == MODE_CAMPAIGN
+#endif
+                    )
+                {
+                    int curr_wallet = MIN(ACCOUNT_WALLET_MAX_COINS, account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_coins());
+                    account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_wallet);
+                    account_save();
+                }
+            }
+
             account_save();
 #endif
         }
@@ -648,6 +667,7 @@ void progress_stat(int s)
     case GAME_TIME:
         if (status != GAME_GOAL)
         {
+            done           = 0;
             extended_timer = timer;
 
             if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
@@ -761,7 +781,7 @@ void progress_exit(void)
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
         if (server_policy_get_d(SERVER_POLICY_EDITION) > -1
-         && account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > -1)
+            && !CHECK_ACCOUNT_BANKRUPT)
         {
             account_set_d(ACCOUNT_DATA_WALLET_COINS,
                           MIN(account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score(),
@@ -875,11 +895,11 @@ int  progress_raise_gems(int action_performed, int needed,
 
     if (action_performed)
     {
-        account_set_d(ACCOUNT_DATA_WALLET_GEMS, temp_src_gems + final_resale);
-        account_set_d(ACCOUNT_DATA_WALLET_COINS, temp_src_coins - diff_coins);
-        account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, temp_src_wgearn - diff_wgearn);
-        account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, temp_src_wgfloat - diff_wgfloat);
-        account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, temp_src_wgspeed - diff_wgspeed);
+        account_set_d(ACCOUNT_DATA_WALLET_GEMS,       final_resale);
+        account_set_d(ACCOUNT_DATA_WALLET_COINS,      diff_coins);
+        account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, diff_wgearn);
+        account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, diff_wgfloat);
+        account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, diff_wgspeed);
     }
 
 #endif

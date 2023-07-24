@@ -74,18 +74,18 @@ static struct game_view view;           /* Current view                      */
 
 static float view_k;
 
-static float view_time;                 /* Manual rotation time                      */
+static float view_time;                 /* Manual rotation time              */
 static float view_fade;
 
 #define VIEW_FADE_MIN 0.2f
 #define VIEW_FADE_MAX 1.0f
 
-static int   coins  = 0;                /* Collected coins                           */
-static int   goal_e = 0;                /* Goal enabled flag                         */
-static int   jump_e = 1;                /* Jumping enabled flag                      */
-static int   jump_b = 0;                /* Jump-in-progress flag                     */
-static float jump_dt;                   /* Jump duration                             */
-static float jump_p[3];                 /* Jump destination                          */
+static int   coins  = 0;                /* Collected coins                   */
+static int   goal_e = 0;                /* Goal enabled flag                 */
+static int   jump_e = 1;                /* Jumping enabled flag              */
+static int   jump_b = 0;                /* Jump-in-progress flag             */
+static float jump_dt;                   /* Jump duration                     */
+static float jump_p[3];                 /* Jump destination                  */
 
 #ifdef MAPC_INCLUDES_CHKP
 static int   chkp_e = 1;                /* New: Checkpoints; Checkpoint enabled flag */
@@ -1411,7 +1411,8 @@ static int game_update_state(int bt)
             audio_play(AUD_SWITCH, 1.f);
             audio_play(AUD_CHKP, 1.f);
 
-            /* Must always reset all checkpoints, before... */
+            /* Method 1: Set the checkpoint index to backup. */
+
             for (int backupidx = 0; backupidx < vary.cc; backupidx++)
             {
                 if (vary.cv[backupidx].e)
@@ -1436,7 +1437,7 @@ static int game_update_state(int bt)
                 }
             }
 
-            /* Let's do this! */
+            /* Method 2: Set the checkpoint backup data. */
 
             checkpoints_save_spawnpoint(vary, view, CURR_PLAYER);
             checkpoints_set_last_data(timer, timer_down, coins, curr_gained());

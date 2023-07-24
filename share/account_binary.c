@@ -305,7 +305,7 @@ void account_save(void)
         return;
     }
 
-    for (int i = 0; i < strlen(config_get_s(CONFIG_PLAYER)); i++)
+    for (int i = 0; i < text_length(config_get_s(CONFIG_PLAYER)); i++)
     {
         if (config_get_s(CONFIG_PLAYER)[i] == '\\' || config_get_s(CONFIG_PLAYER)[i] == '/' || config_get_s(CONFIG_PLAYER)[i] == ':' || config_get_s(CONFIG_PLAYER)[i] == '*' || config_get_s(CONFIG_PLAYER)[i] == '?' || config_get_s(CONFIG_PLAYER)[i] == '"' || config_get_s(CONFIG_PLAYER)[i] == '<' || config_get_s(CONFIG_PLAYER)[i] == '>' || config_get_s(CONFIG_PLAYER)[i] == '|')
         {

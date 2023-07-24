@@ -23,13 +23,19 @@
 #include <assert.h>
 
 #include <sys/stat.h>
-#if !_MSC_VER
-/*
- * Relying on MinGW to provide, that uses from GetFileAttributes.
- */
+#if _WIN32
+#if !defined(_MSC_VER)
+#error This was already done with GetFileAttributesA. \
+       Install Visual Studio 2022 Community or later version to build it there.
+#else
+#pragma message("Using directory list for code compilation: Microsoft Visual Studio")
+#endif
+#elif defined(__linux__)
+ /*
+  * Relying on MinGW to provide, that uses from GetFileAttributes.
+  */
 #include <unistd.h>   /* access() */
 #endif
-
 #include "common.h"
 #include "fs.h"
 

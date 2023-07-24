@@ -32,7 +32,7 @@ int  joy_get_cursor_actions(int instance);
 int  joy_connected(int instance, int *battery_level, int *wired);
 
 #if NB_PB_WITH_XBOX==1
-void joy_update(void);
+int  joy_update(void);
 #endif
 
 #endif

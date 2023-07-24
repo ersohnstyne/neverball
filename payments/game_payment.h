@@ -12,7 +12,19 @@
  * General Public License for more details.
  */
 
-/* miniz.c with Neverball. */
+#ifndef GAME_PAYMENT_H
+#define GAME_PAYMENT_H
 
-#include "zip.h"
-#include "miniz.c"
+typedef struct game_orderpack
+{
+    int Balls;
+    int Powerups[3];
+    int Wallets[2];
+} OrderPack;
+
+int  game_payment_activate (const char*);
+void game_payment_browse   (int);
+
+struct game_orderpack curr_orderpack(void);
+
+#endif

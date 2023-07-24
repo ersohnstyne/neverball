@@ -52,7 +52,10 @@ static void game_draw_balls(struct s_rend *rend,
                  vary->uv[0].r,
                  vary->uv[0].r);
 
-        glColor4f(c[0], c[1], c[2], c[3]);
+        glColor4ub(ROUND(c[0] * 255),
+                   ROUND(c[1] * 255),
+                   ROUND(c[2] * 255),
+                   ROUND(c[3] * 255));
         ball_draw(rend, ball_M, pend_M, bill_M, t);
     }
     glPopMatrix();
@@ -605,9 +608,9 @@ void game_draw(struct game_draw *gd, int pose, float t)
             {
                 r_color_mtrl(&rend, 1);
                 {
-                    glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+                    glColor4ub(0, 0, 0, 0xFF);
                     game_refl_all(&rend, gd, 0);
-                    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+                    glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
                 }
                 r_color_mtrl(&rend, 0);
             }

@@ -31,12 +31,15 @@
  * - Ersohn Styne
  */
 
-#if _WIN32 && _MSC_VER
+#if _WIN32
+#if !defined(_MSC_VER)
+#error This was already done with FindFirstFileA, FindNextFileA and GetFileAttributesA. \
+       Install Visual Studio 2022 Community or later version to build it there.
+#else
 #pragma message("Using directory list for code compilation: Microsoft Visual Studio")
+#endif
 #elif defined(__linux__)
 #pragma message("Using directory list for code compilation: GCC + G++")
-#else
-#pragma message("Using directory list for code compilation: MinGW")
 #endif
 
 /*

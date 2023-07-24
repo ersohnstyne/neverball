@@ -600,9 +600,18 @@ int fs_recycle(const char* path)
         operation.wFunc = FO_DELETE;
         operation.pFrom = real;
         operation.pTo = NULL;
+
         operation.fFlags = FOF_ALLOWUNDO | FOF_NOERRORUI | FOF_NOCONFIRMATION | FOF_SILENT;
 
-        success = SHFileOperationA(&operation) == 0;
+        int winretval = SHFileOperationA(&operation);
+        success = winretval == 0 || winretval == 75;
+
+        if (success && winretval == 0)
+            log_printf("Done moving recycle bin: '%s'\n", real);
+        else if (winretval == 75)
+            log_printf("Moving recycle bin canceled: '%s'\n", real);
+        else
+            log_errorf("Failure to move recycle bin! Attempt to permanent delete: '%s'\n", real);
 
         free(real);
     }

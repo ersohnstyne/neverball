@@ -147,9 +147,13 @@ static int shop_action(int tok, int val)
         return goto_state_full(&st_title, GUI_ANIMATION_N_CURVE, 0, 0);
         break;
     case SHOP_CHANGE_NAME:
+        /* Change the player names performs log in to another account. */
+        
         return goto_shop_rename(&st_shop, &st_shop, 0);
         break;
     case SHOP_IAP:
+        /* Attempt to open the In-App Purchases. */
+
         if (!inaccept_playername && text_length(config_get_s(CONFIG_PLAYER)) >= 3)
         {
 #if NB_STEAM_API==1 || NB_EOS_SDK==1 || ENABLE_IAP==1
@@ -160,12 +164,19 @@ static int shop_action(int tok, int val)
         }
         break;
     case SHOP_BUY:
+        /*
+         * Check account's wallet, what has an cash available
+         * after select products.
+         */
+        
         purchase_product_usegems = val == 7;
         shop_set_product_key(val);
+
         if (inaccept_playername || text_length(config_get_s(CONFIG_PLAYER)) < 3)
             return goto_state(&st_shop_unregistered);
         else
             return goto_state(&st_shop_buy);
+
         break;
     }
     return 1;
@@ -1125,7 +1136,7 @@ static int shop_iap_gui(void)
                                 wchar_t pWLocaleName[MAXSTR];
                                 size_t pCharC;
                                 char pCharExt[MAXSTR], pChar[MAXSTR];
-                                if (strlen(config_get_s(CONFIG_LANGUAGE)) < 2)
+                                if (text_length(config_get_s(CONFIG_LANGUAGE)) < 2)
                                     LANG_CURRENCY_RESET_DEFAULTS;
                                 else
                                     SAFECPY(pChar, config_get_s(CONFIG_LANGUAGE));

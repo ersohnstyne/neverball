@@ -46,6 +46,7 @@
 #include "cmd.h"
 #include "demo_dir.h"
 #include "progress.h"
+#include "text.h"
 
 #include "game_common.h"
 #include "game_server.h"
@@ -115,7 +116,7 @@ static int init_title_level(void)
 
     if (switchball_useable())
     {
-        if (game_client_init("gui/title/switchball-title.sol"))
+        if (game_client_init("gui/switchball-title.sol"))
         {
             union cmd cmd;
 
@@ -128,7 +129,7 @@ static int init_title_level(void)
             return 1;
         }
     }
-    else if (game_client_init(config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "gui/title/title-mayhem.sol" : "gui/title/title.sol"))
+    else if (game_client_init(config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "gui/title-mayhem.sol" : "gui/title.sol"))
     {
         union cmd cmd;
 
@@ -330,7 +331,7 @@ static int title_action(int tok, int val)
         break;
 
     case TITLE_PLAY:
-        if (strlen(config_get_s(CONFIG_PLAYER)) < 3 || !title_check_playername(config_get_s(CONFIG_PLAYER)))
+        if (text_length(config_get_s(CONFIG_PLAYER)) < 3 || !title_check_playername(config_get_s(CONFIG_PLAYER)))
             return goto_playgame_register();
         else
             return goto_playgame();
@@ -384,7 +385,7 @@ static int title_action(int tok, int val)
 
         /* Developer or Public */
         char os_env[MAXSTR], dev_env[MAXSTR];
-#if  PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || !defined(TITLE_USE_DVD_BOX_OR_EMAIL)
+#if  NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || !defined(TITLE_USE_DVD_BOX_OR_EMAIL)
 #if ENABLE_HMD
         sprintf(dev_env, _(editions_developer[EDITION_CURRENT]), "OpenHMD", _("Developer Mode"));
         sprintf(os_env, _(editions_common[EDITION_CURRENT]), "OpenHMD");
@@ -404,7 +405,7 @@ static int title_action(int tok, int val)
         }
         else if (current_platform == PLATFORM_XBOX)
         {
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
             sprintf(dev_env, _("%s Edition / %s"), TITLE_PLATFORM_XBOX_360, _("Developer Mode"));
             sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_360);
 #else
@@ -550,7 +551,7 @@ static int title_gui(void)
         if ((id = gui_vstack(root_id)))
         {
             char os_env[MAXSTR], dev_env[MAXSTR];
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || !defined(TITLE_USE_DVD_BOX_OR_EMAIL)
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || !defined(TITLE_USE_DVD_BOX_OR_EMAIL)
 #ifndef __EMSCRIPTEN__
 #if ENABLE_HMD
             sprintf(dev_env, _(editions_developer[EDITION_CURRENT]), "OpenHMD", _("Developer Mode"));
@@ -571,7 +572,7 @@ static int title_gui(void)
             }
             else if (current_platform == PLATFORM_XBOX)
             {
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
                 sprintf(dev_env, _("%s Edition / %s"), TITLE_PLATFORM_XBOX_360, _("Developer Mode"));
                 sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_360);
 #else
@@ -813,7 +814,7 @@ static int title_enter(struct state *st, struct state *prev)
 
     if (switchball_useable() && init_title_level())
         mode = TITLE_MODE_LEVEL;
-    else if (demo_replay_init(config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "gui/title/title-l-mayhem.nbr" : "gui/title/title-l.nbr", NULL, NULL, NULL, NULL, NULL, NULL))
+    else if (demo_replay_init(config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "gui/title-l-mayhem.nbr" : "gui/title-l.nbr", NULL, NULL, NULL, NULL, NULL, NULL))
         mode = TITLE_MODE_BUILD_IN;
     else if (init_title_level())
         mode = TITLE_MODE_LEVEL;
@@ -898,7 +899,7 @@ static void title_timer(int id, float dt)
                     real_time = 0.0f;
                     mode = TITLE_MODE_DEMO;
                 }
-                else if(demo_replay_init(left_handed ? "gui/title/title-l.nbr" : "gui/title/title-r.nbr",
+                else if(demo_replay_init(left_handed ? "gui/title-l.nbr" : "gui/title-r.nbr",
                     NULL, &title_gamemode, NULL, NULL, NULL, NULL))
                 {
                     progress_init(title_gamemode);
@@ -912,7 +913,7 @@ static void title_timer(int id, float dt)
                     mode = TITLE_MODE_LEVEL;
                 }
             }
-            else if (demo_replay_init(left_handed ? "gui/title/title-l.nbr" : "gui/title/title-r.nbr",
+            else if (demo_replay_init(left_handed ? "gui/title-l.nbr" : "gui/title-r.nbr",
                 NULL, &title_gamemode, NULL, NULL, NULL, NULL))
             {
                 progress_init(title_gamemode);
@@ -949,8 +950,8 @@ static void title_timer(int id, float dt)
                 init_title_level();
                 mode = TITLE_MODE_LEVEL;
             }
-            else if (demo_replay_init(left_handed ? "gui/title/title-l.nbr" : "gui/title/title-r.nbr",
-                NULL, &title_gamemode, NULL, NULL, NULL, NULL))
+            else if (demo_replay_init(left_handed ? "gui/title-l.nbr" : "gui/title-r.nbr",
+                                      NULL, &title_gamemode, NULL, NULL, NULL, NULL))
             {
                 progress_init(title_gamemode);
                 game_client_fly(0.0f);
@@ -989,6 +990,10 @@ static void title_point(int id, int x, int y, int dx, int dy)
 {
     int jd;
 
+#ifndef __EMSCRIPTEN__
+    xbox_toggle_gui(0);
+#endif
+
     if ((jd = gui_point(id, x, y)))
         gui_pulse(jd, 1.2f);
 }
@@ -996,6 +1001,10 @@ static void title_point(int id, int x, int y, int dx, int dy)
 void title_stick(int id, int a, float v, int bump)
 {
     int jd;
+
+#ifndef __EMSCRIPTEN__
+    xbox_toggle_gui(1);
+#endif
 
     if ((jd = gui_stick(id, a, v, bump)))
         gui_pulse(jd, 1.2f);

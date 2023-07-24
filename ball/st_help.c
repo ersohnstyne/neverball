@@ -43,7 +43,8 @@
 #include "st_help.h"
 #include "st_shared.h"
 
-#if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
+#if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN) \
+    && defined(SWITCHBALL_GUI)
 #define SWITCHBALL_HELP
 #endif
 
@@ -77,7 +78,9 @@ enum
     PAGE_RULES,
     PAGE_CONTROLS,
     PAGE_MODES,
+#if NB_HAVE_PB_BOTH==1
     PAGE_MODES_SPECIAL,
+#endif
     PAGE_TRICKS
 };
 #endif
@@ -220,7 +223,9 @@ static int help_menu(int id)
         if ((kd = gui_harray(jd)))
         {
             help_button(kd, _("Tricks"),   HELP_SELECT, PAGE_TRICKS);
+#if NB_HAVE_PB_BOTH==1
             help_button(kd, _("Special"),  HELP_SELECT, PAGE_MODES_SPECIAL);
+#endif
             help_button(kd, _("Modes"),    HELP_SELECT, PAGE_MODES);
             help_button(kd, _("Controls"), HELP_SELECT, PAGE_CONTROLS);
             help_button(kd, _("Rules"),    HELP_SELECT, PAGE_RULES);
@@ -326,6 +331,16 @@ static int page_introduction(int id)
     return id;
 }
 #else
+static int help_allow_control_demos(int id)
+{
+#ifndef __EMSCRIPTEN__
+    return fs_exists(current_platform == PLATFORM_PC ?
+                     demos[id] : demos_xbox[id]);
+#else
+    return fs_exists(demos[id]);
+#endif
+}
+
 static int page_rules(int id)
 {
     const char *s0 = _(
@@ -444,7 +459,7 @@ static void controls_pc(int id)
     const SDL_Keycode k_exit = KEY_EXIT;
     const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
     const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2); /* DEPRECATED!: Replaced to static camera in the next version */
+    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
     const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
     const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
     const SDL_Keycode k_shot = KEY_SCREENSHOT;
@@ -453,9 +468,9 @@ static void controls_pc(int id)
                              "Hold Shift for faster view rotation.");
     const char *s_exit = _("Exit / Pause");
     const char *s_camAuto = _("Auto-Camera");
-    const char *s_camera1 = _("Chase Camera");
-    const char *s_camera2 = _("Static Camera"); /* DEPRECATED!: Replaced to static camera in the next version */
-    const char *s_camera3 = _("Manual Camera");
+    const char *s_camera1 = cam_to_str(CAM_1);
+    const char *s_camera2 = cam_to_str(CAM_2);
+    const char *s_camera3 = cam_to_str(CAM_3);
     const char *s_restart = _("Restart Level");
     const char *s_shot = _("Screenshot");
 
@@ -1187,7 +1202,9 @@ static int help_gui(void)
             gui_state(id, _("Special objects"), GUI_SML, HELP_SELECT, PAGE_MACHINES);
             gui_state(id, _("Controls"), GUI_SML, HELP_SELECT, PAGE_CONTROLS);
             gui_state(id, _("Modes"), GUI_SML, HELP_SELECT, PAGE_MODES);
+#if NB_HAVE_PB_BOTH==1
             gui_state(id, _("Special"), GUI_SML, HELP_SELECT, PAGE_MODES_SPECIAL);
+#endif
             gui_state(id, _("Tricks"), GUI_SML, HELP_SELECT, PAGE_TRICKS);
         }
 #else
@@ -1198,7 +1215,9 @@ static int help_gui(void)
         case PAGE_RULES:         page_rules(id);         break;
         case PAGE_CONTROLS:      page_controls(id);      break;
         case PAGE_MODES:         page_modes(id);         break;
+#if NB_HAVE_PB_BOTH==1
         case PAGE_MODES_SPECIAL: page_modes_special(id); break;
+#endif
         case PAGE_TRICKS:        page_tricks(id);        break;
         }
 #endif

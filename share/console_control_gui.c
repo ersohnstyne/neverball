@@ -404,16 +404,16 @@ void create_switch_select_button(int select_id)
 /* Generic Controllers */
 
 /*
-    case 2:
+    case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 3:
+    case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 0:
+    case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 1:
+    case 3:
         create_y_button(gui_id, btn_id);
         return;
     case 4:
@@ -446,13 +446,13 @@ void create_a_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 3:
+    case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 0:
+    case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 1:
+    case 3:
         create_y_button(gui_id, btn_id);
         return;
     case 4:
@@ -505,13 +505,13 @@ void create_b_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 2:
+    case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 0:
+    case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 1:
+    case 3:
         create_y_button(gui_id, btn_id);
         return;
     case 4:
@@ -564,13 +564,13 @@ void create_x_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 2:
+    case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 3:
+    case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 1:
+    case 3:
         create_y_button(gui_id, btn_id);
         return;
     case 4:
@@ -623,13 +623,13 @@ void create_y_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 2:
+    case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 3:
+    case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 0:
+    case 2:
         create_x_button(gui_id, btn_id);
         return;
     case 4:
@@ -682,16 +682,16 @@ void create_lb_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 2:
+    case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 3:
+    case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 0:
+    case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 1:
+    case 3:
         create_y_button(gui_id, btn_id);
         return;
     case 5:
@@ -741,16 +741,16 @@ void create_rb_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 2:
+    case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 3:
+    case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 0:
+    case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 1:
+    case 3:
         create_y_button(gui_id, btn_id);
         return;
     case 4:
@@ -800,16 +800,16 @@ void create_lt_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 2:
+    case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 3:
+    case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 0:
+    case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 1:
+    case 3:
         create_y_button(gui_id, btn_id);
         return;
     case 4:
@@ -856,16 +856,16 @@ void create_rt_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 2:
+    case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 3:
+    case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 0:
+    case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 1:
+    case 3:
         create_y_button(gui_id, btn_id);
         return;
     case 4:
@@ -912,16 +912,16 @@ void create_ls_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 2:
+    case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 3:
+    case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 0:
+    case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 1:
+    case 3:
         create_y_button(gui_id, btn_id);
         return;
     case 4:
@@ -968,16 +968,16 @@ void create_rs_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 2:
+    case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 3:
+    case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 0:
+    case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 1:
+    case 3:
         create_y_button(gui_id, btn_id);
         return;
     case 4:
@@ -1024,16 +1024,16 @@ void create_start_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 2:
+    case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 3:
+    case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 0:
+    case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 1:
+    case 3:
         create_y_button(gui_id, btn_id);
         return;
     case 4:
@@ -1068,16 +1068,16 @@ void create_select_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 2:
+    case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 3:
+    case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 0:
+    case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 1:
+    case 3:
         create_y_button(gui_id, btn_id);
         return;
     case 4:
@@ -1427,7 +1427,7 @@ int xbox_show_gui(void)
 
 void xbox_toggle_gui(int active)
 {
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API
     show_control_gui = 1;
 #else
     show_control_gui = 0;

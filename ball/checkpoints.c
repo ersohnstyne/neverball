@@ -69,7 +69,12 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
                                  struct game_view saved_view,
                                  int ui)
 {
+    /* Phase 1: Activate the checkpoints. */
+    
     last_active = 1;
+
+    /* Phase 2: Backup the camera view */
+    
     memset(&last_view, 0, sizeof(saved_view));
     last_view[ui].a = saved_view.a;
 
@@ -78,6 +83,8 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
 
     while (last_view[ui].a < -180.0f)
         last_view[ui].a += 180.f;
+
+    /* Phase 3: Backup all SOL data's simulation. */
 
     /* Backed up from the gameplay */
     for (int backupidx = 0; backupidx < saved_vary.uc; backupidx++)
@@ -165,7 +172,11 @@ int checkpoints_load(void)
 
 void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int* ci)
 {
+    /* Phase 1: Obtain the checkpoint index. */
+
     assert(ci);
+
+    /* Phase 2: Restore SOL data's simulation from checkpoint. */
 
     checkpoints_busy = 1;
 
@@ -326,6 +337,8 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int* ci)
             cmd_func(&cmd);
         }
     }
+
+    /* Phase 3: Finishing up loading checkpoint. */
 
     checkpoints_busy = 0;
 

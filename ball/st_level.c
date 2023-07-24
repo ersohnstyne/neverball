@@ -41,6 +41,7 @@
 #include "config.h"
 #include "demo.h"
 #include "geom.h"
+#include "text.h"
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
 #include "powerup.h"
@@ -74,7 +75,7 @@ struct state st_level_signin_required;
 
 static int level_check_playername(const char *regname)
 {
-    for (int i = 0; i < strlen(regname); i++)
+    for (int i = 0; i < text_length(regname); i++)
     {
         if (regname[i] == '\\' || regname[i] == '/' || regname[i] == ':' || regname[i] == '*' || regname[i] == '?' || regname[i] == '"' || regname[i] == '<' || regname[i] == '>' || regname[i] == '|')
         {
@@ -388,7 +389,7 @@ static void level_timer(int id, float dt)
 {
     /* HACK: This shouldn't have a bug. This has been fixed. */
 
-    if (strlen(config_get_s(CONFIG_PLAYER)) < 3 || !level_check_playername(config_get_s(CONFIG_PLAYER)))
+    if (text_length(config_get_s(CONFIG_PLAYER)) < 3 || !level_check_playername(config_get_s(CONFIG_PLAYER)))
     {
         goto_state(&st_level_signin_required);
         return;

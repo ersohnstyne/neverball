@@ -27,10 +27,6 @@
 #endif
 #endif
 
-/*
- * Premium: pennyball.stynegame.de
- * Legacy downloads: neverball.github.io
- */
 #define NB_CURRDOMAIN_PREMIUM "neverball.github.io"
 
 struct package
@@ -67,14 +63,7 @@ static int package_curr_category = PACKAGE_CATEGORY_LEVELSET;
 
 #if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH>=2
 
-/*
- * TODO: Change the Google Drive package file ID preprocessor definitions
- * from the Project settings.
- */
-
-#ifndef NB_GDRIVE_PACKAGE_FILEID_BALLS
-#error Must specify Ball model file ID from the Google Drive website.
-#endif
+// TODO: Change the Google Drive package file ID preprocessor definitions
 
 #ifndef NB_GDRIVE_PACKAGE_FILEID_LEVELSET
 #error Must specify Level set file ID from the Google Drive website.

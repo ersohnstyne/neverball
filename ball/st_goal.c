@@ -84,7 +84,7 @@ static int balls_id;
 static int coins_id;
 static int score_id;
 
-int wallet_id;
+static int wallet_id;
 
 static int resume;
 static int resume_hold;
@@ -190,23 +190,15 @@ static int goal_gui(void)
             )
         {
 #ifdef CONFIG_INCLUDES_ACCOUNT
+            if (
 #ifdef LEVELGROUPS_INCLUDES_ZEN
-            if (!account_get_d(ACCOUNT_PRODUCT_MEDIATION) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 120)
-                shop_product_available = 1;
-            else if (!account_get_d(ACCOUNT_PRODUCT_BONUS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 180)
-                shop_product_available = 1;
-            else if (!account_get_d(ACCOUNT_PRODUCT_BALLS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 250)
-                shop_product_available = 1;
-            else if (!account_get_d(ACCOUNT_PRODUCT_LEVELS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 310)
-                shop_product_available = 1;
-#else
-            if (!account_get_d(ACCOUNT_PRODUCT_BONUS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 180)
-                shop_product_available = 1;
-            else if (!account_get_d(ACCOUNT_PRODUCT_BALLS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 250)
-                shop_product_available = 1;
-            else if (!account_get_d(ACCOUNT_PRODUCT_LEVELS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 310)
-                shop_product_available = 1;
+                (!account_get_d(ACCOUNT_PRODUCT_MEDIATION) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 120) ||
 #endif
+                (!account_get_d(ACCOUNT_PRODUCT_BONUS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 180) ||
+                (!account_get_d(ACCOUNT_PRODUCT_BALLS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 250) ||
+                (!account_get_d(ACCOUNT_PRODUCT_LEVELS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 310)
+                )
+                shop_product_available = 1;
 #endif
         }
     }
@@ -251,34 +243,25 @@ static int goal_gui(void)
 #endif
             )
         {
-            int coins, score, balls;
-            int i;
+            int coins = !resume ? curr_coins() : 0,
+                score = !resume ? curr_score() - coins : curr_score(),
+                balls = curr_balls();
 
             /* Reverse-engineer initial score and balls. */
 
-            if (resume)
-            {
-                coins = 0;
-                score = curr_score();
-                balls = curr_balls();
-            }
-            else
-            {
-                coins = curr_coins();
-                score = curr_score() - coins;
-                balls = curr_balls();
+            if (
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (curr_mode() != MODE_HARDCORE)
+                curr_mode() != MODE_HARDCORE &&
 #endif
-                {
-                    for (i = curr_score(); i > score; i--)
-                        if (progress_reward_ball(i))
-                        {
-                            /* Waiting for extra balls by collecting 100 coins */
-                            challenge_disable_all_buttons = config_get_d(CONFIG_NOTIFICATION_REWARD) ? 1 : 0;
-                            balls--;
-                        }
-                }
+                !resume)
+            {
+                for (int i = curr_score(); i > score; i--)
+                    if (progress_reward_ball(i))
+                    {
+                        /* Waiting for extra balls by collecting 100 coins */
+                        challenge_disable_all_buttons = config_get_d(CONFIG_NOTIFICATION_REWARD) ? 1 : 0;
+                        balls--;
+                    }
             }
 
             if ((jd = gui_hstack(id)))
@@ -328,11 +311,11 @@ static int goal_gui(void)
 
                             gui_label(ld, "", GUI_SML, 0, 0);
 
-                            for (i = MAXLVL - 1; i >= 0; i--)
-                                if ((l = get_level(i)) && level_bonus(l))
+                            for (int j = MAXLVL - 1; j >= 0; j--)
+                                if ((l = get_level(j)) && level_bonus(l))
                                 {
                                     const GLubyte *c = (level_opened(l) ?
-                                        gui_grn : gui_gry);
+                                                        gui_grn : gui_gry);
 
                                     gui_label(ld, level_name(l), GUI_SML, c, c);
                                 }
@@ -355,8 +338,10 @@ static int goal_gui(void)
         {
             balls_id = score_id = 0;
 
-            int wallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
-            int coins = resume ? curr_coins() : MAX((wallet + curr_coins()) - ACCOUNT_WALLET_MAX_COINS, 0);
+            /* Reverse-engineer initial wallet. */
+
+            int coins = !resume ? curr_coins() : 0,
+                wallet = !resume ? account_get_d(ACCOUNT_DATA_WALLET_COINS) : account_get_d(ACCOUNT_DATA_WALLET_COINS) - coins;
 
             if ((jd = gui_hstack(id)))
             {
@@ -481,21 +466,6 @@ static int goal_gui(void)
             }
         }
 
-#ifdef CONFIG_INCLUDES_ACCOUNT
-        if (!resume && server_policy_get_d(SERVER_POLICY_EDITION) > -1) {
-            if (curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                || curr_mode() == MODE_CAMPAIGN
-#endif
-                )
-            {
-                int curr_wallet = MIN(ACCOUNT_WALLET_MAX_COINS, account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_coins());
-                account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_wallet);
-                account_save();
-            }
-        }
-#endif
-
         gui_layout(id, 0, 0);
     }
 
@@ -560,7 +530,7 @@ static void goal_timer(int id, float dt)
         geom_step(dt);
         game_server_step(dt);
 
-        int record_screenanimations = time_state() < (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.5f : 1.f);
+        int record_screenanimations = time_state() < (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.f);
         int record_modes = curr_mode() != MODE_NONE;
         int record_campaign = !campaign_hardcore_norecordings();
 
@@ -571,7 +541,7 @@ static void goal_timer(int id, float dt)
                       && record_campaign ? demo_fp : NULL);
 
         if ((t > 0.05f && coins_id)
-            && (!resume && time_state() > (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.5f : 1.f)))
+            && (!resume && time_state() > (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.f)))
         {
             int coins = 0;
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -609,7 +579,6 @@ static void goal_timer(int id, float dt)
 #ifdef CONFIG_INCLUDES_ACCOUNT
                 wallet = gui_value(wallet_id);
 #endif
-
                 gui_set_count(coins_id, coins - 1);
                 gui_pulse(coins_id, 1.1f);
 

@@ -898,13 +898,10 @@ static int demo_scan_allowance_keybd(int c, int d)
 
 static int demo_scan_allowance_buttn(int b, int d)
 {
-    if (d)
+    if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
     {
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-        {
-            demo_replay_stop(0);
-            return standalone ? 0 : goto_state(&st_demo);
-        }
+        demo_replay_stop(0);
+        return standalone ? 0 : goto_state(&st_demo);
     }
     return 1;
 }
@@ -1777,14 +1774,8 @@ static int demo_del_gui(void)
                           GUI_SML, gui_wht, gui_wht);
 
             char warning_text[MAXSTR];
-
-#if _WIN32 && _MSC_VER
-            if (!delete_permanently)
-                SAFECPY(warning_text, _("Move this replay to recycle bin?"));
-            else
-#endif
-                SAFECPY(warning_text, _("Once deleted this replay,\\"
-                                        "this action cannot be undone."));
+            SAFECPY(warning_text, _("Once deleted this replay,\\"
+                                    "this action cannot be undone."));
 
             gui_multi(jd,
                       warning_text,
@@ -1836,11 +1827,9 @@ static int demo_del_enter(struct state *st, struct state *prev)
 
 static int demo_del_keybd(int c, int d)
 {
-    if (d)
-    {
-        if (c == KEY_EXIT)
-            return demo_del_action(GUI_BACK, 0);
-    }
+    if (d && c == KEY_EXIT)
+        return demo_del_action(GUI_BACK, 0);
+
     return 1;
 }
 
@@ -1896,7 +1885,7 @@ static void demo_compat_timer(int id, float dt)
 
 static int demo_compat_keybd(int c, int d)
 {
-    if (d && (c == KEY_EXIT))
+    if (d && c == KEY_EXIT)
         return goto_state(&st_demo_end);
 
     return 1;
@@ -2002,6 +1991,8 @@ static int demo_look_click(int b, int d)
         demo_look_panning = 1;
     else if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
         demo_look_panning = 0;
+
+    return 1;
 }
 
 static int demo_look_keybd(int c, int d)

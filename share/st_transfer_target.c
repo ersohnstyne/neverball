@@ -689,12 +689,12 @@ static const char *pick_home_path(void)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     char userdir_env[MAX_PATH];
     memset(userdir_env, 0, sizeof (userdir_env));
-    getenv_s(&requiredSize, userdir_env, requiredSize, "PENNYBALL_USERDIR");
+    getenv_s(&requiredSize, userdir_env, requiredSize, "NEVERBALL_USERDIR");
     if (userdir_env)
         return userdir_env;
 #else
     char *userdir_env;
-    if ((userdir_env = getenv("PENNYBALL_USERDIR")))
+    if ((userdir_env = getenv("NEVERBALL_USERDIR")))
         return userdir_env;
 #endif
 
@@ -714,7 +714,7 @@ static const char *pick_home_path(void)
         return fs_base_dir();
 #else
     char *userdir_env;
-    if ((userdir_env = getenv("PENNYBALL_USERDIR")))
+    if ((userdir_env = getenv("NEVERBALL_USERDIR")))
         return userdir_env;
 
     const char *path;

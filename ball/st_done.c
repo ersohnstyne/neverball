@@ -286,10 +286,10 @@ static int done_enter(struct state *st, struct state *prev)
     resume = prev != &st_goal;
 
 #if NB_HAVE_PB_BOTH==1
-    if (campaign_used()
+    if (!campaign_used()
     &&  set_star(curr_set()) > 0 && set_star_gained(curr_set())
     && !resume)
-        audio_narrator_play(AUD_STARS);
+        audio_play(AUD_STARS, 1.f);
 #endif
 
     int high = progress_set_high();

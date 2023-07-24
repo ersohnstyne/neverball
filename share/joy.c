@@ -34,7 +34,7 @@
 #include "log.h"
 
 #if NB_PB_WITH_XBOX==0
-#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
 #define JOY_MAX 10 // Default: 16
 #else
 /*
@@ -188,7 +188,7 @@ int joy_button(int instance, int b, int d)
     if (joy_curr != instance)
     {
         /* Make joystick current. */
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API
         joy_curr = instance;
         //log_printf("Joystick %d made current via button press\n", joy_curr);
 #endif
@@ -273,8 +273,8 @@ int  joy_connected(int instance, int *battery_level, int *wired)
                 { 0x80, 0x00, 0xbf }
             };
 
-#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API || \
-    PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API || \
+    NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
             if (instance <= 4)
                 SDL_JoystickSetLED(joysticks[instance].id, 0x00, 0xbf, 0xff);
             else

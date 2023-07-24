@@ -18,26 +18,19 @@ under Unix and Linux when running the script.
 
     install-devel-linux.sh
 
-Under Msys2 for Windows, it is placed by the file
-
-    Msys2             install-deps-msys2-<architecture>.sh
-
 Any kind of differences platforms such WINE does not supported.
 
 
 * COMPILATION
 
-Compiled source file  will automatically kicked,  when  building  the
-game from Microsoft Visual Studio 2022.
+Compiled  source file  will automatically kicked,  when  building  the
+game  from  Microsoft Visual Studio 2022 Community  or  later version.
 
 Under Unix and Linux, simply run
 
     make
 
-Under Windows,  either build from the Visual Studio 2022 solution, or
-install the MSYS2 environment and run
-
-    make CRT_SECURE_NO_WARNINGS=1 ALTERNATIVE_BUILDENV=Msys2
+Under Windows,  build it from the Visual Studio 2022 solution.
 
 Cross-compilation for Windows is also supported. On Fedora Linux, run
 
@@ -60,7 +53,8 @@ make FS_VERSION=1
     If  you use this,  then payments,  fetch and libcurl will ignored.
 
 make ENABLE_STEAM=1
-    Steam support.
+    Steam game support.  Requires running Steam Launcher  in  order to
+    work.
 
     Steamworks        https://partner.steamgames.com/
 
@@ -123,24 +117,6 @@ The dist subdirectory contains some miscellaneous files:
 
   * .desktop files
   * high resolution icons in PNG, SVG and ICO formats
-
-
-* EDITIONS
-
-To upgrade from the open-source edition, follow this link:
-https://docs.google.com/forms/d/e/1FAIpQLSfdGg7UI20mWuT33NAIGE3g922wvleZ8Wm1rcagQWohmLPICQ/viewform?usp=sf_link
-
-Once you've registered as Home editions, use the command:
-
-    make EDITION=home
-
-Or, once you've purchased the edition,  you can use  a valid editions:
-
-    * pro
-    * enterprise
-    * education
-    * server_standard
-    * server_datacenter
 
 
 Web: <https://neverball.org/>

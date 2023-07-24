@@ -137,7 +137,7 @@ void set_store_hs(void)
         int i;
 
 #if NB_HAVE_PB_BOTH==1
-        fs_printf(fp, "version %d\nset %s\nrewarded %d\n", SCORE_VERSION, s->id, s->star_obtained);
+        fs_printf(fp, "version %d\nrewarded %d\nset %s\n", SCORE_VERSION, s->star_obtained, s->id);
 #else
         fs_printf(fp, "version %d\nset %s\n", 2, s->id);
 #endif
@@ -196,13 +196,23 @@ static void set_load_hs_v3(fs_file fp, struct set *s, char *buf, int size)
 
     while (fs_gets(buf, size, fp))
     {
-
         int version = 0;
         int flags   = 0;
         int n       = 0;
 
         strip_newline(buf);
 
+#if NB_HAVE_PB_BOTH==1
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        if (sscanf_s(buf,
+#else
+        if (sscanf(buf,
+#endif
+                   "rewarded %d", &rewarded_stars) >= 1)
+            set_stars = 1;
+
+        else
+#endif
         if (strncmp(buf, "set ", 4) == 0)
         {
             get_score(fp, &time_score);
@@ -210,15 +220,6 @@ static void set_load_hs_v3(fs_file fp, struct set *s, char *buf, int size)
 
             set_score = 1;
         }
-#if NB_HAVE_PB_BOTH==1
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        else if (sscanf_s(buf,
-#else
-        else if (sscanf(buf,
-#endif
-                        "rewarded %d", &rewarded_stars) >= 1)
-            set_stars = 1;
-#endif
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         else if (sscanf_s(buf,
 #else

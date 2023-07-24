@@ -323,13 +323,13 @@ void account_save(void)
     assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
 
-    if (strlen(config_get_s(CONFIG_PLAYER)) < 1)
+    if (text_length(config_get_s(CONFIG_PLAYER)) < 1)
     {
         log_errorf("Cannot save account! No player name!\n");
         return;
     }
 
-    for (int i = 0; i < strlen(config_get_s(CONFIG_PLAYER)); i++)
+    for (int i = 0; i < text_length(config_get_s(CONFIG_PLAYER)); i++)
     {
         if (config_get_s(CONFIG_PLAYER)[i] == '\\' || config_get_s(CONFIG_PLAYER)[i] == '/' || config_get_s(CONFIG_PLAYER)[i] == ':' || config_get_s(CONFIG_PLAYER)[i] == '*' || config_get_s(CONFIG_PLAYER)[i] == '?' || config_get_s(CONFIG_PLAYER)[i] == '"' || config_get_s(CONFIG_PLAYER)[i] == '<' || config_get_s(CONFIG_PLAYER)[i] == '>' || config_get_s(CONFIG_PLAYER)[i] == '|')
         {
@@ -338,7 +338,7 @@ void account_save(void)
         }
     }
 
-    if (strlen(config_get_s(CONFIG_PLAYER)) < 3)
+    if (text_length(config_get_s(CONFIG_PLAYER)) < 3)
     {
         log_errorf("Cannot save account! Too few characters!\n");
         return;

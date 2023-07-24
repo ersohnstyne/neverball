@@ -272,7 +272,6 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClCompile Include="..\share\text.c" />
     <ClCompile Include="..\share\theme.c" />
     <ClCompile Include="..\share\tilt_null.c" />
-    <ClCompile Include="..\share\tts.c" />
     <ClCompile Include="..\share\vec3.c" />
     <ClCompile Include="..\share\video.c" />
     <ClCompile Include="..\share\zip.c" />
@@ -337,7 +336,6 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClInclude Include="..\share\text.h" />
     <ClInclude Include="..\share\theme.h" />
     <ClInclude Include="..\share\tilt.h" />
-    <ClInclude Include="..\share\tts.h" />
     <ClInclude Include="..\share\vec3.h" />
     <ClInclude Include="..\share\version.h" />
     <ClInclude Include="..\share\video.h" />

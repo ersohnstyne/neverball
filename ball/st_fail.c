@@ -335,7 +335,6 @@ static int fail_gui(void)
                         audio_music_fade_out(0.f);
                         gui_multi(jd, FAIL_UPGRADE_EDITION_2, GUI_SML, gui_red, gui_red);
                     }
-                    gui_space(id);
                 }
                 else if (status == GAME_TIME && (save < 2 || campaign_hardcore_norecordings()))
                 {
@@ -1302,11 +1301,11 @@ static int raise_gems_prepare_gui(void)
                         continue;
                     }
 
-                    estimated_prices[i] = ROUND((num_amounts_curr[i] - num_amounts_dst[i]) * 38);
+                    estimated_prices[i] = ROUND(num_amounts_dst[i] * 38);
                     if (i == 0)
-                        estimated_prices[i] = ROUND((num_amounts_curr[i] - num_amounts_dst[i]) / 10);
+                        estimated_prices[i] = ROUND(num_amounts_dst[i] / 10);
 
-                    if (estimated_prices[i] > 0)
+                    if (num_amounts_dst[i] > 0)
                     {
                         char paramattr[MAXSTR];
 
@@ -1316,7 +1315,7 @@ static int raise_gems_prepare_gui(void)
                         sprintf(paramattr,
 #endif
                                 "%d %s " GUI_TRIANGLE_RIGHT " %d %s",
-                                (num_amounts_curr[i] - num_amounts_dst[i]), _(details_names[i]),
+                                (num_amounts_dst[i]), _(details_names[i]),
                                 estimated_prices[i], i == 0 ? _("Gems") : _("Coins"));
 
                         gui_label(kd, paramattr,
@@ -1358,7 +1357,6 @@ static int raise_gems_prepare_gui(void)
                 gui_label(kd, elemattr, GUI_SML, gui_wht, gui_cya);
             }
 
-            // Was ww, hh, current in use: square
             if (((float) video.device_w / (float) video.device_h) > 1.f)
             {
                 gui_space(jd);
@@ -1375,7 +1373,7 @@ static int raise_gems_prepare_gui(void)
 
         if ((jd = gui_harray(id)))
         {
-            int tmp_startbtn_id = gui_start(jd, _("OK, let's go!"), GUI_SML, RAISEGEMS_START, 0);
+            int tmp_startbtn_id = gui_start(jd, _("Let's do this!"), GUI_SML, RAISEGEMS_START, 0);
 
             if (!allow_raise && tmp_startbtn_id)
             {
@@ -1392,8 +1390,8 @@ static int raise_gems_prepare_gui(void)
               || curr_mode() == MODE_BOOST_RUSH)
              && !allow_raise)
                 gui_state(jd, _("Bankruptcy"), GUI_SML, RAISEGEMS_BANKRUPTCY, 0);
-            else
-                gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+
+            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
         }
     }
 

@@ -607,7 +607,7 @@ static void campaign_load_levels(void)
 
 int campaign_find(const char *file)
 {
-    if (strcmp("campaign.txt", file) == 0)
+    if (strcmp(CAMPAIGN_FILE, file) == 0)
         return 1;
 
     return 0;
@@ -674,6 +674,13 @@ int campaign_init(void)
                     medal_datas.bronze++;
             }
         }
+
+        /*
+         * To get wing medals: Complete Level 3 in Campaign.
+         * To get silver badge: Obtain most silver awards.
+         * To get gold badge: Obtain most gold awards.
+         * To get the gold wings: Achieve every gold awards on all levels.
+         */
 
         if ((medal_datas.gold == medal_datas.unlocks) && medal_datas.silver == 0 && medal_datas.bronze == 0 && level_completed(campaign_get_level(3)))
             medal_datas.curr_rank = 4;

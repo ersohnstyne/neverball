@@ -86,7 +86,7 @@ int goto_conf(struct state *back_state, int using_game, int demo)
 
 static int conf_check_playername(const char *regname)
 {
-    for (int i = 0; i < strlen(regname); i++)
+    for (int i = 0; i < text_length(regname); i++)
     {
         if (regname[i] == '\\' || regname[i] == '/' || regname[i] == ':' || regname[i] == '*' || regname[i] == '?' || regname[i] == '"' || regname[i] == '<' || regname[i] == '>' || regname[i] == '|')
         {
@@ -939,7 +939,7 @@ enum InputType
 {
     CONTROL_NONE,
 
-    CONTROL_PENNYBALL,
+    CONTROL_NEVERBALL,
     CONTROL_SWITCHBALL_V1,
     CONTROL_SWITCHBALL_V2,
 
@@ -1000,7 +1000,7 @@ static int control_get_input(void)
     else if (k_auto == SDLK_e && k_cam1 == SDLK_1 && k_cam2 == SDLK_2 && k_cam3 == SDLK_3
         && k_caml == SDLK_s && k_camr == SDLK_d
         && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
-        return CONTROL_PENNYBALL;
+        return CONTROL_NEVERBALL;
 
     return CONTROL_MAX;
 }
@@ -1016,7 +1016,7 @@ static void control_set_input()
         gui_set_label(preset_id, "Switchball HD");
         key_preset_id = CONTROL_SWITCHBALL_V2;
     }
-    else if (key_preset_id == CONTROL_PENNYBALL)
+    else if (key_preset_id == CONTROL_NEVERBALL)
     {
         CONF_CONTROL_SET_PRESET_KEYS(SDLK_c, SDLK_3, SDLK_1, SDLK_2,
                                      SDLK_d, SDLK_a,
@@ -1032,7 +1032,7 @@ static void control_set_input()
                                      SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT);
 
         gui_set_label(preset_id, "Neverball");
-        key_preset_id = CONTROL_PENNYBALL;
+        key_preset_id = CONTROL_NEVERBALL;
     }
 }
 
@@ -1104,7 +1104,7 @@ int conf_control_gui(void)
 
         switch (control_get_input())
         {
-        case CONTROL_PENNYBALL:
+        case CONTROL_NEVERBALL:
             key_preset_id = control_get_input();
             presetname = "Neverball";
             break;
@@ -1228,16 +1228,16 @@ static const char *conf_controllers_option_names[] = {
 };
 
 static const char* conf_controllers_option_values_xbox[] = {
-    "X",
-    "Y",
     "A",
     "B",
+    "X",
+    "Y",
     "LB",
-    "LT",
     "RB",
+    "LT",
     "RT",
-    "-",
-    "+",
+    GUI_TRIANGLE_LEFT,
+    GUI_TRIANGLE_RIGHT,
 
     "",
 
@@ -1250,13 +1250,13 @@ static const char* conf_controllers_option_values_xbox[] = {
 };
 
 static const char *conf_controllers_option_values_ps[] = {
-    "◻",
-    "○",
     "X",
     "△",
+    "◻",
+    "○",
     "L1",
-    "L2",
     "R1",
+    "L2",
     "R2",
     GUI_TRIANGLE_LEFT,
     GUI_TRIANGLE_RIGHT,
@@ -1272,13 +1272,13 @@ static const char *conf_controllers_option_values_ps[] = {
 };
 
 static const char* conf_controllers_option_values_steamdeck[] = {
-    "X",
-    "Y",
     "A",
     "B",
+    "X",
+    "Y",
     "L1",
-    "L2",
     "R1",
+    "L2",
     "R2",
     "-",
     "+",
@@ -1294,13 +1294,13 @@ static const char* conf_controllers_option_values_steamdeck[] = {
 };
 
 static const char *conf_controllers_option_values_switch[] = {
-    "X",
-    "Y",
     "A",
     "B",
+    "X",
+    "Y",
     "L",
-    "ZL",
     "R",
+    "ZL",
     "ZR",
     "-",
     "+",
@@ -1316,13 +1316,13 @@ static const char *conf_controllers_option_values_switch[] = {
 };
 
 static const char *conf_controllers_option_values_handset[] = {
-    "X",
-    "Y",
     "A",
     "B",
+    "X",
+    "Y",
     "L",
-    "",
     "R",
+    "",
     "",
     GUI_TRIANGLE_LEFT,
     GUI_TRIANGLE_RIGHT,
@@ -1343,8 +1343,8 @@ static void conf_controllers_set_label(int id, int value)
 {
     char str[20];
 
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_FAMILY_API || \
-    PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API || \
+    NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
     if (conf_controllers_option_values_xbox[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1354,7 +1354,7 @@ static void conf_controllers_set_label(int id, int value)
 #endif
                 "%s", conf_controllers_option_values_xbox[value % 100000]);
     }
-#elif PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API
+#elif NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
     if (conf_controllers_option_values_ps[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1364,7 +1364,7 @@ static void conf_controllers_set_label(int id, int value)
 #endif
                 "%s", conf_controllers_option_values_ps[value % 100000]);
     }
-#elif PENNYBALL_FAMILY_API == PENNYBALL_STEAMDECK_FAMILY_API
+#elif NEVERBALL_FAMILY_API == NEVERBALL_STEAMDECK_FAMILY_API
     if (conf_controllers_option_values_steamdeck[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1374,7 +1374,7 @@ static void conf_controllers_set_label(int id, int value)
 #endif
                 "%s", conf_controllers_option_values_steamdeck[value % 100000]);
     }
-#elif PENNYBALL_FAMILY_API == PENNYBALL_SWITCH_FAMILY_API
+#elif NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
     if (conf_controllers_option_values_switch[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1384,7 +1384,7 @@ static void conf_controllers_set_label(int id, int value)
 #endif
                 "%s", conf_controllers_option_values_switch[value % 100000]);
     }
-#elif PENNYBALL_FAMILY_API == PENNYBALL_HANDSET_FAMILY_API
+#elif NEVERBALL_FAMILY_API == NEVERBALL_HANDSET_FAMILY_API
     if (conf_controllers_option_values_switch[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1403,7 +1403,7 @@ static void conf_controllers_set_label(int id, int value)
             "%d", value % 100000);
 #endif
 
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API
     else SAFECPY(str, "");
 #endif
 
@@ -2225,7 +2225,7 @@ static int conf_gui(void)
         gui_space(id);
 
 #if NB_HAVE_PB_BOTH==1
-        conf_state(id, _("Account"), _((strlen(config_get_s(CONFIG_PLAYER)) < 3 || !conf_check_playername(config_get_s(CONFIG_PLAYER))) ? "Register" : "Manage"), CONF_MANAGE_ACCOUNT);
+        conf_state(id, _("Account"), _((text_length(config_get_s(CONFIG_PLAYER)) < 3 || !conf_check_playername(config_get_s(CONFIG_PLAYER))) ? "Register" : "Manage"), CONF_MANAGE_ACCOUNT);
         conf_state(id, _("Notifications"), _("Manage"), CONF_MANAGE_NOTIFICATIONS);
 
         gui_space(id);

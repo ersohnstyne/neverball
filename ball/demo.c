@@ -204,7 +204,7 @@ void demo_free(struct demo *d)
 
 /*---------------------------------------------------------------------------*/
 
-#define DEMO_FORMAT_DATETIME
+//#define DEMO_FORMAT_DATETIME
 
 int demo_exists(const char *name)
 {

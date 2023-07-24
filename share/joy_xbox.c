@@ -88,7 +88,7 @@ void joy_quit(void)
  */
 void joy_add(int device)
 {
-    log_printf("Joystick added (device %d)\n", device);
+    log_printf("XInput: Joystick added (device %d)\n", device);
 
     size_t i = 0;
 
@@ -97,14 +97,14 @@ void joy_add(int device)
         if (joysticks[i].id != device && joysticks[i].id == -1)
         {
             joysticks[i].id = device;
-            log_printf("Joystick opened (instance %d)\n", joysticks[i].id);
+            log_printf("XInput: Joystick opened (instance %d)\n", joysticks[i].id);
 
             break;
         }
     }
 
     if (i == ARRAYSIZE(joysticks))
-        log_errorf("Joystick %d not opened, %ud open joysticks reached\n", device, ARRAYSIZE(joysticks));
+        log_errorf("XInput: Joystick %d not opened, %ud open joysticks reached\n", device, ARRAYSIZE(joysticks));
 }
 
 /*
@@ -115,7 +115,7 @@ void joy_remove(int instance)
     size_t i;
 
     if (instance > -1)
-        log_printf("Joystick removed (instance %d)\n", instance);
+        log_printf("XInput: Joystick removed (instance %d)\n", instance);
 
     for (i = 0; i < ARRAYSIZE(joysticks); ++i)
     {
@@ -126,7 +126,7 @@ void joy_remove(int instance)
             memset(&joysticks[i].prev_state, 0, sizeof(XINPUT_STATE));
             joysticks[i].id = -1;
 
-            log_printf("Joystick closed (instance %d)\n", instance);
+            log_printf("XInput: Joystick closed (instance %d)\n", instance);
         }
     }
 }
@@ -142,7 +142,7 @@ int joy_button(int instance, int b, int d)
         
         joy_curr = instance;
 
-        /* log_printf("Joystick %d made current via button press\n", joy_curr); */
+        /* log_printf("XInput: Joystick %d made current via button press\n", joy_curr); */
     }
 
     /* Process button event. */
@@ -160,7 +160,7 @@ void joy_axis(int instance, int a, float v)
 
         joy_curr = instance;
 
-        /* log_printf("Joystick %d made current via button press\n", joy_curr); */
+        /* log_printf("XInput: Joystick %d made current via button press\n", joy_curr); */
     }
 
     // if (joy_curr == instance)
@@ -228,9 +228,10 @@ int  joy_connected(int instance, int *battery_level, int *wired)
     return 0;
 }
 
-void joy_update(void)
+int  joy_update(void)
 {
     DWORD result;
+    int d = 1;
 
     for (int i = 0; i < JOY_MAX; i++)
     {
@@ -249,7 +250,7 @@ void joy_update(void)
             if (memcmp(prevState, currState, sizeof(*currState)) != 0)
             {
                 float currLX = currState->Gamepad.sThumbLX;
-                float currLY = currState->Gamepad.sThumbLY;
+                float currLY = -currState->Gamepad.sThumbLY;
                 float prevLX = prevState->Gamepad.sThumbLX;
                 float prevLY = prevState->Gamepad.sThumbLY;
                 float currRX = currState->Gamepad.sThumbRX;
@@ -259,37 +260,37 @@ void joy_update(void)
 
                 if (prevState->Gamepad.wButtons != currState->Gamepad.wButtons)
                 {
-                    joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_A),
+                    if (d) d = joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_A),
                                currState->Gamepad.wButtons & XINPUT_GAMEPAD_A);
 
-                    joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_B),
+                    if (d) d = joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_B),
                                currState->Gamepad.wButtons & XINPUT_GAMEPAD_B);
 
-                    joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_X),
+                    if (d) d = joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_X),
                                currState->Gamepad.wButtons & XINPUT_GAMEPAD_X);
 
-                    joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_Y),
+                    if (d) d = joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_Y),
                                currState->Gamepad.wButtons & XINPUT_GAMEPAD_Y);
 
-                    joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_L1),
+                    if (d) d = joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_L1),
                                currState->Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER);
 
-                    joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_R1),
+                    if (d) d = joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_R1),
                                currState->Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER);
 
-                    joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_START),
+                    if (d) d = joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_START),
                                currState->Gamepad.wButtons & XINPUT_GAMEPAD_START);
 
-                    joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_SELECT),
+                    if (d) d = joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_SELECT),
                                currState->Gamepad.wButtons & XINPUT_GAMEPAD_BACK);
                 }
 
-                if (prevState->Gamepad.bLeftTrigger != currState->Gamepad.bLeftTrigger)
-                    joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_L2),
-                               currState->Gamepad.bLeftTrigger > 15);
-                if (prevState->Gamepad.bRightTrigger != currState->Gamepad.bRightTrigger)
-                    joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_R2),
-                               currState->Gamepad.bRightTrigger > 15);
+                if (d && prevState->Gamepad.bLeftTrigger != currState->Gamepad.bLeftTrigger)
+                    d = joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_L2),
+                               currState->Gamepad.bLeftTrigger >= 8);
+                if (d && prevState->Gamepad.bRightTrigger != currState->Gamepad.bRightTrigger)
+                    d = joy_button(i, config_get_d(CONFIG_JOYSTICK_BUTTON_R2),
+                               currState->Gamepad.bRightTrigger >= 8);
 
                 float magnitudeL = fsqrtf(currLX * currLX + currLY * currLY);
                 float magnitudeR = fsqrtf(currRX * currRX + currRY * currRY);
@@ -299,7 +300,7 @@ void joy_update(void)
                 float normalizedRX = currRX / magnitudeR;
                 float normalizedRY = currRY / magnitudeR;
 
-                if (prevLX != currLX || prevLY != currLY)
+                if (d && (prevLX != currLX || prevLY != currLY))
                 {
                     if (magnitudeL > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
                     {
@@ -313,7 +314,7 @@ void joy_update(void)
                     }
                 }
 
-                if (prevRX != currRX || prevRY != currRY)
+                if (d && (prevRX != currRX || prevRY != currRY))
                 {
                     if (magnitudeR > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
                     {
@@ -333,6 +334,8 @@ void joy_update(void)
         else if (joysticks[i].id != -1)
             joy_remove(joysticks[i].id);
     }
+
+    return d;
 }
 
 #endif

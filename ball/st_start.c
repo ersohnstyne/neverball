@@ -739,7 +739,7 @@ static int start_score(int d)
 
 static void start_wheel(int x, int y)
 {
-    if (!set_star_view) return 1;
+    if (!set_star_view) return;
 
     if (y > 0) start_score(-1);
     if (y < 0) start_score(+1);

@@ -409,7 +409,7 @@ static int loop(void)
 #endif
 
 #if NB_PB_WITH_XBOX==1
-    joy_update();
+    d = joy_update();
 #endif
 
     /* Process SDL events. */
@@ -441,7 +441,7 @@ static int loop(void)
             break;
 #endif
 
-#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
         case SDL_MOUSEMOTION:
             /* Convert to bottom left origin. */
 
@@ -484,6 +484,7 @@ static int loop(void)
             d = st_touch(&e.tfinger);
             break;
 
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
         case SDL_KEYDOWN:
             d = handle_key_dn(&e);
             break;
@@ -491,6 +492,7 @@ static int loop(void)
         case SDL_KEYUP:
             d = handle_key_up(&e);
             break;
+#endif
 
         case SDL_WINDOWEVENT:
             switch (e.window.event)
@@ -561,7 +563,7 @@ static int loop(void)
             text_input_str(e.text.text, 1);
             break;
 
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
         case SDL_JOYAXISMOTION:
             joy_axis(e.jaxis.which, e.jaxis.axis, JOY_VALUE(e.jaxis.value));
             break;
@@ -854,12 +856,12 @@ static int is_replay(struct dir_item *item)
 
 static int is_score_file(struct dir_item *item)
 {
-    return str_starts_with(item->path, "pennyballhs-");
+    return str_starts_with(item->path, "neverballhs-");
 }
 
 static int is_account_file(struct dir_item *item)
 {
-    return str_starts_with(item->path, "pennyballaccount-");
+    return str_starts_with(item->path, "neverballaccount-");
 }
 
 static void make_dirs_and_migrate(void)
@@ -877,7 +879,7 @@ static void make_dirs_and_migrate(void)
             for (i = 0; i < array_len(items); i++)
             {
                 src = DIR_ITEM_GET(items, i)->path;
-                dst = concat_string("Accounts/", src + sizeof ("pennyballaccount-") - 1, NULL);
+                dst = concat_string("Accounts/", src + sizeof ("neverballaccount-") - 1, NULL);
                 fs_rename(src, dst);
                 free(dst);
             }
@@ -912,7 +914,7 @@ static void make_dirs_and_migrate(void)
             {
                 src = DIR_ITEM_GET(items, i)->path;
                 dst = concat_string("Scores/",
-                                    src + sizeof ("pennyballhs-") - 1,
+                                    src + sizeof ("neverballhs-") - 1,
                                     ".txt",
                                     NULL);
                 fs_rename(src, dst);
@@ -1070,16 +1072,16 @@ static int main_init(int argc, char *argv[])
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 #endif
 
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_FAMILY_API \
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API \
     && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX, "1");
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API \
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API \
     && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360) && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360_PLAYER_LED)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360_PLAYER_LED, "1");
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
 #if defined(SDL_HINT_JOYSTICK_HIDAPI_PS5) && defined(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "1");
@@ -1091,7 +1093,7 @@ static int main_init(int argc, char *argv[])
 #error No Playstation HIDAPI specified!
 #endif
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_SWITCH_FAMILY_API \
+#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API \
     && defined(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS, "1");
 #endif
@@ -1163,41 +1165,41 @@ static int main_init(int argc, char *argv[])
 #endif
 
     /* Enable joystick events. */
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
     if (!joy_init())
         return 0;
 #endif
 
 #if NB_HAVE_PB_BOTH==1
-#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
     init_controller_type(PLATFORM_PC);
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API
     init_controller_type(PLATFORM_XBOX);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
     init_controller_type(PLATFORM_XBOX);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
     init_controller_type(PLATFORM_PS);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_STEAMDECK_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_STEAMDECK_FAMILY_API
     init_controller_type(PLATFORM_STEAMDECK);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_SWITCH_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
     init_controller_type(PLATFORM_SWITCH);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_HANDSET_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_HANDSET_FAMILY_API
     init_controller_type(PLATFORM_HANDSET);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
@@ -1303,7 +1305,7 @@ static void main_quit(void)
     audio_free();
     lang_quit();
 
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
     joy_quit();
 #endif
 

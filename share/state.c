@@ -13,6 +13,11 @@
  */
 
 #include "gui.h"
+
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#include "console_control_gui.h"
+#endif
+
 #include "vec3.h"
 #include "glext.h"
 #include "state.h"

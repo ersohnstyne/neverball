@@ -27,7 +27,7 @@
 #if !_MSC_VER
 #error Use the combined library, that you've compiled from Microsoft Visual Studio!
 #else
-#pragma message("Pennyball + Neverball Dedicated Network for Microsoft Visual Studio")
+#pragma message("Neverball Dedicated Network for Microsoft Visual Studio")
 #endif
 #pragma comment(lib, "neverball_net_client.lib")
 
@@ -75,31 +75,31 @@ static struct
     const int   def;
     int         cur;
 } server_policy_d[] = {
-    { &SERVER_POLICY_EDITION, "edition", PENNYBALL_EDITION },
+    { &SERVER_POLICY_EDITION, "edition", NEVERBALL_EDITION },
     { &SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN, "levelgroup_only_campaign", 0 },
-    { &SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET, "levelgroup_only_levelset", PENNYBALL_EDITION==-1 ? 1 : 0 },
+    { &SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET, "levelgroup_only_levelset", NEVERBALL_EDITION==-1 ? 1 : 0 },
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    { &SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET, "levelgroup_unlocked_levelset", PENNYBALL_EDITION==0 || PENNYBALL_EDITION==1 ? 0 : 1 },
+    { &SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET, "levelgroup_unlocked_levelset", NEVERBALL_EDITION==0 || NEVERBALL_EDITION==1 ? 0 : 1 },
 #else
     { &SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET, "levelgroup_unlocked_levelset", 1 },
 #endif
 
     { &SERVER_POLICY_LEVELSET_ENABLED_BONUS, "levelset_enabled_bonus", 1 },
-    { &SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET, "levelset_enabled_customset", PENNYBALL_EDITION!=0 },
-    { &SERVER_POLICY_LEVELSET_UNLOCKED_BONUS, "levelset_unlocked_bonus", PENNYBALL_EDITION>1 },
+    { &SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET, "levelset_enabled_customset", NEVERBALL_EDITION!=0 },
+    { &SERVER_POLICY_LEVELSET_UNLOCKED_BONUS, "levelset_unlocked_bonus", NEVERBALL_EDITION>1 },
 
-    { &SERVER_POLICY_PLAYMODES_ENABLED, "playmodes_enabled", PENNYBALL_EDITION>-1 },
-    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER, "playmodes_enabled_mode_career", PENNYBALL_EDITION>-1 },
-    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE, "playmodes_enabled_mode_challenge", PENNYBALL_EDITION!=0 },
-    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE, "playmodes_enabled_mode_hardcore", PENNYBALL_EDITION>0 },
-    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER, "playmodes_unlocked_career", PENNYBALL_EDITION>1 },
-    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE, "playmodes_unlocked_hardcore", PENNYBALL_EDITION>2 },
+    { &SERVER_POLICY_PLAYMODES_ENABLED, "playmodes_enabled", NEVERBALL_EDITION>-1 },
+    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER, "playmodes_enabled_mode_career", NEVERBALL_EDITION>-1 },
+    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE, "playmodes_enabled_mode_challenge", NEVERBALL_EDITION!=0 },
+    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE, "playmodes_enabled_mode_hardcore", NEVERBALL_EDITION>0 },
+    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER, "playmodes_unlocked_career", NEVERBALL_EDITION>1 },
+    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE, "playmodes_unlocked_hardcore", NEVERBALL_EDITION>2 },
 
-    { &SERVER_POLICY_SHOP_ENABLED, "shop_enabled", PENNYBALL_EDITION!=-1 },
-    { &SERVER_POLICY_SHOP_ENABLED_IAP, "shop_enabled_iap", PENNYBALL_EDITION>-1 },
-    { &SERVER_POLICY_SHOP_ENABLED_MANAGED, "shop_enabled_managed", PENNYBALL_EDITION>-1 },
-    { &SERVER_POLICY_SHOP_ENABLED_CONSUMABLES, "shop_enabled_consumables", PENNYBALL_EDITION>0 ? 1 : 0 },
+    { &SERVER_POLICY_SHOP_ENABLED, "shop_enabled", NEVERBALL_EDITION!=-1 },
+    { &SERVER_POLICY_SHOP_ENABLED_IAP, "shop_enabled_iap", NEVERBALL_EDITION>-1 },
+    { &SERVER_POLICY_SHOP_ENABLED_MANAGED, "shop_enabled_managed", NEVERBALL_EDITION>-1 },
+    { &SERVER_POLICY_SHOP_ENABLED_CONSUMABLES, "shop_enabled_consumables", NEVERBALL_EDITION>0 ? 1 : 0 },
 };
 
 /*---------------------------------------------------------------------------*/
@@ -193,7 +193,7 @@ static int authenticate_networking()
 {
     connected = 0;
 
-    if (strlen(config_get_s(CONFIG_PLAYER)) < 3) return 0;
+    if (text_length(config_get_s(CONFIG_PLAYER)) < 3) return 0;
 
     int net_port = atoi(CLIENT_PORT);
 
@@ -269,7 +269,7 @@ static int authenticate_networking()
     {
         Sleep(1000);
 
-        if (strlen(config_get_s(CONFIG_PLAYER)) > 2)
+        if (text_length(config_get_s(CONFIG_PLAYER)) > 2)
             PBNetwork_Login(config_get_s(CONFIG_PLAYER), 0);
 
         connected = 1;
@@ -462,7 +462,7 @@ int networking_dedicated_refresh_login(const char *name)
 {
     if (PBNetwork_IsConnected())
     {
-        if (strlen(config_get_s(CONFIG_PLAYER)) > 2)
+        if (text_length(config_get_s(CONFIG_PLAYER)) > 2)
             PBNetwork_Login(config_get_s(CONFIG_PLAYER), 0);
 
         return 1;

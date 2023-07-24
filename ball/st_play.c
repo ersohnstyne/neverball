@@ -136,7 +136,10 @@ static void __countdown_preparation_draw()
         glDisable(GL_TEXTURE_2D);
         glBegin(GL_TRIANGLE_STRIP);
         {
-            glColor4f(local_countdown_preparation[i].colorfill[0], local_countdown_preparation[i].colorfill[1], local_countdown_preparation[i].colorfill[2], local_countdown_preparation[i].alpha);
+            glColor4ub(ROUND(local_countdown_preparation[i].colorfill[0] * 255),
+                       ROUND(local_countdown_preparation[i].colorfill[1] * 255),
+                       ROUND(local_countdown_preparation[i].colorfill[2] * 255),
+                       ROUND(local_countdown_preparation[i].colorfill[3] * 255));
             glVertex2f(-COUNTDOWN_PREPARATION_CROSS_LEN, 0.0f);
             glVertex2f(0.0f, -COUNTDOWN_PREPARATION_CROSS_LEN);
             glVertex2f(0.0f, +COUNTDOWN_PREPARATION_CROSS_LEN);
@@ -1246,6 +1249,8 @@ static int look_click(int b, int d)
         look_panning = 1;
     else if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
         look_panning = 0;
+
+    return 1;
 }
 
 static int look_keybd(int c, int d)

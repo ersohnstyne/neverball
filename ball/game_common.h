@@ -1,3 +1,17 @@
+/*
+ * Copyright (C) 2023 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #ifndef GAME_COMMON_H
 #define GAME_COMMON_H
 
@@ -6,28 +20,73 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define AUD_MENU    "snd/menu.ogg"
-#define AUD_START _("snd/select.ogg")
-#define AUD_READY _("snd/ready.ogg")
-#define AUD_SET   _("snd/set.ogg")
-#define AUD_GO    _("snd/go.ogg")
-#define AUD_BALL    "snd/ball.ogg"
-#define AUD_BUMPS   "snd/bumplil.ogg"
-#define AUD_BUMPM   "snd/bump.ogg"
-#define AUD_BUMPL   "snd/bumpbig.ogg"
-#define AUD_COIN    "snd/coin.ogg"
-#define AUD_TICK    "snd/tick.ogg"
-#define AUD_TOCK    "snd/tock.ogg"
-#define AUD_SWITCH  "snd/switch.ogg"
-#define AUD_JUMP    "snd/jump.ogg"
-#define AUD_GOAL    "snd/goal.ogg"
-#define AUD_SCORE _("snd/record.ogg")
-#define AUD_FALL  _("snd/fall.ogg")
-#define AUD_TIME  _("snd/time.ogg")
-#define AUD_OVER  _("snd/over.ogg")
-#define AUD_GROW    "snd/grow.ogg"
-#define AUD_SHRINK  "snd/shrink.ogg"
-#define AUD_CLOCK   "snd/clock.ogg"
+#define AUD_INTRO_THROW   "snd/intro-throw.ogg"
+#define AUD_INTRO_SHATTER "snd/intro-shatter.ogg"
+
+#define AUD_DISABLED "snd/disabled.ogg"
+#define AUD_FOCUS    "snd/focus.ogg"
+#define AUD_MENU     "snd/menu.ogg"
+#define AUD_START  _("snd/select.ogg")
+#define AUD_READY  _("snd/ready.ogg")
+#define AUD_SET    _("snd/set.ogg")
+#define AUD_GO     _("snd/go.ogg")
+#define AUD_BALL     "snd/ball.ogg"
+#define AUD_BUMPS    "snd/bumplil.ogg"
+#define AUD_BUMPM    "snd/bump.ogg"
+#define AUD_BUMPL    "snd/bumpbig.ogg"
+#define AUD_COIN     "snd/coin.ogg"
+#define AUD_TICK     "snd/tick.ogg"
+#define AUD_TOCK     "snd/tock.ogg"
+#define AUD_SWITCH   "snd/switch.ogg"
+#define AUD_JUMP     "snd/jump.ogg"
+#define AUD_GOAL     "snd/goal.ogg"
+#define AUD_SCORE  _("snd/record.ogg")
+#define AUD_FALL   _("snd/fall.ogg")
+#define AUD_TIME   _("snd/time.ogg")
+#define AUD_OVER   _("snd/over.ogg")
+#define AUD_GROW     "snd/grow.ogg"
+#define AUD_SHRINK   "snd/shrink.ogg"
+#define AUD_CLOCK    "snd/clock.ogg"
+
+/* And with Switchball features? */
+
+#define AUD_STARTGAME "snd/startgame.ogg"
+#define AUD_QUITGAME  "snd/quitgame.ogg"
+#define AUD_BACK      "snd/back.ogg"
+#define AUD_CHKP      "snd/checkpoint.ogg"
+#define AUD_RESPAWN   "snd/respawn.ogg"
+#define AUD_GOAL_N    "snd/goal_noninvert.ogg"
+
+/* And with Geometry Dash features? */
+
+#define AUD_STARS     "snd/stars.ogg"
+
+/*---------------------------------------------------------------------------*/
+
+/* Macros helps with the action game menu. */
+
+#define GENERIC_GAMEMENU_ACTION                      \
+        if (st_global_animating()) {                 \
+            audio_play(AUD_DISABLED, 1.f);           \
+            return 1;                                \
+        } else audio_play(GUI_BACK == tok ?          \
+                          AUD_BACK :                 \
+                          (GUI_NONE == tok ?         \
+                           AUD_DISABLED : AUD_MENU), \
+                          1.f)
+
+#define GAMEPAD_GAMEMENU_ACTION_SCROLL(tok1, tok2, itemstep) \
+        if (st_global_animating()) {                         \
+            audio_play(AUD_DISABLED, 1.f);                   \
+            return 1;                                        \
+        } else if (tok == tok1 || tok == tok2) {             \
+            if (tok == tok1)                                 \
+                audio_play(first > 1 ?                       \
+                           AUD_MENU : AUD_DISABLED, 1.f);    \
+            if (tok == tok2)                                 \
+                audio_play(first + itemstep < total ?        \
+                           AUD_MENU : AUD_DISABLED, 1.f);    \
+        } else GENERIC_GAMEMENU_ACTION
 
 /*---------------------------------------------------------------------------*/
 
@@ -50,9 +109,11 @@ enum
 {
     CAM_NONE = -1,
 
-    CAM_1,
-    CAM_2,
-    CAM_3,
+    CAM_1, /* Chase camera */
+    CAM_2, /* Static Camera */
+    CAM_3, /* Manual / Free camera */
+
+    CAM_AUTO, /* Switchball uses an automatic camera */
 
     CAM_MAX
 };
@@ -63,26 +124,38 @@ int cam_speed(int);
 
 /*---------------------------------------------------------------------------*/
 
+#if ENABLE_EARTHQUAKE==1
+void   game_randomize_earthquake_shake(void);
+float *game_get_earthquake_shake(void);
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+extern float zoom_diff;
+
 extern const float GRAVITY_UP[];
 extern const float GRAVITY_DN[];
+extern const float GRAVITY_BUSY[];
 
 struct game_tilt
 {
     float x[3], rx;
     float z[3], rz;
+
+    float q[4];
 };
 
 void game_tilt_init(struct game_tilt *);
-void game_tilt_axes(struct game_tilt *, float view_e[3][3]);
+void game_tilt_calc(struct game_tilt *, float view_e[3][3]);
 void game_tilt_grav(float h[3], const float g[3], const struct game_tilt *);
 
 /*---------------------------------------------------------------------------*/
 
 struct game_view
 {
-    float dc;                           /* Ideal view distance above ball    */
-    float dp;                           /* Ideal view distance above ball    */
-    float dz;                           /* Ideal view distance behind ball   */
+    float dc;                           /* Ideal view center distance above ball */
+    float dp;                           /* Ideal view position distance above ball */
+    float dz;                           /* Ideal view position distance behind ball */
 
     float c[3];                         /* Current view center               */
     float p[3];                         /* Current view position             */
@@ -91,11 +164,19 @@ struct game_view
     float a;                            /* Ideal view rotation about Y axis  */
 };
 
+void game_view_set_static_cam_view(int, float pos[3]);
 void game_view_init(struct game_view *);
-void game_view_fly(struct game_view *, const struct s_vary *, float);
+void game_view_zoom(struct game_view *, float);
+void game_view_fly(struct game_view *, const struct s_vary *, int, float);
+void game_view_set_pos_and_target(struct game_view *,
+                                  const struct s_vary *,
+                                  float pos[3], float center[3]);
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * Either 90 Hz or 144 Hz.
+ */
 #define UPS 90
 #define DT  (1.0f / (float) UPS)
 
@@ -131,6 +212,10 @@ enum
 {
     SPEED_NONE = 0,
 
+    SPEED_SLOWESTESTEST,
+    SPEED_SLOWESTESTER,
+    SPEED_SLOWESTEST,
+    SPEED_SLOWESTER,
     SPEED_SLOWEST,
     SPEED_SLOWER,
     SPEED_SLOW,
@@ -138,6 +223,10 @@ enum
     SPEED_FAST,
     SPEED_FASTER,
     SPEED_FASTEST,
+    SPEED_FASTESTER,
+    SPEED_FASTESTEST,
+    SPEED_FASTESTESTER,
+    SPEED_FASTESTESTEST,
 
     SPEED_MAX
 };

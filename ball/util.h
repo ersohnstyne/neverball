@@ -1,3 +1,17 @@
+/*
+ * Copyright (C) 2023 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #ifndef UTIL_H
 #define UTIL_H
 
@@ -26,6 +40,10 @@ void set_score_board(const struct score *, int,
 
 void gui_keyboard(int);
 void gui_keyboard_lock(void);
+void gui_keyboard_en(int);
+void gui_keyboard_lock_en(void);
+void gui_keyboard_de(int);
+void gui_keyboard_lock_de(void);
 char gui_keyboard_char(char);
 
 /*---------------------------------------------------------------------------*/

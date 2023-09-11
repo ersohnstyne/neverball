@@ -1,5 +1,19 @@
+/*
+ * Copyright (C) 2023 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #ifndef FETCH_H
-#define FETCH_H 1
+#define FETCH_H
 
 #define FETCH_MAX 5
 
@@ -17,7 +31,7 @@ struct fetch_progress
  */
 struct fetch_done
 {
-    unsigned int finished:1;
+    unsigned int finished : 1;
 };
 
 /*
@@ -31,11 +45,16 @@ struct fetch_callback
 };
 
 void fetch_init(void (*dispatch_event)(void *));
+void fetch_reinit(void);
 void fetch_handle_event(void *);
 void fetch_quit(void);
 
 unsigned int fetch_url(const char *url,
                        const char *dst,
                        struct fetch_callback);
+
+unsigned int fetch_gdrive(const char *fileid,
+                          const char *dst,
+                          struct fetch_callback);
 
 #endif

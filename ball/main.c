@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,18 +12,89 @@
  * General Public License for more details.
  */
 
+/*
+ * HACK: Remembering the code file differences:
+ * Developers  who  programming  C++  can see more bedrock declaration
+ * than C.  Developers  who  programming  C  can  see  few  procedural
+ * declaration than  C++.  Keep  in  mind  when making  sure that your
+ * extern code must associated. The valid file types are *.c and *.cpp,
+ * so it's always best when making cross C++ compiler to keep both.
+ * - Ersohn Styne
+ */
+
 /*---------------------------------------------------------------------------*/
+
+#define DISABLE_PANORAMA
+
+#if NB_STEAM_API==1
+#if _MSC_VER || __GNUC__
+
+#include "steam/steam_api.h"
+
+#ifdef __EMSCRIPTEN__
+#error Cannot compile website in Steam games!
+#endif
+
+#ifdef FS_VERSION_1
+#error Steam OS implemented, but NO DLCs detected!
+#endif
+
+#elif !_MSC_VER
+#error MinGW not supported! Use Visual Studio instead!
+#endif
+#endif
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #include <emscripten/html5.h>
 #endif
 
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
+#else
 #include <SDL.h>
+#endif
+
+#if _MSC_VER
+#pragma comment(lib, "SDL2.lib")
+#pragma comment(lib, "SDL2main.lib")
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
+#if __cplusplus
+extern "C" {
+#endif
+#include "game_common.h"
+#include "game_client.h"
+
+#include "st_end_support.h"
+
+#if NB_HAVE_PB_BOTH==1
+#include "networking.h"
+#include "account.h"
+#ifndef __EMSCRIPTEN__
+#include "console_control_gui.h"
+#endif
+#endif
+
+#ifdef MAPC_INCLUDES_CHKP
+#include "checkpoints.h" // New: Checkpoints
+#endif
+
+#include "accessibility.h"
+#if __cplusplus
+}
+#endif
+
+#ifndef VERSION
 #include "version.h"
+#endif
+#if __cplusplus
+extern "C" {
+#endif
+#include "dbg_config.h"
 #include "glext.h"
 #include "config.h"
 #include "video.h"
@@ -42,83 +113,84 @@
 #include "geom.h"
 #include "joy.h"
 #include "fetch.h"
+#ifndef FS_VERSION_1
 #include "package.h"
+#endif
+#include "currency.h"
 
+#include "st_malfunction.h"
+#include "st_intro.h"
 #include "st_conf.h"
 #include "st_title.h"
 #include "st_demo.h"
 #include "st_level.h"
 #include "st_pause.h"
+#include "st_play.h"
+#include "st_fail.h"
+#if __cplusplus
+}
+#endif
 
+#if NB_STEAM_API==1
+const char TITLE[] = "Neverball - Steam";
+#elif NB_EOS_SDK==1
+const char TITLE[] = "Neverball - Epic Games";
+#else
 const char TITLE[] = "Neverball " VERSION;
+#endif
 const char ICON[] = "icon/neverball.png";
+
+/* This fixes some malfunctions instead */
+#define SDL_EVENT_ANTI_MALFUNCTIONS(events) do { events.type = 0; } while (0)
 
 /*---------------------------------------------------------------------------*/
 
 static void shot(void)
 {
+#if NB_STEAM_API==0
     static char filename[MAXSTR];
-    sprintf(filename, "Screenshots/screen%05d.png", config_screenshot());
+
+    int secdecimal = ROUND(config_screenshot() / 10000);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(filename, dstSize,
+#else
+    sprintf(filename,
+#endif
+            "Screenshots/screen_%04d-%04d.png", secdecimal, config_screenshot());
     video_snap(filename);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void toggle_wire(void)
 {
-#if !ENABLE_OPENGLES
-    static int wire = 0;
-
-    if (wire)
-    {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        wire = 0;
-    }
-    else
-    {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        wire = 1;
-    }
-#endif
+    video_toggle_wire();
 }
 
 /*---------------------------------------------------------------------------*/
-
-/*
- * Track held direction keys.
- */
-static char key_pressed[4];
-
-static const int key_other[4] = { 1, 0, 3, 2 };
-
-static const int *key_axis[4] = {
-    &CONFIG_JOYSTICK_AXIS_Y0,
-    &CONFIG_JOYSTICK_AXIS_Y0,
-    &CONFIG_JOYSTICK_AXIS_X0,
-    &CONFIG_JOYSTICK_AXIS_X0
-};
-
-static const float key_tilt[4] = { -1.0f, +1.0f, -1.0f, +1.0f };
 
 static int handle_key_dn(SDL_Event *e)
 {
     int d = 1;
     int c = e->key.keysym.sym;
 
-    int dir = -1;
-
     /* SDL made me do it. */
 #ifdef __APPLE__
     if (c == SDLK_q && e->key.keysym.mod & KMOD_GUI)
-        return 0;
 #endif
 #ifdef _WIN32
     if (c == SDLK_F4 && e->key.keysym.mod & KMOD_ALT)
-        return 0;
 #endif
+    {
+        st_exit();
+        return 0;
+    }
 
     switch (c)
     {
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
     case KEY_SCREENSHOT:
         shot();
         break;
@@ -136,36 +208,43 @@ static int handle_key_dn(SDL_Event *e)
             mtrl_reload();
         }
         break;
+#endif
     case SDLK_RETURN:
-    case SDLK_KP_ENTER:
         d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
         break;
     case KEY_FULLSCREEN:
         video_fullscreen(!config_get_d(CONFIG_FULLSCREEN));
+        config_save();
+        goto_state_full(curr_state(), 0, 0, 1);
         break;
     case KEY_EXIT:
         d = st_keybd(KEY_EXIT, 1);
         break;
 
     default:
-        if (config_tst_d(CONFIG_KEY_FORWARD,  c))
-            dir = 0;
-        else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
-            dir = 1;
-        else if (config_tst_d(CONFIG_KEY_LEFT, c))
-            dir = 2;
-        else if (config_tst_d(CONFIG_KEY_RIGHT, c))
-            dir = 3;
-
-        if (dir != -1)
+        if (config_tst_d(CONFIG_KEY_FORWARD, c))
         {
-            /* Ignore auto-repeat on direction keys. */
-
-            if (e->key.repeat)
-                break;
-
-            key_pressed[dir] = 1;
-            st_stick(config_get_d(*key_axis[dir]), key_tilt[dir]);
+            arrow_downcounter[0] += 1;
+            arrow_downcounter[0] = CLAMP(0, arrow_downcounter[0], 1);
+            st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), -1);
+        }
+        else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
+        {
+            arrow_downcounter[1] += 1;
+            arrow_downcounter[1] = CLAMP(0, arrow_downcounter[1], 1);
+            st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 1);
+        }
+        else if (config_tst_d(CONFIG_KEY_LEFT, c))
+        {
+            arrow_downcounter[2] += 1;
+            arrow_downcounter[2] = CLAMP(0, arrow_downcounter[2], 1);
+            st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), -1);
+        }
+        else if (config_tst_d(CONFIG_KEY_RIGHT, c))
+        {
+            arrow_downcounter[3] += 1;
+            arrow_downcounter[3] = CLAMP(0, arrow_downcounter[3], 1);
+            st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), 1);
         }
         else
             d = st_keybd(e->key.keysym.sym, 1);
@@ -179,12 +258,9 @@ static int handle_key_up(SDL_Event *e)
     int d = 1;
     int c = e->key.keysym.sym;
 
-    int dir = -1;
-
     switch (c)
     {
     case SDLK_RETURN:
-    case SDLK_KP_ENTER:
         d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
         break;
     case KEY_EXIT:
@@ -192,22 +268,28 @@ static int handle_key_up(SDL_Event *e)
         break;
     default:
         if (config_tst_d(CONFIG_KEY_FORWARD, c))
-            dir = 0;
-        else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
-            dir = 1;
-        else if (config_tst_d(CONFIG_KEY_LEFT, c))
-            dir = 2;
-        else if (config_tst_d(CONFIG_KEY_RIGHT, c))
-            dir = 3;
-
-        if (dir != -1)
         {
-            key_pressed[dir] = 0;
-
-            if (key_pressed[key_other[dir]])
-                st_stick(config_get_d(*key_axis[dir]), -key_tilt[dir]);
-            else
-                st_stick(config_get_d(*key_axis[dir]), 0.0f);
+            arrow_downcounter[0] -= 1;
+            arrow_downcounter[0] = CLAMP(0, arrow_downcounter[0], 1);
+            st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 0);
+        }
+        else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
+        {
+            arrow_downcounter[1] -= 1;
+            arrow_downcounter[1] = CLAMP(0, arrow_downcounter[1], 1);
+            st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 0);
+        }
+        else if (config_tst_d(CONFIG_KEY_LEFT, c))
+        {
+            arrow_downcounter[2] -= 1;
+            arrow_downcounter[2] = CLAMP(0, arrow_downcounter[2], 1);
+            st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), 0);
+        }
+        else if (config_tst_d(CONFIG_KEY_RIGHT, c))
+        {
+            arrow_downcounter[3] -= 1;
+            arrow_downcounter[3] = CLAMP(0, arrow_downcounter[3], 1);
+            st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), 0);
         }
         else
             d = st_keybd(e->key.keysym.sym, 0);
@@ -217,8 +299,8 @@ static int handle_key_up(SDL_Event *e)
 }
 
 #ifdef __EMSCRIPTEN__
-
-enum {
+enum
+{
     USER_EVENT_BACK = -1,
     USER_EVENT_PAUSE = 0
 };
@@ -236,7 +318,7 @@ void EMSCRIPTEN_KEEPALIVE push_user_event(int code)
 /*
  * Custom SDL event code for fetch events.
  */
-static Uint32 FETCH_EVENT = (Uint32) -1;
+Uint32 FETCH_EVENT = -2u;
 
 /*
  * Push a custom SDL event on the queue from another thread.
@@ -269,25 +351,50 @@ static void initialize_fetch(void)
     fetch_init(dispatch_fetch_event);
 }
 
+/*---------------------------------------------------------------------------*/
+
+#if ENABLE_DEDICATED_SERVER==1
+
+Uint32 DEDICATED_SERVER_EVENT = -1u;
+int networking_ec;
+
+static void dispatch_networking_event(void *data)
+{
+    SDL_Event e;
+
+    memset(&e, 0, sizeof (e));
+
+    e.type = DEDICATED_SERVER_EVENT;
+    e.user.data1 = data;
+
+    /* First, the variable values, before push the thread event. */
+
+    SDL_PushEvent(&e);
+}
+
+static void dispatch_networking_error_event(int ec)
+{
+    networking_ec = ec;
+}
+
+#endif
 
 /*---------------------------------------------------------------------------*/
+
+int st_global_loop(void)
+{
+    return loop();
+}
 
 static int loop(void)
 {
     SDL_Event e;
+
     int d = 1;
 
     int ax, ay, dx, dy;
 
 #ifdef __EMSCRIPTEN__
-    /* Since we are in the browser, and want to look good on every device,
-     * naturally, we use CSS to do layout. The canvas element has two sizes:
-     * the layout size ("window") and the drawing buffer size ("resolution").
-     * Here, we get the canvas layout size and set the canvas resolution
-     * to match. To update a bunch of internal state, we use SDL_SetWindowSize
-     * to set the canvas resolution.
-     */
-
     double clientWidth, clientHeight;
 
     int w, h;
@@ -301,6 +408,10 @@ static int loop(void)
         video_set_window_size(w, h);
 #endif
 
+#if NB_PB_WITH_XBOX==1
+    d = joy_update();
+#endif
+
     /* Process SDL events. */
 
     while (d && SDL_PollEvent(&e))
@@ -308,6 +419,7 @@ static int loop(void)
         switch (e.type)
         {
         case SDL_QUIT:
+            st_exit();
             return 0;
 
 #ifdef __EMSCRIPTEN__
@@ -320,14 +432,18 @@ static int loop(void)
 
                 case USER_EVENT_PAUSE:
                     if (video_get_grab())
-                        goto_state(&st_pause);
+                    {
+                        if (curr_state() == &st_play_ready || curr_state() == &st_play_set || curr_state() == &st_play_loop)
+                            goto_pause(curr_state());
+                    }
                     break;
             }
             break;
 #endif
 
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
         case SDL_MOUSEMOTION:
-            /* Convert to bottom-left origin. */
+            /* Convert to bottom left origin. */
 
             ax = +e.motion.x;
             ay = -e.motion.y + video.window_h;
@@ -342,6 +458,13 @@ static int loop(void)
             dx = ROUND(dx * video.device_scale);
             dy = ROUND(dy * video.device_scale);
 
+            if (wireframe_splitview)
+            {
+                splitview_crossed = 0;
+                if (ax > video.device_w / 2)
+                    splitview_crossed = 1;
+            }
+
             st_point(ax, ay, dx, dy);
 
             break;
@@ -353,6 +476,7 @@ static int loop(void)
         case SDL_MOUSEBUTTONUP:
             d = st_click(e.button.button, 0);
             break;
+#endif
 
         case SDL_FINGERDOWN:
         case SDL_FINGERUP:
@@ -360,6 +484,7 @@ static int loop(void)
             d = st_touch(&e.tfinger);
             break;
 
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
         case SDL_KEYDOWN:
             d = handle_key_dn(&e);
             break;
@@ -367,36 +492,69 @@ static int loop(void)
         case SDL_KEYUP:
             d = handle_key_up(&e);
             break;
+#endif
 
         case SDL_WINDOWEVENT:
             switch (e.window.event)
             {
             case SDL_WINDOWEVENT_FOCUS_LOST:
+                audio_suspend();
+//#if NDEBUG
                 if (video_get_grab())
-                    goto_state(&st_pause);
+                {
+                    if (curr_state() == &st_play_ready || curr_state() == &st_play_set || curr_state() == &st_play_loop)
+                        goto_pause(curr_state());
+                }
+//#endif
+                break;
+
+            case SDL_WINDOWEVENT_FOCUS_GAINED:
+                audio_resume();
                 break;
 
             case SDL_WINDOWEVENT_MOVED:
                 if (config_get_d(CONFIG_DISPLAY) != video_display())
+                {
                     config_set_d(CONFIG_DISPLAY, video_display());
+                    goto_state_full(curr_state(), 0, 0, 1);
+                }
                 break;
 
             case SDL_WINDOWEVENT_RESIZED:
-                log_printf("Resize event (%u, %dx%d)\n",
+                /*log_printf("Resize event (%u, %dx%d)\n",
                            e.window.windowID,
                            e.window.data1,
-                           e.window.data2);
+                           e.window.data2);*/
+
+                video_clear();
+                video_resize(e.window.data1, e.window.data2);
+                gui_resize();
                 break;
 
             case SDL_WINDOWEVENT_SIZE_CHANGED:
-                log_printf("Size change event (%u, %dx%d)\n",
+                /*log_printf("Size change event (%u, %dx%d)\n",
                            e.window.windowID,
                            e.window.data1,
-                           e.window.data2);
+                           e.window.data2);*/
 
+                video_clear();
                 video_resize(e.window.data1, e.window.data2);
                 gui_resize();
+                config_save();
+                goto_state_full(curr_state(), 0, 0, 1);
+                break;
 
+            case SDL_WINDOWEVENT_MAXIMIZED:
+                config_set_d(CONFIG_MAXIMIZED, 1);
+                gui_resize();
+                config_save();
+                goto_state_full(curr_state(), 0, 0, 1);
+
+            case SDL_WINDOWEVENT_RESTORED:
+                config_set_d(CONFIG_MAXIMIZED, 0);
+                gui_resize();
+                config_save();
+                goto_state_full(curr_state(), 0, 0, 1);
                 break;
             }
             break;
@@ -405,6 +563,7 @@ static int loop(void)
             text_input_str(e.text.text, 1);
             break;
 
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
         case SDL_JOYAXISMOTION:
             joy_axis(e.jaxis.which, e.jaxis.axis, JOY_VALUE(e.jaxis.value));
             break;
@@ -424,6 +583,7 @@ static int loop(void)
         case SDL_JOYDEVICEREMOVED:
             joy_remove(e.jdevice.which);
             break;
+#endif
 
         case SDL_MOUSEWHEEL:
             st_wheel(e.wheel.x, e.wheel.y);
@@ -431,11 +591,16 @@ static int loop(void)
 
         default:
             if (e.type == FETCH_EVENT)
-            {
                 fetch_handle_event(e.user.data1);
-            }
+#if ENABLE_DEDICATED_SERVER==1
+            else if (e.type == DEDICATED_SERVER_EVENT)
+                ; /* FIXME: Waiting for handle event functions. */
+#endif
             break;
         }
+
+        /* if (check_malfunctions())
+            SDL_EVENT_ANTI_MALFUNCTIONS(e); */
     }
 
     /* Process events via the tilt sensor API. */
@@ -491,17 +656,74 @@ static char *opt_data;
 static char *opt_replay;
 static char *opt_level;
 
-#define opt_usage                                                     \
-    "Usage: %s [options ...]\n"                                       \
-    "Options:\n"                                                      \
-    "  -h, --help                show this usage message.\n"          \
-    "  -v, --version             show version.\n"                     \
+#if ENABLE_DEDICATED_SERVER==1
+static char *opt_ipaddr;
+
+#ifndef DISABLE_PANORAMA
+static char *opt_panorama;
+
+#define opt_usage \
+    "Usage: %s [options ...]\n" \
+    "Options:\n" \
+    "  -h, --help                show this usage message.\n" \
+    "  -p, --panorama            snap background file as panorama (Only, if Unity is supported).\n" \
+    "  -v, --version             show version.\n" \
+    "  -s, --screensaver         show screensaver.\n" \
+    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
     "  -d, --data <dir>          use 'dir' as game data directory.\n" \
-    "  -r, --replay <file>       play the replay 'file'.\n"           \
+    "  -r, --replay <file>       play the replay 'file'.\n" \
+    "  -l, --level <file>        load the level 'file'\n" \
+    "  --ipv4 <address>          use the IPv4 address for dedicated game network.\n" \
+    "  --ipv6 <address>          use the IPv6 address for dedicated game network.\n"
+#else
+#define opt_usage \
+    "Usage: %s [options ...]\n" \
+    "Options:\n" \
+    "  -h, --help                show this usage message.\n" \
+    "  -v, --version             show version.\n" \
+    "  -s, --screensaver         show screensaver.\n" \
+    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
+    "  -d, --data <dir>          use 'dir' as game data directory.\n" \
+    "  -r, --replay <file>       play the replay 'file'.\n" \
+    "  -l, --level <file>        load the level 'file'\n" \
+    "  --ipv4 <address>          use the IPv4 address for dedicated game network.\n" \
+    "  --ipv6 <address>          use the IPv6 address for dedicated game network.\n"
+#endif
+#else
+#ifndef DISABLE_PANORAMA
+static char* opt_panorama;
+
+#define opt_usage \
+    "Usage: %s [options ...]\n" \
+    "Options:\n" \
+    "  -h, --help                show this usage message.\n" \
+    "  -p, --panorama            snap background file as panorama (Only, if Unity is supported).\n" \
+    "  -v, --version             show version.\n" \
+    "  -s, --screensaver         show screensaver.\n" \
+    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
+    "  -d, --data <dir>          use 'dir' as game data directory.\n" \
+    "  -r, --replay <file>       play the replay 'file'.\n" \
     "  -l, --level <file>        load the level 'file'\n"
+#else
+#define opt_usage \
+    "Usage: %s [options ...]\n" \
+    "Options:\n" \
+    "  -h, --help                show this usage message.\n" \
+    "  -v, --version             show version.\n" \
+    "  -s, --screensaver         show screensaver.\n" \
+    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
+    "  -d, --data <dir>          use 'dir' as game data directory.\n" \
+    "  -r, --replay <file>       play the replay 'file'.\n" \
+    "  -l, --level <file>        load the level 'file'\n"
+#endif
+#endif
+
+static int opt_screensaver;
 
 #define opt_error(option) \
     fprintf(stderr, "Option '%s' requires an argument.\n", option)
+
+#define frame_smooth (1.f / 25.f) * 1000.f
 
 static void opt_parse(int argc, char **argv)
 {
@@ -517,10 +739,29 @@ static void opt_parse(int argc, char **argv)
             exit(EXIT_SUCCESS);
         }
 
+#ifndef DISABLE_PANORAMA
+        if (strcmp(argv[i], "-p") == 0 || strcmp(argv[i], "--panorama") == 0)
+        {
+            if (i + 1 == argc)
+            {
+                opt_error(argv[i]);
+                exit(EXIT_FAILURE);
+            }
+            opt_panorama = argv[++i];
+            continue;
+        }
+#endif
+
         if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0)
         {
             printf("%s\n", VERSION);
             exit(EXIT_SUCCESS);
+        }
+        
+        if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--screensaver") == 0)
+        {
+            opt_screensaver = 1;
+            continue;
         }
 
         if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--data")    == 0)
@@ -556,6 +797,20 @@ static void opt_parse(int argc, char **argv)
             continue;
         }
 
+#if ENABLE_DEDICATED_SERVER==1
+        if (strcmp(argv[i], "--ipv4") == 0 || strcmp(argv[i], "--ipv6") == 0)
+        {
+            if (i + 1 == argc)
+            {
+                opt_error(argv[i]);
+                exit(EXIT_FAILURE);
+            }
+
+            opt_ipaddr = argv[++i];
+            continue;
+        }
+#endif
+
         /* Perform magic on a single unrecognized argument. */
 
         if (argc == 2)
@@ -567,8 +822,13 @@ static void opt_parse(int argc, char **argv)
             {
                 char *ext = argv[i] + len - 4;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                if (strcmp(ext, ".map") == 0)
+                    strncpy_s(ext, dstSize, ".sol", 4);
+#else
                 if (strcmp(ext, ".map") == 0)
                     strncpy(ext, ".sol", 4);
+#endif
 
                 if (strcmp(ext, ".sol") == 0)
                     level = 1;
@@ -599,6 +859,11 @@ static int is_score_file(struct dir_item *item)
     return str_starts_with(item->path, "neverballhs-");
 }
 
+static int is_account_file(struct dir_item *item)
+{
+    return str_starts_with(item->path, "neverballaccount-");
+}
+
 static void make_dirs_and_migrate(void)
 {
     Array items;
@@ -606,6 +871,24 @@ static void make_dirs_and_migrate(void)
 
     const char *src;
     char *dst;
+
+    if (fs_mkdir("Accounts"))
+    {
+        if ((items = fs_dir_scan("", is_account_file)))
+        {
+            for (i = 0; i < array_len(items); i++)
+            {
+                src = DIR_ITEM_GET(items, i)->path;
+                dst = concat_string("Accounts/", src + sizeof ("neverballaccount-") - 1, NULL);
+                fs_rename(src, dst);
+                free(dst);
+            }
+
+            fs_dir_free(items);
+        }
+    }
+
+    fs_mkdir("Campaign");
 
     if (fs_mkdir("Replays"))
     {
@@ -652,7 +935,7 @@ static void main_quit(void);
 struct main_loop
 {
     Uint32 now;
-    unsigned int done:1;
+    unsigned int done : 1;
 };
 
 static void step(void *data)
@@ -666,18 +949,32 @@ static void step(void *data)
         Uint32 now = SDL_GetTicks();
         Uint32 dt = (now - mainloop->now);
 
-        if (0 < dt && dt < 1000)
+        if (0 < dt && dt < 100)
         {
             /* Step the game state. */
 
-            st_timer(0.001f * dt);
+            float deltaTime = config_get_d(CONFIG_SMOOTH_FIX) ? MIN(frame_smooth, dt) : MIN(100.f, dt);
+
+            CHECK_GAMESPEED(20, 100);
+            float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
+            st_timer((0.001f * deltaTime) * speedPercent);
 
             /* Render. */
 
             hmd_step();
-            st_paint(0.001f * now);
-            video_swap();
+
+            if (viewport_wireframe > 1)
+            {
+                video_render_fill_or_line(0);
+                st_paint(0.001f * now, 1);
+                video_render_fill_or_line(1);
+                st_paint(0.001f * now, 0);
+            }
+            else
+                st_paint(0.001f * now, 1);
         }
+
+        video_swap();
 
         mainloop->now = now;
     }
@@ -685,28 +982,80 @@ static void step(void *data)
     mainloop->done = !running;
 
 #ifdef __EMSCRIPTEN__
-    /* On Emscripten, we never return to main(), so we have to do shutdown here. */
-
     if (mainloop->done)
     {
         emscripten_cancel_main_loop();
         main_quit();
-
-        EM_ASM({
-            Neverball.quit();
-        });
     }
+
+    EM_ASM({
+        Neverball.quit();
+    });
 #endif
 }
 
-/*
- * Initialize all systems.
- */
+#ifndef DISABLE_PANORAMA
+static void panorama_snap(char *panorama_sides)
+{
+    char *filename = concat_string("Screenshots/shot-panorama/panorama_volcano_",
+        panorama_sides, ".png", NULL);
+
+    video_clear();
+    back_draw_easy();
+    log_printf("Creating panorama image (%s)\n", panorama_sides);
+    video_snap(filename);
+    video_swap();
+
+    free(filename);
+}
+
+static void panorama_snap_sides(void)
+{
+    glMatrixMode(GL_MODELVIEW);
+    {
+        glRotatef(0, 0, 1, 0);
+        panorama_snap("north");
+        glLoadIdentity();
+        glRotatef(90, 0, 1, 0);
+        panorama_snap("east");
+        glLoadIdentity();
+        glRotatef(180, 0, 1, 0);
+        panorama_snap("south");
+        glLoadIdentity();
+        glRotatef(-90, 0, 1, 0);
+        panorama_snap("west");
+        glLoadIdentity();
+
+        glRotatef(-90, 1, 0, 0);
+        panorama_snap("up");
+        glLoadIdentity();
+        glRotatef(90, 1, 0, 0);
+        panorama_snap("down");
+        glLoadIdentity();
+    }
+}
+#endif
+
 static int main_init(int argc, char *argv[])
 {
+    GAMEDBG_SIGFUNC_PREPARE;
+
+#if NB_STEAM_API==1    
+    if (!SteamAPI_Init())
+    {
+        log_errorf("SteamAPI_Init() failed! Steam must be running to play this game.\n");
+        return 0;
+    }
+#endif
+
+#if NB_EOS_SDK==1
+    
+#endif
+
     if (!fs_init(argc > 0 ? argv[0] : NULL))
     {
-        fprintf(stderr, "Failure to initialize file system (%s)\n", fs_error());
+        fprintf(stderr, "Failure to initialize file system (%s)\n",
+            fs_error());
         return 0;
     }
 
@@ -714,6 +1063,7 @@ static int main_init(int argc, char *argv[])
 
     config_paths(opt_data);
     log_init("Neverball", "neverball.log");
+    config_log_userpath();
     make_dirs_and_migrate();
 
     /* Initialize SDL. */
@@ -722,86 +1072,349 @@ static int main_init(int argc, char *argv[])
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 #endif
 
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API \
+    && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX)
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX, "1");
+#endif
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API \
+    && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360) && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360_PLAYER_LED)
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360_PLAYER_LED, "1");
+#endif
+#if NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
+#if defined(SDL_HINT_JOYSTICK_HIDAPI_PS5) && defined(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED)
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "1");
+#elif defined(SDL_HINT_JOYSTICK_HIDAPI_PS4)
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4, "1");
+#elif defined(SDL_HINT_JOYSTICK_HIDAPI_PS3)
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS3, "1");
+#else
+#error No Playstation HIDAPI specified!
+#endif
+#endif
+#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API \
+    && defined(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS)
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS, "1");
+#endif
+
+#if _cplusplus
+    try {
+#endif
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) == -1)
     {
-        log_printf("Failure to initialize SDL (%s)\n", SDL_GetError());
+        log_errorf("Failure to initialize SDL (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
         return 0;
     }
+#if _cplusplus
+    } catch (const char *xS) {
+        log_errorf("Failure to initialize SDL: Exception caught! (%s - %s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL, xS);
+        return 0;
+    } catch (...) {
+        log_errorf("Failure to initialize SDL: Exception caught! (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
+        return 0;
+    }
+#endif
 
-    initialize_fetch();
+#ifndef NDEBUG
+    SDL_LogSetPriority(SDL_LOG_CATEGORY_ERROR, SDL_LOG_PRIORITY_DEBUG);
+#endif
 
-    package_init();
-
-    /* Enable joystick events. */
-
-    joy_init();
-
-    /* Intitialize configuration. */
+    /* Initialize configuration. */
 
     config_init();
     config_load();
 
-    /* Initialize localization. */
+    /* Initialize networking. */
+#ifndef DISABLE_PANORAMA
+    if (!opt_panorama)
+    {
+#endif
 
-    lang_init();
+        /* Initialize currency units. */
 
-    /* Initialize audio. */
+        currency_init();
 
-    audio_init();
-    tilt_init();
+#if ENABLE_DEDICATED_SERVER==1
+        if (opt_ipaddr)
+            config_set_s(CONFIG_DEDICATED_IPADDRESS, opt_ipaddr);
+#endif
 
-    /* Initialize video. */
+        networking_init(1);
 
-    if (!video_init())
+#if ENABLE_DEDICATED_SERVER==1
+        /* Initialize dedicated server. */
+
+        if (networking_connected() == -1)
+        {
+            DEDICATED_SERVER_EVENT = SDL_RegisterEvents(1);
+            networking_init_dedicated_event(
+                dispatch_networking_event,
+                dispatch_networking_error_event
+            );
+        }
+#endif
+
+        initialize_fetch();
+
+#ifndef FS_VERSION_1
+        package_init();
+#endif
+#ifndef DISABLE_PANORAMA
+    }
+#endif
+
+    /* Enable joystick events. */
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
+    if (!joy_init())
         return 0;
+#endif
+
+#if NB_HAVE_PB_BOTH==1
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
+    init_controller_type(PLATFORM_PC);
+#endif
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API
+    init_controller_type(PLATFORM_XBOX);
+    config_set_d(CONFIG_JOYSTICK, 1);
+    config_save();
+#endif
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
+    init_controller_type(PLATFORM_XBOX);
+    config_set_d(CONFIG_JOYSTICK, 1);
+    config_save();
+#endif
+#if NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
+    init_controller_type(PLATFORM_PS);
+    config_set_d(CONFIG_JOYSTICK, 1);
+    config_save();
+#endif
+#if NEVERBALL_FAMILY_API == NEVERBALL_STEAMDECK_FAMILY_API
+    init_controller_type(PLATFORM_STEAMDECK);
+    config_set_d(CONFIG_JOYSTICK, 1);
+    config_save();
+#endif
+#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
+    init_controller_type(PLATFORM_SWITCH);
+    config_set_d(CONFIG_JOYSTICK, 1);
+    config_save();
+#endif
+#if NEVERBALL_FAMILY_API == NEVERBALL_HANDSET_FAMILY_API
+    init_controller_type(PLATFORM_HANDSET);
+    config_set_d(CONFIG_JOYSTICK, 1);
+    config_save();
+#endif
+#endif
+
+#if NB_STEAM_API==1 || NB_EOS_SDK==1
+    config_set_d(CONFIG_FPS, 0);
+    config_save();
+#endif
+
+    /* Initialize accessibility. */
+
+    accessibility_init();
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+    accessibility_load();
+#endif
+
+#ifndef DISABLE_PANORAMA
+    if (!opt_panorama)
+    {
+#endif
+        /* Initialize audio. */
+
+        audio_init();
+
+#if NB_HAVE_PB_BOTH==1
+        /* Initialize account. */
+
+        int account_res = account_init();
+
+        if (account_res == 0)
+        {
+#if NB_STEAM_API==1
+            log_errorf("Steam user is not logged in! Steam user must be logged in to play this game (SteamUser()->BLoggedOn() returned false).\n");
+            return 0;
+#elif NB_EOS_SDK==1
+            return 0;
+#endif
+        }
+
+        account_load();
+
+        if (server_policy_get_d(SERVER_POLICY_EDITION) > 1
+            && account_get_d(ACCOUNT_SET_UNLOCKS) < 1)
+            account_set_d(ACCOUNT_SET_UNLOCKS, 1);
+
+        account_save();
+#endif
+
+        /* Initialize localization. */
+
+        lang_init();
+
+        tilt_init();
+
+        if (!video_init())
+            return 0;
+#ifndef DISABLE_PANORAMA
+    }
+    else if (!video_mode(0, 1024, 1024)) return 0;
+#endif
 
     /* Material system. */
 
     mtrl_init();
 
-    return 1;
-}
-
-/*
- * Shut down all systems.
- */
-static void main_quit(void)
-{
-    config_save();
-
-    mtrl_quit();
-    video_quit();
-    tilt_free();
-    audio_free();
-    lang_quit();
-    joy_quit();
-    config_quit();
-    package_quit();
-    fetch_quit();
-    SDL_Quit();
-    log_quit();
-    fs_quit();
-}
-
-int main(int argc, char *argv[])
-{
-    struct main_loop mainloop = { 0 };
-
-    if (!main_init(argc, argv))
-        return 1;
-
     /* Screen states. */
 
     init_state(&st_null);
 
-    /* Initialize demo playback or load the level. */
+#ifdef DEMO_QUARANTINED_MODE
+    if (config_get_d(CONFIG_ACCOUNT_SAVE) > 2)
+        config_set_d(CONFIG_ACCOUNT_SAVE, 2);
+    if (config_get_d(CONFIG_ACCOUNT_LOAD) > 2)
+        config_set_d(CONFIG_ACCOUNT_LOAD, 2);
 
+    config_save();
+#endif
+
+    return 1;
+}
+
+static void main_quit(void)
+{
+#ifndef DISABLE_PANORAMA
+    if (!opt_panorama)
+#endif
+    {
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+        accessibility_save();
+#endif
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        account_save();
+#endif
+        tilt_free();
+    }
+
+    config_save();
+
+    mtrl_quit();
+    video_quit();
+    audio_free();
+    lang_quit();
+
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
+    joy_quit();
+#endif
+
+#ifdef CONFIG_INCLUDES_ACCOUNT
+    account_quit();
+#endif
+
+    config_quit();
+
+#ifndef DISABLE_PANORAMA
+    if (!opt_panorama)
+    {
+#endif
+
+#ifndef FS_VERSION_1
+        package_quit();
+        fetch_quit();
+#endif
+
+#if NB_HAVE_PB_BOTH==1
+        networking_quit();
+#endif
+#ifndef DISABLE_PANORAMA
+    }
+#endif
+
+    log_quit();
+    fs_quit();
+
+#if _cplusplus
+    try {
+#endif
+        SDL_Quit();
+#if _cplusplus
+    } catch (...) {}
+#endif
+
+#if NB_EOS_SDK==1
+    /* TODO: Add the EOS SDK shutdown! */
+#endif
+
+#if NB_STEAM_API==1
+    /* We're done here */
+    SteamAPI_Shutdown();
+#endif
+
+#if _WIN32 && _MSC_VER && _DEBUG && defined(_CRTDBG_MAP_ALLOC)
+    _CrtDumpMemoryLeaks();
+#endif
+
+    exit(0); /* Force close all threads */
+}
+
+int main(int argc, char *argv[])
+{
+    SDL_Joystick *joy = NULL;
+    struct main_loop mainloop = { 0 };
+
+#if _cplusplus
+    try {
+#endif
+    if (!main_init(argc, argv))
+        return 1;
+#if _cplusplus
+    } catch (...) { return 1; }
+#endif
+
+#ifndef DISABLE_PANORAMA
+    if (opt_panorama)
+    {
+        const char *path = fs_resolve(opt_panorama);
+        geom_init();
+
+        if (path)
+        {
+            back_init(path);
+
+            int fov_cache = config_get_d(CONFIG_VIEW_FOV);
+            config_set_d(CONFIG_VIEW_FOV, 90);
+
+            video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+            panorama_snap_sides();
+
+            config_set_d(CONFIG_VIEW_FOV, fov_cache);
+            back_free();
+
+            log_printf("Panorama created! Placed in \"shot-panorama\"\n");
+        }
+        else log_errorf("File %s is not in game path\n", opt_level);
+
+        geom_free();
+
+    }
+    else
+#endif
     if (opt_replay &&
         fs_add_path(dir_name(opt_replay)) &&
         progress_replay(base_name(opt_replay)))
     {
-        demo_play_goto(1);
-        goto_state(&st_demo_play);
+        if (config_get_d(CONFIG_ACCOUNT_LOAD) > 1)
+        {
+            demo_play_goto(1);
+            goto_state(&st_demo_scan_allowance);
+        }
+        else
+        {
+            log_errorf("Replay file %s is not allowed due only finish\n", opt_replay);
+            goto_state(&st_title);
+        }
     }
     else if (opt_level)
     {
@@ -819,39 +1432,54 @@ int main(int argc, char *argv[])
 
                 if (progress_play(&level))
                 {
-                    goto_state(&st_level);
+                    goto_state_full(&st_level, 0, 0, 1);
                     loaded = 1;
                 }
             }
+            else log_errorf("File %s is not in game path\n", opt_level);
         }
-        else log_printf("File %s is not in game path\n", opt_level);
+        else log_errorf("File %s is not in game path\n", opt_level);
 
         if (!loaded)
-            goto_state(&st_title);
+        {
+#ifdef SKIP_END_SUPPORT
+            goto_state_full(&st_title, 0, 0, 1);
+#else
+            goto_state_full(&st_end_support, 0, 0, 1);
+#endif
+        }
     }
+    else if (opt_screensaver)
+        goto_state_full(&st_screensaver, 0, 0, 1);
     else
-        goto_state(&st_title);
+    {
+#if NB_HAVE_PB_BOTH==1
+        log_printf("Attempt to show intro\n");
+        goto_state_full(&st_intro, 0, 0, 1);
+#else
+        int val = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
+
+        if (val == -1)
+            goto_end_support(&st_title);
+        else
+            goto_state_full(&st_intro_restore, 0, 0, 1);
+#endif
+    }
 
     /* Run the main game loop. */
 
     mainloop.now = SDL_GetTicks();
 
 #ifdef __EMSCRIPTEN__
-    /*
-     * The Emscripten main loop is asynchronous. In other words,
-     * emscripten_set_main_loop_arg() returns immediately. The fourth
-     * parameter basically just determines what happens with main()
-     * beyond this point:
-     *
-     *   0 = execution continues to the end of main().
-     *   1 = execution stops here, the rest of main() is never executed.
-     *
-     * It's best not to put anything after this.
-     */
     emscripten_set_main_loop_arg(step, (void *) &mainloop, 0, 1);
+#else
+#ifndef DISABLE_PANORAMA
+    while (!mainloop.done && !opt_panorama)
+        step(&mainloop);
 #else
     while (!mainloop.done)
         step(&mainloop);
+#endif
 
     main_quit();
 #endif
@@ -860,4 +1488,3 @@ int main(int argc, char *argv[])
 }
 
 /*---------------------------------------------------------------------------*/
-

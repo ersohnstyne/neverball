@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -23,8 +23,35 @@
 #include "st_common.h"
 
 #define AUD_MENU "snd/menu.ogg"
+#define AUD_BACK "snd/back.ogg"
+#define AUD_DISABLED "snd/disabled.ogg"
 
-/*---------------------------------------------------------------------------*/
+ /* Macros helps with the action game menu. */
+
+#define GENERIC_GAMEMENU_ACTION                      \
+        if (st_global_animating()) {                 \
+            audio_play(AUD_DISABLED, 1.f);           \
+            return 1;                                \
+        } else audio_play(GUI_BACK == tok ?          \
+                          AUD_BACK :                 \
+                          (GUI_NONE == tok ?         \
+                           AUD_DISABLED : AUD_MENU), \
+                          1.0f)
+
+#define GAMEPAD_GAMEMENU_ACTION_SCROLL(tok1, tok2, itemstep) \
+        if (st_global_animating()) {                         \
+            audio_play(AUD_DISABLED, 1.f);                   \
+            return 1;                                        \
+        } else if (tok == tok1 || tok == tok2) {             \
+            if (tok == tok1)                                 \
+                audio_play(first > 1 ?                       \
+                           AUD_DISABLED : AUD_MENU, 1.0f);   \
+            if (tok == tok2)                                 \
+                audio_play(first + itemstep < total ?        \
+                           AUD_DISABLED : AUD_MENU, 1.0f);   \
+        } else GENERIC_GAMEMENU_ACTION
+
+ /*---------------------------------------------------------------------------*/
 
 #define PACKAGE_STEP 4
 
@@ -40,30 +67,32 @@ static int install_id;
 static int install_status_id;
 static int install_label_id;
 
+static int category_id = PACKAGE_CATEGORY_LEVELSET;
 static int do_init = 1;
 
-static struct state *package_back;
+static struct state* package_back;
 
-static int  button_ids[PACKAGE_STEP] = {0};
-static int *status_ids = NULL;
-static int *name_ids = NULL;
+static int  button_ids[PACKAGE_STEP] = { 0 };
+static int* status_ids = NULL;
+static int* name_ids = NULL;
 
 enum
 {
     PACKAGE_INSTALL = GUI_LAST,
     PACKAGE_UNINSTALL,
-    PACKAGE_SELECT
+    PACKAGE_SELECT,
+    PACKAGE_CHANGEGROUP,
 };
 
 struct download_info
 {
-    char *package_id;
+    char* package_id;
     char label[32];
 };
 
-static struct download_info *create_download_info(const char *package_id)
+static struct download_info* create_download_info(const char* package_id)
 {
-    struct download_info *dli = calloc(sizeof (*dli), 1);
+    struct download_info* dli = calloc(sizeof(*dli), 1);
 
     if (dli)
         dli->package_id = strdup(package_id);
@@ -71,7 +100,7 @@ static struct download_info *create_download_info(const char *package_id)
     return dli;
 }
 
-static void free_download_info(struct download_info *dli)
+static void free_download_info(struct download_info* dli)
 {
     if (dli)
     {
@@ -86,10 +115,10 @@ static void free_download_info(struct download_info *dli)
     }
 }
 
-static void download_progress(void *data1, void *data2)
+static void download_progress(void* data1, void* data2)
 {
-    struct download_info *dli = data1;
-    struct fetch_progress *pr = data2;
+    struct download_info* dli = data1;
+    struct fetch_progress* pr = data2;
 
     if (dli)
     {
@@ -105,7 +134,7 @@ static void download_progress(void *data1, void *data2)
                 char label[32] = GUI_ELLIPSIS;
 
                 if (pr->total > 0)
-                    sprintf(label, "%3d%%", (int) (pr->now * 100.0 / pr->total) % 1000);
+                    sprintf(label, "%3d%%", (int)(pr->now * 100.0 / pr->total) % 1000);
 
                 /* Compare against current label so we're not calling GL constantly. */
                 /* TODO: just do this in gui_set_label. */
@@ -122,10 +151,10 @@ static void download_progress(void *data1, void *data2)
 
 static void package_select(int);
 
-static void download_done(void *data1, void *data2)
+static void download_done(void* data1, void* data2)
 {
-    struct download_info *dli = data1;
-    struct fetch_done *dn = data2;
+    struct download_info* dli = data1;
+    struct fetch_done* dn = data2;
 
     if (dli)
     {
@@ -135,14 +164,14 @@ static void download_done(void *data1, void *data2)
         {
             int id = status_ids[pi];
 
-            package_select(pi);
-
             if (id)
             {
                 if (dn->finished)
                 {
                     gui_set_label(id, GUI_CHECKMARK);
                     gui_set_color(id, gui_grn, gui_grn);
+
+                    status_ids[pi] = 0;
 
                     if (name_ids && name_ids[pi])
                     {
@@ -167,7 +196,7 @@ static int package_action(int tok, int val)
 {
     enum package_status status;
 
-    audio_play(AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
@@ -214,7 +243,7 @@ static int package_action(int tok, int val)
             callback.done = download_done;
             callback.data = create_download_info(package_get_id(selected));
 
-            if (!package_fetch(selected, callback))
+            if (!package_fetch(selected, callback, category_id))
             {
                 free_download_info(callback.data);
                 callback.data = NULL;
@@ -231,9 +260,11 @@ static int package_action(int tok, int val)
             return 1;
         }
         else if (status == PACKAGE_DOWNLOADING)
-        {
             return 1;
-        }
+        break;
+
+    case PACKAGE_CHANGEGROUP:
+        category_id = val;
         break;
     }
 
@@ -260,7 +291,7 @@ static int gui_package_button(int id, int pi)
         if (status_ids)
             status_ids[pi] = status_id;
 
-        name_id = gui_label(jd, "JKLMNOPQRSTUVWXYZ", GUI_SML, gui_wht, gui_wht);
+        name_id = gui_label(jd, "XXXXXXXXXXXXXXXXX", GUI_SML, gui_wht, gui_wht);
 
         gui_set_trunc(name_id, TRUNC_TAIL);
         gui_set_label(name_id, package_get_name(pi));
@@ -288,7 +319,6 @@ static int package_gui(void)
 {
     int w = video.device_w;
     int h = video.device_h;
-
     int id, jd, kd;
 
     int i;
@@ -302,10 +332,8 @@ static int package_gui(void)
             gui_state(id, _("Back"), GUI_SML, GUI_BACK, 0);
             gui_layout(id, 0, 0);
         }
-
         return id;
     }
-
     if ((id = gui_vstack(0)))
     {
         if ((jd = gui_hstack(id)))
@@ -314,7 +342,6 @@ static int package_gui(void)
             gui_filler(jd);
             gui_navig(jd, total, first, PACKAGE_STEP);
         }
-
         gui_space(id);
 
         if ((jd = gui_hstack(id)))
@@ -368,7 +395,7 @@ static int package_gui(void)
 
             gui_filler(jd);
 
-            type_id = gui_label(jd, "ABCDEFG", GUI_SML, gui_yel, gui_wht);
+            type_id = gui_label(jd, "XXXXXXX", GUI_SML, gui_yel, gui_wht);
         }
 
         gui_layout(id, 0, 0);
@@ -387,9 +414,9 @@ static void package_select(int pi)
     selected = pi;
     gui_set_hilite(button_ids[selected % PACKAGE_STEP], 1);
 
-    gui_set_image(shot_id, package_get_shot_filename(pi));
-    gui_set_multi(desc_id, package_get_desc(pi));
-    gui_set_label(type_id, package_get_formatted_type(pi));
+    gui_set_image(shot_id,  package_get_shot_filename(pi));
+    gui_set_multi(desc_id,  package_get_desc(pi));
+    gui_set_label(type_id,  package_get_formatted_type(pi));
     gui_set_label(title_id, package_get_name(pi));
 
     if (package_get_status(pi) == PACKAGE_INSTALLED)
@@ -404,7 +431,7 @@ static void package_select(int pi)
     }
 }
 
-static int package_enter(struct state *st, struct state *prev)
+static int package_enter(struct state* st, struct state* prev)
 {
     common_init(package_action);
 
@@ -421,15 +448,13 @@ static int package_enter(struct state *st, struct state *prev)
     }
     else do_init = 1;
 
-    selected = first;
-
     if (status_ids)
     {
         free(status_ids);
         status_ids = NULL;
     }
 
-    status_ids = calloc(total, sizeof (*status_ids));
+    status_ids = calloc(total, sizeof(*status_ids));
 
     if (name_ids)
     {
@@ -437,12 +462,12 @@ static int package_enter(struct state *st, struct state *prev)
         name_ids = NULL;
     }
 
-    name_ids = calloc(total, sizeof (*name_ids));
+    name_ids = calloc(total, sizeof(*name_ids));
 
     return package_gui();
 }
 
-static void package_leave(struct state *st, struct state *next, int id)
+static void package_leave(struct state* st, struct state* next, int id)
 {
     gui_delete(id);
 
@@ -461,7 +486,7 @@ static void package_leave(struct state *st, struct state *next, int id)
 
 void package_paint(int id, float st)
 {
-    video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+    video_push_persp((float)config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
     {
         back_draw_easy();
     }

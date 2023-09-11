@@ -4,24 +4,33 @@
 
 * REQUIREMENTS
 
-    SDL 2.0           http://libsdl.org/download-2.0.php
-    SDL2_ttf          http://libsdl.org/projects/SDL_ttf/
-    libvorbis         http://xiph.org/vorbis/
-    libpng            http://libpng.org/pub/png/libpng.html
-    libjpeg           http://ijg.org/
-    libcurl           optional, see below
-    libintl           optional, see below
+    SDL 2.0           https://libsdl.org/download-2.0.php
+    SDL2_ttf          https://libsdl.org/projects/SDL_ttf/
+    libogg            https://github.com/gcp/libogg
+    libvorbis         https://github.com/Distrotech/libvorbis
+    libpng            https://github.com/glennrp/libpng
+    libjpeg           https://github.com/winlibs/libjpeg
+    gettext           https://www.gnu.org/software/gettext/
+    cURL              https://curl.se/
+
+By  default development during compilation,  it is placed by the file
+under Unix and Linux when running the script.
+
+    install-devel-linux.sh
+
+Any kind of differences platforms such WINE does not supported.
 
 
 * COMPILATION
+
+Compiled  source file  will automatically kicked,  when  building  the
+game  from  Microsoft Visual Studio 2022 Community  or  later version.
 
 Under Unix and Linux, simply run
 
     make
 
-Under Windows, install the MSYS2 environment and run
-
-    make
+Under Windows,  build it from the Visual Studio 2022 solution.
 
 Cross-compilation for Windows is also supported. On Fedora Linux, run
 
@@ -35,11 +44,38 @@ Optional features  can be enabled  at compile  time by passing  one or
 more additional  arguments to  make.  Most  of these  features require
 additional libraries to be installed.
 
+make CRT_SECURE_NO_WARNINGS=0
+    Microsoft Elite Development Lifecycle for Windows.
+    Requires Visual Studio 2022.
+
+make FS_VERSION=1
+    Time travel back to the original standard I/O without ZIP archives.
+    If  you use this,  then payments,  fetch and libcurl will ignored.
+
+make ENABLE_STEAM=1
+    Steam game support.  Requires running Steam Launcher  in  order to
+    work.
+
+    Steamworks        https://partner.steamgames.com/
+
+make ENABLE_FS=physfs
+    Alternate  file  system  backend  that replaces standard I/O  with
+    PhysicsFS. May causes some bugs or crashes. Requires FS_VERSION=1.
+
+    PhysicsFS         https://icculus.org/physfs/
+
 make ENABLE_NLS=0
     Native language support.  This is  enabled by default. Requires an
     additional library on non-GLIBC systems.
 
-    libintl           http://www.gnu.org/software/gettext/
+    gettext           https://github.com/winlibs/gettext
+
+make ENABLE_IAP=paypal
+    Paypal support for all platforms.  Requires libcurl for Windows or
+    Linux.
+
+    Paypal Developer  https://developer.paypal.com/
+    libcurl           https://curl.se/libcurl/
 
 make ENABLE_FETCH=curl
     Use libcurl for package downloads. This is enabled by default. Set
@@ -50,24 +86,19 @@ make ENABLE_FETCH=curl
 make ENABLE_TILT=wii
     Nintendo Wii Remote support on Linux.
 
-    BlueZ             http://www.bluez.org/
-    libwiimote        http://libwiimote.sourceforge.net/
+    BlueZ             https://www.bluez.org/
+    libwiimote        https://libwiimote.sourceforge.net/
 
 make ENABLE_TILT=loop
     Hillcrest Labs Loop support.
 
-    libusb-1.0        http://libusb.org/wiki/Libusb1.0
-    libfreespace      http://libfreespace.hillcrestlabs.com/
-
-make ENABLE_TILT=leapmotion
-    Leap Motion support on Linux.
-
-    V2 SDK            https://developer.leapmotion.com/
+    libusb-1.0        https://libusb.org/wiki/Libusb1.0
+    libfreespace      https://libfreespace.hillcrestlabs.com/
 
 make ENABLE_HMD=openhmd
     Head-mounted display support (including the Oculus Rift).
 
-    OpenHMD           http://openhmd.net/
+    OpenHMD           https://openhmd.net/
 
 make ENABLE_HMD=libovr
     Oculus Rift support.
@@ -77,19 +108,7 @@ make ENABLE_HMD=libovr
 make ENABLE_RADIANT_CONSOLE=1
     Map compiler output to Radiant console.
 
-    SDL2_net          http://www.libsdl.org/projects/SDL_net/
-
-
-* INSTALLATION
-
-By default,  an uninstalled build may  be executed in place.  A system
-wide  installation   on  Linux  would   probably  copy  the   game  to
-/opt/neverball.
-
-To  be able  to use  the NetRadiant  level editor,  the game  data and
-binaries must be  installed in the same  location.  Distributions that
-wish to package Neverball, Neverputt  and their shared data separately
-should take care to use symlinks and launcher scripts to support this.
+    SDL2_net          https://www.libsdl.org/projects/SDL_net/
 
 
 * DISTRIBUTION
@@ -100,4 +119,5 @@ The dist subdirectory contains some miscellaneous files:
   * high resolution icons in PNG, SVG and ICO formats
 
 
-Web: <http://neverball.org/>
+Web: <https://neverball.org/>
+Discord: <https://discord.gg/HhMfr4N6H6>

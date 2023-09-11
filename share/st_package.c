@@ -344,10 +344,10 @@ static int package_gui(void)
         }
         gui_space(id);
 
-        if ((jd = gui_harray(id)))
+        if ((jd = gui_hstack(id)))
         {
-            const int ww = MIN(w, h) * 7 / 12;
-            const int hh = ww / 16 * 9;
+            const int ww = MIN(w, h) * 5 / 12;
+            const int hh = ww / 4 * 3;
 
             if ((kd = gui_varray(jd)))
             {
@@ -359,7 +359,10 @@ static int package_gui(void)
                 }
             }
 
-            shot_id = gui_image(jd, package_get_shot_filename(first), ww, hh);
+            if ((kd = gui_hstack(jd)))
+            {
+                shot_id = gui_image(kd, package_get_shot_filename(first), ww, hh);
+            }
         }
 
         gui_space(id);

@@ -73,3 +73,5 @@
 # ZIP archives
 /*.tar
 /*.zip
+
+/packages

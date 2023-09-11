@@ -477,7 +477,19 @@ static Array load_packages_from_file(const char *filename)
             else if (str_starts_with(line, "desc "))
             {
                 if (pkg)
+                {
+                    char *s = NULL;
+
                     SAFECPY(pkg->desc, line + 5);
+
+                    // Replace "\\n" with "\r\n" in place. I really just need the "\n", but don't want to move bytes around.
+
+                    for (s = pkg->desc; (s = strstr(s, "\\n")); s += 2)
+                    {
+                        s[0] = '\r';
+                        s[1] = '\n';
+                    }
+                }
             }
             else if (str_starts_with(line, "shot "))
             {
@@ -694,7 +706,7 @@ int package_search(const char *file)
         {
             struct package *pkg = array_get(available_packages, i);
 
-            if (pkg && strcmp(pkg->files, file) == 0)
+            if (pkg && strstr(pkg->files, file) != NULL)
                 return i;
         }
     }

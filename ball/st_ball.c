@@ -220,7 +220,7 @@ static void free_balls(void)
     balls = NULL;
 }
 
-static void set_curr_ball(void)
+static void set_curr_ball(int ball_index)
 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(ball_file, dstSize,
@@ -228,8 +228,8 @@ static void set_curr_ball(void)
     sprintf(ball_file,
 #endif
             "%s/%s",
-            DIR_ITEM_GET(balls, curr_ball)->path,
-            base_name(DIR_ITEM_GET(balls, curr_ball)->path));
+            DIR_ITEM_GET(balls, ball_index)->path,
+            base_name(DIR_ITEM_GET(balls, ball_index)->path));
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_set_s(ACCOUNT_BALL_FILE, ball_file);
@@ -285,14 +285,14 @@ static int ball_action(int tok, int val)
         if (++curr_ball == array_len(balls))
             curr_ball = 0;
 
-        set_curr_ball();
+        set_curr_ball(curr_ball);
         break;
 
     case GUI_PREV:
         if (--curr_ball == -1)
             curr_ball = array_len(balls) - 1;
 
-        set_curr_ball();
+        set_curr_ball(curr_ball);
         break;
 
     case GUI_BACK:
@@ -533,18 +533,79 @@ static void ball_timer(int id, float dt)
 
 static int ball_keybd(int c, int d)
 {
+    int initial_fov = config_get_d(CONFIG_VIEW_FOV);
+    int initial_dc  = config_get_d(CONFIG_VIEW_DC);
+    int initial_dp  = config_get_d(CONFIG_VIEW_DP);
+    int initial_w   = config_get_d(CONFIG_WIDTH);
+    int initial_h   = config_get_d(CONFIG_HEIGHT);
+
+    int i;
+
     if (d)
     {
-#if defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #else
         if (c == KEY_EXIT)
 #endif
             return ball_action(GUI_BACK, 0);
-        if (c == KEY_LOOKAROUND)
+        else if (c == KEY_LOOKAROUND)
         {
             ball_manual_hotreload = 1;
             return goto_state(&st_ball);
+        }
+        else switch (c)
+        {
+        case KEY_EXIT:
+            return ball_action(GUI_BACK, 0);
+
+        case KEY_LEVELSHOTS:
+
+            video_set_window_size(800 / video.device_scale, 600 / video.device_scale);
+            video_resize(800 / video.device_scale, 600 / video.device_scale);
+
+            // Zoom in on the ball.
+
+            config_set_d(CONFIG_VIEW_DC, 0);
+            config_set_d(CONFIG_VIEW_DP, 50);
+            config_set_d(CONFIG_VIEW_FOV, 20);
+
+            game_client_fly(0.0f);
+
+            // Take screenshots.
+
+            for (i = 0; balls && i < array_len(balls); ++i)
+            {
+                static char filename[64];
+
+                sprintf(filename, "Screenshots/ball-%s.png", base_name(DIR_ITEM_GET(balls, i)->path));
+
+                set_curr_ball(i);
+
+                video_clear();
+                video_push_persp((float)initial_fov, 0.1f, FAR_DIST);
+                {
+                    back_draw_easy();
+                }
+                video_pop_matrix();
+
+                game_client_draw(POSE_BALL, 0);
+                video_snap(filename);
+                video_swap();
+            }
+
+            // Restore config.
+
+            config_set_d(CONFIG_VIEW_FOV, initial_fov);
+            config_set_d(CONFIG_VIEW_DC, initial_dc);
+            config_set_d(CONFIG_VIEW_DP, initial_dp);
+
+            video_set_window_size(initial_w, initial_h);
+            video_resize(initial_w, initial_h);
+
+            set_curr_ball(curr_ball);
+
+            break;
         }
     }
     return 1;

@@ -1032,13 +1032,18 @@ void gui_set_multi(int id, const char *text)
     for (p = text, sc = 0; *p && sc < lc; sc++)
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        strncpy_s(s[sc], dstSize, p, (n = strcspn(p, "\\")));
+        strncpy_s(s[sc], dstSize, p, (n = strcspn(p, "\\\n")));
 #else
-        strncpy(s[sc], p, (n = strcspn(p, "\\")));
+        strncpy(s[sc], p, (n = strcspn(p, "\\\n")));
 #endif
         s[sc][n] = 0;
 
-        if (*(p += n) == '\\') p++;
+        if (n > 0 && s[sc][n - 1] == '\r')
+            s[sc][n - 1] = 0;
+
+        p += n;
+
+        if (*p == '\\' || *p == '\n') p++;
     }
 
     /* Set the label value for each line. */

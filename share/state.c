@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,9 +12,16 @@
  * General Public License for more details.
  */
 
+#include "gui.h"
+
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#include "console_control_gui.h"
+#endif
+
 #include "vec3.h"
 #include "glext.h"
 #include "state.h"
+#include "accessibility.h"
 #include "config.h"
 #include "video.h"
 #include "common.h"
@@ -102,9 +109,30 @@ static int bump_stick(int a)
 
 /*---------------------------------------------------------------------------*/
 
+#define LOOP_DURING_SCREENANIMATE                                          \
+    do { if (!st_global_loop()) {                                          \
+        log_errorf("UI will animating, but the game attempts to exit!\n"); \
+        SDL_TriggerBreakpoint();                                           \
+        exit(1);                                                           \
+    } } while (0)
+
+/*---------------------------------------------------------------------------*/
+
+/* SCREEN ANIMATIONS */
+#define state_frame_smooth (1.f / 25.f) * 1000
+#define state_anim_speed 6.f
+
+static float alpha      = 0;
+static int   anim_queue = 0;
+static int   anim_done  = 0;
+
 static float         state_time;
 static int           state_drawn;
 static struct state *state;
+
+static struct state* anim_queue_state;
+static int           anim_queue_allowskip;
+static int           anim_queue_directions[2];
 
 struct state *curr_state(void)
 {
@@ -119,11 +147,86 @@ float time_state(void)
 void init_state(struct state *st)
 {
     state = st;
+    alpha = 1.0f;
+    video_clear();
+    video_swap();
+
+#if _DEBUG
+    //Sleep(500);
+#endif
 }
 
 int goto_state(struct state *st)
 {
+    return goto_state_full(st, 0, 0, 0);
+}
+
+int goto_state_full(struct state *st, int fromdirection, int todirection, int noanimation)
+{
+    Uint32 currtime, prevtime, dt;
     struct state *prev = state;
+
+    prevtime = SDL_GetTicks();
+
+    anim_queue_state = st;
+    anim_queue_directions[0] = fromdirection;
+    anim_queue_directions[1] = todirection;
+    anim_queue_allowskip = noanimation;
+
+    if (anim_queue)
+        return 1;
+
+    anim_done  = 0;
+    anim_queue = 1;
+
+    if (!noanimation && config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    {
+        while (alpha > 0.01)
+        {
+            //LOOP_DURING_SCREENANIMATE;
+
+            currtime = SDL_GetTicks();
+            dt = MAX(currtime - prevtime, 0);
+            alpha = alpha - ((config_get_d(CONFIG_SMOOTH_FIX) ? MIN(state_frame_smooth, dt) : MIN(100.f, dt)) * state_anim_speed) * 0.001;
+            if (state)
+            {
+                if (state->fade != NULL) state->fade(alpha);
+                gui_set_alpha(state->gui_id, alpha, fromdirection);
+            }
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+            xbox_control_gui_set_alpha(alpha);
+#endif
+
+            CHECK_GAMESPEED(20, 100);
+            float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
+
+            st_timer((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ? MIN(state_frame_smooth, dt) : dt)) * speedPercent);
+            hmd_step();
+
+            if (viewport_wireframe == 2 || viewport_wireframe == 3)
+            {
+                video_render_fill_or_line(1);
+                st_paint(0.001f * currtime, 1);
+                video_render_fill_or_line(0);
+                st_paint(0.001f * currtime, 0);
+            }
+            else
+                st_paint(0.001f * currtime, 1);
+
+            video_swap();
+            prevtime = currtime;
+        }
+    }
+
+    alpha = 0;
+    if (state)
+    {
+        if (state->fade != NULL) state->fade(alpha);
+        gui_set_alpha(state->gui_id, alpha, fromdirection);
+    }
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+    xbox_control_gui_set_alpha(alpha);
+#endif
 
     if (state && state->leave)
         state->leave(state, st, state->gui_id);
@@ -138,27 +241,103 @@ int goto_state(struct state *st)
     if (state && state->enter)
         state->gui_id = state->enter(state, prev);
 
+    if (!noanimation && config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    {
+        while (alpha < 0.99 && !anim_done)
+        {
+            LOOP_DURING_SCREENANIMATE;
+
+            currtime = SDL_GetTicks();
+            dt = MAX(currtime - prevtime, 0);
+            alpha = alpha + ((config_get_d(CONFIG_SMOOTH_FIX) ? MIN(state_frame_smooth, dt) : MIN(100.f, dt)) * state_anim_speed) * 0.001;
+            if (state)
+            {
+                if (state->fade != NULL) state->fade(alpha);
+                gui_set_alpha(state->gui_id, alpha, todirection);
+            }
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+            xbox_control_gui_set_alpha(alpha);
+#endif
+
+            CHECK_GAMESPEED(20, 100);
+            float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
+
+            st_timer((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ? MIN(state_frame_smooth, dt) : dt)) * speedPercent);
+            hmd_step();
+
+            if (viewport_wireframe == 2 || viewport_wireframe == 3)
+            {
+                video_render_fill_or_line(1);
+                st_paint(0.001f * currtime, 1);
+                video_render_fill_or_line(0);
+                st_paint(0.001f * currtime, 0);
+            }
+            else
+                st_paint(0.001f * currtime, 1);
+
+            video_swap();
+            prevtime = currtime;
+        }
+    }
+
+    alpha = 1.0f;
+    if (state)
+    {
+        if (state->fade != NULL) state->fade(alpha);
+        gui_set_alpha(state->gui_id, alpha, todirection);
+    }
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+    xbox_control_gui_set_alpha(alpha);
+#endif
+
+    anim_queue = 0;
+
+    if (state != anim_queue_state)
+    {
+        goto_state_full(anim_queue_state,
+                        anim_queue_directions[0],
+                        anim_queue_directions[1],
+                        anim_queue_allowskip);
+        anim_queue_directions[0] = 0;
+        anim_queue_directions[1] = 0;
+        anim_queue_allowskip = 0;
+    }
+
+    anim_done = 1;
+
     return 1;
+}
+
+int st_global_animating(void)
+{
+    return anim_queue;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void st_paint(float t)
+void st_paint(float t, int allow_clear)
 {
     state_drawn = 1;
 
     if (state && state->paint)
     {
-        video_clear();
+        if (allow_clear)
+            video_clear();
 
         if (hmd_stat())
         {
             hmd_prep_left();
-            video_clear();
+
+            if (allow_clear)
+                video_clear();
+
             state->paint(state->gui_id, t);
 
             hmd_prep_right();
-            video_clear();
+
+            if (allow_clear)
+                video_clear();
+
             state->paint(state->gui_id, t);
         }
         else
@@ -184,14 +363,11 @@ void st_timer(float dt)
 
         if (sc->t > 0.0f && state_time >= sc->t)
         {
-            state->stick(state->gui_id, sc->a, sc->v, 1);
+            if (state)
+                state->stick(state->gui_id, sc->a, sc->v, 1);
             sc->t = state_time + STICK_REPEAT_TIME;
         }
     }
-
-    /* Step SOL animations. (This is not the best place to put this.) */
-
-    geom_step(dt);
 }
 
 void st_point(int x, int y, int dx, int dy)
@@ -277,9 +453,9 @@ int st_touch(const SDL_TouchFingerEvent *event)
     /* Otherwise, emulate mouse events. */
 
     st_point(video.device_w * event->x,
-             video.device_h * (1.0f - event->y),
-             video.device_w * event->dx,
-             video.device_h * -event->dy);
+        video.device_h * (1.0f - event->y),
+        video.device_w * event->dx,
+        video.device_h * -event->dy);
 
     if (event->type == SDL_FINGERDOWN)
         d = st_click(SDL_BUTTON_LEFT, 1);
@@ -287,6 +463,14 @@ int st_touch(const SDL_TouchFingerEvent *event)
         d = st_click(SDL_BUTTON_LEFT, 0);
 
     return d;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void st_exit(void)
+{
+    if (state && state->exit)
+        state->exit(state->gui_id);
 }
 
 /*---------------------------------------------------------------------------*/

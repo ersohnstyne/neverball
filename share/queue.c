@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -14,8 +14,17 @@
 
 #include <stdlib.h>
 #include <assert.h>
+
 #include "queue.h"
 #include "list.h"
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
 
 struct queue
 {

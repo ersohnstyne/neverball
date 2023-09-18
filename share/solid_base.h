@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -15,8 +15,75 @@
 #ifndef SOLID_BASE_H
 #define SOLID_BASE_H
 
+/*
+ * Comment it, if you don't have an header file
+ * --- OR ---
+ * Create the header using premaded preprocessors by following
+ */
+#include "solid_chkp.h"
+
 #include "base_config.h"
 
+#ifdef MAPC_INCLUDES_CHKP
+/*
+ * Some might  be taken  aback at  the terseness of  the names  of the
+ * structure  members and  the variables  used by  the  functions that
+ * access them.  Yes, yes, I know:  readability.  I  contend that once
+ * the naming  convention is embraced, the names  become more readable
+ * than any  verbose alternative, and their brevity  and uniformity do
+ * more to augment readability than longVariableNames ever could.
+ *
+ * Members  and variables  are named  XY.   X determines  the type  of
+ * structure to which the variable  refers.  Y determines the usage of
+ * the variable.
+ *
+ * The Xs are as documented by struct s_base:
+ *
+ *     f  File          (struct s_base)
+ *     m  Material      (struct b_mtrl)
+ *     v  Vertex        (struct b_vert)
+ *     e  Edge          (struct b_edge)
+ *     s  Side          (struct b_side)
+ *     t  Texture coord (struct b_texc)
+ *     g  Geometry      (struct b_geom)
+ *     o  Offset        (struct b_offs)
+ *     l  Lump          (struct b_lump)
+ *     n  Node          (struct b_node)
+ *     p  Path          (struct b_path)
+ *     b  Body          (struct b_body)
+ *     h  Item          (struct b_item)
+ *     z  Goal          (struct b_goal)
+ *     j  Jump          (struct b_jump)
+ *     x  Switch        (struct b_swch)
+ *     r  Billboard     (struct b_bill)
+ *     u  User          (struct b_ball)
+ *     c  Checkpoints   (struct b_chkp)
+ *     w  Viewpoint     (struct b_view)
+ *     d  Dictionary    (struct b_dict)
+ *     i  Index         (int)
+ *     a  Text          (char)
+ *
+ * The Ys are as follows:
+ *
+ *     c  Counter
+ *     p  Pointer
+ *     v  Vector (array)
+ *     0  Index of the first
+ *     i  Index
+ *     j  Subindex
+ *     k  Subsubindex
+ *
+ * Thus "up" is a pointer to  a user structure.  "lc" is the number of
+ * lumps.  "ei" and "ej" are  edge indices into some "ev" edge vector.
+ * An edge is  defined by two vertices, so  an edge structure consists
+ * of "vi" and "vj".  And so on.
+ *
+ * Those members that do not conform to this convention are explicitly
+ * documented with a comment.
+ *
+ * These prefixes are still available: k q y.
+ */
+#else
 /*
  * Some might  be taken  aback at  the terseness of  the names  of the
  * structure  members and  the variables  used by  the  functions that
@@ -74,6 +141,7 @@
  *
  * These prefixes are still available: c k q y.
  */
+#endif
 
 /*
  * Additionally, solid data is split into three main parts: static
@@ -271,7 +339,19 @@ struct b_ball
 {
     float p[3];                                /* position vector            */
     float r;                                   /* radius                     */
+#ifdef START_POS_ANGULAR_BETA
+    float a;                                   /* angular direction          */
+#endif
 };
+
+#ifdef MAPC_INCLUDES_CHKP
+/* New: Checkpoints */
+struct b_chkp
+{
+    float p[3];                                /* position vector            */
+    float r;                                   /* radius                     */
+};
+#endif
 
 struct b_view
 {
@@ -305,6 +385,10 @@ struct s_base
     int xc;
     int rc;
     int uc;
+#ifdef MAPC_INCLUDES_CHKP
+    /* New: Checkpoints */
+    int cc;
+#endif
     int wc;
     int dc;
     int ic;
@@ -327,6 +411,10 @@ struct s_base
     struct b_swch *xv;
     struct b_bill *rv;
     struct b_ball *uv;
+#ifdef MAPC_INCLUDES_CHKP
+    /* New: Checkpoints */
+    struct b_chkp *cv;
+#endif
     struct b_view *wv;
     struct b_dict *dv;
     int           *iv;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -25,6 +25,15 @@
 #include "dir.h"
 #include "array.h"
 #include "common.h"
+#include "log.h"
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
 
 /*
  * This file implements the high-level virtual file system layer
@@ -42,7 +51,8 @@ static int cmp_dir_items(const void *A, const void *B)
 static int is_archive(struct dir_item *item)
 {
     return (str_ends_with(item->path, ".zip") ||
-            str_ends_with(item->path, ".pk3"));
+            str_ends_with(item->path, ".pk3") ||
+            str_ends_with(item->path, ".7z"));
 }
 
 static void add_archives(const char *path)
@@ -55,7 +65,10 @@ static void add_archives(const char *path)
         array_sort(archives, cmp_dir_items);
 
         for (i = 0; i < array_len(archives); i++)
+        {
+            log_printf("Found ZIP archive file: %s\n", DIR_ITEM_GET(archives, i)->path);
             fs_add_path(DIR_ITEM_GET(archives, i)->path);
+        }
 
         dir_free(archives);
     }
@@ -72,8 +85,8 @@ int fs_add_path_with_archives(const char *path)
 int fs_rename(const char *src, const char *dst)
 {
     const char *write_dir;
-    char *real_src, *real_dst;
-    int rc = 0;
+    char       *real_src, *real_dst;
+    int        rc = 0;
 
     if ((write_dir = fs_get_write_dir()))
     {
@@ -184,7 +197,7 @@ static int write_lines(const char *start, int length, fs_file fh)
 
     int datalen;
     int written;
-    char *lf;
+    const char *lf;
 
     while (total_written < length)
     {
@@ -224,15 +237,25 @@ int fs_printf(fs_file fh, const char *fmt, ...)
     va_list ap;
 
     va_start(ap, fmt);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    //len = 1 + vsnprintf_s(NULL, 0, MAXSTR, fmt, ap);
     len = 1 + vsnprintf(NULL, 0, fmt, ap);
+#else
+    len = 1 + vsnprintf(NULL, 0, fmt, ap);
+#endif
     va_end(ap);
 
-    if ((buff = malloc(len)))
+    if ((buff = (char *) malloc(len)))
     {
         int written;
 
         va_start(ap, fmt);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        //vsnprintf_s(buff, len, MAXSTR, fmt, ap);
         vsnprintf(buff, len, fmt, ap);
+#else
+        vsnprintf(buff, len, fmt, ap);
+#endif
         va_end(ap);
 
         /*
@@ -259,8 +282,17 @@ void *fs_load(const char *path, int *datalen)
 
     data = NULL;
 
-    if ((*datalen = fs_size(path)) > 0)
-        if ((fh = fs_open_read(path)))
+#ifdef FS_VERSION_1
+    if ((fh = fs_open(path, "r")))
+#else
+    if ((fh = fs_open_read(path)))
+#endif
+    {
+#ifdef FS_VERSION_1
+        if ((*datalen = fs_length(fh)) > 0)
+#else
+        if ((*datalen = fs_size(path)) > 0)
+#endif
         {
             if ((data = malloc(*datalen)))
             {
@@ -271,9 +303,10 @@ void *fs_load(const char *path, int *datalen)
                     *datalen = 0;
                 }
             }
-
-            fs_close(fh);
         }
+
+        fs_close(fh);
+    }
 
     return data;
 }
@@ -319,21 +352,20 @@ const char *fs_resolve(const char *system)
     return NULL;
 }
 
-/*---------------------------------------------------------------------------*/
-
 void fs_persistent_sync(void)
 {
+    /* This synchronizes in-memory state to persistent storage. The persistent
+     * store is created/loaded during Emscripten's Module['preInit'].  */
 #ifdef __EMSCRIPTEN__
-    /* This synchronizes in-memory FS state to a backing store. The backing
-     * store is set up during Module['preRun'].  */
     EM_ASM({
-        console.log('Synchronizing to backing store...');
+        console.log('Synchronizing to persistent storage...');
 
-        FS.syncfs(false, function (err) {
+        FS.syncfs(false, function(err) {
             if (err) {
-                console.error('Failed to synchronize to backing store: ' + err);
-            } else {
-                console.log('Successfully synced to backing store.');
+                console.error('Failed to synchronize to persistent storage: ' + err);
+            }
+             else {
+                console.log('Successfully synced to persistent storage.');
             }
         });
     });

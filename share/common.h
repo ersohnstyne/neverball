@@ -1,24 +1,28 @@
 /*
- *  Copyright (C) 2007  Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
- *  This  program is  free software;  you can  redistribute  it and/or
- *  modify it  under the  terms of the  GNU General Public  License as
- *  published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
  *
- *  This program  is distributed in the  hope that it  will be useful,
- *  but  WITHOUT ANY WARRANTY;  without even  the implied  warranty of
- *  MERCHANTABILITY or FITNESS FOR  A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a  copy of the GNU General Public License
- *  along  with this  program;  if  not, write  to  the Free  Software
- *  Foundation,  Inc.,   59  Temple  Place,  Suite   330,  Boston,  MA
- *  02111-1307 USA
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
  */
 
 #ifndef COMMON_H
 #define COMMON_H
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS && !_MSC_VER
+#include <sec_api/stdlib_s.h>
+#endif
+
+#if _MSC_VER
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#endif
 
 #include <time.h>
 #include <stdio.h>
@@ -27,10 +31,23 @@
 #include <stdarg.h>
 #include "fs.h"
 
+/* Neverball Platform API */
+
+#define NEVERBALL_PC_FAMILY_API 0
+#define NEVERBALL_XBOX_FAMILY_API 1
+#define NEVERBALL_XBOX_360_FAMILY_API 2
+#define NEVERBALL_PS_FAMILY_API 3
+#define NEVERBALL_STEAMDECK_FAMILY_API 4
+#define NEVERBALL_SWITCH_FAMILY_API 5
+#define NEVERBALL_HANDSET_FAMILY_API 6
+
 /* Random stuff. */
 
+#if !defined(MAX_STR_BLOCKREASON)
+#define MAX_STR_BLOCKREASON 256
+#endif
 #ifndef MAXSTR
-#define MAXSTR 256
+#define MAXSTR MAX_STR_BLOCKREASON
 #endif
 
 #ifdef __GNUC__
@@ -41,12 +58,21 @@
 
 /* Math. */
 
+#ifdef __min
+#define MIN __min
+#else
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
+#ifdef __max
+#define MAX __max
+#else
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
 
 #define CLAMP(a, b, c) MIN(MAX(a, b), c)
 
-#define SIGN(n) ((n) < 0 ? -1 : ((n) > 0 ? +1 : 0))
+#define SIGN(n) ((n) < 0 ? -1 : ((n) ? +1 : 0))
 #define ROUND(f) ((int) ((f) + 0.5f * SIGN(f)))
 
 #define TIME_TO_MS(t) ROUND((t) * 1000.0f)
@@ -60,7 +86,33 @@ int rand_between(int low, int high);
 #define ARRAYSIZE(a) (sizeof (a) / sizeof ((a)[0]))
 #endif
 
+#ifndef MAXSTRLEN
 #define MAXSTRLEN(a) (sizeof (a) - 1)
+#endif
+
+extern size_t dstSize;
+
+#if UNICODE
+/**
+ * Copy a wstring SRC into a zero-terminated fixed-size array of char DST.
+ */
+#define WSAFECPY(dst, src) do { \
+    size_t _len = wcslen(src); \
+    size_t _max = MIN(sizeof (dst) - 1, _len); \
+    memcpy((dst), (src), _max); \
+    (dst)[_max] = 0; \
+} while (0)
+
+/**
+ * Append a wstring SRC to a zero-terminated fixed-size array of char DST.
+ */
+#define WSAFECAT(dst, src) do { \
+    size_t _len = wcslen(dst); \
+    size_t _max = MIN(sizeof (dst) - 1u - _len, wcslen(src)); \
+    memcpy((dst) + _len, (src), _max); \
+    (dst)[_len + _max] = 0; \
+} while (0)
+#endif
 
 /**
  * Copy a string SRC into a zero-terminated fixed-size array of char DST.
@@ -82,28 +134,62 @@ int rand_between(int low, int high);
     (dst)[_len + _max] = 0; \
 } while (0)
 
+#if UNICODE
+wchar_t *wcsip_newline(wchar_t *);
+#if _MSC_VER && !_NONSTDC
+#define dupe_wstring _wcsdup
+#else
+wchar_t *dupe_wstring(const wchar_t *);
+#endif
+#endif
+
 int   read_line(char **, fs_file);
 char *strip_newline(char *);
-
+#if _MSC_VER && !_NONSTDC
+#define dupe_string _strdup
+#else
 char *dupe_string(const char *);
+#endif
 char *concat_string(const char *first, ...) NULL_TERMINATED;
 
 #ifdef strdup
 #undef strdup
 #endif
+#if _MSC_VER && !_NONSTDC
+#define strdup _strdup
+#else 
 #define strdup dupe_string
+#endif
+#if UNICODE
+#ifdef wcsdup
+#undef wcsdup
+#endif
+#if _MSC_VER && !_NONSTDC
+#define wcsdup _wcsdup
+#else 
+#define wcsdup dupe_wstring
+#endif
+#endif
 
-#define str_starts_with(s, h) (strncmp((s), (h), strlen(h)) == 0)
-#define str_ends_with(s, t) ((strlen(s) >= strlen(t)) && strcmp((s) + strlen(s) - strlen(t), (t)) == 0)
+#if UNICODE
+#define wcs_starts_with(s, h) \
+    (wcsncmp((s), (h), wcslen(h)) == 0)
+#define wcs_ends_with(s, t) \
+    ((wcslen(s) >= wcslen(t)) && wcscmp((s) + wcslen(s) - wcslen(t), (t)) == 0)
+#endif
+#define str_starts_with(s, h) \
+    (strncmp((s), (h), strlen(h)) == 0)
+#define str_ends_with(s, t) \
+    ((strlen(s) >= strlen(t)) && strcmp((s) + strlen(s) - strlen(t), (t)) == 0)
 
 /*
  * Declaring vsnprintf with the C99 signature, even though we're
  * claiming to be ANSI C. This is probably bad but is not known to not
  * work.
  */
-#ifndef __APPLE__
+/*#ifndef __APPLE__
 extern int vsnprintf(char *, size_t, const char *, va_list);
-#endif
+#endif*/
 
 /* Time. */
 
@@ -114,7 +200,9 @@ const char *date_to_str(time_t);
 
 int  file_exists(const char *);
 int  file_rename(const char *, const char *);
-int  file_size(const char *);
+#ifndef FS_VERSION_1
+int  file_size(const char *path);
+#endif
 void file_copy(FILE *fin, FILE *fout);
 
 /* Paths. */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -14,6 +14,9 @@
 
 #ifndef SOLID_SIM_H
 #define SOLID_SIM_H
+
+/* The new powerful physics with: PHYSX ENGINE */
+//#define SIM_PHYSX_ENGINE
 
 #include "solid_vary.h"
 #include "solid_all.h"

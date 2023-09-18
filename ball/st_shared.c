@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima - 2006 Jean Privat
- * Part of the Neverball Project http://icculus.org/neverball/
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,6 +11,11 @@
  * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
  * General Public License for more details.
  */
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#include "console_control_gui.h"
+#include "account.h"
+#endif
 
 #include "gui.h"
 #include "config.h"
@@ -31,6 +35,7 @@ void shared_leave(struct state *st, struct state *next, int id)
 void shared_paint(int id, float t)
 {
     game_client_draw(0, t);
+
     gui_paint(id);
 }
 
@@ -51,6 +56,11 @@ int shared_point_basic(int id, int x, int y)
 
 void shared_point(int id, int x, int y, int dx, int dy)
 {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if (current_platform == PLATFORM_PC)
+        xbox_toggle_gui(0);
+#endif
+
     shared_point_basic(id, x, y);
 }
 
@@ -66,6 +76,9 @@ int shared_stick_basic(int id, int a, float v, int bump)
 
 void shared_stick(int id, int a, float v, int bump)
 {
+#ifndef __EMSCRIPTEN__
+    xbox_toggle_gui(1);
+#endif
     shared_stick_basic(id, a, v, bump);
 }
 
@@ -78,19 +91,15 @@ int shared_click_basic(int b, int d)
 {
     /* Activate on left click. */
 
-    if (b == SDL_BUTTON_LEFT && d)
-        return st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
-    else
-        return 1;
+    return (b == SDL_BUTTON_LEFT && d) ?
+           st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
 }
 
 int shared_click(int b, int d)
 {
     /* Activate based on GUI state. */
 
-    if (gui_click(b, d))
-        return st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
-    else
-        return 1;
+    return gui_click(b, d) ?
+           st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
 }
 

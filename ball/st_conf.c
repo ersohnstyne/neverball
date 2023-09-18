@@ -2359,6 +2359,8 @@ static int conf_gui(void)
                     gui_set_label(lang_id, _("Default"));
 #endif
             }
+
+            gui_layout(id, 0, 0);
         }
 
         if ((id = gui_vstack(root_id)))

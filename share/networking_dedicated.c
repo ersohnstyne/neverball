@@ -25,11 +25,16 @@
 #if ENABLE_DEDICATED_SERVER==1
 #if _WIN32
 #if !_MSC_VER
-#error Use the combined library, that you've compiled from Microsoft Visual Studio!
+#error Use the combined library, \
+       that you've compiled from Microsoft Visual Studio!
 #else
 #pragma message("Neverball Dedicated Network for Microsoft Visual Studio")
 #endif
-#pragma comment(lib, "neverball_net_client.lib")
+#if _WIN64
+#pragma comment(lib, "D:\\source_ersohn_network\\c++\\neverball-game-network\\x64\\Release\\neverball_net_client.lib")
+#else
+#pragma comment(lib, "D:\\source_ersohn_network\\c++\\neverball-game-network\\Release\\neverball_net_client.lib")
+#endif
 
 #pragma comment(lib, "ws2_32.lib")
 #else
@@ -75,31 +80,31 @@ static struct
     const int   def;
     int         cur;
 } server_policy_d[] = {
-    { &SERVER_POLICY_EDITION, "edition", NEVERBALL_EDITION },
+    { &SERVER_POLICY_EDITION,                  "edition",                  NEVERBALL_EDITION },
     { &SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN, "levelgroup_only_campaign", 0 },
-    { &SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET, "levelgroup_only_levelset", NEVERBALL_EDITION==-1 ? 1 : 0 },
+    { &SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET, "levelgroup_only_levelset", NEVERBALL_EDITION == -1 ? 1 : 0 },
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    { &SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET, "levelgroup_unlocked_levelset", NEVERBALL_EDITION==0 || NEVERBALL_EDITION==1 ? 0 : 1 },
+    { &SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET, "levelgroup_unlocked_levelset", NEVERBALL_EDITION == 0 || NEVERBALL_EDITION == 1 ? 0 : 1 },
 #else
     { &SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET, "levelgroup_unlocked_levelset", 1 },
 #endif
 
-    { &SERVER_POLICY_LEVELSET_ENABLED_BONUS, "levelset_enabled_bonus", 1 },
-    { &SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET, "levelset_enabled_customset", NEVERBALL_EDITION!=0 },
-    { &SERVER_POLICY_LEVELSET_UNLOCKED_BONUS, "levelset_unlocked_bonus", NEVERBALL_EDITION>1 },
+    { &SERVER_POLICY_LEVELSET_ENABLED_BONUS,     "levelset_enabled_bonus",     1 },
+    { &SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET, "levelset_enabled_customset", NEVERBALL_EDITION != 0 },
+    { &SERVER_POLICY_LEVELSET_UNLOCKED_BONUS,    "levelset_unlocked_bonus",    NEVERBALL_EDITION > 1 },
 
-    { &SERVER_POLICY_PLAYMODES_ENABLED, "playmodes_enabled", NEVERBALL_EDITION>-1 },
-    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER, "playmodes_enabled_mode_career", NEVERBALL_EDITION>-1 },
-    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE, "playmodes_enabled_mode_challenge", NEVERBALL_EDITION!=0 },
-    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE, "playmodes_enabled_mode_hardcore", NEVERBALL_EDITION>0 },
-    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER, "playmodes_unlocked_career", NEVERBALL_EDITION>1 },
-    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE, "playmodes_unlocked_hardcore", NEVERBALL_EDITION>2 },
+    { &SERVER_POLICY_PLAYMODES_ENABLED,                "playmodes_enabled",                NEVERBALL_EDITION > -1 },
+    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER,    "playmodes_enabled_mode_career",    NEVERBALL_EDITION > -1 },
+    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE, "playmodes_enabled_mode_challenge", NEVERBALL_EDITION != 0 },
+    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE,  "playmodes_enabled_mode_hardcore",  NEVERBALL_EDITION > 0 },
+    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER,   "playmodes_unlocked_career",        NEVERBALL_EDITION > 1 },
+    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE, "playmodes_unlocked_hardcore",      NEVERBALL_EDITION > 2 },
 
-    { &SERVER_POLICY_SHOP_ENABLED, "shop_enabled", NEVERBALL_EDITION!=-1 },
-    { &SERVER_POLICY_SHOP_ENABLED_IAP, "shop_enabled_iap", NEVERBALL_EDITION>-1 },
-    { &SERVER_POLICY_SHOP_ENABLED_MANAGED, "shop_enabled_managed", NEVERBALL_EDITION>-1 },
-    { &SERVER_POLICY_SHOP_ENABLED_CONSUMABLES, "shop_enabled_consumables", NEVERBALL_EDITION>0 ? 1 : 0 },
+    { &SERVER_POLICY_SHOP_ENABLED,             "shop_enabled",             NEVERBALL_EDITION != -1 },
+    { &SERVER_POLICY_SHOP_ENABLED_IAP,         "shop_enabled_iap",         NEVERBALL_EDITION > -1 },
+    { &SERVER_POLICY_SHOP_ENABLED_MANAGED,     "shop_enabled_managed",     NEVERBALL_EDITION > -1 },
+    { &SERVER_POLICY_SHOP_ENABLED_CONSUMABLES, "shop_enabled_consumables", NEVERBALL_EDITION > 0 ? 1 : 0 },
 };
 
 /*---------------------------------------------------------------------------*/

@@ -21,6 +21,12 @@
 #include "powerup.h"
 #include "account.h"
 #include "accessibility.h"
+#if ENABLE_RFD==1
+#include "rfd.h"
+#endif
+#if NB_STEAM_API==1
+#include "score_online.h"
+#endif
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -47,7 +53,10 @@
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
 #ifdef MAPC_INCLUDES_CHKP
+#if ENABLE_RFD==1
 /*
+ * Neverball - Recipes for Disaster
+ *
  * Paid debts after timer expires.
  *
  * If they owe gems and can't pay, but net-worth is greater than debt,
@@ -55,16 +64,21 @@
  *
  * Try to not overuse the gems as it causes bankrupt.
  */
-#define PROGRESS_PLAYER_PAYDEBT_BALLS                                      \
-    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) {          \
-        int temp_account_balls =                                           \
-            account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);                 \
-        temp_account_balls--;                                              \
-        account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, temp_account_balls); \
-        account_save(); } else {                                           \
-        curr.balls -= 1;                                                   \
-        if (chkp.balls > -1)                                               \
-            chkp.balls -= 1;                                               \
+#define PROGRESS_PLAYER_PAYDEBT_BALLS                                          \
+    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) {              \
+            int temp_account_balls =                                           \
+            account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);                     \
+            temp_account_balls--;                                              \
+            account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, temp_account_balls); \
+            account_save(); } else {                                           \
+            if (curr.rfd_balls > -1)                                           \
+                curr.rfd_balls -= 1;                                           \
+            else                                                               \
+                curr.balls -= 1;                                               \
+            if (chkp.rfd_balls > -1)                                           \
+                chkp.rfd_balls -= 1;                                           \
+            else if (chkp.balls > -1)                                          \
+                chkp.balls -= 1;                                               \
     } } while (0)
 #else
 /*
@@ -75,20 +89,69 @@
  *
  * Try to not overuse the gems as it causes bankrupt.
  */
-#define PROGRESS_PLAYER_PAYDEBT_BALLS                                      \
-    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) {          \
-        int temp_account_balls =                                           \
-            account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);                 \
-        temp_account_balls--;                                              \
-        account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, temp_account_balls); \
-        account_save(); } else {                                           \
-        curr.balls -= 1;                                                   \
+#define PROGRESS_PLAYER_PAYDEBT_BALLS                                          \
+    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) {              \
+            int temp_account_balls =                                           \
+            account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);                     \
+            temp_account_balls--;                                              \
+            account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, temp_account_balls); \
+            account_save(); } else {                                           \
+            curr.balls -= 1;                                                   \
+            if (chkp.balls > -1)                                               \
+                chkp.balls -= 1;                                               \
     } } while (0)
+#endif
+#else
+#if ENABLE_RFD==1
+/*
+ * Neverball - Recipes for Disaster
+ *
+ * Paid debts after timer expires.
+ *
+ * If they owe gems and can't pay, but net-worth is greater than debt,
+ * they need to raise gems by selling some products and powerups.
+ *
+ * Try to not overuse the gems as it causes bankrupt.
+ */
+#define PROGRESS_PLAYER_PAYDEBT_BALLS                                          \
+    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) {              \
+            int temp_account_balls =                                           \
+                account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);                 \
+            temp_account_balls--;                                              \
+            account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, temp_account_balls); \
+            account_save(); } else {                                           \
+            if (curr.rfd_balls > -1)                                           \
+                curr.rfd_balls -= 1;                                           \
+            else                                                               \
+                curr.balls -= 1;                                               \
+    } } while (0)
+#else
+/*
+ * Paid debts after timer expires.
+ *
+ * If they owe gems and can't pay, but net-worth is greater than debt,
+ * they need to raise gems by selling some products and powerups.
+ *
+ * Try to not overuse the gems as it causes bankrupt.
+ */
+#define PROGRESS_PLAYER_PAYDEBT_BALLS                                          \
+    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) {              \
+            int temp_account_balls =                                           \
+                account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);                 \
+            temp_account_balls--;                                              \
+            account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, temp_account_balls); \
+            account_save(); } else {                                           \
+            curr.balls -= 1;                                                   \
+    } } while (0)
+#endif
 #endif
 #else
 #ifdef MAPC_INCLUDES_CHKP
 /*
  * Paid debts after timer expires.
+ *
+ * You need to join Pennyball Discord Server in order
+ * to activate the net-worth for player account.
  */
 #define PROGRESS_PLAYER_PAYDEBT_BALLS \
     do { curr.balls -= 1;             \
@@ -98,6 +161,9 @@
 #else
 /*
  * Paid debts after timer expires.
+ *
+ * You need to join Pennyball Discord Server in order
+ * to activate the net-worth for player account.
  */
 #define PROGRESS_PLAYER_PAYDEBT_BALLS \
     do { curr.balls -= 1;             \
@@ -116,14 +182,18 @@
  * If they are bankrupt, all products will be sold, then all the wallet
  * will be transferred to the player to whom they owe the debt.
  */
-#define PROGRESS_PLAYER_BANKRUPT                                               \
-    do { if ((campaign_used() && campaign_hardcore() && mode == MODE_HARDCORE) \
-              || progress_dead()) {                                            \
-        next = 0; done = 0;                                                    \
+#define PROGRESS_PLAYER_BANKRUPT                        \
+    do { if ((campaign_used() && campaign_hardcore() && \
+              mode == MODE_HARDCORE)                    \
+          || progress_dead()) {                         \
+        next = 0; done = 0;                             \
     } } while (0)
 #else
 /*
  * Their debt exceeds above the limit from the net-worth.
+ *
+ * You need to join Pennyball Discord Server in order
+ * to activate the net-worth for player account.
  */
 #define PROGRESS_PLAYER_BANKRUPT \
     do { if (progress_dead()) {  \
@@ -134,10 +204,19 @@
 /*---------------------------------------------------------------------------*/
 
 static int max_speed    = 0;
-static int exceed_speed  = 0;
+static int exceed_speed = 0;
 
 struct progress
 {
+#if ENABLE_RFD==1
+    /* Pennyball + Neverball - Recipes for Disaster */
+
+    int   rfd_balls;
+    int   rfd_earninator;
+    int   rfd_floatifier;
+    int   rfd_speedifier;
+#endif
+
     int   balls;
     int   score;
     int   times;
@@ -244,11 +323,19 @@ void progress_init(int m)
     curr.balls    = 2;
 #endif
 
+#if ENABLE_RFD==1
+    /* Pennyball + Neverball - Recipes for Disaster */
+
+    curr.rfd_balls      = rfd_get_d(RFD_CHALLENGE_BALLS);
+    curr.rfd_earninator = rfd_get_d(RFD_CHALLENGE_EARNINATOR);
+    curr.rfd_floatifier = rfd_get_d(RFD_CHALLENGE_FLOATIFIER);
+    curr.rfd_speedifier = rfd_get_d(RFD_CHALLENGE_SPEEDIFIER);
+#endif
+
 #ifdef CONFIG_INCLUDES_ACCOUNT
     /* HACK: Those purchased balls are associated from the shop. */
 
-    if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0 &&
-        (mode == MODE_CHALLENGE || mode == MODE_HARDCORE || mode == MODE_BOOST_RUSH))
+    if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0)
     {
         curr.balls -= account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);
         curr.balls = MAX(curr.balls, 0);
@@ -285,6 +372,11 @@ int progress_extended(void)
 
 static int init_level(void)
 {
+    int curr_rfd_balls = 0;
+#if ENABLE_RFD==1
+    curr_rfd_balls = curr.rfd_balls;
+#endif
+
     if (curr_mode() != MODE_NONE &&
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         !campaign_hardcore_norecordings() &&
@@ -294,9 +386,11 @@ static int init_level(void)
                        level, mode,
                        curr.score,
 #ifdef CONFIG_INCLUDES_ACCOUNT
-                       curr.balls + account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES),
+                       curr.balls +
+                       account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) +
+                       curr_rfd_balls,
 #else
-                       curr.balls,
+                       curr.balls + curr_rfd_balls,
 #endif
                        curr.times,
                        curr.speedpercent);
@@ -337,7 +431,7 @@ int  progress_play(struct level *l)
 
     if (l && (level_opened(l)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-        || config_cheat()
+           || config_cheat()
 #endif
         ))
     {
@@ -371,12 +465,17 @@ int  progress_play(struct level *l)
         if (!campaign_used())
         {
             /* When they using level set, it will be added in the required coins. */
-            goal_e = (((mode != MODE_CHALLENGE && mode != MODE_HARDCORE && mode != MODE_BOOST_RUSH)
-                && level_completed(level) && config_get_d(CONFIG_LOCK_GOALS) == 0) || goal == 0)
-                || mode == MODE_ZEN;
+            goal_e = (((mode != MODE_CHALLENGE &&
+                        mode != MODE_HARDCORE  &&
+                        mode != MODE_BOOST_RUSH) &&
+                       level_completed(level) &&
+                       config_get_d(CONFIG_LOCK_GOALS) == 0) ||
+                      goal == 0) ||
+                     mode == MODE_ZEN;
         }
-        else if (campaign_used() && (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER)
-            || campaign_career_unlocked()))
+        else if (campaign_used() &&
+                 (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER) ||
+                  campaign_career_unlocked()))
         {
             goal_e = !config_get_d(CONFIG_LOCK_GOALS) || goal == 0;
 
@@ -390,13 +489,14 @@ int  progress_play(struct level *l)
              * Seriously, this will never lock the goal state
              * and never use the required coins without career mode.
              */
-            goal = 0;
+            goal   = 0;
             goal_e = 1;
         }
 #else
-        goal_e = (((mode != MODE_CHALLENGE && mode != MODE_BOOST_RUSH)
-                && level_completed(level) && config_get_d(CONFIG_LOCK_GOALS) == 0) || goal == 0)
-              || mode == MODE_ZEN;
+        goal_e = (((mode != MODE_CHALLENGE && mode != MODE_BOOST_RUSH) &&
+                   level_completed(level) && config_get_d(CONFIG_LOCK_GOALS) == 0) ||
+                  goal == 0) ||
+                 mode == MODE_ZEN;
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -406,7 +506,14 @@ int  progress_play(struct level *l)
          */
 
         if (last_active)
+        {
+#if ENABLE_RFD==1
+            /* Neverball - Recipes for Disaster */
+
+            prev.rfd_balls = curr.rfd_balls;
+#endif
             prev.balls = curr.balls;
+        }
         else
 #endif
             prev = curr;
@@ -429,7 +536,7 @@ void progress_step(void)
 {
     if (level && !replay && level_time(level) != 0
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        && !mediation_enabled()
+     && !mediation_enabled()
 #endif
         )
     {
@@ -461,7 +568,7 @@ void progress_step(void)
 
 void progress_stat(int s)
 {
-    int i, dirty = 0;
+    int i;
 
     /* Cannot save highscore in home room. */
     if (mode == MODE_NONE) return;
@@ -499,7 +606,14 @@ void progress_stat(int s)
         {
 #ifdef MAPC_INCLUDES_CHKP
             if (last_active)
+            {
+#if ENABLE_RFD==1
+                /* Neverball - Recipes for Disaster */
+
+                chkp.rfd_balls = curr.rfd_balls;
+#endif
                 chkp.balls = curr.balls;
+            }
 #endif
 
             for (i = curr.score + 1; i <= curr.score + coins; i++)
@@ -521,32 +635,32 @@ void progress_stat(int s)
 
         if (!campaign_used() &&
             (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25))
-            dirty = level_score_update(level,
-                                       timer,
+            level_score_update(level,
+                               timer,
 #ifdef ENABLE_POWERUP
-                                       coins / get_coin_multiply(),
+                               coins / get_coin_multiply(),
 #else
-                                       coins,
+                               coins,
 #endif
-                                       &time_rank,
-                                       goal == 0 ? &goal_rank : NULL,
-                                       &coin_rank);
+                               &time_rank,
+                               goal == 0 ? &goal_rank : NULL,
+                               &coin_rank);
         else if (!campaign_hardcore() && campaign_used() &&
                  (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
                   !config_cheat() &&
 #endif
                   (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25)))
-            dirty = level_score_update(level,
-                                       timer,
+            level_score_update(level,
+                               timer,
 #ifdef ENABLE_POWERUP
-                                       coins / get_coin_multiply(),
+                               coins / get_coin_multiply(),
 #else
-                                       coins,
+                               coins,
 #endif
-                                       &time_rank,
-                                       career_unlocked && goal == 0 ? &goal_rank : NULL,
-                                       career_unlocked ? &coin_rank : 0);
+                               &time_rank,
+                               career_unlocked && goal == 0 ? &goal_rank : NULL,
+                               career_unlocked ? &coin_rank : 0);
 #else
         dirty = level_score_update(level, timer,
 #ifdef ENABLE_POWERUP
@@ -559,48 +673,56 @@ void progress_stat(int s)
                                    &coin_rank);
 #endif
 
+        level->stats.completed++;
+
         if (!level_completed(level))
-        {
             level_complete(level);
-            dirty = 1;
-        }
 
         /* Compute next level. */
 
+        if (mode == MODE_CHALLENGE
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (mode == MODE_CHALLENGE || mode == MODE_HARDCORE)
-#else
-        if (mode == MODE_CHALLENGE)
+         || mode == MODE_HARDCORE
 #endif
+            )
         {
+            int has_master = 0;
+
             for (next = level->next;
-                next && level_bonus(next);
-                next = next->next)
+                 next && (level_bonus(next) || level_master(next)) &&
+                 !has_master;
+                 next = next->next)
             {
-                if (!level_opened(next))
-                {
+                if (!level_opened(next) && !has_master)
                     level_open(next);
-                    dirty = 1;
+
+                if (level_opened(next) && level_master(next) &&
+                    !has_master)
+                {
+                    /* Go to the next level as master, darn! */
+
+                    has_master = 1;
+                    break;
                 }
             }
         }
         else
         {
             for (next = level->next;
-                next && level_bonus(next) && !level_opened(next);
-                next = next->next) {}
+                 next && (level_master(next) || (level_bonus(next) &&
+                                                 !level_opened(next)));
+                 next = next->next) {}
 
             /*
              * HACK: For this purposes, I've unlocked the next given
              * standard levels, if there's unlocked bonus levels.
              */
-            if (next && level_bonus(next) && level_opened(next))
+
+            if (next && (level_bonus(next) ||
+                         level_master(next)) && level_opened(next))
             {
                 if (next->next && !level_opened(next->next))
-                {
                     level_open(next->next);
-                    dirty = 1;
-                }
             }
         }
 
@@ -609,10 +731,7 @@ void progress_stat(int s)
         if (next)
         {
             if (!level_opened(next))
-            {
                 level_open(next);
-                dirty = 1;
-            }
         }
         else
         {
@@ -633,7 +752,8 @@ void progress_stat(int s)
              */
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (done && mode == MODE_CAMPAIGN && account_get_d(ACCOUNT_SET_UNLOCKS) == 0)
+            if (done && mode == MODE_CAMPAIGN &&
+                account_get_d(ACCOUNT_SET_UNLOCKS) == 0)
                 account_set_d(ACCOUNT_SET_UNLOCKS, 1);
             else
 #endif
@@ -643,15 +763,17 @@ void progress_stat(int s)
                     account_set_d(ACCOUNT_SET_UNLOCKS, curr_set() + 2);
             }
 
-            if (!CHECK_ACCOUNT_BANKRUPT && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+            if (!CHECK_ACCOUNT_BANKRUPT &&
+                server_policy_get_d(SERVER_POLICY_EDITION) > -1)
             {
                 if (curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                    || curr_mode() == MODE_CAMPAIGN
+                 || curr_mode() == MODE_CAMPAIGN
 #endif
                     )
                 {
-                    int curr_wallet = MIN(ACCOUNT_WALLET_MAX_COINS, account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_coins());
+                    int curr_wallet = MIN(ACCOUNT_WALLET_MAX_COINS,
+                                          account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_coins());
                     account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_wallet);
                     account_save();
                 }
@@ -663,7 +785,7 @@ void progress_stat(int s)
         break;
 
     case GAME_FALL:
-        /* It should be both below */
+        /* It should be both below. */
     case GAME_TIME:
         if (status != GAME_GOAL)
         {
@@ -677,13 +799,13 @@ void progress_stat(int s)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 mode != MODE_CAMPAIGN &&
 #endif
-                mode != MODE_NORMAL &&
-                mode != MODE_ZEN &&
+                mode != MODE_NORMAL
+             && mode != MODE_ZEN
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                mode != MODE_HARDCORE &&
+             && mode != MODE_HARDCORE
 #endif
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-                !config_cheat()
+             && !config_cheat()
 #endif
                 )
                 PROGRESS_PLAYER_PAYDEBT_BALLS;
@@ -692,34 +814,34 @@ void progress_stat(int s)
             {
                 /* Decreases half percent */
                 curr.speedpercent /= 2;
-                exceed_speed = 0;
-                max_speed = 0;
+                exceed_speed       = 0;
+                max_speed          = 0;
             }
 
             PROGRESS_PLAYER_BANKRUPT;
         }
+        
+        status == GAME_FALL ? level->stats.fallout++ : level->stats.timeout++;
+
         break;
     }
 
-    if (dirty)
-    {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (campaign_used())
-        {
-            campaign_store_hs();
+    if (campaign_used())
+    {
+        campaign_store_hs();
 
-            if (progress_done() && campaign_career_unlocked())
-            {
-                config_set_d(CONFIG_LOCK_GOALS, 1);
-                config_save();
-            }
+        if (progress_done() && campaign_career_unlocked())
+        {
+            config_set_d(CONFIG_LOCK_GOALS, 1);
+            config_save();
         }
-        else if (mode != MODE_CAMPAIGN && mode != MODE_STANDALONE)
-#else
-        if (mode != MODE_STANDALONE)
-#endif
-            set_store_hs();
     }
+    else if (mode != MODE_CAMPAIGN && mode != MODE_STANDALONE)
+#else
+    if (mode != MODE_STANDALONE)
+#endif
+        set_store_hs();
 
     demo_play_stat(status, coins, timer);
 }
@@ -788,12 +910,18 @@ void progress_exit(void)
                               ACCOUNT_WALLET_MAX_COINS));
 
             /* This gems will earn, after competed the challenge mode. */
-            if (mode == MODE_CHALLENGE
-             || mode == MODE_BOOST_RUSH)
+            if (mode == MODE_CHALLENGE ||
+                mode == MODE_BOOST_RUSH)
             {
+#if ENABLE_RFD==1
+                account_set_d(ACCOUNT_DATA_WALLET_GEMS,
+                              (curr.balls * 5) + (curr.rfd_balls * 5) +
+                              account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+#else
                 account_set_d(ACCOUNT_DATA_WALLET_GEMS,
                               (curr.balls * 5) +
                               account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+#endif
             }
 
             account_save();
@@ -937,11 +1065,14 @@ int  progress_same_avail(void)
     {
     case GAME_NONE:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        return (mode != MODE_CHALLENGE && mode != MODE_HARDCORE && mode != MODE_BOOST_RUSH)
-            || config_cheat();
+        return (mode != MODE_CHALLENGE &&
+                mode != MODE_HARDCORE  &&
+                mode != MODE_BOOST_RUSH) ||
+               config_cheat();
 #else
-        return (mode != MODE_CHALLENGE && mode != MODE_BOOST_RUSH)
-            || config_cheat();
+        return (mode != MODE_CHALLENGE &&
+                mode != MODE_BOOST_RUSH) ||
+               config_cheat();
 #endif
 
     default:
@@ -968,6 +1099,10 @@ int  progress_next(void)
 #ifdef MAPC_INCLUDES_CHKP
         if (chkp.balls > -1)
         {
+#if ENABLE_RFD==1
+            curr.rfd_balls = chkp.rfd_balls;
+            chkp.rfd_balls = -1;
+#endif
             curr.balls = chkp.balls;
             chkp.balls = -1;
         }
@@ -994,6 +1129,10 @@ int  progress_same(void)
 #ifdef MAPC_INCLUDES_CHKP
             if (chkp.balls > -1)
             {
+#if ENABLE_RFD==1
+                curr.rfd_balls = chkp.rfd_balls;
+                chkp.rfd_balls = -1;
+#endif
                 curr.balls = chkp.balls;
                 chkp.balls = -1;
             }
@@ -1024,8 +1163,11 @@ int  progress_dead(void)
          && !config_cheat()
 #endif
              ? curr.balls
+#if ENABLE_RFD==1
+             + curr.rfd_balls
+#endif
 #ifdef CONFIG_INCLUDES_ACCOUNT
-               + account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES)
+             + account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES)
 #endif
              < 0 : 0;
 }
@@ -1094,6 +1236,38 @@ int  progress_reward_ball(int s)
     return s > 0 && s % 100 == 0;
 }
 
+#if ENABLE_RFD==1
+int progress_rfd_take_powerup(int t)
+{
+    switch (t)
+    {
+    case 0: if (curr.rfd_earninator == 0) return 0; else curr.rfd_earninator--;
+        break;
+    case 1: if (curr.rfd_floatifier == 0) return 0; else curr.rfd_floatifier--;
+        break;
+    case 2: if (curr.rfd_speedifier == 0) return 0; else curr.rfd_speedifier--;
+        break;
+    }
+
+    return 1;
+}
+
+int progress_rfd_get_powerup(int t)
+{
+    switch (t)
+    {
+    case 0: return curr.rfd_earninator;
+        break;
+    case 1: return curr.rfd_floatifier;
+        break;
+    case 2: return curr.rfd_speedifier;
+        break;
+    }
+
+    return 0;
+}
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 struct level *curr_level(void) { return level; }
@@ -1102,9 +1276,16 @@ float curr_speed_percent(void) { return curr.speedpercent; }
 
 int curr_balls(void)
 {
+    int curr_rfd_balls = 0;
+
+#if ENABLE_RFD==1
+    curr_rfd_balls = curr.rfd_balls;
+#endif
+
 #ifdef CONFIG_INCLUDES_ACCOUNT
     if (!replay)
-        return curr.balls + account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);
+        return curr.balls + account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) +
+               curr_rfd_balls;
 #endif
 
     return curr.balls;

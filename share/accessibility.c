@@ -115,7 +115,8 @@ void accessibility_load(void)
 {
     fs_file fh;
 
-    assert(!account_busy && !config_busy && "This account or config data is busy and cannot be edit there!");
+    assert(!account_busy && !config_busy &&
+           "This account or config data is busy and cannot be edit there!");
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
 
     char *filename = strdup("accessibility");
@@ -157,7 +158,8 @@ void accessibility_load(void)
         accessibility_busy = 0;
     }
     else
-        log_errorf("Failure to load accessibility file!: %s / %s\n", filename, fs_error());
+        log_errorf("Failure to load accessibility file!: %s / %s\n",
+                   filename, fs_error());
 
     free(filename);
 }
@@ -166,7 +168,8 @@ void accessibility_save(void)
 {
     fs_file fh;
 
-    assert(!account_busy && !config_busy && "This account or config data is busy and cannot be edit there!");
+    assert(!account_busy && !config_busy &&
+           "This account or config data is busy and cannot be edit there!");
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
 
     char *filename = strdup("accessibility");
@@ -195,7 +198,8 @@ void accessibility_save(void)
         fs_close(fh);
     }
     else if (dirty)
-        log_errorf("Failure to save accessibility file!: %s / %s\n", filename, fs_error());
+        log_errorf("Failure to save accessibility file!: %s / %s\n",
+                   filename, fs_error());
     
     free(filename);
 
@@ -207,7 +211,8 @@ void accessibility_save(void)
 
 void accessibility_set_d(int i, int d)
 {
-    assert(!account_busy && !config_busy && "This account or config data is busy and cannot be edit there!");
+    assert(!account_busy && !config_busy &&
+           "This account or config data is busy and cannot be edit there!");
     if (!account_busy && !config_busy)
     {
         account_busy = 1;
@@ -219,7 +224,8 @@ void accessibility_set_d(int i, int d)
 
 void accessibility_tgl_d(int i)
 {
-    assert(!account_busy && !config_busy && "This account or config data is busy and cannot be edit there!");
+    assert(!account_busy && !config_busy &&
+           "This account or config data is busy and cannot be edit there!");
     if (!account_busy && !config_busy)
     {
         account_busy = 1;

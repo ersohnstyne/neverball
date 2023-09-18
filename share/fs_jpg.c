@@ -243,12 +243,12 @@ fs_jpg_src (j_decompress_ptr cinfo, fs_file infile)
   }
 
   src = (nb_src_ptr) cinfo->src;
-  src->pub.init_source = init_source;
+  src->pub.init_source       = init_source;
   src->pub.fill_input_buffer = fill_input_buffer;
-  src->pub.skip_input_data = skip_input_data;
+  src->pub.skip_input_data   = skip_input_data;
   src->pub.resync_to_restart = jpeg_resync_to_restart; /* use default method */
-  src->pub.term_source = term_source;
-  src->infile = infile;
-  src->pub.bytes_in_buffer = 0; /* forces fill_input_buffer on first read */
-  src->pub.next_input_byte = NULL; /* until buffer loaded */
+  src->pub.term_source       = term_source;
+  src->infile                = infile;
+  src->pub.bytes_in_buffer   = 0; /* forces fill_input_buffer on first read */
+  src->pub.next_input_byte   = NULL; /* until buffer loaded */
 }

@@ -83,23 +83,23 @@ PFNGLGETOCCLUSIONQUERYUIVNV_PROC   glGetOcclusionQueryuivNV_;
 PFNGLFLUSHVERTEXARRAYRANGENV_PROC  glFlushVertexArrayRangeNV_;
 PFNGLVERTEXARRAYRANGENV_PROC       glVertexArrayRangeNV_;
 
-PFNGLCREATESTATESNV_PROC glCreateStatesNV_;
-PFNGLDELETESTATESNV_PROC glDeleteStatesNV_;
-PFNGLISSTATENV_PROC glIsStateNV_;
-PFNGLSTATECAPTURENV_PROC glStateCaptureNV_;
-PFNGLGETCOMMANDHEADERNV_PROC glGetCommandHeaderNV_;
-PFNGLGETSTAGEINDEXNV_PROC glGetStageIndexNV_;
-PFNGLDRAWCOMMANDSNV_PROC glDrawCommandsNV_;
-PFNGLDRAWCOMMANDSADDRESSNV_PROC glDrawCommandsAddressNV_;
-PFNGLDRAWCOMMANDSSTATESNV_PROC glDrawCommandsStatesNV_;
-PFNGLDRAWCOMMANDSSTATESADDRESSNV_PROC glDrawCommandsStatesAddressNV_;
-PFNGLCREATECOMMANDLISTSNV_PROC glCreateCommandListsNV_;
-PFNGLDELETECOMMANDLISTSNV_PROC glDeleteCommandListsNV_;
-PFNGLISCOMMANDLISTNV_PROC glIsCommandListNV_;
+PFNGLCREATESTATESNV_PROC                 glCreateStatesNV_;
+PFNGLDELETESTATESNV_PROC                 glDeleteStatesNV_;
+PFNGLISSTATENV_PROC                      glIsStateNV_;
+PFNGLSTATECAPTURENV_PROC                 glStateCaptureNV_;
+PFNGLGETCOMMANDHEADERNV_PROC             glGetCommandHeaderNV_;
+PFNGLGETSTAGEINDEXNV_PROC                glGetStageIndexNV_;
+PFNGLDRAWCOMMANDSNV_PROC                 glDrawCommandsNV_;
+PFNGLDRAWCOMMANDSADDRESSNV_PROC          glDrawCommandsAddressNV_;
+PFNGLDRAWCOMMANDSSTATESNV_PROC           glDrawCommandsStatesNV_;
+PFNGLDRAWCOMMANDSSTATESADDRESSNV_PROC    glDrawCommandsStatesAddressNV_;
+PFNGLCREATECOMMANDLISTSNV_PROC           glCreateCommandListsNV_;
+PFNGLDELETECOMMANDLISTSNV_PROC           glDeleteCommandListsNV_;
+PFNGLISCOMMANDLISTNV_PROC                glIsCommandListNV_;
 PFNGLLISTDRAWCOMMANDSSTATESCLIENTNV_PROC glListDrawCommandsStatesClientNV_;
-PFNGLCOMMANDLISTSEGMENTSNV_PROC glCommandListSegmentsNV_;
-PFNGLCOMPILECOMMANDLISTNV_PROC glCompileCommandListNV_;
-PFNGLCALLCOMMANDLISTNV_PROC glCallCommandListNV_;
+PFNGLCOMMANDLISTSEGMENTSNV_PROC          glCommandListSegmentsNV_;
+PFNGLCOMPILECOMMANDLISTNV_PROC           glCompileCommandListNV_;
+PFNGLCALLCOMMANDLISTNV_PROC              glCallCommandListNV_;
 #endif
 #endif
 
@@ -231,13 +231,13 @@ int glext_count(void)
 static void log_opengl(void)
 {
     log_printf("GL vendor: %s\n"
-        "GL renderer: %s\n"
-        "GL version: %s\n"
-        "GL extensions: %s\n",
-        glGetString(GL_VENDOR),
-        glGetString(GL_RENDERER),
-        glGetString(GL_VERSION),
-        glGetString(GL_EXTENSIONS));
+               "GL renderer: %s\n"
+               "GL version: %s\n"
+               "GL extensions: %s\n",
+                glGetString(GL_VENDOR),
+                glGetString(GL_RENDERER),
+                glGetString(GL_VERSION),
+                glGetString(GL_EXTENSIONS));
 }
 
 int glext_fail(const char *title, const char *message)

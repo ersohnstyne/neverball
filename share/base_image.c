@@ -237,7 +237,7 @@ void *image_load(const char *filename, int *width,
     {
         const char *ext = filename + strlen(filename) - 4;
 
-        if (strcmp(ext, ".png") == 0 || strcmp(ext, ".PNG") == 0)
+        if      (strcmp(ext, ".png") == 0 || strcmp(ext, ".PNG") == 0)
             return image_load_png(filename, width, height, bytes);
         else if (strcmp(ext, ".jpg") == 0 || strcmp(ext, ".JPG") == 0)
             return image_load_jpg(filename, width, height, bytes);

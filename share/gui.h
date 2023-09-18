@@ -36,8 +36,12 @@
 #define GUI_COIN           "⛁"
 #define GUI_CROWN          "♕"
 #define GUI_DIAMOND        "♦"
+
 #define GUI_GAMEPAD        "🎮"
 #define GUI_BATTERY        "🔋"
+#define GUI_GOAL           "🏁"
+#define GUI_TIMEOUT        "⏰"
+#define GUI_HEARTBROKEN    "💔"
 
 /*
  * DejaVu Sans V1: DejaVuSans-Bold.ttf
@@ -85,6 +89,12 @@
 #define GUI_ANIMATION_E_CURVE 0x0800
 #define GUI_ANIMATION_S_CURVE 0x0080
 #define GUI_ANIMATION_W_CURVE 0x0008
+
+#if NB_HAVE_PB_BOTH==1
+#define GUI_COLOR_DEFAULT gui_pnk, gui_red
+#else
+#define GUI_COLOR_DEFAULT gui_yel, gui_red
+#endif
 
 extern const GLubyte gui_wht[4];
 extern const GLubyte gui_yel[4];

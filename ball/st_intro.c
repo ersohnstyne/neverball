@@ -62,8 +62,10 @@
     do { \
         return networking_connected() == 1 ? \
                goto_state(MAINTENANCE_HOLD ? &st_server_maintenance : \
-                          (CHECK_ACCOUNT_ENABLED ? &st_title : &st_intro_accn_disabled)) : \
-               goto_state(networking_connected() == -1 ? &st_intro_waitinternet : \
+                          (CHECK_ACCOUNT_ENABLED ? &st_title : \
+                                                   &st_intro_accn_disabled)) : \
+               goto_state(networking_connected() == -1 ? \
+                          &st_intro_waitinternet : \
                           &st_intro_nointernet); \
     } while (0)
 
@@ -71,8 +73,10 @@
     do { \
                networking_connected() == 1 ? \
                goto_state(MAINTENANCE_HOLD ? &st_server_maintenance : \
-                          (CHECK_ACCOUNT_ENABLED ? &st_title : &st_intro_accn_disabled)) : \
-               goto_state(networking_connected() == -1 ? &st_intro_waitinternet : \
+                          (CHECK_ACCOUNT_ENABLED ? &st_title : \
+                                                   &st_intro_accn_disabled)) : \
+               goto_state(networking_connected() == -1 ? \
+                          &st_intro_waitinternet : \
                           &st_intro_nointernet); \
     } while (0)
 #else
@@ -80,8 +84,10 @@
     do { \
         return goto_end_support(networking_connected() == 1 ? \
                                 (MAINTENANCE_HOLD ? &st_server_maintenance : \
-                                 (CHECK_ACCOUNT_ENABLED ? &st_title : &st_intro_accn_disabled)) : \
-                                (networking_connected() == -1 ? &st_intro_waitinternet : \
+                                 (CHECK_ACCOUNT_ENABLED ? &st_title : \
+                                                          &st_intro_accn_disabled)) : \
+                                (networking_connected() == -1 ? \
+                                 &st_intro_waitinternet : \
                                  &st_intro_nointernet)); \
     } while (0)
 
@@ -89,8 +95,10 @@
     do { \
                goto_end_support(networking_connected() == 1 ? \
                                 (MAINTENANCE_HOLD ? &st_server_maintenance : \
-                                 (CHECK_ACCOUNT_ENABLED ? &st_title : &st_intro_accn_disabled)) : \
-                                (networking_connected() == -1 ? &st_intro_waitinternet : \
+                                 (CHECK_ACCOUNT_ENABLED ? &st_title : \
+                                                          &st_intro_accn_disabled)) : \
+                                (networking_connected() == -1 ? \
+                                 &st_intro_waitinternet : \
                                  &st_intro_nointernet)); \
     } while (0)
 #endif
@@ -100,7 +108,8 @@
         return goto_end_support(networking_connected() == 1 ? \
                                 (MAINTENANCE_HOLD ? &st_server_maintenance : \
                                  &st_title) : \
-                                (networking_connected() == -1 ? &st_intro_waitinternet : \
+                                (networking_connected() == -1 ? \
+                                 &st_intro_waitinternet : \
                                  &st_intro_nointernet)); \
     } while (0)
 
@@ -109,7 +118,8 @@
                goto_end_support(networking_connected() == 1 ? \
                                 (MAINTENANCE_HOLD ? &st_server_maintenance : \
                                  &st_title) : \
-                                (networking_connected() == -1 ? &st_intro_waitinternet : \
+                                (networking_connected() == -1 ? \
+                                 &st_intro_waitinternet : \
                                  &st_intro_nointernet)); \
     } while (0)
 #endif
@@ -196,7 +206,8 @@ static void intro_create_tip(void)
 #ifndef __EMSCRIPTEN__
     if (current_platform == PLATFORM_PC)
     {
-        if ((tip_id = gui_multi(0, _(intro_tip[index_affect]), GUI_SML, gui_wht, gui_wht)))
+        if ((tip_id = gui_multi(0, _(intro_tip[index_affect]),
+                                   GUI_SML, gui_wht, gui_wht)))
         {
             gui_set_rect(tip_id, GUI_TOP);
             gui_layout(tip_id, 0, -1);
@@ -204,7 +215,8 @@ static void intro_create_tip(void)
     }
     else if (current_platform == PLATFORM_PS)
     {
-        if ((tip_id = gui_multi(0, _(intro_tip_ps4[index_affect]), GUI_SML, gui_wht, gui_wht)))
+        if ((tip_id = gui_multi(0, _(intro_tip_ps4[index_affect]),
+                                   GUI_SML, gui_wht, gui_wht)))
         {
             gui_set_rect(tip_id, GUI_TOP);
             gui_layout(tip_id, 0, -1);
@@ -213,7 +225,8 @@ static void intro_create_tip(void)
     else
 #endif
     {
-        if ((tip_id = gui_multi(0, _(intro_tip_xbox[index_affect]), GUI_SML, gui_wht, gui_wht)))
+        if ((tip_id = gui_multi(0, _(intro_tip_xbox[index_affect]),
+                                   GUI_SML, gui_wht, gui_wht)))
         {
             gui_set_rect(tip_id, GUI_TOP);
             gui_layout(tip_id, 0, -1);
@@ -226,7 +239,8 @@ static void intro_create_tip(void)
     if (index_affect > max_index)
         index_affect = 0;
 
-    if ((tip_id = gui_multi(0, _(intro_covid_highrisk[index_affect]), GUI_SML, gui_wht, gui_wht)))
+    if ((tip_id = gui_multi(0, _(intro_covid_highrisk[index_affect])
+                               GUI_SML, gui_wht, gui_wht)))
     {
         gui_set_rect(tip_id, GUI_TOP);
         gui_layout(tip_id, 0, -1);
@@ -238,7 +252,8 @@ static void intro_create_tip(void)
 #if DEVEL_BUILD
 static void intro_create_devel_info(void)
 {
-    if ((devel_label_id = gui_label(0, "   DEVELOPMENT BUILD   ", GUI_SML, gui_red, gui_red)))
+    if ((devel_label_id = gui_label(0, "   " "DEVELOPMENT BUILD" "   ",
+                                       GUI_SML, gui_red, gui_red)))
     {
         gui_set_rect(devel_label_id, GUI_BOT);
         gui_layout(devel_label_id, 0, 1);
@@ -309,7 +324,8 @@ static int intro_buttn(int b, int d)
 {
     if (d)
     {
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) || config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) ||
+            config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
         {
             int val = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
             if (val == -1)
@@ -444,7 +460,8 @@ static int intro_accn_disabled_enter(struct state *st, struct state *prev)
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Account permanently banned"), GUI_SML, gui_gry, gui_red);
+        gui_title_header(id, _("Account permanently banned"),
+                             GUI_SML, gui_gry, gui_red);
         gui_space(id);
 
         if ((jd = gui_vstack(id)))
@@ -452,7 +469,7 @@ static int intro_accn_disabled_enter(struct state *st, struct state *prev)
             gui_multi(jd,
                 _("We recently received a report for bad behaviour\\"
                   "by your account. Our moderators have reviewed in case\\"
-                  "and identified that goes against Pennyball Community Standards."),
+                  "and identified that goes against Neverball Community Standards."),
                 GUI_SML, gui_wht, gui_wht);
             gui_multi(jd,
                 _("Your account is permanently banned, which means\\"
@@ -467,7 +484,7 @@ static int intro_accn_disabled_enter(struct state *st, struct state *prev)
         {
             gui_state(jd, _("Cancel"), GUI_SML, ACCOUNT_DISBALED_CANCEL, 0);
             gui_state(jd, _("Review"), GUI_SML, ACCOUNT_DISBALED_OPEN, 0);
-            gui_start(jd, _("Exit"), GUI_SML, GUI_BACK, 0);
+            gui_start(jd, _("Exit"),   GUI_SML, GUI_BACK, 0);
         }
     }
 
@@ -482,7 +499,7 @@ static int intro_accn_disabled_keybd(int c, int d)
     {
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
         {
@@ -502,7 +519,8 @@ static int intro_accn_disabled_buttn(int b, int d)
         int active = gui_active();
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return intro_accn_disabled_action(gui_token(active), gui_value(active));
+            return intro_accn_disabled_action(gui_token(active),
+                                              gui_value(active));
 #ifndef __EMSCRIPTEN__
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
         {
@@ -569,14 +587,16 @@ static int intro_restore_action(int tok, int val)
 
         case RESTORE_RESOLUTION:
             r = 1;
-            video_set_window_size(config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1), config_get_d(CONFIG_GRAPHIC_RESTORE_VAL2));
+            video_set_window_size(config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1),
+                                  config_get_d(CONFIG_GRAPHIC_RESTORE_VAL2));
 
             remove_all();
             RETURN_INTROLOGO_FINISHED;
             break;
 
         case RESTORE_DISPLAY:
-            config_set_d(CONFIG_DISPLAY, config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
+            config_set_d(CONFIG_DISPLAY,
+                         config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
             r = 1;
             video_set_display(config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
             remove_all();
@@ -600,7 +620,8 @@ static int intro_restore_action(int tok, int val)
         case RESTORE_MULTISAMPLE:
             goto_state(&st_null);
             int oldSamp = config_get_d(CONFIG_MULTISAMPLE);
-            config_set_d(CONFIG_MULTISAMPLE, config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
+            config_set_d(CONFIG_MULTISAMPLE,
+                         config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
             r = video_mode(f, w, h);
             if (r)
             {
@@ -614,7 +635,8 @@ static int intro_restore_action(int tok, int val)
         case RESTORE_REFLECTION:
             goto_state(&st_null);
             int oldRefl = config_get_d(CONFIG_REFLECTION);
-            config_set_d(CONFIG_REFLECTION, config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
+            config_set_d(CONFIG_REFLECTION,
+                         config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
             r = video_mode(f, w, h);
             if (r)
             {
@@ -628,7 +650,8 @@ static int intro_restore_action(int tok, int val)
         case RESTORE_HMD:
             goto_state(&st_null);
             int oldHmd = config_get_d(CONFIG_HMD);
-            config_set_d(CONFIG_HMD, config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
+            config_set_d(CONFIG_HMD,
+                         config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
             r = video_mode(f, w, h);
             if (r)
             {
@@ -666,16 +689,17 @@ static int intro_restore_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        int doubles = 0;
-        char restore_attr[MAXSTR];
-        char restore_singles[MAXSTR], restore_doubles[MAXSTR];
-        const char *gfx_target_name = "";
-        const char *gfx_target_values = "";
-        char gfx_target_values_v2[MAXSTR];
+        int         doubles = 0;
+        char        restore_attr[MAXSTR];
+        char        restore_singles[MAXSTR],
+                    restore_doubles[MAXSTR];
+        const char *gfx_target_name              = "";
+        const char *gfx_target_values            = "";
+        char        gfx_target_values_v2[MAXSTR];
         
         int restore_statement = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
-        int restore_val_1 = config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1);
-        int restore_val_2 = config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1);
+        int restore_val_1     = config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1);
+        int restore_val_2     = config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1);
 
         switch (restore_statement)
         {
@@ -684,7 +708,7 @@ static int intro_restore_gui(void)
 
         case RESTORE_FULLSCREEN:
             assert(restore_val_1 == 0 || restore_val_1 == 1);
-            gfx_target_name = _("Fullscreen");
+            gfx_target_name   = _("Fullscreen");
             gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
             break;
 
@@ -695,18 +719,18 @@ static int intro_restore_gui(void)
             assert(restore_val_1 >= 320 && restore_val_2 >= 240);
 #endif
             gfx_target_name = _("Resolution");
-            doubles = 1;
+            doubles         = 1;
             break;
 
         case RESTORE_DISPLAY:
             assert(restore_val_1 > -1);
-            gfx_target_name = _("Display");
+            gfx_target_name   = _("Display");
             gfx_target_values = SDL_GetDisplayName(restore_val_1);
             break;
 
         case RESTORE_VSYNC:
             assert(restore_val_1 > 0);
-            gfx_target_name = _("V-Sync");
+            gfx_target_name   = _("V-Sync");
             gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
             break;
 
@@ -725,19 +749,19 @@ static int intro_restore_gui(void)
 
         case RESTORE_REFLECTION:
             assert(restore_val_1 == 0 || restore_val_1 == 1);
-            gfx_target_name = _("Reflection");
+            gfx_target_name   = _("Reflection");
             gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
             break;
 
         case RESTORE_HMD:
             assert(restore_val_1 == 0 || restore_val_1 == 1);
-            gfx_target_name = _("HMD");
+            gfx_target_name   = _("HMD");
             gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
             break;
 
         case RESTORE_TEXTURES:
             assert(restore_val_1 == 1 || restore_val_1 == 2);
-            gfx_target_name = _("Textures");
+            gfx_target_name   = _("Textures");
             gfx_target_values = (restore_val_1 == 1 ? _("High") : _("Low"));
             break;
 
@@ -755,7 +779,10 @@ static int intro_restore_gui(void)
 #else
             sprintf(restore_doubles,
 #endif
-                    _("The game, that you've set up some graphics\\has a crash. Would you restore them now?\\%s: %i x %i"), gfx_target_name, restore_val_1, restore_val_2);
+                    _("The game, that you've set up some graphics\\"
+                      "has a crash. Would you restore them now?\\"
+                      "%s: %i x %i"),
+                    gfx_target_name, restore_val_1, restore_val_2);
             
             gui_multi(id, restore_doubles, GUI_SML, gui_wht, gui_wht);
         }
@@ -766,7 +793,10 @@ static int intro_restore_gui(void)
 #else
             sprintf(restore_singles,
 #endif
-                    _("The game, that you've set up some graphics\\has a crash. Would you restore them now?\\%s: %s"), gfx_target_name, gfx_target_values);
+                    _("The game, that you've set up some graphics\\"
+                      "has a crash. Would you restore them now?\\"
+                      "%s: %s"),
+                    gfx_target_name, gfx_target_values);
             
             gui_multi(id, restore_singles, GUI_SML, gui_wht, gui_wht);
         }
@@ -801,7 +831,7 @@ static int intro_restore_keybd(int c, int d)
     {
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
             return intro_restore_action(GUI_BACK, 0);
@@ -833,14 +863,16 @@ static int nointernet_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("No internet connection!"), GUI_MED, gui_gry, gui_red);
+        gui_title_header(id, _("No internet connection!"),
+                             GUI_MED, gui_gry, gui_red);
         gui_space(id);
         if (networking_standalone())
             gui_multi(id, _("Not to worry, you can play offline!"),
-                GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, gui_wht, gui_wht);
         else
-            gui_multi(id, _("We're unable to connect the server!\\Make sure, that is connected by the internet!"),
-                GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, _("We're unable to connect the server!\\"
+                            "Make sure, that is connected by the internet!"),
+                          GUI_SML, gui_wht, gui_wht);
 
         gui_layout(id, 0, 0);
     }
@@ -871,7 +903,7 @@ static int nointernet_keybd(int c, int d)
     {
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
         {
@@ -888,7 +920,8 @@ static int nointernet_buttn(int b, int d)
 {
     if (d)
     {
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) && networking_standalone())
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) &&
+            networking_standalone())
             return goto_state(&st_title);
     }
     return 1;
@@ -902,7 +935,8 @@ static int waitinternet_gui(void)
 {
     int id;
 
-    if ((id = gui_title_header(0, _("Waiting for server..."), GUI_SML, gui_wht, gui_wht)))
+    if ((id = gui_title_header(0, _("Waiting for server..."),
+                                  GUI_SML, gui_wht, gui_wht)))
         gui_layout(id, 0, 0);
 
     return id;
@@ -971,14 +1005,18 @@ static int server_maintenance_enter(struct state *st, struct state *prev)
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Server under maintenance!"), GUI_MED, gui_gry, gui_red);
+        gui_title_header(id, _("Server under maintenance!"),
+                             GUI_MED, gui_gry, gui_red);
         gui_space(id);
         if (networking_standalone())
-            gui_multi(id, _("It might take a while until\\the server maintenance is finished.\\You can play offline instead!"),
-                GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, _("It might take a while until\\"
+                            "the server maintenance is finished.\\"
+                            "You can play offline instead!"),
+                          GUI_SML, gui_wht, gui_wht);
         else
-            gui_multi(id, _("It might take a while until\\the server maintenance is finished."),
-                GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, _("It might take a while until\\"
+                            "the server maintenance is finished."),
+                          GUI_SML, gui_wht, gui_wht);
 
         gui_space(id);
 
@@ -1021,8 +1059,10 @@ static int server_maintenance_buttn(int b, int d)
     {
         int active = gui_active();
 
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) && networking_standalone())
-            return server_maintenance_action(gui_token(active), gui_value(active));
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) &&
+            networking_standalone())
+            return server_maintenance_action(gui_token(active),
+                                             gui_value(active));
     }
     return 1;
 }

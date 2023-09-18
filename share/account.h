@@ -19,7 +19,7 @@
 
 #define ACCOUNT_WALLET_MAX_COINS 1000000
 
-#if NB_STEAM_API == 1 && NB_EOS_SDK == 0
+#if NB_STEAM_API==1 && NB_EOS_SDK==1
 #error Steam API and EOS SDK should not built at same time!
 #endif
 

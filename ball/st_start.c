@@ -70,13 +70,13 @@ static int challenge_id;
 
 static int switchball_useable(void)
 {
-    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
     const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
 
     SDL_Keycode k_arrowkey[4];
     k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
@@ -122,24 +122,35 @@ static void gui_level(int id, int i)
 
     if (level_opened(l))
     {
-        fore = level_bonus(l)     ? gui_grn : (level_completed(l) ? gui_yel : gui_red);
-        back = level_completed(l) ? gui_grn : gui_yel;
+        if (level_master(l))
+        {
+            /* Master levels in this set. */
+
+            fore = level_completed(l) ? gui_grn : gui_red;
+            back = level_completed(l) ? fore    : gui_blu;
+        }
+        else
+        {
+            fore = level_bonus(l)     ? gui_grn :
+                                        (level_completed(l) ? gui_yel :
+                                                              gui_red);
+            back = level_completed(l) ? gui_grn : gui_yel;
+        }
     }
 
     jd = gui_label(id, level_name(l), GUI_SML, back, fore);
 
     if (level_opened(l)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-        || config_cheat()
+     || config_cheat()
 #endif
         )
     {
-        gui_set_state(jd, START_LEVEL, i);
+        gui_set_state(jd, level_master(l) ? GUI_NONE : START_LEVEL, i);
 
         if (i == 0)
             gui_focus(jd);
     }
-
 }
 
 static void start_over_level(int i)
@@ -148,12 +159,14 @@ static void start_over_level(int i)
 
     if (level_opened(l)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-        || config_cheat()
+     || config_cheat()
 #endif
         )
     {
         if (shot_id)
             gui_set_image(shot_id, level_shot(l));
+
+        gui_set_stats(l);
 
         set_score_board(level_score(l, SCORE_COIN), -1,
                         level_score(l, SCORE_TIME), -1,
@@ -161,8 +174,8 @@ static void start_over_level(int i)
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
         if (config_cheat() && file_id)
-            gui_set_label(file_id, level_file(l));
 #endif
+            gui_set_label(file_id, level_file(l));
     }
 }
 
@@ -204,12 +217,17 @@ static int start_action(int tok, int val)
             return goto_state(&st_start);
         }
 
-        return goto_state_full(&st_set, curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_N_CURVE : GUI_ANIMATION_S_CURVE, curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_S_CURVE : GUI_ANIMATION_N_CURVE, 0);
+        return goto_state_full(&st_set,
+                               curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_N_CURVE : GUI_ANIMATION_S_CURVE,
+                               curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_S_CURVE : GUI_ANIMATION_N_CURVE,
+                               0);
 
     case GUI_PREV:
         if (first > 1) {
             first -= LEVEL_STEP;
-            return goto_state_full(&st_start, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_W_CURVE, 0);
+            return goto_state_full(&st_start,
+                                   GUI_ANIMATION_E_CURVE,
+                                   GUI_ANIMATION_W_CURVE, 0);
         }
         break;
 
@@ -217,14 +235,17 @@ static int start_action(int tok, int val)
         if (first + LEVEL_STEP < total)
         {
             first += LEVEL_STEP;
-            return goto_state_full(&st_start, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
+            return goto_state_full(&st_start,
+                                   GUI_ANIMATION_W_CURVE,
+                                   GUI_ANIMATION_E_CURVE, 0);
         }
         break;
 
     case START_CHALLENGE:
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
 #if NB_HAVE_PB_BOTH==1
-        if (config_cheat() || !server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
+        if (config_cheat() ||
+            !server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
 #else
         if (config_cheat())
 #endif
@@ -238,7 +259,8 @@ static int start_action(int tok, int val)
 #endif
             {
 #if DEVEL_BUILD
-                progress_init(curr_mode() == MODE_CHALLENGE ? (is_boost_on() ? MODE_BOOST_RUSH : MODE_NORMAL) : MODE_CHALLENGE);
+                progress_init(curr_mode() == MODE_CHALLENGE ? MODE_NORMAL :
+                                                              MODE_CHALLENGE);
                 gui_toggle(challenge_id);
                 return 1;
 #else
@@ -411,10 +433,10 @@ static int start_gui(void)
             }
 #endif
 
-            if (str_starts_with(set_id(curr_set()), "SB")
-                || str_starts_with(set_id(curr_set()), "sb")
-                || str_starts_with(set_id(curr_set()), "Sb")
-                || str_starts_with(set_id(curr_set()), "sB"))
+            if (str_starts_with(set_id(curr_set()), "SB") ||
+                str_starts_with(set_id(curr_set()), "sb") ||
+                str_starts_with(set_id(curr_set()), "Sb") ||
+                str_starts_with(set_id(curr_set()), "sB"))
             {
                 SAFECPY(set_name_final, GUI_AIRPLANE " ");
                 SAFECAT(set_name_final, set_name(curr_set()));
@@ -422,7 +444,7 @@ static int start_gui(void)
             else
                 SAFECPY(set_name_final, set_name(curr_set()));
 
-            gui_label(jd, set_name_final, GUI_SML, gui_yel, gui_red);
+            gui_label(jd, set_name_final, GUI_SML, GUI_COLOR_DEFAULT);
             gui_filler(jd);
             gui_navig(jd, total, first, LEVEL_STEP);
         }
@@ -443,7 +465,7 @@ static int start_gui(void)
 
                         shot_id = gui_image(kd, set_shot(curr_set()),
                                                 ww, hh);
-                        file_id = gui_label(kd, " ", GUI_SML, gui_yel, gui_red);
+                        file_id = gui_label(kd, " ", GUI_SML, GUI_COLOR_DEFAULT);
                     }
                 }
                 else
@@ -468,7 +490,8 @@ static int start_gui(void)
 #endif
                 {
                     if ((md = gui_harray(kd)))
-                        challenge_id = gui_state(md, _("Challenge"), GUI_SML, START_CHALLENGE, 0);
+                        challenge_id = gui_state(md, _("Challenge"),
+                                                     GUI_SML, START_CHALLENGE, 0);
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                     if (CHECK_ACCOUNT_BANKRUPT)
@@ -478,7 +501,8 @@ static int start_gui(void)
                     }
                     else
 #endif
-                        gui_set_hilite(challenge_id, curr_mode() == MODE_CHALLENGE);
+                        gui_set_hilite(challenge_id,
+                                       curr_mode() == MODE_CHALLENGE);
                 }
             }
         }
@@ -498,8 +522,10 @@ static int start_gui(void)
                 {
                     int btn0, btn1;
 
-                    btn0 = gui_state(kd, _("Unlocked"), GUI_SML, START_LOCK_GOALS, 0);
-                    btn1 = gui_state(kd, _("Locked"), GUI_SML, START_LOCK_GOALS, 1);
+                    btn0 = gui_state(kd, _("Unlocked"),
+                                         GUI_SML, START_LOCK_GOALS, 0);
+                    btn1 = gui_state(kd, _("Locked"),
+                                         GUI_SML, START_LOCK_GOALS, 1);
 
                     if (config_get_d(CONFIG_LOCK_GOALS))
                         gui_set_hilite(btn1, 1);
@@ -509,7 +535,8 @@ static int start_gui(void)
 
                 gui_space(jd);
 
-                gui_label(jd, _("Goal State in Completed Levels"), GUI_SML, 0, 0);
+                gui_label(jd, _("Goal State in Completed Levels"),
+                              GUI_SML, 0, 0);
 
                 gui_filler(jd);
             }
@@ -544,12 +571,18 @@ static int start_unavailable_enter(struct state *st, struct state *prev)
         if (CHECK_ACCOUNT_ENABLED)
         {
             if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
-                gui_multi(id, _("Challenge Mode is not available\\with server group policy."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(id, _("Challenge Mode is not available\\"
+                                "with server group policy."),
+                              GUI_SML, gui_wht, gui_wht);
             else
-                gui_multi(id, _("Challenge Mode is not available\\with slowdown or cheat."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(id, _("Challenge Mode is not available\\"
+                                "with slowdown or cheat."),
+                              GUI_SML, gui_wht, gui_wht);
         }
         else
-            gui_multi(id, _("Challenge Mode is not available.\\Please check your account settings!"), GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, _("Challenge Mode is not available.\\"
+                            "Please check your account settings!"),
+                          GUI_SML, gui_wht, gui_wht);
 
         gui_layout(id, 0, 0);
     }
@@ -571,7 +604,7 @@ static int start_unavailable_keybd(int c, int d)
     {
         if (c == KEY_EXIT
 #ifndef __EMSCRIPTEN__
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
             return goto_state(&st_start);
@@ -583,7 +616,8 @@ static int start_unavailable_buttn(int b, int d)
 {
     if (d)
     {
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) || config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b)
+         || config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return goto_state(&st_start);
     }
     return 1;
@@ -677,9 +711,9 @@ static int start_enter(struct state *st, struct state *prev)
 
     /* Bonus levels will be unlocked automatically, if you use the bonus pack */
 #if NB_HAVE_PB_BOTH==1
-    if ((server_policy_get_d(SERVER_POLICY_LEVELSET_UNLOCKED_BONUS)
-         || account_get_d(ACCOUNT_PRODUCT_BONUS) == 1)
-        && server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_BONUS))
+    if ((server_policy_get_d(SERVER_POLICY_LEVELSET_UNLOCKED_BONUS) ||
+         account_get_d(ACCOUNT_PRODUCT_BONUS) == 1) &&
+        server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_BONUS))
         set_detect_bonus_product();
 #endif
 
@@ -693,7 +727,8 @@ static int start_enter(struct state *st, struct state *prev)
     progress_init(MODE_NORMAL);
 
 #if NB_HAVE_PB_BOTH==1
-    audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" : "bgm/inter_world.ogg");
+    audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
+                                              "bgm/inter_world.ogg");
 #else
     audio_music_fade_to(0.5f, "gui/bgm/inter.ogg");
 #endif
@@ -751,7 +786,7 @@ static int start_keybd(int c, int d)
     {
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
             return start_action(GUI_BACK, 0);
@@ -759,8 +794,8 @@ static int start_keybd(int c, int d)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
         if (c == SDLK_c && config_cheat()
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
-            && !set_star_view
+         && current_platform == PLATFORM_PC
+         && !set_star_view
 #endif
             )
         {
@@ -769,8 +804,8 @@ static int start_keybd(int c, int d)
         }
         else if (c == KEY_LEVELSHOTS && config_cheat()
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
-            && !set_star_view
+              && current_platform == PLATFORM_PC
+              && !set_star_view
 #endif
             )
         {
@@ -792,7 +827,7 @@ static int start_keybd(int c, int d)
 #endif
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c)
 #if NB_HAVE_PB_BOTH==1
-            && !set_star_view
+         && !set_star_view
 #endif
             )
             return start_score(+1);
@@ -805,7 +840,7 @@ static int start_compat_keybd(int c, int d)
 {
     if (d && (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        && current_platform == PLATFORM_PC
+           && current_platform == PLATFORM_PC
 #endif
         ))
         return start_action(GUI_BACK, 0);
@@ -881,16 +916,17 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev)
         gui_title_header(id, _("Powerups available"), GUI_MED, 0, 0);
         gui_space(id);
         gui_multi(id,
-            _("Pennyball offers some of the most creative ways to\\"
-              "compete with powerups! We just need you to upgrade\\"
-              "to Pro edition so that we can make sure you have\\"
-              "permission to use it."),
-            GUI_SML, gui_wht, gui_wht);
+                  _("Pennyball offers some of the most creative ways to\\"
+                    "compete with powerups! We just need you to upgrade\\"
+                    "to Pro edition so that we can make sure you have\\"
+                    "permission to use it."),
+                  GUI_SML, gui_wht, gui_wht);
         gui_space(id);
 
         if ((jd = gui_harray(id)))
         {
-            gui_start(jd, _("Join/Upgrade"), GUI_SML, START_JOINREQUIRED_OPEN, 0);
+            gui_start(jd, _("Join/Upgrade"),
+                          GUI_SML, START_JOINREQUIRED_OPEN, 0);
             gui_state(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
             gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
         }
@@ -934,7 +970,7 @@ static int start_joinrequired_keybd(int c, int d)
 {
     if (d && (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        && current_platform == PLATFORM_PC
+           && current_platform == PLATFORM_PC
 #endif
         ))
         return start_joinrequired_action(GUI_BACK, 0);
@@ -948,7 +984,8 @@ static int start_joinrequired_buttn(int b, int d)
         int active = gui_active();
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return start_joinrequired_action(gui_token(active), gui_value(active));
+            return start_joinrequired_action(gui_token(active),
+                                             gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return start_joinrequired_action(GUI_BACK, 0);
     }

@@ -36,8 +36,8 @@
 
 struct stick_cache
 {
-    int a;                              /* Axis index */
-    float v, p;                         /* Axis value */
+    int   a;                            /* Axis index  */
+    float v, p;                         /* Axis value  */
     float t;                            /* Repeat time */
 };
 
@@ -161,7 +161,8 @@ int goto_state(struct state *st)
     return goto_state_full(st, 0, 0, 0);
 }
 
-int goto_state_full(struct state *st, int fromdirection, int todirection, int noanimation)
+int goto_state_full(struct state *st,
+                    int fromdirection, int todirection, int noanimation)
 {
     Uint32 currtime, prevtime, dt;
     struct state *prev = state;
@@ -187,7 +188,9 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
 
             currtime = SDL_GetTicks();
             dt = MAX(currtime - prevtime, 0);
-            alpha = alpha - ((config_get_d(CONFIG_SMOOTH_FIX) ? MIN(state_frame_smooth, dt) : MIN(100.f, dt)) * state_anim_speed) * 0.001;
+            alpha = alpha - ((config_get_d(CONFIG_SMOOTH_FIX) ?
+                              MIN(state_frame_smooth, dt) :
+                              MIN(100.f, dt)) * state_anim_speed) * 0.001;
             if (state)
             {
                 if (state->fade != NULL) state->fade(alpha);
@@ -200,7 +203,9 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
             CHECK_GAMESPEED(20, 100);
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
 
-            st_timer((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ? MIN(state_frame_smooth, dt) : dt)) * speedPercent);
+            st_timer((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ?
+                                MIN(state_frame_smooth, dt) : dt)) *
+                     speedPercent);
             hmd_step();
 
             if (viewport_wireframe == 2 || viewport_wireframe == 3)
@@ -249,7 +254,9 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
 
             currtime = SDL_GetTicks();
             dt = MAX(currtime - prevtime, 0);
-            alpha = alpha + ((config_get_d(CONFIG_SMOOTH_FIX) ? MIN(state_frame_smooth, dt) : MIN(100.f, dt)) * state_anim_speed) * 0.001;
+            alpha = alpha + ((config_get_d(CONFIG_SMOOTH_FIX) ?
+                              MIN(state_frame_smooth, dt) :
+                              MIN(100.f, dt)) * state_anim_speed) * 0.001;
             if (state)
             {
                 if (state->fade != NULL) state->fade(alpha);
@@ -262,7 +269,9 @@ int goto_state_full(struct state *st, int fromdirection, int todirection, int no
             CHECK_GAMESPEED(20, 100);
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
 
-            st_timer((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ? MIN(state_frame_smooth, dt) : dt)) * speedPercent);
+            st_timer((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ?
+                                MIN(state_frame_smooth, dt) : dt)) *
+                     speedPercent);
             hmd_step();
 
             if (viewport_wireframe == 2 || viewport_wireframe == 3)

@@ -33,16 +33,16 @@ struct package
 {
     unsigned int size;
 
-    char id[64];
-    char type[64];
+    char id      [64];
+    char type    [64];
     char filename[MAXSTR];
-    char files[MAXSTR];
-    char name[64];
-    char desc[MAXSTR];
-    char shot[64];
+    char files   [MAXSTR];
+    char name    [64];
+    char desc    [MAXSTR];
+    char shot    [64];
 
 #if NB_HAVE_PB_BOTH==1
-    char category[64];
+    char category     [64];
 #if ENABLE_FETCH>=2
     char fileid_gdrive[64];
     char shotid_gdrive[64];
@@ -53,7 +53,7 @@ struct package
 };
 
 static Array available_packages;
-static int package_curr_category = PACKAGE_CATEGORY_LEVELSET;
+static int   package_curr_category = PACKAGE_CATEGORY_LEVELSET;
 
 #define PACKAGE_GET(a, i) ((struct package *) array_get((a), (i)))
 
@@ -185,7 +185,8 @@ static int mount_package(const char *filename)
 
     if (write_dir)
     {
-        char *path = concat_string(write_dir, NB_DOWNLOADPATH_ROOT, filename, NULL);
+        char *path = concat_string(write_dir, NB_DOWNLOADPATH_ROOT,
+                                   filename, NULL);
 
         if (path)
         {
@@ -416,9 +417,11 @@ static Array load_packages_from_file(const char *filename)
                     SAFECPY(pkg->id, line + 8);
                     prefix_len = strcspn(pkg->id, "-");
 #if _MSC_VER && _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    strncpy_s(pkg->type, 64, pkg->id, MIN(sizeof(pkg->type) - 1, prefix_len));
+                    strncpy_s(pkg->type, 64,
+                              pkg->id, MIN(sizeof(pkg->type) - 1, prefix_len));
 #else
-                    strncpy(pkg->type, pkg->id, MIN(sizeof(pkg->type) - 1, prefix_len));
+                    strncpy(pkg->type,
+                            pkg->id, MIN(sizeof(pkg->type) - 1, prefix_len));
 #endif
                     pkg->size = 0;
                     pkg->filename[0] = 0;
@@ -478,7 +481,7 @@ static Array load_packages_from_file(const char *filename)
             {
                 if (pkg)
                 {
-                    char *s = NULL;
+                    char* s = NULL;
 
                     SAFECPY(pkg->desc, line + 5);
 
@@ -548,13 +551,15 @@ static void fetch_package_images(Array packages)
                 {
                     // Google Drive package support
                     struct fetch_callback gdrive_callback = { 0 };
-                    fetch_gdrive(pkg->shotid_gdrive, filename, gdrive_callback);
+                    fetch_gdrive(pkg->shotid_gdrive, filename,
+                                 gdrive_callback);
                 }
                 else
 #endif
                 {
 #if NB_HAVE_PB_BOTH!=1 || ENABLE_FETCH<3
-                    const char* url = get_package_url(pkg->shot, package_curr_category);
+                    const char* url = get_package_url(pkg->shot,
+                                                      package_curr_category);
 
                     if (url)
                     {
@@ -609,7 +614,8 @@ static void fetch_available_packages(int category)
 
         struct fetch_callback gdrive_callback = { 0 };
         gdrive_callback.done = available_packages_done;
-        fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_CAMPAIGN, filename, gdrive_callback);
+        fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_CAMPAIGN, filename,
+                     gdrive_callback);
         return;
     }
     else if (filename && category == PACKAGE_CATEGORY_LEVELSET
@@ -619,14 +625,16 @@ static void fetch_available_packages(int category)
 
         struct fetch_callback gdrive_callback = { 0 };
         gdrive_callback.done = available_packages_done;
-        fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_LEVELSET, filename, gdrive_callback);
+        fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_LEVELSET, filename,
+                     gdrive_callback);
         return;
     }
 #endif
     
 #if NB_HAVE_PB_BOTH!=1 || ENABLE_FETCH<3
 #ifdef __EMSCRIPTEN__
-    const char *url = get_package_url("available-packages-emscripten.txt", category);
+    const char *url = get_package_url("available-packages-emscripten.txt",
+                                      category);
 #else
     const char *url = get_package_url("available-packages.txt", category);
 #endif
@@ -744,7 +752,8 @@ int package_next(const char *type, int start)
     {
         int i, n;
 
-        for (i = MAX(0, start + 1), n = array_len(available_packages); i < n; ++i)
+        for (i = MAX(0, start + 1), n = array_len(available_packages); i < n;
+             ++i)
         {
             struct package *pkg = array_get(available_packages, i);
             size_t prefix_len = strcspn(pkg->id, "-");
@@ -861,7 +870,8 @@ static struct package_fetch_info *create_pfi(struct package *pkg)
     {
         memset(pfi, 0, sizeof (*pfi));
 
-        pfi->temp_filename = concat_string(get_package_path(pkg->filename), ".tmp", NULL);
+        pfi->temp_filename = concat_string(get_package_path(pkg->filename),
+                                           ".tmp", NULL);
         pfi->dest_filename = strdup(get_package_path(pkg->filename));
 
         pfi->pkg = pkg;
@@ -960,7 +970,8 @@ unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
             callback.done     = package_fetch_done;
             callback.data     = pfi;
 
-            fetch_id = fetch_gdrive(pkg->fileid_gdrive, pfi->temp_filename, callback);
+            fetch_id = fetch_gdrive(pkg->fileid_gdrive, pfi->temp_filename,
+                                    callback);
 
             if (fetch_id)
                 pkg->status = PACKAGE_DOWNLOADING;

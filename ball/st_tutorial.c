@@ -100,10 +100,10 @@ static int hint_before_play = 0;
 int tutorial_check(void)
 {
     if (config_get_d(CONFIG_ACCOUNT_TUTORIAL) == 0
-        || curr_mode() == MODE_CHALLENGE
-        || curr_mode() == MODE_BOOST_RUSH
+     || curr_mode() == MODE_CHALLENGE
+     || curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        || curr_mode() == MODE_HARDCORE
+     || curr_mode() == MODE_HARDCORE
 #endif
         )
     {
@@ -177,7 +177,7 @@ int tutorial_check(void)
 int goto_tutorial(int idx)
 {
     tutorial_before_play = 0;
-    tutorial_index = idx;
+    tutorial_index       = idx;
 
     return goto_state(&st_tutorial);
 }
@@ -185,7 +185,7 @@ int goto_tutorial(int idx)
 int goto_tutorial_before_play(int idx)
 {
     tutorial_before_play = 1;
-    tutorial_index = idx;
+    tutorial_index       = idx;
 
     st_continue = &st_play_ready;
 
@@ -199,7 +199,8 @@ static int tutorial_action(int tok, int val)
     switch (tok)
     {
     case TUTORIAL_TOGGLE:
-        config_set_d(CONFIG_ACCOUNT_TUTORIAL, !config_get_d(CONFIG_ACCOUNT_TUTORIAL));
+        config_set_d(CONFIG_ACCOUNT_TUTORIAL,
+                     !config_get_d(CONFIG_ACCOUNT_TUTORIAL));
         return goto_state_full(&st_tutorial, 0, 0, 1);
         break;
     }
@@ -226,15 +227,19 @@ static int tutorial_enter(struct state *st, struct state *prev)
         gui_space(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)
-            gui_multi(id, _(tutorial_desc[tutorial_index]), GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, _(tutorial_desc[tutorial_index]),
+                          GUI_SML, gui_wht, gui_wht);
         else
 #endif
-            gui_multi(id, _(tutorial_desc_xbox[tutorial_index]), GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, _(tutorial_desc_xbox[tutorial_index]),
+                          GUI_SML, gui_wht, gui_wht);
         
         gui_space(id);
         if ((jd = gui_harray(id)))
         {
-            gui_state(jd, config_get_d(CONFIG_ACCOUNT_TUTORIAL) ? _("Tutorial Off") : _("Tutorial On"), GUI_SML, TUTORIAL_TOGGLE, 0);
+            gui_state(jd, config_get_d(CONFIG_ACCOUNT_TUTORIAL) ? _("Tutorial Off") :
+                                                                  _("Tutorial On"),
+                          GUI_SML, TUTORIAL_TOGGLE, 0);
             gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
         }
     }
@@ -267,7 +272,7 @@ static int tutorial_keybd(int c, int d)
 {
     if (d && (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        && current_platform == PLATFORM_PC
+           && current_platform == PLATFORM_PC
 #endif
         ))
         return tutorial_action(GUI_BACK, 0);
@@ -307,10 +312,10 @@ const char hint_desc[][128] =
 int hint_check(void)
 {
     if (config_get_d(CONFIG_ACCOUNT_HINT) == 0
-        || curr_mode() == MODE_CHALLENGE
-        || curr_mode() == MODE_BOOST_RUSH
+     || curr_mode() == MODE_CHALLENGE
+     || curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        || curr_mode() == MODE_HARDCORE
+     || curr_mode() == MODE_HARDCORE
 #endif
         )
         return 0;
@@ -352,7 +357,7 @@ int hint_check(void)
 int goto_hint(int idx)
 {
     hint_before_play = 0;
-    hint_index = idx;
+    hint_index       = idx;
 
     return goto_state(&st_hint);
 }
@@ -360,7 +365,7 @@ int goto_hint(int idx)
 int goto_hint_before_play(int idx)
 {
     hint_before_play = 1;
-    hint_index = idx;
+    hint_index       = idx;
 
     st_continue = &st_play_ready;
 
@@ -373,7 +378,8 @@ static int hint_action(int tok, int val)
     switch (tok)
     {
     case HINT_TOGGLE:
-        config_set_d(CONFIG_ACCOUNT_TUTORIAL, !config_get_d(CONFIG_ACCOUNT_TUTORIAL));
+        config_set_d(CONFIG_ACCOUNT_TUTORIAL,
+                     !config_get_d(CONFIG_ACCOUNT_TUTORIAL));
         return goto_state_full(&st_hint, 0, 0, 1);
         break;
     }
@@ -400,7 +406,9 @@ static int hint_enter(struct state *st, struct state *prev)
         gui_space(id);
         if ((jd = gui_harray(id)))
         {
-            gui_state(jd, config_get_d(CONFIG_ACCOUNT_TUTORIAL) ? _("Hint Off") : _("Hint On"), GUI_SML, HINT_TOGGLE, 0);
+            gui_state(jd, config_get_d(CONFIG_ACCOUNT_TUTORIAL) ? _("Hint Off") :
+                                                                  _("Hint On"),
+                          GUI_SML, HINT_TOGGLE, 0);
             gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
         }
     }
@@ -414,7 +422,7 @@ static int hint_keybd(int c, int d)
 {
     if (d && (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        && current_platform == PLATFORM_PC
+           && current_platform == PLATFORM_PC
 #endif
         ))
         return hint_action(GUI_BACK, 0);

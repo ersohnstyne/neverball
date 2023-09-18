@@ -44,7 +44,7 @@
 #include "st_shared.h"
 
 #if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN) \
-    && defined(SWITCHBALL_GUI)
+ && defined(SWITCHBALL_GUI)
 #define SWITCHBALL_HELP
 #endif
 
@@ -130,7 +130,7 @@ static int help_action(int tok, int val)
         break;
     case HELP_DEMO:
         progress_init(MODE_NONE);
-#ifndef __EMSCRIPTEN__
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (demo_replay_init(current_platform == PLATFORM_PC ?
                              demos[val] : demos_xbox[val],
 #else
@@ -378,7 +378,8 @@ static int page_rules(int id)
             {
                 gui_space(ld);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-                gui_multi(ld, current_platform == PLATFORM_PC ? s_pc : s_xbox, GUI_SML, gui_wht, gui_wht);
+                gui_multi(ld, current_platform == PLATFORM_PC ? s_pc : s_xbox,
+                              GUI_SML, gui_wht, gui_wht);
 #else
                 gui_multi(ld, s_pc, GUI_SML, gui_wht, gui_wht);
 #endif
@@ -456,23 +457,23 @@ static void controls_pc(int id)
      * For PC, use SDL_GetKeyName
      */
 
-    const SDL_Keycode k_exit = KEY_EXIT;
-    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_exit    = KEY_EXIT;
+    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
     const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_shot = KEY_SCREENSHOT;
+    const SDL_Keycode k_shot    = KEY_SCREENSHOT;
 
     const char *s_rotate = _("Left and right mouse buttons rotate the view.\\"
                              "Hold Shift for faster view rotation.");
-    const char *s_exit = _("Exit / Pause");
+    const char *s_exit    = _("Exit / Pause");
     const char *s_camAuto = _("Auto-Camera");
     const char *s_camera1 = cam_to_str(CAM_1);
     const char *s_camera2 = cam_to_str(CAM_2);
     const char *s_camera3 = cam_to_str(CAM_3);
     const char *s_restart = _("Restart Level");
-    const char *s_shot = _("Screenshot");
+    const char *s_shot    = _("Screenshot");
 
     const SDL_Keycode k_rot_l = config_get_d(CONFIG_KEY_CAMERA_R);
     const SDL_Keycode k_rot_r = config_get_d(CONFIG_KEY_CAMERA_L);
@@ -544,15 +545,17 @@ static void controls_pc(int id)
 
     gui_multi(id, s_rotate_new, GUI_SML, gui_wht, gui_wht);
     gui_space(id);
-    gui_multi(id, _("Note that you can change keyboard and\\controller controls in the Controls Settings menu."), GUI_SML, gui_wht, gui_wht);
+    gui_multi(id, _("Note that you can change keyboard and\\"
+                    "controller controls in the Controls Settings menu."),
+                  GUI_SML, gui_wht, gui_wht);
 }
 
 #ifndef __EMSCRIPTEN__
 static void controls_console(int id)
 {
-    const char *s_rotate = _("Move the right stick left or right to rotate the view.");
-    const char *s_exit = _("Exit");
-    const char *s_pause = _("Pause");
+    const char *s_rotate    = _("Move the right stick left or right to rotate the view.");
+    const char *s_exit      = _("Exit");
+    const char *s_pause     = _("Pause");
     const char *s_camToggle = _("Cycle Camera Mode");
 
     int jd, kd;
@@ -584,7 +587,9 @@ static void controls_console(int id)
 
     gui_multi(id, s_rotate, GUI_SML, gui_wht, gui_wht);
     gui_space(id);
-    gui_multi(id, _("Note that you can change controller controls\\in the Controls Settings menu."), GUI_SML, gui_wht, gui_wht);
+    gui_multi(id, _("Note that you can change controller controls\\"
+                    "in the Controls Settings menu."),
+                  GUI_SML, gui_wht, gui_wht);
 }
 #endif
 
@@ -632,7 +637,8 @@ static int page_modes(int id)
         {
             gui_label(jd, _("Classic Mode"), GUI_SML, gui_gry, gui_red);
             gui_multi(jd,
-                      _("Career mode is not available\\with server group policy."),
+                      _("Career mode is not available\\"
+                        "with server group policy."),
                       GUI_SML, gui_wht, gui_wht);
         }
 #else
@@ -660,8 +666,9 @@ static int page_modes(int id)
 #endif
             ))
         {
-            if ((accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 || config_cheat())
-                || !server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE)
+            if ((accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 ||
+                 config_cheat()) ||
+                !server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE)
                 || CHECK_ACCOUNT_BANKRUPT)
                 gui_label(jd, _("Challenge Mode"), GUI_SML, gui_gry, gui_red);
             else
@@ -669,15 +676,21 @@ static int page_modes(int id)
 
             if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE)
                 && server_policy_get_d(SERVER_POLICY_EDITION) == 0)
-                gui_multi(jd, _("Upgrade to Pro edition to play this Mode."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Upgrade to Pro edition to play this Mode."),
+                              GUI_SML, gui_wht, gui_wht);
             else if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
-                gui_multi(jd, _("Challenge Mode is not available\\with server group policy."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Challenge Mode is not available\\with server group policy."),
+                              GUI_SML, gui_wht, gui_wht);
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-            else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 || config_cheat())
-                gui_multi(jd, _("Challenge Mode is not available\\with slowdown or cheat."), GUI_SML, gui_wht, gui_wht);
+            else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 ||
+                     config_cheat())
+                gui_multi(jd, _("Challenge Mode is not available\\with slowdown or cheat."),
+                              GUI_SML, gui_wht, gui_wht);
 #else
-            else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 || config_cheat())
-                gui_multi(jd, _("Challenge Mode is not available\\with slowdown."), GUI_SML, gui_wht, gui_wht);
+            else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 &&
+                     !config_cheat())
+                gui_multi(jd, _("Challenge Mode is not available\\with slowdown."),
+                              GUI_SML, gui_wht, gui_wht);
 #endif
             else if (CHECK_ACCOUNT_BANKRUPT)
                 gui_multi(jd,
@@ -705,20 +718,27 @@ static int page_modes(int id)
 
             if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE)
                 && server_policy_get_d(SERVER_POLICY_EDITION) == 0)
-                gui_multi(jd, _("Upgrade to Pro edition to play this Mode"), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Upgrade to Pro edition to play this Mode"),
+                              GUI_SML, gui_wht, gui_wht);
             else if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
-                gui_multi(jd, _("Challenge Mode is not available\\with server group policy."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Challenge Mode is not available\\"
+                                "with server group policy."),
+                              GUI_SML, gui_wht, gui_wht);
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-            else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 || config_cheat())
-                gui_multi(jd, _("Challenge Mode is not available\\with slowdown or cheat."), GUI_SML, gui_wht, gui_wht);
+            else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 ||
+                     config_cheat())
+                gui_multi(jd, _("Challenge Mode is not available\\"
+                                "with slowdown or cheat."), GUI_SML, gui_wht, gui_wht);
 #else
-            else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 || config_cheat())
-                gui_multi(jd, _("Challenge Mode is not available\\with slowdown."), GUI_SML, gui_wht, gui_wht);
+            else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 &&
+                     !config_cheat())
+                gui_multi(jd, _("Challenge Mode is not available\\"
+                                "with slowdown."),
+                              GUI_SML, gui_wht, gui_wht);
 #endif
             else
-            gui_multi(jd,
-                _("Complete the game to unlock this Mode."),
-                GUI_SML, gui_wht, gui_wht);
+            gui_multi(jd, _("Complete the game to unlock this Mode."),
+                          GUI_SML, gui_wht, gui_wht);
         }
 #else
 #if NB_HAVE_PB_BOTH==1
@@ -726,24 +746,29 @@ static int page_modes(int id)
             && server_policy_get_d(SERVER_POLICY_EDITION) == 0)
         {
             gui_label(jd, _("Challenge Mode"), GUI_SML, gui_gry, gui_red);
-            gui_multi(jd, _("Upgrade to Pro edition to play this Mode"), GUI_SML, gui_wht, gui_wht);
+            gui_multi(jd, _("Upgrade to Pro edition to play this Mode"),
+                          GUI_SML, gui_wht, gui_wht);
         }
         else if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
         {
             gui_label(jd, _("Challenge Mode"), GUI_SML, gui_gry, gui_red);
-            gui_multi(jd, _("Challenge Mode is not available\\with server group policy."), GUI_SML, gui_wht, gui_wht);
+            gui_multi(jd, _("Challenge Mode is not available\\with server group policy."),
+                          GUI_SML, gui_wht, gui_wht);
         }
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-        else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 || config_cheat())
+        else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 ||
+                 config_cheat())
         {
             gui_label(jd, _("Challenge Mode"), GUI_SML, gui_gry, gui_red);
-            gui_multi(jd, _("Challenge Mode is not available\\with slowdown or cheat."), GUI_SML, gui_wht, gui_wht);
+            gui_multi(jd, _("Challenge Mode is not available\\with slowdown or cheat."),
+                          GUI_SML, gui_wht, gui_wht);
         }
 #else
         else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100)
         {
             gui_label(jd, _("Challenge Mode"), GUI_SML, gui_gry, gui_red);
-            gui_multi(jd, _("Challenge Mode is not available\\with slowdown."), GUI_SML, gui_wht, gui_wht);
+            gui_multi(jd, _("Challenge Mode is not available\\with slowdown."),
+                          GUI_SML, gui_wht, gui_wht);
         }
 #endif
         else
@@ -773,46 +798,46 @@ static int page_modes_special(int id)
 #ifdef CONFIG_INCLUDES_ACCOUNT
     if ((jd = gui_vstack(id)))
     {
-        if (account_get_d(ACCOUNT_SET_UNLOCKS) > 0
-            && (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER)
-                || campaign_career_unlocked())
-            && !CHECK_ACCOUNT_BANKRUPT)
+        if (account_get_d(ACCOUNT_SET_UNLOCKS) > 0 &&
+            (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER) ||
+             campaign_career_unlocked()) &&
+            !CHECK_ACCOUNT_BANKRUPT)
         {
             if (account_get_d(ACCOUNT_PRODUCT_LEVELS))
             {
                 gui_label(jd, _("Boost Rush Mode"), GUI_SML, 0, 0);
                 gui_multi(jd,
                           _("Same as Challenge Mode, do not decrease them.\\"
-                            "Increase 14,3% the acceleration for each 10\\coins collected."),
+                            "Increase 14,3% the acceleration for each 10\\"
+                            "coins collected."),
                           GUI_SML, gui_wht, gui_wht);
             }
             else if (server_policy_get_d(SERVER_POLICY_EDITION) > 0)
             {
                 gui_label(jd, _("Boost Rush Mode"), GUI_SML, gui_gry, gui_red);
-                gui_multi(jd,
-                          _("Buy Extra Levels in the Shop to unlock this Mode."),
-                          GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Buy Extra Levels in the Shop to unlock this Mode."),
+                              GUI_SML, gui_wht, gui_wht);
             }
             else
             {
                 gui_label(jd, _("Boost Rush Mode"), GUI_SML, gui_gry, gui_red);
-                gui_multi(jd,
-                          _("Upgrade to Pro edition to play this Mode."),
-                          GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Upgrade to Pro edition to play this Mode."),
+                              GUI_SML, gui_wht, gui_wht);
             }
         }
         else
         {
             gui_label(jd, _("Boost Rush Mode"), GUI_SML, gui_gry, gui_red);
 
-            if (server_policy_get_d(SERVER_POLICY_EDITION) < 0
-                && CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
+            if (server_policy_get_d(SERVER_POLICY_EDITION) < 0 &&
+                CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
                 gui_multi(jd,
                           _("Upgrade to Pro edition to play this Mode."),
                           GUI_SML, gui_wht, gui_wht);
             else if (CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
                 gui_multi(jd,
-                          _("Boost Rush Mode is not available\\with server group policy."),
+                          _("Boost Rush Mode is not available\\"
+                            "with server group policy."),
                           GUI_SML, gui_wht, gui_wht);
             else if (CHECK_ACCOUNT_ENABLED && CHECK_ACCOUNT_BANKRUPT)
                 gui_multi(jd,
@@ -821,9 +846,9 @@ static int page_modes_special(int id)
                             "local account and start over from scratch."),
                           GUI_SML, gui_wht, gui_wht);
             else
-                gui_multi(jd,
-                          _("Boost Rush Mode is not available\\please check your account settings."),
-                          GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Boost Rush Mode is not available\\"
+                                "please check your account settings."),
+                              GUI_SML, gui_wht, gui_wht);
         }
 
         gui_set_rect(jd, GUI_ALL);
@@ -843,24 +868,25 @@ static int page_modes_special(int id)
 #endif
             )
         {
-            if ((accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100
+            if ((accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 ||
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-                || config_cheat()
+                 config_cheat() ||
 #endif
-                || (config_get_d(CONFIG_SMOOTH_FIX) && video_perf() < 25)))
+                 (config_get_d(CONFIG_SMOOTH_FIX) && video_perf() < 25)))
             {
                 gui_label(jd, _("Hardcore Mode"), GUI_SML, gui_gry, gui_red);
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-                gui_multi(jd,
-                          _("Hardcore Mode is not available\\with slowdown, cheat or smooth fix."),
-                          GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Hardcore Mode is not available\\"
+                                "with slowdown, cheat or smooth fix."),
+                              GUI_SML, gui_wht, gui_wht);
 #else
-                gui_multi(jd,
-                          _("Hardcore Mode is not available\\with slowdown or smooth fix."),
-                          GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Hardcore Mode is not available\\"
+                                "with slowdown or smooth fix."),
+                              GUI_SML, gui_wht, gui_wht);
 #endif
             }
-            else if ((server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE) || campaign_hardcore_unlocked()))
+            else if ((server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE)
+                   || campaign_hardcore_unlocked()))
             {
                 gui_label(jd, _("Hardcore Mode"), GUI_SML, 0, 0);
                 gui_multi(jd,
@@ -872,9 +898,8 @@ static int page_modes_special(int id)
             else
             {
                 gui_label(jd, _("Hardcore Mode"), GUI_SML, gui_gry, gui_red);
-                gui_multi(jd,
-                          _("Achieve all Silver Medals or above in Best Time\\to unlock this Mode."),
-                          GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Achieve all Silver Medals or above in Best Time\\to unlock this Mode."),
+                              GUI_SML, gui_wht, gui_wht);
             }
         }
         else
@@ -883,13 +908,12 @@ static int page_modes_special(int id)
 
             if (server_policy_get_d(SERVER_POLICY_EDITION) < 0
                 && CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
-                gui_multi(jd,
-                          _("Upgrade to Pro edition to play this Mode."),
-                          GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Upgrade to Pro edition to play this Mode."),
+                              GUI_SML, gui_wht, gui_wht);
             else if (CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
-                gui_multi(jd,
-                          _("Hardcore Mode is not available\\with server group policy."),
-                          GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Hardcore Mode is not available\\"
+                                "with server group policy."),
+                              GUI_SML, gui_wht, gui_wht);
             else if (CHECK_ACCOUNT_ENABLED && CHECK_ACCOUNT_BANKRUPT)
                 gui_multi(jd,
                           _("Your player account is bankrupt.\\"
@@ -897,9 +921,9 @@ static int page_modes_special(int id)
                             "local account and start over from scratch."),
                           GUI_SML, gui_wht, gui_wht);
             else
-                gui_multi(jd,
-                          _("Hardcore Mode is not available\\please check your account settings."),
-                          GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Hardcore Mode is not available\\"
+                                "please check your account settings."),
+                              GUI_SML, gui_wht, gui_wht);
         }
         gui_set_rect(jd, GUI_ALL);
     }
@@ -907,7 +931,10 @@ static int page_modes_special(int id)
 
 #if !defined(CONFIG_INCLUDES_ACCOUNT) && !defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
     gui_multi(id,
-             _("Special game modes requires \\LEVELGROUPS_INCLUDES_CAMPAIGN\\or CONFIG_INCLUDES_ACCOUNT\\preprocessor definitions"),
+             _("Special game modes requires\\"
+               "LEVELGROUPS_INCLUDES_CAMPAIGN\\"
+               "or CONFIG_INCLUDES_ACCOUNT\\"
+               "preprocessor definitions"),
              GUI_SML, gui_red, gui_red);
 #endif
 
@@ -1139,19 +1166,26 @@ static int help_gui(void)
             {
                 switch (help_page_category)
                 {
-                case PAGE_INTRODUCTION:          help_header = _("Introduction"); break;
-                case PAGE_MORPHS_AND_GENERATORS: help_header = _("Powerups"); break;
-                case PAGE_MACHINES:              help_header = _("Special objects"); break;
-                case PAGE_CONTROLS:              help_header = _("Controls"); break;
-                case PAGE_MODES:                 help_header = _("Modes"); break;
-                case PAGE_MODES_SPECIAL:         help_header = _("Special"); break;
-                case PAGE_TRICKS:                help_header = _("Tricks"); break;
+                case PAGE_INTRODUCTION:
+                    help_header = _("Introduction");    break;
+                case PAGE_MORPHS_AND_GENERATORS:
+                    help_header = _("Powerups");        break;
+                case PAGE_MACHINES:
+                    help_header = _("Special objects"); break;
+                case PAGE_CONTROLS:
+                    help_header = _("Controls");        break;
+                case PAGE_MODES:
+                    help_header = _("Modes");           break;
+                case PAGE_MODES_SPECIAL:
+                    help_header = _("Special");         break;
+                case PAGE_TRICKS:
+                    help_header = _("Tricks");          break;
                 }
             }
 
             if ((kd = gui_hstack(jd)))
             {
-                gui_label(kd, help_header, GUI_SML, gui_yel, gui_red);
+                gui_label(kd, help_header, GUI_SML, GUI_COLOR_DEFAULT);
                 gui_filler(kd);
 
                 if (!help_open)
@@ -1168,13 +1202,20 @@ static int help_gui(void)
         {
             switch (help_page_category)
             {
-            case PAGE_INTRODUCTION:          page_introduction(id);          break;
-            case PAGE_MORPHS_AND_GENERATORS: page_morphs_and_generators(id); break;
-            case PAGE_MACHINES:              page_machines(id);              break;
-            case PAGE_CONTROLS:              page_controls(id);              break;
-            case PAGE_MODES:                 page_modes(id);                 break;
-            case PAGE_MODES_SPECIAL:         page_modes_special(id);         break;
-            case PAGE_TRICKS:                page_tricks(id);                break;
+            case PAGE_INTRODUCTION:
+                page_introduction(id);          break;
+            case PAGE_MORPHS_AND_GENERATORS:
+                page_morphs_and_generators(id); break;
+            case PAGE_MACHINES:
+                page_machines(id);              break;
+            case PAGE_CONTROLS:
+                page_controls(id);              break;
+            case PAGE_MODES:
+                page_modes(id);                 break;
+            case PAGE_MODES_SPECIAL:
+                page_modes_special(id);         break;
+            case PAGE_TRICKS:
+                page_tricks(id);                break;
             }
 
             gui_space(id);
@@ -1197,15 +1238,23 @@ static int help_gui(void)
         else
         {
             gui_space(id);
-            gui_state(id, _("Introduction"), GUI_SML, HELP_SELECT, PAGE_INTRODUCTION);
-            gui_state(id, _("Powerups"), GUI_SML, HELP_SELECT, PAGE_MORPHS_AND_GENERATORS);
-            gui_state(id, _("Special objects"), GUI_SML, HELP_SELECT, PAGE_MACHINES);
-            gui_state(id, _("Controls"), GUI_SML, HELP_SELECT, PAGE_CONTROLS);
-            gui_state(id, _("Modes"), GUI_SML, HELP_SELECT, PAGE_MODES);
+
+            gui_state(id, _("Introduction"),    GUI_SML,
+                          HELP_SELECT, PAGE_INTRODUCTION);
+            gui_state(id, _("Powerups"),        GUI_SML,
+                          HELP_SELECT, PAGE_MORPHS_AND_GENERATORS);
+            gui_state(id, _("Special objects"), GUI_SML,
+                          HELP_SELECT, PAGE_MACHINES);
+            gui_state(id, _("Controls"),        GUI_SML,
+                          HELP_SELECT, PAGE_CONTROLS);
+            gui_state(id, _("Modes"),           GUI_SML,
+                          HELP_SELECT, PAGE_MODES);
 #if NB_HAVE_PB_BOTH==1
-            gui_state(id, _("Special"), GUI_SML, HELP_SELECT, PAGE_MODES_SPECIAL);
+            gui_state(id, _("Special"),         GUI_SML,
+                          HELP_SELECT, PAGE_MODES_SPECIAL);
 #endif
-            gui_state(id, _("Tricks"), GUI_SML, HELP_SELECT, PAGE_TRICKS);
+            gui_state(id, _("Tricks"),          GUI_SML,
+                          HELP_SELECT, PAGE_TRICKS);
         }
 #else
         help_menu(id);
@@ -1254,7 +1303,7 @@ static int help_keybd(int c, int d)
     {
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
             return help_action(GUI_BACK, 0);
@@ -1321,7 +1370,7 @@ static int help_demo_keybd(int c, int d)
     {
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
         {

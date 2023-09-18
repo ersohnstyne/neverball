@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -180,7 +180,7 @@ void course_rand(void)
     if (count == 0) return;
 
     course_goto(rand() % count);
-    hole_goto(rand() % curr_count(), 4);
+    hole_goto  (rand() % curr_count(), 4);
 }
 
 /*---------------------------------------------------------------------------*/

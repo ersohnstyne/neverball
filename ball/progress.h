@@ -29,7 +29,7 @@ void progress_sonic_step(float dt);
 void progress_init_home(void);
 void progress_init(int);
 void progress_extend(void);
-int progress_extended(void);
+int  progress_extended(void);
 
 int  progress_play(struct level *);
 void progress_buy_balls(int);
@@ -85,6 +85,11 @@ int  progress_times_rank(void);
 int  progress_score_rank(void);
 
 int  progress_reward_ball(int);
+
+#if ENABLE_RFD==1
+int  progress_rfd_take_powerup(int);
+int  progress_rfd_get_powerup (int);
+#endif
 
 /*---------------------------------------------------------------------------*/
 

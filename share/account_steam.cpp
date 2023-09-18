@@ -39,7 +39,11 @@
 #include <steam/steam_api.h>
 #include <steam/isteamuser.h>
 
-#pragma comment(lib, "steam_api.lib")
+#if _WIN32 && _WIN64
+#pragma comment(lib, "D:\\source_ersohn\\win10_libraries\\steam\\redistributable_bin\\win64\\steam_api64.lib")
+#elif _WIN32
+#pragma comment(lib, "D:\\source_ersohn\\win10_libraries\\steam\\redistributable_bin\\steam_api.lib")
+#endif
 
 extern "C"
 {
@@ -47,6 +51,7 @@ extern "C"
 #include "account.h"
 #include "config.h"
 #include "networking.h"
+#include "text.h"
 
 #include "common.h"
 #include "fs.h"
@@ -223,7 +228,8 @@ extern "C" int  account_exists(void)
 #endif
             "Accounts/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
 
-    assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
+    assert(!networking_busy && !config_busy && !accessibility_busy &&
+           "This networking, accessibility or configuration is busy and cannot be edit there!");
 #ifdef FS_VERSION_1
     fs_file input = fs_open(paths, "r");
 #else
@@ -246,25 +252,34 @@ extern "C" void account_load(void)
 {
     fs_file fh;
 
-    assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
+    assert(!networking_busy && !config_busy && !accessibility_busy &&
+           "This networking, accessibility or configuration is busy and cannot be edit there!");
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
 
-    if (strlen(config_get_s(CONFIG_PLAYER)) < 1)
+    if (text_length(config_get_s(CONFIG_PLAYER)) < 1)
     {
         log_errorf("Cannot load account! No player name!\n");
         return;
     }
 
-    for (int i = 0; i < strlen(config_get_s(CONFIG_PLAYER)); i++)
+    for (int i = 0; i < text_length(config_get_s(CONFIG_PLAYER)); i++)
     {
-        if (config_get_s(CONFIG_PLAYER)[i] == '\\' || config_get_s(CONFIG_PLAYER)[i] == '/' || config_get_s(CONFIG_PLAYER)[i] == ':' || config_get_s(CONFIG_PLAYER)[i] == '*' || config_get_s(CONFIG_PLAYER)[i] == '?' || config_get_s(CONFIG_PLAYER)[i] == '"' || config_get_s(CONFIG_PLAYER)[i] == '<' || config_get_s(CONFIG_PLAYER)[i] == '>' || config_get_s(CONFIG_PLAYER)[i] == '|')
+        if (config_get_s(CONFIG_PLAYER)[i] == '\\' ||
+            config_get_s(CONFIG_PLAYER)[i] == '/'  ||
+            config_get_s(CONFIG_PLAYER)[i] == ':'  ||
+            config_get_s(CONFIG_PLAYER)[i] == '*'  ||
+            config_get_s(CONFIG_PLAYER)[i] == '?'  ||
+            config_get_s(CONFIG_PLAYER)[i] == '"'  ||
+            config_get_s(CONFIG_PLAYER)[i] == '<'  ||
+            config_get_s(CONFIG_PLAYER)[i] == '>'  ||
+            config_get_s(CONFIG_PLAYER)[i] == '|')
         {
             log_errorf("Cannot load account! Can't accept other charsets!\n");
             return;
         }
     }
 
-    if (strlen(config_get_s(CONFIG_PLAYER)) < 3)
+    if (text_length(config_get_s(CONFIG_PLAYER)) < 3)
     {
         log_errorf("Cannot load account! Too few characters!\n");
         return;
@@ -326,25 +341,34 @@ extern "C" void account_save(void)
 {
     fs_file fh;
 
-    assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
+    assert(!networking_busy && !config_busy && !accessibility_busy &&
+           "This networking, accessibility or configuration is busy and cannot be edit there!");
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
     
-    if (strlen(config_get_s(CONFIG_PLAYER)) < 1)
+    if (text_length(config_get_s(CONFIG_PLAYER)) < 1)
     {
         log_errorf("Cannot save account! No player name!\n");
         return;
     }
 
-    for (int i = 0; i < strlen(config_get_s(CONFIG_PLAYER)); i++)
+    for (int i = 0; i < text_length(config_get_s(CONFIG_PLAYER)); i++)
     {
-        if (config_get_s(CONFIG_PLAYER)[i] == '\\' || config_get_s(CONFIG_PLAYER)[i] == '/' || config_get_s(CONFIG_PLAYER)[i] == ':' || config_get_s(CONFIG_PLAYER)[i] == '*' || config_get_s(CONFIG_PLAYER)[i] == '?' || config_get_s(CONFIG_PLAYER)[i] == '"' || config_get_s(CONFIG_PLAYER)[i] == '<' || config_get_s(CONFIG_PLAYER)[i] == '>' || config_get_s(CONFIG_PLAYER)[i] == '|')
+        if (config_get_s(CONFIG_PLAYER)[i] == '\\' ||
+            config_get_s(CONFIG_PLAYER)[i] == '/'  ||
+            config_get_s(CONFIG_PLAYER)[i] == ':'  ||
+            config_get_s(CONFIG_PLAYER)[i] == '*'  ||
+            config_get_s(CONFIG_PLAYER)[i] == '?'  ||
+            config_get_s(CONFIG_PLAYER)[i] == '"'  ||
+            config_get_s(CONFIG_PLAYER)[i] == '<'  ||
+            config_get_s(CONFIG_PLAYER)[i] == '>'  ||
+            config_get_s(CONFIG_PLAYER)[i] == '|')
         {
-            log_errorf("Cannot save account! Can't accept other charsets!\n", config_get_s(CONFIG_PLAYER)[i]);
+            log_errorf("Cannot save account! Can't accept other charsets!\n");
             return;
         }
     }
 
-    if (strlen(config_get_s(CONFIG_PLAYER)) < 3)
+    if (text_length(config_get_s(CONFIG_PLAYER)) < 3)
     {
         log_errorf("Cannot save account! Too few characters!\n");
         return;
@@ -409,7 +433,8 @@ extern "C" void account_save(void)
         dirty = 0;
     }
     else if (dirty)
-        log_errorf("Failure to save account file!: %s / %s\n", paths, fs_error());
+        log_errorf("Failure to save account file!: %s / %s\n",
+                   paths, fs_error());
 
     account_busy = 0;
 }
@@ -418,7 +443,8 @@ extern "C" void account_save(void)
 
 extern "C" void account_set_d(int i, int d)
 {
-    assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
+    assert(!networking_busy && !config_busy && !accessibility_busy &&
+           "This networking, accessibility or configuration is busy and cannot be edit there!");
     if (!networking_busy && !config_busy && !accessibility_busy)
     {
         account_busy = 1;
@@ -430,7 +456,8 @@ extern "C" void account_set_d(int i, int d)
 
 extern "C" void account_tgl_d(int i)
 {
-    assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
+    assert(!networking_busy && !config_busy && !accessibility_busy &&
+           "This networking, accessibility or configuration is busy and cannot be edit there!");
     if (!networking_busy && !config_busy && !accessibility_busy)
     {
         account_busy = 1;
@@ -454,7 +481,8 @@ extern "C" int account_get_d(int i)
 
 extern "C" void account_set_s(int i, const char *src)
 {
-    assert(!networking_busy && !config_busy && !accessibility_busy && "This networking, accessibility or configuration is busy and cannot be edit there!");
+    assert(!networking_busy && !config_busy && !accessibility_busy &&
+           "This networking, accessibility or configuration is busy and cannot be edit there!");
     if (!networking_busy && !config_busy && !accessibility_busy)
     {
         account_busy = 1;

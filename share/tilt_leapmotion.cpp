@@ -56,10 +56,10 @@ int tilt_get_button(int *b, int *s)
     static bool btn_start = 0;
 
     HandList hands = leapctrl.frame().hands();
-    Hand hand;
-    Finger thumb;
-    float angle;
-    bool cond;
+    Hand     hand;
+    Finger   thumb;
+    float    angle;
+    bool     cond;
 
     if (!tilt_stat() || hands.count() != 1)
     {

@@ -69,13 +69,13 @@ struct state st_levelgroup;
 
 static int switchball_useable(void)
 {
-    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
     const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
 
     SDL_Keycode k_arrowkey[4];
     k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
@@ -111,8 +111,8 @@ static int switchball_useable(void)
        server_policy_get_d(SERVER_POLICY_EDITION) != -1))
 #else
 #define SET_CHECK_LOCKED(idx)                                                 \
-    (account_get_d(ACCOUNT_SET_UNLOCKS) <= idx && !is_boost_on()              \
-  && (server_policy_get_d(SERVER_POLICY_EDITION) < SET_UNLOCKABLE_EDITION && \
+    (account_get_d(ACCOUNT_SET_UNLOCKS) <= idx && !is_boost_on() &&           \
+     (server_policy_get_d(SERVER_POLICY_EDITION) < SET_UNLOCKABLE_EDITION &&  \
       server_policy_get_d(SERVER_POLICY_EDITION) != -1))
 #endif
 
@@ -164,7 +164,9 @@ static int set_action(int tok, int val)
         if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET))
             return goto_state(&st_title);
         else
-            return goto_state_full(&st_levelgroup, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_W_CURVE, 0);
+            return goto_state_full(&st_levelgroup,
+                                   GUI_ANIMATION_E_CURVE,
+                                   GUI_ANIMATION_W_CURVE, 0);
 #else
         return goto_state(&st_title);
 #endif
@@ -174,7 +176,9 @@ static int set_action(int tok, int val)
         if (first > 1) {
             first -= SET_STEP;
             do_init = 0;
-            return goto_state_full(&st_set, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_W_CURVE, 0);
+            return goto_state_full(&st_set,
+                                   GUI_ANIMATION_E_CURVE,
+                                   GUI_ANIMATION_W_CURVE, 0);
         }
         break;
 
@@ -183,7 +187,9 @@ static int set_action(int tok, int val)
         {
             first += SET_STEP;
             do_init = 0;
-            return goto_state_full(&st_set, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
+            return goto_state_full(&st_set,
+                                   GUI_ANIMATION_W_CURVE,
+                                   GUI_ANIMATION_E_CURVE, 0);
         }
         break;
 
@@ -191,13 +197,19 @@ static int set_action(int tok, int val)
         if (set_name_locked) return 1;
 
         set_goto(val);
-        return goto_state_full(&st_start, GUI_ANIMATION_N_CURVE, GUI_ANIMATION_S_CURVE, 0);
+        return goto_state_full(&st_start,
+                               GUI_ANIMATION_N_CURVE,
+                               GUI_ANIMATION_S_CURVE, 0);
 
         break;
 
     case SET_TOGGLE_BOOST:
         boost_on = !boost_on;
-        return goto_state_full(&st_set, boost_on ? GUI_ANIMATION_S_CURVE : GUI_ANIMATION_N_CURVE, boost_on ? GUI_ANIMATION_N_CURVE : GUI_ANIMATION_S_CURVE, 0);
+        return goto_state_full(&st_set,
+                               boost_on ? GUI_ANIMATION_S_CURVE :
+                                          GUI_ANIMATION_N_CURVE,
+                               boost_on ? GUI_ANIMATION_N_CURVE :
+                                          GUI_ANIMATION_S_CURVE, 0);
         break;
 
     case SET_GET_MORE:
@@ -233,9 +245,9 @@ static void gui_set(int id, int i)
         char set_name_final[MAXSTR];
 
         if (str_starts_with(set_id(i), "SB")
-            || str_starts_with(set_id(i), "sb")
-            || str_starts_with(set_id(i), "Sb")
-            || str_starts_with(set_id(i), "sB"))
+         || str_starts_with(set_id(i), "sb")
+         || str_starts_with(set_id(i), "Sb")
+         || str_starts_with(set_id(i), "sB"))
         {
             SAFECPY(set_name_final, GUI_AIRPLANE " ");
             SAFECAT(set_name_final, set_name(i));
@@ -244,9 +256,11 @@ static void gui_set(int id, int i)
             SAFECPY(set_name_final, set_name(i));
 
         if (i % SET_STEP == 0)
-            set_text_name_id = gui_start(id, "XXXXXXXXXXXXXXXXXX", GUI_SML, SET_SELECT, i);
+            set_text_name_id = gui_start(id, "XXXXXXXXXXXXXXXXXX",
+                                             GUI_SML, SET_SELECT, i);
         else
-            set_text_name_id = gui_state(id, "XXXXXXXXXXXXXXXXXX", GUI_SML, SET_SELECT, i);
+            set_text_name_id = gui_state(id, "XXXXXXXXXXXXXXXXXX",
+                                             GUI_SML, SET_SELECT, i);
 
         gui_set_trunc(set_text_name_id, TRUNC_TAIL);
         gui_set_label(set_text_name_id, set_name_final);
@@ -274,7 +288,7 @@ static int set_gui(void)
     {
         if ((id = gui_vstack(0)))
         {
-            gui_label(id, _("No Level Sets"), GUI_MED, gui_yel, gui_red);
+            gui_label(id, _("No Level Sets"), GUI_MED, GUI_COLOR_DEFAULT);
             gui_space(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (current_platform == PLATFORM_PC)
@@ -285,15 +299,19 @@ static int set_gui(void)
             if (server_policy_get_d(SERVER_POLICY_EDITION) >= 0)
             {
                 if (boost_on)
-                    gui_state(id, _("Revert to standard"), GUI_SML, SET_TOGGLE_BOOST, 0);
+                    gui_state(id, _("Revert to standard"), GUI_SML,
+                                  SET_TOGGLE_BOOST, 0);
                 else
                 {
 #if NB_STEAM_API==1
-                    gui_state(id, _("Get Level Sets from Steam Workshop!"), GUI_SML, SET_GET_MORE, 0);
+                    gui_state(id, _("Get Level Sets from Steam Workshop!"),
+                                  GUI_SML, SET_GET_MORE, 0);
 #elif NB_EOS_SDK==1
-                    gui_state(id, _("Get Level Sets from Epic Games Store!"), GUI_SML, SET_GET_MORE, 0);
+                    gui_state(id, _("Get Level Sets from Epic Games Store!"),
+                                  GUI_SML, SET_GET_MORE, 0);
 #else
-                    gui_state(id, _("Get Level Sets from Website!"), GUI_SML, SET_GET_MORE, 0);
+                    gui_state(id, _("Get Level Sets from Website!"),
+                                  GUI_SML, SET_GET_MORE, 0);
 #endif
                 }
             }
@@ -311,11 +329,13 @@ static int set_gui(void)
             if ((jd = gui_hstack(id)))
             {
 #ifdef CONFIG_INCLUDES_ACCOUNT
-                if (account_get_d(ACCOUNT_PRODUCT_LEVELS) == 1 && server_policy_get_d(SERVER_POLICY_EDITION) > -1) {
-
+                if (account_get_d(ACCOUNT_PRODUCT_LEVELS) == 1 &&
+                    server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+                {
                     if (!CHECK_ACCOUNT_BANKRUPT)
                     {
-                        boost_id = gui_state(jd, _("Boost Rush"), GUI_SML, SET_TOGGLE_BOOST, 0);
+                        boost_id = gui_state(jd, _("Boost Rush"),
+                                                 GUI_SML, SET_TOGGLE_BOOST, 0);
                         gui_set_hilite(boost_id, is_boost_on());
                         gui_space(jd);
                     }
@@ -328,7 +348,7 @@ static int set_gui(void)
                 }
                 else
 #endif
-                    gui_label(jd, _("Level Set"), GUI_SML, gui_yel, gui_red);
+                    gui_label(jd, _("Level Set"), GUI_SML, GUI_COLOR_DEFAULT);
 
                 gui_space(jd);
                 gui_filler(jd);
@@ -343,10 +363,15 @@ static int set_gui(void)
 #ifdef CONFIG_INCLUDES_ACCOUNT
             if ((jd = gui_hstack(id)))
             {
-                if (account_get_d(ACCOUNT_PRODUCT_LEVELS) == 1 && server_policy_get_d(SERVER_POLICY_EDITION) > 0) {
+                if (account_get_d(ACCOUNT_PRODUCT_LEVELS) == 1 &&
+                    server_policy_get_d(SERVER_POLICY_EDITION) > 0) {
                     gui_filler(jd);
-                    boost_id = gui_state(jd, _("Boost Rush"), GUI_SML, SET_TOGGLE_BOOST, 0);
-                    gui_set_hilite(boost_id, is_boost_on());
+
+                    if (!CHECK_ACCOUNT_BANKRUPT) {
+                        boost_id = gui_state(jd, _("Boost Rush"),
+                                                 GUI_SML, SET_TOGGLE_BOOST, 0);
+                        gui_set_hilite(boost_id, is_boost_on());
+                    }
 
                     gui_space(jd);
 #if NB_STEAM_API==1
@@ -374,11 +399,11 @@ static int set_gui(void)
 #if NB_HAVE_PB_BOTH==1
                 if ((account_get_d(ACCOUNT_SET_UNLOCKS) <= i
 #if NB_STEAM_API == 0 && NB_EOS_SDK == 0
-                    && !config_cheat()
+                  && !config_cheat()
 #endif
                     ) && !is_boost_on() &&
                     (server_policy_get_d(SERVER_POLICY_EDITION) < SET_UNLOCKABLE_EDITION &&
-                        server_policy_get_d(SERVER_POLICY_EDITION) != -1))
+                     server_policy_get_d(SERVER_POLICY_EDITION) != -1))
                     gui_set_image(shot_id, "gui/campaign/locked.jpg");
 #endif
             }
@@ -413,7 +438,8 @@ static int set_enter(struct state *st, struct state *prev)
         first = MIN(first, (total - 1) - ((total - 1) % SET_STEP));
 
 #if NB_HAVE_PB_BOTH==1
-        audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" : "bgm/inter_world.ogg");
+        audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
+                                                  "bgm/inter_world.ogg");
 #else
         audio_music_fade_to(0.5f, "gui/bgm/inter.ogg");
 #endif
@@ -465,7 +491,7 @@ static void set_over(int i)
 #endif
             ) && !is_boost_on() &&
             (server_policy_get_d(SERVER_POLICY_EDITION) < SET_UNLOCKABLE_EDITION &&
-                server_policy_get_d(SERVER_POLICY_EDITION) != -1))
+             server_policy_get_d(SERVER_POLICY_EDITION) != -1))
         {
             gui_set_image(shot_id, "gui/campaign/locked.jpg");
             gui_set_multi(desc_id, _("Complete previous set to unlock"));
@@ -507,7 +533,7 @@ static int set_keybd(int c, int d)
     {
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
             return set_action(GUI_BACK, 0);
@@ -536,7 +562,8 @@ static int set_buttn(int b, int d)
             return set_action(GUI_BACK, 0);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b) && first > 0)
             return set_action(GUI_PREV, 0);
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b) && first + SET_STEP < total)
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b) &&
+            first + SET_STEP < total)
             return set_action(GUI_NEXT, 0);
     }
     return 1;
@@ -564,11 +591,11 @@ struct campaign_ranker
 {
     const GLubyte* col_rank; const char *img_rank; const char *text_rank;
 } campaign_ranks[] = {
-    { gui_brn, "gui/ranks/rank_cadet_fhd.png", N_("Airline Cadet") },
+    { gui_brn, "gui/ranks/rank_cadet_fhd.png",  N_("Airline Cadet")    },
     { gui_brn, "gui/ranks/rank_bronze_fhd.png", N_("Bronze Commander") },
     { gui_gry, "gui/ranks/rank_silver_fhd.png", N_("Silver Commander") },
-    { gui_yel, "gui/ranks/rank_gold_fhd.png", N_("Gold Commander") },
-    { gui_yel, "gui/ranks/rank_elite_fhd.png", N_("Elite Commander") }
+    { gui_yel, "gui/ranks/rank_gold_fhd.png",   N_("Gold Commander")   },
+    { gui_yel, "gui/ranks/rank_elite_fhd.png",  N_("Elite Commander")  }
 };
 
 const char campaign_rank_desc[][MAXSTR] = {
@@ -616,9 +643,9 @@ static char *campaign_label_clock(int timer)
 {
     char timeclock[MAXSTR];
 
-    int clock_ms = ROUND(timer / 10) % 100;
-    int clock_sec = ROUND(timer / 1000) % 60;
-    int clock_min = ROUND(timer / 60000) % 60;
+    int clock_ms  = ROUND(timer /    10) % 100;
+    int clock_sec = ROUND(timer /  1000) %  60;
+    int clock_min = ROUND(timer / 60000) %  60;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(timeclock, dstSize,
@@ -645,12 +672,16 @@ static int campaign_action(int tok, int val)
         else if (campaign_theme_used())
         {
             campaign_theme_quit();
-            return goto_state_full(&st_campaign, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
+            return goto_state_full(&st_campaign,
+                                   GUI_ANIMATION_W_CURVE,
+                                   GUI_ANIMATION_E_CURVE, 0);
         }
         else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
             return goto_state(&st_title);
         else
-            return goto_state_full(&st_levelgroup, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
+            return goto_state_full(&st_levelgroup,
+                                   GUI_ANIMATION_W_CURVE,
+                                   GUI_ANIMATION_E_CURVE, 0);
 
     case CAMPAIGN_RANK:
         campaign_show_rank = 1;
@@ -670,11 +701,15 @@ static int campaign_action(int tok, int val)
         break;
 
     case 999:
-        return goto_state_full(&st_playmodes, GUI_ANIMATION_N_CURVE, GUI_ANIMATION_S_CURVE, 0);
+        return goto_state_full(&st_playmodes,
+                               GUI_ANIMATION_N_CURVE,
+                               GUI_ANIMATION_S_CURVE, 0);
 
     case CAMPAIGN_SELECT_THEME:
         campaign_theme_init();
-        return goto_state_full(&st_campaign, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_W_CURVE, 0);
+        return goto_state_full(&st_campaign,
+                               GUI_ANIMATION_E_CURVE,
+                               GUI_ANIMATION_W_CURVE, 0);
 
     case CAMPAIGN_SELECT_LEVEL:
         if (check_handsoff())
@@ -689,7 +724,8 @@ static int campaign_action(int tok, int val)
         {
             campaign_load_camera_box_trigger(level_name(curr_level()));
 
-            if (config_get_d(CONFIG_ACCOUNT_SAVE) > 0 && curr_mode() != MODE_NONE && !demo_fp)
+            if (config_get_d(CONFIG_ACCOUNT_SAVE) > 0 &&
+                curr_mode() != MODE_NONE && !demo_fp)
                 return goto_state(&st_nodemo);
 
             return goto_state(&st_play_ready);
@@ -738,12 +774,14 @@ static int campaign_gui(void)
                 if ((kd = gui_hstack(jd)))
                 {
                     gui_filler(kd);
-                    gui_image(kd, campaign_ranks[campaign_rank()].img_rank, ww, hh);
+                    gui_image(kd, campaign_ranks[campaign_rank()].img_rank,
+                                  ww, hh);
                     gui_filler(kd);
                 }
-                gui_label(jd, _(campaign_ranks[campaign_rank()].text_rank), GUI_SML,
-                              gui_wht, campaign_ranks[campaign_rank()].col_rank);
-                gui_multi(jd, _(campaign_rank_desc[campaign_rank()]), GUI_SML, gui_wht, gui_wht);
+                gui_label(jd, _(campaign_ranks[campaign_rank()].text_rank),
+                              GUI_SML, gui_wht, campaign_ranks[campaign_rank()].col_rank);
+                gui_multi(jd, _(campaign_rank_desc[campaign_rank()]),
+                              GUI_SML, gui_wht, gui_wht);
 
                 gui_set_rect(jd, GUI_ALL);
             }
@@ -764,7 +802,8 @@ static int campaign_gui(void)
             if (!campaign_theme_used())
                 gui_label(jd, _("Select World"), GUI_SML, 0, 0);
             else
-                gui_label(jd, _(campaign_theme_texts[campaign_theme_index]), GUI_SML, 0, 0);
+                gui_label(jd, _(campaign_theme_texts[campaign_theme_index]),
+                              GUI_SML, 0, 0);
 
             gui_space(jd);
             gui_filler(jd);
@@ -777,8 +816,8 @@ static int campaign_gui(void)
 
         gui_space(id);
 
-        campaign_rank_btn_id = gui_label(id, _(campaign_ranks[campaign_rank()].text_rank), GUI_SML,
-                                             gui_wht, campaign_ranks[campaign_rank()].col_rank);
+        campaign_rank_btn_id = gui_label(id, _(campaign_ranks[campaign_rank()].text_rank),
+                                             GUI_SML, gui_wht, campaign_ranks[campaign_rank()].col_rank);
         gui_pulse(campaign_rank_btn_id, 1.2f);
         gui_set_state(campaign_rank_btn_id, CAMPAIGN_RANK, 0);
 
@@ -795,7 +834,9 @@ static int campaign_gui(void)
 #endif
             {
 #ifdef SWITCHBALL_GUI
-                gui_maybe_img(kd, "gui/navig/arrow_right_disabled.png", "gui/navig/arrow_right.png", GUI_NEXT, GUI_NONE, 1);
+                gui_maybe_img(kd, "gui/navig/arrow_right_disabled.png",
+                                  "gui/navig/arrow_right.png",
+                                  GUI_NEXT, GUI_NONE, 1);
 #else
                 gui_maybe(kd, GUI_TRIANGLE_RIGHT, GUI_NEXT, GUI_NONE, 1);
 #endif
@@ -816,26 +857,36 @@ static int campaign_gui(void)
 
                             if (campaign_level_unlocks[campaign_theme_index] > 0)
                             {
-                                campaign_theme_image_id = gui_image(nd, campaign_theme_images[campaign_theme_index], ww, hh);
-                                campaign_theme_text_id = gui_label(nd, _(campaign_theme_texts[campaign_theme_index]), GUI_SML, gui_wht, gui_wht);
+                                campaign_theme_image_id = gui_image(nd, campaign_theme_images[campaign_theme_index],
+                                                                        ww, hh);
+                                campaign_theme_text_id  = gui_label(nd, _(campaign_theme_texts[campaign_theme_index]),
+                                                                        GUI_SML, gui_wht, gui_wht);
                             }
                             else
                             {
-                                campaign_theme_image_id = gui_image(nd, "gui/campaign/locked.jpg", ww, hh);
-                                campaign_theme_text_id = gui_label(nd, _("Locked"), GUI_SML, gui_gry, gui_gry);
+                                campaign_theme_image_id = gui_image(nd, "gui/campaign/locked.jpg",
+                                                                        ww, hh);
+                                campaign_theme_text_id  = gui_label(nd, _("Locked"),
+                                                                        GUI_SML, gui_gry, gui_gry);
                             }
                         }
                         gui_filler(md);
                     }
                     gui_filler(ld); campaign_theme_btn_id = ld;
-                    gui_set_state(campaign_theme_btn_id, campaign_level_unlocks[campaign_theme_index] > 0 ? CAMPAIGN_SELECT_THEME : GUI_NONE, 0);
+                    gui_set_state(campaign_theme_btn_id,
+                                  campaign_level_unlocks[campaign_theme_index] > 0 ?
+                                  CAMPAIGN_SELECT_THEME : GUI_NONE, 0);
                 }
                 else
                 {
                     if ((md = gui_hstack(ld)))
                     {
+                        const int ww = 3 * MIN(w, h) / 6;
+                        const int hh = ww / 4 * 3;
+
                         gui_filler(md);
-                        gui_image(md, campaign_theme_images[campaign_theme_index], w / 3.3f, h / 2.4f);
+                        gui_image(md, campaign_theme_images[campaign_theme_index],
+                                      ww, hh);
                         gui_filler(md);
                     }
                     gui_space(ld);
@@ -858,15 +909,19 @@ static int campaign_gui(void)
 
                                 if (level_opened(l))
                                 {
-                                    fore = level_completed(l) ? gui_yel : gui_red;
-                                    back = level_completed(l) ? gui_grn : gui_yel;
+                                    fore = level_completed(l) ? gui_yel :
+                                                                gui_red;
+                                    back = level_completed(l) ? gui_grn :
+                                                                gui_yel;
                                 }
 
-                                nd = gui_label(md, level_name(l), GUI_SML, back, fore);
+                                nd = gui_label(md, level_name(l),
+                                                   GUI_SML, back, fore);
 
                                 if (level_opened(l))
                                 {
-                                    gui_set_state(nd, CAMPAIGN_SELECT_LEVEL, (campaign_theme_index * 6) + i);
+                                    gui_set_state(nd, CAMPAIGN_SELECT_LEVEL,
+                                                      (campaign_theme_index * 6) + i);
 
                                     if (i == 0)
                                         gui_focus(nd);
@@ -885,7 +940,9 @@ static int campaign_gui(void)
             {
                 gui_space(kd);
 #ifdef SWITCHBALL_GUI
-                gui_maybe_img(kd, "gui/navig/arrow_left_disabled.png", "gui/navig/arrow_left.png", GUI_PREV, GUI_NONE, 1);
+                gui_maybe_img(kd, "gui/navig/arrow_left_disabled.png",
+                                  "gui/navig/arrow_left.png",
+                                  GUI_PREV, GUI_NONE, 1);
 #else
                 gui_maybe(kd, GUI_TRIANGLE_LEFT, GUI_PREV, GUI_NONE, 1);
 #endif
@@ -894,7 +951,8 @@ static int campaign_gui(void)
             gui_filler(kd);
         }
 
-        if (!campaign_theme_used() && server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED))
+        if (!campaign_theme_used() &&
+            server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED))
         {
             gui_space(id);
             gui_state(id, _("Play Modes"), GUI_SML, 999, 0);
@@ -912,7 +970,8 @@ static int campaign_enter(struct state *st, struct state *prev)
 
     for (int i = 0; i < 5; i++)
         for (int j = 0; j < 6; j++)
-            campaign_level_unlocks[i] += campaign_get_level((i * 6) + j)->is_locked ? 0 : 1;
+            campaign_level_unlocks[i] += campaign_get_level((i * 6) + j)->is_locked ? 0 :
+                                                                                      1;
 
     if (prev == &st_levelgroup)
     {
@@ -938,7 +997,7 @@ static int campaign_keybd(int c, int d)
 {
     if (d && (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        && current_platform == PLATFORM_PC
+           && current_platform == PLATFORM_PC
 #endif
         ))
         return campaign_action(GUI_BACK, 0);
@@ -986,10 +1045,14 @@ static int levelgroup_action(int tok, int val)
         return goto_state(&st_title);
     case LEVELGROUP_CAMPAIGN:
         if (campaign_init())
-            return goto_state_full(&st_campaign, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_W_CURVE, 0);
+            return goto_state_full(&st_campaign,
+                                   GUI_ANIMATION_E_CURVE,
+                                   GUI_ANIMATION_W_CURVE, 0);
         break;
     case LEVELGROUP_LEVELSET:
-        return goto_state_full(&st_set, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
+        return goto_state_full(&st_set,
+                               GUI_ANIMATION_W_CURVE,
+                               GUI_ANIMATION_E_CURVE, 0);
     }
     return 1;
 }
@@ -1024,7 +1087,8 @@ static int levelgroup_gui(void)
 
         gui_space(id);
 
-        if ((kd = (video.aspect_ratio >= 1.0f ? gui_hstack(id) : gui_vstack(id))))
+        if ((kd = (video.aspect_ratio >= 1.0f ? gui_hstack(id) :
+                                                gui_vstack(id))))
         {
             if ((ld = gui_vstack(kd)))
             {
@@ -1037,15 +1101,21 @@ static int levelgroup_gui(void)
                 const int hh = ww;
 
 #ifndef SET_ALWAYS_UNLOCKED
-                int set_was_unlocked = account_get_d(ACCOUNT_SET_UNLOCKS) > 0
-                    && (server_policy_get_d(SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET) || campaign_career_unlocked()
+                int set_was_unlocked = account_get_d(ACCOUNT_SET_UNLOCKS) > 0 &&
+                    (server_policy_get_d(SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET) ||
+                     campaign_career_unlocked())
 #if NB_STEAM_API == 0 && NB_EOS_SDK == 0
-                        || config_cheat();
+                 || config_cheat();
 #endif
 
                 if (video.aspect_ratio >= 1.0f)
-                    gui_image(ld, set_was_unlocked ? "gui/levels/levelset.jpg" : "gui/levels/levelset_locked.jpg", ww, hh);
-                gui_label(ld, set_was_unlocked ? _("Level Set") : _("Locked"), GUI_SML, set_was_unlocked ? gui_wht : gui_gry, set_was_unlocked ? gui_wht : gui_gry);
+                    gui_image(ld, set_was_unlocked ? "gui/levels/levelset.jpg" :
+                                                     "gui/levels/levelset_locked.jpg",
+                                  ww, hh);
+                gui_label(ld, set_was_unlocked ? _("Level Set") : _("Locked"),
+                              GUI_SML,
+                              set_was_unlocked ? gui_wht : gui_gry, 
+                              set_was_unlocked ? gui_wht : gui_gry);
                 gui_set_state(ld, set_was_unlocked ? LEVELGROUP_LEVELSET : GUI_NONE, 0);
                 gui_filler(ld);
 #else
@@ -1063,16 +1133,11 @@ static int levelgroup_gui(void)
             {
                 if (level_opened(campaign_get_level(i)))
                 {
-                    if (i > 23)
-                        campaign_level_unlocks[4] = 1;
-                    else if (i > 17)
-                        campaign_level_unlocks[3] = 1;
-                    else if (i > 11)
-                        campaign_level_unlocks[2] = 1;
-                    else if (i > 5)
-                        campaign_level_unlocks[1] = 1;
-                    else
-                        campaign_level_unlocks[0] = 1;
+                    if      (i > 23) campaign_level_unlocks[4] = 1;
+                    else if (i > 17) campaign_level_unlocks[3] = 1;
+                    else if (i > 11) campaign_level_unlocks[2] = 1;
+                    else if (i > 5)  campaign_level_unlocks[1] = 1;
+                    else             campaign_level_unlocks[0] = 1;
                 }
             }
 
@@ -1118,7 +1183,7 @@ static int levelgroup_enter(struct state *st, struct state *prev)
     if (prev == &st_campaign)
         progress_init(MODE_NORMAL);
 
-    if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
+    if      (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
         return goto_state(&st_campaign);
     else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET))
         return goto_state(&st_set);
@@ -1133,7 +1198,8 @@ static int levelgroup_enter(struct state *st, struct state *prev)
 #if NB_HAVE_PB_BOTH==1
     audio_music_fade_to(0.5f, "bgm/inter_local.ogg");
 #else
-    audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
+    audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
+                                                     "bgm/title.ogg");
 #endif
 
     return levelgroup_gui();
@@ -1143,7 +1209,7 @@ static int levelgroup_keybd(int c, int d)
 {
     if (d && (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        && current_platform == PLATFORM_PC
+           && current_platform == PLATFORM_PC
 #endif
         ))
         return levelgroup_action(GUI_BACK, 0);

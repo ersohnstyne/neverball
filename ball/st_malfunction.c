@@ -87,25 +87,19 @@ int check_handsoff(void)
     for (int ic = 0; ic < 128; ic++)
     {
         if (char_downcounter[ic] >= 1)
-        {
             return 1;
-        }
     }
 
     for (int ia = 0; ia < 4; ia++)
     {
         if (arrow_downcounter[ia] >= 1)
-        {
             return 1;
-        }
     }
 
     for (int ifw = 0; ifw < 4; ifw++)
     {
         if (fwindow_downcounter[ifw] >= 1)
-        {
             return 1;
-        }
     }
 
     handson_threshold = 0;
@@ -136,9 +130,13 @@ static int malfunction_gui(void)
     int id;
     if ((id = gui_vstack(0)))
     {
-        int titid = gui_label(id, _("Malfunction detected!"), GUI_MED, gui_gry, gui_red);
+        int titid = gui_title_header(id, _("Malfunction detected!"),
+                                         GUI_MED, gui_gry, gui_red);
         gui_space(id);
-        gui_multi(id, _("The Keyboard has an malfunction!\\Please fix it on your PC\\and restart the game."), GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, _("The Keyboard has an malfunction!\\"
+                        "Please fix it on your PC\\"
+                        "and restart the game."),
+                      GUI_SML, gui_wht, gui_wht);
         gui_space(id);
         gui_start(id, _("Exit"), GUI_SML, GUI_BACK, 0);
         gui_pulse(titid, 1.2f);
@@ -165,7 +163,7 @@ static int malfunction_keybd(int c, int d)
     {
         if (c == KEY_EXIT
 #ifndef __EMSCRIPTEN__
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
             return malfunction_action(GUI_BACK, 0);
@@ -219,9 +217,11 @@ static int handsoff_gui(void)
     int id;
     if ((id = gui_vstack(0)))
     {
-        gui_label(id, _("Hands off!"), GUI_MED, gui_red, gui_red);
+        gui_title_header(id, _("Hands off!"), GUI_MED, gui_red, gui_red);
         gui_space(id);
-        gui_multi(id, _("Keep fingers away from the keyboard,\\before you play this level!"), GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, _("Keep fingers away from the keyboard,\\"
+                        "before you play this level!"),
+                      GUI_SML, gui_wht, gui_wht);
         gui_space(id);
         gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
     }
@@ -242,7 +242,7 @@ static int handsoff_keybd(int c, int d)
     {
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
             return handsoff_action(GUI_BACK, 0);

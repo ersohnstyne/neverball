@@ -42,26 +42,26 @@ int checkpoints_busy;
 /* Pult-o-meter cache. */
 
 struct chkp_ballsize last_chkp_ballsize[1024];
-struct chkp_ball last_chkp_ball[1024];
-struct chkp_path last_chkp_path[2048];
-struct chkp_body last_chkp_body[1024];
-struct chkp_move last_chkp_move[1024];
-struct chkp_item last_chkp_item[2048];
-struct chkp_swch last_chkp_swch[1024];
-struct game_view last_view[1024];
+struct chkp_ball     last_chkp_ball[1024];
+struct chkp_path     last_chkp_path[2048];
+struct chkp_body     last_chkp_body[1024];
+struct chkp_move     last_chkp_move[1024];
+struct chkp_item     last_chkp_item[2048];
+struct chkp_swch     last_chkp_swch[1024];
+struct game_view     last_view[1024];
 
 float last_pos[1024][3];
 
 float last_time;
-int last_coins;
-int last_goal;
+int   last_coins;
+int   last_goal;
 
 int last_timer_down;
 int last_gained;
 
-int respawn_coins = 0;
-float respawn_timer = 0;
-int respawn_gained = 0;
+int   respawn_coins  = 0;
+float respawn_timer  = 0;
+int   respawn_gained = 0;
 
 /*---------------------------------------------------------------------------*/
 
@@ -160,8 +160,8 @@ int checkpoints_load(void)
 {
     if (last_active)
     {
-        respawn_coins = last_coins;
-        respawn_timer = last_time;
+        respawn_coins  = last_coins;
+        respawn_timer  = last_time;
         respawn_gained = last_gained;
 
         return 1;

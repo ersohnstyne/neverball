@@ -220,14 +220,18 @@ static int demo_action(int tok, int val)
             if (first >= total)
                 first -= DEMO_STEP;
             else
-                return goto_state_full(&st_demo, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
+                return goto_state_full(&st_demo,
+                                       GUI_ANIMATION_W_CURVE,
+                                       GUI_ANIMATION_E_CURVE, 0);
         }
         break;
 
     case GUI_PREV:
         if (first > 1) {
             first -= DEMO_STEP;
-            return goto_state_full(&st_demo, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_W_CURVE, 0);
+            return goto_state_full(&st_demo,
+                                   GUI_ANIMATION_E_CURVE,
+                                   GUI_ANIMATION_W_CURVE, 0);
         }
         break;
 
@@ -290,9 +294,10 @@ static int demo_action(int tok, int val)
                 time_limit_minutes = 10;
 
             /* Make sure, that the status limit is underneath it. */
-            if (get_maximum_status() > get_limit_status() || time_max_minutes > time_limit_minutes)
+            if (get_maximum_status() > get_limit_status() ||
+                time_max_minutes > time_limit_minutes)
             {
-                /* Limit exceeded! Set reported replay. */
+                /* Max status exceeds limits! Set reported replay. */
                 set_replay_report(df->player, status_to_str(df->status));
                 
                 /* Stop execution. */
@@ -309,7 +314,9 @@ static int demo_action(int tok, int val)
 #endif
                 {
                     SAFECPY(df->path, DIR_ITEM_GET(demo_items, selected)->path);
-                    SAFECPY(df->name, base_name_sans(DIR_ITEM_GET(demo_items, selected)->path, ".nbr"));
+                    SAFECPY(df->name, base_name_sans(DIR_ITEM_GET(demo_items,
+                                                                  selected)->path,
+                                                     ".nbr"));
 
                     st_demo_version_read(fp, df);
 
@@ -379,7 +386,7 @@ static int gui_demo_thumbs(int id)
 
                             thumb->shot_id = gui_image(ld, " ", ww, hh);
                             thumb->name_id = gui_label(ld, " ", GUI_SML,
-                                                    gui_wht, gui_wht);
+                                                       gui_wht, gui_wht);
 
                             gui_set_trunc(thumb->name_id, TRUNC_TAIL);
                             gui_set_state(ld, DEMO_SELECT, j);
@@ -407,7 +414,8 @@ static void gui_demo_update_thumbs(void)
     struct demo *demo;
     int i;
 
-    for (i = 0; i < ARRAYSIZE(thumbs) && thumbs[i].shot_id && thumbs[i].name_id; i++)
+    for (i = 0; i < ARRAYSIZE(thumbs) && thumbs[i].shot_id && thumbs[i].name_id;
+         i++)
     {
         int stat_limit = config_get_d(CONFIG_ACCOUNT_LOAD);
         int stat_max = 0;
@@ -443,14 +451,16 @@ static void gui_demo_update_thumbs(void)
         }
 
         gui_set_image(thumbs[i].shot_id, demo ? demo->shot : "");
-        gui_set_label(thumbs[i].name_id, demo ? demo->name : base_name(item->path));
+        gui_set_label(thumbs[i].name_id, demo ? demo->name :
+                                                base_name(item->path));
         gui_set_color(thumbs[i].name_id, gui_wht, gui_wht);
         
         if (stat_max > stat_limit && demo)
         {
             gui_set_image(thumbs[i].shot_id,
                           stat_limit == 1 ?
-                          "gui/filters/single_filters.jpg" : "gui/filters/keep_filters.jpg");
+                          "gui/filters/single_filters.jpg" :
+                          "gui/filters/keep_filters.jpg");
             gui_set_color(thumbs[i].name_id, gui_red, gui_red);
         }
         else if (demo_requires_update && demo)
@@ -582,14 +592,15 @@ static void gui_demo_update_status(int i)
 
     if (!d)
     {
-        gui_set_label(name_id, " ");
-        gui_set_label(date_id, "01.01.2003 00:00:00");
+        gui_set_label(name_id,   " ");
+        gui_set_label(date_id,   "01.01.2003 00:00:00");
         gui_set_label(player_id, " ");
         gui_set_label(status_id, status_to_str(GAME_MAX));
-        gui_set_count(coin_id, 0);
-        gui_set_clock(time_id, 0);
-        gui_set_color(name_id, gui_gry, gui_red);
-        gui_set_color(date_id, gui_gry, gui_red);
+        gui_set_count(coin_id,   0);
+        gui_set_clock(time_id,   0);
+
+        gui_set_color(name_id,   gui_gry, gui_red);
+        gui_set_color(date_id,   gui_gry, gui_red);
         gui_set_color(player_id, gui_gry, gui_red);
         gui_set_color(status_id, gui_red, gui_red);
         return;
@@ -630,27 +641,28 @@ static void gui_demo_update_status(int i)
     if (!check_full_access(d->name))
     {
         /* Make sure, that the status limit is underneath it. */
-        if (get_maximum_status() > get_limit_status() || time_max_minutes > time_limit_minutes)
+        if (get_maximum_status() > get_limit_status() ||
+            time_max_minutes > time_limit_minutes)
         {
-            /* Limit exceeded! Restrict some filters. */
-            gui_set_color(name_id, gui_gry, gui_red);
-            gui_set_color(date_id, gui_gry, gui_red);
+            /* Max status exceeds limits! Restrict some filters. */
+            gui_set_color(name_id,   gui_gry, gui_red);
+            gui_set_color(date_id,   gui_gry, gui_red);
             gui_set_color(player_id, gui_gry, gui_red);
 
             set_replay_report(d->player, status_to_str(d->status));
         }
         else
         {
-            gui_set_color(name_id, gui_yel, gui_red);
-            gui_set_color(date_id, gui_yel, gui_red);
-            gui_set_color(player_id, gui_yel, gui_red);
+            gui_set_color(name_id,   GUI_COLOR_DEFAULT);
+            gui_set_color(date_id,   GUI_COLOR_DEFAULT);
+            gui_set_color(player_id, GUI_COLOR_DEFAULT);
         }
     }
     else
     {
-        gui_set_color(name_id, gui_yel, gui_red);
-        gui_set_color(date_id, gui_yel, gui_red);
-        gui_set_color(player_id, gui_yel, gui_red);
+        gui_set_color(name_id,   GUI_COLOR_DEFAULT);
+        gui_set_color(date_id,   GUI_COLOR_DEFAULT);
+        gui_set_color(player_id, GUI_COLOR_DEFAULT);
     }
 }
 
@@ -681,16 +693,21 @@ static int demo_restricted_gui(void)
 #else
             sprintf(infoattr,
 #endif
-                    "%s: %s > %s", _("Player"), reported_player_name, reported_status);
+                    "%s: %s > %s", _("Player"),
+                    reported_player_name, reported_status);
             
             if (demo_requires_update)
-                repid = gui_label(jd, _("Update required!"), GUI_MED, gui_gry, gui_red);
+                repid = gui_label(jd, _("Update required!"),
+                                      GUI_MED, gui_gry, gui_red);
             else if (time_max_minutes > time_limit_minutes)
-                repid = gui_label(jd, _("Too long!"), GUI_MED, gui_gry, gui_red);
+                repid = gui_label(jd, _("Too long!"),
+                                      GUI_MED, gui_gry, gui_red);
             else if (!demo_old_detected)
-                repid = gui_label(jd, _("Filters restricted!"), GUI_MED, gui_gry, gui_red);
+                repid = gui_label(jd, _("Filters restricted!"),
+                                      GUI_MED, gui_gry, gui_red);
             else
-                repid = gui_label(jd, _("Old replays detected!"), GUI_MED, gui_gry, gui_red);
+                repid = gui_label(jd, _("Old replays detected!"),
+                                      GUI_MED, gui_gry, gui_red);
 
             gui_pulse(repid, 1.2f);
             if (!standalone && !demo_requires_update && !demo_old_detected) {
@@ -699,7 +716,9 @@ static int demo_restricted_gui(void)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
                 if (config_cheat())
                 {
-                    repkd = gui_label(jd, config_get_d(CONFIG_ACCOUNT_LOAD) == 1 ? _("Only Finish") : _("Keep on board"), GUI_SML, gui_red, gui_red);
+                    repkd = gui_label(jd, config_get_d(CONFIG_ACCOUNT_LOAD) == 1 ?
+                                          _("Only Finish") : _("Keep on board"),
+                                          GUI_SML, gui_red, gui_red);
                     gui_pulse(repkd, 1.2f);
                 }
 #endif
@@ -709,18 +728,28 @@ static int demo_restricted_gui(void)
         gui_space(id);
 
         if (demo_requires_update)
-            gui_multi(id, _("Please update your game, before\\watch the replay level!"), GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, _("Please update your game, before\\"
+                            "watch the replay level!"),
+                          GUI_SML, gui_wht, gui_wht);
         else if (time_max_minutes > time_limit_minutes)
         {
             if (time_limit_minutes >= 60)
-                gui_multi(id, _("You can't watch more than 60 minutes\\in a single level in campaign!"), GUI_SML, gui_wht, gui_wht);
+                gui_multi(id, _("You can't watch more than 60 minutes\\"
+                                "in a single level in campaign!"),
+                              GUI_SML, gui_wht, gui_wht);
             else
-                gui_multi(id, _("You can't watch more than 10 minutes\\in a single level per set!"), GUI_SML, gui_wht, gui_wht);
+                gui_multi(id, _("You can't watch more than 10 minutes\\"
+                                "in a single level per set!"),
+                              GUI_SML, gui_wht, gui_wht);
         }
         else if (!demo_old_detected)
-            gui_multi(id, _("You can't open selected replay,\\because it was restricted for you!"), GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, _("You can't open selected replay,\\"
+                            "because it was restricted for you!"),
+                          GUI_SML, gui_wht, gui_wht);
         else
-            gui_multi(id, _("You can't open selected replay, because\\you are using oldest version of the game!"), GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, _("You can't open selected replay, because\\"
+                            "you are using oldest version of the game!"),
+                          GUI_SML, gui_wht, gui_wht);
 
         gui_layout(id, 0, 0);
     }
@@ -794,7 +823,8 @@ static int demo_scan_allowance_gui()
 #else
     sprintf(cancelattr,
 #endif
-            _("Scan in progress...\\To cancel scanning, press %s"), SDL_GetKeyName(KEY_EXIT));
+            _("Scan in progress...\\To cancel scanning, press %s"),
+            SDL_GetKeyName(KEY_EXIT));
     
     detailpanel = gui_multi(0, cancelattr, GUI_SML, gui_wht, gui_wht);
     gui_layout(detailpanel, 0, 0);
@@ -826,11 +856,11 @@ static void demo_scan_allowance_timer(int id, float dt)
         set_maximum_status(1);
     stat_limit_busy = 0;
 
-    if (get_maximum_status() > get_limit_status() && (!scanfastforwards || standalone))
+    if (get_maximum_status() > get_limit_status() &&
+        (!scanfastforwards || standalone))
     {
         demo_replay_stop(0);
         goto_state(&st_demo_restricted);
-        //game_client_blend(demo_replay_blend());
         return;
     }
 
@@ -839,20 +869,24 @@ static void demo_scan_allowance_timer(int id, float dt)
         demo_replay_stop(0);
         if (!progress_replay(curr_demo()))
         {
-            if (!standalone) goto_state(&st_demo); else { SDL_Event e = { SDL_QUIT }; SDL_PushEvent(&e); }
+            if (!standalone)
+                goto_state(&st_demo);
+            else
+            {
+                SDL_Event e = { SDL_QUIT };
+                SDL_PushEvent(&e);
+            }
         }
         else
         {
             threshold++;
+
             if (threshold == 5)
                 goto_state(&st_demo_play);
         }
     }
     else
-    {
         progress_step();
-        //game_client_blend(0);
-    }
 
     if (!standalone)
     {
@@ -873,7 +907,7 @@ static void demo_scan_allowance_timer(int id, float dt)
         }
 
         scanfastforwards = 1;
-        demo_replay_manual_speed(target_timer / 100);
+        demo_replay_manual_speed(target_timer / 100.f);
     }
     else
         demo_replay_manual_speed(32);
@@ -932,7 +966,8 @@ static int demo_gui(void)
 #endif
                         _("Replays unlocked: %d/%d"), availibility, total);
 
-                int header_id = gui_label(jd, availibility_header_monitor, GUI_SML, 0, 0);
+                int header_id = gui_label(jd, availibility_header_monitor,
+                                              GUI_SML, 0, 0);
 
                 float availibility_percent = ((float) availibility / (float) total);
 
@@ -1002,9 +1037,12 @@ static int demo_gui(void)
     }
     else if (total && !availibility)
     {
-        gui_title_header(id, _("All replays locked!"), GUI_MED, gui_gry, gui_red);
+        gui_title_header(id, _("All replays locked!"),
+                             GUI_MED, gui_red, gui_blk);
         gui_space(id);
-        gui_multi(id, _("Open the file manager to delete\\or backup your replays."), GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, _("Open the file manager to delete\\"
+                        "or backup your replays."),
+                      GUI_SML, gui_wht, gui_wht);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)
@@ -1020,7 +1058,9 @@ static int demo_gui(void)
     {
         gui_title_header(id, _("No Replays"), GUI_MED, 0, 0);
         gui_space(id);
-        gui_multi(id, _("Your Replays will appear here\\once you've recorded."), GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, _("Your Replays will appear here\\"
+                        "once you've recorded."),
+                      GUI_SML, gui_wht, gui_wht);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)
@@ -1073,7 +1113,8 @@ static int demo_enter(struct state *st, struct state *prev)
         int quarantined_index = 0;
         while (quarantined_index < total)
         {
-            struct demo *targetDemo = DEMO_GET(quarantined_demo_items, quarantined_index);
+            struct demo *targetDemo = DEMO_GET(quarantined_demo_items,
+                                               quarantined_index);
             if (targetDemo)
             {
                 stat_limit_busy = 1;
@@ -1088,7 +1129,8 @@ static int demo_enter(struct state *st, struct state *prev)
                 if (get_maximum_status() > get_limit_status())
                 {
 #if defined(COVID_HIGH_RISK)
-                    log_errorf("Replay files deleted due covid high risks!: %s", targetDemo->path);
+                    log_errorf("Replay files deleted due covid high risks!: %s",
+                               targetDemo->path);
                     fs_remove(targetDemo->path);
                     demo_hotreload = 1;
 
@@ -1118,7 +1160,8 @@ static int demo_enter(struct state *st, struct state *prev)
     }
 
 #if NB_HAVE_PB_BOTH==1
-    audio_music_fade_to(0.0f, switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
+    audio_music_fade_to(0.0f, switchball_useable() ? "bgm/title-switchball.ogg" :
+                                                     "bgm/title.ogg");
 #else
     audio_music_fade_to(0.0f, "gui/bgm/inter.ogg");
 #endif
@@ -1208,7 +1251,8 @@ static int demo_buttn(int b, int d)
         {
             if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b) && first > 0)
                 return demo_action(GUI_PREV, 0);
-            if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b) && first + DEMO_STEP < total)
+            if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b) &&
+                first + DEMO_STEP < total)
                 return demo_action(GUI_NEXT, 0);
         }
 
@@ -1352,7 +1396,8 @@ static void demo_play_paint(int id, float t)
 {
     game_client_draw(0, t);
 
-    if ((config_get_d(CONFIG_SCREEN_ANIMATIONS)) && (!speed_manual || config_get_d(CONFIG_SCREEN_ANIMATIONS)))
+    if ((config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        (!speed_manual || config_get_d(CONFIG_SCREEN_ANIMATIONS)))
         hud_paint();
 
     if (time_state() < prelude)
@@ -1367,7 +1412,8 @@ static void demo_play_timer(int id, float dt)
 
         if (smoothfix_slowdown_time >= 30)
         {
-            config_set_d(CONFIG_SMOOTH_FIX, config_get_d(CONFIG_FORCE_SMOOTH_FIX));
+            config_set_d(CONFIG_SMOOTH_FIX,
+                         config_get_d(CONFIG_FORCE_SMOOTH_FIX));
             smoothfix_slowdown_time = 0;
         }
     }
@@ -1401,16 +1447,26 @@ static void demo_play_timer(int id, float dt)
     if (!downwards && demo_timer_last > demo_timer_curr)
         downwards = 1;
 
-    if ((demo_timer_last > demo_timer_curr && demo_timer_curr != 0) || downwards) {
-        if (demo_timer_curr < 1 && speed > SPEED_SLOWESTESTEST) DEMO_SET_SPEED(SPEED_SLOWESTESTEST);
-        else if (demo_timer_curr < 12 && speed > SPEED_SLOWESTESTER) DEMO_SET_SPEED(SPEED_SLOWESTESTER);
-        else if (demo_timer_curr < 25 && speed > SPEED_SLOWESTEST) DEMO_SET_SPEED(SPEED_SLOWESTEST);
-        else if (demo_timer_curr < 50 && speed > SPEED_SLOWESTER) DEMO_SET_SPEED(SPEED_SLOWESTER);
-        else if (demo_timer_curr < 100 && speed > SPEED_SLOWEST) DEMO_SET_SPEED(SPEED_SLOWEST);
-        else if (demo_timer_curr < 200 && speed > SPEED_SLOWER) DEMO_SET_SPEED(SPEED_SLOWER);
-        else if (demo_timer_curr < 500 && speed > SPEED_SLOW) DEMO_SET_SPEED(SPEED_SLOW);
-        else if (demo_timer_curr < 1000 && speed > SPEED_NORMAL) {
-            speed_manual = 0; DEMO_SET_SPEED(SPEED_NORMAL);
+    if ((demo_timer_last > demo_timer_curr && demo_timer_curr != 0) || downwards)
+    {
+        if      (demo_timer_curr < 1    && speed > SPEED_SLOWESTESTEST)
+            DEMO_SET_SPEED(SPEED_SLOWESTESTEST);
+        else if (demo_timer_curr < 12   && speed > SPEED_SLOWESTESTER)
+            DEMO_SET_SPEED(SPEED_SLOWESTESTER);
+        else if (demo_timer_curr < 25   && speed > SPEED_SLOWESTEST)
+            DEMO_SET_SPEED(SPEED_SLOWESTEST);
+        else if (demo_timer_curr < 50   && speed > SPEED_SLOWESTER)
+            DEMO_SET_SPEED(SPEED_SLOWESTER);
+        else if (demo_timer_curr < 100  && speed > SPEED_SLOWEST)
+            DEMO_SET_SPEED(SPEED_SLOWEST);
+        else if (demo_timer_curr < 200  && speed > SPEED_SLOWER)
+            DEMO_SET_SPEED(SPEED_SLOWER);
+        else if (demo_timer_curr < 500  && speed > SPEED_SLOW)
+            DEMO_SET_SPEED(SPEED_SLOW);
+        else if (demo_timer_curr < 1000 && speed > SPEED_NORMAL)
+        {
+            speed_manual = 0;
+            DEMO_SET_SPEED(SPEED_NORMAL);
         }
     }
 
@@ -1440,14 +1496,14 @@ static void demo_play_stick(int id, int a, float v, int bump)
 
     if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y0, a))
     {
-        if (v + axis_offset[1] < 0) DEMO_CHANGE_SPEED(speed, 1);
+        if (v + axis_offset[1] < 0) DEMO_CHANGE_SPEED(speed,  1);
         if (v + axis_offset[1] > 0) DEMO_CHANGE_SPEED(speed, -1);
     }
 }
 
 static void demo_play_wheel(int x, int y)
 {
-    if (y > 0 && !speed_manual) DEMO_CHANGE_SPEED(speed, 1);
+    if (y > 0 && !speed_manual) DEMO_CHANGE_SPEED(speed,  1);
     if (y < 0 && !speed_manual) DEMO_CHANGE_SPEED(speed, -1);
 }
 
@@ -1461,21 +1517,15 @@ static int demo_play_click(int b, int d)
             game_proxy_filter(filter_cmd);
             audio_music_fade_out(0.2f);
         }
-        /*if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
-        {
-            demo_replay_manual_speed(-2.0f); speed_manual = 1;
-            game_proxy_filter(filter_cmd);
-            audio_music_fade_out(0.2f);
-        }*/
     }
     else if (time_state() > prelude)
     {
         if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
-            demo_replay_speed(speed); speed_manual = 0;
-        /*if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
-            demo_replay_speed(speed); speed_manual = 0;
-        */
-
+        {
+            demo_replay_speed(speed);
+            speed_manual = 0;
+        }
+        
         game_proxy_filter(NULL);
         audio_music_fade_in(0.5f);
     }
@@ -1508,20 +1558,20 @@ static int demo_play_keybd(int c, int d)
         if (c == SDLK_4 && !faster) DEMO_SET_SPEED(SPEED_SLOWEST);
         if (c == SDLK_3 && !faster) DEMO_SET_SPEED(SPEED_SLOWER);
         if (c == SDLK_2 && !faster) DEMO_SET_SPEED(SPEED_SLOW);
-        if (c == SDLK_1) DEMO_SET_SPEED(SPEED_NORMAL);
-        if (c == SDLK_2 && faster) DEMO_SET_SPEED(SPEED_FAST);
-        if (c == SDLK_3 && faster) DEMO_SET_SPEED(SPEED_FASTER);
-        if (c == SDLK_4 && faster) DEMO_SET_SPEED(SPEED_FASTEST);
-        if (c == SDLK_5 && faster) DEMO_SET_SPEED(SPEED_FASTESTER);
-        if (c == SDLK_6 && faster) DEMO_SET_SPEED(SPEED_FASTESTEST);
-        if (c == SDLK_7 && faster) DEMO_SET_SPEED(SPEED_FASTESTESTER);
-        if (c == SDLK_8 && faster) DEMO_SET_SPEED(SPEED_FASTESTESTEST);
-        if (c == SDLK_LSHIFT) { faster = 1; }
+        if (c == SDLK_1)            DEMO_SET_SPEED(SPEED_NORMAL);
+        if (c == SDLK_2 && faster)  DEMO_SET_SPEED(SPEED_FAST);
+        if (c == SDLK_3 && faster)  DEMO_SET_SPEED(SPEED_FASTER);
+        if (c == SDLK_4 && faster)  DEMO_SET_SPEED(SPEED_FASTEST);
+        if (c == SDLK_5 && faster)  DEMO_SET_SPEED(SPEED_FASTESTER);
+        if (c == SDLK_6 && faster)  DEMO_SET_SPEED(SPEED_FASTESTEST);
+        if (c == SDLK_7 && faster)  DEMO_SET_SPEED(SPEED_FASTESTESTER);
+        if (c == SDLK_8 && faster)  DEMO_SET_SPEED(SPEED_FASTESTESTEST);
+        if (c == SDLK_LSHIFT)       faster = 1;
 
         if (c == KEY_LOOKAROUND)
             return goto_state(&st_demo_look);
     }
-    else if (c == SDLK_LSHIFT) { faster = 0; }
+    else if (c == SDLK_LSHIFT) faster = 0;
     return 1;
 }
 
@@ -1584,7 +1634,7 @@ static int demo_end_action(int tok, int val)
 
         game_server_free(NULL);
         game_client_free(NULL);
-        game_base_free(NULL);
+        game_base_free  (NULL);
         return 0;
     case DEMO_REPLAY:
         if (demo_paused)
@@ -1625,7 +1675,8 @@ static int demo_end_gui(void)
             }
 
             /* Only that is limit underneath it */
-            if (get_maximum_status() <= get_limit_status() && allow_exact_versions) {
+            if (get_maximum_status() <= get_limit_status() &&
+                allow_exact_versions) {
                 gui_state(jd, _("Repeat"), GUI_SML, DEMO_REPLAY, 0);
                 if (demo_paused)
                     gui_start(jd, _("Continue"), GUI_SML, DEMO_CONTINUE, 0);
@@ -1642,7 +1693,7 @@ static int demo_end_gui(void)
             }
         }
 
-        gui_pulse(kd, 1.2f);
+        gui_pulse (kd, 1.2f);
         gui_layout(id, 0, 0);
     }
 
@@ -1681,8 +1732,9 @@ static int demo_end_keybd(int c, int d)
 {
     if (d)
     {
-        if (demo_paused && c == KEY_EXIT && allow_exact_versions)
-            return demo_end_action(DEMO_CONTINUE, 0);
+        if (c == KEY_EXIT)
+            return demo_end_action(demo_paused && allow_exact_versions ?
+                                   DEMO_CONTINUE : GUI_NONE, 0);
     }
     return 1;
 }
@@ -1774,8 +1826,14 @@ static int demo_del_gui(void)
                           GUI_SML, gui_wht, gui_wht);
 
             char warning_text[MAXSTR];
-            SAFECPY(warning_text, _("Once deleted this replay,\\"
-                                    "this action cannot be undone."));
+
+/*#if _WIN32 && _MSC_VER
+            if (!delete_permanently)
+                SAFECPY(warning_text, _("Move this replay to recycle bin?"));
+            else
+#endif*/
+                SAFECPY(warning_text, _("Once deleted this replay,\\"
+                                        "this action cannot be undone."));
 
             gui_multi(jd,
                       warning_text,

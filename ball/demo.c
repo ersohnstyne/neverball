@@ -79,7 +79,7 @@ static int demo_header_read(fs_file fp, struct demo *d)
     t = get_index(fp);
 
     if (magic == DEMO_MAGIC && t
-        && (version >= DEMO_VERSION_MIN && version <= DEMO_VERSION))
+     && (version >= DEMO_VERSION_MIN && version <= DEMO_VERSION))
     {
         d->timer = t;
 
@@ -153,7 +153,8 @@ static void demo_header_write(fs_file fp, struct demo *d)
     put_string(fp, datestr);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    put_string(fp, d->mode == MODE_CAMPAIGN || campaign_used() ? "gui/levels/campaign_replay.jpg" : d->shot);
+    put_string(fp, d->mode == MODE_CAMPAIGN || campaign_used() ?
+                   "gui/levels/campaign_replay.jpg" : d->shot);
 #else
     put_string(fp, d->shot);
 #endif

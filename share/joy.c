@@ -76,13 +76,15 @@ int joy_init(void)
         joy_is_init = SDL_JoystickEventState(SDL_ENABLE) == 1;
 
         if (joy_is_init < 0)
-            log_printf("Failure to enable joystick (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
+            log_printf("Failure to enable joystick (%s)\n",
+                       GAMEDBG_GETSTRERROR_CHOICES_SDL);
         else
             joy_active_cursor(0, 1);
     }
     else
     {
-        log_printf("Failure to initialize joystick (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
+        log_printf("Failure to initialize joystick (%s)\n",
+                   GAMEDBG_GETSTRERROR_CHOICES_SDL);
         return 0;
     }
 
@@ -115,7 +117,8 @@ void joy_add(int device)
     {
         if (!joy_init())
         {
-            log_errorf("Failure to add Joystick! Joystick must be initialized!: %s\n", SDL_GetError() ? SDL_GetError() : "Unknown error");
+            log_errorf("Failure to add Joystick! Joystick must be initialized!: %s\n",
+                       GAMEDBG_GETSTRERROR_CHOICES_SDL);
             exit(1);
             return;
         }
@@ -138,7 +141,8 @@ void joy_add(int device)
                 log_printf("Joystick opened (instance %d)\n", joysticks[i].id);
 
                 joy_curr = joysticks[i].id;
-                log_printf("Joystick %d made current via device addition\n", joy_curr);
+                log_printf("Joystick %d made current via device addition\n",
+                           joy_curr);
 
                 break;
             }
@@ -147,7 +151,8 @@ void joy_add(int device)
         if (i == ARRAYSIZE(joysticks))
         {
             SDL_JoystickClose(joy);
-            log_errorf("Joystick %d not opened, %ud open joysticks reached\n", device, ARRAYSIZE(joysticks));
+            log_errorf("Joystick %d not opened, %ud open joysticks reached\n",
+                       device, ARRAYSIZE(joysticks));
         }
     }
 }

@@ -50,7 +50,7 @@ float get_coin_multiply(void)
     return coinmultiply;
 }
 
-float get_gravity_multiply(void)
+float get_grav_multiply(void)
 {
     return gravmultiply;
 }

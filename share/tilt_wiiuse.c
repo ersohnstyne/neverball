@@ -52,14 +52,14 @@ static SDL_Thread *thread = NULL;
 
 static int tilt_thread(void *data)
 {
-    wiimote **wiimotes = NULL;
-    int found = 0;
-    int connected = 0;
+    wiimote         **wiimotes = NULL;
+    int               found        = 0;
+    int               connected = 0;
     struct wiimote_t *wm = NULL;
-    int i = 0;
-    float pitch_sensitivity = 1.;
-    float roll_sensitivity = 1.;
-    float smooth_alpha = 0.5;
+    int               i = 0;
+    float             pitch_sensitivity = 1.;
+    float             roll_sensitivity = 1.;
+    float             smooth_alpha = 0.5;
 
     wiimotes = wiiuse_init(NB_WIIMOTES);
 
@@ -79,11 +79,11 @@ static int tilt_thread(void *data)
     }
     wm = wiimotes[0];
 
-    pitch_sensitivity = ((float) config_get_d(CONFIG_WIIMOTE_PITCH_SENSITIVITY) / 100);
+    pitch_sensitivity  = ((float) config_get_d(CONFIG_WIIMOTE_PITCH_SENSITIVITY) / 100);
     pitch_sensitivity *= (config_get_d(CONFIG_WIIMOTE_INVERT_PITCH)) ? -1 : 1;
-    roll_sensitivity = ((float) config_get_d(CONFIG_WIIMOTE_ROLL_SENSITIVITY) / 100);
-    roll_sensitivity *= (config_get_d(CONFIG_WIIMOTE_INVERT_ROLL)) ? -1 : 1;
-    smooth_alpha = (float) config_get_d(CONFIG_WIIMOTE_SMOOTH_ALPHA) / 100;
+    roll_sensitivity   = ((float) config_get_d(CONFIG_WIIMOTE_ROLL_SENSITIVITY) / 100);
+    roll_sensitivity  *= (config_get_d(CONFIG_WIIMOTE_INVERT_ROLL)) ? -1 : 1;
+    smooth_alpha       = (float) config_get_d(CONFIG_WIIMOTE_SMOOTH_ALPHA) / 100;
 
     wiiuse_motion_sensing(wm, 1);
     wiiuse_set_smooth_alpha(wm, smooth_alpha);
@@ -93,17 +93,22 @@ static int tilt_thread(void *data)
     current_state.status = 1;
     SDL_UnlockMutex(mutex);
 
-    while (mutex && current_state.status && WIIMOTE_IS_CONNECTED(wm)) {
-        if (wiiuse_poll(wiimotes, NB_WIIMOTES)) {
-            switch (wm->event) {
+    while (mutex && current_state.status && WIIMOTE_IS_CONNECTED(wm))
+    {
+        if (wiiuse_poll(wiimotes, NB_WIIMOTES))
+        {
+            switch (wm->event)
+            {
             case WIIUSE_EVENT:
                 SDL_LockMutex(mutex);
                 /* start on 4 because the 4 first buttons are for the nunchuk */
-                for (i = 4; i < NB_WIIMOTE_BUTTONS; i++) {
+                for (i = 4; i < NB_WIIMOTE_BUTTONS; i++)
+                {
                     current_state.buttons[i] = IS_PRESSED(wm, wiiUseButtons[i][0]);
                 }
                 /* if the nunchuk is connected, use it, else use the wiimote */
-                if (wm->exp.type == EXP_NUNCHUK || wm->exp.type == EXP_MOTION_PLUS_NUNCHUK) {
+                if (wm->exp.type == EXP_NUNCHUK || wm->exp.type == EXP_MOTION_PLUS_NUNCHUK)
+                {
                     struct nunchuk_t *nc = (nunchuk_t *) &wm->exp.nunchuk;
                     current_state.buttons[NUNCHUK_CAMERA_LEFT] = (nc->js.x < -0.3);
                     current_state.buttons[NUNCHUK_CAMERA_RIGHT] = (nc->js.x > 0.3);
@@ -113,9 +118,10 @@ static int tilt_thread(void *data)
                     current_state.x = nc->orient.pitch * pitch_sensitivity;
                     current_state.z = nc->orient.roll * roll_sensitivity;
                 }
-                else if (WIIUSE_USING_ACC(wm)) {
+                else if (WIIUSE_USING_ACC(wm))
+                {
                     if (config_get_d(CONFIG_WIIMOTE_HOLD_SIDEWAYS)) {
-                        current_state.x = wm->orient.roll * roll_sensitivity;
+                        current_state.x =  wm->orient.roll * roll_sensitivity;
                         current_state.z = -wm->orient.pitch * pitch_sensitivity;
                     }
                     else {
@@ -175,11 +181,13 @@ void tilt_init(void)
 
     memset(&current_state, 0, sizeof (struct tilt_state));
     if (config_get_d(CONFIG_WIIMOTE_HOLD_SIDEWAYS))
-        memcpy(wiiUseButtons, wiiUseButtonsHoldSideways, sizeof (wiiUseButtons));
+        memcpy(wiiUseButtons, wiiUseButtonsHoldSideways,
+               sizeof (wiiUseButtons));
     else
-        memcpy(wiiUseButtons, wiiUseButtonsHoldNormal, sizeof (wiiUseButtons));
+        memcpy(wiiUseButtons, wiiUseButtonsHoldNormal,
+               sizeof (wiiUseButtons));
 
-    mutex = SDL_CreateMutex();
+    mutex  = SDL_CreateMutex();
     thread = SDL_CreateThread(tilt_thread, "", NULL);
 }
 
@@ -197,7 +205,7 @@ void tilt_free(void)
 
         SDL_WaitThread(thread, NULL);
         SDL_DestroyMutex(mutex);
-        mutex = NULL;
+        mutex  = NULL;
         thread = NULL;
     }
 }
@@ -209,8 +217,10 @@ int tilt_get_button(int *b, int *s)
     if (mutex) {
         SDL_LockMutex(mutex);
         if (current_state.status) {
-            for (i = 0; i < NB_WIIMOTE_BUTTONS; i++) {
-                if (current_state.buttons[i] != polled_state.buttons[i]) {
+            for (i = 0; i < NB_WIIMOTE_BUTTONS; i++)
+            {
+                if (current_state.buttons[i] != polled_state.buttons[i])
+                {
                     *b = config_get_d(wiiUseButtons[i][1]);
                     *s = current_state.buttons[i];
                     polled_state.buttons[i] = current_state.buttons[i];

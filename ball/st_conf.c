@@ -70,7 +70,7 @@ struct state st_conf_audio;
 
 /*---------------------------------------------------------------------------*/
 
-static int ingame_demo   = 0;
+static int ingame_demo = 0;
 static int mainmenu_conf = 1;
 static struct state *conf_back_state;
 
@@ -78,7 +78,7 @@ int goto_conf(struct state *back_state, int using_game, int demo)
 {
     conf_back_state = back_state;
 
-    ingame_demo   = demo;
+    ingame_demo = demo;
     mainmenu_conf = !using_game;
 
     return goto_state(&st_conf);
@@ -88,7 +88,15 @@ static int conf_check_playername(const char *regname)
 {
     for (int i = 0; i < text_length(regname); i++)
     {
-        if (regname[i] == '\\' || regname[i] == '/' || regname[i] == ':' || regname[i] == '*' || regname[i] == '?' || regname[i] == '"' || regname[i] == '<' || regname[i] == '>' || regname[i] == '|')
+        if (regname[i] == '\\' ||
+            regname[i] == '/'  ||
+            regname[i] == ':'  ||
+            regname[i] == '*'  ||
+            regname[i] == '?'  ||
+            regname[i] == '"'  ||
+            regname[i] == '<'  ||
+            regname[i] == '>'  ||
+            regname[i] == '|')
         {
             log_errorf("Can't accept other charsets!\n", regname[i]);
             return 0;
@@ -207,16 +215,22 @@ static int conf_covid_extend_gui(void)
     {
         if (conf_covid_extend_method == 2)
         {
-            gui_label(id, _("Do you have your real vaccine certificates?"), GUI_SML, 0, 0);
+            gui_label(id, _("Do you have your real vaccine certificates?"),
+                          GUI_SML, 0, 0);
             gui_space(id);
-            gui_multi(id, _("To use campaign, check your real vaccine\\certificates with valid date\\to switch off the replay filters!"), GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, _("To use campaign, check your real vaccine\\"
+                            "certificates with valid date\\"
+                            "to switch off the replay filters!"),
+                          GUI_SML, gui_wht, gui_wht);
             gui_space(id);
         }
         else
         {
             gui_label(id, _("Do you have your FFP-2 masks?"), GUI_SML, 0, 0);
             gui_space(id);
-            gui_multi(id, _("To use campaign, FFP-2 masks are required\\to switch off the replay filters!"), GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, _("To use campaign, FFP-2 masks are required\\"
+                            "to switch off the replay filters!"),
+                          GUI_SML, gui_wht, gui_wht);
             gui_space(id);
         }
 
@@ -508,7 +522,7 @@ static int conf_account_gui(void)
         if (!ingame_demo && !mainmenu_conf)
         {
             gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_DESC_INGAME,
-                GUI_SML, gui_red, gui_red);
+                          GUI_SML, gui_red, gui_red);
             gui_space(id);
         }
         else
@@ -542,19 +556,20 @@ static int conf_account_gui(void)
 #else
                 sprintf
 #endif
-                    (filter_introductive_attr,
+                       (filter_introductive_attr,
                         CONF_ACCOUNT_DEMO_LOCKED_DESC_INTRODUCTIVE,
                         _(status_to_str(3)));
 
                 time_remain_lbl_id = gui_multi(id,
-                    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\"
-                    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-                    GUI_SML, gui_red, gui_red);
+                                               "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\"
+                                               "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                                               GUI_SML, gui_red, gui_red);
 
                 if (conf_covid_extended == 0)
                 {
                     gui_space(id);
-                    gui_state(id, _("Request Lift"), GUI_SML, CONF_ACCOUNT_COVID_EXTEND, 0);
+                    gui_state(id, _("Request Lift"),
+                                  GUI_SML, CONF_ACCOUNT_COVID_EXTEND, 0);
                 }
 
                 gui_set_multi(time_remain_lbl_id, filter_introductive_attr);
@@ -574,7 +589,8 @@ static int conf_account_gui(void)
         }
 
 #ifdef ENABLE_SQL
-        int signin_id = gui_state(id, _("Sign in as Neverball"), GUI_SML, CONF_ACCOUNT_SIGNIN, 0);
+        int signin_id = gui_state(id, _("Sign in as Neverball"),
+                                      GUI_SML, CONF_ACCOUNT_SIGNIN, 0);
 
         if (online_mode)
         {
@@ -599,21 +615,23 @@ static int conf_account_gui(void)
         }
 
         conf_toggle(id, _("Show Tutorial"), CONF_ACCOUNT_TUTORIAL,
-            config_get_d(CONFIG_ACCOUNT_TUTORIAL), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_ACCOUNT_TUTORIAL),
+                        _("On"), 1, _("Off"), 0);
         conf_toggle(id, _("Show Hint"), CONF_ACCOUNT_HINT,
-            config_get_d(CONFIG_ACCOUNT_HINT), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_ACCOUNT_HINT), 
+                        _("On"), 1, _("Off"), 0);
 
         gui_space(id);
         if (mainmenu_conf)
         {
             name_id = conf_state(id, _("Player Name"), "XXXXXXXXXXXXXX",
-                                 CONF_ACCOUNT_PLAYER);
+                                     CONF_ACCOUNT_PLAYER);
 #if NB_HAVE_PB_BOTH==1
             ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX",
-                                 CONF_ACCOUNT_BALL);
+                                     CONF_ACCOUNT_BALL);
 #ifdef CONFIG_INCLUDES_ACCOUNT
             beam_id = conf_state(id, _("Beam Style"), "XXXXXXXXXXXXXX",
-                                 CONF_ACCOUNT_BEAM);
+                                     CONF_ACCOUNT_BEAM);
 #endif
 #endif
 
@@ -692,7 +710,8 @@ static int conf_account_gui(void)
         }
 
         save_id = conf_state(id, _("Save Replay"), "XXXXXXXXXXXXXX",
-                             !ingame_demo && !mainmenu_conf ? GUI_NONE : CONF_ACCOUNT_SAVE);
+                             !ingame_demo && !mainmenu_conf ?
+                             GUI_NONE : CONF_ACCOUNT_SAVE);
         load_id = conf_state(id, _("Replay Filter"), "XXXXXXXXXXXXXX",
                              CONF_ACCOUNT_LOAD);
 
@@ -730,11 +749,10 @@ static void conf_account_timer(int id, float dt)
     int sec;
     int nolockdown;
 
-    DEMO_LOCKDOWN_RANGE_NIGHT_TIMELEFT(
-        nolockdown,
-        DEMO_LOCKDOWN_RANGE_NIGHT_START_HOUR_DEFAULT,
-        DEMO_LOCKDOWN_RANGE_NIGHT_END_HOUR_DEFAULT,
-        sec);
+    DEMO_LOCKDOWN_RANGE_NIGHT_TIMELEFT(nolockdown,
+                                       DEMO_LOCKDOWN_RANGE_NIGHT_START_HOUR_DEFAULT,
+                                       DEMO_LOCKDOWN_RANGE_NIGHT_END_HOUR_DEFAULT,
+                                       sec);
 
     if (conf_covid_extended != 0 && nolockdown)
     {
@@ -751,17 +769,15 @@ static void conf_account_timer(int id, float dt)
 #else
         sprintf(cv19_infoattr,
 #endif
-            _("Full access valid until locked down.\\Time Remaining: %i h %i m %i s"),
-            clock_hour, clock_min, clock_sec);
+                _("Full access valid until locked down.\\"
+                  "Time Remaining: %i h %i m %i s"),
+                clock_hour, clock_min, clock_sec);
 
         if (time_remain_lbl_id != 0)
             gui_set_multi(time_remain_lbl_id, cv19_infoattr);
     }
     else if (conf_covid_extended != 0 && !nolockdown)
     {
-        log_errorf("You can access all replay filters, but it's too late! "
-            "Reason: %s\n", strerror(EACCES));
-
         conf_covid_extended = 0;
         
         if (config_get_d(CONFIG_ACCOUNT_SAVE) > 2)
@@ -772,7 +788,8 @@ static void conf_account_timer(int id, float dt)
         }
 
         if (time_remain_lbl_id != 0)
-            gui_set_multi(time_remain_lbl_id, CONF_ACCOUNT_DEMO_LOCKED_DESC_NIGHT);
+            gui_set_multi(time_remain_lbl_id,
+                          CONF_ACCOUNT_DEMO_LOCKED_DESC_NIGHT);
     }
 }
 
@@ -871,7 +888,7 @@ static int conf_social_gui(void)
             }
             else
                 gui_multi(jd, _("Please make sure that you've verified the\\"
-                                "new members after joined, before send messages,\\"
+                                "new members after joined, before send community messages,\\"
                                 "connect voice chats and watch streaming."),
                               GUI_SML, gui_wht, gui_wht);
 
@@ -911,7 +928,9 @@ static int conf_social_enter(struct state *st, struct state *prev)
 /*
  * Should be set the preset keys as well?
  */
-#define CONF_CONTROL_SET_PRESET_KEYS(cam_tgl, cam1, cam2, cam3, camL, camR, axYP, axXN, axYN, axXP) \
+#define CONF_CONTROL_SET_PRESET_KEYS(cam_tgl, cam1, cam2, \
+                                     cam3, camL, camR, axYP, \
+                                     axXN, axYN, axXP)   \
     do {                                                 \
         config_set_d(CONFIG_KEY_CAMERA_TOGGLE, cam_tgl); \
         config_set_d(CONFIG_KEY_CAMERA_1, cam1);         \
@@ -975,13 +994,13 @@ static int mouse_id[11];
 
 static int control_get_input(void)
 {
-    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
     const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
 
     SDL_Keycode k_arrowkey[4];
     k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
@@ -1098,7 +1117,8 @@ int conf_control_gui(void)
 
         conf_header(id, _("Controls"), GUI_BACK);
 
-        preset_id = conf_state(id, _("Preset"), "XXXXXXXXXXXXX", CONF_CONTROL_INPUT_PRESET);
+        preset_id = conf_state(id, _("Preset"), "XXXXXXXXXXXXX",
+                                   CONF_CONTROL_INPUT_PRESET);
 
         const char *presetname = _("Custom");
 
@@ -1121,7 +1141,8 @@ int conf_control_gui(void)
         gui_set_label(preset_id, presetname);
 
         conf_toggle(id, _("Tilting Floor"), CONF_CONTROL_TILTING_FLOOR,
-            config_get_d(CONFIG_TILTING_FLOOR), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_TILTING_FLOOR),
+                        _("On"), 1, _("Off"), 0);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)
@@ -1129,11 +1150,12 @@ int conf_control_gui(void)
         {
             gui_space(id);
 
-            conf_slider(id, _("Mouse Sensitivity"), CONF_CONTROL_MOUSE_SENSE, mouse,
-                mouse_id, ARRAYSIZE(mouse_id));
+            conf_slider(id, _("Mouse Sensitivity"), CONF_CONTROL_MOUSE_SENSE,
+                            mouse, mouse_id, ARRAYSIZE(mouse_id));
 
             conf_toggle(id, _("Invert Y Axis"), CONF_CONTROL_INVERT_MOUSE_Y,
-                config_get_d(CONFIG_MOUSE_INVERT), _("On"), 1, _("Off"), 0);
+                            config_get_d(CONFIG_MOUSE_INVERT),
+                            _("On"), 1, _("Off"), 0);
         }
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -1426,7 +1448,8 @@ static void conf_controllers_set_option(int index, int value)
         {
             /* Skip over marker, if any. */
 
-            if (index < ARRAYSIZE(conf_controllers_options) - 2 && conf_controllers_options[index + 1] == NULL)
+            if (index < ARRAYSIZE(conf_controllers_options) - 2 &&
+                conf_controllers_options[index + 1] == NULL)
                 gui_focus(conf_controllers_option_ids[index + 2]);
             else
                 gui_focus(conf_controllers_option_ids[index + 1]);
@@ -1506,7 +1529,8 @@ static int conf_controllers_gui(void)
 
             value = config_get_d(*conf_controllers_options[i]);
 
-            if ((btn_id = conf_state(token == CONF_CONTROLLERS_ASSIGN_AXIS ? r_pane : l_pane,
+            if ((btn_id = conf_state(token == CONF_CONTROLLERS_ASSIGN_AXIS ?
+                                     r_pane : l_pane,
                 _(conf_controllers_option_names[i]), "99", 0)))
             {
                 conf_controllers_option_ids[i] = btn_id;
@@ -1514,7 +1538,8 @@ static int conf_controllers_gui(void)
                 gui_set_state(btn_id, token, i);
 
                 conf_controllers_set_label(btn_id,
-                    token == CONF_CONTROLLERS_ASSIGN_AXIS ? value + 11 : value);
+                                           token == CONF_CONTROLLERS_ASSIGN_AXIS ?
+                                           value + 11 : value);
             }
         }
 
@@ -1559,7 +1584,7 @@ static int conf_controllers_enter(struct state *st, struct state *prev)
     conf_controllers_modal = 0;
 
     conf_controllers_modal_button_id = conf_controllers_modal_button_gui();
-    conf_controllers_modal_axis_id = conf_controllers_modal_axis_gui();
+    conf_controllers_modal_axis_id   = conf_controllers_modal_axis_gui();
 
     return conf_controllers_gui();
 }
@@ -1696,14 +1721,14 @@ static int conf_calibrate_action(int tok, int val)
     case CONF_CONTROL_CALIBRATE:
         if (calibrate_method == 2)
         {
-            axis_offset[0] = -calib_x0;
-            axis_offset[1] = -calib_y0;
+            axis_offset[0]   = -calib_x0;
+            axis_offset[1]   = -calib_y0;
             calibrate_method = 1;
         }
         else
         {
-            axis_offset[2] = -calib_x1;
-            axis_offset[3] = -calib_y1;
+            axis_offset[2]   = -calib_x1;
+            axis_offset[3]   = -calib_y1;
             calibrate_method = 2;
         }
 
@@ -1722,7 +1747,8 @@ static int conf_calibrate_gui(void)
     {
         axis_title_id = gui_label(id, _("Method -"), GUI_SML, 0, 0);
         gui_space(id);
-        axis_display_id = gui_label(id, "super-long-control-axis-display", GUI_SML, gui_wht, gui_yel);
+        axis_display_id = gui_label(id, "super-long-control-axis-display",
+                                        GUI_SML, gui_wht, gui_yel);
         gui_set_label(axis_display_id ,"X: -; Y: -");
 
         char titleattr[MAXSTR];
@@ -1774,7 +1800,8 @@ void conf_calibrate_stick(int id, int a, float v, int bump)
 #else
         sprintf(axisattr,
 #endif
-                "X: %f; Y: %f", (calib_x0 + axis_offset[0]), (calib_y0 + axis_offset[1]));
+                "X: %f; Y: %f",
+                (calib_x0 + axis_offset[0]), (calib_y0 + axis_offset[1]));
     }
     else if (calibrate_method == 2)
     {
@@ -1787,7 +1814,8 @@ void conf_calibrate_stick(int id, int a, float v, int bump)
 #else
         sprintf(axisattr,
 #endif
-                "X: %f; Y: %f", (calib_x1 + axis_offset[2]), (calib_y1 + axis_offset[3]));
+                "X: %f; Y: %f",
+                (calib_x1 + axis_offset[2]), (calib_y1 + axis_offset[3]));
     }
     else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1856,11 +1884,14 @@ static int conf_notification_gui(void)
         conf_header(id, _("Notifications"), GUI_BACK);
 
         conf_toggle(id, _("Checkpoints"), CONF_NOTIFICATION_CHKP,
-            config_get_d(CONFIG_NOTIFICATION_CHKP), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_NOTIFICATION_CHKP),
+                        _("On"), 1, _("Off"), 0);
         conf_toggle(id, _("Extra balls"), CONF_NOTIFICATION_REWARD,
-            config_get_d(CONFIG_NOTIFICATION_REWARD), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_NOTIFICATION_REWARD),
+                        _("On"), 1, _("Off"), 0);
         conf_toggle(id, _("Shop"), CONF_NOTIFICATION_SHOP,
-            config_get_d(CONFIG_NOTIFICATION_SHOP), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_NOTIFICATION_SHOP),
+                        _("On"), 1, _("Off"), 0);
 
         gui_layout(id, 0, 0);
     }
@@ -1899,9 +1930,9 @@ static int conf_audio_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
-    int master = config_get_d(CONFIG_MASTER_VOLUME);
-    int sound = config_get_d(CONFIG_SOUND_VOLUME);
-    int music = config_get_d(CONFIG_MUSIC_VOLUME);
+    int master   = config_get_d(CONFIG_MASTER_VOLUME);
+    int sound    = config_get_d(CONFIG_SOUND_VOLUME);
+    int music    = config_get_d(CONFIG_MUSIC_VOLUME);
     int narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
 
     switch (tok)
@@ -1964,9 +1995,9 @@ static int conf_audio_gui(void)
     {
         conf_header(id, _("Audio"), GUI_BACK);
 
-        int master = config_get_d(CONFIG_MASTER_VOLUME);
-        int sound = config_get_d(CONFIG_SOUND_VOLUME);
-        int music = config_get_d(CONFIG_MUSIC_VOLUME);
+        int master   = config_get_d(CONFIG_MASTER_VOLUME);
+        int sound    = config_get_d(CONFIG_SOUND_VOLUME);
+        int music    = config_get_d(CONFIG_MUSIC_VOLUME);
         int narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
 
 #if NB_HAVE_PB_BOTH==1
@@ -1982,7 +2013,10 @@ static int conf_audio_gui(void)
         conf_slider(id, _("Narrator Volume"), CONF_AUDIO_NARRATOR_VOLUME, narrator,
                     narrator_id, ARRAYSIZE(narrator_id));
 #else
-        gui_multi(id, _("Switchball configurations\\requires NB_HAVE_PB_BOTH\\preprocessor definitions"), GUI_SML, gui_red, gui_red);
+        gui_multi(root_id, _("Switchball configurations\\"
+                        "requires NB_HAVE_PB_BOTH\\"
+                        "preprocessor definitions"),
+                      GUI_SML, gui_red, gui_red);
 #endif
     }
     gui_layout(id, 0, 0);
@@ -2065,9 +2099,9 @@ static int conf_action(int tok, int val)
 {
     int r = 1;
 
-    int master = config_get_d(CONFIG_MASTER_VOLUME);
-    int sound = config_get_d(CONFIG_SOUND_VOLUME);
-    int music = config_get_d(CONFIG_MUSIC_VOLUME);
+    int master   = config_get_d(CONFIG_MASTER_VOLUME);
+    int sound    = config_get_d(CONFIG_SOUND_VOLUME);
+    int music    = config_get_d(CONFIG_MUSIC_VOLUME);
     int narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
 
     GENERIC_GAMEMENU_ACTION;
@@ -2098,7 +2132,8 @@ static int conf_action(int tok, int val)
 
     case CONF_MANAGE_ACCOUNT:
 #if NB_HAVE_PB_BOTH==1
-        if (text_length(config_get_s(CONFIG_PLAYER)) < 3 || !conf_check_playername(config_get_s(CONFIG_PLAYER)))
+        if (text_length(config_get_s(CONFIG_PLAYER)) < 3 ||
+            !conf_check_playername(config_get_s(CONFIG_PLAYER)))
             goto_name(&st_conf_account, &st_conf, 0, 0, 1);
         else
             goto_state(&st_conf_account);
@@ -2195,7 +2230,7 @@ static int conf_action(int tok, int val)
 
 static int conf_gui(void)
 {
-        int root_id;
+    int root_id;
 
     /*
      * Initialize the configuration GUI.
@@ -2409,7 +2444,8 @@ static void null_leave(struct state *st, struct state *next, int id)
     if (mainmenu_conf)
     {
 #ifdef ENABLE_SQL
-        if (database_init(config_get_s(CONFIG_ACCOUNT_ONLINE_USERNAME), config_get_s(CONFIG_ACCOUNT_ONLINE_PASSWORD)))
+        if (database_init(config_get_s(CONFIG_ACCOUNT_ONLINE_USERNAME),
+                          config_get_s(CONFIG_ACCOUNT_ONLINE_PASSWORD)))
             if (database_signin() > 0) online_mode = 1;
 #endif
     }

@@ -52,13 +52,13 @@ int model_studio = 0;
 
 static int switchball_useable(void)
 {
-    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
     const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
 
     SDL_Keycode k_arrowkey[4];
     k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
@@ -98,61 +98,6 @@ static int has_ball_sols(struct dir_item *item)
     char *tmp_path = strdup(item->path);
     char *solid, *inner, *outer;
     int yes = 0;
-
-    /*
-     * Directory path name contains filename,
-     * so they will splitted by workaround
-     */
-
-    /*if (str_ends_with(item->path, "-solid.sol") ||
-        str_ends_with(item->path, "-inner.sol") ||
-        str_ends_with(item->path, "-outer.sol"))
-    {
-        char *ptr = strtok(tmp_path, "-");
-        char *next_str;
-        
-        char path_raw0[MAXSTR], path_raw1[MAXSTR], *path_final;
-        SAFECPY(path_raw0, "ball");
-        SAFECPY(path_raw1, "");
-
-        int first = 1;
-
-        while (ptr != 0)
-        {
-            if (ptr != 0)
-            {
-                next_str = strdup(ptr);
-                ptr = strtok(0, "-");
-
-                if (first)
-                {
-                    SAFECAT(path_raw0, path_last_sep(tmp_path));
-                    SAFECAT(path_raw1, path_last_sep(tmp_path));
-                    SAFECAT(path_raw1, "-");
-                    first = 0;
-                }
-                else if(!str_ends_with(next_str, "solid.sol") &&
-                    !str_ends_with(next_str, "inner.sol") &&
-                    !str_ends_with(next_str, "outer.sol"))
-                {
-                    SAFECAT(path_raw0, next_str);
-                    SAFECAT(path_raw0, "-");
-                    SAFECAT(path_raw1, next_str);
-                    SAFECAT(path_raw1, "-");
-                }
-            }
-        }
-
-        if (str_ends_with(item->path, "-solid.sol")) SAFECAT(path_raw1, "solid.sol");
-        if (str_ends_with(item->path, "-inner.sol")) SAFECAT(path_raw1, "inner.sol");
-        if (str_ends_with(item->path, "-outer.sol")) SAFECAT(path_raw1, "outer.sol");
-
-        path_final = concat_string(path_raw0, path_raw1, 0);
-
-        yes = fs_exists(path_final);
-
-        return yes;
-    }*/
 
     solid = concat_string(tmp_path,
                           "/",
@@ -389,22 +334,24 @@ static int ball_gui(void)
             gui_space(id);
 
 #if NB_HAVE_PB_BOTH==1
+        const char* more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ?
 #if NB_STEAM_API==1
-        const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ? N_("Open Steam Workshop!")
+                                      N_("Open Steam Workshop!") :
 #else
-        const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ? N_("Get more Balls!")
+                                      N_("Get more Balls!") :
 #endif
-            : N_("Upgrade to Home Edition!");
+                                      N_("Upgrade to Home Edition!");
 
-        if ((account_get_d(ACCOUNT_PRODUCT_BALLS) == 1
-            || server_policy_get_d(SERVER_POLICY_EDITION) < 0)
+        if ((account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
+             server_policy_get_d(SERVER_POLICY_EDITION) < 0)
 #ifndef __EMSCRIPTEN__
             && !xbox_show_gui()
 #endif
             )
         {
             int online_id;
-            if (online_id = gui_label(id, _(more_balls_text), GUI_SML, gui_wht, gui_grn))
+            if (online_id = gui_label(id, _(more_balls_text),
+                                          GUI_SML, gui_wht, gui_grn))
             {
                 if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                     gui_set_state(online_id, MODEL_UPGRADE_EDITION, 0);
@@ -429,7 +376,9 @@ static int ball_gui(void)
             if (total_ball_name > 1)
 #endif
 #ifdef SWITCHBALL_GUI
-                gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png", "gui/navig/arrow_right.png", GUI_NEXT, GUI_NONE, 1);
+                gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png",
+                                  "gui/navig/arrow_right.png",
+                                  GUI_NEXT, GUI_NONE, 1);
 #else
                 gui_maybe(jd, GUI_TRIANGLE_RIGHT, GUI_NEXT, GUI_NONE, 1);
 #endif
@@ -446,7 +395,9 @@ static int ball_gui(void)
             if (total_ball_name > 1)
 #endif
 #ifdef SWITCHBALL_GUI
-                gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png", "gui/navig/arrow_left.png", GUI_PREV, GUI_NONE, 1);
+                gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png",
+                                  "gui/navig/arrow_left.png",
+                                  GUI_PREV, GUI_NONE, 1);
 #else
                 gui_maybe(jd, GUI_TRIANGLE_LEFT, GUI_PREV, GUI_NONE, 1);
 #endif
@@ -631,7 +582,8 @@ static int ball_buttn(int b, int d)
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_Y, b))
-            return ball_action(server_policy_get_d(SERVER_POLICY_EDITION) == -1 ? MODEL_UPGRADE_EDITION : MODEL_ONLINE, 0);
+            return ball_action(server_policy_get_d(SERVER_POLICY_EDITION) == -1 ?
+                               MODEL_UPGRADE_EDITION : MODEL_ONLINE, 0);
 #endif
     }
     return 1;

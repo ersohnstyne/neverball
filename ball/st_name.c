@@ -46,15 +46,16 @@
 static struct state *ok_state;
 static struct state *cancel_state;
 
-int (*ok_fn)(struct state *);
-int (*cancel_fn)(struct state *);
+int (*ok_fn)     (struct state *);
+int (*cancel_fn) (struct state *);
 
 static unsigned int draw_back;
 static int newplayers;
 static int name_error;
 
 int goto_name(struct state *ok, struct state *cancel,
-              int (*new_ok_fn)(struct state *), int (*new_cancel_fn)(struct state *),
+              int (*new_ok_fn) (struct state *),
+              int (*new_cancel_fn) (struct state *),
               unsigned int back)
 {
     ok_state     = ok;
@@ -91,14 +92,23 @@ static void name_update_enter_btn(void)
 
     for (int i = 0; i < text_length(text_input); i++)
     {
-        if (text_input[i] == '\\' || text_input[i] == '/' || text_input[i] == ':' || text_input[i] == '*' || text_input[i] == '?' || text_input[i] == '"' || text_input[i] == '<' || text_input[i] == '>' || text_input[i] == '|')
+        if (text_input[i] == '\\' ||
+            text_input[i] == '/'  ||
+            text_input[i] == ':'  ||
+            text_input[i] == '*'  ||
+            text_input[i] == '?'  ||
+            text_input[i] == '"'  ||
+            text_input[i] == '<'  ||
+            text_input[i] == '>'  ||
+            text_input[i] == '|')
         {
             name_accepted = 0;
             break;
         }
     }
 
-    gui_set_state(enter_id, name_accepted && !player_renamed ? NAME_OK : GUI_NONE, 0);
+    gui_set_state(enter_id, name_accepted &&
+                            !player_renamed ? NAME_OK : GUI_NONE, 0);
     gui_set_color(enter_id,
                   name_accepted && !player_renamed ? gui_wht : gui_gry,
                   name_accepted && !player_renamed ? gui_wht : gui_gry);
@@ -203,7 +213,8 @@ static int name_gui(void)
             gui_title_header(id, _("Player Name"), GUI_MED, 0, 0);
             gui_space(id);
 
-            name_id = gui_label(id, "XXXXXXXXXXXXXXXX", GUI_MED, gui_yel, gui_yel);
+            name_id = gui_label(id, "XXXXXXXXXXXXXXXX",
+                                    GUI_MED, gui_yel, gui_yel);
 
             gui_space(id);
             if ((jd = gui_hstack(id)))
@@ -275,7 +286,8 @@ static int name_enter(struct state *st, struct state *prev)
     if (draw_back)
     {
         game_client_free(NULL);
-        back_init(config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "back/gui-mayhem.png" : "back/gui.png");
+        back_init(config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "back/gui-mayhem.png" :
+                                                        "back/gui.png");
     }
 
     if (!newplayers)
@@ -325,7 +337,7 @@ static int name_keybd(int c, int d)
     {
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
             return name_action(GUI_BACK, 0);

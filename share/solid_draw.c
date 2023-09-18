@@ -485,34 +485,7 @@ static void sol_draw_mesh(const struct d_mesh *mp,
         if (rend->curr_mtrl.base.fl & M_PARTICLE)
             glDrawArrays(GL_POINTS, 0, mp->vbc);
         else
-        {
-            /*float vp[3];
-            vp[0] = flerp(mp->vp[0][0], flerp(mp->vp[1][0], mp->vp[2][0], .5f), .5f);
-            vp[1] = flerp(mp->vp[0][1], flerp(mp->vp[1][1], mp->vp[2][1], .5f), .5f);
-            vp[2] = flerp(mp->vp[0][2], flerp(mp->vp[1][2], mp->vp[2][2], .5f), .5f);
-            
-            float refl_e[3][3];
-            float refl_m[16];
-
-            refl_e[0][0] = mp->vn[1];
-            refl_e[0][1] = mp->vn[2];
-            refl_e[0][2] = mp->vn[0];
-
-            refl_e[1][0] = mp->vn[0];
-            refl_e[1][1] = mp->vn[1];
-            refl_e[1][2] = mp->vn[2];
-
-            refl_e[2][0] = mp->vn[0];
-            refl_e[2][1] = mp->vn[2];
-            refl_e[2][2] = mp->vn[1];
-
-            e_orthonrm_xz(refl_e);*/
-
-            //glPushMatrix();
-            //glRotatef(V_DEG(fatan2f(refl_e[0][0], refl_e[0][2])), 1.f, 0.f, 0.f);
             glDrawElements(GL_TRIANGLES, mp->ebc, GL_UNSIGNED_SHORT, 0);
-            //glPopMatrix();
-        }
     }
 }
 

@@ -124,7 +124,9 @@ static int beam_style_gui(void)
             if (!xbox_show_gui())
 #endif
 #ifdef SWITCHBALL_GUI
-                gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png", "gui/navig/arrow_right.png", GUI_NEXT, GUI_NONE, 1);
+                gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png",
+                                  "gui/navig/arrow_right.png",
+                                  GUI_NEXT, GUI_NONE, 1);
 #else
                 gui_maybe(jd, GUI_TRIANGLE_RIGHT, GUI_NEXT, GUI_NONE, 1);
 #endif
@@ -139,7 +141,9 @@ static int beam_style_gui(void)
             if (!xbox_show_gui())
 #endif
 #ifdef SWITCHBALL_GUI
-                gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png", "gui/navig/arrow_left.png", GUI_PREV, GUI_NONE, 1);
+                gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png",
+                                  "gui/navig/arrow_left.png",
+                                  GUI_PREV, GUI_NONE, 1);
 #else
                 gui_maybe(jd, GUI_TRIANGLE_LEFT, GUI_PREV, GUI_NONE, 1);
 #endif

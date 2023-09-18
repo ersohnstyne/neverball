@@ -18,6 +18,10 @@
 #if NB_HAVE_PB_BOTH==1
 #include "campaign.h"
 #include "networking.h"
+
+#if NB_STEAM_API==1
+#include "score_online.h"
+#endif
 #endif
 
 #include "glext.h"
@@ -137,7 +141,8 @@ void set_store_hs(void)
         int i;
 
 #if NB_HAVE_PB_BOTH==1
-        fs_printf(fp, "version %d\nrewarded %d\nset %s\n", SCORE_VERSION, s->star_obtained, s->id);
+        fs_printf(fp, "version %d\nrewarded %d\nset %s\n", SCORE_VERSION,
+                      s->star_obtained, s->id);
 #else
         fs_printf(fp, "version %d\nset %s\n", 2, s->id);
 #endif
@@ -156,6 +161,9 @@ void set_store_hs(void)
 
             fs_printf(fp, "level %d %d %s\n", flags, l->version_num, l->file);
 
+            fs_printf(fp, "stats %d %d %d\n", l->stats.completed,
+                      l->stats.timeout, l->stats.fallout);
+
             put_score(fp, &l->scores[SCORE_TIME]);
             put_score(fp, &l->scores[SCORE_GOAL]);
             put_score(fp, &l->scores[SCORE_COIN]);
@@ -164,9 +172,12 @@ void set_store_hs(void)
         fs_close(fp);
     }
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-    else log_errorf("Save set highscores failed!: %s / %s\n", config_cheat() ? s->cheat_scores : s->user_scores, fs_error());
+    else log_errorf("Failure to save set highscores!: %s / %s\n",
+                    config_cheat() ? s->cheat_scores : s->user_scores,
+                    fs_error());
 #else
-    else log_errorf("Save set highscores failed!: %s / %s\n", s->user_scores, fs_error());
+    else log_errorf("Failure to save set highscores!: %s / %s\n",
+                    s->user_scores, fs_error());
 #endif
 }
 
@@ -179,6 +190,30 @@ static struct level *find_level(const struct set *s, const char *file)
             return &level_v[i];
 
     return NULL;
+}
+
+static int get_stats(fs_file fp, struct level *l)
+{
+    char line[MAXSTR];
+
+    if (!fs_gets(line, sizeof(line), fp))
+        return 0;
+
+    strip_newline(line);
+
+    if (sscanf(line, "stats %d %d %d", &l->stats.completed,
+                                       &l->stats.timeout,
+                                       &l->stats.fallout) < 3) {
+        /* compatible with save files without stats info */
+        l->stats.completed = 0;
+        l->stats.timeout   = 0;
+        l->stats.fallout   = 0;
+
+        /* stats not available, rewind file pointer */
+        fs_seek(fp, - strlen(line) - 1, SEEK_CUR);
+    }
+
+    return 1;
 }
 
 static void set_load_hs_v3(fs_file fp, struct set *s, char *buf, int size)
@@ -231,6 +266,8 @@ static void set_load_hs_v3(fs_file fp, struct set *s, char *buf, int size)
 
             if ((l = find_level(s, buf + n)))
             {
+                get_stats(fp, l);
+
                 /* Always prefer "locked" flag from the score file. */
 
                 l->is_locked = (flags & LEVEL_LOCKED);
@@ -300,6 +337,8 @@ static void set_load_hs_v2(fs_file fp, struct set *s, char *buf, int size)
 
             if ((l = find_level(s, buf + n)))
             {
+                get_stats(fp, l);
+
                 /* Always prefer "locked" flag from the score file. */
 
                 l->is_locked = (flags & LEVEL_LOCKED);
@@ -409,9 +448,9 @@ static int set_load(struct set *s, const char *filename)
     fs_file fin;
     char *scores, *level_name, *star_info;
 
-    /* Skip "Misc" or deprecated set when not in dev mode. */
+    /* Skip "Misc" when not in dev mode. */
 
-    if ((strcmp(filename, SET_MISC) == 0 || strcmp(filename, "set-htst.txt") == 0)
+    if ((strcmp(filename, SET_MISC) == 0)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
         && !config_cheat()
 #endif
@@ -420,17 +459,28 @@ static int set_load(struct set *s, const char *filename)
 #if NB_HAVE_PB_BOTH==1
 #ifdef CONFIG_INCLUDES_ACCOUNT
     /* Add more level sets when products bought. */
-    if ((strcmp(filename, "set-easy.txt") != 0 && strcmp(filename, "set-medium.txt") != 0 && strcmp(filename, "set-hard.txt") != 0 &&
-        strcmp(filename, "set-mym.txt") != 0 && strcmp(filename, "set-mym2.txt") != 0 && strcmp(filename, "set-fwp.txt") != 0 &&
-        strcmp(filename, "set-tones.txt") != 0 && strcmp(filename, "set-misc.txt") != 0) && (!account_get_d(ACCOUNT_PRODUCT_LEVELS)
-        && !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))) { return 0; }
-#else
-    if ((strcmp(filename, "set-easy.txt") != 0 && strcmp(filename, "set-medium.txt") != 0 && strcmp(filename, "set-hard.txt") != 0 &&
-        strcmp(filename, "set-mym.txt") != 0 && strcmp(filename, "set-mym2.txt") != 0 && strcmp(filename, "set-fwp.txt") != 0 &&
-        strcmp(filename, "set-tones.txt") != 0 && strcmp(filename, "set-misc.txt") != 0)
-            && !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))) {
+    if ((strcmp(filename, "set-easy.txt")   != 0 &&
+         strcmp(filename, "set-medium.txt") != 0 &&
+         strcmp(filename, "set-hard.txt")   != 0 &&
+         strcmp(filename, "set-mym.txt")    != 0 &&
+         strcmp(filename, "set-mym2.txt")   != 0 &&
+         strcmp(filename, "set-fwp.txt")    != 0 &&
+         strcmp(filename, "set-tones.txt")  != 0 &&
+         strcmp(filename, "set-misc.txt")   != 0) &&
+        (!account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
+        !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET)))
         return 0;
-    }
+#else
+    if ((strcmp(filename, "set-easy.txt")   != 0 &&
+         strcmp(filename, "set-medium.txt") != 0 &&
+         strcmp(filename, "set-hard.txt")   != 0 &&
+         strcmp(filename, "set-mym.txt")    != 0 &&
+         strcmp(filename, "set-mym2.txt")   != 0 &&
+         strcmp(filename, "set-fwp.txt")    != 0 &&
+         strcmp(filename, "set-tones.txt")  != 0 &&
+         strcmp(filename, "set-misc.txt")   != 0) &&
+        !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))
+        return 0;
 #endif
 #endif
 
@@ -750,7 +800,7 @@ static void set_load_levels(void)
     };
 
     struct set *s = SET_GET(sets, curr);
-    int regular = 1, bonus = 1;
+    int regular = 1, bonus = 1, master = 1;
     int i;
 
     default_set_maxtimelimit = 0;
@@ -763,7 +813,18 @@ static void set_load_levels(void)
         int lvl_was_offered = level_load(s->level_name_v[i], l);
         l->number = i;
 
-        if (l->is_bonus)
+        if (l->is_master)
+        {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(l->name, dstSize,
+#else
+            sprintf(l->name,
+#endif
+                    "M%d", master);
+
+            master++;
+        }
+        else if (l->is_bonus)
         {
             SAFECPY(l->name, roman[bonus]);
             bonus++;

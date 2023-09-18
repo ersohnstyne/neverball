@@ -29,7 +29,7 @@
 #if NB_STEAM_API==1
 #if _MSC_VER || __GNUC__
 
-#include "steam/steam_api.h"
+#include <steam/steam_api.h>
 
 #ifdef __EMSCRIPTEN__
 #error Cannot compile website in Steam games!
@@ -39,7 +39,7 @@
 #error Steam OS implemented, but NO DLCs detected!
 #endif
 
-#elif !_MSC_VER
+#elif _WIN32 && !_MSC_VER
 #error MinGW not supported! Use Visual Studio instead!
 #endif
 #endif
@@ -117,6 +117,9 @@ extern "C" {
 #include "package.h"
 #endif
 #include "currency.h"
+#if ENABLE_RFD==1
+#include "rfd.h"
+#endif
 
 #include "st_malfunction.h"
 #include "st_intro.h"
@@ -157,7 +160,8 @@ static void shot(void)
 #else
     sprintf(filename,
 #endif
-            "Screenshots/screen_%04d-%04d.png", secdecimal, config_screenshot());
+            "Screenshots/screen_%04d-%04d.png",
+            secdecimal, config_screenshot());
     video_snap(filename);
 #endif
 }
@@ -178,7 +182,7 @@ static int handle_key_dn(SDL_Event *e)
 
     /* SDL made me do it. */
 #ifdef __APPLE__
-    if (c == SDLK_q && e->key.keysym.mod & KMOD_GUI)
+    if (c == SDLK_q  && e->key.keysym.mod & KMOD_GUI)
 #endif
 #ifdef _WIN32
     if (c == SDLK_F4 && e->key.keysym.mod & KMOD_ALT)
@@ -225,25 +229,25 @@ static int handle_key_dn(SDL_Event *e)
         if (config_tst_d(CONFIG_KEY_FORWARD, c))
         {
             arrow_downcounter[0] += 1;
-            arrow_downcounter[0] = CLAMP(0, arrow_downcounter[0], 1);
+            arrow_downcounter[0]  = CLAMP(0, arrow_downcounter[0], 1);
             st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), -1);
         }
         else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
         {
             arrow_downcounter[1] += 1;
-            arrow_downcounter[1] = CLAMP(0, arrow_downcounter[1], 1);
+            arrow_downcounter[1]  = CLAMP(0, arrow_downcounter[1], 1);
             st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 1);
         }
         else if (config_tst_d(CONFIG_KEY_LEFT, c))
         {
             arrow_downcounter[2] += 1;
-            arrow_downcounter[2] = CLAMP(0, arrow_downcounter[2], 1);
+            arrow_downcounter[2]  = CLAMP(0, arrow_downcounter[2], 1);
             st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), -1);
         }
         else if (config_tst_d(CONFIG_KEY_RIGHT, c))
         {
             arrow_downcounter[3] += 1;
-            arrow_downcounter[3] = CLAMP(0, arrow_downcounter[3], 1);
+            arrow_downcounter[3]  = CLAMP(0, arrow_downcounter[3], 1);
             st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), 1);
         }
         else
@@ -270,25 +274,25 @@ static int handle_key_up(SDL_Event *e)
         if (config_tst_d(CONFIG_KEY_FORWARD, c))
         {
             arrow_downcounter[0] -= 1;
-            arrow_downcounter[0] = CLAMP(0, arrow_downcounter[0], 1);
+            arrow_downcounter[0]  = CLAMP(0, arrow_downcounter[0], 1);
             st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 0);
         }
         else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
         {
             arrow_downcounter[1] -= 1;
-            arrow_downcounter[1] = CLAMP(0, arrow_downcounter[1], 1);
+            arrow_downcounter[1]  = CLAMP(0, arrow_downcounter[1], 1);
             st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 0);
         }
         else if (config_tst_d(CONFIG_KEY_LEFT, c))
         {
             arrow_downcounter[2] -= 1;
-            arrow_downcounter[2] = CLAMP(0, arrow_downcounter[2], 1);
+            arrow_downcounter[2]  = CLAMP(0, arrow_downcounter[2], 1);
             st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), 0);
         }
         else if (config_tst_d(CONFIG_KEY_RIGHT, c))
         {
             arrow_downcounter[3] -= 1;
-            arrow_downcounter[3] = CLAMP(0, arrow_downcounter[3], 1);
+            arrow_downcounter[3]  = CLAMP(0, arrow_downcounter[3], 1);
             st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), 0);
         }
         else
@@ -301,7 +305,7 @@ static int handle_key_up(SDL_Event *e)
 #ifdef __EMSCRIPTEN__
 enum
 {
-    USER_EVENT_BACK = -1,
+    USER_EVENT_BACK  = -1,
     USER_EVENT_PAUSE = 0
 };
 
@@ -329,7 +333,7 @@ static void dispatch_fetch_event(void *data)
 
     memset(&e, 0, sizeof (e));
 
-    e.type = FETCH_EVENT;
+    e.type       = FETCH_EVENT;
     e.user.data1 = data;
 
     /* This is thread safe. */
@@ -364,7 +368,7 @@ static void dispatch_networking_event(void *data)
 
     memset(&e, 0, sizeof (e));
 
-    e.type = DEDICATED_SERVER_EVENT;
+    e.type       = DEDICATED_SERVER_EVENT;
     e.user.data1 = data;
 
     /* First, the variable values, before push the thread event. */
@@ -433,7 +437,9 @@ static int loop(void)
                 case USER_EVENT_PAUSE:
                     if (video_get_grab())
                     {
-                        if (curr_state() == &st_play_ready || curr_state() == &st_play_set || curr_state() == &st_play_loop)
+                        if (curr_state() == &st_play_ready ||
+                            curr_state() == &st_play_set   ||
+                            curr_state() == &st_play_loop)
                             goto_pause(curr_state());
                     }
                     break;
@@ -879,7 +885,9 @@ static void make_dirs_and_migrate(void)
             for (i = 0; i < array_len(items); i++)
             {
                 src = DIR_ITEM_GET(items, i)->path;
-                dst = concat_string("Accounts/", src + sizeof ("neverballaccount-") - 1, NULL);
+                dst = concat_string("Accounts/",
+                                    src + sizeof ("neverballaccount-") - 1,
+                                    NULL);
                 fs_rename(src, dst);
                 free(dst);
             }
@@ -953,7 +961,8 @@ static void step(void *data)
         {
             /* Step the game state. */
 
-            float deltaTime = config_get_d(CONFIG_SMOOTH_FIX) ? MIN(frame_smooth, dt) : MIN(100.f, dt);
+            float deltaTime = config_get_d(CONFIG_SMOOTH_FIX) ?
+                              MIN(frame_smooth, dt) : MIN(100.f, dt);
 
             CHECK_GAMESPEED(20, 100);
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
@@ -998,7 +1007,7 @@ static void step(void *data)
 static void panorama_snap(char *panorama_sides)
 {
     char *filename = concat_string("Screenshots/shot-panorama/panorama_volcano_",
-        panorama_sides, ".png", NULL);
+                                   panorama_sides, ".png", NULL);
 
     video_clear();
     back_draw_easy();
@@ -1055,7 +1064,7 @@ static int main_init(int argc, char *argv[])
     if (!fs_init(argc > 0 ? argv[0] : NULL))
     {
         fprintf(stderr, "Failure to initialize file system (%s)\n",
-            fs_error());
+                        fs_error());
         return 0;
     }
 
@@ -1125,12 +1134,18 @@ static int main_init(int argc, char *argv[])
     config_init();
     config_load();
 
+#if ENABLE_RFD==1
+    /* Initialize RFD. */
+
+    rfd_init();
+    rfd_load();
+#endif
+
     /* Initialize networking. */
 #ifndef DISABLE_PANORAMA
     if (!opt_panorama)
     {
 #endif
-
         /* Initialize currency units. */
 
         currency_init();
@@ -1244,7 +1259,7 @@ static int main_init(int argc, char *argv[])
         account_load();
 
         if (server_policy_get_d(SERVER_POLICY_EDITION) > 1
-            && account_get_d(ACCOUNT_SET_UNLOCKS) < 1)
+         && account_get_d(ACCOUNT_SET_UNLOCKS) < 1)
             account_set_d(ACCOUNT_SET_UNLOCKS, 1);
 
         account_save();
@@ -1293,17 +1308,17 @@ static void main_quit(void)
         accessibility_save();
 #endif
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        account_save();
+        account_save      ();
 #endif
-        tilt_free();
+        tilt_free         ();
     }
 
     config_save();
 
-    mtrl_quit();
+    mtrl_quit ();
     video_quit();
     audio_free();
-    lang_quit();
+    lang_quit ();
 
 #if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
     joy_quit();
@@ -1311,6 +1326,10 @@ static void main_quit(void)
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
     account_quit();
+#endif
+
+#if ENABLE_RFD==1
+    rfd_quit();
 #endif
 
     config_quit();
@@ -1322,7 +1341,7 @@ static void main_quit(void)
 
 #ifndef FS_VERSION_1
         package_quit();
-        fetch_quit();
+        fetch_quit  ();
 #endif
 
 #if NB_HAVE_PB_BOTH==1
@@ -1333,7 +1352,7 @@ static void main_quit(void)
 #endif
 
     log_quit();
-    fs_quit();
+    fs_quit ();
 
 #if _cplusplus
     try {
@@ -1412,7 +1431,8 @@ int main(int argc, char *argv[])
         }
         else
         {
-            log_errorf("Replay file %s is not allowed due only finish\n", opt_replay);
+            log_errorf("Replay file %s is not allowed due only finish\n",
+                       opt_replay);
             goto_state(&st_title);
         }
     }

@@ -91,11 +91,7 @@ void gt_init(const char *domain, const char *pref)
     if (!setlocale(LC_ALL, ""))
     {
         log_errorf("Failure to set LC_ALL to native locale (%s)\n",
-#if _WIN32
-                   GetLastError() ? DW_FORMAT_MSG(GetLastError()) : "Unknown error");
-#else
                    errno ? strerror(errno) : "Unknown error");
-#endif
     }
     else
     {

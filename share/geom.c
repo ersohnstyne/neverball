@@ -48,43 +48,31 @@
 const struct tex_env *curr_tex_env;
 
 static void tex_env_conf_default(int, int);
-static void tex_env_conf_shadow(int, int);
-static void tex_env_conf_pose(int, int);
+static void tex_env_conf_shadow (int, int);
+static void tex_env_conf_pose   (int, int);
 
 const struct tex_env tex_env_default = {
-    tex_env_conf_default,
-    1,
-    {
-        { GL_TEXTURE0, TEX_STAGE_TEXTURE }
-    }
+    tex_env_conf_default, 1,
+    {{ GL_TEXTURE0, TEX_STAGE_TEXTURE }}
 };
 
 const struct tex_env tex_env_shadow = {
-    tex_env_conf_shadow,
-    2,
-    {
-        { GL_TEXTURE0, TEX_STAGE_SHADOW },
-        { GL_TEXTURE1, TEX_STAGE_TEXTURE }
-    }
+    tex_env_conf_shadow, 2,
+    {{ GL_TEXTURE0, TEX_STAGE_SHADOW  },
+     { GL_TEXTURE1, TEX_STAGE_TEXTURE }}
 };
 
 const struct tex_env tex_env_shadow_clip = {
-    tex_env_conf_shadow,
-    3,
-    {
-        { GL_TEXTURE0, TEX_STAGE_SHADOW },
-        { GL_TEXTURE1, TEX_STAGE_CLIP },
-        { GL_TEXTURE2, TEX_STAGE_TEXTURE }
-    }
+    tex_env_conf_shadow, 3,
+    {{ GL_TEXTURE0, TEX_STAGE_SHADOW  },
+     { GL_TEXTURE1, TEX_STAGE_CLIP    },
+     { GL_TEXTURE2, TEX_STAGE_TEXTURE }}
 };
 
 const struct tex_env tex_env_pose = {
-    tex_env_conf_pose,
-    2,
-    {
-        { GL_TEXTURE0, TEX_STAGE_SHADOW },
-        { GL_TEXTURE1, TEX_STAGE_TEXTURE }
-    }
+    tex_env_conf_pose, 2,
+    {{ GL_TEXTURE0, TEX_STAGE_SHADOW  },
+     { GL_TEXTURE1, TEX_STAGE_TEXTURE }}
 };
 
 static void tex_env_conf_default(int stage, int enable)
@@ -100,9 +88,9 @@ static void tex_env_conf_default(int stage, int enable)
 
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-            glMatrixMode(GL_TEXTURE);
+            glMatrixMode  (GL_TEXTURE);
             glLoadIdentity();
-            glMatrixMode(GL_MODELVIEW);
+            glMatrixMode  (GL_MODELVIEW);
         }
         else
             glDisable(GL_TEXTURE_2D);
@@ -125,16 +113,16 @@ static void tex_env_conf_shadow(int stage, int enable)
 
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
-            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_TEXTURE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB,  GL_MODULATE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB,     GL_PREVIOUS);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB,     GL_TEXTURE);
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_ONE_MINUS_SRC_ALPHA);
 
             /* Copy incoming alpha. */
 
-            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA,  GL_REPLACE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA,     GL_PREVIOUS);
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 
             glMatrixMode(GL_TEXTURE);
@@ -152,18 +140,18 @@ static void tex_env_conf_shadow(int stage, int enable)
 
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
-            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_PRIMARY_COLOR);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SRC2_RGB, GL_TEXTURE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB,  GL_INTERPOLATE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB,     GL_PREVIOUS);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB,     GL_PRIMARY_COLOR);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SRC2_RGB,     GL_TEXTURE);
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);
 
             /* Copy incoming alpha. */
 
-            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA,  GL_REPLACE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA,     GL_PREVIOUS);
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 
             glMatrixMode(GL_TEXTURE);
@@ -342,6 +330,13 @@ static struct s_full back;
 static struct s_full item[GEOM_MAX];
 static struct s_full chkp;
 
+static struct s_full chnk_pane;
+static struct s_full chnk_ball;
+static struct s_full chnk_jump;
+static struct s_full chnk_goal;
+static struct s_full chnk_swch;
+static struct s_full chnk_chkp;
+
 static int back_state = 0;
 
 /*---------------------------------------------------------------------------*/
@@ -387,15 +382,15 @@ void geom_init(void)
 
     if (!sol_load_full(&jump, jump_style, 0)) {
         sol_free_full(&jump);
-        if (!sol_load_full(&jump, "geom/jump/jump.sol", 0)) { log_errorf("Unable to load teleporter!\n"); }
+        sol_load_full(&jump, "geom/jump/jump.sol", 0);
     }
     if (!sol_load_full(&goal, goal_style, 0)) {
         sol_free_full(&goal);
-        if (!sol_load_full(&goal, "geom/goal/goal.sol", 0)) { log_errorf("Unable to load goal!\n"); }
+        sol_load_full(&goal, "geom/goal/goal.sol", 0);
     }
 #else
-    if (!sol_load_full(&jump, "geom/jump/jump.sol", 0)) { log_errorf("Unable to load teleporter!\n"); }
-    if (!sol_load_full(&goal, "geom/goal/goal.sol", 0)) { log_errorf("Unable to load goal!\n"); }
+    sol_load_full(&jump, "geom/jump/jump.sol", 0);
+    sol_load_full(&goal, "geom/goal/goal.sol", 0)
 #endif
 
     sol_load_full(&flag, "geom/flag/flag.sol", 0);
@@ -403,18 +398,33 @@ void geom_init(void)
     sol_load_full(&vect, "geom/vect/vect.sol", 0);
 
     for (i = 0; i < GEOM_MAX; i++)
-    {
-        if (!sol_load_full(&item[i], item_sols[i], 0)) { log_errorf("Unable to load item!: %s\n", item_sols[i]); }
-    }
+        sol_load_full(&item[i], item_sols[i], 0);
 
     sol_load_full(&chkp, "geom/chkp/chkp.sol", 0);
+
+    sol_load_full(&chnk_pane, "geom/chnk/chnk_pane.sol", 0);
+    sol_load_full(&chnk_ball, "geom/chnk/chnk_ball.sol", 0);
+    sol_load_full(&chnk_jump, "geom/chnk/chnk_jump.sol", 0);
+    sol_load_full(&chnk_goal, "geom/chnk/chnk_goal.sol", 0);
+    sol_load_full(&chnk_swch, "geom/chnk/chnk_swch.sol", 0);
+    sol_load_full(&chnk_chkp, "geom/chnk/chnk_chkp.sol", 0);
 }
 
 void geom_free(void)
 {
     int i;
 
+    sol_free_full(&chnk_chkp);
+    sol_free_full(&chnk_swch);
+    sol_free_full(&chnk_goal);
+    sol_free_full(&chnk_jump);
+    sol_free_full(&chnk_ball);
+    sol_free_full(&chnk_pane);
+
     sol_free_full(&chkp);
+
+    for (i = 0; i < GEOM_MAX; i++)
+        sol_free_full(&item[i]);
 
     sol_free_full(&vect);
     sol_free_full(&mark);
@@ -422,9 +432,6 @@ void geom_free(void)
     sol_free_full(&goal);
     sol_free_full(&jump);
     sol_free_full(&beam);
-
-    for (i = 0; i < GEOM_MAX; i++)
-        sol_free_full(&item[i]);
 }
 
 void geom_step(float dt)
@@ -689,6 +696,42 @@ void back_draw_easy(void)
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * Map chunk overview support
+ */
+
+void chnk_pane_draw(struct s_rend *rend)
+{
+    sol_draw(&chnk_pane.draw, rend, 1, 1);
+}
+
+void chnk_ball_draw(struct s_rend *rend)
+{
+    sol_draw(&chnk_ball.draw, rend, 1, 1);
+}
+
+void chnk_jump_draw(struct s_rend *rend)
+{
+    sol_draw(&chnk_jump.draw, rend, 1, 1);
+}
+
+void chnk_goal_draw(struct s_rend *rend)
+{
+    sol_draw(&chnk_goal.draw, rend, 1, 1);
+}
+
+void chnk_swch_draw(struct s_rend* rend)
+{
+    sol_draw(&chnk_swch.draw, rend, 1, 1);
+}
+
+void chnk_chkp_draw(struct s_rend *rend)
+{
+    sol_draw(&chnk_chkp.draw, rend, 1, 1);
+}
+
+/*---------------------------------------------------------------------------*/
+
 //#define SUPER_SHADOWS
 
 /*
@@ -817,16 +860,16 @@ static const struct light default_lights[LIGHT_MAX] = {
     {
         { -8.0f, +32.0f, -8.0f, 0.0f },
 
-        { 1.0f, 0.8f, 0.8f, 1.0f },
-        { 0.7f, 0.7f, 0.7f, 1.0f },
-        { 1.0f, 0.8f, 0.8f, 1.0f }
+        {  1.0f,   0.8f,  0.8f, 1.0f },
+        {  0.7f,   0.7f,  0.7f, 1.0f },
+        {  1.0f,   0.8f,  0.8f, 1.0f }
     },
     {
         { +8.0f, +32.0f, +8.0f, 0.0f },
 
-        { 0.8f, 1.0f, 0.8f, 1.0f },
-        { 0.7f, 0.7f, 0.7f, 1.0f },
-        { 0.8f, 1.0f, 0.8f, 1.0f },
+        {  0.8f,   1.0f,  0.8f, 1.0f },
+        {  0.7f,   0.7f,  0.7f, 1.0f },
+        {  0.8f,   1.0f,  0.8f, 1.0f },
     },
     {
         { 0.0f, 0.0f, 1.0f, 0.0f },

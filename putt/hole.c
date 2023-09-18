@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -81,7 +81,7 @@ static void hole_init_rc(const char *filename)
                    sscanf(buff, "%s %s %d %s",
                           hole_v[count].file,
                           hole_v[count].back,
-                          &hole_v[count].par,
+                         &hole_v[count].par,
                           hole_v[count].song) >= 1)
                 count++;
         }
@@ -327,9 +327,9 @@ const char *curr_stroke_type_name(void)
 {
     switch (stroke_type_v[player])
     {
-    case 3: return _("Driver");
-    case 2: return _("Iron");
-    case 1: return _("Wedge");
+    case 3:  return _("Driver");
+    case 2:  return _("Iron");
+    case 1:  return _("Wedge");
     default: return _("Putt");
     }
 }
@@ -464,8 +464,6 @@ void hole_skip(void)
 
 void hole_fall(int split)
 {
-    /* Default stroke limit for open-world: 65536 */
-
     int stroke_limit = score_v[hole][0] + 4;
     audio_narrator_play(AUD_PENALTY);
 

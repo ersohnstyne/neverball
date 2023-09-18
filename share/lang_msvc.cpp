@@ -119,7 +119,8 @@ void ms_nls_init(const char *pref)
         if (path_is_abs(CONFIG_LOCALE "\\..\\po"))
             dir = strdup(CONFIG_LOCALE "\\..\\po");
         else
-            dir = concat_string(fs_base_dir(), "\\", CONFIG_LOCALE, "\\..\\po", NULL);
+            dir = concat_string(fs_base_dir(), "\\", CONFIG_LOCALE, "\\..\\po",
+                                NULL);
     }
 
     bool lang_available = false;

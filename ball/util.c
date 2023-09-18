@@ -57,7 +57,14 @@ static int score_coin[4];
 static int score_name[4];
 static int score_time[4];
 
-static int score_extra_row;
+struct {
+    int completed;
+    int timeout;
+    int fallout;
+    int clear_rate;
+} stats_labels;
+
+static int score_extra_row, stats_extra_row;
 
 /* Build a top three score list with default values. */
 
@@ -68,6 +75,7 @@ static void gui_scores(int id, int e)
     int j, jd, kd, ld;
 
     score_extra_row = e;
+    stats_extra_row = e;
 
     if ((jd = gui_vstack(id)))
     {
@@ -110,6 +118,39 @@ static void gui_scores(int id, int e)
     }
 }
 
+static void gui_stats(int id)
+{
+    int at, rt;
+
+    if ((at = gui_vstack(id)))
+    {
+        gui_filler(at);
+        gui_label(at, _("Stats"), GUI_SML, 0, 0);
+        
+        stats_labels.completed = gui_label(at, "XXXXXXXXXXX",
+                                               GUI_SML, gui_grn, gui_wht);
+        stats_labels.timeout   = gui_label(at, "XXXXXXXXXXX",
+                                               GUI_SML, gui_yel, gui_wht);
+        stats_labels.fallout   = gui_label(at, "XXXXXXXXXXX",
+                                               GUI_SML, gui_red, gui_wht);
+
+        gui_set_label(stats_labels.completed, " ");
+        gui_set_label(stats_labels.timeout,   " ");
+        gui_set_label(stats_labels.fallout,   " ");
+
+        if (stats_extra_row)
+        {
+            stats_labels.clear_rate = gui_label(at, "XXXXXXXXXXX",
+                                                    GUI_SML, gui_red, gui_red);
+
+            gui_set_label(stats_labels.clear_rate, " ");
+        }
+
+        gui_set_rect(at, GUI_ALL);
+        gui_filler(at);
+    }
+}
+
 /* Set the top three score list values. */
 
 static void gui_set_scores(const char *label, const struct score *s, int hilite)
@@ -142,7 +183,8 @@ static void gui_set_scores(const char *label, const struct score *s, int hilite)
                 gui_set_color(score_name[j], gui_yel, gui_wht);
 
             gui_set_count(score_coin[j], s->coins[j]);
-            gui_set_label(score_name[j], is_special_name(name) ? _(name) : name);
+            gui_set_label(score_name[j], is_special_name(name) ? _(name) :
+                                                                   name);
             gui_set_clock(score_time[j], s->timer[j]);
         }
     }
@@ -217,6 +259,10 @@ void gui_score_board(int pd, unsigned int types, int e, int h)
         gui_scores(id, e);
 
         gui_filler(id);
+
+        gui_stats(id);
+
+        gui_filler(id);
     }
 }
 
@@ -256,6 +302,73 @@ void gui_score_set(int t)
 int  gui_score_get(void)
 {
     return score_type;
+}
+
+void gui_campaign_stats(const struct level *l)
+{
+    gui_levelgroup_stats(l);
+}
+
+void gui_set_stats(const struct level *l)
+{
+    gui_levelgroup_stats(l);
+}
+
+void gui_levelgroup_stats(const struct level *l)
+{
+    char buffer[4][12];
+
+    /* Calculate the clear rate per levels. */
+
+    float clr_rate_val = (float) (ROUND(((l->stats.completed /
+                                        ((l->stats.timeout +
+                                          l->stats.fallout) + 1))) *
+                                          10000) / 100);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(buffer[0], 12, "%d",    l->stats.completed);
+    sprintf_s(buffer[1], 12, "%d",    l->stats.timeout);
+    sprintf_s(buffer[2], 12, "%d",    l->stats.fallout);
+    sprintf_s(buffer[3], 12, "%f %%", clr_rate_val);
+#else
+    sprintf(buffer[0], "%d",    l->stats.completed);
+    sprintf(buffer[1], "%d",    l->stats.timeout);
+    sprintf(buffer[2], "%d",    l->stats.fallout);
+    sprintf(buffer[3], "%f%%", clr_rate_val);
+#endif
+
+    gui_set_label(stats_labels.completed,  buffer[0]);
+    gui_set_label(stats_labels.timeout,    buffer[1]);
+    gui_set_label(stats_labels.fallout,    buffer[2]);
+
+    if (stats_extra_row)
+    {
+        gui_set_label(stats_labels.clear_rate, buffer[3]);
+
+        if      (clr_rate_val < 5)
+            gui_set_color(stats_labels.clear_rate, gui_red, gui_blk);
+        else if (clr_rate_val < 10)
+            gui_set_color(stats_labels.clear_rate, gui_red, gui_gry);
+        else if (clr_rate_val < 25)
+            gui_set_color(stats_labels.clear_rate, gui_red, gui_red);
+        else if (clr_rate_val < 50)
+            gui_set_color(stats_labels.clear_rate, gui_yel, gui_yel);
+        else if (clr_rate_val < 75)
+            gui_set_color(stats_labels.clear_rate, gui_grn, gui_grn);
+        else if (clr_rate_val < 85)
+            gui_set_color(stats_labels.clear_rate, gui_cya, gui_cya);
+        else 
+            gui_set_color(stats_labels.clear_rate, gui_wht, gui_cya);
+
+        if (l->stats.completed == 0 &&
+            l->stats.timeout   == 0 &&
+            l->stats.fallout   == 0)
+        {
+            gui_set_label(stats_labels.clear_rate, "---.-- %");
+            gui_set_color(stats_labels.clear_rate, gui_red, gui_blk);
+        }
+        else gui_set_label(stats_labels.clear_rate, buffer[3]);
+    }
 }
 
 /*---------------------------------------------------------------------------*/

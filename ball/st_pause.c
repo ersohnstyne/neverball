@@ -74,10 +74,10 @@ int goto_pause(struct state *returnable)
     st_continue = returnable;
 
     /* Set it up some those states? */
-    if (st_continue == &st_play_ready
-        || st_continue == &st_play_set
-        || st_continue == &st_play_loop
-        || st_continue == &st_look)
+    if (st_continue == &st_play_ready ||
+        st_continue == &st_play_set   ||
+        st_continue == &st_play_loop  ||
+        st_continue == &st_look)
     {
         if (st_continue == &st_play_set)
             st_continue = &st_play_ready;
@@ -126,7 +126,8 @@ static int pause_action(int tok, int val)
                 {
                     audio_music_fade_in(0.5f);
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                    return goto_state(campaign_used() ? &st_play_ready : &st_level);
+                    return goto_state(campaign_used() ? &st_play_ready :
+                                                        &st_level);
 #else
                     return goto_state(&st_play_ready);
 #endif
@@ -278,19 +279,23 @@ static int pause_gui(void)
 
 #ifdef MAPC_INCLUDES_CHKP
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
-        if (curr_mode() == MODE_NORMAL && account_get_d(ACCOUNT_PRODUCT_MEDIATION) && last_active)
+        if      (curr_mode() == MODE_NORMAL &&
+                 account_get_d(ACCOUNT_PRODUCT_MEDIATION) && last_active)
             drastic = pause_button_width(1, 1) * 5 > config_get_d(CONFIG_WIDTH);
-        else if (curr_mode() == MODE_NORMAL && account_get_d(ACCOUNT_PRODUCT_MEDIATION))
+        else if (curr_mode() == MODE_NORMAL &&
+                 account_get_d(ACCOUNT_PRODUCT_MEDIATION))
             drastic = pause_button_width(1, 0) * 4 > config_get_d(CONFIG_WIDTH);
         else
 #endif
-        if (last_active)
+        if      (last_active)
             drastic = pause_button_width(0, 1) * 4 > config_get_d(CONFIG_WIDTH);
 #else
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
-        if (curr_mode() == MODE_NORMAL && account_get_d(ACCOUNT_PRODUCT_MEDIATION) && last_active)
+        if      (curr_mode() == MODE_NORMAL &&
+                 account_get_d(ACCOUNT_PRODUCT_MEDIATION) && last_active)
             drastic = pause_button_width(1, 1) * 4 > config_get_d(CONFIG_WIDTH);
-        else if (curr_mode() == MODE_NORMAL && account_get_d(ACCOUNT_PRODUCT_MEDIATION))
+        else if (curr_mode() == MODE_NORMAL &&
+                 account_get_d(ACCOUNT_PRODUCT_MEDIATION))
             drastic = pause_button_width(1, 0) * 3 > config_get_d(CONFIG_WIDTH);
 #endif
 #endif
@@ -356,8 +361,9 @@ static int pause_gui(void)
 #endif
 
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
-                if (curr_mode() == MODE_NORMAL && account_get_d(ACCOUNT_PRODUCT_MEDIATION)
-                    && !mediation_enabled())
+                if (curr_mode() == MODE_NORMAL &&
+                    account_get_d(ACCOUNT_PRODUCT_MEDIATION) &&
+                    !mediation_enabled())
                     gui_state(jd, _("Switch to Zen"), GUI_SML, PAUSE_ZEN_SWITCH, 0);
 #endif
             }
@@ -402,7 +408,8 @@ static void pause_timer(int id, float dt)
     {
         game_step_fade(dt);
         game_server_step(dt);
-        game_client_sync(!campaign_hardcore_norecordings() && curr_mode() != MODE_NONE ? NULL : demo_fp);
+        game_client_sync(!campaign_hardcore_norecordings() &&
+                         curr_mode() != MODE_NONE ? NULL : demo_fp);
         game_client_blend(game_server_blend());
     }
 
@@ -418,7 +425,7 @@ static int pause_keybd(int c, int d)
     {
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
         {
@@ -485,15 +492,19 @@ static int pause_quit_gui(void)
 
         gui_space(id);
 
-        char *quit_warn = campaign_hardcore() ? _("Return to World selection?") : _("Are you sure?\\You will lose all progress on this level.");
+        char *quit_warn = campaign_hardcore() ? _("Return to World selection?") :
+                                                _("Are you sure?\\"
+                                                  "You will lose all progress on this level.");
         if (curr_mode() == MODE_NONE)
             quit_warn = _("Return to main menu?");
 
         if (quit_uses_resetpuzzle)
-            quit_warn = _("Are you sure?\\You will restart at the last checkpoint.");
+            quit_warn = _("Are you sure?\\"
+                          "You will restart at the last checkpoint.");
 
         if (!campaign_used() && curr_times() > 0)
-            quit_warn = _("Are you sure?\\You will lose all progress on this level set.");
+            quit_warn = _("Are you sure?\\"
+                          "You will lose all progress on this level set.");
 
         gui_multi(id, quit_warn, GUI_SML, gui_wht, gui_wht);
 
@@ -507,14 +518,16 @@ static int pause_quit_gui(void)
             {
                 gui_start(jd, _("No"), GUI_SML, PAUSE_CONTINUE, 0);
                 gui_state(jd, _("Yes"), GUI_SML,
-                    quit_uses_restart ? PAUSE_RESTART :
-                        quit_uses_resetpuzzle ? PAUSE_RESPAWN : PAUSE_EXIT, 0);
+                          quit_uses_restart ? PAUSE_RESTART :
+                                              (quit_uses_resetpuzzle ? PAUSE_RESPAWN :
+                                                                       PAUSE_EXIT), 0);
             }
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             else
                 gui_start(jd, _("Yes"), GUI_SML,
-                    quit_uses_restart ? PAUSE_RESTART :
-                    quit_uses_resetpuzzle ? PAUSE_RESPAWN : PAUSE_EXIT, 0);
+                          quit_uses_restart ? PAUSE_RESTART :
+                                              (quit_uses_resetpuzzle ? PAUSE_RESPAWN :
+                                                                       PAUSE_EXIT), 0);
 #endif
         }
     }

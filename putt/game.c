@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -611,6 +611,7 @@ int game_step(const float g[3], float dt)
 void game_putt(void)
 {
     enable_force_timeout = 1;
+    roll_force_timeout = 0;
 
     /*
      * HACK: The BALL_FUDGE here  guarantees that a putt doesn't drive

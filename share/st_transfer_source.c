@@ -96,23 +96,53 @@
 #define AUD_BACK "snd/back.ogg"
 
 #define TRANSFER_OFFLINE_ONLY
-#define TITLE_SOURCE_TRANSFER N_("Pennyball Transfer Tool")
+#define TITLE_SOURCE_TRANSFER \
+    N_("Pennyball Transfer Tool")
 
-#define SOURCE_TRANSFER_WARNING_DELETE_DATA N_("Once deleted, this data cannot be restored.\\Do you want to continue?")
+#define SOURCE_TRANSFER_WARNING_DELETE_DATA \
+    N_("Once deleted, this data cannot be restored.\\" \
+       "Do you want to continue?")
 
-#define SOURCE_TRANSFER_WARNING_EXTERNAL N_("Do not touch the External Drive, exit the\\game or turn off the PC, otherwise data\\may be lost.")
-#define SOURCE_TRANSFER_WARNING_INTERNAL N_("Do not exit the game or turn off the PC,\\otherwise data may be lost.")
+#define SOURCE_TRANSFER_WARNING_EXTERNAL \
+    N_("Do not touch the External Drive, exit the\\" \
+       "game or turn off the PC, otherwise data\\" \
+       "may be lost.")
+#define SOURCE_TRANSFER_WARNING_INTERNAL \
+    N_("Do not exit the game or turn off the PC,\\" \
+       "otherwise data may be lost.")
 
-#define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_COVID N_("There are exceeded limits of level status currently stored in the\\Replay of this game. The Replay in the target Pennyball game\\has an COVID-19 feature, so the Replays\\will be lost, if you perform this transfer now.")
-#define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_USER N_("There are exceeded limits of level status currently stored in the\\Replay of this game. The Replay in the target Pennyball game\\has an premade filters, so the Replays\\will be lost, if you perform this transfer now.")
-#define SOURCE_TRANSFER_WARNING_REPLAY_BACKUP N_("If you do not want to delete these Replays,\\you should move them to the backup folder\\before performing this transfer.")
-#define SOURCE_TRANSFER_WARNING_REPLAY_CONTINUE N_("Do you wish to continue with the transfer?")
+#define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_COVID \
+    N_("There are exceeded limits of level status currently stored in the\\" \
+       "Replay of this game. The Replay in the target Pennyball game\\" \
+       "has an COVID-19 feature, so the Replays\\"\
+       "will be lost, if you perform this transfer now.")
+#define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_USER \
+    N_("There are exceeded limits of level status currently stored in the\\" \
+       "Replay of this game. The Replay in the target Pennyball game\\" \
+       "has an premade filters, so the Replays\\" \
+       "will be lost, if you perform this transfer now.")
+#define SOURCE_TRANSFER_WARNING_REPLAY_BACKUP \
+    N_("If you do not want to delete these Replays,\\" \
+       "you should move them to the backup folder\\" \
+       "before performing this transfer.")
+#define SOURCE_TRANSFER_WARNING_REPLAY_CONTINUE \
+    N_("Do you wish to continue with the transfer?")
 
-#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_1 N_("There are same replay names on both games.")
-#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_2 N_("Would you like delete the replay from the\\target game and replace with new ones?\\(Replays will be deleted after the transfer.)")
+#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_1 \
+    N_("There are same replay names on both games.")
+#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_2 \
+    N_("Would you like delete the replay from the\\" \
+       "target game and replace with new ones?\\" \
+       "(Replays will be deleted after the transfer.)")
 
-#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_CONFIRM_1 N_("The saved replay names will be overwritten\\with that of this game.\\Do you really want to continue?")
-#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_CONFIRM_2 N_("(Replays, that you used on the target game\\before the transfer, will no longer be\\used after the transfer.)")
+#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_CONFIRM_1 \
+    N_("The saved replay names will be overwritten\\" \
+       "with that of this game.\\" \
+       "Do you really want to continue?")
+#define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_CONFIRM_2 \
+    N_("(Replays, that you used on the target game\\" \
+       "before the transfer, will no longer be\\" \
+       "used after the transfer.)")
 
 /*---------------------------------------------------------------------------*/
 
@@ -177,12 +207,21 @@ int transfer_introducory_gui(void)
             switch (transfer_pageindx)
             {
             case 0:
-                gui_multi(jd, _("This apps allows you to transfer data from\\this game to a target Pennyball game."), GUI_SML, gui_wht, gui_wht);
-                gui_multi(jd, _("Do you have a target game and an external drive?\\(These are required to perform a transfer.)"), GUI_SML, gui_wht, gui_wht);
-                gui_multi(jd, _("If you are under the age of 18, call an adult\\and have them perform the transfer."), GUI_SML, gui_blu, gui_blu);
+                gui_multi(jd, _("This apps allows you to transfer data from\\"
+                                "this game to a target Pennyball game."),
+                              GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Do you have a target game and an external drive?\\"
+                                "(These are required to perform a transfer.)"),
+                              GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("If you are under the age of 18, call an adult\\"
+                                "and have them perform the transfer."),
+                              GUI_SML, gui_blu, gui_blu);
                 break;
             case 1:
-                gui_multi(jd, _("Select Neverball Game Transfer\\and make all preparations on the\\target game necessary."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Select Neverball Game Transfer\\"
+                                "and make all preparations on the\\"
+                                "target game necessary."),
+                              GUI_SML, gui_wht, gui_wht);
                 break;
             }
             gui_set_rect(jd, GUI_ALL);
@@ -225,16 +264,26 @@ int transfer_prepare_gui(void)
         {
 #if ENABLE_DEDICATED_SERVER==1 && !defined(TRANSFER_OFFLINE_ONLY)
             if (preparations_internet)
-                gui_multi(jd, _("Connecting to the Internet to confirm that\\the transfer can be performed..."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Connecting to the Internet to confirm that\\"
+                                "the transfer can be performed..."),
+                              GUI_SML, gui_wht, gui_wht);
             else
 #endif
             {
 #if defined(TRANSFER_OFFLINE_ONLY)
-                gui_multi(jd, _("In order to perform a game transfer, you\\first need to make preparations on the\\target game."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("In order to perform a game transfer, you\\"
+                                "first need to make preparations on the\\"
+                                "target game."),
+                              GUI_SML, gui_wht, gui_wht);
 #else
-                gui_multi(jd, _("In order to perform a game transfer, you\\first need to make preparations on the\\target game and connect this\\game to the internet."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("In order to perform a game transfer, you\\"
+                                "first need to make preparations on the\\"
+                                "target game and connect this\\"
+                                "game to the internet."),
+                              GUI_SML, gui_wht, gui_wht);
 #endif
-                gui_multi(jd, _("Have you made these preparations?"), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Have you made these preparations?"),
+                              GUI_SML, gui_wht, gui_wht);
             }
 
             gui_set_rect(jd, GUI_ALL);
@@ -267,11 +316,15 @@ int transfer_replay_gui(void)
         if ((jd = gui_vstack(id)))
         {
             if (pretransfer_replay_status_covid)
-                gui_multi(jd, _(SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_COVID), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _(SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_COVID),
+                              GUI_SML, gui_wht, gui_wht);
             else
-                gui_multi(jd, _(SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_USER), GUI_SML, gui_wht, gui_wht);
-            gui_multi(jd, _(SOURCE_TRANSFER_WARNING_REPLAY_BACKUP), GUI_SML, gui_wht, gui_wht);
-            gui_multi(jd, _(SOURCE_TRANSFER_WARNING_REPLAY_CONTINUE), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _(SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_USER),
+                              GUI_SML, gui_wht, gui_wht);
+            gui_multi(jd, _(SOURCE_TRANSFER_WARNING_REPLAY_BACKUP),
+                          GUI_SML, gui_wht, gui_wht);
+            gui_multi(jd, _(SOURCE_TRANSFER_WARNING_REPLAY_CONTINUE),
+                          GUI_SML, gui_wht, gui_wht);
 
             gui_set_rect(jd, GUI_ALL);
         }
@@ -303,10 +356,12 @@ int transfer_gui(void)
             switch (transfer_pageindx)
             {
             case 6:
-                gui_label(id, _("Finished all steps for this game"), GUI_SML, 0, 0);
+                gui_label(id, _("Finished all steps for this game"),
+                              GUI_SML, 0, 0);
                 break;
             case 4:
-                gui_label(id, _("Transferring Data from this game"), GUI_SML, 0, 0);
+                gui_label(id, _("Transferring Data from this game"),
+                              GUI_SML, 0, 0);
                 break;
             case 5:
                 gui_label(id, _("Wallet transferred"), GUI_SML, 0, 0);
@@ -329,47 +384,70 @@ int transfer_gui(void)
                     switch (transfer_working)
                     {
                     case TRANSFER_WORKING_STATE_LOAD_EXTERNAL:
-                        gui_multi(jd, _("Loading data from the External Drive..."), GUI_SML, gui_wht, gui_wht);
-                        gui_multi(jd, _(SOURCE_TRANSFER_WARNING_EXTERNAL), GUI_SML, gui_red, gui_red);
+                        gui_multi(jd, _("Loading data from the External Drive..."),
+                                      GUI_SML, gui_wht, gui_wht);
+                        gui_multi(jd, _(SOURCE_TRANSFER_WARNING_EXTERNAL),
+                                      GUI_SML, gui_red, gui_red);
                         break;
                     case TRANSFER_WORKING_STATE_SAVE_INTERNAL:
-                        gui_multi(jd, _("Saving game transfer data to the PC..."), GUI_SML, gui_wht, gui_wht);
-                        gui_multi(jd, _(SOURCE_TRANSFER_WARNING_INTERNAL), GUI_SML, gui_red, gui_red);
+                        gui_multi(jd, _("Saving game transfer data to the PC..."),
+                                      GUI_SML, gui_wht, gui_wht);
+                        gui_multi(jd, _(SOURCE_TRANSFER_WARNING_INTERNAL),
+                                      GUI_SML, gui_red, gui_red);
                         break;
                     case TRANSFER_WORKING_STATE_LOAD_INTERNAL:
-                        gui_multi(jd, _("Loading game transfer data on the PC..."), GUI_SML, gui_wht, gui_wht);
-                        gui_multi(jd, _(SOURCE_TRANSFER_WARNING_INTERNAL), GUI_SML, gui_red, gui_red);
+                        gui_multi(jd, _("Loading game transfer data on the PC..."),
+                                      GUI_SML, gui_wht, gui_wht);
+                        gui_multi(jd, _(SOURCE_TRANSFER_WARNING_INTERNAL),
+                                      GUI_SML, gui_red, gui_red);
                         break;
 #if ENABLE_DEDICATED_SERVER==1 && !defined(TRANSFER_OFFLINE_ONLY)
                     case TRANSFER_WORKING_STATE_CONNECT_INTERNET:
-                        gui_multi(jd, _("Connecting to the internet and\\retrieving data required for transfer..."), GUI_SML, gui_wht, gui_wht);
+                        gui_multi(jd, _("Connecting to the internet and\\"
+                                        "retrieving data required for transfer..."),
+                                      GUI_SML, gui_wht, gui_wht);
                         break;
 #endif
                     }
                 }
                 else
                 {
-                    gui_multi(jd, _("Insert the External Drive prepared on the target\\Pennyball game into this game, and then press Next."), GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _(SOURCE_TRANSFER_WARNING_EXTERNAL), GUI_SML, gui_red, gui_red);
+                    gui_multi(jd, _("Insert the External Drive prepared on the target\\"
+                                    "Pennyball game into this game, and then press Next."),
+                                  GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _(SOURCE_TRANSFER_WARNING_EXTERNAL),
+                                  GUI_SML, gui_red, gui_red);
                 }
                 break;
             case 2:
-                gui_multi(jd, _("Please read the following information\\carefully before starting the transfer."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Please read the following information\\"
+                                "carefully before starting the transfer."),
+                              GUI_SML, gui_wht, gui_wht);
                 break;
             case 3:
-                gui_multi(jd, _("The following set highscores is present on both PCs.\\Performing the game transfer will replace\\the highscore on this game."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("The following set highscores is present on both PCs.\\"
+                                "Performing the game transfer will replace\\"
+                                "the highscore on this game."),
+                              GUI_SML, gui_wht, gui_wht);
                 break;
             case 4:
                 if (transfer_working == TRANSFER_WORKING_STATE_PROCESS)
                 {
-                    gui_multi(jd, _("Moving Data to the External Drive..."), GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _(SOURCE_TRANSFER_WARNING_EXTERNAL), GUI_SML, gui_red, gui_red);
+                    gui_multi(jd, _("Moving Data to the External Drive..."),
+                                  GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _(SOURCE_TRANSFER_WARNING_EXTERNAL),
+                                  GUI_SML, gui_red, gui_red);
                 }
                 else
                 {
-                    gui_multi(jd, _("The data to be transferred from this game\\will be moved to the External Drive and deleted\\from the game progress."), GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _(SOURCE_TRANSFER_WARNING_DELETE_DATA), GUI_SML, gui_red, gui_red);
-                    gui_multi(jd, _(SOURCE_TRANSFER_WARNING_EXTERNAL), GUI_SML, gui_red, gui_red);
+                    gui_multi(jd, _("The data to be transferred from this game\\"
+                                    "will be moved to the External Drive and deleted\\"
+                                    "from the game progress."),
+                                  GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _(SOURCE_TRANSFER_WARNING_DELETE_DATA),
+                                  GUI_SML, gui_red, gui_red);
+                    gui_multi(jd, _(SOURCE_TRANSFER_WARNING_EXTERNAL),
+                                  GUI_SML, gui_red, gui_red);
                 }
                 break;
             case 5:
@@ -380,9 +458,12 @@ int transfer_gui(void)
 #else
                     sprintf(wallet_infotext,
 #endif
-                            _("%d coins and %d gems have been transferred."), transfer_walletamount[0], transfer_walletamount[1]);
+                            _("%d coins and %d gems have been transferred."),
+                            transfer_walletamount[0], transfer_walletamount[1]);
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these coins and gems in\\game shop on the target Pennyball game."), GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _("You can use these coins and gems in\\"
+                                    "game shop on the target Pennyball game."),
+                                  GUI_SML, gui_wht, gui_wht);
                 }
                 else if (transfer_walletamount[1] > 0)
                 {
@@ -391,9 +472,12 @@ int transfer_gui(void)
 #else
                     sprintf(wallet_infotext,
 #endif
-                            _("%d gems have been transferred."), transfer_walletamount[1]);
+                            _("%d gems have been transferred."),
+                            transfer_walletamount[1]);
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these gems in the\\game shop on the target Pennyball game."), GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _("You can use these gems in the\\"
+                                    "game shop on the target Pennyball game."),
+                                  GUI_SML, gui_wht, gui_wht);
                 }
                 else if (transfer_walletamount[0] > 0)
                 {
@@ -402,14 +486,23 @@ int transfer_gui(void)
 #else
                     sprintf(wallet_infotext,
 #endif
-                            _("%d coins have been transferred."), transfer_walletamount[0]);
+                            _("%d coins have been transferred."),
+                            transfer_walletamount[0]);
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these coins in the\\game shop on the target Pennyball game."), GUI_SML, gui_wht, gui_wht);
+                    gui_multi(jd, _("You can use these coins in the\\"
+                                    "game shop on the target Pennyball game."),
+                                  GUI_SML, gui_wht, gui_wht);
                 }
                 break;
             case 6:
-                gui_multi(jd, _("Finished moving data to the external drive.\\Please insert the external drive into the\\target game."), GUI_SML, gui_wht, gui_wht);
-                gui_multi(jd, _("If you only have one keyboard and mouse,\\first turn it off from this PC\\before connecting to the target PC."), GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("Finished moving data to the external drive.\\"
+                                "Please insert the external drive into the\\"
+                                "target game."),
+                              GUI_SML, gui_wht, gui_wht);
+                gui_multi(jd, _("If you only have one keyboard and mouse,\\"
+                                "first turn it off from this PC\\"
+                                "before connecting to the target PC."),
+                              GUI_SML, gui_wht, gui_wht);
                 break;
             }
 
@@ -457,8 +550,12 @@ int transfer_completed_gui(void)
     {
         if ((jd = gui_vstack(id)))
         {
-            gui_multi(jd, _("All the steps required to transfer from\\this game have been completed.\\The game will now exit."), GUI_SML, gui_wht, gui_wht);
-            gui_multi(jd, _("Please switch to the target game."), GUI_SML, gui_wht, gui_wht);
+            gui_multi(jd, _("All the steps required to transfer from\\"
+                            "this game have been completed.\\"
+                            "The game will now exit."),
+                          GUI_SML, gui_wht, gui_wht);
+            gui_multi(jd, _("Please switch to the target game."),
+                          GUI_SML, gui_wht, gui_wht);
 
             gui_set_rect(jd, GUI_ALL);
         }
@@ -497,7 +594,9 @@ static int transfer_action(int tok, int val)
         {
             transfer_pageindx = 1;
             show_preparations = 1;
-            return goto_state_full(&st_transfer, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
+            return goto_state_full(&st_transfer,
+                                   GUI_ANIMATION_W_CURVE,
+                                   GUI_ANIMATION_E_CURVE, 0);
         }
         else
         {
@@ -513,13 +612,17 @@ static int transfer_action(int tok, int val)
             show_preparations = 0;
             show_transfer = 1;
             transfer_pageindx = 1;
-            return goto_state_full(&st_transfer, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
+            return goto_state_full(&st_transfer,
+                                   GUI_ANIMATION_W_CURVE,
+                                   GUI_ANIMATION_E_CURVE, 0);
         }
         else if (tok == GUI_PREV || tok == GUI_BACK)
         {
             show_preparations = 0;
             show_transfer = 0;
-            return goto_state_full(&st_transfer, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_W_CURVE, 0);
+            return goto_state_full(&st_transfer,
+                                   GUI_ANIMATION_E_CURVE,
+                                   GUI_ANIMATION_W_CURVE, 0);
         }
     }
     else if (show_transfer)
@@ -547,7 +650,9 @@ static int transfer_action(int tok, int val)
                 else
                 {
                     transfer_pageindx = 3;
-                    return goto_state_full(&st_transfer, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
+                    return goto_state_full(&st_transfer,
+                                           GUI_ANIMATION_W_CURVE,
+                                           GUI_ANIMATION_E_CURVE, 0);
                 }
             }
             else if (transfer_pageindx == 4)
@@ -560,7 +665,9 @@ static int transfer_action(int tok, int val)
             {
                 transfer_ui_transition_busy = 1;
                 transfer_pageindx++;
-                return goto_state_full(&st_transfer, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
+                return goto_state_full(&st_transfer,
+                                       GUI_ANIMATION_W_CURVE,
+                                       GUI_ANIMATION_E_CURVE, 0);
             }
             break;
 
@@ -589,7 +696,9 @@ static int transfer_action(int tok, int val)
         case GUI_PREV:
             transfer_ui_transition_busy = 1;
             transfer_pageindx--;
-            return goto_state_full(&st_transfer, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_W_CURVE, 0);
+            return goto_state_full(&st_transfer,
+                                   GUI_ANIMATION_E_CURVE,
+                                   GUI_ANIMATION_W_CURVE, 0);
         }
 
     }
@@ -677,7 +786,7 @@ static float transfer_alpha;
  * @param Level status limit:
  *        1 = Only finish; 2 = Keep on board ; 3 = Always active
  */
-static void (*transfer_request_addreplay_dispatch_event)(int status_limit);
+static void (*transfer_request_addreplay_dispatch_event) (int status_limit);
 
 void transfer_addreplay_quit();
 
@@ -716,9 +825,15 @@ void transfer_timer_preprocess_source(float dt)
                     if (ext_drive_connected && ext_drive_supported)
                     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        fopen_s(&external_file, concat_string(drive_letters[i], ":/nvb_gametransfer/replayfilter.nbtransfer", 0), "r+t");
+                        fopen_s(&external_file,
+                                concat_string(drive_letters[i],
+                                              ":/nvb_gametransfer/replayfilter.nbtransfer", 0),
+                                "r+t");
 #else
-                        external_file = fopen(concat_string(drive_letters[i], ":/nvb_gametransfer/replayfilter.nbtransfer", 0), "r+t");
+                        external_file = fopen(concat_string(drive_letters[i],
+                                                            ":/nvb_gametransfer/replayfilter.nbtransfer",
+                                                            0),
+                                              "r+t");
 #endif
 
                         if (external_file)
@@ -735,7 +850,8 @@ void transfer_timer_preprocess_source(float dt)
                             pretransfer_replay_status_limit = 3;
                             pretransfer_replay_status_covid = 0;
 
-                            if (strcmp(outstr_group, "covid") == 0 || strcmp(outstr_group, "keep") == 0)
+                            if (strcmp(outstr_group, "covid") == 0 ||
+                                strcmp(outstr_group, "keep") == 0)
                             {
                                 if (strcmp(outstr_group, "covid") == 0)
                                     pretransfer_replay_status_covid = 1;
@@ -759,7 +875,8 @@ void transfer_timer_preprocess_source(float dt)
                     }
                     else if (!ext_drive_supported)
                     {
-                        log_errorf("For disk %s:, only removable drive is allowed!\n", drive_letters[i]);
+                        log_errorf("For disk %s:, only removable drive is allowed!\n",
+                                   drive_letters[i]);
                         transfer_error_code = 2;
                     }
                     else
@@ -773,12 +890,15 @@ void transfer_timer_preprocess_source(float dt)
 
                 if (current_drive_idx == -1)
                 {
-                    log_errorf("Failure to loading data! External Drive requires that you've prepared the game transfer, which you've connected to the computer!: %s\n", strerror(transfer_error_code));
+                    log_errorf("Failure to loading data! External Drive requires that you've prepared the game transfer, which you've connected to the computer!: %s\n",
+                               strerror(transfer_error_code));
 
                     transfer_working = TRANSFER_WORKING_STATE_NONE;
                     transfer_ui_transition_busy = 1;
                     transfer_pageindx = 1;
-                    goto_state_full(&st_transfer, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_W_CURVE, 0);
+                    goto_state_full(&st_transfer,
+                                    GUI_ANIMATION_E_CURVE,
+                                    GUI_ANIMATION_W_CURVE, 0);
                 }
                 break;
 
@@ -788,9 +908,15 @@ void transfer_timer_preprocess_source(float dt)
                     const char *homepath = pick_home_path();
                     assert(homepath);
 #if _WIN32
-                    const char *output_creation_folder = concat_string(homepath, "\\", CONFIG_USER, "\\", "Replays_transfer", 0);
+                    const char *output_creation_folder = concat_string(homepath,
+                                                                       "\\",
+                                                                       CONFIG_USER,
+                                                                       "\\Replays_transfer", 0);
 #else
-                    const char *output_creation_folder = concat_string(homepath, "/", CONFIG_USER, "/", "Replays_transfer", 0);
+                    const char *output_creation_folder = concat_string(homepath,
+                                                                       "/",
+                                                                       CONFIG_USER,
+                                                                       "/Replays_transfer", 0);
 #endif
                     assert(output_creation_folder);
                     dir_make(output_creation_folder);
@@ -799,7 +925,8 @@ void transfer_timer_preprocess_source(float dt)
                     fs_file replayfilter_file;
                     while (!found_replayfilter_file)
                     {
-                        replayfilter_file = fs_open_read("Replays_transfer\\replayfilter.nbtransfer");
+                        replayfilter_file = fs_open_read("Replays_transfer\\"
+                                                         "replayfilter.nbtransfer");
                         if (!replayfilter_file)
                         {
                             fclose(replayfilter_file);
@@ -850,11 +977,13 @@ struct account_transfer_value
     int consumeable_floatifier;
     int consumeable_speedifier;
     int consumeable_extralives;
-    char player[MAXSTR];
+
+    char player   [MAXSTR];
     char ball_file[MAXSTR];
 };
 
-static struct account_transfer_value account_transfer_values_source, account_transfer_values_target;
+static struct account_transfer_value account_transfer_values_source,
+                                     account_transfer_values_target;
 static int account_transfer_count = 0;
 
 void transfer_reset_paths()
@@ -961,9 +1090,11 @@ void transfer_addreplay(const char *path)
         if (outfile[i] == '/')
             outfile[i] = '\\';
     }
-    log_printf("Added replay into the transfer folder: %s\n", concat_string(fs_get_write_dir(), "\\", outfile, NULL));
+    log_printf("Added replay into the transfer folder: %s\n",
+               concat_string(fs_get_write_dir(), "\\", outfile, NULL));
 #else
-    log_printf("Added replay into the transfer folder: %s\n", concat_string(fs_get_write_dir(), "/", outfile, NULL));
+    log_printf("Added replay into the transfer folder: %s\n",
+               concat_string(fs_get_write_dir(), "/", outfile, NULL));
 #endif
 
     if (replay_transfer_prepare_scriptfile_opened)
@@ -995,14 +1126,19 @@ void transfer_timer_process_source(float dt)
         assert(current_drive_idx > -1 && drive_letters[current_drive_idx]);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        fopen_s(&transferfile, concat_string(drive_letters[current_drive_idx], ":/nvb_gametransfer/fromsource", 0), "w+t");
+        fopen_s(&transferfile, concat_string(drive_letters[current_drive_idx],
+                                             ":/nvb_gametransfer/fromsource", 0),
+                               "w+t");
 #else
-        transferfile = fopen(concat_string(drive_letters[current_drive_idx], ":/nvb_gametransfer/fromsource", 0), "w+t");
+        transferfile = fopen(concat_string(drive_letters[current_drive_idx],
+                                           ":/nvb_gametransfer/fromsource", 0),
+                             "w+t");
 #endif
 
         if (!transferfile)
         {
-            log_errorf("Failure to write data for External Drive (%s:)! External Drive must be connected to the computer!: %s\n", drive_letters[current_drive_idx], fs_error());
+            log_errorf("Failure to write data for External Drive (%s:)! External Drive must be connected to the computer!: %s\n",
+                       drive_letters[current_drive_idx], fs_error());
 
             transfer_working = TRANSFER_WORKING_STATE_NONE;
             transfer_pageindx = 1;
@@ -1015,16 +1151,25 @@ void transfer_timer_process_source(float dt)
         int account_transfer_was_new;
 
         WIN32_FIND_DATAA src_ffd;
-        HANDLE hSrcFind = FindFirstFileA(concat_string(pick_home_path(), "\\", CONFIG_USER, "\\Accounts\\*", NULL), &src_ffd);
+        HANDLE hSrcFind = FindFirstFileA(concat_string(pick_home_path(),
+                                                       "\\", CONFIG_USER,
+                                                       "\\Accounts\\*", NULL),
+                                         &src_ffd);
         if (INVALID_HANDLE_VALUE != hSrcFind)
         {
             FILE *wallet_file;
             char outwallet_result_csv[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            fopen_s(&wallet_file, concat_string(drive_letters[current_drive_idx], ":/nvb_gametransfer/account.nbwallet", NULL), "w+t");
+            fopen_s(&wallet_file, concat_string(drive_letters[current_drive_idx],
+                                                ":/nvb_gametransfer/account.nbwallet",
+                                                NULL),
+                    "w+t");
 #else
-            wallet_file = fopen(concat_string(drive_letters[current_drive_idx], ":/nvb_gametransfer/account.nbwallet", NULL), "w+t");
+            wallet_file = fopen(concat_string(drive_letters[current_drive_idx],
+                                              ":/nvb_gametransfer/account.nbwallet",
+                                              NULL),
+                                "w+t");
 #endif
 
             do
@@ -1033,7 +1178,8 @@ void transfer_timer_process_source(float dt)
                 {
                     /* Is directory, skipped */
                 }
-                else if (strcmp(ffd.cFileName, ".") != 0 || strcmp(ffd.cFileName, "..") != 0)
+                else if (strcmp(ffd.cFileName, ".") != 0 ||
+                         strcmp(ffd.cFileName, "..") != 0)
                 {
                     account_transfer_init();
                     account_transfer_load(concat_string("Accounts/", src_ffd.cFileName, NULL));
@@ -1159,13 +1305,13 @@ void transfer_timer_process_source(float dt)
 
         /* The replay folder is deleted */
 #if _WIN32
-        //system(concat_string("del /f \"", fs_get_write_dir(), "\\Replays\\*.nbr\"", NULL));
-        system(concat_string("del /f \"", fs_get_write_dir(), "\\Replays_transfer\\*.bat\"", NULL));
+        system(concat_string("del /f \"", fs_get_write_dir(),
+                             "\\Replays_transfer\\*.bat\"", NULL));
         rmdir(concat_string(fs_get_write_dir(), "\\Replays", NULL));
         rmdir(concat_string(fs_get_write_dir(), "\\Replays_transfer", NULL));
 #else
-        //system(concat_string("del /f \"", fs_get_write_dir(), "/Replays/*.nbr\"", NULL));
-        system(concat_string("del /f \"", fs_get_write_dir(), "/Replays_transfer/*.bat\"", NULL));
+        system(concat_string("del /f \"", fs_get_write_dir(),
+                             "/Replays_transfer/*.bat\"", NULL));
         rmdir(concat_string("\"", fs_get_write_dir(), "/Replays\"", NULL));
         rmdir(concat_string("\"", fs_get_write_dir(), "/Replays_transfer\"", NULL));
 #endif
@@ -1178,29 +1324,35 @@ void transfer_timer_process_source(float dt)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(hs_campaign_out_transfer, "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "\\Campaign\\*", NULL),
-            concat_string(drive_letters[current_drive_idx], ":/nvb_gametransfer/campaign", NULL)
+            concat_string(drive_letters[current_drive_idx],
+                          ":/nvb_gametransfer/campaign", NULL)
         );
         sprintf_s(hs_levelset_out_transfer, "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "\\Scores\\*", NULL),
-            concat_string(drive_letters[current_drive_idx], ":/nvb_gametransfer/scores", NULL)
+            concat_string(drive_letters[current_drive_idx],
+                          ":/nvb_gametransfer/scores", NULL)
         );
 #elif _WIN32 && !defined(__EMSCRIPTEN__) && _CRT_SECURE_NO_WARNINGS
         sprintf(hs_campaign_out_transfer, "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "\\Campaign\\*", NULL),
-            concat_string(drive_letters[current_drive_idx], ":/nvb_gametransfer/campaign", NULL)
+            concat_string(drive_letters[current_drive_idx],
+                          ":/nvb_gametransfer/campaign", NULL)
         );
         sprintf(hs_levelset_out_transfer, "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "\\Scores\\*", NULL),
-            concat_string(drive_letters[current_drive_idx], ":/nvb_gametransfer/scores", NULL)
+            concat_string(drive_letters[current_drive_idx],
+                          ":/nvb_gametransfer/scores", NULL)
         );
 #else
         sprintf(hs_campaign_out_transfer, "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "/Campaign/*", NULL),
-            concat_string(drive_letters[current_drive_idx], ":/nvb_gametransfer/campaign", NULL)
+            concat_string(drive_letters[current_drive_idx],
+                          ":/nvb_gametransfer/campaign", NULL)
         );
         sprintf(hs_levelset_out_transfer, "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "/Scores/*", NULL),
-            concat_string(drive_letters[current_drive_idx], ":/nvb_gametransfer/scores", NULL)
+            concat_string(drive_letters[current_drive_idx],
+                          ":/nvb_gametransfer/scores", NULL)
         );
 #endif
 
@@ -1220,17 +1372,20 @@ void transfer_timer_process_source(float dt)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(screenshots_out_transfer, "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "\\Screenshots\\*", NULL),
-            concat_string(drive_letters[current_drive_idx], ":/nvb_gametransfer/screenshots", NULL)
+            concat_string(drive_letters[current_drive_idx],
+                          ":/nvb_gametransfer/screenshots", NULL)
         );
 #elif _WIN32 && !defined(__EMSCRIPTEN__) && _CRT_SECURE_NO_WARNINGS
         sprintf(screenshots_out_transfer, "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "\\Screenshots\\*", NULL),
-            concat_string(drive_letters[current_drive_idx], ":/nvb_gametransfer/screenshots", NULL)
+            concat_string(drive_letters[current_drive_idx],
+                          ":/nvb_gametransfer/screenshots", NULL)
         );
 #else
         sprintf(screenshots_out_transfer, "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "/Screenshots/*", NULL),
-            concat_string(drive_letters[current_drive_idx], ":/nvb_gametransfer/screenshots", NULL)
+            concat_string(drive_letters[current_drive_idx],
+                          ":/nvb_gametransfer/screenshots", NULL)
         );
 #endif
 
@@ -1314,7 +1469,8 @@ void transfer_timer(int id, float dt)
                 transfer_timer_preprocess_source(dt);
         }
 
-        if (time_state() > 30 && transfer_pageindx == 6 && !transfer_ui_transition_busy)
+        if (time_state() > 30 && transfer_pageindx == 6 &&
+            !transfer_ui_transition_busy)
         {
             transfer_ui_transition_busy = 1;
             show_transfer_completed = 1;

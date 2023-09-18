@@ -107,9 +107,9 @@ float *game_get_earthquake_shake(void)
 
 /*---------------------------------------------------------------------------*/
 
-const float GRAVITY_UP[] = { 0.0f, +9.8f, 0.0f };
-const float GRAVITY_DN[] = { 0.0f, -9.8f, 0.0f };
-const float GRAVITY_BUSY[] = { 0.0f, 0.0f, 0.0f };
+const float GRAVITY_UP[]   = { 0.0f, +9.8f, 0.0f };
+const float GRAVITY_DN[]   = { 0.0f, -9.8f, 0.0f };
+const float GRAVITY_BUSY[] = { 0.0f,  0.0f, 0.0f };
 
 void game_tilt_init(struct game_tilt *tilt)
 {
@@ -176,14 +176,14 @@ void game_view_init(struct game_view *view)
 
     if (hmd_stat())
     {
-        view->dp = (config_get_d(CONFIG_VIEW_DP) + fsinf((zoom_diff / 60) * 75)) / 100.0f;
-        view->dc = (config_get_d(CONFIG_VIEW_DP) + fsinf((zoom_diff / 60) * 75)) / 100.0f;
+        view->dp = (config_get_d(CONFIG_VIEW_DP) + fsinf((zoom_diff / 60) * 75))                  / 100.0f;
+        view->dc = (config_get_d(CONFIG_VIEW_DP) + fsinf((zoom_diff / 60) * 75))                  / 100.0f;
         view->dz = (config_get_d(CONFIG_VIEW_DZ) + 20 + (fsinf((zoom_diff / 80) - 0.5236f) * 40)) / 100.0f;
     }
     else
     {
-        view->dp = (config_get_d(CONFIG_VIEW_DP) + fsinf((zoom_diff / 60) * 75)) / 100.0f;
-        view->dc = config_get_d(CONFIG_VIEW_DC) / 100.0f;
+        view->dp = (config_get_d(CONFIG_VIEW_DP) + fsinf((zoom_diff / 60) * 75))                  / 100.0f;
+        view->dc =  config_get_d(CONFIG_VIEW_DC)                                                  / 100.0f;
         view->dz = (config_get_d(CONFIG_VIEW_DZ) + 20 + (fsinf((zoom_diff / 80) - 0.5236f) * 40)) / 100.0f;
     }
 
@@ -215,7 +215,7 @@ void game_view_zoom(struct game_view *view, float diff)
     zoom_diff += diff;
 
     if (zoom_diff > 94) zoom_diff = 94;
-    if (zoom_diff < 0) zoom_diff = 0;
+    if (zoom_diff < 0)  zoom_diff = 0;
 
     game_view_init(view);
 }
@@ -406,7 +406,6 @@ int game_base_load(const char *path)
 
     return 0;
 }
-
 
 void game_base_free(const char *next)
 {

@@ -31,11 +31,12 @@
 #pragma message("Using directory list for code compilation: Microsoft Visual Studio")
 #endif
 #elif defined(__linux__)
- /*
-  * Relying on MinGW to provide, that uses from GetFileAttributes.
-  */
+/*
+ * Relying on MinGW to provide, that uses from GetFileAttributes.
+ */
 #include <unistd.h>   /* access() */
 #endif
+
 #include "common.h"
 #include "fs.h"
 
@@ -193,7 +194,7 @@ time_t make_time_from_utc(struct tm *tm)
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     localtime_s(&local, &t);
-    gmtime_s(&utc, &t);
+    gmtime_s   (&utc, &t);
 #else
     local = *localtime(&t);
     utc   = *gmtime(&t);
@@ -215,7 +216,7 @@ const char *date_to_str(time_t i)
 #if _MSC_VER
     struct tm output_tm;
     localtime_s(&output_tm, &i);
-    strftime(str, sizeof (str), "%d.%m.%Y %H:%M:%S", &output_tm);
+    strftime   (str, sizeof (str), "%d.%m.%Y %H:%M:%S", &output_tm);
 #else
     strftime(str, sizeof (str), "%d.%m.%Y %H:%M:%S", localtime(&i));
 #endif
@@ -227,15 +228,15 @@ int file_exists(const char *path)
 #if _MSC_VER
     DWORD file_attr = GetFileAttributesA(path);
     
-    if (file_attr & FILE_ATTRIBUTE_OFFLINE
-        || file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED
-        || file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA)
+    if (file_attr & FILE_ATTRIBUTE_OFFLINE             ||
+        file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
+        file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA)
         return 0;
 
-    return file_attr & FILE_ATTRIBUTE_NORMAL
-        || file_attr & FILE_ATTRIBUTE_ARCHIVE
-        || file_attr & FILE_ATTRIBUTE_READONLY
-        || file_attr & FILE_ATTRIBUTE_HIDDEN;
+    return file_attr & FILE_ATTRIBUTE_NORMAL   ||
+           file_attr & FILE_ATTRIBUTE_ARCHIVE  ||
+           file_attr & FILE_ATTRIBUTE_READONLY ||
+           file_attr & FILE_ATTRIBUTE_HIDDEN;
 #else
     return (access(path, F_OK) == 0);
 #endif

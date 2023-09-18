@@ -88,7 +88,7 @@ static float jump_dt;                   /* Jump duration                     */
 static float jump_p[3];                 /* Jump destination                  */
 
 #ifdef MAPC_INCLUDES_CHKP
-static int   chkp_e = 1;                /* New: Checkpoints; Checkpoint enabled flag */
+static int   chkp_e  =  1;      /* New: Checkpoints; Checkpoint enabled flag */
 static int   chkp_id = -1;
 #endif
 static float last_diraxis = 0.0f;
@@ -140,7 +140,8 @@ static void input_set_x(float x)
 
     input_current.x = x;
 
-    if ((input_current.x < -41 && input_current.x <= 0) || (input_current.x > 41 && input_current.x >= 0))
+    if ((input_current.x < -41 && input_current.x <= 0)
+     || (input_current.x >  41 && input_current.x >= 0))
     {
         config_set_d(CONFIG_TILTING_FLOOR, 0);
         config_save();
@@ -154,7 +155,8 @@ static void input_set_z(float z)
 
     input_current.z = z;
 
-    if ((input_current.z < -41 && input_current.z <= 0) || (input_current.z > 41 && input_current.z >= 0))
+    if ((input_current.z < -41 && input_current.z <= 0)
+     || (input_current.z >  41 && input_current.z >= 0))
     {
         config_set_d(CONFIG_TILTING_FLOOR, 0);
         config_save();
@@ -568,11 +570,6 @@ static int game_check_map_border(int ui, float offset)
         && vary.uv[ui].p[2] < (player_max_area[2] + (temp_offset * 8.f));
     */
 
-    /*
-     * HACK: This is bad, when I've use the level border using X and Z axis.
-     * Only those open world version, what I've made.
-     */
-
     int border_ok = vary.uv[ui].p[1] > (player_min_area[1] - temp_offset);
 
     return border_ok;
@@ -654,7 +651,9 @@ int game_server_init(const char *file_name, int t, int e)
      * Reduces time limit
      */
     int mayhem_time = 359999;
-    if (t > 0 && (!campaign_used() && curr_mode() != MODE_BOOST_RUSH && curr_mode() != MODE_ZEN))
+    if (t > 0
+     && (!campaign_used()
+      && curr_mode() != MODE_BOOST_RUSH && curr_mode() != MODE_ZEN))
         mayhem_time = (int) t * 0.75f;
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -663,20 +662,24 @@ int game_server_init(const char *file_name, int t, int e)
      * If you haven't loaded Level data for each checkpoints,
      * Levels for your default data will be used.
      */
-    timer      = last_active ? respawn_timer :
-        (config_get_d(CONFIG_ACCOUNT_MAYHEM) ? ((float) mayhem_time / 100.f) : ((float) t / 100.f));
+    timer      = last_active ?
+                 respawn_timer :
+                 (config_get_d(CONFIG_ACCOUNT_MAYHEM) ?
+                  ((float) mayhem_time / 100.f) : ((float) t / 100.f));
     timer_down = last_active ? last_timer_down : (t > 0);
     timer_hold = last_active ? 0 : 1;
     coins      = last_active ? respawn_coins : 0;
 #else
-    timer = config_get_d(CONFIG_ACCOUNT_MAYHEM) ? ((float) mayhem_time / 100.f) : ((float) t / 100.f);
+    timer      = config_get_d(CONFIG_ACCOUNT_MAYHEM) ?
+                 ((float) mayhem_time / 100.f) : ((float) t / 100.f);
     timer_down = (t > 0);
     timer_hold = 1;
-    coins = 0;
+    coins      = 0;
 #endif
     status = GAME_NONE;
 
-    if ((campaign_used() || curr_mode() == MODE_BOOST_RUSH || curr_mode() == MODE_ZEN)
+    if ((campaign_used()
+      || curr_mode() == MODE_BOOST_RUSH || curr_mode() == MODE_ZEN)
 #ifdef MAPC_INCLUDES_CHKP
         && !last_active
 #endif
@@ -768,7 +771,7 @@ int game_server_init(const char *file_name, int t, int e)
 
     /* Switchball uses an automatic camera. */
 
-    automode = 2;
+    automode     = 2;
     autorotspeed = 0;
 
     /* game_cmd_zoom(-95.0f); */
@@ -781,7 +784,8 @@ int game_server_init(const char *file_name, int t, int e)
 #ifdef MAPC_INCLUDES_CHKP
     /* All checkpoints were removed in HARDCORE MODE! or last balls. */
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    if ((timer_down && timer <= 60) || (curr_mode() == MODE_HARDCORE) || curr_balls() == 0)
+    if ((timer_down && timer <= 60)
+     || (curr_mode() == MODE_HARDCORE) || curr_balls() == 0)
 #else
     if ((timer_down && timer <= 60) || curr_balls() == 0)
 #endif
@@ -803,7 +807,8 @@ int game_server_init(const char *file_name, int t, int e)
 
         fix_cam_lock[ui] = 0;
         fix_cam_alpha[ui] = 0.0f;
-        int uses_fix_cam = (input_get_c() == CAM_AUTO && automode == CAM_2) || input_get_c() == CAM_2;
+        int uses_fix_cam = (input_get_c() == CAM_AUTO && automode == CAM_2)
+                        || input_get_c() == CAM_2;
 
         /* Use target view as somewhere else */
         if (vary.base->wv)
@@ -814,8 +819,8 @@ int game_server_init(const char *file_name, int t, int e)
         v_cpy(fix_cam_pos, fix_cam_pos_targ[ui]);
 
         while (fix_cam_pos[0] != fix_cam_pos_targ[ui][0] ||
-            fix_cam_pos[1] != fix_cam_pos_targ[ui][1] ||
-            fix_cam_pos[2] != fix_cam_pos_targ[ui][2])
+               fix_cam_pos[1] != fix_cam_pos_targ[ui][1] ||
+               fix_cam_pos[2] != fix_cam_pos_targ[ui][2])
             v_cpy(fix_cam_pos, fix_cam_pos_targ[ui]);
 
         game_view_set_static_cam_view(0, fix_cam_pos);
@@ -949,11 +954,19 @@ int game_server_init(const char *file_name, int t, int e)
      * Simulations for your default data will be used.
      */
     if (!last_active)
+#if _WIN32 && _MSC_VER && ENABLE_NVIDIA_PHYSX==1
+        sol_init_sim_physx(&vary);
+#else
         sol_init_sim(&vary);
+#endif
     else
         log_errorf("Initializing server's simulaton is blocked during checkpoints is active!\n");
 #else
+#if _WIN32 && _MSC_VER && ENABLE_NVIDIA_PHYSX==1
+    sol_init_sim_physx(&vary);
+#else
     sol_init_sim(&vary);
+#endif
 #endif
 
     /* Send initial update. */
@@ -1018,7 +1031,11 @@ void game_server_free(const char *next)
 {
     if (server_state)
     {
+#if _WIN32 && _MSC_VER && ENABLE_NVIDIA_PHYSX==1
+        sol_quit_sim_physx(&vary);
+#else
         sol_quit_sim();
+#endif
         sol_free_vary(&vary);
 
         game_base_free(next);
@@ -1039,8 +1056,10 @@ void game_update_view(float dt)
         if (ui != CURR_PLAYER) continue;
 
         fix_cam_used[ui] =
-            ((input_get_c() == CAM_AUTO && automode == CAM_2) || input_get_c() == CAM_2)
-            && (cam_speed(input_get_c() == CAM_AUTO ? automode : input_get_c()) == 0);
+            ((input_get_c() == CAM_AUTO && automode == CAM_2)
+          || input_get_c() == CAM_2)
+         && (cam_speed(input_get_c() == CAM_AUTO ?
+                       automode : input_get_c()) == 0);
 
         if (fix_cam_lock[ui]) fix_cam_alpha[ui] = 1;
 
@@ -1092,7 +1111,8 @@ void game_update_view(float dt)
 
         {
 #pragma region Manual or Chase camera
-            float dc = multiview1.dc * (jump_b > 0 ? 2.0f * fabsf(jump_dt - 0.5f) : 1.0f);
+            float dc = multiview1.dc * (jump_b > 0 ?
+                                        2.0f * fabsf(jump_dt - 0.5f) : 1.0f);
             float da = input_get_r() * dt * 90.0f;
             float k;
 
@@ -1104,7 +1124,8 @@ void game_update_view(float dt)
             if (input_get_c() != CAM_AUTO)
                 automode = input_get_c();
 
-            float spd = (float) cam_speed(input_get_c() == CAM_AUTO ? automode : input_get_c()) / 1000.0f;
+            float spd = (float) cam_speed(input_get_c() == CAM_AUTO ?
+                                          automode : input_get_c()) / 1000.0f;
 
             /* Track manual rotation time. */
 
@@ -1140,7 +1161,7 @@ void game_update_view(float dt)
             v_cpy(multiview1.c, vary.uv[ui].p);
 
             view_v[0] = -vary.uv[ui].v[0];
-            view_v[1] = 0.0f;
+            view_v[1] =  0.0f;
             view_v[2] = -vary.uv[ui].v[2];
 
             /* Compute view vector. */
@@ -1164,7 +1185,8 @@ void game_update_view(float dt)
                     s = fpowf(view_time, 3.0f) / fpowf(view_fade, 3.0f);
                     s = CLAMP(0.0f, s, 1.0f);
 
-                    v_mad(multiview1.e[2], multiview1.e[2], view_v, v_len(view_v) * spd * s * dt);
+                    v_mad(multiview1.e[2], multiview1.e[2],
+                          view_v, v_len(view_v) * spd * s * dt);
                 }
             }
             else
@@ -1178,7 +1200,8 @@ void game_update_view(float dt)
 
             if ((input_get_c() == CAM_1) ||
                 (automode == CAM_1 && input_get_c() == CAM_AUTO))
-                view_alt_velocity = flerp(view_alt_velocity, vary.uv[ui].v[1], 0.01f);
+                view_alt_velocity = flerp(view_alt_velocity,
+                                          vary.uv[ui].v[1], 0.01f);
             else
                 view_alt_velocity = flerp(view_alt_velocity, 0, 0.01f);
 
@@ -1208,11 +1231,13 @@ void game_update_view(float dt)
                     s = fpowf(view_time, 3.0f) / fpowf(view_fade, 3.0f);
                     s = CLAMP(0.0f, s, 1.0f);
 
-                    v_mad(multiview1.e[2], multiview1.e[2], direction_v, v_len(direction_v) / 2000 * s * dt);
+                    v_mad(multiview1.e[2], multiview1.e[2],
+                          direction_v, v_len(direction_v) / 2000 * s * dt);
                 }
             }
 
-            if (input_get_c() == CAM_2 || (input_get_c() == CAM_AUTO && automode == CAM_2))
+            if (input_get_c() == CAM_2
+             || (input_get_c() == CAM_AUTO && automode == CAM_2))
                 v_lerp(fix_cam_pos, fix_cam_pos, fix_cam_pos_targ[ui], dt);
 
             /*
@@ -1239,8 +1264,10 @@ void game_update_view(float dt)
 
             if (view_k < 0.5f) view_k = 0.5;
 
-            v_scl(v, multiview1.e[1], (multiview1.dp + fsinf((zoom_diff / 60) * 75)) * view_k);
-            v_mad(v, v, multiview1.e[2], (multiview1.dz + 20 + (fsinf((zoom_diff / 80) - 0.5236f) * 40)) * view_k);
+            v_scl(v, multiview1.e[1],
+                  (multiview1.dp + fsinf((zoom_diff / 60) * 75)) * view_k);
+            v_mad(v, v, multiview1.e[2],
+                  (multiview1.dz + 20 + (fsinf((zoom_diff / 80) - 0.5236f) * 40)) * view_k);
             v_add(multiview1.p, v, vary.uv[ui].p);
 
             multiview1.p[1] -= view_alt_velocity;
@@ -1257,13 +1284,18 @@ void game_update_view(float dt)
         }
 
 #pragma region Multiview interpolation
-        view.a = flerp(multiview1.a, multiview2.a, (-cosf(V_PI * fix_cam_alpha[ui]) / 2) + 0.5f);
-        v_lerp(view.c, multiview1.c, multiview2.c, (-cosf(V_PI * fix_cam_alpha[ui]) / 2) + 0.5f);
+        view.a = flerp(multiview1.a, multiview2.a,
+                       (-cosf(V_PI * fix_cam_alpha[ui]) / 2) + 0.5f);
+        v_lerp(view.c, multiview1.c, multiview2.c,
+                       (-cosf(V_PI * fix_cam_alpha[ui]) / 2) + 0.5f);
         v_lerp(view.p, multiview1.p, multiview2.p, fix_cam_alpha[ui]);
 
-        v_lerp(view.e[0], multiview1.e[0], multiview2.e[0], (-cosf(V_PI * fix_cam_alpha[ui]) / 2) + 0.5f);
-        v_lerp(view.e[1], multiview1.e[1], multiview2.e[1], (-cosf(V_PI * fix_cam_alpha[ui]) / 2) + 0.5f);
-        v_lerp(view.e[2], multiview1.e[2], multiview2.e[2], (-cosf(V_PI * fix_cam_alpha[ui]) / 2) + 0.5f);
+        v_lerp(view.e[0], multiview1.e[0], multiview2.e[0],
+                          (-cosf(V_PI * fix_cam_alpha[ui]) / 2) + 0.5f);
+        v_lerp(view.e[1], multiview1.e[1], multiview2.e[1],
+                          (-cosf(V_PI * fix_cam_alpha[ui]) / 2) + 0.5f);
+        v_lerp(view.e[2], multiview1.e[2], multiview2.e[2],
+                          (-cosf(V_PI * fix_cam_alpha[ui]) / 2) + 0.5f);
 #pragma endregion
     }
 
@@ -1317,12 +1349,17 @@ static int game_update_state(int bt)
     float vy = vary.uv[CURR_PLAYER].v[1];
     float vz = vary.uv[CURR_PLAYER].v[2];
 
-    if (vary.uv[CURR_PLAYER].p[0] < game_base.uv[CURR_PLAYER].p[0] - 0.01f || vary.uv[CURR_PLAYER].p[0] > game_base.uv[CURR_PLAYER].p[0] + 0.01f ||
-        vary.uv[CURR_PLAYER].p[1] < game_base.uv[CURR_PLAYER].p[1] - 0.03f || vary.uv[CURR_PLAYER].p[1] > game_base.uv[CURR_PLAYER].p[1] + 0.01f ||
-        vary.uv[CURR_PLAYER].p[2] < game_base.uv[CURR_PLAYER].p[2] - 0.01f || vary.uv[CURR_PLAYER].p[2] > game_base.uv[CURR_PLAYER].p[2] + 0.01f)
+    if (vary.uv[CURR_PLAYER].p[0] < game_base.uv[CURR_PLAYER].p[0] - 0.01f ||
+        vary.uv[CURR_PLAYER].p[0] > game_base.uv[CURR_PLAYER].p[0] + 0.01f ||
+        vary.uv[CURR_PLAYER].p[1] < game_base.uv[CURR_PLAYER].p[1] - 0.03f ||
+        vary.uv[CURR_PLAYER].p[1] > game_base.uv[CURR_PLAYER].p[1] + 0.01f ||
+        vary.uv[CURR_PLAYER].p[2] < game_base.uv[CURR_PLAYER].p[2] - 0.01f ||
+        vary.uv[CURR_PLAYER].p[2] > game_base.uv[CURR_PLAYER].p[2] + 0.01f)
         timer_hold = 0;
 
-    if (curr_mode() == MODE_NONE) return GAME_NONE; /* Cannot update state in home room. */
+    /* Cannot update state in home room. */
+
+    if (curr_mode() == MODE_NONE) return GAME_NONE;
 
     /* Test for an item. */
 
@@ -1377,17 +1414,19 @@ static int game_update_state(int bt)
             {
                 automode = campaign_get_camera_box_trigger(cami).cammode;
 
-                if (last_diraxis != campaign_get_camera_box_trigger(cami).camdirection)
+                if (last_diraxis !=
+                    campaign_get_camera_box_trigger(cami).camdirection)
                 {
-                    view_fade = CLAMP(VIEW_FADE_MIN, -view_time, VIEW_FADE_MAX);
-                    view_time = 0.0f;
+                    view_fade    = CLAMP(VIEW_FADE_MIN, -view_time, VIEW_FADE_MAX);
+                    view_time    = 0.0f;
                     last_diraxis = campaign_get_camera_box_trigger(cami).camdirection;
                 }
 
                 if (campaign_get_camera_box_trigger(cami).campositions[0] != 0 &&
                     campaign_get_camera_box_trigger(cami).campositions[1] != 0 &&
                     campaign_get_camera_box_trigger(cami).campositions[2] != 0)
-                    v_cpy(fix_cam_pos_targ[CURR_PLAYER], campaign_get_camera_box_trigger(cami).campositions);
+                    v_cpy(fix_cam_pos_targ[CURR_PLAYER],
+                          campaign_get_camera_box_trigger(cami).campositions);
             }
         }
     }
@@ -1401,12 +1440,15 @@ static int game_update_state(int bt)
     /* New: Checkpoints */
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    if (curr_mode() != MODE_HARDCORE && (curr_balls() != 0 && !progress_dead()))
+    if (curr_mode() != MODE_HARDCORE &&
+        (curr_balls() != 0 && !progress_dead()))
 #else
     if (curr_balls() != 0 && !progress_dead())
 #endif
     {
-        if (bt && chkp_e && sol_chkp_test(&vary, game_proxy_enq, CURR_PLAYER, &chkp_id) == CHKP_INSIDE)
+        if (bt && chkp_e &&
+            sol_chkp_test(&vary, game_proxy_enq, CURR_PLAYER,
+                          &chkp_id) == CHKP_INSIDE)
         {
             audio_play(AUD_SWITCH, 1.f);
             audio_play(AUD_CHKP, 1.f);
@@ -1442,7 +1484,7 @@ static int game_update_state(int bt)
             checkpoints_save_spawnpoint(vary, view, CURR_PLAYER);
             checkpoints_set_last_data(timer, timer_down, coins, curr_gained());
 
-            last_chkp_ballsize[CURR_PLAYER].size_orig = grow_orig[CURR_PLAYER];
+            last_chkp_ballsize[CURR_PLAYER].size_orig  = grow_orig[CURR_PLAYER];
             last_chkp_ballsize[CURR_PLAYER].size_state = grow_state[CURR_PLAYER];
 
             for (int i = 0; i < vary.xc; i++)
@@ -1494,14 +1536,16 @@ static int game_update_state(int bt)
     /* Border controls */
 
     if (bt && !timer_hold
-        && (vary.base->vc == 0 || !game_check_map_border(CURR_PLAYER, 0.875f * 2.0f)))
+     && (vary.base->vc == 0
+      || !game_check_map_border(CURR_PLAYER, 0.875f * 2.0f)))
     {
         v_cpy(fix_cam_pos, view.p);
         fix_cam_lock[CURR_PLAYER] = 1;
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         if (campaign_used() && campaign_hardcore())
-            campaign_hardcore_set_coordinates(vary.uv[CURR_PLAYER].p[0], vary.uv[CURR_PLAYER].p[2]);
+            campaign_hardcore_set_coordinates(vary.uv[CURR_PLAYER].p[0],
+                                              vary.uv[CURR_PLAYER].p[2]);
 #endif
 
 #if ENABLE_DEDICATED_SERVER==1
@@ -1519,7 +1563,8 @@ static int game_update_state(int bt)
     {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         if (campaign_used() && campaign_hardcore())
-            campaign_hardcore_set_coordinates(vary.uv[CURR_PLAYER].p[0], vary.uv[CURR_PLAYER].p[2]);
+            campaign_hardcore_set_coordinates(vary.uv[CURR_PLAYER].p[0],
+                                              vary.uv[CURR_PLAYER].p[2]);
 #endif
 
 #if ENABLE_DEDICATED_SERVER==1
@@ -1544,10 +1589,10 @@ static int game_step(const float g[3], float dt, int bt)
          * Floor must be keep horizontally: jump_b == 0
          */
 
-        tilt.rx += ((jump_b == 0 && status == GAME_NONE ? input_get_x() : 0) - tilt.rx)
-            * dt / MAX(dt, input_get_s());
-        tilt.rz += ((jump_b == 0 && status == GAME_NONE ? input_get_z() : 0) - tilt.rz)
-            * dt / MAX(dt, input_get_s());
+        tilt.rx += ((jump_b == 0 && status == GAME_NONE ? input_get_x() : 0) - tilt.rx) *
+                   dt / MAX(dt, input_get_s());
+        tilt.rz += ((jump_b == 0 && status == GAME_NONE ? input_get_z() : 0) - tilt.rz) *
+                   dt / MAX(dt, input_get_s());
 
         game_tilt_calc(&tilt, view.e);
 
@@ -1620,7 +1665,14 @@ static int game_step(const float g[3], float dt, int bt)
         {
             /* Run the sim. */
 
-            float b = sol_step(&vary, game_proxy_enq, h, dt, CURR_PLAYER, NULL);
+            float b = 0;
+
+#if _WIN32 && _MSC_VER && ENABLE_NVIDIA_PHYSX==1
+            if (vary.sim_uses_px)
+                b = sol_step_physx(&vary, game_proxy_enq, h, dt, CURR_PLAYER);
+            else
+#endif
+                b = sol_step(&vary, game_proxy_enq, h, dt, CURR_PLAYER, NULL);
 
             /* Mix the sound of a ball bounce. */
 
@@ -1634,7 +1686,8 @@ static int game_step(const float g[3], float dt, int bt)
                         audio_play(AUD_BUMPL, k);
                     else if (vary.uv[CURR_PLAYER].r < grow_orig[CURR_PLAYER])
                     {
-                        if (vary.uv[CURR_PLAYER].r >= grow_orig[CURR_PLAYER] * GROW_SMALL)
+                        if (vary.uv[CURR_PLAYER].r >= grow_orig[CURR_PLAYER] *
+                            GROW_SMALL)
                             audio_play(AUD_BUMPS, k);
                         else
                             audio_play("snd/bink.ogg", k);

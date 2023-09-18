@@ -17,16 +17,16 @@
 
 #define ENABLE_POWERUP
 
-extern void powerup_stop(void);
+void powerup_stop(void);
 
-extern void init_earninator(void);
-extern void init_floatifier(void);
-extern void init_speedifier(void);
+void init_earninator(void);
+void init_floatifier(void);
+void init_speedifier(void);
 
 /*---------------------------------------------------------------------------*/
 
-extern float get_coin_multiply(void);
-extern float get_gravity_multiply(void);
-extern float get_tilt_multiply(void);
+float get_coin_multiply(void);
+float get_grav_multiply(void);
+float get_tilt_multiply(void);
 
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -27,7 +27,7 @@
 #if NB_STEAM_API==1
 #if _MSC_VER || __GNUC__
 
-#include "steam/steam_api.h"
+#include <steam/steam_api.h>
 
 #ifdef __EMSCRIPTEN__
 #error Cannot compile website in Steam games!
@@ -37,7 +37,7 @@
 #error Steam OS implemented, but NO DLCs detected!
 #endif
 
-#elif !_MSC_VER
+#elif _WIN32 && !_MSC_VER
 #error MinGW not supported! Use Visual Studio instead!
 #endif
 #endif
@@ -232,7 +232,7 @@ static int loop(void)
 #endif
 
 #if NB_PB_WITH_XBOX==1
-    joy_update();
+    d = joy_update();
 #endif
 
     int event_threshold = 0;
@@ -240,6 +240,7 @@ static int loop(void)
     while (d && SDL_PollEvent(&e))
     {
         if (e.type == SDL_QUIT)
+            st_exit();
             return 0;
 
 #if defined(__EMSCRIPTEN__)
@@ -262,7 +263,7 @@ static int loop(void)
 
         switch (e.type)
         {
-#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
         case SDL_MOUSEMOTION:
             /* Convert to OpenGL coordinates. */
 
@@ -311,18 +312,15 @@ static int loop(void)
 
 #ifdef __APPLE__
             if (c == SDLK_q && e.key.keysym.mod & KMOD_GUI)
-            {
-                d = 0;
-                break;
-            }
 #endif
 #ifdef _WIN32
             if (c == SDLK_F4 && e.key.keysym.mod & KMOD_ALT)
+#endif
             {
                 d = 0;
+                st_exit();
                 break;
             }
-#endif
 
             switch (c)
             {
@@ -353,6 +351,7 @@ static int loop(void)
                 break;
 
             default:
+#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
                 if (config_tst_d(CONFIG_KEY_FORWARD, c))
                     st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), -1.0f);
                 else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
@@ -362,6 +361,7 @@ static int loop(void)
                 else if (config_tst_d(CONFIG_KEY_RIGHT, c))
                     st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), +1.0f);
                 else
+#endif
                     d = st_keybd(e.key.keysym.sym, 1);
             }
             break;
@@ -383,6 +383,7 @@ static int loop(void)
                 break;
 
             default:
+#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
                 if (config_tst_d(CONFIG_KEY_FORWARD, c))
                     st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 0.0f);
                 else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
@@ -392,6 +393,7 @@ static int loop(void)
                 else if (config_tst_d(CONFIG_KEY_RIGHT, c))
                     st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), 0.0f);
                 else
+#endif
                     d = st_keybd(e.key.keysym.sym, 0);
             }
             break;
@@ -448,7 +450,7 @@ static int loop(void)
             }
             break;
 
-#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
+#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
         case SDL_JOYAXISMOTION:
             joy_axis(e.jaxis.which, e.jaxis.axis, JOY_VALUE(e.jaxis.value));
             break;
@@ -660,6 +662,10 @@ static int main_init(int argc, char* argv[])
         log_errorf("Failure to initialize SDL: Exception caught! (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
         return 0;
     }
+#endif
+
+#ifndef NDEBUG
+    SDL_LogSetPriority(SDL_LOG_CATEGORY_ERROR, SDL_LOG_PRIORITY_DEBUG);
 #endif
 
     return 1;

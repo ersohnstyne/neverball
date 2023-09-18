@@ -34,10 +34,10 @@ static char    log_header[MAXSTR];
 static fs_file log_fp;
 
 #if NB_EOS_SDK==1
-#define TEMP_LOG_INFO "[EOS INFO] %s"
+#define TEMP_LOG_INFO  "[EOS INFO] %s"
 #define TEMP_LOG_ERROR "[EOS ERROR] %s"
 #else
-#define TEMP_LOG_INFO "[i] %s"
+#define TEMP_LOG_INFO  "[i] %s"
 #define TEMP_LOG_ERROR "[!] %s"
 #endif
 

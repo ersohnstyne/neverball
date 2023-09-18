@@ -50,7 +50,8 @@ static const char *pick_data_path(const char *arg_data_path)
     if (result == 0 && requiredSize != 0)
     {
         data_env_dir = (char *) malloc(requiredSize * sizeof (char));
-        if (getenv_s(&requiredSize, data_env_dir, requiredSize, "NEVERBALL_DATA") == 0)
+        if (getenv_s(&requiredSize, data_env_dir, requiredSize,
+                     "NEVERBALL_DATA") == 0)
             return data_env_dir;
     }
 #else
@@ -83,7 +84,8 @@ static const char *pick_home_path(void)
     if (result == 0 && requiredSize != 0)
     {
         userdir_env = (char *) malloc(requiredSize * sizeof (char));
-        if (getenv_s(&requiredSize, userdir_env, requiredSize, "NEVERBALL_USERDIR") == 0)
+        if (getenv_s(&requiredSize, userdir_env, requiredSize,
+                     "NEVERBALL_USERDIR") == 0)
             return userdir_env;
     }
 #else

@@ -40,14 +40,13 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if /*NB_HAVE_PB_BOTH==1 &&*/ !defined(LEADERBOARD_ALLOWANCE)
+#ifndef LEADERBOARD_ALLOWANCE
 #error Always use preprocessors LEADERBOARD_ALLOWANCE, \
        or it will not show up to be synced belonging st_done.h.
 #endif
 
 /*
- * Player wants to save and open the Leaderboard
- * in Challenge mode, but the game causes a crash.
+ * Player wants to save and open the Leaderboard.
  */
 
 enum {
@@ -142,7 +141,10 @@ static int over_gui_hardcore(void)
 #else
         sprintf(hardcore_report,
 #endif
-               _("You completed %d levels\\and collected %d coins.\\ \\You managed to reach:\\%s (X: %f; Y: %f)\\ \\%s"),
+               _("You completed %d levels\\"
+                 "and collected %d coins.\\ \\"
+                 "You managed to reach:\\"
+                 "%s (X: %f; Y: %f)\\ \\%s"),
                (campaign_get_hardcore_data().level_number + ((campaign_get_hardcore_data().level_theme - 1) * 6)) - 1,
                curr_score(),
                report_themename, campaign_get_hardcore_data().coordinates[0], campaign_get_hardcore_data().coordinates[1],
@@ -155,7 +157,8 @@ static int over_gui_hardcore(void)
         if ((jd = gui_harray(id)))
         {
             gui_start(jd, _("Return to group"), GUI_SML, OVER_TO_GROUP, 0);
-            if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+            if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
                 gui_state(jd, _("Shop"), GUI_SML, OVER_SHOP, 0);
         }
 
@@ -249,7 +252,6 @@ static int over_gui(void)
     return id;
 }
 
-/* The game causes crash, if the Leaderboard attempts to open. */
 static int over_enter(struct state *st, struct state *prev)
 {
 #ifdef LEADERBOARD_ALLOWANCE
@@ -261,12 +263,8 @@ static int over_enter(struct state *st, struct state *prev)
 
     if (!resume)
     {
-#ifdef LEADERBOARD_ALLOWANCE
-        log_printf("Player attempts to open the leaderboard!\n");
-#endif
-
         audio_music_fade_out(0.0f);
-        //audio_narrator_play(AUD_OVER);
+        audio_narrator_play(AUD_OVER);
         audio_play(AUD_INTRO_SHATTER, 1.0f);
 
 #if NB_HAVE_PB_BOTH==1

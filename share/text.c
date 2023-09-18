@@ -42,21 +42,21 @@ int text_add_char(Uint32 unicode, char *string, int maxbytes)
         string[pos++] = (char) unicode;
     else if (unicode < 0x0800)
     {
-        string[pos++] = (char) ((unicode >> 6) | 0xC0);
+        string[pos++] = (char) ((unicode >> 6)   | 0xC0);
         string[pos++] = (char) ((unicode & 0x3F) | 0x80);
     }
     else if (unicode < 0x10000)
     {
-        string[pos++] = (char) ((unicode >> 12) | 0xE0);
+        string[pos++] = (char) ((unicode >> 12)         | 0xE0);
         string[pos++] = (char) (((unicode >> 6) & 0x3F) | 0x80);
-        string[pos++] = (char) ((unicode & 0x3F) | 0x80);
+        string[pos++] = (char) ((unicode & 0x3F)        | 0x80);
     }
     else
     {
-        string[pos++] = (char) ((unicode >> 18) | 0xF0);
+        string[pos++] = (char) ((unicode >> 18)          | 0xF0);
         string[pos++] = (char) (((unicode >> 12) & 0x3F) | 0x80);
-        string[pos++] = (char) (((unicode >> 6) & 0x3F) | 0x80);
-        string[pos++] = (char) ((unicode & 0x3F) | 0x80);
+        string[pos++] = (char) (((unicode >> 6)  & 0x3F) | 0x80);
+        string[pos++] = (char) ((unicode & 0x3F)         | 0x80);
     }
 
     string[pos++] = 0;

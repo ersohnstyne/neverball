@@ -46,13 +46,13 @@
 
 static int switchball_useable(void)
 {
-    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
     const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
 
     SDL_Keycode k_arrowkey[4];
     k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
@@ -85,7 +85,8 @@ struct state st_hardcore_start;
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
 
-static int playmodes_state(int id, int tok, int val, int unlocked, char *title, char *unlock_desc, char *lock_desc)
+static int playmodes_state(int id, int tok, int val, int unlocked,
+                           char *title, char *unlock_desc, char *lock_desc)
 {
     int jd;
 
@@ -93,8 +94,10 @@ static int playmodes_state(int id, int tok, int val, int unlocked, char *title, 
 
     if ((jd = gui_vstack(id)))
     {
-        gui_multi(jd, title, GUI_SML, unlocked ? gui_wht : gui_gry, unlocked ? gui_yel : gui_red);
-        gui_multi(jd, unlocked ? unlock_desc : lock_desc, GUI_SML, gui_wht, gui_wht);
+        gui_multi(jd, title, GUI_SML,
+                  unlocked ? gui_wht : gui_gry, unlocked ? gui_yel : gui_red);
+        gui_multi(jd, unlocked ? unlock_desc : lock_desc, GUI_SML,
+                  gui_wht, gui_wht);
 
         gui_set_rect(jd, GUI_ALL);
         gui_set_state(jd, unlocked ? tok : GUI_NONE, val);
@@ -119,12 +122,23 @@ static int playmodes_action(int tok, int val)
     switch (tok)
     {
     case GUI_BACK:
-        return goto_state_full(&st_campaign, GUI_ANIMATION_S_CURVE, GUI_ANIMATION_N_CURVE, 0);
+        return goto_state_full(&st_campaign,
+                               GUI_ANIMATION_S_CURVE,
+                               GUI_ANIMATION_N_CURVE,
+                               0);
     case PLAYMODES_CAREER_MODE:
-        career_changed = 1; config_set_d(CONFIG_LOCK_GOALS, !config_get_d(CONFIG_LOCK_GOALS));
+        config_set_d(CONFIG_LOCK_GOALS,
+                     !config_get_d(CONFIG_LOCK_GOALS));
+
+        career_changed = 1;
+
         audio_play(AUD_SWITCH, 1.0f);
-        if (config_get_d(CONFIG_LOCK_GOALS)) audio_play(AUD_GOAL, 1.0f);
+
+        if (config_get_d(CONFIG_LOCK_GOALS))
+            audio_play(AUD_GOAL, 1.0f);
+
         config_save();
+
         return goto_state_full(&st_playmodes, 0, 0, 1);
     case PLAYMODES_HARDCORE:
         return goto_state(&st_hardcore_start);
@@ -149,17 +163,27 @@ static int playmodes_gui(void)
                 gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
         }
 
-        int career_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER) || campaign_career_unlocked());
-        char *career_title = config_get_d(CONFIG_LOCK_GOALS) ? _("Career Mode (Currently ENABLED!)") : _("Career Mode (Currently disabled)");
-        char *career_text = _("Toggle career mode in the entire game.\\Compatible with Level Set.");
+        int   career_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER)
+                              || campaign_career_unlocked());
+        char *career_title    = config_get_d(CONFIG_LOCK_GOALS) ?
+                                _("Career Mode (Currently ENABLED!)") :
+                                _("Career Mode (Currently disabled)");
+        char *career_text     = _("Toggle career mode in the entire game.\\"
+                                  "Compatible with Level Set.");
 
         playmodes_state(id, PLAYMODES_CAREER_MODE, 0,
-            career_unlocked && server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER),
-            career_unlocked && server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER) ? career_title : _("Career Mode"),
-            _(career_text),
-            server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER) ? _("Complete the game to unlock.") : _("Career mode is not available\\with server group policy."));
+                        career_unlocked &&
+                        server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER),
+                        career_unlocked &&
+                        server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER) ?
+                        career_title : _("Career Mode"),
+                        _(career_text),
+                        server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER) ?
+                        _("Complete the game to unlock.") :
+                        _("Career mode is not available\\with server group policy."));
 
-        int hardc_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE) || campaign_hardcore_unlocked());
+        int hardc_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE)
+                           || campaign_hardcore_unlocked());
         int hardc_requirement = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
             && !config_cheat()
@@ -169,39 +193,45 @@ static int playmodes_gui(void)
         if (!CHECK_ACCOUNT_ENABLED)
         {
             playmodes_state(id, GUI_NONE, 0, 0,
-                mode_to_str(MODE_HARDCORE, 1), "",
-                _("Hardcore Mode is not available.\\Please check your account settings!"));
+                            mode_to_str(MODE_HARDCORE, 1), "",
+                            _("Hardcore Mode is not available.\\"
+                              "Please check your account settings!"));
         }
         else if (CHECK_ACCOUNT_BANKRUPT)
         {
             playmodes_state(id, GUI_NONE, 0, 0,
-                mode_to_str(MODE_HARDCORE, 1), "",
-                _("Your player account is bankrupt.\\"
-                  "Restore from the backup or delete the\\"
-                  "local account and start over from scratch."));
+                            mode_to_str(MODE_HARDCORE, 1), "",
+                            _("Your player account is bankrupt.\\"
+                              "Restore from the backup or delete the\\"
+                              "local account and start over from scratch."));
         }
         else if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE))
         {
             playmodes_state(id, PLAYMODES_HARDCORE, 0, hardc_unlocked && hardc_requirement,
-                mode_to_str(MODE_HARDCORE, 1), _("Play the entire game without dying once."),
-                !hardc_requirement
+                            mode_to_str(MODE_HARDCORE, 1),
+                            _("Play the entire game without dying once."),
+                            !hardc_requirement ?
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-                ? _("Hardcore Mode is not available\\with slowdown, cheat or smooth fix.")
+                            _("Hardcore Mode is not available\\"
+                              "with slowdown, cheat or smooth fix.") :
 #else
-                ? _("Hardcore Mode is not available\\with slowdown or smooth fix.")
+                            _("Hardcore Mode is not available\\"
+                              "with slowdown or smooth fix.") :
 #endif
-                : _("Achieve all Silver Medals or above in Best Time\\to unlock this Mode."));
+                            _("Achieve all Silver Medals or above in Best Time\\"
+                              "to unlock this Mode."));
         }
         else
         {
             if (server_policy_get_d(SERVER_POLICY_EDITION) == 0)
                 playmodes_state(id, GUI_NONE, 0, 0,
-                    mode_to_str(MODE_HARDCORE, 1), "",
-                    _("Upgrade to Pro edition to play this Mode."));
+                                mode_to_str(MODE_HARDCORE, 1), "",
+                                _("Upgrade to Pro edition to play this Mode."));
             else if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE) == 0)
                 playmodes_state(id, GUI_NONE, 0, 0,
-                    mode_to_str(MODE_HARDCORE, 1), "",
-                    _("Hardcore Mode is not available\\with Server Group Policy."));
+                                mode_to_str(MODE_HARDCORE, 1), "",
+                                _("Hardcore Mode is not available\\"
+                                  "with Server Group Policy."));
         }
     }
 
@@ -214,7 +244,8 @@ static int playmodes_enter(struct state *st, struct state *prev)
 #if NB_HAVE_PB_BOTH==1
     audio_music_fade_to(0.5f, "bgm/inter_local.ogg");
 #else
-    audio_music_fade_to(0.0f, switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
+    audio_music_fade_to(0.0f, switchball_useable() ? "bgm/title-switchball.ogg" :
+                                                     "bgm/title.ogg");
 #endif
 
     if (&st_campaign == prev || &st_hardcore_start == prev)
@@ -245,7 +276,7 @@ static int playmodes_keybd(int c, int d)
 {
     if (d && (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        && current_platform == PLATFORM_PC
+           && current_platform == PLATFORM_PC
 #endif
         ))
         return playmodes_action(GUI_BACK, 0);
@@ -307,9 +338,16 @@ static int hardcore_start_gui(void)
         gui_space(id);
 
         if (campaign_career_unlocked())
-            gui_multi(id, _("You can't save in this mode.\\ \\Would you like to disable the\\recordings during the game?"), GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, _("You can't save in this mode.\\ \\"
+                            "Would you like to disable the\\"
+                            "recordings during the game?"),
+                          GUI_SML, gui_wht, gui_wht);
         else
-            gui_multi(id, _("You can't save in this mode\\except unlocking levels.\\ \\Would you like to disable the\\recordings during the game?"), GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, _("You can't save in this mode\\"
+                            "except unlocking levels.\\ \\"
+                            "Would you like to disable the\\"
+                            "recordings during the game?"),
+                          GUI_SML, gui_wht, gui_wht);
 
         gui_space(id);
 
@@ -357,7 +395,7 @@ static int hardcore_start_keybd(int c, int d)
 {
     if (d && (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        && current_platform == PLATFORM_PC
+           && current_platform == PLATFORM_PC
 #endif
         ))
         return hardcore_start_action(GUI_BACK, 0);

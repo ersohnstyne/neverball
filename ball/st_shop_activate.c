@@ -44,18 +44,19 @@ static int activate_introducory = 1;
 static struct state *ok_state;
 static struct state *cancel_state;
 
-static int (*curr_ok_fn)(struct state *) = NULL;
-static int (*curr_cancel_fn)(struct state *) = NULL;
+static int (*curr_ok_fn)     (struct state *) = NULL;
+static int (*curr_cancel_fn) (struct state *) = NULL;
 
 int goto_shop_activate(struct state *ok, struct state *cancel,
-                       int (*new_ok_fn)(struct state *), int (*new_cancel_fn)(struct state *))
+                       int (*new_ok_fn) (struct state *),
+                       int (*new_cancel_fn) (struct state *))
 {
     activate_introducory = 1;
 
-    ok_state = ok;
+    ok_state     = ok;
     cancel_state = cancel;
 
-    curr_ok_fn = new_ok_fn;
+    curr_ok_fn     = new_ok_fn;
     curr_cancel_fn = new_cancel_fn;
 
     return goto_state(&shop_activate);
@@ -83,32 +84,32 @@ static void shop_activate_update_enter_btn(void)
     for (int i = 0; i < text_length(text_input) && ordercode_accepted; i++)
     {
         if (text_input[i] != '-'
-            && text_input[i] != 'B'
-            && text_input[i] != 'C'
-            && text_input[i] != 'D'
-            && text_input[i] != 'F'
-            && text_input[i] != 'G'
-            && text_input[i] != 'H'
-            && text_input[i] != 'J'
-            && text_input[i] != 'K'
-            && text_input[i] != 'M'
-            && text_input[i] != 'N'
-            && text_input[i] != 'P'
-            && text_input[i] != 'Q'
-            && text_input[i] != 'R'
-            && text_input[i] != 'T'
-            && text_input[i] != 'V'
-            && text_input[i] != 'W'
-            && text_input[i] != 'X'
-            && text_input[i] != 'Y'
-            && text_input[i] != '2'
-            && text_input[i] != '3'
-            && text_input[i] != '4'
-            && text_input[i] != '5'
-            && text_input[i] != '6'
-            && text_input[i] != '7'
-            && text_input[i] != '8'
-            && text_input[i] != '9')
+         && text_input[i] != 'B'
+         && text_input[i] != 'C'
+         && text_input[i] != 'D'
+         && text_input[i] != 'F'
+         && text_input[i] != 'G'
+         && text_input[i] != 'H'
+         && text_input[i] != 'J'
+         && text_input[i] != 'K'
+         && text_input[i] != 'M'
+         && text_input[i] != 'N'
+         && text_input[i] != 'P'
+         && text_input[i] != 'Q'
+         && text_input[i] != 'R'
+         && text_input[i] != 'T'
+         && text_input[i] != 'V'
+         && text_input[i] != 'W'
+         && text_input[i] != 'X'
+         && text_input[i] != 'Y'
+         && text_input[i] != '2'
+         && text_input[i] != '3'
+         && text_input[i] != '4'
+         && text_input[i] != '5'
+         && text_input[i] != '6'
+         && text_input[i] != '7'
+         && text_input[i] != '8'
+         && text_input[i] != '9')
         {
             ordercode_accepted = 0;
             break;
@@ -117,8 +118,8 @@ static void shop_activate_update_enter_btn(void)
 
     gui_set_state(enter_id, ordercode_accepted ? ACTIVATE_OK : GUI_NONE, 0);
     gui_set_color(enter_id,
-        ordercode_accepted ? gui_wht : gui_gry,
-        ordercode_accepted ? gui_wht : gui_gry);
+                  ordercode_accepted ? gui_wht : gui_gry,
+                  ordercode_accepted ? gui_wht : gui_gry);
 }
 
 static int shop_activate_action(int tok, int val)
@@ -146,12 +147,11 @@ static int shop_activate_action(int tok, int val)
         {
             text_input_stop();
 
-            int new_coins = account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_orderpack().Wallets[0];
-            int new_gems = account_get_d(ACCOUNT_DATA_WALLET_GEMS) + curr_orderpack().Wallets[1];
+            int new_coins = account_get_d(ACCOUNT_DATA_WALLET_COINS)      + curr_orderpack().Wallets[0];
+            int new_gems  = account_get_d(ACCOUNT_DATA_WALLET_GEMS)       + curr_orderpack().Wallets[1];
             int new_lives = account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + curr_orderpack().Balls;
 
-            int prev_powers[3];
-            int new_powers[3];
+            int prev_powers[3], new_powers[3];
             prev_powers[0] = account_get_d(ACCOUNT_CONSUMEABLE_EARNINATOR);
             prev_powers[1] = account_get_d(ACCOUNT_CONSUMEABLE_FLOATIFIER);
             prev_powers[2] = account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER);
@@ -159,8 +159,8 @@ static int shop_activate_action(int tok, int val)
 
             /* Do the same as well? */
 
-            account_set_d(ACCOUNT_DATA_WALLET_COINS, new_coins);
-            account_set_d(ACCOUNT_DATA_WALLET_GEMS, new_gems);
+            account_set_d(ACCOUNT_DATA_WALLET_COINS,      new_coins);
+            account_set_d(ACCOUNT_DATA_WALLET_GEMS,       new_gems);
             account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, new_lives);
             account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, new_powers[0]);
             account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, new_powers[1]);
@@ -225,89 +225,91 @@ static void on_text_input(int typing)
     {
         if (text_length(prev_text_input) < text_length(text_input))
         {
-            int start_i = text_length(text_input) > 23 ? 24
-                : (text_length(text_input) > 17 ? 18
-                    : (text_length(text_input) > 11 ? 12
-                        : (text_length(text_input) > 5 ? 6 : 0)));
+            int start_i =
+                text_length(text_input) > 23 ? 24 :
+                                              (text_length(text_input) > 17 ? 18 :
+                                                                             (text_length(text_input) > 11 ? 12 :
+                                                                                                            (text_length(text_input) > 5 ? 6 : 0)));
 
             for (int i = start_i; i < text_length(text_input); i++)
             {
                 if (text_length(text_input) == 6
-                    || text_length(text_input) == 12
-                    || text_length(text_input) == 18
-                    || text_length(text_input) == 24)
+                 || text_length(text_input) == 12
+                 || text_length(text_input) == 18
+                 || text_length(text_input) == 24)
                 {
                     if ((i == 5
-                        || i == 11
-                        || i == 17
-                        || i == 23) && text_input[i] != '-')
+                      || i == 11
+                      || i == 17
+                      || i == 23)
+                     && text_input[i] != '-')
                         text_input_del();
                 }
                 else if (text_input[i] == 'b'
-                    || text_input[i] == 'c'
-                    || text_input[i] == 'd'
-                    || text_input[i] == 'f'
-                    || text_input[i] == 'g'
-                    || text_input[i] == 'h'
-                    || text_input[i] == 'j'
-                    || text_input[i] == 'k'
-                    || text_input[i] == 'm'
-                    || text_input[i] == 'n'
-                    || text_input[i] == 'p'
-                    || text_input[i] == 'q'
-                    || text_input[i] == 'r'
-                    || text_input[i] == 't'
-                    || text_input[i] == 'v'
-                    || text_input[i] == 'w'
-                    || text_input[i] == 'x'
-                    || text_input[i] == 'y'
+                      || text_input[i] == 'c'
+                      || text_input[i] == 'd'
+                      || text_input[i] == 'f'
+                      || text_input[i] == 'g'
+                      || text_input[i] == 'h'
+                      || text_input[i] == 'j'
+                      || text_input[i] == 'k'
+                      || text_input[i] == 'm'
+                      || text_input[i] == 'n'
+                      || text_input[i] == 'p'
+                      || text_input[i] == 'q'
+                      || text_input[i] == 'r'
+                      || text_input[i] == 't'
+                      || text_input[i] == 'v'
+                      || text_input[i] == 'w'
+                      || text_input[i] == 'x'
+                      || text_input[i] == 'y'
 
-                    || text_input[i] == 'B'
-                    || text_input[i] == 'C'
-                    || text_input[i] == 'D'
-                    || text_input[i] == 'F'
-                    || text_input[i] == 'G'
-                    || text_input[i] == 'H'
-                    || text_input[i] == 'J'
-                    || text_input[i] == 'K'
-                    || text_input[i] == 'M'
-                    || text_input[i] == 'N'
-                    || text_input[i] == 'P'
-                    || text_input[i] == 'Q'
-                    || text_input[i] == 'R'
-                    || text_input[i] == 'T'
-                    || text_input[i] == 'V'
-                    || text_input[i] == 'W'
-                    || text_input[i] == 'X'
-                    || text_input[i] == 'Y'
+                      || text_input[i] == 'B'
+                      || text_input[i] == 'C'
+                      || text_input[i] == 'D'
+                      || text_input[i] == 'F'
+                      || text_input[i] == 'G'
+                      || text_input[i] == 'H'
+                      || text_input[i] == 'J'
+                      || text_input[i] == 'K'
+                      || text_input[i] == 'M'
+                      || text_input[i] == 'N'
+                      || text_input[i] == 'P'
+                      || text_input[i] == 'Q'
+                      || text_input[i] == 'R'
+                      || text_input[i] == 'T'
+                      || text_input[i] == 'V'
+                      || text_input[i] == 'W'
+                      || text_input[i] == 'X'
+                      || text_input[i] == 'Y'
 
-                    || text_input[i] == '2'
-                    || text_input[i] == '3'
-                    || text_input[i] == '4'
-                    || text_input[i] == '5'
-                    || text_input[i] == '6'
-                    || text_input[i] == '7'
-                    || text_input[i] == '8'
-                    || text_input[i] == '9')
+                      || text_input[i] == '2'
+                      || text_input[i] == '3'
+                      || text_input[i] == '4'
+                      || text_input[i] == '5'
+                      || text_input[i] == '6'
+                      || text_input[i] == '7'
+                      || text_input[i] == '8'
+                      || text_input[i] == '9')
                 {
                     if (text_input[i] == 'b'
-                        || text_input[i] == 'c'
-                        || text_input[i] == 'd'
-                        || text_input[i] == 'f'
-                        || text_input[i] == 'g'
-                        || text_input[i] == 'h'
-                        || text_input[i] == 'j'
-                        || text_input[i] == 'k'
-                        || text_input[i] == 'm'
-                        || text_input[i] == 'n'
-                        || text_input[i] == 'p'
-                        || text_input[i] == 'q'
-                        || text_input[i] == 'r'
-                        || text_input[i] == 't'
-                        || text_input[i] == 'v'
-                        || text_input[i] == 'w'
-                        || text_input[i] == 'x'
-                        || text_input[i] == 'z')
+                     || text_input[i] == 'c'
+                     || text_input[i] == 'd'
+                     || text_input[i] == 'f'
+                     || text_input[i] == 'g'
+                     || text_input[i] == 'h'
+                     || text_input[i] == 'j'
+                     || text_input[i] == 'k'
+                     || text_input[i] == 'm'
+                     || text_input[i] == 'n'
+                     || text_input[i] == 'p'
+                     || text_input[i] == 'q'
+                     || text_input[i] == 'r'
+                     || text_input[i] == 't'
+                     || text_input[i] == 'v'
+                     || text_input[i] == 'w'
+                     || text_input[i] == 'x'
+                     || text_input[i] == 'y')
                         text_input[i] = toupper(text_input[i]);
                 }
                 else
@@ -341,7 +343,8 @@ int shop_activate_gui(void)
         gui_title_header(id, _("Activate order code"), GUI_MED, 0, 0);
         gui_space(id);
 
-        ordercode_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, gui_grn, gui_grn);
+        ordercode_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                                 GUI_SML, gui_grn, gui_grn);
         gui_set_label(ordercode_id, text_input);
 
         gui_space(id);

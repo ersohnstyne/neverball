@@ -17,6 +17,10 @@
 #include "campaign.h"
 #include "solid_vary.h"
 
+#if NB_STEAM_API==1
+#include "score_online.h"
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -70,8 +74,8 @@ int campaign_is_downloadable(int i)
         enum package_status status = package_get_status(package_id);
 
         return (status == PACKAGE_AVAILABLE ||
-            status == PACKAGE_PARTIAL ||
-            status == PACKAGE_ERROR);
+                status == PACKAGE_PARTIAL ||
+                status == PACKAGE_ERROR);
     }
 
     return 0;
@@ -228,7 +232,7 @@ static char *campaign_name;
  * The view direction begins looking down Y-axis.
  */
 static char *campaign_levelpath[30];
-static int campaign_count = 30;
+static int   campaign_count = 30;
 
 static int level_difficulty = -1;
 
@@ -236,13 +240,13 @@ static int exists = 0;
 static int used = 0;
 static int theme_used = 0;
 
-static struct score coin_trials;
-static struct score time_trials;
-static char *time_trial_leaderboard;
-static int time_trial_version;
+static struct  score coin_trials;
+static struct  score time_trials;
+static char   *time_trial_leaderboard;
+static int     time_trial_version;
 
-static struct campaign_hardcore_mode hardcores;
-static struct campaign_medal_data medal_datas;
+static struct campaign_hardcore_mode   hardcores;
+static struct campaign_medal_data      medal_datas;
 static struct campaign_cam_box_trigger cam_box_triggers[MAX_CAM_BOX_TRIGGER];
 
 static int autocam_count = 0; /* How many autocam box triggers have we got? */
@@ -256,7 +260,9 @@ static struct level campaign_lvl_v[MAXLVL];
 static void campaign_put_times(fs_file fp, const struct score *s)
 {
     for (int i = RANK_HARD; i <= RANK_EASY; i++)
-        fs_printf(fp, "%d %d %s\n", s->timer[i], s->coins[i], s->player[i]);
+        fs_printf(fp, "%d %d %s\n", s->timer [i],
+                                    s->coins [i],
+                                    s->player[i]);
 }
 
 static int campaign_get_times(fs_file fp, struct score *s)
@@ -299,6 +305,30 @@ static struct level *campaign_find_level(const char *file)
     return NULL;
 }
 
+static int campaign_get_stats(fs_file fp, struct level *l)
+{
+    char line[MAXSTR];
+
+    if (!fs_gets(line, sizeof(line), fp))
+        return 0;
+
+    strip_newline(line);
+
+    if (sscanf(line, "stats %d %d %d", &l->stats.completed,
+                                       &l->stats.timeout,
+                                       &l->stats.fallout) < 3) {
+        /* compatible with save files without stats info */
+        l->stats.completed = 0;
+        l->stats.timeout   = 0;
+        l->stats.fallout   = 0;
+
+        /* stats not available, rewind file pointer */
+        fs_seek(fp, - strlen(line) - 1, SEEK_CUR);
+    }
+
+    return 1;
+}
+
 void campaign_store_hs(void)
 {
     fs_file fp;
@@ -326,6 +356,10 @@ void campaign_store_hs(void)
             if (l->is_completed) flags |= LEVEL_COMPLETED;
 
             fs_printf(fp, "level %d %d %s\n", flags, l->version_num, l->file);
+
+            fs_printf(fp, "stats %d %d %d\n", l->stats.completed,
+                                              l->stats.timeout,
+                                              l->stats.fallout);
 
             campaign_put_times(fp, &l->scores[SCORE_TIME]);
             campaign_put_times(fp, &l->scores[SCORE_GOAL]);
@@ -365,12 +399,14 @@ static void campaign_load_hs_v2(fs_file fp, char *buf, int size)
 #else
         else if (sscanf(buf,
 #endif
-                        "level %d %d %n", & flags, & version, & n) >= 2)
+                        "level %d %d %n", &flags, &version, &n) >= 2)
         {
             struct level *l;
 
             if ((l = campaign_find_level(buf + n)))
             {
+                campaign_get_stats(fp, l);
+
                 /* Always prefer "locked" flag from the score file. */
 
                 l->is_locked = !!(flags & LEVEL_LOCKED);
@@ -451,9 +487,8 @@ static void campaign_load_hs(void)
             {
                 switch (time_trial_version)
                 {
-                case 2:
-                    campaign_load_hs_v2(fp, buf, sizeof (buf));
-                    break;
+                case 2: campaign_load_hs_v2(fp, buf, sizeof(buf)); break;
+                //case 3: campaign_load_hs_v3(fp, buf, sizeof(buf)); break;
                 }
             }
             else
@@ -472,10 +507,13 @@ int campaign_score_update(int timer, int coins, int *score_rank, int *times_rank
 
     const char *player = config_get_s(CONFIG_PLAYER);
     
-    int career_hs_unlocked = (campaign_career_unlocked() && config_get_d(CONFIG_LOCK_GOALS));
+    int career_hs_unlocked = (campaign_career_unlocked()
+                           && config_get_d(CONFIG_LOCK_GOALS));
 
-    score_coin_insert(&coin_trials, score_rank, player, (career_hs_unlocked) ? timer : 360000, (career_hs_unlocked) ? coins : 0);
-    score_time_insert(&time_trials, times_rank, player, timer, coins);
+    score_coin_insert(&coin_trials, score_rank, player,
+                      career_hs_unlocked ? timer : 360000, career_hs_unlocked ? coins : 0);
+    score_time_insert(&time_trials, times_rank, player,
+                      timer, coins);
 
     if ((score_rank && *score_rank < RANK_LAST) ||
         (times_rank && *times_rank < RANK_LAST))
@@ -492,12 +530,8 @@ void campaign_rename_player(int times_rank, const char *player)
 
 int campaign_rank(void)
 {
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
     // Was: config_cheat() ? 4 : medal_datas.curr_rank;
     return medal_datas.curr_rank;
-#else
-    return medal_datas.curr_rank;
-#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -662,15 +696,15 @@ int campaign_init(void)
                 medal_datas.unlocks++;
 
                 if (strcmp(campaign_get_level(i)->scores->player[0], N_("Hard")) != 0
-                    && strcmp(campaign_get_level(i)->scores->player[0], "") != 0)
+                 && strcmp(campaign_get_level(i)->scores->player[0], "") != 0)
                     medal_datas.gold++;
 
                 else if (strcmp(campaign_get_level(i)->scores->player[1], N_("Medium")) != 0
-                    && strcmp(campaign_get_level(i)->scores->player[1], "") != 0)
+                      && strcmp(campaign_get_level(i)->scores->player[1], "") != 0)
                     medal_datas.silver++;
 
                 else if (strcmp(campaign_get_level(i)->scores->player[2], N_("Easy")) == 0
-                    && strcmp(campaign_get_level(i)->scores->player[2], "") == 0)
+                      && strcmp(campaign_get_level(i)->scores->player[2], "") == 0)
                     medal_datas.bronze++;
             }
         }
@@ -682,11 +716,17 @@ int campaign_init(void)
          * To get the gold wings: Achieve every gold awards on all levels.
          */
 
-        if ((medal_datas.gold == medal_datas.unlocks) && medal_datas.silver == 0 && medal_datas.bronze == 0 && level_completed(campaign_get_level(3)))
+        if ((medal_datas.gold == medal_datas.unlocks)
+          && medal_datas.silver == 0 && medal_datas.bronze == 0
+         && level_completed(campaign_get_level(3)))
             medal_datas.curr_rank = 4;
-        else if (medal_datas.gold > medal_datas.silver && medal_datas.gold > medal_datas.bronze && level_completed(campaign_get_level(3)))
+        else if (medal_datas.gold > medal_datas.silver
+         && medal_datas.gold > medal_datas.bronze
+         && level_completed(campaign_get_level(3)))
             medal_datas.curr_rank = 3;
-        else if (medal_datas.gold < medal_datas.silver && medal_datas.silver > medal_datas.bronze && level_completed(campaign_get_level(3)))
+        else if (medal_datas.gold < medal_datas.silver
+         && medal_datas.silver > medal_datas.bronze
+         && level_completed(campaign_get_level(3)))
             medal_datas.curr_rank = 2;
         else if (level_completed(campaign_get_level(3)))
             medal_datas.curr_rank = 1;
@@ -773,7 +813,7 @@ int campaign_hardcore_unlocked(void)
 #if !defined(HARDCORE_PERMA_UNLOCKED)
     for (int i = 0; i < 30; i++)
         if (strcmp(campaign_get_level(i)->scores->player[1], N_("Medium")) == 0
-            || strcmp(campaign_get_level(i)->scores->player[1], "") == 0)
+         || strcmp(campaign_get_level(i)->scores->player[1], "") == 0)
             return 0;
 #endif
     return 1;
@@ -876,22 +916,22 @@ int campaign_load_camera_box_trigger(const char *levelname)
             sscanf(camLinePrefix,
 #endif
                    "pos:%f %f %f size:%f %f %f mode:%d campos:%f %f %f dir:%f",
-                   &cam_box_triggers[camBoxIdx].positions[0], & cam_box_triggers[camBoxIdx].positions[2], & cam_box_triggers[camBoxIdx].positions[1],
-                   &cam_box_triggers[camBoxIdx].triggerSize[0], & cam_box_triggers[camBoxIdx].triggerSize[2], & cam_box_triggers[camBoxIdx].triggerSize[1],
+                   &cam_box_triggers[camBoxIdx].positions[0], &cam_box_triggers[camBoxIdx].positions[2], &cam_box_triggers[camBoxIdx].positions[1],
+                   &cam_box_triggers[camBoxIdx].triggerSize[0], &cam_box_triggers[camBoxIdx].triggerSize[2], &cam_box_triggers[camBoxIdx].triggerSize[1],
                    &cam_box_triggers[camBoxIdx].cammode,
-                   &cam_box_triggers[camBoxIdx].campositions[0], & cam_box_triggers[camBoxIdx].campositions[2], & cam_box_triggers[camBoxIdx].campositions[1],
+                   &cam_box_triggers[camBoxIdx].campositions[0], &cam_box_triggers[camBoxIdx].campositions[2], &cam_box_triggers[camBoxIdx].campositions[1],
                    &cam_box_triggers[camBoxIdx].camdirection);
 
-            cam_box_triggers[camBoxIdx].positions[0] /= 64;
-            cam_box_triggers[camBoxIdx].positions[1] /= 64;
+            cam_box_triggers[camBoxIdx].positions[0] /=  64;
+            cam_box_triggers[camBoxIdx].positions[1] /=  64;
             cam_box_triggers[camBoxIdx].positions[2] /= -64;
 
             cam_box_triggers[camBoxIdx].triggerSize[0] /= 64;
             cam_box_triggers[camBoxIdx].triggerSize[1] /= 64;
             cam_box_triggers[camBoxIdx].triggerSize[2] /= 64;
 
-            cam_box_triggers[camBoxIdx].campositions[0] /= 64;
-            cam_box_triggers[camBoxIdx].campositions[1] /= 64;
+            cam_box_triggers[camBoxIdx].campositions[0] /=  64;
+            cam_box_triggers[camBoxIdx].campositions[1] /=  64;
             cam_box_triggers[camBoxIdx].campositions[2] /= -64;
 
             cam_box_triggers[camBoxIdx].activated = 1;
@@ -943,8 +983,8 @@ int campaign_camera_box_trigger_test(struct s_vary *vary, int ui)
         struct campaign_cam_box_trigger *localcamboxtrigger = cam_box_triggers + camidx;
 
         if (cam_box_trigger_test_master(ball_p, localcamboxtrigger, 0)
-            && cam_box_trigger_test_master(ball_p, localcamboxtrigger, 1)
-            && cam_box_trigger_test_master(ball_p, localcamboxtrigger, 2))
+         && cam_box_trigger_test_master(ball_p, localcamboxtrigger, 1)
+         && cam_box_trigger_test_master(ball_p, localcamboxtrigger, 2))
         {
             cam_box_triggers[camidx].activated = 0;
             return camidx;

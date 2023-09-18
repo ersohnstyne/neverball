@@ -74,19 +74,24 @@ static void __countdown_preparation_init()
 {
     for (int i = 0; i < 12; i++)
     {
-        memset(&local_countdown_preparation[i], 0, sizeof (countdown_preparation));
+        memset(&local_countdown_preparation[i], 0,
+               sizeof (countdown_preparation));
         local_countdown_preparation[i].id = i;
         local_countdown_preparation[i].isgreen = 0;
 
         if (video.device_w <= video.device_h)
         {
-            local_countdown_preparation[i].positions[0] = fsinf(V_PI * (i / 6.0f)) * (video.device_h * 0.125f);
-            local_countdown_preparation[i].positions[1] = -fcosf(V_PI * (i / 6.0f)) * (video.device_h * 0.125f);
+            local_countdown_preparation[i].positions[0] =
+                fsinf(V_PI * (i / 6.0f)) * (video.device_h * 0.125f);
+            local_countdown_preparation[i].positions[1] =
+                -fcosf(V_PI * (i / 6.0f)) * (video.device_h * 0.125f);
         }
         else
         {
-            local_countdown_preparation[i].positions[0] = fsinf(V_PI * (i / 6.0f)) * (video.device_w * 0.125f);
-            local_countdown_preparation[i].positions[1] = -fcosf(V_PI * (i / 6.0f)) * (video.device_w * 0.125f);
+            local_countdown_preparation[i].positions[0] =
+                fsinf(V_PI * (i / 6.0f)) * (video.device_w * 0.125f);
+            local_countdown_preparation[i].positions[1] =
+                -fcosf(V_PI * (i / 6.0f)) * (video.device_w * 0.125f);
         }
     }
 }
@@ -100,7 +105,8 @@ static void __countdown_preparation_draw()
         if (local_countdown_preparation[i].isgreen)
         {
             local_countdown_preparation[i].alpha = 3.0f - (4 * time_state());
-            local_countdown_preparation[i].position_scaled = 1.0f - fcosf(V_PI * time_state()) * (time_state() * 2);
+            local_countdown_preparation[i].position_scaled =
+                1.0f - fcosf(V_PI * time_state()) * (time_state() * 2);
 
             local_countdown_preparation[i].colorfill[0] = 0.0f;
             local_countdown_preparation[i].colorfill[1] = 1.0f;
@@ -108,7 +114,8 @@ static void __countdown_preparation_draw()
         }
         else
         {
-            float time_state_offset = time_state() + (local_countdown_preparation[i].id / 12.0f);
+            float time_state_offset = time_state() +
+                                      (local_countdown_preparation[i].id / 12.0f);
 
             float alpha_result = fcosf(V_PI * time_state_offset);
             if (alpha_result < 0) alpha_result = -alpha_result;
@@ -125,8 +132,10 @@ static void __countdown_preparation_draw()
         }
 
         glTranslatef(
-            local_countdown_preparation[i].positions[0] * local_countdown_preparation[i].position_scaled,
-            local_countdown_preparation[i].positions[1] * local_countdown_preparation[i].position_scaled,
+            local_countdown_preparation[i].positions[0] *
+            local_countdown_preparation[i].position_scaled,
+            local_countdown_preparation[i].positions[1] *
+            local_countdown_preparation[i].position_scaled,
             0.0f
         );
         glTranslatef(video.device_w / 2, video.device_h / 2, 0.0f);
@@ -307,7 +316,8 @@ static int play_ready_enter(struct state *st, struct state *prev)
     video_set_grab(1);
     hud_speedup_reset();
 
-    game_client_sync(!campaign_hardcore_norecordings() && curr_mode() != MODE_NONE ? demo_fp : NULL);
+    game_client_sync(!campaign_hardcore_norecordings() &&
+                     curr_mode() != MODE_NONE ? demo_fp : NULL);
     hud_update(0, 0.0f);
     hud_update_camera_direction(curr_viewangle());
 
@@ -367,7 +377,8 @@ static void play_ready_timer(int id, float dt)
 
     game_step_fade(dt);
     game_client_blend(game_server_blend());
-    game_client_sync(!campaign_hardcore_norecordings() && curr_mode() != MODE_NONE ? demo_fp : NULL);
+    game_client_sync(!campaign_hardcore_norecordings() &&
+                     curr_mode() != MODE_NONE ? demo_fp : NULL);
 
     gui_timer(id, dt);
 
@@ -405,7 +416,7 @@ static int play_ready_keybd(int c, int d)
 
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
         {
@@ -454,7 +465,9 @@ static int play_set_enter(struct state *st, struct state *prev)
     restart_cancel_allchkp = 0;
 #endif
     play_freeze_all = 0;
-    if (curr_mode() == MODE_NONE) return 0; /* Cannot run traffic in home room. */
+
+    /* Cannot run traffic in home room. */
+    if (curr_mode() == MODE_NONE) return 0;
     audio_narrator_play(AUD_SET);
 
     toggle_hud_visibility(1);
@@ -506,7 +519,8 @@ static void play_set_timer(int id, float dt)
 
     game_step_fade(dt);
     game_client_blend(game_server_blend());
-    game_client_sync(!campaign_hardcore_norecordings() && curr_mode() != MODE_NONE ? demo_fp : NULL);
+    game_client_sync(!campaign_hardcore_norecordings() &&
+                     curr_mode() != MODE_NONE ? demo_fp : NULL);
 
     gui_timer(id, dt);
 
@@ -550,7 +564,7 @@ static int play_set_keybd(int c, int d)
 
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
         {
@@ -676,18 +690,18 @@ static int play_loop_enter(struct state *st, struct state *prev)
 {
     smoothfix_slowdown_time = 0;
 #ifdef MAPC_INCLUDES_CHKP
-    restart_cancel_allchkp = 0;
+    restart_cancel_allchkp  = 0;
 #endif
-    play_freeze_all = 0;
-    play_block_state = 0;
+    play_freeze_all         = 0;
+    play_block_state        = 0;
     rot_init();
 
-    lmb_holded = 0;
+    lmb_holded    =  0;
     lmb_hold_time = -0.01f;
 
-    fast_rotate = 0;
-    max_speed = 0;
-    man_rot = 0;
+    fast_rotate     = 0;
+    max_speed       = 0;
+    man_rot         = 0;
     rotation_offset = 0;
 
     global_prev = prev;
@@ -695,32 +709,50 @@ static int play_loop_enter(struct state *st, struct state *prev)
 
     tilt_x = 0; tilt_y = 0;
 
-    if (curr_mode() == MODE_NONE) return 0; /* Cannot run traffic in home room. */
+    /* Cannot run traffic in home room. */
+    if (curr_mode() == MODE_NONE) return 0;
 
-    if ((prev != &st_play_ready && prev != &st_play_set && prev != &st_tutorial) || prev == &st_play_loop)
+    if ((prev != &st_play_ready &&
+         prev != &st_play_set &&
+         prev != &st_tutorial) ||
+        prev == &st_play_loop)
         return 0;
 
     __countdown_preparation_setgreen();
 
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
-    evalue = account_get_d(ACCOUNT_CONSUMEABLE_EARNINATOR);
-    fvalue = account_get_d(ACCOUNT_CONSUMEABLE_FLOATIFIER);
-    svalue = account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER);
-
     if (get_coin_multiply() == 2)
     {
-        evalue -= 1;
-        account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, evalue);
+#if ENABLE_RFD==1
+        if (!progress_rfd_take_powerup(0))
+#endif
+        {
+            evalue = account_get_d(ACCOUNT_CONSUMEABLE_EARNINATOR);
+            evalue -= 1;
+            account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, evalue);
+        }
     }
-    if (get_gravity_multiply() <= 0.51f)
+    if (get_grav_multiply() <= 0.51f)
     {
-        fvalue -= 1;
-        account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, fvalue);
+#if ENABLE_RFD==1
+        if (!progress_rfd_take_powerup(1))
+#endif
+        {
+            fvalue = account_get_d(ACCOUNT_CONSUMEABLE_FLOATIFIER);
+            fvalue -= 1;
+            account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, fvalue);
+        }
     }
     if (get_tilt_multiply() == 2)
     {
-        svalue -= 1;
-        account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, svalue);
+#if ENABLE_RFD==1
+        if (!progress_rfd_take_powerup(2))
+#endif
+        {
+            svalue = account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER);
+            svalue -= 1;
+            account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, svalue);
+        }
     }
     account_save();
 #endif
@@ -759,7 +791,8 @@ static void play_loop_timer(int id, float dt)
 
         if (smoothfix_slowdown_time >= 30)
         {
-            config_set_d(CONFIG_SMOOTH_FIX, config_get_d(CONFIG_FORCE_SMOOTH_FIX));
+            config_set_d(CONFIG_SMOOTH_FIX,
+                         config_get_d(CONFIG_FORCE_SMOOTH_FIX));
             smoothfix_slowdown_time = 0;
         }
     }
@@ -773,7 +806,9 @@ static void play_loop_timer(int id, float dt)
 
     /* Boost rush uses auto forward */
     if (curr_mode() == MODE_BOOST_RUSH)
-        game_set_x(curr_speed_percent() / 100.f * -0.875f + (time_state() < 1.0f && global_prev != &st_pause ? -0.5f : 0));
+        game_set_x(curr_speed_percent() / 100.f * -0.875f + 
+                   (time_state() < 1.0f && global_prev != &st_pause ? -0.5f :
+                                                                       0));
 
     float k = (fast_rotate ?
                (float) config_get_d(CONFIG_ROTATE_FAST) :
@@ -869,14 +904,15 @@ static void play_loop_timer(int id, float dt)
         play_block_state = 1;
         progress_stat(curr_status());
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        goto_state_full(
-            curr_status() == GAME_GOAL ?
-                (curr_mode() == MODE_HARDCORE && !progress_done() ? &st_goal_hardcore : &st_goal)
-                : &st_fail,
-            0, GUI_ANIMATION_E_CURVE, 0);
+        goto_state_full(curr_status() == GAME_GOAL ?
+                        (curr_mode() == MODE_HARDCORE &&
+                         !progress_done() ? &st_goal_hardcore :
+                                            &st_goal) :
+                        &st_fail,
+                        0, GUI_ANIMATION_E_CURVE, 0);
 #else
         goto_state_full(curr_status() == GAME_GOAL ?
-                            &st_goal : &st_fail,
+                        &st_goal : &st_fail,
                         0, GUI_ANIMATION_E_CURVE, 0);
 #endif
     }
@@ -934,9 +970,11 @@ static void play_loop_stick(int id, int a, float v, int bump)
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X1, a))
         {
             if (v + axis_offset[2] > 0.0f)
-                rot_set(DIR_R, -v + axis_offset[2], 1); /* Previously used: +v */
+                /* Previously used: +v */
+                rot_set(DIR_R, -v + axis_offset[2], 1); 
             else if (v + axis_offset[2] < 0.0f)
-                rot_set(DIR_L, +v + axis_offset[2], 1); /* Previously used: -v */
+                /* Previously used: -v */
+                rot_set(DIR_L, +v + axis_offset[2], 1); 
             else
                 rot_clr(DIR_R | DIR_L);
         }
@@ -946,7 +984,8 @@ static void play_loop_stick(int id, int a, float v, int bump)
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))
             tilt_x = v * get_tilt_multiply();
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y0, a))
-            tilt_y = (curr_mode() == MODE_BOOST_RUSH ? 0 : v * get_tilt_multiply());
+            tilt_y = (curr_mode() == MODE_BOOST_RUSH ? 0 :
+                                                       v * get_tilt_multiply());
 
         game_set_z(tilt_x);
         game_set_x(tilt_y);
@@ -967,10 +1006,12 @@ static int play_loop_click(int b, int d)
     if (d && use_mouse && !use_keyboard)
     {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b) && current_platform == PLATFORM_PC)
+        if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b) &&
+            current_platform == PLATFORM_PC)
             lmb_holded = 1;
 
-        if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b) && current_platform == PLATFORM_PC)
+        if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b) &&
+            current_platform == PLATFORM_PC)
             rmb_holded = 1;
 #else
         if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
@@ -1017,19 +1058,19 @@ static int play_loop_keybd(int c, int d)
 
         if (config_tst_d(CONFIG_KEY_CAMERA_R, c)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
             rot_set(DIR_R, 1.0f, 0);
         if (config_tst_d(CONFIG_KEY_CAMERA_L, c)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
             rot_set(DIR_L, 1.0f, 0);
         if (config_tst_d(CONFIG_KEY_ROTATE_FAST, c)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
             fast_rotate = 1;
@@ -1037,9 +1078,9 @@ static int play_loop_keybd(int c, int d)
         keybd_camera(c);
 
         if (config_tst_d(CONFIG_KEY_RESTART, c)
-            && progress_same_avail()
+         && progress_same_avail()
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
         {
@@ -1054,7 +1095,7 @@ static int play_loop_keybd(int c, int d)
         }
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            && current_platform == PLATFORM_PC
+         && current_platform == PLATFORM_PC
 #endif
             )
         {
@@ -1141,7 +1182,9 @@ static int play_loop_touch(const SDL_TouchFingerEvent *event)
 
 static void play_loop_wheel(int x, int y)
 {
-    if (config_get_d(CONFIG_VIEW_DP) == 75 && config_get_d(CONFIG_VIEW_DC) == 25 && config_get_d(CONFIG_VIEW_DZ) == 200)
+    if (config_get_d(CONFIG_VIEW_DP) == 75 &&
+        config_get_d(CONFIG_VIEW_DC) == 25 &&
+        config_get_d(CONFIG_VIEW_DZ) == 200)
     {
         /* For some reasons, this may not work on zoom functions. */
         /* if (y > 0) game_set_zoom(-1.0f); */
@@ -1198,10 +1241,10 @@ static void look_timer(int id, float dt)
     if (theta < -180.0f) theta += 360.0f;
 
     float look_moves[2];
-    look_moves[0] = (fcosf((V_PI * theta) / 180) * look_stick_x[0])
+    look_moves[0] = (fcosf((V_PI * theta) / 180) *  look_stick_x[0])
                   + (fsinf((V_PI * theta) / 180) * -look_stick_y[0]);
-    look_moves[1] = (fcosf((V_PI * theta) / 180) * look_stick_y[0])
-                  + (fsinf((V_PI * theta) / 180) * look_stick_x[0]);
+    look_moves[1] = (fcosf((V_PI * theta) / 180) *  look_stick_y[0])
+                  + (fsinf((V_PI * theta) / 180) *  look_stick_x[0]);
 
     game_look_v2(look_moves[0] * (dt * 5),
                  look_stick_z  * (dt * 5),

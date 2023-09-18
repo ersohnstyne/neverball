@@ -170,7 +170,7 @@ static int gui_hot(int id)
 
 /* Vertex count */
 
-#define RECT_VERT 16
+#define RECT_VERT  16
 #define TEXT_VERT  8
 #define IMAGE_VERT 4
 
@@ -272,9 +272,9 @@ static void draw_disable(void)
  */
 
 static const GLushort rect_elem_base[RECT_ELEM] = {
-    0, 1, 4, 5, 8, 9, 12, 13, 13, 1,    /* Top    */
-    1, 2, 5, 6, 9, 10, 13, 14, 14, 2,   /* Middle */
-    2, 3, 6, 7, 10, 11, 14, 15          /* Bottom */
+    0, 1, 4, 5, 8,  9,  12, 13, 13, 1, /* Top    */
+    1, 2, 5, 6, 9,  10, 13, 14, 14, 2, /* Middle */
+    2, 3, 6, 7, 10, 11, 14, 15         /* Bottom */
 };
 
 static void gui_geom_rect(int id, int x, int y, int w, int h, int f)
@@ -396,7 +396,7 @@ static void gui_geom_image(int id, int x, int y, int w, int h, int f)
     glBindBuffer_   (GL_ARRAY_BUFFER, vert_vbo);
     glBufferSubData_(GL_ARRAY_BUFFER,
                      (id * WIDGET_VERT + RECT_VERT) * sizeof (struct vert),
-                     IMAGE_VERT * sizeof (struct vert), v);
+                                         IMAGE_VERT * sizeof (struct vert), v);
     glBindBuffer_   (GL_ARRAY_BUFFER, 0);
 }
 
@@ -563,16 +563,16 @@ static void gui_glyphs_init(void)
 
     for (i = 0; i < FONT_SIZE_MAX; i++)
     {
-        digit_id[i][0] = gui_label(0, "0", i, 0, 0);
-        digit_id[i][1] = gui_label(0, "1", i, 0, 0);
-        digit_id[i][2] = gui_label(0, "2", i, 0, 0);
-        digit_id[i][3] = gui_label(0, "3", i, 0, 0);
-        digit_id[i][4] = gui_label(0, "4", i, 0, 0);
-        digit_id[i][5] = gui_label(0, "5", i, 0, 0);
-        digit_id[i][6] = gui_label(0, "6", i, 0, 0);
-        digit_id[i][7] = gui_label(0, "7", i, 0, 0);
-        digit_id[i][8] = gui_label(0, "8", i, 0, 0);
-        digit_id[i][9] = gui_label(0, "9", i, 0, 0);
+        digit_id[i][0]  = gui_label(0, "0", i, 0, 0);
+        digit_id[i][1]  = gui_label(0, "1", i, 0, 0);
+        digit_id[i][2]  = gui_label(0, "2", i, 0, 0);
+        digit_id[i][3]  = gui_label(0, "3", i, 0, 0);
+        digit_id[i][4]  = gui_label(0, "4", i, 0, 0);
+        digit_id[i][5]  = gui_label(0, "5", i, 0, 0);
+        digit_id[i][6]  = gui_label(0, "6", i, 0, 0);
+        digit_id[i][7]  = gui_label(0, "7", i, 0, 0);
+        digit_id[i][8]  = gui_label(0, "8", i, 0, 0);
+        digit_id[i][9]  = gui_label(0, "9", i, 0, 0);
         digit_id[i][10] = gui_label(0, ":", i, 0, 0);
     }
 
@@ -584,11 +584,11 @@ static void gui_glyphs_init(void)
 
 #ifdef SWITCHBALL_GUI
     if ((cursor_id = gui_image(0, "gui/cursor.png", widget[digit_id[1][0]].w * 2,
-        widget[digit_id[1][0]].h * 2)))
+                                                    widget[digit_id[1][0]].h * 2)))
         gui_layout(cursor_id, 0, 0);
 #else
     if ((cursor_id = gui_image(0, "gui/cursor.png", widget[digit_id[1][0]].w,
-        widget[digit_id[1][0]].h)))
+                                                    widget[digit_id[1][0]].h)))
         gui_layout(cursor_id, 0, 0);
 #endif
 }
@@ -609,6 +609,7 @@ static void gui_glyphs_free(void)
 }
 
 /*---------------------------------------------------------------------------*/
+
 static void gui_widget_size(int);
 
 /*
@@ -761,29 +762,29 @@ static int gui_widget(int pd, int type)
         {
             /* Set the type and default properties. */
 
-            widget[id].type   = type;
-            widget[id].flags  = 0;
-            widget[id].token  = 0;
-            widget[id].value  = 0;
-            widget[id].text   = NULL;
-            widget[id].font   = 0;
-            widget[id].size   = 0;
-            widget[id].rect   = GUI_ALL;
-            widget[id].x      = 0;
-            widget[id].y      = 0;
-            widget[id].w      = 0;
-            widget[id].h      = 0;
-            widget[id].image  = 0;
-            widget[id].color0 = gui_wht;
-            widget[id].color1 = gui_wht;
-            widget[id].scale  = 1.0f;
-            widget[id].trunc  = TRUNC_NONE;
-            widget[id].text_w = 0;
-            widget[id].text_h = 0;
-            widget[id].init_text = NULL;
+            widget[id].type       = type;
+            widget[id].flags      = 0;
+            widget[id].token      = 0;
+            widget[id].value      = 0;
+            widget[id].text       = NULL;
+            widget[id].font       = 0;
+            widget[id].size       = 0;
+            widget[id].rect       = GUI_ALL;
+            widget[id].x          = 0;
+            widget[id].y          = 0;
+            widget[id].w          = 0;
+            widget[id].h          = 0;
+            widget[id].image      = 0;
+            widget[id].color0     = gui_wht;
+            widget[id].color1     = gui_wht;
+            widget[id].scale      = 1.0f;
+            widget[id].trunc      = TRUNC_NONE;
+            widget[id].text_w     = 0;
+            widget[id].text_h     = 0;
+            widget[id].init_text  = NULL;
             widget[id].init_value = 0;
-            widget[id].layout_xd = 0;
-            widget[id].layout_yd = 0;
+            widget[id].layout_xd  = 0;
+            widget[id].layout_yd  = 0;
 
             /* Insert the new widget into the parent's widget list. */
 
@@ -987,8 +988,8 @@ void gui_set_label(int id, const char *text)
     h = widget[id].text_h;
 
     gui_geom_text(id, -w / 2, -h / 2, w, h,
-                  widget[id].color0,
-                  widget[id].color1);
+                  widget[id].color0 ? widget[id].color0 : gui_wht,
+                  widget[id].color1 ? widget[id].color1 : gui_wht);
 
     free(trunc_str);
 }
@@ -1041,6 +1042,8 @@ void gui_set_multi(int id, const char *text)
 
     for (p = text, sc = 0; *p && sc < lc; sc++)
     {
+        // Support both '\\' and '\n' as delimiters.
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         strncpy_s(s[sc], dstSize, p, (n = strcspn(p, "\\\n")));
 #else
@@ -1182,9 +1185,9 @@ int gui_image(int pd, const char *file, int w, int h)
 
         /* Convert window pixels to integer-encoded fractions. */
 
-        widget[id].text_w = ROUND(((float) w / (float) s) * 1000.0f);
-        widget[id].text_h = ROUND(((float) h / (float) s) * 1000.0f);
-        widget[id].flags |= GUI_RECT;
+        widget[id].text_w  = ROUND(((float) w / (float) s) * 1000.0f);
+        widget[id].text_h  = ROUND(((float) h / (float) s) * 1000.0f);
+        widget[id].flags  |= GUI_RECT;
 
         gui_widget_size(id);
         donot_allow_mip_and_aniso_during_gui = 0;
@@ -1252,7 +1255,11 @@ int gui_label(int pd, const char *text, int size, const GLubyte *c0,
         widget[id].w      = widget[id].text_w;
         widget[id].h      = widget[id].text_h;
         widget[id].size   = size;
+#if NB_HAVE_PB_BOTH==1
+        widget[id].color0 = c0 ? c0 : gui_pnk;
+#else
         widget[id].color0 = c0 ? c0 : gui_yel;
+#endif
         widget[id].color1 = c1 ? c1 : gui_red;
         widget[id].flags |= GUI_RECT;
         gui_widget_size(id);
@@ -1272,8 +1279,7 @@ int gui_title_header(int pd, const char *text, int size, const GLubyte *c0,
 
         width_fit = max_width < (video.device_w * .85f) ? 1 : 0;
 
-        if (!width_fit)
-            i--;
+        if (!width_fit) i--;
     }
 
     return gui_label(pd, text, i, c0, c1);
@@ -1286,11 +1292,15 @@ int gui_count(int pd, int value, int size)
     if ((id = gui_widget(pd, GUI_COUNT)))
     {
         widget[id].init_value = value;
-        widget[id].value  = value;
-        widget[id].size   = size;
-        widget[id].color0 = gui_yel;
-        widget[id].color1 = gui_red;
-        widget[id].flags |= GUI_RECT;
+        widget[id].value      = value;
+        widget[id].size       = size;
+#if NB_HAVE_PB_BOTH==1
+        widget[id].color0     = gui_pnk;
+#else
+        widget[id].color0     = gui_yel;
+#endif
+        widget[id].color1     = gui_red;
+        widget[id].flags     |= GUI_RECT;
 
         gui_widget_size(id);
     }
@@ -1304,11 +1314,15 @@ int gui_clock(int pd, int value, int size)
     if ((id = gui_widget(pd, GUI_CLOCK)))
     {
         widget[id].init_value = value;
-        widget[id].value  = value;
-        widget[id].size   = size;
-        widget[id].color0 = gui_yel;
-        widget[id].color1 = gui_red;
-        widget[id].flags |= GUI_RECT;
+        widget[id].value      = value;
+        widget[id].size       = size;
+#if NB_HAVE_PB_BOTH==1
+        widget[id].color0     = gui_pnk;
+#else
+        widget[id].color0     = gui_yel;
+#endif
+        widget[id].color1     = gui_red;
+        widget[id].flags     |= GUI_RECT;
         gui_widget_size(id);
     }
     return id;
@@ -1686,9 +1700,9 @@ void gui_layout(int id, int xd, int yd)
     int w, W = video.device_w;
     int h, H = video.device_h;
 
-    widget[id].flags |= GUI_LAYOUT;
-    widget[id].layout_xd = xd;
-    widget[id].layout_yd = yd;
+    widget[id].flags     |= GUI_LAYOUT;
+    widget[id].layout_xd  = xd;
+    widget[id].layout_yd  = yd;
 
     gui_widget_up(id);
 
@@ -2198,89 +2212,120 @@ void gui_animate(int id)
     switch (widget[id].animation_direction)
     {
         /* Single direction (No Pow) */
-    case GUI_ANIMATION_N_LINEAR:
-        glTranslatef(0.0f, (video.device_h / -3) * (widget[id].alpha - 1), 0.0f);
-        break;
-    case GUI_ANIMATION_E_LINEAR:
-        glTranslatef((video.device_h / -3) * (widget[id].alpha - 1), 0.0f, 0.0f);
-        break;
-    case GUI_ANIMATION_S_LINEAR:
-        glTranslatef(0.0f, (video.device_h / 3) * (widget[id].alpha - 1), 0.0f);
-        break;
-    case GUI_ANIMATION_W_LINEAR:
-        glTranslatef((video.device_h / 3) * (widget[id].alpha - 1), 0.0f, 0.0f);
-        break;
+        case GUI_ANIMATION_N_LINEAR:
+            glTranslatef(0.0f,
+                         (video.device_h / -3) * (widget[id].alpha - 1),
+                         0.0f);
+            break;
+        case GUI_ANIMATION_E_LINEAR:
+            glTranslatef((video.device_h / -3) * (widget[id].alpha - 1),
+                         0.0f,
+                         0.0f);
+            break;
+        case GUI_ANIMATION_S_LINEAR:
+            glTranslatef(0.0f,
+                         (video.device_h / +3) * (widget[id].alpha - 1),
+                         0.0f);
+            break;
+        case GUI_ANIMATION_W_LINEAR:
+            glTranslatef((video.device_h / +3) * (widget[id].alpha - 1),
+                         0.0f,
+                         0.0f);
+            break;
 
         /* Multiple directions (No Pow) */
-    case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_E_LINEAR:
-        glTranslatef((video.device_h / -3) * (widget[id].alpha - 1), (video.device_h / -3) * (widget[id].alpha - 1), 0.0f);
-        break;
-    case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_W_LINEAR:
-        glTranslatef((video.device_h / 3) * (widget[id].alpha - 1), (video.device_h / -3) * (widget[id].alpha - 1), 0.0f);
-        break;
-    case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_E_LINEAR:
-        glTranslatef((video.device_h / -3) * (widget[id].alpha - 1), (video.device_h / 3) * (widget[id].alpha - 1), 0.0f);
-        break;
-    case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_W_LINEAR:
-        glTranslatef((video.device_h / 3) * (widget[id].alpha - 1), (video.device_h / 3) * (widget[id].alpha - 1), 0.0f);
-        break;
-
+        case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_E_LINEAR:
+            glTranslatef((video.device_h / -3) * (widget[id].alpha - 1),
+                         (video.device_h / -3) * (widget[id].alpha - 1),
+                         0.0f);
+            break;
+        case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_W_LINEAR:
+            glTranslatef((video.device_h / +3) * (widget[id].alpha - 1),
+                         (video.device_h / -3) * (widget[id].alpha - 1),
+                         0.0f);
+            break;
+        case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_E_LINEAR:
+            glTranslatef((video.device_h / -3) * (widget[id].alpha - 1),
+                         (video.device_h / +3) * (widget[id].alpha - 1),
+                         0.0f);
+            break;
+        case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_W_LINEAR:
+            glTranslatef((video.device_h / +3) * (widget[id].alpha - 1),
+                         (video.device_h / +3) * (widget[id].alpha - 1),
+                         0.0f);
+            break;
 
         /* Single direction (Pow) */
-    case GUI_ANIMATION_N_CURVE:
-        glTranslatef(0.0f, fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f);
-        break;
-    case GUI_ANIMATION_E_CURVE:
-        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f, 0.0f);
-        break;
-    case GUI_ANIMATION_S_CURVE:
-        glTranslatef(0.0f, fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f);
-        break;
-    case GUI_ANIMATION_W_CURVE:
-        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f, 0.0f);
-        break;
+        case GUI_ANIMATION_N_CURVE:
+            glTranslatef(0.0f,
+                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3),
+                         0.0f);
+            break;
+        case GUI_ANIMATION_E_CURVE:
+            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3),
+                         0.0f,
+                         0.0f);
+            break;
+        case GUI_ANIMATION_S_CURVE:
+            glTranslatef(0.0f,
+                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3),
+                         0.0f);
+            break;
+        case GUI_ANIMATION_W_CURVE:
+            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3),
+                         0.0f,
+                         0.0f);
+            break;
 
         /* Multiple directions (Pow) */
-    case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE:
-        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f);
-        break;
-    case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE:
-        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), 0.0f);
-        break;
-    case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE:
-        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / 3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f);
-        break;
-    case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE:
-        glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3), 0.0f);
-        break;
+        case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE:
+            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3),
+                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3),
+                         0.0f);
+            break;
+        case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE:
+            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3),
+                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3),
+                         0.0f);
+            break;
+        case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE:
+            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3),
+                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3),
+                         0.0f);
+            break;
+        case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE:
+            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3),
+                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3),
+                         0.0f);
+            break;
     }
 
     /* Animation rotations */
     switch (widget[id].animation_direction)
     {
-    /* Single direction (No Pow) */
-    case GUI_ANIMATION_W_LINEAR:
-    case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_W_LINEAR:
-    case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_W_LINEAR:
-        glRotatef(animation_rotation_treshold, 0.0f, 0.0f, 1.0f);
-        break;
-    case GUI_ANIMATION_E_LINEAR:
-    case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_E_LINEAR:
-    case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_E_LINEAR:
-        glRotatef(animation_rotation_treshold, 0.0f, 0.0f, -1.0f);
-        break;
+        /* Single direction (No Pow) */
+        case GUI_ANIMATION_W_LINEAR:
+        case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_W_LINEAR:
+        case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_W_LINEAR:
+            glRotatef(animation_rotation_treshold, 0.0f, 0.0f, 1.0f);
+            break;
+        case GUI_ANIMATION_E_LINEAR:
+        case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_E_LINEAR:
+        case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_E_LINEAR:
+            glRotatef(animation_rotation_treshold, 0.0f, 0.0f, -1.0f);
+            break;
 
-    /* Multiple directions (No Pow) */
-    case GUI_ANIMATION_W_CURVE:
-    case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE:
-    case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE:
-        glRotatef(fpowf(animation_rotation_treshold, 2), 0.0f, 0.0f, 1.0f);
-        break;
-    case GUI_ANIMATION_E_CURVE:
-    case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE:
-    case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE:
-        glRotatef(fpowf(animation_rotation_treshold, 2), 0.0f, 0.0f, -1.0f);
-        break;
+        /* Multiple directions (No Pow) */
+        case GUI_ANIMATION_W_CURVE:
+        case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE:
+        case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE:
+            glRotatef(fpowf(animation_rotation_treshold, 2), 0.0f, 0.0f, 1.0f);
+            break;
+        case GUI_ANIMATION_E_CURVE:
+        case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE:
+        case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE:
+            glRotatef(fpowf(animation_rotation_treshold, 2), 0.0f, 0.0f, -1.0f);
+            break;
     }
 
     glTranslatef((GLfloat) (-video.device_w / 2),
@@ -2299,11 +2344,17 @@ void gui_paint(int id)
                 gui_animate(id);
 
                 draw_enable(GL_FALSE, GL_TRUE, GL_TRUE);
-                glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+                glColor4ub(gui_wht[0],
+                           gui_wht[1],
+                           gui_wht[2],
+                           ROUND(gui_wht[3] * widget[id].alpha));
                 gui_paint_rect(id, 0, 0);
 
                 draw_enable(GL_TRUE, GL_TRUE, GL_TRUE);
-                glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+                glColor4ub(gui_wht[0],
+                           gui_wht[1],
+                           gui_wht[2],
+                           ROUND(gui_wht[3] * widget[id].alpha));
                 gui_paint_text(id);
 
                 draw_disable();
@@ -2421,7 +2472,7 @@ void gui_timer(int id, float dt)
         for (jd = widget[id].car; jd; jd = widget[jd].cdr)
             gui_timer(jd, dt);
         
-        //if (widget[id].scale - 1.0f < dt) widget[id].scale = 1.0f; else widget[id].scale -= dt;
+        //widget[id].scale = MAX(widget[id].scale - dt, 1.f);
 
         widget[id].scale = flerp(1.0f, widget[id].scale, 0.8f);
     }

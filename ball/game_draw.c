@@ -31,6 +31,174 @@
 
 /*---------------------------------------------------------------------------*/
 
+static void game_draw_chnk_floor(struct s_rend *rend,
+                                 const struct s_vary *vary,
+                                 const float *bill_M, float t)
+{
+    float c[4]   = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float ball_y = vary->uv[0].p[1] + BALL_FUDGE;
+
+    int i, j;
+
+    for (i = -4; i < 4; i++)
+    {
+        for (j = -4; j < 4; j++)
+        {
+            glPushMatrix();
+            {
+                glScalef    (10, 1, 10);
+                glTranslatef(i * 4000, 0, j * 4000);
+
+                glColor4ub(ROUND(c[0] * 255),
+                           ROUND(c[1] * 255),
+                           ROUND(c[2] * 255),
+                           ROUND(c[3] * 255));
+                chnk_pane_draw(rend);
+            }
+            glPopMatrix();
+        }
+    }
+}
+
+static void game_draw_chnk_balls(struct s_rend *rend,
+                                 const struct s_vary *vary,
+                                 const float *bill_M, float t)
+{
+    float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        
+    const struct s_base *base = vary->base;
+
+    glPushMatrix();
+    {
+        const float  dnscl = 1.f;
+        glScalef    (dnscl, 1, dnscl);
+        glTranslatef(base->uv[0].p[0] / dnscl,
+                     base->uv[0].p[1] + BALL_FUDGE,
+                     base->uv[0].p[2] / dnscl);
+
+        glColor4ub(ROUND(c[0] * 255),
+                   ROUND(c[1] * 255),
+                   ROUND(c[2] * 255),
+                   ROUND(c[3] * 255));
+        chnk_ball_draw(rend);
+    }
+    glPopMatrix();
+}
+
+static void game_draw_chnk_jumps(struct s_rend *rend,
+                                 const struct s_vary *vary,
+                                 const float *bill_M, float t)
+{
+    float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        
+    const struct s_base *base = vary->base;
+
+    for (int i = 0; i < base->jc; i++)
+    {
+        glPushMatrix();
+        {
+            const float  dnscl = 1.f;
+            glScalef    (dnscl, 1, dnscl);
+            glTranslatef(base->jv[i].p[0] / dnscl,
+                         base->jv[i].p[1] + 0.001,
+                         base->jv[i].p[2] / dnscl);
+
+            glColor4ub(ROUND(c[0] * 255),
+                       ROUND(c[1] * 255),
+                       ROUND(c[2] * 255),
+                       ROUND(c[3] * 255));
+            chnk_jump_draw(rend);
+        }
+        glPopMatrix();
+    }
+}
+
+static void game_draw_chnk_goals(struct s_rend *rend,
+                                 const struct s_vary *vary,
+                                 const float *bill_M, float t)
+{
+    float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        
+    const struct s_base *base = vary->base;
+
+    for (int i = 0; i < base->zc; i++)
+    {
+        glPushMatrix();
+        {
+            const float  dnscl = 1.f;
+            glScalef    (dnscl, 1, dnscl);
+            glTranslatef(base->zv[i].p[0] / dnscl,
+                         base->zv[i].p[1] + 0.001,
+                         base->zv[i].p[2] / dnscl);
+
+            glColor4ub(ROUND(c[0] * 255),
+                       ROUND(c[1] * 255),
+                       ROUND(c[2] * 255),
+                       ROUND(c[3] * 255));
+            chnk_goal_draw(rend);
+        }
+        glPopMatrix();
+    }
+}
+
+static void game_draw_chnk_swchs(struct s_rend *rend,
+                                 const struct s_vary *vary,
+                                 const float *bill_M, float t)
+{
+    float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        
+    const struct s_base *base = vary->base;
+
+    for (int i = 0; i < base->xc; i++)
+    {
+        glPushMatrix();
+        {
+            const float  dnscl = 1.f;
+            glScalef    (dnscl, 1, dnscl);
+            glTranslatef(base->xv[i].p[0] / dnscl,
+                         base->xv[i].p[1] + 0.001,
+                         base->xv[i].p[2] / dnscl);
+
+            glColor4ub(ROUND(c[0] * 255),
+                       ROUND(c[1] * 255),
+                       ROUND(c[2] * 255),
+                       ROUND(c[3] * 255));
+            chnk_swch_draw(rend);
+        }
+        glPopMatrix();
+    }
+}
+
+static void game_draw_chnk_chkps(struct s_rend *rend,
+                                 const struct s_vary *vary,
+                                 const float *bill_M, float t)
+{
+    float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        
+    const struct s_base *base = vary->base;
+
+    for (int i = 0; i < base->cc; i++)
+    {
+        glPushMatrix();
+        {
+            const float  dnscl = 1.f;
+            glScalef    (dnscl, 1, dnscl);
+            glTranslatef(base->cv[i].p[0] / dnscl,
+                         base->cv[i].p[1] + 0.001,
+                         base->cv[i].p[2] / dnscl);
+
+            glColor4ub(ROUND(c[0] * 255),
+                       ROUND(c[1] * 255),
+                       ROUND(c[2] * 255),
+                       ROUND(c[3] * 255));
+            chnk_chkp_draw(rend);
+        }
+        glPopMatrix();
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void game_draw_balls(struct s_rend *rend,
                             const struct s_vary *vary,
                             const float *bill_M, float t)
@@ -367,11 +535,14 @@ static void game_draw_fore(struct s_rend *rend,
         if (d < 0)
             glEnable(GL_CLIP_PLANE0);
 
+        if (!config_cheat())
+            glEnable(GL_FOG);
+
         switch (pose)
         {
         case POSE_LEVEL:
             game_draw_items(rend, draw->vary, M, t);
-            sol_draw(draw, rend, 0, 1);
+            sol_draw       (draw, rend, 0, 1);
             break;
 
         case POSE_BALL:
@@ -384,7 +555,7 @@ static void game_draw_fore(struct s_rend *rend,
                  */
 
                 glDepthMask(GL_FALSE);
-                sol_draw(draw, rend, 0, 1);
+                sol_draw   (draw, rend, 0, 1);
                 glDepthMask(GL_TRUE);
             }
             game_draw_balls(rend, draw->vary, M, t);
@@ -415,7 +586,7 @@ static void game_draw_fore(struct s_rend *rend,
                 sol_bill(draw, rend, M, t);
 
                 game_draw_beams(rend, gd);
-                part_draw_coin(rend);
+                part_draw_coin (rend);
             }
             glEnable(GL_LIGHTING);
 
@@ -435,19 +606,107 @@ static void game_draw_fore(struct s_rend *rend,
         }
         glDepthMask(GL_TRUE);
 
+        if (!config_cheat())
+            glDisable(GL_FOG);
+
         if (d < 0)
             glDisable(GL_CLIP_PLANE0);
     }
     glPopMatrix();
 }
 
+static void game_draw_fore_chnk(struct s_rend *rend,
+                                struct game_draw *gd,
+                                int pose, const float *M,
+                                int d, float t, int flip)
+{
+    const float* ball_p = gd->vary.uv[0].p;
+
+    struct s_draw* draw = &gd->draw;
+
+    glPushMatrix();
+    {
+        /* Rotate the environment about the position of the ball. */
+
+        game_draw_tilt(gd, d, flip);
+
+        /* Compute clipping planes for reflection and ball facing. */
+
+        game_clip_refl(d);
+        game_clip_ball(gd, d, ball_p);
+
+        if (d < 0)
+            glEnable(GL_CLIP_PLANE0);
+
+        //if (!config_cheat())
+            //glEnable(GL_FOG);
+
+        switch (pose)
+        {
+        case POSE_LEVEL:
+            //game_draw_items(rend, draw->vary, M, t);
+            sol_draw       (draw, rend, 0, 1);
+            break;
+
+        case POSE_BALL:
+            /* No render available for map chunk overview. */
+            break;
+
+        case POSE_NONE:
+            //game_draw_items(rend, draw->vary, M, t);
+            sol_draw       (draw, rend, 0, 1);
+            break;
+        }
+
+        glDepthMask(GL_FALSE);
+        {
+            /* Draw the billboards only. */
+
+            glDisable(GL_LIGHTING);
+            {
+                sol_bill(draw, rend, M, t);
+            }
+            glEnable(GL_LIGHTING);
+        }
+        glDepthMask(GL_TRUE);
+
+        //if (!config_cheat())
+            //glDisable(GL_FOG);
+
+        if (d < 0)
+            glDisable(GL_CLIP_PLANE0);
+
+        glDepthMask(GL_FALSE);
+        {
+            /* Draw the map chunk overview. */
+
+            glDisable(GL_LIGHTING);
+            {
+                game_draw_chnk_floor(rend, &gd->vary, M, t);
+                game_draw_chnk_balls(rend, &gd->vary, M, t);
+                game_draw_chnk_jumps(rend, &gd->vary, M, t);
+                game_draw_chnk_goals(rend, &gd->vary, M, t);
+                game_draw_chnk_swchs(rend, &gd->vary, M, t);
+                game_draw_chnk_chkps(rend, &gd->vary, M, t);
+            }
+            glEnable(GL_LIGHTING);
+        }
+        glDepthMask(GL_TRUE);
+    }
+    glPopMatrix();
+}
+
 static void game_draw_fog()
 {
-    GLfloat fog_color[4]; fog_color[0] = 1.0f; fog_color[1] = 1.0f; fog_color[2] = 1.0f; fog_color[3] = 1.0f;
-    glDisable(GL_FOG);
-    glFogfv(GL_FOG_COLOR, fog_color);
-    glFogf(GL_FOG_MODE, GL_EXP2);
-    glFogf(GL_FOG_DENSITY, 0.0125);
+    GLfloat fog_color[4];
+    fog_color[0] = 1.0f;
+    fog_color[1] = 1.0f;
+    fog_color[2] = 1.0f;
+    fog_color[3] = 1.0f;
+
+    glFogfv(GL_FOG_COLOR,   fog_color);
+    glFogf (GL_FOG_MODE,    GL_EXP2);
+    glFogf (GL_FOG_DENSITY, 0.0125);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -552,76 +811,97 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
             game_draw_back(&rend, gd, pose, +1, t, 0);
 
-            /* Draw the reflection. */
+            /* If the view altitude is greater than 15 m from the surface,   */
+            /* map chunk must be rendered as their overview.                 */
 
-            game_draw_light(gd, 1, t);
-
-            if (gd->draw.reflective && config_get_d(CONFIG_REFLECTION))
+            if (view->p[1] > gd->vary.uv[0].p[1] + 15)
             {
-                glEnable(GL_STENCIL_TEST);
-                {
-                    /* Draw the mirrors only into the stencil buffer. */
+                /* Draw the map chunk overlay. Must be opaqued for mirrors.  */
 
-                    glStencilFunc(GL_ALWAYS, 1, 0xFFFFFFFF);
-                    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-                    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-                    glDepthMask(GL_FALSE);
+                game_draw_light(gd, 1, t);
 
-                    game_refl_all(&rend, gd, 0);
-
-                    glDepthMask(GL_TRUE);
-                    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-                    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-                    glStencilFunc(GL_EQUAL, 1, 0xFFFFFFFF);
-
-                    /* Draw the scene reflected into color and depth buffers. */
-
-                    glFrontFace(GL_CW);
-                    glPushMatrix();
-                    {
-                        glScalef(+1.0f, -1.0f, +1.0f);
-
-                        game_draw_light(gd, -1, t);
-                        
-                        game_draw_back(&rend, gd, pose,    -1, t, 1);
-                        if (!config_cheat())
-                            glEnable(GL_FOG);
-                        game_draw_fore(&rend, gd, pose, U, -1, t, 1);
-                        glDisable(GL_FOG);
-                    }
-                    glPopMatrix();
-                    glFrontFace(GL_CCW);
-
-                    glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
-                }
-                glDisable(GL_STENCIL_TEST);
-            }
-
-            /* Ready the lights for foreground rendering. */
-
-            game_draw_light(gd, 1, t);
-
-            /* When reflection is disabled, mirrors must be rendered opaque  */
-            /* to prevent the background from showing.                       */
-
-            if (gd->draw.reflective && !config_get_d(CONFIG_REFLECTION))
-            {
                 r_color_mtrl(&rend, 1);
                 {
-                    glColor4ub(0, 0, 0, 0xFF);
+                    glColor4ub   (0, 0, 0, 0xFF);
                     game_refl_all(&rend, gd, 0);
-                    glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
+                    glColor4ub   (0xFF, 0xFF, 0xFF, 0xFF);
                 }
                 r_color_mtrl(&rend, 0);
+
+                game_refl_all(&rend, gd, 0);
+
+                game_draw_fore_chnk(&rend, gd, pose, U, +1, t, 0);
             }
+            else
+            {
+                /* Draw the reflection. */
 
-            /* Draw the mirrors and the rest of the foreground. */
+                game_draw_light(gd, 1, t);
 
-            game_refl_all (&rend, gd, 0);
-            if (!config_cheat())
-                glEnable(GL_FOG);
-            game_draw_fore(&rend, gd, pose, T, +1, t, 0);
-            glDisable(GL_FOG);
+                if (gd->draw.reflective && config_get_d(CONFIG_REFLECTION))
+                {
+                    glEnable(GL_STENCIL_TEST);
+                    {
+                        /* Draw the mirrors only into the stencil buffer. */
+
+                        glStencilFunc(GL_ALWAYS, 1, 0xFFFFFFFF);
+                        glStencilOp  (GL_KEEP, GL_KEEP, GL_REPLACE);
+                        glColorMask  (GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+                        glDepthMask  (GL_FALSE);
+
+                        game_refl_all(&rend, gd, 0);
+
+                        glDepthMask  (GL_TRUE);
+                        glColorMask  (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+                        glStencilOp  (GL_KEEP, GL_KEEP, GL_KEEP);
+                        glStencilFunc(GL_EQUAL, 1, 0xFFFFFFFF);
+
+                        /* Draw the scene reflected into color and depth buffers. */
+
+                        glFrontFace(GL_CW);
+                        glPushMatrix();
+                        {
+                            glScalef(+1.0f, -1.0f, +1.0f);
+
+                            game_draw_light(gd, -1, t);
+
+                            game_draw_back(&rend, gd, pose, -1, t, 1);
+                            game_draw_fore(&rend, gd, pose, U, -1, t, 1);
+                        }
+                        glPopMatrix();
+                        glFrontFace(GL_CCW);
+
+                        glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
+                    }
+                    glDisable(GL_STENCIL_TEST);
+                }
+
+                /* Ready the lights for foreground rendering. */
+
+                game_draw_light(gd, 1, t);
+
+                /* When reflection is disabled, mirrors must be rendered opaque  */
+                /* to prevent the background from showing.                       */
+
+                if (gd->draw.reflective && !config_get_d(CONFIG_REFLECTION))
+                {
+                    r_color_mtrl(&rend, 1);
+                    {
+                        glColor4ub   (0, 0, 0, 0xFF);
+                        game_refl_all(&rend, gd, 0);
+                        glColor4ub   (0xFF, 0xFF, 0xFF, 0xFF);
+                    }
+                    r_color_mtrl(&rend, 0);
+                }
+
+                /* Draw the mirrors and the rest of the foreground. */
+
+                game_refl_all(&rend, gd, 0);
+                if (!config_cheat())
+                    glEnable(GL_FOG);
+                game_draw_fore(&rend, gd, pose, T, +1, t, 0);
+                glDisable(GL_FOG);
+            }
         }
         glPopMatrix();
         video_pop_matrix();

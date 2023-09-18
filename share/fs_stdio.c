@@ -54,18 +54,18 @@ struct fs_file_s
 {
     FILE *handle;
 
-    void *zip_file_data;
-    size_t zip_file_pos;
-    size_t zip_file_size;
+    void   *zip_file_data;
+    size_t  zip_file_pos;
+    size_t  zip_file_size;
 
     enum fs_path_type path_type;
 };
 
 struct fs_path_item
 {
-    void *data;
-    char *path;
-    enum fs_path_type type;
+    void              *data;
+    char              *path;
+    enum fs_path_type  type;
 };
 
 static char *fs_dir_base;
@@ -416,7 +416,10 @@ fs_file fs_open_read(const char *path)
             {
                 mz_zip_archive *zip = (mz_zip_archive *) path_item->data;
 
-                fh->zip_file_data = mz_zip_reader_extract_file_to_heap(zip, path, &fh->zip_file_size, 0);
+                fh->zip_file_data = mz_zip_reader_extract_file_to_heap(zip,
+                                                                       path,
+                                                                       &fh->zip_file_size,
+                                                                       0);
 
                 if (fh->zip_file_data)
                 {
@@ -530,13 +533,13 @@ int fs_exists(const char *path)
 #if _MSC_VER
     DWORD file_attr = GetFileAttributesA(path);
 
-    if (!(file_attr & FILE_ATTRIBUTE_OFFLINE
-       || file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED
-       || file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA))
-        return file_attr & FILE_ATTRIBUTE_NORMAL
-            || file_attr & FILE_ATTRIBUTE_ARCHIVE
-            || file_attr & FILE_ATTRIBUTE_READONLY
-            || file_attr & FILE_ATTRIBUTE_HIDDEN;
+    if (!(file_attr & FILE_ATTRIBUTE_OFFLINE             ||
+          file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
+          file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA))
+        return file_attr & FILE_ATTRIBUTE_NORMAL   ||
+               file_attr & FILE_ATTRIBUTE_ARCHIVE  ||
+               file_attr & FILE_ATTRIBUTE_READONLY ||
+               file_attr & FILE_ATTRIBUTE_HIDDEN;
 
     if (fs_dir_write)
     {
@@ -545,13 +548,13 @@ int fs_exists(const char *path)
         DWORD file_attr = GetFileAttributesA(real);
         free(real);
 
-        if (!(file_attr & FILE_ATTRIBUTE_OFFLINE
-           || file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED
-           || file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA))
-            return file_attr & FILE_ATTRIBUTE_NORMAL
-                || file_attr & FILE_ATTRIBUTE_ARCHIVE
-                || file_attr & FILE_ATTRIBUTE_READONLY
-                || file_attr & FILE_ATTRIBUTE_HIDDEN;
+        if (!(file_attr & FILE_ATTRIBUTE_OFFLINE             ||
+              file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
+              file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA))
+            return file_attr & FILE_ATTRIBUTE_NORMAL   ||
+                   file_attr & FILE_ATTRIBUTE_ARCHIVE  ||
+                   file_attr & FILE_ATTRIBUTE_READONLY ||
+                   file_attr & FILE_ATTRIBUTE_HIDDEN;
     }
 
     List p;
@@ -560,21 +563,21 @@ int fs_exists(const char *path)
     {
         struct fs_path_item *path_item = (struct fs_path_item *) p->data;
 
-        if (path_item->type == FS_PATH_DIRECTORY
-         || path_item->type == FS_PATH_ZIP)
+        if (path_item->type == FS_PATH_DIRECTORY ||
+            path_item->type == FS_PATH_ZIP)
         {
             char *real = path_join(path_item->path, path);
 
             DWORD file_attr = GetFileAttributesA(real);
             free(real);
 
-            if (!(file_attr & FILE_ATTRIBUTE_OFFLINE
-               || file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED
-               || file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA))
-                return file_attr & FILE_ATTRIBUTE_NORMAL
-                    || file_attr & FILE_ATTRIBUTE_ARCHIVE
-                    || file_attr & FILE_ATTRIBUTE_READONLY
-                    || file_attr & FILE_ATTRIBUTE_HIDDEN;
+            if (!(file_attr & FILE_ATTRIBUTE_OFFLINE             ||
+                  file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
+                  file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA))
+                return file_attr & FILE_ATTRIBUTE_NORMAL   ||
+                       file_attr & FILE_ATTRIBUTE_ARCHIVE  ||
+                       file_attr & FILE_ATTRIBUTE_READONLY ||
+                       file_attr & FILE_ATTRIBUTE_HIDDEN;
         }
     }
 

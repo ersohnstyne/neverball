@@ -499,7 +499,8 @@ void audio_play(const char *filename, float a)
         lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
-        log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n", filename);
+        log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n",
+                   filename);
 }
 
 void audio_narrator_play(const char *filename)
@@ -548,7 +549,8 @@ void audio_narrator_play(const char *filename)
         lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
-        log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n", filename);
+        log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n",
+                   filename);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -570,7 +572,8 @@ void audio_music_play(const char *filename)
         lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
-        log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n", filename);
+        log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n",
+                   filename);
 }
 
 void audio_music_queue(const char *filename, float t)
@@ -595,7 +598,8 @@ void audio_music_queue(const char *filename, float t)
         lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
-        log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n", filename);
+        log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n",
+                   filename);
 }
 
 void audio_music_stop(void)
@@ -727,14 +731,14 @@ void audio_music_fade_to(float t, const char *filename)
  */
 void audio_volume(int master, int snd, int mus, int narrator)
 {
-    float master_logaritmic = (float) master / 10.0f;
-    float sound_logaritmic = (float) (snd / 10.0f) * master_logaritmic;
-    float music_logaritmic = (float) (mus / 10.0f) * master_logaritmic;
+    float master_logaritmic   = (float)  master   / 10.0f;
+    float sound_logaritmic    = (float) (snd      / 10.0f) * master_logaritmic;
+    float music_logaritmic    = (float) (mus      / 10.0f) * master_logaritmic;
     float narrator_logaritmic = (float) (narrator / 10.0f) * master_logaritmic;
 
-    master_vol = LOGF_VOLUME(master_logaritmic);
-    sound_vol = LOGF_VOLUME(sound_logaritmic);
-    music_vol = LOGF_VOLUME(music_logaritmic);
+    master_vol   = LOGF_VOLUME(master_logaritmic);
+    sound_vol    = LOGF_VOLUME(sound_logaritmic);
+    music_vol    = LOGF_VOLUME(music_logaritmic);
     narrator_vol = LOGF_VOLUME(narrator_logaritmic);
 }
 

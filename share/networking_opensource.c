@@ -23,11 +23,13 @@
 
 #if NEVERBALL_EDITION>=10000
 #if NEVERBALL_EDITION>10002
-#error Präprozessordefinition NEVERBALL_EDITION muss zwischen 10000 (Server Essentials) und 10002 (Server Datacenter) liegen
+#error Präprozessordefinition NEVERBALL_EDITION muss \
+       zwischen 10000 (Server Essentials) und 10002 (Server Datacenter) liegen
 #endif
 #else
 #if NEVERBALL_EDITION<-1 || NEVERBALL_EDITION>3
-#error Präprozessordefinition NEVERBALL_EDITION muss zwischen -1 (Open-Source) und 3 (Education) liegen
+#error Präprozessordefinition NEVERBALL_EDITION muss \
+       zwischen -1 (Open-Source) und 3 (Education) liegen
 #endif
 #endif
 
@@ -72,26 +74,26 @@ static struct
     const int   def;
     int         cur;
 } server_policy_d[] = {
-    { &SERVER_POLICY_EDITION, "edition", -1 },
-    { &SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN, "levelgroup_only_campaign", 0 },
-    { &SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET, "levelgroup_only_levelset", 1 },
+    { &SERVER_POLICY_EDITION,                  "edition",                  -1 },
+    { &SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN, "levelgroup_only_campaign",  0 },
+    { &SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET, "levelgroup_only_levelset",  1 },
 
     { &SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET, "levelgroup_unlocked_levelset", 1 },
 
-    { &SERVER_POLICY_LEVELSET_ENABLED_BONUS, "levelset_enabled_bonus", 1 },
+    { &SERVER_POLICY_LEVELSET_ENABLED_BONUS,     "levelset_enabled_bonus",     1 },
     { &SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET, "levelset_enabled_customset", 1 },
-    { &SERVER_POLICY_LEVELSET_UNLOCKED_BONUS, "levelset_unlocked_bonus", 0 },
+    { &SERVER_POLICY_LEVELSET_UNLOCKED_BONUS,    "levelset_unlocked_bonus",    0 },
 
-    { &SERVER_POLICY_PLAYMODES_ENABLED, "playmodes_enabled", 1 },
-    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER, "playmodes_enabled_mode_career", 1 },
+    { &SERVER_POLICY_PLAYMODES_ENABLED,                "playmodes_enabled",                1 },
+    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER,    "playmodes_enabled_mode_career",    1 },
     { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE, "playmodes_enabled_mode_challenge", 1 },
-    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE, "playmodes_enabled_mode_hardcore", 0 },
-    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER, "playmodes_unlocked_career", 1 },
-    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE, "playmodes_unlocked_hardcore", 0 },
+    { &SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE,  "playmodes_enabled_mode_hardcore",  0 },
+    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER,   "playmodes_unlocked_career",        1 },
+    { &SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE, "playmodes_unlocked_hardcore",      0 },
 
-    { &SERVER_POLICY_SHOP_ENABLED, "shop_enabled", 0 },
-    { &SERVER_POLICY_SHOP_ENABLED_IAP, "shop_enabled_iap", 0 },
-    { &SERVER_POLICY_SHOP_ENABLED_MANAGED, "shop_enabled_managed", 0 },
+    { &SERVER_POLICY_SHOP_ENABLED,             "shop_enabled",             0 },
+    { &SERVER_POLICY_SHOP_ENABLED_IAP,         "shop_enabled_iap",         0 },
+    { &SERVER_POLICY_SHOP_ENABLED_MANAGED,     "shop_enabled_managed",     0 },
     { &SERVER_POLICY_SHOP_ENABLED_CONSUMABLES, "shop_enabled_consumables", 0 },
 };
 

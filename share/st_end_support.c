@@ -55,17 +55,17 @@
 #define END_SUPPORT_MONTH    4 /* DO NOT EDIT! */
 #define END_SUPPORT_DAY     21 /* DO NOT EDIT! */
 
-#define END_SUPPORT_TITLE_1  "Simple entities support is ending May 21, 2024." /* DO NOT EDIT! */
-#define END_SUPPORT_TITLE_2  "After %d years, support for Neverball 1.6 is nearing the end." /* DO NOT EDIT! */
-#define END_SUPPORT_TITLE_3  "Your Neverball 1.6 is out of support!" /* DO NOT EDIT! */
+#define END_SUPPORT_TITLE_1  N_("Simple entities support is ending May 21, 2024.") /* DO NOT EDIT! */
+#define END_SUPPORT_TITLE_2  N_("After %d years, support for Neverball 1.6 is nearing the end.") /* DO NOT EDIT! */
+#define END_SUPPORT_TITLE_3  N_("Your Neverball 1.6 is out of support!") /* DO NOT EDIT! */
 
 #define END_SUPPORT_IMAGE    "gui/end_support_%d.png" /* DO NOT EDIT! */
 
-#define END_SUPPORT_DESC_1   "After %d years, support for Neverball 1.6 is coming to an end.\\The best two things you can do to prepare for the transition are,\\back up your levels and highscores, and then get ready for what's next.\\We have tools to help you with both." /* DO NOT EDIT! */
-#define END_SUPPORT_DESC_2   "May 21, 2024 is the last day Jānis Rūcis will offer\\simple entities and technical support for running Neverball 1.6.\\We know change can be difficult, that's why we're reaching out early\\to help you back up your levels and highscores, and prepare for what's next." /* DO NOT EDIT! */
-#define END_SUPPORT_DESC_3_1 "As of May 21, 2024, support for Neverball 1.6\\has come to an end. Your entities is\\more vulnerable to legacies due to:" /* DO NOT EDIT! */
-#define END_SUPPORT_DESC_3_2 "- No simple start position\\- No goal decals\\- No simple switch and simple platform" /* DO NOT EDIT! */
-#define END_SUPPORT_DESC_3_3 "PennySchloss requires using\\Pennyball 2.1.0 on a new campaigns\\for the latest huge guideline features." /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_1   N_("After %d years, support for Neverball 1.6 is coming to an end.\\The best two things you can do to prepare for the transition are,\\back up your levels and highscores, and then get ready for what's next.\\We have tools to help you with both.") /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_2   N_("May 21, 2024 is the last day Jānis Rūcis will offer\\simple entities and technical support for running Neverball 1.6.\\We know change can be difficult, that's why we're reaching out early\\to help you back up your levels and highscores, and prepare for what's next.") /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_3_1 N_("As of May 21, 2024, support for Neverball 1.6\\has come to an end. Your entities is\\more vulnerable to legacies due to:") /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_3_2 N_("- No simple start position\\- No goal decals\\- No simple switch and simple platform") /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_3_3 N_("PennySchloss requires using\\Pennyball 2.1.0 on a new campaigns\\for the latest huge guideline features.") /* DO NOT EDIT! */
 
 /*---------------------------------------------------------------------------*/
 
@@ -277,13 +277,13 @@ static long long int difference_of_days(int day1, int month1, int year1, int day
 /* DO NOT EDIT! */
 static int switchball_useable(void)
 {
-    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
     const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
 
     SDL_Keycode k_arrowkey[4];
     k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
@@ -359,7 +359,8 @@ static int end_support_gui(void)
     if ((id = gui_vstack(0)))
     {
         int curryear = timestamp.tm_year + 1900;
-        long long int diff = difference_of_days(timestamp.tm_mday, timestamp.tm_mon, curryear, END_SUPPORT_DAY, END_SUPPORT_MONTH-1, END_SUPPORT_YEAR);
+        long long int diff = difference_of_days(timestamp.tm_mday, timestamp.tm_mon, curryear,
+                                                END_SUPPORT_DAY, END_SUPPORT_MONTH - 1, END_SUPPORT_YEAR);
 
         log_printf("Days left: %d / %d %d %d\n", diff, timestamp.tm_mday, timestamp.tm_mon, curryear);
 #if !defined(TEST_END_SUPPORT)
@@ -444,6 +445,8 @@ void end_support_leave(struct state *st, struct state *next, int id)
     conf_common_leave(st, next, id);
 }
 
+struct state st_end_support;
+
 /* DO NOT EDIT! */
 int goto_end_support(struct state *scontinue)
 {
@@ -454,7 +457,8 @@ int goto_end_support(struct state *scontinue)
     gmtime_s(&timestamp, &local);
 
     int curryear = timestamp.tm_year + 1900;
-    long long int diff = difference_of_days(timestamp.tm_mday, timestamp.tm_mon, curryear, END_SUPPORT_DAY, END_SUPPORT_MONTH - 1, END_SUPPORT_YEAR);
+    long long int diff = difference_of_days(timestamp.tm_mday, timestamp.tm_mon, curryear,
+                                            END_SUPPORT_DAY, END_SUPPORT_MONTH - 1, END_SUPPORT_YEAR);
 
     return goto_state(diff > 30 ? st_hide : &st_end_support);
 }

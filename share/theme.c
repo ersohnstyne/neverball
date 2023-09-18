@@ -20,10 +20,10 @@
 /*---------------------------------------------------------------------------*/
 
 static const char theme_images[THEME_IMAGES_MAX][PATHMAX] = {
-    "back-plain.png",       /* off and inactive    */
-    "back-plain-focus.png", /* off and   active    */
-    "back-hilite.png",      /* on  and inactive    */
-    "back-hilite-focus.png" /* on  and   active    */
+    "back-plain.png",                  /* off and inactive */
+    "back-plain-focus.png",            /* off and   active */
+    "back-hilite.png",                 /* on  and inactive */
+    "back-hilite-focus.png"            /* on  and   active */
 };
 
 static GLuint theme_image(const char *path)

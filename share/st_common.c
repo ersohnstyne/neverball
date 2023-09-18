@@ -282,10 +282,12 @@ void conf_common_init(int (*action_fn)(int, int), int allowfade)
     common_allowfade = allowfade;
     if (common_allowfade)
     {
-        back_init(config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "back/gui-mayhem.png" : "back/gui.png");
+        back_init(config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "back/gui-mayhem.png" :
+                                                        "back/gui.png");
         is_common_bg = 1;
 #if NB_HAVE_PB_BOTH==1
-        audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
+        audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
+                                                         "bgm/title.ogg");
 #else
         audio_music_fade_to(0.5f, "gui/bgm/inter.ogg");
 #endif
@@ -345,12 +347,12 @@ static int video_action(int tok, int val)
     int r = 1;
 
     /* Revert values */
-    int oldHmd = config_get_d(CONFIG_HMD);
-    int oldF = config_get_d(CONFIG_FULLSCREEN);
-    int oldRefl = config_get_d(CONFIG_REFLECTION);
+    int oldHmd   = config_get_d(CONFIG_HMD);
+    int oldF     = config_get_d(CONFIG_FULLSCREEN);
+    int oldRefl  = config_get_d(CONFIG_REFLECTION);
     int oldVsync = config_get_d(CONFIG_VSYNC);
-    int oldSamp = config_get_d(CONFIG_MULTISAMPLE);
-    int oldText = config_get_d(CONFIG_TEXTURES);
+    int oldSamp  = config_get_d(CONFIG_MULTISAMPLE);
+    int oldText  = config_get_d(CONFIG_TEXTURES);
 
     switch (tok)
     {
@@ -497,7 +499,7 @@ static int video_gui(void)
 #endif
 
         conf_toggle(id, _("Screen animations"), VIDEO_SCREENANIMATIONS,
-            config_get_d(CONFIG_SCREEN_ANIMATIONS), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_SCREEN_ANIMATIONS), _("On"), 1, _("Off"), 0);
 
 #if ENABLE_HMD
         gui_space(id);
@@ -515,7 +517,8 @@ static int video_gui(void)
 #if !defined(__EMSCRIPTEN__) && NB_STEAM_API==0
         if (SDL_GetNumVideoDisplays() > 1)
         {
-            if ((jd = conf_state(id, _("Display"), "Super Longest Name", VIDEO_DISPLAY)))
+            if ((jd = conf_state(id, _("Display"), "Super Longest Name",
+                                     VIDEO_DISPLAY)))
             {
                 gui_set_trunc(jd, TRUNC_TAIL);
                 gui_set_label(jd, display);
@@ -552,20 +555,24 @@ static int video_gui(void)
 #endif
 
         conf_toggle(id, _("Fullscreen"), VIDEO_FULLSCREEN,
-            config_get_d(CONFIG_FULLSCREEN), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_FULLSCREEN), _("On"), 1, _("Off"), 0);
 
         gui_space(id);
 
         conf_toggle(id, _("Textures"), VIDEO_TEXTURES,
-            config_get_d(CONFIG_TEXTURES), _("High"), 1, _("Low"), 2);
+                        config_get_d(CONFIG_TEXTURES), _("High"), 1, _("Low"), 2);
 #endif
 
 #else
-        gui_multi(id, _("Switchball configurations\\requires SWITCHBALL_GUI\\definition preprocessors!"), GUI_SML, gui_red, gui_red);
+        gui_multi(id, _("Switchball configurations\\"
+                        "requires SWITCHBALL_GUI\\"
+                        "definition preprocessors!"),
+                      GUI_SML, gui_red, gui_red);
 #endif
         gui_space(id);
 
-        autoconf_id = gui_state(id, _("Auto Configure"), GUI_SML, VIDEO_AUTO_CONFIGURE, 0);
+        autoconf_id = gui_state(id, _("Auto Configure"),
+                                    GUI_SML, VIDEO_AUTO_CONFIGURE, 0);
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1 || !defined(SWITCHBALL_GUI)
         if (autoconf_id)
         {
@@ -620,12 +627,12 @@ static int video_advanced_action(int tok, int val)
     int r = 1;
 
     /* Revert values */
-    int oldHmd = config_get_d(CONFIG_HMD);
-    int oldF = config_get_d(CONFIG_FULLSCREEN);
-    int oldRefl = config_get_d(CONFIG_REFLECTION);
+    int oldHmd   = config_get_d(CONFIG_HMD);
+    int oldF     = config_get_d(CONFIG_FULLSCREEN);
+    int oldRefl  = config_get_d(CONFIG_REFLECTION);
     int oldVsync = config_get_d(CONFIG_VSYNC);
-    int oldSamp = config_get_d(CONFIG_MULTISAMPLE);
-    int oldText = config_get_d(CONFIG_TEXTURES);
+    int oldSamp  = config_get_d(CONFIG_MULTISAMPLE);
+    int oldText  = config_get_d(CONFIG_TEXTURES);
 
     GENERIC_GAMEMENU_ACTION;
 
@@ -856,28 +863,28 @@ static int video_advanced_gui(void)
 {
     static const struct conf_option multisample_opts_sixteen[] = {
         { N_("Off"), 0 },
-        { N_("2x"), 2 },
-        { N_("4x"), 4 },
-        { N_("8x"), 8 },
+        { N_("2x"),  2 },
+        { N_("4x"),  4 },
+        { N_("8x"),  8 },
         { N_("16x"), 16 },
     };
 
     static const struct conf_option multisample_opts_eight[] = {
         { N_("Off"), 0 },
-        { N_("2x"), 2 },
-        { N_("4x"), 4 },
-        { N_("8x"), 8 },
+        { N_("2x"),  2 },
+        { N_("4x"),  4 },
+        { N_("8x"),  8 },
     };
 
     static const struct conf_option multisample_opts_four[] = {
         { N_("Off"), 0 },
-        { N_("2x"), 2 },
-        { N_("4x"), 4 },
+        { N_("2x"),  2 },
+        { N_("4x"),  4 },
     };
 
     static const struct conf_option multisample_opts_two[] = {
         { N_("Off"), 0 },
-        { N_("2x"), 2 },
+        { N_("2x"),  2 },
     };
 
     int id, jd;
@@ -896,36 +903,40 @@ static int video_advanced_gui(void)
         conf_header(id, _("Graphics"), GUI_BACK);
 
         conf_toggle(id, _("Smooth fix"), VIDEO_ADVANCED_SMOOTH_FIX,
-            config_get_d(CONFIG_SMOOTH_FIX), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_SMOOTH_FIX),
+                        _("On"), 1, _("Off"), 0);
 
         conf_toggle(id, _("Force smooth fix"), VIDEO_ADVANCED_FORCE_SMOOTH_FIX,
-            config_get_d(CONFIG_FORCE_SMOOTH_FIX), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_FORCE_SMOOTH_FIX),
+                        _("On"), 1, _("Off"), 0);
 
 #ifdef GL_GENERATE_MIPMAP_SGIS
         conf_toggle(id, _("Mipmap"), VIDEO_ADVANCED_MIPMAP,
-            config_get_d(CONFIG_MIPMAP), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_MIPMAP), _("On"), 1, _("Off"), 0);
 #endif
-#if defined(GL_TEXTURE_MAX_ANISOTROPY_EXT) && GL_TEXTURE_MAX_ANISOTROPY_EXT != 0 && GL_TEXTURE_MAX_ANISOTROPY_EXT != -1
+#if defined(GL_TEXTURE_MAX_ANISOTROPY_EXT) && \
+    GL_TEXTURE_MAX_ANISOTROPY_EXT != 0 && GL_TEXTURE_MAX_ANISOTROPY_EXT != -1
         conf_toggle(id, _("Anisotopic"), VIDEO_ADVANCED_ANISO,
-            config_get_d(CONFIG_ANISO), _("On"), 2, _("Off"), 0);
+                        config_get_d(CONFIG_ANISO),  _("On"), 2, _("Off"), 0);
 #endif
 
         gui_space(id);
 
         conf_toggle(id, _("Reflection"),   VIDEO_ADVANCED_REFLECTION,
-            config_get_d(CONFIG_REFLECTION), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_REFLECTION), _("On"), 1, _("Off"), 0);
         conf_toggle(id, _("Background"),   VIDEO_ADVANCED_BACKGROUND,
-            config_get_d(CONFIG_BACKGROUND), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_BACKGROUND), _("On"), 1, _("Off"), 0);
         conf_toggle(id, _("Shadow"),       VIDEO_ADVANCED_SHADOW,
-            config_get_d(CONFIG_SHADOW),     _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_SHADOW),     _("On"), 1, _("Off"), 0);
 
         gui_space(id);
 
         conf_select(id, _("Antialiasing"), VIDEO_ADVANCED_MULTISAMPLE,
-            config_get_d(CONFIG_MULTISAMPLE),
-            multisample_opts_sixteen, ARRAYSIZE(multisample_opts_sixteen));
+                        config_get_d(CONFIG_MULTISAMPLE),
+                        multisample_opts_sixteen,
+                        ARRAYSIZE(multisample_opts_sixteen));
         conf_toggle(id, _("V-Sync"), VIDEO_ADVANCED_VSYNC,
-            config_get_d(CONFIG_VSYNC), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_VSYNC), _("On"), 1, _("Off"), 0);
 #else
         char resolution[sizeof ("12345678 x 12345678")];
         const char *display;
@@ -949,7 +960,8 @@ static int video_advanced_gui(void)
 #ifndef __EMSCRIPTEN__
         if (SDL_GetNumVideoDisplays() > 1)
         {
-            if ((jd = conf_state(id, _("Display"), "Super Longest Name", VIDEO_ADVANCED_DISPLAY)))
+            if ((jd = conf_state(id, _("Display"), "Super Longest Name",
+                                     VIDEO_ADVANCED_DISPLAY)))
             {
                 gui_set_trunc(jd, TRUNC_TAIL);
                 gui_set_label(jd, display);
@@ -957,7 +969,7 @@ static int video_advanced_gui(void)
         }
 
         conf_toggle(id, _("Fullscreen"), VIDEO_ADVANCED_FULLSCREEN,
-            config_get_d(CONFIG_FULLSCREEN), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_FULLSCREEN), _("On"), 1, _("Off"), 0);
 #endif
 #ifndef RESIZEABLE_WINDOW
         if ((jd = conf_state(id, _("Resolution"), resolution,
@@ -978,41 +990,43 @@ static int video_advanced_gui(void)
 
 #if ENABLE_HMD
         conf_toggle(id, _("HMD"), VIDEO_ADVANCED_HMD,
-            config_get_d(CONFIG_HMD), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_HMD), _("On"), 1, _("Off"), 0);
 #endif
 
         conf_toggle(id, _("Smooth fix"), VIDEO_ADVANCED_SMOOTH_FIX,
-            config_get_d(CONFIG_SMOOTH_FIX), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_SMOOTH_FIX), _("On"), 1, _("Off"), 0);
 
         gui_space(id);
 
         conf_toggle(id, _("V-Sync"), VIDEO_ADVANCED_VSYNC,
-            config_get_d(CONFIG_VSYNC), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_VSYNC), _("On"), 1, _("Off"), 0);
 
         conf_select(id, _("Antialiasing"), VIDEO_ADVANCED_MULTISAMPLE,
-            config_get_d(CONFIG_MULTISAMPLE),
-            multisample_opts_sixteen, ARRAYSIZE(multisample_opts_sixteen));
+                        config_get_d(CONFIG_MULTISAMPLE),
+                        multisample_opts_sixteen,
+                        ARRAYSIZE(multisample_opts_sixteen));
 
         gui_space(id);
 
         conf_toggle(id, _("Reflection"), VIDEO_ADVANCED_REFLECTION,
-            config_get_d(CONFIG_REFLECTION), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_REFLECTION), _("On"), 1, _("Off"), 0);
         conf_toggle(id, _("Background"), VIDEO_ADVANCED_BACKGROUND,
-            config_get_d(CONFIG_BACKGROUND), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_BACKGROUND), _("On"), 1, _("Off"), 0);
         conf_toggle(id, _("Shadow"), VIDEO_ADVANCED_SHADOW,
-            config_get_d(CONFIG_SHADOW), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_SHADOW), _("On"), 1, _("Off"), 0);
 
 #ifdef GL_GENERATE_MIPMAP_SGIS
         conf_toggle(id, _("Mipmap"), VIDEO_ADVANCED_MIPMAP,
-            config_get_d(CONFIG_MIPMAP), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_MIPMAP), _("On"), 1, _("Off"), 0);
 #endif
-#if defined(GL_TEXTURE_MAX_ANISOTROPY_EXT) && GL_TEXTURE_MAX_ANISOTROPY_EXT != 0 && GL_TEXTURE_MAX_ANISOTROPY_EXT != -1
+#if defined(GL_TEXTURE_MAX_ANISOTROPY_EXT) && \
+    GL_TEXTURE_MAX_ANISOTROPY_EXT != 0 && GL_TEXTURE_MAX_ANISOTROPY_EXT != -1
         conf_toggle(id, _("Anisotopic"), VIDEO_ADVANCED_ANISO,
-            config_get_d(CONFIG_ANISO), _("On"), 2, _("Off"), 0);
+                        config_get_d(CONFIG_ANISO), _("On"), 2, _("Off"), 0);
 #endif
 
         conf_toggle(id, _("Textures"), VIDEO_ADVANCED_TEXTURES,
-            config_get_d(CONFIG_TEXTURES), _("High"), 1, _("Low"), 2);
+                        config_get_d(CONFIG_TEXTURES), _("High"), 1, _("Low"), 2);
 #endif
         gui_layout(id, 0, 0);
     }
@@ -1103,16 +1117,18 @@ static int display_gui(void)
             sprintf(name,
 #endif
                     "%d: %s\\%d x %d - %d Hz",
-                    i + 1, SDL_GetDisplayName(i), dpyMode.w, dpyMode.h, dpyMode.refresh_rate);
+                    i + 1,
+                    SDL_GetDisplayName(i),
+                    dpyMode.w, dpyMode.h, dpyMode.refresh_rate);
 
             jd = gui_multi(id,
                            "XXXXXXXXXXXXXXXXXXX\\"
                            "XXXXXXXXXXXXXXXXXXX",
                            GUI_SML, gui_wht, gui_wht);
-            gui_set_state(jd, DISPLAY_SELECT, i);
+            gui_set_state (jd, DISPLAY_SELECT, i);
             gui_set_hilite(jd, (i == config_get_d(CONFIG_DISPLAY)));
-            gui_set_trunc(jd, TRUNC_TAIL);
-            gui_set_multi(jd, name);
+            gui_set_trunc (jd, TRUNC_TAIL);
+            gui_set_multi (jd, name);
         }
 
         gui_layout(id, 0, 0);
@@ -1239,12 +1255,14 @@ static int resol_action(int tok, int val)
         break;
 
     case RESOL_MODE:
-        if (customresol_modes[val].w == oldW && customresol_modes[val].h == oldH) {
+        if (customresol_modes[val].w == oldW &&
+            customresol_modes[val].h == oldH) {
             log_printf("Resolutions remains the same size!\n");
             return 1;
         }
 
-        video_set_window_size(customresol_modes[val].w, customresol_modes[val].h);
+        video_set_window_size(customresol_modes[val].w,
+                              customresol_modes[val].h);
 
         r = 1;
 
@@ -1310,14 +1328,17 @@ static int resol_gui(void)
 #else
                         sprintf(buff,
 #endif
-                            "%d x %d", customresol_modes[m].w, customresol_modes[m].h);
+                                "%d x %d",
+                                customresol_modes[m].w, customresol_modes[m].h);
 
                         kd = gui_state(jd, buff, GUI_SML, RESOL_MODE, m);
-                        gui_set_hilite(kd, (customresol_modes[m].w == W && customresol_modes[m].h == H));
+                        gui_set_hilite(kd, (customresol_modes[m].w == W &&
+                                            customresol_modes[m].h == H));
 
                         if (SDL_GetDesktopDisplayMode(video_display(), &dm) == 0)
                         {
-                            if (dm.w < customresol_modes[m].w || dm.h < customresol_modes[m].h)
+                            if (dm.w < customresol_modes[m].w ||
+                                dm.h < customresol_modes[m].h)
                             {
                                 gui_set_color(kd, gui_gry, gui_gry);
                                 gui_set_state(kd, GUI_NONE, m);
@@ -1457,7 +1478,8 @@ static int lang_gui(void)
 
                 int lang_id;
 
-                lang_id = gui_state(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, LANG_SELECT, i);
+                lang_id = gui_state(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                                         GUI_SML, LANG_SELECT, i);
                 gui_set_label(lang_id,  " ");
                 gui_set_trunc(lang_id, TRUNC_TAIL);
 
@@ -1527,7 +1549,8 @@ int lang_buttn(int b, int d)
             return common_action(GUI_BACK, 0);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b) && first > 0)
             return common_action(GUI_PREV, 0);
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b) && first + 10 < array_len(langs))
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b) &&
+            first + 10 < array_len(langs))
             return common_action(GUI_NEXT, 0);
     }
     return 1;
@@ -1559,9 +1582,11 @@ static int restart_required_gui(void)
 #endif
         gui_space(id);
 #if defined(__EMSCRIPTEN__)
-        gui_multi(id, _("Please reload your page,\\to change this affects!"), GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, _("Please reload your page,\\to change this affects!"),
+                      GUI_SML, gui_wht, gui_wht);
 #else
-        gui_multi(id, _("Please restart your game,\\to change this affects!"), GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, _("Please restart your game,\\to change this affects!"),
+                      GUI_SML, gui_wht, gui_wht);
 #endif
         gui_space(id);
         gui_state(id, _("OK"), GUI_SML, GUI_BACK, 0);

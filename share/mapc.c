@@ -1166,7 +1166,7 @@ static void make_path(struct s_base *fp,
                       char v[][MAXSTR], int c)
 {
 #if defined(_DEBUG)
-    MAPC_LOG_MESSAGE("Creating paths...\n");
+    //MAPC_LOG_MESSAGE("Creating paths...\n");
 #endif
     int i, pi = incp(fp);
 
@@ -1289,7 +1289,7 @@ static void make_body(struct s_base *fp,
                       char v[][MAXSTR], int c, int l0)
 {
 #if defined(_DEBUG)
-    MAPC_LOG_MESSAGE("Creating objects...\n");
+    //MAPC_LOG_MESSAGE("Creating objects...\n");
 #endif
     int i, mi = 0, bi = incb(fp);
 
@@ -1352,7 +1352,7 @@ static void make_item(struct s_base *fp,
                       char v[][MAXSTR], int c)
 {
 #if defined(_DEBUG)
-    MAPC_LOG_MESSAGE("Creating items...\n");
+    //MAPC_LOG_MESSAGE("Creating items...\n");
 #endif
     int i, hi = inch(fp);
 
@@ -1400,7 +1400,7 @@ static void make_bill(struct s_base *fp,
                       char v[][MAXSTR], int c)
 {
 #if defined(_DEBUG)
-    MAPC_LOG_MESSAGE("Creating billboard...\n");
+    //MAPC_LOG_MESSAGE("Creating billboard...\n");
 #endif
     int i, ri = incr(fp);
 
@@ -1454,7 +1454,7 @@ static void make_goal(struct s_base *fp,
                       char v[][MAXSTR], int c, int l0)
 {
 #if defined(_DEBUG)
-    MAPC_LOG_MESSAGE("Creating goal...\n");
+    //MAPC_LOG_MESSAGE("Creating goal...\n");
 #endif
     int i, zi = incz(fp);
 
@@ -1488,7 +1488,7 @@ static void make_view(struct s_base *fp,
                       char v[][MAXSTR], int c)
 {
 #if defined(_DEBUG)
-    MAPC_LOG_MESSAGE("Creating viewpoint...\n");
+    //MAPC_LOG_MESSAGE("Creating viewpoint...\n");
 #endif
     int i, wi = incw(fp);
 
@@ -1524,7 +1524,7 @@ static void make_jump(struct s_base *fp,
                       char v[][MAXSTR], int c, int l0)
 {
 #if defined(_DEBUG)
-    MAPC_LOG_MESSAGE("Creating teleporter...\n");
+    //MAPC_LOG_MESSAGE("Creating teleporter...\n");
 #endif
     int i, ji = incj(fp);
 
@@ -1564,7 +1564,7 @@ static void make_swch(struct s_base *fp,
                       char v[][MAXSTR], int c, int l0)
 {
 #if defined(_DEBUG)
-    MAPC_LOG_MESSAGE("Creating switch...\n");
+    //MAPC_LOG_MESSAGE("Creating switch...\n");
 #endif
     int i, xi = incx(fp);
 
@@ -1614,7 +1614,7 @@ static void make_targ(struct s_base *fp,
                       char v[][MAXSTR], int c)
 {
 #if defined(_DEBUG)
-    MAPC_LOG_MESSAGE("Creating targets...\n");
+    //MAPC_LOG_MESSAGE("Creating targets...\n");
 #endif
     int i;
 
@@ -1647,7 +1647,7 @@ static void make_ball(struct s_base *fp,
                       char v[][MAXSTR], int c, int l0)
 {
 #if defined(_DEBUG)
-    MAPC_LOG_MESSAGE("Creating balls...\n");
+    //MAPC_LOG_MESSAGE("Creating balls...\n");
 #endif
     int i, ui = incu(fp);
 
@@ -1711,7 +1711,7 @@ static void make_chkp(struct s_base *fp,
                       char v[][MAXSTR], int c, int l0)
 {
 #if defined(_DEBUG)
-    MAPC_LOG_MESSAGE("Creating chkp...\n");
+    //MAPC_LOG_MESSAGE("Creating chkp...\n");
 #endif
     int i, ci = incc(fp);
 
@@ -1743,9 +1743,9 @@ static void make_chkp(struct s_base *fp,
 
 #ifdef LEGACY_MODE
 static void make_legacy(struct s_base* fp,
-    char k[][MAXSTR],
-    char v[][MAXSTR], int c, int l0,
-    const char* modelname, const char* materialname)
+                        char k[][MAXSTR],
+                        char v[][MAXSTR], int c, int l0,
+                        const char* modelname, const char* materialname)
 {
     int leg;
     for (leg = 0; leg < c; leg++)

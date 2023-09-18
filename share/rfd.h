@@ -12,56 +12,43 @@
  * General Public License for more details.
  */
 
-#ifndef SOLID_SIM_H
-#define SOLID_SIM_H
+#ifndef RFD_H
+#define RFD_H
 
-#include "solid_vary.h"
-#include "solid_all.h"
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
+#else
+#include <SDL.h>
+#endif
+
+#include "base_config.h"
 
 /*---------------------------------------------------------------------------*/
 
-#if _WIN32 && _MSC_VER && ENABLE_NVIDIA_PHYSX==1
+/* Integer options. */
 
-struct npx_mesh
-{
-    float vp[3][3];
-    float vn[3];
-};
+extern int RFD_CAMPAIGN_MILES_PERCENTAGE;
+extern int RFD_SET_MILES_PERCENTAGE;
+extern int RFD_CHALLENGE_MILES_PERCENTAGE;
+extern int RFD_CHALLENGE_BALLS;
+extern int RFD_CHALLENGE_EARNINATOR;
+extern int RFD_CHALLENGE_FLOATIFIER;
+extern int RFD_CHALLENGE_SPEEDIFIER;
 
-struct npx_body
-{
-    const struct b_body* base;
+/* String options. */
 
-    int mc;
-
-    struct npx_mesh* mv;
-};
-
-struct s_nvpx
-{
-    struct s_base* base;
-    struct s_vary* vary;
-
-    int bc;
-
-    struct npx_body* bv;
-};
-
-#endif
+/* TODO: Add RFD extern string options here. */
 
 /*---------------------------------------------------------------------------*/
 
-void sol_init_sim(struct s_vary *);
-void sol_quit_sim(void);
+void rfd_init(void);
+void rfd_quit(void);
+void rfd_load(void);
 
-void  sol_move(struct s_vary *, cmd_fn, float);
-float sol_step(struct s_vary *, cmd_fn, const float *, float, int, int *);
+/*---------------------------------------------------------------------------*/
 
-#if _WIN32 && _MSC_VER && ENABLE_NVIDIA_PHYSX==1
-void sol_init_sim_physx(struct s_vary *);
-void sol_quit_sim_physx(struct s_vary *);
-float sol_step_physx(struct s_vary *, cmd_fn, const float *, float, int);
-#endif
+void rfd_set_d(int, int);
+int  rfd_get_d(int);
 
 /*---------------------------------------------------------------------------*/
 

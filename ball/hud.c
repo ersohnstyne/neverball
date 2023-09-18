@@ -81,7 +81,8 @@ static int text_score_id;
 static int text_speed_id;
 
 static const char *speed_labels[SPEED_MAX] = {
-    "", "128", "64", "32", "16", "8", "4", "2", "1", "2", "4", "8", "16", "32", "64", "128"
+    "", "128", "64", "32", "16", "8", "4", "2", "1",
+    "2", "4", "8", "16", "32", "64", "128"
 };
 
 static float speedup_logo_timer;
@@ -130,13 +131,15 @@ void hud_init(void)
     {
         if ((id = gui_vstack(Rhud_id)))
         {
-            text_coins_id = gui_label(id, _("Coins"), GUI_SML, gui_wht, gui_wht);
-            text_goal_id = gui_label(id, _("Goal"),  GUI_SML, gui_wht, gui_wht);
+            text_coins_id = gui_label(id, _("Coins"),
+                                          GUI_SML, gui_wht, gui_wht);
+            text_goal_id  = gui_label(id, _("Goal"),
+                                          GUI_SML, gui_wht, gui_wht);
         }
         if ((id = gui_vstack(Rhud_id)))
         {
-            coin_id        = gui_count(id, 1000, GUI_SML);
-            goal_id        = gui_count(id, 1000, GUI_SML);
+            coin_id       = gui_count(id, 1000, GUI_SML);
+            goal_id       = gui_count(id, 1000, GUI_SML);
         }
         gui_set_rect(Rhud_id, GUI_NW);
         gui_layout(Rhud_id, +1, -1);
@@ -153,13 +156,15 @@ void hud_init(void)
 #endif
         if ((id = gui_vstack(Lhud_id)))
         {
-            ball_id = gui_count(id, 1000, GUI_SML);
-            scor_id = gui_count(id, 1000, GUI_SML);
+            ball_id       = gui_count(id, 1000, GUI_SML);
+            scor_id       = gui_count(id, 1000, GUI_SML);
         }
         if ((id = gui_vstack(Lhud_id)))
         {
-            text_balls_id = gui_label(id, _("Balls"), GUI_SML, gui_wht, gui_wht);
-            text_score_id = gui_label(id, _("Total"), GUI_SML, gui_wht, gui_wht);
+            text_balls_id = gui_label(id, _("Balls"),
+                                          GUI_SML, gui_wht, gui_wht);
+            text_score_id = gui_label(id, _("Total"),
+                                          GUI_SML, gui_wht, gui_wht);
         }
         gui_set_rect(Lhud_id, GUI_NE);
         gui_layout(Lhud_id, -1, -1);
@@ -168,10 +173,11 @@ void hud_init(void)
     if ((FSLhud_id = gui_hstack(0)))
     {
         if ((id = gui_vstack(FSLhud_id)))
-            text_speedometer_id = gui_label(id, _("km/h"), GUI_SML, gui_wht, gui_wht);
+            text_speedometer_id = gui_label(id, _("km/h"),
+                                                GUI_SML, gui_wht, gui_wht);
 
         if ((id = gui_vstack(FSLhud_id)))
-            speedometer_id = gui_count(id, 9999, GUI_SML);
+            speedometer_id      = gui_count(id, 9999, GUI_SML);
 
         gui_set_rect(FSLhud_id, GUI_RGT);
         gui_layout(FSLhud_id, -1, 0);
@@ -198,7 +204,8 @@ void hud_init(void)
         gui_layout(speedbar_hud_id, 0, +1);
     }
 
-    if ((speedup_logo_id = gui_label(0, _("Max acceleration!"), GUI_MED, gui_grn, gui_grn)))
+    if ((speedup_logo_id = gui_label(0, _("Max acceleration!"),
+                                        GUI_MED, gui_grn, gui_grn)))
         gui_layout(speedup_logo_id, 0, 0);
 
     /* Find the longest camera name. */
@@ -223,7 +230,8 @@ void hud_init(void)
         gui_layout(fps_id, -1, 1);
     }
 
-    if ((lvlname_id = gui_label(0, "XXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, gui_yel, gui_wht)))
+    if ((lvlname_id = gui_label(0, "XXXXXXXXXXXXXXXXXXXXXXXXX",
+                                   GUI_SML, gui_yel, gui_wht)))
     {
         gui_set_rect(lvlname_id, GUI_BOT);
         gui_set_label(lvlname_id, "");
@@ -232,7 +240,8 @@ void hud_init(void)
     }
 
 #if defined(LEVELGROUPS_INCLUDES_CAMPAIGN) && ENABLE_COMPASS==1
-    if ((camcompass_id = gui_label(0, "199 Deg (NONE)", GUI_SML, gui_wht, gui_cya)))
+    if ((camcompass_id = gui_label(0, "199 Deg (NONE)",
+                                      GUI_SML, gui_wht, gui_cya)))
     {
         gui_set_label(camcompass_id, "--- Deg (-)");
         gui_set_rect(camcompass_id, GUI_BOT);
@@ -286,9 +295,12 @@ void hud_free(void)
 static void hud_update_alpha(void)
 {
     replay_speed_alpha_inverse = 1.0f - replay_speed_alpha;
-    float standard_hud_alpha = (replay_speed_alpha_inverse * show_hud_alpha) * show_hud_total_alpha;
-    float cam_hud_alpha = (cam_alpha * show_hud_alpha) * show_hud_total_alpha;
-    float replay_hud_alpha = (replay_speed_alpha * show_hud_alpha) * show_hud_total_alpha;
+    float standard_hud_alpha   = (replay_speed_alpha_inverse * show_hud_alpha) *
+                                 show_hud_total_alpha;
+    float cam_hud_alpha        = (cam_alpha * show_hud_alpha) *
+                                 show_hud_total_alpha;
+    float replay_hud_alpha     = (replay_speed_alpha * show_hud_alpha) *
+                                 show_hud_total_alpha;
 
     if (!config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {
@@ -306,18 +318,22 @@ static void hud_update_alpha(void)
         }
     }
 
-    gui_set_alpha(fps_id, standard_hud_alpha, GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE);
+    gui_set_alpha(fps_id, standard_hud_alpha,
+                          GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE);
     gui_set_alpha(speed_id, replay_hud_alpha, GUI_ANIMATION_S_CURVE);
     gui_set_alpha(lvlname_id, standard_hud_alpha, GUI_ANIMATION_N_CURVE);
 #if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
     gui_set_alpha(camcompass_id, standard_hud_alpha, GUI_ANIMATION_N_CURVE);
 #endif
     gui_set_alpha(speedbar_hud_id, standard_hud_alpha, GUI_ANIMATION_N_CURVE);
-    gui_set_alpha(cam_id, cam_hud_alpha * standard_hud_alpha, GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE);
+    gui_set_alpha(cam_id, cam_hud_alpha * standard_hud_alpha,
+                          GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE);
     gui_set_alpha(time_id, standard_hud_alpha, GUI_ANIMATION_S_CURVE);
     gui_set_alpha(FSLhud_id, standard_hud_alpha, GUI_ANIMATION_W_CURVE);
-    gui_set_alpha(Lhud_id, standard_hud_alpha, GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE);
-    gui_set_alpha(Rhud_id, standard_hud_alpha, GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE);
+    gui_set_alpha(Lhud_id, standard_hud_alpha,
+                           GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE);
+    gui_set_alpha(Rhud_id, standard_hud_alpha,
+                           GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE);
 }
 
 void hud_set_alpha(float alpha)
@@ -331,14 +347,22 @@ void hud_paint(void)
     if (curr_mode() == MODE_NONE) return; /* Cannot render in home room. */
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    if (((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH || curr_mode() == MODE_HARDCORE) && (speed_timer_length < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))))
+    if (((curr_mode() == MODE_CHALLENGE  ||
+          curr_mode() == MODE_BOOST_RUSH ||
+          curr_mode() == MODE_HARDCORE) &&
+         (speed_timer_length < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))))
         gui_paint(Lhud_id);
-    else if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH || curr_mode() == MODE_HARDCORE) && !config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    else if ((curr_mode() == MODE_CHALLENGE  ||
+              curr_mode() == MODE_BOOST_RUSH ||
+              curr_mode() == MODE_HARDCORE) &&
+             !config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(Lhud_id);
 #else
-    if (((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) && (speed_timer_length < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))))
+    if (((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) &&
+         (speed_timer_length < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))))
         gui_paint(Lhud_id);
-    else if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) && !config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    else if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) &&
+             !config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(Lhud_id);
 #endif
 
@@ -372,11 +396,11 @@ void hud_update(int pulse, float animdt)
 #endif
             "%d %%", ROUND(speedpercent));
 
-    int clock = curr_clock();
-    int coins = curr_coins();
-    int goal  = curr_goal();
-    int balls = curr_balls();
-    int score = curr_score();
+    int clock       = curr_clock();
+    int coins       = curr_coins();
+    int goal        = curr_goal();
+    int balls       = curr_balls();
+    int score       = curr_score();
     float ballspeed = curr_speedometer();
 
     int c_id;
@@ -403,16 +427,19 @@ void hud_update(int pulse, float animdt)
 
     if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {
-        show_hud_alpha += show_hud ? animdt : -animdt; show_hud_alpha = CLAMP(0.0f, show_hud_alpha, 1.0f);
-        cam_alpha += cam_timer > 0.25f ? animdt : -animdt; cam_alpha = CLAMP(0.0f, cam_alpha, 1.0f);
+        show_hud_alpha += show_hud ? animdt : -animdt;
+        show_hud_alpha  = CLAMP(0.0f, show_hud_alpha, 1.0f);
+        cam_alpha      += cam_timer > 0.25f ? animdt : -animdt;
+        cam_alpha       = CLAMP(0.0f, cam_alpha, 1.0f);
     }
     else
     {
         show_hud_alpha = 1.0f;
-        cam_alpha = 1.0f;
+        cam_alpha      = 1.0f;
     }
 
-    replay_speed_alpha += speed_timer_length > 0.25f ? animdt : -animdt; replay_speed_alpha = CLAMP(0.0f, replay_speed_alpha, 1.0f);
+    replay_speed_alpha += speed_timer_length > 0.25f ? animdt : -animdt;
+    replay_speed_alpha  = CLAMP(0.0f, replay_speed_alpha, 1.0f);
 
     hud_set_alpha(show_hud_total_alpha);
 
@@ -479,7 +506,7 @@ void hud_update(int pulse, float animdt)
     switch (curr_mode())
     {
     case MODE_CHALLENGE:
-        if (gui_value(ball_id) != balls) gui_set_count(ball_id, balls);
+        if (gui_value(ball_id) != balls)     gui_set_count(ball_id, balls);
         if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
 
         c_id = coin_id;
@@ -487,9 +514,10 @@ void hud_update(int pulse, float animdt)
 
     case MODE_BOOST_RUSH:
         gui_set_label(speed_percent_id, speedattr);
-        gui_set_color(speed_percent_id, gui_yel, speedpercent >= 100.f ? gui_red : gui_yel);
+        gui_set_color(speed_percent_id, gui_yel,
+                                        speedpercent >= 100.f ? gui_red : gui_yel);
 
-        if (gui_value(ball_id) != balls) gui_set_count(ball_id, balls);
+        if (gui_value(ball_id) != balls)     gui_set_count(ball_id, balls);
         if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
 
         c_id = coin_id;
@@ -497,7 +525,7 @@ void hud_update(int pulse, float animdt)
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     case MODE_HARDCORE:
-        if (gui_value(ball_id) != balls) gui_set_count(ball_id, 0);
+        if (gui_value(ball_id) != balls)     gui_set_count(ball_id, 0);
         if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
 
         c_id = coin_id;
@@ -544,7 +572,9 @@ void hud_update(int pulse, float animdt)
 
             /* Broadband gamemode */
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH || curr_mode() == MODE_HARDCORE)
+            if (curr_mode() == MODE_CHALLENGE  ||
+                curr_mode() == MODE_BOOST_RUSH ||
+                curr_mode() == MODE_HARDCORE)
 #else
             if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH)
 #endif
@@ -563,10 +593,10 @@ void hud_update(int pulse, float animdt)
 #if ENABLE_AFFECT==1
     if (hundred_score != (last = ROUND(gui_value(scor_id)) / 100))
     {
-        /* GOT MY AFFECTS!!! */
-
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH || curr_mode() == MODE_HARDCORE)
+        if (curr_mode() == MODE_CHALLENGE  ||
+            curr_mode() == MODE_BOOST_RUSH ||
+            curr_mode() == MODE_HARDCORE)
 #else
         if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH)
 #endif
@@ -579,7 +609,7 @@ void hud_update(int pulse, float animdt)
             else
             {
                 gui_set_count(affect_id, 0);
-                gui_set_color(affect_id, gui_yel, gui_red);
+                gui_set_color(affect_id, GUI_COLOR_DEFAULT);
             }
         }
     }
@@ -601,7 +631,8 @@ void hud_update(int pulse, float animdt)
 
 void hud_timer(float dt)
 {
-    hud_animdt = ((config_get_d(CONFIG_SMOOTH_FIX) ? MIN(.01666666f, dt) : dt) * 6.0f);
+    hud_animdt = ((config_get_d(CONFIG_SMOOTH_FIX) ?
+                   MIN(.01666666f, dt) : dt) * 6.0f);
 
     hud_update(1, hud_animdt);
 
@@ -681,7 +712,9 @@ void hud_speedup_reset(void)
 
 void hud_speedup_pulse(void)
 {
-    gui_set_label(speedup_logo_id, get_speed_indicator() >= 100.f ? _("Max acceleration!") : _("Speed up!"));
+    gui_set_label(speedup_logo_id, get_speed_indicator() >= 100.f ?
+                                   _("Max acceleration!") :
+                                   _("Speed up!"));
     gui_pulse(speedup_logo_id, 1.2f);
     speedup_logo_timer = 1.0f;
 }

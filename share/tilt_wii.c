@@ -90,9 +90,9 @@ static int get_button(struct button_state *B)
 
 struct tilt_state
 {
-    int   status;
-    float x;
-    float z;
+    int                 status;
+    float               x;
+    float               z;
     struct button_state A;
     struct button_state B;
     struct button_state plus;

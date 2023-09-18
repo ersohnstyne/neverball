@@ -49,7 +49,8 @@
 static int resume;
 static int stars_gained;
 
-enum {
+enum
+{
     DONE_SHOP = GUI_LAST,
     DONE_TO_GROUP
 };
@@ -237,11 +238,14 @@ static int done_gui_set(void)
                 {
                     calc_new_wallet_gem_id = gui_count(kd, 1000, GUI_MED);
                     gui_label(kd, _("Gems"), GUI_SML, gui_wht, gui_wht);
-                    calc_new_wallet_coin_id = gui_count(kd, ACCOUNT_WALLET_MAX_COINS, GUI_MED);
+                    calc_new_wallet_coin_id = gui_count(kd, ACCOUNT_WALLET_MAX_COINS,
+                                                            GUI_MED);
                     gui_label(kd, _("Coins"), GUI_SML, gui_wht, gui_wht);
 
-                    gui_set_count(calc_new_wallet_coin_id, account_get_d(ACCOUNT_DATA_WALLET_COINS));
-                    gui_set_count(calc_new_wallet_gem_id, account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+                    gui_set_count(calc_new_wallet_coin_id,
+                                  account_get_d(ACCOUNT_DATA_WALLET_COINS));
+                    gui_set_count(calc_new_wallet_gem_id,
+                                  account_get_d(ACCOUNT_DATA_WALLET_GEMS));
                 }
 
                 gui_filler(jd);
@@ -261,7 +265,8 @@ static int done_gui_set(void)
         {
             gui_start(jd, _("Select Level"), GUI_SML, GUI_BACK, 0);
 #ifdef CONFIG_INCLUDES_ACCOUNT
-            if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+            if (server_policy_get_d(SERVER_POLICY_EDITION) > -1
+             && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
                 gui_state(jd, _("Shop"), GUI_SML, DONE_SHOP, 0);
 #endif
         }
@@ -287,8 +292,8 @@ static int done_enter(struct state *st, struct state *prev)
 
 #if NB_HAVE_PB_BOTH==1
     if (!campaign_used()
-    &&  set_star(curr_set()) > 0 && set_star_gained(curr_set())
-    && !resume)
+     &&  set_star(curr_set()) > 0 && set_star_gained(curr_set())
+     && !resume)
         audio_play(AUD_STARS, 1.f);
 #endif
 
@@ -354,8 +359,10 @@ static int capital_enter(struct state* st, struct state* prev)
     if ((id = gui_vstack(0)))
     {
         int logo_id = gui_label(id, GUI_CROWN, GUI_LRG, gui_yel, gui_yel);
-        int aid = gui_label(id, GUI_DIAMOND " 1500", GUI_SML, gui_wht, gui_yel);
-        int bid = gui_label(id, _("Wealthiest Capital"), GUI_SML, gui_wht, gui_wht);
+        int aid     = gui_label(id, GUI_DIAMOND " 1500",
+                                    GUI_SML, gui_wht, gui_yel);
+        int bid     = gui_label(id, _("Wealthiest Capital"),
+                                    GUI_SML, gui_wht, gui_wht);
 
         gui_pulse(logo_id, 1.2f);
         gui_pulse(aid, 1.2f);

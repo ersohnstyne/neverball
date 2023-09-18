@@ -746,10 +746,6 @@ float sol_step(struct s_vary *vary, cmd_fn cmd_func,
 
     if (ui < vary->uc)
     {
-#ifdef SIM_PHYSX_ENGINE
-#else
-        /* No PhysX detected. Use this! */
-
         struct v_ball *up = vary->uv + ui;
 
         /* If the ball is in contact with a surface, apply friction. */
@@ -823,7 +819,6 @@ float sol_step(struct s_vary *vary, cmd_fn cmd_func,
         v_sub(a, up->v, a);
 
         sol_pendulum(up, a, g, dt);
-#endif
     }
 
     return b;

@@ -488,9 +488,11 @@ void config_load(void)
 {
     fs_file fh;
 #if NB_HAVE_PB_BOTH==1
-    assert(!networking_busy && !accessibility_busy && !account_busy && "This networking, accessibility or account data is busy and cannot be edit there!");
+    assert(!networking_busy && !accessibility_busy && !account_busy &&
+           "This networking, accessibility or account data is busy and cannot be edit there!");
 #else
-    assert(!accessibility_busy && "This accessibility data is busy and cannot be edit there!");
+    assert(!accessibility_busy &&
+           "This accessibility data is busy and cannot be edit there!");
 #endif
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
 
@@ -594,9 +596,11 @@ void config_save(void)
     fs_file fh;
 
 #if NB_HAVE_PB_BOTH==1
-    assert(!networking_busy && !accessibility_busy && !account_busy && "This networking, accessibility or account data is busy and cannot be edit there!");
+    assert(!networking_busy && !accessibility_busy && !account_busy &&
+           "This networking, accessibility or account data is busy and cannot be edit there!");
 #else
-    assert(!accessibility_busy && "This accessibility data is busy and cannot be edit there!");
+    assert(!accessibility_busy &&
+           "This accessibility data is busy and cannot be edit there!");
 #endif
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
 
@@ -680,7 +684,8 @@ void config_save(void)
         fs_persistent_sync();
     }
     else if (dirty)
-        log_errorf("Failure to save configuration file!: %s / %s\n", filename, fs_error());
+        log_errorf("Failure to save configuration file!: %s / %s\n",
+                   filename, fs_error());
 
     dirty = 0;
     config_busy = 0;
@@ -691,10 +696,12 @@ void config_save(void)
 void config_set_d(int i, int d)
 {
 #if NB_HAVE_PB_BOTH==1
-    assert(!networking_busy && !accessibility_busy && !account_busy && "This networking, accessibility or account data is busy and cannot be edit there!");
+    assert(!networking_busy && !accessibility_busy && !account_busy &&
+           "This networking, accessibility or account data is busy and cannot be edit there!");
     if (!networking_busy && !accessibility_busy && !account_busy)
 #else
-    assert(!accessibility_busy && "This networking or accessibility data is busy and cannot be edit there!");
+    assert(!accessibility_busy &&
+           "This networking or accessibility data is busy and cannot be edit there!");
     if (!accessibility_busy)
 #endif
     {
@@ -708,10 +715,12 @@ void config_set_d(int i, int d)
 void config_tgl_d(int i)
 {
 #if NB_HAVE_PB_BOTH==1
-    assert(!networking_busy && !accessibility_busy && !account_busy && "This networking, accessibility or account data is busy and cannot be edit there!");
+    assert(!networking_busy && !accessibility_busy && !account_busy &&
+           "This networking, accessibility or account data is busy and cannot be edit there!");
     if (!networking_busy && !accessibility_busy && !account_busy)
 #else
-    assert(!accessibility_busy && "This networking or accessibility data is busy and cannot be edit there!");
+    assert(!accessibility_busy &&
+           "This networking or accessibility data is busy and cannot be edit there!");
     if (!accessibility_busy)
 #endif
     {
@@ -737,10 +746,12 @@ int config_get_d(int i)
 void config_set_s(int i, const char *src)
 {
 #if NB_HAVE_PB_BOTH==1
-    assert(!networking_busy && !accessibility_busy && !account_busy && "This networking, accessibility or account data is busy and cannot be edit there!");
+    assert(!networking_busy && !accessibility_busy && !account_busy &&
+           "This networking, accessibility or account data is busy and cannot be edit there!");
     if (!networking_busy && !accessibility_busy && !account_busy)
 #else
-    assert(!accessibility_busy && "This accessibility data is busy and cannot be edit there!");
+    assert(!accessibility_busy &&
+           "This accessibility data is busy and cannot be edit there!");
     if (!accessibility_busy)
 #endif
     {
@@ -775,10 +786,12 @@ int config_cheat(void)
 void config_set_cheat(void)
 {
 #if NB_HAVE_PB_BOTH==1
-    assert(!networking_busy && !accessibility_busy && !account_busy && "This networking, accessibility or account data is busy and cannot be edit there!");
+    assert(!networking_busy && !accessibility_busy && !account_busy &&
+           "This networking, accessibility or account data is busy and cannot be edit there!");
     if (!networking_busy && !accessibility_busy && !account_busy)
 #else
-    assert(!accessibility_busy && "This networking, accessibility data is busy and cannot be edit there!");
+    assert(!accessibility_busy &&
+           "This networking, accessibility data is busy and cannot be edit there!");
     if (!accessibility_busy)
 #endif
     {
@@ -791,10 +804,12 @@ void config_set_cheat(void)
 void config_clr_cheat(void)
 {
 #if NB_HAVE_PB_BOTH==1
-    assert(!networking_busy && !accessibility_busy && !account_busy && "This networking, accessibility or account data is busy and cannot be edit there!");
+    assert(!networking_busy && !accessibility_busy && !account_busy &&
+           "This networking, accessibility or account data is busy and cannot be edit there!");
     if (!networking_busy && !accessibility_busy && !account_busy)
 #else
-    assert(!accessibility_busy && "This networking, accessibility data is busy and cannot be edit there!");
+    assert(!accessibility_busy &&
+           "This networking, accessibility data is busy and cannot be edit there!");
     if (!accessibility_busy)
 #endif
     {
@@ -810,9 +825,11 @@ void config_clr_cheat(void)
 int config_screenshot(void)
 {
 #if NB_HAVE_PB_BOTH==1
-    assert(!networking_busy && !accessibility_busy && !account_busy && "This networking, accessibility or account data is busy and cannot be edit there!");
+    assert(!networking_busy && !accessibility_busy && !account_busy &&
+           "This networking, accessibility or account data is busy and cannot be edit there!");
 #else
-    assert(!accessibility_busy && "This networking, accessibility data is busy and cannot be edit there!");
+    assert(!accessibility_busy &&
+           "This networking, accessibility data is busy and cannot be edit there!");
 #endif
     return ++option_d[CONFIG_SCREENSHOT].cur;
 }

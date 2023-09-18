@@ -403,45 +403,6 @@ void create_switch_select_button(int select_id)
 
 /* Generic Controllers */
 
-/*
-    case 0:
-        create_a_button(gui_id, btn_id);
-        return;
-    case 1:
-        create_b_button(gui_id, btn_id);
-        return;
-    case 2:
-        create_x_button(gui_id, btn_id);
-        return;
-    case 3:
-        create_y_button(gui_id, btn_id);
-        return;
-    case 4:
-        create_lb_button(gui_id, btn_id);
-        return;
-    case 5:
-        create_lt_button(gui_id, btn_id);
-        return;
-    case 6:
-        create_rb_button(gui_id, btn_id);
-        return;
-    case 7:
-        create_rt_button(gui_id, btn_id);
-        return;
-    case 8:
-        create_start_button(gui_id, btn_id);
-        return;
-    case 9:
-        create_select_button(gui_id, btn_id);
-        return;
-    case 13:
-        create_ls_button(gui_id, btn_id);
-        return;
-    case 15:
-        create_rs_button(gui_id, btn_id);
-        return;
- */
-
 void create_a_button(int gui_id, int btn_id)
 {
     switch (btn_id)
@@ -1123,16 +1084,20 @@ void init_xbox_title(void)
         if (current_platform != PLATFORM_SWITCH
             && current_platform != PLATFORM_STEAMDECK)
         {
-            gui_label(xbox_control_title_id, _("Exit"), GUI_SML, gui_wht, gui_wht);
+            gui_label(xbox_control_title_id, _("Exit"),
+                      GUI_SML, gui_wht, gui_wht);
 
-            create_b_button(xbox_control_title_id, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+            create_b_button(xbox_control_title_id,
+                            config_get_d(CONFIG_JOYSTICK_BUTTON_B));
 
             create_controller_spacer(xbox_control_title_id);
         }
 
-        gui_label(xbox_control_title_id, _("Select"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_title_id, _("Select"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_a_button(xbox_control_title_id, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+        create_a_button(xbox_control_title_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
 
         gui_set_rect(xbox_control_title_id, GUI_TOP);
         gui_layout(xbox_control_title_id, 0, -1);
@@ -1143,15 +1108,19 @@ void init_xbox_list(void)
 {
     if ((xbox_control_list_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_list_id, _("Back"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_list_id, _("Back"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_b_button(xbox_control_list_id, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+        create_b_button(xbox_control_list_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
 
         create_controller_spacer(xbox_control_list_id);
 
-        gui_label(xbox_control_list_id, _("Select"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_list_id, _("Select"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_a_button(xbox_control_list_id, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+        create_a_button(xbox_control_list_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
 
         gui_set_rect(xbox_control_list_id, GUI_TOP);
         gui_layout(xbox_control_list_id, 0, -1);
@@ -1162,15 +1131,19 @@ void init_xbox_paused(void)
 {
     if ((xbox_control_paused_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_paused_id, _("Continue"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_paused_id, _("Continue"), 
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_b_button(xbox_control_paused_id, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+        create_b_button(xbox_control_paused_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
 
         create_controller_spacer(xbox_control_paused_id);
 
-        gui_label(xbox_control_paused_id, _("Select"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_paused_id, _("Select"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_a_button(xbox_control_paused_id, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+        create_a_button(xbox_control_paused_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
 
         gui_set_rect(xbox_control_paused_id, GUI_TOP);
         gui_layout(xbox_control_paused_id, 0, -1);
@@ -1183,15 +1156,19 @@ void init_xbox_desc(void)
 {
     if ((xbox_control_desc_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_desc_id, _("Show description"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_desc_id, _("Show description"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_x_button(xbox_control_desc_id, config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+        create_x_button(xbox_control_desc_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
 
         create_controller_spacer(xbox_control_desc_id);
 
-        gui_label(xbox_control_desc_id, _("Start Level"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_desc_id, _("Start Level"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_a_button(xbox_control_desc_id, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+        create_a_button(xbox_control_desc_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
 
         gui_set_rect(xbox_control_desc_id, GUI_TOP);
         gui_layout(xbox_control_desc_id, 0, -1);
@@ -1202,15 +1179,19 @@ void init_xbox_preparation(void)
 {
     if ((xbox_control_preparation_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_preparation_id, _("Cycle Camera Mode"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_preparation_id, _("Cycle Camera Mode"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_x_button(xbox_control_preparation_id, config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+        create_x_button(xbox_control_preparation_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
 
         create_controller_spacer(xbox_control_preparation_id);
 
-        gui_label(xbox_control_preparation_id, _("Skip"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_preparation_id, _("Skip"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_a_button(xbox_control_preparation_id, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+        create_a_button(xbox_control_preparation_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
 
         gui_set_rect(xbox_control_preparation_id, GUI_TOP);
         gui_layout(xbox_control_preparation_id, 0, -1);
@@ -1221,15 +1202,11 @@ void init_xbox_replay(void)
 {
     if ((xbox_control_replay_id = gui_hstack(0)))
     {
-        /*gui_label(xbox_control_replay_id, _("Change speed"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_replay_id, _("Pause"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_ls_button(xbox_control_replay_id, config_get_d(CONFIG_JOYSTICK_AXIS_Y0));
-
-        create_controller_spacer(xbox_control_replay_id);*/
-
-        gui_label(xbox_control_replay_id, _("Pause"), GUI_SML, gui_wht, gui_wht);
-
-        create_b_button(xbox_control_replay_id, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+        create_b_button(xbox_control_replay_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
 
         gui_set_rect(xbox_control_replay_id, GUI_TOP);
         gui_layout(xbox_control_replay_id, 0, -1);
@@ -1240,15 +1217,19 @@ void init_xbox_replay_eof(void)
 {
     if ((xbox_control_replay_eof_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_replay_eof_id, _("Quit"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_replay_eof_id, _("Quit"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_b_button(xbox_control_replay_eof_id, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+        create_b_button(xbox_control_replay_eof_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
 
         create_controller_spacer(xbox_control_replay_eof_id);
 
-        gui_label(xbox_control_replay_eof_id, _("Select"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_replay_eof_id, _("Select"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_a_button(xbox_control_replay_eof_id, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+        create_a_button(xbox_control_replay_eof_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
 
         gui_set_rect(xbox_control_replay_eof_id, GUI_TOP);
         gui_layout(xbox_control_replay_eof_id, 0, -1);
@@ -1259,21 +1240,27 @@ void init_xbox_shop(void)
 {
     if ((xbox_control_shop_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_shop_id, _("Get Coins"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_shop_id, _("Get Coins"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_y_button(xbox_control_shop_id, config_get_d(CONFIG_JOYSTICK_BUTTON_Y));
-
-        create_controller_spacer(xbox_control_shop_id);
-
-        gui_label(xbox_control_shop_id, _("Back"), GUI_SML, gui_wht, gui_wht);
-
-        create_b_button(xbox_control_shop_id, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+        create_y_button(xbox_control_shop_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_Y));
 
         create_controller_spacer(xbox_control_shop_id);
 
-        gui_label(xbox_control_shop_id, _("Buy"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_shop_id, _("Back"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_a_button(xbox_control_shop_id, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+        create_b_button(xbox_control_shop_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+
+        create_controller_spacer(xbox_control_shop_id);
+
+        gui_label(xbox_control_shop_id, _("Buy"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        create_a_button(xbox_control_shop_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
 
         gui_set_rect(xbox_control_shop_id, GUI_TOP);
         gui_layout(xbox_control_shop_id, 0, -1);
@@ -1284,15 +1271,19 @@ void init_xbox_shop_getcoins(void)
 {
     if ((xbox_control_shop_getcoins_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_shop_getcoins_id, _("Back"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_shop_getcoins_id, _("Back"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_b_button(xbox_control_shop_getcoins_id, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+        create_b_button(xbox_control_shop_getcoins_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
 
         create_controller_spacer(xbox_control_shop_getcoins_id);
 
-        gui_label(xbox_control_shop_getcoins_id, _("Purchase"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_shop_getcoins_id, _("Purchase"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_a_button(xbox_control_shop_getcoins_id, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+        create_a_button(xbox_control_shop_getcoins_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
 
         gui_set_rect(xbox_control_shop_getcoins_id, GUI_TOP);
         gui_layout(xbox_control_shop_getcoins_id, 0, -1);
@@ -1307,27 +1298,38 @@ void init_xbox_model(void)
         if (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1)
         {
 #if NB_STEAM_API==1 || NB_EOS_SDK==1
-            const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) == -1 ? "Upgrade to Home edition!" : "Go to Workshop!";
+            const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) == -1 ?
+                                          "Upgrade to Home edition!" :
+                                          "Go to Workshop!";
 #else
-            const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) == -1 ? "Upgrade to Home edition!" : "Get more Balls!";
+            const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) == -1 ?
+                                          "Upgrade to Home edition!" :
+                                          "Get more Balls!";
 #endif
-            gui_label(xbox_control_model_id, _(more_balls_text), GUI_SML, gui_wht, gui_wht);
-            create_y_button(xbox_control_model_id, config_get_d(CONFIG_JOYSTICK_BUTTON_Y));
+            gui_label(xbox_control_model_id, _(more_balls_text),
+                      GUI_SML, gui_wht, gui_wht);
+            create_y_button(xbox_control_model_id,
+                            config_get_d(CONFIG_JOYSTICK_BUTTON_Y));
 
             create_controller_spacer(xbox_control_model_id);
         }
 #endif
 
-        gui_label(xbox_control_model_id, _("Change Model"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_model_id, _("Change Model"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_rb_button(xbox_control_model_id, config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
-        create_lb_button(xbox_control_model_id, config_get_d(CONFIG_JOYSTICK_BUTTON_L2));
+        create_rb_button(xbox_control_model_id,
+                         config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
+        create_lb_button(xbox_control_model_id,
+                         config_get_d(CONFIG_JOYSTICK_BUTTON_L2));
 
         create_controller_spacer(xbox_control_model_id);
 
-        gui_label(xbox_control_model_id, _("Back"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_model_id, _("Back"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_b_button(xbox_control_model_id, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+        create_b_button(xbox_control_model_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
 
         gui_set_rect(xbox_control_model_id, GUI_TOP);
         gui_layout(xbox_control_model_id, 0, -1);
@@ -1338,16 +1340,21 @@ void init_xbox_beam_style(void)
 {
     if ((xbox_control_beam_style_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_beam_style_id, _("Change Style"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_beam_style_id, _("Change Style"), 
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_rb_button(xbox_control_model_id, config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
-        create_lb_button(xbox_control_model_id, config_get_d(CONFIG_JOYSTICK_BUTTON_L2));
+        create_rb_button(xbox_control_model_id,
+                         config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
+        create_lb_button(xbox_control_model_id,
+                         config_get_d(CONFIG_JOYSTICK_BUTTON_L2));
 
         create_controller_spacer(xbox_control_beam_style_id);
 
-        gui_label(xbox_control_beam_style_id, _("Back"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_beam_style_id, _("Back"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_b_button(xbox_control_model_id, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+        create_b_button(xbox_control_model_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
 
         gui_set_rect(xbox_control_beam_style_id, GUI_TOP);
         gui_layout(xbox_control_beam_style_id, 0, -1);
@@ -1358,9 +1365,11 @@ void init_xbox_death()
 {
     if ((xbox_control_death_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_death_id, _("Select"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_death_id, _("Select"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_a_button(xbox_control_death_id, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+        create_a_button(xbox_control_death_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
 
         gui_set_rect(xbox_control_death_id, GUI_TOP);
         gui_layout(xbox_control_death_id, 0, -1);
@@ -1372,20 +1381,27 @@ void init_xbox_putt_stroke()
 {
     if ((xbox_control_putt_stroke_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_putt_stroke_id, _("Change club"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_putt_stroke_id, _("Change club"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_lt_button(xbox_control_putt_stroke_id, config_get_d(CONFIG_JOYSTICK_BUTTON_L2));
-        create_lb_button(xbox_control_putt_stroke_id, config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
+        create_lt_button(xbox_control_putt_stroke_id,
+                         config_get_d(CONFIG_JOYSTICK_BUTTON_L2));
+        create_lb_button(xbox_control_putt_stroke_id,
+                         config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
 
-        gui_label(xbox_control_putt_stroke_id, _("Shot"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_putt_stroke_id, _("Shot"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_a_button(xbox_control_putt_stroke_id, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+        create_a_button(xbox_control_putt_stroke_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
 
         create_controller_spacer(xbox_control_putt_stroke_id);
 
-        gui_label(xbox_control_putt_stroke_id, _("Fine aim"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_putt_stroke_id, _("Fine aim"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_x_button(xbox_control_putt_stroke_id, config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+        create_x_button(xbox_control_putt_stroke_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
 
         gui_set_rect(xbox_control_putt_stroke_id, GUI_TOP);
         gui_layout(xbox_control_putt_stroke_id, 0, -1);
@@ -1396,9 +1412,11 @@ void init_xbox_putt_stop()
 {
     if ((xbox_control_putt_stop_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_putt_stop_id, _("Skip"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_putt_stop_id, _("Skip"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_a_button(xbox_control_putt_stop_id, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+        create_a_button(xbox_control_putt_stop_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
 
         gui_set_rect(xbox_control_putt_stop_id, GUI_TOP);
         gui_layout(xbox_control_putt_stop_id, 0, -1);
@@ -1409,9 +1427,11 @@ void init_xbox_putt_scores()
 {
     if ((xbox_control_putt_scores_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_putt_scores_id, _("Continue"), GUI_SML, gui_wht, gui_wht);
+        gui_label(xbox_control_putt_scores_id, _("Continue"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        create_a_button(xbox_control_putt_scores_id, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+        create_a_button(xbox_control_putt_scores_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
 
         gui_set_rect(xbox_control_putt_scores_id, GUI_TOP);
         gui_layout(xbox_control_putt_scores_id, 0, -1);

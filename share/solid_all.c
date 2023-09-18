@@ -325,16 +325,18 @@ void sol_swch_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
                 else
                     curr_path_enabled_orcondition[xp->base->pi]--;
 
-#if _DEBUG
+/*#if _DEBUG
                 if (curr_path_enabled_orcondition[xp->base->pi] > 1)
-                    log_printf("Path index %d uses OR SWITCH condition: %d\n", xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
+                    log_printf("Path index %d uses OR SWITCH condition: %d\n",
+                               xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
                 else if (curr_path_enabled_orcondition[xp->base->pi] > 0)
                     log_printf("Path index %d is ENABLED\n", xp->base->pi);
                 else if (curr_path_enabled_orcondition[xp->base->pi] == 0)
                     log_printf("Path index %d is DISABLED\n", xp->base->pi);
                 else
-                    log_printf("Path index %d uses NOR SWITCH condition: %d\n", xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
-#endif
+                    log_printf("Path index %d uses NOR SWITCH condition: %d\n",
+                               xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
+#endif*/
 
                 sol_path_loop(vary, cmd_func, xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
 
@@ -354,7 +356,8 @@ void sol_swch_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
 }
 
 /*
- * New: Checkpoints: Compute the states of all checkpoints after DT seconds have passed.
+ * New: Checkpoints: Compute the states of all checkpoints after DT seconds
+ * have passed.
  */
 void sol_chkp_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
 {
@@ -612,7 +615,7 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
                     else
                         curr_path_enabled_orcondition[xp->base->pi]--;
 
-#if _DEBUG
+/*#if _DEBUG
                     if (curr_path_enabled_orcondition[xp->base->pi] > 1)
                         log_printf("Path index %d uses OR SWITCH condition: %d\n", xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
                     else if (curr_path_enabled_orcondition[xp->base->pi] > 0)
@@ -621,7 +624,7 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
                         log_printf("Path index %d is DISABLED\n", xp->base->pi);
                     else
                         log_printf("Path index %d uses NOR SWITCH condition: %d\n", xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
-#endif
+#endif*/
 
                     sol_path_loop(vary, cmd_func, xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
 

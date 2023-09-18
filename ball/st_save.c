@@ -87,11 +87,20 @@ static int enter_id;
 
 static void save_update_enter_btn(void)
 {
-    int name_accepted = text_length(text_input) > 2 && strcmp("Last", text_input) != 0;
+    int name_accepted = text_length(text_input) > 2 &&
+                        strcmp("Last", text_input) != 0;
 
     for (int i = 0; i < text_length(text_input); i++)
     {
-        if (text_input[i] == '\\' || text_input[i] == '/' || text_input[i] == ':' || text_input[i] == '*' || text_input[i] == '?' || text_input[i] == '"' || text_input[i] == '<' || text_input[i] == '>' || text_input[i] == '|')
+        if (text_input[i] == '\\' ||
+            text_input[i] == '/'  ||
+            text_input[i] == ':'  ||
+            text_input[i] == '*'  ||
+            text_input[i] == '?'  ||
+            text_input[i] == '"'  ||
+            text_input[i] == '<'  ||
+            text_input[i] == '>'  ||
+            text_input[i] == '|')
         {
             name_accepted = 0;
             break;
@@ -123,7 +132,15 @@ static int save_action(int tok, int val)
 
         for (int i = 0; i < text_length(text_input); i++)
         {
-            if (text_input[i] == '\\' || text_input[i] == '/' || text_input[i] == ':' || text_input[i] == '*' || text_input[i] == '?' || text_input[i] == '"' || text_input[i] == '<' || text_input[i] == '>' || text_input[i] == '|')
+            if (text_input[i] == '\\' ||
+                text_input[i] == '/'  ||
+                text_input[i] == ':'  ||
+                text_input[i] == '*'  ||
+                text_input[i] == '?'  ||
+                text_input[i] == '"'  ||
+                text_input[i] == '<'  ||
+                text_input[i] == '>'  ||
+                text_input[i] == '|')
             {
                 log_errorf("Can't accept other charsets!\n", text_input[i]);
                 return 1;
@@ -169,7 +186,8 @@ static int save_gui(void)
         gui_space(id);
 
         //file_id = gui_label(id, "XXXXXXXXXXXXXXXX", GUI_MED, gui_yel, gui_yel);
-        file_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, gui_yel, gui_yel);
+        file_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                                GUI_SML, gui_yel, gui_yel);
 
         gui_space(id);
         if ((jd = gui_hstack(id)))
@@ -322,7 +340,8 @@ static int clobber_gui(void)
         kd = gui_title_header(id, _("Overwrite?"), GUI_MED, gui_red, gui_red);
         gui_space(id);
         //file_id = gui_label(id, "MMMMMMMM", GUI_MED, gui_yel, gui_yel);
-        file_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, gui_yel, gui_yel);
+        file_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                                GUI_SML, gui_yel, gui_yel);
         gui_space(id);
 
         if ((jd = gui_harray(id)))
@@ -389,9 +408,12 @@ static int lockdown_gui(void)
         jd = gui_title_header(id, _("Locked"), GUI_MED, gui_gry, gui_red);
         gui_space(id);
 #ifdef COVID_HIGH_RISK
-        gui_multi(id, _("Replays have locked down\\during high risks!"), GUI_SML, gui_red, gui_red);
+        gui_multi(id, _("Replays have locked down\\"
+                        "during high risks!"), GUI_SML, gui_red, gui_red);
 #else
-        gui_multi(id, _("Replays have locked down\\between 16:00 - 8:00 (4:00 PM - 8:00 AM)."), GUI_SML, gui_red, gui_red);
+        gui_multi(id, _("Replays have locked down\\"
+                        "between 16:00 - 8:00 (4:00 PM - 8:00 AM)."),
+                      GUI_SML, gui_red, gui_red);
 #endif
         gui_space(id);
         gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
@@ -404,8 +426,6 @@ static int lockdown_gui(void)
 
 static int lockdown_enter(struct state *st, struct state *prev)
 {
-    log_errorf("You can save your replays, but it's too late! "
-        "Reason: %s\n", strerror(EACCES));
     return lockdown_gui();
 }
 
@@ -443,8 +463,9 @@ static int save_error_gui(void)
 #else
         sprintf(desc,
 #endif
-            _("Please check your permissions\\before save your replay.\\%s"),
-            fs_error());
+                _("Please check your permissions\\"
+                  "before save your replay.\\%s"),
+                fs_error());
 
         gui_title_header(id, _("Save failed!"), GUI_MED, gui_gry, gui_red);
         gui_space(id);

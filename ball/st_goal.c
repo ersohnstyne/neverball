@@ -58,8 +58,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-/* TODO: Place the following screenstate variables into the header file. */
-
 struct state st_goal_extraballs;
 struct state st_goal_shop;
 
@@ -166,10 +164,12 @@ static int goal_gui(void)
 {
     const char *s1 = _("New Record");
     const char *s2 = _("GOAL");
+    const char *s3 = _("Master complete");
 
     int id, jd, kd, ld, md;
 
-    int high = progress_lvl_high();
+    int high   = progress_lvl_high();
+    int master = curr_level()->is_master;
 
     shop_product_available = 0;
 
@@ -178,25 +178,30 @@ static int goal_gui(void)
     challenge_disable_all_buttons = 0;
 
 #if NB_HAVE_PB_BOTH==1
-    if (!resume && config_get_d(CONFIG_NOTIFICATION_SHOP) && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+    if (!resume && config_get_d(CONFIG_NOTIFICATION_SHOP) &&
+        server_policy_get_d(SERVER_POLICY_EDITION) > -1)
 #else
     if (!resume)
 #endif
     {
         if (curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            || curr_mode() == MODE_CAMPAIGN
+         || curr_mode() == MODE_CAMPAIGN
 #endif
             )
         {
 #ifdef CONFIG_INCLUDES_ACCOUNT
             if (
 #ifdef LEVELGROUPS_INCLUDES_ZEN
-                (!account_get_d(ACCOUNT_PRODUCT_MEDIATION) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 120) ||
+                (!account_get_d(ACCOUNT_PRODUCT_MEDIATION) &&
+                 (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 120) ||
 #endif
-                (!account_get_d(ACCOUNT_PRODUCT_BONUS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 180) ||
-                (!account_get_d(ACCOUNT_PRODUCT_BALLS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 250) ||
-                (!account_get_d(ACCOUNT_PRODUCT_LEVELS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 310)
+                (!account_get_d(ACCOUNT_PRODUCT_BONUS) &&
+                 (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 180) ||
+                (!account_get_d(ACCOUNT_PRODUCT_BALLS) &&
+                 (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 250) ||
+                (!account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
+                 (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 310)
                 )
                 shop_product_available = 1;
 #endif
@@ -214,14 +219,18 @@ static int goal_gui(void)
 
         if ((jd = gui_vstack(id)))
         {
-            if (high && (!campaign_used() || (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100
+            if (high &&
+                (!campaign_used() ||
+                 (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-                && !config_cheat()
+                  !config_cheat() &&
 #endif
-                && (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25))))
+                  (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25))))
                 gid = gui_title_header(jd, s1, GUI_MED, gui_grn, gui_grn);
             else
-                gid = gui_title_header(jd, s2, GUI_LRG, gui_blu, gui_grn);
+                gid = gui_title_header(jd, master ? s3 : s2,
+                                           master ? GUI_MED : GUI_LRG,
+                                           gui_blu, gui_grn);
 
             if (!resume)
                 gui_pulse(gid, 1.2f);
@@ -239,7 +248,7 @@ static int goal_gui(void)
 
         if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            || curr_mode() == MODE_HARDCORE
+         || curr_mode() == MODE_HARDCORE
 #endif
             )
         {
@@ -333,15 +342,17 @@ static int goal_gui(void)
             gui_space(id);
         }
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)
-              && !CHECK_ACCOUNT_BANKRUPT)
+        else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
+                 !CHECK_ACCOUNT_BANKRUPT)
         {
             balls_id = score_id = 0;
 
             /* Reverse-engineer initial wallet. */
 
-            int coins = !resume ? curr_coins() : 0,
-                wallet = !resume ? account_get_d(ACCOUNT_DATA_WALLET_COINS) : account_get_d(ACCOUNT_DATA_WALLET_COINS) - coins;
+            int coins  = !resume ? curr_coins() : 0,
+                wallet = !resume ? account_get_d(ACCOUNT_DATA_WALLET_COINS) :
+                                   account_get_d(ACCOUNT_DATA_WALLET_COINS) - coins;
 
             if ((jd = gui_hstack(id)))
             {
@@ -375,12 +386,14 @@ static int goal_gui(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         if (!campaign_used())
         {
-            /* Waiting for extra balls by collecting 100 coins */
             gui_score_board(id, (GUI_SCORE_COIN |
                                  GUI_SCORE_TIME |
                                  GUI_SCORE_GOAL), 1,
                                 !resume && (shop_product_available
                                          || challenge_disable_all_buttons) ? 0 : high);
+
+            gui_campaign_stats(curr_level());
+
             gui_space(id);
         }
         else if (campaign_used() && (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100
@@ -391,17 +404,25 @@ static int goal_gui(void)
         {
             gui_score_board(id, ((campaign_career_unlocked() ? GUI_SCORE_COIN : 0) |
                                  GUI_SCORE_TIME |
-                                 (campaign_career_unlocked() ? GUI_SCORE_GOAL : 0)), 1,
+                                 (campaign_career_unlocked() ? GUI_SCORE_GOAL : 0)),
+                                1,
                                 !resume && (shop_product_available
-                                         || challenge_disable_all_buttons) ? 0 : high);
+                                         || challenge_disable_all_buttons) ? 0 :
+                                                                             high);
+
+            gui_set_stats(curr_level());
+
             gui_space(id);
         }
 #else
-        /* Waiting for extra balls by collecting 100 coins */
         gui_score_board(id, (GUI_SCORE_COIN |
-            GUI_SCORE_TIME |
-            GUI_SCORE_GOAL), 1,
-            !resume && (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
+                             GUI_SCORE_TIME |
+                             GUI_SCORE_GOAL), 1,
+                            !resume && (shop_product_available
+                                     || challenge_disable_all_buttons) ? 0 : high);
+
+        gui_set_stats(curr_level());
+
         gui_space(id);
 #endif
 
@@ -413,14 +434,18 @@ static int goal_gui(void)
              * --- OR ---
              * check, if products is still available
              */
-            if (!resume && ((config_get_d(CONFIG_NOTIFICATION_REWARD) && challenge_disable_all_buttons) || (config_get_d(CONFIG_NOTIFICATION_SHOP) && shop_product_available)))
+            if (!resume && ((config_get_d(CONFIG_NOTIFICATION_REWARD) &&
+                             challenge_disable_all_buttons) ||
+                            (config_get_d(CONFIG_NOTIFICATION_SHOP) &&
+                             shop_product_available)))
             {
                 if (progress_done())
                     m1 = gui_label(jd, _("Finish"), GUI_SML, gui_gry, gui_gry);
                 else if (progress_last())
                     m1 = gui_label(jd, _("Finish"), GUI_SML, gui_gry, gui_gry);
                 else if (progress_next_avail())
-                    m1 = gui_label(jd, _("Next Level"), GUI_SML, gui_gry, gui_gry);
+                    m1 = gui_label(jd, _("Next Level"),
+                                       GUI_SML, gui_gry, gui_gry);
                 else
                     m1 = gui_label(jd, _("Finish"), GUI_SML, gui_gry, gui_gry);
 
@@ -429,10 +454,12 @@ static int goal_gui(void)
 #else
                 if (progress_same_avail())
 #endif
-                    m2 = gui_label(jd, _("Retry Level"), GUI_SML, gui_gry, gui_gry);
+                    m2 = gui_label(jd, _("Retry Level"),
+                                       GUI_SML, gui_gry, gui_gry);
 
                 if (demo_saved() && save >= 1)
-                    m3 = gui_label(jd, _("Save Replay"), GUI_SML, gui_gry, gui_gry);
+                    m3 = gui_label(jd, _("Save Replay"),
+                                       GUI_SML, gui_gry, gui_gry);
 
                 if (m1)
                     gui_set_state(m1, GUI_NONE, 0);
@@ -530,9 +557,9 @@ static void goal_timer(int id, float dt)
         geom_step(dt);
         game_server_step(dt);
 
-        int record_screenanimations = time_state() < (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.f);
-        int record_modes = curr_mode() != MODE_NONE;
-        int record_campaign = !campaign_hardcore_norecordings();
+        int record_screenanimations =  time_state() < (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.f);
+        int record_modes            =  curr_mode() != MODE_NONE;
+        int record_campaign         = !campaign_hardcore_norecordings();
 
         game_client_blend(game_server_blend());
         game_client_sync(!resume
@@ -540,8 +567,10 @@ static void goal_timer(int id, float dt)
                       && record_modes
                       && record_campaign ? demo_fp : NULL);
 
-        if ((t > 0.05f && coins_id)
-            && (!resume && time_state() > (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.f)))
+        if ((t > 0.05f && coins_id) &&
+            (!resume &&
+             time_state() > (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f :
+                                                                      1.f)))
         {
             int coins = 0;
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -555,9 +584,15 @@ static void goal_timer(int id, float dt)
                 wallet = gui_value(wallet_id);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if ((curr_mode() == MODE_CAMPAIGN || curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN) && server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+            if ((curr_mode() == MODE_CAMPAIGN ||
+                 curr_mode() == MODE_NORMAL   ||
+                 curr_mode() == MODE_ZEN) &&
+                server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
 #else
-            if ((curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN) && server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+            if ((curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN) &&
+                server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
 #endif
                 wallet = 0;
 #endif
@@ -587,9 +622,15 @@ static void goal_timer(int id, float dt)
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if ((curr_mode() == MODE_CAMPAIGN || curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN) && server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)) {
+                if ((curr_mode() == MODE_CAMPAIGN ||
+                     curr_mode() == MODE_NORMAL   ||
+                     curr_mode() == MODE_ZEN) &&
+                    server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                    server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)) {
 #else
-                if ((curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN) && server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)) {
+                if ((curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN) &&
+                    server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                    server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)) {
 #endif
                     gui_set_count(wallet_id, wallet + 1);
                     gui_pulse(wallet_id, 1.1f);
@@ -597,9 +638,14 @@ static void goal_timer(int id, float dt)
 #endif
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (progress_reward_ball(score + 1) && (curr_mode() != MODE_HARDCORE && curr_mode() != MODE_CAMPAIGN && curr_mode() != MODE_NORMAL && curr_mode() != MODE_ZEN))
+                if (progress_reward_ball(score + 1) &&
+                    (curr_mode() != MODE_HARDCORE &&
+                     curr_mode() != MODE_CAMPAIGN &&
+                     curr_mode() != MODE_NORMAL   &&
+                     curr_mode() != MODE_ZEN))
 #else
-                if (progress_reward_ball(score + 1) && (curr_mode() != MODE_NORMAL && curr_mode() != MODE_ZEN))
+                if (progress_reward_ball(score + 1) &&
+                    (curr_mode() != MODE_NORMAL && curr_mode() != MODE_ZEN))
 #endif
                 {
                     challenge_boom = 1;
@@ -607,7 +653,9 @@ static void goal_timer(int id, float dt)
 
                     gui_set_count(balls_id, balls + 1);
                     gui_pulse(balls_id, 2.0f);
-                    if (config_get_d(CONFIG_NOTIFICATION_REWARD) == 0) audio_play(AUD_BALL, 1.0f);
+
+                    if (config_get_d(CONFIG_NOTIFICATION_REWARD) == 0)
+                        audio_play(AUD_BALL, 1.0f);
                 }
             }
             t = 0.0f;
@@ -616,16 +664,16 @@ static void goal_timer(int id, float dt)
 
     gui_timer(id, dt);
 
-    /* Waiting for extra balls by collecting 100 coins */
-    if (challenge_caught_extra && config_get_d(CONFIG_NOTIFICATION_REWARD) && (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH))
-    {
-        /* Notify me, if you collected 100 coins */
+    if (challenge_caught_extra && config_get_d(CONFIG_NOTIFICATION_REWARD)
+     && (curr_mode() == MODE_CHALLENGE ||
+         curr_mode() == MODE_BOOST_RUSH))
         goto_state(&st_goal_extraballs);
-    }
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-    /* Notify me, if you have enough coins */
-    if (!resume && time_state() >= 1.0f && shop_product_available && config_get_d(CONFIG_NOTIFICATION_SHOP) && server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+    if (!resume && time_state() >= 1.0f &&
+        shop_product_available && config_get_d(CONFIG_NOTIFICATION_SHOP) &&
+        server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+        server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
         goto_state(&st_goal_shop);
 #endif
 }
@@ -645,17 +693,19 @@ static int goal_keybd(int c, int d)
 #endif
             return 1;
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c)
-#if NB_HAVE_PB_BOTH==1
-            && current_platform == PLATFORM_PC
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+         && current_platform == PLATFORM_PC
 #endif
             )
             return goal_action(GUI_SCORE, GUI_SCORE_NEXT(gui_score_get()));
-        if (config_tst_d(CONFIG_KEY_RESTART, c) && progress_same_avail() && !campaign_hardcore()
-#if NB_HAVE_PB_BOTH==1
-            && current_platform == PLATFORM_PC
+        if (config_tst_d(CONFIG_KEY_RESTART, c) &&
+            !campaign_hardcore()
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+         && current_platform == PLATFORM_PC
 #endif
             )
-            return goal_action(GOAL_SAME, 0);
+            return goal_action(progress_same_avail() ? GOAL_SAME :
+                                                       GUI_NONE, 0);
     }
 
     return 1;
@@ -688,10 +738,12 @@ static int goal_extraballs_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        int msgid = gui_label(id, _("New balls earned!"), GUI_MED, gui_grn, gui_grn);
+        int msgid = gui_title_header(id, _("New balls earned!"),
+                                         GUI_MED, gui_grn, gui_grn);
         gui_space(id);
-        gui_multi(id, _("You've earned extra ball by collecting\\100 coins in a single set."),
-            GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, _("You've earned extra ball by collecting\\"
+                        "100 coins in a single set."),
+                      GUI_SML, gui_wht, gui_wht);
         gui_pulse(msgid, 1.2f);
         gui_layout(id, 0, 0);
     }
@@ -742,27 +794,35 @@ static int goal_shop_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        int msgid = gui_label(id, _("Product available!"), GUI_MED, gui_grn, gui_grn);
+        int msgid = gui_title_header(id, _("Product available!"),
+                                         GUI_MED, gui_grn, gui_grn);
         gui_space(id);
 
         const char *prodname = "none";
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
 #ifdef LEVELGROUPS_INCLUDES_ZEN
-        if (!account_get_d(ACCOUNT_PRODUCT_MEDIATION) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 120)
+        if (!account_get_d(ACCOUNT_PRODUCT_MEDIATION) &&
+            (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 120)
             prodname = _("Mediation");
-        else if (!account_get_d(ACCOUNT_PRODUCT_BONUS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 180)
+        else if (!account_get_d(ACCOUNT_PRODUCT_BONUS) &&
+            (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 180)
             prodname = _("Bonus Pack");
-        else if (!account_get_d(ACCOUNT_PRODUCT_BALLS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 250)
+        else if (!account_get_d(ACCOUNT_PRODUCT_BALLS) &&
+            (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 250)
             prodname = _("Online Balls");
-        else if(!account_get_d(ACCOUNT_PRODUCT_LEVELS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 310)
+        else if(!account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
+            (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 310)
             prodname = _("Extra Levels");
 #else
-        if (!account_get_d(ACCOUNT_PRODUCT_BONUS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 180)
+        if (!account_get_d(ACCOUNT_PRODUCT_BONUS) &&
+            (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 180)
             prodname = _("Bonus Pack");
-        else if (!account_get_d(ACCOUNT_PRODUCT_BALLS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 250)
+        else if (!account_get_d(ACCOUNT_PRODUCT_BALLS) &&
+            (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 250)
             prodname = _("Online Balls");
-        else if (!account_get_d(ACCOUNT_PRODUCT_LEVELS) && (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 310)
+        else if (!account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
+            (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 310)
             prodname = _("Extra Levels");
 #endif
 #endif
@@ -847,7 +907,8 @@ static void goal_hardcore_timer(int id, float dt)
     if (!restrict_hardcore_nextstate)
     {
         game_server_step(dt);
-        game_client_sync(!campaign_hardcore_norecordings() && curr_mode() != MODE_NONE ? NULL : demo_fp);
+        game_client_sync(!campaign_hardcore_norecordings() &&
+                         curr_mode() != MODE_NONE ? NULL : demo_fp);
         game_client_blend(game_server_blend());
 
         game_step_fade(dt);

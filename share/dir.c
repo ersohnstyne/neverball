@@ -53,18 +53,25 @@ List dir_list_files(const char *path)
     sprintf_s(outpath, 256U, "%s\\*", path);
 
 #if _WIN32 && _MSC_VER
-    WIN32_FIND_DATAA findDataFiles;
+    WIN32_FIND_DATAA find_data;
     HANDLE hFind;
 
-    if ((hFind = FindFirstFileA(outpath, &findDataFiles)) != INVALID_HANDLE_VALUE)
+    if ((hFind = FindFirstFileA(outpath, &find_data)) != INVALID_HANDLE_VALUE)
     {
         do {
-            if (strcmp(findDataFiles.cFileName, ".") == 0 || strcmp(findDataFiles.cFileName, "..") == 0)
+            if (strcmp(find_data.cFileName, ".")  == 0 ||
+                strcmp(find_data.cFileName, "..") == 0)
                 continue;
-            else if (findDataFiles.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ||
-                findDataFiles.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE)
-                files = list_cons(strdup(findDataFiles.cFileName), files);
-        } while (FindNextFileA(hFind, &findDataFiles));
+            else if (!(find_data.dwFileAttributes & FILE_ATTRIBUTE_OFFLINE             ||
+                       find_data.dwFileAttributes & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
+                       find_data.dwFileAttributes & FILE_ATTRIBUTE_NO_SCRUB_DATA) &&
+                     (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ||
+                      find_data.dwFileAttributes & FILE_ATTRIBUTE_NORMAL    ||
+                      find_data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE   ||
+                      find_data.dwFileAttributes & FILE_ATTRIBUTE_READONLY  ||
+                      find_data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN))
+                files = list_cons(strdup(find_data.cFileName), files);
+        } while (FindNextFileA(hFind, &find_data));
 
         FindClose(hFind);
         hFind = 0;
@@ -186,15 +193,13 @@ int dir_exists(const char *path)
 #if _WIN32 && _MSC_VER
     DWORD file_attr = GetFileAttributesA(path);
 
-    if (file_attr & FILE_ATTRIBUTE_OFFLINE
-        || file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED
-        || file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA)
+    if (file_attr & FILE_ATTRIBUTE_OFFLINE             ||
+        file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
+        file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA)
         return 0;
 
-    /*return file_attr & FILE_ATTRIBUTE_DIRECTORY
-        || file_attr & FILE_ATTRIBUTE_ARCHIVE;*/
-
-    return file_attr & FILE_ATTRIBUTE_DIRECTORY;
+    return file_attr & FILE_ATTRIBUTE_DIRECTORY ||
+           file_attr & FILE_ATTRIBUTE_ARCHIVE;
 #else
     DIR *dir;
 

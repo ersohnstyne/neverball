@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -60,6 +60,7 @@ struct state st_pause;
 /*---------------------------------------------------------------------------*/
 
 static int stroke_type;
+static int play_id;
 
 static char *number(int i)
 {
@@ -262,10 +263,13 @@ static void shared_fade(float alpha)
 
 /*---------------------------------------------------------------------------*/
 
-#define TITLE_PLAY 1
-#define TITLE_HELP 2
-#define TITLE_CONF 3
-#define TITLE_EXIT 4
+enum
+{
+    TITLE_PLAY = 1,
+    TITLE_HELP,
+    TITLE_CONF,
+    TITLE_EXIT
+};
 
 static int title_action(int i)
 {
@@ -277,14 +281,12 @@ static int title_action(int i)
     case TITLE_HELP: return goto_state(&st_help);
     case TITLE_CONF: return goto_state(&st_conf);
     case TITLE_EXIT:
-    {
         if (current_platform != PLATFORM_SWITCH)
         {
              goto_state(&st_null); /* bye! */
              game_free();
              return 0;
         }
-    }
     }
     return 1;
 }
@@ -330,7 +332,7 @@ static int title_enter(struct state *st, struct state *prev)
         }
         else if (current_platform == PLATFORM_XBOX)
         {
-#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
             sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_360);
 #else
             sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_ONE);
@@ -361,12 +363,22 @@ static int title_enter(struct state *st, struct state *prev)
 
             if ((kd = gui_varray(jd)))
             {
-                gui_start(kd, gt_prefix("menu^Play"),    GUI_MED, TITLE_PLAY, 1);
+                if (config_cheat())
+                    play_id = gui_start(kd, gt_prefix("menu^Cheat"),
+                                        GUI_MED, TITLE_PLAY, 1);
+                else
+                    play_id = gui_start(kd, gt_prefix("menu^Play"),
+                                        GUI_MED, TITLE_PLAY, 1);
+
                 gui_state(kd, gt_prefix("menu^Help"),    GUI_MED, TITLE_HELP, 0);
                 gui_state(kd, gt_prefix("menu^Options"), GUI_MED, TITLE_CONF, 0);
 
                 /* Comment it, if you avoid quit the game */
                 //gui_state(kd, gt_prefix("menu^Exit"),    GUI_MED, TITLE_EXIT, 0);
+
+                /* Hilight the start button. */
+
+                gui_set_hilite(play_id, 1);
             }
 
             gui_filler(jd);
@@ -709,7 +721,7 @@ static int course_enter(struct state *st, struct state *prev)
     {
         if ((id = gui_vstack(0)))
         {
-            gui_title_header(id, _("No Courses"), GUI_MED, gui_yel, gui_red);
+            gui_title_header(id, _("No Courses"), GUI_MED, GUI_COLOR_DEFAULT);
             gui_space(id);
 #if !defined(__EMSCRIPTEN__)
             if (current_platform == PLATFORM_PC)
@@ -1107,7 +1119,7 @@ static void controltype_timer(int id, float dt)
 
     if (indiv_ctrltype_ready)
     {
-        gui_set_color(ctrltype_name_id, gui_yel, gui_red);
+        gui_set_color(ctrltype_name_id, GUI_COLOR_DEFAULT);
         gui_set_label(ctrltype_desc_id, _("Each Player has one Controller"));
     }
 
@@ -1465,7 +1477,7 @@ static int poser_buttn(int b, int d)
         (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b)
-            || config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+         || config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return goto_state(&st_next);
     }
     return 1;
@@ -2102,7 +2114,7 @@ static int score_enter(struct state *st, struct state *prev)
     if (paused)
         paused = 0;
 
-    return score_card(_("Scores"), gui_yel, gui_red);
+    return score_card(_("Scores"), GUI_COLOR_DEFAULT);
 }
 
 static void score_paint(int id, float t)
@@ -2153,7 +2165,7 @@ static int over_enter(struct state *st, struct state *prev)
     }
 
     audio_music_fade_out(2.f);
-    return score_card(_("Final Scores"), gui_yel, gui_red);
+    return score_card(_("Final Scores"), GUI_COLOR_DEFAULT);
 }
 
 static void over_leave(struct state *st, struct state *next, int id)

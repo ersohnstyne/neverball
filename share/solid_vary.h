@@ -119,6 +119,8 @@ struct s_vary
     /* Accumulator for tracking time in integer milliseconds. */
 
     float ms_accum;
+
+    int sim_uses_px;
 };
 
 /*---------------------------------------------------------------------------*/

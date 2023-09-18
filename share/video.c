@@ -63,7 +63,7 @@ extern "C" {
 
 #if !__cplusplus
 extern const char TITLE[];
-extern const char ICON[];
+extern const char ICON [];
 #endif
 
 struct video video;
@@ -185,12 +185,15 @@ extern "C"
 #endif
 int video_fullscreen(int f)
 {
-    int code = SDL_SetWindowFullscreen(window, f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    int code = SDL_SetWindowFullscreen(window,
+                                       f ? SDL_WINDOW_FULLSCREEN_DESKTOP :
+                                           0);
 
     if (code == 0)
         config_set_d(CONFIG_FULLSCREEN, f ? 1 : 0);
     else
-        log_errorf("Failure to %s fullscreen (%s)\n", f ? "enter" : "exit", GAMEDBG_GETSTRERROR_CHOICES_SDL);
+        log_errorf("Failure to %s fullscreen (%s)\n", f ? "enter" : "exit",
+                   GAMEDBG_GETSTRERROR_CHOICES_SDL);
 
     return (code == 0);
 }
@@ -233,7 +236,8 @@ void video_resize(int window_w, int window_h)
         /* Update viewport. */
 
         glViewport(0, 0,
-                   video.device_w * video.scale_w, video.device_h * video.scale_h);
+                   video.device_w * video.scale_w,
+                   video.device_h * video.scale_h);
 
         video.aspect_ratio = (float) video.device_w / (float) video.window_h;
     }
@@ -249,7 +253,8 @@ void video_set_window_size(int w, int h)
      *
      *   1) updates SDL's cached window->w and window->h values
      *   2) updates canvas.width and canvas.height (drawing buffer size)
-     *   3) triggers a SDL_WINDOWEVENT_SIZE_CHANGED event, which updates our viewport/UI.
+     *   3) triggers a SDL_WINDOWEVENT_SIZE_CHANGED event, which updates our
+            viewport/UI.
      */
 
     /*
@@ -282,14 +287,16 @@ void video_set_display(int dpy)
     if (video.window_w > ddm.w ||
         video.window_h > ddm.h)
     {
-        log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n", video.window_w, video.window_h, ddm.w, ddm.h);
+        log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n",
+                   video.window_w, video.window_h, ddm.w, ddm.h);
         video_set_window_size(ddm.w, ddm.h);
     }
 
     if (X - monitor_area_location.x > ddm.w + monitor_area_location.x / 2 ||
         Y - monitor_area_location.y > ddm.h + monitor_area_location.y / 2)
     {
-        log_errorf("Window position exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n", X, Y, ddm.w, ddm.h);
+        log_errorf("Window position exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n",
+                   X, Y, ddm.w, ddm.h);
         X = MAX((ddm.w / 2) - (video.window_w / 2), 0) + monitor_area_location.x;
         Y = MAX((ddm.h / 2) - (video.window_h / 2), 0) + monitor_area_location.y;
     }
@@ -317,7 +324,8 @@ int video_init(void)
                     config_get_d(CONFIG_WIDTH),
                     config_get_d(CONFIG_HEIGHT)))
     {
-        log_errorf("Failure to create window (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
+        log_errorf("Failure to create window (%s)\n",
+                   GAMEDBG_GETSTRERROR_CHOICES_SDL);
         return 0;
     }
 
@@ -392,7 +400,8 @@ video_mode_reconf:
     if (w > ddm.w ||
         h > ddm.h)
     {
-        log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n", w, h, ddm.w, ddm.h);
+        log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n",
+                   w, h, ddm.w, ddm.h);
         w = ddm.w;
         h = ddm.h;
     }
@@ -400,7 +409,8 @@ video_mode_reconf:
     if (X - monitor_area_location.x > ddm.w + monitor_area_location.x / 2 ||
         Y - monitor_area_location.y > ddm.h + monitor_area_location.y / 2)
     {
-        log_errorf("Window position exeeds the desktop resolution limit during creation!: Current: %d/%d; Limit: %d/%d\n", X, Y, ddm.w, ddm.h);
+        log_errorf("Window position exeeds the desktop resolution limit during creation!: Current: %d/%d; Limit: %d/%d\n",
+                   X, Y, ddm.w, ddm.h);
         X = MAX((ddm.w / 2) - (w / 2), 0) + monitor_area_location.x;
         Y = MAX((ddm.h / 2) - (h / 2), 0) + monitor_area_location.y;
     }
@@ -410,7 +420,7 @@ video_mode_reconf:
     video_quit();
 
 #if ENABLE_OPENGLES
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 #endif
@@ -430,9 +440,9 @@ video_mode_reconf:
      * Optional 16-bit double buffer with 16-bit depth buffer.
      */
 
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     0);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   0);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    0);
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   5);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  5);
 
     // TODO: Uncomment, if you want to set the required buffer.
 
@@ -440,9 +450,9 @@ video_mode_reconf:
     // TODO: Either 5 (16-bit) or 8 (32-bit)
     int rgb_size_fixed = 5;
     /*
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     rgb_size_fixed);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   rgb_size_fixed);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
 
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 
@@ -795,7 +805,8 @@ video_mode_auto_config_reconf:
     if (w > ddm.w ||
         h > ddm.h)
     {
-        log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n", w, h, ddm.w, ddm.h);
+        log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n",
+                   w, h, ddm.w, ddm.h);
         w = ddm.w;
         h = ddm.h;
     }
@@ -803,7 +814,8 @@ video_mode_auto_config_reconf:
     if (X - monitor_area_location.x > ddm.w + monitor_area_location.x / 2 ||
         Y - monitor_area_location.y > ddm.h + monitor_area_location.y / 2)
     {
-        log_errorf("Window position exeeds the desktop resolution limit during creation!: Current: %d/%d; Limit: %d/%d\n", X, Y, ddm.w, ddm.h);
+        log_errorf("Window position exeeds the desktop resolution limit during creation!: Current: %d/%d; Limit: %d/%d\n",
+                   X, Y, ddm.w, ddm.h);
         X = MAX((ddm.w / 2) - (w / 2), 0) + monitor_area_location.x;
         Y = MAX((ddm.h / 2) - (h / 2), 0) + monitor_area_location.y;
     }
@@ -813,7 +825,7 @@ video_mode_auto_config_reconf:
     video_quit();
 
 #if ENABLE_OPENGLES
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 #endif
@@ -831,9 +843,9 @@ video_mode_auto_config_reconf:
      * Optional 16-bit double buffer with 16-bit depth buffer.
      */
 
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     0);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   0);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    0);
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   5);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  5);
 
     // TODO: Uncomment, if you want to set the required buffer.
 
@@ -841,9 +853,9 @@ video_mode_auto_config_reconf:
     // TODO: Either 5 (16-bit) or 8 (32-bit)
     int rgb_size_fixed = 5;
     /*
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     rgb_size_fixed);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   rgb_size_fixed);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
 
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 
@@ -1080,7 +1092,8 @@ video_mode_auto_config_reconf:
 #ifdef GL_GENERATE_MIPMAP_SGIS
         config_set_d(CONFIG_MIPMAP, 1);
 #endif
-#if defined(GL_TEXTURE_MAX_ANISOTROPY_EXT) && GL_TEXTURE_MAX_ANISOTROPY_EXT != 0 && GL_TEXTURE_MAX_ANISOTROPY_EXT != -1
+#if defined(GL_TEXTURE_MAX_ANISOTROPY_EXT) && \
+    GL_TEXTURE_MAX_ANISOTROPY_EXT != 0 && GL_TEXTURE_MAX_ANISOTROPY_EXT != -1
         config_set_d(CONFIG_ANISO, 2);
 #endif
 
@@ -1161,15 +1174,14 @@ void video_swap(void)
 
     /* Accumulate time passed and frames rendered. */
 
-    dt = (int) SDL_GetTicks() - last;
-
-    last   += dt;
+    dt    = (int) SDL_GetTicks() - last;
+    last += dt;
 
 #ifdef FPS_REALTIME
     /* Compute frame time and frames-per-second stats. */
 
     fps = 1 / (0.001f * dt);
-    ms = 0.001f * dt;
+    ms  = 0.001f * dt;
 
 #if NB_STEAM_API==0 && !defined(LOG_NO_STATS)
     /* Output statistics if configured. */
@@ -1265,13 +1277,13 @@ int  video_get_grab(void)
 
 /*---------------------------------------------------------------------------*/
 
-int viewport_wireframe = 0;
+int viewport_wireframe  = 0;
 int wireframe_splitview = 0;
-int splitview_crossed = 0;
+int splitview_crossed   = 0;
 
-int render_fill_overlay = 0;
-int render_line_overlay = 0;
-int render_left_viewport = 0;
+int render_fill_overlay   = 0;
+int render_line_overlay   = 0;
+int render_left_viewport  = 0;
 int render_right_viewport = 0;
 
 #if __cplusplus
@@ -1296,7 +1308,9 @@ void video_set_wire(int wire)
         glDisable(GL_TEXTURE_2D);
         glDisable(GL_LIGHTING);
         viewport_wireframe = 1;
-        glViewport(0, 0, video.device_w * video.scale_w, video.device_h * video.scale_h);
+        glViewport(0, 0,
+                   video.device_w * video.scale_w,
+                   video.device_h * video.scale_h);
     }
     else
     {
@@ -1304,7 +1318,9 @@ void video_set_wire(int wire)
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_LIGHTING);
         viewport_wireframe = 0;
-        glViewport(0, 0, video.device_w * video.scale_w, video.device_h * video.scale_h);
+        glViewport(0, 0,
+                   video.device_w * video.scale_w,
+                   video.device_h * video.scale_h);
     }
 #endif
 }
@@ -1318,7 +1334,7 @@ void video_render_fill_or_line(int lined)
     render_fill_overlay = 0;
     render_line_overlay = 0;
 
-    render_left_viewport = 0;
+    render_left_viewport  = 0;
     render_right_viewport = 0;
 
     if (viewport_wireframe == 4)
@@ -1342,7 +1358,8 @@ void video_render_fill_or_line(int lined)
             glColor4ub(0x80, 0x80, 0x80, 0x80);
         }
     }
-    else if (lined && viewport_wireframe == 2 || viewport_wireframe == 3)
+    else if (lined && viewport_wireframe == 2 ||
+             viewport_wireframe == 3)
     {
         render_line_overlay = 0;
         render_fill_overlay = 0;
@@ -1352,10 +1369,14 @@ void video_render_fill_or_line(int lined)
         if (viewport_wireframe == 2)
         {
             render_right_viewport = 1;
-            glViewport((int) video.device_w / 2, 0, (video.device_w / 2) * video.scale_w, video.device_h * video.scale_h);
+            glViewport((int) video.device_w / 2, 0,
+                       (video.device_w / 2) * video.scale_w,
+                       video.device_h * video.scale_h);
         }
         else
-            glViewport(0, 0, video.device_w * video.scale_w, video.device_h * video.scale_h);
+            glViewport(0, 0,
+                       video.device_w * video.scale_w,
+                       video.device_h * video.scale_h);
     }
     else if (viewport_wireframe == 2 || viewport_wireframe == 3)
     {
@@ -1368,10 +1389,14 @@ void video_render_fill_or_line(int lined)
         if (viewport_wireframe == 2)
         {
             render_left_viewport = 1;
-            glViewport(0, 0, (video.device_w / 2) * video.scale_w, video.device_h * video.scale_h);
+            glViewport(0, 0,
+                       (video.device_w / 2) * video.scale_w,
+                       video.device_h * video.scale_h);
         }
         else
-            glViewport(0, 0, video.device_w * video.scale_w, video.device_h * video.scale_h);
+            glViewport(0, 0,
+                       video.device_w * video.scale_w,
+                       video.device_h * video.scale_h);
     }
     else if (viewport_wireframe == 0)
     {
@@ -1381,7 +1406,9 @@ void video_render_fill_or_line(int lined)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_LIGHTING);
-        glViewport(0, 0, video.device_w * video.scale_w, video.device_h * video.scale_h);
+        glViewport(0, 0,
+                   video.device_w * video.scale_w,
+                   video.device_h * video.scale_h);
     }
 #endif
 }
@@ -1441,7 +1468,7 @@ void video_push_persp(float fov, float n, float f)
 
         if (viewport_wireframe == 2)
             a = ((GLfloat) (video.device_w / 2) /
-                 (GLfloat) video.device_h);
+                 (GLfloat)  video.device_h);
 
         glMatrixMode(GL_PROJECTION);
         {
@@ -1455,15 +1482,15 @@ void video_push_persp(float fov, float n, float f)
             m[6 ] = 0.0f;
             m[7 ] = 0.0f;
 
-            m[8 ] = 0.0f;
-            m[9 ] = 0.0f;
+            m[8 ] =  0.0f;
+            m[9 ] =  0.0f;
             m[10] = -(f + n) / (f - n);
             m[11] = -1.0f;
 
-            m[12] = 0.0f;
-            m[13] = 0.0f;
+            m[12] =  0.0f;
+            m[13] =  0.0f;
             m[14] = -2.0f * n * f / (f - n);
-            m[15] = 0.0f;
+            m[15] =  0.0f;
 
             glLoadMatrixf(m);
         }

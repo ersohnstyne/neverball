@@ -66,7 +66,8 @@ static void add_archives(const char *path)
 
         for (i = 0; i < array_len(archives); i++)
         {
-            log_printf("Found ZIP archive file: %s\n", DIR_ITEM_GET(archives, i)->path);
+            log_printf("Found ZIP archive file: %s\n",
+                       DIR_ITEM_GET(archives, i)->path);
             fs_add_path(DIR_ITEM_GET(archives, i)->path);
         }
 

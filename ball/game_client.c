@@ -800,40 +800,40 @@ static float studio_cam_from_pos[15][2][3] =
 /* Netradiant position coordinates */
 static float studio_cam_center_pos[15][2][3] =
 {
-    { { 96, 288, 16 } , { 74, 288, 16 } },
-    { { -48, -624, 312 } , { -16, -624, 312 } },
-    { { 128, 272, 24 } , { 128, 320, 24 } },
-    { { 0, 1141, 6 } , { 0, 1141, 6 } },
-    { { 256, 256, 0 } , { 352, 160, 0 } },
-    { { 88, 432, 95 } , { 104, 376, 64 } },
-    { { 64, 576, 4 } , { 67, 566, 4 } },
-    { { 0, 0, 144 } , { 0, 0, 144 } },
-    { { 64, 384, 32 } , { 64, 384, 32 } },
-    { { 88, 736, 120 } , { 88, 736, 120 } },
-    { { 0, 1048, -40 } , { 0, 1048, -40 } },
-    { { 192, 576, 28 } , { 192, 576, 28 } },
-    { { 64, 576, 32 } , { 64, 576, 32 } },
-    { { 608, 192, 56 } , { 336, 56, 56 } },
-    { { -120, 728, 56 } , { 88, 728, 56 } }
+    { { 96, 288, 16 }, { 74, 288, 16 } },
+    { { -48, -624, 312 }, { -16, -624, 312 } },
+    { { 128, 272, 24 }, { 128, 320, 24 } },
+    { { 0, 1141, 6 }, { 0, 1141, 6 } },
+    { { 256, 256, 0 }, { 352, 160, 0 } },
+    { { 88, 432, 95 }, { 104, 376, 64 } },
+    { { 64, 576, 4 }, { 67, 566, 4 } },
+    { { 0, 0, 144 }, { 0, 0, 144 } },
+    { { 64, 384, 32 }, { 64, 384, 32 } },
+    { { 88, 736, 120 }, { 88, 736, 120 } },
+    { { 0, 1048, -40 }, { 0, 1048, -40 } },
+    { { 192, 576, 28 }, { 192, 576, 28 } },
+    { { 64, 576, 32 }, { 64, 576, 32 } },
+    { { 608, 192, 56 }, { 336, 56, 56 } },
+    { { -120, 728, 56 }, { 88, 728, 56 } }
 };
 
 static float studio_cam_rot_roll[15][2] =
 {
-    { 0.0f, 0.0f },
-    { 0.0f, 0.0f },
-    { 0.0f, 0.0f },
-    { 0.0f, 0.0f },
-    { 0.0f, 0.0f },
-    { -7.0f, 4.0f },
-    { -9.0f, 3.0f },
-    { -5.0f, 5.0f },
-    { 8.0f, -3.0f },
-    { 5.0f, -6.0f },
-    { -2.0f, 4.0f },
-    { -3.0f, 2.5f },
-    { 3.0f, -5.0f },
-    { -4.0f, 0.0f },
-    { 5.0f, -5.0f }
+    {  0.0f,  0.0f },
+    {  0.0f,  0.0f },
+    {  0.0f,  0.0f },
+    {  0.0f,  0.0f },
+    {  0.0f,  0.0f },
+    { -7.0f,  4.0f },
+    { -9.0f,  3.0f },
+    { -5.0f,  5.0f },
+    {  8.0f, -3.0f },
+    {  5.0f, -6.0f },
+    { -2.0f,  4.0f },
+    { -3.0f,  2.5f },
+    {  3.0f, -5.0f },
+    { -4.0f,  0.0f },
+    {  5.0f, -5.0f }
 };
 
 static void game_client_next_studio_map(void)
@@ -929,10 +929,7 @@ int game_client_init_studio(int alternatives)
 
 static float safetyintro_totaltime = 0;
 
-float safetyintro_cam_center_pos[3] =
-{
-    0, 80, 0
-};
+float safetyintro_cam_center_pos[3] = { 0, 80, 0 };
 
 void game_client_step_safetyintro(float deltatime)
 {
@@ -944,8 +941,8 @@ void game_client_step_safetyintro(float deltatime)
 
     safetyintro_totaltime += deltatime / 3;
 
-    pos[0] = fsinf((safetyintro_totaltime / 4) * V_PI) * (192 * 1.5f);
-    pos[1] = flerp(180, 192, fcosf((safetyintro_totaltime / 4) * V_PI));
+    pos[0] =  fsinf((safetyintro_totaltime / 4) * V_PI) * (192 * 1.5f);
+    pos[1] =  flerp(180, 192, fcosf((safetyintro_totaltime / 4) * V_PI));
     pos[2] = -fcosf((safetyintro_totaltime / 4) * V_PI) * (192 * 1.5f);
 
     v_cpy(center, safetyintro_cam_center_pos);

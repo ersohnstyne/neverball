@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -65,7 +65,7 @@ static void init_changed_value(void)
 
 static int conf_action(int i)
 {
-    int ms       = config_get_d(CONFIG_MASTER_VOLUME);
+    int master   = config_get_d(CONFIG_MASTER_VOLUME);
     int snd      = config_get_d(CONFIG_SOUND_VOLUME);
     int mus      = config_get_d(CONFIG_MUSIC_VOLUME);
     int narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
@@ -103,7 +103,7 @@ static int conf_action(int i)
             audio_volume(n, snd, mus, narrator);
 
             gui_toggle(master_id[n]);
-            gui_toggle(master_id[ms]);
+            gui_toggle(master_id[master]);
 
             set_changed_value();
         }
@@ -112,7 +112,7 @@ static int conf_action(int i)
             int n = i - 200;
 
             config_set_d(CONFIG_MUSIC_VOLUME, n);
-            audio_volume(ms, snd, n, narrator);
+            audio_volume(master, snd, n, narrator);
 
             gui_toggle(music_id[n]);
             gui_toggle(music_id[mus]);
@@ -124,7 +124,7 @@ static int conf_action(int i)
             int n = i - 300;
 
             config_set_d(CONFIG_SOUND_VOLUME, n);
-            audio_volume(ms, n, mus, narrator);
+            audio_volume(master, n, mus, narrator);
             //audio_play(AUD_BUMP, 1.f);
             audio_play(AUD_NEXTTURN, 1.f);
 
@@ -138,7 +138,7 @@ static int conf_action(int i)
             int n = i - 400;
 
             config_set_d(CONFIG_NARRATOR_VOLUME, n);
-            audio_volume(ms, snd, mus, n);
+            audio_volume(master, snd, mus, n);
 
             gui_toggle(narrator_id[n]);
             gui_toggle(narrator_id[narrator]);
@@ -279,7 +279,7 @@ static int conf_enter(struct state *st, struct state *prev)
 
         if ((id = gui_vstack(root_id)))
         {
-            gui_label(id, "Pennyputt " VERSION, GUI_TNY, gui_wht, gui_wht);
+            gui_label(id, "Neverputt " VERSION, GUI_TNY, gui_wht, gui_wht);
             gui_clr_rect(id);
             gui_layout(id, 0, -1);
         }
@@ -354,7 +354,9 @@ static int conf_buttn(int b, int d)
 
 static int null_enter(struct state *st, struct state *prev)
 {
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     xbox_control_gui_free();
+#endif
     gui_free();
     geom_free();
     ball_free();
@@ -371,7 +373,9 @@ static void null_leave(struct state *st, struct state *next, int id)
     ball_init();
     geom_init();
     gui_init();
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     xbox_control_gui_init();
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

@@ -2013,7 +2013,7 @@ static int conf_audio_gui(void)
         conf_slider(id, _("Narrator Volume"), CONF_AUDIO_NARRATOR_VOLUME, narrator,
                     narrator_id, ARRAYSIZE(narrator_id));
 #else
-        gui_multi(root_id, _("Switchball configurations\\"
+        gui_multi(id, _("Switchball configurations\\"
                         "requires NB_HAVE_PB_BOTH\\"
                         "preprocessor definitions"),
                       GUI_SML, gui_red, gui_red);
@@ -2314,12 +2314,12 @@ static int conf_gui(void)
             const char* ball   = config_get_s(CONFIG_BALL_FILE);
 
             int name_id, ball_id;
-            gui_space(root_id);
-            name_id = conf_state(root_id, _("Player Name"), "XXXXXXXXXXXXXX",
-                                          CONF_MANAGE_ACCOUNT);
+            gui_space(id);
+            name_id = conf_state(id, _("Player Name"), "XXXXXXXXXXXXXX",
+                                     CONF_MANAGE_ACCOUNT);
             gui_set_trunc(name_id, TRUNC_TAIL);
-            ball_id = conf_state(root_id, _("Ball Model"), "XXXXXXXXXXXXXX",
-                                          CONF_BALL);
+            ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX",
+                                     CONF_BALL);
             gui_set_trunc(ball_id, TRUNC_TAIL);
 
             gui_set_label(name_id, player);
@@ -2346,10 +2346,10 @@ static int conf_gui(void)
 #if ENABLE_NLS==1 || _WIN32
                 int lang_id;
 #if NB_HAVE_PB_BOTH==1
-                gui_space(root_id);
+                gui_space(id);
 #endif
-                lang_id = conf_state(root_id, _("Language"), "                            ",
-                                              CONF_LANGUAGE);
+                lang_id = conf_state(id, _("Language"), "                            ",
+                                         CONF_LANGUAGE);
 
                 gui_set_trunc(lang_id, TRUNC_TAIL);
 
@@ -2363,7 +2363,7 @@ static int conf_gui(void)
 
         if ((id = gui_vstack(root_id)))
         {
-            gui_label(id, "Pennyball " VERSION, GUI_TNY, gui_wht, gui_wht);
+            gui_label(id, "Neverball " VERSION, GUI_TNY, gui_wht, gui_wht);
             gui_clr_rect(id);
             gui_layout(id, 0, -1);
         }

@@ -2242,7 +2242,7 @@ static int conf_gui(void)
     {
         int id;
 
-        if ((id = gui_vstack(0)))
+        if ((id = gui_vstack(root_id)))
         {
             conf_header(id, _("Options"), GUI_BACK);
 

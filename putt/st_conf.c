@@ -166,7 +166,7 @@ static int conf_enter(struct state *st, struct state *prev)
         int id, jd, kd;
         int i;
 
-        if ((id = gui_vstack(0)))
+        if ((id = gui_vstack(root_id)))
         {
             if ((jd = gui_harray(id)))
             {

@@ -40,6 +40,7 @@
 #include <stdio.h>
 
 #include "log.h"
+#include "version.h"
 
 #include "dbg_config.h"
 

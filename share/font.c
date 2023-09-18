@@ -37,7 +37,7 @@
 
 static int _ft_is_init = 0;
 
-int font_load(struct font *ft, const char *path, int sizes[3])
+int font_load(struct font *ft, const char *path, int sizes[FONT_SIZE_MAX])
 {
     if (!_ft_is_init)
         font_init();

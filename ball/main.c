@@ -136,7 +136,7 @@ const char TITLE[] = "Neverball - Steam";
 #elif NB_EOS_SDK==1
 const char TITLE[] = "Neverball - Epic Games";
 #else
-const char TITLE[] = "Neverball " VERSION;
+const char TITLE[] = "Neverball";
 #endif
 const char ICON[] = "icon/neverball.png";
 

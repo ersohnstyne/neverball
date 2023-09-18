@@ -2195,7 +2195,7 @@ static int conf_action(int tok, int val)
 
 static int conf_gui(void)
 {
-    int id;
+        int root_id;
 
     /*
      * Initialize the configuration GUI.
@@ -2203,121 +2203,140 @@ static int conf_gui(void)
      * In order: Game settings, video settings, audio settings, controls settings
      */
 
-    if ((id = gui_vstack(0)))
+    if ((root_id = gui_root()))
     {
-        conf_header(id, _("Options"), GUI_BACK);
+        int id;
+
+        if ((id = gui_vstack(0)))
+        {
+            conf_header(id, _("Options"), GUI_BACK);
 
 #if ENABLE_GAME_TRANSFER==1
-        if (mainmenu_conf)
-        {
+            if (mainmenu_conf)
+            {
 #if GAME_TRANSFER_TARGET==1
-            conf_state(id, _("Neverball Game Transfer"), _("Start"), CONF_SYSTEMTRANSFER_TARGET);
+                conf_state(id, _("Neverball Game Transfer"), _("Start"),
+                               CONF_SYSTEMTRANSFER_TARGET);
 #else
-            conf_state(id, _("Pennyball Transfer Tool"), _("Start"), CONF_SYSTEMTRANSFER_SOURCE);
+                conf_state(id, _("Pennyball Transfer Tool"), _("Start"),
+                               CONF_SYSTEMTRANSFER_SOURCE);
 #endif
+                gui_space(id);
+            }
+#endif
+
+            int rd = conf_state(id, _("Community (Discord)"), _("Join"), CONF_SOCIAL);
+            gui_set_color(rd, gui_wht, gui_cya);
+
             gui_space(id);
-        }
-#endif
-
-        int rd = conf_state(id, _("Community (Discord)"), _("Join"), CONF_SOCIAL);
-        gui_set_color(rd, gui_wht, gui_cya);
-
-        gui_space(id);
 
 #if NB_HAVE_PB_BOTH==1
-        conf_state(id, _("Account"), _((text_length(config_get_s(CONFIG_PLAYER)) < 3 || !conf_check_playername(config_get_s(CONFIG_PLAYER))) ? "Register" : "Manage"), CONF_MANAGE_ACCOUNT);
-        conf_state(id, _("Notifications"), _("Manage"), CONF_MANAGE_NOTIFICATIONS);
+            conf_state(id, _("Account"), _((text_length(config_get_s(CONFIG_PLAYER)) < 3 ||
+                                            !conf_check_playername(config_get_s(CONFIG_PLAYER))) ?
+                                           "Register" : "Manage"), CONF_MANAGE_ACCOUNT);
+            conf_state(id, _("Notifications"), _("Manage"), CONF_MANAGE_NOTIFICATIONS);
 
-        gui_space(id);
+            gui_space(id);
 #endif
 
 #if ENABLE_FETCH==1
-        conf_state(id, _("Packages"), _("Manage"), CONF_PACKAGES);
-        gui_space(id);
+            conf_state(id, _("Packages"), _("Manage"), CONF_PACKAGES);
+            gui_space(id);
 #endif
 
-        conf_state(id, _("Controls"), _("Configure"), CONF_CONTROLS);
+            conf_state(id, _("Controls"), _("Configure"), CONF_CONTROLS);
 
-        if (mainmenu_conf)
-        {
-            gui_space(id);
-            conf_state(id, _("Graphics"), _("Configure"), CONF_VIDEO);
-        }
+            if (mainmenu_conf)
+            {
+                gui_space(id);
+                conf_state(id, _("Graphics"), _("Configure"), CONF_VIDEO);
+            }
 
-        if (audio_available())
-        {
-            gui_space(id);
+            if (audio_available())
+            {
+                gui_space(id);
 #if NB_HAVE_PB_BOTH==1
-            conf_state(id, _("Audio"), _("Configure"), CONF_AUDIO);
+                conf_state(id, _("Audio"), _("Configure"), CONF_AUDIO);
 #else
-            int master = config_get_d(CONFIG_MASTER_VOLUME);
-            int sound = config_get_d(CONFIG_SOUND_VOLUME);
-            int music = config_get_d(CONFIG_MUSIC_VOLUME);
-            int narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
+                int master   = config_get_d(CONFIG_MASTER_VOLUME);
+                int sound    = config_get_d(CONFIG_SOUND_VOLUME);
+                int music    = config_get_d(CONFIG_MUSIC_VOLUME);
+                int narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
 
-            conf_slider(id, _("Master Volume"), CONF_AUDIO_MASTER_VOLUME, master,
-                master_id, ARRAYSIZE(master_id));
-            conf_slider(id, _("Music Volume"), CONF_AUDIO_MUSIC_VOLUME, music,
-                music_id, ARRAYSIZE(music_id));
-            conf_slider(id, _("Sound Volume"), CONF_AUDIO_SOUND_VOLUME, sound,
-                sound_id, ARRAYSIZE(sound_id));
-            conf_slider(id, _("Narrator Volume"), CONF_AUDIO_NARRATOR_VOLUME, narrator,
-                narrator_id, ARRAYSIZE(narrator_id));
+                conf_slider(id, _("Master Volume"), CONF_AUDIO_MASTER_VOLUME,
+                                master, master_id, ARRAYSIZE(master_id));
+                conf_slider(id, _("Music Volume"), CONF_AUDIO_MUSIC_VOLUME,
+                                music, music_id, ARRAYSIZE(music_id));
+                conf_slider(id, _("Sound Volume"), CONF_AUDIO_SOUND_VOLUME,
+                                sound, sound_id, ARRAYSIZE(sound_id));
+                conf_slider(id, _("Narrator Volume"), CONF_AUDIO_NARRATOR_VOLUME,
+                                narrator, narrator_id, ARRAYSIZE(narrator_id));
 #endif
-        }
+            }
 
 #if NB_HAVE_PB_BOTH!=1
-        const char* player = config_get_s(CONFIG_PLAYER);
-        const char* ball = config_get_s(CONFIG_BALL_FILE);
+            const char* player = config_get_s(CONFIG_PLAYER);
+            const char* ball   = config_get_s(CONFIG_BALL_FILE);
 
-        int name_id, ball_id;
-        gui_space(id);
-        name_id = conf_state(id, _("Player Name"), "XXXXXXXXXXXXXX", CONF_MANAGE_ACCOUNT);
-        gui_set_trunc(name_id, TRUNC_TAIL);
-        ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX", CONF_BALL);
-        gui_set_trunc(ball_id, TRUNC_TAIL);
+            int name_id, ball_id;
+            gui_space(root_id);
+            name_id = conf_state(root_id, _("Player Name"), "XXXXXXXXXXXXXX",
+                                          CONF_MANAGE_ACCOUNT);
+            gui_set_trunc(name_id, TRUNC_TAIL);
+            ball_id = conf_state(root_id, _("Ball Model"), "XXXXXXXXXXXXXX",
+                                          CONF_BALL);
+            gui_set_trunc(ball_id, TRUNC_TAIL);
 
-        gui_set_label(name_id, player);
-        gui_set_label(ball_id, base_name(ball));
+            gui_set_label(name_id, player);
+            gui_set_label(ball_id, base_name(ball));
 #endif
 
 #if NB_HAVE_PB_BOTH!=1
 #if NB_EOS_SDK==0 || NB_STEAM_API==0
-        if (online_mode)
+            if (online_mode)
 #endif
-        {
-            /*
-             * If the account is signed in e.g. Steam,
-             * you cannot change the player name.
-             */
+            {
+                /*
+                 * If the account is signed in e.g. Steam,
+                 * you cannot change the player name.
+                 */
 
-            gui_set_state(name_id, GUI_NONE, 0);
-            gui_set_color(name_id, gui_gry, gui_gry);
-        }
+                gui_set_state(name_id, GUI_NONE, 0);
+                gui_set_color(name_id, gui_gry, gui_gry);
+            }
 #endif
 
-        if (mainmenu_conf)
-        {
+            if (mainmenu_conf)
+            {
 #if ENABLE_NLS==1 || _WIN32
-            int lang_id;
+                int lang_id;
 #if NB_HAVE_PB_BOTH==1
-            gui_space(id);
+                gui_space(root_id);
 #endif
-            lang_id = conf_state(id, _("Language"), "                            ", CONF_LANGUAGE);
+                lang_id = conf_state(root_id, _("Language"), "                            ",
+                                              CONF_LANGUAGE);
 
-            gui_set_trunc(lang_id, TRUNC_TAIL);
+                gui_set_trunc(lang_id, TRUNC_TAIL);
 
-            if (*config_get_s(CONFIG_LANGUAGE))
-                gui_set_label(lang_id, lang_name(&curr_lang));
-            else
-                gui_set_label(lang_id, _("Default"));
+                if (*config_get_s(CONFIG_LANGUAGE))
+                    gui_set_label(lang_id, lang_name(&curr_lang));
+                else
+                    gui_set_label(lang_id, _("Default"));
 #endif
+            }
+        }
+
+        if ((id = gui_vstack(root_id)))
+        {
+            gui_label(id, "Pennyball " VERSION, GUI_TNY, gui_wht, gui_wht);
+            gui_clr_rect(id);
+            gui_layout(id, 0, -1);
         }
     }
 
-    gui_layout(id, 0, 0);
+    gui_layout(root_id, 0, 0);
 
-    return id;
+    return root_id;
 }
 
 static int conf_enter(struct state *st, struct state *prev)

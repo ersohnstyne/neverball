@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -15,13 +15,40 @@
 #ifndef GUI_H
 #define GUI_H
 
+#if NB_HAVE_PB_BOTH==1
+#define SWITCHBALL_GUI
+#endif
+
 #include "glext.h"
 #include "video.h"
 #include "font.h"
 
 /*---------------------------------------------------------------------------*/
 
-#define GUI_FACE "ttf/DejaVuSans-Bold.ttf"
+#define GUI_ELLIPSIS       "…"
+#define GUI_AIRPLANE       "✈"
+#define GUI_ARROW_DN       "⇩"
+#define GUI_TRIANGLE_LEFT  "◀️"
+#define GUI_TRIANGLE_RIGHT "▶️"
+#define GUI_CHECKMARK      "✔"
+#define GUI_BALLOT_X       "✘"
+#define GUI_STAR           "✯"
+#define GUI_COIN           "⛁"
+#define GUI_CROWN          "♕"
+#define GUI_DIAMOND        "♦"
+
+#define GUI_GAMEPAD        "🎮"
+#define GUI_BATTERY        "🔋"
+#define GUI_GOAL           "🏁"
+#define GUI_TIMEOUT        "⏰"
+#define GUI_HEARTBROKEN    "💔"
+
+/*
+ * DejaVu Sans V1: DejaVuSans-Bold.ttf
+ * DejaVu Sans V2: DejaVuSans-Bold-v2.ttf
+ * Fiolex: FiolexGirls.ttf
+ */
+#define GUI_FACE "ttf/DejaVuSans-Bold.ttf" 
 
 #define GUI_TNY FONT_SIZE_TNY
 #define GUI_SML FONT_SIZE_SML
@@ -50,10 +77,34 @@
 #define GUI_BOT  (GUI_SW  | GUI_SE)
 #define GUI_ALL  (GUI_TOP | GUI_BOT)
 
+/* Animation directions */
+
+#define GUI_ANIMATION_NONE 0x0000
+#define GUI_ANIMATION_N_LINEAR 0xF000
+#define GUI_ANIMATION_E_LINEAR 0x0F00
+#define GUI_ANIMATION_S_LINEAR 0x00F0
+#define GUI_ANIMATION_W_LINEAR 0x000F
+
+#define GUI_ANIMATION_N_CURVE 0x8000
+#define GUI_ANIMATION_E_CURVE 0x0800
+#define GUI_ANIMATION_S_CURVE 0x0080
+#define GUI_ANIMATION_W_CURVE 0x0008
+
+#if NB_HAVE_PB_BOTH==1
+#define GUI_COLOR_DEFAULT gui_pnk, gui_red
+#else
+#define GUI_COLOR_DEFAULT gui_yel, gui_red
+#endif
+
 extern const GLubyte gui_wht[4];
 extern const GLubyte gui_yel[4];
+extern const GLubyte gui_cya[4];
+extern const GLubyte gui_twi[4];
+extern const GLubyte gui_vio[4];
+extern const GLubyte gui_pnk[4];
 extern const GLubyte gui_red[4];
 extern const GLubyte gui_blu[4];
+extern const GLubyte gui_brn[4];
 extern const GLubyte gui_grn[4];
 extern const GLubyte gui_blk[4];
 extern const GLubyte gui_gry[4];
@@ -64,12 +115,6 @@ enum trunc
     TRUNC_HEAD,
     TRUNC_TAIL
 };
-
-#define GUI_ELLIPSIS "…"
-#define GUI_ARROW_DN "⇩"
-#define GUI_CHECKMARK "✔"
-#define GUI_BALLOT_X "✘"
-#define GUI_TRIANGLE_RIGHT "▶"
 
 /*---------------------------------------------------------------------------*/
 
@@ -102,13 +147,14 @@ int  gui_varray(int);
 int  gui_hstack(int);
 int  gui_vstack(int);
 int  gui_filler(int);
-int  gui_root();
+int  gui_root(void);
 
 int  gui_image(int, const char *, int, int);
 int  gui_start(int, const char *, int, int, int);
 int  gui_state(int, const char *, int, int, int);
 int  gui_label(int, const char *, int, const GLubyte *, const GLubyte *);
 int  gui_multi(int, const char *, int, const GLubyte *, const GLubyte *);
+int  gui_title_header(int, const char *, int, const GLubyte *, const GLubyte *);
 int  gui_count(int, int, int);
 int  gui_clock(int, int, int);
 int  gui_space(int);
@@ -123,6 +169,8 @@ void gui_remove(int);
 
 /*---------------------------------------------------------------------------*/
 
+void gui_set_alpha(int, float, int);
+void gui_animate(int);
 void gui_paint(int);
 void gui_pulse(int, float);
 void gui_timer(int, float);
@@ -130,6 +178,7 @@ int  gui_point(int, int, int);
 int  gui_stick(int, int, float, int);
 int  gui_click(int, int);
 void gui_focus(int);
+void gui_alpha(int, float);
 
 int  gui_active(void);
 int  gui_token(int);
@@ -159,6 +208,7 @@ enum
 };
 
 int gui_navig(int id, int total, int first, int step);
+int gui_maybe_img(int, const char *, const char *, int, int, int);
 int gui_maybe(int, const char *, int, int, int);
 
 /*---------------------------------------------------------------------------*/

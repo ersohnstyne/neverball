@@ -1,0 +1,1001 @@
+/*
+ * Copyright (C) 2023 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
+#if NB_HAVE_PB_BOTH==1
+#include "solid_chkp.h"
+#include "campaign.h"
+#include "solid_vary.h"
+
+#if NB_STEAM_API==1
+#include "score_online.h"
+#endif
+
+#include <stdio.h>
+#include <string.h>
+
+#include "common.h"
+#include "config.h"
+#include "fs.h"
+#include "level.h"
+#include "log.h"
+#include "score.h"
+#include "vec3.h"
+#ifndef FS_VERSION_1
+#include "package.h"
+#endif
+
+#include "game_client.h"
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
+#ifndef MAPC_INCLUDES_CHKP
+#if NB_HAVE_PB_BOTH==1
+#error Campaign is added, but requires Checkpoints!
+#endif
+#endif
+
+#if DEVEL_BUILD
+//#define CAREER_PERMA_UNLOCKED
+//#define HARDCORE_PERMA_UNLOCKED
+#endif
+
+#define cam_box_trigger_test_master(pos, camtrigger, idx) \
+    (pos[idx] > camtrigger->positions[idx] - camtrigger->triggerSize[idx] && pos[idx] < camtrigger->positions[idx] + camtrigger->triggerSize[idx])
+
+/*---------------------------------------------------------------------------*/
+
+#ifndef FS_VERSION_1
+/*
+ * Figure out if a package can be downloaded for the campaign.
+ */
+int campaign_is_downloadable(int i)
+{
+    int package_id = package_search(CAMPAIGN_FILE);
+
+    if (package_id >= 0)
+    {
+        enum package_status status = package_get_status(package_id);
+
+        return (status == PACKAGE_AVAILABLE ||
+                status == PACKAGE_PARTIAL ||
+                status == PACKAGE_ERROR);
+    }
+
+    return 0;
+}
+
+/*
+ * Check package for download status.
+ */
+int campaign_is_downloading(void)
+{
+    int package_id = package_search(CAMPAIGN_FILE);
+
+    if (package_id >= 0)
+        return package_get_status(package_id) == PACKAGE_DOWNLOADING;
+
+    return 0;
+}
+
+/*
+ * Check if package for the campaign is installed.
+ */
+int campaign_is_installed()
+{
+    int package_id = package_search(CAMPAIGN_FILE);
+
+    if (package_id >= 0)
+        return package_get_status(package_id) == PACKAGE_INSTALLED;
+
+    return 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+struct campaign_fetch_info
+{
+    struct fetch_callback callback;
+
+    char *campaign_file;
+};
+
+static struct campaign_fetch_info *create_cfi(const char *campaign_file)
+{
+    struct campaign_fetch_info *cfi = calloc(sizeof (*cfi), 1);
+
+    if (cfi)
+        cfi->campaign_file = strdup(campaign_file);
+
+    return cfi;
+}
+
+static void free_cfi(struct campaign_fetch_info *cfi)
+{
+    if (cfi)
+    {
+        if (cfi->campaign_file)
+        {
+            free(cfi->campaign_file);
+            cfi->campaign_file = NULL;
+        }
+
+        free(cfi);
+        cfi = NULL;
+    }
+}
+
+/*
+ * Just call the caller's callback.
+ */
+static void campaign_download_progress(void *data, void *extra_data)
+{
+    struct campaign_fetch_info *cfi = (struct campaign_fetch_info *) data;
+
+    if (cfi && cfi->callback.progress)
+        cfi->callback.progress(cfi->callback.data, extra_data);
+}
+
+/*
+ * Reload the campaign on successful package download.
+ */
+static void campaign_download_done(void *data, void *extra_data)
+{
+    struct campaign_fetch_info *cfi = (struct campaign_fetch_info *) data;
+    struct fetch_done *fd = (struct fetch_done *) extra_data;
+
+    if (cfi)
+    {
+        if (fd->finished)
+        {
+            /* Find set index by filename, in case it has changed places. */
+
+            int campaign_index = campaign_find(cfi->campaign_file);
+
+            campaign_load(cfi->campaign_file);
+        }
+
+        /* Also, call the caller's callback. */
+
+        if (cfi->callback.done)
+            cfi->callback.done(cfi->callback.data, extra_data);
+
+        free_cfi(cfi);
+        cfi = NULL;
+    }
+}
+
+/*
+ * Download the package for the campaign.
+ */
+int campaign_download(struct fetch_callback callback)
+{
+    const char *campaign_file = CAMPAIGN_FILE;
+    int package_id = package_search(campaign_file);
+
+    if (package_id >= 0)
+    {
+        struct campaign_fetch_info *sfi = create_cfi(campaign_file);
+
+        if (sfi)
+        {
+            sfi->callback = callback;
+
+            /* Reuse variable. */
+
+            callback.progress = campaign_download_progress;
+            callback.done = campaign_download_done;
+            callback.data = sfi;
+
+            return (package_fetch(package_id, callback, PACKAGE_CATEGORY_CAMPAIGN) > 0);
+        }
+    }
+
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+#endif
+
+#define TIME_TRIAL_VERSION 2
+#define MAX_CAM_BOX_TRIGGER 512
+
+static char *campaign_name;
+
+/*
+ * Switchball levels can be found the levels by Badinfos.
+ *
+ * Sky world: https://www.youtube.com/watch?v=jLEQvMCTz2g
+ * Ice world: https://www.youtube.com/watch?v=KHGqhk-jx6A
+ * Cave world: https://www.youtube.com/watch?v=7Bz774GS-HE
+ * Cloud world: https://www.youtube.com/watch?v=ORcGb10z5Bo
+ * Lava world: https://www.youtube.com/watch?v=4PgaQFv2aQk
+ *
+ * NOTE: That ball and goal in level map must be containing Gyrocopter.
+ * The view direction begins looking down Y-axis.
+ */
+static char *campaign_levelpath[30];
+static int   campaign_count = 30;
+
+static int level_difficulty = -1;
+
+static int exists = 0;
+static int used = 0;
+static int theme_used = 0;
+
+static struct  score coin_trials;
+static struct  score time_trials;
+static char   *time_trial_leaderboard;
+static int     time_trial_version;
+
+static struct campaign_hardcore_mode   hardcores;
+static struct campaign_medal_data      medal_datas;
+static struct campaign_cam_box_trigger cam_box_triggers[MAX_CAM_BOX_TRIGGER];
+
+static int autocam_count = 0; /* How many autocam box triggers have we got? */
+
+/*
+ * PennySchloss dynamically adds build-in electricity like
+ * airport to your entities. Simple start position are no longer allowed.
+ */
+static struct level campaign_lvl_v[MAXLVL];
+
+static void campaign_put_times(fs_file fp, const struct score *s)
+{
+    for (int i = RANK_HARD; i <= RANK_EASY; i++)
+        fs_printf(fp, "%d %d %s\n", s->timer [i],
+                                    s->coins [i],
+                                    s->player[i]);
+}
+
+static int campaign_get_times(fs_file fp, struct score *s)
+{
+    char line[MAXSTR];
+    int i;
+
+    for (i = RANK_HARD; i <= RANK_EASY; i++)
+    {
+        int n = -1;
+
+        if (!fs_gets(line, sizeof (line), fp))
+            return 0;
+
+        strip_newline(line);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        if (sscanf_s(line,
+#else
+        if (sscanf(line,
+#endif 
+                   "%d %d %n", &s->timer[i], &s->coins[i], &n) < 2)
+            return 0;
+
+        if (n < 0)
+            return 0;
+
+        SAFECPY(s->player[i], line + n);
+    }
+
+    return 1;
+}
+
+static struct level *campaign_find_level(const char *file)
+{
+    for (int i = 0; i < campaign_count; i++)
+        if (strcmp(campaign_lvl_v[i].file, file) == 0)
+            return &campaign_lvl_v[i];
+
+    return NULL;
+}
+
+static int campaign_get_stats(fs_file fp, struct level *l)
+{
+    char line[MAXSTR];
+
+    if (!fs_gets(line, sizeof(line), fp))
+        return 0;
+
+    strip_newline(line);
+
+    if (sscanf(line, "stats %d %d %d", &l->stats.completed,
+                                       &l->stats.timeout,
+                                       &l->stats.fallout) < 3) {
+        /* compatible with save files without stats info */
+        l->stats.completed = 0;
+        l->stats.timeout   = 0;
+        l->stats.fallout   = 0;
+
+        /* stats not available, rewind file pointer */
+        fs_seek(fp, - strlen(line) - 1, SEEK_CUR);
+    }
+
+    return 1;
+}
+
+void campaign_store_hs(void)
+{
+    fs_file fp;
+
+#ifdef FS_VERSION_1
+    if ((fp = fs_open(time_trial_leaderboard, "w")))
+#else
+    if ((fp = fs_open_write(time_trial_leaderboard)))
+#endif
+    {
+        int i;
+
+        fs_printf(fp, "version %d\ncampaign\n", TIME_TRIAL_VERSION);
+
+        campaign_put_times(fp, &time_trials);
+        campaign_put_times(fp, &coin_trials);
+
+        for (i = 0; i < campaign_count; i++)
+        {
+            const struct level *l = &campaign_lvl_v[i];
+
+            int flags = 0;
+
+            if (l->is_locked)    flags |= LEVEL_LOCKED;
+            if (l->is_completed) flags |= LEVEL_COMPLETED;
+
+            fs_printf(fp, "level %d %d %s\n", flags, l->version_num, l->file);
+
+            fs_printf(fp, "stats %d %d %d\n", l->stats.completed,
+                                              l->stats.timeout,
+                                              l->stats.fallout);
+
+            campaign_put_times(fp, &l->scores[SCORE_TIME]);
+            campaign_put_times(fp, &l->scores[SCORE_GOAL]);
+            campaign_put_times(fp, &l->scores[SCORE_COIN]);
+        }
+
+        fs_close(fp);
+    }
+    else log_errorf("Save campaign highscores failed!: %s / %s\n", time_trial_leaderboard, fs_error());
+}
+
+static void campaign_load_hs_v2(fs_file fp, char *buf, int size)
+{
+    struct score time_trial;
+    struct score coin_trial;
+
+    int campaign_score = 0;
+    int campaign_match = 1;
+
+    while (fs_gets(buf, size, fp))
+    {
+        int version = 0;
+        int flags = 0;
+        int n = 0;
+
+        strip_newline(buf);
+
+        if (strncmp(buf, "campaign", 9) == 0)
+        {
+            campaign_get_times(fp, &time_trial);
+            campaign_get_times(fp, &coin_trial);
+
+            campaign_score = 1;
+        }
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        else if (sscanf_s(buf,
+#else
+        else if (sscanf(buf,
+#endif
+                        "level %d %d %n", &flags, &version, &n) >= 2)
+        {
+            struct level *l;
+
+            if ((l = campaign_find_level(buf + n)))
+            {
+                campaign_get_stats(fp, l);
+
+                /* Always prefer "locked" flag from the score file. */
+
+                l->is_locked = !!(flags & LEVEL_LOCKED);
+
+                /* Only use "completed" flag and scores on version match. */
+
+                if (version == l->version_num)
+                {
+                    l->is_completed = !!(flags & LEVEL_COMPLETED);
+
+                    campaign_get_times(fp, &l->scores[SCORE_TIME]);
+                    campaign_get_times(fp, &l->scores[SCORE_GOAL]);
+                    campaign_get_times(fp, &l->scores[SCORE_COIN]);
+                }
+                else campaign_match = 0;
+            }
+            else campaign_match = 0;
+        }
+    }
+
+    if (campaign_match && campaign_score)
+    {
+        time_trials = time_trial;
+        coin_trials = coin_trial;
+    }
+}
+
+static void campaign_load_hs_v1(fs_file fp, char *buf, int size)
+{
+    struct level *l;
+    int i, n;
+
+    n = MIN(strlen(buf), campaign_count);
+
+    for (i = 0; i < n; i++)
+    {
+        l = &campaign_lvl_v[i];
+
+        l->is_locked    = (buf[i] == 'L');
+        l->is_completed = (buf[i] == 'C');
+    }
+
+    campaign_get_times(fp, &time_trials);
+    campaign_get_times(fp, &coin_trials);
+
+    for (i = 0; i < n; i++)
+    {
+        l = &campaign_lvl_v[i];
+
+        campaign_get_times(fp, &l->scores[SCORE_TIME]);
+        campaign_get_times(fp, &l->scores[SCORE_GOAL]);
+        campaign_get_times(fp, &l->scores[SCORE_COIN]);
+    }
+}
+
+static void campaign_load_hs(void)
+{
+    fs_file fp;
+
+#ifdef FS_VERSION_1
+    if ((fp = fs_open(time_trial_leaderboard, "r")))
+#else
+    if ((fp = fs_open_read(time_trial_leaderboard)))
+#endif
+    {
+        char buf[MAXSTR];
+
+        if (fs_gets(buf, sizeof (buf), fp))
+        {
+            strip_newline(buf);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            if (sscanf_s(buf,
+#else
+            if (sscanf(buf,
+#endif
+                       "version %d", & time_trial_version) == 1)
+            {
+                switch (time_trial_version)
+                {
+                case 2: campaign_load_hs_v2(fp, buf, sizeof(buf)); break;
+                //case 3: campaign_load_hs_v3(fp, buf, sizeof(buf)); break;
+                }
+            }
+            else
+                campaign_load_hs_v1(fp, buf, sizeof (buf));
+        }
+
+        fs_close(fp);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+int campaign_score_update(int timer, int coins, int *score_rank, int *times_rank)
+{
+    if (!campaign_used()) return 0;
+
+    const char *player = config_get_s(CONFIG_PLAYER);
+    
+    int career_hs_unlocked = (campaign_career_unlocked()
+                           && config_get_d(CONFIG_LOCK_GOALS));
+
+    score_coin_insert(&coin_trials, score_rank, player,
+                      career_hs_unlocked ? timer : 360000, career_hs_unlocked ? coins : 0);
+    score_time_insert(&time_trials, times_rank, player,
+                      timer, coins);
+
+    if ((score_rank && *score_rank < RANK_LAST) ||
+        (times_rank && *times_rank < RANK_LAST))
+        return 1;
+    else
+        return 0;
+}
+
+void campaign_rename_player(int times_rank, const char *player)
+{
+    SAFECPY(coin_trials.player[times_rank], player);
+    SAFECPY(time_trials.player[times_rank], player);
+}
+
+int campaign_rank(void)
+{
+    // Was: config_cheat() ? 4 : medal_datas.curr_rank;
+    return medal_datas.curr_rank;
+}
+
+/*---------------------------------------------------------------------------*/
+
+int campaign_load(const char *filename)
+{
+    fs_file fin;
+    char *scores, *level_name;
+
+#ifdef FS_VERSION_1
+    fin = fs_open(filename, "r");
+#else
+    fin = fs_open_read(filename);
+#endif
+
+    if (!fin)
+    {
+        log_errorf("Failure to load campaign file %s\n", filename);
+        return 0;
+    }
+
+    score_init_hs(&time_trials, 359999, 0);
+
+#if NB_STEAM_API==1
+    /* HACK: Only hardcore campaigns, that will work. */
+    score_steam_init_hs(0, 0);
+#endif
+
+    read_line(&campaign_name, fin);
+
+    if (strcmp(campaign_name, "Campaign") != 0)
+    {
+        free(campaign_name); return 0;
+    }
+
+    if (read_line(&scores, fin))
+    {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sscanf_s(scores,
+#else
+        sscanf(scores,
+#endif
+              "%d %d %d %d %d %d",
+              &time_trials.timer[RANK_HARD],
+              &time_trials.timer[RANK_MEDM],
+              &time_trials.timer[RANK_EASY],
+              &time_trials.coins[RANK_HARD],
+              &time_trials.coins[RANK_MEDM],
+              &time_trials.coins[RANK_EASY]);
+
+        free(scores);
+
+        time_trial_leaderboard = concat_string("Campaign/time-trial.txt", NULL);
+
+        campaign_count = 0;
+
+        while (campaign_count < MAXLVL && read_line(&level_name, fin))
+        {
+            campaign_levelpath[campaign_count] = level_name;
+            campaign_count++;
+        }
+
+        fs_close(fin);
+        return 1;
+    }
+
+    free(campaign_name);
+
+    fs_close(fin);
+
+    return 0;
+}
+
+/* Initialize the campaign level */
+static void campaign_load_levels(void)
+{
+    /* Bonus levels won't be shown as of the level sets */
+    int regular = 1;
+    level_difficulty = -1;
+
+    int i;
+    for (i = 0; i < 30; ++i)
+    {
+        struct level *l = &campaign_lvl_v[i];
+
+        level_load(campaign_levelpath[i], l);
+
+        l->number = i;
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(l->name, dstSize,
+#else
+        sprintf(l->name,
+#endif
+                "%d", regular++);
+
+        l->is_locked = (i > 0);
+        l->is_completed = 0;
+
+        if (i > 0)
+            campaign_lvl_v[i - 1].next = l;
+        else if (l->is_locked)
+            l->is_locked = 0;
+    }
+
+    return;
+}
+
+int campaign_find(const char *file)
+{
+    if (strcmp(CAMPAIGN_FILE, file) == 0)
+        return 1;
+
+    return 0;
+}
+
+int campaign_level_difficulty(void)
+{
+    return level_difficulty;
+}
+
+void campaign_upgrade_difficulty(int new_difficulty)
+{
+    if (level_difficulty < new_difficulty)
+        level_difficulty = new_difficulty;
+}
+
+int campaign_used(void)
+{
+    return used;
+}
+
+int campaign_theme_used(void)
+{
+    return theme_used;
+}
+
+/* Initialize the campaign */
+int campaign_init(void)
+{
+    level_difficulty = -1;
+
+    /* Load the campaign file. */
+
+    if (!campaign_load(CAMPAIGN_FILE))
+    {
+        log_errorf("Failure to load campaign! Is the campaign levels installed? / %s\n", fs_error());
+        return 0;
+    }
+    else
+    {
+        memset(&medal_datas, 0, sizeof (medal_datas));
+        campaign_load_levels();
+        campaign_load_hs();
+
+        memset(&hardcores, '\0', sizeof (hardcores));
+
+        /* As this should, it will be calculate the ranks. */
+        for (int i = 0; i < 30; i++)
+        {
+            if (level_opened(campaign_get_level(i)))
+            {
+                medal_datas.unlocks++;
+
+                if (strcmp(campaign_get_level(i)->scores->player[0], N_("Hard")) != 0
+                 && strcmp(campaign_get_level(i)->scores->player[0], "") != 0)
+                    medal_datas.gold++;
+
+                else if (strcmp(campaign_get_level(i)->scores->player[1], N_("Medium")) != 0
+                      && strcmp(campaign_get_level(i)->scores->player[1], "") != 0)
+                    medal_datas.silver++;
+
+                else if (strcmp(campaign_get_level(i)->scores->player[2], N_("Easy")) == 0
+                      && strcmp(campaign_get_level(i)->scores->player[2], "") == 0)
+                    medal_datas.bronze++;
+            }
+        }
+
+        /*
+         * To get wing medals: Complete Level 3 in Campaign.
+         * To get silver badge: Obtain most silver awards.
+         * To get gold badge: Obtain most gold awards.
+         * To get the gold wings: Achieve every gold awards on all levels.
+         */
+
+        if ((medal_datas.gold == medal_datas.unlocks)
+          && medal_datas.silver == 0 && medal_datas.bronze == 0
+         && level_completed(campaign_get_level(3)))
+            medal_datas.curr_rank = 4;
+        else if (medal_datas.gold > medal_datas.silver
+         && medal_datas.gold > medal_datas.bronze
+         && level_completed(campaign_get_level(3)))
+            medal_datas.curr_rank = 3;
+        else if (medal_datas.gold < medal_datas.silver
+         && medal_datas.silver > medal_datas.bronze
+         && level_completed(campaign_get_level(3)))
+            medal_datas.curr_rank = 2;
+        else if (level_completed(campaign_get_level(3)))
+            medal_datas.curr_rank = 1;
+        else
+            medal_datas.curr_rank = 0;
+
+        campaign_reset_camera_box_trigger();
+
+        used = 1;
+    }
+
+    return used;
+}
+
+/* Quit campaign */
+void campaign_quit(void)
+{
+    used = 0;
+    exists = 0;
+
+    /* Once the campaign is left off, remove this. */
+    free(time_trial_leaderboard);
+
+    for (int i = 0; i < campaign_count; i++)
+        free(campaign_levelpath[i]);
+}
+
+/* Initialize campaign theme */
+void campaign_theme_init(void)
+{
+    theme_used = 1;
+
+    campaign_load_levels();
+    campaign_load_hs();
+}
+
+void campaign_theme_quit(void)
+{
+    theme_used = 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+struct level *campaign_get_level(int i)
+{
+    return (i >= 0 && i < campaign_count) ? &campaign_lvl_v[i] : NULL;
+}
+
+int campaign_career_unlocked(void)
+{
+#if !defined(CAREER_PERMA_UNLOCKED)
+    for (int i = 0; i < 30; i++)
+    {
+        if (!level_completed(campaign_get_level(i)))
+            return 0;
+    }
+#endif
+    return 1;
+}
+
+int campaign_hardcore(void)
+{
+    return hardcores.used;
+}
+
+void campaign_hardcore_nextlevel(void)
+{
+    hardcores.level_number++;
+
+    if (hardcores.level_number > 6)
+    {
+        hardcores.level_number = 1;
+        hardcores.level_theme++;
+    }
+}
+
+int campaign_hardcore_norecordings(void)
+{
+    return hardcores.norecordings;
+}
+
+int campaign_hardcore_unlocked(void)
+{
+#if !defined(HARDCORE_PERMA_UNLOCKED)
+    for (int i = 0; i < 30; i++)
+        if (strcmp(campaign_get_level(i)->scores->player[1], N_("Medium")) == 0
+         || strcmp(campaign_get_level(i)->scores->player[1], "") == 0)
+            return 0;
+#endif
+    return 1;
+}
+
+void campaign_hardcore_set_coordinates(float x_position, float y_position)
+{
+    hardcores.coordinates[0] = x_position;
+    hardcores.coordinates[1] = y_position;
+}
+
+void campaign_hardcore_play(int no_rec)
+{
+    hardcores.used = 1;
+    hardcores.norecordings = no_rec;
+    hardcores.level_theme = 1;
+    hardcores.level_number = 1;
+}
+
+void campaign_hardcore_quit(void)
+{
+    game_fade_color(0.0f, 0.0f, 0.0f);
+    hardcores.used = 0;
+    hardcores.norecordings = 0;
+    hardcores.level_theme = 0;
+    hardcores.level_number = 0;
+}
+
+struct campaign_hardcore_mode campaign_get_hardcore_data(void)
+{
+    return hardcores;
+}
+
+/*---------------------------------------------------------------------------*/
+
+int campaign_load_camera_box_trigger(const char *levelname)
+{
+    fs_file fh;
+    char camFilename[MAXSTR];
+    char camLinePrefix[MAXSTR];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(camFilename, dstSize,
+#else
+    sprintf(camFilename,
+#endif
+            "buildin-map-campaign/autocam-level-%s.txt", levelname);
+
+    campaign_reset_camera_box_trigger();
+
+#ifdef FS_VERSION_1
+    if ((fh = fs_open(camFilename, "r")))
+#else
+    if ((fh = fs_open_read(camFilename)))
+#endif
+    {
+        int camBoxIdx = 0;
+        while (fs_gets(camLinePrefix, MAXSTR, fh))
+        {
+            cam_box_triggers[camBoxIdx].positions[0] = 0.0f;
+            cam_box_triggers[camBoxIdx].positions[1] = 0.0f;
+            cam_box_triggers[camBoxIdx].positions[2] = 0.0f;
+
+            cam_box_triggers[camBoxIdx].triggerSize[0] = 1.0f;
+            cam_box_triggers[camBoxIdx].triggerSize[1] = 1.0f;
+            cam_box_triggers[camBoxIdx].triggerSize[2] = 1.0f;
+
+            /* This level uses automatic camera for campaign
+             * and is written the filename as follows:
+             * 
+             *     autocam-level-5.txt
+             *     autocam-level-12.txt
+             * 
+             * Valid values:
+             * 
+             *     pos: -65536 - 65536
+             *     size: -65536 - 65536
+             *     mode: 0 - 2
+             *     campos: -65536 - 65536
+             *     dir: -180 - 180 (0 = North; 90 = East; 180/-180 = South; -90 = West)
+             * 
+             * Auto-Camera values per line must be programmed
+             * with corrected order:
+             * 
+             *     pos (float vector)
+             *     size (float vector)
+             *     mode (integer)
+             *     campos (float vector)
+             *     dir (float)
+             * 
+             * Especially, 64 units called 1 metres.
+             * 
+             * Autocam files must be placed in the directory
+             * "buildin-map-campaign" in the data folder, so it can be
+             * test your camera modes in a single level.
+             */
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(camLinePrefix,
+#else
+            sscanf(camLinePrefix,
+#endif
+                   "pos:%f %f %f size:%f %f %f mode:%d campos:%f %f %f dir:%f",
+                   &cam_box_triggers[camBoxIdx].positions[0], &cam_box_triggers[camBoxIdx].positions[2], &cam_box_triggers[camBoxIdx].positions[1],
+                   &cam_box_triggers[camBoxIdx].triggerSize[0], &cam_box_triggers[camBoxIdx].triggerSize[2], &cam_box_triggers[camBoxIdx].triggerSize[1],
+                   &cam_box_triggers[camBoxIdx].cammode,
+                   &cam_box_triggers[camBoxIdx].campositions[0], &cam_box_triggers[camBoxIdx].campositions[2], &cam_box_triggers[camBoxIdx].campositions[1],
+                   &cam_box_triggers[camBoxIdx].camdirection);
+
+            cam_box_triggers[camBoxIdx].positions[0] /=  64;
+            cam_box_triggers[camBoxIdx].positions[1] /=  64;
+            cam_box_triggers[camBoxIdx].positions[2] /= -64;
+
+            cam_box_triggers[camBoxIdx].triggerSize[0] /= 64;
+            cam_box_triggers[camBoxIdx].triggerSize[1] /= 64;
+            cam_box_triggers[camBoxIdx].triggerSize[2] /= 64;
+
+            cam_box_triggers[camBoxIdx].campositions[0] /=  64;
+            cam_box_triggers[camBoxIdx].campositions[1] /=  64;
+            cam_box_triggers[camBoxIdx].campositions[2] /= -64;
+
+            cam_box_triggers[camBoxIdx].activated = 1;
+
+            autocam_count++;
+            ++camBoxIdx;
+
+            if (camBoxIdx >= MAX_CAM_BOX_TRIGGER)
+                break;
+        }
+        fs_close(fh);
+        return 1;
+    }
+
+    log_errorf("Failure to load autocam level file '%s'\n", camFilename);
+
+    return 0;
+}
+
+void campaign_reset_camera_box_trigger(void)
+{
+    autocam_count = 0;
+    for (int i = 0; i < MAX_CAM_BOX_TRIGGER; ++i)
+    {
+        memset(&cam_box_triggers[i], 0, sizeof (struct campaign_cam_box_trigger));
+
+        /* Default should be permanently disabled */
+        cam_box_triggers[i].activated = -1;
+    }
+}
+
+struct campaign_cam_box_trigger campaign_get_camera_box_trigger(int index)
+{
+    return cam_box_triggers[index];
+}
+
+int campaign_camera_box_trigger_count(void)
+{
+    return autocam_count;
+}
+
+int campaign_camera_box_trigger_test(struct s_vary *vary, int ui)
+{
+    const float *ball_p = vary->uv[ui].p;
+    int camidx;
+
+    for (camidx = 0; camidx < autocam_count; camidx++)
+    {
+        struct campaign_cam_box_trigger *localcamboxtrigger = cam_box_triggers + camidx;
+
+        if (cam_box_trigger_test_master(ball_p, localcamboxtrigger, 0)
+         && cam_box_trigger_test_master(ball_p, localcamboxtrigger, 1)
+         && cam_box_trigger_test_master(ball_p, localcamboxtrigger, 2))
+        {
+            cam_box_triggers[camidx].activated = 0;
+            return camidx;
+        }
+        else if (cam_box_triggers[camidx].activated != 1)
+            cam_box_triggers[camidx].activated = 1;
+    }
+
+    return -1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+#endif

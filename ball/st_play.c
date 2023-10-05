@@ -192,7 +192,7 @@ static void set_lvlinfo(void)
             SAFECPY(setname, set_name(curr_set()));
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(lvlname, dstSize,
+        sprintf_s(lvlname, MAXSTR,
 #else
         sprintf(lvlname,
 #endif

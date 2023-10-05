@@ -94,8 +94,6 @@ int rand_between(int low, int high);
 #define MAXSTRLEN(a) (sizeof (a) - 1)
 #endif
 
-extern size_t dstSize;
-
 #if UNICODE
 /**
  * Copy a wstring SRC into a zero-terminated fixed-size array of char DST.

@@ -830,7 +830,7 @@ static int goal_shop_gui(void)
         char productmsg[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(productmsg, dstSize,
+        sprintf_s(productmsg, MAXSTR,
 #else
         sprintf(productmsg,
 #endif

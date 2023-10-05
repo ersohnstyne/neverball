@@ -89,8 +89,8 @@ static int switchball_useable(void)
         && k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
         return 1;
     else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-        && k_caml == SDLK_d && k_camr == SDLK_a
-        && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
+             && k_caml == SDLK_d && k_camr == SDLK_a
+             && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
         return 1;
 
     /*
@@ -637,7 +637,7 @@ static int start_compat_gui()
         char multiattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(multiattr, dstSize,
+        sprintf_s(multiattr, MAXSTR,
 #else
         sprintf(multiattr,
 #endif

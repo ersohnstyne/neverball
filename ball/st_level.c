@@ -184,9 +184,9 @@ static int level_gui(void)
             char account_coinsattr[MAXSTR], account_gemsattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(account_gemsattr,  dstSize, "%s: %i", _("Gems"),
+            sprintf_s(account_gemsattr,  MAXSTR, "%s: %i", _("Gems"),
                       account_get_d(ACCOUNT_DATA_WALLET_GEMS));
-            sprintf_s(account_coinsattr, dstSize, "%s: %i", _("Coins"),
+            sprintf_s(account_coinsattr, MAXSTR, "%s: %i", _("Coins"),
                       account_get_d(ACCOUNT_DATA_WALLET_COINS));
 #else
             sprintf(account_gemsattr,  "%s: %i", _("Gems"),
@@ -223,30 +223,30 @@ static int level_gui(void)
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 if      (m && curr_mode() == MODE_STANDALONE)
-                    sprintf_s(lvlattr, dstSize, _("Master Level"), ln);
+                    sprintf_s(lvlattr, MAXSTR, _("Master Level"), ln);
                 else if (m)
-                    sprintf_s(lvlattr, dstSize, _("Master Level %s"), ln);
+                    sprintf_s(lvlattr, MAXSTR, _("Master Level %s"), ln);
                 else if (b && curr_mode() == MODE_STANDALONE)
-                    sprintf_s(lvlattr, dstSize, _("Bonus Level"), ln);
+                    sprintf_s(lvlattr, MAXSTR, _("Bonus Level"), ln);
                 else if (b)
-                    sprintf_s(lvlattr, dstSize, _("Bonus Level %s"), ln);
+                    sprintf_s(lvlattr, MAXSTR, _("Bonus Level %s"), ln);
                 else if (curr_mode() == MODE_STANDALONE)
-                    sprintf_s(lvlattr, dstSize, _("Level ---"));
+                    sprintf_s(lvlattr, MAXSTR, _("Level ---"));
                 else
-                    sprintf_s(lvlattr, dstSize, _("Level %s"), ln);
+                    sprintf_s(lvlattr, MAXSTR, _("Level %s"), ln);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if      (curr_mode() == MODE_CAMPAIGN
                       || curr_mode() == MODE_HARDCORE)
-                         sprintf_s(setattr, "%s", mode_to_str(curr_mode(), 1));
+                         sprintf_s(setattr, MAXSTR, "%s", mode_to_str(curr_mode(), 1));
                 else
 #endif
                 if      (curr_mode() == MODE_STANDALONE)
-                    sprintf_s(setattr, dstSize, _("Standalone level"));
+                    sprintf_s(setattr, MAXSTR, _("Standalone level"));
                 else if (curr_mode() == MODE_NORMAL)
-                    sprintf_s(setattr, dstSize, "%s", set_name(curr_set()));
+                    sprintf_s(setattr, MAXSTR, "%s", set_name(curr_set()));
                 else if (curr_mode() != MODE_NONE)
-                    sprintf_s(setattr, dstSize, _("%s: %s"), set_name(curr_set()), mode_to_str(curr_mode(), 1));
+                    sprintf_s(setattr, MAXSTR, _("%s: %s"), set_name(curr_set()), mode_to_str(curr_mode(), 1));
 #else
                 if      (m && curr_mode() == MODE_STANDALONE)
                     sprintf(lvlattr, _("Master Level"), ln);
@@ -309,7 +309,7 @@ static int level_gui(void)
                 char pow1attr[MAXSTR], pow2attr[MAXSTR], pow3attr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(pow3attr, dstSize,
+                sprintf_s(pow3attr, MAXSTR,
 #else
                 sprintf(pow3attr,
 #endif
@@ -327,7 +327,7 @@ static int level_gui(void)
                 }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(pow2attr, dstSize,
+                sprintf_s(pow2attr, MAXSTR,
 #else
                 sprintf(pow2attr,
 #endif
@@ -345,7 +345,7 @@ static int level_gui(void)
                 }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(pow1attr, dstSize,
+                sprintf_s(pow1attr, MAXSTR,
 #else
                 sprintf(pow1attr,
 #endif

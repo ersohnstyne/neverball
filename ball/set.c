@@ -816,7 +816,7 @@ static void set_load_levels(void)
         if (l->is_master)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(l->name, dstSize,
+            sprintf_s(l->name, MAXSTR,
 #else
             sprintf(l->name,
 #endif
@@ -832,7 +832,7 @@ static void set_load_levels(void)
         else
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(l->name, dstSize,
+            sprintf_s(l->name, MAXSTR,
 #else
             sprintf(l->name,
 #endif

@@ -483,7 +483,7 @@ static void controls_pc(int id)
     char s_rotate_new[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(s_rotate_new, dstSize,
+    sprintf_s(s_rotate_new, MAXSTR,
 #else
     sprintf(s_rotate_new,
 #endif
@@ -934,7 +934,7 @@ static int page_modes_special(int id)
              _("Special game modes requires\\"
                "LEVELGROUPS_INCLUDES_CAMPAIGN\\"
                "or CONFIG_INCLUDES_ACCOUNT\\"
-               "preprocessor definitions"),
+               "preprocessor definitions!"),
              GUI_SML, gui_red, gui_red);
 #endif
 

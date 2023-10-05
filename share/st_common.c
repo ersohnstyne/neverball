@@ -84,8 +84,8 @@ static int switchball_useable(void)
         && k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
         return 1;
     else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-        && k_caml == SDLK_d && k_camr == SDLK_a
-        && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
+             && k_caml == SDLK_d && k_camr == SDLK_a
+             && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
         return 1;
 
     /*
@@ -282,8 +282,7 @@ void conf_common_init(int (*action_fn)(int, int), int allowfade)
     common_allowfade = allowfade;
     if (common_allowfade)
     {
-        back_init(config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "back/gui-mayhem.png" :
-                                                        "back/gui.png");
+        back_init("back/gui.png");
         is_common_bg = 1;
 #if NB_HAVE_PB_BOTH==1
         audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
@@ -530,7 +529,7 @@ static int video_gui(void)
 #ifndef __EMSCRIPTEN__
 #ifndef RESIZEABLE_WINDOW
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(resolution, dstSize,
+        sprintf_s(resolution, MAXSTR,
 #else
         sprintf(resolution,
 #endif
@@ -566,7 +565,7 @@ static int video_gui(void)
 #else
         gui_multi(id, _("Switchball configurations\\"
                         "requires SWITCHBALL_GUI\\"
-                        "definition preprocessors!"),
+                        "preprocessor definitions!"),
                       GUI_SML, gui_red, gui_red);
 #endif
         gui_space(id);
@@ -943,7 +942,7 @@ static int video_advanced_gui(void)
         int dpy = config_get_d(CONFIG_DISPLAY);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(resolution, dstSize,
+        sprintf_s(resolution, MAXSTR,
 #else
         sprintf(resolution,
 #endif
@@ -1112,7 +1111,7 @@ static int display_gui(void)
             SDL_GetCurrentDisplayMode(i, &dpyMode);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dpy_name, dstSize,
+            sprintf_s(name, MAXSTR,
 #else
             sprintf(name,
 #endif
@@ -1324,7 +1323,7 @@ static int resol_gui(void)
                         SDL_DisplayMode dm;
 
 #if !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(buff, dstSize,
+                        sprintf_s(buff, MAXSTR,
 #else
                         sprintf(buff,
 #endif
@@ -1490,7 +1489,7 @@ static int lang_gui(void)
 
                 char lang_infotext[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(lang_infotext, dstSize,
+                sprintf_s(lang_infotext, MAXSTR,
 #else
                 sprintf(lang_infotext,
 #endif

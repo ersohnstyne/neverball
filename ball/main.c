@@ -156,7 +156,7 @@ static void shot(void)
     int secdecimal = ROUND(config_screenshot() / 10000);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(filename, dstSize,
+    sprintf_s(filename, MAXSTR,
 #else
     sprintf(filename,
 #endif
@@ -828,11 +828,10 @@ static void opt_parse(int argc, char **argv)
             {
                 char *ext = argv[i] + len - 4;
 
+                if (strcmp(ext, ".map") == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                if (strcmp(ext, ".map") == 0)
-                    strncpy_s(ext, dstSize, ".sol", 4);
+                    strncpy_s(ext, MAXSTR, ".sol", 4);
 #else
-                if (strcmp(ext, ".map") == 0)
                     strncpy(ext, ".sol", 4);
 #endif
 

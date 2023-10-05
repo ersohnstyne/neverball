@@ -83,7 +83,8 @@ static int check_leap_year(int year)
 static int no_of_days_in_month(int month, int year)
 {
     // jan, march, may, july, aug, oct, dec contains 31 days
-    if (month == 1 || month == 3 || month == 5 || month == 7 || month == 8 || month == 10 || month == 12)
+    if (month == 1 || month == 3 || month == 5 || month == 7 ||
+        month == 8 || month == 10 || month == 12)
         return 31;
 
     // april, jun, sept, nov contains 30 days
@@ -93,25 +94,26 @@ static int no_of_days_in_month(int month, int year)
     if (month == 2)
     {
         int n = check_leap_year(year);
-        if (n == 1)    // if year is a leap year then Feb will contain 29 days, otherwise it contains 28 days
-            return 29;
 
-        else
-            return 28;
+        // if year is a leap year then Feb will contain 29 days, otherwise it contains 28 days
+        return n == 1 ? 29 : 28;
     }
 }
 
 /* DO NOT EDIT! */
-static long long int difference_of_days(int day1, int month1, int year1, int day2, int month2, int year2)
+static long long int difference_of_days(int day1, int month1, int year1,
+                                        int day2, int month2, int year2)
 {
     if (year1 == year2)
     {
         if (month1 == month2)
         {
-            if (day1 == day2)      //for same dates
-                return 0;
-            else
-                return abs(day1 - day2);  //for same year, same month but diff days
+            /*
+             * day1 == day2: for same dates
+             * abs(): for same year, same month but diff days
+             */
+
+            return day1 == day2 ? 0 : abs(day1 - day2);
         }
         else if (month1 < month2)
         {
@@ -119,7 +121,9 @@ static long long int difference_of_days(int day1, int month1, int year1, int day
             for (int i = month1; i < month2; i++)
                 result = result + no_of_days_in_month(i, year1);
 
-            if (day1 == day2)      //for same year, same day but diff month 
+            // for same year, same day but diff month
+
+            if      (day1 == day2)
                 return result;
             else if (day1 < day2)
             {
@@ -138,7 +142,7 @@ static long long int difference_of_days(int day1, int month1, int year1, int day
             for (int i = month2; i < month1; i++)
                 result = result + no_of_days_in_month(i, year1);
 
-            if (day1 == day2)
+            if      (day1 == day2)
                 return result;
             else if (day2 < day1)
             {
@@ -165,7 +169,9 @@ static long long int difference_of_days(int day1, int month1, int year1, int day
 
         if (month1 == month2)
         {
-            if (day1 == day2)      //for same month, same day but diff year
+            // for same month, same day but diff year
+
+            if      (day1 == day2)
                 return temp;
             else if (day1 < day2)
                 return temp + (day2 - day1);
@@ -178,7 +184,9 @@ static long long int difference_of_days(int day1, int month1, int year1, int day
             for (int i = month1; i < month2; i++)
                 result = result + no_of_days_in_month(i, year2);
 
-            if (day1 == day2)      // for same day, diff year and diff month
+            // for same day, diff year and diff month
+
+            if      (day1 == day2)
                 return temp + result;
             else if (day1 < day2)
             {
@@ -197,7 +205,7 @@ static long long int difference_of_days(int day1, int month1, int year1, int day
             for (int i = month2; i < month1; i++)
                 result = result + no_of_days_in_month(i, year2);
 
-            if (day1 == day2)
+            if      (day1 == day2)
                 return temp - result;
             else if (day2 < day1)
             {
@@ -224,7 +232,9 @@ static long long int difference_of_days(int day1, int month1, int year1, int day
 
         if (month1 == month2)
         {
-            if (day1 == day2)      // for same day, same month but diff year
+            // for same day, same month but diff year
+
+            if      (day1 == day2)
                 return temp;
             else if (day2 < day1)
                 return temp + (day1 - day2);
@@ -256,7 +266,9 @@ static long long int difference_of_days(int day1, int month1, int year1, int day
             for (int i = month1; i < month2; i++)
                 result = result + no_of_days_in_month(i, year1);
 
-            if (day1 == day2)      // for same day, diff year and diff month
+            // for same day, diff year and diff month
+
+            if      (day1 == day2)
                 return temp - result;
             else if (day1 < day2)
             {
@@ -296,8 +308,8 @@ static int switchball_useable(void)
         && k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
         return 1;
     else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-        && k_caml == SDLK_d && k_camr == SDLK_a
-        && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
+             && k_caml == SDLK_d && k_camr == SDLK_a
+             && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
         return 1;
 
     /*
@@ -371,8 +383,8 @@ static int end_support_gui(void)
             else if (diff < 30)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(titleattr, dstSize, END_SUPPORT_TITLE_1);
-                sprintf_s(descattr, dstSize, END_SUPPORT_DESC_1, curryear - 2014);
+                sprintf_s(titleattr, MAXSTR, END_SUPPORT_TITLE_1);
+                sprintf_s(descattr, MAXSTR, END_SUPPORT_DESC_1, curryear - 2014);
 #else
                 sprintf(titleattr, END_SUPPORT_TITLE_1);
                 sprintf(descattr, END_SUPPORT_DESC_1, curryear - 2014);
@@ -384,8 +396,8 @@ static int end_support_gui(void)
             else if (diff < 2)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(titleattr, dstSize, END_SUPPORT_TITLE_2, curryear - 2014);
-                sprintf_s(descattr, dstSize, END_SUPPORT_DESC_2);
+                sprintf_s(titleattr, MAXSTR, END_SUPPORT_TITLE_2, curryear - 2014);
+                sprintf_s(descattr, MAXSTR, END_SUPPORT_DESC_2);
 #else
                 sprintf(titleattr, END_SUPPORT_TITLE_2, curryear - 2014);
                 sprintf(descattr, END_SUPPORT_DESC_2);

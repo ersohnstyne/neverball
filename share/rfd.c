@@ -36,7 +36,7 @@
 /*---------------------------------------------------------------------------*/
 
 /*
- * Neverball - Recipes for Disaster
+ * Pennyball + Neverball - Recipes for Disaster
  * - Ersohn Styne
  */
 

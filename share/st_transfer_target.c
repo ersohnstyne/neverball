@@ -68,20 +68,20 @@ static int show_about;
 #if ENABLE_DEDICATED_SERVER==1 && !defined(TRANSFER_OFFLINE_ONLY)
 static int preparations_internet = 0;
 #endif
-static int preparations_working = 0;
+static int preparations_working  = 0;
 static int preparations_pageindx = 0;
 static int show_preparations;
 
 static int transfer_walletamount[2];
 
-static int transfer_working = 0;
+static int transfer_working  = 0;
 static int transfer_pageindx = 0;
-static int show_transfer = 0;
+static int show_transfer     = 0;
 
 static struct state *transfer_back;
 
 /* introducory (target) */
-int transfer_introducory_gui(void)
+static int transfer_introducory_gui(void)
 {
     int id, jd;
 
@@ -135,7 +135,7 @@ int transfer_introducory_gui(void)
  * not allow transfer
  * other notes
  */
-int transfer_about_transferring_gui(void)
+static int transfer_about_transferring_gui(void)
 {
     int id, jd;
 
@@ -277,7 +277,7 @@ int transfer_about_transferring_gui(void)
 #pragma endregion
 
 /* starting game transfer (target) */
-int transfer_starting_gui(void)
+static int transfer_starting_gui(void)
 {
     int id, jd;
 
@@ -323,7 +323,7 @@ int transfer_starting_gui(void)
  * created game transfer data (after saved game transfer data to local pc)
  * preparations for game transfer complete (after writing data to the external drive)
  */
-int transfer_preparing_gui(void)
+static int transfer_preparing_gui(void)
 {
     int id, jd;
 
@@ -490,14 +490,15 @@ int transfer_preparing_gui(void)
 #pragma endregion
 
 #pragma region complete transfer (target)
-int transfer_process_have_wallet;
-int transfer_process_have_account;
+static int transfer_process_have_wallet  = 0;
+static int transfer_process_have_account = 0;
+
 /*
  * insert the external drive (after startup and connect to the internet and remove from external drive after preparations)
  * move data from external drive (after loaded from external drive's source game)
  * transfer of wallet complete, profile transfer complete and highscore transfer completed (after deleted game transfer data from local pc)
  */
-int transfer_gui(void)
+static int transfer_gui(void)
 {
     int id, jd;
     
@@ -590,8 +591,7 @@ int transfer_gui(void)
             case 3:
                 if (transfer_working)
                 {
-                    gui_multi(jd, _("Deleting game transfer data\\"
-                                    "from the PC..."),
+                    gui_multi(jd, _("Deleting game transfer data from the PC..."),
                                   GUI_SML, gui_wht, gui_wht);
                     gui_multi(jd, _(TARGET_TRANSFER_WARNING),
                                   GUI_SML, gui_red, gui_red);
@@ -605,7 +605,7 @@ int transfer_gui(void)
                 if (transfer_walletamount[0] > 0 && transfer_walletamount[1] > 0)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, dstSize,
+                    sprintf_s(wallet_infotext, MAXSTR,
 #else
                     sprintf(wallet_infotext,
 #endif
@@ -619,7 +619,7 @@ int transfer_gui(void)
                 else if (transfer_walletamount[1] > 0)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, dstSize,
+                    sprintf_s(wallet_infotext, MAXSTR,
 #else
                     sprintf(wallet_infotext,
 #endif
@@ -633,7 +633,7 @@ int transfer_gui(void)
                 else if (transfer_walletamount[0] > 0)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, dstSize,
+                    sprintf_s(wallet_infotext, MAXSTR,
 #else
                     sprintf(wallet_infotext,
 #endif
@@ -694,9 +694,6 @@ int transfer_gui(void)
 #pragma endregion
 
 /*---------------------------------------------------------------------------*/
-
-int transfer_process_have_wallet = 0;
-int transfer_process_have_account = 0;
 
 static int transfer_action(int tok, int val)
 {
@@ -884,7 +881,7 @@ static const char *pick_home_path(void)
 #endif
 }
 
-int transfer_error_code;
+static int transfer_error_code;
 
 const char drive_letters[23][2] = {
     "E",
@@ -912,9 +909,9 @@ const char drive_letters[23][2] = {
     "B"
 };
 
-int current_drive_idx = -1;
+static int current_drive_idx = -1;
 
-void transfer_timer_preparation_target(float dt)
+static void transfer_timer_preparation_target(float dt)
 {
     fs_file internal_file_v2;
     FILE *internal_file, *transfer_file, *replayfilter_file;
@@ -928,7 +925,7 @@ void transfer_timer_preparation_target(float dt)
         current_drive_idx = -1;
         transfer_error_code = 2;
 
-        for (int i = 0; i < 24;)
+        for (int i = 0; i < 24 && current_drive_idx == -1;)
         {
             /* Skip scanning, if we have at least 1 GB External Storage */
             if (current_drive_idx != -1 || i < 0)
@@ -1192,7 +1189,7 @@ void transfer_timer_preparation_target(float dt)
 
 static float transfer_alpha;
 
-void transfer_timer_preprocess_target(float dt)
+static void transfer_timer_preprocess_target(float dt)
 {
     if (transfer_ui_transition_busy || transfer_alpha < 0.99f) return;
 
@@ -1202,7 +1199,7 @@ void transfer_timer_preprocess_target(float dt)
 
     current_drive_idx = -1;
 
-    for (int i = -1; i < 24;)
+    for (int i = -1; i < 24 && current_drive_idx == -1;)
     {
         /* Skip scanning, if we have moved from the source game */
         if (current_drive_idx != -1 || i < 0)
@@ -1274,7 +1271,7 @@ void transfer_timer_preprocess_target(float dt)
     }
 }
 
-int ext_read_line(char **dst, FILE *fin)
+static int ext_read_line(char **dst, FILE *fin)
 {
     char buff[MAXSTR];
 
@@ -1334,7 +1331,7 @@ struct account_transfer_value
 
 static struct account_transfer_value account_transfer_values_source, account_transfer_values_target;
 
-void transfer_timer_process_target(float dt)
+static void transfer_timer_process_target(float dt)
 {
     char src_dirpath_account[MAXSTR];
     const char *src_dirpath_campaign;
@@ -1633,15 +1630,13 @@ static int transfer_enter_target(struct state *st, struct state *prev)
         else return transfer_preparing_gui();
     }
     else if (!show_about && show_transfer)
-    {
         return transfer_gui();
-    }
     else assert(0 && "Unknown state!");
 
     return 0;
 }
 
-void transfer_leave(struct state *st, struct state *next, int id)
+static void transfer_leave(struct state *st, struct state *next, int id)
 {
     conf_common_leave(st, next, id);
     transfer_ui_transition_busy = 0;
@@ -1649,7 +1644,7 @@ void transfer_leave(struct state *st, struct state *next, int id)
 
 /*---------------------------------------------------------------------------*/
 
-void transfer_timer(int id, float dt)
+static void transfer_timer(int id, float dt)
 {
     gui_timer(id, dt);
 
@@ -1703,7 +1698,7 @@ void transfer_timer(int id, float dt)
     }
 }
 
-void transfer_paint(int id, float t)
+static void transfer_paint(int id, float t)
 {
     video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
     {
@@ -1714,7 +1709,7 @@ void transfer_paint(int id, float t)
     gui_paint(id);
 }
 
-int transfer_click(int c, int d)
+static int transfer_click(int c, int d)
 {
     if (gui_click(c, d))
     {
@@ -1724,7 +1719,7 @@ int transfer_click(int c, int d)
     return 1;
 }
 
-int transfer_buttn(int b, int d)
+static int transfer_buttn(int b, int d)
 {
     if (d)
     {
@@ -1736,7 +1731,7 @@ int transfer_buttn(int b, int d)
     return 1;
 }
 
-void transfer_fade(float alpha)
+static void transfer_fade(float alpha)
 {
     transfer_alpha = alpha;
 }

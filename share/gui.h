@@ -90,6 +90,8 @@
 #define GUI_ANIMATION_S_CURVE 0x0080
 #define GUI_ANIMATION_W_CURVE 0x0008
 
+/* Default gradient colors */
+
 #if NB_HAVE_PB_BOTH==1
 #define GUI_COLOR_DEFAULT gui_pnk, gui_red
 #else

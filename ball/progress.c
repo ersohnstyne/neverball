@@ -209,7 +209,7 @@ static int exceed_speed = 0;
 struct progress
 {
 #if ENABLE_RFD==1
-    /* Pennyball + Neverball - Recipes for Disaster */
+    /* Neverball - Recipes for Disaster */
 
     int   rfd_balls;
     int   rfd_earninator;
@@ -324,7 +324,7 @@ void progress_init(int m)
 #endif
 
 #if ENABLE_RFD==1
-    /* Pennyball + Neverball - Recipes for Disaster */
+    /* Neverball - Recipes for Disaster */
 
     curr.rfd_balls      = rfd_get_d(RFD_CHALLENGE_BALLS);
     curr.rfd_earninator = rfd_get_d(RFD_CHALLENGE_EARNINATOR);

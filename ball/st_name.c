@@ -286,8 +286,7 @@ static int name_enter(struct state *st, struct state *prev)
     if (draw_back)
     {
         game_client_free(NULL);
-        back_init(config_get_d(CONFIG_ACCOUNT_MAYHEM) ? "back/gui-mayhem.png" :
-                                                        "back/gui.png");
+        back_init("back/gui.png");
     }
 
     if (!newplayers)

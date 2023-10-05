@@ -72,21 +72,21 @@ extern int checkpoints_busy;
 
 extern struct chkp_ballsize last_chkp_ballsize[1024];
 extern struct chkp_ball last_chkp_ball[1024];
-extern struct chkp_path last_chkp_path[2048];
-extern struct chkp_body last_chkp_body[1024];
-extern struct chkp_move last_chkp_move[1024];
-extern struct chkp_item last_chkp_item[2048];
-extern struct chkp_swch last_chkp_swch[1024];
+// extern struct chkp_path last_chkp_path[2048];  /* Deprecated. DO NOT USE! */
+// extern struct chkp_body last_chkp_body[1024];  /* Deprecated. DO NOT USE! */
+// extern struct chkp_move last_chkp_move[1024];  /* Deprecated. DO NOT USE! */
+// extern struct chkp_item last_chkp_item[2048];  /* Deprecated. DO NOT USE! */
+// extern struct chkp_swch last_chkp_swch[1024];  /* Deprecated. DO NOT USE! */
 extern struct game_view last_view[1024];
 
 extern float last_pos[1024][3];
 
-extern float last_time;
-extern int last_timer_down;
+extern float last_timer;
+extern int   last_timer_down;
 
-extern int respawn_coins;
+extern int   respawn_coins;
 extern float respawn_timer;
-extern int respawn_gained;
+extern int   respawn_gained;
 
 /*---------------------------------------------------------------------------*/
 

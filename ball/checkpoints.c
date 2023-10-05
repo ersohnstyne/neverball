@@ -52,7 +52,7 @@ struct game_view     last_view[1024];
 
 float last_pos[1024][3];
 
-float last_time;
+float last_timer;
 int   last_coins;
 int   last_goal;
 
@@ -156,12 +156,12 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
     v_cpy(last_pos[ui], saved_vary.uv[ui].p);
 }
 
-int checkpoints_load(void)
+int checkpoints_load()
 {
     if (last_active)
     {
         respawn_coins  = last_coins;
-        respawn_timer  = last_time;
+        respawn_timer  = last_timer;
         respawn_gained = last_gained;
 
         return 1;
@@ -373,7 +373,7 @@ void checkpoints_stop(void)
 
     last_active = 0;
 
-    last_time  = 0;
+    last_timer = 0;
     last_coins = 0;
     last_goal  = 0;
 
@@ -390,7 +390,7 @@ void checkpoints_stop(void)
 void checkpoints_set_last_data(float time, int downward, int coins, int gained)
 {
     /* Set the last level data */
-    last_time       = time;
+    last_timer      = time;
     last_timer_down = downward;
     last_coins      = coins;
     last_gained     = gained;

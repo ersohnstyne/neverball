@@ -115,7 +115,7 @@ static int score_card(const char  *title,
                 for (i = m; i > 0; i--)
                     if ((ld = gui_varray(kd)))
                     {
-                        if (p1) gui_label(ld, number(i), GUI_SML, 0, 0);
+                        if (p1) gui_label(ld, number(i),        GUI_SML, 0, 0);
                         if (p1) gui_label(ld, hole_score(i, 0), GUI_SML, gui_wht, gui_wht);
                         if (p1) gui_label(ld, hole_score(i, 1), GUI_SML, gui_red, gui_wht);
                         if (p2) gui_label(ld, hole_score(i, 2), GUI_SML, gui_grn, gui_wht);
@@ -176,7 +176,7 @@ static int score_card(const char  *title,
                 for (i = n; i > m; i--)
                     if ((ld = gui_varray(kd)))
                     {
-                        if (p1) gui_label(ld, number(i), GUI_SML, 0, 0);
+                        if (p1) gui_label(ld, number(i),        GUI_SML, 0, 0);
                         if (p1) gui_label(ld, hole_score(i, 0), GUI_SML, gui_wht, gui_wht);
                         if (p1) gui_label(ld, hole_score(i, 1), GUI_SML, gui_red, gui_wht);
                         if (p2) gui_label(ld, hole_score(i, 2), GUI_SML, gui_grn, gui_wht);
@@ -332,7 +332,7 @@ static int title_enter(struct state *st, struct state *prev)
         }
         else if (current_platform == PLATFORM_XBOX)
         {
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
             sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_360);
 #else
             sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_ONE);

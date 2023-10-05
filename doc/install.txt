@@ -13,24 +13,36 @@
     gettext           https://www.gnu.org/software/gettext/
     cURL              https://curl.se/
 
+You will also  need  to  download  OpenDriveAPI  for each development
+platforms.  This project code library is available from the OneDrive.
+
+    https://1drv.ms/u/s!Airrmyu6L5eynGj7HtYcQU_0ERtA?e=9XU5Zp
+
 By  default development during compilation,  it is placed by the file
 under Unix and Linux when running the script.
 
     install-devel-linux.sh
+
+Under Msys2 for Windows, it is placed by the file
+
+    Msys2             install-deps-msys2-<architecture>.sh
 
 Any kind of differences platforms such WINE does not supported.
 
 
 * COMPILATION
 
-Compiled  source file  will automatically kicked,  when  building  the
-game  from  Microsoft Visual Studio 2022 Community  or  later version.
+Compiled source file  will automatically kicked,  when  building  the
+game from Microsoft Visual Studio 2022.
 
 Under Unix and Linux, simply run
 
     make
 
-Under Windows,  build it from the Visual Studio 2022 solution.
+Under Windows,  either build from the Visual Studio 2022 solution, or
+install the MSYS2 environment and run
+
+    make CRT_SECURE_NO_WARNINGS=1 ALTERNATIVE_BUILDENV=Msys2
 
 Cross-compilation for Windows is also supported. On Fedora Linux, run
 
@@ -46,15 +58,14 @@ additional libraries to be installed.
 
 make CRT_SECURE_NO_WARNINGS=0
     Microsoft Elite Development Lifecycle for Windows.
-    Requires Visual Studio 2022.
+    Requires Visual Studio 2022 Community or later.
 
 make FS_VERSION=1
     Time travel back to the original standard I/O without ZIP archives.
     If  you use this,  then payments,  fetch and libcurl will ignored.
 
 make ENABLE_STEAM=1
-    Steam game support.  Requires running Steam Launcher  in  order to
-    work.
+    Steam support.
 
     Steamworks        https://partner.steamgames.com/
 
@@ -70,6 +81,13 @@ make ENABLE_NLS=0
 
     gettext           https://github.com/winlibs/gettext
 
+make ENABLE_RFD=1
+    Recipes  for  disaster edition  support  for  Windows  and  Linux.
+    Requires  an  administrator  permissions  to  modify  recipes  and
+    must have an provided filename:
+
+    rfdconf.txt
+
 make ENABLE_IAP=paypal
     Paypal support for all platforms.  Requires libcurl for Windows or
     Linux.
@@ -80,6 +98,13 @@ make ENABLE_IAP=paypal
 make ENABLE_FETCH=curl
     Use libcurl for package downloads. This is enabled by default. Set
     this to any other value (e.g., ENABLE_FETCH=0) to disable downloads.
+
+    libcurl           https://curl.se/libcurl/
+
+make ENABLE_FETCH=curl_gdrive
+    Use Google Drive with libcurl for package downloads  on same time.
+    Requires libcurl for Windows or Linux.  Set this  to  Google Drive
+    only for best experience (e.g., ENABLE_FETCH=curl_gdrive_only).
 
     libcurl           https://curl.se/libcurl/
 
@@ -117,6 +142,24 @@ The dist subdirectory contains some miscellaneous files:
 
   * .desktop files
   * high resolution icons in PNG, SVG and ICO formats
+
+
+* EDITIONS
+
+To upgrade from the open-source edition, follow this link:
+https://docs.google.com/forms/d/e/1FAIpQLSfdGg7UI20mWuT33NAIGE3g922wvleZ8Wm1rcagQWohmLPICQ/viewform?usp=sf_link
+
+Once you've registered as Home editions, use the command:
+
+    make EDITION=home
+
+Or, once you've purchased the edition,  you can use  a valid editions:
+
+    * pro
+    * enterprise
+    * education
+    * server_standard
+    * server_datacenter
 
 
 Web: <https://neverball.org/>

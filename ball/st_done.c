@@ -137,7 +137,7 @@ static int done_gui_campaign(void)
     {
         char sdescHardcore[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(sdescHardcore, dstSize,
+        sprintf_s(sdescHardcore, MAXSTR,
 #else
         sprintf(sdescHardcore,
 #endif

@@ -23,7 +23,7 @@
 #if GAME_TRANSFER_TARGET==0
 void transfer_add_dispatch_event(void (*request_addreplay_dispatch_event)(int status_limit));
 void transfer_addreplay(const char *path);
-void transfer_addreplay_exceeded();
+void transfer_addreplay_exceeded(void);
 #endif
 
 #if ENABLE_GAME_TRANSFER==1

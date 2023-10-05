@@ -263,7 +263,7 @@ static int loop(void)
 
         switch (e.type)
         {
-#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
         case SDL_MOUSEMOTION:
             /* Convert to OpenGL coordinates. */
 
@@ -351,7 +351,7 @@ static int loop(void)
                 break;
 
             default:
-#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
                 if (config_tst_d(CONFIG_KEY_FORWARD, c))
                     st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), -1.0f);
                 else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
@@ -383,7 +383,7 @@ static int loop(void)
                 break;
 
             default:
-#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
                 if (config_tst_d(CONFIG_KEY_FORWARD, c))
                     st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 0.0f);
                 else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
@@ -450,7 +450,7 @@ static int loop(void)
             }
             break;
 
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
         case SDL_JOYAXISMOTION:
             joy_axis(e.jaxis.which, e.jaxis.axis, JOY_VALUE(e.jaxis.value));
             break;

@@ -240,10 +240,10 @@ static int exists = 0;
 static int used = 0;
 static int theme_used = 0;
 
-static struct  score coin_trials;
-static struct  score time_trials;
-static char   *time_trial_leaderboard;
-static int     time_trial_version;
+static struct score coin_trials;
+static struct score time_trials;
+static char        *time_trial_leaderboard;
+static int          time_trial_version;
 
 static struct campaign_hardcore_mode   hardcores;
 static struct campaign_medal_data      medal_datas;
@@ -621,7 +621,7 @@ static void campaign_load_levels(void)
 
         l->number = i;
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(l->name, dstSize,
+        sprintf_s(l->name, MAXSTR,
 #else
         sprintf(l->name,
 #endif
@@ -856,7 +856,7 @@ int campaign_load_camera_box_trigger(const char *levelname)
     char camLinePrefix[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(camFilename, dstSize,
+    sprintf_s(camFilename, MAXSTR,
 #else
     sprintf(camFilename,
 #endif

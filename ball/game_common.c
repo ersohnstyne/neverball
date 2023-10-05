@@ -59,7 +59,7 @@ const char *cam_to_str(int c)
     if (s <= 500) return _("Chase Camera");
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(str, dstSize,
+    sprintf_s(str, 64,
 #else
     sprintf(str,
 #endif

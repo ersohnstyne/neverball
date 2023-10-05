@@ -692,7 +692,7 @@ void hud_update_camera_direction(float rot_direction)
         hdg_name = "NNW";
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(camdirref, dstSize,
+    sprintf_s(camdirref, MAXSTR,
 #else
     sprintf(camdirref,
 #endif

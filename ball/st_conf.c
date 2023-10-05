@@ -338,11 +338,11 @@ static int conf_account_action(int tok, int val)
     case CONF_ACCOUNT_AUTOUPDATE:
         break;
 
-    case CONF_ACCOUNT_MAYHEM:
+    /*case CONF_ACCOUNT_MAYHEM:
         config_set_d(CONFIG_ACCOUNT_MAYHEM, val);
         goto_state(&st_conf_account);
         config_save();
-        break;
+        break;*/
 
     case CONF_ACCOUNT_TUTORIAL:
         config_set_d(CONFIG_ACCOUNT_TUTORIAL, val);
@@ -765,7 +765,7 @@ static void conf_account_timer(int id, float dt)
         int clock_sec  = (int) MAX(0, (sec) % 60);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(cv19_infoattr, dstSize,
+        sprintf_s(cv19_infoattr, MAXSTR,
 #else
         sprintf(cv19_infoattr,
 #endif
@@ -1017,8 +1017,8 @@ static int control_get_input(void)
         && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
         return CONTROL_SWITCHBALL_V1;
     else if (k_auto == SDLK_e && k_cam1 == SDLK_1 && k_cam2 == SDLK_2 && k_cam3 == SDLK_3
-        && k_caml == SDLK_s && k_camr == SDLK_d
-        && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
+             && k_caml == SDLK_s && k_camr == SDLK_d
+             && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
         return CONTROL_NEVERBALL;
 
     return CONTROL_MAX;
@@ -1046,7 +1046,7 @@ static void control_set_input()
     }
     else
     {
-        CONF_CONTROL_SET_PRESET_KEYS(SDLK_c, SDLK_1, SDLK_2, SDLK_3,
+        CONF_CONTROL_SET_PRESET_KEYS(SDLK_e, SDLK_1, SDLK_2, SDLK_3,
                                      SDLK_s, SDLK_d,
                                      SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT);
 
@@ -1701,7 +1701,7 @@ static void change_method(void)
 {
     char titleattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(titleattr, dstSize,
+    sprintf_s(titleattr, MAXSTR,
 #else
     sprintf(titleattr,
 #endif
@@ -1754,7 +1754,7 @@ static int conf_calibrate_gui(void)
         char titleattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(titleattr, dstSize,
+        sprintf_s(titleattr, MAXSTR,
 #else
         sprintf(titleattr,
 #endif
@@ -1796,7 +1796,7 @@ void conf_calibrate_stick(int id, int a, float v, int bump)
             calib_y0 = v;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(axisattr, dstSize,
+        sprintf_s(axisattr, MAXSTR,
 #else
         sprintf(axisattr,
 #endif
@@ -1810,7 +1810,7 @@ void conf_calibrate_stick(int id, int a, float v, int bump)
         else if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y1, a))
             calib_y1 = v;
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(axisattr, dstSize,
+        sprintf_s(axisattr, MAXSTR,
 #else
         sprintf(axisattr,
 #endif
@@ -1819,7 +1819,7 @@ void conf_calibrate_stick(int id, int a, float v, int bump)
     }
     else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(axisattr, dstSize,
+        sprintf_s(axisattr, MAXSTR,
 #else
         sprintf(axisattr,
 #endif
@@ -2015,7 +2015,7 @@ static int conf_audio_gui(void)
 #else
         gui_multi(id, _("Switchball configurations\\"
                         "requires NB_HAVE_PB_BOTH\\"
-                        "preprocessor definitions"),
+                        "preprocessor definitions!"),
                       GUI_SML, gui_red, gui_red);
 #endif
     }
@@ -2071,23 +2071,23 @@ void demo_transfer_request_addreplay_dispatch_event(int status_limit)
 
         for (int i = 0; i < total; i++)
         {
-            struct demo *demoplayable = ((struct demo *) ((struct dir_item *) array_get(items, i))->data);
+            struct demo *demo_data = ((struct demo *) ((struct dir_item *) array_get(items, i))->data);
+
+            if (!demo_data)
+                continue;
 
             int limit = config_get_d(CONFIG_ACCOUNT_LOAD);
             int max = 0;
 
-            if (demoplayable->status == 3) {
+            if (demo_data->status == 3)
                 max = 3;
-            }
-            else if (demoplayable->status == 1 || demoplayable->status == 0) {
+            else if (demo_data->status == 1 || demo_data->status == 0)
                 max = 2;
-            }
-            else if (demoplayable->status == 2) {
+            else if (demo_data->status == 2)
                 max = 1;
-            }
 
             if (max <= limit)
-                transfer_addreplay(demoplayable->path);
+                transfer_addreplay(demo_data->path);
             else
                 transfer_addreplay_exceeded();
         }

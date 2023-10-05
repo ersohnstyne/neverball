@@ -33,12 +33,15 @@
 
 #if _WIN32
 #if !defined(_MSC_VER)
-#error This was already done with FindFirstFileA, FindNextFileA and GetFileAttributesA. \
-       Install Visual Studio 2022 Community or later version to build it there.
+#error This was already done with FindClose, FindFirstFileA, FindNextFileA and GetFileAttributesA or using OpenDriveAPI. \
+       Install Visual Studio 2022 Community or later version to build it there. \
+       === OR === \
+       Download using the OpenDriveAPI project: \
+       https://1drv.ms/u/s!Airrmyu6L5eynGj7HtYcQU_0ERtA?e=9XU5Zp
 #else
 #pragma message("Using directory list for code compilation: Microsoft Visual Studio")
 #endif
-#elif defined(__linux__)
+#else
 #pragma message("Using directory list for code compilation: GCC + G++")
 #endif
 
@@ -71,7 +74,8 @@ List dir_list_files(const char *path)
                       find_data.dwFileAttributes & FILE_ATTRIBUTE_READONLY  ||
                       find_data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN))
                 files = list_cons(strdup(find_data.cFileName), files);
-        } while (FindNextFileA(hFind, &find_data));
+        }
+        while (FindNextFileA(hFind, &find_data));
 
         FindClose(hFind);
         hFind = 0;
@@ -82,12 +86,13 @@ List dir_list_files(const char *path)
     {
         struct dirent *ent;
 
-        do {
+        while ((ent = readdir(dir)))
+        {
             if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
                 continue;
 
             files = list_cons(strdup(ent->d_name), files);
-        } while ((ent = readdir(dir)))
+        }
 
         closedir(dir);
     }

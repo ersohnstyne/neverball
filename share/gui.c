@@ -515,7 +515,8 @@ static void gui_font_init(int s)
         if (!fonts[fi].ttf)
         {
             log_errorf("Unable to load font!: %s / %s\n",
-                       *curr_lang.font ? curr_lang.font : GUI_FACE);
+                       *curr_lang.font ? curr_lang.font : GUI_FACE,
+                       GAMEDBG_GETSTRERROR_CHOICES_SDL);
             gui_font_quit();
         }
     }
@@ -583,12 +584,12 @@ static void gui_glyphs_init(void)
     /* Cache an image for the cursor. Scale it to the same size as a digit. */
 
 #ifdef SWITCHBALL_GUI
-    if ((cursor_id = gui_image(0, "gui/cursor.png", widget[digit_id[1][0]].w * 2,
-                                                    widget[digit_id[1][0]].h * 2)))
+    if ((cursor_id = gui_image(0, "gui/cursor.png", widget[digit_id[1][0]].w * 4,
+                                                    widget[digit_id[1][0]].h * 4)))
         gui_layout(cursor_id, 0, 0);
 #else
-    if ((cursor_id = gui_image(0, "gui/cursor.png", widget[digit_id[1][0]].w,
-                                                    widget[digit_id[1][0]].h)))
+    if ((cursor_id = gui_image(0, "gui/cursor.png", widget[digit_id[1][0]].w * 2,
+                                                    widget[digit_id[1][0]].h * 2)))
         gui_layout(cursor_id, 0, 0);
 #endif
 }
@@ -823,11 +824,9 @@ int gui_root(void)
 
     if ((id = gui_widget(0, GUI_ROOT)))
     {
-        // Get gui_search() working.
-        widget[id].x = 0;
-        widget[id].y = 0;
-        widget[id].w = video.device_w;
-        widget[id].h = video.device_h;
+        // Get gui_stick() working.
+        widget[id].x = INT_MAX;
+        widget[id].y = INT_MAX;
     }
     return id;
 }
@@ -943,10 +942,8 @@ void gui_set_image(int id, const char *file)
 
 void gui_set_label(int id, const char *text)
 {
-    TTF_Font *ttf;
-    memset(&ttf, 0, sizeof (TTF_Font *));
+    TTF_Font *ttf = fonts[widget[id].font].ttf[widget[id].size];
     ttf = fonts[widget[id].font].ttf[widget[id].size];
-    assert(&ttf);
 
     int w = 0;
     int h = 0;
@@ -982,7 +979,11 @@ void gui_set_label(int id, const char *text)
                                             &widget[id].text_h,
                                             trunc_str, ttf, 0);
 
-    /* Rebuild text rectangle. */
+    /*
+     * Rebuild text rectangle.
+     *
+     * Make sure you have set width and height afterwards before releasing "trunc_str".
+     */
 
     w = widget[id].text_w;
     h = widget[id].text_h;
@@ -1009,7 +1010,11 @@ void gui_set_color(int id, const GLubyte *c0,
 {
     if (id)
     {
+#if NB_HAVE_PB_BOTH==1
+        c0 = c0 ? c0 : gui_pnk;
+#else
         c0 = c0 ? c0 : gui_yel;
+#endif
         c1 = c1 ? c1 : gui_red;
 
         if (widget[id].color0 != c0 || widget[id].color1 != c1)
@@ -1045,7 +1050,7 @@ void gui_set_multi(int id, const char *text)
         // Support both '\\' and '\n' as delimiters.
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        strncpy_s(s[sc], dstSize, p, (n = strcspn(p, "\\\n")));
+        strncpy_s(s[sc], MAXSTR, p, (n = strcspn(p, "\\\n")));
 #else
         strncpy(s[sc], p, (n = strcspn(p, "\\\n")));
 #endif
@@ -1359,14 +1364,21 @@ int gui_multi(int pd, const char *text, int size, const GLubyte *c0,
 
         for (p = text, j = 0; *p && j < GUI_LINES; j++)
         {
+            // Support both '\\' and '\n' as delimiters.
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            strncpy_s(s[j], dstSize, p, (n = strcspn(p, "\\")));
+            strncpy_s(s[j], MAXSTR, p, (n = strcspn(p, "\\\n")));
 #else
-            strncpy(s[j], p, (n = strcspn(p, "\\")));
+            strncpy(s[j], p, (n = strcspn(p, "\\\n")));
 #endif
             s[j][n] = 0;
 
-            if (*(p += n) == '\\') p++;
+            if (n > 0 && s[j][n - 1] == '\r')
+                s[j][n - 1] = 0;
+
+            p += n;
+
+            if (*p == '\\' || *p == '\n') p++;
         }
 
         /* Create a label widget for each line. */
@@ -1583,7 +1595,7 @@ static void gui_hstack_dn(int id, int x, int y, int w, int h)
             fc += 1;
         else if (widget[jd].flags & GUI_FILL)
         {
-            fc  += 1;
+            fc += 1;
             jw += widget[jd].w;
         }
         else

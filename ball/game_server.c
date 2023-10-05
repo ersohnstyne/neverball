@@ -315,8 +315,10 @@ static void game_cmd_init_items(void)
 
         v_cpy(cmd.mkitem.p, vary.hv[i].p);
 
-        cmd.mkitem.t = vary.hv[i].t;
-        cmd.mkitem.n = vary.hv[i].n;
+        cmd.mkitem.t = !timer_down && vary.hv[i].t == ITEM_CLOCK ? ITEM_NONE :
+                                                                   vary.hv[i].t;
+        cmd.mkitem.n = !timer_down && vary.hv[i].t == ITEM_CLOCK ? 0 :
+                                                                   vary.hv[i].n;
 
         game_proxy_enq(&cmd);
     }
@@ -662,16 +664,12 @@ int game_server_init(const char *file_name, int t, int e)
      * If you haven't loaded Level data for each checkpoints,
      * Levels for your default data will be used.
      */
-    timer      = last_active ?
-                 respawn_timer :
-                 (config_get_d(CONFIG_ACCOUNT_MAYHEM) ?
-                  ((float) mayhem_time / 100.f) : ((float) t / 100.f));
+    timer      = last_active ? respawn_timer : ((float) t / 100.f);
     timer_down = last_active ? last_timer_down : (t > 0);
     timer_hold = last_active ? 0 : 1;
     coins      = last_active ? respawn_coins : 0;
 #else
-    timer      = config_get_d(CONFIG_ACCOUNT_MAYHEM) ?
-                 ((float) mayhem_time / 100.f) : ((float) t / 100.f);
+    timer      = ((float) t / 100.f);
     timer_down = (t > 0);
     timer_hold = 1;
     coins      = 0;
@@ -829,6 +827,7 @@ int game_server_init(const char *file_name, int t, int e)
         {
             fix_cam_alpha[ui] = 1.0f;
             game_view_init(&view);
+
 #pragma region Static camera
             float c0[3] = { 0.f, 0.f, 0.f };
             float p0[3] = { 0.f, 0.f, 0.f };
@@ -1369,9 +1368,18 @@ static int game_update_state(int bt)
 
         game_cmd_pkitem(hi);
 
-        grow_init(vary.uv, CURR_PLAYER, hp->t);
+        /* Morph and coin sizes (includes campaign). */
 
-        if (hp->t == ITEM_COIN)
+        if (hp->t == ITEM_GROW || hp->t == ITEM_SHRINK)
+        {
+            grow_init(vary.uv, CURR_PLAYER, hp->t);
+
+            hp->t = ITEM_NONE;
+        }
+
+        /* Temporary coin value leftover in the campaign. */
+
+        else if (hp->t == ITEM_COIN)
         {
             coins += hp->n * get_coin_multiply();
             game_cmd_coins();
@@ -1384,6 +1392,9 @@ static int game_update_state(int bt)
 
             hp->t = ITEM_NONE;
         }
+
+        /* Increment time limits to avoid time-outs. */
+
         else if (hp->t == ITEM_CLOCK)
         {
             audio_play(AUD_CLOCK, 1.f);
@@ -1402,8 +1413,6 @@ static int game_update_state(int bt)
 
             hp->t = ITEM_NONE;
         }
-
-        hp->t = ITEM_NONE;
     }
 
     if (vx < -0.1f || vx > -0.1f || vz < -0.1f || vz > -0.1f)

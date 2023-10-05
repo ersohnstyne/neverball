@@ -55,7 +55,7 @@ and above. Click the left one in the level group to start the Campaign
 first.
 
 In  Hardcore mode  is  similar like an Challenge mode. All checkpoints
-were  removed  and  the  game  cannot  be  saved  with only  one ball.
+were removed  and the game cannot be saved,  but  with only  one ball.
 
 
 * LEVEL PROGRESSION
@@ -75,8 +75,8 @@ attempts to  complete all  of the  levels in  turn, starting  with the
 first level.  The game ends once  the  balls run out and the wallet is
 insufficent.  In addition,  Google Wallet API  is  sent  from  In-Game
 Purchases  to  it's developers by the payer (available on selected Pro
-edition and). A set score  is  recorded upon completion. Levels cannot
-be restarted freely.
+edition and above).  A set score  is  recorded upon completion. Levels
+cannot be restarted freely.
 
 In Boost rush mode,  the  player  is  given  a speed indicator like an
 Challenge mode,  uses  for auto-forward levels.  The acceleration will
@@ -92,8 +92,11 @@ by playing Challenge mode and completing  all of the levels leading up
 to  each bonus  level.   After  unlocking a  bonus  level, it  becomes
 playable in Classic mode.
 
-OR  you can also buy the Bonus pack in the shop,  this bonus pack will
-unlock instantly.
+A set may also contain a number of master levels. After it's unlocked,
+the player must playing the level with Challenge mode.
+
+OR  if you're using Home edition and above, you can also buy the Bonus
+pack  in the shop,  but only all bonus levels will unlock immediately.
 
 
 * CHECKPOINTS
@@ -145,12 +148,12 @@ will automatically use the new content.
 Screenshots taken in-game with the F12 key are stored in PNG format in
 the user data directory.
 
-In Steam, it is stored under game data directory only.
+In Steam, it is stored only in game data directory.
 
 
 * RANKS
 
-This ranks is available on selected Home edition and above.
+In-game-ranks is available on selected Home edition and above.
 
 In  the  Tradition  of  Space Agency Classic and 2138, the rank system
 tracks the player's progress through Campaign mode.
@@ -179,7 +182,7 @@ tracks the player's progress through Campaign mode.
     Elite Commander
 
         Elite Commander  is awarded  to  those extraordinary campaigns
-        who achieve Gold in every mission they attempt.  You must have
+        who achieve Gold  in every levels they attempt.  You must have
         flown at least 12 levels before you will be considered for the
         Elite status.
 
@@ -232,7 +235,7 @@ has an Discord community server rule.
 
 * SHOP
 
-This shop is only for Home edition and above.
+In-game-shop is available on selected Home edition and above.
 
 Coins are the currency with which you buy everything that  is  sold in
 the Shop.  They can  NOT  be acquired with real money in any way, they
@@ -250,10 +253,9 @@ Shop.
 * CONFIGURATION
 
 Game  settings are stored  in the  file neverballrc  in the  user data
-directory.  This file  is  created when  it changes or the game exits.
-It consists of key/value pairs.  Some of these values are configurable
-using the in-game options  screen.  Other  meaningful  keys  and their
-default values follow.
+directory.  This file is created when it changes from in-game settings
+or the game exits.  It consists of key/value pairs.  Other  meaningful
+keys and their default values follow.
 
     width  1200
     height 900
@@ -275,7 +277,7 @@ default values follow.
 
         This key controls neither tilt the floor nor move the ball. If
         you're  using  Campaign,    you  cannot  enable  this  option.
-        (Only for version 1.8+)
+        (Available for selected version 1.9 and above)
 
     mouse_sense 300
 
@@ -319,7 +321,7 @@ default values follow.
             key_camera_r      a
             key_camera_toggle c
 
-    key_camera_toggle toggles camera behaviour between 1 and 3.
+	key_camera_toggle toggles camera behaviour between 1 and 3.
 
     mouse_camera_1      none
     mouse_camera_2      none
@@ -401,7 +403,7 @@ default values follow.
     screen_animation 1
 
         This  key  enables  the  graphic  interface screen animations.
-        (Only for version 1.8+)
+        (Available for selected version 1.8 and above)
 
     ball_file ball/basic-ball/basic-ball
 
@@ -425,7 +427,7 @@ default values follow.
         Any other sequence starting with % is ignored.
 
         The resulting  replay name is  also suffixed by  an underscore
-        and  a unique  2-digit number  to avoid  name collisions  with
+        and  a  unique  date  format  to  avoid  name collisions  with
         existing replays.
 
     stats 0
@@ -538,7 +540,7 @@ default values follow.
         For more  information, see the  section on using  Wiimote with
         Neverball.
 
-    dedicated_ipaddress neverball.github.io
+    dedicated_ipaddress pennyball.stynegame.de
     dedicated_ipport    5000
 
         This  key  specifies the IPv4/IPv6 address or host and port of

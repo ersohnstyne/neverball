@@ -25,12 +25,15 @@
 #include <sys/stat.h>
 #if _WIN32
 #if !defined(_MSC_VER)
-#error This was already done with GetFileAttributesA. \
-       Install Visual Studio 2022 Community or later version to build it there.
+#error This was already done with GetFileAttributesA or using OpenDriveAPI. \
+       Install Visual Studio 2022 Community or later version to build it there. \
+       === OR === \
+       Download using the OpenDriveAPI project: \
+       https://1drv.ms/u/s!Airrmyu6L5eynGj7HtYcQU_0ERtA?e=9XU5Zp
 #else
 #pragma message("Using directory list for code compilation: Microsoft Visual Studio")
 #endif
-#elif defined(__linux__)
+#else
 /*
  * Relying on MinGW to provide, that uses from GetFileAttributes.
  */
@@ -47,8 +50,6 @@
 #include <crtdbg.h>
 #endif
 #endif
-
-size_t dstSize = 256;
 
 /*---------------------------------------------------------------------------*/
 
@@ -443,14 +444,14 @@ int set_env_var(const char *name, const char *value)
 
         if (value)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(str, dstSize,
+            sprintf_s(str, MAXSTR,
 #else
             sprintf(str,
 #endif
                     "%s=%s", name, value);
         else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(str, dstSize,
+            sprintf_s(str, MAXSTR,
 #else
             sprintf(str,
 #endif

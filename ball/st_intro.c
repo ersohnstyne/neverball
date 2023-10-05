@@ -188,7 +188,7 @@ const char intro_covid_highrisk[][256] =
     "Use 3G+ rule to reduce risks!",
 };
 
-static void intro_create_tip(void)
+static void intro_create_tip(int id)
 {
     int max_index = 7;
     int index_affect = config_get_d(CONFIG_TIPS_INDEX) + 1;
@@ -206,29 +206,32 @@ static void intro_create_tip(void)
 #ifndef __EMSCRIPTEN__
     if (current_platform == PLATFORM_PC)
     {
-        if ((tip_id = gui_multi(0, _(intro_tip[index_affect]),
-                                   GUI_SML, gui_wht, gui_wht)))
+        if ((tip_id = gui_multi(id, _(intro_tip[index_affect]),
+                                    GUI_SML, gui_wht, gui_wht)))
         {
-            gui_set_rect(tip_id, GUI_TOP);
+            //gui_set_rect(tip_id, GUI_TOP);
+            gui_clr_rect(tip_id);
             gui_layout(tip_id, 0, -1);
         }
     }
     else if (current_platform == PLATFORM_PS)
     {
-        if ((tip_id = gui_multi(0, _(intro_tip_ps4[index_affect]),
-                                   GUI_SML, gui_wht, gui_wht)))
+        if ((tip_id = gui_multi(id, _(intro_tip_ps4[index_affect]),
+                                    GUI_SML, gui_wht, gui_wht)))
         {
-            gui_set_rect(tip_id, GUI_TOP);
+            //gui_set_rect(tip_id, GUI_TOP);
+            gui_clr_rect(tip_id);
             gui_layout(tip_id, 0, -1);
         }
     }
     else
 #endif
     {
-        if ((tip_id = gui_multi(0, _(intro_tip_xbox[index_affect]),
-                                   GUI_SML, gui_wht, gui_wht)))
+        if ((tip_id = gui_multi(id, _(intro_tip_xbox[index_affect]),
+                                    GUI_SML, gui_wht, gui_wht)))
         {
-            gui_set_rect(tip_id, GUI_TOP);
+            //gui_set_rect(tip_id, GUI_TOP);
+            gui_clr_rect(tip_id);
             gui_layout(tip_id, 0, -1);
         }
     }
@@ -239,25 +242,14 @@ static void intro_create_tip(void)
     if (index_affect > max_index)
         index_affect = 0;
 
-    if ((tip_id = gui_multi(0, _(intro_covid_highrisk[index_affect])
-                               GUI_SML, gui_wht, gui_wht)))
+    if ((tip_id = gui_multi(id, _(intro_covid_highrisk[index_affect])
+                                GUI_SML, gui_wht, gui_wht)))
     {
-        gui_set_rect(tip_id, GUI_TOP);
+        //gui_set_rect(tip_id, GUI_TOP);
+        gui_clr_rect(tip_id);
         gui_layout(tip_id, 0, -1);
     }
 #endif
-}
-#endif
-
-#if DEVEL_BUILD
-static void intro_create_devel_info(void)
-{
-    if ((devel_label_id = gui_label(0, "   " "DEVELOPMENT BUILD" "   ",
-                                       GUI_SML, gui_red, gui_red)))
-    {
-        gui_set_rect(devel_label_id, GUI_BOT);
-        gui_layout(devel_label_id, 0, 1);
-    }
 }
 #endif
 
@@ -275,9 +267,46 @@ static int intro_gui(void)
     const int ww = h * MIN(w, h) / 16;
     const int hh = ww / 16 * 9;
 
-    image_id = gui_image(0, "gui/intro/0000.jpg", ww, hh);
-    gui_layout(image_id, 0, 0);
-    return image_id;
+    int root_id;
+
+    if ((root_id = gui_root()))
+    {
+#ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
+        // Switchball HD features
+
+        intro_create_tip(root_id);
+#endif
+
+#if DEVEL_BUILD
+        // Only debug and development builds
+
+        char dev_str[MAXSTR];
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(dev_str, MAXSTR,
+#else
+        sprintf(dev_str,
+#endif
+                "   %s   ", _("DEVELOPMENT BUILD"));
+
+        if ((devel_label_id = gui_label(root_id, dev_str,
+                                                 GUI_SML, gui_red, gui_red)))
+        {
+            //gui_set_rect(devel_label_id, GUI_BOT);
+            gui_clr_rect(devel_label_id);
+            gui_layout(devel_label_id, 0, 1);
+        }
+#endif
+
+        // Developer and publisher logos
+
+        if ((image_id = gui_image(root_id, "gui/intro/0000.jpg", ww, hh)))
+        {
+            gui_clr_rect(image_id);
+            gui_layout(image_id, 0, 0);
+        }
+    }
+
+    return root_id;
 }
 
 static int intro_enter(struct state *st, struct state *prev)
@@ -292,13 +321,6 @@ static int intro_enter(struct state *st, struct state *prev)
         intro_init = 1;
     }
 
-#ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
-    intro_create_tip();
-#endif
-
-#if DEVEL_BUILD
-    intro_create_devel_info();
-#endif
     return intro_gui();
 }
 
@@ -314,10 +336,6 @@ void intro_leave(struct state *st, struct state *next, int id)
 void intro_paint(int id, float t)
 {
     gui_paint(id);
-    gui_paint(tip_id);
-#if DEVEL_BUILD
-    gui_paint(devel_label_id);
-#endif
 }
 
 static int intro_buttn(int b, int d)
@@ -402,22 +420,13 @@ static void intro_timer(int id, float dt)
 
     char introattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(introattr, dstSize,
+    sprintf_s(introattr, MAXSTR,
 #else
     sprintf(introattr,
 #endif
             "gui/intro/%04d.jpg", iframe);
 
     gui_set_image(image_id, introattr);
-}
-
-static void intro_fade(float alpha)
-{
-    gui_set_alpha(image_id, alpha, 0);
-    gui_set_alpha(tip_id, alpha, GUI_ANIMATION_S_CURVE);
-#if DEVEL_BUILD
-    gui_set_alpha(devel_label_id, alpha, GUI_ANIMATION_N_CURVE);
-#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -469,7 +478,7 @@ static int intro_accn_disabled_enter(struct state *st, struct state *prev)
             gui_multi(jd,
                 _("We recently received a report for bad behaviour\\"
                   "by your account. Our moderators have reviewed in case\\"
-                  "and identified that goes against Neverball Community Standards."),
+                  "and identified that goes against Pennyball Community Standards."),
                 GUI_SML, gui_wht, gui_wht);
             gui_multi(jd,
                 _("Your account is permanently banned, which means\\"
@@ -738,7 +747,7 @@ static int intro_restore_gui(void)
             assert(restore_val_1 > -1);
             gfx_target_name = _("Antialiasing");
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(restore_attr, dstSize,
+            sprintf_s(restore_attr, MAXSTR,
 #else
             sprintf(restore_attr,
 #endif
@@ -775,7 +784,7 @@ static int intro_restore_gui(void)
 
         if (doubles) {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(restore_doubles, dstSize,
+            sprintf_s(restore_doubles, MAXSTR,
 #else
             sprintf(restore_doubles,
 #endif
@@ -789,7 +798,7 @@ static int intro_restore_gui(void)
         else
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(restore_singles, dstSize,
+            sprintf_s(restore_singles, MAXSTR,
 #else
             sprintf(restore_singles,
 #endif
@@ -1087,9 +1096,6 @@ static int screensaver_enter(struct state* st, struct state* prev)
     intro_done = 0;
     iframe = 0;
 
-#if DEVEL_BUILD
-    intro_create_devel_info();
-#endif
     game_client_init_studio(1);
 
     return 0;
@@ -1157,7 +1163,7 @@ struct state st_intro = {
     intro_buttn,
     NULL,
     NULL,
-    intro_fade
+    NULL
 };
 
 struct state st_intro_accn_disabled = {

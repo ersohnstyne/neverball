@@ -77,7 +77,7 @@
     _("Upgrade to Pro edition, to buy Mediation!")
 #define FAIL_UPGRADE_EDITION_2 _("Upgrade to Pro edition, to buy more balls!")
 
-#define FAIL_TRANSFER_MEMBER_1 _("Join Pennyball Discord, to buy more balls!")
+#define FAIL_TRANSFER_MEMBER_1 _("Join Pennyball Discord Server, to buy more balls!")
 
 /*---------------------------------------------------------------------------*/
 
@@ -294,7 +294,7 @@ static int fail_gui(void)
                     {
                         if (!campaign_hardcore())
                         {
-                            if (((last_time > 60.0f && last_timer_down) ||
+                            if (((last_timer > 60.0f && last_timer_down) ||
                                  !last_timer_down) &&
                                 progress_same_avail())
                             {
@@ -372,7 +372,7 @@ static int fail_gui(void)
                     {
                         if (!campaign_hardcore())
                         {
-                            if (((last_time > 60.0f && last_timer_down) ||
+                            if (((last_timer > 60.0f && last_timer_down) ||
                                  !last_timer_down) &&
                                 progress_same_avail())
                             {
@@ -430,7 +430,7 @@ static int fail_gui(void)
                     if (last_active)
                     {
                         /* Optional can be save */
-                        if (((last_time > 60.0f && last_timer_down) ||
+                        if (((last_timer > 60.0f && last_timer_down) ||
                             !last_timer_down) &&
                             progress_same_avail() && !campaign_hardcore())
                         {
@@ -478,7 +478,7 @@ static int fail_gui(void)
                 {
                     audio_music_fade_out(0.f);
                     audio_play(AUD_INTRO_SHATTER, 1.0f);
-                    gui_multi(jd, FAIL_TRANSFER_MEMBER, GUI_SML, gui_red, gui_red);
+                    gui_multi(jd, FAIL_TRANSFER_MEMBER_1, GUI_SML, gui_red, gui_red);
                 }
 #endif            
             }
@@ -527,7 +527,7 @@ static int fail_gui(void)
 
                 /* New: Checkpoints; An optional can be respawn last location */
                 if ((progress_same_avail() && last_active) &&
-                    ((last_time > 60.0f && last_timer_down) || !last_timer_down))
+                    ((last_timer > 60.0f && last_timer_down) || !last_timer_down))
                     gui_state(jd, _("Respawn"),
                                   GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
                 else if ((!campaign_hardcore() && progress_dead()) &&
@@ -548,7 +548,7 @@ static int fail_gui(void)
 
                 /* New: Checkpoints; An optional can be respawn last location */
                 if ((progress_same_avail() && last_active) &&
-                    ((last_time > 60.0f && last_timer_down) ||
+                    ((last_timer > 60.0f && last_timer_down) ||
                      !last_timer_down))
                     gui_state(jd, _("Respawn"),
                                   GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
@@ -975,7 +975,7 @@ static int ask_more_enter(struct state *st, struct state *prev)
             {
                 char coinsattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(coinsattr, dstSize,
+                sprintf_s(coinsattr, MAXSTR,
 #else
                 sprintf(coinsattr,
 #endif
@@ -987,7 +987,7 @@ static int ask_more_enter(struct state *st, struct state *prev)
             {
                 char gemsattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(gemsattr, dstSize,
+                sprintf_s(gemsattr, MAXSTR,
 #else
                 sprintf(gemsattr,
 #endif
@@ -1061,7 +1061,7 @@ static int ask_more_enter(struct state *st, struct state *prev)
             {
                 char gemsattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(gemsattr, dstSize,
+                sprintf_s(gemsattr, MAXSTR,
 #else
                 sprintf(gemsattr,
 #endif
@@ -1146,7 +1146,7 @@ static int ask_more_enter(struct state *st, struct state *prev)
                 char approveattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(approveattr, dstSize,
+                sprintf_s(approveattr, MAXSTR,
 #else
                 sprintf(approveattr,
 #endif
@@ -1407,7 +1407,7 @@ static int raise_gems_prepare_gui(void)
         else
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(infoattr0, dstSize,
+            sprintf_s(infoattr0, MAXSTR,
 #else
             sprintf(infoattr0,
 #endif
@@ -1460,7 +1460,7 @@ static int raise_gems_prepare_gui(void)
                         char paramattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(paramattr, dstSize,
+                        sprintf_s(paramattr, MAXSTR,
 #else
                         sprintf(paramattr,
 #endif
@@ -1488,7 +1488,7 @@ static int raise_gems_prepare_gui(void)
                     char coinaddattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(coinaddattr, dstSize,
+                    sprintf_s(coinaddattr, MAXSTR,
 #else
                     sprintf(coinaddattr,
 #endif
@@ -1500,7 +1500,7 @@ static int raise_gems_prepare_gui(void)
 
                 char elemattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(elemattr, dstSize,
+                sprintf_s(elemattr, MAXSTR,
 #else
                 sprintf(elemattr,
 #endif

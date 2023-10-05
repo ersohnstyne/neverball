@@ -36,7 +36,6 @@ extern int config_busy;
 
 /* Integer options. */
 
-extern int CONFIG_ACCOUNT_MAYHEM;
 extern int CONFIG_ACCOUNT_TUTORIAL;
 extern int CONFIG_ACCOUNT_HINT;
 extern int CONFIG_ACCOUNT_BEAM_STYLE;

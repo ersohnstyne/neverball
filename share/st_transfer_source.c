@@ -51,25 +51,25 @@
  *
  *     for (int i = 0; i < total; i++)
  *     {
- *         struct demo *demoplayable = (
- *             (struct demo *)((struct dir_item*)array_get(items, i))->data
+ *         struct demo *demo_data = (
+ *             (struct demo *) ((struct dir_item*) array_get(items, i))->data
  *         );
+ *
+ *          if (!demo_data)
+ *              continue;
  *
  *         int limit = config_get_d(CONFIG_ACCOUNT_LOAD);
  *         int max = 0;
  *
- *         if (demoplayable->status == 3) {
+ *         if (demo_data->status == 3)
  *             max = 3;
- *         }
- *         else if (demoplayable->status == 1 || demoplayable->status == 0) {
+ *         else if (demo_data->status == 1 || demo_data->status == 0)
  *             max = 2;
- *         }
- *         else if (demoplayable->status == 2) {
+ *         else if (demo_data->status == 2)
  *             max = 1;
- *         }
  *
  *         if (max <= limit)
- *             transfer_addreplay(demoplayable->path);
+ *             transfer_addreplay(demo_data->path);
  *         else
  *             transfer_addreplay_exceeded();
  *     }
@@ -192,7 +192,7 @@ static int show_transfer_completed = 0;
 
 static struct state* transfer_back;
 
-int transfer_introducory_gui(void)
+static int transfer_introducory_gui(void)
 {
     int id, jd;
 
@@ -250,7 +250,7 @@ int transfer_introducory_gui(void)
 }
 
 #pragma region preparing for transfer
-int transfer_prepare_gui(void)
+static int transfer_prepare_gui(void)
 {
     int id, jd;
 
@@ -303,7 +303,7 @@ int transfer_prepare_gui(void)
     return id;
 }
 
-int transfer_replay_gui(void)
+static int transfer_replay_gui(void)
 {
     int id, jd;
 
@@ -343,7 +343,7 @@ int transfer_replay_gui(void)
     return id;
 }
 
-int transfer_gui(void)
+static int transfer_gui(void)
 {
     int id, jd;
 
@@ -454,7 +454,7 @@ int transfer_gui(void)
                 if (transfer_walletamount[0] > 0 && transfer_walletamount[1])
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, dstSize,
+                    sprintf_s(wallet_infotext, MAXSTR,
 #else
                     sprintf(wallet_infotext,
 #endif
@@ -468,7 +468,7 @@ int transfer_gui(void)
                 else if (transfer_walletamount[1] > 0)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, dstSize,
+                    sprintf_s(wallet_infotext, MAXSTR,
 #else
                     sprintf(wallet_infotext,
 #endif
@@ -482,7 +482,7 @@ int transfer_gui(void)
                 else if (transfer_walletamount[0] > 0)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, dstSize,
+                    sprintf_s(wallet_infotext, MAXSTR,
 #else
                     sprintf(wallet_infotext,
 #endif
@@ -542,7 +542,7 @@ int transfer_gui(void)
 }
 #pragma endregion
 
-int transfer_completed_gui(void)
+static int transfer_completed_gui(void)
 {
     int id, jd;
 
@@ -790,7 +790,7 @@ static void (*transfer_request_addreplay_dispatch_event) (int status_limit);
 
 void transfer_addreplay_quit();
 
-void transfer_timer_preprocess_source(float dt)
+static void transfer_timer_preprocess_source(float dt)
 {
     FILE *external_file;
     __int64 lpFreeBytesAvailable, lpTotalNumberOfBytes, lpTotalNumberOfFreeBytes;
@@ -805,7 +805,7 @@ void transfer_timer_preprocess_source(float dt)
             switch (transfer_working)
             {
             case TRANSFER_WORKING_STATE_LOAD_EXTERNAL:
-                for (int i = -1; i < 24;)
+                for (int i = -1; i < 24 && current_drive_idx == -1;)
                 {
                     /* Skip scanning, if we have prepared on the target game */
                     if (current_drive_idx != -1 || i < 0)
@@ -959,10 +959,10 @@ void transfer_timer_preprocess_source(float dt)
     }
 }
 
-#define MAX_TRANSFER_FILES 512
+#define MAX_TRANSFER_FILES 1024
 
-char src_replayfilepath[MAX_TRANSFER_FILES][MAXSTR];
-int replayfilepath_count;
+static char src_replayfilepath[MAX_TRANSFER_FILES][MAXSTR];
+static int replayfilepath_count;
 
 struct account_transfer_value
 {
@@ -1000,9 +1000,9 @@ void transfer_reset_paths()
     }
 }
 
-int replay_transfer_prepare_scriptfile_opened = 0;
-FILE *replay_transfer_prepare_scriptfile;
-FILE *replay_transfer_process_scriptfile;
+static int replay_transfer_prepare_scriptfile_opened = 0;
+static FILE *replay_transfer_prepare_scriptfile;
+static FILE *replay_transfer_process_scriptfile;
 
 void transfer_addreplay_quit()
 {
@@ -1079,7 +1079,7 @@ void transfer_addreplay(const char *path)
 
     char outfile[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    strcpy_s(outfile, dstSize, path);
+    strcpy_s(outfile, MAXSTR, path);
 #else
     strcpy(outfile, path);
 #endif
@@ -1104,7 +1104,7 @@ void transfer_addreplay(const char *path)
     replayfilepath_count++;
 }
 
-void transfer_addreplay_exceeded()
+void transfer_addreplay_exceeded(void)
 {
     replayfilepath_exceed_found++;
 }
@@ -1199,7 +1199,7 @@ void transfer_timer_process_source(float dt)
                     SAFECPY(account_transfer_values_source.player, account_transfer_get_s(ACCOUNT_TRANSFER_PLAYER));
                     SAFECPY(account_transfer_values_source.ball_file, account_transfer_get_s(ACCOUNT_TRANSFER_BALL_FILE));
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(outwallet_result_csv, dstSize,
+                    sprintf_s(outwallet_result_csv, MAXSTR,
 #else
                     sprintf(outwallet_result_csv,
 #endif
@@ -1445,7 +1445,7 @@ static int transfer_enter_source(struct state *st, struct state *prev)
     return 0;
 }
 
-void transfer_leave(struct state *st, struct state *next, int id)
+static void transfer_leave(struct state *st, struct state *next, int id)
 {
     conf_common_leave(st, next, id);
     if (transfer_process == 1)
@@ -1455,7 +1455,7 @@ void transfer_leave(struct state *st, struct state *next, int id)
 
 /*---------------------------------------------------------------------------*/
 
-void transfer_timer(int id, float dt)
+static void transfer_timer(int id, float dt)
 {
     gui_timer(id, dt);
 
@@ -1479,7 +1479,7 @@ void transfer_timer(int id, float dt)
     }
 }
 
-void transfer_paint(int id, float t)
+static void transfer_paint(int id, float t)
 {
     video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
     {
@@ -1490,7 +1490,7 @@ void transfer_paint(int id, float t)
     gui_paint(id);
 }
 
-int transfer_click(int c, int d)
+static int transfer_click(int c, int d)
 {
     if (gui_click(c, d))
     {
@@ -1500,7 +1500,7 @@ int transfer_click(int c, int d)
     return 1;
 }
 
-int transfer_buttn(int b, int d)
+static int transfer_buttn(int b, int d)
 {
     if (d)
     {
@@ -1512,7 +1512,7 @@ int transfer_buttn(int b, int d)
     return 1;
 }
 
-void transfer_fade(float alpha)
+static void transfer_fade(float alpha)
 {
     transfer_alpha = alpha;
 }

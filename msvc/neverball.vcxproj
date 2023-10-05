@@ -354,6 +354,7 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClInclude Include="..\ball\st_over.h" />
     <ClInclude Include="..\ball\st_pause.h" />
     <ClInclude Include="..\ball\st_play.h" />
+    <ClInclude Include="..\ball\st_play_sync.h" />
     <ClInclude Include="..\ball\st_playmodes.h" />
     <ClInclude Include="..\ball\st_save.h" />
     <ClInclude Include="..\ball\st_set.h" />

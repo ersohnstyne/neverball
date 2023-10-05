@@ -94,8 +94,8 @@ static int switchball_useable(void)
         && k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
         return 1;
     else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-        && k_caml == SDLK_d && k_camr == SDLK_a
-        && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
+             && k_caml == SDLK_d && k_camr == SDLK_a
+             && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
         return 1;
 
     /*
@@ -116,7 +116,7 @@ static int init_title_level(void)
 
     if (switchball_useable())
     {
-        if (game_client_init("gui/switchball-title.sol"))
+        if (game_client_init("gui/title/switchball-title.sol"))
         {
             union cmd cmd;
 
@@ -129,7 +129,7 @@ static int init_title_level(void)
             return 1;
         }
     }
-    else if (game_client_init("gui/title.sol"))
+    else if (game_client_init("gui/title/title.sol"))
     {
         union cmd cmd;
 
@@ -156,15 +156,12 @@ static const char *check_unlocked_demo(struct demo *rawdemo)
     int limit = config_get_d(CONFIG_ACCOUNT_LOAD);
     int max = 0;
 
-    if (rawdemo->status == 3) {
+    if (rawdemo->status == 3)
         max = 3;
-    }
-    else if (rawdemo->status == 1 || rawdemo->status == 0) {
+    else if (rawdemo->status == 1 || rawdemo->status == 0)
         max = 2;
-    }
-    else if (rawdemo->status == 2) {
+    else if (rawdemo->status == 2)
         max = 1;
-    }
 
     /* Can access into the replay? */
     return (max <= limit) ? rawdemo->path : NULL;
@@ -176,8 +173,8 @@ static const char *pick_demo(Array items)
 {
     struct dir_item *item;
 
-#pragma region ReplaySuperComplexityCode
-    /* With super complexity code in replay */
+    /* Super complexity demo logic */
+
     if (config_get_d(CONFIG_ACCOUNT_LOAD) != 3)
     {
         int total = array_len(items);
@@ -189,35 +186,31 @@ static const char *pick_demo(Array items)
             demo_dir_load(items, 0, total - 1);
         }
 
-        struct demo *demoplayable;
-        demoplayable = ((struct demo *) ((struct dir_item *) array_get(items, selectedDemo))->data);
+        struct demo *demo_data = ((struct demo *) ((struct dir_item *) array_get(items, selectedDemo))->data);
 #if defined(COVID_HIGH_RISK)
-        const char *demopath = check_unlocked_demo(demoplayable);
+        const char *demopath = check_unlocked_demo(demo_data);
         if (demopath)
             return demopath;
         else
         {
             log_errorf("Replay files deleted due covid high risks!: %s", 
-                       demoplayable->path);
+                       demo_data->path);
             demo_is_loaded = 0;
-            fs_remove(demoplayable->path);
+            fs_remove(demo_data->path);
             demo_dir_free(items);
             items = NULL;
             return NULL;
         }
 #else
-        return check_unlocked_demo(demoplayable);
+        return check_unlocked_demo(demo_data);
 #endif
     }
-#pragma endregion
 
     /* All replay status */
 
     if ((item = (struct dir_item *) array_rnd(items)))
-    {
-        //trg_item = item;
         return item->path;
-    }
+
     return NULL;
 }
 
@@ -445,9 +438,9 @@ static int title_action(int tok, int val)
 
 #if ENABLE_RFD==1
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(dev_env, dstSize, _("RFD Edition / %s"),
+        sprintf_s(dev_env, MAXSTR, _("RFD Edition / %s"),
                  _("Developer Mode"));
-        sprintf_s(os_env, dstSize, _("Recipes for Disaster Edition"));
+        sprintf_s(os_env, MAXSTR, _("Recipes for Disaster Edition"));
 #else
         sprintf(dev_env, _("RFD Edition / %s"), _("Developer Mode"));
         sprintf(os_env, _("Recipes for Disaster Edition"));
@@ -458,9 +451,9 @@ static int title_action(int tok, int val)
         if (server_policy_get_d(SERVER_POLICY_EDITION) == 10002)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, dstSize, _("Server Datacenter / %s"),
+            sprintf_s(dev_env, MAXSTR, _("Server Datacenter / %s"),
                      _("Developer Mode"));
-            sprintf_s(os_env, dstSize, _("Server Datacenter Edition"));
+            sprintf_s(os_env, MAXSTR, _("Server Datacenter Edition"));
 #else
             sprintf(dev_env, _("Server Datacenter / %s"), _("Developer Mode"));
             sprintf(os_env, _("Server Datacenter Edition"));
@@ -469,9 +462,9 @@ static int title_action(int tok, int val)
         else if (server_policy_get_d(SERVER_POLICY_EDITION) == 10001)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, dstSize, _("Server Standard / %s"),
+            sprintf_s(dev_env, MAXSTR, _("Server Standard / %s"),
                       _("Developer Mode"));
-            sprintf_s(os_env, dstSize, _("Server Standard Edition"));
+            sprintf_s(os_env, MAXSTR, _("Server Standard Edition"));
 #else
             sprintf(dev_env, _("Server Standard / %s"), _("Developer Mode"));
             sprintf(os_env, _("Server Standard Edition"));
@@ -480,9 +473,9 @@ static int title_action(int tok, int val)
         else if (server_policy_get_d(SERVER_POLICY_EDITION) == 10000)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, dstSize, _("Server Essential / %s"),
+            sprintf_s(dev_env, MAXSTR, _("Server Essential / %s"),
                       _("Developer Mode"));
-            sprintf_s(os_env, dstSize, _("Server Essential Edition"));
+            sprintf_s(os_env, MAXSTR, _("Server Essential Edition"));
 #else
             sprintf(dev_env, _("Server Essential / %s"), _("Developer Mode"));
             sprintf(os_env, _("Server Essential Edition"));
@@ -491,9 +484,9 @@ static int title_action(int tok, int val)
         else if (server_policy_get_d(SERVER_POLICY_EDITION) == 3)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, dstSize, _("Edu Edition / %s"),
+            sprintf_s(dev_env, MAXSTR, _("Edu Edition / %s"),
                       _("Developer Mode"));
-            sprintf_s(os_env, dstSize, _("Edu Edition"));
+            sprintf_s(os_env, MAXSTR, _("Edu Edition"));
 #else
             sprintf(dev_env, _("Edu Edition / %s"), _("Developer Mode"));
             sprintf(os_env, _("Edu Edition"));
@@ -502,9 +495,9 @@ static int title_action(int tok, int val)
         else if (server_policy_get_d(SERVER_POLICY_EDITION) == 2)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, dstSize, _("Enterprise Edition / %s"), 
+            sprintf_s(dev_env, MAXSTR, _("Enterprise Edition / %s"),
                       _("Developer Mode"));
-            sprintf_s(os_env, dstSize, _("Enterprise Edition"));
+            sprintf_s(os_env, MAXSTR, _("Enterprise Edition"));
 #else
             sprintf(dev_env, _("Enterprise Edition / %s"), _("Developer Mode"));
             sprintf(os_env, _("Enterprise Edition"));
@@ -513,9 +506,9 @@ static int title_action(int tok, int val)
         else if (server_policy_get_d(SERVER_POLICY_EDITION) == 1)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, dstSize, _("Pro Edition / %s"),
+            sprintf_s(dev_env, MAXSTR, _("Pro Edition / %s"),
                       _("Developer Mode"));
-            sprintf_s(os_env, dstSize, _("Pro Edition"));
+            sprintf_s(os_env, MAXSTR, _("Pro Edition"));
 #else
             sprintf(dev_env, _("Pro Edition / %s"), _("Developer Mode"));
             sprintf(os_env, _("Pro Edition"));
@@ -524,9 +517,9 @@ static int title_action(int tok, int val)
         else if (server_policy_get_d(SERVER_POLICY_EDITION) == 0)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, dstSize, _("Home Edition / %s"),
+            sprintf_s(dev_env, MAXSTR, _("Home Edition / %s"),
                       _("Developer Mode"));
-            sprintf_s(os_env, dstSize, _("Home Edition"));
+            sprintf_s(os_env, MAXSTR, _("Home Edition"));
 #else
             sprintf(dev_env, _("Home Edition / %s"), _("Developer Mode"));
             sprintf(os_env, _("Home Edition"));
@@ -536,9 +529,9 @@ static int title_action(int tok, int val)
 
 #if ENABLE_RFD==1
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(dev_env, dstSize, _("RFD Edition / %s"),
+        sprintf_s(dev_env, MAXSTR, _("RFD Edition / %s"),
                  _("Developer Mode"));
-        sprintf_s(os_env, dstSize, _("Recipes for Disaster Edition"));
+        sprintf_s(os_env, MAXSTR, _("Recipes for Disaster Edition"));
 #else
         sprintf(dev_env, _("RFD Edition / %s"), _("Developer Mode"));
         sprintf(os_env, _("Recipes for Disaster Edition"));
@@ -575,8 +568,8 @@ static void title_create_versions(void)
     const char *gameversion = VERSION;
 
     system_version_build_id = gui_label(0, gameversion,
-                                           GUI_SML, gui_wht, gui_wht);
-    copyright_id = gui_label(0, "© PennyGames", GUI_SML, gui_wht, gui_wht);
+                                           GUI_TNY, gui_wht, gui_wht);
+    copyright_id = gui_label(0, "© Neverball Authors", GUI_TNY, gui_wht, gui_wht);
 
     gui_set_rect(system_version_build_id, GUI_NW);
     gui_layout(system_version_build_id, 1, -1);
@@ -947,7 +940,7 @@ static int title_enter(struct state *st, struct state *prev)
 
     if (switchball_useable() && init_title_level())
         mode = TITLE_MODE_LEVEL;
-    else if (demo_replay_init("gui/title-l.nbr",
+    else if (demo_replay_init("gui/title/title-l.nbr",
                               NULL,
                               NULL,
                               NULL,

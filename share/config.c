@@ -41,7 +41,6 @@ int config_busy = 0;
 
 /* Integer options. */
 
-int CONFIG_ACCOUNT_MAYHEM;
 int CONFIG_ACCOUNT_TUTORIAL;
 int CONFIG_ACCOUNT_HINT;
 int CONFIG_ACCOUNT_BEAM_STYLE;
@@ -196,7 +195,6 @@ static struct
     const int   def;
     int         cur;
 } option_d[] = {
-    { &CONFIG_ACCOUNT_MAYHEM,          "mayhem",                 0 },
     { &CONFIG_ACCOUNT_TUTORIAL,        "tutorial",               1 },
     { &CONFIG_ACCOUNT_HINT,            "hint",                   1 },
     { &CONFIG_ACCOUNT_BEAM_STYLE,      "beam_style",             0 },
@@ -497,6 +495,42 @@ void config_load(void)
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
 
     const char *filename = USER_CONFIG_FILE;
+
+    /* Replace preferences.txt or globalsettings.txt to neverballrc */
+
+    if (fs_exists("preferences.txt"))
+    {
+        if (fs_rename("preferences.txt", USER_CONFIG_FILE) == 0)
+        {
+            log_errorf("Can't replace filename!: %s\n", fs_error());
+            exit(1);
+            return;
+        }
+    }
+    else if (fs_exists("globalsettings.txt"))
+    {
+        if (fs_rename("globalsettings.txt", USER_CONFIG_FILE) == 0)
+        {
+            log_errorf("Can't replace filename!: %s\n", fs_error());
+            exit(1);
+            return;
+        }
+    }
+
+    /*
+     * Take out the text file types for global settings,
+     * if "*ballrc.txt" was associated.
+     */
+
+    else if (fs_exists(USER_CONFIG_FILE ".txt"))
+    {
+        if (fs_rename(USER_CONFIG_FILE ".txt", USER_CONFIG_FILE) == 0)
+        {
+            log_errorf("Can't take out file types!: %s\n", fs_error());
+            exit(1);
+            return;
+        }
+    }
 
     if (!config_is_init)
     {

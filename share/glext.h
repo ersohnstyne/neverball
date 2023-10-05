@@ -358,7 +358,7 @@ int glext_init(void);
 #define glIsBuffer_            glIsBuffer
 #define glPointParameterfv_    glPointParameterfv
 
-#define glOrtho_               glOrthofOES
+#define glOrtho_               glOrthof
 
 #define glStringMarker_(s) ((void) (s))
 

@@ -665,6 +665,10 @@ ifeq ($(EDITION),education)
 BALL_OBJS += share/networking_education.o
 PUTT_OBJS += share/networking_education.o
 else
+ifeq ($(EDITION),server_essentials)
+BALL_OBJS += share/networking_srv_essentials.o
+PUTT_OBJS += share/networking_srv_essentials.o
+else
 ifeq ($(EDITION),server_standard)
 BALL_OBJS += share/networking_srv_standard.o
 PUTT_OBJS += share/networking_srv_standard.o
@@ -675,6 +679,7 @@ PUTT_OBJS += share/networking_srv_datacenter.o
 else
 BALL_OBJS += share/networking_opensource.o
 PUTT_OBJS += share/networking_opensource.o
+endif
 endif
 endif
 endif

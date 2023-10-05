@@ -137,7 +137,7 @@ static int over_gui_hardcore(void)
         }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(hardcore_report, dstSize,
+        sprintf_s(hardcore_report, MAXSTR,
 #else
         sprintf(hardcore_report,
 #endif

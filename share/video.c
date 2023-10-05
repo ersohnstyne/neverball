@@ -437,33 +437,13 @@ video_mode_reconf:
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, samples);
 
     /*
-     * Optional 16-bit double buffer with 16-bit depth buffer.
+     * Require 16-bit double buffer with 16-bit depth buffer.
      */
 
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   5);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  5);
-
-    // TODO: Uncomment, if you want to set the required buffer.
-
-    // Default RGB size: 5
-    // TODO: Either 5 (16-bit) or 8 (32-bit)
-    int rgb_size_fixed = 5;
-    /*
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
-
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-
-    if (rgb_size_fixed * 3 < 16)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-    else if (rgb_size_fixed * 3 < 32)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-    else if (rgb_size_fixed * 3 < 64)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 64);
-    */
-
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     5);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   5);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    5);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   16);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     /* Try to set the currently specified mode. */
@@ -590,7 +570,8 @@ video_mode_reconf:
         config_set_d(CONFIG_DISPLAY,    video_display());
         config_set_d(CONFIG_FULLSCREEN, f);
 
-        SDL_GL_SetSwapInterval(vsync);
+        if (SDL_GL_SetSwapInterval(vsync) != 0)
+            config_set_d(CONFIG_VSYNC, 0);
 
         if (!glext_init())
             return 0;
@@ -610,7 +591,7 @@ video_mode_reconf:
                       GL_SEPARATE_SPECULAR_COLOR);
 #endif
 
-        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glPixelStorei(GL_PACK_ALIGNMENT,   1);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -623,6 +604,7 @@ video_mode_reconf:
             SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buffers);
             if (buffers) glEnable(GL_MULTISAMPLE);
         }
+        else config_set_d(CONFIG_MULTISAMPLE, 0);
 
         /* Set up HMD display if requested. */
 
@@ -840,33 +822,13 @@ video_mode_auto_config_reconf:
     int smp_ok = SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, auto_samples);
 
     /*
-     * Optional 16-bit double buffer with 16-bit depth buffer.
+     * Require 16-bit double buffer with 16-bit depth buffer.
      */
 
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   5);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  5);
-
-    // TODO: Uncomment, if you want to set the required buffer.
-
-    // Default RGB size: 5
-    // TODO: Either 5 (16-bit) or 8 (32-bit)
-    int rgb_size_fixed = 5;
-    /*
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
-
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-
-    if (rgb_size_fixed * 3 < 16)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-    else if (rgb_size_fixed * 3 < 32)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-    else if (rgb_size_fixed * 3 < 64)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 64);
-    */
-
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     5);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   5);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    5);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   16);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     log_printf("Creating a window (%dx%d, %s (auto configuration))\n",
@@ -1025,14 +987,16 @@ video_mode_auto_config_reconf:
 #endif
 
         log_printf("Created a window (%u, %dx%d, %s (auto configuration))\n",
-            SDL_GetWindowID(window),
-            w, h,
-            (f ? "fullscreen" : "windowed"));
+                   SDL_GetWindowID(window),
+                   w, h,
+                   (f ? "fullscreen" : "windowed"));
 
-        config_set_d(CONFIG_DISPLAY, video_display());
+        config_set_d(CONFIG_DISPLAY,    video_display());
         config_set_d(CONFIG_FULLSCREEN, f);
 
-        if (SDL_GL_SetSwapInterval(1) == -1) return 0;
+        if (SDL_GL_SetSwapInterval(1) == -1)
+            return 0;
+
         config_set_d(CONFIG_VSYNC, 1);
 
         if (!glext_init())
@@ -1053,7 +1017,7 @@ video_mode_auto_config_reconf:
                       GL_SEPARATE_SPECULAR_COLOR);
 #endif
 
-        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glPixelStorei(GL_PACK_ALIGNMENT,   1);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1067,6 +1031,7 @@ video_mode_auto_config_reconf:
             SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buffers);
             if (buffers) glEnable(GL_MULTISAMPLE);
         }
+        else config_set_d(CONFIG_MULTISAMPLE, 0);
 
         /* Set up HMD display if requested. */
 
@@ -1086,15 +1051,15 @@ video_mode_auto_config_reconf:
 
         /* Set it back for recommended configurations. */
 
-        config_set_d(CONFIG_TEXTURES, 1);
-        config_set_d(CONFIG_SHADOW, 1);
+        config_set_d(CONFIG_TEXTURES,   1);
+        config_set_d(CONFIG_SHADOW,     1);
         config_set_d(CONFIG_BACKGROUND, 1);
 #ifdef GL_GENERATE_MIPMAP_SGIS
-        config_set_d(CONFIG_MIPMAP, 1);
+        config_set_d(CONFIG_MIPMAP,     1);
 #endif
 #if defined(GL_TEXTURE_MAX_ANISOTROPY_EXT) && \
     GL_TEXTURE_MAX_ANISOTROPY_EXT != 0 && GL_TEXTURE_MAX_ANISOTROPY_EXT != -1
-        config_set_d(CONFIG_ANISO, 2);
+        config_set_d(CONFIG_ANISO,      2);
 #endif
 
         /* Recenter the cursor back in full screen mode. */

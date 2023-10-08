@@ -48,12 +48,13 @@
 /share/*.c.txt
 /share/*.cpp.txt
 
-# Runtime
+# Windows Runtime
 /*.bat
 /*.dll
 /*.exe
 /contrib/*.exe
 
+# Unix / Linux Runtime
 /neverball
 /neverputt
 /mapc

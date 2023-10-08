@@ -300,6 +300,7 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClCompile Include="..\share\package.c" />
     <ClCompile Include="..\share\part.c" />
     <ClCompile Include="..\share\queue.c" />
+    <ClCompile Include="..\share\rfd.c" />
     <ClCompile Include="..\share\solid_all.c" />
     <ClCompile Include="..\share\solid_base.c" />
     <ClCompile Include="..\share\solid_draw.c" />
@@ -406,6 +407,7 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClInclude Include="..\share\package.h" />
     <ClInclude Include="..\share\part.h" />
     <ClInclude Include="..\share\queue.h" />
+    <ClInclude Include="..\share\rfd.h" />
     <ClInclude Include="..\share\solid_all.h" />
     <ClInclude Include="..\share\solid_base.h" />
     <ClInclude Include="..\share\solid_chkp.h" />

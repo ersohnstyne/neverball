@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,7 +12,11 @@
  * General Public License for more details.
  */
 
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
+#else
 #include <SDL.h>
+#endif
 #include <math.h>
 
 #include "glext.h"
@@ -56,6 +60,18 @@ static float jump_dt;                   /* Jump duration                     */
 static float jump_p[3];                 /* Jump destination                  */
 
 static float idle_t;                    /* Idling timeout                    */
+
+static int enable_force_timeout;
+
+// Move timeout after stop.
+// Maximum move timeout is up to 70 SECONDS!!!
+static float roll_force_timeout;
+
+static int   personal_respawnable = 0;
+static float personal_respawnable_view_c[3];
+static float personal_respawnable_view_p[3];
+
+static int path_enabled_orcondition[1024];
 
 /*---------------------------------------------------------------------------*/
 
@@ -102,6 +118,9 @@ int game_init(const char *s)
 
     sol_init_sim(&file.vary);
 
+    for (int i = 0; i < file.vary.xc; i++)
+        path_enabled_orcondition[i] = file.vary.xv->f;
+
     for (i = 0; i < file.base.dc; i++)
     {
         const char *k = file.base.av + file.base.dv[i].ai;
@@ -120,6 +139,7 @@ int game_init(const char *s)
 
 void game_free(void)
 {
+    personal_respawnable = 0;
     sol_quit_sim();
     sol_free_full(&file);
 }
@@ -130,6 +150,7 @@ static void game_draw_vect(struct s_rend *rend, const struct s_vary *fp)
 {
     if (view_m > 0.f)
     {
+        glDisable(GL_LIGHTING);
         glPushMatrix();
         {
             glTranslatef(fp->uv[ball].p[0],
@@ -142,6 +163,7 @@ static void game_draw_vect(struct s_rend *rend, const struct s_vary *fp)
             vect_draw(rend);
         }
         glPopMatrix();
+        glEnable(GL_LIGHTING);
     }
 }
 
@@ -224,6 +246,7 @@ static void game_draw_flags(struct s_rend *rend, const struct s_base *fp)
 static void game_draw_beams(struct s_rend *rend, const struct s_base *bp,
                                                  const struct s_vary *vp)
 {
+    static const GLfloat goal_c[4]       =   { 1.0f, 1.0f, 0.0f, 0.5f };
     static const GLfloat jump_c[2][4]    =  {{ 0.7f, 0.5f, 1.0f, 0.5f },
                                              { 0.7f, 0.5f, 1.0f, 0.8f }};
     static const GLfloat swch_c[2][2][4] = {{{ 1.0f, 0.0f, 0.0f, 0.5f },
@@ -232,6 +255,12 @@ static void game_draw_beams(struct s_rend *rend, const struct s_base *bp,
                                              { 0.0f, 1.0f, 0.0f, 0.8f }}};
 
     int i;
+
+    /* Goal beams */
+
+    /*for (i = 0; i < bp->zc; i++)
+        beam_draw(rend, bp->zv[i].p, goal_c,
+                        bp->zv[i].r, 3.0f);*/
 
     /* Jump beams */
 
@@ -290,6 +319,12 @@ void game_draw(int pose, float t)
     video_push_persp(fov, 0.1f, FAR_DIST);
     glPushMatrix();
     {
+#if defined(ENABLE_EARTHQUAKE)
+        // Camera shake?
+        float shake_intensity = 15;
+        glRotatef(1.0f, rand_between(-shake_intensity, shake_intensity), rand_between(-shake_intensity, shake_intensity), rand_between(-shake_intensity, shake_intensity));
+#endif
+
         float T[16], M[16], v[3], c[3];
 
         /* In VR, move the view center up to keep the viewer level. */
@@ -335,12 +370,14 @@ void game_draw(int pose, float t)
             game_draw_vect(&rend, fp->vary);
         }
 
+        glDisable(GL_LIGHTING);
         glDepthMask(GL_FALSE);
         {
             game_draw_flags(&rend, fp->base);
             game_draw_beams(&rend, fp->base, fp->vary);
         }
         glDepthMask(GL_TRUE);
+        glEnable(GL_LIGHTING);
 
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     }
@@ -398,10 +435,7 @@ void game_update_view(float dt)
 
     /* Orthonormalize the basis of the view in its new position. */
 
-    v_crs(view_e[0], view_e[1], view_e[2]);
-    v_crs(view_e[2], view_e[0], view_e[1]);
-    v_nrm(view_e[0], view_e[0]);
-    v_nrm(view_e[2], view_e[2]);
+    e_orthonrm_xz(view_e);
 
     /* The current view (dy, dz) approaches the ideal (view_dy, view_dz). */
 
@@ -431,7 +465,10 @@ static int game_update_state(float dt)
     float p[3];
 
     if (dt > 0.f)
+    {
         t += dt;
+        roll_force_timeout += dt;
+    }
     else
         t = 0.f;
 
@@ -460,7 +497,17 @@ static int game_update_state(float dt)
     /* Test for fall-out. */
 
     if (file.base.vc == 0 || fp->uv[ball].p[1] < file.base.vv[0].p[1])
+    {
+        /*
+         * NOTE: On most view system, rendering requires interpolation
+         * for the last position and orientation.
+         */
+        v_cpy(personal_respawnable_view_p, view_p);
+        v_cpy(personal_respawnable_view_c, view_c);
+        personal_respawnable = 1;
+
         return GAME_FALL;
+    }
 
     /* Test for a goal or stop. */
 
@@ -470,8 +517,9 @@ static int game_update_state(float dt)
         return GAME_GOAL;
     }
 
-    if (t > idle_t)
+    if (t > idle_t && roll_force_timeout > 70.0f)
     {
+        roll_force_timeout = 0.f;
         t = 0.f;
         return GAME_STOP;
     }
@@ -553,12 +601,18 @@ int game_step(const float g[3], float dt)
             audio_play(AUD_BUMP, (b - 0.5f) * 2.0f);
     }
 
+    if (fp->uv[ball].v[0] == 0.0f && fp->uv[ball].v[2] == 0.0f)
+        enable_force_timeout = 1;
+
     game_update_view(dt);
     return game_update_state(st);
 }
 
 void game_putt(void)
 {
+    enable_force_timeout = 1;
+    roll_force_timeout = 0;
+
     /*
      * HACK: The BALL_FUDGE here  guarantees that a putt doesn't drive
      * the ball  too directly down  toward a lump,  triggering rolling
@@ -568,6 +622,17 @@ void game_putt(void)
     file.vary.uv[ball].v[0] = -4.f * view_e[2][0] * view_m;
     file.vary.uv[ball].v[1] = -4.f * view_e[2][1] * view_m + BALL_FUDGE;
     file.vary.uv[ball].v[2] = -4.f * view_e[2][2] * view_m;
+
+    /* Trying to shot the ball upwards */
+    switch (curr_stroke_type())
+    {
+    case 3:
+        file.vary.uv[ball].v[1] += 0.5f * (view_m * 0.7f); break;
+    case 2:
+        file.vary.uv[ball].v[1] += 0.9f * (view_m * 0.7f); break;
+    case 1:
+        file.vary.uv[ball].v[1] += 1.3f * (view_m * 0.7f); break;
+    }
 
     view_m = 0.f;
 }
@@ -588,8 +653,17 @@ void game_set_mag(int d)
 {
     view_m -= (float) (1.f * d) / config_get_d(CONFIG_MOUSE_SENSE);
 
-    if (view_m < 0.25f)
-        view_m = 0.25f;
+    switch (curr_stroke_type())
+    {
+    case 3:
+        view_m = CLAMP(.25f, view_m, 2.25f); break;
+    case 2:
+        view_m = CLAMP(.25f, view_m, 2.f); break;
+    case 1:
+        view_m = CLAMP(.25f, view_m, 1.75f); break;
+    default:
+        view_m = CLAMP(.25f, view_m, 1.5f);
+    }
 }
 
 void game_set_fly(float k)
@@ -638,10 +712,21 @@ void game_set_fly(float k)
 
     /* k = +1.0 view is s_view 0 */
 
-    if (k >= 0 && fp->base->wc > 0)
+    if (personal_respawnable)
     {
-        v_cpy(p1, fp->base->wv[0].p);
-        v_cpy(c1, fp->base->wv[0].q);
+        if (k >= 0 && fp->base->wc > 0)
+        {
+            v_cpy(p1, personal_respawnable_view_p);
+            v_cpy(c1, personal_respawnable_view_c);
+        }
+    }
+    else
+    {
+        if (k >= 0 && fp->base->wc > 0)
+        {
+            v_cpy(p1, fp->base->wv[0].p);
+            v_cpy(c1, fp->base->wv[0].q);
+        }
     }
 
     /* k = -1.0 view is s_view 1 */
@@ -663,16 +748,15 @@ void game_set_fly(float k)
     /* Orthonormalize the view basis. */
 
     v_sub(view_e[2], view_p, view_c);
-    v_crs(view_e[0], view_e[1], view_e[2]);
-    v_crs(view_e[2], view_e[0], view_e[1]);
-    v_nrm(view_e[0], view_e[0]);
-    v_nrm(view_e[2], view_e[2]);
+    e_orthonrm_xz(view_e);
 
     view_a = V_DEG(fatan2f(view_e[2][0], view_e[2][2]));
 }
 
 void game_ball(int i)
 {
+    enable_force_timeout = 1;
+
     int ui;
 
     ball = i;

@@ -1,40 +1,55 @@
 /*
- *  Copyright (C) 2007  Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
- *  This  program is  free software;  you can  redistribute  it and/or
- *  modify it  under the  terms of the  GNU General Public  License as
- *  published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
  *
- *  This program  is distributed in the  hope that it  will be useful,
- *  but  WITHOUT ANY WARRANTY;  without even  the implied  warranty of
- *  MERCHANTABILITY or FITNESS FOR  A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a  copy of the GNU General Public License
- *  along  with this  program;  if  not, write  to  the Free  Software
- *  Foundation,  Inc.,   59  Temple  Place,  Suite   330,  Boston,  MA
- *  02111-1307 USA
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
  */
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS && !_MSC_VER
+#include <sec_api/stdlib_s.h>
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <ctype.h>
-#include <stdarg.h>
 #include <assert.h>
 
+#include <sys/stat.h>
+#if _WIN32
+#if !defined(_MSC_VER)
+#error This was already done with GetFileAttributesA or using OpenDriveAPI. \
+       Install Visual Studio 2022 Community or later version to build it there. \
+       === OR === \
+       Download using the OpenDriveAPI project: \
+       https://1drv.ms/u/s!Airrmyu6L5eynGj7HtYcQU_0ERtA?e=9XU5Zp
+#else
+#pragma message("Using directory list for code compilation: Microsoft Visual Studio")
+#endif
+#else
 /*
- * No platform checking, relying on MinGW to provide.
+ * Relying on MinGW to provide, that uses from GetFileAttributes.
  */
-#include <sys/stat.h> /* stat() */
 #include <unistd.h>   /* access() */
+#endif
 
 #include "common.h"
 #include "fs.h"
 
-#define MAXSTR 256
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -42,7 +57,7 @@ int read_line(char **dst, fs_file fin)
 {
     char buff[MAXSTR];
 
-    char *line, *new;
+    char *line, *newLine;
     size_t len0, len1;
 
     line = NULL;
@@ -53,14 +68,12 @@ int read_line(char **dst, fs_file fin)
 
         if (line)
         {
-            new  = concat_string(line, buff, NULL);
+            newLine = concat_string(line, buff, NULL);
             free(line);
-            line = new;
+            line = newLine;
         }
         else
-        {
             line = strdup(buff);
-        }
 
         /* Strip newline, if any. */
 
@@ -71,13 +84,25 @@ int read_line(char **dst, fs_file fin)
         if (len1 != len0)
         {
             /* We hit a newline, clean up and break. */
-            line = realloc(line, len1 + 1);
+            line = (char *) realloc(line, len1 + 1);
             break;
         }
     }
 
     return (*dst = line) ? 1 : 0;
 }
+
+#if UNICODE
+wchar_t *wcsip_newline(wchar_t *wstr)
+{
+    wchar_t *c = wstr + wcslen(wstr) - 1;
+
+    while (c >= wstr && (*c == L'\n' || *c == L'\r'))
+        *c-- = L'\0';
+
+    return wstr;
+}
+#endif
 
 char *strip_newline(char *str)
 {
@@ -89,19 +114,41 @@ char *strip_newline(char *str)
     return str;
 }
 
+#if !_MSC_VER || _NONSTDC
+#if UNICODE
+wchar_t *dupe_wstring(const wchar_t *src)
+{
+    wchar_t *dst = NULL;
+
+    if (src && (dst = (wchar_t *) malloc(wcslen(src) + 1)))
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        wcscpy_s(dst, wcslen(src) + 1, src);
+#else
+        wcscpy(dst, src);
+#endif
+
+    return dst;
+}
+#endif
+
 char *dupe_string(const char *src)
 {
     char *dst = NULL;
 
-    if (src && (dst = malloc(strlen(src) + 1)))
+    if (src && (dst = (char *) malloc(strlen(src) + 1)))
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        strcpy_s(dst, strlen(src) + 1, src);
+#else
         strcpy(dst, src);
+#endif
 
     return dst;
 }
+#endif
 
 char *concat_string(const char *first, ...)
 {
-    char *full;
+    char *full = NULL;
 
     if ((full = strdup(first)))
     {
@@ -114,10 +161,16 @@ char *concat_string(const char *first, ...)
         {
             char *new;
 
-            if ((new = realloc(full, strlen(full) + strlen(part) + 1)))
+            if (!part) continue;
+
+            if ((new = (char *) realloc(full, strlen(full) + strlen(part) + 1)))
             {
                 full = new;
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                strcat_s(full, strlen(full) + strlen(part) + 1, part);
+#else
                 strcat(full, part);
+#endif
             }
             else
             {
@@ -135,45 +188,71 @@ char *concat_string(const char *first, ...)
 
 time_t make_time_from_utc(struct tm *tm)
 {
-    struct tm local, *utc;
+    struct tm local, utc;
     time_t t;
 
     t = mktime(tm);
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    localtime_s(&local, &t);
+    gmtime_s   (&utc, &t);
+#else
     local = *localtime(&t);
-    utc   =  gmtime(&t);
+    utc   = *gmtime(&t);
+#endif
 
-    local.tm_year += local.tm_year - utc->tm_year;
-    local.tm_mon  += local.tm_mon  - utc->tm_mon ;
-    local.tm_mday += local.tm_mday - utc->tm_mday;
-    local.tm_hour += local.tm_hour - utc->tm_hour;
-    local.tm_min  += local.tm_min  - utc->tm_min ;
-    local.tm_sec  += local.tm_sec  - utc->tm_sec ;
+    local.tm_year += local.tm_year - utc.tm_year;
+    local.tm_mon  += local.tm_mon  - utc.tm_mon ;
+    local.tm_mday += local.tm_mday - utc.tm_mday;
+    local.tm_hour += local.tm_hour - utc.tm_hour;
+    local.tm_min  += local.tm_min  - utc.tm_min ;
+    local.tm_sec  += local.tm_sec  - utc.tm_sec ;
 
     return mktime(&local);
 }
 
 const char *date_to_str(time_t i)
 {
-    static char str[sizeof ("YYYY-mm-dd HH:MM:SS")];
-    strftime(str, sizeof (str), "%Y-%m-%d %H:%M:%S", localtime(&i));
+    static char str[sizeof ("dd.mm.YYYY HH:MM:SS")];
+#if _MSC_VER
+    struct tm output_tm;
+    localtime_s(&output_tm, &i);
+    strftime   (str, sizeof (str), "%d.%m.%Y %H:%M:%S", &output_tm);
+#else
+    strftime(str, sizeof (str), "%d.%m.%Y %H:%M:%S", localtime(&i));
+#endif
     return str;
 }
 
 int file_exists(const char *path)
 {
+#if _MSC_VER
+    DWORD file_attr = GetFileAttributesA(path);
+    
+    if (file_attr & FILE_ATTRIBUTE_OFFLINE             ||
+        file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
+        file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA)
+        return 0;
+
+    return file_attr & FILE_ATTRIBUTE_NORMAL   ||
+           file_attr & FILE_ATTRIBUTE_ARCHIVE  ||
+           file_attr & FILE_ATTRIBUTE_READONLY ||
+           file_attr & FILE_ATTRIBUTE_HIDDEN;
+#else
     return (access(path, F_OK) == 0);
+#endif
 }
 
 int file_rename(const char *src, const char *dst)
 {
-#ifdef _WIN32
+#if _WIN32
     if (file_exists(dst))
         remove(dst);
 #endif
-    return rename(src, dst);
+    return rename(src, dst) == 0;
 }
 
+#ifndef FS_VERSION_1
 int file_size(const char *path)
 {
     struct stat buf;
@@ -181,13 +260,18 @@ int file_size(const char *path)
         return (int) buf.st_size;
     return 0;
 }
+#endif
 
-void file_copy(FILE *fin, FILE *fout)
+void file_copy(FILE* fin, FILE* fout)
 {
     char   buff[MAXSTR];
-    size_t size;
+    size_t size = 0;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    while (fread_s(buff, size, 1, sizeof (buff), fin) > 0)
+#else
     while ((size = fread(buff, 1, sizeof (buff), fin)) > 0)
+#endif
         fwrite(buff, 1, size, fout);
 }
 
@@ -217,7 +301,11 @@ int path_is_abs(const char *path)
 
 char *path_join(const char *head, const char *tail)
 {
+#ifdef _WIN32
+    return *head ? concat_string(head, "\\", tail, NULL) : strdup(tail);
+#else
     return *head ? concat_string(head, "/", tail, NULL) : strdup(tail);
+#endif
 }
 
 const char *path_last_sep(const char *path)
@@ -228,9 +316,7 @@ const char *path_last_sep(const char *path)
 
 #ifdef _WIN32
     if (!sep)
-    {
         sep = strrchr(path, '\\');
-    }
     else
     {
         const char *tmp;
@@ -295,36 +381,32 @@ const char *base_name(const char *name)
 {
     static char buff[MAXSTR];
 
-    char *sep;
+    char* sep;
 
-    if (!name) {
-        return name;
-    }
+    if (!name) return name;
 
     SAFECPY(buff, name);
 
     // Remove trailing slashes.
-    while ((sep = (char *) path_last_sep(buff)) && !sep[1]) {
+    while ((sep = (char *) path_last_sep(buff)) && !sep[1])
         *sep = 0;
-    }
 
     return (sep = (char *) path_last_sep(buff)) ? sep + 1 : buff;
 }
 
 const char *dir_name(const char *name)
 {
+    static char buff[MAXSTR];
+
     if (name && *name)
     {
-        static char buff[MAXSTR];
-
         char *sep;
 
         SAFECPY(buff, name);
 
         // Remove trailing slashes.
-        while ((sep = (char *) path_last_sep(buff)) && !sep[1]) {
+        while ((sep = (char *) path_last_sep(buff)) && !sep[1])
             *sep = 0;
-        }
 
         if ((sep = (char *) path_last_sep(buff)))
         {
@@ -361,9 +443,19 @@ int set_env_var(const char *name, const char *value)
         char str[MAXSTR];
 
         if (value)
-            sprintf(str, "%s=%s", name, value);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(str, MAXSTR,
+#else
+            sprintf(str,
+#endif
+                    "%s=%s", name, value);
         else
-            sprintf(str, "%s=", name);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(str, MAXSTR,
+#else
+            sprintf(str,
+#endif
+                    "%s=", name);
 
         return (_putenv(str) == 0);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -22,6 +22,14 @@
 #include "demo_dir.h"
 #include "fs.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 static void free_item(struct dir_item *item)
@@ -41,7 +49,7 @@ static void load_item(struct dir_item *item)
     {
         struct demo *d;
 
-        if ((d = malloc(sizeof (*d))))
+        if ((d = (struct demo *) malloc(sizeof (*d))))
         {
             if (demo_load(d, item->path))
                 item->data = d;
@@ -60,6 +68,7 @@ static int cmp_items(const void *A, const void *B)
 {
     const struct dir_item *a = A, *b = B;
 
+    /* Replay filename: Last.nbr */
     if (strcmp(base_name_sans(a->path, ".nbr"), USER_REPLAY_FILE) == 0)
         return -1;
     if (strcmp(base_name_sans(b->path, ".nbr"), USER_REPLAY_FILE) == 0)

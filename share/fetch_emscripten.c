@@ -1,3 +1,17 @@
+/*
+ * Copyright (C) 2022 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #include <emscripten/fetch.h>
 
 #include "fetch.h"
@@ -12,8 +26,8 @@ struct fetch_info
     struct fetch_callback callback;
 
     emscripten_fetch_t *handle;
-    char *dest_filename;
-    unsigned int fetch_id;
+    char               *dest_filename;
+    unsigned int        fetch_id;
 };
 
 static List fetch_list = NULL;
@@ -23,7 +37,7 @@ static List fetch_list = NULL;
  */
 static struct fetch_info *create_fetch_info(void)
 {
-    struct fetch_info *fi = calloc(sizeof (*fi), 1);
+    struct fetch_info *fi = calloc(sizeof(*fi), 1);
 
     if (fi)
         fi->fetch_id = ++last_fetch_id;
@@ -94,13 +108,19 @@ static void unlink_and_free_fetch_info(struct fetch_info *fi)
     }
 }
 
-void fetch_init(void (*dispatch_event)(void *))
+void fetch_init(void (*dispatch_event) (void *))
 {
     /* Just compile with -s FETCH=1 */
 }
 
+void fetch_reinit(void)
+{
+    /* No possible, compile with -s FETCH=1! */
+}
+
 void fetch_handle_event(void *data)
 {
+    /* No possible, compile with -s FETCH=1! */
 }
 
 void fetch_quit(void)
@@ -150,7 +170,7 @@ static void fetch_success_func(emscripten_fetch_t *handle)
     }
 }
 
-static void fetch_error_func(emscripten_fetch_t *handle)
+static void fetch_error_func(emscripten_fetch_t* handle)
 {
     struct fetch_info *fi = handle->userData;
 
@@ -169,7 +189,7 @@ static void fetch_error_func(emscripten_fetch_t *handle)
     }
 }
 
-static void fetch_progress_func(emscripten_fetch_t *handle)
+static void fetch_progress_func(emscripten_fetch_t* handle)
 {
     struct fetch_info *fi = handle->userData;
 
@@ -179,7 +199,7 @@ static void fetch_progress_func(emscripten_fetch_t *handle)
         {
             struct fetch_progress extra_data = { 0 };
 
-            extra_data.now = (double) handle->dataOffset;
+            extra_data.now   = (double) handle->dataOffset;
             extra_data.total = (double) handle->totalBytes;
 
             fi->callback.progress(fi->callback.data, &extra_data);
@@ -187,7 +207,9 @@ static void fetch_progress_func(emscripten_fetch_t *handle)
     }
 }
 
-unsigned int fetch_url(const char *url, const char *dst, struct fetch_callback callback)
+unsigned int fetch_url(const char *url,
+                       const char *dst,
+                       struct fetch_callback callback)
 {
     unsigned int fetch_id = 0;
     struct fetch_info *fi = create_and_link_fetch_info();
@@ -195,20 +217,56 @@ unsigned int fetch_url(const char *url, const char *dst, struct fetch_callback c
     if (fi)
     {
         emscripten_fetch_attr_t attr;
-
         emscripten_fetch_attr_init(&attr);
 
         strcpy(attr.requestMethod, "GET");
 
         attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
-        attr.onsuccess = fetch_success_func;
-        attr.onerror = fetch_error_func;
+        attr.onsuccess  = fetch_success_func;
+        attr.onerror    = fetch_error_func;
         attr.onprogress = fetch_progress_func;
-        attr.userData = fi;
+        attr.userData   = fi;
 
-        fi->callback = callback;
+        fi->callback      = callback;
         fi->dest_filename = strdup(dst);
-        fi->handle = emscripten_fetch(&attr, url);
+        fi->handle        = emscripten_fetch(&attr, url);
+
+        if (fi->handle)
+            fetch_id = fi->fetch_id;
+        else
+            unlink_and_free_fetch_info(fi);
+    }
+
+    return fetch_id;
+}
+
+unsigned int fetch_gdrive(const char *fileid,
+                          const char *filename,
+                          struct fetch_callback callback)
+{
+    unsigned int fetch_id = 0;
+    struct fetch_info *fi = create_and_link_fetch_info();
+
+    if (fi)
+    {
+        char gdrivelink_attr[MAXSTR];
+        SAFECPY(gdrivelink_attr, "https://drive.google.com/uc?export=download&id=");
+        SAFECAT(gdrivelink_attr, fileid);
+
+        emscripten_fetch_attr_t attr;
+        emscripten_fetch_attr_init(&attr);
+
+        strcpy(attr.requestMethod, "GET");
+
+        attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
+        attr.onsuccess  = fetch_success_func;
+        attr.onerror    = fetch_error_func;
+        attr.onprogress = fetch_progress_func;
+        attr.userData   = fi;
+
+        fi->callback      = callback;
+        fi->dest_filename = strdup(dst);
+        fi->handle        = emscripten_fetch(&attr, gdrivelink_attr);
 
         if (fi->handle)
             fetch_id = fi->fetch_id;

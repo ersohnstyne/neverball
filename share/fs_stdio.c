@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,9 +12,13 @@
  * General Public License for more details.
  */
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS && !_MSC_VER
+#include <sec_api/stdlib_s.h>
+#endif
+#include "zip.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <errno.h>
 
@@ -24,7 +28,14 @@
 #include "list.h"
 #include "common.h"
 #include "log.h"
-#include "zip.h"
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
 
 /*
  * This file implements the low-level virtual file system routines
@@ -43,18 +54,18 @@ struct fs_file_s
 {
     FILE *handle;
 
-    void *zip_file_data;
-    size_t zip_file_pos;
-    size_t zip_file_size;
+    void   *zip_file_data;
+    size_t  zip_file_pos;
+    size_t  zip_file_size;
 
     enum fs_path_type path_type;
 };
 
 struct fs_path_item
 {
-    void *data;
-    char *path;
-    enum fs_path_type type;
+    void              *data;
+    char              *path;
+    enum fs_path_type  type;
 };
 
 static struct fs_path_item *create_path_item(void)
@@ -97,11 +108,11 @@ static List  fs_path;
 
 int fs_init(const char *argv0)
 {
-    fs_dir_base  = strdup(argv0 && *argv0 ? dir_name(argv0) : ".");
+    fs_dir_base = strdup(argv0 && *argv0 ? dir_name(argv0) : ".");
     fs_dir_write = NULL;
-    fs_path      = NULL;
+    fs_path = NULL;
 
-    return 1;
+    return fs_dir_base != 0;
 }
 
 int fs_quit(void)
@@ -120,7 +131,7 @@ int fs_quit(void)
 
     while (fs_path)
     {
-        struct fs_path_item *path_item = fs_path->data;
+        struct fs_path_item *path_item = (struct fs_path_item *) fs_path->data;
 
         if (path_item)
         {
@@ -136,7 +147,13 @@ int fs_quit(void)
 
 const char *fs_error(void)
 {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    char errstr[MAXSTR];
+    strerror_s(errstr, MAXSTR, errno);
+    return errstr;
+#else
     return strerror(errno);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -184,7 +201,7 @@ int fs_add_path(const char *path)
     {
         mz_zip_archive *zip;
 
-        if ((zip = malloc(sizeof (*zip))))
+        if ((zip = (mz_zip_archive *) malloc(sizeof (*zip))))
         {
             mz_zip_zero_struct(zip);
 
@@ -210,7 +227,6 @@ int fs_add_path(const char *path)
             free(zip);
             zip = NULL;
         }
-
     }
 
     free_path_item(path_item);
@@ -343,7 +359,7 @@ static void insert_strings_into_list(List *items, List strings)
         {
             int cmp;
 
-            if ((cmp = strcmp(l->data, str->data)) >= 0)
+            if ((cmp = strcmp((const char *) l->data, (const char *) str->data)) >= 0)
             {
                 skip = (cmp == 0);
                 break;
@@ -375,7 +391,7 @@ static List list_files(const char *path)
 
     for (p = fs_path; p; p = p->next)
     {
-        struct fs_path_item *path_item = p->data;
+        struct fs_path_item *path_item = (struct fs_path_item *) p->data;
 
         List path_files = NULL;
 
@@ -387,7 +403,7 @@ static List list_files(const char *path)
         }
         else if (path_item->type == FS_PATH_ZIP)
         {
-            mz_zip_archive *zip = path_item->data;
+            mz_zip_archive *zip = (mz_zip_archive *) path_item->data;
             path_files = zip_list_files(zip, path);
         }
 
@@ -439,20 +455,24 @@ fs_file fs_open_read(const char *path)
 {
     fs_file fh;
 
-    if ((fh = calloc(1, sizeof (*fh))))
+    if ((fh = (fs_file) calloc(1, sizeof (*fh))))
     {
         int opened = 0;
         List p;
 
         for (p = fs_path; p && !opened; p = p->next)
         {
-            struct fs_path_item *path_item = p->data;
+            struct fs_path_item *path_item = (struct fs_path_item *) p->data;
 
             if (path_item->type == FS_PATH_DIRECTORY)
             {
                 char *real = path_join(path_item->path, path);
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                if ((fopen_s(&fh->handle, real, "rb")) == 0)
+#else
                 if ((fh->handle = fopen(real, "rb")))
+#endif
                 {
                     fh->path_type = FS_PATH_DIRECTORY;
                     opened = 1;
@@ -462,9 +482,12 @@ fs_file fs_open_read(const char *path)
             }
             else if (path_item->type == FS_PATH_ZIP)
             {
-                mz_zip_archive *zip = path_item->data;
+                mz_zip_archive *zip = (mz_zip_archive *) path_item->data;
 
-                fh->zip_file_data = mz_zip_reader_extract_file_to_heap(zip, path, &fh->zip_file_size, 0);
+                fh->zip_file_data = mz_zip_reader_extract_file_to_heap(zip,
+                                                                       path,
+                                                                       &fh->zip_file_size,
+                                                                       0);
 
                 if (fh->zip_file_data)
                 {
@@ -475,7 +498,7 @@ fs_file fs_open_read(const char *path)
             }
         }
 
-        if (!opened)
+        if (opened == 0)
         {
             free(fh);
             fh = NULL;
@@ -490,13 +513,17 @@ static fs_file fs_open_write_flags(const char *path, int append)
 
     if (fs_dir_write && path && *path)
     {
-        if ((fh = calloc(1, sizeof (*fh))))
+        if ((fh = (fs_file) calloc(1, sizeof (*fh))))
         {
             char *real;
 
             if ((real = path_join(fs_dir_write, path)))
             {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                fopen_s(&fh->handle, real, append ? "ab" : "wb");
+#else
                 fh->handle = fopen(real, append ? "ab" : "wb");
+#endif
                 fh->path_type = FS_PATH_DIRECTORY;
                 free(real);
             }
@@ -571,19 +598,105 @@ int fs_mkdir(const char *path)
 
 int fs_exists(const char *path)
 {
-    fs_file fh;
+#if _MSC_VER
+    DWORD file_attr = GetFileAttributesA(path);
 
-    if ((fh = fs_open_read(path)))
+    if (!(file_attr & FILE_ATTRIBUTE_OFFLINE             ||
+          file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
+          file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA))
+        return file_attr & FILE_ATTRIBUTE_NORMAL   ||
+               file_attr & FILE_ATTRIBUTE_ARCHIVE  ||
+               file_attr & FILE_ATTRIBUTE_READONLY ||
+               file_attr & FILE_ATTRIBUTE_HIDDEN;
+
+    if (fs_dir_write)
     {
-        fs_close(fh);
-        return 1;
+        char *real = path_join(fs_dir_write, path);
+
+        DWORD file_attr = GetFileAttributesA(real);
+        free(real);
+
+        if (!(file_attr & FILE_ATTRIBUTE_OFFLINE             ||
+              file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
+              file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA))
+            return file_attr & FILE_ATTRIBUTE_NORMAL   ||
+                   file_attr & FILE_ATTRIBUTE_ARCHIVE  ||
+                   file_attr & FILE_ATTRIBUTE_READONLY ||
+                   file_attr & FILE_ATTRIBUTE_HIDDEN;
     }
+
+    List p;
+
+    for (p = fs_path; p; p = p->next)
+    {
+        struct fs_path_item *path_item = (struct fs_path_item *) p->data;
+
+        if (path_item->type == FS_PATH_DIRECTORY ||
+            path_item->type == FS_PATH_ZIP)
+        {
+            char *real = path_join(path_item->path, path);
+
+            DWORD file_attr = GetFileAttributesA(real);
+            free(real);
+
+            if (!(file_attr & FILE_ATTRIBUTE_OFFLINE             ||
+                  file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
+                  file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA))
+                return file_attr & FILE_ATTRIBUTE_NORMAL   ||
+                       file_attr & FILE_ATTRIBUTE_ARCHIVE  ||
+                       file_attr & FILE_ATTRIBUTE_READONLY ||
+                       file_attr & FILE_ATTRIBUTE_HIDDEN;
+        }
+    }
+
     return 0;
+#else
+    return (access(path, F_OK) == 0);
+#endif
+}
+
+int fs_recycle(const char* path)
+{
+    int success = 0;
+
+#if _WIN32 && _MSC_VER
+    if (fs_dir_write)
+    {
+        char *real = path_join(fs_dir_write, path);
+
+        // Windows makes to move this file to recycle bin.
+
+        SHFILEOPSTRUCTA operation = {0};
+        operation.hwnd = NULL;
+        operation.wFunc = FO_DELETE;
+        operation.pFrom = real;
+        operation.pTo = NULL;
+
+        operation.fFlags = FOF_ALLOWUNDO | FOF_NOERRORUI | FOF_NOCONFIRMATION | FOF_SILENT;
+
+        int winretval = SHFileOperationA(&operation);
+        success = winretval == 0 || winretval == 75;
+
+        if (success && winretval == 0)
+            log_printf("Done moving recycle bin: '%s'\n", real);
+        else if (winretval == 75)
+            log_printf("Moving recycle bin canceled: '%s'\n", real);
+        else
+            log_errorf("Failure to move recycle bin! Attempt to permanent delete: '%s'\n", real);
+
+        free(real);
+    }
+#endif
+
+    return success;
 }
 
 int fs_remove(const char *path)
 {
     int success = 0;
+
+    if (fs_recycle(path))
+        return 1;
 
     if (fs_dir_write)
     {
@@ -659,9 +772,11 @@ int fs_seek(fs_file fh, long offset, int whence)
 
         if (whence == SEEK_CUR) {
             pos = fh->zip_file_pos + offset;
-        } else if (whence == SEEK_SET) {
+        }
+        else if (whence == SEEK_SET) {
             pos = offset;
-        } else if (whence == SEEK_END) {
+        }
+        else if (whence == SEEK_END) {
             pos = fh->zip_file_size + offset;
         }
 
@@ -686,7 +801,6 @@ int fs_eof(fs_file fh)
     if (fh->handle)
         return feof(fh->handle);
 
-
     if (fh->zip_file_data)
         return fh->zip_file_pos >= fh->zip_file_size;
 
@@ -699,7 +813,7 @@ int fs_size(const char *path)
 
     for (p = fs_path; p; p = p->next)
     {
-        struct fs_path_item *path_item = p->data;
+        struct fs_path_item *path_item = (struct fs_path_item *) p->data;
 
         if (path_item->type == FS_PATH_DIRECTORY)
         {
@@ -711,7 +825,7 @@ int fs_size(const char *path)
         }
         else if (path_item->type == FS_PATH_ZIP)
         {
-            mz_zip_archive *zip = path_item->data;
+            mz_zip_archive *zip = (mz_zip_archive *) path_item->data;
             int file_index = mz_zip_reader_locate_file(zip, path, NULL, 0);
 
             if (file_index >= 0)
@@ -725,6 +839,20 @@ int fs_size(const char *path)
     }
 
     return 0;
+}
+
+int fs_length(fs_file fh)
+{
+    if (!fh->handle)
+        return 0;
+
+    long len, cur = ftell(fh->handle);
+
+    fseek(fh->handle, 0, SEEK_END);
+    len = ftell(fh->handle);
+    fseek(fh->handle, cur, SEEK_SET);
+
+    return len;
 }
 
 /*---------------------------------------------------------------------------*/

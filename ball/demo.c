@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -16,8 +16,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <assert.h>
 
+#include "campaign.h"
+#include "progress.h"
 #include "demo.h"
 #include "audio.h"
 #include "config.h"
@@ -32,10 +33,7 @@
 #include "game_proxy.h"
 #include "game_common.h"
 
-#define DEMO_MAGIC (0xAF | 'N' << 8 | 'B' << 16 | 'R' << 24)
-#define DEMO_VERSION 9
-
-#define DATELEN sizeof ("YYYY-MM-DDTHH:MM:SS")
+#define DATELEN sizeof ("DD.MM.YYYYTHH:MM:SS")
 
 fs_file demo_fp;
 
@@ -44,7 +42,13 @@ fs_file demo_fp;
 static const char *demo_path(const char *name)
 {
     static char path[MAXSTR];
-    sprintf(path, "Replays/%s.nbr", name);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(path, MAXSTR,
+#else
+    sprintf(path,
+#endif
+            "Replays/%s.nbr", name);
+
     return path;
 }
 
@@ -56,6 +60,9 @@ static const char *demo_name(const char *path)
 }
 
 /*---------------------------------------------------------------------------*/
+
+int demo_requires_update;
+int demo_old_detected;
 
 static int demo_header_read(fs_file fp, struct demo *d)
 {
@@ -71,7 +78,8 @@ static int demo_header_read(fs_file fp, struct demo *d)
 
     t = get_index(fp);
 
-    if (magic == DEMO_MAGIC && version == DEMO_VERSION && t)
+    if (magic == DEMO_MAGIC && t
+     && (version >= DEMO_VERSION_MIN && version <= DEMO_VERSION))
     {
         d->timer = t;
 
@@ -82,7 +90,11 @@ static int demo_header_read(fs_file fp, struct demo *d)
         get_string(fp, d->player, sizeof (d->player));
         get_string(fp, datestr, sizeof (datestr));
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sscanf_s(datestr,
+#else
         sscanf(datestr,
+#endif
                "%d-%d-%dT%d:%d:%d",
                &date.tm_year,
                &date.tm_mon,
@@ -109,6 +121,13 @@ static int demo_header_read(fs_file fp, struct demo *d)
 
         return 1;
     }
+
+    if (version < DEMO_VERSION_MIN)
+        demo_old_detected = 1;
+
+    if (version < DEMO_VERSION)
+        demo_requires_update = 1;
+
     return 0;
 }
 
@@ -116,8 +135,13 @@ static void demo_header_write(fs_file fp, struct demo *d)
 {
     char datestr[DATELEN];
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    struct tm outputGmTime; gmtime_s(&outputGmTime, &d->date);
+    strftime(datestr, sizeof (datestr), "%Y-%m-%dT%H:%M:%S", &outputGmTime);
+#else
     strftime(datestr, sizeof (datestr), "%Y-%m-%dT%H:%M:%S", gmtime(&d->date));
-
+#endif
+    
     put_index(fp, DEMO_MAGIC);
     put_index(fp, DEMO_VERSION);
     put_index(fp, 0);
@@ -128,7 +152,12 @@ static void demo_header_write(fs_file fp, struct demo *d)
     put_string(fp, d->player);
     put_string(fp, datestr);
 
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    put_string(fp, d->mode == MODE_CAMPAIGN || campaign_used() ?
+                   "gui/levels/campaign_replay.jpg" : d->shot);
+#else
     put_string(fp, d->shot);
+#endif
     put_string(fp, d->file);
 
     put_index(fp, d->time);
@@ -151,7 +180,11 @@ int demo_load(struct demo *d, const char *path)
 
         memset(d, 0, sizeof (*d));
 
+#ifdef FS_VERSION_1
+        if ((fp = fs_open(path, "r")))
+#else
         if ((fp = fs_open_read(path)))
+#endif
         {
             SAFECPY(d->path, path);
             SAFECPY(d->name, demo_name(path));
@@ -172,6 +205,8 @@ void demo_free(struct demo *d)
 
 /*---------------------------------------------------------------------------*/
 
+//#define DEMO_FORMAT_DATETIME
+
 int demo_exists(const char *name)
 {
     return fs_exists(demo_path(name));
@@ -179,12 +214,14 @@ int demo_exists(const char *name)
 
 const char *demo_format_name(const char *fmt,
                              const char *set,
-                             const char *level)
+                             const char *level,
+                             int status)
 {
+    const char *d_status;
     static char name[MAXSTR];
-    int space_left;
-    char *numpart;
-    int i;
+    int         space_left;
+    char       *numpart;
+    int         i;
 
     if (!fmt)
         return NULL;
@@ -194,6 +231,14 @@ const char *demo_format_name(const char *fmt,
 
     if (!level)
         level = "00";
+
+    switch (status)
+    {
+    case GAME_GOAL: d_status = "g"; break;
+    case GAME_FALL: d_status = "xf"; break;
+    case GAME_TIME: d_status = "xt"; break;
+    default: d_status = "x"; break;
+    }
 
     memset(name, 0, sizeof (name));
     space_left = MAXSTRLEN(name);
@@ -209,17 +254,38 @@ const char *demo_format_name(const char *fmt,
             switch (*fmt)
             {
             case 's':
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                strncat_s(name, MAXSTR, set, space_left);
+#else
                 strncat(name, set, space_left);
+#endif
                 space_left -= strlen(set);
                 break;
 
             case 'l':
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                strncat_s(name, MAXSTR, level, space_left);
+#else
                 strncat(name, level, space_left);
+#endif
                 space_left -= strlen(level);
                 break;
 
+            case 'r':
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                strncat_s(name, MAXSTR, d_status, space_left);
+#else
+                strncat(name, d_status, space_left);
+#endif
+                space_left -= strlen(d_status);
+                break;
+
             case '%':
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                strncat_s(name, MAXSTR, "%", space_left);
+#else
                 strncat(name, "%", space_left);
+#endif
                 space_left--;
                 break;
 
@@ -235,15 +301,48 @@ const char *demo_format_name(const char *fmt,
         }
         else
         {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            strncat_s(name, MAXSTR, fmt, 1);
+#else
             strncat(name, fmt, 1);
+#endif
             space_left--;
         }
 
         fmt++;
     }
 
+#ifdef DEMO_FORMAT_DATETIME
+    struct tm date_src; time_t date_dst;
+
     /*
-     * Append a unique 2-digit number preceded by an underscore to the
+     * Append a unique datetime format preceded by an underscore to the
+     * file name, discarding characters if there's not enough space
+     * left in the buffer.
+     */
+
+    if (space_left < strlen("_YYYY-MM-DD_HH-MM-SS"))
+        numpart = name + MAXSTRLEN(name) - strlen("_YYYY-MM-DD_HH-MM-SS");
+    else
+        numpart = name + MAXSTRLEN(name) - space_left;
+
+    make_time_from_utc(&date_src);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(numpart, MAXSTR,
+#else
+    sprintf(numpart,
+#endif
+            "_%04d-%02d-%02d_%02d-%02d-%02d",
+            date_src.tm_year + 1900,
+            date_src.tm_mon + 1,
+            date_src.tm_mday,
+            date_src.tm_hour,
+            date_src.tm_min,
+            date_src.tm_sec);
+#else
+    /*
+     * Append a unique 4-digit number preceded by an underscore to the
      * file name, discarding characters if there's not enough space
      * left in the buffer.
      */
@@ -255,22 +354,31 @@ const char *demo_format_name(const char *fmt,
 
     for (i = 1; i < 100; i++)
     {
-        sprintf(numpart, "_%02d", i);
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(numpart, MAXSTR,
+#else
+        sprintf(numpart,
+#endif
+                "_%02d", i);
 
         if (!demo_exists(name))
             break;
     }
+#endif
 
     return name;
 }
 
 /*---------------------------------------------------------------------------*/
 
+//#define DISABLE_RECORDINGS 1
+
 static struct demo demo_play;
 
 int demo_play_init(const char *name, const struct level *level,
-                   int mode, int scores, int balls, int times)
+                   int mode, int scores, int balls, int times, float speedpercent)
 {
+#if !DISABLE_RECORDINGS
     struct demo *d = &demo_play;
 
     memset(d, 0, sizeof (*d));
@@ -289,11 +397,17 @@ int demo_play_init(const char *name, const struct level *level,
     d->balls = balls;
     d->times = times;
 
+    d->speedpercent = speedpercent;
+#ifdef FS_VERSION_1
+    if ((demo_fp = fs_open(d->path, "w")))
+#else
     if ((demo_fp = fs_open_write(d->path)))
+#endif
     {
         demo_header_write(demo_fp, d);
         return 1;
     }
+#endif
     return 0;
 }
 
@@ -320,7 +434,8 @@ void demo_play_stop(int d)
         fs_close(demo_fp);
         demo_fp = NULL;
 
-        if (d) fs_remove(demo_play.path);
+        if (d)
+            fs_remove(demo_play.path);
 
         fs_persistent_sync();
     }
@@ -331,8 +446,9 @@ int demo_saved(void)
     return fs_exists(demo_play.path);
 }
 
-void demo_rename(const char *name)
+int demo_rename(const char *name)
 {
+    int r = 0;
     char path[MAXSTR];
 
     if (name && *name)
@@ -341,10 +457,12 @@ void demo_rename(const char *name)
 
         if (strcmp(demo_play.name, name) != 0 && fs_exists(demo_play.path))
         {
-            fs_rename(demo_play.path, path);
+            r = fs_rename(demo_play.path, path);
             fs_persistent_sync();
-        }
+        }   
     }
+
+    return r;
 }
 
 void demo_rename_player(const char *name, const char *player)
@@ -376,7 +494,6 @@ static void demo_update_read(float dt)
                 break;
             }
         }
-
     }
 }
 
@@ -396,11 +513,15 @@ const char *curr_demo(void)
     return demo_replay.path;
 }
 
-int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt)
+int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, float *spp)
 {
     lockstep_clr(&update_step);
 
+#ifdef FS_VERSION_1
+    if ((demo_fp = fs_open(path, "r")))
+#else
     if ((demo_fp = fs_open_read(path)))
+#endif
     {
         if (demo_header_read(demo_fp, &demo_replay))
         {
@@ -417,6 +538,8 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt)
                 if (s)  *s  = demo_replay.score;
                 if (tt) *tt = demo_replay.times;
 
+                if (spp) *spp = demo_replay.speedpercent;
+
                 /*
                  * Init client and then read and process the first batch of
                  * commands from the replay file.
@@ -424,16 +547,19 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt)
 
                 if (game_client_init(demo_replay.file))
                 {
-                    if (g)
-                    {
+                    game_client_toggle_show_balls(1);
+
+                    /*if (g)
                         audio_music_fade_to(0.5f, level.song);
-                    }
                     else
                     {
                         union cmd cmd;
                         cmd.type = CMD_GOAL_OPEN;
                         game_proxy_enq(&cmd);
-                    }
+                    }*/
+
+                    if (g)
+                        audio_music_fade_to(0.5f, level.song);
 
                     demo_update_read(0);
 
@@ -441,11 +567,17 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt)
                         return 1;
                 }
             }
+            else
+                log_errorf("Could not find level map!: %s\n", demo_replay.file);
         }
+        else
+            log_errorf("Could not find the replay header file!\n");
 
         fs_close(demo_fp);
         demo_fp = NULL;
     }
+    else
+        log_errorf("Could not find the replay file!: %s\n", path);
 
     return 0;
 }
@@ -475,6 +607,11 @@ void demo_replay_speed(int speed)
 {
     if (SPEED_NONE <= speed && speed < SPEED_MAX)
         lockstep_scl(&update_step, SPEED_FACTORS[speed]);
+}
+
+void demo_replay_manual_speed(float speeddir)
+{
+    lockstep_scl(&update_step, speeddir);
 }
 
 /*---------------------------------------------------------------------------*/

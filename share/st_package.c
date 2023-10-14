@@ -259,7 +259,7 @@ static int package_action(int tok, int val)
         status = package_get_status(selected);
 
         if (status == PACKAGE_INSTALLED ||
-            status == PACKAGE_PARTIAL)
+            status == PACKAGE_UPDATE)
             return goto_state(&st_package_manage);
         else if (status == PACKAGE_AVAILABLE ||
                  status == PACKAGE_ERROR)
@@ -287,13 +287,16 @@ static int gui_package_button(int id, int pi)
     if ((jd = gui_hstack(id)))
     {
         int status_id, name_id;
+        enum package_status status = package_get_status(pi);
 
         status_id = gui_label(jd, "100%", GUI_SML, gui_grn, gui_grn);
 
-        if (package_get_status(pi) == PACKAGE_INSTALLED)
+        if (status == PACKAGE_INSTALLED)
             gui_set_label(status_id, GUI_CHECKMARK);
-        else if (package_get_status(pi) == PACKAGE_DOWNLOADING)
+        else if (status == PACKAGE_DOWNLOADING)
             gui_set_label(status_id, GUI_ELLIPSIS);
+        else if (status == PACKAGE_UPDATE)
+            gui_set_label(status_id, GUI_CIRCLE_ARROW);
         else
             gui_set_label(status_id, GUI_ARROW_DN);
 
@@ -421,6 +424,8 @@ static int package_gui(void)
 
 static void package_select(int pi)
 {
+    enum package_status status = package_get_status(pi);
+
     gui_set_hilite(button_ids[selected % PACKAGE_STEP], 0);
     selected = pi;
     gui_set_hilite(button_ids[selected % PACKAGE_STEP], 1);
@@ -430,7 +435,12 @@ static void package_select(int pi)
     gui_set_label(type_id,  package_get_formatted_type(pi));
     gui_set_label(title_id, package_get_name(pi));
 
-    if (package_get_status(pi) == PACKAGE_INSTALLED)
+    if (status == PACKAGE_UPDATE)
+        gui_set_label(install_label_id, _("Update"));
+    else
+        gui_set_label(install_label_id, _("Install"));
+
+    if (status == PACKAGE_INSTALLED)
     {
         gui_set_color(install_status_id, gui_gry, gui_gry);
         gui_set_color(install_label_id, gui_gry, gui_gry);

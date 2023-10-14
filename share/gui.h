@@ -27,7 +27,7 @@
 
 #define GUI_ELLIPSIS       "…"
 #define GUI_AIRPLANE       "✈"
-#define GUI_ARROW_DN       "⇩"
+#define GUI_ARROW_DN       "⬇"
 #define GUI_TRIANGLE_LEFT  "◀️"
 #define GUI_TRIANGLE_RIGHT "▶️"
 #define GUI_CHECKMARK      "✔"
@@ -36,6 +36,7 @@
 #define GUI_COIN           "⛁"
 #define GUI_CROWN          "♕"
 #define GUI_DIAMOND        "♦"
+#define GUI_CIRCLE_ARROW   "⟳"
 
 #define GUI_GAMEPAD        "🎮"
 #define GUI_BATTERY        "🔋"

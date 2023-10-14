@@ -1,3 +1,17 @@
+/*
+ * Copyright (C) 2023 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #ifndef LEVEL_H
 #define LEVEL_H
 
@@ -13,8 +27,15 @@ enum
     SCORE_COIN
 };
 
-#define LEVEL_LOCKED    0x1
-#define LEVEL_COMPLETED 0x2
+struct stats
+{
+    int completed;
+    int timeout;
+    int fallout;
+};
+
+#define LEVEL_LOCKED          0x01
+#define LEVEL_COMPLETED       0x02
 
 struct level
 {
@@ -32,6 +53,7 @@ struct level
     int goal; /* Coins needed */
 
     struct score scores[3];
+    struct stats stats;
 
     /* Set information. */
 
@@ -42,6 +64,7 @@ struct level
 
     int is_locked;
     int is_bonus;
+    int is_master;
     int is_completed;
 
     struct level *next;
@@ -62,6 +85,7 @@ int level_completed(const struct level *);
 int level_time(const struct level *);
 int level_goal(const struct level *);
 int level_bonus(const struct level *);
+int level_master(const struct level *);
 
 const char *level_shot(const struct level *);
 const char *level_file(const struct level *);

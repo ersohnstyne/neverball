@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,7 +12,12 @@
  * General Public License for more details.
  */
 
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
+#else
 #include <SDL.h>
+#endif
+
 #include <string.h>
 
 #include "common.h"
@@ -37,21 +42,21 @@ int text_add_char(Uint32 unicode, char *string, int maxbytes)
         string[pos++] = (char) unicode;
     else if (unicode < 0x0800)
     {
-        string[pos++] = (char) ((unicode >> 6) | 0xC0);
+        string[pos++] = (char) ((unicode >> 6)   | 0xC0);
         string[pos++] = (char) ((unicode & 0x3F) | 0x80);
     }
     else if (unicode < 0x10000)
     {
-        string[pos++] = (char) ((unicode >> 12) | 0xE0);
+        string[pos++] = (char) ((unicode >> 12)         | 0xE0);
         string[pos++] = (char) (((unicode >> 6) & 0x3F) | 0x80);
-        string[pos++] = (char) ((unicode & 0x3F) | 0x80);
+        string[pos++] = (char) ((unicode & 0x3F)        | 0x80);
     }
     else
     {
-        string[pos++] = (char) ((unicode >> 18) | 0xF0);
+        string[pos++] = (char) ((unicode >> 18)          | 0xF0);
         string[pos++] = (char) (((unicode >> 12) & 0x3F) | 0x80);
-        string[pos++] = (char) (((unicode >> 6) & 0x3F) | 0x80);
-        string[pos++] = (char) ((unicode & 0x3F) | 0x80);
+        string[pos++] = (char) (((unicode >> 6)  & 0x3F) | 0x80);
+        string[pos++] = (char) ((unicode & 0x3F)         | 0x80);
     }
 
     string[pos++] = 0;
@@ -80,8 +85,10 @@ int text_length(const char *string)
     int result = 0;
 
     while (*string != '\0')
+    {
         if ((*string++ & 0xC0) != 0x80)
             result++;
+    }
 
     return result;
 }
@@ -92,6 +99,9 @@ char text_input[MAXSTR];
 
 static void (*on_text_input)(int);
 
+#ifdef CALLBACK
+#undef CALLBACK
+#endif
 #define CALLBACK(typing) do {                   \
         if (on_text_input)                      \
             on_text_input(typing);              \

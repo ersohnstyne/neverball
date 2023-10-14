@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -20,31 +20,65 @@
  * And the way to access to directories
  */
 
+#if _MSC_VER
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <Windows.h>
+
+#if _DEBUG
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+
+/* Shall the Xbox live begin? */
+#define NB_PB_WITH_XBOX 1
+#include <XInput.h>
+#endif
+
+#include <signal.h>
 #include <stdio.h>
 
 #include "log.h"
 #include "version.h"
 
+#include "dbg_config.h"
+
 /*---------------------------------------------------------------------------*/
 
 #ifndef VERSION
-#define VERSION "unknown"
+#define VERSION       "unknown"       /* Game version */
 #endif
 
 #ifndef CONFIG_DATA
+#ifdef _WIN32
+#define CONFIG_DATA   ".\\data"       /* Game data directory */
+#else
 #define CONFIG_DATA   "./data"        /* Game data directory */
+#endif
 #endif
 
 #ifndef CONFIG_LOCALE
-#define CONFIG_LOCALE "./locale"      /* Game localisation */
+#ifdef _WIN32
+#define CONFIG_LOCALE ".\\locale"     /* Game localisation */
+#else
+#define CONFIG_LOCALE "./locale"     /* Game localisation */
+#endif
 #endif
 
 /* User config directory */
 #ifndef CONFIG_USER
+#if NDEBUG
 #ifdef _WIN32
-#define CONFIG_USER   "Neverball"
+#define CONFIG_USER   "Neverball_" VERSION
 #else
 #define CONFIG_USER   ".neverball"
+#endif
+#endif
+#ifdef _WIN32
+#define CONFIG_USER   "Neverball_" VERSION "-dev"
+#else
+#define CONFIG_USER   ".neverball-dev"
 #endif
 #endif
 
@@ -57,28 +91,44 @@
 
 #define USER_CONFIG_FILE    "neverballrc"
 #define USER_REPLAY_FILE    "Last"
+#define CHKP_REPLAY_FILE    "chkp-last-active"
 
 /*---------------------------------------------------------------------------*/
 
-#ifdef _WIN32
+#define FMODE_AB "ab"
 #define FMODE_RB "rb"
 #define FMODE_WB "wb"
-#else
-#define FMODE_RB "r"
-#define FMODE_WB "w"
-#endif
 
 #define AUDIO_BUFF_HI 2048
 #define AUDIO_BUFF_LO 1024
 
 #define JOY_VALUE(k) ((float) (k) / ((k) < 0 ? 32768 : 32767))
 
-#define MAXSTR 256
-#define PATHMAX 64
+#if !defined(MAX_STR_BLOCKREASON)
+#if _WIN32 && !_MSC_VER
+#error This preprocessor is superceded with WinUser.h include headers. \
+       Consider using MAX_STR_BLOCKREASON from Windows.h with IDE \
+       or build tools for Microsoft Visual Studio Community instead.
+#endif
+#define MAX_STR_BLOCKREASON 256
+#endif
+
+#if !defined(MAX_PATH)
+#if _WIN32 && !_MSC_VER
+#error This preprocessor is superceded with minwindef.h include headers. \
+       Consider using MAX_PATH from Windows.h with IDE or build tools \
+       for Microsoft Visual Studio Community instead.
+#endif
+#define MAX_PATH 260
+#endif
+
+#define MAXSTR MAX_STR_BLOCKREASON
+#define PATHMAX MAX_PATH
 
 /*---------------------------------------------------------------------------*/
 
 void config_paths(const char *);
+void config_log_userpath();
 
 /*---------------------------------------------------------------------------*/
 

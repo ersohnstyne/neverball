@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,7 +12,11 @@
  * General Public License for more details.
  */
 
+#if _WIN32 && __MINGW32__
+#include <SDL3/SDL.h>
+#else
 #include <SDL.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -28,7 +32,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define PARTICLEVBO 1
+//#define PARTICLEVBO 1
 
 struct part_vary
 {
@@ -271,7 +275,7 @@ void part_draw_coin(struct s_rend *rend)
     glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
 }
 
 /*---------------------------------------------------------------------------*/

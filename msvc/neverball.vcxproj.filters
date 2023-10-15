@@ -1,0 +1,724 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Quelldateien">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Headerdateien">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Ressourcendateien">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Headerdateien\ball">
+      <UniqueIdentifier>{1ac7bd44-57f4-43c7-854f-7592fc24b577}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\ball">
+      <UniqueIdentifier>{ad587d18-7834-4f56-aceb-0125c106130a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\share">
+      <UniqueIdentifier>{abf5869a-4a82-49ba-a4bc-bfabd88c0bbb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\share">
+      <UniqueIdentifier>{61dce7ae-c8d8-4ad5-a6c9-e3b6c9247934}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Ressourcendateien\resource">
+      <UniqueIdentifier>{824ae6ce-9423-4d79-8831-5dd3576d95c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\payments">
+      <UniqueIdentifier>{608aace0-7b0a-48b8-902b-8b38842c9ed1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\payments">
+      <UniqueIdentifier>{0605c8f1-5e20-47e5-8974-ed798aff59e9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\share\video.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\accessibility.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\account.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\account_transfer.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\array.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\audio.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\ball.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\base_config.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\base_image.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\binary.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\cmd.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\common.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\config.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\console_control_gui.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\dir.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\fbo.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\fetch_curl.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\fetch_null.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\font.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\fs_common.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\fs_jpg.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\fs_ov.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\fs_physfs.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\fs_png.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\fs_stdio.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\geom.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\glext.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\glsl.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\gui.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\hmd_common.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\hmd_null.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\hmd_openhmd.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\image.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\joy.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\lang_gettext.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\list.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\log.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\mtrl.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\networking_dedicated.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\networking_opensource.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\package.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\part.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\queue.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\solid_all.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\solid_base.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\solid_draw.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\solid_sim_sol.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\solid_vary.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\st_common.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\st_end_support.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\st_transfer_source.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\st_transfer_target.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\state.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\text.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\theme.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\tilt_loop.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\tilt_null.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\tilt_wii.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\tilt_wiiuse.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\tts.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\vec3.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\account_steam.cpp">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\hmd_libovr.cpp">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\tilt_leapmotion.cpp">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\util.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\boost_rush.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\campaign.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\checkpoints.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\demo.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\demo_dir.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\game_client.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\game_common.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\game_draw.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\game_proxy.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\game_server.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\hud.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\lang_switchball.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\level.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\main.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\mediation.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\powerup.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\progress.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\score.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\set.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_ball.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_beam_style.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_campaign_setup.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_conf.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_demo.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_done.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_fail.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_goal.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_help.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_intro.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_level.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_malfunction.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_name.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_over.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_pause.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_play.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_playmodes.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_save.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_set.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_shared.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_shop.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_start.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_title.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_tutorial.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\shop_steam.cpp">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\account_binary.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\zip.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\account_eos_sdk.cpp">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\score_steam.cpp">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\lang_msvc.cpp">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\networking_srv_essentials.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\joy_xbox.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\payments\game_payment_curl.c">
+      <Filter>Quelldateien\payments</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_shop_activate.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\payments\currency_curl.c">
+      <Filter>Quelldateien\payments</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\dbg_config.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\share\zip.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\accessibility.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\account.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\account_transfer.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\array.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\audio.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\ball.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\base_config.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\base_image.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\binary.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\cmd.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\common.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\config.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\console_control_gui.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\dir.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\fbo.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\fetch.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\font.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\fs.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\fs_jpg.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\fs_ov.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\fs_png.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\geom.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\glext.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\glsl.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\gui.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\hmd.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\hmd_common.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\image.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\joy.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\lang.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\list.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\log.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\mtrl.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\networking.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\package.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\part.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\queue.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\solid_all.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\solid_base.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\solid_chkp.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\solid_draw.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\solid_sim.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\solid_vary.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\st_common.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\st_end_support.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\st_transfer.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\state.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\text.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\theme.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\tilt.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\tts.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\vec3.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\video.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\util.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\boost_rush.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\campaign.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\checkpoints.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\demo.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\demo_dir.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\game_client.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\game_common.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\game_draw.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\game_proxy.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\game_server.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\hud.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\lang_switchball.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\level.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\mediation.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\powerup.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\progress.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\score.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\set.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_ball.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_beam_style.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_campaign_setup.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_conf.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_demo.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_done.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_fail.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_goal.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_help.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_intro.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_level.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_malfunction.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_name.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_over.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_pause.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_play.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_playmodes.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_save.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_set.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_shared.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_shop.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_start.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_title.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_tutorial.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_intro_covid.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dist\neverball_rc.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\score_online.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\payments\game_payment.h">
+      <Filter>Headerdateien\payments</Filter>
+    </ClInclude>
+    <ClInclude Include="..\payments\currency.h">
+      <Filter>Headerdateien\payments</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\dbg_config.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\dist\neverball_rc.rc">
+      <Filter>Ressourcendateien\resource</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="ico\neverball.ico">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
+    <Image Include="..\dist\ico\neverball.ico">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

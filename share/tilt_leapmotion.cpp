@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -10,6 +10,16 @@
  * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
  * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
  * General Public License for more details.
+ */
+
+/*
+ * HACK: Remembering the code file differences:
+ * Developers  who  programming  C++  can see more bedrock declaration
+ * than C.  Developers  who  programming  C  can  see  few  procedural
+ * declaration than  C++.  Keep  in  mind  when making  sure that your
+ * extern code must associated. The valid file types are *.c and *.cpp,
+ * so it's always best when making cross C++ compiler to keep both.
+ * - Ersohn Styne
  */
 
 extern "C" {
@@ -46,10 +56,10 @@ int tilt_get_button(int *b, int *s)
     static bool btn_start = 0;
 
     HandList hands = leapctrl.frame().hands();
-    Hand hand;
-    Finger thumb;
-    float angle;
-    bool cond;
+    Hand     hand;
+    Finger   thumb;
+    float    angle;
+    bool     cond;
 
     if (!tilt_stat() || hands.count() != 1)
     {

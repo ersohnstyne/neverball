@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -20,6 +20,14 @@
 #include "glext.h"
 #include "glsl.h"
 #include "log.h"
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
 
 /*----------------------------------------------------------------------------*/
 
@@ -62,7 +70,7 @@ static int check_shader_log(GLuint shader)
         {
             glGetShaderInfoLog_(shader, n, NULL, p);
 
-            log_printf("OpenGL Shader Error:\n%s", p);
+            log_errorf("OpenGL Shader Error:\n%s", p);
             free(p);
         }
         return 0;
@@ -87,7 +95,7 @@ static int check_program_log(GLuint program)
         {
             glGetProgramInfoLog_(program, n, NULL, p);
 
-            log_printf("OpenGL Program Error:\n%s", p);
+            log_errorf("OpenGL Program Error:\n%s", p);
             free(p);
         }
         return 0;

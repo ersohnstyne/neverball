@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -11,6 +11,15 @@
  * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
  * General Public License for more details.
  */
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#include "console_control_gui.h"
+#endif
+
+#if NB_HAVE_PB_BOTH==1
+#include "account.h"
+#include "networking.h"
+#endif
 
 #include "gui.h"
 #include "state.h"
@@ -35,30 +44,74 @@
 #include "st_conf.h"
 #include "st_shared.h"
 
+#if NB_HAVE_PB_BOTH==1
+int super_environment = 1;
+#endif
+
+int model_studio = 0;
+
+static int switchball_useable(void)
+{
+    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
+    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
+
+    SDL_Keycode k_arrowkey[4];
+    k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
+    k_arrowkey[1] = config_get_d(CONFIG_KEY_LEFT);
+    k_arrowkey[2] = config_get_d(CONFIG_KEY_BACKWARD);
+    k_arrowkey[3] = config_get_d(CONFIG_KEY_RIGHT);
+
+    if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
+        && k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT
+        && k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
+        return 1;
+    else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
+             && k_caml == SDLK_d && k_camr == SDLK_a
+             && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
+        return 1;
+
+    /*
+     * If the Switchball input preset is not detected,
+     * Try it with the Neverball by default.
+     */
+
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static int ball_manual_hotreload = 0;
+
 static Array balls;
 static int   curr_ball;
 static char  ball_file[64];
 
-static int name_id;
+static int   name_id = 0;
 
 static int has_ball_sols(struct dir_item *item)
 {
+    char *tmp_path = strdup(item->path);
     char *solid, *inner, *outer;
-    int yes;
+    int yes = 0;
 
-    solid = concat_string(item->path,
+    solid = concat_string(tmp_path,
                           "/",
-                          base_name(item->path),
+                          base_name(tmp_path),
                           "-solid.sol",
                           NULL);
-    inner = concat_string(item->path,
+    inner = concat_string(tmp_path,
                           "/",
-                          base_name(item->path),
+                          base_name(tmp_path),
                           "-inner.sol",
                           NULL);
-    outer = concat_string(item->path,
+    outer = concat_string(tmp_path,
                           "/",
-                          base_name(item->path),
+                          base_name(tmp_path),
                           "-outer.sol",
                           NULL);
 
@@ -67,6 +120,8 @@ static int has_ball_sols(struct dir_item *item)
     free(solid);
     free(inner);
     free(outer);
+
+    free(tmp_path);
 
     return yes;
 }
@@ -81,7 +136,11 @@ static void scan_balls(void)
 {
     int i;
 
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+    SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE));
+#else
     SAFECPY(ball_file, config_get_s(CONFIG_BALL_FILE));
+#endif
 
     if ((balls = fs_dir_scan("ball", has_ball_sols)))
     {
@@ -108,30 +167,70 @@ static void free_balls(void)
 
 static void set_curr_ball(int ball_index)
 {
-    sprintf(ball_file, "%s/%s",
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(ball_file, 64,
+#else
+    sprintf(ball_file,
+#endif
+            "%s/%s",
             DIR_ITEM_GET(balls, ball_index)->path,
             base_name(DIR_ITEM_GET(balls, ball_index)->path));
 
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+    account_set_s(ACCOUNT_BALL_FILE, ball_file);
+#else
     config_set_s(CONFIG_BALL_FILE, ball_file);
+#endif
 
     ball_free();
     ball_init();
-
+    config_save();
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+    account_save();
+#endif
     gui_set_label(name_id, base_name(ball_file));
 }
 
+enum
+{
+    MODEL_ONLINE = GUI_LAST,
+    MODEL_UPGRADE_EDITION
+};
+
 static int ball_action(int tok, int val)
 {
-    audio_play(AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
+    case MODEL_ONLINE:
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+        if (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1)
+        {
+#if _WIN32
+            system("start msedge https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
+#elif defined(__APPLE__)
+            system("open https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
+#elif defined(__linux__)
+            system("x-www-browser https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
+#endif
+        }
+#endif
+        break;
+    case MODEL_UPGRADE_EDITION:
+#if _WIN32
+        system("start msedge https://forms.gle/62iaMCNKan4z2SJs5");
+#elif defined(__APPLE__)
+        system("open https://forms.gle/62iaMCNKan4z2SJs5");
+#elif defined(__linux__)
+        system("x-www-browser https://forms.gle/62iaMCNKan4z2SJs5");
+#endif
+        break;
     case GUI_NEXT:
         if (++curr_ball == array_len(balls))
             curr_ball = 0;
 
         set_curr_ball(curr_ball);
-
         break;
 
     case GUI_PREV:
@@ -139,33 +238,69 @@ static int ball_action(int tok, int val)
             curr_ball = array_len(balls) - 1;
 
         set_curr_ball(curr_ball);
-
         break;
 
     case GUI_BACK:
+        game_fade(+4.0);
+#if NB_HAVE_PB_BOTH==1
+        goto_state(&st_conf_account);
+#else
         goto_state(&st_conf);
+#endif
         break;
     }
 
     return 1;
 }
 
+static int filter_cmd(const union cmd *cmd)
+{
+    return (cmd ? cmd->type != CMD_MAKE_ITEM : 1);
+}
+
 static void load_ball_demo(void)
 {
-    int g;
-
     /* "g" is a stupid hack to keep the goal locked. */
 
-    if (!demo_replay_init("gui/ball.nbr", &g, NULL, NULL, NULL, NULL))
+    int g;
+
+    if (model_studio)
+    {
+        if (!game_client_init("gui/model-studio.sol"))
+        {
+            ball_action(GUI_BACK, 0);
+            return;
+        }
+        else
+            game_client_toggle_show_balls(1);
+    }
+    else if (!demo_replay_init("gui/ball.nbr", &g, NULL, NULL, NULL, NULL, NULL))
     {
         ball_action(GUI_BACK, 0);
         return;
     }
+    else
+        game_client_toggle_show_balls(1);
 
-    audio_music_fade_to(0.0f, "bgm/inter.ogg");
+#if NB_HAVE_PB_BOTH==1
+    demo_replay_speed(super_environment ? SPEED_SLOWER : SPEED_NORMAL);
+#endif
+
+#if NB_HAVE_PB_BOTH==1
+    audio_music_fade_to(0.0f, switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
+#else
+    audio_music_fade_to(0.0f, "gui/bgm/inter.ogg");
+#endif
     game_client_fly(0);
-    game_kill_fade();
-    back_init("back/gui.png");
+
+    game_fade(-4.0);
+    if (!config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        game_kill_fade();
+
+#if NB_HAVE_PB_BOTH==1
+    if (super_environment == 0)
+#endif
+        back_init("back/premium.png");
 }
 
 static int ball_gui(void)
@@ -175,18 +310,78 @@ static int ball_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        if ((jd = gui_harray(id)))
+        if ((jd = gui_hstack(id)))
         {
             gui_label(jd, _("Ball Model"), GUI_SML, 0, 0);
+            gui_filler(jd);
             gui_space(jd);
+
+#if NB_HAVE_PB_BOTH==1
+#ifndef __EMSCRIPTEN__
+            if (current_platform == PLATFORM_PC)
+                gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+            else
+#endif
+                gui_filler(jd);
+#else
             gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+#endif
         }
 
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        if (!xbox_show_gui())
+#endif
+            gui_space(id);
+
+#if NB_HAVE_PB_BOTH==1
+        const char* more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ?
+#if NB_STEAM_API==1
+                                      N_("Open Steam Workshop!") :
+#else
+                                      N_("Get more Balls!") :
+#endif
+                                      N_("Upgrade to Home Edition!");
+
+        if ((account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
+             server_policy_get_d(SERVER_POLICY_EDITION) < 0)
+#ifndef __EMSCRIPTEN__
+            && !xbox_show_gui()
+#endif
+            )
+        {
+            int online_id;
+            if (online_id = gui_label(id, _(more_balls_text),
+                                          GUI_SML, gui_wht, gui_grn))
+            {
+                if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                    gui_set_state(online_id, MODEL_UPGRADE_EDITION, 0);
+                else
+                    gui_set_state(online_id, MODEL_ONLINE, 0);
+            }
+        }
+#ifndef __EMSCRIPTEN__
+        else if (!xbox_show_gui())
+            gui_label(id, _(more_balls_text), GUI_SML, gui_gry, gui_gry);
+#endif
         gui_space(id);
+#endif
 
         if ((jd = gui_hstack(id)))
         {
-            gui_state(jd, " > ", GUI_SML, GUI_NEXT, 0);
+            int total_ball_name = array_len(balls);
+
+#ifndef __EMSCRIPTEN__
+            if (!xbox_show_gui() && total_ball_name > 1)
+#else
+            if (total_ball_name > 1)
+#endif
+#ifdef SWITCHBALL_GUI
+                gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png",
+                                  "gui/navig/arrow_right.png",
+                                  GUI_NEXT, GUI_NONE, 1);
+#else
+                gui_maybe(jd, GUI_TRIANGLE_RIGHT, GUI_NEXT, GUI_NONE, 1);
+#endif
 
             name_id = gui_label(jd, "very-long-ball-name", GUI_SML,
                                 gui_wht, gui_wht);
@@ -194,7 +389,18 @@ static int ball_gui(void)
             gui_set_trunc(name_id, TRUNC_TAIL);
             gui_set_fill(name_id);
 
-            gui_state(jd, " < ", GUI_SML, GUI_PREV, 0);
+#ifndef __EMSCRIPTEN__
+            if (!xbox_show_gui() && total_ball_name > 1)
+#else
+            if (total_ball_name > 1)
+#endif
+#ifdef SWITCHBALL_GUI
+                gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png",
+                                  "gui/navig/arrow_left.png",
+                                  GUI_PREV, GUI_NONE, 1);
+#else
+                gui_maybe(jd, GUI_TRIANGLE_LEFT, GUI_PREV, GUI_NONE, 1);
+#endif
         }
 
         for (i = 0; i < 12; i++)
@@ -211,108 +417,146 @@ static int ball_gui(void)
 static int ball_enter(struct state *st, struct state *prev)
 {
     scan_balls();
-    load_ball_demo();
+
+    if (prev != &st_ball)
+    {
+        game_proxy_filter(filter_cmd);
+        load_ball_demo();
+    }
+
+    ball_manual_hotreload = 0;
 
     return ball_gui();
 }
 
 static void ball_leave(struct state *st, struct state *next, int id)
 {
-    gui_delete(id);
-    back_free();
-    demo_replay_stop(0);
+    if (next != &st_ball)
+    {
+        gui_delete(id);
+        back_free();
+        demo_replay_stop(0);
+    }
+
     free_balls();
 }
 
 static void ball_paint(int id, float t)
 {
     video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-    {
+
+#if NB_HAVE_PB_BOTH==1
+    if (super_environment == 0)
+#endif
         back_draw_easy();
-    }
+
     video_pop_matrix();
 
+#if NB_HAVE_PB_BOTH==1
+    game_client_draw(super_environment ? 0 : POSE_BALL, t);
+#else
     game_client_draw(POSE_BALL, t);
+#endif
+
     gui_paint(id);
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+    xbox_control_model_gui_paint();
+#endif
 }
 
 static void ball_timer(int id, float dt)
 {
     gui_timer(id, dt);
+    game_step_fade(dt);
 
-    if (!demo_replay_step(dt))
+    if (model_studio)
+        game_client_fly(1.0f);
+    else if (!demo_replay_step(dt))
     {
         demo_replay_stop(0);
         load_ball_demo();
+#if NB_HAVE_PB_BOTH==1
+        demo_replay_speed(super_environment ? SPEED_SLOWER : SPEED_NORMAL);
+#endif
+        game_client_blend(demo_replay_blend());
     }
-
-    game_client_blend(demo_replay_blend());
 }
 
 static int ball_keybd(int c, int d)
 {
     int initial_fov = config_get_d(CONFIG_VIEW_FOV);
-    int initial_dc = config_get_d(CONFIG_VIEW_DC);
-    int initial_dp = config_get_d(CONFIG_VIEW_DP);
-    int initial_w = config_get_d(CONFIG_WIDTH);
-    int initial_h = config_get_d(CONFIG_HEIGHT);
+    int initial_dc  = config_get_d(CONFIG_VIEW_DC);
+    int initial_dp  = config_get_d(CONFIG_VIEW_DP);
+    int initial_w   = config_get_d(CONFIG_WIDTH);
+    int initial_h   = config_get_d(CONFIG_HEIGHT);
 
     int i;
 
     if (d)
     {
-        switch (c)
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
+#else
+        if (c == KEY_EXIT)
+#endif
+            return ball_action(GUI_BACK, 0);
+        else if (c == KEY_LOOKAROUND)
         {
-            case KEY_EXIT:
-                return ball_action(GUI_BACK, 0);
+            ball_manual_hotreload = 1;
+            return goto_state(&st_ball);
+        }
+        else switch (c)
+        {
+        case KEY_EXIT:
+            return ball_action(GUI_BACK, 0);
 
-            case KEY_LEVELSHOTS:
+        case KEY_LEVELSHOTS:
 
-                video_set_window_size(800 / video.device_scale, 600 / video.device_scale);
-                video_resize(800 / video.device_scale, 600 / video.device_scale);
+            video_set_window_size(800 / video.device_scale, 600 / video.device_scale);
+            video_resize(800 / video.device_scale, 600 / video.device_scale);
 
-                // Zoom in on the ball.
+            // Zoom in on the ball.
 
-                config_set_d(CONFIG_VIEW_DC, 0);
-                config_set_d(CONFIG_VIEW_DP, 50);
-                config_set_d(CONFIG_VIEW_FOV, 20);
+            config_set_d(CONFIG_VIEW_DC, 0);
+            config_set_d(CONFIG_VIEW_DP, 50);
+            config_set_d(CONFIG_VIEW_FOV, 20);
 
-                game_client_fly(0.0f);
+            game_client_fly(0.0f);
 
-                // Take screenshots.
+            // Take screenshots.
 
-                for (i = 0; balls && i < array_len(balls); ++i)
+            for (i = 0; balls && i < array_len(balls); ++i)
+            {
+                static char filename[64];
+
+                sprintf(filename, "Screenshots/ball-%s.png", base_name(DIR_ITEM_GET(balls, i)->path));
+
+                set_curr_ball(i);
+
+                video_clear();
+                video_push_persp((float)initial_fov, 0.1f, FAR_DIST);
                 {
-                    static char filename[64];
-
-                    sprintf(filename, "Screenshots/ball-%s.png", base_name(DIR_ITEM_GET(balls, i)->path));
-
-                    set_curr_ball(i);
-
-                    video_clear();
-                    video_push_persp((float) initial_fov, 0.1f, FAR_DIST);
-                    {
-                        back_draw_easy();
-                    }
-                    video_pop_matrix();
-
-                    game_client_draw(POSE_BALL, 0);
-                    video_snap(filename);
-                    video_swap();
+                    back_draw_easy();
                 }
+                video_pop_matrix();
 
-                // Restore config.
+                game_client_draw(POSE_BALL, 0);
+                video_snap(filename);
+                video_swap();
+            }
 
-                config_set_d(CONFIG_VIEW_FOV, initial_fov);
-                config_set_d(CONFIG_VIEW_DC, initial_dc);
-                config_set_d(CONFIG_VIEW_DP, initial_dp);
+            // Restore config.
 
-                video_set_window_size(initial_w, initial_h);
-                video_resize(initial_w, initial_h);
+            config_set_d(CONFIG_VIEW_FOV, initial_fov);
+            config_set_d(CONFIG_VIEW_DC, initial_dc);
+            config_set_d(CONFIG_VIEW_DP, initial_dp);
 
-                set_curr_ball(curr_ball);
+            video_set_window_size(initial_w, initial_h);
+            video_resize(initial_w, initial_h);
 
-                break;
+            set_curr_ball(curr_ball);
+
+            break;
         }
     }
     return 1;
@@ -332,11 +576,20 @@ static int ball_buttn(int b, int d)
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b))
             return ball_action(GUI_PREV, 0);
+
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b))
             return ball_action(GUI_NEXT, 0);
+
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_Y, b))
+            return ball_action(server_policy_get_d(SERVER_POLICY_EDITION) == -1 ?
+                               MODEL_UPGRADE_EDITION : MODEL_ONLINE, 0);
+#endif
     }
     return 1;
 }
+
+/*---------------------------------------------------------------------------*/
 
 struct state st_ball = {
     ball_enter,

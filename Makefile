@@ -59,7 +59,7 @@ ifneq ($(FS_VERSION),1)
 endif
 
 ifeq ($(PLATFORM),mingw)
-	USERDIR := Pennyball_$(VERSION)
+	USERDIR := Neverball_$(VERSION)
 endif
 
 ifeq ($(PLATFORM),haiku)
@@ -119,59 +119,59 @@ endif
 #------------------------------------------------------------------------------
 # Mandatory flags
 
-# New design specifications for entities in Pennyball
+# New design specifications for entities in Neverball
 #
-# We're introducing new design specifications for entities in Pennyball.
+# We're introducing new design specifications for entities in Neverball.
 # If you do not do so,  your Entities will be displayed in legacy mode.
 # Entities created after June 20, 2020 must be meet the new electricity
 # before the level is compiled.
 
 ALL_CPPFLAGS := -DLEGACY_MODE=1
 
-ifeq ($(PENNYBALL_FAMILY_API),xbox)
+ifeq ($(NEVERBALL_FAMILY_API),xbox)
 	# Xbox
-	ALL_CPPFLAGS += -DPENNYBALL_FAMILY_API=1
+	ALL_CPPFLAGS += -DNEVERBALL_FAMILY_API=1
 endif
-ifeq ($(PENNYBALL_FAMILY_API),xbox360)
+ifeq ($(NEVERBALL_FAMILY_API),xbox360)
 	# Xbox 360
-	ALL_CPPFLAGS += -DPENNYBALL_FAMILY_API=2
+	ALL_CPPFLAGS += -DNEVERBALL_FAMILY_API=2
 endif
-ifeq ($(PENNYBALL_FAMILY_API),ps4)
+ifeq ($(NEVERBALL_FAMILY_API),ps4)
 	# PS4
-	ALL_CPPFLAGS += -DPENNYBALL_FAMILY_API=3
+	ALL_CPPFLAGS += -DNEVERBALL_FAMILY_API=3
 endif
-ifeq ($(PENNYBALL_FAMILY_API),switch)
+ifeq ($(NEVERBALL_FAMILY_API),switch)
 	# Switch
-	ALL_CPPFLAGS += -DPENNYBALL_FAMILY_API=4
+	ALL_CPPFLAGS += -DNEVERBALL_FAMILY_API=4
 endif
-ifeq ($(PENNYBALL_FAMILY_API),handset)
+ifeq ($(NEVERBALL_FAMILY_API),handset)
 	# Handset
-	ALL_CPPFLAGS += -DPENNYBALL_FAMILY_API=5
+	ALL_CPPFLAGS += -DNEVERBALL_FAMILY_API=5
 endif
 
 $(info You had been choosen edition $(EDITION))
 ifeq ($(EDITION),home)
-ALL_CPPFLAGS += -DPENNYBALL_EDITION=0
+ALL_CPPFLAGS += -DNEVERBALL_EDITION=0
 else
 ifeq ($(EDITION),pro)
-ALL_CPPFLAGS += -DPENNYBALL_EDITION=1
+ALL_CPPFLAGS += -DNEVERBALL_EDITION=1
 else
 ifeq ($(EDITION),enterprise)
-ALL_CPPFLAGS += -DPENNYBALL_EDITION=2
+ALL_CPPFLAGS += -DNEVERBALL_EDITION=2
 else
 ifeq ($(EDITION),education)
-ALL_CPPFLAGS += -DPENNYBALL_EDITION=3
+ALL_CPPFLAGS += -DNEVERBALL_EDITION=3
 else
 ifeq ($(EDITION),server_essentials)
-ALL_CPPFLAGS += -DPENNYBALL_EDITION=10000
+ALL_CPPFLAGS += -DNEVERBALL_EDITION=10000
 else
 ifeq ($(EDITION),server_standard)
-ALL_CPPFLAGS += -DPENNYBALL_EDITION=10001
+ALL_CPPFLAGS += -DNEVERBALL_EDITION=10001
 else
 ifeq ($(EDITION),server_datacenter)
-ALL_CPPFLAGS += -DPENNYBALL_EDITION=10002
+ALL_CPPFLAGS += -DNEVERBALL_EDITION=10002
 else
-ALL_CPPFLAGS += -DPENNYBALL_EDITION=-1
+ALL_CPPFLAGS += -DNEVERBALL_EDITION=-1
 endif
 endif
 endif

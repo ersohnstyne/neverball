@@ -926,11 +926,6 @@ unsigned int fetch_gdrive(const char *fileid,
             curl_easy_setopt(handle, CURLOPT_NOPROGRESS,       0);
 
             curl_easy_setopt(handle, CURLOPT_BUFFERSIZE,      102400L);
-#if NB_HAVE_PB_BOTH==1
-            //curl_easy_setopt(handle, CURLOPT_USERAGENT,       "pennyball/" VERSION);
-#else
-            //curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
-#endif
             curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
 
 #if _WIN32 && defined(CURLSSLOPT_NATIVE_CA)

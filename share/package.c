@@ -27,10 +27,6 @@
 #endif
 #endif
 
-/*
- * Premium: pennyball.stynegame.de
- * Legacy downloads: neverball.github.io
- */
 #define NB_CURRDOMAIN_PREMIUM "neverball.github.io"
 
 struct package

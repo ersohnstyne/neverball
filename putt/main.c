@@ -591,7 +591,7 @@ static void step(void* data)
     }
 
     EM_ASM({
-        Pennyputt.quit();
+        Neverputt.quit();
     });
 #endif
 }
@@ -688,7 +688,7 @@ static void main_quit()
     mtrl_quit();
     video_quit();
 
-    /* Restore Pennyball's camera setting. */
+    /* Restore Neverball's camera setting. */
 
     config_set_d(CONFIG_CAMERA, em_cached_cam);
     config_save();

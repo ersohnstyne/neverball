@@ -1,3 +1,17 @@
+/*
+ * Copyright (C) 2023 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #include "package.h"
 #include "array.h"
 #include "common.h"
@@ -5,33 +19,68 @@
 #include "fs.h"
 #include "lang.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
+#define NB_CURRDOMAIN_PREMIUM "neverball.github.io"
+
 struct package
 {
     unsigned int size;
 
-    char id[64];
-    char type[64];
+    char id      [64];
+    char type    [64];
     char filename[MAXSTR];
-    char files[MAXSTR];
-    char name[64];
-    char desc[MAXSTR];
-    char shot[64];
+    char files   [MAXSTR];
+    char name    [64];
+    char desc    [MAXSTR];
+    char shot    [64];
+
+#if NB_HAVE_PB_BOTH==1
+    char category     [64];
+#if ENABLE_FETCH>=2
+    char fileid_gdrive[64];
+    char shotid_gdrive[64];
+#endif
+#endif
 
     enum package_status status;
 };
 
 static Array available_packages;
+static int   package_curr_category = PACKAGE_CATEGORY_LEVELSET;
 
 #define PACKAGE_GET(a, i) ((struct package *) array_get((a), (i)))
 
-#define PACKAGE_DIR "Downloads"
+#define PACKAGE_DIR "DLC"
+#define NB_DOWNLOADPATH PACKAGE_DIR "/"
+#define NB_DOWNLOADPATH_ROOT "/" PACKAGE_DIR "/"
+
+#if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH>=2
+
+// TODO: Change the Google Drive package file ID preprocessor definitions
+
+#ifndef NB_GDRIVE_PACKAGE_FILEID_LEVELSET
+#error Must specify Level set file ID from the Google Drive website.
+#endif
+
+#ifndef NB_GDRIVE_PACKAGE_FILEID_CAMPAIGN
+#error Must specify Campaign file ID from the Google Drive website.
+#endif
+
+#endif
 
 /*---------------------------------------------------------------------------*/
 
 /*
  * Get a download URL.
  */
-static const char *get_package_url(const char *filename)
+static const char *get_package_url(const char *filename, int category)
 {
     if (filename && *filename)
     {
@@ -40,10 +89,55 @@ static const char *get_package_url(const char *filename)
         memset(url, 0, sizeof (url));
 
 #ifdef __EMSCRIPTEN__
-        /* Same origin. */
-        SAFECPY(url, "/packages/");
+#if defined(NB_PACKAGES_PREMIUM)
+        switch (category)
+        {
+        case PACKAGE_CATEGORY_LEVELSET:
+            /* Uses premium sets */
+            SAFECPY(url, "/packages/levelsets/");
+            break;
+        case PACKAGE_CATEGORY_CAMPAIGN:
+            /* Uses campaign */
+            SAFECPY(url, "/packages/campaign/");
+            break;
+        case PACKAGE_CATEGORY_PROFILE:
+            /* Uses ball models */
+            SAFECPY(url, "/packages/ball/");
+            break;
+        case PACKAGE_CATEGORY_COURSE:
+            /* Uses ball models */
+            SAFECPY(url, "/packages/course/");
+            break;
+        }
 #else
+        /* Uses standard vanilla game */
+        SAFECPY(url, "/packages/");
+#endif
+#else
+#if defined(NB_PACKAGES_PREMIUM)
+        switch (category)
+        {
+        case PACKAGE_CATEGORY_LEVELSET:
+            /* Uses premium sets */
+            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/levelsets/");
+            break;
+        case PACKAGE_CATEGORY_CAMPAIGN:
+            /* Uses campaign */
+            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/campaign/");
+            break;
+        case PACKAGE_CATEGORY_PROFILE:
+            /* Uses ball models */
+            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/ball/");
+            break;
+        case PACKAGE_CATEGORY_COURSE:
+            /* Uses ball models */
+            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/course/");
+            break;
+        }
+#else
+        /* Uses legacy vanilla game */
         SAFECPY(url, "https://neverball.github.io/packages/");
+#endif
 #endif
         SAFECAT(url, filename);
 
@@ -64,7 +158,7 @@ static const char *get_package_path(const char *filename)
 
         memset(path, 0, sizeof (path));
 
-        SAFECPY(path, PACKAGE_DIR "/");
+        SAFECPY(path, NB_DOWNLOADPATH);
         SAFECAT(path, filename);
 
         return path;
@@ -75,7 +169,7 @@ static const char *get_package_path(const char *filename)
 /*---------------------------------------------------------------------------*/
 
 /*
- * We keep a separate list of installed packages, so that we don't have to scan
+ * We also track the installed packages separately, just so we don't have to scan
  * the package directory and figure out which ZIP files can be added to the FS
  * and which ones can't.
  */
@@ -120,7 +214,8 @@ static int mount_package_file(const char *filename)
 
     if (filename && *filename && write_dir)
     {
-        char *path = concat_string(write_dir, "/" PACKAGE_DIR "/", filename, NULL);
+        char *path = concat_string(write_dir, NB_DOWNLOADPATH_ROOT,
+                                   filename, NULL);
 
         if (path)
         {
@@ -210,7 +305,34 @@ static int mount_local_package(struct local_package *lpkg)
  */
 static int load_installed_packages(void)
 {
-    fs_file fp = fs_open_read(get_package_path("installed-packages.txt"));
+#if defined(NB_PACKAGES_PREMIUM)
+    char default_filename[64];
+
+    switch (package_curr_category)
+    {
+    case PACKAGE_CATEGORY_CAMPAIGN:
+        SAFECPY(default_filename, "installed-packages_campaign.txt");
+        break;
+    case PACKAGE_CATEGORY_PROFILE:
+        SAFECPY(default_filename, "installed-packages_ball.txt");
+        break;
+    case PACKAGE_CATEGORY_COURSE:
+        SAFECPY(default_filename, "installed-packages_course.txt");
+        break;
+    default:
+        SAFECPY(default_filename, "installed-packages.txt");
+        break;
+    }
+
+#else
+    const char *default_filename = "installed-packages.txt";
+#endif
+
+#ifdef FS_VERSION_1
+    fs_file fp = fs_open(get_package_path(default_filename), "r");
+#else
+    fs_file fp = fs_open_read(get_package_path(default_filename));
+#endif
 
     if (fp)
     {
@@ -290,7 +412,30 @@ static int save_installed_packages(void)
 {
     if (installed_packages)
     {
-        fs_file fp = fs_open_write(get_package_path("installed-packages.txt"));
+#if defined(NB_PACKAGES_PREMIUM)
+        char default_filename[64];
+
+        switch (package_curr_category)
+        {
+        case PACKAGE_CATEGORY_CAMPAIGN:
+            SAFECPY(default_filename, "installed-packages_campaign.txt");
+            break;
+        case PACKAGE_CATEGORY_PROFILE:
+            SAFECPY(default_filename, "installed-packages_ball.txt");
+            break;
+        case PACKAGE_CATEGORY_COURSE:
+            SAFECPY(default_filename, "installed-packages_course.txt");
+            break;
+        default:
+            SAFECPY(default_filename, "installed-packages.txt");
+            break;
+        }
+
+#else
+        const char* default_filename = "installed-packages.txt";
+#endif
+
+        fs_file fp = fs_open_write(get_package_path(default_filename));
 
         if (fp)
         {
@@ -339,8 +484,6 @@ static void free_installed_packages(void)
 
 /*
  * Figure out package statuses.
- *
- * Packages that are found to exist are marked as installed and added to the FS.
  */
 static void load_package_statuses(Array packages)
 {
@@ -395,7 +538,7 @@ static Array load_packages_from_file(const char *filename)
         {
             strip_newline(line);
 
-            if (strncmp(line, "package ", 8) == 0)
+            if (str_starts_with(line, "package "))
             {
                 /* Start reading a new package. */
 
@@ -408,37 +551,73 @@ static Array load_packages_from_file(const char *filename)
                     memset(pkg, 0, sizeof (*pkg));
 
                     SAFECPY(pkg->id, line + 8);
-
                     prefix_len = strcspn(pkg->id, "-");
-
-                    strncpy(pkg->type, pkg->id, MIN(sizeof (pkg->type) - 1, prefix_len));
+#if _MSC_VER && _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    strncpy_s(pkg->type, 64,
+                              pkg->id, MIN(sizeof(pkg->type) - 1, prefix_len));
+#else
+                    strncpy(pkg->type,
+                            pkg->id, MIN(sizeof(pkg->type) - 1, prefix_len));
+#endif
+                    pkg->size = 0;
+                    pkg->filename[0] = 0;
+                    pkg->files[0] = 0;
+                    pkg->name[0] = 0;
+                    pkg->desc[0] = 0;
+                    pkg->shot[0] = 0;
+#if NB_HAVE_PB_BOTH==1
+                    pkg->category[0] = 0;
+#if ENABLE_FETCH>=2
+                    pkg->fileid_gdrive[0] = 0;
+                    pkg->shotid_gdrive[0] = 0;
+#endif
+#endif
                 }
             }
-            else if (strncmp(line, "filename ", 9) == 0)
+#if NB_HAVE_PB_BOTH==1
+            else if (str_starts_with(line, "category "))
+            {
+                if (pkg)
+                    SAFECPY(pkg->category, line + 9);
+            }
+#if ENABLE_FETCH>=2
+            else if (str_starts_with(line, "fileid-gdrive "))
+            {
+                if (pkg)
+                    SAFECPY(pkg->fileid_gdrive, line + 14);
+            }
+#endif
+#endif
+            else if (str_starts_with(line, "filename "))
             {
                 if (pkg)
                     SAFECPY(pkg->filename, line + 9);
             }
-            else if (strncmp(line, "size ", 5) == 0)
+            else if (str_starts_with(line, "size "))
             {
                 if (pkg)
-                    sscanf(line + 5, "%u", &pkg->size);
+#if _MSC_VER && _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sscanf_s(line + 5,
+#else
+                    sscanf(line + 5,
+#endif
+                           "%u", &pkg->size);
             }
-            else if (strncmp(line, "files ", 6) == 0)
+            else if (str_starts_with(line, "files "))
             {
                 if (pkg)
                     SAFECPY(pkg->files, line + 6);
             }
-            else if (strncmp(line, "name ", 5) == 0)
+            else if (str_starts_with(line, "name "))
             {
                 if (pkg)
                     SAFECPY(pkg->name, line + 5);
             }
-            else if (strncmp(line, "desc ", 5) == 0)
+            else if (str_starts_with(line, "desc "))
             {
                 if (pkg)
                 {
-                    char *s = NULL;
+                    char* s = NULL;
 
                     SAFECPY(pkg->desc, line + 5);
 
@@ -451,11 +630,18 @@ static Array load_packages_from_file(const char *filename)
                     }
                 }
             }
-            else if (strncmp(line, "shot ", 5) == 0)
+            else if (str_starts_with(line, "shot "))
             {
                 if (pkg)
                     SAFECPY(pkg->shot, line + 5);
             }
+#if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH>=2
+            else if (str_starts_with(line, "shotid-gdrive "))
+            {
+                if (pkg)
+                    SAFECPY(pkg->shotid_gdrive, line + 14);
+            }
+#endif
         }
 
         fs_close(fp);
@@ -491,18 +677,32 @@ static void fetch_package_images(Array packages)
 
         for (i = 0; i < n; ++i)
         {
-            struct package *pkg = array_get(packages, i);
-            const char *filename = package_get_shot_filename(i);
+            struct package *pkg      = array_get(packages, i);
+            const char     *filename = package_get_shot_filename(i);
 
             if (filename && *filename && !fs_exists(filename))
             {
-                const char *url = get_package_url(pkg->shot);
-
-                if (url)
+#if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH>=2
+                if (pkg->shotid_gdrive[0])
                 {
-                    struct fetch_callback callback = { 0 };
+                    // Google Drive package support
+                    struct fetch_callback gdrive_callback = { 0 };
+                    fetch_gdrive(pkg->shotid_gdrive, filename,
+                                 gdrive_callback);
+                }
+                else
+#endif
+                {
+#if NB_HAVE_PB_BOTH!=1 || ENABLE_FETCH<3
+                    const char* url = get_package_url(pkg->shot,
+                                                      package_curr_category);
 
-                    fetch_url(url, filename, callback);
+                    if (url)
+                    {
+                        struct fetch_callback callback = { 0 };
+                        fetch_url(url, filename, callback);
+                    }
+#endif
                 }
             }
         }
@@ -511,9 +711,6 @@ static void fetch_package_images(Array packages)
 
 /*---------------------------------------------------------------------------*/
 
-/*
- * Load the list of available packages and initiate image downloads.
- */
 static void available_packages_done(void *data, void *extra_data)
 {
     struct fetch_done *fd = extra_data;
@@ -541,23 +738,50 @@ static void available_packages_done(void *data, void *extra_data)
 /*
  * Download the package list.
  */
-static void fetch_available_packages(void)
+static void fetch_available_packages(int category)
 {
-    const char *url = get_package_url("available-packages.txt");
+    const char* filename = get_package_path("available-packages.txt");
 
-    if (url)
+#if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH>=2
+    if (filename && category == PACKAGE_CATEGORY_CAMPAIGN
+     && NB_GDRIVE_PACKAGE_FILEID_CAMPAIGN[0])
     {
-        const char *filename = get_package_path("available-packages.txt");
+        // Google Drive campaign package support
 
-        if (filename)
-        {
-            struct fetch_callback callback = { 0 };
-
-            callback.done = available_packages_done;
-
-            fetch_url(url, filename, callback);
-        }
+        struct fetch_callback gdrive_callback = { 0 };
+        gdrive_callback.done = available_packages_done;
+        fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_CAMPAIGN, filename,
+                     gdrive_callback);
+        return;
     }
+    else if (filename && category == PACKAGE_CATEGORY_LEVELSET
+          && NB_GDRIVE_PACKAGE_FILEID_LEVELSET[0])
+    {
+        // Google Drive level set package support
+
+        struct fetch_callback gdrive_callback = { 0 };
+        gdrive_callback.done = available_packages_done;
+        fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_LEVELSET, filename,
+                     gdrive_callback);
+        return;
+    }
+#endif
+    
+#if NB_HAVE_PB_BOTH!=1 || ENABLE_FETCH<3
+#ifdef __EMSCRIPTEN__
+    const char *url = get_package_url("available-packages-emscripten.txt",
+                                      category);
+#else
+    const char *url = get_package_url("available-packages.txt", category);
+#endif
+
+    if (url && filename)
+    {
+        struct fetch_callback callback = { 0 };
+        callback.done = available_packages_done;
+        fetch_url(url, filename, callback);
+    }
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -593,7 +817,7 @@ void package_init(void)
 
     /* Download package list. */
 
-    fetch_available_packages();
+    fetch_available_packages(package_curr_category);
 }
 
 void package_quit(void)
@@ -664,7 +888,8 @@ int package_next(const char *type, int start)
     {
         int i, n;
 
-        for (i = MAX(0, start + 1), n = array_len(available_packages); i < n; ++i)
+        for (i = MAX(0, start + 1), n = array_len(available_packages); i < n;
+             ++i)
         {
             struct package *pkg = array_get(available_packages, i);
             size_t prefix_len = strcspn(pkg->id, "-");
@@ -677,6 +902,9 @@ int package_next(const char *type, int start)
     return -1;
 }
 
+/*
+ * Get package status.
+ */
 enum package_status package_get_status(int pi)
 {
     if (pi >= 0 && pi < array_len(available_packages))
@@ -741,9 +969,9 @@ const char *package_get_shot_filename(int pi)
     return get_package_path(package_get_shot(pi));
 }
 
-const char *package_get_formatted_type(int pi)
+const char* package_get_formatted_type(int pi)
 {
-    const char *type = package_get_type(pi);
+    const char* type = package_get_type(pi);
 
     if (type)
     {
@@ -765,9 +993,9 @@ const char *package_get_formatted_type(int pi)
 struct package_fetch_info
 {
     struct fetch_callback callback;
-    char *temp_filename;
-    char *dest_filename;
-    struct package *pkg;
+    char                 *temp_filename;
+    char                 *dest_filename;
+    struct package       *pkg;
 };
 
 static struct package_fetch_info *create_pfi(struct package *pkg)
@@ -778,7 +1006,8 @@ static struct package_fetch_info *create_pfi(struct package *pkg)
     {
         memset(pfi, 0, sizeof (*pfi));
 
-        pfi->temp_filename = concat_string(get_package_path(pkg->filename), ".tmp", NULL);
+        pfi->temp_filename = concat_string(get_package_path(pkg->filename),
+                                           ".tmp", NULL);
         pfi->dest_filename = strdup(get_package_path(pkg->filename));
 
         pfi->pkg = pkg;
@@ -814,11 +1043,8 @@ static void package_fetch_progress(void *data, void *data2)
 {
     struct package_fetch_info *pfi = data;
 
-    if (pfi)
-    {
-        if (pfi->callback.progress)
-            pfi->callback.progress(pfi->callback.data, data2);
-    }
+    if (pfi && pfi->callback.progress)
+        pfi->callback.progress(pfi->callback.data, data2);
 }
 
 /*
@@ -832,15 +1058,13 @@ static void package_fetch_done(void *data, void *extra_data)
     if (pfi)
     {
         struct package *pkg = pfi->pkg;
-
-        /* Always prepare for worst. */
         pkg->status = PACKAGE_ERROR;
 
         if (dn->finished)
         {
             struct local_package *lpkg = create_local_package(pkg->id, pkg->filename);
 
-            /* Rename from temporary name to destination name. */
+            /* Rename from temporary name to target name. */
 
             if (pfi->temp_filename && pfi->dest_filename)
                 fs_rename(pfi->temp_filename, pfi->dest_filename);
@@ -858,6 +1082,8 @@ static void package_fetch_done(void *data, void *extra_data)
             }
 
         }
+        else if (pfi->temp_filename)
+            fs_remove(pfi->temp_filename);
 
         if (pfi->callback.done)
             pfi->callback.done(pfi->callback.data, extra_data);
@@ -867,14 +1093,47 @@ static void package_fetch_done(void *data, void *extra_data)
     }
 }
 
-unsigned int package_fetch(int pi, struct fetch_callback callback)
+unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
 {
     unsigned int fetch_id = 0;
 
     if (pi >= 0 && pi < array_len(available_packages))
     {
         struct package *pkg = array_get(available_packages, pi);
-        const char *url = get_package_url(pkg->filename);
+
+#if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH>=2
+        if (pkg->fileid_gdrive[0])
+        {
+            struct package_fetch_info *pfi = create_pfi(pkg);
+
+            /* Store passed callback. */
+
+            pfi->callback = callback;
+
+            /* Reuse variable to pass our callbacks. */
+
+            callback.progress = package_fetch_progress;
+            callback.done     = package_fetch_done;
+            callback.data     = pfi;
+
+            fetch_id = fetch_gdrive(pkg->fileid_gdrive, pfi->temp_filename,
+                                    callback);
+
+            if (fetch_id)
+                pkg->status = PACKAGE_DOWNLOADING;
+            else
+            {
+                free_pfi(pfi);
+                pfi = NULL;
+                callback.data = NULL;
+            }
+
+            return fetch_id;
+        }
+#endif
+
+#if NB_HAVE_PB_BOTH!=1 || ENABLE_FETCH<3
+        const char *url = get_package_url(pkg->filename, category);
 
         if (url)
         {
@@ -887,22 +1146,23 @@ unsigned int package_fetch(int pi, struct fetch_callback callback)
             /* Reuse variable to pass our callbacks. */
 
             callback.progress = package_fetch_progress;
-            callback.done = package_fetch_done;
-            callback.data = pfi;
+            callback.done     = package_fetch_done;
+            callback.data     = pfi;
 
             fetch_id = fetch_url(url, pfi->temp_filename, callback);
 
             if (fetch_id)
-            {
                 pkg->status = PACKAGE_DOWNLOADING;
-            }
             else
             {
                 free_pfi(pfi);
                 pfi = NULL;
                 callback.data = NULL;
             }
+
+            return fetch_id;
         }
+#endif
     }
 
     return fetch_id;

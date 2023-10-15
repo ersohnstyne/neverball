@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -13,7 +13,6 @@
  */
 
 #include <stdio.h>
-#include <assert.h>
 
 #include "cmd.h"
 #include "binary.h"
@@ -47,7 +46,7 @@ static int cmd_stats = 0;
     const char *cmd_name = #type;                                       \
                                                                         \
     /* This is a write, so BYTES should be safe to eval already. */     \
-    short cmd_bytes = (bytes);                                            \
+    short cmd_bytes = (bytes);                                          \
                                                                         \
     /* Write command size info (right after the command type). */       \
     put_short(fp, cmd_bytes);                                           \
@@ -96,7 +95,6 @@ DEFINE_CMD(CMD_MAKE_ITEM, ARRAY_BYTES(3) + INDEX_BYTES + INDEX_BYTES, {
     put_index(fp, cmd->mkitem.n);
 }, {
     get_array(fp, cmd->mkitem.p, 3);
-
     cmd->mkitem.t = get_index(fp);
     cmd->mkitem.n = get_index(fp);
 });
@@ -155,7 +153,7 @@ DEFINE_CMD(CMD_COINS, INDEX_BYTES, {
     put_index(fp, cmd->coins.n);
 }, {
     cmd->coins.n = get_index(fp);
-});
+} );
 
 /*---------------------------------------------------------------------------*/
 
@@ -173,7 +171,7 @@ DEFINE_CMD(CMD_BODY_PATH, INDEX_BYTES + INDEX_BYTES, {
 }, {
     cmd->bodypath.bi = get_index(fp);
     cmd->bodypath.pi = get_index(fp);
-});
+} );
 
 /*---------------------------------------------------------------------------*/
 
@@ -214,6 +212,31 @@ DEFINE_CMD(CMD_SWCH_EXIT, INDEX_BYTES, {
 });
 
 /*---------------------------------------------------------------------------*/
+
+DEFINE_CMD(CMD_CHKP_ENTER, INDEX_BYTES, {
+    put_index(fp, cmd->chkpenter.ci);
+}, {
+    cmd->chkpenter.ci = get_index(fp);
+});
+
+/*---------------------------------------------------------------------------*/
+
+DEFINE_CMD(CMD_CHKP_TOGGLE, INDEX_BYTES, {
+    put_index(fp, cmd->chkpenter.ci);
+}, {
+    cmd->chkpenter.ci = get_index(fp);
+});
+
+/*---------------------------------------------------------------------------*/
+
+DEFINE_CMD(CMD_CHKP_EXIT, INDEX_BYTES, {
+    put_index(fp, cmd->chkpenter.ci);
+}, {
+    cmd->chkpenter.ci = get_index(fp);
+} );
+
+/*---------------------------------------------------------------------------*/
+
 
 DEFINE_CMD(CMD_UPDATES_PER_SECOND, INDEX_BYTES, {
     put_index(fp, cmd->ups.n);
@@ -367,6 +390,43 @@ DEFINE_CMD(CMD_MOVE_TIME, INDEX_BYTES + FLOAT_BYTES, {
 
 /*---------------------------------------------------------------------------*/
 
+DEFINE_CMD(CMD_TILT, ARRAY_BYTES(4), {
+    put_array(fp, cmd->tilt.q, 4);
+}, {
+    get_array(fp, cmd->tilt.q, 4);
+});
+
+/*---------------------------------------------------------------------------*/
+
+DEFINE_CMD(CMD_SPEEDOMETER, INDEX_BYTES + FLOAT_BYTES, {
+    put_float(fp, cmd->speedometer.xi);
+}, {
+    cmd->speedometer.xi = get_float(fp);
+});
+
+/*---------------------------------------------------------------------------*/
+
+/*
+DEFINE_CMD(CMD_SAVED_SPAWNPOINT, INDEX_BYTES + FLOAT_BYTES, {
+    put_index(fp, cmd->spawnpoint.xi);
+}, {
+    cmd->spawnpoint.xi = get_index(fp);
+});*/
+
+/*---------------------------------------------------------------------------*/
+
+DEFINE_CMD(CMD_ZOOM, INDEX_BYTES + FLOAT_BYTES, {
+    put_float(fp, cmd->zoom.xi);
+}, {
+    cmd->zoom.xi = get_float(fp);
+});
+
+/*---------------------------------------------------------------------------*/
+
+DEFINE_CMD(CMD_CHKP_DISABLE, 0, {}, {});
+
+/*---------------------------------------------------------------------------*/
+
 #define PUT_CASE(t) case t: cmd_put_ ## t(fp, cmd); break
 #define GET_CASE(t) case t: cmd_get_ ## t(fp, cmd); break
 
@@ -375,7 +435,8 @@ int cmd_put(fs_file fp, const union cmd *cmd)
     if (!fp || !cmd)
         return 0;
 
-    assert(cmd->type > CMD_NONE && cmd->type < CMD_MAX);
+    if (!(cmd->type > CMD_NONE && cmd->type < CMD_MAX))
+        return 0;
 
     fs_putc(cmd->type, fp);
 
@@ -415,6 +476,14 @@ int cmd_put(fs_file fp, const union cmd *cmd)
         PUT_CASE(CMD_TILT_AXES);
         PUT_CASE(CMD_MOVE_PATH);
         PUT_CASE(CMD_MOVE_TIME);
+        PUT_CASE(CMD_TILT);
+        PUT_CASE(CMD_CHKP_ENTER);
+        PUT_CASE(CMD_CHKP_TOGGLE);
+        PUT_CASE(CMD_CHKP_EXIT);
+        PUT_CASE(CMD_SPEEDOMETER);
+        /*PUT_CASE(CMD_SAVED_SPAWNPOINT);*/
+        PUT_CASE(CMD_ZOOM);
+        PUT_CASE(CMD_CHKP_DISABLE);
 
     case CMD_NONE:
     case CMD_MAX:
@@ -482,6 +551,14 @@ int cmd_get(fs_file fp, union cmd *cmd)
             GET_CASE(CMD_TILT_AXES);
             GET_CASE(CMD_MOVE_PATH);
             GET_CASE(CMD_MOVE_TIME);
+            GET_CASE(CMD_TILT);
+            GET_CASE(CMD_CHKP_ENTER);
+            GET_CASE(CMD_CHKP_TOGGLE);
+            GET_CASE(CMD_CHKP_EXIT);
+            GET_CASE(CMD_SPEEDOMETER);
+            /*GET_CASE(CMD_SAVED_SPAWNPOINT);*/
+            GET_CASE(CMD_ZOOM);
+            GET_CASE(CMD_CHKP_DISABLE);
 
         case CMD_NONE:
         case CMD_MAX:

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima - 2006 Jean Privat
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -14,6 +14,16 @@
 
 #include <string.h>
 #include <ctype.h>
+
+#if NB_HAVE_PB_BOTH==1
+#ifndef __EMSCRIPTEN__
+#include "console_control_gui.h"
+#endif
+#include "networking.h"
+#include "account.h"
+#endif
+
+#include "ball.h"
 
 #include "common.h"
 #include "gui.h"
@@ -36,13 +46,25 @@
 static struct state *ok_state;
 static struct state *cancel_state;
 
-static unsigned int draw_back;
+int (*ok_fn)     (struct state *);
+int (*cancel_fn) (struct state *);
 
-int goto_name(struct state *ok, struct state *cancel, unsigned int back)
+static unsigned int draw_back;
+static int newplayers;
+static int name_error;
+
+int goto_name(struct state *ok, struct state *cancel,
+              int (*new_ok_fn) (struct state *),
+              int (*new_cancel_fn) (struct state *),
+              unsigned int back)
 {
     ok_state     = ok;
     cancel_state = cancel;
-    draw_back    = back;
+
+    ok_fn     = new_ok_fn;
+    cancel_fn = new_cancel_fn;
+
+    draw_back = back;
 
     return goto_state(&st_name);
 }
@@ -51,32 +73,121 @@ int goto_name(struct state *ok, struct state *cancel, unsigned int back)
 
 enum
 {
-    NAME_OK = GUI_LAST
+    NAME_OK = GUI_LAST,
+    NAME_CONTINUE
 };
 
 static int name_id;
+static int enter_id;
+
+static int player_renamed = 0;
+
+static int keybd_typing = 0;
+
+static void on_text_input(int typing);
+
+static void name_update_enter_btn(void)
+{
+    int name_accepted = text_length(text_input) > 2;
+
+    for (int i = 0; i < text_length(text_input); i++)
+    {
+        if (text_input[i] == '\\' ||
+            text_input[i] == '/'  ||
+            text_input[i] == ':'  ||
+            text_input[i] == '*'  ||
+            text_input[i] == '?'  ||
+            text_input[i] == '"'  ||
+            text_input[i] == '<'  ||
+            text_input[i] == '>'  ||
+            text_input[i] == '|')
+        {
+            name_accepted = 0;
+            break;
+        }
+    }
+
+    gui_set_state(enter_id, name_accepted &&
+                            !player_renamed ? NAME_OK : GUI_NONE, 0);
+    gui_set_color(enter_id,
+                  name_accepted && !player_renamed ? gui_wht : gui_gry,
+                  name_accepted && !player_renamed ? gui_wht : gui_gry);
+}
 
 static int name_action(int tok, int val)
 {
-    audio_play(AUD_MENU, 1.0f);
+    GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
     case GUI_BACK:
+        if (name_error)
+            return goto_state(&st_name);
+
+        if (newplayers)
+            return ok_fn ? ok_fn(ok_state) : goto_state(ok_state);
+
+        account_init();
+        account_load();
+        
+        if (cancel_fn)
+            return cancel_fn(cancel_state);
+
         return goto_state(cancel_state);
+        break;
 
     case NAME_OK:
-        if (strlen(text_input) == 0)
-           return 1;
+        newplayers = 0;
+        name_error = 0;
 
-        config_set_s(CONFIG_PLAYER, text_input);
+        if (strcmp(config_get_s(CONFIG_PLAYER), text_input) != 0)
+            player_renamed = 1;
 
+        text_input_stop();
+
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        if (text_length(text_input) < 3)
+            name_error = 1;
+        else if (player_renamed)
+        {
+            account_save();
+
+            config_set_s(CONFIG_PLAYER, text_input);
+            
+            account_init();
+            if (text_length(text_input) < 3)
+                name_error = 1;
+            else if (account_exists())
+                account_load();
+            else
+                newplayers = 1;
+
+            account_set_s(ACCOUNT_PLAYER, text_input);
+            ball_free();
+            ball_init();
+
+            account_save();
+        }
+#endif
         config_save();
 
-        return goto_state(ok_state);
+        if (!name_error && !newplayers && ok_fn)
+            return ok_fn(ok_state);
+
+        return goto_state(newplayers || name_error ? &st_name : ok_state);
+        break;
+
+    case NAME_CONTINUE:
+        newplayers = 0;
+
+        if (!name_error && ok_fn)
+            return ok_fn(ok_state);
+
+        return goto_state(name_error ? &st_name : ok_state);
+        break;
 
     case GUI_CL:
-        gui_keyboard_lock();
+        gui_keyboard_lock_en();
         break;
 
     case GUI_BS:
@@ -87,10 +198,9 @@ static int name_action(int tok, int val)
         text_input_char(val);
         break;
     }
+
     return 1;
 }
-
-static int enter_id;
 
 static int name_gui(void)
 {
@@ -98,28 +208,61 @@ static int name_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        gui_label(id, _("Player Name"), GUI_MED, 0, 0);
-        gui_space(id);
-
-        name_id = gui_label(id, " ", GUI_MED, gui_yel, gui_yel);
-
-        gui_space(id);
-        gui_keyboard(id);
-        gui_space(id);
-
-        if ((jd = gui_harray(id)))
+        if (!newplayers && !name_error)
         {
-            enter_id = gui_start(jd, _("OK"), GUI_SML, NAME_OK, 0);
-            gui_space(jd);
-            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+            gui_title_header(id, _("Player Name"), GUI_MED, 0, 0);
+            gui_space(id);
+
+            name_id = gui_label(id, "XXXXXXXXXXXXXXXX",
+                                    GUI_MED, gui_yel, gui_yel);
+
+            gui_space(id);
+            if ((jd = gui_hstack(id)))
+            {
+                gui_filler(jd);
+                gui_keyboard_en(jd);
+                gui_filler(jd);
+            }
+            gui_space(id);
+
+            if ((jd = gui_harray(id)))
+            {
+                enter_id = gui_start(jd, _("OK"), GUI_SML, NAME_OK, 0);
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+                if (current_platform == PLATFORM_PC)
+#endif
+                {
+                    gui_space(jd);
+                    gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+                }
+            }
+
+
+            gui_set_trunc(name_id, TRUNC_HEAD);
+            gui_set_label(name_id, text_input);
         }
+        else
+        {
+            const char *t_header = name_error ?
+                                   _("Register failed!") : _("New Players!"),
+                       *t_desc   = name_error ?
+                                   _("Player names didn't meet the requirements!\\"
+                                     "- Minimum length: 3 letters") :
+                                   _("As of new players, you can\\"
+                                     "start new Campaign levels first\\"
+                                     "before select other game modes.");
 
-        gui_layout(id, 0, 0);
-
-        gui_set_trunc(name_id, TRUNC_HEAD);
-        gui_set_label(name_id, text_input);
+            gui_title_header(id, t_header, GUI_MED,
+                             name_error ? gui_gry : 0,
+                             name_error ? gui_red : 0);
+            gui_space(id);
+            gui_multi(id, t_desc, GUI_SML, gui_wht, gui_wht);
+            gui_space(id);
+            gui_start(id, _("OK"), GUI_SML, NAME_CONTINUE, 0);
+        }
     }
 
+    gui_layout(id, 0, 0);
     return id;
 }
 
@@ -131,19 +274,26 @@ static void on_text_input(int typing)
 
         if (typing)
             audio_play(AUD_MENU, 1.0f);
+
+        name_update_enter_btn();
     }
 }
 
 static int name_enter(struct state *st, struct state *prev)
 {
+    player_renamed = 0;
+
     if (draw_back)
     {
         game_client_free(NULL);
         back_init("back/gui.png");
     }
 
-    text_input_start(on_text_input);
-    text_input_str(config_get_s(CONFIG_PLAYER), 0);
+    if (!newplayers)
+    {
+        text_input_start(on_text_input);
+        text_input_str(config_get_s(CONFIG_PLAYER), 0);
+    }
 
     return name_gui();
 }
@@ -153,9 +303,15 @@ static void name_leave(struct state *st, struct state *next, int id)
     if (draw_back)
         back_free();
 
-    text_input_stop();
-
     gui_delete(id);
+
+#if NB_HAVE_PB_BOTH==1 && ENABLE_DEDICATED_SERVER==1
+    if (player_renamed)
+    {
+        Sleep(1000);
+        networking_dedicated_refresh_login(config_get_s(CONFIG_PLAYER));
+    }
+#endif
 }
 
 static void name_paint(int id, float t)
@@ -178,7 +334,11 @@ static int name_keybd(int c, int d)
 {
     if (d)
     {
-        if (c == KEY_EXIT)
+        if (c == KEY_EXIT
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+         && current_platform == PLATFORM_PC
+#endif
+            )
             return name_action(GUI_BACK, 0);
 
         if (c == '\b' || c == 0x7F)

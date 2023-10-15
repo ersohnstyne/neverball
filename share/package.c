@@ -27,6 +27,10 @@
 #endif
 #endif
 
+/*
+ * Premium: pennyball.stynegame.de
+ * Legacy downloads: neverball.github.io
+ */
 #define NB_CURRDOMAIN_PREMIUM "neverball.github.io"
 
 struct package
@@ -52,7 +56,7 @@ struct package
     enum package_status status;
 };
 
-static Array available_packages;
+static Array available_addons;
 static int   package_curr_category = PACKAGE_CATEGORY_LEVELSET;
 
 #define PACKAGE_GET(a, i) ((struct package *) array_get((a), (i)))
@@ -94,24 +98,24 @@ static const char *get_package_url(const char *filename, int category)
         {
         case PACKAGE_CATEGORY_LEVELSET:
             /* Uses premium sets */
-            SAFECPY(url, "/packages/levelsets/");
+            SAFECPY(url, "/addons/levelsets/");
             break;
         case PACKAGE_CATEGORY_CAMPAIGN:
             /* Uses campaign */
-            SAFECPY(url, "/packages/campaign/");
+            SAFECPY(url, "/addons/campaign/");
             break;
         case PACKAGE_CATEGORY_PROFILE:
             /* Uses ball models */
-            SAFECPY(url, "/packages/ball/");
+            SAFECPY(url, "/addons/ball/");
             break;
         case PACKAGE_CATEGORY_COURSE:
             /* Uses ball models */
-            SAFECPY(url, "/packages/course/");
+            SAFECPY(url, "/addons/course/");
             break;
         }
 #else
         /* Uses standard vanilla game */
-        SAFECPY(url, "/packages/");
+        SAFECPY(url, "/addons/");
 #endif
 #else
 #if defined(NB_PACKAGES_PREMIUM)
@@ -119,24 +123,24 @@ static const char *get_package_url(const char *filename, int category)
         {
         case PACKAGE_CATEGORY_LEVELSET:
             /* Uses premium sets */
-            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/levelsets/");
+            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/addons/levelsets/");
             break;
         case PACKAGE_CATEGORY_CAMPAIGN:
             /* Uses campaign */
-            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/campaign/");
+            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/addons/campaign/");
             break;
         case PACKAGE_CATEGORY_PROFILE:
             /* Uses ball models */
-            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/ball/");
+            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/addons/ball/");
             break;
         case PACKAGE_CATEGORY_COURSE:
             /* Uses ball models */
-            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/course/");
+            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/addons/course/");
             break;
         }
 #else
         /* Uses legacy vanilla game */
-        SAFECPY(url, "https://neverball.github.io/packages/");
+        SAFECPY(url, "https://neverball.github.io/addons/");
 #endif
 #endif
         SAFECAT(url, filename);
@@ -169,18 +173,17 @@ static const char *get_package_path(const char *filename)
 /*---------------------------------------------------------------------------*/
 
 /*
- * We also track the installed packages separately, just so we don't have to scan
+ * We also track the installed addons separately, just so we don't have to scan
  * the package directory and figure out which ZIP files can be added to the FS
  * and which ones can't.
  */
-
 struct local_package
 {
     char id[64];
     char filename[MAXSTR];
 };
 
-static List installed_packages;
+static List installed_addons;
 
 static struct local_package *create_local_package(const char *package_id, const char *filename)
 {
@@ -238,7 +241,7 @@ static void unmount_package_file(const char *filename)
 
     if (filename && *filename && write_dir)
     {
-        char *path = concat_string(write_dir, "/" PACKAGE_DIR "/", filename, NULL);
+        char *path = concat_string(write_dir, NB_DOWNLOADPATH_ROOT, filename, NULL);
 
         if (path)
         {
@@ -253,15 +256,15 @@ static void unmount_package_file(const char *filename)
 /*
  * Unmount and uninstall other instances of the given local package.
  */
-static void unmount_duplicate_local_packages(const struct local_package *keep_lpkg)
+static void unmount_duplicate_local_addons(const struct local_package* keep_lpkg)
 {
     List p, l;
 
     /* Unmount and uninstall other instances of this package ID. */
 
-    for (p = NULL, l = installed_packages; l; p = l, l = l->next)
+    for (p = NULL, l = installed_addons; l; p = l, l = l->next)
     {
-        struct local_package *test_lpkg = l->data;
+        struct local_package* test_lpkg = l->data;
 
         if (test_lpkg != keep_lpkg && strcmp(test_lpkg->id, keep_lpkg->id) == 0)
         {
@@ -278,8 +281,8 @@ static void unmount_duplicate_local_packages(const struct local_package *keep_lp
             }
             else
             {
-                installed_packages = list_rest(l);
-                l = installed_packages;
+                installed_addons = list_rest(l);
+                l = installed_addons;
             }
         }
     }
@@ -292,8 +295,8 @@ static int mount_local_package(struct local_package *lpkg)
 {
     if (lpkg && mount_package_file(lpkg->filename))
     {
-        installed_packages = list_cons(lpkg, installed_packages);
-        unmount_duplicate_local_packages(lpkg);
+        installed_addons = list_cons(lpkg, installed_addons);
+        unmount_duplicate_local_addons(lpkg);
         return 1;
     }
 
@@ -301,9 +304,9 @@ static int mount_local_package(struct local_package *lpkg)
 }
 
 /*
- * Load the list of installed packages.
+ * Load the list of installed addons.
  */
-static int load_installed_packages(void)
+static int load_installed_addons(void)
 {
 #if defined(NB_PACKAGES_PREMIUM)
     char default_filename[64];
@@ -311,21 +314,21 @@ static int load_installed_packages(void)
     switch (package_curr_category)
     {
     case PACKAGE_CATEGORY_CAMPAIGN:
-        SAFECPY(default_filename, "installed-packages_campaign.txt");
+        SAFECPY(default_filename, "installed-addons_campaign.txt");
         break;
     case PACKAGE_CATEGORY_PROFILE:
-        SAFECPY(default_filename, "installed-packages_ball.txt");
+        SAFECPY(default_filename, "installed-addons_ball.txt");
         break;
     case PACKAGE_CATEGORY_COURSE:
-        SAFECPY(default_filename, "installed-packages_course.txt");
+        SAFECPY(default_filename, "installed-addons_course.txt");
         break;
     default:
-        SAFECPY(default_filename, "installed-packages.txt");
+        SAFECPY(default_filename, "installed-addons.txt");
         break;
     }
 
 #else
-    const char *default_filename = "installed-packages.txt";
+    const char *default_filename = "installed-addons.txt";
 #endif
 
 #ifdef FS_VERSION_1
@@ -338,11 +341,11 @@ static int load_installed_packages(void)
     {
         char line[MAXSTR] = "";
 
-        Array pkgs = array_new(sizeof (struct local_package));
-        struct local_package *lpkg = NULL;
+        Array pkgs = array_new(sizeof(struct local_package));
+        struct local_package* lpkg = NULL;
         int i, n;
 
-        while (fs_gets(line, sizeof (line), fp))
+        while (fs_gets(line, sizeof(line), fp))
         {
             strip_newline(line);
 
@@ -373,7 +376,7 @@ static int load_installed_packages(void)
                     if ((delim = strrchr(lpkg->filename, '-')))
                     {
                         size_t len = delim - lpkg->filename;
-                        memcpy(lpkg->id, lpkg->filename, MIN(sizeof (lpkg->id) - 1, len));
+                        memcpy(lpkg->id, lpkg->filename, MIN(sizeof(lpkg->id) - 1, len));
                     }
 
                     lpkg = NULL;
@@ -384,7 +387,7 @@ static int load_installed_packages(void)
         for (i = 0, n = array_len(pkgs); i < n; ++i)
         {
             const struct local_package *src = array_get(pkgs, i);
-            struct local_package *dst = create_local_package(src->id, src->filename);
+            struct local_package       *dst = create_local_package(src->id, src->filename);
 
             if (!mount_local_package(dst))
                 free_local_package(&dst);
@@ -406,11 +409,11 @@ static int load_installed_packages(void)
 }
 
 /*
- * Save the list of installed packages.
+ * Save the list of installed addons.
  */
-static int save_installed_packages(void)
+static int save_installed_addons(void)
 {
-    if (installed_packages)
+    if (installed_addons)
     {
 #if defined(NB_PACKAGES_PREMIUM)
         char default_filename[64];
@@ -418,21 +421,21 @@ static int save_installed_packages(void)
         switch (package_curr_category)
         {
         case PACKAGE_CATEGORY_CAMPAIGN:
-            SAFECPY(default_filename, "installed-packages_campaign.txt");
+            SAFECPY(default_filename, "installed-addons_campaign.txt");
             break;
         case PACKAGE_CATEGORY_PROFILE:
-            SAFECPY(default_filename, "installed-packages_ball.txt");
+            SAFECPY(default_filename, "installed-addons_ball.txt");
             break;
         case PACKAGE_CATEGORY_COURSE:
-            SAFECPY(default_filename, "installed-packages_course.txt");
+            SAFECPY(default_filename, "installed-addons_course.txt");
             break;
         default:
-            SAFECPY(default_filename, "installed-packages.txt");
+            SAFECPY(default_filename, "installed-addons.txt");
             break;
         }
 
 #else
-        const char* default_filename = "installed-packages.txt";
+        const char* default_filename = "installed-addons.txt";
 #endif
 
         fs_file fp = fs_open_write(get_package_path(default_filename));
@@ -441,9 +444,9 @@ static int save_installed_packages(void)
         {
             List l;
 
-            for (l = installed_packages; l; l = l->next)
+            for (l = installed_addons; l; l = l->next)
             {
-                struct local_package *lpkg = l->data;
+                struct local_package* lpkg = l->data;
 
                 if (lpkg)
                     fs_printf(fp, "package %s\nfilename %s\n", lpkg->id, lpkg->filename);
@@ -462,11 +465,11 @@ static int save_installed_packages(void)
 }
 
 /*
- * Free the list of installed packages.
+ * Free the list of installed addons.
  */
-static void free_installed_packages(void)
+static void free_installed_addons(void)
 {
-    List l = installed_packages;
+    List l = installed_addons;
 
     while (l)
     {
@@ -477,7 +480,7 @@ static void free_installed_packages(void)
         l = list_rest(l);
     }
 
-    installed_packages = NULL;
+    installed_addons = NULL;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -485,23 +488,22 @@ static void free_installed_packages(void)
 /*
  * Figure out package statuses.
  */
-static void load_package_statuses(Array packages)
+static void load_package_statuses(Array addons)
 {
-    if (packages)
+    if (addons)
     {
         int i, n;
 
-        for (i = 0, n = array_len(packages); i < n; ++i)
+        for (i = 0, n = array_len(addons); i < n; ++i)
         {
-            struct package *pkg = array_get(packages, i);
-
-            List l;
+            struct package* pkg = array_get(addons, i);
+            const char* dest_filename = get_package_path(pkg->filename);
 
             pkg->status = PACKAGE_AVAILABLE;
 
-            for (l = installed_packages; l; l = l->next)
+            for (List l = installed_addons; l; l = l->next)
             {
-                struct local_package *lpkg = l->data;
+                struct local_package* lpkg = l->data;
 
                 if (strcmp(pkg->id, lpkg->id) == 0)
                 {
@@ -519,14 +521,14 @@ static void load_package_statuses(Array packages)
 }
 
 /*
- * Load an array of packages from a manifest file.
+ * Load an array of addons from a manifest file.
  */
-static Array load_packages_from_file(const char *filename)
+static Array load_addons_from_file(const char *filename)
 {
-    Array packages = array_new(sizeof (struct package));
+    Array addons = array_new(sizeof (struct package));
     fs_file fp;
 
-    if (!packages)
+    if (!addons)
         return NULL;
 
     if ((fp = fs_open_read(filename)))
@@ -542,7 +544,7 @@ static Array load_packages_from_file(const char *filename)
             {
                 /* Start reading a new package. */
 
-                pkg = array_add(packages);
+                pkg = array_add(addons);
 
                 if (pkg)
                 {
@@ -647,20 +649,20 @@ static Array load_packages_from_file(const char *filename)
         fs_close(fp);
     }
 
-    load_package_statuses(packages);
+    load_package_statuses(addons);
 
-    return packages;
+    return addons;
 }
 
 /*
- * Free a loaded array of packages.
+ * Free a loaded array of addons.
  */
-static void free_packages(Array packages)
+static void free_addons(Array addons)
 {
-    if (packages)
+    if (addons)
     {
-        array_free(packages);
-        packages = NULL;
+        array_free(addons);
+        addons = NULL;
     }
 }
 
@@ -669,15 +671,15 @@ static void free_packages(Array packages)
 /*
  * Queue missing package images for download.
  */
-static void fetch_package_images(Array packages)
+static void fetch_package_images(Array addons)
 {
-    if (packages)
+    if (addons)
     {
-        int i, n = array_len(packages);
+        int i, n = array_len(addons);
 
         for (i = 0; i < n; ++i)
         {
-            struct package *pkg      = array_get(packages, i);
+            struct package *pkg      = array_get(addons, i);
             const char     *filename = package_get_shot_filename(i);
 
             if (filename && *filename && !fs_exists(filename))
@@ -711,25 +713,25 @@ static void fetch_package_images(Array packages)
 
 /*---------------------------------------------------------------------------*/
 
-static void available_packages_done(void *data, void *extra_data)
+static void available_addons_done(void *data, void *extra_data)
 {
     struct fetch_done *fd = extra_data;
 
     if (fd && fd->finished)
     {
-        const char *filename = get_package_path("available-packages.txt");
+        const char *filename = get_package_path("available-addons.txt");
 
         if (filename)
         {
-            Array packages = load_packages_from_file(filename);
+            Array addons = load_addons_from_file(filename);
 
-            if (packages)
+            if (addons)
             {
-                available_packages = packages;
+                available_addons = addons;
 
                 /* TODO: notify the player somehow about this fact. */
 
-                fetch_package_images(available_packages);
+                fetch_package_images(available_addons);
             }
         }
     }
@@ -738,9 +740,9 @@ static void available_packages_done(void *data, void *extra_data)
 /*
  * Download the package list.
  */
-static void fetch_available_packages(int category)
+static void fetch_available_addons(int category)
 {
-    const char* filename = get_package_path("available-packages.txt");
+    const char* filename = get_package_path("available-addons.txt");
 
 #if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH>=2
     if (filename && category == PACKAGE_CATEGORY_CAMPAIGN
@@ -749,7 +751,7 @@ static void fetch_available_packages(int category)
         // Google Drive campaign package support
 
         struct fetch_callback gdrive_callback = { 0 };
-        gdrive_callback.done = available_packages_done;
+        gdrive_callback.done = available_addons_done;
         fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_CAMPAIGN, filename,
                      gdrive_callback);
         return;
@@ -760,7 +762,7 @@ static void fetch_available_packages(int category)
         // Google Drive level set package support
 
         struct fetch_callback gdrive_callback = { 0 };
-        gdrive_callback.done = available_packages_done;
+        gdrive_callback.done = available_addons_done;
         fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_LEVELSET, filename,
                      gdrive_callback);
         return;
@@ -769,16 +771,16 @@ static void fetch_available_packages(int category)
     
 #if NB_HAVE_PB_BOTH!=1 || ENABLE_FETCH<3
 #ifdef __EMSCRIPTEN__
-    const char *url = get_package_url("available-packages-emscripten.txt",
+    const char *url = get_package_url("available-addons-emscripten.txt",
                                       category);
 #else
-    const char *url = get_package_url("available-packages.txt", category);
+    const char *url = get_package_url("available-addons.txt", category);
 #endif
 
     if (url && filename)
     {
         struct fetch_callback callback = { 0 };
-        callback.done = available_packages_done;
+        callback.done = available_addons_done;
         fetch_url(url, filename, callback);
     }
 #endif
@@ -811,30 +813,30 @@ void package_init(void)
         }
     }
 
-    /* Load the list of installed packages. */
+    /* Load the list of installed addons. */
 
-    load_installed_packages();
+    load_installed_addons();
 
     /* Download package list. */
 
-    fetch_available_packages(package_curr_category);
+    fetch_available_addons(package_curr_category);
 }
 
 void package_quit(void)
 {
-    if (available_packages)
+    if (available_addons)
     {
-        free_packages(available_packages);
-        available_packages = NULL;
+        free_addons(available_addons);
+        available_addons = NULL;
     }
 
-    save_installed_packages();
-    free_installed_packages();
+    save_installed_addons();
+    free_installed_addons();
 }
 
 int package_count(void)
 {
-    return available_packages ? array_len(available_packages) : 0;
+    return available_addons ? array_len(available_addons) : 0;
 }
 
 /*
@@ -842,13 +844,13 @@ int package_count(void)
  */
 int package_search(const char *file)
 {
-    if (available_packages)
+    if (available_addons)
     {
         int i, n;
 
-        for (i = 0, n = array_len(available_packages); i < n; ++i)
+        for (i = 0, n = array_len(available_addons); i < n; ++i)
         {
-            struct package *pkg = array_get(available_packages, i);
+            struct package *pkg = array_get(available_addons, i);
 
             if (pkg && strstr(pkg->files, file) != NULL)
                 return i;
@@ -863,13 +865,13 @@ int package_search(const char *file)
  */
 int package_search_id(const char *package_id)
 {
-    if (available_packages)
+    if (available_addons)
     {
         int i, n;
 
-        for (i = 0, n = array_len(available_packages); i < n; ++i)
+        for (i = 0, n = array_len(available_addons); i < n; ++i)
         {
-            struct package *pkg = array_get(available_packages, i);
+            struct package *pkg = array_get(available_addons, i);
 
             if (pkg && strcmp(pkg->id, package_id) == 0)
                 return i;
@@ -884,14 +886,14 @@ int package_search_id(const char *package_id)
  */
 int package_next(const char *type, int start)
 {
-    if (available_packages)
+    if (available_addons)
     {
         int i, n;
 
-        for (i = MAX(0, start + 1), n = array_len(available_packages); i < n;
+        for (i = MAX(0, start + 1), n = array_len(available_addons); i < n;
              ++i)
         {
-            struct package *pkg = array_get(available_packages, i);
+            struct package *pkg = array_get(available_addons, i);
             size_t prefix_len = strcspn(pkg->id, "-");
 
             if (strncmp(pkg->id, type, prefix_len) == 0)
@@ -907,56 +909,56 @@ int package_next(const char *type, int start)
  */
 enum package_status package_get_status(int pi)
 {
-    if (pi >= 0 && pi < array_len(available_packages))
-        return PACKAGE_GET(available_packages, pi)->status;
+    if (pi >= 0 && pi < array_len(available_addons))
+        return PACKAGE_GET(available_addons, pi)->status;
 
     return PACKAGE_NONE;
 }
 
 const char *package_get_id(int pi)
 {
-    if (pi >= 0 && pi < array_len(available_packages))
-        return PACKAGE_GET(available_packages, pi)->id;
+    if (pi >= 0 && pi < array_len(available_addons))
+        return PACKAGE_GET(available_addons, pi)->id;
 
     return NULL;
 }
 
 const char *package_get_type(int pi)
 {
-    if (pi >= 0 && pi < array_len(available_packages))
-        return PACKAGE_GET(available_packages, pi)->type;
+    if (pi >= 0 && pi < array_len(available_addons))
+        return PACKAGE_GET(available_addons, pi)->type;
 
     return NULL;
 }
 
 const char *package_get_name(int pi)
 {
-    if (pi >= 0 && pi < array_len(available_packages))
-        return PACKAGE_GET(available_packages, pi)->name;
+    if (pi >= 0 && pi < array_len(available_addons))
+        return PACKAGE_GET(available_addons, pi)->name;
 
     return NULL;
 }
 
 const char *package_get_desc(int pi)
 {
-    if (pi >= 0 && pi < array_len(available_packages))
-        return PACKAGE_GET(available_packages, pi)->desc;
+    if (pi >= 0 && pi < array_len(available_addons))
+        return PACKAGE_GET(available_addons, pi)->desc;
 
     return NULL;
 }
 
 const char *package_get_shot(int pi)
 {
-    if (pi >= 0 && pi < array_len(available_packages))
-        return PACKAGE_GET(available_packages, pi)->shot;
+    if (pi >= 0 && pi < array_len(available_addons))
+        return PACKAGE_GET(available_addons, pi)->shot;
 
     return NULL;
 }
 
 const char *package_get_files(int pi)
 {
-    if (pi >= 0 && pi < array_len(available_packages))
-        return PACKAGE_GET(available_packages, pi)->files;
+    if (pi >= 0 && pi < array_len(available_addons))
+        return PACKAGE_GET(available_addons, pi)->files;
 
     return NULL;
 }
@@ -1069,7 +1071,7 @@ static void package_fetch_done(void *data, void *extra_data)
             if (pfi->temp_filename && pfi->dest_filename)
                 fs_rename(pfi->temp_filename, pfi->dest_filename);
 
-            /* Add package to installed packages and to FS. */
+            /* Add package to installed addons and to FS. */
 
             if (lpkg)
             {
@@ -1080,7 +1082,6 @@ static void package_fetch_done(void *data, void *extra_data)
 
                 lpkg = NULL;
             }
-
         }
         else if (pfi->temp_filename)
             fs_remove(pfi->temp_filename);
@@ -1097,9 +1098,9 @@ unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
 {
     unsigned int fetch_id = 0;
 
-    if (pi >= 0 && pi < array_len(available_packages))
+    if (pi >= 0 && pi < array_len(available_addons))
     {
-        struct package *pkg = array_get(available_packages, pi);
+        struct package *pkg = array_get(available_addons, pi);
 
 #if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH>=2
         if (pkg->fileid_gdrive[0])

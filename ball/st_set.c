@@ -235,6 +235,7 @@ static void gui_set(int id, int i)
     if (set_exists(i))
     {
         int set_text_name_id;
+        int campaign_marked = 0;
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
         int set_name_locked = SET_CHECK_LOCKED(i);
@@ -244,23 +245,27 @@ static void gui_set(int id, int i)
 
         char set_name_final[MAXSTR];
 
-        if (str_starts_with(set_id(i), "SB")
-         || str_starts_with(set_id(i), "sb")
-         || str_starts_with(set_id(i), "Sb")
-         || str_starts_with(set_id(i), "sB"))
-        {
-            SAFECPY(set_name_final, GUI_AIRPLANE " ");
-            SAFECAT(set_name_final, set_name(i));
-        }
-        else
-            SAFECPY(set_name_final, set_name(i));
-
         if (i % SET_STEP == 0)
             set_text_name_id = gui_start(id, "XXXXXXXXXXXXXXXXXX",
                                              GUI_SML, SET_SELECT, i);
         else
             set_text_name_id = gui_state(id, "XXXXXXXXXXXXXXXXXX",
                                              GUI_SML, SET_SELECT, i);
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        if (str_starts_with(set_id(i), "SB")
+         || str_starts_with(set_id(i), "sb")
+         || str_starts_with(set_id(i), "Sb")
+         || str_starts_with(set_id(i), "sB"))
+        {
+            campaign_marked = 1;
+
+            SAFECPY(set_name_final, GUI_AIRPLANE " ");
+            SAFECAT(set_name_final, set_name(i));
+        }
+        else
+#endif
+            SAFECPY(set_name_final, set_name(i));
 
         gui_set_trunc(set_text_name_id, TRUNC_TAIL);
         gui_set_label(set_text_name_id, set_name_final);
@@ -269,7 +274,16 @@ static void gui_set(int id, int i)
         {
             gui_set_label(set_text_name_id, _("Locked"));
             gui_set_color(set_text_name_id, gui_gry, gui_gry);
+            gui_set_state(set_text_name_id, GUI_NONE, i);
         }
+#ifndef MAPC_INCLUDES_CHKP
+        else if (campaign_marked)
+        {
+            gui_set_label(set_text_name_id, _(GUI_AIRPLANE " Requires CHKP"));
+            gui_set_color(set_text_name_id, gui_red, gui_red);
+            gui_set_state(set_text_name_id, GUI_NONE, i);
+        }
+#endif
     }
     else
         gui_label(id, "", GUI_SML, 0, 0);

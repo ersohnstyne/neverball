@@ -264,7 +264,7 @@ int  joy_connected(int instance, int *battery_level, int *wired)
     {
         if (joysticks[instance].id != -1)
         {
-            unsigned char gamepad_led[JOY_MAX][3] =
+            /*unsigned char gamepad_led[JOY_MAX][3] =
             {
                 { 0xff, 0x00, 0x00 },
                 { 0x00, 0xff, 0x00 },
@@ -288,7 +288,7 @@ int  joy_connected(int instance, int *battery_level, int *wired)
 
             if (battery_level)
                 (*battery_level) = SDL_JoystickCurrentPowerLevel(joysticks[instance].joy);
-
+            */
             return 1;
         }
     }

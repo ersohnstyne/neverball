@@ -39,44 +39,44 @@
 
 #include <assert.h>
 
-#define DEMO_LOCKDOWN_RANGE_NIGHT_TIMELEFT(nolockdown, from, to, out_sec) \
+#define DEMO_LOCKDOWN_RANGE_NIGHT_TIMELEFT(output, from, to, out_sec) \
     do { assert(from >= to);                                              \
-        time_t lockdown_date = time(NULL);                                \
-        int clockhour = localtime(&lockdown_date)->tm_hour;               \
-        int clockmin = localtime(&lockdown_date)->tm_min;                 \
-        int clocksec = localtime(&lockdown_date)->tm_sec;                 \
+        time_t _lockdown_date = time(NULL);                               \
+        int _clockhour = localtime(&_lockdown_date)->tm_hour;             \
+        int _clockmin = localtime(&_lockdown_date)->tm_min;               \
+        int _clocksec = localtime(&_lockdown_date)->tm_sec;               \
         out_sec = (from * 3600)                                           \
-            - ((clockhour * 3600) + (clockmin * 60) + (clocksec));        \
+            - ((_clockhour * 3600) + (_clockmin * 60) + (_clocksec));     \
         if (out_sec < 0) out_sec += 86400;                                \
         if (out_sec >= 86400) out_sec -= 86400;                           \
-        nolockdown = clockhour >= to && clockhour < from;                 \
+        output = _clockhour >= to && _clockhour < from;               \
     } while (0)
 
-#define DEMO_LOCKDOWN_RANGE_DAY_TIMELEFT(nolockdown, from, to, out_sec) \
+#define DEMO_LOCKDOWN_RANGE_DAY_TIMELEFT(output, from, to, out_sec) \
     do { assert(from <= to);                                            \
-        time_t lockdown_date = time(NULL);                              \
-        int clockhour = localtime(&lockdown_date)->tm_hour;             \
-        int clockmin = localtime(&lockdown_date)->tm_min;               \
-        int clocksec = localtime(&lockdown_date)->tm_sec;               \
+        time_t _lockdown_date = time(NULL);                             \
+        int _clockhour = localtime(&_lockdown_date)->tm_hour;           \
+        int _clockmin = localtime(&_lockdown_date)->tm_min;             \
+        int _clocksec = localtime(&_lockdown_date)->tm_sec;             \
         out_sec = (from * 3600)                                         \
-            - ((clockhour * 3600) + (clockmin * 60) + (clocksec));      \
+            - ((_clockhour * 3600) + (_clockmin * 60) + (_clocksec));   \
         if (out_sec < 0) out_sec += 86400;                              \
         if (out_sec >= 86400) out_sec -= 86400;                         \
-        nolockdown = clockhour > from && clockhour <= to;               \
+        output = _clockhour > from && _clockhour <= to;             \
     } while (0)
 
-#define DEMO_LOCKDOWN_RANGE_NIGHT(nolockdown, from, to)     \
-    do { assert(from >= to);                                \
-        time_t lockdown_date = time(NULL);                  \
-        int clockhour = localtime(&lockdown_date)->tm_hour; \
-        nolockdown = clockhour >= to && clockhour < from;   \
+#define DEMO_LOCKDOWN_RANGE_NIGHT(output, from, to)       \
+    do { assert(from >= to);                                  \
+        time_t _lockdown_date = time(NULL);                   \
+        int _clockhour = localtime(&_lockdown_date)->tm_hour; \
+        output = _clockhour >= to && _clockhour < from;   \
     } while (0)
 
-#define DEMO_LOCKDOWN_RANGE_DAY(nolockdown, from, to)       \
-    do { assert(from <= to);                                \
-        time_t lockdown_date = time(NULL);                  \
-        int clockhour = localtime(&lockdown_date)->tm_hour; \
-        nolockdown = clockhour > from && clockhour <= to;   \
+#define DEMO_LOCKDOWN_RANGE_DAY(output, from, to)         \
+    do { assert(from <= to);                                  \
+        time_t _lockdown_date = time(NULL);                   \
+        int _clockhour = localtime(&_lockdown_date)->tm_hour; \
+        output = _clockhour > from && _clockhour <= to;   \
     } while (0)
 #endif
 

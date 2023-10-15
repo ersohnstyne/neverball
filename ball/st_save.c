@@ -123,7 +123,7 @@ static int save_action(int tok, int val)
         return goto_state(cancel_state);
 
     case SAVE_OK:
-#ifdef DEMO_QUARANTINED_MODE
+#if NB_HAVE_PB_BOTH==1 && defined(DEMO_QUARANTINED_MODE) && !defined(DEMO_LOCKDOWN_COMPLETE)
         /* Lockdown duration time. DO NOT EDIT! */
         int nolockdown; DEMO_LOCKDOWN_RANGE_NIGHT(nolockdown, 16, 8);
         if (!nolockdown && curr_status() == GAME_FALL)

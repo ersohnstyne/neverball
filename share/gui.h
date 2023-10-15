@@ -128,19 +128,19 @@ void gui_resize(void);
 
 /*---------------------------------------------------------------------------*/
 
-void gui_set_label(int, const char *);
-void gui_set_image(int, const char *);
-void gui_set_font(int, const char *);
-void gui_set_multi(int, const char *);
-void gui_set_count(int, int);
-void gui_set_clock(int, int);
-void gui_set_color(int, const GLubyte *, const GLubyte *);
-void gui_set_trunc(int, enum trunc);
-void gui_set_fill(int);
-int  gui_set_state(int, int, int);
+void gui_set_label (int, const char *);
+void gui_set_image (int, const char *);
+void gui_set_font  (int, const char *);
+void gui_set_multi (int, const char *);
+void gui_set_count (int, int);
+void gui_set_clock (int, int);
+void gui_set_color (int, const GLubyte *, const GLubyte *);
+void gui_set_trunc (int, enum trunc);
+void gui_set_fill  (int);
+int  gui_set_state (int, int, int);
 void gui_set_hilite(int, int);
-void gui_set_rect(int, int);
-void gui_clr_rect(int);
+void gui_set_rect  (int, int);
+void gui_clr_rect  (int);
 void gui_set_cursor(int);
 
 /*---------------------------------------------------------------------------*/
@@ -150,7 +150,7 @@ int  gui_varray(int);
 int  gui_hstack(int);
 int  gui_vstack(int);
 int  gui_filler(int);
-int  gui_root(void);
+int  gui_root  (void);
 
 int  gui_image(int, const char *, int, int);
 int  gui_start(int, const char *, int, int, int);

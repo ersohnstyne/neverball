@@ -79,7 +79,9 @@ void back_free(void);
 void beam_draw(struct s_rend *, const GLfloat *, const GLfloat *, GLfloat, GLfloat);
 void goal_draw(struct s_rend *, const GLfloat *, GLfloat, GLfloat, GLfloat);
 void jump_draw(struct s_rend *, const GLfloat *, GLfloat, GLfloat, GLfloat);
+#ifdef MAPC_INCLUDES_CHKP
 void chkp_draw(struct s_rend *, const GLfloat *, GLfloat, GLfloat);
+#endif
 void flag_draw(struct s_rend *, const GLfloat *);
 void mark_draw(struct s_rend *);
 void vect_draw(struct s_rend *);
@@ -94,7 +96,9 @@ void chnk_ball_draw(struct s_rend *);
 void chnk_jump_draw(struct s_rend *);
 void chnk_goal_draw(struct s_rend *);
 void chnk_swch_draw(struct s_rend *);
+#ifdef MAPC_INCLUDES_CHKP
 void chnk_chkp_draw(struct s_rend *);
+#endif
 
 /*---------------------------------------------------------------------------*/
 

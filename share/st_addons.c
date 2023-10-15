@@ -19,7 +19,7 @@
 #include "package.h"
 #include "geom.h"
 
-#include "st_package.h"
+#include "st_addons.h"
 #include "st_common.h"
 
 #define AUD_MENU     "snd/menu.ogg"
@@ -210,7 +210,11 @@ static void package_start_download(int id)
     callback.done     = download_done;
     callback.data     = create_download_info(package_get_id(id));
 
+#if NB_HAVE_PB_BOTH==1
     if (!package_fetch(id, callback, category_id))
+#else
+    if (!package_fetch(id, callback, 0))
+#endif
     {
         free_download_info(callback.data);
         callback.data = NULL;
@@ -273,7 +277,9 @@ static int package_action(int tok, int val)
         break;
 
     case PACKAGE_CHANGEGROUP:
+#if NB_HAVE_PB_BOTH==1
         category_id = val;
+#endif
         break;
     }
 
@@ -291,14 +297,13 @@ static int gui_package_button(int id, int pi)
 
         status_id = gui_label(jd, "100%", GUI_SML, gui_grn, gui_grn);
 
-        if (status == PACKAGE_INSTALLED)
-            gui_set_label(status_id, GUI_CHECKMARK);
-        else if (status == PACKAGE_DOWNLOADING)
-            gui_set_label(status_id, GUI_ELLIPSIS);
-        else if (status == PACKAGE_UPDATE)
-            gui_set_label(status_id, GUI_CIRCLE_ARROW);
-        else
-            gui_set_label(status_id, GUI_ARROW_DN);
+        switch (status)
+        {
+        case PACKAGE_INSTALLED:   gui_set_label(status_id, GUI_CHECKMARK); break;
+        case PACKAGE_DOWNLOADING: gui_set_label(status_id, GUI_ELLIPSIS); break;
+        case PACKAGE_UPDATE:      gui_set_label(status_id, GUI_CIRCLE_ARROW); break;
+        default:                  gui_set_label(status_id, GUI_ARROW_DN); break;
+        }
 
         if (status_ids)
             status_ids[pi] = status_id;
@@ -354,6 +359,7 @@ static int package_gui(void)
             gui_filler(jd);
             gui_navig (jd, total, first, PACKAGE_STEP);
         }
+
         gui_space(id);
 
         if ((jd = gui_harray(id)))
@@ -440,10 +446,14 @@ static void package_select(int pi)
     else
         gui_set_label(install_label_id, _("Install"));
 
-    if (status == PACKAGE_INSTALLED)
+    if (package_get_status(pi) == PACKAGE_INSTALLED)
     {
+        /* HACK: Mojang can be done this. */
+
         gui_set_color(install_status_id, gui_gry, gui_gry);
-        gui_set_color(install_label_id, gui_gry, gui_gry);
+        //gui_set_color(install_label_id, gui_gry, gui_gry);
+
+        gui_set_color(install_label_id, gui_wht, gui_wht);
     }
     else
     {
@@ -460,7 +470,8 @@ static int package_enter(struct state *st, struct state *prev)
 
     if (do_init || package_manual_hotreload)
     {
-        package_back = prev;
+        if (prev != &st_package_manage && prev != &st_package)
+            package_back = prev;
 
         if (package_manual_hotreload)
             first = 0;

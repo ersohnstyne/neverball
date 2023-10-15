@@ -15,16 +15,17 @@
 #include <assert.h>
 #include "cmd.h"
 
+
+#include "game_common.h"
+#include "game_client.h"
+#include "game_draw.h"
+#include "game_server.h"
+
 /*
  * Checkpoints discovered by: PennySchloss
  * Thanks for the Youtuber: PlayingWithMahWii
  */
 #include "checkpoints.h"
-
-#include "game_client.h"
-#include "game_common.h"
-#include "game_draw.h"
-#include "game_server.h"
 
 #if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
@@ -48,7 +49,7 @@ struct chkp_body     last_chkp_body[1024];
 struct chkp_move     last_chkp_move[1024];
 struct chkp_item     last_chkp_item[2048];
 struct chkp_swch     last_chkp_swch[1024];
-struct game_view     last_view[1024];
+struct chkp_view     last_view[1024];
 
 float last_pos[1024][3];
 

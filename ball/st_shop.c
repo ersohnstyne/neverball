@@ -309,6 +309,7 @@ static int shop_gui(void)
                  * Six crowns (Game Banker): 1111110 balls = 16666650 gems
                  */
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 if      (temp_lives >= 1110)
                     sprintf_s(powerups, MAXSTR, "%s (" GUI_CROWN GUI_CROWN GUI_CROWN ")", _("Balls"));
                 else if (temp_lives >= 1100)
@@ -317,6 +318,16 @@ static int shop_gui(void)
                     sprintf_s(powerups, MAXSTR, "%s (" GUI_CROWN "%02d)", _("Balls"), (lvalue) - 1000);
                 else
                     sprintf_s(powerups, MAXSTR, "%s (%d)", _("Balls"), lvalue);
+#else
+                if      (temp_lives >= 1110)
+                    sprintf(powerups, "%s (" GUI_CROWN GUI_CROWN GUI_CROWN ")", _("Balls"));
+                else if (temp_lives >= 1100)
+                    sprintf(powerups, "%s (" GUI_CROWN GUI_CROWN "%01d)", _("Balls"), (lvalue) - 1100);
+                else if (temp_lives >= 100)
+                    sprintf(powerups, "%s (" GUI_CROWN "%02d)", _("Balls"), (lvalue) - 1000);
+                else
+                    sprintf(powerups, "%s (%d)", _("Balls"), lvalue);
+#endif
 
                 gui_label(jd, powerups, GUI_SML, gui_wht, gui_cya);
 
@@ -1167,6 +1178,7 @@ static int shop_iap_gui(void)
                         if (iapgemvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_GEMS)))
                             if ((kd = gui_vstack(jd)))
                             {
+#if _WIN32 && _MSC_VER
 #define LANG_CURRENCY_RESET_DEFAULTS                            \
     do {                                                        \
         GetSystemDefaultLocaleName(pWLocaleName, 85);           \
@@ -1176,6 +1188,10 @@ static int shop_iap_gui(void)
             if (pCharExt[i] == '-')                             \
                 pCharExt[i] = '_';                              \
     } while (0)
+#else
+#define LANG_CURRENCY_RESET_DEFAULTS \
+    do { SAFECPY(pChar, "de_DE"); } while (0)
+#endif
 
                                 wchar_t pWLocaleName[MAXSTR];
                                 size_t pCharC;

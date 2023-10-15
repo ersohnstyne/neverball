@@ -124,7 +124,11 @@ static void game_run_cmd(const union cmd *cmd)
 
             /* Compute gravity for particle effects. */
 
+#if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
             if (status == GAME_GOAL && !campaign_used())
+#else
+            if (status == GAME_GOAL)
+#endif
                 game_tilt_grav(v, GRAVITY_UP, tilt);
             else
                 game_tilt_grav(v, GRAVITY_DN, tilt);
@@ -177,7 +181,7 @@ static void game_run_cmd(const union cmd *cmd)
                 hp->t = cmd->mkitem.t;
                 hp->n = cmd->mkitem.n;
 
-#ifdef MAPC_INCLUDES_CHKP
+#if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
                 if (!last_active)
 #endif
                     max_coins += cmd->mkitem.n;
@@ -453,12 +457,12 @@ int  game_client_init(const char *file_name)
      * Levels for your default data will be used.
      */
 
-#ifdef MAPC_INCLUDES_CHKP
+#if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
     if (!last_active)
 #endif
         max_coins = 0;
 
-#ifdef MAPC_INCLUDES_CHKP
+#if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
     coins  = last_active ? respawn_coins : 0;
 #else
     coins  = 0;

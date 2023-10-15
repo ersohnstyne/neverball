@@ -69,14 +69,14 @@ extern "C" {
 #include "game_common.h"
 #include "game_client.h"
 
-#include "st_end_support.h"
-
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 #include "account.h"
 #ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
+#else
+#include "st_end_support.h"
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -94,7 +94,9 @@ extern "C" {
 #if __cplusplus
 extern "C" {
 #endif
+#if _WIN32 && _MSC_VER
 #include "dbg_config.h"
+#endif
 #include "glext.h"
 #include "config.h"
 #include "video.h"
@@ -384,6 +386,8 @@ static void dispatch_networking_error_event(int ec)
 #endif
 
 /*---------------------------------------------------------------------------*/
+
+static int loop(void);
 
 int st_global_loop(void)
 {
@@ -1046,7 +1050,9 @@ static void panorama_snap_sides(void)
 
 static int main_init(int argc, char *argv[])
 {
+#if _WIN32 && _MSC_VER
     GAMEDBG_SIGFUNC_PREPARE;
+#endif
 
 #if NB_STEAM_API==1    
     if (!SteamAPI_Init())
@@ -1101,9 +1107,16 @@ static int main_init(int argc, char *argv[])
 #error No Playstation HIDAPI specified!
 #endif
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API \
-    && defined(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS)
+#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
+#if defined(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS)
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS, "1");
+#endif
+#if defined(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS, "1");
+#endif
+#if defined(SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS)
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS, "1");
+#endif
 #endif
 
 #if _cplusplus
@@ -1264,9 +1277,11 @@ static int main_init(int argc, char *argv[])
         account_save();
 #endif
 
+#if ENABLE_NLS==1 || _MSC_VER
         /* Initialize localization. */
 
         lang_init();
+#endif
 
         tilt_init();
 

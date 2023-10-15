@@ -1447,7 +1447,11 @@ static void transfer_timer_process_target(float dt)
                     transfer_process_have_wallet = 1;
 
                 account_transfer_set_s(ACCOUNT_TRANSFER_PLAYER, account_transfer_values_source.player);
+#if defined(CONFIG_INCLUDES_MULTIBALLS)
+                account_transfer_set_s(ACCOUNT_TRANSFER_BALL_FILE_C, account_transfer_values_source.ball_file);
+#else
                 account_transfer_set_s(ACCOUNT_TRANSFER_BALL_FILE, account_transfer_values_source.ball_file);
+#endif
                 account_transfer_set_d(ACCOUNT_TRANSFER_DATA_WALLET_COINS, account_transfer_values_target.wallet_coins + account_transfer_values_source.wallet_coins);
                 account_transfer_set_d(ACCOUNT_TRANSFER_DATA_WALLET_GEMS, account_transfer_values_target.wallet_gems + account_transfer_values_source.wallet_gems);
 
@@ -1524,8 +1528,13 @@ static void transfer_timer_process_target(float dt)
 
         account_init();
         account_load();
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+        ball_multi_free();
+        ball_multi_init();
+#else
         ball_free();
         ball_init();
+#endif
 
         char movecmd_campaign[MAXSTR],
              movecmd_demo[MAXSTR],

@@ -654,7 +654,10 @@ int game_server_init(const char *file_name, int t, int e)
      */
     int mayhem_time = 359999;
     if (t > 0
-     && (!campaign_used()
+     && (
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+         !campaign_used()
+#endif
       && curr_mode() != MODE_BOOST_RUSH && curr_mode() != MODE_ZEN))
         mayhem_time = (int) t * 0.75f;
 
@@ -676,7 +679,10 @@ int game_server_init(const char *file_name, int t, int e)
 #endif
     status = GAME_NONE;
 
-    if ((campaign_used()
+    if ((
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        campaign_used()
+#endif
       || curr_mode() == MODE_BOOST_RUSH || curr_mode() == MODE_ZEN)
 #ifdef MAPC_INCLUDES_CHKP
         && !last_active
@@ -1301,7 +1307,9 @@ void game_update_view(float dt)
     game_cmd_updview();
 }
 
+#ifdef MAPC_INCLUDES_CHKP
 void game_disable_chkp(void);
+#endif
 
 static void game_update_time(float dt, int b)
 {
@@ -1330,7 +1338,9 @@ static void game_update_time(float dt, int b)
         if (timer < 0.f)
             timer = 0.f;
 
+#ifdef MAPC_INCLUDES_CHKP
         game_disable_chkp();
+#endif
         game_cmd_timer();
     }
 }
@@ -1417,6 +1427,7 @@ static int game_update_state(int bt)
 
     if (vx < -0.1f || vx > -0.1f || vz < -0.1f || vz > -0.1f)
     {
+#if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
         if (bt && (cami = campaign_camera_box_trigger_test(&vary, 0)) != -1)
         {
             if (!campaign_get_camera_box_trigger(cami).activated)
@@ -1438,6 +1449,7 @@ static int game_update_state(int bt)
                           campaign_get_camera_box_trigger(cami).campositions);
             }
         }
+#endif
     }
 
     /* Test for a switch. */
@@ -1780,9 +1792,9 @@ void game_set_goal(void)
     game_cmd_goalopen();
 }
 
+#ifdef MAPC_INCLUDES_CHKP
 void game_disable_chkp(void)
 {
-#ifdef MAPC_INCLUDES_CHKP
     if (chkp_e && timer_down && timer < 60.f)
     {
         if (vary.cc)
@@ -1792,8 +1804,8 @@ void game_disable_chkp(void)
 
         game_cmd_chkp_disable();
     }
-#endif
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 

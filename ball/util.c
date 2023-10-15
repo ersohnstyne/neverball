@@ -320,26 +320,29 @@ void gui_levelgroup_stats(const struct level *l)
 
     /* Calculate the clear rate per levels. */
 
-    float clr_rate_val = (float) (ROUND(((l->stats.completed /
-                                        ((l->stats.timeout +
-                                          l->stats.fallout) + 1))) *
-                                          10000) / 100);
+    int total_attempts = l->stats.completed + l->stats.timeout + l->stats.fallout;
+    int total_attempts_cleared = l->stats.completed;
+
+    float clr_rate_val = 0.f;
+    if (total_attempts >= 1)
+        clr_rate_val = (float) (ROUND(((total_attempts_cleared / total_attempts)) *
+                                      10000) / 100);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(buffer[0], 12, "%d",    l->stats.completed);
-    sprintf_s(buffer[1], 12, "%d",    l->stats.timeout);
-    sprintf_s(buffer[2], 12, "%d",    l->stats.fallout);
-    sprintf_s(buffer[3], 12, "%f %%", clr_rate_val);
+    sprintf_s(buffer[0], 12, "%d",   l->stats.completed);
+    sprintf_s(buffer[1], 12, "%d",   l->stats.timeout);
+    sprintf_s(buffer[2], 12, "%d",   l->stats.fallout);
+    sprintf_s(buffer[3], 12, "%f%%", CLAMP(0, clr_rate_val, 100));
 #else
-    sprintf(buffer[0], "%d",    l->stats.completed);
-    sprintf(buffer[1], "%d",    l->stats.timeout);
-    sprintf(buffer[2], "%d",    l->stats.fallout);
-    sprintf(buffer[3], "%f%%", clr_rate_val);
+    sprintf(buffer[0], "%d",   l->stats.completed);
+    sprintf(buffer[1], "%d",   l->stats.timeout);
+    sprintf(buffer[2], "%d",   l->stats.fallout);
+    sprintf(buffer[3], "%f%%", CLAMP(0, clr_rate_val, 100));
 #endif
 
-    gui_set_label(stats_labels.completed,  buffer[0]);
-    gui_set_label(stats_labels.timeout,    buffer[1]);
-    gui_set_label(stats_labels.fallout,    buffer[2]);
+    gui_set_label(stats_labels.completed, buffer[0]);
+    gui_set_label(stats_labels.timeout,   buffer[1]);
+    gui_set_label(stats_labels.fallout,   buffer[2]);
 
     if (stats_extra_row)
     {

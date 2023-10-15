@@ -61,6 +61,11 @@ int ACCOUNT_CONSUMEABLE_EXTRALIVES;
 
 int ACCOUNT_PLAYER;
 int ACCOUNT_BALL_FILE;
+int ACCOUNT_BALL_FILE_LL;
+int ACCOUNT_BALL_FILE_L;
+int ACCOUNT_BALL_FILE_C;
+int ACCOUNT_BALL_FILE_R;
+int ACCOUNT_BALL_FILE_RR;
 
 static struct
 {
@@ -70,7 +75,7 @@ static struct
 static struct
 {
     char *curr;
-} steam_account_s[2];
+} steam_account_s[7];
 
 static struct
 {
@@ -107,8 +112,17 @@ static struct
     char       *cur;
 } account_s[] =
 {
-    { &ACCOUNT_PLAYER, "player", "" },
-    { &ACCOUNT_BALL_FILE, "ball_file", "ball/basic-ball/basic-ball" }
+    { &ACCOUNT_PLAYER,       "player",       "" },
+#if defined(CONFIG_INCLUDES_MULTIBALLS)
+    { &ACCOUNT_BALL_FILE,    "ball_file", "ball/" },
+#else
+    { &ACCOUNT_BALL_FILE,    "ball_file", "ball/basic-ball/basic-ball" },
+#endif
+    { &ACCOUNT_BALL_FILE_LL, "ball_file_ll", "ball/" },
+    { &ACCOUNT_BALL_FILE_L,  "ball_file_l",  "ball/" },
+    { &ACCOUNT_BALL_FILE_C,  "ball_file_c",  "ball/basic-ball/basic-ball" },
+    { &ACCOUNT_BALL_FILE_R,  "ball_file_r",  "ball/" },
+    { &ACCOUNT_BALL_FILE_RR, "ball_file_rr", "ball/" }
 };
 
 static int dirty = 0;

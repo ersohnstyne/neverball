@@ -74,7 +74,7 @@ int campaign_is_downloadable(int i)
         enum package_status status = package_get_status(package_id);
 
         return (status == PACKAGE_AVAILABLE ||
-                status == PACKAGE_PARTIAL ||
+                status == PACKAGE_UPDATE ||
                 status == PACKAGE_ERROR);
     }
 

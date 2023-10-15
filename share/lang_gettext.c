@@ -315,7 +315,9 @@ void lang_init(void)
     try {
 #endif
     lang_load(&curr_lang, lang_path(config_get_s(CONFIG_LANGUAGE)));
+#if _WIN32 && _MSC_VER
     GAMEDBG_CHECK_SEGMENTATIONS(gt_init("neverball", curr_lang.code));
+#endif
     lang_status = 1;
 #if __cplusplus
     } catch (const std::exception& xO) {

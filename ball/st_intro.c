@@ -49,7 +49,9 @@
 #include "st_conf.h"
 #include "st_shared.h"
 
+#if NB_HAVE_PB_BOTH==1 && !defined(SKIP_END_SUPPORT)
 #include "st_end_support.h"
+#endif
 
 /*---------------------------------------------------------------------------*/
 

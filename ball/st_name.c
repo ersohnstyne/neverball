@@ -163,8 +163,13 @@ static int name_action(int tok, int val)
                 newplayers = 1;
 
             account_set_s(ACCOUNT_PLAYER, text_input);
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
+            ball_multi_free();
+            ball_multi_init();
+#else
             ball_free();
             ball_init();
+#endif
 
             account_save();
         }

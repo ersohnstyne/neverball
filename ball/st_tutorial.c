@@ -116,7 +116,9 @@ int tutorial_check(void)
     const char *ln = level_name(curr_level());
     const char *sn = set_name(curr_set());
 
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (!campaign_used())
+#endif
     {
         if (ln && sn)
         {
@@ -233,7 +235,7 @@ static int tutorial_enter(struct state *st, struct state *prev)
 #endif
             gui_multi(id, _(tutorial_desc_xbox[tutorial_index]),
                           GUI_SML, gui_wht, gui_wht);
-        
+
         gui_space(id);
         if ((jd = gui_harray(id)))
         {
@@ -323,7 +325,9 @@ int hint_check(void)
     const char *ln = level_name(curr_level());
     const char *sn = set_name(curr_set());
 
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (!campaign_used())
+#endif
     {
         if (ln && sn)
         {

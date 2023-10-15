@@ -464,7 +464,11 @@ static int goal_gui(void)
                 if (m1)
                     gui_set_state(m1, GUI_NONE, 0);
 
-                if (m2 && progress_same_avail() && !campaign_hardcore())
+                if (m2 && progress_same_avail()
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                 && !campaign_hardcore()
+#endif
+                    )
                     gui_set_state(m2, GUI_NONE, 0);
                 
                 if (m3 && save >= 1)
@@ -559,7 +563,11 @@ static void goal_timer(int id, float dt)
 
         int record_screenanimations =  time_state() < (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.f);
         int record_modes            =  curr_mode() != MODE_NONE;
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         int record_campaign         = !campaign_hardcore_norecordings();
+#else
+        int record_campaign         = 1;
+#endif
 
         game_client_blend(game_server_blend());
         game_client_sync(!resume
@@ -698,8 +706,10 @@ static int goal_keybd(int c, int d)
 #endif
             )
             return goal_action(GUI_SCORE, GUI_SCORE_NEXT(gui_score_get()));
-        if (config_tst_d(CONFIG_KEY_RESTART, c) &&
-            !campaign_hardcore()
+        if (config_tst_d(CONFIG_KEY_RESTART, c)
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+         && !campaign_hardcore()
+#endif
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
          && current_platform == PLATFORM_PC
 #endif
@@ -907,7 +917,10 @@ static void goal_hardcore_timer(int id, float dt)
     if (!restrict_hardcore_nextstate)
     {
         game_server_step(dt);
-        game_client_sync(!campaign_hardcore_norecordings() &&
+        game_client_sync(
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            !campaign_hardcore_norecordings() &&
+#endif
                          curr_mode() != MODE_NONE ? NULL : demo_fp);
         game_client_blend(game_server_blend());
 
@@ -958,6 +971,7 @@ struct state st_goal = {
     goal_shared_exit
 };
 
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
 struct state st_goal_hardcore = {
     goal_hardcore_enter,
     shared_leave,
@@ -974,6 +988,7 @@ struct state st_goal_hardcore = {
     NULL,
     goal_shared_exit
 };
+#endif
 
 struct state st_goal_extraballs = {
     goal_extraballs_enter,

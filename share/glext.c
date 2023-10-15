@@ -19,6 +19,7 @@
 #endif
 #include <stdio.h>
 
+#include "common.h"
 #include "glext.h"
 #include "log.h"
 
@@ -248,11 +249,11 @@ int glext_fail(const char *title, const char *message)
     if (SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title, message, NULL) < 0)
     {
 #if defined(__linux__)
-        char msgbox_cmd[MAXSTR];
+        char msgbox_cmd[256];
         SAFECPY(msgbox_cmd, "zenity --error --title=\"");
         SAFECAT(msgbox_cmd, title);
         SAFECAT(msgbox_cmd, "\" --text=\"");
-        SAFECAT(msgbox_cmd, text);
+        SAFECAT(msgbox_cmd, message);
         SAFECAT(msgbox_cmd, "\" --ok-label=\"OK\"");
 
         system(msgbox_cmd);
@@ -273,7 +274,7 @@ int glext_init(void)
         SDL_TriggerBreakpoint();
         return 0;
 #else
-        log_printf("Too many GL extensions on this PC! Number of extensions: %d\n", num_GLextensions);
+        log_printf("Too many GL extensions on this PC!\n");
 #endif
     }
 

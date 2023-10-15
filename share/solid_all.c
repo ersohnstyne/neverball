@@ -355,6 +355,7 @@ void sol_swch_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
     }
 }
 
+#ifdef MAPC_INCLUDES_CHKP
 /*
  * New: Checkpoints: Compute the states of all checkpoints after DT seconds
  * have passed.
@@ -363,22 +364,12 @@ void sol_chkp_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
 {
     int xi;
 
-#ifdef MAPC_INCLUDES_CHKP
     for (xi = 0; xi < vary->cc; xi++)
     {
         struct v_chkp *cp = vary->cv + xi;
-
-        //cp->f = cp->base->f;
-
-        /*if (cmd_func)
-        {
-            union cmd cmd = { CMD_CHKP_TOGGLE };
-            cmd.chkptoggle.xi = xi;
-            cmd_func(&cmd);
-        }*/
     }
-#endif
 }
+#endif
 
 /*
  * Compute the positions of all movers after DT seconds have passed.

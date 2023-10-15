@@ -12,8 +12,6 @@
  * General Public License for more details.
  */
 
-#include "st_malfunction.h"
-
 #ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
@@ -26,6 +24,8 @@
 
 #include "game_common.h"
 #include "game_client.h"
+
+#include "st_malfunction.h"
 
 #include "st_shared.h"
 #include "st_conf.h"

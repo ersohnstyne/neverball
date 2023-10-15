@@ -136,7 +136,19 @@ static void scan_balls(void)
 {
     int i;
 
-#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
+    switch (ball_multi_curr())
+    {
+    case 0:  SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_LL)); break;
+    case 1:  SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_L)); break;
+    case 2:  SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_C)); break;
+    case 3:  SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_R)); break;
+    case 4:  SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_RR)); break;
+    default: SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_C));
+    }
+
+    account_set_s(ACCOUNT_BALL_FILE, ball_file);
+#elif NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE));
 #else
     SAFECPY(ball_file, config_get_s(CONFIG_BALL_FILE));
@@ -176,14 +188,30 @@ static void set_curr_ball(int ball_index)
             DIR_ITEM_GET(balls, ball_index)->path,
             base_name(DIR_ITEM_GET(balls, ball_index)->path));
 
-#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
+    account_set_s(ACCOUNT_BALL_FILE, ball_file);
+
+    switch (ball_multi_curr())
+    {
+    case 0: account_set_s(ACCOUNT_BALL_FILE_LL, ball_file); break;
+    case 1: account_set_s(ACCOUNT_BALL_FILE_L,  ball_file); break;
+    case 2: account_set_s(ACCOUNT_BALL_FILE_C,  ball_file); break;
+    case 3: account_set_s(ACCOUNT_BALL_FILE_R,  ball_file); break;
+    case 4: account_set_s(ACCOUNT_BALL_FILE_RR, ball_file); break;
+    }
+#elif NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_set_s(ACCOUNT_BALL_FILE, ball_file);
 #else
     config_set_s(CONFIG_BALL_FILE, ball_file);
 #endif
 
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
+    ball_multi_free();
+    ball_multi_init();
+#else
     ball_free();
     ball_init();
+#endif
     config_save();
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_save();
@@ -203,6 +231,7 @@ static int ball_action(int tok, int val)
 
     switch (tok)
     {
+#if !defined(__EMSCRIPTEN__)
     case MODEL_ONLINE:
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
         if (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1)
@@ -226,6 +255,7 @@ static int ball_action(int tok, int val)
         system("x-www-browser https://forms.gle/62iaMCNKan4z2SJs5");
 #endif
         break;
+#endif
     case GUI_NEXT:
         if (++curr_ball == array_len(balls))
             curr_ball = 0;
@@ -333,7 +363,7 @@ static int ball_gui(void)
 #endif
             gui_space(id);
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         const char* more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ?
 #if NB_STEAM_API==1
                                       N_("Open Steam Workshop!") :
@@ -343,10 +373,8 @@ static int ball_gui(void)
                                       N_("Upgrade to Home Edition!");
 
         if ((account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
-             server_policy_get_d(SERVER_POLICY_EDITION) < 0)
-#ifndef __EMSCRIPTEN__
-            && !xbox_show_gui()
-#endif
+             server_policy_get_d(SERVER_POLICY_EDITION) < 0) &&
+            !xbox_show_gui()
             )
         {
             int online_id;
@@ -359,10 +387,10 @@ static int ball_gui(void)
                     gui_set_state(online_id, MODEL_ONLINE, 0);
             }
         }
-#ifndef __EMSCRIPTEN__
+
         else if (!xbox_show_gui())
             gui_label(id, _(more_balls_text), GUI_SML, gui_gry, gui_gry);
-#endif
+
         gui_space(id);
 #endif
 
@@ -416,7 +444,8 @@ static int ball_gui(void)
 
 static int ball_enter(struct state *st, struct state *prev)
 {
-    scan_balls();
+    if (prev != &st_ball || ball_manual_hotreload)
+        scan_balls();
 
     if (prev != &st_ball)
     {
@@ -534,7 +563,7 @@ static int ball_keybd(int c, int d)
                 set_curr_ball(i);
 
                 video_clear();
-                video_push_persp((float)initial_fov, 0.1f, FAR_DIST);
+                video_push_persp((float) initial_fov, 0.1f, FAR_DIST);
                 {
                     back_draw_easy();
                 }
@@ -580,9 +609,11 @@ static int ball_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b))
             return ball_action(GUI_NEXT, 0);
 
-#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_Y, b))
-            return ball_action(server_policy_get_d(SERVER_POLICY_EDITION) == -1 ?
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && !defined(__EMSCRIPTEN__)
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_Y, b) &&
+            (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
+             server_policy_get_d(SERVER_POLICY_EDITION) < 0))
+            return ball_action(server_policy_get_d(SERVER_POLICY_EDITION) < 0 ?
                                MODEL_UPGRADE_EDITION : MODEL_ONLINE, 0);
 #endif
     }

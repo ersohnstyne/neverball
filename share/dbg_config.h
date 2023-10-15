@@ -98,8 +98,8 @@
     outStr = strerror(errno)
 #endif
 
-int GameDbg_GetSigInt(void);
-void GameDbg_ClrSigInt(void);
+int         GameDbg_GetSigInt(void);
+void        GameDbg_ClrSigInt(void);
 const char *GameDbg_GetError(void);
 
 void GameDbg_SigNum_CtrlC(int);

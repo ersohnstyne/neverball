@@ -23,6 +23,6 @@
  * Place the "goto_end_support" in main entry for "main.c"
  */
 
-int goto_end_support(struct state *);
+//extern int goto_end_support(struct state *);
 
 #endif

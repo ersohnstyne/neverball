@@ -401,8 +401,10 @@ static int init_level(void)
      * server.
      */
 
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (campaign_used())
         campaign_load_camera_box_trigger(level_name(curr_level()));
+#endif
 
     if (game_client_init(level_file(level)) && 
         game_server_init(level_file(level), level_time(level), goal_e))
@@ -660,17 +662,17 @@ void progress_stat(int s)
 #endif
                                &time_rank,
                                career_unlocked && goal == 0 ? &goal_rank : NULL,
-                               career_unlocked ? &coin_rank : 0);
+                               career_unlocked ? &coin_rank : NULL);
 #else
-        dirty = level_score_update(level, timer,
+        level_score_update(level, timer,
 #ifdef ENABLE_POWERUP
-                                   coins / get_coin_multiply(),
+                           coins / get_coin_multiply(),
 #else
-                                   coins,
+                           coins,
 #endif
-                                   &time_rank,
-                                   goal == 0 ? &goal_rank : NULL,
-                                   &coin_rank);
+                           &time_rank,
+                           goal == 0 ? &goal_rank : NULL,
+                           &coin_rank);
 #endif
 
         level->stats.completed++;
@@ -1023,7 +1025,7 @@ int  progress_raise_gems(int action_performed, int needed,
 
     if (action_performed)
     {
-        account_set_d(ACCOUNT_DATA_WALLET_GEMS,       final_resale);
+        account_set_d(ACCOUNT_DATA_WALLET_GEMS,       temp_src_gems + final_resale);
         account_set_d(ACCOUNT_DATA_WALLET_COINS,      diff_coins);
         account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, diff_wgearn);
         account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, diff_wgfloat);

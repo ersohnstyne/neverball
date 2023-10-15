@@ -328,14 +328,18 @@ static struct s_full mark;
 static struct s_full vect;
 static struct s_full back;
 static struct s_full item[GEOM_MAX];
+#ifdef MAPC_INCLUDES_CHKP
 static struct s_full chkp;
+#endif
 
 static struct s_full chnk_pane;
 static struct s_full chnk_ball;
 static struct s_full chnk_jump;
 static struct s_full chnk_goal;
 static struct s_full chnk_swch;
+#ifdef MAPC_INCLUDES_CHKP
 static struct s_full chnk_chkp;
+#endif
 
 static int back_state = 0;
 
@@ -400,29 +404,36 @@ void geom_init(void)
     for (i = 0; i < GEOM_MAX; i++)
         sol_load_full(&item[i], item_sols[i], 0);
 
+#ifdef MAPC_INCLUDES_CHKP
     sol_load_full(&chkp, "geom/chkp/chkp.sol", 0);
+#endif
 
     sol_load_full(&chnk_pane, "geom/chnk/chnk_pane.sol", 0);
     sol_load_full(&chnk_ball, "geom/chnk/chnk_ball.sol", 0);
     sol_load_full(&chnk_jump, "geom/chnk/chnk_jump.sol", 0);
     sol_load_full(&chnk_goal, "geom/chnk/chnk_goal.sol", 0);
     sol_load_full(&chnk_swch, "geom/chnk/chnk_swch.sol", 0);
+#ifdef MAPC_INCLUDES_CHKP
     sol_load_full(&chnk_chkp, "geom/chnk/chnk_chkp.sol", 0);
+#endif
 }
 
 void geom_free(void)
 {
     int i;
 
+#ifdef MAPC_INCLUDES_CHKP
     sol_free_full(&chnk_chkp);
+#endif
     sol_free_full(&chnk_swch);
     sol_free_full(&chnk_goal);
     sol_free_full(&chnk_jump);
     sol_free_full(&chnk_ball);
     sol_free_full(&chnk_pane);
 
+#ifdef MAPC_INCLUDES_CHKP
     sol_free_full(&chkp);
-
+#endif
     for (i = 0; i < GEOM_MAX; i++)
         sol_free_full(&item[i]);
 
@@ -444,9 +455,15 @@ void geom_step(float dt)
     for (i = 0; i < GEOM_MAX; i++)
         sol_move(&item[i].vary, NULL, dt);
 
+#if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
     sol_move(&chkp.vary, NULL, dt);
+#endif
 
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_MULTIBALLS)
+    ball_multi_step(dt);
+#else
     ball_step(dt);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -628,6 +645,7 @@ void jump_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h, GLfl
     glPopMatrix();
 }
 
+#ifdef MAPC_INCLUDES_CHKP
 void chkp_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h)
 {
     GLfloat height = (hmd_stat() ? 0.3f : 1.0f) * video.device_h;
@@ -642,6 +660,7 @@ void chkp_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h)
     }
     glPopMatrix();
 }
+#endif
 
 void flag_draw(struct s_rend *rend, const GLfloat *p)
 {
@@ -725,10 +744,12 @@ void chnk_swch_draw(struct s_rend* rend)
     sol_draw(&chnk_swch.draw, rend, 1, 1);
 }
 
+#ifdef MAPC_INCLUDES_CHKP
 void chnk_chkp_draw(struct s_rend *rend)
 {
     sol_draw(&chnk_chkp.draw, rend, 1, 1);
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 

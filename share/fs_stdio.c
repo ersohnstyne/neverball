@@ -15,6 +15,11 @@
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS && !_MSC_VER
 #include <sec_api/stdlib_s.h>
 #endif
+
+#if !_MSC_VER
+#include <unistd.h>
+#endif
+
 #include "zip.h"
 
 #include <stdio.h>
@@ -180,9 +185,7 @@ int fs_add_path(const char *path)
             return 0;
     }
 
-    path_item = create_path_item();
-
-    if (!path_item)
+    if (!(path_item = create_path_item()))
         return 0;
 
     if (dir_exists(path))

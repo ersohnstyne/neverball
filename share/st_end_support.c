@@ -322,14 +322,38 @@ static int switchball_useable(void)
 
 /*---------------------------------------------------------------------------*/
 
+struct state st_end_support;
+
+/* DO NOT EDIT! */
+static struct state* st_hide;
+
+/* DO NOT EDIT! */
+int goto_end_support(struct state *scontinue)
+{
+    st_hide = scontinue;
+
+    time_t local = time(0);
+    struct tm timestamp;
+#if _WIN32 && _MSC_VER
+    gmtime_s(&timestamp, &local);
+#else
+    timestamp = *gmtime(&local);
+#endif
+
+    int curryear = timestamp.tm_year + 1900;
+    long long int diff = difference_of_days(timestamp.tm_mday, timestamp.tm_mon, curryear,
+                                            END_SUPPORT_DAY, END_SUPPORT_MONTH - 1, END_SUPPORT_YEAR);
+
+    return goto_state(diff > 30 ? st_hide : &st_end_support);
+}
+
+/*---------------------------------------------------------------------------*/
+
 /* DO NOT EDIT! */
 enum
 {
     END_SUPPORT_INVITE = GUI_LAST
 };
-
-/* DO NOT EDIT! */
-static struct state *st_hide;
 
 /* DO NOT EDIT! */
 static int end_support_action(int tok, int val)
@@ -364,7 +388,11 @@ static int end_support_gui(void)
     /* End support dates should be local time */
     time_t local = time(0);
     struct tm timestamp;
+#if _WIN32 && _MSC_VER
     gmtime_s(&timestamp, &local);
+#else
+    timestamp = *gmtime(&local);
+#endif
 
     char titleattr[MAXSTR], descattr[MAXSTR];
 
@@ -455,24 +483,6 @@ static int end_support_enter(struct state *st, struct state *prev)
 void end_support_leave(struct state *st, struct state *next, int id)
 {
     conf_common_leave(st, next, id);
-}
-
-struct state st_end_support;
-
-/* DO NOT EDIT! */
-int goto_end_support(struct state *scontinue)
-{
-    st_hide = scontinue;
-
-    time_t local = time(0);
-    struct tm timestamp;
-    gmtime_s(&timestamp, &local);
-
-    int curryear = timestamp.tm_year + 1900;
-    long long int diff = difference_of_days(timestamp.tm_mday, timestamp.tm_mon, curryear,
-                                            END_SUPPORT_DAY, END_SUPPORT_MONTH - 1, END_SUPPORT_YEAR);
-
-    return goto_state(diff > 30 ? st_hide : &st_end_support);
 }
 
 /*---------------------------------------------------------------------------*/

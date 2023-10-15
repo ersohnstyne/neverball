@@ -17,9 +17,23 @@
 
 #if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
+#include "game_common.h"
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
+
+struct chkp_view
+{
+    float dc;                           /* Ideal view center distance above ball */
+    float dp;                           /* Ideal view position distance above ball */
+    float dz;                           /* Ideal view position distance behind ball */
+
+    float c[3];                         /* Current view center               */
+    float p[3];                         /* Current view position             */
+    float e[3][3];                      /* Current view reference frame      */
+
+    float a;                            /* Ideal view rotation about Y axis  */
+};
 
 struct chkp_ballsize
 {
@@ -77,7 +91,8 @@ extern struct chkp_ball last_chkp_ball[1024];
 // extern struct chkp_move last_chkp_move[1024];  /* Deprecated. DO NOT USE! */
 // extern struct chkp_item last_chkp_item[2048];  /* Deprecated. DO NOT USE! */
 // extern struct chkp_swch last_chkp_swch[1024];  /* Deprecated. DO NOT USE! */
-extern struct game_view last_view[1024];
+
+extern struct chkp_view last_view[1024];
 
 extern float last_pos[1024][3];
 

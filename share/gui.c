@@ -1588,15 +1588,17 @@ static void gui_hstack_dn(int id, int x, int y, int w, int h)
     /* Measure the total width requested by non-filler children. */
 
     for (jd = widget[id].car; jd; jd = widget[jd].cdr)
+    {
         if (widget[jd].type == GUI_FILLER)
             c += 1;
         else if (widget[jd].flags & GUI_FILL)
         {
-            c  += 1;
+            c += 1;
             jw += widget[jd].w;
         }
         else
             jw += widget[jd].w;
+    }
 
     /* Give non-filler children their requested space.   */
     /* Distribute the rest evenly among filler children. */
@@ -2943,7 +2945,7 @@ int gui_navig(int id, int total, int first, int step)
 #ifdef SWITCHBALL_GUI
 int gui_maybe_img(int id, const char *dimage, const char *eimage, int etoken, int dtoken, int enabled)
 {
-    int bd = gui_image(id, enabled ? eimage : dimage, widget[digit_id[1][0]].w * 0.4f, widget[digit_id[1][0]].h * 0.4f);
+    int bd = gui_image(id, enabled ? eimage : dimage, widget[digit_id[1][0]].w * 0.8f, widget[digit_id[1][0]].h * 0.4f);
 
     gui_set_state(bd, enabled ? etoken : dtoken, 0);
 

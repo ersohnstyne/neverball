@@ -934,7 +934,7 @@ static int page_modes_special(int id)
              _("Special game modes requires\\"
                "LEVELGROUPS_INCLUDES_CAMPAIGN\\"
                "or CONFIG_INCLUDES_ACCOUNT\\"
-               "preprocessor definitions!"),
+               "preprocessor definitions"),
              GUI_SML, gui_red, gui_red);
 #endif
 

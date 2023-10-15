@@ -49,7 +49,7 @@
 #include "st_ball.h"
 #include "st_shared.h"
 #include "st_shop.h"
-#include "st_package.h"
+#include "st_addons.h"
 
 #ifdef ENABLE_GAME_TRANSFER
 #include "st_transfer.h"
@@ -271,13 +271,13 @@ static int conf_covid_extend_enter(struct state *st, struct state *prev)
     _("Some filters restricts replays.\\Locked level status: %s")
 
 #define CONF_ACCOUNT_DEMO_LOCKED_DESC_HARDLOCK \
-    _("Replays have locked down\\until the next future update.")
+    _("Replays have locked down until\\the next future update.")
 
 #define CONF_ACCOUNT_DEMO_LOCKED_DESC_HIGHRISK \
     _("Replays have locked down\\during high risks!")
 
 #define CONF_ACCOUNT_DEMO_LOCKED_DESC_NIGHT \
-    _("Replays have locked down\\between 16:00 - 8:00 (4:00 PM - 8:00 AM).")
+    _("Replays have locked down between\\16:00 - 8:00 (4:00 PM - 8:00 AM).")
 
 #define CONF_ACCOUNT_DEMO_LOCKED_DESC_EXTREME_CASES \
     _("Replays have locked down\\for extreme cases.")
@@ -497,11 +497,23 @@ static int conf_account_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        const char* player = config_get_s(CONFIG_PLAYER);
-#ifdef CONFIG_INCLUDES_ACCOUNT
-        const char* ball   = account_get_s(ACCOUNT_BALL_FILE);
+        const char *player = config_get_s(CONFIG_PLAYER);
+#if defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
+        const char *ball;
+        switch (ball_multi_curr()) {
+        case 0:  ball = account_get_s(ACCOUNT_BALL_FILE_LL); break;
+        case 1:  ball = account_get_s(ACCOUNT_BALL_FILE_L); break;
+        case 2:  ball = account_get_s(ACCOUNT_BALL_FILE_C); break;
+        case 3:  ball = account_get_s(ACCOUNT_BALL_FILE_R); break;
+        case 4:  ball = account_get_s(ACCOUNT_BALL_FILE_RR); break;
+        default: ball = account_get_s(ACCOUNT_BALL_FILE_C);
+        }
+
+        account_set_s(ACCOUNT_BALL_FILE, ball);
+#elif defined(CONFIG_INCLUDES_ACCOUNT)
+        const char *ball   = account_get_s(ACCOUNT_BALL_FILE);
 #else
-        const char* ball   = config_get_s(CONFIG_BALL_FILE);
+        const char *ball   = config_get_s(CONFIG_BALL_FILE);
 #endif
 
 #ifdef ENABLE_SQL
@@ -534,7 +546,7 @@ static int conf_account_gui(void)
 #else
 #ifdef DEMO_QUARANTINED_MODE
 #ifdef DEMO_LOCKDOWN_COMPLETE
-            time_remain_lbl_id = gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_HARDLOCK_DESC,
+            time_remain_lbl_id = gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_DESC_HARDLOCK,
                                                GUI_SML, gui_red, gui_red);
             gui_space(id);
 #else
@@ -659,7 +671,11 @@ static int conf_account_gui(void)
             gui_space(id);
 
             gui_set_label(name_id, player);
+#if defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
+            gui_set_label(ball_id, _("Manage"));
+#else
             gui_set_label(ball_id, base_name(ball));
+#endif
 
             const char *beam_version_name = "";
 
@@ -779,7 +795,7 @@ static void conf_account_timer(int id, float dt)
     else if (conf_covid_extended != 0 && !nolockdown)
     {
         conf_covid_extended = 0;
-        
+
         if (config_get_d(CONFIG_ACCOUNT_SAVE) > 2)
         {
             gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
@@ -819,6 +835,9 @@ static int conf_social_action(int tok, int val)
         if (conf_join_confirm)
 #endif
         {
+#if defined(__EMSCRIPTEN__)
+            EM_ASM({ Neverball.doJoinDiscord() }, 0);
+#else
 #if NB_HAVE_PB_BOTH==1
             SAFECPY(linkstr_code, "qnJR263Hm2");
 #else
@@ -834,9 +853,9 @@ static int conf_social_action(int tok, int val)
 #endif
 
             SAFECAT(linkstr_cmd, linkstr_code);
-            SAFECAT(linkstr_cmd, "/");
 
             system(linkstr_cmd);
+#endif
 
             if (mainmenu_conf)
             {
@@ -968,7 +987,11 @@ enum InputType
 static int preset_id;
 static int key_preset_id;
 
+#ifdef SWITCHBALL_GUI
+static int mouse_id;
+#else
 static int mouse_id[11];
+#endif
 
 /*
  * This maps mouse_sense 300 (default) to the 7th of an 11 button
@@ -1082,8 +1105,13 @@ static int conf_control_action(int tok, int val)
     case CONF_CONTROL_MOUSE_SENSE:
         config_set_d(CONFIG_MOUSE_SENSE, MOUSE_RANGE_UNMAP(val));
 
+#ifdef SWITCHBALL_GUI
+        conf_set_slider_v2(mouse_id, val);
+        goto_state_full(curr_state(), 0, 0, 1);
+#else
         gui_toggle(mouse_id[val]);
         gui_toggle(mouse_id[mouse]);
+#endif
         config_save();
         break;
 
@@ -1150,8 +1178,13 @@ int conf_control_gui(void)
         {
             gui_space(id);
 
+#ifdef SWITCHBALL_GUI
+            mouse_id = conf_slider_v2(id, _("Mouse Sensitivity"), CONF_CONTROL_MOUSE_SENSE,
+                                      mouse);
+#else
             conf_slider(id, _("Mouse Sensitivity"), CONF_CONTROL_MOUSE_SENSE,
                             mouse, mouse_id, ARRAYSIZE(mouse_id));
+#endif
 
             conf_toggle(id, _("Invert Y Axis"), CONF_CONTROL_INVERT_MOUSE_Y,
                             config_get_d(CONFIG_MOUSE_INVERT),
@@ -1910,10 +1943,17 @@ static int conf_notification_enter(struct state *st, struct state *prev)
 
 /*---------------------------------------------------------------------------*/
 
+#ifdef SWITCHBALL_GUI
+static int master_id;
+static int music_id;
+static int sound_id;
+static int narrator_id;
+#else
 static int master_id[11];
 static int music_id[11];
 static int sound_id[11];
 static int narrator_id[11];
+#endif
 
 #if NB_HAVE_PB_BOTH==1
 enum
@@ -1942,8 +1982,13 @@ static int conf_audio_action(int tok, int val)
         config_set_d(CONFIG_MASTER_VOLUME, val);
         audio_volume(val, sound, music, narrator);
 
+#ifdef SWITCHBALL_GUI
+        conf_set_slider_v2(master_id, val);
+        goto_state_full(curr_state(), 0, 0, 1);
+#else
         gui_toggle(master_id[val]);
         gui_toggle(master_id[master]);
+#endif
         config_save();
 
         break;
@@ -1952,8 +1997,13 @@ static int conf_audio_action(int tok, int val)
         config_set_d(CONFIG_MUSIC_VOLUME, val);
         audio_volume(master, sound, val, narrator);
 
+#ifdef SWITCHBALL_GUI
+        conf_set_slider_v2(music_id, val);
+        goto_state_full(curr_state(), 0, 0, 1);
+#else
         gui_toggle(music_id[val]);
-        gui_toggle(music_id[music]);
+        gui_toggle(music_id[master]);
+#endif
         config_save();
 
         break;
@@ -1963,8 +2013,13 @@ static int conf_audio_action(int tok, int val)
         audio_volume(master, val, music, narrator);
         audio_play(AUD_BUMPM, 1.f);
 
+#ifdef SWITCHBALL_GUI
+        conf_set_slider_v2(sound_id, val);
+        goto_state_full(curr_state(), 0, 0, 1);
+#else
         gui_toggle(sound_id[val]);
-        gui_toggle(sound_id[sound]);
+        gui_toggle(sound_id[master]);
+#endif
         config_save();
 
         break;
@@ -1973,8 +2028,13 @@ static int conf_audio_action(int tok, int val)
         config_set_d(CONFIG_NARRATOR_VOLUME, val);
         audio_volume(master, sound, music, val);
 
-        gui_toggle(narrator_id[val]);
-        gui_toggle(narrator_id[narrator]);
+#ifdef SWITCHBALL_GUI
+        conf_set_slider_v2(narrator, val);
+        goto_state_full(curr_state(), 0, 0, 1);
+#else
+        gui_toggle(narrator[val]);
+        gui_toggle(narrator[master]);
+#endif
         config_save();
 
         break;
@@ -2001,21 +2061,37 @@ static int conf_audio_gui(void)
         int narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
 
 #if NB_HAVE_PB_BOTH==1
+
+#ifdef SWITCHBALL_GUI
+        master_id = conf_slider_v2(id, _("Master Volume"), CONF_AUDIO_MASTER_VOLUME,
+                                       master);
+#else
         conf_slider(id, _("Master Volume"), CONF_AUDIO_MASTER_VOLUME, master,
                     master_id, ARRAYSIZE(master_id));
+#endif
 
         gui_space(id);
 
+#ifdef SWITCHBALL_GUI
+        music_id = conf_slider_v2(id, _("Music Volume"), CONF_AUDIO_MUSIC_VOLUME,
+                                       music);
+        sound_id = conf_slider_v2(id, _("Sound Volume"), CONF_AUDIO_SOUND_VOLUME,
+                                       sound);
+        narrator_id = conf_slider_v2(id, _("Narrator Volume"), CONF_AUDIO_NARRATOR_VOLUME,
+                                         narrator);
+#else
+        
         conf_slider(id, _("Music Volume"), CONF_AUDIO_MUSIC_VOLUME, music,
                     music_id, ARRAYSIZE(music_id));
         conf_slider(id, _("Sound Volume"), CONF_AUDIO_SOUND_VOLUME, sound,
                     sound_id, ARRAYSIZE(sound_id));
         conf_slider(id, _("Narrator Volume"), CONF_AUDIO_NARRATOR_VOLUME, narrator,
                     narrator_id, ARRAYSIZE(narrator_id));
+#endif
 #else
         gui_multi(id, _("Switchball configurations\\"
                         "requires NB_HAVE_PB_BOTH\\"
-                        "preprocessor definitions!"),
+                        "preprocessor definitions"),
                       GUI_SML, gui_red, gui_red);
 #endif
     }
@@ -2182,8 +2258,13 @@ static int conf_action(int tok, int val)
         config_set_d(CONFIG_MASTER_VOLUME, val);
         audio_volume(val, sound, music, narrator);
 
+#ifdef SWITCHBALL_GUI
+        conf_set_slider_v2(master_id, val);
+        goto_state_full(curr_state(), 0, 0, 1);
+#else
         gui_toggle(master_id[val]);
         gui_toggle(master_id[master]);
+#endif
         config_save();
 
         break;
@@ -2192,8 +2273,13 @@ static int conf_action(int tok, int val)
         config_set_d(CONFIG_MUSIC_VOLUME, val);
         audio_volume(master, sound, val, narrator);
 
+#ifdef SWITCHBALL_GUI
+        conf_set_slider_v2(music_id, val);
+        goto_state_full(curr_state(), 0, 0, 1);
+#else
         gui_toggle(music_id[val]);
-        gui_toggle(music_id[music]);
+        gui_toggle(music_id[master]);
+#endif
         config_save();
 
         break;
@@ -2203,8 +2289,13 @@ static int conf_action(int tok, int val)
         audio_volume(master, val, music, narrator);
         audio_play(AUD_BUMPM, 1.f);
 
+#ifdef SWITCHBALL_GUI
+        conf_set_slider_v2(sound_id, val);
+        goto_state_full(curr_state(), 0, 0, 1);
+#else
         gui_toggle(sound_id[val]);
-        gui_toggle(sound_id[sound]);
+        gui_toggle(sound_id[master]);
+#endif
         config_save();
 
         break;
@@ -2213,8 +2304,13 @@ static int conf_action(int tok, int val)
         config_set_d(CONFIG_NARRATOR_VOLUME, val);
         audio_volume(master, sound, music, val);
 
+#ifdef SWITCHBALL_GUI
+        conf_set_slider_v2(narrator_id, val);
+        goto_state_full(curr_state(), 0, 0, 1);
+#else
         gui_toggle(narrator_id[val]);
-        gui_toggle(narrator_id[narrator]);
+        gui_toggle(narrator_id[master]);
+#endif
         config_save();
 
         break;
@@ -2274,8 +2370,8 @@ static int conf_gui(void)
             gui_space(id);
 #endif
 
-#if ENABLE_FETCH==1
-            conf_state(id, _("Packages"), _("Manage"), CONF_PACKAGES);
+#if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH==1
+            conf_state(id, _("Addons"), _("Manage"), CONF_PACKAGES);
             gui_space(id);
 #endif
 
@@ -2298,14 +2394,26 @@ static int conf_gui(void)
                 int music    = config_get_d(CONFIG_MUSIC_VOLUME);
                 int narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
 
-                conf_slider(id, _("Master Volume"), CONF_AUDIO_MASTER_VOLUME,
-                                master, master_id, ARRAYSIZE(master_id));
-                conf_slider(id, _("Music Volume"), CONF_AUDIO_MUSIC_VOLUME,
-                                music, music_id, ARRAYSIZE(music_id));
-                conf_slider(id, _("Sound Volume"), CONF_AUDIO_SOUND_VOLUME,
-                                sound, sound_id, ARRAYSIZE(sound_id));
-                conf_slider(id, _("Narrator Volume"), CONF_AUDIO_NARRATOR_VOLUME,
-                                narrator, narrator_id, ARRAYSIZE(narrator_id));
+#ifdef SWITCHBALL_GUI
+                master_id = conf_slider_v2(id, _("Master Volume"), CONF_AUDIO_MASTER_VOLUME,
+                                               master);
+                music_id = conf_slider_v2(id, _("Music Volume"), CONF_AUDIO_MUSIC_VOLUME,
+                                               music);
+                sound_id = conf_slider_v2(id, _("Sound Volume"), CONF_AUDIO_SOUND_VOLUME,
+                                              sound);
+                narrator_id = conf_slider_v2(id, _("Narrator Volume"), CONF_AUDIO_NARRATOR_VOLUME,
+                                                 narrator);
+#else
+        
+                conf_slider(id, _("Master Volume"), CONF_AUDIO_MUSIC_VOLUME, music,
+                            music_id, ARRAYSIZE(music_id));
+                conf_slider(id, _("Music Volume"), CONF_AUDIO_MUSIC_VOLUME, music,
+                            music_id, ARRAYSIZE(music_id));
+                conf_slider(id, _("Sound Volume"), CONF_AUDIO_SOUND_VOLUME, sound,
+                            sound_id, ARRAYSIZE(sound_id));
+                conf_slider(id, _("Narrator Volume"), CONF_AUDIO_NARRATOR_VOLUME, narrator,
+                            narrator_id, ARRAYSIZE(narrator_id));
+#endif
 #endif
             }
 
@@ -2415,7 +2523,11 @@ static int null_enter(struct state *st, struct state *prev)
     {
         online_mode = 0;
         geom_free();
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
+        ball_multi_free();
+#else
         ball_free();
+#endif
         shad_free();
         part_free();
         mtrl_free_objects();
@@ -2433,7 +2545,11 @@ static void null_leave(struct state *st, struct state *next, int id)
         mtrl_load_objects();
         part_init();
         shad_init();
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
+        ball_multi_init();
+#else
         ball_init();
+#endif
         geom_init();
     }
 
@@ -2451,6 +2567,21 @@ static void null_leave(struct state *st, struct state *next, int id)
             if (database_signin() > 0) online_mode = 1;
 #endif
     }
+
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
+    const char *ball;
+
+    switch (ball_multi_curr()) {
+    case 0:  ball = account_get_s(ACCOUNT_BALL_FILE_LL); break;
+    case 1:  ball = account_get_s(ACCOUNT_BALL_FILE_L); break;
+    case 2:  ball = account_get_s(ACCOUNT_BALL_FILE_C); break;
+    case 3:  ball = account_get_s(ACCOUNT_BALL_FILE_R); break;
+    case 4:  ball = account_get_s(ACCOUNT_BALL_FILE_RR); break;
+    default: ball = account_get_s(ACCOUNT_BALL_FILE_C);
+    }
+
+    account_set_s(ACCOUNT_BALL_FILE, ball);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

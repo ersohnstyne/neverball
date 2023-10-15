@@ -86,7 +86,9 @@ extern "C" {
 #if __cplusplus
 extern "C" {
 #endif
+#if _WIN32 && _MSC_VER
 #include "dbg_config.h"
+#endif
 #include "glext.h"
 #include "audio.h"
 #include "image.h"
@@ -204,6 +206,7 @@ static void initialize_fetch(void)
 
 /*---------------------------------------------------------------------------*/
 
+static int loop(void);
 int st_global_loop(void)
 {
     return loop();
@@ -588,14 +591,16 @@ static void step(void* data)
     }
 
     EM_ASM({
-        Neverputt.quit();
+        Pennyputt.quit();
     });
 #endif
 }
 
 static int main_init(int argc, char* argv[])
 {
+#if _WIN32 && _MSC_VER
     GAMEDBG_SIGFUNC_PREPARE;
+#endif
 
 #if NB_STEAM_API==1    
     if (!SteamAPI_Init())
@@ -641,9 +646,16 @@ static int main_init(int argc, char* argv[])
 #error No Playstation HIDAPI specified!
 #endif
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API \
-    && defined(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS)
+#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
+#if defined(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS)
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS, "1");
+#endif
+#if defined(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS, "1");
+#endif
+#if defined(SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS)
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS, "1");
+#endif
 #endif
 
 #if _cplusplus
@@ -676,7 +688,7 @@ static void main_quit()
     mtrl_quit();
     video_quit();
 
-    /* Restore Neverball's camera setting. */
+    /* Restore Pennyball's camera setting. */
 
     config_set_d(CONFIG_CAMERA, em_cached_cam);
     config_save();
@@ -806,9 +818,11 @@ int main(int argc, char *argv[])
 
         audio_init();
 
+#if ENABLE_NLS==1 || _MSC_VER
         /* Initialize localization. */
 
         lang_init();
+#endif
 
         /* Cache Neverball's camera setting. */
 

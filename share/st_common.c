@@ -123,6 +123,77 @@ void conf_slider(int id, const char *text,
     }
 }
 
+int  conf_slider_v2(int id, const char *text, int tok, int val)
+{
+    int jd, kd, ld = 0, md;
+
+    if ((jd = gui_harray(id)) && (kd = gui_hstack(jd)))
+    {
+#ifdef SWITCHBALL_GUI
+        ld = gui_maybe_img(kd, "gui/navig/arrow_right_disabled.png",
+                               "gui/navig/arrow_right.png",
+                               tok, GUI_NONE, 1);
+#else
+        ld = gui_maybe(kd, GUI_TRIANGLE_RIGHT, tok, GUI_NONE, 1);
+#endif
+        gui_set_state(ld, tok, CLAMP(0, val + 1, 10));
+
+        gui_filler(kd);
+
+        md = gui_label(kd, _("XXXXXX"), GUI_SML, gui_wht, gui_wht);
+
+        if (val == 0)
+            gui_set_label(md, _("Off"));
+        else
+        {
+            char valattr[MAXSTR];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(valattr, MAXSTR,
+#else
+            sprintf(valattr,
+#endif
+                    "%d %%", val * 10);
+
+            gui_set_label(md, valattr);
+        }
+
+        gui_filler(kd);
+
+#ifdef SWITCHBALL_GUI
+        ld = gui_maybe_img(kd, "gui/navig/arrow_left_disabled.png",
+                               "gui/navig/arrow_left.png",
+                               tok, GUI_NONE, 1);
+#else
+        ld = gui_maybe(kd, GUI_TRIANGLE_RIGHT, tok, GUI_NONE, 1);
+#endif
+        gui_set_state(ld, tok, CLAMP(0, val - 1, 10));
+
+        gui_label(jd, text, GUI_SML, 0, 0);
+    }
+
+    return md;
+}
+
+void conf_set_slider_v2(int id, int val)
+{
+    if (val == 0)
+        gui_set_label(id, _("Off"));
+    else
+    {
+        char valattr[MAXSTR];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(valattr, MAXSTR,
+#else
+        sprintf(valattr,
+#endif
+                "%d %%", val * 10);
+
+        gui_set_label(id, valattr);
+    }
+}
+
 int conf_state(int id, const char *label, const char *text, int token)
 {
     int jd, kd, rd = 0;
@@ -565,7 +636,7 @@ static int video_gui(void)
 #else
         gui_multi(id, _("Switchball configurations\\"
                         "requires SWITCHBALL_GUI\\"
-                        "preprocessor definitions!"),
+                        "definition preprocessors!"),
                       GUI_SML, gui_red, gui_red);
 #endif
         gui_space(id);

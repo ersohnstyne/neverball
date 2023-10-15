@@ -7,6 +7,8 @@ BUILD := $(shell cat neverball-build.txt 2> /dev/null || echo release)
 VERSION := 1.6.0
 VERSION := $(shell sh scripts/version.sh)
 
+$(shell sh scripts/generate-version.sh)
+
 $(info Will make a "$(BUILD)" build of Neverball $(VERSION).)
 
 ifeq ($(FS_VERSION),1)
@@ -52,13 +54,12 @@ DATADIR   := ./data
 LOCALEDIR := ./locale
 
 ifneq ($(FS_VERSION),1)
-    $(info PLUS ZIPARCHIVES)
 	ENABLE_FETCH := curl
 	DATADIR := ./data
 endif
 
 ifeq ($(PLATFORM),mingw)
-	USERDIR := Neverball_$(VERSION)
+	USERDIR := Pennyball_$(VERSION)
 endif
 
 ifeq ($(PLATFORM),haiku)
@@ -103,6 +104,7 @@ endif
 
 LBITS := $(shell getconf LONG_BIT)
 
+ifneq ($(SKIP_INSTALL_DEPS),1)
 ifeq ($(PLATFORM),mingw)
 ifeq ($(LBITS),64)
 $(shell sh scripts/install-deps-msys2-x86_64.sh)
@@ -112,60 +114,65 @@ endif
 else
 $(shell sh scripts/install-devel-linux.sh)
 endif
+endif
 
 #------------------------------------------------------------------------------
 # Mandatory flags
 
-# New design specifications for entities in Neverball
+# New design specifications for entities in Pennyball
 #
-# We're introducing new design specifications for entities in Neverball.
+# We're introducing new design specifications for entities in Pennyball.
 # If you do not do so,  your Entities will be displayed in legacy mode.
 # Entities created after June 20, 2020 must be meet the new electricity
 # before the level is compiled.
 
 ALL_CPPFLAGS := -DLEGACY_MODE=1
 
-ifeq ($(NEVERBALL_FAMILY_API),xbox)
+ifeq ($(PENNYBALL_FAMILY_API),xbox)
 	# Xbox
-	ALL_CPPFLAGS += -DNEVERBALL_FAMILY_API=1
+	ALL_CPPFLAGS += -DPENNYBALL_FAMILY_API=1
 endif
-ifeq ($(NEVERBALL_FAMILY_API),xbox360)
+ifeq ($(PENNYBALL_FAMILY_API),xbox360)
 	# Xbox 360
-	ALL_CPPFLAGS += -DNEVERBALL_FAMILY_API=2
+	ALL_CPPFLAGS += -DPENNYBALL_FAMILY_API=2
 endif
-ifeq ($(NEVERBALL_FAMILY_API),ps4)
+ifeq ($(PENNYBALL_FAMILY_API),ps4)
 	# PS4
-	ALL_CPPFLAGS += -DNEVERBALL_FAMILY_API=3
+	ALL_CPPFLAGS += -DPENNYBALL_FAMILY_API=3
 endif
-ifeq ($(NEVERBALL_FAMILY_API),switch)
+ifeq ($(PENNYBALL_FAMILY_API),switch)
 	# Switch
-	ALL_CPPFLAGS += -DNEVERBALL_FAMILY_API=4
+	ALL_CPPFLAGS += -DPENNYBALL_FAMILY_API=4
 endif
-ifeq ($(NEVERBALL_FAMILY_API),handset)
+ifeq ($(PENNYBALL_FAMILY_API),handset)
 	# Handset
-	ALL_CPPFLAGS += -DNEVERBALL_FAMILY_API=5
+	ALL_CPPFLAGS += -DPENNYBALL_FAMILY_API=5
 endif
 
 $(info You had been choosen edition $(EDITION))
 ifeq ($(EDITION),home)
-ALL_CPPFLAGS += -DNEVERBALL_EDITION=0
+ALL_CPPFLAGS += -DPENNYBALL_EDITION=0
 else
 ifeq ($(EDITION),pro)
-ALL_CPPFLAGS += -DNEVERBALL_EDITION=1
+ALL_CPPFLAGS += -DPENNYBALL_EDITION=1
 else
 ifeq ($(EDITION),enterprise)
-ALL_CPPFLAGS += -DNEVERBALL_EDITION=2
+ALL_CPPFLAGS += -DPENNYBALL_EDITION=2
 else
 ifeq ($(EDITION),education)
-ALL_CPPFLAGS += -DNEVERBALL_EDITION=3
+ALL_CPPFLAGS += -DPENNYBALL_EDITION=3
+else
+ifeq ($(EDITION),server_essentials)
+ALL_CPPFLAGS += -DPENNYBALL_EDITION=10000
 else
 ifeq ($(EDITION),server_standard)
-ALL_CPPFLAGS += -DNEVERBALL_EDITION=10001
+ALL_CPPFLAGS += -DPENNYBALL_EDITION=10001
 else
 ifeq ($(EDITION),server_datacenter)
-ALL_CPPFLAGS += -DNEVERBALL_EDITION=10002
+ALL_CPPFLAGS += -DPENNYBALL_EDITION=10002
 else
-ALL_CPPFLAGS += -DNEVERBALL_EDITION=-1
+ALL_CPPFLAGS += -DPENNYBALL_EDITION=-1
+endif
 endif
 endif
 endif
@@ -214,11 +221,18 @@ ifeq ($(ENABLE_DEDICATED_SERVER),1)
 	DEDICATED_CPPFLAGS := -DENABLE_DEDICATED_SERVER=1
 endif
 
+# New: Recipes for disaster
+ifeq ($(ENABLE_RFD),1)
+	RFD_CPPFLAGS := -DENABLE_RFD=1
+endif
+
 # Basically used
 SDL_CPPFLAGS := $(shell sdl2-config --cflags)
 PNG_CPPFLAGS := $(shell libpng-config --cflags)
 
-ALL_CPPFLAGS += $(GAMETRANSFER_CPPFLAGS) $(DEDICATED_CPPFLAGS) $(STEAM_CPPFLAGS) $(SDL_CPPFLAGS) $(PNG_CPPFLAGS) $(SQL_CPPFLAGS) -Ishare
+ALL_CPPFLAGS += $(GAMETRANSFER_CPPFLAGS) $(DEDICATED_CPPFLAGS) \
+	$(STEAM_CPPFLAGS) $(SDL_CPPFLAGS) $(PNG_CPPFLAGS) $(SQL_CPPFLAGS) \
+	$(RFD_CPPFLAGS) -Ishare -Ipayments
 
 ALL_CPPFLAGS += \
 	-DCONFIG_USER=\"$(USERDIR)\" \
@@ -274,12 +288,36 @@ endif
 	ALL_CPPFLAGS += -DENABLE_FETCH=1
 endif
 
+ifeq ($(ENABLE_FETCH),curl_gdrive)
+ifneq ($(MKLOCALVAR_CURL_PREPARED),1)
+	# $(shell curl-config --cflags) =	\
+		-I"C:/msys64/usr/include"		\
+		-DCURL_STATICLIB
+
+	ALL_CPPFLAGS +=						\
+		$(shell curl-config --cflags)
+endif
+	ALL_CPPFLAGS += -DENABLE_FETCH=2
+endif
+
+ifeq ($(ENABLE_FETCH),curl_gdrive_only)
+ifneq ($(MKLOCALVAR_CURL_PREPARED),1)
+	# $(shell curl-config --cflags) =	\
+		-I"C:/msys64/usr/include"		\
+		-DCURL_STATICLIB
+
+	ALL_CPPFLAGS +=						\
+		$(shell curl-config --cflags)
+endif
+	ALL_CPPFLAGS += -DENABLE_FETCH=3
+endif
+
 ifeq ($(PLATFORM),darwin)
-    ALL_CFLAGS += -Wno-newline-eof
-    ALL_CPPFLAGS += \
-        -DGL_SILENCE_DEPRECATION=1 \
-        $(patsubst %, -I%, $(wildcard /opt/local/include \
-                                      /usr/local/include))
+	ALL_CFLAGS += -Wno-newline-eof
+	ALL_CPPFLAGS += \
+		-DGL_SILENCE_DEPRECATION=1 \
+		$(patsubst %, -I%, $(wildcard /opt/local/include \
+			/usr/local/include))
 endif
 
 ALL_CPPFLAGS += $(CPPFLAGS)
@@ -322,11 +360,9 @@ endif
 # New: Dedicated server
 ifeq ($(ENABLE_DEDICATED_SERVER),1)
 	DEDICATED_LIBS := -L"C:/msys64/mingw64/x86_64-w64-mingw32/lib" \
-					  -L"." \
-					  -lneverball_net_client \
-					  -lws2_32               \
-					  -lws2help              \
-					  -lwsock32
+					  -L"."                                        \
+					  -lneverball_net_client                       \
+					  -lws2_32
 endif
 
 # Basically used
@@ -344,14 +380,20 @@ FS_LIBS := -lphysfs
 endif
 endif
 
-# -L"C:/msys64/usr/lib/libcurl.a"
+# -L"C:/msys64/usr/lib/libcurl.a" -lcurl
 ifneq ($(FS_VERSION),1)
 ifeq ($(ENABLE_FETCH),curl)
-	FETCH_LIBS += -L"C:/msys64/usr/lib" -lcurl # $(shell curl-config --libs) 
+	FETCH_LIBS += $(shell curl-config --libs) 
+endif
+ifeq ($(ENABLE_FETCH),curl_gdrive)
+	FETCH_LIBS += $(shell curl-config --libs) 
+endif
+ifeq ($(ENABLE_FETCH),curl_gdrive_only)
+	FETCH_LIBS += $(shell curl-config --libs) 
 endif
 # Paypal payment support
 ifeq ($(ENABLE_IAP),paypal)
-	PAYPAL_LIBS += -L"C:/msys64/usr/lib" -lcurl # $(shell curl-config --libs) 
+	PAYPAL_LIBS += $(shell curl-config --libs) 
 endif
 endif
 
@@ -425,9 +467,15 @@ endif
 ifeq ($(ENABLE_FETCH),curl)
 	CURL_LIBS := $(shell curl-config --libs)
 endif
+ifeq ($(ENABLE_FETCH),curl_gdrive)
+	CURL_LIBS := $(shell curl-config --libs)
+endif
+ifeq ($(ENABLE_FETCH),curl_gdrive_only)
+	CURL_LIBS := $(shell curl-config --libs)
+endif
 
-ALL_LIBS := $(DEDICATED_LIBS) $(STEAM_LIBS) $(HMD_LIBS) $(TILT_LIBS) \
-    $(INTL_LIBS) $(TTF_LIBS) $(CURL_LIBS) $(OGG_LIBS) $(SDL_LIBS) \
+ALL_LIBS := $(DEDICATED_LIBS) $(STEAM_LIBS) $(HMD_LIBS) $(TILT_LIBS)  \
+	$(INTL_LIBS) $(TTF_LIBS) $(CURL_LIBS) $(OGG_LIBS) $(SDL_LIBS)     \
 	$(OGL_LIBS) $(BASE_LIBS) $(SQL_LIBS) $(FETCH_LIBS) $(PAYPAL_LIBS)
 
 MAPC_LIBS := $(BASE_LIBS)
@@ -474,6 +522,8 @@ MAPC_OBJS := \
 	share/list.o        \
 	share/mapc.o
 BALL_OBJS := \
+	share/dbg_config.o  \
+	payments/currency_curl.o\
 	share/accessibility.o\
 	share/lang_gettext.o\
 	share/st_common.o   \
@@ -513,8 +563,6 @@ BALL_OBJS := \
 	share/fs_jpg.o      \
 	share/fs_ov.o       \
 	share/log.o         \
-	share/package.o     \
-	share/st_package.o  \
 	share/console_control_gui.o\
 	ball/hud.o          \
 	ball/game_common.o  \
@@ -561,6 +609,7 @@ BALL_OBJS := \
 	ball/main.o
 PUTT_OBJS := \
 	share/accessibility.o\
+	share/dbg_config.o  \
 	share/lang_gettext.o\
 	share/st_common.o   \
 	share/vec3.o        \
@@ -605,6 +654,13 @@ PUTT_OBJS := \
 	putt/st_conf.o      \
 	putt/main.o
 
+BALL_OBJS += share/solid_sim_sol.o
+PUTT_OBJS += share/solid_sim_sol.o
+
+ifeq ($(ENABLE_RFD),1)
+	BALL_OBJS += share/rfd.o
+endif
+
 ifeq ($(PLATFORM),mingw)
 	BALL_OBJS += share/joy_xbox.o
 	PUTT_OBJS += share/joy_xbox.o
@@ -617,12 +673,6 @@ ifneq ($(FS_VERSION),1)
 ifeq ($(ENABLE_IAP),paypal)
 	BALL_OBJS += payments/game_payment_curl.o
 endif
-endif
-
-ifeq ($(ENABLE_FS),stdio)
-BALL_OBJS += share/fs_stdio.o share/zip.o
-PUTT_OBJS += share/fs_stdio.o share/zip.o
-MAPC_OBJS += share/fs_stdio.o share/zip.o
 endif
 
 ifeq ($(ENABLE_STEAM),1)
@@ -709,7 +759,9 @@ endif
 
 ifneq ($(FS_VERSION),1)
 BALL_OBJS += share/package.o
+BALL_OBJS += share/st_addons.o
 PUTT_OBJS += share/package.o
+PUTT_OBJS += share/st_addons.o
 endif
 
 ifeq ($(ENABLE_TILT),wii)
@@ -752,6 +804,12 @@ FETCH_OBJS := share/fetch_null.o
 ifeq ($(ENABLE_FETCH),curl)
 FETCH_OBJS := share/fetch_curl.o
 endif
+ifeq ($(ENABLE_FETCH),curl_gdrive)
+FETCH_OBJS := share/fetch_curl.o
+endif
+ifeq ($(ENABLE_FETCH),curl_gdrive_only)
+FETCH_OBJS := share/fetch_curl.o
+endif
 
 BALL_OBJS += $(FETCH_OBJS)
 PUTT_OBJS += $(FETCH_OBJS)
@@ -760,8 +818,8 @@ BALL_DEPS := $(BALL_OBJS:.o=.d)
 PUTT_DEPS := $(PUTT_OBJS:.o=.d)
 MAPC_DEPS := $(MAPC_OBJS:.o=.d)
 
-MAPS := $(shell find data -name "*.map" \! -name "*.autosave.map")
-CMAPS := $(shell find data -name "*.cmap")
+MAPS := $(shell find data_standard -name "*.map" \! -name "*.autosave.map")
+CMAPS := $(shell find data_campaign -name "*.cmap")
 SOLS := $(MAPS:%.map=%.sol)
 CSOLS := $(CMAPS:%.cmap=%.csol)
 
@@ -784,11 +842,11 @@ WINDRES ?= windres
 	@echo "$(CXX) $<"
 
 %.sol : %.map $(MAPC_TARG)
-	$(MAPC) $< data --skip_verify
+	$(MAPC) $< data_development --skip_verify
 	@echo "$(MAPC) $<"
 
 %.csol : %.cmap $(MAPC_TARG)
-	$(MAPC) $< data --skip_verify --campaign
+	$(MAPC) $< data_development --skip_verify --campaign
 	@echo "$(MAPC) $<"
 
 %.desktop : %.desktop.in
@@ -809,13 +867,15 @@ MAPC_BUILDCOND :=
 
 ifeq ($(PLATFORM),mingw)
 ifneq ($(ALTERNATIVE_BUILDENV),Msys2)
-	BALL_BUILDCOND := error Don't compile this project with makefile! Use Microsoft Visual Studio instead, where was premaded. To bypass requirements, use ALTERNATIVE_BUILDENV=Msys2
-	PUTT_BUILDCOND := error Don't compile this project with makefile! Use Microsoft Visual Studio instead, where was premaded. To bypass requirements, use ALTERNATIVE_BUILDENV=Msys2
-	MAPC_BUILDCOND := error Don't compile this project with makefile! Use Microsoft Visual Studio instead, where was premaded. To bypass requirements, use ALTERNATIVE_BUILDENV=Msys2
+	BALL_BUILDCOND := error Don't compile this project with makefile! Use Microsoft Visual Studio instead, where was premaded. To bypass restrictions, use ALTERNATIVE_BUILDENV=Msys2
+	PUTT_BUILDCOND := error Don't compile this project with makefile! Use Microsoft Visual Studio instead, where was premaded. To bypass restrictions, use ALTERNATIVE_BUILDENV=Msys2
+	MAPC_BUILDCOND := error Don't compile this project with makefile! Use Microsoft Visual Studio instead, where was premaded. To bypass restrictions, use ALTERNATIVE_BUILDENV=Msys2
 endif
 endif
 
-all : $(BALL_BUILDCOND) $(PUTT_BUILDCOND) $(MAPC_BUILDCOND) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) sols locales desktops
+#all : $(BALL_BUILDCOND) $(PUTT_BUILDCOND) $(MAPC_BUILDCOND) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) locales
+#all : $(error No target specified! Usage: publish, test, sols, csols, locales, desktops, clean-src, clean-sols, clean)
+all : locales
 
 publish : $(BALL_BUILDCOND) $(PUTT_BUILDCOND) $(MAPC_BUILDCOND) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) sols locales desktops
 

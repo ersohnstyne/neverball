@@ -16,29 +16,38 @@
  * Used with c++ signal protection from events.
  */
 
+#if _WIN32 && !_MSC_VER
+#include <SDL3/SDL.h>
+#else
+#include <SDL.h>
+#endif
+
+#include "log.h"
+
 #include "dbg_config.h"
 
 /*---------------------------------------------------------------------------*/
 
-static int dbg_sigint = 0;
+static int  dbg_sigint = 0;
 static char dbg_strerror[256];
 
-int GameDbg_GetSigInt(void) { return dbg_sigint; }
-void GameDbg_ClrSigInt(void) { dbg_sigint = 0; }
-const char* GameDbg_GetError(void) { return dbg_strerror; }
+int         GameDbg_GetSigInt(void) { return dbg_sigint; }
+void        GameDbg_ClrSigInt(void) { dbg_sigint = 0; }
+const char* GameDbg_GetError(void)  { return dbg_strerror ? dbg_strerror : "Unknown error"; }
 
-void GameDbg_SigNum_CtrlC(int signum) { dbg_sigint = signum; exit(0); }
-void GameDbg_SigNum_ElemAddr(int signum) { dbg_sigint = signum; }
-void GameDbg_SigNum_Breakpt(int signum) { dbg_sigint = signum; }
+void GameDbg_SigNum_CtrlC(int signum)      { dbg_sigint = signum; exit(0); }
+void GameDbg_SigNum_ElemAddr(int signum)   { dbg_sigint = signum; }
+void GameDbg_SigNum_Breakpt(int signum)    { dbg_sigint = signum; }
 void GameDbg_SigNum_FloatPoint(int signum) { dbg_sigint = signum; }
-void GameDbg_SigNum_Segments(int signum) { dbg_sigint = signum; }
-void GameDbg_SigNum_Term(int signum) { dbg_sigint = signum; exit(0); }
-void GameDbg_SigNum_CtrlBreak(int signum) { dbg_sigint = signum; exit(0); }
-void GameDbg_SigNum_Abort(int signum) { dbg_sigint = signum; exit(3); }
+void GameDbg_SigNum_Segments(int signum)   { dbg_sigint = signum; }
+void GameDbg_SigNum_Term(int signum)       { dbg_sigint = signum; exit(0); }
+void GameDbg_SigNum_CtrlBreak(int signum)  { dbg_sigint = signum; exit(0); }
+void GameDbg_SigNum_Abort(int signum)      { dbg_sigint = signum; exit(3); }
 
 void GameDbg_Check_SegPerformed(void)
 { 
     memset(dbg_strerror, 0, 256);
+#if _WIN32 && _MSC_VER
     switch (dbg_sigint) {
     case 0: return;
     case SIGINT:
@@ -57,10 +66,9 @@ void GameDbg_Check_SegPerformed(void)
         DW_FORMAT_MSG(GetLastError(), dbg_strerror, 255);
     }
     log_errorf("Debug error: %s\n", dbg_strerror);
-#if _WIN32
     MessageBoxA(0, dbg_strerror, "Debug error!", MB_ICONERROR);
 #endif
-    dbg_sigint = 0;
+    GameDbg_ClrSigInt();
 #if __cplusplus
     throw dbg_strerror;
 #endif

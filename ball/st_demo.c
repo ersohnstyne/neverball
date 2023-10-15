@@ -142,7 +142,7 @@ static int st_demo_version_read(fs_file fp, struct demo *d)
 /*---------------------------------------------------------------------------*/
 
 static int check_full_access(char * replay_pname) {
-    /* No access in open-source edition */
+    const char *curr_player = config_get_s(CONFIG_PLAYER);
 
     return 0;
 }

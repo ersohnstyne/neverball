@@ -788,10 +788,13 @@ static void sol_stor_file(fs_file fout, struct s_base *fp)
 {
     int i;
     int magic   = SOL_MAGIC;
-    int version = fp->cc > 0 ? SOL_VERSION_CURR : SOL_VERSION_1_7;
 
 #ifdef MAPC_INCLUDES_CHKP
+    int version = fp->cc > 0 ? SOL_VERSION_CURR : SOL_VERSION_1_7;
+
     if (fp->cc == 0) version = 8;
+#else
+    int version = 8;
 #endif
 
     put_index(fout, magic);

@@ -77,7 +77,7 @@
     _("Upgrade to Pro edition, to buy Mediation!")
 #define FAIL_UPGRADE_EDITION_2 _("Upgrade to Pro edition, to buy more balls!")
 
-#define FAIL_TRANSFER_MEMBER_1 _("Join Pennyball Discord Server, to buy more balls!")
+#define FAIL_TRANSFER_MEMBER_1 _("Join Pennyball Discord, to buy more balls!")
 
 /*---------------------------------------------------------------------------*/
 
@@ -199,17 +199,21 @@ static int fail_action(int tok, int val)
         break;
 
     case FAIL_UPGRADE_EDITION:
-#if _WIN32
-        system("start msedge https://forms.gle/62iaMCNKan4z2SJs5");
+#if defined(__EMSCRIPTEN__)
+        EM_ASM({ Neverball.doUpgradeEdition() }, 0);
+#elif _WIN32
+        system("start msedge https://forms.office.com/r/upfWqaVVtA");
 #elif defined(__APPLE__)
-        system("open https://forms.gle/62iaMCNKan4z2SJs5");
+        system("open https://forms.office.com/r/upfWqaVVtA");
 #elif defined(__linux__)
-        system("x-www-browser https://forms.gle/62iaMCNKan4z2SJs5");
+        system("x-www-browser https://forms.office.com/r/upfWqaVVtA");
 #endif
         break;
 
     case FAIL_TRANSFER_MEMBER:
-#if _WIN32
+#if defined(__EMSCRIPTEN__)
+        EM_ASM({ Neverball.doJoinDiscord() }, 0);
+#elif _WIN32
         system("start msedge https://discord.gg/qnJR263Hm2");
 #elif defined(__APPLE__)
         system("open https://discord.gg/qnJR263Hm2");
@@ -480,7 +484,7 @@ static int fail_gui(void)
                     audio_play(AUD_INTRO_SHATTER, 1.0f);
                     gui_multi(jd, FAIL_TRANSFER_MEMBER_1, GUI_SML, gui_red, gui_red);
                 }
-#endif            
+#endif
             }
 #if NB_HAVE_PB_BOTH==1
             else
@@ -1282,21 +1286,18 @@ static int raise_gems_action(int tok, int val)
                                 &num_amounts_dst[2],
                                 &num_amounts_dst[3]))
         {
-            // raisegems_working = 1;
-            // goto_state(curr_state());
-
-            goto_state(st_returnable);
+            raisegems_working = 1;
+            goto_state(curr_state());
         }
         break;
 
     case RAISEGEMS_IAP:
-        return goto_shop_iap(0, st_returnable,
-                             ask_more_purchased, 0, val, 1, 0);
+        return goto_shop_iap(&st_raise_gems, st_returnable, 0, 0, val, 1, 0);
         break;
 
     case RAISEGEMS_BANKRUPTCY:
         account_set_d(ACCOUNT_DATA_WALLET_COINS, 0);
-        account_set_d(ACCOUNT_DATA_WALLET_GEMS, 0);
+        account_set_d(ACCOUNT_DATA_WALLET_GEMS, -1);
         account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, 0);
         account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, 0);
         account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, 0);
@@ -1310,13 +1311,13 @@ static int raise_gems_action(int tok, int val)
 
 static int raise_gems_working_gui(void)
 {
-    int id, jd;
+    int id, jd, kd;
 
     if ((id = gui_vstack(0)))
     {
-        /* Build the top bar */
+        /* Build the top bar. */
 
-        if ((jd = gui_hstack(id)))
+        if ((jd = gui_harray(id)))
         {
             gui_count_ids[0] = gui_count(jd, ACCOUNT_WALLET_MAX_COINS,
                                              GUI_MED);
@@ -1326,16 +1327,27 @@ static int raise_gems_working_gui(void)
 
         gui_space(id);
 
-        if ((jd = gui_hstack(id)))
+        /* Build the powerup panel. */
+
+        if ((jd = gui_vstack(id)))
         {
-            gui_count_ids[3] = gui_count(jd, 1000, GUI_MED);
-            gui_label(jd, _("Speedifier"), GUI_SML, gui_wht, gui_wht);
+            if ((kd = gui_harray(jd)))
+            {
+                gui_count_ids[1] = gui_count(kd, 1000, GUI_MED);
+                gui_label(kd, _("Earninator"), GUI_SML, gui_wht, gui_wht);
+            }
 
-            gui_count_ids[2] = gui_count(jd, 1000, GUI_MED);
-            gui_label(jd, _("Floatifier"), GUI_SML, gui_wht, gui_wht);
+            if ((kd = gui_harray(jd)))
+            {
+                gui_count_ids[2] = gui_count(kd, 1000, GUI_MED);
+                gui_label(kd, _("Floatifier"), GUI_SML, gui_wht, gui_wht);
+            }
 
-            gui_count_ids[1] = gui_count(jd, 1000, GUI_MED);
-            gui_label(jd, _("Earninator"), GUI_SML, gui_wht, gui_wht);
+            if ((kd = gui_harray(jd)))
+            {
+                gui_count_ids[3] = gui_count(kd, 1000, GUI_MED);
+                gui_label(kd, _("Speedifier"), GUI_SML, gui_wht, gui_wht);
+            }
         }
         gui_set_rect(jd, GUI_ALL);
     }
@@ -1371,6 +1383,8 @@ static int raise_gems_prepare_gui(void)
     int allow_raise =
         raisegems_eta + account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= raisegems_dst_amount;
 
+    int pay_debt_ready = account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= raisegems_dst_amount;
+
     const char details_names[4][16] =
     {
         N_("Coins"),
@@ -1402,8 +1416,22 @@ static int raise_gems_prepare_gui(void)
         const char *bankrupt_str2 = _("You may declare bankruptcy.");
 #endif
 
+        const char *paydebt_ready_str = _("You now have enough cash\\"
+                                          "to pay your debt of %d gems.\\"
+                                          "Go back to continue playing!");
+
         if (allow_raise)
-            SAFECPY(infoattr_full, _("If you sell some items, then you can raise gems."));
+        {
+            if (pay_debt_ready)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(infoattr_full, MAXSTR,
+#else
+                sprintf(infoattr_full,
+#endif
+                        paydebt_ready_str, raisegems_dst_amount);
+            else
+                SAFECPY(infoattr_full, _("If you sell some items, then you can raise gems."));
+        }
         else
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1430,9 +1458,10 @@ static int raise_gems_prepare_gui(void)
 #endif
         }
 
-        gui_multi(id, infoattr_full, GUI_SML,
-                  allow_raise ? gui_wht : gui_red,
-                  allow_raise ? gui_cya : gui_red);
+        if (!pay_debt_ready)
+            gui_multi(id, infoattr_full, GUI_SML,
+                      allow_raise ? gui_wht : gui_red,
+                      allow_raise ? gui_cya : gui_red);
 
         gui_space(id);
 
@@ -1440,85 +1469,97 @@ static int raise_gems_prepare_gui(void)
         {
             gui_filler(jd);
 
-            if ((kd = gui_vstack(jd)))
+            if (!pay_debt_ready)
             {
-                for (i = 0; i < 4; i++)
+                if ((kd = gui_vstack(jd)))
                 {
-                    if (num_amounts_curr[i] - num_amounts_dst[i] < 0
-                        || num_amounts_dst[i] < 0)
+                    for (i = 0; i < 4; i++)
                     {
-                        estimated_prices[i] = 0;
-                        continue;
+                        if (num_amounts_curr[i] - num_amounts_dst[i] < 0
+                         || num_amounts_dst[i] < 0)
+                        {
+                            estimated_prices[i] = 0;
+                            continue;
+                        }
+
+                        estimated_prices[i] = ROUND(num_amounts_dst[i] * 38);
+                        if (i == 0)
+                            estimated_prices[i] = ROUND(num_amounts_dst[i] / 10);
+
+                        if (num_amounts_dst[i] > 0)
+                        {
+                            char paramattr[MAXSTR];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                            sprintf_s(paramattr, MAXSTR,
+#else
+                            sprintf(paramattr,
+#endif
+                                    "%d %s " GUI_TRIANGLE_RIGHT " %d %s",
+                                    (num_amounts_dst[i]), _(details_names[i]),
+                                    estimated_prices[i], i == 0 ? _("Gems") :
+                                    _("Coins"));
+
+                            gui_label(kd, paramattr,
+                                          GUI_SML, gui_wht, details_colors[i]);
+
+                            show_estimate_amount += 1;
+                        }
+                        else estimated_prices[i] = 0;
                     }
 
-                    estimated_prices[i] = ROUND(num_amounts_dst[i] * 38);
-                    if (i == 0)
-                        estimated_prices[i] = ROUND(num_amounts_dst[i] / 10);
+                    if (show_estimate_amount == 0)
+                        gui_label(kd, _("No estimated amount"),
+                                      GUI_SML, gui_red, gui_red);
 
-                    if (num_amounts_dst[i] > 0)
+                    gui_filler(kd);
+
+                    if (num_amounts_dst[0] < 0)
                     {
-                        char paramattr[MAXSTR];
+                        char coinaddattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(paramattr, MAXSTR,
+                        sprintf_s(coinaddattr, MAXSTR,
 #else
-                        sprintf(paramattr,
+                        sprintf(coinaddattr,
 #endif
-                                "%d %s " GUI_TRIANGLE_RIGHT " %d %s",
-                                (num_amounts_dst[i]), _(details_names[i]),
-                                estimated_prices[i], i == 0 ? _("Gems") :
-                                                              _("Coins"));
-
-                        gui_label(kd, paramattr,
-                                  GUI_SML, gui_wht, details_colors[i]);
-
-                        show_estimate_amount += 1;
+                                _("You'll get %d coins"),
+                                num_amounts_dst[0] * -1);
+                        gui_label(kd, coinaddattr,
+                                      GUI_SML, gui_wht, gui_yel);
                     }
-                    else estimated_prices[i] = 0;
-                }
 
-                if (show_estimate_amount == 0)
-                    gui_label(kd, _("No estimated amount"),
-                                  GUI_SML, gui_red, gui_red);
-
-                gui_filler(kd);
-
-                if (num_amounts_dst[0] < 0)
-                {
-                    char coinaddattr[MAXSTR];
-
+                    char elemattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(coinaddattr, MAXSTR,
+                    sprintf_s(elemattr, MAXSTR,
 #else
-                    sprintf(coinaddattr,
+                    sprintf(elemattr,
 #endif
-                            _("You'll get %d coins"),
-                            num_amounts_dst[0] * -1);
-                    gui_label(kd, coinaddattr,
-                              GUI_SML, gui_wht, gui_yel);
+                            _("Estimate received: %d Gems"),
+                            raisegems_eta);
+                    gui_label(kd, elemattr, GUI_SML, gui_wht, gui_cya);
                 }
-
-                char elemattr[MAXSTR];
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(elemattr, MAXSTR,
-#else
-                sprintf(elemattr,
-#endif
-                    _("Estimate received: %d Gems"),
-                    raisegems_eta);
-                gui_label(kd, elemattr, GUI_SML, gui_wht, gui_cya);
             }
 
             if (((float) video.device_w / (float) video.device_h) > 1.f)
             {
                 gui_space(jd);
                 gui_image(jd,
+                          pay_debt_ready ? "gui/advisers/payment_ready.png" :
                           allow_raise ? "gui/advisers/raising_gems.png"
                                       : "gui/advisers/payment_due.png",
                           7 * video.device_h / 16, 7 * video.device_h / 16);
             }
 
             gui_filler(jd);
+        }
+
+        if (pay_debt_ready)
+        {
+            if (((float) video.device_w / (float) video.device_h) > 1.f)
+                gui_space(id);
+
+            gui_multi(id, infoattr_full, GUI_SML, gui_wht, gui_cya);
         }
 
         gui_space(id);
@@ -1528,7 +1569,12 @@ static int raise_gems_prepare_gui(void)
             int tmp_startbtn_id = gui_start(jd, _("Let's do this!"),
                                                 GUI_SML, RAISEGEMS_START, 0);
 
-            if (!allow_raise && tmp_startbtn_id)
+            if (pay_debt_ready && tmp_startbtn_id)
+            {
+                gui_set_label(tmp_startbtn_id, _("Back"));
+                gui_set_state(tmp_startbtn_id, GUI_BACK, 0);
+            }
+            else if (!allow_raise && tmp_startbtn_id)
             {
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
                 gui_set_label(tmp_startbtn_id, _("Get gems!"));
@@ -1542,11 +1588,12 @@ static int raise_gems_prepare_gui(void)
 
             if ((curr_mode() == MODE_CHALLENGE ||
                  curr_mode() == MODE_BOOST_RUSH) &&
-                !allow_raise)
+                !allow_raise && !pay_debt_ready)
                 gui_state(jd, _("Bankruptcy"),
                               GUI_SML, RAISEGEMS_BANKRUPTCY, 0);
 
-            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+            if (!pay_debt_ready)
+                gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
         }
     }
 
@@ -1567,16 +1614,19 @@ static void raise_gems_timer(int id, float dt)
 
     t += dt;
 
-    if (time_state() > (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.5f : 1.f)
-        && t > 0.05f && raisegems_working && !st_global_animating())
+    if (time_state() > (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.f)
+     && t > 0.05f && raisegems_working && !st_global_animating())
     {
         for (int i = 0; i < 4; i++)
         {
-            int num_amts = gui_value(gui_count_ids[i]);
+            int num_amts = num_amounts_curr[i];
 
-            if (num_amts > num_amounts_dst[i])
+            if (num_amounts_dst[i] > 0)
             {
-                gui_set_count(gui_count_ids[i], num_amts - 1);
+                num_amounts_curr[i]--;
+                num_amounts_dst[i]--;
+
+                gui_set_count(gui_count_ids[i], num_amounts_curr[i]);
                 gui_pulse(gui_count_ids[i], 1.1f);
 
                 time_state_tofinish = time_state() + 3.f;
@@ -1592,13 +1642,13 @@ static void raise_gems_timer(int id, float dt)
         && raisegems_working && !st_global_animating())
     {
         raisegems_working = 0;
-        goto_state(st_returnable);
+        goto_state(curr_state());
     }
 }
 
 static int raise_gems_keybd(int c, int d)
 {
-    if (d)
+    if (d && !raisegems_working)
     {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
@@ -1612,7 +1662,7 @@ static int raise_gems_keybd(int c, int d)
 
 static int raise_gems_buttn(int b, int d)
 {
-    if (d)
+    if (d && !raisegems_working)
     {
         int active = gui_active();
 

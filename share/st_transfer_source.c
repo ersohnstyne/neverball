@@ -1197,7 +1197,11 @@ void transfer_timer_process_source(float dt)
                     account_transfer_values_source.consumeable_extralives = account_transfer_get_d(ACCOUNT_TRANSFER_CONSUMEABLE_EXTRALIVES);
 
                     SAFECPY(account_transfer_values_source.player, account_transfer_get_s(ACCOUNT_TRANSFER_PLAYER));
+#if defined(CONFIG_INCLUDES_MULTIBALLS)
+                    SAFECPY(account_transfer_values_source.ball_file, account_transfer_get_s(ACCOUNT_TRANSFER_BALL_FILE_C));
+#else
                     SAFECPY(account_transfer_values_source.ball_file, account_transfer_get_s(ACCOUNT_TRANSFER_BALL_FILE));
+#endif
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                     sprintf_s(outwallet_result_csv, MAXSTR,
 #else
@@ -1258,7 +1262,11 @@ void transfer_timer_process_source(float dt)
                     account_transfer_set_d(ACCOUNT_TRANSFER_CONSUMEABLE_SPEEDIFIER, account_transfer_values_source.consumeable_extralives + account_transfer_values_target.consumeable_extralives);
 
                     account_transfer_set_s(ACCOUNT_TRANSFER_PLAYER, account_transfer_values_source.player);
+#if defined(CONFIG_INCLUDES_MULTIBALLS)
+                    account_transfer_set_s(ACCOUNT_TRANSFER_BALL_FILE_C, account_transfer_values_source.ball_file);
+#else
                     account_transfer_set_s(ACCOUNT_TRANSFER_BALL_FILE, account_transfer_values_source.ball_file);
+#endif
 
                     account_transfer_save(src_ffd.cFileName);
                     account_transfer_quit();

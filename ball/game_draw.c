@@ -169,6 +169,7 @@ static void game_draw_chnk_swchs(struct s_rend *rend,
     }
 }
 
+#ifdef MAPC_INCLUDES_CHKP
 static void game_draw_chnk_chkps(struct s_rend *rend,
                                  const struct s_vary *vary,
                                  const float *bill_M, float t)
@@ -196,6 +197,7 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
         glPopMatrix();
     }
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -224,7 +226,11 @@ static void game_draw_balls(struct s_rend *rend,
                    ROUND(c[1] * 255),
                    ROUND(c[2] * 255),
                    ROUND(c[3] * 255));
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_MULTIBALLS)
+        ball_multi_draw_single(0, rend, ball_M, pend_M, bill_M, t);
+#else
         ball_draw(rend, ball_M, pend_M, bill_M, t);
+#endif
     }
     glPopMatrix();
 }
@@ -272,11 +278,13 @@ static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
                                             {{ 0.0f, 1.0f, 0.0f, 0.5f },
                                              { 0.0f, 1.0f, 0.0f, 0.8f }}};
 
+#ifdef MAPC_INCLUDES_CHKP
     /* Checkpoint beams */
     static const GLfloat chkp_c[2][2][4] = {{{ 0.0f, 0.0f, 1.0f, 0.5f },
                                              { 0.0f, 0.0f, 1.0f, 0.8f }},
                                             {{ 1.0f, 0.0f, 1.0f, 0.5f },
                                              { 1.0f, 0.0f, 1.0f, 0.8f }}};
+#endif
 
     const struct s_base *base =  gd->vary.base;
     const struct s_vary *vary = &gd->vary;
@@ -334,6 +342,7 @@ static void game_draw_jumps(struct s_rend *rend,
         jump_draw(rend, base->jv[i].p, base->jv[i].r, 1.0f, t);
 }
 
+#ifdef MAPC_INCLUDES_CHKP
 static void game_draw_chkps(struct s_rend *rend,
                             const struct game_draw *gd, float t)
 {
@@ -341,11 +350,10 @@ static void game_draw_chkps(struct s_rend *rend,
 
     int i;
 
-#ifdef MAPC_INCLUDES_CHKP
     for (i = 0; i < base->cc; i++)
         chkp_draw(rend, base->cv[i].p, base->cv[i].r, 1.0f);
-#endif
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -598,7 +606,9 @@ static void game_draw_fore(struct s_rend *rend,
             {
                 game_draw_goals(rend, gd, t);
                 game_draw_jumps(rend, gd, t);
+#ifdef MAPC_INCLUDES_CHKP
                 game_draw_chkps(rend, gd, t);
+#endif
             }
             glDisable(GL_LIGHT2);
             glEnable (GL_LIGHT1);
@@ -687,7 +697,9 @@ static void game_draw_fore_chnk(struct s_rend *rend,
                 game_draw_chnk_jumps(rend, &gd->vary, M, t);
                 game_draw_chnk_goals(rend, &gd->vary, M, t);
                 game_draw_chnk_swchs(rend, &gd->vary, M, t);
+#ifdef MAPC_INCLUDES_CHKP 
                 game_draw_chnk_chkps(rend, &gd->vary, M, t);
+#endif
             }
             glEnable(GL_LIGHTING);
         }

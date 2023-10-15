@@ -3309,184 +3309,7 @@ static void dump_file(struct s_base *p, const char *name, double t)
 static int skip_verify;
 static int form_method;
 
-static void interactive_mode()
-{
-    // Skip verifications, if you already have.
-    if (skip_verify) return;
-    form_method = 1;
-
-    while (form_method != 11)
-    {
-        char str[80];
-        if (form_method == 1)
-        {
-            printf("- Did you meet the requirements? -\n");
-            printf("Switchball offers your maps by receiving\nyou with the level as a campaign.\n\n");
-            printf("1st number: Level entry and exit (single only)\n");
-            printf("2nd number: Backgrounds with same music (only for switchball)\n");
-            printf("3rd number: No time limit\n");
-            printf("4th number: Fullfilled best time high scores\n\n1 = yes; 0 = no\n\n> ");
-
-            int decimals[4]; decimals[0] = 0; decimals[1] = 0; decimals[2] = 0; decimals[3] = 0;
-            scanf("%d %d %d %d", &decimals[0], &decimals[1], &decimals[2], &decimals[3]);
-
-            while (!decimals[0] || !decimals[1] || !decimals[2] || !decimals[3])
-            {
-                printf("[!] Please complete all the requirements!\n\n");
-                printf("1st number: Level entry and exit (single only)\n");
-                printf("2nd number: Backgrounds with same music (only for switchball)\n");
-                printf("3rd number: No time limit\n");
-                printf("4th number: Fullfilled best time high scores\n\n1 = yes; 0 = no\n\n> ");
-                int decimals[4]; decimals[0] = 0; decimals[1] = 0; decimals[2] = 0; decimals[3] = 0;
-                scanf("%d %d %d %d", &decimals[0], &decimals[1], &decimals[2], &decimals[3]);
-            }
-            
-            form_method = 2;
-        }
-        if (form_method == 2)
-        {
-            printf("- Detect Unity-Editor -\n");
-            printf("Unity editor also supports for Windows and Linux computers\nthat should be applied.\nIf you choose \"Yes\", you will need your desktop GUI version.\n\nHave you got Unity editor? (y/N) -> ");
-            scanf("%s", str);
-            if (str[0] == 'y') form_method = 4;
-            else form_method = 3;
-        }
-        if (form_method == 3)
-        {
-            printf("- Try it with Unity Editor -\n");
-            printf("As a Unity editor, you can also try Personal for free. With Plus or Pro are paid.\n");
-            system("pause");
-            form_method = 4;
-        }
-        if (form_method == 4)
-        {
-            printf("- Rate the creators -\n");
-            printf("Is the map overstellar? (requires Gaming Hardware) (y/N) -> ");
-            scanf("%s", str);
-            if (str[0] == 'y') form_method = 5;
-            else
-            {
-                printf("If you don't want them, you can't use the complex map to create.\n");
-                system("pause");
-                form_method = 5;
-            }
-        }
-        if (form_method == 5)
-        {
-            printf("- Gyrocopter -\n");
-            printf("If you want them to have played or seen you have played or seen Switchball\nsince 2007, you can do a Neverball decoration before asking.\n\nDo you have your gyrocopter for ball and goal with you? (y/N) -> ");
-            scanf("%s", str);
-
-            if (str[0] == 'y') form_method = 9;
-            else
-            {
-                printf("If you don't want them, you can't decorate with the complex starting position.\nThey also have to deal with the restriction in your campaign level.\n");
-                system("pause");
-                form_method = 6;
-            }
-        }
-        if (form_method == 6)
-        {
-            printf("- New entity design specifications -\n");
-            printf("From June 20, 2020, simple start positions are no longer allowed.\nPennySchloss automatically adds built-in electricity like airport to your entities.\n\nDoes the new entity design met at Neverball? (y/N) -> ");
-            scanf("%s", str);
-
-            if (str[0] == 'y') form_method = 8;
-            form_method = 7;
-        }
-        if (form_method == 7)
-        {
-            printf("- Retrieve design specifications -\n");
-            printf("Get the instructions from the forum so that they meet their specification from the guideline.\nhttp://neverforum.com/fmpbo/viewtopic.php?id=3421\n\ny = I agree that I conform to the guideline as a design specification.\n> ");
-            scanf("%s", str);
-            if (str[0] == 'y') form_method = 9;
-            else
-            {
-                printf("If you don't want them, you can't comply with the specs,\ntheir legacy mode vulnerable to your platforms.\n");
-                system("pause");
-                form_method = 9;
-            }
-        }
-        if (form_method == 8)
-        {
-            int interactive_name = 1;
-            int interactive_method = 1;
-            printf("- Name of Design specification -\n");
-
-            char startName[4096];
-            char goalName[4096];
-            while (interactive_name)
-            {
-                if (interactive_method == 1)
-                {
-                    printf("What decoration did you place your ball?\n> "); scanf("%s", startName);
-
-                    if (strlen(startName) > 2)
-                        interactive_method = 2;
-                    else if (strlen(startName) > 0)
-                        printf("[!] At least three letters are required to name it!\n");
-                    else
-                        printf("[!] Please enter your start decoration name!\n");
-                }
-                if (interactive_method == 2)
-                {
-                    printf("What decoration did you place your goal?\n> "); scanf("%s", goalName);
-                    if (strlen(goalName) > 2)
-                        interactive_method = 3;
-                    else if (strlen(goalName) > 0)
-                        printf("[!] At least three letters are required to name it!\n");
-                    else
-                        printf("[!] Please enter your goal decoration name!\n");
-                }
-                if (interactive_method == 3)
-                {
-                    printf("Start: %s; Goal: %s", startName, goalName);
-                    printf("Is this correct? (Y/n) -> ");
-                    scanf("%s", str);
-                    if (str[0] == 'y')
-                    {
-                        interactive_name = 0;
-                        form_method = 9;
-                    }
-                    else interactive_method = 1;
-                }
-            }
-        }
-        if (form_method == 9)
-        {
-            printf("- Detection: Electricity -\n");
-            printf("Do you have your electricity with you? (y/N) -> ");
-            scanf("%s", str);
-            if (str[0] == 'y') form_method = 10;
-            else
-            {
-                printf("If you don't want them, you can't create complex electricity with them.\nTo decorate electricity, you need to meet minimum requirements so that it looks their electricity.\n");
-                system("pause");
-                form_method = 11;
-            }
-        }
-        if (form_method == 10)
-        {
-            int keep_method = 1;
-            printf("- Electricity -\n");
-            
-            while (keep_method)
-            {
-                printf("Which objects are completely excellently decorated with electricity?\n> ");
-                scanf("%s", str);
-                if (strlen(str) > 2)
-                {
-                    keep_method = 0;
-                    form_method = 11;
-                }
-                else
-                    printf("[!] At least three letters are required to name it!\n ");
-            }
-        }
-    }
-}
-
-static void interactive_web()
+static void interactive_web(void)
 {
 #if _WIN32
     system("start msedge https://docs.google.com/forms/d/e/1FAIpQLSdrpRKmyE0pjhB3-9-PD_pGYEsahPeL3QKHCwwafPscjVfiXQ/viewform?usp=sf_link");
@@ -3495,6 +3318,35 @@ static void interactive_web()
 #elif defined(__linux__)
     system("x-www-browser https://docs.google.com/forms/d/e/1FAIpQLSdrpRKmyE0pjhB3-9-PD_pGYEsahPeL3QKHCwwafPscjVfiXQ/viewform?usp=sf_link");
 #endif
+}
+
+static void print_usage(const char *name)
+{
+    static char p_buf[MAXSTR];
+
+    SAFECPY(p_buf, "Usage: ");
+    SAFECAT(p_buf, name);
+    SAFECAT(p_buf, " <map> <data>");
+
+    const char opt_name[][MAXSTR] =
+    {
+        "--debug",
+        "--csv",
+#ifdef MAPC_INCLUDES_CHKP
+        "--campaign",
+#endif
+        "--skip-verify"
+    };
+
+    for (int i = 0; i < ARRAYSIZE(opt_name); i++)
+    {
+        SAFECAT(p_buf, " [");
+        SAFECAT(p_buf, opt_name[i]);
+        SAFECAT(p_buf, "]");
+    }
+
+    SAFECAT(p_buf, "\n");
+    MAPC_LOG_MESSAGE(p_buf);
 }
 
 // TODO: If you want to compile some balls and/or geometrys only,
@@ -3547,13 +3399,29 @@ int main(int argc, char *argv[])
         strncpy(src, argv[1], MAXSTR - 1);
         strncpy(dst, argv[1], MAXSTR - 1);
 #endif
-
-        if ((!campaign_output && strlen(input_file) <= 4)
-         || (campaign_output && strlen(input_file) <= 5))
+        
+        if ((!campaign_output && strlen(input_file) <= 4))
         {
             fprintf(stderr, "No map file name specified!\n");
             return 1;
         }
+
+#ifdef MAPC_INCLUDES_CHKP
+        else if ((campaign_output && strlen(input_file) <= 5))
+        {
+            fprintf(stderr, "No campaign map file name specified!\n");
+            return 1;
+        }
+#else
+        else if (campaign_output)
+        {
+            static char m_buf[MAXSTR];
+            SAFECPY(m_buf, input_file);
+            SAFECAT(m_buf, ": Only compileable campaign maps in full version of PB+NB!\n");
+            MAPC_LOG_ERROR(m_buf);
+            return 1;
+        }
+#endif
 
         if (campaign_output)
         {
@@ -3739,7 +3607,7 @@ int main(int argc, char *argv[])
 #endif
 
     }
-    else fprintf(stderr, "Usage: %s <map> <data> [--debug] [--csv] [--campaign] [--skip_verify]\n", argv[0]);
+    else print_usage(argv[0]);
 
     return 0;
 }

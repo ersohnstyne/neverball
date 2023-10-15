@@ -28,6 +28,9 @@ struct conf_option
 void conf_slider(int id, const char *text,
                  int token, int value,
                  int *ids, int num);
+int  conf_slider_v2(int id, const char *text,
+                    int token, int value);
+void conf_set_slider_v2(int id, int val);
 int  conf_state (int id, const char *label, const char *text, int token);
 void conf_toggle(int id, const char *label, int token, int value,
                  const char *text1, int value1,

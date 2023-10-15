@@ -267,10 +267,10 @@ void game_view_fly(struct game_view *view, const struct s_vary *vary, int ui, fl
         c0[1] += view->dc;
     }
 
+#ifdef MAPC_INCLUDES_CHKP
     float chkp_campos[3];
     float chkp_campos_center[3];
 
-#ifdef MAPC_INCLUDES_CHKP
     if (last_active)
     {
         chkp_campos[0] = last_pos[ui][0] + (4 * fsinf(start_direction * V_PI / 180));

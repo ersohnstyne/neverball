@@ -518,6 +518,7 @@ static int title_click(int b, int d)
     return gui_click(b, d) ? title_action(gui_token(gui_active())) : 1;
 }
 
+static int help_action(int);
 static int title_keybd(int c, int d)
 {
     if (d && c == KEY_EXIT)
@@ -1019,15 +1020,15 @@ static int ctrltype_name_id = 0, ctrltype_desc_id = 0;
 
 static int controltype_action(int i)
 {
-    int i, indiv_ctrltype_ready = 1;
+    int ji, indiv_ctrltype_ready = 1;
     PUTT_GAMEMENU_ACTION(CONTROLTYPE_B);
 
     switch (i)
     {
     case CONTROLTYPE_M:
-        for (i = 0; i < holdage_player_count && indiv_ctrltype_ready; i++)
+        for (ji = 0; ji < holdage_player_count && indiv_ctrltype_ready; ji++)
         {
-            if (!joy_connected(i, 0, 0))
+            if (!joy_connected(ji, 0, 0))
                 return 1;
         }
         party_indiv_controllers = 1;

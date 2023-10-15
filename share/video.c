@@ -359,8 +359,6 @@ extern "C"
 #endif
 int video_mode(int f, int w, int h)
 {
-video_mode_reconf:
-
     int stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
     int stencil  = config_get_d(CONFIG_REFLECTION)  ? 1 : 0;
     int buffers  = config_get_d(CONFIG_MULTISAMPLE) ? 1 : 0;
@@ -369,6 +367,17 @@ video_mode_reconf:
     int vsync    = config_get_d(CONFIG_VSYNC)       ? 1 : 0;
     int hmd      = config_get_d(CONFIG_HMD)         ? 1 : 0;
     int highdpi  = config_get_d(CONFIG_HIGHDPI)     ? 1 : 0;
+
+video_mode_reconf:
+
+    stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
+    stencil  = config_get_d(CONFIG_REFLECTION)  ? 1 : 0;
+    buffers  = config_get_d(CONFIG_MULTISAMPLE) ? 1 : 0;
+    samples  = config_get_d(CONFIG_MULTISAMPLE);
+    texture  = config_get_d(CONFIG_TEXTURES);
+    vsync    = config_get_d(CONFIG_VSYNC)       ? 1 : 0;
+    hmd      = config_get_d(CONFIG_HMD)         ? 1 : 0;
+    highdpi  = config_get_d(CONFIG_HIGHDPI)     ? 1 : 0;
 
     int num_displays = SDL_GetNumVideoDisplays();
     if (num_displays < 1)
@@ -437,13 +446,33 @@ video_mode_reconf:
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, samples);
 
     /*
-     * Require 16-bit double buffer with 16-bit depth buffer.
+     * Optional 16-bit double buffer with 16-bit depth buffer.
      */
 
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     5);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   5);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    5);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   16);
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   5);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  5);
+
+    // TODO: Uncomment, if you want to set the required buffer.
+
+    // Default RGB size: 5
+    // TODO: Either 5 (16-bit) or 8 (32-bit)
+    int rgb_size_fixed = 5;
+    /*
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
+
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+
+    if (rgb_size_fixed * 3 < 16)
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+    else if (rgb_size_fixed * 3 < 32)
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+    else if (rgb_size_fixed * 3 < 64)
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 64);
+    */
+
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     /* Try to set the currently specified mode. */
@@ -472,7 +501,9 @@ video_mode_reconf:
             );
         }
 
+#if _WIN32 && _MSC_VER
         GAMEDBG_CHECK_SEGMENTATIONS_BOOL(UNREFERENCED_PARAMETER(0));
+#endif
 
 #ifdef RESIZEABLE_WINDOW
         if (config_get_d(CONFIG_MAXIMIZED))
@@ -574,7 +605,7 @@ video_mode_reconf:
             config_set_d(CONFIG_VSYNC, 0);
 
         if (!glext_init())
-            return 0;
+            goto video_mode_failinit_window_context;
 
         video_resize(w, h);
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -606,10 +637,12 @@ video_mode_reconf:
         }
         else config_set_d(CONFIG_MULTISAMPLE, 0);
 
+#if ENABLE_HMD
         /* Set up HMD display if requested. */
 
         if (hmd)
             hmd_init();
+#endif
 
         /* Initialize screen snapshotting. */
 
@@ -637,11 +670,14 @@ video_mode_reconf:
         config_save();
         return 1;
     }
+
+video_mode_failinit_window_context:
+
 #if NB_STEAM_API==0 && !defined(__EMSCRIPTEN__)
 #if ENABLE_HMD
     /* If the mode failed, try it without stereo. */
 
-    else if (stereo)
+    if (stereo)
     {
         config_set_d(CONFIG_STEREO, 0);
         goto video_mode_reconf;
@@ -650,7 +686,7 @@ video_mode_reconf:
 
     /* If the mode failed, try decreasing the level of multisampling. */
 
-    else if (buffers)
+    if (buffers)
     {
         config_set_d(CONFIG_MULTISAMPLE, samples / 2);
         goto video_mode_reconf;
@@ -658,7 +694,7 @@ video_mode_reconf:
 
     /* If the mode failed, try decreasing the level of textures. */
 
-    else if (texture != 2)
+    if (texture != 2)
     {
         config_set_d(CONFIG_TEXTURES, 2);
         goto video_mode_reconf;
@@ -666,7 +702,7 @@ video_mode_reconf:
 
     /* If that mode failed, try it without reflections. */
 
-    else if (stencil)
+    if (stencil)
     {
         config_set_d(CONFIG_REFLECTION, 0);
         goto video_mode_reconf;
@@ -674,7 +710,7 @@ video_mode_reconf:
 
     /* If that mode failed, try it without v-sync. */
 
-    else if (vsync)
+    if (vsync)
     {
         config_set_d(CONFIG_VSYNC, 0);
         goto video_mode_reconf;
@@ -682,7 +718,7 @@ video_mode_reconf:
 
     /* If that mode failed, try it without background. */
 
-    else if (config_get_d(CONFIG_BACKGROUND) == 1)
+    if (config_get_d(CONFIG_BACKGROUND) == 1)
     {
         config_set_d(CONFIG_BACKGROUND, 0);
         goto video_mode_reconf;
@@ -690,7 +726,7 @@ video_mode_reconf:
 
     /* If that mode failed, try it without shadow. */
 
-    else if (config_get_d(CONFIG_SHADOW) == 1)
+    if (config_get_d(CONFIG_SHADOW) == 1)
     {
         config_set_d(CONFIG_SHADOW, 0);
         goto video_mode_reconf;
@@ -698,7 +734,7 @@ video_mode_reconf:
 
     /* If that mode failed, get the soloution. */
 
-    else if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
+    if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
     {
         int solution_buf, solution_smp;
         SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &solution_buf);
@@ -752,10 +788,13 @@ extern "C"
 #endif
 int video_mode_auto_config(int f, int w, int h)
 {
-video_mode_auto_config_reconf:
 
     int stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
     int hmd      = config_get_d(CONFIG_HMD)         ? 1 : 0;
+
+video_mode_auto_config_reconf:
+    stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
+    hmd      = config_get_d(CONFIG_HMD)         ? 1 : 0;
 
     int num_displays = SDL_GetNumVideoDisplays();
     if (num_displays < 1)
@@ -822,13 +861,33 @@ video_mode_auto_config_reconf:
     int smp_ok = SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, auto_samples);
 
     /*
-     * Require 16-bit double buffer with 16-bit depth buffer.
+     * Optional 16-bit double buffer with 16-bit depth buffer.
      */
 
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     5);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   5);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    5);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   16);
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   5);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  5);
+
+    // TODO: Uncomment, if you want to set the required buffer.
+
+    // Default RGB size: 5
+    // TODO: Either 5 (16-bit) or 8 (32-bit)
+    int rgb_size_fixed = 5;
+    /*
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
+
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+
+    if (rgb_size_fixed * 3 < 16)
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+    else if (rgb_size_fixed * 3 < 32)
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+    else if (rgb_size_fixed * 3 < 64)
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 64);
+    */
+
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     log_printf("Creating a window (%dx%d, %s (auto configuration))\n",
@@ -993,14 +1052,13 @@ video_mode_auto_config_reconf:
 
         config_set_d(CONFIG_DISPLAY,    video_display());
         config_set_d(CONFIG_FULLSCREEN, f);
+        config_set_d(CONFIG_VSYNC,      1);
 
-        if (SDL_GL_SetSwapInterval(1) == -1)
-            return 0;
-
-        config_set_d(CONFIG_VSYNC, 1);
+        if (SDL_GL_SetSwapInterval(1) != 0)
+            config_set_d(CONFIG_VSYNC, 0);
 
         if (!glext_init())
-            return 0;
+            goto video_mode_auto_config_failinit_window_context;
 
         video_resize(w, h);
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -1033,10 +1091,12 @@ video_mode_auto_config_reconf:
         }
         else config_set_d(CONFIG_MULTISAMPLE, 0);
 
+#if ENABLE_HMD
         /* Set up HMD display if requested. */
 
         if (hmd)
             hmd_init();
+#endif
 
         /* Initialize screen snapshotting. */
 
@@ -1078,6 +1138,8 @@ video_mode_auto_config_reconf:
 
         return 1;
     }
+
+video_mode_auto_config_failinit_window_context:
 
 #if defined(ENABLE_MULTISAMPLE_SOLUTION)
     /* Get the soloution first. */

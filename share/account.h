@@ -42,12 +42,18 @@ extern int ACCOUNT_CONSUMEABLE_EXTRALIVES;
 
 extern int ACCOUNT_PLAYER;
 extern int ACCOUNT_BALL_FILE;
+extern int ACCOUNT_BALL_FILE_LL;
+extern int ACCOUNT_BALL_FILE_L;
+extern int ACCOUNT_BALL_FILE_C;
+extern int ACCOUNT_BALL_FILE_R;
+extern int ACCOUNT_BALL_FILE_RR;
 
 #define CHECK_ACCOUNT_BANKRUPT \
-    (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) < 0)
+    (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) < 0 || \
+     account_get_d(ACCOUNT_DATA_WALLET_GEMS) < 0)
 
 #define LOG_ACCOUNT_BANKRUPT \
-    if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) < 0) \
+    if (CHECK_ACCOUNT_BANKRUPT) \
         log_errorf("Player account is bankrupt!: %s\n", account_get_s(ACCOUNT_PLAYER)); \
     else \
         log_printf("Player is not bankrupt!: %s\n", account_get_s(ACCOUNT_PLAYER))

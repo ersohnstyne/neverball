@@ -2,6 +2,8 @@
 
 <a href="https://discord.gg/HhMfr4N6H6"><img src="https://img.shields.io/discord/669254822758711297?logo=discord"></a>
 
+![Neverball](https://neverball.org/images/shots/01-neverball-easy/easy-07-01.jpg)
+
 Tilt the  floor to roll a  ball through an obstacle  course within the
 given  time.  If  the  ball falls  or time  expires, a ball is lost.
 

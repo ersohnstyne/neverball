@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -102,6 +102,22 @@
     v_nrm((e)[2], (e)[2]);         \
 } while (0)
 
+#define e_orthonrm_xz(e) do {      \
+    v_crs((e)[0], (e)[1], (e)[2]); \
+    v_crs((e)[2], (e)[0], (e)[1]); \
+    v_nrm((e)[0], (e)[0]);         \
+    v_nrm((e)[2], (e)[2]);         \
+} while (0)
+
+#define e_orthonrm_hard(e, f) do { \
+    v_crs((e)[2], (f)[0], (f)[1]); \
+    v_crs((e)[1], (f)[2], (f)[0]); \
+    v_crs((e)[0], (f)[1], (f)[2]); \
+    v_nrm((e)[0], (e)[0]);         \
+    v_nrm((e)[1], (e)[1]);         \
+    v_nrm((e)[2], (e)[2]);         \
+} while (0)
+
 #define e_lerp(c, d, e, a) do {        \
     v_lerp((c)[0], (d)[0], (e)[0], a); \
     v_lerp((c)[1], (d)[1], (e)[1], a); \
@@ -111,24 +127,25 @@
 
 /*---------------------------------------------------------------------------*/
 
-void   v_nrm(float *, const float *);
-void   v_crs(float *, const float *, const float *);
+void   v_nrm(float n[3], const float v[3]); // Normalize (Vector)
+void   v_crs(float u[3], const float v[3], const float w[3]); // Cross (Vector)
+void   v_reflect(float u[3], const float v[3], const float n[3]);
 
 void   m_cpy(float *, const float *);
-void   m_xps(float *, const float *);
-int    m_inv(float *, const float *);
+void   m_xps(float *, const float *); // Transpose (Matrix)
+int    m_inv(float *, const float *); // Inverse (Matrix)
 
-void   m_ident(float *);
-void   m_basis(float *, const float e0[3],
-                        const float e1[3],
-                        const float e2[3]);
-void   m_xlt(float *, const float *);
-void   m_scl(float *, const float *);
-void   m_rot(float *, const float *, float);
+void   m_ident(float *); // Identity (Matrix)
+void   m_basis(float *M, const float e0[3],
+                         const float e1[3],
+                         const float e2[3]);
+void   m_xlt(float *, const float v[3]); // Translation (Matrix)
+void   m_scl(float *, const float v[3]); // Scale (Matrix)
+void   m_rot(float *, const float v[3], float); // Rotate Axis (Matrix)
 
-void   m_mult(float *, const float *, const float *);
+void   m_mult(float *, const float *, const float *); // Multiply (Matrix)
 void   m_pxfm(float *, const float *, const float *);
-void   m_vxfm(float *, const float *, const float *);
+void   m_vxfm(float *, const float *, const float *); // Transform (Matrix)
 
 /*---------------------------------------------------------------------------*/
 
@@ -152,11 +169,11 @@ void   m_vxfm(float *, const float *, const float *);
 void q_as_axisangle(const float q[4], float u[3], float *a);
 void q_by_axisangle(float q[4], const float u[3], float a);
 
-void q_nrm(float q[4], const float r[4]);
-void q_mul(float q[4], const float a[4], const float b[4]);
-void q_rot(float v[3], const float r[4], const float w[3]);
+void q_nrm(float q[4], const float r[4]); // Normalize (Quaternion)
+void q_mul(float q[4], const float a[4], const float b[4]); // Multiply (Quaternion)
+void q_rot(float v[3], const float r[4], const float w[3]); // Rotate (Quaternion)
 
-void q_euler(float v[3], const float q[4]);
-void q_slerp(float q[4], const float a[4], const float b[4], float t);
+void q_euler(float v[3], const float q[4]); // Euler (Quaternion)
+void q_slerp(float q[4], const float a[4], const float b[4], float t); // Spherical linear interpolation
 
 #endif

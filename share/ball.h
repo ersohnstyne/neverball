@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -21,15 +21,39 @@
 
 #define BALL_FUDGE 0.001f
 
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_MULTIBALLS)
+void ball_multi_init(void);
+void ball_multi_free(void);
+
+void ball_multi_step(float);
+
+void ball_multi_equip(int);
+int  ball_multi_curr(void);
+#endif
+
+#if NB_HAVE_PB_BOTH!=1 || !defined(CONFIG_INCLUDES_MULTIBALLS)
 void ball_init(void);
 void ball_free(void);
 
 void ball_step(float);
+#endif
 
 void ball_draw(struct s_rend *,
                const float *,
                const float *,
                const float *, float);
+
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_MULTIBALLS)
+void ball_multi_draw(struct s_rend *,
+                     const float *,
+                     const float *,
+                     const float *, float);
+
+void ball_multi_draw_single(int, struct s_rend *,
+                            const float *,
+                            const float *,
+                            const float *, float);
+#endif
 
 /*---------------------------------------------------------------------------*/
 

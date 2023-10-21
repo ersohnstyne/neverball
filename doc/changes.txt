@@ -1,4 +1,224 @@
 -------------------------------------------------------------------------------
+New in 2.1
+There was huge cosmic changes in this version!:
+
+* Changed policy: Max level time limit to load the level is up to
+  10 minutes replay in Level set, and campaign up to 60 minutes.
+* Changed policy: Always match the level world with pre- and suffixed filename
+  as Switchball pre-campaign for level set: map-back/*-SB.sol, back/*-SB.png,
+  bgm/track-SB*.ogg
+* Changed policy: Automatically rename globalsettings.txt or preferences.txt
+  to neverballrc. If the text file for global settings still exists, then file
+  types will also taken out.
+* New: Master levels! Must play with Challenge mode first to enter the master
+  level.
+* New: Windows explorer assistant for replay grid menu.
+* New: Assistant companion for purchasing products by raising cash.
+* New: Added bankrupt option, if debt is greater than net-worth while playing
+  Challenge mode (This features is only for Pro edition and above).
+* New: Added "Join Discord Community server" from options screen.
+* New: Detailed campaign medal information.
+* New: Compass support for campaign.
+* New: When using Switchball in the level set, an airplane icon will appeared
+  at the left of the set name.
+* New: Show level name while playing level set.
+* New: Coin clocks.
+* New: Set star completition for challenge mode.
+* New: Refreshable list for level set and replay list (F5 key).
+* New: Purchaseable balls from In-Game-Shop. The maximum limit is up to three
+  crowns (approx. 1110 balls).
+* New: MSVC support (back in time).
+* New: Game network editions.
+* New: Multiple locale source code support
+  (lang_gettext.c and lang_msvc.cpp).
+* New: Optional Google Drive package download support.
+* New: Optional dedicated game network support.
+* New: Optional IAP and order code activation support (source only).
+* New: Increased replay speed factor up to 128.
+* New: Added invalid menu action sound effects, when clicking the
+  disabled button.
+* New: libogg, libpng, libvorbis, libjpeg and zlib can be used with GitHub
+  source.
+* New: Added OpenDriveAPI for all cross-platforms
+* Update: Improved traffic light and countdown clock ready/set signals after
+  tutorial/hint message box.
+* Update: Lazy camera now replaced to static camera when camera speed value
+  is set to 0.
+* Update: Best time and fast unlock HS does not exceeded time limits when the
+  timer per level was given.
+* Update: Coin amount for Most coin HS does not meet minimum requirements when
+  required coins per level are given.
+* Update: Level set HS now fits with most coins and best time, when time limits
+  and required coins for all levels are obtained.
+* Update: Clock coins does not appear in the game when the timer on current
+  level map is unlimited.
+* Update: Hinders continue reading at the end of the level, once replays
+  has been paused.
+* Update: Improved gamepad controller support.
+* Update: Free-Look movement reworked from Java.
+* Update: Putt now works with max gravity during stroke.
+* Update: Solid version with no checkpoints does not require
+  1.7 (SOL Version 8.x).
+* Bugfix: Fixed a problem where the tilting floor was associated in the
+  campaign or hardcore mode while recording and reading replay.
+* Bugfix: Fixed a problem where the balls was hover the goal pad on campaign.
+* Bugfix: Fixed a problem where the balls would continue outside the goal in
+  level set even, after finished the level.
+* Bugfix: Fixed a bug where the standard levels does not unlock before going
+  into bonus level after completed the current one.
+* Bugfix: Fixed a bug where was spamming level status by the game server.
+* Bugfix: Fixed a problem where missing replay message box still showing that 
+  disables replay recording.
+* Bugfix: Fixed a bug where was played the time warning music after the control
+  scheme was changed.
+* Bugfix: Fixed wrong product location in the shop screen.
+* Bugfix: Fixed crash during respawn from checkpoints. That one seems not
+  correctly loaded from simulation's backup after reseting puzzle twice.
+  This is the final build state of the checkpoints, which has 100% bug-free.
+
+/ES Entertainment (ersohnstyne)
+
+-------------------------------------------------------------------------------
+New in 2.0.1
+
+* Changed policy: On some exceeding tilt limits, this tilting floor will
+  automatically disabled, when the ball jumps over the large gaps.
+* Fixed mismatch graphic options for browser.
+
+/ES Entertainment (ersohnstyne)
+
+-------------------------------------------------------------------------------
+New in 2.0
+
+* Changed policy: Lockdown INCREASED via replays! (4:00 PM - 8:00 AM)
+* Changed policy: MAPC can be used via Microsoft Mapper Master Compilation
+  (only UTF-8 encoding mode).
+* Changed policy: Bonus levels in Nevermania can unlocked using Challenge Mode.
+* Smooth fix option enabled by default during first startup. The edition
+  "Project community" may increase some lags.
+* Fixed crash in putt game and texture config key due divide by 0.
+* Fixed mismatch Highscores in Campaign.
+* Fixed mismatch campaign level requirements.
+* Fixed misalignment depth masks without reflections.
+
+/ES Entertainment (ersohnstyne)
+
+-------------------------------------------------------------------------------
+New in 1.8.6.95
+
+This update will function as a medium "pre-update" before Update 2.0.
+Lots of fun stuff planned :)
+
+* Changed policy: Levels can play immedialy for the campaign.
+* Changed policy: Level set will unlocked, after complete the previous set.
+  (Only for Home and Pro editions)
+* New rank held for Campaign.
+* Added Settings menu from the Gameplay.
+* Fixed Gameplay malfunctions. Threshold is up to 16 key events and resets.
+* Fixed misalignment GUI.
+* Fixed double coins in most coin highscore in a single Level.
+* Fixed some swap chain during background.
+* Lots of bugfixes.
+
+/ES Entertainment (ersohnstyne)
+
+-------------------------------------------------------------------------------
+New in 1.8.6
+
+This update will function as a smaller "pre-update" before Update 2.0.
+Lots of fun stuff planned :)
+
+* New Tilting Floor option in control settings
+* New Gamemode guide and tricks monitoring
+* Increased replay speed factor up to 64
+* Fix vary solids while respawn the player at checkpoint
+
+There was an replay duplication bug in version 1.8 that gave users extra
+replays during COVID 19. This has been fixed in 1.8.6 and those replays
+will removed. So, if your ball falls before saving your replays again its
+because they were bugged. Sorry :/
+
+/ES Entertainment
+
+-------------------------------------------------------------------------------
+New in 1.8.0
+
+* Changed policy: Full tilt can be used for Max speed, while holding the
+  left mouse button.
+* Changed policy: Camera can be rotated, while holding the right mouse button.
+* Changed policy: New specifications for complex entities are required before
+  stored the SOL level file!
+* New Screen animation option
+* New Camera Modes: Static camera
+* New Campaign levels (in beta). You can keep playing the level set, before
+  updates the version 1.9.0 (Only for Home and Pro Editions).
+* New play modes in Campaign levels
+* New Career mode in Campaign. Locks the goal state automatically,
+  after Career mode is enabled.
+* New Hardcore game mode. All checkpoints were removed, the game cannot be
+  saved and only one ball.
+* New Notifications
+* New Smooth fix graphic option
+* New task in coin shop, if the wallet is insufficent
+* New Wiimote support
+* New --campaign option for MAPC. CMAP filetype supported by turning
+  from MAP file. Complex campaign level maps gains more lump budget
+  than entity cost.
+* Split off configuration and account data to a separate
+* The players can ask for more balls in "Challenge" game mode. You can buy
+  more balls for 15 gems from the wallet.
+* Fix loop forever in Neverputt, once the golf has been shot.
+  This will be added the force timeout during roll the ball, sorry.
+* Fix ball selection in home room. That coins and platforms were appear
+  after initialization.
+* Fix big mess up, while trying to work around GCC optimizations
+  refactoring standard I/O for Windows 10
+
+-------------------------------------------------------------------------------
+New in 1.7.3
+
+* New Emscripten support.
+* Fixed while mapc uses breakage
+* Fixed while items in checkpoints are loaded from default SOL file
+
+-------------------------------------------------------------------------------
+New in 1.7.1
+
+* New stylished cursors.
+* Fixed for Auto-Camera.
+* Fixed when argc is 0.
+* Fixed when jumping with promixity minimum altitude floor, before it falls.
+* Fixed if there is an back command overlooked in goal, fall-out or time-out.
+
+-------------------------------------------------------------------------------
+New in 1.7.0
+
+* Added new specifications (for ball and goal; REMEMBER: If it isn't still
+  updated yet, an legacy mode will migrated and moved up to 1 Radiant units)
+* Three times as high, you can compile up to 1500 lumps for Windows
+  in your gaming PC.
+* Fixed some timed-switches
+* Shows 8 sets per page instead of 6
+* Added new shop screen (Is there today delicious pillow in the snack?).
+* Added special powers in "Challenge" game mode.
+* Added Boost Rush Mode.
+* Added demo in rules page, because it was missing yet.
+* More resolutions supported.
+* Moved player and ball configuration to new account and mouse sensitivity
+  to new control screen, because there isn't fit enough.
+* Added checkpoints (Under development!)
+* Added replay security (Exceeded status will delete permanently
+  if checkpoints isn't enabled)
+* Removed Next level in fall-out or time-out. If Minecraft or other
+  survival games exists, that's why.
+* Fixed that replay in demo screen is invalidate yet due game crashes.
+* Added replay report if restricted (By default: Fall-out not allowed due
+  keep on board)
+* title.map: Replaced Title environment and added new BGM title-home.ogg
+* speeddance.map: Replaced Boss environment which is boss level detected
+* Add new BGM track-boss.ogg for use in Boss environment
+
+-------------------------------------------------------------------------------
 New in 1.5.4
 
 * Fix inconsistent quoting in error messages

@@ -49,7 +49,9 @@
 #include "st_ball.h"
 #include "st_shared.h"
 #include "st_shop.h"
-#include "st_addons.h"
+#if ENABLE_FETCH
+#include "st_package.h"
+#endif
 
 #ifdef ENABLE_GAME_TRANSFER
 #include "st_transfer.h"
@@ -619,7 +621,7 @@ static int conf_account_gui(void)
 
         if (mainmenu_conf)
         {
-#if ENABLE_FETCH==1
+#if ENABLE_FETCH
             conf_toggle(id, _("Auto-Update"), CONF_ACCOUNT_AUTOUPDATE,
                  config_get_d(CONFIG_ACCOUNT_AUTOUPDATE), _("On"), 1, _("Off"), 0);
             gui_space(id);
@@ -2226,9 +2228,9 @@ static int conf_action(int tok, int val)
 
 #if NB_HAVE_PB_BOTH!=1
     case CONF_PACKAGES:
-        #if ENABLE_FETCH==1
+#if ENABLE_FETCH
         return goto_state(&st_package);
-        #endif
+#endif
         break;
 
     case CONF_BALL:
@@ -2370,7 +2372,7 @@ static int conf_gui(void)
             gui_space(id);
 #endif
 
-#if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH==1
+#if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH
             conf_state(id, _("Addons"), _("Manage"), CONF_PACKAGES);
             gui_space(id);
 #endif

@@ -19,7 +19,7 @@
 #include "package.h"
 #include "geom.h"
 
-#include "st_addons.h"
+#include "st_package.h"
 #include "st_common.h"
 
 #define AUD_MENU     "snd/menu.ogg"
@@ -96,6 +96,8 @@ struct download_info
     char *package_id;
     char  label[32];
 };
+
+/*---------------------------------------------------------------------------*/
 
 static struct download_info *create_download_info(const char *package_id)
 {
@@ -199,6 +201,71 @@ static void download_done(void *data1, void *data2)
         dli = NULL;
     }
 }
+
+/*---------------------------------------------------------------------------*/
+
+struct image_download_info
+{
+    int pi;
+};
+
+static struct image_download_info *create_idi(int pi)
+{
+    struct image_download_info *idi = calloc(sizeof (*idi), 1);
+
+    if (idi)
+        idi->pi = pi;
+
+    return idi;
+}
+
+static void free_idi(struct image_download_info **idi)
+{
+    if (idi && *idi)
+    {
+        free(*idi);
+        *idi = NULL;
+    }
+}
+
+static void image_download_done(void *data, void *extra_data)
+{
+    struct image_download_info *idi = data;
+    struct fetch_done *fd = extra_data;
+
+    if (idi)
+    {
+        if (fd && fd->finished)
+        {
+            if (idi->pi == selected)
+                gui_set_image(shot_id, package_get_shot_filename(selected));
+        }
+
+        free_idi(&idi);
+    }
+}
+
+static void fetch_package_images(void)
+{
+    int pi;
+
+    for (pi = first; pi < first + PACKAGE_STEP && pi < total; ++pi)
+    {
+        struct fetch_callback      callback = {0};
+        struct image_download_info *idi = create_idi(pi);
+
+        callback.done = image_download_done;
+        callback.data = idi;
+
+        if (!package_fetch_image(pi, callback))
+        {
+            free_idi(&idi);
+            callback.data = NULL;
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
 
 static void package_start_download(int id)
 {
@@ -448,11 +515,12 @@ static void package_select(int pi)
 
     if (package_get_status(pi) == PACKAGE_INSTALLED)
     {
-        /* HACK: Mojang can be done this. */
+        /* HACK: Mojang made done this. */
 
-        gui_set_color(install_status_id, gui_gry, gui_gry);
+        //gui_set_color(install_status_id, gui_gry, gui_gry);
         //gui_set_color(install_label_id, gui_gry, gui_gry);
 
+        gui_set_color(install_status_id, gui_wht, gui_wht);
         gui_set_color(install_label_id, gui_wht, gui_wht);
     }
     else
@@ -502,6 +570,8 @@ static int package_enter(struct state *st, struct state *prev)
     }
 
     name_ids = calloc(total, sizeof (*name_ids));
+
+    fetch_package_images();
 
     return package_gui();
 }

@@ -63,7 +63,9 @@
 #include "st_set.h"
 #include "st_name.h"
 #include "st_shared.h"
-#include "st_addons.h"
+#if ENABLE_FETCH
+#include "st_package.h"
+#endif
 #include "st_play.h"
 
 #define TITLE_USE_DVD_BOX_OR_EMAIL
@@ -918,7 +920,7 @@ static int title_gui(void)
                 gui_state(jd, _("Unlock full game"),
                               GUI_SML,
                               TITLE_UNLOCK_FULL_GAME, 0);
-#if ENABLE_FETCH==1
+#if ENABLE_FETCH
                 gui_space(jd);
                 gui_layout(id, -1, 0);
 #endif
@@ -926,7 +928,7 @@ static int title_gui(void)
         }
 #endif
 
-#if NB_HAVE_PB_BOTH!=1 && ENABLE_FETCH==1
+#if NB_HAVE_PB_BOTH!=1 && ENABLE_FETCH
         if ((id = gui_vstack(root_id)))
         {
             if ((jd = gui_hstack(id)))

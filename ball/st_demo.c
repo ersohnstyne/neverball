@@ -141,9 +141,8 @@ static int st_demo_version_read(fs_file fp, struct demo *d)
 
 /*---------------------------------------------------------------------------*/
 
-static int check_full_access(char * replay_pname) {
-    const char *curr_player = config_get_s(CONFIG_PLAYER);
-
+static int check_full_access(char * replay_pname)
+{
     return 0;
 }
 

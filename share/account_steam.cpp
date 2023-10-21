@@ -45,6 +45,8 @@
 #pragma comment(lib, "D:\\source_ersohn\\win10_libraries\\steam\\redistributable_bin\\steam_api.lib")
 #endif
 
+/*---------------------------------------------------------------------------*/
+
 extern "C"
 {
 #include "accessibility.h"
@@ -86,6 +88,11 @@ extern "C"
 
     int ACCOUNT_PLAYER;
     int ACCOUNT_BALL_FILE;
+    int ACCOUNT_BALL_FILE_LL;
+    int ACCOUNT_BALL_FILE_L;
+    int ACCOUNT_BALL_FILE_C;
+    int ACCOUNT_BALL_FILE_R;
+    int ACCOUNT_BALL_FILE_RR;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -100,7 +107,7 @@ extern "C"
     static struct
     {
         char *curr;
-    } steam_account_s[2];
+    } steam_account_s[7];
 
     static struct
     {
@@ -132,8 +139,17 @@ extern "C"
         char       *cur;
     } account_s[] =
     {
-        { &ACCOUNT_PLAYER, "player", "" },
-        { &ACCOUNT_BALL_FILE, "ball_file", "ball/basic-ball/basic-ball" }
+        { &ACCOUNT_PLAYER,       "player",       "" },
+#if defined(CONFIG_INCLUDES_MULTIBALLS)
+        { &ACCOUNT_BALL_FILE,    "ball_file", "ball/" },
+#else
+        { &ACCOUNT_BALL_FILE,    "ball_file", "ball/basic-ball/basic-ball" },
+#endif
+        { &ACCOUNT_BALL_FILE_LL, "ball_file_ll", "ball/" },
+        { &ACCOUNT_BALL_FILE_L,  "ball_file_l",  "ball/" },
+        { &ACCOUNT_BALL_FILE_C,  "ball_file_c",  "ball/basic-ball/basic-ball" },
+        { &ACCOUNT_BALL_FILE_R,  "ball_file_r",  "ball/" },
+        { &ACCOUNT_BALL_FILE_RR, "ball_file_rr", "ball/" }
     };
 
     static int dirty = 0;
@@ -222,7 +238,7 @@ extern "C" int  account_exists(void)
 {
     char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(paths, dstSize,
+    sprintf_s(paths, MAXSTR,
 #else
     sprintf(paths,
 #endif
@@ -287,7 +303,7 @@ extern "C" void account_load(void)
 
     char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(paths, dstSize,
+    sprintf_s(paths, MAXSTR,
 #else
     sprintf(paths,
 #endif
@@ -376,7 +392,7 @@ extern "C" void account_save(void)
 
     char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(paths, dstSize,
+    sprintf_s(paths, MAXSTR,
 #else
     sprintf(paths,
 #endif

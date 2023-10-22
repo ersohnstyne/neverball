@@ -268,10 +268,12 @@ ifeq ($(ENABLE_IAP),paypal)
 	# $(shell curl-config --cflags) =	\
 		-DENABLE_IAP=1					\
 		-I"C:/msys64/usr/include"		\
-		-DCURL_STATICLIB
+		-DCURL_STATICLIB				\
+		-DENABLE_FETCH=1
 
-	ALL_CPPFLAGS +=               \
-		$(shell curl-config --cflags)
+	ALL_CPPFLAGS +=						\
+		$(shell curl-config --cflags)	\
+		-DENABLE_FETCH=1
 	MKLOCALVAR_CURL_PREPARED := 1
 endif
 endif
@@ -280,19 +282,21 @@ ifeq ($(ENABLE_FETCH),curl)
 ifneq ($(MKLOCALVAR_CURL_PREPARED),1)
 	# $(shell curl-config --cflags) =	\
 		-I"C:/msys64/usr/include"		\
-		-DCURL_STATICLIB
+		-DCURL_STATICLIB				\
+		-DENABLE_FETCH=1
 
 	ALL_CPPFLAGS +=						\
-		$(shell curl-config --cflags)
+		$(shell curl-config --cflags)	\
+		-DENABLE_FETCH=1
 endif
-	ALL_CPPFLAGS += -DENABLE_FETCH=1
 endif
 
 ifeq ($(ENABLE_FETCH),curl_gdrive)
 ifneq ($(MKLOCALVAR_CURL_PREPARED),1)
 	# $(shell curl-config --cflags) =	\
 		-I"C:/msys64/usr/include"		\
-		-DCURL_STATICLIB
+		-DCURL_STATICLIB				\
+		-DENABLE_FETCH=1
 
 	ALL_CPPFLAGS +=						\
 		$(shell curl-config --cflags)

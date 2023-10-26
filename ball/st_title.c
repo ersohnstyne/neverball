@@ -598,7 +598,7 @@ static void title_create_versions(void)
     gui_set_rect(system_version_build_id, GUI_NW);
     gui_layout(system_version_build_id, 1, -1);
 
-    copyright_id = gui_label(0, "© PennyGames", GUI_TNY, gui_wht, gui_wht);
+    copyright_id = gui_label(0, "© Neverball Authors", GUI_TNY, gui_wht, gui_wht);
     gui_set_rect(copyright_id, GUI_NE);
     gui_layout(copyright_id, -1, -1);
 }
@@ -974,7 +974,7 @@ static int title_enter(struct state *st, struct state *prev)
     /* Start the title screen music. */
 
     audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
-                                                     "bgm/title.ogg");
+                                                     BGM_TITLE_CONF_LANGUAGE);
 
     /* Initialize the build-in nor title level for display. */
 

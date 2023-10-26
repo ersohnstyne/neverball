@@ -8,11 +8,11 @@ E: ersohn.styne@gmail.com
 E: ersohn@styne.de
 W: https://www.styne.de
 W: https://discord.gg/qnJR263Hm2
-D: Microsoft Hamburg Developer (primary)
+D: Microsoft Developer Estates Hamburg (primary)
 D: Ubuntu (Unix) 21th century programming
 D: Windows 21th century builds
 D: Dedicated Game Server Networks
-D: Paypal Payments for Challenge Mode
+D: Shapez Payments for Challenge Mode
 D: Premium balls (Beach, Fairy, Legacy, Shinbi-Globe)
 D: New shop screen
 D: Campaign level
@@ -21,6 +21,9 @@ D: Teleport time freeze
 D: Respawn optimization
 D: Switchball structure template
 D: Entertainment room for title level
+
+N: Abishai Estra Styven (Abishai1)
+D: Partnered Dedicated Game Server
 
 N: Stefan Pawlowski (Maodiggi)
 E: stefan.pawlowski@gmx.net

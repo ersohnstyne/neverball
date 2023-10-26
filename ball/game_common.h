@@ -61,6 +61,26 @@
 
 #define AUD_STARS     "snd/stars.ogg"
 
+/* OK, title music locales, but test. */
+
+#define BGM_TITLE_CONF_LANGUAGE \
+    str_starts_with(config_get_s(CONFIG_LANGUAGE), "de") ? (fs_exists("bgm/de/title.ogg") ? "bgm/de/title.ogg" : "bgm/title.ogg") : \
+    str_starts_with(config_get_s(CONFIG_LANGUAGE), "fr") ? (fs_exists("bgm/fr/title.ogg") ? "bgm/fr/title.ogg" : "bgm/title.ogg") : \
+    str_starts_with(config_get_s(CONFIG_LANGUAGE), "ja") ? (fs_exists("bgm/jp/title.ogg") ? "bgm/jp/title.ogg" : "bgm/title.ogg") : \
+    str_starts_with(config_get_s(CONFIG_LANGUAGE), "jp") ? (fs_exists("bgm/jp/title.ogg") ? "bgm/jp/title.ogg" : "bgm/title.ogg") : \
+    str_starts_with(config_get_s(CONFIG_LANGUAGE), "th") ? (fs_exists("bgm/th/title.ogg") ? "bgm/th/title.ogg" : "bgm/title.ogg") : \
+    str_starts_with(config_get_s(CONFIG_LANGUAGE), "zh") ? (fs_exists("bgm/zh/title.ogg") ? "bgm/zh/title.ogg" : "bgm/title.ogg") : \
+    "bgm/title.ogg"
+
+#define BGM_TITLE_MAP(bgm_path) \
+    str_starts_with(bgm_path, "bgm/title.ogg") && str_starts_with(config_get_s(CONFIG_LANGUAGE), "de") ? (fs_exists("bgm/de/title.ogg") ? "bgm/de/title.ogg" : "bgm/title.ogg") : \
+    str_starts_with(bgm_path, "bgm/title.ogg") && str_starts_with(config_get_s(CONFIG_LANGUAGE), "fr") ? (fs_exists("bgm/fr/title.ogg") ? "bgm/fr/title.ogg" : "bgm/title.ogg") : \
+    str_starts_with(bgm_path, "bgm/title.ogg") && str_starts_with(config_get_s(CONFIG_LANGUAGE), "ja") ? (fs_exists("bgm/jp/title.ogg") ? "bgm/jp/title.ogg" : "bgm/title.ogg") : \
+    str_starts_with(bgm_path, "bgm/title.ogg") && str_starts_with(config_get_s(CONFIG_LANGUAGE), "jp") ? (fs_exists("bgm/jp/title.ogg") ? "bgm/jp/title.ogg" : "bgm/title.ogg") : \
+    str_starts_with(bgm_path, "bgm/title.ogg") && str_starts_with(config_get_s(CONFIG_LANGUAGE), "th") ? (fs_exists("bgm/th/title.ogg") ? "bgm/th/title.ogg" : "bgm/title.ogg") : \
+    str_starts_with(bgm_path, "bgm/title.ogg") && str_starts_with(config_get_s(CONFIG_LANGUAGE), "zh") ? (fs_exists("bgm/zh/title.ogg") ? "bgm/zh/title.ogg" : "bgm/title.ogg") : \
+    bgm_path
+
 /*---------------------------------------------------------------------------*/
 
 /* Macros helps with the action game menu. */

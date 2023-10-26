@@ -888,7 +888,9 @@ static int start_joinrequired_action(int tok, int val)
     case GUI_BACK:
         return goto_state(&st_start);
     case START_JOINREQUIRED_OPEN:
-#if _WIN32
+#if defined(__EMSCRIPTEN__)
+        EM_ASM({ Neverball.doJoinDiscordPremium() }, 0);
+#elif _WIN32
         system("start msedge https://discord.gg/qnJR263Hm2/");
 #elif defined(__APPLE__)
         system("open https://discord.gg/qnJR263Hm2/");

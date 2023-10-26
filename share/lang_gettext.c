@@ -82,6 +82,14 @@ void gt_init(const char *domain, const char *pref)
             dir = concat_string(fs_base_dir(), "/", CONFIG_LOCALE, NULL);
     }
 
+    if (!dir_exists(dir))
+    {
+        log_errorf("Failure to find locale path: %s - %s\n",
+                   dir, errno ? strerror(errno) : "Unknown error");
+        free(dir);
+        return;
+    }
+
     /* Set up locale. */
 
 #if !_WIN32

@@ -489,8 +489,10 @@ static void controls_pc(int id)
 #endif
             _("Use %s / %s buttons to rotate the view.\\"
               "Hold %s for faster view rotation."),
-            temp_k_rot_l,
-            temp_k_rot_r,
+            config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
+            temp_k_rot_l : temp_k_rot_r,
+            config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
+            temp_k_rot_r : temp_k_rot_l,
             SDL_GetKeyName(config_get_d(CONFIG_KEY_ROTATE_FAST)));
 
     int jd, kd;

@@ -550,7 +550,7 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
                     game_client_toggle_show_balls(1);
 
                     /*if (g)
-                        audio_music_fade_to(0.5f, level.song);
+                        audio_music_fade_to(0.5f, BGM_TITLE_MAP(level.song));
                     else
                     {
                         union cmd cmd;
@@ -559,7 +559,7 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
                     }*/
 
                     if (g)
-                        audio_music_fade_to(0.5f, level.song);
+                        audio_music_fade_to(0.5f, BGM_TITLE_MAP(level.song));
 
                     demo_update_read(0);
 

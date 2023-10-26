@@ -321,7 +321,7 @@ keys and their default values follow.
             key_camera_r      a
             key_camera_toggle c
 
-	key_camera_toggle toggles camera behaviour between 1 and 3.
+    key_camera_toggle toggles camera behaviour between 1 and 3.
 
     mouse_camera_1      none
     mouse_camera_2      none
@@ -334,6 +334,16 @@ keys and their default values follow.
         Accepted values are: "none" (for no mapping), "left", "right",
         "wheelup",  "middle", "wheeldown"  or a  numeric  mouse button
         index.
+
+    camera_rotate_mode 1
+
+        This key  changes camera rotation mode.  There are as follows:
+
+        0 - When "Inverted" is set, select this option will switch the
+        camera rotation rate exactly.  Useful when playing  this level
+        using Switchball HD controls.
+
+        1 - Flip camera rotation (default).
 
     key_forward  up
     key_backward down
@@ -402,7 +412,7 @@ keys and their default values follow.
 
     screen_animation 1
 
-        This  key  enables  the  graphic  interface screen animations.
+        This key enables the menu screen animations.
         (Available for selected version 1.8 and above)
 
     ball_file ball/basic-ball/basic-ball
@@ -491,9 +501,9 @@ keys and their default values follow.
         vertically than  horizontally.  For  example, if a  texture is
         applied  to a  flat surface  and seen  from far  away then  it
         appears  much wider  than high.   Anisotropic filtering  takes
-        care of  this.  To enable  it, set aniso  to a small  power of
-        two.   If  you  have  weak hardware,  you  can't add  this key
-        value.
+        care of  this.  Its level is expressed as a small power of two.
+        To disable  it, set  aniso to 0. If  you  have  weak hardware,
+        you can't add this key value.
 
     joystick 1
 

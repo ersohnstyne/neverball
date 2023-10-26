@@ -969,6 +969,7 @@ enum
 {
     CONF_CONTROL_INPUT_PRESET = GUI_LAST,
     CONF_CONTROL_TILTING_FLOOR,
+    CONF_CONTROL_CAMERA_ROTATE_MODE,
     CONF_CONTROL_MOUSE_SENSE,
     CONF_CONTROL_INVERT_MOUSE_Y,
     CONF_CONTROL_CHANGECONTROLLERS,
@@ -990,6 +991,7 @@ static int preset_id;
 static int key_preset_id;
 
 #ifdef SWITCHBALL_GUI
+static int camrot_mode_id;
 static int mouse_id;
 #else
 static int mouse_id[11];
@@ -1104,6 +1106,13 @@ static int conf_control_action(int tok, int val)
         goto_state_full(&st_conf_control, 0, 0, 1);
         break;
 
+    case CONF_CONTROL_CAMERA_ROTATE_MODE:
+        config_tgl_d(CONFIG_CAMERA_ROTATE_MODE);
+        gui_set_label(camrot_mode_id,
+                      config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
+                      _("Inverted") : _("Normal"));
+        break;
+
     case CONF_CONTROL_MOUSE_SENSE:
         config_set_d(CONFIG_MOUSE_SENSE, MOUSE_RANGE_UNMAP(val));
 
@@ -1173,6 +1182,11 @@ int conf_control_gui(void)
         conf_toggle(id, _("Tilting Floor"), CONF_CONTROL_TILTING_FLOOR,
                         config_get_d(CONFIG_TILTING_FLOOR),
                         _("On"), 1, _("Off"), 0);
+
+        camrot_mode_id = conf_state(id, _("Camera rotate"),
+                                    config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
+                                    _("Inverted") : _("Normal"),
+                                    CONF_CONTROL_CAMERA_ROTATE_MODE);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)

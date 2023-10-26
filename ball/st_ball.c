@@ -317,7 +317,7 @@ static void load_ball_demo(void)
 #endif
 
 #if NB_HAVE_PB_BOTH==1
-    audio_music_fade_to(0.0f, switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
+    audio_music_fade_to(0.0f, switchball_useable() ? "bgm/title-switchball.ogg" : BGM_TITLE_CONF_LANGUAGE);
 #else
     audio_music_fade_to(0.0f, "gui/bgm/inter.ogg");
 #endif

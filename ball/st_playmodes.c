@@ -245,7 +245,7 @@ static int playmodes_enter(struct state *st, struct state *prev)
     audio_music_fade_to(0.5f, "bgm/inter_local.ogg");
 #else
     audio_music_fade_to(0.0f, switchball_useable() ? "bgm/title-switchball.ogg" :
-                                                     "bgm/title.ogg");
+                                                     BGM_TITLE_CONF_LANGUAGE);
 #endif
 
     if (&st_campaign == prev || &st_hardcore_start == prev)

@@ -66,6 +66,7 @@ int CONFIG_WIDTH;
 int CONFIG_HEIGHT;
 int CONFIG_STEREO;
 int CONFIG_CAMERA;
+int CONFIG_CAMERA_ROTATE_MODE;
 int CONFIG_TEXTURES;
 int CONFIG_REFLECTION;
 int CONFIG_MULTISAMPLE;
@@ -220,6 +221,7 @@ static struct
     { &CONFIG_HEIGHT,         "height",       900 },
     { &CONFIG_STEREO,         "stereo",       0 },
     { &CONFIG_CAMERA,         "camera",       0 },
+    { &CONFIG_CAMERA_ROTATE_MODE, "camera_rotate_mode",       1 },
     { &CONFIG_TEXTURES,       "textures",     1 },
     { &CONFIG_REFLECTION,     "reflection",   1 },
     { &CONFIG_MULTISAMPLE,    "multisample",  0 },

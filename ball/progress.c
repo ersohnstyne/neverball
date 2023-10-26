@@ -414,7 +414,7 @@ static int init_level(void)
         /* This method was attacking for their violentations. */
         game_client_sync(!campaign_hardcore_norecordings() && curr_mode() != MODE_NONE ? demo_fp : NULL);
 
-        audio_music_fade_to(1.0f, level_song(level));
+        audio_music_fade_to(1.0f, BGM_TITLE_MAP(level_song(level)));
         return 1;
     }
 
@@ -545,7 +545,7 @@ void progress_step(void)
         if (curr_clock() >= 1000 && lvl_warn_timer)
         {
             lvl_warn_timer = 0;
-            audio_music_fade_to(.5f, level_song(level));
+            audio_music_fade_to(.5f, BGM_TITLE_MAP(level_song(level)));
         }
         else if (curr_clock() < 1000 && !lvl_warn_timer)
         {

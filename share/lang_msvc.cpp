@@ -106,6 +106,10 @@ void ms_nls_free(void)
     targ_lang_text.clear();
 }
 
+#if _MSC_VER
+#define MSVC_DEBUG_NLS 1
+#endif
+
 void ms_nls_init(const char *pref)
 {
     ms_nls_free();
@@ -123,12 +127,20 @@ void ms_nls_init(const char *pref)
                                 NULL);
     }
 
+    if (!dir_exists(dir))
+    {
+        log_errorf("Failure to find locale path: %s - %s\n",
+                   dir, errno ? strerror(errno) : "Unknown error");
+        free(dir);
+        return;
+    }
+
     bool lang_available = false;
 
-    size_t pWLocaleNameC;
+    size_t  pWLocaleNameC;
     wchar_t pWLocaleName[MAXSTR];
-    size_t pCharC;
-    char pCharExt[MAXSTR], pChar[MAXSTR];
+    size_t  pCharC;
+    char    pCharExt[MAXSTR], pChar[MAXSTR];
 
 #define LANG_RESET_DEFAULTS \
     do {                                                        \
@@ -143,7 +155,7 @@ void ms_nls_init(const char *pref)
     if (strlen(pref) < 2)
     {
         LANG_RESET_DEFAULTS;
-        log_printf("Choosed system locale language: %s\n", pCharExt);
+        log_printf("Choosed system locale code: %s\n", pCharExt);
         lang_available = true;
     }
     else
@@ -158,7 +170,7 @@ void ms_nls_init(const char *pref)
 
         if (!IsValidLocaleName(pWLocaleName))
         {
-            log_errorf("Invalid locale name called: %s\n", pWLocaleName);
+            log_errorf("Invalid locale code: %s\n", pWLocaleName);
             LANG_RESET_DEFAULTS;
         }
         else
@@ -172,7 +184,7 @@ void ms_nls_init(const char *pref)
                     pCharExt[i] = '_';
             }
 
-            log_printf("Used locale language: %s\n", pCharExt);
+            log_printf("Used locale code: %s\n", pCharExt);
             lang_available = true;
         }
     }
@@ -183,8 +195,18 @@ void ms_nls_init(const char *pref)
     char *inPath = strdup(concat_string(dir, "\\", pChar, ".po", NULL));
     char *inPathExt = strdup(concat_string(dir, "\\", pCharExt, ".po", NULL));
 
+    int lock_it = 0;
+
+    for (lock_it = 0; inPath[lock_it]; ++lock_it)
+        if (inPath[lock_it] == '\\')
+            inPath[lock_it] = '/';
+
+    for (lock_it = 0; inPathExt[lock_it]; ++lock_it)
+        if (inPathExt[lock_it] == '\\')
+            inPathExt[lock_it] = '/';
+
     bool lang_duplicated = false, lang_src_empty = false,
-        lang_src_hold = false, lang_targ_hold = false;
+         lang_src_hold   = false, lang_targ_hold = false;
 
     char src_lang_stack_final[MAXSTR];
     char targ_lang_stack_final[MAXSTR];

@@ -16,7 +16,11 @@
 You will also  need  to  download  OpenDriveAPI  for each development
 platforms.  This project code library is available from the OneDrive.
 
+    Source code:
     https://1drv.ms/u/s!Airrmyu6L5eynGj7HtYcQU_0ERtA?e=9XU5Zp
+
+    Windows 11 SDK:
+    https://1drv.ms/u/s!Airrmyu6L5eynH3sBvBMPVLzPNEi?e=IEkpm8
 
 By  default development during compilation,  it is placed by the file
 under Unix and Linux when running the script.
@@ -147,9 +151,9 @@ The dist subdirectory contains some miscellaneous files:
 * EDITIONS
 
 To upgrade from the open-source edition, follow this link:
-https://docs.google.com/forms/d/e/1FAIpQLSfdGg7UI20mWuT33NAIGE3g922wvleZ8Wm1rcagQWohmLPICQ/viewform?usp=sf_link
+https://forms.office.com/r/upfWqaVVtA
 
-Once you've registered as Home editions, use the command:
+Once you've registered as Home editions, run this command:
 
     make EDITION=home
 
@@ -158,6 +162,7 @@ Or, once you've purchased the edition,  you can use  a valid editions:
     * pro
     * enterprise
     * education
+    * server_essentials
     * server_standard
     * server_datacenter
 

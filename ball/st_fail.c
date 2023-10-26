@@ -212,7 +212,7 @@ static int fail_action(int tok, int val)
 
     case FAIL_TRANSFER_MEMBER:
 #if defined(__EMSCRIPTEN__)
-        EM_ASM({ Neverball.doJoinDiscord() }, 0);
+        EM_ASM({ Neverball.doJoinDiscordPremium() }, 0);
 #elif _WIN32
         system("start msedge https://discord.gg/qnJR263Hm2");
 #elif defined(__APPLE__)

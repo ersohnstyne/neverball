@@ -540,7 +540,7 @@ static int shop_gui(void)
 
 static int shop_enter(struct state *st, struct state *prev)
 {
-    audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" : "bgm/title.ogg");
+    audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" : BGM_TITLE_CONF_LANGUAGE);
 
     char newPlayername[MAXSTR];
     SAFECPY(newPlayername, config_get_s(CONFIG_PLAYER));

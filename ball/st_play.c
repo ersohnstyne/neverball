@@ -970,11 +970,9 @@ static void play_loop_stick(int id, int a, float v, int bump)
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X1, a))
         {
             if (v + axis_offset[2] > 0.0f)
-                /* Previously used: +v */
-                rot_set(DIR_R, -v + axis_offset[2], 1); 
+                rot_set(DIR_R, +v + axis_offset[2] * (config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? -1 : 1), 1);
             else if (v + axis_offset[2] < 0.0f)
-                /* Previously used: -v */
-                rot_set(DIR_L, +v + axis_offset[2], 1); 
+                rot_set(DIR_L, -v + axis_offset[2] * (config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? -1 : 1), 1);
             else
                 rot_clr(DIR_R | DIR_L);
         }
@@ -1030,9 +1028,9 @@ static int play_loop_click(int b, int d)
         )
     {
         /*if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
-            rot_clr(DIR_L);
+            rot_clr(config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? DIR_R : DIR_L);
         if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
-            rot_clr(DIR_R);*/
+            rot_clr(config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? DIR_L : DIR_R);*/
 
         if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
             lmb_holded = 0;

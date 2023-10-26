@@ -1213,7 +1213,7 @@ static int levelgroup_enter(struct state *st, struct state *prev)
     audio_music_fade_to(0.5f, "bgm/inter_local.ogg");
 #else
     audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
-                                                     "bgm/title.ogg");
+                                                     BGM_TITLE_CONF_LANGUAGE);
 #endif
 
     return levelgroup_gui();

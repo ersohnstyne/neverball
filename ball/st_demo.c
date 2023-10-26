@@ -1154,7 +1154,7 @@ static int demo_enter(struct state *st, struct state *prev)
 
 #if NB_HAVE_PB_BOTH==1
     audio_music_fade_to(0.0f, switchball_useable() ? "bgm/title-switchball.ogg" :
-                                                     "bgm/title.ogg");
+                                                     BGM_TITLE_CONF_LANGUAGE);
 #else
     audio_music_fade_to(0.0f, "gui/bgm/inter.ogg");
 #endif

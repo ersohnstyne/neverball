@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,8 +12,14 @@
  * General Public License for more details.
  */
 
+#if _WIN32
+#include <SDL3/SDL.h>
+#include <SDL/SDL_thread.h>
+#else
 #include <SDL.h>
 #include <SDL_thread.h>
+#endif
+
 #include <math.h>
 #include <stdio.h>
 
@@ -84,9 +90,9 @@ static int get_button(struct button_state *B)
 
 struct tilt_state
 {
-    int   status;
-    float x;
-    float z;
+    int                 status;
+    float               x;
+    float               z;
     struct button_state A;
     struct button_state B;
     struct button_state plus;
@@ -112,7 +118,7 @@ static int tilt_func(void *data)
     if (strlen(address) > 0)
     {
         if (wiimote_connect(&wiimote, address) < 0)
-            log_printf("Wiimote error (%s)\n", wiimote_get_error());
+            log_errorf("Wiimote error (%s)\n", wiimote_get_error());
         else
         {
             int running = 1;
@@ -168,23 +174,27 @@ void tilt_init(void)
     memset(&state, 0, sizeof (struct tilt_state));
 
     mutex  = SDL_CreateMutex();
-    thread = SDL_CreateThread(tilt_func, "", NULL);
+    thread = SDL_CreateThread(tilt_func, NULL);
 }
 
 void tilt_free(void)
 {
+    int b = 0;
+
     if (mutex)
     {
         /* Get/set the status of the tilt sensor thread. */
 
         SDL_LockMutex(mutex);
+        b = state.status;
         state.status = 0;
         SDL_UnlockMutex(mutex);
 
-        /* Wait for the thread to terminate and destroy the mutex. */
+        /* Kill the thread and destroy the mutex. */
 
-        SDL_WaitThread(thread, NULL);
+        SDL_KillThread(thread);
         SDL_DestroyMutex(mutex);
+
         mutex  = NULL;
         thread = NULL;
     }
@@ -210,17 +220,17 @@ int tilt_get_button(int *b, int *s)
             }
             else if ((ch = get_button(&state.plus)))
             {
-                *b = config_get_d(CONFIG_JOYSTICK_BUTTON_R1);
+                *b = config_get_d(CONFIG_JOYSTICK_BUTTON_R);
                 *s = (ch == BUTTON_DN);
             }
             else if ((ch = get_button(&state.minus)))
             {
-                *b = config_get_d(CONFIG_JOYSTICK_BUTTON_L1);
+                *b = config_get_d(CONFIG_JOYSTICK_BUTTON_L);
                 *s = (ch == BUTTON_DN);
             }
             else if ((ch = get_button(&state.home)))
             {
-                *b = config_get_d(CONFIG_JOYSTICK_BUTTON_START);
+                *b = config_get_d(CONFIG_JOYSTICK_BUTTON_EXIT);
                 *s = (ch == BUTTON_DN);
             }
             else if ((ch = get_button(&state.L)))

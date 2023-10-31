@@ -1,0 +1,1 @@
+apt-get install libjpeg-dev libopenhmd-dev libpng-dev libsdl2-dev libsdl2-ttf-dev libvorbis-dev libzip-dev libcurl-dev -y

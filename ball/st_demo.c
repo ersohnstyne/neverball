@@ -1657,15 +1657,17 @@ static int demo_end_gui(void)
         gui_state(id, _("Options"), GUI_SML, DEMO_CONF, 0);
         gui_space(id);
 
+        gui_space(id);
+
         if ((jd = gui_harray(id)))
         {
-            if (standalone)
-                gui_start(jd, _("Quit"), GUI_SML, DEMO_QUIT, 0);
-            else
-            {
-                gui_start(jd, _("Quit"), GUI_SML, DEMO_KEEP, 0);
-                gui_state(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
-            }
+           if (standalone)
+               gui_start(jd, _("Exit"), GUI_SML, DEMO_QUIT, 0);
+           else
+           {
+               gui_start(jd, _("Exit"), GUI_SML, DEMO_KEEP, 0);
+               gui_state(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
+           }
 
             /* Only that is limit underneath it */
             if (get_maximum_status() <= get_limit_status() &&

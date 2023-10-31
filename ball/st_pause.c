@@ -277,65 +277,19 @@ static int pause_gui(void)
 
         gui_space(id);
 
-#ifdef MAPC_INCLUDES_CHKP
-#if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
-        if      (curr_mode() == MODE_NORMAL &&
-                 account_get_d(ACCOUNT_PRODUCT_MEDIATION) && last_active)
-            drastic = pause_button_width(1, 1) * 5 > config_get_d(CONFIG_WIDTH);
-        else if (curr_mode() == MODE_NORMAL &&
-                 account_get_d(ACCOUNT_PRODUCT_MEDIATION))
-            drastic = pause_button_width(1, 0) * 4 > config_get_d(CONFIG_WIDTH);
-        else
-#endif
-        if      (last_active)
-            drastic = pause_button_width(0, 1) * 4 > config_get_d(CONFIG_WIDTH);
-#else
-#if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
-        if      (curr_mode() == MODE_NORMAL &&
-                 account_get_d(ACCOUNT_PRODUCT_MEDIATION) && last_active)
-            drastic = pause_button_width(1, 1) * 4 > config_get_d(CONFIG_WIDTH);
-        else if (curr_mode() == MODE_NORMAL &&
-                 account_get_d(ACCOUNT_PRODUCT_MEDIATION))
-            drastic = pause_button_width(1, 0) * 3 > config_get_d(CONFIG_WIDTH);
-#endif
-#endif
-
-        gui_state(id, _("Options"), GUI_SML, PAUSE_CONF, 0);
-        gui_space(id);
-        
-        /*
-         * If the wide button is drastic from width pixels,
-         * stack more buttons.
-         */
-
-        if (drastic)
-        {
-            if ((jd = gui_harray(id)))
-            {
-#ifdef MAPC_INCLUDES_CHKP
-                if (progress_same_avail() && last_active)
-                    gui_state(jd, _("Reset Puzzle"), GUI_SML, PAUSE_RESPAWN, 0);
-#endif
-
-#if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
-                if (curr_mode() == MODE_NORMAL &&
-                    account_get_d(ACCOUNT_PRODUCT_MEDIATION) &&
-                    !mediation_enabled()
-                    )
-                    gui_state(jd, _("Switch to Zen"), GUI_SML, PAUSE_ZEN_SWITCH, 0);
-#endif
-            }
-
-            gui_space(id);
-        }
-
         if ((jd = gui_harray(id)))
         {
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            const char *quit_btn_text = campaign_used() ? N_("Quit") : N_("Give Up");
+#else
+            const char *quit_btn_text = N_("Give Up");
+#endif
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (current_platform == PLATFORM_PC)
 #endif
             {
-                gui_state(jd, _("Quit"), GUI_SML, PAUSE_EXIT, 0);
+                gui_state(jd, _(quit_btn_text), GUI_SML, PAUSE_EXIT, 0);
 
                 if (progress_same_avail())
                     gui_state(jd, _("Restart"), GUI_SML, PAUSE_RESTART, 0);
@@ -345,7 +299,7 @@ static int pause_gui(void)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             else
             {
-                gui_state(jd, _("Quit"), GUI_SML, PAUSE_EXIT, 0);
+                gui_state(jd, _(quit_btn_text), GUI_SML, PAUSE_EXIT, 0);
                 if (progress_same_avail())
                     gui_start(jd, _("Restart"), GUI_SML, PAUSE_RESTART, 0);
             }

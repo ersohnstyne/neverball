@@ -578,7 +578,7 @@ static int fail_gui(void)
                  * Some buttons were removed by Mojang in this future!
                  * (e.g. death_screen.json in Minecraft Android, iOS or Windows)
                  */
-                gui_start(jd, _("Exit"), GUI_SML, FAIL_OVER, 0);
+                gui_start(jd, _("Back To Menu"), GUI_SML, FAIL_OVER, 0);
 
 #if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
                 if (!campaign_hardcore())

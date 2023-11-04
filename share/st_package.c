@@ -376,6 +376,8 @@ static int gui_package_button(int id, int pi)
         default:                  gui_set_label(status_id, GUI_ARROW_DN); break;
         }
 
+        gui_set_font(status_id, GUI_FACE);
+
         if (status_ids)
             status_ids[pi] = status_id;
 
@@ -478,6 +480,8 @@ static int package_gui(void)
                 install_label_id  = gui_label(kd, _("Install"),
                                                   GUI_SML, gui_wht, gui_wht);
 
+                gui_set_font(install_status_id, GUI_FACE);
+
                 gui_set_rect(kd, GUI_ALL);
                 gui_set_state(kd, PACKAGE_INSTALL, 0);
 
@@ -486,7 +490,7 @@ static int package_gui(void)
 
             gui_filler(jd);
 
-            type_id = gui_label(jd, "XXXXXXX", GUI_SML, gui_yel, gui_wht);
+            type_id = gui_label(jd, "XXXXXXX", GUI_SML, GUI_COLOR_DEFAULT);
         }
 
         gui_layout(id, 0, 0);

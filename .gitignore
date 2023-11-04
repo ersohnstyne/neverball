@@ -1,14 +1,16 @@
 # Microsoft Visual Studio Community / Code
 *.VC.*db*
-/neverball/*
-!/neverball/*.vcxproj
-!/neverball/*.vcxproj.filters
-!/neverball/*.vcxproj.user
-.vs
+/pennyball/*
+!/pennyball/*.vcxproj
+!/pennyball/*.vcxproj.filters
+!/pennyball/*.vcxproj.user
 .vscode
 
+# Mac XCode
+.DS_Store
+
 # Should be edited in the pictures
-!/dist/*.drawio
+!*.drawio
 !/dist/*.svg
 
 # Signed certificates for Powershell scripts
@@ -16,6 +18,7 @@
 
 # Distros
 *.desktop
+/packages
 
 # Radiant Mappers
 *.bak
@@ -48,25 +51,22 @@
 /share/*.c.txt
 /share/*.cpp.txt
 
-# Windows Runtime
+# Runtime
 /*.bat
 /*.dll
 /*.exe
+/runtimes/*.dll
 /contrib/*.exe
 
-# Unix / Linux Runtime
-/neverball
-/neverputt
+/pennyball
+/pennyputt
 /mapc
 /contrib/curve
 
 # Emscripten Runtime
-/js/neverball.data
-/js/neverball.js
-/js/neverball.wasm
-/js/neverputt.data
-/js/neverputt.js
-/js/neverputt.wasm
+/js/pennyball.data
+/js/pennyball.js
+/js/pennyball.wasm
 /js/mapc.js
 /js/mapc.wasm
 /js/packages
@@ -74,5 +74,3 @@
 # ZIP archives
 /*.tar
 /*.zip
-
-/packages

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -16,6 +16,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if NB_HAVE_PB_BOTH==1
+#include "solid_chkp.h"
+#endif
 #include "solid_base.h"
 #include "base_config.h"
 #include "binary.h"
@@ -23,12 +26,22 @@
 #include "fs.h"
 #include "vec3.h"
 
+#if NB_HAVE_PB_BOTH==1
+enum
+{
+    SOL_VERSION_1_5 = 6,
+    SOL_VERSION_1_6 = 7,
+    SOL_VERSION_1_7 = 8,
+    SOL_VERSION_DEV
+};
+#else
 enum
 {
     SOL_VERSION_1_5 = 6,
     SOL_VERSION_1_6 = 7,
     SOL_VERSION_DEV
 };
+#endif
 
 #define SOL_VERSION_MIN  SOL_VERSION_1_5
 #define SOL_VERSION_CURR SOL_VERSION_DEV
@@ -325,7 +338,20 @@ static void sol_load_ball(fs_file fin, struct b_ball *up)
     get_array(fin, up->p, 3);
 
     up->r = get_float(fin);
+#ifdef START_POS_ANGULAR_BETA
+    up->a = get_float(fin);
+#endif
 }
+
+#ifdef MAPC_INCLUDES_CHKP
+/* New: Checkpoints */
+static void sol_load_chkp(fs_file fin, struct b_chkp *cp)
+{
+    get_array(fin, cp->p, 3);
+
+    cp->r = get_float(fin);
+}
+#endif
 
 static void sol_load_view(fs_file fin, struct b_view *wp)
 {
@@ -363,6 +389,11 @@ static void sol_load_indx(fs_file fin, struct s_base *fp)
     fp->xc = get_index(fin);
     fp->rc = get_index(fin);
     fp->uc = get_index(fin);
+#ifdef MAPC_INCLUDES_CHKP
+    /* New: Checkpoints */
+    if (sol_version > SOL_VERSION_1_7)
+        fp->cc = get_index(fin);
+#endif
     fp->wc = get_index(fin);
     fp->ic = get_index(fin);
 }
@@ -412,6 +443,15 @@ static int sol_load_file(fs_file fin, struct s_base *fp)
         fp->rv = (struct b_bill *) calloc(fp->rc, sizeof (*fp->rv));
     if (fp->uc)
         fp->uv = (struct b_ball *) calloc(fp->uc, sizeof (*fp->uv));
+#ifdef MAPC_INCLUDES_CHKP
+    if (sol_version > SOL_VERSION_1_7)
+    {
+        /* New: Checkpoints */
+        if (fp->cc)
+            fp->cv = (struct b_chkp *) calloc(fp->cc, sizeof (*fp->cv));
+    }
+    else fp->cc = 0;
+#endif
     if (fp->wc)
         fp->wv = (struct b_view *) calloc(fp->wc, sizeof (*fp->wv));
     if (fp->dc)
@@ -440,6 +480,11 @@ static int sol_load_file(fs_file fin, struct s_base *fp)
     for (i = 0; i < fp->xc; i++) sol_load_swch(fin, fp->xv + i);
     for (i = 0; i < fp->rc; i++) sol_load_bill(fin, fp->rv + i);
     for (i = 0; i < fp->uc; i++) sol_load_ball(fin, fp->uv + i);
+#ifdef MAPC_INCLUDES_CHKP
+    /* New: Checkpoints */
+    if (sol_version > SOL_VERSION_1_7)
+        for (i = 0; i < fp->cc; i++) sol_load_chkp(fin, fp->cv + i);
+#endif
     for (i = 0; i < fp->wc; i++) sol_load_view(fin, fp->wv + i);
     for (i = 0; i < fp->ic; i++) fp->iv[i] = get_index(fin);
 
@@ -458,7 +503,7 @@ static int sol_load_file(fs_file fin, struct s_base *fp)
         for (i = 0; i < fp->mc; ++i)
             fp->mv[i].fl |= M_LIT;
 
-        for (i = 0; i < fp->rc; ++i)
+         for (i = 0; i < fp->rc; ++i)
           fp->mv[fp->rv[i].mi].fl &= ~M_LIT;
     }
 
@@ -497,8 +542,11 @@ int sol_load_base(struct s_base *fp, const char *filename)
     int res = 0;
 
     memset(fp, 0, sizeof (*fp));
-
+#ifdef FS_VERSION_1
+    if ((fin = fs_open(filename, "r")))
+#else
     if ((fin = fs_open_read(filename)))
+#endif
     {
         res = sol_load_file(fin, fp);
         fs_close(fin);
@@ -513,7 +561,11 @@ int sol_load_meta(struct s_base *fp, const char *filename)
 
     memset(fp, 0, sizeof (*fp));
 
+#ifdef FS_VERSION_1
+    if ((fin = fs_open(filename, "r")))
+#else
     if ((fin = fs_open_read(filename)))
+#endif
     {
         res = sol_load_head(fin, fp);
         fs_close(fin);
@@ -541,6 +593,11 @@ void sol_free_base(struct s_base *fp)
     if (fp->xv) free(fp->xv);
     if (fp->rv) free(fp->rv);
     if (fp->uv) free(fp->uv);
+#ifdef MAPC_INCLUDES_CHKP
+    /* New: Checkpoints */
+    if (sol_version > SOL_VERSION_1_7)
+        if (fp->cv) free(fp->cv);
+#endif
     if (fp->wv) free(fp->wv);
     if (fp->dv) free(fp->dv);
     if (fp->iv) free(fp->iv);
@@ -701,7 +758,19 @@ static void sol_stor_ball(fs_file fout, struct b_ball *bp)
 {
     put_array(fout, bp->p, 3);
     put_float(fout, bp->r);
+#ifdef START_POS_ANGULAR_BETA
+    put_float(fout, bp->a);
+#endif
 }
+
+#ifdef MAPC_INCLUDES_CHKP
+/* New: Checkpoints */
+static void sol_stor_chkp(fs_file fout, struct b_chkp *cp)
+{
+    put_array(fout, cp->p, 3);
+    put_float(fout, cp->r);
+}
+#endif
 
 static void sol_stor_view(fs_file fout, struct b_view *wp)
 {
@@ -719,7 +788,14 @@ static void sol_stor_file(fs_file fout, struct s_base *fp)
 {
     int i;
     int magic   = SOL_MAGIC;
-    int version = SOL_VERSION_CURR;
+
+#ifdef MAPC_INCLUDES_CHKP
+    int version = fp->cc > 0 ? SOL_VERSION_CURR : SOL_VERSION_1_7;
+
+    if (fp->cc == 0) version = 8;
+#else
+    int version = 8;
+#endif
 
     put_index(fout, magic);
     put_index(fout, version);
@@ -743,6 +819,11 @@ static void sol_stor_file(fs_file fout, struct s_base *fp)
     put_index(fout, fp->xc);
     put_index(fout, fp->rc);
     put_index(fout, fp->uc);
+#ifdef MAPC_INCLUDES_CHKP
+    /* New: Checkpoints */
+    if (version > SOL_VERSION_1_7)
+        put_index(fout, fp->cc);
+#endif
     put_index(fout, fp->wc);
     put_index(fout, fp->ic);
 
@@ -766,6 +847,11 @@ static void sol_stor_file(fs_file fout, struct s_base *fp)
     for (i = 0; i < fp->xc; i++) sol_stor_swch(fout, fp->xv + i);
     for (i = 0; i < fp->rc; i++) sol_stor_bill(fout, fp->rv + i);
     for (i = 0; i < fp->uc; i++) sol_stor_ball(fout, fp->uv + i);
+#ifdef MAPC_INCLUDES_CHKP
+    /* New: Checkpoints */
+    if (version > SOL_VERSION_1_7)
+        for (i = 0; i < fp->cc; i++) sol_stor_chkp(fout, fp->cv + i);
+#endif
     for (i = 0; i < fp->wc; i++) sol_stor_view(fout, fp->wv + i);
     for (i = 0; i < fp->ic; i++) put_index(fout, fp->iv[i]);
 }
@@ -774,7 +860,11 @@ int sol_stor_base(struct s_base *fp, const char *filename)
 {
     fs_file fout;
 
+#ifdef FS_VERSION_1
+    if ((fout = fs_open(filename, "w")))
+#else
     if ((fout = fs_open_write(filename)))
+#endif
     {
         sol_stor_file(fout, fp);
         fs_close(fout);
@@ -829,7 +919,7 @@ static const struct
     { "transparent", M_TRANSPARENT },
     { "two-sided",   M_TWO_SIDED },
     { "particle",    M_PARTICLE },
-    { "lit",         M_LIT },
+    { "lit",         M_LIT},
 };
 
 int mtrl_read(struct b_mtrl *mp, const char *name)
@@ -861,8 +951,11 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
         for (i = 0; i < ARRAYSIZE(mtrl_paths); i++)
         {
             CONCAT_PATH(line, &mtrl_paths[i], name);
-
+#ifdef FS_VERSION_1
+            if ((fp = fs_open(line, "r")))
+#else
             if ((fp = fs_open_read(line)))
+#endif
                 break;
         }
 
@@ -874,6 +967,31 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
             {
                 char *p = strip_newline(line);
 
+#if _MSC_VER && !_CRT_SECURE_NO_WARNINGS
+                if (sscanf_s(p, "diffuse %f %f %f %f",
+                    &mp->d[0], &mp->d[1],
+                    &mp->d[2], &mp->d[3]) == 4)
+                {
+                }
+                else if (sscanf_s(p, "ambient %f %f %f %f",
+                    &mp->a[0], &mp->a[1],
+                    &mp->a[2], &mp->a[3]) == 4)
+                {
+                }
+                else if (sscanf_s(p, "specular %f %f %f %f",
+                    &mp->s[0], &mp->s[1],
+                    &mp->s[2], &mp->s[3]) == 4)
+                {
+                }
+                else if (sscanf_s(p, "emissive %f %f %f %f",
+                    &mp->e[0], &mp->e[1],
+                    &mp->e[2], &mp->e[3]) == 4)
+                {
+                }
+                else if (sscanf_s(p, "shininess %f", &mp->h[0]) == 1)
+                {
+                }
+#else
                 if (sscanf(p, "diffuse %f %f %f %f",
                            &mp->d[0], &mp->d[1],
                            &mp->d[2], &mp->d[3]) == 4)
@@ -897,14 +1015,18 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                 else if (sscanf(p, "shininess %f", &mp->h[0]) == 1)
                 {
                 }
+#endif
                 else if (strncmp(p, "flags ", 6) == 0)
                 {
                     int f = 0;
                     int n;
 
                     p += 6;
-
+#if _MSC_VER && !_CRT_SECURE_NO_WARNINGS
+                    while (sscanf_s(p, "%s%n", word, &n) > 0)
+#else
                     while (sscanf(p, "%s%n", word, &n) > 0)
+#endif
                     {
                         for (i = 0; i < ARRAYSIZE(mtrl_flags); i++)
                             if (strcmp(word, mtrl_flags[i].name) == 0)
@@ -918,11 +1040,19 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
 
                     mp->fl = f;
                 }
+#if _MSC_VER && !_CRT_SECURE_NO_WARNINGS
+                else if (sscanf_s(p, "angle %f", &mp->angle) == 1)
+                {
+                }
+                else if (sscanf_s(p, "alpha-test %15s %f",
+                    str, &mp->alpha_ref) == 2)
+#else
                 else if (sscanf(p, "angle %f", &mp->angle) == 1)
                 {
                 }
                 else if (sscanf(p, "alpha-test %15s %f",
                                 str, &mp->alpha_ref) == 2)
+#endif
                 {
                     mp->fl |= M_ALPHA_TEST;
 

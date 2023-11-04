@@ -1,3 +1,17 @@
+/*
+ * Copyright (C) 2023 Microsoft / Neverball authors
+ *
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * it under the  terms of the GNU General  Public License as published
+ * by the Free  Software Foundation; either version 2  of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+ * General Public License for more details.
+ */
+
 #ifndef ST_COMMON_H
 #define ST_COMMON_H
 
@@ -14,6 +28,9 @@ struct conf_option
 void conf_slider(int id, const char *text,
                  int token, int value,
                  int *ids, int num);
+int  conf_slider_v2(int id, const char *text,
+                    int token, int value);
+void conf_set_slider_v2(int id, int val);
 int  conf_state (int id, const char *label, const char *text, int token);
 void conf_toggle(int id, const char *label, int token, int value,
                  const char *text1, int value1,
@@ -37,7 +54,7 @@ int  common_buttn(int b, int d);
 
 /*---------------------------------------------------------------------------*/
 
-void conf_common_init(int (*action_fn)(int, int));
+void conf_common_init(int (*action_fn)(int, int), int allowfade);
 void conf_common_leave(struct state *st, struct state *next, int id);
 void conf_common_paint(int id, float t);
 
@@ -53,10 +70,13 @@ extern struct state st_null;
  * These are actually implemented by this module.
  */
 extern struct state st_video;
+extern struct state st_video_advanced;
 extern struct state st_display;
+#if !defined(RESIZEABLE_WINDOW)
 extern struct state st_resol;
+#endif
 extern struct state st_lang;
-extern struct state st_joystick;
+extern struct state st_restart_required;
 
 /*---------------------------------------------------------------------------*/
 

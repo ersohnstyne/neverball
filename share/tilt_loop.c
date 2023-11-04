@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Neverball authors
+ * Copyright (C) 2023 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,8 +12,14 @@
  * General Public License for more details.
  */
 
+#if _WIN32
+#include <SDL3/SDL.h>
+#include <SDL/SDL_thread.h>
+#else
 #include <SDL.h>
 #include <SDL_thread.h>
+#endif
+
 #include <math.h>
 #include <stdio.h>
 
@@ -82,9 +88,9 @@ static int get_button(struct button_state *B)
 
 struct tilt_state
 {
-    int   status;
-    float x;
-    float z;
+    int                 status;
+    float               x;
+    float               z;
     struct button_state A;
     struct button_state B;
     struct button_state plus;
@@ -111,19 +117,18 @@ static SDL_Thread       *thread = NULL;
 
 static int tilt_func(void *data)
 {
-    FreespaceDeviceId deviceId;
-    uint8_t buffer[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
-    int rc;
-    float x, y, z;
+    FreespaceDeviceId                  deviceId;
+    uint8_t                          buffer[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
+    int                                rc;
+    float                              x, y, z;
     struct freespace_DataMotionControl d;
-    struct freespace_UserFrame userFrame;
-    int running = 1;
-    int length;
-    int numIds;
+    struct freespace_UserFrame         userFrame;
+    int                                running = 1;
+    int                                length;
+    int                                numIds;
 
-    float quat[4];
+    float quat       [4];
     float eulerAngles[3];
-
 
     rc = freespace_getDeviceList(&deviceId, 1, &numIds);
     if (numIds == 0) {
@@ -145,14 +150,12 @@ static int tilt_func(void *data)
     d.inhibitPowerManager = 0;
     d.enableMouseMovement = 1;
     d.disableFreespace = 0;
-    rc = freespace_encodeDataMotionControl(&d, buffer, sizeof(buffer));
-    if (rc > 0) {
+    rc = freespace_encodeDataMotionControl(&d, buffer, sizeof (buffer));
+    if (rc > 0)
+    {
         rc = freespace_send(deviceId, buffer, rc);
-        if (rc != FREESPACE_SUCCESS) {
-            return 1;
-        }
+        if (rc != FREESPACE_SUCCESS) return 1;
     }
-
 
     SDL_LockMutex(mutex);
     state.status = running;
@@ -164,7 +167,8 @@ static int tilt_func(void *data)
         running = state.status;
         SDL_UnlockMutex(mutex);
 
-        rc = freespace_read(deviceId, buffer, FREESPACE_MAX_INPUT_MESSAGE_SIZE, 100, &length);
+        rc = freespace_read(deviceId, buffer, FREESPACE_MAX_INPUT_MESSAGE_SIZE,
+                            100, &length);
         if (rc != FREESPACE_SUCCESS) {
             continue;
         }
@@ -173,23 +177,36 @@ static int tilt_func(void *data)
             continue;
         }
 
-        if (freespace_decodeUserFrame(buffer, length, &userFrame) == FREESPACE_SUCCESS) {
-            /* Hillcrest quaternion is rotate the world type, so make it rotate the object type by conjugating*/
-            quat[0] = userFrame.angularPosA;
+        if (freespace_decodeUserFrame(buffer,
+                                      length,
+                                      &userFrame) == FREESPACE_SUCCESS)
+        {
+            /*
+             * Hillcrest quaternion is rotate the world type,
+             * so make it rotate the object type by conjugating
+             */
+            quat[0] =  userFrame.angularPosA;
             quat[1] = -userFrame.angularPosB;
             quat[2] = -userFrame.angularPosC;
             quat[3] = -userFrame.angularPosD;
             q_nrm(quat, quat);
 
-            /* This function does euler decomposition for rotate the object type (ZYX, aerospace) */
+            /*
+             * This function does euler decomposition
+             * for rotate the object type (ZYX, aerospace)
+             */
             q_euler(eulerAngles, quat);
 
             SDL_LockMutex(mutex);
             {
-                /* Since the game expects "rotate the world type", conjugate by negating all angles & convert to degrees
+                /*
+                 * Since the game expects "rotate the world type",
+                 * conjugate by negating all angles & convert to degrees
+                 * 
                  * Z is yaw
                  * Y is pitch
-                 * X is roll */
+                 * X is roll
+                 */
                 z = -eulerAngles[0] * 57.2957795;
                 y = -eulerAngles[1] * 57.2957795;
                 x = -eulerAngles[2] * 57.2957795;
@@ -198,8 +215,8 @@ static int tilt_func(void *data)
                 state.z = -x * DAMPENING;
 
                 set_button(&state.home, userFrame.button3);
-                set_button(&state.U, userFrame.deltaWheel > 0);
-                set_button(&state.D, userFrame.deltaWheel < 0);
+                set_button(&state.U,    userFrame.deltaWheel > 0);
+                set_button(&state.D,    userFrame.deltaWheel < 0);
             }
             SDL_UnlockMutex(mutex);
         }

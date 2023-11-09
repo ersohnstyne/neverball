@@ -49,7 +49,7 @@
       right: 0;
     }
 
-    button#fullscreen {
+    .fullscreen-button {
       display: flex;
       width: 3.2rem;
       height: 3.2rem;
@@ -60,7 +60,7 @@
       align-items: center;
     }
 
-    button#fullscreen::before {
+    .fullscreen-button::before {
       content: '';
       display: block;
       width: 1.6rem;
@@ -68,13 +68,17 @@
       border: 0.2rem dashed #fff;
     }
 
-    button#fullscreen:hover {
+    .fullscreen-button:hover {
       animation: pulse 0.2s ease-in-out;
       cursor: pointer;
     }
 
-    button#fullscreen:focus {
+    .fullscreen-button:focus {
       outline: none;
+    }
+
+    .fullscreen-button span {
+      display: none;
     }
 
     @keyframes pulse {
@@ -91,11 +95,7 @@
       }
     }
 
-    button#fullscreen span {
-      display: none;
-    }
-
-    #canvas-wrapper:fullscreen button#fullscreen {
+    #canvas-wrapper:fullscreen .fullscreen-button {
       display: none;
     }
 
@@ -175,8 +175,21 @@
       animation-timing-function: ease-in-out;
     }
 
-    .running #run-button {
+    .running #run-button-wrapper {
       display: none;
+    }
+
+    #run-button:disabled + .spinner {
+      display: block;
+    }
+
+    .spinner {
+      display: none;
+      width: 0.8rem;
+      height: 0.8rem;
+      background-color: #fff;
+      border-radius: 50%;
+      animation: blink 1s infinite;
     }
 
     #screenshot {
@@ -209,6 +222,14 @@
       flex-direction: column;
     }
 
+    .items-center {
+      align-items: center;
+    }
+
+    .gap-2 {
+      gap: 0.8rem;
+    }
+
     .gap-5 {
       gap: 2rem;
     }
@@ -227,6 +248,12 @@
         transform: scale(1.2);
       }
     }
+
+    @keyframes blink {
+      to {
+        opacity: 0;
+      }
+    }
   </style>
 </head>
 
@@ -240,15 +267,16 @@
         <div id="status">Downloading...</div>
       </div>
 
-      <div>
+      <div class="flex gap-2 items-center" id="run-button-wrapper">
         <button id="run-button" class="neverball-button" disabled>Play Now</button>
+        <div class="spinner"></div>
       </div>
 
       <div id="canvas-wrapper">
         <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
 
         <div id="overlay">
-          <button id="fullscreen"><span>Fullscreen</span></button>
+          <button id="fullscreen-button" class="fullscreen-button"><span>Fullscreen</span></button>
         </div>
       </div>
     </div>
@@ -280,6 +308,10 @@
   <script>
     'use strict';
 
+    if (window.history.scrollRestoration) {
+      window.history.scrollRestoration = 'manual';
+    }
+
     var Neverball = {
       EVENT_BACK: -1,
       EVENT_PAUSE: 0,
@@ -288,7 +320,7 @@
       pauseOnPointerRelease: true,
 
       _runButton: document.getElementById('run-button'),
-      _fullscreenButton: document.getElementById('fullscreen'),
+      _fullscreenButton: document.getElementById('fullscreen-button'),
 
       events: {
         runButtonClick: function (event) {

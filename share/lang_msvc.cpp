@@ -43,6 +43,14 @@ extern "C"
 #include "fs.h"
 }
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 #if _WIN32 && _MSC_VER && NLS_GETTEXT!=1

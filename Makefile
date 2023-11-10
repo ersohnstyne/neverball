@@ -1,13 +1,11 @@
 
 #------------------------------------------------------------------------------
 
+# Build: devel, release
 BUILD := $(shell cat neverball-build.txt 2> /dev/null || echo release)
 
-# Build: devel, release
-VERSION := 1.6.0
-VERSION := $(shell sh scripts/version.sh)
-
-$(shell sh scripts/generate-version.sh)
+# Version: MJ.MN.PT.RV.BD
+VERSION := $(shell sh scripts/version.sh || echo 1.6.1)
 
 $(info Will make a "$(BUILD)" build of Neverball $(VERSION).)
 
@@ -47,16 +45,56 @@ ifeq ($(shell uname),Haiku)
 endif
 
 #------------------------------------------------------------------------------
+# Auto-install dependencies (note: they must be connected to the internet)
+
+LBITS := $(shell getconf LONG_BIT)
+
+ifneq ($(SKIP_INSTALL_DEPS),1)
+ifeq ($(PLATFORM),mingw)
+ifeq ($(LBITS),64)
+$(shell sh scripts/install-deps-msys2-x86_64.sh)
+else
+$(shell sh scripts/install-deps-msys2-i686.sh)
+endif
+else
+$(shell sh scripts/install-devel-linux.sh)
+endif
+endif
+
+LIBCURL_PKGNAME   := 'libcurl4-openssl-dev'
+LIBCURL_CHECK     := $(shell apt search $(LIBCURL_PKGNAME) | grep installed)
+LIBCURL_DOINSTALL := 'apt-get install $(LIBCURL_PKGNAME)'
+
+ifeq ($(PLATFORM),mingw)
+ifeq ($(LBITS),64)
+LIBCURL_PKGNAME   := 'mingw-w64-x86_64-curl-winssl'
+else
+LIBCURL_PKGNAME   := 'mingw-w64-i686-curl-winssl'
+endif
+LIBCURL_CHECK     := $(shell pacman -Q | grep $(LIBCURL_PKGNAME))
+LIBCURL_DOINSTALL := 'pacman -Sy $(LIBCURL_PKGNAME)'
+endif
+
+ifneq ($(FS_VERSION),1)
+ifeq ($(ENABLE_FETCH),curl)
+ifeq (, $(LIBCURL_CHECK))
+$(error No $(LIBCURL_PKGNAME) installed, consider doing $(LIBCURL_DOINSTALL))
+endif
+endif
+ifneq (, $(LIBCURL_CHECK))
+ENABLE_FETCH := curl
+else
+$(info No $(LIBCURL_PKGNAME) installed, so downloads are disabled)
+endif
+DATADIR := ./data
+endif
+
+#------------------------------------------------------------------------------
 # Paths (packagers might want to set DATADIR and LOCALEDIR)
 
 USERDIR   := .neverball
 DATADIR   := ./data
 LOCALEDIR := ./locale
-
-ifneq ($(FS_VERSION),1)
-	ENABLE_FETCH := curl
-	DATADIR := ./data
-endif
 
 ifeq ($(PLATFORM),mingw)
 	USERDIR := Neverball_$(VERSION)
@@ -97,23 +135,6 @@ endif
 ifneq ($(CRT_SECURE_NO_WARNINGS),0)
 	CFLAGS   += -D_CRT_SECURE_NO_WARNINGS
 	CXXFLAGS += -D_CRT_SECURE_NO_WARNINGS
-endif
-
-#------------------------------------------------------------------------------
-# Auto-install dependencies (note: they must be connected to the internet)
-
-LBITS := $(shell getconf LONG_BIT)
-
-ifneq ($(SKIP_INSTALL_DEPS),1)
-ifeq ($(PLATFORM),mingw)
-ifeq ($(LBITS),64)
-$(shell sh scripts/install-deps-msys2-x86_64.sh)
-else
-$(shell sh scripts/install-deps-msys2-i686.sh)
-endif
-else
-$(shell sh scripts/install-devel-linux.sh)
-endif
 endif
 
 #------------------------------------------------------------------------------
@@ -877,13 +898,18 @@ ifneq ($(ALTERNATIVE_BUILDENV),Msys2)
 endif
 endif
 
-#all : $(BALL_BUILDCOND) $(PUTT_BUILDCOND) $(MAPC_BUILDCOND) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) locales
-#all : $(error No target specified! Usage: publish, test, sols, csols, locales, desktops, clean-src, clean-sols, clean)
-all : locales
+all : $(BALL_BUILDCOND) $(PUTT_BUILDCOND) $(MAPC_BUILDCOND) \
+	$(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) sols locales desktops
 
-publish : $(BALL_BUILDCOND) $(PUTT_BUILDCOND) $(MAPC_BUILDCOND) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) sols locales desktops
+ball : $(BALL_BUILDCOND) $(BALL_TARG)
+putt : $(PUTT_BUILDCOND) $(PUTT_TARG)
+mapc : $(MAPC_BUILDCOND) $(MAPC_TARG)
 
-test : $(BALL_BUILDCOND) $(PUTT_BUILDCOND) $(MAPC_BUILDCOND) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG)
+publish : $(BALL_BUILDCOND) $(PUTT_BUILDCOND) $(MAPC_BUILDCOND) \
+	$(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) sols locales desktops
+
+test : $(BALL_BUILDCOND) $(PUTT_BUILDCOND) $(MAPC_BUILDCOND) \
+	$(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG)
 
 ifeq ($(ENABLE_HMD),libovr)
 LINK := $(CXX) $(ALL_CXXFLAGS)
@@ -943,7 +969,8 @@ clean : clean-src clean-sols
 
 #------------------------------------------------------------------------------
 
-.PHONY : all sols csols locales desktops clean-src clean
+.PHONY : ball putt mapc publish test sols csols locales desktops clean-src \
+	clean-sols clean
 
 -include $(BALL_DEPS) $(PUTT_DEPS) $(MAPC_DEPS)
 

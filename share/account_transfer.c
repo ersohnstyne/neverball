@@ -350,7 +350,7 @@ void account_transfer_load(const char *paths)
 
 void account_transfer_load_externals(const char *paths)
 {
-    fs_file fh; fh = (fs_file)calloc(1, sizeof (fh));
+    fs_file fh; fh = (fs_file) calloc(1, sizeof (fh));
 
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
 

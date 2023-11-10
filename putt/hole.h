@@ -20,6 +20,35 @@
 #define MAXHOL 28
 #define MAXPLY 5
 
+/*---------------------------------------------------------------------------*/
+
+#define COURSE_SCORE_NOSAVEGAME
+
+/* Scorecard in a single course. */
+
+struct course_score
+{
+    char course_name [256];
+
+    char player   [MAXPLY][256];
+    int  player_id[MAXPLY];
+
+    int  score   [MAXPLY];              /* Total Stroke in session           */
+    int  score_hs[MAXPLY];              /* Total Stroke HS                   */
+
+    int  score_high[MAXPLY];
+};
+
+extern struct course_score course_score_v;
+
+void  course_score_init_hs(struct course_score *);
+
+void  course_score_update_name(struct course_score *, int, const char *);
+void  course_score_insert     (struct course_score *, int);
+void  course_score_finish     (struct course_score *);
+
+/*---------------------------------------------------------------------------*/
+
 void  hole_init(const char *);
 void  hole_free(void);
 int   hole_exists(int);

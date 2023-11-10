@@ -35,38 +35,47 @@ int         GameDbg_GetSigInt(void) { return dbg_sigint; }
 void        GameDbg_ClrSigInt(void) { dbg_sigint = 0; }
 const char* GameDbg_GetError(void)  { return dbg_strerror ? dbg_strerror : "Unknown error"; }
 
+void GameDbg_SigNum_Hangup(int signum)     { dbg_sigint = signum; exit(1); }
 void GameDbg_SigNum_CtrlC(int signum)      { dbg_sigint = signum; exit(0); }
-void GameDbg_SigNum_ElemAddr(int signum)   { dbg_sigint = signum; }
-void GameDbg_SigNum_Breakpt(int signum)    { dbg_sigint = signum; }
-void GameDbg_SigNum_FloatPoint(int signum) { dbg_sigint = signum; }
-void GameDbg_SigNum_Segments(int signum)   { dbg_sigint = signum; }
-void GameDbg_SigNum_Term(int signum)       { dbg_sigint = signum; exit(0); }
+void GameDbg_SigNum_Quit(int signum)       { dbg_sigint = signum; exit(1); }
+void GameDbg_SigNum_ElemAddr(int signum)   { dbg_sigint = signum; exit(1); }
+void GameDbg_SigNum_Breakpt(int signum)    { dbg_sigint = signum; exit(1); }
+void GameDbg_SigNum_FloatPoint(int signum) { dbg_sigint = signum; exit(1); }
+void GameDbg_SigNum_Kill(int signum)       { dbg_sigint = signum; exit(1); }
+void GameDbg_SigNum_Segments(int signum)   { dbg_sigint = signum; exit(1); }
+void GameDbg_SigNum_Term(int signum)       { dbg_sigint = signum; exit(1); }
+#ifdef _WIN32
 void GameDbg_SigNum_CtrlBreak(int signum)  { dbg_sigint = signum; exit(0); }
-void GameDbg_SigNum_Abort(int signum)      { dbg_sigint = signum; exit(3); }
+#endif
 
 void GameDbg_Check_SegPerformed(void)
 { 
     memset(dbg_strerror, 0, 256);
 #if _WIN32 && _MSC_VER
     switch (dbg_sigint) {
-    case 0: return;
-    case SIGINT:
-        DW_FORMAT_MSG(ERROR_DBG_CONTROL_C, dbg_strerror, 255); break;
-    case SIGILL:
-        DW_FORMAT_MSG(ERROR_ILLEGAL_ELEMENT_ADDRESS, dbg_strerror, 255); break;
-    case SIGTRAP:
-        DW_FORMAT_MSG(ERROR_SEGMENT_NOTIFICATION, dbg_strerror, 255); break;
-    case SIGFPE:
-        DW_FORMAT_MSG(ERROR_ILLEGAL_FLOAT_CONTEXT, dbg_strerror, 255); break;
-    case SIGTERM:
-        DW_FORMAT_MSG(ERROR_DBG_TERMINATE_PROCESS, dbg_strerror, 255); break;
-    case SIGBREAK:
-        DW_FORMAT_MSG(ERROR_DBG_CONTROL_BREAK, dbg_strerror, 255); break;
-    default:
-        DW_FORMAT_MSG(GetLastError(), dbg_strerror, 255);
+        case 0: return;
+        case SIGHUP:
+            DW_FORMAT_MSG(ERROR_TIMEOUT, dbg_strerror, 255); break;
+        case SIGINT:
+            DW_FORMAT_MSG(ERROR_DBG_CONTROL_C, dbg_strerror, 255); break;
+        case SIGILL:
+            DW_FORMAT_MSG(ERROR_ILLEGAL_ELEMENT_ADDRESS, dbg_strerror, 255); break;
+        case SIGTRAP:
+            DW_FORMAT_MSG(ERROR_SEGMENT_NOTIFICATION, dbg_strerror, 255); break;
+        case SIGFPE:
+            DW_FORMAT_MSG(ERROR_ILLEGAL_FLOAT_CONTEXT, dbg_strerror, 255); break;
+        case SIGTERM:
+            DW_FORMAT_MSG(ERROR_DBG_TERMINATE_PROCESS, dbg_strerror, 255); break;
+        case SIGBREAK:
+            DW_FORMAT_MSG(ERROR_DBG_CONTROL_BREAK, dbg_strerror, 255); break;
+        default:
+            DW_FORMAT_MSG(GetLastError(), dbg_strerror, 255);
     }
     log_errorf("Debug error: %s\n", dbg_strerror);
     MessageBoxA(0, dbg_strerror, "Debug error!", MB_ICONERROR);
+#else
+    DW_FORMAT_MSG(dbg_strerror);
+    log_errorf("Debug error: %s\n", dbg_strerror);
 #endif
     GameDbg_ClrSigInt();
 #if __cplusplus

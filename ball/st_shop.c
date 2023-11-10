@@ -151,42 +151,42 @@ static int shop_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        return goto_state_full(&st_title, GUI_ANIMATION_N_CURVE, 0, 0);
-        break;
-    case SHOP_CHANGE_NAME:
-        /* Change the player names performs log in to another account. */
-        return goto_shop_rename(&st_shop, &st_shop, 0);
-        break;
-    case SHOP_IAP:
-        /* Attempt to open the In-App Purchases. */
+        case GUI_BACK:
+            return goto_state_full(&st_title, GUI_ANIMATION_N_CURVE, 0, 0);
+            break;
+        case SHOP_CHANGE_NAME:
+            /* Change the player names performs log in to another account. */
+            return goto_shop_rename(&st_shop, &st_shop, 0);
+            break;
+        case SHOP_IAP:
+            /* Attempt to open the In-App Purchases. */
 
-        if (!inaccept_playername &&
-            text_length(config_get_s(CONFIG_PLAYER)) >= 3)
-        {
+            if (!inaccept_playername &&
+                text_length(config_get_s(CONFIG_PLAYER)) >= 3)
+            {
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
-            return goto_shop_iap(&st_shop, &st_shop, 0, 0, 0, 0, 1);
+                return goto_shop_iap(&st_shop, &st_shop, 0, 0, 0, 0, 1);
 #else
-            return goto_shop_iap(&st_shop, &st_shop, 0, 0, 0, 0, 0);
+                return goto_shop_iap(&st_shop, &st_shop, 0, 0, 0, 0, 0);
 #endif
-        }
-        break;
-    case SHOP_BUY:
-        /*
-         * Check account's wallet, what has an cash available
-         * after select products.
-         */
-        
-        purchase_product_usegems = val == 7;
-        shop_set_product_key(val);
+            }
+            break;
+        case SHOP_BUY:
+            /*
+             * Check account's wallet, what has an cash available
+             * after select products.
+             */
 
-        if (inaccept_playername ||
-            text_length(config_get_s(CONFIG_PLAYER)) < 3)
-            return goto_state(&st_shop_unregistered);
-        else
-            return goto_state(&st_shop_buy);
+            purchase_product_usegems = val == 7;
+            shop_set_product_key(val);
 
-        break;
+            if (inaccept_playername ||
+                text_length(config_get_s(CONFIG_PLAYER)) < 3)
+                return goto_state(&st_shop_unregistered);
+            else
+                return goto_state(&st_shop_buy);
+
+            break;
     }
     return 1;
 }
@@ -221,17 +221,20 @@ static int shop_gui(void)
                     gui_state(jd, "+", GUI_SML, SHOP_IAP, 0);
             }
 
-            char gemsattr[MAXSTR];
+            if (!CHECK_ACCOUNT_BANKRUPT)
+            {
+                char gemsattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(gemsattr, MAXSTR,
+                sprintf_s(gemsattr, MAXSTR,
 #else
-            sprintf(gemsattr,
+                sprintf(gemsattr,
 #endif
-                    "%s: %d", GUI_DIAMOND, gemwallet);
+                        "%s: %d", GUI_DIAMOND, gemwallet);
 
-            gui_label(jd, gemsattr, GUI_SML, gui_wht, gui_cya);
+                gui_label(jd, gemsattr, GUI_SML, gui_wht, gui_cya);
 
-            gui_space(jd);
+                gui_space(jd);
+            }
 
             char coinsattr[MAXSTR];
 
@@ -386,7 +389,7 @@ static int shop_gui(void)
                     if ((ld = gui_vstack(kd)))
                     {
                         gui_space(ld);
-                        int nid = gui_label(ld, "XXXXXXXX", GUI_SML, gui_wht, gui_wht);
+                        int nid = gui_label(ld, "XXXXXXXX", GUI_SML, GUI_COLOR_WHT);
                         gui_set_trunc(nid, TRUNC_TAIL);
                         gui_set_label(nid, _("Speedifier"));
                         gui_image(ld, "gui/shop/consum_speedifier.jpg", ww, hh);
@@ -395,7 +398,7 @@ static int shop_gui(void)
 
                         if (CHECK_ACCOUNT_BANKRUPT)
                         {
-                            gui_set_color(nid, gui_gry, gui_gry);
+                            gui_set_color(nid, GUI_COLOR_GRY);
                             gui_set_state(ld, GUI_NONE, 6);
                         }
                     }
@@ -403,7 +406,7 @@ static int shop_gui(void)
                     if ((ld = gui_vstack(kd)))
                     {
                         gui_space(ld);
-                        int nid = gui_label(ld, "XXXXXXXX", GUI_SML, gui_wht, gui_wht);
+                        int nid = gui_label(ld, "XXXXXXXX", GUI_SML, GUI_COLOR_WHT);
                         gui_set_trunc(nid, TRUNC_TAIL);
                         gui_set_label(nid, _("Extra Balls"));
                         gui_image(ld, "gui/shop/consum_balls.jpg", ww, hh);
@@ -419,7 +422,7 @@ static int shop_gui(void)
                     if ((ld = gui_vstack(kd)))
                     {
                         gui_space(ld);
-                        int nid = gui_label(ld, "XXXXXXXX", GUI_SML, gui_wht, gui_wht);
+                        int nid = gui_label(ld, "XXXXXXXX", GUI_SML, GUI_COLOR_WHT);
                         gui_set_trunc(nid, TRUNC_TAIL);
                         gui_set_label(nid, _("Earninator"));
                         gui_image(ld, "gui/shop/consum_earninator.jpg", ww, hh);
@@ -428,7 +431,7 @@ static int shop_gui(void)
 
                         if (CHECK_ACCOUNT_BANKRUPT)
                         {
-                            gui_set_color(nid, gui_gry, gui_gry);
+                            gui_set_color(nid, GUI_COLOR_GRY);
                             gui_set_state(ld, GUI_NONE, 4);
                         }
                     }
@@ -436,7 +439,7 @@ static int shop_gui(void)
                     if ((ld = gui_vstack(kd)))
                     {
                         gui_space(ld);
-                        int nid = gui_label(ld, "XXXXXXXX", GUI_SML, gui_wht, gui_wht);
+                        int nid = gui_label(ld, "XXXXXXXX", GUI_SML, GUI_COLOR_WHT);
                         gui_set_trunc(nid, TRUNC_TAIL);
                         gui_set_label(nid, _("Floatifier"));
                         gui_image(ld, "gui/shop/consum_floatifier.jpg", ww, hh);
@@ -445,7 +448,7 @@ static int shop_gui(void)
 
                         if (CHECK_ACCOUNT_BANKRUPT)
                         {
-                            gui_set_color(nid, gui_gry, gui_gry);
+                            gui_set_color(nid, GUI_COLOR_GRY);
                             gui_set_state(ld, GUI_NONE, 5);
                         }
                     }
@@ -493,7 +496,7 @@ static int shop_gui(void)
                     if ((ld = gui_vstack(kd)))
                     {
                         gui_space(ld);
-                        int nid = gui_label(ld, "XXXXXXXXX", GUI_SML, gui_gry, gui_gry);
+                        int nid = gui_label(ld, "XXXXXXXXX", GUI_SML, GUI_COLOR_GRY);
                         gui_set_trunc(nid, TRUNC_TAIL);
                         gui_set_label(nid, _("Mediation"));
                         gui_image(ld, "gui/shop/mediation.jpg", ww, hh);
@@ -609,13 +612,13 @@ int shop_unlocked_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Warning!"), GUI_MED, gui_red, gui_red);
+        gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
         gui_multi(id, _("The goal state is still unlocked\\"
                         "during completed levels!\\\\"
                         "Please lock the goal state first\\"
                         "before you go to the shop."),
-                      GUI_SML, gui_wht, gui_wht);
+                      GUI_SML, GUI_COLOR_WHT);
 
 #if !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)
@@ -666,13 +669,13 @@ static int shop_rename_action(int tok, int val)
 
     switch (tok)
     {
-    case SHOP_RENAME_YES:
-        account_save();
-        return goto_name(ok_state, cancel_state, 0, 0, draw_back);
-        break;
-    case GUI_BACK:
-        return goto_state(cancel_state);
-        break;
+        case SHOP_RENAME_YES:
+            account_save();
+            return goto_name(ok_state, cancel_state, 0, 0, draw_back);
+            break;
+        case GUI_BACK:
+            return goto_state(cancel_state);
+            break;
     }
     return 1;
 }
@@ -686,7 +689,7 @@ static int shop_rename_gui(void)
         gui_space(id);
         gui_multi(id, _("Renaming players will log in\\"
                         "to another account."),
-                      GUI_SML, gui_wht, gui_wht);
+                      GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
 
         if ((jd = gui_harray(id)))
@@ -779,12 +782,12 @@ static int shop_unregistered_action(int tok, int val)
     
     switch (tok)
     {
-    case SHOP_UNREGISTERED_YES:
-        return goto_name(&st_shop_buy, &st_shop, 0, 0, 0);
-        break;
-    case GUI_BACK:
-        return goto_state(&st_shop);
-        break;
+        case SHOP_UNREGISTERED_YES:
+            return goto_name(&st_shop_buy, &st_shop, 0, 0, 0);
+            break;
+        case GUI_BACK:
+            return goto_state(&st_shop);
+            break;
     }
     return 1;
 }
@@ -802,15 +805,15 @@ static int shop_unregistered_gui(void)
                                  "special chars! Would you like modify\\"
                                  "player name first before you buy?") :
                                (fewest ?
-                                _("You didn't enough letters on your player name!\\"
+                                _("You didn't have enough letters on your player name!\\"
                                   "Would you like extend player name first\\before you buy?") :
                                 _("You didn't registered your player name yet!\\"
                                   "Would you like register now before you buy?"));
         const char *yestxt   = _("Yes");
 
-        gui_title_header(id, toptxt, GUI_MED, gui_gry, gui_red);
+        gui_title_header(id, toptxt, GUI_MED, gui_red, gui_blk);
         gui_space(id);
-        gui_multi(id, multitxt, GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, multitxt, GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
 
         if ((jd = gui_harray(id)))
@@ -982,59 +985,60 @@ static int shop_iap_action(int tok, int val)
     
     switch (tok)
     {
-    case GUI_BACK:
-        if (curr_cancel_fn)
-            return curr_cancel_fn(cancel_state);
+        case GUI_BACK:
+            if (curr_cancel_fn)
+                return curr_cancel_fn(cancel_state);
 
-        return goto_state(cancel_state);
-        break;
-    case SHOP_IAP_GET_BUY:
+            return goto_state(cancel_state);
+            break;
+
+        case SHOP_IAP_GET_BUY:
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        if (!iappage)
-        {
-            if (account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[val])
+            if (!iappage)
             {
+                if (account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[val])
+                {
                 shop_convert_to_coins(iapcoinfromgems[val], iapcoinvalue[val]);
                 log_printf("Succesfully converted: %d Gems to %d Coins\n", iapcoinfromgems[val], iapcoinvalue[val]);
                 purchased = 1;
+                }
             }
-        }
-        else
-        {
+            else
+            {
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && ENABLE_IAP==1
-            game_payment_browse(val);
+                game_payment_browse(val);
 #endif
-        }
+            }
 
-        if (purchased)
-        {
-            audio_play("snd/buyproduct.ogg", 1.0f);
+            if (purchased)
+            {
+                audio_play("snd/buyproduct.ogg", 1.0f);
 
-            if (curr_ok_fn)
-                return curr_ok_fn(ok_state);
+                if (curr_ok_fn)
+                    return curr_ok_fn(ok_state);
 
-            return goto_state(ok_state);
-        }
+                return goto_state(ok_state);
+            }
 #endif
 
-        break;
+            break;
 
-    case SHOP_IAP_GET_SWITCH:
-        iappage = !iappage;
-        goto_state_full(&st_shop_iap,
-                        iappage ? GUI_ANIMATION_W_CURVE : GUI_ANIMATION_E_CURVE,
-                        iappage ? GUI_ANIMATION_E_CURVE : GUI_ANIMATION_W_CURVE,
-                        0);
-        break;
+        case SHOP_IAP_GET_SWITCH:
+            iappage = !iappage;
+            goto_state_full(&st_shop_iap,
+                            iappage ? GUI_ANIMATION_W_CURVE : GUI_ANIMATION_E_CURVE,
+                            iappage ? GUI_ANIMATION_E_CURVE : GUI_ANIMATION_W_CURVE,
+                            0);
+            break;
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && ENABLE_IAP==1
-    case SHOP_IAP_ENTERCODE:
-        return goto_shop_activate(ok_state, cancel_state,
-                                  curr_ok_fn, curr_cancel_fn);
-        break;
+        case SHOP_IAP_ENTERCODE:
+            return goto_shop_activate(ok_state, cancel_state,
+                                      curr_ok_fn, curr_cancel_fn);
+            break;
 #endif
-    case SHOP_IAP_EXPORT:
-        goto_state(&st_expenses_export);
-        break;
+        case SHOP_IAP_EXPORT:
+            goto_state(&st_expenses_export);
+            break;
     }
     return 1;
 }
@@ -1117,7 +1121,7 @@ static int shop_iap_gui(void)
                 sprintf(missionattr, _("Need %i coins to complete transaction!"), (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS)));
 #endif
 
-            gui_label(id, missionattr, GUI_SML, gui_red, gui_red);
+            gui_label(id, missionattr, GUI_SML, GUI_COLOR_RED);
         }
 
         gui_space(id);
@@ -1128,7 +1132,7 @@ static int shop_iap_gui(void)
         {
             gui_multi(id, _("Can't buy more coins!\\"
                             "Max coin stack full!"),
-                          GUI_SML, gui_red, gui_red);
+                          GUI_SML, GUI_COLOR_RED);
         }
         else
 #endif
@@ -1144,11 +1148,11 @@ static int shop_iap_gui(void)
                 {
                     switch (iappage)
                     {
-                    case 0:
+                        case 0:
 #ifdef CONFIG_INCLUDES_ACCOUNT
-                        if (iapcoinvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS))
-                         && iapcoinvalue[multiply - 1] + account_get_d(ACCOUNT_DATA_WALLET_COINS) <= ACCOUNT_WALLET_MAX_COINS)
-                            if ((kd = gui_vstack(jd)))
+                            if (iapcoinvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS))
+                             && iapcoinvalue[multiply - 1] + account_get_d(ACCOUNT_DATA_WALLET_COINS) <= ACCOUNT_WALLET_MAX_COINS)
+                                if ((kd = gui_vstack(jd)))
                             {
                                 const GLubyte *sufficent_col =
                                                account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ?
@@ -1172,12 +1176,12 @@ static int shop_iap_gui(void)
                                 gui_set_state(kd, sufficent_action, multiply - 1);
                             }
 #endif
-                        break;
-                    case 1:
+                            break;
+                        case 1:
 #ifdef CONFIG_INCLUDES_ACCOUNT
-                        if (iapgemvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_GEMS)))
-                            if ((kd = gui_vstack(jd)))
-                            {
+                            if (iapgemvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_GEMS)))
+                                if ((kd = gui_vstack(jd)))
+                                {
 #if _WIN32 && _MSC_VER
 #define LANG_CURRENCY_RESET_DEFAULTS                            \
     do {                                                        \
@@ -1193,31 +1197,31 @@ static int shop_iap_gui(void)
     do { SAFECPY(pChar, "de_DE"); } while (0)
 #endif
 
-                                wchar_t pWLocaleName[MAXSTR];
-                                size_t pCharC;
-                                char pCharExt[MAXSTR], pChar[MAXSTR];
-                                if (text_length(config_get_s(CONFIG_LANGUAGE)) < 2)
-                                    LANG_CURRENCY_RESET_DEFAULTS;
-                                else
-                                    SAFECPY(pChar, config_get_s(CONFIG_LANGUAGE));
+                                    wchar_t pWLocaleName[MAXSTR];
+                                    size_t pCharC;
+                                    char pCharExt[MAXSTR], pChar[MAXSTR];
+                                    if (text_length(config_get_s(CONFIG_LANGUAGE)) < 2)
+                                        LANG_CURRENCY_RESET_DEFAULTS;
+                                    else
+                                        SAFECPY(pChar, config_get_s(CONFIG_LANGUAGE));
 
-                                char iapattr[MAXSTR], imgattr[MAXSTR];
+                                    char iapattr[MAXSTR], imgattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                                sprintf_s(imgattr, MAXSTR, "gui/shop/gems-%s.png", iaptiers[multiply - 1]);
-                                sprintf_s(iapattr, MAXSTR, "%s", currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
+                                    sprintf_s(imgattr, MAXSTR, "gui/shop/gems-%s.png", iaptiers[multiply - 1]);
+                                    sprintf_s(iapattr, MAXSTR, "%s", currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
 #else
-                                sprintf(imgattr, "gui/shop/gems-%s.png", iaptiers[multiply - 1]);
-                                sprintf(iapattr, "%s", currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
+                                    sprintf(imgattr, "gui/shop/gems-%s.png", iaptiers[multiply - 1]);
+                                    sprintf(iapattr, "%s", currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
 #endif
 
-                                gui_image(kd, imgattr, ww, hh);
-                                gui_label(kd, iapattr, GUI_SML, gui_wht, gui_wht);
-                                gui_filler(kd);
-                                gui_set_state(kd, SHOP_IAP_GET_BUY, multiply - 1);
-                            }
+                                    gui_image(kd, imgattr, ww, hh);
+                                    gui_label(kd, iapattr, GUI_SML, GUI_COLOR_WHT);
+                                    gui_filler(kd);
+                                    gui_set_state(kd, SHOP_IAP_GET_BUY, multiply - 1);
+                                }
 #endif
-                        break;
+                            break;
                     }
 
                 }
@@ -1233,46 +1237,46 @@ static int shop_iap_gui(void)
                 {
                     switch (iappage)
                     {
-                    case 0:
+                        case 0:
 #ifdef CONFIG_INCLUDES_ACCOUNT
-                        if (iapcoinvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS))
-                         && iapcoinvalue[multiply - 1] + account_get_d(ACCOUNT_DATA_WALLET_COINS) <= ACCOUNT_WALLET_MAX_COINS)
-                        {
+                            if (iapcoinvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS))
+                             && iapcoinvalue[multiply - 1] + account_get_d(ACCOUNT_DATA_WALLET_COINS) <= ACCOUNT_WALLET_MAX_COINS)
+                            {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                            sprintf_s(iapattr, MAXSTR,
+                                sprintf_s(iapattr, MAXSTR,
 #else
-                            sprintf(iapattr,
+                                sprintf(iapattr,
 #endif
-                                    _("%d Coins (%s %d)"), GUI_DIAMOND, iapcoinvalue[multiply - 1], iapcoinfromgems[multiply - 1]);
-                            btniapmobile = gui_label(jd, iapattr,
-                                                         GUI_SML,
-                                                         account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? gui_wht : gui_red,
-                                                         account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? gui_wht : gui_red);
-                            gui_set_state(btniapmobile, account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? SHOP_IAP_GET_BUY : GUI_NONE, multiply - 1);
-                        }
+                                        _("%d Coins (%s %d)"), GUI_DIAMOND, iapcoinvalue[multiply - 1], iapcoinfromgems[multiply - 1]);
+                                btniapmobile = gui_label(jd, iapattr,
+                                                             GUI_SML,
+                                                             account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? gui_wht : gui_red,
+                                                             account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? gui_wht : gui_red);
+                                gui_set_state(btniapmobile, account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? SHOP_IAP_GET_BUY : GUI_NONE, multiply - 1);
+                            }
 #endif
-                        break;
-                    case 1:
+                            break;
+                        case 1:
 #ifdef CONFIG_INCLUDES_ACCOUNT
-                        if (iapgemvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_GEMS)))
-                        {
-                            wchar_t pWLocaleName[MAXSTR];
-                            size_t pCharC;
-                            char pCharExt[MAXSTR], pChar[MAXSTR];
-                            if (text_length(config_get_s(CONFIG_LANGUAGE)) < 2)
-                                LANG_CURRENCY_RESET_DEFAULTS;
-                            else
-                                SAFECPY(pChar, config_get_s(CONFIG_LANGUAGE));
+                            if (iapgemvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_GEMS)))
+                            {
+                                wchar_t pWLocaleName[MAXSTR];
+                                size_t pCharC;
+                                char pCharExt[MAXSTR], pChar[MAXSTR];
+                                if (text_length(config_get_s(CONFIG_LANGUAGE)) < 2)
+                                    LANG_CURRENCY_RESET_DEFAULTS;
+                                else
+                                    SAFECPY(pChar, config_get_s(CONFIG_LANGUAGE));
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                            sprintf_s(iapattr, MAXSTR,
+                                sprintf_s(iapattr, MAXSTR,
 #else
-                            sprintf(iapattr,
+                                sprintf(iapattr,
 #endif
-                                    _("%d Gems (%s)"), iapgemvalue[multiply - 1], currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
-                            btniapmobile = gui_label(jd, iapattr, GUI_SML, gui_wht, gui_wht);
-                            gui_set_state(btniapmobile, SHOP_IAP_GET_BUY, multiply - 1);
-                        }
+                                        _("%d Gems (%s)"), iapgemvalue[multiply - 1], currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
+                                btniapmobile = gui_label(jd, iapattr, GUI_SML, GUI_COLOR_WHT);
+                                gui_set_state(btniapmobile, SHOP_IAP_GET_BUY, multiply - 1);
+                            }
 #endif
                         break;
                     }
@@ -1410,18 +1414,17 @@ static int shop_buy_action(int tok, int val)
 
     switch (productkey)
     {
-    case 0:
-    case 1:
-        prodcost = 250; break;
-    case 2:
-    case 3:
-        prodcost = 120; break;
-    case 4:
-    case 5:
-    case 6:
-        prodcost = 75; break;
-    case 7:
-        prodcost = 15; break;
+        case 0:
+        case 1: prodcost = 250; break;
+
+        case 2:
+        case 3: prodcost = 120; break;
+
+        case 4:
+        case 5:
+        case 6: prodcost = 75; break;
+
+        case 7: prodcost = 15; break;
     }
 
     int auction_value = prodcost;
@@ -1429,214 +1432,214 @@ static int shop_buy_action(int tok, int val)
 
     switch (tok)
     {
-    case SHOP_BUY_WHOLE:
-        if (confirm_multiple_items == 0)
-        {
-            confirm_multiple_items = 2;
-            return goto_state(curr_state());
-        }
+        case SHOP_BUY_WHOLE:
+            if (confirm_multiple_items == 0)
+            {
+                confirm_multiple_items = 2;
+                return goto_state(curr_state());
+            }
 
-        confirm_multiple_items = 0;
-        audio_play("snd/buyproduct.ogg", 1.0f);
+            confirm_multiple_items = 0;
+            audio_play("snd/buyproduct.ogg", 1.0f);
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        if (confirm_multiple_items == 2)
-            INIT_AUCTION_OVERBID;
-        else
-        {
-            piece_times = 5;
-            auction_value = prodcost * piece_times;
-        }
-
-        if (productkey == 7)
-        {
-            while (max_balls_limit < account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + piece_times)
+            if (confirm_multiple_items == 2)
+                INIT_AUCTION_OVERBID;
+            else
             {
-                piece_times--;
+                piece_times = 5;
                 auction_value = prodcost * piece_times;
             }
-        }
 
-        if (purchase_product_usegems)
-        {
-            gemwallet -= auction_value;
-            assert(gemwallet >= 0);
-            account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
-        }
-        else
-        {
-            coinwallet -= auction_value;
-            assert(coinwallet >= 0 && coinwallet <= ACCOUNT_WALLET_MAX_COINS);
-            account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
-        }
+            if (productkey == 7)
+            {
+                while (max_balls_limit < account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + piece_times)
+                {
+                    piece_times--;
+                    auction_value = prodcost * piece_times;
+                }
+            }
 
-        switch (productkey)
-        {
-        case 4:
-            evalue += piece_times;
-            account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, evalue);
-            break;
+            if (purchase_product_usegems)
+            {
+                gemwallet -= auction_value;
+                assert(gemwallet >= 0);
+                account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
+            }
+            else
+            {
+                coinwallet -= auction_value;
+                assert(coinwallet >= 0 && coinwallet <= ACCOUNT_WALLET_MAX_COINS);
+                account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
+            }
 
-        case 5:
-            fvalue += piece_times;
-            account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, fvalue);
-            break;
+            switch (productkey)
+            {
+                case 4:
+                    evalue += piece_times;
+                    account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, evalue);
+                    break;
 
-        case 6:
-            svalue += piece_times;
-            account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, svalue);
-            break;
+                case 5:
+                    fvalue += piece_times;
+                    account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, fvalue);
+                    break;
 
-        case 7:
-            lvalue += piece_times;
-            account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, lvalue);
-            break;
-        }
-        account_save();
+                case 6:
+                    svalue += piece_times;
+                    account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, svalue);
+                    break;
+
+                case 7:
+                    lvalue += piece_times;
+                    account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, lvalue);
+                    break;
+            }
+            account_save();
 #endif
-        return goto_state(&st_shop);
-        break;
+            return goto_state(&st_shop);
+            break;
 
-    case SHOP_BUY_FIVE:
-        if (confirm_multiple_items == 0)
-        {
-            confirm_multiple_items = 1;
-            return goto_state(curr_state());
-        }
+        case SHOP_BUY_FIVE:
+            if (confirm_multiple_items == 0)
+            {
+                confirm_multiple_items = 1;
+                return goto_state(curr_state());
+            }
 
-        confirm_multiple_items = 0;
-        audio_play("snd/buyproduct.ogg", 1.0f);
+            confirm_multiple_items = 0;
+            audio_play("snd/buyproduct.ogg", 1.0f);
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        if (purchase_product_usegems)
-        {
-            gemwallet -= prodcost * 5;
-            assert(gemwallet >= 0);
-            account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
-        }
-        else
-        {
-            coinwallet -= prodcost * 5;
-            assert(coinwallet >= 0 && coinwallet <= ACCOUNT_WALLET_MAX_COINS);
-            account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
-        }
+            if (purchase_product_usegems)
+            {
+                gemwallet -= prodcost * 5;
+                assert(gemwallet >= 0);
+                account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
+            }
+            else
+            {
+                coinwallet -= prodcost * 5;
+                assert(coinwallet >= 0 && coinwallet <= ACCOUNT_WALLET_MAX_COINS);
+                account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
+            }
 
-        switch (productkey)
-        {
-        case 4:
-            evalue += 5;
-            account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, evalue);
-            break;
+            switch (productkey)
+            {
+                case 4:
+                    evalue += 5;
+                    account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, evalue);
+                    break;
 
-        case 5:
-            fvalue += 5;
-            account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, fvalue);
-            break;
+                case 5:
+                    fvalue += 5;
+                    account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, fvalue);
+                    break;
 
-        case 6:
-            svalue += 5;
-            account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, svalue);
-            break;
+                case 6:
+                    svalue += 5;
+                    account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, svalue);
+                    break;
 
-        case 7:
-            lvalue += 5;
-            account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, lvalue);
-            break;
-        }
-        account_save();
+                case 7:
+                    lvalue += 5;
+                    account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, lvalue);
+                    break;
+            }
+            account_save();
 #endif
-        return goto_state(&st_shop);
-        break;
+            return goto_state(&st_shop);
+            break;
 
-    case SHOP_BUY_YES:
-        audio_play("snd/buyproduct.ogg", 1.0f);
+        case SHOP_BUY_YES:
+            audio_play("snd/buyproduct.ogg", 1.0f);
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        if (purchase_product_usegems)
-        {
-            gemwallet -= prodcost;
-            assert(gemwallet >= 0);
-            account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
-        }
-        else
-        {
-            coinwallet -= prodcost;
-            assert(coinwallet >= 0 && coinwallet <= ACCOUNT_WALLET_MAX_COINS);
-            account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
-        }
+            if (purchase_product_usegems)
+            {
+                gemwallet -= prodcost;
+                assert(gemwallet >= 0);
+                account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
+            }
+            else
+            {
+                coinwallet -= prodcost;
+                assert(coinwallet >= 0 && coinwallet <= ACCOUNT_WALLET_MAX_COINS);
+                account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
+            }
 
-        switch (productkey)
-        {
-            case 0:
-                account_set_d(ACCOUNT_PRODUCT_LEVELS, 1);
-                break;
+            switch (productkey)
+            {
+                case 0:
+                    account_set_d(ACCOUNT_PRODUCT_LEVELS, 1);
+                    break;
 
-            case 1:
+                case 1:
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-                xbox_control_gui_free();
+                    xbox_control_gui_free();
 #endif
-                hud_free();
-                gui_free();
-                account_set_d(ACCOUNT_PRODUCT_BALLS, 1);
-                gui_init();
-                hud_init();
+                    hud_free();
+                    gui_free();
+                    account_set_d(ACCOUNT_PRODUCT_BALLS, 1);
+                    gui_init();
+                    hud_init();
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-                xbox_control_gui_init();
+                    xbox_control_gui_init();
 #endif
-                break;
+                    break;
 
-            case 2:
-                account_set_d(ACCOUNT_PRODUCT_BONUS, 1);
-                break;
+                case 2:
+                    account_set_d(ACCOUNT_PRODUCT_BONUS, 1);
+                    break;
 
-            case 3:
+                case 3:
 #ifdef LEVELGROUPS_INCLUDES_ZEN
-                account_set_d(ACCOUNT_PRODUCT_MEDIATION, 1);
+                    account_set_d(ACCOUNT_PRODUCT_MEDIATION, 1);
 #else
-                return 1;
+                    return 1;
 #endif
-                break;
+                    break;
 
-            case 4:
-                evalue += 1;
-                account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, evalue);
-                break;
+                case 4:
+                    evalue += 1;
+                    account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, evalue);
+                    break;
 
-            case 5:
-                fvalue += 1;
-                account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, fvalue);
-                break;
+                case 5:
+                    fvalue += 1;
+                    account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, fvalue);
+                    break;
 
-            case 6:
-                svalue += 1;
-                account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, svalue);
-                break;
+                case 6:
+                    svalue += 1;
+                    account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, svalue);
+                    break;
 
-            case 7:
-                if (CHECK_ACCOUNT_BANKRUPT)
-                    lvalue = 1;
-                else
-                    lvalue += 1;
-                account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, lvalue);
-                break;
-        }
-        account_save();
+                case 7:
+                    if (CHECK_ACCOUNT_BANKRUPT)
+                        lvalue = 1;
+                    else
+                        lvalue += 1;
+                    account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, lvalue);
+                    break;
+            }
+            account_save();
 #endif
-        return goto_state(&st_shop);
-        break;
+            return goto_state(&st_shop);
+            break;
 
-    case SHOP_BUY_IAP:
-        return goto_shop_iap(&st_shop_buy, &st_shop, 0, 0, prodcost, purchase_product_usegems, 0);
-        break;
+        case SHOP_BUY_IAP:
+            return goto_shop_iap(&st_shop_buy, &st_shop, 0, 0, prodcost, purchase_product_usegems, 0);
+            break;
 
-    case SHOP_BUY_RAISEGEMS:
-        return goto_raise_gems(&st_shop_buy, prodcost);
-        break;
+        case SHOP_BUY_RAISEGEMS:
+            return goto_raise_gems(&st_shop_buy, prodcost);
+            break;
 
-    case GUI_BACK:
-        confirm_multiple_items = 0;
-        return goto_state(&st_shop);
-        break;
+        case GUI_BACK:
+            confirm_multiple_items = 0;
+            return goto_state(&st_shop);
+            break;
     }
     return 1;
 }
@@ -1670,11 +1673,11 @@ static int has_owned(void)
     switch (productkey)
     {
 #ifdef CONFIG_INCLUDES_ACCOUNT
-    case 0: return account_get_d(ACCOUNT_PRODUCT_LEVELS);    break;
-    case 1: return account_get_d(ACCOUNT_PRODUCT_BALLS);     break;
-    case 2: return account_get_d(ACCOUNT_PRODUCT_BONUS);     break;
+        case 0: return account_get_d(ACCOUNT_PRODUCT_LEVELS);    break;
+        case 1: return account_get_d(ACCOUNT_PRODUCT_BALLS);     break;
+        case 2: return account_get_d(ACCOUNT_PRODUCT_BONUS);     break;
 #ifdef LEVELGROUPS_INCLUDES_ZEN
-    case 3: return account_get_d(ACCOUNT_PRODUCT_MEDIATION); break;
+        case 3: return account_get_d(ACCOUNT_PRODUCT_MEDIATION); break;
 #endif
 #endif
     }
@@ -1684,8 +1687,7 @@ static int has_owned(void)
 
 #ifdef LEVELGROUPS_INCLUDES_ZEN
 #define INIT_BUY_DETAILS() \
-do { \
-    switch (productkey) \
+    do switch (productkey) \
     { \
         case 0:  SAFECPY(prodname, _("Extra Levels")); prodcost = 250; break; \
         case 1:  SAFECPY(prodname, _("Online Balls")); prodcost = 250; break; \
@@ -1696,12 +1698,10 @@ do { \
         case 6:  SAFECPY(prodname, _("Speedifier"));   prodcost = 75;  prodincomsumeable = 1; break; \
         case 7:  SAFECPY(prodname, _("Extra Balls"));  prodcost = 15;  prodincomsumeable = 1; break; \
         default: SAFECPY(prodname, _("Product item")); prodcost = 0;   break; \
-    } \
-} while (0)
+    } while (0)
 #else
 #define INIT_BUY_DETAILS() \
-do { \
-    switch (productkey) \
+    do switch (productkey) \
     { \
         case 0:  SAFECPY(prodname, _("Extra Levels")); prodcost = 250; break; \
         case 1:  SAFECPY(prodname, _("Online Balls")); prodcost = 250; break; \
@@ -1711,8 +1711,7 @@ do { \
         case 6:  SAFECPY(prodname, _("Speedifier"));   prodcost = 75;  prodincomsumeable = 1; break; \
         case 7:  SAFECPY(prodname, _("Extra Balls"));  prodcost = 15;  prodincomsumeable = 1; break; \
         default: SAFECPY(prodname, _("Product item")); prodcost = 0;   break; \
-    } \
-} while (0)
+    } while (0)
 #endif
 
 static int shop_buy_gui(void)
@@ -1754,7 +1753,7 @@ static int shop_buy_gui(void)
                       "in a single level set for\\"
                       "%s."),
                     max_balls_limit, _("Challenge Mode"));
-            gui_multi(id, limitattr, GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, limitattr, GUI_SML, GUI_COLOR_WHT);
             gui_space(id);
             gui_start(id, _("Sorry, I'm too excited!"), GUI_SML, GUI_BACK, 0);
         }
@@ -1846,7 +1845,7 @@ static int shop_buy_gui(void)
                                       prodcost, prodname);
             }
 #endif
-            gui_multi(id, prodattr, GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, prodattr, GUI_SML, GUI_COLOR_WHT);
 
             if (purchase_product_usegems)
             {
@@ -1936,7 +1935,7 @@ static int shop_buy_gui(void)
                         if (!server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP) && 
                             prodcost >= 1920)
                         {
-                            gui_set_color(getcoins_id, gui_gry, gui_gry);
+                            gui_set_color(getcoins_id, GUI_COLOR_GRY);
                             gui_set_state(getcoins_id, GUI_NONE, 0);
                         }
 #endif
@@ -1979,7 +1978,7 @@ static int shop_buy_gui(void)
                     if (!server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP) &&
                         prodcost >= 1920)
                     {
-                        gui_set_color(getcoins_id, gui_gry, gui_gry);
+                        gui_set_color(getcoins_id, GUI_COLOR_GRY);
                         gui_set_state(getcoins_id, GUI_NONE, 0);
                     }
                 }
@@ -1989,7 +1988,7 @@ static int shop_buy_gui(void)
         {
             gui_multi(id, _("You've already owned this product,\\"
                             "so don't buy it again!"),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
 
 #if !defined(__EMSCRIPTEN__)
             if (current_platform == PLATFORM_PC)
@@ -2051,7 +2050,7 @@ static int shop_buy_confirmmulti_gui(void)
                 _(purchase_product_usegems ? "Gems" : "Coins"));
 
         gui_space(id);
-        gui_multi(id, prodattr, GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, prodattr, GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
 
         if ((jd = gui_harray(id)))
@@ -2150,14 +2149,14 @@ static int expenses_export_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        return goto_state(&st_shop);
-        break;
-    case EXPENSES_EXPORT_START:
-        audio_play("snd/buyproduct.ogg", 1.0f);
-        expenses_export_start();
-        goto_state(curr_state());
-        break;
+        case GUI_BACK:
+            return goto_state(&st_shop);
+            break;
+        case EXPENSES_EXPORT_START:
+            audio_play("snd/buyproduct.ogg", 1.0f);
+            expenses_export_start();
+            goto_state(curr_state());
+            break;
     }
 
     return 1;
@@ -2205,7 +2204,7 @@ static int expenses_export_gui(void)
         }
 
         gui_space(id);
-        gui_multi(id, desc_attr, GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, desc_attr, GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
 
         if (expenses_exported)

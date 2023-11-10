@@ -74,7 +74,6 @@ enum
 
 static int shop_product_available;
 
-static int challenge_boom;
 static int challenge_caught_extra;
 static int challenge_disable_all_buttons;
 
@@ -106,55 +105,55 @@ static int goal_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-    case GOAL_LAST:
-        return goto_exit();
+        case GUI_BACK:
+        case GOAL_LAST:
+            return goto_exit();
 
-    case GOAL_SAVE:
-        progress_stop();
-        return goto_save(&st_goal, &st_goal);
+        case GOAL_SAVE:
+            progress_stop();
+            return goto_save(&st_goal, &st_goal);
 
-    case GUI_NAME:
-        progress_stop();
+        case GUI_NAME:
+            progress_stop();
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        return goto_shop_rename(&st_goal, &st_goal, 0);
+            return goto_shop_rename(&st_goal, &st_goal, 0);
 #else
-        return goto_name(&st_goal, &st_goal, 0, 0, 0);
+            return goto_name(&st_goal, &st_goal, 0, 0, 0);
 #endif
 
-    case GOAL_DONE:
-        return goto_exit();
+        case GOAL_DONE:
+            return goto_exit();
 
-    case GUI_SCORE:
-        gui_score_set(val);
-        return goto_state_full(&st_goal, 0, 0, 1);
+        case GUI_SCORE:
+            gui_score_set(val);
+            return goto_state_full(&st_goal, 0, 0, 1);
 
-    case GOAL_NEXT:
-        if (progress_next())
-        {
-            powerup_stop();
+        case GOAL_NEXT:
+            if (progress_next())
+            {
+                powerup_stop();
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (campaign_used() && campaign_hardcore())
-                campaign_hardcore_nextlevel();
+                if (campaign_used() && campaign_hardcore())
+                    campaign_hardcore_nextlevel();
 
-            return goto_state(campaign_used() ? &st_play_ready : &st_level);
+                return goto_state(campaign_used() ? &st_play_ready : &st_level);
 #else
-            return goto_state(&st_level);
+                return goto_state(&st_level);
 #endif
-        }
-        break;
+            }
+            break;
 
-    case GOAL_SAME:
-        if (progress_same())
-        {
-            powerup_stop();
+        case GOAL_SAME:
+            if (progress_same())
+            {
+                powerup_stop();
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            return goto_state(campaign_used() ? &st_play_ready : &st_level);
+                return goto_state(campaign_used() ? &st_play_ready : &st_level);
 #else
-            return goto_state(&st_level);
+                return goto_state(&st_level);
 #endif
-        }
-        break;
+            }
+            break;
     }
 
     return 1;
@@ -173,7 +172,6 @@ static int goal_gui(void)
 
     shop_product_available = 0;
 
-    challenge_boom = 0;
     challenge_caught_extra = 0;
     challenge_disable_all_buttons = 0;
 
@@ -220,13 +218,16 @@ static int goal_gui(void)
         if ((jd = gui_vstack(id)))
         {
             if (high &&
-                (!campaign_used() ||
+                (
+#ifdef CONFIG_INCLUDES_ACCOUNT
+                 !campaign_used() ||
+#endif
                  (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
                   !config_cheat() &&
 #endif
                   (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25))))
-                gid = gui_title_header(jd, s1, GUI_MED, gui_grn, gui_grn);
+                gid = gui_title_header(jd, s1, GUI_MED, GUI_COLOR_GRN);
             else
                 gid = gui_title_header(jd, master ? s3 : s2,
                                            master ? GUI_MED : GUI_LRG,
@@ -236,7 +237,7 @@ static int goal_gui(void)
                 gui_pulse(gid, 1.2f);
 
             if (curr_coins() == curr_max_coins() * get_coin_multiply())
-                gui_label(jd, _("Perfect!"), GUI_SML, gui_grn, gui_grn);
+                gui_label(jd, _("Perfect!"), GUI_SML, GUI_COLOR_GRN);
 
             gui_set_rect(jd, GUI_ALL);
         }
@@ -267,7 +268,7 @@ static int goal_gui(void)
                 for (int i = curr_score(); i > score; i--)
                     if (progress_reward_ball(i))
                     {
-                        /* Waiting for extra balls by collecting 100 coins */
+                        /* Disable all buttons after collecting 100 coins for each. */
                         challenge_disable_all_buttons = config_get_d(CONFIG_NOTIFICATION_REWARD) ? 1 : 0;
                         balls--;
                     }
@@ -289,20 +290,20 @@ static int goal_gui(void)
                             {
                                 balls_id = gui_count(md, 1000, GUI_MED);
                                 gui_label(md, _("Balls"), GUI_SML,
-                                    gui_wht, gui_wht);
+                                                          GUI_COLOR_WHT);
                             }
                         }
                         if ((md = gui_harray(ld)))
                         {
                             score_id = gui_count(md, 1000, GUI_MED);
                             gui_label(md, _("Score"), GUI_SML,
-                                      gui_wht, gui_wht);
+                                                      GUI_COLOR_WHT);
                         }
                         if ((md = gui_harray(ld)))
                         {
                             coins_id = gui_count(md, 1000, GUI_MED);
                             gui_label(md, _("Coins"), GUI_SML,
-                                      gui_wht, gui_wht);
+                                                      GUI_COLOR_WHT);
                         }
 
                         gui_set_count(balls_id, balls);
@@ -362,13 +363,13 @@ static int goal_gui(void)
                 {
                     wallet_id = gui_count(kd, ACCOUNT_WALLET_MAX_COINS, GUI_MED);
                     gui_label(kd, _("Wallet"), GUI_SML,
-                              gui_wht, gui_wht);
+                                               GUI_COLOR_WHT);
                 }
                 if ((kd = gui_harray(jd)))
                 {
                     coins_id = gui_count(kd, 1000, GUI_MED);
                     gui_label(kd, _("Coins"), GUI_SML,
-                              gui_wht, gui_wht);
+                                              GUI_COLOR_WHT);
                 }
 
                 gui_set_count(coins_id, coins);
@@ -440,14 +441,14 @@ static int goal_gui(void)
                              shop_product_available)))
             {
                 if (progress_done())
-                    m1 = gui_label(jd, _("Finish"), GUI_SML, gui_gry, gui_gry);
+                    m1 = gui_label(jd, _("Finish"), GUI_SML, GUI_COLOR_GRY);
                 else if (progress_last())
-                    m1 = gui_label(jd, _("Finish"), GUI_SML, gui_gry, gui_gry);
+                    m1 = gui_label(jd, _("Finish"), GUI_SML, GUI_COLOR_GRY);
                 else if (progress_next_avail())
                     m1 = gui_label(jd, _("Next Level"),
-                                       GUI_SML, gui_gry, gui_gry);
+                                       GUI_SML, GUI_COLOR_GRY);
                 else
-                    m1 = gui_label(jd, _("Finish"), GUI_SML, gui_gry, gui_gry);
+                    m1 = gui_label(jd, _("Finish"), GUI_SML, GUI_COLOR_GRY);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (progress_same_avail() && !campaign_hardcore())
@@ -455,11 +456,11 @@ static int goal_gui(void)
                 if (progress_same_avail())
 #endif
                     m2 = gui_label(jd, _("Retry Level"),
-                                       GUI_SML, gui_gry, gui_gry);
+                                       GUI_SML, GUI_COLOR_GRY);
 
                 if (demo_saved() && save >= 1)
                     m3 = gui_label(jd, _("Save Replay"),
-                                       GUI_SML, gui_gry, gui_gry);
+                                       GUI_SML, GUI_COLOR_GRY);
 
                 if (m1)
                     gui_set_state(m1, GUI_NONE, 0);
@@ -561,8 +562,8 @@ static void goal_timer(int id, float dt)
         geom_step(dt);
         game_server_step(dt);
 
-        int record_screenanimations =  time_state() < (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.f);
-        int record_modes            =  curr_mode() != MODE_NONE;
+        int record_screenanimations = time_state() < (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.f);
+        int record_modes            = curr_mode() != MODE_NONE;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         int record_campaign         = !campaign_hardcore_norecordings();
 #else
@@ -656,7 +657,6 @@ static void goal_timer(int id, float dt)
                     (curr_mode() != MODE_NORMAL && curr_mode() != MODE_ZEN))
 #endif
                 {
-                    challenge_boom = 1;
                     challenge_caught_extra = 1;
 
                     gui_set_count(balls_id, balls + 1);
@@ -666,7 +666,8 @@ static void goal_timer(int id, float dt)
                         audio_play(AUD_BALL, 1.0f);
                 }
             }
-            t = 0.0f;
+
+            t -= 0.05f;
         }
     }
 
@@ -749,11 +750,11 @@ static int goal_extraballs_gui(void)
     if ((id = gui_vstack(0)))
     {
         int msgid = gui_title_header(id, _("New balls earned!"),
-                                         GUI_MED, gui_grn, gui_grn);
+                                         GUI_MED, GUI_COLOR_GRN);
         gui_space(id);
         gui_multi(id, _("You've earned extra ball by collecting\\"
                         "100 coins in a single set."),
-                      GUI_SML, gui_wht, gui_wht);
+                      GUI_SML, GUI_COLOR_WHT);
         gui_pulse(msgid, 1.2f);
         gui_layout(id, 0, 0);
     }
@@ -805,7 +806,7 @@ static int goal_shop_gui(void)
     if ((id = gui_vstack(0)))
     {
         int msgid = gui_title_header(id, _("Product available!"),
-                                         GUI_MED, gui_grn, gui_grn);
+                                         GUI_MED, GUI_COLOR_GRN);
         gui_space(id);
 
         const char *prodname = "none";
@@ -846,7 +847,7 @@ static int goal_shop_gui(void)
 #endif
                 _("You have enough coins to buy\\%s.\\Try it out!"), prodname);
 
-        gui_multi(id, productmsg, GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, productmsg, GUI_SML, GUI_COLOR_WHT);
 
         gui_pulse(msgid, 1.2f);
         gui_layout(id, 0, 0);
@@ -917,11 +918,7 @@ static void goal_hardcore_timer(int id, float dt)
     if (!restrict_hardcore_nextstate)
     {
         game_server_step(dt);
-        game_client_sync(
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            !campaign_hardcore_norecordings() &&
-#endif
-                         curr_mode() != MODE_NONE ? NULL : demo_fp);
+        game_client_sync(NULL);
         game_client_blend(game_server_blend());
 
         game_step_fade(dt);

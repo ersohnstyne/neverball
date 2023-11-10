@@ -132,12 +132,12 @@ void ball_multi_init(void)
         char *model_name;
 
         switch (i) {
-        case 0:  model_name = strdup(account_get_s(ACCOUNT_BALL_FILE_LL)); break;
-        case 1:  model_name = strdup(account_get_s(ACCOUNT_BALL_FILE_L)); break;
-        case 2:  model_name = strdup(account_get_s(ACCOUNT_BALL_FILE_C)); break;
-        case 3:  model_name = strdup(account_get_s(ACCOUNT_BALL_FILE_R)); break;
-        case 4:  model_name = strdup(account_get_s(ACCOUNT_BALL_FILE_RR)); break;
-        default: model_name = strdup(account_get_s(ACCOUNT_BALL_FILE_C));
+            case 0:  model_name = strdup(account_get_s(ACCOUNT_BALL_FILE_LL)); break;
+            case 1:  model_name = strdup(account_get_s(ACCOUNT_BALL_FILE_L));  break;
+            case 2:  model_name = strdup(account_get_s(ACCOUNT_BALL_FILE_C));  break;
+            case 3:  model_name = strdup(account_get_s(ACCOUNT_BALL_FILE_R));  break;
+            case 4:  model_name = strdup(account_get_s(ACCOUNT_BALL_FILE_RR)); break;
+            default: model_name = strdup(account_get_s(ACCOUNT_BALL_FILE_C));
         }
 
         /* Can't load with empty model path */

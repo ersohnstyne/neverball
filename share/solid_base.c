@@ -26,6 +26,14 @@
 #include "fs.h"
 #include "vec3.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 #if NB_HAVE_PB_BOTH==1
 enum
 {

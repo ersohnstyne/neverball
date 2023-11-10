@@ -18,7 +18,7 @@
  * is running via the game.
  */
 
-/* Uncomment, if you want to start the end support. */
+/* TODO: Uncomment, if you want to test the end support. */
 //#define TEST_END_SUPPORT
 
 #if _WIN32 && __MINGW32__
@@ -360,18 +360,20 @@ static int end_support_action(int tok, int val)
 {
     switch (tok)
     {
-    case GUI_BACK:
-        goto_state(st_hide);
-        break;
-    case END_SUPPORT_INVITE:
-#if _WIN32
-        system("start msedge https://discord.gg/qnJR263Hm2");
+        case GUI_BACK:
+            goto_state(st_hide);
+            break;
+        case END_SUPPORT_INVITE:
+#if defined(__EMSCRIPTEN__)
+            EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/"); }, 0);
+#elif _WIN32
+            system("start msedge https://discord.gg/qnJR263Hm2/");
 #elif defined(__APPLE__)
-        system("open https://discord.gg/qnJR263Hm2");
+            system("open https://discord.gg/qnJR263Hm2/");
 #elif defined(__linux__)
-        system("x-www-browser https://discord.gg/qnJR263Hm2");
+            system("x-www-browser https://discord.gg/qnJR263Hm2/");
 #endif
-        break;
+            break;
     }
 
     return 1;

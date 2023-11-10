@@ -99,6 +99,19 @@
 #define GUI_COLOR_DEFAULT gui_yel, gui_red
 #endif
 
+#define GUI_COLOR_WHT gui_wht, gui_wht
+#define GUI_COLOR_YEL gui_yel, gui_yel
+#define GUI_COLOR_CYA gui_cya, gui_cya
+#define GUI_COLOR_TWI gui_twi, gui_twi
+#define GUI_COLOR_VIO gui_vio, gui_vio
+#define GUI_COLOR_PNK gui_pnk, gui_pnk
+#define GUI_COLOR_RED gui_red, gui_red
+#define GUI_COLOR_GRN gui_grn, gui_grn
+#define GUI_COLOR_BLU gui_blu, gui_blu
+#define GUI_COLOR_BRN gui_brn, gui_brn
+#define GUI_COLOR_BLK gui_blk, gui_blk
+#define GUI_COLOR_GRY gui_gry, gui_gry
+
 extern const GLubyte gui_wht[4];
 extern const GLubyte gui_yel[4];
 extern const GLubyte gui_cya[4];

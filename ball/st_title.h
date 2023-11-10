@@ -38,7 +38,7 @@
 #endif
 #endif
 
-/* Uncomment, if you have an community project edition */
+/* TODO: Uncomment, if you have an community project edition */
 //#define COMMUNITY_EDITION
 
 /*---------------------------------------------------------------------------*/

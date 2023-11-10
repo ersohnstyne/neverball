@@ -127,29 +127,24 @@ static int level_action(int tok, int val)
 
     switch (tok)
     {
-    case START_LEVEL_POWERUP:
-        if (val == 3) {
-            audio_play("snd/speedifier.ogg", 1.0f);
-            init_speedifier();
-        } else if (val == 2) {
-            audio_play("snd/floatifier.ogg", 1.0f);
-            init_floatifier();
-        } else if (val == 1) {
-            audio_play("snd/earninator.ogg", 1.0f);
-            init_earninator();
-        }
-        show_info = 0;
+        case START_LEVEL_POWERUP:
+            if (val == 3) {
+                audio_play("snd/speedifier.ogg", 1.0f);
+                init_speedifier();
+            } else if (val == 2) {
+                audio_play("snd/floatifier.ogg", 1.0f);
+                init_floatifier();
+            } else if (val == 1) {
+                audio_play("snd/earninator.ogg", 1.0f);
+                init_earninator();
+            }
+            show_info = 0;
 
 #ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
-        if (!tutorial_check())
-        {
-            if (!hint_check())
-                return goto_state(&st_play_ready);
-        }
-#else
-        return goto_state(&st_play_ready);
+            if (!tutorial_check() && !hint_check())
 #endif
-        break;
+                return goto_state(&st_play_ready);
+            break;
     }
     return 1;
 }
@@ -280,10 +275,10 @@ static int level_gui(void)
                                  m ? gui_red : (b ? gui_grn : 0));
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (curr_mode() == MODE_HARDCORE)
-                    gui_label(kd, _("Hardcore Mode!"), GUI_SML, gui_red, gui_red);
+                    gui_label(kd, _("Hardcore Mode!"), GUI_SML, GUI_COLOR_RED);
                 else
 #endif
-                    gui_label(kd, setattr, GUI_SML, gui_wht, gui_wht);
+                    gui_label(kd, setattr, GUI_SML, GUI_COLOR_WHT);
 
                 gui_set_rect(kd, GUI_ALL);
             }
@@ -301,7 +296,7 @@ static int level_gui(void)
             gui_start(id, _("Start Level"), GUI_SML, START_LEVEL_POWERUP, 0);
             gui_space(id);
 
-            gui_label(id, _("Use special powers"), GUI_SML, gui_wht, gui_wht);
+            gui_label(id, _("Use special powers"), GUI_SML, GUI_COLOR_WHT);
 
             if ((jd = gui_harray(id)))
             {
@@ -377,7 +372,7 @@ static int level_gui(void)
 #else
             gui_multi(id, level_msg(curr_level()),
 #endif
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
         }
 
         gui_layout(id, 0, 0);
@@ -400,7 +395,10 @@ static int level_enter(struct state *st, struct state *prev)
         show_info = 0;
 
     /* New: Checkpoints */
-    game_client_sync(!campaign_hardcore_norecordings() &&
+    game_client_sync(
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                     !campaign_hardcore_norecordings() &&
+#endif
                      curr_mode() != MODE_NONE ? demo_fp : NULL);
     game_client_fly(1.0f);
     hud_update(0, 0.0f);
@@ -610,11 +608,11 @@ static int nodemo_enter(struct state *st, struct state *prev)
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Warning!"), GUI_MED, gui_red, gui_red);
+        gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
         gui_multi(id, _("A replay file could not be opened for writing.\\"
                         "This game will not be recorded.\\"),
-                      GUI_SML, gui_wht, gui_wht);
+                      GUI_SML, GUI_COLOR_WHT);
 
         gui_layout(id, 0, 0);
     }
@@ -682,11 +680,11 @@ static int level_signin_required_enter(struct state *st, struct state *prev)
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Sign in required!"), GUI_MED, gui_red, gui_red);
+        gui_title_header(id, _("Sign in required!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
         gui_multi(id, _("This account must be signed in,\\"
                         "before you play this levels!"),
-                      GUI_SML, gui_wht, gui_wht);
+                      GUI_SML, GUI_COLOR_WHT);
 
         gui_layout(id, 0, 0);
     }
@@ -804,7 +802,11 @@ int goto_exit(void)
     {
         boost_rush_stop();
 
-        if (progress_dead() && !campaign_used())
+        if (progress_dead()
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+         && !campaign_used()
+#endif
+            )
         {
             game_fade_color(0.25f, 0.0f, 0.0f);
             game_fade(+0.333f);
@@ -815,7 +817,11 @@ int goto_exit(void)
     }
     else if (curr_mode() == MODE_CHALLENGE)
     {
-        if (progress_dead() && !campaign_used())
+        if (progress_dead()
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            && !campaign_used()
+#endif
+            )
         {
             game_fade_color(0.25f, 0.0f, 0.0f);
             game_fade(+0.333f);

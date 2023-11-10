@@ -2993,17 +2993,17 @@ static int node_node(struct s_base *fp, int l0, int lc, float bsphere[][4])
                                        fp->sv + sj,
                                        bsphere[l0 + li]))
                 {
-                case +1:
-                    fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x10;
-                    break;
+                    case +1:
+                        fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x10;
+                        break;
 
-                case  0:
-                    fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x20;
-                    break;
+                    case  0:
+                        fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x20;
+                        break;
 
-                case -1:
-                    fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x40;
-                    break;
+                    case -1:
+                        fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x40;
+                        break;
                 }
             }
         }
@@ -3048,9 +3048,9 @@ static int node_node(struct s_base *fp, int l0, int lc, float bsphere[][4])
         for (i = lc - 1; i >= 0; i--)
             switch (fp->lv[l0 + i].fl & 0xf0)
             {
-            case 0x10: li = l0 + i; lic++; break;
-            case 0x20: lj = l0 + i; ljc++; break;
-            case 0x40: lk = l0 + i; lkc++; break;
+                case 0x10: li = l0 + i; lic++; break;
+                case 0x20: lj = l0 + i; ljc++; break;
+                case 0x40: lk = l0 + i; lkc++; break;
             }
 
         /* Add the lumps on the side to the node. */
@@ -3311,7 +3311,9 @@ static int form_method;
 
 static void interactive_web(void)
 {
-#if _WIN32
+#if defined(__EMSCRIPTEN__)
+    EM_ASM({ window.open("https://docs.google.com/forms/d/e/1FAIpQLSdrpRKmyE0pjhB3-9-PD_pGYEsahPeL3QKHCwwafPscjVfiXQ/viewform?usp=sf_link")}, 0);
+#elif_WIN32
     system("start msedge https://docs.google.com/forms/d/e/1FAIpQLSdrpRKmyE0pjhB3-9-PD_pGYEsahPeL3QKHCwwafPscjVfiXQ/viewform?usp=sf_link");
 #elif defined(__APPLE__)
     system("open https://docs.google.com/forms/d/e/1FAIpQLSdrpRKmyE0pjhB3-9-PD_pGYEsahPeL3QKHCwwafPscjVfiXQ/viewform?usp=sf_link");
@@ -3335,7 +3337,7 @@ static void print_usage(const char *name)
 #ifdef MAPC_INCLUDES_CHKP
         "--campaign",
 #endif
-        "--skip-verify"
+        "--skip_verify"
     };
 
     for (int i = 0; i < ARRAYSIZE(opt_name); i++)
@@ -3477,9 +3479,6 @@ int main(int argc, char *argv[])
                 return 1;
             }
 
-            if (!skip_verify)
-                interactive_web();
-
 #if _MSC_VER
             LARGE_INTEGER QPCFrequency;
             LARGE_INTEGER QCPStartTime;
@@ -3583,6 +3582,9 @@ int main(int argc, char *argv[])
                 }
 
                 sol_stor_base(&f, base_name(dst));
+
+                if (!skip_verify)
+                    interactive_web();
             }
 
 #if _MSC_VER
@@ -3608,6 +3610,10 @@ int main(int argc, char *argv[])
 
     }
     else print_usage(argv[0]);
+
+#if _WIN32 && _MSC_VER && _DEBUG && defined(_CRTDBG_MAP_ALLOC)
+    _CrtDumpMemoryLeaks();
+#endif
 
     return 0;
 }

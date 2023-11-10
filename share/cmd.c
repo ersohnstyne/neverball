@@ -485,9 +485,9 @@ int cmd_put(fs_file fp, const union cmd *cmd)
         PUT_CASE(CMD_ZOOM);
         PUT_CASE(CMD_CHKP_DISABLE);
 
-    case CMD_NONE:
-    case CMD_MAX:
-        break;
+        case CMD_NONE:
+        case CMD_MAX:
+            break;
     }
 
     return !fs_eof(fp);
@@ -560,9 +560,9 @@ int cmd_get(fs_file fp, union cmd *cmd)
             GET_CASE(CMD_ZOOM);
             GET_CASE(CMD_CHKP_DISABLE);
 
-        case CMD_NONE:
-        case CMD_MAX:
-            break;
+            case CMD_NONE:
+            case CMD_MAX:
+                break;
         }
 
         return !fs_eof(fp);
@@ -578,16 +578,16 @@ void cmd_free(union cmd *cmd)
     {
         switch (cmd->type)
         {
-        case CMD_SOUND:
-            free(cmd->sound.n);
-            break;
+            case CMD_SOUND:
+                free(cmd->sound.n);
+                break;
 
-        case CMD_MAP:
-            free(cmd->map.name);
-            break;
+            case CMD_MAP:
+                free(cmd->map.name);
+                break;
 
-        default:
-            break;
+            default:
+                break;
         }
 
         free(cmd);

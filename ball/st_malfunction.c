@@ -114,12 +114,12 @@ static int malfunction_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        progress_stat(GAME_NONE);
-        progress_stop();
-        game_fade(+4.0f);
-        goto_state_full(&st_null, 0, 0, 0);
-        return 0;
+        case GUI_BACK:
+            progress_stat(GAME_NONE);
+            progress_stop();
+            game_fade(+4.0f);
+            goto_state_full(&st_null, 0, 0, 0);
+            return 0;
     }
 
     return 1;
@@ -134,9 +134,9 @@ static int malfunction_gui(void)
                                          GUI_MED, gui_gry, gui_red);
         gui_space(id);
         gui_multi(id, _("The Keyboard has an malfunction!\\"
-                        "Please fix it on your PC\\"
+                        "Please fix your keyboard on your PC\\"
                         "and restart the game."),
-                      GUI_SML, gui_wht, gui_wht);
+                      GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
         gui_start(id, _("Exit"), GUI_SML, GUI_BACK, 0);
         gui_pulse(titid, 1.2f);
@@ -205,8 +205,8 @@ static int handsoff_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        return goto_state(back_state);
+        case GUI_BACK:
+            return goto_state(back_state);
     }
 
     return 1;
@@ -217,11 +217,11 @@ static int handsoff_gui(void)
     int id;
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Hands off!"), GUI_MED, gui_red, gui_red);
+        gui_title_header(id, _("Hands off!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
         gui_multi(id, _("Keep fingers away from the keyboard,\\"
                         "before you play this level!"),
-                      GUI_SML, gui_wht, gui_wht);
+                      GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
         gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
     }

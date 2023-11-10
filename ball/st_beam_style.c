@@ -47,18 +47,18 @@ static void set_curr_beam(void)
     
     switch (beam_index)
     {
-    case 0:
-        beam_version_name = "Remastered version (1.7)";
-        break;
-    case 1:
-        beam_version_name = "Standard version (1.6.0)";
-        break;
-    case 2:
-        beam_version_name = "Standard version (1.5.4)";
-        break;
-    case 3:
-        beam_version_name = "Standard version (1.5.3)";
-        break;
+        case 0:
+            beam_version_name = "Remastered version (1.7)";
+            break;
+        case 1:
+            beam_version_name = "Standard version (1.6.0)";
+            break;
+        case 2:
+            beam_version_name = "Standard version (1.5.4)";
+            break;
+        case 3:
+            beam_version_name = "Standard version (1.5.3)";
+            break;
     }
 
     config_save();
@@ -71,22 +71,22 @@ static int beam_style_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        game_fade(+4.0);
-        return goto_state(&st_conf_account);
-        break;
-    case GUI_PREV:
-        beam_index--;
-        if (beam_index < 0) beam_index = 3;
+        case GUI_BACK:
+            game_fade(+4.0);
+            return goto_state(&st_conf_account);
+            break;
+        case GUI_PREV:
+            beam_index--;
+            if (beam_index < 0) beam_index = 3;
 
-        set_curr_beam();
-        break;
-    case GUI_NEXT:
-        beam_index++;
-        if (beam_index > 3) beam_index = 0;
+            set_curr_beam();
+            break;
+        case GUI_NEXT:
+            beam_index++;
+            if (beam_index > 3) beam_index = 0;
 
-        set_curr_beam();
-        break;
+            set_curr_beam();
+            break;
     }
 
     return 1;
@@ -132,7 +132,7 @@ static int beam_style_gui(void)
 #endif
 
             name_id = gui_label(jd, "very-long-beam-style-name", GUI_SML,
-                gui_wht, gui_wht);
+                                GUI_COLOR_WHT);
 
             gui_set_trunc(name_id, TRUNC_TAIL);
             gui_set_fill(name_id);
@@ -161,18 +161,18 @@ static int beam_style_gui(void)
 
     switch (beam_index)
     {
-    case 0:
-        beam_version_name = "Remastered version (1.7)";
-        break;
-    case 1:
-        beam_version_name = "Standard version (1.6.0)";
-        break;
-    case 2:
-        beam_version_name = "Standard version (1.5.4)";
-        break;
-    case 3:
-        beam_version_name = "Standard version (1.5.3)";
-        break;
+        case 0:
+            beam_version_name = "Remastered version (1.7)";
+            break;
+        case 1:
+            beam_version_name = "Standard version (1.6.0)";
+            break;
+        case 2:
+            beam_version_name = "Standard version (1.5.4)";
+            break;
+        case 3:
+            beam_version_name = "Standard version (1.5.3)";
+            break;
     }
 
     gui_set_label(name_id, beam_version_name);

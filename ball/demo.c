@@ -234,10 +234,10 @@ const char *demo_format_name(const char *fmt,
 
     switch (status)
     {
-    case GAME_GOAL: d_status = "g"; break;
-    case GAME_FALL: d_status = "xf"; break;
-    case GAME_TIME: d_status = "xt"; break;
-    default: d_status = "x"; break;
+        case GAME_GOAL: d_status = "g"; break;
+        case GAME_FALL: d_status = "xf"; break;
+        case GAME_TIME: d_status = "xt"; break;
+        default: d_status = "x"; break;
     }
 
     memset(name, 0, sizeof (name));
@@ -253,50 +253,50 @@ const char *demo_format_name(const char *fmt,
 
             switch (*fmt)
             {
-            case 's':
+                case 's':
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                strncat_s(name, MAXSTR, set, space_left);
+                    strncat_s(name, MAXSTR, set, space_left);
 #else
-                strncat(name, set, space_left);
+                    strncat(name, set, space_left);
 #endif
-                space_left -= strlen(set);
-                break;
+                    space_left -= strlen(set);
+                    break;
 
-            case 'l':
+                case 'l':
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                strncat_s(name, MAXSTR, level, space_left);
+                    strncat_s(name, MAXSTR, level, space_left);
 #else
-                strncat(name, level, space_left);
+                    strncat(name, level, space_left);
 #endif
-                space_left -= strlen(level);
-                break;
+                    space_left -= strlen(level);
+                    break;
 
-            case 'r':
+                case 'r':
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                strncat_s(name, MAXSTR, d_status, space_left);
+                    strncat_s(name, MAXSTR, d_status, space_left);
 #else
-                strncat(name, d_status, space_left);
+                    strncat(name, d_status, space_left);
 #endif
-                space_left -= strlen(d_status);
-                break;
+                    space_left -= strlen(d_status);
+                    break;
 
-            case '%':
+                case '%':
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                strncat_s(name, MAXSTR, "%", space_left);
+                    strncat_s(name, MAXSTR, "%", space_left);
 #else
-                strncat(name, "%", space_left);
+                    strncat(name, "%", space_left);
 #endif
-                space_left--;
-                break;
+                    space_left--;
+                    break;
 
-            case '\0':
-                /* Missing format. */
-                fmt--;
-                break;
+                case '\0':
+                    /* Missing format. */
+                    fmt--;
+                    break;
 
-            default:
-                /* Invalid format. */
-                break;
+                default:
+                    /* Invalid format. */
+                    break;
             }
         }
         else

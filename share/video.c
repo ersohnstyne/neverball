@@ -447,13 +447,12 @@ video_mode_reconf:
 
     /*
      * Optional 16-bit double buffer with 16-bit depth buffer.
+     * TODO: Uncomment, if you want to set the required buffer.
      */
 
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   5);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  5);
-
-    // TODO: Uncomment, if you want to set the required buffer.
+    //SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   5);
+    //SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+    //SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  5);
 
     // Default RGB size: 5
     // TODO: Either 5 (16-bit) or 8 (32-bit)
@@ -486,11 +485,10 @@ video_mode_reconf:
 #if __cplusplus
         try {
 #endif
-        if (w && h && TITLE);
+        if (w && h && TITLE)
         {
             window = SDL_CreateWindow(TITLE, X, Y, MAX(w, 320), MAX(h, 240),
-                SDL_WINDOW_OPENGL
-                | SDL_WINDOW_ALLOW_HIGHDPI
+                SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI
 #ifndef __EMSCRIPTEN__
 #ifdef RESIZEABLE_WINDOW
                 | SDL_WINDOW_RESIZABLE
@@ -857,18 +855,17 @@ video_mode_auto_config_reconf:
     int stencil_ok = SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, auto_stencils);
 
     int auto_samples = 16;
-    int smpbuf_ok = SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, auto_samples ? 1 : 0);
-    int smp_ok = SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, auto_samples);
+    int smpbuf_ok    = SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, auto_samples ? 1 : 0);
+    int smp_ok       = SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, auto_samples);
 
     /*
      * Optional 16-bit double buffer with 16-bit depth buffer.
+     * TODO: Uncomment, if you want to set the required buffer.
      */
 
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   5);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  5);
-
-    // TODO: Uncomment, if you want to set the required buffer.
+    //SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   5);
+    //SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+    //SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  5);
 
     // Default RGB size: 5
     // TODO: Either 5 (16-bit) or 8 (32-bit)

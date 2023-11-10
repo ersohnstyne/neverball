@@ -139,12 +139,12 @@ static void scan_balls(void)
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
     switch (ball_multi_curr())
     {
-    case 0:  SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_LL)); break;
-    case 1:  SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_L)); break;
-    case 2:  SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_C)); break;
-    case 3:  SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_R)); break;
-    case 4:  SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_RR)); break;
-    default: SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_C));
+        case 0:  SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_LL)); break;
+        case 1:  SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_L));  break;
+        case 2:  SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_C));  break;
+        case 3:  SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_R));  break;
+        case 4:  SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_RR)); break;
+        default: SAFECPY(ball_file, account_get_s(ACCOUNT_BALL_FILE_C));
     }
 
     account_set_s(ACCOUNT_BALL_FILE, ball_file);
@@ -193,11 +193,12 @@ static void set_curr_ball(int ball_index)
 
     switch (ball_multi_curr())
     {
-    case 0: account_set_s(ACCOUNT_BALL_FILE_LL, ball_file); break;
-    case 1: account_set_s(ACCOUNT_BALL_FILE_L,  ball_file); break;
-    case 2: account_set_s(ACCOUNT_BALL_FILE_C,  ball_file); break;
-    case 3: account_set_s(ACCOUNT_BALL_FILE_R,  ball_file); break;
-    case 4: account_set_s(ACCOUNT_BALL_FILE_RR, ball_file); break;
+        case 0:  account_set_s(ACCOUNT_BALL_FILE_LL, ball_file); break;
+        case 1:  account_set_s(ACCOUNT_BALL_FILE_L,  ball_file); break;
+        case 2:  account_set_s(ACCOUNT_BALL_FILE_C,  ball_file); break;
+        case 3:  account_set_s(ACCOUNT_BALL_FILE_R,  ball_file); break;
+        case 4:  account_set_s(ACCOUNT_BALL_FILE_RR, ball_file); break;
+        default: account_set_s(ACCOUNT_BALL_FILE_C,  ball_file);
     }
 #elif NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_set_s(ACCOUNT_BALL_FILE, ball_file);
@@ -232,52 +233,57 @@ static int ball_action(int tok, int val)
     switch (tok)
     {
 #if !defined(__EMSCRIPTEN__)
-    case MODEL_ONLINE:
+        case MODEL_ONLINE:
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-        if (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1)
-        {
-#if _WIN32
-            system("start msedge https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
+            if (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1)
+            {
+#if defined(__EMSCRIPTEN__)
+                EM_ASM({ window.open("https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");}, 0);
+#elif _WIN32
+                system("start msedge https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
 #elif defined(__APPLE__)
-            system("open https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
+                system("open https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
 #elif defined(__linux__)
-            system("x-www-browser https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
+                system("x-www-browser https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
 #endif
-        }
+            }
 #endif
-        break;
-    case MODEL_UPGRADE_EDITION:
-#if _WIN32
-        system("start msedge https://forms.gle/62iaMCNKan4z2SJs5");
+            break;
+
+        case MODEL_UPGRADE_EDITION:
+#if defined(__EMSCRIPTEN__)
+            EM_ASM({ window.open("https://forms.office.com/r/upfWqaVVtA"); }, 0);
+#elif _WIN32
+            system("start msedge https://forms.office.com/r/upfWqaVVtA");
 #elif defined(__APPLE__)
-        system("open https://forms.gle/62iaMCNKan4z2SJs5");
+            system("open https://forms.office.com/r/upfWqaVVtA");
 #elif defined(__linux__)
-        system("x-www-browser https://forms.gle/62iaMCNKan4z2SJs5");
+            system("x-www-browser https://forms.office.com/r/upfWqaVVtA");
 #endif
-        break;
+            break;
 #endif
-    case GUI_NEXT:
-        if (++curr_ball == array_len(balls))
-            curr_ball = 0;
+        case GUI_NEXT:
+            if (++curr_ball == array_len(balls))
+                curr_ball = 0;
 
-        set_curr_ball(curr_ball);
-        break;
+            set_curr_ball(curr_ball);
+            break;
 
-    case GUI_PREV:
-        if (--curr_ball == -1)
-            curr_ball = array_len(balls) - 1;
+        case GUI_PREV:
+            if (--curr_ball == -1)
+                curr_ball = array_len(balls) - 1;
 
-        set_curr_ball(curr_ball);
-        break;
+            set_curr_ball(curr_ball);
+            break;
 
-    case GUI_BACK:
-        game_fade(+4.0);
+        case GUI_BACK:
+            game_fade(+4.0);
 #if NB_HAVE_PB_BOTH==1
-        goto_state(&st_conf_account);
+            goto_state(&st_conf_account);
 #else
-        goto_state(&st_conf);
+            goto_state(&st_conf);
 #endif
-        break;
+            break;
     }
 
     return 1;
@@ -330,7 +336,7 @@ static void load_ball_demo(void)
 #if NB_HAVE_PB_BOTH==1
     if (super_environment == 0)
 #endif
-        back_init("back/premium.png");
+        back_init("back/gui.png");
 }
 
 static int ball_gui(void)
@@ -389,7 +395,7 @@ static int ball_gui(void)
         }
 
         else if (!xbox_show_gui())
-            gui_label(id, _(more_balls_text), GUI_SML, gui_gry, gui_gry);
+            gui_label(id, _(more_balls_text), GUI_SML, GUI_COLOR_GRY);
 
         gui_space(id);
 #endif
@@ -412,7 +418,7 @@ static int ball_gui(void)
 #endif
 
             name_id = gui_label(jd, "very-long-ball-name", GUI_SML,
-                                gui_wht, gui_wht);
+                                GUI_COLOR_WHT);
 
             gui_set_trunc(name_id, TRUNC_TAIL);
             gui_set_fill(name_id);
@@ -536,56 +542,55 @@ static int ball_keybd(int c, int d)
         }
         else switch (c)
         {
-        case KEY_EXIT:
-            return ball_action(GUI_BACK, 0);
+            case KEY_EXIT:
+                return ball_action(GUI_BACK, 0);
 
-        case KEY_LEVELSHOTS:
+            case KEY_LEVELSHOTS:
+                video_set_window_size(800 / video.device_scale, 600 / video.device_scale);
+                video_resize(800 / video.device_scale, 600 / video.device_scale);
 
-            video_set_window_size(800 / video.device_scale, 600 / video.device_scale);
-            video_resize(800 / video.device_scale, 600 / video.device_scale);
+                // Zoom in on the ball.
 
-            // Zoom in on the ball.
+                config_set_d(CONFIG_VIEW_DC, 0);
+                config_set_d(CONFIG_VIEW_DP, 50);
+                config_set_d(CONFIG_VIEW_FOV, 20);
 
-            config_set_d(CONFIG_VIEW_DC, 0);
-            config_set_d(CONFIG_VIEW_DP, 50);
-            config_set_d(CONFIG_VIEW_FOV, 20);
+                game_client_fly(0.0f);
 
-            game_client_fly(0.0f);
+                // Take screenshots.
 
-            // Take screenshots.
-
-            for (i = 0; balls && i < array_len(balls); ++i)
-            {
-                static char filename[64];
-
-                sprintf(filename, "Screenshots/ball-%s.png", base_name(DIR_ITEM_GET(balls, i)->path));
-
-                set_curr_ball(i);
-
-                video_clear();
-                video_push_persp((float) initial_fov, 0.1f, FAR_DIST);
+                for (i = 0; balls && i < array_len(balls); ++i)
                 {
-                    back_draw_easy();
+                    static char filename[64];
+
+                    sprintf(filename, "Screenshots/ball-%s.png", base_name(DIR_ITEM_GET(balls, i)->path));
+
+                    set_curr_ball(i);
+
+                    video_clear();
+                    video_push_persp((float) initial_fov, 0.1f, FAR_DIST);
+                    {
+                        back_draw_easy();
+                    }
+                    video_pop_matrix();
+
+                    game_client_draw(POSE_BALL, 0);
+                    video_snap(filename);
+                    video_swap();
                 }
-                video_pop_matrix();
 
-                game_client_draw(POSE_BALL, 0);
-                video_snap(filename);
-                video_swap();
-            }
+                // Restore config.
 
-            // Restore config.
+                config_set_d(CONFIG_VIEW_FOV, initial_fov);
+                config_set_d(CONFIG_VIEW_DC, initial_dc);
+                config_set_d(CONFIG_VIEW_DP, initial_dp);
 
-            config_set_d(CONFIG_VIEW_FOV, initial_fov);
-            config_set_d(CONFIG_VIEW_DC, initial_dc);
-            config_set_d(CONFIG_VIEW_DP, initial_dp);
+                video_set_window_size(initial_w, initial_h);
+                video_resize(initial_w, initial_h);
 
-            video_set_window_size(initial_w, initial_h);
-            video_resize(initial_w, initial_h);
+                set_curr_ball(curr_ball);
 
-            set_curr_ball(curr_ball);
-
-            break;
+                break;
         }
     }
     return 1;

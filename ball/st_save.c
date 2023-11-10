@@ -119,59 +119,59 @@ static int save_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        return goto_state(cancel_state);
+        case GUI_BACK:
+            return goto_state(cancel_state);
 
-    case SAVE_OK:
+        case SAVE_OK:
 #if NB_HAVE_PB_BOTH==1 && defined(DEMO_QUARANTINED_MODE) && !defined(DEMO_LOCKDOWN_COMPLETE)
-        /* Lockdown duration time. DO NOT EDIT! */
-        int nolockdown; DEMO_LOCKDOWN_RANGE_NIGHT(nolockdown, 16, 8);
-        if (!nolockdown && curr_status() == GAME_FALL)
-            return goto_state(&st_lockdown);
+            /* Lockdown duration time. DO NOT EDIT! */
+            int nolockdown; DEMO_LOCKDOWN_RANGE_NIGHT(nolockdown, 16, 8);
+            if (!nolockdown && curr_status() == GAME_FALL)
+                return goto_state(&st_lockdown);
 #endif
 
-        for (int i = 0; i < text_length(text_input); i++)
-        {
-            if (text_input[i] == '\\' ||
-                text_input[i] == '/'  ||
-                text_input[i] == ':'  ||
-                text_input[i] == '*'  ||
-                text_input[i] == '?'  ||
-                text_input[i] == '"'  ||
-                text_input[i] == '<'  ||
-                text_input[i] == '>'  ||
-                text_input[i] == '|')
+            for (int i = 0; i < text_length(text_input); i++)
             {
-                log_errorf("Can't accept other charsets!\n", text_input[i]);
-                return 1;
+                if (text_input[i] == '\\' ||
+                    text_input[i] == '/'  ||
+                    text_input[i] == ':'  ||
+                    text_input[i] == '*'  ||
+                    text_input[i] == '?'  ||
+                    text_input[i] == '"'  ||
+                    text_input[i] == '<'  ||
+                    text_input[i] == '>'  ||
+                    text_input[i] == '|')
+                {
+                    log_errorf("Can't accept other charsets!\n", text_input[i]);
+                    return 1;
+                }
             }
-        }
 
-        if (text_length(text_input) < 3 || strcmp("Last", text_input) == 0)
-            return 1;
+            if (text_length(text_input) < 3 || strcmp("Last", text_input) == 0)
+                return 1;
 
-        if (demo_exists(text_input))
-            return goto_state(&st_clobber);
-        else
-        {
-            if (curr_status() == GAME_FALL)
-                conf_covid_retract();
+            if (demo_exists(text_input))
+                return goto_state(&st_clobber);
+            else
+            {
+                if (curr_status() == GAME_FALL)
+                    conf_covid_retract();
 
-            int r = demo_rename(text_input);
-            return goto_state(r ? ok_state : &st_save_error);
-        }
+                int r = demo_rename(text_input);
+                return goto_state(r ? ok_state : &st_save_error);
+            }
 
-    case GUI_CL:
-        gui_keyboard_lock_en();
-        break;
+        case GUI_CL:
+            gui_keyboard_lock_en();
+            break;
 
-    case GUI_BS:
-        text_input_del();
-        break;
+        case GUI_BS:
+            text_input_del();
+            break;
 
-    case GUI_CHAR:
-        text_input_char(val);
-        break;
+        case GUI_CHAR:
+            text_input_char(val);
+            break;
     }
     return 1;
 }
@@ -185,9 +185,9 @@ static int save_gui(void)
         gui_title_header(id, _("Replay Name"), GUI_MED, 0, 0);
         gui_space(id);
 
-        //file_id = gui_label(id, "XXXXXXXXXXXXXXXX", GUI_MED, gui_yel, gui_yel);
+        //file_id = gui_label(id, "XXXXXXXXXXXXXXXX", GUI_MED, GUI_COLOR_YEL);
         file_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-                                GUI_SML, gui_yel, gui_yel);
+                                GUI_SML, GUI_COLOR_YEL);
 
         gui_space(id);
         if ((jd = gui_hstack(id)))
@@ -337,11 +337,11 @@ static int clobber_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        kd = gui_title_header(id, _("Overwrite?"), GUI_MED, gui_red, gui_red);
+        kd = gui_title_header(id, _("Overwrite?"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
-        //file_id = gui_label(id, "MMMMMMMM", GUI_MED, gui_yel, gui_yel);
+        //file_id = gui_label(id, "MMMMMMMM", GUI_MED, GUI_COLOR_YEL);
         file_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-                                GUI_SML, gui_yel, gui_yel);
+                                GUI_SML, GUI_COLOR_YEL);
         gui_space(id);
 
         if ((jd = gui_harray(id)))
@@ -409,11 +409,11 @@ static int lockdown_gui(void)
         gui_space(id);
 #ifdef COVID_HIGH_RISK
         gui_multi(id, _("Replays have locked down\\"
-                        "during high risks!"), GUI_SML, gui_red, gui_red);
+                        "during high risks!"), GUI_SML, GUI_COLOR_RED);
 #else
         gui_multi(id, _("Replays have locked down\\"
                         "between 16:00 - 8:00 (4:00 PM - 8:00 AM)."),
-                      GUI_SML, gui_red, gui_red);
+                      GUI_SML, GUI_COLOR_RED);
 #endif
         gui_space(id);
         gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
@@ -469,7 +469,7 @@ static int save_error_gui(void)
 
         gui_title_header(id, _("Save failed!"), GUI_MED, gui_gry, gui_red);
         gui_space(id);
-        gui_multi(id, desc, GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, desc, GUI_SML, GUI_COLOR_WHT);
     }
 
     gui_layout(id, 0, 0);

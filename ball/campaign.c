@@ -253,7 +253,7 @@ static int autocam_count = 0; /* How many autocam box triggers have we got? */
 
 /*
  * PennySchloss dynamically adds build-in electricity like
- * airport to your entities. Simple start position are no longer allowed.
+ * airport to your entities. Simple player start are no longer allowed.
  */
 static struct level campaign_lvl_v[MAXLVL];
 
@@ -487,8 +487,8 @@ static void campaign_load_hs(void)
             {
                 switch (time_trial_version)
                 {
-                case 2: campaign_load_hs_v2(fp, buf, sizeof(buf)); break;
-                //case 3: campaign_load_hs_v3(fp, buf, sizeof(buf)); break;
+                    case 2: campaign_load_hs_v2(fp, buf, sizeof(buf)); break;
+                    //case 3: campaign_load_hs_v3(fp, buf, sizeof(buf)); break;
                 }
             }
             else

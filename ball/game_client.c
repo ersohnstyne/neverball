@@ -109,320 +109,320 @@ static void game_run_cmd(const union cmd *cmd)
 
         switch (cmd->type)
         {
-        case CMD_END_OF_UPDATE:
-            cs.got_tilt_axes = 0;
-            cs.next_update = 1;
+            case CMD_END_OF_UPDATE:
+                cs.got_tilt_axes = 0;
+                cs.next_update = 1;
 
-            if (cs.first_update)
-            {
-                game_lerp_copy(&gl);
-                /* Hack to sync state before the next update. */
-                game_lerp_apply(&gl, &gd);
-                cs.first_update = 0;
-                break;
-            }
+                if (cs.first_update)
+                {
+                    game_lerp_copy(&gl);
+                    /* Hack to sync state before the next update. */
+                    game_lerp_apply(&gl, &gd);
+                    cs.first_update = 0;
+                    break;
+                }
 
-            /* Compute gravity for particle effects. */
+                /* Compute gravity for particle effects. */
 
 #if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
-            if (status == GAME_GOAL && !campaign_used())
+                if (status == GAME_GOAL && !campaign_used())
 #else
-            if (status == GAME_GOAL)
+                if (status == GAME_GOAL)
 #endif
-                game_tilt_grav(v, GRAVITY_UP, tilt);
-            else
-                game_tilt_grav(v, GRAVITY_DN, tilt);
+                    game_tilt_grav(v, GRAVITY_UP, tilt);
+                else
+                    game_tilt_grav(v, GRAVITY_DN, tilt);
 
-            /* Step particle, goal and jump effects. */
+                /* Step particle, goal and jump effects. */
 
-            if (cs.ups > 0)
-            {
-                dt = 1.0f / cs.ups;
+                if (cs.ups > 0)
+                {
+                    dt = 1.0f / cs.ups;
 
-                if (gd.goal_e && gl.goal_k[CURR] < 1.0f)
-                    gl.goal_k[CURR] += dt;
+                    if (gd.goal_e && gl.goal_k[CURR] < 1.0f)
+                        gl.goal_k[CURR] += dt;
 
 #ifdef MAPC_INCLUDES_CHKP
-                if (!gd.chkp_e && gl.chkp_k[CURR] > 0.f)
-                    gl.chkp_k[CURR] -= dt;
+                    if (!gd.chkp_e && gl.chkp_k[CURR] > 0.f)
+                        gl.chkp_k[CURR] -= dt;
 #endif
 
-                if (gd.jump_b)
-                {
+                    if (gd.jump_b)
+                    {
                     gl.jump_dt[CURR] += dt;
 
                     if (gl.jump_dt[PREV] >= 1.0f)
                         gd.jump_b = 0;
+                    }
+
+                    part_step(v, dt);
                 }
 
-                part_step(v, dt);
-            }
+                break;
 
-            break;
+            case CMD_MAKE_BALL:
+                sol_lerp_cmd(&gl.lerp, &cs, cmd);
+                break;
 
-        case CMD_MAKE_BALL:
-            sol_lerp_cmd(&gl.lerp, &cs, cmd);
-            break;
+            case CMD_MAKE_ITEM:
+                /* Allocate and initialize a new item. */
 
-        case CMD_MAKE_ITEM:
-            /* Allocate and initialize a new item. */
+                if ((hp = realloc(vary->hv, sizeof (*hp) * (vary->hc + 1))))
+                {
+                    vary->hv = hp;
+                    hp = &vary->hv[vary->hc];
 
-            if ((hp = realloc(vary->hv, sizeof (*hp) * (vary->hc + 1))))
-            {
-                vary->hv = hp;
-                hp = &vary->hv[vary->hc];
+                    vary->hc++;
 
-                vary->hc++;
+                    memset(hp, 0, sizeof (*hp));
 
-                memset(hp, 0, sizeof (*hp));
+                    v_cpy(hp->p, cmd->mkitem.p);
 
-                v_cpy(hp->p, cmd->mkitem.p);
-
-                hp->t = cmd->mkitem.t;
-                hp->n = cmd->mkitem.n;
+                    hp->t = cmd->mkitem.t;
+                    hp->n = cmd->mkitem.n;
 
 #if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
-                if (!last_active)
+                    if (!last_active)
 #endif
-                    max_coins += cmd->mkitem.n;
-            }
+                        max_coins += cmd->mkitem.n;
+                }
 
-            break;
+                break;
 
-        case CMD_PICK_ITEM:
-            /* Set up particle effects and discard the item. */
+            case CMD_PICK_ITEM:
+                /* Set up particle effects and discard the item. */
 
-            if ((idx = cmd->pkitem.hi) >= 0 && idx < vary->hc)
-            {
-                hp = &vary->hv[idx];
+                if ((idx = cmd->pkitem.hi) >= 0 && idx < vary->hc)
+                {
+                    hp = &vary->hv[idx];
 
-                item_color(hp, v);
-                part_burst(hp->p, v);
+                    item_color(hp, v);
+                    part_burst(hp->p, v);
 
-                hp->t = ITEM_NONE;
-            }
-            break;
+                    hp->t = ITEM_NONE;
+                }
+                break;
 
-        case CMD_TILT_ANGLES:
-            tilt->rx = cmd->tiltangles.x;
-            tilt->rz = cmd->tiltangles.z;
+            case CMD_TILT_ANGLES:
+                tilt->rx = cmd->tiltangles.x;
+                tilt->rz = cmd->tiltangles.z;
 
-            if (!cs.got_tilt_axes)
-            {
+                if (!cs.got_tilt_axes)
+                {
+                    /*
+                     * Neverball <= 1.5.1 does not send explicit tilt
+                     * axes, rotation happens directly around view
+                     * vectors.  So for compatibility if at the time of
+                     * receiving tilt angles we have not yet received the
+                     * tilt axes, we use the view vectors.
+                     */
+
+                    game_tilt_calc(tilt, view->e);
+                }
+                else
+                {
+                    /* Use the axes we received via CMD_TILT_AXES. */
+
+                    game_tilt_calc(tilt, NULL);
+                }
+                break;
+
+            case CMD_SOUND:
+                /* Play the sound. */
+
+                if (cmd->sound.n)
+                {
+                    if (strcmp(AUD_TIME, cmd->sound.n) == 0 ||
+                        strcmp(AUD_FALL, cmd->sound.n) == 0)
+                        audio_narrator_play(cmd->sound.n);
+                    else audio_play(cmd->sound.n, cmd->sound.a);
+                }
+
+                break;
+
+            case CMD_TIMER:
+                gl.timer[PREV] = gl.timer[CURR];
+                gl.timer[CURR] = cmd->timer.t;
+
+                if (cs.first_update)
+                {
+                    gl.timer[PREV] = gl.timer[CURR] = cmd->timer.t;
+                    game_compat_campaign = 0;
+                }
+
+                break;
+
+            case CMD_STATUS:
+                status = cmd->status.t;
+                break;
+
+            case CMD_COINS:
+                coins = cmd->coins.n;
+                break;
+
+            case CMD_JUMP_ENTER:
+                gd.jump_b  = 1;
+                gd.jump_e  = 0;
+                gl.jump_dt[PREV] = 0.0f;
+                gl.jump_dt[CURR] = 0.0f;
+                break;
+
+            case CMD_JUMP_EXIT:
+                gd.jump_e = 1;
+                break;
+
+            case CMD_MOVE_PATH:
+            case CMD_MOVE_TIME:
+            case CMD_BODY_PATH:
+            case CMD_BODY_TIME:
+                sol_lerp_cmd(&gl.lerp, &cs, cmd);
+                break;
+
+            case CMD_GOAL_OPEN:
                 /*
-                 * Neverball <= 1.5.1 does not send explicit tilt
-                 * axes, rotation happens directly around view
-                 * vectors.  So for compatibility if at the time of
-                 * receiving tilt angles we have not yet received the
-                 * tilt axes, we use the view vectors.
+                 * Enable the goal and make sure it's fully visible if
+                 * this is the first update.
                  */
 
-                game_tilt_calc(tilt, view->e);
-            }
-            else
-            {
-                /* Use the axes we received via CMD_TILT_AXES. */
+                if (!gd.goal_e)
+                {
+                    gd.goal_e = 1;
+                    gl.goal_k[CURR] = cs.first_update ? 1.0f : 0.0f;
+                }
+                break;
 
-                game_tilt_calc(tilt, NULL);
-            }
-            break;
+            case CMD_SWCH_ENTER:
+                if ((idx = cmd->swchenter.xi) >= 0 && idx < vary->xc)
+                    vary->xv[idx].e = 1;
+                break;
 
-        case CMD_SOUND:
-            /* Play the sound. */
+            case CMD_SWCH_TOGGLE:
+                if ((idx = cmd->swchtoggle.xi) >= 0 && idx < vary->xc)
+                    vary->xv[idx].f = !vary->xv[idx].f;
+                break;
 
-            if (cmd->sound.n)
-            {
-                if (strcmp(AUD_TIME, cmd->sound.n) == 0 ||
-                    strcmp(AUD_FALL, cmd->sound.n) == 0)
-                    audio_narrator_play(cmd->sound.n);
-                else audio_play(cmd->sound.n, cmd->sound.a);
-            }
+            case CMD_SWCH_EXIT:
+                if ((idx = cmd->swchexit.xi) >= 0 && idx < vary->xc)
+                    vary->xv[idx].e = 0;
+                break;
 
-            break;
+            case CMD_UPDATES_PER_SECOND:
+                cs.ups = cmd->ups.n;
+                break;
 
-        case CMD_TIMER:
-            gl.timer[PREV] = gl.timer[CURR];
-            gl.timer[CURR] = cmd->timer.t;
+            case CMD_BALL_RADIUS:
+                sol_lerp_cmd(&gl.lerp, &cs, cmd);
+                break;
 
-            if (cs.first_update)
-            {
-                gl.timer[PREV] = gl.timer[CURR] = cmd->timer.t;
-                game_compat_campaign = 0;
-            }
+            case CMD_CLEAR_ITEMS:
+                free(vary->hv);
+                vary->hv = NULL;
+                vary->hc = 0;
+                break;
 
-            break;
+            case CMD_CLEAR_BALLS:
+                sol_lerp_cmd(&gl.lerp, &cs, cmd);
+                break;
 
-        case CMD_STATUS:
-            status = cmd->status.t;
-            break;
+            case CMD_BALL_POSITION:
+                sol_lerp_cmd(&gl.lerp, &cs, cmd);
+                break;
 
-        case CMD_COINS:
-            coins = cmd->coins.n;
-            break;
+            case CMD_BALL_BASIS:
+                sol_lerp_cmd(&gl.lerp, &cs, cmd);
+                break;
 
-        case CMD_JUMP_ENTER:
-            gd.jump_b  = 1;
-            gd.jump_e  = 0;
-            gl.jump_dt[PREV] = 0.0f;
-            gl.jump_dt[CURR] = 0.0f;
-            break;
+            case CMD_BALL_PEND_BASIS:
+                sol_lerp_cmd(&gl.lerp, &cs, cmd);
+                break;
 
-        case CMD_JUMP_EXIT:
-            gd.jump_e = 1;
-            break;
+            case CMD_VIEW_POSITION:
+                v_cpy(view->p, cmd->viewpos.p);
+                break;
 
-        case CMD_MOVE_PATH:
-        case CMD_MOVE_TIME:
-        case CMD_BODY_PATH:
-        case CMD_BODY_TIME:
-            sol_lerp_cmd(&gl.lerp, &cs, cmd);
-            break;
+            case CMD_VIEW_CENTER:
+                v_cpy(view->c, cmd->viewcenter.c);
+                break;
 
-        case CMD_GOAL_OPEN:
-            /*
-             * Enable the goal and make sure it's fully visible if
-             * this is the first update.
-             */
+            case CMD_VIEW_BASIS:
+                v_cpy(view->e[0], cmd->viewbasis.e[0]);
+                v_cpy(view->e[1], cmd->viewbasis.e[1]);
+                v_crs(view->e[2], view->e[0], view->e[1]);
+                break;
 
-            if (!gd.goal_e)
-            {
-                gd.goal_e = 1;
-                gl.goal_k[CURR] = cs.first_update ? 1.0f : 0.0f;
-            }
-            break;
+            case CMD_CURRENT_BALL:
+                if ((idx = cmd->currball.ui) >= 0 && idx < vary->uc)
+                    cs.curr_ball = idx;
+                break;
 
-        case CMD_SWCH_ENTER:
-            if ((idx = cmd->swchenter.xi) >= 0 && idx < vary->xc)
-                vary->xv[idx].e = 1;
-            break;
+            case CMD_PATH_FLAG:
+                if ((idx = cmd->pathflag.pi) >= 0 && idx < vary->pc)
+                    vary->pv[idx].f = cmd->pathflag.f;
+                break;
 
-        case CMD_SWCH_TOGGLE:
-            if ((idx = cmd->swchtoggle.xi) >= 0 && idx < vary->xc)
-                vary->xv[idx].f = !vary->xv[idx].f;
-            break;
+            case CMD_STEP_SIMULATION:
+                sol_lerp_cmd(&gl.lerp, &cs, cmd);
+                break;
 
-        case CMD_SWCH_EXIT:
-            if ((idx = cmd->swchexit.xi) >= 0 && idx < vary->xc)
-                vary->xv[idx].e = 0;
-            break;
+            case CMD_MAP:
+                /*
+                 * Note a version (mis-)match between the loaded map and what
+                 * the server has. (This doesn't actually load a map.)
+                 */
+                game_compat_map = (version.x == cmd->map.version.x);
+                break;
 
-        case CMD_UPDATES_PER_SECOND:
-            cs.ups = cmd->ups.n;
-            break;
+            case CMD_TILT_AXES:
+                cs.got_tilt_axes = 1;
 
-        case CMD_BALL_RADIUS:
-            sol_lerp_cmd(&gl.lerp, &cs, cmd);
-            break;
+                v_cpy(tilt->x, cmd->tiltaxes.x);
+                v_cpy(tilt->z, cmd->tiltaxes.z);
+                break;
 
-        case CMD_CLEAR_ITEMS:
-            free(vary->hv);
-            vary->hv = NULL;
-            vary->hc = 0;
-            break;
-
-        case CMD_CLEAR_BALLS:
-            sol_lerp_cmd(&gl.lerp, &cs, cmd);
-            break;
-
-        case CMD_BALL_POSITION:
-            sol_lerp_cmd(&gl.lerp, &cs, cmd);
-            break;
-
-        case CMD_BALL_BASIS:
-            sol_lerp_cmd(&gl.lerp, &cs, cmd);
-            break;
-
-        case CMD_BALL_PEND_BASIS:
-            sol_lerp_cmd(&gl.lerp, &cs, cmd);
-            break;
-
-        case CMD_VIEW_POSITION:
-            v_cpy(view->p, cmd->viewpos.p);
-            break;
-
-        case CMD_VIEW_CENTER:
-            v_cpy(view->c, cmd->viewcenter.c);
-            break;
-
-        case CMD_VIEW_BASIS:
-            v_cpy(view->e[0], cmd->viewbasis.e[0]);
-            v_cpy(view->e[1], cmd->viewbasis.e[1]);
-            v_crs(view->e[2], view->e[0], view->e[1]);
-            break;
-
-        case CMD_CURRENT_BALL:
-            if ((idx = cmd->currball.ui) >= 0 && idx < vary->uc)
-                cs.curr_ball = idx;
-            break;
-
-        case CMD_PATH_FLAG:
-            if ((idx = cmd->pathflag.pi) >= 0 && idx < vary->pc)
-                vary->pv[idx].f = cmd->pathflag.f;
-            break;
-
-        case CMD_STEP_SIMULATION:
-            sol_lerp_cmd(&gl.lerp, &cs, cmd);
-            break;
-
-        case CMD_MAP:
-            /*
-             * Note a version (mis-)match between the loaded map and what
-             * the server has. (This doesn't actually load a map.)
-             */
-            game_compat_map = (version.x == cmd->map.version.x);
-            break;
-
-        case CMD_TILT_AXES:
-            cs.got_tilt_axes = 1;
-
-            v_cpy(tilt->x, cmd->tiltaxes.x);
-            v_cpy(tilt->z, cmd->tiltaxes.z);
-            break;
-
-        case CMD_TILT:
-            q_cpy(tilt->q, cmd->tilt.q);
-            break;
+            case CMD_TILT:
+                q_cpy(tilt->q, cmd->tilt.q);
+                break;
 
 #ifdef MAPC_INCLUDES_CHKP
-        case CMD_CHKP_ENTER:
-            if ((idx = cmd->chkpenter.ci) >= 0 && idx < vary->cc)
-                vary->cv[idx].e = 1;
-            break;
+            case CMD_CHKP_ENTER:
+                if ((idx = cmd->chkpenter.ci) >= 0 && idx < vary->cc)
+                    vary->cv[idx].e = 1;
+                break;
 
-        case CMD_CHKP_TOGGLE:
-            if ((idx = cmd->chkptoggle.ci) >= 0 && idx < vary->cc)
-                vary->cv[idx].f = !vary->cv[idx].f;
-            break;
+            case CMD_CHKP_TOGGLE:
+                if ((idx = cmd->chkptoggle.ci) >= 0 && idx < vary->cc)
+                    vary->cv[idx].f = !vary->cv[idx].f;
+                break;
 
-        case CMD_CHKP_EXIT:
-            if ((idx = cmd->chkpexit.ci) >= 0 && idx < vary->cc)
-                vary->cv[idx].e = 0;
-            break;
+            case CMD_CHKP_EXIT:
+                if ((idx = cmd->chkpexit.ci) >= 0 && idx < vary->cc)
+                    vary->cv[idx].e = 0;
+                break;
 #endif
 
-        case CMD_SPEEDOMETER:
-            speedometer = cmd->speedometer.xi;
-            break;
+            case CMD_SPEEDOMETER:
+                speedometer = cmd->speedometer.xi;
+                break;
 
-        case CMD_ZOOM:
-            /*
-             * New: Zoom; Store with the zoom differences (just like a Switchball)
-             */
-            game_view_zoom(view, cmd->zoom.xi);
-            break;
+            case CMD_ZOOM:
+                /*
+                 * New: Zoom; Store with the zoom differences (just like a Switchball)
+                 */
+                game_view_zoom(view, cmd->zoom.xi);
+                break;
 
 #ifdef MAPC_INCLUDES_CHKP
-        case CMD_CHKP_DISABLE:
-            if (gd.chkp_e)
-            {
-                gd.chkp_e = 0;
-                gl.chkp_k[CURR] = cs.first_update ? 0.0f : 1.0f;
-            }
+            case CMD_CHKP_DISABLE:
+                if (gd.chkp_e)
+                {
+                    gd.chkp_e = 0;
+                    gl.chkp_k[CURR] = cs.first_update ? 0.0f : 1.0f;
+                }
 #endif
 
-        case CMD_NONE:
-        case CMD_MAX:
-            break;
+            case CMD_NONE:
+            case CMD_MAX:
+                break;
         }
     }
 }

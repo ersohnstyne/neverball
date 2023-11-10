@@ -96,8 +96,8 @@ static int playmodes_state(int id, int tok, int val, int unlocked,
     {
         gui_multi(jd, title, GUI_SML,
                   unlocked ? gui_wht : gui_gry, unlocked ? gui_yel : gui_red);
-        gui_multi(jd, unlocked ? unlock_desc : lock_desc, GUI_SML,
-                  gui_wht, gui_wht);
+        gui_multi(jd, unlocked ? unlock_desc : lock_desc,
+                      GUI_SML, GUI_COLOR_WHT);
 
         gui_set_rect(jd, GUI_ALL);
         gui_set_state(jd, unlocked ? tok : GUI_NONE, val);
@@ -121,27 +121,29 @@ static int playmodes_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
+        case GUI_BACK:
         return goto_state_full(&st_campaign,
                                GUI_ANIMATION_S_CURVE,
                                GUI_ANIMATION_N_CURVE,
                                0);
-    case PLAYMODES_CAREER_MODE:
-        config_set_d(CONFIG_LOCK_GOALS,
-                     !config_get_d(CONFIG_LOCK_GOALS));
 
-        career_changed = 1;
+        case PLAYMODES_CAREER_MODE:
+            config_set_d(CONFIG_LOCK_GOALS,
+                         !config_get_d(CONFIG_LOCK_GOALS));
 
-        audio_play(AUD_SWITCH, 1.0f);
+            career_changed = 1;
 
-        if (config_get_d(CONFIG_LOCK_GOALS))
-            audio_play(AUD_GOAL, 1.0f);
+            audio_play(AUD_SWITCH, 1.0f);
 
-        config_save();
+            if (config_get_d(CONFIG_LOCK_GOALS))
+                audio_play(AUD_GOAL, 1.0f);
 
-        return goto_state_full(&st_playmodes, 0, 0, 1);
-    case PLAYMODES_HARDCORE:
-        return goto_state(&st_hardcore_start);
+            config_save();
+
+            return goto_state_full(&st_playmodes, 0, 0, 1);
+
+        case PLAYMODES_HARDCORE:
+            return goto_state(&st_hardcore_start);
     }
     return 1;
 }
@@ -304,26 +306,28 @@ static int hardcore_start_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
-    switch (tok) {
-    case GUI_BACK:
-        progress_init(MODE_CAMPAIGN);
-        game_fade_color(0.0f, 0.0f, 0.0f);
-        game_fade(-6.0f);
-        return goto_state(&st_playmodes);
-    case PLAYMODES_HARDCORE:
-        progress_init(MODE_HARDCORE);
-        audio_play(AUD_STARTGAME, 1.0f);
-        if (progress_play(campaign_get_level(0)))
-        {
-            campaign_load_camera_box_trigger("1");
-            config_set_d(CONFIG_SMOOTH_FIX, val);
-            config_save();
-            campaign_hardcore_play(!val);
-            hud_update(0, 0.0f);
-            game_client_fly(1.0f);
-            return goto_state(&st_play_ready);
-        }
-        break;
+    switch (tok)
+    {
+        case GUI_BACK:
+            progress_init(MODE_CAMPAIGN);
+            game_fade_color(0.0f, 0.0f, 0.0f);
+            game_fade(-6.0f);
+            return goto_state(&st_playmodes);
+
+        case PLAYMODES_HARDCORE:
+            progress_init(MODE_HARDCORE);
+            audio_play(AUD_STARTGAME, 1.0f);
+            if (progress_play(campaign_get_level(0)))
+            {
+                campaign_load_camera_box_trigger("1");
+                config_set_d(CONFIG_SMOOTH_FIX, val);
+                config_save();
+                campaign_hardcore_play(!val);
+                hud_update(0, 0.0f);
+                game_client_fly(1.0f);
+                return goto_state(&st_play_ready);
+            }
+            break;
     }
     return 1;
 }
@@ -341,13 +345,13 @@ static int hardcore_start_gui(void)
             gui_multi(id, _("You can't save in this mode.\\ \\"
                             "Would you like to disable the\\"
                             "recordings during the game?"),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
         else
             gui_multi(id, _("You can't save in this mode\\"
                             "except unlocking levels.\\ \\"
                             "Would you like to disable the\\"
                             "recordings during the game?"),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
 
         gui_space(id);
 

@@ -42,7 +42,7 @@
 #define AMASK 0xFF000000
 #endif
 
-extern int donot_allow_mip_and_aniso_during_gui;
+extern int gui_img_used;
 
 void   image_snap(const char *);
 

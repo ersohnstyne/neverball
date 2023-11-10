@@ -34,11 +34,11 @@ const char *status_to_str(int s)
 {
     switch (s)
     {
-    case GAME_NONE: return _("Aborted");
-    case GAME_TIME: return _("Time-out");
-    case GAME_GOAL: return _("Success");
-    case GAME_FALL: return _("Fall-out");
-    default:        return _("Unknown");
+        case GAME_NONE: return _("Aborted");
+        case GAME_TIME: return _("Time-out");
+        case GAME_GOAL: return _("Success");
+        case GAME_FALL: return _("Fall-out");
+        default:        return _("Unknown");
     }
 }
 

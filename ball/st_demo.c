@@ -141,8 +141,7 @@ static int st_demo_version_read(fs_file fp, struct demo *d)
 
 /*---------------------------------------------------------------------------*/
 
-static int check_full_access(char * replay_pname)
-{
+static int check_full_access(char * replay_pname) {
     return 0;
 }
 
@@ -203,137 +202,137 @@ static int demo_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        return goto_state(&st_title);
+        case GUI_BACK:
+            return goto_state(&st_title);
 
-    case GUI_NEXT:
-        if (first < total)
-        {
-            first += DEMO_STEP;
-            if (first >= total)
+        case GUI_NEXT:
+            if (first < total)
+            {
+                first += DEMO_STEP;
+                if (first >= total)
+                    first -= DEMO_STEP;
+                else
+                    return goto_state_full(&st_demo,
+                                           GUI_ANIMATION_W_CURVE,
+                                           GUI_ANIMATION_E_CURVE, 0);
+            }
+            break;
+
+        case GUI_PREV:
+            if (first > 1) {
                 first -= DEMO_STEP;
-            else
                 return goto_state_full(&st_demo,
-                                       GUI_ANIMATION_W_CURVE,
-                                       GUI_ANIMATION_E_CURVE, 0);
-        }
-        break;
+                                       GUI_ANIMATION_E_CURVE,
+                                       GUI_ANIMATION_W_CURVE, 0);
+            }
+            break;
 
-    case GUI_PREV:
-        if (first > 1) {
-            first -= DEMO_STEP;
-            return goto_state_full(&st_demo,
-                                   GUI_ANIMATION_E_CURVE,
-                                   GUI_ANIMATION_W_CURVE, 0);
-        }
-        break;
-
-    case DEMO_UPGRADE_LIMIT:
-        if (val)
-        {
+        case DEMO_UPGRADE_LIMIT:
+            if (val)
+            {
 #ifndef DEMO_QUARANTINED_MODE
-            config_set_d(CONFIG_ACCOUNT_LOAD, 3);
-            config_save();
+                config_set_d(CONFIG_ACCOUNT_LOAD, 3);
+                config_save();
 #endif
-        }
-        else
-        {
-            config_set_d(CONFIG_ACCOUNT_LOAD, 2);
-            config_save();
-        }
-        break;
+            }
+            else
+            {
+                config_set_d(CONFIG_ACCOUNT_LOAD, 2);
+                config_save();
+            }
+            break;
 
-    case DEMO_DOWNLOAD:
+        case DEMO_DOWNLOAD:
 #ifdef __EMSCRIPTEN__
-        {
-            const char *path = DIR_ITEM_GET(items, selected)->path;
+            {
+                const char *path = DIR_ITEM_GET(items, selected)->path;
 
-            EM_ASM({
-                Neverball.downloadUserFile($0)
-            }, path);
-        }
+                EM_ASM({
+                    Neverball.downloadUserFile($0)
+                }, path);
+            }
 #endif
-        break;
+            break;
 
-    case DEMO_SELECT:
-        demo_select(val);
-        break;
+        case DEMO_SELECT:
+            demo_select(val);
+            break;
 
-    case DEMO_PLAY:
-    {
-        struct demo *df;
-        df = DEMO_GET(demo_items, selected < total ? selected : 0);
-
-        if (!df)
-            return 1;
-
-        stat_limit_busy = 1;
-        if (df->status == 3)
-            set_maximum_status(3);
-        else if (df->status == 1 || df->status == 0)
-            set_maximum_status(2);
-        else if (df->status == 2)
-            set_maximum_status(1);
-        stat_limit_busy = 0;
-
+        case DEMO_PLAY:
         {
-            time_max_minutes = df->timer / 6000;
+            struct demo *df;
+            df = DEMO_GET(demo_items, selected < total ? selected : 0);
+
+            if (!df)
+                return 1;
+
+            stat_limit_busy = 1;
+            if (df->status == 3)
+                set_maximum_status(3);
+            else if (df->status == 1 || df->status == 0)
+                set_maximum_status(2);
+            else if (df->status == 2)
+                set_maximum_status(1);
+            stat_limit_busy = 0;
+
+            {
+                time_max_minutes = df->timer / 6000;
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (df->mode == MODE_CAMPAIGN)
-                time_limit_minutes = 60;
-            else
+                if (df->mode == MODE_CAMPAIGN)
+                    time_limit_minutes = 60;
+                else
 #endif
-                time_limit_minutes = 10;
+                    time_limit_minutes = 10;
 
-            /* Make sure, that the status limit is underneath it. */
-            if (get_maximum_status() > get_limit_status() ||
-                time_max_minutes > time_limit_minutes)
-            {
-                /* Max status exceeds limits! Set reported replay. */
-                set_replay_report(df->player, status_to_str(df->status));
+                /* Make sure, that the status limit is underneath it. */
+                if (get_maximum_status() > get_limit_status() ||
+                    time_max_minutes > time_limit_minutes)
+                {
+                    /* Max status exceeds limits! Set reported replay. */
+                    set_replay_report(df->player, status_to_str(df->status));
                 
-                /* Stop execution. */
-                return goto_state(&st_demo_restricted);
-            }
-
-            if (df)
-            {
-                fs_file fp;
-#ifdef FS_VERSION_1
-                if ((fp = fs_open(DIR_ITEM_GET(demo_items, selected)->path, "r")))
-#else
-                if ((fp = fs_open_read(DIR_ITEM_GET(demo_items, selected)->path)))
-#endif
-                {
-                    SAFECPY(df->path, DIR_ITEM_GET(demo_items, selected)->path);
-                    SAFECPY(df->name, base_name_sans(DIR_ITEM_GET(demo_items,
-                                                                  selected)->path,
-                                                     ".nbr"));
-
-                    st_demo_version_read(fp, df);
-
-                    fs_close(fp);
-                }
-
-                if (demo_old_detected || demo_requires_update)
-                {
                     /* Stop execution. */
                     return goto_state(&st_demo_restricted);
                 }
-            }
 
-            if (progress_replay(DIR_ITEM_GET(demo_items, selected)->path))
-            {
-                last_viewed = selected;
-                allow_exact_versions = 1;
-                demo_play_goto(0);
-                return goto_state(game_compat_map ?
-                                  &st_demo_play : &st_demo_compat);
+                if (df)
+                {
+                    fs_file fp;
+#ifdef FS_VERSION_1
+                    if ((fp = fs_open(DIR_ITEM_GET(demo_items, selected)->path, "r")))
+#else
+                    if ((fp = fs_open_read(DIR_ITEM_GET(demo_items, selected)->path)))
+#endif
+                    {
+                        SAFECPY(df->path, DIR_ITEM_GET(demo_items, selected)->path);
+                        SAFECPY(df->name, base_name_sans(DIR_ITEM_GET(demo_items,
+                                                                      selected)->path,
+                                                         ".nbr"));
+
+                        st_demo_version_read(fp, df);
+
+                        fs_close(fp);
+                    }
+
+                    if (demo_old_detected || demo_requires_update)
+                    {
+                        /* Stop execution. */
+                        return goto_state(&st_demo_restricted);
+                    }
+                }
+
+                if (progress_replay(DIR_ITEM_GET(demo_items, selected)->path))
+                {
+                    last_viewed = selected;
+                    allow_exact_versions = 1;
+                    demo_play_goto(0);
+                    return goto_state(game_compat_map ?
+                                      &st_demo_play : &st_demo_compat);
+                }
             }
-        }
         break;
-    }
+        }
     }
     return 1;
 }
@@ -379,7 +378,7 @@ static int gui_demo_thumbs(int id)
 
                             thumb->shot_id = gui_image(ld, " ", ww, hh);
                             thumb->name_id = gui_label(ld, " ", GUI_SML,
-                                                       gui_wht, gui_wht);
+                                                       GUI_COLOR_WHT);
 
                             gui_set_trunc(thumb->name_id, TRUNC_TAIL);
                             gui_set_state(ld, DEMO_SELECT, j);
@@ -446,7 +445,7 @@ static void gui_demo_update_thumbs(void)
         gui_set_image(thumbs[i].shot_id, demo ? demo->shot : "");
         gui_set_label(thumbs[i].name_id, demo ? demo->name :
                                                 base_name(item->path));
-        gui_set_color(thumbs[i].name_id, gui_wht, gui_wht);
+        gui_set_color(thumbs[i].name_id, GUI_COLOR_WHT);
         
         if (stat_max > stat_limit && demo)
         {
@@ -454,22 +453,22 @@ static void gui_demo_update_thumbs(void)
                           stat_limit == 1 ?
                           "gui/filters/single_filters.jpg" :
                           "gui/filters/keep_filters.jpg");
-            gui_set_color(thumbs[i].name_id, gui_red, gui_red);
+            gui_set_color(thumbs[i].name_id, GUI_COLOR_RED);
         }
         else if (demo_requires_update && demo)
         {
             gui_set_image(thumbs[i].shot_id, "gui/filters/upgrade.jpg");
-            gui_set_color(thumbs[i].name_id, gui_red, gui_red);
+            gui_set_color(thumbs[i].name_id, GUI_COLOR_RED);
         }
         else if (demo_old_detected && demo)
         {
             gui_set_image(thumbs[i].shot_id, "gui/filters/downgrade.jpg");
-            gui_set_color(thumbs[i].name_id, gui_red, gui_red);
+            gui_set_color(thumbs[i].name_id, GUI_COLOR_RED);
         }
         else if (!demo)
         {
             gui_set_image(thumbs[i].shot_id, "gui/filters/invalid.jpg");
-            gui_set_color(thumbs[i].name_id, gui_red, gui_red);
+            gui_set_color(thumbs[i].name_id, GUI_COLOR_RED);
         }
     }
 
@@ -515,7 +514,7 @@ static int gui_demo_status(int id)
 
                 time_id   = gui_clock(ld, 35000,  GUI_SML);
                 coin_id   = gui_count(ld, 100,    GUI_SML);
-                status_id = gui_label(ld, status, GUI_SML, gui_red, gui_red);
+                status_id = gui_label(ld, status, GUI_SML, GUI_COLOR_RED);
 
                 gui_filler(ld);
             }
@@ -524,9 +523,9 @@ static int gui_demo_status(int id)
             {
                 gui_filler(ld);
 
-                gui_label(ld, _("Time"),   GUI_SML, gui_wht, gui_wht);
-                gui_label(ld, _("Coins"),  GUI_SML, gui_wht, gui_wht);
-                gui_label(ld, _("Status"), GUI_SML, gui_wht, gui_wht);
+                gui_label(ld, _("Time"),   GUI_SML, GUI_COLOR_WHT);
+                gui_label(ld, _("Coins"),  GUI_SML, GUI_COLOR_WHT);
+                gui_label(ld, _("Status"), GUI_SML, GUI_COLOR_WHT);
 
                 gui_filler(ld);
             }
@@ -557,9 +556,9 @@ static int gui_demo_status(int id)
             {
                 gui_filler(ld);
 
-                gui_label(ld, _("Replay"), GUI_SML, gui_wht, gui_wht);
-                gui_label(ld, _("Player"), GUI_SML, gui_wht, gui_wht);
-                gui_label(ld, _("Date"),   GUI_SML, gui_wht, gui_wht);
+                gui_label(ld, _("Replay"), GUI_SML, GUI_COLOR_WHT);
+                gui_label(ld, _("Player"), GUI_SML, GUI_COLOR_WHT);
+                gui_label(ld, _("Date"),   GUI_SML, GUI_COLOR_WHT);
 
                 gui_filler(ld);
             }
@@ -595,7 +594,7 @@ static void gui_demo_update_status(int i)
         gui_set_color(name_id,   gui_gry, gui_red);
         gui_set_color(date_id,   gui_gry, gui_red);
         gui_set_color(player_id, gui_gry, gui_red);
-        gui_set_color(status_id, gui_red, gui_red);
+        gui_set_color(status_id, GUI_COLOR_RED);
         return;
     }
 
@@ -604,9 +603,9 @@ static void gui_demo_update_status(int i)
     gui_set_label(player_id, d->player);
 
     if (d->status == GAME_GOAL)
-        gui_set_color(status_id, gui_grn, gui_grn);
+        gui_set_color(status_id, GUI_COLOR_GRN);
     else
-        gui_set_color(status_id, gui_red, gui_red);
+        gui_set_color(status_id, GUI_COLOR_RED);
 
     gui_set_label(status_id, status_to_str(d->status));
     gui_set_count(coin_id, d->coins);
@@ -691,27 +690,27 @@ static int demo_restricted_gui(void)
             
             if (demo_requires_update)
                 repid = gui_label(jd, _("Update required!"),
-                                      GUI_MED, gui_gry, gui_red);
+                                      GUI_MED, gui_red, gui_blk);
             else if (time_max_minutes > time_limit_minutes)
                 repid = gui_label(jd, _("Too long!"),
-                                      GUI_MED, gui_gry, gui_red);
+                                      GUI_MED, gui_red, gui_blk);
             else if (!demo_old_detected)
                 repid = gui_label(jd, _("Filters restricted!"),
-                                      GUI_MED, gui_gry, gui_red);
+                                      GUI_MED, gui_red, gui_blk);
             else
                 repid = gui_label(jd, _("Old replays detected!"),
-                                      GUI_MED, gui_gry, gui_red);
+                                      GUI_MED, gui_red, gui_blk);
 
             gui_pulse(repid, 1.2f);
             if (!standalone && !demo_requires_update && !demo_old_detected) {
-                repjd = gui_label(jd, infoattr, GUI_SML, gui_red, gui_red);
+                repjd = gui_label(jd, infoattr, GUI_SML, GUI_COLOR_RED);
                 gui_pulse(repjd, 1.2f);
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
                 if (config_cheat())
                 {
                     repkd = gui_label(jd, config_get_d(CONFIG_ACCOUNT_LOAD) == 1 ?
                                           _("Only Finish") : _("Keep on board"),
-                                          GUI_SML, gui_red, gui_red);
+                                          GUI_SML, GUI_COLOR_RED);
                     gui_pulse(repkd, 1.2f);
                 }
 #endif
@@ -723,26 +722,26 @@ static int demo_restricted_gui(void)
         if (demo_requires_update)
             gui_multi(id, _("Please update your game, before\\"
                             "watch the replay level!"),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
         else if (time_max_minutes > time_limit_minutes)
         {
             if (time_limit_minutes >= 60)
                 gui_multi(id, _("You can't watch more than 60 minutes\\"
                                 "in a single level in campaign!"),
-                              GUI_SML, gui_wht, gui_wht);
+                              GUI_SML, GUI_COLOR_WHT);
             else
                 gui_multi(id, _("You can't watch more than 10 minutes\\"
                                 "in a single level per set!"),
-                              GUI_SML, gui_wht, gui_wht);
+                              GUI_SML, GUI_COLOR_WHT);
         }
         else if (!demo_old_detected)
             gui_multi(id, _("You can't open selected replay,\\"
                             "because it was restricted for you!"),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
         else
             gui_multi(id, _("You can't open selected replay, because\\"
                             "you are using oldest version of the game!"),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
 
         gui_layout(id, 0, 0);
     }
@@ -819,7 +818,7 @@ static int demo_scan_allowance_gui()
             _("Scan in progress...\\To cancel scanning, press %s"),
             SDL_GetKeyName(KEY_EXIT));
     
-    detailpanel = gui_multi(0, cancelattr, GUI_SML, gui_wht, gui_wht);
+    detailpanel = gui_multi(0, cancelattr, GUI_SML, GUI_COLOR_WHT);
     gui_layout(detailpanel, 0, 0);
     return detailpanel;
 }
@@ -1035,7 +1034,7 @@ static int demo_gui(void)
         gui_space(id);
         gui_multi(id, _("Open the file manager to delete\\"
                         "or backup your replays."),
-                      GUI_SML, gui_wht, gui_wht);
+                      GUI_SML, GUI_COLOR_WHT);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)
@@ -1053,7 +1052,7 @@ static int demo_gui(void)
         gui_space(id);
         gui_multi(id, _("Your Replays will appear here\\"
                         "once you've recorded."),
-                      GUI_SML, gui_wht, gui_wht);
+                      GUI_SML, GUI_COLOR_WHT);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)
@@ -1608,36 +1607,41 @@ static int demo_end_action(int tok, int val)
 
     switch (tok)
     {
-    case DEMO_CONF:
-        return goto_conf(&st_demo_end, 1, 1);
-        break;
-    case DEMO_DEL:
-        delete_permanently = 0;
-        demo_paused = 0;
-        return goto_state(&st_demo_del);
-    case DEMO_KEEP:
-        demo_paused = 0;
-        demo_replay_stop(0);
-        return goto_state(&st_demo);
-    case DEMO_QUIT:
-        is_opened = 0;
-        demo_replay_stop(0);
-        game_fade(+4.0);
-        goto_state_full(&st_null, 0, 0, 0); /* bye! */
+        case DEMO_CONF:
+            return goto_conf(&st_demo_end, 1, 1);
+            break;
 
-        game_server_free(NULL);
-        game_client_free(NULL);
-        game_base_free  (NULL);
-        return 0;
-    case DEMO_REPLAY:
-        if (demo_paused)
+        case DEMO_DEL:
+            delete_permanently = 0;
+            demo_paused = 0;
+            return goto_state(&st_demo_del);
+
+        case DEMO_KEEP:
+            demo_paused = 0;
+            demo_replay_stop(0);
+            return goto_state(&st_demo);
+
+        case DEMO_QUIT:
+            is_opened = 0;
+            demo_replay_stop(0);
+            game_fade(+4.0);
+            goto_state_full(&st_null, 0, 0, 0); /* bye! */
+
+            game_server_free(NULL);
+            game_client_free(NULL);
+            game_base_free  (NULL);
+            return 0;
+
+        case DEMO_REPLAY:
+            if (demo_paused)
             demo_paused = 0;
 
-        demo_replay_stop(0);
-        progress_replay(curr_demo());
-        return goto_state(&st_demo_play);
-    case DEMO_CONTINUE:
-        return goto_state(&st_demo_play);
+            demo_replay_stop(0);
+            progress_replay(curr_demo());
+            return goto_state(&st_demo_play);
+
+        case DEMO_CONTINUE:
+            return goto_state(&st_demo_play);
     }
     return 1;
 }
@@ -1657,17 +1661,15 @@ static int demo_end_gui(void)
         gui_state(id, _("Options"), GUI_SML, DEMO_CONF, 0);
         gui_space(id);
 
-        gui_space(id);
-
         if ((jd = gui_harray(id)))
         {
-           if (standalone)
-               gui_start(jd, _("Exit"), GUI_SML, DEMO_QUIT, 0);
-           else
-           {
-               gui_start(jd, _("Exit"), GUI_SML, DEMO_KEEP, 0);
-               gui_state(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
-           }
+            if (standalone)
+                gui_start(jd, _("Exit"), GUI_SML, DEMO_QUIT, 0);
+            else
+            {
+                gui_start(jd, _("Exit"), GUI_SML, DEMO_KEEP, 0);
+                gui_state(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
+            }
 
             /* Only that is limit underneath it */
             if (get_maximum_status() <= get_limit_status() &&
@@ -1678,13 +1680,13 @@ static int demo_end_gui(void)
             }
             else
             {
-                gui_label(jd, _("Repeat"), GUI_SML, gui_gry, gui_gry);
+                gui_label(jd, _("Repeat"), GUI_SML, GUI_COLOR_GRY);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                 if (demo_paused && current_platform == PLATFORM_PC)
 #else
                 if (demo_paused)
 #endif
-                    gui_label(jd, _("Continue"), GUI_SML, gui_gry, gui_gry);
+                    gui_label(jd, _("Continue"), GUI_SML, GUI_COLOR_GRY);
             }
         }
 
@@ -1795,7 +1797,7 @@ static int demo_del_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        kd = gui_title_header(id, _("Delete Replay?"), GUI_MED, gui_red, gui_red);
+        kd = gui_title_header(id, _("Delete Replay?"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
 
         if ((jd = gui_vstack(id)))
@@ -1806,19 +1808,19 @@ static int demo_del_gui(void)
                             "unknown level version including exceeded\\"
                             "level status limit will being deleted\\"
                             "from the user data."),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
             else if (!allow_exact_versions)
                 gui_multi(jd,
                           _("The current replay with mismatched or\\"
                             "unknown level version will being deleted\\"
                             "from the user data."),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
             else if (get_maximum_status() > get_limit_status())
                 gui_multi(jd,
                           _("The current replay with exceeded\\"
                             "level status limit will being deleted\\"
                             "from the user data."),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
 
             char warning_text[MAXSTR];
 
@@ -1854,7 +1856,7 @@ static int demo_del_gui(void)
                 }
                 else
                 {
-                    gui_label(jd, _("Keep"), GUI_SML, gui_gry, gui_gry);
+                    gui_label(jd, _("Keep"), GUI_SML, GUI_COLOR_GRY);
                     gui_start(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
                 }
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -1908,13 +1910,13 @@ static int demo_compat_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Warning!"), GUI_MED, gui_red, gui_red);
+        gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
 
         gui_multi(id, _("The current replay was recorded with a\\"
                         "different (or unknown) version of this level.\\"
                         "Be prepared to encounter visual errors.\\"),
-                  GUI_SML, gui_wht, gui_wht);
+                  GUI_SML, GUI_COLOR_WHT);
 
         gui_layout(id, 0, 0);
     }

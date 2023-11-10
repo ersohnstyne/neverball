@@ -50,6 +50,8 @@ static int        score_v[MAXHOL][MAXPLY];
 
 static int        stroke_type_v[MAXPLY];
 
+struct course_score course_score_v;
+
 /*---------------------------------------------------------------------------*/
 
 static void hole_init_rc(const char *filename)
@@ -127,6 +129,7 @@ int hole_load(int h, const char *filename)
     }
 
     log_errorf("Unable to load hole in course: %s\n", stderr);
+
     return 0;
 }
 
@@ -136,6 +139,8 @@ void hole_init(const char *filename)
 
     memset(hole_v,  0, sizeof (struct hole) * MAXHOL);
     memset(score_v, 0, sizeof (int) * MAXPLY * MAXHOL);
+
+    course_score_init_hs(&course_score_v);
 
     if (filename)
     {
@@ -184,7 +189,7 @@ char *hole_score(int h, int p)
         if (h <= hole && 0 <= p && p <= party)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf(str, MAXSTR,
+            sprintf_s(str, MAXSTR,
 #else
             sprintf(str,
 #endif
@@ -208,7 +213,7 @@ char *hole_tot(int p)
             T += score_v[h][p];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf(str, MAXSTR,
+        sprintf_s(str, MAXSTR,
 #else
         sprintf(str,
 #endif
@@ -231,7 +236,7 @@ char *hole_out(int p)
             T += score_v[h][p];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf(str, MAXSTR,
+        sprintf_s(str, MAXSTR,
 #else
         sprintf(str,
 #endif
@@ -255,7 +260,7 @@ char *hole_in(int p)
             T += score_v[h][p];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf(str, MAXSTR,
+        sprintf_s(str, MAXSTR,
 #else
         sprintf(str,
 #endif
@@ -286,7 +291,7 @@ const char *curr_scr_profile(int i)
     static char buf[8];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf(buf, 8,
+    sprintf_s(buf, 8,
 #else
     sprintf(buf,
 #endif
@@ -300,7 +305,7 @@ const char *curr_scr(void)
     static char buf[8];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf(buf, 8,
+    sprintf_s(buf, 8,
 #else
     sprintf(buf,
 #endif
@@ -314,7 +319,7 @@ const char *curr_par(void)
     static char buf[8];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf(buf, 8,
+    sprintf_s(buf, 8,
 #else
     sprintf(buf,
 #endif
@@ -327,10 +332,10 @@ const char *curr_stroke_type_name(void)
 {
     switch (stroke_type_v[player])
     {
-    case 3:  return _("Driver");
-    case 2:  return _("Iron");
-    case 1:  return _("Wedge");
-    default: return _("Putt");
+        case 3:  return _("Driver");
+        case 2:  return _("Iron");
+        case 1:  return _("Wedge");
+        default: return _("Putt");
     }
 }
 
@@ -395,6 +400,7 @@ int hole_move(void)
         if (hole_goto(hole, party))
             return 1;
     }
+
     return 0;
 }
 
@@ -421,6 +427,8 @@ void hole_goal(void)
     stat_v[player] = 1;
     done++;
 
+    course_score_insert(&course_score_v, player);
+
     if (done == party)
         audio_music_fade_out(2.0f);
 }
@@ -440,6 +448,8 @@ void hole_stop(void)
         score_v[hole][player] = (score_v[hole][0] > stroke_limit - 3) ? score_v[hole][0] + 3 : stroke_limit;
         stat_v[player] = 1;
         done++;
+
+        course_score_insert(&course_score_v, player);
     }
 }
 
@@ -457,6 +467,8 @@ void hole_skip(void)
     {
         score_v[hole][i] = maxscore;
         stat_v[i] = 1;
+
+        course_score_insert(&course_score_v, i);
     }
 
     done = party;
@@ -480,6 +492,8 @@ void hole_fall(int split)
         score_v[hole][player] = (score_v[hole][0] > stroke_limit - 3) ? score_v[hole][0] + 3 : stroke_limit;
         stat_v[player] = 1;
         done++;
+
+        course_score_insert(&course_score_v, player);
     }
 }
 
@@ -508,6 +522,8 @@ void hole_retry(int split)
         score_v[hole][player] = (score_v[hole][0] > stroke_limit - 3) ? score_v[hole][0] + 3 : stroke_limit;
         stat_v[player] = 1;
         done++;
+
+        course_score_insert(&course_score_v, player);
     }
 }
 
@@ -521,5 +537,5 @@ void hole_restart(void)
 
 void hole_song(void)
 {
-    audio_music_fade_to(0.5f, hole_v[hole].song);
+    audio_music_fade_to(0.5f, _(hole_v[hole].song));
 }

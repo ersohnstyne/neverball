@@ -79,22 +79,22 @@ static void tex_env_conf_default(int stage, int enable)
 {
     switch (stage)
     {
-    case TEX_STAGE_TEXTURE:
-        if (enable)
-        {
-            glEnable(GL_TEXTURE_2D);
+        case TEX_STAGE_TEXTURE:
+            if (enable)
+            {
+                glEnable(GL_TEXTURE_2D);
 
-            /* Modulate is the default mode. */
+                /* Modulate is the default mode. */
 
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-            glMatrixMode  (GL_TEXTURE);
-            glLoadIdentity();
-            glMatrixMode  (GL_MODELVIEW);
-        }
-        else
-            glDisable(GL_TEXTURE_2D);
-        break;
+                glMatrixMode  (GL_TEXTURE);
+                glLoadIdentity();
+                glMatrixMode  (GL_MODELVIEW);
+            }
+            else
+                glDisable(GL_TEXTURE_2D);
+            break;
     }
 }
 
@@ -102,11 +102,11 @@ static void tex_env_conf_shadow(int stage, int enable)
 {
     switch (stage)
     {
-    case TEX_STAGE_SHADOW:
-        glDisable(GL_TEXTURE_2D);
+        case TEX_STAGE_SHADOW:
+            glDisable(GL_TEXTURE_2D);
 
-        if (enable)
-        {
+            if (enable)
+            {
             glDisable(GL_TEXTURE_2D);
 
             /* Modulate primary color and shadow alpha. */
@@ -128,14 +128,14 @@ static void tex_env_conf_shadow(int stage, int enable)
             glMatrixMode(GL_TEXTURE);
             glLoadIdentity();
             glMatrixMode(GL_MODELVIEW);
-        }
-        break;
+            }
+            break;
 
-    case TEX_STAGE_CLIP:
-        glDisable(GL_TEXTURE_2D);
+        case TEX_STAGE_CLIP:
+            glDisable(GL_TEXTURE_2D);
 
-        if (enable)
-        {
+            if (enable)
+            {
             /* Interpolate shadowed and non-shadowed primary color. */
 
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
@@ -157,12 +157,12 @@ static void tex_env_conf_shadow(int stage, int enable)
             glMatrixMode(GL_TEXTURE);
             glLoadIdentity();
             glMatrixMode(GL_MODELVIEW);
-        }
-        break;
+            }
+            break;
 
-    case TEX_STAGE_TEXTURE:
-        tex_env_conf_default(TEX_STAGE_TEXTURE, enable);
-        break;
+        case TEX_STAGE_TEXTURE:
+            tex_env_conf_default(TEX_STAGE_TEXTURE, enable);
+            break;
     }
 }
 
@@ -176,20 +176,20 @@ static void tex_env_conf_pose(int stage, int enable)
 
     switch (stage)
     {
-    case TEX_STAGE_SHADOW:
-        glDisable(GL_TEXTURE_2D);
+        case TEX_STAGE_SHADOW:
+            glDisable(GL_TEXTURE_2D);
 
-        if (enable)
-        {
-            /* Make shadow texture override everything else. */
+            if (enable)
+            {
+                /* Make shadow texture override everything else. */
 
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-        }
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            }
         break;
 
-    case TEX_STAGE_TEXTURE:
-        tex_env_conf_default(stage, enable);
-        break;
+        case TEX_STAGE_TEXTURE:
+            tex_env_conf_default(stage, enable);
+            break;
     }
 }
 
@@ -362,18 +362,18 @@ void geom_init(void)
 
     switch (beam_styles)
     {
-    case BEAM_STYLE_1_7_0:
-        style_name = "rmst";
-        break;
-    case BEAM_STYLE_1_6_0:
-        style_name = "v1";
-        break;
-    case BEAM_STYLE_1_5_4:
-        style_name = "v2";
-        break;
-    case BEAM_STYLE_1_5_3:
-        style_name = "v3";
-        break;
+        case BEAM_STYLE_1_7_0:
+            style_name = "rmst";
+            break;
+        case BEAM_STYLE_1_6_0:
+            style_name = "v1";
+            break;
+        case BEAM_STYLE_1_5_4:
+            style_name = "v2";
+            break;
+        case BEAM_STYLE_1_5_3:
+            style_name = "v3";
+            break;
     }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -476,21 +476,21 @@ static struct s_draw *item_file(const struct v_item *hp)
     {
         switch (hp->t)
         {
-        case ITEM_GROW:   g = GEOM_GROW;   break;
-        case ITEM_SHRINK: g = GEOM_SHRINK; break;
-        case ITEM_CLOCK:
-            if      (hp->n >= 30) g = GEOM_CLOCK30;
-            else if (hp->n >= 15) g = GEOM_CLOCK15;
-            else                  g = GEOM_CLOCK5;
-            break;
-        default:
-            if      (hp->n >= 100) g = GEOM_COIN100;
-            else if (hp->n >= 50)  g = GEOM_COIN50;
-            else if (hp->n >= 25)  g = GEOM_COIN25;
-            else if (hp->n >= 10)  g = GEOM_COIN10;
-            else if (hp->n >= 5)   g = GEOM_COIN5;
-            else                   g = GEOM_COIN;
-            break;
+            case ITEM_GROW:   g = GEOM_GROW;   break;
+            case ITEM_SHRINK: g = GEOM_SHRINK; break;
+            case ITEM_CLOCK:
+                if      (hp->n >= 30) g = GEOM_CLOCK30;
+                else if (hp->n >= 15) g = GEOM_CLOCK15;
+                else                  g = GEOM_CLOCK5;
+                break;
+            default:
+                if      (hp->n >= 100) g = GEOM_COIN100;
+                else if (hp->n >= 50)  g = GEOM_COIN50;
+                else if (hp->n >= 25)  g = GEOM_COIN25;
+                else if (hp->n >= 10)  g = GEOM_COIN10;
+                else if (hp->n >= 5)   g = GEOM_COIN5;
+                else                   g = GEOM_COIN;
+                break;
         }
     }
 
@@ -719,35 +719,38 @@ void back_draw_easy(void)
  * Map chunk overview support
  */
 
+static int chnk_allow_mask  = 0;
+static int chnk_allow_depth = 1;
+
 void chnk_pane_draw(struct s_rend *rend)
 {
-    sol_draw(&chnk_pane.draw, rend, 1, 1);
+    sol_draw(&chnk_pane.draw, rend, chnk_allow_mask, chnk_allow_depth);
 }
 
 void chnk_ball_draw(struct s_rend *rend)
 {
-    sol_draw(&chnk_ball.draw, rend, 1, 1);
+    sol_draw(&chnk_ball.draw, rend, chnk_allow_mask, chnk_allow_depth);
 }
 
 void chnk_jump_draw(struct s_rend *rend)
 {
-    sol_draw(&chnk_jump.draw, rend, 1, 1);
+    sol_draw(&chnk_jump.draw, rend, chnk_allow_mask, chnk_allow_depth);
 }
 
 void chnk_goal_draw(struct s_rend *rend)
 {
-    sol_draw(&chnk_goal.draw, rend, 1, 1);
+    sol_draw(&chnk_goal.draw, rend, chnk_allow_mask, chnk_allow_depth);
 }
 
 void chnk_swch_draw(struct s_rend* rend)
 {
-    sol_draw(&chnk_swch.draw, rend, 1, 1);
+    sol_draw(&chnk_swch.draw, rend, chnk_allow_mask, chnk_allow_depth);
 }
 
 #ifdef MAPC_INCLUDES_CHKP
 void chnk_chkp_draw(struct s_rend *rend)
 {
-    sol_draw(&chnk_chkp.draw, rend, 1, 1);
+    sol_draw(&chnk_chkp.draw, rend, chnk_allow_mask, chnk_allow_depth);
 }
 #endif
 

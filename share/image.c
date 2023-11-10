@@ -55,7 +55,7 @@
 /*---------------------------------------------------------------------------*/
 
 /* Do not allow mipmap and anisotropic in GUI. */
-int donot_allow_mip_and_aniso_during_gui = 0;
+int gui_img_used = 0;
 
 /*---------------------------------------------------------------------------*/
 
@@ -184,16 +184,16 @@ GLuint make_texture(const void *p, int w, int h, int b, int fl)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 #ifdef GL_GENERATE_MIPMAP_SGIS
-    if (m && !donot_allow_mip_and_aniso_during_gui)
+    if (m && !gui_img_used)
     {
         glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                        GL_LINEAR_MIPMAP_LINEAR);
+                                       GL_LINEAR_MIPMAP_LINEAR);
     }
 #endif
 #ifdef GL_TEXTURE_MAX_ANISOTROPY_EXT
     if (a && gli.texture_filter_anisotropic
-        && !donot_allow_mip_and_aniso_during_gui)
+        && !gui_img_used)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, a);
 #endif
 

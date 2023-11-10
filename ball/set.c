@@ -429,8 +429,8 @@ static void set_load_hs(void)
             {
                 switch (score_version)
                 {
-                case 2: set_load_hs_v2(fp, s, buf, sizeof (buf)); break;
-                case 3: set_load_hs_v3(fp, s, buf, sizeof (buf)); break;
+                    case 2: set_load_hs_v2(fp, s, buf, sizeof (buf)); break;
+                    case 3: set_load_hs_v3(fp, s, buf, sizeof (buf)); break;
                 }
             }
             else

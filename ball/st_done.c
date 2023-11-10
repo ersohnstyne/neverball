@@ -42,7 +42,9 @@
 #include "st_set.h"
 #include "st_shared.h"
 
+#if NB_HAVE_PB_BOTH==1
 #include "st_shop.h"
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -65,65 +67,67 @@ static int done_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
+        case GUI_BACK:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (campaign_used())
-        {
-            campaign_hardcore_quit();
-            campaign_theme_quit();
-            campaign_quit();
-        }
-        else
+            if (campaign_used())
+            {
+                campaign_hardcore_quit();
+                campaign_theme_quit();
+                campaign_quit();
+            }
+            else
 #endif
 #if NB_HAVE_PB_BOTH==1
-            set_star_update(1);
+                set_star_update(1);
 #endif
-        return goto_playmenu(curr_mode());
-        break;
+            return goto_playmenu(curr_mode());
+            break;
 
-    case GUI_NAME:
+        case GUI_NAME:
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        return goto_shop_rename(&st_done, &st_done, 0);
+            return goto_shop_rename(&st_done, &st_done, 0);
 #else
-        return goto_name(&st_done, &st_done, 0, 0, 0);
+            return goto_name(&st_done, &st_done, 0, 0, 0);
 #endif
-        break;
+            break;
 
-    case GUI_SCORE:
-        gui_score_set(val);
-        return goto_state_full(&st_done, 0, 0, 0);
-        break;
+        case GUI_SCORE:
+            gui_score_set(val);
+            return goto_state_full(&st_done, 0, 0, 0);
+            break;
 
-    case DONE_SHOP:
+        case DONE_SHOP:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (campaign_used())
-        {
-            campaign_hardcore_quit();
-            campaign_theme_quit();
-            campaign_quit();
-        }
-        else
+            if (campaign_used())
+            {
+                campaign_hardcore_quit();
+                campaign_theme_quit();
+                campaign_quit();
+            }
+            else
 #endif
-        {
+            {
 #if NB_HAVE_PB_BOTH==1
-            set_star_update(1);
+                set_star_update(1);
 #endif
-            set_quit();
-        }
+                set_quit();
+            }
 
-        return goto_state(&st_shop);
-        break;
+#ifdef CONFIG_INCLUDES_ACCOUNT
+            return goto_state(&st_shop);
+#endif
+            break;
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    case DONE_TO_GROUP:
-        if (campaign_used())
-        {
-            campaign_hardcore_quit();
-            campaign_theme_quit();
-            campaign_quit();
-        }
-        return goto_playmenu(curr_mode());
-        break;
+        case DONE_TO_GROUP:
+            if (campaign_used())
+            {
+                campaign_hardcore_quit();
+                campaign_theme_quit();
+                campaign_quit();
+            }
+            return goto_playmenu(curr_mode());
+            break;
 #endif
     }
     return 1;
@@ -152,7 +156,7 @@ static int done_gui_campaign(void)
 
         gui_title_header(id, _(stitle), GUI_LRG, gui_blu, gui_grn);
         gui_space(id);
-        gui_multi(id, _(sdesc), GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, _(sdesc), GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
 
         if ((jd = gui_harray(id)))
@@ -211,7 +215,7 @@ static int done_gui_set(void)
 #endif
 
             if (high)
-                gid = gui_title_header(jd, s1, GUI_MED, gui_grn, gui_grn);
+                gid = gui_title_header(jd, s1, GUI_MED, GUI_COLOR_GRN);
             else
                 gid = gui_title_header(jd, s2, GUI_MED, gui_blu, gui_grn);
 
@@ -237,10 +241,10 @@ static int done_gui_set(void)
                 if ((kd = gui_harray(jd)))
                 {
                     calc_new_wallet_gem_id = gui_count(kd, 1000, GUI_MED);
-                    gui_label(kd, _("Gems"), GUI_SML, gui_wht, gui_wht);
+                    gui_label(kd, _("Gems"), GUI_SML, GUI_COLOR_WHT);
                     calc_new_wallet_coin_id = gui_count(kd, ACCOUNT_WALLET_MAX_COINS,
                                                             GUI_MED);
-                    gui_label(kd, _("Coins"), GUI_SML, gui_wht, gui_wht);
+                    gui_label(kd, _("Coins"), GUI_SML, GUI_COLOR_WHT);
 
                     gui_set_count(calc_new_wallet_coin_id,
                                   account_get_d(ACCOUNT_DATA_WALLET_COINS));
@@ -358,11 +362,11 @@ static int capital_enter(struct state* st, struct state* prev)
 
     if ((id = gui_vstack(0)))
     {
-        int logo_id = gui_label(id, GUI_CROWN, GUI_LRG, gui_yel, gui_yel);
+        int logo_id = gui_label(id, GUI_CROWN, GUI_LRG, GUI_COLOR_YEL);
         int aid     = gui_label(id, GUI_DIAMOND " 1500",
-                                    GUI_SML, gui_wht, gui_yel);
+                                    GUI_SML, GUI_COLOR_WHT);
         int bid     = gui_label(id, _("Wealthiest Capital"),
-                                    GUI_SML, gui_wht, gui_wht);
+                                    GUI_SML, GUI_COLOR_WHT);
 
         gui_pulse(logo_id, 1.2f);
         gui_pulse(aid, 1.2f);
@@ -379,7 +383,7 @@ static void capital_timer(int id, float dt)
 {
     gui_timer(id, dt);
 
-    if (time_state() > 3.f && !wealthlogo_done)
+    if (time_state() > 2.f && !wealthlogo_done)
     {
         wealthlogo_done = 1;
         goto_state(&st_done);

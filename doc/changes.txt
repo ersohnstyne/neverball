@@ -28,6 +28,9 @@ There was huge cosmic changes in this version!:
 * New: Purchaseable balls from In-Game-Shop. The maximum limit is up to three
   crowns (approx. 1110 balls).
 * New: Camera rotate via In-Game settings.
+* New: You can view the hilited current holes, where you are in the course.
+* New: You can access putt score card at their start of your turn by pressing
+  TAB (pressing X for using Gamepad).
 * New: Using cross-platforms, the game can be compiled with OpenDriveAPI (See
   manual.txt).
 * New: Game network editions.

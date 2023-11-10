@@ -407,56 +407,56 @@ void create_a_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 1:
+        case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 2:
+        case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 3:
+        case 3:
         create_y_button(gui_id, btn_id);
         return;
-    case 4:
+        case 4:
         create_lb_button(gui_id, btn_id);
         return;
-    case 5:
+        case 5:
         create_lt_button(gui_id, btn_id);
         return;
-    case 6:
+        case 6:
         create_rb_button(gui_id, btn_id);
         return;
-    case 7:
+        case 7:
         create_rt_button(gui_id, btn_id);
         return;
-    case 8:
+        case 8:
         create_start_button(gui_id, btn_id);
         return;
-    case 9:
+        case 9:
         create_select_button(gui_id, btn_id);
         return;
-    case 13:
+        case 13:
         create_ls_button(gui_id, btn_id);
         return;
-    case 15:
+        case 15:
         create_rs_button(gui_id, btn_id);
         return;
     }
 
     switch (current_platform)
     {
-    case PLATFORM_HANDSET:
+        case PLATFORM_HANDSET:
         create_handset_y_button(gui_id);
         break;
-    case PLATFORM_XBOX:
+        case PLATFORM_XBOX:
         create_xbox_a_button(gui_id);
         break;
-    case PLATFORM_PS:
+        case PLATFORM_PS:
         create_ps4_a_button(gui_id);
         break;
-    case PLATFORM_STEAMDECK:
+        case PLATFORM_STEAMDECK:
         create_steamdeck_a_button(gui_id);
         break;
-    case PLATFORM_SWITCH:
+        case PLATFORM_SWITCH:
         create_switch_a_button(gui_id);
         break;
     }
@@ -466,56 +466,56 @@ void create_b_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 0:
+        case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 2:
+        case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 3:
+        case 3:
         create_y_button(gui_id, btn_id);
         return;
-    case 4:
+        case 4:
         create_lb_button(gui_id, btn_id);
         return;
-    case 5:
+        case 5:
         create_lt_button(gui_id, btn_id);
         return;
-    case 6:
+        case 6:
         create_rb_button(gui_id, btn_id);
         return;
-    case 7:
+        case 7:
         create_rt_button(gui_id, btn_id);
         return;
-    case 8:
+        case 8:
         create_start_button(gui_id, btn_id);
         return;
-    case 9:
+        case 9:
         create_select_button(gui_id, btn_id);
         return;
-    case 13:
+        case 13:
         create_ls_button(gui_id, btn_id);
         return;
-    case 15:
+        case 15:
         create_rs_button(gui_id, btn_id);
         return;
     }
 
     switch (current_platform)
     {
-    case PLATFORM_HANDSET:
+        case PLATFORM_HANDSET:
         create_handset_x_button(gui_id);
         break;
-    case PLATFORM_XBOX:
+        case PLATFORM_XBOX:
         create_xbox_b_button(gui_id);
         break;
-    case PLATFORM_PS:
+        case PLATFORM_PS:
         create_ps4_b_button(gui_id);
         break;
-    case PLATFORM_STEAMDECK:
+        case PLATFORM_STEAMDECK:
         create_steamdeck_b_button(gui_id);
         break;
-    case PLATFORM_SWITCH:
+        case PLATFORM_SWITCH:
         create_switch_b_button(gui_id);
         break;
     }
@@ -525,56 +525,56 @@ void create_x_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 0:
+        case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 1:
+        case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 3:
+        case 3:
         create_y_button(gui_id, btn_id);
         return;
-    case 4:
+        case 4:
         create_lb_button(gui_id, btn_id);
         return;
-    case 5:
+        case 5:
         create_lt_button(gui_id, btn_id);
         return;
-    case 6:
+        case 6:
         create_rb_button(gui_id, btn_id);
         return;
-    case 7:
+        case 7:
         create_rt_button(gui_id, btn_id);
         return;
-    case 8:
+        case 8:
         create_start_button(gui_id, btn_id);
         return;
-    case 9:
+        case 9:
         create_select_button(gui_id, btn_id);
         return;
-    case 13:
+        case 13:
         create_ls_button(gui_id, btn_id);
         return;
-    case 15:
+        case 15:
         create_rs_button(gui_id, btn_id);
         return;
     }
 
     switch (current_platform)
     {
-    case PLATFORM_HANDSET:
+        case PLATFORM_HANDSET:
         create_handset_b_button(gui_id);
         break;
-    case PLATFORM_XBOX:
+        case PLATFORM_XBOX:
         create_xbox_x_button(gui_id);
         break;
-    case PLATFORM_PS:
+        case PLATFORM_PS:
         create_ps4_x_button(gui_id);
         break;
-    case PLATFORM_STEAMDECK:
+        case PLATFORM_STEAMDECK:
         create_steamdeck_x_button(gui_id);
         break;
-    case PLATFORM_SWITCH:
+        case PLATFORM_SWITCH:
         create_switch_x_button(gui_id);
         break;
     }
@@ -584,56 +584,56 @@ void create_y_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 0:
+        case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 1:
+        case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 2:
+        case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 4:
+        case 4:
         create_lb_button(gui_id, btn_id);
         return;
-    case 5:
+        case 5:
         create_lt_button(gui_id, btn_id);
         return;
-    case 6:
+        case 6:
         create_rb_button(gui_id, btn_id);
         return;
-    case 7:
+        case 7:
         create_rt_button(gui_id, btn_id);
         return;
-    case 8:
+        case 8:
         create_start_button(gui_id, btn_id);
         return;
-    case 9:
+        case 9:
         create_select_button(gui_id, btn_id);
         return;
-    case 13:
+        case 13:
         create_ls_button(gui_id, btn_id);
         return;
-    case 15:
+        case 15:
         create_rs_button(gui_id, btn_id);
         return;
     }
 
     switch (current_platform)
     {
-    case PLATFORM_HANDSET:
+        case PLATFORM_HANDSET:
         create_handset_a_button(gui_id);
         break;
-    case PLATFORM_XBOX:
+        case PLATFORM_XBOX:
         create_xbox_y_button(gui_id);
         break;
-    case PLATFORM_PS:
+        case PLATFORM_PS:
         create_ps4_y_button(gui_id);
         break;
-    case PLATFORM_STEAMDECK:
+        case PLATFORM_STEAMDECK:
         create_steamdeck_y_button(gui_id);
         break;
-    case PLATFORM_SWITCH:
+        case PLATFORM_SWITCH:
         create_switch_y_button(gui_id);
         break;
     }
@@ -643,56 +643,56 @@ void create_lb_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 0:
+        case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 1:
+        case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 2:
+        case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 3:
+        case 3:
         create_y_button(gui_id, btn_id);
         return;
-    case 5:
+        case 5:
         create_lt_button(gui_id, btn_id);
         return;
-    case 6:
+        case 6:
         create_rb_button(gui_id, btn_id);
         return;
-    case 7:
+        case 7:
         create_rt_button(gui_id, btn_id);
         return;
-    case 8:
+        case 8:
         create_start_button(gui_id, btn_id);
         return;
-    case 9:
+        case 9:
         create_select_button(gui_id, btn_id);
         return;
-    case 13:
+        case 13:
         create_ls_button(gui_id, btn_id);
         return;
-    case 15:
+        case 15:
         create_rs_button(gui_id, btn_id);
         return;
     }
 
     switch (current_platform)
     {
-    case PLATFORM_HANDSET:
+        case PLATFORM_HANDSET:
         create_handset_lb_button(gui_id);
         break;
-    case PLATFORM_XBOX:
+        case PLATFORM_XBOX:
         create_xbox_lb_button(gui_id);
         break;
-    case PLATFORM_PS:
+        case PLATFORM_PS:
         create_ps4_lb_button(gui_id);
         break;
-    case PLATFORM_STEAMDECK:
+        case PLATFORM_STEAMDECK:
         create_steamdeck_lb_button(gui_id);
         break;
-    case PLATFORM_SWITCH:
+        case PLATFORM_SWITCH:
         create_switch_lb_button(gui_id);
         break;
     }
@@ -702,56 +702,56 @@ void create_rb_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 0:
+        case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 1:
+        case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 2:
+        case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 3:
+        case 3:
         create_y_button(gui_id, btn_id);
         return;
-    case 4:
+        case 4:
         create_lb_button(gui_id, btn_id);
         return;
-    case 5:
+        case 5:
         create_lt_button(gui_id, btn_id);
         return;
-    case 7:
+        case 7:
         create_rt_button(gui_id, btn_id);
         return;
-    case 8:
+        case 8:
         create_start_button(gui_id, btn_id);
         return;
-    case 9:
+        case 9:
         create_select_button(gui_id, btn_id);
         return;
-    case 13:
+        case 13:
         create_ls_button(gui_id, btn_id);
         return;
-    case 15:
+        case 15:
         create_rs_button(gui_id, btn_id);
         return;
     }
 
     switch (current_platform)
     {
-    case PLATFORM_HANDSET:
+        case PLATFORM_HANDSET:
         create_handset_rb_button(gui_id);
         break;
-    case PLATFORM_XBOX:
+        case PLATFORM_XBOX:
         create_xbox_rb_button(gui_id);
         break;
-    case PLATFORM_PS:
+        case PLATFORM_PS:
         create_ps4_rb_button(gui_id);
         break;
-    case PLATFORM_STEAMDECK:
+        case PLATFORM_STEAMDECK:
         create_steamdeck_rb_button(gui_id);
         break;
-    case PLATFORM_SWITCH:
+        case PLATFORM_SWITCH:
         create_switch_rb_button(gui_id);
         break;
     }
@@ -761,53 +761,53 @@ void create_lt_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 0:
+        case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 1:
+        case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 2:
+        case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 3:
+        case 3:
         create_y_button(gui_id, btn_id);
         return;
-    case 4:
+        case 4:
         create_lb_button(gui_id, btn_id);
         return;
-    case 6:
+        case 6:
         create_rb_button(gui_id, btn_id);
         return;
-    case 7:
+        case 7:
         create_rt_button(gui_id, btn_id);
         return;
-    case 8:
+        case 8:
         create_start_button(gui_id, btn_id);
         return;
-    case 9:
+        case 9:
         create_select_button(gui_id, btn_id);
         return;
-    case 13:
+        case 13:
         create_ls_button(gui_id, btn_id);
         return;
-    case 15:
+        case 15:
         create_rs_button(gui_id, btn_id);
         return;
     }
 
     switch (current_platform)
     {
-    case PLATFORM_XBOX:
+        case PLATFORM_XBOX:
         create_xbox_lt_button(gui_id);
         break;
-    case PLATFORM_PS:
+        case PLATFORM_PS:
         create_ps4_lt_button(gui_id);
         break;
-    case PLATFORM_STEAMDECK:
+        case PLATFORM_STEAMDECK:
         create_steamdeck_lt_button(gui_id);
         break;
-    case PLATFORM_SWITCH:
+        case PLATFORM_SWITCH:
         create_switch_lt_button(gui_id);
         break;
     }
@@ -817,53 +817,53 @@ void create_rt_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 0:
+        case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 1:
+        case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 2:
+        case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 3:
+        case 3:
         create_y_button(gui_id, btn_id);
         return;
-    case 4:
+        case 4:
         create_lb_button(gui_id, btn_id);
         return;
-    case 5:
+        case 5:
         create_lt_button(gui_id, btn_id);
         return;
-    case 6:
+        case 6:
         create_rb_button(gui_id, btn_id);
         return;
-    case 8:
+        case 8:
         create_start_button(gui_id, btn_id);
         return;
-    case 9:
+        case 9:
         create_select_button(gui_id, btn_id);
         return;
-    case 13:
+        case 13:
         create_ls_button(gui_id, btn_id);
         return;
-    case 15:
+        case 15:
         create_rs_button(gui_id, btn_id);
         return;
     }
 
     switch (current_platform)
     {
-    case PLATFORM_XBOX:
+        case PLATFORM_XBOX:
         create_xbox_rt_button(gui_id);
         break;
-    case PLATFORM_PS:
+        case PLATFORM_PS:
         create_ps4_rt_button(gui_id);
         break;
-    case PLATFORM_STEAMDECK:
+        case PLATFORM_STEAMDECK:
         create_steamdeck_rt_button(gui_id);
         break;
-    case PLATFORM_SWITCH:
+        case PLATFORM_SWITCH:
         create_switch_rt_button(gui_id);
         break;
     }
@@ -873,53 +873,53 @@ void create_ls_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 0:
+        case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 1:
+        case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 2:
+        case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 3:
+        case 3:
         create_y_button(gui_id, btn_id);
         return;
-    case 4:
+        case 4:
         create_lb_button(gui_id, btn_id);
         return;
-    case 5:
+        case 5:
         create_lt_button(gui_id, btn_id);
         return;
-    case 6:
+        case 6:
         create_rb_button(gui_id, btn_id);
         return;
-    case 7:
+        case 7:
         create_rt_button(gui_id, btn_id);
         return;
-    case 8:
+        case 8:
         create_start_button(gui_id, btn_id);
         return;
-    case 9:
+        case 9:
         create_select_button(gui_id, btn_id);
         return;
-    case 15:
+        case 15:
         create_rs_button(gui_id, btn_id);
         return;
     }
 
     switch (current_platform)
     {
-    case PLATFORM_XBOX:
+        case PLATFORM_XBOX:
         create_xbox_ls_button(gui_id);
         break;
-    case PLATFORM_PS:
+        case PLATFORM_PS:
         create_ps4_ls_button(gui_id);
         break;
-    case PLATFORM_STEAMDECK:
+        case PLATFORM_STEAMDECK:
         create_steamdeck_ls_button(gui_id);
         break;
-    case PLATFORM_SWITCH:
+        case PLATFORM_SWITCH:
         create_switch_ls_button(gui_id);
         break;
     }
@@ -929,53 +929,53 @@ void create_rs_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 0:
+        case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 1:
+        case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 2:
+        case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 3:
+        case 3:
         create_y_button(gui_id, btn_id);
         return;
-    case 4:
+        case 4:
         create_lb_button(gui_id, btn_id);
         return;
-    case 5:
+        case 5:
         create_lt_button(gui_id, btn_id);
         return;
-    case 6:
+        case 6:
         create_rb_button(gui_id, btn_id);
         return;
-    case 7:
+        case 7:
         create_rt_button(gui_id, btn_id);
         return;
-    case 8:
+        case 8:
         create_start_button(gui_id, btn_id);
         return;
-    case 9:
+        case 9:
         create_select_button(gui_id, btn_id);
         return;
-    case 13:
+        case 13:
         create_ls_button(gui_id, btn_id);
         return;
     }
 
     switch (current_platform)
     {
-    case PLATFORM_XBOX:
+        case PLATFORM_XBOX:
         create_xbox_rs_button(gui_id);
         break;
-    case PLATFORM_PS:
+        case PLATFORM_PS:
         create_ps4_rs_button(gui_id);
         break;
-    case PLATFORM_STEAMDECK:
+        case PLATFORM_STEAMDECK:
         create_steamdeck_rs_button(gui_id);
         break;
-    case PLATFORM_SWITCH:
+        case PLATFORM_SWITCH:
         create_switch_rs_button(gui_id);
         break;
     }
@@ -985,41 +985,41 @@ void create_start_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 0:
+        case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 1:
+        case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 2:
+        case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 3:
+        case 3:
         create_y_button(gui_id, btn_id);
         return;
-    case 4:
+        case 4:
         create_lb_button(gui_id, btn_id);
         return;
-    case 5:
+        case 5:
         create_rb_button(gui_id, btn_id);
         return;
-    case 7:
+        case 7:
         create_select_button(gui_id, btn_id);
         return;
     }
 
     switch (current_platform)
     {
-    case PLATFORM_XBOX:
+        case PLATFORM_XBOX:
         create_xbox_start_button(gui_id);
         break;
-    case PLATFORM_PS:
+        case PLATFORM_PS:
         create_ps4_start_button(gui_id);
         break;
-    case PLATFORM_STEAMDECK:
+        case PLATFORM_STEAMDECK:
         create_steamdeck_start_button(gui_id);
         break;
-    case PLATFORM_SWITCH:
+        case PLATFORM_SWITCH:
         create_switch_start_button(gui_id);
         break;
     }
@@ -1029,41 +1029,41 @@ void create_select_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-    case 0:
+        case 0:
         create_a_button(gui_id, btn_id);
         return;
-    case 1:
+        case 1:
         create_b_button(gui_id, btn_id);
         return;
-    case 2:
+        case 2:
         create_x_button(gui_id, btn_id);
         return;
-    case 3:
+        case 3:
         create_y_button(gui_id, btn_id);
         return;
-    case 4:
+        case 4:
         create_lb_button(gui_id, btn_id);
         return;
-    case 5:
+        case 5:
         create_rb_button(gui_id, btn_id);
         return;
-    case 6:
+        case 6:
         create_start_button(gui_id, btn_id);
         return;
     }
 
     switch (current_platform)
     {
-    case PLATFORM_XBOX:
+        case PLATFORM_XBOX:
         create_xbox_select_button(gui_id);
         break;
-    case PLATFORM_PS:
+        case PLATFORM_PS:
         create_ps4_select_button(gui_id);
         break;
-    case PLATFORM_STEAMDECK:
+        case PLATFORM_STEAMDECK:
         create_steamdeck_select_button(gui_id);
         break;
-    case PLATFORM_SWITCH:
+        case PLATFORM_SWITCH:
         create_switch_select_button(gui_id);
         break;
     }

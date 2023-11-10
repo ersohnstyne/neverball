@@ -357,7 +357,7 @@ void conf_common_init(int (*action_fn)(int, int), int allowfade)
         is_common_bg = 1;
 #if NB_HAVE_PB_BOTH==1
         audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
-                                                         "bgm/title.ogg");
+                                                       _("bgm/title.ogg"));
 #else
         audio_music_fade_to(0.5f, "gui/bgm/inter.ogg");
 #endif
@@ -426,110 +426,110 @@ static int video_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        return goto_state(video_back);
-        video_back = NULL;
-        break;
+        case GUI_BACK:
+            goto_state(video_back);
+            video_back = NULL;
+            break;
 
-    case VIDEO_SCREENANIMATIONS:
-        config_set_d(CONFIG_SCREEN_ANIMATIONS, val);
-        goto_state_full(&st_video, 0, 0, 1);
-
-        config_save();
-        break;
-
-    case VIDEO_DISPLAY:
-        goto_state(&st_display);
-        break;
-
-    case VIDEO_FULLSCREEN:
-        if (oldF == val)
-            return 1;
-
-        goto_state_full(&st_null, 0, 0, 1);
-        r = video_fullscreen(val);
-        if (r)
+        case VIDEO_SCREENANIMATIONS:
+            config_set_d(CONFIG_SCREEN_ANIMATIONS, val);
             goto_state_full(&st_video, 0, 0, 1);
-        else
-        {
-            r = video_fullscreen(oldF);
+
+            config_save();
+            break;
+
+        case VIDEO_DISPLAY:
+            goto_state(&st_display);
+            break;
+
+        case VIDEO_FULLSCREEN:
+            if (oldF == val)
+                return 1;
+
+            goto_state_full(&st_null, 0, 0, 1);
+            r = video_fullscreen(val);
             if (r)
                 goto_state_full(&st_video, 0, 0, 1);
             else
             {
-                config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 0);
-                config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
+                r = video_fullscreen(oldF);
+                if (r)
+                    goto_state_full(&st_video, 0, 0, 1);
+                else
+                {
+                    config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 0);
+                    config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
+                }
             }
-        }
 
-        config_save();
+            config_save();
 
-        break;
+            break;
 
-    case VIDEO_RESOLUTION:
+        case VIDEO_RESOLUTION:
 #ifndef RESIZEABLE_WINDOW
-        goto_state(&st_resol);
+            goto_state(&st_resol);
 #endif
-        break;
+            break;
 
-    case VIDEO_HMD:
-        if (oldHmd == val)
-            return 1;
+        case VIDEO_HMD:
+            if (oldHmd == val)
+                return 1;
 
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
-        goto_state(&st_restart_required);
+            goto_state(&st_restart_required);
 #else
-        goto_state(&st_null);
-        config_set_d(CONFIG_HMD, val);
-        config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 6);
-        config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
-        r = video_mode(f, w, h);
-
-        if (r)
-            goto_state(&st_video);
-        else
-        {
-            config_set_d(CONFIG_HMD, oldHmd);
+            goto_state(&st_null);
+            config_set_d(CONFIG_HMD, val);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 6);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
             r = video_mode(f, w, h);
+
             if (r)
                 goto_state(&st_video);
-        }
+            else
+            {
+                config_set_d(CONFIG_HMD, oldHmd);
+                r = video_mode(f, w, h);
+                if (r)
+                    goto_state(&st_video);
+            }
 #endif
 
-        config_save();
+            config_save();
 
-        break;
+            break;
 
-    case VIDEO_TEXTURES:
-        if (oldText == val)
-            return 1;
+        case VIDEO_TEXTURES:
+            if (oldText == val)
+                return 1;
 
-        goto_state(&st_null);
-        config_set_d(CONFIG_TEXTURES, val);
-        goto_state(&st_video);
-
-        config_save();
-
-        break;
-
-    case VIDEO_AUTO_CONFIGURE:
-        goto_state(&st_null);
-        r = video_mode_auto_config(f, w, h);
-        if (r)
+            goto_state(&st_null);
+            config_set_d(CONFIG_TEXTURES, val);
             goto_state(&st_video);
-        else
-        {
-            r = video_mode(f, w, h);
+
+            config_save();
+
+            break;
+
+        case VIDEO_AUTO_CONFIGURE:
+            goto_state(&st_null);
+            r = video_mode_auto_config(f, w, h);
             if (r)
                 goto_state(&st_video);
-        }
+            else
+            {
+                r = video_mode(f, w, h);
+                if (r)
+                    goto_state(&st_video);
+            }
 
-        config_save();
+            config_save();
 
-        break;
-    case VIDEO_ADVANCED:
-        goto_state(&st_video_advanced);
-        break;
+            break;
+        case VIDEO_ADVANCED:
+            goto_state(&st_video_advanced);
+            break;
     }
 
     return r;
@@ -708,215 +708,212 @@ static int video_advanced_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        goto_state(video_advanced_back);
-        video_advanced_back = NULL;
-        break;
+        case GUI_BACK:
+            goto_state(video_advanced_back);
+            video_advanced_back = NULL;
+            break;
 
-    case VIDEO_ADVANCED_DISPLAY:
-        goto_state(&st_display);
-        break;
+        case VIDEO_ADVANCED_DISPLAY:
+            goto_state(&st_display);
+            break;
 
-    case VIDEO_ADVANCED_RESOLUTION:
+        case VIDEO_ADVANCED_RESOLUTION:
 #ifndef RESIZEABLE_WINDOW
-        goto_state(&st_resol);
+            goto_state(&st_resol);
 #endif
-        break;
+            break;
 
-    case VIDEO_ADVANCED_FULLSCREEN:
-        if (oldF == val)
-            return 1;
+        case VIDEO_ADVANCED_FULLSCREEN:
+            if (oldF == val)
+                return 1;
 
-        backups = 1;
+            backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
-        goto_state(&st_restart_required);
+            goto_state(&st_restart_required);
 #else
-        config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 0);
-        config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
-        config_save();
-        goto_state_full(&st_null, 0, 0, 1);
-        r = video_fullscreen(val);
-
-        if (r)
-            goto_state_full(&st_video_advanced, 0, 0, 1);
-        else
-        {
+            config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 0);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
+            config_save();
+            goto_state_full(&st_null, 0, 0, 1);
             r = video_fullscreen(val);
+
             if (r)
                 goto_state_full(&st_video_advanced, 0, 0, 1);
-        }
+            else
+            {
+                r = video_fullscreen(val);
+                if (r)
+                    goto_state_full(&st_video_advanced, 0, 0, 1);
+            }
 #endif
-        break;
+            break;
 
-    case VIDEO_ADVANCED_HMD:
-        if (oldHmd == val)
-            return 1;
+        case VIDEO_ADVANCED_HMD:
+            if (oldHmd == val)
+                return 1;
 
-        backups = 1;
+            backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
-        config_set_d(CONFIG_HMD, val);
-        goto_state(&st_restart_required);
+            config_set_d(CONFIG_HMD, val);
+            goto_state(&st_restart_required);
 #else
-        config_set_d(CONFIG_HMD, val);
-        config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 6);
-        config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
-        config_save();
-        goto_state(&st_null);
+            config_set_d(CONFIG_HMD, val);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 6);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
+            config_save();
+            goto_state(&st_null);
 
-        r = video_mode(f, w, h);
-
-        if (r)
-            goto_state(&st_video_advanced);
-        else
-        {
-            config_set_d(CONFIG_HMD, oldHmd);
             r = video_mode(f, w, h);
+
             if (r)
                 goto_state(&st_video_advanced);
-        }
+            else
+            {
+                config_set_d(CONFIG_HMD, oldHmd);
+                r = video_mode(f, w, h);
+                if (r)
+                    goto_state(&st_video_advanced);
+            }
 #endif
-        break;
+            break;
 
-    case VIDEO_ADVANCED_REFLECTION:
-        if (oldRefl == val)
-            return 1;
+            case VIDEO_ADVANCED_REFLECTION:
+            if (oldRefl == val)
+                return 1;
 
-        backups = 1;
+            backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
-        config_set_d(CONFIG_REFLECTION, val);
-        goto_state(&st_restart_required);
+            config_set_d(CONFIG_REFLECTION, val);
+            goto_state(&st_restart_required);
 #else
-        config_set_d(CONFIG_REFLECTION, val);
-        config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 5);
-        config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
-        config_save();
-        goto_state(&st_null);
+            config_set_d(CONFIG_REFLECTION, val);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 5);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
+            config_save();
+            goto_state(&st_null);
 
-        r = video_mode(f, w, h);
-
-        if (r)
-            goto_state(&st_video_advanced);
-        else
-        {
-            config_set_d(CONFIG_REFLECTION, oldRefl);
             r = video_mode(f, w, h);
+
             if (r)
                 goto_state(&st_video_advanced);
-        }
+            else
+            {
+                config_set_d(CONFIG_REFLECTION, oldRefl);
+                r = video_mode(f, w, h);
+                if (r)
+                    goto_state(&st_video_advanced);
+            }
 #endif
 
-        break;
+            break;
 
-    case VIDEO_ADVANCED_BACKGROUND:
-        config_set_d(CONFIG_BACKGROUND, val);
-        config_save();
-        goto_state_full(&st_video_advanced, 0, 0, 1);
-        break;
+        case VIDEO_ADVANCED_BACKGROUND:
+            config_set_d(CONFIG_BACKGROUND, val);
+            config_save();
+            goto_state_full(&st_video_advanced, 0, 0, 1);
+            break;
 
-    case VIDEO_ADVANCED_SHADOW:
-        config_set_d(CONFIG_SHADOW, val);
-        config_save();
-        goto_state_full(&st_video_advanced, 0, 0, 1);
-        break;
+        case VIDEO_ADVANCED_SHADOW:
+            config_set_d(CONFIG_SHADOW, val);
+            config_save();
+            goto_state_full(&st_video_advanced, 0, 0, 1);
+            break;
 #ifdef GL_GENERATE_MIPMAP_SGIS
-    case VIDEO_ADVANCED_MIPMAP:
-        config_set_d(CONFIG_MIPMAP, val);
-        config_save();
-        goto_state_full(&st_video_advanced, 0, 0, 1);
-        break;
+        case VIDEO_ADVANCED_MIPMAP:
+            config_set_d(CONFIG_MIPMAP, val);
+            config_save();
+            goto_state_full(&st_video_advanced, 0, 0, 1);
+            break;
 #endif
 
 #ifdef GL_TEXTURE_MAX_ANISOTROPY_EXT
-    case VIDEO_ADVANCED_ANISO:
-        config_set_d(CONFIG_ANISO, val);
-        config_save();
-        goto_state_full(&st_video_advanced, 0, 0, 1);
-        break;
+        case VIDEO_ADVANCED_ANISO:
+            config_set_d(CONFIG_ANISO, val);
+            config_save();
+            goto_state_full(&st_video_advanced, 0, 0, 1);
+            break;
 #endif
 
-    case VIDEO_ADVANCED_VSYNC:
-        if (oldVsync == val)
-            return 1;
+        case VIDEO_ADVANCED_VSYNC:
+            if (oldVsync == val)
+                return 1;
 
-        backups = 1;
+            backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
-        config_set_d(CONFIG_VSYNC, val);
-        goto_state(&st_restart_required);
+            config_set_d(CONFIG_VSYNC, val);
+            goto_state(&st_restart_required);
 #else
-        config_set_d(CONFIG_VSYNC, val);
-        config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 3);
-        config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
-        config_save();
-        goto_state(&st_null);
+            config_set_d(CONFIG_VSYNC, val);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 3);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
+            config_save();
+            goto_state(&st_null);
 
-        r = video_mode(f, w, h);
+            r = video_mode(f, w, h);
 
-        if (r)
+            if (r)
+                goto_state(&st_video_advanced);
+            else
+            {
+                config_set_d(CONFIG_VSYNC, oldVsync);
+                r = video_mode(f, w, h);
+                if (r)
+                    goto_state(&st_video_advanced);
+            }
+#endif
+
+            break;
+
+        case VIDEO_ADVANCED_TEXTURES:
+            if (oldText == val)
+                return 1;
+
+            backups = 1;
+            config_set_d(CONFIG_TEXTURES, val);
+            config_save();
             goto_state(&st_video_advanced);
-        else
-        {
-            config_set_d(CONFIG_VSYNC, oldVsync);
+
+            break;
+
+        case VIDEO_ADVANCED_MULTISAMPLE:
+            if (oldSamp == val)
+                return 1;
+
+            backups = 1;
+#if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
+            config_set_d(CONFIG_MULTISAMPLE, val);
+            goto_state(&st_restart_required);
+#else
+            config_set_d(CONFIG_MULTISAMPLE, val);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 4);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
+            config_save();
+            goto_state(&st_null);
+
             r = video_mode(f, w, h);
             if (r)
                 goto_state(&st_video_advanced);
-        }
+            else
+            {
+                config_set_d(CONFIG_MULTISAMPLE, oldSamp);
+                r = video_mode(f, w, h);
+                if (r)
+                    goto_state(&st_video_advanced);
+            }
 #endif
+            break;
 
-        break;
+        case VIDEO_ADVANCED_SMOOTH_FIX:
+            config_set_d(CONFIG_SMOOTH_FIX, val);
+            config_save();
+            goto_state_full(&st_video_advanced, 0, 0, 1);
+            break;
 
-    case VIDEO_ADVANCED_TEXTURES:
-        if (oldText == val)
-            return 1;
-
-        backups = 1;
-        config_set_d(CONFIG_TEXTURES, val);
-        config_save();
-        goto_state(&st_video_advanced);
-
-        break;
-
-    case VIDEO_ADVANCED_MULTISAMPLE:
-        if (oldSamp == val)
-            return 1;
-
-        backups = 1;
-#if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
-        config_set_d(CONFIG_MULTISAMPLE, val);
-        goto_state(&st_restart_required);
-#else
-        config_set_d(CONFIG_MULTISAMPLE, val);
-        config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 4);
-        config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
-        config_save();
-        goto_state(&st_null);
-
-        r = video_mode(f, w, h);
-        if (r)
-            goto_state(&st_video_advanced);
-        else
-        {
-            config_set_d(CONFIG_MULTISAMPLE, oldSamp);
-            r = video_mode(f, w, h);
-            if (r)
-                goto_state(&st_video_advanced);
-        }
-#endif
-
-        break;
-
-    case VIDEO_ADVANCED_SMOOTH_FIX:
-        config_set_d(CONFIG_SMOOTH_FIX, val);
-        config_save();
-        goto_state_full(&st_video_advanced, 0, 0, 1);
-
-        config_save();
-        break;
-
-    case VIDEO_ADVANCED_FORCE_SMOOTH_FIX:
-        config_set_d(CONFIG_FORCE_SMOOTH_FIX, val);
-        config_save();
-        goto_state_full(&st_video_advanced, 0, 0, 1);
-        break;
+        case VIDEO_ADVANCED_FORCE_SMOOTH_FIX:
+            config_set_d(CONFIG_FORCE_SMOOTH_FIX, val);
+            config_save();
+            goto_state_full(&st_video_advanced, 0, 0, 1);
+            break;
     }
 
     if (r && backups)
@@ -1130,20 +1127,20 @@ static int display_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        goto_state(display_back);
-        display_back = NULL;
-        break;
+        case GUI_BACK:
+            goto_state(display_back);
+            display_back = NULL;
+            break;
 
-    case DISPLAY_SELECT:
-        if (val != config_get_d(CONFIG_DISPLAY))
-        {
-            config_set_d(CONFIG_DISPLAY, val);
-            video_set_display(val);
-            goto_state_full(&st_display, 0, 0, 1);
+        case DISPLAY_SELECT:
+            if (val != config_get_d(CONFIG_DISPLAY))
+            {
+                config_set_d(CONFIG_DISPLAY, val);
+                video_set_display(val);
+                goto_state_full(&st_display, 0, 0, 1);
 
-            r = 1;
-        }
+                r = 1;
+            }
 
         config_save();
 
@@ -1319,26 +1316,25 @@ static int resol_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        goto_state(resol_back);
-        resol_back = NULL;
-        break;
+        case GUI_BACK:
+            goto_state(resol_back);
+            resol_back = NULL;
+            break;
 
-    case RESOL_MODE:
-        if (customresol_modes[val].w == oldW &&
-            customresol_modes[val].h == oldH) {
-            log_printf("Resolutions remains the same size!\n");
-            return 1;
-        }
+        case RESOL_MODE:
+            if (customresol_modes[val].w == oldW &&
+                customresol_modes[val].h == oldH) {
+                log_printf("Resolutions remains the same size!\n");
+                return 1;
+            }
 
-        video_set_window_size(customresol_modes[val].w,
-                              customresol_modes[val].h);
+            video_set_window_size(customresol_modes[val].w,
+                                  customresol_modes[val].h);
+            r = 1;
 
-        r = 1;
+            config_save();
 
-        config_save();
-
-        break;
+            break;
     }
 
     return r;
@@ -1468,45 +1464,45 @@ static int lang_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        goto_state(lang_back);
-        lang_back = NULL;
-        break;
+        case GUI_BACK:
+            goto_state(lang_back);
+            lang_back = NULL;
+            break;
 
-    case GUI_PREV:
-        if (first > 1) {
-            first -= LANG_STEP;
-            return goto_state(&st_lang);
-        }
-        break;
+        case GUI_PREV:
+            if (first > 1) {
+                first -= LANG_STEP;
+                return goto_state(&st_lang);
+            }
+            break;
 
-    case GUI_NEXT:
-        if (first + LANG_STEP < total)
-        {
-            first += LANG_STEP;
-            return goto_state(&st_lang);
-        }
-        break;
+        case GUI_NEXT:
+            if (first + LANG_STEP < total)
+            {
+                first += LANG_STEP;
+                return goto_state(&st_lang);
+            }
+            break;
 
-    case LANG_DEFAULT:
-        /* HACK: Reload resources to load the localized font. */
-        goto_state(&st_null);
-        config_set_s(CONFIG_LANGUAGE, "");
-        lang_init();
-        audio_play(_("snd/lang/preview.ogg"), 1.0f);
-        goto_state(&st_lang);
-        config_save();
-        break;
+        case LANG_DEFAULT:
+            /* HACK: Reload resources to load the localized font. */
+            goto_state(&st_null);
+            config_set_s(CONFIG_LANGUAGE, "");
+            lang_init();
+            audio_play(_("snd/lang/preview.ogg"), 1.0f);
+            goto_state(&st_lang);
+            config_save();
+            break;
 
-    case LANG_SELECT:
-        desc = LANG_GET(langs, val);
-        goto_state(&st_null);
-        config_set_s(CONFIG_LANGUAGE, desc->code);
-        lang_init();
-        audio_play(_("snd/lang/preview.ogg"), 1.0f);
-        goto_state(&st_lang);
-        config_save();
-        break;
+        case LANG_SELECT:
+            desc = LANG_GET(langs, val);
+            goto_state(&st_null);
+            config_set_s(CONFIG_LANGUAGE, desc->code);
+            lang_init();
+            audio_play(_("snd/lang/preview.ogg"), 1.0f);
+            goto_state(&st_lang);
+            config_save();
+            break;
     }
 
     return r;

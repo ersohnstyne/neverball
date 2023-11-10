@@ -14,6 +14,9 @@
 
 #include "gui.h"
 #include "audio.h"
+#if NB_HAVE_PB_BOTH==1
+#include "account.h"
+#endif
 #include "config.h"
 #include "common.h"
 #include "package.h"
@@ -21,6 +24,14 @@
 
 #include "st_package.h"
 #include "st_common.h"
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
 
 #define AUD_MENU     "snd/menu.ogg"
 #define AUD_BACK     "snd/back.ogg"
@@ -305,53 +316,53 @@ static int package_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        return goto_state(package_back);
-        break;
+        case GUI_BACK:
+            return goto_state(package_back);
+            break;
 
-    case GUI_PREV:
-        first -= PACKAGE_STEP;
+        case GUI_PREV:
+            first -= PACKAGE_STEP;
 
-        do_init = 0;
-        return goto_state(&st_package);
+            do_init = 0;
+            return goto_state(&st_package);
 
-        break;
+            break;
 
-    case GUI_NEXT:
-        first += PACKAGE_STEP;
+        case GUI_NEXT:
+            first += PACKAGE_STEP;
 
-        do_init = 0;
-        return goto_state(&st_package);
+            do_init = 0;
+            return goto_state(&st_package);
 
-        break;
+            break;
 
-    case PACKAGE_SELECT:
-        package_select(val);
-        break;
+        case PACKAGE_SELECT:
+            package_select(val);
+            break;
 
-    case PACKAGE_UNINSTALL:
-    case PACKAGE_INSTALL:
-        status = package_get_status(selected);
+        case PACKAGE_UNINSTALL:
+        case PACKAGE_INSTALL:
+            status = package_get_status(selected);
 
-        if (status == PACKAGE_INSTALLED ||
-            status == PACKAGE_UPDATE)
-            return goto_state(&st_package_manage);
-        else if (status == PACKAGE_AVAILABLE ||
-                 status == PACKAGE_ERROR)
-        {
-            package_start_download(selected);
+            if (status == PACKAGE_INSTALLED ||
+                status == PACKAGE_UPDATE)
+                return goto_state(&st_package_manage);
+            else if (status == PACKAGE_AVAILABLE ||
+                     status == PACKAGE_ERROR)
+            {
+                package_start_download(selected);
 
-            return 1;
-        }
-        else if (status == PACKAGE_DOWNLOADING)
-            return 1;
-        break;
+                return 1;
+            }
+            else if (status == PACKAGE_DOWNLOADING)
+                return 1;
+            break;
 
-    case PACKAGE_CHANGEGROUP:
+        case PACKAGE_CHANGEGROUP:
 #if NB_HAVE_PB_BOTH==1
-        category_id = val;
+            category_id = val;
 #endif
-        break;
+            break;
     }
 
     return 1;
@@ -370,10 +381,10 @@ static int gui_package_button(int id, int pi)
 
         switch (status)
         {
-        case PACKAGE_INSTALLED:   gui_set_label(status_id, GUI_CHECKMARK); break;
-        case PACKAGE_DOWNLOADING: gui_set_label(status_id, GUI_ELLIPSIS); break;
-        case PACKAGE_UPDATE:      gui_set_label(status_id, GUI_CIRCLE_ARROW); break;
-        default:                  gui_set_label(status_id, GUI_ARROW_DN); break;
+            case PACKAGE_INSTALLED:   gui_set_label(status_id, GUI_CHECKMARK);    break;
+            case PACKAGE_DOWNLOADING: gui_set_label(status_id, GUI_ELLIPSIS);     break;
+            case PACKAGE_UPDATE:      gui_set_label(status_id, GUI_CIRCLE_ARROW); break;
+            default:                  gui_set_label(status_id, GUI_ARROW_DN);     break;
         }
 
         gui_set_font(status_id, GUI_FACE);
@@ -418,12 +429,29 @@ static int package_gui(void)
         if ((id = gui_vstack(0)))
         {
             gui_label (id, _("No addons found"), GUI_SML, 0, 0);
+#if defined(CONFIG_INCLUDES_ACCOUNT) && ENABLE_FETCH
+#if (NB_STEAM_API!=1 && NB_EOS_SDK!=1)
+            gui_space (id);
+            gui_multi (id, _("Use the web shop or mobile\\to buy new addons."),
+                           GUI_SML, gui_wht, gui_wht);
+#elif NB_EOS_SDK==1
+            gui_space (id);
+            gui_multi (id, _("Use the Epic Games Store launcher\\to buy new addons."),
+                           GUI_SML, gui_wht, gui_wht);
+#elif NB_STEAM_API==1
+            gui_space (id);
+            gui_multi (id, _("Use the Steam launcher\\to buy new addons."),
+                          GUI_SML, gui_wht, gui_wht);
+#endif
+#endif
             gui_space (id);
             gui_state (id, _("Back"), GUI_SML, GUI_BACK, 0);
             gui_layout(id, 0, 0);
         }
+
         return id;
     }
+
     if ((id = gui_vstack(0)))
     {
         if ((jd = gui_hstack(id)))
@@ -534,12 +562,12 @@ static void package_select(int pi)
         //gui_set_color(install_label_id, gui_gry, gui_gry);
 
         gui_set_color(install_status_id, gui_wht, gui_wht);
-        gui_set_color(install_label_id, gui_wht, gui_wht);
+        gui_set_color(install_label_id,  gui_wht, gui_wht);
     }
     else
     {
         gui_set_color(install_status_id, gui_grn, gui_grn);
-        gui_set_color(install_label_id, gui_wht, gui_wht);
+        gui_set_color(install_label_id,  gui_wht, gui_wht);
     }
 }
 
@@ -694,33 +722,33 @@ int package_manage_action(int tok, int val)
         {
             switch (tok)
             {
-            case PACKAGE_MANAGE_DELETE:
-                curr_confirm_action = PACKAGE_CONFIRM_NONE;
-                fs_remove(package_get_files(selected));
-                return goto_state(&st_package);
+                case PACKAGE_MANAGE_DELETE:
+                    curr_confirm_action = PACKAGE_CONFIRM_NONE;
+                    fs_remove(package_get_files(selected));
+                    return goto_state(&st_package);
 
-            case GUI_BACK:
-                curr_confirm_action = PACKAGE_CONFIRM_NONE;
-                return goto_state(&st_package);
+                case GUI_BACK:
+                    curr_confirm_action = PACKAGE_CONFIRM_NONE;
+                    return goto_state(&st_package);
             }
         }
-        break;
+            break;
 
         default:
         {
             switch (tok)
             {
-            case PACKAGE_MANAGE_UPDATE:
-                selected = val;
-                do_download = 1;
-                return goto_state(&st_package);
+                case PACKAGE_MANAGE_UPDATE:
+                    selected = val;
+                    do_download = 1;
+                    return goto_state(&st_package);
 
-            case PACKAGE_MANAGE_DELETE:
-                curr_confirm_action = PACKAGE_CONFIRM_DELETE;
-                return goto_state(&st_package_manage);
+                case PACKAGE_MANAGE_DELETE:
+                    curr_confirm_action = PACKAGE_CONFIRM_DELETE;
+                    return goto_state(&st_package_manage);
 
-            case GUI_BACK:
-                return goto_state(&st_package);
+                case GUI_BACK:
+                    return goto_state(&st_package);
             }
         }
         break;

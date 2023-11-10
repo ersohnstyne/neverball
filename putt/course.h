@@ -20,6 +20,8 @@
 #define COURSE_FILE "courses.txt"
 #define MAXCRS 16
 
+/*---------------------------------------------------------------------------*/
+
 void course_init();
 void course_free();
 

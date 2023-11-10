@@ -103,17 +103,22 @@ static int switchball_useable(void)
 /*---------------------------------------------------------------------------*/
 
 #define SET_STEP 7
+
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
 #define SET_CHECK_LOCKED(idx)                                                 \
-    (account_get_d(ACCOUNT_SET_UNLOCKS) <= idx && !is_boost_on()              \
-  && !config_cheat()                                                          \
-   && (server_policy_get_d(SERVER_POLICY_EDITION) < SET_UNLOCKABLE_EDITION && \
+    (account_get_d(ACCOUNT_SET_UNLOCKS) <= idx && !is_boost_on() &&           \
+     !config_cheat() &&                                                       \
+      (server_policy_get_d(SERVER_POLICY_EDITION) < SET_UNLOCKABLE_EDITION && \
        server_policy_get_d(SERVER_POLICY_EDITION) != -1))
 #else
 #define SET_CHECK_LOCKED(idx)                                                 \
     (account_get_d(ACCOUNT_SET_UNLOCKS) <= idx && !is_boost_on() &&           \
      (server_policy_get_d(SERVER_POLICY_EDITION) < SET_UNLOCKABLE_EDITION &&  \
       server_policy_get_d(SERVER_POLICY_EDITION) != -1))
+#endif
+#else
+#define SET_CHECK_LOCKED(idx) 0
 #endif
 
 static int set_manual_hotreload = 0;
@@ -134,7 +139,7 @@ int is_boost_on(void)
     return boost_on == 1;
 }
 
-void set_boost_on(int active)
+static void set_boost_on(int active)
 {
     boost_on = active;
 }
@@ -158,73 +163,75 @@ static int set_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        set_quit();
+        case GUI_BACK:
+            set_quit();
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET))
+            if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET))
+                return goto_state(&st_title);
+            else
+                return goto_state_full(&st_levelgroup,
+                                       GUI_ANIMATION_E_CURVE,
+                                       GUI_ANIMATION_W_CURVE, 0);
+#else
             return goto_state(&st_title);
-        else
-            return goto_state_full(&st_levelgroup,
-                                   GUI_ANIMATION_E_CURVE,
-                                   GUI_ANIMATION_W_CURVE, 0);
-#else
-        return goto_state(&st_title);
 #endif
-        break;
+            break;
 
-    case GUI_PREV:
-        if (first > 1) {
-            first -= SET_STEP;
-            do_init = 0;
+        case GUI_PREV:
+            if (first > 1)
+            {
+                first -= SET_STEP;
+                do_init = 0;
+                return goto_state_full(&st_set,
+                                       GUI_ANIMATION_E_CURVE,
+                                       GUI_ANIMATION_W_CURVE, 0);
+            }
+            break;
+
+        case GUI_NEXT:
+            if (first + SET_STEP < total)
+            {
+                first += SET_STEP;
+                do_init = 0;
+                return goto_state_full(&st_set,
+                                       GUI_ANIMATION_W_CURVE,
+                                       GUI_ANIMATION_E_CURVE, 0);
+            }
+            break;
+
+        case SET_SELECT:
+            if (set_name_locked) return 1;
+
+            set_goto(val);
+            return goto_state_full(&st_start,
+                                   GUI_ANIMATION_N_CURVE,
+                                   GUI_ANIMATION_S_CURVE, 0);
+
+            break;
+
+        case SET_TOGGLE_BOOST:
+            boost_on = !boost_on;
             return goto_state_full(&st_set,
-                                   GUI_ANIMATION_E_CURVE,
-                                   GUI_ANIMATION_W_CURVE, 0);
-        }
-        break;
+                                   boost_on ? GUI_ANIMATION_S_CURVE :
+                                              GUI_ANIMATION_N_CURVE,
+                                   boost_on ? GUI_ANIMATION_N_CURVE :
+                                              GUI_ANIMATION_S_CURVE, 0);
+            break;
 
-    case GUI_NEXT:
-        if (first + SET_STEP < total)
-        {
-            first += SET_STEP;
-            do_init = 0;
-            return goto_state_full(&st_set,
-                                   GUI_ANIMATION_W_CURVE,
-                                   GUI_ANIMATION_E_CURVE, 0);
-        }
-        break;
-
-    case SET_SELECT:
-        if (set_name_locked) return 1;
-
-        set_goto(val);
-        return goto_state_full(&st_start,
-                               GUI_ANIMATION_N_CURVE,
-                               GUI_ANIMATION_S_CURVE, 0);
-
-        break;
-
-    case SET_TOGGLE_BOOST:
-        boost_on = !boost_on;
-        return goto_state_full(&st_set,
-                               boost_on ? GUI_ANIMATION_S_CURVE :
-                                          GUI_ANIMATION_N_CURVE,
-                               boost_on ? GUI_ANIMATION_N_CURVE :
-                                          GUI_ANIMATION_S_CURVE, 0);
-        break;
-
-    case SET_GET_MORE:
-#if NB_STEAM_API==1
-#elif NB_EOS_SDK==1
+        case SET_GET_MORE:
+#if NB_STEAM_API==1 || NB_EOS_SDK==1
 #else
-#if _WIN32
-        system("start msedge https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV");
+#if defined(__EMSCRIPTEN__)
+            EM_ASM({ window.open("https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV"); }, 0);
+#elif _WIN32
+            system("start msedge https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV");
 #elif defined(__APPLE__)
-        system("open https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV");
+            system("open https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV");
 #elif defined(__linux__)
-        system("x-www-browser https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV");
+            system("x-www-browser https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV");
 #endif
 #endif
-        break;
+            break;
     }
 
     return 1;
@@ -273,14 +280,14 @@ static void gui_set(int id, int i)
         if (set_name_locked)
         {
             gui_set_label(set_text_name_id, _("Locked"));
-            gui_set_color(set_text_name_id, gui_gry, gui_gry);
+            gui_set_color(set_text_name_id, GUI_COLOR_GRY);
             gui_set_state(set_text_name_id, GUI_NONE, i);
         }
 #ifndef MAPC_INCLUDES_CHKP
         else if (campaign_marked)
         {
-            gui_set_label(set_text_name_id, _(GUI_AIRPLANE " Requires CHKP"));
-            gui_set_color(set_text_name_id, gui_red, gui_red);
+            gui_set_label(set_text_name_id, _(GUI_AIRPLANE " MAPC requires CHKP"));
+            gui_set_color(set_text_name_id, GUI_COLOR_RED);
             gui_set_state(set_text_name_id, GUI_NONE, i);
         }
 #endif
@@ -677,74 +684,74 @@ static int campaign_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        if (campaign_show_rank)
-        {
-            campaign_show_rank = 0;
+        case GUI_BACK:
+            if (campaign_show_rank)
+            {
+                campaign_show_rank = 0;
+                return goto_state(&st_campaign);
+            }
+            else if (campaign_theme_used())
+            {
+                campaign_theme_quit();
+                return goto_state_full(&st_campaign,
+                                       GUI_ANIMATION_W_CURVE,
+                                       GUI_ANIMATION_E_CURVE, 0);
+            }
+            else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
+                return goto_state(&st_title);
+            else
+                return goto_state_full(&st_levelgroup,
+                                       GUI_ANIMATION_W_CURVE,
+                                       GUI_ANIMATION_E_CURVE, 0);
+
+        case CAMPAIGN_RANK:
+            campaign_show_rank = 1;
             return goto_state(&st_campaign);
-        }
-        else if (campaign_theme_used())
-        {
-            campaign_theme_quit();
+            break;
+
+        case GUI_NEXT:
+            campaign_theme_index += 1;
+            if (campaign_theme_index > 4)
+                campaign_theme_index = 0;
+            break;
+
+        case GUI_PREV:
+            campaign_theme_index -= 1;
+            if (campaign_theme_index < 0)
+                campaign_theme_index = 4;
+            break;
+
+        case 999:
+            return goto_state_full(&st_playmodes,
+                                   GUI_ANIMATION_N_CURVE,
+                                   GUI_ANIMATION_S_CURVE, 0);
+
+        case CAMPAIGN_SELECT_THEME:
+            campaign_theme_init();
             return goto_state_full(&st_campaign,
-                                   GUI_ANIMATION_W_CURVE,
-                                   GUI_ANIMATION_E_CURVE, 0);
-        }
-        else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
-            return goto_state(&st_title);
-        else
-            return goto_state_full(&st_levelgroup,
-                                   GUI_ANIMATION_W_CURVE,
-                                   GUI_ANIMATION_E_CURVE, 0);
+                                   GUI_ANIMATION_E_CURVE,
+                                   GUI_ANIMATION_W_CURVE, 0);
 
-    case CAMPAIGN_RANK:
-        campaign_show_rank = 1;
-        return goto_state(&st_campaign);
-        break;
+        case CAMPAIGN_SELECT_LEVEL:
+            if (check_handsoff())
+                return goto_handsoff(&st_campaign);
 
-    case GUI_NEXT:
-        campaign_theme_index += 1;
-        if (campaign_theme_index > 4)
-            campaign_theme_index = 0;
-        break;
+            progress_init(MODE_CAMPAIGN);
 
-    case GUI_PREV:
-        campaign_theme_index -= 1;
-        if (campaign_theme_index < 0)
-            campaign_theme_index = 4;
-        break;
+            audio_music_stop();
+            audio_play(AUD_STARTGAME, 1.0f);
+            game_fade(+4.0);
+            if (progress_play(campaign_get_level(val)))
+            {
+                campaign_load_camera_box_trigger(level_name(curr_level()));
 
-    case 999:
-        return goto_state_full(&st_playmodes,
-                               GUI_ANIMATION_N_CURVE,
-                               GUI_ANIMATION_S_CURVE, 0);
+                if (config_get_d(CONFIG_ACCOUNT_SAVE) > 0 &&
+                    curr_mode() != MODE_NONE && !demo_fp)
+                    return goto_state(&st_nodemo);
 
-    case CAMPAIGN_SELECT_THEME:
-        campaign_theme_init();
-        return goto_state_full(&st_campaign,
-                               GUI_ANIMATION_E_CURVE,
-                               GUI_ANIMATION_W_CURVE, 0);
-
-    case CAMPAIGN_SELECT_LEVEL:
-        if (check_handsoff())
-            return goto_handsoff(&st_campaign);
-
-        progress_init(MODE_CAMPAIGN);
-
-        audio_music_stop();
-        audio_play(AUD_STARTGAME, 1.0f);
-        game_fade(+4.0);
-        if (progress_play(campaign_get_level(val)))
-        {
-            campaign_load_camera_box_trigger(level_name(curr_level()));
-
-            if (config_get_d(CONFIG_ACCOUNT_SAVE) > 0 &&
-                curr_mode() != MODE_NONE && !demo_fp)
-                return goto_state(&st_nodemo);
-
-            return goto_state(&st_play_ready);
-        }
-        break;
+                return goto_state(&st_play_ready);
+            }
+            break;
     }
 
     if (!campaign_theme_used())
@@ -756,12 +763,12 @@ static int campaign_action(int tok, int val)
         {
             gui_set_image(campaign_theme_image_id, campaign_theme_images[campaign_theme_index]);
             gui_set_label(campaign_theme_text_id, _(campaign_theme_texts[campaign_theme_index]));
-            gui_set_color(campaign_theme_text_id, gui_wht, gui_wht);
+            gui_set_color(campaign_theme_text_id, GUI_COLOR_WHT);
             gui_set_state(campaign_theme_btn_id, CAMPAIGN_SELECT_THEME, 0);
         }
         else
         {
-            gui_set_color(campaign_theme_text_id, gui_gry, gui_gry);
+            gui_set_color(campaign_theme_text_id, GUI_COLOR_GRY);
             gui_set_state(campaign_theme_btn_id, GUI_NONE, 0);
         }
     }
@@ -795,7 +802,7 @@ static int campaign_gui(void)
                 gui_label(jd, _(campaign_ranks[campaign_rank()].text_rank),
                               GUI_SML, gui_wht, campaign_ranks[campaign_rank()].col_rank);
                 gui_multi(jd, _(campaign_rank_desc[campaign_rank()]),
-                              GUI_SML, gui_wht, gui_wht);
+                              GUI_SML, GUI_COLOR_WHT);
 
                 gui_set_rect(jd, GUI_ALL);
             }
@@ -874,14 +881,14 @@ static int campaign_gui(void)
                                 campaign_theme_image_id = gui_image(nd, campaign_theme_images[campaign_theme_index],
                                                                         ww, hh);
                                 campaign_theme_text_id  = gui_label(nd, _(campaign_theme_texts[campaign_theme_index]),
-                                                                        GUI_SML, gui_wht, gui_wht);
+                                                                        GUI_SML, GUI_COLOR_WHT);
                             }
                             else
                             {
                                 campaign_theme_image_id = gui_image(nd, "gui/campaign/locked.jpg",
                                                                         ww, hh);
                                 campaign_theme_text_id  = gui_label(nd, _("Locked"),
-                                                                        GUI_SML, gui_gry, gui_gry);
+                                                                        GUI_SML, GUI_COLOR_GRY);
                             }
                         }
                         gui_filler(md);
@@ -916,7 +923,7 @@ static int campaign_gui(void)
                             const GLubyte *back = gui_gry;
 
                             if (!l)
-                                gui_label(md, " ", GUI_SML, gui_blk, gui_blk);
+                                gui_label(md, " ", GUI_SML, GUI_COLOR_BLK);
                             else
                             {
                                 /* Got the level? Continue searching. */
@@ -1055,18 +1062,18 @@ static int levelgroup_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        return goto_state(&st_title);
-    case LEVELGROUP_CAMPAIGN:
-        if (campaign_init())
-            return goto_state_full(&st_campaign,
-                                   GUI_ANIMATION_E_CURVE,
-                                   GUI_ANIMATION_W_CURVE, 0);
-        break;
-    case LEVELGROUP_LEVELSET:
-        return goto_state_full(&st_set,
-                               GUI_ANIMATION_W_CURVE,
-                               GUI_ANIMATION_E_CURVE, 0);
+        case GUI_BACK:
+            return goto_state(&st_title);
+        case LEVELGROUP_CAMPAIGN:
+            if (campaign_init())
+                return goto_state_full(&st_campaign,
+                                       GUI_ANIMATION_E_CURVE,
+                                       GUI_ANIMATION_W_CURVE, 0);
+            break;
+        case LEVELGROUP_LEVELSET:
+            return goto_state_full(&st_set,
+                                   GUI_ANIMATION_W_CURVE,
+                                   GUI_ANIMATION_E_CURVE, 0);
     }
     return 1;
 }
@@ -1135,7 +1142,7 @@ static int levelgroup_gui(void)
 #else
                 if (video.aspect_ratio >= 1.0f)
                     gui_image(ld, "gui/levels/levelset.jpg", ww, hh);
-                gui_label(ld, _("Level Set"), GUI_SML, gui_wht, gui_wht);
+                gui_label(ld, _("Level Set"), GUI_SML, GUI_COLOR_WHT);
                 gui_filler(ld);
                 gui_set_state(ld, LEVELGROUP_LEVELSET, 0);
 #endif
@@ -1168,7 +1175,7 @@ static int levelgroup_gui(void)
                      */
                     if (video.aspect_ratio >= 1.0f)
                         gui_image(ld, "gui/levels/campaign.jpg", ww, hh);
-                    gui_label(ld, _("Campaign"), GUI_SML, gui_wht, gui_wht);
+                    gui_label(ld, _("Campaign"), GUI_SML, GUI_COLOR_WHT);
                     gui_filler(ld);
                     gui_set_state(ld, LEVELGROUP_CAMPAIGN, 0);
                 }
@@ -1176,7 +1183,7 @@ static int levelgroup_gui(void)
                 {
                     if (video.aspect_ratio >= 1.0f)
                         gui_image(ld, "gui/campaign/locked.jpg", ww, hh);
-                    gui_label(ld, _("Locked"), GUI_SML, gui_gry, gui_gry);
+                    gui_label(ld, _("Locked"), GUI_SML, GUI_COLOR_GRY);
                     gui_filler(ld);
                     gui_set_state(ld, GUI_NONE, 0);
                 }
@@ -1207,7 +1214,7 @@ static int levelgroup_enter(struct state *st, struct state *prev)
         account_set_d(ACCOUNT_SET_UNLOCKS, 1);
     }
 
-    set_boost_on(0);
+    boost_on = 0;
 
 #if NB_HAVE_PB_BOTH==1
     audio_music_fade_to(0.5f, "bgm/inter_local.ogg");
@@ -1282,7 +1289,11 @@ int goto_playmenu(int m)
     if (m == MODE_BOOST_RUSH)
         return goto_state(&st_set);
 
-    return goto_state(campaign_used() ? &st_campaign : &st_start);
+    return goto_state(
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                      campaign_used() ? &st_campaign :
+#endif
+                      &st_start);
 }
 
 /*---------------------------------------------------------------------------*/

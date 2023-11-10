@@ -62,36 +62,38 @@ static int over_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
+        case GUI_BACK:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        campaign_hardcore_quit();
-        campaign_theme_quit();
-        campaign_quit();
+            campaign_hardcore_quit();
+            campaign_theme_quit();
+            campaign_quit();
 #endif
-        return goto_state(&st_start);
+            return goto_state(&st_start);
 
-    case GUI_NAME:
-        return goto_name(&st_over, &st_over, 0, 0, 0);
+        case GUI_NAME:
+            return goto_name(&st_over, &st_over, 0, 0, 0);
 
-    case GUI_SCORE:
-        gui_score_set(val);
-        return goto_state(&st_over);
+        case GUI_SCORE:
+            gui_score_set(val);
+            return goto_state(&st_over);
 
-    case OVER_TO_GROUP:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        campaign_hardcore_quit();
-        campaign_theme_quit();
-        campaign_quit();
-        return goto_playmenu(curr_mode());
+        case OVER_TO_GROUP:
+            campaign_hardcore_quit();
+            campaign_theme_quit();
+            campaign_quit();
+            return goto_playmenu(curr_mode());
 #endif
 
-    case OVER_SHOP:
+#if NB_HAVE_PB_BOTH==1
+        case OVER_SHOP:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        campaign_hardcore_quit();
-        campaign_theme_quit();
-        campaign_quit();
+            campaign_hardcore_quit();
+            campaign_theme_quit();
+            campaign_quit();
 #endif
-        return goto_state(&st_shop);
+            return goto_state(&st_shop);
+#endif
     }
     return 1;
 }
@@ -118,22 +120,22 @@ static int over_gui_hardcore(void)
 
         switch (campaign_get_hardcore_data().level_theme)
         {
-        case 2:
-            report_themename = _("Ice");
-            report_lastline = _("Nice one!");
-            break;
-        case 3:
-            report_themename = _("Cave");
-            report_lastline = _("Incredible!");
-            break;
-        case 4:
-            report_themename = _("Cloud");
-            report_lastline = _("Unbelievable! Well done!");
-            break;
-        case 5:
-            report_themename = _("Lava");
-            report_lastline = _("Er, how did you do that?");
-            break;
+            case 2:
+                report_themename = _("Ice");
+                report_lastline = _("Nice one!");
+                break;
+            case 3:
+                report_themename = _("Cave");
+                report_lastline = _("Incredible!");
+                break;
+            case 4:
+                report_themename = _("Cloud");
+                report_lastline = _("Unbelievable! Well done!");
+                break;
+            case 5:
+                report_themename = _("Lava");
+                report_lastline = _("Er, how did you do that?");
+                break;
         }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -150,16 +152,18 @@ static int over_gui_hardcore(void)
                report_themename, campaign_get_hardcore_data().coordinates[0], campaign_get_hardcore_data().coordinates[1],
                report_lastline);
 
-        gui_multi(id, _(hardcore_report), GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, _(hardcore_report), GUI_SML, GUI_COLOR_WHT);
 
         gui_space(id);
 
         if ((jd = gui_harray(id)))
         {
             gui_start(jd, _("Return to group"), GUI_SML, OVER_TO_GROUP, 0);
+#if NB_HAVE_PB_BOTH==1
             if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
                 gui_state(jd, _("Shop"), GUI_SML, OVER_SHOP, 0);
+#endif
         }
 
         gui_layout(id, 0, 0);
@@ -209,8 +213,8 @@ static int over_gui(void)
             if ((kd = gui_harray(jd)))
             {
                 calc_new_wallet_id = gui_count(kd, 1000, GUI_MED);
-                gui_label(kd, _("Coins"), GUI_SML,
-                              gui_wht, gui_wht);
+                gui_label(kd, _("Coins"),
+                              GUI_SML, GUI_COLOR_WHT);
 
                 gui_set_count(calc_new_wallet_id, curr_score());
             }
@@ -285,7 +289,7 @@ static int over_enter(struct state *st, struct state *prev)
 static void over_timer(int id, float dt)
 {
 #ifndef LEADERBOARD_ALLOWANCE
-    if (time_state() > 3.f)
+    if (time_state() > 3.f && !st_global_animating())
     {
         goto_state(&st_start);
         return;
@@ -312,7 +316,13 @@ static int over_keybd(int c, int d)
             return goto_state(&st_start);
 #else
         if (c == KEY_EXIT)
-            return over_action(campaign_hardcore() ? OVER_TO_GROUP : GUI_BACK, 0);
+            return over_action(
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                               campaign_hardcore() ? OVER_TO_GROUP :
+#endif
+                               GUI_BACK, 0);
+
+            return over_action(GUI_BACK, 0);
 
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c))
             return over_action(GUI_SCORE, GUI_SCORE_NEXT(gui_score_get()));
@@ -335,7 +345,11 @@ static int over_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return over_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return over_action(campaign_hardcore() ? OVER_TO_GROUP : GUI_BACK, 0);
+            return over_action(
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                               campaign_hardcore() ? OVER_TO_GROUP :
+#endif
+                GUI_BACK, 0);
 #endif
     }
     return 1;

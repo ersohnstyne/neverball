@@ -36,7 +36,12 @@ static void game_draw_chnk_floor(struct s_rend *rend,
                                  const float *bill_M, float t)
 {
     float c[4]   = { 1.0f, 1.0f, 1.0f, 1.0f };
-    float ball_y = vary->uv[0].p[1] + BALL_FUDGE;
+
+    const struct s_base* base = vary->base;
+
+    float Y = vary->uv[0].p[1] - vary->uv[0].r;
+
+    if (base->vc > 0) Y = base->vv[0].p[1];
 
     int i, j;
 
@@ -47,7 +52,7 @@ static void game_draw_chnk_floor(struct s_rend *rend,
             glPushMatrix();
             {
                 glScalef    (10, 1, 10);
-                glTranslatef(i * 4000, 0, j * 4000);
+                glTranslatef(i * 4000, Y, j * 4000);
 
                 glColor4ub(ROUND(c[0] * 255),
                            ROUND(c[1] * 255),
@@ -65,15 +70,21 @@ static void game_draw_chnk_balls(struct s_rend *rend,
                                  const float *bill_M, float t)
 {
     float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        
+
     const struct s_base *base = vary->base;
+
+    /* New: Floor border damage. */
+
+    float Y = 0;
+    if (base->vc > 0) Y = base->vv[0].p[1];
+    if (base->uv[0].p[1] < Y) return;
 
     glPushMatrix();
     {
         const float  dnscl = 1.f;
         glScalef    (dnscl, 1, dnscl);
         glTranslatef(base->uv[0].p[0] / dnscl,
-                     base->uv[0].p[1] + BALL_FUDGE,
+                     base->uv[0].p[1] - vary->uv[0].r + BALL_FUDGE,
                      base->uv[0].p[2] / dnscl);
 
         glColor4ub(ROUND(c[0] * 255),
@@ -93,8 +104,15 @@ static void game_draw_chnk_jumps(struct s_rend *rend,
         
     const struct s_base *base = vary->base;
 
+    /* New: Floor border damage. */
+
+    float Y = 0;
+    if (base->vc > 0) Y = base->vv[0].p[1];
+
     for (int i = 0; i < base->jc; i++)
     {
+        if (base->jv[i].p[1] < Y) continue;
+
         glPushMatrix();
         {
             const float  dnscl = 1.f;
@@ -121,8 +139,15 @@ static void game_draw_chnk_goals(struct s_rend *rend,
         
     const struct s_base *base = vary->base;
 
+    /* New: Floor border damage. */
+
+    float Y = 0;
+    if (base->vc > 0) Y = base->vv[0].p[1];
+
     for (int i = 0; i < base->zc; i++)
     {
+        if (base->zv[i].p[1] < Y) continue;
+
         glPushMatrix();
         {
             const float  dnscl = 1.f;
@@ -149,8 +174,15 @@ static void game_draw_chnk_swchs(struct s_rend *rend,
         
     const struct s_base *base = vary->base;
 
+    /* New: Floor border damage. */
+
+    float Y = 0;
+    if (base->vc > 0) Y = base->vv[0].p[1];
+
     for (int i = 0; i < base->xc; i++)
     {
+        if (base->xv[i].p[1] < Y) continue;
+
         glPushMatrix();
         {
             const float  dnscl = 1.f;
@@ -178,8 +210,15 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
         
     const struct s_base *base = vary->base;
 
+    /* New: Floor border damage. */
+
+    float Y = 0;
+    if (base->vc > 0) Y = base->vv[0].p[1];
+
     for (int i = 0; i < base->cc; i++)
     {
+        if (base->cv[i].p[1] < Y) continue;
+
         glPushMatrix();
         {
             const float  dnscl = 1.f;
@@ -239,6 +278,13 @@ static void game_draw_items(struct s_rend *rend,
                             const struct s_vary *vary,
                             const float *bill_M, float t)
 {
+    /* New: Floor border damage. */
+
+    const struct s_base *base = vary->base;
+
+    float Y = 65536;
+    if (base->vc > 0) Y = base->vv[0].p[1];
+
     int hi;
 
     for (hi = 0; hi < vary->hc; hi++)
@@ -247,7 +293,7 @@ static void game_draw_items(struct s_rend *rend,
 
         /* Skip picked up items. */
 
-        if (hp->t == ITEM_NONE)
+        if (hp->t == ITEM_NONE || hp->p[1] < Y)
             continue;
 
         /* Draw model. */
@@ -289,33 +335,45 @@ static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
     const struct s_base *base =  gd->vary.base;
     const struct s_vary *vary = &gd->vary;
 
+    /* New: Floor border damage. */
+
+    float Y = 65536;
+    if (base->vc > 0) Y = base->vv[0].p[1];
+
     /* Goal beams */
 
     if (gd->goal_e)
         for (int i = 0; i < base->zc; i++)
-            beam_draw(rend, base->zv[i].p, goal_c,
-                base->zv[i].r, gd->goal_k * 3.0f);
+        {
+            if (base->zv[i].p[1] >= Y)
+                beam_draw(rend, base->zv[i].p, goal_c,
+                                base->zv[i].r, gd->goal_k * 3.0f);
+        }
 
     /* Jump beams */
 
     for (int i = 0; i < base->jc; i++)
-        beam_draw(rend, base->jv[i].p, jump_c[gd->jump_e ? 0 : 1],
-            base->jv[i].r, 2.0f);
+    {
+        if (base->jv[i].p[1] >= Y)
+            beam_draw(rend, base->jv[i].p, jump_c[gd->jump_e ? 0 : 1],
+                            base->jv[i].r, 2.0f);
+    }
 
     /* Switch beams */
 
     for (int i = 0; i < base->xc; i++)
-        if (!vary->xv[i].base->i)
+        if (!vary->xv[i].base->i && base->xv[i].p[1] >= Y)
             beam_draw(rend, base->xv[i].p, swch_c[vary->xv[i].f][vary->xv[i].e],
-                base->xv[i].r, 2.0f);
+                            base->xv[i].r, 2.0f);
 
     /* Checkpoint beams */
 
 #ifdef MAPC_INCLUDES_CHKP
     if (gd->chkp_e)
         for (int i = 0; i < base->cc; i++)
-            beam_draw(rend, base->cv[i].p, chkp_c[vary->cv[i].f][vary->cv[i].e],
-                base->cv[i].r, gd->chkp_k * 2.0f);
+            if (base->cv[i].p[1] >= Y)
+                beam_draw(rend, base->cv[i].p, chkp_c[vary->cv[i].f][vary->cv[i].e],
+                                base->cv[i].r, gd->chkp_k * 2.0f);
 #endif
 }
 
@@ -324,11 +382,17 @@ static void game_draw_goals(struct s_rend *rend,
 {
     const struct s_base *base = gd->vary.base;
 
+    /* New: Floor border damage. */
+
+    float Y = 65536;
+    if (base->vc > 0) Y = base->vv[0].p[1];
+
     int i;
 
     if (gd->goal_e)
         for (i = 0; i < base->zc; i++)
-            goal_draw(rend, base->zv[i].p, base->zv[i].r, gd->goal_k, t);
+            if (base->zv[i].p[1] >= Y)
+                goal_draw(rend, base->zv[i].p, base->zv[i].r, gd->goal_k, t);
 }
 
 static void game_draw_jumps(struct s_rend *rend,
@@ -336,10 +400,16 @@ static void game_draw_jumps(struct s_rend *rend,
 {
     const struct s_base *base = gd->vary.base;
 
+    /* New: Floor border damage. */
+
+    float Y = 65536;
+    if (base->vc > 0) Y = base->vv[0].p[1];
+
     int i;
 
     for (i = 0; i < base->jc; i++)
-        jump_draw(rend, base->jv[i].p, base->jv[i].r, 1.0f, t);
+        if (base->jv[i].p[1] >= Y)
+            jump_draw(rend, base->jv[i].p, base->jv[i].r, 1.0f, t);
 }
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -348,10 +418,16 @@ static void game_draw_chkps(struct s_rend *rend,
 {
     const struct s_base *base = gd->vary.base;
 
+    /* New: Floor border damage. */
+
+    float Y = 65536;
+    if (base->vc > 0) Y = base->vv[0].p[1];
+
     int i;
 
     for (i = 0; i < base->cc; i++)
-        chkp_draw(rend, base->cv[i].p, base->cv[i].r, 1.0f);
+        if (base->cv[i].p[1] >= Y)
+            chkp_draw(rend, base->cv[i].p, base->cv[i].r, 1.0f);
 }
 #endif
 
@@ -548,41 +624,41 @@ static void game_draw_fore(struct s_rend *rend,
 
         switch (pose)
         {
-        case POSE_LEVEL:
-            game_draw_items(rend, draw->vary, M, t);
-            sol_draw       (draw, rend, 0, 1);
+            case POSE_LEVEL:
+                game_draw_items(rend, draw->vary, M, t);
+                sol_draw       (draw, rend, 0, 1);
+                break;
+
+            case POSE_BALL:
+                if (curr_tex_env == &tex_env_pose)
+                {
+                    /*
+                     * We need the check above because otherwise the
+                     * active texture env is set up in a way that makes
+                     * level geometry visible, and we don't want that.
+                     */
+
+                    glDepthMask(GL_FALSE);
+                    sol_draw   (draw, rend, 0, 1);
+                    glDepthMask(GL_TRUE);
+                }
+                game_draw_balls(rend, draw->vary, M, t);
             break;
 
-        case POSE_BALL:
-            if (curr_tex_env == &tex_env_pose)
-            {
-                /*
-                 * We need the check above because otherwise the
-                 * active texture env is set up in a way that makes
-                 * level geometry visible, and we don't want that.
-                 */
+            case POSE_NONE:
+                /* Draw the coins. */
 
-                glDepthMask(GL_FALSE);
-                sol_draw   (draw, rend, 0, 1);
-                glDepthMask(GL_TRUE);
-            }
-            game_draw_balls(rend, draw->vary, M, t);
-            break;
+                game_draw_items(rend, draw->vary, M, t);
 
-        case POSE_NONE:
-            /* Draw the coins. */
+                /* Draw the floor. */
 
-            game_draw_items(rend, draw->vary, M, t);
+                sol_draw(draw, rend, 0, 1);
 
-            /* Draw the floor. */
+                /* Draw the ball. */
 
-            sol_draw(draw, rend, 0, 1);
+                game_draw_balls(rend, draw->vary, M, t);
 
-            /* Draw the ball. */
-
-            game_draw_balls(rend, draw->vary, M, t);
-
-            break;
+                break;
         }
 
         glDepthMask(GL_FALSE);
@@ -653,19 +729,14 @@ static void game_draw_fore_chnk(struct s_rend *rend,
 
         switch (pose)
         {
-        case POSE_LEVEL:
-            //game_draw_items(rend, draw->vary, M, t);
-            sol_draw       (draw, rend, 0, 1);
-            break;
+            case POSE_BALL:
+                /* No render available for map chunk overview. */
+                break;
 
-        case POSE_BALL:
-            /* No render available for map chunk overview. */
-            break;
-
-        case POSE_NONE:
-            //game_draw_items(rend, draw->vary, M, t);
-            sol_draw       (draw, rend, 0, 1);
-            break;
+            case POSE_LEVEL:
+            case POSE_NONE:
+                sol_draw(draw, rend, 0, 1);
+                break;
         }
 
         glDepthMask(GL_FALSE);
@@ -733,25 +804,25 @@ static void game_shadow_conf(int pose, int enable)
     {
         switch (pose)
         {
-        case POSE_LEVEL:
-            /* No shadow. */
-            tex_env_active(&tex_env_default);
-            break;
+            case POSE_LEVEL:
+                /* No shadow. */
+                tex_env_active(&tex_env_default);
+                break;
 
-        case POSE_BALL:
-            /* Shadow only. */
-            tex_env_select(&tex_env_pose,
-                           &tex_env_default,
-                           NULL);
-            break;
+            case POSE_BALL:
+                /* Shadow only. */
+                tex_env_select(&tex_env_pose,
+                               &tex_env_default,
+                               NULL);
+                break;
 
-        default:
-            /* Regular shadow. */
-            tex_env_select(&tex_env_shadow_clip,
-                           &tex_env_shadow,
-                           &tex_env_default,
-                           NULL);
-            break;
+            default:
+                /* Regular shadow. */
+                tex_env_select(&tex_env_shadow_clip,
+                               &tex_env_shadow,
+                               &tex_env_default,
+                               NULL);
+                break;
         }
     }
     else

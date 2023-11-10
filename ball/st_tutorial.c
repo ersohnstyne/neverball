@@ -200,11 +200,11 @@ static int tutorial_action(int tok, int val)
 
     switch (tok)
     {
-    case TUTORIAL_TOGGLE:
-        config_set_d(CONFIG_ACCOUNT_TUTORIAL,
+        case TUTORIAL_TOGGLE:
+            config_set_d(CONFIG_ACCOUNT_TUTORIAL,
                      !config_get_d(CONFIG_ACCOUNT_TUTORIAL));
-        return goto_state_full(&st_tutorial, 0, 0, 1);
-        break;
+            return goto_state_full(&st_tutorial, 0, 0, 1);
+            break;
     }
 
     if (config_get_d(CONFIG_ACCOUNT_HINT) && hint_check())
@@ -230,11 +230,11 @@ static int tutorial_enter(struct state *st, struct state *prev)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)
             gui_multi(id, _(tutorial_desc[tutorial_index]),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
         else
 #endif
             gui_multi(id, _(tutorial_desc_xbox[tutorial_index]),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
 
         gui_space(id);
         if ((jd = gui_harray(id)))
@@ -381,11 +381,11 @@ static int hint_action(int tok, int val)
     audio_play(AUD_MENU, 1.0f);
     switch (tok)
     {
-    case HINT_TOGGLE:
-        config_set_d(CONFIG_ACCOUNT_TUTORIAL,
+        case HINT_TOGGLE:
+            config_set_d(CONFIG_ACCOUNT_TUTORIAL,
                      !config_get_d(CONFIG_ACCOUNT_TUTORIAL));
-        return goto_state_full(&st_hint, 0, 0, 1);
-        break;
+            return goto_state_full(&st_hint, 0, 0, 1);
+            break;
     }
 
     video_set_grab(!hint_before_play);
@@ -405,7 +405,7 @@ static int hint_enter(struct state *st, struct state *prev)
     {
         gui_label(id, _("Hint"), GUI_MED, 0, 0);
         gui_space(id);
-        gui_multi(id, _(hint_desc[hint_index]), GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, _(hint_desc[hint_index]), GUI_SML, GUI_COLOR_WHT);
 
         gui_space(id);
         if ((jd = gui_harray(id)))

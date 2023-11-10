@@ -141,7 +141,7 @@ static void gui_stats(int id)
         if (stats_extra_row)
         {
             stats_labels.clear_rate = gui_label(at, "XXXXXXXXXXX",
-                                                    GUI_SML, gui_red, gui_red);
+                                                    GUI_SML, GUI_COLOR_RED);
 
             gui_set_label(stats_labels.clear_rate, " ");
         }
@@ -272,17 +272,17 @@ void set_score_board(const struct score *sc, int hc,
 {
     switch (score_type)
     {
-    case GUI_SCORE_COIN:
-        gui_set_scores(_("Most Coins"), sc, hc);
-        break;
+        case GUI_SCORE_COIN:
+            gui_set_scores(_("Most Coins"), sc, hc);
+            break;
 
-    case GUI_SCORE_TIME:
-        gui_set_scores(_("Best Time"), st, ht);
-        break;
+        case GUI_SCORE_TIME:
+            gui_set_scores(_("Best Time"), st, ht);
+            break;
 
-    case GUI_SCORE_GOAL:
-        gui_set_scores(_("Fast Unlock"), sg, hg);
-        break;
+        case GUI_SCORE_GOAL:
+            gui_set_scores(_("Fast Unlock"), sg, hg);
+            break;
     }
 
     set_score_color(coin_btn_id, hc, gui_grn, gui_wht);
@@ -353,13 +353,13 @@ void gui_levelgroup_stats(const struct level *l)
         else if (clr_rate_val < 10)
             gui_set_color(stats_labels.clear_rate, gui_red, gui_gry);
         else if (clr_rate_val < 25)
-            gui_set_color(stats_labels.clear_rate, gui_red, gui_red);
+            gui_set_color(stats_labels.clear_rate, GUI_COLOR_RED);
         else if (clr_rate_val < 50)
-            gui_set_color(stats_labels.clear_rate, gui_yel, gui_yel);
+            gui_set_color(stats_labels.clear_rate, GUI_COLOR_YEL);
         else if (clr_rate_val < 75)
-            gui_set_color(stats_labels.clear_rate, gui_grn, gui_grn);
+            gui_set_color(stats_labels.clear_rate, GUI_COLOR_GRN);
         else if (clr_rate_val < 85)
-            gui_set_color(stats_labels.clear_rate, gui_cya, gui_cya);
+            gui_set_color(stats_labels.clear_rate, GUI_COLOR_CYA);
         else 
             gui_set_color(stats_labels.clear_rate, gui_wht, gui_cya);
 

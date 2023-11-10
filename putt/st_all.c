@@ -59,6 +59,9 @@ struct state st_pause;
 
 /*---------------------------------------------------------------------------*/
 
+static int course_ranks;
+
+static int hole_hilited;
 static int stroke_type;
 static int play_id;
 
@@ -67,7 +70,7 @@ static char *number(int i)
     static char str[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf(str, MAXSTR,
+    sprintf_s(str, MAXSTR,
 #else
     sprintf(str,
 #endif
@@ -91,6 +94,16 @@ static int score_card(const char  *title,
     int n = curr_count() - 1;
     int m = curr_count() / 2;
 
+    int lid = 0,
+        ljd = 0,
+        lkd = 0,
+        lld = 0,
+        lmd = 0,
+        lnd = 0;
+
+#define SCORECARD_RESET_LIVE_HILITE \
+    lid = 0; ljd = 0; lkd = 0; lld = 0; lmd = 0; lnd = 0 \
+
     if ((id = gui_vstack(0)))
     {
         gui_title_header(id, title, GUI_MED, c0, c1);
@@ -101,7 +114,7 @@ static int score_card(const char  *title,
             if ((kd = gui_varray(jd)))
             {
                 if (p1) gui_label(kd, _("O"),      GUI_SML, 0, 0);
-                if (p1) gui_label(kd, hole_out(0), GUI_SML, gui_wht, gui_wht);
+                if (p1) gui_label(kd, hole_out(0), GUI_SML, GUI_COLOR_WHT);
                 if (p1) gui_label(kd, hole_out(1), GUI_SML, gui_red, gui_wht);
                 if (p2) gui_label(kd, hole_out(2), GUI_SML, gui_grn, gui_wht);
                 if (p3) gui_label(kd, hole_out(3), GUI_SML, gui_blu, gui_wht);
@@ -115,12 +128,24 @@ static int score_card(const char  *title,
                 for (i = m; i > 0; i--)
                     if ((ld = gui_varray(kd)))
                     {
-                        if (p1) gui_label(ld, number(i),        GUI_SML, 0, 0);
-                        if (p1) gui_label(ld, hole_score(i, 0), GUI_SML, gui_wht, gui_wht);
-                        if (p1) gui_label(ld, hole_score(i, 1), GUI_SML, gui_red, gui_wht);
-                        if (p2) gui_label(ld, hole_score(i, 2), GUI_SML, gui_grn, gui_wht);
-                        if (p3) gui_label(ld, hole_score(i, 3), GUI_SML, gui_blu, gui_wht);
-                        if (p4) gui_label(ld, hole_score(i, 4), GUI_SML, gui_yel, gui_wht);
+                        SCORECARD_RESET_LIVE_HILITE;
+
+                        if (p1) lid = gui_label(ld, number    (i),    GUI_SML, 0, 0);
+                        if (p1) ljd = gui_label(ld, hole_score(i, 0), GUI_SML, GUI_COLOR_WHT);
+                        if (p1) lkd = gui_label(ld, hole_score(i, 1), GUI_SML, gui_red, gui_wht);
+                        if (p2) lld = gui_label(ld, hole_score(i, 2), GUI_SML, gui_grn, gui_wht);
+                        if (p3) lmd = gui_label(ld, hole_score(i, 3), GUI_SML, gui_blu, gui_wht);
+                        if (p4) lnd = gui_label(ld, hole_score(i, 4), GUI_SML, gui_yel, gui_wht);
+
+                        if (curr_hole() == number(i) && hole_hilited)
+                        {
+                            if (lid) gui_set_hilite(lid, 1);
+                            if (ljd) gui_set_hilite(ljd, 1);
+                            if (lkd) gui_set_hilite(lkd, 1);
+                            if (lld) gui_set_hilite(lld, 1);
+                            if (lmd) gui_set_hilite(lmd, 1);
+                            if (lnd) gui_set_hilite(lnd, 1);
+                        }
                     }
 
                 gui_set_rect(kd, GUI_LFT);
@@ -132,7 +157,7 @@ static int score_card(const char  *title,
 
                 if ((ld = gui_varray(kd)))
                 {
-                    if (p1) gui_label(ld, _("Par"), GUI_SML, gui_wht, gui_wht);
+                    if (p1) gui_label(ld, _("Par"), GUI_SML, GUI_COLOR_WHT);
                     if (p1) gui_label(ld, _("P1"),  GUI_SML, gui_red, gui_wht);
                     if (p2) gui_label(ld, _("P2"),  GUI_SML, gui_grn, gui_wht);
                     if (p3) gui_label(ld, _("P3"),  GUI_SML, gui_blu, gui_wht);
@@ -150,7 +175,7 @@ static int score_card(const char  *title,
             if ((kd = gui_varray(jd)))
             {
                 if (p1) gui_label(kd, _("Tot"),    GUI_SML, 0, 0);
-                if (p1) gui_label(kd, hole_tot(0), GUI_SML, gui_wht, gui_wht);
+                if (p1) gui_label(kd, hole_tot(0), GUI_SML, GUI_COLOR_WHT);
                 if (p1) gui_label(kd, hole_tot(1), GUI_SML, gui_red, gui_wht);
                 if (p2) gui_label(kd, hole_tot(2), GUI_SML, gui_grn, gui_wht);
                 if (p3) gui_label(kd, hole_tot(3), GUI_SML, gui_blu, gui_wht);
@@ -162,7 +187,7 @@ static int score_card(const char  *title,
             if ((kd = gui_varray(jd)))
             {
                 if (p1) gui_label(kd, _("I"),     GUI_SML, 0, 0);
-                if (p1) gui_label(kd, hole_in(0), GUI_SML, gui_wht, gui_wht);
+                if (p1) gui_label(kd, hole_in(0), GUI_SML, GUI_COLOR_WHT);
                 if (p1) gui_label(kd, hole_in(1), GUI_SML, gui_red, gui_wht);
                 if (p2) gui_label(kd, hole_in(2), GUI_SML, gui_grn, gui_wht);
                 if (p3) gui_label(kd, hole_in(3), GUI_SML, gui_blu, gui_wht);
@@ -176,12 +201,24 @@ static int score_card(const char  *title,
                 for (i = n; i > m; i--)
                     if ((ld = gui_varray(kd)))
                     {
-                        if (p1) gui_label(ld, number(i),        GUI_SML, 0, 0);
-                        if (p1) gui_label(ld, hole_score(i, 0), GUI_SML, gui_wht, gui_wht);
-                        if (p1) gui_label(ld, hole_score(i, 1), GUI_SML, gui_red, gui_wht);
-                        if (p2) gui_label(ld, hole_score(i, 2), GUI_SML, gui_grn, gui_wht);
-                        if (p3) gui_label(ld, hole_score(i, 3), GUI_SML, gui_blu, gui_wht);
-                        if (p4) gui_label(ld, hole_score(i, 4), GUI_SML, gui_yel, gui_wht);
+                        SCORECARD_RESET_LIVE_HILITE;
+
+                        if (p1) lid = gui_label(ld, number    (i),    GUI_SML, 0, 0);
+                        if (p1) ljd = gui_label(ld, hole_score(i, 0), GUI_SML, GUI_COLOR_WHT);
+                        if (p1) lkd = gui_label(ld, hole_score(i, 1), GUI_SML, gui_red, gui_wht);
+                        if (p2) lld = gui_label(ld, hole_score(i, 2), GUI_SML, gui_grn, gui_wht);
+                        if (p3) lmd = gui_label(ld, hole_score(i, 3), GUI_SML, gui_blu, gui_wht);
+                        if (p4) lnd = gui_label(ld, hole_score(i, 4), GUI_SML, gui_yel, gui_wht);
+
+                        if (curr_hole() == number(i) && hole_hilited)
+                        {
+                            if (lid) gui_set_hilite(lid, 1);
+                            if (ljd) gui_set_hilite(ljd, 1);
+                            if (lkd) gui_set_hilite(lkd, 1);
+                            if (lld) gui_set_hilite(lld, 1);
+                            if (lmd) gui_set_hilite(lmd, 1);
+                            if (lnd) gui_set_hilite(lnd, 1);
+                        }
                     }
 
                 gui_set_rect(kd, GUI_LFT);
@@ -193,7 +230,7 @@ static int score_card(const char  *title,
 
                 if ((ld = gui_varray(kd)))
                 {
-                    if (p1) gui_label(ld, _("Par"), GUI_SML, gui_wht, gui_wht);
+                    if (p1) gui_label(ld, _("Par"), GUI_SML, GUI_COLOR_WHT);
                     if (p1) gui_label(ld, _("P1"),  GUI_SML, gui_red, gui_wht);
                     if (p2) gui_label(ld, _("P2"),  GUI_SML, gui_grn, gui_wht);
                     if (p3) gui_label(ld, _("P3"),  GUI_SML, gui_blu, gui_wht);
@@ -204,6 +241,30 @@ static int score_card(const char  *title,
             }
         }
 
+        gui_layout(id, 0, 0);
+    }
+
+#undef SCORECARD_RESET_LIVE_HILITE
+
+    return id;
+}
+
+static int player_ranks(const char  *title,
+                        const GLubyte *c0,
+                        const GLubyte *c1)
+{
+    int id, jd, kd;
+
+    struct {
+        char name      [4][MAXSTR];
+        int  score     [4];
+        int  score_high[4];
+    } tmp_score_rank;
+
+    int i;
+
+    if ((id = gui_harray(0)))
+    {
         gui_layout(id, 0, 0);
     }
 
@@ -277,16 +338,16 @@ static int title_action(int i)
 
     switch (i)
     {
-    case TITLE_PLAY: return goto_state(&st_course);
-    case TITLE_HELP: return goto_state(&st_help);
-    case TITLE_CONF: return goto_state(&st_conf);
-    case TITLE_EXIT:
-        if (current_platform != PLATFORM_SWITCH)
-        {
-             goto_state(&st_null); /* bye! */
-             game_free();
-             return 0;
-        }
+        case TITLE_PLAY: return goto_state(&st_course);
+        case TITLE_HELP: return goto_state(&st_help);
+        case TITLE_CONF: return goto_state(&st_conf);
+        case TITLE_EXIT:
+            if (current_platform != PLATFORM_SWITCH)
+            {
+                goto_state (&st_null); /* bye! */
+                course_free();
+                return 0;
+            }
     }
     return 1;
 }
@@ -348,9 +409,9 @@ static int title_enter(struct state *st, struct state *prev)
         {
             gui_title_header(jd, "  Neverputt  ", GUI_LRG, 0, 0);
 #if NB_STEAM_API==1
-            gui_label(jd, _("Steam Valve Edition"), GUI_SML, gui_wht, gui_wht);
+            gui_label(jd, _("Steam Valve Edition"), GUI_SML, GUI_COLOR_WHT);
 #else
-            gui_label(jd, os_env, GUI_SML, gui_wht, gui_wht);
+            gui_label(jd, os_env, GUI_SML, GUI_COLOR_WHT);
 #endif
             gui_set_rect(jd, GUI_ALL);
         }
@@ -385,6 +446,8 @@ static int title_enter(struct state *st, struct state *prev)
         }
         gui_layout(id, 0, 0);
     }
+
+    /* Build the gamepad GUI. */
 
     if (gamepadinfo_id = gui_hstack(0))
     {
@@ -450,8 +513,8 @@ static void title_timer(int id, float dt)
             gui_set_label(gamepadinfo_controller_ids[0], _("P1 " GUI_GAMEPAD " " GUI_BATTERY));
 
         gui_set_color(gamepadinfo_controller_ids[0],
-            battery_level < 2 && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
-            gui_red);
+                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
+                      gui_red);
     }
     else
     {
@@ -467,8 +530,8 @@ static void title_timer(int id, float dt)
             gui_set_label(gamepadinfo_controller_ids[1], _("P2 " GUI_GAMEPAD " " GUI_BATTERY));
 
         gui_set_color(gamepadinfo_controller_ids[1],
-            battery_level < 2 && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
-            battery_level < 2 && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_grn);
+                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
+                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_grn);
     }
     else
     {
@@ -484,8 +547,8 @@ static void title_timer(int id, float dt)
             gui_set_label(gamepadinfo_controller_ids[2], _("P3 " GUI_GAMEPAD " " GUI_BATTERY));
 
         gui_set_color(gamepadinfo_controller_ids[2],
-            battery_level < 2 && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
-            battery_level < 2 && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_blu);
+                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
+                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_blu);
     }
     else
     {
@@ -501,8 +564,8 @@ static void title_timer(int id, float dt)
             gui_set_label(gamepadinfo_controller_ids[3], _("P4 " GUI_GAMEPAD " " GUI_BATTERY));
 
         gui_set_color(gamepadinfo_controller_ids[3],
-            battery_level < 2 && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
-            battery_level < 2 && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_yel);
+                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
+                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_yel);
     }
     else
     {
@@ -555,7 +618,7 @@ static int help_action(int i)
 
     switch (i)
     {
-    case HELP_BACK: return goto_state(&st_title);
+        case HELP_BACK: return goto_state(&st_title);
     }
     return 1;
 }
@@ -582,7 +645,7 @@ static int help_enter(struct state *st, struct state *prev)
                         "is going to roll. The longer line is, the more powerful\\"
                         "your shot will be. Once you have your shot aimed\\"
                         "click LMB on your mouse to shoot."),
-                        GUI_SML, gui_wht, gui_wht);
+                        GUI_SML, GUI_COLOR_WHT);
     }
 
     gui_layout(id, 0, 0);
@@ -667,14 +730,14 @@ static int course_action(int i)
     if (i == COURSE_GETONLINE)
     {
 #if NB_STEAM_API==1
-#else
-#if _WIN32
-        system("explorer https://drive.google.com/drive/folders/1YJzHckEBn15rNemvFy56Ig5skY3KX3Rp");
+#elif defined(__EMSCRIPTEN__)
+        EM_ASM({ window.open("https://drive.google.com/drive/folders/1YJzHckEBn15rNemvFy56Ig5skY3KX3Rp"); }, 0);
+#elif _WIN32
+        system("start msedge https://drive.google.com/drive/folders/1YJzHckEBn15rNemvFy56Ig5skY3KX3Rp");
 #elif defined(__APPLE__)
         system("open https://drive.google.com/drive/folders/1YJzHckEBn15rNemvFy56Ig5skY3KX3Rp");
 #elif defined(__linux__)
         system("x-www-browser https://drive.google.com/drive/folders/1YJzHckEBn15rNemvFy56Ig5skY3KX3Rp");
-#endif
 #endif
     }
     if (course_exists(i))
@@ -683,9 +746,7 @@ static int course_action(int i)
         goto_state(&st_party);
     }
     if (i == COURSE_BACK)
-    {
         goto_state(&st_title);
-    }
 
     return 1;
 }
@@ -810,7 +871,7 @@ static int course_enter(struct state *st, struct state *prev)
         gui_layout(id, 0, 0);
     }
 
-    audio_music_fade_to(0.5f, "bgm/title.ogg");
+    audio_music_fade_to(0.5f, _("bgm/title.ogg"));
 
     return id;
 }
@@ -901,25 +962,25 @@ static int party_action(int i)
 
     switch (i)
     {
-    case PARTY_1:
-        if (hole_goto(1, 1))
-            goto_state(&st_next);
-        break;
-    case PARTY_2:
-        holdage_player_count = 2;
-        goto_state(&st_controltype);
-        break;
-    case PARTY_3:
-        holdage_player_count = 3;
-        goto_state(&st_controltype);
-        break;
-    case PARTY_4:
-        holdage_player_count = 4;
-        goto_state(&st_controltype);
-        break;
-    case PARTY_B:
-        goto_state(&st_course);
-        break;
+        case PARTY_1:
+            if (hole_goto(1, 1))
+                goto_state(&st_next);
+            break;
+        case PARTY_2:
+            holdage_player_count = 2;
+            goto_state(&st_controltype);
+            break;
+        case PARTY_3:
+            holdage_player_count = 3;
+            goto_state(&st_controltype);
+            break;
+        case PARTY_4:
+            holdage_player_count = 4;
+            goto_state(&st_controltype);
+            break;
+        case PARTY_B:
+            goto_state(&st_course);
+            break;
     }
     return 1;
 }
@@ -1025,20 +1086,20 @@ static int controltype_action(int i)
 
     switch (i)
     {
-    case CONTROLTYPE_M:
-        for (ji = 0; ji < holdage_player_count && indiv_ctrltype_ready; ji++)
-        {
-            if (!joy_connected(ji, 0, 0))
-                return 1;
-        }
-        party_indiv_controllers = 1;
-    case CONTROLTYPE_1:
-        if (hole_goto(1, holdage_player_count))
-            return goto_state(&st_next);
-        break;
-    case CONTROLTYPE_B:
-        return goto_state(&st_course);
-    default: return 1;
+        case CONTROLTYPE_M:
+            for (ji = 0; ji < holdage_player_count && indiv_ctrltype_ready; ji++)
+            {
+                if (!joy_connected(ji, 0, 0))
+                    return 1;
+            }
+            party_indiv_controllers = 1;
+        case CONTROLTYPE_1:
+            if (hole_goto(1, holdage_player_count))
+                return goto_state(&st_next);
+            break;
+        case CONTROLTYPE_B:
+            return goto_state(&st_course);
+        default: return 1;
     }
 
     return 1;
@@ -1063,9 +1124,8 @@ static int controltype_enter(struct state* st, struct state* prev)
         {
             ctrltype_name_id = gui_label(jd, _("1 Controller/Player"), GUI_SML, 0, 0);
             ctrltype_desc_id = gui_multi(jd,
-                                         "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\"
-                                         "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-                                         GUI_SML, gui_wht, gui_wht);
+                                         "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                                         GUI_SML, GUI_COLOR_WHT);
             gui_set_rect(jd, GUI_ALL);
             gui_set_state(jd, CONTROLTYPE_M, 0);
         }
@@ -1075,7 +1135,7 @@ static int controltype_enter(struct state* st, struct state* prev)
         if ((jd = gui_vstack(id)))
         {
             gui_label(jd, _("1 Controller for all"), GUI_SML, 0, 0);
-            gui_label(jd, _("Each Player uses the same Controller"), GUI_SML, gui_wht, gui_wht);
+            gui_label(jd, _("Each Player uses the same Controller"), GUI_SML, GUI_COLOR_WHT);
             gui_set_rect(jd, GUI_ALL);
             gui_set_state(jd, CONTROLTYPE_1, 0);
         }
@@ -1108,7 +1168,7 @@ static void controltype_timer(int id, float dt)
 #else
             sprintf(descattr,
 #endif
-                    _("Connect %d more Controller\\to play this game."), i - holdage_player_count);
+                    _("Connect %d more Controller to play this!"), i - holdage_player_count);
 
             gui_set_color(ctrltype_name_id, gui_gry, gui_red);
             gui_set_multi(ctrltype_desc_id, descattr);
@@ -1222,7 +1282,6 @@ static int pause_enter(struct state *st, struct state *prev)
         td = gui_title_header(id, _("Paused"), GUI_LRG, gui_gry, gui_red);
         gui_space(id);
 
-        /* Info display (UNDER DEVELOPMENT!) */
         if (curr_party() > 1)
         {
             if ((pdid = gui_harray(id)))
@@ -1322,13 +1381,17 @@ static int shared_keybd(int c, int d)
 /*---------------------------------------------------------------------------*/
 
 static int num = 0;
+static int next_show_scorecard = 0;
 
 static int next_enter(struct state *st, struct state *prev)
 {
     int id, jd;
     char str[MAXSTR];
 
-    stroke_type = 0;
+    hole_hilited        = 1;
+    next_show_scorecard = 0;
+    stroke_type         = 0;
+
     stroke_set_type(0);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1354,22 +1417,22 @@ static int next_enter(struct state *st, struct state *prev)
 
                 switch (curr_player())
                 {
-                case 1:
-                    gui_label(jd, "1", GUI_LRG, gui_red, gui_wht);
-                    audio_narrator_play(AUD_PLAYER1);
-                    break;
-                case 2:
-                    gui_label(jd, "2", GUI_LRG, gui_grn, gui_wht);
-                    audio_narrator_play(AUD_PLAYER2);
-                    break;
-                case 3:
-                    gui_label(jd, "3", GUI_LRG, gui_blu, gui_wht);
-                    audio_narrator_play(AUD_PLAYER3);
-                    break;
-                case 4:
-                    gui_label(jd, "4", GUI_LRG, gui_yel, gui_wht);
-                    audio_narrator_play(AUD_PLAYER4);
-                    break;
+                    case 1:
+                        gui_label(jd, "1", GUI_LRG, gui_red, gui_wht);
+                        audio_narrator_play(AUD_PLAYER1);
+                        break;
+                    case 2:
+                        gui_label(jd, "2", GUI_LRG, gui_grn, gui_wht);
+                        audio_narrator_play(AUD_PLAYER2);
+                        break;
+                    case 3:
+                        gui_label(jd, "3", GUI_LRG, gui_blu, gui_wht);
+                        audio_narrator_play(AUD_PLAYER3);
+                        break;
+                    case 4:
+                        gui_label(jd, "4", GUI_LRG, gui_yel, gui_wht);
+                        audio_narrator_play(AUD_PLAYER4);
+                        break;
                 }
 
                 gui_set_rect(jd, GUI_ALL);
@@ -1411,6 +1474,13 @@ static int next_keybd(int c, int d)
             return goto_state(&st_poser);
         if (c == KEY_EXIT)
             return goto_pause(1);
+
+        if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c))
+        {
+            next_show_scorecard = 1;
+            return goto_state(&st_poser);
+        }
+
 #ifndef NDEBUG
         if ('0' <= c && c <= '9')
             num = num * 10 + c - '0';
@@ -1443,6 +1513,12 @@ static int next_buttn(int b, int d)
 #endif
             return goto_state(&st_flyby);
         }
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b))
+        {
+            next_show_scorecard = 1;
+            return goto_state(&st_poser);
+        }
     }
 
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
@@ -1455,8 +1531,13 @@ static int next_buttn(int b, int d)
 
 static int poser_enter(struct state *st, struct state *prev)
 {
-    game_set_fly(-1.f);
-    return 0;
+    if (!next_show_scorecard)
+    {
+        game_set_fly(-1.f);
+        return 0;
+    }
+
+    return score_card(_("Scores"), GUI_COLOR_DEFAULT);
 }
 
 static void poser_paint(int id, float t)
@@ -1613,6 +1694,8 @@ static void stroke_timer(int id, float dt)
     else
         k = 1.0;
 
+    if (dt <= 0.f) return;
+
     game_set_rot(stroke_rotate * k);
     game_set_mag(stroke_mag * k);
 
@@ -1620,7 +1703,7 @@ static void stroke_timer(int id, float dt)
 
     switch (game_step(g, dt))
     {
-    case GAME_FALL: goto_state(&st_fall); break;
+        case GAME_FALL: goto_state(&st_fall); break;
     }
 }
 
@@ -1770,11 +1853,13 @@ static void roll_timer(int id, float dt)
 {
     float g[3] = { 0.0f, -9.8f, 0.0f };
 
+    if (dt <= 0.f) return;
+
     switch (game_step(g, dt))
     {
-    case GAME_STOP: goto_state(&st_stop); break;
-    case GAME_GOAL: goto_state(&st_goal); break;
-    case GAME_FALL: goto_state(&st_fall); break;
+        case GAME_STOP: goto_state(&st_stop); break;
+        case GAME_GOAL: goto_state(&st_goal); break;
+        case GAME_FALL: goto_state(&st_fall); break;
     }
 }
 
@@ -1808,7 +1893,7 @@ static int goal_enter(struct state *st, struct state *prev)
 
     if (scr_v == 1)
     {
-        sprintf(hole_statname, _("Hole in one"));
+        SAFECPY(hole_statname, _("Hole in one"));
         c0 = gui_wht;
         c1 = gui_yel;
     }
@@ -1818,14 +1903,14 @@ static int goal_enter(struct state *st, struct state *prev)
         c1 = gui_yel;
 
         if (scr_v == par_v - 3)
-            sprintf(hole_statname, _("Albatross"));
+            SAFECPY(hole_statname, _("Albatross"));
         else if (scr_v == par_v - 2)
-            sprintf(hole_statname, _("Eagle"));
+            SAFECPY(hole_statname, _("Eagle"));
         else if (scr_v == par_v - 1)
-            sprintf(hole_statname, _("Birdie"));
+            SAFECPY(hole_statname, _("Birdie"));
         else
         {
-            sprintf(hole_statname, _("It's In!"));
+            SAFECPY(hole_statname, _("It's In!"));
             c0 = c1 = gui_grn;
         }
     }
@@ -1837,13 +1922,16 @@ static int goal_enter(struct state *st, struct state *prev)
     }
     else
     {
-        sprintf(hole_statname, _("On Par"));
+        SAFECPY(hole_statname, _("On Par"));
         c0 = gui_wht;
         c1 = gui_wht;
     }
 
     if ((id = gui_title_header(0, hole_statname, GUI_MED, c0, c1)))
+    {
         gui_layout(id, 0, 0);
+        gui_pulse(id, 1.2f);
+    }
 
     if (paused)
         paused = 0;
@@ -1863,7 +1951,7 @@ static void goal_paint(int id, float t)
 
 static void goal_timer(int id, float dt)
 {
-    if (time_state() > 3)
+    if (time_state() > 3 && !st_global_animating())
     {
         if (hole_next())
             goto_state(&st_next);
@@ -1925,21 +2013,17 @@ static void stop_paint(int id, float t)
 
 static void stop_timer(int id, float dt)
 {
-    float g[3] = { 0.f, 0.f, 0.f };
+    float g[3] = { 0.f, -9.8f, 0.f };
+
+    if (dt <= 0) return;
 
     game_update_view(dt);
     game_step(g, dt);
 
-    if (time_state() > 1)
+    if (time_state() > 1 && !st_global_animating())
     {
         if (hole_next())
-        {
-            /* In single players: You do not make the hole infos again and again! */
-            if (curr_party() > 1)
-                goto_state(&st_next);
-            else
-                goto_state(&st_stroke);
-        }
+            goto_state(curr_party() > 1 ? &st_next : &st_stroke);
         else
             goto_state(&st_score);
     }
@@ -1953,13 +2037,7 @@ static int stop_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
         {
             if (hole_next())
-            {
-                /* In single players: You do not make the hole infos again and again! */
-                if (curr_party() > 1)
-                    goto_state(&st_next);
-                else
-                    goto_state(&st_stroke);
-            }
+                goto_state(curr_party() > 1 ? &st_next : &st_stroke);
             else
                 goto_state(&st_score);
         }
@@ -1987,7 +2065,7 @@ static int fall_enter(struct state *st, struct state *prev)
 
     if ((id = gui_title_header(0, _("1 Stroke Penalty"), GUI_MED, gui_blk, gui_red)))
     {
-        audio_play("snd/intro-shatter.ogg", 1.0f); audio_music_fade_out(0);
+        audio_music_fade_out(0); audio_play("snd/intro-shatter.ogg", 1.0f);
         gui_pulse(id, 1.2f);
         gui_layout(id, 0, 0);
     }
@@ -2017,16 +2095,10 @@ static void fall_paint(int id, float t)
 
 static void fall_timer(int id, float dt)
 {
-    if (time_state() > (curr_party() > 1 ? 3 : 1))
+    if (time_state() > (curr_party() > 1 ? 3 : 1) && !st_global_animating())
     {
         if (hole_next())
-        {
-            /* In single players: You do not make the hole infos again and again! */
-            if (curr_party() > 1)
-                goto_state(&st_next);
-            else
-                goto_state(&st_stroke);
-        }
+            goto_state(curr_party() > 1 ? &st_next : &st_stroke);
         else
             goto_state(&st_score);
     }
@@ -2045,13 +2117,7 @@ static int fall_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
         {
             if (hole_next())
-            {
-                /* In single players: You do not make the hole infos again and again! */
-                if (curr_party() > 1)
-                    goto_state(&st_next);
-                else
-                    goto_state(&st_stroke);
-            }
+                goto_state(curr_party() > 1 ? &st_next : &st_stroke);
             else
                 goto_state(&st_score);
         }
@@ -2143,10 +2209,7 @@ static int score_buttn(int b, int d)
         (joy_get_cursor_actions(0) || !party_indiv_controllers))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-        {
-            if (hole_move())
-                goto_state(&st_next);
-        }
+            goto_state(hole_move() ? &st_next : &st_over);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return goto_pause(0);
     }
@@ -2157,6 +2220,8 @@ static int score_buttn(int b, int d)
 
 static int over_enter(struct state *st, struct state *prev)
 {
+    hole_hilited = 0;
+
     if (party_indiv_controllers)
     {
         joy_active_cursor(0, 1);

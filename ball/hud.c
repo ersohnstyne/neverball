@@ -132,9 +132,9 @@ void hud_init(void)
         if ((id = gui_vstack(Rhud_id)))
         {
             text_coins_id = gui_label(id, _("Coins"),
-                                          GUI_SML, gui_wht, gui_wht);
+                                          GUI_SML, GUI_COLOR_WHT);
             text_goal_id  = gui_label(id, _("Goal"),
-                                          GUI_SML, gui_wht, gui_wht);
+                                          GUI_SML, GUI_COLOR_WHT);
         }
         if ((id = gui_vstack(Rhud_id)))
         {
@@ -162,9 +162,9 @@ void hud_init(void)
         if ((id = gui_vstack(Lhud_id)))
         {
             text_balls_id = gui_label(id, _("Balls"),
-                                          GUI_SML, gui_wht, gui_wht);
+                                          GUI_SML, GUI_COLOR_WHT);
             text_score_id = gui_label(id, _("Total"),
-                                          GUI_SML, gui_wht, gui_wht);
+                                          GUI_SML, GUI_COLOR_WHT);
         }
         gui_set_rect(Lhud_id, GUI_NE);
         gui_layout(Lhud_id, -1, -1);
@@ -174,7 +174,7 @@ void hud_init(void)
     {
         if ((id = gui_vstack(FSLhud_id)))
             text_speedometer_id = gui_label(id, _("km/h"),
-                                                GUI_SML, gui_wht, gui_wht);
+                                                GUI_SML, GUI_COLOR_WHT);
 
         if ((id = gui_vstack(FSLhud_id)))
             speedometer_id      = gui_count(id, 9999, GUI_SML);
@@ -195,17 +195,17 @@ void hud_init(void)
     if ((speedbar_hud_id = gui_hstack(0)))
     {
         if ((id = gui_vstack(speedbar_hud_id)))
-            speed_percent_id = gui_label(id, "--- %", GUI_SML, gui_yel, gui_yel);
+            speed_percent_id = gui_label(id, "--- %", GUI_SML, GUI_COLOR_YEL);
 
         if ((id = gui_vstack(speedbar_hud_id)))
-            text_speed_id = gui_label(id, _("Speed"), GUI_SML, gui_wht, gui_wht);
+            text_speed_id = gui_label(id, _("Speed"), GUI_SML, GUI_COLOR_WHT);
 
         gui_set_rect(speedbar_hud_id, GUI_BOT);
         gui_layout(speedbar_hud_id, 0, +1);
     }
 
     if ((speedup_logo_id = gui_label(0, _("Max acceleration!"),
-                                        GUI_MED, gui_grn, gui_grn)))
+                                        GUI_MED, GUI_COLOR_GRN)))
         gui_layout(speedup_logo_id, 0, 0);
 
     /* Find the longest camera name. */
@@ -214,7 +214,7 @@ void hud_init(void)
         if (gui_measure(cam_to_str(v), GUI_SML).w > gui_measure(str_cam, GUI_SML).w)
             str_cam = cam_to_str(v);
 
-    if ((cam_id = gui_label(0, str_cam, GUI_SML, gui_wht, gui_wht)))
+    if ((cam_id = gui_label(0, str_cam, GUI_SML, GUI_COLOR_WHT)))
     {
         gui_set_rect(cam_id, GUI_SW);
         gui_layout(cam_id, 1, 1);
@@ -409,12 +409,12 @@ void hud_update(int pulse, float animdt)
     if (!pulse)
     {
         /* reset the hud */
-        gui_set_color(text_speedometer_id, gui_wht, gui_wht);
-        gui_set_color(text_coins_id, gui_wht, gui_wht);
-        gui_set_color(text_goal_id, gui_wht, gui_wht);
-        gui_set_color(text_balls_id, gui_wht, gui_wht);
-        gui_set_color(text_score_id, gui_wht, gui_wht);
-        gui_set_color(text_speed_id, gui_wht, gui_wht);
+        gui_set_color(text_speedometer_id, GUI_COLOR_WHT);
+        gui_set_color(text_coins_id,       GUI_COLOR_WHT);
+        gui_set_color(text_goal_id,        GUI_COLOR_WHT);
+        gui_set_color(text_balls_id,       GUI_COLOR_WHT);
+        gui_set_color(text_score_id,       GUI_COLOR_WHT);
+        gui_set_color(text_speed_id,       GUI_COLOR_WHT);
 
         gui_pulse(ball_id, 0.f);
         gui_pulse(time_id, 0.f);
@@ -455,36 +455,36 @@ void hud_update(int pulse, float animdt)
             {
                 if (clock <= 1000 && (last / 100) > (clock / 100))
                 {
-                    gui_set_color(text_speedometer_id, gui_red, gui_red);
-                    gui_set_color(text_coins_id, gui_red, gui_red);
-                    gui_set_color(text_goal_id, gui_red, gui_red);
-                    gui_set_color(text_balls_id, gui_red, gui_red);
-                    gui_set_color(text_score_id, gui_red, gui_red);
-                    gui_set_color(text_speed_id, gui_red, gui_red);
+                    gui_set_color(text_speedometer_id, GUI_COLOR_RED);
+                    gui_set_color(text_coins_id,       GUI_COLOR_RED);
+                    gui_set_color(text_goal_id,        GUI_COLOR_RED);
+                    gui_set_color(text_balls_id,       GUI_COLOR_RED);
+                    gui_set_color(text_score_id,       GUI_COLOR_RED);
+                    gui_set_color(text_speed_id,       GUI_COLOR_RED);
 
                     audio_play(AUD_TICK, 1.f);
                     gui_pulse(time_id, 1.50);
                 }
                 else if (clock < 500 && (last / 50) >(clock / 50))
                 {
-                    gui_set_color(text_speedometer_id, gui_vio, gui_vio);
-                    gui_set_color(text_coins_id, gui_vio, gui_vio);
-                    gui_set_color(text_goal_id, gui_vio, gui_vio);
-                    gui_set_color(text_balls_id, gui_vio, gui_vio);
-                    gui_set_color(text_score_id, gui_vio, gui_vio);
-                    gui_set_color(text_speed_id, gui_vio, gui_vio);
+                    gui_set_color(text_speedometer_id, GUI_COLOR_VIO);
+                    gui_set_color(text_coins_id,       GUI_COLOR_VIO);
+                    gui_set_color(text_goal_id,        GUI_COLOR_VIO);
+                    gui_set_color(text_balls_id,       GUI_COLOR_VIO);
+                    gui_set_color(text_score_id,       GUI_COLOR_VIO);
+                    gui_set_color(text_speed_id,       GUI_COLOR_VIO);
 
                     audio_play(AUD_TOCK, 1.f);
                     gui_pulse(time_id, 1.25);
                 }
                 else if ((last / 25) > (clock / 25))
                 {
-                    gui_set_color(text_speedometer_id, gui_wht, gui_wht);
-                    gui_set_color(text_coins_id, gui_wht, gui_wht);
-                    gui_set_color(text_goal_id, gui_wht, gui_wht);
-                    gui_set_color(text_balls_id, gui_wht, gui_wht);
-                    gui_set_color(text_score_id, gui_wht, gui_wht);
-                    gui_set_color(text_speed_id, gui_wht, gui_wht);
+                    gui_set_color(text_speedometer_id, GUI_COLOR_WHT);
+                    gui_set_color(text_coins_id,       GUI_COLOR_WHT);
+                    gui_set_color(text_goal_id,        GUI_COLOR_WHT);
+                    gui_set_color(text_balls_id,       GUI_COLOR_WHT);
+                    gui_set_color(text_score_id,       GUI_COLOR_WHT);
+                    gui_set_color(text_speed_id,       GUI_COLOR_WHT);
                 }
             }
             else
@@ -505,36 +505,36 @@ void hud_update(int pulse, float animdt)
 
     switch (curr_mode())
     {
-    case MODE_CHALLENGE:
-        if (gui_value(ball_id) != balls)     gui_set_count(ball_id, balls);
-        if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
+        case MODE_CHALLENGE:
+            if (gui_value(ball_id) != balls)     gui_set_count(ball_id, balls);
+            if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
 
-        c_id = coin_id;
-        break;
+            c_id = coin_id;
+            break;
 
-    case MODE_BOOST_RUSH:
-        gui_set_label(speed_percent_id, speedattr);
-        gui_set_color(speed_percent_id, gui_yel,
-                                        speedpercent >= 100.f ? gui_red : gui_yel);
+        case MODE_BOOST_RUSH:
+            gui_set_label(speed_percent_id, speedattr);
+            gui_set_color(speed_percent_id, gui_yel,
+                                            speedpercent >= 100.f ? gui_red : gui_yel);
 
-        if (gui_value(ball_id) != balls)     gui_set_count(ball_id, balls);
-        if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
+            if (gui_value(ball_id) != balls)     gui_set_count(ball_id, balls);
+            if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
 
-        c_id = coin_id;
-        break;
+            c_id = coin_id;
+            break;
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    case MODE_HARDCORE:
-        if (gui_value(ball_id) != balls)     gui_set_count(ball_id, 0);
-        if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
+        case MODE_HARDCORE:
+            if (gui_value(ball_id) != balls)     gui_set_count(ball_id, 0);
+            if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
 
-        c_id = coin_id;
-        break;
+            c_id = coin_id;
+            break;
 #endif
 
-    default:
-        c_id = coin_id;
-        break;
+        default:
+            c_id = coin_id;
+            break;
     }
 
     /* New: Speedometer */
@@ -746,7 +746,7 @@ void hud_lvlname_paint(void)
     {
 #if NB_HAVE_PB_BOTH==1
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (curr_mode() == MODE_CAMPAIGN)
+        if (campaign_used())
         {
 #if ENABLE_COMPASS==1
             gui_paint(camcompass_id);

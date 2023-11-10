@@ -316,7 +316,10 @@ static int play_ready_enter(struct state *st, struct state *prev)
     video_set_grab(1);
     hud_speedup_reset();
 
-    game_client_sync(!campaign_hardcore_norecordings() &&
+    game_client_sync(
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                     !campaign_hardcore_norecordings() &&
+#endif
                      curr_mode() != MODE_NONE ? demo_fp : NULL);
     hud_update(0, 0.0f);
     hud_update_camera_direction(curr_viewangle());
@@ -370,14 +373,17 @@ static void play_ready_timer(int id, float dt)
     }
 #endif
 
-    if (dt > 0.0f && t > 1.0f)
+    if (dt > 0.0f && t > 1.0f && !st_global_animating())
         goto_state_full(&st_play_set, 0, 0, 1);
 
     set_lvlinfo();
 
     game_step_fade(dt);
     game_client_blend(game_server_blend());
-    game_client_sync(!campaign_hardcore_norecordings() &&
+    game_client_sync(
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                     !campaign_hardcore_norecordings() &&
+#endif
                      curr_mode() != MODE_NONE ? demo_fp : NULL);
 
     gui_timer(id, dt);
@@ -509,7 +515,7 @@ static void play_set_timer(int id, float dt)
 
     game_client_fly(0.5f - 0.5f * t);
     
-    if (dt > 0.0f && t > 1.0f)
+    if (dt > 0.0f && t > 1.0f && !st_global_animating())
     {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform != PLATFORM_PC) hud_set_alpha(1.0f);
@@ -519,7 +525,10 @@ static void play_set_timer(int id, float dt)
 
     game_step_fade(dt);
     game_client_blend(game_server_blend());
-    game_client_sync(!campaign_hardcore_norecordings() &&
+    game_client_sync(
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                     !campaign_hardcore_norecordings() &&
+#endif
                      curr_mode() != MODE_NONE ? demo_fp : NULL);
 
     gui_timer(id, dt);
@@ -858,21 +867,21 @@ static void play_loop_timer(int id, float dt)
 
     switch (rot_get(&r))
     {
-    case ROT_HOLD:
-        /*
-         * Cam 3 could be anything. But let's assume it's a manual cam
-         * and holding down both rotation buttons freezes the camera
-         * rotation.
-         */
-         game_set_rot(0.0f);
-         game_set_cam(CAM_3);
-        break;
+        case ROT_HOLD:
+            /*
+             * Cam 3 could be anything. But let's assume it's a manual cam
+             * and holding down both rotation buttons freezes the camera
+             * rotation.
+             */
+            game_set_rot(0.0f);
+            game_set_cam(CAM_3);
+            break;
 
-    case ROT_ROTATE:
-    case ROT_NONE:
-        game_set_rot(r * k);
-        game_set_cam(config_get_d(CONFIG_CAMERA));
-        break;
+        case ROT_ROTATE:
+        case ROT_NONE:
+            game_set_rot(r * k);
+            game_set_cam(config_get_d(CONFIG_CAMERA));
+            break;
     }
 
     if (man_rot)
@@ -922,7 +931,7 @@ static void play_loop_point(int id, int x, int y, int dx, int dy)
 {
 #if NDEBUG
     /* Good news: This isn't controlled with mouse while debug mode. */
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (current_platform == PLATFORM_PC)
 #endif
     {
@@ -970,9 +979,9 @@ static void play_loop_stick(int id, int a, float v, int bump)
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X1, a))
         {
             if (v + axis_offset[2] > 0.0f)
-                rot_set(DIR_R, +v + axis_offset[2] * (config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? -1 : 1), 1);
+                rot_set(DIR_R, +v + axis_offset[2], 1);
             else if (v + axis_offset[2] < 0.0f)
-                rot_set(DIR_L, -v + axis_offset[2] * (config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? -1 : 1), 1);
+                rot_set(DIR_L, -v + axis_offset[2], 1);
             else
                 rot_clr(DIR_R | DIR_L);
         }
@@ -1003,6 +1012,11 @@ static int play_loop_click(int b, int d)
 {
     if (d && use_mouse && !use_keyboard)
     {
+        /*if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
+            rot_set(config_get_d(DIR_R);
+        if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
+            rot_set(config_get_d(DIR_L);*/
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b) &&
             current_platform == PLATFORM_PC)
@@ -1028,9 +1042,9 @@ static int play_loop_click(int b, int d)
         )
     {
         /*if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
-            rot_clr(config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? DIR_R : DIR_L);
+            rot_clr(config_get_d(DIR_R);
         if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
-            rot_clr(config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? DIR_L : DIR_R);*/
+            rot_clr(config_get_d(DIR_L);*/
 
         if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
             lmb_holded = 0;
@@ -1139,6 +1153,7 @@ static int play_loop_buttn(int b, int d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
         {
+            play_freeze_all = 1;
             hud_speedup_reset();
             goto_pause(curr_state());
         }

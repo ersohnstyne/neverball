@@ -73,7 +73,7 @@ static int setup_progressions_gui(void)
     int txt_id = gui_title_header(0, _("Compiling campaign levels"),
                                      GUI_MED, 0, 0);
     donot_id = gui_multi(0, _("Do not turn off your PC"),
-                            GUI_SML, gui_wht, gui_wht);
+                            GUI_SML, GUI_COLOR_WHT);
     gui_layout(txt_id, 0, 0);
 
     gui_set_rect(donot_id, GUI_TOP);

@@ -422,32 +422,31 @@ static void gui_geom_widget(int id, int flags)
 
     switch (widget[id].type)
     {
-    case GUI_FILLER:
-    case GUI_SPACE:
-        break;
+        case GUI_FILLER:
+        case GUI_SPACE:
+            break;
 
-    case GUI_HARRAY:
-    case GUI_VARRAY:
-    case GUI_HSTACK:
-    case GUI_VSTACK:
+        case GUI_HARRAY:
+        case GUI_VARRAY:
+        case GUI_HSTACK:
+        case GUI_VSTACK:
+            for (jd = widget[id].car; jd; jd = widget[jd].cdr)
+                gui_geom_widget(jd, flags);
 
-        for (jd = widget[id].car; jd; jd = widget[jd].cdr)
-            gui_geom_widget(jd, flags);
+            break;
 
-        break;
+        case GUI_IMAGE:
+            gui_geom_image(id, -w / 2, -h / 2, w, h, R);
+            break;
 
-    case GUI_IMAGE:
-        gui_geom_image(id, -w / 2, -h / 2, w, h, R);
-        break;
+        case GUI_BUTTON:
+        case GUI_LABEL:
+            // Handled by gui_render_text().
+            break;
 
-    case GUI_BUTTON:
-    case GUI_LABEL:
-        // Handled by gui_render_text().
-        break;
-
-    default:
-        gui_geom_text(id, -W / 2, -H / 2, W, H, c0, c1);
-        break;
+        default:
+            gui_geom_text(id, -W / 2, -H / 2, W, H, c0, c1);
+            break;
     }
 }
 
@@ -922,9 +921,9 @@ static char *gui_truncate(const char *text,
 
     switch (trunc)
     {
-    case TRUNC_NONE: return strdup(text);                         break;
-    case TRUNC_HEAD: return gui_trunc_head(text, maxwidth, font); break;
-    case TRUNC_TAIL: return gui_trunc_tail(text, maxwidth, font); break;
+        case TRUNC_NONE: return strdup(text);                         break;
+        case TRUNC_HEAD: return gui_trunc_head(text, maxwidth, font); break;
+        case TRUNC_TAIL: return gui_trunc_tail(text, maxwidth, font); break;
     }
 
     return NULL;
@@ -935,15 +934,14 @@ static char *gui_truncate(const char *text,
 void gui_set_image(int id, const char *file)
 {
     glDeleteTextures(1, &widget[id].image);
-    donot_allow_mip_and_aniso_during_gui = 1;
+    gui_img_used = 1;
     widget[id].image = make_image_from_file(file, IF_MIPMAP);
-    donot_allow_mip_and_aniso_during_gui = 0;
+    gui_img_used = 0;
 }
 
 void gui_set_label(int id, const char *text)
 {
     TTF_Font *ttf = fonts[widget[id].font].ttf[widget[id].size];
-    ttf = fonts[widget[id].font].ttf[widget[id].size];
 
     int w = 0;
     int h = 0;
@@ -1141,39 +1139,39 @@ static void gui_widget_size(int id)
 
     switch (widget[id].type)
     {
-    case GUI_IMAGE:
-        /* Convert from integer-encoded fractions to window pixels. */
+        case GUI_IMAGE:
+            /* Convert from integer-encoded fractions to window pixels. */
 
-        widget[id].w = ROUND(((float) widget[id].text_w / 1000.0f) * (float) s);
-        widget[id].h = ROUND(((float) widget[id].text_h / 1000.0f) * (float) s);
+            widget[id].w = ROUND(((float) widget[id].text_w / 1000.0f) * (float) s);
+            widget[id].h = ROUND(((float) widget[id].text_h / 1000.0f) * (float) s);
 
-        break;
+            break;
 
-    case GUI_BUTTON:
-    case GUI_LABEL:
-        widget[id].w = widget[id].text_w;
-        widget[id].h = widget[id].text_h;
-        break;
+        case GUI_BUTTON:
+        case GUI_LABEL:
+            widget[id].w = widget[id].text_w;
+            widget[id].h = widget[id].text_h;
+            break;
 
-    case GUI_COUNT:
-        widget[id].w = 0;
+        case GUI_COUNT:
+            widget[id].w = 0;
 
-        for (i = widget[id].init_value; i; i /= 10)
-            widget[id].w += widget[digit_id[widget[id].size][0]].text_w;
+            for (i = widget[id].init_value; i; i /= 10)
+                widget[id].w += widget[digit_id[widget[id].size][0]].text_w;
 
-        widget[id].h = widget[digit_id[widget[id].size][0]].text_h;
+            widget[id].h = widget[digit_id[widget[id].size][0]].text_h;
 
-        break;
+            break;
 
-    case GUI_CLOCK:
-        widget[id].w = widget[digit_id[widget[id].size][0]].text_w * 6;
-        widget[id].h = widget[digit_id[widget[id].size][0]].text_h;
-        break;
+        case GUI_CLOCK:
+            widget[id].w = widget[digit_id[widget[id].size][0]].text_w * 6;
+            widget[id].h = widget[digit_id[widget[id].size][0]].text_h;
+            break;
 
-    default:
-        widget[id].w = 0;
-        widget[id].h = 0;
-        break;
+        default:
+            widget[id].w = 0;
+            widget[id].h = 0;
+            break;
     }
 }
 
@@ -1185,7 +1183,7 @@ int gui_image(int pd, const char *file, int w, int h)
 
     if ((id = gui_widget(pd, GUI_IMAGE)))
     {
-        donot_allow_mip_and_aniso_during_gui = 1;
+        gui_img_used = 1;
         widget[id].image  = make_image_from_file(file, IF_MIPMAP);
 
         /* Convert window pixels to integer-encoded fractions. */
@@ -1195,7 +1193,7 @@ int gui_image(int pd, const char *file, int w, int h)
         widget[id].flags  |= GUI_RECT;
 
         gui_widget_size(id);
-        donot_allow_mip_and_aniso_during_gui = 0;
+        gui_img_used = 0;
     }
     return id;
 }
@@ -1508,12 +1506,12 @@ static void gui_widget_up(int id)
     if (id)
         switch (widget[id].type)
         {
-        case GUI_HARRAY: gui_harray_up(id); break;
-        case GUI_VARRAY: gui_varray_up(id); break;
-        case GUI_HSTACK: gui_hstack_up(id); break;
-        case GUI_VSTACK: gui_vstack_up(id); break;
-        case GUI_FILLER:                    break;
-        default:         gui_button_up(id); break;
+            case GUI_HARRAY: gui_harray_up(id); break;
+            case GUI_VARRAY: gui_varray_up(id); break;
+            case GUI_HSTACK: gui_hstack_up(id); break;
+            case GUI_VSTACK: gui_vstack_up(id); break;
+            case GUI_FILLER:                    break;
+            default:         gui_button_up(id); break;
         }
 }
 
@@ -1679,13 +1677,13 @@ static void gui_widget_dn(int id, int x, int y, int w, int h)
     if (id)
         switch (widget[id].type)
         {
-        case GUI_HARRAY: gui_harray_dn(id, x, y, w, h); break;
-        case GUI_VARRAY: gui_varray_dn(id, x, y, w, h); break;
-        case GUI_HSTACK: gui_hstack_dn(id, x, y, w, h); break;
-        case GUI_VSTACK: gui_vstack_dn(id, x, y, w, h); break;
-        case GUI_FILLER: gui_filler_dn(id, x, y, w, h); break;
-        case GUI_SPACE:  gui_filler_dn(id, x, y, w, h); break;
-        default:         gui_button_dn(id, x, y, w, h); break;
+            case GUI_HARRAY: gui_harray_dn(id, x, y, w, h); break;
+            case GUI_VARRAY: gui_varray_dn(id, x, y, w, h); break;
+            case GUI_HSTACK: gui_hstack_dn(id, x, y, w, h); break;
+            case GUI_VSTACK: gui_vstack_dn(id, x, y, w, h); break;
+            case GUI_FILLER: gui_filler_dn(id, x, y, w, h); break;
+            case GUI_SPACE:  gui_filler_dn(id, x, y, w, h); break;
+            default:         gui_button_dn(id, x, y, w, h); break;
         }
 }
 
@@ -1886,17 +1884,17 @@ static void gui_paint_rect(int id, int st, int flags)
 
     switch (widget[id].type)
     {
-    case GUI_HARRAY:
-    case GUI_VARRAY:
-    case GUI_HSTACK:
-    case GUI_VSTACK:
-    case GUI_ROOT:
-        /* Recursively paint all subwidgets. */
+        case GUI_HARRAY:
+        case GUI_VARRAY:
+        case GUI_HSTACK:
+        case GUI_VSTACK:
+        case GUI_ROOT:
+            /* Recursively paint all subwidgets. */
 
-        for (jd = widget[id].car; jd; jd = widget[jd].cdr)
-            gui_paint_rect(jd, i, flags);
+            for (jd = widget[id].car; jd; jd = widget[jd].cdr)
+                gui_paint_rect(jd, i, flags);
 
-        break;
+            break;
     }
 }
 
@@ -2198,22 +2196,24 @@ static void gui_paint_label(int id)
 
 static void gui_paint_text(int id)
 {
-    if (widget[id].alpha < .5f) return;
+    if (widget[id].alpha < .5f)
+        return;
+
     switch (widget[id].type)
     {
-    case GUI_SPACE:  break;
-    case GUI_FILLER: break;
+        case GUI_SPACE:  break;
+        case GUI_FILLER: break;
 
-    /* Should not include same methods, but THIS! */
-    case GUI_HARRAY:
-    case GUI_VARRAY:
-    case GUI_HSTACK:
-    case GUI_VSTACK: gui_paint_array(id); break;
-    case GUI_ROOT:   gui_paint_array(id); break;
-    case GUI_IMAGE:  gui_paint_image(id); break;
-    case GUI_COUNT:  gui_paint_count(id); break;
-    case GUI_CLOCK:  gui_paint_clock(id); break;
-    default:         gui_paint_label(id); break;
+        /* Should not include same methods, but THIS! */
+        case GUI_HARRAY:
+        case GUI_VARRAY:
+        case GUI_HSTACK:
+        case GUI_VSTACK: gui_paint_array(id); break;
+        case GUI_ROOT:   gui_paint_array(id); break;
+        case GUI_IMAGE:  gui_paint_image(id); break;
+        case GUI_COUNT:  gui_paint_count(id); break;
+        case GUI_CLOCK:  gui_paint_clock(id); break;
+        default:         gui_paint_label(id); break;
     }
 }
 
@@ -2443,21 +2443,21 @@ void gui_dump(int id, int d)
 
     if (id)
     {
-        char *type = "?";
+        char *type = "undefined";
 
         switch (widget[id].type)
         {
-        case GUI_HARRAY: type = "harray"; break;
-        case GUI_VARRAY: type = "varray"; break;
-        case GUI_HSTACK: type = "hstack"; break;
-        case GUI_VSTACK: type = "vstack"; break;
-        case GUI_FILLER: type = "filler"; break;
-        case GUI_IMAGE:  type = "image";  break;
-        case GUI_LABEL:  type = "label";  break;
-        case GUI_COUNT:  type = "count";  break;
-        case GUI_CLOCK:  type = "clock";  break;
-        case GUI_BUTTON: type = "button"; break;
-        case GUI_ROOT:   type = "root";   break;
+            case GUI_HARRAY: type = "harray"; break;
+            case GUI_VARRAY: type = "varray"; break;
+            case GUI_HSTACK: type = "hstack"; break;
+            case GUI_VSTACK: type = "vstack"; break;
+            case GUI_FILLER: type = "filler"; break;
+            case GUI_IMAGE:  type = "image";  break;
+            case GUI_LABEL:  type = "label";  break;
+            case GUI_COUNT:  type = "count";  break;
+            case GUI_CLOCK:  type = "clock";  break;
+            case GUI_BUTTON: type = "button"; break;
+            case GUI_ROOT:   type = "root";   break;
         }
 
         for (i = 0; i < d; i++)

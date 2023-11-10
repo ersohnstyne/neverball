@@ -45,6 +45,115 @@ static struct course course_v[MAXCRS];
 
 /*---------------------------------------------------------------------------*/
 
+/* Scorecard in a single course. */
+
+static int course_score_comp(struct course_score *S, int i, int j)
+{
+    return  S->score[i] <  S->score[j] ||
+           (S->score[i] == S->score[j] && S->score[i] > S->score[j]);
+}
+
+static void course_score_swap(struct course_score *S, int i, int j)
+{
+    char player[MAXSTR];
+    int  tmp;
+
+    SAFECPY(player,       S->player[i]);
+    SAFECPY(S->player[i], S->player[j]);
+    SAFECPY(S->player[j], player);
+
+    tmp             = S->player_id[i];
+    S->player_id[i] = S->player_id[j];
+    S->player_id[j] = tmp;
+
+    tmp         = S->score[i];
+    S->score[i] = S->score[j];
+    S->score[j] = tmp;
+
+    tmp            = S->score_hs[i];
+    S->score_hs[i] = S->score_hs[j];
+    S->score_hs[j] = tmp;
+
+    tmp              = S->score_high[i];
+    S->score_high[i] = S->score_high[j];
+    S->score_high[j] = tmp;
+}
+
+void course_score_init_hs(struct course_score *s)
+{
+    memset(s, 0, sizeof (struct course_score));
+
+    for (int i = 0; i < 5; i++)
+    {
+        if (i == 5) break;
+
+        char name[MAXSTR];
+
+        if (i < 2)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(name, MAXSTR,
+#else
+            sprintf(name,
+#endif
+                          _("%s (%d)"),
+                          config_get_s(CONFIG_PLAYER), i - 1);
+        else
+            SAFECPY(name, config_get_s(CONFIG_PLAYER));
+
+        s->player_id[i] = i;
+
+        course_score_update_name(s, i, name);
+
+        /* MAXHOL * 30 = 840 */
+
+        course_score_insert(s, i, i == 0 ? MAXHOL * -30 : MAXHOL * 30);
+    }
+}
+
+void course_score_update_name(struct course_score *s,
+                              int id, const char *name)
+{
+    memset(s->player[id], 0, sizeof (s->player[id]));
+    SAFECPY(s->player[id], name);
+}
+
+void course_score_insert(struct course_score *s, int score)
+{
+    for (int i = 1, done = 0; i < 5 && !done; i++)
+    {
+        if (i == 5) done = 1;
+
+        if (done) break;
+
+        if (s->player_id[i] == curr_player())
+        {
+            s->score[i] = score;
+
+            for (int j = i; j > 0 && course_score_comp(s, j + 1, j); j--)
+                course_score_swap(s, j + 1, j);
+
+            done = 1;
+            break;
+        }
+    }
+}
+
+void course_score_finish(struct course_score *s)
+{
+    for (int i = 1, done = 0; i < 5 && !done; i++)
+    {
+        if (s->score_hs[i] > s->score[i])
+        {
+#ifndef COURSE_SCORE_NOSAVEGAME
+            s->score_high[i] = 1;
+#endif
+            s->score_hs  [i] = s->score[i];
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static int course_load(struct course *crs, const char *filename)
 {
     fs_file fin;

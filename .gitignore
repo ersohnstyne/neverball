@@ -4,6 +4,7 @@
 !/pennyball/*.vcxproj
 !/pennyball/*.vcxproj.filters
 !/pennyball/*.vcxproj.user
+.vs
 .vscode
 
 # Mac XCode

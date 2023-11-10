@@ -411,26 +411,26 @@ void game_update_view(float dt)
 
     switch (config_get_d(CONFIG_CAMERA))
     {
-    case 2:
-        /* Camera 2: View vector is given by view angle. */
+        case 2:
+            /* Camera 2: View vector is given by view angle. */
 
-        view_e[2][0] = fsinf(V_RAD(view_a));
-        view_e[2][1] = 0.f;
-        view_e[2][2] = fcosf(V_RAD(view_a));
+            view_e[2][0] = fsinf(V_RAD(view_a));
+            view_e[2][1] = 0.f;
+            view_e[2][2] = fcosf(V_RAD(view_a));
 
-        s = 1.f;
-        break;
+            s = 1.f;
+            break;
 
-    default:
-        /* View vector approaches the ball velocity vector. */
+        default:
+            /* View vector approaches the ball velocity vector. */
 
-        v_mad(e, view_v, y, v_dot(view_v, y));
-        v_inv(e, e);
+            v_mad(e, view_v, y, v_dot(view_v, y));
+            v_inv(e, e);
 
-        k = v_dot(view_v, view_v);
+            k = v_dot(view_v, view_v);
 
-        v_sub(view_e[2], view_p, view_c);
-        v_mad(view_e[2], view_e[2], view_v, k * dt * 0.1f);
+            v_sub(view_e[2], view_p, view_c);
+            v_mad(view_e[2], view_e[2], view_v, k * dt * 0.1f);
     }
 
     /* Orthonormalize the basis of the view in its new position. */
@@ -626,12 +626,12 @@ void game_putt(void)
     /* Trying to shot the ball upwards */
     switch (curr_stroke_type())
     {
-    case 3:
-        file.vary.uv[ball].v[1] += 0.5f * (view_m * 0.7f); break;
-    case 2:
-        file.vary.uv[ball].v[1] += 0.9f * (view_m * 0.7f); break;
-    case 1:
-        file.vary.uv[ball].v[1] += 1.3f * (view_m * 0.7f); break;
+        case 3:
+            file.vary.uv[ball].v[1] += 0.5f * (view_m * 0.7f); break;
+        case 2:
+            file.vary.uv[ball].v[1] += 0.9f * (view_m * 0.7f); break;
+        case 1:
+            file.vary.uv[ball].v[1] += 1.3f * (view_m * 0.7f); break;
     }
 
     view_m = 0.f;
@@ -655,14 +655,14 @@ void game_set_mag(int d)
 
     switch (curr_stroke_type())
     {
-    case 3:
-        view_m = CLAMP(.25f, view_m, 2.25f); break;
-    case 2:
-        view_m = CLAMP(.25f, view_m, 2.f); break;
-    case 1:
-        view_m = CLAMP(.25f, view_m, 1.75f); break;
-    default:
-        view_m = CLAMP(.25f, view_m, 1.5f);
+        case 3:
+            view_m = CLAMP(.25f, view_m, 2.25f); break;
+        case 2:
+            view_m = CLAMP(.25f, view_m, 2.f);   break;
+        case 1:
+            view_m = CLAMP(.25f, view_m, 1.75f); break;
+        default:
+            view_m = CLAMP(.25f, view_m, 1.5f);
     }
 }
 

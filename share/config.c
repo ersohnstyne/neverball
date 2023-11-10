@@ -390,11 +390,11 @@ static const char *config_mouse_name(int b)
 
     switch (b)
     {
-    case 0:                    return "none";      break;
-    case SDL_BUTTON_LEFT:      return "left";      break;
-    case SDL_BUTTON_RIGHT:     return "right";     break;
-    case SDL_BUTTON_MIDDLE:    return "middle";    break;
-    default:                   return buff;        break;
+        case 0:                    return "none";      break;
+        case SDL_BUTTON_LEFT:      return "left";      break;
+        case SDL_BUTTON_RIGHT:     return "right";     break;
+        case SDL_BUTTON_MIDDLE:    return "middle";    break;
+        default:                   return buff;        break;
     }
 }
 

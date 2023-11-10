@@ -17,8 +17,6 @@
 
 #include "state.h"
 
-void set_boost_on(int);
-
 extern int is_boost_on(void);
 
 extern struct state st_set;

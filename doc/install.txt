@@ -36,6 +36,9 @@ Any kind of differences platforms such WINE does not supported.
 
 * COMPILATION
 
+Fetch  is  automatically disabled,  if cURL package  is not installed
+under Unix and Linux.
+
 Compiled source file  will automatically kicked,  when  building  the
 game from Microsoft Visual Studio 2022.
 
@@ -69,15 +72,9 @@ make FS_VERSION=1
     If  you use this,  then payments,  fetch and libcurl will ignored.
 
 make ENABLE_STEAM=1
-    Steam support.
+    Steam game client support.
 
     Steamworks        https://partner.steamgames.com/
-
-make ENABLE_FS=physfs
-    Alternate  file  system  backend  that replaces standard I/O  with
-    PhysicsFS. May causes some bugs or crashes. Requires FS_VERSION=1.
-
-    PhysicsFS         https://icculus.org/physfs/
 
 make ENABLE_NLS=0
     Native language support.  This is  enabled by default. Requires an

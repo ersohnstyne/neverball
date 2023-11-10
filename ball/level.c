@@ -136,28 +136,28 @@ static int scan_level_attribs(struct level *l,
                            &l->scores[SCORE_TIME].timer[RANK_MEDM],
                            &l->scores[SCORE_TIME].timer[RANK_EASY]))
             {
-            case 1:
-            {
-                if ((campaign || pre_campaign) && werror_campaign)
+                case 1:
                 {
-                    log_errorf("Switchball requires three premaded best time!\n");
-                    return 0;
+                    if ((campaign || pre_campaign) && werror_campaign)
+                    {
+                        log_errorf("Switchball requires three premaded best time!\n");
+                        return 0;
+                    }
+                    else
+                        need_time_medm = 1;
                 }
-                else
-                    need_time_medm = 1;
-            }
-            case 2:
-            {
-                if ((campaign || pre_campaign) && werror_campaign)
+                case 2:
                 {
-                    log_errorf("Switchball requires three premaded best time!\n");
-                    return 0;
+                    if ((campaign || pre_campaign) && werror_campaign)
+                    {
+                        log_errorf("Switchball requires three premaded best time!\n");
+                        return 0;
+                    }
+                    else
+                        need_time_easy = 1;
                 }
-                else
-                    need_time_easy = 1;
-            }
-            break;
-            case 3: break;
+                    break;
+                case 3: break;
             }
         }
         else if (strcmp(k, "goal_hs") == 0)
@@ -172,28 +172,28 @@ static int scan_level_attribs(struct level *l,
                            &l->scores[SCORE_GOAL].timer[RANK_MEDM],
                            &l->scores[SCORE_GOAL].timer[RANK_EASY]))
             {
-            case 1:
-            {
-                if ((campaign || pre_campaign) && werror_campaign)
+                case 1:
                 {
-                    log_errorf("Switchball requires three premaded best time!\n");
-                    return 0;
+                    if ((campaign || pre_campaign) && werror_campaign)
+                    {
+                        log_errorf("Switchball requires three premaded best time!\n");
+                        return 0;
+                    }
+                    else
+                        need_goal_medm = 1;
                 }
-                else
-                    need_goal_medm = 1;
-            }
-            case 2:
-            {
-                if ((campaign || pre_campaign) && werror_campaign)
+                case 2:
                 {
-                    log_errorf("Switchball requires three premaded best time!\n");
-                    return 0;
+                    if ((campaign || pre_campaign) && werror_campaign)
+                    {
+                        log_errorf("Switchball requires three premaded best time!\n");
+                        return 0;
+                    }
+                    else
+                        need_goal_easy = 1;
                 }
-                else
-                    need_goal_easy = 1;
-            }
-            break;
-            case 3: break;
+                break;
+                case 3: break;
             }
         }
         else if (strcmp(k, "coin_hs") == 0)
@@ -208,9 +208,9 @@ static int scan_level_attribs(struct level *l,
                            &l->scores[SCORE_COIN].coins[RANK_MEDM],
                            &l->scores[SCORE_COIN].coins[RANK_EASY]))
             {
-            case 1: need_coin_medm = 2; break;
-            case 2: need_coin_easy = 1; break;
-            case 3: break;
+                case 1: need_coin_medm = 2; break;
+                case 2: need_coin_easy = 1; break;
+                case 3: break;
             }
         }
         else if (strcmp(k, "version") == 0)

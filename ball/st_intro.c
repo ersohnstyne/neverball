@@ -209,7 +209,7 @@ static void intro_create_tip(int id)
     if (current_platform == PLATFORM_PC)
     {
         if ((tip_id = gui_multi(id, _(intro_tip[index_affect]),
-                                    GUI_SML, gui_wht, gui_wht)))
+                                    GUI_SML, GUI_COLOR_WHT)))
         {
             //gui_set_rect(tip_id, GUI_TOP);
             gui_clr_rect(tip_id);
@@ -219,7 +219,7 @@ static void intro_create_tip(int id)
     else if (current_platform == PLATFORM_PS)
     {
         if ((tip_id = gui_multi(id, _(intro_tip_ps4[index_affect]),
-                                    GUI_SML, gui_wht, gui_wht)))
+                                    GUI_SML, GUI_COLOR_WHT)))
         {
             //gui_set_rect(tip_id, GUI_TOP);
             gui_clr_rect(tip_id);
@@ -230,7 +230,7 @@ static void intro_create_tip(int id)
 #endif
     {
         if ((tip_id = gui_multi(id, _(intro_tip_xbox[index_affect]),
-                                    GUI_SML, gui_wht, gui_wht)))
+                                    GUI_SML, GUI_COLOR_WHT)))
         {
             //gui_set_rect(tip_id, GUI_TOP);
             gui_clr_rect(tip_id);
@@ -245,7 +245,7 @@ static void intro_create_tip(int id)
         index_affect = 0;
 
     if ((tip_id = gui_multi(id, _(intro_covid_highrisk[index_affect])
-                                GUI_SML, gui_wht, gui_wht)))
+                                GUI_SML, GUI_COLOR_WHT)))
     {
         //gui_set_rect(tip_id, GUI_TOP);
         gui_clr_rect(tip_id);
@@ -291,7 +291,7 @@ static int intro_gui(void)
                 "   %s   ", _("DEVELOPMENT BUILD"));
 
         if ((devel_label_id = gui_label(root_id, dev_str,
-                                                 GUI_SML, gui_red, gui_red)))
+                                                 GUI_SML, GUI_COLOR_RED)))
         {
             //gui_set_rect(devel_label_id, GUI_BOT);
             gui_clr_rect(devel_label_id);
@@ -445,21 +445,23 @@ static int intro_accn_disabled_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        goto_state(&st_null); /* bye! */
-        return 0;
+        case GUI_BACK:
+            goto_state(&st_null); /* bye! */
+            return 0;
 
-    case ACCOUNT_DISBALED_OPEN:
-#if _WIN32
-        system("start msedge https://neverball.org/community-standards.php");
+        case ACCOUNT_DISBALED_OPEN:
+#if defined(__EMSCRIPTEN__)
+            EM_ASM({ window.open("https://neverball.org/community-standards.php"); }, 0);
+#elif _WIN32
+            system("start msedge https://neverball.org/community-standards.php");
 #elif defined(__APPLE__)
-        system("open https://neverball.org/community-standards.php");
+            system("open https://neverball.org/community-standards.php");
 #elif defined(__linux__)
-        system("x-www-browser https://neverball.org/community-standards.php");
+            system("x-www-browser https://neverball.org/community-standards.php");
 #endif
 
-    case ACCOUNT_DISBALED_CANCEL:
-        return goto_state(&st_title);
+        case ACCOUNT_DISBALED_CANCEL:
+            return goto_state(&st_title);
     }
 
     return 1;
@@ -481,11 +483,11 @@ static int intro_accn_disabled_enter(struct state *st, struct state *prev)
                 _("We recently received a report for bad behaviour\\"
                   "by your account. Our moderators have reviewed in case\\"
                   "and identified that goes against Pennyball Community Standards."),
-                GUI_SML, gui_wht, gui_wht);
+                GUI_SML, GUI_COLOR_WHT);
             gui_multi(jd,
                 _("Your account is permanently banned, which means\\"
                   "you can't play Challenge or Hardcore."),
-                GUI_SML, gui_red, gui_red);
+                GUI_SML, GUI_COLOR_RED);
             gui_set_rect(jd, GUI_ALL);
         }
 
@@ -587,108 +589,108 @@ static int intro_restore_action(int tok, int val)
     case RESTORE_ACCEPT:
         switch (config_get_d(CONFIG_GRAPHIC_RESTORE_ID))
         {
-        case RESTORE_FULLSCREEN:
-            r = video_fullscreen(config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
-            if (r)
-            {
+            case RESTORE_FULLSCREEN:
+                r = video_fullscreen(config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
+                if (r)
+                {
+                    remove_all();
+                    RETURN_INTROLOGO_FINISHED;
+                }
+                break;
+
+            case RESTORE_RESOLUTION:
+                r = 1;
+                video_set_window_size(config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1),
+                                      config_get_d(CONFIG_GRAPHIC_RESTORE_VAL2));
+
                 remove_all();
                 RETURN_INTROLOGO_FINISHED;
-            }
-            break;
+                break;
 
-        case RESTORE_RESOLUTION:
-            r = 1;
-            video_set_window_size(config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1),
-                                  config_get_d(CONFIG_GRAPHIC_RESTORE_VAL2));
-
-            remove_all();
-            RETURN_INTROLOGO_FINISHED;
-            break;
-
-        case RESTORE_DISPLAY:
-            config_set_d(CONFIG_DISPLAY,
-                         config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
-            r = 1;
-            video_set_display(config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
-            remove_all();
-            RETURN_INTROLOGO_FINISHED;
-            break;
-
-        case RESTORE_VSYNC:
-            goto_state(&st_null);
-            int oldVsync = config_get_d(CONFIG_VSYNC);
-            config_set_d(CONFIG_VSYNC, config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
-            r = video_mode(f, w, h);
-            if (r)
-            {
+            case RESTORE_DISPLAY:
+                config_set_d(CONFIG_DISPLAY,
+                             config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
+                r = 1;
+                video_set_display(config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
                 remove_all();
                 RETURN_INTROLOGO_FINISHED;
-            }
-            else
+                break;
+
+            case RESTORE_VSYNC:
+                goto_state(&st_null);
+                int oldVsync = config_get_d(CONFIG_VSYNC);
+                config_set_d(CONFIG_VSYNC, config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
+                r = video_mode(f, w, h);
+                if (r)
+                {
+                    remove_all();
+                    RETURN_INTROLOGO_FINISHED;
+                }
+                else
                 config_set_d(CONFIG_VSYNC, oldVsync);
-            break;
+                break;
 
-        case RESTORE_MULTISAMPLE:
-            goto_state(&st_null);
-            int oldSamp = config_get_d(CONFIG_MULTISAMPLE);
-            config_set_d(CONFIG_MULTISAMPLE,
-                         config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
-            r = video_mode(f, w, h);
-            if (r)
-            {
-                remove_all();
-                RETURN_INTROLOGO_FINISHED;
-            }
-            else
-                config_set_d(CONFIG_MULTISAMPLE, oldSamp);
-            break;
+            case RESTORE_MULTISAMPLE:
+                goto_state(&st_null);
+                int oldSamp = config_get_d(CONFIG_MULTISAMPLE);
+                config_set_d(CONFIG_MULTISAMPLE,
+                             config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
+                r = video_mode(f, w, h);
+                if (r)
+                {
+                    remove_all();
+                    RETURN_INTROLOGO_FINISHED;
+                }
+                else
+                    config_set_d(CONFIG_MULTISAMPLE, oldSamp);
+                break;
         
-        case RESTORE_REFLECTION:
-            goto_state(&st_null);
-            int oldRefl = config_get_d(CONFIG_REFLECTION);
-            config_set_d(CONFIG_REFLECTION,
-                         config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
-            r = video_mode(f, w, h);
-            if (r)
-            {
+            case RESTORE_REFLECTION:
+                goto_state(&st_null);
+                int oldRefl = config_get_d(CONFIG_REFLECTION);
+                config_set_d(CONFIG_REFLECTION,
+                             config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
+                r = video_mode(f, w, h);
+                if (r)
+                {
+                    remove_all();
+                    RETURN_INTROLOGO_FINISHED;
+                }
+                else
+                    config_set_d(CONFIG_REFLECTION, oldRefl);
+                break;
+
+            case RESTORE_HMD:
+                goto_state(&st_null);
+                int oldHmd = config_get_d(CONFIG_HMD);
+                config_set_d(CONFIG_HMD,
+                             config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
+                r = video_mode(f, w, h);
+                if (r)
+                {
+                    remove_all();
+                    RETURN_INTROLOGO_FINISHED;
+                }
+                else
+                    config_set_d(CONFIG_HMD, oldHmd);
+                break;
+
+            case RESTORE_TEXTURES:
+                goto_state(&st_null);
+                config_set_d(CONFIG_TEXTURES, val);
                 remove_all();
                 RETURN_INTROLOGO_FINISHED;
-            }
-            else
-                config_set_d(CONFIG_REFLECTION, oldRefl);
-            break;
-
-        case RESTORE_HMD:
-            goto_state(&st_null);
-            int oldHmd = config_get_d(CONFIG_HMD);
-            config_set_d(CONFIG_HMD,
-                         config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
-            r = video_mode(f, w, h);
-            if (r)
-            {
-                remove_all();
-                RETURN_INTROLOGO_FINISHED;
-            }
-            else
-                config_set_d(CONFIG_HMD, oldHmd);
-            break;
-
-        case RESTORE_TEXTURES:
-            goto_state(&st_null);
-            config_set_d(CONFIG_TEXTURES, val);
-            remove_all();
-            RETURN_INTROLOGO_FINISHED;
-            break;
+                break;
         }
 
         break;
 
-    case GUI_BACK:
-        config_set_d(CONFIG_GRAPHIC_RESTORE_ID, -1);
-        config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, 0);
-        config_set_d(CONFIG_GRAPHIC_RESTORE_VAL2, 0);
-        RETURN_INTROLOGO_FINISHED;
-        break;
+        case GUI_BACK:
+            config_set_d(CONFIG_GRAPHIC_RESTORE_ID, -1);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, 0);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_VAL2, 0);
+            RETURN_INTROLOGO_FINISHED;
+            break;
     }
     
     return r;
@@ -714,71 +716,70 @@ static int intro_restore_gui(void)
 
         switch (restore_statement)
         {
-        case RESTORE_NONE:
-            break;
+            case RESTORE_NONE:
+                break;
 
-        case RESTORE_FULLSCREEN:
-            assert(restore_val_1 == 0 || restore_val_1 == 1);
-            gfx_target_name   = _("Fullscreen");
-            gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
-            break;
+            case RESTORE_FULLSCREEN:
+                assert(restore_val_1 == 0 || restore_val_1 == 1);
+                gfx_target_name   = _("Fullscreen");
+                gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
+                break;
 
-        case RESTORE_RESOLUTION:
+            case RESTORE_RESOLUTION:
 #if _WIN32
-            assert(restore_val_1 >= 800 && restore_val_2 >= 600);
+                assert(restore_val_1 >= 800 && restore_val_2 >= 600);
 #else
-            assert(restore_val_1 >= 320 && restore_val_2 >= 240);
+                assert(restore_val_1 >= 320 && restore_val_2 >= 240);
 #endif
-            gfx_target_name = _("Resolution");
-            doubles         = 1;
-            break;
+                gfx_target_name = _("Resolution");
+                doubles         = 1;
+                break;
 
-        case RESTORE_DISPLAY:
-            assert(restore_val_1 > -1);
-            gfx_target_name   = _("Display");
-            gfx_target_values = SDL_GetDisplayName(restore_val_1);
-            break;
+            case RESTORE_DISPLAY:
+                assert(restore_val_1 > -1);
+                gfx_target_name   = _("Display");
+                gfx_target_values = SDL_GetDisplayName(restore_val_1);
+                break;
 
-        case RESTORE_VSYNC:
-            assert(restore_val_1 > 0);
-            gfx_target_name   = _("V-Sync");
-            gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
-            break;
+            case RESTORE_VSYNC:
+                assert(restore_val_1 > 0);
+                gfx_target_name   = _("V-Sync");
+                gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
+                break;
 
-        case RESTORE_MULTISAMPLE:
-            assert(restore_val_1 > -1);
-            gfx_target_name = _("Antialiasing");
+            case RESTORE_MULTISAMPLE:
+                assert(restore_val_1 > -1);
+                gfx_target_name = _("Antialiasing");
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(restore_attr, MAXSTR,
+                sprintf_s(restore_attr, MAXSTR,
 #else
-            sprintf(restore_attr,
+                sprintf(restore_attr,
 #endif
-                    "%dx", restore_val_1);
+                        "%dx", restore_val_1);
 
-            gfx_target_values = (restore_val_1 == 0 ? _(restore_attr) : _("Off"));
-            break;
+                gfx_target_values = (restore_val_1 == 0 ? _(restore_attr) : _("Off"));
+                break;
 
-        case RESTORE_REFLECTION:
-            assert(restore_val_1 == 0 || restore_val_1 == 1);
-            gfx_target_name   = _("Reflection");
-            gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
-            break;
+            case RESTORE_REFLECTION:
+                assert(restore_val_1 == 0 || restore_val_1 == 1);
+                gfx_target_name   = _("Reflection");
+                gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
+                break;
 
-        case RESTORE_HMD:
-            assert(restore_val_1 == 0 || restore_val_1 == 1);
-            gfx_target_name   = _("HMD");
-            gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
-            break;
+            case RESTORE_HMD:
+                assert(restore_val_1 == 0 || restore_val_1 == 1);
+                gfx_target_name   = _("HMD");
+                gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
+                break;
 
-        case RESTORE_TEXTURES:
-            assert(restore_val_1 == 1 || restore_val_1 == 2);
-            gfx_target_name   = _("Textures");
-            gfx_target_values = (restore_val_1 == 1 ? _("High") : _("Low"));
-            break;
+            case RESTORE_TEXTURES:
+                assert(restore_val_1 == 1 || restore_val_1 == 2);
+                gfx_target_name   = _("Textures");
+                gfx_target_values = (restore_val_1 == 1 ? _("High") : _("Low"));
+                break;
 
-        default:
-            assert(0 && "No restore graphics found!");
-            break;
+            default:
+                assert(0 && "No restore graphics found!");
         }
 
         gui_title_header(id, _("Restore Graphics"), GUI_MED, 0, 0);
@@ -795,7 +796,7 @@ static int intro_restore_gui(void)
                       "%s: %i x %i"),
                     gfx_target_name, restore_val_1, restore_val_2);
             
-            gui_multi(id, restore_doubles, GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, restore_doubles, GUI_SML, GUI_COLOR_WHT);
         }
         else
         {
@@ -809,7 +810,7 @@ static int intro_restore_gui(void)
                       "%s: %s"),
                     gfx_target_name, gfx_target_values);
             
-            gui_multi(id, restore_singles, GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, restore_singles, GUI_SML, GUI_COLOR_WHT);
         }
 
         gui_space(id);
@@ -879,11 +880,11 @@ static int nointernet_gui(void)
         gui_space(id);
         if (networking_standalone())
             gui_multi(id, _("Not to worry, you can play offline!"),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
         else
             gui_multi(id, _("We're unable to connect the server!\\"
                             "Make sure, that is connected by the internet!"),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
 
         gui_layout(id, 0, 0);
     }
@@ -947,7 +948,7 @@ static int waitinternet_gui(void)
     int id;
 
     if ((id = gui_title_header(0, _("Waiting for server..."),
-                                  GUI_SML, gui_wht, gui_wht)))
+                                  GUI_SML, GUI_COLOR_WHT)))
         gui_layout(id, 0, 0);
 
     return id;
@@ -998,13 +999,13 @@ static int server_maintenance_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        goto_state(&st_null); /* bye! */
-        return 0;
-        break;
-    case MAINTENANCE_OFFLINE:
-        return goto_state(&st_title);
-        break;
+        case GUI_BACK:
+            goto_state(&st_null); /* bye! */
+            return 0;
+            break;
+        case MAINTENANCE_OFFLINE:
+            return goto_state(&st_title);
+            break;
     }
     return 1;
 }
@@ -1023,11 +1024,11 @@ static int server_maintenance_enter(struct state *st, struct state *prev)
             gui_multi(id, _("It might take a while until\\"
                             "the server maintenance is finished.\\"
                             "You can play offline instead!"),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
         else
             gui_multi(id, _("It might take a while until\\"
                             "the server maintenance is finished."),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
 
         gui_space(id);
 

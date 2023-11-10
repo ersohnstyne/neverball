@@ -375,24 +375,24 @@ int sol_vary_cmd(struct s_vary *fp, struct cmd_state *cs, const union cmd *cmd)
 
     switch (cmd->type)
     {
-    case CMD_MAKE_BALL:
-        if ((up = realloc(fp->uv, sizeof (*up) * (fp->uc + 1))))
-        {
-            fp->uv = up;
-            cs->curr_ball = fp->uc;
-            fp->uc++;
-            rc = 1;
-        }
-        break;
+        case CMD_MAKE_BALL:
+            if ((up = realloc(fp->uv, sizeof (*up) * (fp->uc + 1))))
+            {
+                fp->uv = up;
+                cs->curr_ball = fp->uc;
+                fp->uc++;
+                rc = 1;
+            }
+            break;
 
-    case CMD_CLEAR_BALLS:
-        free(fp->uv);
-        fp->uv = NULL;
-        fp->uc = 0;
-        break;
+        case CMD_CLEAR_BALLS:
+            free(fp->uv);
+            fp->uv = NULL;
+            fp->uc = 0;
+            break;
 
-    default:
-        break;
+        default:
+            break;
     }
 
     return rc;
@@ -413,111 +413,111 @@ int sol_lerp_cmd(struct s_lerp *fp, struct cmd_state *cs, const union cmd *cmd)
 
     switch (cmd->type)
     {
-    case CMD_MAKE_BALL:
-        if ((uv = realloc(fp->uv, sizeof (*uv) * (fp->uc + 1))))
-        {
-            fp->uv = uv;
-
-            /* Update varying state. */
-
-            if (sol_vary_cmd(fp->vary, cs, cmd))
+        case CMD_MAKE_BALL:
+            if ((uv = realloc(fp->uv, sizeof (*uv) * (fp->uc + 1))))
             {
-                fp->uc++;
-                rc = 1;
+                fp->uv = uv;
+
+                /* Update varying state. */
+
+                if (sol_vary_cmd(fp->vary, cs, cmd))
+                {
+                    fp->uc++;
+                    rc = 1;
+                }
             }
-        }
-        break;
+            break;
 
-    case CMD_MOVE_PATH:
-        if ((mi = cmd->movepath.mi) >= 0 && mi < fp->mc)
-        {
-            /* Be extra paranoid. */
+        case CMD_MOVE_PATH:
+            if ((mi = cmd->movepath.mi) >= 0 && mi < fp->mc)
+            {
+                /* Be extra paranoid. */
 
-            if ((idx = cmd->movepath.pi) >= 0 && idx < fp->vary->base->pc)
-                fp->mv[mi][CURR].pi = idx;
-        }
-        break;
+                if ((idx = cmd->movepath.pi) >= 0 && idx < fp->vary->base->pc)
+                    fp->mv[mi][CURR].pi = idx;
+            }
+            break;
 
-    case CMD_MOVE_TIME:
-        if ((mi = cmd->movetime.mi) >= 0 && mi < fp->mc)
-        {
-            fp->mv[mi][CURR].t = cmd->movetime.t;
-        }
-        break;
+        case CMD_MOVE_TIME:
+            if ((mi = cmd->movetime.mi) >= 0 && mi < fp->mc)
+            {
+                fp->mv[mi][CURR].t = cmd->movetime.t;
+            }
+            break;
 
-    case CMD_BODY_PATH:
-        /* Backward compatibility: update linear mover only. */
+        case CMD_BODY_PATH:
+            /* Backward compatibility: update linear mover only. */
 
-        if ((idx = cmd->bodypath.bi) >= 0 && idx < fp->vary->bc &&
+            if ((idx = cmd->bodypath.bi) >= 0 && idx < fp->vary->bc &&
             (mi = fp->vary->bv[idx].mi) >= 0)
-        {
-            /* Be EXTRA paranoid. */
+            {
+                /* Be EXTRA paranoid. */
 
-            if ((idx = cmd->bodypath.pi) >= 0 && idx < fp->vary->base->pc)
-                fp->mv[mi][CURR].pi = idx;
-        }
-        break;
+                if ((idx = cmd->bodypath.pi) >= 0 && idx < fp->vary->base->pc)
+                    fp->mv[mi][CURR].pi = idx;
+            }
+            break;
 
-    case CMD_BODY_TIME:
-        /* Same as CMD_BODY_PATH. */
+        case CMD_BODY_TIME:
+            /* Same as CMD_BODY_PATH. */
 
-        if ((idx = cmd->bodytime.bi) >= 0 && idx < fp->vary->bc &&
-            (mi = fp->vary->bv[idx].mi) >= 0)
-        {
-            fp->mv[mi][CURR].t = cmd->bodytime.t;
-        }
-        break;
+            if ((idx = cmd->bodytime.bi) >= 0 && idx < fp->vary->bc &&
+                (mi = fp->vary->bv[idx].mi) >= 0)
+            {
+                fp->mv[mi][CURR].t = cmd->bodytime.t;
+            }
+            break;
 
-    case CMD_BALL_RADIUS:
-        fp->uv[cs->curr_ball][CURR].r = cmd->ballradius.r;
-        break;
+        case CMD_BALL_RADIUS:
+            fp->uv[cs->curr_ball][CURR].r = cmd->ballradius.r;
+            break;
 
-    case CMD_CLEAR_BALLS:
-        free(fp->uv);
-        fp->uv = NULL;
-        fp->uc = 0;
+        case CMD_CLEAR_BALLS:
+            free(fp->uv);
+            fp->uv = NULL;
+            fp->uc = 0;
 
-        sol_vary_cmd(fp->vary, cs, cmd);
+            sol_vary_cmd(fp->vary, cs, cmd);
 
-        break;
+            break;
 
-    case CMD_BALL_POSITION:
-        up = &fp->uv[cs->curr_ball][CURR];
-        v_cpy(up->p, cmd->ballpos.p);
-        break;
+        case CMD_BALL_POSITION:
+            up = &fp->uv[cs->curr_ball][CURR];
+            v_cpy(up->p, cmd->ballpos.p);
+            break;
 
-    case CMD_BALL_BASIS:
-        up = &fp->uv[cs->curr_ball][CURR];
-        v_cpy(up->e[0], cmd->ballbasis.e[0]);
-        v_cpy(up->e[1], cmd->ballbasis.e[1]);
-        v_crs(up->e[2], up->e[0], up->e[1]);
-        break;
+        case CMD_BALL_BASIS:
+            up = &fp->uv[cs->curr_ball][CURR];
+            v_cpy(up->e[0], cmd->ballbasis.e[0]);
+            v_cpy(up->e[1], cmd->ballbasis.e[1]);
+            v_crs(up->e[2], up->e[0], up->e[1]);
+            break;
 
-    case CMD_BALL_PEND_BASIS:
-        up = &fp->uv[cs->curr_ball][CURR];
-        v_cpy(up->E[0], cmd->ballpendbasis.E[0]);
-        v_cpy(up->E[1], cmd->ballpendbasis.E[1]);
-        v_crs(up->E[2], up->E[0], up->E[1]);
-        break;
+        case CMD_BALL_PEND_BASIS:
+            up = &fp->uv[cs->curr_ball][CURR];
+            v_cpy(up->E[0], cmd->ballpendbasis.E[0]);
+            v_cpy(up->E[1], cmd->ballpendbasis.E[1]);
+            v_crs(up->E[2], up->E[0], up->E[1]);
+            break;
 
-    case CMD_STEP_SIMULATION:
-        /*
-         * Step each mover ahead. This  way we cut down on replay size
-         * significantly  while  still  keeping  things in  sync  with
-         * occasional CMD_MOVE_PATH and CMD_MOVE_TIME.
-         */
+        case CMD_STEP_SIMULATION:
+            /*
+             * Step each mover ahead. This  way we cut down on replay size
+             * significantly  while  still  keeping  things in  sync  with
+             * occasional CMD_MOVE_PATH and CMD_MOVE_TIME.
+             */
 
-        for (i = 0; i < fp->mc; i++)
-        {
-            struct l_move *mp = &fp->mv[i][CURR];
+            for (i = 0; i < fp->mc; i++)
+            {
+                struct l_move *mp = &fp->mv[i][CURR];
 
-            if (mp->pi >= 0 && fp->vary->pv[mp->pi].f)
-                mp->t += cmd->stepsim.dt;
-        }
-        break;
+                if (mp->pi >= 0 && fp->vary->pv[mp->pi].f)
+                    mp->t += cmd->stepsim.dt;
+            }
+            break;
 
-    default:
-        break;
+        default:
+            break;
     }
 
     return rc;

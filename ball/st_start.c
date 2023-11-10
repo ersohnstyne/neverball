@@ -116,7 +116,7 @@ static void gui_level(int id, int i)
 
     if (!l)
     {
-        gui_label(id, " ", GUI_SML, gui_blk, gui_blk);
+        gui_label(id, " ", GUI_SML, GUI_COLOR_BLK);
         return;
     }
 
@@ -210,7 +210,7 @@ static int start_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
+        case GUI_BACK:
         if (set_star_view)
         {
             set_star_view = 0;
@@ -222,7 +222,7 @@ static int start_action(int tok, int val)
                                curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_S_CURVE : GUI_ANIMATION_N_CURVE,
                                0);
 
-    case GUI_PREV:
+        case GUI_PREV:
         if (first > 1) {
             first -= LEVEL_STEP;
             return goto_state_full(&st_start,
@@ -231,7 +231,7 @@ static int start_action(int tok, int val)
         }
         break;
 
-    case GUI_NEXT:
+        case GUI_NEXT:
         if (first + LEVEL_STEP < total)
         {
             first += LEVEL_STEP;
@@ -241,98 +241,98 @@ static int start_action(int tok, int val)
         }
         break;
 
-    case START_CHALLENGE:
+        case START_CHALLENGE:
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
 #if NB_HAVE_PB_BOTH==1
-        if (config_cheat() ||
-            !server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
+            if (config_cheat() ||
+                !server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
 #else
-        if (config_cheat())
-#endif
-        {
-#if NB_HAVE_PB_BOTH==1
-            if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
-                return goto_state(&st_start_upgraderequired);
-            else if (check_handsoff())
-                return goto_handsoff(&st_start);
-            else
+            if (config_cheat())
 #endif
             {
-#if DEVEL_BUILD
-                progress_init(curr_mode() == MODE_CHALLENGE ? MODE_NORMAL :
-                                                              MODE_CHALLENGE);
-                gui_toggle(challenge_id);
-                return 1;
-#else
-                return goto_state(&st_start_unavailable);
-#endif
-            }
-        }
-        else
-#endif
-        {
 #if NB_HAVE_PB_BOTH==1
-            if (CHECK_ACCOUNT_ENABLED)
-            {
                 if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
                     return goto_state(&st_start_upgraderequired);
                 else if (check_handsoff())
                     return goto_handsoff(&st_start);
                 else
+#endif
                 {
-                    progress_init(MODE_CHALLENGE);
-                    audio_play(AUD_STARTGAME, 1.0f);
-                    if (progress_play(get_level(0)))
-                        return goto_state(&st_level);
+#if DEVEL_BUILD
+                    progress_init(curr_mode() == MODE_CHALLENGE ? MODE_NORMAL :
+                                                                  MODE_CHALLENGE);
+                    gui_toggle(challenge_id);
+                    return 1;
+#else
+                    return goto_state(&st_start_unavailable);
+#endif
                 }
             }
-            else return goto_state(&st_start_unavailable);
-#else
-            goto_state(&st_start_joinrequired);
-#endif 
-        }
-        break;
-
-    case START_BOOST_RUSH:
-        if (check_handsoff())
-            return goto_handsoff(&st_set);
-        else
-        {
-            boost_rush_init();
-            progress_init(MODE_BOOST_RUSH);
-            audio_play(AUD_STARTGAME, 1.0f);
-            if (progress_play(get_level(0)))
-                return goto_state(&st_level);
             else
-                progress_init(MODE_NORMAL);
-        }
+#endif
+            {
+#if NB_HAVE_PB_BOTH==1
+                if (CHECK_ACCOUNT_ENABLED)
+                {
+                    if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
+                        return goto_state(&st_start_upgraderequired);
+                    else if (check_handsoff())
+                        return goto_handsoff(&st_start);
+                    else
+                    {
+                        progress_init(MODE_CHALLENGE);
+                        audio_play(AUD_STARTGAME, 1.0f);
+                        if (progress_play(get_level(0)))
+                            return goto_state(&st_level);
+                    }
+                }
+                else return goto_state(&st_start_unavailable);
+#else
+                goto_state(&st_start_joinrequired);
+#endif 
+            }
+            break;
+
+        case START_BOOST_RUSH:
+            if (check_handsoff())
+                return goto_handsoff(&st_set);
+            else
+            {
+                boost_rush_init();
+                progress_init(MODE_BOOST_RUSH);
+                audio_play(AUD_STARTGAME, 1.0f);
+                if (progress_play(get_level(0)))
+                    return goto_state(&st_level);
+                else
+                    progress_init(MODE_NORMAL);
+            }
+            break;
+
+        case GUI_SCORE:
+            gui_score_set(val);
+            if (!is_boost_on()) start_over(gui_active(), 0);
+            return 1;
+
+        case START_LOCK_GOALS:
+            config_set_d(CONFIG_LOCK_GOALS, val);
+            config_save();
+            return goto_state_full(&st_start, 0, 0, 1);
+
+        case START_LEVEL:
+            if (check_handsoff())
+                return goto_handsoff(&st_start);
+
+            audio_play(AUD_STARTGAME, 1.0f);
+            game_fade(+4.0);
+            if (progress_play(get_level(val)))
+                return goto_state(&st_level);
+
         break;
 
-    case GUI_SCORE:
-        gui_score_set(val);
-        if (!is_boost_on()) start_over(gui_active(), 0);
-        return 1;
-
-    case START_LOCK_GOALS:
-        config_set_d(CONFIG_LOCK_GOALS, val);
-        config_save();
-        return goto_state_full(&st_start, 0, 0, 1);
-
-    case START_LEVEL:
-        if (check_handsoff())
-            return goto_handsoff(&st_start);
-
-        audio_play(AUD_STARTGAME, 1.0f);
-        game_fade(+4.0);
-        if (progress_play(get_level(val)))
-            return goto_state(&st_level);
-
-        break;
-
-    case START_CHECKSTARS:
-        set_star_view = 1;
-        return goto_state(&st_start);
-        break;
+        case START_CHECKSTARS:
+            set_star_view = 1;
+            return goto_state(&st_start);
+            break;
     }
 
     return 1;
@@ -364,18 +364,18 @@ static int start_star_view_gui(void)
                           CHECK_ACCOUNT_BANKRUPT ? gui_red : gui_wht,
                           CHECK_ACCOUNT_BANKRUPT ? gui_blk : gui_yel);
             gui_space(id);
-            gui_multi(id, s0, GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, s0, GUI_SML, GUI_COLOR_WHT);
         }
         else
             gui_multi(id,
                       _("This set difficulty is unrated until completes\\"
                         "Challenge Mode by the developer or moderator."),
-                      GUI_SML, gui_wht, gui_wht);
+                      GUI_SML, GUI_COLOR_WHT);
 #else
             gui_multi(id,
                       _("Set stars with Player level sets\\"
                         "requires Premium version."),
-                      GUI_SML, gui_red, gui_red);
+                      GUI_SML, GUI_COLOR_RED);
 #endif
 
         gui_space(id);
@@ -497,7 +497,7 @@ static int start_gui(void)
                     if (CHECK_ACCOUNT_BANKRUPT)
                     {
                         gui_set_state(challenge_id, GUI_NONE, 0);
-                        gui_set_color(challenge_id, gui_gry, gui_gry);
+                        gui_set_color(challenge_id, GUI_COLOR_GRY);
                     }
                     else
 #endif
@@ -573,16 +573,16 @@ static int start_unavailable_enter(struct state *st, struct state *prev)
             if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
                 gui_multi(id, _("Challenge Mode is not available\\"
                                 "with server group policy."),
-                              GUI_SML, gui_wht, gui_wht);
+                              GUI_SML, GUI_COLOR_WHT);
             else
                 gui_multi(id, _("Challenge Mode is not available\\"
                                 "with slowdown or cheat."),
-                              GUI_SML, gui_wht, gui_wht);
+                              GUI_SML, GUI_COLOR_WHT);
         }
         else
             gui_multi(id, _("Challenge Mode is not available.\\"
                             "Please check your account settings!"),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
 
         gui_layout(id, 0, 0);
     }
@@ -643,7 +643,7 @@ static int start_compat_gui()
 #endif
                 "%s (%s)", set_name(curr_set()), set_id(curr_set()));
 
-        gui_multi(id, multiattr, GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, multiattr, GUI_SML, GUI_COLOR_WHT);
 
         gui_space(id);
 
@@ -885,25 +885,27 @@ static int start_joinrequired_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        return goto_state(&st_start);
-    case START_JOINREQUIRED_OPEN:
+        case GUI_BACK:
+            return goto_state(&st_start);
+
+        case START_JOINREQUIRED_OPEN:
 #if defined(__EMSCRIPTEN__)
-        EM_ASM({ Neverball.doJoinDiscordPremium() }, 0);
+            EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/"); }, 0);
 #elif _WIN32
-        system("start msedge https://discord.gg/qnJR263Hm2/");
+            system("start msedge https://discord.gg/qnJR263Hm2/");
 #elif defined(__APPLE__)
-        system("open https://discord.gg/qnJR263Hm2/");
+            system("open https://discord.gg/qnJR263Hm2/");
 #elif defined(__linux__)
-        system("x-www-browser https://discord.gg/qnJR263Hm2/");
+            system("x-www-browser https://discord.gg/qnJR263Hm2/");
 #endif
-        break;
-    case START_JOINREQUIRED_SKIP:
-        progress_init(MODE_CHALLENGE);
-        audio_play(AUD_STARTGAME, 1.0f);
-        if (progress_play(get_level(0)))
-            return goto_state(&st_level);
-        break;
+            break;
+
+        case START_JOINREQUIRED_SKIP:
+            progress_init(MODE_CHALLENGE);
+            audio_play(AUD_STARTGAME, 1.0f);
+            if (progress_play(get_level(0)))
+                return goto_state(&st_level);
+            break;
     }
 
     return 1;
@@ -922,7 +924,7 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev)
                     "compete with powerups! We just need you to upgrade\\"
                     "to Pro edition so that we can make sure you have\\"
                     "permission to use it."),
-                  GUI_SML, gui_wht, gui_wht);
+                  GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
 
         if ((jd = gui_harray(id)))
@@ -952,7 +954,7 @@ static int start_joinrequired_enter(struct state *st, struct state *prev)
                     "compete with powerups! We just need you to join\\"
                     "and verify Discord server so that we can make sure\\"
                     "you have permission to use it."),
-                  GUI_SML, gui_wht, gui_wht);
+                  GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
 
         if ((jd = gui_harray(id)))

@@ -120,88 +120,88 @@ static int name_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        if (name_error)
+        case GUI_BACK:
+            if (name_error)
             return goto_state(&st_name);
 
-        if (newplayers)
+            if (newplayers)
             return ok_fn ? ok_fn(ok_state) : goto_state(ok_state);
 
-        account_init();
-        account_load();
-        
-        if (cancel_fn)
-            return cancel_fn(cancel_state);
+            account_init();
+            account_load();
 
-        return goto_state(cancel_state);
-        break;
+            if (cancel_fn)
+                return cancel_fn(cancel_state);
 
-    case NAME_OK:
-        newplayers = 0;
-        name_error = 0;
+            return goto_state(cancel_state);
+            break;
 
-        if (strcmp(config_get_s(CONFIG_PLAYER), text_input) != 0)
+        case NAME_OK:
+            newplayers = 0;
+            name_error = 0;
+
+            if (strcmp(config_get_s(CONFIG_PLAYER), text_input) != 0)
             player_renamed = 1;
 
-        text_input_stop();
+            text_input_stop();
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        if (text_length(text_input) < 3)
-            name_error = 1;
-        else if (player_renamed)
-        {
-            account_save();
-
-            config_set_s(CONFIG_PLAYER, text_input);
-            
-            account_init();
             if (text_length(text_input) < 3)
                 name_error = 1;
-            else if (account_exists())
-                account_load();
-            else
-                newplayers = 1;
+            else if (player_renamed)
+            {
+                account_save();
 
-            account_set_s(ACCOUNT_PLAYER, text_input);
+                config_set_s(CONFIG_PLAYER, text_input);
+            
+                account_init();
+                if (text_length(text_input) < 3)
+                    name_error = 1;
+                else if (account_exists())
+                    account_load();
+                else
+                    newplayers = 1;
+
+                account_set_s(ACCOUNT_PLAYER, text_input);
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
-            ball_multi_free();
-            ball_multi_init();
+                ball_multi_free();
+                ball_multi_init();
 #else
-            ball_free();
-            ball_init();
+                ball_free();
+                ball_init();
 #endif
 
-            account_save();
-        }
+                account_save();
+            }
 #endif
-        config_save();
+            config_save();
 
-        if (!name_error && !newplayers && ok_fn)
-            return ok_fn(ok_state);
+            if (!name_error && !newplayers && ok_fn)
+                return ok_fn(ok_state);
 
-        return goto_state(newplayers || name_error ? &st_name : ok_state);
-        break;
+            return goto_state(newplayers || name_error ? &st_name : ok_state);
+            break;
 
-    case NAME_CONTINUE:
-        newplayers = 0;
+        case NAME_CONTINUE:
+            newplayers = 0;
 
-        if (!name_error && ok_fn)
-            return ok_fn(ok_state);
+            if (!name_error && ok_fn)
+                return ok_fn(ok_state);
 
-        return goto_state(name_error ? &st_name : ok_state);
-        break;
+            return goto_state(name_error ? &st_name : ok_state);
+            break;
 
-    case GUI_CL:
-        gui_keyboard_lock_en();
-        break;
+        case GUI_CL:
+            gui_keyboard_lock_en();
+            break;
 
-    case GUI_BS:
-        text_input_del();
-        break;
+        case GUI_BS:
+            text_input_del();
+            break;
 
-    case GUI_CHAR:
-        text_input_char(val);
-        break;
+        case GUI_CHAR:
+            text_input_char(val);
+            break;
     }
 
     return 1;
@@ -219,14 +219,14 @@ static int name_gui(void)
             gui_space(id);
 
             name_id = gui_label(id, "XXXXXXXXXXXXXXXX",
-                                    GUI_MED, gui_yel, gui_yel);
+                                    GUI_MED, GUI_COLOR_YEL);
 
             gui_space(id);
             if ((jd = gui_hstack(id)))
             {
-                gui_filler(jd);
+                gui_filler     (jd);
                 gui_keyboard_en(jd);
-                gui_filler(jd);
+                gui_filler     (jd);
             }
             gui_space(id);
 
@@ -258,10 +258,10 @@ static int name_gui(void)
                                      "before select other game modes.");
 
             gui_title_header(id, t_header, GUI_MED,
-                             name_error ? gui_gry : 0,
-                             name_error ? gui_red : 0);
+                             name_error ? gui_red : 0,
+                             name_error ? gui_blk : 0);
             gui_space(id);
-            gui_multi(id, t_desc, GUI_SML, gui_wht, gui_wht);
+            gui_multi(id, t_desc, GUI_SML, GUI_COLOR_WHT);
             gui_space(id);
             gui_start(id, _("OK"), GUI_SML, NAME_CONTINUE, 0);
         }

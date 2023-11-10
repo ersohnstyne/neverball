@@ -75,76 +75,76 @@ static int conf_action(int i)
 
     switch (i)
     {
-    case CONF_BACK:
-        //if (is_value_changed())
-            //goto_state(&st_restart_required);
-        //else
-            goto_state(&st_title);
-        break;
+        case CONF_BACK:
+            //if (is_value_changed())
+                //goto_state(&st_restart_required);
+            //else
+                goto_state(&st_title);
+            break;
 
-    case CONF_VIDEO:
-        goto_state(&st_video);
-        break;
+        case CONF_VIDEO:
+            goto_state(&st_video);
+            break;
 
-    case CONF_LANG:
-        goto_state(&st_lang);
-        break;
+        case CONF_LANG:
+            goto_state(&st_lang);
+            break;
 
-    /*case CONF_PLAYER:
-        goto_name(&st_conf, &st_conf, 1);
-        break;*/
+        /*case CONF_PLAYER:
+            goto_name(&st_conf, &st_conf, 1);
+            break;*/
 
-    default:
-        if (100 <= i && i <= 110)
-        {
-            int n = i - 100;
+        default:
+            if (100 <= i && i <= 110)
+            {
+                int n = i - 100;
 
-            config_set_d(CONFIG_MASTER_VOLUME, n);
-            audio_volume(n, snd, mus, narrator);
+                config_set_d(CONFIG_MASTER_VOLUME, n);
+                audio_volume(n, snd, mus, narrator);
 
-            gui_toggle(master_id[n]);
-            gui_toggle(master_id[master]);
+                gui_toggle(master_id[n]);
+                gui_toggle(master_id[master]);
 
-            set_changed_value();
-        }
-        if (200 <= i && i <= 210)
-        {
-            int n = i - 200;
+                set_changed_value();
+            }
+            if (200 <= i && i <= 210)
+            {
+                int n = i - 200;
 
-            config_set_d(CONFIG_MUSIC_VOLUME, n);
-            audio_volume(master, snd, n, narrator);
+                config_set_d(CONFIG_MUSIC_VOLUME, n);
+                audio_volume(master, snd, n, narrator);
 
-            gui_toggle(music_id[n]);
-            gui_toggle(music_id[mus]);
+                gui_toggle(music_id[n]);
+                gui_toggle(music_id[mus]);
 
-            set_changed_value();
-        }
-        if (300 <= i && i <= 310)
-        {
-            int n = i - 300;
+                set_changed_value();
+            }
+            if (300 <= i && i <= 310)
+            {
+                int n = i - 300;
 
-            config_set_d(CONFIG_SOUND_VOLUME, n);
-            audio_volume(master, n, mus, narrator);
-            //audio_play(AUD_BUMP, 1.f);
-            audio_play(AUD_NEXTTURN, 1.f);
+                config_set_d(CONFIG_SOUND_VOLUME, n);
+                audio_volume(master, n, mus, narrator);
+                //audio_play(AUD_BUMP, 1.f);
+                audio_play(AUD_NEXTTURN, 1.f);
 
-            gui_toggle(sound_id[n]);
-            gui_toggle(sound_id[snd]);
+                gui_toggle(sound_id[n]);
+                gui_toggle(sound_id[snd]);
 
-            set_changed_value();
-        }
-        if (400 <= i && i <= 410)
-        {
-            int n = i - 400;
+                set_changed_value();
+            }
+            if (400 <= i && i <= 410)
+            {
+                int n = i - 400;
 
-            config_set_d(CONFIG_NARRATOR_VOLUME, n);
-            audio_volume(master, snd, mus, n);
+                config_set_d(CONFIG_NARRATOR_VOLUME, n);
+                audio_volume(master, snd, mus, n);
 
-            gui_toggle(narrator_id[n]);
-            gui_toggle(narrator_id[narrator]);
+                gui_toggle(narrator_id[n]);
+                gui_toggle(narrator_id[narrator]);
 
-            set_changed_value();
-        }
+                set_changed_value();
+            }
     }
 
     return r;
@@ -286,7 +286,7 @@ static int conf_enter(struct state *st, struct state *prev)
     }
 
 #if NB_HAVE_PB_BOTH==1
-    audio_music_fade_to(0.5f, "bgm/title.ogg");
+    audio_music_fade_to(0.5f, _("bgm/title.ogg"));
 #else
     audio_music_fade_to(0.5f, "gui/bgm/inter.ogg");
 #endif

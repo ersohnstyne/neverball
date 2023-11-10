@@ -107,22 +107,22 @@ static const char *get_package_url(const char *filename, int category)
 #if defined(NB_PACKAGES_PREMIUM)
         switch (category)
         {
-        case PACKAGE_CATEGORY_LEVELSET:
-            /* Uses premium sets */
-            SAFECPY(url, "/packages/levelsets/");
-            break;
-        case PACKAGE_CATEGORY_CAMPAIGN:
-            /* Uses campaign */
-            SAFECPY(url, "/packages/campaign/");
-            break;
-        case PACKAGE_CATEGORY_PROFILE:
-            /* Uses ball models */
-            SAFECPY(url, "/packages/ball/");
-            break;
-        case PACKAGE_CATEGORY_COURSE:
-            /* Uses ball models */
-            SAFECPY(url, "/packages/course/");
-            break;
+            case PACKAGE_CATEGORY_LEVELSET:
+                /* Uses premium sets */
+                SAFECPY(url, "/packages/levelsets/");
+                break;
+            case PACKAGE_CATEGORY_CAMPAIGN:
+                /* Uses campaign */
+                SAFECPY(url, "/packages/campaign/");
+                break;
+            case PACKAGE_CATEGORY_PROFILE:
+                /* Uses ball models */
+                SAFECPY(url, "/packages/ball/");
+                break;
+            case PACKAGE_CATEGORY_COURSE:
+                /* Uses ball models */
+                SAFECPY(url, "/packages/course/");
+                break;
         }
 #else
         /* Uses standard vanilla game */
@@ -132,22 +132,22 @@ static const char *get_package_url(const char *filename, int category)
 #if defined(NB_PACKAGES_PREMIUM)
         switch (category)
         {
-        case PACKAGE_CATEGORY_LEVELSET:
-            /* Uses premium sets */
-            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/levelsets/");
-            break;
-        case PACKAGE_CATEGORY_CAMPAIGN:
-            /* Uses campaign */
-            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/campaign/");
-            break;
-        case PACKAGE_CATEGORY_PROFILE:
-            /* Uses ball models */
-            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/ball/");
-            break;
-        case PACKAGE_CATEGORY_COURSE:
-            /* Uses ball models */
-            SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/course/");
-            break;
+            case PACKAGE_CATEGORY_LEVELSET:
+                /* Uses premium sets */
+                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/levelsets/");
+                break;
+            case PACKAGE_CATEGORY_CAMPAIGN:
+                /* Uses campaign */
+                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/campaign/");
+                break;
+            case PACKAGE_CATEGORY_PROFILE:
+                /* Uses ball models */
+                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/ball/");
+                break;
+            case PACKAGE_CATEGORY_COURSE:
+                /* Uses ball models */
+                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/course/");
+                break;
         }
 #else
         /* Uses legacy vanilla game */
@@ -324,18 +324,18 @@ static int load_installed_packages(void)
 
     switch (package_curr_category)
     {
-    case PACKAGE_CATEGORY_CAMPAIGN:
-        SAFECPY(default_filename, "installed-packages_campaign.txt");
-        break;
-    case PACKAGE_CATEGORY_PROFILE:
-        SAFECPY(default_filename, "installed-packages_ball.txt");
-        break;
-    case PACKAGE_CATEGORY_COURSE:
-        SAFECPY(default_filename, "installed-packages_course.txt");
-        break;
-    default:
-        SAFECPY(default_filename, "installed-packages.txt");
-        break;
+        case PACKAGE_CATEGORY_CAMPAIGN:
+            SAFECPY(default_filename, "installed-packages_campaign.txt");
+            break;
+        case PACKAGE_CATEGORY_PROFILE:
+            SAFECPY(default_filename, "installed-packages_ball.txt");
+            break;
+        case PACKAGE_CATEGORY_COURSE:
+            SAFECPY(default_filename, "installed-packages_course.txt");
+            break;
+        default:
+            SAFECPY(default_filename, "installed-packages.txt");
+            break;
     }
 
 #else
@@ -431,18 +431,18 @@ static int save_installed_packages(void)
 
         switch (package_curr_category)
         {
-        case PACKAGE_CATEGORY_CAMPAIGN:
-            SAFECPY(default_filename, "installed-packages_campaign.txt");
-            break;
-        case PACKAGE_CATEGORY_PROFILE:
-            SAFECPY(default_filename, "installed-packages_ball.txt");
-            break;
-        case PACKAGE_CATEGORY_COURSE:
-            SAFECPY(default_filename, "installed-packages_course.txt");
-            break;
-        default:
-            SAFECPY(default_filename, "installed-packages.txt");
-            break;
+            case PACKAGE_CATEGORY_CAMPAIGN:
+                SAFECPY(default_filename, "installed-packages_campaign.txt");
+                break;
+            case PACKAGE_CATEGORY_PROFILE:
+                SAFECPY(default_filename, "installed-packages_ball.txt");
+                break;
+            case PACKAGE_CATEGORY_COURSE:
+                SAFECPY(default_filename, "installed-packages_course.txt");
+                break;
+            default:
+                SAFECPY(default_filename, "installed-packages.txt");
+                break;
         }
 
 #else
@@ -811,6 +811,28 @@ static void fetch_available_packages(int category)
         struct fetch_callback gdrive_callback = { 0 };
         gdrive_callback.done = available_packages_done;
         fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_LEVELSET, filename,
+                     gdrive_callback);
+        return;
+    }
+    else if (filename && category == PACKAGE_CATEGORY_PROFILE
+          && NB_GDRIVE_PACKAGE_FILEID_BALL[0])
+    {
+        // Google Drive ball model and profile package support
+
+        struct fetch_callback gdrive_callback = { 0 };
+        gdrive_callback.done = available_packages_done;
+        fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_BALL, filename,
+                     gdrive_callback);
+        return;
+    }
+    else if (filename && category == PACKAGE_CATEGORY_COURSE
+          && NB_GDRIVE_PACKAGE_FILEID_COURSE[0])
+    {
+        // Google Drive course package support
+
+        struct fetch_callback gdrive_callback = { 0 };
+        gdrive_callback.done = available_packages_done;
+        fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_COURSE, filename,
                      gdrive_callback);
         return;
     }

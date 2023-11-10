@@ -183,6 +183,10 @@
 #define ITEM_SHRINK     3
 #define ITEM_CLOCK      4
 
+#define ITEM_GRAV_UP    5
+#define ITEM_GRAV_DN    6
+#define ITEM_GRAV_INV   7
+
 /* Path flags. */
 
 #define P_ORIENTED 1

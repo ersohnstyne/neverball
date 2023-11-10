@@ -246,239 +246,237 @@ static int loop(void)
             st_exit();
             return 0;
 
-#if defined(__EMSCRIPTEN__)
-        case SDL_USEREVENT:
-            switch (e.user.code)
-            {
-            case USER_EVENT_BACK:
-                d = st_keybd(KEY_EXIT, 1);
-                break;
-
-            case USER_EVENT_PAUSE:
-//#if NDEBUG
-                if (video_get_grab())
-                    goto_pause(1);
-//#endif
-                break;
-            }
-            break;
-#endif
-
         switch (e.type)
         {
+#if defined(__EMSCRIPTEN__)
+            case SDL_USEREVENT:
+                switch (e.user.code)
+                {
+                    case USER_EVENT_BACK:
+                        d = st_keybd(KEY_EXIT, 1);
+                        break;
+
+                    case USER_EVENT_PAUSE:
+//#if NDEBUG
+                        if (video_get_grab())
+                            goto_pause(1);
+//#endif
+                        break;
+                }
+                break;
+#endif
 #if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
-        case SDL_MOUSEMOTION:
-            /* Convert to OpenGL coordinates. */
+            case SDL_MOUSEMOTION:
+                /* Convert to OpenGL coordinates. */
 
-            ax = +e.motion.x;
-            ay = -e.motion.y + video.window_h;
-            dx = +e.motion.xrel;
-            dy = (config_get_d(CONFIG_MOUSE_INVERT) ?
-                  +e.motion.yrel : -e.motion.yrel);
+                ax = +e.motion.x;
+                ay = -e.motion.y + video.window_h;
+                dx = +e.motion.xrel;
+                dy = (config_get_d(CONFIG_MOUSE_INVERT) ?
+                      +e.motion.yrel : -e.motion.yrel);
 
-            /* Scale to viewport pixels. */
+                /* Scale to viewport pixels. */
 
-            ax = ROUND(ax * video.device_scale);
-            ay = ROUND(ay * video.device_scale);
-            dx = ROUND(dx * video.device_scale);
-            dy = ROUND(dy * video.device_scale);
+                ax = ROUND(ax * video.device_scale);
+                ay = ROUND(ay * video.device_scale);
+                dx = ROUND(dx * video.device_scale);
+                dy = ROUND(dy * video.device_scale);
 
-            if (wireframe_splitview)
-            {
-                splitview_crossed = 0;
-                if (ax > video.device_w / 2)
-                    splitview_crossed = 1;
-            }
+                if (wireframe_splitview)
+                {
+                    splitview_crossed = 0;
+                    if (ax > video.device_w / 2)
+                        splitview_crossed = 1;
+                }
 
-            st_point(ax, ay, dx, dy);
+                st_point(ax, ay, dx, dy);
 
-            break;
+                break;
 
-        case SDL_MOUSEBUTTONDOWN:
-            d = st_click(e.button.button, 1);
-            break;
+            case SDL_MOUSEBUTTONDOWN:
+                d = st_click(e.button.button, 1);
+                break;
 
-        case SDL_MOUSEBUTTONUP:
-            d = st_click(e.button.button, 0);
-            break;
+            case SDL_MOUSEBUTTONUP:
+                d = st_click(e.button.button, 0);
+                break;
 #endif
 
-        case SDL_FINGERDOWN:
-        case SDL_FINGERUP:
-        case SDL_FINGERMOTION:
-            d = st_touch(&e.tfinger);
-            break;
+            case SDL_FINGERDOWN:
+            case SDL_FINGERUP:
+            case SDL_FINGERMOTION:
+                d = st_touch(&e.tfinger);
+                break;
 
-        case SDL_KEYDOWN:
-
-            c = e.key.keysym.sym;
+            case SDL_KEYDOWN:
+                c = e.key.keysym.sym;
 
 #ifdef __APPLE__
-            if (c == SDLK_q && e.key.keysym.mod & KMOD_GUI)
+                if (c == SDLK_q && e.key.keysym.mod & KMOD_GUI)
 #endif
 #ifdef _WIN32
-            if (c == SDLK_F4 && e.key.keysym.mod & KMOD_ALT)
+                if (c == SDLK_F4 && e.key.keysym.mod & KMOD_ALT)
 #endif
-            {
-                d = 0;
-                st_exit();
-                break;
-            }
-
-            switch (c)
-            {
-#if !defined(STEAM_GAMES)
-            case KEY_SCREENSHOT:
-                shot();
-                break;
-            case KEY_FPS:
-                config_tgl_d(CONFIG_FPS);
-                break;
-            case KEY_WIREFRAME:
-                toggle_wire();
-                break;
-            case KEY_FULLSCREEN:
-                video_fullscreen(!config_get_d(CONFIG_FULLSCREEN));
-                config_save();
-                goto_state_full(curr_state(), 0, 0, 1);
-                break;
-#endif
-            case SDLK_RETURN:
-                d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
-                break;
-            case SDLK_ESCAPE:
-                if (video_get_grab())
-                    d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_START), 1);
-                else
-                    d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
-                break;
-
-            default:
-#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
-                if (config_tst_d(CONFIG_KEY_FORWARD, c))
-                    st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), -1.0f);
-                else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
-                    st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), +1.0f);
-                else if (config_tst_d(CONFIG_KEY_LEFT, c))
-                    st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), -1.0f);
-                else if (config_tst_d(CONFIG_KEY_RIGHT, c))
-                    st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), +1.0f);
-                else
-#endif
-                    d = st_keybd(e.key.keysym.sym, 1);
-            }
-            break;
-
-        case SDL_KEYUP:
-
-            c = e.key.keysym.sym;
-
-            switch (c)
-            {
-            case SDLK_RETURN:
-                d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
-                break;
-            case SDLK_ESCAPE:
-                if (video_get_grab())
-                    d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_START), 0);
-                else
-                    d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_B), 0);
-                break;
-
-            default:
-#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
-                if (config_tst_d(CONFIG_KEY_FORWARD, c))
-                    st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 0.0f);
-                else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
-                    st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 0.0f);
-                else if (config_tst_d(CONFIG_KEY_LEFT, c))
-                    st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), 0.0f);
-                else if (config_tst_d(CONFIG_KEY_RIGHT, c))
-                    st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), 0.0f);
-                else
-#endif
-                    d = st_keybd(e.key.keysym.sym, 0);
-            }
-            break;
-
-        case SDL_WINDOWEVENT:
-            switch (e.window.event)
-            {
-            case SDL_WINDOWEVENT_FOCUS_LOST:
-                audio_suspend();
-//#if NDEBUG
-                if (video_get_grab())
-                    goto_pause(1);
-//#endif
-                break;
-
-            case SDL_WINDOWEVENT_FOCUS_GAINED:
-                audio_resume();
-                break;
-
-            case SDL_WINDOWEVENT_MOVED:
-                if (config_get_d(CONFIG_DISPLAY) != video_display())
                 {
-                    config_set_d(CONFIG_DISPLAY, video_display());
-                    goto_state_full(curr_state(), 0, 0, 1);
+                    d = 0;
+                    st_exit();
+                    break;
+                }
+
+                switch (c)
+                {
+#if !defined(STEAM_GAMES)
+                    case KEY_SCREENSHOT:
+                        shot();
+                        break;
+                    case KEY_FPS:
+                        config_tgl_d(CONFIG_FPS);
+                        break;
+                    case KEY_WIREFRAME:
+                        toggle_wire();
+                        break;
+                    case KEY_FULLSCREEN:
+                        video_fullscreen(!config_get_d(CONFIG_FULLSCREEN));
+                        config_save();
+                        goto_state_full(curr_state(), 0, 0, 1);
+                        break;
+#endif
+                    case SDLK_RETURN:
+                        d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
+                        break;
+                    case SDLK_ESCAPE:
+                        if (video_get_grab())
+                            d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_START), 1);
+                        else
+                            d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
+                    break;
+
+                    default:
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
+                    if (config_tst_d(CONFIG_KEY_FORWARD, c))
+                        st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), -1.0f);
+                    else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
+                        st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), +1.0f);
+                    else if (config_tst_d(CONFIG_KEY_LEFT, c))
+                        st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), -1.0f);
+                    else if (config_tst_d(CONFIG_KEY_RIGHT, c))
+                        st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), +1.0f);
+                    else
+#endif
+                        d = st_keybd(e.key.keysym.sym, 1);
                 }
                 break;
 
-            case SDL_WINDOWEVENT_RESIZED:
-                video_clear();
-                video_resize(e.window.data1, e.window.data2);
-                gui_resize();
+            case SDL_KEYUP:
+                c = e.key.keysym.sym;
+
+                switch (c)
+                {
+                    case SDLK_RETURN:
+                        d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
+                        break;
+                    case SDLK_ESCAPE:
+                        if (video_get_grab())
+                            d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_START), 0);
+                        else
+                            d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_B), 0);
+                        break;
+
+                    default:
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
+                        if (config_tst_d(CONFIG_KEY_FORWARD, c))
+                            st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 0.0f);
+                        else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
+                            st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 0.0f);
+                        else if (config_tst_d(CONFIG_KEY_LEFT, c))
+                            st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), 0.0f);
+                        else if (config_tst_d(CONFIG_KEY_RIGHT, c))
+                            st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), 0.0f);
+                        else
+#endif
+                            d = st_keybd(e.key.keysym.sym, 0);
+                }
                 break;
 
-            case SDL_WINDOWEVENT_SIZE_CHANGED:
-                video_clear();
-                video_resize(e.window.data1, e.window.data2);
-                gui_resize();
-                config_save();
-                goto_state_full(curr_state(), 0, 0, 1);
-                break;
+            case SDL_WINDOWEVENT:
+                switch (e.window.event)
+                {
+                    case SDL_WINDOWEVENT_FOCUS_LOST:
+                        audio_suspend();
+//#if NDEBUG
+                        if (video_get_grab())
+                            goto_pause(1);
+//#endif
+                        break;
 
-            case SDL_WINDOWEVENT_MAXIMIZED:
-                config_set_d(CONFIG_MAXIMIZED, 1);
-                gui_resize();
-                config_save();
-                goto_state_full(curr_state(), 0, 0, 1);
+                    case SDL_WINDOWEVENT_FOCUS_GAINED:
+                        audio_resume();
+                        break;
 
-            case SDL_WINDOWEVENT_RESTORED:
-                config_set_d(CONFIG_MAXIMIZED, 0);
-                gui_resize();
-                config_save();
-                goto_state_full(curr_state(), 0, 0, 1);
+                    case SDL_WINDOWEVENT_MOVED:
+                        if (config_get_d(CONFIG_DISPLAY) != video_display())
+                        {
+                            config_set_d(CONFIG_DISPLAY, video_display());
+                            goto_state_full(curr_state(), 0, 0, 1);
+                        }
+                        break;
+
+                    case SDL_WINDOWEVENT_RESIZED:
+                        video_clear();
+                        video_resize(e.window.data1, e.window.data2);
+                        gui_resize();
+                        break;
+
+                    case SDL_WINDOWEVENT_SIZE_CHANGED:
+                        video_clear();
+                        video_resize(e.window.data1, e.window.data2);
+                        gui_resize();
+                        config_save();
+                        goto_state_full(curr_state(), 0, 0, 1);
+                        break;
+
+                    case SDL_WINDOWEVENT_MAXIMIZED:
+                        config_set_d(CONFIG_MAXIMIZED, 1);
+                        gui_resize();
+                        config_save();
+                        goto_state_full(curr_state(), 0, 0, 1);
+                        break;
+
+                    case SDL_WINDOWEVENT_RESTORED:
+                        config_set_d(CONFIG_MAXIMIZED, 0);
+                        gui_resize();
+                        config_save();
+                        goto_state_full(curr_state(), 0, 0, 1);
+                        break;
+                }
                 break;
-            }
-            break;
 
 #if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
-        case SDL_JOYAXISMOTION:
-            joy_axis(e.jaxis.which, e.jaxis.axis, JOY_VALUE(e.jaxis.value));
-            break;
+            case SDL_JOYAXISMOTION:
+                joy_axis(e.jaxis.which, e.jaxis.axis, JOY_VALUE(e.jaxis.value));
+                break;
 
-        case SDL_JOYBUTTONDOWN:
-            d = joy_button(e.jbutton.which, e.jbutton.button, 1);
-            break;
+            case SDL_JOYBUTTONDOWN:
+                d = joy_button(e.jbutton.which, e.jbutton.button, 1);
+                break;
 
-        case SDL_JOYBUTTONUP:
-            joy_button(e.jbutton.which, e.jbutton.button, 0);
-            break;
+            case SDL_JOYBUTTONUP:
+                joy_button(e.jbutton.which, e.jbutton.button, 0);
+                break;
 
-        case SDL_JOYDEVICEADDED:
-            joy_add(e.jdevice.which);
-            break;
+            case SDL_JOYDEVICEADDED:
+                joy_add(e.jdevice.which);
+                break;
 
-        case SDL_JOYDEVICEREMOVED:
-            joy_remove(e.jdevice.which);
-            break;
+            case SDL_JOYDEVICEREMOVED:
+                joy_remove(e.jdevice.which);
+                break;
 #endif
 
-        default:
-            if (e.type == FETCH_EVENT)
-                fetch_handle_event(e.user.data1);
-            break;
+            default:
+                if (e.type == FETCH_EVENT)
+                    fetch_handle_event(e.user.data1);
+                break;
         }
 
         event_threshold += 1;
@@ -688,7 +686,7 @@ static void main_quit()
     mtrl_quit();
     video_quit();
 
-    /* Restore Neverball's camera setting. */
+    /* Restore Neverputt's camera setting. */
 
     config_set_d(CONFIG_CAMERA, em_cached_cam);
     config_save();
@@ -778,6 +776,7 @@ int main(int argc, char *argv[])
         joy_init();
 #endif
 
+#if NB_HAE_PB_BOTH==1
 #if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
         init_controller_type(PLATFORM_PC);
 #endif
@@ -806,6 +805,7 @@ int main(int argc, char *argv[])
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
+#endif
 
         /* Intitialize accessibility. */
 
@@ -824,7 +824,7 @@ int main(int argc, char *argv[])
         lang_init();
 #endif
 
-        /* Cache Neverball's camera setting. */
+        /* Cache Neverputt's camera setting. */
 
         em_cached_cam = config_get_d(CONFIG_CAMERA);
 

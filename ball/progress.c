@@ -151,7 +151,9 @@
  * Paid debts after timer expires.
  *
  * You need to join Pennyball Discord Server in order
- * to activate the net-worth for player account.
+ * to activate the net-worth for player account:
+ *
+ * https://discord.gg/qnJR263Hm2/
  */
 #define PROGRESS_PLAYER_PAYDEBT_BALLS \
     do { curr.balls -= 1;             \
@@ -163,7 +165,9 @@
  * Paid debts after timer expires.
  *
  * You need to join Pennyball Discord Server in order
- * to activate the net-worth for player account.
+ * to activate the net-worth for player account:
+ *
+ * https://discord.gg/qnJR263Hm2/
  */
 #define PROGRESS_PLAYER_PAYDEBT_BALLS \
     do { curr.balls -= 1;             \
@@ -176,10 +180,10 @@
  * Their debt exceeds above the limit from the net-worth.
  *
  * If debt is greater than net-worth, it will gone bankrupt.  The net-worth is
- * the total value of the coins, gems and the resale value of their powerups
+ * the total value of the coins,  gems and the resale value  of their powerups
  * that have not yet been used.
  *
- * If they are bankrupt, all products will be sold, then all the wallet
+ * If they bankrupt, all products will be sold, then all the wallet
  * will be transferred to the player to whom they owe the debt.
  */
 #define PROGRESS_PLAYER_BANKRUPT                        \
@@ -193,7 +197,9 @@
  * Their debt exceeds above the limit from the net-worth.
  *
  * You need to join Pennyball Discord Server in order
- * to activate the net-worth for player account.
+ * to activate the net-worth for player account:
+ *
+ * https://discord.gg/qnJR263Hm2/
  */
 #define PROGRESS_PLAYER_BANKRUPT \
     do { if (progress_dead()) {  \
@@ -249,7 +255,17 @@ static int lvl_warn_timer;
 static int status = GAME_NONE;
 
 static int coins = 0;
+
+#ifdef MAPC_INCLUDES_CHKP
+static int timer_lvlset = 0;
+
+/*
+ * Precalculated total timer for each levels with checkpoints.
+ */
+#define    timer timer_lvlset
+#else
 static int timer = 0;
+#endif
 
 static int goal   = 0; /* Current goal value */
 static int goal_i = 0; /* Initial goal value */
@@ -412,7 +428,11 @@ static int init_level(void)
         game_client_toggle_show_balls(1);
 
         /* This method was attacking for their violentations. */
-        game_client_sync(!campaign_hardcore_norecordings() && curr_mode() != MODE_NONE ? demo_fp : NULL);
+        game_client_sync(
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            !campaign_hardcore_norecordings() &&
+#endif
+            curr_mode() != MODE_NONE ? demo_fp : NULL);
 
         audio_music_fade_to(1.0f, BGM_TITLE_MAP(level_song(level)));
         return 1;
@@ -603,42 +623,68 @@ void progress_stat(int s)
 
     switch (status)
     {
-    case GAME_GOAL:
-        if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
-        {
-#ifdef MAPC_INCLUDES_CHKP
-            if (last_active)
+        case GAME_GOAL:
+            if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
             {
+#ifdef MAPC_INCLUDES_CHKP
+                if (last_active)
+                {
 #if ENABLE_RFD==1
-                /* Neverball - Recipes for Disaster */
+                    /* Neverball - Recipes for Disaster */
 
-                chkp.rfd_balls = curr.rfd_balls;
+                    chkp.rfd_balls = curr.rfd_balls;
 #endif
-                chkp.balls = curr.balls;
-            }
+                    chkp.balls = curr.balls;
+                }
 #endif
 
-            for (i = curr.score + 1; i <= curr.score + coins; i++)
+                for (i = curr.score + 1; i <= curr.score + coins; i++)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (progress_reward_ball(i) && mode != MODE_HARDCORE)
+                    if (progress_reward_ball(i) && mode != MODE_HARDCORE)
 #else
-                if (progress_reward_ball(i))
+                    if (progress_reward_ball(i))
 #endif
-                    curr.balls++;
+                        curr.balls++;
 
-            curr.score += coins;
-            curr.times += timer;
-        }
+                curr.score += coins;
+                curr.times += timer;
+            }
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        int career_unlocked = server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER)
-                           && (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER)
-                            || campaign_career_unlocked());
+            int career_unlocked = server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER)
+                               && (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER)
+                                || campaign_career_unlocked());
 
-        if (!campaign_used() &&
-            (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25))
-            level_score_update(level,
-                               timer,
+            if (!campaign_used() &&
+                (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25))
+                level_score_update(level,
+                                   timer,
+#ifdef ENABLE_POWERUP
+                                   coins / get_coin_multiply(),
+#else
+                                   coins,
+#endif
+                                   &time_rank,
+                                   goal == 0 ? &goal_rank : NULL,
+                                   &coin_rank);
+            else if (!campaign_hardcore() && campaign_used() &&
+                     (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+                      !config_cheat() &&
+#endif
+                      (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25)))
+                level_score_update(level,
+                                   timer,
+#ifdef ENABLE_POWERUP
+                                   coins / get_coin_multiply(),
+#else
+                                   coins,
+#endif
+                                   &time_rank,
+                                   career_unlocked && goal == 0 ? &goal_rank : NULL,
+                                   career_unlocked ? &coin_rank : NULL);
+#else
+            level_score_update(level, timer,
 #ifdef ENABLE_POWERUP
                                coins / get_coin_multiply(),
 #else
@@ -647,183 +693,158 @@ void progress_stat(int s)
                                &time_rank,
                                goal == 0 ? &goal_rank : NULL,
                                &coin_rank);
-        else if (!campaign_hardcore() && campaign_used() &&
-                 (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
-                  !config_cheat() &&
-#endif
-                  (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25)))
-            level_score_update(level,
-                               timer,
-#ifdef ENABLE_POWERUP
-                               coins / get_coin_multiply(),
-#else
-                               coins,
-#endif
-                               &time_rank,
-                               career_unlocked && goal == 0 ? &goal_rank : NULL,
-                               career_unlocked ? &coin_rank : NULL);
-#else
-        level_score_update(level, timer,
-#ifdef ENABLE_POWERUP
-                           coins / get_coin_multiply(),
-#else
-                           coins,
-#endif
-                           &time_rank,
-                           goal == 0 ? &goal_rank : NULL,
-                           &coin_rank);
 #endif
 
-        level->stats.completed++;
+            level->stats.completed++;
 
-        if (!level_completed(level))
-            level_complete(level);
+            if (!level_completed(level))
+                level_complete(level);
 
-        /* Compute next level. */
+            /* Compute next level. */
 
-        if (mode == MODE_CHALLENGE
+            if (mode == MODE_CHALLENGE
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-         || mode == MODE_HARDCORE
+             || mode == MODE_HARDCORE
 #endif
-            )
-        {
-            int has_master = 0;
-
-            for (next = level->next;
-                 next && (level_bonus(next) || level_master(next)) &&
-                 !has_master;
-                 next = next->next)
+                )
             {
-                if (!level_opened(next) && !has_master)
-                    level_open(next);
+                int has_master = 0;
 
-                if (level_opened(next) && level_master(next) &&
-                    !has_master)
+                for (next = level->next;
+                     next && (level_bonus(next) || level_master(next)) &&
+                     !has_master;
+                     next = next->next)
                 {
-                    /* Go to the next level as master, darn! */
+                    if (!level_opened(next) && !has_master)
+                        level_open(next);
 
-                    has_master = 1;
-                    break;
+                    if (level_opened(next) && level_master(next) &&
+                        !has_master)
+                    {
+                        /* Go to the next level as master, darn! */
+
+                        has_master = 1;
+                        break;
+                    }
                 }
             }
-        }
-        else
-        {
-            for (next = level->next;
-                 next && (level_master(next) || (level_bonus(next) &&
-                                                 !level_opened(next)));
-                 next = next->next) {}
-
-            /*
-             * HACK: For this purposes, I've unlocked the next given
-             * standard levels, if there's unlocked bonus levels.
-             */
-
-            if (next && (level_bonus(next) ||
-                         level_master(next)) && level_opened(next))
+            else
             {
-                if (next->next && !level_opened(next->next))
-                    level_open(next->next);
+                for (next = level->next;
+                     next && (level_master(next) || (level_bonus(next) &&
+                                                     !level_opened(next)));
+                     next = next->next) {}
+
+                /*
+                 * HACK: For this purposes, I've unlocked the next given
+                 * standard levels, if there's unlocked bonus levels.
+                 */
+
+                if (next && (level_bonus(next) ||
+                             level_master(next)) && level_opened(next))
+                    if (next->next && !level_opened(next->next))
+                        level_open(next->next);
             }
-        }
 
-        /* Open next level or complete the campaign or set. */
+            /* Open next level or complete the campaign or set. */
 
-        if (next)
-        {
-            if (!level_opened(next))
-                level_open(next);
-        }
-        else
-        {
+            if (next)
+            {
+                if (!level_opened(next))
+                    level_open(next);
+            }
+            else
+            {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            done = mode == MODE_CAMPAIGN
-                || mode == MODE_CHALLENGE
-                || mode == MODE_BOOST_RUSH
-                || mode == MODE_HARDCORE;
+                done = mode == MODE_CAMPAIGN
+                    || mode == MODE_CHALLENGE
+                    || mode == MODE_BOOST_RUSH
+                    || mode == MODE_HARDCORE;
 #else
-            done = mode == MODE_CHALLENGE
-                || mode == MODE_BOOST_RUSH;
+                done = mode == MODE_CHALLENGE
+                    || mode == MODE_BOOST_RUSH;
 #endif
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-            /*
-             * Unlock the next set. Campaign will unlock
-             * the first level set after complete the game.
-             */
+                /*
+                 * Unlock the next set. Campaign will unlock
+                 * the first level set after complete the game.
+                 */
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (done && mode == MODE_CAMPAIGN &&
-                account_get_d(ACCOUNT_SET_UNLOCKS) == 0)
-                account_set_d(ACCOUNT_SET_UNLOCKS, 1);
-            else
+                if (done && mode == MODE_CAMPAIGN &&
+                    account_get_d(ACCOUNT_SET_UNLOCKS) == 0)
+                    account_set_d(ACCOUNT_SET_UNLOCKS, 1);
+                else
 #endif
-            if (server_policy_get_d(SERVER_POLICY_EDITION) == 0)
-            {
-                if (account_get_d(ACCOUNT_SET_UNLOCKS) == curr_set() + 1)
-                    account_set_d(ACCOUNT_SET_UNLOCKS, curr_set() + 2);
-            }
-
-            if (!CHECK_ACCOUNT_BANKRUPT &&
-                server_policy_get_d(SERVER_POLICY_EDITION) > -1)
-            {
-                if (curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                 || curr_mode() == MODE_CAMPAIGN
-#endif
-                    )
+                if (server_policy_get_d(SERVER_POLICY_EDITION) == 0)
                 {
-                    int curr_wallet = MIN(ACCOUNT_WALLET_MAX_COINS,
-                                          account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_coins());
-                    account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_wallet);
-                    account_save();
+                    if (account_get_d(ACCOUNT_SET_UNLOCKS) == curr_set() + 1)
+                        account_set_d(ACCOUNT_SET_UNLOCKS, curr_set() + 2);
                 }
+
+                if (!CHECK_ACCOUNT_BANKRUPT &&
+                    server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+                {
+                    if (curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                     || curr_mode() == MODE_CAMPAIGN
+#endif
+                        )
+                    {
+                        int curr_wallet = MIN(ACCOUNT_WALLET_MAX_COINS,
+                                          account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_coins());
+                        account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_wallet);
+                    }
+                }
+
+                account_save();
+#endif
             }
+            break;
 
-            account_save();
-#endif
-        }
-        break;
+        case GAME_FALL:
+            /* It should be both below. */
+        case GAME_TIME:
+            if (status != GAME_GOAL)
+            {
+                done           = 0;
+                extended_timer = timer;
 
-    case GAME_FALL:
-        /* It should be both below. */
-    case GAME_TIME:
-        if (status != GAME_GOAL)
-        {
-            done           = 0;
-            extended_timer = timer;
+                if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
+                    curr.times += timer;
 
-            if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
-                curr.times += timer;
-
-            if (
+                if (
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                mode != MODE_CAMPAIGN &&
+                    mode != MODE_CAMPAIGN &&
 #endif
-                mode != MODE_NORMAL
-             && mode != MODE_ZEN
+                    mode != MODE_NORMAL
+                 && mode != MODE_ZEN
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-             && mode != MODE_HARDCORE
+                 && mode != MODE_HARDCORE
 #endif
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-             && !config_cheat()
+                 && !config_cheat()
 #endif
                 )
-                PROGRESS_PLAYER_PAYDEBT_BALLS;
+                    PROGRESS_PLAYER_PAYDEBT_BALLS;
 
-            if (mode == MODE_BOOST_RUSH && curr.speedpercent > 1)
-            {
-                /* Decreases half percent */
-                curr.speedpercent /= 2;
-                exceed_speed       = 0;
-                max_speed          = 0;
+                if (mode == MODE_BOOST_RUSH && curr.speedpercent > 1)
+                {
+                    /* Decreases half percent */
+                    curr.speedpercent /= 2;
+                    exceed_speed       = 0;
+                    max_speed          = 0;
+                }
+
+                PROGRESS_PLAYER_BANKRUPT;
+
+                /* Kill speed percent immediately, before paid 15 gems. */
+                if (progress_dead())
+                    curr.speedpercent = 0;
+
+                status == GAME_FALL ? level->stats.fallout++ : level->stats.timeout++;
             }
-
-            PROGRESS_PLAYER_BANKRUPT;
-        }
-        
-        status == GAME_FALL ? level->stats.fallout++ : level->stats.timeout++;
 
         break;
     }
@@ -1017,7 +1038,7 @@ int  progress_raise_gems(int action_performed, int needed,
             if (wgcoins) *wgcoins -= 38;
         }
         /* Debt is greater than net-worth, so go bankrupt. */
-        else return final_resale;
+        else return MAX(final_resale, 0);
 
         if (temp_src_gems + final_resale >= needed)
             break;
@@ -1065,30 +1086,26 @@ int  progress_same_avail(void)
 
     switch (status)
     {
-    case GAME_NONE:
+        case GAME_NONE:
+            return (mode != MODE_CHALLENGE &&
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        return (mode != MODE_CHALLENGE &&
-                mode != MODE_HARDCORE  &&
-                mode != MODE_BOOST_RUSH) ||
-               config_cheat();
-#else
-        return (mode != MODE_CHALLENGE &&
-                mode != MODE_BOOST_RUSH) ||
-               config_cheat();
+                    mode != MODE_HARDCORE  &&
 #endif
+                    mode != MODE_BOOST_RUSH) ||
+                   config_cheat();
 
-    default:
+        default:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        /* Cannot respawn in hardcore mode. */
+            /* Cannot respawn in hardcore mode. */
 
-        if (campaign_used() && campaign_hardcore() && mode == MODE_HARDCORE)
-            return status == GAME_GOAL ? 1 : 0;
-        else
+            if (campaign_used() && campaign_hardcore() && mode == MODE_HARDCORE)
+                return status == GAME_GOAL;
+            else
 #endif
-        if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
-            return progress_dead() == 0;
-        else
-            return 1;
+            if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
+                return !progress_dead();
+            else
+                return 1;
     }
 }
 
@@ -1243,12 +1260,18 @@ int progress_rfd_take_powerup(int t)
 {
     switch (t)
     {
-    case 0: if (curr.rfd_earninator == 0) return 0; else curr.rfd_earninator--;
-        break;
-    case 1: if (curr.rfd_floatifier == 0) return 0; else curr.rfd_floatifier--;
-        break;
-    case 2: if (curr.rfd_speedifier == 0) return 0; else curr.rfd_speedifier--;
-        break;
+        case 0:
+            if (curr.rfd_earninator == 0) return 0;
+            else curr.rfd_earninator--;
+            break;
+        case 1:
+            if (curr.rfd_floatifier == 0) return 0;
+            else curr.rfd_floatifier--;
+            break;
+        case 2:
+            if (curr.rfd_speedifier == 0) return 0;
+            else curr.rfd_speedifier--;
+            break;
     }
 
     return 1;
@@ -1258,12 +1281,15 @@ int progress_rfd_get_powerup(int t)
 {
     switch (t)
     {
-    case 0: return curr.rfd_earninator;
-        break;
-    case 1: return curr.rfd_floatifier;
-        break;
-    case 2: return curr.rfd_speedifier;
-        break;
+        case 0:
+            return curr.rfd_earninator;
+            break;
+        case 1:
+            return curr.rfd_floatifier;
+            break;
+        case 2:
+            return curr.rfd_speedifier;
+            break;
     }
 
     return 0;
@@ -1311,18 +1337,18 @@ const char *mode_to_str(int m, int l)
 {
     switch (m)
     {
-    case MODE_CHALLENGE: return l ? _("Challenge Mode")  : _("Challenge");
-    case MODE_NORMAL:    return l ? _("Classic Mode")    : _("Classic");
-    case MODE_STANDALONE:return l ? _("Standalone Mode") : _("Standalone");
-    case MODE_ZEN:       return l ? _("Zen Mode")        : _("Zen");
+        case MODE_CHALLENGE: return l ? _("Challenge Mode")  : _("Challenge");
+        case MODE_NORMAL:    return l ? _("Classic Mode")    : _("Classic");
+        case MODE_STANDALONE:return l ? _("Standalone Mode") : _("Standalone");
+        case MODE_ZEN:       return l ? _("Zen Mode")        : _("Zen");
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    case MODE_HARDCORE:  return l ? _("Hardcore Mode")   : _("Hardcore");
+        case MODE_HARDCORE:  return l ? _("Hardcore Mode")   : _("Hardcore");
 #endif
-    case MODE_BOOST_RUSH:return l ? _("Boost Rush Mode") : _("Boost Rush");
+        case MODE_BOOST_RUSH:return l ? _("Boost Rush Mode") : _("Boost Rush");
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    case MODE_CAMPAIGN:  return l ? _("Campaign Mode")   : _("Campaign");
+        case MODE_CAMPAIGN:  return l ? _("Campaign Mode")   : _("Campaign");
 #endif
-    default:             return l ? _("Unknown Mode")    : _("Unknown");
+        default:             return l ? _("Unknown Mode")    : _("Unknown");
     }
 }
 

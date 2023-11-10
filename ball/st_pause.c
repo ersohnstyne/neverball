@@ -108,111 +108,124 @@ static int pause_action(int tok, int val)
 
     switch (tok)
     {
-    case PAUSE_CONF:
-        return goto_conf(&st_pause, 1, 0);
-        break;
-    case PAUSE_CONTINUE:
-        PAUSED_ACTION_CONTINUE;
-        break;
+        case PAUSE_CONF:
+            return goto_conf(&st_pause, 1, 0);
+            break;
+        case PAUSE_CONTINUE:
+            PAUSED_ACTION_CONTINUE;
+            break;
 
-    case PAUSE_RESPAWN:
+        case PAUSE_RESPAWN:
 #ifdef MAPC_INCLUDES_CHKP
-        if (progress_same_avail() && last_active)
-        {
-            if (quit_uses_resetpuzzle)
+            if (progress_same_avail() && last_active)
             {
-                quit_uses_resetpuzzle = 0;
-                if (checkpoints_load() && progress_same())
+                if (quit_uses_resetpuzzle)
                 {
-                    audio_music_fade_in(0.5f);
+                    quit_uses_resetpuzzle = 0;
+                    if (checkpoints_load() && progress_same())
+                    {
+                        audio_music_fade_in(0.5f);
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                    return goto_state(campaign_used() ? &st_play_ready :
-                                                        &st_level);
+                        return goto_state(campaign_used() ? &st_play_ready :
+                                                            &st_level);
 #else
-                    return goto_state(&st_play_ready);
+                        return goto_state(&st_play_ready);
 #endif
+                    }
+                }
+                else if (!quit_uses_resetpuzzle)
+                {
+                    quit_uses_resetpuzzle = 1;
+                    return goto_state(&st_pause_quit);
                 }
             }
-            else if (!quit_uses_resetpuzzle)
-            {
-                quit_uses_resetpuzzle = 1;
-                return goto_state(&st_pause_quit);
-            }
-        }
 #endif
         break;
 
-    case PAUSE_ZEN_SWITCH:
+        case PAUSE_ZEN_SWITCH:
 #if defined(LEVELGROUPS_INCLUDES_ZEN) && defined(CONFIG_INCLUDES_ACCOUNT)
-        if (progress_same_avail())
-        {
-            mediation_init();
-            progress_init(MODE_ZEN);
-        }
+            if (progress_same_avail())
+            {
+                mediation_init();
+                progress_init(MODE_ZEN);
+            }
 
-        if (progress_same())
-        {
-            audio_music_fade_in(0.5f);
+            if (progress_same())
+            {
+                audio_music_fade_in(0.5f);
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            return goto_state(campaign_used() ? &st_play_ready : &st_level);
+                return goto_state(campaign_used() ? &st_play_ready : &st_level);
 #else
-            return goto_state(&st_play_ready);
+                return goto_state(&st_play_ready);
 #endif
-        }
-#endif
-        break;
-
-    case PAUSE_RESTART:
-        if (progress_same_avail())
-        {
-            if (quit_uses_restart || !campaign_used())
-            {
-                quit_uses_restart = 0;
-#ifdef MAPC_INCLUDES_CHKP
-                checkpoints_stop();
-#endif
-                if (progress_same())
-                {
-                    audio_music_fade_in(0.5f);
-                    video_set_grab(1);
-                    return goto_state(&st_play_ready);
-                }
             }
-            else if (!quit_uses_restart)
-            {
-                quit_uses_restart = 1;
-                return goto_state(&st_pause_quit);
-            }
-        }
-        break;
+#endif
+            break;
 
-    case PAUSE_EXIT:
+        case PAUSE_RESTART:
+            if (progress_same_avail())
+            {
+                if (quit_uses_restart
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (curr_mode() == MODE_NONE || campaign_used()
-            || curr_times() > 0)
-        {
-            if (curr_state() == &st_pause_quit)
-            {
-                if (campaign_hardcore())
+                 || !campaign_used()
+#endif
+                    )
                 {
-                    if (campaign_hardcore_norecordings()) demo_play_stop(1);
-                    campaign_hardcore_quit();
+                    quit_uses_restart = 0;
+#ifdef MAPC_INCLUDES_CHKP
+                    checkpoints_stop();
+#endif
+                    if (progress_same())
+                    {
+                        audio_music_fade_in(0.5f);
+                        video_set_grab(1);
+                        return goto_state(&st_play_ready);
+                    }
                 }
-                if (curr_status() == GAME_NONE) progress_stat(GAME_NONE);
-                if (curr_mode() != MODE_NONE) audio_music_stop();
-                return goto_exit();
+                else if (!quit_uses_restart)
+                {
+                    quit_uses_restart = 1;
+                    return goto_state(&st_pause_quit);
+                }
+            }
+            break;
+
+        case PAUSE_EXIT:
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            if (curr_mode() == MODE_NONE || campaign_used() ||
+                curr_times() > 0)
+            {
+                if (curr_state() == &st_pause_quit)
+                {
+                    if (campaign_hardcore())
+                    {
+                        if (campaign_hardcore_norecordings())
+                            demo_play_stop(1);
+
+                        campaign_hardcore_quit();
+                    }
+                    if (curr_status() == GAME_NONE)
+                        progress_stat(GAME_NONE);
+                    if (curr_mode() != MODE_NONE)
+                        audio_music_stop();
+
+                    return goto_exit();
+                }
+                else
+                    return goto_state(&st_pause_quit);
             }
             else
-                return goto_state(&st_pause_quit);
-        }
-        else
-        {
-            if (curr_status() == GAME_NONE) progress_stat(GAME_NONE);
-            audio_music_stop();
-            return goto_exit();
-        }
+            {
+                if (curr_status() == GAME_NONE)
+                    progress_stat(GAME_NONE);
+
+                audio_music_stop();
+                return goto_exit();
+            }
 #else
-        if (curr_status() == GAME_NONE) progress_stat(GAME_NONE);
+        if (curr_status() == GAME_NONE)
+            progress_stat(GAME_NONE);
+
         progress_stop();
         audio_music_stop();
         return goto_exit();
@@ -276,6 +289,58 @@ static int pause_gui(void)
         title_id = gui_title_header(id, _("Paused"), GUI_LRG, gui_gry, gui_red);
 
         gui_space(id);
+
+#ifdef MAPC_INCLUDES_CHKP
+#if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
+        if      (curr_mode() == MODE_NORMAL &&
+                 account_get_d(ACCOUNT_PRODUCT_MEDIATION) && last_active)
+            drastic = pause_button_width(1, 1) * 5 > config_get_d(CONFIG_WIDTH);
+        else if (curr_mode() == MODE_NORMAL &&
+                 account_get_d(ACCOUNT_PRODUCT_MEDIATION))
+            drastic = pause_button_width(1, 0) * 4 > config_get_d(CONFIG_WIDTH);
+        else
+#endif
+        if      (last_active)
+            drastic = pause_button_width(0, 1) * 4 > config_get_d(CONFIG_WIDTH);
+#else
+#if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
+        if      (curr_mode() == MODE_NORMAL &&
+                 account_get_d(ACCOUNT_PRODUCT_MEDIATION) && last_active)
+            drastic = pause_button_width(1, 1) * 4 > config_get_d(CONFIG_WIDTH);
+        else if (curr_mode() == MODE_NORMAL &&
+                 account_get_d(ACCOUNT_PRODUCT_MEDIATION))
+            drastic = pause_button_width(1, 0) * 3 > config_get_d(CONFIG_WIDTH);
+#endif
+#endif
+
+        gui_state(id, _("Options"), GUI_SML, PAUSE_CONF, 0);
+        gui_space(id);
+        
+        /*
+         * If the wide button is drastic from width pixels,
+         * stack more buttons.
+         */
+
+        if (drastic)
+        {
+            if ((jd = gui_harray(id)))
+            {
+#ifdef MAPC_INCLUDES_CHKP
+                if (progress_same_avail() && last_active)
+                    gui_state(jd, _("Reset Puzzle"), GUI_SML, PAUSE_RESPAWN, 0);
+#endif
+
+#if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
+                if (curr_mode() == MODE_NORMAL &&
+                    account_get_d(ACCOUNT_PRODUCT_MEDIATION) &&
+                    !mediation_enabled()
+                    )
+                    gui_state(jd, _("Switch to Zen"), GUI_SML, PAUSE_ZEN_SWITCH, 0);
+#endif
+            }
+
+            gui_space(id);
+        }
 
         if ((jd = gui_harray(id)))
         {
@@ -362,8 +427,11 @@ static void pause_timer(int id, float dt)
     {
         game_step_fade(dt);
         game_server_step(dt);
-        game_client_sync(!campaign_hardcore_norecordings() &&
-                         curr_mode() != MODE_NONE ? NULL : demo_fp);
+        game_client_sync(curr_mode() != MODE_NONE
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                      && !campaign_hardcore_norecordings()
+#endif
+                             ? demo_fp : NULL);
         game_client_blend(game_server_blend());
     }
 
@@ -434,7 +502,7 @@ static int pause_quit_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        int warn_title = gui_label(id, _("Quit"), GUI_MED, gui_red, gui_red);
+        int warn_title = gui_label(id, _("Quit"), GUI_MED, GUI_COLOR_RED);
 
         if (quit_uses_restart)
             gui_set_label(warn_title, _("Restart"));
@@ -446,9 +514,14 @@ static int pause_quit_gui(void)
 
         gui_space(id);
 
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         char *quit_warn = campaign_hardcore() ? _("Return to World selection?") :
                                                 _("Are you sure?\\"
                                                   "You will lose all progress on this level.");
+#else
+        char *quit_warn = _("Are you sure?\\"
+                            "You will lose all progress on this level.");
+#endif
         if (curr_mode() == MODE_NONE)
             quit_warn = _("Return to main menu?");
 
@@ -456,11 +529,15 @@ static int pause_quit_gui(void)
             quit_warn = _("Are you sure?\\"
                           "You will restart at the last checkpoint.");
 
-        if (!campaign_used() && curr_times() > 0)
+        if (
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            !campaign_used() &&
+#endif
+            curr_times() > 0)
             quit_warn = _("Are you sure?\\"
                           "You will lose all progress on this level set.");
 
-        gui_multi(id, quit_warn, GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, quit_warn, GUI_SML, GUI_COLOR_WHT);
 
         gui_space(id);
 

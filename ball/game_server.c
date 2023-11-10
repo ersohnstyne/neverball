@@ -446,72 +446,72 @@ static void grow_init(struct v_ball *uv, int ui, int type)
     {
         switch (grow_state[ui])
         {
-        case -2:
-            break;
+            case -2:
+                break;
 
-        case -1:
-            audio_play(AUD_SHRINK, 1.f);
-            grow_goal[ui]  = grow_orig[ui] * GROW_XS;
-            grow_state[ui] = -2;
-            grow[ui]       = 1;
-            break;
+            case -1:
+                audio_play(AUD_SHRINK, 1.f);
+                grow_goal[ui]  = grow_orig[ui] * GROW_XS;
+                grow_state[ui] = -2;
+                grow[ui]       = 1;
+                break;
 
-        case  0:
-            audio_play(AUD_SHRINK, 1.f);
-            grow_goal[ui]  = grow_orig[ui] * GROW_SMALL;
-            grow_state[ui] = -1;
-            grow[ui]       = 1;
-            break;
+            case  0:
+                audio_play(AUD_SHRINK, 1.f);
+                grow_goal[ui]  = grow_orig[ui] * GROW_SMALL;
+                grow_state[ui] = -1;
+                grow[ui]       = 1;
+                break;
 
-        case +1:
-            audio_play(AUD_SHRINK, 1.f);
-            grow_goal[ui]  = grow_orig[ui];
-            grow_state[ui] = 0;
-            grow[ui]       = 1;
-            break;
+            case +1:
+                audio_play(AUD_SHRINK, 1.f);
+                grow_goal[ui]  = grow_orig[ui];
+                grow_state[ui] = 0;
+                grow[ui]       = 1;
+                break;
 
-        case +2:
-            audio_play(AUD_SHRINK, 1.f);
-            grow_goal[ui]  = grow_orig[ui] * GROW_BIG;
-            grow_state[ui] = 0;
-            grow[ui]       = 1;
-            break;
+            case +2:
+                audio_play(AUD_SHRINK, 1.f);
+                grow_goal[ui]  = grow_orig[ui] * GROW_BIG;
+                grow_state[ui] = 0;
+                grow[ui]       = 1;
+                break;
         }
     }
     else if (type == ITEM_GROW)
     {
         switch (grow_state[ui])
         {
-        case -2:
-            audio_play(AUD_GROW, 1.f);
-            grow_goal[ui]  = grow_orig[ui] * GROW_SMALL;
-            grow_state[ui] = -1;
-            grow[ui]       = 1;
-            break;
+            case -2:
+                audio_play(AUD_GROW, 1.f);
+                grow_goal[ui]  = grow_orig[ui] * GROW_SMALL;
+                grow_state[ui] = -1;
+                grow[ui]       = 1;
+                break;
 
-        case -1:
-            audio_play(AUD_GROW, 1.f);
-            grow_goal[ui]  = grow_orig[ui];
-            grow_state[ui] = 0;
-            grow[ui]       = 1;
-            break;
+            case -1:
+                audio_play(AUD_GROW, 1.f);
+                grow_goal[ui]  = grow_orig[ui];
+                grow_state[ui] = 0;
+                grow[ui]       = 1;
+                break;
 
-        case  0:
-            audio_play(AUD_GROW, 1.f);
-            grow_goal[ui]  = grow_orig[ui] * GROW_BIG;
-            grow_state[ui] = +1;
-            grow[ui]       = 1;
-            break;
+            case  0:
+                audio_play(AUD_GROW, 1.f);
+                grow_goal[ui]  = grow_orig[ui] * GROW_BIG;
+                grow_state[ui] = +1;
+                grow[ui]       = 1;
+                break;
 
-        case +1:
-            audio_play(AUD_GROW, 1.f);
-            grow_goal[ui]  = grow_orig[ui] * GROW_XL;
-            grow_state[ui] = +2;
-            grow[ui]       = 1;
-            break;
+            case +1:
+                audio_play(AUD_GROW, 1.f);
+                grow_goal[ui]  = grow_orig[ui] * GROW_XL;
+                grow_state[ui] = +2;
+                grow[ui]       = 1;
+                break;
 
-        case +2:
-            break;
+            case +2:
+                break;
         }
     }
 
@@ -656,9 +656,9 @@ int game_server_init(const char *file_name, int t, int e)
     if (t > 0
      && (
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-         !campaign_used()
+         !campaign_used() &&
 #endif
-      && curr_mode() != MODE_BOOST_RUSH && curr_mode() != MODE_ZEN))
+        curr_mode() != MODE_BOOST_RUSH && curr_mode() != MODE_ZEN))
         mayhem_time = (int) t * 0.75f;
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -681,9 +681,9 @@ int game_server_init(const char *file_name, int t, int e)
 
     if ((
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        campaign_used()
+        campaign_used() ||
 #endif
-      || curr_mode() == MODE_BOOST_RUSH || curr_mode() == MODE_ZEN)
+         curr_mode() == MODE_BOOST_RUSH || curr_mode() == MODE_ZEN)
 #ifdef MAPC_INCLUDES_CHKP
         && !last_active
 #endif
@@ -928,21 +928,21 @@ int game_server_init(const char *file_name, int t, int e)
 
             switch (grow_state[ui])
             {
-            case -2:
-                vary.uv[ui].r = vary.base->uv[ui].r * GROW_XS;
-                break;
-            case -1:
-                vary.uv[ui].r = vary.base->uv[ui].r * GROW_SMALL;
-                break;
-            case 0:
-                vary.uv[ui].r = vary.base->uv[ui].r;
-                break;
-            case +1:
-                vary.uv[ui].r = vary.base->uv[ui].r * GROW_BIG;
-                break;
-            case +2:
-                vary.uv[ui].r = vary.base->uv[ui].r * GROW_XL;
-                break;
+                case -2:
+                    vary.uv[ui].r = vary.base->uv[ui].r * GROW_XS;
+                    break;
+                case -1:
+                    vary.uv[ui].r = vary.base->uv[ui].r * GROW_SMALL;
+                    break;
+                case 0:
+                    vary.uv[ui].r = vary.base->uv[ui].r;
+                    break;
+                case +1:
+                    vary.uv[ui].r = vary.base->uv[ui].r * GROW_BIG;
+                    break;
+                case +2:
+                    vary.uv[ui].r = vary.base->uv[ui].r * GROW_XL;
+                    break;
             }
 
             game_view_fly(&view, &vary, ui, 0.0f);
@@ -1118,7 +1118,7 @@ void game_update_view(float dt)
 #pragma region Manual or Chase camera
             float dc = multiview1.dc * (jump_b > 0 ?
                                         2.0f * fabsf(jump_dt - 0.5f) : 1.0f);
-            float da = input_get_r() * dt * 90.0f;
+            float da = (input_get_r() * dt * 90.0f) * (config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? -1 : 1);
             float k;
 
             float M[16], v[3], Y[3] = { 0.0f, 1.0f, 0.0f };
@@ -1358,12 +1358,12 @@ static int game_update_state(int bt)
     float vy = vary.uv[CURR_PLAYER].v[1];
     float vz = vary.uv[CURR_PLAYER].v[2];
 
-    if (vary.uv[CURR_PLAYER].p[0] < game_base.uv[CURR_PLAYER].p[0] - 0.01f ||
-        vary.uv[CURR_PLAYER].p[0] > game_base.uv[CURR_PLAYER].p[0] + 0.01f ||
-        vary.uv[CURR_PLAYER].p[1] < game_base.uv[CURR_PLAYER].p[1] - 0.03f ||
-        vary.uv[CURR_PLAYER].p[1] > game_base.uv[CURR_PLAYER].p[1] + 0.01f ||
-        vary.uv[CURR_PLAYER].p[2] < game_base.uv[CURR_PLAYER].p[2] - 0.01f ||
-        vary.uv[CURR_PLAYER].p[2] > game_base.uv[CURR_PLAYER].p[2] + 0.01f)
+    if (vary.uv[CURR_PLAYER].p[0] < game_base.uv[CURR_PLAYER].p[0] - .01f ||
+        vary.uv[CURR_PLAYER].p[0] > game_base.uv[CURR_PLAYER].p[0] + .01f ||
+        vary.uv[CURR_PLAYER].p[1] < game_base.uv[CURR_PLAYER].p[1] - .25f ||
+        vary.uv[CURR_PLAYER].p[1] > game_base.uv[CURR_PLAYER].p[1] + .01f ||
+        vary.uv[CURR_PLAYER].p[2] < game_base.uv[CURR_PLAYER].p[2] - .01f ||
+        vary.uv[CURR_PLAYER].p[2] > game_base.uv[CURR_PLAYER].p[2] + .01f)
         timer_hold = 0;
 
     /* Cannot update state in home room. */

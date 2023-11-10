@@ -26,6 +26,14 @@
 #include "fs_png.h"
 #include "fs_jpg.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 void image_size(int *W, int *H, int w, int h)
@@ -101,12 +109,12 @@ static void *image_load_png(const char *filename, int *width,
 
         switch (png_get_color_type(readp, infop))
         {
-        case PNG_COLOR_TYPE_GRAY:       b = 1; break;
-        case PNG_COLOR_TYPE_GRAY_ALPHA: b = 2; break;
-        case PNG_COLOR_TYPE_RGB:        b = 3; break;
-        case PNG_COLOR_TYPE_RGB_ALPHA:  b = 4; break;
+            case PNG_COLOR_TYPE_GRAY:       b = 1; break;
+            case PNG_COLOR_TYPE_GRAY_ALPHA: b = 2; break;
+            case PNG_COLOR_TYPE_RGB:        b = 3; break;
+            case PNG_COLOR_TYPE_RGB_ALPHA:  b = 4; break;
 
-        default: longjmp(png_jmpbuf(readp), -1);
+            default: longjmp(png_jmpbuf(readp), -1);
         }
 
         if (!(bytep = png_malloc(readp, h * sizeof (png_bytep))))

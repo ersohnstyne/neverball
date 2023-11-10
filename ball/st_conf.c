@@ -105,7 +105,7 @@ static int conf_check_playername(const char *regname)
         }
     }
 
-    return 1;
+    return text_length(config_get_s(CONFIG_PLAYER)) >= 3;
 }
 
 static void conf_shared_exit(int id)
@@ -165,7 +165,7 @@ int goto_conf_covid_extend(struct state *returnable)
 
 void conf_covid_retract(void)
 {
-    conf_covid_extended = -1;
+    conf_covid_extended = 0;
 
     if (config_get_d(CONFIG_ACCOUNT_SAVE) > 2)
         config_set_d(CONFIG_ACCOUNT_SAVE, 2);
@@ -181,30 +181,30 @@ static int conf_covid_extend_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        conf_covid_extended = 0;
+        case GUI_BACK:
+            conf_covid_extended = 0;
 
-        if (config_get_d(CONFIG_ACCOUNT_SAVE) > 2)
-            config_set_d(CONFIG_ACCOUNT_SAVE, 2);
-        if (config_get_d(CONFIG_ACCOUNT_LOAD) > 2)
-            config_set_d(CONFIG_ACCOUNT_LOAD, 2);
+            if (config_get_d(CONFIG_ACCOUNT_SAVE) > 2)
+                config_set_d(CONFIG_ACCOUNT_SAVE, 2);
+            if (config_get_d(CONFIG_ACCOUNT_LOAD) > 2)
+                config_set_d(CONFIG_ACCOUNT_LOAD, 2);
 
-        config_save();
+            config_save();
 
-        goto_state(returnstate);
-        break;
-    case GUI_NEXT:
-        if (conf_covid_extend_method == 2)
-        {
-            conf_covid_extended = 1;
             goto_state(returnstate);
-        }
-        else
-        {
-            conf_covid_extend_method++;
-            goto_state(&st_conf_covid_extend);
-        }
-        break;
+            break;
+        case GUI_NEXT:
+            if (conf_covid_extend_method == 2)
+            {
+                conf_covid_extended = 1;
+                goto_state(returnstate);
+            }
+            else
+            {
+                conf_covid_extend_method++;
+                goto_state(&st_conf_covid_extend);
+            }
+            break;
     }
 
     return 1;
@@ -223,7 +223,7 @@ static int conf_covid_extend_gui(void)
             gui_multi(id, _("To use campaign, check your real vaccine\\"
                             "certificates with valid date\\"
                             "to switch off the replay filters!"),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
             gui_space(id);
         }
         else
@@ -232,7 +232,7 @@ static int conf_covid_extend_gui(void)
             gui_space(id);
             gui_multi(id, _("To use campaign, FFP-2 masks are required\\"
                             "to switch off the replay filters!"),
-                          GUI_SML, gui_wht, gui_wht);
+                          GUI_SML, GUI_COLOR_WHT);
             gui_space(id);
         }
 
@@ -270,7 +270,7 @@ static int conf_covid_extend_enter(struct state *st, struct state *prev)
     _("You can't change save filters\\during the game.")
 
 #define CONF_ACCOUNT_DEMO_LOCKED_DESC_INTRODUCTIVE \
-    _("Some filters restricts replays.\\Locked level status: %s")
+    _("Filters restricts some replays.\\Locked level status: %s")
 
 #define CONF_ACCOUNT_DEMO_LOCKED_DESC_HARDLOCK \
     _("Replays have locked down until\\the next future update.")
@@ -302,7 +302,6 @@ enum
     CONF_ACCOUNT_SIGNOUT,
     CONF_ACCOUNT_COVID_EXTEND,
     CONF_ACCOUNT_AUTOUPDATE,
-    CONF_ACCOUNT_MAYHEM,
     CONF_ACCOUNT_TUTORIAL,
     CONF_ACCOUNT_HINT,
     CONF_ACCOUNT_PLAYER,
@@ -320,169 +319,163 @@ static int conf_account_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        goto_state(&st_conf);
-        break;
+        case GUI_BACK:
+            goto_state(&st_conf);
+            break;
 
 #ifdef ENABLE_SQL
-    case CONF_ACCOUNT_SIGNIN:
-        goto_signin(&st_conf_account, &st_conf_account, 1);
-        break;
+        case CONF_ACCOUNT_SIGNIN:
+            goto_signin(&st_conf_account, &st_conf_account, 1);
+            break;
 #endif
 
-    case CONF_ACCOUNT_COVID_EXTEND:
-        goto_conf_covid_extend(&st_conf_account);
-        break;
+        case CONF_ACCOUNT_COVID_EXTEND:
+            goto_conf_covid_extend(&st_conf_account);
+            break;
 
-    case CONF_ACCOUNT_SIGNOUT:
-        break;
+        case CONF_ACCOUNT_SIGNOUT:
+            break;
 
-    case CONF_ACCOUNT_AUTOUPDATE:
-        break;
+        case CONF_ACCOUNT_AUTOUPDATE:
+            break;
 
-    /*case CONF_ACCOUNT_MAYHEM:
-        config_set_d(CONFIG_ACCOUNT_MAYHEM, val);
-        goto_state(&st_conf_account);
-        config_save();
-        break;*/
+        case CONF_ACCOUNT_TUTORIAL:
+            config_set_d(CONFIG_ACCOUNT_TUTORIAL, val);
+            goto_state_full(&st_conf_account, 0, 0, 1);
+            config_save();
+            break;
 
-    case CONF_ACCOUNT_TUTORIAL:
-        config_set_d(CONFIG_ACCOUNT_TUTORIAL, val);
-        goto_state_full(&st_conf_account, 0, 0, 1);
-        config_save();
-        break;
-
-    case CONF_ACCOUNT_HINT:
-        config_set_d(CONFIG_ACCOUNT_HINT, val);
-        goto_state_full(&st_conf_account, 0, 0, 1);
-        config_save();
-        break;
+        case CONF_ACCOUNT_HINT:
+            config_set_d(CONFIG_ACCOUNT_HINT, val);
+            goto_state_full(&st_conf_account, 0, 0, 1);
+            config_save();
+            break;
 
     case CONF_ACCOUNT_PLAYER:
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        goto_shop_rename(&st_conf_account, &st_conf_account, 1);
+            goto_shop_rename(&st_conf_account, &st_conf_account, 1);
 #else
-        goto_name(&st_conf_account, &st_conf_account, 0, 0, 1);
+            goto_name(&st_conf_account, &st_conf_account, 0, 0, 1);
 #endif
         break;
 
 #if NB_HAVE_PB_BOTH==1
-    case CONF_ACCOUNT_BALL:
-        if (fs_exists("gui/ball.sol") && fs_exists("gui/ball.nbr"))
-        {
-            game_fade(+6.0f);
-            goto_state(&st_ball);
-        }
-        break;
+        case CONF_ACCOUNT_BALL:
+            if (fs_exists("gui/ball.sol") && fs_exists("gui/ball.nbr"))
+            {
+                game_fade(+6.0f);
+                goto_state(&st_ball);
+            }
+            break;
 
-    case CONF_ACCOUNT_BEAM:
-        if (fs_exists("gui/beam-style.sol"))
-        {
-            game_fade(+6.0f);
-            goto_state(&st_beam_style);
-        }
-        break;
+        case CONF_ACCOUNT_BEAM:
+            if (fs_exists("gui/beam-style.sol"))
+            {
+                game_fade(+6.0f);
+                goto_state(&st_beam_style);
+            }
+            break;
 #endif
 
-    case CONF_ACCOUNT_SAVE:
+        case CONF_ACCOUNT_SAVE:
 #ifndef DEMO_QUARANTINED_MODE
-        if (config_get_d(CONFIG_ACCOUNT_SAVE) == 3)
-        {
-            gui_set_label(save_id, _("Off"));
+            if (config_get_d(CONFIG_ACCOUNT_SAVE) == 3)
+            {
+                gui_set_label(save_id, _("Off"));
             config_set_d(CONFIG_ACCOUNT_SAVE, 0);
-        }
-        else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 2)
-        {
-            gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3);
-            config_set_d(CONFIG_ACCOUNT_SAVE, 3);
-        }
-        else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 1)
-        {
-            gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
-            config_set_d(CONFIG_ACCOUNT_SAVE, 2);
-        }
-        else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 0)
-        {
-            gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1);
-            config_set_d(CONFIG_ACCOUNT_SAVE, 1);
-        }
-#else
-        if (config_get_d(CONFIG_ACCOUNT_SAVE) == 3)
-        {
-            gui_set_label(save_id, _("Off"));
-            config_set_d(CONFIG_ACCOUNT_SAVE, 0);
-        }
-        else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 2)
-        {
-            if (conf_covid_extended)
+            }
+            else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 2)
             {
                 gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3);
                 config_set_d(CONFIG_ACCOUNT_SAVE, 3);
             }
-            else
+            else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 1)
+            {
+                gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
+                config_set_d(CONFIG_ACCOUNT_SAVE, 2);
+            }
+            else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 0)
+            {
+                gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1);
+                config_set_d(CONFIG_ACCOUNT_SAVE, 1);
+            }
+#else
+            if (config_get_d(CONFIG_ACCOUNT_SAVE) == 3)
             {
                 gui_set_label(save_id, _("Off"));
                 config_set_d(CONFIG_ACCOUNT_SAVE, 0);
             }
-        }
-        else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 1)
-        {
-            gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
-            config_set_d(CONFIG_ACCOUNT_SAVE, 2);
-        }
-        else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 0)
-        {
-            gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1);
-            config_set_d(CONFIG_ACCOUNT_SAVE, 1);
-        }
-#endif
-        config_save();
-        break;
-
-    case CONF_ACCOUNT_LOAD:
-#ifndef DEMO_QUARANTINED_MODE
-        if (config_get_d(CONFIG_ACCOUNT_LOAD) == 3)
-        {
-            gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1);
-            config_set_d(CONFIG_ACCOUNT_LOAD, 1);
-        }
-        else if (config_get_d(CONFIG_ACCOUNT_LOAD) == 1)
-        {
-            gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
-            config_set_d(CONFIG_ACCOUNT_LOAD, 2);
-        }
-        else if (config_get_d(CONFIG_ACCOUNT_LOAD) == 2)
-        {
-            gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3);
-            config_set_d(CONFIG_ACCOUNT_LOAD, 3);
-        }
-#else
-        if (config_get_d(CONFIG_ACCOUNT_LOAD) == 3)
-        {
-            gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1);
-            config_set_d(CONFIG_ACCOUNT_LOAD, 1);
-        }
-        else if (config_get_d(CONFIG_ACCOUNT_LOAD) == 1)
-        {
-            gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
-            config_set_d(CONFIG_ACCOUNT_LOAD, 2);
-        }
-        else if (config_get_d(CONFIG_ACCOUNT_LOAD) == 2)
-        {
-            if (conf_covid_extended)
+            else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 2)
             {
-                gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3);
-                config_set_d(CONFIG_ACCOUNT_LOAD, 3);
+                if (conf_covid_extended)
+                {
+                    gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3);
+                    config_set_d(CONFIG_ACCOUNT_SAVE, 3);
+                }
+                else
+                {
+                    gui_set_label(save_id, _("Off"));
+                    config_set_d(CONFIG_ACCOUNT_SAVE, 0);
+                }
             }
-            else if (config_get_d(CONFIG_ACCOUNT_SAVE) <= 1)
+            else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 1)
+            {
+                gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
+                config_set_d(CONFIG_ACCOUNT_SAVE, 2);
+            }
+            else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 0)
+            {
+                gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1);
+                config_set_d(CONFIG_ACCOUNT_SAVE, 1);
+            }
+#endif
+            config_save();
+            break;
+
+        case CONF_ACCOUNT_LOAD:
+#ifndef DEMO_QUARANTINED_MODE
+            if (config_get_d(CONFIG_ACCOUNT_LOAD) == 3)
             {
                 gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1);
                 config_set_d(CONFIG_ACCOUNT_LOAD, 1);
             }
-        }
+            else if (config_get_d(CONFIG_ACCOUNT_LOAD) == 1)
+            {
+                gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
+                config_set_d(CONFIG_ACCOUNT_LOAD, 2);
+            }
+            else if (config_get_d(CONFIG_ACCOUNT_LOAD) == 2)
+            {
+                gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3);
+                config_set_d(CONFIG_ACCOUNT_LOAD, 3);
+            }
+#else
+            if (config_get_d(CONFIG_ACCOUNT_LOAD) == 3)
+            {
+                gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1);
+                config_set_d(CONFIG_ACCOUNT_LOAD, 1);
+            }
+            else if (config_get_d(CONFIG_ACCOUNT_LOAD) == 1)
+            {
+                gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
+                config_set_d(CONFIG_ACCOUNT_LOAD, 2);
+            }
+            else if (config_get_d(CONFIG_ACCOUNT_LOAD) == 2)
+            {
+                if (conf_covid_extended)
+                {
+                    gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3);
+                    config_set_d(CONFIG_ACCOUNT_LOAD, 3);
+                }
+                else if (config_get_d(CONFIG_ACCOUNT_SAVE) <= 1)
+                {
+                    gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1);
+                    config_set_d(CONFIG_ACCOUNT_LOAD, 1);
+                }
+            }
 #endif
-        config_save();
-        break;
+            config_save();
+            break;
     }
 
     return 1;
@@ -503,12 +496,12 @@ static int conf_account_gui(void)
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
         const char *ball;
         switch (ball_multi_curr()) {
-        case 0:  ball = account_get_s(ACCOUNT_BALL_FILE_LL); break;
-        case 1:  ball = account_get_s(ACCOUNT_BALL_FILE_L); break;
-        case 2:  ball = account_get_s(ACCOUNT_BALL_FILE_C); break;
-        case 3:  ball = account_get_s(ACCOUNT_BALL_FILE_R); break;
-        case 4:  ball = account_get_s(ACCOUNT_BALL_FILE_RR); break;
-        default: ball = account_get_s(ACCOUNT_BALL_FILE_C);
+            case 0:  ball = account_get_s(ACCOUNT_BALL_FILE_LL); break;
+            case 1:  ball = account_get_s(ACCOUNT_BALL_FILE_L);  break;
+            case 2:  ball = account_get_s(ACCOUNT_BALL_FILE_C);  break;
+            case 3:  ball = account_get_s(ACCOUNT_BALL_FILE_R);  break;
+            case 4:  ball = account_get_s(ACCOUNT_BALL_FILE_RR); break;
+            default: ball = account_get_s(ACCOUNT_BALL_FILE_C);
         }
 
         account_set_s(ACCOUNT_BALL_FILE, ball);
@@ -536,20 +529,20 @@ static int conf_account_gui(void)
         if (!ingame_demo && !mainmenu_conf)
         {
             gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_DESC_INGAME,
-                          GUI_SML, gui_red, gui_red);
+                          GUI_SML, GUI_COLOR_RED);
             gui_space(id);
         }
         else
         {
 #ifdef COVID_HIGH_RISK
             time_remain_lbl_id = gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_HIGHRISK_DESC,
-                                               GUI_SML, gui_red, gui_red);
+                                               GUI_SML, GUI_COLOR_RED);
             gui_space(id);
 #else
 #ifdef DEMO_QUARANTINED_MODE
 #ifdef DEMO_LOCKDOWN_COMPLETE
             time_remain_lbl_id = gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_DESC_HARDLOCK,
-                                               GUI_SML, gui_red, gui_red);
+                                               GUI_SML, GUI_COLOR_RED);
             gui_space(id);
 #else
             /* Lockdown duration time. DO NOT EDIT!*/
@@ -566,20 +559,19 @@ static int conf_account_gui(void)
                 char filter_introductive_attr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s
+                sprintf_s(filter_introductive_attr, MAXSTR,
 #else
-                sprintf
+                sprintf(filter_introductive_attr,
 #endif
-                       (filter_introductive_attr,
                         CONF_ACCOUNT_DEMO_LOCKED_DESC_INTRODUCTIVE,
                         _(status_to_str(3)));
 
                 time_remain_lbl_id = gui_multi(id,
                                                "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\"
                                                "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-                                               GUI_SML, gui_red, gui_red);
+                                               GUI_SML, GUI_COLOR_RED);
 
-                if (conf_covid_extended == 0)
+                if (conf_covid_extended == 0 && !nolockdown)
                 {
                     gui_space(id);
                     gui_state(id, _("Request Lift"),
@@ -590,10 +582,10 @@ static int conf_account_gui(void)
             }
             else if (CHECK_ACCOUNT_ENABLED)
                 gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_DESC_NIGHT,
-                              GUI_SML, gui_red, gui_red);
+                              GUI_SML, GUI_COLOR_RED);
             else
                 gui_multi(id, CONF_ACCOUNT_DEMO_LOCKED_DESC_EXTREME_CASES,
-                              GUI_SML, gui_red, gui_red);
+                              GUI_SML, GUI_COLOR_RED);
 #endif
 
             gui_space(id);
@@ -613,11 +605,6 @@ static int conf_account_gui(void)
         }
         gui_space(id);
 #endif
-
-        //conf_toggle(id, _("Mayhem"), CONF_ACCOUNT_MAYHEM,
-            //config_get_d(CONFIG_ACCOUNT_MAYHEM), _("On"), 1, _("Off"), 0);
-
-        //gui_space(id);
 
         if (mainmenu_conf)
         {
@@ -666,7 +653,7 @@ static int conf_account_gui(void)
                  */
 
                 gui_set_state(name_id, GUI_NONE, 0);
-                gui_set_color(name_id, gui_gry, gui_gry);
+                gui_set_color(name_id, GUI_COLOR_GRY);
             }
 #endif
 
@@ -684,18 +671,18 @@ static int conf_account_gui(void)
 #ifdef CONFIG_INCLUDES_ACCOUNT
             switch (config_get_d(CONFIG_ACCOUNT_BEAM_STYLE))
             {
-            case 0:
-                beam_version_name = "Remastered (1.7)";
-                break;
-            case 1:
-                beam_version_name = "Standard (1.6.0)";
-                break;
-            case 2:
-                beam_version_name = "Standard (1.5.4)";
-                break;
-            case 3:
-                beam_version_name = "Standard (1.5.3)";
-                break;
+                case 0:
+                    beam_version_name = "Remastered (1.7)";
+                    break;
+                case 1:
+                    beam_version_name = "Standard (1.6.0)";
+                    break;
+                case 2:
+                    beam_version_name = "Standard (1.5.4)";
+                    break;
+                case 3:
+                    beam_version_name = "Standard (1.5.3)";
+                    break;
             }
 #endif
 
@@ -734,7 +721,7 @@ static int conf_account_gui(void)
                              CONF_ACCOUNT_LOAD);
 
         if (!ingame_demo && !mainmenu_conf)
-            gui_set_color(save_id, gui_gry, gui_gry);
+            gui_set_color(save_id, GUI_COLOR_GRY);
 
         gui_set_trunc(save_id, TRUNC_TAIL);
         gui_set_trunc(load_id, TRUNC_TAIL);
@@ -796,14 +783,14 @@ static void conf_account_timer(int id, float dt)
     }
     else if (conf_covid_extended != 0 && !nolockdown)
     {
-        conf_covid_extended = 0;
-
-        if (config_get_d(CONFIG_ACCOUNT_SAVE) > 2)
+        if (config_get_d(CONFIG_ACCOUNT_SAVE) > 2 && save_id && load_id)
         {
             gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
-            config_set_d(CONFIG_ACCOUNT_SAVE, 2);
-            config_save();
+            gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
         }
+
+        conf_covid_retract();
+        config_save();
 
         if (time_remain_lbl_id != 0)
             gui_set_multi(time_remain_lbl_id,
@@ -828,51 +815,51 @@ static int conf_social_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        conf_join_confirm = 0;
-        return goto_state(&st_conf);
-        break;
-    case CONF_SOCIAL_DISCORD:
+        case GUI_BACK:
+            conf_join_confirm = 0;
+            return goto_state(&st_conf);
+            break;
+        case CONF_SOCIAL_DISCORD:
 #if NB_HAVE_PB_BOTH==1
-        if (conf_join_confirm)
+            if (conf_join_confirm)
 #endif
-        {
+            {
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ Neverball.doJoinDiscord() }, 0);
+                EM_ASM({ Neverball.doJoinDiscord() }, 0);
 #else
 #if NB_HAVE_PB_BOTH==1
-            SAFECPY(linkstr_code, "qnJR263Hm2");
+                SAFECPY(linkstr_code, "qnJR263Hm2");
 #else
-            SAFECPY(linkstr_code, "HhMfr4N6H6");
+                SAFECPY(linkstr_code, "HhMfr4N6H6");
 #endif
 
 #if _WIN32
-            SAFECPY(linkstr_cmd, "start msedge https://discord.gg/");
+                SAFECPY(linkstr_cmd, "start msedge https://discord.gg/");
 #elif defined(__APPLE__)
-            SAFECPY(linkstr_cmd, "open https://discord.gg/");
+                SAFECPY(linkstr_cmd, "open https://discord.gg/");
 #elif defined(__linux__)
-            SAFECPY(linkstr_cmd, "x-www-browser https://discord.gg/");
+                SAFECPY(linkstr_cmd, "x-www-browser https://discord.gg/");
 #endif
 
-            SAFECAT(linkstr_cmd, linkstr_code);
+                SAFECAT(linkstr_cmd, linkstr_code);
 
-            system(linkstr_cmd);
+                system(linkstr_cmd);
 #endif
 
-            if (mainmenu_conf)
-            {
-                goto_state(&st_null);
-                return 0; /* bye! */
+                if (mainmenu_conf)
+                {
+                    goto_state(&st_null);
+                    return 0; /* bye! */
+                }
             }
-        }
 #if NB_HAVE_PB_BOTH==1
-        else
-        {
-            conf_join_confirm = 1;
-            goto_state(curr_state());
-        }
+            else
+            {
+                conf_join_confirm = 1;
+                goto_state(curr_state());
+            }
 #endif
-        break;
+            break;
     }
     return 1;
 }
@@ -900,18 +887,18 @@ static int conf_social_gui(void)
                                 "- Use powerups in Challenge mode\\"
                                 "- Adds your checkpoints from map compiler\\"
                                 "- Share any levels from MAPC for PB\\"),
-                              GUI_SML, gui_wht, gui_wht);
+                              GUI_SML, GUI_COLOR_WHT);
 #else
                 gui_multi(jd, _("- Access all Discord public channels\\"
                                 "- Share any levels from MAPC for NB\\"),
-                              GUI_SML, gui_wht, gui_wht);
+                              GUI_SML, GUI_COLOR_WHT);
 #endif
             }
             else
                 gui_multi(jd, _("Please make sure that you've verified the\\"
                                 "new members after joined, before send community messages,\\"
                                 "connect voice chats and watch streaming."),
-                              GUI_SML, gui_wht, gui_wht);
+                              GUI_SML, GUI_COLOR_WHT);
 
 #if NB_HAVE_PB_BOTH==1
             if (mainmenu_conf && conf_join_confirm)
@@ -1090,55 +1077,57 @@ static int conf_control_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        goto_state(&st_null);
-        goto_state(&st_conf);
-        break;
+        case GUI_BACK:
+            goto_state(&st_null);
+            goto_state(&st_conf);
+            break;
 
-    case CONF_CONTROL_INPUT_PRESET:
-        control_set_input();
-        config_save();
-        break;
+        case CONF_CONTROL_INPUT_PRESET:
+            control_set_input();
+            config_save();
+            break;
 
-    case CONF_CONTROL_TILTING_FLOOR:
-        config_set_d(CONFIG_TILTING_FLOOR, val);
-        config_save();
-        goto_state_full(&st_conf_control, 0, 0, 1);
-        break;
+        case CONF_CONTROL_TILTING_FLOOR:
+            config_set_d(CONFIG_TILTING_FLOOR, val);
+            config_save();
+            goto_state_full(&st_conf_control, 0, 0, 1);
+            break;
 
-    case CONF_CONTROL_CAMERA_ROTATE_MODE:
-        config_tgl_d(CONFIG_CAMERA_ROTATE_MODE);
-        gui_set_label(camrot_mode_id,
-                      config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
-                      _("Inverted") : _("Normal"));
-        break;
+        case CONF_CONTROL_CAMERA_ROTATE_MODE:
+#ifdef SWITCHBALL_GUI
+            config_tgl_d(CONFIG_CAMERA_ROTATE_MODE);
+            gui_set_label(camrot_mode_id,
+                          config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
+                          _("Inverted") : _("Normal"));
+#endif
+            break;
 
-    case CONF_CONTROL_MOUSE_SENSE:
-        config_set_d(CONFIG_MOUSE_SENSE, MOUSE_RANGE_UNMAP(val));
+        case CONF_CONTROL_MOUSE_SENSE:
+            config_set_d(CONFIG_MOUSE_SENSE, MOUSE_RANGE_UNMAP(val));
 
 #ifdef SWITCHBALL_GUI
-        conf_set_slider_v2(mouse_id, val);
-        goto_state_full(curr_state(), 0, 0, 1);
+            conf_set_slider_v2(mouse_id, val);
+            goto_state_full(curr_state(), 0, 0, 1);
 #else
-        gui_toggle(mouse_id[val]);
-        gui_toggle(mouse_id[mouse]);
+            gui_toggle(mouse_id[val]);
+            gui_toggle(mouse_id[mouse]);
 #endif
-        config_save();
+            config_save();
+            break;
+
+        case CONF_CONTROL_INVERT_MOUSE_Y:
+            config_set_d(CONFIG_MOUSE_INVERT, val);
+            config_save();
+            goto_state_full(&st_conf_control, 0, 0, 1);
         break;
 
-    case CONF_CONTROL_INVERT_MOUSE_Y:
-        config_set_d(CONFIG_MOUSE_INVERT, val);
-        config_save();
-        goto_state_full(&st_conf_control, 0, 0, 1);
-        break;
+        case CONF_CONTROL_CHANGECONTROLLERS:
+            goto_state(&st_conf_controllers);
+            break;
 
-    case CONF_CONTROL_CHANGECONTROLLERS:
-        goto_state(&st_conf_controllers);
-        break;
-
-    case CONF_CONTROL_CALIBRATE:
-        goto_state(&st_conf_calibrate);
-        break;
+        case CONF_CONTROL_CALIBRATE:
+            goto_state(&st_conf_calibrate);
+            break;
     }
 
     return 1;
@@ -1163,18 +1152,18 @@ int conf_control_gui(void)
 
         switch (control_get_input())
         {
-        case CONTROL_NEVERBALL:
-            key_preset_id = control_get_input();
-            presetname = "Neverball";
-            break;
-        case CONTROL_SWITCHBALL_V1:
-            key_preset_id = control_get_input();
-            presetname = "Switchball";
-            break;
-        case CONTROL_SWITCHBALL_V2:
-            key_preset_id = control_get_input();
-            presetname = "Switchball HD";
-            break;
+            case CONTROL_NEVERBALL:
+                key_preset_id = control_get_input();
+                presetname = "Neverball";
+                break;
+            case CONTROL_SWITCHBALL_V1:
+                key_preset_id = control_get_input();
+                presetname = "Switchball";
+                break;
+            case CONTROL_SWITCHBALL_V2:
+                key_preset_id = control_get_input();
+                presetname = "Switchball HD";
+                break;
         }
 
         gui_set_label(preset_id, presetname);
@@ -1512,25 +1501,25 @@ static int conf_controllers_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        if (conf_controllers_modal)
+        case GUI_BACK:
+            if (conf_controllers_modal)
             conf_controllers_modal = 0;
-        else
-        {
-            goto_state(conf_controllers_back);
-            while (curr_state() != conf_controllers_back)
+            else
             {
                 goto_state(conf_controllers_back);
-                conf_controllers_back = NULL;
+                while (curr_state() != conf_controllers_back)
+                {
+                    goto_state(conf_controllers_back);
+                    conf_controllers_back = NULL;
+                }
             }
-        }
-        break;
+            break;
 
-    case CONF_CONTROLLERS_ASSIGN_BUTTON:
-    case CONF_CONTROLLERS_ASSIGN_AXIS:
-        conf_controllers_modal = tok;
-        conf_controllers_option_index = val;
-        break;
+        case CONF_CONTROLLERS_ASSIGN_BUTTON:
+        case CONF_CONTROLLERS_ASSIGN_AXIS:
+            conf_controllers_modal = tok;
+            conf_controllers_option_index = val;
+            break;
     }
 
     return 1;
@@ -1604,7 +1593,7 @@ static int conf_controllers_modal_button_gui(void)
 {
     int id;
 
-    if ((id = gui_label(0, _("Press a button..."), GUI_MED, gui_wht, gui_wht)))
+    if ((id = gui_label(0, _("Press a button..."), GUI_MED, GUI_COLOR_WHT)))
         gui_layout(id, 0, 0);
 
     return id;
@@ -1614,7 +1603,7 @@ static int conf_controllers_modal_axis_gui(void)
 {
     int id;
 
-    if ((id = gui_label(0, _("Move a stick..."), GUI_MED, gui_wht, gui_wht)))
+    if ((id = gui_label(0, _("Move a stick..."), GUI_MED, GUI_COLOR_WHT)))
         gui_layout(id, 0, 0);
 
     return id;
@@ -1765,24 +1754,24 @@ static int conf_calibrate_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        return goto_state(&st_conf_control);
-    case CONF_CONTROL_CALIBRATE:
-        if (calibrate_method == 2)
-        {
-            axis_offset[0]   = -calib_x0;
-            axis_offset[1]   = -calib_y0;
-            calibrate_method = 1;
-        }
-        else
-        {
-            axis_offset[2]   = -calib_x1;
-            axis_offset[3]   = -calib_y1;
-            calibrate_method = 2;
-        }
+        case GUI_BACK:
+            return goto_state(&st_conf_control);
+        case CONF_CONTROL_CALIBRATE:
+            if (calibrate_method == 2)
+            {
+                axis_offset[0]   = -calib_x0;
+                axis_offset[1]   = -calib_y0;
+                calibrate_method = 1;
+            }
+            else
+            {
+                axis_offset[2]   = -calib_x1;
+                axis_offset[3]   = -calib_y1;
+                calibrate_method = 2;
+            }
 
-        change_method();
-        break;
+            change_method();
+            break;
     }
 
     return 1;
@@ -1892,31 +1881,29 @@ static int conf_notification_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        goto_state(&st_conf);
-        while (curr_state() != &st_conf)
-        {
+        case GUI_BACK:
             goto_state(&st_conf);
-        }
+            while (curr_state() != &st_conf)
+                goto_state(&st_conf);
         break;
 
-    case CONF_NOTIFICATION_CHKP:
-        config_set_d(CONFIG_NOTIFICATION_CHKP, val);
-        goto_state_full(&st_conf_notification, 0, 0, 1);
-        config_save();
-        break;
+        case CONF_NOTIFICATION_CHKP:
+            config_set_d(CONFIG_NOTIFICATION_CHKP, val);
+            goto_state_full(&st_conf_notification, 0, 0, 1);
+            config_save();
+            break;
 
-    case CONF_NOTIFICATION_REWARD:
-        config_set_d(CONFIG_NOTIFICATION_REWARD, val);
-        goto_state_full(&st_conf_notification, 0, 0, 1);
-        config_save();
-        break;
+        case CONF_NOTIFICATION_REWARD:
+            config_set_d(CONFIG_NOTIFICATION_REWARD, val);
+            goto_state_full(&st_conf_notification, 0, 0, 1);
+            config_save();
+            break;
 
-    case CONF_NOTIFICATION_SHOP:
-        config_set_d(CONFIG_NOTIFICATION_SHOP, val);
-        goto_state_full(&st_conf_notification, 0, 0, 1);
-        config_save();
-        break;
+        case CONF_NOTIFICATION_SHOP:
+            config_set_d(CONFIG_NOTIFICATION_SHOP, val);
+            goto_state_full(&st_conf_notification, 0, 0, 1);
+            config_save();
+            break;
     }
 
     return 1;
@@ -1994,70 +1981,70 @@ static int conf_audio_action(int tok, int val)
     switch (tok)
     {
 #if NB_HAVE_PB_BOTH==1
-    case CONF_AUDIO_MASTER_VOLUME:
-        config_set_d(CONFIG_MASTER_VOLUME, val);
-        audio_volume(val, sound, music, narrator);
+        case CONF_AUDIO_MASTER_VOLUME:
+            config_set_d(CONFIG_MASTER_VOLUME, val);
+            audio_volume(val, sound, music, narrator);
 
 #ifdef SWITCHBALL_GUI
-        conf_set_slider_v2(master_id, val);
-        goto_state_full(curr_state(), 0, 0, 1);
+            conf_set_slider_v2(master_id, val);
+            goto_state_full(curr_state(), 0, 0, 1);
 #else
-        gui_toggle(master_id[val]);
-        gui_toggle(master_id[master]);
+            gui_toggle(master_id[val]);
+            gui_toggle(master_id[master]);
 #endif
-        config_save();
+            config_save();
 
-        break;
+            break;
 
-    case CONF_AUDIO_MUSIC_VOLUME:
-        config_set_d(CONFIG_MUSIC_VOLUME, val);
-        audio_volume(master, sound, val, narrator);
+        case CONF_AUDIO_MUSIC_VOLUME:
+            config_set_d(CONFIG_MUSIC_VOLUME, val);
+            audio_volume(master, sound, val, narrator);
 
 #ifdef SWITCHBALL_GUI
-        conf_set_slider_v2(music_id, val);
-        goto_state_full(curr_state(), 0, 0, 1);
+            conf_set_slider_v2(music_id, val);
+            goto_state_full(curr_state(), 0, 0, 1);
 #else
-        gui_toggle(music_id[val]);
-        gui_toggle(music_id[master]);
+            gui_toggle(music_id[val]);
+            gui_toggle(music_id[master]);
 #endif
-        config_save();
+            config_save();
 
-        break;
+            break;
 
-    case CONF_AUDIO_SOUND_VOLUME:
-        config_set_d(CONFIG_SOUND_VOLUME, val);
-        audio_volume(master, val, music, narrator);
-        audio_play(AUD_BUMPM, 1.f);
+        case CONF_AUDIO_SOUND_VOLUME:
+            config_set_d(CONFIG_SOUND_VOLUME, val);
+            audio_volume(master, val, music, narrator);
+            audio_play(AUD_BUMPM, 1.f);
 
 #ifdef SWITCHBALL_GUI
-        conf_set_slider_v2(sound_id, val);
-        goto_state_full(curr_state(), 0, 0, 1);
+            conf_set_slider_v2(sound_id, val);
+            goto_state_full(curr_state(), 0, 0, 1);
 #else
-        gui_toggle(sound_id[val]);
-        gui_toggle(sound_id[master]);
+            gui_toggle(sound_id[val]);
+            gui_toggle(sound_id[master]);
 #endif
-        config_save();
+            config_save();
 
-        break;
+            break;
 
-    case CONF_AUDIO_NARRATOR_VOLUME:
-        config_set_d(CONFIG_NARRATOR_VOLUME, val);
-        audio_volume(master, sound, music, val);
+        case CONF_AUDIO_NARRATOR_VOLUME:
+            config_set_d(CONFIG_NARRATOR_VOLUME, val);
+            audio_volume(master, sound, music, val);
 
 #ifdef SWITCHBALL_GUI
-        conf_set_slider_v2(narrator, val);
-        goto_state_full(curr_state(), 0, 0, 1);
+            conf_set_slider_v2(narrator, val);
+            goto_state_full(curr_state(), 0, 0, 1);
 #else
-        gui_toggle(narrator[val]);
-        gui_toggle(narrator[master]);
+            gui_toggle(narrator_id[val]);
+            gui_toggle(narrator_id[master]);
 #endif
-        config_save();
+            config_save();
 
-        break;
+            break;
 #endif
-    case GUI_BACK:
-        return goto_state(&st_conf);
-        break;
+        case GUI_BACK:
+            return goto_state(&st_conf);
+            break;
     }
 
     return 1;
@@ -2108,7 +2095,7 @@ static int conf_audio_gui(void)
         gui_multi(id, _("Switchball configurations\\"
                         "requires NB_HAVE_PB_BOTH\\"
                         "preprocessor definitions"),
-                      GUI_SML, gui_red, gui_red);
+                      GUI_SML, GUI_COLOR_RED);
 #endif
     }
     gui_layout(id, 0, 0);
@@ -2200,141 +2187,140 @@ static int conf_action(int tok, int val)
 
     switch (tok)
     {
-    case GUI_BACK:
-        if (mainmenu_conf)
-            game_fade(+6.0f);
+        case GUI_BACK:
+            if (mainmenu_conf)
+                game_fade(+6.0f);
 
-        goto_state(conf_back_state);
-        break;
+            goto_state(conf_back_state);
+            break;
 
 #if ENABLE_GAME_TRANSFER==1
 #if GAME_TRANSFER_TARGET==1
-    case CONF_SYSTEMTRANSFER_TARGET:
+        case CONF_SYSTEMTRANSFER_TARGET:
 #else
-    case CONF_SYSTEMTRANSFER_SOURCE:
-        transfer_add_dispatch_event(demo_transfer_request_addreplay_dispatch_event);
+        case CONF_SYSTEMTRANSFER_SOURCE:
+            transfer_add_dispatch_event(demo_transfer_request_addreplay_dispatch_event);
 #endif
-        goto_state(&st_transfer);
-        break;
+            goto_state(&st_transfer);
+            break;
 #endif
 
-    case CONF_SOCIAL:
-        goto_state(&st_conf_social);
-        break;
+        case CONF_SOCIAL:
+            goto_state(&st_conf_social);
+            break;
 
-    case CONF_MANAGE_ACCOUNT:
+        case CONF_MANAGE_ACCOUNT:
 #if NB_HAVE_PB_BOTH==1
-        if (text_length(config_get_s(CONFIG_PLAYER)) < 3 ||
-            !conf_check_playername(config_get_s(CONFIG_PLAYER)))
+            if (!conf_check_playername(config_get_s(CONFIG_PLAYER)))
+                goto_name(&st_conf_account, &st_conf, 0, 0, 1);
+            else
+                goto_state(&st_conf_account);
+#else
             goto_name(&st_conf_account, &st_conf, 0, 0, 1);
-        else
-            goto_state(&st_conf_account);
-#else
-        goto_name(&st_conf_account, &st_conf, 0, 0, 1);
 #endif
-        break;
+            break;
 
 #if NB_HAVE_PB_BOTH==1
-    case CONF_MANAGE_NOTIFICATIONS:
-        goto_state(&st_conf_notification);
-        break;
+        case CONF_MANAGE_NOTIFICATIONS:
+            goto_state(&st_conf_notification);
+            break;
 #endif
 
 #if NB_HAVE_PB_BOTH!=1
-    case CONF_PACKAGES:
+        case CONF_PACKAGES:
 #if ENABLE_FETCH
-        return goto_state(&st_package);
+            return goto_state(&st_package);
 #endif
-        break;
+            break;
 
-    case CONF_BALL:
-        // HACK: This avoids spamming stuff
-        if (fs_exists("gui/ball.sol") && fs_exists("gui/ball.nbr"))
-        {
-            game_fade(+6.0);
-            goto_state(&st_ball);
-        }
-        break;
+        case CONF_BALL:
+            // HACK: This avoids spamming stuff
+            if (fs_exists("gui/ball.sol") && fs_exists("gui/ball.nbr"))
+            {
+                game_fade(+6.0);
+                goto_state(&st_ball);
+            }
+            break;
 #endif
 
-    case CONF_CONTROLS:
-        goto_state(&st_conf_control);
-        break;
+        case CONF_CONTROLS:
+            goto_state(&st_conf_control);
+            break;
 
-    case CONF_VIDEO:
-        goto_state(&st_video);
-        break;
+        case CONF_VIDEO:
+            goto_state(&st_video);
+            break;
 
 #if NB_HAVE_PB_BOTH==1
-    case CONF_AUDIO:
-        goto_state(&st_conf_audio);
-        break;
+        case CONF_AUDIO:
+            goto_state(&st_conf_audio);
+            break;
 #else
-    case CONF_AUDIO_MASTER_VOLUME:
-        config_set_d(CONFIG_MASTER_VOLUME, val);
-        audio_volume(val, sound, music, narrator);
+        case CONF_AUDIO_MASTER_VOLUME:
+            config_set_d(CONFIG_MASTER_VOLUME, val);
+            audio_volume(val, sound, music, narrator);
 
 #ifdef SWITCHBALL_GUI
-        conf_set_slider_v2(master_id, val);
-        goto_state_full(curr_state(), 0, 0, 1);
+            conf_set_slider_v2(master_id, val);
+            goto_state_full(curr_state(), 0, 0, 1);
 #else
-        gui_toggle(master_id[val]);
-        gui_toggle(master_id[master]);
+            gui_toggle(master_id[val]);
+            gui_toggle(master_id[master]);
 #endif
-        config_save();
+            config_save();
 
-        break;
+            break;
 
-    case CONF_AUDIO_MUSIC_VOLUME:
-        config_set_d(CONFIG_MUSIC_VOLUME, val);
-        audio_volume(master, sound, val, narrator);
+        case CONF_AUDIO_MUSIC_VOLUME:
+            config_set_d(CONFIG_MUSIC_VOLUME, val);
+            audio_volume(master, sound, val, narrator);
 
 #ifdef SWITCHBALL_GUI
-        conf_set_slider_v2(music_id, val);
-        goto_state_full(curr_state(), 0, 0, 1);
+            conf_set_slider_v2(music_id, val);
+            goto_state_full(curr_state(), 0, 0, 1);
 #else
-        gui_toggle(music_id[val]);
-        gui_toggle(music_id[master]);
+            gui_toggle(music_id[val]);
+            gui_toggle(music_id[master]);
 #endif
-        config_save();
+            config_save();
 
-        break;
+            break;
 
-    case CONF_AUDIO_SOUND_VOLUME:
-        config_set_d(CONFIG_SOUND_VOLUME, val);
-        audio_volume(master, val, music, narrator);
-        audio_play(AUD_BUMPM, 1.f);
+        case CONF_AUDIO_SOUND_VOLUME:
+            config_set_d(CONFIG_SOUND_VOLUME, val);
+            audio_volume(master, val, music, narrator);
+            audio_play(AUD_BUMPM, 1.f);
 
 #ifdef SWITCHBALL_GUI
-        conf_set_slider_v2(sound_id, val);
-        goto_state_full(curr_state(), 0, 0, 1);
+            conf_set_slider_v2(sound_id, val);
+            goto_state_full(curr_state(), 0, 0, 1);
 #else
-        gui_toggle(sound_id[val]);
-        gui_toggle(sound_id[master]);
+            gui_toggle(sound_id[val]);
+            gui_toggle(sound_id[master]);
 #endif
-        config_save();
+            config_save();
 
-        break;
+            break;
 
-    case CONF_AUDIO_NARRATOR_VOLUME:
-        config_set_d(CONFIG_NARRATOR_VOLUME, val);
-        audio_volume(master, sound, music, val);
+        case CONF_AUDIO_NARRATOR_VOLUME:
+            config_set_d(CONFIG_NARRATOR_VOLUME, val);
+            audio_volume(master, sound, music, val);
 
 #ifdef SWITCHBALL_GUI
-        conf_set_slider_v2(narrator_id, val);
-        goto_state_full(curr_state(), 0, 0, 1);
+            conf_set_slider_v2(narrator_id, val);
+            goto_state_full(curr_state(), 0, 0, 1);
 #else
-        gui_toggle(narrator_id[val]);
-        gui_toggle(narrator_id[master]);
+            gui_toggle(narrator_id[val]);
+            gui_toggle(narrator_id[master]);
 #endif
-        config_save();
+            config_save();
 
-        break;
+            break;
 #endif
 
-    case CONF_LANGUAGE:
-        goto_state(&st_lang);
-        break;
+        case CONF_LANGUAGE:
+            goto_state(&st_lang);
+            break;
     }
 
     return r;
@@ -2378,16 +2364,15 @@ static int conf_gui(void)
             gui_space(id);
 
 #if NB_HAVE_PB_BOTH==1
-            conf_state(id, _("Account"), _((text_length(config_get_s(CONFIG_PLAYER)) < 3 ||
-                                            !conf_check_playername(config_get_s(CONFIG_PLAYER))) ?
+            conf_state(id, _("Account"), _(!conf_check_playername(config_get_s(CONFIG_PLAYER)) ?
                                            "Register" : "Manage"), CONF_MANAGE_ACCOUNT);
+
             conf_state(id, _("Notifications"), _("Manage"), CONF_MANAGE_NOTIFICATIONS);
 
-            gui_space(id);
+#if ENABLE_FETCH
+            if (CHECK_ACCOUNT_ENABLED)
+                conf_state(id, _("Addons"), _("Manage"), CONF_PACKAGES);
 #endif
-
-#if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH
-            conf_state(id, _("Addons"), _("Manage"), CONF_PACKAGES);
             gui_space(id);
 #endif
 
@@ -2461,7 +2446,7 @@ static int conf_gui(void)
                  */
 
                 gui_set_state(name_id, GUI_NONE, 0);
-                gui_set_color(name_id, gui_gry, gui_gry);
+                gui_set_color(name_id, GUI_COLOR_GRY);
             }
 #endif
 
@@ -2489,7 +2474,7 @@ static int conf_gui(void)
 
         if ((id = gui_vstack(root_id)))
         {
-            gui_label(id, "Neverball " VERSION, GUI_TNY, gui_wht, gui_wht);
+            gui_label(id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT);
             gui_clr_rect(id);
             gui_layout(id, 0, -1);
         }
@@ -2588,12 +2573,12 @@ static void null_leave(struct state *st, struct state *next, int id)
     const char *ball;
 
     switch (ball_multi_curr()) {
-    case 0:  ball = account_get_s(ACCOUNT_BALL_FILE_LL); break;
-    case 1:  ball = account_get_s(ACCOUNT_BALL_FILE_L); break;
-    case 2:  ball = account_get_s(ACCOUNT_BALL_FILE_C); break;
-    case 3:  ball = account_get_s(ACCOUNT_BALL_FILE_R); break;
-    case 4:  ball = account_get_s(ACCOUNT_BALL_FILE_RR); break;
-    default: ball = account_get_s(ACCOUNT_BALL_FILE_C);
+        case 0:  ball = account_get_s(ACCOUNT_BALL_FILE_LL); break;
+        case 1:  ball = account_get_s(ACCOUNT_BALL_FILE_L);  break;
+        case 2:  ball = account_get_s(ACCOUNT_BALL_FILE_C);  break;
+        case 3:  ball = account_get_s(ACCOUNT_BALL_FILE_R);  break;
+        case 4:  ball = account_get_s(ACCOUNT_BALL_FILE_RR); break;
+        default: ball = account_get_s(ACCOUNT_BALL_FILE_C);
     }
 
     account_set_s(ACCOUNT_BALL_FILE, ball);

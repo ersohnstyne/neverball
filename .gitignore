@@ -1,9 +1,9 @@
 # Microsoft Visual Studio Community / Code
 *.VC.*db*
-/pennyball/*
-!/pennyball/*.vcxproj
-!/pennyball/*.vcxproj.filters
-!/pennyball/*.vcxproj.user
+/neverball/*
+!/neverball/*.vcxproj
+!/neverball/*.vcxproj.filters
+!/neverball/*.vcxproj.user
 .vs
 .vscode
 
@@ -59,15 +59,15 @@
 /runtimes/*.dll
 /contrib/*.exe
 
-/pennyball
-/pennyputt
+/neverball
+/neverputt
 /mapc
 /contrib/curve
 
 # Emscripten Runtime
-/js/pennyball.data
-/js/pennyball.js
-/js/pennyball.wasm
+/js/neverball.data
+/js/neverball.js
+/js/neverball.wasm
 /js/mapc.js
 /js/mapc.wasm
 /js/packages

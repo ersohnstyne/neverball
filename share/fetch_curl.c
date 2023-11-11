@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2023 Microsoft / Neverball authors
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -845,11 +845,7 @@ unsigned int fetch_url(const char *url,
             curl_easy_setopt(handle, CURLOPT_NOPROGRESS,       0);
 
             curl_easy_setopt(handle, CURLOPT_BUFFERSIZE,      102400L);
-#if NB_HAVE_PB_BOTH==1
-            curl_easy_setopt(handle, CURLOPT_USERAGENT,       "pennyball/" VERSION);
-#else
             curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
-#endif
             curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
             curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION,  1);
 
@@ -927,11 +923,6 @@ unsigned int fetch_gdrive(const char *fileid,
             curl_easy_setopt(handle, CURLOPT_NOPROGRESS,       0);
 
             curl_easy_setopt(handle, CURLOPT_BUFFERSIZE,      102400L);
-#if NB_HAVE_PB_BOTH==1
-            //curl_easy_setopt(handle, CURLOPT_USERAGENT,       "pennyball/" VERSION);
-#else
-            //curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
-#endif
             curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
             curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION,  1);
 

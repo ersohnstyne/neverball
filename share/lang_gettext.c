@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2023 Microsoft / Neverball authors
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -79,7 +79,7 @@ void gt_init(const char *domain, const char *pref)
     static char default_lang[MAXSTR];
     static int  default_lang_init;
 
-    char *dir = strdup(getenv("PENNYBALL_LOCALE"));
+    char *dir = strdup(getenv("NEVERBALL_LOCALE"));
 
     /* Select the location of message catalogs. */
 
@@ -333,7 +333,7 @@ void lang_init(void)
 #endif
     lang_load(&curr_lang, lang_path(config_get_s(CONFIG_LANGUAGE)));
 #if _WIN32 && _MSC_VER
-    GAMEDBG_CHECK_SEGMENTATIONS(gt_init("pennyball", curr_lang.code));
+    GAMEDBG_CHECK_SEGMENTATIONS(gt_init("neverball", curr_lang.code));
 #endif
     lang_status = 1;
 #if __cplusplus

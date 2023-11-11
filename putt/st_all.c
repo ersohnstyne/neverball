@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2023 Microsoft / Neverball authors
  *
- * PENNYPUTT is  free software; you can redistribute  it and/or modify
+ * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -361,7 +361,7 @@ static int title_enter(struct state *st, struct state *prev)
 {
 #if defined(__EMSCRIPTEN__)
     EM_ASM({
-        Pennyputt.isTitleScreen = true;
+        Neverputt.isTitleScreen = true;
         });
 #endif
 
@@ -393,7 +393,7 @@ static int title_enter(struct state *st, struct state *prev)
         }
         else if (current_platform == PLATFORM_XBOX)
         {
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
             sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_360);
 #else
             sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_ONE);
@@ -407,7 +407,7 @@ static int title_enter(struct state *st, struct state *prev)
 
         if ((jd = gui_vstack(id)))
         {
-            gui_title_header(jd, "  Pennyputt  ", GUI_LRG, 0, 0);
+            gui_title_header(jd, "  Neverputt  ", GUI_LRG, 0, 0);
 #if NB_STEAM_API==1
             gui_label(jd, _("Steam Valve Edition"), GUI_SML, GUI_COLOR_WHT);
 #else
@@ -470,7 +470,7 @@ static void title_leave(struct state *st, struct state *next, int id)
 {
 #if defined(__EMSCRIPTEN__)
     EM_ASM({
-        Pennyputt.isTitleScreen = false;
+        Neverputt.isTitleScreen = false;
         });
 #endif
 

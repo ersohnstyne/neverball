@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2023 Microsoft / Neverball authors
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -33,16 +33,16 @@
 
 /* Neverball Platform API */
 
-#define PENNYBALL_PC_FAMILY_API 0
-#define PENNYBALL_XBOX_FAMILY_API 1
-#define PENNYBALL_XBOX_360_FAMILY_API 2
-#define PENNYBALL_PS_FAMILY_API 3
-#define PENNYBALL_STEAMDECK_FAMILY_API 4
-#define PENNYBALL_SWITCH_FAMILY_API 5
-#define PENNYBALL_HANDSET_FAMILY_API 6
+#define NEVERBALL_PC_FAMILY_API 0
+#define NEVERBALL_XBOX_FAMILY_API 1
+#define NEVERBALL_XBOX_360_FAMILY_API 2
+#define NEVERBALL_PS_FAMILY_API 3
+#define NEVERBALL_STEAMDECK_FAMILY_API 4
+#define NEVERBALL_SWITCH_FAMILY_API 5
+#define NEVERBALL_HANDSET_FAMILY_API 6
 
 #if _WIN32
-//#define PENNYBALL_FAMILY_API PENNYBALL_PC_FAMILY_API
+//#define NEVERBALL_FAMILY_API NEVERBALL_PC_FAMILY_API
 #endif
 
 /* Random stuff. */

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2023 Microsoft / Neverball authors
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -63,15 +63,15 @@
 #ifndef CONFIG_USER
 #if NDEBUG
 #ifdef _WIN32
-#define CONFIG_USER   "Pennyball_" VERSION
+#define CONFIG_USER   "Neverball_" VERSION
 #else
-#define CONFIG_USER   ".pennyball"
+#define CONFIG_USER   ".neverball"
 #endif
 #endif
 #ifdef _WIN32
-#define CONFIG_USER   "Pennyball_" VERSION "-dev"
+#define CONFIG_USER   "Neverball_" VERSION "-dev"
 #else
-#define CONFIG_USER   ".pennyball-dev"
+#define CONFIG_USER   ".Neverball-dev"
 #endif
 #endif
 
@@ -82,7 +82,7 @@
  * is deleted, it will be recreated using the defaults.
  */
 
-#define USER_CONFIG_FILE    "pennyballrc"
+#define USER_CONFIG_FILE    "neverballrc"
 #define USER_REPLAY_FILE    "Last"
 #define CHKP_REPLAY_FILE    "chkp-last-active"
 

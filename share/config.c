@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2023 Microsoft / Neverball authors
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -343,7 +343,7 @@ static struct
     { &CONFIG_REPLAY_NAME,             "replay_name",     "%s-%l-%r" },
     { &CONFIG_LANGUAGE,                "language",        "" },
     { &CONFIG_THEME,                   "theme",           "classic" },
-    { &CONFIG_DEDICATED_IPADDRESS,     "dedicated_ipaddress", "pennyball.stynegame.de" },
+    { &CONFIG_DEDICATED_IPADDRESS,     "dedicated_ipaddress", "play.neverball.org" },
     { &CONFIG_DEDICATED_IPPORT,        "dedicated_ipport", "5000" }
 };
 

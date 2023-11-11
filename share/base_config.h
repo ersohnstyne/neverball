@@ -88,10 +88,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define FMODE_AB "ab"
-#define FMODE_RB "rb"
-#define FMODE_WB "wb"
-
 #define AUDIO_BUFF_HI 2048
 #define AUDIO_BUFF_LO 1024
 

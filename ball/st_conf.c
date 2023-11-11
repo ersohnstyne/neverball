@@ -37,6 +37,9 @@
 #include "video.h"
 #include "common.h"
 #include "progress.h"
+#ifndef VERSION
+#include "version.h"
+#endif
 
 #include "game_common.h"
 #include "game_client.h"
@@ -302,6 +305,7 @@ enum
     CONF_ACCOUNT_SIGNOUT,
     CONF_ACCOUNT_COVID_EXTEND,
     CONF_ACCOUNT_AUTOUPDATE,
+    CONF_ACCOUNT_MAYHEM,
     CONF_ACCOUNT_TUTORIAL,
     CONF_ACCOUNT_HINT,
     CONF_ACCOUNT_PLAYER,
@@ -338,6 +342,12 @@ static int conf_account_action(int tok, int val)
 
         case CONF_ACCOUNT_AUTOUPDATE:
             break;
+
+        /*case CONF_ACCOUNT_MAYHEM:
+            config_set_d(CONFIG_ACCOUNT_MAYHEM, val);
+            goto_state(&st_conf_account);
+            config_save();
+            break;*/
 
         case CONF_ACCOUNT_TUTORIAL:
             config_set_d(CONFIG_ACCOUNT_TUTORIAL, val);
@@ -605,6 +615,11 @@ static int conf_account_gui(void)
         }
         gui_space(id);
 #endif
+
+        //conf_toggle(id, _("Mayhem"), CONF_ACCOUNT_MAYHEM,
+            //config_get_d(CONFIG_ACCOUNT_MAYHEM), _("On"), 1, _("Off"), 0);
+
+        //gui_space(id);
 
         if (mainmenu_conf)
         {
@@ -1172,10 +1187,12 @@ int conf_control_gui(void)
                         config_get_d(CONFIG_TILTING_FLOOR),
                         _("On"), 1, _("Off"), 0);
 
+#ifdef SWITCHBALL_GUI
         camrot_mode_id = conf_state(id, _("Camera rotate"),
                                     config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
                                     _("Inverted") : _("Normal"),
                                     CONF_CONTROL_CAMERA_ROTATE_MODE);
+#endif
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)

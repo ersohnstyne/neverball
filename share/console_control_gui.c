@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2023 Microsoft / Neverball authors
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -1447,7 +1447,7 @@ int xbox_show_gui(void)
 
 void xbox_toggle_gui(int active)
 {
-#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API
+#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API
     show_control_gui = 1;
 #else
     show_control_gui = 0;

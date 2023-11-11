@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2023 Microsoft / Neverball authors
  *
- * NEVERPUTT is  free software; you can redistribute  it and/or modify
+ * PENNYPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -23,6 +23,9 @@
 #include "audio.h"
 #include "config.h"
 #include "video.h"
+#ifndef VERSION
+#include "version.h"
+#endif
 
 #include "st_conf.h"
 //#include "st_name.h"
@@ -279,7 +282,10 @@ static int conf_enter(struct state *st, struct state *prev)
 
         if ((id = gui_vstack(root_id)))
         {
-            gui_label(id, "Neverputt " VERSION, GUI_TNY, gui_wht, gui_wht);
+            gui_label(id, "Pennyputt " VERSION, GUI_TNY, gui_wht, gui_wht);
+#if NB_HAVE_PB_BOTH==1
+            gui_label(id, "© 2008, 2023 PennyGames", GUI_TNY, gui_wht, gui_wht);
+#endif
             gui_clr_rect(id);
             gui_layout(id, 0, -1);
         }

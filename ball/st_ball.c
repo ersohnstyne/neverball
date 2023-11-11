@@ -336,7 +336,7 @@ static void load_ball_demo(void)
 #if NB_HAVE_PB_BOTH==1
     if (super_environment == 0)
 #endif
-        back_init("back/gui.png");
+        back_init("back/premium.png");
 }
 
 static int ball_gui(void)

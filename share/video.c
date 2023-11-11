@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2023 Microsoft / Neverball authors
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -57,6 +57,7 @@ extern "C" {
 #include "config.h"
 #include "gui.h"
 #include "hmd.h"
+#include "log.h"
 #if __cplusplus
 }
 #endif

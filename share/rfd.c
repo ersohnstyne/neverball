@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2023 Microsoft / Neverball authors
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -13,7 +13,7 @@
  */
 
 #if ENABLE_RFD==1 && _MSC_VER
-#pragma message("Neverball - Recipes for Disaster")
+#pragma message("Pennyball + Neverball - Recipes for Disaster")
 #endif
 
 #if _WIN32 && __MINGW32__
@@ -36,7 +36,7 @@
 /*---------------------------------------------------------------------------*/
 
 /*
- * Neverball - Recipes for Disaster
+ * Pennyball + Neverball - Recipes for Disaster
  * - Ersohn Styne
  */
 

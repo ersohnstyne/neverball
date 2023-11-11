@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2023 Microsoft / Neverball authors
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -39,16 +39,9 @@
 #include <signal.h>
 #include <stdio.h>
 
-#include "log.h"
-#include "version.h"
-
 #include "dbg_config.h"
 
 /*---------------------------------------------------------------------------*/
-
-#ifndef VERSION
-#define VERSION       "unknown"       /* Game version */
-#endif
 
 #ifndef CONFIG_DATA
 #ifdef _WIN32
@@ -70,15 +63,15 @@
 #ifndef CONFIG_USER
 #if NDEBUG
 #ifdef _WIN32
-#define CONFIG_USER   "Neverball_" VERSION
+#define CONFIG_USER   "Pennyball_" VERSION
 #else
-#define CONFIG_USER   ".neverball"
+#define CONFIG_USER   ".pennyball"
 #endif
 #endif
 #ifdef _WIN32
-#define CONFIG_USER   "Neverball_" VERSION "-dev"
+#define CONFIG_USER   "Pennyball_" VERSION "-dev"
 #else
-#define CONFIG_USER   ".neverball-dev"
+#define CONFIG_USER   ".pennyball-dev"
 #endif
 #endif
 
@@ -89,7 +82,7 @@
  * is deleted, it will be recreated using the defaults.
  */
 
-#define USER_CONFIG_FILE    "neverballrc"
+#define USER_CONFIG_FILE    "pennyballrc"
 #define USER_REPLAY_FILE    "Last"
 #define CHKP_REPLAY_FILE    "chkp-last-active"
 

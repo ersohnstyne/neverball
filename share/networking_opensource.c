@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2023 Microsoft / Neverball authors
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -21,19 +21,19 @@
 #include "networking.h"
 #include "common.h"
 
-#if NEVERBALL_EDITION>=10000
-#if NEVERBALL_EDITION>10002
-#error Präprozessordefinition NEVERBALL_EDITION muss \
+#if PENNYBALL_EDITION>=10000
+#if PENNYBALL_EDITION>10002
+#error Präprozessordefinition PENNYBALL_EDITION muss \
        zwischen 10000 (Server Essentials) und 10002 (Server Datacenter) liegen
 #endif
 #else
-#if NEVERBALL_EDITION<-1 || NEVERBALL_EDITION>3
-#error Präprozessordefinition NEVERBALL_EDITION muss \
+#if PENNYBALL_EDITION<-1 || PENNYBALL_EDITION>3
+#error Präprozessordefinition PENNYBALL_EDITION muss \
        zwischen -1 (Open-Source) und 3 (Education) liegen
 #endif
 #endif
 
-#if NEVERBALL_EDITION==-1 && ENABLE_DEDICATED_SERVER==0
+#if PENNYBALL_EDITION==-1 && ENABLE_DEDICATED_SERVER==0
 
 /*---------------------------------------------------------------------------*/
 

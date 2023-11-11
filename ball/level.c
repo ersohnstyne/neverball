@@ -27,6 +27,7 @@
 #include "config.h"
 #include "level.h"
 #include "set.h"
+#include "log.h"
 
 /*---------------------------------------------------------------------------*/
 

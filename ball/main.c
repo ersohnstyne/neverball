@@ -122,6 +122,7 @@ extern "C" {
 #if ENABLE_RFD==1
 #include "rfd.h"
 #endif
+#include "log.h"
 
 #include "st_malfunction.h"
 #include "st_intro.h"

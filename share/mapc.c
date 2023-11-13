@@ -3377,7 +3377,7 @@ int main(int argc, char *argv[])
     if (!fs_init(argc > 0 ? argv[0] : NULL))
     {
         fprintf(stderr, "Failure to initialize virtual file system: %s\n",
-            fs_error());
+                fs_error());
         return 1;
     }
 
@@ -3388,19 +3388,19 @@ int main(int argc, char *argv[])
         for (int argi = 3; argi < argc; ++argi)
         {
             if (strcmp(argv[argi], "--skip_verify") == 0)  skip_verify = 1;
-            if (strcmp(argv[argi], "--debug") == 0) debug_output = 1;
-            if (strcmp(argv[argi], "--csv") == 0)   csv_output = 1;
+            if (strcmp(argv[argi], "--debug")       == 0) debug_output = 1;
+            if (strcmp(argv[argi], "--csv")         == 0)   csv_output = 1;
 #if ENABLE_RADIANT_CONSOLE
-            if (strcmp(argv[argi], "--bcast") == 0) bcast_init();
+            if (strcmp(argv[argi], "--bcast")       == 0) bcast_init();
 #endif
-            if (strcmp(argv[argi], "--campaign") == 0) campaign_output = 1;
+            if (strcmp(argv[argi], "--campaign")    == 0) campaign_output = 1;
 
-            if (strcmp(argv[argi], "--data") == 0)
+            if (strcmp(argv[argi], "--data")        == 0)
             {
                 if (++argi < argc)
                     fs_add_path(argv[argi]);
             }
-    }
+        }
 
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
         strncpy_s(src, MAXSTR, argv[1], MAXSTR - 1);
@@ -3442,7 +3442,7 @@ int main(int argc, char *argv[])
 #else
                 strcpy(dst + strlen(dst) - 5, ".csol");
 #endif
-        }
+            }
             else if (strcmp(dst + strlen(dst) - 4, ".map") == 0)
             {
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
@@ -3450,13 +3450,13 @@ int main(int argc, char *argv[])
 #else
                 strcpy(dst + strlen(dst) - 4, ".csol");
 #endif
-        }
+            }
             else
             {
                 fprintf(stderr, "Unable to create CSOL!: Only CMAP or MAP files are allowed!\n");
                 return 1;
             }
-}
+        }
         else if (strcmp(dst + strlen(dst) - 4, ".map") == 0)
         {
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
@@ -3471,7 +3471,7 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        fs_add_path(dir_name(src));
+        fs_add_path     (dir_name(src));
         fs_set_write_dir(dir_name(dst));
 #if defined(FS_VERSION_1)
         if ((fin = fs_open(base_name(src), "r")))
@@ -3578,7 +3578,7 @@ int main(int argc, char *argv[])
                 gettimeofday(&time1, 0);
                 if ((time1.tv_sec - time0.tv_sec) +
                     (time1.tv_usec - time0.tv_usec) / 1000000.0
-        > 60.0f)
+                    > 60.0f)
 #endif
                 {
                     MAPC_LOG_ERROR("Compile timed out after 60 seconds!\n");
@@ -3603,8 +3603,8 @@ int main(int argc, char *argv[])
 #if _MSC_VER
             dump_file(&f, dst, (QCPLastTime.QuadPart - QCPStartTime.QuadPart) / 10000000.0);
 #else
-            dump_file(&f, dst, (time1.tv_sec - time0.tv_sec) +
-                (time1.tv_usec - time0.tv_usec) / 1000000.0);
+            dump_file(&f, dst, (time1.tv_sec  - time0.tv_sec) +
+                               (time1.tv_usec - time0.tv_usec) / 1000000.0);
 #endif
         }
 
@@ -3612,7 +3612,7 @@ int main(int argc, char *argv[])
         bcast_quit();
 #endif
 
-        }
+    }
     else print_usage(argv[0]);
 
 #if _WIN32 && _MSC_VER && _DEBUG && defined(_CRTDBG_MAP_ALLOC)

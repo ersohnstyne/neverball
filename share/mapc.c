@@ -3332,12 +3332,16 @@ static void print_usage(const char *name)
 
     const char opt_name[][MAXSTR] =
     {
+        "--skip_verify",
         "--debug",
         "--csv",
-#ifdef MAPC_INCLUDES_CHKP
-        "--campaign",
+#if ENABLE_RADIANT_CONSOLE
+        "--bcast",
 #endif
-        "--skip_verify"
+        "--data <dir>",
+#ifdef MAPC_INCLUDES_CHKP
+        "--campaign"
+#endif
     };
 
     for (int i = 0; i < ARRAYSIZE(opt_name); i++)
@@ -3379,8 +3383,8 @@ int main(int argc, char *argv[])
 
         for (int argi = 3; argi < argc; ++argi)
         {
-            if (strcmp(argv[argi], "--debug")       == 0) debug_output = 1;
             if (strcmp(argv[argi], "--skip_verify") == 0)  skip_verify = 1;
+            if (strcmp(argv[argi], "--debug")       == 0) debug_output = 1;
             if (strcmp(argv[argi], "--csv")         == 0)   csv_output = 1;
 #if ENABLE_RADIANT_CONSOLE
             if (strcmp(argv[argi], "--bcast")       == 0) bcast_init();

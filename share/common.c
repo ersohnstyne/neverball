@@ -108,10 +108,10 @@ char *strip_newline(char *str)
 {
     if (str && *str)
     {
-        char *c = str + strlen(str) - 1;
+        char *p = str + strlen(str) - 1;
 
-        while (c >= str && (*c == '\n' || *c == '\r'))
-            *c-- = '\0';
+        while (p >= str && (*p == '\n' || *p == '\r'))
+            *p-- = '\0';
     }
 
     return str;
@@ -123,7 +123,7 @@ char *strip_spaces(char *str)
     {
         char *p = str + strlen(str) - 1;
 
-        while (p >= str && (*p == '\n' || *p =='\r'))
+        while (p >= str && isspace(*p))
             *p-- = '\0';
     }
 

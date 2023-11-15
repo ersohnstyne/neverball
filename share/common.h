@@ -147,6 +147,7 @@ wchar_t *dupe_wstring(const wchar_t *);
 
 int   read_line(char **, fs_file);
 char *strip_newline(char *);
+char *strip_spaces(char *);
 #if _MSC_VER && !_NONSTDC
 #define dupe_string _strdup
 #else

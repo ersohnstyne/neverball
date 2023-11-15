@@ -106,10 +106,26 @@ wchar_t *wcsip_newline(wchar_t *wstr)
 
 char *strip_newline(char *str)
 {
-    char *c = str + strlen(str) - 1;
+    if (str && *str)
+    {
+        char *c = str + strlen(str) - 1;
 
-    while (c >= str && (*c == '\n' || *c =='\r'))
-        *c-- = '\0';
+        while (c >= str && (*c == '\n' || *c == '\r'))
+            *c-- = '\0';
+    }
+
+    return str;
+}
+
+char *strip_spaces(char *str)
+{
+    if (str && *str)
+    {
+        char *p = str + strlen(str) - 1;
+
+        while (p >= str && (*p == '\n' || *p =='\r'))
+            *p-- = '\0';
+    }
 
     return str;
 }

@@ -102,6 +102,19 @@ wchar_t *wcsip_newline(wchar_t *wstr)
 
     return wstr;
 }
+
+wchar_t *wcsip_spaces(wchar_t *str)
+{
+    if (str && *str)
+    {
+        char* p = str + wcslen(str) - 1;
+
+        while (p >= str && isspace(*p))
+            *p-- = '\0';
+    }
+
+    return str;
+}
 #endif
 
 char *strip_newline(char *str)

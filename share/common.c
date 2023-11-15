@@ -95,10 +95,13 @@ int read_line(char **dst, fs_file fin)
 #if UNICODE
 wchar_t *wcsip_newline(wchar_t *wstr)
 {
-    wchar_t *c = wstr + wcslen(wstr) - 1;
+    if (str && *str)
+    {
+        wchar_t *c = wstr + wcslen(wstr) - 1;
 
-    while (c >= wstr && (*c == L'\n' || *c == L'\r'))
-        *c-- = L'\0';
+        while (c >= wstr && (*c == L'\n' || *c == L'\r'))
+            *c-- = L'\0';
+    }
 
     return wstr;
 }
@@ -107,7 +110,7 @@ wchar_t *wcsip_spaces(wchar_t *str)
 {
     if (str && *str)
     {
-        char* p = str + wcslen(str) - 1;
+        wchar_t *p = str + wcslen(str) - 1;
 
         while (p >= str && isspace(*p))
             *p-- = '\0';

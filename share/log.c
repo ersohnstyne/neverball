@@ -191,7 +191,12 @@ void log_init(const char *name, const char *path)
         {
             /* Printed on first message. */
 
-            sprintf(log_header, "%s - %s %s",
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(log_header,
+#else
+            sprintf(log_header,
+#endif
+                    "%s - %s"
                     date_to_str(time(NULL)),
                     name);
         }

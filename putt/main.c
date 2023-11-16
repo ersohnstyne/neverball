@@ -620,8 +620,8 @@ static int main_init(int argc, char* argv[])
 
     opt_parse(argc, argv);
 
-    log_init("Neverputt " VERSION, "neverputt.log");
     config_paths(opt_data);
+    log_init("Neverputt " VERSION, "neverputt.log");
     fs_mkdir("Screenshots");
 
 #if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API \

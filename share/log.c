@@ -196,9 +196,9 @@ void log_init(const char *name, const char *path)
 #else
             sprintf(log_header,
 #endif
-                    "%s - %s %s",
+                    "%s - %s",
                     date_to_str(time(NULL)),
-                    name, VERSION);
+                    name);
         }
         else
         {

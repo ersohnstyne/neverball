@@ -620,7 +620,7 @@ static int main_init(int argc, char* argv[])
 
     opt_parse(argc, argv);
 
-    log_init("Neverputt", "neverputt.log");
+    log_init("Neverputt " VERSION, "neverputt.log");
     config_paths(opt_data);
     fs_mkdir("Screenshots");
 

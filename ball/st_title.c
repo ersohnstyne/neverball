@@ -1157,7 +1157,7 @@ static void title_point(int id, int x, int y, int dx, int dy)
         gui_pulse(jd, 1.2f);
 }
 
-void title_stick(int id, int a, float v, int bump)
+static void title_stick(int id, int a, float v, int bump)
 {
     int jd;
 
@@ -1206,7 +1206,7 @@ static int title_buttn(int b, int d)
     return 1;
 }
 
-void title_fade(float alpha)
+static void title_fade(float alpha)
 {
     gui_set_alpha(system_version_build_id, alpha, 0);
     gui_set_alpha(copyright_id, alpha, 0);

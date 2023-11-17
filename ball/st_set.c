@@ -475,7 +475,7 @@ static int set_enter(struct state *st, struct state *prev)
     return set_gui();
 }
 
-void set_leave(struct state *st, struct state *next, int id)
+static void set_leave(struct state *st, struct state *next, int id)
 {
     if (next == &st_set || next == &st_start
 #if NB_HAVE_PB_BOTH==1

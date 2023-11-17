@@ -606,7 +606,7 @@ static int shop_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-int shop_unlocked_gui(void)
+static int shop_unlocked_gui(void)
 {
     int id;
 
@@ -633,7 +633,7 @@ int shop_unlocked_gui(void)
     return id;
 }
 
-int shop_unlocked_enter(struct state *st, struct state *prev)
+static int shop_unlocked_enter(struct state *st, struct state *prev)
 {
     return shop_unlocked_gui();
 }

@@ -326,17 +326,24 @@ void game_view_set_pos_and_target(struct game_view *view,
                                   const struct s_vary *vary,
                                   float pos[3], float center[3])
 {
-    if ((pos[0] != 0.0f || pos[1] != 0.0f || pos[2] != 0.0f) &&
+    if ((view && vary) &&
+        (pos[0] != 0.0f || pos[1] != 0.0f || pos[2] != 0.0f) &&
         (center[0] != 0.0f || center[1] != 0.0f || center[2] != 0.0f))
     {
         float local_e[3][3] = {
-            { 1.0f, 0.0f, 0.0f },
-            { 0.0f, 1.0f, 0.0f },
-            { 0.0f, 0.0f, 1.0f }
+            { 1, 0, 0 },
+            { 0, 1, 0 },
+            { 0, 0, 1 }
         };
 
+        local_e[0][0] = 1.0f; local_e[0][1] = 0.0f; local_e[0][2] = 0.0f;
+        local_e[1][0] = 0.0f; local_e[1][1] = 1.0f; local_e[1][2] = 0.0f;
+        local_e[2][0] = 0.0f; local_e[2][1] = 0.0f; local_e[2][2] = 1.0f;
+
         /* Requires both, or it may not work! */
+
         assert(local_e && view->e);
+        assert(local_e[2]);
 
         game_view_init(view);
 

@@ -248,7 +248,7 @@ static void pause_shared_exit(int id)
 
 /*---------------------------------------------------------------------------*/
 
-int pause_button_width(int allow_zen, int reset_puzzle)
+static int pause_button_width(int allow_zen, int reset_puzzle)
 {
     int targ_width = 0;
     int btn_width;

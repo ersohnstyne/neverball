@@ -59,10 +59,11 @@
 
 typedef struct __countdown_preparation
 {
-    int id;
+    int   id;
+    int   isgreen;
+
     float positions[2];
     float position_scaled;
-    int isgreen;
     float alpha;
     float colorfill[3];
 } countdown_preparation;

@@ -326,7 +326,7 @@ static int intro_enter(struct state *st, struct state *prev)
     return intro_gui();
 }
 
-void intro_leave(struct state *st, struct state *next, int id)
+static void intro_leave(struct state *st, struct state *next, int id)
 {
     if (next != &st_intro)
     {
@@ -335,7 +335,7 @@ void intro_leave(struct state *st, struct state *next, int id)
     }
 }
 
-void intro_paint(int id, float t)
+static void intro_paint(int id, float t)
 {
     gui_paint(id);
 }

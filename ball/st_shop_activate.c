@@ -191,7 +191,7 @@ static int shop_activate_action(int tok, int val)
     return 1;
 }
 
-int shop_activate_gui_introducory(void)
+static int shop_activate_gui_introducory(void)
 {
     int id, jd;
 
@@ -332,7 +332,7 @@ static void on_text_input(int typing)
     }
 }
 
-int shop_activate_gui(void)
+static int shop_activate_gui(void)
 {
     int id, jd;
 
@@ -374,7 +374,7 @@ int shop_activate_gui(void)
     return id;
 }
 
-int shop_activate_enter(struct state *st, struct state *prev)
+static int shop_activate_enter(struct state *st, struct state *prev)
 {
     additive = 0;
 

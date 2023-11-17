@@ -331,32 +331,6 @@ static int play_ready_enter(struct state *st, struct state *prev)
     return play_ready_gui();
 }
 
-static void play_ready_paint(int id, float t)
-{
-    game_client_draw(0, t);
-
-    __countdown_preparation_draw();
-    gui_paint(id);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    if (xbox_show_gui() && current_platform != PLATFORM_PC)
-    {
-        hud_cam_paint();
-        xbox_control_preparation_gui_paint();
-
-        if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
-        {
-            hud_paint();
-            hud_lvlname_paint();
-        }
-    }
-    else if (hud_visibility())
-#endif
-    {
-        hud_paint();
-        hud_lvlname_paint();
-    }
-}
-
 static void play_ready_timer(int id, float dt)
 {
     game_lerp_pose_point_tick(dt);
@@ -397,60 +371,6 @@ static void play_ready_timer(int id, float dt)
         hud_timer(dt);
 }
 
-static void play_ready_stick(int id, int a, float v, int bump)
-{
-    use_mouse = 0; use_keyboard = 1;
-}
-
-static int play_ready_click(int b, int d)
-{
-    if (d)
-    {
-        use_mouse = 1; use_keyboard = 0;
-        click_camera(b);
-
-        if (b == SDL_BUTTON_LEFT)
-            goto_state_full(&st_play_loop, 0, 0, 1);
-    }
-    return 1;
-}
-
-static int play_ready_keybd(int c, int d)
-{
-    if (d)
-    {
-        keybd_camera(c);
-
-        if (c == KEY_EXIT
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-         && current_platform == PLATFORM_PC
-#endif
-            )
-        {
-            hud_speedup_reset();
-            goto_pause(curr_state());
-        }
-    }
-    return 1;
-}
-
-static int play_ready_buttn(int b, int d)
-{
-    if (d)
-    {
-        buttn_camera(b);
-
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return goto_state_full(&st_play_loop, 0, 0, 1);
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        {
-            hud_speedup_reset();
-            return goto_pause(curr_state());
-        }
-    }
-    return 1;
-}
-
 /*---------------------------------------------------------------------------*/
 
 static int play_set_gui(void)
@@ -480,32 +400,6 @@ static int play_set_enter(struct state *st, struct state *prev)
     toggle_hud_visibility(1);
 
     return play_set_gui();
-}
-
-static void play_set_paint(int id, float t)
-{
-    game_client_draw(0, t);
-
-    __countdown_preparation_draw();
-    gui_paint(id);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    if (xbox_show_gui() || current_platform != PLATFORM_PC)
-    {
-        hud_cam_paint();
-        xbox_control_preparation_gui_paint();
-
-        if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
-        {
-            hud_paint();
-            hud_lvlname_paint();
-        }
-    }
-    else if (hud_visibility())
-#endif
-    {
-        hud_paint();
-        hud_lvlname_paint();
-    }
 }
 
 static void play_set_timer(int id, float dt)
@@ -548,12 +442,40 @@ static void play_set_timer(int id, float dt)
         hud_timer(dt);
 }
 
-static void play_set_stick(int id, int a, float v, int bump)
+/*---------------------------------------------------------------------------*/
+
+static void play_prep_paint(int id, float t)
+{
+    game_client_draw(0, t);
+
+    __countdown_preparation_draw();
+    gui_paint(id);
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+    if (xbox_show_gui() && current_platform != PLATFORM_PC)
+    {
+        hud_cam_paint();
+        xbox_control_preparation_gui_paint();
+
+        if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        {
+            hud_paint();
+            hud_lvlname_paint();
+        }
+    }
+    else if (hud_visibility())
+#endif
+    {
+        hud_paint();
+        hud_lvlname_paint();
+    }
+}
+
+static void play_prep_stick(int id, int a, float v, int bump)
 {
     use_mouse = 0; use_keyboard = 1;
 }
 
-static int play_set_click(int b, int d)
+static int play_prep_click(int b, int d)
 {
     if (d)
     {
@@ -566,7 +488,7 @@ static int play_set_click(int b, int d)
     return 1;
 }
 
-static int play_set_keybd(int c, int d)
+static int play_prep_keybd(int c, int d)
 {
     if (d)
     {
@@ -574,7 +496,7 @@ static int play_set_keybd(int c, int d)
 
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-         && current_platform == PLATFORM_PC
+            && current_platform == PLATFORM_PC
 #endif
             )
         {
@@ -585,7 +507,7 @@ static int play_set_keybd(int c, int d)
     return 1;
 }
 
-static int play_set_buttn(int b, int d)
+static int play_prep_buttn(int b, int d)
 {
     if (d)
     {
@@ -1343,14 +1265,14 @@ static int look_buttn(int b, int d)
 struct state st_play_ready = {
     play_ready_enter,
     play_shared_leave,
-    play_ready_paint,
+    play_prep_paint,
     play_ready_timer,
     NULL,
-    play_ready_stick,
+    play_prep_stick,
     NULL,
-    play_ready_click,
-    play_ready_keybd,
-    play_ready_buttn,
+    play_prep_click,
+    play_prep_keybd,
+    play_prep_buttn,
     NULL,
     NULL,
     play_shared_fade,
@@ -1360,14 +1282,14 @@ struct state st_play_ready = {
 struct state st_play_set = {
     play_set_enter,
     play_shared_leave,
-    play_set_paint,
+    play_prep_paint,
     play_set_timer,
     NULL,
-    play_set_stick,
+    play_prep_stick,
     NULL,
-    play_set_click,
-    play_set_keybd,
-    play_set_buttn,
+    play_prep_click,
+    play_prep_keybd,
+    play_prep_buttn,
     NULL,
     NULL,
     play_shared_fade,

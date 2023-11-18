@@ -36,6 +36,10 @@
       margin: 0 auto;
     }
 
+    .in-game .container {
+      max-width: min(80rem, calc(16 / 9 * 100dvmin));
+    }
+
     #canvas-wrapper {
       position: relative;
       width: 100%;
@@ -43,7 +47,6 @@
       aspect-ratio: 16 / 9;
       max-width: calc(16 / 9 * 100dvmin);
       max-height: calc(100dvmin - 2rem);
-      display: none;
       margin: 0 auto;
     }
 
@@ -103,10 +106,6 @@
       display: none;
     }
 
-    .running #canvas-wrapper {
-      display: block;
-    }
-
     #canvas-wrapper:fullscreen {
       aspect-ratio: auto;
       min-width: auto;
@@ -126,7 +125,7 @@
       height: 100%; /* Fill parent. */
     }
 
-    .running #canvas {
+    .in-game #canvas {
       display: inline;
     }
 
@@ -258,15 +257,15 @@
       display: none;
     }
 
-    .running .running\:pt-0 {
+    .in-game .in-game\:pt-0 {
       padding-top: 0;
     }
 
-    .running .running\:block {
+    .in-game .in-game\:block {
       display: block;
     }
 
-    .running .running\:hidden {
+    .in-game .in-game\:hidden {
       display: none;
     }
 
@@ -286,8 +285,8 @@
 
 <body>
   <section class="container flex flex-column gap-2.5 py-2.5">
-    <div class="neverball-box running:hidden">
-      <h1 class="neverball-text">Play Neverball</h1>
+    <div class="neverball-box in-game:hidden">
+      <h1><span class="neverball-text">Play Neverball</span></h1>
 
       <div id="status-line">
         <div id="progress"></div>
@@ -300,7 +299,7 @@
       </div>
     </div>
 
-    <div id="canvas-wrapper">
+    <div id="canvas-wrapper" class="hidden in-game:block">
       <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
 
       <div id="overlay">
@@ -309,7 +308,7 @@
     </div>
 
     <div class="neverball-box">
-      <h2 class="neverball-text">Browser settings</h2>
+      <h2><span class="neverball-text">Browser settings</span></h2>
 
       <div>
         <input type="checkbox" id="persist-input">
@@ -317,8 +316,8 @@
       </div>
     </div>
 
-    <div class="neverball-box running:hidden">
-      <h2 class="neverball-text">About the game</h2>
+    <div class="neverball-box in-game:hidden">
+      <h2><span class="neverball-text">About the game</span></h2>
 
       <img id="screenshot" alt="Screenshot of the Neverball title screen." src="screenshot.png">
 
@@ -426,7 +425,7 @@
       run: function () {
         this.isRunning = true;
 
-        document.body.classList.add('running');
+        document.body.classList.add('in-game');
 
         Module.callMain();
       },
@@ -435,7 +434,7 @@
         this.isRunning = false;
 
         this._runButton.disabled = false;
-        document.body.classList.remove('running');
+        document.body.classList.remove('in-game');
 
         var fullscreenElement = null;
 

@@ -598,7 +598,7 @@ static void title_create_versions(void)
     gui_set_rect(system_version_build_id, GUI_NW);
     gui_layout(system_version_build_id, 1, -1);
 
-    copyright_id = gui_label(0, "© PennyGames", GUI_TNY, GUI_COLOR_WHT);
+    copyright_id = gui_label(0, "� PennyGames", GUI_TNY, GUI_COLOR_WHT);
     gui_set_rect(copyright_id, GUI_NE);
     gui_layout(copyright_id, -1, -1);
 }

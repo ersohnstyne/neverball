@@ -370,9 +370,9 @@ static int fetch_progress_func(void *clientp, curl_off_t dltotal, curl_off_t dln
 
         if (fe)
         {
-            fe->callback = fi->callback.done;
+            fe->callback = fi->callback.progress;
             fe->callback_data = fi->callback.data;
-            fe->extra_data = create_extra_done(finished);
+            fe->extra_data = create_extra_progress(dltotal, dlnow);
 
             fetch_dispatch_event(fe);
         }

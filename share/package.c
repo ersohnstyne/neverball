@@ -791,6 +791,9 @@ static void free_pli(struct package_list_info **pli)
     }
 }
 
+/*
+ * Load the list of available packages and initiate image downloads.
+ */
 static void available_packages_done(void *data, void *extra_data)
 {
     struct package_list_info *pli = data;
@@ -806,6 +809,14 @@ static void available_packages_done(void *data, void *extra_data)
 
             available_packages = packages;
         }
+    }
+
+    if (pli)
+    {
+        if (pli->callback.done)
+            pli->callback.done(pli->callback.data, extra_data);
+
+        free_pli(&pli);
     }
 }
 
@@ -929,6 +940,9 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
         }
     }
 #endif
+
+    return fetch_id;
+}
 
     return fetch_id;
 }
@@ -1295,6 +1309,8 @@ unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
             {
                 struct package_fetch_info *pfi = create_pfi(pkg);
 
+            if (pfi)
+            {
                 /* Store passed callback. */
 
                 pfi->callback = callback;
@@ -1308,17 +1324,16 @@ unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
                 fetch_id = fetch_url(url, pfi->temp_filename, callback);
 
                 if (fetch_id)
+                {
                     pkg->status = PACKAGE_DOWNLOADING;
+                }
                 else
                 {
                     free_pfi(pfi);
                     pfi = NULL;
                     callback.data = NULL;
                 }
-
-                return fetch_id;
             }
-#endif
         }
     }
 

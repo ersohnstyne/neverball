@@ -1716,6 +1716,36 @@ static void loading_paint(int id, float t)
 
 /*---------------------------------------------------------------------------*/
 
+static int loading_gui(void)
+{
+    int id;
+
+    if ((id = gui_vstack(0)))
+    {
+        gui_label(id, _("Loading..."), GUI_SML, gui_wht, gui_wht);
+        gui_layout(id, 0, 0);
+    }
+
+    return id;
+}
+
+static int loading_enter(struct state *st, struct state *prev)
+{
+    return loading_gui();
+}
+
+static void loading_leave(struct state *st, struct state *next, int id)
+{
+    gui_delete(id);
+}
+
+static void loading_paint(int id, float t)
+{
+    gui_paint(id);
+}
+
+/*---------------------------------------------------------------------------*/
+
 struct state st_video = {
     video_enter,
     conf_common_leave,
@@ -1794,6 +1824,12 @@ struct state st_restart_required = {
     common_click,
     common_keybd,
     common_buttn
+};
+
+struct state st_loading = {
+    loading_enter,
+    loading_leave,
+    loading_paint
 };
 
 struct state st_loading = {

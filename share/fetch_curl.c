@@ -368,11 +368,14 @@ static int fetch_progress_func(void *clientp, curl_off_t dltotal, curl_off_t dln
     {
         struct fetch_event *fe = create_fetch_event();
 
-        fe->callback = fi->callback.progress;
-        fe->callback_data = fi->callback.data;
-        fe->extra_data = create_extra_progress(dltotal, dlnow);
+        if (fe)
+        {
+            fe->callback = fi->callback.done;
+            fe->callback_data = fi->callback.data;
+            fe->extra_data = create_extra_done(finished);
 
-        fetch_dispatch_event(fe);
+            fetch_dispatch_event(fe);
+        }
     }
 
     return 0;
@@ -434,11 +437,14 @@ static void fetch_step(void)
                     {
                         struct fetch_event *fe = create_fetch_event();
 
-                        fe->callback = fi->callback.done;
-                        fe->callback_data = fi->callback.data;
-                        fe->extra_data = create_extra_done(finished);
+                        if (fe)
+                        {
+                            fe->callback = fi->callback.done;
+                            fe->callback_data = fi->callback.data;
+                            fe->extra_data = create_extra_done(finished);
 
-                        fetch_dispatch_event(fe);
+                            fetch_dispatch_event(fe);
+                        }
                     }
 
                     log_printf("Stopping transfer %u\n", fi->fetch_id);

@@ -1255,68 +1255,71 @@ unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
     {
         struct package *pkg = array_get(available_packages, pi);
 
-#if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH>=2
-        if (pkg->fileid_gdrive[0])
+        if (pkg)
         {
-            struct package_fetch_info *pfi = create_pfi(pkg);
-
-            /* Store passed callback. */
-
-            pfi->callback = callback;
-
-            /* Reuse variable to pass our callbacks. */
-
-            callback.progress = package_fetch_progress;
-            callback.done     = package_fetch_done;
-            callback.data     = pfi;
-
-            fetch_id = fetch_gdrive(pkg->fileid_gdrive, pfi->temp_filename,
-                                    callback);
-
-            if (fetch_id)
-                pkg->status = PACKAGE_DOWNLOADING;
-            else
+#if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH>=2
+            if (pkg->fileid_gdrive[0])
             {
-                free_pfi(pfi);
-                pfi = NULL;
-                callback.data = NULL;
-            }
+                struct package_fetch_info *pfi = create_pfi(pkg);
 
-            return fetch_id;
-        }
+                /* Store passed callback. */
+
+                pfi->callback = callback;
+
+                /* Reuse variable to pass our callbacks. */
+
+                callback.progress = package_fetch_progress;
+                callback.done     = package_fetch_done;
+                callback.data     = pfi;
+
+                fetch_id = fetch_gdrive(pkg->fileid_gdrive, pfi->temp_filename,
+                                        callback);
+
+                if (fetch_id)
+                    pkg->status = PACKAGE_DOWNLOADING;
+                else
+                {
+                    free_pfi(pfi);
+                    pfi = NULL;
+                    callback.data = NULL;
+                }
+
+                return fetch_id;
+    }
 #endif
 
 #if NB_HAVE_PB_BOTH!=1 || ENABLE_FETCH<3
-        const char *url = get_package_url(pkg->filename, category);
+            const char *url = get_package_url(pkg->filename, category);
 
-        if (url)
-        {
-            struct package_fetch_info *pfi = create_pfi(pkg);
-
-            /* Store passed callback. */
-
-            pfi->callback = callback;
-
-            /* Reuse variable to pass our callbacks. */
-
-            callback.progress = package_fetch_progress;
-            callback.done     = package_fetch_done;
-            callback.data     = pfi;
-
-            fetch_id = fetch_url(url, pfi->temp_filename, callback);
-
-            if (fetch_id)
-                pkg->status = PACKAGE_DOWNLOADING;
-            else
+            if (url)
             {
-                free_pfi(pfi);
-                pfi = NULL;
-                callback.data = NULL;
-            }
+                struct package_fetch_info *pfi = create_pfi(pkg);
 
-            return fetch_id;
-        }
+                /* Store passed callback. */
+
+                pfi->callback = callback;
+
+                /* Reuse variable to pass our callbacks. */
+
+                callback.progress = package_fetch_progress;
+                callback.done = package_fetch_done;
+                callback.data = pfi;
+
+                fetch_id = fetch_url(url, pfi->temp_filename, callback);
+
+                if (fetch_id)
+                    pkg->status = PACKAGE_DOWNLOADING;
+                else
+                {
+                    free_pfi(pfi);
+                    pfi = NULL;
+                    callback.data = NULL;
+                }
+
+                return fetch_id;
+            }
 #endif
+        }
     }
 
     return fetch_id;

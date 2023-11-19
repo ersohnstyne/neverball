@@ -569,8 +569,15 @@ static void initialize_fetch(void)
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * Handle the link option.
+ *
+ * This navigates to the appropriate screen, if the asset was found.
+ */
 static int process_link(const char *link)
 {
+    int processed = 0;
+
     if (link && *link)
     {
         log_printf("Processing link: %s\n", link);
@@ -578,60 +585,83 @@ static int process_link(const char *link)
         if (str_starts_with(link, "set-"))
         {
             const char *set_file = concat_string(link, ".txt", NULL);
-            int index;
 
-            log_printf("Link is a set reference, searching for %s.\n", set_file);
-
-            set_init(0);
-
-            if ((index = set_find(set_file)) >= 0)
+            if (set_file)
             {
-                log_printf("Found set with the given reference.\n");
-                set_goto(index);
-                load_title_background();
-                game_kill_fade();
-                goto_state(&st_start);
-                return 1;
+                int index;
+
+                log_printf("Link is a set reference, searching for %s.\n", set_file);
+
+                set_init(0);
+
+                if ((index = set_find(set_file)) >= 0)
+                {
+                    log_printf("Found set with the given reference.\n");
+                    set_goto(index);
+                    load_title_background();
+                    game_kill_fade();
+                    goto_state(&st_start);
+                    processed = 1;
+                }
+                else if ((index = package_search(set_file)) >= 0)
+                {
+                    log_printf("Found package with the given reference.\n");
+                    goto_package(index, &st_title);
+                    processed = 1;
+                }
+                else log_errorf("Link did not match.\n", link);
             }
-            else if ((index = package_search(set_file)) >= 0)
-            {
-                log_printf("Found package with the given reference.\n");
-                goto_package(index, &st_title);
-                return 1;
-            }
-            else log_errorf("Link did not match.\n", link);
         }
-        else log_errorf("Link type is bad.\n");
+        else log_errorf("Link is bad.\n");
     }
-    else log_errorf("Link is bad.\n");
 
-    return 0;
+    return processed;
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void refresh_packages_done(void *data, void *extra_data)
 {
-    struct state *target_state = data;
+    struct state *start_state = data;
 
     if (!process_link(opt_link))
     {
-        if (target_state)
-            goto_state(target_state);
+        if (start_state)
+            goto_state(start_state);
     }
 }
 
 /*
  * Start package refresh and go to given state when done.
  */
-static unsigned int refresh_packages(struct state *target_state)
+static unsigned int main_preload(struct state* start_state)
 {
-    struct fetch_callback callback = {0};
+    struct fetch_callback callback = { 0 };
 
-    callback.data = target_state;
+    callback.data = start_state;
     callback.done = refresh_packages_done;
 
-    return package_refresh(callback);
+    goto_state(&st_loading);
+
+    /* Link processing works best with a package list. */
+
+    if (package_refresh(callback))
+    {
+        /* Callback takes care of link processing and starting screen. */
+        return;
+    }
+
+    /* But attempt it even without a package list. */
+
+    if (process_link(opt_link))
+    {
+        /* Link processing navigates to the appropriate screen. */
+        return;
+    }
+
+    /* Otherwise, go to the starting screen. */
+
+    goto_state(start_state);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1592,13 +1622,7 @@ int main(int argc, char *argv[])
 #endif
     }
 
-    if (refresh_packages(start_state))
-        goto_state_full(&st_loading, 0, 0, 1);
-    else
-    {
-        if (!process_link(opt_link))
-            goto_state_full(start_state, 0, 0, 1);
-    }
+    main_preload(start_state);
 
     /* Run the main game loop. */
 

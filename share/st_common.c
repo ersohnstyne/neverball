@@ -1702,6 +1702,11 @@ static int loading_enter(struct state *st, struct state *prev)
     return loading_gui();
 }
 
+static void loading_leave(struct state* st, struct state* next, int id)
+{
+    gui_delete(id);
+}
+
 static void loading_paint(int id, float t)
 {
     conf_common_paint(id, t);
@@ -1793,7 +1798,7 @@ struct state st_restart_required = {
 
 struct state st_loading = {
     loading_enter,
-    NULL,
+    loading_leave,
     loading_paint
 };
 

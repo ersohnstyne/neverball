@@ -982,7 +982,7 @@ enum InputType
 {
     CONTROL_NONE,
 
-    CONTROL_NEVERBALL,
+    CONTROL_PENNYBALL,
     CONTROL_SWITCHBALL_V1,
     CONTROL_SWITCHBALL_V2,
 
@@ -1048,7 +1048,7 @@ static int control_get_input(void)
     else if (k_auto == SDLK_e && k_cam1 == SDLK_1 && k_cam2 == SDLK_2 && k_cam3 == SDLK_3
              && k_caml == SDLK_s && k_camr == SDLK_d
              && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
-        return CONTROL_NEVERBALL;
+        return CONTROL_PENNYBALL;
 
     return CONTROL_MAX;
 }
@@ -1064,7 +1064,7 @@ static void control_set_input()
         gui_set_label(preset_id, "Switchball HD");
         key_preset_id = CONTROL_SWITCHBALL_V2;
     }
-    else if (key_preset_id == CONTROL_NEVERBALL)
+    else if (key_preset_id == CONTROL_PENNYBALL)
     {
         CONF_CONTROL_SET_PRESET_KEYS(SDLK_c, SDLK_3, SDLK_1, SDLK_2,
                                      SDLK_d, SDLK_a,
@@ -1080,7 +1080,7 @@ static void control_set_input()
                                      SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT);
 
         gui_set_label(preset_id, "Neverball");
-        key_preset_id = CONTROL_NEVERBALL;
+        key_preset_id = CONTROL_PENNYBALL;
     }
 }
 
@@ -1167,7 +1167,7 @@ int conf_control_gui(void)
 
         switch (control_get_input())
         {
-            case CONTROL_NEVERBALL:
+            case CONTROL_PENNYBALL:
                 key_preset_id = control_get_input();
                 presetname = "Neverball";
                 break;
@@ -1304,7 +1304,7 @@ static const char *conf_controllers_option_names[] = {
     N_("Right Stick"),
 };
 
-static const char* conf_controllers_option_values_xbox[] = {
+static const char *conf_controllers_option_values_xbox[] = {
     "A",
     "B",
     "X",
@@ -1348,7 +1348,7 @@ static const char *conf_controllers_option_values_ps[] = {
     "R3",
 };
 
-static const char* conf_controllers_option_values_steamdeck[] = {
+static const char *conf_controllers_option_values_steamdeck[] = {
     "A",
     "B",
     "X",
@@ -2246,7 +2246,7 @@ static int conf_action(int tok, int val)
 #if NB_HAVE_PB_BOTH!=1
         case CONF_PACKAGES:
 #if ENABLE_FETCH
-            return goto_state(&st_package);
+            return goto_package(curr_state());
 #endif
             break;
 
@@ -2368,7 +2368,7 @@ static int conf_gui(void)
                 conf_state(id, _("Neverball Game Transfer"), _("Start"),
                                CONF_SYSTEMTRANSFER_TARGET);
 #else
-                conf_state(id, _("Pennyball Transfer Tool"), _("Start"),
+                conf_state(id, _("Neverball Transfer Tool"), _("Start"),
                                CONF_SYSTEMTRANSFER_SOURCE);
 #endif
                 gui_space(id);
@@ -2436,8 +2436,8 @@ static int conf_gui(void)
             }
 
 #if NB_HAVE_PB_BOTH!=1
-            const char* player = config_get_s(CONFIG_PLAYER);
-            const char* ball   = config_get_s(CONFIG_BALL_FILE);
+            const char *player = config_get_s(CONFIG_PLAYER);
+            const char *ball   = config_get_s(CONFIG_BALL_FILE);
 
             int name_id, ball_id;
             gui_space(id);
@@ -2492,6 +2492,9 @@ static int conf_gui(void)
         if ((id = gui_vstack(root_id)))
         {
             gui_label(id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT);
+#if NB_HAVE_PB_BOTH==1
+            gui_multi(id, "© 2008, 2023 PennyGames.", GUI_TNY, GUI_COLOR_WHT);
+#endif
             gui_clr_rect(id);
             gui_layout(id, 0, -1);
         }

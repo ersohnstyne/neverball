@@ -33,7 +33,7 @@ static char dbg_strerror[256];
 
 int         GameDbg_GetSigInt(void) { return dbg_sigint; }
 void        GameDbg_ClrSigInt(void) { dbg_sigint = 0; }
-const char* GameDbg_GetError(void)  { return dbg_strerror ? dbg_strerror : "Unknown error"; }
+const char *GameDbg_GetError(void)  { return dbg_strerror ? dbg_strerror : "Unknown error"; }
 
 void GameDbg_SigNum_Hangup(int signum)     { dbg_sigint = signum; exit(1); }
 void GameDbg_SigNum_CtrlC(int signum)      { dbg_sigint = signum; exit(0); }

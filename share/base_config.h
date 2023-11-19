@@ -36,7 +36,6 @@
 #include <XInput.h>
 #endif
 
-#include <signal.h>
 #include <stdio.h>
 
 #include "dbg_config.h"
@@ -63,15 +62,15 @@
 #ifndef CONFIG_USER
 #if NDEBUG
 #ifdef _WIN32
-#define CONFIG_USER   "Neverball_" VERSION
+#define CONFIG_USER   "Neverball"
 #else
 #define CONFIG_USER   ".neverball"
 #endif
 #endif
 #ifdef _WIN32
-#define CONFIG_USER   "Neverball_" VERSION "-dev"
+#define CONFIG_USER   "Neverball-dev"
 #else
-#define CONFIG_USER   ".Neverball-dev"
+#define CONFIG_USER   ".neverball-dev"
 #endif
 #endif
 

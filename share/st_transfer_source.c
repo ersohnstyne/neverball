@@ -190,7 +190,7 @@ static int show_transfer = 0;
 
 static int show_transfer_completed = 0;
 
-static struct state* transfer_back;
+static struct state *transfer_back;
 
 static int transfer_introducory_gui(void)
 {

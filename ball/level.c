@@ -556,7 +556,7 @@ int level_load(const char *filename, struct level *level)
     score_init_hs(&level->scores[SCORE_GOAL], 59999, 0);
     score_init_hs(&level->scores[SCORE_COIN], 59999, 0);
 
-    const char* curr_setname = set_id(curr_set());
+    const char *curr_setname = set_id(curr_set());
 
     int level_offered = 0;
 

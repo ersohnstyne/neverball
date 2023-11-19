@@ -658,7 +658,7 @@ int fs_exists(const char *path)
 #endif
 }
 
-int fs_recycle(const char* path)
+int fs_recycle(const char *path)
 {
     int success = 0;
 

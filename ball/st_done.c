@@ -354,7 +354,7 @@ static int done_buttn(int b, int d)
 
 static int wealthlogo_done = 0;
 
-static int capital_enter(struct state* st, struct state* prev)
+static int capital_enter(struct state *st, struct state *prev)
 {
     wealthlogo_done = 0;
 

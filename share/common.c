@@ -413,7 +413,7 @@ const char *base_name(const char *name)
 {
     static char buff[MAXSTR];
 
-    char* sep;
+    char *sep;
 
     if (!name) return name;
 

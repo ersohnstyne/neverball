@@ -130,7 +130,7 @@ static float         state_time;
 static int           state_drawn;
 static struct state *state;
 
-static struct state* anim_queue_state;
+static struct state *anim_queue_state;
 static int           anim_queue_allowskip;
 static int           anim_queue_directions[2];
 

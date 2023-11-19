@@ -370,7 +370,7 @@ static int ball_gui(void)
             gui_space(id);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        const char* more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ?
+        const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ?
 #if NB_STEAM_API==1
                                       N_("Open Steam Workshop!") :
 #else

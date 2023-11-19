@@ -84,8 +84,8 @@ std::ostringstream lang_splitstr(std::string str, std::string delim = "\\")
 /*---------------------------------------------------------------------------*/
 
 std::vector<bool> lang_text_found;
-std::vector<char*> src_lang_text;
-std::vector<char*> targ_lang_text;
+std::vector<char *> src_lang_text;
+std::vector<char *> targ_lang_text;
 
 static char *targ_lang_code;
 

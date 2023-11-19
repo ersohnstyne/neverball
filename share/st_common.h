@@ -77,6 +77,7 @@ extern struct state st_resol;
 #endif
 extern struct state st_lang;
 extern struct state st_restart_required;
+extern struct state st_loading;
 
 /*---------------------------------------------------------------------------*/
 

@@ -65,7 +65,7 @@
 #define END_SUPPORT_DESC_2   N_("May 21, 2024 is the last day Jānis Rūcis will offer\\simple entities and technical support for running Neverball 1.6.\\We know change can be difficult, that's why we're reaching out early\\to help you back up your levels and highscores, and prepare for what's next.") /* DO NOT EDIT! */
 #define END_SUPPORT_DESC_3_1 N_("As of May 21, 2024, support for Neverball 1.6\\has come to an end. Your entities is\\more vulnerable to legacies due to:") /* DO NOT EDIT! */
 #define END_SUPPORT_DESC_3_2 N_("- No simple start position\\- No goal decals\\- No simple switch and simple platform") /* DO NOT EDIT! */
-#define END_SUPPORT_DESC_3_3 N_("PennySchloss requires using\\Pennyball 2.1.0 on a new campaigns\\for the latest huge guideline features.") /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_3_3 N_("PennySchloss requires using\\Pennyball 2.1 on a new campaigns\\for the latest huge guideline features.") /* DO NOT EDIT! */
 
 /*---------------------------------------------------------------------------*/
 
@@ -325,7 +325,7 @@ static int switchball_useable(void)
 struct state st_end_support;
 
 /* DO NOT EDIT! */
-static struct state* st_hide;
+static struct state *st_hide;
 
 /* DO NOT EDIT! */
 int goto_end_support(struct state *scontinue)

@@ -83,7 +83,7 @@ void  init_state(struct state *);
  * This screenstate transition will be replaced into the goto_state_full.
  * Your functions will be replaced using four parameters.
  */
-_CRT_NB_SCREENSTATE_DEPRECATED(int, (struct state* st), goto_state, goto_state_full);
+_CRT_NB_SCREENSTATE_DEPRECATED(int, (struct state *st), goto_state, goto_state_full);
 
 int  goto_state_full(struct state *st, int fromdirection, int todirection, int noanimation);
 

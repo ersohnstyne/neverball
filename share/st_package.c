@@ -64,6 +64,7 @@
 
 /*---------------------------------------------------------------------------*/
 
+struct state st_package;
 struct state st_package_manage;
 
 #define PACKAGE_STEP 4
@@ -579,9 +580,6 @@ static int package_enter(struct state *st, struct state *prev)
 
     if (do_init || package_manual_hotreload)
     {
-        if (prev != &st_package_manage && prev != &st_package)
-            package_back = prev;
-
         if (package_manual_hotreload)
             first = 0;
 
@@ -825,6 +823,27 @@ int package_manage_enter(struct state *st, struct state *prev)
 static void package_manage_leave(struct state *st, struct state *next, int id)
 {
     gui_delete(id);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void goto_package(int package_id, struct state *back_state)
+{
+    /* Initialize the state. */
+
+    goto_state(&st_package);
+
+    package_back = back_state;
+
+    /* Navigate to the page. */
+
+    first = (package_id / PACKAGE_STEP) * PACKAGE_STEP;
+    do_init = 0;
+    goto_state(&st_package);
+
+    /* Finally, select the package. */
+
+    package_select(package_id);
 }
 
 /*---------------------------------------------------------------------------*/

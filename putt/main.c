@@ -111,6 +111,8 @@ extern "C" {
 
 #include "st_conf.h"
 #include "st_all.h"
+#include "st_common.h"
+#include "st_package.h"
 #if __cplusplus
 }
 #endif
@@ -126,6 +128,54 @@ const char ICON[] = "icon/neverputt.png";
 
 // This fixes some malfunctions instead
 #define SDL_EVENT_ANTI_MALFUNCTIONS(events) do { events.type = 0; } while (0)
+
+/*---------------------------------------------------------------------------*/
+
+static char *opt_data;
+static char *opt_hole;
+static char *opt_link;
+
+static void opt_init(int argc, char **argv)
+{
+    int i;
+
+    for (i = 1; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--data") == 0)
+        {
+            if (++i < argc)
+                opt_data = argv[i];
+        }
+        else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--hole") == 0)
+        {
+            if (++i < argc)
+                opt_hole = argv[i];
+        }
+    }
+
+    if (argc == 2)
+    {
+        size_t len = strlen(argv[1]);
+
+        if (len > 4)
+        {
+            char *ext = argv[1] + len - 4;
+
+            if (strcmp(ext, ".map") == 0)
+                strcpy(ext, ".sol");
+
+            if (strcmp(ext, ".sol") == 0)
+                opt_hole = argv[1];
+        }
+    }
+}
+
+static void opt_quit(void)
+{
+    opt_data = NULL;
+    opt_hole = NULL;
+    opt_link = NULL;
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -177,7 +227,7 @@ static Uint32 FETCH_EVENT = (Uint32)-1;
 /*
  * Push a custom SDL event on the queue from another thread.
  */
-static void dispatch_fetch_event(void* data)
+static void dispatch_fetch_event(void *data)
 {
     SDL_Event e;
 
@@ -203,6 +253,62 @@ static void initialize_fetch(void)
 
     /* Start the thread. */
     fetch_init(dispatch_fetch_event);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static int process_link(const char *link)
+{
+    if (link && *link)
+    {
+        log_printf("Processing link: %s\n", link);
+
+        if (str_starts_with(link, "holes-"))
+        {
+            const char *hole_file = concat_string(link, ".txt", NULL);
+            int index;
+
+            log_printf("Link is a hole reference, searching for %s.\n", hole_file);
+
+            if ((index = package_search(hole_file)) >= 0)
+            {
+                log_printf("Found package with the given reference.\n");
+                goto_package(index, &st_title);
+                return 1;
+            }
+            else log_errorf("Link did not match.\n", link);
+        }
+        else log_errorf("Link type is bad.\n");
+    }
+    else log_errorf("Link is bad.\n");
+
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void refresh_packages_done(void *data, void *extra_data)
+{
+    struct state *target_state = data;
+
+    if (!process_link(opt_link))
+    {
+        if (target_state)
+            goto_state(target_state);
+    }
+}
+
+/*
+ * Start package refresh and go to given state when done.
+ */
+static unsigned int refresh_packages(struct state *target_state)
+{
+    struct fetch_callback callback = { 0 };
+
+    callback.data = target_state;
+    callback.done = refresh_packages_done;
+
+    return package_refresh(callback);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -266,7 +372,7 @@ static int loop(void)
                 }
                 break;
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
             case SDL_MOUSEMOTION:
                 /* Convert to OpenGL coordinates. */
 
@@ -353,7 +459,7 @@ static int loop(void)
                     break;
 
                     default:
-#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
                     if (config_tst_d(CONFIG_KEY_FORWARD, c))
                         st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), -1.0f);
                     else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
@@ -384,7 +490,7 @@ static int loop(void)
                         break;
 
                     default:
-#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
                         if (config_tst_d(CONFIG_KEY_FORWARD, c))
                             st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 0.0f);
                         else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
@@ -452,7 +558,7 @@ static int loop(void)
                 }
                 break;
 
-#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
+#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
             case SDL_JOYAXISMOTION:
                 joy_axis(e.jaxis.which, e.jaxis.axis, JOY_VALUE(e.jaxis.value));
                 break;
@@ -490,46 +596,6 @@ static int loop(void)
 
 /*---------------------------------------------------------------------------*/
 
-static char *opt_data;
-static char *opt_hole;
-
-static void opt_parse(int argc, char **argv)
-{
-    int i;
-
-    for (i = 1; i < argc; i++)
-    {
-        if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--data") == 0)
-        {
-            if (++i < argc)
-                opt_data = argv[i];
-        }
-        else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--hole") == 0)
-        {
-            if (++i < argc)
-                opt_hole = argv[i];
-        }
-    }
-
-    if (argc == 2)
-    {
-        size_t len = strlen(argv[1]);
-
-        if (len > 4)
-        {
-            char *ext = argv[1] + len - 4;
-
-            if (strcmp(ext, ".map") == 0)
-                strcpy(ext, ".sol");
-
-            if (strcmp(ext, ".sol") == 0)
-                opt_hole = argv[1];
-        }
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 static int em_cached_cam;
 
 struct main_loop
@@ -538,7 +604,7 @@ struct main_loop
     unsigned int done : 1;
 };
 
-static void step(void* data)
+static void step(void *data)
 {
     struct main_loop* mainloop = (struct main_loop*) data;
 
@@ -595,7 +661,7 @@ static void step(void* data)
 #endif
 }
 
-static int main_init(int argc, char* argv[])
+static int main_init(int argc, char *argv[])
 {
 #if _WIN32 && _MSC_VER
     GAMEDBG_SIGFUNC_PREPARE;
@@ -618,22 +684,22 @@ static int main_init(int argc, char* argv[])
 
     srand((int) time(NULL));
 
-    opt_parse(argc, argv);
+    opt_init(argc, argv);
 
     config_paths(opt_data);
     log_init("Neverputt " VERSION, "neverputt.log");
     fs_mkdir("Screenshots");
 
-#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API \
+#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_FAMILY_API \
     && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX, "1");
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API \
+#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API \
     && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360) && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360_PLAYER_LED)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360_PLAYER_LED, "1");
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API
 #if defined(SDL_HINT_JOYSTICK_HIDAPI_PS5) && defined(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "1");
@@ -645,7 +711,7 @@ static int main_init(int argc, char* argv[])
 #error No Playstation HIDAPI specified!
 #endif
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_SWITCH_FAMILY_API
 #if defined(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS, "1");
 #endif
@@ -687,7 +753,7 @@ static void main_quit()
     mtrl_quit();
     video_quit();
 
-    /* Restore Neverball's camera setting. */
+    /* Restore Pennyball's camera setting. */
 
     config_set_d(CONFIG_CAMERA, em_cached_cam);
     config_save();
@@ -699,7 +765,7 @@ static void main_quit()
 
     lang_quit();
 
-#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
+#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
     joy_quit();
 #endif
 
@@ -715,7 +781,8 @@ static void main_quit()
     networking_quit();
 
     log_quit();
-    fs_quit();
+    fs_quit ();
+    opt_quit();
 
 #if _cplusplus
     try {
@@ -773,35 +840,35 @@ int main(int argc, char *argv[])
         package_init();
 #endif
 
-#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
+#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
         joy_init();
 #endif
 
 #if NB_HAE_PB_BOTH==1
-#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
         init_controller_type(PLATFORM_PC);
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_FAMILY_API
         init_controller_type(PLATFORM_XBOX);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
         init_controller_type(PLATFORM_XBOX);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API
         init_controller_type(PLATFORM_PS);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_SWITCH_FAMILY_API
         init_controller_type(PLATFORM_SWITCH);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_HANDSET_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_HANDSET_FAMILY_API
         init_controller_type(PLATFORM_HANDSET);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
@@ -825,7 +892,7 @@ int main(int argc, char *argv[])
         lang_init();
 #endif
 
-        /* Cache Neverball's camera setting. */
+        /* Cache Pennyball's camera setting. */
 
         em_cached_cam = config_get_d(CONFIG_CAMERA);
 
@@ -834,14 +901,14 @@ int main(int argc, char *argv[])
         if (video_init())
         {
             struct main_loop mainloop = { 0 };
+            
+            struct state *start_state = &st_title;
 
             /* Material system. */
 
             mtrl_init();
 
-            /* Run the main game loop. */
-
-            mainloop.now = SDL_GetTicks();
+            /* Screen states. */
 
             init_state(&st_null);
 
@@ -858,19 +925,31 @@ int main(int argc, char *argv[])
                         hole_load(1, path) &&
                         hole_goto(1, 1))
                     {
-                        goto_state(&st_next);
+                        start_state = &st_next;
                         loaded = 1;
                     }
                 }
 
                 if (!loaded)
-                    goto_state(&st_title);
+                    start_state = &st_title;
             }
             else
-                goto_state(&st_title);
+                start_state = &st_title;
+
+            /* Run the main game loop. */
+
+            mainloop.now = SDL_GetTicks();
+
+            if (refresh_packages(start_state))
+                goto_state_full(&st_loading, 0, 0, 1);
+            else
+            {
+                if (!process_link(opt_link))
+                    goto_state_full(start_state, 0, 0, 1);
+            }
 
 #ifdef __EMSCRIPTEN__
-            emscripten_set_main_loop_arg(step, (void*) &mainloop, 0, 1);
+            emscripten_set_main_loop_arg(step, (void *) &mainloop, 0, 1);
 #else
             while (!mainloop.done)
                 step(&mainloop);

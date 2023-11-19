@@ -142,6 +142,14 @@ static int st_demo_version_read(fs_file fp, struct demo *d)
 /*---------------------------------------------------------------------------*/
 
 static int check_full_access(char * replay_pname) {
+    const char *curr_player = config_get_s(CONFIG_PLAYER);
+
+    if (strcmp(replay_pname, "PennySchloss") == 0)
+    {
+        if (strcmp(curr_player, "PennySchloss") == 0)
+            return 1;
+    }
+
     return 0;
 }
 
@@ -1967,7 +1975,7 @@ static float demo_look_stick_x[2],
              demo_look_stick_y[2],
              demo_look_stick_z;
 
-static int demo_look_enter(struct state* st, struct state* prev)
+static int demo_look_enter(struct state *st, struct state *prev)
 {
     demo_look_stick_x[0] = 0;
     demo_look_stick_y[0] = 0;
@@ -1979,7 +1987,7 @@ static int demo_look_enter(struct state* st, struct state* prev)
     return 0;
 }
 
-static void demo_look_leave(struct state* st, struct state* next, int id)
+static void demo_look_leave(struct state *st, struct state *next, int id)
 {
 }
 

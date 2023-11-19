@@ -1290,7 +1290,7 @@ static int ask_more_buttn(int b, int d)
 
 struct state st_raise_gems;
 
-static struct state* st_returnable;
+static struct state *st_returnable;
 
 static int raisegems_dst_amount = 15;
 static int raisegems_working = 0;
@@ -1643,7 +1643,7 @@ static int raise_gems_prepare_gui(void)
     return id;
 }
 
-static int raise_gems_enter(struct state* st, struct state* prev)
+static int raise_gems_enter(struct state *st, struct state *prev)
 {
     return raisegems_working ?
            raise_gems_working_gui() : raise_gems_prepare_gui();

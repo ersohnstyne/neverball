@@ -446,7 +446,7 @@ static int save_installed_packages(void)
         }
 
 #else
-        const char* default_filename = "installed-packages.txt";
+        const char *default_filename = "installed-packages.txt";
 #endif
 
         fs_file fp = fs_open_write(get_package_path(default_filename));
@@ -507,8 +507,8 @@ static void load_package_statuses(Array packages)
 
         for (i = 0, n = array_len(packages); i < n; ++i)
         {
-            struct package* pkg = array_get(packages, i);
-            const char* dest_filename = get_package_path(pkg->filename);
+            struct package *pkg           = array_get(packages, i);
+            const char     *dest_filename = get_package_path(pkg->filename);
 
             pkg->status = PACKAGE_AVAILABLE;
 
@@ -630,7 +630,7 @@ static Array load_packages_from_file(const char *filename)
             {
                 if (pkg)
                 {
-                    char* s = NULL;
+                    char *s = NULL;
 
                     SAFECPY(pkg->desc, line + 5);
 
@@ -767,8 +767,33 @@ unsigned int package_fetch_image(int pi, struct fetch_callback nested_callback)
 
 /*---------------------------------------------------------------------------*/
 
+struct package_list_info
+{
+    struct fetch_callback callback;
+};
+
+static struct package_list_info *create_pli(struct fetch_callback nested_callback)
+{
+    struct package_list_info *pli = calloc(sizeof (*pli), 1);
+
+    if (pli)
+        pli->callback = nested_callback;
+
+    return pli;
+}
+
+static void free_pli(struct package_list_info **pli)
+{
+    if (pli && *pli)
+    {
+        free(*pli);
+        *pli = NULL;
+    }
+}
+
 static void available_packages_done(void *data, void *extra_data)
 {
+    struct package_list_info *pli = data;
     struct fetch_done *fd = extra_data;
 
     if (fd && fd->finished)
@@ -787,9 +812,10 @@ static void available_packages_done(void *data, void *extra_data)
 /*
  * Download the package list.
  */
-static void fetch_available_packages(int category)
+static unsigned int fetch_available_packages(struct fetch_callback nested_callback, int category)
 {
-    const char* filename = get_package_path("available-packages.txt");
+    unsigned int fetch_id = 0;
+    const char *filename = get_package_path("available-packages.txt");
 
 #if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH>=2
     if (filename && category == PACKAGE_CATEGORY_CAMPAIGN
@@ -797,10 +823,20 @@ static void fetch_available_packages(int category)
     {
         // Google Drive campaign package support
 
-        struct fetch_callback gdrive_callback = { 0 };
-        gdrive_callback.done = available_packages_done;
-        fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_CAMPAIGN, filename,
-                     gdrive_callback);
+        struct fetch_callback     callback = {0};
+        struct package_list_info *pli      = create_pli(nested_callback);
+
+        callback.data = pli;
+        callback.done = available_packages_done;
+
+        fetch_id = fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_CAMPAIGN, filename,
+                                gdrive_callback);
+
+        if (!fetch_id)
+        {
+            free_pli(&pli);
+            callback.data = NULL;
+        }
         return;
     }
     else if (filename && category == PACKAGE_CATEGORY_LEVELSET
@@ -808,10 +844,20 @@ static void fetch_available_packages(int category)
     {
         // Google Drive level set package support
 
-        struct fetch_callback gdrive_callback = { 0 };
-        gdrive_callback.done = available_packages_done;
-        fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_LEVELSET, filename,
-                     gdrive_callback);
+        struct fetch_callback     callback = {0};
+        struct package_list_info *pli      = create_pli(nested_callback);
+
+        callback.data = pli;
+        callback.done = available_packages_done;
+
+        fetch_id = fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_LEVELSET, filename,
+                                gdrive_callback);
+
+        if (!fetch_id)
+        {
+            free_pli(&pli);
+            callback.data = NULL;
+        }
         return;
     }
     else if (filename && category == PACKAGE_CATEGORY_PROFILE
@@ -819,10 +865,20 @@ static void fetch_available_packages(int category)
     {
         // Google Drive ball model and profile package support
 
-        struct fetch_callback gdrive_callback = { 0 };
-        gdrive_callback.done = available_packages_done;
-        fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_BALL, filename,
-                     gdrive_callback);
+        struct fetch_callback     callback = {0};
+        struct package_list_info *pli      = create_pli(nested_callback);
+
+        callback.data = pli;
+        callback.done = available_packages_done;
+
+        fetch_id = fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_BALL, filename,
+                                gdrive_callback);
+
+        if (!fetch_id)
+        {
+            free_pli(&pli);
+            callback.data = NULL;
+        }
         return;
     }
     else if (filename && category == PACKAGE_CATEGORY_COURSE
@@ -830,10 +886,20 @@ static void fetch_available_packages(int category)
     {
         // Google Drive course package support
 
-        struct fetch_callback gdrive_callback = { 0 };
-        gdrive_callback.done = available_packages_done;
-        fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_COURSE, filename,
-                     gdrive_callback);
+        struct fetch_callback     callback = {0};
+        struct package_list_info *pli      = create_pli(nested_callback);
+
+        callback.data = pli;
+        callback.done = available_packages_done;
+
+        fetch_id = fetch_gdrive(NB_GDRIVE_PACKAGE_FILEID_COURSE, filename,
+                                gdrive_callback);
+
+        if (!fetch_id)
+        {
+            free_pli(&pli);
+            callback.data = NULL;
+        }
         return;
     }
 #endif
@@ -848,11 +914,23 @@ static void fetch_available_packages(int category)
 
     if (url && filename)
     {
-        struct fetch_callback callback = { 0 };
+        struct fetch_callback     callback = {0};
+        struct package_list_info *pli = create_pli(nested_callback);
+
+        callback.data = pli;
         callback.done = available_packages_done;
-        fetch_url(url, filename, callback);
+
+        fetch_id = fetch_url(url, filename, callback);
+
+        if (!fetch_id)
+        {
+            free_pli(&pli);
+            callback.data = NULL;
+        }
     }
 #endif
+
+    return fetch_id;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -885,10 +963,14 @@ void package_init(void)
     /* Load the list of installed packages. */
 
     load_installed_packages();
+}
 
-    /* Download package list. */
-
-    fetch_available_packages(package_curr_category);
+/*
+ * Download the list of available packages.
+ */
+unsigned int package_refresh(struct fetch_callback callback)
+{
+    return fetch_available_packages(callback, package_curr_category);
 }
 
 void package_quit(void)
@@ -1040,9 +1122,9 @@ const char *package_get_shot_filename(int pi)
     return get_package_path(package_get_shot(pi));
 }
 
-const char* package_get_formatted_type(int pi)
+const char *package_get_formatted_type(int pi)
 {
-    const char* type = package_get_type(pi);
+    const char *type = package_get_type(pi);
 
     if (type)
     {

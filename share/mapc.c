@@ -1126,8 +1126,8 @@ static int read_dict_entries = 0;
 // This variables uses legacy mode
 #define LEGACY_Z_OFFSET 1
 
-const char* switch_material = "mtrl/info-camp-switch-specifications";
-static char specification_type[MAXSTR];
+const char  *switch_material = "mtrl/info-camp-switch-specifications";
+static char  specification_type[MAXSTR];
 
 static float specification_radius = 0.0f;
 
@@ -3191,7 +3191,7 @@ static void dump_init(struct s_base *fp)
 
 /*---------------------------------------------------------------------------*/
 
-static int campaign_check_budget(struct s_base* p)
+static int campaign_check_budget(struct s_base *p)
 {
     int i;
     int n = 0;
@@ -3207,7 +3207,7 @@ static int campaign_check_budget(struct s_base* p)
     return 1;
 }
 
-static int check_profile_balls(const char* filename)
+static int check_profile_balls(const char *filename)
 {
     return strcmp(filename + strlen(filename) - 11, "-solid.csol") == 0 ||
            strcmp(filename + strlen(filename) - 11, "-inner.csol") == 0 ||
@@ -3217,7 +3217,7 @@ static int check_profile_balls(const char* filename)
            strcmp(filename + strlen(filename) - 11, "-outer.sol")  == 0;
 }
 
-static int check_campaign_level(const char* filename)
+static int check_campaign_level(const char *filename)
 {
     return strcmp(filename + strlen(filename) - 5, ".cmap") == 0;
 }

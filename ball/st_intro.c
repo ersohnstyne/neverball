@@ -1092,7 +1092,7 @@ static void cleanup_screensaver(void)
     screensaver_done = 1;
 }
 
-static int screensaver_enter(struct state* st, struct state* prev)
+static int screensaver_enter(struct state *st, struct state *prev)
 {
     intro_soundqueue[0] = 0;
     intro_soundqueue[1] = 0;
@@ -1104,7 +1104,7 @@ static int screensaver_enter(struct state* st, struct state* prev)
     return 0;
 }
 
-static void screensaver_leave(struct state* st, struct state* next, int id)
+static void screensaver_leave(struct state *st, struct state *next, int id)
 {
     gui_delete(id);
 }

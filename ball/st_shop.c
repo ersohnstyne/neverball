@@ -2230,7 +2230,7 @@ static int expenses_export_gui(void)
     return id;
 }
 
-static int expenses_export_enter(struct state* st, struct state* prev)
+static int expenses_export_enter(struct state *st, struct state *prev)
 {
     if (prev == &st_shop_iap)
     {

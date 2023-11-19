@@ -120,7 +120,7 @@ void gt_init(const char *domain, const char *pref)
 
         if (!default_lang_init)
         {
-            const char* env;
+            const char *env;
 
             if ((env = getenv("LANGUAGE")))
                 SAFECPY(default_lang, env);
@@ -339,7 +339,7 @@ void lang_init(void)
 #if __cplusplus
     } catch (const std::exception& xO) {
         log_errorf("Failure to initialize locale!: Exception caught! (%s)\n", xO.what());
-    } catch (const char* xS) {
+    } catch (const char *xS) {
         log_errorf("Failure to initialize locale!: Exception caught! (%s)\n", xS);
     } catch (...) {
         log_errorf("Failure to initialize locale!: Exception caught! (Unknown type)\n");

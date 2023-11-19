@@ -164,7 +164,7 @@ void video_snap(const char *path)
 static SDL_Window    *window;
 static SDL_GLContext  context;
 
-#if !_MSC_VER
+#if !_MSC_VER && !defined(__APPLE__)
 static void set_window_icon(const char *filename)
 {
     SDL_Surface *icon;
@@ -588,7 +588,7 @@ video_mode_reconf:
 
     if (window && context)
     {
-#if !_MSC_VER
+#if !_MSC_VER && !defined(__APPLE__)
         set_window_icon(ICON);
 #endif
 
@@ -1039,7 +1039,7 @@ video_mode_auto_config_reconf:
 
     if (window && context)
     {
-#if !_MSC_VER
+#if !_MSC_VER && !defined(__APPLE__)
         set_window_icon(ICON);
 #endif
 

@@ -123,6 +123,7 @@ extern "C" {
 #include "rfd.h"
 #endif
 #include "log.h"
+#include "game_client.h"
 
 #include "st_malfunction.h"
 #include "st_intro.h"
@@ -133,6 +134,9 @@ extern "C" {
 #include "st_pause.h"
 #include "st_play.h"
 #include "st_fail.h"
+#include "st_common.h"
+#include "st_start.h"
+#include "st_package.h"
 #if __cplusplus
 }
 #endif
@@ -148,6 +152,211 @@ const char ICON[] = "icon/neverball.png";
 
 /* This fixes some malfunctions instead */
 #define SDL_EVENT_ANTI_MALFUNCTIONS(events) do { events.type = 0; } while (0)
+
+/*---------------------------------------------------------------------------*/
+
+static char *opt_data;
+static char *opt_replay;
+static char *opt_level;
+static char *opt_link;
+
+#if ENABLE_DEDICATED_SERVER==1
+static char *opt_ipaddr;
+
+#ifndef DISABLE_PANORAMA
+static char *opt_panorama;
+
+#define opt_usage \
+    "Usage: %s [options ...]\n" \
+    "Options:\n" \
+    "  -h, --help                show this usage message.\n" \
+    "  -p, --panorama            snap background file as panorama (Only, if Unity is supported).\n" \
+    "  -v, --version             show version.\n" \
+    "  -s, --screensaver         show screensaver.\n" \
+    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
+    "  -d, --data <dir>          use 'dir' as game data directory.\n" \
+    "  -r, --replay <file>       play the replay 'file'.\n" \
+    "  -l, --level <file>        load the level 'file'\n" \
+    "  --ipv4 <address>          use the IPv4 address for dedicated game network.\n" \
+    "  --ipv6 <address>          use the IPv6 address for dedicated game network.\n"
+#else
+#define opt_usage \
+    "Usage: %s [options ...]\n" \
+    "Options:\n" \
+    "  -h, --help                show this usage message.\n" \
+    "  -v, --version             show version.\n" \
+    "  -s, --screensaver         show screensaver.\n" \
+    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
+    "  -d, --data <dir>          use 'dir' as game data directory.\n" \
+    "  -r, --replay <file>       play the replay 'file'.\n" \
+    "  -l, --level <file>        load the level 'file'\n" \
+    "  --ipv4 <address>          use the IPv4 address for dedicated game network.\n" \
+    "  --ipv6 <address>          use the IPv6 address for dedicated game network.\n"
+#endif
+#else
+#ifndef DISABLE_PANORAMA
+static char *opt_panorama;
+
+#define opt_usage \
+    "Usage: %s [options ...]\n" \
+    "Options:\n" \
+    "  -h, --help                show this usage message.\n" \
+    "  -p, --panorama            snap background file as panorama (Only, if Unity is supported).\n" \
+    "  -v, --version             show version.\n" \
+    "  -s, --screensaver         show screensaver.\n" \
+    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
+    "  -d, --data <dir>          use 'dir' as game data directory.\n" \
+    "  -r, --replay <file>       play the replay 'file'.\n" \
+    "  -l, --level <file>        load the level 'file'\n"
+#else
+#define opt_usage \
+    "Usage: %s [options ...]\n" \
+    "Options:\n" \
+    "  -h, --help                show this usage message.\n" \
+    "  -v, --version             show version.\n" \
+    "  -s, --screensaver         show screensaver.\n" \
+    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
+    "  -d, --data <dir>          use 'dir' as game data directory.\n" \
+    "  -r, --replay <file>       play the replay 'file'.\n" \
+    "  -l, --level <file>        load the level 'file'\n"
+#endif
+#endif
+
+static int opt_screensaver;
+
+#define opt_error(option) \
+    fprintf(stderr, "Option '%s' requires an argument.\n", option)
+
+#define frame_smooth (1.f / 25.f) * 1000.f
+
+static void opt_init(int argc, char **argv)
+{
+    int i;
+
+    /* Scan argument list. */
+
+    for (i = 1; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help")    == 0)
+        {
+            printf(opt_usage, argv[0]);
+            exit(EXIT_SUCCESS);
+        }
+
+#ifndef DISABLE_PANORAMA
+        if (strcmp(argv[i], "-p") == 0 || strcmp(argv[i], "--panorama") == 0)
+        {
+            if (i + 1 == argc)
+            {
+                opt_error(argv[i]);
+                exit(EXIT_FAILURE);
+            }
+            opt_panorama = argv[++i];
+            continue;
+        }
+#endif
+
+        if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0)
+        {
+            printf("%s\n", VERSION);
+            exit(EXIT_SUCCESS);
+        }
+        
+        if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--screensaver") == 0)
+        {
+            opt_screensaver = 1;
+            continue;
+        }
+
+        if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--data")    == 0)
+        {
+            if (i + 1 == argc)
+            {
+                opt_error(argv[i]);
+                exit(EXIT_FAILURE);
+            }
+            opt_data = argv[++i];
+            continue;
+        }
+
+        if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--replay")  == 0)
+        {
+            if (i + 1 == argc)
+            {
+                opt_error(argv[i]);
+                exit(EXIT_FAILURE);
+            }
+            opt_replay = argv[++i];
+            continue;
+        }
+
+        if (strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--level")  == 0)
+        {
+            if (i + 1 == argc)
+            {
+                opt_error(argv[i]);
+                exit(EXIT_FAILURE);
+            }
+            opt_level = argv[++i];
+            continue;
+        }
+
+#if ENABLE_DEDICATED_SERVER==1
+        if (strcmp(argv[i], "--ipv4") == 0 || strcmp(argv[i], "--ipv6") == 0)
+        {
+            if (i + 1 == argc)
+            {
+                opt_error(argv[i]);
+                exit(EXIT_FAILURE);
+            }
+
+            opt_ipaddr = argv[++i];
+            continue;
+        }
+#endif
+
+        /* Perform magic on a single unrecognized argument. */
+
+        if (argc == 2)
+        {
+            size_t len = strlen(argv[i]);
+            int level = 0;
+
+            if (len > 4)
+            {
+                char *ext = argv[i] + len - 4;
+
+                if (strcmp(ext, ".map") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    strncpy_s(ext, MAXSTR, ".sol", 4);
+#else
+                    strncpy(ext, ".sol", 4);
+#endif
+
+                if (strcmp(ext, ".sol") == 0)
+                    level = 1;
+            }
+
+            if (level)
+                opt_level = argv[i];
+            else
+                opt_replay = argv[i];
+
+            break;
+        }
+    }
+}
+
+#undef opt_usage
+#undef opt_error
+
+static void opt_quit(void)
+{
+    opt_data   = NULL;
+    opt_replay = NULL;
+    opt_level  = NULL;
+    opt_link   = NULL;
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -356,6 +565,73 @@ static void initialize_fetch(void)
 
     /* Start the thread. */
     fetch_init(dispatch_fetch_event);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static int process_link(const char *link)
+{
+    if (link && *link)
+    {
+        log_printf("Processing link: %s\n", link);
+
+        if (str_starts_with(link, "set-"))
+        {
+            const char *set_file = concat_string(link, ".txt", NULL);
+            int index;
+
+            log_printf("Link is a set reference, searching for %s.\n", set_file);
+
+            set_init(0);
+
+            if ((index = set_find(set_file)) >= 0)
+            {
+                log_printf("Found set with the given reference.\n");
+                set_goto(index);
+                load_title_background();
+                game_kill_fade();
+                goto_state(&st_start);
+                return 1;
+            }
+            else if ((index = package_search(set_file)) >= 0)
+            {
+                log_printf("Found package with the given reference.\n");
+                goto_package(index, &st_title);
+                return 1;
+            }
+            else log_errorf("Link did not match.\n", link);
+        }
+        else log_errorf("Link type is bad.\n");
+    }
+    else log_errorf("Link is bad.\n");
+
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void refresh_packages_done(void *data, void *extra_data)
+{
+    struct state *target_state = data;
+
+    if (!process_link(opt_link))
+    {
+        if (target_state)
+            goto_state(target_state);
+    }
+}
+
+/*
+ * Start package refresh and go to given state when done.
+ */
+static unsigned int refresh_packages(struct state *target_state)
+{
+    struct fetch_callback callback = {0};
+
+    callback.data = target_state;
+    callback.done = refresh_packages_done;
+
+    return package_refresh(callback);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -665,202 +941,6 @@ static int loop(void)
 
 /*---------------------------------------------------------------------------*/
 
-static char *opt_data;
-static char *opt_replay;
-static char *opt_level;
-
-#if ENABLE_DEDICATED_SERVER==1
-static char *opt_ipaddr;
-
-#ifndef DISABLE_PANORAMA
-static char *opt_panorama;
-
-#define opt_usage \
-    "Usage: %s [options ...]\n" \
-    "Options:\n" \
-    "  -h, --help                show this usage message.\n" \
-    "  -p, --panorama            snap background file as panorama (Only, if Unity is supported).\n" \
-    "  -v, --version             show version.\n" \
-    "  -s, --screensaver         show screensaver.\n" \
-    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
-    "  -d, --data <dir>          use 'dir' as game data directory.\n" \
-    "  -r, --replay <file>       play the replay 'file'.\n" \
-    "  -l, --level <file>        load the level 'file'\n" \
-    "  --ipv4 <address>          use the IPv4 address for dedicated game network.\n" \
-    "  --ipv6 <address>          use the IPv6 address for dedicated game network.\n"
-#else
-#define opt_usage \
-    "Usage: %s [options ...]\n" \
-    "Options:\n" \
-    "  -h, --help                show this usage message.\n" \
-    "  -v, --version             show version.\n" \
-    "  -s, --screensaver         show screensaver.\n" \
-    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
-    "  -d, --data <dir>          use 'dir' as game data directory.\n" \
-    "  -r, --replay <file>       play the replay 'file'.\n" \
-    "  -l, --level <file>        load the level 'file'\n" \
-    "  --ipv4 <address>          use the IPv4 address for dedicated game network.\n" \
-    "  --ipv6 <address>          use the IPv6 address for dedicated game network.\n"
-#endif
-#else
-#ifndef DISABLE_PANORAMA
-static char* opt_panorama;
-
-#define opt_usage \
-    "Usage: %s [options ...]\n" \
-    "Options:\n" \
-    "  -h, --help                show this usage message.\n" \
-    "  -p, --panorama            snap background file as panorama (Only, if Unity is supported).\n" \
-    "  -v, --version             show version.\n" \
-    "  -s, --screensaver         show screensaver.\n" \
-    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
-    "  -d, --data <dir>          use 'dir' as game data directory.\n" \
-    "  -r, --replay <file>       play the replay 'file'.\n" \
-    "  -l, --level <file>        load the level 'file'\n"
-#else
-#define opt_usage \
-    "Usage: %s [options ...]\n" \
-    "Options:\n" \
-    "  -h, --help                show this usage message.\n" \
-    "  -v, --version             show version.\n" \
-    "  -s, --screensaver         show screensaver.\n" \
-    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
-    "  -d, --data <dir>          use 'dir' as game data directory.\n" \
-    "  -r, --replay <file>       play the replay 'file'.\n" \
-    "  -l, --level <file>        load the level 'file'\n"
-#endif
-#endif
-
-static int opt_screensaver;
-
-#define opt_error(option) \
-    fprintf(stderr, "Option '%s' requires an argument.\n", option)
-
-#define frame_smooth (1.f / 25.f) * 1000.f
-
-static void opt_parse(int argc, char **argv)
-{
-    int i;
-
-    /* Scan argument list. */
-
-    for (i = 1; i < argc; i++)
-    {
-        if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help")    == 0)
-        {
-            printf(opt_usage, argv[0]);
-            exit(EXIT_SUCCESS);
-        }
-
-#ifndef DISABLE_PANORAMA
-        if (strcmp(argv[i], "-p") == 0 || strcmp(argv[i], "--panorama") == 0)
-        {
-            if (i + 1 == argc)
-            {
-                opt_error(argv[i]);
-                exit(EXIT_FAILURE);
-            }
-            opt_panorama = argv[++i];
-            continue;
-        }
-#endif
-
-        if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0)
-        {
-            printf("%s\n", VERSION);
-            exit(EXIT_SUCCESS);
-        }
-        
-        if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--screensaver") == 0)
-        {
-            opt_screensaver = 1;
-            continue;
-        }
-
-        if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--data")    == 0)
-        {
-            if (i + 1 == argc)
-            {
-                opt_error(argv[i]);
-                exit(EXIT_FAILURE);
-            }
-            opt_data = argv[++i];
-            continue;
-        }
-
-        if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--replay")  == 0)
-        {
-            if (i + 1 == argc)
-            {
-                opt_error(argv[i]);
-                exit(EXIT_FAILURE);
-            }
-            opt_replay = argv[++i];
-            continue;
-        }
-
-        if (strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--level")  == 0)
-        {
-            if (i + 1 == argc)
-            {
-                opt_error(argv[i]);
-                exit(EXIT_FAILURE);
-            }
-            opt_level = argv[++i];
-            continue;
-        }
-
-#if ENABLE_DEDICATED_SERVER==1
-        if (strcmp(argv[i], "--ipv4") == 0 || strcmp(argv[i], "--ipv6") == 0)
-        {
-            if (i + 1 == argc)
-            {
-                opt_error(argv[i]);
-                exit(EXIT_FAILURE);
-            }
-
-            opt_ipaddr = argv[++i];
-            continue;
-        }
-#endif
-
-        /* Perform magic on a single unrecognized argument. */
-
-        if (argc == 2)
-        {
-            size_t len = strlen(argv[i]);
-            int level = 0;
-
-            if (len > 4)
-            {
-                char *ext = argv[i] + len - 4;
-
-                if (strcmp(ext, ".map") == 0)
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    strncpy_s(ext, MAXSTR, ".sol", 4);
-#else
-                    strncpy(ext, ".sol", 4);
-#endif
-
-                if (strcmp(ext, ".sol") == 0)
-                    level = 1;
-            }
-
-            if (level)
-                opt_level = argv[i];
-            else
-                opt_replay = argv[i];
-
-            break;
-        }
-    }
-}
-
-#undef opt_usage
-#undef opt_error
-
-/*---------------------------------------------------------------------------*/
-
 static int is_replay(struct dir_item *item)
 {
     return str_ends_with(item->path, ".nbr");
@@ -1065,10 +1145,6 @@ static int main_init(int argc, char *argv[])
     }
 #endif
 
-#if NB_EOS_SDK==1
-    
-#endif
-
     if (!fs_init(argc > 0 ? argv[0] : NULL))
     {
         fprintf(stderr, "Failure to initialize file system (%s)\n",
@@ -1076,7 +1152,7 @@ static int main_init(int argc, char *argv[])
         return 0;
     }
 
-    opt_parse(argc, argv);
+    opt_init(argc, argv);
 
     config_paths(opt_data);
     log_init("Neverball " VERSION, "neverball.log");
@@ -1332,6 +1408,12 @@ static void main_quit(void)
 
     config_save();
 
+    /* Free loaded sets, in case of link processing. */
+
+    set_quit();
+
+    /* Free everything else. */
+
     mtrl_quit ();
     video_quit();
     audio_free();
@@ -1370,6 +1452,7 @@ static void main_quit(void)
 
     log_quit();
     fs_quit ();
+    opt_quit();
 
 #if _cplusplus
     try {
@@ -1399,6 +1482,12 @@ int main(int argc, char *argv[])
 {
     SDL_Joystick *joy = NULL;
     struct main_loop mainloop = { 0 };
+
+#if NB_HAVE_PB_BOTH==1
+    struct state *start_state = &st_intro;
+#else
+    struct state *start_state = &st_title;
+#endif
 
 #if _cplusplus
     try {
@@ -1444,13 +1533,13 @@ int main(int argc, char *argv[])
         if (config_get_d(CONFIG_ACCOUNT_LOAD) > 1)
         {
             demo_play_goto(1);
-            goto_state(&st_demo_scan_allowance);
+            start_state = &st_demo_scan_allowance;
         }
         else
         {
             log_errorf("Replay file %s is not allowed due only finish\n",
                        opt_replay);
-            goto_state(&st_title);
+            start_state = &st_title;
         }
     }
     else if (opt_level)
@@ -1492,15 +1581,23 @@ int main(int argc, char *argv[])
     {
 #if NB_HAVE_PB_BOTH==1
         log_printf("Attempt to show intro\n");
-        goto_state_full(&st_intro, 0, 0, 1);
+        start_state = &st_intro;
 #else
         int val = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
 
         if (val == -1)
-            goto_end_support(&st_title);
+            start_state = &st_title;
         else
-            goto_state_full(&st_intro_restore, 0, 0, 1);
+            start_state = &st_intro_restore;
 #endif
+    }
+
+    if (refresh_packages(start_state))
+        goto_state_full(&st_loading, 0, 0, 1);
+    else
+    {
+        if (!process_link(opt_link))
+            goto_state_full(start_state, 0, 0, 1);
     }
 
     /* Run the main game loop. */

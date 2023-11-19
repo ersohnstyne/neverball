@@ -28,7 +28,7 @@
 #error Use the combined library, \
        that you've compiled from Microsoft Visual Studio!
 #else
-#pragma message("Pennyball + Neverball Dedicated Network for Microsoft Visual Studio")
+#pragma message("Neverball Dedicated Network for Microsoft Visual Studio")
 #endif
 #pragma comment(lib, "neverball_net_client.lib")
 

@@ -138,6 +138,7 @@ int rand_between(int low, int high);
 
 #if UNICODE
 wchar_t *wcsip_newline(wchar_t *);
+wchar_t *wcsip_spaces(wchar_t *);
 #if _MSC_VER && !_NONSTDC
 #define dupe_wstring _wcsdup
 #else

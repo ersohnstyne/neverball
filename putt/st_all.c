@@ -273,7 +273,7 @@ static int player_ranks(const char  *title,
 
 /*---------------------------------------------------------------------------*/
 
-static void shared_leave(struct state* st, struct state* next, int id)
+static void shared_leave(struct state *st, struct state *next, int id)
 {
     gui_delete(id);
 }
@@ -393,7 +393,7 @@ static int title_enter(struct state *st, struct state *prev)
         }
         else if (current_platform == PLATFORM_XBOX)
         {
-#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
             sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_360);
 #else
             sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_ONE);
@@ -1105,7 +1105,7 @@ static int controltype_action(int i)
     return 1;
 }
 
-static int controltype_enter(struct state* st, struct state* prev)
+static int controltype_enter(struct state *st, struct state *prev)
 {
     int id, jd;
 
@@ -2131,7 +2131,7 @@ static int fall_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-static int retry_enter(struct state* st, struct state* prev)
+static int retry_enter(struct state *st, struct state *prev)
 {
     int id;
 
@@ -2151,7 +2151,7 @@ static int retry_enter(struct state* st, struct state* prev)
     return id;
 }
 
-static void retry_leave(struct state* st, struct state* next, int id)
+static void retry_leave(struct state *st, struct state *next, int id)
 {
     gui_delete(id);
 }

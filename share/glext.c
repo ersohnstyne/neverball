@@ -139,9 +139,9 @@ int glext_check_ext(const char *needle)
 /*---------------------------------------------------------------------------*/
 
 #if _DEBUG
-int glext_fail(const char* title, const char* message);
+int glext_fail(const char *title, const char *message);
 
-int glext_assert_dbg(const char* ext)
+int glext_assert_dbg(const char *ext)
 {
     int have_ext = glext_check_ext(ext);
 

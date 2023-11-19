@@ -477,7 +477,7 @@ static int save_error_gui(void)
     return id;
 }
 
-static int save_error_enter(struct state* st, struct state* prev)
+static int save_error_enter(struct state *st, struct state *prev)
 {
     return save_error_gui();
 }

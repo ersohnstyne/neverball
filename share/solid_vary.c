@@ -211,7 +211,7 @@ int sol_respawn_vary(struct s_vary *fp, struct s_vary *last_fp)
         fp->bv = calloc(fp->base->pc, sizeof (*fp->base->bv));
         if (fp->bv == 0) return 0;
 
-        alloc_new(&mv, sizeof (*fp->base->mv), (void**) &fp->base->mv, &fp->base->mc);
+        alloc_new(&mv, sizeof (*fp->base->mv), (void **) &fp->base->mv, &fp->base->mc);
 
         for (i = 0; i < fp->base->bc; i++)
         {

@@ -97,7 +97,7 @@ int goto_pause(struct state *returnable)
             return goto_state(st_continue); \
         } else {                            \
             quit_uses_resetpuzzle = 0;      \
-            quit_uses_restart = 0;          \
+            quit_uses_restart     = 0;      \
             return goto_state(&st_pause);   \
         } \
     } while (0)

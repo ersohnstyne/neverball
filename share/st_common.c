@@ -550,7 +550,7 @@ static int video_gui(void)
         SDL_GetCurrentDisplayMode(config_get_d(CONFIG_DISPLAY), &dpyMode);
 
         int dpy = config_get_d(CONFIG_DISPLAY);
-        const char* display;
+        const char *display;
         if (!(display = SDL_GetDisplayName(dpy)))
             display = _("Unknown Display");
 
@@ -1679,6 +1679,38 @@ void restart_required_leave(struct state *st, struct state *next, int id)
 
 /*---------------------------------------------------------------------------*/
 
+static int loading_gui(void)
+{
+    int id = 0;
+
+#if NB_HAVE_PB_BOTH!=1
+    if ((id = gui_vstack(0)))
+    {
+        gui_label(id, _("Loading..."), GUI_SML, gui_wht, gui_wht);
+        gui_layout(id, 0, 0);
+    }
+#endif
+
+    return id;
+}
+
+static int loading_enter(struct state *st, struct state *prev)
+{
+#if NB_HAVE_PB_BOTH!=1
+    back_init("back/space.png");
+#endif
+    return loading_gui();
+}
+
+static void loading_paint(int id, float t)
+{
+    conf_common_paint(id, t);
+
+    gui_paint(id);
+}
+
+/*---------------------------------------------------------------------------*/
+
 struct state st_video = {
     video_enter,
     conf_common_leave,
@@ -1757,6 +1789,12 @@ struct state st_restart_required = {
     common_click,
     common_keybd,
     common_buttn
+};
+
+struct state st_loading = {
+    loading_enter,
+    NULL,
+    loading_paint
 };
 
 /*---------------------------------------------------------------------------*/

@@ -109,7 +109,7 @@ static int switchball_useable(void)
     return 0;
 }
 
-static int init_title_level(void)
+int load_title_background(void)
 {
 #if NB_HAVE_PB_BOTH
     game_client_toggle_show_balls(!CHECK_ACCOUNT_BANKRUPT);
@@ -355,7 +355,7 @@ static int title_action(int tok, int val)
             break;
 #if NB_HAVE_PB_BOTH!=1
 #if ENABLE_FETCH
-        case TITLE_PACKAGES: return goto_state(&st_packages); break;
+        case TITLE_PACKAGES: return goto_package(curr_state()); break;
 #endif
 
         case TITLE_UNLOCK_FULL_GAME:
@@ -598,7 +598,7 @@ static void title_create_versions(void)
     gui_set_rect(system_version_build_id, GUI_NW);
     gui_layout(system_version_build_id, 1, -1);
 
-    copyright_id = gui_label(0, "© Neverball Authors", GUI_TNY, GUI_COLOR_WHT);
+    copyright_id = gui_label(0, "© PennyGames", GUI_TNY, GUI_COLOR_WHT);
     gui_set_rect(copyright_id, GUI_NE);
     gui_layout(copyright_id, -1, -1);
 }
@@ -960,7 +960,7 @@ static int title_enter(struct state *st, struct state *prev)
 
     int title_gamemode = 0;
 
-    if (switchball_useable() && init_title_level())
+    if (switchball_useable() && load_title_background())
         mode = TITLE_MODE_LEVEL;
     else if (demo_replay_init("gui/title/title-l.nbr",
                               NULL,
@@ -973,7 +973,7 @@ static int title_enter(struct state *st, struct state *prev)
         progress_init(title_gamemode);
         mode = TITLE_MODE_BUILD_IN;
     }
-    else if (init_title_level())
+    else if (load_title_background())
         mode = TITLE_MODE_LEVEL;
     else
         mode = TITLE_MODE_NONE;
@@ -1070,7 +1070,7 @@ static void title_timer(int id, float dt)
                         real_time = 0.0f;
                         mode = TITLE_MODE_BUILD_IN;
                     }
-                    else if (init_title_level())
+                    else if (load_title_background())
                         mode = TITLE_MODE_LEVEL;
                 }
                 else if (demo_replay_init(left_handed ? "gui/title/title-l.nbr" :
@@ -1082,7 +1082,7 @@ static void title_timer(int id, float dt)
                     real_time = 0.0f;
                     mode = TITLE_MODE_BUILD_IN;
                 }
-                else if (init_title_level())
+                else if (load_title_background())
                     mode = TITLE_MODE_LEVEL;
                 else
                     mode = TITLE_MODE_NONE;
@@ -1108,7 +1108,7 @@ static void title_timer(int id, float dt)
                 int title_gamemode;
                 real_time = 0.0f;
 
-                if (switchball_useable() && init_title_level())
+                if (switchball_useable() && load_title_background())
                     mode = TITLE_MODE_LEVEL;
                 else if (demo_replay_init(left_handed ? "gui/title/title-l.nbr" :
                                                         "gui/title/title-r.nbr",
@@ -1119,7 +1119,7 @@ static void title_timer(int id, float dt)
                     real_time = 0.0f;
                     mode = TITLE_MODE_BUILD_IN;
                 }
-                else if (init_title_level())
+                else if (load_title_background())
                     mode = TITLE_MODE_LEVEL;
                 else
                     mode = TITLE_MODE_NONE;

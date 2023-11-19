@@ -12,10 +12,6 @@
  * General Public License for more details.
  */
 
-#if ENABLE_RFD==1 && _MSC_VER
-#pragma message("Pennyball + Neverball - Recipes for Disaster")
-#endif
-
 #if _WIN32 && __MINGW32__
 #include <SDL3/SDL.h>
 #else
@@ -36,7 +32,7 @@
 /*---------------------------------------------------------------------------*/
 
 /*
- * Pennyball + Neverball - Recipes for Disaster
+ * Neverball - Recipes for Disaster
  * - Ersohn Styne
  */
 

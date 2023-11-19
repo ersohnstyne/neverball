@@ -944,9 +944,6 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
     return fetch_id;
 }
 
-    return fetch_id;
-}
-
 /*---------------------------------------------------------------------------*/
 
 /*
@@ -1324,9 +1321,7 @@ unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
                 fetch_id = fetch_url(url, pfi->temp_filename, callback);
 
                 if (fetch_id)
-                {
                     pkg->status = PACKAGE_DOWNLOADING;
-                }
                 else
                 {
                     free_pfi(pfi);

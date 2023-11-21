@@ -196,11 +196,9 @@ enum
 {
     DEMO_PLAY = GUI_LAST,
     DEMO_SELECT,
-    DEMO_DOWNLOAD,
     DEMO_UPGRADE_LIMIT,
     DEMO_DELETE
 };
-
 
 static void demo_select(int i);
 
@@ -248,18 +246,6 @@ static int demo_action(int tok, int val)
                 config_set_d(CONFIG_ACCOUNT_LOAD, 2);
                 config_save();
             }
-            break;
-
-        case DEMO_DOWNLOAD:
-#ifdef __EMSCRIPTEN__
-            {
-                const char *path = DIR_ITEM_GET(items, selected)->path;
-
-                EM_ASM({
-                    Neverball.downloadUserFile($0)
-                }, path);
-            }
-#endif
             break;
 
         case DEMO_SELECT:
@@ -455,25 +441,33 @@ static void gui_demo_update_thumbs(void)
                                                 base_name(item->path));
         gui_set_color(thumbs[i].name_id, GUI_COLOR_WHT);
         
-        if (stat_max > stat_limit && demo)
+        if (demo)
         {
-            gui_set_image(thumbs[i].shot_id,
-                          stat_limit == 1 ?
-                          "gui/filters/single_filters.jpg" :
-                          "gui/filters/keep_filters.jpg");
-            gui_set_color(thumbs[i].name_id, GUI_COLOR_RED);
+            if (stat_max > stat_limit)
+            {
+                gui_set_image(thumbs[i].shot_id,
+                              stat_limit == 1 ?
+                              "gui/filters/single_filters.jpg" :
+                              "gui/filters/keep_filters.jpg");
+                gui_set_color(thumbs[i].name_id, GUI_COLOR_RED);
+            }
+            else if (demo_requires_update)
+            {
+                gui_set_image(thumbs[i].shot_id, "gui/filters/upgrade.jpg");
+                gui_set_color(thumbs[i].name_id, GUI_COLOR_RED);
+            }
+            else if (demo_old_detected)
+            {
+                gui_set_image(thumbs[i].shot_id, "gui/filters/downgrade.jpg");
+                gui_set_color(thumbs[i].name_id, GUI_COLOR_RED);
+            }
+            else
+            {
+                gui_set_image(thumbs[i].shot_id, demo ? demo->shot : "");
+                gui_set_color(thumbs[i].name_id, GUI_COLOR_WHT);
+            }
         }
-        else if (demo_requires_update && demo)
-        {
-            gui_set_image(thumbs[i].shot_id, "gui/filters/upgrade.jpg");
-            gui_set_color(thumbs[i].name_id, GUI_COLOR_RED);
-        }
-        else if (demo_old_detected && demo)
-        {
-            gui_set_image(thumbs[i].shot_id, "gui/filters/downgrade.jpg");
-            gui_set_color(thumbs[i].name_id, GUI_COLOR_RED);
-        }
-        else if (!demo)
+        else
         {
             gui_set_image(thumbs[i].shot_id, "gui/filters/invalid.jpg");
             gui_set_color(thumbs[i].name_id, GUI_COLOR_RED);
@@ -1001,32 +995,6 @@ static int demo_gui(void)
 
         gui_space(id);
         gui_demo_status(id);
-
-#ifdef __EMSCRIPTEN__
-        gui_space(id);
-
-        if ((jd = gui_hstack(id)))
-        {
-            int kd;
-
-            if ((kd = gui_hstack(jd)))
-            {
-                gui_label(kd, GUI_ARROW_DN, GUI_SML, gui_yel, gui_wht);
-                gui_label(kd, _("Download"), GUI_SML, gui_yel, gui_wht);
-
-                gui_set_rect(kd, GUI_ALL);
-                gui_set_state(kd, DEMO_DOWNLOAD, 0);
-            }
-            gui_space(jd);
-            if ((kd = gui_hstack(jd)))
-            {
-                gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, gui_yel, gui_wht);
-                gui_label(kd, _("Play"), GUI_SML, gui_yel, gui_wht);
-                gui_set_rect(kd, GUI_ALL);
-                gui_set_state(kd, DEMO_PLAY, 0);
-            }
-        }
-#endif
 
         gui_layout(id, 0, 0);
 

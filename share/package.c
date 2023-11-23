@@ -27,7 +27,7 @@
 #endif
 #endif
 
-#define NB_CURRDOMAIN_PREMIUM "neverball.github.io"
+#define NB_CURRDOMAIN_PREMIUM "play.neverball.org"
 
 enum package_image_status
 {

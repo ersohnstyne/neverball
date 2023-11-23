@@ -151,7 +151,7 @@ static const char *get_package_url(const char *filename, int category)
         }
 #else
         /* Uses legacy vanilla game */
-        SAFECPY(url, "https://neverball.github.io/packages/");
+        SAFECPY(url, "https://play.neverball.org/packages/");
 #endif
 #endif
         SAFECAT(url, filename);

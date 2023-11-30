@@ -746,6 +746,36 @@ void progress_stat(int s)
                         level_open(next->next);
             }
 
+#ifdef CONFIG_INCLUDES_ACCOUNT
+            /* Add to your account */
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            int disable_live_earn = mode == MODE_CHALLENGE
+                                 || mode == MODE_BOOST_RUSH
+                                 || mode == MODE_HARDCORE;
+#else
+            int disable_live_earn = mode == MODE_CHALLENGE
+                                 || mode == MODE_BOOST_RUSH;
+#endif
+
+            if (status == GAME_GOAL && !disable_live_earn && !CHECK_ACCOUNT_BANKRUPT &&
+                server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+            {
+                if (curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                    || curr_mode() == MODE_CAMPAIGN
+#endif
+                    )
+                {
+                    int curr_wallet = MIN(ACCOUNT_WALLET_MAX_COINS,
+                        account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_coins());
+                    account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_wallet);
+
+                    account_save();
+                }
+            }
+#endif
+
             /* Open next level or complete the campaign or set. */
 
             if (next)
@@ -782,23 +812,6 @@ void progress_stat(int s)
                     if (account_get_d(ACCOUNT_SET_UNLOCKS) == curr_set() + 1)
                         account_set_d(ACCOUNT_SET_UNLOCKS, curr_set() + 2);
                 }
-
-                if (!CHECK_ACCOUNT_BANKRUPT &&
-                    server_policy_get_d(SERVER_POLICY_EDITION) > -1)
-                {
-                    if (curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                     || curr_mode() == MODE_CAMPAIGN
-#endif
-                        )
-                    {
-                        int curr_wallet = MIN(ACCOUNT_WALLET_MAX_COINS,
-                                          account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_coins());
-                        account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_wallet);
-                    }
-                }
-
-                account_save();
 #endif
             }
             break;

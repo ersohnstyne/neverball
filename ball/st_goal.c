@@ -209,7 +209,7 @@ static int goal_gui(void)
 
     if ((root_id = gui_root()))
     {
-        if ((id = gui_vstack(0)))
+        if ((id = gui_vstack(root_id)))
         {
             int gid;
 #ifdef CONFIG_INCLUDES_ACCOUNT

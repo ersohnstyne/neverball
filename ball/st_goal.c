@@ -355,8 +355,8 @@ static int goal_gui(void)
                 /* Reverse-engineer initial wallet. */
 
                 int coins = !resume ? curr_coins() : 0,
-                    wallet = !resume ? account_get_d(ACCOUNT_DATA_WALLET_COINS) :
-                    account_get_d(ACCOUNT_DATA_WALLET_COINS) - coins;
+                    wallet = !resume ? account_get_d(ACCOUNT_DATA_WALLET_COINS) - coins :
+                    account_get_d(ACCOUNT_DATA_WALLET_COINS);
 
                 if ((jd = gui_hstack(id)))
                 {

@@ -166,6 +166,7 @@ static int goal_gui(void)
     const char *s3 = _("Master complete");
 
     int id, jd, kd, ld, md;
+    int root_id;
 
     int high   = progress_lvl_high();
     int master = curr_level()->is_master;
@@ -206,306 +207,322 @@ static int goal_gui(void)
         }
     }
 
-    if ((id = gui_vstack(0)))
+    if ((root_id = gui_root()))
     {
-        int gid;
+        if ((id = gui_vstack(0)))
+        {
+            int gid;
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        int save = config_get_d(CONFIG_ACCOUNT_SAVE);
+            int save = config_get_d(CONFIG_ACCOUNT_SAVE);
 #else
-        int save = 2;
+            int save = 2;
 #endif
 
-        if ((jd = gui_vstack(id)))
-        {
-            if (high &&
-                (
+            if ((jd = gui_vstack(id)))
+            {
+                if (high &&
+                    (
 #ifdef CONFIG_INCLUDES_ACCOUNT
-                 !campaign_used() ||
+                        !campaign_used() ||
 #endif
-                 (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
+                        (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-                  !config_cheat() &&
+                            !config_cheat() &&
 #endif
-                  (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25))))
-                gid = gui_title_header(jd, s1, GUI_MED, GUI_COLOR_GRN);
-            else
-                gid = gui_title_header(jd, master ? s3 : s2,
-                                           master ? GUI_MED : GUI_LRG,
-                                           gui_blu, gui_grn);
+                            (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25))))
+                    gid = gui_title_header(jd, s1, GUI_MED, GUI_COLOR_GRN);
+                else
+                    gid = gui_title_header(jd, master ? s3 : s2,
+                        master ? GUI_MED : GUI_LRG,
+                        gui_blu, gui_grn);
 
-            if (!resume)
-                gui_pulse(gid, 1.2f);
+                if (!resume)
+                    gui_pulse(gid, 1.2f);
 
-            if (curr_coins() == curr_max_coins() * get_coin_multiply())
-                gui_label(jd, _("Perfect!"), GUI_SML, GUI_COLOR_GRN);
-
-            gui_set_rect(jd, GUI_ALL);
-        }
-
-        if (save == 0)
-            demo_play_stop(1);
-
-        gui_space(id);
-
-        if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-         || curr_mode() == MODE_HARDCORE
-#endif
-            )
-        {
-            int coins = !resume ? curr_coins() : 0,
-                score = !resume ? curr_score() - coins : curr_score(),
-                balls = curr_balls();
-
-            /* Reverse-engineer initial score and balls. */
-
-            if (
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                curr_mode() != MODE_HARDCORE &&
-#endif
-                !resume)
-            {
-                for (int i = curr_score(); i > score; i--)
-                    if (progress_reward_ball(i))
-                    {
-                        /* Disable all buttons after collecting 100 coins for each. */
-                        challenge_disable_all_buttons = config_get_d(CONFIG_NOTIFICATION_REWARD) ? 1 : 0;
-                        balls--;
-                    }
-            }
-
-            if ((jd = gui_hstack(id)))
-            {
-                gui_filler(jd);
-
-                if ((kd = gui_vstack(jd)))
-                {
-                    if ((ld = gui_hstack(kd)))
-                    {
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                        if (curr_mode() != MODE_HARDCORE)
-#endif
-                        {
-                            if ((md = gui_harray(ld)))
-                            {
-                                balls_id = gui_count(md, 1000, GUI_MED);
-                                gui_label(md, _("Balls"), GUI_SML,
-                                                          GUI_COLOR_WHT);
-                            }
-                        }
-                        if ((md = gui_harray(ld)))
-                        {
-                            score_id = gui_count(md, 1000, GUI_MED);
-                            gui_label(md, _("Score"), GUI_SML,
-                                                      GUI_COLOR_WHT);
-                        }
-                        if ((md = gui_harray(ld)))
-                        {
-                            coins_id = gui_count(md, 1000, GUI_MED);
-                            gui_label(md, _("Coins"), GUI_SML,
-                                                      GUI_COLOR_WHT);
-                        }
-
-                        gui_set_count(balls_id, balls);
-                        gui_set_count(score_id, score);
-                        gui_set_count(coins_id, coins);
-                    }
-
-#ifdef CONFIG_INCLUDES_ACCOUNT
-                    if (account_get_d(ACCOUNT_PRODUCT_BONUS) == 0)
-#endif
-                    {
-                        if ((ld = gui_harray(kd)))
-                        {
-                            const struct level *l;
-
-                            gui_label(ld, "", GUI_SML, 0, 0);
-
-                            for (int j = MAXLVL - 1; j >= 0; j--)
-                                if ((l = get_level(j)) && level_bonus(l))
-                                {
-                                    const GLubyte *c = (level_opened(l) ?
-                                                        gui_grn : gui_gry);
-
-                                    gui_label(ld, level_name(l), GUI_SML, c, c);
-                                }
-
-                            gui_label(ld, "", GUI_SML, 0, 0);
-                        }
-                    }
-
-                    gui_set_rect(kd, GUI_ALL);
-                }
-
-                gui_filler(jd);
-            }
-
-            gui_space(id);
-        }
-#ifdef CONFIG_INCLUDES_ACCOUNT
-        else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
-                 !CHECK_ACCOUNT_BANKRUPT)
-        {
-            balls_id = score_id = 0;
-
-            /* Reverse-engineer initial wallet. */
-
-            int coins  = !resume ? curr_coins() : 0,
-                wallet = !resume ? account_get_d(ACCOUNT_DATA_WALLET_COINS) :
-                                   account_get_d(ACCOUNT_DATA_WALLET_COINS) - coins;
-
-            if ((jd = gui_hstack(id)))
-            {
-                gui_filler(jd);
-
-                if ((kd = gui_harray(jd)))
-                {
-                    wallet_id = gui_count(kd, ACCOUNT_WALLET_MAX_COINS, GUI_MED);
-                    gui_label(kd, _("Wallet"), GUI_SML,
-                                               GUI_COLOR_WHT);
-                }
-                if ((kd = gui_harray(jd)))
-                {
-                    coins_id = gui_count(kd, 1000, GUI_MED);
-                    gui_label(kd, _("Coins"), GUI_SML,
-                                              GUI_COLOR_WHT);
-                }
-
-                gui_set_count(coins_id, coins);
-                gui_set_count(wallet_id, wallet);
-
-                gui_filler(jd);
+                if (curr_coins() == curr_max_coins() * get_coin_multiply())
+                    gui_label(jd, _("Perfect!"), GUI_SML, GUI_COLOR_GRN);
 
                 gui_set_rect(jd, GUI_ALL);
             }
 
+            if (save == 0)
+                demo_play_stop(1);
+
             gui_space(id);
-        }
+
+            if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                || curr_mode() == MODE_HARDCORE
+#endif
+                )
+            {
+                int coins = !resume ? curr_coins() : 0,
+                    score = !resume ? curr_score() - coins : curr_score(),
+                    balls = curr_balls();
+
+                /* Reverse-engineer initial score and balls. */
+
+                if (
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                    curr_mode() != MODE_HARDCORE &&
+#endif
+                    !resume)
+                {
+                    for (int i = curr_score(); i > score; i--)
+                        if (progress_reward_ball(i))
+                        {
+                            /* Disable all buttons after collecting 100 coins for each. */
+                            challenge_disable_all_buttons = config_get_d(CONFIG_NOTIFICATION_REWARD) ? 1 : 0;
+                            balls--;
+                        }
+                }
+
+                if ((jd = gui_hstack(id)))
+                {
+                    gui_filler(jd);
+
+                    if ((kd = gui_vstack(jd)))
+                    {
+                        if ((ld = gui_hstack(kd)))
+                        {
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                            if (curr_mode() != MODE_HARDCORE)
+#endif
+                            {
+                                if ((md = gui_harray(ld)))
+                                {
+                                    balls_id = gui_count(md, 1000, GUI_MED);
+                                    gui_label(md, _("Balls"), GUI_SML,
+                                        GUI_COLOR_WHT);
+                                }
+                            }
+                            if ((md = gui_harray(ld)))
+                            {
+                                score_id = gui_count(md, 1000, GUI_MED);
+                                gui_label(md, _("Score"), GUI_SML,
+                                    GUI_COLOR_WHT);
+                            }
+                            if ((md = gui_harray(ld)))
+                            {
+                                coins_id = gui_count(md, 1000, GUI_MED);
+                                gui_label(md, _("Coins"), GUI_SML,
+                                    GUI_COLOR_WHT);
+                            }
+
+                            gui_set_count(balls_id, balls);
+                            gui_set_count(score_id, score);
+                            gui_set_count(coins_id, coins);
+                        }
+
+#ifdef CONFIG_INCLUDES_ACCOUNT
+                        if (account_get_d(ACCOUNT_PRODUCT_BONUS) == 0)
+#endif
+                        {
+                            if ((ld = gui_harray(kd)))
+                            {
+                                const struct level *l;
+
+                                gui_label(ld, "", GUI_SML, 0, 0);
+
+                                for (int j = MAXLVL - 1; j >= 0; j--)
+                                    if ((l = get_level(j)) && level_bonus(l))
+                                    {
+                                        const GLubyte *c = (level_opened(l) ?
+                                                            gui_grn : gui_gry);
+
+                                        gui_label(ld, level_name(l), GUI_SML, c, c);
+                                    }
+
+                                gui_label(ld, "", GUI_SML, 0, 0);
+                            }
+                        }
+
+                        gui_set_rect(kd, GUI_ALL);
+                    }
+
+                    gui_filler(jd);
+                }
+
+                gui_space(id);
+            }
+#ifdef CONFIG_INCLUDES_ACCOUNT
+            else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
+                !CHECK_ACCOUNT_BANKRUPT)
+            {
+                balls_id = score_id = 0;
+
+                /* Reverse-engineer initial wallet. */
+
+                int coins = !resume ? curr_coins() : 0,
+                    wallet = !resume ? account_get_d(ACCOUNT_DATA_WALLET_COINS) :
+                    account_get_d(ACCOUNT_DATA_WALLET_COINS) - coins;
+
+                if ((jd = gui_hstack(id)))
+                {
+                    gui_filler(jd);
+
+                    if ((kd = gui_harray(jd)))
+                    {
+                        wallet_id = gui_count(kd, ACCOUNT_WALLET_MAX_COINS, GUI_MED);
+                        gui_label(kd, _("Wallet"), GUI_SML,
+                            GUI_COLOR_WHT);
+                    }
+                    if ((kd = gui_harray(jd)))
+                    {
+                        coins_id = gui_count(kd, 1000, GUI_MED);
+                        gui_label(kd, _("Coins"), GUI_SML,
+                            GUI_COLOR_WHT);
+                    }
+
+                    gui_set_count(coins_id, coins);
+                    gui_set_count(wallet_id, wallet);
+
+                    gui_filler(jd);
+
+                    gui_set_rect(jd, GUI_ALL);
+                }
+
+                gui_space(id);
+            }
 #endif
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (!campaign_used())
-        {
-            gui_score_board(id, (GUI_SCORE_COIN |
-                                 GUI_SCORE_TIME |
-                                 GUI_SCORE_GOAL), 1,
-                                !resume && (shop_product_available
-                                         || challenge_disable_all_buttons) ? 0 : high);
+            if (!campaign_used())
+            {
+                gui_score_board(id, (GUI_SCORE_COIN |
+                    GUI_SCORE_TIME |
+                    GUI_SCORE_GOAL), 1,
+                    !resume && (shop_product_available
+                        || challenge_disable_all_buttons) ? 0 : high);
 
-            gui_campaign_stats(curr_level());
+                gui_campaign_stats(curr_level());
 
-            gui_space(id);
-        }
-        else if (campaign_used() && (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100
+                gui_space(id);
+            }
+            else if (campaign_used() && (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-            && !config_cheat()
+                && !config_cheat()
 #endif
-            && (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25)))
-        {
-            gui_score_board(id, ((campaign_career_unlocked() ? GUI_SCORE_COIN : 0) |
-                                 GUI_SCORE_TIME |
-                                 (campaign_career_unlocked() ? GUI_SCORE_GOAL : 0)),
-                                1,
-                                !resume && (shop_product_available
-                                         || challenge_disable_all_buttons) ? 0 :
-                                                                             high);
+                && (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25)))
+            {
+                gui_score_board(id, ((campaign_career_unlocked() ? GUI_SCORE_COIN : 0) |
+                    GUI_SCORE_TIME |
+                    (campaign_career_unlocked() ? GUI_SCORE_GOAL : 0)),
+                    1,
+                    !resume && (shop_product_available
+                        || challenge_disable_all_buttons) ? 0 :
+                    high);
+
+                gui_set_stats(curr_level());
+
+                gui_space(id);
+            }
+#else
+            gui_score_board(id, (GUI_SCORE_COIN |
+                GUI_SCORE_TIME |
+                GUI_SCORE_GOAL), 1,
+                !resume && (shop_product_available
+                    || challenge_disable_all_buttons) ? 0 : high);
 
             gui_set_stats(curr_level());
 
             gui_space(id);
-        }
-#else
-        gui_score_board(id, (GUI_SCORE_COIN |
-                             GUI_SCORE_TIME |
-                             GUI_SCORE_GOAL), 1,
-                            !resume && (shop_product_available
-                                     || challenge_disable_all_buttons) ? 0 : high);
-
-        gui_set_stats(curr_level());
-
-        gui_space(id);
 #endif
 
-        if ((jd = gui_harray(id)))
+            if ((jd = gui_harray(id)))
+            {
+                int m1 = 0, m2 = 0, m3 = 0;
+                /*
+                 * Waiting for extra balls by collecting 100 coins
+                 * --- OR ---
+                 * check, if products is still available
+                 */
+                if (!resume && ((config_get_d(CONFIG_NOTIFICATION_REWARD) &&
+                    challenge_disable_all_buttons) ||
+                    (config_get_d(CONFIG_NOTIFICATION_SHOP) &&
+                        shop_product_available)))
+                {
+                    if (progress_done())
+                        m1 = gui_label(jd, _("Finish"), GUI_SML, GUI_COLOR_GRY);
+                    else if (progress_last())
+                        m1 = gui_label(jd, _("Finish"), GUI_SML, GUI_COLOR_GRY);
+                    else if (progress_next_avail())
+                        m1 = gui_label(jd, _("Next Level"),
+                            GUI_SML, GUI_COLOR_GRY);
+                    else
+                        m1 = gui_label(jd, _("Finish"), GUI_SML, GUI_COLOR_GRY);
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                    if (progress_same_avail() && !campaign_hardcore())
+#else
+                    if (progress_same_avail())
+#endif
+                        m2 = gui_label(jd, _("Retry Level"),
+                            GUI_SML, GUI_COLOR_GRY);
+
+                    if (demo_saved() && save >= 1)
+                        m3 = gui_label(jd, _("Save Replay"),
+                            GUI_SML, GUI_COLOR_GRY);
+
+                    if (m1)
+                        gui_set_state(m1, GUI_NONE, 0);
+
+                    if (m2 && progress_same_avail()
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                        && !campaign_hardcore()
+#endif
+                        )
+                        gui_set_state(m2, GUI_NONE, 0);
+
+                    if (m3 && save >= 1)
+                        gui_set_state(m3, GUI_NONE, 0);
+                }
+                else
+                {
+                    if (progress_done())
+                        gui_start(jd, _("Finish"), GUI_SML, GOAL_DONE, 0);
+                    else if (progress_last())
+                        gui_start(jd, _("Finish"), GUI_SML, GOAL_LAST, 0);
+                    else if (progress_next_avail())
+                        gui_start(jd, _("Next Level"), GUI_SML, GOAL_NEXT, 0);
+                    else
+                        gui_start(jd, _("Finish"), GUI_SML, GOAL_LAST, 0);
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                    if (progress_same_avail() && !campaign_hardcore())
+#else
+                    if (progress_same_avail())
+#endif
+                        gui_start(jd, _("Retry Level"), GUI_SML, GOAL_SAME, 0);
+
+                    if (demo_saved() && save >= 1)
+                        gui_state(jd, _("Save Replay"), GUI_SML, GOAL_SAVE, 0);
+                }
+            }
+
+            gui_layout(id, 0, 0);
+        }
+
+        if ((id = gui_vstack(root_id)))
         {
-            int m1 = 0, m2 = 0, m3 = 0;
-            /*
-             * Waiting for extra balls by collecting 100 coins
-             * --- OR ---
-             * check, if products is still available
-             */
-            if (!resume && ((config_get_d(CONFIG_NOTIFICATION_REWARD) &&
-                             challenge_disable_all_buttons) ||
-                            (config_get_d(CONFIG_NOTIFICATION_SHOP) &&
-                             shop_product_available)))
+            gui_space(id);
+
+            if ((jd = gui_hstack(id)))
             {
-                if (progress_done())
-                    m1 = gui_label(jd, _("Finish"), GUI_SML, GUI_COLOR_GRY);
-                else if (progress_last())
-                    m1 = gui_label(jd, _("Finish"), GUI_SML, GUI_COLOR_GRY);
-                else if (progress_next_avail())
-                    m1 = gui_label(jd, _("Next Level"),
-                                       GUI_SML, GUI_COLOR_GRY);
-                else
-                    m1 = gui_label(jd, _("Finish"), GUI_SML, GUI_COLOR_GRY);
-
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (progress_same_avail() && !campaign_hardcore())
-#else
-                if (progress_same_avail())
-#endif
-                    m2 = gui_label(jd, _("Retry Level"),
-                                       GUI_SML, GUI_COLOR_GRY);
-
-                if (demo_saved() && save >= 1)
-                    m3 = gui_label(jd, _("Save Replay"),
-                                       GUI_SML, GUI_COLOR_GRY);
-
-                if (m1)
-                    gui_set_state(m1, GUI_NONE, 0);
-
-                if (m2 && progress_same_avail()
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                 && !campaign_hardcore()
-#endif
-                    )
-                    gui_set_state(m2, GUI_NONE, 0);
-                
-                if (m3 && save >= 1)
-                    gui_set_state(m3, GUI_NONE, 0);
+                gui_state(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+                gui_space(jd);
             }
-            else
-            {
-                if (progress_done())
-                    gui_start(jd, _("Finish"), GUI_SML, GOAL_DONE, 0);
-                else if (progress_last())
-                    gui_start(jd, _("Finish"), GUI_SML, GOAL_LAST, 0);
-                else if (progress_next_avail())
-                    gui_start(jd, _("Next Level"), GUI_SML, GOAL_NEXT, 0);
-                else
-                    gui_start(jd, _("Finish"), GUI_SML, GOAL_LAST, 0);
 
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (progress_same_avail() && !campaign_hardcore())
-#else
-                if (progress_same_avail())
-#endif
-                    gui_start(jd, _("Retry Level"), GUI_SML, GOAL_SAME, 0);
-
-                if (demo_saved() && save >= 1)
-                    gui_state(jd, _("Save Replay"), GUI_SML, GOAL_SAVE, 0);
-            }
+            gui_layout(id, -1, +1);
         }
-
-        gui_layout(id, 0, 0);
     }
 
     set_score_board(level_score(curr_level(), SCORE_COIN), progress_coin_rank(),
                     level_score(curr_level(), SCORE_TIME), progress_time_rank(),
                     level_score(curr_level(), SCORE_GOAL), progress_goal_rank());
 
-    return id;
+    return root_id;
 }
 
 static int goal_enter(struct state *st, struct state *prev)

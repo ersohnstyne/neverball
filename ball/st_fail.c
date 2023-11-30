@@ -262,6 +262,7 @@ void detect_replay_filters(int exceeded)
 static int fail_gui(void)
 {
     int fid = 0, id = 0, jd = 0, nosaveid = 0;
+    int root_id;
 
     const char *label = "";
 
@@ -270,393 +271,406 @@ static int fail_gui(void)
     else if (status == GAME_TIME)
         label = _("Time's Up!");
 
-    if ((id = gui_vstack(0)))
+    if ((root_id = gui_root()))
     {
-#ifdef CONFIG_INCLUDES_ACCOUNT
-        int save = config_get_d(CONFIG_ACCOUNT_SAVE);
-#else
-        int save = 2;
-#endif
-
-        if ((jd = gui_vstack(id)))
+        if ((id = gui_vstack(root_id)))
         {
-#if NB_HAVE_PB_BOTH==1
-            if (balls_bought == 0)
+#ifdef CONFIG_INCLUDES_ACCOUNT
+            int save = config_get_d(CONFIG_ACCOUNT_SAVE);
+#else
+            int save = 2;
 #endif
+
+            if ((jd = gui_vstack(id)))
             {
-                fid = gui_title_header(jd, label, GUI_LRG, gui_gry, gui_red);
+#if NB_HAVE_PB_BOTH==1
+                if (balls_bought == 0)
+#endif
+                {
+                    fid = gui_title_header(jd, label, GUI_LRG, gui_gry, gui_red);
 
 #if NB_HAVE_PB_BOTH==1
-                if (status == GAME_FALL &&
-                    (save < 3
+                    if (status == GAME_FALL &&
+                        (save < 3
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                  || campaign_hardcore_norecordings()
+                            || campaign_hardcore_norecordings()
 #endif
-                     ))
-                {
-                    audio_music_fade_out(0.f);
-                    audio_play(AUD_INTRO_SHATTER, 1.0f);
+                            ))
+                    {
+                        audio_music_fade_out(0.f);
+                        audio_play(AUD_INTRO_SHATTER, 1.0f);
 
 #ifdef COVID_HIGH_RISK
-                    /* Unsaved replay files dissapear during covid high risks! */
-                    demo_play_stop(1);
-                    nosaveid = gui_multi(jd, FAIL_ERROR_REPLAY_COVID_HIGHRISK,
-                                             GUI_SML, GUI_COLOR_RED);
+                        /* Unsaved replay files dissapear during covid high risks! */
+                        demo_play_stop(1);
+                        nosaveid = gui_multi(jd, FAIL_ERROR_REPLAY_COVID_HIGHRISK,
+                            GUI_SML, GUI_COLOR_RED);
 #else
-                    detect_replay_checkpoints();
-                    nosaveid = gui_multi(jd, FAIL_ERROR_REPLAY,
-                                             GUI_SML, GUI_COLOR_RED);
+                        detect_replay_checkpoints();
+                        nosaveid = gui_multi(jd, FAIL_ERROR_REPLAY,
+                            GUI_SML, GUI_COLOR_RED);
 #endif
-                    gui_pulse(nosaveid, 1.2f);
+                        gui_pulse(nosaveid, 1.2f);
 
 #ifdef MAPC_INCLUDES_CHKP
-                    if (last_active)
-                    {
-                        if (!campaign_hardcore())
+                        if (last_active)
                         {
-                            if (((last_timer > 60.0f && last_timer_down) ||
-                                 !last_timer_down) &&
-                                progress_same_avail())
+                            if (!campaign_hardcore())
                             {
-                                audio_play(AUD_RESPAWN, 1.0f);
-                                gui_multi(jd, _("Respawn is still available during active!"),
-                                              GUI_SML, GUI_COLOR_GRN);
-                            }
-                            else if (progress_same_avail() && !progress_dead())
-                            {
-                                audio_music_fade_out(0.f);
-                                gui_multi(jd, FAIL_ERROR_RESPAWN_1,
-                                              GUI_SML, GUI_COLOR_RED);
+                                if (((last_timer > 60.0f && last_timer_down) ||
+                                    !last_timer_down) &&
+                                    progress_same_avail())
+                                {
+                                    audio_play(AUD_RESPAWN, 1.0f);
+                                    gui_multi(jd, _("Respawn is still available during active!"),
+                                        GUI_SML, GUI_COLOR_GRN);
+                                }
+                                else if (progress_same_avail() && !progress_dead())
+                                {
+                                    audio_music_fade_out(0.f);
+                                    gui_multi(jd, FAIL_ERROR_RESPAWN_1,
+                                        GUI_SML, GUI_COLOR_RED);
+                                }
+                                else
+                                {
+                                    audio_music_fade_out(0.f);
+                                    gui_multi(jd, FAIL_ERROR_RESPAWN_2,
+                                        GUI_SML, GUI_COLOR_RED);
+                                }
                             }
                             else
                             {
                                 audio_music_fade_out(0.f);
-                                gui_multi(jd, FAIL_ERROR_RESPAWN_2,
-                                              GUI_SML, GUI_COLOR_RED);
+                                gui_multi(jd, FAIL_ERROR_RESPAWN_3,
+                                    GUI_SML, GUI_COLOR_RED);
                             }
                         }
                         else
-                        {
-                            audio_music_fade_out(0.f);
-                            gui_multi(jd, FAIL_ERROR_RESPAWN_3,
-                                          GUI_SML, GUI_COLOR_RED);
-                        }
-                    }
-                    else
 #endif
-                    if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-                    {
-                        if (progress_dead() &&
-                            server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                            gui_multi(jd, FAIL_UPGRADE_EDITION_2,
-                                          GUI_SML, GUI_COLOR_RED);
+                            if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+                            {
+                                if (progress_dead() &&
+                                    server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                                    gui_multi(jd, FAIL_UPGRADE_EDITION_2,
+                                        GUI_SML, GUI_COLOR_RED);
 
-                        else if (curr_mode() == MODE_NORMAL &&
-                                 progress_extended() &&
-                                 server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                            gui_multi(jd, FAIL_UPGRADE_EDITION_1,
-                                          GUI_SML, GUI_COLOR_RED);
+                                else if (curr_mode() == MODE_NORMAL &&
+                                    progress_extended() &&
+                                    server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                                    gui_multi(jd, FAIL_UPGRADE_EDITION_1,
+                                        GUI_SML, GUI_COLOR_RED);
 
-                        else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED) == 0)
-                            gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED,
-                                          GUI_SML, GUI_COLOR_RED);
+                                else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED) == 0)
+                                    gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED,
+                                        GUI_SML, GUI_COLOR_RED);
+                            }
+                            else if (((curr_mode() == MODE_NORMAL && progress_extended())
+                                || progress_dead()) &&
+                                !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
+                                server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+                            {
+                                audio_music_fade_out(0.f);
+                                gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP,
+                                    GUI_SML, GUI_COLOR_RED);
+                            }
+                            else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                            {
+                                audio_music_fade_out(0.f);
+                                gui_multi(jd, FAIL_UPGRADE_EDITION_2,
+                                    GUI_SML, GUI_COLOR_RED);
+                            }
                     }
-                    else if (((curr_mode() == MODE_NORMAL && progress_extended())
-                           || progress_dead()) &&
-                             !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
-                             server_policy_get_d(SERVER_POLICY_EDITION) > -1)
-                    {
-                        audio_music_fade_out(0.f);
-                        gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP,
-                                      GUI_SML, GUI_COLOR_RED);
-                    }
-                    else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                    {
-                        audio_music_fade_out(0.f);
-                        gui_multi(jd, FAIL_UPGRADE_EDITION_2,
-                                      GUI_SML, GUI_COLOR_RED);
-                    }
-                }
-                else if (status == GAME_TIME &&
-                         (save < 2 ||
+                    else if (status == GAME_TIME &&
+                        (save < 2 ||
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                             campaign_hardcore_norecordings()
+                            campaign_hardcore_norecordings()
 #endif
-                          ))
-                {
-                    detect_replay_checkpoints();
-                    audio_music_fade_out(0.f);
-                    audio_play(AUD_INTRO_SHATTER, 1.0f);
-                    nosaveid = gui_multi(jd, FAIL_ERROR_REPLAY,
-                                             GUI_SML, GUI_COLOR_RED);
-                    gui_pulse(nosaveid, 1.2f);
+                            ))
+                    {
+                        detect_replay_checkpoints();
+                        audio_music_fade_out(0.f);
+                        audio_play(AUD_INTRO_SHATTER, 1.0f);
+                        nosaveid = gui_multi(jd, FAIL_ERROR_REPLAY,
+                            GUI_SML, GUI_COLOR_RED);
+                        gui_pulse(nosaveid, 1.2f);
 
 #ifdef MAPC_INCLUDES_CHKP
-                    if (last_active)
-                    {
-                        if (!campaign_hardcore())
+                        if (last_active)
                         {
-                            if (((last_timer > 60.0f && last_timer_down) ||
-                                 !last_timer_down) &&
-                                progress_same_avail())
+                            if (!campaign_hardcore())
                             {
-                                audio_play(AUD_RESPAWN, 1.0f);
-                                gui_multi(jd, _("Respawn is still available during active!"),
-                                              GUI_SML, GUI_COLOR_GRN);
+                                if (((last_timer > 60.0f && last_timer_down) ||
+                                    !last_timer_down) &&
+                                    progress_same_avail())
+                                {
+                                    audio_play(AUD_RESPAWN, 1.0f);
+                                    gui_multi(jd, _("Respawn is still available during active!"),
+                                        GUI_SML, GUI_COLOR_GRN);
+                                }
+                                else if (progress_same_avail() && !progress_dead())
+                                    gui_multi(jd, FAIL_ERROR_RESPAWN_1,
+                                        GUI_SML, GUI_COLOR_RED);
+                                else
+                                    gui_multi(jd, FAIL_ERROR_RESPAWN_2,
+                                        GUI_SML, GUI_COLOR_RED);
                             }
-                            else if (progress_same_avail() && !progress_dead())
-                                gui_multi(jd, FAIL_ERROR_RESPAWN_1,
-                                              GUI_SML, GUI_COLOR_RED);
                             else
-                                gui_multi(jd, FAIL_ERROR_RESPAWN_2,
-                                              GUI_SML, GUI_COLOR_RED);
+                                gui_multi(jd, FAIL_ERROR_RESPAWN_3, GUI_SML, GUI_COLOR_RED);
                         }
                         else
-                            gui_multi(jd, FAIL_ERROR_RESPAWN_3, GUI_SML, GUI_COLOR_RED);
+#endif
+                            if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+                            {
+                                if (progress_dead() &&
+                                    server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                                    gui_multi(jd, FAIL_UPGRADE_EDITION_2,
+                                        GUI_SML, GUI_COLOR_RED);
+
+                                else if (curr_mode() == MODE_NORMAL &&
+                                    progress_extended() &&
+                                    server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                                    gui_multi(jd, FAIL_UPGRADE_EDITION_1,
+                                        GUI_SML, GUI_COLOR_RED);
+
+                                else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED) == 0)
+                                    gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED,
+                                        GUI_SML, GUI_COLOR_RED);
+                            }
+                            else if (((curr_mode() == MODE_NORMAL && progress_extended())
+                                || progress_dead()) &&
+                                !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
+                                server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+                                gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP,
+                                    GUI_SML, GUI_COLOR_RED);
+                            else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                                gui_multi(jd, FAIL_UPGRADE_EDITION_2,
+                                    GUI_SML, GUI_COLOR_RED);
                     }
                     else
-#endif
-                    if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
                     {
-                        if (progress_dead() &&
-                            server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                            gui_multi(jd, FAIL_UPGRADE_EDITION_2,
-                                          GUI_SML, GUI_COLOR_RED);
-
-                        else if (curr_mode() == MODE_NORMAL &&
-                                 progress_extended() &&
-                                 server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                            gui_multi(jd, FAIL_UPGRADE_EDITION_1,
-                                          GUI_SML, GUI_COLOR_RED);
-
-                        else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED) == 0)
-                            gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED,
-                                          GUI_SML, GUI_COLOR_RED);
-                    }
-                    else if (((curr_mode() == MODE_NORMAL && progress_extended())
-                           || progress_dead()) &&
-                             !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
-                             server_policy_get_d(SERVER_POLICY_EDITION) > -1)
-                        gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP,
-                                      GUI_SML, GUI_COLOR_RED);
-                    else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                        gui_multi(jd, FAIL_UPGRADE_EDITION_2,
-                                      GUI_SML, GUI_COLOR_RED);
-                }
-                else
-                {
-                    audio_music_fade_out(0.f);
-                    audio_play(AUD_INTRO_SHATTER, 1.0f);
-                    nosaveid = gui_multi(jd, _("You can save new replays only once!"), GUI_SML, GUI_COLOR_RED);
-                    gui_pulse(nosaveid, 1.2f);
+                        audio_music_fade_out(0.f);
+                        audio_play(AUD_INTRO_SHATTER, 1.0f);
+                        nosaveid = gui_multi(jd, _("You can save new replays only once!"), GUI_SML, GUI_COLOR_RED);
+                        gui_pulse(nosaveid, 1.2f);
 
 #if defined(MAPC_INCLUDES_CHKP)
-                    if (last_active)
-                    {
-                        /* Optional can be save */
-                        if (((last_timer > 60.0f && last_timer_down) ||
-                            !last_timer_down) &&
-                            progress_same_avail()
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                         && !campaign_hardcore()
-#endif
-                            )
+                        if (last_active)
                         {
-                            audio_play(AUD_RESPAWN, 1.0f);
-                            gui_multi(jd, _("Respawn is still available during active!"),
-                                          GUI_SML, GUI_COLOR_GRN);
-                        }
-                        else if (progress_same_avail()
+                            /* Optional can be save */
+                            if (((last_timer > 60.0f && last_timer_down) ||
+                                !last_timer_down) &&
+                                progress_same_avail()
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                              && !campaign_hardcore()
-#endif
-                                 )
-                            gui_multi(jd, FAIL_ERROR_RESPAWN_1,
-                                          GUI_SML, GUI_COLOR_RED);
-                        else if (progress_dead()
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                             && !campaign_hardcore()
+                                && !campaign_hardcore()
 #endif
                                 )
-                            gui_multi(jd, FAIL_ERROR_RESPAWN_2,
-                                          GUI_SML, GUI_COLOR_RED);
-                        else if (progress_dead())
-                            gui_multi(jd, FAIL_ERROR_RESPAWN_3,
-                                          GUI_SML, GUI_COLOR_RED);
-                    }
-                    else
+                            {
+                                audio_play(AUD_RESPAWN, 1.0f);
+                                gui_multi(jd, _("Respawn is still available during active!"),
+                                    GUI_SML, GUI_COLOR_GRN);
+                            }
+                            else if (progress_same_avail()
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                                && !campaign_hardcore()
 #endif
-                    if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
-                    {
-                        if (progress_dead() &&
-                            server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                            gui_multi(jd, FAIL_UPGRADE_EDITION_2,
-                                          GUI_SML, GUI_COLOR_RED);
-                        else if (curr_mode() == MODE_NORMAL &&
-                                 progress_extended() &&
-                                 server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                            gui_multi(jd, FAIL_UPGRADE_EDITION_1,
-                                          GUI_SML, GUI_COLOR_RED);
-                        else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED) == 0)
-                            gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED,
-                                          GUI_SML, GUI_COLOR_RED);
+                                )
+                                gui_multi(jd, FAIL_ERROR_RESPAWN_1,
+                                    GUI_SML, GUI_COLOR_RED);
+                            else if (progress_dead()
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                                && !campaign_hardcore()
+#endif
+                                )
+                                gui_multi(jd, FAIL_ERROR_RESPAWN_2,
+                                    GUI_SML, GUI_COLOR_RED);
+                            else if (progress_dead())
+                                gui_multi(jd, FAIL_ERROR_RESPAWN_3,
+                                    GUI_SML, GUI_COLOR_RED);
+                        }
+                        else
+#endif
+                            if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+                            {
+                                if (progress_dead() &&
+                                    server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                                    gui_multi(jd, FAIL_UPGRADE_EDITION_2,
+                                        GUI_SML, GUI_COLOR_RED);
+                                else if (curr_mode() == MODE_NORMAL &&
+                                    progress_extended() &&
+                                    server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                                    gui_multi(jd, FAIL_UPGRADE_EDITION_1,
+                                        GUI_SML, GUI_COLOR_RED);
+                                else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED) == 0)
+                                    gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED,
+                                        GUI_SML, GUI_COLOR_RED);
+                            }
+                            else if (((curr_mode() == MODE_NORMAL && progress_extended())
+                                || progress_dead()) &&
+                                !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+                                gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP,
+                                    GUI_SML, GUI_COLOR_RED);
+                            else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                                gui_multi(jd, FAIL_UPGRADE_EDITION_2,
+                                    GUI_SML, GUI_COLOR_RED);
                     }
-                    else if (((curr_mode() == MODE_NORMAL && progress_extended())
-                           || progress_dead()) &&
-                             !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
-                        gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP,
-                                      GUI_SML, GUI_COLOR_RED);
-                    else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                        gui_multi(jd, FAIL_UPGRADE_EDITION_2,
-                                      GUI_SML, GUI_COLOR_RED);
-                }
 #else
-                if (progress_dead())
-                {
-                    audio_music_fade_out(0.f);
-                    audio_play(AUD_INTRO_SHATTER, 1.0f);
-                    gui_multi(jd, FAIL_TRANSFER_MEMBER_1, GUI_SML, GUI_COLOR_RED);
-                }
+                    if (progress_dead())
+                    {
+                        audio_music_fade_out(0.f);
+                        audio_play(AUD_INTRO_SHATTER, 1.0f);
+                        gui_multi(jd, FAIL_TRANSFER_MEMBER_1, GUI_SML, GUI_COLOR_RED);
+                    }
 #endif
-            }
+                }
 #if NB_HAVE_PB_BOTH==1
-            else
-                gui_title_header(jd, _("Purchased!"), GUI_LRG, gui_blu, gui_grn);
+                else
+                    gui_title_header(jd, _("Purchased!"), GUI_LRG, gui_blu, gui_grn);
 #endif
 
-            gui_set_rect(jd, GUI_ALL);
-        }
+                gui_set_rect(jd, GUI_ALL);
+            }
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-        if (progress_same_avail() && !respawnable) {
-            if (account_get_d(ACCOUNT_PRODUCT_MEDIATION) == 0 &&
-                status == GAME_TIME && curr_mode() == MODE_NORMAL &&
-                (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
-                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED)))
-            {
-                gui_space(id);
-                gui_state(id, _("Ask for more time!"),
-                              GUI_SML, FAIL_ASK_MORE, ASK_MORE_TIME);
+            if (progress_same_avail() && !respawnable) {
+                if (account_get_d(ACCOUNT_PRODUCT_MEDIATION) == 0 &&
+                    status == GAME_TIME && curr_mode() == MODE_NORMAL &&
+                    (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                        server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
+                        server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED)))
+                {
+                    gui_space(id);
+                    gui_state(id, _("Ask for more time!"),
+                        GUI_SML, FAIL_ASK_MORE, ASK_MORE_TIME);
+                }
+                else if (curr_mode() == MODE_NORMAL && curr_mode() != MODE_ZEN &&
+                    status == GAME_TIME && !progress_extended() &&
+                    (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                        server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
+                        server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED)))
+                {
+                    gui_space(id);
+                    gui_state(id, _("Buy Mediation!"),
+                        GUI_SML, FAIL_ASK_MORE, ASK_MORE_TIME);
+                }
             }
-            else if (curr_mode() == MODE_NORMAL && curr_mode() != MODE_ZEN &&
-                     status == GAME_TIME && !progress_extended() &&
-                     (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                      server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
-                      server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED)))
-            {
-                gui_space(id);
-                gui_state(id, _("Buy Mediation!"),
-                              GUI_SML, FAIL_ASK_MORE, ASK_MORE_TIME);
-            }
-        }
 #endif
 
-        gui_space(id);
+            gui_space(id);
 
-        if ((jd = gui_harray(id)))
-        {
+            if ((jd = gui_harray(id)))
+            {
 #if NB_HAVE_PB_BOTH==1
 #if defined(MAPC_INCLUDES_CHKP) && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
-            if ((respawnable && progress_same_avail()) && !campaign_hardcore())
-            {
-                gui_start(jd, _("Cancel"), GUI_SML, FAIL_CHECKPOINT_CANCEL, 0);
+                if ((respawnable && progress_same_avail()) && !campaign_hardcore())
+                {
+                    gui_start(jd, _("Cancel"), GUI_SML, FAIL_CHECKPOINT_CANCEL, 0);
 
-                /* New: Checkpoints; An optional can be respawn last location */
-                if ((progress_same_avail() && last_active) &&
-                    ((last_timer > 60.0f && last_timer_down) || !last_timer_down))
-                    gui_state(jd, _("Respawn"),
-                                  GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
-                else if ((!campaign_hardcore() && progress_dead()) &&
-                         (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                          server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
-                    gui_state(jd, _("Buy more balls!"),
-                                  GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
-                else if (!campaign_hardcore() &&
-                         server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                         progress_dead())
-                    gui_state(jd, _("Upgrade edition!"),
-                                  GUI_SML, FAIL_UPGRADE_EDITION, 0);
-            }
+                    /* New: Checkpoints; An optional can be respawn last location */
+                    if ((progress_same_avail() && last_active) &&
+                        ((last_timer > 60.0f && last_timer_down) || !last_timer_down))
+                        gui_state(jd, _("Respawn"),
+                            GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
+                    else if ((!campaign_hardcore() && progress_dead()) &&
+                        (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                            server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
+                        gui_state(jd, _("Buy more balls!"),
+                            GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
+                    else if (!campaign_hardcore() &&
+                        server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                        progress_dead())
+                        gui_state(jd, _("Upgrade edition!"),
+                            GUI_SML, FAIL_UPGRADE_EDITION, 0);
+                }
 #elif defined(MAPC_INCLUDES_CHKP)
-            if (respawnable && progress_same_avail())
-            {
-                gui_start(jd, _("Cancel"), GUI_SML, FAIL_CHECKPOINT_CANCEL, 0);
+                if (respawnable && progress_same_avail())
+                {
+                    gui_start(jd, _("Cancel"), GUI_SML, FAIL_CHECKPOINT_CANCEL, 0);
 
-                /* New: Checkpoints; An optional can be respawn last location */
-                if ((progress_same_avail() && last_active) &&
-                    ((last_timer > 60.0f && last_timer_down) ||
-                     !last_timer_down))
-                    gui_state(jd, _("Respawn"),
-                                  GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
-                else if (progress_dead() &&
-                         (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                          server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
-                    gui_state(jd, _("Buy more balls!"),
-                                  GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
-                else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                         progress_dead())
-                    gui_state(jd, _("Upgrade edition!"),
-                                  GUI_SML, FAIL_UPGRADE_EDITION, 0);
-            }
+                    /* New: Checkpoints; An optional can be respawn last location */
+                    if ((progress_same_avail() && last_active) &&
+                        ((last_timer > 60.0f && last_timer_down) ||
+                            !last_timer_down))
+                        gui_state(jd, _("Respawn"),
+                            GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
+                    else if (progress_dead() &&
+                        (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                            server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
+                        gui_state(jd, _("Buy more balls!"),
+                            GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
+                    else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                        progress_dead())
+                        gui_state(jd, _("Upgrade edition!"),
+                            GUI_SML, FAIL_UPGRADE_EDITION, 0);
+                }
 #endif
-            else
+                else
 #endif
-            {
+                {
 #ifdef MAPC_INCLUDES_CHKP
-                respawnable = 0;
+                    respawnable = 0;
 #endif
 
-                /*
-                 * Some buttons were removed by Mojang in this future!
-                 * (e.g. death_screen.json in Minecraft Android, iOS or Windows)
-                 */
-                gui_start(jd, _("Back To Menu"), GUI_SML, FAIL_OVER, 0);
+                    /*
+                     * Some buttons were removed by Mojang in this future!
+                     * (e.g. death_screen.json in Minecraft Android, iOS or Windows)
+                     */
+                    gui_start(jd, _("Back To Menu"), GUI_SML, FAIL_OVER, 0);
 
 #if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
-                if (!campaign_hardcore())
+                    if (!campaign_hardcore())
 #endif
-                {
-                    if ((progress_same_avail() && !progress_dead()))
-                        gui_state(jd, _("Retry Level"), GUI_SML, FAIL_SAME, 0);
+                    {
+                        if ((progress_same_avail() && !progress_dead()))
+                            gui_state(jd, _("Retry Level"), GUI_SML, FAIL_SAME, 0);
 #if NB_HAVE_PB_BOTH==1
-                    else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                             server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-                        gui_state(jd, _("Buy more balls!"),
-                                      GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
-                    else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                        gui_state(jd, _("Upgrade edition!"),
-                                      GUI_SML, FAIL_UPGRADE_EDITION, 0);
+                        else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                            server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+                            gui_state(jd, _("Buy more balls!"),
+                                GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
+                        else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                            gui_state(jd, _("Upgrade edition!"),
+                                GUI_SML, FAIL_UPGRADE_EDITION, 0);
 #else
-                    else
-                        gui_state(jd, _("Join PB"),
-                                      GUI_SML, FAIL_TRANSFER_MEMBER, 0);
+                        else
+                            gui_state(jd, _("Join PB"),
+                                GUI_SML, FAIL_TRANSFER_MEMBER, 0);
 #endif
-                }
+                    }
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-                if (account_get_d(ACCOUNT_PRODUCT_MEDIATION) == 1 &&
-                    status == GAME_TIME && curr_mode() == MODE_NORMAL)
-                    gui_state(jd, _("Switch to Zen"),
-                                  GUI_SML, FAIL_ZEN_SWITCH, 0);
+                    if (account_get_d(ACCOUNT_PRODUCT_MEDIATION) == 1 &&
+                        status == GAME_TIME && curr_mode() == MODE_NORMAL)
+                        gui_state(jd, _("Switch to Zen"),
+                            GUI_SML, FAIL_ZEN_SWITCH, 0);
 #endif
-                /* We're just reverted back for you! */
-                if (demo_saved())
-                {
-                    if (save == 3 && status == GAME_FALL)
-                        gui_state(jd, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
-
-                    if (save >= 2 && status == GAME_TIME)
-                        gui_state(jd, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
+                    /* We're just reverted back for you! */
+                    if (demo_saved())
+                    {
+                        if ((save == 3 && status == GAME_FALL) || (save >= 2 && status == GAME_TIME))
+                            gui_state(jd, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
+                    }
                 }
             }
+
+            gui_pulse(fid, 1.2f);
+            gui_layout(id, 0, 0);
         }
 
-        gui_pulse(fid, 1.2f);
-        gui_layout(id, 0, 0);
+        if ((id = gui_vstack(root_id)))
+        {
+            gui_space(id);
+
+            if ((jd = gui_hstack(id)))
+            {
+                gui_state(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+                gui_space(jd);
+            }
+
+            gui_layout(id, -1, +1);
+        }
     }
 
-    return id;
+    return root_id;
 }
 
 static int fail_enter(struct state *st, struct state *prev)

@@ -516,8 +516,6 @@ static int start_gui(void)
         {
             if ((jd = gui_hstack(id)))
             {
-                gui_filler(jd);
-
                 if ((kd = gui_harray(jd)))
                 {
                     int btn0, btn1;
@@ -535,10 +533,11 @@ static int start_gui(void)
 
                 gui_space(jd);
 
-                gui_label(jd, _("Goal State in Completed Levels"),
-                              GUI_SML, 0, 0);
+                kd = gui_label(jd, _("Goal State in Completed Levels"),
+                                   GUI_SML, 0, 0);
 
-                gui_filler(jd);
+                gui_set_trunc(kd, TRUNC_TAIL);
+                gui_set_fill(kd);
             }
         }
 

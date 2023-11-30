@@ -444,6 +444,13 @@ static int level_gui(void)
     return root_id;
 }
 
+            gui_layout(id, -1, +1);
+        }
+    }
+
+    return root_id;
+}
+
 static int level_enter(struct state *st, struct state *prev)
 {
     game_lerp_pose_point_reset();

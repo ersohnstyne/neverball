@@ -3485,6 +3485,7 @@ int main(int argc, char *argv[])
             if (!QueryPerformanceFrequency(&QPCFrequency)) return 1;
             if (!QueryPerformanceCounter(&QCPStartTime)) return 1;
 #else
+
             gettimeofday(&time0, 0);
 #endif
             {

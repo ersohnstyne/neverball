@@ -322,13 +322,15 @@ static int level_gui(void)
                     gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, gui_wht, gui_wht);
                     gui_label(kd, _("Start"), GUI_SML, gui_wht, gui_wht);
 
-                    gui_set_state(kd, LEVEL_START, 0);
-                    gui_set_rect(kd, GUI_ALL);
-                    gui_focus(kd);
-                }
-
-                gui_filler(jd);
+                gui_set_state(kd, LEVEL_START, 0);
+                gui_set_rect(kd, GUI_ALL);
+                gui_focus(kd);
             }
+
+            gui_filler(jd);
+
+            gui_back_button(jd);
+        }
 
             gui_space(id);
 

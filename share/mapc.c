@@ -980,7 +980,6 @@ static int map_token(fs_file fin, int pi, char key[MAXSTR], char val[MAXSTR])
     if (fs_gets(buf, MAXSTR, fin))
     {
         linenum += 1;
-        char c;
         float x0, y0, z0;
         float x1, y1, z1;
         float x2, y2, z2;

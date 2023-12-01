@@ -319,18 +319,18 @@ static int level_gui(void)
 
                 if ((kd = gui_hstack(jd)))
                 {
-                    gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, gui_wht, gui_wht);
-                    gui_label(kd, _("Start"), GUI_SML, gui_wht, gui_wht);
+                    gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
+                    gui_label(kd, _("Start"), GUI_SML, GUI_COLOR_WHT);
 
-                gui_set_state(kd, LEVEL_START, 0);
-                gui_set_rect(kd, GUI_ALL);
-                gui_focus(kd);
+                    gui_set_state(kd, LEVEL_START, 0);
+                    gui_set_rect(kd, GUI_ALL);
+                    gui_focus(kd);
+                }
+
+                gui_filler(jd);
+
+                gui_back_button(jd);
             }
-
-            gui_filler(jd);
-
-            gui_back_button(jd);
-        }
 
             gui_space(id);
 
@@ -405,7 +405,8 @@ static int level_gui(void)
         else
 #endif
         {
-            gui_multi(id, message, GUI_SML, GUI_COLOR_WHT);
+            if (message && *message)
+                gui_multi(id, message, GUI_SML, GUI_COLOR_WHT);
 
             gui_space(id);
 
@@ -415,8 +416,8 @@ static int level_gui(void)
 
                 if ((kd = gui_hstack(jd)))
                 {
-                    gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, gui_wht, gui_wht);
-                    gui_label(kd, _("Start"), GUI_SML, gui_wht, gui_wht);
+                    gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
+                    gui_label(kd, _("Start"), GUI_SML, GUI_COLOR_WHT);
 
                     gui_set_state(kd, LEVEL_START, 0);
                     gui_set_rect(kd, GUI_ALL);

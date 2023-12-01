@@ -170,7 +170,7 @@ static int playmodes_gui(void)
         char *career_title    = config_get_d(CONFIG_LOCK_GOALS) ?
                                 _("Career Mode (Currently ENABLED!)") :
                                 _("Career Mode (Currently disabled)");
-        char *career_text     = _("Toggle career mode in the entire game.\\"
+        char *career_text     = _("Toggle career mode in the entire game.\n"
                                   "Compatible with Level Set.");
 
         playmodes_state(id, PLAYMODES_CAREER_MODE, 0,
@@ -182,7 +182,8 @@ static int playmodes_gui(void)
                         _(career_text),
                         server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER) ?
                         _("Complete the game to unlock.") :
-                        _("Career mode is not available\\with server group policy."));
+                        _("Career mode is not available\n"
+                          "with server group policy."));
 
         int hardc_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE)
                            || campaign_hardcore_unlocked());
@@ -196,15 +197,15 @@ static int playmodes_gui(void)
         {
             playmodes_state(id, GUI_NONE, 0, 0,
                             mode_to_str(MODE_HARDCORE, 1), "",
-                            _("Hardcore Mode is not available.\\"
+                            _("Hardcore Mode is not available.\n"
                               "Please check your account settings!"));
         }
         else if (CHECK_ACCOUNT_BANKRUPT)
         {
             playmodes_state(id, GUI_NONE, 0, 0,
                             mode_to_str(MODE_HARDCORE, 1), "",
-                            _("Your player account is bankrupt.\\"
-                              "Restore from the backup or delete the\\"
+                            _("Your player account is bankrupt.\n"
+                              "Restore from the backup or delete the\n"
                               "local account and start over from scratch."));
         }
         else if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE))
@@ -214,13 +215,13 @@ static int playmodes_gui(void)
                             _("Play the entire game without dying once."),
                             !hardc_requirement ?
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-                            _("Hardcore Mode is not available\\"
+                            _("Hardcore Mode is not available\n"
                               "with slowdown, cheat or smooth fix.") :
 #else
-                            _("Hardcore Mode is not available\\"
+                            _("Hardcore Mode is not available\n"
                               "with slowdown or smooth fix.") :
 #endif
-                            _("Achieve all Silver Medals or above in Best Time\\"
+                            _("Achieve all Silver Medals or above in Best Time\n"
                               "to unlock this Mode."));
         }
         else
@@ -232,7 +233,7 @@ static int playmodes_gui(void)
             else if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE) == 0)
                 playmodes_state(id, GUI_NONE, 0, 0,
                                 mode_to_str(MODE_HARDCORE, 1), "",
-                                _("Hardcore Mode is not available\\"
+                                _("Hardcore Mode is not available\n"
                                   "with Server Group Policy."));
         }
     }
@@ -342,14 +343,14 @@ static int hardcore_start_gui(void)
         gui_space(id);
 
         if (campaign_career_unlocked())
-            gui_multi(id, _("You can't save in this mode.\\ \\"
-                            "Would you like to disable the\\"
+            gui_multi(id, _("You can't save in this mode.\n\n"
+                            "Would you like to disable the\n"
                             "recordings during the game?"),
                           GUI_SML, GUI_COLOR_WHT);
         else
-            gui_multi(id, _("You can't save in this mode\\"
-                            "except unlocking levels.\\ \\"
-                            "Would you like to disable the\\"
+            gui_multi(id, _("You can't save in this mode\n"
+                            "except unlocking levels.\n\n"
+                            "Would you like to disable the\n"
                             "recordings during the game?"),
                           GUI_SML, GUI_COLOR_WHT);
 

@@ -69,6 +69,8 @@ void gui_keyboard_de(int);
 void gui_keyboard_lock_de(void);
 char gui_keyboard_char(char);
 
+int gui_back_button(int);
+
 /*---------------------------------------------------------------------------*/
 
 #endif

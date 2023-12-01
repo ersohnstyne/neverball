@@ -184,9 +184,9 @@ const char intro_tip_ps4[][256] =
 
 const char intro_covid_highrisk[][256] =
 {
-    "Stash your game transfer\\to reduce risks!",
-    "Stash your replays with exceeded\\level status to reduce risks!",
-    "Don't use challenge game mode\\to reduce risks!",
+    "Stash your game transfer\nto reduce risks!",
+    "Stash your replays with exceeded\nlevel status to reduce risks!",
+    "Don't use challenge game mode\nto reduce risks!",
     "Use 3G+ rule to reduce risks!",
 };
 
@@ -480,12 +480,12 @@ static int intro_accn_disabled_enter(struct state *st, struct state *prev)
         if ((jd = gui_vstack(id)))
         {
             gui_multi(jd,
-                _("We recently received a report for bad behaviour\\"
-                  "by your account. Our moderators have reviewed in case\\"
+                _("We recently received a report for bad behaviour\n"
+                  "by your account. Our moderators have reviewed in case\n"
                   "and identified that goes against Pennyball Community Standards."),
                 GUI_SML, GUI_COLOR_WHT);
             gui_multi(jd,
-                _("Your account is permanently banned, which means\\"
+                _("Your account is permanently banned, which means\n"
                   "you can't play Challenge or Hardcore."),
                 GUI_SML, GUI_COLOR_RED);
             gui_set_rect(jd, GUI_ALL);
@@ -791,8 +791,8 @@ static int intro_restore_gui(void)
 #else
             sprintf(restore_doubles,
 #endif
-                    _("The game, that you've set up some graphics\\"
-                      "has a crash. Would you restore them now?\\"
+                    _("The game, that you've set up some graphics\n"
+                      "has a crash. Would you restore them now?\n"
                       "%s: %i x %i"),
                     gfx_target_name, restore_val_1, restore_val_2);
             
@@ -805,8 +805,8 @@ static int intro_restore_gui(void)
 #else
             sprintf(restore_singles,
 #endif
-                    _("The game, that you've set up some graphics\\"
-                      "has a crash. Would you restore them now?\\"
+                    _("The game, that you've set up some graphics\n"
+                      "has a crash. Would you restore them now?\n"
                       "%s: %s"),
                     gfx_target_name, gfx_target_values);
             
@@ -882,7 +882,7 @@ static int nointernet_gui(void)
             gui_multi(id, _("Not to worry, you can play offline!"),
                           GUI_SML, GUI_COLOR_WHT);
         else
-            gui_multi(id, _("We're unable to connect the server!\\"
+            gui_multi(id, _("We're unable to connect the server!\n"
                             "Make sure, that is connected by the internet!"),
                           GUI_SML, GUI_COLOR_WHT);
 
@@ -1021,12 +1021,12 @@ static int server_maintenance_enter(struct state *st, struct state *prev)
                              GUI_MED, gui_gry, gui_red);
         gui_space(id);
         if (networking_standalone())
-            gui_multi(id, _("It might take a while until\\"
-                            "the server maintenance is finished.\\"
+            gui_multi(id, _("It might take a while until\n"
+                            "the server maintenance is finished.\n"
                             "You can play offline instead!"),
                           GUI_SML, GUI_COLOR_WHT);
         else
-            gui_multi(id, _("It might take a while until\\"
+            gui_multi(id, _("It might take a while until\n"
                             "the server maintenance is finished."),
                           GUI_SML, GUI_COLOR_WHT);
 

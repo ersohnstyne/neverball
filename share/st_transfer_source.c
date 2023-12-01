@@ -100,30 +100,30 @@
     N_("Pennyball Transfer Tool")
 
 #define SOURCE_TRANSFER_WARNING_DELETE_DATA \
-    N_("Once deleted, this data cannot be restored.\\" \
+    N_("Once deleted, this data cannot be restored.\n" \
        "Do you want to continue?")
 
 #define SOURCE_TRANSFER_WARNING_EXTERNAL \
-    N_("Do not touch the External Drive, exit the\\" \
-       "game or turn off the PC, otherwise data\\" \
+    N_("Do not touch the External Drive, exit the\n" \
+       "game or turn off the PC, otherwise data\n" \
        "may be lost.")
 #define SOURCE_TRANSFER_WARNING_INTERNAL \
-    N_("Do not exit the game or turn off the PC,\\" \
+    N_("Do not exit the game or turn off the PC,\n" \
        "otherwise data may be lost.")
 
 #define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_COVID \
-    N_("There are exceeded limits of level status currently stored in the\\" \
-       "Replay of this game. The Replay in the target Pennyball game\\" \
-       "has an COVID-19 feature, so the Replays\\"\
+    N_("There are exceeded limits of level status currently stored in the\n" \
+       "Replay of this game. The Replay in the target Pennyball game\n" \
+       "has an COVID-19 feature, so the Replays\n"\
        "will be lost, if you perform this transfer now.")
 #define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_USER \
-    N_("There are exceeded limits of level status currently stored in the\\" \
-       "Replay of this game. The Replay in the target Pennyball game\\" \
-       "has an premade filters, so the Replays\\" \
+    N_("There are exceeded limits of level status currently stored in the\n" \
+       "Replay of this game. The Replay in the target Pennyball game\n" \
+       "has an premade filters, so the Replays\n" \
        "will be lost, if you perform this transfer now.")
 #define SOURCE_TRANSFER_WARNING_REPLAY_BACKUP \
-    N_("If you do not want to delete these Replays,\\" \
-       "you should move them to the backup folder\\" \
+    N_("If you do not want to delete these Replays,\n" \
+       "you should move them to the backup folder\n" \
        "before performing this transfer.")
 #define SOURCE_TRANSFER_WARNING_REPLAY_CONTINUE \
     N_("Do you wish to continue with the transfer?")
@@ -131,17 +131,17 @@
 #define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_1 \
     N_("There are same replay names on both games.")
 #define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_2 \
-    N_("Would you like delete the replay from the\\" \
-       "target game and replace with new ones?\\" \
+    N_("Would you like delete the replay from the\n" \
+       "target game and replace with new ones?\n" \
        "(Replays will be deleted after the transfer.)")
 
 #define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_CONFIRM_1 \
-    N_("The saved replay names will be overwritten\\" \
-       "with that of this game.\\" \
+    N_("The saved replay names will be overwritten\n" \
+       "with that of this game.\n" \
        "Do you really want to continue?")
 #define SOURCE_TRANSFER_WARNING_REPLAY_SAMENAME_CONFIRM_2 \
-    N_("(Replays, that you used on the target game\\" \
-       "before the transfer, will no longer be\\" \
+    N_("(Replays, that you used on the target game\n" \
+       "before the transfer, will no longer be\n" \
        "used after the transfer.)")
 
 /*---------------------------------------------------------------------------*/
@@ -207,19 +207,19 @@ static int transfer_introducory_gui(void)
             switch (transfer_pageindx)
             {
             case 0:
-                gui_multi(jd, _("This apps allows you to transfer data from\\"
+                gui_multi(jd, _("This apps allows you to transfer data from\n"
                                 "this game to a target Pennyball game."),
                               GUI_SML, gui_wht, gui_wht);
-                gui_multi(jd, _("Do you have a target game and an external drive?\\"
+                gui_multi(jd, _("Do you have a target game and an external drive?\n"
                                 "(These are required to perform a transfer.)"),
                               GUI_SML, gui_wht, gui_wht);
-                gui_multi(jd, _("If you are under the age of 18, call an adult\\"
+                gui_multi(jd, _("If you are under the age of 18, call an adult\n"
                                 "and have them perform the transfer."),
                               GUI_SML, gui_blu, gui_blu);
                 break;
             case 1:
-                gui_multi(jd, _("Select Neverball Game Transfer\\"
-                                "and make all preparations on the\\"
+                gui_multi(jd, _("Select Neverball Game Transfer\n"
+                                "and make all preparations on the\n"
                                 "target game necessary."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
@@ -264,21 +264,21 @@ static int transfer_prepare_gui(void)
         {
 #if ENABLE_DEDICATED_SERVER==1 && !defined(TRANSFER_OFFLINE_ONLY)
             if (preparations_internet)
-                gui_multi(jd, _("Connecting to the Internet to confirm that\\"
+                gui_multi(jd, _("Connecting to the Internet to confirm that\n"
                                 "the transfer can be performed..."),
                               GUI_SML, gui_wht, gui_wht);
             else
 #endif
             {
 #if defined(TRANSFER_OFFLINE_ONLY)
-                gui_multi(jd, _("In order to perform a game transfer, you\\"
-                                "first need to make preparations on the\\"
+                gui_multi(jd, _("In order to perform a game transfer, you\n"
+                                "first need to make preparations on the\n"
                                 "target game."),
                               GUI_SML, gui_wht, gui_wht);
 #else
-                gui_multi(jd, _("In order to perform a game transfer, you\\"
-                                "first need to make preparations on the\\"
-                                "target game and connect this\\"
+                gui_multi(jd, _("In order to perform a game transfer, you\n"
+                                "first need to make preparations on the\n"
+                                "target game and connect this\n"
                                 "game to the internet."),
                               GUI_SML, gui_wht, gui_wht);
 #endif
@@ -403,7 +403,7 @@ static int transfer_gui(void)
                         break;
 #if ENABLE_DEDICATED_SERVER==1 && !defined(TRANSFER_OFFLINE_ONLY)
                     case TRANSFER_WORKING_STATE_CONNECT_INTERNET:
-                        gui_multi(jd, _("Connecting to the internet and\\"
+                        gui_multi(jd, _("Connecting to the internet and\n"
                                         "retrieving data required for transfer..."),
                                       GUI_SML, gui_wht, gui_wht);
                         break;
@@ -412,7 +412,7 @@ static int transfer_gui(void)
                 }
                 else
                 {
-                    gui_multi(jd, _("Insert the External Drive prepared on the target\\"
+                    gui_multi(jd, _("Insert the External Drive prepared on the target\n"
                                     "Pennyball game into this game, and then press Next."),
                                   GUI_SML, gui_wht, gui_wht);
                     gui_multi(jd, _(SOURCE_TRANSFER_WARNING_EXTERNAL),
@@ -420,13 +420,13 @@ static int transfer_gui(void)
                 }
                 break;
             case 2:
-                gui_multi(jd, _("Please read the following information\\"
+                gui_multi(jd, _("Please read the following information\n"
                                 "carefully before starting the transfer."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
             case 3:
-                gui_multi(jd, _("The following set highscores is present on both PCs.\\"
-                                "Performing the game transfer will replace\\"
+                gui_multi(jd, _("The following set highscores is present on both PCs.\n"
+                                "Performing the game transfer will replace\n"
                                 "the highscore on this game."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
@@ -440,8 +440,8 @@ static int transfer_gui(void)
                 }
                 else
                 {
-                    gui_multi(jd, _("The data to be transferred from this game\\"
-                                    "will be moved to the External Drive and deleted\\"
+                    gui_multi(jd, _("The data to be transferred from this game\n"
+                                    "will be moved to the External Drive and deleted\n"
                                     "from the game progress."),
                                   GUI_SML, gui_wht, gui_wht);
                     gui_multi(jd, _(SOURCE_TRANSFER_WARNING_DELETE_DATA),
@@ -461,7 +461,7 @@ static int transfer_gui(void)
                             _("%d coins and %d gems have been transferred."),
                             transfer_walletamount[0], transfer_walletamount[1]);
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these coins and gems in\\"
+                    gui_multi(jd, _("You can use these coins and gems in\n"
                                     "game shop on the target Pennyball game."),
                                   GUI_SML, gui_wht, gui_wht);
                 }
@@ -475,7 +475,7 @@ static int transfer_gui(void)
                             _("%d gems have been transferred."),
                             transfer_walletamount[1]);
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these gems in the\\"
+                    gui_multi(jd, _("You can use these gems in the\n"
                                     "game shop on the target Pennyball game."),
                                   GUI_SML, gui_wht, gui_wht);
                 }
@@ -489,18 +489,18 @@ static int transfer_gui(void)
                             _("%d coins have been transferred."),
                             transfer_walletamount[0]);
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these coins in the\\"
+                    gui_multi(jd, _("You can use these coins in the\n"
                                     "game shop on the target Pennyball game."),
                                   GUI_SML, gui_wht, gui_wht);
                 }
                 break;
             case 6:
-                gui_multi(jd, _("Finished moving data to the external drive.\\"
-                                "Please insert the external drive into the\\"
+                gui_multi(jd, _("Finished moving data to the external drive.\n"
+                                "Please insert the external drive into the\n"
                                 "target game."),
                               GUI_SML, gui_wht, gui_wht);
-                gui_multi(jd, _("If you only have one keyboard and mouse,\\"
-                                "first turn it off from this PC\\"
+                gui_multi(jd, _("If you only have one keyboard and mouse,\n"
+                                "first turn it off from this PC\n"
                                 "before connecting to the target PC."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
@@ -550,8 +550,8 @@ static int transfer_completed_gui(void)
     {
         if ((jd = gui_vstack(id)))
         {
-            gui_multi(jd, _("All the steps required to transfer from\\"
-                            "this game have been completed.\\"
+            gui_multi(jd, _("All the steps required to transfer from\n"
+                            "this game have been completed.\n"
                             "The game will now exit."),
                           GUI_SML, gui_wht, gui_wht);
             gui_multi(jd, _("Please switch to the target game."),

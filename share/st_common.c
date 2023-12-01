@@ -560,7 +560,8 @@ static int video_gui(void)
 #else
         sprintf(dpy_info,
 #endif
-                "%s\\%d x %d - %d Hz",
+                "%s\n"
+                "%d x %d - %d Hz",
                 display,
                 dpyMode.w, dpyMode.h, dpyMode.refresh_rate);
         gui_multi(id, dpy_info, GUI_SML, gui_wht, gui_wht);
@@ -634,8 +635,8 @@ static int video_gui(void)
 #endif
 
 #else
-        gui_multi(id, _("Switchball configurations\\"
-                        "requires SWITCHBALL_GUI\\"
+        gui_multi(id, _("Switchball configurations\n"
+                        "requires SWITCHBALL_GUI\n"
                         "definition preprocessors!"),
                       GUI_SML, gui_red, gui_red);
 #endif
@@ -1164,7 +1165,7 @@ static int display_gui(void)
         if (n > 1)
         {
             gui_multi(id,
-                      _("Go to settings or press WIN+P\\"
+                      _("Go to settings or press WIN+P\n"
                         "to change the multiple Displays."),
                       GUI_SML, gui_wht, gui_cya);
 
@@ -1183,13 +1184,14 @@ static int display_gui(void)
 #else
             sprintf(name,
 #endif
-                    "%d: %s\\%d x %d - %d Hz",
+                    "%d: %s\n"
+                    "%d x %d - %d Hz",
                     i + 1,
                     SDL_GetDisplayName(i),
                     dpyMode.w, dpyMode.h, dpyMode.refresh_rate);
 
             jd = gui_multi(id,
-                           "XXXXXXXXXXXXXXXXXXX\\"
+                           "XXXXXXXXXXXXXXXXXXX\n"
                            "XXXXXXXXXXXXXXXXXXX",
                            GUI_SML, gui_wht, gui_wht);
             gui_set_state (jd, DISPLAY_SELECT, i);
@@ -1648,10 +1650,12 @@ static int restart_required_gui(void)
 #endif
         gui_space(id);
 #if defined(__EMSCRIPTEN__)
-        gui_multi(id, _("Please reload your page,\\to change this affects!"),
+        gui_multi(id, _("Please reload your page,\n"
+                        "to change this affects!"),
                       GUI_SML, gui_wht, gui_wht);
 #else
-        gui_multi(id, _("Please restart your game,\\to change this affects!"),
+        gui_multi(id, _("Please restart your game,\n"
+                        "to change this affects!"),
                       GUI_SML, gui_wht, gui_wht);
 #endif
         gui_space(id);
@@ -1711,36 +1715,6 @@ static void loading_paint(int id, float t)
 {
     conf_common_paint(id, t);
 
-    gui_paint(id);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static int loading_gui(void)
-{
-    int id;
-
-    if ((id = gui_vstack(0)))
-    {
-        gui_label(id, _("Loading..."), GUI_SML, gui_wht, gui_wht);
-        gui_layout(id, 0, 0);
-    }
-
-    return id;
-}
-
-static int loading_enter(struct state *st, struct state *prev)
-{
-    return loading_gui();
-}
-
-static void loading_leave(struct state *st, struct state *next, int id)
-{
-    gui_delete(id);
-}
-
-static void loading_paint(int id, float t)
-{
     gui_paint(id);
 }
 
@@ -1824,12 +1798,6 @@ struct state st_restart_required = {
     common_click,
     common_keybd,
     common_buttn
-};
-
-struct state st_loading = {
-    loading_enter,
-    loading_leave,
-    loading_paint
 };
 
 struct state st_loading = {

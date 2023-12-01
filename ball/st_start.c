@@ -356,7 +356,7 @@ static int start_star_view_gui(void)
 #endif
                     GUI_STAR " %d", set_star(curr_set()));
 
-            const char *s0 = _("Complete the level set and earn stars\\"
+            const char *s0 = _("Complete the level set and earn stars\n"
                                "during playing Challenge Mode.");
 
             gui_label(id, set_star_attr,
@@ -368,12 +368,12 @@ static int start_star_view_gui(void)
         }
         else
             gui_multi(id,
-                      _("This set difficulty is unrated until completes\\"
+                      _("This set difficulty is unrated until completes\n"
                         "Challenge Mode by the developer or moderator."),
                       GUI_SML, GUI_COLOR_WHT);
 #else
             gui_multi(id,
-                      _("Set stars with Player level sets\\"
+                      _("Set stars with Player level sets\n"
                         "requires Premium version."),
                       GUI_SML, GUI_COLOR_RED);
 #endif
@@ -570,16 +570,16 @@ static int start_unavailable_enter(struct state *st, struct state *prev)
         if (CHECK_ACCOUNT_ENABLED)
         {
             if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
-                gui_multi(id, _("Challenge Mode is not available\\"
+                gui_multi(id, _("Challenge Mode is not available\n"
                                 "with server group policy."),
                               GUI_SML, GUI_COLOR_WHT);
             else
-                gui_multi(id, _("Challenge Mode is not available\\"
+                gui_multi(id, _("Challenge Mode is not available\n"
                                 "with slowdown or cheat."),
                               GUI_SML, GUI_COLOR_WHT);
         }
         else
-            gui_multi(id, _("Challenge Mode is not available.\\"
+            gui_multi(id, _("Challenge Mode is not available.\n"
                             "Please check your account settings!"),
                           GUI_SML, GUI_COLOR_WHT);
 
@@ -919,9 +919,9 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev)
         gui_title_header(id, _("Powerups available"), GUI_MED, 0, 0);
         gui_space(id);
         gui_multi(id,
-                  _("Pennyball offers some of the most creative ways to\\"
-                    "compete with powerups! We just need you to upgrade\\"
-                    "to Pro edition so that we can make sure you have\\"
+                  _("Pennyball offers some of the most creative ways to\n"
+                    "compete with powerups! We just need you to upgrade\n"
+                    "to Pro edition so that we can make sure you have\n"
                     "permission to use it."),
                   GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
@@ -949,9 +949,9 @@ static int start_joinrequired_enter(struct state *st, struct state *prev)
         gui_title_header(id, _("Powerups available"), GUI_MED, 0, 0);
         gui_space(id);
         gui_multi(id,
-                  _("Pennyball offers some of the most creative ways to\\"
-                    "compete with powerups! We just need you to join\\"
-                    "and verify Discord server so that we can make sure\\"
+                  _("Pennyball offers some of the most creative ways to\n"
+                    "compete with powerups! We just need you to join\n"
+                    "and verify Discord server so that we can make sure\n"
                     "you have permission to use it."),
                   GUI_SML, GUI_COLOR_WHT);
         gui_space(id);

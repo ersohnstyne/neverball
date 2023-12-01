@@ -251,10 +251,10 @@ static int name_gui(void)
             const char *t_header = name_error ?
                                    _("Register failed!") : _("New Players!"),
                        *t_desc   = name_error ?
-                                   _("Player names didn't meet the requirements!\\"
+                                   _("Player names didn't meet the requirements!\n"
                                      "- Minimum length: 3 letters") :
-                                   _("As of new players, you can\\"
-                                     "start new Campaign levels first\\"
+                                   _("As of new players, you can\n"
+                                     "start new Campaign levels first\n"
                                      "before select other game modes.");
 
             gui_title_header(id, t_header, GUI_MED,

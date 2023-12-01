@@ -47,6 +47,8 @@
 
 /*---------------------------------------------------------------------------*/
 
+#define AUDIO_DUALDISPLAY
+
 #define AUDIO_RATE 44100
 #define AUDIO_CHAN 2
 
@@ -421,15 +423,22 @@ void audio_free(void)
     audio_music_stop();
 
     if (voices)
+    {
         voice_quit(voices);
-    voices = NULL;
+        voices = NULL;
+    }
 
     if (narrators)
+    {
         voice_quit(narrators);
-    narrators = NULL;
+        narrators = NULL;
+    }
 
-    free(buffer);
-    buffer = NULL;
+    if (buffer)
+    {
+        free(buffer);
+        buffer = NULL;
+    }
 
     /* Ogg streams and voice structure remain open to allow quality setting. */
 
@@ -440,8 +449,10 @@ void audio_suspend(void)
 {
     if (!audio_state || audio_paused) return;
 
+#ifndef AUDIO_DUALDISPLAY
     audio_paused = 1;
     SDL_PauseAudioDevice(audio_device_id, 1);
+#endif
 }
 
 void audio_resume(void)

@@ -614,9 +614,9 @@ static int shop_unlocked_gui(void)
     {
         gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
-        gui_multi(id, _("The goal state is still unlocked\\"
-                        "during completed levels!\\\\"
-                        "Please lock the goal state first\\"
+        gui_multi(id, _("The goal state is still unlocked\n"
+                        "during completed levels!\n\n"
+                        "Please lock the goal state first\n"
                         "before you go to the shop."),
                       GUI_SML, GUI_COLOR_WHT);
 
@@ -625,7 +625,7 @@ static int shop_unlocked_gui(void)
 #endif
         {
             gui_space(id);
-            gui_state(id, _("Back"), GUI_SML, GUI_BACK, 0);
+            gui_back_button(id);
         }
     }
     gui_layout(id, 0, 0);
@@ -687,7 +687,7 @@ static int shop_rename_gui(void)
     {
         gui_title_header(id, _("Rename player?"), GUI_MED, gui_gry, gui_red);
         gui_space(id);
-        gui_multi(id, _("Renaming players will log in\\"
+        gui_multi(id, _("Renaming players will log in\n"
                         "to another account."),
                       GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
@@ -801,13 +801,14 @@ static int shop_unregistered_gui(void)
 
         const char *toptxt   = inaccept_playername ? _("Invalid Player Name!") : (fewest ? _("Too few characters!") : _("Unregistered!"));
         const char *multitxt = inaccept_playername ?
-                               _("You have an invalid player name using the\\"
-                                 "special chars! Would you like modify\\"
+                               _("You have an invalid player name using the\n"
+                                 "special chars! Would you like modify\n"
                                  "player name first before you buy?") :
                                (fewest ?
-                                _("You didn't have enough letters on your player name!\\"
-                                  "Would you like extend player name first\\before you buy?") :
-                                _("You didn't registered your player name yet!\\"
+                                _("You didn't have enough letters on your player name!\n"
+                                  "Would you like extend player name first\n"
+                                  "before you buy?") :
+                                _("You didn't registered your player name yet!\n"
                                   "Would you like register now before you buy?"));
         const char *yestxt   = _("Yes");
 
@@ -1130,7 +1131,7 @@ static int shop_iap_gui(void)
         if (account_get_d(ACCOUNT_DATA_WALLET_COINS) >= ACCOUNT_WALLET_MAX_COINS
          && iappage == 0)
         {
-            gui_multi(id, _("Can't buy more coins!\\"
+            gui_multi(id, _("Can't buy more coins!\n"
                             "Max coin stack full!"),
                           GUI_SML, GUI_COLOR_RED);
         }
@@ -1749,8 +1750,8 @@ static int shop_buy_gui(void)
 #else
             sprintf(limitattr,
 #endif
-                    _("You can't buy more than %d balls\\"
-                      "in a single level set for\\"
+                    _("You can't buy more than %d balls\n"
+                      "in a single level set for\n"
                       "%s."),
                     max_balls_limit, _("Challenge Mode"));
             gui_multi(id, limitattr, GUI_SML, GUI_COLOR_WHT);
@@ -1768,19 +1769,19 @@ static int shop_buy_gui(void)
                 if (productkey == 7 && CHECK_ACCOUNT_BANKRUPT &&
                     has_enough_gems(prodcost))
                     sprintf_s(prodattr, MAXSTR,
-                              _("Would you like buy and activate Challenge?\\"
+                              _("Would you like buy and activate Challenge?\n"
                                 "%s costs %i gems."),
                               prodname, prodcost);
                 else if (has_enough_gems(prodcost))
                     sprintf_s(prodattr, MAXSTR,
-                              _("Would you like buy this Products?\\"
+                              _("Would you like buy this Products?\n"
                                 "%s costs %i gems."),
                               prodname, prodcost);
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
                 else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP) &&
                          prodcost <= 1920)
                     sprintf_s(prodattr, MAXSTR,
-                              _("You need at least %i gems to buy %s,\\"
+                              _("You need at least %i gems to buy %s,\n"
                                 "but you can review from IAP."),
                               prodcost, prodname);
 #endif
@@ -1793,13 +1794,13 @@ static int shop_buy_gui(void)
             {
                 if (has_enough_coins(prodcost))
                     sprintf_s(prodattr, MAXSTR,
-                              _("Would you like buy this Products?\\"
+                              _("Would you like buy this Products?\n"
                                 "%s costs %i coins."),
                               prodname, prodcost);
                 else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP) &&
                          prodcost <= 1920)
                     sprintf_s(prodattr, MAXSTR,
-                              _("You need at least %i coins to buy %s,\\"
+                              _("You need at least %i coins to buy %s,\n"
                                 "but you can purchase from coin shop."),
                               prodcost, prodname);
                 else
@@ -1812,16 +1813,16 @@ static int shop_buy_gui(void)
             {
                 if (productkey == 7 && CHECK_ACCOUNT_BANKRUPT &&
                     has_enough_gems(prodcost))
-                    sprintf(prodattr, _("Would you like buy and activate Challenge?\\"
+                    sprintf(prodattr, _("Would you like buy and activate Challenge?\n"
                                         "%s costs %i gems."),
                                       prodname, prodcost);
                 else if (has_enough_gems(prodcost))
-                    sprintf(prodattr, _("Would you like buy this Products?\\"
+                    sprintf(prodattr, _("Would you like buy this Products?\n"
                                         "%s costs %i gems."),
                                       prodname, prodcost);
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
                 else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP) && prodcost <= 1920)
-                    sprintf(prodattr, _("You need at least %i gems to buy %s,\\"
+                    sprintf(prodattr, _("You need at least %i gems to buy %s,\n"
                                         "but you can review from IAP."),
                                       prodcost, prodname);
 #endif
@@ -1832,12 +1833,12 @@ static int shop_buy_gui(void)
             else
             {
                 if (has_enough_coins(prodcost))
-                    sprintf(prodattr, _("Would you like buy this Products?\\"
+                    sprintf(prodattr, _("Would you like buy this Products?\n"
                                         "%s costs %i coins."),
                                       prodname, prodcost);
                 else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP) &&
                          prodcost <= 1920)
-                    sprintf(prodattr, _("You need at least %i coins to buy %s,\\"
+                    sprintf(prodattr, _("You need at least %i coins to buy %s,\n"
                                         "but you can purchase from coin shop."),
                                       prodcost, prodname);
                 else
@@ -1986,7 +1987,7 @@ static int shop_buy_gui(void)
         }
         else
         {
-            gui_multi(id, _("You've already owned this product,\\"
+            gui_multi(id, _("You've already owned this product,\n"
                             "so don't buy it again!"),
                           GUI_SML, GUI_COLOR_WHT);
 
@@ -2044,7 +2045,7 @@ static int shop_buy_confirmmulti_gui(void)
 #else
         sprintf(prodattr,
 #endif
-                _("You're trying to buy multiple Products!\\"
+                _("You're trying to buy multiple Products!\n"
                   "%d %s costs %d %s."),
                 piece_times, prodname, auction_value,
                 _(purchase_product_usegems ? "Gems" : "Coins"));
@@ -2187,8 +2188,8 @@ static int expenses_export_gui(void)
 #else
             sprintf(desc_attr,
 #endif
-                    _("We have %d,%02d € on your file.\\"
-                      "%d Gems has been transferred.\\"
+                    _("We have %d,%02d € on your file.\n"
+                      "%d Gems has been transferred.\n"
                       "Consider entering to your Expenses app."),
                     whole, cents, export_totalgems);
         }

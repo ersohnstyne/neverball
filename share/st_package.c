@@ -433,15 +433,15 @@ static int package_gui(void)
 #if defined(CONFIG_INCLUDES_ACCOUNT) && ENABLE_FETCH
 #if (NB_STEAM_API!=1 && NB_EOS_SDK!=1)
             gui_space (id);
-            gui_multi (id, _("Use the web shop or mobile\\to buy new addons."),
+            gui_multi (id, _("Use the web shop or mobile\nto buy new addons."),
                            GUI_SML, gui_wht, gui_wht);
 #elif NB_EOS_SDK==1
             gui_space (id);
-            gui_multi (id, _("Use the Epic Games Store launcher\\to buy new addons."),
+            gui_multi (id, _("Use the Epic Games Store launcher\nto buy new addons."),
                            GUI_SML, gui_wht, gui_wht);
 #elif NB_STEAM_API==1
             gui_space (id);
-            gui_multi (id, _("Use the Steam launcher\\to buy new addons."),
+            gui_multi (id, _("Use the Steam launcher\nto buy new addons."),
                           GUI_SML, gui_wht, gui_wht);
 #endif
 #endif
@@ -493,7 +493,7 @@ static int package_gui(void)
 
             gui_space(jd);
 
-            desc_id = gui_multi(jd, " \\ \\ \\ \\ \\", GUI_SML, gui_yel, gui_wht);
+            desc_id = gui_multi(jd, " \n \n \n \n \n", GUI_SML, gui_yel, gui_wht);
 
             gui_set_rect(jd, GUI_ALL);
         }
@@ -762,7 +762,7 @@ int package_manage_delete_gui(void)
     if ((id = gui_vstack(0)))
     {
         char desc[MAXSTR];
-        sprintf(desc, _("Seriously, this action cannot be undone!:\\%s"),
+        sprintf(desc, _("Seriously, this action cannot be undone!:\n%s"),
                       package_get_name(selected));
 
         gui_title_header(id, _("Delete package?"), GUI_MED, gui_red, gui_red);
@@ -790,7 +790,7 @@ int package_manage_gui(void)
     if ((id = gui_vstack(0)))
     {
         char desc[MAXSTR];
-        sprintf(desc, _("Installed package path:\\%s"),
+        sprintf(desc, _("Installed package path:\n%s"),
                          package_get_files(selected));
 
         gui_multi(id, desc, GUI_SML, gui_wht, gui_wht);
@@ -806,7 +806,7 @@ int package_manage_gui(void)
 
         gui_space(id);
 
-        gui_state(id, _("Back"), GUI_SML, GUI_BACK, 0);
+        gui_back_button(id);
     }
 
     return id;
@@ -823,27 +823,6 @@ int package_manage_enter(struct state *st, struct state *prev)
 static void package_manage_leave(struct state *st, struct state *next, int id)
 {
     gui_delete(id);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void goto_package(int package_id, struct state *back_state)
-{
-    /* Initialize the state. */
-
-    goto_state(&st_package);
-
-    package_back = back_state;
-
-    /* Navigate to the page. */
-
-    first = (package_id / PACKAGE_STEP) * PACKAGE_STEP;
-    do_init = 0;
-    goto_state(&st_package);
-
-    /* Finally, select the package. */
-
-    package_select(package_id);
 }
 
 /*---------------------------------------------------------------------------*/

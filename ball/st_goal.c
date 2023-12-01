@@ -510,7 +510,7 @@ static int goal_gui(void)
 
             if ((jd = gui_hstack(id)))
             {
-                gui_state(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+                gui_back_button(jd);
                 gui_space(jd);
             }
 
@@ -769,7 +769,7 @@ static int goal_extraballs_gui(void)
         int msgid = gui_title_header(id, _("New balls earned!"),
                                          GUI_MED, GUI_COLOR_GRN);
         gui_space(id);
-        gui_multi(id, _("You've earned extra ball by collecting\\"
+        gui_multi(id, _("You've earned extra ball by collecting\n"
                         "100 coins in a single set."),
                       GUI_SML, GUI_COLOR_WHT);
         gui_pulse(msgid, 1.2f);
@@ -862,7 +862,7 @@ static int goal_shop_gui(void)
 #else
         sprintf(productmsg,
 #endif
-                _("You have enough coins to buy\\%s.\\Try it out!"), prodname);
+                _("You have enough coins to buy\n%s.\nTry it out!"), prodname);
 
         gui_multi(id, productmsg, GUI_SML, GUI_COLOR_WHT);
 

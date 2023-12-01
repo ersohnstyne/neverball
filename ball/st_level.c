@@ -180,75 +180,81 @@ static int level_gui(void)
 #endif
 
     int id, jd, kd;
-    int root_id;
 
-    if ((root_id = gui_root()))
+#ifdef MAPC_INCLUDES_CHKP
+    const char* message = last_active ? _("The checkpoint is in the\n"
+                                          "last position as last time.\n\n"
+                                          "Click to continue.") :
+                                        level_msg(curr_level());
+#else
+    const char* message = level_msg(curr_level());
+#endif
+
+    if ((id = gui_vstack(0)))
     {
-        if ((id = gui_vstack(root_id)))
-        {
 #ifdef CONFIG_INCLUDES_ACCOUNT
-            if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) &&
-                server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
-            {
-                char account_coinsattr[MAXSTR], account_gemsattr[MAXSTR];
+        if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) &&
+            server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
+        {
+            char account_coinsattr[MAXSTR], account_gemsattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(account_gemsattr, MAXSTR, "%s: %i", _("Gems"),
-                    account_get_d(ACCOUNT_DATA_WALLET_GEMS));
-                sprintf_s(account_coinsattr, MAXSTR, "%s: %i", _("Coins"),
-                    account_get_d(ACCOUNT_DATA_WALLET_COINS));
+            sprintf_s(account_gemsattr, MAXSTR, "%s: %i", _("Gems"),
+                account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+            sprintf_s(account_coinsattr, MAXSTR, "%s: %i", _("Coins"),
+                account_get_d(ACCOUNT_DATA_WALLET_COINS));
 #else
-                sprintf(account_gemsattr, "%s: %i", _("Gems"),
-                    account_get_d(ACCOUNT_DATA_WALLET_GEMS));
-                sprintf(account_coinsattr, "%s: %i", _("Coins"),
-                    account_get_d(ACCOUNT_DATA_WALLET_COINS));
+            sprintf(account_gemsattr, "%s: %i", _("Gems"),
+                account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+            sprintf(account_coinsattr, "%s: %i", _("Coins"),
+                account_get_d(ACCOUNT_DATA_WALLET_COINS));
 #endif
-                if ((jd = gui_hstack(id)))
-                {
-                    gui_filler(jd);
-                    if ((kd = gui_harray(jd)))
-                    {
-                        gui_label(kd, account_gemsattr, GUI_SML, gui_wht, gui_cya);
-                        gui_label(kd, account_coinsattr, GUI_SML, gui_wht, gui_yel);
-                    }
-                    gui_filler(jd);
-                }
-
-                gui_space(id);
-            }
-#endif
-
             if ((jd = gui_hstack(id)))
             {
                 gui_filler(jd);
-
-                if ((kd = gui_vstack(jd)))
+                if ((kd = gui_harray(jd)))
                 {
-                    const char* ln = level_name(curr_level());
-                    int b          = level_bonus(curr_level());
-                    int m          = level_master(curr_level());
+                    gui_label(kd, account_gemsattr, GUI_SML, gui_wht, gui_cya);
+                    gui_label(kd, account_coinsattr, GUI_SML, gui_wht, gui_yel);
+                }
+                gui_filler(jd);
+            }
 
-                    char setattr[MAXSTR], lvlattr[MAXSTR];
+            gui_space(id);
+        }
+#endif
+
+        if ((jd = gui_hstack(id)))
+        {
+            gui_filler(jd);
+
+            if ((kd = gui_vstack(jd)))
+            {
+                const char* ln = level_name(curr_level());
+                int b = level_bonus(curr_level());
+                int m = level_master(curr_level());
+
+                char setattr[MAXSTR], lvlattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    if (m && curr_mode() == MODE_STANDALONE)
-                        sprintf_s(lvlattr, MAXSTR, _("Master Level"), ln);
-                    else if (m)
-                        sprintf_s(lvlattr, MAXSTR, _("Master Level %s"), ln);
-                    else if (b && curr_mode() == MODE_STANDALONE)
-                        sprintf_s(lvlattr, MAXSTR, _("Bonus Level"), ln);
-                    else if (b)
-                        sprintf_s(lvlattr, MAXSTR, _("Bonus Level %s"), ln);
-                    else if (curr_mode() == MODE_STANDALONE)
-                        sprintf_s(lvlattr, MAXSTR, _("Level ---"));
-                    else
-                        sprintf_s(lvlattr, MAXSTR, _("Level %s"), ln);
+                if (m && curr_mode() == MODE_STANDALONE)
+                    sprintf_s(lvlattr, MAXSTR, _("Master Level"), ln);
+                else if (m)
+                    sprintf_s(lvlattr, MAXSTR, _("Master Level %s"), ln);
+                else if (b && curr_mode() == MODE_STANDALONE)
+                    sprintf_s(lvlattr, MAXSTR, _("Bonus Level"), ln);
+                else if (b)
+                    sprintf_s(lvlattr, MAXSTR, _("Bonus Level %s"), ln);
+                else if (curr_mode() == MODE_STANDALONE)
+                    sprintf_s(lvlattr, MAXSTR, _("Level ---"));
+                else
+                    sprintf_s(lvlattr, MAXSTR, _("Level %s"), ln);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                    if (curr_mode() == MODE_CAMPAIGN
-                        || curr_mode() == MODE_HARDCORE)
-                        sprintf_s(setattr, MAXSTR, "%s", mode_to_str(curr_mode(), 1));
-                    else
+                if (curr_mode() == MODE_CAMPAIGN
+                    || curr_mode() == MODE_HARDCORE)
+                    sprintf_s(setattr, MAXSTR, "%s", mode_to_str(curr_mode(), 1));
+                else
 #endif
                     if (curr_mode() == MODE_STANDALONE)
                         sprintf_s(setattr, MAXSTR, _("Standalone level"));
@@ -257,191 +263,172 @@ static int level_gui(void)
                     else if (curr_mode() != MODE_NONE)
                         sprintf_s(setattr, MAXSTR, _("%s: %s"), set_name(curr_set()), mode_to_str(curr_mode(), 1));
 #else
-                    if (m && curr_mode() == MODE_STANDALONE)
-                        sprintf(lvlattr, _("Master Level"), ln);
-                    else if (m)
-                        sprintf(lvlattr, _("Master Level %s"), ln);
-                    else if (b && curr_mode() == MODE_STANDALONE)
-                        sprintf(lvlattr, _("Bonus Level"), ln);
-                    else if (b)
-                        sprintf(lvlattr, _("Bonus Level %s"), ln);
-                    else if (curr_mode() == MODE_STANDALONE)
-                        sprintf(lvlattr, _("Level ---"));
-                    else
-                        sprintf(lvlattr, _("Level %s"), ln);
+                if (m && curr_mode() == MODE_STANDALONE)
+                    sprintf(lvlattr, _("Master Level"), ln);
+                else if (m)
+                    sprintf(lvlattr, _("Master Level %s"), ln);
+                else if (b && curr_mode() == MODE_STANDALONE)
+                    sprintf(lvlattr, _("Bonus Level"), ln);
+                else if (b)
+                    sprintf(lvlattr, _("Bonus Level %s"), ln);
+                else if (curr_mode() == MODE_STANDALONE)
+                    sprintf(lvlattr, _("Level ---"));
+                else
+                    sprintf(lvlattr, _("Level %s"), ln);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                    if (curr_mode() == MODE_CAMPAIGN
-                        || curr_mode() == MODE_HARDCORE)
-                        sprintf(setattr, "%s", mode_to_str(curr_mode(), 1));
-                    else
+                if (curr_mode() == MODE_CAMPAIGN
+                    || curr_mode() == MODE_HARDCORE)
+                    sprintf(setattr, "%s", mode_to_str(curr_mode(), 1));
+                else
 #endif
-                        if (curr_mode() == MODE_STANDALONE)
-                            sprintf(setattr, _("Standalone level"));
-                        else if (curr_mode() == MODE_NORMAL)
-                            sprintf(setattr, "%s", set_name(curr_set()));
-                        else if (curr_mode() != MODE_NONE)
-                            sprintf(setattr, _("%s: %s"), set_name(curr_set()), mode_to_str(curr_mode(), 1));
+                    if (curr_mode() == MODE_STANDALONE)
+                        sprintf(setattr, _("Standalone level"));
+                    else if (curr_mode() == MODE_NORMAL)
+                        sprintf(setattr, "%s", set_name(curr_set()));
+                    else if (curr_mode() != MODE_NONE)
+                        sprintf(setattr, _("%s: %s"), set_name(curr_set()), mode_to_str(curr_mode(), 1));
 #endif
-                    gui_title_header(kd, lvlattr,
-                                         m || b ? GUI_MED : GUI_LRG,
-                                         m ? gui_wht : (b ? gui_wht : 0),
-                                         m ? gui_red : (b ? gui_grn : 0));
+                gui_title_header(kd, lvlattr,
+                    m || b ? GUI_MED : GUI_LRG,
+                    m ? gui_wht : (b ? gui_wht : 0),
+                    m ? gui_red : (b ? gui_grn : 0));
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                    if (curr_mode() == MODE_HARDCORE)
-                        gui_label(kd, _("Hardcore Mode!"), GUI_SML, GUI_COLOR_RED);
-                    else
+                if (curr_mode() == MODE_HARDCORE)
+                    gui_label(kd, _("Hardcore Mode!"), GUI_SML, GUI_COLOR_RED);
+                else
 #endif
-                        gui_label(kd, setattr, GUI_SML, GUI_COLOR_WHT);
+                    gui_label(kd, setattr, GUI_SML, GUI_COLOR_WHT);
 
-                    gui_set_rect(kd, GUI_ALL);
-                }
-                gui_filler(jd);
+                gui_set_rect(kd, GUI_ALL);
             }
-            gui_space(id);
+            gui_filler(jd);
+        }
+        gui_space(id);
 
 #ifdef ENABLE_POWERUP
-            if ((level_master(curr_level()) ||
-                curr_mode() == MODE_CHALLENGE ||
-                curr_mode() == MODE_BOOST_RUSH) &&
-                !show_info &&
-                server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
-            {
-                if ((jd = gui_hstack(id)))
-                {
-                    gui_filler(jd);
-
-                    if ((kd = gui_hstack(jd)))
-                    {
-                        gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, gui_wht, gui_wht);
-                        gui_label(kd, _("Start"), GUI_SML, gui_wht, gui_wht);
-
-                        gui_set_state(kd, LEVEL_START, 0);
-                        gui_set_rect(kd, GUI_ALL);
-                        gui_focus(kd);
-                    }
-
-                    gui_filler(jd);
-                }
-
-                gui_space(id);
-
-                gui_label(id, _("Use special powers"), GUI_SML, GUI_COLOR_WHT);
-
-                if ((jd = gui_harray(id)))
-                {
-                    int ced, cfd, csd;
-                    char pow1attr[MAXSTR], pow2attr[MAXSTR], pow3attr[MAXSTR];
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(pow3attr, MAXSTR,
-#else
-                    sprintf(pow3attr,
-#endif
-                        _("Speedifier (%i)"), svalue);
-
-                    if ((csd = gui_varray(jd)))
-                    {
-                        gui_label(csd, pow3attr, GUI_SML,
-                            svalue > 0 ? gui_grn : gui_gry,
-                            svalue > 0 ? gui_wht : gui_gry);
-                        if (svalue > 0)
-                            gui_set_state(csd, LEVEL_START_POWERUP, 3);
-                        else
-                            gui_set_state(csd, GUI_NONE, 0);
-                    }
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(pow2attr, MAXSTR,
-#else
-                    sprintf(pow2attr,
-#endif
-                        _("Floatifier (%i)"), fvalue);
-
-                    if ((cfd = gui_varray(jd)))
-                    {
-                        gui_label(cfd, pow2attr, GUI_SML,
-                            fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_blu : gui_gry,
-                            fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_wht : gui_gry);
-                        if (fvalue > 0 && curr_mode() != MODE_BOOST_RUSH)
-                            gui_set_state(cfd, LEVEL_START_POWERUP, 2);
-                        else
-                            gui_set_state(cfd, GUI_NONE, 0);
-                    }
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(pow1attr, MAXSTR,
-#else
-                    sprintf(pow1attr,
-#endif
-                        _("Earninator (%i)"), evalue);
-
-                    if ((ced = gui_varray(jd)))
-                    {
-#ifndef LEVELGROUPS_INCLUDES_CAMPAIGN
-                        gui_label(ced, pow1attr, GUI_SML,
-                            evalue > 0 ? gui_red : gui_gry,
-                            evalue > 0 ? gui_wht : gui_gry);
-#else
-                        gui_label(ced, pow1attr, GUI_SML,
-                            evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_red : gui_gry,
-                            evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_wht : gui_gry);
-#endif
-                        if (evalue > 0)
-                            gui_set_state(ced, LEVEL_START_POWERUP, 1);
-                        else
-                            gui_set_state(ced, GUI_NONE, 0);
-                    }
-                }
-            }
-            else
-#endif
-            {
-#ifdef MAPC_INCLUDES_CHKP
-                gui_multi(id, last_active ? _("The checkpoint is in the\\last position as last time.\\ \\Click to continue.") : level_msg(curr_level()),
-#else
-                gui_multi(id, level_msg(curr_level()),
-#endif
-                              GUI_SML, GUI_COLOR_WHT);
-
-                gui_space(id);
-
-                if ((jd = gui_hstack(id)))
-                {
-                    gui_filler(jd);
-
-                    if ((kd = gui_hstack(jd)))
-                    {
-                        gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, gui_wht, gui_wht);
-                        gui_label(kd, _("Start"), GUI_SML, gui_wht, gui_wht);
-
-                        gui_set_state(kd, LEVEL_START, 0);
-                        gui_set_rect(kd, GUI_ALL);
-                        gui_focus(kd);
-                    }
-
-                    gui_filler(jd);
-                }
-            }
-
-            gui_layout(id, 0, 0);
-        }
-
-        if ((id = gui_vstack(root_id)))
+        if ((level_master(curr_level()) ||
+            curr_mode() == MODE_CHALLENGE ||
+            curr_mode() == MODE_BOOST_RUSH) &&
+            !show_info &&
+            server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
         {
+            if ((jd = gui_hstack(id)))
+            {
+                gui_filler(jd);
+
+                if ((kd = gui_hstack(jd)))
+                {
+                    gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, gui_wht, gui_wht);
+                    gui_label(kd, _("Start"), GUI_SML, gui_wht, gui_wht);
+
+                    gui_set_state(kd, LEVEL_START, 0);
+                    gui_set_rect(kd, GUI_ALL);
+                    gui_focus(kd);
+                }
+
+                gui_filler(jd);
+            }
+
+            gui_space(id);
+
+            gui_label(id, _("Use special powers"), GUI_SML, GUI_COLOR_WHT);
+
+            if ((jd = gui_harray(id)))
+            {
+                int ced, cfd, csd;
+                char pow1attr[MAXSTR], pow2attr[MAXSTR], pow3attr[MAXSTR];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(pow3attr, MAXSTR,
+#else
+                sprintf(pow3attr,
+#endif
+                    _("Speedifier (%i)"), svalue);
+
+                if ((csd = gui_varray(jd)))
+                {
+                    gui_label(csd, pow3attr, GUI_SML,
+                        svalue > 0 ? gui_grn : gui_gry,
+                        svalue > 0 ? gui_wht : gui_gry);
+                    if (svalue > 0)
+                        gui_set_state(csd, LEVEL_START_POWERUP, 3);
+                    else
+                        gui_set_state(csd, GUI_NONE, 0);
+                }
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(pow2attr, MAXSTR,
+#else
+                sprintf(pow2attr,
+#endif
+                    _("Floatifier (%i)"), fvalue);
+
+                if ((cfd = gui_varray(jd)))
+                {
+                    gui_label(cfd, pow2attr, GUI_SML,
+                        fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_blu : gui_gry,
+                        fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_wht : gui_gry);
+                    if (fvalue > 0 && curr_mode() != MODE_BOOST_RUSH)
+                        gui_set_state(cfd, LEVEL_START_POWERUP, 2);
+                    else
+                        gui_set_state(cfd, GUI_NONE, 0);
+                }
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(pow1attr, MAXSTR,
+#else
+                sprintf(pow1attr,
+#endif
+                    _("Earninator (%i)"), evalue);
+
+                if ((ced = gui_varray(jd)))
+                {
+#ifndef LEVELGROUPS_INCLUDES_CAMPAIGN
+                    gui_label(ced, pow1attr, GUI_SML,
+                        evalue > 0 ? gui_red : gui_gry,
+                        evalue > 0 ? gui_wht : gui_gry);
+#else
+                    gui_label(ced, pow1attr, GUI_SML,
+                        evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_red : gui_gry,
+                        evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_wht : gui_gry);
+#endif
+                    if (evalue > 0)
+                        gui_set_state(ced, LEVEL_START_POWERUP, 1);
+                    else
+                        gui_set_state(ced, GUI_NONE, 0);
+                }
+            }
+        }
+        else
+#endif
+        {
+            gui_multi(id, message, GUI_SML, GUI_COLOR_WHT);
+
             gui_space(id);
 
             if ((jd = gui_hstack(id)))
             {
-                gui_state(jd, _("Back"), GUI_SML, GUI_BACK, 0);
-                gui_space(jd);
-            }
+                gui_filler(jd);
 
-            gui_layout(id, -1, +1);
+                if ((kd = gui_hstack(jd)))
+                {
+                    gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, gui_wht, gui_wht);
+                    gui_label(kd, _("Start"), GUI_SML, gui_wht, gui_wht);
+
+                    gui_set_state(kd, LEVEL_START, 0);
+                    gui_set_rect(kd, GUI_ALL);
+                    gui_focus(kd);
+                }
+
+                gui_filler(jd);
+            }
         }
+
+        gui_layout(id, 0, 0);
     }
 
-    return root_id;
+    return id;
 }
 
 static int level_enter(struct state *st, struct state *prev)
@@ -666,8 +653,8 @@ static int nodemo_enter(struct state *st, struct state *prev)
     {
         gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
-        gui_multi(id, _("A replay file could not be opened for writing.\\"
-                        "This game will not be recorded.\\"),
+        gui_multi(id, _("A replay file could not be opened for writing.\n"
+                        "This game will not be recorded.\n"),
                       GUI_SML, GUI_COLOR_WHT);
 
         gui_layout(id, 0, 0);
@@ -738,7 +725,7 @@ static int level_signin_required_enter(struct state *st, struct state *prev)
     {
         gui_title_header(id, _("Sign in required!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
-        gui_multi(id, _("This account must be signed in,\\"
+        gui_multi(id, _("This account must be signed in,\n"
                         "before you play this levels!"),
                       GUI_SML, GUI_COLOR_WHT);
 

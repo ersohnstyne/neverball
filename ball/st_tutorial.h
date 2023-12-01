@@ -25,7 +25,8 @@
 #define HINT_BUNNY_SLOPE_TEXT \
     N_("Build up momentum to reach the bottom quickly!")
 #define HINT_HAZARDOUS_CLIMB_TEXT \
-    N_("Don't let these hazards\\throw you off the track to finish!")
+    N_("Don't let these hazards\n" \
+       "throw you off the track to finish!")
 #define HINT_HALFPIPE_TEXT \
     N_("Speed around the half pipe and collect the coins!")
 #define HINT_UPWARD_SPIRAL_TEXT \

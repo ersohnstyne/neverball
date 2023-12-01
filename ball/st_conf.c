@@ -223,8 +223,8 @@ static int conf_covid_extend_gui(void)
             gui_label(id, _("Do you have your real vaccine certificates?"),
                           GUI_SML, 0, 0);
             gui_space(id);
-            gui_multi(id, _("To use campaign, check your real vaccine\\"
-                            "certificates with valid date\\"
+            gui_multi(id, _("To use campaign, check your real vaccine\n"
+                            "certificates with valid date\n"
                             "to switch off the replay filters!"),
                           GUI_SML, GUI_COLOR_WHT);
             gui_space(id);
@@ -233,7 +233,7 @@ static int conf_covid_extend_gui(void)
         {
             gui_label(id, _("Do you have your FFP-2 masks?"), GUI_SML, 0, 0);
             gui_space(id);
-            gui_multi(id, _("To use campaign, FFP-2 masks are required\\"
+            gui_multi(id, _("To use campaign, FFP-2 masks are required\n"
                             "to switch off the replay filters!"),
                           GUI_SML, GUI_COLOR_WHT);
             gui_space(id);
@@ -270,22 +270,28 @@ static int conf_covid_extend_enter(struct state *st, struct state *prev)
 /*---------------------------------------------------------------------------*/
 
 #define CONF_ACCOUNT_DEMO_LOCKED_DESC_INGAME \
-    _("You can't change save filters\\during the game.")
+    _("You can't change save filters\n" \
+      "during the game.")
 
 #define CONF_ACCOUNT_DEMO_LOCKED_DESC_INTRODUCTIVE \
-    _("Filters restricts some replays.\\Locked level status: %s")
+    _("Filters restricts some replays.\n" \
+      "Locked level status: %s")
 
 #define CONF_ACCOUNT_DEMO_LOCKED_DESC_HARDLOCK \
-    _("Replays have locked down until\\the next future update.")
+    _("Replays have locked down until\n" \
+      "the next future update.")
 
 #define CONF_ACCOUNT_DEMO_LOCKED_DESC_HIGHRISK \
-    _("Replays have locked down\\during high risks!")
+    _("Replays have locked down\n" \
+      "during high risks!")
 
 #define CONF_ACCOUNT_DEMO_LOCKED_DESC_NIGHT \
-    _("Replays have locked down between\\16:00 - 8:00 (4:00 PM - 8:00 AM).")
+    _("Replays have locked down between\n" \
+      "16:00 - 8:00 (4:00 PM - 8:00 AM).")
 
 #define CONF_ACCOUNT_DEMO_LOCKED_DESC_EXTREME_CASES \
-    _("Replays have locked down\\for extreme cases.")
+    _("Replays have locked down\n" \
+      "for extreme cases.")
 
 #define CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_1 \
     _("Only Finish")
@@ -392,7 +398,7 @@ static int conf_account_action(int tok, int val)
             if (config_get_d(CONFIG_ACCOUNT_SAVE) == 3)
             {
                 gui_set_label(save_id, _("Off"));
-            config_set_d(CONFIG_ACCOUNT_SAVE, 0);
+                config_set_d(CONFIG_ACCOUNT_SAVE, 0);
             }
             else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 2)
             {
@@ -577,7 +583,7 @@ static int conf_account_gui(void)
                         _(status_to_str(3)));
 
                 time_remain_lbl_id = gui_multi(id,
-                                               "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\"
+                                               "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
                                                "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
                                                GUI_SML, GUI_COLOR_RED);
 
@@ -789,7 +795,7 @@ static void conf_account_timer(int id, float dt)
 #else
         sprintf(cv19_infoattr,
 #endif
-                _("Full access valid until locked down.\\"
+                _("Full access valid until locked down.\n"
                   "Time Remaining: %i h %i m %i s"),
                 clock_hour, clock_min, clock_sec);
 
@@ -897,21 +903,21 @@ static int conf_social_gui(void)
                               GUI_SML, gui_wht, gui_cya);
 
 #if NB_HAVE_PB_BOTH==1
-                gui_multi(jd, _("- Access the game edition to you\\"
-                                "- Keep collected coins into your account\\"
-                                "- Use powerups in Challenge mode\\"
-                                "- Adds your checkpoints from map compiler\\"
-                                "- Share any levels from MAPC for PB\\"),
+                gui_multi(jd, _("- Access the game edition to you\n"
+                                "- Keep collected coins into your account\n"
+                                "- Use powerups in Challenge mode\n"
+                                "- Adds your checkpoints from map compiler\n"
+                                "- Share any levels from MAPC for PB\n"),
                               GUI_SML, GUI_COLOR_WHT);
 #else
-                gui_multi(jd, _("- Access all Discord public channels\\"
-                                "- Share any levels from MAPC for NB\\"),
+                gui_multi(jd, _("- Access all Discord public channels\n"
+                                "- Share any levels from MAPC for NB\n"),
                               GUI_SML, GUI_COLOR_WHT);
 #endif
             }
             else
-                gui_multi(jd, _("Please make sure that you've verified the\\"
-                                "new members after joined, before send community messages,\\"
+                gui_multi(jd, _("Please make sure that you've verified the\n"
+                                "new members after joined, before send community messages,\n"
                                 "connect voice chats and watch streaming."),
                               GUI_SML, GUI_COLOR_WHT);
 
@@ -2087,7 +2093,7 @@ static int conf_audio_gui(void)
                                        master);
 #else
         conf_slider(id, _("Master Volume"), CONF_AUDIO_MASTER_VOLUME, master,
-                    master_id, ARRAYSIZE(master_id));
+                        master_id, ARRAYSIZE(master_id));
 #endif
 
         gui_space(id);
@@ -2100,7 +2106,6 @@ static int conf_audio_gui(void)
         narrator_id = conf_slider_v2(id, _("Narrator Volume"), CONF_AUDIO_NARRATOR_VOLUME,
                                          narrator);
 #else
-        
         conf_slider(id, _("Music Volume"), CONF_AUDIO_MUSIC_VOLUME, music,
                     music_id, ARRAYSIZE(music_id));
         conf_slider(id, _("Sound Volume"), CONF_AUDIO_SOUND_VOLUME, sound,
@@ -2109,8 +2114,8 @@ static int conf_audio_gui(void)
                     narrator_id, ARRAYSIZE(narrator_id));
 #endif
 #else
-        gui_multi(id, _("Switchball configurations\\"
-                        "requires NB_HAVE_PB_BOTH\\"
+        gui_multi(id, _("Switchball configurations\n"
+                        "requires NB_HAVE_PB_BOTH\n"
                         "preprocessor definitions"),
                       GUI_SML, GUI_COLOR_RED);
 #endif
@@ -2368,7 +2373,7 @@ static int conf_gui(void)
                 conf_state(id, _("Neverball Game Transfer"), _("Start"),
                                CONF_SYSTEMTRANSFER_TARGET);
 #else
-                conf_state(id, _("Neverball Transfer Tool"), _("Start"),
+                conf_state(id, _("Pennyball Transfer Tool"), _("Start"),
                                CONF_SYSTEMTRANSFER_SOURCE);
 #endif
                 gui_space(id);

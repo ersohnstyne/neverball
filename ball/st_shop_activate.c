@@ -200,9 +200,9 @@ static int shop_activate_gui_introducory(void)
         gui_title_header(id, _("Activate order code"), GUI_MED, 0, 0);
         gui_space(id);
         gui_multi(id,
-                  _("Your order code should be in an email\\"
-                    "from whoever sold Pennyball IAP to you.\\\\"
-                    "The order code should be following like this:\\"
+                  _("Your order code should be in an email\n"
+                    "from whoever sold Pennyball IAP to you.\n\n"
+                    "The order code should be following like this:\n"
                     "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"), 
                   GUI_SML, GUI_COLOR_WHT);
         gui_space(id);

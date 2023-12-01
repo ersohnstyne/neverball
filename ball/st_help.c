@@ -275,10 +275,10 @@ static int page_introduction(int id)
 
     if (help_page_current == 1)
         gui_multi(id,
-                  _("The goal of Switchball is to get your ball to the\\"
-                    "end of the level and board the gyrocopter.\\"
-                    "Once you have completed a level\\"
-                    "the next will be unlocked and so on.\\"
+                  _("The goal of Switchball is to get your ball to the\n"
+                    "end of the level and board the gyrocopter.\n"
+                    "Once you have completed a level\n"
+                    "the next will be unlocked and so on.\n"
                     "Eventually, new worlds will be unlocked as well."),
                   GUI_SML, GUI_COLOR_WHT);
     if (help_page_current == 2)
@@ -288,9 +288,9 @@ static int page_introduction(int id)
             if ((kd = gui_vstack(jd)))
             {
                 gui_multi(kd,
-                          _("The Checkpoint resurrects\\"
-                            "your ball. If anything bad\\"
-                            "happens, you will start over\\"
+                          _("The Checkpoint resurrects\n"
+                            "your ball. If anything bad\n"
+                            "happens, you will start over\n"
                             "from here."),
                           GUI_SML, GUI_COLOR_WHT);
                 gui_filler(kd);
@@ -310,11 +310,11 @@ static int page_introduction(int id)
             if ((kd = gui_vstack(jd)))
             {
                 gui_multi(kd,
-                          _("The Timer shows how fast you have\\"
-                            "completed the level. By completing\\"
-                            "a level as fast as you can, you can\\"
-                            "earn bronze, silver and gold medals,\\"
-                            "which will reward Achievements\\"
+                          _("The Timer shows how fast you have\n"
+                            "completed the level. By completing\n"
+                            "a level as fast as you can, you can\n"
+                            "earn bronze, silver and gold medals,\n"
+                            "which will reward Achievements\n"
                             "if you collect enough of them."),
                           GUI_SML, GUI_COLOR_WHT);
                 gui_filler(kd);
@@ -343,21 +343,21 @@ static int help_allow_control_demos(int id)
 
 static int page_rules(int id)
 {
-    const char *s0 = _("Move the mouse or joystick\\"
-                       "or use keyboard arrows to\\"
-                       "tilt the floor causing the\\"
-                       "ball to roll.\\");
-    const char *s1 = _("Roll over coins to collect\\"
-                       "them.  Collect coins to\\"
-                       "unlock the goal and finish\\"
-                       "the level.\\");
+    const char *s0 = _("Move the mouse or joystick\n"
+                       "or use keyboard arrows to\n"
+                       "tilt the floor causing the\n"
+                       "ball to roll.\n");
+    const char *s1 = _("Roll over coins to collect\n"
+                       "them.  Collect coins to\n"
+                       "unlock the goal and finish\n"
+                       "the level.\n");
 
-    const char *s_xbox = _("Move the left stick to\\"
-                           "tilt the floor causing the\\"
-                           "ball to roll.\\");
-    const char *s_pc = _("Move the mouse or use keyboard\\"
-                         "to tilt the floor causing the\\"
-                         "ball to roll.\\");
+    const char *s_xbox = _("Move the left stick to\n"
+                           "tilt the floor causing the\n"
+                           "ball to roll.\n");
+    const char *s_pc = _("Move the mouse or use keyboard\n"
+                         "to tilt the floor causing the\n"
+                         "ball to roll.\n");
 
     int w = video.device_w;
     int h = video.device_h;
@@ -461,7 +461,7 @@ static void controls_pc(int id)
     const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
     const SDL_Keycode k_shot    = KEY_SCREENSHOT;
 
-    const char *s_rotate = _("Left and right mouse buttons rotate the view.\\"
+    const char *s_rotate = _("Left and right mouse buttons rotate the view.\n"
                              "Hold Shift for faster view rotation.");
     const char *s_exit    = _("Exit / Pause");
     const char *s_camAuto = _("Auto-Camera");
@@ -483,7 +483,7 @@ static void controls_pc(int id)
 #else
     sprintf(s_rotate_new,
 #endif
-            _("Use %s / %s buttons to rotate the view.\\"
+            _("Use %s / %s buttons to rotate the view.\n"
               "Hold %s for faster view rotation."),
             config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
             temp_k_rot_r : temp_k_rot_l,
@@ -543,7 +543,7 @@ static void controls_pc(int id)
 
     gui_multi(id, s_rotate_new, GUI_SML, GUI_COLOR_WHT);
     gui_space(id);
-    gui_multi(id, _("Note that you can change keyboard and\\"
+    gui_multi(id, _("Note that you can change keyboard and\n"
                     "controller controls in the Controls Settings menu."),
                   GUI_SML, GUI_COLOR_WHT);
 }
@@ -551,7 +551,7 @@ static void controls_pc(int id)
 #ifndef __EMSCRIPTEN__
 static void controls_console(int id)
 {
-    const char *s_rotate    = _("Move the right stick left or right\\"
+    const char *s_rotate    = _("Move the right stick left or right\n"
                                 "to rotate the view.");
     const char *s_exit      = _("Exit");
     const char *s_pause     = _("Pause");
@@ -586,7 +586,7 @@ static void controls_console(int id)
 
     gui_multi(id, s_rotate, GUI_SML, GUI_COLOR_WHT);
     gui_space(id);
-    gui_multi(id, _("Note that you can change controller controls\\"
+    gui_multi(id, _("Note that you can change controller controls\n"
                     "in the Controls Settings menu."),
                   GUI_SML, GUI_COLOR_WHT);
 }
@@ -620,7 +620,7 @@ static int page_modes(int id)
             && server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER))
         {
             gui_label(jd, _("Classic Mode"), GUI_SML, 0, 0);
-            gui_multi(jd, _("Finish a level before the time runs out.\\"
+            gui_multi(jd, _("Finish a level before the time runs out.\n"
                             "You need to collect coins in order to open the goal."),
                           GUI_SML, GUI_COLOR_WHT);
         }
@@ -633,13 +633,13 @@ static int page_modes(int id)
         else
         {
             gui_label(jd, _("Classic Mode"), GUI_SML, gui_gry, gui_red);
-            gui_multi(jd, _("Career mode is not available\\"
+            gui_multi(jd, _("Career mode is not available\n"
                             "with server group policy."),
                           GUI_SML, GUI_COLOR_WHT);
         }
 #else
         gui_label(jd, _("Classic Mode"), GUI_SML, 0, 0);
-        gui_multi(jd, _("Finish a level before the time runs out.\\"
+        gui_multi(jd, _("Finish a level before the time runs out.\n"
                         "You need to collect coins in order to open the goal."),
                       GUI_SML, GUI_COLOR_WHT);
 #endif
@@ -674,38 +674,38 @@ static int page_modes(int id)
                 gui_multi(jd, _("Upgrade to Pro edition to play this Mode."),
                               GUI_SML, GUI_COLOR_WHT);
             else if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
-                gui_multi(jd, _("Challenge Mode is not available\\"
+                gui_multi(jd, _("Challenge Mode is not available\n"
                                 "with server group policy."),
                               GUI_SML, GUI_COLOR_WHT);
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
             else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 ||
                      config_cheat())
-                gui_multi(jd, _("Challenge Mode is not available\\"
+                gui_multi(jd, _("Challenge Mode is not available\n"
                                 "with slowdown or cheat."),
                               GUI_SML, GUI_COLOR_WHT);
 #else
             else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 &&
                      !config_cheat())
-                gui_multi(jd, _("Challenge Mode is not available\\"
+                gui_multi(jd, _("Challenge Mode is not available\n"
                                 "with slowdown."),
                               GUI_SML, GUI_COLOR_WHT);
 #endif
             else if (CHECK_ACCOUNT_BANKRUPT)
                 gui_multi(jd,
-                          _("Your player account is bankrupt.\\"
-                            "Restore from the backup or delete the\\"
+                          _("Your player account is bankrupt.\n"
+                            "Restore from the backup or delete the\n"
                             "local account and start over from scratch."),
                           GUI_SML, GUI_COLOR_WHT);
             else if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0)
                 gui_multi(jd,
-                          _("Start playing from the first level of the set.\\"
-                            "You start with which you've already purchased from the shop.\\"
+                          _("Start playing from the first level of the set.\n"
+                            "You start with which you've already purchased from the shop.\n"
                             "Earn an extra ball for each 100 coins collected."),
                           GUI_SML, GUI_COLOR_WHT);
             else
                 gui_multi(jd,
-                    _("Start playing from the first level of the set.\\"
-                      "You start with only three balls, do not extra paid of them.\\"
+                    _("Start playing from the first level of the set.\n"
+                      "You start with only three balls, do not extra paid of them.\n"
                       "Earn an extra ball for each 100 coins collected."),
                     GUI_SML, GUI_COLOR_WHT);
         }
@@ -719,19 +719,19 @@ static int page_modes(int id)
                 gui_multi(jd, _("Upgrade to Pro edition to play this Mode"),
                               GUI_SML, GUI_COLOR_WHT);
             else if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
-                gui_multi(jd, _("Challenge Mode is not available\\"
+                gui_multi(jd, _("Challenge Mode is not available\n"
                                 "with server group policy."),
                               GUI_SML, GUI_COLOR_WHT);
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
             else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 ||
                      config_cheat())
-                gui_multi(jd, _("Challenge Mode is not available\\"
+                gui_multi(jd, _("Challenge Mode is not available\n"
                                 "with slowdown or cheat."),
                               GUI_SML, GUI_COLOR_WHT);
 #else
             else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 &&
                      !config_cheat())
-                gui_multi(jd, _("Challenge Mode is not available\\"
+                gui_multi(jd, _("Challenge Mode is not available\n"
                                 "with slowdown."),
                               GUI_SML, GUI_COLOR_WHT);
 #endif
@@ -751,7 +751,7 @@ static int page_modes(int id)
         else if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
         {
             gui_label(jd, _("Challenge Mode"), GUI_SML, gui_gry, gui_red);
-            gui_multi(jd, _("Challenge Mode is not available\\"
+            gui_multi(jd, _("Challenge Mode is not available\n"
                             "with server group policy."),
                           GUI_SML, GUI_COLOR_WHT);
         }
@@ -760,7 +760,7 @@ static int page_modes(int id)
                  config_cheat())
         {
             gui_label(jd, _("Challenge Mode"), GUI_SML, gui_gry, gui_red);
-            gui_multi(jd, _("Challenge Mode is not available\\"
+            gui_multi(jd, _("Challenge Mode is not available\n"
                             "with slowdown or cheat."),
                           GUI_SML, GUI_COLOR_WHT);
         }
@@ -768,7 +768,7 @@ static int page_modes(int id)
         else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100)
         {
             gui_label(jd, _("Challenge Mode"), GUI_SML, gui_gry, gui_red);
-            gui_multi(jd, _("Challenge Mode is not available\\"
+            gui_multi(jd, _("Challenge Mode is not available\n"
                             "with slowdown."),
                           GUI_SML, GUI_COLOR_WHT);
         }
@@ -777,8 +777,8 @@ static int page_modes(int id)
 #endif
         {
             gui_label(jd, _("Challenge Mode"), GUI_SML, 0, 0);
-            gui_multi(jd, _("Start playing from the first level of the set.\\"
-                            "You start with only three balls, do not lose them.\\"
+            gui_multi(jd, _("Start playing from the first level of the set.\n"
+                            "You start with only three balls, do not lose them.\n"
                             "Earn an extra ball for each 100 coins collected."),
                       GUI_SML, GUI_COLOR_WHT);
         }
@@ -808,8 +808,8 @@ static int page_modes_special(int id)
             {
                 gui_label(jd, _("Boost Rush Mode"), GUI_SML, 0, 0);
                 gui_multi(jd,
-                          _("Same as Challenge Mode, do not decrease them.\\"
-                            "Increase 14,3% the acceleration for each 10\\"
+                          _("Same as Challenge Mode, do not decrease them.\n"
+                            "Increase 14,3% the acceleration for each 10\n"
                             "coins collected."),
                           GUI_SML, GUI_COLOR_WHT);
             }
@@ -835,16 +835,16 @@ static int page_modes_special(int id)
                 gui_multi(jd, _("Upgrade to Pro edition to play this Mode."),
                               GUI_SML, GUI_COLOR_WHT);
             else if (CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
-                gui_multi(jd, _("Boost Rush Mode is not available\\"
+                gui_multi(jd, _("Boost Rush Mode is not available\n"
                                 "with server group policy."),
                               GUI_SML, GUI_COLOR_WHT);
             else if (CHECK_ACCOUNT_ENABLED && CHECK_ACCOUNT_BANKRUPT)
-                gui_multi(jd, _("Your player account is bankrupt.\\"
-                               "Restore from the backup or delete the\\"
+                gui_multi(jd, _("Your player account is bankrupt.\n"
+                               "Restore from the backup or delete the\n"
                                "local account and start over from scratch."),
                               GUI_SML, GUI_COLOR_WHT);
             else
-                gui_multi(jd, _("Boost Rush Mode is not available\\"
+                gui_multi(jd, _("Boost Rush Mode is not available\n"
                                 "please check your account settings."),
                               GUI_SML, GUI_COLOR_WHT);
         }
@@ -874,11 +874,11 @@ static int page_modes_special(int id)
             {
                 gui_label(jd, _("Hardcore Mode"), GUI_SML, gui_gry, gui_red);
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-                gui_multi(jd, _("Hardcore Mode is not available\\"
+                gui_multi(jd, _("Hardcore Mode is not available\n"
                                 "with slowdown, cheat or smooth fix."),
                               GUI_SML, GUI_COLOR_WHT);
 #else
-                gui_multi(jd, _("Hardcore Mode is not available\\"
+                gui_multi(jd, _("Hardcore Mode is not available\n"
                                 "with slowdown or smooth fix."),
                               GUI_SML, GUI_COLOR_WHT);
 #endif
@@ -887,15 +887,16 @@ static int page_modes_special(int id)
                    || campaign_hardcore_unlocked()))
             {
                 gui_label(jd, _("Hardcore Mode"), GUI_SML, 0, 0);
-                gui_multi(jd, _("Same as Challenge Mode. You must play the entire game\\"
-                                "with only one ball. All checkpoints were removed\\"
+                gui_multi(jd, _("Same as Challenge Mode. You must play the entire game\n"
+                                "with only one ball. All checkpoints were removed\n"
                                 "and the game cannot be saved."),
                               GUI_SML, GUI_COLOR_WHT);
             }
             else
             {
                 gui_label(jd, _("Hardcore Mode"), GUI_SML, gui_gry, gui_red);
-                gui_multi(jd, _("Achieve all Silver Medals or above in Best Time\\to unlock this Mode."),
+                gui_multi(jd, _("Achieve all Silver Medals or above in Best Time\n"
+                                "to unlock this Mode."),
                               GUI_SML, GUI_COLOR_WHT);
             }
         }
@@ -908,16 +909,16 @@ static int page_modes_special(int id)
                 gui_multi(jd, _("Upgrade to Pro edition to play this Mode."),
                               GUI_SML, GUI_COLOR_WHT);
             else if (CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
-                gui_multi(jd, _("Hardcore Mode is not available\\"
+                gui_multi(jd, _("Hardcore Mode is not available\n"
                                 "with server group policy."),
                               GUI_SML, GUI_COLOR_WHT);
             else if (CHECK_ACCOUNT_ENABLED && CHECK_ACCOUNT_BANKRUPT)
-                gui_multi(jd, _("Your player account is bankrupt.\\"
-                                "Restore from the backup or delete the\\"
+                gui_multi(jd, _("Your player account is bankrupt.\n"
+                                "Restore from the backup or delete the\n"
                                 "local account and start over from scratch."),
                               GUI_SML, GUI_COLOR_WHT);
             else
-                gui_multi(jd, _("Hardcore Mode is not available\\"
+                gui_multi(jd, _("Hardcore Mode is not available\n"
                                 "please check your account settings."),
                               GUI_SML, GUI_COLOR_WHT);
         }
@@ -926,9 +927,9 @@ static int page_modes_special(int id)
 #endif
 
 #if !defined(CONFIG_INCLUDES_ACCOUNT) && !defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
-    gui_multi(id, _("Special game modes requires\\"
-                   "LEVELGROUPS_INCLUDES_CAMPAIGN\\"
-                   "or CONFIG_INCLUDES_ACCOUNT\\"
+    gui_multi(id, _("Special game modes requires\n"
+                   "LEVELGROUPS_INCLUDES_CAMPAIGN\n"
+                   "or CONFIG_INCLUDES_ACCOUNT\n"
                    "preprocessor definitions"),
              GUI_SML, GUI_COLOR_RED);
 #endif
@@ -955,10 +956,10 @@ static int page_morphs_and_generators(int id)
         {
             if ((kd = gui_vstack(jd)))
             {
-                gui_multi(kd, _("Roll into a morph to switch\\"
-                                "to the ball presented by the\\"
-                                "hologram. There are four different\\"
-                                "balls, Marbleball, Metalball,\\"
+                gui_multi(kd, _("Roll into a morph to switch\n"
+                                "to the ball presented by the\n"
+                                "hologram. There are four different\n"
+                                "balls, Marbleball, Metalball,\n"
                                 "Airball and Powerball."),
                               GUI_SML, GUI_COLOR_WHT);
                 gui_filler(kd);
@@ -977,10 +978,10 @@ static int page_morphs_and_generators(int id)
         {
             if ((kd = gui_vstack(jd)))
             {
-                gui_multi(kd, _("When you have the Powerball,\\"
-                                "roll into a generator to charge\\"
-                                "the ball with a powerup.\\"
-                                "There are three different powerups,\\"
+                gui_multi(kd, _("When you have the Powerball,\n"
+                                "roll into a generator to charge\n"
+                                "the ball with a powerup.\n"
+                                "There are three different powerups,\n"
                                 "Jump, Boost and Magnetic."),
                               GUI_SML, GUI_COLOR_WHT);
                 gui_filler(kd);
@@ -993,10 +994,10 @@ static int page_morphs_and_generators(int id)
             }
         }*/
 
-        gui_multi(id, _("When you have the Powerball,\\"
-                        "roll into a generator to charge\\"
-                        "the ball with a powerup.\\"
-                        "There are three different powerups,\\"
+        gui_multi(id, _("When you have the Powerball,\n"
+                        "roll into a generator to charge\n"
+                        "the ball with a powerup.\n"
+                        "There are three different powerups,\n"
                         "Jump, Boost and Magnetic."),
                       GUI_SML, GUI_COLOR_WHT);
     }
@@ -1022,10 +1023,10 @@ static int page_machines(int id)
         {
             if ((kd = gui_vstack(jd)))
             {
-                gui_multi(kd, _("When you have the Airball,\\"
-                                "roll onto the pump to inflate\\"
-                                "the Airball with helium.\\"
-                                "The Airball will then fly\\"
+                gui_multi(kd, _("When you have the Airball,\n"
+                                "roll onto the pump to inflate\n"
+                                "the Airball with helium.\n"
+                                "The Airball will then fly\n"
                                 "for a brief period of time."),
                               GUI_SML, GUI_COLOR_WHT);
                 gui_filler(kd);
@@ -1044,10 +1045,10 @@ static int page_machines(int id)
         {
             if ((kd = gui_vstack(jd)))
             {
-                gui_multi(kd, _("There are many different machines\\"
-                                "in Switchball. Some machines\\"
-                                "have a switch connected to them.\\"
-                                "Roll onto the button to turn\\"
+                gui_multi(kd, _("There are many different machines\n"
+                                "in Switchball. Some machines\n"
+                                "have a switch connected to them.\n"
+                                "Roll onto the button to turn\n"
                                 "on and off."),
                               GUI_SML, GUI_COLOR_WHT);
                 gui_filler(kd);
@@ -1067,20 +1068,20 @@ static int page_machines(int id)
 
 static int page_tricks(int id)
 {
-    const char *s0 = _("Corners can be used to jump.\\"
-                       "Get rolling and take aim\\"
-                       "at the angle. You may be able\\"
-                       "to reach new places.\\");
-    const char *s1 = _("Pushing in 2 directions increases\\"
-                       "the roll speed. Use the manual\\"
-                       "camera and turn the camera by 45\\"
-                       "degrees for best results.\\");
+    const char *s0 = _("Corners can be used to jump.\n"
+                       "Get rolling and take aim\n"
+                       "at the angle. You may be able\n"
+                       "to reach new places.\n");
+    const char *s1 = _("Pushing in 2 directions increases\n"
+                       "the roll speed. Use the manual\n"
+                       "camera and turn the camera by 45\n"
+                       "degrees for best results.\n");
 
     if (config_get_d(CONFIG_TILTING_FLOOR))
-        s1 = _("Tilting in 2 directions increases\\"
-               "the slope. Use the manual camera\\"
-               "and turn the camera by 45\\"
-               "degrees for best results.\\");
+        s1 = _("Tilting in 2 directions increases\n"
+               "the slope. Use the manual camera\n"
+               "and turn the camera by 45\n"
+               "degrees for best results.\n");
 
     int w = video.device_w;
     int h = video.device_h;

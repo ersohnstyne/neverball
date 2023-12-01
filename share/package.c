@@ -299,8 +299,6 @@ static void unmount_duplicate_local_packages(const struct local_package* keep_lp
     }
 }
 
-static int save_installed_packages(void);
-
 /*
  * Add a package to the FS path and to the list, if not yet added.
  */
@@ -310,7 +308,6 @@ static int mount_local_package(struct local_package *lpkg)
     {
         installed_packages = list_cons(lpkg, installed_packages);
         unmount_duplicate_local_packages(lpkg);
-        save_installed_packages();
         return 1;
     }
 
@@ -794,9 +791,6 @@ static void free_pli(struct package_list_info **pli)
     }
 }
 
-/*
- * Load the list of available packages and initiate image downloads.
- */
 static void available_packages_done(void *data, void *extra_data)
 {
     struct package_list_info *pli = data;
@@ -812,14 +806,6 @@ static void available_packages_done(void *data, void *extra_data)
 
             available_packages = packages;
         }
-    }
-
-    if (pli)
-    {
-        if (pli->callback.done)
-            pli->callback.done(pli->callback.data, extra_data);
-
-        free_pli(&pli);
     }
 }
 
@@ -1309,29 +1295,31 @@ unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
             {
                 struct package_fetch_info *pfi = create_pfi(pkg);
 
-            if (pfi)
-            {
-                /* Store passed callback. */
-
-                pfi->callback = callback;
-
-                /* Reuse variable to pass our callbacks. */
-
-                callback.progress = package_fetch_progress;
-                callback.done = package_fetch_done;
-                callback.data = pfi;
-
-                fetch_id = fetch_url(url, pfi->temp_filename, callback);
-
-                if (fetch_id)
-                    pkg->status = PACKAGE_DOWNLOADING;
-                else
+                if (pfi)
                 {
-                    free_pfi(pfi);
-                    pfi = NULL;
-                    callback.data = NULL;
+                    /* Store passed callback. */
+
+                    pfi->callback = callback;
+
+                    /* Reuse variable to pass our callbacks. */
+
+                    callback.progress = package_fetch_progress;
+                    callback.done = package_fetch_done;
+                    callback.data = pfi;
+
+                    fetch_id = fetch_url(url, pfi->temp_filename, callback);
+
+                    if (fetch_id)
+                        pkg->status = PACKAGE_DOWNLOADING;
+                    else
+                    {
+                        free_pfi(pfi);
+                        pfi = NULL;
+                        callback.data = NULL;
+                    }
                 }
             }
+#endif
         }
     }
 

@@ -143,10 +143,10 @@ static int over_gui_hardcore(void)
 #else
         sprintf(hardcore_report,
 #endif
-               _("You completed %d levels\\"
-                 "and collected %d coins.\\ \\"
-                 "You managed to reach:\\"
-                 "%s (X: %f; Y: %f)\\ \\%s"),
+               _("You completed %d levels\n"
+                 "and collected %d coins.\n \n"
+                 "You managed to reach:\n"
+                 "%s (X: %f; Y: %f)\n\n%s"),
                (campaign_get_hardcore_data().level_number + ((campaign_get_hardcore_data().level_theme - 1) * 6)) - 1,
                curr_score(),
                report_themename, campaign_get_hardcore_data().coordinates[0], campaign_get_hardcore_data().coordinates[1],

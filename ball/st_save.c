@@ -408,10 +408,10 @@ static int lockdown_gui(void)
         jd = gui_title_header(id, _("Locked"), GUI_MED, gui_gry, gui_red);
         gui_space(id);
 #ifdef COVID_HIGH_RISK
-        gui_multi(id, _("Replays have locked down\\"
+        gui_multi(id, _("Replays have locked down\n"
                         "during high risks!"), GUI_SML, GUI_COLOR_RED);
 #else
-        gui_multi(id, _("Replays have locked down\\"
+        gui_multi(id, _("Replays have locked down\n"
                         "between 16:00 - 8:00 (4:00 PM - 8:00 AM)."),
                       GUI_SML, GUI_COLOR_RED);
 #endif
@@ -463,8 +463,8 @@ static int save_error_gui(void)
 #else
         sprintf(desc,
 #endif
-                _("Please check your permissions\\"
-                  "before save your replay.\\%s"),
+                _("Please check your permissions\n"
+                  "before save your replay.\n%s"),
                 fs_error());
 
         gui_title_header(id, _("Save failed!"), GUI_MED, gui_gry, gui_red);

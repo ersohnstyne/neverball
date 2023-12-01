@@ -91,6 +91,7 @@ const GLubyte gui_shd[4] = { 0x00, 0x00, 0x00, 0x80 };  /* Shadow   */
 #define GUI_HILITE 4
 #define GUI_RECT   8
 #define GUI_LAYOUT 16
+#define GUI_CLIP   32
 
 #define GUI_LINES 8
 
@@ -1046,7 +1047,7 @@ void gui_set_multi(int id, const char *text)
 
     for (p = text, sc = 0; *p && sc < lc; sc++)
     {
-        // Support both '\\' and '\n' as delimiters.
+        /* Support both '\\' and '\n' as delimiters. */
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         strncpy_s(s[sc], MAXSTR, p, (n = strcspn(p, "\\\n")));
@@ -1363,7 +1364,7 @@ int gui_multi(int pd, const char *text, int size, const GLubyte *c0,
 
         for (p = text, j = 0; *p && j < GUI_LINES; j++)
         {
-            // Support both '\\' and '\n' as delimiters.
+            /* Support both '\\' and '\n' as delimiters. */
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             strncpy_s(s[j], MAXSTR, p, (n = strcspn(p, "\\\n")));
@@ -1388,6 +1389,7 @@ int gui_multi(int pd, const char *text, int size, const GLubyte *c0,
         /* Set rectangle on the container. */
 
         widget[id].flags |= GUI_RECT;
+        widget[id].flags |= GUI_CLIP;
     }
     return id;
 }
@@ -1922,8 +1924,17 @@ static void gui_paint_array(int id)
 
         /* Recursively paint all subwidgets. */
 
+        if (widget[id].flags & GUI_CLIP)
+        {
+            glScissor(widget[id].x, widget[id].y, widget[id].w, widget[id].h);
+            glEnable(GL_SCISSOR_TEST);
+        }
+
         for (jd = widget[id].car; jd; jd = widget[jd].cdr)
             gui_paint_text(jd);
+
+        if (widget[id].flags & GUI_CLIP)
+            glDisable(GL_SCISSOR_TEST);
     }
     glPopMatrix();
 }

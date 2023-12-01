@@ -58,7 +58,8 @@
 /*---------------------------------------------------------------------------*/
 
 #define FAIL_ERROR_BUYBALLS_RAISEGEMS \
-    _("You need to raise %d gems\\to buy more balls!")
+    _("You need to raise %d gems\n" \
+      "to buy more balls!")
 
 #define FAIL_ERROR_REPLAY    _("You can't save new replays anymore!")
 #define FAIL_ERROR_RESPAWN_1 _("You can't respawn in under one minute!")
@@ -662,7 +663,7 @@ static int fail_gui(void)
 
             if ((jd = gui_hstack(id)))
             {
-                gui_state(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+                gui_back_button(jd);
                 gui_space(jd);
             }
 
@@ -846,8 +847,8 @@ static int zen_warning_enter(struct state *st, struct state *prev)
     {
         gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
-        gui_multi(id, _("If you switch to Zen Mode,\\"
-                        "all Achievements will disabled!\\"
+        gui_multi(id, _("If you switch to Zen Mode,\n"
+                        "all Achievements will disabled!\n"
                         "Are you sure want to DO that?"),
                       GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
@@ -1104,13 +1105,13 @@ static int ask_more_enter(struct state *st, struct state *prev)
             if (gemswallet >= 15)
             {
                 if (last_active)
-                    gui_multi(id, _("You want to buy more balls\\"
-                                    "and respawn from checkpoint?\\ \\"
+                    gui_multi(id, _("You want to buy more balls\n"
+                                    "and respawn from checkpoint?\n \n"
                                     "You need 15 gems from your wallet!"),
                                   GUI_SML, GUI_COLOR_WHT);
                 else
-                    gui_multi(id, _("You want to buy more balls\\"
-                                    "and restart the level?\\ \\"
+                    gui_multi(id, _("You want to buy more balls\n"
+                                    "and restart the level\n \n"
                                     "You need 15 gems from your wallet!"),
                                   GUI_SML, GUI_COLOR_WHT);
             }
@@ -1131,7 +1132,7 @@ static int ask_more_enter(struct state *st, struct state *prev)
                 gui_multi(id, gemsattr, GUI_SML, GUI_COLOR_WHT);
             }
             else
-                gui_multi(id, _("You don't have enough gems\\"
+                gui_multi(id, _("You don't have enough gems\n"
                                 "to buy more balls!"),
                               GUI_SML, GUI_COLOR_WHT);
         }
@@ -1142,9 +1143,9 @@ static int ask_more_enter(struct state *st, struct state *prev)
                 (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
                  server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED) &&
                  server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP)))
-                gui_multi(id, _("If you want to extend more time, then\\"
-                                "please buy the mediation for 120 coins.\\"
-                                "Once you've bought, you will not be able\\"
+                gui_multi(id, _("If you want to extend more time, then\n"
+                                "please buy the mediation for 120 coins.\n"
+                                "Once you've bought, you will not be able\n"
                                 "to unlock achievements."),
                               GUI_SML, GUI_COLOR_WHT);
             else if (curr_mode() == MODE_NORMAL && coinwallet >= 120 &&
@@ -1152,21 +1153,21 @@ static int ask_more_enter(struct state *st, struct state *prev)
                      (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
                       server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED) &&
                       server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP)))
-                gui_multi(id, _("Buy the mediation for 120 coins or 50 Gems?\\"
+                gui_multi(id, _("Buy the mediation for 120 coins or 50 Gems?\n"
                                 "You will not be able to unlock achievements."),
                               GUI_SML, GUI_COLOR_WHT);
             else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
                      server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED) &&
                      server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP))
-                gui_multi(id, _("You need at least 120 coins to buy Mediation,\\"
+                gui_multi(id, _("You need at least 120 coins to buy Mediation,\n"
                                 "but you can purchase from coin shop."),
                               GUI_SML, GUI_COLOR_WHT);
             else if (!progress_extended())
-                gui_multi(id, _("Are you sure want to extend\\"
+                gui_multi(id, _("Are you sure want to extend\n"
                                 "more time to finish the level?"),
                               GUI_SML, GUI_COLOR_WHT);
             else
-                gui_multi(id, _("You don't have enough coins\\"
+                gui_multi(id, _("You don't have enough coins\n"
                                 "to buy Mediation!"),
                               GUI_SML, GUI_COLOR_WHT);
         }
@@ -1466,15 +1467,15 @@ static int raise_gems_prepare_gui(void)
         const char *bankrupt_str0 = _("Your debt of %d gems exceeds your net-worth.");
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) && ENABLE_IAP==1
         const char *bankrupt_str1 = _("You may attempt to increasing through skillful payers.");
-        const char *bankrupt_str2 = _("You may declare bankruptcy or you may attempt to\\"
+        const char *bankrupt_str2 = _("You may declare bankruptcy or you may attempt to\n"
                                       "avoid bankruptcy through skillful payers.");
 #else
         const char *bankrupt_str1 = "";
         const char *bankrupt_str2 = _("You may declare bankruptcy.");
 #endif
 
-        const char *paydebt_ready_str = _("You now have enough cash\\"
-                                          "to pay your debt of %d gems.\\"
+        const char *paydebt_ready_str = _("You now have enough cash\n"
+                                          "to pay your debt of %d gems.\n"
                                           "Go back to continue playing!");
 
         if (allow_raise)
@@ -1503,13 +1504,13 @@ static int raise_gems_prepare_gui(void)
             if (curr_mode() == MODE_CHALLENGE
              || curr_mode() == MODE_BOOST_RUSH)
             {
-                SAFECAT(infoattr_full, "\\");
+                SAFECAT(infoattr_full, "\n");
                 SAFECAT(infoattr_full, bankrupt_str2);
             }
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
             else
             {
-                SAFECAT(infoattr_full, "\\");
+                SAFECAT(infoattr_full, "\n");
                 SAFECAT(infoattr_full, bankrupt_str1);
             }
 #endif

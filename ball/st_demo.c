@@ -142,14 +142,6 @@ static int st_demo_version_read(fs_file fp, struct demo *d)
 /*---------------------------------------------------------------------------*/
 
 static int check_full_access(char * replay_pname) {
-    const char *curr_player = config_get_s(CONFIG_PLAYER);
-
-    if (strcmp(replay_pname, "PennySchloss") == 0)
-    {
-        if (strcmp(curr_player, "PennySchloss") == 0)
-            return 1;
-    }
-
     return 0;
 }
 
@@ -436,11 +428,9 @@ static void gui_demo_update_thumbs(void)
                 stat_max = 1;
         }
 
-        gui_set_image(thumbs[i].shot_id, demo ? demo->shot : "");
         gui_set_label(thumbs[i].name_id, demo ? demo->name :
                                                 base_name(item->path));
-        gui_set_color(thumbs[i].name_id, GUI_COLOR_WHT);
-        
+
         if (demo)
         {
             if (stat_max > stat_limit)
@@ -722,26 +712,26 @@ static int demo_restricted_gui(void)
         gui_space(id);
 
         if (demo_requires_update)
-            gui_multi(id, _("Please update your game, before\\"
+            gui_multi(id, _("Please update your game, before\n"
                             "watch the replay level!"),
                           GUI_SML, GUI_COLOR_WHT);
         else if (time_max_minutes > time_limit_minutes)
         {
             if (time_limit_minutes >= 60)
-                gui_multi(id, _("You can't watch more than 60 minutes\\"
+                gui_multi(id, _("You can't watch more than 60 minutes\n"
                                 "in a single level in campaign!"),
                               GUI_SML, GUI_COLOR_WHT);
             else
-                gui_multi(id, _("You can't watch more than 10 minutes\\"
+                gui_multi(id, _("You can't watch more than 10 minutes\n"
                                 "in a single level per set!"),
                               GUI_SML, GUI_COLOR_WHT);
         }
         else if (!demo_old_detected)
-            gui_multi(id, _("You can't open selected replay,\\"
+            gui_multi(id, _("You can't open selected replay,\n"
                             "because it was restricted for you!"),
                           GUI_SML, GUI_COLOR_WHT);
         else
-            gui_multi(id, _("You can't open selected replay, because\\"
+            gui_multi(id, _("You can't open selected replay, because\n"
                             "you are using oldest version of the game!"),
                           GUI_SML, GUI_COLOR_WHT);
 
@@ -817,7 +807,8 @@ static int demo_scan_allowance_gui()
 #else
     sprintf(cancelattr,
 #endif
-            _("Scan in progress...\\To cancel scanning, press %s"),
+            _("Scan in progress...\n" \
+              "To cancel scanning, press %s"),
             SDL_GetKeyName(KEY_EXIT));
     
     detailpanel = gui_multi(0, cancelattr, GUI_SML, GUI_COLOR_WHT);
@@ -1008,7 +999,7 @@ static int demo_gui(void)
         gui_title_header(id, _("All replays locked!"),
                              GUI_MED, gui_red, gui_blk);
         gui_space(id);
-        gui_multi(id, _("Open the file manager to delete\\"
+        gui_multi(id, _("Open the file manager to delete\n"
                         "or backup your replays."),
                       GUI_SML, GUI_COLOR_WHT);
 
@@ -1016,7 +1007,7 @@ static int demo_gui(void)
         if (current_platform == PLATFORM_PC)
         {
             gui_space(id);
-            gui_state(id, _("Back"), GUI_SML, GUI_BACK, 0);
+            gui_back_button(id);
         }
 #endif
 
@@ -1026,7 +1017,7 @@ static int demo_gui(void)
     {
         gui_title_header(id, _("No Replays"), GUI_MED, 0, 0);
         gui_space(id);
-        gui_multi(id, _("Your Replays will appear here\\"
+        gui_multi(id, _("Your Replays will appear here\n"
                         "once you've recorded."),
                       GUI_SML, GUI_COLOR_WHT);
 
@@ -1034,7 +1025,7 @@ static int demo_gui(void)
         if (current_platform == PLATFORM_PC)
         {
             gui_space(id);
-            gui_state(id, _("Back"), GUI_SML, GUI_BACK, 0);
+            gui_back_button(id);
         }
 #endif
 
@@ -1780,21 +1771,21 @@ static int demo_del_gui(void)
         {
             if (!allow_exact_versions && get_maximum_status() > get_limit_status())
                 gui_multi(jd,
-                          _("The current replay with mismatched or\\"
-                            "unknown level version including exceeded\\"
-                            "level status limit will being deleted\\"
+                          _("The current replay with mismatched or\n"
+                            "unknown level version including exceeded\n"
+                            "level status limit will being deleted\n"
                             "from the user data."),
                           GUI_SML, GUI_COLOR_WHT);
             else if (!allow_exact_versions)
                 gui_multi(jd,
-                          _("The current replay with mismatched or\\"
-                            "unknown level version will being deleted\\"
+                          _("The current replay with mismatched or\n"
+                            "unknown level version will being deleted\n"
                             "from the user data."),
                           GUI_SML, GUI_COLOR_WHT);
             else if (get_maximum_status() > get_limit_status())
                 gui_multi(jd,
-                          _("The current replay with exceeded\\"
-                            "level status limit will being deleted\\"
+                          _("The current replay with exceeded\n"
+                            "level status limit will being deleted\n"
                             "from the user data."),
                           GUI_SML, GUI_COLOR_WHT);
 
@@ -1805,7 +1796,7 @@ static int demo_del_gui(void)
                 SAFECPY(warning_text, _("Move this replay to recycle bin?"));
             else
 #endif*/
-                SAFECPY(warning_text, _("Once deleted this replay,\\"
+                SAFECPY(warning_text, _("Once deleted this replay,\n"
                                         "this action cannot be undone."));
 
             gui_multi(jd,
@@ -1889,9 +1880,9 @@ static int demo_compat_gui(void)
         gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
 
-        gui_multi(id, _("The current replay was recorded with a\\"
-                        "different (or unknown) version of this level.\\"
-                        "Be prepared to encounter visual errors.\\"),
+        gui_multi(id, _("The current replay was recorded with a\n"
+                        "different (or unknown) version of this level.\n"
+                        "Be prepared to encounter visual errors.\n"),
                   GUI_SML, GUI_COLOR_WHT);
 
         gui_layout(id, 0, 0);

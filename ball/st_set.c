@@ -439,7 +439,7 @@ static int set_gui(void)
         if (video.aspect_ratio >= 1.0f)
         {
             gui_space(id);
-            desc_id = gui_multi(id, " \\ \\ \\ \\ \\", GUI_SML, gui_yel, gui_wht);
+            desc_id = gui_multi(id, " \n \n \n \n \n", GUI_SML, gui_yel, gui_wht);
         }
 
         gui_layout(id, 0, 0);
@@ -623,7 +623,8 @@ const char campaign_rank_desc[][MAXSTR] = {
     N_("Complete Sky Level 3 to earn your wings"),
     N_("Achieve most silver medals to rank up"),
     N_("Achieve most gold medals to rank up"),
-    N_("Complete first 12 levels and\\achieve all gold medals to get elite"),
+    N_("Complete first 12 levels and\n"
+       "achieve all gold medals to get elite"),
     N_("All gold medals obtained")
 };
 

@@ -986,7 +986,7 @@ static int map_token(fs_file fin, int pi, char key[MAXSTR], char val[MAXSTR])
         float x2, y2, z2;
         float tu, tv, r;
         float su, sv;
-        int fl;
+        int fl = 0;
 
         /* Scan the beginning or end of a block. */
 
@@ -1041,14 +1041,14 @@ static int map_token(fs_file fin, int pi, char key[MAXSTR], char val[MAXSTR])
         /* Scan a plane. */
 
         if (doit == 1 && sscanf(buf,
-                   "%c %f %f %f %c "
-                   "%c %f %f %f %c "
-                   "%c %f %f %f %c "
+                   "( %f %f %f ) "
+                   "( %f %f %f ) "
+                   "( %f %f %f ) "
                    "%s %f %f %f %f %f %d",
-                   &c, &x0, &y0, &z0, &c,
-                   &c, &x1, &y1, &z1, &c,
-                   &c, &x2, &y2, &z2, &c,
-                   key, &tu, &tv, &r, &su, &sv, &fl) == 22)
+                   &x0, &y0, &z0,
+                   &x1, &y1, &z1,
+                   &x2, &y2, &z2,
+                   key, &tu, &tv, &r, &su, &sv, &fl) >= 15)
         {
             make_plane(pi, x0, y0, z0,
                        x1, y1, z1,
@@ -3453,7 +3453,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                fprintf(stderr, "Unable to create CSOL!: Only CMAP or MAP files are allowed!\n");
+                fprintf(stderr, "Failure to create CSOL!: Only CMAP or MAP files are allowed!\n");
                 return 1;
             }
         }
@@ -3467,7 +3467,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            fprintf(stderr, "Unable to create SOL!: Only MAP files are allowed!\n");
+            fprintf(stderr, "Failure to create SOL!: Only MAP files are allowed!\n");
             return 1;
         }
 
@@ -3479,13 +3479,7 @@ int main(int argc, char *argv[])
         if ((fin = fs_open_read(base_name(src))))
 #endif
         {
-            if (!fs_add_path_with_archives(argv[2]))
-            {
-                fprintf(stderr, "Failure to establish data directory\n");
-                fs_close(fin);
-                fs_quit();
-                return 1;
-            }
+            fs_add_path_with_archives(argv[2]);
 
 #if _MSC_VER
             if (!QueryPerformanceFrequency(&QPCFrequency)) return 1;
@@ -3529,25 +3523,25 @@ int main(int argc, char *argv[])
                 {
                     if (!check_campaign_level(src))
                     {
-                        MAPC_LOG_ERROR("Unable to create campaign level for CSOL!: Only CMAP files are allowed!\n");
+                        MAPC_LOG_ERROR("Failure to create campaign level for CSOL!: Only CMAP files are allowed!\n");
                         return 1;
                     }
 
                     if (check_profile_balls(dst))
                     {
-                        MAPC_LOG_ERROR("Unable to create balls for CSOL!: Only levels are allowed!\n");
+                        MAPC_LOG_ERROR("Failure to create balls for CSOL!: Only levels are allowed!\n");
                         return 1;
                     }
 
                     if (!campaign_use_author_encrypt)
                     {
-                        MAPC_LOG_ERROR("Unable to create campaign level for CSOL!: You need to verify the signed level map!\nWithout a signature can therefore be dangerous.\n");
+                        MAPC_LOG_ERROR("Failure to create campaign level for CSOL!: You need to verify the signed level map!\nWithout a signature can therefore be dangerous.\n");
                         return 1;
                     }
 
                     if (!campaign_check_budget(&f))
                     {
-                        sprintf(stderr_buf, "Unable to create campaign for CSOL!: Overbudget!\n\tCampaign lump cost: %d\n\tCampaign lump budget: %d\n", campaign_cost, campaign_budget);
+                        sprintf(stderr_buf, "Failure to create campaign for CSOL!: Overbudget!\n\tCampaign lump cost: %d\n\tCampaign lump budget: %d\n", campaign_cost, campaign_budget);
                         MAPC_LOG_ERROR(stderr_buf);
                         return 1;
                     }
@@ -3561,7 +3555,7 @@ int main(int argc, char *argv[])
                     {
                         if (!campaign_check_budget(&f))
                         {
-                            sprintf(stderr_buf, "Unable to create for SOL!: Overbudget!\n\tLump cost: %d\n\tLump budget: %d\n", campaign_cost, campaign_budget);
+                            sprintf(stderr_buf, "Failure to create SOL!: Overbudget!\n\tLump cost: %d\n\tLump budget: %d\n", campaign_cost, campaign_budget);
                             MAPC_LOG_ERROR(stderr_buf);
                             return 1;
                         }

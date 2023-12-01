@@ -133,8 +133,8 @@ static int malfunction_gui(void)
         int titid = gui_title_header(id, _("Malfunction detected!"),
                                          GUI_MED, gui_gry, gui_red);
         gui_space(id);
-        gui_multi(id, _("The Keyboard has an malfunction!\\"
-                        "Please fix your keyboard on your PC\\"
+        gui_multi(id, _("The Keyboard has an malfunction!\n"
+                        "Please fix your keyboard on your PC\n"
                         "and restart the game."),
                       GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
@@ -219,7 +219,7 @@ static int handsoff_gui(void)
     {
         gui_title_header(id, _("Hands off!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
-        gui_multi(id, _("Keep fingers away from the keyboard,\\"
+        gui_multi(id, _("Keep fingers away from the keyboard,\n"
                         "before you play this level!"),
                       GUI_SML, GUI_COLOR_WHT);
         gui_space(id);

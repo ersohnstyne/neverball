@@ -37,6 +37,7 @@
 #define GUI_CROWN          "♕"
 #define GUI_DIAMOND        "♦"
 #define GUI_CIRCLE_ARROW   "⟳"
+#define GUI_CROSS          "×"
 
 #define GUI_GAMEPAD        "🎮"
 #define GUI_BATTERY        "🔋"

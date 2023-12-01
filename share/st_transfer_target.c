@@ -50,10 +50,11 @@
 #define TITLE_TARGET_TRANSFER N_("Neverball Game Transfer")
 
 #define TARGET_TRANSFER_WARNING_EXTERNAL \
-    N_("Do not touch the External Drive, exit the\\" \
-       "game or turn off the PC, otherwise data\\may be lost.")
+    N_("Do not touch the External Drive, exit the\n" \
+       "game or turn off the PC, otherwise data\n" \
+       "may be lost.")
 #define TARGET_TRANSFER_WARNING_INTERNAL \
-    N_("Do not exit the game or turn off the PC,\\" \
+    N_("Do not exit the game or turn off the PC,\n" \
        "otherwise data may be lost.")
 #define TARGET_TRANSFER_WARNING \
     N_("Do not exit the game or turn off the PC.")
@@ -93,17 +94,17 @@ static int transfer_introducory_gui(void)
 
         if ((jd = gui_vstack(id)))
         {
-            gui_multi(jd, _("This apps allows you to transfer data\\"
-                            "from a source game your own to\\"
+            gui_multi(jd, _("This apps allows you to transfer data\n"
+                            "from a source game your own to\n"
                             "the modern player of this target game."),
                           GUI_SML, gui_wht, gui_wht);
-            gui_multi(jd, _("Once transferred, the data cannot be moved back\\"
+            gui_multi(jd, _("Once transferred, the data cannot be moved back\n"
                             "to the source game."),
                           GUI_SML, gui_red, gui_red);
-            gui_multi(jd, _("The data on the target game will be overwritten\\"
+            gui_multi(jd, _("The data on the target game will be overwritten\n"
                             "with that of the source game."),
                           GUI_SML, gui_wht, gui_wht);
-            gui_multi(jd, _("Please read the following explanation thoroughly\\"
+            gui_multi(jd, _("Please read the following explanation thoroughly\n"
                             "before starting the transfer."),
                           GUI_SML, gui_wht, gui_wht);
             gui_set_rect(jd, GUI_ALL);
@@ -150,8 +151,8 @@ static int transfer_about_transferring_gui(void)
             switch (about_pageindx)
             {
             case 1:
-                gui_multi(jd, _("A game transfer requires\\"
-                                "- One source Neverball game and one target\\"
+                gui_multi(jd, _("A game transfer requires\n"
+                                "- One source Neverball game and one target\n"
                                 "Pennyball game with highest version"),
                               GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("- At least one keyboard and mouse"),
@@ -164,11 +165,11 @@ static int transfer_about_transferring_gui(void)
 #endif
                 break;
             case 2:
-                gui_multi(jd, _("To perform a game transfer, you will need to\\"
-                                "connect both the source game and the target game\\"
+                gui_multi(jd, _("To perform a game transfer, you will need to\n"
+                                "connect both the source game and the target game\n"
                                 "to the internet."),
                               GUI_SML, gui_wht, gui_wht);
-                gui_multi(jd, _("When performing a transfer, terms of the\\"
+                gui_multi(jd, _("When performing a transfer, terms of the\n"
                                 "Microsoft Services Agreement will apply."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
@@ -177,24 +178,24 @@ static int transfer_about_transferring_gui(void)
                               GUI_SML, gui_wht, gui_wht);
                 gui_label(jd, _("Step 1: Prepare the target game"),
                               GUI_SML, 0, 0);
-                gui_multi(jd, _("Data used to prepare for the transfer is written\\"
+                gui_multi(jd, _("Data used to prepare for the transfer is written\n"
                                 "to an External Drive inserted into this game."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
             case 4:
                 gui_label(jd, _("Step 2: Transfer from the source game"),
                               GUI_SML, 0, 0);
-                gui_multi(jd, _("The prepared External Drive is inserted into the source\\"
-                                "Neverball, and all data to be transferred is\\"
-                                "transferred to the External Drive and deleted\\"
+                gui_multi(jd, _("The prepared External Drive is inserted into the source\n"
+                                "Neverball, and all data to be transferred is\n"
+                                "transferred to the External Drive and deleted\n"
                                 "progress from the source game."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
             case 5:
                 gui_label(jd, _("Step 3: Transfer to target game"),
                               GUI_SML, 0, 0);
-                gui_multi(jd, _("Take out the External Drive from the source Neverball,\\"
-                                "and insert back into this target Pennyball\\"
+                gui_multi(jd, _("Take out the External Drive from the source Neverball,\n"
+                                "and insert back into this target Pennyball\n"
                                 "to complete the game transfer."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
@@ -211,48 +212,48 @@ static int transfer_about_transferring_gui(void)
                               GUI_SML, gui_red, gui_red);
                 gui_multi(jd, _("- Data from game settings"),
                               GUI_SML, gui_wht, gui_wht);
-                gui_multi(jd, _("- Games that is present on both PCs\\"
+                gui_multi(jd, _("- Games that is present on both PCs\n"
                                 "(saved data will be transferred and overwritten)"),
                               GUI_SML, gui_wht, gui_wht);
                 break;
             case 8:
                 gui_label(jd, _("Other notes:"), GUI_SML, gui_yel, gui_yel);
-                gui_multi(jd, _("Save data that may already exist on External Drive\\"
+                gui_multi(jd, _("Save data that may already exist on External Drive\n"
                                 "cannot be transferred directly."),
                               GUI_SML, gui_wht, gui_wht);
-                gui_multi(jd, _("For save data, transfer it from the External Drive\\"
-                                "to the source Neverball, before performing\\"
-                                "the transfer.\\"
+                gui_multi(jd, _("For save data, transfer it from the External Drive\n"
+                                "to the source Neverball, before performing\n"
+                                "the transfer.\n"
                                 "After the transfer on this game, you must do so beforehand."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
             case 9:
                 gui_label(jd, _("Other notes:"), GUI_SML, gui_yel, gui_yel);
-                gui_multi(jd, _("For level sets, either transfer it back to the\\"
-                                "source Neverball, before performing the transfer,\\"
-                                "or redownload it after the transfer\\"
-                                "using the Pennyball."),
+                gui_multi(jd, _("For level sets, either transfer it back to the\n"
+                                "source Neverball, before performing the transfer,\n"
+                                "or redownload it after the transfer\n"
+                                "using the Neverball."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
             case 10:
                 gui_label(jd, _("Other notes:"), GUI_SML, gui_yel, gui_yel);
-                gui_multi(jd, _("Your wallet balance in the account on the\\"
-                                "source game will be added to your\\"
-                                "balance of wallet on this game.\\"
-                                "If the total would exceed the maximum\\"
-                                "balance of coins that can be stored,\\"
+                gui_multi(jd, _("Your wallet balance in the account on the\n"
+                                "source game will be added to your\n"
+                                "balance of wallet on this game.\n"
+                                "If the total would exceed the maximum\n"
+                                "balance of coins that can be stored,\n"
                                 "you will not be able to proceed."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
             case 11:
                 gui_label(jd, _("Other notes:"), GUI_SML, gui_yel, gui_yel);
-                gui_multi(jd, _("- Depending on this app, some features\\"
+                gui_multi(jd, _("- Depending on this app, some features\n"
                                 "may be limited after the transfer."),
                               GUI_SML, gui_wht, gui_wht);
-                gui_multi(jd, _("- Data may be lost if you turn off your PC\\"
+                gui_multi(jd, _("- Data may be lost if you turn off your PC\n"
                                 "or exit the game during the transfer."),
                               GUI_SML, gui_wht, gui_wht);
-                gui_multi(jd, _("- All player models in the game of the target game\\"
+                gui_multi(jd, _("- All player models in the game of the target game\n"
                                 "will be replaced with the models."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
@@ -291,10 +292,10 @@ static int transfer_starting_gui(void)
         {
             gui_multi(jd, _("This completes the explanation."),
                           GUI_SML, gui_wht, gui_wht);
-            gui_multi(jd, _("If you are sure you have read through the\\"
+            gui_multi(jd, _("If you are sure you have read through the\n"
                             "information thoroughly, select Start."),
                           GUI_SML, gui_wht, gui_wht);
-            gui_multi(jd, _("If you want to look over the details again,\\"
+            gui_multi(jd, _("If you want to look over the details again,\n"
                             "select Back."),
                           GUI_SML, gui_wht, gui_wht);
             gui_set_rect(jd, GUI_ALL);
@@ -361,18 +362,18 @@ static int transfer_preparing_gui(void)
             case 0:
 #if ENABLE_DEDICATED_SERVER==1 && !defined(TRANSFER_OFFLINE_ONLY)
                 if (preparations_internet)
-                    gui_multi(jd, _("Connecting to the Internet to confirm that\\"
+                    gui_multi(jd, _("Connecting to the Internet to confirm that\n"
                                     "the transfer can be performed..."),
                                   GUI_SML, gui_wht, gui_wht);
                 else
 #endif
-                    gui_multi(jd, _("Game transfer preparations is not completed.\\"
+                    gui_multi(jd, _("Game transfer preparations is not completed.\n"
                                     "Continue the transfer preparation?"),
                                   GUI_SML, gui_wht, gui_wht);
                 break;
             case 1:
-                gui_multi(jd, _("Performing a game transfer requires\\"
-                                "a source game and an External Drive\\"
+                gui_multi(jd, _("Performing a game transfer requires\n"
+                                "a source game and an External Drive\n"
                                 "with at least 1 GB of free space."),
                               GUI_SML, gui_wht, gui_wht);
                 gui_multi(jd, _("Do you have both of these ready?"),
@@ -382,16 +383,16 @@ static int transfer_preparing_gui(void)
             case 2:
 #if ENABLE_DEDICATED_SERVER==1 && !defined(TRANSFER_OFFLINE_ONLY)
                 if (preparations_internet)
-                    gui_multi(jd, _("Connecting to the Internet to confirm that\\"
+                    gui_multi(jd, _("Connecting to the Internet to confirm that\n"
                                     "the transfer can be performed..."),
                                   GUI_SML, gui_wht, gui_wht);
                 else
 #endif
                 {
-                    gui_multi(jd, _("The game must be able to connect to the\\"
+                    gui_multi(jd, _("The game must be able to connect to the\n"
                                     "Internet in order to perform a game transfer."),
                                   GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("Connect to the Internet and confirm\\"
+                    gui_multi(jd, _("Connect to the Internet and confirm\n"
                                     "that the transfer can be performed?"),
                                   GUI_SML, gui_wht, gui_wht);
                 }
@@ -406,7 +407,7 @@ static int transfer_preparing_gui(void)
                                   GUI_SML, gui_red, gui_red);
                 }
                 else
-                    gui_multi(jd, _("Insert an External Drive into this game\\"
+                    gui_multi(jd, _("Insert an External Drive into this game\n"
                                     "and press Next."),
                                   GUI_SML, gui_wht, gui_wht);
                 break;
@@ -442,18 +443,18 @@ static int transfer_preparing_gui(void)
                 break;
 
             case 6:
-                gui_multi(jd, _("Game transfer preparations on this game\\"
+                gui_multi(jd, _("Game transfer preparations on this game\n"
                                 "are now complete."),
                               GUI_SML, gui_wht, gui_wht);
-                gui_multi(jd, _("Next, update and launch the source game,\\"
+                gui_multi(jd, _("Next, update and launch the source game,\n"
                                 "and go to settings."),
                               GUI_SML, gui_cya, gui_cya);
-                gui_multi(jd, _("If you do not have enough plug sockets, turn this PC off\\"
-                                "in the meantime; you can continue the transfer afterwards\\"
+                gui_multi(jd, _("If you do not have enough plug sockets, turn this PC off\n"
+                                "in the meantime; you can continue the transfer afterwards\n"
                                 "by launching the game again."),
                               GUI_SML, gui_yel, gui_yel);
-                gui_multi(jd, _("If you only have one keyboard and mouse,\\"
-                                "first turn it off from this PC\\"
+                gui_multi(jd, _("If you only have one keyboard and mouse,\n"
+                                "first turn it off from this PC\n"
                                 "before connecting to the source PC."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
@@ -541,12 +542,12 @@ static int transfer_gui(void)
             case 0:
 #if ENABLE_DEDICATED_SERVER==1 && !defined(TRANSFER_OFFLINE_ONLY)
                 if (preparations_internet)
-                    gui_multi(jd, _("Connecting to the Internet to confirm that\\"
+                    gui_multi(jd, _("Connecting to the Internet to confirm that\n"
                                     "the transfer can be performed..."),
                                   GUI_SML, gui_wht, gui_wht);
                 else
 #endif
-                    gui_multi(jd, _("Game transfer is not completed.\\"
+                    gui_multi(jd, _("Game transfer is not completed.\n"
                                     "Continue the transfer?"),
                                   GUI_SML, gui_wht, gui_wht);
                 break;
@@ -559,8 +560,8 @@ static int transfer_gui(void)
                                   GUI_SML, gui_red, gui_red);
                 }
                 else
-                    gui_multi(jd, _("Insert the External Drive onto which you have\\"
-                                    "moved the data from the source game\\"
+                    gui_multi(jd, _("Insert the External Drive onto which you have\n"
+                                    "moved the data from the source game\n"
                                     "into this game, and then press Next."),
                                   GUI_SML, gui_wht, gui_wht);
                 break;
@@ -568,7 +569,7 @@ static int transfer_gui(void)
             case 2:
                 if (transfer_working)
                 {
-                    gui_multi(jd, _("Moving data from the External Drive\\"
+                    gui_multi(jd, _("Moving data from the External Drive\n"
                                     "to this game progress..."),
                                   GUI_SML, gui_wht, gui_wht);
                     gui_multi(jd, _(TARGET_TRANSFER_WARNING_EXTERNAL),
@@ -576,11 +577,11 @@ static int transfer_gui(void)
                 }
                 else
                 {
-                    gui_multi(jd, _("The data that you transferred to the\\"
-                                    "External Drive from the source game\\"
+                    gui_multi(jd, _("The data that you transferred to the\n"
+                                    "External Drive from the source game\n"
                                     "will be saved to this game progress."),
                                   GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("(This data will be deleted from the\\"
+                    gui_multi(jd, _("(This data will be deleted from the\n"
                                     "External Drive.)"),
                                   GUI_SML, gui_wht, gui_wht);
                     gui_multi(jd, _(TARGET_TRANSFER_WARNING_EXTERNAL),
@@ -612,7 +613,7 @@ static int transfer_gui(void)
                             _("Transfer of %d coins and %d gems complete."),
                             transfer_walletamount[0], transfer_walletamount[1]);
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these coins and gems in\\"
+                    gui_multi(jd, _("You can use these coins and gems in\n"
                                     "the game shop on this game."),
                                   GUI_SML, gui_wht, gui_wht);
                 }
@@ -626,7 +627,7 @@ static int transfer_gui(void)
                             _("Transfer of %d gems complete."),
                             transfer_walletamount[1]);
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these gems in the\\"
+                    gui_multi(jd, _("You can use these gems in the\n"
                                     "game shop on this PC."),
                                   GUI_SML, gui_wht, gui_wht);
                 }
@@ -640,19 +641,19 @@ static int transfer_gui(void)
                             _("Transfer of %d coins complete."),
                             transfer_walletamount[0]);
                     gui_label(jd, wallet_infotext, GUI_SML, gui_wht, gui_wht);
-                    gui_multi(jd, _("You can use these coins in the\\"
+                    gui_multi(jd, _("You can use these coins in the\n"
                                     "game shop on this PC."),
                                   GUI_SML, gui_wht, gui_wht);
                 }
                 break;
 
             case 5:
-                gui_multi(jd, _("If you want to use the transferred account on\\"
+                gui_multi(jd, _("If you want to use the transferred account on\n"
                                 "this game, choose the Ball Model within account settings."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
             case 6:
-                gui_multi(jd, _("Game transfer complete.\\"
+                gui_multi(jd, _("Game transfer complete.\n"
                                 "You can now enjoy your game!"),
                               GUI_SML, gui_wht, gui_wht);
                 break;

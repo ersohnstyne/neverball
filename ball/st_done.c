@@ -145,14 +145,17 @@ static int done_gui_campaign(void)
 #else
         sprintf(sdescHardcore,
 #endif
-                _("You completed all levels\\"
-                  "And you collected %d coins.\\ \\"
-                  "A new trophy has been awarded to\\"
+                _("You completed all levels\n"
+                  "And you collected %d coins.\n\n"
+                  "A new trophy has been awarded to\n"
                   "acknowledge your achievement!"),
                 curr_score());
 
         const char *stitle = campaign_hardcore() ? N_("WOW") : N_("Campaign Complete");
-        const char *sdesc = campaign_hardcore() ? sdescHardcore : N_("If you want to keep exploring\\more levels, select LEVEL SET\\from the level group.");
+        const char *sdesc = campaign_hardcore() ? sdescHardcore :
+            N_("If you want to keep exploring\n"
+               "more levels, select LEVEL SET\n"
+               "from the level group.");
 
         gui_title_header(id, _(stitle), GUI_LRG, gui_blu, gui_grn);
         gui_space(id);

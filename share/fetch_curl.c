@@ -370,9 +370,9 @@ static int fetch_progress_func(void *clientp, curl_off_t dltotal, curl_off_t dln
 
         if (fe)
         {
-            fe->callback = fi->callback.progress;
+            fe->callback      = fi->callback.progress;
             fe->callback_data = fi->callback.data;
-            fe->extra_data = create_extra_progress(dltotal, dlnow);
+            fe->extra_data    = create_extra_progress(dltotal, dlnow);
 
             fetch_dispatch_event(fe);
         }
@@ -933,6 +933,7 @@ unsigned int fetch_gdrive(const char *fileid,
             curl_easy_setopt(handle, CURLOPT_NOPROGRESS,       0);
 
             curl_easy_setopt(handle, CURLOPT_BUFFERSIZE,      102400L);
+            //curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
             curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
             curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION,  1);
 

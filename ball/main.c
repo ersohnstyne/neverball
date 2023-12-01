@@ -634,9 +634,9 @@ static void refresh_packages_done(void *data, void *extra_data)
 /*
  * Start package refresh and go to given state when done.
  */
-static unsigned int main_preload(struct state* start_state)
+static unsigned int main_preload(struct state *start_state)
 {
-    struct fetch_callback callback = { 0 };
+    struct fetch_callback callback = {0};
 
     callback.data = start_state;
     callback.done = refresh_packages_done;
@@ -1588,7 +1588,7 @@ int main(int argc, char *argv[])
 
                 if (progress_play(&level))
                 {
-                    goto_state_full(&st_level, 0, 0, 1);
+                    start_state = &st_level;
                     loaded = 1;
                 }
             }
@@ -1599,14 +1599,14 @@ int main(int argc, char *argv[])
         if (!loaded)
         {
 #ifdef SKIP_END_SUPPORT
-            goto_state_full(&st_title, 0, 0, 1);
+            start_state = &st_title;
 #else
-            goto_state_full(&st_end_support, 0, 0, 1);
+            start_state = &st_end_support;
 #endif
         }
     }
     else if (opt_screensaver)
-        goto_state_full(&st_screensaver, 0, 0, 1);
+        start_state = &st_screensaver;
     else
     {
 #if NB_HAVE_PB_BOTH==1

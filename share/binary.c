@@ -22,15 +22,15 @@
 
 void put_float(fs_file fout, float f)
 {
-    unsigned int val = *(unsigned int*)&f;
+    unsigned int val = *(unsigned int *) &f;
 
-    fs_putc((val) & 0xff, fout);
-    fs_putc((val >> 8) & 0xff, fout);
+    fs_putc((val)       & 0xff, fout);
+    fs_putc((val >> 8)  & 0xff, fout);
     fs_putc((val >> 16) & 0xff, fout);
     fs_putc((val >> 24) & 0xff, fout);
 }
 
-void put_index(fs_file fout, int i)
+void put_index(fs_file fout, int val)
 {
 #define val i
 
@@ -42,7 +42,7 @@ void put_index(fs_file fout, int i)
 #undef val
 }
 
-void put_short(fs_file fout, short s)
+void put_short(fs_file fout, short val)
 {
 #define val s
 
@@ -65,23 +65,23 @@ void put_array(fs_file fout, const float* v, size_t n)
 float get_float(fs_file fin)
 {
     unsigned int val =
-        (fs_getc(fin) & 0xff) |
-        (fs_getc(fin) & 0xff) << 8 |
+        (fs_getc(fin) & 0xff)       |
+        (fs_getc(fin) & 0xff) << 8  |
         (fs_getc(fin) & 0xff) << 16 |
         (fs_getc(fin) & 0xff) << 24;
 
-    return *(float*)&val;
+    return *(float *) &val;
 }
 
 int get_index(fs_file fin)
 {
-    unsigned int val =
-        (fs_getc(fin) & 0xff) |
-        (fs_getc(fin) & 0xff) << 8 |
+    int val =
+        (fs_getc(fin) & 0xff)       |
+        (fs_getc(fin) & 0xff) << 8  |
         (fs_getc(fin) & 0xff) << 16 |
         (fs_getc(fin) & 0xff) << 24;
 
-    return *(float*)&val;
+    return val;
 }
 
 short get_short(fs_file fin)

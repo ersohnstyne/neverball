@@ -13,6 +13,7 @@
  */
 
 #if _MSC_VER
+#define NOMINMAX
 #include <Windows.h>
 #else
 #include <dirent.h>

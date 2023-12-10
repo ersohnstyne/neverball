@@ -16,6 +16,7 @@
 #define DBG_CONFIG_H
 
 #if _MSC_VER
+#define NOMINMAX
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif

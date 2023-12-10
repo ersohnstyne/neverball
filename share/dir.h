@@ -47,6 +47,7 @@ int dir_exists(const char *);
 // 0 - 1: Directory already exists
 // 0 - 0 or 1 - 1
 
+#define NOMINMAX
 #include <Windows.h>
 #define dir_make(path) \
     !(CreateDirectoryA(path, 0) != 0 || GetLastError() == ERROR_ALREADY_EXISTS)

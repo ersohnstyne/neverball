@@ -1850,7 +1850,11 @@ static int demo_del_enter(struct state *st, struct state *prev)
 static int demo_del_keybd(int c, int d)
 {
     if (d && c == KEY_EXIT)
-        return demo_del_action(GUI_BACK, 0);
+    {
+        if (!allow_exact_versions || get_maximum_status() > get_limit_status())
+            audio_play(AUD_DISABLED, 1.f);
+        else return demo_del_action(DEMO_KEEP, 0);
+    }
 
     return 1;
 }
@@ -1864,7 +1868,11 @@ static int demo_del_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return demo_del_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return demo_del_action(DEMO_KEEP, 0);
+        {
+            if (!allow_exact_versions || get_maximum_status() > get_limit_status())
+                audio_play(AUD_DISABLED, 1.f);
+            else return demo_del_action(DEMO_KEEP, 0);
+        }
     }
     return 1;
 }

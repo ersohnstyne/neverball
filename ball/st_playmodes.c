@@ -162,7 +162,7 @@ static int playmodes_gui(void)
 #ifndef __EMSCRIPTEN__
             if (current_platform == PLATFORM_PC)
 #endif
-                gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+                gui_back_button(jd);
         }
 
         int   career_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER)
@@ -191,7 +191,7 @@ static int playmodes_gui(void)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
             && !config_cheat()
 #endif
-            && (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25);
+            && (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN);
 
         if (!CHECK_ACCOUNT_ENABLED)
         {

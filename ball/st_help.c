@@ -237,7 +237,7 @@ static int help_menu(int id)
         gui_filler(jd);
 
         if (!xbox_show_gui())
-            help_button(jd, _("Back"),     GUI_BACK, 0);
+            gui_back_button(jd);
     }
 
     return jd;
@@ -870,7 +870,7 @@ static int page_modes_special(int id)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
                  config_cheat() ||
 #endif
-                 (config_get_d(CONFIG_SMOOTH_FIX) && video_perf() < 25)))
+                 (config_get_d(CONFIG_SMOOTH_FIX) && video_perf() < NB_FRAMERATE_MIN)))
             {
                 gui_label(jd, _("Hardcore Mode"), GUI_SML, gui_gry, gui_red);
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
@@ -1184,7 +1184,7 @@ static int help_gui(void)
 #ifndef __EMSCRIPTEN__
                     if (current_platform == PLATFORM_PC)
 #endif
-                        gui_start(kd, _("Back"), GUI_SML, GUI_BACK, 0);
+                        gui_back_button(kd);
                 }
             }
         }

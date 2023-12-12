@@ -12,12 +12,6 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __MINGW32__
-#include <SDL3/SDL.h>
-#else
-#include <SDL.h>
-#endif
-
 #include <string.h>
 #include <assert.h>
 
@@ -262,7 +256,6 @@ static int intro_gui(void)
         xbox_toggle_gui(1);
 #endif
 
-    audio_music_fade_out(0.0f);
     int w = video.device_w;
     int h = video.device_h;
 
@@ -313,6 +306,8 @@ static int intro_gui(void)
 
 static int intro_enter(struct state *st, struct state *prev)
 {
+    audio_music_fade_out(1.f);
+
     if (!intro_init)
     {
         intro_soundqueue[0] = 0;
@@ -446,8 +441,7 @@ static int intro_accn_disabled_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            goto_state(&st_null); /* bye! */
-            return 0;
+            return 0; /* bye! */
 
         case ACCOUNT_DISBALED_OPEN:
 #if defined(__EMSCRIPTEN__)
@@ -517,8 +511,7 @@ static int intro_accn_disabled_keybd(int c, int d)
             )
         {
 #ifndef __EMSCRIPTEN__
-            goto_state(&st_null); /* bye! */
-            return 0;
+            return 0; /* bye! */
 #endif
         }
     }
@@ -536,10 +529,7 @@ static int intro_accn_disabled_buttn(int b, int d)
                                               gui_value(active));
 #ifndef __EMSCRIPTEN__
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-        {
-            goto_state(&st_null); /* bye! */
-            return 0;
-        }
+            return 0; /* bye! */
 #endif
     }
     return 1;
@@ -920,8 +910,7 @@ static int nointernet_keybd(int c, int d)
             )
         {
 #ifndef __EMSCRIPTEN__
-            goto_state(&st_null); /* bye! */
-            return 0;
+            return 0; /* bye! */
 #endif
         }
     }
@@ -1000,8 +989,7 @@ static int server_maintenance_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            goto_state(&st_null); /* bye! */
-            return 0;
+            return 0; /* bye! */
             break;
         case MAINTENANCE_OFFLINE:
             return goto_state(&st_title);

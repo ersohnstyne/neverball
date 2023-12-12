@@ -446,8 +446,18 @@ static void set_load_hs(void)
 
 static int set_load(struct set *s, const char *filename)
 {
-    fs_file fin;
-    char *scores, *level_name, *star_info;
+    fs_file  fin;
+    char    *scores, *level_name;
+    int      curr_date_month = 0;
+
+    time_t     curr_date = time(NULL);
+    struct tm *curr_date_localtime = localtime(&curr_date);
+
+    if (curr_date_localtime)
+        curr_date_month = curr_date_localtime->tm_mon + 1;
+
+    if (!filename)
+        return 0;
 
     /* Skip "Misc" when not in dev mode. */
 
@@ -455,11 +465,12 @@ static int set_load(struct set *s, const char *filename)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
         && !config_cheat()
 #endif
-        ) { return 0; }
+        ) return 0;
 
 #if NB_HAVE_PB_BOTH==1
 #ifdef CONFIG_INCLUDES_ACCOUNT
     /* Add more level sets when products bought. */
+
     if ((strcmp(filename, "set-easy.txt")   != 0 &&
          strcmp(filename, "set-medium.txt") != 0 &&
          strcmp(filename, "set-hard.txt")   != 0 &&
@@ -483,6 +494,42 @@ static int set_load(struct set *s, const char *filename)
         !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))
         return 0;
 #endif
+
+    /* Limited region only */
+
+    if (config_get_s(CONFIG_LANGUAGE))
+    {
+        if ((str_starts_with(filename, "set-anime") &&
+             str_ends_with  (filename, ".txt")) &&
+            (strcmp(config_get_s(CONFIG_LANGUAGE), "ja") != 0 &&
+             strcmp(config_get_s(CONFIG_LANGUAGE), "jp") != 0) &&
+            !config_cheat())
+            return 0;
+    }
+    else if (str_starts_with(filename, "set-anime") &&
+             str_ends_with  (filename, ".txt"))
+        return 0;
+
+    /* Limited special offers only */
+
+    if ((str_starts_with(filename, "set-valentine") &&
+         str_ends_with  (filename, ".txt")) &&
+        curr_date_month != 2 &&
+        !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))
+        return 0;
+
+    if ((str_starts_with(filename, "set-halloween") &&
+         str_ends_with  (filename, ".txt")) &&
+        curr_date_month != 10 &&
+        !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))
+        return 0;
+
+    if ((str_starts_with(filename, "set-christmas") &&
+         str_ends_with  (filename, ".txt")) &&
+        curr_date_month != 12 &&
+        !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))
+        return 0;
+
 #endif
 
 #ifdef FS_VERSION_1

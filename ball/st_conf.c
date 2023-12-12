@@ -630,18 +630,32 @@ static int conf_account_gui(void)
         if (mainmenu_conf)
         {
 #if ENABLE_FETCH
+#if NB_HAVE_PB_BOTH==1
+            conf_toggle_simple(id, _("Auto-Update"), CONF_ACCOUNT_AUTOUPDATE,
+                                   config_get_d(CONFIG_ACCOUNT_AUTOUPDATE), 1, 0);
+#else
             conf_toggle(id, _("Auto-Update"), CONF_ACCOUNT_AUTOUPDATE,
-                 config_get_d(CONFIG_ACCOUNT_AUTOUPDATE), _("On"), 1, _("Off"), 0);
+                            config_get_d(CONFIG_ACCOUNT_AUTOUPDATE), _("On"), 1, _("Off"), 0);
+#endif
             gui_space(id);
 #endif
         }
 
+#if NB_HAVE_PB_BOTH==1
+        conf_toggle_simple(id, _("Show Tutorial"), CONF_ACCOUNT_TUTORIAL,
+                               config_get_d(CONFIG_ACCOUNT_TUTORIAL),
+                               1, 0);
+        conf_toggle_simple(id, _("Show Hint"), CONF_ACCOUNT_HINT,
+                               config_get_d(CONFIG_ACCOUNT_HINT), 
+                               1, 0);
+#else
         conf_toggle(id, _("Show Tutorial"), CONF_ACCOUNT_TUTORIAL,
                         config_get_d(CONFIG_ACCOUNT_TUTORIAL),
                         _("On"), 1, _("Off"), 0);
         conf_toggle(id, _("Show Hint"), CONF_ACCOUNT_HINT,
                         config_get_d(CONFIG_ACCOUNT_HINT), 
                         _("On"), 1, _("Off"), 0);
+#endif
 
         gui_space(id);
         if (mainmenu_conf)
@@ -868,10 +882,7 @@ static int conf_social_action(int tok, int val)
 #endif
 
                 if (mainmenu_conf)
-                {
-                    goto_state(&st_null);
                     return 0; /* bye! */
-                }
             }
 #if NB_HAVE_PB_BOTH==1
             else
@@ -988,7 +999,7 @@ enum InputType
 {
     CONTROL_NONE,
 
-    CONTROL_PENNYBALL,
+    CONTROL_NEVERBALL,
     CONTROL_SWITCHBALL_V1,
     CONTROL_SWITCHBALL_V2,
 
@@ -1054,7 +1065,7 @@ static int control_get_input(void)
     else if (k_auto == SDLK_e && k_cam1 == SDLK_1 && k_cam2 == SDLK_2 && k_cam3 == SDLK_3
              && k_caml == SDLK_s && k_camr == SDLK_d
              && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
-        return CONTROL_PENNYBALL;
+        return CONTROL_NEVERBALL;
 
     return CONTROL_MAX;
 }
@@ -1070,7 +1081,7 @@ static void control_set_input()
         gui_set_label(preset_id, "Switchball HD");
         key_preset_id = CONTROL_SWITCHBALL_V2;
     }
-    else if (key_preset_id == CONTROL_PENNYBALL)
+    else if (key_preset_id == CONTROL_NEVERBALL)
     {
         CONF_CONTROL_SET_PRESET_KEYS(SDLK_c, SDLK_3, SDLK_1, SDLK_2,
                                      SDLK_d, SDLK_a,
@@ -1086,7 +1097,7 @@ static void control_set_input()
                                      SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT);
 
         gui_set_label(preset_id, "Neverball");
-        key_preset_id = CONTROL_PENNYBALL;
+        key_preset_id = CONTROL_NEVERBALL;
     }
 }
 
@@ -1173,7 +1184,7 @@ int conf_control_gui(void)
 
         switch (control_get_input())
         {
-            case CONTROL_PENNYBALL:
+            case CONTROL_NEVERBALL:
                 key_preset_id = control_get_input();
                 presetname = "Neverball";
                 break;
@@ -1189,9 +1200,15 @@ int conf_control_gui(void)
 
         gui_set_label(preset_id, presetname);
 
+#if NB_HAVE_PB_BOTH==1
+        conf_toggle_simple(id, _("Tilting Floor"), CONF_CONTROL_TILTING_FLOOR,
+                               config_get_d(CONFIG_TILTING_FLOOR),
+                               1, 0);
+#else
         conf_toggle(id, _("Tilting Floor"), CONF_CONTROL_TILTING_FLOOR,
                         config_get_d(CONFIG_TILTING_FLOOR),
                         _("On"), 1, _("Off"), 0);
+#endif
 
 #ifdef SWITCHBALL_GUI
         camrot_mode_id = conf_state(id, _("Camera rotate"),
@@ -1214,9 +1231,15 @@ int conf_control_gui(void)
                             mouse, mouse_id, ARRAYSIZE(mouse_id));
 #endif
 
+#if NB_HAVE_PB_BOTH==1
+            conf_toggle_simple(id, _("Invert Y Axis"), CONF_CONTROL_INVERT_MOUSE_Y,
+                                   config_get_d(CONFIG_MOUSE_INVERT),
+                                   1, 0);
+#else
             conf_toggle(id, _("Invert Y Axis"), CONF_CONTROL_INVERT_MOUSE_Y,
                             config_get_d(CONFIG_MOUSE_INVERT),
                             _("On"), 1, _("Off"), 0);
+#endif
         }
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -1942,6 +1965,17 @@ static int conf_notification_gui(void)
     {
         conf_header(id, _("Notifications"), GUI_BACK);
 
+#if NB_HAVE_PB_BOTH==1
+        conf_toggle_simple(id, _("Checkpoints"), CONF_NOTIFICATION_CHKP,
+                               config_get_d(CONFIG_NOTIFICATION_CHKP),
+                               1, 0);
+        conf_toggle_simple(id, _("Extra balls"), CONF_NOTIFICATION_REWARD,
+                               config_get_d(CONFIG_NOTIFICATION_REWARD),
+                               1, 0);
+        conf_toggle_simple(id, _("Shop"), CONF_NOTIFICATION_SHOP,
+                               config_get_d(CONFIG_NOTIFICATION_SHOP),
+                               1, 0);
+#else
         conf_toggle(id, _("Checkpoints"), CONF_NOTIFICATION_CHKP,
                         config_get_d(CONFIG_NOTIFICATION_CHKP),
                         _("On"), 1, _("Off"), 0);
@@ -1951,6 +1985,7 @@ static int conf_notification_gui(void)
         conf_toggle(id, _("Shop"), CONF_NOTIFICATION_SHOP,
                         config_get_d(CONFIG_NOTIFICATION_SHOP),
                         _("On"), 1, _("Off"), 0);
+#endif
 
         gui_layout(id, 0, 0);
     }
@@ -2498,7 +2533,7 @@ static int conf_gui(void)
         {
             gui_label(id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT);
 #if NB_HAVE_PB_BOTH==1
-            gui_multi(id, "© 2008, 2023 PennyGames.", GUI_TNY, GUI_COLOR_WHT);
+            gui_multi(id, "© 2008, 2023 Neverball Authors.", GUI_TNY, GUI_COLOR_WHT);
 #endif
             gui_clr_rect(id);
             gui_layout(id, 0, -1);

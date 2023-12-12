@@ -12,11 +12,6 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __MINGW32__
-#include <SDL3/SDL.h>
-#else
-#include <SDL.h>
-#endif
 #include <math.h>
 
 #if NB_HAVE_PB_BOTH==1

@@ -717,7 +717,7 @@ static void play_loop_paint(int id, float t)
 
 static void play_loop_timer(int id, float dt)
 {
-    if (config_get_d(CONFIG_SMOOTH_FIX) && video_perf() < 25)
+    if (config_get_d(CONFIG_SMOOTH_FIX) && video_perf() < NB_FRAMERATE_MIN)
     {
         smoothfix_slowdown_time += dt;
 

@@ -284,7 +284,7 @@ static int conf_enter(struct state *st, struct state *prev)
         {
             gui_label(id, "Neverputt " VERSION, GUI_TNY, gui_wht, gui_wht);
 #if NB_HAVE_PB_BOTH==1
-            gui_label(id, "© 2008, 2023 PennyGames", GUI_TNY, gui_wht, gui_wht);
+            gui_label(id, "© 2008, 2023 Neverball Authors", GUI_TNY, gui_wht, gui_wht);
 #endif
             gui_clr_rect(id);
             gui_layout(id, 0, -1);

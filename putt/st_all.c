@@ -322,6 +322,22 @@ static void shared_fade(float alpha)
     xbox_control_gui_set_alpha(alpha);
 }
 
+static int shared_back_button(int pd)
+{
+    int id;
+
+    if ((id = gui_hstack(pd)))
+    {
+        gui_label(id, GUI_CROSS, GUI_SML, gui_red, gui_red);
+        gui_label(id, _("Back"), GUI_SML, gui_wht, gui_wht);
+
+        gui_set_state(id, -1, 0);
+        gui_set_rect(id, GUI_ALL);
+    }
+
+    return id;
+}
+
 /*---------------------------------------------------------------------------*/
 
 enum
@@ -393,7 +409,7 @@ static int title_enter(struct state *st, struct state *prev)
         }
         else if (current_platform == PLATFORM_XBOX)
         {
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
             sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_360);
 #else
             sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_ONE);
@@ -635,15 +651,16 @@ static int help_enter(struct state *st, struct state *prev)
         {
             gui_label(jd, gt_prefix("menu^Help"), GUI_SML, 0, 0);
             gui_filler(jd);
-            gui_start(jd, _("Back"), GUI_SML, HELP_BACK, 0);
+            shared_back_button(jd);
+            //gui_start(jd, _("Back"), GUI_SML, HELP_BACK, 0);
         }
 
         gui_space(id);
 
-        gui_multi(id, _("Move the mouse from the direction you wish to shoot.\\"
-                        "A power indicator will show you which direction\\"
-                        "is going to roll. The longer line is, the more powerful\\"
-                        "your shot will be. Once you have your shot aimed\\"
+        gui_multi(id, _("Move the mouse from the direction you wish to shoot.\n"
+                        "A power indicator will show you which direction\n"
+                        "is going to roll. The longer line is, the more powerful\n"
+                        "your shot will be. Once you have your shot aimed\n"
                         "click LMB on your mouse to shoot."),
                         GUI_SML, GUI_COLOR_WHT);
     }
@@ -788,7 +805,7 @@ static int course_enter(struct state *st, struct state *prev)
 #if !defined(__EMSCRIPTEN__)
             if (current_platform == PLATFORM_PC)
 #endif
-                gui_start(id, _("Back"), GUI_SML, COURSE_BACK, 0);
+                shared_back_button(jd);
 
             if (server_policy_get_d(SERVER_POLICY_EDITION) >= 0)
             {
@@ -817,7 +834,7 @@ static int course_enter(struct state *st, struct state *prev)
         {
             gui_label(jd, _("Select Course"), GUI_SML, 0, 0);
             gui_filler(jd);
-            gui_state(jd, _("Back"), GUI_SML, COURSE_BACK, 0);
+            shared_back_button(jd);
         }
 
         gui_space(id);
@@ -865,7 +882,7 @@ static int course_enter(struct state *st, struct state *prev)
         /*if ((jd = gui_hstack(id)))
         {
             gui_filler(jd);
-            gui_state(jd, _("Back"), GUI_SML, COURSE_BACK, 0);
+            shared_back_button(jd);
         }*/
 
         gui_layout(id, 0, 0);
@@ -1002,7 +1019,7 @@ static int party_enter(struct state *st, struct state *prev)
         {
             gui_label(jd, _("Players?"), GUI_SML, 0, 0);
             gui_filler(jd);
-            gui_state(jd, _("Back"), GUI_SML, PARTY_B, 0);
+            shared_back_button(jd);
         }
 
         gui_space(id);
@@ -1028,7 +1045,7 @@ static int party_enter(struct state *st, struct state *prev)
         /*if ((jd = gui_hstack(id)))
         {
             gui_filler(jd);
-            gui_state(jd, _("Back"), GUI_SML, PARTY_B, 0);
+            shared_back_button(jd);
         }*/
 
         gui_layout(id, 0, 0);
@@ -1115,7 +1132,7 @@ static int controltype_enter(struct state *st, struct state *prev)
         {
             gui_label(jd, _("Control type"), GUI_SML, 0, 0);
             gui_filler(jd);
-            gui_state(jd, _("Back"), GUI_SML, CONTROLTYPE_B, 0);
+            shared_back_button(jd);
         }
 
         gui_space(id);

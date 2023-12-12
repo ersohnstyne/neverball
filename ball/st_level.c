@@ -328,8 +328,6 @@ static int level_gui(void)
                 }
 
                 gui_filler(jd);
-
-                gui_back_button(jd);
             }
 
             gui_space(id);

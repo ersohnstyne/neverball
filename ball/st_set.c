@@ -259,20 +259,46 @@ static void gui_set(int id, int i)
             set_text_name_id = gui_state(id, "XXXXXXXXXXXXXXXXXX",
                                              GUI_SML, SET_SELECT, i);
 
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (str_starts_with(set_id(i), "SB")
-         || str_starts_with(set_id(i), "sb")
-         || str_starts_with(set_id(i), "Sb")
-         || str_starts_with(set_id(i), "sB"))
+        if (str_starts_with(set_id(i), "valentine"))
         {
-            campaign_marked = 1;
+            gui_set_color(set_text_name_id, gui_pnk, gui_red);
+
+            SAFECPY(set_name_final, set_name(i));
+        }
+        else if (str_starts_with(set_id(i), "halloween"))
+        {
+            gui_set_color(set_text_name_id, gui_red, gui_yel);
+
+            SAFECPY(set_name_final, set_name(i));
+        }
+        else if (str_starts_with(set_id(i), "christmas"))
+        {
+            gui_set_color(set_text_name_id, gui_red, gui_grn);
+
+            SAFECPY(set_name_final, set_name(i));
+        }
+        else if (str_starts_with(set_id(i), "anime"))
+        {
+            gui_set_color(set_text_name_id, gui_cya, gui_blu);
 
             SAFECPY(set_name_final, GUI_AIRPLANE " ");
             SAFECAT(set_name_final, set_name(i));
         }
-        else
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        else if (str_starts_with(set_id(i), "SB")
+              || str_starts_with(set_id(i), "sb")
+              || str_starts_with(set_id(i), "Sb")
+              || str_starts_with(set_id(i), "sB"))
+        {
+            campaign_marked = 1;
+
+            gui_set_color(set_text_name_id, GUI_COLOR_CYA);
+
+            SAFECPY(set_name_final, GUI_AIRPLANE " ");
+            SAFECAT(set_name_final, set_name(i));
+        }
 #endif
-            SAFECPY(set_name_final, set_name(i));
+        else SAFECPY(set_name_final, set_name(i));
 
         gui_set_trunc(set_text_name_id, TRUNC_TAIL);
         gui_set_label(set_text_name_id, set_name_final);
@@ -314,7 +340,7 @@ static int set_gui(void)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (current_platform == PLATFORM_PC)
 #endif
-                gui_start(id, _("Back"), GUI_SML, GUI_BACK, 0);
+                gui_back_button(id);
 
 #if NB_HAVE_PB_BOTH==1
             if (server_policy_get_d(SERVER_POLICY_EDITION) >= 0)
@@ -833,7 +859,7 @@ static int campaign_gui(void)
 #ifndef __EMSCRIPTEN__
             if (current_platform == PLATFORM_PC)
 #endif
-                gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+                gui_back_button(jd);
         }
 
         gui_space(id);
@@ -1104,7 +1130,7 @@ static int levelgroup_gui(void)
 #ifndef __EMSCRIPTEN__
             if (current_platform == PLATFORM_PC)
 #endif
-                gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+                gui_back_button(jd);
         }
 
         gui_space(id);
@@ -1127,8 +1153,9 @@ static int levelgroup_gui(void)
                     (server_policy_get_d(SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET) ||
                      campaign_career_unlocked())
 #if NB_STEAM_API == 0 && NB_EOS_SDK == 0
-                 || config_cheat();
+                 || config_cheat()
 #endif
+                    ;
 
                 if (video.aspect_ratio >= 1.0f)
                     gui_image(ld, set_was_unlocked ? "gui/levels/levelset.jpg" :

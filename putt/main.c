@@ -109,6 +109,10 @@ extern "C" {
 #include "package.h"
 #endif
 
+#if NB_HAVE_PB_BOTH==1
+#include "st_setup.h"
+#endif
+
 #include "st_conf.h"
 #include "st_all.h"
 #include "st_common.h"
@@ -151,6 +155,11 @@ static void opt_init(int argc, char **argv)
             if (++i < argc)
                 opt_hole = argv[i];
         }
+        else if (strcmp(argv[i], "--link") == 0)
+        {
+            if (++i < argc)
+                opt_link = argv[i];
+        }
     }
 
     if (argc == 2)
@@ -181,6 +190,11 @@ static void opt_quit(void)
 
 static void shot(void)
 {
+#if NB_HAVE_PB_BOTH==1
+    if (game_setup_process())
+        return;
+#endif
+
     static char filename[MAXSTR];
 
     int secdecimal = roundf(config_screenshot() / 10000);
@@ -306,9 +320,9 @@ static int process_link(const char *link)
 
 /*---------------------------------------------------------------------------*/
 
-static void refresh_packages_done(void* data, void* extra_data)
+static void refresh_packages_done(void *data, void *extra_data)
 {
-    struct state* start_state = data;
+    struct state *start_state = data;
 
     if (!process_link(opt_link))
     {
@@ -320,8 +334,16 @@ static void refresh_packages_done(void* data, void* extra_data)
 /*
  * Start package refresh and go to given state when done.
  */
-static unsigned int main_preload(struct state* start_state)
+static void main_preload(struct state *start_state)
 {
+#if NB_HAVE_PB_BOTH==1
+    if (!check_game_setup())
+    {
+        goto_game_setup(start_state);
+        return;
+    }
+#endif
+
     struct fetch_callback callback = { 0 };
 
     callback.data = start_state;
@@ -411,7 +433,7 @@ static int loop(void)
                 }
                 break;
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
             case SDL_MOUSEMOTION:
                 /* Convert to OpenGL coordinates. */
 
@@ -498,7 +520,7 @@ static int loop(void)
                     break;
 
                     default:
-#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
                     if (config_tst_d(CONFIG_KEY_FORWARD, c))
                         st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), -1.0f);
                     else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
@@ -529,7 +551,7 @@ static int loop(void)
                         break;
 
                     default:
-#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
                         if (config_tst_d(CONFIG_KEY_FORWARD, c))
                             st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 0.0f);
                         else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
@@ -597,7 +619,7 @@ static int loop(void)
                 }
                 break;
 
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
             case SDL_JOYAXISMOTION:
                 joy_axis(e.jaxis.which, e.jaxis.axis, JOY_VALUE(e.jaxis.value));
                 break;
@@ -727,18 +749,20 @@ static int main_init(int argc, char *argv[])
 
     config_paths(opt_data);
     log_init("Neverputt " VERSION, "neverputt.log");
+#if NB_HAVE_PB_BOTH!=1
     fs_mkdir("Screenshots");
+#endif
 
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_FAMILY_API \
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API \
     && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX, "1");
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API \
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API \
     && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360) && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360_PLAYER_LED)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX_360_PLAYER_LED, "1");
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
 #if defined(SDL_HINT_JOYSTICK_HIDAPI_PS5) && defined(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "1");
@@ -750,7 +774,7 @@ static int main_init(int argc, char *argv[])
 #error No Playstation HIDAPI specified!
 #endif
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_SWITCH_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
 #if defined(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS, "1");
 #endif
@@ -789,10 +813,12 @@ static int main_init(int argc, char *argv[])
 
 static void main_quit()
 {
+    goto_state(&st_null);
+
     mtrl_quit();
     video_quit();
 
-    /* Restore Pennyball's camera setting. */
+    /* Restore Neverball's camera setting. */
 
     config_set_d(CONFIG_CAMERA, em_cached_cam);
     config_save();
@@ -804,7 +830,7 @@ static void main_quit()
 
     lang_quit();
 
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
     joy_quit();
 #endif
 
@@ -879,35 +905,35 @@ int main(int argc, char *argv[])
         package_init();
 #endif
 
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
         joy_init();
 #endif
 
 #if NB_HAE_PB_BOTH==1
-#if PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
         init_controller_type(PLATFORM_PC);
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API
         init_controller_type(PLATFORM_XBOX);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
         init_controller_type(PLATFORM_XBOX);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
         init_controller_type(PLATFORM_PS);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_SWITCH_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
         init_controller_type(PLATFORM_SWITCH);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_HANDSET_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_HANDSET_FAMILY_API
         init_controller_type(PLATFORM_HANDSET);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
@@ -931,7 +957,7 @@ int main(int argc, char *argv[])
         lang_init();
 #endif
 
-        /* Cache Pennyball's camera setting. */
+        /* Cache Neverball's camera setting. */
 
         em_cached_cam = config_get_d(CONFIG_CAMERA);
 

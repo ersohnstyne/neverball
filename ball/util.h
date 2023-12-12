@@ -36,6 +36,8 @@
 
 /*---------------------------------------------------------------------------*/
 
+#define NB_FRAMERATE_MIN 25
+
 #define GUI_SCORE_COIN  0x1
 #define GUI_SCORE_TIME  0x2
 #define GUI_SCORE_GOAL  0x4

@@ -125,6 +125,10 @@ extern "C" {
 #include "log.h"
 #include "game_client.h"
 
+#if NB_HAVE_PB_BOTH==1
+#include "st_setup.h"
+#endif
+
 #include "st_malfunction.h"
 #include "st_intro.h"
 #include "st_conf.h"
@@ -150,6 +154,8 @@ const char TITLE[] = "Neverball";
 #endif
 const char ICON[] = "icon/neverball.png";
 
+#define SET_ALWAYS_UNLOCKED
+
 /* This fixes some malfunctions instead */
 #define SDL_EVENT_ANTI_MALFUNCTIONS(events) do { events.type = 0; } while (0)
 
@@ -173,12 +179,13 @@ static char *opt_panorama;
     "  -p, --panorama            snap background file as panorama (Only, if Unity is supported).\n" \
     "  -v, --version             show version.\n" \
     "  -s, --screensaver         show screensaver.\n" \
-    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
+    "      --safetysetup         show safety video (not yet implemented).\n" \
     "  -d, --data <dir>          use 'dir' as game data directory.\n" \
     "  -r, --replay <file>       play the replay 'file'.\n" \
     "  -l, --level <file>        load the level 'file'\n" \
-    "  --ipv4 <address>          use the IPv4 address for dedicated game network.\n" \
-    "  --ipv6 <address>          use the IPv6 address for dedicated game network.\n"
+    "      --link <file>         open the named asset\n" \
+    "      --ipv4 <address>      use the IPv4 address for dedicated game network.\n" \
+    "      --ipv6 <address>      use the IPv6 address for dedicated game network.\n"
 #else
 #define opt_usage \
     "Usage: %s [options ...]\n" \
@@ -186,12 +193,13 @@ static char *opt_panorama;
     "  -h, --help                show this usage message.\n" \
     "  -v, --version             show version.\n" \
     "  -s, --screensaver         show screensaver.\n" \
-    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
+    "      --safetysetup         show safety video (not yet implemented).\n" \
     "  -d, --data <dir>          use 'dir' as game data directory.\n" \
     "  -r, --replay <file>       play the replay 'file'.\n" \
     "  -l, --level <file>        load the level 'file'\n" \
-    "  --ipv4 <address>          use the IPv4 address for dedicated game network.\n" \
-    "  --ipv6 <address>          use the IPv6 address for dedicated game network.\n"
+    "      --link <file>         open the named asset\n" \
+    "      --ipv4 <address>      use the IPv4 address for dedicated game network.\n" \
+    "      --ipv6 <address>      use the IPv6 address for dedicated game network.\n"
 #endif
 #else
 #ifndef DISABLE_PANORAMA
@@ -204,10 +212,11 @@ static char *opt_panorama;
     "  -p, --panorama            snap background file as panorama (Only, if Unity is supported).\n" \
     "  -v, --version             show version.\n" \
     "  -s, --screensaver         show screensaver.\n" \
-    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
+    "      --safetysetup         show safety video (not yet implemented).\n" \
     "  -d, --data <dir>          use 'dir' as game data directory.\n" \
     "  -r, --replay <file>       play the replay 'file'.\n" \
-    "  -l, --level <file>        load the level 'file'\n"
+    "  -l, --level <file>        load the level 'file'\n" \
+    "      --link <file>         open the named asset\n"
 #else
 #define opt_usage \
     "Usage: %s [options ...]\n" \
@@ -215,10 +224,11 @@ static char *opt_panorama;
     "  -h, --help                show this usage message.\n" \
     "  -v, --version             show version.\n" \
     "  -s, --screensaver         show screensaver.\n" \
-    "  -s, --safetysetup         show safety video (not yet implemented).\n" \
+    "      --safetysetup         show safety video (not yet implemented).\n" \
     "  -d, --data <dir>          use 'dir' as game data directory.\n" \
     "  -r, --replay <file>       play the replay 'file'.\n" \
-    "  -l, --level <file>        load the level 'file'\n"
+    "  -l, --level <file>        load the level 'file'\n" \
+    "      --link <file>         open the named asset\n"
 #endif
 #endif
 
@@ -301,6 +311,17 @@ static void opt_init(int argc, char **argv)
             continue;
         }
 
+        if (strcmp(argv[i], "--link") == 0)
+        {
+            if (i + 1 == argc)
+            {
+                opt_error(argv[i]);
+                exit(EXIT_FAILURE);
+            }
+            opt_link = argv[++i];
+            continue;
+        }
+
 #if ENABLE_DEDICATED_SERVER==1
         if (strcmp(argv[i], "--ipv4") == 0 || strcmp(argv[i], "--ipv6") == 0)
         {
@@ -362,6 +383,11 @@ static void opt_quit(void)
 
 static void shot(void)
 {
+#if NB_HAVE_PB_BOTH==1
+    if (game_setup_process())
+        return;
+#endif
+
 #if NB_STEAM_API==0
     static char filename[MAXSTR];
 
@@ -597,11 +623,51 @@ static int process_link(const char *link)
                 if ((index = set_find(set_file)) >= 0)
                 {
                     log_printf("Found set with the given reference.\n");
-                    set_goto(index);
-                    load_title_background();
-                    game_kill_fade();
-                    goto_state(&st_start);
-                    processed = 1;
+
+                    int set_was_unlocked = 1;
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                    if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
+                    {
+                        /*
+                         * Couldn't link the level set, because there was enabled
+                         * with campaign only.
+                         */
+
+                        log_errorf("Processing set link is not available with campaign only.\n");
+                        set_was_unlocked = 0;
+                    }
+                    else
+                    {
+#ifndef SET_ALWAYS_UNLOCKED
+                        /*
+                         * In home and pro editions, level sets are locked and
+                         * couldn't link the level set, because there isn't
+                         * completed the game in the campaign mode.
+                         */
+
+                        set_was_unlocked = account_get_d(ACCOUNT_SET_UNLOCKS) > 0 &&
+                                           (server_policy_get_d(SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET) ||
+                                            campaign_career_unlocked())
+#if NB_STEAM_API == 0 && NB_EOS_SDK == 0
+                                        || config_cheat()
+#endif
+                                           ;
+#endif
+                    }
+#endif
+                    if (set_was_unlocked)
+                    {
+                        set_goto(index);
+                        load_title_background();
+                        game_kill_fade();
+                        goto_state(&st_start);
+                        processed = 1;
+                    }
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                    else if (!server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
+                        log_errorf("Complete the game in campaign mode to link the level set!\n");
+#endif
                 }
                 else if ((index = package_search(set_file)) >= 0)
                 {
@@ -634,8 +700,16 @@ static void refresh_packages_done(void *data, void *extra_data)
 /*
  * Start package refresh and go to given state when done.
  */
-static unsigned int main_preload(struct state *start_state)
+static void main_preload(struct state *start_state)
 {
+#if NB_HAVE_PB_BOTH==1
+    if (!check_game_setup())
+    {
+        goto_game_setup(start_state);
+        return;
+    }
+#endif
+
     struct fetch_callback callback = {0};
 
     callback.data = start_state;
@@ -994,24 +1068,7 @@ static void make_dirs_and_migrate(void)
     const char *src;
     char *dst;
 
-    if (fs_mkdir("Accounts"))
-    {
-        if ((items = fs_dir_scan("", is_account_file)))
-        {
-            for (i = 0; i < array_len(items); i++)
-            {
-                src = DIR_ITEM_GET(items, i)->path;
-                dst = concat_string("Accounts/",
-                                    src + sizeof ("neverballaccount-") - 1,
-                                    NULL);
-                fs_rename(src, dst);
-                free(dst);
-            }
-
-            fs_dir_free(items);
-        }
-    }
-
+    fs_mkdir("Accounts");
     fs_mkdir("Campaign");
 
     if (fs_mkdir("Replays"))
@@ -1187,7 +1244,9 @@ static int main_init(int argc, char *argv[])
     config_paths(opt_data);
     log_init("Neverball " VERSION, "neverball.log");
     config_log_userpath();
+#if NB_HAVE_PB_BOTH!=1
     make_dirs_and_migrate();
+#endif
 
     /* Initialize SDL. */
 
@@ -1443,6 +1502,8 @@ static void main_quit(void)
     set_quit();
 
     /* Free everything else. */
+
+    goto_state(&st_null);
 
     mtrl_quit ();
     video_quit();

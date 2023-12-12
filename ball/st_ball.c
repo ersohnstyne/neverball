@@ -355,12 +355,12 @@ static int ball_gui(void)
 #if NB_HAVE_PB_BOTH==1
 #ifndef __EMSCRIPTEN__
             if (current_platform == PLATFORM_PC)
-                gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+                gui_back_button(jd);
             else
 #endif
                 gui_filler(jd);
 #else
-            gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+            gui_back_button(jd);
 #endif
         }
 

@@ -15,11 +15,6 @@
 //#define ENABLE_AFFECT 1
 #define ENABLE_COMPASS 1 // Usable for campaign
 
-#if _WIN32 && __MINGW32__
-#include <SDL3/SDL.h>
-#else
-#include <SDL.h>
-#endif
 #include <math.h>
 #include <string.h>
 

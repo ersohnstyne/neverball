@@ -340,6 +340,9 @@ void video_quit(void)
 {
     if (context)
     {
+#ifdef __EMSCRIPTEN__
+        close_gl4es();
+#endif
         SDL_GL_DeleteContext(context);
         context = NULL;
     }
@@ -550,6 +553,9 @@ video_mode_reconf:
                 log_errorf("Buffers cannot be negative!\n");
 
                 if (context) {
+#ifdef __EMSCRIPTEN__
+                    close_gl4es();
+#endif
                     SDL_GL_DeleteContext(context);
                     context = NULL;
                 }
@@ -563,6 +569,9 @@ video_mode_reconf:
                 log_errorf("Samples cannot be negative!\n");
 
                 if (context) {
+#ifdef __EMSCRIPTEN__
+                    close_gl4es();
+#endif
                     SDL_GL_DeleteContext(context);
                     context = NULL;
                 }
@@ -579,6 +588,9 @@ video_mode_reconf:
 
             if (buf < buffers || smp < samples)
             {
+#ifdef __EMSCRIPTEN__
+                close_gl4es();
+#endif
                 log_errorf("GL context does not meet minimum specifications!\n");
                 SDL_GL_DeleteContext(context);
                 context = NULL;
@@ -950,6 +962,9 @@ video_mode_auto_config_reconf:
 
                 if (stn >= auto_stencils)
                 {
+#ifdef __EMSCRIPTEN__
+                    close_gl4es();
+#endif
                     SDL_GL_DeleteContext(context);
                     context = NULL;
                     config_set_d(CONFIG_REFLECTION, auto_stencils);
@@ -957,6 +972,9 @@ video_mode_auto_config_reconf:
                 }
                 else if (auto_stencils != 0)
                 {
+#ifdef __EMSCRIPTEN__
+                    close_gl4es();
+#endif
                     SDL_GL_DeleteContext(context);
                     context = NULL;
                     auto_stencils /= 2;
@@ -986,6 +1004,9 @@ video_mode_auto_config_reconf:
 
                 if (buf >= 1 && smp >= auto_samples)
                 {
+#ifdef __EMSCRIPTEN__
+                    close_gl4es();
+#endif
                     SDL_GL_DeleteContext(context);
                     context = NULL;
                     config_set_d(CONFIG_MULTISAMPLE, auto_samples);
@@ -993,6 +1014,9 @@ video_mode_auto_config_reconf:
                 }
                 else if (auto_samples != 0)
                 {
+#ifdef __EMSCRIPTEN__
+                    close_gl4es();
+#endif
                     SDL_GL_DeleteContext(context);
                     context = NULL;
                     auto_samples /= 2;
@@ -1029,6 +1053,9 @@ video_mode_auto_config_reconf:
 
             if (buf < (auto_samples > 0 ? 1 : 0) || smp < auto_samples)
             {
+#ifdef __EMSCRIPTEN__
+                close_gl4es();
+#endif
                 log_errorf("GL context does not meet minimum specifications!\n");
                 SDL_GL_DeleteContext(context);
                 context = NULL;

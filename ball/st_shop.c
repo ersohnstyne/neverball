@@ -275,7 +275,7 @@ static int shop_gui(void)
 #endif
             {
                 gui_space(jd);
-                gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+                gui_back_button(jd);
             }
         }
 
@@ -1091,7 +1091,7 @@ static int shop_iap_gui(void)
 #if !defined(__EMSCRIPTEN__)
             if (current_platform == PLATFORM_PC)
 #endif
-                gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+                gui_back_button(jd);
         }
 
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
@@ -1913,12 +1913,12 @@ static int shop_buy_gui(void)
                         if (current_platform == PLATFORM_PC)
 #endif
                         {
-                            gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+                            gui_back_button(jd);
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
                             getcoins_id = gui_state(jd, _("Get gems!"),
                                                         GUI_SML, SHOP_BUY_IAP, 0);
 #endif
-                            gui_state(jd, _("Raise gems"), 
+                            gui_start(jd, _("Raise gems"), 
                                           GUI_SML, SHOP_BUY_RAISEGEMS, 0);
                         }
 #if !defined(__EMSCRIPTEN__)
@@ -1969,8 +1969,8 @@ static int shop_buy_gui(void)
                     if (current_platform == PLATFORM_PC)
 #endif
                     {
-                        gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
-                        getcoins_id = gui_state(jd, _("Get coins!"), GUI_SML, SHOP_BUY_IAP, 0);
+                        gui_back_button(jd);
+                        getcoins_id = gui_start(jd, _("Get coins!"), GUI_SML, SHOP_BUY_IAP, 0);
                     }
 #if !defined(__EMSCRIPTEN__)
                     else

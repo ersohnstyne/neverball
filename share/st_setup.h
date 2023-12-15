@@ -12,15 +12,16 @@
  * General Public License for more details.
  */
 
-#ifndef ST_BALL_H
-#define ST_BALL_H
+#ifndef ST_SETUP_H
+#define ST_SETUP_H
 
-#include "state.h"
+int goto_game_setup(struct state *start_state,
+                    int (*new_goto_name_fn) (struct state *,
+                                             int         (*new_finish_fn) (struct state *)),
+                    int (*new_goto_ball_fn) (struct state *));
+int goto_game_setup_finish(struct state *);
+int check_game_setup(void);
 
-extern struct state st_ball;
-
-#if NB_HAVE_PB_BOTH==1
-int goto_ball_setup(struct state *finish);
-#endif
+int game_setup_process(void);
 
 #endif

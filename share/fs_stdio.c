@@ -458,6 +458,23 @@ fs_file fs_open_read(const char *path)
 {
     fs_file fh;
 
+    char parsed_path[MAXSTR];
+    SAFECPY(parsed_path, path);
+
+    for (int i = 0; i < strlen(path); i++)
+    {
+        if (!parsed_path[i])
+            continue;
+
+#if _WIN32
+        if (parsed_path[i] == '/')
+            parsed_path[i] = '\\';
+#else
+        if (parsed_path[i] == '\\')
+            parsed_path[i] = '/';
+#endif
+    }
+
     if ((fh = (fs_file) calloc(1, sizeof (*fh))))
     {
         int opened = 0;
@@ -469,7 +486,7 @@ fs_file fs_open_read(const char *path)
 
             if (path_item->type == FS_PATH_DIRECTORY)
             {
-                char *real = path_join(path_item->path, path);
+                char *real = path_join(path_item->path, parsed_path);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 if ((fopen_s(&fh->handle, real, "rb")) == 0)
@@ -488,7 +505,7 @@ fs_file fs_open_read(const char *path)
                 mz_zip_archive *zip = (mz_zip_archive *) path_item->data;
 
                 fh->zip_file_data = mz_zip_reader_extract_file_to_heap(zip,
-                                                                       path,
+                                                                       parsed_path,
                                                                        &fh->zip_file_size,
                                                                        0);
 
@@ -514,13 +531,30 @@ static fs_file fs_open_write_flags(const char *path, int append)
 {
     fs_file fh = NULL;
 
-    if (fs_dir_write && path && *path)
+    char parsed_path[MAXSTR];
+    SAFECPY(parsed_path, path);
+
+    for (int i = 0; i < strlen(path); i++)
+    {
+        if (!parsed_path[i])
+            continue;
+
+#if _WIN32
+        if (parsed_path[i] == '/')
+            parsed_path[i] = '\\';
+#else
+        if (parsed_path[i] == '\\')
+            parsed_path[i] = '/';
+#endif
+    }
+
+    if (fs_dir_write && parsed_path && *parsed_path)
     {
         if ((fh = (fs_file) calloc(1, sizeof (*fh))))
         {
             char *real;
 
-            if ((real = path_join(fs_dir_write, path)))
+            if ((real = path_join(fs_dir_write, parsed_path)))
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 fopen_s(&fh->handle, real, append ? "ab" : "wb");
@@ -589,9 +623,26 @@ int fs_mkdir(const char *path)
 {
     int success = 0;
 
+    char parsed_path[MAXSTR];
+    SAFECPY(parsed_path, path);
+
+    for (int i = 0; i < strlen(path); i++)
+    {
+        if (!parsed_path[i])
+            continue;
+
+#if _WIN32
+        if (parsed_path[i] == '/')
+            parsed_path[i] = '\\';
+#else
+        if (parsed_path[i] == '\\')
+            parsed_path[i] = '/';
+#endif
+    }
+
     if (fs_dir_write)
     {
-        char *real = path_join(fs_dir_write, path);
+        char *real = path_join(fs_dir_write, parsed_path);
         success = dir_make(real) == 0;
         free((void *) real);
     }
@@ -601,8 +652,25 @@ int fs_mkdir(const char *path)
 
 int fs_exists(const char *path)
 {
+    char parsed_path[MAXSTR];
+    SAFECPY(parsed_path, path);
+
+    for (int i = 0; i < strlen(path); i++)
+    {
+        if (!parsed_path[i])
+            continue;
+
+#if _WIN32
+        if (parsed_path[i] == '/')
+            parsed_path[i] = '\\';
+#else
+        if (parsed_path[i] == '\\')
+            parsed_path[i] = '/';
+#endif
+    }
+
 #if _MSC_VER
-    DWORD file_attr = GetFileAttributesA(path);
+    DWORD file_attr = GetFileAttributesA(parsed_path);
 
     if (!(file_attr & FILE_ATTRIBUTE_OFFLINE             ||
           file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
@@ -614,7 +682,7 @@ int fs_exists(const char *path)
 
     if (fs_dir_write)
     {
-        char *real = path_join(fs_dir_write, path);
+        char *real = path_join(fs_dir_write, parsed_path);
 
         DWORD file_attr = GetFileAttributesA(real);
         free(real);
@@ -637,7 +705,7 @@ int fs_exists(const char *path)
         if (path_item->type == FS_PATH_DIRECTORY ||
             path_item->type == FS_PATH_ZIP)
         {
-            char *real = path_join(path_item->path, path);
+            char *real = path_join(path_item->path, parsed_path);
 
             DWORD file_attr = GetFileAttributesA(real);
             free(real);
@@ -654,7 +722,7 @@ int fs_exists(const char *path)
 
     return 0;
 #else
-    return (access(path, F_OK) == 0);
+    return (access(parsed_path, F_OK) == 0);
 #endif
 }
 
@@ -662,18 +730,35 @@ int fs_recycle(const char *path)
 {
     int success = 0;
 
+    char parsed_path[MAXSTR];
+    SAFECPY(parsed_path, path);
+
+    for (int i = 0; i < strlen(path); i++)
+    {
+        if (!parsed_path[i])
+            continue;
+
+#if _WIN32
+        if (parsed_path[i] == '/')
+            parsed_path[i] = '\\';
+#else
+        if (parsed_path[i] == '\\')
+            parsed_path[i] = '/';
+#endif
+    }
+
 #if _WIN32 && _MSC_VER
     if (fs_dir_write)
     {
-        char *real = path_join(fs_dir_write, path);
+        char *real = path_join(fs_dir_write, parsed_path);
 
         // Windows makes to move this file to recycle bin.
 
         SHFILEOPSTRUCTA operation = {0};
-        operation.hwnd = NULL;
+        operation.hwnd  = NULL;
         operation.wFunc = FO_DELETE;
         operation.pFrom = real;
-        operation.pTo = NULL;
+        operation.pTo   = NULL;
 
         operation.fFlags = FOF_ALLOWUNDO | FOF_NOERRORUI | FOF_NOCONFIRMATION | FOF_SILENT;
 
@@ -698,7 +783,24 @@ int fs_remove(const char *path)
 {
     int success = 0;
 
-    if (fs_recycle(path))
+    char parsed_path[MAXSTR];
+    SAFECPY(parsed_path, path);
+
+    for (int i = 0; i < strlen(path); i++)
+    {
+        if (!parsed_path[i])
+            continue;
+
+#if _WIN32
+        if (parsed_path[i] == '/')
+            parsed_path[i] = '\\';
+#else
+        if (parsed_path[i] == '\\')
+            parsed_path[i] = '/';
+#endif
+    }
+
+    if (fs_recycle(parsed_path))
         return 1;
 
     if (fs_dir_write)

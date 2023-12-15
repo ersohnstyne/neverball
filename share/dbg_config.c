@@ -16,12 +16,6 @@
  * Used with c++ signal protection from events.
  */
 
-#if _WIN32 && !_MSC_VER
-#include <SDL3/SDL.h>
-#else
-#include <SDL.h>
-#endif
-
 #include "log.h"
 
 #include "dbg_config.h"

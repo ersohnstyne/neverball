@@ -60,7 +60,8 @@ extern "C" {
 
 #if ENABLE_NLS==1
 #if NLS_GETTEXT!=1
-#error Complete the compiled source code by using -DNLS_GETTEXT=1
+#error Security compilation error: Complete the compiled source code \
+       using -DNLS_GETTEXT=1
 #endif
 #endif
 

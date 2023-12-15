@@ -24,4 +24,7 @@ int goto_name(struct state *ok, struct state *cancel,
               int (*new_cancel_fn) (struct state *),
               unsigned int back);
 
+int goto_name_setup(struct state *finish,
+                    int (*new_finish_fn) (struct state *));
+
 #endif

@@ -73,19 +73,19 @@ static int   package_curr_category = PACKAGE_CATEGORY_LEVELSET;
 // TODO: Change the Google Drive package file ID preprocessor definitions
 
 #ifndef NB_GDRIVE_PACKAGE_FILEID_COURSE
-#error Must specify course file ID from the Google Drive website.
+#error Security compilation error: Must specify course file ID from the Google Drive website.
 #endif
 
 #ifndef NB_GDRIVE_PACKAGE_FILEID_BALL
-#error Must specify ball file ID from the Google Drive website.
+#error Security compilation error: Must specify ball file ID from the Google Drive website.
 #endif
 
 #ifndef NB_GDRIVE_PACKAGE_FILEID_LEVELSET
-#error Must specify level set file ID from the Google Drive website.
+#error Security compilation error: Must specify level set file ID from the Google Drive website.
 #endif
 
 #ifndef NB_GDRIVE_PACKAGE_FILEID_CAMPAIGN
-#error Must specify campaign file ID from the Google Drive website.
+#error Security compilation error: Must specify campaign file ID from the Google Drive website.
 #endif
 
 #endif
@@ -837,7 +837,6 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
             free_pli(&pli);
             callback.data = NULL;
         }
-        return;
     }
     else if (filename && category == PACKAGE_CATEGORY_LEVELSET
           && NB_GDRIVE_PACKAGE_FILEID_LEVELSET[0])
@@ -858,7 +857,6 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
             free_pli(&pli);
             callback.data = NULL;
         }
-        return;
     }
     else if (filename && category == PACKAGE_CATEGORY_PROFILE
           && NB_GDRIVE_PACKAGE_FILEID_BALL[0])
@@ -879,7 +877,6 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
             free_pli(&pli);
             callback.data = NULL;
         }
-        return;
     }
     else if (filename && category == PACKAGE_CATEGORY_COURSE
           && NB_GDRIVE_PACKAGE_FILEID_COURSE[0])
@@ -900,10 +897,11 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
             free_pli(&pli);
             callback.data = NULL;
         }
-        return;
     }
+
+    if (fetch_id) return fetch_id;
 #endif
-    
+
 #if NB_HAVE_PB_BOTH!=1 || ENABLE_FETCH<3
 #ifdef __EMSCRIPTEN__
     const char *url = get_package_url("available-packages-emscripten.txt",
@@ -1283,9 +1281,9 @@ unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
                     pfi = NULL;
                     callback.data = NULL;
                 }
+            }
 
-                return fetch_id;
-    }
+            if (fetch_id) return fetch_id;
 #endif
 
 #if NB_HAVE_PB_BOTH!=1 || ENABLE_FETCH<3

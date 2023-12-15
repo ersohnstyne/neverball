@@ -565,16 +565,18 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
                 {
                     game_client_toggle_show_balls(1);
 
-                    /*if (g)
+                    /*
+                    if (g)
                         audio_music_fade_to(0.5f, BGM_TITLE_MAP(level.song));
                     else
                     {
                         union cmd cmd;
                         cmd.type = CMD_GOAL_OPEN;
                         game_proxy_enq(&cmd);
-                    }*/
+                    }
+                    */
 
-                    if (g)
+                    if (g && s && tt)
                         audio_music_fade_to(0.5f, BGM_TITLE_MAP(level.song));
 
                     demo_update_read(0);

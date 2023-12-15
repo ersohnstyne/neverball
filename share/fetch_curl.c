@@ -439,9 +439,9 @@ static void fetch_step(void)
 
                         if (fe)
                         {
-                            fe->callback = fi->callback.done;
+                            fe->callback      = fi->callback.done;
                             fe->callback_data = fi->callback.data;
-                            fe->extra_data = create_extra_done(finished);
+                            fe->extra_data    = create_extra_done(finished);
 
                             fetch_dispatch_event(fe);
                         }
@@ -851,11 +851,7 @@ unsigned int fetch_url(const char *url,
             curl_easy_setopt(handle, CURLOPT_NOPROGRESS,       0);
 
             curl_easy_setopt(handle, CURLOPT_BUFFERSIZE,      102400L);
-#if NB_HAVE_PB_BOTH==1
-            curl_easy_setopt(handle, CURLOPT_USERAGENT,       "pennyball/" VERSION);
-#else
             curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
-#endif
             curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
             curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION,  1);
 
@@ -933,7 +929,6 @@ unsigned int fetch_gdrive(const char *fileid,
             curl_easy_setopt(handle, CURLOPT_NOPROGRESS,       0);
 
             curl_easy_setopt(handle, CURLOPT_BUFFERSIZE,      102400L);
-            //curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
             curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
             curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION,  1);
 

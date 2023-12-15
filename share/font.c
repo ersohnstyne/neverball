@@ -15,14 +15,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if _WIN32 && __MINGW32__
-#include <SDL3/SDL_ttf.h>
-#include <SDL3/SDL_rwops.h>
-#else
-#include <SDL_ttf.h>
-#include <SDL_rwops.h>
-#endif
-
 #if _MSC_VER
 #pragma comment(lib, "SDL2_ttf.lib")
 #endif

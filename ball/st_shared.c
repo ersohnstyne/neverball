@@ -12,11 +12,17 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#if NB_HAVE_PB_BOTH==1
+#ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
+#endif
 #include "account.h"
+#include "campaign.h"
 #endif
 
+#include "set.h"
+#include "demo.h"
+#include "progress.h"
 #include "gui.h"
 #include "config.h"
 #include "audio.h"
@@ -25,11 +31,30 @@
 #include "game_server.h"
 #include "game_client.h"
 
+#include "st_common.h"
+
 #include "st_shared.h"
 
 void shared_leave(struct state *st, struct state *next, int id)
 {
     gui_delete(id);
+
+    if (next == &st_null)
+    {
+        /* Clear all memory leaks before quitting the game! */
+
+        progress_stop();
+        demo_replay_stop(0);
+
+#if NB_HAVE_PB_BOTH==1
+        progress_exit();
+        campaign_quit();
+#endif
+        set_quit();
+
+        game_server_free(NULL);
+        game_client_free(NULL);
+    }
 }
 
 void shared_paint(int id, float t)

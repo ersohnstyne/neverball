@@ -1,4 +1,14 @@
 -------------------------------------------------------------------------------
+New in 2.1.1
+
+* Changed policy: Even more security compilations for Windows, which prevents
+  CodeBlocks, Cygwin, GnuC, MinGW, MSYS2 and other compilation terminal.
+* New: Game setup can be used directly from In-Game, whenever user data folder
+  wasn't prepared or is deleted.
+* Update: Neverball game icon changed, this game icon does not provided with.
+* Bugfix: Fixed a bug that memory usage was leaked after quit the game.
+
+-------------------------------------------------------------------------------
 New in 2.1
 There was huge cosmic changes in this version!:
 

@@ -40,6 +40,8 @@
 
 #include "st_name.h"
 #include "st_shared.h"
+#include "st_common.h"
+#include "st_setup.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -65,6 +67,20 @@ int goto_name(struct state *ok, struct state *cancel,
     cancel_fn = new_cancel_fn;
 
     draw_back = back;
+
+    return goto_state(&st_name);
+}
+
+int goto_name_setup(struct state* finish,
+                    int (*new_finish_fn) (struct state *))
+{
+    ok_state     = finish;
+    cancel_state = &st_null;
+
+    ok_fn     = new_finish_fn;
+    cancel_fn = 0;
+
+    draw_back = 1;
 
     return goto_state(&st_name);
 }
@@ -116,6 +132,12 @@ static void name_update_enter_btn(void)
 
 static int name_action(int tok, int val)
 {
+    if (game_setup_process() && tok == GUI_BACK)
+    {
+        audio_play(AUD_DISABLED, 1.f);
+        return 1;
+    }
+
     GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
@@ -153,7 +175,7 @@ static int name_action(int tok, int val)
                 account_save();
 
                 config_set_s(CONFIG_PLAYER, text_input);
-            
+
                 account_init();
                 if (text_length(text_input) < 3)
                     name_error = 1;
@@ -233,18 +255,27 @@ static int name_gui(void)
             if ((jd = gui_harray(id)))
             {
                 enter_id = gui_start(jd, _("OK"), GUI_SML, NAME_OK, 0);
+                
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-                if (current_platform == PLATFORM_PC)
+                if (current_platform == PLATFORM_PC && !game_setup_process())
 #endif
                 {
                     gui_space(jd);
                     gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
                 }
+#if NB_HAVE_PB_BOTH==1
+                else
+                {
+                    gui_space(jd);
+                    gui_space(jd);
+                }
+#endif
             }
-
 
             gui_set_trunc(name_id, TRUNC_HEAD);
             gui_set_label(name_id, text_input);
+
+            name_update_enter_btn();
         }
         else
         {
@@ -324,9 +355,7 @@ static void name_paint(int id, float t)
     if (draw_back)
     {
         video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-        {
-            back_draw_easy();
-        }
+        back_draw_easy();
         video_pop_matrix();
     }
     else

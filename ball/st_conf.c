@@ -60,6 +60,14 @@
 #include "st_transfer.h"
 #endif
 
+#if NB_HAVE_PB_BOTH!=1 && \
+    (defined(ENABLE_GAME_TRANSFER) || defined(GAME_TRANSFER_TARGET))
+#error Security compilation error: Preprocessor definitions can be used it, \
+       once you've transferred or joined into the target Discord Server, \
+       and verified and promoted as Developer Role. \
+       This invite link can be found under https://discord.gg/qnJR263Hm2/.
+#endif
+
 extern const char TITLE[];
 extern const char ICON[];
 
@@ -109,16 +117,6 @@ static int conf_check_playername(const char *regname)
     }
 
     return text_length(config_get_s(CONFIG_PLAYER)) >= 3;
-}
-
-static void conf_shared_exit(int id)
-{
-    if (!mainmenu_conf)
-    {
-        progress_stat(GAME_NONE);
-        progress_stop();
-        progress_exit();
-    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2122,7 +2120,6 @@ static int conf_audio_gui(void)
         int narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
 
 #if NB_HAVE_PB_BOTH==1
-
 #ifdef SWITCHBALL_GUI
         master_id = conf_slider_v2(id, _("Master Volume"), CONF_AUDIO_MASTER_VOLUME,
                                        master);
@@ -2679,7 +2676,6 @@ struct state st_conf_covid_extend = {
     NULL,
     NULL,
     NULL,
-    conf_shared_exit,
 };
 
 struct state st_conf_account = {
@@ -2696,7 +2692,6 @@ struct state st_conf_account = {
     NULL,
     NULL,
     NULL,
-    conf_shared_exit,
 };
 
 struct state st_conf_social = {
@@ -2713,7 +2708,6 @@ struct state st_conf_social = {
     NULL,
     NULL,
     NULL,
-    conf_shared_exit,
 };
 
 struct state st_conf_notification = {
@@ -2730,7 +2724,6 @@ struct state st_conf_notification = {
     NULL,
     NULL,
     NULL,
-    conf_shared_exit,
 };
 
 struct state st_conf_control = {
@@ -2747,7 +2740,6 @@ struct state st_conf_control = {
     NULL,
     NULL,
     NULL,
-    conf_shared_exit,
 };
 
 struct state st_conf_calibrate = {
@@ -2764,7 +2756,6 @@ struct state st_conf_calibrate = {
     NULL,
     NULL,
     NULL,
-    conf_shared_exit,
 };
 
 struct state st_conf_controllers = {
@@ -2781,7 +2772,6 @@ struct state st_conf_controllers = {
     NULL,
     NULL,
     NULL,
-    conf_shared_exit,
 };
 
 struct state st_conf_audio = {
@@ -2798,7 +2788,6 @@ struct state st_conf_audio = {
     NULL,
     NULL,
     NULL,
-    conf_shared_exit,
 };
 
 struct state st_conf = {
@@ -2815,7 +2804,6 @@ struct state st_conf = {
     NULL,
     NULL,
     NULL,
-    conf_shared_exit,
 };
 
 struct state st_null = {
@@ -2832,5 +2820,4 @@ struct state st_null = {
     NULL,
     NULL,
     NULL,
-    conf_shared_exit,
 };

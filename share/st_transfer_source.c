@@ -585,8 +585,7 @@ static int transfer_action(int tok, int val)
     else if (show_transfer_completed)
     {
         if (tok == GUI_NEXT)
-            goto_state(&st_null);
-        return 0;
+            return 0; /* bye! */
     }
     else if (!show_preparations && !show_transfer)
     {

@@ -32,15 +32,38 @@
 #include <stdarg.h>
 #include "fs.h"
 
+/* Neverball Security Code Compilations */
+
+#ifndef NB_HAVE_PB_BOTH
+/*
+ * Edit it via the project's properties and set this to either 1 or 0,
+ * if you're member of PB+NB.
+ *
+ *     0 = NB only
+ *     1 = PB+NB
+ *
+ * If you're not sure, request it's developer to activate!
+ */
+#define NB_HAVE_PB_BOTH -1
+#elif _WIN32 && defined(NB_HAVE_PB_BOTH) && !defined(_MSC_VER)
+#error Security compilation error: Do not compile with "NB_HAVE_PB_BOTH" directly, \
+       compile with Project solution or MSBuild only!
+#endif
+
+#if NB_HAVE_PB_BOTH!=0 && NB_HAVE_PB_BOTH!=1
+#error Security compilation error: NB_HAVE_PB_BOTH must be set with \
+       either 1 or 0 in the project's properties!
+#endif
+
 /* Neverball Platform API */
 
-#define NEVERBALL_PC_FAMILY_API 0
-#define NEVERBALL_XBOX_FAMILY_API 1
-#define NEVERBALL_XBOX_360_FAMILY_API 2
-#define NEVERBALL_PS_FAMILY_API 3
+#define NEVERBALL_PC_FAMILY_API        0
+#define NEVERBALL_XBOX_FAMILY_API      1
+#define NEVERBALL_XBOX_360_FAMILY_API  2
+#define NEVERBALL_PS_FAMILY_API        3
 #define NEVERBALL_STEAMDECK_FAMILY_API 4
-#define NEVERBALL_SWITCH_FAMILY_API 5
-#define NEVERBALL_HANDSET_FAMILY_API 6
+#define NEVERBALL_SWITCH_FAMILY_API    5
+#define NEVERBALL_HANDSET_FAMILY_API   6
 
 #if _WIN32
 //#define NEVERBALL_FAMILY_API NEVERBALL_PC_FAMILY_API

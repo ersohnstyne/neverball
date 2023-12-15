@@ -25,17 +25,17 @@
 #include <sys/stat.h>
 #if _WIN32
 #if !defined(_MSC_VER)
-#error This was already done with GetFileAttributesA or using OpenDriveAPI. \
+#error Security compilation error: This was already done with GetFileAttributesA \
+       or using OpenDriveAPI. \
        Install Visual Studio 2022 Community or later version to build it there. \
-       === OR === \
-       Download using the OpenDriveAPI project: \
+       Or download the OpenDriveAPI project: \
        https://1drv.ms/u/s!Airrmyu6L5eynGj7HtYcQU_0ERtA?e=9XU5Zp
 #else
 #pragma message("Using directory list for code compilation: Microsoft Visual Studio")
 #endif
 #else
 /*
- * Relying on MinGW to provide, that uses from GetFileAttributes.
+ * Relying on MinGW to provide, that uses from GetFileAttributes() (Windows.h).
  */
 #include <unistd.h>   /* access() */
 #endif

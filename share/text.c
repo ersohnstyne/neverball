@@ -12,12 +12,6 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __MINGW32__
-#include <SDL3/SDL.h>
-#else
-#include <SDL.h>
-#endif
-
 #include <string.h>
 
 #include "common.h"
@@ -25,7 +19,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-int text_add_char(Uint32 unicode, char *string, int maxbytes)
+int text_add_char(unsigned int unicode, char *string, int maxbytes)
 {
     size_t pos = strlen(string);
     int l;

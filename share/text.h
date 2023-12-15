@@ -15,19 +15,13 @@
 #ifndef TEXT_H
 #define TEXT_H
 
-#if _WIN32 && __MINGW32__
-#include <SDL3/SDL.h>
-#else
-#include <SDL.h>
-#endif
-
 #ifndef MAXSTR
 #define MAXSTR MAX_STR_BLOCKREASON
 #endif
 
 /*---------------------------------------------------------------------------*/
 
-int text_add_char(Uint32, char *, int);
+int text_add_char(unsigned int, char *, int);
 int text_del_char(char *);
 int text_length(const char *);
 

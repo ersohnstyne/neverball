@@ -504,11 +504,9 @@ static int set_enter(struct state *st, struct state *prev)
 static void set_leave(struct state *st, struct state *next, int id)
 {
     if (next == &st_set || next == &st_start
-#if NB_HAVE_PB_BOTH==1
-        || next == &st_start_compat
-#endif
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        || next == &st_levelgroup
+#if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
+     || next == &st_start_compat
+     || next == &st_levelgroup
 #endif
         )
         do_init = 1;
@@ -587,9 +585,6 @@ static int set_keybd(int c, int d)
 
         if (c == KEY_LOOKAROUND)
         {
-#ifndef NDEBUG
-            log_printf("Attempt to reload level set list.\n");
-#endif
             set_manual_hotreload = 1;
             return goto_state(&st_set);
         }
@@ -620,7 +615,7 @@ static int set_buttn(int b, int d)
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
 #ifndef MAPC_INCLUDES_CHKP
-#error Campaign is added, but requires Checkpoints!
+#error Security compilation error: Campaign is added, but requires Checkpoints!
 #endif
 
 int campaign_rank_btn_id;
@@ -651,7 +646,7 @@ const char campaign_rank_desc[][MAXSTR] = {
     N_("Achieve most gold medals to rank up"),
     N_("Complete first 12 levels and\n"
        "achieve all gold medals to get elite"),
-    N_("All gold medals obtained")
+    N_("Be best of best!")
 };
 
 int campaign_level_unlocks[] = {
@@ -826,6 +821,7 @@ static int campaign_gui(void)
                                   ww, hh);
                     gui_filler(kd);
                 }
+
                 gui_label(jd, _(campaign_ranks[campaign_rank()].text_rank),
                               GUI_SML, gui_wht, campaign_ranks[campaign_rank()].col_rank);
                 gui_multi(jd, _(campaign_rank_desc[campaign_rank()]),
@@ -874,6 +870,7 @@ static int campaign_gui(void)
         if ((kd = gui_hstack(id)))
         {
             gui_filler(kd);
+
             /* Arrows are very tricky. But now, in REVERSE! */
 #ifndef __EMSCRIPTEN__
             if (!campaign_theme_used() && current_platform == PLATFORM_PC)
@@ -898,6 +895,7 @@ static int campaign_gui(void)
                     if ((md = gui_hstack(ld)))
                     {
                         gui_filler(md);
+
                         if ((nd = gui_vstack(md)))
                         {
                             const int ww = 3 * MIN(w, h) / 6;
@@ -920,6 +918,7 @@ static int campaign_gui(void)
                         }
                         gui_filler(md);
                     }
+
                     gui_filler(ld); campaign_theme_btn_id = ld;
                     gui_set_state(campaign_theme_btn_id,
                                   campaign_level_unlocks[campaign_theme_index] > 0 ?
@@ -937,6 +936,7 @@ static int campaign_gui(void)
                                       ww, hh);
                         gui_filler(md);
                     }
+
                     gui_space(ld);
 
                     if ((md = gui_harray(ld)))

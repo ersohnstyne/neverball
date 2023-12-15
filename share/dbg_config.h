@@ -35,64 +35,64 @@
 #ifndef SIGHUP
 #define SIGHUP   1 // Hangup detected on controlling terminal or death of controlling process
 #elif SIGHUP!=1
-#error SIGHUP does not equal 1 except POSIX!
+#error Security compilation error: SIGHUP does not equal 1 except POSIX!
 #endif
 #ifndef SIGINT
 #define SIGINT   2 // Interrupt from keyboard
 #elif SIGINT!=2
-#error SIGINT does not equal 2!
+#error Security compilation error: SIGINT does not equal 2!
 #endif
 #ifndef SIGQUIT
 #define SIGQUIT  3 // Quit from keyboard
 #elif SIGQUIT!=3
-#error SIGQUIT does not equal 3 except POSIX!
+#error Security compilation error: SIGQUIT does not equal 3 except POSIX!
 #endif
 #ifndef SIGILL
 #define SIGILL   4 // illegal instruction - invalid function image
 #elif SIGILL!=4
-#error SIGILL does not equal 4!
+#error Security compilation error: SIGILL does not equal 4!
 #endif
 #ifndef SIGTRAP
 #define SIGTRAP  5 // Trace/breakpoint trap
 #elif SIGTRAP!=5
-#error SIGTRAP does not equal 5 except POSIX!
+#error Security compilation error: SIGTRAP does not equal 5 except POSIX!
 #endif
 #ifndef SIGBUS
 #define SIGBUS   7 // Bus error (bad memory access)
 #elif SIGBUS!=7
-#error SIGBUS does not equal 7 except POSIX!
+#error Security compilation error: SIGBUS does not equal 7 except POSIX!
 #endif
 #ifndef SIGFPE
 #define SIGFPE   8 // Floating-point exception
 #elif SIGFPE!=8
-#error SIGFPE does not equal 8!
+#error Security compilation error: SIGFPE does not equal 8!
 #endif
 #ifndef SIGKILL
 #define SIGKILL  9 // Kill signal
 #elif SIGKILL!=9
-#error SIGKILL does not equal 9 except POSIX!
+#error Security compilation error: SIGKILL does not equal 9 except POSIX!
 #endif
 #ifndef SIGSEGV
 #define SIGSEGV  11 // invalid memory reference - segment violation
 #elif SIGSEGV!=11
-#error SIGKILL does not equal 11 except MSVC!
+#error Security compilation error: SIGKILL does not equal 11 except MSVC!
 #endif
 #ifndef SIGTERM
 #define SIGTERM  15 // Software termination signal from kill
 #elif SIGTERM!=15
-#error SIGTERM does not equal 15 except MSVC!
+#error Security compilation error: SIGTERM does not equal 15 except MSVC!
 #endif
 
 #ifdef _WIN32
 #ifndef SIGBREAK
 #define SIGBREAK 21 // Ctrl-Break sequence
 #elif SIGBREAK!=21
-#error SIGBREAK does not equal 21 except MSVC!
+#error Security compilation error: SIGBREAK does not equal 21 except MSVC!
 #endif
 #ifndef SIGABRT
 #define SIGABRT  22 // abnormal termination triggered by abort call
 #elif SIGABRT!=22
-#error SIGABRT does not equal 22 except MSVC!
+#error Security compilation error: SIGABRT does not equal 22 except MSVC!
 #endif
 #endif
 

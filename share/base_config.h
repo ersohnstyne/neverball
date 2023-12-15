@@ -95,18 +95,18 @@
 
 #if !defined(MAX_STR_BLOCKREASON)
 #if _WIN32 && !_MSC_VER
-#error This preprocessor is superceded with WinUser.h include headers. \
-       Consider using MAX_STR_BLOCKREASON from Windows.h with IDE \
-       or build tools for Microsoft Visual Studio Community instead.
+#error Security compilation error: This preprocessor is superceded with \
+       WinUser.h include headers. Consider using MAX_PATH from Windows.h \
+       with IDE or build tools for Microsoft Visual Studio Community instead.
 #endif
 #define MAX_STR_BLOCKREASON 256
 #endif
 
 #if !defined(MAX_PATH)
 #if _WIN32 && !_MSC_VER
-#error This preprocessor is superceded with minwindef.h include headers. \
-       Consider using MAX_PATH from Windows.h with IDE or build tools \
-       for Microsoft Visual Studio Community instead.
+#error Security compilation error: This preprocessor is superceded with \
+       minwindef.h include headers. Consider using MAX_PATH from Windows.h \
+       with IDE or build tools for Microsoft Visual Studio Community instead.
 #endif
 #define MAX_PATH 260
 #endif

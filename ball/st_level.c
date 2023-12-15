@@ -66,6 +66,13 @@
 #endif
 #include "st_name.h"
 
+#if NB_HAVE_PB_BOTH!=1 && (defined(CONFIG_INCLUDES_ACCOUNT) || defined(MAPC_INCLUDES_CHKP))
+#error Security compilation error: Preprocessor definitions can be used it, \
+       once you've transferred or joined into the target Discord Server, \
+       and verified and promoted as Developer Role. \
+       This invite link can be found under https://discord.gg/qnJR263Hm2/.
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 struct state st_poser;

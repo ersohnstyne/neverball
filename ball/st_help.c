@@ -48,6 +48,15 @@
 #define SWITCHBALL_HELP
 #endif
 
+#if NB_HAVE_PB_BOTH!=1 && \
+    (defined(SWITCHBALL_GUI) || defined(SWITCHBALL_HELP) || \
+     defined(LEVELGROUPS_INCLUDES_CAMPAIGN) || defined(CONFIG_INCLUDES_ACCOUNT))
+#error Security compilation error: Preprocessor definitions can be used it, \
+       once you've transferred or joined into the target Discord Server, \
+       and verified and promoted as Developer Role. \
+       This invite link can be found under https://discord.gg/qnJR263Hm2/.
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 struct state st_help_demo;
@@ -131,12 +140,13 @@ static int help_action(int tok, int val)
         case HELP_DEMO:
             progress_init(MODE_NONE);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (demo_replay_init(current_platform == PLATFORM_PC ?
-                                 demos[val] : demos_xbox[val],
+            if (progress_replay_full(current_platform == PLATFORM_PC ?
+                               demos[val] : demos_xbox[val],
 #else
-            if (demo_replay_init(demos[val],
+            if (progress_replay_full(demos[val],
 #endif
-                                 NULL, NULL, NULL, NULL, NULL, NULL))
+                                     0, 0, 0, 0, 0, 0))
+
                 return goto_state(&st_help_demo);
             break;
 
@@ -174,12 +184,13 @@ static int help_action(int tok, int val)
 
         case HELP_DEMO:
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (demo_replay_init(current_platform == PLATFORM_PC ?
-                             demos[val] : demos_xbox[val],
+            if (progress_replay_full(current_platform == PLATFORM_PC ?
+                                     demos[val] : demos_xbox[val],
 #else
-            if (demo_replay_init(demos[val],
+            if (progress_replay_full(demos[val],
 #endif
-                NULL, NULL, NULL, NULL, NULL, NULL))
+                                     0, 0, 0, 0, 0, 0))
+
                 return goto_state(&st_help_demo);
                 break;
 

@@ -19,7 +19,7 @@
 //#define COVID_HIGH_RISK
 
 /*
- * Some exceeded level status limits restrict replays.
+ * Some filter limits restrict replays with exceeded level status.
  */
 #define DEMO_QUARANTINED_MODE
 

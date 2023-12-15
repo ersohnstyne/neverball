@@ -25,7 +25,7 @@
 #if ENABLE_DEDICATED_SERVER==1
 #if _WIN32
 #if !_MSC_VER
-#error Use the combined library, \
+#error Security compilation error: Use the combined library, \
        that you've compiled from Microsoft Visual Studio!
 #else
 #pragma message("Neverball Dedicated Network for Microsoft Visual Studio")
@@ -34,7 +34,7 @@
 
 #pragma comment(lib, "ws2_32.lib")
 #else
-#error Dedicated networks requires Windows x86 or x64!
+#error Security compilation error: Dedicated networks requires Windows x86 or x64!
 #endif
 #endif
 
@@ -265,7 +265,7 @@ static int authenticate_networking()
     char net_ipv4[MAXSTR];
     SAFECPY(net_ipv4, CLIENT_IPADDR);
 #endif
-    
+
     if (PBNetwork_Connect(net_ipv4, net_port) == 1)
     {
         Sleep(1000);
@@ -275,7 +275,7 @@ static int authenticate_networking()
 
         connected = 1;
     }
-    
+
     if (PBNetwork_IsConnected() == 0)
     {
         log_errorf("Can't connect to server: %s:%d",

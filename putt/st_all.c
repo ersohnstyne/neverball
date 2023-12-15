@@ -276,6 +276,9 @@ static int player_ranks(const char  *title,
 static void shared_leave(struct state *st, struct state *next, int id)
 {
     gui_delete(id);
+
+    if (next == &st_null)
+        course_free();
 }
 
 static void shared_timer(int id, float dt)
@@ -360,7 +363,7 @@ static int title_action(int i)
         case TITLE_EXIT:
             if (current_platform != PLATFORM_SWITCH)
             {
-                goto_state (&st_null); /* bye! */
+                /* bye! */
                 course_free();
                 return 0;
             }
@@ -521,7 +524,8 @@ static void title_timer(int id, float dt)
 
     int battery_level, gamepad_wired; 
 
-    if (joy_connected(0, &battery_level, &gamepad_wired))
+    if (joy_connected(0, &battery_level, &gamepad_wired) &&
+        gamepadinfo_controller_ids[0])
     {
         if (gamepad_wired)
             gui_set_label(gamepadinfo_controller_ids[0], _("P1 " GUI_GAMEPAD));
@@ -538,7 +542,8 @@ static void title_timer(int id, float dt)
         gui_set_color(gamepadinfo_controller_ids[0], gui_wht, gui_red);
     }
 
-    if (joy_connected(1, &battery_level, &gamepad_wired))
+    if (joy_connected(1, &battery_level, &gamepad_wired) &&
+        gamepadinfo_controller_ids[1])
     {
         if (gamepad_wired)
             gui_set_label(gamepadinfo_controller_ids[1], _("P2 " GUI_GAMEPAD));
@@ -555,7 +560,8 @@ static void title_timer(int id, float dt)
         gui_set_color(gamepadinfo_controller_ids[1], gui_gry, gui_gry);
     }
 
-    if (joy_connected(2, &battery_level, &gamepad_wired))
+    if (joy_connected(2, &battery_level, &gamepad_wired) &&
+        gamepadinfo_controller_ids[2])
     {
         if (gamepad_wired)
             gui_set_label(gamepadinfo_controller_ids[2], _("P3 " GUI_GAMEPAD));
@@ -572,7 +578,8 @@ static void title_timer(int id, float dt)
         gui_set_color(gamepadinfo_controller_ids[2], gui_gry, gui_gry);
     }
 
-    if (joy_connected(3, &battery_level, &gamepad_wired))
+    if (joy_connected(3, &battery_level, &gamepad_wired) &&
+        gamepadinfo_controller_ids[3])
     {
         if (gamepad_wired)
             gui_set_label(gamepadinfo_controller_ids[3], _("P4 " GUI_GAMEPAD));
@@ -597,11 +604,10 @@ static int title_click(int b, int d)
     return gui_click(b, d) ? title_action(gui_token(gui_active())) : 1;
 }
 
-static int help_action(int);
 static int title_keybd(int c, int d)
 {
     if (d && c == KEY_EXIT)
-        return help_action(TITLE_EXIT);
+        return title_action(TITLE_EXIT);
 
     return 1;
 }

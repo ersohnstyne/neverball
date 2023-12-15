@@ -314,13 +314,11 @@ static int title_action(int tok, int val)
              && current_platform != PLATFORM_STEAMDECK)
 #endif
             {
+                /* bye! */
+
                 title_prequit = 1;
                 game_fade(+4.0);
-                goto_state_full(&st_null, 0, 0, 0); // bye!
 
-                game_server_free(NULL);
-                game_client_free(NULL);
-                game_base_free(NULL);
                 return 0;
             }
             break;
@@ -952,21 +950,10 @@ static int title_enter(struct state *st, struct state *prev)
 
     game_fade_color(0.0f, 0.0f, 0.0f);
 
-    int title_gamemode = 0;
-
     if (switchball_useable() && load_title_background())
         mode = TITLE_MODE_LEVEL;
-    else if (demo_replay_init("gui/title/title-l.nbr",
-                              NULL,
-                              &title_gamemode,
-                              NULL,
-                              NULL,
-                              NULL,
-                              NULL))
-    {
-        progress_init(title_gamemode);
+    else if (progress_replay_full("gui/title/title-l.nbr", 0, 0, 0, 0, 0, 0))
         mode = TITLE_MODE_BUILD_IN;
-    }
     else if (load_title_background())
         mode = TITLE_MODE_LEVEL;
     else
@@ -1042,24 +1029,20 @@ static void title_timer(int id, float dt)
         case TITLE_MODE_LEVEL_FADE: /* Fade out.  Load demo level. */
             if (real_time > 1.0f && !title_prequit && !st_global_animating())
             {
-                int title_gamemode;
                 if (!items)
                     items = demo_dir_scan();
 
                 if ((demo = pick_demo(items)))
                 {
-                    if (demo_replay_init(demo, NULL, &title_gamemode, NULL, NULL, NULL, NULL))
+                    if (progress_replay_full(demo, 0, 0, 0, 0, 0, 0))
                     {
-                        progress_init(title_gamemode);
                         game_client_fly(0.0f);
                         real_time = 0.0f;
                         mode = TITLE_MODE_DEMO;
                     }
-                    else if (demo_replay_init(left_handed ? "gui/title/title-l.nbr" :
-                                                            "gui/title/title-r.nbr",
-                                              NULL, &title_gamemode, NULL, NULL, NULL, NULL))
+                    else if (progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
+                                                                "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
                     {
-                        progress_init(title_gamemode);
                         game_client_fly(0.0f);
                         real_time = 0.0f;
                         mode = TITLE_MODE_BUILD_IN;
@@ -1067,11 +1050,9 @@ static void title_timer(int id, float dt)
                     else if (load_title_background())
                         mode = TITLE_MODE_LEVEL;
                 }
-                else if (demo_replay_init(left_handed ? "gui/title/title-l.nbr" :
-                                                        "gui/title/title-r.nbr",
-                                          NULL, &title_gamemode, NULL, NULL, NULL, NULL))
+                else if (progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
+                                                            "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
                 {
-                    progress_init(title_gamemode);
                     game_fade(-1.0f);
                     real_time = 0.0f;
                     mode = TITLE_MODE_BUILD_IN;
@@ -1099,16 +1080,13 @@ static void title_timer(int id, float dt)
         case TITLE_MODE_DEMO_FADE: /* Fade out.  Load build-in demo level or load title level. */
             if (real_time > 1.0f && !title_prequit && !st_global_animating())
             {
-                int title_gamemode;
                 real_time = 0.0f;
 
                 if (switchball_useable() && load_title_background())
                     mode = TITLE_MODE_LEVEL;
-                else if (demo_replay_init(left_handed ? "gui/title/title-l.nbr" :
-                                                        "gui/title/title-r.nbr",
-                                          NULL, &title_gamemode, NULL, NULL, NULL, NULL))
+                else if (progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
+                                                            "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
                 {
-                    progress_init(title_gamemode);
                     game_client_fly(0.0f);
                     real_time = 0.0f;
                     mode = TITLE_MODE_BUILD_IN;

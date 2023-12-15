@@ -12,24 +12,18 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __MINGW32__
-#include <SDL3/SDL.h>
-#else
-#include <SDL.h>
-#endif
-
 #include "networking.h"
 #include "common.h"
 
 #if NEVERBALL_EDITION>=10000
 #if NEVERBALL_EDITION>10002
-#error Präprozessordefinition NEVERBALL_EDITION muss \
-       zwischen 10000 (Server Essentials) und 10002 (Server Datacenter) liegen
+#error Security compilation error: Preprocessor definitions NEVERBALL_EDITION \
+       must set between 10000 (Server Essentials) and 10002 (Server Datacenter)
 #endif
 #else
 #if NEVERBALL_EDITION<-1 || NEVERBALL_EDITION>3
-#error Präprozessordefinition NEVERBALL_EDITION muss \
-       zwischen -1 (Open-Source) und 3 (Education) liegen
+#error Security compilation error: Preprocessor definitions NEVERBALL_EDITION\
+       must set between -1 (Open-Source) and 3 (Education)
 #endif
 #endif
 

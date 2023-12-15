@@ -14,9 +14,9 @@
 
 #if _MSC_VER
 #define NOMINMAX
-#include <Windows.h>
+#include <Windows.h> /* FindClose(), FindFirstFile(), FindNextFile() */
 #else
-#include <dirent.h>
+#include <dirent.h> /* opendir(), readdir(), closedir() */
 #endif
 
 #include <string.h>
@@ -34,10 +34,10 @@
 
 #if _WIN32
 #if !defined(_MSC_VER)
-#error This was already done with FindClose, FindFirstFileA, FindNextFileA and GetFileAttributesA or using OpenDriveAPI. \
+#error Security compilation error: This was already done with FindClose, \
+       FindFirstFileA, FindNextFile and GetFileAttributesA or using OpenDriveAPI. \
        Install Visual Studio 2022 Community or later version to build it there. \
-       === OR === \
-       Download using the OpenDriveAPI project: \
+       Or download the OpenDriveAPI project: \
        https://1drv.ms/u/s!Airrmyu6L5eynGj7HtYcQU_0ERtA?e=9XU5Zp
 #else
 #pragma message("Using directory list for code compilation: Microsoft Visual Studio")

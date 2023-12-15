@@ -32,15 +32,15 @@
 #include <steam/steam_api.h>
 
 #ifdef __EMSCRIPTEN__
-#error Cannot compile website in Steam games!
+#error Security compilation error: Cannot compile website in Steam games!
 #endif
 
 #ifdef FS_VERSION_1
-#error Steam OS implemented, but NO DLCs detected!
+#error Security compilation error: Steam OS implemented, but NO DLCs detected!
 #endif
 
 #elif _WIN32 && !_MSC_VER
-#error MinGW not supported! Use Visual Studio instead!
+#error Security compilation error: MinGW not supported! Use Visual Studio instead!
 #endif
 #endif
 
@@ -132,6 +132,8 @@ extern "C" {
 #include "st_malfunction.h"
 #include "st_intro.h"
 #include "st_conf.h"
+#include "st_name.h"
+#include "st_ball.h"
 #include "st_title.h"
 #include "st_demo.h"
 #include "st_level.h"
@@ -702,14 +704,6 @@ static void refresh_packages_done(void *data, void *extra_data)
  */
 static void main_preload(struct state *start_state)
 {
-#if NB_HAVE_PB_BOTH==1
-    if (!check_game_setup())
-    {
-        goto_game_setup(start_state);
-        return;
-    }
-#endif
-
     struct fetch_callback callback = {0};
 
     callback.data = start_state;
@@ -734,6 +728,16 @@ static void main_preload(struct state *start_state)
     }
 
     /* Otherwise, go to the starting screen. */
+
+#if NB_HAVE_PB_BOTH==1
+    if (!check_game_setup())
+    {
+        goto_game_setup(start_state,
+                        goto_name_setup,
+                        goto_ball_setup);
+        return;
+    }
+#endif
 
     goto_state(start_state);
 }
@@ -1055,11 +1059,6 @@ static int is_score_file(struct dir_item *item)
     return str_starts_with(item->path, "neverballhs-");
 }
 
-static int is_account_file(struct dir_item *item)
-{
-    return str_starts_with(item->path, "neverballaccount-");
-}
-
 static void make_dirs_and_migrate(void)
 {
     Array items;
@@ -1272,7 +1271,7 @@ static int main_init(int argc, char *argv[])
 #elif defined(SDL_HINT_JOYSTICK_HIDAPI_PS3)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS3, "1");
 #else
-#error No Playstation HIDAPI specified!
+#error Security compilation error: No Playstation HIDAPI specified!
 #endif
 #endif
 #if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
@@ -1438,8 +1437,8 @@ static int main_init(int argc, char *argv[])
 
         account_load();
 
-        if (server_policy_get_d(SERVER_POLICY_EDITION) > 1
-         && account_get_d(ACCOUNT_SET_UNLOCKS) < 1)
+        if (server_policy_get_d(SERVER_POLICY_EDITION) > 1 &&
+            account_get_d(ACCOUNT_SET_UNLOCKS) < 1)
             account_set_d(ACCOUNT_SET_UNLOCKS, 1);
 
         account_save();
@@ -1503,7 +1502,7 @@ static void main_quit(void)
 
     /* Free everything else. */
 
-    goto_state(&st_null);
+    goto_state_full(&st_null, 0, 0, 1);
 
     mtrl_quit ();
     video_quit();

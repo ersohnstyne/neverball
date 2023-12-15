@@ -34,6 +34,13 @@
 #endif
 #endif
 
+#if NB_HAVE_PB_BOTH!=1 && defined(MAPC_INCLUDES_CHKP)
+#error Security compilation error: Preprocessor definitions can be used it, \
+       once you've transferred or joined into the target Discord Server, \
+       and verified and promoted as Developer Role. \
+       This invite link can be found under https://discord.gg/qnJR263Hm2/.
+#endif
+
 #if NB_HAVE_PB_BOTH==1
 enum
 {
@@ -176,8 +183,8 @@ static void sol_load_geom(fs_file fin, struct b_geom *gp, struct s_base *fp)
     else
     {
         struct b_offs ov[3];
-        int i, j, iv[3], oc;
-        void *p;
+        int           i, j, iv[3], oc;
+        void         *p;
 
         oc = 0;
 

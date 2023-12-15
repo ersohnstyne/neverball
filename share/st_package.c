@@ -675,9 +675,6 @@ static int package_keybd(int c, int d)
             return package_action(GUI_BACK, 0);
         else if (c == KEY_LOOKAROUND)
         {
-#ifndef NDEBUG
-            log_printf("Attempt to reload package list.\n");
-#endif
             package_manual_hotreload = 1;
             return goto_state(&st_package);
         }

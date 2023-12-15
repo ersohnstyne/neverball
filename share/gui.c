@@ -1030,9 +1030,9 @@ void gui_set_color(int id, const GLubyte *c0,
     }
 }
 
-void gui_set_multi(int id, const char *text)
+void gui_set_multi(int id, const char* text)
 {
-    const char *p;
+    const char* p;
 
     char s[GUI_LINES][MAXSTR];
     int i, sc, lc, jd;
@@ -2855,6 +2855,11 @@ int gui_click(int b, int d)
 
 int gui_navig(int id, int total, int first, int step)
 {
+    gui_navig_full(id, total, first, step, 0);
+}
+
+int gui_navig_full(int id, int total, int first, int step, int back_disabled)
+{
     int pages = (int) ceil((double) total / step);
     int page = first / step + 1;
 
@@ -2905,7 +2910,15 @@ int gui_navig(int id, int total, int first, int step)
 #endif
         {
             gui_space(jd);
-            gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+
+            if ((kd = gui_hstack(jd)))
+            {
+                gui_label(kd, GUI_CROSS, GUI_SML, back_disabled ? gui_gry : gui_red, back_disabled ? gui_gry : gui_red);
+                gui_label(kd, _("Back"), GUI_SML, back_disabled ? gui_gry : gui_wht, back_disabled ? gui_gry : gui_wht);
+
+                gui_set_state(kd, back_disabled ? GUI_NONE : GUI_BACK, 0);
+                gui_set_rect(kd, GUI_ALL);
+            }
         }
     }
     return jd;

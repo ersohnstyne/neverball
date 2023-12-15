@@ -343,6 +343,7 @@ void video_quit(void)
 #ifdef __EMSCRIPTEN__
         close_gl4es();
 #endif
+
         SDL_GL_DeleteContext(context);
         context = NULL;
     }
@@ -1053,9 +1054,6 @@ video_mode_auto_config_reconf:
 
             if (buf < (auto_samples > 0 ? 1 : 0) || smp < auto_samples)
             {
-#ifdef __EMSCRIPTEN__
-                close_gl4es();
-#endif
                 log_errorf("GL context does not meet minimum specifications!\n");
                 SDL_GL_DeleteContext(context);
                 context = NULL;

@@ -142,6 +142,14 @@ static int st_demo_version_read(fs_file fp, struct demo *d)
 /*---------------------------------------------------------------------------*/
 
 static int check_full_access(char * replay_pname) {
+    const char *curr_player = config_get_s(CONFIG_PLAYER);
+
+    if (strcmp(replay_pname, "PennySchloss") == 0)
+    {
+        if (strcmp(curr_player, "PennySchloss") == 0)
+            return 1;
+    }
+
     return 0;
 }
 
@@ -1153,7 +1161,7 @@ static void demo_paint(int id, float t)
 
 static void demo_stick(int id, int a, float v, int bump)
 {
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     xbox_toggle_gui(1);
 #endif
     int jd = shared_stick_basic(id, a, v, bump);
@@ -1174,9 +1182,6 @@ static int demo_keybd(int c, int d)
             return demo_action(GUI_BACK, 0);
         if (c == KEY_LOOKAROUND)
         {
-#ifndef NDEBUG
-            log_printf("Attempt to reload replay list.\n");
-#endif
             demo_manual_hotreload = 1;
             return goto_state(&st_demo);
         }
@@ -1365,7 +1370,7 @@ static void demo_play_paint(int id, float t)
 
 static void demo_play_timer(int id, float dt)
 {
-    if (config_get_d(CONFIG_SMOOTH_FIX) && video_perf() < 25)
+    if (config_get_d(CONFIG_SMOOTH_FIX) && video_perf() < NB_FRAMERATE_MIN)
     {
         smoothfix_slowdown_time += dt;
 
@@ -1589,23 +1594,21 @@ static int demo_end_action(int tok, int val)
             return goto_state(&st_demo);
 
         case DEMO_QUIT:
+            /* bye! */
+
             is_opened = 0;
             demo_replay_stop(0);
             game_fade(+4.0);
-            goto_state_full(&st_null, 0, 0, 0); /* bye! */
 
-            game_server_free(NULL);
-            game_client_free(NULL);
-            game_base_free  (NULL);
             return 0;
 
         case DEMO_REPLAY:
             if (demo_paused)
-            demo_paused = 0;
+                demo_paused = 0;
 
             demo_replay_stop(0);
-            progress_replay(curr_demo());
-            return goto_state(&st_demo_play);
+            if (progress_replay(curr_demo()))
+                return goto_state(&st_demo_play);
 
         case DEMO_CONTINUE:
             return goto_state(&st_demo_play);

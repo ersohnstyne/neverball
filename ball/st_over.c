@@ -41,8 +41,13 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef LEADERBOARD_ALLOWANCE
-#error Always use preprocessors LEADERBOARD_ALLOWANCE, \
+#error Security compilation error: Always use preprocessors "LEADERBOARD_ALLOWANCE", \
        or it will not show up to be synced belonging st_done.h.
+#elif NB_HAVE_PB_BOTH!=1
+#error Security compilation error: Preprocessor definitions can be used it, \
+       once you've transferred or joined into the target Discord Server, \
+       and verified and promoted as Developer Role. \
+       This invite link can be found under https://discord.gg/qnJR263Hm2/.
 #endif
 
 /*
@@ -82,8 +87,8 @@ static int over_action(int tok, int val)
             campaign_hardcore_quit();
             campaign_theme_quit();
             campaign_quit();
-            return goto_playmenu(curr_mode());
 #endif
+            return goto_playmenu(curr_mode());
 
 #if NB_HAVE_PB_BOTH==1
         case OVER_SHOP:
@@ -303,7 +308,7 @@ static void over_timer(int id, float dt)
 #ifndef LEADERBOARD_ALLOWANCE
 static int over_click(int b, int d)
 {
-    return (b == SDL_BUTTON_LEFT && d == 1) ? goto_state(&st_exit) : 1;
+    return (b == SDL_BUTTON_LEFT && d == 1) ? goto_state(&st_start) : 1;
 }
 #endif
 

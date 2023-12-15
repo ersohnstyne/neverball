@@ -12,12 +12,6 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __MINGW32__
-#include <SDL3/SDL.h>
-#else
-#include <SDL.h>
-#endif
-
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
 #endif
@@ -32,8 +26,15 @@
 
 #include "st_common.h"
 
-#define AUD_MENU "snd/menu.ogg"
-#define AUD_BACK "snd/back.ogg"
+#if NB_HAVE_PB_BOTH!=1 && defined(SWITCHBALL_GUI)
+#error Security compilation error: Preprocessor definitions can be used it, \
+       once you've transferred or joined into the target Discord Server, \
+       and verified and promoted as Developer Role. \
+       This invite link can be found under https://discord.gg/qnJR263Hm2/.
+#endif
+
+#define AUD_MENU     "snd/menu.ogg"
+#define AUD_BACK     "snd/back.ogg"
 #define AUD_DISABLED "snd/disabled.ogg"
 
 /* Macros helps with the action game menu. */
@@ -207,6 +208,29 @@ int conf_state(int id, const char *label, const char *text, int token)
     return rd;
 }
 
+
+void conf_toggle_simple(int id, const char *label, int token, int value,
+                        int value1, int value0)
+{
+    int jd, kd;
+
+    if ((jd = gui_harray(id)) && (kd = gui_harray(jd)))
+    {
+        int btn0, btn1;
+        
+        btn1 = gui_label(kd, GUI_CHECKMARK, GUI_SML, GUI_COLOR_GRN);
+        btn0 = gui_label(kd, GUI_CROSS,     GUI_SML, GUI_COLOR_RED);
+
+        gui_set_state(btn1, token, value1);
+        gui_set_state(btn0, token, value0);
+
+        gui_set_hilite(btn0, (value == value0));
+        gui_set_hilite(btn1, (value == value1));
+
+        gui_label(jd, label, GUI_SML, 0, 0);
+    }
+}
+
 void conf_toggle(int id, const char *label, int token, int value,
                  const char *text1, int value1,
                  const char *text0, int value0)
@@ -229,7 +253,7 @@ void conf_toggle(int id, const char *label, int token, int value,
 
 void conf_header(int id, const char *text, int token)
 {
-    int jd;
+    int jd, kd;
 
     if ((jd = gui_hstack(id)))
     {
@@ -240,7 +264,16 @@ void conf_header(int id, const char *text, int token)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)
 #endif
-            gui_start(jd, _("Back"), GUI_SML, token, 0);
+        {
+            if ((kd = gui_hstack(jd)))
+            {
+                gui_label(kd, GUI_CROSS, GUI_SML, gui_red, gui_red);
+                gui_label(kd, _("Back"), GUI_SML, gui_wht, gui_wht);
+
+                gui_set_state(kd, token, 0);
+                gui_set_rect(kd, GUI_ALL);
+            }
+        }
     }
 
     gui_space(id);
@@ -544,7 +577,6 @@ static int video_gui(void)
         conf_header(id, _("Graphics"), GUI_BACK);
 
 #ifdef SWITCHBALL_GUI
-
 #ifndef __EMSCRIPTEN__
         SDL_DisplayMode dpyMode;
         SDL_GetCurrentDisplayMode(config_get_d(CONFIG_DISPLAY), &dpyMode);
@@ -569,13 +601,23 @@ static int video_gui(void)
         gui_space(id);
 #endif
 
+#if NB_HAVE_PB_BOTH==1
+        conf_toggle_simple(id, _("Screen animations"), VIDEO_SCREENANIMATIONS,
+                               config_get_d(CONFIG_SCREEN_ANIMATIONS), 1, 0);
+#else
         conf_toggle(id, _("Screen animations"), VIDEO_SCREENANIMATIONS,
                         config_get_d(CONFIG_SCREEN_ANIMATIONS), _("On"), 1, _("Off"), 0);
+#endif
 
 #if ENABLE_HMD
         gui_space(id);
+#if NB_HAVE_PB_BOTH==1
+        conf_toggle_simple(id, _("HMD"), VIDEO_HMD,
+                               config_get_d(CONFIG_HMD), 1, 0);
+#else
         conf_toggle(id, _("HMD"), VIDEO_HMD,
-            config_get_d(CONFIG_HMD), _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_HMD), _("On"), 1, _("Off"), 0);
+#endif
 #endif
 
 #if !defined(__EMSCRIPTEN__) && !defined(RESIZEABLE_WINDOW)
@@ -625,8 +667,13 @@ static int video_gui(void)
         }
 #endif
 
+#if NB_HAVE_PB_BOTH==1
+        conf_toggle_simple(id, _("Fullscreen"), VIDEO_FULLSCREEN,
+                               config_get_d(CONFIG_FULLSCREEN), 1, 0);
+#else
         conf_toggle(id, _("Fullscreen"), VIDEO_FULLSCREEN,
                         config_get_d(CONFIG_FULLSCREEN), _("On"), 1, _("Off"), 0);
+#endif
 
         gui_space(id);
 
@@ -634,23 +681,26 @@ static int video_gui(void)
                         config_get_d(CONFIG_TEXTURES), _("High"), 1, _("Low"), 2);
 #endif
 
-#else
-        gui_multi(id, _("Switchball configurations\n"
-                        "requires SWITCHBALL_GUI\n"
-                        "definition preprocessors!"),
-                      GUI_SML, gui_red, gui_red);
-#endif
         gui_space(id);
 
         autoconf_id = gui_state(id, _("Auto Configure"),
                                     GUI_SML, VIDEO_AUTO_CONFIGURE, 0);
-#if defined(__EMSCRIPTEN__) || NB_STEAM_API==1 || !defined(SWITCHBALL_GUI)
+
+#if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
         if (autoconf_id)
         {
             gui_set_color(autoconf_id, gui_gry, gui_gry);
             gui_set_state(autoconf_id, GUI_NONE, 0);
         }
 #endif
+#else
+        gui_multi(id, _("Switchball configurations\n"
+                        "requires SWITCHBALL_GUI\n"
+                        "definition preprocessors!"),
+                      GUI_SML, gui_red, gui_red);
+        gui_space(id);
+#endif
+
         gui_state(id, _("Advanced"), GUI_SML, VIDEO_ADVANCED, 0);
     }
     gui_layout(id, 0, 0);
@@ -970,6 +1020,34 @@ static int video_advanced_gui(void)
 
         conf_header(id, _("Graphics"), GUI_BACK);
 
+#if NB_HAVE_PB_BOTH==1
+        conf_toggle_simple(id, _("Smooth fix"), VIDEO_ADVANCED_SMOOTH_FIX,
+                               config_get_d(CONFIG_SMOOTH_FIX),
+                               1, 0);
+
+        conf_toggle_simple(id, _("Force smooth fix"), VIDEO_ADVANCED_FORCE_SMOOTH_FIX,
+                               config_get_d(CONFIG_FORCE_SMOOTH_FIX),
+                               1, 0);
+
+#ifdef GL_GENERATE_MIPMAP_SGIS
+        conf_toggle_simple(id, _("Mipmap"), VIDEO_ADVANCED_MIPMAP,
+                               config_get_d(CONFIG_MIPMAP), 1, 0);
+#endif
+#if defined(GL_TEXTURE_MAX_ANISOTROPY_EXT) && \
+    GL_TEXTURE_MAX_ANISOTROPY_EXT != 0 && GL_TEXTURE_MAX_ANISOTROPY_EXT != -1
+        conf_toggle_simple(id, _("Anisotropic"), VIDEO_ADVANCED_ANISO,
+                               config_get_d(CONFIG_ANISO), 8, 0);
+#endif
+
+        gui_space(id);
+
+        conf_toggle_simple(id, _("Reflection"),   VIDEO_ADVANCED_REFLECTION,
+                               config_get_d(CONFIG_REFLECTION), 1, 0);
+        conf_toggle_simple(id, _("Background"),   VIDEO_ADVANCED_BACKGROUND,
+                               config_get_d(CONFIG_BACKGROUND), 1, 0);
+        conf_toggle_simple(id, _("Shadow"),       VIDEO_ADVANCED_SHADOW,
+                               config_get_d(CONFIG_SHADOW),     1, 0);
+#else
         conf_toggle(id, _("Smooth fix"), VIDEO_ADVANCED_SMOOTH_FIX,
                         config_get_d(CONFIG_SMOOTH_FIX),
                         _("On"), 1, _("Off"), 0);
@@ -984,7 +1062,7 @@ static int video_advanced_gui(void)
 #endif
 #if defined(GL_TEXTURE_MAX_ANISOTROPY_EXT) && \
     GL_TEXTURE_MAX_ANISOTROPY_EXT != 0 && GL_TEXTURE_MAX_ANISOTROPY_EXT != -1
-        conf_toggle(id, _("Anisotopic"), VIDEO_ADVANCED_ANISO,
+        conf_toggle(id, _("Anisotropic"), VIDEO_ADVANCED_ANISO,
                         config_get_d(CONFIG_ANISO),  _("On"), 2, _("Off"), 0);
 #endif
 
@@ -996,6 +1074,7 @@ static int video_advanced_gui(void)
                         config_get_d(CONFIG_BACKGROUND), _("On"), 1, _("Off"), 0);
         conf_toggle(id, _("Shadow"),       VIDEO_ADVANCED_SHADOW,
                         config_get_d(CONFIG_SHADOW),     _("On"), 1, _("Off"), 0);
+#endif
 
         gui_space(id);
 
@@ -1003,8 +1082,14 @@ static int video_advanced_gui(void)
                         config_get_d(CONFIG_MULTISAMPLE),
                         multisample_opts_sixteen,
                         ARRAYSIZE(multisample_opts_sixteen));
+
+#if NB_HAVE_PB_BOTH==1
+        conf_toggle_simple(id, _("V-Sync"), VIDEO_ADVANCED_VSYNC,
+                               config_get_d(CONFIG_VSYNC), 1, 0);
+#else
         conf_toggle(id, _("V-Sync"), VIDEO_ADVANCED_VSYNC,
                         config_get_d(CONFIG_VSYNC), _("On"), 1, _("Off"), 0);
+#endif
 #else
         char resolution[sizeof ("12345678 x 12345678")];
         const char *display;
@@ -1089,7 +1174,7 @@ static int video_advanced_gui(void)
 #endif
 #if defined(GL_TEXTURE_MAX_ANISOTROPY_EXT) && \
     GL_TEXTURE_MAX_ANISOTROPY_EXT != 0 && GL_TEXTURE_MAX_ANISOTROPY_EXT != -1
-        conf_toggle(id, _("Anisotopic"), VIDEO_ADVANCED_ANISO,
+        conf_toggle(id, _("Anisotropic"), VIDEO_ADVANCED_ANISO,
                         config_get_d(CONFIG_ANISO), _("On"), 2, _("Off"), 0);
 #endif
 
@@ -1441,7 +1526,11 @@ static int resol_enter(struct state *st, struct state *prev)
 
 /*---------------------------------------------------------------------------*/
 
+#if NB_HAVE_PB_BOTH==1
+#define LANG_STEP 7
+#else
 #define LANG_STEP 10
+#endif
 
 static Array langs;
 static int   first;
@@ -1460,7 +1549,7 @@ static int lang_action(int tok, int val)
 
     struct lang_desc *desc;
 
-    int total = 11;
+    int total = array_len(langs);
 
     GAMEPAD_GAMEMENU_ACTION_SCROLL(GUI_PREV, GUI_NEXT, LANG_STEP);
 
@@ -1472,7 +1561,8 @@ static int lang_action(int tok, int val)
             break;
 
         case GUI_PREV:
-            if (first > 1) {
+            if (first > 1)
+            {
                 first -= LANG_STEP;
                 return goto_state(&st_lang);
             }
@@ -1544,11 +1634,36 @@ static int lang_gui(void)
             {
                 struct lang_desc *desc = LANG_GET(langs, i);
 
+#if NB_HAVE_PB_BOTH==1
+                int lang_root_id, lang_top_id, lang_bot_id;
+
+                if ((lang_root_id = gui_vstack(id)))
+                {
+                    lang_top_id = gui_label(lang_root_id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, GUI_COLOR_WHT);
+                    lang_bot_id = gui_label(lang_root_id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_TNY, GUI_COLOR_WHT);
+                    gui_set_label(lang_top_id, " ");
+                    gui_set_label(lang_bot_id, " ");
+                    gui_set_trunc(lang_top_id, TRUNC_TAIL);
+                    gui_set_trunc(lang_bot_id, TRUNC_TAIL);
+
+                    gui_set_rect(lang_root_id, GUI_ALL);
+
+                    /* Set font and rebuild texture. */
+
+                    gui_set_font(lang_top_id, desc->font);
+                    gui_set_label(lang_top_id, lang_name(desc));
+                    gui_set_label(lang_bot_id, desc->name1);
+
+                    gui_set_hilite(lang_root_id, (strcmp(config_get_s(CONFIG_LANGUAGE),
+                                                         desc->code) == 0));
+                    gui_set_state(lang_root_id, LANG_SELECT, i);
+                }
+#else
                 int lang_id;
 
                 lang_id = gui_state(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-                                         GUI_SML, LANG_SELECT, i);
-                gui_set_label(lang_id,  " ");
+                                    GUI_SML, LANG_SELECT, i);
+                gui_set_label(lang_id, " ");
                 gui_set_trunc(lang_id, TRUNC_TAIL);
 
                 gui_set_hilite(lang_id, (strcmp(config_get_s(CONFIG_LANGUAGE),
@@ -1568,9 +1683,23 @@ static int lang_gui(void)
 
                 gui_set_font(lang_id, desc->font);
                 gui_set_label(lang_id, lang_infotext);
+#endif
             }
             else
+            {
+#if NB_HAVE_PB_BOTH==1
+                int lang_root_id;
+
+                if ((lang_root_id = gui_vstack(id)))
+                {
+                    gui_label(lang_root_id, " ", GUI_SML, 0, 0);
+                    gui_label(lang_root_id, " ", GUI_TNY, 0, 0);
+                    gui_set_rect(lang_root_id, GUI_ALL);
+                }
+#else
                 gui_label(id, " ", GUI_SML, 0, 0);
+#endif
+            }
         }
 
         gui_layout(id, 0, 0);

@@ -1073,10 +1073,6 @@ static int screensaver_done = 0;
 
 static void cleanup_screensaver(void)
 {
-    game_server_free(NULL);
-    game_client_free(NULL);
-    game_base_free(NULL);
-
     screensaver_done = 1;
 }
 

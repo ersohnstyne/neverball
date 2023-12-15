@@ -34,7 +34,7 @@
 #elif WINAPI_FAMILY == WINAPI_FAMILY_SERVER
 #define EDITION_CURRENT EDITION_SERVER_STANDARD // Current Server Edition
 #else
-#error No Windows Editions supported
+#error Security compilation error: No Windows Editions supported
 #endif
 #endif
 

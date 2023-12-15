@@ -356,7 +356,7 @@ void account_save(void)
 
     for (int i = 0; i < text_length(config_get_s(CONFIG_PLAYER)); i++)
     {
-        if (config_get_s(CONFIG_PLAYER)[i] == '\\' ||
+        if (config_get_s(CONFIG_PLAYER)[i] == '\n' ||
             config_get_s(CONFIG_PLAYER)[i] == '/'  ||
             config_get_s(CONFIG_PLAYER)[i] == ':'  ||
             config_get_s(CONFIG_PLAYER)[i] == '*'  ||

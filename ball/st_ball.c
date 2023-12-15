@@ -34,6 +34,7 @@
 #include "geom.h"
 #include "video.h"
 #include "demo.h"
+#include "progress.h"
 
 #include "game_server.h"
 #include "game_proxy.h"
@@ -43,6 +44,7 @@
 #include "st_ball.h"
 #include "st_conf.h"
 #include "st_shared.h"
+#include "st_setup.h"
 
 #if NB_HAVE_PB_BOTH==1
 int super_environment = 1;
@@ -50,38 +52,18 @@ int super_environment = 1;
 
 int model_studio = 0;
 
-static int switchball_useable(void)
+/*---------------------------------------------------------------------------*/
+
+#if NB_HAVE_PB_BOTH==1
+struct state *setup_finish_state;
+
+int goto_ball_setup(struct state *finish)
 {
-    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
-    const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
+    setup_finish_state = finish;
 
-    SDL_Keycode k_arrowkey[4];
-    k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
-    k_arrowkey[1] = config_get_d(CONFIG_KEY_LEFT);
-    k_arrowkey[2] = config_get_d(CONFIG_KEY_BACKWARD);
-    k_arrowkey[3] = config_get_d(CONFIG_KEY_RIGHT);
-
-    if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-        && k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT
-        && k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
-        return 1;
-    else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-             && k_caml == SDLK_d && k_camr == SDLK_a
-             && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
-        return 1;
-
-    /*
-     * If the Switchball input preset is not detected,
-     * Try it with the Neverball by default.
-     */
-
-    return 0;
+    return goto_state(&st_ball);
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -217,17 +199,24 @@ static void set_curr_ball(int ball_index)
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_save();
 #endif
-    gui_set_label(name_id, base_name(ball_file));
+    gui_set_label(name_id, _(base_name(ball_file)));
 }
 
 enum
 {
     MODEL_ONLINE = GUI_LAST,
-    MODEL_UPGRADE_EDITION
+    MODEL_UPGRADE_EDITION,
+    MODEL_SETUP_FINISH
 };
 
 static int ball_action(int tok, int val)
 {
+    if (game_setup_process() && tok == GUI_BACK)
+    {
+        audio_play(AUD_DISABLED, 1.f);
+        return 1;
+    }
+
     GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
@@ -284,6 +273,14 @@ static int ball_action(int tok, int val)
             goto_state(&st_conf);
 #endif
             break;
+
+#if NB_HAVE_PB_BOTH==1
+        case MODEL_SETUP_FINISH:
+            game_fade(+4.0);
+            goto_game_setup_finish(&setup_finish_state);
+
+            break;
+#endif
     }
 
     return 1;
@@ -296,22 +293,22 @@ static int filter_cmd(const union cmd *cmd)
 
 static void load_ball_demo(void)
 {
-    /* "g" is a stupid hack to keep the goal locked. */
-
-    int g;
-
     if (model_studio)
     {
         if (!game_client_init("gui/model-studio.sol"))
         {
+            assert(!game_setup_process());
+
             ball_action(GUI_BACK, 0);
             return;
         }
         else
             game_client_toggle_show_balls(1);
     }
-    else if (!demo_replay_init("gui/ball.nbr", &g, NULL, NULL, NULL, NULL, NULL))
+    else if (!progress_replay_full("gui/ball.nbr", 0, 0, 0, 0, 0, 0))
     {
+        assert(!game_setup_process());
+
         ball_action(GUI_BACK, 0);
         return;
     }
@@ -320,12 +317,6 @@ static void load_ball_demo(void)
 
 #if NB_HAVE_PB_BOTH==1
     demo_replay_speed(super_environment ? SPEED_SLOWER : SPEED_NORMAL);
-#endif
-
-#if NB_HAVE_PB_BOTH==1
-    audio_music_fade_to(0.0f, switchball_useable() ? "bgm/title-switchball.ogg" : BGM_TITLE_CONF_LANGUAGE);
-#else
-    audio_music_fade_to(0.0f, "gui/bgm/inter.ogg");
 #endif
     game_client_fly(0);
 
@@ -341,111 +332,134 @@ static void load_ball_demo(void)
 
 static int ball_gui(void)
 {
-    int id, jd;
+    int root_id, id, jd;
     int i;
 
-    if ((id = gui_vstack(0)))
+    if ((root_id = gui_root()))
     {
-        if ((jd = gui_hstack(id)))
+        if ((id = gui_vstack(root_id)))
         {
-            gui_label(jd, _("Ball Model"), GUI_SML, 0, 0);
-            gui_filler(jd);
-            gui_space(jd);
+            gui_space(id);
+
+            if ((jd = gui_hstack(id)))
+            {
+                gui_label (jd, _("Ball Model"), GUI_SML, 0, 0);
+                gui_filler(jd);
+                gui_space (jd);
 
 #if NB_HAVE_PB_BOTH==1
 #ifndef __EMSCRIPTEN__
-            if (current_platform == PLATFORM_PC)
-                gui_back_button(jd);
-            else
+                if (current_platform != PLATFORM_PC)
+                    gui_filler(jd);
+                else
 #endif
-                gui_filler(jd);
+                if (!game_setup_process())
+                    gui_back_button(jd);
 #else
-            gui_back_button(jd);
+                gui_back_button(jd);
 #endif
+            }
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            if (!xbox_show_gui())
+#endif
+                gui_space(id);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ?
+#if NB_STEAM_API==1
+                                          N_("Open Steam Workshop!") :
+#else
+                                          N_("Get more Balls!") :
+#endif
+                                          N_("Upgrade to Home Edition!");
+
+            if ((account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
+                 server_policy_get_d(SERVER_POLICY_EDITION) < 0) &&
+                !xbox_show_gui() &&
+                !game_setup_process())
+            {
+                int online_id;
+                if (online_id = gui_label(id, _(more_balls_text),
+                                              GUI_SML, gui_wht, gui_grn))
+                {
+                    if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                        gui_set_state(online_id, MODEL_UPGRADE_EDITION, 0);
+                    else
+                        gui_set_state(online_id, MODEL_ONLINE, 0);
+                }
+            }
+
+            else if (!xbox_show_gui() && !game_setup_process())
+                gui_label(id, _(more_balls_text), GUI_SML, GUI_COLOR_GRY);
+
+            gui_space(id);
+#endif
+
+            if ((jd = gui_hstack(id)))
+            {
+                int total_ball_name = array_len(balls);
+
+#ifndef __EMSCRIPTEN__
+                if (!xbox_show_gui() && total_ball_name > 1)
+#else
+                if (total_ball_name > 1)
+#endif
+#ifdef SWITCHBALL_GUI
+                    gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png",
+                                      "gui/navig/arrow_right.png",
+                                      GUI_NEXT, GUI_NONE, 1);
+#else
+                    gui_maybe(jd, GUI_TRIANGLE_RIGHT, GUI_NEXT, GUI_NONE, 1);
+#endif
+
+                name_id = gui_label(jd, "very-long-ball-name", GUI_SML,
+                                        GUI_COLOR_WHT);
+
+                gui_set_trunc(name_id, TRUNC_TAIL);
+                gui_set_fill (name_id);
+
+#ifndef __EMSCRIPTEN__
+                if (!xbox_show_gui() && total_ball_name > 1)
+#else
+                if (total_ball_name > 1)
+#endif
+#ifdef SWITCHBALL_GUI
+                    gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png",
+                                      "gui/navig/arrow_left.png",
+                                      GUI_PREV, GUI_NONE, 1);
+#else
+                    gui_maybe(jd, GUI_TRIANGLE_LEFT, GUI_PREV, GUI_NONE, 1);
+#endif
+            }
+
+            gui_layout(id, 0, +1);
+
+            gui_set_label(name_id, _(base_name(ball_file)));
         }
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (!xbox_show_gui())
-#endif
-            gui_space(id);
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ?
-#if NB_STEAM_API==1
-                                      N_("Open Steam Workshop!") :
-#else
-                                      N_("Get more Balls!") :
-#endif
-                                      N_("Upgrade to Home Edition!");
-
-        if ((account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
-             server_policy_get_d(SERVER_POLICY_EDITION) < 0) &&
-            !xbox_show_gui()
-            )
+        if (game_setup_process())
         {
-            int online_id;
-            if (online_id = gui_label(id, _(more_balls_text),
-                                          GUI_SML, gui_wht, gui_grn))
+            if ((id = gui_vstack(root_id)))
             {
-                if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                    gui_set_state(online_id, MODEL_UPGRADE_EDITION, 0);
-                else
-                    gui_set_state(online_id, MODEL_ONLINE, 0);
+                if ((jd = gui_hstack(id)))
+                {
+                    gui_label(jd, GUI_CHECKMARK, GUI_SML, GUI_COLOR_GRN);
+                    gui_label(jd, _("Finish"), GUI_SML, GUI_COLOR_WHT);
+
+                    gui_set_state(jd, MODEL_SETUP_FINISH, 0);
+                    gui_set_rect(jd, GUI_ALL);
+                    gui_focus(jd);
+                }
+
+                gui_space(id);
+
+                gui_layout(id, 0, -1);
             }
         }
-
-        else if (!xbox_show_gui())
-            gui_label(id, _(more_balls_text), GUI_SML, GUI_COLOR_GRY);
-
-        gui_space(id);
-#endif
-
-        if ((jd = gui_hstack(id)))
-        {
-            int total_ball_name = array_len(balls);
-
-#ifndef __EMSCRIPTEN__
-            if (!xbox_show_gui() && total_ball_name > 1)
-#else
-            if (total_ball_name > 1)
-#endif
-#ifdef SWITCHBALL_GUI
-                gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png",
-                                  "gui/navig/arrow_right.png",
-                                  GUI_NEXT, GUI_NONE, 1);
-#else
-                gui_maybe(jd, GUI_TRIANGLE_RIGHT, GUI_NEXT, GUI_NONE, 1);
-#endif
-
-            name_id = gui_label(jd, "very-long-ball-name", GUI_SML,
-                                GUI_COLOR_WHT);
-
-            gui_set_trunc(name_id, TRUNC_TAIL);
-            gui_set_fill(name_id);
-
-#ifndef __EMSCRIPTEN__
-            if (!xbox_show_gui() && total_ball_name > 1)
-#else
-            if (total_ball_name > 1)
-#endif
-#ifdef SWITCHBALL_GUI
-                gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png",
-                                  "gui/navig/arrow_left.png",
-                                  GUI_PREV, GUI_NONE, 1);
-#else
-                gui_maybe(jd, GUI_TRIANGLE_LEFT, GUI_PREV, GUI_NONE, 1);
-#endif
-        }
-
-        for (i = 0; i < 12; i++)
-            gui_space(id);
-
-        gui_layout(id, 0, 0);
-
-        gui_set_label(name_id, base_name(ball_file));
     }
 
-    return id;
+    return root_id;
 }
 
 static int ball_enter(struct state *st, struct state *prev)
@@ -529,30 +543,26 @@ static int ball_keybd(int c, int d)
 
     if (d)
     {
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-#else
-        if (c == KEY_EXIT)
-#endif
-            return ball_action(GUI_BACK, 0);
-        else if (c == KEY_LOOKAROUND)
+        switch (c)
         {
-            ball_manual_hotreload = 1;
-            return goto_state(&st_ball);
-        }
-        else switch (c)
-        {
+            case KEY_LOOKAROUND:
+                ball_manual_hotreload = 1;
+                return goto_state(&st_ball);
+
             case KEY_EXIT:
-                return ball_action(GUI_BACK, 0);
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+                if (current_platform == PLATFORM_PC)
+#endif
+                    return ball_action(GUI_BACK, 0);
 
             case KEY_LEVELSHOTS:
                 video_set_window_size(800 / video.device_scale, 600 / video.device_scale);
-                video_resize(800 / video.device_scale, 600 / video.device_scale);
+                video_resize         (800 / video.device_scale, 600 / video.device_scale);
 
                 // Zoom in on the ball.
 
-                config_set_d(CONFIG_VIEW_DC, 0);
-                config_set_d(CONFIG_VIEW_DP, 50);
+                config_set_d(CONFIG_VIEW_DC,  0);
+                config_set_d(CONFIG_VIEW_DP,  50);
                 config_set_d(CONFIG_VIEW_FOV, 20);
 
                 game_client_fly(0.0f);
@@ -563,15 +573,14 @@ static int ball_keybd(int c, int d)
                 {
                     static char filename[64];
 
-                    sprintf(filename, "Screenshots/ball-%s.png", base_name(DIR_ITEM_GET(balls, i)->path));
+                    sprintf(filename, "Screenshots/ball-%s.png",
+                                      base_name(DIR_ITEM_GET(balls, i)->path));
 
                     set_curr_ball(i);
 
                     video_clear();
                     video_push_persp((float) initial_fov, 0.1f, FAR_DIST);
-                    {
-                        back_draw_easy();
-                    }
+                    back_draw_easy();
                     video_pop_matrix();
 
                     game_client_draw(POSE_BALL, 0);
@@ -582,11 +591,11 @@ static int ball_keybd(int c, int d)
                 // Restore config.
 
                 config_set_d(CONFIG_VIEW_FOV, initial_fov);
-                config_set_d(CONFIG_VIEW_DC, initial_dc);
-                config_set_d(CONFIG_VIEW_DP, initial_dp);
+                config_set_d(CONFIG_VIEW_DC,  initial_dc);
+                config_set_d(CONFIG_VIEW_DP,  initial_dp);
 
                 video_set_window_size(initial_w, initial_h);
-                video_resize(initial_w, initial_h);
+                video_resize         (initial_w, initial_h);
 
                 set_curr_ball(curr_ball);
 
@@ -617,7 +626,8 @@ static int ball_buttn(int b, int d)
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && !defined(__EMSCRIPTEN__)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_Y, b) &&
             (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
-             server_policy_get_d(SERVER_POLICY_EDITION) < 0))
+             server_policy_get_d(SERVER_POLICY_EDITION) < 0) &&
+            !game_setup_process())
             return ball_action(server_policy_get_d(SERVER_POLICY_EDITION) < 0 ?
                                MODEL_UPGRADE_EDITION : MODEL_ONLINE, 0);
 #endif

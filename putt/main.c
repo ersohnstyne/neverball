@@ -336,14 +336,6 @@ static void refresh_packages_done(void *data, void *extra_data)
  */
 static void main_preload(struct state *start_state)
 {
-#if NB_HAVE_PB_BOTH==1
-    if (!check_game_setup())
-    {
-        goto_game_setup(start_state);
-        return;
-    }
-#endif
-
     struct fetch_callback callback = { 0 };
 
     callback.data = start_state;
@@ -368,6 +360,14 @@ static void main_preload(struct state *start_state)
     }
 
     /* Otherwise, go to the starting screen. */
+
+#if NB_HAVE_PB_BOTH==1
+    if (!check_game_setup())
+    {
+        goto_game_setup(start_state, 0, 0);
+        return;
+    }
+#endif
 
     goto_state(start_state);
 }
@@ -813,7 +813,7 @@ static int main_init(int argc, char *argv[])
 
 static void main_quit()
 {
-    goto_state(&st_null);
+    goto_state_full(&st_null, 0, 0, 1);
 
     mtrl_quit();
     video_quit();

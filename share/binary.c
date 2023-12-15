@@ -18,7 +18,7 @@
 
 #include "fs.h"
 
- /*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 void put_float(fs_file fout, float f)
 {
@@ -32,29 +32,29 @@ void put_float(fs_file fout, float f)
     fs_putc((val >> 24) & 0xff, fout);
 }
 
-void put_index(fs_file fout, int val)
+void put_index(fs_file fout, int i)
 {
 #define val i
 
-    fs_putc((val) & 0xff, fout);
-    fs_putc((val >> 8) & 0xff, fout);
+    fs_putc((val)       & 0xff, fout);
+    fs_putc((val >> 8)  & 0xff, fout);
     fs_putc((val >> 16) & 0xff, fout);
     fs_putc((val >> 24) & 0xff, fout);
 
 #undef val
 }
 
-void put_short(fs_file fout, short val)
+void put_short(fs_file fout, short s)
 {
 #define val s
 
-    fs_putc((val) & 0xff, fout);
+    fs_putc((val)      & 0xff, fout);
     fs_putc((val >> 8) & 0xff, fout);
 
 #undef val
 }
 
-void put_array(fs_file fout, const float* v, size_t n)
+void put_array(fs_file fout, const float *v, size_t n)
 {
     size_t i;
 
@@ -97,7 +97,7 @@ short get_short(fs_file fin)
     return val;
 }
 
-void get_array(fs_file fin, float* v, size_t n)
+void get_array(fs_file fin, float *v, size_t n)
 {
     size_t i;
 
@@ -107,13 +107,13 @@ void get_array(fs_file fin, float* v, size_t n)
 
 /*---------------------------------------------------------------------------*/
 
-void put_string(fs_file fout, const char* s)
+void put_string(fs_file fout, const char *s)
 {
     fs_puts(s, fout);
     fs_putc('\0', fout);
 }
 
-void get_string(fs_file fin, char* s, size_t max)
+void get_string(fs_file fin, char *s, size_t max)
 {
     size_t pos = 0;
     int c;

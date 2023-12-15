@@ -1044,8 +1044,7 @@ void level_snap(int i, const char *path)
 
         game_client_toggle_show_balls(0);
 
-        union cmd cmd;
-        cmd.type = CMD_GOAL_OPEN;
+        union cmd cmd = { CMD_GOAL_OPEN };
         game_proxy_enq(&cmd);
         game_client_sync(NULL);
 

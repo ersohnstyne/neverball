@@ -139,6 +139,11 @@ struct state *curr_state(void)
     return state;
 }
 
+struct state *queue_state(void)
+{
+    return curr_state() != anim_queue_state ? anim_queue_state : 0;
+}
+
 float time_state(void)
 {
     return state_time;
@@ -301,7 +306,7 @@ int goto_state_full(struct state *st,
 
     anim_queue = 0;
 
-    if (state != anim_queue_state)
+    if (queue_state())
     {
         goto_state_full(anim_queue_state,
                         anim_queue_directions[0],

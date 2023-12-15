@@ -19,16 +19,16 @@
 #define _CRT_NB_UTIL_DEPRECATED(_Type, _Params, _Func, _Replaces) \
     __declspec(deprecated(                                        \
         "This function or variable has been superceded by "       \
-        "newer library functionality. Consider using " #_Replaces \
-        " instead."                                               \
+        "newer game UI or game logic functionality. Consider "    \
+        "using " #_Replaces " instead."                           \
     )) _Type _Func _Params
 #else
 #define _CRT_NB_UTIL_DEPRECATED(_Type, _Params, _Func, _Replaces) \
     _Type _Func _Params                                           \
     __attribute__ ((deprecated(                                   \
         "This function or variable has been superceded by "       \
-        "newer library functionality. Consider using " #_Replaces \
-        " instead."                                               \
+        "newer game UI or game logic functionality. Consider "    \
+        "using " #_Replaces " instead."                           \
     )))
 #endif
 
@@ -52,8 +52,16 @@
 void gui_score_set(int);
 int  gui_score_get(void);
 
-/* This function was synced within campaign and level set stats. */
+/*
+ * This stats for campaign will be replaced into the gui_levelgroup_stats.
+ * Your functions will be replaced using same parameters.
+ */
 _CRT_NB_UTIL_DEPRECATED(void, (const struct level *), gui_campaign_stats, gui_levelgroup_stats);
+
+/*
+ * This stats for level set will be replaced into the gui_levelgroup_stats.
+ * Your functions will be replaced using same parameters.
+ */
 _CRT_NB_UTIL_DEPRECATED(void, (const struct level *), gui_set_stats, gui_levelgroup_stats);
 
 void gui_levelgroup_stats(const struct level *);

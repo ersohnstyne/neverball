@@ -547,8 +547,9 @@ MAPC_OBJS := \
 	share/list.o        \
 	share/mapc.o
 BALL_OBJS := \
-	share/dbg_config.o  \
 	payments/currency_curl.o\
+	share/dbg_config.o  \
+	share/st_setup.o    \
 	share/accessibility.o\
 	share/lang_gettext.o\
 	share/st_common.o   \
@@ -635,6 +636,7 @@ BALL_OBJS := \
 PUTT_OBJS := \
 	share/accessibility.o\
 	share/dbg_config.o  \
+	share/st_setup.o    \
 	share/lang_gettext.o\
 	share/st_common.o   \
 	share/vec3.o        \

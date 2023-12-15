@@ -54,7 +54,7 @@ enum console_platforms {
 
 /* PlayStation 4 */
 
-#define PS4_A_BUTTON      "X"     /* Blue cross     */
+#define PS4_A_BUTTON      "×"     /* Blue cross     */
 #define PS4_B_BUTTON      "○"     /* Red circle     */
 #define PS4_X_BUTTON      "◻"     /* Pink square    */
 #define PS4_Y_BUTTON      "△"     /* Cyan triangle  */

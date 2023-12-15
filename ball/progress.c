@@ -42,6 +42,7 @@
 #include "score.h"
 #include "audio.h"
 #include "video.h"
+#include "util.h"
 
 #include "game_common.h"
 #include "game_client.h"
@@ -656,7 +657,7 @@ void progress_stat(int s)
                                 || campaign_career_unlocked());
 
             if (!campaign_used() &&
-                (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25))
+                (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN))
                 level_score_update(level,
                                    timer,
 #ifdef ENABLE_POWERUP
@@ -672,7 +673,7 @@ void progress_stat(int s)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
                       !config_cheat() &&
 #endif
-                      (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= 25)))
+                      (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN)))
                 level_score_update(level,
                                    timer,
 #ifdef ENABLE_POWERUP
@@ -890,6 +891,8 @@ void progress_stop(void)
 
     if (mode == MODE_NONE) return;
 
+    if (replay) return;
+
     if (level)
     {
 #ifdef MAPC_INCLUDES_CHKP
@@ -910,7 +913,7 @@ void progress_exit(void)
     {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         if (campaign_used() && mode == MODE_HARDCORE &&
-            (!config_get_d(CONFIG_SMOOTH_FIX) && video_perf() >= 25))
+            (!config_get_d(CONFIG_SMOOTH_FIX) && video_perf() >= NB_FRAMERATE_MIN))
         {
             campaign_score_update(curr.times,
                                   curr.score,
@@ -968,13 +971,27 @@ void progress_exit(void)
 
 int  progress_replay(const char *filename)
 {
-    if (demo_replay_init(filename, &goal, &mode,
-                         &curr.balls,
-                         &curr.score,
-                         &curr.times,
+    progress_replay_full(filename,
+                         &goal, &mode,
+                         &curr.balls, &curr.score, &curr.times,
+                         1);
+}
+
+int  progress_replay_full(const char *filename,
+                          int *g, int *m,
+                          int *b, int *s, int *tt,
+                          int in_game)
+{
+    if (demo_replay_init(filename,
+                         in_game && g  ? g  : (in_game ? &goal       : 0),
+                         in_game && m  ? m  : (in_game ? &mode       : 0),
+                         in_game && b  ? b  : (in_game ? &curr.balls : 0),
+                         in_game && s  ? s  : (in_game ? &curr.score : 0),
+                         in_game && tt ? tt : (in_game ? &curr.times : 0),
                          &curr.speedpercent))
     {
-        goal_i = goal;
+        goal_i = g ? (*g) : goal;
+
         replay = 1;
         return 1;
     }

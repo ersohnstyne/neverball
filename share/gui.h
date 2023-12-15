@@ -15,6 +15,23 @@
 #ifndef GUI_H
 #define GUI_H
 
+#if _MSC_VER
+#define _CRT_NB_GUI_DEPRECATED(_Type, _Params, _Func, _Replaces) \
+    __declspec(deprecated(                                       \
+        "This UI function or variable has been superceded by "   \
+        "newer parts functionality. Consider using " #_Replaces  \
+        " instead."                                              \
+    )) _Type _Func _Params
+#else
+#define _CRT_NB_GUI_DEPRECATED(_Type, _Params, _Func, _Replaces) \
+    _Type _Func _Params                                          \
+    __attribute__ ((deprecated(                                  \
+        "This UI function or variable has been superceded by "   \
+        "newer parts functionality. Consider using " #_Replaces  \
+        " instead."                                              \
+    )))
+#endif
+
 #if NB_HAVE_PB_BOTH==1
 #define SWITCHBALL_GUI
 #endif
@@ -203,6 +220,8 @@ void gui_toggle(int);
 
 /*---------------------------------------------------------------------------*/
 
+
+
 /*
  * Reserved GUI tokens. (Mostly Neverball specific.)
  */
@@ -223,7 +242,9 @@ enum
     GUI_LAST
 };
 
-int gui_navig(int id, int total, int first, int step);
+_CRT_NB_GUI_DEPRECATED(int, (int id, int total, int first, int step), gui_navig, gui_navig_full);
+
+int gui_navig_full(int id, int total, int first, int step, int back_disabled);
 int gui_maybe_img(int, const char *, const char *, int, int, int);
 int gui_maybe(int, const char *, int, int, int);
 

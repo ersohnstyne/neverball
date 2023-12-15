@@ -550,7 +550,7 @@ keys and their default values follow.
         For more  information, see the  section on using  Wiimote with
         Neverball.
 
-    dedicated_ipaddress neverball.github.io
+    dedicated_ipaddress Neverball.stynegame.de
     dedicated_ipport    5000
 
         This  key  specifies the IPv4/IPv6 address or host and port of

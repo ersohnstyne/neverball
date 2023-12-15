@@ -15,6 +15,8 @@
 #ifndef PROGRESS_H
 #define PROGRESS_H
 
+#include "util.h"
+
 #include "level.h"
 #include "campaign.h"
 
@@ -58,7 +60,16 @@ int  progress_next(void);
 
 void progress_rename(int);
 
-int  progress_replay(const char *);
+/*
+ * This replay function init will be replaced into the progress_replay_full.
+ * Your functions will be replaced using seven parameters.
+ */
+_CRT_NB_UTIL_DEPRECATED(int, (const char *), progress_replay, progress_replay_full);
+
+int  progress_replay_full(const char *filename,
+                          int *g, int *m,
+                          int *b, int *s, int *tt,
+                          int mus);
 
 int  progress_dead(void);
 int  progress_done(void);

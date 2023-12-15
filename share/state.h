@@ -19,7 +19,7 @@
 #define _CRT_NB_SCREENSTATE_DEPRECATED(_Type, _Params, _Func, _Replaces) \
     __declspec(deprecated(                                               \
         "This screenstate function or variable has been superceded by "  \
-        "newer library functionality. Consider using " #_Replaces        \
+        "newer UI animations functionality. Consider using " #_Replaces  \
         " instead."                                                      \
     )) _Type _Func _Params
 #else
@@ -27,7 +27,7 @@
     _Type _Func _Params                                                  \
     __attribute__ ((deprecated(                                          \
         "This screenstate function or variable has been superceded by "  \
-        "newer library functionality. Consider using " #_Replaces        \
+        "newer UI animations functionality. Consider using " #_Replaces  \
         " instead."                                                      \
     )))
 #endif
@@ -75,6 +75,7 @@ struct state
 };
 
 struct state *curr_state(void);
+struct state *queue_state(void);
 
 float time_state(void);
 void  init_state(struct state *);

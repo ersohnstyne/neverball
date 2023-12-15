@@ -15,12 +15,6 @@
 #ifndef RFD_H
 #define RFD_H
 
-#if _WIN32 && __MINGW32__
-#include <SDL3/SDL.h>
-#else
-#include <SDL.h>
-#endif
-
 #include "base_config.h"
 
 /*---------------------------------------------------------------------------*/

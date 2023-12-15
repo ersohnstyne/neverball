@@ -846,9 +846,8 @@ static void game_client_next_studio_map(void)
     {
         game_client_toggle_show_balls(1);
 
-        union cmd cmd;
+        union cmd cmd = { CMD_GOAL_OPEN };
 
-        cmd.type = CMD_GOAL_OPEN;
         game_proxy_enq(&cmd);
         game_client_sync(NULL);
 
@@ -910,9 +909,8 @@ int game_client_init_studio(int alternatives)
     {
         game_client_toggle_show_balls(1);
 
-        union cmd cmd;
+        union cmd cmd = { CMD_GOAL_OPEN };
 
-        cmd.type = CMD_GOAL_OPEN;
         game_proxy_enq(&cmd);
         game_client_sync(NULL);
 

@@ -45,9 +45,16 @@
 #endif
 #endif
 
+#if NB_HAVE_PB_BOTH!=1
+#error Security compilation error: Preprocessor definitions can be used it, \
+       once you've transferred or joined into the target Discord Server, \
+       and verified and promoted as Developer Role. \
+       This invite link can be found under https://discord.gg/qnJR263Hm2/.
+#else
 #ifndef MAPC_INCLUDES_CHKP
 #if NB_HAVE_PB_BOTH==1
-#error Campaign is added, but requires Checkpoints!
+#error Security compilation error: Campaign is added, but requires Checkpoints!
+#endif
 #endif
 #endif
 
@@ -57,7 +64,8 @@
 #endif
 
 #define cam_box_trigger_test_master(pos, camtrigger, idx) \
-    (pos[idx] > camtrigger->positions[idx] - camtrigger->triggerSize[idx] && pos[idx] < camtrigger->positions[idx] + camtrigger->triggerSize[idx])
+    (pos[idx] > camtrigger->positions[idx] - camtrigger->triggerSize[idx] && \
+     pos[idx] < camtrigger->positions[idx] + camtrigger->triggerSize[idx])
 
 /*---------------------------------------------------------------------------*/
 
@@ -695,16 +703,16 @@ int campaign_init(void)
             {
                 medal_datas.unlocks++;
 
-                if (strcmp(campaign_get_level(i)->scores->player[0], N_("Hard")) != 0
-                 && strcmp(campaign_get_level(i)->scores->player[0], "") != 0)
+                if (strcmp(campaign_get_level(i)->scores->player[0], N_("Hard")) != 0 &&
+                    strcmp(campaign_get_level(i)->scores->player[0], "") != 0)
                     medal_datas.gold++;
 
-                else if (strcmp(campaign_get_level(i)->scores->player[1], N_("Medium")) != 0
-                      && strcmp(campaign_get_level(i)->scores->player[1], "") != 0)
+                else if (strcmp(campaign_get_level(i)->scores->player[1], N_("Medium")) != 0 &&
+                         strcmp(campaign_get_level(i)->scores->player[1], "") != 0)
                     medal_datas.silver++;
 
-                else if (strcmp(campaign_get_level(i)->scores->player[2], N_("Easy")) == 0
-                      && strcmp(campaign_get_level(i)->scores->player[2], "") == 0)
+                else if (strcmp(campaign_get_level(i)->scores->player[2], N_("Easy")) == 0 &&
+                         strcmp(campaign_get_level(i)->scores->player[2], "") == 0)
                     medal_datas.bronze++;
             }
         }
@@ -716,17 +724,17 @@ int campaign_init(void)
          * To get the gold wings: Achieve every gold awards on all levels.
          */
 
-        if ((medal_datas.gold == medal_datas.unlocks)
-          && medal_datas.silver == 0 && medal_datas.bronze == 0
-         && level_completed(campaign_get_level(3)))
+        if ((medal_datas.gold == medal_datas.unlocks) &&
+             medal_datas.silver == 0 && medal_datas.bronze == 0 &&
+            level_completed(campaign_get_level(3)))
             medal_datas.curr_rank = 4;
-        else if (medal_datas.gold > medal_datas.silver
-         && medal_datas.gold > medal_datas.bronze
-         && level_completed(campaign_get_level(3)))
+        else if (medal_datas.gold > medal_datas.silver &&
+            medal_datas.gold > medal_datas.bronze &&
+            level_completed(campaign_get_level(3)))
             medal_datas.curr_rank = 3;
-        else if (medal_datas.gold < medal_datas.silver
-         && medal_datas.silver > medal_datas.bronze
-         && level_completed(campaign_get_level(3)))
+        else if (medal_datas.gold < medal_datas.silver &&
+            medal_datas.silver > medal_datas.bronze &&
+            level_completed(campaign_get_level(3)))
             medal_datas.curr_rank = 2;
         else if (level_completed(campaign_get_level(3)))
             medal_datas.curr_rank = 1;
@@ -748,10 +756,21 @@ void campaign_quit(void)
     exists = 0;
 
     /* Once the campaign is left off, remove this. */
-    free(time_trial_leaderboard);
+
+    if (time_trial_leaderboard)
+    {
+        free(time_trial_leaderboard);
+        time_trial_leaderboard = NULL;
+    }
 
     for (int i = 0; i < campaign_count; i++)
-        free(campaign_levelpath[i]);
+    {
+        if (campaign_levelpath[i])
+        {
+            free(campaign_levelpath[i]);
+            campaign_levelpath[i] = NULL;
+        }
+    }
 }
 
 /* Initialize campaign theme */
@@ -812,8 +831,8 @@ int campaign_hardcore_unlocked(void)
 {
 #if !defined(HARDCORE_PERMA_UNLOCKED)
     for (int i = 0; i < 30; i++)
-        if (strcmp(campaign_get_level(i)->scores->player[1], N_("Medium")) == 0
-         || strcmp(campaign_get_level(i)->scores->player[1], "") == 0)
+        if (strcmp(campaign_get_level(i)->scores->player[1], N_("Medium")) == 0 ||
+            strcmp(campaign_get_level(i)->scores->player[1], "") == 0)
             return 0;
 #endif
     return 1;
@@ -982,9 +1001,9 @@ int campaign_camera_box_trigger_test(struct s_vary *vary, int ui)
     {
         struct campaign_cam_box_trigger *localcamboxtrigger = cam_box_triggers + camidx;
 
-        if (cam_box_trigger_test_master(ball_p, localcamboxtrigger, 0)
-         && cam_box_trigger_test_master(ball_p, localcamboxtrigger, 1)
-         && cam_box_trigger_test_master(ball_p, localcamboxtrigger, 2))
+        if (cam_box_trigger_test_master(ball_p, localcamboxtrigger, 0) &&
+            cam_box_trigger_test_master(ball_p, localcamboxtrigger, 1) &&
+            cam_box_trigger_test_master(ball_p, localcamboxtrigger, 2))
         {
             cam_box_triggers[camidx].activated = 0;
             return camidx;

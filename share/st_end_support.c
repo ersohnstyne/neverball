@@ -21,12 +21,6 @@
 /* TODO: Uncomment, if you want to test the end support. */
 //#define TEST_END_SUPPORT
 
-#if _WIN32 && __MINGW32__
-#include <SDL3/SDL.h>
-#else
-#include <SDL.h>
-#endif
-
 /*
  * TODO: If you don't have an gamepad controllers,
  * comment it in the include header below.

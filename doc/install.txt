@@ -72,7 +72,7 @@ make FS_VERSION=1
     If  you use this,  then payments,  fetch and libcurl will ignored.
 
 make ENABLE_STEAM=1
-    Steam game client support.
+    Steam support.
 
     Steamworks        https://partner.steamgames.com/
 

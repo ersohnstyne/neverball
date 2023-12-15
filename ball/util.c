@@ -337,7 +337,7 @@ void gui_levelgroup_stats(const struct level *l)
     sprintf(buffer[0], "%d",   l->stats.completed);
     sprintf(buffer[1], "%d",   l->stats.timeout);
     sprintf(buffer[2], "%d",   l->stats.fallout);
-    sprintf(buffer[3], "%f%%", CLAMP(0, clr_rate_val, 100));
+    sprintf(buffer[3], "%.2f%%", CLAMP(0, clr_rate_val, 100));
 #endif
 
     gui_set_label(stats_labels.completed, buffer[0]);

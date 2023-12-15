@@ -61,6 +61,8 @@
 
 /*---------------------------------------------------------------------------*/
 
+static int         compile_time_limit = 60;
+
 static int         linenum       = 0;
 static int         bracket_linenum[256];
 static int         bracket_stack = 0;
@@ -3399,6 +3401,33 @@ int main(int argc, char *argv[])
                 if (++argi < argc)
                     fs_add_path(argv[argi]);
             }
+
+            if (strcmp(argv[argi], "--timelimit")   == 0)
+            {
+                ++argi;
+
+                if (argi < argc)
+                {
+                    compile_time_limit = atoi(argv[argi]);
+
+                    if (compile_time_limit < 60)
+                    {
+                        fprintf(stderr, "Invalid numeric value!: Min: 60\n");
+                        return 1;
+                    }
+
+                    if (compile_time_limit > 1920)
+                    {
+                        fprintf(stderr, "Invalid numeric value!: Max: 1920\n");
+                        return 1;
+                    }
+                }
+                else
+                {
+                    fprintf(stderr, "Option --timelimit requires numeric value!\n");
+                    return 1;
+                }
+            }
         }
 
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
@@ -3484,7 +3513,6 @@ int main(int argc, char *argv[])
             if (!QueryPerformanceFrequency(&QPCFrequency)) return 1;
             if (!QueryPerformanceCounter(&QCPStartTime)) return 1;
 #else
-
             gettimeofday(&time0, 0);
 #endif
             {
@@ -3567,15 +3595,31 @@ int main(int argc, char *argv[])
 
 #if _MSC_VER
                 if (!QueryPerformanceCounter(&QCPLastTime)) return 1;
-                if ((QCPLastTime.QuadPart - QCPStartTime.QuadPart) / 10000000.0 > 60.0f)
+                double currtime = (QCPLastTime.QuadPart - QCPStartTime.QuadPart) / 10000000.0;
 #else
                 gettimeofday(&time1, 0);
-                if ((time1.tv_sec - time0.tv_sec) +
-                    (time1.tv_usec - time0.tv_usec) / 1000000.0
-                    > 60.0f)
+                double currtime = (time1.tv_sec - time0.tv_sec) + (time1.tv_usec - time0.tv_usec) / 1000000.0;
 #endif
+                if (currtime > compile_time_limit)
                 {
-                    MAPC_LOG_ERROR("Compile timed out after 60 seconds!\n");
+                    char buf[MAXSTR];
+
+                    if (compile_time_limit >= 1920 || currtime >= 1920)
+                        sprintf(buf, "Compile timed out after %d seconds!\n\t"
+                                     "Current compilation time exceeds above 32 minutes!\n\t"
+                                     "Simplify some structural lumps in the Net-Radiant or buy the brand new PC!\n",
+                                     compile_time_limit, currtime);
+                    else
+                    {
+                        sprintf(buf, "Compile timed out after %d seconds!\n\t"
+                                     "Raise compilation time limit using --timelimit to \"%d\"!\n",
+                                     compile_time_limit,
+                                     currtime > 960.000 ? 1920 : (currtime > 480.000 ? 960
+                                                               : (currtime > 240.000 ? 480
+                                                               : (currtime > 120.000 ? 240 : 120))));
+                    }
+
+                    MAPC_LOG_ERROR(buf);
                     return 1;
                 }
 

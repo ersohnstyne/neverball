@@ -71,7 +71,7 @@ int  video_fullscreen(int);
 void video_resize(int, int);
 void video_set_window_size(int, int);
 void video_set_display(int);
-int  video_display();
+int  video_display(void);
 
 /*---------------------------------------------------------------------------*/
 

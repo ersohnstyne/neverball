@@ -77,7 +77,7 @@ extern "C" int hmd_stat()
     return (config_get_d(CONFIG_HMD) && hmd_common_stat());
 }
 
-extern "C" void hmd_init()
+extern "C" void hmd_init(void)
 {
     /* Set default HMD info for a 7" OVR DK1 in case OVR fails. */
 
@@ -137,7 +137,7 @@ extern "C" void hmd_init()
     hmd_common_init(Info.HResolution, Info.VResolution);
 }
 
-extern "C" void hmd_free()
+extern "C" void hmd_free(void)
 {
     hmd_common_free();
 
@@ -150,12 +150,12 @@ extern "C" void hmd_free()
     OVR::System::Destroy();
 }
 
-extern "C" void hmd_step()
+extern "C" void hmd_step(void)
 {
     /* LibOVR is threaded. No synchronous update is necessary. */
 }
 
-extern "C" void hmd_swap()
+extern "C" void hmd_swap(void)
 {
     float center = 1 - (2 * Info.LensSeparationDistance) / Info.HScreenSize;
     float scale  = Stereo.GetDistortionScale();
@@ -163,13 +163,13 @@ extern "C" void hmd_swap()
     hmd_common_swap(center, scale, Info.DistortionK, Info.ChromaAbCorrection);
 }
 
-extern "C" void hmd_prep_left()
+extern "C" void hmd_prep_left(void)
 {
     hmd_common_left();
     Params = Stereo.GetEyeRenderParams(OVR::Util::Render::StereoEye_Left);
 }
 
-extern "C" void hmd_prep_right()
+extern "C" void hmd_prep_right(void)
 {
     hmd_common_right();
     Params = Stereo.GetEyeRenderParams(OVR::Util::Render::StereoEye_Right);
@@ -198,7 +198,7 @@ extern "C" void hmd_persp(float n, float f)
     }
 }
 
-extern "C" void hmd_ortho()
+extern "C" void hmd_ortho(void)
 {
     hmd_persp(0.5f, 2.0f);
 

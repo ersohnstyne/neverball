@@ -37,7 +37,7 @@ int hmd_stat()
     return (config_get_d(CONFIG_HMD) && hmd_common_stat());
 }
 
-void hmd_init()
+void hmd_init(void)
 {
     hres = video.device_w;
     vres = video.device_h;
@@ -61,7 +61,7 @@ void hmd_init()
     hmd_common_init(hres, vres);
 }
 
-void hmd_free()
+void hmd_free(void)
 {
     if (ctx) ohmd_ctx_destroy(ctx);
 
@@ -71,12 +71,12 @@ void hmd_free()
     ctx = NULL;
 }
 
-void hmd_step()
+void hmd_step(void)
 {
     if (ctx) ohmd_ctx_update(ctx);
 }
 
-void hmd_swap()
+void hmd_swap(void)
 {
     static const float center = 0.151976f;
     static const float scale  = 1.714606f;
@@ -87,14 +87,14 @@ void hmd_swap()
     hmd_common_swap(center, scale, barrel_correction, chroma_correction);
 }
 
-void hmd_prep_left()
+void hmd_prep_left(void)
 {
     hmd_common_left();
     ohmd_device_getf(dev, OHMD_LEFT_EYE_GL_PROJECTION_MATRIX, P);
     ohmd_device_getf(dev, OHMD_LEFT_EYE_GL_MODELVIEW_MATRIX,  M);
 }
 
-void hmd_prep_right()
+void hmd_prep_right(void)
 {
     hmd_common_right();
     ohmd_device_getf(dev, OHMD_RIGHT_EYE_GL_PROJECTION_MATRIX, P);
@@ -109,7 +109,7 @@ void hmd_persp(float n, float f)
     glLoadMatrixf(M);
 }
 
-void hmd_ortho()
+void hmd_ortho(void)
 {
     hmd_persp(0.5f, 2.0f);
 

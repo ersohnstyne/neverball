@@ -431,7 +431,7 @@ void demo_play_stat(int status, int coins, int timer)
     }
 }
 
-static void demo_refresh()
+static void demo_refresh(void)
 {
 #ifdef __EMSCRIPTEN__
     EM_ASM({

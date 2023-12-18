@@ -77,7 +77,7 @@ struct video video;
 #if __cplusplus
 extern "C"
 #endif
-void video_show_cursor()
+void video_show_cursor(void)
 {
     int cursor_visible = 0;
 
@@ -120,7 +120,7 @@ void video_show_cursor()
 #if __cplusplus
 extern "C"
 #endif
-void video_hide_cursor()
+void video_hide_cursor(void)
 {
     gui_set_cursor(0);
 

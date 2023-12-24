@@ -45,7 +45,7 @@ Queue queue_new(void)
 void queue_free(Queue q)
 {
     assert(queue_empty(q));
-    free(q->head);
+    free(q->head); q->head = NULL;
     free(q);
 }
 

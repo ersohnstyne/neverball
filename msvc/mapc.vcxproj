@@ -73,13 +73,13 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_CONSOLE;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <ErrorReporting>Prompt</ErrorReporting>
-	  <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -88,8 +88,12 @@
       <AdditionalDependencies>runtimeobject.lib;libpng16_staticd.lib;libjpeg_a.lib;zlibstaticd.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x86\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent />
     <PostBuildEvent>
-      <Command>rem "$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Configuration)\mapc.exe" "$(SolutionDir)data_development"</Command>
+      <Command>if exist ($(OutDir)mapc.exe) (echo ======== Finish it with using MAPC command ($(OutDir)mapc.exe) ========)
+if exist ($(OutDir)mapc.exe) (forfiles /P "$(SolutionDir)data_development" /S /M *.map /C "cmd /c echo mapc.exe @path data --skip_verify")
+
+</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>del "$(ProjectDir)$(Configuration)\*.obj"
@@ -101,14 +105,15 @@ del "$(SolutionDir)share\*.o"</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CONSOLE;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <ErrorReporting>Prompt</ErrorReporting>
-	  <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -119,8 +124,12 @@ del "$(SolutionDir)share\*.o"</Command>
       <AdditionalDependencies>runtimeobject.lib;libpng16_static.lib;libjpeg_a.lib;zlibstatic.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x86\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent />
     <PostBuildEvent>
-      <Command>rem "$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Configuration)\mapc.exe" "$(SolutionDir)data_development"</Command>
+      <Command>if exist ($(OutDir)mapc.exe) (echo ======== Finish it with using MAPC command ($(OutDir)mapc.exe) ========)
+if exist ($(OutDir)mapc.exe) (forfiles /P "$(SolutionDir)data_development" /S /M *.map /C "cmd /c echo mapc.exe @path data --skip_verify")
+
+</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>del "$(ProjectDir)$(Configuration)\*.obj"
@@ -132,7 +141,7 @@ del "$(SolutionDir)share\*.o"</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CONSOLE;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -147,8 +156,12 @@ del "$(SolutionDir)share\*.o"</Command>
       <AdditionalDependencies>runtimeobject.lib;libpng16_staticd.lib;libjpeg_a.lib;zlibstaticd.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x64\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent />
     <PostBuildEvent>
-      <Command>rem "$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Platform)\$(Configuration)\mapc.exe" "$(SolutionDir)data_development"</Command>
+      <Command>if exist ($(OutDir)mapc.exe) (echo ======== Finish it with using MAPC command ($(OutDir)mapc.exe) ========)
+if exist ($(OutDir)mapc.exe) (forfiles /P "$(SolutionDir)data_development" /S /M *.map /C "cmd /c echo mapc.exe @path data --skip_verify")
+
+</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>del "$(ProjectDir)$(Platform)\$(Configuration)\*.obj"
@@ -162,7 +175,7 @@ del "$(SolutionDir)share\*.o"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CONSOLE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -179,8 +192,12 @@ del "$(SolutionDir)share\*.o"</Command>
       <AdditionalDependencies>runtimeobject.lib;libpng16_static.lib;libjpeg_a.lib;zlibstatic.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x64\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent />
     <PostBuildEvent>
-      <Command>rem "$(SolutionDir)map_compile_all.bat" "$(SolutionDir)$(Platform)\$(Configuration)\mapc.exe" "$(SolutionDir)data_development"</Command>
+      <Command>if exist ($(OutDir)mapc.exe) (echo ======== Finish it with using MAPC command ($(OutDir)mapc.exe) ========)
+if exist ($(OutDir)mapc.exe) (forfiles /P "$(SolutionDir)data_development" /S /M *.map /C "cmd /c echo mapc.exe @path data --skip_verify")
+
+</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>del "$(ProjectDir)$(Platform)\$(Configuration)\*.obj"
@@ -216,6 +233,7 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClInclude Include="..\share\fs.h" />
     <ClInclude Include="..\share\list.h" />
     <ClInclude Include="..\share\log.h" />
+    <ClInclude Include="..\share\miniz.h" />
     <ClInclude Include="..\share\solid_base.h" />
     <ClInclude Include="..\share\solid_chkp.h" />
     <ClInclude Include="..\share\vec3.h" />

@@ -436,9 +436,9 @@ static void sol_load_mesh(struct d_mesh *mp,
         mp->vbc = vn;
     }
 
-    free(iv);
-    free(gv);
-    free(vv);
+    free(iv); iv = NULL;
+    free(gv); gv = NULL;
+    free(vv); vv = NULL;
 }
 
 static void sol_free_mesh(struct d_mesh *mp)
@@ -533,7 +533,7 @@ static void sol_free_body(struct d_body *bp)
     for (mi = 0; mi < bp->mc; ++mi)
         sol_free_mesh(bp->mv + mi);
 
-    free(bp->mv);
+    free(bp->mv); bp->mv = NULL;
 }
 
 static void sol_draw_body(const struct d_body *bp, struct s_rend *rend, int p)
@@ -602,7 +602,7 @@ void sol_free_draw(struct s_draw *draw)
     for (i = 0; i < draw->bc; i++)
         sol_free_body(draw->bv + i);
 
-    free(draw->bv);
+    free(draw->bv); draw->bv = NULL;
 }
 
 /*---------------------------------------------------------------------------*/

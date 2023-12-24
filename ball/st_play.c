@@ -819,11 +819,11 @@ static void play_loop_timer(int id, float dt)
         game_server_step(dt);
 
     game_client_blend(game_server_blend());
-    game_client_sync(curr_mode() != MODE_NONE
+    game_client_sync(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                  && !campaign_hardcore_norecordings()
+                     !campaign_hardcore_norecordings() &&
 #endif
-                         ? demo_fp : NULL);
+                     curr_mode() != MODE_NONE ? demo_fp : NULL);
 
     /* Cannot update state in home room. */
 
@@ -1136,7 +1136,7 @@ void play_shared_leave(struct state *st, struct state *next, int id)
     if (curr_mode() == MODE_NONE)
         game_set_pos(0, 0);
 
-    gui_delete(id);
+    shared_leave(st, next, id);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1163,6 +1163,7 @@ static int look_enter(struct state *st, struct state *prev)
 
 static void look_leave(struct state *st, struct state *next, int id)
 {
+    shared_leave(st, next, id);
 }
 
 static void look_timer(int id, float dt)

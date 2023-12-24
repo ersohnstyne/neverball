@@ -30,6 +30,14 @@
 #include "common.h"
 #include "fs.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 int accessibility_busy = 0;
@@ -150,7 +158,9 @@ void accessibility_load(void)
                     }
                 }
             }
+
             free(line);
+            line = NULL;
         }
         fs_close(fh);
 
@@ -162,6 +172,7 @@ void accessibility_load(void)
                    filename, fs_error());
 
     free(filename);
+    filename = NULL;
 }
 
 void accessibility_save(void)
@@ -200,8 +211,9 @@ void accessibility_save(void)
     else if (dirty)
         log_errorf("Failure to save accessibility file!: %s / %s\n",
                    filename, fs_error());
-    
+
     free(filename);
+    filename = NULL;
 
     dirty = 0;
     accessibility_busy = 0;

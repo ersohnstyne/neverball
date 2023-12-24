@@ -22,10 +22,18 @@
 #include "log.h"
 #include "fs.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 #ifdef _WIN32
 #include <shlobj.h>
 
-#if _MSC_VER
+#if _MSC_VER && !defined(_CONSOLE)
 #pragma message("Neverball " VERSION " for Microsoft Visual Studio")
 #endif
 #endif

@@ -30,6 +30,14 @@
 
 #include "st_setup.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 #define AUD_MENU     "snd/menu.ogg"
 #define AUD_BACK     "snd/back.ogg"
 #define AUD_DISABLED "snd/disabled.ogg"
@@ -268,8 +276,8 @@ static void game_setup_terms_checkmark_update_all(void)
     gui_set_label(setup_terms_master_tgl_id, setup_terms_all_accepted ? GUI_CHECKMARK : GUI_CROSS);
     gui_set_color(setup_terms_master_tgl_id, master_checkmark_color, master_checkmark_color);
 
-    gui_set_color(setup_btn_confirm_id, btn_color, btn_color);
     gui_set_state(setup_btn_confirm_id, setup_terms_all_accepted ? GUI_NEXT : GUI_NONE, 0);
+    gui_set_color(setup_btn_confirm_id, btn_color, btn_color);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -350,9 +358,7 @@ static int load_updated_version(void)
                 sscanf(VERSION, "%d.%d.%d",
                                 &curr_major,
                                 &curr_minor,
-                                &curr_patch,
-                                &curr_revision,
-                                &curr_build);
+                                &curr_patch);
 
                 if (new_major != curr_major ||
                     new_minor != curr_minor ||
@@ -404,6 +410,7 @@ static void setup_mkdir_migrate(void)
                 dst = concat_string("Replays/", src, NULL);
                 fs_rename(src, dst);
                 free(dst);
+                dst = NULL;
             }
 
             fs_dir_free(items);
@@ -423,6 +430,7 @@ static void setup_mkdir_migrate(void)
                                     NULL);
                 fs_rename(src, dst);
                 free(dst);
+                dst = NULL;
             }
 
             fs_dir_free(items);
@@ -617,8 +625,7 @@ static int game_setup_action(int tok, int val)
                 config_set_s(CONFIG_LANGUAGE, "");
                 lang_init();
                 setup_page++;
-                goto_state(&st_game_setup);
-                break;
+                return goto_state(&st_game_setup);
 
             case SETUP_LANG_SELECT:
                 desc = LANG_GET(setup_langs, val);
@@ -626,8 +633,7 @@ static int game_setup_action(int tok, int val)
                 config_set_s(CONFIG_LANGUAGE, desc->code);
                 lang_init();
                 setup_page++;
-                goto_state(&st_game_setup);
-                break;
+                return goto_state(&st_game_setup);
         }
     }
     else
@@ -653,8 +659,8 @@ static int game_setup_action(int tok, int val)
                                                               SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT);
 
                             setup_page++;
+
                             return goto_state(&st_game_setup);
-                            break;
                     }
                 }
                 break;
@@ -706,11 +712,10 @@ static int game_setup_action(int tok, int val)
                             setup_page++;
                             config_save();
                             return goto_state(&st_game_setup);
-                            break;
+
                         case SETUP_UPDATE_SKIP:
                             setup_page = 6;
                             return goto_state(&st_game_setup);
-                            break;
                     }
                 }
             case 6:
@@ -722,8 +727,7 @@ static int game_setup_action(int tok, int val)
                             setup_langs = NULL;
                             setup_process = 0;
                             config_save();
-                            return goto_state(st_continue);
-                            break;
+                            return st_continue ? goto_state(st_continue) : 0;
                     }
                 }
                 break;
@@ -921,7 +925,7 @@ static int game_setup_controls_gui(void)
 }
 
 /*
- * Setup Page 3: PB+NB Terms & Conditions, Discord TOS
+ * Setup Page 3: PB+NB Terms & Conditions, Discord TOS, MSA
  */
 static int game_setup_terms_gui(void)
 {
@@ -1024,7 +1028,7 @@ static int game_setup_update_gui(void)
 
         if ((id = gui_vstack(root_id)))
         {
-            gui_state(id, _("Skip"), GUI_SML, SETUP_UPDATE_SKIP, 0);
+            gui_start(id, _("Skip"), GUI_SML, SETUP_UPDATE_SKIP, 0);
             gui_space(id);
 
             gui_layout(id, 0, -1);
@@ -1074,7 +1078,7 @@ static int game_setup_install_confirm_gui(void)
                 if ((jd = gui_harray(id)))
                 {
                     gui_state(jd, _("Later"), GUI_SML, SETUP_UPDATE_SKIP, 0);
-                    gui_state(jd, _("Now"), GUI_SML, SETUP_UPDATE_START, 0);
+                    gui_start(jd, _("Now"), GUI_SML, SETUP_UPDATE_START, 0);
                 }
 
                 gui_space(id);
@@ -1098,7 +1102,7 @@ static int game_setup_install_confirm_gui(void)
 
             if ((id = gui_vstack(root_id)))
             {
-                gui_state(id, _("OK"), GUI_SML, SETUP_UPDATE_SKIP, 0);
+                gui_start(id, _("OK"), GUI_SML, SETUP_UPDATE_SKIP, 0);
                 gui_space(id);
 
                 gui_layout(id, 0, -1);
@@ -1132,7 +1136,7 @@ static int game_setup_install_gui(void)
             update_install_dnldprog_id = gui_label(id, "XXXXXXX", GUI_MED, GUI_COLOR_GRN);
             update_install_dnld_eta_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, GUI_COLOR_GRN);
             gui_space(id);
-            gui_label(id, _("Once updated, the game will itself saved\n"
+            gui_multi(id, _("Once updated, the game will itself saved\n"
                             "into the user data folder and quit automatically."),
                             GUI_TNY, GUI_COLOR_WHT);
 
@@ -1167,8 +1171,13 @@ static int game_setup_welcome_gui(void)
 
         if ((id = gui_vstack(root_id)))
         {
+            const int ww = MIN(video.device_w, video.device_h) / 1.5f;
+            const int hh = ww / 1.7777f;
+
+            gui_image(id, "png/premium-planet.png", ww, hh);
+            gui_space(id);
             gui_label(id, _("Select \"Start\", the game is ready to start!"),
-                            GUI_SML, GUI_COLOR_WHT);
+                            GUI_TNY, GUI_COLOR_WHT);
 
             gui_layout(id, 0, 0);
         }
@@ -1249,15 +1258,14 @@ static void game_setup_timer(int id, float dt)
 {
     gui_timer(id, dt);
 
-    if (setup_page == 4 || setup_page == 5)
+    if (setup_page == 5 && setup_update_version_finished &&
+        !st_global_animating())
     {
-        if (setup_page == 5 && setup_update_version_finished &&
-            !st_global_animating())
-        {
-            /* bye! */
-            SDL_Event e = { SDL_QUIT };
-            SDL_PushEvent(&e);
-        }
+        setup_mkdir_migrate();
+
+        /* bye! */
+        SDL_Event e = { SDL_QUIT };
+        SDL_PushEvent(&e);
     }
 }
 

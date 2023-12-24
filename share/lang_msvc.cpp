@@ -56,7 +56,7 @@ extern "C"
 
 #if _WIN32 && _MSC_VER && NLS_GETTEXT!=1
 
-std::ostringstream lang_splitstr(std::string str, std::string delim = "\\")
+std::ostringstream lang_splitstr(std::string str, std::string delim = "\n")
 {
     std::ostringstream finalres;
 
@@ -72,7 +72,7 @@ std::ostringstream lang_splitstr(std::string str, std::string delim = "\\")
         start = end + delim.size();
         end = str.find(delim, start);
 
-        if (writeable) finalres << '\\';
+        if (writeable) finalres << '\n';
 
         writeable = !writeable;
     }
@@ -115,24 +115,24 @@ void ms_nls_free(void)
     targ_lang_text.clear();
 }
 
-#if _MSC_VER
-#define MSVC_DEBUG_NLS 1
-#endif
-
 void ms_nls_init(const char *pref)
 {
     ms_nls_free();
 
+#if MSVC_DEBUG_NLS
+    const char *dir = "";
+#else
     char *dir = strdup(getenv("NEVERBALL_LOCALE"));
+#endif
 
     /* Select the location of message catalogs. */
 
     if (!dir)
     {
-        if (path_is_abs(CONFIG_LOCALE "\\..\\po"))
-            dir = strdup(CONFIG_LOCALE "\\..\\po");
+        if (path_is_abs(CONFIG_LOCALE "\\..\\..\\po"))
+            dir = strdup(CONFIG_LOCALE "\\..\\..\\po");
         else
-            dir = concat_string(fs_base_dir(), "\\", CONFIG_LOCALE, "\\..\\po",
+            dir = concat_string(fs_base_dir(), "\\", CONFIG_LOCALE, "\\..\\..\\po",
                                 NULL);
     }
 
@@ -140,7 +140,10 @@ void ms_nls_init(const char *pref)
     {
         log_errorf("Failure to find locale path: %s - %s\n",
                    dir, errno ? strerror(errno) : "Unknown error");
+#if !MSVC_DEBUG_NLS
         free(dir);
+        dir = NULL;
+#endif
         return;
     }
 
@@ -201,7 +204,7 @@ void ms_nls_init(const char *pref)
 
     fs_file fp;
     bool lang_first = true, lang_found = false;
-    char *inPath = strdup(concat_string(dir, "\\", pChar, ".po", NULL));
+    char *inPath    = strdup(concat_string(dir, "\\", pChar, ".po", NULL));
     char *inPathExt = strdup(concat_string(dir, "\\", pCharExt, ".po", NULL));
 
     int lock_it = 0;
@@ -224,7 +227,10 @@ void ms_nls_init(const char *pref)
 
     if (!lang_available)
     {
+#if !MSVC_DEBUG_NLS
         free(dir);
+        dir = NULL;
+#endif
         return;
     }
 
@@ -361,17 +367,20 @@ void ms_nls_init(const char *pref)
     else
         log_errorf("Can't load poedit file!: %s / %s\n", inPath, fs_error());
     
-    free(inPath);
-    free(inPathExt);
+    free(inPath);    inPath    = NULL;
+    free(inPathExt); inPathExt = NULL;
 
 #undef LANG_FUNC_LOAD_LOOP
 #undef LANG_FUNC_LOADSEG_FINALIZE
 
     /* HACK: Must match the element count in order. */
     assert(lang_text_found.size() == src_lang_text.size() &&
-        lang_text_found.size() == targ_lang_text.size());
+           lang_text_found.size() == targ_lang_text.size());
 
+#if !MSVC_DEBUG_NLS
     free(dir);
+    dir = NULL;
+#endif
 }
 
 const char *ms_nls_gettext(const char *s)
@@ -487,6 +496,7 @@ static int scan_item(struct dir_item *item)
             }
 
             free(desc);
+            desc = NULL;
         }
     }
     return 0;

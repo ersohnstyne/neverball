@@ -222,7 +222,7 @@ int campaign_download(struct fetch_callback callback)
 
 #endif
 
-#define TIME_TRIAL_VERSION 2
+#define TIME_TRIAL_VERSION  2
 #define MAX_CAM_BOX_TRIGGER 512
 
 static char *campaign_name;
@@ -244,8 +244,8 @@ static int   campaign_count = 30;
 
 static int level_difficulty = -1;
 
-static int exists = 0;
-static int used = 0;
+static int exists     = 0;
+static int used       = 0;
 static int theme_used = 0;
 
 static struct score coin_trials;
@@ -572,7 +572,10 @@ int campaign_load(const char *filename)
 
     if (strcmp(campaign_name, "Campaign") != 0)
     {
-        free(campaign_name); return 0;
+        free(campaign_name);
+        campaign_name = NULL;
+
+        return 0;
     }
 
     if (read_line(&scores, fin))
@@ -591,6 +594,7 @@ int campaign_load(const char *filename)
               &time_trials.coins[RANK_EASY]);
 
         free(scores);
+        scores = NULL;
 
         time_trial_leaderboard = concat_string("Campaign/time-trial.txt", NULL);
 
@@ -607,6 +611,7 @@ int campaign_load(const char *filename)
     }
 
     free(campaign_name);
+    campaign_name = NULL;
 
     fs_close(fin);
 
@@ -616,11 +621,11 @@ int campaign_load(const char *filename)
 /* Initialize the campaign level */
 static void campaign_load_levels(void)
 {
-    /* Bonus levels won't be shown as of the level sets */
-    int regular = 1;
     level_difficulty = -1;
 
-    int i;
+    /* Bonus levels won't be shown as of the level sets */
+    int i, regular = 1;
+
     for (i = 0; i < 30; ++i)
     {
         struct level *l = &campaign_lvl_v[i];
@@ -729,12 +734,12 @@ int campaign_init(void)
             level_completed(campaign_get_level(3)))
             medal_datas.curr_rank = 4;
         else if (medal_datas.gold > medal_datas.silver &&
-            medal_datas.gold > medal_datas.bronze &&
-            level_completed(campaign_get_level(3)))
+                 medal_datas.gold > medal_datas.bronze &&
+                 level_completed(campaign_get_level(3)))
             medal_datas.curr_rank = 3;
         else if (medal_datas.gold < medal_datas.silver &&
-            medal_datas.silver > medal_datas.bronze &&
-            level_completed(campaign_get_level(3)))
+                 medal_datas.silver > medal_datas.bronze &&
+                 level_completed(campaign_get_level(3)))
             medal_datas.curr_rank = 2;
         else if (level_completed(campaign_get_level(3)))
             medal_datas.curr_rank = 1;
@@ -978,6 +983,7 @@ void campaign_reset_camera_box_trigger(void)
         memset(&cam_box_triggers[i], 0, sizeof (struct campaign_cam_box_trigger));
 
         /* Default should be permanently disabled */
+
         cam_box_triggers[i].activated = -1;
     }
 }

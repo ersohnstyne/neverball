@@ -22,7 +22,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{136C8C74-C235-408E-99F3-49A365D2EE46}</ProjectGuid>
-    <RootNamespace>pennyball</RootNamespace>
+    <RootNamespace>neverputt</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -73,12 +73,12 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.0";NEVERBALL_EDITION=-1;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_DEDICATED_SERVER=0;CURL_STATICLIB;DEVEL_BUILD;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.1";NEVERBALL_EDITION=-1;ENABLE_NLS=1;NLS_GETTEXT=1;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;DEVEL_BUILD;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <ErrorReporting>Prompt</ErrorReporting>
-      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\source_$(Username)_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -106,13 +106,14 @@ del "$(SolutionDir)share\*.o"</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.0";NEVERBALL_EDITION=-1;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_DEDICATED_SERVER=0;CURL_STATICLIB;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.1";NEVERBALL_EDITION=-1;ENABLE_NLS=1;NLS_GETTEXT=1;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <ErrorReporting>Prompt</ErrorReporting>
-      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\source_$(Username)_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -142,12 +143,12 @@ del "$(SolutionDir)share\*.o"</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.0";NEVERBALL_EDITION=-1;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_DEDICATED_SERVER=0;CURL_STATICLIB;DEVEL_BUILD;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.1";NEVERBALL_EDITION=-1;ENABLE_NLS=1;NLS_GETTEXT=1;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;DEVEL_BUILD;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <ErrorReporting>Prompt</ErrorReporting>
-      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\source_$(Username)_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -175,13 +176,14 @@ del "$(SolutionDir)share\*.o"</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.0";NEVERBALL_EDITION=-1;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_DEDICATED_SERVER=0;CURL_STATICLIB;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.1";NEVERBALL_EDITION=-1;ENABLE_NLS=1;NLS_GETTEXT=1;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>D:\source_$(Username)_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <ErrorReporting>Prompt</ErrorReporting>
-	  <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -259,14 +261,17 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClCompile Include="..\share\package.c" />
     <ClCompile Include="..\share\part.c" />
     <ClCompile Include="..\share\queue.c" />
+    <ClCompile Include="..\share\rfd.c" />
     <ClCompile Include="..\share\solid_all.c" />
     <ClCompile Include="..\share\solid_base.c" />
     <ClCompile Include="..\share\solid_draw.c" />
     <ClCompile Include="..\share\solid_sim_sol.c" />
     <ClCompile Include="..\share\solid_vary.c" />
     <ClCompile Include="..\share\state.c" />
+    <ClCompile Include="..\share\st_package.c" />
     <ClCompile Include="..\share\st_common.c" />
     <ClCompile Include="..\share\st_end_support.c" />
+    <ClCompile Include="..\share\st_setup.c" />
     <ClCompile Include="..\share\st_transfer_source.c" />
     <ClCompile Include="..\share\st_transfer_target.c" />
     <ClCompile Include="..\share\text.c" />
@@ -323,6 +328,7 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClInclude Include="..\share\package.h" />
     <ClInclude Include="..\share\part.h" />
     <ClInclude Include="..\share\queue.h" />
+    <ClInclude Include="..\share\rfd.h" />
     <ClInclude Include="..\share\solid_all.h" />
     <ClInclude Include="..\share\solid_base.h" />
     <ClInclude Include="..\share\solid_chkp.h" />
@@ -330,14 +336,15 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClInclude Include="..\share\solid_sim.h" />
     <ClInclude Include="..\share\solid_vary.h" />
     <ClInclude Include="..\share\state.h" />
+    <ClInclude Include="..\share\st_package.h" />
     <ClInclude Include="..\share\st_common.h" />
     <ClInclude Include="..\share\st_end_support.h" />
+    <ClInclude Include="..\share\st_setup.h" />
     <ClInclude Include="..\share\st_transfer.h" />
     <ClInclude Include="..\share\text.h" />
     <ClInclude Include="..\share\theme.h" />
     <ClInclude Include="..\share\tilt.h" />
     <ClInclude Include="..\share\vec3.h" />
-    <ClInclude Include="..\share\version.h" />
     <ClInclude Include="..\share\video.h" />
     <ClInclude Include="..\share\zip.h" />
   </ItemGroup>

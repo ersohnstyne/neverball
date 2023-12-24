@@ -360,14 +360,14 @@ int sol_respawn_vary(struct s_vary *fp, struct s_vary *last_fp)
 
 void sol_free_vary(struct s_vary *fp)
 {
-    free(fp->pv);
-    free(fp->bv);
-    free(fp->mv);
-    free(fp->hv);
-    free(fp->xv);
-    free(fp->uv);
+    free(fp->pv); fp->pv = NULL;
+    free(fp->bv); fp->bv = NULL;
+    free(fp->mv); fp->mv = NULL;
+    free(fp->hv); fp->hv = NULL;
+    free(fp->xv); fp->xv = NULL;
+    free(fp->uv); fp->uv = NULL;
 #ifdef MAPC_INCLUDES_CHKP
-    free(fp->cv);
+    free(fp->cv); fp->cv = NULL;
 #endif
 
     memset(fp, 0, sizeof (*fp));
@@ -641,8 +641,17 @@ int  sol_respawn_lerp(struct s_lerp *fp, struct s_vary *vary)
 
 void sol_free_lerp(struct s_lerp *fp)
 {
-    if (fp->mv) free(fp->mv);
-    if (fp->uv) free(fp->uv);
+    if (fp->mv)
+    {
+        free(fp->mv);
+        fp->mv = NULL;
+    }
+
+    if (fp->uv)
+    {
+        free(fp->uv);
+        fp->uv = NULL;
+    }
 
     memset(fp, 0, sizeof (*fp));
 }

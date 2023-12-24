@@ -28,6 +28,7 @@
 extern "C"
 {
 #endif
+
 #include "accessibility.h"
 #include "account.h"
 #include "config.h"
@@ -36,8 +37,17 @@ extern "C"
 
 #include "common.h"
 #include "fs.h"
+
 #if __cplusplus
 }
+#endif
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -195,7 +205,10 @@ void account_quit(void)
     int i;
 
     for (i = 0; i < ARRAYSIZE(account_s); i++)
+    {
         free(account_s[i].cur);
+        account_s[i].cur = NULL;
+    }
 
     account_is_init = 0;
 }
@@ -213,21 +226,7 @@ int  account_exists(void)
     assert(!networking_busy && !config_busy && !accessibility_busy &&
            "This networking, accessibility or configuration is busy and cannot be edit there!");
 
-#ifdef FS_VERSION_1
-    fs_file input = fs_open(paths, "r");
-#else
-    fs_file input = fs_open_read(paths);
-#endif
-
-    account_busy = 1;
-    if (input)
-    {
-        fs_close(input);
-        account_busy = 0;
-        return 1;
-    }
-    account_busy = 0;
-    return 0;
+    return fs_exists(paths);
 }
 
 void account_load(void)
@@ -239,10 +238,7 @@ void account_load(void)
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
 
     if (text_length(config_get_s(CONFIG_PLAYER)) < 1)
-    {
-        log_errorf("Cannot load account! No player name!\n");
         return;
-    }
 
     for (int i = 0; i < text_length(config_get_s(CONFIG_PLAYER)); i++)
     {
@@ -255,17 +251,11 @@ void account_load(void)
             config_get_s(CONFIG_PLAYER)[i] == '<'  ||
             config_get_s(CONFIG_PLAYER)[i] == '>'  ||
             config_get_s(CONFIG_PLAYER)[i] == '|')
-        {
-            log_errorf("Cannot load account! Can't accept other charsets!\n");
             return;
-        }
     }
 
     if (text_length(config_get_s(CONFIG_PLAYER)) < 3)
-    {
-        log_errorf("Cannot load account! Too few characters!\n");
         return;
-    }
 
     char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -277,16 +267,7 @@ void account_load(void)
 
     if (!account_is_init)
     {
-        log_errorf("Failure to load account file! Account must be initialized!");
-#ifdef FS_VERSION_1
-        if ((fh = fs_open(paths, "r")))
-#else
-        if ((fh = fs_open_read(paths)))
-#endif
-        {
-            fs_close(fh);
-            fs_remove(paths);
-        }
+        log_errorf("Failure to load account file! Account must be initialized!\n");
         exit(1);
         return;
     }
@@ -332,6 +313,7 @@ void account_load(void)
                 }
             }
             free(line);
+            line = NULL;
         }
         fs_close(fh);
 
@@ -349,10 +331,7 @@ void account_save(void)
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
 
     if (text_length(config_get_s(CONFIG_PLAYER)) < 1)
-    {
-        log_errorf("Cannot save account! No player name!\n");
         return;
-    }
 
     for (int i = 0; i < text_length(config_get_s(CONFIG_PLAYER)); i++)
     {
@@ -365,17 +344,11 @@ void account_save(void)
             config_get_s(CONFIG_PLAYER)[i] == '<'  ||
             config_get_s(CONFIG_PLAYER)[i] == '>'  ||
             config_get_s(CONFIG_PLAYER)[i] == '|')
-        {
-            log_errorf("Cannot save account! Can't accept other charsets!\n");
             return;
-        }
     }
 
     if (text_length(config_get_s(CONFIG_PLAYER)) < 3)
-    {
-        log_errorf("Cannot save account! Too few characters!\n");
         return;
-    }
 
     char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -387,16 +360,11 @@ void account_save(void)
 
     if (!account_is_init)
     {
-        log_errorf("Failure to save account file! Account must be initialized!");
-#ifdef FS_VERSION_1
-        if ((fh = fs_open(paths, "r")))
-#else
-        if ((fh = fs_open_read(paths)))
-#endif
-        {
-            fs_close(fh);
+        log_errorf("Failure to save account file! Account must be initialized!\n");
+
+        if (fs_exists(paths))
             fs_remove(paths);
-        }
+
         exit(1);
         return;
     }
@@ -488,7 +456,10 @@ void account_set_s(int i, const char *src)
         account_busy = 1;
 
         if (account_s[i].cur)
+        {
             free(account_s[i].cur);
+            account_s[i].cur = NULL;
+        }
 
         account_s[i].cur = dupe_string(src);
 

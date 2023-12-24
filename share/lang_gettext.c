@@ -97,6 +97,7 @@ void gt_init(const char *domain, const char *pref)
         log_errorf("Failure to find locale path: %s - %s\n",
                    dir, errno ? strerror(errno) : "Unknown error");
         free(dir);
+        dir = NULL;
         return;
     }
 
@@ -144,6 +145,7 @@ void gt_init(const char *domain, const char *pref)
     }
 
     free(dir);
+    dir = NULL;
 }
 
 #if __cplusplus
@@ -255,6 +257,7 @@ static int scan_item(struct dir_item *item)
             }
 
             free(desc);
+            desc = NULL;
         }
     }
     return 0;

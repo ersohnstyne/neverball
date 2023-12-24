@@ -72,6 +72,7 @@ static int check_shader_log(GLuint shader)
 
             log_errorf("OpenGL Shader Error:\n%s", p);
             free(p);
+            p = NULL;
         }
         return 0;
     }
@@ -97,6 +98,7 @@ static int check_program_log(GLuint program)
 
             log_errorf("OpenGL Program Error:\n%s", p);
             free(p);
+            p = NULL;
         }
         return 0;
     }

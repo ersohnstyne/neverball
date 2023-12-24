@@ -47,8 +47,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define AUDIO_DUALDISPLAY
-
 #define AUDIO_RATE 44100
 #define AUDIO_CHAN 2
 
@@ -64,9 +62,18 @@ struct voice
     struct voice *next;
 };
 
+/*
+ * SDL3 uses only for SDL_LockAudioStream(), neither SDL_LockAudioDevice() nor
+ * SDL_UnlockAudioDevice().
+ * - Ersohn Styne
+ */
 static int   lock_hold;
 static int   speed_freezes;
 
+/*
+ * SDL3 uses only for SDL_PauseAudioDevice() and SDL_ResumeAudioDevice().
+ * - Ersohn Styne
+ */
 static int   audio_paused    = 0;
 static int   audio_state     = 0;
 static int   audio_device_id = -1;
@@ -108,6 +115,8 @@ static char *next_music_filename;
 
 static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
 {
+    if (audio_paused) return 0;
+
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
     int order = 1;
 #else
@@ -175,6 +184,7 @@ static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
             else return 1;
         }
     }
+
     return 0;
 }
 
@@ -225,7 +235,7 @@ static void voice_free(struct voice *V)
 {
     ov_clear(&V->vf);
 
-    free(V->name);
+    free(V->name); V->name = NULL;
     free(V);
 }
 
@@ -343,14 +353,14 @@ void audio_init(void)
     /* Configure the audio. */
 
     memset(&device_spec, 0, sizeof (device_spec));
-    device_spec.format   = AUDIO_S16SYS;
+    device_spec.format   = AUDIO_S16;
     device_spec.channels = AUDIO_CHAN;
     device_spec.samples  = config_get_d(CONFIG_AUDIO_BUFF);
     device_spec.freq     = AUDIO_RATE * (float) (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100.f);
     device_spec.callback = audio_step;
 
     memset(&spec, 0, sizeof (spec));
-    spec.format   = AUDIO_S16SYS;
+    spec.format   = AUDIO_S16;
     spec.channels = AUDIO_CHAN;
     spec.samples  = config_get_d(CONFIG_AUDIO_BUFF);
     spec.freq     = AUDIO_RATE * (float) (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100.f);
@@ -373,10 +383,11 @@ void audio_init(void)
             0
         )) > 0)
         {
-            audio_state = SDL_GetNumAudioDevices(0);
+            audio_state = 1;
 
-            audio_paused = 1;
-            audio_resume();
+            audio_paused = 0;
+
+            SDL_PauseAudioDevice(audio_device_id, 0);
         }
         else
             log_errorf("Failure to open audio device (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
@@ -447,20 +458,16 @@ void audio_free(void)
 
 void audio_suspend(void)
 {
-    if (!audio_state || audio_paused) return;
+    if (audio_paused) return;
 
-#ifndef AUDIO_DUALDISPLAY
     audio_paused = 1;
-    SDL_PauseAudioDevice(audio_device_id, 1);
-#endif
 }
 
 void audio_resume(void)
 {
-    if (!audio_state || !audio_paused) return;
+    if (!audio_paused) return;
 
     audio_paused = 0;
-    SDL_PauseAudioDevice(audio_device_id, 0);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -475,7 +482,6 @@ void audio_play(const char *filename, float a)
         /* If we're already playing this sound, preempt the running copy. */
 
         lock_hold = 1;
-        SDL_LockAudioDevice(audio_device_id);
         {
             for (V = voices; V; V = V->next)
                 if (strcmp(V->name, filename) == 0)
@@ -487,12 +493,10 @@ void audio_play(const char *filename, float a)
                     if (V->amp > 1.0f) V->amp = 1.0;
                     if (V->amp < 0.0f) V->amp = 0.0;
 
-                    SDL_UnlockAudioDevice(audio_device_id);
                     lock_hold = 0;
                     return;
                 }
         }
-        SDL_UnlockAudioDevice(audio_device_id);
         lock_hold = 0;
 
         /* Create a new voice structure. */
@@ -502,12 +506,10 @@ void audio_play(const char *filename, float a)
         /* Add it to the list of sounding voices. */
 
         lock_hold = 1;
-        SDL_LockAudioDevice(audio_device_id);
         {
             V->next = voices;
             voices  = V;
         }
-        SDL_UnlockAudioDevice(audio_device_id);
         lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
@@ -525,7 +527,6 @@ void audio_narrator_play(const char *filename)
         /* If we're already playing this sound, preempt the running copy. */
 
         lock_hold = 1;
-        SDL_LockAudioDevice(audio_device_id);
         {
             for (V = narrators; V; V = V->next)
                 if (strcmp(V->name, filename) == 0)
@@ -537,12 +538,10 @@ void audio_narrator_play(const char *filename)
                     if (V->amp > 1.0f) V->amp = 1.0;
                     if (V->amp < 0.0f) V->amp = 0.0;
 
-                    SDL_UnlockAudioDevice(audio_device_id);
                     lock_hold = 0;
                     return;
                 }
         }
-        SDL_UnlockAudioDevice(audio_device_id);
         lock_hold = 0;
 
         /* Create a new voice structure. */
@@ -552,12 +551,10 @@ void audio_narrator_play(const char *filename)
         /* Add it to the list of sounding voices. */
 
         lock_hold = 1;
-        SDL_LockAudioDevice(audio_device_id);
         {
             V->next = narrators;
             narrators = V;
         }
-        SDL_UnlockAudioDevice(audio_device_id);
         lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
@@ -575,12 +572,10 @@ void audio_music_play(const char *filename)
         audio_music_stop();
 
         lock_hold = 1;
-        SDL_LockAudioDevice(audio_device_id);
         {
             if ((music = voice_init(filename, 0.0f)))
                 music->loop = 1;
         }
-        SDL_UnlockAudioDevice(audio_device_id);
         lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
@@ -596,7 +591,6 @@ void audio_music_queue(const char *filename, float t)
     {
         while (lock_hold) {}
         lock_hold = 1;
-        SDL_LockAudioDevice(audio_device_id);
         {
             if ((queue = voice_init(filename, 0.0f)))
             {
@@ -606,7 +600,6 @@ void audio_music_queue(const char *filename, float t)
                     queue->damp = +1.0f / (AUDIO_RATE * clampedTime);
             }
         }
-        SDL_UnlockAudioDevice(audio_device_id);
         lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
@@ -620,14 +613,12 @@ void audio_music_stop(void)
     {
         while (lock_hold) {}
         lock_hold = 1;
-        SDL_LockAudioDevice(audio_device_id);
         {
             if (music)
                 voice_free(music);
 
             music = NULL;
         }
-        SDL_UnlockAudioDevice(audio_device_id);
         lock_hold = 0;
     }
 }
@@ -640,11 +631,9 @@ void audio_music_fade_out(float t)
 
     while (lock_hold) {}
     lock_hold = 1;
-    SDL_LockAudioDevice(audio_device_id);
     {
         if (music) music->damp = -1.0f / (AUDIO_RATE * clampedTime);
     }
-    SDL_UnlockAudioDevice(audio_device_id);
     lock_hold = 0;
 }
 
@@ -654,11 +643,9 @@ void audio_music_fade_in(float t)
 
     while (lock_hold) {}
     lock_hold = 1;
-    SDL_LockAudioDevice(audio_device_id);
     {
         if (music) music->damp = +1.0f / (AUDIO_RATE * clampedTime);
     }
-    SDL_UnlockAudioDevice(audio_device_id);
     lock_hold = 0;
 }
 

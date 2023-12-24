@@ -152,11 +152,6 @@ static int malfunction_enter(struct state *st, struct state *prev)
     return malfunction_gui();
 }
 
-static void malfunction_leave(struct state *st, struct state *next, int id)
-{
-    gui_delete(id);
-}
-
 static int malfunction_keybd(int c, int d)
 {
     if (d)
@@ -268,7 +263,7 @@ static int handsoff_buttn(int b, int d)
 
 struct state st_malfunction = {
     malfunction_enter,
-    malfunction_leave,
+    shared_leave,
     shared_paint,
     shared_timer,
     shared_point,
@@ -281,7 +276,7 @@ struct state st_malfunction = {
 
 struct state st_handsoff = {
     handsoff_enter,
-    malfunction_leave,
+    shared_leave,
     shared_paint,
     shared_timer,
     shared_point,

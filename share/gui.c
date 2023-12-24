@@ -873,6 +873,7 @@ static char *gui_trunc_head(const char *text,
             left = mid;
 
         free(str);
+        str = NULL;
     }
 
     return concat_string(GUI_ELLIPSIS, text + right, NULL);
@@ -903,6 +904,7 @@ static char *gui_trunc_tail(const char *text,
             right = mid;
 
         free(str);
+        str = NULL;
     }
 
     str = malloc(left + sizeof (GUI_ELLIPSIS));
@@ -993,6 +995,7 @@ void gui_set_label(int id, const char *text)
                   widget[id].color1 ? widget[id].color1 : gui_wht);
 
     free(trunc_str);
+    trunc_str = NULL;
 }
 
 void gui_set_count(int id, int value)
@@ -2855,7 +2858,7 @@ int gui_click(int b, int d)
 
 int gui_navig(int id, int total, int first, int step)
 {
-    gui_navig_full(id, total, first, step, 0);
+    return gui_navig_full(id, total, first, step, 0);
 }
 
 int gui_navig_full(int id, int total, int first, int step, int back_disabled)

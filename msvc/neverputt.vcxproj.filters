@@ -78,9 +78,6 @@
     <ClCompile Include="..\share\fbo.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\fetch_curl.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
     <ClCompile Include="..\share\fetch_null.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
@@ -94,9 +91,6 @@
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\fs_ov.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\fs_physfs.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\fs_png.c">
@@ -141,10 +135,10 @@
     <ClCompile Include="..\share\log.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\mtrl.c">
+    <ClCompile Include="..\share\miniz.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\networking_dedicated.c">
+    <ClCompile Include="..\share\mtrl.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\networking_opensource.c">
@@ -195,10 +189,16 @@
     <ClCompile Include="..\share\theme.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
+    <ClCompile Include="..\share\tilt_loop.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
     <ClCompile Include="..\share\tilt_null.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\tts.c">
+    <ClCompile Include="..\share\tilt_wii.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\tilt_wiiuse.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\vec3.c">
@@ -253,6 +253,15 @@
       <Filter>Quelldateien\putt</Filter>
     </ClCompile>
     <ClCompile Include="..\share\dbg_config.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\rfd.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\st_package.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\st_setup.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
   </ItemGroup>
@@ -356,6 +365,9 @@
     <ClInclude Include="..\share\log.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
+    <ClInclude Include="..\share\miniz.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
     <ClInclude Include="..\share\mtrl.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
@@ -410,9 +422,6 @@
     <ClInclude Include="..\share\tilt.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
-    <ClInclude Include="..\share\tts.h">
-      <Filter>Headerdateien\share</Filter>
-    </ClInclude>
     <ClInclude Include="..\share\vec3.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
@@ -441,6 +450,15 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="..\share\dbg_config.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\rfd.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\st_package.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\st_setup.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
   </ItemGroup>

@@ -27,6 +27,14 @@
 #include "solid_draw.h"
 #include "solid_sim.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 #define F_PENDULUM   1
@@ -165,9 +173,9 @@ void ball_multi_init(void)
         if ((ball_full_v[i].multi_has_outer = sol_load_full(&ball_full_v[i].multi_outer, outer_file, 0)))
             ball_full_v[i].multi_outer_flags = ball_opts(&ball_full_v[i].multi_outer.base);
 
-        free(solid_file);
-        free(inner_file);
-        free(outer_file);
+        free(solid_file); solid_file = NULL;
+        free(inner_file); inner_file = NULL;
+        free(outer_file); outer_file = NULL;
     }
 }
 
@@ -243,9 +251,9 @@ void ball_init(void)
     if ((has_outer = sol_load_full(&outer, outer_file, 0)))
         outer_flags = ball_opts(&outer.base);
 
-    free(solid_file);
-    free(inner_file);
-    free(outer_file);
+    free(solid_file); solid_file = NULL;
+    free(inner_file); inner_file = NULL;
+    free(outer_file); outer_file = NULL;
 }
 
 void ball_free(void)

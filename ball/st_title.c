@@ -68,17 +68,25 @@
 #define SWITCHBALL_TITLE
 #endif
 
+#define TITLE_BG_DEMO_INIT(_mode, _show_ball)  \
+    do {                                       \
+        game_client_toggle_show_balls(1);      \
+        game_client_fly(0.0f);                 \
+        real_time = 0.0f;                      \
+        mode = _mode;                          \
+    } while (0)
+
 /*---------------------------------------------------------------------------*/
 
 static int switchball_useable(void)
 {
-    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
     const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
 
     SDL_Keycode k_arrowkey[4];
     k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
@@ -86,13 +94,13 @@ static int switchball_useable(void)
     k_arrowkey[2] = config_get_d(CONFIG_KEY_BACKWARD);
     k_arrowkey[3] = config_get_d(CONFIG_KEY_RIGHT);
 
-    if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-        && k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT
-        && k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
+    if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2 &&
+        k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT &&
+        k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
         return 1;
-    else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-             && k_caml == SDLK_d && k_camr == SDLK_a
-             && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
+    else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2 &&
+             k_caml == SDLK_d && k_camr == SDLK_a &&
+             k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
         return 1;
 
     /*
@@ -105,7 +113,7 @@ static int switchball_useable(void)
 
 int load_title_background(void)
 {
-#if NB_HAVE_PB_BOTH
+#if NB_HAVE_PB_BOTH && defined(CONFIG_INCLUDES_ACCOUNT)
     game_client_toggle_show_balls(!CHECK_ACCOUNT_BANKRUPT);
 #else
     game_client_toggle_show_balls(1);
@@ -115,9 +123,10 @@ int load_title_background(void)
     {
         if (game_client_init("gui/title/switchball-title.sol"))
         {
-            union cmd cmd;
+            if (CHECK_ACCOUNT_BANKRUPT) return 1;
 
-            cmd.type = CMD_GOAL_OPEN;
+            union cmd cmd = { CMD_GOAL_OPEN };
+
             game_proxy_enq(&cmd);
             game_client_sync(NULL);
 
@@ -128,9 +137,10 @@ int load_title_background(void)
     }
     else if (game_client_init("gui/title/title.sol"))
     {
-        union cmd cmd;
+        if (CHECK_ACCOUNT_BANKRUPT) return 1;
 
-        cmd.type = CMD_GOAL_OPEN;
+        union cmd cmd = { CMD_GOAL_OPEN };
+
         game_proxy_enq(&cmd);
         game_client_sync(NULL);
 
@@ -164,8 +174,6 @@ static const char *check_unlocked_demo(struct demo *rawdemo)
     return (max <= limit) ? rawdemo->path : NULL;
 }
 
-static int demo_is_loaded;
-
 static const char *pick_demo(Array items)
 {
     struct dir_item *item;
@@ -177,11 +185,7 @@ static const char *pick_demo(Array items)
         int total = array_len(items);
         int selectedDemo = rand_between(0, total - 1);
 
-        if (!demo_is_loaded)
-        {
-            demo_is_loaded = 1;
-            demo_dir_load(items, 0, total - 1);
-        }
+        demo_dir_load(items, 0, total - 1);
 
         struct demo *demo_data = ((struct demo *) ((struct dir_item *) array_get(items, selectedDemo))->data);
 #if defined(COVID_HIGH_RISK)
@@ -223,8 +227,12 @@ enum
     TITLE_MODE_BUILD_IN    /* Built-in demo title */
 };
 
+static int   title_lockscreen = 1;
+static int   title_can_unlock = 1;
+
 static int   title_freeze_all;
 static int   title_prequit;
+
 static float real_time = 0.0f;
 static int   mode      = TITLE_MODE_NONE;
 
@@ -270,8 +278,6 @@ enum
 };
 
 int edition_id;
-int system_version_build_id;
-int copyright_id;
 
 static int title_check_playername(const char *regname)
 {
@@ -310,14 +316,12 @@ static int title_action(int tok, int val)
     {
         case GUI_BACK:
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (current_platform != PLATFORM_SWITCH
-             && current_platform != PLATFORM_STEAMDECK)
+            if (support_exit)
 #endif
             {
                 /* bye! */
 
                 title_prequit = 1;
-                game_fade(+4.0);
 
                 return 0;
             }
@@ -352,7 +356,7 @@ static int title_action(int tok, int val)
 
         case TITLE_UNLOCK_FULL_GAME:
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ Neverball.doJoinDiscordPremium() }, 0);
+            EM_ASM({ window.open("https://discord.gg/qnJR263Hm2"); }, 0);
 #else
             SAFECPY(linkstr_code, "qnJR263Hm2");
 
@@ -399,53 +403,53 @@ static int title_action(int tok, int val)
 #if  NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || !defined(TITLE_USE_DVD_BOX_OR_EMAIL)
 #if ENABLE_HMD
             sprintf(dev_env, _(editions_developer[EDITION_CURRENT]),
-                    "OpenHMD", _("Developer Mode"));
+                             "OpenHMD", _("Developer Mode"));
             sprintf(os_env, _(editions_common[EDITION_CURRENT]), "OpenHMD");
 #elif defined(COMMUNITY_EDITION)
             sprintf(dev_env, _("%s Edition / %s"),
-                    _("Community"), _("Developer Mode"));
+                             _("Community"), _("Developer Mode"));
             sprintf(os_env, _("%s Edition"), _("Community"));
 #else
             if (current_platform == PLATFORM_PC)
             {
 #if defined(__linux__)
                 sprintf(dev_env, _("%s Edition / %s"),
-                        TITLE_PLATFORM_CINMAMON, _("Developer Mode"));
+                                 TITLE_PLATFORM_CINMAMON, _("Developer Mode"));
                 sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_CINMAMON);
 #else
                 sprintf(dev_env, _(editions_developer[EDITION_CURRENT]), 
-                        TITLE_PLATFORM_WINDOWS, _("Developer Mode"));
+                                 TITLE_PLATFORM_WINDOWS, _("Developer Mode"));
                 sprintf(os_env, _(editions_common[EDITION_CURRENT]),
-                        TITLE_PLATFORM_WINDOWS);
+                                TITLE_PLATFORM_WINDOWS);
 #endif
             }
             else if (current_platform == PLATFORM_XBOX)
             {
 #if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
                 sprintf(dev_env, _("%s Edition / %s"),
-                        TITLE_PLATFORM_XBOX_360, _("Developer Mode"));
+                                 TITLE_PLATFORM_XBOX_360, _("Developer Mode"));
                 sprintf(os_env, _("%s Edition"),
-                        TITLE_PLATFORM_XBOX_360);
+                                TITLE_PLATFORM_XBOX_360);
 #else
                 sprintf(dev_env, _("%s Edition / %s"),
-                        TITLE_PLATFORM_XBOX_ONE, _("Developer Mode"));
+                                 TITLE_PLATFORM_XBOX_ONE, _("Developer Mode"));
                 sprintf(os_env, _("%s Edition"),
-                        TITLE_PLATFORM_XBOX_ONE);
+                                TITLE_PLATFORM_XBOX_ONE);
 #endif
             }
             else if (current_platform == PLATFORM_PS)
             {
                 sprintf(dev_env, _("%s Edition / %s"),
-                        TITLE_PLATFORM_PS, _("Developer Mode"));
+                                 TITLE_PLATFORM_PS, _("Developer Mode"));
                 sprintf(os_env, _("%s Edition"),
-                        TITLE_PLATFORM_PS);
+                                TITLE_PLATFORM_PS);
             }
             else if (current_platform == PLATFORM_STEAMDECK)
             {
                 sprintf(dev_env, _("%s Edition / %s"),
-                        TITLE_PLATFORM_STEAMDECK, _("Developer Mode"));
+                                 TITLE_PLATFORM_STEAMDECK, _("Developer Mode"));
                 sprintf(os_env, _("%s Edition"),
-                        TITLE_PLATFORM_STEAMDECK);
+                                TITLE_PLATFORM_STEAMDECK);
             }
             else if (current_platform == PLATFORM_SWITCH)
             {
@@ -457,7 +461,7 @@ static int title_action(int tok, int val)
 #if ENABLE_RFD==1
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sprintf_s(dev_env, MAXSTR, _("RFD Edition / %s"),
-                     _("Developer Mode"));
+                                       _("Developer Mode"));
             sprintf_s(os_env, MAXSTR, _("Recipes for Disaster Edition"));
 #else
             sprintf(dev_env, _("RFD Edition / %s"), _("Developer Mode"));
@@ -469,78 +473,78 @@ static int title_action(int tok, int val)
             if (server_policy_get_d(SERVER_POLICY_EDITION) == 10002)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, MAXSTR, _("Server Datacenter / %s"),
-                     _("Developer Mode"));
-            sprintf_s(os_env, MAXSTR, _("Server Datacenter Edition"));
+                sprintf_s(dev_env, MAXSTR, _("Server Datacenter / %s"),
+                                           _("Developer Mode"));
+                sprintf_s(os_env, MAXSTR, _("Server Datacenter Edition"));
 #else
-            sprintf(dev_env, _("Server Datacenter / %s"), _("Developer Mode"));
-            sprintf(os_env, _("Server Datacenter Edition"));
+                sprintf(dev_env, _("Server Datacenter / %s"), _("Developer Mode"));
+                sprintf(os_env, _("Server Datacenter Edition"));
 #endif
             }
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 10001)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, MAXSTR, _("Server Standard / %s"),
-                      _("Developer Mode"));
-            sprintf_s(os_env, MAXSTR, _("Server Standard Edition"));
+                sprintf_s(dev_env, MAXSTR, _("Server Standard / %s"),
+                                           _("Developer Mode"));
+                sprintf_s(os_env, MAXSTR, _("Server Standard Edition"));
 #else
-            sprintf(dev_env, _("Server Standard / %s"), _("Developer Mode"));
-            sprintf(os_env, _("Server Standard Edition"));
+                sprintf(dev_env, _("Server Standard / %s"), _("Developer Mode"));
+                sprintf(os_env, _("Server Standard Edition"));
 #endif
             }
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 10000)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, MAXSTR, _("Server Essential / %s"),
-                      _("Developer Mode"));
-            sprintf_s(os_env, MAXSTR, _("Server Essential Edition"));
+                sprintf_s(dev_env, MAXSTR, _("Server Essential / %s"),
+                                           _("Developer Mode"));
+                sprintf_s(os_env, MAXSTR, _("Server Essential Edition"));
 #else
-            sprintf(dev_env, _("Server Essential / %s"), _("Developer Mode"));
-            sprintf(os_env, _("Server Essential Edition"));
+                sprintf(dev_env, _("Server Essential / %s"), _("Developer Mode"));
+                sprintf(os_env, _("Server Essential Edition"));
 #endif
             }
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 3)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, MAXSTR, _("Edu Edition / %s"),
-                      _("Developer Mode"));
-            sprintf_s(os_env, MAXSTR, _("Edu Edition"));
+                sprintf_s(dev_env, MAXSTR, _("Edu Edition / %s"),
+                                           _("Developer Mode"));
+                sprintf_s(os_env, MAXSTR, _("Edu Edition"));
 #else
-            sprintf(dev_env, _("Edu Edition / %s"), _("Developer Mode"));
-            sprintf(os_env, _("Edu Edition"));
+                sprintf(dev_env, _("Edu Edition / %s"), _("Developer Mode"));
+                sprintf(os_env, _("Edu Edition"));
 #endif
             }
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 2)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, MAXSTR, _("Enterprise Edition / %s"),
-                      _("Developer Mode"));
-            sprintf_s(os_env, MAXSTR, _("Enterprise Edition"));
+                sprintf_s(dev_env, MAXSTR, _("Enterprise Edition / %s"),
+                                           _("Developer Mode"));
+                sprintf_s(os_env, MAXSTR, _("Enterprise Edition"));
 #else
-            sprintf(dev_env, _("Enterprise Edition / %s"), _("Developer Mode"));
-            sprintf(os_env, _("Enterprise Edition"));
+                sprintf(dev_env, _("Enterprise Edition / %s"), _("Developer Mode"));
+                sprintf(os_env, _("Enterprise Edition"));
 #endif
             }
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 1)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, MAXSTR, _("Pro Edition / %s"),
-                      _("Developer Mode"));
-            sprintf_s(os_env, MAXSTR, _("Pro Edition"));
+                sprintf_s(dev_env, MAXSTR, _("Pro Edition / %s"),
+                                           _("Developer Mode"));
+                sprintf_s(os_env, MAXSTR, _("Pro Edition"));
 #else
-            sprintf(dev_env, _("Pro Edition / %s"), _("Developer Mode"));
-            sprintf(os_env, _("Pro Edition"));
+                sprintf(dev_env, _("Pro Edition / %s"), _("Developer Mode"));
+                sprintf(os_env, _("Pro Edition"));
 #endif
             }
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 0)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, MAXSTR, _("Home Edition / %s"),
-                      _("Developer Mode"));
-            sprintf_s(os_env, MAXSTR, _("Home Edition"));
+                sprintf_s(dev_env, MAXSTR, _("Home Edition / %s"),
+                                           _("Developer Mode"));
+                sprintf_s(os_env, MAXSTR, _("Home Edition"));
 #else
-            sprintf(dev_env, _("Home Edition / %s"), _("Developer Mode"));
-            sprintf(os_env, _("Home Edition"));
+                sprintf(dev_env, _("Home Edition / %s"), _("Developer Mode"));
+                sprintf(os_env, _("Home Edition"));
 #endif
             }
 #endif
@@ -573,26 +577,12 @@ static int title_action(int tok, int val)
                 if (edition_id) gui_set_label(edition_id, os_env);
             }
 #endif
-
             break;
 #endif
 #endif
     }
+
     return 1;
-}
-
-static void title_create_versions(void)
-{
-    const char *gameversion = VERSION;
-
-    system_version_build_id = gui_label(0, gameversion,
-                                           GUI_TNY, GUI_COLOR_WHT);
-    gui_set_rect(system_version_build_id, GUI_NW);
-    gui_layout(system_version_build_id, 1, -1);
-
-    copyright_id = gui_label(0, "© PennyGames", GUI_TNY, GUI_COLOR_WHT);
-    gui_set_rect(copyright_id, GUI_NE);
-    gui_layout(copyright_id, -1, -1);
 }
 
 static int title_gui(void)
@@ -828,90 +818,143 @@ static int title_gui(void)
                                                              GUI_LRG, 0, 0);
 #endif
 
-            gui_space(id);
-
-            /* Use modern or vertical */
-
-            if ((jd = gui_hstack(id)))
+            if (!title_lockscreen)
             {
-                gui_filler(jd);
+                gui_space(id);
 
-                int btn_size = video.aspect_ratio < 1.0f ? GUI_SML : GUI_MED;
-
-                if ((kd = gui_varray(jd)))
+                if ((jd = gui_hstack(id)))
                 {
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
-                    if (config_cheat())
-                        play_id = gui_start(kd, gt_prefix("menu^Cheat"),
-                                                btn_size, TITLE_PLAY, 0);
-                    else
-#endif
-                        play_id = gui_start(kd, gt_prefix("menu^Play"),
-                                                btn_size, TITLE_PLAY, 0);
+                    int btn_size = video.aspect_ratio < 1.0f ? GUI_SML : GUI_MED;
 
-                    /* Hilight the start button. */
-                    gui_set_hilite(play_id, 1);
+                    gui_filler(jd);
+
+                    if ((kd = gui_varray(jd)))
+                    {
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+                        if (config_cheat())
+                            play_id = gui_start(kd, gt_prefix("menu^Cheat"),
+                                                    btn_size, TITLE_PLAY, 0);
+                        else
+#endif
+                            play_id = gui_start(kd, gt_prefix("menu^Play"),
+                                                    btn_size, TITLE_PLAY, 0);
+
+                        /* Hilight the start button. */
+                        gui_set_hilite(play_id, 1);
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-                    if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-                        gui_state(kd, gt_prefix("menu^Shop"),
-                                      btn_size, TITLE_SHOP, 0);
+                        if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+                            gui_state(kd, gt_prefix("menu^Shop"),
+                                          btn_size, TITLE_SHOP, 0);
 #endif
-                    gui_state(kd, gt_prefix("menu^Replay"),
-                                  btn_size, TITLE_DEMO, 0);
+                        gui_state(kd, gt_prefix("menu^Replay"),
+                                      btn_size, TITLE_DEMO, 0);
 
-                    gui_state(kd, gt_prefix("menu^Help"),
-                                  btn_size, TITLE_HELP, 0);
+                        gui_state(kd, gt_prefix("menu^Help"),
+                                      btn_size, TITLE_HELP, 0);
 
-                    gui_state(kd, gt_prefix("menu^Options"),
-                                  btn_size, TITLE_CONF, 0);
+                        gui_state(kd, gt_prefix("menu^Options"),
+                                      btn_size, TITLE_CONF, 0);
 
 #ifndef __EMSCRIPTEN__
-                    /* Have some full screens? (Pressing ALT+F4 is not recommended) */
+                        /* Have some full screens? (Pressing ALT+F4 is not recommended) */
 
-                    if (support_exit && config_get_d(CONFIG_FULLSCREEN)
-#if NB_HAVE_PB_BOTH==1
-                     && current_platform == PLATFORM_PC
+                        if (support_exit && config_get_d(CONFIG_FULLSCREEN))
+                            gui_state(kd, gt_prefix("menu^Exit"),
+                                          btn_size, GUI_BACK, 0);
 #endif
-                        )
-                        gui_state(kd, gt_prefix("menu^Exit"),
-                                      btn_size, GUI_BACK, 0);
-#endif
+                    }
+
+                    gui_filler(jd);
                 }
-
-                gui_filler(jd);
             }
+
             gui_layout(id, 0, 0);
         }
 
-#if NB_HAVE_PB_BOTH!=1
-        if ((id = gui_vstack(root_id)))
+        if (!title_lockscreen)
         {
-            if ((jd = gui_hstack(id)))
+#if NB_HAVE_PB_BOTH!=1
+            if ((id = gui_vstack(root_id)))
             {
-                gui_state(jd, _("Unlock full game"),
-                              GUI_SML,
-                              TITLE_UNLOCK_FULL_GAME, 0);
-            }
+                if ((jd = gui_hstack(id)))
+                {
+                    gui_state(jd, _("Unlock full game"),
+                                  GUI_SML, TITLE_UNLOCK_FULL_GAME, 0);
+                }
 
-            gui_space(id);
-            gui_layout(id, -1, 0);
-        }
+                gui_space(id);
+                gui_layout(id, -1, 0);
+            }
+#endif
+
+#if NB_HAVE_PB_BOTH==1
+            char gameversion[MAXSTR];
+
+            SAFECPY(gameversion, VERSION);
+
+            const int version_id   = gui_multi(root_id, gameversion, GUI_TNY, GUI_COLOR_WHT);
+            const int copyright_id = gui_label(root_id, "© Neverball Authors", GUI_TNY, GUI_COLOR_WHT);
+
+            gui_set_rect(version_id, GUI_NW);
+            gui_set_rect(copyright_id, GUI_NE);
+
+            gui_layout(version_id,   +1, -1);
+            gui_layout(copyright_id, -1, -1);
 #endif
 
 #if NB_HAVE_PB_BOTH!=1 && ENABLE_FETCH
-        if ((id = gui_vstack(root_id)))
-        {
-            if ((jd = gui_hstack(id)))
+            if ((id = gui_vstack(root_id)))
             {
-                gui_space(jd);
-                gui_state(jd, _("Addons"), GUI_SML, TITLE_PACKAGES, 0);
-            }
+                if ((jd = gui_hstack(id)))
+                {
+                    gui_space(jd);
+                    gui_state(jd, _("Addons"), GUI_SML, TITLE_PACKAGES, 0);
+                }
 
-            gui_space(id);
-            gui_layout(id, +1, 0);
-        }
+                gui_space(id);
+                gui_layout(id, +1, 0);
+            }
 #endif
+        }
+        else
+        {
+            if ((id = gui_vstack(root_id)))
+            {
+                char presstostart_pc_attr[MAXSTR];
+
+                const SDL_Keycode k_start      = config_get_d(CONFIG_JOYSTICK_BUTTON_A);
+                const char       *s_start      = SDL_GetKeyName(SDLK_RETURN);
+                const char       *s_start_xbox = SDL_GetKeyName(k_start);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(presstostart_pc_attr, MAXSTR,
+#else
+                sprintf(presstostart_pc_attr,
+#endif
+                        _("Press %s to start!"),
+                        s_start_xbox && *s_start_xbox && text_length(s_start_xbox) >= 1 ?
+                        s_start_xbox : s_start);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+                if (current_platform == PLATFORM_PC)
+#endif
+                    gui_label(id, presstostart_pc_attr, GUI_SML, GUI_COLOR_WHT);
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+                else if ((jd = gui_hstack(id)))
+                {
+                    gui_label(jd, _(" to start!"), GUI_SML, GUI_COLOR_WHT);
+                    create_a_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                    gui_label(jd, _("Press "), GUI_SML, GUI_COLOR_WHT);
+
+                    gui_set_rect(jd, GUI_ALL);
+                }
+#endif
+
+                gui_space(id);
+                gui_layout(id, 0, -1);
+            }
+        }
     }
 
     return root_id;
@@ -924,17 +967,24 @@ static int filter_cmd(const union cmd *cmd)
 
 static int title_enter(struct state *st, struct state *prev)
 {
-#if defined(__EMSCRIPTEN__)
+#ifdef __EMSCRIPTEN__
     EM_ASM({
         Neverball.isTitleScreen = true;
-        });
+    });
 #endif
 
-#if NB_HAVE_PB_BOTH==1
-    support_exit =
-        current_platform != PLATFORM_STEAMDECK
-     && current_platform != PLATFORM_SWITCH;
+    title_lockscreen = title_can_unlock;
+
+    if (prev == &st_title)
+        return title_gui();
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    support_exit = (current_platform != PLATFORM_PS &&
+                    current_platform != PLATFORM_STEAMDECK &&
+                    current_platform != PLATFORM_SWITCH) &&
+                   (current_platform == PLATFORM_PC);
 #endif
+
     progress_init(MODE_NONE);
 
     title_freeze_all = 0;
@@ -952,8 +1002,13 @@ static int title_enter(struct state *st, struct state *prev)
 
     if (switchball_useable() && load_title_background())
         mode = TITLE_MODE_LEVEL;
+#if NB_HAVE_PB_BOTH && defined(CONFIG_INCLUDES_ACCOUNT)
+    else if (!CHECK_ACCOUNT_BANKRUPT &&
+             progress_replay_full("gui/title/title-l.nbr", 0, 0, 0, 0, 0, 0))
+#else
     else if (progress_replay_full("gui/title/title-l.nbr", 0, 0, 0, 0, 0, 0))
-        mode = TITLE_MODE_BUILD_IN;
+#endif
+        TITLE_BG_DEMO_INIT(TITLE_MODE_BUILD_IN, 1);
     else if (load_title_background())
         mode = TITLE_MODE_LEVEL;
     else
@@ -961,27 +1016,34 @@ static int title_enter(struct state *st, struct state *prev)
 
     real_time = 0.0f;
 
-    title_create_versions();
     return title_gui();
 }
 
 static void title_leave(struct state *st, struct state *next, int id)
 {
+    if (title_lockscreen) return;
+
 #if defined(__EMSCRIPTEN__)
     EM_ASM({
         Neverball.isTitleScreen = false;
-        });
+    });
 #endif
+
+    demo_replay_stop(0);
 
     if (items)
     {
         demo_dir_free(items);
         items = NULL;
-        demo_is_loaded = 0;
     }
 
-    demo_replay_stop(0);
-    game_proxy_filter(NULL);
+    if (next == &st_null ||
+        next == &st_conf)
+    {
+        game_proxy_filter(NULL);
+        game_client_free(NULL);
+    }
+
     gui_delete(id);
 }
 
@@ -990,8 +1052,6 @@ static void title_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-    gui_paint(system_version_build_id);
-    gui_paint(copyright_id);
 
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     xbox_control_title_gui_paint();
@@ -1016,46 +1076,55 @@ static void title_timer(int id, float dt)
     {
         case TITLE_MODE_LEVEL: /* Pan across title level. */
 
-        if (real_time <= 20.0f || title_prequit)
-            game_client_fly(fcosf(V_PI * real_time / 20.0f));
-        else if (!title_prequit)
-        {
-            game_fade(+1.0f);
-            real_time = 0.0f;
-            mode = TITLE_MODE_LEVEL_FADE;
-        }
-        break;
+            if (real_time <= 20.0f || title_prequit)
+                game_client_fly(fcosf(V_PI * real_time / 20.0f));
+            else if (!title_prequit)
+            {
+                game_fade(+1.0f);
+                real_time = 0.0f;
+                mode = TITLE_MODE_LEVEL_FADE;
+            }
+            break;
 
         case TITLE_MODE_LEVEL_FADE: /* Fade out.  Load demo level. */
+
             if (real_time > 1.0f && !title_prequit && !st_global_animating())
             {
-                if (!items)
-                    items = demo_dir_scan();
+                if (items)
+                {
+                    demo_dir_free(items);
+                    items = NULL;
+                }
+
+                items = demo_dir_scan();
 
                 if ((demo = pick_demo(items)))
                 {
                     if (progress_replay_full(demo, 0, 0, 0, 0, 0, 0))
-                    {
-                        game_client_fly(0.0f);
-                        real_time = 0.0f;
-                        mode = TITLE_MODE_DEMO;
-                    }
+                        TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
+#if NB_HAVE_PB_BOTH && defined(CONFIG_INCLUDES_ACCOUNT)
+                    else if (!CHECK_ACCOUNT_BANKRUPT &&
+                             progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
+                                                                "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
+#else
                     else if (progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
                                                                 "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
-                    {
-                        game_client_fly(0.0f);
-                        real_time = 0.0f;
-                        mode = TITLE_MODE_BUILD_IN;
-                    }
+#endif
+                        TITLE_BG_DEMO_INIT(TITLE_MODE_BUILD_IN, 1);
                     else if (load_title_background())
                         mode = TITLE_MODE_LEVEL;
                 }
+#if NB_HAVE_PB_BOTH && defined(CONFIG_INCLUDES_ACCOUNT)
+                else if (!CHECK_ACCOUNT_BANKRUPT &&
+                         progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
+                                                            "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
+#else
                 else if (progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
                                                             "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
+#endif
                 {
                     game_fade(-1.0f);
-                    real_time = 0.0f;
-                    mode = TITLE_MODE_BUILD_IN;
+                    TITLE_BG_DEMO_INIT(TITLE_MODE_BUILD_IN, 1);
                 }
                 else if (load_title_background())
                     mode = TITLE_MODE_LEVEL;
@@ -1065,6 +1134,7 @@ static void title_timer(int id, float dt)
             break;
 
         case TITLE_MODE_DEMO: /* Run demo. */
+
             if (!demo_replay_step(dt) && !title_prequit)
             {
                 demo_replay_stop(0);
@@ -1078,19 +1148,22 @@ static void title_timer(int id, float dt)
             break;
 
         case TITLE_MODE_DEMO_FADE: /* Fade out.  Load build-in demo level or load title level. */
+
             if (real_time > 1.0f && !title_prequit && !st_global_animating())
             {
                 real_time = 0.0f;
 
                 if (switchball_useable() && load_title_background())
                     mode = TITLE_MODE_LEVEL;
+#if NB_HAVE_PB_BOTH && defined(CONFIG_INCLUDES_ACCOUNT)
+                else if (!CHECK_ACCOUNT_BANKRUPT &&
+                         progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
+                                                            "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
+#else
                 else if (progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
                                                             "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
-                {
-                    game_client_fly(0.0f);
-                    real_time = 0.0f;
-                    mode = TITLE_MODE_BUILD_IN;
-                }
+#endif
+                    TITLE_BG_DEMO_INIT(TITLE_MODE_BUILD_IN, 1);
                 else if (load_title_background())
                     mode = TITLE_MODE_LEVEL;
                 else
@@ -1099,6 +1172,7 @@ static void title_timer(int id, float dt)
             break;
 
         case TITLE_MODE_BUILD_IN: /* Run build-in demo. */
+
             if (!demo_replay_step(dt) && !title_prequit)
             {
                 left_handed = left_handed ? 0 : 1;
@@ -1131,6 +1205,8 @@ static void title_point(int id, int x, int y, int dx, int dy)
 
 static void title_stick(int id, int a, float v, int bump)
 {
+    if (title_lockscreen) return;
+
     int jd;
 
 #ifndef __EMSCRIPTEN__
@@ -1143,6 +1219,8 @@ static void title_stick(int id, int a, float v, int bump)
 
 static int title_keybd(int c, int d)
 {
+    if (title_lockscreen) return 1;
+
 #ifndef __EMSCRIPTEN__
     xbox_toggle_gui(0);
 #endif
@@ -1151,7 +1229,7 @@ static int title_keybd(int c, int d)
     {
 #ifndef __EMSCRIPTEN__
         if (c == KEY_EXIT && support_exit)
-            return title_action(GUI_BACK, 0);
+            return 0; /* bye! */
 #endif
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
@@ -1164,7 +1242,22 @@ static int title_keybd(int c, int d)
 
 static int title_buttn(int b, int d)
 {
-    if (d)
+    /* Lockscreen menu */
+
+    if (title_lockscreen)
+    {
+        if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) && title_can_unlock)
+        {
+            title_can_unlock = 0;
+            goto_state(&st_title);
+        }
+
+        return 1;
+    }
+
+    /* Main menu */
+
+    else if (d)
     {
         int active = gui_active();
 
@@ -1172,16 +1265,10 @@ static int title_buttn(int b, int d)
             return title_action(gui_token(active), gui_value(active));
 #ifndef __EMSCRIPTEN__
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b) && support_exit)
-            return title_action(GUI_BACK, 0);
+            return 0; /* bye! */
 #endif
     }
     return 1;
-}
-
-static void title_fade(float alpha)
-{
-    gui_set_alpha(system_version_build_id, alpha, 0);
-    gui_set_alpha(copyright_id, alpha, 0);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1196,9 +1283,5 @@ struct state st_title = {
     shared_angle,
     shared_click,
     title_keybd,
-    title_buttn,
-    NULL,
-    NULL,
-    title_fade
+    title_buttn
 };
-

@@ -86,6 +86,7 @@ void log_printf(const char *fmt, ...)
             fs_printf(log_fp, TEMP_LOG_INFO, str);
             fs_flush(log_fp);
         }
+#ifndef _CONSOLE
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         else
         {
@@ -99,13 +100,15 @@ void log_printf(const char *fmt, ...)
             printf(TEMP_LOG_INFO, str);
         }
 #endif
+#endif
 
-#if defined(_DEBUG)
+#ifndef NDEBUG
         OutputDebugStringA("[i] NB INFO: ");
         OutputDebugStringA(str);
 #endif
 
         free(str);
+        str = NULL;
     }
 }
 
@@ -152,6 +155,7 @@ void log_errorf(const char *fmt, ...)
             fs_printf(log_fp, TEMP_LOG_ERROR, str);
             fs_flush(log_fp);
         }
+#ifndef _CONSOLE
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         else
         {
@@ -165,13 +169,15 @@ void log_errorf(const char *fmt, ...)
             printf(TEMP_LOG_ERROR, str);
         }
 #endif
+#endif
 
-#if defined(_DEBUG)
+#ifndef NDEBUG
         OutputDebugStringA("[!] NB ERROR: ");
         OutputDebugStringA(str);
 #endif
 
         free(str);
+        str = NULL;
     }
 }
 
@@ -202,7 +208,7 @@ void log_init(const char *name, const char *path)
         }
         else
         {
-#if defined(_DEBUG)
+#ifndef NDEBUG
             OutputDebugStringA("[!] NB ERROR: ");
             OutputDebugStringA("Failure to open ");
             OutputDebugStringA(path);

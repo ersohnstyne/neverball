@@ -858,7 +858,11 @@ static int conf_social_action(int tok, int val)
 #endif
             {
 #if defined(__EMSCRIPTEN__)
-                EM_ASM({ Neverball.doJoinDiscord() }, 0);
+#if NB_HAVE_PB_BOTH==1
+                EM_ASM({ window.open("https://discord.gg/qnJR263Hm2");  }, 0);
+#else
+                EM_ASM({ window.open("https://discord.gg/HhMfr4N6H6"); }, 0);
+#endif
 #else
 #if NB_HAVE_PB_BOTH==1
                 SAFECPY(linkstr_code, "qnJR263Hm2");
@@ -1674,6 +1678,7 @@ static int conf_controllers_enter(struct state *st, struct state *prev)
 static void conf_controllers_leave(struct state *st, struct state *next, int id)
 {
     conf_common_leave(st, next, id);
+
     gui_delete(conf_controllers_modal_button_id);
     gui_delete(conf_controllers_modal_axis_id);
 
@@ -2530,7 +2535,7 @@ static int conf_gui(void)
         {
             gui_label(id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT);
 #if NB_HAVE_PB_BOTH==1
-            gui_multi(id, "© 2008, 2023 Neverball Authors.", GUI_TNY, GUI_COLOR_WHT);
+            gui_multi(id, "© 2008, 2024 Neverball Authors.", GUI_TNY, GUI_COLOR_WHT);
 #endif
             gui_clr_rect(id);
             gui_layout(id, 0, -1);
@@ -2544,11 +2549,8 @@ static int conf_gui(void)
 
 static int conf_enter(struct state *st, struct state *prev)
 {
-    if (mainmenu_conf)
-    {
-        if (prev == &st_title) game_fade(-6.0f);
-        game_client_free(NULL);
-    }
+    if (mainmenu_conf && prev == &st_title)
+        game_fade(-6.0f);
 
     conf_common_init(conf_action, mainmenu_conf);
     return conf_gui();

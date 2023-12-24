@@ -49,6 +49,7 @@
 #include "game_server.h"
 #include "game_client.h"
 
+#include "st_common.h"
 #include "st_play.h"
 #include "st_goal.h"
 #include "st_save.h"
@@ -527,6 +528,19 @@ void goal_leave(struct state *st, struct state *next, int id)
             resume_hold = (next == &st_goal);
 
         resume = !resume_hold;
+    }
+
+    if (next == &st_null)
+    {
+        progress_stop();
+#if NB_HAVE_PB_BOTH==1
+        progress_exit();
+        campaign_quit();
+#endif
+        set_quit();
+
+        game_server_free(NULL);
+        game_client_free(NULL);
     }
 
     gui_delete(id);

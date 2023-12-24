@@ -21,6 +21,7 @@
 #endif
 #include "networking.h"
 #include "account.h"
+#include "campaign.h"
 #endif
 
 #include "ball.h"
@@ -33,6 +34,10 @@
 #include "video.h"
 #include "text.h"
 #include "geom.h"
+
+#include "set.h"
+#include "demo.h"
+#include "progress.h"
 
 #include "game_common.h"
 #include "game_server.h"
@@ -338,6 +343,23 @@ static void name_leave(struct state *st, struct state *next, int id)
 {
     if (draw_back)
         back_free();
+
+    if (next == &st_null)
+    {
+        /* Clear all memory leaks before quitting the game! */
+
+        progress_stop();
+        demo_replay_stop(0);
+
+#if NB_HAVE_PB_BOTH==1
+        progress_exit();
+        campaign_quit();
+#endif
+        set_quit();
+
+        game_server_free(NULL);
+        game_client_free(NULL);
+    }
 
     gui_delete(id);
 

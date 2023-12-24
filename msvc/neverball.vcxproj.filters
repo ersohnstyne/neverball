@@ -87,9 +87,6 @@
     <ClCompile Include="..\share\fetch_curl.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\fetch_null.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
     <ClCompile Include="..\share\font.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
@@ -100,9 +97,6 @@
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\fs_ov.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\fs_physfs.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\fs_png.c">
@@ -147,10 +141,10 @@
     <ClCompile Include="..\share\log.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\mtrl.c">
+    <ClCompile Include="..\share\miniz.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\networking_dedicated.c">
+    <ClCompile Include="..\share\mtrl.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\networking_opensource.c">
@@ -211,9 +205,6 @@
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\tilt_wiiuse.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\tts.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\vec3.c">
@@ -396,6 +387,18 @@
     <ClCompile Include="..\share\dbg_config.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
+    <ClCompile Include="..\share\solid_sim_physx.cpp">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\rfd.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\st_package.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\st_setup.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\share\zip.h">
@@ -497,6 +500,9 @@
     <ClInclude Include="..\share\log.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
+    <ClInclude Include="..\share\miniz.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
     <ClInclude Include="..\share\mtrl.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
@@ -549,9 +555,6 @@
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
     <ClInclude Include="..\share\tilt.h">
-      <Filter>Headerdateien\share</Filter>
-    </ClInclude>
-    <ClInclude Include="..\share\tts.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
     <ClInclude Include="..\share\vec3.h">
@@ -707,6 +710,18 @@
     <ClInclude Include="..\share\dbg_config.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
+    <ClInclude Include="..\ball\st_play_sync.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\rfd.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\st_package.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\st_setup.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\dist\neverball_rc.rc">
@@ -720,5 +735,8 @@
     <Image Include="..\dist\ico\neverball.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

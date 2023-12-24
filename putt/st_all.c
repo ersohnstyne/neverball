@@ -381,7 +381,7 @@ static int title_enter(struct state *st, struct state *prev)
 #if defined(__EMSCRIPTEN__)
     EM_ASM({
         Neverputt.isTitleScreen = true;
-        });
+    });
 #endif
 
     if (party_indiv_controllers)
@@ -490,7 +490,7 @@ static void title_leave(struct state *st, struct state *next, int id)
 #if defined(__EMSCRIPTEN__)
     EM_ASM({
         Neverputt.isTitleScreen = false;
-        });
+    });
 #endif
 
     gui_delete(gamepadinfo_id);

@@ -122,6 +122,10 @@ int fs_init(const char *argv0)
 
 int fs_quit(void)
 {
+    /* Close all files to be quitting the game! */
+
+    _fcloseall();
+
     if (fs_dir_base)
     {
         free(fs_dir_base);
@@ -334,6 +338,7 @@ static void zip_list_free(List files)
     while (files)
     {
         free(files->data);
+        files->data = NULL;
         files = list_rest(files);
     }
 }
@@ -403,6 +408,7 @@ static List list_files(const char *path)
             char *real = path_join(path_item->path, path);
             path_files = dir_list_files(real);
             free(real);
+            real = NULL;
         }
         else if (path_item->type == FS_PATH_ZIP)
         {
@@ -432,6 +438,7 @@ static void free_files(List files)
     while (files)
     {
         free(files->data);
+        files->data = NULL;
         files = list_rest(files);
     }
 }
@@ -499,6 +506,7 @@ fs_file fs_open_read(const char *path)
                 }
 
                 free(real);
+                real = NULL;
             }
             else if (path_item->type == FS_PATH_ZIP)
             {
@@ -563,6 +571,7 @@ static fs_file fs_open_write_flags(const char *path, int append)
 #endif
                 fh->path_type = FS_PATH_DIRECTORY;
                 free(real);
+                real = NULL;
             }
 
             if (!fh->handle)
@@ -593,7 +602,7 @@ int fs_close(fs_file fh)
     {
         if (fh->handle)
         {
-            if (fclose(fh->handle))
+            if (fclose(fh->handle) == 0)
                 closed = 1;
         }
 
@@ -645,6 +654,7 @@ int fs_mkdir(const char *path)
         char *real = path_join(fs_dir_write, parsed_path);
         success = dir_make(real) == 0;
         free((void *) real);
+        real = NULL;
     }
 
     return success;
@@ -686,6 +696,7 @@ int fs_exists(const char *path)
 
         DWORD file_attr = GetFileAttributesA(real);
         free(real);
+        real = NULL;
 
         if (!(file_attr & FILE_ATTRIBUTE_OFFLINE             ||
               file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
@@ -709,6 +720,7 @@ int fs_exists(const char *path)
 
             DWORD file_attr = GetFileAttributesA(real);
             free(real);
+            real = NULL;
 
             if (!(file_attr & FILE_ATTRIBUTE_OFFLINE             ||
                   file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
@@ -773,6 +785,7 @@ int fs_recycle(const char *path)
             log_errorf("Failure to move recycle bin! Attempt to permanent delete: '%s'\n", real);
 
         free(real);
+        real = NULL;
     }
 #endif
 
@@ -808,6 +821,7 @@ int fs_remove(const char *path)
         char *real = path_join(fs_dir_write, path);
         success = (remove(real) == 0);
         free(real);
+        real = NULL;
     }
 
     return success;

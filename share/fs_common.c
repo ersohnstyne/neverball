@@ -96,8 +96,8 @@ int fs_rename(const char *src, const char *dst)
 
         rc = file_rename(real_src, real_dst);
 
-        free(real_src);
-        free(real_dst);
+        free(real_src); real_src = NULL;
+        free(real_dst); real_dst = NULL;
     }
 
     return rc;
@@ -267,6 +267,7 @@ int fs_printf(fs_file fh, const char *fmt, ...)
         written = write_lines(buff, strlen(buff), fh);
 
         free(buff);
+        buff = NULL;
 
         return written;
     }

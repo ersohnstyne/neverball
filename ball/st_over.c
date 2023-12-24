@@ -120,26 +120,30 @@ static int over_gui_hardcore(void)
 
         char hardcore_report[MAXSTR];
 
-        char *report_themename = _("Sky");
-        char *report_lastline = _("Keep trying, you will get there!");
+        char report_themename[32];
+        char report_lastline[32];
 
         switch (campaign_get_hardcore_data().level_theme)
         {
+            case 1:
+                SAFECPY(report_themename, _("Sky"));
+                SAFECPY(report_lastline, _("Keep trying, you will get there!"));
+                break;
             case 2:
-                report_themename = _("Ice");
-                report_lastline = _("Nice one!");
+                SAFECPY(report_themename, _("Ice"));
+                SAFECPY(report_lastline,  _("Nice one!"));
                 break;
             case 3:
-                report_themename = _("Cave");
-                report_lastline = _("Incredible!");
+                SAFECPY(report_themename, _("Cave"));
+                SAFECPY(report_lastline,  _("Incredible!"));
                 break;
             case 4:
-                report_themename = _("Cloud");
-                report_lastline = _("Unbelievable! Well done!");
+                SAFECPY(report_themename, _("Cloud"));
+                SAFECPY(report_lastline,  _("Unbelievable! Well done!"));
                 break;
             case 5:
-                report_themename = _("Lava");
-                report_lastline = _("Er, how did you do that?");
+                SAFECPY(report_themename, _("Lava"));
+                SAFECPY(report_lastline, _("Er, how did you do that?"));
                 break;
         }
 

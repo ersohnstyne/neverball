@@ -29,10 +29,13 @@
 #define EDITION_SERVER_STANDARD    5         /* Neverball Server Standard    */
 #define EDITION_SERVER_DATACENTER  6         /* Neverball Server Datacenter  */
 
-#if WINAPI_FAMILY == WINAPI_FAMILY_PC_APP || WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
-#define EDITION_CURRENT EDITION_PRO          /* Current Edition              */
+#if WINAPI_FAMILY == WINAPI_FAMILY_PC_APP || \
+    WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
+#define EDITION_CURRENT \
+        EDITION_PRO                          /* Current Edition              */
 #elif WINAPI_FAMILY == WINAPI_FAMILY_SERVER
-#define EDITION_CURRENT EDITION_SERVER_STANDARD // Current Server Edition
+#define EDITION_CURRENT \
+        EDITION_SERVER_STANDARD              /* Current Server Edition       */
 #else
 #error Security compilation error: No Windows Editions supported
 #endif

@@ -54,7 +54,10 @@ static void load_item(struct dir_item *item)
             if (demo_load(d, item->path))
                 item->data = d;
             else
+            {
                 free(d);
+                d = NULL;
+            }
         }
     }
 }

@@ -689,9 +689,7 @@ int game_server_init(const char *file_name, int t, int e)
     }
 
 #ifdef MAPC_INCLUDES_CHKP
-    if (last_active)
-        log_errorf("Reset server's level data is blocked except outcome the game during checkpoints is active!\n");
-    else
+    if (!last_active)
     {
         chkp_id = -1;
         last_timer_down = timer_down;
@@ -959,8 +957,6 @@ int game_server_init(const char *file_name, int t, int e)
 #else
         sol_init_sim(&vary);
 #endif
-    else
-        log_errorf("Initializing server's simulaton is blocked during checkpoints is active!\n");
 #else
 #if _WIN32 && _MSC_VER && ENABLE_NVIDIA_PHYSX==1
     sol_init_sim_physx(&vary);

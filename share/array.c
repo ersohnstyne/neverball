@@ -55,9 +55,7 @@ void alloc_free(struct alloc *alloc)
     }
 
     if (alloc->count)
-    {
         *alloc->count = 0;
-    }
 }
 
 void *alloc_add(struct alloc *alloc)

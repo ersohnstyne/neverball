@@ -514,30 +514,22 @@ static int pause_quit_gui(void)
 
         gui_space(id);
 
+        const char *quit_warn_set = _("Are you sure?\n"
+                                      "You will lose all progress on this level set.");
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        char *quit_warn = campaign_hardcore() ? _("Return to World selection?") :
-                                                _("Are you sure?\n"
-                                                  "You will lose all progress on this level.");
-#else
-        char *quit_warn = _("Are you sure?\n"
-                            "You will lose all progress on this level.");
+        const char *quit_warn_campaign = campaign_hardcore() ? _("Return to World selection?") :
+                                         (curr_mode() == MODE_NONE ? _("Return to main menu?") :
+                                          (quit_uses_resetpuzzle ? _("Are you sure?\n"
+                                                                     "You will restart at the last checkpoint.") :
+                                                                   _("Are you sure?\n"
+                                                                     "You will lose all progress on this level.")));
+
+        if (campaign_used())
+            gui_multi(id, quit_warn_campaign, GUI_SML, GUI_COLOR_WHT);
 #endif
-        if (curr_mode() == MODE_NONE)
-            quit_warn = _("Return to main menu?");
-
-        if (quit_uses_resetpuzzle)
-            quit_warn = _("Are you sure?\n"
-                          "You will restart at the last checkpoint.");
-
-        if (
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            !campaign_used() &&
-#endif
-            curr_times() > 0)
-            quit_warn = _("Are you sure?\n"
-                          "You will lose all progress on this level set.");
-
-        gui_multi(id, quit_warn, GUI_SML, GUI_COLOR_WHT);
+        else if (curr_times() > 0)
+            gui_multi(id, quit_warn_set, GUI_SML, GUI_COLOR_WHT);
 
         gui_space(id);
 
@@ -561,9 +553,10 @@ static int pause_quit_gui(void)
                                                                        PAUSE_EXIT), 0);
 #endif
         }
+
+        gui_layout(id, 0, 0);
     }
 
-    gui_layout(id, 0, 0);
     return id;
 }
 

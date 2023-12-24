@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.props" Condition="Exists('..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -22,7 +23,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{b864ebd5-0a35-49b8-a9c8-7a7fcccd7ce4}</ProjectGuid>
-    <RootNamespace>pennyball</RootNamespace>
+    <RootNamespace>neverball</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -73,18 +74,18 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.0";NEVERBALL_EDITION=-1;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_DEDICATED_SERVER=0;ENABLE_IAP=0;CURL_STATICLIB;DEVEL_BUILD;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.1";NEVERBALL_EDITION=-1;ENABLE_NVIDIA_PHYSX=0;ENABLE_RFD=0;ENABLE_NLS=1;NLS_GETTEXT=1;ENABLE_FETCH=1;CURL_STATICLIB;NB_GDRIVE_PACKAGE_FILEID_LEVELSET="1kSLkuxEsAarSZ3A_WU8h0FQcTDkijSBZ";NB_GDRIVE_PACKAGE_FILEID_CAMPAIGN="1wFZ8CkUyRsedUlDk98m56SAAkXPx4uk-";ENABLE_DEDICATED_SERVER=0;ENABLE_IAP=0;DEVEL_BUILD;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <ConformanceMode>true</ConformanceMode>
       <ErrorReporting>Prompt</ErrorReporting>
-      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\source_$(Username)_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\source_ersohn\win10_libraries\steam\public;D:\source_ersohn\win10_libraries\epicgames\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x86\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\source_$(Username)_network\c++\neverball-game-network\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x86\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>runtimeobject.lib;libpng16_staticd.lib;libjpeg_a.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;zlibstaticd.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
@@ -107,12 +108,12 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClCompile>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.0";NEVERBALL_EDITION=-1;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_DEDICATED_SERVER=0;ENABLE_IAP=0;CURL_STATICLIB;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.1";NEVERBALL_EDITION=-1;ENABLE_NVIDIA_PHYSX=0;ENABLE_RFD=0;ENABLE_NLS=1;NLS_GETTEXT=1;ENABLE_FETCH=1;CURL_STATICLIB;NB_GDRIVE_PACKAGE_FILEID_LEVELSET="1kSLkuxEsAarSZ3A_WU8h0FQcTDkijSBZ";NB_GDRIVE_PACKAGE_FILEID_CAMPAIGN="1wFZ8CkUyRsedUlDk98m56SAAkXPx4uk-";ENABLE_DEDICATED_SERVER=0;ENABLE_IAP=0;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <ConformanceMode>true</ConformanceMode>
       <ErrorReporting>Prompt</ErrorReporting>
-      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\source_$(Username)_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\source_ersohn\win10_libraries\steam\public;D:\source_ersohn\win10_libraries\epicgames\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -120,7 +121,8 @@ del "$(SolutionDir)share\*.o"</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x86\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>D:\source_$(Username)_network\c++\neverball-game-network\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x86\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>runtimeobject.lib;libpng16_static.lib;libjpeg_a.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;zlibstatic.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
@@ -142,19 +144,19 @@ del "$(SolutionDir)share\*.o"</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.0";NEVERBALL_EDITION=-1;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_DEDICATED_SERVER=0;ENABLE_IAP=0;CURL_STATICLIB;DEVEL_BUILD;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.1";NEVERBALL_EDITION=-1;ENABLE_NVIDIA_PHYSX=0;ENABLE_RFD=0;ENABLE_NLS=1;NLS_GETTEXT=1;ENABLE_FETCH=1;CURL_STATICLIB;NB_GDRIVE_PACKAGE_FILEID_LEVELSET="1kSLkuxEsAarSZ3A_WU8h0FQcTDkijSBZ";NB_GDRIVE_PACKAGE_FILEID_CAMPAIGN="1wFZ8CkUyRsedUlDk98m56SAAkXPx4uk-";ENABLE_DEDICATED_SERVER=0;ENABLE_IAP=0;DEVEL_BUILD;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>D:\source_$(Username)_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\source_ersohn\win10_libraries\steam\public;D:\source_ersohn\win10_libraries\epicgames\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ConformanceMode>true</ConformanceMode>
       <ErrorReporting>Prompt</ErrorReporting>
-      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-	  <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
       <AdditionalDependencies>runtimeobject.lib;libpng16_staticd.lib;libjpeg_a.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;zlibstaticd.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x64\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\source_$(Username)_network\c++\neverball-game-network\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x64\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
     </Link>
     <PreBuildEvent>
       <Command>del "$(ProjectDir)$(Platform)\$(Configuration)\*.obj"
@@ -176,12 +178,12 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClCompile>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.0";NEVERBALL_EDITION=-1;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_DEDICATED_SERVER=0;ENABLE_IAP=0;CURL_STATICLIB;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.1";NEVERBALL_EDITION=-1;ENABLE_NVIDIA_PHYSX=0;ENABLE_RFD=0;ENABLE_NLS=1;NLS_GETTEXT=1;ENABLE_FETCH=1;CURL_STATICLIB;NB_GDRIVE_PACKAGE_FILEID_LEVELSET="1kSLkuxEsAarSZ3A_WU8h0FQcTDkijSBZ";NB_GDRIVE_PACKAGE_FILEID_CAMPAIGN="1wFZ8CkUyRsedUlDk98m56SAAkXPx4uk-";ENABLE_DEDICATED_SERVER=0;ENABLE_IAP=0;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\source_$(Username)_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\source_ersohn\win10_libraries\steam\public;D:\source_ersohn\win10_libraries\epicgames\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <ConformanceMode>true</ConformanceMode>
       <ErrorReporting>Prompt</ErrorReporting>
-      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -189,8 +191,9 @@ del "$(SolutionDir)share\*.o"</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>runtimeobject.lib;libpng16_static.lib;libjpeg_a.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;zlibstatic.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x64\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\source_$(Username)_network\c++\neverball-game-network\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x64\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <PreBuildEvent>
       <Command>del "$(ProjectDir)$(Platform)\$(Configuration)\*.obj"
@@ -304,11 +307,14 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClCompile Include="..\share\solid_all.c" />
     <ClCompile Include="..\share\solid_base.c" />
     <ClCompile Include="..\share\solid_draw.c" />
+    <ClCompile Include="..\share\solid_sim_physx.cpp" />
     <ClCompile Include="..\share\solid_sim_sol.c" />
     <ClCompile Include="..\share\solid_vary.c" />
     <ClCompile Include="..\share\state.c" />
+    <ClCompile Include="..\share\st_package.c" />
     <ClCompile Include="..\share\st_common.c" />
     <ClCompile Include="..\share\st_end_support.c" />
+    <ClCompile Include="..\share\st_setup.c" />
     <ClCompile Include="..\share\st_transfer_source.c" />
     <ClCompile Include="..\share\st_transfer_target.c" />
     <ClCompile Include="..\share\text.c" />
@@ -355,8 +361,8 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClInclude Include="..\ball\st_over.h" />
     <ClInclude Include="..\ball\st_pause.h" />
     <ClInclude Include="..\ball\st_play.h" />
-    <ClInclude Include="..\ball\st_play_sync.h" />
     <ClInclude Include="..\ball\st_playmodes.h" />
+    <ClInclude Include="..\ball\st_play_sync.h" />
     <ClInclude Include="..\ball\st_save.h" />
     <ClInclude Include="..\ball\st_set.h" />
     <ClInclude Include="..\ball\st_shared.h" />
@@ -415,14 +421,15 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClInclude Include="..\share\solid_sim.h" />
     <ClInclude Include="..\share\solid_vary.h" />
     <ClInclude Include="..\share\state.h" />
+    <ClInclude Include="..\share\st_package.h" />
     <ClInclude Include="..\share\st_common.h" />
     <ClInclude Include="..\share\st_end_support.h" />
+    <ClInclude Include="..\share\st_setup.h" />
     <ClInclude Include="..\share\st_transfer.h" />
     <ClInclude Include="..\share\text.h" />
     <ClInclude Include="..\share\theme.h" />
     <ClInclude Include="..\share\tilt.h" />
     <ClInclude Include="..\share\vec3.h" />
-    <ClInclude Include="..\share\version.h" />
     <ClInclude Include="..\share\video.h" />
     <ClInclude Include="..\share\zip.h" />
   </ItemGroup>
@@ -433,7 +440,18 @@ del "$(SolutionDir)share\*.o"</Command>
     <Image Include="..\dist\ico\neverball.ico" />
     <Image Include="ico\neverball.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.targets" Condition="Exists('..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Dieses Projekt verweist auf mindestens ein NuGet-Paket, das auf diesem Computer fehlt. Verwenden Sie die Wiederherstellung von NuGet-Paketen, um die fehlenden Dateien herunterzuladen. Weitere Informationen finden Sie unter "http://go.microsoft.com/fwlink/?LinkID=322105". Die fehlende Datei ist "{0}".</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.props'))" />
+    <Error Condition="!Exists('..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.targets'))" />
+  </Target>
 </Project>

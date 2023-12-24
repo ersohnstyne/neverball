@@ -135,23 +135,26 @@ static int level_action(int tok, int val)
 
     switch (tok)
     {
-        case LEVEL_START:
-#ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
-            if (!tutorial_check() && !hint_check())
-#endif
-                return goto_state(&st_play_ready);
-
         case LEVEL_START_POWERUP:
-            if (val == 3) {
+            if (val == 3)
+            {
                 audio_play("snd/speedifier.ogg", 1.0f);
                 init_speedifier();
-            } else if (val == 2) {
+            }
+            else if (val == 2)
+            {
                 audio_play("snd/floatifier.ogg", 1.0f);
                 init_floatifier();
-            } else if (val == 1) {
+            }
+            else if (val == 1)
+            {
                 audio_play("snd/earninator.ogg", 1.0f);
                 init_earninator();
             }
+
+            /* Combined enum buttons: LEVEL_START */
+
+        case LEVEL_START:
             show_info = 0;
 
 #ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
@@ -458,6 +461,7 @@ static int level_enter(struct state *st, struct state *prev)
                      !campaign_hardcore_norecordings() &&
 #endif
                      curr_mode() != MODE_NONE ? demo_fp : NULL);
+
     game_client_fly(1.0f);
     hud_update(0, 0.0f);
 
@@ -484,14 +488,13 @@ static void level_timer(int id, float dt)
 {
     /* HACK: This shouldn't have a bug. This has been fixed. */
 
-    if (text_length(config_get_s(CONFIG_PLAYER)) < 3 ||
-        !level_check_playername(config_get_s(CONFIG_PLAYER)))
-    {
+    if ((text_length(config_get_s(CONFIG_PLAYER)) < 3 ||
+         !level_check_playername(config_get_s(CONFIG_PLAYER))) &&
+        !st_global_animating())
         goto_state(&st_level_signin_required);
-        return;
-    }
 
-    if (nodemo_warnonlyonce && config_get_d(CONFIG_ACCOUNT_SAVE) > 0)
+    if (nodemo_warnonlyonce && config_get_d(CONFIG_ACCOUNT_SAVE) > 0 &&
+        !st_global_animating())
     {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         if (check_nodemo == 1 && !demo_fp &&
@@ -499,17 +502,15 @@ static void level_timer(int id, float dt)
 #else
         if (check_nodemo == 1 && !demo_fp && curr_mode() != MODE_NONE)
 #endif
-        {
             goto_state(&st_nodemo);
-            return;
-        }
     }
 
     geom_step(dt);
     hud_timer(dt);
     gui_timer(id, dt);
-    game_step_fade(dt);
     game_lerp_pose_point_tick(dt);
+
+    game_step_fade(dt);
 }
 
 static int level_keybd(int c, int d)
@@ -659,6 +660,8 @@ static int nodemo_enter(struct state *st, struct state *prev)
 
     if ((id = gui_vstack(0)))
     {
+        audio_play("snd/warning.ogg", 1.f);
+
         gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
         gui_multi(id, _("A replay file could not be opened for writing.\n"
@@ -678,7 +681,6 @@ static void nodemo_timer(int id, float dt)
     gui_timer(id, dt);
 }
 
-/*
 static int nodemo_keybd(int c, int d)
 {
     if (d)
@@ -721,7 +723,6 @@ static int nodemo_buttn(int b, int d)
     }
     return 1;
 }
-*/
 
 /*---------------------------------------------------------------------------*/
 
@@ -951,9 +952,9 @@ struct state st_nodemo = {
     shared_point,
     shared_stick,
     shared_angle,
-    level_click,  // Replaced from: shared_click_basic
-    level_keybd,  // Replaced from: nodemo_basic
-    level_buttn,  // Replaced from: nodemo_basic
+    level_click,
+    nodemo_keybd,
+    nodemo_buttn,
     NULL,
     NULL,
     NULL,

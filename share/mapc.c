@@ -44,6 +44,14 @@
 #include "fs.h"
 #include "common.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 #ifndef MAXSTR
 #define MAXSTR MAX_STR_BLOCKREASON
 #endif
@@ -83,6 +91,16 @@ static int       campaign_budget = 0;
 static int       campaign_use_author_encrypt = 0;
 
 /*---------------------------------------------------------------------------*/
+
+#ifdef MESSAGE
+#undef MESSAGE
+#endif
+#ifdef WARNING
+#undef WARNING
+#endif
+#ifdef ERROR
+#undef ERROR
+#endif
 
 #if ENABLE_RADIANT_CONSOLE
 
@@ -596,8 +614,12 @@ static void free_imagedata(void)
     if (imagedata)
     {
         for (i = 0; i < image_n; i++)
+        {
             free(imagedata[i].s);
+            imagedata[i].s = NULL;
+        }
         free(imagedata);
+        imagedata = NULL;
     }
 
     image_n = image_alloc = 0;
@@ -610,6 +632,7 @@ static int size_load(const char *file, int *w, int *h)
     if ((p = image_load(file, w, h, NULL)))
     {
         free(p);
+        p = NULL;
         return 1;
     }
     return 0;
@@ -649,13 +672,14 @@ static void size_image(const char *name, int *w, int *h)
                 (struct _imagedata *) malloc(sizeof(struct _imagedata) * (image_alloc + IMAGE_REALLOC));
             if (!tmp)
             {
-                printf("malloc error\n");
+                MAPC_LOG_ERROR("malloc error\n");
                 exit(1);
             }
             if (imagedata)
             {
                 (void) memcpy(tmp, imagedata, sizeof(struct _imagedata) * image_alloc);
                 free(imagedata);
+                imagedata = NULL;
             }
             imagedata = tmp;
             image_alloc += IMAGE_REALLOC;
@@ -769,6 +793,7 @@ static void move_body(struct s_base *fp,
                 move_vert(fp->vv + i, fp->pv[bp->pi].p);
 
         free(b);
+        b = NULL;
     }
 }
 
@@ -1166,7 +1191,7 @@ static void make_path(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating paths...\n");
 #endif
     int i, pi = incp(fp);
@@ -1289,7 +1314,7 @@ static void make_body(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c, int l0)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating objects...\n");
 #endif
     int i, mi = 0, bi = incb(fp);
@@ -1352,7 +1377,7 @@ static void make_item(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating items...\n");
 #endif
     int i, hi = inch(fp);
@@ -1400,7 +1425,7 @@ static void make_bill(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating billboard...\n");
 #endif
     int i, ri = incr(fp);
@@ -1454,7 +1479,7 @@ static void make_goal(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c, int l0)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating goal...\n");
 #endif
     int i, zi = incz(fp);
@@ -1488,7 +1513,7 @@ static void make_view(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating viewpoint...\n");
 #endif
     int i, wi = incw(fp);
@@ -1524,7 +1549,7 @@ static void make_jump(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c, int l0)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating teleporter...\n");
 #endif
     int i, ji = incj(fp);
@@ -1564,7 +1589,7 @@ static void make_swch(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c, int l0)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating switch...\n");
 #endif
     int i, xi = incx(fp);
@@ -1614,7 +1639,7 @@ static void make_targ(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating targets...\n");
 #endif
     int i;
@@ -1647,7 +1672,7 @@ static void make_ball(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c, int l0)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating balls...\n");
 #endif
     int i, ui = incu(fp);
@@ -1711,7 +1736,7 @@ static void make_chkp(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c, int l0)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating chkp...\n");
 #endif
     int i, ci = incc(fp);
@@ -2767,6 +2792,7 @@ static void smth_file(struct s_base *fp)
             }
 
             free(T);
+            T = NULL;
         }
 
         uniq_side(fp);
@@ -3606,18 +3632,16 @@ int main(int argc, char *argv[])
 
                     if (compile_time_limit >= 1920 || currtime >= 1920)
                         sprintf(buf, "Compile timed out after %d seconds!\n\t"
-                                     "Current compilation time exceeds above 32 minutes!\n\t"
+                                     "Current compilation time limit exceeds above 32 minutes, which has an slow and old computers!\n\t"
                                      "Simplify some structural lumps in the Net-Radiant or buy the brand new PC!\n",
-                                     compile_time_limit, currtime);
+                                     compile_time_limit);
                     else
-                    {
                         sprintf(buf, "Compile timed out after %d seconds!\n\t"
                                      "Raise compilation time limit using --timelimit to \"%d\"!\n",
                                      compile_time_limit,
                                      currtime > 960.000 ? 1920 : (currtime > 480.000 ? 960
                                                                : (currtime > 240.000 ? 480
                                                                : (currtime > 120.000 ? 240 : 120))));
-                    }
 
                     MAPC_LOG_ERROR(buf);
                     return 1;

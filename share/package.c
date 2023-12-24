@@ -1186,6 +1186,7 @@ static void free_pfi(struct package_fetch_info *pfi)
         }
 
         free(pfi);
+        pfi = NULL;
     }
 }
 

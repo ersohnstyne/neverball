@@ -37,8 +37,6 @@
 
 void shared_leave(struct state *st, struct state *next, int id)
 {
-    gui_delete(id);
-
     if (next == &st_null)
     {
         /* Clear all memory leaks before quitting the game! */
@@ -55,6 +53,8 @@ void shared_leave(struct state *st, struct state *next, int id)
         game_server_free(NULL);
         game_client_free(NULL);
     }
+
+    gui_delete(id);
 }
 
 void shared_paint(int id, float t)

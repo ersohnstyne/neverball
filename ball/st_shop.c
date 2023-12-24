@@ -83,13 +83,13 @@ static int switchball_useable(void)
     k_arrowkey[2] = config_get_d(CONFIG_KEY_BACKWARD);
     k_arrowkey[3] = config_get_d(CONFIG_KEY_RIGHT);
 
-    if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-        && k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT
-        && k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
+    if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2 &&
+        k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT &&
+        k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
         return 1;
-    else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-             && k_caml == SDLK_d && k_camr == SDLK_a
-             && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
+    else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2 &&
+             k_caml == SDLK_d && k_camr == SDLK_a &&
+             k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
         return 1;
 
     /*
@@ -612,6 +612,8 @@ static int shop_unlocked_gui(void)
 
     if ((id = gui_vstack(0)))
     {
+        audio_play("snd/warning.ogg", 1.f);
+
         gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
         gui_multi(id, _("The goal state is still unlocked\n"
@@ -727,6 +729,9 @@ static void shop_rename_leave(struct state *st, struct state *next, int id)
 {
     if (draw_back)
         back_free();
+
+    if (next == &st_null)
+        game_client_free(NULL);
 
     gui_delete(id);
 }

@@ -66,13 +66,13 @@
 
 static int switchball_useable(void)
 {
-    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
     const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
 
     SDL_Keycode k_arrowkey[4];
     k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
@@ -80,13 +80,13 @@ static int switchball_useable(void)
     k_arrowkey[2] = config_get_d(CONFIG_KEY_BACKWARD);
     k_arrowkey[3] = config_get_d(CONFIG_KEY_RIGHT);
 
-    if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-        && k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT
-        && k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
+    if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2 &&
+        k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT &&
+        k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
         return 1;
-    else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-             && k_caml == SDLK_d && k_camr == SDLK_a
-             && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
+    else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2 &&
+             k_caml == SDLK_d && k_camr == SDLK_a &&
+             k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
         return 1;
 
     /*

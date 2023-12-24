@@ -340,6 +340,7 @@ void account_transfer_load(const char *paths)
                 }
             }
             free(line);
+            line = NULL;
         }
 #endif
         fs_close(fh);
@@ -414,6 +415,7 @@ void account_transfer_load_externals(const char *paths)
                 }
             }
             free(line);
+            line = NULL;
         }
 #endif
         fs_close(fh);
@@ -524,7 +526,10 @@ void account_transfer_set_s(int i, const char *src)
     account_transfer_busy = 1;
 
     if (account_transfer_s[i].cur)
+    {
         free(account_transfer_s[i].cur);
+        account_transfer_s[i].cur = NULL;
+    }
 
     account_transfer_s[i].cur = strdup(src);
 

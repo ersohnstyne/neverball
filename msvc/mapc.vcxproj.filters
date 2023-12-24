@@ -92,6 +92,9 @@
     <ClInclude Include="..\share\list.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\share\miniz.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\share\zip.h">
       <Filter>Header Files</Filter>
     </ClInclude>

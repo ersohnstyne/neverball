@@ -60,13 +60,13 @@ static int switchball_useable(void)
     k_arrowkey[2] = config_get_d(CONFIG_KEY_BACKWARD);
     k_arrowkey[3] = config_get_d(CONFIG_KEY_RIGHT);
 
-    if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-        && k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT
-        && k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
+    if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2 &&
+        k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT &&
+        k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
         return 1;
-    else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-             && k_caml == SDLK_d && k_camr == SDLK_a
-             && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
+    else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2 &&
+             k_caml == SDLK_d && k_camr == SDLK_a &&
+             k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
         return 1;
 
     /*
@@ -86,7 +86,8 @@ struct state st_hardcore_start;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
 
 static int playmodes_state(int id, int tok, int val, int unlocked,
-                           char *title, char *unlock_desc, char *lock_desc)
+                           const char *title,
+                           const char *unlock_desc, const char *lock_desc)
 {
     int jd;
 
@@ -165,13 +166,13 @@ static int playmodes_gui(void)
                 gui_back_button(jd);
         }
 
-        int   career_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER)
-                              || campaign_career_unlocked());
-        char *career_title    = config_get_d(CONFIG_LOCK_GOALS) ?
-                                _("Career Mode (Currently ENABLED!)") :
-                                _("Career Mode (Currently disabled)");
-        char *career_text     = _("Toggle career mode in the entire game.\n"
-                                  "Compatible with Level Set.");
+        int         career_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER) ||
+                                       campaign_career_unlocked());
+        const char *career_title    = config_get_d(CONFIG_LOCK_GOALS) ?
+                                      _("Career Mode (Currently ENABLED!)") :
+                                      _("Career Mode (Currently disabled)");
+        const char *career_text     = _("Toggle career mode in the entire game.\n"
+                                        "Compatible with Level Set.");
 
         playmodes_state(id, PLAYMODES_CAREER_MODE, 0,
                         career_unlocked &&
@@ -187,11 +188,11 @@ static int playmodes_gui(void)
 
         int hardc_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE)
                            || campaign_hardcore_unlocked());
-        int hardc_requirement = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100
+        int hardc_requirement = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-            && !config_cheat()
+               !config_cheat() &&
 #endif
-            && (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN);
+               (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN);
 
         if (!CHECK_ACCOUNT_ENABLED)
         {

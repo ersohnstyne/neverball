@@ -26,6 +26,14 @@
 #include "dir.h"
 #include "common.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 /*
  * HACK: Thank god using FindFirstFileA by Microsoft Elite Developers!
  * On Unix and linux, or using MinGW, include headers will be used as: dirent.h
@@ -111,6 +119,7 @@ void dir_list_free(List files)
     while (files)
     {
         free(files->data);
+        files->data = NULL;
         files = list_rest(files);
     }
 }

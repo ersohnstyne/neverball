@@ -258,7 +258,8 @@ static int status = GAME_NONE;
 static int coins = 0;
 
 #ifdef MAPC_INCLUDES_CHKP
-static int timer_lvlset = 0;
+static int timer_campaign = 0;
+static int timer_lvlset   = 0;
 
 /*
  * Precalculated total timer for each levels with checkpoints.
@@ -376,8 +377,8 @@ void progress_init(int m)
 
 void progress_extend(void)
 {
-    extended = 1;
-    status = GAME_NONE;
+    extended    = 1;
+    status      = GAME_NONE;
     curr.times -= extended_timer;
     curr.balls += 1;
 }
@@ -431,9 +432,9 @@ static int init_level(void)
         /* This method was attacking for their violentations. */
         game_client_sync(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            !campaign_hardcore_norecordings() &&
+                         !campaign_hardcore_norecordings() &&
 #endif
-            curr_mode() != MODE_NONE ? demo_fp : NULL);
+                         curr_mode() != MODE_NONE ? demo_fp : NULL);
 
         audio_music_fade_to(1.0f, BGM_TITLE_MAP(level_song(level)));
         return 1;
@@ -466,10 +467,7 @@ int  progress_play(struct level *l)
 
 #ifdef MAPC_INCLUDES_CHKP
         if (last_active)
-        {
             incr_gained(respawn_gained);
-            log_errorf("Clearing gaining time is blocked during checkpoints is active!\n");
-        }
 
         /* HACK: Must be recalculate after respawn! */
 
@@ -575,18 +573,15 @@ void progress_step(void)
         }
     }
 
-    if (goal > 0)
+    if (goal <= 0)
     {
-        goal = (goal_i - curr_coins());
-
-        if (goal <= 0)
-        {
-            if (!replay)
-                game_set_goal();
-
-            goal = 0;
-        }
+        goal = 0;
+        return;
     }
+
+    goal = goal_i - curr_coins();
+
+    if (goal <= 0 && !replay) game_set_goal();
 }
 
 void progress_stat(int s)
@@ -603,7 +598,7 @@ void progress_stat(int s)
 
     /*
      * HACK: Each timer must be substracted for each checkpoints!
-     * First, set the level timer...
+     * First, set the current level timer...
      */
 
 #ifdef LEVELGROUPS_INCLUDES_ZEN
@@ -617,7 +612,7 @@ void progress_stat(int s)
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
-    /* ...then substract the checkpoint timer! */
+    /* ...then substract it! */
 
     timer -= checkpoints_respawn_timer();
 #endif
@@ -748,7 +743,7 @@ void progress_stat(int s)
             }
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-            /* Add to your account */
+            /* Add coins for each levels to your account */
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             int disable_live_earn = mode == MODE_CHALLENGE
@@ -764,7 +759,7 @@ void progress_stat(int s)
             {
                 if (curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                    || curr_mode() == MODE_CAMPAIGN
+                 || curr_mode() == MODE_CAMPAIGN
 #endif
                     )
                 {
@@ -822,7 +817,10 @@ void progress_stat(int s)
         case GAME_TIME:
             if (status != GAME_GOAL)
             {
-                done           = 0;
+                /* Rejects offer after end of the level. */
+
+                done = 0;
+
                 extended_timer = timer;
 
                 if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
@@ -843,19 +841,21 @@ void progress_stat(int s)
                 )
                     PROGRESS_PLAYER_PAYDEBT_BALLS;
 
+                /* Decreases acceleration at half. */
+
                 if (mode == MODE_BOOST_RUSH && curr.speedpercent > 1)
                 {
-                    /* Decreases half percent */
                     curr.speedpercent /= 2;
                     exceed_speed       = 0;
                     max_speed          = 0;
+
+                    /* Kill speed percent immediately. */
+
+                    if (progress_dead())
+                        curr.speedpercent = 0;
                 }
 
                 PROGRESS_PLAYER_BANKRUPT;
-
-                /* Kill speed percent immediately, before paid 15 gems. */
-                if (progress_dead())
-                    curr.speedpercent = 0;
 
                 status == GAME_FALL ? level->stats.fallout++ : level->stats.timeout++;
             }
@@ -967,14 +967,16 @@ void progress_exit(void)
         }
 #endif
     }
+
+    replay = 0;
 }
 
 int  progress_replay(const char *filename)
 {
-    progress_replay_full(filename,
-                         &goal, &mode,
-                         &curr.balls, &curr.score, &curr.times,
-                         1);
+    return progress_replay_full(filename,
+                                &goal, &mode,
+                                &curr.balls, &curr.score, &curr.times,
+                                1);
 }
 
 int  progress_replay_full(const char *filename,
@@ -1034,9 +1036,9 @@ int  progress_raise_gems(int action_performed, int needed,
 
             final_resale += 1;
         }
-        else if ((diff_wgspeed >= diff_wgfloat
-               && diff_wgspeed >= diff_wgearn)
-              && diff_wgspeed > 0)
+        else if ((diff_wgspeed >= diff_wgfloat &&
+                  diff_wgspeed >= diff_wgearn) &&
+                 diff_wgspeed > 0)
         {
             /* Sell speedifier powerups at half coin price. */
             diff_wgspeed--;
@@ -1045,9 +1047,9 @@ int  progress_raise_gems(int action_performed, int needed,
             diff_coins += 38;
             if (wgcoins) *wgcoins -= 38;
         }
-        else if ((diff_wgfloat >= diff_wgspeed
-               && diff_wgfloat >= diff_wgearn)
-              && diff_wgfloat > 0)
+        else if ((diff_wgfloat >= diff_wgspeed &&
+                  diff_wgfloat >= diff_wgearn) &&
+                 diff_wgfloat > 0)
         {
             /* Sell floatifier powerups at half coin price. */
             diff_wgfloat--;
@@ -1056,9 +1058,9 @@ int  progress_raise_gems(int action_performed, int needed,
             diff_coins += 38;
             if (wgcoins) *wgcoins -= 38;
         }
-        else if ((diff_wgearn >= diff_wgspeed
-               && diff_wgearn >= diff_wgfloat)
-              && diff_wgearn > 0)
+        else if ((diff_wgearn >= diff_wgspeed &&
+                  diff_wgearn >= diff_wgfloat) &&
+                 diff_wgearn > 0)
         {
             /* Sell earninator powerups at half coin price. */
             diff_wgearn--;
@@ -1074,7 +1076,7 @@ int  progress_raise_gems(int action_performed, int needed,
             break;
     }
 
-    if (action_performed)
+    if (action_performed && temp_src_gems + final_resale >= needed)
     {
         account_set_d(ACCOUNT_DATA_WALLET_GEMS,       temp_src_gems + final_resale);
         account_set_d(ACCOUNT_DATA_WALLET_COINS,      diff_coins);
@@ -1094,7 +1096,7 @@ int  progress_next_avail(void)
     {
         if ((mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-            && !config_cheat()
+         && !config_cheat()
 #endif
             )
             return status == GAME_GOAL;
@@ -1141,7 +1143,7 @@ int  progress_same_avail(void)
 
 int  progress_next(void)
 {
-    if (next && status == GAME_GOAL)
+    if (next && status == GAME_GOAL && !progress_dead())
     {
         progress_stop();
 

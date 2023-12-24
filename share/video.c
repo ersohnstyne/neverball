@@ -172,7 +172,10 @@ static void set_window_icon(const char *filename)
     if ((icon = load_surface(filename)))
     {
         SDL_SetWindowIcon(window, icon);
+
         free(icon->pixels);
+        icon->pixels = NULL;
+
         SDL_FreeSurface(icon);
     }
 }
@@ -227,8 +230,8 @@ void video_resize(int window_w, int window_h)
         int wszW, wszH;
         
         SDL_GetWindowSize(window, &wszW, &wszH);
-        SDL_GL_GetDrawableSize(window, &video.device_w, &video.device_h);
-        
+        SDL_GetWindowSizeInPixels(window, &video.device_w, &video.device_h);
+
         video.scale_w = floorf((float) wszW / (float) video.device_w);
         video.scale_h = floorf((float) wszH / (float) video.device_h);
 
@@ -438,7 +441,7 @@ video_mode_reconf:
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 #endif
-    
+
 #ifndef ENABLE_HMD
     /* If the HMD is not ready, use these. */
     config_set_d(CONFIG_HMD, 0);
@@ -452,16 +455,13 @@ video_mode_reconf:
 
     /*
      * Optional 16-bit double buffer with 16-bit depth buffer.
+     *
      * TODO: Uncomment, if you want to set the required buffer.
+     * Default RGB size: 5 - Either 5 (16-bit) or 8 (32-bit)
      */
 
-    //SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   5);
-    //SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-    //SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  5);
-
-    // Default RGB size: 5
-    // TODO: Either 5 (16-bit) or 8 (32-bit)
     int rgb_size_fixed = 5;
+
     /*
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
@@ -548,38 +548,29 @@ video_mode_reconf:
             initialize_gl4es();
 #endif
 
-            /* Check if the sampling and buffer values are NOT in negative. */
+            /*
+             * Check whether the sampling and buffer values are
+             * NOT in negative values in the multisampling settings.
+             */
 
-            if (buffers < 0) {
-                log_errorf("Buffers cannot be negative!\n");
-
-                if (context) {
+            if (buffers < 0)
+            {
 #ifdef __EMSCRIPTEN__
-                    close_gl4es();
+                close_gl4es();
 #endif
-                    SDL_GL_DeleteContext(context);
-                    context = NULL;
-                }
-
-                /* Ignore initializing and exit programm. */
-
-                return 0;
+                log_errorf("Buffers cannot be negative!\n");
+                SDL_GL_DeleteContext(context);
+                context = NULL;
             }
 
-            if (samples < 0) {
-                log_errorf("Samples cannot be negative!\n");
-
-                if (context) {
+            if (samples < 0)
+            {
 #ifdef __EMSCRIPTEN__
-                    close_gl4es();
+                close_gl4es();
 #endif
-                    SDL_GL_DeleteContext(context);
-                    context = NULL;
-                }
-
-                /* Ignore initializing and exit programm. */
-
-                return 0;
+                log_errorf("Samples cannot be negative!\n");
+                SDL_GL_DeleteContext(context);
+                context = NULL;
             }
 
             int buf, smp;
@@ -874,16 +865,13 @@ video_mode_auto_config_reconf:
 
     /*
      * Optional 16-bit double buffer with 16-bit depth buffer.
+     *
      * TODO: Uncomment, if you want to set the required buffer.
+     * Default RGB size: 5 - Either 5 (16-bit) or 8 (32-bit)
      */
 
-    //SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   5);
-    //SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-    //SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  5);
-
-    // Default RGB size: 5
-    // TODO: Either 5 (16-bit) or 8 (32-bit)
     int rgb_size_fixed = 5;
+
     /*
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);

@@ -120,7 +120,7 @@ int tutorial_check(void)
     if (!campaign_used())
 #endif
     {
-        if (ln && sn)
+        if (ln && *ln && sn && *sn)
         {
             if (strcmp(sn, _("Neverball Easy")) == 0)
             {
@@ -329,7 +329,7 @@ int hint_check(void)
     if (!campaign_used())
 #endif
     {
-        if (ln && sn)
+        if (ln && *ln && sn && *sn)
         {
             if (strcmp(sn, _("Neverball Easy")) == 0)
             {

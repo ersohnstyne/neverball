@@ -39,6 +39,7 @@
 #include "game_server.h"
 #include "game_client.h"
 
+#include "st_common.h"
 #include "st_title.h"
 #include "st_help.h"
 #include "st_shared.h"
@@ -471,6 +472,8 @@ static void controls_pc(int id)
     const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
     const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
     const SDL_Keycode k_shot    = KEY_SCREENSHOT;
+    const SDL_Keycode k_rot_l   = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_rot_r   = config_get_d(CONFIG_KEY_CAMERA_L);
 
     const char *s_rotate = _("Left and right mouse buttons rotate the view.\n"
                              "Hold Shift for faster view rotation.");
@@ -482,10 +485,18 @@ static void controls_pc(int id)
     const char *s_restart = _("Restart Level");
     const char *s_shot    = _("Screenshot");
 
-    const SDL_Keycode k_rot_l = config_get_d(CONFIG_KEY_CAMERA_R);
-    const SDL_Keycode k_rot_r = config_get_d(CONFIG_KEY_CAMERA_L);
-    char temp_k_rot_l[32]; SAFECPY(temp_k_rot_l, SDL_GetKeyName(k_rot_l));
-    char temp_k_rot_r[32]; SAFECPY(temp_k_rot_r, SDL_GetKeyName(k_rot_r));
+    const char *ks_unassigned = _("Unassigned");
+    const char *ks_exit       = SDL_GetKeyName(k_exit);
+    const char *ks_restart    = SDL_GetKeyName(k_restart);
+    const char *ks_auto       = SDL_GetKeyName(k_auto);
+    const char *ks_cam1       = SDL_GetKeyName(k_cam1);
+    const char *ks_cam2       = SDL_GetKeyName(k_cam2);
+    const char *ks_cam3       = SDL_GetKeyName(k_cam3);
+    const char *ks_rot_l      = SDL_GetKeyName(k_rot_l);
+    const char *ks_rot_r      = SDL_GetKeyName(k_rot_r);
+
+    char temp_k_rot_l[32]; SAFECPY(temp_k_rot_l, ks_rot_l && *ks_rot_l ? ks_rot_l : ks_unassigned);
+    char temp_k_rot_r[32]; SAFECPY(temp_k_rot_r, ks_rot_r && *ks_rot_r ? ks_rot_r : ks_unassigned);
 
     char s_rotate_new[MAXSTR];
 
@@ -511,32 +522,32 @@ static void controls_pc(int id)
         if ((kd = gui_harray(jd)))
         {
             gui_label(kd, s_exit, GUI_SML, GUI_COLOR_WHT);
-            gui_label(kd, SDL_GetKeyName(k_exit), GUI_SML, GUI_COLOR_YEL);
+            gui_label(kd, ks_exit && *ks_exit ? ks_exit : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
         if ((kd = gui_harray(jd)))
         {
             gui_label(kd, s_restart, GUI_SML, GUI_COLOR_WHT);
-            gui_label(kd, SDL_GetKeyName(k_restart), GUI_SML, GUI_COLOR_YEL);
+            gui_label(kd, ks_restart && *ks_restart ? ks_restart : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
         if ((kd = gui_harray(jd)))
         {
             gui_label(kd, s_camAuto, GUI_SML, GUI_COLOR_WHT);
-            gui_label(kd, SDL_GetKeyName(k_auto), GUI_SML, GUI_COLOR_YEL);
+            gui_label(kd, ks_auto && *ks_auto ? ks_auto : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
         if ((kd = gui_harray(jd)))
         {
             gui_label(kd, s_camera1, GUI_SML, GUI_COLOR_WHT);
-            gui_label(kd, SDL_GetKeyName(k_cam1), GUI_SML, GUI_COLOR_YEL);
+            gui_label(kd, ks_cam1 && *ks_cam1 ? ks_cam1 : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
         if ((kd = gui_harray(jd)))
         {
             gui_label(kd, s_camera2, GUI_SML, GUI_COLOR_WHT);
-            gui_label(kd, SDL_GetKeyName(k_cam2), GUI_SML, GUI_COLOR_YEL);
+            gui_label(kd, ks_cam2 && *ks_cam2 ? ks_cam2 : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
         if ((kd = gui_harray(jd)))
         {
             gui_label(kd, s_camera3, GUI_SML, GUI_COLOR_WHT);
-            gui_label(kd, SDL_GetKeyName(k_cam3), GUI_SML, GUI_COLOR_YEL);
+            gui_label(kd, ks_cam3 && *ks_cam3 ? ks_cam3 : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
 
         /* Screenshot won't be able to do that. We don't need this. */
@@ -1339,6 +1350,9 @@ static int help_demo_enter(struct state *st, struct state *prev)
 static void help_demo_leave(struct state *st, struct state *next, int id)
 {
     demo_replay_stop(0);
+
+    if (next == &st_null)
+        game_client_free(NULL);
 }
 
 static void help_demo_paint(int id, float t)

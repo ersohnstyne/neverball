@@ -120,8 +120,10 @@ void image_snap(const char *filename)
                 png_write_end(writep, infop);
 
                 free(bytep);
+                bytep = NULL;
             }
             free(p);
+            p = NULL;
         }
     }
 
@@ -203,7 +205,11 @@ GLuint make_texture(const void *p, int w, int h, int b, int fl)
                  format[b], W, H, 0,
                  format[b], GL_UNSIGNED_BYTE, q ? q : p);
 
-    if (q) free(q);
+    if (q)
+    {
+        free(q);
+        q = NULL;
+    }
 
     return o;
 }
@@ -225,6 +231,7 @@ GLuint make_image_from_file(const char *filename, int fl)
     {
         o = make_texture(p, w, h, b, fl);
         free(p);
+        p = NULL;
     }
 
     return o;
@@ -294,6 +301,7 @@ GLuint make_image_from_font(int *W, int *H,
             o = make_texture(p, w2, h2, b, fl);
 
             free(p);
+            p = NULL;
             SDL_FreeSurface(src);
         }
     }
@@ -361,6 +369,7 @@ SDL_Surface *load_surface(const char *filename)
                                            RMASK, GMASK, BMASK, AMASK);
         }
         free(p);
+        p = NULL;
     }
     return srf;
 }

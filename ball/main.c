@@ -66,6 +66,7 @@
 #if __cplusplus
 extern "C" {
 #endif
+
 #include "game_common.h"
 #include "game_client.h"
 
@@ -84,6 +85,7 @@ extern "C" {
 #endif
 
 #include "accessibility.h"
+
 #if __cplusplus
 }
 #endif
@@ -94,6 +96,7 @@ extern "C" {
 #if __cplusplus
 extern "C" {
 #endif
+
 #if _WIN32 && _MSC_VER
 #include "dbg_config.h"
 #endif
@@ -143,8 +146,17 @@ extern "C" {
 #include "st_common.h"
 #include "st_start.h"
 #include "st_package.h"
+
 #if __cplusplus
 }
+#endif
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
 #endif
 
 #if NB_STEAM_API==1
@@ -1056,7 +1068,7 @@ static int is_replay(struct dir_item *item)
 
 static int is_score_file(struct dir_item *item)
 {
-    return str_starts_with(item->path, "neverballhs-");
+    return str_starts_with(item->path, "pennyballhs-");
 }
 
 static void make_dirs_and_migrate(void)
@@ -1080,6 +1092,7 @@ static void make_dirs_and_migrate(void)
                 dst = concat_string("Replays/", src, NULL);
                 fs_rename(src, dst);
                 free(dst);
+                dst = NULL;
             }
 
             fs_dir_free(items);
@@ -1094,11 +1107,12 @@ static void make_dirs_and_migrate(void)
             {
                 src = DIR_ITEM_GET(items, i)->path;
                 dst = concat_string("Scores/",
-                                    src + sizeof ("neverballhs-") - 1,
+                                    src + sizeof ("pennyballhs-") - 1,
                                     ".txt",
                                     NULL);
                 fs_rename(src, dst);
                 free(dst);
+                dst = NULL;
             }
 
             fs_dir_free(items);
@@ -1188,6 +1202,7 @@ static void panorama_snap(char *panorama_sides)
     video_swap();
 
     free(filename);
+    filename = NULL;
 }
 
 static void panorama_snap_sides(void)

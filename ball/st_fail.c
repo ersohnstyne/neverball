@@ -845,6 +845,8 @@ static int zen_warning_enter(struct state *st, struct state *prev)
 
     if ((id = gui_vstack(0)))
     {
+        audio_play("snd/warning.ogg", 1.f);
+
         gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
         gui_multi(id, _("If you switch to Zen Mode,\n"

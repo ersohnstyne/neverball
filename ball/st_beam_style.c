@@ -98,6 +98,8 @@ static int beam_style_gui(void)
 
     if ((id = gui_vstack(0)))
     {
+        gui_space(id);
+
         if ((jd = gui_hstack(id)))
         {
             gui_label(jd, _("Beam Style"), GUI_SML, 0, 0);
@@ -150,10 +152,7 @@ static int beam_style_gui(void)
         }
     }
 
-    for (int i = 0; i < 15; i++)
-        gui_space(id);
-
-    gui_layout(id, 0, 0);
+    gui_layout(id, 0, +1);
 
     beam_index = config_get_d(CONFIG_ACCOUNT_BEAM_STYLE);
 
@@ -162,20 +161,20 @@ static int beam_style_gui(void)
     switch (beam_index)
     {
         case 0:
-            beam_version_name = "Remastered version (1.7)";
+            beam_version_name = N_("Remastered version (1.7)");
             break;
         case 1:
-            beam_version_name = "Standard version (1.6.0)";
+            beam_version_name = N_("Standard version (1.6.0)");
             break;
         case 2:
-            beam_version_name = "Standard version (1.5.4)";
+            beam_version_name = N_("Standard version (1.5.4)");
             break;
         case 3:
-            beam_version_name = "Standard version (1.5.3)";
+            beam_version_name = N_("Standard version (1.5.3)");
             break;
     }
 
-    gui_set_label(name_id, beam_version_name);
+    gui_set_label(name_id, _(beam_version_name));
 
     return id;
 }
@@ -184,9 +183,8 @@ static int beam_style_enter(struct state *st, struct state *prev)
 {
     if (game_client_init("gui/beam-style.sol"))
     {
-        union cmd cmd;
+        union cmd cmd = { CMD_GOAL_OPEN };
 
-        cmd.type = CMD_GOAL_OPEN;
         game_proxy_enq(&cmd);
         game_client_sync(NULL);
 
@@ -202,11 +200,15 @@ static int beam_style_enter(struct state *st, struct state *prev)
     }
 
     /* Ignore this, we don't have any map files. */
+
     return beam_style_action(GUI_BACK, 0);
 }
 
 static void beam_style_leave(struct state *st, struct state *next, int id)
 {
+    if (next == &st_null)
+        game_client_free(NULL);
+
     gui_delete(id);
 }
 

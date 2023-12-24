@@ -22,8 +22,8 @@
 
 /*---------------------------------------------------------------------------*/
 
-void course_init();
-void course_free();
+void course_init(void);
+void course_free(void);
 
 int  course_exists(int);
 int  course_count(void);

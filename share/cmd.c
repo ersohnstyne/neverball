@@ -19,6 +19,14 @@
 #include "base_config.h"
 #include "common.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 static int cmd_stats = 0;
@@ -580,10 +588,12 @@ void cmd_free(union cmd *cmd)
         {
             case CMD_SOUND:
                 free(cmd->sound.n);
+                cmd->sound.n = NULL;
                 break;
 
             case CMD_MAP:
                 free(cmd->map.name);
+                cmd->map.name = NULL;
                 break;
 
             default:

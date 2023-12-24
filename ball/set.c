@@ -38,6 +38,14 @@
 #include "game_client.h"
 #include "game_proxy.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 struct set
@@ -585,6 +593,7 @@ static int set_load(struct set *s, const char *filename)
         );
 
         free(scores);
+        scores = NULL;
 
         s->user_scores  = concat_string("Scores/", s->id, ".txt",       NULL);
         s->cheat_scores = concat_string("Scores/", s->id, "-cheat.txt", NULL);
@@ -622,6 +631,11 @@ static int set_load(struct set *s, const char *filename)
     s->star = 0;
 #endif
 
+    s->name = NULL;
+    s->desc = NULL;
+    s->id   = NULL;
+    s->shot = NULL;
+
     fs_close(fin);
 
     return 0;
@@ -639,11 +653,22 @@ static void set_free(struct set *s)
     s->star = 0;
 #endif
 
+    s->name = NULL;
+    s->desc = NULL;
+    s->id   = NULL;
+    s->shot = NULL;
+
     free(s->user_scores);
     free(s->cheat_scores);
 
+    s->user_scores = NULL;
+    s->cheat_scores = NULL;
+
     for (i = 0; i < s->count; i++)
+    {
         free(s->level_name_v[i]);
+        s->level_name_v[i] = NULL;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -704,6 +729,7 @@ int set_init(int boost_active)
                 array_del(sets);
 
             free(name);
+            name = NULL;
         }
         fs_close(fin);
     }
@@ -823,46 +849,48 @@ static void set_load_levels(void)
     // New roman numbers should work: Ⅰ Ⅱ Ⅲ Ⅳ Ⅴ Ⅵ Ⅶ Ⅷ Ⅸ Ⅹ Ⅺ Ⅻ Ⅼ Ⅽ Ⅾ Ⅿ
     static const char *roman[] = {
         "",
-        "I", "II", "III", "IV", "V", // 1 - 5
-        "VI", "VII", "VIII", "IX", "X", // 6 - 10
-        "XI", "XII", "XIII", "XIV", "XV", // 11 - 15
-        "XVI", "XVII", "XVIII", "XIX", "XX", // 16 - 20
+        "I",   "II",   "III",   "IV",   "V",   // 1 - 5
+        "VI",  "VII",  "VIII",  "IX",   "X",   // 6 - 10
+        "XI",  "XII",  "XIII",  "XIV",  "XV",  // 11 - 15
+        "XVI", "XVII", "XVIII", "XIX",  "XX",  // 16 - 20
         "XXI", "XXII", "XXIII", "XXIV", "XXV", // 21 - 25
 
-        "XXVI", "XXVII", "XXVIII", "XXIX", "XXX", // 26 - 30
-        "XXXI", "XXXII", "XXXIII", "XXXIV", "XXXV", // 31 - 35
-        "XXXVI", "XXXVII", "XXXVIII", "XIL", "XL", // 36 - 40
-        "XLI", "XLII", "XLIII", "XLIV", "XLV", // 41 - 45
-        "XLVI", "XLVII", "XLVIII", "IL", "L", // 46 - 50
+        "XXVI",  "XXVII",  "XXVIII",  "XXIX",  "XXX",  // 26 - 30
+        "XXXI",  "XXXII",  "XXXIII",  "XXXIV", "XXXV", // 31 - 35
+        "XXXVI", "XXXVII", "XXXVIII", "XIL",   "XL",   // 36 - 40
+        "XLI",   "XLII",   "XLIII",   "XLIV",  "XLV",  // 41 - 45
+        "XLVI",  "XLVII",  "XLVIII",  "IL",    "L",    // 46 - 50
 
-        "LI", "LII", "LIII", "LIV", "LV", // 51 - 55
-        "LVI", "LVII", "LVIII", "LIX", "LX", // 56 - 60
-        "LXI", "LXII", "LXIII", "LXIV", "LXV", // 61 - 65
-        "LXVI", "LXVII", "LXVIII", "LXIX", "LXX", // 66 - 70
+        "LI",   "LII",   "LIII",   "LIV",   "LV",   // 51 - 55
+        "LVI",  "LVII",  "LVIII",  "LIX",   "LX",   // 56 - 60
+        "LXI",  "LXII",  "LXIII",  "LXIV",  "LXV",  // 61 - 65
+        "LXVI", "LXVII", "LXVIII", "LXIX",  "LXX",  // 66 - 70
         "LXXI", "LXXII", "LXXIII", "LXXIV", "LXXV", // 71 - 75
 
-        "LXXVI", "LXXVII", "LXXVIII", "LXXIX", "LXXX", // 76 - 80
-        "LXXXI", "LXXXII", "LXXXIII", "LXXXIV", "LXXXV", // 81 - 85
-        "LXXXVI", "LXXXVII", "LXXXVIII", "LXXXIX", "XC", // 86 - 90
-        "XCI", "XCII", "XCIII", "XCIV", "XCV", // 91 - 95
-        "XCVI", "XCVII", "XCVIII", "XCIX", "C", // 96 - 100
+        "LXXVI",  "LXXVII",  "LXXVIII",  "LXXIX",  "LXXX",  // 76 - 80
+        "LXXXI",  "LXXXII",  "LXXXIII",  "LXXXIV", "LXXXV", // 81 - 85
+        "LXXXVI", "LXXXVII", "LXXXVIII", "LXXXIX", "XC",    // 86 - 90
+        "XCI",    "XCII",    "XCIII",    "XCIV",   "XCV",   // 91 - 95
+        "XCVI",   "XCVII",   "XCVIII",   "XCIX",   "C",     // 96 - 100
 
-        "CI", "CII", "CIII", "CIV", "CV", // 101 - 105
-        "CVI", "CVII", "CVIII", "CIX", "CX", // 106 - 110
-        "CXI", "CXII", "CXIII", "CXIV", "CXV", // 111 - 115
-        "CXVI", "CXVII", "CXVIII", "CXIX", "CXX", // 116 - 120
+        "CI",   "CII",   "CIII",   "CIV",   "CV",   // 101 - 105
+        "CVI",  "CVII",  "CVIII",  "CIX",   "CX",   // 106 - 110
+        "CXI",  "CXII",  "CXIII",  "CXIV",  "CXV",  // 111 - 115
+        "CXVI", "CXVII", "CXVIII", "CXIX",  "CXX",  // 116 - 120
         "CXXI", "CXXII", "CXXIII", "CXXIV", "CXXV", // 121 - 125
 
-        "CXXVI", "CXXVII", "CXXVIII", "CXXIX", "CXXX", // 126 - 130
-        "CXXXI", "CXXXII", "CXXXIII", "CXXXIV", "CXXXV", // 131 - 135
-        "CXXXVI", "CXXXVII", "CXXXVIII", "CXIL", "CXL", // 136 - 140
-        "CXLI", "CXLII", "CXLIII", "CXLIV", "CXLV", // 141 - 145
-        "CXLVI", "CXLVII", "CXLVIII", "CIL", "CL", // 146 - 150
+        "CXXVI",  "CXXVII",  "CXXVIII",  "CXXIX",  "CXXX",  // 126 - 130
+        "CXXXI",  "CXXXII",  "CXXXIII",  "CXXXIV", "CXXXV", // 131 - 135
+        "CXXXVI", "CXXXVII", "CXXXVIII", "CXIL",   "CXL",   // 136 - 140
+        "CXLI",   "CXLII",   "CXLIII",   "CXLIV",  "CXLV",  // 141 - 145
+        "CXLVI",  "CXLVII",  "CXLVIII",  "CIL",    "CL",    // 146 - 150
     };
 
     struct set *s = SET_GET(sets, curr);
-    int regular = 1, bonus = 1, master = 1;
-    int i;
+    int         regular = 1,
+                bonus   = 1,
+                master  = 1;
+    int         i;
 
     default_set_maxtimelimit = 0;
     default_set_mincoinrequired = 0;
@@ -1066,6 +1094,7 @@ void level_snap(int i, const char *path)
     }
 
     free(filename);
+    filename = NULL;
 }
 
 void set_cheat(void)

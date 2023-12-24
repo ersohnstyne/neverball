@@ -23,6 +23,15 @@
 #include <assert.h>
 
 #include <sys/stat.h>
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 #if _WIN32
 #if !defined(_MSC_VER)
 #error Security compilation error: This was already done with GetFileAttributesA \

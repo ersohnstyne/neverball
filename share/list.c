@@ -48,6 +48,9 @@ List list_cons(void *first, List rest)
 List list_rest(List first)
 {
     List rest = first->next;
+
     free(first);
+    first = NULL;
+
     return rest;
 }

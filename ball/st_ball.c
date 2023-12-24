@@ -46,6 +46,14 @@
 #include "st_shared.h"
 #include "st_setup.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 #if NB_HAVE_PB_BOTH==1
 int super_environment = 1;
 #endif
@@ -99,11 +107,11 @@ static int has_ball_sols(struct dir_item *item)
 
     yes = (fs_exists(solid) || fs_exists(inner) || fs_exists(outer));
 
-    free(solid);
-    free(inner);
-    free(outer);
+    free(solid); solid = NULL;
+    free(inner); inner = NULL;
+    free(outer); outer = NULL;
 
-    free(tmp_path);
+    free(tmp_path); tmp_path = NULL;
 
     return yes;
 }
@@ -277,7 +285,7 @@ static int ball_action(int tok, int val)
 #if NB_HAVE_PB_BOTH==1
         case MODEL_SETUP_FINISH:
             game_fade(+4.0);
-            goto_game_setup_finish(&setup_finish_state);
+            goto_game_setup_finish(setup_finish_state);
 
             break;
 #endif
@@ -484,6 +492,10 @@ static void ball_leave(struct state *st, struct state *next, int id)
     {
         gui_delete(id);
         back_free();
+
+        if (next == &st_null)
+            game_client_free(NULL);
+
         demo_replay_stop(0);
     }
 

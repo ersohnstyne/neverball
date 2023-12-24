@@ -49,17 +49,25 @@
 #include "st_shared.h"
 #include "st_conf.h"
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 static int switchball_useable(void)
 {
-    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
     const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
 
     SDL_Keycode k_arrowkey[4];
     k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
@@ -67,13 +75,13 @@ static int switchball_useable(void)
     k_arrowkey[2] = config_get_d(CONFIG_KEY_BACKWARD);
     k_arrowkey[3] = config_get_d(CONFIG_KEY_RIGHT);
 
-    if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-        && k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT
-        && k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
+    if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2 &&
+        k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT &&
+        k_arrowkey[0] == SDLK_w && k_arrowkey[1] == SDLK_a && k_arrowkey[2] == SDLK_s && k_arrowkey[3] == SDLK_d)
         return 1;
-    else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2
-             && k_caml == SDLK_d && k_camr == SDLK_a
-             && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
+    else if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2 &&
+             k_caml == SDLK_d && k_camr == SDLK_a &&
+             k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
         return 1;
 
     /*
@@ -141,15 +149,8 @@ static int st_demo_version_read(fs_file fp, struct demo *d)
 
 /*---------------------------------------------------------------------------*/
 
-static int check_full_access(char * replay_pname) {
-    const char *curr_player = config_get_s(CONFIG_PLAYER);
-
-    if (strcmp(replay_pname, "PennySchloss") == 0)
-    {
-        if (strcmp(curr_player, "PennySchloss") == 0)
-            return 1;
-    }
-
+static int check_full_access(const char *replay_pname)
+{
     return 0;
 }
 
@@ -177,10 +178,17 @@ static void set_maximum_status(int currstat)
 static char *reported_player_name;
 static char *reported_status;
 
-static void set_replay_report(char *target_player_name, char *target_status)
+static void set_replay_report(char *target_player_name, const char *target_status)
 {
     reported_player_name = target_player_name;
-    reported_status = target_status;
+
+    if (reported_status)
+    {
+        free(reported_status);
+        reported_status = NULL;
+    }
+
+    reported_status = strdup(target_status);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -818,7 +826,7 @@ static int demo_scan_allowance_gui()
             _("Scan in progress...\n" \
               "To cancel scanning, press %s"),
             SDL_GetKeyName(KEY_EXIT));
-    
+
     detailpanel = gui_multi(0, cancelattr, GUI_SML, GUI_COLOR_WHT);
     gui_layout(detailpanel, 0, 0);
     return detailpanel;
@@ -1140,7 +1148,8 @@ static int demo_enter(struct state *st, struct state *prev)
 
 static void demo_leave(struct state *st, struct state *next, int id)
 {
-    if (next == &st_title)
+    if (next == &st_title ||
+        next == &st_null)
     {
         demo_dir_free(demo_items);
         demo_items = NULL;
@@ -1847,6 +1856,8 @@ static int demo_del_enter(struct state *st, struct state *prev)
 {
     audio_music_fade_out(demo_paused ? 0.2f : 1.0f);
 
+    audio_play("snd/warning.ogg", 1.f);
+
     return demo_del_gui();
 }
 
@@ -1888,6 +1899,8 @@ static int demo_compat_gui(void)
 
     if ((id = gui_vstack(0)))
     {
+        audio_play("snd/warning.ogg", 1.f);
+
         gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
 

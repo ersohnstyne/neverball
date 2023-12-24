@@ -570,8 +570,7 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
                         audio_music_fade_to(0.5f, BGM_TITLE_MAP(level.song));
                     else
                     {
-                        union cmd cmd;
-                        cmd.type = CMD_GOAL_OPEN;
+                        union cmd cmd = { CMD_GOAL_OPEN };
                         game_proxy_enq(&cmd);
                     }
                     */

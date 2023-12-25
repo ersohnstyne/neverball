@@ -1068,7 +1068,7 @@ static int is_replay(struct dir_item *item)
 
 static int is_score_file(struct dir_item *item)
 {
-    return str_starts_with(item->path, "pennyballhs-");
+    return str_starts_with(item->path, "neverballhs-");
 }
 
 static void make_dirs_and_migrate(void)
@@ -1107,7 +1107,7 @@ static void make_dirs_and_migrate(void)
             {
                 src = DIR_ITEM_GET(items, i)->path;
                 dst = concat_string("Scores/",
-                                    src + sizeof ("pennyballhs-") - 1,
+                                    src + sizeof ("neverballhs-") - 1,
                                     ".txt",
                                     NULL);
                 fs_rename(src, dst);

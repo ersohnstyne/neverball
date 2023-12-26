@@ -561,7 +561,7 @@ enum
     USER_EVENT_PAUSE = 0
 };
 
-void EMSCRIPTEN_KEEPALIVE push_user_event(int code)
+void push_user_event(int code)
 {
     SDL_Event event = { SDL_USEREVENT };
     event.user.code = code;

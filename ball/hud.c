@@ -35,6 +35,8 @@
 #include "game_common.h"
 #include "game_client.h"
 
+#include "st_pause.h"
+
 /*---------------------------------------------------------------------------*/
 
 static int speedbar_hud_id;
@@ -44,6 +46,8 @@ static int Rhud_id;
 static int FSLhud_id;
 
 static int time_id;
+
+static int touch_id;
 
 static int speedometer_id;
 
@@ -84,11 +88,11 @@ static float speedup_logo_timer;
 
 static float cam_timer;
 static float speed_timer_length;
-
+static float touch_timer;
 
 /* Visibility */
 
-int show_hud = 1;
+static int show_hud = 1;
 
 /* Screen animations */
 
@@ -176,6 +180,29 @@ void hud_init(void)
 
         gui_set_rect(FSLhud_id, GUI_RGT);
         gui_layout(FSLhud_id, -1, 0);
+    }
+
+    if ((touch_id = gui_vstack(0)))
+    {
+        gui_space(touch_id);
+
+        if ((id = gui_hstack(touch_id)))
+        {
+            /*
+             * Let Mojang done these
+             * TODO: Add pause button first
+             */
+
+            gui_state(id, GUI_ROMAN_2, GUI_TCH, GUI_BACK, 0);
+
+            gui_space(id);
+
+            gui_state(id, GUI_FISHEYE, GUI_TCH, GUI_CAMERA, 0);
+
+            gui_space(id);
+        }
+
+        gui_layout(touch_id, -1, +1);
     }
 
     /* Default is 59999 (24h = 360000 * 24) */
@@ -272,6 +299,7 @@ void hud_free(void)
     gui_delete(Rhud_id);
     gui_delete(Lhud_id);
     gui_delete(FSLhud_id);
+    gui_delete(touch_id);
     gui_delete(time_id);
     gui_delete(cam_id);
     gui_delete(fps_id);
@@ -376,6 +404,7 @@ void hud_paint(void)
 
     hud_cam_paint();
     hud_speed_paint();
+    hud_touch_paint();
 }
 
 void hud_update(int pulse, float animdt)
@@ -637,10 +666,27 @@ void hud_timer(float dt)
 
     gui_timer(Rhud_id, dt);
     gui_timer(Lhud_id, dt);
+    gui_timer(touch_id, dt);
     gui_timer(time_id, dt);
 
     hud_cam_timer(dt);
     hud_speed_timer(dt);
+    hud_touch_timer(dt);
+}
+
+int hud_touch(const SDL_TouchFingerEvent *event)
+{
+    touch_timer = 5.0f;
+
+    if (event->type == SDL_FINGERUP)
+    {
+        const int x = (int) ((float) video.device_w * event->x);
+        const int y = (int) ((float) video.device_h * (1.0f - event->y));
+
+        return gui_point(touch_id, x, y);
+    }
+
+    return 0;
 }
 
 void hud_update_camera_direction(float rot_direction)
@@ -817,6 +863,18 @@ void hud_speed_paint(void)
 {
     if (speed_timer_length > 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(speed_id);
+}
+
+void hud_touch_timer(float dt)
+{
+    touch_timer -= dt;
+    gui_timer(touch_id, dt);
+}
+
+void hud_touch_paint(void)
+{
+    if (touch_timer > 0.0f && curr_state() != &st_pause)
+        gui_paint(touch_id);
 }
 
 /*---------------------------------------------------------------------------*/

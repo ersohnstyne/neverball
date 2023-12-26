@@ -15,6 +15,8 @@
 #ifndef HUD_H
 #define HUD_H
 
+#include "SDL_events.h"
+
 /*---------------------------------------------------------------------------*/
 
 void toggle_hud_visibility(int);
@@ -28,6 +30,8 @@ void hud_paint(void);
 void hud_timer(float);
 void hud_update(int, float);
 void hud_update_camera_direction(float);
+
+int hud_touch(const SDL_TouchFingerEvent*);
 
 void hud_speedup_reset(void);
 void hud_speedup_pulse(void);
@@ -44,6 +48,9 @@ void hud_cam_paint(void);
 void hud_speed_pulse(int);
 void hud_speed_timer(float);
 void hud_speed_paint(void);
+
+void hud_touch_timer(float);
+void hud_touch_paint(void);
 
 /*---------------------------------------------------------------------------*/
 

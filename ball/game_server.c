@@ -1109,7 +1109,7 @@ void game_update_view(float dt)
 #pragma region Manual or Chase camera
             float dc = multiview1.dc * (jump_b > 0 ?
                                         2.0f * fabsf(jump_dt - 0.5f) : 1.0f);
-            float da = (input_get_r() * dt * 90.0f) * (config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? -1 : 1);
+            float da = (90.0f * input_get_r() * dt) * (config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? -1 : 1);
             float k;
 
             float M[16], v[3], Y[3] = { 0.0f, 1.0f, 0.0f };

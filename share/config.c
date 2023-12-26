@@ -172,6 +172,7 @@ int CONFIG_CAMERA_1_SPEED;
 int CONFIG_CAMERA_2_SPEED;
 int CONFIG_CAMERA_3_SPEED;
 
+int CONFIG_TOUCH_ROTATE;
 
 /* String options. */
 
@@ -330,6 +331,8 @@ static struct
     { &CONFIG_CAMERA_1_SPEED, "camera_1_speed", 250 },
     { &CONFIG_CAMERA_2_SPEED, "camera_2_speed", 0 },
     { &CONFIG_CAMERA_3_SPEED, "camera_3_speed", -1 },
+
+    { &CONFIG_TOUCH_ROTATE, "touch_rotate", 16 },
 };
 
 static struct
@@ -351,7 +354,7 @@ static struct
     { &CONFIG_REPLAY_NAME,             "replay_name",     "%s-%l-%r" },
     { &CONFIG_LANGUAGE,                "language",        "" },
     { &CONFIG_THEME,                   "theme",           "classic" },
-    { &CONFIG_DEDICATED_IPADDRESS,     "dedicated_ipaddress", "play.neverball.org" },
+    { &CONFIG_DEDICATED_IPADDRESS,     "dedicated_ipaddress", "pennyball.stynegame.de" },
     { &CONFIG_DEDICATED_IPPORT,        "dedicated_ipport", "5000" }
 };
 
@@ -818,6 +821,33 @@ void config_set_s(int i, const char *src)
 const char *config_get_s(int i)
 {
     return option_s[i].cur;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * Set an option from a string value.
+ *
+ * Works for both int and string options. Don't use this if you already have an int.
+ */
+void config_set(const char *key, const char *value)
+{
+    if (key && *key)
+    {
+        int i;
+
+        for (i = 0; i < ARRAYSIZE(option_s); ++i)
+        {
+            if (strcmp(option_s[i].name, key) == 0)
+                config_set_s(i, value);
+        }
+
+        for (i = 0; i < ARRAYSIZE(option_d); ++i)
+        {
+            if (strcmp(option_d[i].name, key) == 0)
+                config_set_d(i, atoi(value));
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/

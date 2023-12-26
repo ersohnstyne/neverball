@@ -46,6 +46,7 @@ static int Rhud_id;
 static int FSLhud_id;
 
 static int time_id;
+static int Touch_id;
 
 static int touch_id;
 
@@ -803,6 +804,9 @@ void hud_lvlname_paint(void)
     }
 }
 
+    return 0;
+}
+
 /*---------------------------------------------------------------------------*/
 
 void hud_cam_pulse(int c)
@@ -875,6 +879,20 @@ void hud_touch_paint(void)
 {
     if (touch_timer > 0.0f && curr_state() != &st_pause)
         gui_paint(touch_id);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hud_touch_timer(float dt)
+{
+    touch_timer -= dt;
+    gui_timer(Touch_id, dt);
+}
+
+void hud_touch_paint(void)
+{
+    if (touch_timer > 0.0f && curr_state() != &st_pause)
+        gui_paint(Touch_id);
 }
 
 /*---------------------------------------------------------------------------*/

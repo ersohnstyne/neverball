@@ -41,6 +41,8 @@ void hud_speedup_paint(void);
 void hud_lvlname_set  (const char *, int);
 void hud_lvlname_paint(void);
 
+int hud_touch(const SDL_TouchFingerEvent *);
+
 void hud_cam_pulse(int);
 void hud_cam_timer(float);
 void hud_cam_paint(void);

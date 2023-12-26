@@ -486,14 +486,14 @@ static void controls_pc(int id)
     const char *s_shot    = _("Screenshot");
 
     const char *ks_unassigned = _("Unassigned");
-    const char *ks_exit       = SDL_GetKeyName(k_exit);
-    const char *ks_restart    = SDL_GetKeyName(k_restart);
-    const char *ks_auto       = SDL_GetKeyName(k_auto);
-    const char *ks_cam1       = SDL_GetKeyName(k_cam1);
-    const char *ks_cam2       = SDL_GetKeyName(k_cam2);
-    const char *ks_cam3       = SDL_GetKeyName(k_cam3);
-    const char *ks_rot_l      = SDL_GetKeyName(k_rot_l);
-    const char *ks_rot_r      = SDL_GetKeyName(k_rot_r);
+    char *ks_exit       = strdup(SDL_GetKeyName(k_exit));
+    char *ks_restart    = strdup(SDL_GetKeyName(k_restart));
+    char *ks_auto       = strdup(SDL_GetKeyName(k_auto));
+    char *ks_cam1       = strdup(SDL_GetKeyName(k_cam1));
+    char *ks_cam2       = strdup(SDL_GetKeyName(k_cam2));
+    char *ks_cam3       = strdup(SDL_GetKeyName(k_cam3));
+    char *ks_rot_l      = strdup(SDL_GetKeyName(k_rot_l));
+    char *ks_rot_r      = strdup(SDL_GetKeyName(k_rot_r));
 
     char temp_k_rot_l[32]; SAFECPY(temp_k_rot_l, ks_rot_l && *ks_rot_l ? ks_rot_l : ks_unassigned);
     char temp_k_rot_r[32]; SAFECPY(temp_k_rot_r, ks_rot_r && *ks_rot_r ? ks_rot_r : ks_unassigned);
@@ -567,6 +567,16 @@ static void controls_pc(int id)
     gui_space(id);
     gui_multi(id, _("Note that you can change keyboard and\n"
                     "controller controls in the Controls Settings menu."),
+                  GUI_SML, GUI_COLOR_WHT);
+}
+
+static void controls_touch(int id)
+{
+    gui_multi(id, _("Tap and hold the second finger to rotate the view."),
+                  GUI_SML, GUI_COLOR_WHT);
+    gui_space(id);
+    gui_multi(id, _("Note that you can change touch controls\n"
+                    "in the Controls Settings menu."),
                   GUI_SML, GUI_COLOR_WHT);
 }
 

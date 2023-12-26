@@ -479,6 +479,9 @@ static int title_enter(struct state *st, struct state *prev)
         gui_set_rect(gamepadinfo_id, GUI_S);
     }
 
+    if (prev == &st_title)
+        return id;
+
     course_init();
     course_rand();
 
@@ -1841,6 +1844,83 @@ static void stroke_wheel(int x, int y)
     }
 }
 
+static int stroke_tap_shot;
+
+static int stroke_touch(const SDL_TouchFingerEvent *e)
+{
+#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
+    static SDL_FingerID rotate_finger = -1;
+
+    static float rotate = 0.0f, mag = 0.0f; /* Filtered input. */
+
+    /*
+     * Make sure not to exceed rotate_fast rotation speed.
+     *
+     * Find the coefficient needed to reach rotate_fast speed and
+     * clamp the scaled input at that value.
+     *
+     * Derivation:
+     * Default rotate_slow is 150 or 1.5
+     * Default rotate_fast is 300 or 3.0
+     *
+     *   x * slow = 1.0 * fast
+     *   x = (1.0 * fast) / slow
+     *   x = fast / slow
+     */
+    const float rs = config_get_d(CONFIG_ROTATE_SLOW) / 100.0f;
+    const float rf = config_get_d(CONFIG_ROTATE_FAST) / 100.0f;
+    const float rmax = rf / rs;
+
+    int id;
+
+    if ((id = hud_touch(e)))
+    {
+        int token = gui_token(id);
+
+        gui_pulse(id, 1.2f);
+
+        if (token == GUI_BACK)
+            goto_state(&st_pause);
+
+        gui_focus(0);
+    }
+    else if (e->type == SDL_FINGERMOTION)
+    {
+        stroke_tap_shot = 0;
+
+        /* Discard accumulated input when moving in the opposite direction. */
+
+        if ((rotate < 0.0f && e->dx > 0.0f) || (e->dx < 0.0f && rotate > 0.0f))
+            rotate = 0.0f;
+
+        /* Filter the input for a smoother experience. */
+
+        rotate += e->dx * 0.6f;
+        mag    += e->dy * 0.6f;
+
+        stroke_rotate += CLAMP(-rmax, rotate, +rmax);
+        stroke_mag    += CLAMP(-rmax, mag, +rmax);
+    }
+    else if (e->type == SDL_FINGERDOWN)
+        stroke_tap_shot = 1;
+    else if (e->type == SDL_FINGERUP)
+    {
+        rotate = 0.0f;
+        mag    = 0.0f;
+
+        if (stroke_tap_shot)
+        {
+            stroke_tap_shot = 0;
+
+            game_putt();
+            return goto_state(&st_roll);
+        }
+    }
+#endif
+
+    return 1;
+}
+
 /*---------------------------------------------------------------------------*/
 
 static int roll_enter(struct state *st, struct state *prev)
@@ -2417,7 +2497,7 @@ struct state st_stroke = {
     stroke_keybd,
     stroke_buttn,
     stroke_wheel,
-    NULL,
+    stroke_touch,
     stroke_fade
 };
 

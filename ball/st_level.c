@@ -192,12 +192,12 @@ static int level_gui(void)
     int id, jd, kd;
 
 #ifdef MAPC_INCLUDES_CHKP
-    const char* message = last_active ? _("The checkpoint is in the\n"
+    const char *message = last_active ? _("The checkpoint is in the\n"
                                           "last position as last time.\n\n"
                                           "Click to continue.") :
                                         level_msg(curr_level());
 #else
-    const char* message = level_msg(curr_level());
+    const char *message = level_msg(curr_level());
 #endif
 
     if ((id = gui_vstack(0)))
@@ -414,9 +414,10 @@ static int level_gui(void)
 #endif
         {
             if (message && *message)
+            {
                 gui_multi(id, message, GUI_SML, GUI_COLOR_WHT);
-
-            gui_space(id);
+                gui_space(id);
+            }
 
             if ((jd = gui_hstack(id)))
             {
@@ -515,6 +516,15 @@ static void level_timer(int id, float dt)
 
 static int level_keybd(int c, int d)
 {
+    #ifdef MAPC_INCLUDES_CHKP
+    const char *message = last_active ? _("The checkpoint is in the\n"
+                                          "last position as last time.\n\n"
+                                          "Click to continue.") :
+                                        level_msg(curr_level());
+#else
+    const char *message = level_msg(curr_level());
+#endif
+
     if (d)
     {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -530,7 +540,8 @@ static int level_keybd(int c, int d)
 #endif
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c))
         {
-            if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH))
+            if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) &&
+                (message && *message))
             {
                 show_info = show_info == 0 ? 1 : 0;
                 goto_state(&st_level);
@@ -952,9 +963,9 @@ struct state st_nodemo = {
     shared_point,
     shared_stick,
     shared_angle,
-    level_click,
-    nodemo_keybd,
-    nodemo_buttn,
+    level_click,  // Replaced from: shared_click_basic
+    nodemo_keybd,  // Replaced from: nodemo_keybd
+    nodemo_buttn,  // Replaced from: nodemo_buttn
     NULL,
     NULL,
     NULL,

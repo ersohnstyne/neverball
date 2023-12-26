@@ -258,9 +258,12 @@ void gui_score_board(int pd, unsigned int types, int e, int h)
 
         gui_scores(id, e);
 
-        gui_filler(id);
-
-        gui_stats(id);
+        if ((types & GUI_SCORE_TIME) &&
+            (types & GUI_SCORE_GOAL))
+        {
+            gui_filler(id);
+            gui_stats(id);
+        }
 
         gui_filler(id);
     }
@@ -320,7 +323,7 @@ void gui_levelgroup_stats(const struct level *l)
 
     /* Calculate the clear rate per levels. */
 
-    int total_attempts = l->stats.completed + l->stats.timeout + l->stats.fallout;
+    int total_attempts         = l->stats.completed + l->stats.timeout + l->stats.fallout;
     int total_attempts_cleared = l->stats.completed;
 
     float clr_rate_val = 0.f;
@@ -332,7 +335,7 @@ void gui_levelgroup_stats(const struct level *l)
     sprintf_s(buffer[0], 12, "%d",   l->stats.completed);
     sprintf_s(buffer[1], 12, "%d",   l->stats.timeout);
     sprintf_s(buffer[2], 12, "%d",   l->stats.fallout);
-    sprintf_s(buffer[3], 12, "%f%%", CLAMP(0, clr_rate_val, 100));
+    sprintf_s(buffer[3], 12, "%.2f%%", CLAMP(0, clr_rate_val, 100));
 #else
     sprintf(buffer[0], "%d",   l->stats.completed);
     sprintf(buffer[1], "%d",   l->stats.timeout);
@@ -766,8 +769,10 @@ int gui_back_button(int pd)
 
     if ((id = gui_hstack(pd)))
     {
+        gui_filler(id);
         gui_label(id, GUI_CROSS, GUI_SML, gui_red, gui_red);
         gui_label(id, _("Back"), GUI_SML, gui_wht, gui_wht);
+        gui_filler(id);
 
         gui_set_state(id, GUI_BACK, 0);
         gui_set_rect(id, GUI_ALL);

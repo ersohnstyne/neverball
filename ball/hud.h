@@ -31,7 +31,9 @@ void hud_timer(float);
 void hud_update(int, float);
 void hud_update_camera_direction(float);
 
-int hud_touch(const SDL_TouchFingerEvent*);
+#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
+int hud_touch(const SDL_TouchFingerEvent *);
+#endif
 
 void hud_speedup_reset(void);
 void hud_speedup_pulse(void);
@@ -41,8 +43,6 @@ void hud_speedup_paint(void);
 void hud_lvlname_set  (const char *, int);
 void hud_lvlname_paint(void);
 
-int hud_touch(const SDL_TouchFingerEvent *);
-
 void hud_cam_pulse(int);
 void hud_cam_timer(float);
 void hud_cam_paint(void);
@@ -51,8 +51,10 @@ void hud_speed_pulse(int);
 void hud_speed_timer(float);
 void hud_speed_paint(void);
 
+#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
 void hud_touch_timer(float);
 void hud_touch_paint(void);
+#endif
 
 /*---------------------------------------------------------------------------*/
 

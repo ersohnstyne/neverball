@@ -1101,8 +1101,9 @@ static int play_loop_buttn(int b, int d)
     return 1;
 }
 
-static int play_loop_touch(const SDL_TouchFingerEvent *event)
+static int play_loop_touch(const SDL_TouchFingerEvent *e)
 {
+#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
     static SDL_FingerID rotate_finger = -1;
 
     static float rotate = 0.0f; /* Filtered input. */
@@ -1127,56 +1128,50 @@ static int play_loop_touch(const SDL_TouchFingerEvent *event)
 
     int id;
 
-    if ((id = hud_touch(event)))
+    if ((id = hud_touch(e)))
     {
         int token = gui_token(id);
 
         gui_pulse(id, 1.2f);
 
         if (token == GUI_BACK)
-        {
             goto_state(&st_pause);
-        }
         else if (token == GUI_CAMERA)
-        {
             toggle_camera();
 
-            /* Weird hack: allow toggling the button. */
-
-            gui_focus(0);
-        }
+        gui_focus(0);
     }
-    else if (event->type == SDL_FINGERDOWN)
+    else if (e->type == SDL_FINGERDOWN)
     {
-        SDL_Finger* finger = SDL_GetTouchFinger(event->touchId, 1); /* Second finger. */
+        SDL_Finger* finger = SDL_GetTouchFinger(e->touchId, 1); /* Second finger. */
 
-        if (finger && event->fingerId == finger->id)
+        if (finger && e->fingerId == finger->id)
         {
             rotate_finger = finger->id;
             rotate = 0.0f;
         }
     }
-    else if (event->type == SDL_FINGERUP)
+    else if (e->type == SDL_FINGERUP)
     {
-        if (event->fingerId == rotate_finger)
+        if (e->fingerId == rotate_finger)
         {
             rotate_finger = -1;
             rot_clr(DIR_R | DIR_L);
             rotate = 0.0f;
         }
     }
-    else if (event->type == SDL_FINGERMOTION)
+    else if (e->type == SDL_FINGERMOTION)
     {
-        if (event->fingerId == rotate_finger)
+        if (e->fingerId == rotate_finger)
         {
             /* Discard accumulated input when moving in the opposite direction. */
 
-            if ((rotate < 0.0f && event->dx > 0.0f) || (event->dx < 0.0f && rotate > 0.0f))
+            if ((rotate < 0.0f && e->dx > 0.0f) || (e->dx < 0.0f && rotate > 0.0f))
                 rotate = 0.0f;
 
             /* Filter the input for a smoother experience. */
 
-            rotate += event->dx * 0.6f;
+            rotate += e->dx * 0.6f;
 
             /*
              * touch_rotate gives the fraction of the screen that you need to swipe
@@ -1195,12 +1190,13 @@ static int play_loop_touch(const SDL_TouchFingerEvent *event)
         }
         else
         {
-            int dx = (int)((float)video.device_w * event->dx);
-            int dy = (int)((float)video.device_h * -event->dy);
+            int dx = (int)((float) video.device_w * e->dx);
+            int dy = (int)((float) video.device_h * -e->dy);
 
             game_set_pos(dx, dy);
         }
     }
+#endif
 
     return 1;
 }

@@ -924,8 +924,8 @@ static int title_gui(void)
                 char presstostart_pc_attr[MAXSTR];
 
                 const SDL_Keycode k_start      = config_get_d(CONFIG_JOYSTICK_BUTTON_A);
-                const char       *s_start      = SDL_GetKeyName(SDLK_RETURN);
-                const char       *s_start_xbox = SDL_GetKeyName(k_start);
+                char             *s_start      = strdup(SDL_GetKeyName(SDLK_RETURN));
+                char             *s_start_xbox = strdup(SDL_GetKeyName(k_start));
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 sprintf_s(presstostart_pc_attr, MAXSTR,
@@ -1023,6 +1023,12 @@ static void title_leave(struct state *st, struct state *next, int id)
 {
     if (title_lockscreen) return;
 
+    if (next == &st_title)
+    {
+        gui_delete(id);
+        return;
+    }
+
 #if defined(__EMSCRIPTEN__)
     EM_ASM({
         Neverball.isTitleScreen = false;
@@ -1037,12 +1043,11 @@ static void title_leave(struct state *st, struct state *next, int id)
         items = NULL;
     }
 
+    game_proxy_filter(NULL);
+
     if (next == &st_null ||
         next == &st_conf)
-    {
-        game_proxy_filter(NULL);
         game_client_free(NULL);
-    }
 
     gui_delete(id);
 }

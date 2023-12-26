@@ -585,7 +585,7 @@ static int conf_account_gui(void)
                                                "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
                                                GUI_SML, GUI_COLOR_RED);
 
-                if (conf_covid_extended == 0 && !nolockdown)
+                if (conf_covid_extended == 0)
                 {
                     gui_space(id);
                     gui_state(id, _("Request Lift"),

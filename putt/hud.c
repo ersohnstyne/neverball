@@ -26,6 +26,8 @@ static int Lhud_id;
 static int Rhud_id;
 static int fps_id;
 
+static int touch_id;
+
 static int stroke_type_id;
 
 static int is_init;
@@ -35,13 +37,16 @@ static int is_init;
 void hud_init(void)
 {
     if (is_init) return;
-    static const GLubyte *color[5] = {
+
+    static const GLubyte *color[5] =
+    {
         gui_wht,
         gui_red,
         gui_grn,
         gui_blu,
         gui_yel
     };
+
     int i = curr_player();
 
     if ((stroke_type_id = gui_label(0, _(curr_stroke_type_name()), GUI_SML, color[i], gui_wht)))
@@ -64,6 +69,28 @@ void hud_init(void)
         gui_set_rect(Rhud_id, GUI_NW);
         gui_layout(Rhud_id, +1, -1);
     }
+
+    /* Let Mojang done these */
+#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
+    if ((touch_id = gui_vstack(0)))
+    {
+        gui_space(touch_id);
+
+        if ((id = gui_hstack(touch_id)))
+        {
+            gui_state(id, GUI_ROMAN_2, GUI_TCH, GUI_BACK, 0);
+
+            gui_space(id);
+
+            gui_state(id, GUI_FISHEYE, GUI_TCH, GUI_CAMERA, 0);
+
+            gui_space(id);
+        }
+
+        gui_layout(touch_id, -1, +1);
+    }
+#endif
+
     if ((fps_id = gui_count(0, 1000, GUI_SML)))
     {
         gui_set_rect(fps_id, GUI_SE);
@@ -79,6 +106,9 @@ void hud_free(void)
     gui_delete(stroke_type_id);
     gui_delete(Lhud_id);
     gui_delete(Rhud_id);
+#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
+    gui_delete(touch_id);
+#endif
     gui_delete(fps_id);
 
     is_init = 0;
@@ -97,14 +127,38 @@ void hud_paint(void)
     gui_paint(stroke_type_id);
     gui_paint(Rhud_id);
     gui_paint(Lhud_id);
+    gui_paint(touch_id);
 }
+
+#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
+int hud_touch(const SDL_TouchFingerEvent *e)
+{
+    if (e->type == SDL_FINGERUP)
+    {
+        const int x = (int) ((float) video.device_w * e->x);
+        const int y = (int) ((float) video.device_h * (1.0f - e->y));
+
+        return gui_point(touch_id, x, y);
+    }
+
+    return 0;
+}
+#endif
 
 void hud_set_alpha(float a)
 {
-    gui_set_alpha(fps_id, a, GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE);
-    gui_set_alpha(stroke_type_id, a, GUI_ANIMATION_N_CURVE);
-    gui_set_alpha(Rhud_id, a, GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE);
-    gui_set_alpha(Lhud_id, a, GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE);
+    gui_set_alpha(fps_id,         a,
+                                  GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE);
+    gui_set_alpha(stroke_type_id, a,
+                                  GUI_ANIMATION_N_CURVE);
+    gui_set_alpha(Rhud_id,        a,
+                                  GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE);
+    gui_set_alpha(Lhud_id,        a,
+                                  GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE);
+#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
+    gui_set_alpha(touch_id,       a,
+                                  GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

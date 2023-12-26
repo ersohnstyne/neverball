@@ -706,7 +706,7 @@ static void game_draw_fore_chnk(struct s_rend *rend,
                                 int pose, const float *M,
                                 int d, float t, int flip)
 {
-    const float* ball_p = gd->vary.uv[0].p;
+    const float *ball_p = gd->vary.uv[0].p;
 
     struct s_draw* draw = &gd->draw;
 

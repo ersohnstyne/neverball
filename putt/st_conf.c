@@ -280,9 +280,9 @@ static int conf_enter(struct state *st, struct state *prev)
         if ((id = gui_vstack(root_id)))
         {
             gui_label(id, "Neverputt " VERSION, GUI_TNY, gui_wht, gui_wht);
-#if NB_HAVE_PB_BOTH==1
-            gui_label(id, "© 2008, 2024 Neverball Authors", GUI_TNY, gui_wht, gui_wht);
-#endif
+            gui_multi(id, "Copyright © 2023 Neverball authors\n"
+                          "Neverputt is free software available under the terms of GPL v2 or later.",
+                          GUI_TNY, GUI_COLOR_WHT);
             gui_clr_rect(id);
             gui_layout(id, 0, -1);
         }

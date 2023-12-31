@@ -15,6 +15,22 @@
 #ifndef CMD_H
 #define CMD_H
 
+#if _MSC_VER
+#define _CRT_NB_CMD_DEPRECATED(_Replaces) \
+    __declspec(deprecated(                                  \
+        "This function or variable has been superceded by " \
+        "newer commands functionality. Consider using "     \
+        #_Replaces " instead."                              \
+    ))
+#else
+#define _CRT_NB_CMD_DEPRECATED(_Replaces) \
+    __attribute__ ((deprecated(                                  \
+        "This function or variable has been superceded by "      \
+        "newer commands functionality. Consider using "          \
+        #_Replaces " instead."                                   \
+    )))
+#endif
+
 /*
  * In an attempt to improve replay compatibility, a few guidelines
  * apply to command addition, removal, and modification:
@@ -42,8 +58,8 @@ enum cmd_type
     CMD_COINS,
     CMD_JUMP_ENTER,
     CMD_JUMP_EXIT,
-    CMD_BODY_PATH,
-    CMD_BODY_TIME,
+    CMD_BODY_PATH, /* DEPRECATED: Use CMD_MOVE_PATH instead. */
+    CMD_BODY_TIME, /* DEPRECATED: Use CMD_MOVE_TIME instead. */
     CMD_GOAL_OPEN,
     CMD_SWCH_ENTER,
     CMD_SWCH_TOGGLE,
@@ -121,6 +137,7 @@ struct cmd_tilt_angles
 struct cmd_sound
 {
     CMD_HEADER;
+    /* FIXME: this should have been an integer. */
     char  *n;
     float  a;
 };
@@ -153,6 +170,8 @@ struct cmd_jump_exit
     CMD_HEADER;
 };
 
+/* Use CMD_MOVE_PATH instead. */
+_CRT_NB_CMD_DEPRECATED(CMD_MOVE_PATH)
 struct cmd_body_path
 {
     CMD_HEADER;
@@ -160,6 +179,8 @@ struct cmd_body_path
     int pi;
 };
 
+/* Use CMD_MOVE_TIME instead. */
+_CRT_NB_CMD_DEPRECATED(CMD_MOVE_TIME)
 struct cmd_body_time
 {
     CMD_HEADER;
@@ -182,6 +203,7 @@ struct cmd_swch_toggle
 {
     CMD_HEADER;
     int xi;
+    /* FIXME: this should have had a flag to indicate state. */
 };
 
 struct cmd_swch_exit
@@ -361,7 +383,9 @@ union cmd
     struct cmd_coins              coins;
     struct cmd_jump_enter         jumpenter;
     struct cmd_jump_exit          jumpexit;
+    _CRT_NB_CMD_DEPRECATED       (movepath)
     struct cmd_body_path          bodypath;
+    _CRT_NB_CMD_DEPRECATED       (movetime)
     struct cmd_body_time          bodytime;
     struct cmd_goal_open          goalopen;
     struct cmd_swch_enter         swchenter;

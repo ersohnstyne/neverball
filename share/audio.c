@@ -117,11 +117,7 @@ static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
 {
     if (audio_paused) return 0;
 
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    int order = 1;
-#else
     int order = 0;
-#endif
 
     short *obuf = (short *) stream;
     char  *ibuf = (char  *) buffer;

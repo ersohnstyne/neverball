@@ -171,6 +171,8 @@ static int conf_enter(struct state *st, struct state *prev)
 
         if ((id = gui_vstack(root_id)))
         {
+            gui_space(id);
+
             if ((jd = gui_harray(id)))
             {
                 gui_label(jd, _("Options"), GUI_SML, 0, 0);
@@ -274,13 +276,13 @@ static int conf_enter(struct state *st, struct state *prev)
 #endif
             }
 
-            gui_layout(id, 0, 0);
+            gui_layout(id, 0, +1);
         }
 
         if ((id = gui_vstack(root_id)))
         {
             gui_label(id, "Neverputt " VERSION, GUI_TNY, GUI_COLOR_WHT);
-            gui_multi(id, "Copyright © 2023 Neverball authors\n"
+            gui_multi(id, "Copyright © 2024 Neverball authors\n"
                           "Neverputt is free software available under the terms of GPL v2 or later.",
                           GUI_TNY, GUI_COLOR_WHT);
             gui_clr_rect(id);

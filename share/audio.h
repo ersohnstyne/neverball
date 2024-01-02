@@ -33,7 +33,6 @@ void audio_music_play(const char *);
 void audio_music_stop(void);
 
 void audio_music_fade_to(float, const char *);
-//void audio_music_fade_to(float time, const char *file1, const char *file2);
 void audio_music_fade_in(float);
 void audio_music_fade_out(float);
 

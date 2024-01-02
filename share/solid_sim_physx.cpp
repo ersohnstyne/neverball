@@ -90,12 +90,12 @@ physx::PxRigidStatic *wborder_body  = 0;
  * Accumulate and convert simulation time to integer milliseconds.
  */
 
-static void ms_init_physx(float* accum)
+static void ms_init_physx(float *accum)
 {
     *accum = 0.0f;
 }
 
-static int ms_step_physx(float* accum, float dt)
+static int ms_step_physx(float *accum, float dt)
 {
     int ms = 0;
 
@@ -110,7 +110,7 @@ static int ms_step_physx(float* accum, float dt)
     return ms;
 }
 
-static int ms_peek_physx(float* accum, float dt)
+static int ms_peek_physx(float *accum, float dt)
 {
     float at = *accum;
 

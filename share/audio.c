@@ -104,7 +104,7 @@ static char *next_music_filename;
 /*---------------------------------------------------------------------------*/
 
 #define LOGF_VOLUME(v) ((float) powf((v), 2.f))
-#define LOG_VOLUME(v) ((float) pow((double) (v), 2.0))
+#define LOG_VOLUME(v)  ((float) pow((double) (v), 2.0))
 
 #define MIX(d, s) {                           \
         int T = (int) (d) + (int) (s);        \
@@ -393,6 +393,8 @@ void audio_init(void)
     {
         free(buffer);
         buffer = NULL;
+
+        return;
     }
 
     /* Set the initial volumes. */
@@ -581,7 +583,7 @@ void audio_music_play(const char *filename)
 
 void audio_music_queue(const char *filename, float t)
 {
-    float clampedTime = MIN(t, 1.0f);
+    float clampedTime = CLAMP(0.001f, t, 1.0f);
 
     if (audio_state)
     {
@@ -687,37 +689,6 @@ void audio_music_fade_to(float t, const char *filename)
         audio_music_fade_in(clampedTime);
     }
 }
-
-/*void audio_music_fade_to(float time, const char *file1, const char *file2)
-{
-    // New music filename at the end of the first music segment: next_music_filename
-    SAFECPY(next_music_filename, file2);
-
-    if (music)
-    {
-        if (strcmp(file1, music->name) != 0)
-        {
-            audio_music_fade_out(time);
-            audio_music_queue(file1, time);
-        }
-        else
-        {
-
-            if (queue)
-            {
-                voice_free(queue);
-                queue = NULL;
-            }
-
-            audio_music_fade_in(time);
-        }
-    }
-    else
-    {
-        audio_music_play(file1);
-        audio_music_fade_in(time);
-    }
-}*/
 
 /*---------------------------------------------------------------------------*/
 

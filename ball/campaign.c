@@ -322,9 +322,16 @@ static int campaign_get_stats(fs_file fp, struct level *l)
 
     strip_newline(line);
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    if (sscanf_s(line, "stats %d %d %d", &l->stats.completed,
+                                         &l->stats.timeout,
+                                         &l->stats.fallout) < 3)
+#else
     if (sscanf(line, "stats %d %d %d", &l->stats.completed,
                                        &l->stats.timeout,
-                                       &l->stats.fallout) < 3) {
+                                       &l->stats.fallout) < 3)
+#endif
+    {
         /* compatible with save files without stats info */
         l->stats.completed = 0;
         l->stats.timeout   = 0;

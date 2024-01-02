@@ -90,8 +90,8 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
     /* Backed up from the gameplay */
     for (int backupidx = 0; backupidx < saved_vary.uc; backupidx++)
     {
-        struct v_ball* up = saved_vary.uv + backupidx;
-        struct chkp_ball* c_up = last_chkp_ball + backupidx;
+        struct v_ball    *up = saved_vary.uv + backupidx;
+        struct chkp_ball *c_up = last_chkp_ball + backupidx;
 
         e_cpy(c_up->e, up->e);
         v_cpy(c_up->p, up->p);
@@ -285,8 +285,8 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int* ci)
     /* Restored from the checkpoints (coins) */
     for (int resetidx = 0; resetidx < vary->hc; resetidx++)
     {
-        struct chkp_item* last_hp = last_chkp_item + resetidx;
-        struct v_item*    hp      = vary->hv + resetidx;
+        struct chkp_item *last_hp = last_chkp_item + resetidx;
+        struct v_item    *hp      = vary->hv + resetidx;
 
         v_cpy(hp->p, last_hp->p);
         hp->t = last_hp->t;

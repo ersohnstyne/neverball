@@ -123,7 +123,11 @@ int game_init(const char *s)
 
         if (strcmp(k, "idle") == 0)
         {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v, "%f", &idle_t);
+#else
             sscanf(v, "%f", &idle_t);
+#endif
 
             if (idle_t < 1.0f)
                 idle_t = 1.0f;

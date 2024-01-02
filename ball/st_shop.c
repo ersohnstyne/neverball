@@ -229,11 +229,9 @@ static int shop_gui(void)
 #else
                 sprintf(gemsattr,
 #endif
-                        "%s: %d", GUI_DIAMOND, gemwallet);
+                        "%s %d", GUI_DIAMOND, gemwallet);
 
                 gui_label(jd, gemsattr, GUI_SML, gui_wht, gui_cya);
-
-                gui_space(jd);
             }
 
             char coinsattr[MAXSTR];
@@ -243,7 +241,7 @@ static int shop_gui(void)
 #else
             sprintf(coinsattr,
 #endif
-                    "%s: %d", GUI_COIN, coinwallet);
+                    "%s %d", GUI_COIN, coinwallet);
 
             gui_label(jd, coinsattr, GUI_SML, gui_wht, gui_yel);
 
@@ -337,13 +335,13 @@ static int shop_gui(void)
                 if ((kd = gui_harray(jd)))
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(powerups, 
+                    sprintf_s(powerups, MAXSTR, 
                             "%s (%i)", _("Speedifier"), svalue);
                     gui_label(kd, powerups, GUI_SML, gui_wht, gui_grn);
-                    sprintf_s(powerups,
+                    sprintf_s(powerups, MAXSTR,
                             "%s (%i)", _("Floatifier"), fvalue);
                     gui_label(kd, powerups, GUI_SML, gui_wht, gui_blu);
-                    sprintf_s(powerups,
+                    sprintf_s(powerups, MAXSTR,
                             "%s (%i)", _("Earninator"), evalue);
                     gui_label(kd, powerups, GUI_SML, gui_wht, gui_red);
 #else

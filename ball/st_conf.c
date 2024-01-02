@@ -1456,7 +1456,7 @@ static void conf_controllers_set_label(int id, int value)
     if (conf_controllers_option_values_xbox[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 256,
+        sprintf_s(str, 20,
 #else
         sprintf(str,
 #endif
@@ -1466,7 +1466,7 @@ static void conf_controllers_set_label(int id, int value)
     if (conf_controllers_option_values_ps[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 256,
+        sprintf_s(str, 20,
 #else
         sprintf(str,
 #endif
@@ -1476,7 +1476,7 @@ static void conf_controllers_set_label(int id, int value)
     if (conf_controllers_option_values_steamdeck[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 256,
+        sprintf_s(str, 20,
 #else
         sprintf(str,
 #endif
@@ -1486,7 +1486,7 @@ static void conf_controllers_set_label(int id, int value)
     if (conf_controllers_option_values_switch[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 256,
+        sprintf_s(str, 20,
 #else
         sprintf(str,
 #endif
@@ -1496,7 +1496,7 @@ static void conf_controllers_set_label(int id, int value)
     if (conf_controllers_option_values_switch[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 256,
+        sprintf_s(str, 20,
 #else
         sprintf(str,
 #endif
@@ -1504,7 +1504,7 @@ static void conf_controllers_set_label(int id, int value)
     }
 #else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(str, 256,
+    sprintf_s(str, 20,
 #else
     sprintf(str,
 #endif
@@ -2401,6 +2401,8 @@ static int conf_gui(void)
 
         if ((id = gui_vstack(root_id)))
         {
+            gui_space(id);
+
             conf_header(id, _("Options"), GUI_BACK);
 
 #if ENABLE_GAME_TRANSFER==1
@@ -2528,13 +2530,13 @@ static int conf_gui(void)
 #endif
             }
 
-            gui_layout(id, 0, 0);
+            gui_layout(id, 0, +1);
         }
 
         if ((id = gui_vstack(root_id)))
         {
             gui_label(id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT);
-            gui_multi(id, "Copyright © 2023 Neverball authors\n"
+            gui_multi(id, "Copyright © 2024 Neverball authors\n"
                           "Neverball is free software available under the terms of GPL v2 or later.",
                           GUI_TNY, GUI_COLOR_WHT);
             gui_clr_rect(id);

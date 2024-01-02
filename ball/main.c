@@ -571,6 +571,7 @@ void push_user_event(int code)
 
 /*---------------------------------------------------------------------------*/
 
+#if ENABLE_FETCH!=0
 /*
  * Custom SDL event code for fetch events.
  */
@@ -606,6 +607,7 @@ static void initialize_fetch(void)
     /* Start the thread. */
     fetch_init(dispatch_fetch_event);
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -1000,12 +1002,20 @@ static int loop(void)
                 break;
 
             default:
+#if ENABLE_FETCH!=0
                 if (e.type == FETCH_EVENT)
                     fetch_handle_event(e.user.data1);
-#if ENABLE_DEDICATED_SERVER==1
-                else if (e.type == DEDICATED_SERVER_EVENT)
-                    ; /* FIXME: Waiting for handle event functions. */
 #endif
+#if ENABLE_FETCH!=0 && ENABLE_DEDICATED_SERVER==1
+                else
+#endif
+#if ENABLE_DEDICATED_SERVER==1
+                if (e.type == DEDICATED_SERVER_EVENT)
+                {
+                    /* FIXME: Waiting for handle event functions. */
+                }
+#endif
+                break;
         }
 
         /* if (check_malfunctions())
@@ -1364,7 +1374,9 @@ static int main_init(int argc, char *argv[])
         }
 #endif
 
+#if ENABLE_FETCH!=0
         initialize_fetch();
+#endif
 
 #ifndef FS_VERSION_1
         package_init();
@@ -1579,8 +1591,6 @@ static void main_quit(void)
 #if _WIN32 && _MSC_VER && _DEBUG && defined(_CRTDBG_MAP_ALLOC)
     _CrtDumpMemoryLeaks();
 #endif
-
-    exit(0); /* Force close all threads */
 }
 
 int main(int argc, char *argv[])

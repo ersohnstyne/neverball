@@ -119,11 +119,7 @@ void ms_nls_init(const char *pref)
 {
     ms_nls_free();
 
-#if MSVC_DEBUG_NLS
-    const char *dir = "";
-#else
-    char *dir = strdup(getenv("NEVERBALL_LOCALE"));
-#endif
+    char* dir = strdup(getenv("NEVERBALL_LOCALE"));
 
     /* Select the location of message catalogs. */
 
@@ -140,10 +136,8 @@ void ms_nls_init(const char *pref)
     {
         log_errorf("Failure to find locale path: %s - %s\n",
                    dir, errno ? strerror(errno) : "Unknown error");
-#if !MSVC_DEBUG_NLS
         free(dir);
         dir = NULL;
-#endif
         return;
     }
 
@@ -227,10 +221,8 @@ void ms_nls_init(const char *pref)
 
     if (!lang_available)
     {
-#if !MSVC_DEBUG_NLS
         free(dir);
         dir = NULL;
-#endif
         return;
     }
 
@@ -377,10 +369,8 @@ void ms_nls_init(const char *pref)
     assert(lang_text_found.size() == src_lang_text.size() &&
            lang_text_found.size() == targ_lang_text.size());
 
-#if !MSVC_DEBUG_NLS
     free(dir);
     dir = NULL;
-#endif
 }
 
 const char *ms_nls_gettext(const char *s)

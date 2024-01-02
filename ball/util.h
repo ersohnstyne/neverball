@@ -15,7 +15,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#if _MSC_VER
+#if _WIN32
 #define _CRT_NB_UTIL_DEPRECATED(_Type, _Params, _Func, _Replaces) \
     __declspec(deprecated(                                        \
         "This function or variable has been superceded by "       \

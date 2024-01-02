@@ -1060,7 +1060,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                 {
                 }
                 else if (sscanf_s(p, "alpha-test %15s %f",
-                    str, &mp->alpha_ref) == 2)
+                                  str, &mp->alpha_ref) == 2)
 #else
                 else if (sscanf(p, "angle %f", &mp->angle) == 1)
                 {

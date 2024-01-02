@@ -202,69 +202,8 @@ static int authenticate_networking()
 
     connected = -1;
 
-#if _MSC_VER
-    /*char hostname[MAXSTR], net_ipv4[MAXSTR];
-    SAFECPY(hostname, CLIENT_IPADDR);
-
-    int ipap[4];
-    if (sscanf(CLIENT_IPADDR, "%d.%d.%d.%d", &ipap[0], &ipap[1], &ipap[2], &ipap[3]) != 4)
-    {
-        WSADATA wsData;
-        int res;
-        if ((res = WSAStartup(MAKEWORD(2, 2), &wsData)) != 0)
-        {
-            log_errorf("Can't launch the WSA\n");
-            return (connected = 0);
-        }
-
-        struct hostent *host_info;
-        struct in_addr addr;
-        DWORD dw;
-
-        host_info = gethostbyname(hostname);
-
-        if (host_info == NULL)
-        {
-            dw = WSAGetLastError();
-            if (dw != 0)
-            {
-                if (dw == WSAHOST_NOT_FOUND)
-                {
-                    log_errorf("Host is not found\n");
-                    WSACleanup();
-                    return (connected = 0);
-                }
-                else if (dw == WSANO_DATA)
-                {
-                    log_errorf("No data record is found");
-                    WSACleanup();
-                    return (connected = 0);
-                }
-                else
-                {
-                    log_errorf("Function failed with an error: %ul", dw);
-                    WSACleanup();
-                    return (connected = 0);
-                }
-            }
-        }
-        else
-        {
-            addr.s_addr = *(unsigned long *) host_info->h_addr_list[0];
-            log_printf("Hostname: %s; IPv4: %s\n", host_info->h_name, inet_ntoa(addr));
-            SAFECPY(net_ipv4, inet_ntoa(addr));
-        }
-
-        WSACleanup();
-        Sleep(3000);
-    }
-    else if (CHECK_IPNUM_RANGE(ipap))
-        SAFECPY(net_ipv4, hostname);
-    else return (connected = 0);*/
-#else
     char net_ipv4[MAXSTR];
     SAFECPY(net_ipv4, CLIENT_IPADDR);
-#endif
 
     if (PBNetwork_Connect(net_ipv4, net_port) == 1)
     {

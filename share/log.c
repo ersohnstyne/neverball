@@ -198,7 +198,7 @@ void log_init(const char *name, const char *path)
             /* Printed on first message. */
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(log_header,
+            sprintf_s(log_header, MAXSTR,
 #else
             sprintf(log_header,
 #endif

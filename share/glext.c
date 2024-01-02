@@ -149,7 +149,7 @@ int glext_assert_dbg(const char *ext)
     {
         char outStr[32];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(outStr, 32
+        sprintf_s(outStr, 32,
 #else
         sprintf(outStr,
 #endif

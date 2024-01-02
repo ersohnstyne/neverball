@@ -1329,12 +1329,12 @@ void transfer_timer_process_source(float dt)
         char hs_levelset_out_transfer[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(hs_campaign_out_transfer, "move /y \"%s\" \"%s\"",
+        sprintf_s(hs_campaign_out_transfer, MAXSTR, "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "\\Campaign\\*", NULL),
             concat_string(drive_letters[current_drive_idx],
                           ":/nvb_gametransfer/campaign", NULL)
         );
-        sprintf_s(hs_levelset_out_transfer, "move /y \"%s\" \"%s\"",
+        sprintf_s(hs_levelset_out_transfer, MAXSTR, "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "\\Scores\\*", NULL),
             concat_string(drive_letters[current_drive_idx],
                           ":/nvb_gametransfer/scores", NULL)
@@ -1377,7 +1377,7 @@ void transfer_timer_process_source(float dt)
         char screenshots_out_transfer[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(screenshots_out_transfer, "move /y \"%s\" \"%s\"",
+        sprintf_s(screenshots_out_transfer, MAXSTR, "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "\\Screenshots\\*", NULL),
             concat_string(drive_letters[current_drive_idx],
                           ":/nvb_gametransfer/screenshots", NULL)

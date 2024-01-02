@@ -64,7 +64,7 @@ List dir_list_files(const char *path)
     char outpath[MAXSTR];
 
 #if _WIN32 && _MSC_VER
-    sprintf_s(outpath, 256U, "%s\\*", path);
+    sprintf_s(outpath, MAXSTR, "%s\\*", path);
 
     WIN32_FIND_DATAA find_data;
     HANDLE hFind;

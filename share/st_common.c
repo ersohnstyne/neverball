@@ -588,7 +588,7 @@ static int video_gui(void)
 
         char dpy_info[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(dpy_info,
+        sprintf_s(dpy_info, MAXSTR,
 #else
         sprintf(dpy_info,
 #endif

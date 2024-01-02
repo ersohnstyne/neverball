@@ -30,21 +30,21 @@ struct npx_mesh
 
 struct npx_body
 {
-    const struct b_body* base;
+    const struct b_body *base;
 
     int mc;
 
-    struct npx_mesh* mv;
+    struct npx_mesh *mv;
 };
 
 struct s_nvpx
 {
-    struct s_base* base;
-    struct s_vary* vary;
+    struct s_base *base;
+    struct s_vary *vary;
 
     int bc;
 
-    struct npx_body* bv;
+    struct npx_body *bv;
 };
 
 #endif

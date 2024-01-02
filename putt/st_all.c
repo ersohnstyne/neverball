@@ -445,10 +445,10 @@ static int title_enter(struct state *st, struct state *prev)
             {
                 if (config_cheat())
                     play_id = gui_start(kd, gt_prefix("menu^Cheat"),
-                                        GUI_MED, TITLE_PLAY, 1);
+                        GUI_MED, TITLE_PLAY, 1);
                 else
                     play_id = gui_start(kd, gt_prefix("menu^Play"),
-                                        GUI_MED, TITLE_PLAY, 1);
+                        GUI_MED, TITLE_PLAY, 1);
 
                 gui_state(kd, gt_prefix("menu^Help"),    GUI_MED, TITLE_HELP, 0);
                 gui_state(kd, gt_prefix("menu^Options"), GUI_MED, TITLE_CONF, 0);

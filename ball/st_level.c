@@ -209,22 +209,24 @@ static int level_gui(void)
             char account_coinsattr[MAXSTR], account_gemsattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(account_gemsattr, MAXSTR, "%s: %i", _("Gems"),
-                account_get_d(ACCOUNT_DATA_WALLET_GEMS));
-            sprintf_s(account_coinsattr, MAXSTR, "%s: %i", _("Coins"),
-                account_get_d(ACCOUNT_DATA_WALLET_COINS));
+            sprintf_s(account_gemsattr, MAXSTR, "%s %i", GUI_DIAMOND,
+                      account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+            sprintf_s(account_coinsattr, MAXSTR, "%s %i", GUI_COIN,
+                      account_get_d(ACCOUNT_DATA_WALLET_COINS));
 #else
-            sprintf(account_gemsattr, "%s: %i", _("Gems"),
-                account_get_d(ACCOUNT_DATA_WALLET_GEMS));
-            sprintf(account_coinsattr, "%s: %i", _("Coins"),
-                account_get_d(ACCOUNT_DATA_WALLET_COINS));
+            sprintf(account_gemsattr, "%s %i", GUI_DIAMOND,
+                    account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+            sprintf(account_coinsattr, "%s %i", GUI_COIN,
+                    account_get_d(ACCOUNT_DATA_WALLET_COINS));
 #endif
             if ((jd = gui_hstack(id)))
             {
                 gui_filler(jd);
                 if ((kd = gui_harray(jd)))
                 {
-                    gui_label(kd, account_gemsattr, GUI_SML, gui_wht, gui_cya);
+                    if (!CHECK_ACCOUNT_BANKRUPT)
+                        gui_label(kd, account_gemsattr, GUI_SML, gui_wht, gui_cya);
+
                     gui_label(kd, account_coinsattr, GUI_SML, gui_wht, gui_yel);
                 }
                 gui_filler(jd);
@@ -240,7 +242,7 @@ static int level_gui(void)
 
             if ((kd = gui_vstack(jd)))
             {
-                const char* ln = level_name(curr_level());
+                const char *ln = level_name(curr_level());
                 int b = level_bonus(curr_level());
                 int m = level_master(curr_level());
 

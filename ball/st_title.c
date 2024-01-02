@@ -701,9 +701,9 @@ static int title_gui(void)
 
 #if ENABLE_RFD==1
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, dstSize, _("RFD Edition / %s"),
+            sprintf_s(dev_env, MAXSTR, _("RFD Edition / %s"),
                       _("Developer Mode"));
-            sprintf_s(os_env, dstSize, _("Recipes for Disaster Edition"));
+            sprintf_s(os_env, MAXSTR, _("Recipes for Disaster Edition"));
 #else
             sprintf(dev_env, _("RFD Edition / %s"), _("Developer Mode"));
             sprintf(os_env, _("Recipes for Disaster Edition"));
@@ -714,9 +714,9 @@ static int title_gui(void)
             if (server_policy_get_d(SERVER_POLICY_EDITION) == 10002)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, dstSize, _("Server Datacenter / %s"),
+                sprintf_s(dev_env, MAXSTR, _("Server Datacenter / %s"),
                           _("Developer Mode"));
-                sprintf_s(os_env, dstSize, _("Server Datacenter Edition"));
+                sprintf_s(os_env, MAXSTR, _("Server Datacenter Edition"));
 #else
                 sprintf(dev_env, _("Server Datacenter / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Server Datacenter Edition"));
@@ -725,9 +725,9 @@ static int title_gui(void)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 10001)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, dstSize, _("Server Standard / %s"),
+                sprintf_s(dev_env, MAXSTR, _("Server Standard / %s"),
                           _("Developer Mode"));
-                sprintf_s(os_env, dstSize, _("Server Standard Edition"));
+                sprintf_s(os_env, MAXSTR, _("Server Standard Edition"));
 #else
                 sprintf(dev_env, _("Server Standard / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Server Standard Edition"));
@@ -736,9 +736,9 @@ static int title_gui(void)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 10000)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, dstSize, _("Server Essential / %s"),
+                sprintf_s(dev_env, MAXSTR, _("Server Essential / %s"),
                           _("Developer Mode"));
-                sprintf_s(os_env, dstSize, _("Server Essential Edition"));
+                sprintf_s(os_env, MAXSTR, _("Server Essential Edition"));
 #else
                 sprintf(dev_env, _("Server Essential / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Server Essential Edition"));
@@ -747,9 +747,9 @@ static int title_gui(void)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 3)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, dstSize, _("Edu Edition / %s"),
+                sprintf_s(dev_env, MAXSTR, _("Edu Edition / %s"),
                           _("Developer Mode"));
-                sprintf_s(os_env, dstSize, _("Edu Edition"));
+                sprintf_s(os_env, MAXSTR, _("Edu Edition"));
 #else
                 sprintf(dev_env, _("Edu Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Edu Edition"));
@@ -758,9 +758,9 @@ static int title_gui(void)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 2)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, dstSize, _("Enterprise Edition / %s"),
+                sprintf_s(dev_env, MAXSTR, _("Enterprise Edition / %s"),
                           _("Developer Mode"));
-                sprintf_s(os_env, dstSize, _("Enterprise Edition"));
+                sprintf_s(os_env, MAXSTR, _("Enterprise Edition"));
 #else
                 sprintf(dev_env, _("Enterprise Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Enterprise Edition"));
@@ -769,9 +769,9 @@ static int title_gui(void)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 1)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, dstSize, _("Pro Edition / %s"),
+                sprintf_s(dev_env, MAXSTR, _("Pro Edition / %s"),
                           _("Developer Mode"));
-                sprintf_s(os_env, dstSize, _("Pro Edition"));
+                sprintf_s(os_env, MAXSTR, _("Pro Edition"));
 #else
                 sprintf(dev_env, _("Pro Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Pro Edition"));
@@ -780,9 +780,9 @@ static int title_gui(void)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 0)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, dstSize, _("Home Edition / %s"),
+                sprintf_s(dev_env, MAXSTR, _("Home Edition / %s"),
                           _("Developer Mode"));
-                sprintf_s(os_env, dstSize, _("Home Edition"));
+                sprintf_s(os_env, MAXSTR, _("Home Edition"));
 #else
                 sprintf(dev_env, _("Home Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Home Edition"));
@@ -791,9 +791,9 @@ static int title_gui(void)
 
 #if ENABLE_RFD==1
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, dstSize, _("RFD Edition / %s"),
+            sprintf_s(dev_env, MAXSTR, _("RFD Edition / %s"),
                       _("Developer Mode"));
-            sprintf_s(os_env, dstSize, _("Recipes for Disaster Edition"));
+            sprintf_s(os_env, MAXSTR, _("Recipes for Disaster Edition"));
 #else
             sprintf(dev_env, _("RFD Edition / %s"), _("Developer Mode"));
             sprintf(os_env, _("Recipes for Disaster Edition"));
@@ -874,7 +874,43 @@ static int title_gui(void)
 
         if (!title_lockscreen)
         {
-#if NB_HAVE_PB_BOTH!=1
+#if NB_HAVE_PB_BOTH==1
+#ifdef CONFIG_INCLUDES_ACCOUNT
+            char account_coinsattr[MAXSTR], account_gemsattr[MAXSTR];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(account_gemsattr, MAXSTR, "%s %i", GUI_DIAMOND,
+                      account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+            sprintf_s(account_coinsattr, MAXSTR, "%s %i", GUI_COIN,
+                      account_get_d(ACCOUNT_DATA_WALLET_COINS));
+#else
+            sprintf(account_gemsattr, "%s %i", GUI_DIAMOND,
+                    account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+            sprintf(account_coinsattr, "%s %i", GUI_COIN,
+                    account_get_d(ACCOUNT_DATA_WALLET_COINS));
+#endif
+
+            if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+            {
+                if ((id = gui_vstack(root_id)))
+                {
+                    gui_space(id);
+
+                    if ((jd = gui_hstack(id)))
+                    {
+                        gui_space(jd);
+
+                        if (!CHECK_ACCOUNT_BANKRUPT)
+                            gui_label(jd, account_gemsattr, GUI_TCH, gui_wht, gui_cya);
+
+                        gui_label(jd, account_coinsattr, GUI_TCH, gui_wht, gui_yel);
+                    }
+
+                    gui_layout(id, +1, +1);
+                }
+            }
+#endif
+#else
             if ((id = gui_vstack(root_id)))
             {
                 if ((jd = gui_hstack(id)))
@@ -883,27 +919,10 @@ static int title_gui(void)
                                   GUI_SML, TITLE_UNLOCK_FULL_GAME, 0);
                 }
 
-                gui_space(id);
                 gui_layout(id, -1, 0);
             }
-#endif
 
-#if NB_HAVE_PB_BOTH==1
-            char gameversion[MAXSTR];
-
-            SAFECPY(gameversion, VERSION);
-
-            const int version_id   = gui_multi(root_id, gameversion, GUI_TNY, GUI_COLOR_WHT);
-            const int copyright_id = gui_label(root_id, "© Neverball Authors", GUI_TNY, GUI_COLOR_WHT);
-
-            gui_set_rect(version_id, GUI_NW);
-            gui_set_rect(copyright_id, GUI_NE);
-
-            gui_layout(version_id,   +1, -1);
-            gui_layout(copyright_id, -1, -1);
-#endif
-
-#if NB_HAVE_PB_BOTH!=1 && ENABLE_FETCH
+#if ENABLE_FETCH
             if ((id = gui_vstack(root_id)))
             {
                 if ((jd = gui_hstack(id)))
@@ -912,9 +931,9 @@ static int title_gui(void)
                     gui_state(jd, _("Addons"), GUI_SML, TITLE_PACKAGES, 0);
                 }
 
-                gui_space(id);
                 gui_layout(id, +1, 0);
             }
+#endif
 #endif
         }
         else
@@ -955,6 +974,21 @@ static int title_gui(void)
                 gui_layout(id, 0, -1);
             }
         }
+
+#if NB_HAVE_PB_BOTH==1
+        char gameversion[MAXSTR];
+
+        SAFECPY(gameversion, VERSION);
+
+        const int version_id = gui_multi(root_id, gameversion, GUI_TNY, GUI_COLOR_WHT);
+        const int copyright_id = gui_label(root_id, "© 2024 Neverball authors", GUI_TNY, GUI_COLOR_WHT);
+
+        gui_set_rect(version_id, GUI_NW);
+        gui_set_rect(copyright_id, GUI_NE);
+
+        gui_layout(version_id, +1, -1);
+        gui_layout(copyright_id, -1, -1);
+#endif
     }
 
     return root_id;

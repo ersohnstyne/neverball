@@ -233,6 +233,7 @@ void EMSCRIPTEN_KEEPALIVE push_user_event(int code)
 
 /*---------------------------------------------------------------------------*/
 
+#if ENABLE_FETCH!=0
 /*
  * Custom SDL event code for fetch events.
  */
@@ -268,6 +269,7 @@ static void initialize_fetch(void)
     /* Start the thread. */
     fetch_init(dispatch_fetch_event);
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -642,8 +644,10 @@ static int loop(void)
 #endif
 
             default:
+#if ENABLE_FETCH!=0
                 if (e.type == FETCH_EVENT)
                     fetch_handle_event(e.user.data1);
+#endif
                 break;
         }
 
@@ -899,7 +903,9 @@ int main(int argc, char *argv[])
 
         networking_init(0);
 
+#if ENABLE_FETCH!=0
         initialize_fetch();
+#endif
 
 #ifndef FS_VERSION_1
         package_init();

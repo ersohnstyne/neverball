@@ -15,19 +15,19 @@
 #ifndef CMD_H
 #define CMD_H
 
-#if _MSC_VER
-#define _CRT_NB_CMD_DEPRECATED(_Replaces) \
+#if _WIN32
+#define _CRT_NB_CMD_DEPRECATED(_Element, _Replaces)         \
     __declspec(deprecated(                                  \
         "This function or variable has been superceded by " \
         "newer commands functionality. Consider using "     \
         #_Replaces " instead."                              \
-    ))
+    )) _Element
 #else
-#define _CRT_NB_CMD_DEPRECATED(_Replaces) \
-    __attribute__ ((deprecated(                                  \
-        "This function or variable has been superceded by "      \
-        "newer commands functionality. Consider using "          \
-        #_Replaces " instead."                                   \
+#define _CRT_NB_CMD_DEPRECATED(_Element, _Replaces)         \
+    _Element __attribute__ ((deprecated(                    \
+        "This function or variable has been superceded by " \
+        "newer commands functionality. Consider using "     \
+        #_Replaces " instead."                              \
     )))
 #endif
 
@@ -78,7 +78,7 @@ enum cmd_type
     CMD_PATH_FLAG,
     CMD_STEP_SIMULATION,
     CMD_MAP,
-    CMD_TILT_AXES, // DEPRECATED - Commands were replaced to CMD_TILT
+    CMD_TILT_AXES, /* DEPRECATED: Use CMD_TILT instead. */
     CMD_MOVE_PATH,
     CMD_MOVE_TIME,
     CMD_TILT,
@@ -86,7 +86,7 @@ enum cmd_type
     CMD_CHKP_TOGGLE,
     CMD_CHKP_EXIT,
     CMD_SPEEDOMETER,
-    CMD_SAVED_SPAWNPOINT, // DEPRECATED - Commands were removed in the next version
+    CMD_SAVED_SPAWNPOINT, /* DEPRECATED: Do not use! */
     CMD_ZOOM,
     CMD_CHKP_DISABLE,
 
@@ -171,22 +171,24 @@ struct cmd_jump_exit
 };
 
 /* Use CMD_MOVE_PATH instead. */
-_CRT_NB_CMD_DEPRECATED(CMD_MOVE_PATH)
+_CRT_NB_CMD_DEPRECATED(
 struct cmd_body_path
 {
     CMD_HEADER;
     int bi;
     int pi;
-};
+},
+CMD_MOVE_PATH);
 
 /* Use CMD_MOVE_TIME instead. */
-_CRT_NB_CMD_DEPRECATED(CMD_MOVE_TIME)
+_CRT_NB_CMD_DEPRECATED(
 struct cmd_body_time
 {
     CMD_HEADER;
     int   bi;
     float t;
-};
+},
+CMD_MOVE_TIME);
 
 struct cmd_goal_open
 {
@@ -383,10 +385,8 @@ union cmd
     struct cmd_coins              coins;
     struct cmd_jump_enter         jumpenter;
     struct cmd_jump_exit          jumpexit;
-    _CRT_NB_CMD_DEPRECATED       (movepath)
-    struct cmd_body_path          bodypath;
-    _CRT_NB_CMD_DEPRECATED       (movetime)
-    struct cmd_body_time          bodytime;
+    _CRT_NB_CMD_DEPRECATED       (struct cmd_body_path bodypath, movepath);
+    _CRT_NB_CMD_DEPRECATED       (struct cmd_body_time bodytime, movetime);
     struct cmd_goal_open          goalopen;
     struct cmd_swch_enter         swchenter;
     struct cmd_swch_toggle        swchtoggle;

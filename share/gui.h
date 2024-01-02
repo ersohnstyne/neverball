@@ -15,20 +15,20 @@
 #ifndef GUI_H
 #define GUI_H
 
-#if _MSC_VER
+#if _WIN32
 #define _CRT_NB_GUI_DEPRECATED(_Type, _Params, _Func, _Replaces) \
     __declspec(deprecated(                                       \
-        "This UI function or variable has been superceded by "   \
-        "newer parts functionality. Consider using " #_Replaces  \
-        " instead."                                              \
+        "This function or variable has been superceded by "      \
+        "newer UI parts functionality. Consider using "          \
+         #_Replaces " instead."                                  \
     )) _Type _Func _Params
 #else
 #define _CRT_NB_GUI_DEPRECATED(_Type, _Params, _Func, _Replaces) \
     _Type _Func _Params                                          \
     __attribute__ ((deprecated(                                  \
-        "This UI function or variable has been superceded by "   \
-        "newer parts functionality. Consider using " #_Replaces  \
-        " instead."                                              \
+        "This function or variable has been superceded by "      \
+        "newer UI parts functionality. Consider using "          \
+         #_Replaces " instead."                                  \
     )))
 #endif
 
@@ -72,6 +72,7 @@
 #define GUI_FACE "ttf/DejaVuSans-Bold.ttf" 
 
 #define GUI_TNY FONT_SIZE_TNY
+#define GUI_XS  FONT_SIZE_XS
 #define GUI_SML FONT_SIZE_SML
 #define GUI_TCH FONT_SIZE_TCH
 #define GUI_MED FONT_SIZE_MED

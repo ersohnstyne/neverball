@@ -461,6 +461,7 @@ static int         fontc;
 
 static const int font_sizes_scale[FONT_SIZE_MAX] = {
     52, // GUI_TNY
+    44, // GUI_XS
     26, // GUI_SML
     20, // GUI_TCH
     13, // GUI_MED
@@ -1034,9 +1035,9 @@ void gui_set_color(int id, const GLubyte *c0,
     }
 }
 
-void gui_set_multi(int id, const char* text)
+void gui_set_multi(int id, const char *text)
 {
-    const char* p;
+    const char *p;
 
     char s[GUI_LINES][MAXSTR];
     int i, sc, lc, jd;

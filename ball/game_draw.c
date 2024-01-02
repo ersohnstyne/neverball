@@ -37,7 +37,7 @@ static void game_draw_chnk_floor(struct s_rend *rend,
 {
     float c[4]   = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-    const struct s_base* base = vary->base;
+    const struct s_base *base = vary->base;
 
     float Y = vary->uv[0].p[1] - vary->uv[0].r;
 

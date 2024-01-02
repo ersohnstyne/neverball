@@ -15,19 +15,19 @@
 #ifndef STATE_H
 #define STATE_H
 
-#if _MSC_VER
+#if _WIN32
 #define _CRT_NB_SCREENSTATE_DEPRECATED(_Type, _Params, _Func, _Replaces) \
     __declspec(deprecated(                                               \
-        "This screenstate function or variable has been superceded by "  \
-        "newer UI animations functionality. Consider using " #_Replaces  \
+        "This function or variable has been superceded by newer UI "     \
+        "animations functionality. Consider using " #_Replaces           \
         " instead."                                                      \
     )) _Type _Func _Params
 #else
 #define _CRT_NB_SCREENSTATE_DEPRECATED(_Type, _Params, _Func, _Replaces) \
     _Type _Func _Params                                                  \
     __attribute__ ((deprecated(                                          \
-        "This screenstate function or variable has been superceded by "  \
-        "newer UI animations functionality. Consider using " #_Replaces  \
+        "This function or variable has been superceded by newer UI "     \
+        "animations functionality. Consider using " #_Replaces           \
         " instead."                                                      \
     )))
 #endif
@@ -67,7 +67,7 @@ struct state
     int  (*keybd) (int c,  int d);
     int  (*buttn) (int b,  int d);
     void (*wheel) (int x,  int y);
-    int  (*touch) (const SDL_TouchFingerEvent*);
+    int  (*touch) (const SDL_TouchFingerEvent *);
     void (*fade)  (float alpha);
     void (*exit)  (int id);
 

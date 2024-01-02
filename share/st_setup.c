@@ -348,17 +348,33 @@ static int load_updated_version(void)
         {
             strip_newline(line);
 
+#if _MSC_VER && !_CRT_SECURE_NO_WARNINGS
+            if (sscanf_s(line, "%d.%d.%d.%d.%d",
+                               &new_major,
+                               &new_minor,
+                               &new_patch,
+                               &new_revision,
+                               &new_build) == 5)
+#else
             if (sscanf(line, "%d.%d.%d.%d.%d",
                              &new_major,
                              &new_minor,
                              &new_patch,
                              &new_revision,
                              &new_build) == 5)
+#endif
             {
+#if _MSC_VER && !_CRT_SECURE_NO_WARNINGS
+                sscanf_s(VERSION, "%d.%d.%d",
+                                &curr_major,
+                                &curr_minor,
+                                &curr_patch);
+#else
                 sscanf(VERSION, "%d.%d.%d",
                                 &curr_major,
                                 &curr_minor,
                                 &curr_patch);
+#endif
 
                 if (new_major != curr_major ||
                     new_minor != curr_minor ||

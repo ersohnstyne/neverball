@@ -740,8 +740,9 @@ video_mode_failinit_window_context:
     if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
     {
         int solution_buf, solution_smp;
-        SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &solution_buf);
-        SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &solution_smp);
+        if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &solution_buf) != 0 ||
+            SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &solution_smp) != 0)
+            return 0;
 
         if (solution_buf < solution_smp)
             config_set_d(CONFIG_MULTISAMPLE, solution_smp);
@@ -763,8 +764,9 @@ video_mode_failinit_window_context:
     if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
     {
         int solution_buf, solution_smp;
-        SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &solution_buf);
-        SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &solution_smp);
+        if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &solution_buf) != 0 ||
+            SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &solution_smp) != 0)
+            return 0;
 
         if (solution_buf < solution_smp)
             config_set_d(CONFIG_MULTISAMPLE, solution_smp);
@@ -857,7 +859,7 @@ video_mode_auto_config_reconf:
     SDL_GL_SetAttribute(SDL_GL_STEREO,             stereo);
 
     int auto_stencils = 1;
-    int stencil_ok = SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, auto_stencils);
+    int stencil_ok    = SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, auto_stencils);
 
     int auto_samples = 16;
     int smpbuf_ok    = SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, auto_samples ? 1 : 0);
@@ -946,7 +948,7 @@ video_mode_auto_config_reconf:
             {
                 int stn;
 
-                if (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stn) == -1)
+                if (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stn) != 0)
                     return 0;
 
                 if (stn >= auto_stencils)
@@ -987,8 +989,8 @@ video_mode_auto_config_reconf:
             {
                 int buf, smp;
 
-                if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buf) == -1 ||
-                    SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &smp) == -1)
+                if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buf) != 0 ||
+                    SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &smp) != 0)
                     return 0;
 
                 if (buf >= 1 && smp >= auto_samples)
@@ -1009,8 +1011,8 @@ video_mode_auto_config_reconf:
                     SDL_GL_DeleteContext(context);
                     context = NULL;
                     auto_samples /= 2;
-                    if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, auto_samples) == -1
-                        && SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, auto_samples ? 1 : 0) == -1)
+                    if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, auto_samples) != 0 &&
+                        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, auto_samples ? 1 : 0) != 0)
                         return 0;
                 }
                 else
@@ -1158,8 +1160,9 @@ video_mode_auto_config_failinit_window_context:
     if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
     {
         int solution_buf, solution_smp;
-        SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &solution_buf);
-        SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &solution_smp);
+        if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &solution_buf) != 0 ||
+            SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &solution_smp) != 0)
+            return 0;
 
         if (solution_buf < solution_smp)
             config_set_d(CONFIG_MULTISAMPLE, solution_smp);
@@ -1510,15 +1513,15 @@ void video_push_persp(float fov, float n, float f)
 
         glMatrixMode(GL_PROJECTION);
         {
-            m[0 ] = c / a;
-            m[1 ] = 0.0f;
-            m[2 ] = 0.0f;
-            m[3 ] = 0.0f;
+            m[0 ] =  c / a;
+            m[1 ] =  0.0f;
+            m[2 ] =  0.0f;
+            m[3 ] =  0.0f;
 
-            m[4 ] = 0.0f;
-            m[5 ] = c;
-            m[6 ] = 0.0f;
-            m[7 ] = 0.0f;
+            m[4 ] =  0.0f;
+            m[5 ] =  c;
+            m[6 ] =  0.0f;
+            m[7 ] =  0.0f;
 
             m[8 ] =  0.0f;
             m[9 ] =  0.0f;

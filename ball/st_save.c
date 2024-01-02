@@ -459,7 +459,7 @@ static int save_error_gui(void)
         char desc[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(desc, MAXSTR
+        sprintf_s(desc, MAXSTR,
 #else
         sprintf(desc,
 #endif

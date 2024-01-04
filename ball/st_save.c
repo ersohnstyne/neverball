@@ -182,10 +182,9 @@ static int save_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Replay Name"), GUI_MED, 0, 0);
+        gui_title_header(id, _("Replay Name"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
 
-        //file_id = gui_label(id, "XXXXXXXXXXXXXXXX", GUI_MED, GUI_COLOR_YEL);
         file_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
                                 GUI_SML, GUI_COLOR_YEL);
 

@@ -265,6 +265,11 @@ static int autocam_count = 0; /* How many autocam box triggers have we got? */
  */
 static struct level campaign_lvl_v[MAXLVL];
 
+#define put_score  campaign_put_times
+#define get_score  campaign_get_times
+#define find_level campaign_find_level
+#define get_stats  campaign_get_stats
+
 static void campaign_put_times(fs_file fp, const struct score *s)
 {
     for (int i = RANK_HARD; i <= RANK_EASY; i++)
@@ -338,7 +343,7 @@ static int campaign_get_stats(fs_file fp, struct level *l)
         l->stats.fallout   = 0;
 
         /* stats not available, rewind file pointer */
-        fs_seek(fp, - strlen(line) - 1, SEEK_CUR);
+        fs_seek(fp, -strlen(line) - 1, SEEK_CUR);
     }
 
     return 1;

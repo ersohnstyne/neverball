@@ -209,19 +209,21 @@ static int level_gui(void)
             char account_coinsattr[MAXSTR], account_gemsattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(account_gemsattr, MAXSTR, "%s %i", GUI_DIAMOND,
+            sprintf_s(account_gemsattr, MAXSTR, "%s %d", GUI_DIAMOND,
                       account_get_d(ACCOUNT_DATA_WALLET_GEMS));
-            sprintf_s(account_coinsattr, MAXSTR, "%s %i", GUI_COIN,
+            sprintf_s(account_coinsattr, MAXSTR, "%s %d", GUI_COIN,
                       account_get_d(ACCOUNT_DATA_WALLET_COINS));
 #else
-            sprintf(account_gemsattr, "%s %i", GUI_DIAMOND,
+            sprintf(account_gemsattr, "%s %d", GUI_DIAMOND,
                     account_get_d(ACCOUNT_DATA_WALLET_GEMS));
-            sprintf(account_coinsattr, "%s %i", GUI_COIN,
+            sprintf(account_coinsattr, "%s %d", GUI_COIN,
                     account_get_d(ACCOUNT_DATA_WALLET_COINS));
 #endif
+
             if ((jd = gui_hstack(id)))
             {
                 gui_filler(jd);
+
                 if ((kd = gui_harray(jd)))
                 {
                     if (!CHECK_ACCOUNT_BANKRUPT)
@@ -229,6 +231,7 @@ static int level_gui(void)
 
                     gui_label(kd, account_coinsattr, GUI_SML, gui_wht, gui_yel);
                 }
+
                 gui_filler(jd);
             }
 
@@ -361,8 +364,8 @@ static int level_gui(void)
                 if ((csd = gui_varray(jd)))
                 {
                     gui_label(csd, pow3attr, GUI_SML,
-                        svalue > 0 ? gui_grn : gui_gry,
-                        svalue > 0 ? gui_wht : gui_gry);
+                                   svalue > 0 ? gui_grn : gui_gry,
+                                   svalue > 0 ? gui_wht : gui_gry);
                     if (svalue > 0)
                         gui_set_state(csd, LEVEL_START_POWERUP, 3);
                     else
@@ -379,8 +382,8 @@ static int level_gui(void)
                 if ((cfd = gui_varray(jd)))
                 {
                     gui_label(cfd, pow2attr, GUI_SML,
-                        fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_blu : gui_gry,
-                        fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_wht : gui_gry);
+                                   fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_blu : gui_gry,
+                                   fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_wht : gui_gry);
                     if (fvalue > 0 && curr_mode() != MODE_BOOST_RUSH)
                         gui_set_state(cfd, LEVEL_START_POWERUP, 2);
                     else
@@ -402,8 +405,8 @@ static int level_gui(void)
                         evalue > 0 ? gui_wht : gui_gry);
 #else
                     gui_label(ced, pow1attr, GUI_SML,
-                        evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_red : gui_gry,
-                        evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_wht : gui_gry);
+                                   evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_red : gui_gry,
+                                   evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_wht : gui_gry);
 #endif
                     if (evalue > 0)
                         gui_set_state(ced, LEVEL_START_POWERUP, 1);
@@ -663,6 +666,8 @@ static int poser_buttn(int c, int d)
 
 static int nodemo_enter(struct state *st, struct state *prev)
 {
+    audio_play("snd/warning.ogg", 1.f);
+
     nodemo_warnonlyonce = 0;
     check_nodemo = 0;
 
@@ -673,8 +678,6 @@ static int nodemo_enter(struct state *st, struct state *prev)
 
     if ((id = gui_vstack(0)))
     {
-        audio_play("snd/warning.ogg", 1.f);
-
         gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
         gui_multi(id, _("A replay file could not be opened for writing.\n"
@@ -741,6 +744,8 @@ static int nodemo_buttn(int b, int d)
 
 static int level_signin_required_enter(struct state *st, struct state *prev)
 {
+    audio_play("snd/warning.ogg", 1.f);
+
     int id;
 
     if ((id = gui_vstack(0)))
@@ -965,9 +970,9 @@ struct state st_nodemo = {
     shared_point,
     shared_stick,
     shared_angle,
-    level_click,  // Replaced from: shared_click_basic
-    nodemo_keybd,  // Replaced from: nodemo_keybd
-    nodemo_buttn,  // Replaced from: nodemo_buttn
+    level_click,
+    nodemo_keybd,
+    nodemo_buttn,
     NULL,
     NULL,
     NULL,

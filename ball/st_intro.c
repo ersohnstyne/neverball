@@ -772,7 +772,7 @@ static int intro_restore_gui(void)
                 assert(0 && "No restore graphics found!");
         }
 
-        gui_title_header(id, _("Restore Graphics"), GUI_MED, 0, 0);
+        gui_title_header(id, _("Restore Graphics"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
 
         if (doubles) {

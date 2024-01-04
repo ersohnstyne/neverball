@@ -610,8 +610,6 @@ static int shop_unlocked_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        audio_play("snd/warning.ogg", 1.f);
-
         gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
         gui_multi(id, _("The goal state is still unlocked\n"
@@ -635,6 +633,8 @@ static int shop_unlocked_gui(void)
 
 static int shop_unlocked_enter(struct state *st, struct state *prev)
 {
+    audio_play("snd/warning.ogg", 1.f);
+
     return shop_unlocked_gui();
 }
 
@@ -685,7 +685,7 @@ static int shop_rename_gui(void)
     int id, jd;
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Rename player?"), GUI_MED, gui_gry, gui_red);
+        gui_title_header(id, _("Rename player?"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
         gui_multi(id, _("Renaming players will log in\n"
                         "to another account."),
@@ -714,6 +714,8 @@ static int shop_rename_gui(void)
 
 static int shop_rename_enter(struct state *st, struct state *prev)
 {
+    audio_play("snd/warning.ogg", 1.f);
+
     if (draw_back)
     {
         game_client_free(NULL);
@@ -842,6 +844,8 @@ static int shop_unregistered_gui(void)
 
 static int shop_unregistered_enter(struct state *st, struct state *prev)
 {
+    audio_play("snd/warning.ogg", 1.f);
+
     return shop_unregistered_gui();
 }
 
@@ -1754,9 +1758,8 @@ static int shop_buy_gui(void)
             sprintf(limitattr,
 #endif
                     _("You can't buy more than %d balls\n"
-                      "in a single level set for\n"
-                      "%s."),
-                    max_balls_limit, _("Challenge Mode"));
+                      "in a single level set for Challenge Mode."),
+                    max_balls_limit);
             gui_multi(id, limitattr, GUI_SML, GUI_COLOR_WHT);
             gui_space(id);
             gui_start(id, _("Sorry, I'm too excited!"), GUI_SML, GUI_BACK, 0);
@@ -2086,8 +2089,11 @@ static int shop_buy_confirmmulti_gui(void)
 
 static int shop_buy_enter(struct state *st, struct state *prev)
 {
-    return confirm_multiple_items == 0 ? shop_buy_gui() :
-                                         shop_buy_confirmmulti_gui();
+    if (confirm_multiple_items)
+        audio_play("snd/warning.ogg", 1.f);
+
+    return confirm_multiple_items ? shop_buy_confirmmulti_gui() :
+                                    shop_buy_gui();
 }
 
 static int shop_buy_keybd(int c, int d)
@@ -2176,7 +2182,7 @@ static int expenses_export_gui(void)
 
         if (expenses_exported)
         {
-            gui_title_header(id, _("Exported to Expenses"), GUI_MED, 0, 0);
+            gui_title_header(id, _("Exported to Expenses"), GUI_MED, GUI_COLOR_DEFAULT);
 
             int cents = export_totalvalue;
             int whole = 0;
@@ -2198,7 +2204,7 @@ static int expenses_export_gui(void)
         }
         else
         {
-            gui_title_header(id, _("Export to Expenses?"), GUI_MED, 0, 0);
+            gui_title_header(id, _("Export to Expenses?"), GUI_MED, GUI_COLOR_DEFAULT);
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sprintf_s(desc_attr, MAXSTR,
 #else
@@ -2236,6 +2242,8 @@ static int expenses_export_gui(void)
 
 static int expenses_export_enter(struct state *st, struct state *prev)
 {
+    audio_play("snd/warning.ogg", 1.f);
+
     if (prev == &st_shop_iap)
     {
         expenses_exported = 0;

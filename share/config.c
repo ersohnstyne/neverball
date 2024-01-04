@@ -354,7 +354,7 @@ static struct
     { &CONFIG_REPLAY_NAME,             "replay_name",     "%s-%l-%r" },
     { &CONFIG_LANGUAGE,                "language",        "" },
     { &CONFIG_THEME,                   "theme",           "classic" },
-    { &CONFIG_DEDICATED_IPADDRESS,     "dedicated_ipaddress", "pennyball.stynegame.de" },
+    { &CONFIG_DEDICATED_IPADDRESS,     "dedicated_ipaddress", "play.neverball.org" },
     { &CONFIG_DEDICATED_IPPORT,        "dedicated_ipport", "5000" }
 };
 

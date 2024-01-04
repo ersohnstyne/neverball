@@ -242,7 +242,7 @@ static int name_gui(void)
     {
         if (!newplayers && !name_error)
         {
-            gui_title_header(id, _("Player Name"), GUI_MED, 0, 0);
+            gui_title_header(id, _("Player Name"), GUI_MED, GUI_COLOR_DEFAULT);
             gui_space(id);
 
             name_id = gui_label(id, "XXXXXXXXXXXXXXXX",

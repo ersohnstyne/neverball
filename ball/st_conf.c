@@ -904,7 +904,7 @@ static int conf_social_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Join Discord?"), GUI_MED, 0, 0);
+        gui_title_header(id, _("Join Discord?"), GUI_MED, GUI_COLOR_DEFAULT);
 
         gui_space(id);
 

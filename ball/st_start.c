@@ -605,7 +605,7 @@ static int start_compat_gui()
 
     if ((id = gui_vstack(0)))
     {
-        gui_label(id, _("Play this level pack?"), GUI_MED, 0, 0);
+        gui_label(id, _("Play this level pack?"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
 
         char multiattr[MAXSTR];
@@ -892,7 +892,7 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev)
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Powerups available"), GUI_MED, 0, 0);
+        gui_title_header(id, _("Powerups available"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
         gui_multi(id,
                   _("Pennyball offers some of the most creative ways to\n"
@@ -922,7 +922,7 @@ static int start_joinrequired_enter(struct state *st, struct state *prev)
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Powerups available"), GUI_MED, 0, 0);
+        gui_title_header(id, _("Powerups available"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
         gui_multi(id,
                   _("Pennyball offers some of the most creative ways to\n"

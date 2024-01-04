@@ -313,7 +313,12 @@ static int package_action(int tok, int val)
 {
     enum package_status status;
 
-    GENERIC_GAMEMENU_ACTION;
+    /*
+     * Issue #352: This gamepad features has been fixed, which it has
+     * found on out of bounds bug, so let Mojang doing this.
+     */
+
+    GAMEPAD_GAMEMENU_ACTION_SCROLL(GUI_PREV, GUI_NEXT, PACKAGE_STEP);
 
     switch (tok)
     {
@@ -322,18 +327,24 @@ static int package_action(int tok, int val)
             break;
 
         case GUI_PREV:
-            first -= PACKAGE_STEP;
+            if (first > 1)
+            {
+                first -= PACKAGE_STEP;
 
-            do_init = 0;
-            return goto_state(&st_package);
+                do_init = 0;
+                return goto_state(&st_package);
+            }
 
             break;
 
         case GUI_NEXT:
-            first += PACKAGE_STEP;
+            if (first + PACKAGE_STEP < total)
+            {
+                first += PACKAGE_STEP;
 
-            do_init = 0;
-            return goto_state(&st_package);
+                do_init = 0;
+                return goto_state(&st_package);
+            }
 
             break;
 

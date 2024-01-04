@@ -340,7 +340,7 @@ static int hardcore_start_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        gui_label(id, _("Good luck!"), GUI_MED, 0, 0);
+        gui_label(id, _("Good luck!"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
 
         if (campaign_career_unlocked())

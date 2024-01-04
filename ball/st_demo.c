@@ -1031,7 +1031,7 @@ static int demo_gui(void)
     }
     else if (!total && !availibility)
     {
-        gui_title_header(id, _("No Replays"), GUI_MED, 0, 0);
+        gui_title_header(id, _("No Replays"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
         gui_multi(id, _("Your Replays will appear here\n"
                         "once you've recorded."),
@@ -1899,8 +1899,6 @@ static int demo_compat_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        audio_play("snd/warning.ogg", 1.f);
-
         gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
 
@@ -1917,7 +1915,9 @@ static int demo_compat_gui(void)
 
 static int demo_compat_enter(struct state *st, struct state *prev)
 {
-    check_compat = 0;
+    audio_play("snd/warning.ogg", 1.f);
+
+    check_compat         = 0;
     allow_exact_versions = 0;
 
     return demo_compat_gui();

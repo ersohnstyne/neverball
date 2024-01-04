@@ -197,7 +197,7 @@ static int shop_activate_gui_introducory(void)
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Activate order code"), GUI_MED, 0, 0);
+        gui_title_header(id, _("Activate order code"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
         gui_multi(id,
                   _("Your order code should be in an email\n"
@@ -340,7 +340,7 @@ static int shop_activate_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Activate order code"), GUI_MED, 0, 0);
+        gui_title_header(id, _("Activate order code"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
 
         ordercode_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX",

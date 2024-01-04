@@ -225,7 +225,7 @@ static int tutorial_enter(struct state *st, struct state *prev)
     int id, jd;
     if ((id = gui_vstack(0)))
     {
-        gui_label(id, _(tutorial_title[tutorial_index]), GUI_MED, 0, 0);
+        gui_label(id, _(tutorial_title[tutorial_index]), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)
@@ -403,7 +403,7 @@ static int hint_enter(struct state *st, struct state *prev)
     int id, jd;
     if ((id = gui_vstack(0)))
     {
-        gui_label(id, _("Hint"), GUI_MED, 0, 0);
+        gui_label(id, _("Hint"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
         gui_multi(id, _(hint_desc[hint_index]), GUI_SML, GUI_COLOR_WHT);
 

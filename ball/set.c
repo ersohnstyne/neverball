@@ -92,6 +92,11 @@ static struct level level_v[MAXLVL_SET];
 
 static int score_version;
 
+#define put_score  set_put_score
+#define get_score  set_get_score
+#define find_level set_find_level
+#define get_stats  set_get_stats
+
 static void put_score(fs_file fp, const struct score *s)
 {
     for (int i = RANK_HARD; i <= RANK_EASY; i++)
@@ -226,7 +231,7 @@ static int get_stats(fs_file fp, struct level *l)
         l->stats.fallout   = 0;
 
         /* stats not available, rewind file pointer */
-        fs_seek(fp, - strlen(line) - 1, SEEK_CUR);
+        fs_seek(fp, -strlen(line) - 1, SEEK_CUR);
     }
 
     return 1;

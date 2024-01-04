@@ -50,7 +50,7 @@ static int setup_intro_gui(void)
     int txt_id = gui_title_header(0, _(intro_phase == 2 ?
                                        "Your Campaign will set up." :
                                        "Hi there!"),
-                                     GUI_MED, 0, 0);
+                                     GUI_MED, GUI_COLOR_DEFAULT);
     gui_layout(txt_id, 0, 0);
     return txt_id;
 }
@@ -65,7 +65,7 @@ static int setup_intro_enter(struct state *st, struct state *prev)
 static int setup_progressions_gui(void)
 {
     int txt_id = gui_title_header(0, _("Compiling campaign levels"),
-                                     GUI_MED, 0, 0);
+                                     GUI_MED, GUI_COLOR_DEFAULT);
     donot_id = gui_multi(0, _("Do not turn off your PC"),
                             GUI_SML, GUI_COLOR_WHT);
     gui_layout(txt_id, 0, 0);
@@ -92,7 +92,7 @@ static int setup_done_gui(void)
 {
     audio_music_fade_out(1.0f);
 
-    int txt_id = gui_title_header(0, _("Let's start!"), GUI_MED, 0, 0);
+    int txt_id = gui_title_header(0, _("Let's start!"), GUI_MED, GUI_COLOR_DEFAULT);
     gui_layout(txt_id, 0, 0);
 
     return txt_id;

@@ -879,14 +879,14 @@ static int title_gui(void)
             char account_coinsattr[MAXSTR], account_gemsattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(account_gemsattr, MAXSTR, "%s %i", GUI_DIAMOND,
+            sprintf_s(account_gemsattr, MAXSTR, "%s %d", GUI_DIAMOND,
                       account_get_d(ACCOUNT_DATA_WALLET_GEMS));
-            sprintf_s(account_coinsattr, MAXSTR, "%s %i", GUI_COIN,
+            sprintf_s(account_coinsattr, MAXSTR, "%s %d", GUI_COIN,
                       account_get_d(ACCOUNT_DATA_WALLET_COINS));
 #else
-            sprintf(account_gemsattr, "%s %i", GUI_DIAMOND,
+            sprintf(account_gemsattr, "%s %d", GUI_DIAMOND,
                     account_get_d(ACCOUNT_DATA_WALLET_GEMS));
-            sprintf(account_coinsattr, "%s %i", GUI_COIN,
+            sprintf(account_coinsattr, "%s %d", GUI_COIN,
                     account_get_d(ACCOUNT_DATA_WALLET_COINS));
 #endif
 

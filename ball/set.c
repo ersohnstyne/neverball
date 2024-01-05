@@ -139,17 +139,9 @@ void set_store_hs(void)
     const struct set *s = SET_GET(sets, curr);
     fs_file fp;
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-#ifdef FS_VERSION_1
-    if ((fp = fs_open(config_cheat() ? s->cheat_scores : s->user_scores, "w")))
-#else
     if ((fp = fs_open_write(config_cheat() ? s->cheat_scores : s->user_scores)))
-#endif
-#else
-#ifdef FS_VERSION_1
-    if ((fp = fs_open(s->user_scores, "w")))
 #else
     if ((fp = fs_open_write(s->user_scores)))
-#endif
 #endif
     {
         int i;
@@ -422,17 +414,9 @@ static void set_load_hs(void)
     struct set *s = SET_GET(sets, curr);
     fs_file fp;
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-#ifdef FS_VERSION_1
-    if ((fp = fs_open(config_cheat() ? s->cheat_scores : s->user_scores, "r")))
-#else
     if ((fp = fs_open_read(config_cheat() ? s->cheat_scores : s->user_scores)))
-#endif
-#else
-#ifdef FS_VERSION_1
-    if ((fp = fs_open(s->user_scores, "r")))
 #else
     if ((fp = fs_open_read(s->user_scores)))
-#endif
 #endif
     {
         char buf[MAXSTR];
@@ -498,7 +482,7 @@ static int set_load(struct set *s, const char *filename)
          strcmp(filename, "set-mym2.txt")   != 0 &&
          strcmp(filename, "set-fwp.txt")    != 0 &&
          strcmp(filename, "set-tones.txt")  != 0 &&
-         strcmp(filename, "set-misc.txt")   != 0) &&
+         strcmp(filename, SET_MISC)         != 0) &&
         (!account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
         !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET)))
         return 0;
@@ -510,7 +494,7 @@ static int set_load(struct set *s, const char *filename)
          strcmp(filename, "set-mym2.txt")   != 0 &&
          strcmp(filename, "set-fwp.txt")    != 0 &&
          strcmp(filename, "set-tones.txt")  != 0 &&
-         strcmp(filename, "set-misc.txt")   != 0) &&
+         strcmp(filename, SET_MISC)         != 0) &&
         !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))
         return 0;
 #endif
@@ -552,15 +536,10 @@ static int set_load(struct set *s, const char *filename)
 
 #endif
 
-#ifdef FS_VERSION_1
-    fin = fs_open(filename, "r");
-#else
-    fin = fs_open_read(filename);
-#endif
-
-    if (!fin)
+    if (!(fin = fs_open_read(filename)))
     {
-        log_errorf("Failure to load set file %s\n", filename);
+        log_errorf("Failure to load set file: %s / %s\n",
+                   filename, fs_error());
         return 0;
     }
 
@@ -633,7 +612,8 @@ static int set_load(struct set *s, const char *filename)
         return 1;
     }
 
-    log_errorf("Failure to load set file %s\n", filename);
+    log_errorf("Failure to load set file: %s / %s\n",
+               filename, fs_error());
 
     free(s->name);
     free(s->desc);
@@ -727,11 +707,7 @@ int set_init(int boost_active)
     /*
      * First, load the sets listed in the set file, preserving order.
      */
-#ifdef FS_VERSION_1
-    if ((fin = fs_open( boost_active == 1 ? BOOST_FILE : SET_FILE, "r")))
-#else
     if ((fin = fs_open_read(boost_active == 1 ? BOOST_FILE : SET_FILE)))
-#endif
     {
         while (read_line(&name, fin))
         {
@@ -904,48 +880,49 @@ static void set_load_levels(void)
                 master  = 1;
     int         i;
 
-    default_set_maxtimelimit = 0;
+    default_set_maxtimelimit    = 0;
     default_set_mincoinrequired = 0;
+
+    int idx_retreat = 0;
 
     for (i = 0; i < s->count; i++)
     {
-        struct level *l = &level_v[i];
+        struct level *l = &level_v[i - idx_retreat];
 
-        int lvl_was_offered = level_load(s->level_name_v[i], l);
-        l->number = i;
-
-        if (l->is_master)
-        {
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(l->name, MAXSTR,
-#else
-            sprintf(l->name,
-#endif
-                    "M%d", master);
-
-            master++;
-        }
-        else if (l->is_bonus)
-        {
-            SAFECPY(l->name, roman[bonus]);
-            bonus++;
-        }
-        else
-        {
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(l->name, MAXSTR,
-#else
-            sprintf(l->name,
-#endif
-                    "%d", regular);
-
-            regular++;
-        }
-
-        l->is_locked = (i > 0);
+        int lvl_was_offered = level_load(s->level_name_v[i - idx_retreat], l);
+        l->number = i - idx_retreat;
+        l->is_locked = (i - idx_retreat > 0);
 
         if (lvl_was_offered)
         {
+            if (l->is_master)
+            {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(l->name, MAXSTR,
+#else
+                sprintf(l->name,
+#endif
+                        "M%d", master);
+
+                master++;
+            }
+            else if (l->is_bonus)
+            {
+                SAFECPY(l->name, roman[bonus]);
+                bonus++;
+            }
+            else
+            {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(l->name, MAXSTR,
+#else
+                sprintf(l->name,
+#endif
+                       "%d", regular);
+
+                regular++;
+            }
+
             l->is_completed = 0;
 
             if (l->time > 0 && !l->is_bonus)
@@ -958,10 +935,14 @@ static void set_load_levels(void)
 
             if (l->goal && !l->is_bonus)
                 default_set_mincoinrequired += l->goal;
-        }
 
-        if (i > 0)
-            level_v[i - 1].next = l;
+            if (i - idx_retreat > 0)
+            {
+                memset(level_v[i - 1 - idx_retreat].next, 0, sizeof (struct level));
+                level_v[i - 1 - idx_retreat].next = l;
+            }
+        }
+        else idx_retreat++;
     }
 
     for (int r = 0; r < 3; r++)

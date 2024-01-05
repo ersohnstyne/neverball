@@ -17,9 +17,7 @@
 
 #include "base_config.h"
 #include "level.h"
-#ifndef FS_VERSION_1
 #include "package.h"
-#endif
 
 #define SET_FILE "sets.txt"
 #define SET_MISC "set-misc.txt"

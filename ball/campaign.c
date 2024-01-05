@@ -31,9 +31,7 @@
 #include "log.h"
 #include "score.h"
 #include "vec3.h"
-#ifndef FS_VERSION_1
 #include "package.h"
-#endif
 
 #include "game_client.h"
 
@@ -69,7 +67,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-#ifndef FS_VERSION_1
 /*
  * Figure out if a package can be downloaded for the campaign.
  */
@@ -220,8 +217,6 @@ int campaign_download(struct fetch_callback callback)
 
 /*---------------------------------------------------------------------------*/
 
-#endif
-
 #define TIME_TRIAL_VERSION  2
 #define MAX_CAM_BOX_TRIGGER 512
 
@@ -353,11 +348,7 @@ void campaign_store_hs(void)
 {
     fs_file fp;
 
-#ifdef FS_VERSION_1
-    if ((fp = fs_open(time_trial_leaderboard, "w")))
-#else
     if ((fp = fs_open_write(time_trial_leaderboard)))
-#endif
     {
         int i;
 
@@ -486,11 +477,7 @@ static void campaign_load_hs(void)
 {
     fs_file fp;
 
-#ifdef FS_VERSION_1
-    if ((fp = fs_open(time_trial_leaderboard, "r")))
-#else
     if ((fp = fs_open_read(time_trial_leaderboard)))
-#endif
     {
         char buf[MAXSTR];
 
@@ -561,15 +548,10 @@ int campaign_load(const char *filename)
     fs_file fin;
     char *scores, *level_name;
 
-#ifdef FS_VERSION_1
-    fin = fs_open(filename, "r");
-#else
-    fin = fs_open_read(filename);
-#endif
-
-    if (!fin)
+    if (!(fin = fs_open_read(filename)))
     {
-        log_errorf("Failure to load campaign file %s\n", filename);
+        log_errorf("Failure to load campaign file: %s / %s\n",
+                   filename, fs_error());
         return 0;
     }
 
@@ -702,7 +684,8 @@ int campaign_init(void)
 
     if (!campaign_load(CAMPAIGN_FILE))
     {
-        log_errorf("Failure to load campaign! Is the campaign levels installed? / %s\n", fs_error());
+        log_errorf("Failure to load campaign! Is the campaign levels installed? / %s\n",
+                   fs_error());
         return 0;
     }
     else
@@ -900,11 +883,7 @@ int campaign_load_camera_box_trigger(const char *levelname)
 
     campaign_reset_camera_box_trigger();
 
-#ifdef FS_VERSION_1
-    if ((fh = fs_open(camFilename, "r")))
-#else
     if ((fh = fs_open_read(camFilename)))
-#endif
     {
         int camBoxIdx = 0;
         while (fs_gets(camLinePrefix, MAXSTR, fh))
@@ -982,7 +961,8 @@ int campaign_load_camera_box_trigger(const char *levelname)
         return 1;
     }
 
-    log_errorf("Failure to load autocam level file '%s'\n", camFilename);
+    log_errorf("Failure to load autocam level file: %s / %s\n",
+               camFilename, fs_error());
 
     return 0;
 }

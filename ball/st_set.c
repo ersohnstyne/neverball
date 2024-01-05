@@ -179,25 +179,23 @@ static int set_action(int tok, int val)
             break;
 
         case GUI_PREV:
-            if (first > 1)
-            {
-                first -= SET_STEP;
-                do_init = 0;
-                return goto_state_full(&st_set,
-                                       GUI_ANIMATION_E_CURVE,
-                                       GUI_ANIMATION_W_CURVE, 0);
-            }
+            first = MAX(first - SET_STEP, 0);
+
+            do_init = 0;
+            return goto_state_full(&st_set,
+                                   GUI_ANIMATION_E_CURVE,
+                                   GUI_ANIMATION_W_CURVE, 0);
+
             break;
 
         case GUI_NEXT:
-            if (first + SET_STEP < total)
-            {
-                first += SET_STEP;
-                do_init = 0;
-                return goto_state_full(&st_set,
-                                       GUI_ANIMATION_W_CURVE,
-                                       GUI_ANIMATION_E_CURVE, 0);
-            }
+            first = MIN(first + SET_STEP, total - 1);
+
+            do_init = 0;
+            return goto_state_full(&st_set,
+                                   GUI_ANIMATION_W_CURVE,
+                                   GUI_ANIMATION_E_CURVE, 0);
+
             break;
 
         case SET_SELECT:

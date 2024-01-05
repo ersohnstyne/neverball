@@ -219,26 +219,20 @@ static int demo_action(int tok, int val)
         case GUI_BACK:
             return goto_state(&st_title);
 
-        case GUI_NEXT:
-            if (first < total)
-            {
-                first += DEMO_STEP;
-                if (first >= total)
-                    first -= DEMO_STEP;
-                else
-                    return goto_state_full(&st_demo,
-                                           GUI_ANIMATION_W_CURVE,
-                                           GUI_ANIMATION_E_CURVE, 0);
-            }
+        case GUI_PREV:
+            first = MAX(first - DEMO_STEP, 0);
+
+            return goto_state_full(&st_demo,
+                                   GUI_ANIMATION_E_CURVE,
+                                   GUI_ANIMATION_W_CURVE, 0);
             break;
 
-        case GUI_PREV:
-            if (first > 1) {
-                first -= DEMO_STEP;
-                return goto_state_full(&st_demo,
-                                       GUI_ANIMATION_E_CURVE,
-                                       GUI_ANIMATION_W_CURVE, 0);
-            }
+        case GUI_NEXT:
+            first = MIN(first + DEMO_STEP, total - 1);
+
+            return goto_state_full(&st_demo,
+                                   GUI_ANIMATION_W_CURVE,
+                                   GUI_ANIMATION_E_CURVE, 0);
             break;
 
         case DEMO_UPGRADE_LIMIT:
@@ -301,11 +295,8 @@ static int demo_action(int tok, int val)
                 if (df)
                 {
                     fs_file fp;
-#ifdef FS_VERSION_1
-                    if ((fp = fs_open(DIR_ITEM_GET(demo_items, selected)->path, "r")))
-#else
+
                     if ((fp = fs_open_read(DIR_ITEM_GET(demo_items, selected)->path)))
-#endif
                     {
                         SAFECPY(df->path, DIR_ITEM_GET(demo_items, selected)->path);
                         SAFECPY(df->name, base_name_sans(DIR_ITEM_GET(demo_items,
@@ -422,11 +413,8 @@ static void gui_demo_update_thumbs(void)
         if (demo)
         {
             fs_file fp;
-#ifdef FS_VERSION_1
-            if ((fp = fs_open(item->path, "r")))
-#else
+
             if ((fp = fs_open_read(item->path)))
-#endif
             {
                 SAFECPY(demo->path, item->path);
                 SAFECPY(demo->name, base_name_sans(item->path, ".nbr"));

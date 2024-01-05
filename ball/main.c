@@ -118,9 +118,7 @@ extern "C" {
 #include "geom.h"
 #include "joy.h"
 #include "fetch.h"
-#ifndef FS_VERSION_1
 #include "package.h"
-#endif
 #include "currency.h"
 #if ENABLE_RFD==1
 #include "rfd.h"
@@ -175,9 +173,10 @@ const char ICON[] = "icon/neverball.png";
 
 /*---------------------------------------------------------------------------*/
 
-static char *opt_data;
+static List opt_data_multi = NULL;
+static List opt_level_multi = NULL;
+
 static char *opt_replay;
-static char *opt_level;
 static char *opt_link;
 
 #if ENABLE_DEDICATED_SERVER==1
@@ -276,7 +275,6 @@ static void opt_init(int argc, char **argv)
                 exit(EXIT_FAILURE);
             }
             opt_panorama = argv[++i];
-            continue;
         }
 #endif
 
@@ -289,7 +287,6 @@ static void opt_init(int argc, char **argv)
         if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--screensaver") == 0)
         {
             opt_screensaver = 1;
-            continue;
         }
 
         if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--data")    == 0)
@@ -299,8 +296,9 @@ static void opt_init(int argc, char **argv)
                 opt_error(argv[i]);
                 exit(EXIT_FAILURE);
             }
-            opt_data = argv[++i];
-            continue;
+            opt_data_multi = list_cons(strdup(argv[i + 1]), opt_data_multi);
+            log_printf("Added data path to opt_data_multi: %s\n", argv[i + 1]);
+            i++;
         }
 
         if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--replay")  == 0)
@@ -310,8 +308,7 @@ static void opt_init(int argc, char **argv)
                 opt_error(argv[i]);
                 exit(EXIT_FAILURE);
             }
-            opt_replay = argv[++i];
-            continue;
+            opt_replay = argv[i++];
         }
 
         if (strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--level")  == 0)
@@ -321,8 +318,9 @@ static void opt_init(int argc, char **argv)
                 opt_error(argv[i]);
                 exit(EXIT_FAILURE);
             }
-            opt_level = argv[++i];
-            continue;
+            opt_level_multi = list_cons(strdup(argv[i + 1]), opt_level_multi);
+            log_printf("Added map level path to opt_level_multi: %s\n", argv[i + 1]);
+            i++;
         }
 
         if (strcmp(argv[i], "--link") == 0)
@@ -332,8 +330,7 @@ static void opt_init(int argc, char **argv)
                 opt_error(argv[i]);
                 exit(EXIT_FAILURE);
             }
-            opt_link = argv[++i];
-            continue;
+            opt_link = argv[i++];
         }
 
 #if ENABLE_DEDICATED_SERVER==1
@@ -345,14 +342,13 @@ static void opt_init(int argc, char **argv)
                 exit(EXIT_FAILURE);
             }
 
-            opt_ipaddr = argv[++i];
-            continue;
+            opt_ipaddr = argv[i++];
         }
 #endif
 
         /* Perform magic on a single unrecognized argument. */
 
-        if (argc == 2)
+        /*if (argc == 2)
         {
             size_t len = strlen(argv[i]);
             int level = 0;
@@ -378,7 +374,7 @@ static void opt_init(int argc, char **argv)
                 opt_replay = argv[i];
 
             break;
-        }
+        }*/
     }
 }
 
@@ -387,9 +383,22 @@ static void opt_init(int argc, char **argv)
 
 static void opt_quit(void)
 {
-    opt_data   = NULL;
+    while (opt_data_multi)
+    {
+        free(opt_data_multi->data);
+        opt_data_multi->data = NULL;
+        opt_data_multi = list_rest(opt_data_multi);
+    }
+
     opt_replay = NULL;
-    opt_level  = NULL;
+
+    while (opt_level_multi)
+    {
+        free(opt_level_multi->data);
+        opt_level_multi->data = NULL;
+        opt_level_multi = list_rest(opt_data_multi);
+    }
+
     opt_link   = NULL;
 }
 
@@ -1078,7 +1087,7 @@ static int is_replay(struct dir_item *item)
 
 static int is_score_file(struct dir_item *item)
 {
-    return str_starts_with(item->path, "neverballhs-");
+    return str_starts_with(item->path, "pennyballhs-");
 }
 
 static void make_dirs_and_migrate(void)
@@ -1117,7 +1126,7 @@ static void make_dirs_and_migrate(void)
             {
                 src = DIR_ITEM_GET(items, i)->path;
                 dst = concat_string("Scores/",
-                                    src + sizeof ("neverballhs-") - 1,
+                                    src + sizeof ("pennyballhs-") - 1,
                                     ".txt",
                                     NULL);
                 fs_rename(src, dst);
@@ -1265,7 +1274,20 @@ static int main_init(int argc, char *argv[])
 
     opt_init(argc, argv);
 
-    config_paths(opt_data);
+    List p             = NULL;
+    int  datadir_multi = 0;
+
+    for (p = opt_data_multi; p; p = p->next)
+    {
+        if (!datadir_multi)
+        {
+            config_paths(p->data);
+            datadir_multi = 1;
+        }
+        else
+            fs_add_path_with_archives(p->data);
+    }
+
     log_init("Neverball " VERSION, "neverball.log");
     config_log_userpath();
 #if NB_HAVE_PB_BOTH!=1
@@ -1378,9 +1400,7 @@ static int main_init(int argc, char *argv[])
         initialize_fetch();
 #endif
 
-#ifndef FS_VERSION_1
         package_init();
-#endif
 #ifndef DISABLE_PANORAMA
     }
 #endif
@@ -1555,10 +1575,8 @@ static void main_quit(void)
     {
 #endif
 
-#ifndef FS_VERSION_1
         package_quit();
         fetch_quit  ();
-#endif
 
 #if NB_HAVE_PB_BOTH==1
         networking_quit();
@@ -1634,10 +1652,9 @@ int main(int argc, char *argv[])
 
             log_printf("Panorama created! Placed in \"shot-panorama\"\n");
         }
-        else log_errorf("File %s is not in game path\n", opt_level);
+        else log_errorf("File %s is not in game path\n", opt_panorama);
 
         geom_free();
-
     }
     else
 #endif
@@ -1657,32 +1674,73 @@ int main(int argc, char *argv[])
             start_state = &st_title;
         }
     }
-    else if (opt_level)
+    else if (opt_level_multi)
     {
-        const char *path = fs_resolve(opt_level);
-        int loaded = 0;
+                      List  p = NULL;
+        static struct level lvl_v[30];
 
-        if (path)
+               int lvl_count        = 0;
+        static int lvl_count_loaded = 0;
+
+        static int lvl_classic = 0;
+        static int lvl_bonus   = 0;
+
+        for (p = opt_level_multi; p && lvl_count < 30; p = p->next)
         {
-            /* HACK: must be around for the duration of the game. */
-            static struct level level;
+            struct level *lvl = &lvl_v[lvl_count_loaded];
 
-            if (level_load(path, &level))
+            const char *path = fs_resolve(p->data);
+
+            if (path &&
+                (str_ends_with(path, ".csol") ||
+                 str_ends_with(path, ".sol")))
             {
-                progress_init(MODE_STANDALONE);
-
-                if (progress_play(&level))
+                if (level_load(path, lvl))
                 {
-                    start_state = &st_level;
-                    loaded = 1;
-                }
-            }
-            else log_errorf("File %s is not in game path\n", opt_level);
-        }
-        else log_errorf("File %s is not in game path\n", opt_level);
+                    /* No bonus or master levels allowed on this standalone */
 
-        if (!loaded)
+                    if (!lvl->is_master && !lvl->is_bonus)
+                    {
+                        if (lvl_count_loaded > 0)
+                        {
+                            memset(lvl_v[lvl_count_loaded - 1].next, 0, sizeof (struct level));
+                            lvl_v[lvl_count_loaded - 1].next = lvl;
+                        }
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        sprintf_s(lvl->name, MAXSTR,
+#else
+                        sprintf(lvl->name,
+#endif
+                                "%d", lvl_count_loaded + 1);
+
+                        lvl_count_loaded++;
+                    }
+                    else memset(lvl, 0, sizeof (struct level));
+                }
+                else log_errorf("File %s is not in game path (at index %d)\n", p->data, lvl_count_loaded);
+            }
+            else log_errorf("File %s is not in game path (at index %d)\n", p->data, lvl_count_loaded);
+
+            lvl_count++;
+        }
+
+        progress_init(MODE_STANDALONE);
+
+        /* Check whether standalone set is loaded correctly. */
+
+        if (lvl_count_loaded != 0 && progress_play(&lvl_v[0]))
         {
+            /* Start standalone set! */
+
+            start_state = &st_level;
+        }
+        else
+        {
+            /* ...otherwise go to main menu screen. */
+
+            progress_init(MODE_NONE);
+
 #ifdef SKIP_END_SUPPORT
             start_state = &st_title;
 #else

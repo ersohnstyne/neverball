@@ -545,7 +545,8 @@ int level_load(const char *filename, struct level *level)
 
     if (!sol_load_meta(&base, filename))
     {
-        log_errorf("Failure to load level file '%s'\n", filename);
+        log_errorf("Failure to load level file: %s / %s\n",
+                   filename, fs_error());
         return 0;
     }
 

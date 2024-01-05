@@ -113,7 +113,7 @@ static int switchball_useable(void)
 
 int load_title_background(void)
 {
-#if NB_HAVE_PB_BOTH && defined(CONFIG_INCLUDES_ACCOUNT)
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     game_client_toggle_show_balls(!CHECK_ACCOUNT_BANKRUPT);
 #else
     game_client_toggle_show_balls(1);
@@ -154,12 +154,6 @@ int load_title_background(void)
 
 static const char *check_unlocked_demo(struct demo *rawdemo)
 {
-    if (!rawdemo)
-    {
-        /* Nope, only replays are valid! */
-        return NULL;
-    }
-
     int limit = config_get_d(CONFIG_ACCOUNT_LOAD);
     int max = 0;
 
@@ -176,43 +170,50 @@ static const char *check_unlocked_demo(struct demo *rawdemo)
 
 static const char *pick_demo(Array items)
 {
-    struct dir_item *item;
+    int total        = array_len(items);
+    int selectedDemo = rand_between(0, total - 1);
 
-    /* Super complexity demo logic */
+    demo_dir_load(items, 0, total - 1);
 
-    if (config_get_d(CONFIG_ACCOUNT_LOAD) != 3)
-    {
-        int total = array_len(items);
-        int selectedDemo = rand_between(0, total - 1);
+    struct demo* demo_data = ((struct demo*) ((struct dir_item*) array_get(items, selectedDemo))->data);
 
-        demo_dir_load(items, 0, total - 1);
+    /* Have demo data? */
 
-        struct demo *demo_data = ((struct demo *) ((struct dir_item *) array_get(items, selectedDemo))->data);
-#if defined(COVID_HIGH_RISK)
-        const char *demopath = check_unlocked_demo(demo_data);
-        if (demopath)
-            return demopath;
-        else
-        {
-            log_errorf("Replay files deleted due covid high risks!: %s", 
-                       demo_data->path);
-            demo_is_loaded = 0;
-            fs_remove(demo_data->path);
-            demo_dir_free(items);
-            items = NULL;
-            return NULL;
-        }
-#else
-        return check_unlocked_demo(demo_data);
+    if (!demo_data) return NULL;
+
+#if NB_HAVE_PB_BOTH==1
+    /* Classic only? */
+
+    if (demo_data->mode != MODE_NORMAL) return NULL;
+
+    /* Less than ten minutes? */
+
+    if ((demo_data->timer / 6000.f) >= 10) return NULL;
 #endif
+
+    /* Compatibility supported? */
+
+    if (!game_compat_map) return NULL;
+
+    /* OK, demo file opened, but test! */
+
+#if defined(COVID_HIGH_RISK)
+    const char* demopath = check_unlocked_demo(demo_data);
+    if (demopath)
+        return demopath;
+    else
+    {
+        log_errorf("Replay files deleted due covid high risks!: %s",
+                   demo_data->path);
+        demo_is_loaded = 0;
+        demo_dir_free(items);
+        fs_remove(demo_data->path);
+        items = NULL;
+        return NULL;
     }
-
-    /* All replay status */
-
-    if ((item = (struct dir_item *) array_rnd(items)))
-        return item->path;
-
-    return NULL;
+#else
+    return check_unlocked_demo(demo_data);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1036,7 +1037,7 @@ static int title_enter(struct state *st, struct state *prev)
 
     if (switchball_useable() && load_title_background())
         mode = TITLE_MODE_LEVEL;
-#if NB_HAVE_PB_BOTH && defined(CONFIG_INCLUDES_ACCOUNT)
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     else if (!CHECK_ACCOUNT_BANKRUPT &&
              progress_replay_full("gui/title/title-l.nbr", 0, 0, 0, 0, 0, 0))
 #else
@@ -1141,7 +1142,7 @@ static void title_timer(int id, float dt)
                 {
                     if (progress_replay_full(demo, 0, 0, 0, 0, 0, 0))
                         TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
-#if NB_HAVE_PB_BOTH && defined(CONFIG_INCLUDES_ACCOUNT)
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                     else if (!CHECK_ACCOUNT_BANKRUPT &&
                              progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
                                                                 "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
@@ -1153,7 +1154,7 @@ static void title_timer(int id, float dt)
                     else if (load_title_background())
                         mode = TITLE_MODE_LEVEL;
                 }
-#if NB_HAVE_PB_BOTH && defined(CONFIG_INCLUDES_ACCOUNT)
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                 else if (!CHECK_ACCOUNT_BANKRUPT &&
                          progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
                                                             "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
@@ -1194,7 +1195,7 @@ static void title_timer(int id, float dt)
 
                 if (switchball_useable() && load_title_background())
                     mode = TITLE_MODE_LEVEL;
-#if NB_HAVE_PB_BOTH && defined(CONFIG_INCLUDES_ACCOUNT)
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                 else if (!CHECK_ACCOUNT_BANKRUPT &&
                          progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
                                                             "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))

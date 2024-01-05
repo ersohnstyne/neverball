@@ -184,11 +184,7 @@ int demo_load(struct demo *d, const char *path)
 
         memset(d, 0, sizeof (*d));
 
-#ifdef FS_VERSION_1
-        if ((fp = fs_open(path, "r")))
-#else
         if ((fp = fs_open_read(path)))
-#endif
         {
             SAFECPY(d->path, path);
             SAFECPY(d->name, demo_name(path));
@@ -402,11 +398,7 @@ int demo_play_init(const char *name, const struct level *level,
     d->times = times;
 
     d->speedpercent = speedpercent;
-#ifdef FS_VERSION_1
-    if ((demo_fp = fs_open(d->path, "w")))
-#else
     if ((demo_fp = fs_open_write(d->path)))
-#endif
     {
         demo_header_write(demo_fp, d);
         return 1;
@@ -533,11 +525,7 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
 {
     lockstep_clr(&update_step);
 
-#ifdef FS_VERSION_1
-    if ((demo_fp = fs_open(path, "r")))
-#else
     if ((demo_fp = fs_open_read(path)))
-#endif
     {
         if (demo_header_read(demo_fp, &demo_replay))
         {
@@ -585,7 +573,8 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
                 }
             }
             else
-                log_errorf("Could not find level map!: %s\n", demo_replay.file);
+                log_errorf("Could not find level map!: %s / %s\n",
+                           demo_replay.file, fs_error());
         }
         else
             log_errorf("Could not find the replay header file!\n");
@@ -594,7 +583,8 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
         demo_fp = NULL;
     }
     else
-        log_errorf("Could not find the replay file!: %s\n", path);
+        log_errorf("Could not find the replay file!: %s / %s\n",
+                   path, fs_error());
 
     return 0;
 }

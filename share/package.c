@@ -342,11 +342,7 @@ static int load_installed_packages(void)
     const char *default_filename = "installed-packages.txt";
 #endif
 
-#ifdef FS_VERSION_1
-    fs_file fp = fs_open(get_package_path(default_filename), "r");
-#else
     fs_file fp = fs_open_read(get_package_path(default_filename));
-#endif
 
     if (fp)
     {

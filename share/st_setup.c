@@ -322,11 +322,7 @@ static const char *get_updated_path(const char *filename)
 
 static int load_updated_version(void)
 {
-#ifdef FS_VERSION_1
-    fs_file fp = fs_open(get_updated_path("version.txt"), "r");
-#else
     fs_file fp = fs_open_read(get_updated_path("version.txt"));
-#endif
 
     if (fp)
     {
@@ -621,19 +617,17 @@ static int game_setup_action(int tok, int val)
         switch (tok)
         {
             case GUI_PREV:
-                if (setup_langs_first > 1)
-                {
-                    setup_langs_first -= SETUP_LANG_STEP;
-                    return goto_state(&st_game_setup);
-                }
+                setup_langs_first = MAX(setup_langs_first - SETUP_LANG_STEP, 0);
+
+                return goto_state(&st_game_setup);
+
                 break;
 
             case GUI_NEXT:
-                if (setup_langs_first + SETUP_LANG_STEP < total)
-                {
-                    setup_langs_first += SETUP_LANG_STEP;
-                    return goto_state(&st_game_setup);
-                }
+                setup_langs_first = MIN(setup_langs_first + SETUP_LANG_STEP, total - 1);
+
+                return goto_state(&st_game_setup);
+
                 break;
 
             case SETUP_LANG_DEFAULT:

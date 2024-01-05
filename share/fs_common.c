@@ -284,17 +284,9 @@ void *fs_load(const char *path, int *datalen)
 
     data = NULL;
 
-#ifdef FS_VERSION_1
-    if ((fh = fs_open(path, "r")))
-#else
     if ((fh = fs_open_read(path)))
-#endif
     {
-#ifdef FS_VERSION_1
-        if ((*datalen = fs_length(fh)) > 0)
-#else
         if ((*datalen = fs_size(path)) > 0)
-#endif
         {
             if ((data = malloc(*datalen)))
             {

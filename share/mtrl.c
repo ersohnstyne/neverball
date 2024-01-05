@@ -139,7 +139,8 @@ static void load_mtrl_objects(struct mtrl *mp)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     }
     else
-        log_errorf("Failed to load texture \"%s\"\n", _(mp->base.f));
+        log_errorf("Failed to load texture: %s / %s\n",
+                   _(mp->base.f), fs_error());
 }
 
 /*

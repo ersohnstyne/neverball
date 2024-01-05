@@ -113,9 +113,13 @@ static List  fs_path;
 
 int fs_init(const char *argv0)
 {
-    fs_dir_base = strdup(argv0 && *argv0 ? dir_name(argv0) : ".");
+    fs_dir_base  = strdup(argv0 && *argv0 ? dir_name(argv0) : ".");
     fs_dir_write = NULL;
-    fs_path = NULL;
+    fs_path      = NULL;
+
+#ifndef NDEBUG
+    assert(fs_dir_base);
+#endif
 
     return fs_dir_base != 0;
 }
@@ -284,6 +288,11 @@ int fs_set_write_dir(const char *path)
 
         log_printf("FS: writing to \"%s\"\n", path);
         fs_dir_write = strdup(path);
+
+#ifndef NDEBUG
+        assert(fs_dir_write);
+#endif
+
         return 1;
     }
     return 0;

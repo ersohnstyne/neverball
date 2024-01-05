@@ -257,11 +257,7 @@ int  account_transfer_exists(void)
 #endif
             "Accounts_transfer/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
 
-#ifdef FS_VERSION_1
-    fs_file input = fs_open(paths, "r");
-#else
     fs_file input = fs_open_read(paths);
-#endif
 
     account_transfer_busy = 1;
     if (input)
@@ -286,11 +282,7 @@ void account_transfer_load(const char *paths)
         return;
     }
 
-#ifdef FS_VERSION_1
-    if (fh = fs_open(paths, "r"))
-#else
     if (fh = fs_open_read(paths))
-#endif
     {
         account_transfer_busy = 1;
 #if ENABLE_ACCOUNT_BINARY
@@ -361,11 +353,7 @@ void account_transfer_load_externals(const char *paths)
         return;
     }
 
-#ifdef FS_VERSION_1
-    if (fh = fs_open(paths, "r"))
-#else
     if (fh = fs_open_read(paths))
-#endif
     {
         account_transfer_busy = 1;
 #if ENABLE_ACCOUNT_BINARY
@@ -445,11 +433,7 @@ void account_transfer_save(const char *playername)
         return;
     }
 
-#ifdef FS_VERSION_1
-    if (fh = fs_open(paths, "w"))
-#else
     if (fh = fs_open_write(paths))
-#endif
     {
         account_transfer_busy = 1;
 #if ENABLE_ACCOUNT_BINARY

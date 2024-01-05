@@ -351,7 +351,19 @@ int common_click(int b, int d)
 
 int common_keybd(int c, int d)
 {
-    return (d && c == KEY_EXIT) ? common_action(GUI_BACK, 0) : 1;
+    if (d)
+    {
+        if (c == KEY_EXIT)
+            return common_action(GUI_BACK, 0);
+
+        if (c == SDLK_LEFTBRACKET)
+            return common_action(GUI_PREV, 0);
+
+        if (c == SDLK_RIGHTBRACKET)
+            return common_action(GUI_NEXT, 0);
+    }
+
+    return 1;
 }
 
 int common_buttn(int b, int d)
@@ -1561,19 +1573,17 @@ static int lang_action(int tok, int val)
             break;
 
         case GUI_PREV:
-            if (first > 1)
-            {
-                first -= LANG_STEP;
-                return goto_state(&st_lang);
-            }
+            first = MAX(first - LANG_STEP, 0);
+
+            return goto_state(&st_lang);
+
             break;
 
         case GUI_NEXT:
-            if (first + LANG_STEP < total)
-            {
-                first += LANG_STEP;
-                return goto_state(&st_lang);
-            }
+            first = MIN(first + LANG_STEP, total - 1);
+
+            return goto_state(&st_lang);
+
             break;
 
         case LANG_DEFAULT:

@@ -163,11 +163,7 @@ void rfd_load(void)
 
     const char *filename = "rfdconf.txt";
 
-#ifdef FS_VERSION_1
-    if ((fh = fs_open(filename, "r")))
-#else
     if ((fh = fs_open_read(filename)))
-#endif
     {
         char *line, *key, *val;
 

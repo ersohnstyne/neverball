@@ -235,9 +235,7 @@ const char *date_to_str(time_t);
 
 int  file_exists(const char *);
 int  file_rename(const char *, const char *);
-#ifndef FS_VERSION_1
 int  file_size(const char *path);
-#endif
 void file_copy(FILE *fin, FILE *fout);
 
 /* Paths. */

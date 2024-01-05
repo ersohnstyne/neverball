@@ -129,11 +129,7 @@ void accessibility_load(void)
 
     char *filename = strdup("accessibility");
 
-#ifdef FS_VERSION_1
-    if ((fh = fs_open(filename, "r")))
-#else
     if ((fh = fs_open_read(filename)))
-#endif
     {
         accessibility_busy = 1;
         char *line, * key, * val;
@@ -185,11 +181,7 @@ void accessibility_save(void)
 
     char *filename = strdup("accessibility");
 
-#ifdef FS_VERSION_1
-    if ((fh = fs_open(filename, "w")))
-#else
     if ((fh = fs_open_write(filename)))
-#endif
     {
         accessibility_busy = 1;
         int i;

@@ -264,11 +264,7 @@ void account_load(void)
         return;
     }
 
-#ifdef FS_VERSION_1
-    if (dirty && (fh = fs_open(paths, "r")))
-#else
     if (dirty && (fh = fs_open_read(paths)))
-#endif
     {
         account_busy = 1;
 
@@ -340,11 +336,7 @@ void account_save(void)
 
     account_set_s(ACCOUNT_PLAYER, config_get_s(CONFIG_PLAYER));
 
-#ifdef FS_VERSION_1
-    if (dirty && (fh = fs_open(paths, "w")))
-#else
     if (dirty && (fh = fs_open_write(paths)))
-#endif
     {
         account_busy = 1;
 

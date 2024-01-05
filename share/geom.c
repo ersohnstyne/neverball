@@ -553,7 +553,8 @@ void back_init(const char *name)
         mp->o = make_image_from_file(name, IF_MIPMAP);
 
         if (!mp->o)
-            log_errorf("Failed to load background image \"%s\"\n", name);
+            log_errorf("Failed to load background image: %s / %s\n",
+                       name, fs_error());
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 
@@ -931,15 +932,12 @@ void light_load(void)
     int light = -1;
 
     fs_file fp;
-    float v[4];
-    int i;
+    float   v[4];
+    int     i;
 
     light_reset();
-#ifdef FS_VERSION_1
-    if ((fp = fs_open("lights.txt", "r")))
-#else
+
     if ((fp = fs_open_read("lights.txt")))
-#endif
     {
         while (fs_gets(buf, sizeof (buf), fp))
         {

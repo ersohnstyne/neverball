@@ -198,11 +198,8 @@ static struct voice *voice_init(const char *filename, float a)
         V->name = strdup(filename);
 
         /* Attempt to open the named Ogg stream. */
-#ifdef FS_VERSION_1
-        if ((fp = fs_open(filename, "r")))
-#else
+
         if ((fp = fs_open_read(filename)))
-#endif
         {
             if (ov_open_callbacks(fp, &V->vf, NULL, 0, callbacks) == 0)
             {

@@ -202,11 +202,8 @@ int lang_load(struct lang_desc *desc, const char *path)
         fs_file fp;
 
         memset(desc, 0, sizeof (*desc));
-#ifdef FS_VERSION_1
-        if ((fp = fs_open(path, "r")))
-#else
+
         if ((fp = fs_open_read(path)))
-#endif
         {
             char buf[MAXSTR];
 

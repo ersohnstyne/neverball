@@ -413,6 +413,56 @@ static void sol_load_indx(fs_file fin, struct s_base *fp)
     fp->ic = get_index(fin);
 }
 
+#ifdef MAPC_INCLUDES_CHKP
+#define SOL_BASE_CHECK_LOAD \
+    if (fp->ac && fp->av == NULL) return 0; \
+    if (fp->mc && fp->mv == NULL) return 0; \
+    if (fp->vc && fp->vv == NULL) return 0; \
+    if (fp->ec && fp->ev == NULL) return 0; \
+    if (fp->sc && fp->sv == NULL) return 0; \
+    if (fp->tc && fp->tv == NULL) return 0; \
+    if (fp->oc && fp->ov == NULL) return 0; \
+    if (fp->gc && fp->gv == NULL) return 0; \
+    if (fp->lc && fp->lv == NULL) return 0; \
+    if (fp->nc && fp->nv == NULL) return 0; \
+    if (fp->pc && fp->pv == NULL) return 0; \
+    if (fp->bc && fp->bv == NULL) return 0; \
+    if (fp->hc && fp->hv == NULL) return 0; \
+    if (fp->zc && fp->zv == NULL) return 0; \
+    if (fp->jc && fp->jv == NULL) return 0; \
+    if (fp->xc && fp->xv == NULL) return 0; \
+    if (fp->rc && fp->rv == NULL) return 0; \
+    if (fp->uc && fp->uv == NULL) return 0; \
+    if (sol_version > SOL_VERSION_1_7 && fp->cc && fp->cv == NULL) return 0; \
+    if (fp->wc && fp->wv == NULL) return 0; \
+    if (fp->dc && fp->dv == NULL) return 0; \
+    if (fp->ic && fp->iv == NULL) return 0
+#else
+
+#define SOL_BASE_CHECK_LOAD \
+    if (fp->ac && fp->av == NULL) return 0; \
+    if (fp->mc && fp->mv == NULL) return 0; \
+    if (fp->vc && fp->vv == NULL) return 0; \
+    if (fp->ec && fp->ev == NULL) return 0; \
+    if (fp->sc && fp->sv == NULL) return 0; \
+    if (fp->tc && fp->tv == NULL) return 0; \
+    if (fp->oc && fp->ov == NULL) return 0; \
+    if (fp->gc && fp->gv == NULL) return 0; \
+    if (fp->lc && fp->lv == NULL) return 0; \
+    if (fp->nc && fp->nv == NULL) return 0; \
+    if (fp->pc && fp->pv == NULL) return 0; \
+    if (fp->bc && fp->bv == NULL) return 0; \
+    if (fp->hc && fp->hv == NULL) return 0; \
+    if (fp->zc && fp->zv == NULL) return 0; \
+    if (fp->jc && fp->jv == NULL) return 0; \
+    if (fp->xc && fp->xv == NULL) return 0; \
+    if (fp->rc && fp->rv == NULL) return 0; \
+    if (fp->uc && fp->uv == NULL) return 0; \
+    if (fp->wc && fp->wv == NULL) return 0; \
+    if (fp->dc && fp->dv == NULL) return 0; \
+    if (fp->ic && fp->iv == NULL) return 0
+#endif
+
 static int sol_load_file(fs_file fin, struct s_base *fp)
 {
     int i;
@@ -474,6 +524,10 @@ static int sol_load_file(fs_file fin, struct s_base *fp)
     if (fp->ic)
         fp->iv = (int *)           calloc(fp->ic, sizeof (*fp->iv));
 
+    /* HACK: Well, do check some... */
+
+    SOL_BASE_CHECK_LOAD;
+
     if (fp->ac)
         fs_read(fp->av, fp->ac, fin);
 
@@ -509,6 +563,8 @@ static int sol_load_file(fs_file fin, struct s_base *fp)
     {
         fp->uc = 1;
         fp->uv = (struct b_ball *) calloc(fp->uc, sizeof (*fp->uv));
+
+        if (fp->uv == NULL) return 0;
     }
 
     /* Add lit flag to old materials. */
@@ -535,6 +591,9 @@ static int sol_load_head(fs_file fin, struct s_base *fp)
     if (fp->ac)
     {
         fp->av = (char *) calloc(fp->ac, sizeof (*fp->av));
+
+        if (fp->av == NULL) return 0;
+
         fs_read(fp->av, fp->ac, fin);
     }
 
@@ -543,6 +602,8 @@ static int sol_load_head(fs_file fin, struct s_base *fp)
         int i;
 
         fp->dv = (struct b_dict *) calloc(fp->dc, sizeof (*fp->dv));
+
+        if (fp->dv == NULL) return 0;
 
         for (i = 0; i < fp->dc; i++)
             sol_load_dict(fin, fp->dv + i);
@@ -557,11 +618,8 @@ int sol_load_base(struct s_base *fp, const char *filename)
     int res = 0;
 
     memset(fp, 0, sizeof (*fp));
-#ifdef FS_VERSION_1
-    if ((fin = fs_open(filename, "r")))
-#else
+
     if ((fin = fs_open_read(filename)))
-#endif
     {
         res = sol_load_file(fin, fp);
         fs_close(fin);
@@ -576,11 +634,7 @@ int sol_load_meta(struct s_base *fp, const char *filename)
 
     memset(fp, 0, sizeof (*fp));
 
-#ifdef FS_VERSION_1
-    if ((fin = fs_open(filename, "r")))
-#else
     if ((fin = fs_open_read(filename)))
-#endif
     {
         res = sol_load_head(fin, fp);
         fs_close(fin);
@@ -875,11 +929,7 @@ int sol_stor_base(struct s_base *fp, const char *filename)
 {
     fs_file fout;
 
-#ifdef FS_VERSION_1
-    if ((fout = fs_open(filename, "w")))
-#else
     if ((fout = fs_open_write(filename)))
-#endif
     {
         sol_stor_file(fout, fp);
         fs_close(fout);
@@ -966,11 +1016,8 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
         for (i = 0; i < ARRAYSIZE(mtrl_paths); i++)
         {
             CONCAT_PATH(line, &mtrl_paths[i], name);
-#ifdef FS_VERSION_1
-            if ((fp = fs_open(line, "r")))
-#else
+
             if ((fp = fs_open_read(line)))
-#endif
                 break;
         }
 

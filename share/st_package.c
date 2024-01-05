@@ -327,24 +327,18 @@ static int package_action(int tok, int val)
             break;
 
         case GUI_PREV:
-            if (first > 1)
-            {
-                first -= PACKAGE_STEP;
+            first = MAX(first - PACKAGE_STEP, 0);
 
-                do_init = 0;
-                return goto_state(&st_package);
-            }
+            do_init = 0;
+            return goto_state(&st_package);
 
             break;
 
         case GUI_NEXT:
-            if (first + PACKAGE_STEP < total)
-            {
-                first += PACKAGE_STEP;
+            first = MIN(first + PACKAGE_STEP, total - 1);
 
-                do_init = 0;
-                return goto_state(&st_package);
-            }
+            do_init = 0;
+            return goto_state(&st_package);
 
             break;
 

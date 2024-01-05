@@ -72,11 +72,7 @@ static void *image_load_png(const char *filename, int *width,
 
     /* Initialize all PNG import data structures. */
 
-#ifdef FS_VERSION_1
-    if (!(fh = fs_open(filename, "r")))
-#else
     if (!(fh = fs_open_read(filename)))
-#endif
         return NULL;
 
     if (!(readp = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0)))
@@ -173,11 +169,7 @@ static void *image_load_jpg(const char *filename, int *width,
     unsigned char *p = NULL;
     fs_file fp;
 
-#ifdef FS_VERSION_1
-    if ((fp = fs_open(filename, "r")))
-#else
     if ((fp = fs_open_read(filename)))
-#endif
     {
         struct jpeg_decompress_struct cinfo;
         struct image_jpg_error        err;

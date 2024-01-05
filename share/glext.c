@@ -123,7 +123,7 @@ int glext_check_ext(const char *needle)
 
     /* Search for the given string in the OpenGL extension strings. */
 
-    for (haystack = glGetString(GL_EXTENSIONS); *haystack; haystack++)
+    for (haystack = glGetString(GL_EXTENSIONS); haystack && *haystack; haystack++)
     {
         for (c = (const GLubyte *) needle; *c && *haystack; c++, haystack++)
             if (*c != *haystack)

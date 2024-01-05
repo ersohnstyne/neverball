@@ -293,15 +293,15 @@ int file_rename(const char *src, const char *dst)
     return rename(src, dst) == 0;
 }
 
-#ifndef FS_VERSION_1
 int file_size(const char *path)
 {
     struct stat buf;
+
     if (stat(path, &buf) == 0)
         return (int) buf.st_size;
+
     return 0;
 }
-#endif
 
 void file_copy(FILE* fin, FILE* fout)
 {

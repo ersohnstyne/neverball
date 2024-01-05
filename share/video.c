@@ -460,6 +460,10 @@ video_mode_reconf:
      * Default RGB size: 5 - Either 5 (16-bit) or 8 (32-bit)
      */
 
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   0);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 0);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  0);
+
     int rgb_size_fixed = 5;
 
     /*
@@ -477,6 +481,7 @@ video_mode_reconf:
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 64);
     */
 
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   16);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     /* Try to set the currently specified mode. */
@@ -872,6 +877,10 @@ video_mode_auto_config_reconf:
      * Default RGB size: 5 - Either 5 (16-bit) or 8 (32-bit)
      */
 
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   0);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 0);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  0);
+
     int rgb_size_fixed = 5;
 
     /*
@@ -888,7 +897,8 @@ video_mode_auto_config_reconf:
     else if (rgb_size_fixed * 3 < 64)
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 64);
     */
-
+    
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   16);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     log_printf("Creating a window (%dx%d, %s (auto configuration))\n",

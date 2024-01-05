@@ -14,6 +14,10 @@
 
 /*---------------------------------------------------------------------------*/
 
+#ifndef _CONSOLE
+#define _CONSOLE 1
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h> /* offsetof */
@@ -43,6 +47,14 @@
 #include "base_config.h"
 #include "fs.h"
 #include "common.h"
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
 
 #ifndef MAXSTR
 #define MAXSTR MAX_STR_BLOCKREASON
@@ -83,6 +95,16 @@ static int       campaign_budget = 0;
 static int       campaign_use_author_encrypt = 0;
 
 /*---------------------------------------------------------------------------*/
+
+#ifdef MESSAGE
+#undef MESSAGE
+#endif
+#ifdef WARNING
+#undef WARNING
+#endif
+#ifdef ERROR
+#undef ERROR
+#endif
 
 #if ENABLE_RADIANT_CONSOLE
 
@@ -183,7 +205,7 @@ static void bcast_send_msg(int lvl, const char *str)
     maxstr = sizeof (buf) - sizeof ("<message level=\"1\"></message>");
 
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
-    sprintf_s(buf, dstSize, "<message level=\"%1d\">%.*s</message>", lvl, maxstr, str);
+    sprintf_s(buf, 512, "<message level=\"%1d\">%.*s</message>", lvl, maxstr, str);
 #else
     sprintf(buf, "<message level=\"%1d\">%.*s</message>", lvl, maxstr, str);
 #endif
@@ -596,8 +618,12 @@ static void free_imagedata(void)
     if (imagedata)
     {
         for (i = 0; i < image_n; i++)
+        {
             free(imagedata[i].s);
+            imagedata[i].s = NULL;
+        }
         free(imagedata);
+        imagedata = NULL;
     }
 
     image_n = image_alloc = 0;
@@ -610,6 +636,7 @@ static int size_load(const char *file, int *w, int *h)
     if ((p = image_load(file, w, h, NULL)))
     {
         free(p);
+        p = NULL;
         return 1;
     }
     return 0;
@@ -649,13 +676,14 @@ static void size_image(const char *name, int *w, int *h)
                 (struct _imagedata *) malloc(sizeof(struct _imagedata) * (image_alloc + IMAGE_REALLOC));
             if (!tmp)
             {
-                printf("malloc error\n");
+                MAPC_LOG_ERROR("malloc error\n");
                 exit(1);
             }
             if (imagedata)
             {
                 (void) memcpy(tmp, imagedata, sizeof(struct _imagedata) * image_alloc);
                 free(imagedata);
+                imagedata = NULL;
             }
             imagedata = tmp;
             image_alloc += IMAGE_REALLOC;
@@ -769,6 +797,7 @@ static void move_body(struct s_base *fp,
                 move_vert(fp->vv + i, fp->pv[bp->pi].p);
 
         free(b);
+        b = NULL;
     }
 }
 
@@ -795,21 +824,33 @@ static void read_vt(struct s_base *fp, const char *line)
 {
     struct b_texc *tp = fp->tv + inct(fp);
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sscanf_s(line, "%f %f", tp->u, tp->u + 1);
+#else
     sscanf(line, "%f %f", tp->u, tp->u + 1);
+#endif
 }
 
 static void read_vn(struct s_base *fp, const char *line)
 {
     struct b_side *sp = fp->sv + incs(fp);
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sscanf_s(line, "%f %f %f", sp->n, sp->n + 1, sp->n + 2);
+#else
     sscanf(line, "%f %f %f", sp->n, sp->n + 1, sp->n + 2);
+#endif
 }
 
 static void read_v(struct s_base *fp, const char *line)
 {
     struct b_vert *vp = fp->vv + incv(fp);
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sscanf_s(line, "%f %f %f", vp->p, vp->p + 1, vp->p + 2);
+#else
     sscanf(line, "%f %f %f", vp->p, vp->p + 1, vp->p + 2);
+#endif
 }
 
 static void read_f(struct s_base *fp, const char *line,
@@ -824,10 +865,17 @@ static void read_f(struct s_base *fp, const char *line,
     char c1;
     char c2;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sscanf_s(line, "%d%c%d%c%d %d%c%d%c%d %d%c%d%c%d",
+             &o0->vi, &c1, &o0->ti, &c2, &o0->si,
+             &o1->vi, &c1, &o1->ti, &c2, &o1->si,
+             &o2->vi, &c1, &o2->ti, &c2, &o2->si);
+#else
     sscanf(line, "%d%c%d%c%d %d%c%d%c%d %d%c%d%c%d",
            &o0->vi, &c1, &o0->ti, &c2, &o0->si,
            &o1->vi, &c1, &o1->ti, &c2, &o1->si,
            &o2->vi, &c1, &o2->ti, &c2, &o2->si);
+#endif
 
     o0->vi += (v0 - 1);
     o1->vi += (v0 - 1);
@@ -851,17 +899,18 @@ static void read_obj(struct s_base *fp, const char *name, int mi)
     int v0 = fp->vc;
     int t0 = fp->tc;
     int s0 = fp->sc;
-#if defined(FS_VERSION_1)
-    if ((fin = fs_open(name, "r")))
-#else
+
     if ((fin = fs_open_read(name)))
-#endif
     {
         while (fs_gets(line, MAXSTR, fin))
         {
             if (strncmp(line, "usemtl", 6) == 0)
             {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sscanf_s(line + 6, "%s", mtrl);
+#else
                 sscanf(line + 6, "%s", mtrl);
+#endif
                 mi = read_mtrl(fp, mtrl);
             }
 
@@ -1041,6 +1090,17 @@ static int map_token(fs_file fin, int pi, char key[MAXSTR], char val[MAXSTR])
 
         /* Scan a plane. */
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        if (doit == 1 && sscanf_s(buf,
+                   "( %f %f %f ) "
+                   "( %f %f %f ) "
+                   "( %f %f %f ) "
+                   "%s %f %f %f %f %f %d",
+                   &x0, &y0, &z0,
+                   &x1, &y1, &z1,
+                   &x2, &y2, &z2,
+                   key, &tu, &tv, &r, &su, &sv, &fl) >= 15)
+#else
         if (doit == 1 && sscanf(buf,
                    "( %f %f %f ) "
                    "( %f %f %f ) "
@@ -1050,6 +1110,7 @@ static int map_token(fs_file fin, int pi, char key[MAXSTR], char val[MAXSTR])
                    &x1, &y1, &z1,
                    &x2, &y2, &z2,
                    key, &tu, &tv, &r, &su, &sv, &fl) >= 15)
+#endif
         {
             make_plane(pi, x0, y0, z0,
                        x1, y1, z1,
@@ -1139,7 +1200,11 @@ static int request_legacy(char k[][MAXSTR],
     for (leg = 0; leg < c; leg++)
     {
         if (strcmp(k[leg], "radius") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[leg], "%f", &specification_radius);
+#else
             sscanf(v[leg], "%f", &specification_radius);
+#endif
     }
     for (leg = 0; leg < c; leg++)
     {
@@ -1166,7 +1231,7 @@ static void make_path(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating paths...\n");
 #endif
     int i, pi = incp(fp);
@@ -1193,7 +1258,11 @@ static void make_path(struct s_base *fp,
             pp->f = atoi(v[i]);
 
         if (strcmp(k[i], "speed") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f", &pp->t);
+#else
             sscanf(v[i], "%f", &pp->t);
+#endif
 
         if (strcmp(k[i], "smooth") == 0)
             pp->s = atoi(v[i]);
@@ -1202,7 +1271,11 @@ static void make_path(struct s_base *fp,
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f %f %f", &x, &y, &z);
+#else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
+#endif
 
             pp->p[0] = +x / SCALE;
             pp->p[1] = +z / SCALE;
@@ -1223,7 +1296,11 @@ static void make_path(struct s_base *fp,
 
             /* Yaw. */
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f", &y);
+#else
             sscanf(v[i], "%f", &y);
+#endif
             q_by_axisangle(pp->e, Y, V_RAD(+y));
             pp->fl |= P_ORIENTED;
         }
@@ -1239,7 +1316,11 @@ static void make_path(struct s_base *fp,
 
             /* Pitch, yaw and roll. */
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f %f %f", &x, &y, &z);
+#else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
+#endif
 
             q_by_axisangle(pp->e, Y, V_RAD(+y));
 
@@ -1289,7 +1370,7 @@ static void make_body(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c, int l0)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating objects...\n");
 #endif
     int i, mi = 0, bi = incb(fp);
@@ -1324,7 +1405,11 @@ static void make_body(struct s_base *fp,
             read_obj(fp, v[i], mi);
 
         else if (strcmp(k[i], "origin") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f %f %f", &x, &y, &z);
+#else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
+#endif
 
         else if (read_dict_entries && strcmp(k[i], "classname") != 0)
             make_dict(fp, k[i], v[i]);
@@ -1352,7 +1437,7 @@ static void make_item(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating items...\n");
 #endif
     int i, hi = inch(fp);
@@ -1381,13 +1466,20 @@ static void make_item(struct s_base *fp,
         }
 
         if (strcmp(k[i], "light") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%d", &hp->n);
+#else
             sscanf(v[i], "%d", &hp->n);
-
+#endif
         if (strcmp(k[i], "origin") == 0)
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f %f %f", &x, &y, &z);
+#else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
+#endif
 
             hp->p[0] = +x / SCALE;
             hp->p[1] = +z / SCALE;
@@ -1400,7 +1492,7 @@ static void make_bill(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating billboard...\n");
 #endif
     int i, ri = incr(fp);
@@ -1412,6 +1504,26 @@ static void make_bill(struct s_base *fp,
 
     for (i = 0; i < c; i++)
     {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        if (strcmp(k[i], "width") == 0)
+            sscanf_s(v[i], "%f %f %f", rp->w, rp->w + 1, rp->w + 2);
+        if (strcmp(k[i], "height") == 0)
+            sscanf_s(v[i], "%f %f %f", rp->h, rp->h + 1, rp->h + 2);
+
+        if (strcmp(k[i], "xrot") == 0)
+            sscanf_s(v[i], "%f %f %f", rp->rx, rp->rx + 1, rp->rx + 2);
+        if (strcmp(k[i], "yrot") == 0)
+            sscanf_s(v[i], "%f %f %f", rp->ry, rp->ry + 1, rp->ry + 2);
+        if (strcmp(k[i], "zrot") == 0)
+            sscanf_s(v[i], "%f %f %f", rp->rz, rp->rz + 1, rp->rz + 2);
+
+        if (strcmp(k[i], "time") == 0)
+            sscanf_s(v[i], "%f", &rp->t);
+        if (strcmp(k[i], "dist") == 0)
+            sscanf_s(v[i], "%f", &rp->d);
+        if (strcmp(k[i], "flag") == 0)
+            sscanf_s(v[i], "%d", &rp->fl);
+#else
         if (strcmp(k[i], "width") == 0)
             sscanf(v[i], "%f %f %f", rp->w, rp->w + 1, rp->w + 2);
         if (strcmp(k[i], "height") == 0)
@@ -1430,6 +1542,7 @@ static void make_bill(struct s_base *fp,
             sscanf(v[i], "%f", &rp->d);
         if (strcmp(k[i], "flag") == 0)
             sscanf(v[i], "%d", &rp->fl);
+#endif
 
         if (strcmp(k[i], "image") == 0)
         {
@@ -1441,7 +1554,11 @@ static void make_bill(struct s_base *fp,
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f %f %f", &x, &y, &z);
+#else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
+#endif
 
             rp->p[0] = +x / SCALE;
             rp->p[1] = +z / SCALE;
@@ -1454,7 +1571,7 @@ static void make_goal(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c, int l0)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating goal...\n");
 #endif
     int i, zi = incz(fp);
@@ -1469,13 +1586,21 @@ static void make_goal(struct s_base *fp,
     for (i = 0; i < c; i++)
     {
         if (strcmp(k[i], "radius") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f", &zp->r);
+#else
             sscanf(v[i], "%f", &zp->r);
+#endif
 
         if (strcmp(k[i], "origin") == 0)
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f %f %f", &x, &y, &z);
+#else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
+#endif
 
             zp->p[0] = +(x) / SCALE;
             zp->p[1] = +(z - 24) / SCALE;
@@ -1488,7 +1613,7 @@ static void make_view(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating viewpoint...\n");
 #endif
     int i, wi = incw(fp);
@@ -1511,7 +1636,11 @@ static void make_view(struct s_base *fp,
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f %f %f", &x, &y, &z);
+#else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
+#endif
 
             wp->p[0] = +x / SCALE;
             wp->p[1] = +z / SCALE;
@@ -1524,7 +1653,7 @@ static void make_jump(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c, int l0)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating teleporter...\n");
 #endif
     int i, ji = incj(fp);
@@ -1542,7 +1671,11 @@ static void make_jump(struct s_base *fp,
     for (i = 0; i < c; i++)
     {
         if (strcmp(k[i], "radius") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f", &jp->r);
+#else
             sscanf(v[i], "%f", &jp->r);
+#endif
 
         if (strcmp(k[i], "target") == 0)
             make_ref(SYM_TARG, v[i], targ_ji + ji);
@@ -1551,7 +1684,11 @@ static void make_jump(struct s_base *fp,
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f %f %f", &x, &y, &z);
+#else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
+#endif
 
             jp->p[0] = +x / SCALE;
             jp->p[1] = +z / SCALE;
@@ -1564,7 +1701,7 @@ static void make_swch(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c, int l0)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating switch...\n");
 #endif
     int i, xi = incx(fp);
@@ -1583,13 +1720,21 @@ static void make_swch(struct s_base *fp,
     for (i = 0; i < c; i++)
     {
         if (strcmp(k[i], "radius") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f", &xp->r);
+#else
             sscanf(v[i], "%f", &xp->r);
+#endif
 
         if (strcmp(k[i], "target") == 0)
             make_ref(SYM_PATH, v[i], &xp->pi);
 
         if (strcmp(k[i], "timer") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f", &xp->t);
+#else
             sscanf(v[i], "%f", &xp->t);
+#endif
 
         if (strcmp(k[i], "state") == 0)
             xp->f = atoi(v[i]);
@@ -1601,7 +1746,11 @@ static void make_swch(struct s_base *fp,
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f %f %f", &x, &y, &z);
+#else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
+#endif
 
             xp->p[0] = +x / SCALE;
             xp->p[1] = +z / SCALE;
@@ -1614,7 +1763,7 @@ static void make_targ(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating targets...\n");
 #endif
     int i;
@@ -1632,7 +1781,11 @@ static void make_targ(struct s_base *fp,
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f %f %f", &x, &y, &z);
+#else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
+#endif
 
             targ_p[targ_n][0] = +x / SCALE;
             targ_p[targ_n][1] = +z / SCALE;
@@ -1647,7 +1800,7 @@ static void make_ball(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c, int l0)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating balls...\n");
 #endif
     int i, ui = incu(fp);
@@ -1666,16 +1819,28 @@ static void make_ball(struct s_base *fp,
     for (i = 0; i < c; i++)
     {
         if (strcmp(k[i], "radius") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f", &up->r);
+#else
             sscanf(v[i], "%f", &up->r);
+#endif
 #if defined(START_POS_ANGULAR_BETA)
         if (strcmp(k[i], "angle") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f", &up->a);
+#else
             sscanf(v[i], "%f", &up->a);
+#endif
 #endif
         if (strcmp(k[i], "origin") == 0)
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f %f %f", &x, &y, &z);
+#else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
+#endif
 
 #if LEGACY_MODE
             up->p[0] = +(x)      / SCALE;
@@ -1711,7 +1876,7 @@ static void make_chkp(struct s_base *fp,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c, int l0)
 {
-#if defined(_DEBUG)
+#ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating chkp...\n");
 #endif
     int i, ci = incc(fp);
@@ -1726,12 +1891,20 @@ static void make_chkp(struct s_base *fp,
     for (i = 0; i < c; i++)
     {
         if (strcmp(k[i], "radius") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f", &cp->r);
+#else
             sscanf(v[i], "%f", &cp->r);
+#endif
         if (strcmp(k[i], "origin") == 0)
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f %f %f", &x, &y, &z);
+#else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
+#endif
 
             cp->p[0] = +(x) / SCALE;
             cp->p[1] = +(z) / SCALE;
@@ -1743,16 +1916,20 @@ static void make_chkp(struct s_base *fp,
 #pragma endregion
 
 #ifdef LEGACY_MODE
-static void make_legacy(struct s_base* fp,
+static void make_legacy(struct s_base *fp,
                         char k[][MAXSTR],
                         char v[][MAXSTR], int c, int l0,
-                        const char* modelname, const char* materialname)
+                        const char *modelname, const char *materialname)
 {
     int leg;
     for (leg = 0; leg < c; leg++)
     {
         if (strcmp(k[leg], "radius") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[leg], "%f", &specification_radius);
+#else
             sscanf(v[leg], "%f", &specification_radius);
+#endif
     }
     for (leg = 0; leg < c; leg++)
     {
@@ -1800,7 +1977,11 @@ static void make_legacy(struct s_base* fp,
     for (i = 0; i < c; i++)
     {
         if (strcmp(k[i], "origin") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(v[i], "%f %f %f", &x, &y, &z);
+#else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
+#endif
 
         else if (read_dict_entries && strcmp(k[i], "classname") != 0)
             make_dict(fp, k[i], v[i]);
@@ -2767,6 +2948,7 @@ static void smth_file(struct s_base *fp)
             }
 
             free(T);
+            T = NULL;
         }
 
         uniq_side(fp);
@@ -3252,7 +3434,7 @@ static void dump_file(struct s_base *p, const char *name, double t)
         char buf[64];
 
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
-        sprintf_s(msg, dstSize, "%s (%d/$%d) %.3f\n", name, n, c, t);
+        sprintf_s(msg, 512, "%s (%d/$%d) %.3f\n", name, n, c, t);
 #else
         sprintf(msg, "%s (%d/$%d) %.3f\n", name, n, c, t);
 #endif
@@ -3260,7 +3442,7 @@ static void dump_file(struct s_base *p, const char *name, double t)
         for (i = 0; i < ARRAYSIZE(stats); i++)
         {
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
-            sprintf(buf, dstSize, "\t%d %s\n", *stats[i].ptr, stats[i].desc);
+            sprintf_s(buf, 512, "\t%d %s\n", *stats[i].ptr, stats[i].desc);
 #else
             sprintf(buf, "\t%d %s\n", *stats[i].ptr, stats[i].desc);
 #endif
@@ -3501,11 +3683,8 @@ int main(int argc, char *argv[])
 
         fs_add_path     (dir_name(src));
         fs_set_write_dir(dir_name(dst));
-#if defined(FS_VERSION_1)
-        if ((fin = fs_open(base_name(src), "r")))
-#else
+
         if ((fin = fs_open_read(base_name(src))))
-#endif
         {
             fs_add_path_with_archives(argv[2]);
 
@@ -3606,18 +3785,16 @@ int main(int argc, char *argv[])
 
                     if (compile_time_limit >= 1920 || currtime >= 1920)
                         sprintf(buf, "Compile timed out after %d seconds!\n\t"
-                                     "Current compilation time exceeds above 32 minutes!\n\t"
+                                     "Current compilation time limit exceeds above 32 minutes, which has an slow and old computers!\n\t"
                                      "Simplify some structural lumps in the Net-Radiant or buy the brand new PC!\n",
-                                     compile_time_limit, currtime);
+                                     compile_time_limit);
                     else
-                    {
                         sprintf(buf, "Compile timed out after %d seconds!\n\t"
                                      "Raise compilation time limit using --timelimit to \"%d\"!\n",
                                      compile_time_limit,
                                      currtime > 960.000 ? 1920 : (currtime > 480.000 ? 960
                                                                : (currtime > 240.000 ? 480
                                                                : (currtime > 120.000 ? 240 : 120))));
-                    }
 
                     MAPC_LOG_ERROR(buf);
                     return 1;

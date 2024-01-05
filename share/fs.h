@@ -29,20 +29,14 @@ int         fs_add_path_with_archives(const char *);
 int         fs_set_write_dir(const char *);
 const char *fs_get_write_dir(void);
 
-#ifndef FS_VERSION_1
 int fs_recycle(const char *);
-#endif
 int fs_exists(const char *);
 int fs_remove(const char *);
 int fs_rename(const char *, const char *);
 
-#ifdef FS_VERSION_1
-fs_file fs_open(const char *path, const char *mode);
-#else
 fs_file fs_open_read(const char *);
 fs_file fs_open_write(const char *);
 fs_file fs_open_append(const char *);
-#endif
 
 int     fs_close(fs_file);
 
@@ -52,9 +46,7 @@ int  fs_flush(fs_file);
 long fs_tell(fs_file);
 int  fs_seek(fs_file, long offset, int whence);
 int  fs_eof(fs_file);
-#ifndef FS_VERSION_1
 int  fs_size(const char *);
-#endif
 int  fs_length(fs_file);
 
 int   fs_getc(fs_file);

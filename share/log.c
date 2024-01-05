@@ -187,11 +187,7 @@ void log_init(const char *name, const char *path)
 {
     if (!log_fp)
     {
-#ifdef FS_VERSION_1
-        log_fp = fs_open(path, "w+");
-#else
         log_fp = fs_open_write(path);
-#endif
 
         if (log_fp)
         {

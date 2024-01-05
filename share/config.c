@@ -495,6 +495,161 @@ static int scan_key_and_value(char **dst_key, char **dst_val, char *line)
     return 0;
 }
 
+/*---------------------------------------------------------------------------*/
+
+/*
+ * HACK: These config file has lots of mapped text file to pretend,
+ * but let's do it with macros as renamers, same as replay commands.
+ * - Ersohn Styne
+ */
+
+#define CONFIG_PARSE_FILENAME(_src)                                      \
+    do {                                                                 \
+        if (fs_exists(_src)) {                                           \
+            if (parse_ok) fs_remove(_src);                               \
+            else if (fs_rename(_src, filename) == 0) {                   \
+                log_errorf("Can't replace filename!: %s\n", fs_error()); \
+                fs_remove(_src);                                         \
+            } else {                                                     \
+                log_printf("Config filename replaced!: %s -> %s\n",      \
+                           _src, filename);                              \
+                parse_ok = 1;                                            \
+            }                                                            \
+        } else if (fs_exists("." _src)) {                                \
+            if (parse_ok) fs_remove("." _src);                           \
+            else if (fs_rename("." _src, filename) == 0) {               \
+                log_errorf("Can't replace filename!: %s\n", fs_error()); \
+                fs_remove("." _src, filename);                           \
+            } else {                                                     \
+                log_printf("Config filename replaced!: %s -> %s\n",      \
+                           "." _src, filename);                          \
+                parse_ok = 1;                                            \
+            }                                                            \
+        } else if (fs_exists(_src ".txt")) {                             \
+            if (parse_ok) fs_remove(_src ".txt");                        \
+            else if (fs_rename(_src ".txt", filename) == 0) {            \
+                log_errorf("Can't replace filename!: %s\n", fs_error()); \
+                fs_remove(_src ".txt");                                  \
+            } else {                                                     \
+                log_printf("Config filename replaced!: %s -> %s\n",      \
+                           _src ".txt", filename);                       \
+                parse_ok = 1;                                            \
+            }                                                            \
+        } else if (fs_exists("." _src ".txt")) {                         \
+            if (parse_ok) fs_remove("." _src ".txt");                    \
+            else if (fs_rename("." _src ".txt", filename) == 0) {        \
+                log_errorf("Can't replace filename!: %s\n", fs_error()); \
+                fs_remove("." _src ".txt");                              \
+            } else {                                                     \
+                log_printf("Config filename replaced!: %s -> %s\n",      \
+                           "." _src ".txt", filename);                   \
+                parse_ok = 1;                                            \
+            }                                                            \
+        }                                                                \
+    } while (0)                                                          \
+
+#define CONFIG_PARSE_FILETYPE(_ext)                                         \
+    do {                                                                    \
+        if (fs_exists(USER_CONFIG_FILE _ext)) {                             \
+            if (parse_ok) fs_remove(USER_CONFIG_FILE _ext);                 \
+            else if (fs_rename(USER_CONFIG_FILE _ext, filename) == 0) {     \
+                log_errorf("Can't take out file types!: %s\n", fs_error()); \
+                fs_remove(USER_CONFIG_FILE _ext);                           \
+            } else {                                                        \
+                log_printf("File type taken out!: %s -> %s\n",              \
+                           USER_CONFIG_FILE _ext, filename);                \
+                parse_ok = 1;                                               \
+            }                                                               \
+        }                                                                   \
+    } while (0)                                                             \
+
+/*
+ * Scan all config files to parse the game settings. Only one game config file
+ * is allowed. The other config file will be deleted after renamed.
+ *
+ * Return 1 on success, 0 on error.
+ *
+ * NOTE: Backups are not affected while parsing.
+ */
+static int config_parse_file(const char *filename)
+{
+    int parse_ok = 0;
+
+    /* Replace specified file name to *ballrc with optional file extensions. */
+
+    CONFIG_PARSE_FILENAME("conf");
+    CONFIG_PARSE_FILENAME("config");
+    CONFIG_PARSE_FILENAME("options");
+    CONFIG_PARSE_FILENAME("preferences");
+    CONFIG_PARSE_FILENAME("settings");
+    CONFIG_PARSE_FILENAME("user_settings");
+    CONFIG_PARSE_FILENAME("user-settings");
+    CONFIG_PARSE_FILENAME("usersettings");
+
+    CONFIG_PARSE_FILENAME("game_conf");
+    CONFIG_PARSE_FILENAME("game-conf");
+    CONFIG_PARSE_FILENAME("game_config");
+    CONFIG_PARSE_FILENAME("game-config");
+    CONFIG_PARSE_FILENAME("game_options");
+    CONFIG_PARSE_FILENAME("game-options");
+    CONFIG_PARSE_FILENAME("game_preferences");
+    CONFIG_PARSE_FILENAME("game-preferences");
+    CONFIG_PARSE_FILENAME("game_settings");
+    CONFIG_PARSE_FILENAME("game-settings");
+    CONFIG_PARSE_FILENAME("game_user_settings");
+    CONFIG_PARSE_FILENAME("game-user-settings");
+    CONFIG_PARSE_FILENAME("game_usersettings");
+    CONFIG_PARSE_FILENAME("game-usersettings");
+
+    CONFIG_PARSE_FILENAME("gameconf");
+    CONFIG_PARSE_FILENAME("gameconfig");
+    CONFIG_PARSE_FILENAME("gameoptions");
+    CONFIG_PARSE_FILENAME("gamepreferences");
+    CONFIG_PARSE_FILENAME("gamesettings");
+    CONFIG_PARSE_FILENAME("gameusersettings");
+    CONFIG_PARSE_FILENAME("gameusersettings");
+
+    CONFIG_PARSE_FILENAME("global_conf");
+    CONFIG_PARSE_FILENAME("global-conf");
+    CONFIG_PARSE_FILENAME("global_conf");
+    CONFIG_PARSE_FILENAME("global-config");
+    CONFIG_PARSE_FILENAME("global_options");
+    CONFIG_PARSE_FILENAME("global-options");
+    CONFIG_PARSE_FILENAME("global_preferences");
+    CONFIG_PARSE_FILENAME("global-preferences");
+    CONFIG_PARSE_FILENAME("global_settings");
+    CONFIG_PARSE_FILENAME("global-settings");
+    CONFIG_PARSE_FILENAME("global_user_settings");
+    CONFIG_PARSE_FILENAME("global-user-settings");
+    CONFIG_PARSE_FILENAME("global_usersettings");
+    CONFIG_PARSE_FILENAME("global-usersettings");
+
+    CONFIG_PARSE_FILENAME("globalconf");
+    CONFIG_PARSE_FILENAME("globalconfig");
+    CONFIG_PARSE_FILENAME("globaloptions");
+    CONFIG_PARSE_FILENAME("globalpreferences");
+    CONFIG_PARSE_FILENAME("globalsettings");
+    CONFIG_PARSE_FILENAME("globalusersettings");
+    CONFIG_PARSE_FILENAME("globalusersettings");
+
+    /* Take out the file type extensions for global settings. */
+
+    CONFIG_PARSE_FILETYPE(".txt");
+
+#if NB_HAVE_PB_BOTH==1
+    /* Replace legacy config filename. */
+
+    CONFIG_PARSE_FILENAME("neverballrc");
+#endif
+
+    return parse_ok || fs_exists(USER_CONFIG_FILE);
+}
+
+#undef CONFIG_PARSE_FILENAME_REPLACE
+#undef CONFIG_PARSE_FILENAME_TAKEOUT
+
+/*---------------------------------------------------------------------------*/
+
 void config_load(void)
 {
     fs_file fh;
@@ -509,64 +664,16 @@ void config_load(void)
 
     const char *filename = USER_CONFIG_FILE;
 
-    /* Replace preferences.txt or globalsettings.txt to neverballrc */
-
-    if (fs_exists("preferences.txt"))
-    {
-        if (fs_rename("preferences.txt", USER_CONFIG_FILE) == 0)
-        {
-            log_errorf("Can't replace filename!: %s\n", fs_error());
-            exit(1);
-            return;
-        }
-    }
-    else if (fs_exists("globalsettings.txt"))
-    {
-        if (fs_rename("globalsettings.txt", USER_CONFIG_FILE) == 0)
-        {
-            log_errorf("Can't replace filename!: %s\n", fs_error());
-            exit(1);
-            return;
-        }
-    }
-
-    /*
-     * Take out the text file types for global settings,
-     * if "*ballrc.txt" was associated.
-     */
-
-    else if (fs_exists(USER_CONFIG_FILE ".txt"))
-    {
-        if (fs_rename(USER_CONFIG_FILE ".txt", USER_CONFIG_FILE) == 0)
-        {
-            log_errorf("Can't take out file types!: %s\n", fs_error());
-            exit(1);
-            return;
-        }
-    }
-
     if (!config_is_init)
     {
         log_errorf("Failure to load configuration file! Configurations must be initialized!\n");
-#ifdef FS_VERSION_1
-        if ((fh = fs_open(filename, "r")))
-#else
-        if ((fh = fs_open_read(filename)))
-#endif
-        {
-            fs_close(fh);
-            fs_remove(filename);
-        }
-
         exit(1);
         return;
     }
 
-#ifdef FS_VERSION_1
-    if ((fh = fs_open(filename, "r")))
-#else
+    if (!config_parse_file(filename)) return;
+
     if ((fh = fs_open_read(filename)))
-#endif
     {
         config_busy = 1;
         char *line, *key, *val;
@@ -657,25 +764,15 @@ void config_save(void)
     if (!config_is_init)
     {
         log_errorf("Failure to save configuration file! Configurations must be initialized!\n");
-#ifdef FS_VERSION_1
-        if ((fh = fs_open(filename, "r")))
-#else
-        if ((fh = fs_open_read(filename)))
-#endif
-        {
-            fs_close(fh);
+
+        if (fs_exists(filename))
             fs_remove(filename);
-        }
-        
+
         exit(1);
         return;
     }
 
-#ifdef FS_VERSION_1
-    if (dirty && (fh = fs_open(filename, "w")))
-#else
     if (dirty && (fh = fs_open_write(filename)))
-#endif
     {
         config_busy = 1;
         int i;

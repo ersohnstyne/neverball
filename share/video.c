@@ -343,10 +343,6 @@ void video_quit(void)
 {
     if (context)
     {
-#ifdef __EMSCRIPTEN__
-        close_gl4es();
-#endif
-
         SDL_GL_DeleteContext(context);
         context = NULL;
     }

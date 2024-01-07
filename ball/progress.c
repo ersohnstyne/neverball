@@ -472,7 +472,7 @@ int  progress_play(struct level *l)
         /* HACK: Must be recalculate after respawn! */
 
         coins  = last_active ? respawn_coins : 0;
-        timer  = last_active ? respawn_timer / 1000 : 0;
+        timer  = last_active ? respawn_time_elapsed / 1000 : 0;
 #else
         coins  = 0;
         timer  = 0;
@@ -601,20 +601,12 @@ void progress_stat(int s)
      * First, set the current level timer...
      */
 
-#ifdef LEVELGROUPS_INCLUDES_ZEN
-    timer = (level_time(level) == 0 || mediation_enabled() ?
-             curr_clock() + curr_gained() :
-             level_time(level) + curr_gained() - curr_clock());
-#else
-    timer = (level_time(level) == 0 ?
-             curr_clock() + curr_gained() :
-             level_time(level) + curr_gained() - curr_clock());
-#endif
+    timer = (curr_time_elapsed() * 100);
 
 #ifdef MAPC_INCLUDES_CHKP
     /* ...then substract it! */
 
-    timer -= checkpoints_respawn_timer();
+    timer -= respawn_time_elapsed;
 #endif
 
     switch (status)

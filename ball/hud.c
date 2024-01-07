@@ -538,7 +538,7 @@ void hud_update(int pulse, float animdt)
 #endif
                 }
             }
-            else if (last > 0)
+            else
             {
                 if (clock > last + 2950)
                     gui_pulse(time_id, 2.00);

@@ -2537,12 +2537,12 @@ static int conf_gui(void)
         {
             gui_label(id, "Pennyball " VERSION, GUI_TNY, GUI_COLOR_WHT);
 #if NB_HAVE_PB_BOTH==1
-            gui_multi(id, "Copyright © 2008, 2024 Neverball authors\n"
-                          "Neverball is free software available under the terms of GPL v2 or later.",
+            gui_multi(id, _("Copyright © 2008, 2024 PennyGames\n"
+                            "Neverball is free software available under the terms of GPL v2 or later."),
                            GUI_TNY, GUI_COLOR_WHT);
 #else
-            gui_multi(id, "Copyright © 2023 Neverball authors\n"
-                          "Neverball is free software available under the terms of GPL v2 or later.",
+            gui_multi(id, _("Copyright © 2024 Neverball authors\n"
+                            "Neverball is free software available under the terms of GPL v2 or later."),
                           GUI_TNY, GUI_COLOR_WHT);
 #endif
             gui_clr_rect(id);

@@ -1474,7 +1474,7 @@ static int game_update_state(int bt)
             /* Method 2: Set the checkpoint backup data. */
 
             checkpoints_save_spawnpoint(vary, view, CURR_PLAYER);
-            checkpoints_set_last_data(timer, time_limit > 0, coins, curr_gained());
+            checkpoints_set_last_data(time_elapsed, time_limit > 0, coins, curr_gained());
 
             last_chkp_ballsize[CURR_PLAYER].size_orig  = grow_orig[CURR_PLAYER];
             last_chkp_ballsize[CURR_PLAYER].size_state = grow_state[CURR_PLAYER];

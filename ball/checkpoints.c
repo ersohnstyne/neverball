@@ -53,7 +53,7 @@ struct chkp_view     last_view[1024];
 
 float last_pos[1024][3];
 
-float last_timer;
+float last_time_elapsed;
 int   last_coins;
 int   last_goal;
 
@@ -385,12 +385,12 @@ void checkpoints_stop(void)
     float resetpos[3]; resetpos[0] = 0.0f; resetpos[1] = 0.0f; resetpos[2] = 0.0f;
 }
 
-void checkpoints_set_last_data(float time, int downward, int coins, int gained)
+void checkpoints_set_last_data(float time_elapsed, int downward, int coins, int gained)
 {
     /* Set the last level data */
-    last_timer      = time;
-    last_coins      = coins;
-    last_gained     = gained;
+    last_time_elapsed = time_elapsed;
+    last_coins        = coins;
+    last_gained       = gained;
 }
 
 #endif

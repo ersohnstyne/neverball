@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -2535,10 +2535,16 @@ static int conf_gui(void)
 
         if ((id = gui_vstack(root_id)))
         {
-            gui_label(id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT);
-            gui_multi(id, _("Copyright © 2024 Neverball authors\n"
-                            "Neverball is free software available under the terms of GPL v2 or later."),
+            gui_label(id, "Pennyball " VERSION, GUI_TNY, GUI_COLOR_WHT);
+#if NB_HAVE_PB_BOTH==1
+            gui_multi(id, "Copyright © 2008, 2024 Neverball authors\n"
+                          "Neverball is free software available under the terms of GPL v2 or later.",
+                           GUI_TNY, GUI_COLOR_WHT);
+#else
+            gui_multi(id, "Copyright © 2023 Neverball authors\n"
+                          "Neverball is free software available under the terms of GPL v2 or later.",
                           GUI_TNY, GUI_COLOR_WHT);
+#endif
             gui_clr_rect(id);
             gui_layout(id, 0, -1);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -200,7 +200,8 @@ static struct level *find_level(const struct set *s, const char *file)
 
 static int get_stats(fs_file fp, struct level *l)
 {
-    char line[MAXSTR];
+    char line[MAXSTR],
+         temp[6];
 
     if (!fs_gets(line, sizeof(line), fp))
         return 0;

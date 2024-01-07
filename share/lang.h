@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * this file is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published

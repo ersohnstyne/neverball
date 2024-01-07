@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -67,11 +67,12 @@
 #else
 #define CONFIG_USER   ".neverball"
 #endif
-#endif
+#else
 #ifdef _WIN32
 #define CONFIG_USER   "Neverball-dev"
 #else
 #define CONFIG_USER   ".neverball-dev"
+#endif
 #endif
 #endif
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -32,6 +32,10 @@
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
+#endif
+
+#ifdef _MSC_VER
+#pragma comment(lib, "libjpeg_a.lib")
 #endif
 
 /*---------------------------------------------------------------------------*/

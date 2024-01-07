@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -52,6 +52,8 @@ void  game_set_x  (float);
 void  game_set_z  (float);
 void  game_set_cam(int);
 void  game_set_rot(float);
+
+float curr_time_elapsed(void);
 
 float game_get_ballspeed(void);        /* New: Speedometer                   */
 

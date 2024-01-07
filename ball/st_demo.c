@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -151,6 +151,14 @@ static int st_demo_version_read(fs_file fp, struct demo *d)
 
 static int check_full_access(const char *replay_pname)
 {
+    const char *curr_player = config_get_s(CONFIG_PLAYER);
+
+    if (strcmp(replay_pname, "PennySchloss") == 0)
+    {
+        if (strcmp(curr_player, "PennySchloss") == 0)
+            return 1;
+    }
+
     return 0;
 }
 

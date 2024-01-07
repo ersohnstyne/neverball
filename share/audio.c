@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -15,7 +15,7 @@
 #include <assert.h>
 
 #if _WIN32 && __MINGW32__
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -43,6 +43,12 @@
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
+#endif
+
+#ifdef _MSC_VER
+#pragma comment(lib, "libogg_static.lib")
+#pragma comment(lib, "libvorbis_static.lib")
+#pragma comment(lib, "libvorbisfile_static.lib")
 #endif
 
 /*---------------------------------------------------------------------------*/

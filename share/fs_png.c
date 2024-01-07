@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -18,6 +18,16 @@
 #include "fs.h"
 
 /*---------------------------------------------------------------------------*/
+
+#ifdef _MSC_VER
+#ifndef DNDEBUG
+#pragma comment(lib, "zlibstaticd.lib")
+#pragma comment(lib, "libpng16_staticd.lib")
+#else
+#pragma comment(lib, "zlibstatic.lib")
+#pragma comment(lib, "libpng16_static.lib")
+#endif
+#endif
 
 void fs_png_read(png_structp readp, png_bytep data, png_size_t length)
 {

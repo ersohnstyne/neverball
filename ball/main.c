@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -50,7 +50,7 @@
 #endif
 
 #if _WIN32 && __MINGW32__
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -1087,7 +1087,7 @@ static int is_replay(struct dir_item *item)
 
 static int is_score_file(struct dir_item *item)
 {
-    return str_starts_with(item->path, "pennyballhs-");
+    return str_starts_with(item->path, "neverballhs-");
 }
 
 static void make_dirs_and_migrate(void)
@@ -1126,7 +1126,7 @@ static void make_dirs_and_migrate(void)
             {
                 src = DIR_ITEM_GET(items, i)->path;
                 dst = concat_string("Scores/",
-                                    src + sizeof ("pennyballhs-") - 1,
+                                    src + sizeof ("neverballhs-") - 1,
                                     ".txt",
                                     NULL);
                 fs_rename(src, dst);

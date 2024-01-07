@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -35,7 +35,7 @@
 #endif
 
 #if _WIN32 && __MINGW32__
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -346,6 +346,7 @@ void video_quit(void)
 #ifdef __EMSCRIPTEN__
         close_gl4es();
 #endif
+
         SDL_GL_DeleteContext(context);
         context = NULL;
     }
@@ -459,11 +460,11 @@ video_mode_reconf:
      * Default RGB size: 5 - Either 5 (16-bit) or 8 (32-bit)
      */
 
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   0);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 0);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  0);
-
     int rgb_size_fixed = 5;
+
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
 
     /*
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
@@ -876,11 +877,11 @@ video_mode_auto_config_reconf:
      * Default RGB size: 5 - Either 5 (16-bit) or 8 (32-bit)
      */
 
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   0);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 0);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  0);
-
     int rgb_size_fixed = 5;
+
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
 
     /*
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
@@ -896,7 +897,7 @@ video_mode_auto_config_reconf:
     else if (rgb_size_fixed * 3 < 64)
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 64);
     */
-    
+
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   16);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 

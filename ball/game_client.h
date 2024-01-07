@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -35,9 +35,6 @@ void  game_client_blend(float);
 
 int   curr_viewangle(void);
 int   curr_clock(void);
-int   curr_gained(void);
-void  incr_gained(int);
-void  clear_gain(void);
 int   curr_coins(void);
 int   curr_max_coins(void);
 int   curr_status(void);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -57,12 +57,11 @@ float last_timer;
 int   last_coins;
 int   last_goal;
 
-int last_timer_down;
 int last_gained;
 
-int   respawn_coins  = 0;
-float respawn_timer  = 0;
-int   respawn_gained = 0;
+int   respawn_coins        = 0;
+float respawn_time_elapsed = 0;
+int   respawn_gained       = 0;
 
 /*---------------------------------------------------------------------------*/
 
@@ -162,7 +161,6 @@ int checkpoints_load()
     if (last_active)
     {
         respawn_coins  = last_coins;
-        respawn_timer  = last_timer;
         respawn_gained = last_gained;
 
         return 1;
@@ -353,9 +351,9 @@ int checkpoints_respawn_coins(void)
     return respawn_coins;
 }
 
-int checkpoints_respawn_timer(void)
+int checkpoints_respawn_time_elapsed(void)
 {
-    return respawn_timer * 100.f;
+    return respawn_time_elapsed * 100.f;
 }
 
 /*
@@ -378,12 +376,11 @@ void checkpoints_stop(void)
     last_coins = 0;
     last_goal  = 0;
 
-    last_timer_down = 0;
     last_gained     = 0;
 
-    respawn_coins  = 0;
-    respawn_timer  = 0;
-    respawn_gained = 0;
+    respawn_coins        = 0;
+    respawn_time_elapsed = 0;
+    respawn_gained       = 0;
 
     float resetpos[3]; resetpos[0] = 0.0f; resetpos[1] = 0.0f; resetpos[2] = 0.0f;
 }
@@ -392,7 +389,6 @@ void checkpoints_set_last_data(float time, int downward, int coins, int gained)
 {
     /* Set the last level data */
     last_timer      = time;
-    last_timer_down = downward;
     last_coins      = coins;
     last_gained     = gained;
 }

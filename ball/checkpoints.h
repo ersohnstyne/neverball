@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -97,10 +97,9 @@ extern struct chkp_view last_view[1024];
 extern float last_pos[1024][3];
 
 extern float last_timer;
-extern int   last_timer_down;
 
 extern int   respawn_coins;
-extern float respawn_timer;
+extern float respawn_time_elapsed;
 extern int   respawn_gained;
 
 /*---------------------------------------------------------------------------*/
@@ -116,7 +115,7 @@ int checkpoints_load(void);
 void checkpoints_respawn(struct s_vary *, cmd_fn_chkp, int *ci);
 
 int checkpoints_respawn_coins(void);
-int checkpoints_respawn_timer(void);
+int checkpoints_respawn_time_elapsed(void);
 
 /*
  * Please disable all checkpoints,

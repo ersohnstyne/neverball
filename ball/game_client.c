@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -65,8 +65,6 @@ int game_compat_campaign;               /* Campaign compat flag              */
 static struct game_draw gd;
 static struct game_lerp gl;
 
-static int   timer_down  = 1;           /* Timer go up or down?              */
-static int   gained      = 0;           /* Time increased mid-level          */
 static int   status      = GAME_NONE;   /* Outcome of the game               */
 static int   coins       = 0;           /* Collected coins                   */
 static int   max_coins   = 0;           /* Maximum coin amount               */
@@ -636,21 +634,6 @@ int curr_viewangle(void)
 int curr_clock(void)
 {
     return (int) (flerp(gl.timer[PREV], gl.timer[CURR], gl.alpha) * 100.f);
-}
-
-int curr_gained(void)
-{
-    return gained * 100;
-}
-
-void incr_gained(int amt)
-{
-    gained += amt;
-}
-
-void clear_gain(void)
-{
-    gained = 0;
 }
 
 int curr_coins(void)

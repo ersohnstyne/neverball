@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -33,7 +33,7 @@
 #endif
 
 #if _WIN32 && __MINGW32__
-#include <SDL3/SDL_events.h>
+#include <SDL2/SDL_events.h>
 #else
 #include <SDL_events.h>
 #endif

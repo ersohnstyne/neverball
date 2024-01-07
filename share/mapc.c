@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -3581,7 +3581,7 @@ int main(int argc, char *argv[])
             if (strcmp(argv[argi], "--data")        == 0)
             {
                 if (++argi < argc)
-                    fs_add_path(argv[argi]);
+                    fs_add_path_with_archives(argv[argi]);
             }
 
             if (strcmp(argv[argi], "--timelimit")   == 0)

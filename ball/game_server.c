@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -49,20 +49,17 @@
 #define MAX_PLAYERS 8
 #define CURR_PLAYER 0
 
-/* Do this differently ASAP. */
-void incr_gained(int);
-
 /*---------------------------------------------------------------------------*/
 
 static int server_state = 0;
 
 static struct s_vary vary;
 
-static float timer      = 0.f;          /* Clock time                        */
-static int   timer_down = 1;            /* Timer go up or down?              */
-static int   timer_hold = 0;            /* Timer hold?                       */
-
-static int status = GAME_NONE;          /* Outcome of the game               */
+static int   timer_hold   = 0;          /* Hold timer                        */
+static float time_limit   = 0;          /* Effective time limit              */
+static float time_elapsed = 0;          /* Time elapsed                      */
+static float timer        = 0.f;        /* Clock                             */
+static int   status       = GAME_NONE;  /* Outcome of the game               */
 
 static struct game_tilt tilt;           /* Floor rotation                    */
 static struct game_view view;           /* Current view                      */
@@ -310,9 +307,9 @@ static void game_cmd_init_items(void)
 
         v_cpy(cmd.mkitem.p, vary.hv[i].p);
 
-        cmd.mkitem.t = !timer_down && vary.hv[i].t == ITEM_CLOCK ? ITEM_NONE :
+        cmd.mkitem.t = time_limit != 0 && vary.hv[i].t == ITEM_CLOCK ? ITEM_NONE :
                                                                    vary.hv[i].t;
-        cmd.mkitem.n = !timer_down && vary.hv[i].t == ITEM_CLOCK ? 0 :
+        cmd.mkitem.n = time_limit != 0 && vary.hv[i].t == ITEM_CLOCK ? 0 :
                                                                    vary.hv[i].n;
 
         game_proxy_enq(&cmd);
@@ -655,6 +652,8 @@ int game_server_init(const char *file_name, int t, int e)
 #endif
         curr_mode() != MODE_BOOST_RUSH && curr_mode() != MODE_ZEN))
         mayhem_time = (int) t * 0.75f;
+    
+    time_limit   = (float) t / 100.0f;
 
 #ifdef MAPC_INCLUDES_CHKP
     /*
@@ -662,15 +661,14 @@ int game_server_init(const char *file_name, int t, int e)
      * If you haven't loaded Level data for each checkpoints,
      * Levels for your default data will be used.
      */
-    timer      = last_active ? respawn_timer : ((float) t / 100.f);
-    timer_down = last_active ? last_timer_down : (t > 0);
-    timer_hold = last_active ? 0 : 1;
-    coins      = last_active ? respawn_coins : 0;
+
+    time_elapsed = last_active ? respawn_time_elapsed : 0.0f;
+    coins        = last_active ? respawn_coins : 0;
 #else
-    timer      = ((float) t / 100.f);
-    timer_down = (t > 0);
-    timer_hold = 1;
-    coins      = 0;
+    time_elapsed = 0.0f;
+
+    timer  = 0.0f;
+    coins  = 0;
 #endif
     status = GAME_NONE;
 
@@ -683,17 +681,11 @@ int game_server_init(const char *file_name, int t, int e)
         && !last_active
 #endif
         )
-    {
-        timer_down = 0;
         timer = 0.0f;
-    }
 
 #ifdef MAPC_INCLUDES_CHKP
     if (!last_active)
-    {
         chkp_id = -1;
-        last_timer_down = timer_down;
-    }
 #endif
 
 #ifdef LEVELGROUPS_INCLUDES_ZEN
@@ -707,14 +699,11 @@ int game_server_init(const char *file_name, int t, int e)
         && !last_active
 #endif
         )
-    {
-        timer =
+        time_elapsed =
 #ifdef MAPC_INCLUDES_CHKP
-            last_active ? respawn_timer :
+            last_active ? respawn_time_elapsed :
 #endif
             0;
-        timer_down = 0;
-    }
 #endif
 
     game_server_free(file_name);
@@ -781,7 +770,7 @@ int game_server_init(const char *file_name, int t, int e)
 #ifdef MAPC_INCLUDES_CHKP
     /* All checkpoints were removed in HARDCORE MODE! or last balls. */
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    if ((timer_down && timer <= 60)
+    if ((time_limit > 0 && timer <= 60)
      || (curr_mode() == MODE_HARDCORE) || curr_balls() == 0)
 #else
     if ((timer_down && timer <= 60) || curr_balls() == 0)
@@ -1311,27 +1300,17 @@ static void game_update_time(float dt, int b)
      * Timer must be freeze: jump_b == 0 && timer_hold == 0
      */
 
-    if (b && !timer_down)
+    if (b && timer_hold == 0 && jump_b == 0)
     {
-        timer += jump_b == 0 && timer_hold == 0 ? dt : 0;
-        game_cmd_timer();
-    }
-    else if (b)
-    {
-        /*
-         * HACK: The timer was freeze with above 10 minutes
-         * (exacted above 600 seconds).
-         * This has been fixed on 2.0.
-         */
+        time_elapsed += dt;
 
-        timer -= jump_b == 0 && timer_hold == 0 ? dt : 0;
-
-        if (timer < 0.f)
-            timer = 0.f;
+        timer = fabsf(time_limit - time_elapsed);
 
 #ifdef MAPC_INCLUDES_CHKP
-        game_disable_chkp();
+        if (time_limit > 0)
+            game_disable_chkp();
 #endif
+
         game_cmd_timer();
     }
 }
@@ -1398,15 +1377,16 @@ static int game_update_state(int bt)
 
         else if (hp->t == ITEM_CLOCK)
         {
+            const float value = (float) hp->n;
+
             audio_play(AUD_CLOCK, 1.f);
 
-            if (timer_down) {
-                /* Clocks are only effective on timed levels */
-                int seconds = hp->n;
+            if (time_limit > 0)
+                time_limit = time_limit + value;
+            else
+                time_elapsed = MAX(0.0f, time_elapsed - value);
 
-                game_update_time((float) -seconds, bt);
-                incr_gained(seconds);
-            }
+            game_update_time(0.0f, bt);
 
             audio_play(AUD_COIN, 1.f);
 
@@ -1494,7 +1474,7 @@ static int game_update_state(int bt)
             /* Method 2: Set the checkpoint backup data. */
 
             checkpoints_save_spawnpoint(vary, view, CURR_PLAYER);
-            checkpoints_set_last_data(timer, timer_down, coins, curr_gained());
+            checkpoints_set_last_data(timer, time_limit > 0, coins, curr_gained());
 
             last_chkp_ballsize[CURR_PLAYER].size_orig  = grow_orig[CURR_PLAYER];
             last_chkp_ballsize[CURR_PLAYER].size_state = grow_state[CURR_PLAYER];
@@ -1571,7 +1551,7 @@ static int game_update_state(int bt)
     /* Time controls */
 
     if (bt && !timer_hold
-        && timer_down && timer < 0.f)
+        && time_limit > 0 && timer < 0.f)
     {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         if (campaign_used() && campaign_hardcore())
@@ -1786,7 +1766,7 @@ void game_set_goal(void)
 #ifdef MAPC_INCLUDES_CHKP
 void game_disable_chkp(void)
 {
-    if (chkp_e && timer_down && timer < 60.f)
+    if (chkp_e && time_limit > 0 && timer < 60.f)
     {
         if (vary.cc)
             audio_play(AUD_SWITCH, 1.0f);
@@ -1848,6 +1828,13 @@ void game_set_cam(int c)
 void game_set_rot(float r)
 {
     input_set_r(r);
+}
+
+/*---------------------------------------------------------------------------*/
+
+float curr_time_elapsed(void)
+{
+    return time_elapsed;
 }
 
 /*---------------------------------------------------------------------------*/

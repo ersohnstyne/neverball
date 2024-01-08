@@ -633,8 +633,8 @@ static void poser_timer(int id, float dt)
 {
     float fix_deltatime = CLAMP(0.001f,
                                 dt,
-                                config_get_d(CONFIG_SMOOTH_FIX) ? MIN(1/60, dt) :
-                                                                  MIN(100.f, dt));
+                                config_get_d(CONFIG_SMOOTH_FIX) ? MIN(1 / 60, dt) :
+                                                                  MIN(100.0f, dt));
     geom_step(dt);
     game_lerp_pose_point_tick(dt);
 }
@@ -666,7 +666,7 @@ static int poser_buttn(int c, int d)
 
 static int nodemo_enter(struct state *st, struct state *prev)
 {
-    audio_play("snd/warning.ogg", 1.f);
+    audio_play("snd/warning.ogg", 1.0f);
 
     nodemo_warnonlyonce = 0;
     check_nodemo = 0;
@@ -744,7 +744,7 @@ static int nodemo_buttn(int b, int d)
 
 static int level_signin_required_enter(struct state *st, struct state *prev)
 {
-    audio_play("snd/warning.ogg", 1.f);
+    audio_play("snd/warning.ogg", 1.0f);
 
     int id;
 

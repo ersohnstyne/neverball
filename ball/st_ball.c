@@ -221,7 +221,7 @@ static int ball_action(int tok, int val)
 {
     if (game_setup_process() && tok == GUI_BACK)
     {
-        audio_play(AUD_DISABLED, 1.f);
+        audio_play(AUD_DISABLED, 1.0f);
         return 1;
     }
 

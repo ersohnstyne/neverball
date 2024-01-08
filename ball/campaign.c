@@ -624,9 +624,13 @@ static void campaign_load_levels(void)
     {
         struct level *l = &campaign_lvl_v[i];
 
+        l->number = i;
+
         level_load(campaign_levelpath[i], l);
 
-        l->number = i;
+        l->is_locked    = (i > 0);
+        l->is_completed = 0;
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(l->name, MAXSTR,
 #else
@@ -634,16 +638,11 @@ static void campaign_load_levels(void)
 #endif
                 "%d", regular++);
 
-        l->is_locked = (i > 0);
-        l->is_completed = 0;
-
         if (i > 0)
             campaign_lvl_v[i - 1].next = l;
         else if (l->is_locked)
             l->is_locked = 0;
     }
-
-    return;
 }
 
 int campaign_find(const char *file)
@@ -846,18 +845,18 @@ void campaign_hardcore_set_coordinates(float x_position, float y_position)
 
 void campaign_hardcore_play(int no_rec)
 {
-    hardcores.used = 1;
+    hardcores.used         = 1;
     hardcores.norecordings = no_rec;
-    hardcores.level_theme = 1;
+    hardcores.level_theme  = 1;
     hardcores.level_number = 1;
 }
 
 void campaign_hardcore_quit(void)
 {
     game_fade_color(0.0f, 0.0f, 0.0f);
-    hardcores.used = 0;
+    hardcores.used         = 0;
     hardcores.norecordings = 0;
-    hardcores.level_theme = 0;
+    hardcores.level_theme  = 0;
     hardcores.level_number = 0;
 }
 

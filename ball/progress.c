@@ -298,8 +298,8 @@ void progress_rush_collect_coin_value(int coin_val)
         {
             curr.speedpercent += 14.28571429f;
 
-            if (curr.speedpercent >= 100.f)
-                curr.speedpercent = 100.f;
+            if (curr.speedpercent >= 100.0f)
+                curr.speedpercent = 100.0f;
 
             need_coin_val -= 10;
         }
@@ -463,16 +463,12 @@ int  progress_play(struct level *l)
 
         next   = NULL;
         status = GAME_NONE;
-        clear_gain();
 
 #ifdef MAPC_INCLUDES_CHKP
-        if (last_active)
-            incr_gained(respawn_gained);
-
         /* HACK: Must be recalculate after respawn! */
 
         coins  = last_active ? respawn_coins : 0;
-        timer  = last_active ? respawn_time_elapsed / 1000 : 0;
+        timer  = last_active ? checkpoints_respawn_time_elapsed() : 0;
 #else
         coins  = 0;
         timer  = 0;
@@ -516,8 +512,11 @@ int  progress_play(struct level *l)
 #else
         goal_e = (((mode != MODE_CHALLENGE && mode != MODE_BOOST_RUSH) &&
                    level_completed(level) && config_get_d(CONFIG_LOCK_GOALS) == 0) ||
-                  goal == 0) ||
-                 mode == MODE_ZEN;
+                  goal == 0)
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+              || mode == MODE_ZEN
+#endif
+            ;
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -606,7 +605,7 @@ void progress_stat(int s)
 #ifdef MAPC_INCLUDES_CHKP
     /* ...then substract it! */
 
-    timer -= respawn_time_elapsed;
+    timer -= checkpoints_respawn_time_elapsed() * 100;
 #endif
 
     switch (status)
@@ -690,48 +689,47 @@ void progress_stat(int s)
 
             /* Compute next level. */
 
+            next = level->next;
+
             if (mode == MODE_CHALLENGE
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
              || mode == MODE_HARDCORE
 #endif
+             || mode == MODE_BOOST_RUSH
                 )
             {
-                int has_master = 0;
+                int next_has_master = 0;
 
-                for (next = level->next;
-                     next && (level_bonus(next) || level_master(next)) &&
-                     !has_master;
+                for (;
+                     next && (level_master(next) || level_bonus(next)) &&
+                     !next_has_master;
                      next = next->next)
                 {
-                    if (!level_opened(next) && !has_master)
+                    if (!level_opened(next))
                         level_open(next);
 
-                    if (level_opened(next) && level_master(next) &&
-                        !has_master)
+                    if (level_master(next))
                     {
-                        /* Go to the next level as master, darn! */
+                        /* Go to the next level as master mode, darn! */
 
-                        has_master = 1;
+                        next_has_master = 1;
                         break;
                     }
                 }
             }
-            else
+            else if (mode == MODE_NORMAL
+                  || mode == MODE_STANDALONE
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+                  || mode == MODE_ZEN
+#endif
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                  || mode == MODE_CAMPAIGN
+#endif
+                    )
             {
-                for (next = level->next;
-                     next && (level_master(next) || (level_bonus(next) &&
-                                                     !level_opened(next)));
-                     next = next->next) {}
-
-                /*
-                 * HACK: For this purposes, I've unlocked the next given
-                 * standard levels, if there's unlocked bonus levels.
-                 */
-
-                if (next && (level_bonus(next) ||
-                             level_master(next)) && level_opened(next))
-                    if (next->next && !level_opened(next->next))
-                        level_open(next->next);
+                for (;
+                     next && (level_master(next) || (level_bonus(next) && !level_opened(next)));
+                     next = next->next);
             }
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -749,7 +747,10 @@ void progress_stat(int s)
             if (status == GAME_GOAL && !disable_live_earn && !CHECK_ACCOUNT_BANKRUPT &&
                 server_policy_get_d(SERVER_POLICY_EDITION) > -1)
             {
-                if (curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN
+                if (curr_mode() == MODE_NORMAL
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+                 || curr_mode() == MODE_ZEN
+#endif
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                  || curr_mode() == MODE_CAMPAIGN
 #endif
@@ -823,7 +824,9 @@ void progress_stat(int s)
                     mode != MODE_CAMPAIGN &&
 #endif
                     mode != MODE_NORMAL
+#ifdef LEVELGROUPS_INCLUDES_ZEN
                  && mode != MODE_ZEN
+#endif
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                  && mode != MODE_HARDCORE
 #endif
@@ -888,11 +891,10 @@ void progress_stop(void)
     if (level)
     {
 #ifdef MAPC_INCLUDES_CHKP
-        d = (level_time(level) == 0 || mediation_enabled() ?
-             curr_clock() - checkpoints_respawn_timer() <= 0 :
-             curr_clock() + checkpoints_respawn_timer() == level_time(level));
+        d = curr_time_elapsed() -
+            (checkpoints_respawn_time_elapsed() * 100) == 0.0f;
 #else
-        d = curr_clock() == level_time(level);
+        d = curr_time_elapsed() == 0.0f;
 #endif
     }
 
@@ -1364,7 +1366,9 @@ const char *mode_to_str(int m, int l)
         case MODE_CHALLENGE: return l ? _("Challenge Mode")  : _("Challenge");
         case MODE_NORMAL:    return l ? _("Classic Mode")    : _("Classic");
         case MODE_STANDALONE:return l ? _("Standalone Mode") : _("Standalone");
+#ifdef LEVELGROUPS_INCLUDES_ZEN
         case MODE_ZEN:       return l ? _("Zen Mode")        : _("Zen");
+#endif
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         case MODE_HARDCORE:  return l ? _("Hardcore Mode")   : _("Hardcore");
 #endif

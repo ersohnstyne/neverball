@@ -548,26 +548,24 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
     {
         struct v_swch *xp = vary->xv + xi;
 
-        /* FIXME enter/exit events don't work for timed switches */
+        float d, r[3];
 
-        if (xp->base->t == 0 || xp->f == xp->base->f)
+        r[0] = ball_p[0] - xp->base->p[0];
+        r[1] = ball_p[2] - xp->base->p[2];
+        r[2] = 0;
+
+        /* Distance of the far side from the edge of the halo. */
+
+        d = v_len(r) + ball_r - xp->base->r;
+
+        /*
+         * The  "touch"  distance, which  must  be cleared  before
+         * being able to trigger a switch, is the ball's diameter.
+         * (This is different from teleporters.)
+         */
+
+        if (xp->base->tm == 0) /* Behavior for toggle switches */
         {
-            float d, r[3];
-
-            r[0] = ball_p[0] - xp->base->p[0];
-            r[1] = ball_p[2] - xp->base->p[2];
-            r[2] = 0;
-
-            /* Distance of the far side from the edge of the halo. */
-
-            d = v_len(r) + ball_r - xp->base->r;
-
-            /*
-             * The  "touch"  distance, which  must  be cleared  before
-             * being able to trigger a switch, is the ball's diameter.
-             * (This is different from teleporters.)
-             */
-
             if (d <= ball_r * 2 &&
                 ball_p[1] > xp->base->p[1] &&
                 ball_p[1] < xp->base->p[1] + SWCH_HEIGHT / 2)
@@ -576,66 +574,83 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
                 {
                     /* The ball enters. */
 
-                    if (xp->base->tm == 0)
-                    {
-                        xp->e = 1;
-
-                        if (cmd_func)
-                        {
-                            union cmd cmd = { CMD_SWCH_ENTER };
-                            cmd.swchenter.xi = xi;
-                            cmd_func(&cmd);
-                        }
-                    }
-
-                    /* Toggle the state, update the path. */
+                    xp->e = 1;
 
                     xp->f = xp->f ? 0 : 1;
 
+                    if (cmd_func)
+                    {
+                        union cmd cmd;
+
+                        cmd.type         = CMD_SWCH_ENTER;
+                        cmd.swchenter.xi = xi;
+                        cmd_func(&cmd);
+
+                        cmd.type         = CMD_SWCH_TOGGLE;
+                        cmd.swchtoggle.xi = xi;
+                        cmd_func(&cmd);
+                    }
+
+                    sol_path_loop(vary, cmd_func, xp->base->pi, xp->f);
+
+                    if (!xp->base->i)
+                        rc = SWCH_INSIDE;
+
+                }
+            }
+            else if (xp->e)
+            {
+                /* The ball exits. */
+
+                xp->e = 0;
+
+                if (cmd_func)
+                {
+                    union cmd cmd = { CMD_SWCH_EXIT };
+                    cmd.swchexit.xi = xi;
+                    cmd_func(&cmd);
+                }
+            }
+        }
+        else /* Behavior for timed switches */
+        {
+            if (d <= 0.0f &&
+                ball_p[1] > xp->base->p[1] &&
+                ball_p[1] < xp->base->p[1] + SWCH_HEIGHT / 2)
+            {
+                if (xp->e == 0)
+                {
+                    /* The ball enters. */
+                    xp->e = 1;
+
+                    if (cmd_func)
+                    {
+                        union cmd cmd = { CMD_SWCH_ENTER };
+                        cmd.swchenter.xi = xi;
+                        cmd_func(&cmd);
+                    }
+                }
+
+                if (xp->base->tm == xp->tm) /* Timer is expired */
+                {
+                    /* Change switch state and start the timer. */
+
+                    xp->f = xp->f ? 0 : 1;
                     if (cmd_func)
                     {
                         union cmd cmd = { CMD_SWCH_TOGGLE };
                         cmd.swchtoggle.xi = xi;
                         cmd_func(&cmd);
                     }
-
-                    // First additive, then substractive, and so on
-
-                    if (xp->f == 1)
-                        curr_path_enabled_orcondition[xp->base->pi]++;
-                    else
-                        curr_path_enabled_orcondition[xp->base->pi]--;
-
-/*#if _DEBUG
-                    if (curr_path_enabled_orcondition[xp->base->pi] > 1)
-                        log_printf("Path index %d uses OR SWITCH condition: %d\n", xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
-                    else if (curr_path_enabled_orcondition[xp->base->pi] > 0)
-                        log_printf("Path index %d is ENABLED\n", xp->base->pi);
-                    else if (curr_path_enabled_orcondition[xp->base->pi] == 0)
-                        log_printf("Path index %d is DISABLED\n", xp->base->pi);
-                    else
-                        log_printf("Path index %d uses NOR SWITCH condition: %d\n", xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
-#endif*/
-
-                    sol_path_loop(vary, cmd_func, xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
-
-                    //sol_path_loop(vary, cmd_func, xp->base->pi, xp->f);
-
-                    /* It toggled to non-default state, start the timer. */
-
-                    if (xp->f != xp->base->f)
-                    {
-                        xp->t = 0.0f;
-                        xp->tm = 0;
-                    }
-
-                    /* If visible, set the result. */
+                    sol_path_loop(vary, cmd_func, xp->base->pi, xp->f);
 
                     if (!xp->base->i)
                         rc = SWCH_INSIDE;
+
+                    xp->t = 0.0f;
+                    xp->tm = 0;
                 }
             }
-
             /* The ball exits. */
 
             else if (xp->e)
@@ -695,41 +710,28 @@ int sol_chkp_test(struct s_vary *vary, cmd_fn cmd_func, int ui, int *ci)
 
                 cp->e = 1;
 
+                cp->f = cp->f ? 0 : 1;
+
                 if (cmd_func)
                 {
                     union cmd cmd = { CMD_CHKP_ENTER };
+
+                    cmd.type         = CMD_CHKP_ENTER;
                     cmd.chkpenter.ci = xi;
+                    cmd_func(&cmd);
+
+                    cmd.type          = CMD_CHKP_TOGGLE;
+                    cmd.chkptoggle.ci = xi;
                     cmd_func(&cmd);
                 }
 
-                /* Disabled? */
-
-                if (cp->f == 0)
-                {
-                    /* Toggle the state. */
-                    ci = &xi;
-
-                    cp->f = 1;
-
-                    if (cmd_func)
-                    {
-                        union cmd cmd = { CMD_CHKP_TOGGLE };
-                        cmd.chkptoggle.ci = xi;
-                        cmd_func(&cmd);
-                    }
-                }
-
-                /* If visible, set the result. */
-
-                /*if (!cp->base->i)*/
-                    rc = CHKP_INSIDE;
+                rc = CHKP_INSIDE;
             }
         }
-
-        /* The ball exits. */
-
         else if (cp->e)
         {
+            /* The ball exits. */
+
             cp->e = 0;
 
             if (cmd_func)

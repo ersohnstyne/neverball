@@ -124,7 +124,7 @@ struct widget
     int     cdr;
 
     GLuint  image;
-    GLfloat scale;
+    GLfloat pulse_scale;
 
     int     text_w;
     int     text_h;
@@ -766,29 +766,29 @@ static int gui_widget(int pd, int type)
         {
             /* Set the type and default properties. */
 
-            widget[id].type       = type;
-            widget[id].flags      = 0;
-            widget[id].token      = 0;
-            widget[id].value      = 0;
-            widget[id].text       = NULL;
-            widget[id].font       = 0;
-            widget[id].size       = 0;
-            widget[id].rect       = GUI_ALL;
-            widget[id].x          = 0;
-            widget[id].y          = 0;
-            widget[id].w          = 0;
-            widget[id].h          = 0;
-            widget[id].image      = 0;
-            widget[id].color0     = gui_wht;
-            widget[id].color1     = gui_wht;
-            widget[id].scale      = 1.0f;
-            widget[id].trunc      = TRUNC_NONE;
-            widget[id].text_w     = 0;
-            widget[id].text_h     = 0;
-            widget[id].init_text  = NULL;
-            widget[id].init_value = 0;
-            widget[id].layout_xd  = 0;
-            widget[id].layout_yd  = 0;
+            widget[id].type        = type;
+            widget[id].flags       = 0;
+            widget[id].token       = 0;
+            widget[id].value       = 0;
+            widget[id].text        = NULL;
+            widget[id].font        = 0;
+            widget[id].size        = 0;
+            widget[id].rect        = GUI_ALL;
+            widget[id].x           = 0;
+            widget[id].y           = 0;
+            widget[id].w           = 0;
+            widget[id].h           = 0;
+            widget[id].image       = 0;
+            widget[id].color0      = gui_wht;
+            widget[id].color1      = gui_wht;
+            widget[id].pulse_scale = 1.0f;
+            widget[id].trunc       = TRUNC_NONE;
+            widget[id].text_w      = 0;
+            widget[id].text_h      = 0;
+            widget[id].init_text   = NULL;
+            widget[id].init_value  = 0;
+            widget[id].layout_xd   = 0;
+            widget[id].layout_yd   = 0;
 
             /* Insert the new widget into the parent's widget list. */
 
@@ -1833,11 +1833,7 @@ static void gui_paint_rect(int id, int st, int flags)
         glPushMatrix();
         {
             glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2),
-                         (GLfloat) (widget[id].y + widget[id].h / 2), 0.f);
-
-            /*glScalef(widget[id].scale,
-                     widget[id].scale,
-                     widget[id].scale);*/
+                         (GLfloat) (widget[id].y + widget[id].h / 2), 0.0f);
 
             glBindTexture(GL_TEXTURE_2D, curr_theme.tex[i]);
             draw_rect(id);
@@ -1875,7 +1871,7 @@ static void gui_paint_array(int id)
     {
         GLfloat cx = widget[id].x + widget[id].w / 2.0f;
         GLfloat cy = widget[id].y + widget[id].h / 2.0f;
-        GLfloat ck = widget[id].scale;
+        GLfloat ck = widget[id].pulse_scale;
 
         if (1.0f < ck || ck < 1.0f)
         {
@@ -1908,11 +1904,11 @@ static void gui_paint_image(int id)
     glPushMatrix();
     {
         glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2),
-                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.f);
+                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.0f);
 
-        glScalef(widget[id].scale,
-                 widget[id].scale,
-                 widget[id].scale);
+        glScalef(widget[id].pulse_scale,
+                 widget[id].pulse_scale,
+                 widget[id].pulse_scale);
 
         glBindTexture(GL_TEXTURE_2D, widget[id].image);
         glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
@@ -1930,11 +1926,11 @@ static void gui_paint_count(int id)
         /* Translate to the widget center, and apply the pulse scale. */
 
         glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2),
-                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.f);
+                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.0f);
 
-        glScalef(widget[id].scale,
-                 widget[id].scale,
-                 widget[id].scale);
+        glScalef(widget[id].pulse_scale,
+                 widget[id].pulse_scale,
+                 widget[id].pulse_scale);
 
         if (widget[id].value > 0)
         {
@@ -2006,11 +2002,11 @@ static void gui_paint_clock(int id)
         /* Translate to the widget center, and apply the pulse scale. */
 
         glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2),
-                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.f);
+                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.0f);
 
-        glScalef(widget[id].scale,
-                 widget[id].scale,
-                 widget[id].scale);
+        glScalef(widget[id].pulse_scale,
+                 widget[id].pulse_scale,
+                 widget[id].pulse_scale);
 
         /* Translate left by half the total width of the rendered value. */
 
@@ -2155,11 +2151,11 @@ static void gui_paint_label(int id)
     glPushMatrix();
     {
         glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2),
-                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.f);
+                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.0f);
 
-        glScalef(widget[id].scale,
-                 widget[id].scale,
-                 widget[id].scale);
+        glScalef(widget[id].pulse_scale,
+                 widget[id].pulse_scale,
+                 widget[id].pulse_scale);
 
         glBindTexture(GL_TEXTURE_2D, widget[id].image);
         glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
@@ -2448,8 +2444,8 @@ void gui_pulse(int id, float k)
 {
     if (id)
     {
-        if (widget[id].scale < k)
-            widget[id].scale = k;
+        if (widget[id].pulse_scale < k)
+            widget[id].pulse_scale = k;
     }
 }
 
@@ -2462,9 +2458,9 @@ void gui_timer(int id, float dt)
         for (jd = widget[id].car; jd; jd = widget[jd].cdr)
             gui_timer(jd, dt);
         
-        //widget[id].scale = MAX(widget[id].scale - dt, 1.f);
+        //widget[id].pulse_scale = MAX(widget[id].pulse_scale - dt, 1.0f);
 
-        widget[id].scale = flerp(1.0f, widget[id].scale, 0.8f);
+        widget[id].pulse_scale = flerp(1.0f, widget[id].pulse_scale, 0.8f);
     }
 }
 

@@ -168,7 +168,7 @@ static int shop_activate_action(int tok, int val)
 
                 account_save();
 
-                audio_play("snd/import.ogg", 1.f);
+                audio_play("snd/import.ogg", 1.0f);
 
                 if (curr_ok_fn)
                     curr_ok_fn(ok_state);

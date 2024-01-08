@@ -236,14 +236,17 @@ void game_view_fly(struct game_view *view, const struct s_vary *vary, int ui, fl
     float start_direction = 0;
 #endif
 
-    float  x[3] = { fsinf(start_direction * V_PI / 180), 0.f, 0.f };
-    float  y[3] = { 0.f, 1.f, 0.f };
-    float  z[3] = { 0.f, 0.f, fcosf(start_direction * V_PI / 180) };
-    float c0[3] = { 0.f, 0.f, 0.f };
-    float p0[3] = { 0.f, 0.f, 0.f };
-    float c1[3] = { 0.f, 0.f, 0.f };
-    float p1[3] = { 0.f, 0.f, 0.f };
-    float  v[3];
+    const float vsin = fsinf(start_direction * V_PI / 180);
+    const float vcos = fcosf(start_direction * V_PI / 180);
+
+    float  x[3] = { vsin, 0.0f, 0.0f };
+    float  y[3] = { 0.0f, 1.0f, 0.0f };
+    float  z[3] = { 0.0f, 0.0f, vcos };
+    float c0[3] = { 0.0f, 0.0f, 0.0f };
+    float p0[3] = { 0.0f, 0.0f, 0.0f };
+    float c1[3] = { 0.0f, 0.0f, 0.0f };
+    float p1[3] = { 0.0f, 0.0f, 0.0f };
+    float  v[3] = { 0.0f, 0.0f, 0.0f };
 
     game_view_init(view);
 
@@ -276,8 +279,8 @@ void game_view_fly(struct game_view *view, const struct s_vary *vary, int ui, fl
     }
 
 #ifdef MAPC_INCLUDES_CHKP
-    float chkp_campos[3];
-    float chkp_campos_center[3];
+    float chkp_campos[3]        = { 0.0f, 0.0f, 0.0f };
+    float chkp_campos_center[3] = { 0.0f, 0.0f, 0.0f };
 
     if (last_active)
     {

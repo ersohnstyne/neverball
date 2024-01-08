@@ -172,7 +172,7 @@ void part_burst(const float *p, const float *c)
     int i, n = 0;
 
     for (i = 0; n < 10 && i < PART_MAX_COIN; i++)
-        if (coin_draw[i].t <= 0.f)
+        if (coin_draw[i].t <= 0.0f)
         {
             float a = rnd(-1.0f * PI, +1.0f * PI);
             float b = rnd(+0.3f * PI, +0.5f * PI);
@@ -185,11 +185,11 @@ void part_burst(const float *p, const float *c)
             coin_draw[i].p[1] = p[1];
             coin_draw[i].p[2] = p[2];
 
-            coin_vary[i].v[0] = 4.f * fcosf(a) * fcosf(b);
-            coin_vary[i].v[1] = 4.f *            fsinf(b);
-            coin_vary[i].v[2] = 4.f * fsinf(a) * fcosf(b);
+            coin_vary[i].v[0] = 4.0f * fcosf(a) * fcosf(b);
+            coin_vary[i].v[1] = 4.0f *            fsinf(b);
+            coin_vary[i].v[2] = 4.0f * fsinf(a) * fcosf(b);
 
-            coin_draw[i].t = 1.f;
+            coin_draw[i].t = 1.0f;
 
             part_lerp_burst(i);
 
@@ -207,7 +207,7 @@ static void part_fall(struct part_lerp *lerp,
     int i;
 
     for (i = 0; i < n; i++)
-        if (draw[i].t > 0.f)
+        if (draw[i].t > 0.0f)
         {
             draw[i].t -= dt;
 

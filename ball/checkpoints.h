@@ -96,11 +96,10 @@ extern struct chkp_view last_view[1024];
 
 extern float last_pos[1024][3];
 
-extern float last_timer;
+extern float last_time_elapsed;
+extern float last_time_limit;
 
 extern int   respawn_coins;
-extern float respawn_time_elapsed;
-extern int   respawn_gained;
 
 /*---------------------------------------------------------------------------*/
 
@@ -123,7 +122,7 @@ int checkpoints_respawn_time_elapsed(void);
  */
 void checkpoints_stop(void);
 
-void checkpoints_set_last_data(float, int, int, int);
+void checkpoints_set_last_data(float, float, int);
 
 #endif
 #endif

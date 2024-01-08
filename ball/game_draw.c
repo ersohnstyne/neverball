@@ -35,7 +35,7 @@ static void game_draw_chnk_floor(struct s_rend *rend,
                                  const struct s_vary *vary,
                                  const float *bill_M, float t)
 {
-    float c[4]   = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
     const struct s_base *base = vary->base;
 
@@ -81,8 +81,8 @@ static void game_draw_chnk_balls(struct s_rend *rend,
 
     glPushMatrix();
     {
-        const float  dnscl = 1.f;
-        glScalef    (dnscl, 1, dnscl);
+        const float  dnscl = 1.0f;
+        glScalef    (dnscl, 1.0f, dnscl);
         glTranslatef(base->uv[0].p[0] / dnscl,
                      base->uv[0].p[1] - vary->uv[0].r + BALL_FUDGE,
                      base->uv[0].p[2] / dnscl);
@@ -115,10 +115,10 @@ static void game_draw_chnk_jumps(struct s_rend *rend,
 
         glPushMatrix();
         {
-            const float  dnscl = 1.f;
-            glScalef    (dnscl, 1, dnscl);
+            const float  dnscl = 1.0f;
+            glScalef    (dnscl, 1.0f, dnscl);
             glTranslatef(base->jv[i].p[0] / dnscl,
-                         base->jv[i].p[1] + 0.001,
+                         base->jv[i].p[1] + 0.001f,
                          base->jv[i].p[2] / dnscl);
 
             glColor4ub(ROUND(c[0] * 255),
@@ -150,10 +150,10 @@ static void game_draw_chnk_goals(struct s_rend *rend,
 
         glPushMatrix();
         {
-            const float  dnscl = 1.f;
-            glScalef    (dnscl, 1, dnscl);
+            const float  dnscl = 1.0f;
+            glScalef    (dnscl, 1.0f, dnscl);
             glTranslatef(base->zv[i].p[0] / dnscl,
-                         base->zv[i].p[1] + 0.001,
+                         base->zv[i].p[1] + 0.001f,
                          base->zv[i].p[2] / dnscl);
 
             glColor4ub(ROUND(c[0] * 255),
@@ -185,10 +185,10 @@ static void game_draw_chnk_swchs(struct s_rend *rend,
 
         glPushMatrix();
         {
-            const float  dnscl = 1.f;
-            glScalef    (dnscl, 1, dnscl);
+            const float  dnscl = 1.0f;
+            glScalef    (dnscl, 1.0f, dnscl);
             glTranslatef(base->xv[i].p[0] / dnscl,
-                         base->xv[i].p[1] + 0.001,
+                         base->xv[i].p[1] + 0.001f,
                          base->xv[i].p[2] / dnscl);
 
             glColor4ub(ROUND(c[0] * 255),
@@ -221,10 +221,10 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
 
         glPushMatrix();
         {
-            const float  dnscl = 1.f;
-            glScalef    (dnscl, 1, dnscl);
+            const float  dnscl = 1.0f;
+            glScalef    (dnscl, 1.0f, dnscl);
             glTranslatef(base->cv[i].p[0] / dnscl,
-                         base->cv[i].p[1] + 0.001,
+                         base->cv[i].p[1] + 0.001f,
                          base->cv[i].p[2] / dnscl);
 
             glColor4ub(ROUND(c[0] * 255),
@@ -486,18 +486,13 @@ static void game_refl_all(struct s_rend *rend, const struct game_draw *gd, int f
 
 static void game_draw_light(const struct game_draw *gd, int d, float t)
 {
-    GLfloat p[4];
-
     /* Configure the lighting. */
 
     light_conf();
 
     /* Overrride light 2 position. */
 
-    p[0] = cosf(t);
-    p[1] = 0.0f;
-    p[2] = sinf(t);
-    p[3] = 0.0f;
+    GLfloat p[4] = { cosf(t), 0.0f, sinf(t), 0.0f };
 
     glLightfv(GL_LIGHT2, GL_POSITION, p);
 
@@ -559,13 +554,12 @@ static void game_clip_refl(int d)
 
 static void game_clip_ball(const struct game_draw *gd, int d, const float *p)
 {
-    GLfloat r, c[3], pz[4], nz[4];
-
     /* Compute the plane giving the front of the ball, as seen from view.p. */
 
-    c[0] = p[0];
-    c[1] = p[1] * d;
-    c[2] = p[2];
+    GLfloat r,
+            c [3] = { p[0], p[1] * d, p[2] },
+            pz[4] = { 0.0f, 0.0f, 0.0f, 0.0f },
+            nz[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
     pz[0] = gd->view.p[0] - c[0];
     pz[1] = gd->view.p[1] - c[1];
@@ -781,11 +775,7 @@ static void game_draw_fore_chnk(struct s_rend *rend,
 
 static void game_draw_fog()
 {
-    GLfloat fog_color[4];
-    fog_color[0] = 1.0f;
-    fog_color[1] = 1.0f;
-    fog_color[2] = 1.0f;
-    fog_color[3] = 1.0f;
+    GLfloat fog_color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
     glFogfv(GL_FOG_COLOR,   fog_color);
     glFogf (GL_FOG_MODE,    GL_EXP2);
@@ -835,7 +825,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
 {
     float fov = (float) config_get_d(CONFIG_VIEW_FOV);
 
-    //if (gd->jump_b) fov *= 2.f * fabsf(gd->jump_dt - 0.5f);
+    //if (gd->jump_b) fov *= 2.0f * fabsf(gd->jump_dt - 0.5f);
     if (gd->jump_b) fov *= (fcosf(gd->jump_dt * (2 * V_PI)) / 2) + 0.5f;
 
     if (gd->state)
@@ -870,13 +860,8 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
             glRotatef(gd_rotate_roll, 0.0f, 0.0f, 1.0f);
 
-            float T[16], U[16], M[16], v[3];
-
-            /* Compute direct and reflected view bases. */
-
-            v[0] = +view->p[0];
-            v[1] = -view->p[1];
-            v[2] = +view->p[2];
+            float T[16], U[16], M[16],
+                  v[3] = { +view->p[0], -view->p[1], +view->p[2] }; /* Compute direct and reflected view bases. */
 
             video_calc_view(T, view->c, view->p, view->e[1]);
             video_calc_view(U, view->c, v,       view->e[1]);
@@ -886,7 +871,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
             v_sub(v, view->c, view->p);
 
-            glTranslatef(0.f, 0.f, -v_len(v));
+            glTranslatef(0.0f, 0.0f, -v_len(v));
             glMultMatrixf(M);
             glTranslatef(-view->c[0], -view->c[1], -view->c[2]);
 

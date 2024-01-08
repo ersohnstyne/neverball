@@ -41,7 +41,7 @@
 
 #define GENERIC_GAMEMENU_ACTION                      \
         if (st_global_animating()) {                 \
-            audio_play(AUD_DISABLED, 1.f);           \
+            audio_play(AUD_DISABLED, 1.0f);          \
             return 1;                                \
         } else audio_play(GUI_BACK == tok ?          \
                           AUD_BACK :                 \
@@ -51,7 +51,7 @@
 
 #define GAMEPAD_GAMEMENU_ACTION_SCROLL(tok1, tok2, itemstep) \
         if (st_global_animating()) {                         \
-            audio_play(AUD_DISABLED, 1.f);                   \
+            audio_play(AUD_DISABLED, 1.0f);                  \
             return 1;                                        \
         } else if (tok == tok1 || tok == tok2) {             \
             if (tok == tok1)                                 \

@@ -68,7 +68,7 @@ static struct game_lerp gl;
 static int   status      = GAME_NONE;   /* Outcome of the game               */
 static int   coins       = 0;           /* Collected coins                   */
 static int   max_coins   = 0;           /* Maximum coin amount               */
-static float speedometer = 0.f;         /* New: Speedometer                  */
+static float speedometer = 0.0f;        /* New: Speedometer                  */
 
 static struct cmd_state cs;             /* Command state                     */
 
@@ -136,7 +136,7 @@ static void game_run_cmd(const union cmd *cmd)
                         gl.goal_k[CURR] += dt;
 
 #ifdef MAPC_INCLUDES_CHKP
-                    if (!gd.chkp_e && gl.chkp_k[CURR] > 0.f)
+                    if (!gd.chkp_e && gl.chkp_k[CURR] > 0.0f)
                         gl.chkp_k[CURR] -= dt;
 #endif
 
@@ -633,7 +633,7 @@ int curr_viewangle(void)
 
 int curr_clock(void)
 {
-    return (int) (flerp(gl.timer[PREV], gl.timer[CURR], gl.alpha) * 100.f);
+    return (int) (flerp(gl.timer[PREV], gl.timer[CURR], gl.alpha) * 100.0f);
 }
 
 int curr_coins(void)
@@ -812,7 +812,7 @@ static float studio_cam_rot_roll[15][2] =
     {  8.0f, -3.0f },
     {  5.0f, -6.0f },
     { -2.0f,  4.0f },
-    { -3.0f,  2.5f },
+    { -3.0f,  2.0f },
     {  3.0f, -5.0f },
     { -4.0f,  0.0f },
     {  5.0f, -5.0f }
@@ -863,8 +863,8 @@ void game_client_step_studio(float deltatime)
     else
         studio_time_length += deltatime;
 
-    float pos[3];
-    float center[3];
+    float pos[3]    = { 0.0f, 0.0f, 0.0f };
+    float center[3] = { 0.0f, 0.0f, 0.0f };
 
     v_lerp(pos, studio_cam_from_pos[studio_map_index][0], studio_cam_from_pos[studio_map_index][1], (studio_time_length / studio_max_time));
     v_lerp(center, studio_cam_center_pos[studio_map_index][0], studio_cam_center_pos[studio_map_index][1], (studio_time_length / studio_max_time));
@@ -872,8 +872,8 @@ void game_client_step_studio(float deltatime)
     v_scl(pos, pos, STUDIO_CAM_SCALE);
     v_scl(center, center, STUDIO_CAM_SCALE);
 
-    float realPos[3] = { pos[0], pos[2], -pos[1] };
-    float realCenter[3] = { center[0], center[2], -center[1] };
+    float realPos[3]    = { +pos[0],    +pos[2],    -pos[1] };
+    float realCenter[3] = { +center[0], +center[2], -center[1] };
 
     for (int i = 0; i < 2; i++)
         game_view_set_pos_and_target(&gl.view[i], &gd.vary, realPos, realCenter);
@@ -909,12 +909,12 @@ int game_client_init_studio(int alternatives)
 
 static float safetyintro_totaltime = 0;
 
-float safetyintro_cam_center_pos[3] = { 0, 80, 0 };
+float safetyintro_cam_center_pos[3] = { 0, +80, 0 };
 
 void game_client_step_safetyintro(float deltatime)
 {
-    float pos[3];
-    float center[3];
+    float pos[3]    = { 0.0f, 0.0f, 0.0f };
+    float center[3] = { 0.0f, 0.0f, 0.0f };
 
     if (safetyintro_totaltime > 8)
         safetyintro_totaltime -= 8;

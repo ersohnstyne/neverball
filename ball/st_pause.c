@@ -403,7 +403,7 @@ static int pause_enter(struct state *st, struct state *prev)
     if (curr_mode() != MODE_NONE)
         audio_music_fade_out(0.5f);
 
-    hud_update(0, 0.f);
+    hud_update(0, 0.0f);
 
     return pause_gui();
 }
@@ -453,11 +453,11 @@ static int pause_keybd(int c, int d)
         {
             if (!st_global_animating())
             {
-                audio_play(AUD_BACK, 1.f);
+                audio_play(AUD_BACK, 1.0f);
                 PAUSED_ACTION_CONTINUE;
             }
             else
-                audio_play(AUD_DISABLED, 1.f);
+                audio_play(AUD_DISABLED, 1.0f);
         }
 
         if (config_tst_d(CONFIG_KEY_RESTART, c))
@@ -465,7 +465,7 @@ static int pause_keybd(int c, int d)
             if (progress_same_avail())
                 return pause_action(PAUSE_RESTART, 0);
             else
-                audio_play(AUD_DISABLED, 1.f);
+                audio_play(AUD_DISABLED, 1.0f);
         }
     }
     return 1;
@@ -484,11 +484,11 @@ static int pause_buttn(int b, int d)
         {
             if (!st_global_animating())
             {
-                audio_play(AUD_BACK, 1.f);
+                audio_play(AUD_BACK, 1.0f);
                 PAUSED_ACTION_CONTINUE;
             }
             else
-                audio_play(AUD_DISABLED, 1.f);
+                audio_play(AUD_DISABLED, 1.0f);
         }
     }
     return 1;

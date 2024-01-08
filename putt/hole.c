@@ -66,11 +66,7 @@ static void hole_init_rc(const char *filename)
 
     /* Load the holes list. */
 
-#if defined(FS_VERSION_1)
-    if ((fin = fs_open(filename, "r")))
-#else
     if ((fin = fs_open_read(filename)))
-#endif
     {
         /* Skip shot and description. */
 
@@ -89,10 +85,10 @@ static void hole_init_rc(const char *filename)
 #else
             while (fs_gets(buff, sizeof (buff), fin) &&
                    sscanf(buff, "%s %s %d %s",
-                            hole_v[count].file,
-                            hole_v[count].back,
-                           &hole_v[count].par,
-                            hole_v[count].song) >= 1)
+                          hole_v[count].file,
+                          hole_v[count].back,
+                         &hole_v[count].par,
+                          hole_v[count].song) >= 1)
 #endif
                 count++;
         }
@@ -137,7 +133,8 @@ int hole_load(int h, const char *filename)
         return 1;
     }
 
-    log_errorf("Unable to load hole in course: %s\n", stderr);
+    log_errorf("Unable to load hole in course: %s / %s\n",
+               filename, fs_error());
 
     return 0;
 }

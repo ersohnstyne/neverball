@@ -74,7 +74,7 @@ static int demo_header_read(fs_file fp, struct demo *d)
     int version;
     int t;
 
-    struct tm date;
+    struct tm date = {0};
     char datestr[DATELEN];
 
     magic   = get_index(fp);
@@ -552,16 +552,6 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
                 if (game_client_init(demo_replay.file))
                 {
                     game_client_toggle_show_balls(1);
-
-                    /*
-                    if (g)
-                        audio_music_fade_to(0.5f, BGM_TITLE_MAP(level.song));
-                    else
-                    {
-                        union cmd cmd = { CMD_GOAL_OPEN };
-                        game_proxy_enq(&cmd);
-                    }
-                    */
 
                     if (g && s && tt)
                         audio_music_fade_to(0.5f, BGM_TITLE_MAP(level.song));

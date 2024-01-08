@@ -48,7 +48,7 @@
 #endif
 
 #if _WIN32 && __MINGW32__
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -105,9 +105,7 @@ extern "C" {
 #include "joy.h"
 #include "log.h"
 #include "fetch.h"
-#ifndef FS_VERSION_1
 #include "package.h"
-#endif
 
 #if NB_HAVE_PB_BOTH==1
 #include "st_setup.h"
@@ -135,7 +133,8 @@ const char ICON[] = "icon/neverputt.png";
 
 /*---------------------------------------------------------------------------*/
 
-static char *opt_data;
+static List opt_data_multi = NULL;
+
 static char *opt_hole;
 static char *opt_link;
 
@@ -147,17 +146,20 @@ static void opt_init(int argc, char **argv)
     {
         if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--data") == 0)
         {
-            if (++i < argc)
-                opt_data = argv[i];
+            if (i++ < argc)
+            {
+                opt_data_multi = list_cons(strdup(argv[i]), opt_data_multi);
+                log_printf("Added data path to opt_data_multi: %s\n", argv[i]);
+            }
         }
         else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--hole") == 0)
         {
-            if (++i < argc)
+            if (i++ < argc)
                 opt_hole = argv[i];
         }
         else if (strcmp(argv[i], "--link") == 0)
         {
-            if (++i < argc)
+            if (i++ < argc)
                 opt_link = argv[i];
         }
     }
@@ -181,7 +183,13 @@ static void opt_init(int argc, char **argv)
 
 static void opt_quit(void)
 {
-    opt_data = NULL;
+    while (opt_data_multi)
+    {
+        free(opt_data_multi->data);
+        opt_data_multi->data = NULL;
+        opt_data_multi = list_rest(opt_data_multi);
+    }
+
     opt_hole = NULL;
     opt_link = NULL;
 }
@@ -751,7 +759,20 @@ static int main_init(int argc, char *argv[])
 
     opt_init(argc, argv);
 
-    config_paths(opt_data);
+    List p             = NULL;
+    int  datadir_multi = 0;
+
+    for (p = opt_data_multi; p; p = p->next)
+    {
+        if (!datadir_multi)
+        {
+            config_paths(p->data);
+            datadir_multi = 1;
+        }
+        else
+            fs_add_path_with_archives(p->data);
+    }
+
     log_init("Neverputt " VERSION, "neverputt.log");
 #if NB_HAVE_PB_BOTH!=1
     fs_mkdir("Screenshots");
@@ -840,10 +861,8 @@ static void main_quit()
 
     config_quit();
 
-#ifndef FS_VERSION_1
     package_quit();
     fetch_quit();
-#endif
 
     audio_free();
 
@@ -907,9 +926,7 @@ int main(int argc, char *argv[])
         initialize_fetch();
 #endif
 
-#ifndef FS_VERSION_1
         package_init();
-#endif
 
 #if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
         joy_init();

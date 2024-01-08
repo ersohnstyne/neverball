@@ -46,7 +46,7 @@
 #endif
 
 #ifdef _MSC_VER
-#pragma comment(lib, "libogg_static.lib")
+#pragma comment(lib, "libogg.lib")
 #pragma comment(lib, "libvorbis_static.lib")
 #pragma comment(lib, "libvorbisfile_static.lib")
 #endif
@@ -109,7 +109,7 @@ static char *next_music_filename;
 
 /*---------------------------------------------------------------------------*/
 
-#define LOGF_VOLUME(v) ((float) powf((v), 2.f))
+#define LOGF_VOLUME(v) ((float) powf((v), 2.0f))
 #define LOG_VOLUME(v)  ((float) pow((double) (v), 2.0))
 
 #define MIX(d, s) {                           \
@@ -355,14 +355,14 @@ void audio_init(void)
     device_spec.format   = AUDIO_S16;
     device_spec.channels = AUDIO_CHAN;
     device_spec.samples  = config_get_d(CONFIG_AUDIO_BUFF);
-    device_spec.freq     = AUDIO_RATE * (float) (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100.f);
+    device_spec.freq     = AUDIO_RATE * (float) (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100.0f);
     device_spec.callback = audio_step;
 
     memset(&spec, 0, sizeof (spec));
     spec.format   = AUDIO_S16;
     spec.channels = AUDIO_CHAN;
     spec.samples  = config_get_d(CONFIG_AUDIO_BUFF);
-    spec.freq     = AUDIO_RATE * (float) (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100.f);
+    spec.freq     = AUDIO_RATE * (float) (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100.0f);
     spec.callback = audio_step;
 
     /* Allocate an input buffer. */

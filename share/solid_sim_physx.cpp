@@ -136,7 +136,7 @@ extern "C" float sol_step_physx(struct s_vary *vary, cmd_fn cmd_func,
         vary_scene->setGravity(physx::PxVec3(g[0], g[1], g[2]));
     }
 
-    vary_scene->simulate(physx::PxReal(1.f / 90.f));
+    vary_scene->simulate(physx::PxReal(1.0f / 90.0f));
     vary_scene->fetchResults();
 
     return b;
@@ -218,7 +218,7 @@ static void sol_release_sim_physx()
     log_printf("PhysX: Done freed resources!\n");
 }
 
-extern "C" void sol_init_sim_physx(struct s_vary* vary)
+extern "C" void sol_init_sim_physx(struct s_vary *vary)
 {
     log_printf("PhysX: Initializes now...\n");
 

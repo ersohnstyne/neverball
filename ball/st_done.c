@@ -301,7 +301,7 @@ static int done_enter(struct state *st, struct state *prev)
     if (!campaign_used()
      &&  set_star(curr_set()) > 0 && set_star_gained(curr_set())
      && !resume)
-        audio_play(AUD_STARS, 1.f);
+        audio_play(AUD_STARS, 1.0f);
 #endif
 
     int high = progress_set_high();
@@ -386,7 +386,7 @@ static void capital_timer(int id, float dt)
 {
     gui_timer(id, dt);
 
-    if (time_state() > 2.f && !wealthlogo_done)
+    if (time_state() > 2.0f && !wealthlogo_done)
     {
         wealthlogo_done = 1;
         goto_state(&st_done);

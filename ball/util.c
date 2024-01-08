@@ -326,7 +326,7 @@ void gui_levelgroup_stats(const struct level *l)
     int total_attempts         = l->stats.completed + l->stats.timeout + l->stats.fallout;
     int total_attempts_cleared = l->stats.completed;
 
-    float clr_rate_val = 0.f;
+    float clr_rate_val = 0.0f;
     if (total_attempts >= 1)
         clr_rate_val = (float) (ROUND(((total_attempts_cleared / total_attempts)) *
                                       10000) / 100);

@@ -25,14 +25,14 @@ static float sonic_timer;
 void boost_rush_init(void)
 {
     need_coins  = 0;
-    curr_speed  = 0.f;
-    sonic_timer = 0.f;
+    curr_speed  = 0.0f;
+    sonic_timer = 0.0f;
 }
 
 void boost_rush_stop(void)
 {
-    curr_speed  = 0.f;
-    sonic_timer = 0.f;
+    curr_speed  = 0.0f;
+    sonic_timer = 0.0f;
 }
 
 void collect_coin_value(int coin_val)
@@ -41,11 +41,11 @@ void collect_coin_value(int coin_val)
 
     while (need_coins > 9)
     {
-        if (curr_speed >= 100.f)
+        if (curr_speed >= 100.0f)
         {
             /* Exceed some speed for 5 seconds */
 
-            sonic_timer += 5.f;
+            sonic_timer += 5.0f;
             need_coins  -= 10;
             return;
         }
@@ -62,13 +62,13 @@ void increase_speed(void)
 {
     curr_speed += 14.28571429f;
     
-    if (curr_speed >= 100.f)
-        curr_speed = 100.f;
+    if (curr_speed >= 100.0f)
+        curr_speed = 100.0f;
 }
 
 void substract_speed(void)
 {
-    curr_speed  /= 2.f;
+    curr_speed  /= 2.0f;
     sonic_timer  = 0;
 }
 

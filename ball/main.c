@@ -250,7 +250,7 @@ static int opt_screensaver;
 #define opt_error(option) \
     fprintf(stderr, "Option '%s' requires an argument.\n", option)
 
-#define frame_smooth (1.f / 25.f) * 1000.f
+#define frame_smooth (1.0f / 25.0f) * 1000.0f
 
 static void opt_init(int argc, char **argv)
 {
@@ -1167,7 +1167,7 @@ static void step(void *data)
             /* Step the game state. */
 
             float deltaTime = config_get_d(CONFIG_SMOOTH_FIX) ?
-                              MIN(frame_smooth, dt) : MIN(100.f, dt);
+                              MIN(frame_smooth, dt) : MIN(100.0f, dt);
 
             CHECK_GAMESPEED(20, 100);
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;

@@ -332,11 +332,7 @@ void ms_nls_init(const char *pref)
             } \
         } while (0)
 
-#ifdef FS_VERSION_1
-    if ((fp = fs_open(inPathExt, "r")))
-#else
     if ((fp = fs_open_read(inPathExt)))
-#endif
     {
         char buf[MAXSTR];
         LANG_FUNC_LOAD_LOOP;
@@ -344,11 +340,7 @@ void ms_nls_init(const char *pref)
         LANG_FUNC_LOADSEG_FINALIZE;
         fs_close(fp);
     }
-#ifdef FS_VERSION_1
-    else if ((fp = fs_open(inPath, "r")))
-#else
     else if ((fp = fs_open_read(inPath)))
-#endif
     {
         char buf[MAXSTR];
         LANG_FUNC_LOAD_LOOP;
@@ -434,11 +426,8 @@ int lang_load(struct lang_desc *desc, const char *path)
         fs_file fp;
 
         memset(desc, 0, sizeof (*desc));
-#ifdef FS_VERSION_1
-        if ((fp = fs_open(path, "r")))
-#else
+
         if ((fp = fs_open_read(path)))
-#endif
         {
             char buf[MAXSTR];
 

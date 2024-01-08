@@ -69,7 +69,7 @@ static int switchball_useable(void)
     const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
     const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
 
-    SDL_Keycode k_arrowkey[4];
+    SDL_Keycode k_arrowkey[4] = { 0, 0, 0, 0 };
     k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
     k_arrowkey[1] = config_get_d(CONFIG_KEY_LEFT);
     k_arrowkey[2] = config_get_d(CONFIG_KEY_BACKWARD);
@@ -758,7 +758,7 @@ static int demo_restricted_gui(void)
 
 static int demo_restricted_enter(struct state *st, struct state *prev)
 {
-    audio_music_fade_out(0.f);
+    audio_music_fade_out(0.0f);
     audio_play(AUD_INTRO_SHATTER, 1.0f);
     return demo_restricted_gui();
 }
@@ -904,7 +904,7 @@ static void demo_scan_allowance_timer(int id, float dt)
         }
 
         scanfastforwards = 1;
-        demo_replay_manual_speed(target_timer / 100.f);
+        demo_replay_manual_speed(target_timer / 100.0f);
     }
     else
         demo_replay_manual_speed(32);
@@ -1250,21 +1250,21 @@ static int demo_buttn(int b, int d)
 
 #define DEMO_UPDATE_SPEED(s, scl)                               \
     do switch (speed) {                                         \
-        case SPEED_SLOWESTESTEST: scl = (1.f / 128.f); break;   \
-        case SPEED_SLOWESTESTER: scl = (1.f / 64.f); break;     \
-        case SPEED_SLOWESTEST: scl = (1.f / 32.f); break;       \
-        case SPEED_SLOWESTER: scl = (1.f / 16.f); break;        \
-        case SPEED_SLOWEST: scl = (1.f / 8.f); break;           \
-        case SPEED_SLOWER: scl = (1.f / 4.f); break;            \
-        case SPEED_SLOW: scl = (1.f / 2.f); break;              \
-        case SPEED_FAST: scl = 2.f; break;                      \
-        case SPEED_FASTER: scl = 4.f; break;                    \
-        case SPEED_FASTEST: scl = 8.f; break;                   \
-        case SPEED_FASTESTER: scl = 16.f; break;                \
-        case SPEED_FASTESTEST: scl = 32.f; break;               \
-        case SPEED_FASTESTESTER: scl = 64.f; break;             \
-        case SPEED_FASTESTESTEST: scl = 128.f; break;           \
-        default: scl = 1.f;                                     \
+        case SPEED_SLOWESTESTEST: scl = (1.0f / 128.0f); break; \
+        case SPEED_SLOWESTESTER:  scl = (1.0f / 64.0f);  break; \
+        case SPEED_SLOWESTEST:    scl = (1.0f / 32.0f);  break; \
+        case SPEED_SLOWESTER:     scl = (1.0f / 16.0f);  break; \
+        case SPEED_SLOWEST:       scl = (1.0f / 8.0f);   break; \
+        case SPEED_SLOWER:        scl = (1.0f / 4.0f);   break; \
+        case SPEED_SLOW:          scl = (1.0f / 2.0f);   break; \
+        case SPEED_FAST:          scl = 2.0f;            break; \
+        case SPEED_FASTER:        scl = 4.0f;            break; \
+        case SPEED_FASTEST:       scl = 8.0f;            break; \
+        case SPEED_FASTESTER:     scl = 16.0f;           break; \
+        case SPEED_FASTESTEST:    scl = 32.0f;           break; \
+        case SPEED_FASTESTESTER:  scl = 64.0f;           break; \
+        case SPEED_FASTESTESTEST: scl = 128.0f;          break; \
+        default: scl = 1.0f;                                    \
     } while (0)
 
 static int demo_freeze_all;
@@ -1852,7 +1852,7 @@ static int demo_del_enter(struct state *st, struct state *prev)
 {
     audio_music_fade_out(demo_paused ? 0.2f : 1.0f);
 
-    audio_play("snd/warning.ogg", 1.f);
+    audio_play("snd/warning.ogg", 1.0f);
 
     return demo_del_gui();
 }
@@ -1862,7 +1862,7 @@ static int demo_del_keybd(int c, int d)
     if (d && c == KEY_EXIT)
     {
         if (!allow_exact_versions || get_maximum_status() > get_limit_status())
-            audio_play(AUD_DISABLED, 1.f);
+            audio_play(AUD_DISABLED, 1.0f);
         else return demo_del_action(DEMO_KEEP, 0);
     }
 
@@ -1880,7 +1880,7 @@ static int demo_del_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
         {
             if (!allow_exact_versions || get_maximum_status() > get_limit_status())
-                audio_play(AUD_DISABLED, 1.f);
+                audio_play(AUD_DISABLED, 1.0f);
             else return demo_del_action(DEMO_KEEP, 0);
         }
     }
@@ -1911,7 +1911,7 @@ static int demo_compat_gui(void)
 
 static int demo_compat_enter(struct state *st, struct state *prev)
 {
-    audio_play("snd/warning.ogg", 1.f);
+    audio_play("snd/warning.ogg", 1.0f);
 
     check_compat         = 0;
     allow_exact_versions = 0;
@@ -1981,11 +1981,11 @@ static void demo_look_timer(int id, float dt)
     if (theta > +180.0f) theta -= 360.0f;
     if (theta < -180.0f) theta += 360.0f;
 
-    float look_moves[2];
-    look_moves[0] = (fcosf((V_PI * theta) / 180) * demo_look_stick_x[0])
-                  + (fsinf((V_PI * theta) / 180) * -demo_look_stick_y[0]);
-    look_moves[1] = (fcosf((V_PI * theta) / 180) * demo_look_stick_y[0])
-                  + (fsinf((V_PI * theta) / 180) * demo_look_stick_x[0]);
+    float look_moves[2] = {
+        (fcosf((V_PI * theta) / 180) * +demo_look_stick_x[0]) +
+        (fsinf((V_PI * theta) / 180) * -demo_look_stick_y[0]),
+        (fcosf((V_PI * theta) / 180) * +demo_look_stick_y[0]) +
+        (fsinf((V_PI * theta) / 180) * +demo_look_stick_x[0]) };
 
     game_look_v2(look_moves[0]     * (dt * 5),
                  demo_look_stick_z * (dt * 5),

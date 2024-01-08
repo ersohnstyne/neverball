@@ -458,9 +458,9 @@ void hud_update(int pulse, float animdt)
         gui_set_color(touch_id,            GUI_COLOR_WHT);
 #endif
 
-        gui_pulse(ball_id, 0.f);
-        gui_pulse(time_id, 0.f);
-        gui_pulse(coin_id, 0.f);
+        gui_pulse(ball_id, 0.0f);
+        gui_pulse(time_id, 0.0f);
+        gui_pulse(coin_id, 0.0f);
 
         speed_timer_length = 0.0f;
     }
@@ -507,7 +507,7 @@ void hud_update(int pulse, float animdt)
                     gui_set_color(touch_id,            GUI_COLOR_RED);
 #endif
 
-                    audio_play(AUD_TICK, 1.f);
+                    audio_play(AUD_TICK, 1.0f);
                     gui_pulse(time_id, 1.50);
                 }
                 else if (clock < 500 && (last / 50) >(clock / 50))
@@ -522,7 +522,7 @@ void hud_update(int pulse, float animdt)
                     gui_set_color(touch_id,            GUI_COLOR_VIO);
 #endif
 
-                    audio_play(AUD_TOCK, 1.f);
+                    audio_play(AUD_TOCK, 1.0f);
                     gui_pulse(time_id, 1.25);
                 }
                 else if ((last / 25) > (clock / 25))
@@ -566,7 +566,7 @@ void hud_update(int pulse, float animdt)
         case MODE_BOOST_RUSH:
             gui_set_label(speed_percent_id, speedattr);
             gui_set_color(speed_percent_id, gui_yel,
-                                            speedpercent >= 100.f ? gui_red : gui_yel);
+                                            speedpercent >= 100.0f ? gui_red : gui_yel);
 
             if (gui_value(ball_id) != balls)     gui_set_count(ball_id, balls);
             if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
@@ -786,7 +786,7 @@ void hud_speedup_reset(void)
 
 void hud_speedup_pulse(void)
 {
-    gui_set_label(speedup_logo_id, get_speed_indicator() >= 100.f ?
+    gui_set_label(speedup_logo_id, get_speed_indicator() >= 100.0f ?
                                    _("Max acceleration!") :
                                    _("Speed up!"));
     gui_pulse(speedup_logo_id, 1.2f);

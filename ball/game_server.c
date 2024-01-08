@@ -58,7 +58,7 @@ static struct s_vary vary;
 static int   timer_hold   = 0;          /* Hold timer                        */
 static float time_limit   = 0;          /* Effective time limit              */
 static float time_elapsed = 0;          /* Time elapsed                      */
-static float timer        = 0.f;        /* Clock                             */
+static float timer        = 0.0f;       /* Clock                             */
 static int   status       = GAME_NONE;  /* Outcome of the game               */
 
 static struct game_tilt tilt;           /* Floor rotation                    */
@@ -442,28 +442,28 @@ static void grow_init(struct v_ball *uv, int ui, int type)
                 break;
 
             case -1:
-                audio_play(AUD_SHRINK, 1.f);
+                audio_play(AUD_SHRINK, 1.0f);
                 grow_goal[ui]  = grow_orig[ui] * GROW_XS;
                 grow_state[ui] = -2;
                 grow[ui]       = 1;
                 break;
 
             case  0:
-                audio_play(AUD_SHRINK, 1.f);
+                audio_play(AUD_SHRINK, 1.0f);
                 grow_goal[ui]  = grow_orig[ui] * GROW_SMALL;
                 grow_state[ui] = -1;
                 grow[ui]       = 1;
                 break;
 
             case +1:
-                audio_play(AUD_SHRINK, 1.f);
+                audio_play(AUD_SHRINK, 1.0f);
                 grow_goal[ui]  = grow_orig[ui];
                 grow_state[ui] = 0;
                 grow[ui]       = 1;
                 break;
 
             case +2:
-                audio_play(AUD_SHRINK, 1.f);
+                audio_play(AUD_SHRINK, 1.0f);
                 grow_goal[ui]  = grow_orig[ui] * GROW_BIG;
                 grow_state[ui] = 0;
                 grow[ui]       = 1;
@@ -475,28 +475,28 @@ static void grow_init(struct v_ball *uv, int ui, int type)
         switch (grow_state[ui])
         {
             case -2:
-                audio_play(AUD_GROW, 1.f);
+                audio_play(AUD_GROW, 1.0f);
                 grow_goal[ui]  = grow_orig[ui] * GROW_SMALL;
                 grow_state[ui] = -1;
                 grow[ui]       = 1;
                 break;
 
             case -1:
-                audio_play(AUD_GROW, 1.f);
+                audio_play(AUD_GROW, 1.0f);
                 grow_goal[ui]  = grow_orig[ui];
                 grow_state[ui] = 0;
                 grow[ui]       = 1;
                 break;
 
             case  0:
-                audio_play(AUD_GROW, 1.f);
+                audio_play(AUD_GROW, 1.0f);
                 grow_goal[ui]  = grow_orig[ui] * GROW_BIG;
                 grow_state[ui] = +1;
                 grow[ui]       = 1;
                 break;
 
             case +1:
-                audio_play(AUD_GROW, 1.f);
+                audio_play(AUD_GROW, 1.0f);
                 grow_goal[ui]  = grow_orig[ui] * GROW_XL;
                 grow_state[ui] = +2;
                 grow[ui]       = 1;
@@ -557,11 +557,11 @@ static int game_check_map_border(int ui, float offset)
      */
 
     /*
-    int border_ok = vary.uv[ui].p[0] > (player_min_area[0] - (temp_offset * 8.f))
-        && vary.uv[ui].p[1] > (player_min_area[1] - temp_offset)
-        && vary.uv[ui].p[2] > (player_min_area[2] - (temp_offset * 8.f))
-        && vary.uv[ui].p[0] < (player_max_area[0] + (temp_offset * 8.f))
-        && vary.uv[ui].p[2] < (player_max_area[2] + (temp_offset * 8.f));
+    int border_ok = vary.uv[ui].p[0] > (player_min_area[0] - (temp_offset * 8.0f)) &&
+                    vary.uv[ui].p[1] > (player_min_area[1] - temp_offset) &&
+                    vary.uv[ui].p[2] > (player_min_area[2] - (temp_offset * 8.0f)) &&
+                    vary.uv[ui].p[0] < (player_max_area[0] + (temp_offset * 8.0f)) &&
+                    vary.uv[ui].p[2] < (player_max_area[2] + (temp_offset * 8.0f));
     */
 
     int border_ok = vary.uv[ui].p[1] > (player_min_area[1] - temp_offset);
@@ -637,7 +637,7 @@ int game_server_init(const char *file_name, int t, int e)
     memset(curr_file_name, 0, MAXSTR);
     SAFECPY(curr_file_name, file_name);
 
-    struct { int x, y; } version;
+    struct { int x, y; } version = { 0, 0 };
     int i;
 
     /*
@@ -650,7 +650,11 @@ int game_server_init(const char *file_name, int t, int e)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
          !campaign_used() &&
 #endif
-        curr_mode() != MODE_BOOST_RUSH && curr_mode() != MODE_ZEN))
+        curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+     && curr_mode() != MODE_ZEN
+#endif
+         ))
         mayhem_time = (int) t * 0.75f;
     
     time_limit   = (float) t / 100.0f;
@@ -662,13 +666,15 @@ int game_server_init(const char *file_name, int t, int e)
      * Levels for your default data will be used.
      */
 
-    time_elapsed = last_active ? respawn_time_elapsed : 0.0f;
+    time_elapsed = last_active ? checkpoints_respawn_time_elapsed() / 100.f : 0.0f;
     coins        = last_active ? respawn_coins : 0;
+    timer_hold   = !last_active;
 #else
     time_elapsed = 0.0f;
 
-    timer  = 0.0f;
-    coins  = 0;
+    timer      = 0.0f;
+    coins      = 0;
+    timer_hold = 1;
 #endif
     status = GAME_NONE;
 
@@ -676,12 +682,18 @@ int game_server_init(const char *file_name, int t, int e)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         campaign_used() ||
 #endif
-         curr_mode() == MODE_BOOST_RUSH || curr_mode() == MODE_ZEN)
+        curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+     || curr_mode() == MODE_ZEN
+#endif
+        )
 #ifdef MAPC_INCLUDES_CHKP
         && !last_active
 #endif
         )
-        timer = 0.0f;
+    {
+        time_limit = 0;
+    }
 
 #ifdef MAPC_INCLUDES_CHKP
     if (!last_active)
@@ -701,7 +713,7 @@ int game_server_init(const char *file_name, int t, int e)
         )
         time_elapsed =
 #ifdef MAPC_INCLUDES_CHKP
-            last_active ? respawn_time_elapsed :
+            last_active ? checkpoints_respawn_time_elapsed() / 100.f :
 #endif
             0;
 #endif
@@ -817,11 +829,11 @@ int game_server_init(const char *file_name, int t, int e)
             game_view_init(&view);
 
 #pragma region Static camera
-            float c0[3] = { 0.f, 0.f, 0.f };
-            float p0[3] = { 0.f, 0.f, 0.f };
-            float c1[3] = { 0.f, 0.f, 0.f };
-            float p1[3] = { 0.f, 0.f, 0.f };
-            float v[3];
+            float c0[3] = { 0.0f, 0.0f, 0.0f };
+            float p0[3] = { 0.0f, 0.0f, 0.0f };
+            float c1[3] = { 0.0f, 0.0f, 0.0f };
+            float p1[3] = { 0.0f, 0.0f, 0.0f };
+            float v[3]  = { 0.0f, 0.0f, 0.0f };
 
             v_cpy(c0, vary.uv[CURR_PLAYER].p);
             v_cpy(p0, vary.uv[CURR_PLAYER].p);
@@ -1061,11 +1073,11 @@ void game_update_view(float dt)
 
         {
 #pragma region Static camera
-            float c0[3] = { 0.f, 0.f, 0.f };
-            float p0[3] = { 0.f, 0.f, 0.f };
-            float c1[3] = { 0.f, 0.f, 0.f };
-            float p1[3] = { 0.f, 0.f, 0.f };
-            float v[3];
+            float c0[3] = { 0.0f, 0.0f, 0.0f };
+            float p0[3] = { 0.0f, 0.0f, 0.0f };
+            float c1[3] = { 0.0f, 0.0f, 0.0f };
+            float p1[3] = { 0.0f, 0.0f, 0.0f };
+            float v[3]  = { 0.0f, 0.0f, 0.0f };
 
             v_cpy(c0, vary.uv[ui].p);
             v_cpy(p0, vary.uv[ui].p);
@@ -1102,7 +1114,7 @@ void game_update_view(float dt)
             float k;
 
             float M[16], v[3], Y[3] = { 0.0f, 1.0f, 0.0f };
-            float view_v[3];
+            float view_v[3]         = { 0.0f, 0.0f, 0.0f };
 
             /* Switchball uses an automatic camera. */
 
@@ -1204,7 +1216,7 @@ void game_update_view(float dt)
                     v_sub(multiview1.e[2], multiview1.p, multiview1.c);
                     v_nrm(multiview1.e[2], multiview1.e[2]);
 
-                    float direction_v[3];
+                    float direction_v[3] = { 0.0f, 0.0f, 0.0f };
 
                     /* Multiply the speeds */
 
@@ -1304,7 +1316,17 @@ static void game_update_time(float dt, int b)
     {
         time_elapsed += dt;
 
-        timer = fabsf(time_limit - time_elapsed);
+        if (time_limit > 0.0f
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+         && !mediation_enabled()
+#endif
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+         && !campaign_used()
+#endif
+            )
+            timer = fabsf(time_limit - time_elapsed);
+        else
+            timer = time_elapsed;
 
 #ifdef MAPC_INCLUDES_CHKP
         if (time_limit > 0)
@@ -1354,6 +1376,8 @@ static int game_update_state(int bt)
         {
             grow_init(vary.uv, CURR_PLAYER, hp->t);
 
+            audio_play(AUD_COIN, 1.0f);
+
             hp->t = ITEM_NONE;
         }
 
@@ -1366,9 +1390,7 @@ static int game_update_state(int bt)
 
             progress_rush_collect_coin_value(hp->n);
 
-            audio_play(AUD_COIN, 1.f);
-
-            /* Discard item. */
+            audio_play(AUD_COIN, 1.0f);
 
             hp->t = ITEM_NONE;
         }
@@ -1379,7 +1401,7 @@ static int game_update_state(int bt)
         {
             const float value = (float) hp->n;
 
-            audio_play(AUD_CLOCK, 1.f);
+            audio_play(AUD_CLOCK, 1.0f);
 
             if (time_limit > 0)
                 time_limit = time_limit + value;
@@ -1388,9 +1410,7 @@ static int game_update_state(int bt)
 
             game_update_time(0.0f, bt);
 
-            audio_play(AUD_COIN, 1.f);
-
-            /* Discard item. */
+            audio_play(AUD_COIN, 1.0f);
 
             hp->t = ITEM_NONE;
         }
@@ -1474,7 +1494,7 @@ static int game_update_state(int bt)
             /* Method 2: Set the checkpoint backup data. */
 
             checkpoints_save_spawnpoint(vary, view, CURR_PLAYER);
-            checkpoints_set_last_data(time_elapsed, time_limit > 0, coins, curr_gained());
+            checkpoints_set_last_data(time_elapsed, time_limit, coins);
 
             last_chkp_ballsize[CURR_PLAYER].size_orig  = grow_orig[CURR_PLAYER];
             last_chkp_ballsize[CURR_PLAYER].size_state = grow_state[CURR_PLAYER];
@@ -1492,9 +1512,9 @@ static int game_update_state(int bt)
     {
         jump_b  = 1;
         jump_e  = 0;
-        jump_dt = 0.f;
+        jump_dt = 0.0f;
 
-        audio_play(AUD_JUMP, 1.f);
+        audio_play(AUD_JUMP, 1.0f);
 
         game_cmd_jump(1);
     }
@@ -1551,7 +1571,7 @@ static int game_update_state(int bt)
     /* Time controls */
 
     if (bt && !timer_hold
-        && time_limit > 0 && timer < 0.f)
+        && time_limit > 0 && timer < 0.0f)
     {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         if (campaign_used() && campaign_hardcore())
@@ -1600,8 +1620,8 @@ static int game_step(const float g[3], float dt, int bt)
 #endif
             )
         {
-            float lock_goal_pos_mult[3];
-            float dir_to_point[3];
+            float lock_goal_pos_mult[3] = { 0.0f, 0.0f, 0.0f };
+            float dir_to_point[3]       = { 0.0f, 0.0f, 0.0f };
 
             v_sub(dir_to_point, goal_lock_p, vary.uv[CURR_PLAYER].p);
             float dst_to_point = v_len(dir_to_point);
@@ -1631,7 +1651,7 @@ static int game_step(const float g[3], float dt, int bt)
 
                 if (jump_b == 1)
                 {
-                    float dp[3];
+                    float dp[3] = { 0.0f, 0.0f, 0.0f };
 
                     v_sub(dp,     jump_p, vary.uv[CURR_PLAYER].p);
                     v_add(view.p, view.p, dp);
@@ -1711,7 +1731,7 @@ static void game_server_iter(float dt)
 
     if (status == GAME_TIME) return;
 
-    float g[3]; v_cpy(g, GRAVITY_DN);
+    float g[3] = { 0.0f, -9.8f, 0.0f };
 
 #if defined(MAPC_INCLUDES_CHKP) && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
     if (status == GAME_GOAL && !campaign_used())
@@ -1766,7 +1786,7 @@ void game_set_goal(void)
 #ifdef MAPC_INCLUDES_CHKP
 void game_disable_chkp(void)
 {
-    if (chkp_e && time_limit > 0 && timer < 60.f)
+    if (chkp_e && time_limit > 0 && timer < 60.0f)
     {
         if (vary.cc)
             audio_play(AUD_SWITCH, 1.0f);

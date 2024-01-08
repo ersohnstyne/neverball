@@ -23,7 +23,7 @@ static float tiltmultiply = 1.0f;
 void powerup_stop(void)
 {
     coinmultiply = 1;
-    gravmultiply = 1.f;
+    gravmultiply = 1.0f;
     tiltmultiply = 1;
 }
 

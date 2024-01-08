@@ -1050,7 +1050,7 @@ static int control_get_input(void)
     const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
     const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
 
-    SDL_Keycode k_arrowkey[4];
+    SDL_Keycode k_arrowkey[4] = { 0, 0, 0, 0 };
     k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
     k_arrowkey[1] = config_get_d(CONFIG_KEY_LEFT);
     k_arrowkey[2] = config_get_d(CONFIG_KEY_BACKWARD);
@@ -2075,7 +2075,7 @@ static int conf_audio_action(int tok, int val)
         case CONF_AUDIO_SOUND_VOLUME:
             config_set_d(CONFIG_SOUND_VOLUME, val);
             audio_volume(master, val, music, narrator);
-            audio_play(AUD_BUMPM, 1.f);
+            audio_play(AUD_BUMPM, 1.0f);
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(sound_id, val);
@@ -2348,7 +2348,7 @@ static int conf_action(int tok, int val)
         case CONF_AUDIO_SOUND_VOLUME:
             config_set_d(CONFIG_SOUND_VOLUME, val);
             audio_volume(master, val, music, narrator);
-            audio_play(AUD_BUMPM, 1.f);
+            audio_play(AUD_BUMPM, 1.0f);
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(sound_id, val);
@@ -2535,16 +2535,10 @@ static int conf_gui(void)
 
         if ((id = gui_vstack(root_id)))
         {
-            gui_label(id, "Pennyball " VERSION, GUI_TNY, GUI_COLOR_WHT);
-#if NB_HAVE_PB_BOTH==1
-            gui_multi(id, _("Copyright © 2008, 2024 PennyGames\n"
-                            "Neverball is free software available under the terms of GPL v2 or later."),
-                           GUI_TNY, GUI_COLOR_WHT);
-#else
+            gui_label(id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT);
             gui_multi(id, _("Copyright © 2024 Neverball authors\n"
                             "Neverball is free software available under the terms of GPL v2 or later."),
                           GUI_TNY, GUI_COLOR_WHT);
-#endif
             gui_clr_rect(id);
             gui_layout(id, 0, -1);
         }

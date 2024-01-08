@@ -306,7 +306,7 @@ static int intro_gui(void)
 
 static int intro_enter(struct state *st, struct state *prev)
 {
-    audio_music_fade_out(1.f);
+    audio_music_fade_out(1.0f);
 
     if (!intro_init)
     {

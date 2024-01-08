@@ -282,7 +282,7 @@ static int over_enter(struct state *st, struct state *prev)
 
 #if NB_HAVE_PB_BOTH==1
         if (CHECK_ACCOUNT_BANKRUPT)
-            audio_play("snd/bankrupt.ogg", 1.f);
+            audio_play("snd/bankrupt.ogg", 1.0f);
 #endif
     }
 
@@ -298,7 +298,7 @@ static int over_enter(struct state *st, struct state *prev)
 static void over_timer(int id, float dt)
 {
 #ifndef LEADERBOARD_ALLOWANCE
-    if (time_state() > 3.f && !st_global_animating())
+    if (time_state() > 3.0f && !st_global_animating())
     {
         goto_state(&st_start);
         return;

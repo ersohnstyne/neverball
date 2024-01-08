@@ -35,7 +35,7 @@
 #endif
 
 #ifdef _MSC_VER
-#pragma comment(lib, "libjpeg_a.lib")
+#pragma comment(lib, "jpeg-static.lib")
 #endif
 
 /*---------------------------------------------------------------------------*/

@@ -376,12 +376,12 @@ static int party_indiv_controllers = 0;
 static int gamepadinfo_id = 0;
 static int gamepadinfo_controller_ids[4];
 
-static int title_enter(struct state *st, struct state *prev)
+static int title_enter(struct state* st, struct state* prev)
 {
 #if defined(__EMSCRIPTEN__)
     EM_ASM({
         Neverputt.isTitleScreen = true;
-    });
+        });
 #endif
 
     if (party_indiv_controllers)
@@ -836,12 +836,12 @@ static int course_enter(struct state *st, struct state *prev)
     if ((id = gui_vstack(0)))
     {
         // This one is out of date
-        /*gui_label(id, _("Select Course"), GUI_MED, 0, 0);*/
+        /*gui_label(id, _("Select Course"), GUI_MED, GUI_COLOR_DEFAULT);*/
 
         // This one is now syncronized
         if ((jd = gui_hstack(id)))
         {
-            gui_label(jd, _("Select Course"), GUI_SML, 0, 0);
+            gui_label(jd, _("Select Course"), GUI_SML, GUI_COLOR_DEFAULT);
             gui_filler(jd);
             shared_back_button(jd);
         }
@@ -1021,12 +1021,12 @@ static int party_enter(struct state *st, struct state *prev)
     if ((id = gui_vstack(0)))
     {
         // This one is out of date
-        /*gui_label(id, _("Players?"), GUI_MED, 0, 0);*/
+        /*gui_label(id, _("Players?"), GUI_MED, GUI_COLOR_DEFAULT);*/
 
         // This one is now syncronized
         if ((jd = gui_hstack(id)))
         {
-            gui_label(jd, _("Players?"), GUI_SML, 0, 0);
+            gui_label(jd, _("Players?"), GUI_SML, GUI_COLOR_DEFAULT);
             gui_filler(jd);
             shared_back_button(jd);
         }
@@ -1429,7 +1429,7 @@ static int next_enter(struct state *st, struct state *prev)
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, str, GUI_MED, 0, 0);
+        gui_title_header(id, str, GUI_MED, GUI_COLOR_DEFAULT);
 
         if (curr_party() > 1)
         {
@@ -1439,7 +1439,7 @@ static int next_enter(struct state *st, struct state *prev)
 
             if ((jd = gui_vstack(id)))
             {
-                gui_label(jd, _("Player"), GUI_SML, 0, 0);
+                gui_label(jd, _("Player"), GUI_SML, GUI_COLOR_DEFAULT);
 
                 switch (curr_player())
                 {

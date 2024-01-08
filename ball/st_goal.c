@@ -98,7 +98,7 @@ static int goal_action(int tok, int val)
     /* Waiting for extra balls by collecting 100 coins */
     if (challenge_disable_all_buttons)
     {
-        audio_play(AUD_DISABLED, 1.f);
+        audio_play(AUD_DISABLED, 1.0f);
         return 1;
     }
 
@@ -184,7 +184,10 @@ static int goal_gui(void)
     if (!resume)
 #endif
     {
-        if (curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN
+        if (curr_mode() == MODE_NORMAL
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+         || curr_mode() == MODE_ZEN
+#endif
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
          || curr_mode() == MODE_CAMPAIGN
 #endif
@@ -567,7 +570,7 @@ static void goal_timer(int id, float dt)
         geom_step(dt);
         game_server_step(dt);
 
-        int record_screenanimations = time_state() < (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.f);
+        int record_screenanimations = time_state() < (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.0f);
         int record_modes            = curr_mode() != MODE_NONE;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         int record_campaign         = !campaign_hardcore_norecordings();
@@ -584,7 +587,7 @@ static void goal_timer(int id, float dt)
         if ((t > 0.05f && coins_id) &&
             (!resume &&
              time_state() > (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f :
-                                                                      1.f)))
+                                                                      1.0f)))
         {
             int coins = 0;
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -598,13 +601,20 @@ static void goal_timer(int id, float dt)
                 wallet = gui_value(wallet_id);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if ((curr_mode() == MODE_CAMPAIGN ||
-                 curr_mode() == MODE_NORMAL   ||
-                 curr_mode() == MODE_ZEN) &&
+            if ((curr_mode() == MODE_CAMPAIGN
+              || curr_mode() == MODE_NORMAL
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+              || curr_mode() == MODE_ZEN
+#endif
+                ) &&
                 server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
 #else
-            if ((curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN) &&
+            if ((curr_mode() == MODE_NORMAL
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+                || curr_mode() == MODE_ZEN
+#endif
+                ) &&
                 server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
 #endif
@@ -636,9 +646,12 @@ static void goal_timer(int id, float dt)
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if ((curr_mode() == MODE_CAMPAIGN ||
-                     curr_mode() == MODE_NORMAL   ||
-                     curr_mode() == MODE_ZEN) &&
+                if ((curr_mode() == MODE_CAMPAIGN
+                  || curr_mode() == MODE_NORMAL
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+                  || curr_mode() == MODE_ZEN
+#endif
+                    ) &&
                     server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                     server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)) {
 #else
@@ -653,13 +666,20 @@ static void goal_timer(int id, float dt)
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (progress_reward_ball(score + 1) &&
-                    (curr_mode() != MODE_HARDCORE &&
-                     curr_mode() != MODE_CAMPAIGN &&
-                     curr_mode() != MODE_NORMAL   &&
-                     curr_mode() != MODE_ZEN))
+                    (curr_mode() != MODE_HARDCORE
+                  && curr_mode() != MODE_CAMPAIGN
+                  && curr_mode() != MODE_NORMAL
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+                  && curr_mode() != MODE_ZEN
+#endif
+                    ))
 #else
                 if (progress_reward_ball(score + 1) &&
-                    (curr_mode() != MODE_NORMAL && curr_mode() != MODE_ZEN))
+                    (curr_mode() != MODE_NORMAL
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+                  && curr_mode() != MODE_ZEN
+#endif
+                     ))
 #endif
                 {
                     challenge_caught_extra = 1;

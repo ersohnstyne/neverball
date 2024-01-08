@@ -54,14 +54,12 @@ struct chkp_view     last_view[1024];
 float last_pos[1024][3];
 
 float last_time_elapsed;
+float last_time_limit;
 int   last_coins;
 int   last_goal;
 
-int last_gained;
-
-int   respawn_coins        = 0;
 float respawn_time_elapsed = 0;
-int   respawn_gained       = 0;
+int   respawn_coins        = 0;
 
 /*---------------------------------------------------------------------------*/
 
@@ -79,10 +77,10 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
     last_view[ui].a = saved_view.a;
 
     while (last_view[ui].a > 180.0f)
-        last_view[ui].a -= 180.f;
+        last_view[ui].a -= 180.0f;
 
     while (last_view[ui].a < -180.0f)
-        last_view[ui].a += 180.f;
+        last_view[ui].a += 180.0f;
 
     /* Phase 3: Backup all SOL data's simulation. */
 
@@ -161,7 +159,6 @@ int checkpoints_load()
     if (last_active)
     {
         respawn_coins  = last_coins;
-        respawn_gained = last_gained;
 
         return 1;
     }
@@ -265,7 +262,7 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int* ci)
 
             if (cmd_func)
             {
-                union cmd cmd;
+                union cmd cmd   = { CMD_MOVE_TIME };
 
                 cmd.type        = CMD_MOVE_TIME;
                 cmd.movetime.mi = resetidx;
@@ -353,7 +350,7 @@ int checkpoints_respawn_coins(void)
 
 int checkpoints_respawn_time_elapsed(void)
 {
-    return respawn_time_elapsed * 100.f;
+    return respawn_time_elapsed * 100.0f;
 }
 
 /*
@@ -372,25 +369,22 @@ void checkpoints_stop(void)
 
     last_active = 0;
 
-    last_timer = 0;
+    last_time_elapsed = 0;
     last_coins = 0;
     last_goal  = 0;
 
-    last_gained     = 0;
-
     respawn_coins        = 0;
     respawn_time_elapsed = 0;
-    respawn_gained       = 0;
 
-    float resetpos[3]; resetpos[0] = 0.0f; resetpos[1] = 0.0f; resetpos[2] = 0.0f;
+    float resetpos[3] = { 0.0f, 0.0f, 0.0f };
 }
 
-void checkpoints_set_last_data(float time_elapsed, int downward, int coins, int gained)
+void checkpoints_set_last_data(float time_elapsed, float time_limit, int coins)
 {
     /* Set the last level data */
     last_time_elapsed = time_elapsed;
+    last_time_limit   = time_limit;
     last_coins        = coins;
-    last_gained       = gained;
 }
 
 #endif

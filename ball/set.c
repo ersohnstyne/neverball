@@ -200,8 +200,7 @@ static struct level *find_level(const struct set *s, const char *file)
 
 static int get_stats(fs_file fp, struct level *l)
 {
-    char line[MAXSTR],
-         temp[6];
+    char line[MAXSTR];
 
     if (!fs_gets(line, sizeof(line), fp))
         return 0;
@@ -884,19 +883,25 @@ static void set_load_levels(void)
     default_set_maxtimelimit    = 0;
     default_set_mincoinrequired = 0;
 
-    int idx_retreat = 0;
-
     for (i = 0; i < s->count; i++)
     {
-        struct level *l = &level_v[i - idx_retreat];
+        struct level *l = &level_v[i];
 
-        int lvl_was_offered = level_load(s->level_name_v[i - idx_retreat], l);
-        l->number = i - idx_retreat;
-        l->is_locked = (i - idx_retreat > 0);
+        l->number       = i;
+        l->is_locked    = 1;
+        l->is_completed = 0;
+
+        l->is_master    = 0;
+        l->is_bonus     = 0;
+
+        int lvl_was_offered = level_load(s->level_name_v[i], l);
 
         if (lvl_was_offered)
         {
-            if (l->is_master)
+            l->is_locked    = (i != 0) && l->is_locked;
+            l->is_completed = 0;
+
+            if      (l->is_master)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 sprintf_s(l->name, MAXSTR,
@@ -924,8 +929,6 @@ static void set_load_levels(void)
                 regular++;
             }
 
-            l->is_completed = 0;
-
             if (l->time > 0 && !l->is_bonus)
                 default_set_maxtimelimit += l->time;
             else if (default_set_maxtimelimit < SET_DEFAULT_MAX_TIME_LIMIT && !l->is_bonus)
@@ -937,13 +940,11 @@ static void set_load_levels(void)
             if (l->goal && !l->is_bonus)
                 default_set_mincoinrequired += l->goal;
 
-            if (i - idx_retreat > 0)
-            {
-                memset(level_v[i - 1 - idx_retreat].next, 0, sizeof (struct level));
-                level_v[i - 1 - idx_retreat].next = l;
-            }
+            if (i > 0)
+                level_v[i - 1].next = l;
+            else if (l->is_locked)
+                l->is_locked = 0;
         }
-        else idx_retreat++;
     }
 
     for (int r = 0; r < 3; r++)

@@ -119,8 +119,8 @@ static int bump_stick(int a)
 /*---------------------------------------------------------------------------*/
 
 /* SCREEN ANIMATIONS */
-#define state_frame_smooth (1.f / 25.f) * 1000
-#define state_anim_speed 6.f
+#define state_frame_smooth (1.0f / 25.0f) * 1000
+#define state_anim_speed 6.0f
 
 static float alpha      = 0;
 static int   anim_queue = 0;
@@ -195,7 +195,7 @@ int goto_state_full(struct state *st,
             dt = MAX(currtime - prevtime, 0);
             alpha = alpha - ((config_get_d(CONFIG_SMOOTH_FIX) ?
                               MIN(state_frame_smooth, dt) :
-                              MIN(100.f, dt)) * state_anim_speed) * 0.001;
+                              MIN(100.0f, dt)) * state_anim_speed) * 0.001f;
             if (state)
             {
                 if (state->fade != NULL) state->fade(alpha);
@@ -261,7 +261,7 @@ int goto_state_full(struct state *st,
             dt = MAX(currtime - prevtime, 0);
             alpha = alpha + ((config_get_d(CONFIG_SMOOTH_FIX) ?
                               MIN(state_frame_smooth, dt) :
-                              MIN(100.f, dt)) * state_anim_speed) * 0.001;
+                              MIN(100.0f, dt)) * state_anim_speed) * 0.001f;
             if (state)
             {
                 if (state->fade != NULL) state->fade(alpha);

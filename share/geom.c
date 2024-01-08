@@ -932,7 +932,7 @@ void light_load(void)
     int light = -1;
 
     fs_file fp;
-    float   v[4];
+    float   v[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     int     i;
 
     light_reset();

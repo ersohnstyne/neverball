@@ -188,7 +188,7 @@ static const char *pick_demo(Array items)
 
     /* Less than ten minutes? */
 
-    if ((demo_data->timer / 6000.f) >= 10) return NULL;
+    if ((demo_data->timer / 6000.0f) >= 10) return NULL;
 #endif
 
     /* Compatibility supported? */

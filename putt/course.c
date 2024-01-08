@@ -170,11 +170,8 @@ static int course_load(struct course *crs, const char *filename)
     memset(crs, 0, sizeof (*crs));
 
     strncpy(crs->holes, filename, MAXSTR - 1);
-#if defined(FS_VERSION_1)
-    if ((fin = fs_open(filename, "r")))
-#else
+
     if ((fin = fs_open_read(filename)))
-#endif
     {
         if (fs_gets(crs->shot, sizeof (crs->shot), fin) &&
             fs_gets(crs->desc, sizeof (crs->desc), fin))
@@ -228,11 +225,7 @@ void course_init(void)
 
     count = 0;
 
-#if defined(FS_VERSION_1)
-    if ((fin = fs_open(COURSE_FILE, "r")))
-#else
     if ((fin = fs_open_read(COURSE_FILE)))
-#endif
     {
         while (count < MAXCRS && read_line(&line, fin))
         {
@@ -247,8 +240,6 @@ void course_init(void)
 
         course_state = 1;
     }
-    else
-        log_errorf("Unable to load course file: %s\n", stderr);
 
     if ((items = fs_dir_scan("", is_unseen_course)))
     {
@@ -262,8 +253,6 @@ void course_init(void)
 
         course_state = 1;
     }
-    else
-        log_errorf("Unable to load course file collection: %s\n", stderr);
 }
 
 int course_exists(int i)

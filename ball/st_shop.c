@@ -633,7 +633,7 @@ static int shop_unlocked_gui(void)
 
 static int shop_unlocked_enter(struct state *st, struct state *prev)
 {
-    audio_play("snd/warning.ogg", 1.f);
+    audio_play("snd/warning.ogg", 1.0f);
 
     return shop_unlocked_gui();
 }
@@ -714,7 +714,7 @@ static int shop_rename_gui(void)
 
 static int shop_rename_enter(struct state *st, struct state *prev)
 {
-    audio_play("snd/warning.ogg", 1.f);
+    audio_play("snd/warning.ogg", 1.0f);
 
     if (draw_back)
     {
@@ -844,7 +844,7 @@ static int shop_unregistered_gui(void)
 
 static int shop_unregistered_enter(struct state *st, struct state *prev)
 {
-    audio_play("snd/warning.ogg", 1.f);
+    audio_play("snd/warning.ogg", 1.0f);
 
     return shop_unregistered_gui();
 }
@@ -2090,7 +2090,7 @@ static int shop_buy_confirmmulti_gui(void)
 static int shop_buy_enter(struct state *st, struct state *prev)
 {
     if (confirm_multiple_items)
-        audio_play("snd/warning.ogg", 1.f);
+        audio_play("snd/warning.ogg", 1.0f);
 
     return confirm_multiple_items ? shop_buy_confirmmulti_gui() :
                                     shop_buy_gui();
@@ -2242,7 +2242,7 @@ static int expenses_export_gui(void)
 
 static int expenses_export_enter(struct state *st, struct state *prev)
 {
-    audio_play("snd/warning.ogg", 1.f);
+    audio_play("snd/warning.ogg", 1.0f);
 
     if (prev == &st_shop_iap)
     {

@@ -55,7 +55,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define COUNTDOWN_PREPARATION_CROSS_LEN 20.f * (video.device_h / 1920.f)
+#define COUNTDOWN_PREPARATION_CROSS_LEN 20.0f * (video.device_h / 1920.0f)
 
 typedef struct __countdown_preparation
 {
@@ -139,7 +139,7 @@ static void __countdown_preparation_draw()
             local_countdown_preparation[i].position_scaled,
             0.0f
         );
-        glTranslatef(video.device_w / 2, video.device_h / 2, 0.0f);
+        glTranslatef(video.device_w / 2.0f, video.device_h / 2.0f, 0.0f);
 
         glDisable(GL_LIGHTING);
         glDisable(GL_DEPTH_TEST);
@@ -708,7 +708,7 @@ static void play_loop_paint(int id, float t)
         hud_lvlname_paint();
     }
 
-    if (time_state() < 1.f && id)
+    if (time_state() < 1.0f && id)
     {
         __countdown_preparation_draw();
         gui_paint(id);
@@ -738,13 +738,13 @@ static void play_loop_timer(int id, float dt)
 
     /* Boost rush uses auto forward */
     if (curr_mode() == MODE_BOOST_RUSH)
-        game_set_x(curr_speed_percent() / 100.f * -0.875f + 
+        game_set_x(curr_speed_percent() / 100.0f * -0.875f + 
                    (time_state() < 1.0f && global_prev != &st_pause ? -0.5f :
                                                                        0));
 
     float k = (fast_rotate ?
                (float) config_get_d(CONFIG_ROTATE_FAST) :
-               (float) config_get_d(CONFIG_ROTATE_SLOW)) / 100.f;
+               (float) config_get_d(CONFIG_ROTATE_SLOW)) / 100.0f;
 
     float r = 0.0f;
 
@@ -1262,11 +1262,12 @@ static void look_timer(int id, float dt)
     if (theta > +180.0f) theta -= 360.0f;
     if (theta < -180.0f) theta += 360.0f;
 
-    float look_moves[2];
-    look_moves[0] = (fcosf((V_PI * theta) / 180) *  look_stick_x[0])
-                  + (fsinf((V_PI * theta) / 180) * -look_stick_y[0]);
-    look_moves[1] = (fcosf((V_PI * theta) / 180) *  look_stick_y[0])
-                  + (fsinf((V_PI * theta) / 180) *  look_stick_x[0]);
+    float look_moves[2] = {
+        (fcosf((V_PI * theta) / 180) * +look_stick_x[0]) +
+        (fsinf((V_PI * theta) / 180) * -look_stick_y[0]),
+        (fcosf((V_PI * theta) / 180) * +look_stick_y[0]) +
+        (fsinf((V_PI * theta) / 180) * +look_stick_x[0])
+    };
 
     game_look_v2(look_moves[0] * (dt * 5),
                  look_stick_z  * (dt * 5),

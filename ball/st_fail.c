@@ -62,9 +62,8 @@
       "to buy more balls!")
 
 #define FAIL_ERROR_REPLAY    _("You can't save new replays anymore!")
-#define FAIL_ERROR_RESPAWN_1 _("You can't respawn in under one minute!")
-#define FAIL_ERROR_RESPAWN_2 _("You can't respawn from checkpoints anymore!")
-#define FAIL_ERROR_RESPAWN_3 _("You can't respawn in hardcore mode!")
+#define FAIL_ERROR_RESPAWN_1 _("You can't respawn from checkpoints anymore!")
+#define FAIL_ERROR_RESPAWN_2 _("You can't respawn in hardcore mode!")
 
 #define FAIL_ERROR_REPLAY_COVID_HIGHRISK \
     _("Replays have locked down during high risks!")
@@ -298,7 +297,7 @@ static int fail_gui(void)
 #endif
                             ))
                     {
-                        audio_music_fade_out(0.f);
+                        audio_music_fade_out(0.0f);
                         audio_play(AUD_INTRO_SHATTER, 1.0f);
 
 #ifdef COVID_HIGH_RISK
@@ -318,32 +317,25 @@ static int fail_gui(void)
                         {
                             if (!campaign_hardcore())
                             {
-                                if (((last_timer > 60.0f && last_timer_down) ||
-                                    !last_timer_down) &&
+                                if (((last_time_limit - last_time_elapsed) > 60.0f || last_time_limit == 0.0f) &&
                                     progress_same_avail())
                                 {
                                     audio_play(AUD_RESPAWN, 1.0f);
                                     gui_multi(jd, _("Respawn is still available during active!"),
-                                        GUI_SML, GUI_COLOR_GRN);
-                                }
-                                else if (progress_same_avail() && !progress_dead())
-                                {
-                                    audio_music_fade_out(0.f);
-                                    gui_multi(jd, FAIL_ERROR_RESPAWN_1,
-                                        GUI_SML, GUI_COLOR_RED);
+                                                  GUI_SML, GUI_COLOR_GRN);
                                 }
                                 else
                                 {
-                                    audio_music_fade_out(0.f);
-                                    gui_multi(jd, FAIL_ERROR_RESPAWN_2,
-                                        GUI_SML, GUI_COLOR_RED);
+                                    audio_music_fade_out(0.0f);
+                                    gui_multi(jd, FAIL_ERROR_RESPAWN_1,
+                                                  GUI_SML, GUI_COLOR_RED);
                                 }
                             }
                             else
                             {
-                                audio_music_fade_out(0.f);
-                                gui_multi(jd, FAIL_ERROR_RESPAWN_3,
-                                    GUI_SML, GUI_COLOR_RED);
+                                audio_music_fade_out(0.0f);
+                                gui_multi(jd, FAIL_ERROR_RESPAWN_2,
+                                              GUI_SML, GUI_COLOR_RED);
                             }
                         }
                         else
@@ -353,32 +345,32 @@ static int fail_gui(void)
                                 if (progress_dead() &&
                                     server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                                     gui_multi(jd, FAIL_UPGRADE_EDITION_2,
-                                        GUI_SML, GUI_COLOR_RED);
+                                                  GUI_SML, GUI_COLOR_RED);
 
                                 else if (curr_mode() == MODE_NORMAL &&
                                     progress_extended() &&
                                     server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                                     gui_multi(jd, FAIL_UPGRADE_EDITION_1,
-                                        GUI_SML, GUI_COLOR_RED);
+                                                  GUI_SML, GUI_COLOR_RED);
 
                                 else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED) == 0)
                                     gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED,
-                                        GUI_SML, GUI_COLOR_RED);
+                                                  GUI_SML, GUI_COLOR_RED);
                             }
                             else if (((curr_mode() == MODE_NORMAL && progress_extended())
                                 || progress_dead()) &&
                                 !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
                                 server_policy_get_d(SERVER_POLICY_EDITION) > -1)
                             {
-                                audio_music_fade_out(0.f);
+                                audio_music_fade_out(0.0f);
                                 gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP,
-                                    GUI_SML, GUI_COLOR_RED);
+                                              GUI_SML, GUI_COLOR_RED);
                             }
                             else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                             {
-                                audio_music_fade_out(0.f);
+                                audio_music_fade_out(0.0f);
                                 gui_multi(jd, FAIL_UPGRADE_EDITION_2,
-                                    GUI_SML, GUI_COLOR_RED);
+                                              GUI_SML, GUI_COLOR_RED);
                             }
                     }
                     else if (status == GAME_TIME &&
@@ -389,10 +381,10 @@ static int fail_gui(void)
                             ))
                     {
                         detect_replay_checkpoints();
-                        audio_music_fade_out(0.f);
+                        audio_music_fade_out(0.0f);
                         audio_play(AUD_INTRO_SHATTER, 1.0f);
                         nosaveid = gui_multi(jd, FAIL_ERROR_REPLAY,
-                            GUI_SML, GUI_COLOR_RED);
+                                                 GUI_SML, GUI_COLOR_RED);
                         gui_pulse(nosaveid, 1.2f);
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -400,23 +392,19 @@ static int fail_gui(void)
                         {
                             if (!campaign_hardcore())
                             {
-                                if (((last_timer > 60.0f && last_timer_down) ||
-                                    !last_timer_down) &&
+                                if (((last_time_limit - last_time_elapsed) > 60.0f || last_time_limit == 0.0f) &&
                                     progress_same_avail())
                                 {
                                     audio_play(AUD_RESPAWN, 1.0f);
                                     gui_multi(jd, _("Respawn is still available during active!"),
                                         GUI_SML, GUI_COLOR_GRN);
                                 }
-                                else if (progress_same_avail() && !progress_dead())
-                                    gui_multi(jd, FAIL_ERROR_RESPAWN_1,
-                                        GUI_SML, GUI_COLOR_RED);
                                 else
-                                    gui_multi(jd, FAIL_ERROR_RESPAWN_2,
-                                        GUI_SML, GUI_COLOR_RED);
+                                    gui_multi(jd, FAIL_ERROR_RESPAWN_1,
+                                                  GUI_SML, GUI_COLOR_RED);
                             }
                             else
-                                gui_multi(jd, FAIL_ERROR_RESPAWN_3, GUI_SML, GUI_COLOR_RED);
+                                gui_multi(jd, FAIL_ERROR_RESPAWN_2, GUI_SML, GUI_COLOR_RED);
                         }
                         else
 #endif
@@ -425,31 +413,31 @@ static int fail_gui(void)
                                 if (progress_dead() &&
                                     server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                                     gui_multi(jd, FAIL_UPGRADE_EDITION_2,
-                                        GUI_SML, GUI_COLOR_RED);
+                                                  GUI_SML, GUI_COLOR_RED);
 
                                 else if (curr_mode() == MODE_NORMAL &&
                                     progress_extended() &&
                                     server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                                     gui_multi(jd, FAIL_UPGRADE_EDITION_1,
-                                        GUI_SML, GUI_COLOR_RED);
+                                                  GUI_SML, GUI_COLOR_RED);
 
                                 else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED) == 0)
                                     gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED,
-                                        GUI_SML, GUI_COLOR_RED);
+                                                  GUI_SML, GUI_COLOR_RED);
                             }
                             else if (((curr_mode() == MODE_NORMAL && progress_extended())
                                 || progress_dead()) &&
                                 !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
                                 server_policy_get_d(SERVER_POLICY_EDITION) > -1)
                                 gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP,
-                                    GUI_SML, GUI_COLOR_RED);
+                                              GUI_SML, GUI_COLOR_RED);
                             else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                                 gui_multi(jd, FAIL_UPGRADE_EDITION_2,
-                                    GUI_SML, GUI_COLOR_RED);
+                                              GUI_SML, GUI_COLOR_RED);
                     }
                     else
                     {
-                        audio_music_fade_out(0.f);
+                        audio_music_fade_out(0.0f);
                         audio_play(AUD_INTRO_SHATTER, 1.0f);
                         nosaveid = gui_multi(jd, _("You can save new replays only once!"), GUI_SML, GUI_COLOR_RED);
                         gui_pulse(nosaveid, 1.2f);
@@ -458,8 +446,7 @@ static int fail_gui(void)
                         if (last_active)
                         {
                             /* Optional can be save */
-                            if (((last_timer > 60.0f && last_timer_down) ||
-                                !last_timer_down) &&
+                            if (((last_time_limit - last_time_elapsed) > 60.0f || last_time_limit == 0.0f) &&
                                 progress_same_avail()
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                                 && !campaign_hardcore()
@@ -468,7 +455,7 @@ static int fail_gui(void)
                             {
                                 audio_play(AUD_RESPAWN, 1.0f);
                                 gui_multi(jd, _("Respawn is still available during active!"),
-                                    GUI_SML, GUI_COLOR_GRN);
+                                              GUI_SML, GUI_COLOR_GRN);
                             }
                             else if (progress_same_avail()
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -476,17 +463,10 @@ static int fail_gui(void)
 #endif
                                 )
                                 gui_multi(jd, FAIL_ERROR_RESPAWN_1,
-                                    GUI_SML, GUI_COLOR_RED);
-                            else if (progress_dead()
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                                && !campaign_hardcore()
-#endif
-                                )
-                                gui_multi(jd, FAIL_ERROR_RESPAWN_2,
-                                    GUI_SML, GUI_COLOR_RED);
+                                              GUI_SML, GUI_COLOR_RED);
                             else if (progress_dead())
-                                gui_multi(jd, FAIL_ERROR_RESPAWN_3,
-                                    GUI_SML, GUI_COLOR_RED);
+                                gui_multi(jd, FAIL_ERROR_RESPAWN_2,
+                                              GUI_SML, GUI_COLOR_RED);
                         }
                         else
 #endif
@@ -495,29 +475,29 @@ static int fail_gui(void)
                                 if (progress_dead() &&
                                     server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                                     gui_multi(jd, FAIL_UPGRADE_EDITION_2,
-                                        GUI_SML, GUI_COLOR_RED);
+                                                  GUI_SML, GUI_COLOR_RED);
                                 else if (curr_mode() == MODE_NORMAL &&
                                     progress_extended() &&
                                     server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                                     gui_multi(jd, FAIL_UPGRADE_EDITION_1,
-                                        GUI_SML, GUI_COLOR_RED);
+                                                  GUI_SML, GUI_COLOR_RED);
                                 else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED) == 0)
                                     gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED,
-                                        GUI_SML, GUI_COLOR_RED);
+                                                  GUI_SML, GUI_COLOR_RED);
                             }
                             else if (((curr_mode() == MODE_NORMAL && progress_extended())
                                 || progress_dead()) &&
                                 !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
                                 gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP,
-                                    GUI_SML, GUI_COLOR_RED);
+                                              GUI_SML, GUI_COLOR_RED);
                             else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                                 gui_multi(jd, FAIL_UPGRADE_EDITION_2,
-                                    GUI_SML, GUI_COLOR_RED);
+                                              GUI_SML, GUI_COLOR_RED);
                     }
 #else
                     if (progress_dead())
                     {
-                        audio_music_fade_out(0.f);
+                        audio_music_fade_out(0.0f);
                         audio_play(AUD_INTRO_SHATTER, 1.0f);
                         gui_multi(jd, FAIL_TRANSFER_MEMBER_1, GUI_SML, GUI_COLOR_RED);
                     }
@@ -543,11 +523,14 @@ static int fail_gui(void)
                     gui_state(id, _("Ask for more time!"),
                         GUI_SML, FAIL_ASK_MORE, ASK_MORE_TIME);
                 }
-                else if (curr_mode() == MODE_NORMAL && curr_mode() != MODE_ZEN &&
-                    status == GAME_TIME && !progress_extended() &&
-                    (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                        server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
-                        server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED)))
+                else if (curr_mode() == MODE_NORMAL &&
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+                         curr_mode() != MODE_ZEN &&
+#endif
+                         status == GAME_TIME && !progress_extended() &&
+                        (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                         server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
+                         server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED)))
                 {
                     gui_space(id);
                     gui_state(id, _("Buy Mediation!"),
@@ -568,7 +551,7 @@ static int fail_gui(void)
 
                     /* New: Checkpoints; An optional can be respawn last location */
                     if ((progress_same_avail() && last_active) &&
-                        ((last_timer > 60.0f && last_timer_down) || !last_timer_down))
+                        (((last_time_limit - last_time_elapsed) > 60.0f || last_time_limit == 0.0f)))
                         gui_state(jd, _("Respawn"),
                             GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
                     else if ((!campaign_hardcore() && progress_dead()) &&
@@ -722,7 +705,7 @@ static void fail_timer(int id, float dt)
             game_client_blend(game_server_blend());
 
             int record_screenanimations = time_state() < (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 2.5f :
-                                                                                                   2.f);
+                                                                                                   2.0f);
             int record_modes            = curr_mode() != MODE_NONE;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             int record_campaign         = !campaign_hardcore_norecordings();
@@ -783,7 +766,7 @@ static int fail_keybd(int c, int d)
             {
                 /* Can't do yet, play buzzer sound. */
 
-                audio_play(AUD_DISABLED, 1.f);
+                audio_play(AUD_DISABLED, 1.0f);
             }
         }
     }
@@ -841,7 +824,7 @@ static int zen_warning_action(int tok, int val)
 
 static int zen_warning_enter(struct state *st, struct state *prev)
 {
-    audio_play("snd/warning.ogg", 1.f);
+    audio_play("snd/warning.ogg", 1.0f);
 
     int id, jd;
 
@@ -1422,10 +1405,7 @@ static int raise_gems_working_gui(void)
 static int raise_gems_prepare_gui(void)
 {
     int i, id, jd, kd;
-    int estimated_prices[4];
-
-    for (i = 0; i < 4; i++)
-        estimated_prices[i] = 0;
+    int estimated_prices[4] = { 0, 0, 0, 0 };
 
     static int show_estimate_amount = 0;
 
@@ -1601,12 +1581,12 @@ static int raise_gems_prepare_gui(void)
                 }
             }
 
-            if (((float) video.device_w / (float) video.device_h) > 1.f)
+            if (((float) video.device_w / (float) video.device_h) > 1.0f)
             {
                 gui_space(jd);
                 gui_image(jd, pay_debt_ready ? "gui/advisers/payment_ready.png" :
-                              allow_raise ? "gui/advisers/raising_gems.png"
-                                          : "gui/advisers/payment_due.png",
+                              allow_raise    ? "gui/advisers/raising_gems.png"
+                                             : "gui/advisers/payment_due.png",
                               7 * video.device_h / 16, 7 * video.device_h / 16);
             }
 
@@ -1615,7 +1595,7 @@ static int raise_gems_prepare_gui(void)
 
         if (pay_debt_ready)
         {
-            if (((float) video.device_w / (float) video.device_h) > 1.f)
+            if (((float) video.device_w / (float) video.device_h) > 1.0f)
                 gui_space(id);
 
             gui_multi(id, infoattr_full, GUI_SML, gui_wht, gui_cya);
@@ -1668,12 +1648,12 @@ static int raise_gems_enter(struct state *st, struct state *prev)
 
 static void raise_gems_timer(int id, float dt)
 {
-    static float t = 0.f;
-    static float time_state_tofinish = 3.f;
+    static float t = 0.0f;
+    static float time_state_tofinish = 3.0f;
 
     t += dt;
 
-    if (time_state() > (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.f)
+    if (time_state() > (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.0f)
      && t > 0.025f && raisegems_working && !st_global_animating())
     {
         for (int i = 0; i < 4; i++)
@@ -1688,7 +1668,7 @@ static void raise_gems_timer(int id, float dt)
                 gui_set_count(gui_count_ids[i], num_amounts_curr[i]);
                 gui_pulse(gui_count_ids[i], 1.1f);
 
-                time_state_tofinish = time_state() + 3.f;
+                time_state_tofinish = time_state() + 3.0f;
             }
             else if (num_amounts_dst[i] < 0)
             {
@@ -1698,7 +1678,7 @@ static void raise_gems_timer(int id, float dt)
                 gui_set_count(gui_count_ids[i], num_amounts_curr[i]);
                 gui_pulse(gui_count_ids[i], 1.1f);
 
-                time_state_tofinish = time_state() + 3.f;
+                time_state_tofinish = time_state() + 3.0f;
             }
         }
 

@@ -519,7 +519,7 @@ static int scan_key_and_value(char **dst_key, char **dst_val, char *line)
             if (parse_ok) fs_remove("." _src);                           \
             else if (fs_rename("." _src, filename) == 0) {               \
                 log_errorf("Can't replace filename!: %s\n", fs_error()); \
-                fs_remove("." _src, filename);                           \
+                fs_remove("." _src);                                     \
             } else {                                                     \
                 log_printf("Config filename replaced!: %s -> %s\n",      \
                            "." _src, filename);                          \

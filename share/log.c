@@ -51,12 +51,7 @@ void log_printf(const char *fmt, ...)
     va_list ap;
 
     va_start(ap, fmt);
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    //len = 1 + vsnprintf_s(NULL, 0, MAXSTR, fmt, ap);
     len = 1 + vsnprintf(NULL, 0, fmt, ap);
-#else
-    len = 1 + vsnprintf(NULL, 0, fmt, ap);
-#endif
     va_end(ap);
 
     if ((str = (char *) malloc(len)))
@@ -120,12 +115,7 @@ void log_errorf(const char *fmt, ...)
     va_list ap;
 
     va_start(ap, fmt);
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    //len = 1 + vsnprintf_s(NULL, 0, MAXSTR, fmt, ap);
     len = 1 + vsnprintf(NULL, 0, fmt, ap);
-#else
-    len = 1 + vsnprintf(NULL, 0, fmt, ap);
-#endif
     va_end(ap);
 
     if ((str = (char *) malloc(len)))

@@ -23,7 +23,7 @@
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
-#include "checkpoints.h" // New: Checkpoints
+#include "checkpoints.h" /* New: Checkpoints */
 #endif
 #include "progress.h"
 
@@ -43,6 +43,10 @@
 #include "game_proxy.h"
 
 #include "cmd.h"
+
+#if NB_HAVE_PB_BOTH==1 && !defined(MAPC_INCLUDES_CHKP)
+#error Security compilation error: Please enable checkpoints after joined PB+NB Discord Server!
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -393,21 +397,6 @@ static void game_cmd_chkp_disable(void)
 
 /*---------------------------------------------------------------------------*/
 
-static int   grow     [MAX_PLAYERS];    /* Should the ball be changing size? */
-static float grow_orig[MAX_PLAYERS];    /* the original ball size            */
-static float grow_goal[MAX_PLAYERS];    /* how big or small to get!          */
-static float grow_t   [MAX_PLAYERS];    /* timer for the ball to grow...     */
-static float grow_strt[MAX_PLAYERS];    /* starting value for growth         */
-static int   got_orig [MAX_PLAYERS];    /* Do we know original ball size?    */
-
-#define GROW_TIME  0.5f                 /* sec for the ball to get to size.  */
-#define GROW_XL    2.0f                 /* large factor                      */
-#define GROW_BIG   1.5f                 /* large factor                      */
-#define GROW_SMALL 0.5f                 /* small factor                      */
-#define GROW_XS    0.25f                /* small factor                      */
-
-static int   grow_state[MAX_PLAYERS];   /* Current radius state              */
-
 static int   automode     = 2;          /* New: Automatic camera             */
 static float autorotspeed = 0.0f;       /* New: Automatic rotation speed     */
 
@@ -421,124 +410,57 @@ static float fix_cam_pos[3] =
 
 static float view_alt_velocity = 0;
 
-static void grow_init(struct v_ball *uv, int ui, int type)
+static int grow_init(struct v_ball *uv, int ui, int type)
 {
-    if (!got_orig[ui])
-    {
-        grow_orig[ui]  = uv[ui].r;
-        grow_goal[ui]  = grow_orig[ui];
-        grow_strt[ui]  = grow_orig[ui];
-
-        grow_state[ui] = 0;
-
-        got_orig[ui]  = 1;
-    }
+    struct v_ball *up = &vary.uv[ui];
+    int size = up->size;
 
     if (type == ITEM_SHRINK)
-    {
-        switch (grow_state[ui])
-        {
-            case -2:
-                break;
-
-            case -1:
-                audio_play(AUD_SHRINK, 1.0f);
-                grow_goal[ui]  = grow_orig[ui] * GROW_XS;
-                grow_state[ui] = -2;
-                grow[ui]       = 1;
-                break;
-
-            case  0:
-                audio_play(AUD_SHRINK, 1.0f);
-                grow_goal[ui]  = grow_orig[ui] * GROW_SMALL;
-                grow_state[ui] = -1;
-                grow[ui]       = 1;
-                break;
-
-            case +1:
-                audio_play(AUD_SHRINK, 1.0f);
-                grow_goal[ui]  = grow_orig[ui];
-                grow_state[ui] = 0;
-                grow[ui]       = 1;
-                break;
-
-            case +2:
-                audio_play(AUD_SHRINK, 1.0f);
-                grow_goal[ui]  = grow_orig[ui] * GROW_BIG;
-                grow_state[ui] = 0;
-                grow[ui]       = 1;
-                break;
-        }
-    }
+        size = CLAMP(0, size - 1, 2);
     else if (type == ITEM_GROW)
+        size = CLAMP(0, size + 1, 2);
+
+    if (size != up->size)
     {
-        switch (grow_state[ui])
-        {
-            case -2:
-                audio_play(AUD_GROW, 1.0f);
-                grow_goal[ui]  = grow_orig[ui] * GROW_SMALL;
-                grow_state[ui] = -1;
-                grow[ui]       = 1;
-                break;
+        const int old_size = up->size;
 
-            case -1:
-                audio_play(AUD_GROW, 1.0f);
-                grow_goal[ui]  = grow_orig[ui];
-                grow_state[ui] = 0;
-                grow[ui]       = 1;
-                break;
+        up->r_vel = (up->sizes[size] - up->r) / GROW_TIME;
+        up->size  = size;
 
-            case  0:
-                audio_play(AUD_GROW, 1.0f);
-                grow_goal[ui]  = grow_orig[ui] * GROW_BIG;
-                grow_state[ui] = +1;
-                grow[ui]       = 1;
-                break;
+        if      (size < old_size) return -1;
+        else if (size > old_size) return +1;
 
-            case +1:
-                audio_play(AUD_GROW, 1.0f);
-                grow_goal[ui]  = grow_orig[ui] * GROW_XL;
-                grow_state[ui] = +2;
-                grow[ui]       = 1;
-                break;
-
-            case +2:
-                break;
-        }
-    }
-
-    if (grow)
-    {
-        grow_t[ui]    = 0.0;
-        grow_strt[ui] = uv[ui].r;
+        return 0;
     }
 }
 
 static void grow_step(int ui, float dt)
 {
-    float dr;
+    struct v_ball *up = &vary.uv[ui];
 
-    if (!grow[ui])
-        return;
-
-    /* Calculate new size based on how long since you touched the coin... */
-
-    grow_t[ui] += dt;
-
-    if (grow_t[ui] >= GROW_TIME)
+    if (up->r_vel != 0.0f)
     {
-        grow[ui] = 0;
-        grow_t[ui] = GROW_TIME;
+        float r, dr;
+
+        /* Calculate new size based on how long since you touched the coin... */
+
+        r = up->r + up->r_vel * dt;
+
+        if (fabsf(r - up->sizes[up->size]) < 0.0005f)
+        {
+            r = up->sizes[up->size];
+            up->r_vel = 0.0f;
+        }
+
+        dr = r - up->r;
+
+        /* No sinking through the floor! Keeps ball's bottom constant. */
+
+        up->p[1] += dr;
+        up->r = r;
+
+        game_cmd_ballradius();
     }
-
-    dr = flerp(grow_strt[ui], grow_goal[ui], (1.0f / (GROW_TIME / grow_t[ui])));
-
-    /* No sinking through the floor! Keeps ball's bottom constant. */
-
-    vary.uv[ui].p[1] += (dr - vary.uv[ui].r);
-    vary.uv[ui].r     =  dr;
-
-    game_cmd_ballradius();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -637,7 +559,7 @@ int game_server_init(const char *file_name, int t, int e)
     memset(curr_file_name, 0, MAXSTR);
     SAFECPY(curr_file_name, file_name);
 
-    struct { int x, y; } version = { 0, 0 };
+    struct game_sol_version { int x, y; } version = { 0, 0 };
     int i;
 
     /*
@@ -656,8 +578,24 @@ int game_server_init(const char *file_name, int t, int e)
 #endif
          ))
         mayhem_time = (int) t * 0.75f;
-    
-    time_limit   = (float) t / 100.0f;
+
+#ifdef MAPC_INCLUDES_CHKP
+    time_limit = last_active ? checkpoints_respawn_time_limit() :
+                               (float) t / 100.0f;
+#else
+    time_limit = (float) t / 100.0f;
+#endif
+
+    if (
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        campaign_used() ||
+#endif
+        curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+        || curr_mode() == MODE_ZEN
+#endif
+        )
+        time_limit = 0;
 
 #ifdef MAPC_INCLUDES_CHKP
     /*
@@ -666,34 +604,17 @@ int game_server_init(const char *file_name, int t, int e)
      * Levels for your default data will be used.
      */
 
-    time_elapsed = last_active ? checkpoints_respawn_time_elapsed() / 100.f : 0.0f;
-    coins        = last_active ? respawn_coins : 0;
+    time_elapsed =  last_active ? checkpoints_respawn_time_elapsed() / 100.f : 0.0f;
+    coins        =  last_active ? checkpoints_respawn_coins() : 0;
     timer_hold   = !last_active;
 #else
     time_elapsed = 0.0f;
-
-    timer      = 0.0f;
-    coins      = 0;
-    timer_hold = 1;
+    coins        = 0;
+    timer_hold   = 1;
 #endif
+
+    timer = fabsf(time_elapsed - time_limit);
     status = GAME_NONE;
-
-    if ((
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        campaign_used() ||
-#endif
-        curr_mode() == MODE_BOOST_RUSH
-#ifdef LEVELGROUPS_INCLUDES_ZEN
-     || curr_mode() == MODE_ZEN
-#endif
-        )
-#ifdef MAPC_INCLUDES_CHKP
-        && !last_active
-#endif
-        )
-    {
-        time_limit = 0;
-    }
 
 #ifdef MAPC_INCLUDES_CHKP
     if (!last_active)
@@ -713,7 +634,7 @@ int game_server_init(const char *file_name, int t, int e)
         )
         time_elapsed =
 #ifdef MAPC_INCLUDES_CHKP
-            last_active ? checkpoints_respawn_time_elapsed() / 100.f :
+            last_active ? checkpoints_respawn_time_elapsed() :
 #endif
             0;
 #endif
@@ -756,11 +677,19 @@ int game_server_init(const char *file_name, int t, int e)
 
         if (strcmp(k, "version") == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(v,
+            if (sscanf_s(v,
 #else
-            sscanf(v,
+            if (sscanf(v,
 #endif
-                   "%d.%d", & version.x, & version.y);
+                       "%d.%d", &version.x, &version.y) != 2)
+            {
+/*#ifndef NDEBUG
+                log_errorf("SOL key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
+                sol_free_vary(&vary);
+                game_base_free(NULL);
+                return (server_state = 0);
+#endif*/
+            }
     }
 
     input_init();
@@ -783,9 +712,9 @@ int game_server_init(const char *file_name, int t, int e)
     /* All checkpoints were removed in HARDCORE MODE! or last balls. */
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if ((time_limit > 0 && timer <= 60)
-     || (curr_mode() == MODE_HARDCORE) || curr_balls() == 0)
+        || (curr_mode() == MODE_HARDCORE) || curr_balls() < 1)
 #else
-    if ((timer_down && timer <= 60) || curr_balls() == 0)
+    if ((timer_down && timer <= 60) || curr_balls() < 1)
 #endif
         chkp_e = 0;
     else
@@ -803,10 +732,10 @@ int game_server_init(const char *file_name, int t, int e)
     {
         if (ui != CURR_PLAYER) continue;
 
-        fix_cam_lock[ui] = 0;
+        fix_cam_lock[ui]  = 0;
         fix_cam_alpha[ui] = 0.0f;
-        int uses_fix_cam = (input_get_c() == CAM_AUTO && automode == CAM_2)
-                        || input_get_c() == CAM_2;
+        int uses_fix_cam  = (input_get_c() == CAM_AUTO && automode == CAM_2) ||
+                             input_get_c() == CAM_2;
 
         /* Use target view as somewhere else */
         if (vary.base->wv)
@@ -892,58 +821,6 @@ int game_server_init(const char *file_name, int t, int e)
 #endif
     }
 
-    /* Initialize ball size tracking. */
-
-    for (int ui = 0; ui < vary.base->uc && ui < MAX_PLAYERS; ui++)
-    {
-        if (ui != CURR_PLAYER) continue;
-
-        got_orig[ui] = 0;
-        grow[ui] = 0;
-
-        grow_init(vary.uv, ui, 0);
-
-#ifdef MAPC_INCLUDES_CHKP
-        if (last_active)
-        {
-            grow_orig[ui] = last_chkp_ballsize[ui].size_orig;
-            grow_state[ui] = last_chkp_ballsize[ui].size_state;
-
-            e_cpy(vary.uv[ui].e, last_chkp_ball[ui].e);
-
-            v_cpy(vary.uv[ui].p, vary.base->cv[chkp_id].p);
-            vary.uv[ui].p[1] += .5f;
-
-            vary.uv[ui].v[0] = 0.0f;
-            vary.uv[ui].v[1] = 0.0f;
-            vary.uv[ui].v[2] = 0.0f;
-
-            e_cpy(vary.uv[ui].E, last_chkp_ball[ui].E);
-
-            switch (grow_state[ui])
-            {
-                case -2:
-                    vary.uv[ui].r = vary.base->uv[ui].r * GROW_XS;
-                    break;
-                case -1:
-                    vary.uv[ui].r = vary.base->uv[ui].r * GROW_SMALL;
-                    break;
-                case 0:
-                    vary.uv[ui].r = vary.base->uv[ui].r;
-                    break;
-                case +1:
-                    vary.uv[ui].r = vary.base->uv[ui].r * GROW_BIG;
-                    break;
-                case +2:
-                    vary.uv[ui].r = vary.base->uv[ui].r * GROW_XL;
-                    break;
-            }
-
-            game_view_fly(&view, &vary, ui, 0.0f);
-        }
-#endif
-    }
-
     /* Initialize simulation. */
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -994,13 +871,16 @@ int game_server_init(const char *file_name, int t, int e)
      * If you have loaded electricity data for each checkpoints,
      * The electricity will travel BACK IN TIME!
      */
-    if (!last_active) chkp_id = -1;
-    else
+    if (last_active)
         checkpoints_respawn(&vary, game_proxy_enq, &chkp_id);
-
-    if (!last_active)
-#endif
+    else
+    {
+        chkp_id = -1;
         game_cmd_init_items();
+    }
+#else
+    game_cmd_init_items();
+#endif
 
     game_cmd_speedometer();
 
@@ -1052,14 +932,13 @@ void game_update_view(float dt)
     {
         if (ui != CURR_PLAYER) continue;
 
-        fix_cam_used[ui] =
-            ((input_get_c() == CAM_AUTO && automode == CAM_2)
-          || input_get_c() == CAM_2)
-         && (cam_speed(input_get_c() == CAM_AUTO ?
-                       automode : input_get_c()) == 0);
+        fix_cam_used[ui] = ((input_get_c() == CAM_AUTO && automode == CAM_2) ||
+                            input_get_c() == CAM_2) &&
+                           (cam_speed(input_get_c() == CAM_AUTO ?
+                            automode : input_get_c()) == 0);
 
-        if (fix_cam_lock[ui]) fix_cam_alpha[ui] = 1;
-
+        if (fix_cam_lock[ui])
+            fix_cam_alpha[ui] = 1;
         if (fix_cam_used[ui] || fix_cam_lock[ui])
         {
             fix_cam_alpha[ui] += dt / 1.5f;
@@ -1329,7 +1208,7 @@ static void game_update_time(float dt, int b)
             timer = time_elapsed;
 
 #ifdef MAPC_INCLUDES_CHKP
-        if (time_limit > 0)
+        if (chkp_e && time_limit > 0 && timer < 60.0f)
             game_disable_chkp();
 #endif
 
@@ -1374,9 +1253,22 @@ static int game_update_state(int bt)
 
         if (hp->t == ITEM_GROW || hp->t == ITEM_SHRINK)
         {
-            grow_init(vary.uv, CURR_PLAYER, hp->t);
-
             audio_play(AUD_COIN, 1.0f);
+
+            switch (grow_init(hp->t, 0, hp->t))
+            {
+                case -1:
+                    audio_play(AUD_SHRINK, 1.0f);
+                    break;
+
+                case +1:
+                    audio_play(AUD_GROW, 1.0f);
+                    break;
+
+                case 0:
+                    audio_play(AUD_DISABLED, 1.0f);
+                    break;
+            }
 
             hp->t = ITEM_NONE;
         }
@@ -1403,6 +1295,8 @@ static int game_update_state(int bt)
 
             audio_play(AUD_CLOCK, 1.0f);
 
+            /* Calculate elapsed time against coin clocks. */
+
             if (time_limit > 0)
                 time_limit = time_limit + value;
             else
@@ -1421,7 +1315,7 @@ static int game_update_state(int bt)
 #if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
         if (bt && (cami = campaign_camera_box_trigger_test(&vary, 0)) != -1)
         {
-            if (!campaign_get_camera_box_trigger(cami).activated)
+            if (campaign_get_camera_box_trigger(cami).inside)
             {
                 automode = campaign_get_camera_box_trigger(cami).cammode;
 
@@ -1494,10 +1388,7 @@ static int game_update_state(int bt)
             /* Method 2: Set the checkpoint backup data. */
 
             checkpoints_save_spawnpoint(vary, view, CURR_PLAYER);
-            checkpoints_set_last_data(time_elapsed, time_limit, coins);
-
-            last_chkp_ballsize[CURR_PLAYER].size_orig  = grow_orig[CURR_PLAYER];
-            last_chkp_ballsize[CURR_PLAYER].size_state = grow_state[CURR_PLAYER];
+            checkpoints_save_last_data(time_elapsed, time_limit, coins);
 
             for (int i = 0; i < vary.xc; i++)
                 last_path_enabled_orcondition[i] = curr_path_enabled_orcondition[i];
@@ -1692,21 +1583,9 @@ static int game_step(const float g[3], float dt, int bt)
             {
                 float k = (b - 0.5f) * 2.0f;
 
-                if (got_orig[CURR_PLAYER])
-                {
-                    if      (vary.uv[CURR_PLAYER].r > grow_orig[CURR_PLAYER])
-                        audio_play(AUD_BUMPL, k);
-                    else if (vary.uv[CURR_PLAYER].r < grow_orig[CURR_PLAYER])
-                    {
-                        if (vary.uv[CURR_PLAYER].r >= grow_orig[CURR_PLAYER] *
-                            GROW_SMALL)
-                            audio_play(AUD_BUMPS, k);
-                        else
-                            audio_play("snd/bink.ogg", k);
-                    }
-                    else audio_play(AUD_BUMPM, k);
-                }
-                else audio_play(AUD_BUMPM, k);
+                if      (vary.uv->r > vary.uv->sizes[1]) audio_play(AUD_BUMPL, k);
+                else if (vary.uv->r < vary.uv->sizes[1]) audio_play(AUD_BUMPS, k);
+                else                                     audio_play(AUD_BUMPM, k);
             }
         }
 
@@ -1786,7 +1665,7 @@ void game_set_goal(void)
 #ifdef MAPC_INCLUDES_CHKP
 void game_disable_chkp(void)
 {
-    if (chkp_e && time_limit > 0 && timer < 60.0f)
+    if (chkp_e && time_limit > 0)
     {
         if (vary.cc)
             audio_play(AUD_SWITCH, 1.0f);

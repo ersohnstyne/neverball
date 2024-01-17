@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -11,8 +11,6 @@
  * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
  * General Public License for more details.
  */
-
-#include <assert.h>
 
 #include <stdio.h>
 #include <stdlib.h>

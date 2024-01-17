@@ -21,7 +21,7 @@
 
 #include "networking.h"
 
-#include "campaign.h" // New: Campaign
+#include "campaign.h" /* New: Campaign */
 #include "mediation.h"
 #include "boost_rush.h"
 #include "account.h"
@@ -30,7 +30,7 @@
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
-#include "checkpoints.h" // New: Checkpoints
+#include "checkpoints.h" /* New: Checkpoints */
 #endif
 
 #include "gui.h"
@@ -935,9 +935,9 @@ struct state st_level = {
     shared_leave,
     level_paint,
     level_timer,
-    shared_point, // Can hover on: point
-    shared_stick, // Can hover on: stick
-    shared_angle, // Can hover on: angle
+    shared_point, /* Can hover on: point */
+    shared_stick, /* Can hover on: stick */
+    shared_angle, /* Can hover on: angle */
     level_click,
     level_keybd,
     level_buttn,

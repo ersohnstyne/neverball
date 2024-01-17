@@ -127,25 +127,25 @@
 
 /*---------------------------------------------------------------------------*/
 
-void   v_nrm(float n[3], const float v[3]); // Normalize (Vector)
-void   v_crs(float u[3], const float v[3], const float w[3]); // Cross (Vector)
+void   v_nrm(float n[3], const float v[3]);            /* Normalize (Vector) */
+void   v_crs(float u[3], const float v[3], const float w[3]); /* Cross (Vector) */
 void   v_reflect(float u[3], const float v[3], const float n[3]);
 
 void   m_cpy(float *, const float *);
-void   m_xps(float *, const float *); // Transpose (Matrix)
-int    m_inv(float *, const float *); // Inverse (Matrix)
+void   m_xps(float *, const float *);                  /* Transpose (Matrix) */
+int    m_inv(float *, const float *);                  /* Inverse (Matrix)   */
 
-void   m_ident(float *); // Identity (Matrix)
+void   m_ident(float *);                               /* Identity (Matrix)  */
 void   m_basis(float *M, const float e0[3],
                          const float e1[3],
                          const float e2[3]);
-void   m_xlt(float *, const float v[3]); // Translation (Matrix)
-void   m_scl(float *, const float v[3]); // Scale (Matrix)
-void   m_rot(float *, const float v[3], float); // Rotate Axis (Matrix)
+void   m_xlt(float *, const float v[3]);               /* Translation (Matrix) */
+void   m_scl(float *, const float v[3]);               /* Scale (Matrix)     */
+void   m_rot(float *, const float v[3], float);        /* Rotate Axis (Matrix) */
 
-void   m_mult(float *, const float *, const float *); // Multiply (Matrix)
+void   m_mult(float *, const float *, const float *);  /* Multiply (Matrix)  */
 void   m_pxfm(float *, const float *, const float *);
-void   m_vxfm(float *, const float *, const float *); // Transform (Matrix)
+void   m_vxfm(float *, const float *, const float *);  /* Transform (Matrix) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -169,11 +169,11 @@ void   m_vxfm(float *, const float *, const float *); // Transform (Matrix)
 void q_as_axisangle(const float q[4], float u[3], float *a);
 void q_by_axisangle(float q[4], const float u[3], float a);
 
-void q_nrm(float q[4], const float r[4]); // Normalize (Quaternion)
-void q_mul(float q[4], const float a[4], const float b[4]); // Multiply (Quaternion)
-void q_rot(float v[3], const float r[4], const float w[3]); // Rotate (Quaternion)
+void q_nrm(float q[4], const float r[4]);          /* Normalize (Quaternion) */
+void q_mul(float q[4], const float a[4], const float b[4]); /* Multiply (Quaternion) */
+void q_rot(float v[3], const float r[4], const float w[3]); /* Rotate (Quaternion) */
 
-void q_euler(float v[3], const float q[4]); // Euler (Quaternion)
-void q_slerp(float q[4], const float a[4], const float b[4], float t); // Spherical linear interpolation
+void q_euler(float v[3], const float q[4]);        /* Euler (Quaternion)     */
+void q_slerp(float q[4], const float a[4], const float b[4], float t); /* Spherical linear interpolation */
 
 #endif

@@ -657,8 +657,10 @@ void fetch_quit(void)
 
 /*---------------------------------------------------------------------------*/
 
-// Convert the given filename extensions into temporary,
-// but we'll recommended to use the group name below.
+/*
+ * Convert the given filename extensions into temporary,
+ * but we'll recommended to use the group name below.
+ */
 #define CURL_CONVERT_EXT_TMP(str, ext) \
     do { \
         if (strcmp(str + strlen(str) - (strlen(ext) - 1), ext)) \
@@ -790,7 +792,7 @@ void fetch_quit(void)
 
 /*---------------------------------------------------------------------------*/
 
-// Convert filename extensions into temporary, but much lags.
+/* Convert filename extensions into temporary, but much lags. */
 #define CURL_CONVERT_EXT_TMP_ENTIRE(str) \
     do { \
         CURL_CONVERT_EXT_TMP_APP(str); \
@@ -844,7 +846,7 @@ unsigned int fetch_url(const char *url,
             curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, fetch_write_func);
             curl_easy_setopt(handle, CURLOPT_WRITEDATA,     fi);
 
-            // Used with curl_xferinfo rather than curl_progress
+            /* Used with curl_xferinfo rather than curl_progress */
 
             curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, fetch_progress_func);
             curl_easy_setopt(handle, CURLOPT_XFERINFODATA,     fi);
@@ -922,7 +924,7 @@ unsigned int fetch_gdrive(const char *fileid,
             curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, fetch_write_func);
             curl_easy_setopt(handle, CURLOPT_WRITEDATA,     fi);
 
-            // Used with curl_xferinfo rather than curl_progress
+            /* Used with curl_xferinfo rather than curl_progress */
 
             curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, fetch_progress_func);
             curl_easy_setopt(handle, CURLOPT_XFERINFODATA,     fi);

@@ -70,7 +70,7 @@ static int   package_curr_category = PACKAGE_CATEGORY_LEVELSET;
 
 #if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH>=2
 
-// TODO: Change the Google Drive package file ID preprocessor definitions
+/* TODO: Change the Google Drive package file ID preprocessor definitions */
 
 #ifndef NB_GDRIVE_PACKAGE_FILEID_COURSE
 #error Security compilation error: Must specify course file ID from the Google Drive website.
@@ -817,7 +817,7 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
     if (filename && category == PACKAGE_CATEGORY_CAMPAIGN
      && NB_GDRIVE_PACKAGE_FILEID_CAMPAIGN[0])
     {
-        // Google Drive campaign package support
+        /* Google Drive campaign package support */
 
         struct fetch_callback     callback = {0};
         struct package_list_info *pli      = create_pli(nested_callback);
@@ -837,7 +837,7 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
     else if (filename && category == PACKAGE_CATEGORY_LEVELSET
           && NB_GDRIVE_PACKAGE_FILEID_LEVELSET[0])
     {
-        // Google Drive level set package support
+        /* Google Drive level set package support */
 
         struct fetch_callback     callback = {0};
         struct package_list_info *pli      = create_pli(nested_callback);
@@ -857,7 +857,7 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
     else if (filename && category == PACKAGE_CATEGORY_PROFILE
           && NB_GDRIVE_PACKAGE_FILEID_BALL[0])
     {
-        // Google Drive ball model and profile package support
+        /* Google Drive ball model and profile package support */
 
         struct fetch_callback     callback = {0};
         struct package_list_info *pli      = create_pli(nested_callback);
@@ -877,7 +877,7 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
     else if (filename && category == PACKAGE_CATEGORY_COURSE
           && NB_GDRIVE_PACKAGE_FILEID_COURSE[0])
     {
-        // Google Drive course package support
+        /* Google Drive course package support */
 
         struct fetch_callback     callback = {0};
         struct package_list_info *pli      = create_pli(nested_callback);
@@ -1320,3 +1320,5 @@ unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
 
     return fetch_id;
 }
+
+/*---------------------------------------------------------------------------*/

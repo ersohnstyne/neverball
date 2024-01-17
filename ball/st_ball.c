@@ -305,7 +305,9 @@ static void load_ball_demo(void)
     {
         if (!game_client_init("gui/model-studio.sol"))
         {
+#ifndef NDEBUG
             assert(!game_setup_process());
+#endif
 
             ball_action(GUI_BACK, 0);
             return;
@@ -315,7 +317,9 @@ static void load_ball_demo(void)
     }
     else if (!progress_replay_full("gui/ball.nbr", 0, 0, 0, 0, 0, 0))
     {
+#ifndef NDEBUG
         assert(!game_setup_process());
+#endif
 
         ball_action(GUI_BACK, 0);
         return;
@@ -571,7 +575,7 @@ static int ball_keybd(int c, int d)
                 video_set_window_size(800 / video.device_scale, 600 / video.device_scale);
                 video_resize         (800 / video.device_scale, 600 / video.device_scale);
 
-                // Zoom in on the ball.
+                /* Zoom in on the ball. */
 
                 config_set_d(CONFIG_VIEW_DC,  0);
                 config_set_d(CONFIG_VIEW_DP,  50);
@@ -579,7 +583,7 @@ static int ball_keybd(int c, int d)
 
                 game_client_fly(0.0f);
 
-                // Take screenshots.
+                /* Take screenshots. */
 
                 for (i = 0; balls && i < array_len(balls); ++i)
                 {
@@ -600,7 +604,7 @@ static int ball_keybd(int c, int d)
                     video_swap();
                 }
 
-                // Restore config.
+                /* Restore config. */
 
                 config_set_d(CONFIG_VIEW_FOV, initial_fov);
                 config_set_d(CONFIG_VIEW_DC,  initial_dc);

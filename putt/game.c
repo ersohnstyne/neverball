@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -58,8 +58,10 @@ static float idle_t;                    /* Idling timeout                    */
 
 static int enable_force_timeout;
 
-// Move timeout after stop.
-// Maximum move timeout is up to 70 SECONDS!!!
+/*
+ * Move timeout after stop.
+ * Maximum move timeout is up to 70 seconds.
+ */
 static float roll_force_timeout;
 
 static int   personal_respawnable = 0;
@@ -319,7 +321,7 @@ void game_draw(int pose, float t)
     glPushMatrix();
     {
 #if defined(ENABLE_EARTHQUAKE)
-        // Camera shake?
+        /* Camera shake? */
         float shake_intensity = 15;
         glRotatef(1.0f, rand_between(-shake_intensity, shake_intensity), rand_between(-shake_intensity, shake_intensity), rand_between(-shake_intensity, shake_intensity));
 #endif
@@ -792,4 +794,3 @@ void game_set_pos(float p[3], float e[3][3])
 }
 
 /*---------------------------------------------------------------------------*/
-

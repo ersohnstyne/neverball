@@ -25,7 +25,7 @@
 #include "console_control_gui.h"
 #endif
 
-#include "campaign.h" // New: Campaign
+#include "campaign.h" /* New: Campaign */
 #include "account.h"
 #endif
 
@@ -902,9 +902,9 @@ static int title_gui(void)
                         gui_space(jd);
 
                         if (!CHECK_ACCOUNT_BANKRUPT)
-                            gui_label(jd, account_gemsattr, GUI_TCH, gui_wht, gui_cya);
+                            gui_label(jd, account_gemsattr, GUI_SML, gui_wht, gui_cya);
 
-                        gui_label(jd, account_coinsattr, GUI_TCH, gui_wht, gui_yel);
+                        gui_label(jd, account_coinsattr, GUI_SML, gui_wht, gui_yel);
                     }
 
                     gui_layout(id, +1, +1);
@@ -1316,7 +1316,7 @@ static int title_buttn(int b, int d)
 struct state st_title = {
     title_enter,
     title_leave,
-    title_paint, // Default: shared_paint
+    title_paint,  /* Default: shared_paint */
     title_timer,
     title_point,
     title_stick,

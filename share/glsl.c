@@ -208,4 +208,3 @@ void glsl_uniform4f(glsl *G, const char *name, GLfloat a, GLfloat b, GLfloat c, 
 }
 
 #endif
-

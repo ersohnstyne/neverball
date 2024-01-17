@@ -18,8 +18,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
+
+#ifndef NDEBUG
+#include <assert.h>
+#endif
 
 #include "fs.h"
 #include "dir.h"
@@ -137,10 +140,15 @@ int fs_puts(const char *src, fs_file fh)
 char *fs_gets(char *dst, int count, fs_file fh)
 {
     char *s = dst;
-    int c;
+    int   c;
 
+#ifndef NDEBUG
     assert(dst);
     assert(count > 0);
+#endif
+
+    if (!dst || count <= 0)
+        return NULL;
 
     if (fs_eof(fh))
         return NULL;
@@ -238,12 +246,7 @@ int fs_printf(fs_file fh, const char *fmt, ...)
     va_list ap;
 
     va_start(ap, fmt);
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    //len = 1 + vsnprintf_s(NULL, 0, MAXSTR, fmt, ap);
     len = 1 + vsnprintf(NULL, 0, fmt, ap);
-#else
-    len = 1 + vsnprintf(NULL, 0, fmt, ap);
-#endif
     va_end(ap);
 
     if ((buff = (char *) malloc(len)))
@@ -251,12 +254,7 @@ int fs_printf(fs_file fh, const char *fmt, ...)
         int written;
 
         va_start(ap, fmt);
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        //vsnprintf_s(buff, len, MAXSTR, fmt, ap);
         vsnprintf(buff, len, fmt, ap);
-#else
-        vsnprintf(buff, len, fmt, ap);
-#endif
         va_end(ap);
 
         /*

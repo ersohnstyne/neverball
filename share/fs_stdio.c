@@ -773,7 +773,7 @@ int fs_recycle(const char *path)
     {
         char *real = path_join(fs_dir_write, parsed_path);
 
-        // Windows makes to move this file to recycle bin.
+        /* Windows makes to move this file to recycle bin. */
 
         SHFILEOPSTRUCTA operation = {0};
         operation.hwnd  = NULL;

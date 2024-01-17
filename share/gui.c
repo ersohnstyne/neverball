@@ -40,7 +40,9 @@
 
 #include "fs.h"
 
+#ifndef NDEBUG
 #include <assert.h>
+#endif
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
@@ -443,7 +445,7 @@ static void gui_geom_widget(int id, int flags)
 
         case GUI_BUTTON:
         case GUI_LABEL:
-            // Handled by gui_render_text().
+            /* Handled by gui_render_text(). */
             break;
 
         default:
@@ -827,7 +829,8 @@ int gui_root(void)
 
     if ((id = gui_widget(0, GUI_ROOT)))
     {
-        // Get gui_stick() working.
+        /* Get gui_stick() working. */
+
         widget[id].x = INT_MAX;
         widget[id].y = INT_MAX;
     }
@@ -1252,7 +1255,9 @@ int gui_label(int pd, const char *text, int size, const GLubyte *c0,
         TTF_Font *ttf;
         memset(&ttf, 0, sizeof (TTF_Font *));
         ttf = fonts[widget[id].font].ttf[size];
+#ifndef NDEBUG
         assert(&ttf);
+#endif
 
         widget[id].init_text = strdup(text);
 
@@ -2510,7 +2515,7 @@ int gui_point(int id, int x, int y)
 
 void gui_alpha(int id, float alpha)
 {
-    widget[id].alpha;
+    widget[id].alpha = alpha;
 }
 
 void gui_focus(int i)

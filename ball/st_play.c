@@ -22,7 +22,7 @@
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
-#include "checkpoints.h" // New: Checkpoints
+#include "checkpoints.h" /* New: Checkpoints */
 #endif
 
 #include "gui.h"
@@ -69,7 +69,7 @@ typedef struct __countdown_preparation
 } countdown_preparation;
 
 /* Have modern preparation start timer countdown */
-countdown_preparation local_countdown_preparation[12];
+static countdown_preparation local_countdown_preparation[12];
 
 static void __countdown_preparation_init()
 {
@@ -297,7 +297,6 @@ static int play_ready_gui(void)
 
 static int play_ready_enter(struct state *st, struct state *prev)
 {
-    __countdown_preparation_init();
 #ifdef MAPC_INCLUDES_CHKP
     restart_cancel_allchkp = 0;
 #endif
@@ -448,7 +447,6 @@ static void play_prep_paint(int id, float t)
 {
     game_client_draw(0, t);
 
-    __countdown_preparation_draw();
     gui_paint(id);
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (xbox_show_gui() && current_platform != PLATFORM_PC)
@@ -650,8 +648,6 @@ static int play_loop_enter(struct state *st, struct state *prev)
         prev == &st_play_loop)
         return 0;
 
-    __countdown_preparation_setgreen();
-
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
     if (get_coin_multiply() == 2)
     {
@@ -708,9 +704,11 @@ static void play_loop_paint(int id, float t)
         hud_lvlname_paint();
     }
 
-    if (time_state() < 1.0f && id)
+    if (!st_global_animating() && time_state() < 1.0f && id)
     {
-        __countdown_preparation_draw();
+        if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
+            gui_set_alpha(id, CLAMP(0, 1.0f - time_state(), 1), GUI_ANIMATION_NONE);
+
         gui_paint(id);
     }
 }
@@ -721,7 +719,7 @@ static void play_loop_timer(int id, float dt)
     {
         smoothfix_slowdown_time += dt;
 
-        if (smoothfix_slowdown_time >= 30)
+        if (smoothfix_slowdown_time >= 10)
         {
             config_set_d(CONFIG_SMOOTH_FIX,
                          config_get_d(CONFIG_FORCE_SMOOTH_FIX));

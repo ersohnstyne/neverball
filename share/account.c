@@ -22,7 +22,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#ifndef NDEBUG
 #include <assert.h>
+#endif
 
 #if __cplusplus
 extern "C"
@@ -200,7 +202,9 @@ int account_init(void)
 
 void account_quit(void)
 {
+#ifndef NDEBUG
     assert(!account_busy);
+#endif
 
     int i;
 
@@ -223,8 +227,10 @@ int  account_exists(void)
 #endif
             "Accounts/account-%s.txt", config_get_s(CONFIG_PLAYER));
 
+#ifndef NDEBUG
     assert(!networking_busy && !config_busy && !accessibility_busy &&
            "This networking, accessibility or configuration is busy and cannot be edit there!");
+#endif
 
     return fs_exists(paths);
 }
@@ -233,9 +239,11 @@ void account_load(void)
 {
     fs_file fh;
 
+#ifndef NDEBUG
     assert(!networking_busy && !config_busy && !accessibility_busy &&
            "This networking, accessibility or configuration is busy and cannot be edit there!");
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+#endif
 
     if (text_length(config_get_s(CONFIG_PLAYER)) < 1)
         return;
@@ -322,9 +330,11 @@ void account_save(void)
 {
     fs_file fh;
 
+#ifndef NDEBUG
     assert(!networking_busy && !config_busy && !accessibility_busy &&
            "This networking, accessibility or configuration is busy and cannot be edit there!");
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+#endif
 
     if (text_length(config_get_s(CONFIG_PLAYER)) < 1)
         return;
@@ -403,8 +413,10 @@ void account_save(void)
 
 void account_set_d(int i, int d)
 {
+#ifndef NDEBUG
     assert(!networking_busy && !config_busy && !accessibility_busy &&
            "This networking, accessibility or configuration is busy and cannot be edit there!");
+#endif
     if (!networking_busy && !config_busy && !accessibility_busy)
     {
         account_busy = 1;
@@ -416,8 +428,10 @@ void account_set_d(int i, int d)
 
 void account_tgl_d(int i)
 {
+#ifndef NDEBUG
     assert(!networking_busy && !config_busy && !accessibility_busy &&
            "This networking, accessibility or configuration is busy and cannot be edit there!");
+#endif
     if (!networking_busy && !config_busy && !accessibility_busy)
     {
         account_busy = 1;
@@ -441,8 +455,10 @@ int account_get_d(int i)
 
 void account_set_s(int i, const char *src)
 {
+#ifndef NDEBUG
     assert(!networking_busy && !config_busy && !accessibility_busy &&
            "This networking, accessibility or configuration is busy and cannot be edit there!");
+#endif
     if (!networking_busy && !config_busy && !accessibility_busy)
     {
         account_busy = 1;

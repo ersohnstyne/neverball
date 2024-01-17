@@ -14,8 +14,11 @@
 
 #include <ctype.h>
 #include <string.h>
-#include <assert.h>
 #include <math.h>
+
+#ifndef NDEBUG
+#include <assert.h>
+#endif
 
 #include "gui.h"
 #include "util.h"
@@ -57,7 +60,7 @@ static int score_coin[4];
 static int score_name[4];
 static int score_time[4];
 
-struct {
+struct game_stats {
     int completed;
     int timeout;
     int fallout;
@@ -198,9 +201,11 @@ void gui_score_board(int pd, unsigned int types, int e, int h)
 {
     int id, jd, kd;
 
+#ifndef NDEBUG
     assert((types & GUI_SCORE_COIN) ||
            (types & GUI_SCORE_TIME) ||
            (types & GUI_SCORE_GOAL) );
+#endif
 
     /* Make sure current score type matches the spec. */
 

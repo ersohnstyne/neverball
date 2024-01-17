@@ -21,7 +21,9 @@
 
 #include <string.h>
 #include <stdlib.h>
+#ifndef NDEBUG
 #include <assert.h>
+#endif
 
 #include "dir.h"
 #include "common.h"
@@ -145,8 +147,9 @@ static void del_item(Array items)
     struct dir_item *item = array_get(items, array_len(items) - 1);
 
     free((void *) item->path);
+#ifndef NDEBUG
     assert(!item->data);
-
+#endif
     array_del(items);
 }
 
@@ -165,7 +168,9 @@ Array dir_scan(const char *path,
     List files, file;
     Array items = NULL;
 
+#ifndef NDEBUG
     assert((list_files && free_files) || (!list_files && !free_files));
+#endif
 
     if (!list_files) list_files = dir_list_files;
     if (!free_files) free_files = dir_list_free;

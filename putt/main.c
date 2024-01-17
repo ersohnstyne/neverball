@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -128,7 +128,7 @@ const char TITLE[] = "Neverputt";
 #endif
 const char ICON[] = "icon/neverputt.png";
 
-// This fixes some malfunctions instead
+/* This fixes some malfunctions instead */
 #define SDL_EVENT_ANTI_MALFUNCTIONS(events) do { events.type = 0; } while (0)
 
 /*---------------------------------------------------------------------------*/
@@ -435,10 +435,8 @@ static int loop(void)
                         break;
 
                     case USER_EVENT_PAUSE:
-//#if NDEBUG
                         if (video_get_grab())
                             goto_pause(1);
-//#endif
                         break;
                 }
                 break;
@@ -581,10 +579,8 @@ static int loop(void)
                 {
                     case SDL_WINDOWEVENT_FOCUS_LOST:
                         audio_suspend();
-//#if NDEBUG
                         if (video_get_grab())
                             goto_pause(1);
-//#endif
                         break;
 
                     case SDL_WINDOWEVENT_FOCUS_GAINED:
@@ -697,7 +693,7 @@ static void step(void *data)
 
             CHECK_GAMESPEED(20, 100);
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
-            st_timer((0.001f * deltaTime) * speedPercent);
+            st_timer(MAX((0.001f * deltaTime) * speedPercent, 0));
 
             /* Render. */
 
@@ -1053,4 +1049,3 @@ int main(int argc, char *argv[])
 }
 
 /*---------------------------------------------------------------------------*/
-

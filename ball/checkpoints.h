@@ -37,8 +37,7 @@ struct chkp_view
 
 struct chkp_ballsize
 {
-    float size_orig;
-    int size_state;
+    int curr_size;
 };
 
 struct chkp_ball
@@ -47,6 +46,9 @@ struct chkp_ball
     float p[3];
     float E[3][3];
     float r;
+    float r_vel;
+    float sizes[3];
+    short size;
 };
 
 struct chkp_path
@@ -84,22 +86,11 @@ struct chkp_swch
 extern int last_active;
 extern int checkpoints_busy;
 
-extern struct chkp_ballsize last_chkp_ballsize[1024];
 extern struct chkp_ball last_chkp_ball[1024];
-// extern struct chkp_path last_chkp_path[2048];  /* Deprecated. DO NOT USE! */
-// extern struct chkp_body last_chkp_body[1024];  /* Deprecated. DO NOT USE! */
-// extern struct chkp_move last_chkp_move[1024];  /* Deprecated. DO NOT USE! */
-// extern struct chkp_item last_chkp_item[2048];  /* Deprecated. DO NOT USE! */
-// extern struct chkp_swch last_chkp_swch[1024];  /* Deprecated. DO NOT USE! */
 
 extern struct chkp_view last_view[1024];
 
 extern float last_pos[1024][3];
-
-extern float last_time_elapsed;
-extern float last_time_limit;
-
-extern int   respawn_coins;
 
 /*---------------------------------------------------------------------------*/
 
@@ -109,20 +100,29 @@ void checkpoints_save_spawnpoint(struct s_vary,
                                  struct game_view,
                                  int);
 
+void checkpoints_save_last_data(float, float, int);
+
+int   checkpoints_last_coins(void);
+int   checkpoints_last_time_elapsed(void);
+float checkpoints_last_time_limit(void);
+
+/*---------------------------------------------------------------------------*/
+
 int checkpoints_load(void);
 
 void checkpoints_respawn(struct s_vary *, cmd_fn_chkp, int *ci);
 
-int checkpoints_respawn_coins(void);
-int checkpoints_respawn_time_elapsed(void);
+int   checkpoints_respawn_coins(void);
+int   checkpoints_respawn_time_elapsed(void);
+float checkpoints_respawn_time_limit(void);
+
+/*---------------------------------------------------------------------------*/
 
 /*
  * Please disable all checkpoints,
  * before you attempt to restart the level.
  */
 void checkpoints_stop(void);
-
-void checkpoints_set_last_data(float, float, int);
 
 #endif
 #endif

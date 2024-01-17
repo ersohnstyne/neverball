@@ -22,7 +22,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#ifndef NDEBUG
 #include <assert.h>
+#endif
 
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
@@ -262,8 +264,8 @@ static struct
     { &CONFIG_FPS,              "fps",             0 },
     { &CONFIG_MASTER_VOLUME,    "master_volume",   10 },
     { &CONFIG_SOUND_VOLUME,     "sound_volume",    10 },
-    { &CONFIG_MUSIC_VOLUME,     "music_volume",    10 }, // 1.6 default: 6
-    { &CONFIG_NARRATOR_VOLUME,  "narrator_volume", 10 }, // 1.6 default: 6
+    { &CONFIG_MUSIC_VOLUME,     "music_volume",    4 },  /* NB 1.6 default: 6 */
+    { &CONFIG_NARRATOR_VOLUME,  "narrator_volume", 10 }, /* NB 1.6 default: 6 */
 
     { &CONFIG_JOYSTICK,                "joystick",                1 },
     { &CONFIG_JOYSTICK_RESPONSE,       "joystick_response",       250 },
@@ -390,7 +392,7 @@ static void config_mouse(const char *s, int i)
 
 static const char *config_mouse_name(int b)
 {
-    static char buff[4]; // Previous was: sizeof ("256")
+    static char buff[4];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(buff, 4,
@@ -653,6 +655,7 @@ static int config_parse_file(const char *filename)
 void config_load(void)
 {
     fs_file fh;
+#ifndef NDEBUG
 #if NB_HAVE_PB_BOTH==1
     assert(!networking_busy && !accessibility_busy && !account_busy &&
            "This networking, accessibility or account data is busy and cannot be edit there!");
@@ -661,6 +664,7 @@ void config_load(void)
            "This accessibility data is busy and cannot be edit there!");
 #endif
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+#endif
 
     const char *filename = USER_CONFIG_FILE;
 
@@ -750,6 +754,7 @@ void config_save(void)
 {
     fs_file fh;
 
+#ifndef NDEBUG
 #if NB_HAVE_PB_BOTH==1
     assert(!networking_busy && !accessibility_busy && !account_busy &&
            "This networking, accessibility or account data is busy and cannot be edit there!");
@@ -758,6 +763,7 @@ void config_save(void)
            "This accessibility data is busy and cannot be edit there!");
 #endif
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+#endif
 
     const char *filename = USER_CONFIG_FILE;
 
@@ -840,6 +846,7 @@ void config_save(void)
 
 void config_set_d(int i, int d)
 {
+#ifndef NDEBUG
 #if NB_HAVE_PB_BOTH==1
     assert(!networking_busy && !accessibility_busy && !account_busy &&
            "This networking, accessibility or account data is busy and cannot be edit there!");
@@ -848,6 +855,7 @@ void config_set_d(int i, int d)
     assert(!accessibility_busy &&
            "This networking or accessibility data is busy and cannot be edit there!");
     if (!accessibility_busy)
+#endif
 #endif
     {
         config_busy = 1;
@@ -859,6 +867,7 @@ void config_set_d(int i, int d)
 
 void config_tgl_d(int i)
 {
+#ifndef NDEBUG
 #if NB_HAVE_PB_BOTH==1
     assert(!networking_busy && !accessibility_busy && !account_busy &&
            "This networking, accessibility or account data is busy and cannot be edit there!");
@@ -867,6 +876,7 @@ void config_tgl_d(int i)
     assert(!accessibility_busy &&
            "This networking or accessibility data is busy and cannot be edit there!");
     if (!accessibility_busy)
+#endif
 #endif
     {
         config_busy = 1;
@@ -890,6 +900,7 @@ int config_get_d(int i)
 
 void config_set_s(int i, const char *src)
 {
+#ifndef NDEBUG
 #if NB_HAVE_PB_BOTH==1
     assert(!networking_busy && !accessibility_busy && !account_busy &&
            "This networking, accessibility or account data is busy and cannot be edit there!");
@@ -898,6 +909,7 @@ void config_set_s(int i, const char *src)
     assert(!accessibility_busy &&
            "This accessibility data is busy and cannot be edit there!");
     if (!accessibility_busy)
+#endif
 #endif
     {
         config_busy = 1;
@@ -957,6 +969,7 @@ int config_cheat(void)
 
 void config_set_cheat(void)
 {
+#ifndef NDEBUG
 #if NB_HAVE_PB_BOTH==1
     assert(!networking_busy && !accessibility_busy && !account_busy &&
            "This networking, accessibility or account data is busy and cannot be edit there!");
@@ -965,6 +978,7 @@ void config_set_cheat(void)
     assert(!accessibility_busy &&
            "This networking, accessibility data is busy and cannot be edit there!");
     if (!accessibility_busy)
+#endif
 #endif
     {
         config_busy = 1;
@@ -975,6 +989,7 @@ void config_set_cheat(void)
 
 void config_clr_cheat(void)
 {
+#ifndef NDEBUG
 #if NB_HAVE_PB_BOTH==1
     assert(!networking_busy && !accessibility_busy && !account_busy &&
            "This networking, accessibility or account data is busy and cannot be edit there!");
@@ -983,6 +998,7 @@ void config_clr_cheat(void)
     assert(!accessibility_busy &&
            "This networking, accessibility data is busy and cannot be edit there!");
     if (!accessibility_busy)
+#endif
 #endif
     {
         config_busy = 1;
@@ -996,12 +1012,14 @@ void config_clr_cheat(void)
 
 int config_screenshot(void)
 {
+#ifndef NDEBUG
 #if NB_HAVE_PB_BOTH==1
     assert(!networking_busy && !accessibility_busy && !account_busy &&
            "This networking, accessibility or account data is busy and cannot be edit there!");
 #else
     assert(!accessibility_busy &&
            "This networking, accessibility data is busy and cannot be edit there!");
+#endif
 #endif
     return ++option_d[CONFIG_SCREENSHOT].cur;
 }

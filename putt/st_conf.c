@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -28,7 +28,6 @@
 #endif
 
 #include "st_conf.h"
-//#include "st_name.h"
 #include "st_all.h"
 #include "st_common.h"
 
@@ -79,10 +78,7 @@ static int conf_action(int i)
     switch (i)
     {
         case CONF_BACK:
-            //if (is_value_changed())
-                //goto_state(&st_restart_required);
-            //else
-                goto_state(&st_title);
+            goto_state(&st_title);
             break;
 
         case CONF_VIDEO:
@@ -128,7 +124,6 @@ static int conf_action(int i)
 
                 config_set_d(CONFIG_SOUND_VOLUME, n);
                 audio_volume(master, n, mus, narrator);
-                //audio_play(AUD_BUMP, 1.f);
                 audio_play(AUD_NEXTTURN, 1.f);
 
                 gui_toggle(sound_id[n]);
@@ -281,7 +276,7 @@ static int conf_enter(struct state *st, struct state *prev)
 
         if ((id = gui_vstack(root_id)))
         {
-            gui_label(id, "Pennyputt " VERSION, GUI_TNY, GUI_COLOR_WHT);
+            gui_label(id, "Neverputt " VERSION, GUI_TNY, GUI_COLOR_WHT);
             gui_multi(id, _("Copyright © 2024 Neverball authors\n"
                             "Neverball is free software available under the terms of GPL v2 or later."),
                           GUI_TNY, GUI_COLOR_WHT);

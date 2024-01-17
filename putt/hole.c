@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -77,18 +77,18 @@ static void hole_init_rc(const char *filename)
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             while (fs_gets(buff, sizeof (buff), fin) &&
-                   sscanf_s(buff, "%s %s %d %s",
-                            hole_v[count].file,
-                            hole_v[count].back,
-                           &hole_v[count].par,
-                            hole_v[count].song) >= 1)
-#else
-            while (fs_gets(buff, sizeof (buff), fin) &&
                    sscanf(buff, "%s %s %d %s",
                           hole_v[count].file,
                           hole_v[count].back,
                          &hole_v[count].par,
                           hole_v[count].song) >= 1)
+#else
+            while (fs_gets(buff, sizeof (buff), fin) &&
+                   sscanf_s(buff, "%s %s %d %s",
+                            hole_v[count].file,
+                            hole_v[count].back,
+                           &hole_v[count].par,
+                            hole_v[count].song) >= 1)
 #endif
                 count++;
         }
@@ -545,3 +545,5 @@ void hole_song(void)
 {
     audio_music_fade_to(0.5f, _(hole_v[hole].song));
 }
+
+/*---------------------------------------------------------------------------*/

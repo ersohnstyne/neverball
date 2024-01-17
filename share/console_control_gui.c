@@ -24,8 +24,6 @@
 #include "video.h"
 #include "cmd.h"
 
-//#define DISABLE_ONLINE_DATA
-
 #if !defined(DISABLE_ONLINE_DATA)
 #include "account.h"
 #endif

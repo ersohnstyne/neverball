@@ -620,11 +620,6 @@ static int conf_account_gui(void)
         gui_space(id);
 #endif
 
-        //conf_toggle(id, _("Mayhem"), CONF_ACCOUNT_MAYHEM,
-            //config_get_d(CONFIG_ACCOUNT_MAYHEM), _("On"), 1, _("Off"), 0);
-
-        //gui_space(id);
-
         if (mainmenu_conf)
         {
 #if ENABLE_FETCH
@@ -2293,7 +2288,7 @@ static int conf_action(int tok, int val)
             break;
 
         case CONF_BALL:
-            // HACK: This avoids spamming stuff
+            /* HACK: This avoids spamming stuff */
             if (fs_exists("gui/ball.sol") && fs_exists("gui/ball.nbr"))
             {
                 game_fade(+6.0);

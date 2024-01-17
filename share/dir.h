@@ -43,9 +43,11 @@ void dir_list_free (List);
 int dir_exists(const char *);
 
 #if _WIN32 && _MSC_VER
-// 1 - 0: Directory created
-// 0 - 1: Directory already exists
-// 0 - 0 or 1 - 1
+/*
+ * 1 - 0: Directory created
+ * 0 - 1: Directory already exists
+ * 0 - 0 or 1 - 1: Undetermined
+ */
 
 #define NOMINMAX
 #include <Windows.h>

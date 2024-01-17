@@ -26,9 +26,11 @@
 #if __GNUC__ || __MINGW32__
 #include <sys/time.h>
 #endif
+#ifndef NDEBUG
 #include <assert.h>
+#endif
 
-// Uncomment and try this out with COMPLEX SOL
+/* Uncomment and try this out with COMPLEX SOL */
 //#define ENABLE_COMPLEX_SOL_ONLY 1
 
 #if ENABLE_RADIANT_CONSOLE
@@ -193,7 +195,9 @@ static void bcast_send_msg(int lvl, const char *str)
     char buf[512];
     int maxstr;
 
+#ifndef NDEBUG
     assert(lvl > 0 && lvl < 10);
+#endif
 
     /*
      * These are not real time. Radiant will buffer them and randomly
@@ -289,7 +293,7 @@ static void bcast_quit(void)
 #define MAXR    2048
 #define MAXU    1024
 #if defined(MAPC_INCLUDES_CHKP)
-#define MAXC    1024 // New: Checkpoints
+#define MAXC    1024    /* New: Checkpoints */
 #endif
 #define MAXW    1024
 #define MAXD    1024
@@ -399,7 +403,7 @@ static int incu(struct s_base *fp)
 #if defined(MAPC_INCLUDES_CHKP)
 static int incc(struct s_base *fp)
 {
-    return (fp->cc < MAXC) ? fp->cc++ : overflow("chkp"); // New: Checkpoints
+    return (fp->cc < MAXC) ? fp->cc++ : overflow("chkp"); /* New: Checkpoints */
 }
 #endif
 
@@ -463,7 +467,7 @@ static void init_file(struct s_base *fp)
     fp->rv = (struct b_bill *) calloc(MAXR, sizeof (*fp->rv));
     fp->uv = (struct b_ball *) calloc(MAXU, sizeof (*fp->uv));
 #if defined(MAPC_INCLUDES_CHKP)
-    fp->cv = (struct b_chkp *) calloc(MAXC, sizeof (*fp->cv)); // New: Checkpoints
+    fp->cv = (struct b_chkp *) calloc(MAXC, sizeof (*fp->cv)); /* New: Checkpoints */
 #endif
     fp->wv = (struct b_view *) calloc(MAXW, sizeof (*fp->wv));
     fp->dv = (struct b_dict *) calloc(MAXD, sizeof (*fp->dv));
@@ -1185,7 +1189,7 @@ static void read_lump(struct s_base *fp, fs_file fin)
 static int read_dict_entries = 0;
 
 #if LEGACY_MODE
-// This variables uses legacy mode
+/* This variables uses legacy mode */
 #define LEGACY_Z_OFFSET 1
 
 const char  *switch_material = "mtrl/info-camp-switch-specifications";
@@ -2084,7 +2088,8 @@ static void read_ent(struct s_base *fp, fs_file fin)
         make_item(fp, k, v, c);
     }
     if (!strcmp(v[i], "func_train")) {
-        if (campaign_output || only_complex_sol) campaign_cost += 23; // Anchors (4) + Movements (9) = 23
+        /* Anchors (4) + Movements (9) = 23 */
+        if (campaign_output || only_complex_sol) campaign_cost += 23;
         make_body(fp, k, v, c, l0);
     }
     if (!strcmp(v[i], "path_corner")) {
@@ -3357,7 +3362,7 @@ static struct dump_stats stats[] = {
     { offsetof (struct s_base, rc), "bill", "billboards" },
     { offsetof (struct s_base, uc), "ball", "balls" },
 #if defined(MAPC_INCLUDES_CHKP)
-    { offsetof (struct s_base, cc), "chkp", "checkpoints" }, // New: Checkpoints
+    { offsetof (struct s_base, cc), "chkp", "checkpoints" }, /* New: Checkpoints */
 #endif
     { offsetof (struct s_base, ac), "char", "chars" },
     { offsetof (struct s_base, dc), "dict", "dicts" },
@@ -3538,8 +3543,11 @@ static void print_usage(const char *name)
     MAPC_LOG_MESSAGE(p_buf);
 }
 
-// TODO: If you want to compile some balls and/or geometrys only,
-// use the option as --skip_verify. - Ersohn Styne
+/*
+ * TODO: If you want to compile some balls and/or geometrys only,
+ * use the option as --skip_verify.
+ * - Ersohn Styne
+ */
 
 int main(int argc, char *argv[])
 {
@@ -3836,4 +3844,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-

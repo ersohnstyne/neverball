@@ -16,8 +16,9 @@
 #include <jpeglib.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <setjmp.h>
+
+#include <assert.h>
 
 #include "base_config.h"
 #include "base_image.h"
@@ -361,12 +362,12 @@ void image_white(void *p, int w, int h, int b)
  */
 void *image_flip(const void *p, int w, int h, int b, int hflip, int vflip)
 {
-    unsigned char *q;
-
-    assert(hflip || vflip);
-
     if (!p)
         return NULL;
+    else if (!hflip && !vflip)
+        return p;
+
+    unsigned char* q;
 
     if ((q = malloc(w * b * h)))
     {

@@ -12,8 +12,8 @@
  * General Public License for more details.
  */
 
-//#define ENABLE_AFFECT 1
-#define ENABLE_COMPASS 1 // Usable for campaign
+/* Usable for campaign */
+#define ENABLE_COMPASS 1
 
 #include <math.h>
 #include <string.h>
@@ -245,7 +245,7 @@ void hud_init(void)
         gui_layout(cam_id, 1, 1);
     }
 
-    //free(str_cam);
+    /* free(str_cam); */
 
     /* This debug shows how it works */
 

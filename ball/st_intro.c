@@ -13,7 +13,9 @@
  */
 
 #include <string.h>
+#ifndef NDEBUG
 #include <assert.h>
+#endif
 
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
@@ -205,7 +207,6 @@ static void intro_create_tip(int id)
         if ((tip_id = gui_multi(id, _(intro_tip[index_affect]),
                                     GUI_SML, GUI_COLOR_WHT)))
         {
-            //gui_set_rect(tip_id, GUI_TOP);
             gui_clr_rect(tip_id);
             gui_layout(tip_id, 0, -1);
         }
@@ -215,7 +216,6 @@ static void intro_create_tip(int id)
         if ((tip_id = gui_multi(id, _(intro_tip_ps4[index_affect]),
                                     GUI_SML, GUI_COLOR_WHT)))
         {
-            //gui_set_rect(tip_id, GUI_TOP);
             gui_clr_rect(tip_id);
             gui_layout(tip_id, 0, -1);
         }
@@ -226,7 +226,6 @@ static void intro_create_tip(int id)
         if ((tip_id = gui_multi(id, _(intro_tip_xbox[index_affect]),
                                     GUI_SML, GUI_COLOR_WHT)))
         {
-            //gui_set_rect(tip_id, GUI_TOP);
             gui_clr_rect(tip_id);
             gui_layout(tip_id, 0, -1);
         }
@@ -241,7 +240,6 @@ static void intro_create_tip(int id)
     if ((tip_id = gui_multi(id, _(intro_covid_highrisk[index_affect])
                                 GUI_SML, GUI_COLOR_WHT)))
     {
-        //gui_set_rect(tip_id, GUI_TOP);
         gui_clr_rect(tip_id);
         gui_layout(tip_id, 0, -1);
     }
@@ -267,13 +265,13 @@ static int intro_gui(void)
     if ((root_id = gui_root()))
     {
 #ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
-        // Switchball HD features
+        /* Switchball HD features */
 
         intro_create_tip(root_id);
 #endif
 
 #if DEVEL_BUILD
-        // Only debug and development builds
+        /* Only debug and development builds */
 
         char dev_str[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -286,13 +284,12 @@ static int intro_gui(void)
         if ((devel_label_id = gui_label(root_id, dev_str,
                                                  GUI_SML, GUI_COLOR_RED)))
         {
-            //gui_set_rect(devel_label_id, GUI_BOT);
             gui_clr_rect(devel_label_id);
             gui_layout(devel_label_id, 0, 1);
         }
 #endif
 
-        // Developer and publisher logos
+        /* Developer and publisher logos */
 
         if ((image_id = gui_image(root_id, "gui/intro/0000.jpg", ww, hh)))
         {
@@ -347,7 +344,9 @@ static int intro_buttn(int b, int d)
                 RETURN_INTROLOGO_FINISHED;
             else
             {
+#ifndef NDEBUG
                 assert(val != -1);
+#endif
                 goto_state(&st_intro_restore);
             }
         }
@@ -364,7 +363,9 @@ static int intro_click(int b, int d)
             RETURN_INTROLOGO_FINISHED;
         else
         {
+#ifndef NDEBUG
             assert(val != -1);
+#endif
             return goto_state(&st_intro_restore);
         }
     }
@@ -408,7 +409,9 @@ static void intro_timer(int id, float dt)
         }
         else
         {
+#ifndef NDEBUG
             assert(val != -1);
+#endif
             goto_state(&st_intro_restore);
         }
     }
@@ -547,7 +550,6 @@ enum RestoredGraphics
     RESTORE_NONE = -1,
     RESTORE_FULLSCREEN,
     RESTORE_RESOLUTION,
-    RESTORE_DISPLAY,
     RESTORE_VSYNC,
     RESTORE_MULTISAMPLE,
     RESTORE_REFLECTION,
@@ -593,15 +595,6 @@ static int intro_restore_action(int tok, int val)
                 video_set_window_size(config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1),
                                       config_get_d(CONFIG_GRAPHIC_RESTORE_VAL2));
 
-                remove_all();
-                RETURN_INTROLOGO_FINISHED;
-                break;
-
-            case RESTORE_DISPLAY:
-                config_set_d(CONFIG_DISPLAY,
-                             config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
-                r = 1;
-                video_set_display(config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
                 remove_all();
                 RETURN_INTROLOGO_FINISHED;
                 break;
@@ -710,35 +703,37 @@ static int intro_restore_gui(void)
                 break;
 
             case RESTORE_FULLSCREEN:
+#ifndef NDEBUG
                 assert(restore_val_1 == 0 || restore_val_1 == 1);
+#endif
                 gfx_target_name   = _("Fullscreen");
                 gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
                 break;
 
             case RESTORE_RESOLUTION:
+#ifndef NDEBUG
 #if _WIN32
                 assert(restore_val_1 >= 800 && restore_val_2 >= 600);
 #else
                 assert(restore_val_1 >= 320 && restore_val_2 >= 240);
 #endif
+#endif
                 gfx_target_name = _("Resolution");
                 doubles         = 1;
                 break;
 
-            case RESTORE_DISPLAY:
-                assert(restore_val_1 > -1);
-                gfx_target_name   = _("Display");
-                gfx_target_values = SDL_GetDisplayName(restore_val_1);
-                break;
-
             case RESTORE_VSYNC:
+#ifndef NDEBUG
                 assert(restore_val_1 > 0);
+#endif
                 gfx_target_name   = _("V-Sync");
                 gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
                 break;
 
             case RESTORE_MULTISAMPLE:
+#ifndef NDEBUG
                 assert(restore_val_1 > -1);
+#endif
                 gfx_target_name = _("Antialiasing");
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 sprintf_s(restore_attr, MAXSTR,
@@ -751,25 +746,33 @@ static int intro_restore_gui(void)
                 break;
 
             case RESTORE_REFLECTION:
+#ifndef NDEBUG
                 assert(restore_val_1 == 0 || restore_val_1 == 1);
+#endif
                 gfx_target_name   = _("Reflection");
                 gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
                 break;
 
             case RESTORE_HMD:
+#ifndef NDEBUG
                 assert(restore_val_1 == 0 || restore_val_1 == 1);
+#endif
                 gfx_target_name   = _("HMD");
                 gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
                 break;
 
             case RESTORE_TEXTURES:
+#ifndef NDEBUG
                 assert(restore_val_1 == 1 || restore_val_1 == 2);
+#endif
                 gfx_target_name   = _("Textures");
                 gfx_target_values = (restore_val_1 == 1 ? _("High") : _("Low"));
                 break;
 
+#ifndef NDEBUG
             default:
                 assert(0 && "No restore graphics found!");
+#endif
         }
 
         gui_title_header(id, _("Restore Graphics"), GUI_MED, GUI_COLOR_DEFAULT);
@@ -1038,19 +1041,16 @@ static void server_maintenance_leave(struct state *st, struct state *next, int i
 
 static void server_maintenance_paint(int id, float t)
 {
-    //gui_paint(background_id);
     gui_paint(id);
 }
 
 static void server_maintenance_timer(int id, float dt)
 {
-    //gui_timer(background_id, dt);
     gui_timer(id, dt);
 }
 
 static void server_maintenance_fade(float alpha)
 {
-    //gui_set_alpha(background_id, alpha, 0);
 }
 
 static int server_maintenance_buttn(int b, int d)

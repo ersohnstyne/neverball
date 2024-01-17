@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Neverball authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -450,7 +450,7 @@ static int title_enter(struct state* st, struct state* prev)
                     play_id = gui_start(kd, gt_prefix("menu^Play"),
                         GUI_MED, TITLE_PLAY, 1);
 
-                gui_state(kd, gt_prefix("menu^Help"),    GUI_MED, TITLE_HELP, 0);
+                gui_state(kd, gt_prefix("menu^Help"), GUI_MED, TITLE_HELP, 0);
                 gui_state(kd, gt_prefix("menu^Options"), GUI_MED, TITLE_CONF, 0);
 
                 /* Comment it, if you avoid quit the game */
@@ -523,7 +523,13 @@ static void title_timer(int id, float dt)
     float g[3] = { 0.f, 0.f, 0.f };
 
     game_step(g, dt);
-    game_set_fly(fcosf(V_PI * time_state() / 10.f)); // Default is 10 seconds; Default methods: fcosf(time_state() / 2.5f)
+
+    /*
+     * Default is 10 seconds
+     * Default methods: fcosf(time_state() / 2.5f)
+     */
+
+    game_set_fly(fcosf(V_PI * time_state() / 10.f));
 
     int battery_level, gamepad_wired; 
 
@@ -661,7 +667,6 @@ static int help_enter(struct state *st, struct state *prev)
             gui_label(jd, gt_prefix("menu^Help"), GUI_SML, 0, 0);
             gui_filler(jd);
             shared_back_button(jd);
-            //gui_start(jd, _("Back"), GUI_SML, HELP_BACK, 0);
         }
 
         gui_space(id);
@@ -835,10 +840,10 @@ static int course_enter(struct state *st, struct state *prev)
 
     if ((id = gui_vstack(0)))
     {
-        // This one is out of date
+        /* This one is out of date */
         /*gui_label(id, _("Select Course"), GUI_MED, GUI_COLOR_DEFAULT);*/
 
-        // This one is now syncronized
+        /* This one is now syncronized */
         if ((jd = gui_hstack(id)))
         {
             gui_label(jd, _("Select Course"), GUI_SML, GUI_COLOR_DEFAULT);
@@ -887,7 +892,7 @@ static int course_enter(struct state *st, struct state *prev)
         desc_id = gui_multi(id, _(course_desc(0)), GUI_SML, gui_yel, gui_wht);
         gui_space(id);
 
-        // This one is out of date
+        /* This one is out of date */
         /*if ((jd = gui_hstack(id)))
         {
             gui_filler(jd);
@@ -1020,10 +1025,10 @@ static int party_enter(struct state *st, struct state *prev)
 
     if ((id = gui_vstack(0)))
     {
-        // This one is out of date
+        /* This one is out of date */
         /*gui_label(id, _("Players?"), GUI_MED, GUI_COLOR_DEFAULT);*/
 
-        // This one is now syncronized
+        /* This one is now syncronized */
         if ((jd = gui_hstack(id)))
         {
             gui_label(jd, _("Players?"), GUI_SML, GUI_COLOR_DEFAULT);
@@ -1050,7 +1055,7 @@ static int party_enter(struct state *st, struct state *prev)
 
         gui_space(id);
 
-        // This one is out of date
+        /* This one is out of date */
         /*if ((jd = gui_hstack(id)))
         {
             gui_filler(jd);

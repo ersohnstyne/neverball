@@ -495,7 +495,7 @@ static void campaign_load_hs(void)
                 switch (time_trial_version)
                 {
                     case 2: campaign_load_hs_v2(fp, buf, sizeof(buf)); break;
-                    //case 3: campaign_load_hs_v3(fp, buf, sizeof(buf)); break;
+                    /* case 3: campaign_load_hs_v3(fp, buf, sizeof(buf)); break; */
                 }
             }
             else
@@ -537,7 +537,7 @@ void campaign_rename_player(int times_rank, const char *player)
 
 int campaign_rank(void)
 {
-    // Was: config_cheat() ? 4 : medal_datas.curr_rank;
+    /* Was: config_cheat() ? 4 : medal_datas.curr_rank; */
     return medal_datas.curr_rank;
 }
 
@@ -885,7 +885,8 @@ int campaign_load_camera_box_trigger(const char *levelname)
     if ((fh = fs_open_read(camFilename)))
     {
         int camBoxIdx = 0;
-        while (fs_gets(camLinePrefix, MAXSTR, fh))
+        while (fs_gets(camLinePrefix, MAXSTR, fh) &&
+               camBoxIdx < MAX_CAM_BOX_TRIGGER)
         {
             cam_box_triggers[camBoxIdx].positions[0] = 0.0f;
             cam_box_triggers[camBoxIdx].positions[1] = 0.0f;
@@ -925,33 +926,35 @@ int campaign_load_camera_box_trigger(const char *levelname)
              * test your camera modes in a single level.
              */
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(camLinePrefix,
+            if (sscanf_s(camLinePrefix,
 #else
-            sscanf(camLinePrefix,
+            if (sscanf(camLinePrefix,
 #endif
-                   "pos:%f %f %f size:%f %f %f mode:%d campos:%f %f %f dir:%f",
-                   &cam_box_triggers[camBoxIdx].positions[0], &cam_box_triggers[camBoxIdx].positions[2], &cam_box_triggers[camBoxIdx].positions[1],
-                   &cam_box_triggers[camBoxIdx].triggerSize[0], &cam_box_triggers[camBoxIdx].triggerSize[2], &cam_box_triggers[camBoxIdx].triggerSize[1],
-                   &cam_box_triggers[camBoxIdx].cammode,
-                   &cam_box_triggers[camBoxIdx].campositions[0], &cam_box_triggers[camBoxIdx].campositions[2], &cam_box_triggers[camBoxIdx].campositions[1],
-                   &cam_box_triggers[camBoxIdx].camdirection);
+                       "pos:%f %f %f size:%f %f %f mode:%d campos:%f %f %f dir:%f",
+                       &cam_box_triggers[camBoxIdx].positions[0], &cam_box_triggers[camBoxIdx].positions[2], &cam_box_triggers[camBoxIdx].positions[1],
+                       &cam_box_triggers[camBoxIdx].triggerSize[0], &cam_box_triggers[camBoxIdx].triggerSize[2], &cam_box_triggers[camBoxIdx].triggerSize[1],
+                       &cam_box_triggers[camBoxIdx].cammode,
+                       &cam_box_triggers[camBoxIdx].campositions[0], &cam_box_triggers[camBoxIdx].campositions[2], &cam_box_triggers[camBoxIdx].campositions[1],
+                       &cam_box_triggers[camBoxIdx].camdirection) == 11)
+            {
+                cam_box_triggers[camBoxIdx].positions[0] /= 64;
+                cam_box_triggers[camBoxIdx].positions[1] /= 64;
+                cam_box_triggers[camBoxIdx].positions[2] /= -64;
 
-            cam_box_triggers[camBoxIdx].positions[0] /=  64;
-            cam_box_triggers[camBoxIdx].positions[1] /=  64;
-            cam_box_triggers[camBoxIdx].positions[2] /= -64;
+                cam_box_triggers[camBoxIdx].triggerSize[0] /= 64;
+                cam_box_triggers[camBoxIdx].triggerSize[1] /= 64;
+                cam_box_triggers[camBoxIdx].triggerSize[2] /= 64;
 
-            cam_box_triggers[camBoxIdx].triggerSize[0] /= 64;
-            cam_box_triggers[camBoxIdx].triggerSize[1] /= 64;
-            cam_box_triggers[camBoxIdx].triggerSize[2] /= 64;
+                cam_box_triggers[camBoxIdx].campositions[0] /= 64;
+                cam_box_triggers[camBoxIdx].campositions[1] /= 64;
+                cam_box_triggers[camBoxIdx].campositions[2] /= -64;
 
-            cam_box_triggers[camBoxIdx].campositions[0] /=  64;
-            cam_box_triggers[camBoxIdx].campositions[1] /=  64;
-            cam_box_triggers[camBoxIdx].campositions[2] /= -64;
+                cam_box_triggers[camBoxIdx].activated = 1;
+                cam_box_triggers[camBoxIdx].inside    = 0;
 
-            cam_box_triggers[camBoxIdx].activated = 1;
-
-            autocam_count++;
-            ++camBoxIdx;
+                autocam_count++;
+                ++camBoxIdx;
+            }
 
             if (camBoxIdx >= MAX_CAM_BOX_TRIGGER)
                 break;
@@ -969,13 +972,15 @@ int campaign_load_camera_box_trigger(const char *levelname)
 void campaign_reset_camera_box_trigger(void)
 {
     autocam_count = 0;
+
     for (int i = 0; i < MAX_CAM_BOX_TRIGGER; ++i)
     {
         memset(&cam_box_triggers[i], 0, sizeof (struct campaign_cam_box_trigger));
 
         /* Default should be permanently disabled */
 
-        cam_box_triggers[i].activated = -1;
+        cam_box_triggers[i].activated = 0;
+        cam_box_triggers[i].inside    = 0;
     }
 }
 
@@ -1003,10 +1008,14 @@ int campaign_camera_box_trigger_test(struct s_vary *vary, int ui)
             cam_box_trigger_test_master(ball_p, localcamboxtrigger, 2))
         {
             cam_box_triggers[camidx].activated = 0;
+            cam_box_triggers[camidx].inside    = 1;
             return camidx;
         }
-        else if (cam_box_triggers[camidx].activated != 1)
+        else if (cam_box_triggers[camidx].inside != 0)
+        {
             cam_box_triggers[camidx].activated = 1;
+            cam_box_triggers[camidx].inside    = 0;
+        }
     }
 
     return -1;

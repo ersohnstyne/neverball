@@ -18,11 +18,11 @@
 #include "solid_chkp.h"
 
 #include "account.h"
-#include "campaign.h" // New: Campaign
+#include "campaign.h" /* New: Campaign */
 #include "networking.h"
 #endif
 #ifdef MAPC_INCLUDES_CHKP
-#include "checkpoints.h" // New: Checkpoints
+#include "checkpoints.h" /* New: Checkpoints */
 #endif
 #include "accessibility.h"
 

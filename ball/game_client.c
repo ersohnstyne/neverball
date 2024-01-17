@@ -30,7 +30,7 @@
 #include "solid_draw.h"
 
 #ifdef MAPC_INCLUDES_CHKP
-#include "checkpoints.h" // New: Checkpoints
+#include "checkpoints.h" /* New: Checkpoints */
 #endif
 
 #include "game_client.h"
@@ -50,6 +50,10 @@
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
+#endif
+
+#if NB_HAVE_PB_BOTH==1 && !defined(MAPC_INCLUDES_CHKP)
+#error Security compilation error: Please enable checkpoints after joined PB+NB Discord Server!
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -72,10 +76,8 @@ static float speedometer = 0.0f;        /* New: Speedometer                  */
 
 static struct cmd_state cs;             /* Command state                     */
 
-struct
-{
-    int x, y;
-} version;                              /* Current map version               */
+struct game_sol_version { int x, y; }
+       version;                         /* Current map version               */
 
 /*---------------------------------------------------------------------------*/
 
@@ -266,8 +268,10 @@ static void game_run_cmd(const union cmd *cmd)
 
             case CMD_MOVE_PATH:
             case CMD_MOVE_TIME:
+            /*
             case CMD_BODY_PATH:
             case CMD_BODY_TIME:
+            */
                 sol_lerp_cmd(&gl.lerp, &cs, cmd);
                 break;
 
@@ -456,7 +460,7 @@ int  game_client_init(const char *file_name)
         max_coins = 0;
 
 #if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
-    coins  = last_active ? respawn_coins : 0;
+    coins  = last_active ? checkpoints_respawn_coins() : 0;
 #else
     coins  = 0;
 #endif
@@ -538,11 +542,19 @@ int  game_client_init(const char *file_name)
 
         if (strcmp(k, "version") == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(v,
+            if (sscanf_s(v,
 #else
-            sscanf(v,
+            if (sscanf(v,
 #endif
-                   "%d.%d", &version.x, &version.y);
+                       "%d.%d", &version.x, &version.y) != 2)
+            {
+/*#ifndef NDEBUG
+                log_errorf("SOL key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
+                sol_free_vary(&gd.vary);
+                game_base_free(NULL);
+                return (gd.state = 0);
+#endif*/
+            }
     }
 
     /*
@@ -618,7 +630,8 @@ void game_client_blend(float a)
 
 void game_client_draw(int pose, float t)
 {
-    game_lerp_apply(&gl, &gd);
+    if (gd.state)
+        game_lerp_apply(&gl, &gd);
 
     if (pose == POSE_NONE)
         game_draw(&gd, ball_visible ? pose : POSE_LEVEL, t);

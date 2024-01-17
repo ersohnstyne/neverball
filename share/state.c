@@ -189,13 +189,13 @@ int goto_state_full(struct state *st,
     {
         while (alpha > 0.01)
         {
-            //LOOP_DURING_SCREENANIMATE;
-
             currtime = SDL_GetTicks();
             dt = MAX(currtime - prevtime, 0);
             alpha = alpha - ((config_get_d(CONFIG_SMOOTH_FIX) ?
                               MIN(state_frame_smooth, dt) :
                               MIN(100.0f, dt)) * state_anim_speed) * 0.001f;
+            alpha = CLAMP(0, alpha, 1);
+
             if (state)
             {
                 if (state->fade != NULL) state->fade(alpha);
@@ -208,9 +208,9 @@ int goto_state_full(struct state *st,
             CHECK_GAMESPEED(20, 100);
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
 
-            st_timer((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ?
-                                MIN(state_frame_smooth, dt) : dt)) *
-                     speedPercent);
+            st_timer(MAX((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ?
+                                    MIN(state_frame_smooth, dt) : dt)) *
+                                    speedPercent, 0));
             hmd_step();
 
             if (viewport_wireframe == 2 || viewport_wireframe == 3)
@@ -262,6 +262,8 @@ int goto_state_full(struct state *st,
             alpha = alpha + ((config_get_d(CONFIG_SMOOTH_FIX) ?
                               MIN(state_frame_smooth, dt) :
                               MIN(100.0f, dt)) * state_anim_speed) * 0.001f;
+            alpha = CLAMP(0, alpha, 1);
+
             if (state)
             {
                 if (state->fade != NULL) state->fade(alpha);
@@ -274,9 +276,9 @@ int goto_state_full(struct state *st,
             CHECK_GAMESPEED(20, 100);
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
 
-            st_timer((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ?
-                                MIN(state_frame_smooth, dt) : dt)) *
-                     speedPercent);
+            st_timer(MAX((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ?
+                                    MIN(state_frame_smooth, dt) : dt)) *
+                                    speedPercent, 0));
             hmd_step();
 
             if (viewport_wireframe == 2 || viewport_wireframe == 3)

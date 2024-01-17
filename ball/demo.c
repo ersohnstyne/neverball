@@ -205,8 +205,6 @@ void demo_free(struct demo *d)
 
 /*---------------------------------------------------------------------------*/
 
-//#define DEMO_FORMAT_DATETIME
-
 int demo_exists(const char *name)
 {
     return fs_exists(demo_path(name));
@@ -370,8 +368,6 @@ const char *demo_format_name(const char *fmt,
 }
 
 /*---------------------------------------------------------------------------*/
-
-//#define DISABLE_RECORDINGS 1
 
 static struct demo demo_play;
 

@@ -40,7 +40,7 @@ void sol_body_p(float p[3],
                 const struct v_body *bp,
                 float dt)
 {
-    float v[3];
+    float v[3] = { 0.0f, 0.0f, 0.0f };
 
     if (bp->mi >= 0)
     {
@@ -325,22 +325,8 @@ void sol_swch_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
                 else
                     curr_path_enabled_orcondition[xp->base->pi]--;
 
-/*#if _DEBUG
-                if (curr_path_enabled_orcondition[xp->base->pi] > 1)
-                    log_printf("Path index %d uses OR SWITCH condition: %d\n",
-                               xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
-                else if (curr_path_enabled_orcondition[xp->base->pi] > 0)
-                    log_printf("Path index %d is ENABLED\n", xp->base->pi);
-                else if (curr_path_enabled_orcondition[xp->base->pi] == 0)
-                    log_printf("Path index %d is DISABLED\n", xp->base->pi);
-                else
-                    log_printf("Path index %d uses NOR SWITCH condition: %d\n",
-                               xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
-#endif*/
-
-                sol_path_loop(vary, cmd_func, xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
-
                 //sol_path_loop(vary, cmd_func, xp->base->pi, xp->base->f);
+                sol_path_loop(vary, cmd_func, xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
 
                 xp->f = xp->base->f;
 
@@ -397,7 +383,7 @@ void sol_move_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
 
                 if (cmd_func)
                 {
-                    union cmd cmd;
+                    union cmd cmd = { CMD_MOVE_TIME };
 
                     cmd.type        = CMD_MOVE_TIME;
                     cmd.movetime.mi = i;
@@ -467,11 +453,10 @@ struct b_goal *sol_goal_test(struct s_vary *vary, float *p, int ui)
     for (zi = 0; zi < vary->base->zc; zi++)
     {
         struct b_goal *zp = vary->base->zv + zi;
-        float r[3];
-
-        r[0] = ball_p[0] - zp->p[0];
-        r[1] = ball_p[2] - zp->p[2];
-        r[2] = 0;
+        float r[3] = {
+            ball_p[0] - zp->p[0],
+            ball_p[2] - zp->p[2], 0
+        };
 
         if (v_len(r) + ball_r < zp->r &&
             ball_p[1] > zp->p[1] &&
@@ -499,11 +484,10 @@ int sol_jump_test(struct s_vary *vary, float *p, int ui)
     for (ji = 0; ji < vary->base->jc; ji++)
     {
         struct b_jump *jp = vary->base->jv + ji;
-        float d, r[3];
-
-        r[0] = ball_p[0] - jp->p[0];
-        r[1] = ball_p[2] - jp->p[2];
-        r[2] = 0;
+        float d, r[3] = {
+            ball_p[0] - jp->p[0],
+            ball_p[2] - jp->p[2], 0
+        };
 
         /* Distance of the far side from the edge of the halo. */
 
@@ -548,11 +532,10 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
     {
         struct v_swch *xp = vary->xv + xi;
 
-        float d, r[3];
-
-        r[0] = ball_p[0] - xp->base->p[0];
-        r[1] = ball_p[2] - xp->base->p[2];
-        r[2] = 0;
+        float d, r[3] = {
+            ball_p[0] - xp->base->p[0],
+            ball_p[2] - xp->base->p[2], 0
+        };
 
         /* Distance of the far side from the edge of the halo. */
 
@@ -580,7 +563,7 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
 
                     if (cmd_func)
                     {
-                        union cmd cmd;
+                        union cmd cmd = { CMD_SWCH_ENTER };
 
                         cmd.type         = CMD_SWCH_ENTER;
                         cmd.swchenter.xi = xi;
@@ -684,11 +667,10 @@ int sol_chkp_test(struct s_vary *vary, cmd_fn cmd_func, int ui, int *ci)
     {
         struct v_chkp *cp = vary->cv + xi;
 
-        float d, r[3];
-
-        r[0] = ball_p[0] - cp->base->p[0];
-        r[1] = ball_p[2] - cp->base->p[2];
-        r[2] = 0;
+        float d, r[3] = {
+            ball_p[0] - cp->base->p[0],
+            ball_p[2] - cp->base->p[2], 0
+        };
 
         /* Distance of the far side from the edge of the halo. */
 

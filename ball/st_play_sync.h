@@ -1,7 +1,7 @@
 #ifndef ST_PLAY_SYNC_H
 #define ST_PLAY_SYNC_H
 
-// Synchronized via st_play.c and st_demo.c
+/* Synchronized via st_play.c and st_demo.c */
 
 #pragma message(__FILE__": This code file was synced belonging the header file.")
 

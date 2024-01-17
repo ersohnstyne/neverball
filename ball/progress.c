@@ -14,7 +14,7 @@
 
 #if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
-#include "campaign.h" // New: Campaign levels
+#include "campaign.h" /* New: Campaign levels */
 #include "boost_rush.h"
 #include "mediation.h"
 #include "networking.h"
@@ -30,7 +30,7 @@
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
-#include "checkpoints.h" // New: Checkpoints
+#include "checkpoints.h" /* New: Checkpoints */
 #endif
 
 #include "progress.h"
@@ -49,8 +49,6 @@
 #include "game_server.h"
 
 /*---------------------------------------------------------------------------*/
-
-// Used with MAPC_INCLUDES_CHKP
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
 #ifdef MAPC_INCLUDES_CHKP
@@ -258,13 +256,12 @@ static int status = GAME_NONE;
 static int coins = 0;
 
 #ifdef MAPC_INCLUDES_CHKP
-static int timer_campaign = 0;
-static int timer_lvlset   = 0;
+static int timer_shared_group = 0;
 
 /*
  * Precalculated total timer for each levels with checkpoints.
  */
-#define    timer timer_lvlset
+#define    timer timer_shared_group
 #else
 static int timer = 0;
 #endif
@@ -467,7 +464,7 @@ int  progress_play(struct level *l)
 #ifdef MAPC_INCLUDES_CHKP
         /* HACK: Must be recalculate after respawn! */
 
-        coins  = last_active ? respawn_coins : 0;
+        coins  = last_active ? checkpoints_respawn_coins()        : 0;
         timer  = last_active ? checkpoints_respawn_time_elapsed() : 0;
 #else
         coins  = 0;

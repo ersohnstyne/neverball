@@ -22,11 +22,11 @@
 
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
-#include "campaign.h" // New: Campaign
+#include "campaign.h" /* New: Campaign */
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
-#include "checkpoints.h" // New: Checkpoints
+#include "checkpoints.h" /* New: Checkpoints */
 #endif
 
 #include "util.h"
@@ -317,7 +317,7 @@ static int fail_gui(void)
                         {
                             if (!campaign_hardcore())
                             {
-                                if (((last_time_limit - last_time_elapsed) > 60.0f || last_time_limit == 0.0f) &&
+                                if (((checkpoints_last_time_limit() - checkpoints_last_time_elapsed()) > 60.0f || checkpoints_last_time_limit() == 0.0f) &&
                                     progress_same_avail())
                                 {
                                     audio_play(AUD_RESPAWN, 1.0f);
@@ -392,7 +392,7 @@ static int fail_gui(void)
                         {
                             if (!campaign_hardcore())
                             {
-                                if (((last_time_limit - last_time_elapsed) > 60.0f || last_time_limit == 0.0f) &&
+                                if (((checkpoints_last_time_limit() - checkpoints_last_time_elapsed()) > 60.0f || checkpoints_last_time_limit() == 0.0f) &&
                                     progress_same_avail())
                                 {
                                     audio_play(AUD_RESPAWN, 1.0f);
@@ -446,7 +446,7 @@ static int fail_gui(void)
                         if (last_active)
                         {
                             /* Optional can be save */
-                            if (((last_time_limit - last_time_elapsed) > 60.0f || last_time_limit == 0.0f) &&
+                            if (((checkpoints_last_time_limit() - checkpoints_last_time_elapsed()) > 60.0f || checkpoints_last_time_limit() == 0.0f) &&
                                 progress_same_avail()
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                                 && !campaign_hardcore()
@@ -549,9 +549,9 @@ static int fail_gui(void)
                 {
                     gui_start(jd, _("Cancel"), GUI_SML, FAIL_CHECKPOINT_CANCEL, 0);
 
-                    /* New: Checkpoints; An optional can be respawn last location */
+                    /* New: Checkpoints; An optional can be respawn from last location */
                     if ((progress_same_avail() && last_active) &&
-                        (((last_time_limit - last_time_elapsed) > 60.0f || last_time_limit == 0.0f)))
+                        (((checkpoints_last_time_limit() - checkpoints_last_time_elapsed()) > 60.0f || checkpoints_last_time_limit() == 0.0f)))
                         gui_state(jd, _("Respawn"),
                             GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
                     else if ((!campaign_hardcore() && progress_dead()) &&
@@ -1765,7 +1765,7 @@ int ask_more_purchased(struct state *ok_state)
 
     return goto_state(st_returnable);
 #else
-    // NO POSSIBLE!
+    /* IMPOSSIBRU! */
     return goto_state(&st_fail);
 #endif
 }
@@ -1775,7 +1775,7 @@ int ask_more_purchased(struct state *ok_state)
 struct state st_fail = {
     fail_enter,
     shared_leave,
-    fail_paint, // Default: shared_paint
+    fail_paint,      /* Default: shared_paint */
     fail_timer,
     shared_point,
     shared_stick,

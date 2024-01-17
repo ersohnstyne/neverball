@@ -833,45 +833,47 @@ static int default_set_mincoinrequired;
 
 static void set_load_levels(void)
 {
-    // Legacy roman numbers doesn't: I V X C D M
-    // New roman numbers should work: Ⅰ Ⅱ Ⅲ Ⅳ Ⅴ Ⅵ Ⅶ Ⅷ Ⅸ Ⅹ Ⅺ Ⅻ Ⅼ Ⅽ Ⅾ Ⅿ
+    /*
+     * Legacy roman numbers doesn't: I V X C D M 
+     * New roman numbers should work: Ⅰ Ⅱ Ⅲ Ⅳ Ⅴ Ⅵ Ⅶ Ⅷ Ⅸ Ⅹ Ⅺ Ⅻ Ⅼ Ⅽ Ⅾ Ⅿ
+     */
     static const char *roman[] = {
         "",
-        "I",   "II",   "III",   "IV",   "V",   // 1 - 5
-        "VI",  "VII",  "VIII",  "IX",   "X",   // 6 - 10
-        "XI",  "XII",  "XIII",  "XIV",  "XV",  // 11 - 15
-        "XVI", "XVII", "XVIII", "XIX",  "XX",  // 16 - 20
-        "XXI", "XXII", "XXIII", "XXIV", "XXV", // 21 - 25
+        "I",   "II",   "III",   "IV",   "V",                /* 1 - 5   */
+        "VI",  "VII",  "VIII",  "IX",   "X",                /* 6 - 10  */
+        "XI",  "XII",  "XIII",  "XIV",  "XV",               /* 11 - 15 */
+        "XVI", "XVII", "XVIII", "XIX",  "XX",               /* 16 - 20 */
+        "XXI", "XXII", "XXIII", "XXIV", "XXV",              /* 21 - 25 */
 
-        "XXVI",  "XXVII",  "XXVIII",  "XXIX",  "XXX",  // 26 - 30
-        "XXXI",  "XXXII",  "XXXIII",  "XXXIV", "XXXV", // 31 - 35
-        "XXXVI", "XXXVII", "XXXVIII", "XIL",   "XL",   // 36 - 40
-        "XLI",   "XLII",   "XLIII",   "XLIV",  "XLV",  // 41 - 45
-        "XLVI",  "XLVII",  "XLVIII",  "IL",    "L",    // 46 - 50
+        "XXVI",  "XXVII",  "XXVIII",  "XXIX",  "XXX",       /* 26 - 30 */
+        "XXXI",  "XXXII",  "XXXIII",  "XXXIV", "XXXV",      /* 31 - 35 */
+        "XXXVI", "XXXVII", "XXXVIII", "XIL",   "XL",        /* 36 - 40 */
+        "XLI",   "XLII",   "XLIII",   "XLIV",  "XLV",       /* 41 - 45 */
+        "XLVI",  "XLVII",  "XLVIII",  "IL",    "L",         /* 46 - 50 */
 
-        "LI",   "LII",   "LIII",   "LIV",   "LV",   // 51 - 55
-        "LVI",  "LVII",  "LVIII",  "LIX",   "LX",   // 56 - 60
-        "LXI",  "LXII",  "LXIII",  "LXIV",  "LXV",  // 61 - 65
-        "LXVI", "LXVII", "LXVIII", "LXIX",  "LXX",  // 66 - 70
-        "LXXI", "LXXII", "LXXIII", "LXXIV", "LXXV", // 71 - 75
+        "LI",   "LII",   "LIII",   "LIV",   "LV",           /* 51 - 55 */
+        "LVI",  "LVII",  "LVIII",  "LIX",   "LX",           /* 56 - 60 */
+        "LXI",  "LXII",  "LXIII",  "LXIV",  "LXV",          /* 61 - 65 */
+        "LXVI", "LXVII", "LXVIII", "LXIX",  "LXX",          /* 66 - 70 */
+        "LXXI", "LXXII", "LXXIII", "LXXIV", "LXXV",         /* 71 - 75 */
 
-        "LXXVI",  "LXXVII",  "LXXVIII",  "LXXIX",  "LXXX",  // 76 - 80
-        "LXXXI",  "LXXXII",  "LXXXIII",  "LXXXIV", "LXXXV", // 81 - 85
-        "LXXXVI", "LXXXVII", "LXXXVIII", "LXXXIX", "XC",    // 86 - 90
-        "XCI",    "XCII",    "XCIII",    "XCIV",   "XCV",   // 91 - 95
-        "XCVI",   "XCVII",   "XCVIII",   "XCIX",   "C",     // 96 - 100
+        "LXXVI",  "LXXVII",  "LXXVIII",  "LXXIX",  "LXXX",  /* 76 - 80  */
+        "LXXXI",  "LXXXII",  "LXXXIII",  "LXXXIV", "LXXXV", /* 81 - 85  */
+        "LXXXVI", "LXXXVII", "LXXXVIII", "LXXXIX", "XC",    /* 86 - 90  */
+        "XCI",    "XCII",    "XCIII",    "XCIV",   "XCV",   /* 91 - 95  */
+        "XCVI",   "XCVII",   "XCVIII",   "XCIX",   "C",     /* 96 - 100 */
 
-        "CI",   "CII",   "CIII",   "CIV",   "CV",   // 101 - 105
-        "CVI",  "CVII",  "CVIII",  "CIX",   "CX",   // 106 - 110
-        "CXI",  "CXII",  "CXIII",  "CXIV",  "CXV",  // 111 - 115
-        "CXVI", "CXVII", "CXVIII", "CXIX",  "CXX",  // 116 - 120
-        "CXXI", "CXXII", "CXXIII", "CXXIV", "CXXV", // 121 - 125
+        "CI",   "CII",   "CIII",   "CIV",   "CV",           /* 101 - 105 */
+        "CVI",  "CVII",  "CVIII",  "CIX",   "CX",           /* 106 - 110 */
+        "CXI",  "CXII",  "CXIII",  "CXIV",  "CXV",          /* 111 - 115 */
+        "CXVI", "CXVII", "CXVIII", "CXIX",  "CXX",          /* 116 - 120 */
+        "CXXI", "CXXII", "CXXIII", "CXXIV", "CXXV",         /* 121 - 125 */
 
-        "CXXVI",  "CXXVII",  "CXXVIII",  "CXXIX",  "CXXX",  // 126 - 130
-        "CXXXI",  "CXXXII",  "CXXXIII",  "CXXXIV", "CXXXV", // 131 - 135
-        "CXXXVI", "CXXXVII", "CXXXVIII", "CXIL",   "CXL",   // 136 - 140
-        "CXLI",   "CXLII",   "CXLIII",   "CXLIV",  "CXLV",  // 141 - 145
-        "CXLVI",  "CXLVII",  "CXLVIII",  "CIL",    "CL",    // 146 - 150
+        "CXXVI",  "CXXVII",  "CXXVIII",  "CXXIX",  "CXXX",  /* 126 - 130 */
+        "CXXXI",  "CXXXII",  "CXXXIII",  "CXXXIV", "CXXXV", /* 131 - 135 */
+        "CXXXVI", "CXXXVII", "CXXXVIII", "CXIL",   "CXL",   /* 136 - 140 */
+        "CXLI",   "CXLII",   "CXLIII",   "CXLIV",  "CXLV",  /* 141 - 145 */
+        "CXLVI",  "CXLVII",  "CXLVIII",  "CIL",    "CL",    /* 146 - 150 */
     };
 
     struct set *s = SET_GET(sets, curr);

@@ -751,8 +751,6 @@ void chnk_chkp_draw(struct s_rend *rend)
 
 /*---------------------------------------------------------------------------*/
 
-//#define SUPER_SHADOWS
-
 /*
  * A note about lighting and shadow: technically speaking, it's wrong.
  * The  light  position  and   shadow  projection  behave  as  if  the

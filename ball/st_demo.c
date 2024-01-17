@@ -120,10 +120,10 @@ static int total = 0;
 static int last  = 0;
 static int availibility = 0;
 
-static int selected = 0;
+static int selected    = 0;
 static int last_viewed = 0;
 
-static int target_timer = 0;   /* This is the target time limit */
+static int target_timer   = 0; /* This is the target time limit */
 static int premaded_timer = 0; /* This is the premaded timer    */
 
 static int allow_exact_versions = 0;
@@ -151,14 +151,6 @@ static int st_demo_version_read(fs_file fp, struct demo *d)
 
 static int check_full_access(const char *replay_pname)
 {
-    const char *curr_player = config_get_s(CONFIG_PLAYER);
-
-    if (strcmp(replay_pname, "PennySchloss") == 0)
-    {
-        if (strcmp(curr_player, "PennySchloss") == 0)
-            return 1;
-    }
-
     return 0;
 }
 
@@ -985,7 +977,7 @@ static int demo_gui(void)
             gui_navig(jd, total, first, DEMO_STEP);
         }
 
-        // HACK: Must center-aligned for two side vertical space bars.
+        /* HACK: Must center-aligned for two side vertical space bars. */
 
         /*if ((jd = gui_hstack(id)))
         {
@@ -1379,7 +1371,7 @@ static void demo_play_timer(int id, float dt)
     {
         smoothfix_slowdown_time += dt;
 
-        if (smoothfix_slowdown_time >= 30)
+        if (smoothfix_slowdown_time >= 10)
         {
             config_set_d(CONFIG_SMOOTH_FIX,
                          config_get_d(CONFIG_FORCE_SMOOTH_FIX));
@@ -1452,9 +1444,12 @@ static void demo_play_timer(int id, float dt)
         progress_step();
         game_client_blend(demo_replay_blend());
 
-        // HACK: Hinders to continue reading replay
-        // at the end of the level.
-        if (curr_status() != GAME_NONE) demo_paused = 0;
+        /*
+         * HACK: Hinders to continue reading replay
+         * at the end of the level.
+         */
+        if (curr_status() != GAME_NONE)
+            demo_paused = 0;
     }
 }
 
@@ -1510,8 +1505,10 @@ static int demo_play_keybd(int c, int d)
         {
             demo_freeze_all = 1;
 
-            // HACK: Hinders to continue reading replay
-            // at the end of the level.
+            /*
+             * HACK: Hinders to continue reading replay
+             * at the end of the level.
+             */
             demo_paused = curr_status() == GAME_NONE;
 
             return goto_state(&st_demo_end);
@@ -1552,9 +1549,11 @@ static int demo_play_buttn(int b, int d)
             config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
         {
             demo_freeze_all = 1;
-            
-            // HACK: Hinders to continue reading replay
-            // at the end of the level.
+
+            /*
+             * HACK: Hinders to continue reading replay
+             * at the end of the level.
+             */
             demo_paused = curr_status() == GAME_NONE;
 
             return goto_state(&st_demo_end);

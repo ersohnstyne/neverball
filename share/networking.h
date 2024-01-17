@@ -18,7 +18,7 @@
 /* Should be use within server file manager ? */
 #define ENABLE_NETWORKING
 
-// Should be required as connected server?
+/* Should be required as connected server? */
 //#define NETWORKING_NO_STANDALONE
 
 #define CHECK_ACCOUNT_ENABLED (networking_error() > -3)

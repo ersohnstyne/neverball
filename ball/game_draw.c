@@ -29,6 +29,10 @@
 
 #include "game_draw.h"
 
+#if NB_HAVE_PB_BOTH==1 && !defined(MAPC_INCLUDES_CHKP)
+#error Security compilation error: Please enable checkpoints after joined PB+NB Discord Server!
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 static void game_draw_chnk_floor(struct s_rend *rend,
@@ -482,8 +486,6 @@ static void game_refl_all(struct s_rend *rend, const struct game_draw *gd, int f
 
 /*---------------------------------------------------------------------------*/
 
-//#define LIGHT_FIXED_INSTALLATION
-
 static void game_draw_light(const struct game_draw *gd, int d, float t)
 {
     /* Configure the lighting. */
@@ -718,8 +720,7 @@ static void game_draw_fore_chnk(struct s_rend *rend,
         if (d < 0)
             glEnable(GL_CLIP_PLANE0);
 
-        //if (!config_cheat())
-            //glEnable(GL_FOG);
+        /* if (!config_cheat()) glEnable(GL_FOG); */
 
         switch (pose)
         {
@@ -745,8 +746,7 @@ static void game_draw_fore_chnk(struct s_rend *rend,
         }
         glDepthMask(GL_TRUE);
 
-        //if (!config_cheat())
-            //glDisable(GL_FOG);
+        /* if (!config_cheat()) glDisable(GL_FOG); */
 
         if (d < 0)
             glDisable(GL_CLIP_PLANE0);
@@ -825,7 +825,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
 {
     float fov = (float) config_get_d(CONFIG_VIEW_FOV);
 
-    //if (gd->jump_b) fov *= 2.0f * fabsf(gd->jump_dt - 0.5f);
+    /* if (gd->jump_b) fov *= 2.0f * fabsf(gd->jump_dt - 0.5f); */
     if (gd->jump_b) fov *= (fcosf(gd->jump_dt * (2 * V_PI)) / 2) + 0.5f;
 
     if (gd->state)

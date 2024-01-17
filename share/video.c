@@ -28,7 +28,9 @@
 #if __cplusplus
 #include <vcruntime_exception.h>
 #endif
+#ifndef NDEBUG
 #include <assert.h>
+#endif
 
 #ifdef __EMSCRIPTEN__
 #include <gl4esinit.h>
@@ -756,7 +758,9 @@ video_mode_failinit_window_context:
         else
             config_set_d(CONFIG_MULTISAMPLE, solution_smp);
 
+#ifndef NDEBUG
         assert(solution_buf > -1 && solution_smp > -1);
+#endif
 
         goto video_mode_reconf;
     }
@@ -780,7 +784,9 @@ video_mode_failinit_window_context:
         else
             config_set_d(CONFIG_MULTISAMPLE, solution_smp);
 
+#ifndef NDEBUG
         assert(solution_buf > -1 && solution_smp > -1);
+#endif
 
         goto video_mode_reconf;
     }
@@ -1181,7 +1187,9 @@ video_mode_auto_config_failinit_window_context:
         else
             config_set_d(CONFIG_MULTISAMPLE, solution_smp);
 
+#ifndef NDEBUG
         assert(solution_buf > -1 && solution_smp > -1);
+#endif
 
         goto video_mode_auto_config_reconf;
     }
@@ -1503,13 +1511,10 @@ extern "C"
 #endif
 void video_push_persp(float fov, float n, float f)
 {
-    //glPushMatrix();
     if (hmd_stat())
         hmd_persp(n, f);
     else
     {
-        GLfloat m[16];
-
         GLfloat r = fov / 2 * V_PI / 180;
         GLfloat s = fsinf(r);
         GLfloat c = fcosf(r) / s;
@@ -1523,25 +1528,12 @@ void video_push_persp(float fov, float n, float f)
 
         glMatrixMode(GL_PROJECTION);
         {
-            m[0 ] =  c / a;
-            m[1 ] =  0.0f;
-            m[2 ] =  0.0f;
-            m[3 ] =  0.0f;
-
-            m[4 ] =  0.0f;
-            m[5 ] =  c;
-            m[6 ] =  0.0f;
-            m[7 ] =  0.0f;
-
-            m[8 ] =  0.0f;
-            m[9 ] =  0.0f;
-            m[10] = -(f + n) / (f - n);
-            m[11] = -1.0f;
-
-            m[12] =  0.0f;
-            m[13] =  0.0f;
-            m[14] = -2.0f * n * f / (f - n);
-            m[15] =  0.0f;
+            GLfloat m[16] = {
+                c / a, 0.0f,  0.0f,                    0.0f,
+                0.0f,  c,     0.0f,                    0.0f,
+                0.0f,  0.0f, -(f + n) / (f - n),      -1.0f,
+                0.0f,  0.0f, -2.0f * n * f / (f - n),  0.0f
+            };
 
             glLoadMatrixf(m);
         }
@@ -1556,8 +1548,6 @@ extern "C"
 #endif
 void video_push_ortho(void)
 {
-    //glPushMatrix();
-
     if (hmd_stat())
         hmd_ortho();
     else
@@ -1590,7 +1580,6 @@ extern "C"
 #endif
 void video_pop_matrix(void)
 {
-    //glPopMatrix();
 }
 
 #if __cplusplus

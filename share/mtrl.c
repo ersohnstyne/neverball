@@ -30,12 +30,6 @@
 #endif
 #endif
 
-/* GL_CLAMP_TO_EDGE turns into the GL_CLAMP */
-#ifdef GL_CLAMP_TO_EDGE
-//#undef GL_CLAMP_TO_EDGE
-//#define GL_CLAMP_TO_EDGE 0x2900
-#endif
-
 /*
  * Material cache.
  *

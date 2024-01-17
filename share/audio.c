@@ -12,8 +12,6 @@
  * General Public License for more details.
  */
 
-#include <assert.h>
-
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #else
@@ -402,21 +400,10 @@ void audio_init(void)
 
     /* Set the initial volumes. */
 
-    int assert_master   = config_get_d(CONFIG_MASTER_VOLUME);
-    int assert_snd      = config_get_d(CONFIG_SOUND_VOLUME);
-    int assert_mus      = config_get_d(CONFIG_MUSIC_VOLUME);
-    int assert_narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
-
-    assert(assert_master   >= 0 &&
-           assert_snd      >= 0 &&
-           assert_mus      >= 0 &&
-           assert_narrator >= 0 &&
-           "Values cannot be negative");
-
-    audio_volume(config_get_d(CONFIG_MASTER_VOLUME),
-                 config_get_d(CONFIG_SOUND_VOLUME),
-                 config_get_d(CONFIG_MUSIC_VOLUME),
-                 config_get_d(CONFIG_NARRATOR_VOLUME));
+    audio_volume(CLAMP(0, config_get_d(CONFIG_MASTER_VOLUME),   10),
+                 CLAMP(0, config_get_d(CONFIG_SOUND_VOLUME),    10),
+                 CLAMP(0, config_get_d(CONFIG_MUSIC_VOLUME),    10),
+                 CLAMP(0, config_get_d(CONFIG_NARRATOR_VOLUME), 10));
 }
 
 void audio_free(void)

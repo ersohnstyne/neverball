@@ -24,11 +24,6 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
-
-#if _MSC_VER
-//#include <wingdi.h>
-//#define ENABLE_GL_NV 1
-#endif
 #endif
 
 #ifdef __APPLE__

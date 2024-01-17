@@ -12,7 +12,9 @@
  * General Public License for more details.
  */
 
+#ifndef NDEBUG
 #include <assert.h>
+#endif
 
 #if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
@@ -34,6 +36,10 @@
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
+#endif
+
+#if NB_HAVE_PB_BOTH==1 && !defined(MAPC_INCLUDES_CHKP)
+#error Security compilation error: Please enable checkpoints after joined PB+NB Discord Server!
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -353,8 +359,10 @@ void game_view_set_pos_and_target(struct game_view *view,
 
         /* Requires both, or it may not work! */
 
+#ifndef NDEBUG
         assert(local_e && view->e);
         assert(local_e[2]);
+#endif
 
         game_view_init(view);
 
@@ -368,8 +376,10 @@ void game_view_set_pos_and_target(struct game_view *view,
 
         e_cpy(view->e, local_e);
     }
+#ifndef NDEBUG
     else
         assert(0 && "No cam position or cam target selected!");
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

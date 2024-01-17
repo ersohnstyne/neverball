@@ -24,7 +24,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#ifndef NDEBUG
 #include <assert.h>
+#endif
 
 #if NB_STEAM_API==1 || NB_EOS_SDK==1
 //#define ENABLE_ACCOUNT_BINARY
@@ -274,7 +276,9 @@ void account_transfer_load(const char *paths)
 {
     fs_file fh;
 
+#ifndef NDEBUG
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+#endif
     
     if (!account_transfer_is_init)
     {
@@ -345,7 +349,9 @@ void account_transfer_load_externals(const char *paths)
 {
     fs_file fh; fh = (fs_file) calloc(1, sizeof (fh));
 
+#ifndef NDEBUG
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+#endif
 
     if (!account_transfer_is_init)
     {
@@ -417,8 +423,10 @@ void account_transfer_save(const char *playername)
 {
     fs_file fh;
 
+#ifndef NDEBUG
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
-    
+#endif
+
     char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(paths, MAXSTR,

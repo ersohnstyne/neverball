@@ -15,6 +15,11 @@
 #ifndef SOLID_CHKP_H
 #define SOLID_CHKP_H
 
+/*
+ * This code file was prebuilt by the sweden's marble game Switchball.
+ * DO NOT REMOVE OR DELETE THIS FILE!
+ */
+
 #if NB_HAVE_PB_BOTH==1
 #define MAPC_INCLUDES_CHKP
 #endif

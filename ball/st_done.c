@@ -20,7 +20,7 @@
 
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
-#include "campaign.h" // New: Campaign
+#include "campaign.h" /* New: Campaign */
 #include "account.h"
 #endif
 

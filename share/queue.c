@@ -13,7 +13,9 @@
  */
 
 #include <stdlib.h>
+#ifndef NDEBUG
 #include <assert.h>
+#endif
 
 #include "queue.h"
 #include "list.h"
@@ -44,25 +46,38 @@ Queue queue_new(void)
 
 void queue_free(Queue q)
 {
+#ifndef NDEBUG
     assert(queue_empty(q));
-    free(q->head); q->head = NULL;
-    free(q);
+#endif
+
+    if (queue_empty(q))
+    {
+        free(q->head); q->head = NULL;
+        free(q);
+    }
 }
 
 int queue_empty(Queue q)
 {
+#ifndef NDEBUG
     assert(q);
-    return q->head == q->tail;
+#endif
+    return q ? q->head == q->tail : NULL;
 }
 
 void queue_enq(Queue q, void *data)
 {
+#ifndef NDEBUG
     assert(q);
+#endif
 
-    q->tail->data = data;
-    q->tail->next = list_cons(NULL, NULL);
+    if (q)
+    {
+        q->tail->data = data;
+        q->tail->next = list_cons(NULL, NULL);
 
-    q->tail = q->tail->next;
+        q->tail = q->tail->next;
+    }
 }
 
 void *queue_deq(Queue q)

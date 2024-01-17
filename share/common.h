@@ -65,10 +65,6 @@
 #define NEVERBALL_SWITCH_FAMILY_API    5
 #define NEVERBALL_HANDSET_FAMILY_API   6
 
-#if _WIN32
-//#define NEVERBALL_FAMILY_API NEVERBALL_PC_FAMILY_API
-#endif
-
 /* Random stuff. */
 
 #if !defined(MAX_STR_BLOCKREASON)
@@ -147,6 +143,34 @@ int rand_between(int low, int high);
 } while (0)
 #endif
 
+#if UNICODE
+wchar_t *wcsip_newline(wchar_t *);
+wchar_t *wcsip_spaces(wchar_t *);
+#if _MSC_VER && !_NONSTDC
+#define dupe_wstring _wcsdup
+#else
+wchar_t *dupe_wstring(const wchar_t *);
+#endif
+#endif
+
+#if UNICODE
+#ifdef wcsdup
+#undef wcsdup
+#endif
+#if _MSC_VER && !_NONSTDC
+#define wcsdup _wcsdup
+#else 
+#define wcsdup dupe_wstring
+#endif
+#endif
+
+#if UNICODE
+#define wcs_starts_with(s, h) \
+    (wcsncmp((s), (h), wcslen(h)) == 0)
+#define wcs_ends_with(s, t) \
+    ((wcslen(s) >= wcslen(t)) && wcscmp((s) + wcslen(s) - wcslen(t), (t)) == 0)
+#endif
+
 /**
  * Copy a string SRC into a zero-terminated fixed-size array of char DST.
  */
@@ -167,16 +191,6 @@ int rand_between(int low, int high);
     (dst)[_len + _max] = 0; \
 } while (0)
 
-#if UNICODE
-wchar_t *wcsip_newline(wchar_t *);
-wchar_t *wcsip_spaces(wchar_t *);
-#if _MSC_VER && !_NONSTDC
-#define dupe_wstring _wcsdup
-#else
-wchar_t *dupe_wstring(const wchar_t *);
-#endif
-#endif
-
 int   read_line(char **, fs_file);
 char *strip_newline(char *);
 char *strip_spaces(char *);
@@ -194,23 +208,6 @@ char *concat_string(const char *first, ...) NULL_TERMINATED;
 #define strdup _strdup
 #else 
 #define strdup dupe_string
-#endif
-#if UNICODE
-#ifdef wcsdup
-#undef wcsdup
-#endif
-#if _MSC_VER && !_NONSTDC
-#define wcsdup _wcsdup
-#else 
-#define wcsdup dupe_wstring
-#endif
-#endif
-
-#if UNICODE
-#define wcs_starts_with(s, h) \
-    (wcsncmp((s), (h), wcslen(h)) == 0)
-#define wcs_ends_with(s, t) \
-    ((wcslen(s) >= wcslen(t)) && wcscmp((s) + wcslen(s) - wcslen(t), (t)) == 0)
 #endif
 #define str_starts_with(s, h) \
     (strncmp((s), (h), strlen(h)) == 0)

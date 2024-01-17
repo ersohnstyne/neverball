@@ -129,6 +129,24 @@ wchar_t *wcsip_spaces(wchar_t *str)
 }
 #endif
 
+#if !_MSC_VER || _NONSTDC
+#if UNICODE
+wchar_t *dupe_wstring(const wchar_t *src)
+{
+    wchar_t *dst = NULL;
+
+    if (src && (dst = (wchar_t *) malloc(wcslen(src) + 1)))
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        wcscpy_s(dst, wcslen(src) + 1, src);
+#else
+        wcscpy(dst, src);
+#endif
+
+    return dst;
+}
+#endif
+#endif
+
 char *strip_newline(char *str)
 {
     if (str && *str)
@@ -155,23 +173,7 @@ char *strip_spaces(char *str)
     return str;
 }
 
-#if !_MSC_VER || _NONSTDC
-#if UNICODE
-wchar_t *dupe_wstring(const wchar_t *src)
-{
-    wchar_t *dst = NULL;
-
-    if (src && (dst = (wchar_t *) malloc(wcslen(src) + 1)))
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        wcscpy_s(dst, wcslen(src) + 1, src);
-#else
-        wcscpy(dst, src);
-#endif
-
-    return dst;
-}
-#endif
-
+#if _NONSTDC
 char *dupe_string(const char *src)
 {
     char *dst = NULL;
@@ -428,7 +430,8 @@ const char *base_name(const char *name)
 
     SAFECPY(buff, name);
 
-    // Remove trailing slashes.
+    /* Remove trailing slashes. */
+
     while ((sep = (char *) path_last_sep(buff)) && !sep[1])
         *sep = 0;
 
@@ -445,7 +448,8 @@ const char *dir_name(const char *name)
 
         SAFECPY(buff, name);
 
-        // Remove trailing slashes.
+        /* Remove trailing slashes. */
+
         while ((sep = (char *) path_last_sep(buff)) && !sep[1])
             *sep = 0;
 

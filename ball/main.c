@@ -81,7 +81,7 @@ extern "C" {
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
-#include "checkpoints.h" // New: Checkpoints
+#include "checkpoints.h" /* New: Checkpoints */
 #endif
 
 #include "accessibility.h"
@@ -917,7 +917,6 @@ static int loop(void)
                 {
                     case SDL_WINDOWEVENT_FOCUS_LOST:
                         audio_suspend();
-//#if NDEBUG
                         if (video_get_grab())
                         {
                             if (curr_state() == &st_play_ready ||
@@ -925,7 +924,6 @@ static int loop(void)
                                 curr_state() == &st_play_loop)
                                 goto_pause(curr_state());
                         }
-//#endif
                         break;
 
                     case SDL_WINDOWEVENT_FOCUS_GAINED:
@@ -1171,7 +1169,7 @@ static void step(void *data)
 
             CHECK_GAMESPEED(20, 100);
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
-            st_timer((0.001f * deltaTime) * speedPercent);
+            st_timer(MAX((0.001f * deltaTime) * speedPercent, 0));
 
             /* Render. */
 

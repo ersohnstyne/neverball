@@ -117,6 +117,8 @@ static int save_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
+    int save_nolockdown = 0;
+
     switch (tok)
     {
         case GUI_BACK:
@@ -125,8 +127,14 @@ static int save_action(int tok, int val)
         case SAVE_OK:
 #if NB_HAVE_PB_BOTH==1 && defined(DEMO_QUARANTINED_MODE) && !defined(DEMO_LOCKDOWN_COMPLETE)
             /* Lockdown duration time. DO NOT EDIT! */
-            int nolockdown; DEMO_LOCKDOWN_RANGE_NIGHT(nolockdown, 16, 8);
-            if (!nolockdown && curr_status() == GAME_FALL)
+
+            DEMO_LOCKDOWN_RANGE_NIGHT(
+                save_nolockdown,
+                DEMO_LOCKDOWN_RANGE_NIGHT_START_HOUR_DEFAULT,
+                DEMO_LOCKDOWN_RANGE_NIGHT_END_HOUR_DEFAULT
+            );
+
+            if (!save_nolockdown && curr_status() == GAME_FALL)
                 return goto_state(&st_lockdown);
 #endif
 
@@ -338,7 +346,6 @@ static int clobber_gui(void)
     {
         kd = gui_title_header(id, _("Overwrite?"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
-        //file_id = gui_label(id, "MMMMMMMM", GUI_MED, GUI_COLOR_YEL);
         file_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
                                 GUI_SML, GUI_COLOR_YEL);
         gui_space(id);

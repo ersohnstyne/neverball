@@ -29,7 +29,9 @@
 //#include "console_control_gui.h"
 #endif
 
+#ifndef NDEBUG
 #include <assert.h>
+#endif
 #include <time.h>
 
 #include "st_end_support.h"

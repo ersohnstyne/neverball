@@ -14,7 +14,9 @@
 
 #include <stdlib.h>
 #include <string.h>
+#ifndef NDEBUG
 #include <assert.h>
+#endif
 
 #include "array.h"
 #include "common.h"
@@ -107,14 +109,16 @@ Array array_new(int elem_len)
 {
     Array a;
 
+#ifndef NDEBUG
     assert(elem_len > 0);
+#endif
 
     if ((a = malloc(sizeof (*a))))
     {
         a->elem_num = 0;
         a->elem_len = elem_len;
 
-        alloc_new(&a->alloc, elem_len, (void **) &a->data, &a->elem_num);
+        alloc_new(&a->alloc, MAX(elem_len, 1), (void **) &a->data, &a->elem_num);
     }
 
     return a;
@@ -122,54 +126,73 @@ Array array_new(int elem_len)
 
 void array_free(Array a)
 {
+#ifndef NDEBUG
     assert(a);
+#endif
 
-    alloc_free(&a->alloc);
-    free(a);
+    if (a)
+    {
+        alloc_free(&a->alloc);
+        free(a);
+    }
 }
 
 void *array_add(Array a)
 {
+#ifndef NDEBUG
     assert(a);
+#endif
 
-    return alloc_add(&a->alloc);
+    return a ? alloc_add(&a->alloc) : NULL;
 }
 
 void array_del(Array a)
 {
+#ifndef NDEBUG
     assert(a);
     assert(a->elem_num > 0);
+#endif
 
-    alloc_del(&a->alloc);
+    if (a && a->elem_num > 0)
+        alloc_del(&a->alloc);
 }
 
 void *array_get(Array a, int i)
 {
+#ifndef NDEBUG
     assert(a);
     assert(i >= 0 && i < a->elem_num);
+#endif
 
-    return &a->data[i * a->elem_len];
+    return a && (i >= 0 && i < a->elem_num) ? &a->data[i * a->elem_len] : NULL;
 }
 
 void *array_rnd(Array a)
 {
+#ifndef NDEBUG
     assert(a);
+#endif
 
-    return a->elem_num ? array_get(a, rand_between(0, a->elem_num - 1)) : NULL;
+    return a && a->elem_num ? array_get(a, rand_between(0, a->elem_num - 1)) : NULL;
 }
 
 int array_len(Array a)
 {
+#ifndef NDEBUG
     assert(a);
+#endif
 
-    return a->elem_num;
+    return a ? a->elem_num : NULL;
 }
 
 void array_sort(Array a, int (*cmp)(const void *, const void *))
 {
+#ifndef NDEBUG
     assert(a);
+#endif
 
-    qsort(a->data, a->elem_num, a->elem_len, cmp);
+    if (a)
+        qsort(a->data, a->elem_num, a->elem_len, cmp);
 }
 
 /*----------------------------------------------------------------------------*/

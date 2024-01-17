@@ -22,31 +22,31 @@
 
 /*---------------------------------------------------------------------------*/
 
-static int  dbg_sigint = 0;
+static int  dbg_signum = 0;
 static char dbg_strerror[256];
 
-int         GameDbg_GetSigInt(void) { return dbg_sigint; }
-void        GameDbg_ClrSigInt(void) { dbg_sigint = 0; }
+int         GameDbg_GetSigInt(void) { return dbg_signum; }
+void        GameDbg_ClrSigInt(void) { dbg_signum = 0; }
 const char *GameDbg_GetError(void)  { return dbg_strerror ? dbg_strerror : "Unknown error"; }
 
-void GameDbg_SigNum_Hangup(int signum)     { dbg_sigint = signum; exit(1); }
-void GameDbg_SigNum_CtrlC(int signum)      { dbg_sigint = signum; exit(0); }
-void GameDbg_SigNum_Quit(int signum)       { dbg_sigint = signum; exit(1); }
-void GameDbg_SigNum_ElemAddr(int signum)   { dbg_sigint = signum; exit(1); }
-void GameDbg_SigNum_Breakpt(int signum)    { dbg_sigint = signum; exit(1); }
-void GameDbg_SigNum_FloatPoint(int signum) { dbg_sigint = signum; exit(1); }
-void GameDbg_SigNum_Kill(int signum)       { dbg_sigint = signum; exit(1); }
-void GameDbg_SigNum_Segments(int signum)   { dbg_sigint = signum; exit(1); }
-void GameDbg_SigNum_Term(int signum)       { dbg_sigint = signum; exit(1); }
+void GameDbg_SigNum_Hangup(int signum)     { dbg_signum = signum; exit(1); }
+void GameDbg_SigNum_CtrlC(int signum)      { dbg_signum = signum; exit(0); }
+void GameDbg_SigNum_Quit(int signum)       { dbg_signum = signum; exit(1); }
+void GameDbg_SigNum_ElemAddr(int signum)   { dbg_signum = signum; exit(1); }
+void GameDbg_SigNum_Breakpt(int signum)    { dbg_signum = signum; exit(1); }
+void GameDbg_SigNum_FloatPoint(int signum) { dbg_signum = signum; exit(1); }
+void GameDbg_SigNum_Kill(int signum)       { dbg_signum = signum; exit(1); }
+void GameDbg_SigNum_Segments(int signum)   { dbg_signum = signum; exit(1); }
+void GameDbg_SigNum_Term(int signum)       { dbg_signum = signum; exit(1); }
 #ifdef _WIN32
-void GameDbg_SigNum_CtrlBreak(int signum)  { dbg_sigint = signum; exit(0); }
+void GameDbg_SigNum_CtrlBreak(int signum)  { dbg_signum = signum; exit(0); }
 #endif
 
 void GameDbg_Check_SegPerformed(void)
 { 
     memset(dbg_strerror, 0, 256);
 #if _WIN32 && _MSC_VER
-    switch (dbg_sigint) {
+    switch (dbg_signum) {
         case 0: return;
         case SIGHUP:
             DW_FORMAT_MSG(ERROR_TIMEOUT, dbg_strerror, 255); break;

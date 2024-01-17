@@ -22,7 +22,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#ifndef NDEBUG
 #include <assert.h>
+#endif
 
 #include "accessibility.h"
 #include "account.h"
@@ -123,9 +125,11 @@ void accessibility_load(void)
 {
     fs_file fh;
 
+#ifndef NDEBUG
     assert(!account_busy && !config_busy &&
            "This account or config data is busy and cannot be edit there!");
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+#endif
 
     char *filename = strdup("accessibility");
 
@@ -175,9 +179,11 @@ void accessibility_save(void)
 {
     fs_file fh;
 
+#ifndef NDEBUG
     assert(!account_busy && !config_busy &&
            "This account or config data is busy and cannot be edit there!");
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+#endif
 
     char *filename = strdup("accessibility");
 
@@ -215,8 +221,10 @@ void accessibility_save(void)
 
 void accessibility_set_d(int i, int d)
 {
+#ifndef NDEBUG
     assert(!account_busy && !config_busy &&
            "This account or config data is busy and cannot be edit there!");
+#endif
     if (!account_busy && !config_busy)
     {
         account_busy = 1;
@@ -228,8 +236,10 @@ void accessibility_set_d(int i, int d)
 
 void accessibility_tgl_d(int i)
 {
+#ifndef NDEBUG
     assert(!account_busy && !config_busy &&
            "This account or config data is busy and cannot be edit there!");
+#endif
     if (!account_busy && !config_busy)
     {
         account_busy = 1;

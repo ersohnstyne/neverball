@@ -13,7 +13,9 @@
  */
 
 #include <stdio.h>
+#ifndef NDEBUG
 #include <assert.h>
+#endif
 
 #if NB_HAVE_PB_BOTH==1
 #ifndef __EMSCRIPTEN__
@@ -940,8 +942,10 @@ enum
     SHOP_IAP_ENTERCODE,
     SHOP_IAP_EXPORT
 
-    // HACK: Does not make any sense to watch ad?
-    // SHOP_IAP_RAISEGEMS
+    /*
+     * HACK: Does not make any sense to watch ad?
+     * SHOP_IAP_RAISEGEMS
+     */
 };
 
 static struct state *ok_state;
@@ -1310,7 +1314,7 @@ static int shop_iap_gui(void)
             gui_state(id, _("Export to Expenses"), GUI_SML, SHOP_IAP_EXPORT, 0);
         }
 
-        // HACK: Does not make any sense to watch ad?
+        /* HACK: Does not make any sense to watch ad? */
 
         /*if (curr_min == 0 && progress_raise_gems(0, 5, 0, 0, 0, 0))
         {
@@ -1471,13 +1475,17 @@ static int shop_buy_action(int tok, int val)
             if (purchase_product_usegems)
             {
                 gemwallet -= auction_value;
+#ifndef NDEBUG
                 assert(gemwallet >= 0);
+#endif
                 account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
             }
             else
             {
                 coinwallet -= auction_value;
+#ifndef NDEBUG
                 assert(coinwallet >= 0 && coinwallet <= ACCOUNT_WALLET_MAX_COINS);
+#endif
                 account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
             }
 
@@ -1522,13 +1530,17 @@ static int shop_buy_action(int tok, int val)
             if (purchase_product_usegems)
             {
                 gemwallet -= prodcost * 5;
+#ifndef NDEBUG
                 assert(gemwallet >= 0);
+#endif
                 account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
             }
             else
             {
                 coinwallet -= prodcost * 5;
+#ifndef NDEBUG
                 assert(coinwallet >= 0 && coinwallet <= ACCOUNT_WALLET_MAX_COINS);
+#endif
                 account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
             }
 
@@ -1566,13 +1578,17 @@ static int shop_buy_action(int tok, int val)
             if (purchase_product_usegems)
             {
                 gemwallet -= prodcost;
+#ifndef NDEBUG
                 assert(gemwallet >= 0);
+#endif
                 account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
             }
             else
             {
                 coinwallet -= prodcost;
+#ifndef NDEBUG
                 assert(coinwallet >= 0 && coinwallet <= ACCOUNT_WALLET_MAX_COINS);
+#endif
                 account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
             }
 

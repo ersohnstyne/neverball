@@ -152,7 +152,9 @@ void rfd_load(void)
 {
 #if ENABLE_RFD==1
     fs_file fh;
+#ifndef NDEBUG
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+#endif
 
     if (!rfd_is_init)
     {

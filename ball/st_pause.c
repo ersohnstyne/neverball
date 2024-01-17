@@ -24,7 +24,7 @@
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
-#include "checkpoints.h" // New: Checkpoints
+#include "checkpoints.h" /* New: Checkpoints */
 #endif
 
 #include "gui.h"
@@ -514,22 +514,27 @@ static int pause_quit_gui(void)
 
         gui_space(id);
 
-        const char *quit_warn_set = _("Are you sure?\n"
-                                      "You will lose all progress on this level set.");
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        const char *quit_warn_campaign = campaign_hardcore() ? _("Return to World selection?") :
-                                         (curr_mode() == MODE_NONE ? _("Return to main menu?") :
-                                          (quit_uses_resetpuzzle ? _("Are you sure?\n"
-                                                                     "You will restart at the last checkpoint.") :
-                                                                   _("Are you sure?\n"
-                                                                     "You will lose all progress on this level.")));
 
         if (campaign_used())
+        {
+            const char *quit_warn_campaign = campaign_hardcore() ? _("Return to World selection?") :
+                                             (curr_mode() == MODE_NONE ? _("Return to main menu?") :
+                                              (quit_uses_resetpuzzle ? _("Are you sure?\n"
+                                                                         "You will restart at the last checkpoint.") :
+                                                                       _("Are you sure?\n"
+                                                                         "You will lose all progress on this level.")));
             gui_multi(id, quit_warn_campaign, GUI_SML, GUI_COLOR_WHT);
+        }
+        else 
 #endif
-        else if (curr_times() > 0)
+        if (curr_times() > 0)
+        {
+            const char *quit_warn_set = _("Are you sure?\n"
+                                          "You will lose all progress on this level set.");
             gui_multi(id, quit_warn_set, GUI_SML, GUI_COLOR_WHT);
+        }
 
         gui_space(id);
 

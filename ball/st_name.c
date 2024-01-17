@@ -444,4 +444,3 @@ struct state st_name = {
     name_keybd,
     name_buttn
 };
-

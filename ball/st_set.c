@@ -19,7 +19,7 @@
 
 #include "networking.h"
 #include "account.h"
-#include "campaign.h" // New: Campaign
+#include "campaign.h" /* New: Campaign */
 #endif
 
 #include "gui.h"

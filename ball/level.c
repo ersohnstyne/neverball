@@ -332,11 +332,11 @@ static int scan_campaign_level(const struct s_base *base,
     };
     const char sbtheme_substitute_song_a[][MAXSTR] =
     {
-        "bgm/track5.ogg", // alien = sky world
-        "bgm/track3.ogg", // city = ice world
-        "bgm/track4.ogg", // space = cave world
-        "bgm/track1.ogg", // clouds = cloud world
-        "bgm/track6.ogg"  // volcano = lava world
+        "bgm/track5.ogg", /* alien = sky world    */
+        "bgm/track3.ogg", /* city = ice world     */
+        "bgm/track4.ogg", /* space = cave world   */
+        "bgm/track1.ogg", /* clouds = cloud world */
+        "bgm/track6.ogg"  /* volcano = lava world */
     };
     const char sbtheme_limitation_song[][MAXSTR] =
     {
@@ -765,4 +765,3 @@ void level_rename_player(struct level *l,
 }
 
 /*---------------------------------------------------------------------------*/
-

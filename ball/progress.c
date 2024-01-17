@@ -464,8 +464,8 @@ int  progress_play(struct level *l)
 #ifdef MAPC_INCLUDES_CHKP
         /* HACK: Must be recalculate after respawn! */
 
-        coins  = last_active ? checkpoints_respawn_coins()        : 0;
-        timer  = last_active ? checkpoints_respawn_time_elapsed() : 0;
+        coins  = last_active ? checkpoints_respawn_coins()              : 0;
+        timer  = last_active ? checkpoints_respawn_time_elapsed() * 100 : 0;
 #else
         coins  = 0;
         timer  = 0;
@@ -594,15 +594,12 @@ void progress_stat(int s)
 
     /*
      * HACK: Each timer must be substracted for each checkpoints!
-     * First, set the current level timer...
      */
 
-    timer = (curr_time_elapsed() * 100);
-
 #ifdef MAPC_INCLUDES_CHKP
-    /* ...then substract it! */
-
-    timer -= checkpoints_respawn_time_elapsed() * 100;
+    timer = ROUND((curr_time_elapsed() - checkpoints_respawn_time_elapsed()) * 100);
+#else
+    timer = ROUND(curr_time_elapsed() * 100);
 #endif
 
     switch (status)
@@ -888,10 +885,9 @@ void progress_stop(void)
     if (level)
     {
 #ifdef MAPC_INCLUDES_CHKP
-        d = curr_time_elapsed() -
-            (checkpoints_respawn_time_elapsed() * 100) == 0.0f;
+        d = curr_time_elapsed() - checkpoints_respawn_time_elapsed() <= 0.0f;
 #else
-        d = curr_time_elapsed() == 0.0f;
+        d = curr_time_elapsed() <= 0.0f;
 #endif
     }
 

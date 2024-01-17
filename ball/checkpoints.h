@@ -103,7 +103,7 @@ void checkpoints_save_spawnpoint(struct s_vary,
 void checkpoints_save_last_data(float, float, int);
 
 int   checkpoints_last_coins(void);
-int   checkpoints_last_time_elapsed(void);
+float checkpoints_last_time_elapsed(void);
 float checkpoints_last_time_limit(void);
 
 /*---------------------------------------------------------------------------*/
@@ -113,7 +113,7 @@ int checkpoints_load(void);
 void checkpoints_respawn(struct s_vary *, cmd_fn_chkp, int *ci);
 
 int   checkpoints_respawn_coins(void);
-int   checkpoints_respawn_time_elapsed(void);
+float checkpoints_respawn_time_elapsed(void);
 float checkpoints_respawn_time_limit(void);
 
 /*---------------------------------------------------------------------------*/

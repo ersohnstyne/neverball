@@ -13,6 +13,9 @@
  */
 
 #include <math.h>
+#ifndef NDEBUG
+#include <assert.h>
+#endif
 
 #if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
@@ -410,7 +413,7 @@ static float fix_cam_pos[3] =
 
 static float view_alt_velocity = 0;
 
-static int grow_init(struct v_ball *uv, int ui, int type)
+static int grow_init(int ui, int type)
 {
     struct v_ball *up = &vary.uv[ui];
     int size = up->size;
@@ -604,7 +607,7 @@ int game_server_init(const char *file_name, int t, int e)
      * Levels for your default data will be used.
      */
 
-    time_elapsed =  last_active ? checkpoints_respawn_time_elapsed() / 100.f : 0.0f;
+    time_elapsed =  last_active ? checkpoints_respawn_time_elapsed() : 0.0f;
     coins        =  last_active ? checkpoints_respawn_coins() : 0;
     timer_hold   = !last_active;
 #else
@@ -632,11 +635,7 @@ int game_server_init(const char *file_name, int t, int e)
         && !last_active
 #endif
         )
-        time_elapsed =
-#ifdef MAPC_INCLUDES_CHKP
-            last_active ? checkpoints_respawn_time_elapsed() :
-#endif
-            0;
+        time_elapsed = 0;
 #endif
 
     game_server_free(file_name);
@@ -830,18 +829,14 @@ int game_server_init(const char *file_name, int t, int e)
      * Simulations for your default data will be used.
      */
     if (!last_active)
+#endif
+    {
 #if _WIN32 && _MSC_VER && ENABLE_NVIDIA_PHYSX==1
         sol_init_sim_physx(&vary);
 #else
         sol_init_sim(&vary);
 #endif
-#else
-#if _WIN32 && _MSC_VER && ENABLE_NVIDIA_PHYSX==1
-    sol_init_sim_physx(&vary);
-#else
-    sol_init_sim(&vary);
-#endif
-#endif
+    }
 
     /* Send initial update. */
 
@@ -852,18 +847,7 @@ int game_server_init(const char *file_name, int t, int e)
     if (goal_e)
         game_cmd_goalopen();
 
-#ifdef MAPC_INCLUDES_CHKP
-    if (!chkp_e)
-        game_cmd_chkp_disable();
-
-    if (last_active)
-    {
-        game_cmd_updball();
-        game_cmd_ballradius();
-    }
-    else
-#endif
-        game_cmd_init_balls();
+    game_cmd_init_balls();
 
 #ifdef MAPC_INCLUDES_CHKP
     /*
@@ -872,7 +856,17 @@ int game_server_init(const char *file_name, int t, int e)
      * The electricity will travel BACK IN TIME!
      */
     if (last_active)
+    {
         checkpoints_respawn(&vary, game_proxy_enq, &chkp_id);
+
+#ifndef NDEBUG
+        assert(vary.uv[CURR_PLAYER].p[0] == last_chkp_ball[CURR_PLAYER].p[0] &&
+               vary.uv[CURR_PLAYER].p[1] == last_chkp_ball[CURR_PLAYER].p[1] &&
+               vary.uv[CURR_PLAYER].p[2] == last_chkp_ball[CURR_PLAYER].p[2] &&
+               vary.uv[CURR_PLAYER].r    == last_chkp_ball[CURR_PLAYER].r    &&
+               vary.uv[CURR_PLAYER].size == last_chkp_ball[CURR_PLAYER].size);
+#endif
+    }
     else
     {
         chkp_id = -1;
@@ -932,10 +926,16 @@ void game_update_view(float dt)
     {
         if (ui != CURR_PLAYER) continue;
 
-        fix_cam_used[ui] = ((input_get_c() == CAM_AUTO && automode == CAM_2) ||
-                            input_get_c() == CAM_2) &&
-                           (cam_speed(input_get_c() == CAM_AUTO ?
-                            automode : input_get_c()) == 0);
+        /* Switchball uses an automatic camera. */
+
+        if (input_get_c() != CAM_AUTO)
+            automode = input_get_c();
+
+        float spd = (float) cam_speed(input_get_c() == CAM_AUTO ?
+                                      automode : input_get_c()) / 1000.0f;
+
+#pragma region Camera Modes
+        fix_cam_used[ui] = spd == 0;
 
         if (fix_cam_lock[ui])
             fix_cam_alpha[ui] = 1;
@@ -949,215 +949,202 @@ void game_update_view(float dt)
             fix_cam_alpha[ui] -= dt / 1.5f;
             fix_cam_alpha[ui] = MAX(fix_cam_alpha[ui], 0);
         }
+#pragma endregion
 
-        {
 #pragma region Static camera
-            float c0[3] = { 0.0f, 0.0f, 0.0f };
-            float p0[3] = { 0.0f, 0.0f, 0.0f };
-            float c1[3] = { 0.0f, 0.0f, 0.0f };
-            float p1[3] = { 0.0f, 0.0f, 0.0f };
-            float v[3]  = { 0.0f, 0.0f, 0.0f };
+        float c0[3] = { 0.0f, 0.0f, 0.0f };
+        float p0[3] = { 0.0f, 0.0f, 0.0f };
+        float c1[3] = { 0.0f, 0.0f, 0.0f };
+        float p1[3] = { 0.0f, 0.0f, 0.0f };
+        float v[3]  = { 0.0f, 0.0f, 0.0f };
 
-            v_cpy(c0, vary.uv[ui].p);
-            v_cpy(p0, vary.uv[ui].p);
+        v_cpy(c0, vary.uv[ui].p);
+        v_cpy(p0, vary.uv[ui].p);
 
-            v_cpy(p1, fix_cam_pos);
-            v_cpy(c1, vary.uv[ui].p);
+        v_cpy(p1, fix_cam_pos);
+        v_cpy(c1, vary.uv[ui].p);
 
-            /* Interpolate the views. */
+        /* Interpolate the views. */
 
-            v_sub(v, p1, p0);
-            v_mad(multiview2.p, p0, v, fix_cam_alpha[ui] * fix_cam_alpha[ui]);
+        v_sub(v, p1, p0);
+        v_mad(multiview2.p, p0, v, fix_cam_alpha[ui] * fix_cam_alpha[ui]);
 
-            v_sub(v, c1, c0);
-            v_mad(multiview2.c, c0, v, fix_cam_alpha[ui] * fix_cam_alpha[ui]);
+        v_sub(v, c1, c0);
+        v_mad(multiview2.c, c0, v, fix_cam_alpha[ui] * fix_cam_alpha[ui]);
 
-            multiview2.c[1] += multiview2.dc;
+        multiview2.c[1] += multiview2.dc;
 
-            /* Orthonormalize the view basis */
+        /* Orthonormalize the view basis */
 
-            v_sub(multiview2.e[2], multiview2.p, multiview2.c);
-            e_orthonrm_xz(multiview2.e);
+        v_sub(multiview2.e[2], multiview2.p, multiview2.c);
+        e_orthonrm_xz(multiview2.e);
 
-            /* Note the current view angle. */
+        /* Note the current view angle. */
 
-            multiview2.a = V_DEG(fatan2f(multiview2.e[2][0], multiview2.e[2][2]));
+        multiview2.a = V_DEG(fatan2f(multiview2.e[2][0], multiview2.e[2][2]));
 #pragma endregion
-        }
 
-        {
 #pragma region Manual or Chase camera
-            float dc = multiview1.dc * (jump_b > 0 ?
-                                        2.0f * fabsf(jump_dt - 0.5f) : 1.0f);
-            float da = (90.0f * input_get_r() * dt) * (config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? -1 : 1);
-            float k;
+        float dc = multiview1.dc * (jump_b > 0 ?
+                                    2.0f * fabsf(jump_dt - 0.5f) : 1.0f);
+        float da = (90.0f * input_get_r() * dt) * (config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? -1 : 1);
+        float k;
 
-            float M[16], v[3], Y[3] = { 0.0f, 1.0f, 0.0f };
-            float view_v[3]         = { 0.0f, 0.0f, 0.0f };
+        float M[16], Y[3] = { 0.0f, 1.0f, 0.0f };
+        float view_v[3]   = { 0.0f, 0.0f, 0.0f };
 
-            /* Switchball uses an automatic camera. */
+        /* Track manual rotation time. */
 
-            if (input_get_c() != CAM_AUTO)
-                automode = input_get_c();
-
-            float spd = (float) cam_speed(input_get_c() == CAM_AUTO ?
-                                          automode : input_get_c()) / 1000.0f;
-
-            /* Track manual rotation time. */
-
-            if (da == 0.0f)
+        if (da == 0.0f)
+        {
+            if (view_time < 0.0f)
             {
-                if (view_time < 0.0f)
-                {
-                    /* Transition time is influenced by activity time. */
+                /* Transition time is influenced by activity time. */
 
-                    view_fade = CLAMP(VIEW_FADE_MIN, -view_time, VIEW_FADE_MAX);
-                    view_time = 0.0f;
-                }
-
-                /* Inactivity. */
-
-                view_time += dt;
-            }
-            else
-            {
-                if (view_time > 0.0f)
-                {
-                    view_fade = 0.0f;
-                    view_time = 0.0f;
-                }
-
-                /* Activity (yes, this is negative). */
-
-                view_time -= dt;
+                view_fade = CLAMP(VIEW_FADE_MIN, -view_time, VIEW_FADE_MAX);
+                view_time = 0.0f;
             }
 
-            /* Center the view about the ball. */
+            /* Inactivity. */
 
-            v_cpy(multiview1.c, vary.uv[ui].p);
-
-            view_v[0] = -vary.uv[ui].v[0];
-            view_v[1] =  0.0f;
-            view_v[2] = -vary.uv[ui].v[2];
-
-            /* Compute view vector. */
-
-            if (spd >= 0.0f && automode != CAM_3)
-            {
-                /*
-                 * Viewpoint chases ball position.
-                 * Camera rotation must be freeze: jump_b == 0
-                 */
-
-                if (da == 0.0f && jump_b == 0)
-                {
-                    float s;
-
-                    v_sub(multiview1.e[2], multiview1.p, multiview1.c);
-                    v_nrm(multiview1.e[2], multiview1.e[2]);
-
-                    /* Gradually restore view vector convergence rate. */
-
-                    s = fpowf(view_time, 3.0f) / fpowf(view_fade, 3.0f);
-                    s = CLAMP(0.0f, s, 1.0f);
-
-                    v_mad(multiview1.e[2], multiview1.e[2],
-                          view_v, v_len(view_v) * spd * s * dt);
-                }
-            }
-            else
-            {
-                /* View vector is given by view angle. */
-
-                multiview1.e[2][0] = fsinf(V_RAD(multiview1.a));
-                multiview1.e[2][1] = 0.0;
-                multiview1.e[2][2] = fcosf(V_RAD(multiview1.a));
-            }
-
-            if ((input_get_c() == CAM_1) ||
-                (automode == CAM_1 && input_get_c() == CAM_AUTO))
-                view_alt_velocity = flerp(view_alt_velocity,
-                                          vary.uv[ui].v[1], 0.01f);
-            else
-                view_alt_velocity = flerp(view_alt_velocity, 0, 0.01f);
-
-            /*
-             * Switchball uses an automatic camera.
-             * Camera rotation must be freeze: jump_b == 0
-             */
-
-            if (automode != CAM_1 && input_get_c() == CAM_AUTO && jump_b == 0)
-            {
-                if (da == 0.0f && jump_b == 0)
-                {
-                    float s;
-
-                    v_sub(multiview1.e[2], multiview1.p, multiview1.c);
-                    v_nrm(multiview1.e[2], multiview1.e[2]);
-
-                    float direction_v[3] = { 0.0f, 0.0f, 0.0f };
-
-                    /* Multiply the speeds */
-
-                    direction_v[2] = fcosf(last_diraxis / 180 * V_PI) / 10000;
-                    direction_v[0] = fsinf(last_diraxis / -180 * V_PI) / 10000;
-
-                    /* Gradually restore view vector convergence rate. */
-
-                    s = fpowf(view_time, 3.0f) / fpowf(view_fade, 3.0f);
-                    s = CLAMP(0.0f, s, 1.0f);
-
-                    v_mad(multiview1.e[2], multiview1.e[2],
-                          direction_v, v_len(direction_v) / 2000 * s * dt);
-                }
-            }
-
-            if (input_get_c() == CAM_2
-             || (input_get_c() == CAM_AUTO && automode == CAM_2))
-                v_lerp(fix_cam_pos, fix_cam_pos, fix_cam_pos_targ[ui], dt);
-
-            /*
-             * Apply manual rotation.
-             * Camera rotation must be freeze: jump_b == 0
-             */
-
-            if (da != 0.0f && jump_b == 0)
-            {
-                m_rot(M, Y, V_RAD(da));
-                m_vxfm(v, M, multiview1.e[2]);
-                v_cpy(multiview1.e[2], v);
-            }
-
-            /* Orthonormalize the new view reference frame. */
-
-            e_orthonrm_xz(multiview1.e);
-
-            /* Compute the new view position. */
-
-            k = 1.0f + v_dot(multiview1.e[2], view_v) / 10.0f;
-
-            view_k = flerp(view_k, k, dt);
-
-            if (view_k < 0.5f) view_k = 0.5;
-
-            v_scl(v, multiview1.e[1],
-                  (multiview1.dp + fsinf((zoom_diff / 60) * 75)) * view_k);
-            v_mad(v, v, multiview1.e[2],
-                  (multiview1.dz + 20 + (fsinf((zoom_diff / 80) - 0.5236f) * 40)) * view_k);
-            v_add(multiview1.p, v, vary.uv[ui].p);
-
-            multiview1.p[1] -= view_alt_velocity;
-
-            /* Compute the new view center. */
-
-            v_cpy(multiview1.c, vary.uv[ui].p);
-            v_mad(multiview1.c, multiview1.c, multiview1.e[1], dc);
-
-            /* Note the current view angle. */
-
-            multiview1.a = V_DEG(fatan2f(multiview1.e[2][0], multiview1.e[2][2]));
-#pragma endregion
+            view_time += dt;
         }
+        else
+        {
+            if (view_time > 0.0f)
+            {
+                view_fade = 0.0f;
+                view_time = 0.0f;
+            }
+
+            /* Activity (yes, this is negative). */
+
+            view_time -= dt;
+        }
+
+        /* Center the view about the ball. */
+
+        v_cpy(multiview1.c, vary.uv[ui].p);
+
+        view_v[0] = -vary.uv[ui].v[0];
+        view_v[1] =  0.0f;
+        view_v[2] = -vary.uv[ui].v[2];
+
+        /* Compute view vector. */
+
+        if (spd >= 0.0f)
+        {
+            /*
+             * Viewpoint chases ball position.
+             * Camera rotation must be freeze: jump_b == 0
+             */
+
+            if (da == 0.0f && jump_b == 0)
+            {
+                float s;
+
+                v_sub(multiview1.e[2], multiview1.p, multiview1.c);
+                v_nrm(multiview1.e[2], multiview1.e[2]);
+
+                /* Gradually restore view vector convergence rate. */
+
+                s = fpowf(view_time, 3.0f) / fpowf(view_fade, 3.0f);
+                s = CLAMP(0.0f, s, 1.0f);
+
+                v_mad(multiview1.e[2], multiview1.e[2],
+                      view_v, v_len(view_v) * spd * s * dt);
+            }
+        }
+        else
+        {
+            /* View vector is given by view angle. */
+
+            multiview1.e[2][0] = fsinf(V_RAD(multiview1.a));
+            multiview1.e[2][1] = 0.0;
+            multiview1.e[2][2] = fcosf(V_RAD(multiview1.a));
+        }
+
+        if ((input_get_c() == CAM_1) ||
+            (automode == CAM_1 && input_get_c() == CAM_AUTO))
+            view_alt_velocity = flerp(view_alt_velocity,
+                                      vary.uv[ui].v[1], 0.01f);
+        else
+            view_alt_velocity = flerp(view_alt_velocity, 0, 0.01f);
+
+        /*
+         * Switchball uses an automatic camera.
+         * Camera rotation must be freeze: jump_b == 0
+         */
+
+        if (spd < 0 && input_get_c() == CAM_AUTO && jump_b == 0)
+        {
+            if (da == 0.0f && jump_b == 0)
+            {
+                float s;
+
+                v_sub(multiview1.e[2], multiview1.p, multiview1.c);
+                v_nrm(multiview1.e[2], multiview1.e[2]);
+
+                float direction_v[3] = { 0.0f, 0.0f, 0.0f };
+
+                /* Multiply the speeds */
+
+                direction_v[2] = fcosf(last_diraxis / 180 * V_PI) / 10000;
+                direction_v[0] = fsinf(last_diraxis / -180 * V_PI) / 10000;
+
+                /* Gradually restore view vector convergence rate. */
+
+                s = fpowf(view_time, 3.0f) / fpowf(view_fade, 3.0f);
+                s = CLAMP(0.0f, s, 1.0f);
+
+                v_mad(multiview1.e[2], multiview1.e[2],
+                      direction_v, v_len(direction_v) / 2000 * s * dt);
+            }
+        }
+
+        if (input_get_c() == CAM_2 ||
+            (input_get_c() == CAM_AUTO && automode == CAM_2))
+            v_lerp(fix_cam_pos, fix_cam_pos, fix_cam_pos_targ[ui], dt);
+
+        /*
+         * Apply manual rotation.
+         * Camera rotation must be freeze: jump_b == 0
+         */
+
+        if (da != 0.0f && jump_b == 0)
+        {
+            m_rot(M, Y, V_RAD(da));
+            m_vxfm(v, M, multiview1.e[2]);
+            v_cpy(multiview1.e[2], v);
+        }
+
+        /* Orthonormalize the new view reference frame. */
+
+        e_orthonrm_xz(multiview1.e);
+
+        /* Compute the new view position. */
+
+        k = 1.0f + v_dot(multiview1.e[2], view_v) / 10.0f;
+
+        view_k = MAX(flerp(view_k, k, dt), 0.5f);
+
+        v_scl(v, multiview1.e[1],
+              (multiview1.dp + fsinf((zoom_diff / 60) * 75)) * view_k);
+        v_mad(v, v, multiview1.e[2],
+              (multiview1.dz + 20 + (fsinf((zoom_diff / 80) - 0.5236f) * 40)) * view_k);
+        v_add(multiview1.p, v, vary.uv[ui].p);
+
+        multiview1.p[1] -= view_alt_velocity;
+
+        /* Compute the new view center. */
+
+        v_cpy(multiview1.c, vary.uv[ui].p);
+        v_mad(multiview1.c, multiview1.c, multiview1.e[1], dc);
+
+        /* Note the current view angle. */
+
+        multiview1.a = V_DEG(fatan2f(multiview1.e[2][0], multiview1.e[2][2]));
+#pragma endregion
 
 #pragma region Multiview interpolation
         view.a = flerp(multiview1.a, multiview2.a,
@@ -1249,13 +1236,27 @@ static int game_update_state(int bt)
 
         game_cmd_pkitem(hi);
 
+        /* Temporary coin value leftover in the campaign. */
+
+        if (hp->t == ITEM_COIN)
+        {
+            coins += hp->n * get_coin_multiply();
+            game_cmd_coins();
+
+            progress_rush_collect_coin_value(hp->n);
+
+            audio_play(AUD_COIN, 1.0f);
+
+            hp->t = ITEM_NONE;
+        }
+
         /* Morph and coin sizes (includes campaign). */
 
-        if (hp->t == ITEM_GROW || hp->t == ITEM_SHRINK)
+        else if (hp->t == ITEM_GROW || hp->t == ITEM_SHRINK)
         {
             audio_play(AUD_COIN, 1.0f);
 
-            switch (grow_init(hp->t, 0, hp->t))
+            switch (grow_init(CURR_PLAYER, hp->t))
             {
                 case -1:
                     audio_play(AUD_SHRINK, 1.0f);
@@ -1269,20 +1270,6 @@ static int game_update_state(int bt)
                     audio_play(AUD_DISABLED, 1.0f);
                     break;
             }
-
-            hp->t = ITEM_NONE;
-        }
-
-        /* Temporary coin value leftover in the campaign. */
-
-        else if (hp->t == ITEM_COIN)
-        {
-            coins += hp->n * get_coin_multiply();
-            game_cmd_coins();
-
-            progress_rush_collect_coin_value(hp->n);
-
-            audio_play(AUD_COIN, 1.0f);
 
             hp->t = ITEM_NONE;
         }
@@ -1422,8 +1409,8 @@ static int game_update_state(int bt)
 
     /* Test for a goal. */
 
-    if (bt && !timer_hold
-        && goal_e && (zp = sol_goal_test(&vary, p, CURR_PLAYER)))
+    if (bt && !timer_hold &&
+        goal_e && (zp = sol_goal_test(&vary, p, CURR_PLAYER)))
     {
 #if ENABLE_DEDICATED_SERVER==1
         networking_dedicated_levelstatus_send(curr_file_name, GAME_GOAL, p);
@@ -1438,9 +1425,9 @@ static int game_update_state(int bt)
 
     /* Border controls */
 
-    if (bt && !timer_hold
-     && (vary.base->vc == 0
-      || !game_check_map_border(CURR_PLAYER, 0.875f * 2.0f)))
+    if (bt && !timer_hold &&
+        (vary.base->vc == 0 ||
+         !game_check_map_border(CURR_PLAYER, 0.875f * 2.0f)))
     {
         v_cpy(fix_cam_pos, view.p);
         fix_cam_lock[CURR_PLAYER] = 1;
@@ -1461,8 +1448,8 @@ static int game_update_state(int bt)
 
     /* Time controls */
 
-    if (bt && !timer_hold
-        && time_limit > 0 && timer < 0.0f)
+    if (bt && !timer_hold &&
+        time_limit > 0 && timer < 0.0f)
     {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         if (campaign_used() && campaign_hardcore())

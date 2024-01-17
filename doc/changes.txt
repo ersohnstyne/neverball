@@ -1,4 +1,18 @@
 -------------------------------------------------------------------------------
+New in 2.2
+
+* Changed policy: You can use multiple game data directory and user data
+  directory using -d or --data on same time. The further you go, they'll more
+  you loaded for.
+* Changed policy: You can use multiple levels in a single standalone set using
+  -l or --level on same time, but only for SOL or CSOL file. The further you
+  go, they'll more you loaded for.
+* Bugfix: Fixed a bug where timer was miscalculated after starting the level
+  or respawning checkpoints.
+
+/ES Entertainment (ersohnstyne)
+
+-------------------------------------------------------------------------------
 New in 2.1.1
 
 * Changed policy: Even more security compilations for Windows, which prevents
@@ -7,6 +21,8 @@ New in 2.1.1
   wasn't prepared or is deleted.
 * Update: Neverball game icon changed, this game icon does not provided with.
 * Bugfix: Fixed a bug that memory usage was leaked after quit the game.
+
+/ES Entertainment (ersohnstyne)
 
 -------------------------------------------------------------------------------
 New in 2.1

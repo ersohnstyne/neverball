@@ -59,7 +59,6 @@ float last_pos[1024][3];
 float last_time_elapsed;
 float last_time_limit;
 int   last_coins;
-int   last_goal;
 
 float respawn_time_elapsed = 0;
 float respawn_time_limit   = 0;
@@ -175,9 +174,9 @@ int checkpoints_last_coins(void)
     return last_coins;
 }
 
-int checkpoints_last_time_elapsed(void)
+float checkpoints_last_time_elapsed(void)
 {
-    return last_time_elapsed * 100.0f;
+    return last_time_elapsed;
 }
 
 float checkpoints_last_time_limit(void)
@@ -419,7 +418,7 @@ int checkpoints_respawn_coins(void)
     return respawn_coins;
 }
 
-int checkpoints_respawn_time_elapsed(void)
+float checkpoints_respawn_time_elapsed(void)
 {
     return respawn_time_elapsed;
 }
@@ -448,8 +447,8 @@ void checkpoints_stop(void)
     last_active = 0;
 
     last_time_elapsed = 0;
+    last_time_limit = 0;
     last_coins = 0;
-    last_goal  = 0;
 
     respawn_coins        = 0;
     respawn_time_elapsed = 0;

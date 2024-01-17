@@ -153,6 +153,13 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
             v_cpy(up->p, uq->p);
 
             up->r = uq->r;
+            up->r_vel = 0.0f;
+
+            up->sizes[0] = uq->r * GROW_SMALL;
+            up->sizes[1] = uq->r;
+            up->sizes[2] = uq->r * GROW_BIG;
+
+            up->size = 1;
 
             up->r_vel = 0.0f;
 

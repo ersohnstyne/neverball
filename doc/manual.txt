@@ -468,8 +468,8 @@ keys and their default values follow.
 
     smooth_fix 1
 
-        This  key  makes  some  optimizations  that  can  reduce  lag.
-        If the game speed is inconsistent, disable it.
+        This key  makes some game optimizations  that can  reduce lag.
+        Disable it if game speed becomes inconsistent.
 
     force_smooth_fix 0
 

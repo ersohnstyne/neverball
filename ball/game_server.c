@@ -919,6 +919,9 @@ void game_server_free(const char *next)
 
 void game_update_view(float dt)
 {
+    /* Current ball scale. */
+    const float SCL = vary.uv->r / vary.uv->sizes[1];
+
     struct game_view multiview1 = view;
     struct game_view multiview2; game_view_init(&multiview2);
 
@@ -1129,9 +1132,9 @@ void game_update_view(float dt)
         view_k = MAX(flerp(view_k, k, dt), 0.5f);
 
         v_scl(v, multiview1.e[1],
-              (multiview1.dp + fsinf((zoom_diff / 60) * 75)) * view_k);
+              SCL * (multiview1.dp + fsinf((zoom_diff / 60) * 75)) * view_k);
         v_mad(v, v, multiview1.e[2],
-              (multiview1.dz + 20 + (fsinf((zoom_diff / 80) - 0.5236f) * 40)) * view_k);
+              SCL * (multiview1.dz + 20 + (fsinf((zoom_diff / 80) - 0.5236f) * 40)) * view_k);
         v_add(multiview1.p, v, vary.uv[ui].p);
 
         multiview1.p[1] -= view_alt_velocity;
@@ -1139,7 +1142,7 @@ void game_update_view(float dt)
         /* Compute the new view center. */
 
         v_cpy(multiview1.c, vary.uv[ui].p);
-        v_mad(multiview1.c, multiview1.c, multiview1.e[1], dc);
+        v_mad(multiview1.c, multiview1.c, multiview1.e[1], SCL * dc);
 
         /* Note the current view angle. */
 

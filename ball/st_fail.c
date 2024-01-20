@@ -923,7 +923,6 @@ static int ask_more_action(int tok, int val)
             video_set_grab(1);
             audio_music_fade_in(0.5f);
             game_extend_time(val);
-            progress_extend();
             ask_more_target = ASK_MORE_DISABLED;
             return goto_state(&st_play_loop);
             break;
@@ -945,7 +944,7 @@ static int ask_more_action(int tok, int val)
                 if (progress_same())
                 {
                     checkpoints_stop();
-                return goto_state(campaign_used() ? &st_play_ready : &st_level);
+                    return goto_state(campaign_used() ? &st_play_ready : &st_level);
                 }
             }
             else if (account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= 15 &&

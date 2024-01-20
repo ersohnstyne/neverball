@@ -79,6 +79,16 @@ static float view_fade;
 #define VIEW_FADE_MIN 0.2f
 #define VIEW_FADE_MAX 1.0f
 
+static float view_zoom_curr;            /* Current zoom level                */
+static float view_zoom_start;           /* Starting zoom level               */
+static float view_zoom_end;             /* Target zoom level                 */
+static float view_zoom_time;            /* Running zoom animation time       */
+
+#define ZOOM_DELAY (GROW_TIME * 0.5f)
+#define ZOOM_TIME (ZOOM_DELAY + GROW_TIME)
+#define ZOOM_MIN 0.75f
+#define ZOOM_MAX 1.25f
+
 static int   coins  = 0;                /* Collected coins                   */
 static int   goal_e = 0;                /* Goal enabled flag                 */
 static int   jump_e = 1;                /* Jumping enabled flag              */
@@ -435,6 +445,8 @@ static int grow_init(int ui, int type)
 
         return 0;
     }
+
+    return 0;
 }
 
 static void grow_step(int ui, float dt)
@@ -800,6 +812,9 @@ int game_server_init(const char *file_name, int t, int e)
     view_time = 0.0f;
     view_fade = 0.0f;
 
+    view_zoom_curr = 1.0f;
+    view_zoom_time = ZOOM_TIME;
+
     for (int ui = 0; ui < vary.base->uc && ui < MAX_PLAYERS; ui++)
     {
         if (ui != CURR_PLAYER) continue;
@@ -881,14 +896,23 @@ int game_server_init(const char *file_name, int t, int e)
 #ifdef MAPC_INCLUDES_CHKP
     /*
      * --- CHECKPOINT DATA ---
-     * If you haven't sent commands for each checkpoints,
-     * the method can't be use it.
+     * If you have a coins for each checkpoints,
+     * The level progressions will be restored.
      */
     if (last_active && coins != 0)
         game_cmd_coins();
-#endif
 
+    /*
+     * --- CHECKPOINT DATA ---
+     * If you have an backup camera transform for each checkpoints,
+     * The camera view will be restored.
+     */
+    if (last_active)
+        game_update_view(0);
+    else
+#endif
     game_cmd_updview();
+
     game_cmd_eou();
 
     /* Reset lockstep state. */
@@ -917,9 +941,45 @@ void game_server_free(const char *next)
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * https://easings.net/#easeInOutBack
+ */
+static float easeInOutBack(float x)
+{
+    const float c1 = 1.70158f;
+    const float c2 = c1 * 1.525f;
+
+    return (
+        x < 0.5f ?
+        (fpowf(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2 :
+        (fpowf(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2
+        );
+}
+
 void game_update_view(float dt)
 {
-    /* Current ball scale. */
+    /* Current view scale. */
+
+    if (view_zoom_time < ZOOM_TIME)
+    {
+        view_zoom_time += dt;
+
+        if (view_zoom_time >= ZOOM_TIME)
+        {
+            view_zoom_time = ZOOM_TIME;
+            view_zoom_curr = view_zoom_end;
+            view_zoom_end = 0.0f;
+        }
+        else if (view_zoom_time >= ZOOM_DELAY)
+        {
+            float a = (view_zoom_time - ZOOM_DELAY) / (ZOOM_TIME - ZOOM_DELAY);
+
+            a = easeInOutBack(a);
+
+            view_zoom_curr = view_zoom_start + (view_zoom_end - view_zoom_start) * a;
+        }
+    }
+
     const float SCL = vary.uv->r / vary.uv->sizes[1];
 
     struct game_view multiview1 = view;
@@ -931,14 +991,15 @@ void game_update_view(float dt)
 
         /* Switchball uses an automatic camera. */
 
-        if (input_get_c() != CAM_AUTO)
-            automode = input_get_c();
-
         float spd = (float) cam_speed(input_get_c() == CAM_AUTO ?
                                       automode : input_get_c()) / 1000.0f;
 
+        if (input_get_c() != CAM_AUTO &&
+            automode != input_get_c())
+            automode = input_get_c();
+
 #pragma region Camera Modes
-        fix_cam_used[ui] = spd == 0;
+        fix_cam_used[ui] = spd <= 0 && !(spd < 0);
 
         if (fix_cam_lock[ui])
             fix_cam_alpha[ui] = 1;
@@ -955,6 +1016,9 @@ void game_update_view(float dt)
 #pragma endregion
 
 #pragma region Static camera
+        if (spd <= 0 && !(spd < 0))
+            v_lerp(fix_cam_pos, fix_cam_pos, fix_cam_pos_targ[ui], dt);
+
         float c0[3] = { 0.0f, 0.0f, 0.0f };
         float p0[3] = { 0.0f, 0.0f, 0.0f };
         float c1[3] = { 0.0f, 0.0f, 0.0f };
@@ -1067,8 +1131,7 @@ void game_update_view(float dt)
             multiview1.e[2][2] = fcosf(V_RAD(multiview1.a));
         }
 
-        if ((input_get_c() == CAM_1) ||
-            (automode == CAM_1 && input_get_c() == CAM_AUTO))
+        if (spd > 0.1f)
             view_alt_velocity = flerp(view_alt_velocity,
                                       vary.uv[ui].v[1], 0.01f);
         else
@@ -1092,7 +1155,7 @@ void game_update_view(float dt)
 
                 /* Multiply the speeds */
 
-                direction_v[2] = fcosf(last_diraxis / 180 * V_PI) / 10000;
+                direction_v[2] = fcosf(last_diraxis / +180 * V_PI) / 10000;
                 direction_v[0] = fsinf(last_diraxis / -180 * V_PI) / 10000;
 
                 /* Gradually restore view vector convergence rate. */
@@ -1104,10 +1167,6 @@ void game_update_view(float dt)
                       direction_v, v_len(direction_v) / 2000 * s * dt);
             }
         }
-
-        if (input_get_c() == CAM_2 ||
-            (input_get_c() == CAM_AUTO && automode == CAM_2))
-            v_lerp(fix_cam_pos, fix_cam_pos, fix_cam_pos_targ[ui], dt);
 
         /*
          * Apply manual rotation.
@@ -1206,6 +1265,16 @@ static void game_update_time(float dt, int b)
     }
 }
 
+/*
+ * Start view zoom animation.
+ */
+static void zoom_init(float target)
+{
+    view_zoom_time = 0.0f;
+    view_zoom_start = view_zoom_curr;
+    view_zoom_end = CLAMP(ZOOM_MIN, target, ZOOM_MAX);
+}
+
 static int game_update_state(int bt)
 {
     struct b_goal *zp;
@@ -1263,10 +1332,12 @@ static int game_update_state(int bt)
             {
                 case -1:
                     audio_play(AUD_SHRINK, 1.0f);
+                    zoom_init(vary.uv->sizes[vary.uv->size] / vary.uv->sizes[1]);
                     break;
 
                 case +1:
                     audio_play(AUD_GROW, 1.0f);
+                    zoom_init(vary.uv->sizes[vary.uv->size] / vary.uv->sizes[1]);
                     break;
 
                 case 0:
@@ -1347,41 +1418,39 @@ static int game_update_state(int bt)
                           &chkp_id) == CHKP_INSIDE)
         {
             audio_play(AUD_SWITCH, 1.f);
-            audio_play(AUD_CHKP, 1.f);
 
-            /* Method 1: Set the checkpoint index to backup. */
+            int backupidx;
 
-            for (int backupidx = 0; backupidx < vary.cc; backupidx++)
-            {
-                if (vary.cv[backupidx].e)
-                {
-                    if (chkp_id != backupidx)
-                        chkp_id = backupidx;
-                }
-            }
-
-            for (int backupidx = 0; backupidx < vary.cc; backupidx++)
+            for (backupidx = 0; backupidx < vary.cc; backupidx++)
             {
                 struct v_chkp *cp = &vary.cv[backupidx];
-                if (!vary.cv[backupidx].e)
+
+                /* Backup the checkpoint's SOL varying data. */
+
+                if (cp->e && backupidx == chkp_id)
                 {
-                    if (cp->f == 1 && backupidx != chkp_id)
-                    {
-                        cp->f = 0;
-                        union cmd cmd = { CMD_CHKP_TOGGLE };
-                        cmd.chkptoggle.ci = backupidx;
-                        game_proxy_enq(&cmd);
-                    }
+                    audio_play(AUD_CHKP, 1.f);
+
+                    checkpoints_save_spawnpoint(vary, view, CURR_PLAYER);
+                    checkpoints_save_last_data(time_elapsed, time_limit, coins);
+
+                    for (int i = 0; i < vary.xc; i++)
+                        last_path_enabled_orcondition[i] = curr_path_enabled_orcondition[i];
+                }
+
+                /*
+                 * Discard other checkpoint's SOL varying data,
+                 * when other checkpoints is activated.
+                 */
+
+                else if (cp->f && !cp->e && backupidx != chkp_id)
+                {
+                    cp->f = 0;
+                    union cmd cmd = { CMD_CHKP_TOGGLE };
+                    cmd.chkptoggle.ci = backupidx;
+                    game_proxy_enq(&cmd);
                 }
             }
-
-            /* Method 2: Set the checkpoint backup data. */
-
-            checkpoints_save_spawnpoint(vary, view, CURR_PLAYER);
-            checkpoints_save_last_data(time_elapsed, time_limit, coins);
-
-            for (int i = 0; i < vary.xc; i++)
-                last_path_enabled_orcondition[i] = curr_path_enabled_orcondition[i];
         }
     }
 #endif
@@ -1745,7 +1814,7 @@ void game_extend_time(float extratime)
 {
     status = GAME_NONE;
     game_cmd_status();
-    timer += extratime;
+    time_elapsed += extratime;
 }
 
 /* New: Zoom;

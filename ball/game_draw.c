@@ -40,6 +40,7 @@ static void game_draw_chnk_floor(struct s_rend *rend,
                                  const float *bill_M, float t)
 {
     float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    const float SCL = 10.0f;
 
     const struct s_base *base = vary->base;
 
@@ -55,8 +56,8 @@ static void game_draw_chnk_floor(struct s_rend *rend,
         {
             glPushMatrix();
             {
-                glScalef    (10, 1, 10);
-                glTranslatef(i * 4000, Y, j * 4000);
+                glScalef    (SCL, 1, SCL);
+                glTranslatef((i * SCL) * 400, Y, (j * SCL) * 400);
 
                 glColor4ub(ROUND(c[0] * 255),
                            ROUND(c[1] * 255),
@@ -69,11 +70,64 @@ static void game_draw_chnk_floor(struct s_rend *rend,
     }
 }
 
+static void game_draw_chnk_rings(struct s_rend *rend,
+                                 const struct s_vary *vary,
+                                 const float *bill_M, float t)
+{
+    float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    const float SCL = 0.25f;
+
+    const struct s_base *base = vary->base;
+
+    float Y = vary->uv[0].p[1] - vary->uv[0].r;
+
+    if (base->vc > 0) Y = base->vv[0].p[1];
+
+    int i, j;
+
+    for (i = 0; i < base->zc; i++)
+    {
+        for (j = 1; j < 20; j++)
+        {
+            glPushMatrix();
+            {
+                glScalef(j * SCL, 1, j * SCL);
+                glTranslatef(base->zv[i].p[0] / (j * SCL),
+                             Y - 10,
+                             base->zv[i].p[2] / (j * SCL));
+
+                glColor4ub(ROUND(c[0] * 255),
+                           ROUND(c[1] * 255),
+                           ROUND(c[2] * 255),
+                           ROUND(c[3] * 255));
+                chnk_ring_draw(rend, 0);
+            }
+            glPopMatrix();
+
+            glPushMatrix();
+            {
+                glScalef(j * SCL, 1, j * SCL);
+                glTranslatef(base->zv[i].p[0] / (j * SCL),
+                             Y - 20,
+                             base->zv[i].p[2] / (j * SCL));
+
+                glColor4ub(ROUND(c[0] * 255),
+                           ROUND(c[1] * 255),
+                           ROUND(c[2] * 255),
+                           ROUND(c[3] * 255));
+                chnk_ring_draw(rend, 1);
+            }
+            glPopMatrix();
+        }
+    }
+}
+
 static void game_draw_chnk_balls(struct s_rend *rend,
                                  const struct s_vary *vary,
                                  const float *bill_M, float t)
 {
     float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    const float  SCL = 1.0f;
 
     const struct s_base *base = vary->base;
 
@@ -85,11 +139,10 @@ static void game_draw_chnk_balls(struct s_rend *rend,
 
     glPushMatrix();
     {
-        const float  dnscl = 1.0f;
-        glScalef    (dnscl, 1.0f, dnscl);
-        glTranslatef(base->uv[0].p[0] / dnscl,
+        glScalef    (SCL, 1.0f, SCL);
+        glTranslatef(base->uv[0].p[0] / SCL,
                      base->uv[0].p[1] - vary->uv[0].r + BALL_FUDGE,
-                     base->uv[0].p[2] / dnscl);
+                     base->uv[0].p[2] / SCL);
 
         glColor4ub(ROUND(c[0] * 255),
                    ROUND(c[1] * 255),
@@ -105,7 +158,8 @@ static void game_draw_chnk_jumps(struct s_rend *rend,
                                  const float *bill_M, float t)
 {
     float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        
+    const float  SCL = 1.0f;
+
     const struct s_base *base = vary->base;
 
     /* New: Floor border damage. */
@@ -119,11 +173,10 @@ static void game_draw_chnk_jumps(struct s_rend *rend,
 
         glPushMatrix();
         {
-            const float  dnscl = 1.0f;
-            glScalef    (dnscl, 1.0f, dnscl);
-            glTranslatef(base->jv[i].p[0] / dnscl,
+            glScalef    (SCL, 1.0f, SCL);
+            glTranslatef(base->jv[i].p[0] / SCL,
                          base->jv[i].p[1] + 0.001f,
-                         base->jv[i].p[2] / dnscl);
+                         base->jv[i].p[2] / SCL);
 
             glColor4ub(ROUND(c[0] * 255),
                        ROUND(c[1] * 255),
@@ -140,7 +193,8 @@ static void game_draw_chnk_goals(struct s_rend *rend,
                                  const float *bill_M, float t)
 {
     float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        
+    const float  SCL = 1.0f;
+
     const struct s_base *base = vary->base;
 
     /* New: Floor border damage. */
@@ -154,11 +208,10 @@ static void game_draw_chnk_goals(struct s_rend *rend,
 
         glPushMatrix();
         {
-            const float  dnscl = 1.0f;
-            glScalef    (dnscl, 1.0f, dnscl);
-            glTranslatef(base->zv[i].p[0] / dnscl,
+            glScalef    (SCL, 1.0f, SCL);
+            glTranslatef(base->zv[i].p[0] / SCL,
                          base->zv[i].p[1] + 0.001f,
-                         base->zv[i].p[2] / dnscl);
+                         base->zv[i].p[2] / SCL);
 
             glColor4ub(ROUND(c[0] * 255),
                        ROUND(c[1] * 255),
@@ -175,7 +228,8 @@ static void game_draw_chnk_swchs(struct s_rend *rend,
                                  const float *bill_M, float t)
 {
     float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        
+    const float  SCL = 1.0f;
+
     const struct s_base *base = vary->base;
 
     /* New: Floor border damage. */
@@ -189,11 +243,10 @@ static void game_draw_chnk_swchs(struct s_rend *rend,
 
         glPushMatrix();
         {
-            const float  dnscl = 1.0f;
-            glScalef    (dnscl, 1.0f, dnscl);
-            glTranslatef(base->xv[i].p[0] / dnscl,
+            glScalef    (SCL, 1.0f, SCL);
+            glTranslatef(base->xv[i].p[0] / SCL,
                          base->xv[i].p[1] + 0.001f,
-                         base->xv[i].p[2] / dnscl);
+                         base->xv[i].p[2] / SCL);
 
             glColor4ub(ROUND(c[0] * 255),
                        ROUND(c[1] * 255),
@@ -211,7 +264,8 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
                                  const float *bill_M, float t)
 {
     float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        
+    const float  SCL = 1.0f;
+
     const struct s_base *base = vary->base;
 
     /* New: Floor border damage. */
@@ -225,11 +279,10 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
 
         glPushMatrix();
         {
-            const float  dnscl = 1.0f;
-            glScalef    (dnscl, 1.0f, dnscl);
-            glTranslatef(base->cv[i].p[0] / dnscl,
+            glScalef    (SCL, 1.0f, SCL);
+            glTranslatef(base->cv[i].p[0] / SCL,
                          base->cv[i].p[1] + 0.001f,
-                         base->cv[i].p[2] / dnscl);
+                         base->cv[i].p[2] / SCL);
 
             glColor4ub(ROUND(c[0] * 255),
                        ROUND(c[1] * 255),
@@ -758,6 +811,7 @@ static void game_draw_fore_chnk(struct s_rend *rend,
             glDisable(GL_LIGHTING);
             {
                 game_draw_chnk_floor(rend, &gd->vary, M, t);
+                game_draw_chnk_rings(rend, &gd->vary, M, t);
                 game_draw_chnk_balls(rend, &gd->vary, M, t);
                 game_draw_chnk_jumps(rend, &gd->vary, M, t);
                 game_draw_chnk_goals(rend, &gd->vary, M, t);

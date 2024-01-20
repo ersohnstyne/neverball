@@ -129,11 +129,11 @@ enum
 {
     CAM_NONE = -1,
 
-    CAM_1, /* Chase camera */
-    CAM_2, /* Static / Lazy Camera */
-    CAM_3, /* Manual / Free camera */
+    CAM_1,                           /* Chase camera                         */
+    CAM_2,                           /* Static / Lazy Camera                 */
+    CAM_3,                           /* Manual / Free camera                 */
 
-    CAM_AUTO, /* Switchball uses an automatic camera */
+    CAM_AUTO,                        /* Switchball uses an automatic camera. */
 
     CAM_MAX
 };

@@ -955,6 +955,8 @@ int campaign_load_camera_box_trigger(const char *levelname)
                 autocam_count++;
                 ++camBoxIdx;
             }
+            else
+                log_errorf("%s: Parse line error on auto-camera trigger: %s\n", camFilename, camLinePrefix);
 
             if (camBoxIdx >= MAX_CAM_BOX_TRIGGER)
                 break;
@@ -1007,11 +1009,12 @@ int campaign_camera_box_trigger_test(struct s_vary *vary, int ui)
             cam_box_trigger_test_master(ball_p, localcamboxtrigger, 1) &&
             cam_box_trigger_test_master(ball_p, localcamboxtrigger, 2))
         {
-            cam_box_triggers[camidx].activated = 0;
+            cam_box_triggers[camidx].activated = -1;
             cam_box_triggers[camidx].inside    = 1;
             return camidx;
         }
-        else if (cam_box_triggers[camidx].inside != 0)
+        else if (cam_box_triggers[camidx].inside != 0 &&
+                 cam_box_triggers[camidx].activated == -1)
         {
             cam_box_triggers[camidx].activated = 1;
             cam_box_triggers[camidx].inside    = 0;

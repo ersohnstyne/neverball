@@ -1259,7 +1259,7 @@ static int shop_iap_gui(void)
 #else
                                 sprintf(iapattr,
 #endif
-                                        _("%d Coins (%s %d)"), GUI_DIAMOND, iapcoinvalue[multiply - 1], iapcoinfromgems[multiply - 1]);
+                                        "%s %d (%s %d)", GUI_COIN, iapcoinvalue[multiply - 1], GUI_DIAMOND, iapcoinfromgems[multiply - 1]);
                                 btniapmobile = gui_label(jd, iapattr,
                                                              GUI_SML,
                                                              account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? gui_wht : gui_red,
@@ -1285,7 +1285,7 @@ static int shop_iap_gui(void)
 #else
                                 sprintf(iapattr,
 #endif
-                                        _("%d Gems (%s)"), iapgemvalue[multiply - 1], currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
+                                        _("%s %d (%s)"), GUI_DIAMOND, iapgemvalue[multiply - 1], currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
                                 btniapmobile = gui_label(jd, iapattr, GUI_SML, GUI_COLOR_WHT);
                                 gui_set_state(btniapmobile, SHOP_IAP_GET_BUY, multiply - 1);
                             }

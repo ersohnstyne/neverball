@@ -92,6 +92,7 @@ void back_draw_easy(void);
 /*---------------------------------------------------------------------------*/
 
 void chnk_pane_draw(struct s_rend *);
+void chnk_ring_draw(struct s_rend *, int);
 void chnk_ball_draw(struct s_rend *);
 void chnk_jump_draw(struct s_rend *);
 void chnk_goal_draw(struct s_rend *);

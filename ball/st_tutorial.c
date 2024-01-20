@@ -134,6 +134,11 @@ int tutorial_check(void)
                     goto_tutorial_before_play(3);
                     return 1;
                 }
+                if (strcmp(ln, "3") == 0)
+                {
+                    goto_tutorial_before_play(4);
+                    return 1;
+                }
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                 if (strcmp(ln, "4") == 0 && current_platform == PLATFORM_PC)
 #else

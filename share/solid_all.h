@@ -17,7 +17,9 @@
 
 #include "solid_vary.h"
 
+#ifdef MAPC_INCLUDES_CHKP
 extern int last_path_enabled_orcondition[1024];
+#endif
 extern int curr_path_enabled_orcondition[1024];
 
 typedef void (*cmd_fn)(const union cmd *);
@@ -44,9 +46,6 @@ void sol_pendulum(struct v_ball *up,
                   const float g[3], float dt);
 
 void sol_swch_step(struct s_vary *, cmd_fn, float dt, int ms);
-#ifdef MAPC_INCLUDES_CHKP
-void sol_chkp_step(struct s_vary *, cmd_fn, float dt, int ms);
-#endif
 void sol_move_step(struct s_vary *, cmd_fn, float dt, int ms);
 void sol_ball_step(struct s_vary *, cmd_fn, float dt);
 

@@ -324,10 +324,8 @@ static void game_cmd_init_items(void)
 
         v_cpy(cmd.mkitem.p, vary.hv[i].p);
 
-        cmd.mkitem.t = time_limit != 0 && vary.hv[i].t == ITEM_CLOCK ? ITEM_NONE :
-                                                                   vary.hv[i].t;
-        cmd.mkitem.n = time_limit != 0 && vary.hv[i].t == ITEM_CLOCK ? 0 :
-                                                                   vary.hv[i].n;
+        cmd.mkitem.t = vary.hv[i].t;
+        cmd.mkitem.n = vary.hv[i].n;
 
         game_proxy_enq(&cmd);
     }
@@ -390,13 +388,6 @@ static void game_cmd_speedometer(void)
 {
     cmd.type           = CMD_SPEEDOMETER;
     cmd.speedometer.xi = game_get_ballspeed();
-    game_proxy_enq(&cmd);
-}
-
-static void game_cmd_zoom(float diff)
-{
-    cmd.type    = CMD_ZOOM;
-    cmd.zoom.xi = diff;
     game_proxy_enq(&cmd);
 }
 
@@ -595,10 +586,10 @@ int game_server_init(const char *file_name, int t, int e)
         mayhem_time = (int) t * 0.75f;
 
 #ifdef MAPC_INCLUDES_CHKP
-    time_limit = last_active ? checkpoints_respawn_time_limit() :
-                               (float) t / 100.0f;
+    time_limit = MAX(last_active ? checkpoints_respawn_time_limit() :
+                                   (float) t / 100.0f, 0);
 #else
-    time_limit = (float) t / 100.0f;
+    time_limit = MAX((float) (t / 100.0f), 0);
 #endif
 
     if (
@@ -712,8 +703,6 @@ int game_server_init(const char *file_name, int t, int e)
     automode     = 2;
     autorotspeed = 0;
 
-    /* game_cmd_zoom(-95.0f); */
-
     /* Initialize jump, chkp and goal states. */
 
     jump_e = 1;
@@ -814,6 +803,9 @@ int game_server_init(const char *file_name, int t, int e)
 
     view_zoom_curr = 1.0f;
     view_zoom_time = ZOOM_TIME;
+
+    view_zoom_diff_end  = 0;
+    view_zoom_diff_curr = 0;
 
     for (int ui = 0; ui < vary.base->uc && ui < MAX_PLAYERS; ui++)
     {
@@ -928,8 +920,6 @@ void game_server_free(const char *next)
     {
 #if _WIN32 && _MSC_VER && ENABLE_NVIDIA_PHYSX==1
         sol_quit_sim_physx(&vary);
-#else
-        sol_quit_sim();
 #endif
         sol_free_vary(&vary);
 
@@ -960,6 +950,8 @@ void game_update_view(float dt)
 {
     /* Current view scale. */
 
+    view_zoom_diff_curr = flerp(view_zoom_diff_curr, view_zoom_diff_end, dt);
+
     if (view_zoom_time < ZOOM_TIME)
     {
         view_zoom_time += dt;
@@ -968,7 +960,7 @@ void game_update_view(float dt)
         {
             view_zoom_time = ZOOM_TIME;
             view_zoom_curr = view_zoom_end;
-            view_zoom_end = 0.0f;
+            view_zoom_end  = 0.0f;
         }
         else if (view_zoom_time >= ZOOM_DELAY)
         {
@@ -1052,8 +1044,10 @@ void game_update_view(float dt)
 #pragma endregion
 
 #pragma region Manual or Chase camera
-        float dc = multiview1.dc * (jump_b > 0 ?
-                                    2.0f * fabsf(jump_dt - 0.5f) : 1.0f);
+        float zoom_diff = CLAMP(0, 1 + view_zoom_diff_curr, 1);
+
+        float dc = (multiview1.dc - flerp(0.25f, 0, zoom_diff)) *
+                   (jump_b > 0 ? 2.0f * fabsf(jump_dt - 0.5f) : 1.0f);
         float da = (90.0f * input_get_r() * dt) * (config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? -1 : 1);
         float k;
 
@@ -1190,10 +1184,8 @@ void game_update_view(float dt)
 
         view_k = MAX(flerp(view_k, k, dt), 0.5f);
 
-        v_scl(v, multiview1.e[1],
-              SCL * (multiview1.dp + fsinf((zoom_diff / 60) * 75)) * view_k);
-        v_mad(v, v, multiview1.e[2],
-              SCL * (multiview1.dz + 20 + (fsinf((zoom_diff / 80) - 0.5236f) * 40)) * view_k);
+        v_scl(v,    multiview1.e[1], SCL * (multiview1.dp + flerp(3.25f, 0, zoom_diff)) * view_k);
+        v_mad(v, v, multiview1.e[2], SCL * (multiview1.dz + flerp(4.0f,  0, zoom_diff)) * view_k);
         v_add(multiview1.p, v, vary.uv[ui].p);
 
         multiview1.p[1] -= view_alt_velocity;
@@ -1270,9 +1262,9 @@ static void game_update_time(float dt, int b)
  */
 static void zoom_init(float target)
 {
-    view_zoom_time = 0.0f;
+    view_zoom_time  = 0.0f;
     view_zoom_start = view_zoom_curr;
-    view_zoom_end = CLAMP(ZOOM_MIN, target, ZOOM_MAX);
+    view_zoom_end   = CLAMP(ZOOM_MIN, target, ZOOM_MAX);
 }
 
 static int game_update_state(int bt)
@@ -1790,6 +1782,11 @@ void game_set_rot(float r)
 
 /*---------------------------------------------------------------------------*/
 
+float curr_time_limit(void)
+{
+    return time_limit;
+}
+
 float curr_time_elapsed(void)
 {
     return time_elapsed;
@@ -1821,5 +1818,5 @@ void game_extend_time(float extratime)
  * Store with the zoom differences (just like a Switchball) */
 void game_set_zoom(float diff)
 {
-    game_cmd_zoom(diff);
+    view_zoom_diff_end = CLAMP(-1, view_zoom_diff_end - diff, 0);
 }

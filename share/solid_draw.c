@@ -450,6 +450,10 @@ static void sol_free_mesh(struct d_mesh *mp)
 static void sol_draw_mesh(const struct d_mesh *mp,
                           struct s_rend *rend, int p)
 {
+    /* Mtrl references needed. */
+
+    if (!mp || !rend) return;
+
     /* If this mesh has material matching the given flags... */
 
     if (sol_test_mtrl(mp->mtrl, p))

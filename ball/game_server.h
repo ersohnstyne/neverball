@@ -53,6 +53,7 @@ void  game_set_z  (float);
 void  game_set_cam(int);
 void  game_set_rot(float);
 
+float curr_time_limit(void);
 float curr_time_elapsed(void);
 
 float game_get_ballspeed(void);        /* New: Speedometer                   */

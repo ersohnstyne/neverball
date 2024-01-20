@@ -462,7 +462,10 @@ void audio_resume(void)
 
 void audio_play(const char *filename, float a)
 {
-    if (audio_state && !audio_paused)
+    /* Can't play game sound, master volume was set to 0. */
+    if (config_get_d(CONFIG_MASTER_VOLUME) == 0) return;
+
+    if (audio_state && !audio_paused && config_get_d(CONFIG_SOUND_VOLUME))
     {
         while (lock_hold) {}
         struct voice *V;
@@ -507,6 +510,9 @@ void audio_play(const char *filename, float a)
 
 void audio_narrator_play(const char *filename)
 {
+    /* Can't play narrator sound, master volume was set to 0. */
+    if (config_get_d(CONFIG_MASTER_VOLUME) == 0) return;
+
     if (audio_state && !audio_paused && config_get_d(CONFIG_NARRATOR_VOLUME))
     {
         while (lock_hold) {}

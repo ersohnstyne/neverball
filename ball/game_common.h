@@ -151,7 +151,8 @@ float *game_get_earthquake_shake(void);
 
 /*---------------------------------------------------------------------------*/
 
-extern float zoom_diff;
+extern float view_zoom_diff_curr;
+extern float view_zoom_diff_end;
 
 extern const float GRAVITY_UP[];
 extern const float GRAVITY_DN[];

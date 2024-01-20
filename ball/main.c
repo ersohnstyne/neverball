@@ -1160,7 +1160,7 @@ static void step(void *data)
         Uint32 now = SDL_GetTicks();
         Uint32 dt = (now - mainloop->now);
 
-        if (0 < dt && dt < 100)
+        if (0 < dt && dt < 1000)
         {
             /* Step the game state. */
 
@@ -1170,21 +1170,21 @@ static void step(void *data)
             CHECK_GAMESPEED(20, 100);
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
             st_timer(MAX((0.001f * deltaTime) * speedPercent, 0));
-
-            /* Render. */
-
-            hmd_step();
-
-            if (viewport_wireframe > 1)
-            {
-                video_render_fill_or_line(0);
-                st_paint(0.001f * now, 1);
-                video_render_fill_or_line(1);
-                st_paint(0.001f * now, 0);
-            }
-            else
-                st_paint(0.001f * now, 1);
         }
+
+        /* Render. */
+
+        hmd_step();
+
+        if (viewport_wireframe == 2 || viewport_wireframe == 3)
+        {
+            video_render_fill_or_line(0);
+            st_paint(0.001f * now, 1);
+            video_render_fill_or_line(1);
+            st_paint(0.001f * now, 0);
+        }
+        else
+            st_paint(0.001f * now, 1);
 
         video_swap();
 

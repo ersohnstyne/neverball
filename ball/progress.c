@@ -433,7 +433,10 @@ static int init_level(void)
 #endif
                          curr_mode() != MODE_NONE ? demo_fp : NULL);
 
-        audio_music_fade_to(1.0f, BGM_TITLE_MAP(level_song(level)));
+        lvl_warn_timer = curr_clock() < 1000 && curr_time_limit() > 0;
+
+        audio_music_fade_to(1.0f, lvl_warn_timer ? "bgm/time-warning.ogg" :
+                                                   BGM_TITLE_MAP(level_song(level)));
         return 1;
     }
 
@@ -557,12 +560,12 @@ void progress_step(void)
 #endif
         )
     {
-        if (curr_clock() >= 1000 && lvl_warn_timer)
+        if (curr_clock() >= 1000 && curr_time_limit() > 0 && lvl_warn_timer)
         {
             lvl_warn_timer = 0;
             audio_music_fade_to(.5f, BGM_TITLE_MAP(level_song(level)));
         }
-        else if (curr_clock() < 1000 && !lvl_warn_timer)
+        else if (curr_clock() < 1000 && curr_time_limit() > 0 && !lvl_warn_timer)
         {
             lvl_warn_timer = 1;
             audio_music_fade_to(.1f, "bgm/time-warning.ogg");

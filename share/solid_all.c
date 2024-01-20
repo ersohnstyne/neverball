@@ -236,24 +236,24 @@ void sol_pendulum(struct v_ball *up,
 
 /*---------------------------------------------------------------------------*/
 
+#ifdef MAPC_INCLUDES_CHKP
 int last_path_enabled_orcondition[1024];
+#endif
 int curr_path_enabled_orcondition[1024];
 
 static void sol_path_flag(struct s_vary *vary, cmd_fn cmd_func, int pi, int f)
 {
-    if (pi < 0 || pi >= vary->pc)
-        return;
-
-    if (vary->pv[pi].f == f)
-        return;
+    if (!vary) return;
+    if (pi < 0 || pi >= vary->pc) return;
+    if (vary->pv[pi].f == f) return;
 
     vary->pv[pi].f = f;
 
     if (cmd_func)
     {
-        union cmd cmd = { CMD_PATH_FLAG };
+        union cmd cmd   = { CMD_PATH_FLAG };
         cmd.pathflag.pi = pi;
-        cmd.pathflag.f = vary->pv[pi].f;
+        cmd.pathflag.f  = vary->pv[pi].f;
         cmd_func(&cmd);
     }
 }
@@ -311,51 +311,38 @@ void sol_swch_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
     {
         struct v_swch *xp = vary->xv + xi;
 
+        /*
+         * HACK: Timer paused after toggled to initial state
+         * before those seconds are up.
+         */
+
+        if (xp->f == xp->base->f) continue;
+
         if (xp->tm < xp->base->tm)
         {
-            xp->t += dt;
+            xp->t  += dt;
             xp->tm += ms;
+        }
+        else
+        {
+            /* First additive, then substractive, and so on */
 
-            if (xp->tm >= xp->base->tm)
+            if (xp->base->f) curr_path_enabled_orcondition[xp->base->pi]++;
+            else             curr_path_enabled_orcondition[xp->base->pi]--;
+
+            sol_path_loop(vary, cmd_func, xp->base->pi, curr_path_enabled_orcondition[xp->base->pi] > 0);
+
+            xp->f = xp->base->f;
+
+            if (cmd_func)
             {
-                /* First additive, then substractive, and so on */
-
-                if (xp->base->f == 1)
-                    curr_path_enabled_orcondition[xp->base->pi]++;
-                else
-                    curr_path_enabled_orcondition[xp->base->pi]--;
-
-                //sol_path_loop(vary, cmd_func, xp->base->pi, xp->base->f);
-                sol_path_loop(vary, cmd_func, xp->base->pi, curr_path_enabled_orcondition[xp->base->pi]);
-
-                xp->f = xp->base->f;
-
-                if (cmd_func)
-                {
-                    union cmd cmd = { CMD_SWCH_TOGGLE };
-                    cmd.swchtoggle.xi = xi;
-                    cmd_func(&cmd);
-                }
+                union cmd cmd     = { CMD_SWCH_TOGGLE };
+                cmd.swchtoggle.xi = xi;
+                cmd_func(&cmd);
             }
         }
     }
 }
-
-#ifdef MAPC_INCLUDES_CHKP
-/*
- * New: Checkpoints: Compute the states of all checkpoints after DT seconds
- * have passed.
- */
-void sol_chkp_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
-{
-    int xi;
-
-    for (xi = 0; xi < vary->cc; xi++)
-    {
-        struct v_chkp *cp = vary->cv + xi;
-    }
-}
-#endif
 
 /*
  * Compute the positions of all movers after DT seconds have passed.
@@ -383,9 +370,7 @@ void sol_move_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
 
                 if (cmd_func)
                 {
-                    union cmd cmd = { CMD_MOVE_TIME };
-
-                    cmd.type        = CMD_MOVE_TIME;
+                    union cmd cmd   = { CMD_MOVE_TIME };
                     cmd.movetime.mi = i;
                     cmd.movetime.t  = mp->t;
                     cmd_func(&cmd);
@@ -558,27 +543,28 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
                     /* The ball enters. */
 
                     xp->e = 1;
+                    
+                    /* Change switch state. */
 
                     xp->f = xp->f ? 0 : 1;
 
                     if (cmd_func)
                     {
-                        union cmd cmd = { CMD_SWCH_ENTER };
-
-                        cmd.type         = CMD_SWCH_ENTER;
+                        union cmd cmd    = { CMD_SWCH_ENTER };
                         cmd.swchenter.xi = xi;
                         cmd_func(&cmd);
 
-                        cmd.type         = CMD_SWCH_TOGGLE;
+                        cmd.type          = CMD_SWCH_TOGGLE;
                         cmd.swchtoggle.xi = xi;
                         cmd_func(&cmd);
                     }
 
-                    sol_path_loop(vary, cmd_func, xp->base->pi, xp->f);
+                    if (xp->f) curr_path_enabled_orcondition[xp->base->pi]++;
+                    else       curr_path_enabled_orcondition[xp->base->pi]--;
 
-                    if (!xp->base->i)
-                        rc = SWCH_INSIDE;
+                    sol_path_loop(vary, cmd_func, xp->base->pi, curr_path_enabled_orcondition[xp->base->pi] > 0);
 
+                    if (!xp->base->i) rc = SWCH_INSIDE;
                 }
             }
             else if (xp->e)
@@ -589,7 +575,7 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
 
                 if (cmd_func)
                 {
-                    union cmd cmd = { CMD_SWCH_EXIT };
+                    union cmd cmd   = { CMD_SWCH_EXIT };
                     cmd.swchexit.xi = xi;
                     cmd_func(&cmd);
                 }
@@ -597,52 +583,65 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
         }
         else /* Behavior for timed switches */
         {
-            if (d <= 0.0f &&
+            if (d <= 0 &&
                 ball_p[1] > xp->base->p[1] &&
                 ball_p[1] < xp->base->p[1] + SWCH_HEIGHT / 2)
             {
-                if (xp->e == 0)
+                /*
+                 * HACK: Timer paused after toggled to initial state
+                 * before those seconds are up.
+                 */
+
+                if (xp->e       == 0 &&
+                    xp->base->f == xp->f)
                 {
                     /* The ball enters. */
+
                     xp->e = 1;
 
-                    if (cmd_func)
-                    {
-                        union cmd cmd = { CMD_SWCH_ENTER };
-                        cmd.swchenter.xi = xi;
-                        cmd_func(&cmd);
-                    }
-                }
-
-                if (xp->base->tm == xp->tm) /* Timer is expired */
-                {
                     /* Change switch state and start the timer. */
 
                     xp->f = xp->f ? 0 : 1;
+
                     if (cmd_func)
                     {
-                        union cmd cmd = { CMD_SWCH_TOGGLE };
+                        union cmd cmd    = { CMD_SWCH_ENTER };
+                        cmd.swchenter.xi = xi;
+                        cmd_func(&cmd);
+
+                        cmd.type          = CMD_SWCH_TOGGLE;
                         cmd.swchtoggle.xi = xi;
                         cmd_func(&cmd);
                     }
-                    sol_path_loop(vary, cmd_func, xp->base->pi, xp->f);
 
-                    if (!xp->base->i)
-                        rc = SWCH_INSIDE;
+                    if (xp->f) curr_path_enabled_orcondition[xp->base->pi]++;
+                    else       curr_path_enabled_orcondition[xp->base->pi]--;
 
-                    xp->t = 0.0f;
-                    xp->tm = 0;
+                    sol_path_loop(vary, cmd_func, xp->base->pi, curr_path_enabled_orcondition[xp->base->pi] > 0);
+
+                    if (!xp->base->i) rc = SWCH_INSIDE;
+
+                    /*
+                     * Check timer expires in timed switch before reset,
+                     * unless resume it.
+                     */
+
+                    while (xp->tm >= xp->base->tm)
+                    {
+                        xp->t  = MIN(xp->t  - MS_TO_TIME(xp->base->tm), MS_TO_TIME(xp->base->tm));
+                        xp->tm = MIN(xp->tm -            xp->base->tm,             xp->base->tm);
+                    }
                 }
             }
-            /* The ball exits. */
-
             else if (xp->e)
             {
+                /* The ball exits. */
+
                 xp->e = 0;
 
                 if (cmd_func)
                 {
-                    union cmd cmd = { CMD_SWCH_EXIT };
+                    union cmd cmd   = { CMD_SWCH_EXIT };
                     cmd.swchexit.xi = xi;
                     cmd_func(&cmd);
                 }
@@ -655,17 +654,17 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
 /*
  * New: Checkpoints; Test for a ball entering a checkpoints.
  */
-int sol_chkp_test(struct s_vary *vary, cmd_fn cmd_func, int ui, int *ci)
+int sol_chkp_test(struct s_vary *vary, cmd_fn cmd_func, int ui, int *o_ci)
 {
+#ifdef MAPC_INCLUDES_CHKP
     const float *ball_p = vary->uv[ui].p;
     const float  ball_r = vary->uv[ui].r;
 
-    int xi, rc = CHKP_OUTSIDE;
+    int ci, rc = CHKP_OUTSIDE;
 
-#ifdef MAPC_INCLUDES_CHKP
-    for (xi = 0; xi < vary->cc; xi++)
+    for (ci = 0; ci < vary->cc; ci++)
     {
-        struct v_chkp *cp = vary->cv + xi;
+        struct v_chkp *cp = vary->cv + ci;
 
         float d, r[3] = {
             ball_p[0] - cp->base->p[0],
@@ -686,26 +685,27 @@ int sol_chkp_test(struct s_vary *vary, cmd_fn cmd_func, int ui, int *ci)
             ball_p[1] > cp->base->p[1] &&
             ball_p[1] < cp->base->p[1] + CHKP_HEIGHT / 2)
         {
-            if (!cp->e && d <= 0.0f)
+            if (!cp->e && d <= 0.0f && !cp->f)
             {
                 /* The ball enters. */
 
                 cp->e = 1;
-
-                cp->f = cp->f ? 0 : 1;
+                cp->f = 1;
 
                 if (cmd_func)
                 {
                     union cmd cmd = { CMD_CHKP_ENTER };
-
-                    cmd.type         = CMD_CHKP_ENTER;
-                    cmd.chkpenter.ci = xi;
+                    cmd.chkpenter.ci = ci;
                     cmd_func(&cmd);
 
                     cmd.type          = CMD_CHKP_TOGGLE;
-                    cmd.chkptoggle.ci = xi;
+                    cmd.chkptoggle.ci = ci;
                     cmd_func(&cmd);
                 }
+
+                /* Assign checkpoint index. */
+
+                if (o_ci) *o_ci = ci;
 
                 rc = CHKP_INSIDE;
             }
@@ -718,8 +718,8 @@ int sol_chkp_test(struct s_vary *vary, cmd_fn cmd_func, int ui, int *ci)
 
             if (cmd_func)
             {
-                union cmd cmd = { CMD_CHKP_EXIT };
-                cmd.chkpexit.ci = xi;
+                union cmd cmd   = { CMD_CHKP_EXIT };
+                cmd.chkpexit.ci = ci;
                 cmd_func(&cmd);
             }
         }

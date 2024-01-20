@@ -327,6 +327,7 @@ static struct s_full chkp;
 #endif
 
 static struct s_full chnk_pane;
+static struct s_full chnk_ring[2];
 static struct s_full chnk_ball;
 static struct s_full chnk_jump;
 static struct s_full chnk_goal;
@@ -403,6 +404,8 @@ void geom_init(void)
 #endif
 
     sol_load_full(&chnk_pane, "geom/chnk/chnk_pane.sol", 0);
+    sol_load_full(&chnk_ring[0], "geom/chnk/chnk_ring1.sol", 0);
+    sol_load_full(&chnk_ring[1], "geom/chnk/chnk_ring2.sol", 0);
     sol_load_full(&chnk_ball, "geom/chnk/chnk_ball.sol", 0);
     sol_load_full(&chnk_jump, "geom/chnk/chnk_jump.sol", 0);
     sol_load_full(&chnk_goal, "geom/chnk/chnk_goal.sol", 0);
@@ -423,6 +426,8 @@ void geom_free(void)
     sol_free_full(&chnk_goal);
     sol_free_full(&chnk_jump);
     sol_free_full(&chnk_ball);
+    sol_free_full(&chnk_ring[1]);
+    sol_free_full(&chnk_ring[0]);
     sol_free_full(&chnk_pane);
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -452,6 +457,9 @@ void geom_step(float dt)
 #if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
     sol_move(&chkp.vary, NULL, dt);
 #endif
+
+    sol_move(&chnk_ring[0].vary, NULL, dt);
+    sol_move(&chnk_ring[1].vary, NULL, dt);
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_MULTIBALLS)
     ball_multi_step(dt);
@@ -720,6 +728,12 @@ static int chnk_allow_depth = 1;
 void chnk_pane_draw(struct s_rend *rend)
 {
     sol_draw(&chnk_pane.draw, rend, chnk_allow_mask, chnk_allow_depth);
+}
+
+void chnk_ring_draw(struct s_rend* rend, int dot_line)
+{
+    sol_draw(&chnk_ring[dot_line ? 1 : 0].draw,
+             rend, chnk_allow_mask, chnk_allow_depth);
 }
 
 void chnk_ball_draw(struct s_rend *rend)

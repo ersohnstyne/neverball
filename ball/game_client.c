@@ -493,6 +493,9 @@ int  game_client_init(const char *file_name)
     game_tilt_init(&gd.tilt);
     game_view_init(&gd.view);
 
+    view_zoom_diff_end  = 0;
+    view_zoom_diff_curr = 0;
+
     gd.jump_e  = 1;
     gd.jump_b  = 0;
     gd.jump_dt = 0.0f;

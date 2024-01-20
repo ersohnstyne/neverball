@@ -51,6 +51,8 @@
 
 /*---------------------------------------------------------------------------*/
 
+#define INTRO_CELEBRATE_COMMIT
+
 #define INTRO_ANIMATION_60_FPS (1 / 60)
 #define MAINTENANCE_HOLD 0 > 0
 
@@ -180,10 +182,10 @@ const char intro_tip_ps4[][256] =
 
 const char intro_covid_highrisk[][256] =
 {
-    "Stash your game transfer\nto reduce risks!",
-    "Stash your replays with exceeded\nlevel status to reduce risks!",
-    "Don't use challenge game mode\nto reduce risks!",
-    "Use 3G+ rule to reduce risks!",
+    N_("Stash your game transfer\nto reduce risks!"),
+    N_("Stash your replays with exceeded\nlevel status to reduce risks!"),
+    N_("Don't use challenge game mode\nto reduce risks!"),
+    N_("Use 3G+ rule to reduce risks!"),
 };
 
 static void intro_create_tip(int id)
@@ -191,6 +193,14 @@ static void intro_create_tip(int id)
     int max_index = 7;
     int index_affect = config_get_d(CONFIG_TIPS_INDEX) + 1;
 
+#ifdef INTRO_CELEBRATE_COMMIT
+    if ((tip_id = gui_multi(id, _("Happy 4000 commits!\nLet's celebrate PB+NB on Discord!"),
+                                GUI_SML, GUI_COLOR_WHT)))
+    {
+        gui_clr_rect(tip_id);
+        gui_layout(tip_id, 0, -1);
+    }
+#else
 #if !defined(COVID_HIGH_RISK)
 #ifndef __EMSCRIPTEN__
     if (current_platform != PLATFORM_PC)
@@ -243,6 +253,7 @@ static void intro_create_tip(int id)
         gui_clr_rect(tip_id);
         gui_layout(tip_id, 0, -1);
     }
+#endif
 #endif
 }
 #endif

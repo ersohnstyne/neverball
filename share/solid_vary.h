@@ -133,7 +133,6 @@ struct s_vary
 /*---------------------------------------------------------------------------*/
 
 int  sol_load_vary(struct s_vary *, struct s_base *);
-int  sol_respawn_vary(struct s_vary *, struct s_vary *);
 void sol_free_vary(struct s_vary *);
 
 /*---------------------------------------------------------------------------*/

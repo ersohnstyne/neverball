@@ -907,7 +907,7 @@ static void play_loop_stick(int id, int a, float v, int bump)
                 rot_clr(DIR_R | DIR_L);
         }
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y1, a))
-            game_set_zoom(v + +axis_offset[3]);
+            game_set_zoom((v + +axis_offset[3]) * 0.1f);
 
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))
             tilt_x = v * get_tilt_multiply();
@@ -1205,9 +1205,8 @@ static void play_loop_wheel(int x, int y)
         config_get_d(CONFIG_VIEW_DC) == 25 &&
         config_get_d(CONFIG_VIEW_DZ) == 200)
     {
-        /* For some reasons, this may not work on zoom functions. */
-        /* if (y > 0) game_set_zoom(-1.0f); */
-        /* if (y < 0) game_set_zoom(1.0f); */
+        if (y > 0) game_set_zoom(-0.05f);
+        if (y < 0) game_set_zoom( 0.05f);
     }
     return;
 }

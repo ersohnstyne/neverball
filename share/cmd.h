@@ -87,7 +87,7 @@ enum cmd_type
     CMD_CHKP_EXIT,
     CMD_SPEEDOMETER,
     CMD_SAVED_SPAWNPOINT, /* DEPRECATED: Do not use! */
-    CMD_ZOOM,
+    CMD_ZOOM, /* DEPRECATED: Do not use! */
     CMD_CHKP_DISABLE,
 
     CMD_MAX

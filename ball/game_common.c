@@ -173,7 +173,9 @@ void game_tilt_grav(float h[3], const float g[3], const struct game_tilt *tilt)
 
 /*---------------------------------------------------------------------------*/
 
-float zoom_diff = 0;
+float view_zoom_diff_curr = 0;
+float view_zoom_diff_end;
+
 int use_static_cam_view;
 float pos_static_cam_view[3];
 
@@ -186,19 +188,39 @@ void game_view_set_static_cam_view(int activated, float pos[3])
 
 void game_view_init(struct game_view *view)
 {
-    /* In VR, ensure the default view is level (zero is 100 percent). */
+    /*
+     * In VR, ensure the default view is level.
+     *
+     *      0 = 100%
+     *     -1 = 0%
+     */
 
-    if (hmd_stat())
+    float zoom_diff = CLAMP(0, 1 + view_zoom_diff_curr, 1);
+
+    /*if (hmd_stat())
     {
-        view->dp = (config_get_d(CONFIG_VIEW_DP) + fsinf((zoom_diff / 60) * 75))                  / 100.0f;
-        view->dc = (config_get_d(CONFIG_VIEW_DP) + fsinf((zoom_diff / 60) * 75))                  / 100.0f;
-        view->dz = (config_get_d(CONFIG_VIEW_DZ) + 20 + (fsinf((zoom_diff / 80) - 0.5236f) * 40)) / 100.0f;
+        view->dp = (config_get_d(CONFIG_VIEW_DP))      / 100.0f;
+        view->dc =  config_get_d(CONFIG_VIEW_DP)       / 100.0f;
+        view->dz = (config_get_d(CONFIG_VIEW_DZ) + 20) / 100.0f;
     }
     else
     {
-        view->dp = (config_get_d(CONFIG_VIEW_DP) + fsinf((zoom_diff / 60) * 75))                  / 100.0f;
-        view->dc =  config_get_d(CONFIG_VIEW_DC)                                                  / 100.0f;
-        view->dz = (config_get_d(CONFIG_VIEW_DZ) + 20 + (fsinf((zoom_diff / 80) - 0.5236f) * 40)) / 100.0f;
+        view->dp = (config_get_d(CONFIG_VIEW_DP))      / 100.0f;
+        view->dc =  config_get_d(CONFIG_VIEW_DC)       / 100.0f;
+        view->dz = (config_get_d(CONFIG_VIEW_DZ) + 20) / 100.0f;
+    }*/
+
+    if (hmd_stat())
+    {
+        view->dp = 0.25f;
+        view->dc = 0.25f;
+        view->dz = 2.2f;
+    }
+    else
+    {
+        view->dp = 0.75f;
+        view->dc = 0.25f;
+        view->dz = 2.2f;
     }
 
     view->a = 0.0f;
@@ -226,10 +248,10 @@ void game_view_zoom(struct game_view *view, float diff)
      * view_dz + 20 + (sin((x / 80) - 0.5236) * 40)
      */
 
-    zoom_diff += diff;
+    view_zoom_diff_curr += diff;
 
-    if (zoom_diff > 94) zoom_diff = 94;
-    if (zoom_diff < 0)  zoom_diff = 0;
+    if (view_zoom_diff_curr > 94) view_zoom_diff_curr = 94;
+    if (view_zoom_diff_curr < 0)  view_zoom_diff_curr = 0;
 
     game_view_init(view);
 }

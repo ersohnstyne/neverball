@@ -694,6 +694,24 @@ static int goto_level(const List *level_multi)
 
 /*---------------------------------------------------------------------------*/
 
+static int goto_level(const char *path)
+{
+    /* HACK: must be around for the duration of the game. */
+    static struct level level;
+
+    if (path && level_load(path, &level))
+    {
+        progress_init(MODE_STANDALONE);
+
+        if (progress_play(&level))
+            return 1;
+    }
+
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
 /*
  * Handle the link option.
  *

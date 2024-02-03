@@ -54,6 +54,8 @@ int                 set_star_gained(int);
 #endif
 const struct score *set_score(int, int);
 
+struct level *set_find_level(const char *basename);
+
 #if NB_HAVE_PB_BOTH==1
 int  set_star_update  (int);
 #endif

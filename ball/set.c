@@ -92,10 +92,10 @@ static struct level level_v[MAXLVL_SET];
 
 static int score_version;
 
-#define put_score  set_put_score
-#define get_score  set_get_score
-#define find_level set_find_level
-#define get_stats  set_get_stats
+#define put_score  staticlocal_set_put_score
+#define get_score  staticlocal_set_get_score
+#define find_level staticlocal_set_find_level
+#define get_stats  staticlocal_set_get_stats
 
 static void put_score(fs_file fp, const struct score *s)
 {
@@ -984,6 +984,27 @@ int set_find(const char *file)
     }
 
     return -1;
+}
+
+/*
+ * Find a level in the set given a SOL basename.
+ */
+struct level *set_find_level(const char *basename)
+{
+    if (sets && curr_set() < array_len(sets))
+    {
+        struct set *s = SET_GET(sets, curr_set());
+
+        int i;
+
+        for (i = 0; i < s->count; ++i)
+        {
+            if (strcmp(basename, base_name(level_v[i].file)) == 0)
+                return &level_v[i];
+        }
+    }
+
+    return NULL;
 }
 
 int curr_set(void)

@@ -260,12 +260,12 @@ static int autocam_count = 0; /* How many autocam box triggers have we got? */
  */
 static struct level campaign_lvl_v[MAXLVL];
 
-#define put_score  campaign_put_times
-#define get_score  campaign_get_times
-#define find_level campaign_find_level
-#define get_stats  campaign_get_stats
+#define put_score  staticlocal_campaign_put_times
+#define get_score  staticlocal_campaign_get_times
+#define find_level staticlocal_campaign_find_level
+#define get_stats  staticlocal_campaign_get_stats
 
-static void campaign_put_times(fs_file fp, const struct score *s)
+static void put_score(fs_file fp, const struct score *s)
 {
     for (int i = RANK_HARD; i <= RANK_EASY; i++)
         fs_printf(fp, "%d %d %s\n", s->timer [i],
@@ -273,7 +273,7 @@ static void campaign_put_times(fs_file fp, const struct score *s)
                                     s->player[i]);
 }
 
-static int campaign_get_times(fs_file fp, struct score *s)
+static int get_score(fs_file fp, struct score *s)
 {
     char line[MAXSTR];
     int i;
@@ -304,7 +304,7 @@ static int campaign_get_times(fs_file fp, struct score *s)
     return 1;
 }
 
-static struct level *campaign_find_level(const char *file)
+static struct level *find_level(const char *file)
 {
     for (int i = 0; i < campaign_count; i++)
         if (strcmp(campaign_lvl_v[i].file, file) == 0)
@@ -313,7 +313,7 @@ static struct level *campaign_find_level(const char *file)
     return NULL;
 }
 
-static int campaign_get_stats(fs_file fp, struct level *l)
+static int get_stats(fs_file fp, struct level *l)
 {
     char line[MAXSTR];
 
@@ -354,8 +354,8 @@ void campaign_store_hs(void)
 
         fs_printf(fp, "version %d\ncampaign\n", TIME_TRIAL_VERSION);
 
-        campaign_put_times(fp, &time_trials);
-        campaign_put_times(fp, &coin_trials);
+        put_score(fp, &time_trials);
+        put_score(fp, &coin_trials);
 
         for (i = 0; i < campaign_count; i++)
         {
@@ -372,9 +372,9 @@ void campaign_store_hs(void)
                                               l->stats.timeout,
                                               l->stats.fallout);
 
-            campaign_put_times(fp, &l->scores[SCORE_TIME]);
-            campaign_put_times(fp, &l->scores[SCORE_GOAL]);
-            campaign_put_times(fp, &l->scores[SCORE_COIN]);
+            put_score(fp, &l->scores[SCORE_TIME]);
+            put_score(fp, &l->scores[SCORE_GOAL]);
+            put_score(fp, &l->scores[SCORE_COIN]);
         }
 
         fs_close(fp);
@@ -400,8 +400,8 @@ static void campaign_load_hs_v2(fs_file fp, char *buf, int size)
 
         if (strncmp(buf, "campaign", 9) == 0)
         {
-            campaign_get_times(fp, &time_trial);
-            campaign_get_times(fp, &coin_trial);
+            get_score(fp, &time_trial);
+            get_score(fp, &coin_trial);
 
             campaign_score = 1;
         }
@@ -414,9 +414,9 @@ static void campaign_load_hs_v2(fs_file fp, char *buf, int size)
         {
             struct level *l;
 
-            if ((l = campaign_find_level(buf + n)))
+            if ((l = find_level(buf + n)))
             {
-                campaign_get_stats(fp, l);
+                get_stats(fp, l);
 
                 /* Always prefer "locked" flag from the score file. */
 
@@ -428,9 +428,9 @@ static void campaign_load_hs_v2(fs_file fp, char *buf, int size)
                 {
                     l->is_completed = !!(flags & LEVEL_COMPLETED);
 
-                    campaign_get_times(fp, &l->scores[SCORE_TIME]);
-                    campaign_get_times(fp, &l->scores[SCORE_GOAL]);
-                    campaign_get_times(fp, &l->scores[SCORE_COIN]);
+                    get_score(fp, &l->scores[SCORE_TIME]);
+                    get_score(fp, &l->scores[SCORE_GOAL]);
+                    get_score(fp, &l->scores[SCORE_COIN]);
                 }
                 else campaign_match = 0;
             }
@@ -460,16 +460,16 @@ static void campaign_load_hs_v1(fs_file fp, char *buf, int size)
         l->is_completed = (buf[i] == 'C');
     }
 
-    campaign_get_times(fp, &time_trials);
-    campaign_get_times(fp, &coin_trials);
+    get_score(fp, &time_trials);
+    get_score(fp, &coin_trials);
 
     for (i = 0; i < n; i++)
     {
         l = &campaign_lvl_v[i];
 
-        campaign_get_times(fp, &l->scores[SCORE_TIME]);
-        campaign_get_times(fp, &l->scores[SCORE_GOAL]);
-        campaign_get_times(fp, &l->scores[SCORE_COIN]);
+        get_score(fp, &l->scores[SCORE_TIME]);
+        get_score(fp, &l->scores[SCORE_GOAL]);
+        get_score(fp, &l->scores[SCORE_COIN]);
     }
 }
 

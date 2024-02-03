@@ -125,6 +125,7 @@ extern "C" {
 #endif
 #include "log.h"
 #include "game_client.h"
+#include "substr.h"
 
 #if NB_HAVE_PB_BOTH==1
 #include "st_setup.h"
@@ -620,90 +621,185 @@ static void initialize_fetch(void)
 
 /*---------------------------------------------------------------------------*/
 
+static int goto_level(const List *level_multi)
+{
+    if (level_multi == NULL) return 0;
+
+    List                p = NULL;
+    static struct level lvl_v[30];
+
+    int        lvl_count = 0;
+    static int lvl_count_loaded = 0;
+
+    static int lvl_classic = 0;
+    static int lvl_bonus = 0;
+
+    for (p = level_multi; p && lvl_count < 30; p = p->next)
+    {
+        struct level* lvl = &lvl_v[lvl_count_loaded];
+
+        const char* path = fs_resolve(p->data);
+
+        if (path &&
+            (str_ends_with(path, ".csol") ||
+             str_ends_with(path, ".sol")))
+        {
+            if (level_load(path, lvl))
+            {
+                /* No bonus or master levels allowed on this standalone */
+
+                if (!lvl->is_master && !lvl->is_bonus)
+                {
+                    if (lvl_count_loaded > 0)
+                    {
+                        memset(lvl_v[lvl_count_loaded - 1].next, 0, sizeof(struct level));
+                        lvl_v[lvl_count_loaded - 1].next = lvl;
+                    }
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sprintf_s(lvl->name, MAXSTR,
+#else
+                    sprintf(lvl->name,
+#endif
+                            "%d", lvl_count_loaded + 1);
+
+                    lvl_count_loaded++;
+                }
+                else memset(lvl, 0, sizeof(struct level));
+            }
+            else log_errorf("File %s is not in game path (at index %d)\n", p->data, lvl_count_loaded);
+        }
+        else log_errorf("File %s is not in game path (at index %d)\n", p->data, lvl_count_loaded);
+
+        lvl_count++;
+    }
+
+    progress_init(MODE_STANDALONE);
+
+    /* Check whether standalone set is loaded correctly. */
+
+    if (lvl_count_loaded != 0 && progress_play(&lvl_v[0]))
+    {
+        /* Start standalone set! */
+
+        return 1;
+    }
+
+    /* ...otherwise go to main menu screen. */
+
+    progress_init(MODE_NONE);
+
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
 /*
  * Handle the link option.
  *
  * This navigates to the appropriate screen, if the asset was found.
+ *
+ * Supported link types:
+ *
+ * --link set-easy
+ * --link set-easy/peasy
  */
 static int process_link(const char *link)
 {
     int processed = 0;
 
-    if (link && *link)
+    if (!(link && *link))
+        return 0;
+
+    log_printf("Processing link: %s\n", link);
+
+    if (str_starts_with(link, "set-"))
     {
-        log_printf("Processing link: %s\n", link);
+        /* Search installed sets and package list. */
 
-        if (str_starts_with(link, "set-"))
+        const size_t prefix_len = strcspn(link, "/");
+        const char *set_part = SUBSTR(link, 0, prefix_len);
+        const char *map_part = SUBSTR(link, prefix_len + 1, 64);
+
+        char *set_file = concat_string(set_part, ".txt", NULL);
+
+        if (set_file)
         {
-            const char *set_file = concat_string(link, ".txt", NULL);
+            int index;
+            int found_level = 0;
 
-            if (set_file)
+            log_printf("Link is a set reference, searching for %s.\n", set_file);
+
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
+            int career_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER) ||
+                                   campaign_career_unlocked());
+
+            if (!career_unlocked)
             {
-                int index;
+                log_errorf("Complete the game in campaign mode to link the set reference!\n");
+                return 0;
+            }
+#endif
 
-                log_printf("Link is a set reference, searching for %s.\n", set_file);
+            set_init(0);
 
-                set_init(0);
+            if ((index = set_find(set_file)) >= 0)
+            {
+                log_printf("Found set with the given reference.\n");
 
-                if ((index = set_find(set_file)) >= 0)
+                set_goto(index);
+
+                if (map_part && *map_part)
                 {
-                    log_printf("Found set with the given reference.\n");
+                    /* Search for the given level. */
 
-                    int set_was_unlocked = 1;
+                    char *sol_basename = concat_string(map_part, ".sol", NULL);
 
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                    if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
+                    log_printf("Link is also a level reference, searching for %s\n", sol_basename);
+
+                    if (sol_basename)
                     {
-                        /*
-                         * Couldn't link the level set, because there was enabled
-                         * with campaign only.
-                         */
+                        struct level *level = set_find_level(sol_basename);
 
-                        log_errorf("Processing set link is not available with campaign only.\n");
-                        set_was_unlocked = 0;
-                    }
-                    else
-                    {
-#ifndef SET_ALWAYS_UNLOCKED
-                        /*
-                         * In home and pro editions, level sets are locked and
-                         * couldn't link the level set, because there isn't
-                         * completed the game in the campaign mode.
-                         */
+                        if (level)
+                        {
+                            log_printf("Found level with the given reference.\n");
 
-                        set_was_unlocked = account_get_d(ACCOUNT_SET_UNLOCKS) > 0 &&
-                                           (server_policy_get_d(SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET) ||
-                                            campaign_career_unlocked())
-#if NB_STEAM_API == 0 && NB_EOS_SDK == 0
-                                        || config_cheat()
-#endif
-                                           ;
-#endif
+                            progress_init(MODE_NORMAL);
+
+                            if (progress_play(level))
+                            {
+                                goto_state(&st_level);
+                                found_level = 1;
+                                processed = 1;
+                            }
+                        }
+
+                        free(sol_basename);
+                        sol_basename = NULL;
                     }
-#endif
-                    if (set_was_unlocked)
-                    {
-                        set_goto(index);
-                        load_title_background();
-                        game_kill_fade();
-                        goto_state(&st_start);
-                        processed = 1;
-                    }
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                    else if (!server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
-                        log_errorf("Complete the game in campaign mode to link the level set!\n");
-#endif
                 }
-                else if ((index = package_search(set_file)) >= 0)
+
+                if (!found_level)
                 {
-                    log_printf("Found package with the given reference.\n");
-                    goto_package(index, &st_title);
+                    load_title_background();
+                    game_kill_fade();
+                    goto_state(&st_start);
                     processed = 1;
                 }
-                else log_errorf("Link did not match.\n", link);
             }
+            else if ((index = package_search(set_file)) >= 0)
+            {
+                log_printf("Found package with the given reference.\n");
+                goto_package(index, &st_title);
+                processed = 1;
+            }
+            else log_printf("Link did not match.\n", link);
+
+            free(set_file);
+            set_file = NULL;
         }
-        else log_errorf("Link is bad.\n");
+        else log_printf("Link is bad.\n");
     }
 
     return processed;
@@ -1674,77 +1770,14 @@ int main(int argc, char *argv[])
     }
     else if (opt_level_multi)
     {
-                      List  p = NULL;
-        static struct level lvl_v[30];
-
-               int lvl_count        = 0;
-        static int lvl_count_loaded = 0;
-
-        static int lvl_classic = 0;
-        static int lvl_bonus   = 0;
-
-        for (p = opt_level_multi; p && lvl_count < 30; p = p->next)
-        {
-            struct level *lvl = &lvl_v[lvl_count_loaded];
-
-            const char *path = fs_resolve(p->data);
-
-            if (path &&
-                (str_ends_with(path, ".csol") ||
-                 str_ends_with(path, ".sol")))
-            {
-                if (level_load(path, lvl))
-                {
-                    /* No bonus or master levels allowed on this standalone */
-
-                    if (!lvl->is_master && !lvl->is_bonus)
-                    {
-                        if (lvl_count_loaded > 0)
-                        {
-                            memset(lvl_v[lvl_count_loaded - 1].next, 0, sizeof (struct level));
-                            lvl_v[lvl_count_loaded - 1].next = lvl;
-                        }
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(lvl->name, MAXSTR,
-#else
-                        sprintf(lvl->name,
-#endif
-                                "%d", lvl_count_loaded + 1);
-
-                        lvl_count_loaded++;
-                    }
-                    else memset(lvl, 0, sizeof (struct level));
-                }
-                else log_errorf("File %s is not in game path (at index %d)\n", p->data, lvl_count_loaded);
-            }
-            else log_errorf("File %s is not in game path (at index %d)\n", p->data, lvl_count_loaded);
-
-            lvl_count++;
-        }
-
-        progress_init(MODE_STANDALONE);
-
-        /* Check whether standalone set is loaded correctly. */
-
-        if (lvl_count_loaded != 0 && progress_play(&lvl_v[0]))
-        {
-            /* Start standalone set! */
-
+        if (goto_level(opt_level_multi))
             start_state = &st_level;
-        }
         else
-        {
-            /* ...otherwise go to main menu screen. */
-
-            progress_init(MODE_NONE);
-
 #ifdef SKIP_END_SUPPORT
             start_state = &st_title;
 #else
             start_state = &st_end_support;
 #endif
-        }
     }
     else if (opt_screensaver)
         start_state = &st_screensaver;

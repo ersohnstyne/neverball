@@ -106,6 +106,7 @@ extern "C" {
 #include "log.h"
 #include "fetch.h"
 #include "package.h"
+#include "substr.h"
 
 #if NB_HAVE_PB_BOTH==1
 #include "st_setup.h"
@@ -281,6 +282,26 @@ static void initialize_fetch(void)
 
 /*---------------------------------------------------------------------------*/
 
+static int goto_hole(const char *hole)
+{
+    const char *path = fs_resolve(hole);
+    int loaded = 0;
+
+    if (path)
+    {
+        hole_init(NULL);
+
+        if (hole_load(0, path) &&
+            hole_load(1, path) &&
+            hole_goto(1, 1))
+            return 1;
+    }
+
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
 /*
  * Handle the link option.
  *
@@ -288,42 +309,40 @@ static void initialize_fetch(void)
  */
 static int process_link(const char *link)
 {
+    if (!(link && *link)) return 0;
+
     int processed = 0;
 
-    if (link && *link)
+    log_printf("Processing link: %s\n", link);
+
+    if (str_starts_with(link, "holes-"))
     {
-        log_printf("Processing link: %s\n", link);
+        /* Search installed courses and package list. */
 
-        if (str_starts_with(link, "holes-"))
+        const size_t prefix_len = strcspn(link, "/");
+        const char *course_part = SUBSTR(link, 0, prefix_len);
+        const char *map_part    = SUBSTR(link, prefix_len + 1, 64);
+
+        const char *course_file = concat_string(course_part, ".txt", NULL);
+
+        if (course_file)
         {
-            /* Search installed courses and package list. */
+            int index;
 
-            const char *set_file = concat_string(link, ".txt", NULL);
+            log_printf("Link is a course reference, searching for %s.\n", course_file);
 
-            if (set_file)
+            course_init();
+
+            if ((index = package_search(course_file)) >= 0)
             {
-                int index;
-
-                log_printf("Link is a set reference, searching for %s.\n", set_file);
-
-                course_init();
-
-                if ((index = set_find(set_file)) >= 0)
-                {
-                    log_printf("Found set with the given reference.\n");
-                    processed = 1;
-                }
-                else if ((index = package_search(set_file)) >= 0)
-                {
-                    log_printf("Found package with the given reference.\n");
-                    goto_package(index, &st_title);
-                    processed = 1;
-                }
-                else log_errorf("Link did not match.\n", link);
+                log_printf("Found package with the given reference.\n");
+                goto_package(index, &st_title);
+                processed = 1;
             }
+            else log_errorf("Link did not match.\n", link);
         }
-        else log_errorf("Link is bad.\n");
     }
+    else log_errorf("Link is bad.\n");
 
     return processed;
 }
@@ -684,7 +703,7 @@ static void step(void *data)
         Uint32 now = SDL_GetTicks();
         Uint32 dt = (now - mainloop->now);
 
-        if (0 < dt && dt < 100)
+        if (0 < dt && dt < 1000)
         {
             /* Step the game state. */
 #define frame_smooth (1.f / 25.f) * 1000.f
@@ -694,23 +713,23 @@ static void step(void *data)
             CHECK_GAMESPEED(20, 100);
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
             st_timer(MAX((0.001f * deltaTime) * speedPercent, 0));
-
-            /* Render. */
-
-            hmd_step();
-
-            if (viewport_wireframe > 1)
-            {
-                video_render_fill_or_line(0);
-                st_paint(0.001f * now, 1);
-                video_render_fill_or_line(1);
-                st_paint(0.001f * now, 0);
-            }
-            else
-                st_paint(0.001f * now, 1);
-
-            video_swap();
         }
+
+        /* Render. */
+
+        hmd_step();
+
+        if (viewport_wireframe == 2 || viewport_wireframe == 3)
+        {
+            video_render_fill_or_line(0);
+            st_paint(0.001f * now, 1);
+            video_render_fill_or_line(1);
+            st_paint(0.001f * now, 0);
+        }
+        else
+            st_paint(0.001f * now, 1);
+
+        video_swap();
 
         mainloop->now = now;
     }
@@ -985,7 +1004,7 @@ int main(int argc, char *argv[])
         if (video_init())
         {
             struct main_loop mainloop = { 0 };
-            
+
             struct state *start_state = &st_title;
 
             /* Material system. */
@@ -996,29 +1015,7 @@ int main(int argc, char *argv[])
 
             init_state(&st_null);
 
-            if (opt_hole)
-            {
-                const char *path = fs_resolve(opt_hole);
-                int loaded = 0;
-
-                if (path)
-                {
-                    hole_init(NULL);
-
-                    if (hole_load(0, path) &&
-                        hole_load(1, path) &&
-                        hole_goto(1, 1))
-                    {
-                        start_state = &st_next;
-                        loaded = 1;
-                    }
-                }
-
-                if (!loaded)
-                    start_state = &st_title;
-            }
-            else
-                start_state = &st_title;
+            start_state = goto_hole(opt_hole) ? &st_next : &st_title;
 
             /* Run the main game loop. */
 

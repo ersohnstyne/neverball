@@ -421,6 +421,7 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClInclude Include="..\share\solid_sim.h" />
     <ClInclude Include="..\share\solid_vary.h" />
     <ClInclude Include="..\share\state.h" />
+    <ClInclude Include="..\share\substr.h" />
     <ClInclude Include="..\share\st_package.h" />
     <ClInclude Include="..\share\st_common.h" />
     <ClInclude Include="..\share\st_end_support.h" />

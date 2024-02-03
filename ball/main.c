@@ -694,18 +694,74 @@ static int goto_level(const List *level_multi)
 
 /*---------------------------------------------------------------------------*/
 
-static int goto_level(const char *path)
+
+static int goto_level(const List* level_multi)
 {
-    /* HACK: must be around for the duration of the game. */
-    static struct level level;
+    if (level_multi == NULL) return 0;
 
-    if (path && level_load(path, &level))
+    List                p = NULL;
+    static struct level lvl_v[30];
+
+    int        lvl_count = 0;
+    static int lvl_count_loaded = 0;
+
+    static int lvl_classic = 0;
+    static int lvl_bonus = 0;
+
+    for (p = level_multi; p && lvl_count < 30; p = p->next)
     {
-        progress_init(MODE_STANDALONE);
+        struct level* lvl = &lvl_v[lvl_count_loaded];
 
-        if (progress_play(&level))
-            return 1;
+        const char* path = fs_resolve(p->data);
+
+        if (path &&
+            (str_ends_with(path, ".csol") ||
+                str_ends_with(path, ".sol")))
+        {
+            if (level_load(path, lvl))
+            {
+                /* No bonus or master levels allowed on this standalone */
+
+                if (!lvl->is_master && !lvl->is_bonus)
+                {
+                    if (lvl_count_loaded > 0)
+                    {
+                        memset(lvl_v[lvl_count_loaded - 1].next, 0, sizeof(struct level));
+                        lvl_v[lvl_count_loaded - 1].next = lvl;
+                    }
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sprintf_s(lvl->name, MAXSTR,
+#else
+                    sprintf(lvl->name,
+#endif
+                        "%d", lvl_count_loaded + 1);
+
+                    lvl_count_loaded++;
+                }
+                else memset(lvl, 0, sizeof(struct level));
+            }
+            else log_errorf("File %s is not in game path (at index %d)\n", p->data, lvl_count_loaded);
+        }
+        else log_errorf("File %s is not in game path (at index %d)\n", p->data, lvl_count_loaded);
+
+        lvl_count++;
     }
+
+    progress_init(MODE_STANDALONE);
+
+    /* Check whether standalone set is loaded correctly. */
+
+    if (lvl_count_loaded != 0 && progress_play(&lvl_v[0]))
+    {
+        /* Start standalone set! */
+
+        return 1;
+    }
+
+    /* ...otherwise go to main menu screen. */
+
+    progress_init(MODE_NONE);
 
     return 0;
 }
@@ -736,8 +792,8 @@ static int process_link(const char *link)
         /* Search installed sets and package list. */
 
         const size_t prefix_len = strcspn(link, "/");
-        const char *set_part = SUBSTR(link, 0, prefix_len);
-        const char *map_part = SUBSTR(link, prefix_len + 1, 64);
+        const char *set_part    = SUBSTR(link, 0, prefix_len);
+        const char *map_part    = SUBSTR(link, prefix_len + 1, 64);
 
         char *set_file = concat_string(set_part, ".txt", NULL);
 
@@ -755,6 +811,10 @@ static int process_link(const char *link)
             if (!career_unlocked)
             {
                 log_errorf("Complete the game in campaign mode to link the set reference!\n");
+
+                free(set_file);
+                set_file = NULL;
+
                 return 0;
             }
 #endif

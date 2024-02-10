@@ -19,9 +19,9 @@ static struct strbuf substr(const char *str, size_t start, size_t count)
 
         start = MIN(start, len);
         count = MIN(len - start, count);
-        count = MIN(sizeof(sb.buf), count);
+        count = MIN(sizeof (sb.buf), count);
 
-        if (count > 0)
+        if (count > 0 && count < 64)
         {
             memcpy(sb.buf, str + start, count);
             sb.buf[count] = 0;

@@ -15,18 +15,18 @@ static struct strbuf substr(const char *str, size_t start, size_t count)
 
     if (str)
     {
-        const size_t len = strlen(str);
+        const size_t max_start = strlen(str);
 
-        start = MIN(start, len);
-        count = MIN(len - start, count);
+        start = MIN(start, max_start);
+        count = MIN(count, max_start - start);
 
-        sb.buf = malloc(len + 1);
+        sb.buf = malloc(max_start + 1);
 
         if (sb.buf)
         {
-            count = MIN(sizeof (sb.buf), count);
+            count = MIN(count, sizeof (sb.buf));
 
-            if (count > 0 && count < len + 1)
+            if (count > 0 && count < max_start + 1)
             {
                 memcpy(sb.buf, str + start, count);
                 sb.buf[count] = 0;

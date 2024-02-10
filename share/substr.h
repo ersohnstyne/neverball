@@ -6,12 +6,12 @@
 
 struct strbuf
 {
-    char buf[64];
+    char *buf;
 };
 
 static struct strbuf substr(const char *str, size_t start, size_t count)
 {
-    struct strbuf sb = { "" };
+    struct strbuf sb = { NULL };
 
     if (str)
     {
@@ -19,12 +19,18 @@ static struct strbuf substr(const char *str, size_t start, size_t count)
 
         start = MIN(start, len);
         count = MIN(len - start, count);
-        count = MIN(sizeof (sb.buf), count);
 
-        if (count > 0 && count < 64)
+        sb.buf = malloc(len + 1);
+
+        if (sb.buf)
         {
-            memcpy(sb.buf, str + start, count);
-            sb.buf[count] = 0;
+            count = MIN(sizeof (sb.buf), count);
+
+            if (count > 0 && count < len + 1)
+            {
+                memcpy(sb.buf, str + start, count);
+                sb.buf[count] = 0;
+            }
         }
     }
 

@@ -434,7 +434,7 @@ ifeq ($(ENABLE_TILT),wii)
 	TILT_LIBS := -lcwiimote -lbluetooth
 else
 ifeq ($(ENABLE_TILT),wiiuse)
-	TILT_LIBS := -lwiiuse
+	TILT_LIBS := -lbluetooth
 else
 ifeq ($(ENABLE_TILT),loop)
 	TILT_LIBS := -lusb-1.0 -lfreespace

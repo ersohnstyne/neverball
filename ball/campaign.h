@@ -51,15 +51,15 @@ struct campaign_medal_data
 
 struct campaign_cam_box_trigger
 {
-    int activated;         /* Check if the cam box trigger is activated */
-    int inside;            /* Is the ball inside of it                  */
+    int activated;              /* Check if the cam box trigger is activated */
+    int inside;                 /* Is the ball inside of it                  */
 
     float positions[3];
     float triggerSize[3];
 
-    int cammode;           /* Uses multiple camera mode                 */
-    float campositions[3]; /* Uses camera stationary                    */
-    float camdirection;    /* Uses camera direction                     */
+    int cammode;                /* Uses multiple camera mode                 */
+    float campositions[3];      /* Uses camera stationary                    */
+    float camdirection;         /* Uses camera direction                     */
 };
 
 /*---------------------------------------------------------------------------*/
@@ -106,7 +106,7 @@ struct campaign_hardcore_mode campaign_get_hardcore_data(void);
 
 int campaign_load_camera_box_trigger(const char *levelname);
 void campaign_reset_camera_box_trigger(void);
-struct campaign_cam_box_trigger campaign_get_camera_box_trigger(int index);
+struct campaign_cam_box_trigger *campaign_get_camera_box_trigger(int index);
 int campaign_camera_box_trigger_count(void);
 int campaign_camera_box_trigger_test(struct s_vary *vary, int ui);
 

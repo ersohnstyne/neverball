@@ -624,7 +624,6 @@ video_mode_reconf:
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
-        glEnable(GL_LIGHTING);
         glEnable(GL_BLEND);
 
 #if !ENABLE_OPENGLES
@@ -1096,7 +1095,6 @@ video_mode_auto_config_reconf:
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
-        glEnable(GL_LIGHTING);
         glEnable(GL_BLEND);
 
 #if !ENABLE_OPENGLES
@@ -1365,7 +1363,6 @@ void video_set_wire(int wire)
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDisable(GL_TEXTURE_2D);
-        glDisable(GL_LIGHTING);
         viewport_wireframe = 1;
         glViewport(0, 0,
                    video.device_w * video.scale_w,
@@ -1375,7 +1372,6 @@ void video_set_wire(int wire)
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnable(GL_TEXTURE_2D);
-        glEnable(GL_LIGHTING);
         viewport_wireframe = 0;
         glViewport(0, 0,
                    video.device_w * video.scale_w,
@@ -1404,7 +1400,6 @@ void video_render_fill_or_line(int lined)
             render_line_overlay = 1;
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glDisable(GL_TEXTURE_2D);
-            glDisable(GL_LIGHTING);
             glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
         }
         else
@@ -1413,7 +1408,6 @@ void video_render_fill_or_line(int lined)
             render_fill_overlay = 1;
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glEnable(GL_TEXTURE_2D);
-            glEnable(GL_LIGHTING);
             glColor4ub(0x80, 0x80, 0x80, 0x80);
         }
     }
@@ -1424,7 +1418,6 @@ void video_render_fill_or_line(int lined)
         render_fill_overlay = 0;
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDisable(GL_TEXTURE_2D);
-        glDisable(GL_LIGHTING);
         if (viewport_wireframe == 2)
         {
             render_right_viewport = 1;
@@ -1444,7 +1437,6 @@ void video_render_fill_or_line(int lined)
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnable(GL_TEXTURE_2D);
-        glEnable(GL_LIGHTING);
         if (viewport_wireframe == 2)
         {
             render_left_viewport = 1;
@@ -1464,7 +1456,6 @@ void video_render_fill_or_line(int lined)
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnable(GL_TEXTURE_2D);
-        glEnable(GL_LIGHTING);
         glViewport(0, 0,
                    video.device_w * video.scale_w,
                    video.device_h * video.scale_h);

@@ -2329,7 +2329,6 @@ void gui_paint(int id)
     {
         video_push_ortho();
         {
-            glDisable(GL_LIGHTING);
             glDisable(GL_DEPTH_TEST);
             {
                 gui_animate(id);
@@ -2355,7 +2354,6 @@ void gui_paint(int id)
                            viewport_wireframe == 4 && render_fill_overlay == 1 ? 0x80 : 0xFF);
             }
             glEnable(GL_DEPTH_TEST);
-            glEnable(GL_LIGHTING);
         }
         video_pop_matrix();
     }
@@ -2365,7 +2363,6 @@ void gui_paint(int id)
     {
         video_push_ortho();
         {
-            glDisable(GL_LIGHTING);
             glDisable(GL_DEPTH_TEST);
 
             draw_enable(GL_TRUE, GL_TRUE, GL_TRUE);
@@ -2393,7 +2390,6 @@ void gui_paint(int id)
             glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], gui_wht[3]);
 
             glEnable(GL_DEPTH_TEST);
-            glEnable(GL_LIGHTING);
         }
         video_pop_matrix();
     }

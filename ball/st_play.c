@@ -141,7 +141,6 @@ static void __countdown_preparation_draw()
         );
         glTranslatef(video.device_w / 2.0f, video.device_h / 2.0f, 0.0f);
 
-        glDisable(GL_LIGHTING);
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_TEXTURE_2D);
         glBegin(GL_TRIANGLE_STRIP);
@@ -158,7 +157,6 @@ static void __countdown_preparation_draw()
         glEnd();
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_DEPTH_TEST);
-        glEnable(GL_LIGHTING);
 
         video_pop_matrix();
     }

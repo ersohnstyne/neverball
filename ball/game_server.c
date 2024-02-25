@@ -933,8 +933,11 @@ void game_server_free(const char *next)
 
 /*
  * https://easings.net/#easeInOutBack
+ * This function is deprecated and will be replaced onto game_easing_view
  */
-static float easeInOutBack(float x)
+#define easeInOutBack game_easing_in_out_back_view
+
+static float game_easing_in_out_back_view(float x)
 {
     const float c1 = 1.70158f;
     const float c2 = c1 * 1.525f;
@@ -981,17 +984,34 @@ void game_update_view(float dt)
     {
         if (ui != CURR_PLAYER) continue;
 
-        /* Switchball uses an automatic camera. */
+        /*
+         * Switchball uses an automatic camera.
+         *
+         * Using modified camera speed value from the neverballrc
+         * does not offer within fixed value by the Switchball.
+         */
 
-        float spd = (float) cam_speed(input_get_c() == CAM_AUTO ?
-                                      automode : input_get_c()) / 1000.0f;
+        float spd = -1.0f;
 
-        if (input_get_c() != CAM_AUTO &&
-            automode != input_get_c())
-            automode = input_get_c();
+        if (input_get_c() == CAM_AUTO)
+        {
+            switch (automode)
+            {
+                case CAM_1: spd =   0.25f; break;
+                case CAM_2: spd =    0.0f; break;
+                case CAM_3: spd = -0.001f; break;
+            }
+        }
+        else if (input_get_c() != CAM_AUTO)
+        {
+            if (automode != input_get_c())
+                automode = input_get_c();
+
+            spd = (float) cam_speed(input_get_c()) / 1000.0f;
+        }
 
 #pragma region Camera Modes
-        fix_cam_used[ui] = spd <= 0 && !(spd < 0);
+        fix_cam_used[ui] = spd <= -5.0e-4f && !(spd < -5.0e-4f);
 
         if (fix_cam_lock[ui])
             fix_cam_alpha[ui] = 1;
@@ -1008,7 +1028,7 @@ void game_update_view(float dt)
 #pragma endregion
 
 #pragma region Static camera
-        if (spd <= 0 && !(spd < 0))
+        if (spd <= -5.0e-4f && !(spd < -5.0e-4f))
             v_lerp(fix_cam_pos, fix_cam_pos, fix_cam_pos_targ[ui], dt);
 
         float c0[3] = { 0.0f, 0.0f, 0.0f };
@@ -1136,7 +1156,8 @@ void game_update_view(float dt)
          * Camera rotation must be freeze: jump_b == 0
          */
 
-        if (spd < 0 && input_get_c() == CAM_AUTO && jump_b == 0)
+        if (spd < 0 && jump_b == 0 &&
+            input_get_c() == CAM_AUTO)
         {
             if (da == 0.0f && jump_b == 0)
             {
@@ -1149,8 +1170,8 @@ void game_update_view(float dt)
 
                 /* Multiply the speeds */
 
-                direction_v[2] = fcosf(last_diraxis / +180 * V_PI) / 10000;
-                direction_v[0] = fsinf(last_diraxis / -180 * V_PI) / 10000;
+                direction_v[2] = fcosf(last_diraxis / +180 * V_PI) * 2.5f;
+                direction_v[0] = fsinf(last_diraxis / -180 * V_PI) * 2.5f;
 
                 /* Gradually restore view vector convergence rate. */
 
@@ -1158,7 +1179,7 @@ void game_update_view(float dt)
                 s = CLAMP(0.0f, s, 1.0f);
 
                 v_mad(multiview1.e[2], multiview1.e[2],
-                      direction_v, v_len(direction_v) / 2000 * s * dt);
+                      direction_v, v_len(direction_v) * s * dt);
             }
         }
 
@@ -1363,32 +1384,30 @@ static int game_update_state(int bt)
         }
     }
 
-    if (vx < -0.1f || vx > -0.1f || vz < -0.1f || vz > -0.1f)
-    {
 #if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
-        if (bt && (cami = campaign_camera_box_trigger_test(&vary, 0)) != -1)
+    if (bt && (cami = campaign_camera_box_trigger_test(&vary, 0)) != -1)
+    {
+        struct campaign_cam_box_trigger *camtrigger = campaign_get_camera_box_trigger(cami);
+
+        if (camtrigger->inside)
         {
-            if (campaign_get_camera_box_trigger(cami).inside)
+            automode = camtrigger->cammode;
+
+            if (last_diraxis !=
+                camtrigger->camdirection)
             {
-                automode = campaign_get_camera_box_trigger(cami).cammode;
-
-                if (last_diraxis !=
-                    campaign_get_camera_box_trigger(cami).camdirection)
-                {
-                    view_fade    = CLAMP(VIEW_FADE_MIN, -view_time, VIEW_FADE_MAX);
-                    view_time    = 0.0f;
-                    last_diraxis = campaign_get_camera_box_trigger(cami).camdirection;
-                }
-
-                if (campaign_get_camera_box_trigger(cami).campositions[0] != 0 &&
-                    campaign_get_camera_box_trigger(cami).campositions[1] != 0 &&
-                    campaign_get_camera_box_trigger(cami).campositions[2] != 0)
-                    v_cpy(fix_cam_pos_targ[CURR_PLAYER],
-                          campaign_get_camera_box_trigger(cami).campositions);
+                view_fade    = CLAMP(VIEW_FADE_MIN, -view_time, VIEW_FADE_MAX);
+                view_time    = 0.0f;
+                last_diraxis = camtrigger->camdirection;
             }
+
+            if (camtrigger->campositions[0] != 0 &&
+                camtrigger->campositions[1] != 0 &&
+                camtrigger->campositions[2] != 0)
+                v_cpy(fix_cam_pos_targ[CURR_PLAYER], camtrigger->campositions);
         }
-#endif
     }
+#endif
 
     /* Test for a switch. */
 

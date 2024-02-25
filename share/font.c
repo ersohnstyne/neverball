@@ -46,7 +46,7 @@ int font_load(struct font *ft, const char *path, int sizes[FONT_SIZE_MAX])
     {
         if (ft && path && *path)
         {
-            memset(ft, 0, sizeof(*ft));
+            memset(ft, 0, sizeof (*ft));
 
             if ((ft->data = fs_load(path, &ft->datalen)))
             {

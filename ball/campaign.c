@@ -317,7 +317,7 @@ static int get_stats(fs_file fp, struct level *l)
 {
     char line[MAXSTR];
 
-    if (!fs_gets(line, sizeof(line), fp))
+    if (!fs_gets(line, sizeof (line), fp))
         return 0;
 
     strip_newline(line);
@@ -494,8 +494,8 @@ static void campaign_load_hs(void)
             {
                 switch (time_trial_version)
                 {
-                    case 2: campaign_load_hs_v2(fp, buf, sizeof(buf)); break;
-                    /* case 3: campaign_load_hs_v3(fp, buf, sizeof(buf)); break; */
+                    case 2: campaign_load_hs_v2(fp, buf, sizeof (buf)); break;
+                    /* case 3: campaign_load_hs_v3(fp, buf, sizeof (buf)); break; */
                 }
             }
             else
@@ -930,7 +930,7 @@ int campaign_load_camera_box_trigger(const char *levelname)
 #else
             if (sscanf(camLinePrefix,
 #endif
-                       "pos:%f %f %f size:%f %f %f mode:%d campos:%f %f %f dir:%f",
+                       "pos:%f %f %f size:%f %f %f mode:%i campos:%f %f %f dir:%f",
                        &cam_box_triggers[camBoxIdx].positions[0], &cam_box_triggers[camBoxIdx].positions[2], &cam_box_triggers[camBoxIdx].positions[1],
                        &cam_box_triggers[camBoxIdx].triggerSize[0], &cam_box_triggers[camBoxIdx].triggerSize[2], &cam_box_triggers[camBoxIdx].triggerSize[1],
                        &cam_box_triggers[camBoxIdx].cammode,
@@ -986,9 +986,9 @@ void campaign_reset_camera_box_trigger(void)
     }
 }
 
-struct campaign_cam_box_trigger campaign_get_camera_box_trigger(int index)
+struct campaign_cam_box_trigger *campaign_get_camera_box_trigger(int index)
 {
-    return cam_box_triggers[index];
+    return &cam_box_triggers[index];
 }
 
 int campaign_camera_box_trigger_count(void)
@@ -1010,11 +1010,12 @@ int campaign_camera_box_trigger_test(struct s_vary *vary, int ui)
             cam_box_trigger_test_master(ball_p, localcamboxtrigger, 2))
         {
             cam_box_triggers[camidx].activated = -1;
-            cam_box_triggers[camidx].inside    = 1;
+            cam_box_triggers[camidx].inside    =  1;
             return camidx;
         }
-        else if (cam_box_triggers[camidx].inside != 0 &&
-                 cam_box_triggers[camidx].activated == -1)
+
+        if (cam_box_triggers[camidx].inside    != 0 &&
+            cam_box_triggers[camidx].activated == -1)
         {
             cam_box_triggers[camidx].activated = 1;
             cam_box_triggers[camidx].inside    = 0;

@@ -76,7 +76,7 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
 
     /* Phase 2: Backup the camera view */
     
-    memset(&last_view, 0, sizeof(saved_view));
+    memset(&last_view, 0, sizeof (saved_view));
     last_view[ui].a = saved_view.a;
 
     while (last_view[ui].a > 180.0f)

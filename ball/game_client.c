@@ -636,8 +636,7 @@ void game_client_draw(int pose, float t)
     if (gd.state)
         game_lerp_apply(&gl, &gd);
 
-    if (pose == POSE_NONE)
-        game_draw(&gd, ball_visible ? pose : POSE_LEVEL, t);
+    game_draw(&gd, ball_visible ? pose : POSE_LEVEL, t);
 }
 
 /*---------------------------------------------------------------------------*/

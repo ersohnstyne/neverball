@@ -133,8 +133,10 @@ static void game_draw_chnk_balls(struct s_rend *rend,
 
     /* New: Floor border damage. */
 
-    float Y = 0;
+    float Y = -65536;
+
     if (base->vc > 0) Y = base->vv[0].p[1];
+
     if (base->uv[0].p[1] < Y) return;
 
     glPushMatrix();
@@ -164,8 +166,11 @@ static void game_draw_chnk_jumps(struct s_rend *rend,
 
     /* New: Floor border damage. */
 
-    float Y = 0;
+    float Y = -65536;
+
     if (base->vc > 0) Y = base->vv[0].p[1];
+
+    if (base->uv[0].p[1] < Y) return;
 
     for (int i = 0; i < base->jc; i++)
     {
@@ -199,8 +204,11 @@ static void game_draw_chnk_goals(struct s_rend *rend,
 
     /* New: Floor border damage. */
 
-    float Y = 0;
+    float Y = -65536;
+
     if (base->vc > 0) Y = base->vv[0].p[1];
+
+    if (base->uv[0].p[1] < Y) return;
 
     for (int i = 0; i < base->zc; i++)
     {
@@ -234,8 +242,11 @@ static void game_draw_chnk_swchs(struct s_rend *rend,
 
     /* New: Floor border damage. */
 
-    float Y = 0;
+    float Y = -65536;
+
     if (base->vc > 0) Y = base->vv[0].p[1];
+
+    if (base->uv[0].p[1] < Y) return;
 
     for (int i = 0; i < base->xc; i++)
     {
@@ -270,8 +281,11 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
 
     /* New: Floor border damage. */
 
-    float Y = 0;
+    float Y = -65536;
+
     if (base->vc > 0) Y = base->vv[0].p[1];
+
+    if (base->uv[0].p[1] < Y) return;
 
     for (int i = 0; i < base->cc; i++)
     {
@@ -339,7 +353,8 @@ static void game_draw_items(struct s_rend *rend,
 
     const struct s_base *base = vary->base;
 
-    float Y = 65536;
+    float Y = -65536;
+
     if (base->vc > 0) Y = base->vv[0].p[1];
 
     int hi;
@@ -394,7 +409,7 @@ static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
 
     /* New: Floor border damage. */
 
-    float Y = 65536;
+    float Y = -65536;
     if (base->vc > 0) Y = base->vv[0].p[1];
 
     /* Goal beams */
@@ -441,7 +456,8 @@ static void game_draw_goals(struct s_rend *rend,
 
     /* New: Floor border damage. */
 
-    float Y = 65536;
+    float Y = -65536;
+
     if (base->vc > 0) Y = base->vv[0].p[1];
 
     int i;
@@ -459,7 +475,8 @@ static void game_draw_jumps(struct s_rend *rend,
 
     /* New: Floor border damage. */
 
-    float Y = 65536;
+    float Y = -65536;
+
     if (base->vc > 0) Y = base->vv[0].p[1];
 
     int i;
@@ -477,7 +494,8 @@ static void game_draw_chkps(struct s_rend *rend,
 
     /* New: Floor border damage. */
 
-    float Y = 65536;
+    float Y = -65536;
+
     if (base->vc > 0) Y = base->vv[0].p[1];
 
     int i;
@@ -665,11 +683,9 @@ static void game_draw_fore(struct s_rend *rend,
         game_clip_refl(d);
         game_clip_ball(gd, d, ball_p);
 
-        if (d < 0)
-            glEnable(GL_CLIP_PLANE0);
+        if (d < 0) glEnable(GL_CLIP_PLANE0);
 
-        if (!config_cheat())
-            glEnable(GL_FOG);
+        if (!config_cheat()) glEnable(GL_FOG);
 
         switch (pose)
         {
@@ -692,7 +708,7 @@ static void game_draw_fore(struct s_rend *rend,
                     glDepthMask(GL_TRUE);
                 }
                 game_draw_balls(rend, draw->vary, M, t);
-            break;
+                break;
 
             case POSE_NONE:
                 /* Draw the coins. */
@@ -714,14 +730,10 @@ static void game_draw_fore(struct s_rend *rend,
         {
             /* Draw the billboards, entity beams, and coin particles. */
 
-            glDisable(GL_LIGHTING);
-            {
-                sol_bill(draw, rend, M, t);
+            sol_bill(draw, rend, M, t);
 
-                game_draw_beams(rend, gd);
-                part_draw_coin (rend);
-            }
-            glEnable(GL_LIGHTING);
+            game_draw_beams(rend, gd);
+            part_draw_coin(rend);
 
             /* Draw the entity particles using only the sparkle light. */
 
@@ -741,11 +753,9 @@ static void game_draw_fore(struct s_rend *rend,
         }
         glDepthMask(GL_TRUE);
 
-        if (!config_cheat())
-            glDisable(GL_FOG);
+        if (!config_cheat()) glDisable(GL_FOG);
 
-        if (d < 0)
-            glDisable(GL_CLIP_PLANE0);
+        if (d < 0) glDisable(GL_CLIP_PLANE0);
     }
     glPopMatrix();
 }
@@ -770,10 +780,7 @@ static void game_draw_fore_chnk(struct s_rend *rend,
         game_clip_refl(d);
         game_clip_ball(gd, d, ball_p);
 
-        if (d < 0)
-            glEnable(GL_CLIP_PLANE0);
-
-        /* if (!config_cheat()) glEnable(GL_FOG); */
+        if (d < 0) glEnable(GL_CLIP_PLANE0);
 
         switch (pose)
         {
@@ -781,46 +788,33 @@ static void game_draw_fore_chnk(struct s_rend *rend,
                 /* No render available for map chunk overview. */
                 break;
 
-            case POSE_LEVEL:
-            case POSE_NONE:
+            default:
                 sol_draw(draw, rend, 0, 1);
-                break;
         }
 
         glDepthMask(GL_FALSE);
         {
             /* Draw the billboards only. */
 
-            glDisable(GL_LIGHTING);
-            {
-                sol_bill(draw, rend, M, t);
-            }
-            glEnable(GL_LIGHTING);
+            sol_bill(draw, rend, M, t);
         }
         glDepthMask(GL_TRUE);
 
-        /* if (!config_cheat()) glDisable(GL_FOG); */
-
-        if (d < 0)
-            glDisable(GL_CLIP_PLANE0);
+        if (d < 0) glDisable(GL_CLIP_PLANE0);
 
         glDepthMask(GL_FALSE);
         {
             /* Draw the map chunk overview. */
 
-            glDisable(GL_LIGHTING);
-            {
-                game_draw_chnk_floor(rend, &gd->vary, M, t);
-                game_draw_chnk_rings(rend, &gd->vary, M, t);
-                game_draw_chnk_balls(rend, &gd->vary, M, t);
-                game_draw_chnk_jumps(rend, &gd->vary, M, t);
-                game_draw_chnk_goals(rend, &gd->vary, M, t);
-                game_draw_chnk_swchs(rend, &gd->vary, M, t);
+            game_draw_chnk_floor(rend, &gd->vary, M, t);
+            game_draw_chnk_rings(rend, &gd->vary, M, t);
+            game_draw_chnk_balls(rend, &gd->vary, M, t);
+            game_draw_chnk_jumps(rend, &gd->vary, M, t);
+            game_draw_chnk_goals(rend, &gd->vary, M, t);
+            game_draw_chnk_swchs(rend, &gd->vary, M, t);
 #ifdef MAPC_INCLUDES_CHKP 
-                game_draw_chnk_chkps(rend, &gd->vary, M, t);
+            game_draw_chnk_chkps(rend, &gd->vary, M, t);
 #endif
-            }
-            glEnable(GL_LIGHTING);
         }
         glDepthMask(GL_TRUE);
     }
@@ -942,6 +936,12 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
                 game_draw_light(gd, 1, t);
 
+                if (gd->draw.reflective && config_get_d(CONFIG_REFLECTION))
+                {
+                    glEnable(GL_STENCIL_TEST);
+                    glDisable(GL_STENCIL_TEST);
+                }
+
                 r_color_mtrl(&rend, 1);
                 {
                     glColor4ub   (0, 0, 0, 0xFF);
@@ -1019,9 +1019,11 @@ void game_draw(struct game_draw *gd, int pose, float t)
                 /* Draw the mirrors and the rest of the foreground. */
 
                 game_refl_all(&rend, gd, 0);
-                if (!config_cheat())
-                    glEnable(GL_FOG);
+
+                if (!config_cheat()) glEnable(GL_FOG);
+
                 game_draw_fore(&rend, gd, pose, T, +1, t, 0);
+
                 glDisable(GL_FOG);
             }
         }

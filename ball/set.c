@@ -202,7 +202,7 @@ static int get_stats(fs_file fp, struct level *l)
 {
     char line[MAXSTR];
 
-    if (!fs_gets(line, sizeof(line), fp))
+    if (!fs_gets(line, sizeof (line), fp))
         return 0;
 
     strip_newline(line);

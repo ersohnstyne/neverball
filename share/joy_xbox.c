@@ -62,9 +62,9 @@ int joy_init(void)
     for (int i = 0; i < JOY_MAX; i++)
     {
         memset(&joysticks[i].battery_info, 0,
-               sizeof(XINPUT_BATTERY_INFORMATION));
-        memset(&joysticks[i].curr_state, 0, sizeof(XINPUT_STATE));
-        memset(&joysticks[i].prev_state, 0, sizeof(XINPUT_STATE));
+               sizeof (XINPUT_BATTERY_INFORMATION));
+        memset(&joysticks[i].curr_state, 0, sizeof (XINPUT_STATE));
+        memset(&joysticks[i].prev_state, 0, sizeof (XINPUT_STATE));
         joysticks[i].id = -1;
     }
 
@@ -125,9 +125,9 @@ void joy_remove(int instance)
         if (joysticks[i].id == instance && joysticks[i].id != -1)
         {
             memset(&joysticks[i].battery_info, 0,
-                   sizeof(XINPUT_BATTERY_INFORMATION));
-            memset(&joysticks[i].curr_state, 0, sizeof(XINPUT_STATE));
-            memset(&joysticks[i].prev_state, 0, sizeof(XINPUT_STATE));
+                   sizeof (XINPUT_BATTERY_INFORMATION));
+            memset(&joysticks[i].curr_state, 0, sizeof (XINPUT_STATE));
+            memset(&joysticks[i].prev_state, 0, sizeof (XINPUT_STATE));
             joysticks[i].id = -1;
 
             log_printf("XInput: Joystick closed (instance %d)\n", instance);
@@ -255,7 +255,7 @@ int  joy_update(void)
             PXINPUT_STATE currState = &joysticks[i].curr_state;
             PXINPUT_STATE prevState = &joysticks[i].prev_state;
 
-            if (memcmp(prevState, currState, sizeof(*currState)) != 0)
+            if (memcmp(prevState, currState, sizeof (*currState)) != 0)
             {
                 float currLX = currState->Gamepad.sThumbLX;
                 float currLY = -currState->Gamepad.sThumbLY;
@@ -342,7 +342,7 @@ int  joy_update(void)
                     }
                 }
 
-                memcpy(prevState, currState, sizeof(*currState));
+                memcpy(prevState, currState, sizeof (*currState));
             }
         }
         else if (joysticks[i].id != -1)

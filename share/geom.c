@@ -613,9 +613,7 @@ void goal_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h, GLfl
         {
             float M[16];
             m_ident(M);
-            glDisable(GL_LIGHTING);
             sol_bill(&goal.draw, rend, M, t);
-            glEnable(GL_LIGHTING);
         }
 
         sol_draw(&goal.draw, rend, 1, 1);
@@ -638,9 +636,7 @@ void jump_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h, GLfl
         {
             float M[16];
             m_ident(M);
-            glDisable(GL_LIGHTING);
             sol_bill(&jump.draw, rend, M, t);
-            glEnable(GL_LIGHTING);
         }
 
         sol_draw(&jump.draw, rend, 1, 1);
@@ -691,7 +687,6 @@ void back_draw(struct s_rend *rend)
 {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
-    glDisable(GL_LIGHTING);
     glDepthMask(GL_FALSE);
 
     glPushMatrix();
@@ -702,7 +697,6 @@ void back_draw(struct s_rend *rend)
     glPopMatrix();
 
     glDepthMask(GL_TRUE);
-    glEnable(GL_LIGHTING);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 }

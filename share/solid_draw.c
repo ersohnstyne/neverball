@@ -406,8 +406,6 @@ static void sol_load_mesh(struct d_mesh *mp,
                 sol_mesh_geom(vv, &vn, gv, &gn, draw->base, iv,
                               draw->base->lv[bp->l0 + li].g0,
                               draw->base->lv[bp->l0 + li].gc, mi, mp);
-            else
-                log_errorf("draw->base->lv returned NULL!\n");
         }
 
         /* Include all matching body geoms in the arrays. */
@@ -452,7 +450,8 @@ static void sol_draw_mesh(const struct d_mesh *mp,
 {
     /* Mtrl references needed. */
 
-    if (!mp || !rend) return;
+    if (!mp)
+        return;
 
     /* If this mesh has material matching the given flags... */
 
@@ -486,7 +485,7 @@ static void sol_draw_mesh(const struct d_mesh *mp,
 
         /* Draw the mesh. */
         
-        if (rend->curr_mtrl.base.fl & M_PARTICLE)
+        if (rend && rend->curr_mtrl.base.fl & M_PARTICLE)
             glDrawArrays(GL_POINTS, 0, mp->vbc);
         else
             glDrawElements(GL_TRIANGLES, mp->ebc, GL_UNSIGNED_SHORT, 0);
@@ -542,6 +541,11 @@ static void sol_free_body(struct d_body *bp)
 
 static void sol_draw_body(const struct d_body *bp, struct s_rend *rend, int p)
 {
+    /* Body references needed. */
+
+    if (!bp)
+        return;
+
     int i;
 
     for (i = 0; i < bp->mc; ++i)
@@ -552,6 +556,9 @@ static void sol_draw_body(const struct d_body *bp, struct s_rend *rend, int p)
 
 int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
 {
+    if (!vary || !vary->base)
+        return 0;
+
     int i;
 
     memset(draw, 0, sizeof (struct s_draw));
@@ -613,16 +620,16 @@ void sol_free_draw(struct s_draw *draw)
 
 static void sol_draw_all(const struct s_draw *draw, struct s_rend *rend, int p)
 {
-    if (draw == NULL) return;
-    if (draw->vary == NULL) return;
-    if (draw->vary->bv == NULL) return;
+    if (!draw || !draw->bv)
+        return;
 
     int bi;
 
     /* Draw all meshes of all bodies matching the given material flags. */
 
     for (bi = 0; bi < draw->bc; ++bi)
-        if (draw->bv[bi].pass[p])
+        if (draw->bv[bi].pass[p] &&
+            draw->vary && draw->vary->bv)
         {
             glPushMatrix();
             {
@@ -639,7 +646,8 @@ void sol_draw(const struct s_draw *draw, struct s_rend *rend, int mask, int test
 {
     /* Disable shadowed material setup if not requested. */
 
-    rend->skip_flags |= (draw->shadowed ? 0 : M_SHADOWED);
+    if (rend)
+        rend->skip_flags |= (draw->shadowed ? 0 : M_SHADOWED);
 
     /* Render all opaque geometry, decals last. */
 
@@ -662,14 +670,16 @@ void sol_draw(const struct s_draw *draw, struct s_rend *rend, int mask, int test
     glBindBuffer_(GL_ARRAY_BUFFER,         0);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    rend->skip_flags = 0;
+    if (rend)
+        rend->skip_flags = 0;
 }
 
 void sol_refl(const struct s_draw *draw, struct s_rend *rend)
 {
     /* Disable shadowed material setup if not requested. */
 
-    rend->skip_flags |= (draw->shadowed ? 0 : M_SHADOWED);
+    if (rend)
+        rend->skip_flags |= (draw->shadowed ? 0 : M_SHADOWED);
 
     /* Render all reflective geometry. */
 
@@ -680,17 +690,17 @@ void sol_refl(const struct s_draw *draw, struct s_rend *rend)
     glBindBuffer_(GL_ARRAY_BUFFER,         0);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    rend->skip_flags = 0;
+    if (rend)
+        rend->skip_flags = 0;
 }
 
 void sol_back(const struct s_draw *draw,
               struct s_rend *rend,
               float n, float f, float t)
 {
-    if (!(draw && draw->base && draw->base->rc))
+    if (!draw)
         return;
 
-    glDisable(GL_LIGHTING);
     glDepthMask(GL_FALSE);
 
     sol_bill_enable(draw);
@@ -699,7 +709,7 @@ void sol_back(const struct s_draw *draw,
 
         /* Consider each billboard. */
 
-        for (ri = 0; ri < draw->base->rc; ri++)
+        if (draw->base) for (ri = 0; ri < draw->base->rc; ri++)
         {
             const struct b_bill *rp = draw->base->rv + ri;
 
@@ -751,20 +761,19 @@ void sol_back(const struct s_draw *draw,
     sol_bill_disable();
 
     glDepthMask(GL_TRUE);
-    glEnable(GL_LIGHTING);
 }
 
 void sol_bill(const struct s_draw *draw,
               struct s_rend *rend, const float *M, float t)
 {
-    if (!(draw && draw->base && draw->base->rc))
+    if (!draw)
         return;
 
     sol_bill_enable(draw);
     {
         int ri;
 
-        for (ri = 0; ri < draw->base->rc; ++ri)
+        if (draw->base) for (ri = 0; ri < draw->base->rc; ++ri)
         {
             const struct b_bill *rp = draw->base->rv + ri;
 
@@ -822,7 +831,6 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
         glPushMatrix();
         glLoadIdentity();
         {
-            glDisable(GL_LIGHTING);
             glDisable(GL_DEPTH_TEST);
             glDisable(GL_TEXTURE_2D);
 
@@ -841,7 +849,6 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
 
             glEnable(GL_TEXTURE_2D);
             glEnable(GL_DEPTH_TEST);
-            glEnable(GL_LIGHTING);
         }
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
@@ -872,6 +879,9 @@ int sol_load_full(struct s_full *full, const char *filename, int s)
 
 void sol_free_full(struct s_full *full)
 {
+    if (!full)
+        return;
+
     sol_free_draw(&full->draw);
     sol_free_vary(&full->vary);
     sol_free_base(&full->base);
@@ -926,6 +936,9 @@ static void assert_mtrl(const struct mtrl *mp)
 
 void r_color_mtrl(struct s_rend *rend, int enable)
 {
+    if (!rend)
+        return;
+
     if (enable)
     {
         glEnable(GL_COLOR_MATERIAL);
@@ -949,6 +962,9 @@ void r_color_mtrl(struct s_rend *rend, int enable)
 
 void r_apply_mtrl(struct s_rend *rend, int mi)
 {
+    if (!rend)
+        return;
+
     struct mtrl *mp = mtrl_get(mi);
     struct mtrl *mq = &rend->curr_mtrl;
 
@@ -1094,9 +1110,17 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
 #endif
         }
         else
-        {
             glDisable(GL_POINT_SPRITE);
-        }
+    }
+
+    /* Lighting. */
+
+    if ((mp_flags & M_LIT) ^ (mq_flags & M_LIT))
+    {
+        if (mp_flags & M_LIT)
+            glEnable(GL_LIGHTING);
+        else
+            glDisable(GL_LIGHTING);
     }
 
     /* Update current material state. */

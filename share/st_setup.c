@@ -289,7 +289,7 @@ static const char *get_updated_url(const char *filename)
     if (filename && *filename)
     {
         static char url[MAXSTR];
-        memset(url, 0, sizeof(url));
+        memset(url, 0, sizeof (url));
 
 #if NB_HAVE_PB_BOTH==1
         SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/update/");
@@ -310,7 +310,7 @@ static const char *get_updated_path(const char *filename)
     {
         static char path[MAXSTR];
 
-        memset(path, 0, sizeof(path));
+        memset(path, 0, sizeof (path));
 
         SAFECPY(path, "GameUpdate/");
         SAFECAT(path, filename);
@@ -340,7 +340,7 @@ static int load_updated_version(void)
             new_revision = 0,
             new_build = 0;
 
-        while (fs_gets(line, sizeof(line), fp))
+        while (fs_gets(line, sizeof (line), fp))
         {
             strip_newline(line);
 

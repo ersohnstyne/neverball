@@ -348,11 +348,11 @@ static int load_installed_packages(void)
     {
         char line[MAXSTR] = "";
 
-        Array pkgs = array_new(sizeof(struct local_package));
+        Array pkgs = array_new(sizeof (struct local_package));
         struct local_package* lpkg = NULL;
         int i, n;
 
-        while (fs_gets(line, sizeof(line), fp))
+        while (fs_gets(line, sizeof (line), fp))
         {
             strip_newline(line);
 
@@ -383,7 +383,7 @@ static int load_installed_packages(void)
                     if ((delim = strrchr(lpkg->filename, '-')))
                     {
                         size_t len = delim - lpkg->filename;
-                        memcpy(lpkg->id, lpkg->filename, MIN(sizeof(lpkg->id) - 1, len));
+                        memcpy(lpkg->id, lpkg->filename, MIN(sizeof (lpkg->id) - 1, len));
                     }
 
                     lpkg = NULL;
@@ -563,10 +563,10 @@ static Array load_packages_from_file(const char *filename)
                     prefix_len = strcspn(pkg->id, "-");
 #if _MSC_VER && _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                     strncpy_s(pkg->type, 64,
-                              pkg->id, MIN(sizeof(pkg->type) - 1, prefix_len));
+                              pkg->id, MIN(sizeof (pkg->type) - 1, prefix_len));
 #else
                     strncpy(pkg->type,
-                            pkg->id, MIN(sizeof(pkg->type) - 1, prefix_len));
+                            pkg->id, MIN(sizeof (pkg->type) - 1, prefix_len));
 #endif
                     pkg->size = 0;
                     pkg->filename[0] = 0;

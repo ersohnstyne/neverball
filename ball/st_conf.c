@@ -77,8 +77,9 @@ struct state st_conf_covid_extend;
 struct state st_conf_social;
 struct state st_conf_notification;
 struct state st_conf_control;
-struct state st_conf_calibrate;
+struct state st_conf_keybd;
 struct state st_conf_controllers;
+struct state st_conf_calibrate;
 struct state st_conf_audio;
 
 /*---------------------------------------------------------------------------*/
@@ -988,6 +989,7 @@ enum
     CONF_CONTROL_CAMERA_ROTATE_MODE,
     CONF_CONTROL_MOUSE_SENSE,
     CONF_CONTROL_INVERT_MOUSE_Y,
+    CONF_CONTROL_CHANGEKEYBD,
     CONF_CONTROL_CHANGECONTROLLERS,
     CONF_CONTROL_CALIBRATE
 };
@@ -1150,6 +1152,10 @@ static int conf_control_action(int tok, int val)
             goto_state_full(&st_conf_control, 0, 0, 1);
         break;
 
+        case CONF_CONTROL_CHANGEKEYBD:
+            goto_state(&st_conf_keybd);
+            break;
+
         case CONF_CONTROL_CHANGECONTROLLERS:
             goto_state(&st_conf_controllers);
             break;
@@ -1239,6 +1245,10 @@ int conf_control_gui(void)
 #endif
         }
 
+        gui_space(id);
+
+        conf_state(id, _("Keyboard"), _("Change"), CONF_CONTROL_CHANGEKEYBD);
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform != PLATFORM_PC)
 #endif
@@ -1262,6 +1272,260 @@ static int conf_control_enter(struct state *st, struct state *prev)
 
     conf_common_init(conf_control_action, mainmenu_conf);
     return conf_control_gui();
+}
+
+/*---------------------------------------------------------------------------*/
+
+enum
+{
+    CONF_KEYBD_ASSIGN_KEY = GUI_LAST,
+};
+
+static struct state *conf_keybd_back;
+
+static int conf_keybd_modal_key_id;
+
+static int conf_keybd_modal;
+
+static int conf_keybd_option_index;
+
+static float keybd_modal_alpha = 0.0f;
+
+static const char* conf_keybd_option_names[] = {
+    N_("Auto-Camera"),
+    N_("KEYBD_KEY_CAM_1"),
+    N_("KEYBD_KEY_CAM_2"),
+    N_("KEYBD_KEY_CAM_3"),
+    "",
+    N_("Restart Level"),
+    "",
+    N_("Tilt/Roll Forward"),
+    N_("Tilt/Roll Backward"),
+    N_("Tilt/Roll Left"),
+    N_("Tilt/Roll Right"),
+    "",
+    N_("Rotate Left"),
+    N_("Rotate Right")
+};
+
+static int *conf_keybd_options[] = {
+    &CONFIG_KEY_CAMERA_TOGGLE,
+    &CONFIG_KEY_CAMERA_1,
+    &CONFIG_KEY_CAMERA_2,
+    &CONFIG_KEY_CAMERA_3,
+    NULL,
+    &CONFIG_KEY_RESTART,
+    NULL,
+    &CONFIG_KEY_FORWARD,
+    &CONFIG_KEY_BACKWARD,
+    &CONFIG_KEY_LEFT,
+    &CONFIG_KEY_RIGHT,
+    NULL,
+    &CONFIG_KEY_CAMERA_L,
+    &CONFIG_KEY_CAMERA_R
+};
+
+static int conf_keybd_option_ids[ARRAYSIZE(conf_keybd_options)];
+
+static void conf_keybd_set_label(int id, int value)
+{
+    gui_set_label(id, SDL_GetKeyName(value));
+}
+
+static void conf_keybd_set_option(int index, int value)
+{
+    if (index < ARRAYSIZE(conf_keybd_options))
+    {
+        int option = *conf_keybd_options[index];
+
+        config_set_d(option, value);
+
+        conf_keybd_set_label(conf_keybd_option_ids[index], value);
+
+        /* Focus the next button. */
+
+        if (index < ARRAYSIZE(conf_keybd_options) - 1)
+        {
+            /* Skip over marker, if any. */
+
+            if (index < ARRAYSIZE(conf_keybd_options) - 2 &&
+                conf_keybd_options[index + 1] == NULL)
+                gui_focus(conf_keybd_option_ids[index + 2]);
+            else
+                gui_focus(conf_keybd_option_ids[index + 1]);
+        }
+    }
+}
+
+static int conf_keybd_action(int tok, int val)
+{
+    GENERIC_GAMEMENU_ACTION;
+
+    switch (tok)
+    {
+        case GUI_BACK:
+            if (conf_keybd_modal)
+                conf_keybd_modal = 0;
+            else
+            {
+                goto_state(conf_keybd_back);
+                while (curr_state() != conf_keybd_back)
+                {
+                    goto_state(conf_keybd_back);
+                    conf_keybd_back = NULL;
+                }
+            }
+            break;
+
+        case CONF_KEYBD_ASSIGN_KEY:
+            conf_keybd_modal        = tok;
+            conf_keybd_option_index = val;
+            break;
+    }
+
+    return 1;
+}
+
+static int conf_keybd_gui(void)
+{
+    int id, jd;
+
+    /* Initialize the configuration GUI. */
+
+    if ((id = gui_vstack(0)))
+    {
+        conf_header(id, _("Keyboard"), GUI_BACK);
+
+        int i;
+        int btn_id;
+        int value;
+
+        for (i = 0; i < ARRAYSIZE(conf_keybd_option_names); i++)
+        {
+            if (conf_keybd_options[i])
+            {
+                char tmp_opt_name[MAXSTR];
+
+                if      (str_starts_with(conf_keybd_option_names[i], "KEYBD_KEY_CAM_1"))
+                    SAFECPY(tmp_opt_name, cam_to_str(CAM_1));
+                else if (str_starts_with(conf_keybd_option_names[i], "KEYBD_KEY_CAM_2"))
+                    SAFECPY(tmp_opt_name, cam_to_str(CAM_2));
+                else if (str_starts_with(conf_keybd_option_names[i], "KEYBD_KEY_CAM_3"))
+                    SAFECPY(tmp_opt_name, cam_to_str(CAM_3));
+                else
+                    SAFECPY(tmp_opt_name, _(conf_keybd_option_names[i]));
+
+                value = config_get_d(*conf_keybd_options[i]);
+
+                if ((btn_id = conf_state(id, tmp_opt_name,
+                                             SDL_GetKeyName(value),
+                                             CONF_KEYBD_ASSIGN_KEY)))
+                {
+                    conf_keybd_option_ids[i] = btn_id;
+
+                    gui_set_state(btn_id, CONF_KEYBD_ASSIGN_KEY, i);
+
+                    conf_keybd_set_label(btn_id, value);
+                }
+            }
+            else gui_space(id);
+        }
+
+        gui_layout(id, 0, 0);
+    }
+
+    return id;
+}
+
+static int conf_keybd_modal_key_gui(void)
+{
+    int id;
+
+    if ((id = gui_label(0, _("Press any key..."), GUI_MED, GUI_COLOR_WHT)))
+        gui_layout(id, 0, 0);
+
+    return id;
+}
+
+static int conf_keybd_enter(struct state *st, struct state *prev)
+{
+    if (!conf_keybd_back)
+        conf_keybd_back = prev;
+
+    if (mainmenu_conf)
+        game_client_free(NULL);
+
+    conf_common_init(conf_keybd_action, mainmenu_conf);
+
+    conf_keybd_modal = 0;
+
+    conf_keybd_modal_key_id = conf_keybd_modal_key_gui();
+
+    return conf_keybd_gui();
+}
+
+static void conf_keybd_leave(struct state* st, struct state* next, int id)
+{
+    conf_common_leave(st, next, id);
+
+    gui_delete(conf_keybd_modal_key_id);
+
+    keybd_modal_alpha = 0.0f;
+}
+
+static void conf_keybd_paint(int id, float t)
+{
+    if (mainmenu_conf)
+    {
+        video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+        {
+            back_draw_easy();
+        }
+        video_pop_matrix();
+    }
+    else
+        game_client_draw(0, t);
+
+    gui_paint(id);
+
+    if (conf_keybd_modal == CONF_KEYBD_ASSIGN_KEY)
+        gui_paint(conf_keybd_modal_key_id);
+}
+
+static void conf_keybd_timer(int id, float dt)
+{
+    gui_timer(id, dt);
+    gui_alpha(id, 1 - keybd_modal_alpha);
+
+    if (conf_keybd_modal == CONF_KEYBD_ASSIGN_KEY)
+        keybd_modal_alpha = keybd_modal_alpha + (dt * 4);
+    else
+        keybd_modal_alpha = keybd_modal_alpha - (dt * 4);
+
+    keybd_modal_alpha = CLAMP(0.0f, keybd_modal_alpha, 1.0f);
+    gui_alpha(conf_keybd_modal_key_id, keybd_modal_alpha);
+}
+
+static int conf_keybd_keybd(int c, int d)
+{
+    if (d)
+    {
+        if (c == KEY_EXIT && conf_keybd_modal)
+        {
+            /* Allow backing out of other modal types with Escape key. */
+
+            conf_keybd_modal = 0;
+            return 1;
+        }
+        else if (conf_keybd_modal == CONF_KEYBD_ASSIGN_KEY)
+        {
+            conf_keybd_set_option(conf_keybd_option_index, c);
+            conf_keybd_modal = 0;
+            return 1;
+        }
+    }
+
+    return common_keybd(c, d);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1754,19 +2018,20 @@ static void conf_controllers_timer(int id, float dt)
 
     if (conf_controllers_modal == CONF_CONTROLLERS_ASSIGN_BUTTON)
     {
-        controllers_modal_alpha = controllers_modal_alpha + dt;
+        controllers_modal_alpha = controllers_modal_alpha + (dt * 4);
         controllers_modal_alpha = CLAMP(0.0f, controllers_modal_alpha, 1.0f);
         gui_alpha(conf_controllers_modal_button_id, controllers_modal_alpha);
     }
     else if (conf_controllers_modal == CONF_CONTROLLERS_ASSIGN_AXIS)
     {
-        controllers_modal_alpha = controllers_modal_alpha + dt;
+        controllers_modal_alpha = controllers_modal_alpha + (dt * 4);
         controllers_modal_alpha = CLAMP(0.0f, controllers_modal_alpha, 1.0f);
         gui_alpha(conf_controllers_modal_axis_id, controllers_modal_alpha);
     }
     else
     {
-        controllers_modal_alpha = controllers_modal_alpha - dt;
+        controllers_modal_alpha = controllers_modal_alpha - (dt * 4);
+        controllers_modal_alpha = CLAMP(0.0f, controllers_modal_alpha, 1.0f);
         gui_alpha(conf_controllers_modal_button_id, 0);
         gui_alpha(conf_controllers_modal_axis_id, 0);
     }
@@ -2741,6 +3006,38 @@ struct state st_conf_control = {
     NULL,
 };
 
+struct state st_conf_keybd = {
+    conf_keybd_enter,
+    conf_leave,
+    conf_keybd_paint,
+    conf_keybd_timer,
+    common_point,
+    common_stick,
+    NULL,
+    common_click,
+    conf_keybd_keybd,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+};
+
+struct state st_conf_controllers = {
+    conf_controllers_enter,
+    conf_leave,
+    conf_controllers_paint,
+    conf_controllers_timer,
+    common_point,
+    conf_controllers_stick,
+    NULL,
+    common_click,
+    common_keybd,
+    conf_controllers_buttn,
+    NULL,
+    NULL,
+    NULL,
+};
+
 struct state st_conf_calibrate = {
     conf_calibrate_enter,
     conf_leave,
@@ -2752,22 +3049,6 @@ struct state st_conf_calibrate = {
     common_click,
     common_keybd,
     common_buttn,
-    NULL,
-    NULL,
-    NULL,
-};
-
-struct state st_conf_controllers = {
-    conf_controllers_enter,
-    conf_leave,
-    conf_paint,
-    conf_controllers_timer,
-    common_point,
-    conf_controllers_stick,
-    NULL,
-    common_click,
-    common_keybd,
-    conf_controllers_buttn,
     NULL,
     NULL,
     NULL,

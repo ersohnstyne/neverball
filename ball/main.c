@@ -652,7 +652,7 @@ static int goto_level(const List *level_multi)
                 {
                     if (lvl_count_loaded > 0)
                     {
-                        memset(lvl_v[lvl_count_loaded - 1].next, 0, sizeof(struct level));
+                        memset(lvl_v[lvl_count_loaded - 1].next, 0, sizeof (struct level));
                         lvl_v[lvl_count_loaded - 1].next = lvl;
                     }
 
@@ -665,81 +665,7 @@ static int goto_level(const List *level_multi)
 
                     lvl_count_loaded++;
                 }
-                else memset(lvl, 0, sizeof(struct level));
-            }
-            else log_errorf("File %s is not in game path (at index %d)\n", p->data, lvl_count_loaded);
-        }
-        else log_errorf("File %s is not in game path (at index %d)\n", p->data, lvl_count_loaded);
-
-        lvl_count++;
-    }
-
-    progress_init(MODE_STANDALONE);
-
-    /* Check whether standalone set is loaded correctly. */
-
-    if (lvl_count_loaded != 0 && progress_play(&lvl_v[0]))
-    {
-        /* Start standalone set! */
-
-        return 1;
-    }
-
-    /* ...otherwise go to main menu screen. */
-
-    progress_init(MODE_NONE);
-
-    return 0;
-}
-
-/*---------------------------------------------------------------------------*/
-
-
-static int goto_level(const List* level_multi)
-{
-    if (level_multi == NULL) return 0;
-
-    List                p = NULL;
-    static struct level lvl_v[30];
-
-    int        lvl_count = 0;
-    static int lvl_count_loaded = 0;
-
-    static int lvl_classic = 0;
-    static int lvl_bonus = 0;
-
-    for (p = level_multi; p && lvl_count < 30; p = p->next)
-    {
-        struct level* lvl = &lvl_v[lvl_count_loaded];
-
-        const char* path = fs_resolve(p->data);
-
-        if (path &&
-            (str_ends_with(path, ".csol") ||
-                str_ends_with(path, ".sol")))
-        {
-            if (level_load(path, lvl))
-            {
-                /* No bonus or master levels allowed on this standalone */
-
-                if (!lvl->is_master && !lvl->is_bonus)
-                {
-                    if (lvl_count_loaded > 0)
-                    {
-                        memset(lvl_v[lvl_count_loaded - 1].next, 0, sizeof(struct level));
-                        lvl_v[lvl_count_loaded - 1].next = lvl;
-                    }
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(lvl->name, MAXSTR,
-#else
-                    sprintf(lvl->name,
-#endif
-                        "%d", lvl_count_loaded + 1);
-
-                    lvl_count_loaded++;
-                }
-                else memset(lvl, 0, sizeof(struct level));
+                else memset(lvl, 0, sizeof (struct level));
             }
             else log_errorf("File %s is not in game path (at index %d)\n", p->data, lvl_count_loaded);
         }

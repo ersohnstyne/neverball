@@ -2,7 +2,8 @@ CC = emcc
 
 JSDIR = js
 
-GL4ES_DIR ?= ../gl4es
+# Default path as before: ../gl4es
+GL4ES_DIR ?= -l/usr/include/gl4es
 
 # Emscripten fast linking: https://github.com/emscripten-core/emscripten/issues/17019
 BUILD ?= devel

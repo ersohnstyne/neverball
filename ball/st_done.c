@@ -75,13 +75,8 @@ static int done_action(int tok, int val)
                 campaign_theme_quit();
                 campaign_quit();
             }
-            else
-#endif
-#if NB_HAVE_PB_BOTH==1
-                set_star_update(1);
 #endif
             return goto_playmenu(curr_mode());
-            break;
 
         case GUI_NAME:
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -89,12 +84,10 @@ static int done_action(int tok, int val)
 #else
             return goto_name(&st_done, &st_done, 0, 0, 0);
 #endif
-            break;
 
         case GUI_SCORE:
             gui_score_set(val);
-            return goto_state_full(&st_done, 0, 0, 0);
-            break;
+            return goto_state_full(&st_done, 0, 0, 1);
 
         case DONE_SHOP:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -104,19 +97,26 @@ static int done_action(int tok, int val)
                 campaign_theme_quit();
                 campaign_quit();
             }
-            else
 #endif
-            {
-#if NB_HAVE_PB_BOTH==1
-                set_star_update(1);
-#endif
-                set_quit();
-            }
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-            return goto_state(&st_shop);
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            if (!campaign_used())
 #endif
-            break;
+            {
+                if (str_starts_with(set_id(curr_set()), "anime"))
+                    audio_music_fade_to(0.5f, "bgm/jp/title.ogg", 1);
+                else
+                    audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
+                                                              "bgm/inter_world.ogg", 1);
+            }
+
+            return goto_shop(
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                             campaign_used() ? &st_campaign :
+#endif
+                             &st_start, 0);
+#endif
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         case DONE_TO_GROUP:
@@ -127,7 +127,6 @@ static int done_action(int tok, int val)
                 campaign_quit();
             }
             return goto_playmenu(curr_mode());
-            break;
 #endif
     }
     return 1;
@@ -183,7 +182,7 @@ static int done_gui_set(void)
     const char *s1 = _("New Set Record");
     const char *s2 = _("Set Complete");
 
-    int id, jd, kd, ld, md;
+    int id, jd, kd;
 
     int high = progress_set_high();
 
@@ -301,7 +300,10 @@ static int done_enter(struct state *st, struct state *prev)
     if (!campaign_used()
      &&  set_star(curr_set()) > 0 && set_star_gained(curr_set())
      && !resume)
+    {
+        set_star_update(1);
         audio_play(AUD_STARS, 1.0f);
+    }
 #endif
 
     int high = progress_set_high();
@@ -422,7 +424,7 @@ static int capital_buttn(int b, int d)
 
 struct state st_done = {
     done_enter,
-    shared_leave,
+    play_shared_leave,
     shared_paint,
     done_timer,
     shared_point,
@@ -435,7 +437,7 @@ struct state st_done = {
 
 struct state st_capital = {
     capital_enter,
-    shared_leave,
+    play_shared_leave,
     shared_paint,
     capital_timer,
     NULL,

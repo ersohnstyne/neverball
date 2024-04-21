@@ -112,7 +112,6 @@ static int bump_stick(int a)
 #define LOOP_DURING_SCREENANIMATE                                          \
     do { if (!st_global_loop()) {                                          \
         log_errorf("UI will animating, but the game attempts to exit!\n"); \
-        SDL_TriggerBreakpoint();                                           \
         exit(1);                                                           \
     } } while (0)
 
@@ -141,7 +140,7 @@ struct state *curr_state(void)
 
 struct state *queue_state(void)
 {
-    return curr_state() != anim_queue_state ? anim_queue_state : 0;
+    return anim_queue_state;
 }
 
 float time_state(void)
@@ -174,10 +173,10 @@ int goto_state_full(struct state *st,
 
     prevtime = SDL_GetTicks();
 
-    anim_queue_state = st;
+    anim_queue_state         = st;
     anim_queue_directions[0] = fromdirection;
     anim_queue_directions[1] = todirection;
-    anim_queue_allowskip = noanimation;
+    anim_queue_allowskip     = noanimation;
 
     if (anim_queue)
         return 1;
@@ -201,6 +200,7 @@ int goto_state_full(struct state *st,
                 if (state->fade != NULL) state->fade(alpha);
                 gui_set_alpha(state->gui_id, alpha, fromdirection);
             }
+
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
             xbox_control_gui_set_alpha(alpha);
 #endif
@@ -220,8 +220,7 @@ int goto_state_full(struct state *st,
                 video_render_fill_or_line(0);
                 st_paint(0.001f * currtime, 0);
             }
-            else
-                st_paint(0.001f * currtime, 1);
+            else st_paint(0.001f * currtime, 1);
 
             video_swap();
             prevtime = currtime;
@@ -229,21 +228,29 @@ int goto_state_full(struct state *st,
     }
 
     alpha = 0;
+
     if (state)
     {
         if (state->fade != NULL) state->fade(alpha);
+
         gui_set_alpha(state->gui_id, alpha, fromdirection);
     }
+
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     xbox_control_gui_set_alpha(alpha);
 #endif
 
     if (state && state->leave)
+    {
         state->leave(state, st, state->gui_id);
+        state->gui_id = 0;
+    }
 
-    state       = st;
+    state       = anim_queue_state;
     state_time  = 0;
     state_drawn = 0;
+
+    anim_queue_state = NULL;
 
     memset(&stick_cache, 0, sizeof (stick_cache));
     stick_count = 0;
@@ -267,8 +274,10 @@ int goto_state_full(struct state *st,
             if (state)
             {
                 if (state->fade != NULL) state->fade(alpha);
+
                 gui_set_alpha(state->gui_id, alpha, todirection);
             }
+
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
             xbox_control_gui_set_alpha(alpha);
 #endif
@@ -288,8 +297,7 @@ int goto_state_full(struct state *st,
                 video_render_fill_or_line(0);
                 st_paint(0.001f * currtime, 0);
             }
-            else
-                st_paint(0.001f * currtime, 1);
+            else st_paint(0.001f * currtime, 1);
 
             video_swap();
             prevtime = currtime;
@@ -300,8 +308,10 @@ int goto_state_full(struct state *st,
     if (state)
     {
         if (state->fade != NULL) state->fade(alpha);
+
         gui_set_alpha(state->gui_id, alpha, todirection);
     }
+
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     xbox_control_gui_set_alpha(alpha);
 #endif
@@ -314,9 +324,10 @@ int goto_state_full(struct state *st,
                         anim_queue_directions[0],
                         anim_queue_directions[1],
                         anim_queue_allowskip);
+        anim_queue_state         = NULL;
         anim_queue_directions[0] = 0;
         anim_queue_directions[1] = 0;
-        anim_queue_allowskip = 0;
+        anim_queue_allowskip     = 0;
     }
 
     anim_done = 1;

@@ -33,8 +33,8 @@
 #endif
 
 /* Shall the Xbox live begin? */
-#define NB_PB_WITH_XBOX 1
-#include <XInput.h>
+//#define NB_PB_WITH_XBOX 1
+//#include <XInput.h>
 #endif
 
 #include <stdio.h>

@@ -47,6 +47,8 @@ below for details.
 
     TAB    Cycle through scores in high-score table
 
+Mouse scroll wheel zooms camera in and out.
+
 
 * CAMPAIGN
 
@@ -383,6 +385,10 @@ keys and their default values follow.
             view_dp  400
             view_dc  0
             view_dz  600
+
+        Height,  center and horizontal distance  was removed after 2.2
+        and  is superceded with Zoom cameras using Switchball Classic,
+        XBLA and HD.
 
     rotate_fast 300
     rotate_slow 150

@@ -16,14 +16,24 @@
 #define CMD_H
 
 #if _WIN32
-#define _CRT_NB_CMD_DEPRECATED(_Element, _Replaces)         \
+#define _CRT_NB_CMD_DEPRECATED(_Element)                    \
+    __declspec(deprecated(                                  \
+        "This function or variable is deprecated, and will " \
+        "be removed in the future release."                 \
+    )) _Element
+#define _CRT_NB_CMD_DEPRECATED_REPLACE(_Element, _Replaces) \
     __declspec(deprecated(                                  \
         "This function or variable has been superceded by " \
         "newer commands functionality. Consider using "     \
         #_Replaces " instead."                              \
     )) _Element
 #else
-#define _CRT_NB_CMD_DEPRECATED(_Element, _Replaces)         \
+#define _CRT_NB_CMD_DEPRECATED(_Element)                    \
+    _Element __attribute__ ((deprecated(                    \
+        "This function or variable is deprecated, and will " \
+        "be removed in the future release."                 \
+    )))
+#define _CRT_NB_CMD_DEPRECATED_REPLACE(_Element, _Replaces) \
     _Element __attribute__ ((deprecated(                    \
         "This function or variable has been superceded by " \
         "newer commands functionality. Consider using "     \
@@ -171,7 +181,7 @@ struct cmd_jump_exit
 };
 
 /* Use CMD_MOVE_PATH instead. */
-_CRT_NB_CMD_DEPRECATED(
+_CRT_NB_CMD_DEPRECATED_REPLACE(
 struct cmd_body_path
 {
     CMD_HEADER;
@@ -181,7 +191,7 @@ struct cmd_body_path
 CMD_MOVE_PATH);
 
 /* Use CMD_MOVE_TIME instead. */
-_CRT_NB_CMD_DEPRECATED(
+_CRT_NB_CMD_DEPRECATED_REPLACE(
 struct cmd_body_time
 {
     CMD_HEADER;
@@ -357,11 +367,11 @@ struct cmd_speedometer
     int xi;
 };*/
 
-struct cmd_zoom
+_CRT_NB_CMD_DEPRECATED(struct cmd_zoom
 {
     CMD_HEADER;
     float xi;
-};
+});
 
 struct cmd_chkp_disable
 {
@@ -385,8 +395,8 @@ union cmd
     struct cmd_coins              coins;
     struct cmd_jump_enter         jumpenter;
     struct cmd_jump_exit          jumpexit;
-    _CRT_NB_CMD_DEPRECATED       (struct cmd_body_path bodypath, movepath);
-    _CRT_NB_CMD_DEPRECATED       (struct cmd_body_time bodytime, movetime);
+    _CRT_NB_CMD_DEPRECATED_REPLACE(struct cmd_body_path bodypath, movepath);
+    _CRT_NB_CMD_DEPRECATED_REPLACE(struct cmd_body_time bodytime, movetime);
     struct cmd_goal_open          goalopen;
     struct cmd_swch_enter         swchenter;
     struct cmd_swch_toggle        swchtoggle;
@@ -414,7 +424,7 @@ union cmd
     struct cmd_chkp_exit          chkpexit;
     struct cmd_speedometer        speedometer;
     /*struct cmd_saved_spawnpoint   spawnpoint;*/
-    struct cmd_zoom               zoom;
+    _CRT_NB_CMD_DEPRECATED        (struct cmd_zoom zoom);
     struct cmd_chkp_disable       chkpdisable;
 };
 
@@ -439,10 +449,10 @@ struct cmd_state
 };
 
 #define cmd_state_init(cs) do { \
-    (cs)->ups = 0;              \
-    (cs)->first_update = 1;     \
-    (cs)->next_update = 0;      \
-    (cs)->curr_ball = 0;        \
+    (cs)->ups           = 0;    \
+    (cs)->first_update  = 1;    \
+    (cs)->next_update   = 0;    \
+    (cs)->curr_ball     = 0;    \
     (cs)->got_tilt_axes = 0;    \
 } while (0)
 

@@ -22,7 +22,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{136C8C74-C235-408E-99F3-49A365D2EE46}</ProjectGuid>
-    <RootNamespace>neverputt</RootNamespace>
+    <RootNamespace>pennyball</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -73,22 +73,21 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.1";NEVERBALL_EDITION=-1;ENABLE_NLS=1;NLS_GETTEXT=1;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;DEVEL_BUILD;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;NB_STEAM_API=0;NB_EOS_SDK=0;PENNYBALL_FAMILY_API=0;VERSION="2.1.1";PENNYBALL_EDITION=-1;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=0;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;DEVEL_BUILD;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <ErrorReporting>Prompt</ErrorReporting>
-      <AdditionalIncludeDirectories>D:\source_$(Username)_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x86\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>runtimeobject.lib;libpng16_staticd.lib;libjpeg_a.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;zlibstaticd.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>runtimeobject.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>del "$(ProjectDir)$(Configuration)\*.obj"
+      <Command>del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.idb"
+del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.ilk"
+del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.obj"
+del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.pdb"
 del "$(SolutionDir)putt\*.bc"
 del "$(SolutionDir)putt\*.d"
 del "$(SolutionDir)putt\*.o"
@@ -100,7 +99,7 @@ del "$(SolutionDir)share\*.o"</Command>
       <Culture>0x0809</Culture>
     </ResourceCompile>
     <PostBuildEvent>
-      <Command>xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"</Command>
+      <Command>xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -108,24 +107,23 @@ del "$(SolutionDir)share\*.o"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.1";NEVERBALL_EDITION=-1;ENABLE_NLS=1;NLS_GETTEXT=1;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;NB_STEAM_API=0;NB_EOS_SDK=0;PENNYBALL_FAMILY_API=0;VERSION="2.1.1";PENNYBALL_EDITION=-1;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=0;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <ErrorReporting>Prompt</ErrorReporting>
-      <AdditionalIncludeDirectories>D:\source_$(Username)_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x86;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x86\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>runtimeobject.lib;libpng16_static.lib;libjpeg_a.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;zlibstatic.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>runtimeobject.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>del "$(ProjectDir)$(Configuration)\*.obj"
+      <Command>del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.idb"
+del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.ilk"
+del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.obj"
+del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.pdb"
 del "$(SolutionDir)putt\*.bc"
 del "$(SolutionDir)putt\*.d"
 del "$(SolutionDir)putt\*.o"
@@ -137,28 +135,27 @@ del "$(SolutionDir)share\*.o"</Command>
       <Culture>0x0809</Culture>
     </ResourceCompile>
     <PostBuildEvent>
-      <Command>xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"</Command>
+      <Command>xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.1";NEVERBALL_EDITION=-1;ENABLE_NLS=1;NLS_GETTEXT=1;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;DEVEL_BUILD;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;NB_STEAM_API=0;NB_EOS_SDK=0;PENNYBALL_FAMILY_API=0;VERSION="2.1.1";PENNYBALL_EDITION=-1;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=0;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;DEVEL_BUILD;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <ErrorReporting>Prompt</ErrorReporting>
-      <AdditionalIncludeDirectories>D:\source_$(Username)_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>runtimeobject.lib;libpng16_staticd.lib;libjpeg_a.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;zlibstaticd.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x64\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>runtimeobject.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>del "$(ProjectDir)$(Platform)\$(Configuration)\*.obj"
+      <Command>del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.idb"
+del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.ilk"
+del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.obj"
+del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.pdb"
 del "$(SolutionDir)putt\*.bc"
 del "$(SolutionDir)putt\*.d"
 del "$(SolutionDir)putt\*.o"
@@ -170,7 +167,7 @@ del "$(SolutionDir)share\*.o"</Command>
       <Culture>0x0809</Culture>
     </ResourceCompile>
     <PostBuildEvent>
-      <Command>xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"</Command>
+      <Command>xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -178,24 +175,23 @@ del "$(SolutionDir)share\*.o"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.1.1";NEVERBALL_EDITION=-1;ENABLE_NLS=1;NLS_GETTEXT=1;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;NB_STEAM_API=0;NB_EOS_SDK=0;PENNYBALL_FAMILY_API=0;VERSION="2.1.1";PENNYBALL_EDITION=-1;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=0;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\source_$(Username)_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <ErrorReporting>Prompt</ErrorReporting>
+      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>runtimeobject.lib;libpng16_static.lib;libjpeg_a.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;zlibstatic.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\projects\vstudio2022_x64\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>runtimeobject.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2022\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>del "$(ProjectDir)$(Platform)\$(Configuration)\*.obj"
+      <Command>del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.idb"
+del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.ilk"
+del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.obj"
+del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.pdb"
 del "$(SolutionDir)putt\*.bc"
 del "$(SolutionDir)putt\*.d"
 del "$(SolutionDir)putt\*.o"
@@ -207,7 +203,7 @@ del "$(SolutionDir)share\*.o"</Command>
       <Culture>0x0809</Culture>
     </ResourceCompile>
     <PostBuildEvent>
-      <Command>xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"</Command>
+      <Command>xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -219,6 +215,12 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClCompile Include="..\putt\st_all.c" />
     <ClCompile Include="..\putt\st_conf.c" />
     <ClCompile Include="..\share\accessibility.c" />
+    <ClCompile Include="..\share\account.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\share\account_binary.c" />
     <ClCompile Include="..\share\account_eos_sdk.cpp" />
     <ClCompile Include="..\share\account_steam.cpp" />
@@ -236,6 +238,12 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClCompile Include="..\share\dbg_config.c" />
     <ClCompile Include="..\share\dir.c" />
     <ClCompile Include="..\share\fbo.c" />
+    <ClCompile Include="..\share\fetch_curl.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\share\fetch_null.c" />
     <ClCompile Include="..\share\font.c" />
     <ClCompile Include="..\share\fs_common.c" />
@@ -247,7 +255,25 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClCompile Include="..\share\glext.c" />
     <ClCompile Include="..\share\glsl.c" />
     <ClCompile Include="..\share\gui.c" />
+    <ClCompile Include="..\share\hmd_common.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\share\hmd_libovr.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\share\hmd_null.c" />
+    <ClCompile Include="..\share\hmd_openhmd.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\share\image.c" />
     <ClCompile Include="..\share\joy.c" />
     <ClCompile Include="..\share\joy_xbox.c" />
@@ -255,9 +281,22 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClCompile Include="..\share\lang_msvc.cpp" />
     <ClCompile Include="..\share\list.c" />
     <ClCompile Include="..\share\log.c" />
+    <ClCompile Include="..\share\miniz.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\share\mtrl.c" />
     <ClCompile Include="..\share\networking_dedicated.c" />
+    <ClCompile Include="..\share\networking_education.c" />
+    <ClCompile Include="..\share\networking_enterprise.c" />
+    <ClCompile Include="..\share\networking_home.c" />
     <ClCompile Include="..\share\networking_opensource.c" />
+    <ClCompile Include="..\share\networking_pro.c" />
+    <ClCompile Include="..\share\networking_srv_datacenter.c" />
+    <ClCompile Include="..\share\networking_srv_essentials.c" />
+    <ClCompile Include="..\share\networking_srv_standard.c" />
     <ClCompile Include="..\share\package.c" />
     <ClCompile Include="..\share\part.c" />
     <ClCompile Include="..\share\queue.c" />
@@ -268,7 +307,7 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClCompile Include="..\share\solid_sim_sol.c" />
     <ClCompile Include="..\share\solid_vary.c" />
     <ClCompile Include="..\share\state.c" />
-    <ClCompile Include="..\share\st_package.c" />
+    <ClCompile Include="..\share\st_addons.c" />
     <ClCompile Include="..\share\st_common.c" />
     <ClCompile Include="..\share\st_end_support.c" />
     <ClCompile Include="..\share\st_setup.c" />
@@ -276,7 +315,31 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClCompile Include="..\share\st_transfer_target.c" />
     <ClCompile Include="..\share\text.c" />
     <ClCompile Include="..\share\theme.c" />
+    <ClCompile Include="..\share\tilt_leapmotion.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\share\tilt_loop.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\share\tilt_null.c" />
+    <ClCompile Include="..\share\tilt_wii.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\share\tilt_wiiuse.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\share\vec3.c" />
     <ClCompile Include="..\share\video.c" />
     <ClCompile Include="..\share\zip.c" />
@@ -288,7 +351,7 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClInclude Include="..\putt\hud.h" />
     <ClInclude Include="..\putt\st_all.h" />
     <ClInclude Include="..\putt\st_conf.h" />
-    <ClInclude Include="..\dist\neverputt_rc.h" />
+    <ClInclude Include="..\dist\pennyputt_rc.h" />
     <ClInclude Include="..\share\accessibility.h" />
     <ClInclude Include="..\share\account.h" />
     <ClInclude Include="..\share\account_transfer.h" />
@@ -336,7 +399,7 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClInclude Include="..\share\solid_sim.h" />
     <ClInclude Include="..\share\solid_vary.h" />
     <ClInclude Include="..\share\state.h" />
-    <ClInclude Include="..\share\st_package.h" />
+    <ClInclude Include="..\share\st_addons.h" />
     <ClInclude Include="..\share\st_common.h" />
     <ClInclude Include="..\share\st_end_support.h" />
     <ClInclude Include="..\share\st_setup.h" />
@@ -350,11 +413,11 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClInclude Include="..\share\zip.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\dist\neverputt_rc.rc" />
+    <ResourceCompile Include="..\dist\pennyputt_rc.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\dist\ico\neverputt.ico" />
-    <Image Include="ico\neverputt.ico" />
+    <Image Include="..\dist\ico\pennyputt.ico" />
+    <Image Include="ico\pennyputt.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

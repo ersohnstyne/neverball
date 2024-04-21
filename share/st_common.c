@@ -304,7 +304,7 @@ void conf_select(int id, const char *text, int token, int value,
 /*
  * Code shared by most screens (not just conf screens).
  *
- * FIXME This probably makes ball/st_shared.c obsolete.
+ * FIXME: This probably makes ball/st_shared.c obsolete.
  */
 
 static int (*common_action)(int tok, int val);
@@ -402,9 +402,9 @@ void conf_common_init(int (*action_fn)(int, int), int allowfade)
         is_common_bg = 1;
 #if NB_HAVE_PB_BOTH==1
         audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
-                                                       _("bgm/title.ogg"));
+                                                       _("bgm/title.ogg"), 1);
 #else
-        audio_music_fade_to(0.5f, "gui/bgm/inter.ogg");
+        audio_music_fade_to(0.5f, "gui/bgm/inter.ogg", 1);
 #endif
     }
 
@@ -426,12 +426,10 @@ void conf_common_leave(struct state *st, struct state *next, int id)
 
 void conf_common_paint(int id, float t)
 {
-    video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-    {
-        if (is_common_bg)
-            back_draw_easy();
-    }
-    video_pop_matrix();
+    video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+    
+    if (is_common_bg)
+        back_draw_easy();
 
     gui_paint(id);
 }
@@ -1733,7 +1731,7 @@ static int lang_enter(struct state *st, struct state *prev)
     return lang_gui();
 }
 
-void lang_leave(struct state *st, struct state *next, int id)
+static void lang_leave(struct state *st, struct state *next, int id)
 {
     if (!(next == &st_lang || next == &st_null))
     {
@@ -1744,7 +1742,7 @@ void lang_leave(struct state *st, struct state *next, int id)
     conf_common_leave(st, next, id);
 }
 
-int lang_buttn(int b, int d)
+static int lang_buttn(int b, int d)
 {
     if (d)
     {
@@ -1782,13 +1780,15 @@ static int restart_required_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-#if defined(__EMSCRIPTEN__)
+#ifdef __EMSCRIPTEN__
         gui_label(id, _("Reload required!"), GUI_MED, gui_red, gui_red);
 #else
         gui_label(id, _("Restart required!"), GUI_MED, gui_red, gui_red);
 #endif
+
         gui_space(id);
-#if defined(__EMSCRIPTEN__)
+
+#ifdef __EMSCRIPTEN__
         gui_multi(id, _("Please reload your page,\n"
                         "to change this affects!"),
                       GUI_SML, gui_wht, gui_wht);
@@ -1815,11 +1815,6 @@ static int restart_required_enter(struct state *st, struct state *prev)
     return restart_required_gui();
 }
 
-void restart_required_leave(struct state *st, struct state *next, int id)
-{
-    conf_common_leave(st, next, id);
-}
-
 /*---------------------------------------------------------------------------*/
 
 static int loading_gui(void)
@@ -1829,7 +1824,7 @@ static int loading_gui(void)
 #if NB_HAVE_PB_BOTH!=1
     if ((id = gui_vstack(0)))
     {
-        gui_label(id, _("Loading..."), GUI_SML, gui_wht, gui_wht);
+        gui_label(id, _("Loading..."), GUI_MED, gui_wht, gui_wht);
         gui_layout(id, 0, 0);
     }
 #endif
@@ -1928,7 +1923,7 @@ struct state st_lang = {
 
 struct state st_restart_required = {
     restart_required_enter,
-    restart_required_leave,
+    conf_common_leave,
     conf_common_paint,
     common_timer,
     common_point,

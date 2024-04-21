@@ -171,9 +171,7 @@ void config_paths(const char *arg_data_path)
                     success = 1;
 
         if (success)
-        {
             log_printf("Write directory established at %s\n", user);
-        }
         else
         {
             log_errorf("Write directory not established at %s\n", user);
@@ -184,6 +182,7 @@ void config_paths(const char *arg_data_path)
     fs_add_path_with_archives(user);
 
     free((void *) user);
+    user = NULL;
 }
 
 void config_log_userpath()
@@ -203,6 +202,7 @@ void config_log_userpath()
 #endif
 
     free((void *) user);
+    user = NULL;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -43,7 +43,6 @@ MAPC_SRCS := \
 	share/miniz.c \
 	share/list.c \
 	share/log.c \
-	share/queue.c \
 	share/solid_base.c \
 	share/vec3.c
 

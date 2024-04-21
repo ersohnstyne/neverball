@@ -3494,19 +3494,36 @@ static void dump_file(struct s_base *p, const char *name, double t)
     }
 }
 
+/*---------------------------------------------------------------------------*/
+
 static int skip_verify;
-static int form_method;
 
 static void interactive_web(void)
 {
-#if defined(__EMSCRIPTEN__)
-    EM_ASM({ window.open("https://docs.google.com/forms/d/e/1FAIpQLSdrpRKmyE0pjhB3-9-PD_pGYEsahPeL3QKHCwwafPscjVfiXQ/viewform?usp=sf_link")}, 0);
-#elif_WIN32
-    system("start msedge https://docs.google.com/forms/d/e/1FAIpQLSdrpRKmyE0pjhB3-9-PD_pGYEsahPeL3QKHCwwafPscjVfiXQ/viewform?usp=sf_link");
+    char target_url[256];
+    char buf_url[256];
+
+    SAFECPY(target_url, "https://forms.office.com/r/yH4hHAFHF8");
+
+#if _WIN32
+#ifndef _CRT_SECURE_NO_WARNINGS
+    sprintf_s(buf_url, 256,
+#else
+    sprintf(buf_url,
+#endif
+            "start msedge %s", target_url);
 #elif defined(__APPLE__)
-    system("open https://docs.google.com/forms/d/e/1FAIpQLSdrpRKmyE0pjhB3-9-PD_pGYEsahPeL3QKHCwwafPscjVfiXQ/viewform?usp=sf_link");
+    sprintf(buf_url, "open %s", target_url);
 #elif defined(__linux__)
-    system("x-www-browser https://docs.google.com/forms/d/e/1FAIpQLSdrpRKmyE0pjhB3-9-PD_pGYEsahPeL3QKHCwwafPscjVfiXQ/viewform?usp=sf_link");
+    sprintf(buf_url, "x-www-browser %s", target_url);
+#elif defined(__EMSCRIPTEN__)
+    EM_ASM({ window.open($0) }, target_url);
+#else
+#error No interactive web platform specified!
+#endif
+
+#ifndef __EMSCRIPTEN__
+    system(buf_url);
 #endif
 }
 
@@ -3602,19 +3619,19 @@ int main(int argc, char *argv[])
 
                     if (compile_time_limit < 60)
                     {
-                        fprintf(stderr, "Invalid numeric value!: Min: 60\n");
+                        fprintf(stderr, "Invalid value!: Min: 60\n");
                         return 1;
                     }
 
                     if (compile_time_limit > 1920)
                     {
-                        fprintf(stderr, "Invalid numeric value!: Max: 1920\n");
+                        fprintf(stderr, "Invalid value!: Max: 1920\n");
                         return 1;
                     }
                 }
                 else
                 {
-                    fprintf(stderr, "Option --timelimit requires numeric value!\n");
+                    fprintf(stderr, "Option --timelimit requires second value!\n");
                     return 1;
                 }
             }
@@ -3633,7 +3650,6 @@ int main(int argc, char *argv[])
             fprintf(stderr, "No map file name specified!\n");
             return 1;
         }
-
 #ifdef MAPC_INCLUDES_CHKP
         else if ((campaign_output && strlen(input_file) <= 5))
         {
@@ -3643,10 +3659,7 @@ int main(int argc, char *argv[])
 #else
         else if (campaign_output)
         {
-            static char m_buf[MAXSTR];
-            SAFECPY(m_buf, input_file);
-            SAFECAT(m_buf, ": Only compileable campaign maps in full version of PB+NB!\n");
-            MAPC_LOG_ERROR(m_buf);
+            fprintf(stderr, "Only compileable campaign maps in full version of PB+NB!\n");
             return 1;
         }
 #endif

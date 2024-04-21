@@ -21,9 +21,11 @@
 #include "campaign.h" /* New: Campaign */
 #include "networking.h"
 #endif
+
 #ifdef MAPC_INCLUDES_CHKP
 #include "checkpoints.h" /* New: Checkpoints */
 #endif
+
 #include "accessibility.h"
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -87,12 +89,6 @@ static int wallet_id;
 static int resume;
 static int resume_hold;
 
-static void goal_shared_exit(int id)
-{
-    progress_stop();
-    progress_exit();
-}
-
 static int goal_action(int tok, int val)
 {
     /* Waiting for extra balls by collecting 100 coins */
@@ -136,11 +132,8 @@ static int goal_action(int tok, int val)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (campaign_used() && campaign_hardcore())
                     campaign_hardcore_nextlevel();
-
-                return goto_state(campaign_used() ? &st_play_ready : &st_level);
-#else
-                return goto_state(&st_level);
 #endif
+                return goto_play_level();
             }
             break;
 
@@ -148,11 +141,7 @@ static int goal_action(int tok, int val)
             if (progress_same())
             {
                 powerup_stop();
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                return goto_state(campaign_used() ? &st_play_ready : &st_level);
-#else
-                return goto_state(&st_level);
-#endif
+                return goto_play_level();
             }
             break;
     }
@@ -237,8 +226,8 @@ static int goal_gui(void)
                     gid = gui_title_header(jd, s1, GUI_MED, GUI_COLOR_GRN);
                 else
                     gid = gui_title_header(jd, master ? s3 : s2,
-                        master ? GUI_MED : GUI_LRG,
-                        gui_blu, gui_grn);
+                                               master ? GUI_MED : GUI_LRG,
+                                               gui_blu, gui_grn);
 
                 if (!resume)
                     gui_pulse(gid, 1.2f);
@@ -271,15 +260,15 @@ static int goal_gui(void)
                  && curr_mode() != MODE_HARDCORE
 #endif
                     )
-                {
                     for (int i = curr_score(); i > score; i--)
                         if (progress_reward_ball(i))
                         {
                             /* Disable all buttons after collecting 100 coins for each. */
+
                             challenge_disable_all_buttons = config_get_d(CONFIG_NOTIFICATION_REWARD) ? 1 : 0;
+
                             balls--;
                         }
-                }
 
                 if ((jd = gui_hstack(id)))
                 {
@@ -321,7 +310,6 @@ static int goal_gui(void)
 #ifdef CONFIG_INCLUDES_ACCOUNT
                         if (account_get_d(ACCOUNT_PRODUCT_BONUS) == 0)
 #endif
-                        {
                             if ((ld = gui_harray(kd)))
                             {
                                 const struct level *l;
@@ -339,7 +327,6 @@ static int goal_gui(void)
 
                                 gui_label(ld, "", GUI_SML, 0, 0);
                             }
-                        }
 
                         gui_set_rect(kd, GUI_ALL);
                     }
@@ -369,14 +356,12 @@ static int goal_gui(void)
                     if ((kd = gui_harray(jd)))
                     {
                         wallet_id = gui_count(kd, ACCOUNT_WALLET_MAX_COINS, GUI_MED);
-                        gui_label(kd, _("Wallet"), GUI_SML,
-                            GUI_COLOR_WHT);
+                        gui_label(kd, _("Wallet"), GUI_SML, GUI_COLOR_WHT);
                     }
                     if ((kd = gui_harray(jd)))
                     {
                         coins_id = gui_count(kd, 1000, GUI_MED);
-                        gui_label(kd, _("Coins"), GUI_SML,
-                            GUI_COLOR_WHT);
+                        gui_label(kd, _("Coins"), GUI_SML, GUI_COLOR_WHT);
                     }
 
                     gui_set_count(coins_id, coins);
@@ -411,12 +396,12 @@ static int goal_gui(void)
                      (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN)))
             {
                 gui_score_board(id, ((campaign_career_unlocked() ? GUI_SCORE_COIN : 0) |
-                    GUI_SCORE_TIME |
-                    (campaign_career_unlocked() ? GUI_SCORE_GOAL : 0)),
-                    1,
-                    !resume && (shop_product_available
-                        || challenge_disable_all_buttons) ? 0 :
-                    high);
+                                     GUI_SCORE_TIME |
+                                     (campaign_career_unlocked() ? GUI_SCORE_GOAL : 0)),
+                                    1,
+                                    !resume && (shop_product_available ||
+                                                challenge_disable_all_buttons) ? 0 :
+                                    high);
 
                 gui_set_stats(curr_level());
 
@@ -468,7 +453,6 @@ static int goal_gui(void)
                     btn_ids[0] = gui_state(jd, _("Save Replay"), GUI_SML, GOAL_SAVE, 0);
 
                 if (btns_disabled)
-                {
                     for (int i = 0; i < 3; i++)
                     {
                         if (!btn_ids[i]) continue;
@@ -476,7 +460,6 @@ static int goal_gui(void)
                         gui_set_color(btn_ids[i], GUI_COLOR_GRY);
                         gui_set_state(btn_ids[i], GUI_NONE, 0);
                     }
-                }
             }
 
             gui_layout(id, 0, 0);
@@ -488,7 +471,14 @@ static int goal_gui(void)
 
             if ((jd = gui_hstack(id)))
             {
-                gui_back_button(jd);
+                int back_btn_id = gui_back_button(jd);
+
+                if (back_btn_id)
+                {
+                    gui_set_color(back_btn_id, GUI_COLOR_GRY);
+                    gui_set_state(back_btn_id, GUI_NONE, 0);
+                }
+
                 gui_space(jd);
             }
 
@@ -508,20 +498,33 @@ static int goal_enter(struct state *st, struct state *prev)
     if (prev == &st_name)
         progress_rename(0);
 
-    audio_music_fade_out(1.0f);
+    if (curr_mode() != MODE_CHALLENGE &&
+        curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+     && curr_mode() != MODE_HARDCORE
+#endif
+        )
+        audio_music_fade_out(2.0f);
+
     video_clr_grab();
 
     resume = (prev != &st_play_loop || (prev == &st_goal && !resume_hold));
 
+    if (prev == &st_play_loop)
+    {
 #ifdef MAPC_INCLUDES_CHKP
-    if (!resume)
         checkpoints_stop();
 #endif
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        if (campaign_used())
+            audio_play(AUD_GOAL_CAMPAIGN, 1.0f);
+#endif
+    }
 
     return goal_gui();
 }
 
-void goal_leave(struct state *st, struct state *next, int id)
+static void goal_leave(struct state *st, struct state *next, int id)
 {
     if (!resume || !resume_hold)
     {
@@ -534,19 +537,7 @@ void goal_leave(struct state *st, struct state *next, int id)
     }
 
     if (next == &st_null)
-    {
-        progress_stop();
-#if NB_HAVE_PB_BOTH==1
-        progress_exit();
-        campaign_quit();
-#endif
-        set_quit();
-
-        game_server_free(NULL);
-        game_client_free(NULL);
-    }
-
-    gui_delete(id);
+        play_shared_leave(st, next, id);
 }
 
 static void goal_paint(int id, float t)
@@ -601,8 +592,8 @@ static void goal_timer(int id, float dt)
                 wallet = gui_value(wallet_id);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if ((curr_mode() == MODE_CAMPAIGN
-              || curr_mode() == MODE_NORMAL
+            if ((curr_mode() == MODE_CAMPAIGN ||
+                 curr_mode() == MODE_NORMAL
 #ifdef LEVELGROUPS_INCLUDES_ZEN
               || curr_mode() == MODE_ZEN
 #endif
@@ -646,8 +637,8 @@ static void goal_timer(int id, float dt)
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if ((curr_mode() == MODE_CAMPAIGN
-                  || curr_mode() == MODE_NORMAL
+                if ((curr_mode() == MODE_CAMPAIGN ||
+                     curr_mode() == MODE_NORMAL
 #ifdef LEVELGROUPS_INCLUDES_ZEN
                   || curr_mode() == MODE_ZEN
 #endif
@@ -666,9 +657,9 @@ static void goal_timer(int id, float dt)
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (progress_reward_ball(score + 1) &&
-                    (curr_mode() != MODE_HARDCORE
-                  && curr_mode() != MODE_CAMPAIGN
-                  && curr_mode() != MODE_NORMAL
+                    (curr_mode() != MODE_HARDCORE &&
+                     curr_mode() != MODE_CAMPAIGN &&
+                     curr_mode() != MODE_NORMAL
 #ifdef LEVELGROUPS_INCLUDES_ZEN
                   && curr_mode() != MODE_ZEN
 #endif
@@ -698,8 +689,8 @@ static void goal_timer(int id, float dt)
 
     gui_timer(id, dt);
 
-    if (challenge_caught_extra && config_get_d(CONFIG_NOTIFICATION_REWARD)
-     && (curr_mode() == MODE_CHALLENGE ||
+    if (challenge_caught_extra && config_get_d(CONFIG_NOTIFICATION_REWARD) &&
+        (curr_mode() == MODE_CHALLENGE ||
          curr_mode() == MODE_BOOST_RUSH))
         goto_state(&st_goal_extraballs);
 
@@ -927,9 +918,16 @@ static int goal_hardcore_enter(struct state *st, struct state *prev)
 
     resume = (prev != &st_play_loop);
 
+    if (prev == &st_play_loop)
+    {
 #ifdef MAPC_INCLUDES_CHKP
-    checkpoints_stop();
+        checkpoints_stop();
 #endif
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        if (campaign_used())
+            audio_play(AUD_GOAL_CAMPAIGN, 1.0f);
+#endif
+    }
 
     game_fade(+1.0f);
 
@@ -939,7 +937,7 @@ static int goal_hardcore_enter(struct state *st, struct state *prev)
 static void goal_hardcore_timer(int id, float dt)
 {
     geom_step(dt);
-    
+
     if (!restrict_hardcore_nextstate)
     {
         game_server_step(dt);
@@ -959,11 +957,8 @@ static void goal_hardcore_timer(int id, float dt)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (campaign_used() && campaign_hardcore())
                     campaign_hardcore_nextlevel();
-
-                goto_state(campaign_used() ? &st_play_ready : &st_level);
-#else
-                goto_state(&st_level);
 #endif
+                goto_play_level();
             }
         }
     }
@@ -978,7 +973,7 @@ static void goal_hardcore_paint(int id, float t)
 
 struct state st_goal = {
     goal_enter,
-    shared_leave,
+    play_shared_leave,
     goal_paint,
     goal_timer,
     shared_point,
@@ -989,14 +984,13 @@ struct state st_goal = {
     goal_buttn,
     NULL,
     NULL,
-    NULL,
-    goal_shared_exit
+    NULL
 };
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
 struct state st_goal_hardcore = {
     goal_hardcore_enter,
-    shared_leave,
+    play_shared_leave,
     goal_hardcore_paint,
     goal_hardcore_timer,
     NULL,
@@ -1007,14 +1001,13 @@ struct state st_goal_hardcore = {
     NULL,
     NULL,
     NULL,
-    NULL,
-    goal_shared_exit
+    NULL
 };
 #endif
 
 struct state st_goal_extraballs = {
     goal_extraballs_enter,
-    shared_leave,
+    play_shared_leave,
     shared_paint,
     shared_timer,
     shared_point,
@@ -1025,13 +1018,12 @@ struct state st_goal_extraballs = {
     goal_extraballs_buttn,
     NULL,
     NULL,
-    NULL,
-    goal_shared_exit
+    NULL
 };
 
 struct state st_goal_shop = {
     goal_shop_enter,
-    shared_leave,
+    play_shared_leave,
     shared_paint,
     shared_timer,
     shared_point,
@@ -1042,6 +1034,5 @@ struct state st_goal_shop = {
     goal_shop_buttn,
     NULL,
     NULL,
-    NULL,
-    goal_shared_exit
+    NULL
 };

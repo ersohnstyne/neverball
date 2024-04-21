@@ -22,6 +22,9 @@
 #ifdef MAPC_INCLUDES_CHKP
 #include "checkpoints.h"
 #endif
+#if ENABLE_MOON_TASKLOADER!=0
+#include "moon_taskloader.h"
+#endif
 
 #include "game_common.h"
 #include "vec3.h"
@@ -40,6 +43,57 @@
 
 #if NB_HAVE_PB_BOTH==1 && !defined(MAPC_INCLUDES_CHKP)
 #error Security compilation error: Please enable checkpoints after joined PB+NB Discord Server!
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+#if ENABLE_MOON_TASKLOADER!=0
+struct game_moon_taskloader_info *game_create_mtli()
+{
+    struct game_moon_taskloader_info *pfi = malloc(sizeof (*pfi));
+
+    return pfi;
+}
+
+void game_free_mtli(struct game_moon_taskloader_info *pfi)
+{
+    if (pfi)
+    {
+        free(pfi);
+        pfi = NULL;
+    }
+}
+
+int game_mtli_execute(void *data, void *execute_data)
+{
+    struct game_moon_taskloader_info *mtli = (struct game_moon_taskloader_info *) data;
+
+    if (mtli && mtli->callback.execute)
+        return mtli->callback.execute(mtli->callback.data, execute_data);
+
+    return 0;
+}
+
+void game_mtli_progress(void *data, void *progress_data)
+{
+    struct game_moon_taskloader_info *mtli = (struct game_moon_taskloader_info *) data;
+
+    if (mtli && mtli->callback.progress)
+        mtli->callback.progress(mtli->callback.data, progress_data);
+}
+
+void game_mtli_done(void *data, void *done_data)
+{
+    struct game_moon_taskloader_info *mtli = (struct game_moon_taskloader_info *) data;
+
+    if (mtli && mtli->callback.done)
+    {
+        if (mtli->callback.done)
+            mtli->callback.done(mtli->callback.data, done_data);
+
+        game_free_mtli(mtli);
+    }
+}
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -98,31 +152,8 @@ int cam_speed(int c)
 
 /*---------------------------------------------------------------------------*/
 
-#if ENABLE_EARTHQUAKE==1
-
-static float shake_rotations[3];
-
-void game_randomize_earthquake_shake(void)
-{
-    /* Camera shake ? */
-    float shake_intensity = 15;
-
-    shake_rotations[0] = rand_between(-shake_intensity, shake_intensity);
-    shake_rotations[1] = rand_between(-shake_intensity, shake_intensity);
-    shake_rotations[2] = rand_between(-shake_intensity, shake_intensity);
-}
-
-float *game_get_earthquake_shake(void)
-{
-    return shake_rotations;
-}
-
-#endif
-
-/*---------------------------------------------------------------------------*/
-
-const float GRAVITY_UP[]   = { 0.0f, +9.8f, 0.0f };
-const float GRAVITY_DN[]   = { 0.0f, -9.8f, 0.0f };
+const float GRAVITY_PY[]   = { 0.0f, +9.8f, 0.0f };
+const float GRAVITY_NY[]   = { 0.0f, -9.8f, 0.0f };
 const float GRAVITY_BUSY[] = { 0.0f,  0.0f, 0.0f };
 
 void game_tilt_init(struct game_tilt *tilt)
@@ -320,6 +351,8 @@ void game_view_fly(struct game_view *view, const struct s_vary *vary, int ui, fl
         chkp_campos_center[2] = last_pos[ui][2];
     }
 #endif
+
+    if (!vary->base) return;
 
     /* k = +1.0 view is s_view 0 */
 

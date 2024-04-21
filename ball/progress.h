@@ -23,8 +23,6 @@
 /*---------------------------------------------------------------------------*/
 
 void progress_rush_collect_coin_value(int);
-void progress_enable_max_speed(void);
-void progress_sonic_step(float dt);
 
 /*---------------------------------------------------------------------------*/
 
@@ -106,18 +104,18 @@ int  progress_rfd_get_powerup (int);
 
 enum
 {
-    MODE_NONE = 0,
+    MODE_NONE       = 0,
 
-    MODE_CHALLENGE = 1,
-    MODE_NORMAL = 2,
-    MODE_STANDALONE = 3,
+    MODE_CHALLENGE  = 1,                 /* Challenge Mode  */
+    MODE_NORMAL     = 2,                 /* Classic Mode    */
+    MODE_STANDALONE = 3,                 /* Standalone Mode */
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    MODE_HARDCORE = 4,
+    MODE_HARDCORE   = 4,                 /* Hardcore Mode   */
 #endif
-    MODE_ZEN = 5,
-    MODE_BOOST_RUSH = 6,
+    MODE_ZEN        = 5,                 /* Zen Mode        */
+    MODE_BOOST_RUSH = 6,                 /* Boost Rush Mode */
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    MODE_CAMPAIGN = 7,
+    MODE_CAMPAIGN   = 7,                 /* Campaign Mode   */
 #endif
 
     MODE_MAX

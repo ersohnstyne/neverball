@@ -139,9 +139,15 @@ int glext_check_ext(const char *needle)
 /*---------------------------------------------------------------------------*/
 
 #if _DEBUG
+/*
+ * HACK: WGL always makes sense to debug for the best experiences.
+ * Useful when debugging game development for Visual Studio for Windows,
+ * when making sure that will be bugfixed. - Ersohn Styne
+ */
+
 int glext_fail(const char *title, const char *message);
 
-int glext_assert_dbg(const char *ext)
+static int glext_assert_dbg(const char *ext)
 {
     int have_ext = glext_check_ext(ext);
 
@@ -163,7 +169,7 @@ int glext_assert_dbg(const char *ext)
 
 #define glext_assert(ext) glext_assert_dbg(ext)
 #else
-int glext_assert(const char *ext)
+static int glext_assert(const char *ext)
 {
     if (!glext_check_ext(ext))
     {
@@ -174,7 +180,7 @@ int glext_assert(const char *ext)
 }
 #endif
 
-int glext_count(void)
+static int glext_count(void)
 {
     int n = 0;
 
@@ -246,7 +252,7 @@ int glext_fail(const char *title, const char *message)
 #if _WIN32 && _MSC_VER
     MessageBoxA(0, message, title, MB_ICONERROR);
 #else
-    if (SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title, message, NULL) < 0)
+    if (SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title, message, NULL) != 0)
     {
 #if defined(__linux__)
         char msgbox_cmd[256];
@@ -421,27 +427,13 @@ int glext_init(void)
 void glClipPlane4f_(GLenum p, GLfloat a, GLfloat b, GLfloat c, GLfloat d)
 {
 #if ENABLE_OPENGLES && !_WIN32
-
-    GLfloat v[4];
-
-    v[0] = a;
-    v[1] = b;
-    v[2] = c;
-    v[3] = d;
+    GLfloat v[4] = { a, b, c, d };
 
     glClipPlanefOES(p, v);
-
 #else
-
-    GLdouble v[4];
-
-    v[0] = a;
-    v[1] = b;
-    v[2] = c;
-    v[3] = d;
+    GLdouble v[4] = { a, b, c, d };
 
     glClipPlane(p, v);
-
 #endif
 }
 

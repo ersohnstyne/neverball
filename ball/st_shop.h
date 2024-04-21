@@ -17,8 +17,7 @@
 
 #include "state.h"
 
-extern struct state st_shop;
-extern struct state st_shop_unlocked;
+int goto_shop(struct state *shop_back, int (*shop_back_fn) (void));
 
 int goto_shop_rename(struct state *, struct state *, unsigned int);
 int goto_shop_iap(struct state *, struct state *,

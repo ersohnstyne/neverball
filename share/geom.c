@@ -223,7 +223,7 @@ void tex_env_active(const struct tex_env *env)
 /*
  * Select an appropriate texture pipeline out of several.
  */
-void tex_env_select(const struct tex_env *first, ...)
+void tex_env_select(const struct tex_env *first, ...) NULL_TERMINATED
 {
     const struct tex_env *sel = &tex_env_default;
     const struct tex_env *env;
@@ -282,6 +282,10 @@ enum
     GEOM_CLOCK5,
     GEOM_CLOCK15,
     GEOM_CLOCK30,
+#if NB_HAVE_PB_BOTH==1
+    GEOM_PUTIMETRAVEL,
+    GEOM_PUSUPERSPEED,
+#endif
 
     GEOM_MAX
 };
@@ -311,7 +315,11 @@ static const char item_sols[GEOM_MAX][PATHMAX] = {
     "item/shrink/shrink.sol",
     "item/clock/clock5.sol",
     "item/clock/clock15.sol",
-    "item/clock/clock30.sol"
+    "item/clock/clock30.sol",
+#if NB_HAVE_PB_BOTH==1
+    "item/pu/timetravel.sol",
+    "item/pu/superspeed.sol",
+#endif
 };
 
 static struct s_full beam;
@@ -480,11 +488,18 @@ static struct s_draw *item_file(const struct v_item *hp)
         {
             case ITEM_GROW:   g = GEOM_GROW;   break;
             case ITEM_SHRINK: g = GEOM_SHRINK; break;
+
             case ITEM_CLOCK:
                 if      (hp->n >= 30) g = GEOM_CLOCK30;
                 else if (hp->n >= 15) g = GEOM_CLOCK15;
                 else                  g = GEOM_CLOCK5;
                 break;
+
+#if NB_HAVE_PB_BOTH==1
+            case ITEM_2_2_0_TIMETRAVEL: g = GEOM_PUTIMETRAVEL; break;
+            case ITEM_2_2_0_SUPERSPEED: g = GEOM_PUSUPERSPEED; break;
+#endif
+
             default:
                 if      (hp->n >= 100) g = GEOM_COIN100;
                 else if (hp->n >= 50)  g = GEOM_COIN50;

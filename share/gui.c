@@ -95,7 +95,8 @@ const GLubyte gui_shd[4] = { 0x00, 0x00, 0x00, 0x80 };  /* Shadow   */
 #define GUI_LAYOUT 16
 #define GUI_CLIP   32
 
-#define GUI_LINES 8
+/* Default: 8 lines */
+#define GUI_LINES 16
 
 /*---------------------------------------------------------------------------*/
 
@@ -462,12 +463,12 @@ static struct font fonts[FONT_MAX];
 static int         fontc;
 
 static const int font_sizes_scale[FONT_SIZE_MAX] = {
-    52, // GUI_TNY
-    44, // GUI_XS
-    26, // GUI_SML
-    20, // GUI_TCH
-    13, // GUI_MED
-    7,  // GUI_LRG
+    52, /* GUI_TNY */
+    44, /* GUI_XS  */
+    26, /* GUI_SML */
+    20, /* GUI_TCH */
+    13, /* GUI_MED */
+    7,  /* GUI_LRG */
 };
 
 static int font_sizes[FONT_SIZE_MAX];
@@ -724,26 +725,29 @@ void gui_free(void)
 
     for (id = 1; id < WIDGET_MAX; id++)
     {
-        if (widget[id].image)
-            glDeleteTextures(1, &widget[id].image);
-
-        if (widget[id].init_text)
+        if (widget[id].type != GUI_FREE)
         {
-            free(widget[id].init_text);
-            widget[id].init_text = NULL;
-        }
+            if (widget[id].image)
+                glDeleteTextures(1, &widget[id].image);
 
-        if (widget[id].text)
-        {
-            free(widget[id].text);
-            widget[id].text = NULL;
-        }
+            if (widget[id].init_text)
+            {
+                free(widget[id].init_text);
+                widget[id].init_text = NULL;
+            }
 
-        widget[id].type  = GUI_FREE;
-        widget[id].flags = 0;
-        widget[id].image = 0;
-        widget[id].cdr   = 0;
-        widget[id].car   = 0;
+            if (widget[id].text)
+            {
+                free(widget[id].text);
+                widget[id].text = NULL;
+            }
+
+            widget[id].type  = GUI_FREE;
+            widget[id].flags = 0;
+            widget[id].image = 0;
+            widget[id].cdr   = 0;
+            widget[id].car   = 0;
+        }
     }
 
     /* Release all loaded fonts and finalize font rendering. */
@@ -1780,7 +1784,7 @@ int gui_search(int id, int x, int y)
 
 int gui_delete(int id)
 {
-    if (id)
+    if (id && widget[id].type != GUI_FREE)
     {
         /* Recursively delete all subwidgets. */
 
@@ -2205,88 +2209,88 @@ void gui_animate(int id)
         /* Single direction (No Pow) */
         case GUI_ANIMATION_N_LINEAR:
             glTranslatef(0.0f,
-                         (video.device_h / -3) * (widget[id].alpha - 1),
+                         (video.device_h / -3.0f) * (widget[id].alpha - 1.0f),
                          0.0f);
             break;
         case GUI_ANIMATION_E_LINEAR:
-            glTranslatef((video.device_h / -3) * (widget[id].alpha - 1),
+            glTranslatef((video.device_h / -3.0f) * (widget[id].alpha - 1.0f),
                          0.0f,
                          0.0f);
             break;
         case GUI_ANIMATION_S_LINEAR:
             glTranslatef(0.0f,
-                         (video.device_h / +3) * (widget[id].alpha - 1),
+                         (video.device_h / +3.0f) * (widget[id].alpha - 1.0f),
                          0.0f);
             break;
         case GUI_ANIMATION_W_LINEAR:
-            glTranslatef((video.device_h / +3) * (widget[id].alpha - 1),
+            glTranslatef((video.device_h / +3.0f) * (widget[id].alpha - 1.0f),
                          0.0f,
                          0.0f);
             break;
 
         /* Multiple directions (No Pow) */
         case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_E_LINEAR:
-            glTranslatef((video.device_h / -3) * (widget[id].alpha - 1),
-                         (video.device_h / -3) * (widget[id].alpha - 1),
+            glTranslatef((video.device_h / -3.0f) * (widget[id].alpha - 1.0f),
+                         (video.device_h / -3.0f) * (widget[id].alpha - 1.0f),
                          0.0f);
             break;
         case GUI_ANIMATION_N_LINEAR | GUI_ANIMATION_W_LINEAR:
-            glTranslatef((video.device_h / +3) * (widget[id].alpha - 1),
-                         (video.device_h / -3) * (widget[id].alpha - 1),
+            glTranslatef((video.device_h / +3.0f) * (widget[id].alpha - 1.0f),
+                         (video.device_h / -3.0f) * (widget[id].alpha - 1.0f),
                          0.0f);
             break;
         case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_E_LINEAR:
-            glTranslatef((video.device_h / -3) * (widget[id].alpha - 1),
-                         (video.device_h / +3) * (widget[id].alpha - 1),
+            glTranslatef((video.device_h / -3.0f) * (widget[id].alpha - 1.0f),
+                         (video.device_h / +3.0f) * (widget[id].alpha - 1.0f),
                          0.0f);
             break;
         case GUI_ANIMATION_S_LINEAR | GUI_ANIMATION_W_LINEAR:
-            glTranslatef((video.device_h / +3) * (widget[id].alpha - 1),
-                         (video.device_h / +3) * (widget[id].alpha - 1),
+            glTranslatef((video.device_h / +3.0f) * (widget[id].alpha - 1.0f),
+                         (video.device_h / +3.0f) * (widget[id].alpha - 1.0f),
                          0.0f);
             break;
 
         /* Single direction (Pow) */
         case GUI_ANIMATION_N_CURVE:
             glTranslatef(0.0f,
-                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3),
+                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3.0f),
                          0.0f);
             break;
         case GUI_ANIMATION_E_CURVE:
-            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3),
+            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3.0f),
                          0.0f,
                          0.0f);
             break;
         case GUI_ANIMATION_S_CURVE:
             glTranslatef(0.0f,
-                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3),
+                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3.0f),
                          0.0f);
             break;
         case GUI_ANIMATION_W_CURVE:
-            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3),
+            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3.0f),
                          0.0f,
                          0.0f);
             break;
 
         /* Multiple directions (Pow) */
         case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE:
-            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3),
-                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3),
+            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3.0f),
+                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3.0f),
                          0.0f);
             break;
         case GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE:
-            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3),
-                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3),
+            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3.0f),
+                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3.0f),
                          0.0f);
             break;
         case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE:
-            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3),
-                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3),
+            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / +3.0f),
+                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3.0f),
                          0.0f);
             break;
         case GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE:
-            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3),
-                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3),
+            glTranslatef(fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3.0f),
+                         fpowf(widget[id].alpha - 1, 2) * (video.device_h / -3.0f),
                          0.0f);
             break;
     }
@@ -2327,41 +2331,39 @@ void gui_paint(int id)
 {
     if (id)
     {
-        video_push_ortho();
+        video_set_ortho();
+
+        glDisable(GL_DEPTH_TEST);
         {
-            glDisable(GL_DEPTH_TEST);
-            {
-                gui_animate(id);
+            gui_animate(id);
 
-                draw_enable(GL_FALSE, GL_TRUE, GL_TRUE);
-                glColor4ub(gui_wht[0],
-                           gui_wht[1],
-                           gui_wht[2],
-                           ROUND(gui_wht[3] * widget[id].alpha));
-                gui_paint_rect(id, 0, 0);
+            draw_enable(GL_FALSE, GL_TRUE, GL_TRUE);
+            glColor4ub(gui_wht[0],
+                       gui_wht[1],
+                       gui_wht[2],
+                       ROUND(gui_wht[3] * widget[id].alpha));
+            gui_paint_rect(id, 0, 0);
 
-                draw_enable(GL_TRUE, GL_TRUE, GL_TRUE);
-                glColor4ub(gui_wht[0],
-                           gui_wht[1],
-                           gui_wht[2],
-                           ROUND(gui_wht[3] * widget[id].alpha));
-                gui_paint_text(id);
+            draw_enable(GL_TRUE, GL_TRUE, GL_TRUE);
+            glColor4ub(gui_wht[0],
+                       gui_wht[1],
+                       gui_wht[2],
+                       ROUND(gui_wht[3] * widget[id].alpha));
+            gui_paint_text(id);
 
-                draw_disable();
-                glColor4ub(gui_wht[0],
-                           gui_wht[1],
-                           gui_wht[2],
-                           viewport_wireframe == 4 && render_fill_overlay == 1 ? 0x80 : 0xFF);
-            }
-            glEnable(GL_DEPTH_TEST);
+            draw_disable();
+            glColor4ub(gui_wht[0],
+                       gui_wht[1],
+                       gui_wht[2],
+                       viewport_wireframe == 4 && render_fill_overlay == 1 ? 0x80 : 0xFF);
         }
-        video_pop_matrix();
+        glEnable(GL_DEPTH_TEST);
     }
 
     /* Should be used within the splitview? */
     if (!video_get_grab() && cursor_st && cursor_id)
     {
-        video_push_ortho();
+        video_set_ortho();
         {
             glDisable(GL_DEPTH_TEST);
 
@@ -2391,7 +2393,6 @@ void gui_paint(int id)
 
             glEnable(GL_DEPTH_TEST);
         }
-        video_pop_matrix();
     }
 }
 

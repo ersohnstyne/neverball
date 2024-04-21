@@ -23,7 +23,6 @@
 #include "audio.h"
 #include "config.h"
 #include "video.h"
-
 #if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
 #endif
@@ -31,6 +30,11 @@
 
 #ifdef MAPC_INCLUDES_CHKP
 #include "checkpoints.h" /* New: Checkpoints */
+#endif
+
+#if ENABLE_MOON_TASKLOADER!=0
+#define SKIP_MOON_TASKLOADER
+#include "moon_taskloader.h"
 #endif
 
 #include "game_client.h"
@@ -124,9 +128,9 @@ static void game_run_cmd(const union cmd *cmd)
 #else
                 if (status == GAME_GOAL)
 #endif
-                    game_tilt_grav(v, GRAVITY_UP, tilt);
+                    game_tilt_grav(v, GRAVITY_PY, tilt);
                 else
-                    game_tilt_grav(v, GRAVITY_DN, tilt);
+                    game_tilt_grav(v, GRAVITY_NY, tilt);
 
                 /* Step particle, goal and jump effects. */
 
@@ -230,14 +234,24 @@ static void game_run_cmd(const union cmd *cmd)
                     if (strcmp(AUD_TIME, cmd->sound.n) == 0 ||
                         strcmp(AUD_FALL, cmd->sound.n) == 0)
                         audio_narrator_play(cmd->sound.n);
+#if NB_HAVE_PB_BOTH==1
+                    /* 2.2 narrator sound equivalent. */
+
+                    else if (strcmp(AUD_2_2_0_PICK_TT, cmd->sound.n) == 0 ||
+                             strcmp(AUD_2_2_0_PICK_SS, cmd->sound.n) == 0)
+                        audio_narrator_play(cmd->sound.n);
+#endif
                     else audio_play(cmd->sound.n, cmd->sound.a);
                 }
 
                 break;
 
             case CMD_TIMER:
-                gl.timer[PREV] = gl.timer[CURR];
-                gl.timer[CURR] = cmd->timer.t;
+                if (!gd.jump_b)
+                {
+                    gl.timer[PREV] = gl.timer[CURR];
+                    gl.timer[CURR] = cmd->timer.t;
+                }
 
                 if (cs.first_update)
                 {
@@ -323,6 +337,16 @@ static void game_run_cmd(const union cmd *cmd)
 
             case CMD_BALL_POSITION:
                 sol_lerp_cmd(&gl.lerp, &cs, cmd);
+
+                /*if (vary)
+                {
+                    float vx = vary->uv[cs.curr_ball].v[0];
+                    float vy = vary->uv[cs.curr_ball].v[1];
+                    float vz = vary->uv[cs.curr_ball].v[2];
+
+                    speedometer = sqrtf(vx * vx + vy * vy + vz * vz);
+                }*/
+
                 break;
 
             case CMD_BALL_BASIS:
@@ -441,6 +465,189 @@ void game_client_sync(fs_file demo_fp)
 
 /*---------------------------------------------------------------------------*/
 
+#if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
+int game_client_load_moon_taskloader(void *data, void *execute_data)
+{
+    struct game_moon_taskloader_info *mtli = (struct game_moon_taskloader_info *) execute_data;
+
+    if (!mtli) return 0;
+
+    while (st_global_animating());
+
+    char *back_name = "", *grad_name = "";
+
+    /* Load SOL data. */
+
+    if (!game_base_load(mtli->filename))
+        return (gd.state = 0);
+
+    if (!sol_load_vary(&gd.vary, &game_base))
+    {
+        game_base_free(NULL);
+        return (gd.state = 0);
+    }
+
+    if (!sol_load_draw(&gd.draw, &gd.vary, config_get_d(CONFIG_SHADOW)))
+    {
+        sol_free_vary(&gd.vary);
+        game_base_free(NULL);
+        return (gd.state = 0);
+    }
+
+    gd.state = 1;
+
+    /* Initialize game state. */
+
+    game_tilt_init(&gd.tilt);
+    game_view_init(&gd.view);
+
+    view_zoom_diff_end  = 0;
+    view_zoom_diff_curr = 0;
+
+    gd.jump_e  = 1;
+    gd.jump_b  = 0;
+    gd.jump_dt = 0.0f;
+
+#ifdef MAPC_INCLUDES_CHKP
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if (curr_mode() == MODE_HARDCORE || curr_balls() == 0)
+#else
+    if (curr_balls() == 0)
+#endif
+    {
+        /* All checkpoints were removed in HARDCORE MODE! or last balls. */
+        gd.chkp_e = 0;
+        gd.chkp_k = 0.0f;
+    }
+    else
+    {
+        gd.chkp_e = 1;
+        gd.chkp_k = 1.0f;
+    }
+#endif
+
+    gd.goal_e = 0;
+    gd.goal_k = 0.0f;
+
+    /* Initialize interpolation. */
+
+    game_lerp_init(&gl, &gd);
+
+    /* Initialize fade. */
+
+    gd.fade_k =  1.0f;
+    gd.fade_d = -2.0f;
+
+    /* Load level info. */
+
+    version.x = 0;
+    version.y = 0;
+
+    for (int i = 0; i < gd.vary.base->dc; i++)
+    {
+        char *k = gd.vary.base->av + gd.vary.base->dv[i].ai;
+        char *v = gd.vary.base->av + gd.vary.base->dv[i].aj;
+
+        if (strcmp(k, "back") == 0) back_name = v;
+        if (strcmp(k, "grad") == 0) grad_name = v;
+
+        if (strcmp(k, "version") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            if (sscanf_s(v,
+#else
+            if (sscanf(v,
+#endif
+                       "%d.%d", &version.x, &version.y) != 2)
+            {
+/*#ifndef NDEBUG
+                log_errorf("SOL key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
+                sol_free_vary(&gd.vary);
+                game_base_free(NULL);
+                return (gd.state = 0);
+#endif*/
+            }
+    }
+
+    /*
+     * If the version of the loaded map is 1, assume we have a version
+     * match with the server.  In this way 1.5.0 replays don't trigger
+     * bogus map compatibility warnings.  Post-1.5.0 replays will have
+     * CMD_MAP override this.
+     */
+
+    /*
+     * 1.5.0 replays will not be able to trigger any map compatibility
+     * warnings, 2.1 are not affected.
+     */
+
+    game_compat_map = version.x == 1;
+
+    /* Initialize particles. */
+
+    part_reset();
+
+    /* Initialize command state. */
+
+    cmd_state_init(&cs);
+
+    /* Initialize background. */
+
+    back_init(grad_name);
+
+    sol_load_full(&gd.back, back_name, 0);
+
+    /* Initialize lighting. */
+
+    light_reset();
+
+    return gd.state;
+}
+
+int game_client_init_moon_taskloader(const char *file_name,
+                                     struct moon_taskloader_callback callback)
+{
+    game_client_free(NULL);
+
+    /*
+     * --- CHECKPOINT DATA ---
+     * If you haven't loaded Level data for each checkpoints,
+     * Levels for your default data will be used.
+     */
+
+#if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
+    if (!last_active)
+#endif
+        max_coins = 0;
+
+#if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
+    coins  = last_active ? checkpoints_respawn_coins() : 0;
+#else
+    coins  = 0;
+#endif
+    speedometer = 0;
+    status = GAME_NONE;
+
+    struct game_moon_taskloader_info *mtli = game_create_mtli();
+
+    if (mtli)
+    {
+        mtli->callback = callback;
+        mtli->filename = strdup(file_name);
+
+        callback.execute  = game_mtli_execute;
+        callback.progress = game_mtli_progress;
+        callback.done     = game_mtli_done;
+        callback.data     = mtli;
+
+        return moon_taskloader_load(file_name, callback);
+    }
+
+    return 0;
+}
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 static int ball_visible = 0;
 
 int  game_client_init(const char *file_name)
@@ -464,6 +671,7 @@ int  game_client_init(const char *file_name)
 #else
     coins  = 0;
 #endif
+    speedometer = 0;
     status = GAME_NONE;
 
     game_client_free(file_name);
@@ -595,6 +803,11 @@ int  game_client_init(const char *file_name)
     return gd.state;
 }
 
+int  game_client_init_metadata(const char *file_name)
+{
+    return 1;
+}
+
 void game_client_toggle_show_balls(int visible)
 {
     ball_visible = visible;
@@ -604,19 +817,20 @@ void game_client_free(const char *next)
 {
     if (gd.state)
     {
+        gd.state = 0;
+
         game_proxy_clr();
+
+        back_free();
 
         game_lerp_free(&gl);
 
+        sol_free_full(&gd.back);
         sol_free_draw(&gd.draw);
         sol_free_vary(&gd.vary);
 
         game_base_free(next);
-
-        sol_free_full(&gd.back);
-        back_free();
     }
-    gd.state = 0;
 }
 
 int game_client_get_jump_b(void)
@@ -634,9 +848,11 @@ void game_client_blend(float a)
 void game_client_draw(int pose, float t)
 {
     if (gd.state)
+    {
         game_lerp_apply(&gl, &gd);
 
-    game_draw(&gd, ball_visible ? pose : POSE_LEVEL, t);
+        game_draw(&gd, ball_visible ? pose : POSE_LEVEL, t);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -648,7 +864,7 @@ int curr_viewangle(void)
 
 int curr_clock(void)
 {
-    return (int) (flerp(gl.timer[PREV], gl.timer[CURR], gl.alpha) * 100.0f);
+    return ROUND(flerp(gl.timer[PREV], gl.timer[CURR], gl.alpha) * 100.0f);
 }
 
 int curr_coins(void)

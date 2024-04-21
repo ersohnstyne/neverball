@@ -36,7 +36,7 @@
 #include "st_shared.h"
 
 #define TARGET_DATA_OUTPUT "YOUR_TARGET_DATA_DIR_HERE"
-#define CAMPAIGN_MAPC_ARGS " --campaign --skip_verify"
+#define CAMPAIGN_MAPC_OPTS " --campaign --skip_verify"
 
 int intro_phase;
 int donot_id;
@@ -80,7 +80,7 @@ static int setup_progressions_enter(struct state *st, struct state *prev)
 {
     if (st == &st_title)
     {
-        audio_music_fade_to(0.5f, "bgm/setup.ogg");
+        audio_music_fade_to(0.5f, "bgm/setup.ogg", 1);
         intro_phase = 1;
     }
     return setup_progressions_gui();
@@ -126,40 +126,40 @@ static void setup_timer(int id, float dt)
         }
         else if (curr_state() == &st_setup_progressions)
         {
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/sky-01.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/sky-02.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/sky-03.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/sky-04.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/sky-05.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/sky-06.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/sky-01.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/sky-02.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/sky-03.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/sky-04.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/sky-05.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/sky-06.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
 
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/ice-01.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/ice-02.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/ice-03.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/ice-04.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/ice-05.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/ice-06.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/ice-01.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/ice-02.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/ice-03.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/ice-04.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/ice-05.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/ice-06.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
 
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cave-01.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cave-02.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cave-03.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cave-04.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cave-05.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cave-06.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cave-01.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cave-02.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cave-03.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cave-04.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cave-05.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cave-06.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
 
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cloud-01.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cloud-02.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cloud-03.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cloud-04.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cloud-05.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cloud-06.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cloud-01.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cloud-02.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cloud-03.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cloud-04.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cloud-05.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/cloud-06.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
 
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/lava-01.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/lava-02.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/lava-03.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/lava-04.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/lava-05.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
-            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/lava-06.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_ARGS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/lava-01.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/lava-02.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/lava-03.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/lava-04.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/lava-05.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
+            system("mapc \"" TARGET_DATA_OUTPUT "/buildin-map-campaign/lava-06.cmap\" " "\"" TARGET_DATA_OUTPUT "\"" CAMPAIGN_MAPC_OPTS);
 
             goto_state(&st_setup_done);
         }

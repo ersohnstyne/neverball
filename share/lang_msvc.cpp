@@ -22,12 +22,14 @@
  * - Ersohn Styne
  */
 
-#include <assert.h>
 #include <string.h>
 #include <locale.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#ifndef NDEBUG
+#include <assert.h>
+#endif
 
 #include <sstream>
 #include <vector>
@@ -56,7 +58,7 @@ extern "C"
 
 #if _WIN32 && _MSC_VER && NLS_GETTEXT!=1
 
-std::ostringstream lang_splitstr(std::string str, std::string delim = "\n")
+static std::ostringstream lang_splitstr(std::string str, std::string delim = "\n")
 {
     std::ostringstream finalres;
 
@@ -89,33 +91,13 @@ std::vector<char *> targ_lang_text;
 
 static char *targ_lang_code;
 
-void ms_nls_free(void)
-{
-    int i;
+#if _MSC_VER
+#define MSVC_DEBUG_NLS 1
+#endif
 
-    for (i = 0; i < lang_text_found.size(); i++)
-        lang_text_found[i] = false;
+void ms_nls_free(void);
 
-    lang_text_found.clear();
-
-    for (i = 0; i < src_lang_text.size(); i++)
-    {
-        free(src_lang_text[i]);
-        src_lang_text[i] = NULL;
-    }
-
-    src_lang_text.clear();
-
-    for (i = 0; i < targ_lang_text.size(); i++)
-    {
-        free(targ_lang_text[i]);
-        targ_lang_text[i] = NULL;
-    }
-
-    targ_lang_text.clear();
-}
-
-void ms_nls_init(const char *pref)
+static void ms_nls_init(const char *pref)
 {
     ms_nls_free();
 
@@ -125,10 +107,10 @@ void ms_nls_init(const char *pref)
 
     if (!dir)
     {
-        if (path_is_abs(CONFIG_LOCALE "\\..\\..\\po"))
-            dir = strdup(CONFIG_LOCALE "\\..\\..\\po");
+        if (path_is_abs(CONFIG_LOCALE "\\..\\po"))
+            dir = strdup(CONFIG_LOCALE "\\..\\po");
         else
-            dir = concat_string(fs_base_dir(), "\\", CONFIG_LOCALE, "\\..\\..\\po",
+            dir = concat_string(fs_base_dir(), "\\", CONFIG_LOCALE, "\\..\\po",
                                 NULL);
     }
 
@@ -136,8 +118,10 @@ void ms_nls_init(const char *pref)
     {
         log_errorf("Failure to find locale path: %s - %s\n",
                    dir, errno ? strerror(errno) : "Unknown error");
+#if !MSVC_DEBUG_NLS
         free(dir);
         dir = NULL;
+#endif
         return;
     }
 
@@ -221,8 +205,10 @@ void ms_nls_init(const char *pref)
 
     if (!lang_available)
     {
+#if !MSVC_DEBUG_NLS
         free(dir);
         dir = NULL;
+#endif
         return;
     }
 
@@ -357,12 +343,43 @@ void ms_nls_init(const char *pref)
 #undef LANG_FUNC_LOAD_LOOP
 #undef LANG_FUNC_LOADSEG_FINALIZE
 
+#ifndef NDEBUG
     /* HACK: Must match the element count in order. */
+
     assert(lang_text_found.size() == src_lang_text.size() &&
            lang_text_found.size() == targ_lang_text.size());
+#endif
 
+#if !MSVC_DEBUG_NLS
     free(dir);
     dir = NULL;
+#endif
+}
+
+void ms_nls_free(void)
+{
+    int i;
+
+    for (i = 0; i < lang_text_found.size(); i++)
+        lang_text_found[i] = false;
+
+    lang_text_found.clear();
+
+    for (i = 0; i < src_lang_text.size(); i++)
+    {
+        free(src_lang_text[i]);
+        src_lang_text[i] = NULL;
+    }
+
+    src_lang_text.clear();
+
+    for (i = 0; i < targ_lang_text.size(); i++)
+    {
+        free(targ_lang_text[i]);
+        targ_lang_text[i] = NULL;
+    }
+
+    targ_lang_text.clear();
 }
 
 const char *ms_nls_gettext(const char *s)

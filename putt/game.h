@@ -63,23 +63,27 @@
 
 /*---------------------------------------------------------------------------*/
 
-int   game_init(const char *);
-void  game_free(void);
+int  game_init(const char *);
+void game_free(void);
 
-void  game_draw(int, float);
-void  game_putt(void);
-int   game_step(const float[3], float);
+void game_kill_fade(void);
+void game_step_fade(float);
+void game_fade(float d);
 
-void  game_update_view(float);
+void game_draw(int, float);
+void game_putt(void);
+int  game_step(const float[3], float);
 
-void  game_set_rot(int);
-void  game_clr_mag(void);
-void  game_set_mag(int);
-void  game_set_fly(float);
+void game_update_view(float);
 
-void  game_ball(int);
-void  game_set_pos(float[3], float[3][3]);
-void  game_get_pos(float[3], float[3][3]);
+void game_set_rot(int);
+void game_clr_mag(void);
+void game_set_mag(int);
+void game_set_fly(float);
+
+void game_ball(int);
+void game_set_pos(float[3], float[3][3]);
+void game_get_pos(float[3], float[3][3]);
 
 /*---------------------------------------------------------------------------*/
 

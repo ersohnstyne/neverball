@@ -16,6 +16,7 @@
 #ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
+
 #include "powerup.h"
 #include "account.h"
 #include "solid_chkp.h"
@@ -101,7 +102,7 @@ static void __countdown_preparation_draw()
 {
     for (int i = 0; i < 12; i++)
     {
-        video_push_ortho();
+        video_set_ortho();
 
         if (local_countdown_preparation[i].isgreen)
         {
@@ -157,8 +158,6 @@ static void __countdown_preparation_draw()
         glEnd();
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_DEPTH_TEST);
-
-        video_pop_matrix();
     }
 }
 
@@ -197,7 +196,19 @@ static void set_lvlinfo(void)
 #endif
                 level_bonus(curr_level()) ? "%s - Bonus %s" : "%s - %s",
                 setname, level_name(curr_level()));
-        hud_lvlname_set(lvlname, level_bonus(curr_level()));
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        if (str_starts_with(set_id(curr_set()), "SB") ||
+            str_starts_with(set_id(curr_set()), "sb") ||
+            str_starts_with(set_id(curr_set()), "Sb") ||
+            str_starts_with(set_id(curr_set()), "sB"))
+            hud_lvlname_campaign(lvlname, level_bonus(curr_level()));
+        else
+#endif
+        if (str_starts_with(set_id(curr_set()), "anime"))
+            hud_lvlname_set_ana(lvlname, level_bonus(curr_level()));
+        else
+            hud_lvlname_set(lvlname, level_bonus(curr_level()));
     }
 }
 
@@ -264,13 +275,6 @@ static void play_shared_fade(float alpha)
     hud_set_alpha(alpha);
 }
 
-static void play_shared_exit(int id)
-{
-    progress_stat(GAME_NONE);
-    progress_stop();
-    progress_exit();
-}
-
 /*---------------------------------------------------------------------------*/
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -279,6 +283,13 @@ static int restart_cancel_allchkp;
 static int play_freeze_all;
 static int use_mouse;
 static int use_keyboard;
+
+int play_pause_goto(struct state *returnable)
+{
+    play_freeze_all = 1;
+
+    return goto_pause(returnable);
+}
 
 static int play_ready_gui(void)
 {
@@ -729,7 +740,7 @@ static void play_loop_timer(int id, float dt)
 
     game_lerp_pose_point_tick(dt);
 
-    if (!game_client_get_jump_b())
+    if (!game_client_get_jump_b() && !play_freeze_all)
         geom_step(dt);
 
     /* Boost rush uses auto forward */
@@ -1211,12 +1222,12 @@ static void play_loop_wheel(int x, int y)
 
 /*---------------------------------------------------------------------------*/
 
-void play_shared_leave(struct state *st, struct state *next, int id)
+void play_shared_leave_internal(struct state *st, struct state *next, int id)
 {
     if (curr_mode() == MODE_NONE)
         game_set_pos(0, 0);
 
-    shared_leave(st, next, id);
+    play_shared_leave(st, next, id);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1239,11 +1250,6 @@ static int look_enter(struct state *st, struct state *prev)
     phi   = 0;
     theta = 0;
     return 0;
-}
-
-static void look_leave(struct state *st, struct state *next, int id)
-{
-    shared_leave(st, next, id);
 }
 
 static void look_timer(int id, float dt)
@@ -1346,7 +1352,7 @@ static int look_buttn(int b, int d)
 
 struct state st_play_ready = {
     play_ready_enter,
-    play_shared_leave,
+    play_shared_leave_internal,
     play_prep_paint,
     play_ready_timer,
     NULL,
@@ -1357,13 +1363,12 @@ struct state st_play_ready = {
     play_prep_buttn,
     NULL,
     NULL,
-    play_shared_fade,
-    play_shared_exit
+    play_shared_fade
 };
 
 struct state st_play_set = {
     play_set_enter,
-    play_shared_leave,
+    play_shared_leave_internal,
     play_prep_paint,
     play_set_timer,
     NULL,
@@ -1374,13 +1379,12 @@ struct state st_play_set = {
     play_prep_buttn,
     NULL,
     NULL,
-    play_shared_fade,
-    play_shared_exit
+    play_shared_fade
 };
 
 struct state st_play_loop = {
     play_loop_enter,
-    play_shared_leave,
+    play_shared_leave_internal,
     play_loop_paint,
     play_loop_timer,
     play_loop_point,
@@ -1391,13 +1395,12 @@ struct state st_play_loop = {
     play_loop_buttn,
     play_loop_wheel,
     play_loop_touch,
-    play_shared_fade,
-    play_shared_exit
+    play_shared_fade
 };
 
 struct state st_look = {
     look_enter,
-    look_leave,
+    play_shared_leave_internal,
     look_paint,
     look_timer,
     look_point,
@@ -1408,6 +1411,5 @@ struct state st_look = {
     look_buttn,
     NULL,
     NULL,
-    play_shared_fade,
-    play_shared_exit
+    play_shared_fade
 };

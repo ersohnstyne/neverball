@@ -14,11 +14,11 @@
 
 /* Have some Switchball guides? */
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#if NB_HAVE_PB_BOTH==1
+#ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
 
-#if NB_HAVE_PB_BOTH==1
 #include "campaign.h"
 #include "account.h"
 
@@ -129,20 +129,21 @@ static int help_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-        if (help_open)
-        {
-            help_open = 0;
-            help_page_current = 1;
-            return goto_state(&st_help);
-        }
-        else
-            return goto_state(&st_title);
-            break;
+            if (help_open)
+            {
+                help_open = 0;
+                help_page_current = 1;
+                return goto_state(&st_help);
+            }
+            else
+                return goto_state(&st_title);
+
         case HELP_DEMO:
+            progress_exit();
             progress_init(MODE_NONE);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (progress_replay_full(current_platform == PLATFORM_PC ?
-                               demos[val] : demos_xbox[val],
+                                     demos[val] : demos_xbox[val],
 #else
             if (progress_replay_full(demos[val],
 #endif
@@ -170,17 +171,15 @@ static int help_action(int tok, int val)
 
             help_open = 1;
             return goto_state(&st_help);
-            break;
+
         case HELP_NEXT:
             help_page_current++;
             return goto_state(&st_help);
-            break;
     }
 #else
     switch (tok)
     {
         case GUI_BACK:
-            page = PAGE_RULES;
             return goto_state(&st_title);
 
         case HELP_DEMO:
@@ -193,7 +192,7 @@ static int help_action(int tok, int val)
                                      0, 0, 0, 0, 0, 0))
 
                 return goto_state(&st_help_demo);
-                break;
+            break;
 
         case HELP_SELECT:
             page = val;
@@ -286,25 +285,23 @@ static int page_introduction(int id)
     const int hh = ww / 4 * 3;
 
     if (help_page_current == 1)
-        gui_multi(id,
-                  _("The goal of Switchball is to get your ball to the\n"
-                    "end of the level and board the gyrocopter.\n"
-                    "Once you have completed a level\n"
-                    "the next will be unlocked and so on.\n"
-                    "Eventually, new worlds will be unlocked as well."),
-                  GUI_SML, GUI_COLOR_WHT);
+        gui_multi(id, _("The goal of Switchball is to get your ball to the\n"
+                        "end of the level and board the gyrocopter.\n"
+                        "Once you have completed a level\n"
+                        "the next will be unlocked and so on.\n"
+                        "Eventually, new worlds will be unlocked as well."),
+                      GUI_SML, GUI_COLOR_WHT);
     if (help_page_current == 2)
     {
         if ((jd = gui_hstack(id)))
         {
             if ((kd = gui_vstack(jd)))
             {
-                gui_multi(kd,
-                          _("The Checkpoint resurrects\n"
-                            "your ball. If anything bad\n"
-                            "happens, you will start over\n"
-                            "from here."),
-                          GUI_SML, GUI_COLOR_WHT);
+                gui_multi(kd, _("The Checkpoint resurrects\n"
+                                "your ball. If anything bad\n"
+                                "happens, you will start over\n"
+                                "from here."),
+                              GUI_SML, GUI_COLOR_WHT);
                 gui_filler(kd);
             }
             gui_space(jd);
@@ -321,14 +318,13 @@ static int page_introduction(int id)
         {
             if ((kd = gui_vstack(jd)))
             {
-                gui_multi(kd,
-                          _("The Timer shows how fast you have\n"
-                            "completed the level. By completing\n"
-                            "a level as fast as you can, you can\n"
-                            "earn bronze, silver and gold medals,\n"
-                            "which will reward Achievements\n"
-                            "if you collect enough of them."),
-                          GUI_SML, GUI_COLOR_WHT);
+                gui_multi(kd, _("The Timer shows how fast you have\n"
+                                "completed the level. By completing\n"
+                                "a level as fast as you can, you can\n"
+                                "earn bronze, silver and gold medals,\n"
+                                "which will reward Achievements\n"
+                                "if you collect enough of them."),
+                              GUI_SML, GUI_COLOR_WHT);
                 gui_filler(kd);
             }
             gui_space(jd);
@@ -486,14 +482,14 @@ static void controls_pc(int id)
     const char *s_shot    = _("Screenshot");
 
     const char *ks_unassigned = _("Unassigned");
-    char *ks_exit       = strdup(SDL_GetKeyName(k_exit));
-    char *ks_restart    = strdup(SDL_GetKeyName(k_restart));
-    char *ks_auto       = strdup(SDL_GetKeyName(k_auto));
-    char *ks_cam1       = strdup(SDL_GetKeyName(k_cam1));
-    char *ks_cam2       = strdup(SDL_GetKeyName(k_cam2));
-    char *ks_cam3       = strdup(SDL_GetKeyName(k_cam3));
-    char *ks_rot_l      = strdup(SDL_GetKeyName(k_rot_l));
-    char *ks_rot_r      = strdup(SDL_GetKeyName(k_rot_r));
+    char       *ks_exit       = strdup(SDL_GetKeyName(k_exit));
+    char       *ks_restart    = strdup(SDL_GetKeyName(k_restart));
+    char       *ks_auto       = strdup(SDL_GetKeyName(k_auto));
+    char       *ks_cam1       = strdup(SDL_GetKeyName(k_cam1));
+    char       *ks_cam2       = strdup(SDL_GetKeyName(k_cam2));
+    char       *ks_cam3       = strdup(SDL_GetKeyName(k_cam3));
+    char       *ks_rot_l      = strdup(SDL_GetKeyName(k_rot_l));
+    char       *ks_rot_r      = strdup(SDL_GetKeyName(k_rot_r));
 
     char temp_k_rot_l[32]; SAFECPY(temp_k_rot_l, ks_rot_l && *ks_rot_l ? ks_rot_l : ks_unassigned);
     char temp_k_rot_r[32]; SAFECPY(temp_k_rot_r, ks_rot_r && *ks_rot_r ? ks_rot_r : ks_unassigned);
@@ -507,10 +503,10 @@ static void controls_pc(int id)
 #endif
             _("Use %s / %s buttons to rotate the view.\n"
               "Hold %s for faster view rotation."),
-            config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
-            temp_k_rot_r : temp_k_rot_l,
-            config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
-            temp_k_rot_l : temp_k_rot_r,
+            config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? temp_k_rot_r :
+                                                           temp_k_rot_l,
+            config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? temp_k_rot_l :
+                                                           temp_k_rot_r,
             SDL_GetKeyName(config_get_d(CONFIG_KEY_ROTATE_FAST)));
 
     int jd, kd;
@@ -695,14 +691,14 @@ static int page_modes(int id)
         {
             if ((accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 ||
                  config_cheat()) ||
-                !server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE)
-                || CHECK_ACCOUNT_BANKRUPT)
+                !server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE) ||
+                CHECK_ACCOUNT_BANKRUPT)
                 gui_label(jd, _("Challenge Mode"), GUI_SML, gui_gry, gui_red);
             else
                 gui_label(jd, _("Challenge Mode"), GUI_SML, 0, 0);
 
-            if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE)
-                && server_policy_get_d(SERVER_POLICY_EDITION) == 0)
+            if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE) &&
+                server_policy_get_d(SERVER_POLICY_EDITION) == 0)
                 gui_multi(jd, _("Upgrade to Pro edition to play this Mode."),
                               GUI_SML, GUI_COLOR_WHT);
             else if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
@@ -746,8 +742,8 @@ static int page_modes(int id)
         {
             gui_label(jd, _("Challenge Mode"), GUI_SML, gui_gry, gui_red);
 
-            if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE)
-                && server_policy_get_d(SERVER_POLICY_EDITION) == 0)
+            if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE) &&
+                server_policy_get_d(SERVER_POLICY_EDITION) == 0)
                 gui_multi(jd, _("Upgrade to Pro edition to play this Mode"),
                               GUI_SML, GUI_COLOR_WHT);
             else if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
@@ -915,8 +911,8 @@ static int page_modes_special(int id)
                               GUI_SML, GUI_COLOR_WHT);
 #endif
             }
-            else if ((server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE)
-                   || campaign_hardcore_unlocked()))
+            else if ((server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE) ||
+                      campaign_hardcore_unlocked()))
             {
                 gui_label(jd, _("Hardcore Mode"), GUI_SML, 0, 0);
                 gui_multi(jd, _("Same as Challenge Mode. You must play the entire game\n"
@@ -936,8 +932,8 @@ static int page_modes_special(int id)
         {
             gui_label(jd, _("Hardcore Mode"), GUI_SML, gui_gry, gui_red);
 
-            if (server_policy_get_d(SERVER_POLICY_EDITION) < 0
-                && CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
+            if (server_policy_get_d(SERVER_POLICY_EDITION) < 0 &&
+                CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
                 gui_multi(jd, _("Upgrade to Pro edition to play this Mode."),
                               GUI_SML, GUI_COLOR_WHT);
             else if (CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
@@ -1100,20 +1096,20 @@ static int page_machines(int id)
 
 static int page_tricks(int id)
 {
-    const char *s0 = _("Corners can be used to jump.\n"
-                       "Get rolling and take aim\n"
-                       "at the angle. You may be able\n"
-                       "to reach new places.\n");
-    const char *s1 = _("Pushing in 2 directions increases\n"
-                       "the roll speed. Use the manual\n"
-                       "camera and turn the camera by 45\n"
-                       "degrees for best results.\n");
+    const char *s0 = N_("Corners can be used to jump.\n"
+                        "Get rolling and take aim\n"
+                        "at the angle. You may be able\n"
+                        "to reach new places.\n");
+    const char *s1 = N_("Pushing in 2 directions increases\n"
+                        "the roll speed. Use the manual\n"
+                        "camera and turn the camera by 45\n"
+                        "degrees for best results.\n");
 
     if (config_get_d(CONFIG_TILTING_FLOOR))
-        s1 = _("Tilting in 2 directions increases\n"
-               "the slope. Use the manual camera\n"
-               "and turn the camera by 45\n"
-               "degrees for best results.\n");
+        s1 = N_("Tilting in 2 directions increases\n"
+                "the slope. Use the manual camera\n"
+                "and turn the camera by 45\n"
+                "degrees for best results.\n");
 
     int w = video.device_w;
     int h = video.device_h;
@@ -1155,14 +1151,14 @@ static int page_tricks(int id)
             if ((ld = gui_vstack(kd)))
             {
                 gui_space(ld);
-                gui_multi(ld, s0, GUI_SML, GUI_COLOR_WHT);
+                gui_multi(ld, _(s0), GUI_SML, GUI_COLOR_WHT);
                 gui_filler(ld);
             }
 
             if ((ld = gui_vstack(kd)))
             {
                 gui_space(ld);
-                gui_multi(ld, s1, GUI_SML, GUI_COLOR_WHT);
+                gui_multi(ld, _(s1), GUI_SML, GUI_COLOR_WHT);
                 gui_filler(ld);
             }
         }
@@ -1180,7 +1176,7 @@ static int help_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-#if defined(SWITCHBALL_HELP)
+#ifdef SWITCHBALL_HELP
         if ((jd = gui_vstack(id)))
         {
             const char *help_header = gt_prefix("menu^Help");
@@ -1212,12 +1208,10 @@ static int help_gui(void)
                 gui_filler(kd);
 
                 if (!help_open)
-                {
 #ifndef __EMSCRIPTEN__
                     if (current_platform == PLATFORM_PC)
 #endif
                         gui_back_button(kd);
-                }
             }
         }
 
@@ -1304,6 +1298,11 @@ static int help_gui(void)
 
 static int help_enter(struct state *st, struct state *prev)
 {
+#ifndef SWITCHBALL_HELP
+    if (prev == &st_title)
+        page = PAGE_RULES;
+#endif
+
     return help_gui();
 }
 
@@ -1320,15 +1319,12 @@ static void help_paint(int id, float t)
 
 static int help_keybd(int c, int d)
 {
-    if (d)
-    {
-        if (c == KEY_EXIT
+    if (d && c == KEY_EXIT)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-         && current_platform == PLATFORM_PC
+        if (current_platform == PLATFORM_PC)
 #endif
-            )
             return help_action(GUI_BACK, 0);
-    }
+
     return 1;
 }
 

@@ -286,9 +286,9 @@ static int conf_enter(struct state *st, struct state *prev)
     }
 
 #if NB_HAVE_PB_BOTH==1
-    audio_music_fade_to(0.5f, _("bgm/title.ogg"));
+    audio_music_fade_to(0.5f, _("bgm/title.ogg"), 1);
 #else
-    audio_music_fade_to(0.5f, "gui/bgm/inter.ogg");
+    audio_music_fade_to(0.5f, "gui/bgm/inter.ogg", 1);
 #endif
 
     return root_id;
@@ -302,11 +302,9 @@ static void conf_leave(struct state *st, struct state *next, int id)
 
 static void conf_paint(int id, float st)
 {
-    video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-    {
-        back_draw_easy();
-    }
-    video_pop_matrix();
+    video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+    back_draw_easy();
+
     gui_paint(id);
 }
 

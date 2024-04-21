@@ -600,7 +600,7 @@ void cmd_free(union cmd *cmd)
                 break;
         }
 
-        free(cmd);
+        free(cmd); cmd = NULL;
     }
 }
 

@@ -245,8 +245,6 @@ void hud_init(void)
         gui_layout(cam_id, 1, 1);
     }
 
-    /* free(str_cam); */
-
     /* This debug shows how it works */
 
     if ((fps_id = gui_count(0, 1000, GUI_SML)))
@@ -786,9 +784,10 @@ void hud_speedup_reset(void)
 
 void hud_speedup_pulse(void)
 {
-    gui_set_label(speedup_logo_id, get_speed_indicator() >= 100.0f ?
-                                   _("Max acceleration!") :
-                                   _("Speed up!"));
+    const char *speedup_text = get_speed_indicator() < 100.0f ? N_("Speed up!") :
+                                                                N_("Max acceleration!");
+
+    gui_set_label(speedup_logo_id, _(speedup_text));
     gui_pulse(speedup_logo_id, 1.2f);
     speedup_logo_timer = 1.0f;
 }
@@ -807,10 +806,22 @@ void hud_speedup_paint(void)
 
 /*---------------------------------------------------------------------------*/
 
+void hud_lvlname_campaign(const char *name, int b)
+{
+    gui_set_label(lvlname_id, name);
+    gui_set_color(lvlname_id, b ? gui_grn : gui_cya, b ? gui_wht : gui_cya);
+}
+
 void hud_lvlname_set(const char *name, int b)
 {
     gui_set_label(lvlname_id, name);
     gui_set_color(lvlname_id, b ? gui_grn : gui_yel, gui_wht);
+}
+
+void hud_lvlname_set_ana(const char *name, int b)
+{
+    gui_set_label(lvlname_id, name);
+    gui_set_color(lvlname_id, b ? gui_grn : gui_cya, b ? gui_wht : gui_blu);
 }
 
 void hud_lvlname_paint(void)

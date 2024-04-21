@@ -202,6 +202,7 @@ static int set_action(int tok, int val)
             if (set_name_locked) return 1;
 
             set_goto(val);
+
             return goto_state_full(&st_start,
                                    GUI_ANIMATION_N_CURVE,
                                    GUI_ANIMATION_S_CURVE, 0);
@@ -210,6 +211,7 @@ static int set_action(int tok, int val)
 
         case SET_TOGGLE_BOOST:
             boost_on = !boost_on;
+            set_manual_hotreload = 1;
             return goto_state_full(&st_set,
                                    boost_on ? GUI_ANIMATION_S_CURVE :
                                               GUI_ANIMATION_N_CURVE,
@@ -321,6 +323,40 @@ static void gui_set(int id, int i)
         gui_label(id, "", GUI_SML, 0, 0);
 }
 
+#if ENABLE_MOON_TASKLOADER!=0
+static int set_is_scanning_with_moon_taskloader = 0;
+
+static int set_scan_moon_taskloader(void* data, void* execute_data)
+{
+    while (st_global_animating());
+
+    if ((!do_init && set_manual_hotreload) ||
+        (do_init && set_manual_hotreload))
+    {
+        if (set_manual_hotreload)
+            first = 0;
+
+        total = set_init(boost_on);
+        first = MIN(first, (total - 1) - ((total - 1) % SET_STEP));
+
+        set_manual_hotreload = 0;
+        do_init              = 1;
+    }
+
+    return 1;
+}
+
+static void set_scan_done_moon_taskloader(void* data, void* done_data)
+{
+    set_is_scanning_with_moon_taskloader = 0;
+
+    if (total > 0)
+        audio_narrator_play(AUD_START);
+
+    goto_state(curr_state());
+}
+#endif
+
 static int set_gui(void)
 {
     int w = video.device_w;
@@ -329,6 +365,24 @@ static int set_gui(void)
     int id, jd, kd;
 
     int i = 0;
+
+#if ENABLE_MOON_TASKLOADER!=0
+    if (set_is_scanning_with_moon_taskloader)
+    {
+        if ((id = gui_vstack(0)))
+        {
+            gui_title_header(id, _("Loading..."), GUI_MED, GUI_COLOR_DEFAULT);
+            gui_space(id);
+            gui_multi(id, _("Scanning Level Sets..."), GUI_SML, GUI_COLOR_WHT);
+
+            gui_layout(id, 0, 0);
+
+            return id;
+        }
+        else
+            return 0;
+    }
+#endif
 
     if (total == 0)
     {
@@ -378,13 +432,13 @@ static int set_gui(void)
                 if (account_get_d(ACCOUNT_PRODUCT_LEVELS) == 1 &&
                     server_policy_get_d(SERVER_POLICY_EDITION) > -1)
                 {
-                    if (!CHECK_ACCOUNT_BANKRUPT)
+                    /*if (!CHECK_ACCOUNT_BANKRUPT)
                     {
                         boost_id = gui_state(jd, _("Boost Rush"),
                                                  GUI_SML, SET_TOGGLE_BOOST, 0);
                         gui_set_hilite(boost_id, is_boost_on());
                         gui_space(jd);
-                    }
+                    }*/
 
 #if NB_STEAM_API==1
                     gui_state(jd, _("Workshop"), GUI_SML, SET_GET_MORE, 0);
@@ -413,11 +467,11 @@ static int set_gui(void)
                     server_policy_get_d(SERVER_POLICY_EDITION) > 0) {
                     gui_filler(jd);
 
-                    if (!CHECK_ACCOUNT_BANKRUPT) {
+                    /*if (!CHECK_ACCOUNT_BANKRUPT) {
                         boost_id = gui_state(jd, _("Boost Rush"),
                                                  GUI_SML, SET_TOGGLE_BOOST, 0);
                         gui_set_hilite(boost_id, is_boost_on());
-                    }
+                    }*/
 
                     gui_space(jd);
 #if NB_STEAM_API==1
@@ -475,40 +529,55 @@ static int set_gui(void)
 
 static int set_enter(struct state *st, struct state *prev)
 {
-    if (do_init || set_manual_hotreload)
+#if NB_HAVE_PB_BOTH==1
+    audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
+                                              "bgm/inter_world.ogg", 1);
+#else
+    audio_music_fade_to(0.5f, "gui/bgm/inter.ogg", 1);
+#endif
+
+    do_init = (prev == &st_set ||
+               prev == &st_start ||
+#if NB_HAVE_PB_BOTH==1
+               prev == &st_start_compat
+#endif
+              );
+
+    set_manual_hotreload = !do_init || set_manual_hotreload;
+
+    if (set_manual_hotreload)
     {
+#if ENABLE_MOON_TASKLOADER!=0
+        total = 0;
+        first = 0;
+
+        set_is_scanning_with_moon_taskloader = 1;
+
+        struct moon_taskloader_callback callback = {0};
+        callback.execute = set_scan_moon_taskloader;
+        callback.done    = set_scan_done_moon_taskloader;
+
+        moon_taskloader_load(NULL, callback);
+#else
         if (set_manual_hotreload)
             first = 0;
 
         total = set_init(boost_on);
         first = MIN(first, (total - 1) - ((total - 1) % SET_STEP));
 
-#if NB_HAVE_PB_BOTH==1
-        audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
-                                                  "bgm/inter_world.ogg");
-#else
-        audio_music_fade_to(0.5f, "gui/bgm/inter.ogg");
-#endif
-
-        if (total != 0 && (prev != &st_set || set_manual_hotreload))
+        if (total > 0)
             audio_narrator_play(AUD_START);
 
         set_manual_hotreload = 0;
+#endif
     }
-    else do_init = 1;
 
     return set_gui();
 }
 
 static void set_leave(struct state *st, struct state *next, int id)
 {
-    if (next == &st_set || next == &st_start
-#if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
-     || next == &st_start_compat
-     || next == &st_levelgroup
-#endif
-        )
-        do_init = 1;
+    do_init = 0;
 
     if (next == &st_null)
     {
@@ -524,6 +593,10 @@ static void set_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
+
+#if ENABLE_MOON_TASKLOADER!=0
+    if (set_is_scanning_with_moon_taskloader) return;
+#endif
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (xbox_show_gui())
         xbox_control_list_gui_paint();
@@ -532,6 +605,10 @@ static void set_paint(int id, float t)
 
 static void set_over(int i)
 {
+#if ENABLE_MOON_TASKLOADER!=0
+    if (set_is_scanning_with_moon_taskloader) return;
+#endif
+
     if (video.aspect_ratio >= 1.0f)
     {
 #if NB_HAVE_PB_BOTH==1
@@ -560,7 +637,12 @@ static void set_point(int id, int x, int y, int dx, int dy)
 #ifndef __EMSCRIPTEN__
     xbox_toggle_gui(0);
 #endif
+
     int jd = shared_point_basic(id, x, y);
+
+#if ENABLE_MOON_TASKLOADER!=0
+    if (set_is_scanning_with_moon_taskloader) return;
+#endif
 
     if (jd && gui_token(jd) == SET_SELECT)
         set_over(gui_value(jd));
@@ -571,7 +653,12 @@ static void set_stick(int id, int a, float v, int bump)
 #ifndef __EMSCRIPTEN__
     xbox_toggle_gui(1);
 #endif
+
     int jd = shared_stick_basic(id, a, v, bump);
+
+#if ENABLE_MOON_TASKLOADER!=0
+    if (set_is_scanning_with_moon_taskloader) return;
+#endif
 
     if (jd && gui_token(jd) == SET_SELECT)
         set_over(gui_value(jd));
@@ -579,6 +666,10 @@ static void set_stick(int id, int a, float v, int bump)
 
 static int set_keybd(int c, int d)
 {
+#if ENABLE_MOON_TASKLOADER!=0
+    if (set_is_scanning_with_moon_taskloader) return 1;
+#endif
+
     if (d)
     {
         if (c == KEY_EXIT
@@ -599,6 +690,10 @@ static int set_keybd(int c, int d)
 
 static int set_buttn(int b, int d)
 {
+#if ENABLE_MOON_TASKLOADER!=0
+    if (set_is_scanning_with_moon_taskloader) return 1;
+#endif
+
     if (d)
     {
         int active = gui_active();
@@ -763,21 +858,17 @@ static int campaign_action(int tok, int val)
             if (check_handsoff())
                 return goto_handsoff(&st_campaign);
 
+            progress_exit();
             progress_init(MODE_CAMPAIGN);
 
             audio_music_stop();
             audio_play(AUD_STARTGAME, 1.0f);
             game_fade(+4.0);
+
+            campaign_load_camera_box_trigger(level_name(curr_level()));
+
             if (progress_play(campaign_get_level(val)))
-            {
-                campaign_load_camera_box_trigger(level_name(curr_level()));
-
-                if (config_get_d(CONFIG_ACCOUNT_SAVE) > 0 &&
-                    curr_mode() != MODE_NONE && !demo_fp)
-                    return goto_state(&st_nodemo);
-
-                return goto_state(&st_play_ready);
-            }
+                return goto_play_level();
             break;
     }
 
@@ -948,15 +1039,14 @@ static int campaign_gui(void)
                     {
                         for (int i = 5; i > -1; i--)
                         {
-                            /* Campaign levels are needed in the system */
+                            /* Classic campaign levels are needed in the level group system */
+
                             struct level *l = campaign_get_level((campaign_theme_index * 6) + i);
 
                             const GLubyte *fore = gui_gry;
                             const GLubyte *back = gui_gry;
 
-                            if (!l)
-                                gui_label(md, " ", GUI_SML, GUI_COLOR_BLK);
-                            else
+                            if (l && l->file[0])
                             {
                                 /* Got the level? Continue searching. */
 
@@ -980,6 +1070,8 @@ static int campaign_gui(void)
                                         gui_focus(nd);
                                 }
                             }
+                            else
+                                gui_label(md, " ", GUI_SML, GUI_COLOR_BLK);
                         }
                     }
                 }
@@ -1019,20 +1111,45 @@ static int campaign_gui(void)
 
 static int campaign_enter(struct state *st, struct state *prev)
 {
-    audio_music_fade_to(0.5f, "bgm/inter_local.ogg");
+    audio_music_fade_to(0.5f, "bgm/inter_local.ogg", 1);
+
+    campaign_level_unlocks[0] = 0;
+    campaign_level_unlocks[1] = 0;
+    campaign_level_unlocks[2] = 0;
+    campaign_level_unlocks[3] = 0;
+    campaign_level_unlocks[4] = 0;
 
     for (int i = 0; i < 5; i++)
         for (int j = 0; j < 6; j++)
-            campaign_level_unlocks[i] += campaign_get_level((i * 6) + j)->is_locked ? 0 :
-                                                                                      1;
+        {
+            struct level *l = campaign_get_level((i * 6) + j);
+
+            if (l && l->file[0] && !l->is_locked)
+                campaign_level_unlocks[i]++;
+        }
 
     if (prev == &st_levelgroup)
     {
+        progress_exit();
         progress_init(MODE_CAMPAIGN);
         campaign_theme_index = 0;
     }
 
     return campaign_gui();
+}
+
+static void campaign_leave(struct state *st, struct state *next, int id)
+{
+    if (next == &st_levelgroup ||
+        next == &st_null)
+    {
+        campaign_quit();
+
+        if (next == &st_null)
+            game_client_free(NULL);
+    }
+
+    gui_delete(id);
 }
 
 static void campaign_paint(int id, float t)
@@ -1203,11 +1320,11 @@ static int levelgroup_gui(void)
                 if (campaign_level_unlocks[0] > 0)
                 {
                     /*
-                     * Starts campaign levels (Home Edition
-                     * and higher only).
+                     * Starts campaign levels (Home and Pro Editions).
                      */
                     if (video.aspect_ratio >= 1.0f)
                         gui_image(ld, "gui/levels/campaign.jpg", ww, hh);
+
                     gui_label(ld, _("Campaign"), GUI_SML, GUI_COLOR_WHT);
                     gui_filler(ld);
                     gui_set_state(ld, LEVELGROUP_CAMPAIGN, 0);
@@ -1216,6 +1333,7 @@ static int levelgroup_gui(void)
                 {
                     if (video.aspect_ratio >= 1.0f)
                         gui_image(ld, "gui/campaign/locked.jpg", ww, hh);
+
                     gui_label(ld, _("Locked"), GUI_SML, GUI_COLOR_GRY);
                     gui_filler(ld);
                     gui_set_state(ld, GUI_NONE, 0);
@@ -1235,7 +1353,10 @@ static int levelgroup_enter(struct state *st, struct state *prev)
     campaign_init();
 
     if (prev == &st_campaign)
+    {
+        progress_exit();
         progress_init(MODE_NORMAL);
+    }
 
     if      (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
         return goto_state(&st_campaign);
@@ -1250,10 +1371,10 @@ static int levelgroup_enter(struct state *st, struct state *prev)
     boost_on = 0;
 
 #if NB_HAVE_PB_BOTH==1
-    audio_music_fade_to(0.5f, "bgm/inter_local.ogg");
+    audio_music_fade_to(0.5f, "bgm/inter_local.ogg", 1);
 #else
     audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
-                                                     BGM_TITLE_CONF_LANGUAGE);
+                                                     BGM_TITLE_CONF_LANGUAGE, 1);
 #endif
 
     return levelgroup_gui();
@@ -1347,7 +1468,7 @@ struct state st_set = {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
 struct state st_campaign = {
     campaign_enter,
-    shared_leave,
+    campaign_leave,
     campaign_paint,
     shared_timer,
     shared_point,

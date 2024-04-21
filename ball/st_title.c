@@ -25,7 +25,6 @@
 #include "console_control_gui.h"
 #endif
 
-#include "campaign.h" /* New: Campaign */
 #include "account.h"
 #endif
 
@@ -309,7 +308,7 @@ static int title_action(int tok, int val)
 
     char linkstr_code[MAXSTR], linkstr_cmd[MAXSTR];
 
-    size_t queue_len = strlen(queue);
+    size_t queue_len = text_length(queue);
 
     GENERIC_GAMEMENU_ACTION;
 
@@ -323,7 +322,7 @@ static int title_action(int tok, int val)
                 /* bye! */
 
                 title_prequit = 1;
-
+                game_fade(+4.0f);
                 return 0;
             }
             break;
@@ -333,15 +332,9 @@ static int title_action(int tok, int val)
                                           goto_playgame() : goto_playgame_register();
             break;
 
-#if defined(LEVELGROUPS_INCLUDES_CAMPAIGN) && defined(CONFIG_INCLUDES_ACCOUNT)
+#if defined(CONFIG_INCLUDES_ACCOUNT)
         case TITLE_SHOP:
-            campaign_init();
-            goto_state_full(&st_shop, 0, GUI_ANIMATION_N_CURVE, 0);
-            campaign_quit();
-            break;
-#elif defined(CONFIG_INCLUDES_ACCOUNT)
-        case TITLE_SHOP:
-            goto_state_full(&st_shop, 0, GUI_ANIMATION_N_CURVE, 0);
+            goto_shop(curr_state(), 0);
             break;
 #endif
         case TITLE_HELP: return goto_state(&st_help); break;
@@ -943,33 +936,34 @@ static int title_gui(void)
             {
                 char presstostart_pc_attr[MAXSTR];
 
-                const SDL_Keycode k_start      = config_get_d(CONFIG_JOYSTICK_BUTTON_A);
-                char             *s_start      = strdup(SDL_GetKeyName(SDLK_RETURN));
-                char             *s_start_xbox = strdup(SDL_GetKeyName(k_start));
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(presstostart_pc_attr, MAXSTR,
-#else
-                sprintf(presstostart_pc_attr,
-#endif
-                        _("Press %s to start!"),
-                        s_start_xbox && *s_start_xbox && text_length(s_start_xbox) >= 1 ?
-                        s_start_xbox : s_start);
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-                if (current_platform == PLATFORM_PC)
-#endif
-                    gui_label(id, presstostart_pc_attr, GUI_SML, GUI_COLOR_WHT);
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-                else if ((jd = gui_hstack(id)))
+                if ((jd = gui_hstack(id)))
                 {
-                    gui_label(jd, _(" to start!"), GUI_SML, GUI_COLOR_WHT);
-                    create_a_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
-                    gui_label(jd, _("Press "), GUI_SML, GUI_COLOR_WHT);
+                    SAFECPY(presstostart_pc_attr, N_("Press to start"));
 
+                    int text_height = gui_measure(_(presstostart_pc_attr), GUI_SML).h;
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+                    if (current_platform == PLATFORM_PC)
+#endif
+                    {
+                        float upscaled = text_height * 1.2f;
+                        gui_image(jd, "gui/lockscr/mouse.png", upscaled, upscaled);
+                        gui_image(jd, "gui/lockscr/keybd.png", upscaled, upscaled);
+
+                        gui_space(jd);
+                    }
+
+                    gui_label(jd, _(presstostart_pc_attr), GUI_SML, GUI_COLOR_WHT);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+                    if (current_platform != PLATFORM_PC)
+                    {
+                        gui_space(jd);
+                        create_a_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                    }
+#endif
                     gui_set_rect(jd, GUI_ALL);
                 }
-#endif
 
                 gui_space(id);
                 gui_layout(id, 0, -1);
@@ -982,7 +976,7 @@ static int title_gui(void)
         SAFECPY(gameversion, VERSION);
 
         const int version_id = gui_multi(root_id, gameversion, GUI_TNY, GUI_COLOR_WHT);
-        const int copyright_id = gui_label(root_id, "© 2024 Neverball authors", GUI_TNY, GUI_COLOR_WHT);
+        const int copyright_id = gui_label(root_id, "© 2024 PennyGames", GUI_TNY, GUI_COLOR_WHT);
 
         gui_set_rect(version_id, GUI_NW);
         gui_set_rect(copyright_id, GUI_NE);
@@ -1002,12 +996,6 @@ static int filter_cmd(const union cmd *cmd)
 
 static int title_enter(struct state *st, struct state *prev)
 {
-#ifdef __EMSCRIPTEN__
-    EM_ASM({
-        Neverball.isTitleScreen = true;
-    });
-#endif
-
     title_lockscreen = title_can_unlock;
 
     if (prev == &st_title)
@@ -1020,6 +1008,7 @@ static int title_enter(struct state *st, struct state *prev)
                    (current_platform == PLATFORM_PC);
 #endif
 
+    progress_exit();
     progress_init(MODE_NONE);
 
     title_freeze_all = 0;
@@ -1029,7 +1018,7 @@ static int title_enter(struct state *st, struct state *prev)
     /* Start the title screen music. */
 
     audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
-                                                     BGM_TITLE_CONF_LANGUAGE);
+                                                     BGM_TITLE_CONF_LANGUAGE, 1);
 
     /* Initialize the build-in nor title level for display. */
 
@@ -1056,19 +1045,13 @@ static int title_enter(struct state *st, struct state *prev)
 
 static void title_leave(struct state *st, struct state *next, int id)
 {
-    if (title_lockscreen) return;
+    if (title_lockscreen && next != &st_null) return;
 
     if (next == &st_title)
     {
         gui_delete(id);
         return;
     }
-
-#if defined(__EMSCRIPTEN__)
-    EM_ASM({
-        Neverball.isTitleScreen = false;
-    });
-#endif
 
     demo_replay_stop(0);
 
@@ -1082,7 +1065,14 @@ static void title_leave(struct state *st, struct state *next, int id)
 
     if (next == &st_null ||
         next == &st_conf)
+    {
         game_client_free(NULL);
+
+        if (next == &st_null)
+            game_server_free(NULL);
+    }
+
+    progress_exit();
 
     gui_delete(id);
 }
@@ -1257,6 +1247,20 @@ static void title_stick(int id, int a, float v, int bump)
         gui_pulse(jd, 1.2f);
 }
 
+static int title_click(int b, int d)
+{
+    if (title_lockscreen && title_can_unlock &&
+        b == SDL_BUTTON_LEFT && d)
+    {
+        title_can_unlock = 0;
+        return goto_state(&st_title);
+    }
+    else if (gui_click(b, d) && !title_lockscreen)
+        return st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
+
+    return 1;
+}
+
 static int title_keybd(int c, int d)
 {
     if (title_lockscreen) return 1;
@@ -1269,7 +1273,13 @@ static int title_keybd(int c, int d)
     {
 #ifndef __EMSCRIPTEN__
         if (c == KEY_EXIT && support_exit)
-            return 0; /* bye! */
+        {
+            /* bye! */
+
+            title_prequit = 1;
+            game_fade(+4.0f);
+            return 0;
+        }
 #endif
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
@@ -1305,7 +1315,13 @@ static int title_buttn(int b, int d)
             return title_action(gui_token(active), gui_value(active));
 #ifndef __EMSCRIPTEN__
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b) && support_exit)
-            return 0; /* bye! */
+        {
+            /* bye! */
+
+            title_prequit = 1;
+            game_fade(+4.0f);
+            return 0;
+        }
 #endif
     }
     return 1;
@@ -1321,7 +1337,7 @@ struct state st_title = {
     title_point,
     title_stick,
     shared_angle,
-    shared_click,
+    title_click,
     title_keybd,
     title_buttn
 };

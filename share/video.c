@@ -369,6 +369,10 @@ extern "C"
 #endif
 int video_mode(int f, int w, int h)
 {
+#if ENABLE_OPENGLES
+    int init_gles = 1;
+#endif
+
     int stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
     int stencil  = config_get_d(CONFIG_REFLECTION)  ? 1 : 0;
     int buffers  = config_get_d(CONFIG_MULTISAMPLE) ? 1 : 0;
@@ -439,9 +443,17 @@ video_mode_reconf:
     video_quit();
 
 #if ENABLE_OPENGLES
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  SDL_GL_CONTEXT_PROFILE_ES);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    if (init_gles) {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  SDL_GL_CONTEXT_PROFILE_ES);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    }
+    else
+    {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  0);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    }
 #endif
 
 #ifndef ENABLE_HMD
@@ -459,32 +471,18 @@ video_mode_reconf:
      * Optional 16-bit double buffer with 16-bit depth buffer.
      *
      * TODO: Uncomment, if you want to set the required buffer.
-     * Default RGB size: 5 - Either 5 (16-bit) or 8 (32-bit)
+     * Default RGB size: 2 - Either 5 (16-bit) or 8 (32-bit)
+     * Default depth size: 8 - Either 8 or 16
      */
 
-    int rgb_size_fixed = 5;
+    int rgb_size_fixed = 2;
 
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
 
-    /*
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
-
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-
-    if (rgb_size_fixed * 3 < 16)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-    else if (rgb_size_fixed * 3 < 32)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-    else if (rgb_size_fixed * 3 < 64)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 64);
-    */
-
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   16);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   8);
+    //SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     /* Try to set the currently specified mode. */
 
@@ -741,6 +739,16 @@ video_mode_failinit_window_context:
         goto video_mode_reconf;
     }
 
+#if ENABLE_OPENGLES
+    /* If that mode failed, try it without GLES. */
+
+    if (init_gles)
+    {
+        init_gles = 0;
+        goto video_mode_reconf;
+    }
+#endif
+
     /* If that mode failed, get the soloution. */
 
     if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
@@ -803,6 +811,9 @@ extern "C"
 #endif
 int video_mode_auto_config(int f, int w, int h)
 {
+#if ENABLE_OPENGLES
+    int init_gles = 1;
+#endif
 
     int stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
     int hmd      = config_get_d(CONFIG_HMD)         ? 1 : 0;
@@ -861,9 +872,17 @@ video_mode_auto_config_reconf:
     video_quit();
 
 #if ENABLE_OPENGLES
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  SDL_GL_CONTEXT_PROFILE_ES);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    if (init_gles) {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  SDL_GL_CONTEXT_PROFILE_ES);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    }
+    else
+    {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  0);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    }
 #endif
 
     SDL_GL_SetAttribute(SDL_GL_STEREO,             stereo);
@@ -879,32 +898,18 @@ video_mode_auto_config_reconf:
      * Optional 16-bit double buffer with 16-bit depth buffer.
      *
      * TODO: Uncomment, if you want to set the required buffer.
-     * Default RGB size: 5 - Either 5 (16-bit) or 8 (32-bit)
+     * Default RGB size: 2 - Either 5 (16-bit) or 8 (32-bit)
+     * Default depth size: 8 - Either 8 or 16
      */
 
-    int rgb_size_fixed = 5;
+    int rgb_size_fixed = 2;
 
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
 
-    /*
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
-
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-
-    if (rgb_size_fixed * 3 < 16)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-    else if (rgb_size_fixed * 3 < 32)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-    else if (rgb_size_fixed * 3 < 64)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 64);
-    */
-
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   16);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   8);
+    //SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     log_printf("Creating a window (%dx%d, %s (auto configuration))\n",
                w, h, (f ? "fullscreen" : "windowed"));
@@ -915,17 +920,23 @@ video_mode_auto_config_reconf:
 #if __cplusplus
         try {
 #endif
-        window = SDL_CreateWindow(TITLE, X, Y, MAX(w, 320), MAX(h, 240),
-            SDL_WINDOW_OPENGL
-            | SDL_WINDOW_ALLOW_HIGHDPI
+        if (w && h && TITLE)
+        {
+            window = SDL_CreateWindow(TITLE, X, Y, MAX(w, 320), MAX(h, 240),
+                SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI
 #ifndef __EMSCRIPTEN__
 #ifdef RESIZEABLE_WINDOW
-            | SDL_WINDOW_RESIZABLE
-            | (config_get_d(CONFIG_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0)
+                | SDL_WINDOW_RESIZABLE
+                | (config_get_d(CONFIG_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0)
 #endif
-            | (f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)
+                | (f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)
 #endif
-        );
+            );
+        }
+
+#if _WIN32 && _MSC_VER
+        GAMEDBG_CHECK_SEGMENTATIONS_BOOL(UNREFERENCED_PARAMETER(0));
+#endif
 
 #ifdef RESIZEABLE_WINDOW
         if (config_get_d(CONFIG_MAXIMIZED))
@@ -1167,6 +1178,14 @@ video_mode_auto_config_reconf:
     }
 
 video_mode_auto_config_failinit_window_context:
+
+#if ENABLE_OPENGLES
+    if (init_gles)
+    {
+        init_gles = 0;
+        goto video_mode_auto_config_reconf;
+    }
+#endif
 
 #if defined(ENABLE_MULTISAMPLE_SOLUTION)
     /* Get the soloution first. */
@@ -1422,7 +1441,7 @@ void video_render_fill_or_line(int lined)
         {
             render_right_viewport = 1;
             glViewport((int) video.device_w / 2, 0,
-                       (video.device_w / 2) * video.scale_w,
+                       (video.device_w / 2.0f) * video.scale_w,
                        video.device_h * video.scale_h);
         }
         else
@@ -1441,7 +1460,7 @@ void video_render_fill_or_line(int lined)
         {
             render_left_viewport = 1;
             glViewport(0, 0,
-                       (video.device_w / 2) * video.scale_w,
+                       (video.device_w / 2.0f) * video.scale_w,
                        video.device_h * video.scale_h);
         }
         else
@@ -1500,7 +1519,7 @@ void video_calc_view(float *M, const float *c,
 #if __cplusplus
 extern "C"
 #endif
-void video_push_persp(float fov, float n, float f)
+void video_set_perspective(float fov, float n, float f)
 {
     if (hmd_stat())
         hmd_persp(n, f);
@@ -1537,7 +1556,7 @@ void video_push_persp(float fov, float n, float f)
 #if __cplusplus
 extern "C"
 #endif
-void video_push_ortho(void)
+void video_set_ortho(void)
 {
     if (hmd_stat())
         hmd_ortho();
@@ -1564,13 +1583,6 @@ void video_push_ortho(void)
         if (viewport_wireframe == 2 && render_right_viewport)
             glTranslatef(-w, 0, 0);
     }
-}
-
-#if __cplusplus
-extern "C"
-#endif
-void video_pop_matrix(void)
-{
 }
 
 #if __cplusplus

@@ -40,8 +40,10 @@ void hud_speedup_pulse(void);
 void hud_speedup_timer(float);
 void hud_speedup_paint(void);
 
-void hud_lvlname_set  (const char *, int);
-void hud_lvlname_paint(void);
+void hud_lvlname_campaign(const char *, int);
+void hud_lvlname_set     (const char *, int);
+void hud_lvlname_set_ana (const char *, int);
+void hud_lvlname_paint   (void);
 
 void hud_cam_pulse(int);
 void hud_cam_timer(float);

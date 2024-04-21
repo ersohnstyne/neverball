@@ -55,6 +55,8 @@ static int joy_curr = 0;
  */
 int joy_init(void)
 {
+    GAMEDBG_SIGFUNC_PREPARE;
+
     XInputEnable(1);
 
     /* HACK: This can be done with fixed gamepad state. */
@@ -351,5 +353,4 @@ int  joy_update(void)
 
     return d;
 }
-
 #endif

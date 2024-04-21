@@ -93,9 +93,7 @@ static struct
     const char *name;
     const int   def;
     int         cur;
-}
-account_d[] =
-{
+} account_d[] = {
 #if 0
     { &ACCOUNT_DATA_WALLET_COINS,      "wallet_coins",           16650 },
     { &ACCOUNT_DATA_WALLET_GEMS,       "wallet_gems",            16650 },
@@ -120,8 +118,7 @@ static struct
     const char *name;
     const char *def;
     char       *cur;
-} account_s[] =
-{
+} account_s[] = {
     { &ACCOUNT_PLAYER,       "player",       "" },
 #if defined(CONFIG_INCLUDES_MULTIBALLS)
     { &ACCOUNT_BALL_FILE,    "ball_file", "ball/" },
@@ -168,7 +165,7 @@ int account_init(void)
 
     for (int i = 0; i < ARRAYSIZE(account_s); i++)
     {
-        steam_account_s[i].curr = account_s[i].cur;
+        steam_account_s[i].curr = strdup(account_s[i].cur);
         dirty = 1;
     }
 
@@ -268,6 +265,10 @@ void account_load(void)
     if (!account_is_init)
     {
         log_errorf("Failure to load account file! Account must be initialized!\n");
+#if _DEBUG
+        SDL_TriggerBreakpoint();
+#endif
+
         exit(1);
         return;
     }
@@ -284,8 +285,10 @@ void account_load(void)
 
         for (int i = 0; i < ARRAYSIZE(account_s); i++)
         {
-            get_string(fh, steam_account_s[i].curr, MAXSTR);
-            account_s[i].cur = strdup(steam_account_s[i].curr);
+            char tmp_account_s[MAXSTR];
+            get_string(fh, tmp_account_s, MAXSTR);
+            steam_account_s[i].curr = strdup(tmp_account_s);
+            account_s[i].cur = strdup(tmp_account_s);
         }
 
         fs_close(fh);
@@ -333,9 +336,12 @@ void account_save(void)
 #endif
             "Accounts/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
 
-    if (!account_is_init)
+    if (dirty && !account_is_init)
     {
         log_errorf("Failure to save account file! Account must be initialized!\n");
+#if _DEBUG
+        SDL_TriggerBreakpoint();
+#endif
 
         if (fs_exists(paths))
             fs_remove(paths);
@@ -344,23 +350,15 @@ void account_save(void)
         return;
     }
 
-    account_set_s(ACCOUNT_PLAYER, config_get_s(CONFIG_PLAYER));
-
     if (dirty && (fh = fs_open_write(paths)))
     {
         account_busy = 1;
 
         for (int i = 0; i < ARRAYSIZE(account_d); i++)
-        {
-            steam_account_d[i].curr = account_d[i].cur;
-            put_index(fh, steam_account_d[i].curr);
-        }
+            put_index(fh, account_d[i].cur);
 
         for (int i = 0; i < ARRAYSIZE(account_s); i++)
-        {
-            steam_account_s[i].curr = strdup(account_s[i].cur);
-            put_string(fh, steam_account_s[i].curr);
-        }
+            put_string(fh, account_s[i].cur);
 
         fs_close(fh);
         fs_persistent_sync();
@@ -387,6 +385,7 @@ void account_set_d(int i, int d)
     {
         account_busy = 1;
         account_d[i].cur = d;
+        steam_account_d[i].curr = d;
         dirty = 1;
         account_busy = 0;
     }
@@ -402,6 +401,7 @@ void account_tgl_d(int i)
     {
         account_busy = 1;
         account_d[i].cur = (account_d[i].cur ? 0 : 1);
+        steam_account_d[i].curr = (steam_account_d[i].curr ? 0 : 1);
         dirty = 1;
         account_busy = 0;
     }
@@ -415,6 +415,33 @@ int account_tst_d(int i, int d)
 int account_get_d(int i)
 {
     return account_d[i].cur;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * Set an account option from a string value.
+ *
+ * Works for both int and string options. Don't use this if you already have an int.
+ */
+void account_set(const char *key, const char *value)
+{
+    if (key && *key)
+    {
+        int i;
+
+        for (i = 0; i < ARRAYSIZE(account_s); ++i)
+        {
+            if (strcmp(account_s[i].name, key) == 0)
+                account_set_s(i, value);
+        }
+
+        for (i = 0; i < ARRAYSIZE(account_d); ++i)
+        {
+            if (strcmp(account_d[i].name, key) == 0)
+                account_set_d(i, atoi(value));
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -435,7 +462,14 @@ void account_set_s(int i, const char *src)
             account_s[i].cur = NULL;
         }
 
+        if (steam_account_s[i].curr)
+        {
+            free(steam_account_s[i].curr);
+            steam_account_s[i].curr = NULL;
+        }
+
         account_s[i].cur = strdup(src);
+        steam_account_s[i].curr = strdup(src);
 
         dirty = 1;
         account_busy = 0;

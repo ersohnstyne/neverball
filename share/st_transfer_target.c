@@ -985,7 +985,7 @@ static struct account_transfer_value account_transfer_values_source,
                                      account_transfer_values_target;
 static int account_transfer_count = 0;
 
-void transfer_reset_paths()
+static void transfer_reset_paths()
 {
     for (int i = 0; i < MAX_TRANSFER_FILES; ++i)
     {
@@ -1421,7 +1421,7 @@ static int transfer_enter_source(struct state *st, struct state *prev)
     if (!have_entered)
     {
         transfer_reset_paths();
-        audio_music_fade_to(0.5f, "bgm/systemtransfer.ogg");
+        audio_music_fade_to(0.5f, "bgm/systemtransfer.ogg", 1);
 
         current_drive_idx = -1;
 
@@ -1488,11 +1488,8 @@ static void transfer_timer(int id, float dt)
 
 static void transfer_paint(int id, float t)
 {
-    video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-    {
-        back_draw_easy();
-    }
-    video_pop_matrix();
+    video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+    back_draw_easy();
 
     gui_paint(id);
 }

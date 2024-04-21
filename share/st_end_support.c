@@ -113,7 +113,7 @@ static long long int difference_of_days(int day1, int month1, int year1,
         }
         else if (month1 < month2)
         {
-            int result = 0;
+            long long int result = 0;
             for (int i = month1; i < month2; i++)
                 result = result + no_of_days_in_month(i, year1);
 
@@ -134,7 +134,7 @@ static long long int difference_of_days(int day1, int month1, int year1,
         }
         else
         {
-            int result = 0;
+            long long int result = 0;
             for (int i = month2; i < month1; i++)
                 result = result + no_of_days_in_month(i, year1);
 
@@ -154,7 +154,7 @@ static long long int difference_of_days(int day1, int month1, int year1,
     }
     else if (year1 < year2)
     {
-        int temp = 0;
+        long long int temp = 0;
         for (int i = year1; i < year2; i++)
         {
             if (check_leap_year(i))
@@ -176,7 +176,7 @@ static long long int difference_of_days(int day1, int month1, int year1,
         }
         else if (month1 < month2)
         {
-            int result = 0;
+            long long int result = 0;
             for (int i = month1; i < month2; i++)
                 result = result + no_of_days_in_month(i, year2);
 
@@ -197,7 +197,7 @@ static long long int difference_of_days(int day1, int month1, int year1,
         }
         else
         {
-            int result = 0;
+            long long int result = 0;
             for (int i = month2; i < month1; i++)
                 result = result + no_of_days_in_month(i, year2);
 
@@ -217,7 +217,7 @@ static long long int difference_of_days(int day1, int month1, int year1,
     }
     else
     {
-        int temp = 0;
+        long long int temp = 0;
         for (int i = year2; i < year1; i++)
         {
             if (check_leap_year(i))
@@ -239,7 +239,7 @@ static long long int difference_of_days(int day1, int month1, int year1,
         }
         else if (month2 < month1)
         {
-            int result = 0;
+            long long int result = 0;
             for (int i = month2; i < month1; i++)
                 result = result + no_of_days_in_month(i, year1);
 
@@ -258,7 +258,7 @@ static long long int difference_of_days(int day1, int month1, int year1,
         }
         else
         {
-            int result = 0;
+            long long int result = 0;
             for (int i = month1; i < month2; i++)
                 result = result + no_of_days_in_month(i, year1);
 
@@ -473,7 +473,7 @@ static int end_support_gui(void)
 static int end_support_enter(struct state *st, struct state *prev)
 {
     conf_common_init(end_support_action, 1);
-    audio_music_fade_to(0.5f, "gui/bgm/inter.ogg");
+    audio_music_fade_to(0.5f, "gui/bgm/inter.ogg", 1);
     return end_support_gui();
 }
 

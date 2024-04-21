@@ -31,6 +31,7 @@
 #include "audio.h"
 #include "config.h"
 #include "common.h"
+#include "text.h"
 
 #include "game_common.h"
 #include "game_client.h"
@@ -41,6 +42,10 @@
 #include "st_start.h"
 #include "st_title.h"
 #include "st_shared.h"
+
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+#include "st_shop.h"
+#endif
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
@@ -69,7 +74,8 @@ enum
     START_BOOST_RUSH,
     START_LOCK_GOALS,
     START_LEVEL,
-    START_CHECKSTARS
+    START_CHECKSTARS,
+    START_STARVIEWER_SHOP
 };
 
 static int shot_id;
@@ -87,11 +93,18 @@ static void gui_level(int id, int i)
     const GLubyte *fore = gui_gry;
     const GLubyte *back = gui_gry;
 
-    int jd;
+    int jd = gui_label(id, "XXX", GUI_SML, back, fore);
 
     if (!l)
     {
-        gui_label(id, " ", GUI_SML, GUI_COLOR_BLK);
+        gui_set_label(jd, " ");
+        return;
+    }
+
+    if (!str_ends_with(l->file, ".sol") &&
+        !str_ends_with(l->file, ".csol"))
+    {
+        gui_set_label(jd, " ");
         return;
     }
 
@@ -104,6 +117,15 @@ static void gui_level(int id, int i)
             fore = level_completed(l) ? gui_grn : gui_red;
             back = level_completed(l) ? fore    : gui_blu;
         }
+        else if (str_starts_with(set_id(curr_set()), "anime"))
+        {
+            /* ANA levels in this set. */
+
+            fore = level_bonus(l)     ? gui_grn :
+                                        (level_completed(l) ? gui_yel :
+                                                              gui_blu);
+            back = level_completed(l) ? gui_grn : gui_cya;
+        }
         else
         {
             fore = level_bonus(l)     ? gui_grn :
@@ -113,7 +135,8 @@ static void gui_level(int id, int i)
         }
     }
 
-    jd = gui_label(id, level_name(l), GUI_SML, back, fore);
+    gui_set_trunc(jd, TRUNC_TAIL);
+    gui_set_label(jd, level_name(l));
 
     if (level_opened(l)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
@@ -121,6 +144,7 @@ static void gui_level(int id, int i)
 #endif
         )
     {
+        gui_set_color(jd, back, fore);
         gui_set_state(jd, level_master(l) ? GUI_NONE : START_LEVEL, i);
 
         if (i == 0)
@@ -179,6 +203,26 @@ static void start_over(int id, int pulse)
 
 static int set_star_view;
 
+#if ENABLE_MOON_TASKLOADER!=0
+static int start_is_scanning_with_moon_taskloader = 0;
+
+static int start_scan_moon_taskloader(void* data, void* execute_data)
+{
+    while (st_global_animating());
+
+    set_scan_level_files();
+
+    return 1;
+}
+
+static void start_scan_done_moon_taskloader(void* data, void* done_data)
+{
+    start_is_scanning_with_moon_taskloader = 0;
+
+    goto_state(curr_state());
+}
+#endif
+
 static int start_action(int tok, int val)
 {
     GAMEPAD_GAMEMENU_ACTION_SCROLL(GUI_PREV, GUI_NEXT, LEVEL_STEP);
@@ -198,23 +242,23 @@ static int start_action(int tok, int val)
                                0);
 
         case GUI_PREV:
-        if (first > 1) {
-            first -= LEVEL_STEP;
-            return goto_state_full(&st_start,
-                                   GUI_ANIMATION_E_CURVE,
-                                   GUI_ANIMATION_W_CURVE, 0);
-        }
-        break;
+            if (first > 1) {
+                first -= LEVEL_STEP;
+                return goto_state_full(&st_start,
+                                       GUI_ANIMATION_E_CURVE,
+                                       GUI_ANIMATION_W_CURVE, 0);
+            }
+            break;
 
         case GUI_NEXT:
-        if (first + LEVEL_STEP < total)
-        {
-            first += LEVEL_STEP;
-            return goto_state_full(&st_start,
-                                   GUI_ANIMATION_W_CURVE,
-                                   GUI_ANIMATION_E_CURVE, 0);
-        }
-        break;
+            if (first + LEVEL_STEP < total)
+            {
+                first += LEVEL_STEP;
+                return goto_state_full(&st_start,
+                                       GUI_ANIMATION_W_CURVE,
+                                       GUI_ANIMATION_E_CURVE, 0);
+            }
+            break;
 
         case START_CHALLENGE:
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
@@ -234,6 +278,7 @@ static int start_action(int tok, int val)
 #endif
                 {
 #if DEVEL_BUILD
+                    progress_exit();
                     progress_init(curr_mode() == MODE_CHALLENGE ? MODE_NORMAL :
                                                                   MODE_CHALLENGE);
                     gui_toggle(challenge_id);
@@ -249,16 +294,22 @@ static int start_action(int tok, int val)
 #if NB_HAVE_PB_BOTH==1
                 if (CHECK_ACCOUNT_ENABLED)
                 {
-                    if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
+                    if (set_balls_needed(curr_set()) > account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES))
+                    {
+                    }
+                    else if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
                         return goto_state(&st_start_upgraderequired);
                     else if (check_handsoff())
                         return goto_handsoff(&st_start);
                     else
                     {
+                        progress_exit();
                         progress_init(MODE_CHALLENGE);
+
                         audio_play(AUD_STARTGAME, 1.0f);
+
                         if (progress_play(get_level(0)))
-                            return goto_state(&st_level);
+                            return goto_play_level();
                     }
                 }
                 else return goto_state(&st_start_unavailable);
@@ -274,12 +325,11 @@ static int start_action(int tok, int val)
             else
             {
                 boost_rush_init();
-                progress_init(MODE_BOOST_RUSH);
+
                 audio_play(AUD_STARTGAME, 1.0f);
+
                 if (progress_play(get_level(0)))
-                    return goto_state(&st_level);
-                else
-                    progress_init(MODE_NORMAL);
+                    return goto_play_level();
             }
             break;
 
@@ -300,14 +350,18 @@ static int start_action(int tok, int val)
             audio_play(AUD_STARTGAME, 1.0f);
             game_fade(+4.0);
             if (progress_play(get_level(val)))
-                return goto_state(&st_level);
+                return goto_play_level();
 
         break;
 
         case START_CHECKSTARS:
             set_star_view = 1;
             return goto_state(&st_start);
-            break;
+
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+        case START_STARVIEWER_SHOP:
+            return goto_shop(&st_start, 0);
+#endif
     }
 
     return 1;
@@ -315,7 +369,7 @@ static int start_action(int tok, int val)
 
 static int start_star_view_gui(void)
 {
-    int id;
+    int id, jd;
 
     if ((id = gui_vstack(0)))
     {
@@ -335,11 +389,41 @@ static int start_star_view_gui(void)
                                "during playing Challenge Mode.");
 
             gui_label(id, set_star_attr,
-                          GUI_LRG,
-                          CHECK_ACCOUNT_BANKRUPT ? gui_red : gui_wht,
-                          CHECK_ACCOUNT_BANKRUPT ? gui_blk : gui_yel);
+                          GUI_LRG, gui_wht, gui_yel);
             gui_space(id);
-            gui_multi(id, s0, GUI_SML, GUI_COLOR_WHT);
+
+            if ((jd = gui_vstack(id)))
+            {
+                char s_recommend[MAXSTR], s_needed[MAXSTR];
+
+                gui_multi(jd, s0, GUI_SML, GUI_COLOR_WHT);
+
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+                if (set_balls_needed(curr_set()) > account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + 3)
+                {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sprintf_s(s_needed, MAXSTR,
+#else
+                    sprintf(s_needed,
+#endif
+                            _("Balls needed: %d"), set_balls_needed(curr_set()));
+
+                    gui_multi(jd, s_needed, GUI_SML, GUI_COLOR_RED);
+                }
+                else if (set_balls_needed(curr_set()) > account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES))
+                {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sprintf_s(s_recommend, MAXSTR,
+#else
+                    sprintf(s_recommend,
+#endif
+                            _("Balls recommended: %d"), set_balls_needed(curr_set()));
+
+                    gui_multi(jd, s_recommend, GUI_SML, GUI_COLOR_YEL);
+                }
+#endif
+                gui_set_rect(jd, GUI_ALL);
+            }
         }
         else
             gui_multi(id,
@@ -354,7 +438,15 @@ static int start_star_view_gui(void)
 #endif
 
         gui_space(id);
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+        if ((jd = gui_harray(id)))
+        {
+            gui_start(jd, _("OK"),   GUI_SML, GUI_BACK, 0);
+            gui_state(jd, _("Shop"), GUI_SML, START_STARVIEWER_SHOP, 0);
+        }
+#else
         gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
+#endif
         gui_layout(id, 0, 0);
     }
 
@@ -368,6 +460,24 @@ static int start_gui(void)
     int i, j;
 
     int id, jd, kd, ld, md;
+
+#if ENABLE_MOON_TASKLOADER!=0
+    if (start_is_scanning_with_moon_taskloader)
+    {
+        if ((id = gui_vstack(0)))
+        {
+            gui_title_header(id, _("Loading..."), GUI_MED, GUI_COLOR_DEFAULT);
+            gui_space(id);
+            gui_multi(id, _("Scanning Levels from Level Set..."), GUI_SML, GUI_COLOR_WHT);
+
+            gui_layout(id, 0, 0);
+
+            return id;
+        }
+        else
+            return 0;
+    }
+#endif
 
     if ((id = gui_vstack(0)))
     {
@@ -408,7 +518,8 @@ static int start_gui(void)
             }
 #endif
 
-            if (str_starts_with(set_id(curr_set()), "SB") ||
+            if (str_starts_with(set_id(curr_set()), "anime") ||
+                str_starts_with(set_id(curr_set()), "SB") ||
                 str_starts_with(set_id(curr_set()), "sb") ||
                 str_starts_with(set_id(curr_set()), "Sb") ||
                 str_starts_with(set_id(curr_set()), "sB"))
@@ -465,8 +576,22 @@ static int start_gui(void)
 #endif
                 {
                     if ((md = gui_harray(kd)))
+                    {
                         challenge_id = gui_state(md, _("Challenge"),
                                                      GUI_SML, START_CHALLENGE, 0);
+
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+                        if (set_balls_needed(curr_set()) > account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + 3)
+                        {
+                            gui_set_color(challenge_id, GUI_COLOR_RED);
+                            gui_set_state(challenge_id, GUI_NONE, 0);
+                        }
+                        else if (set_balls_needed(curr_set()) > account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES))
+                            gui_set_color(challenge_id, GUI_COLOR_YEL);
+                        else
+                            gui_set_color(challenge_id, GUI_COLOR_GRN);
+#endif
+                    }
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                     if (CHECK_ACCOUNT_BANKRUPT)
@@ -481,6 +606,7 @@ static int start_gui(void)
                 }
             }
         }
+
         gui_space(id);
         gui_score_board(id, (GUI_SCORE_COIN |
                              GUI_SCORE_TIME |
@@ -644,6 +770,7 @@ static int start_compat_gui()
 
 static int start_compat_enter(struct state *st, struct state *prev)
 {
+    progress_exit();
     progress_init(MODE_BOOST_RUSH);
 
     return start_compat_gui();
@@ -681,6 +808,29 @@ static int start_howmany()
 
 static int start_enter(struct state *st, struct state *prev)
 {
+#if NB_HAVE_PB_BOTH==1
+    if (str_starts_with(set_id(curr_set()), "anime"))
+        audio_music_fade_to(0.5f, "bgm/jp/title.ogg", 1);
+    else
+        audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
+                                                  "bgm/inter_world.ogg", 1);
+#else
+    audio_music_fade_to(0.5f, "gui/bgm/inter.ogg", 1);
+#endif
+
+    if (prev == &st_set)
+    {
+        start_is_scanning_with_moon_taskloader = 1;
+
+        struct moon_taskloader_callback callback = {0};
+        callback.execute = start_scan_moon_taskloader;
+        callback.done    = start_scan_done_moon_taskloader;
+
+        moon_taskloader_load(NULL, callback);
+
+        return start_gui();
+    }
+
     if (set_star_view) return start_star_view_gui();
 
     /* Bonus levels will be unlocked automatically, if you use the bonus pack */
@@ -691,21 +841,16 @@ static int start_enter(struct state *st, struct state *prev)
         set_detect_bonus_product();
 #endif
 
-    /* For Switchball, it uses for 30 levels */
-    total = start_howmany();
-    first = MIN(first, (total - 1) - ((total - 1) % LEVEL_STEP));
-
     if (prev == &st_set)
         first = 0;
 
-    progress_init(MODE_NORMAL);
+    /* For Switchball, it uses for 30 levels */
 
-#if NB_HAVE_PB_BOTH==1
-    audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
-                                              "bgm/inter_world.ogg");
-#else
-    audio_music_fade_to(0.5f, "gui/bgm/inter.ogg");
-#endif
+    total = start_howmany();
+    first = MIN(first, (total - 1) - ((total - 1) % LEVEL_STEP));
+
+    progress_exit();
+    progress_init(MODE_NORMAL);
 
     return start_gui();
 }
@@ -715,6 +860,14 @@ static void start_point(int id, int x, int y, int dx, int dy)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform == PLATFORM_PC)
         xbox_toggle_gui(0);
+#endif
+
+#if ENABLE_MOON_TASKLOADER
+    if (start_is_scanning_with_moon_taskloader)
+    {
+        shared_point(id, x, y, dx, dy);
+        return;
+    }
 #endif
 
     if (!set_star_view)
@@ -729,6 +882,14 @@ static void start_stick(int id, int a, float v, int bump)
     xbox_toggle_gui(1);
 #endif
 
+#if ENABLE_MOON_TASKLOADER
+    if (start_is_scanning_with_moon_taskloader)
+    {
+        shared_stick_basic(id, a, v, bump);
+        return;
+    }
+#endif
+
     if (!set_star_view)
         start_over(gui_stick(id, a, v, bump), 1);
     else
@@ -737,6 +898,11 @@ static void start_stick(int id, int a, float v, int bump)
 
 static int start_score(int d)
 {
+#if ENABLE_MOON_TASKLOADER
+    if (start_is_scanning_with_moon_taskloader)
+        return 1;
+#endif
+
     if (!set_star_view) return 1;
 
     int s = (d < 0 ?
@@ -748,6 +914,10 @@ static int start_score(int d)
 
 static void start_wheel(int x, int y)
 {
+#if ENABLE_MOON_TASKLOADER
+    if (start_is_scanning_with_moon_taskloader)
+        return;
+#endif
     if (!set_star_view) return;
 
     if (y > 0) start_score(-1);
@@ -756,6 +926,11 @@ static void start_wheel(int x, int y)
 
 static int start_keybd(int c, int d)
 {
+#if ENABLE_MOON_TASKLOADER
+    if (start_is_scanning_with_moon_taskloader)
+        return 1;
+#endif
+
     if (d)
     {
         if (c == KEY_EXIT
@@ -813,6 +988,11 @@ static int start_keybd(int c, int d)
 
 static int start_compat_keybd(int c, int d)
 {
+#if ENABLE_MOON_TASKLOADER
+    if (start_is_scanning_with_moon_taskloader)
+        return 1;
+#endif
+
     if (d && (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
            && current_platform == PLATFORM_PC
@@ -825,6 +1005,11 @@ static int start_compat_keybd(int c, int d)
 
 static int start_buttn(int b, int d)
 {
+#if ENABLE_MOON_TASKLOADER
+    if (start_is_scanning_with_moon_taskloader)
+        return 1;
+#endif
+
     if (d)
     {
         int active = gui_active();
@@ -876,10 +1061,14 @@ static int start_joinrequired_action(int tok, int val)
             break;
 
         case START_JOINREQUIRED_SKIP:
+            progress_exit();
             progress_init(MODE_CHALLENGE);
+
             audio_play(AUD_STARTGAME, 1.0f);
+
             if (progress_play(get_level(0)))
-                return goto_state(&st_level);
+                return goto_play_level();
+
             break;
     }
 
@@ -895,7 +1084,7 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev)
         gui_title_header(id, _("Powerups available"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
         gui_multi(id,
-                  _("Pennyball offers some of the most creative ways to\n"
+                  _("Neverball offers some of the most creative ways to\n"
                     "compete with powerups! We just need you to upgrade\n"
                     "to Pro edition so that we can make sure you have\n"
                     "permission to use it."),
@@ -925,7 +1114,7 @@ static int start_joinrequired_enter(struct state *st, struct state *prev)
         gui_title_header(id, _("Powerups available"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
         gui_multi(id,
-                  _("Pennyball offers some of the most creative ways to\n"
+                  _("Neverball offers some of the most creative ways to\n"
                     "compete with powerups! We just need you to join\n"
                     "and verify Discord server so that we can make sure\n"
                     "you have permission to use it."),

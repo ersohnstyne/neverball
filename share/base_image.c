@@ -271,9 +271,7 @@ void *image_next2(const void *p, int w, int h, int b, int *w2, int *h2)
         const int dr = (H - h) / 2;
         const int dc = (W - w) / 2;
 
-        int r;
-
-        for (r = 0; r < h; ++r)
+        for (int r = 0; r < h; ++r)
         {
             const int R = r + dr;
             const int C =     dc;

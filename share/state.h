@@ -69,7 +69,7 @@ struct state
     void (*wheel) (int x,  int y);
     int  (*touch) (const SDL_TouchFingerEvent *);
     void (*fade)  (float alpha);
-    void (*exit)  (int id);
+    void (*exit)  (int);
 
     int gui_id;
 };

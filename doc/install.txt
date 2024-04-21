@@ -76,6 +76,12 @@ make ENABLE_STEAM=1
 
     Steamworks        https://partner.steamgames.com/
 
+make ENABLE_FS=physfs
+    Alternate  file  system  backend  that replaces standard I/O  with
+    PhysicsFS. May causes some bugs or crashes. Requires FS_VERSION=1.
+
+    PhysicsFS         https://icculus.org/physfs/
+
 make ENABLE_NLS=0
     Native language support.  This is  enabled by default. Requires an
     additional library on non-GLIBC systems.

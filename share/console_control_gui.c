@@ -101,7 +101,7 @@ void xbox_control_gui_set_alpha(float alpha)
 
 /*---------------------------------------------------------------------------*/
 
-void create_controller_spacer(int space_id)
+static void create_controller_spacer(int space_id)
 {
     for (int i = 0; i < 1; i++)
         gui_space(space_id);
@@ -113,32 +113,32 @@ void create_controller_spacer(int space_id)
 
 /* Etihad Handset controllers */
 
-void create_handset_a_button(int a_id)
+static void create_handset_a_button(int a_id)
 {
     gui_label(a_id, HANDSET_A_BUTTON, GUI_SML, gui_red, gui_red);
 }
 
-void create_handset_b_button(int b_id)
+static void create_handset_b_button(int b_id)
 {
     gui_label(b_id, HANDSET_B_BUTTON, GUI_SML, gui_yel, gui_yel);
 }
 
-void create_handset_x_button(int x_id)
+static void create_handset_x_button(int x_id)
 {
     gui_label(x_id, HANDSET_X_BUTTON, GUI_SML, gui_blu, gui_blu);
 }
 
-void create_handset_y_button(int y_id)
+static void create_handset_y_button(int y_id)
 {
     gui_label(y_id, HANDSET_Y_BUTTON, GUI_SML, gui_grn, gui_grn);
 }
 
-void create_handset_lb_button(int lb_id)
+static void create_handset_lb_button(int lb_id)
 {
     gui_label(lb_id, HANDSET_LB_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_handset_rb_button(int rb_id)
+static void create_handset_rb_button(int rb_id)
 {
     gui_label(rb_id, HANDSET_RB_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
@@ -147,62 +147,62 @@ void create_handset_rb_button(int rb_id)
 
 /* Xbox controllers */
 
-void create_xbox_a_button(int a_id)
+static void create_xbox_a_button(int a_id)
 {
     gui_label(a_id, XBOX_A_BUTTON, GUI_SML, gui_grn, gui_grn);
 }
 
-void create_xbox_b_button(int b_id)
+static void create_xbox_b_button(int b_id)
 {
     gui_label(b_id, XBOX_B_BUTTON, GUI_SML, gui_red, gui_red);
 }
 
-void create_xbox_x_button(int x_id)
+static void create_xbox_x_button(int x_id)
 {
     gui_label(x_id, XBOX_X_BUTTON, GUI_SML, gui_blu, gui_blu);
 }
 
-void create_xbox_y_button(int y_id)
+static void create_xbox_y_button(int y_id)
 {
     gui_label(y_id, XBOX_Y_BUTTON, GUI_SML, gui_yel, gui_yel);
 }
 
-void create_xbox_lb_button(int lb_id)
+static void create_xbox_lb_button(int lb_id)
 {
     gui_label(lb_id, XBOX_LB_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_xbox_rb_button(int rb_id)
+static void create_xbox_rb_button(int rb_id)
 {
     gui_label(rb_id, XBOX_RB_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_xbox_lt_button(int lb_id)
+static void create_xbox_lt_button(int lb_id)
 {
     gui_label(lb_id, XBOX_LT_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_xbox_rt_button(int rb_id)
+static void create_xbox_rt_button(int rb_id)
 {
     gui_label(rb_id, XBOX_RT_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_xbox_ls_button(int ls_id)
+static void create_xbox_ls_button(int ls_id)
 {
     gui_label(ls_id, XBOX_LS_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_xbox_rs_button(int rs_id)
+static void create_xbox_rs_button(int rs_id)
 {
     gui_label(rs_id, XBOX_RS_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_xbox_start_button(int start_id)
+static void create_xbox_start_button(int start_id)
 {
     gui_label(start_id, XBOX_START_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_xbox_select_button(int select_id)
+static void create_xbox_select_button(int select_id)
 {
     gui_label(select_id, XBOX_SELECT_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
@@ -211,124 +211,124 @@ void create_xbox_select_button(int select_id)
 
 /* PlayStation Controllers */
 
-void create_ps4_a_button(int a_id)
+static void create_ps4_a_button(int a_id)
 {
     gui_label(a_id, PS4_A_BUTTON, GUI_SML, gui_blu, gui_blu);
 }
 
-void create_ps4_b_button(int b_id)
+static void create_ps4_b_button(int b_id)
 {
     gui_label(b_id, PS4_B_BUTTON, GUI_SML, gui_red, gui_red);
 }
 
-void create_ps4_x_button(int x_id)
+static void create_ps4_x_button(int x_id)
 {
     gui_label(x_id, PS4_X_BUTTON, GUI_SML, gui_pnk, gui_pnk);
 }
 
-void create_ps4_y_button(int y_id)
+static void create_ps4_y_button(int y_id)
 {
     gui_label(y_id, PS4_Y_BUTTON, GUI_SML, gui_cya, gui_cya);
 }
 
-void create_ps4_lb_button(int lb_id)
+static void create_ps4_lb_button(int lb_id)
 {
     gui_label(lb_id, PS4_LB_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_ps4_rb_button(int rb_id)
+static void create_ps4_rb_button(int rb_id)
 {
     gui_label(rb_id, PS4_RB_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_ps4_lt_button(int lb_id)
+static void create_ps4_lt_button(int lb_id)
 {
     gui_label(lb_id, PS4_LT_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_ps4_rt_button(int rb_id)
+static void create_ps4_rt_button(int rb_id)
 {
     gui_label(rb_id, PS4_RT_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_ps4_ls_button(int ls_id)
+static void create_ps4_ls_button(int ls_id)
 {
     gui_label(ls_id, PS4_LS_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_ps4_rs_button(int rs_id)
+static void create_ps4_rs_button(int rs_id)
 {
     gui_label(rs_id, PS4_RS_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_ps4_start_button(int start_id)
+static void create_ps4_start_button(int start_id)
 {
     gui_label(start_id, PS4_START_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_ps4_select_button(int select_id)
+static void create_ps4_select_button(int select_id)
 {
     gui_label(select_id, PS4_SELECT_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void create_steamdeck_a_button(int a_id)
+static void create_steamdeck_a_button(int a_id)
 {
     gui_label(a_id, STEAMDECK_A_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_steamdeck_b_button(int b_id)
+static void create_steamdeck_b_button(int b_id)
 {
     gui_label(b_id, STEAMDECK_B_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_steamdeck_x_button(int x_id)
+static void create_steamdeck_x_button(int x_id)
 {
     gui_label(x_id, STEAMDECK_X_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_steamdeck_y_button(int y_id)
+static void create_steamdeck_y_button(int y_id)
 {
     gui_label(y_id, STEAMDECK_Y_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_steamdeck_lb_button(int lb_id)
+static void create_steamdeck_lb_button(int lb_id)
 {
     gui_label(lb_id, STEAMDECK_LB_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_steamdeck_rb_button(int rb_id)
+static void create_steamdeck_rb_button(int rb_id)
 {
     gui_label(rb_id, STEAMDECK_RB_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_steamdeck_lt_button(int lb_id)
+static void create_steamdeck_lt_button(int lb_id)
 {
     gui_label(lb_id, STEAMDECK_LT_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_steamdeck_rt_button(int rb_id)
+static void create_steamdeck_rt_button(int rb_id)
 {
     gui_label(rb_id, STEAMDECK_RT_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_steamdeck_ls_button(int ls_id)
+static void create_steamdeck_ls_button(int ls_id)
 {
     gui_label(ls_id, STEAMDECK_LS_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_steamdeck_rs_button(int rs_id)
+static void create_steamdeck_rs_button(int rs_id)
 {
     gui_label(rs_id, STEAMDECK_RS_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_steamdeck_start_button(int start_id)
+static void create_steamdeck_start_button(int start_id)
 {
     gui_label(start_id, STEAMDECK_START_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_steamdeck_select_button(int select_id)
+static void create_steamdeck_select_button(int select_id)
 {
     gui_label(select_id, STEAMDECK_SELECT_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
@@ -337,62 +337,62 @@ void create_steamdeck_select_button(int select_id)
 
 /* Nintendo Controllers */
 
-void create_switch_a_button(int a_id)
+static void create_switch_a_button(int a_id)
 {
     gui_label(a_id, SWITCH_A_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_switch_b_button(int b_id)
+static void create_switch_b_button(int b_id)
 {
     gui_label(b_id, SWITCH_B_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_switch_x_button(int x_id)
+static void create_switch_x_button(int x_id)
 {
     gui_label(x_id, SWITCH_X_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_switch_y_button(int y_id)
+static void create_switch_y_button(int y_id)
 {
     gui_label(y_id, SWITCH_Y_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_switch_lb_button(int lb_id)
+static void create_switch_lb_button(int lb_id)
 {
     gui_label(lb_id, SWITCH_LB_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_switch_rb_button(int rb_id)
+static void create_switch_rb_button(int rb_id)
 {
     gui_label(rb_id, SWITCH_RB_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_switch_lt_button(int lb_id)
+static void create_switch_lt_button(int lb_id)
 {
     gui_label(lb_id, SWITCH_LT_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_switch_rt_button(int rb_id)
+static void create_switch_rt_button(int rb_id)
 {
     gui_label(rb_id, SWITCH_RT_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_switch_ls_button(int ls_id)
+static void create_switch_ls_button(int ls_id)
 {
     gui_label(ls_id, SWITCH_LS_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_switch_rs_button(int rs_id)
+static void create_switch_rs_button(int rs_id)
 {
     gui_label(rs_id, SWITCH_RS_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_switch_start_button(int start_id)
+static void create_switch_start_button(int start_id)
 {
     gui_label(start_id, SWITCH_START_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-void create_switch_select_button(int select_id)
+static void create_switch_select_button(int select_id)
 {
     gui_label(select_id, SWITCH_SELECT_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
@@ -1073,7 +1073,7 @@ void create_select_button(int gui_id, int btn_id)
 
 /* Shared */
 
-void init_xbox_title(void)
+static void init_xbox_title(void)
 {
     if ((xbox_control_title_id = gui_hstack(0)))
     {
@@ -1102,7 +1102,7 @@ void init_xbox_title(void)
     }
 }
 
-void init_xbox_list(void)
+static void init_xbox_list(void)
 {
     if ((xbox_control_list_id = gui_hstack(0)))
     {
@@ -1125,7 +1125,7 @@ void init_xbox_list(void)
     }
 }
 
-void init_xbox_paused(void)
+static void init_xbox_paused(void)
 {
     if ((xbox_control_paused_id = gui_hstack(0)))
     {
@@ -1150,7 +1150,7 @@ void init_xbox_paused(void)
 
 /* Generic */
 
-void init_xbox_desc(void)
+static void init_xbox_desc(void)
 {
     if ((xbox_control_desc_id = gui_hstack(0)))
     {
@@ -1173,7 +1173,7 @@ void init_xbox_desc(void)
     }
 }
 
-void init_xbox_preparation(void)
+static void init_xbox_preparation(void)
 {
     if ((xbox_control_preparation_id = gui_hstack(0)))
     {
@@ -1196,7 +1196,7 @@ void init_xbox_preparation(void)
     }
 }
 
-void init_xbox_replay(void)
+static void init_xbox_replay(void)
 {
     if ((xbox_control_replay_id = gui_hstack(0)))
     {
@@ -1211,7 +1211,7 @@ void init_xbox_replay(void)
     }
 }
 
-void init_xbox_replay_eof(void)
+static void init_xbox_replay_eof(void)
 {
     if ((xbox_control_replay_eof_id = gui_hstack(0)))
     {
@@ -1234,7 +1234,7 @@ void init_xbox_replay_eof(void)
     }
 }
 
-void init_xbox_shop(void)
+static void init_xbox_shop(void)
 {
     if ((xbox_control_shop_id = gui_hstack(0)))
     {
@@ -1265,7 +1265,7 @@ void init_xbox_shop(void)
     }
 }
 
-void init_xbox_shop_getcoins(void)
+static void init_xbox_shop_getcoins(void)
 {
     if ((xbox_control_shop_getcoins_id = gui_hstack(0)))
     {
@@ -1288,7 +1288,7 @@ void init_xbox_shop_getcoins(void)
     }
 }
 
-void init_xbox_model(void)
+static void init_xbox_model(void)
 {
     if ((xbox_control_model_id = gui_hstack(0)))
     {
@@ -1334,7 +1334,7 @@ void init_xbox_model(void)
     }
 }
 
-void init_xbox_beam_style(void)
+static void init_xbox_beam_style(void)
 {
     if ((xbox_control_beam_style_id = gui_hstack(0)))
     {
@@ -1359,7 +1359,7 @@ void init_xbox_beam_style(void)
     }
 }
 
-void init_xbox_death()
+static void init_xbox_death()
 {
     if ((xbox_control_death_id = gui_hstack(0)))
     {
@@ -1375,7 +1375,7 @@ void init_xbox_death()
 }
 
 /* Putt */
-void init_xbox_putt_stroke()
+static void init_xbox_putt_stroke()
 {
     if ((xbox_control_putt_stroke_id = gui_hstack(0)))
     {
@@ -1406,7 +1406,7 @@ void init_xbox_putt_stroke()
     }
 }
 
-void init_xbox_putt_stop()
+static void init_xbox_putt_stop()
 {
     if ((xbox_control_putt_stop_id = gui_hstack(0)))
     {
@@ -1421,7 +1421,7 @@ void init_xbox_putt_stop()
     }
 }
 
-void init_xbox_putt_scores()
+static void init_xbox_putt_scores()
 {
     if ((xbox_control_putt_scores_id = gui_hstack(0)))
     {

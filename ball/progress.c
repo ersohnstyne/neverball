@@ -29,6 +29,11 @@
 #endif
 #endif
 
+#if ENABLE_MOON_TASKLOADER!=0
+#define SKIP_MOON_TASKLOADER
+#include "moon_taskloader.h"
+#endif
+
 #ifdef MAPC_INCLUDES_CHKP
 #include "checkpoints.h" /* New: Checkpoints */
 #endif
@@ -44,9 +49,13 @@
 #include "video.h"
 #include "util.h"
 
+#include "state.h"
+
 #include "game_common.h"
 #include "game_client.h"
 #include "game_server.h"
+
+#include "st_level.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -206,10 +215,19 @@
     } } while (0)
 #endif
 
-/*---------------------------------------------------------------------------*/
+#define PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL \
+    do {                                       \
+        assert(is_init);                       \
+        if (!is_init) return 0;                \
+    } while (0)
 
-static int max_speed    = 0;
-static int exceed_speed = 0;
+#define PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_VOID \
+    do {                                       \
+        assert(is_init);                       \
+        if (!is_init) return;                  \
+    } while (0)
+
+/*---------------------------------------------------------------------------*/
 
 struct progress
 {
@@ -227,6 +245,11 @@ struct progress
     int   times;
     float speedpercent;
 };
+
+static int is_init = 0;
+
+static int max_speed = 0;
+static int exceed_speed = 0;
 
 static int replay = 0;
 
@@ -303,20 +326,12 @@ void progress_rush_collect_coin_value(int coin_val)
     }
 }
 
-void progress_enable_max_speed(void)
-{
-    max_speed = 1;
-}
-
-void progress_sonic_step(float dt)
-{
-    exceed_speed = is_sonic();
-}
-
 /*---------------------------------------------------------------------------*/
 
 void progress_init_home(void)
 {
+    if (is_init) return;
+
     mode   = MODE_NONE;
     replay = 0;
 
@@ -324,10 +339,14 @@ void progress_init_home(void)
     curr.score        = 0;
     curr.times        = 0;
     curr.speedpercent = 0;
+
+    is_init = 1;
 }
 
 void progress_init(int m)
 {
+    if (is_init) return;
+
     need_coin_val = 0;
     mode          = m;
     replay        = 0;
@@ -369,11 +388,15 @@ void progress_init(int m)
     score_rank = RANK_LAST;
     times_rank = RANK_LAST;
 
-    done  = 0;
+    done = 0;
+
+    is_init = 1;
 }
 
 void progress_extend(void)
 {
+    PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_VOID;
+
     extended    = 1;
     status      = GAME_NONE;
     curr.times -= extended_timer;
@@ -385,7 +408,56 @@ int progress_extended(void)
     return extended;
 }
 
-static int init_level(void)
+/*---------------------------------------------------------------------------*/
+
+#if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
+static int moon_taskloader_phase = 0;
+
+static void init_level_moon_taskloader_done(void *data, void *done_data)
+{
+    struct game_moon_taskloader_info *mtli = (struct moon_taskloader_info *) data;
+    struct moon_taskloader_done      *dn   = (struct moon_taskloader_done *) done_data;
+
+    if (mtli && dn)
+    {
+        if (dn->finished)
+        {
+            if (moon_taskloader_phase != 2)
+            {
+                moon_taskloader_phase = 2;
+
+                struct moon_taskloader_callback callback = { 0 };
+                callback.execute = game_server_load_moon_taskloader;
+                callback.done    = init_level_moon_taskloader_done;
+
+                game_server_init_moon_taskloader(level_file(level), level_time(level), goal_e,
+                                                 callback);
+                return;
+            }
+            else
+            {
+                game_client_toggle_show_balls(1);
+
+                game_client_sync(
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                                 !campaign_hardcore_norecordings() &&
+#endif
+                                 curr_mode() != MODE_NONE ? demo_fp : NULL);
+
+                lvl_warn_timer = curr_clock() < 1000 && curr_time_limit() > 0;
+            }
+        }
+
+        if (mtli->callback.done)
+            mtli->callback.done(mtli, dn);
+        else if (dn->finished)
+            goto_play_level();
+        else
+            goto_exit();
+    }
+}
+
+static int init_level_moon_taskloader(void)
 {
     int curr_rfd_balls = 0;
 #if ENABLE_RFD==1
@@ -410,17 +482,61 @@ static int init_level(void)
                        curr.times,
                        curr.speedpercent);
 
+    struct moon_taskloader_callback callback = {0};
+    callback.execute = game_client_load_moon_taskloader;
+    callback.done    = init_level_moon_taskloader_done;
+
+    moon_taskloader_phase = 1;
+    game_client_init_moon_taskloader(level_file(level), callback);
+
+    return 1;
+}
+#endif
+
+static int init_level(void)
+{
+    PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
+
+    int curr_rfd_balls = 0;
+#if ENABLE_RFD==1
+    curr_rfd_balls = curr.rfd_balls;
+#endif
+
+    if (curr_mode() != MODE_NONE &&
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        !campaign_hardcore_norecordings() &&
+#endif
+        config_get_d(CONFIG_ACCOUNT_SAVE) > 0)
+        demo_play_init(USER_REPLAY_FILE,
+                       level, mode,
+                       curr.score,
+#ifdef CONFIG_INCLUDES_ACCOUNT
+                       curr.balls +
+                       account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) +
+                       curr_rfd_balls,
+#else
+                       curr.balls + curr_rfd_balls,
+#endif
+                       curr.times,
+                       curr.speedpercent);
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    /* Init campaign camera triggers for auto cameras. */
+
+    if (campaign_used())
+        campaign_load_camera_box_trigger(level_name(curr_level()));
+#endif
+
     /*
      * Init both client and server, then process the first batch
      * of commands generated by the server to sync client to
      * server.
      */
 
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    if (campaign_used())
-        campaign_load_camera_box_trigger(level_name(curr_level()));
-#endif
-
+#if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
+    if (init_level_moon_taskloader())
+        return 1;
+#else
     if (game_client_init(level_file(level)) && 
         game_server_init(level_file(level), level_time(level), goal_e))
     {
@@ -435,17 +551,26 @@ static int init_level(void)
 
         lvl_warn_timer = curr_clock() < 1000 && curr_time_limit() > 0;
 
-        audio_music_fade_to(1.0f, lvl_warn_timer ? "bgm/time-warning.ogg" :
-                                                   BGM_TITLE_MAP(level_song(level)));
+        audio_music_fade_to(1.0f, mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                               || mode == MODE_HARDCORE
+#endif
+                                  ? "bgm/challenge_mbu.ogg" :
+                                  lvl_warn_timer ? "bgm/time-warning.ogg" :
+                                                   BGM_TITLE_MAP(level_song(level)), 1);
         return 1;
     }
+#endif
 
     demo_play_stop(1);
+
     return 0;
 }
 
 int  progress_play(struct level *l)
 {
+    PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     game_fade_color(mode == MODE_HARDCORE ? 0.25f : 0.0f, 0.0f, 0.0f);
 #endif
@@ -453,11 +578,7 @@ int  progress_play(struct level *l)
     lvl_warn_timer = 0;
     done           = 0;
 
-    if (l && (level_opened(l)
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
-           || config_cheat()
-#endif
-        ))
+    if (l)
     {
         level = l;
 
@@ -549,12 +670,18 @@ int  progress_play(struct level *l)
 
 void progress_buy_balls(int amount)
 {
+    PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_VOID;
+
     curr.balls += amount;
 }
 
 void progress_step(void)
 {
-    if (level && !replay && level_time(level) != 0
+    if (mode != MODE_CHALLENGE && mode != MODE_BOOST_RUSH &&
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        mode != MODE_HARDCORE &&
+#endif
+        level && !replay && level_time(level) != 0
 #ifdef CONFIG_INCLUDES_ACCOUNT
      && !mediation_enabled()
 #endif
@@ -563,12 +690,12 @@ void progress_step(void)
         if (curr_clock() >= 1000 && curr_time_limit() > 0 && lvl_warn_timer)
         {
             lvl_warn_timer = 0;
-            audio_music_fade_to(.5f, BGM_TITLE_MAP(level_song(level)));
+            audio_music_fade_to(.5f, BGM_TITLE_MAP(level_song(level)), 1);
         }
         else if (curr_clock() < 1000 && curr_time_limit() > 0 && !lvl_warn_timer)
         {
             lvl_warn_timer = 1;
-            audio_music_fade_to(.1f, "bgm/time-warning.ogg");
+            audio_music_fade_to(.1f, "bgm/time-warning.ogg", 1);
         }
     }
 
@@ -585,6 +712,8 @@ void progress_step(void)
 
 void progress_stat(int s)
 {
+    PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_VOID;
+
     int i;
 
     /* Cannot save highscore in home room. */
@@ -877,6 +1006,8 @@ void progress_stat(int s)
 
 void progress_stop(void)
 {
+    PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_VOID;
+
     int d = 0;
 
     /* Cannot save replay in home room. */
@@ -899,6 +1030,10 @@ void progress_stop(void)
 
 void progress_exit(void)
 {
+    if (!is_init) return;
+
+    progress_stop();
+
     if (done)
     {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -938,7 +1073,8 @@ void progress_exit(void)
                           MIN(account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score(),
                               ACCOUNT_WALLET_MAX_COINS));
 
-            /* This gems will earn, after competed the challenge mode. */
+            /* This gems will earn only, after competed the challenge mode. */
+
             if (mode == MODE_CHALLENGE ||
                 mode == MODE_BOOST_RUSH)
             {
@@ -959,7 +1095,44 @@ void progress_exit(void)
     }
 
     replay = 0;
+
+    is_init = 0;
 }
+
+#if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
+static int progress_load_replay_moon_taskloader(void *data, void *execute_data)
+{
+    struct game_moon_taskloader_info *mtli = (struct game_moon_taskloader_info *) execute_data;
+
+    if (!mtli) return 0;
+
+    return progress_replay_full(mtli->filename,
+                                &goal, &mode,
+                                &curr.balls, &curr.score, &curr.times,
+                                1);
+}
+
+int  progress_replay_moon_taskloader(const char *filename,
+                                     struct moon_taskloader_callback callback)
+{
+    struct game_moon_taskloader_info *mtli = game_create_mtli();
+
+    if (mtli)
+    {
+        mtli->callback = callback;
+        mtli->filename = strdup(filename);
+
+        callback.execute  = game_mtli_execute;
+        callback.progress = game_mtli_progress;
+        callback.done     = game_mtli_done;
+        callback.data     = mtli;
+
+        return moon_taskloader_load(filename, callback);
+    }
+
+    return 0;
+}
+#endif
 
 int  progress_replay(const char *filename)
 {
@@ -1082,7 +1255,11 @@ int  progress_raise_gems(int action_performed, int needed,
 
 int  progress_next_avail(void)
 {
-    if (next)
+    PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
+
+    if (next &&
+        (str_ends_with(next->file, ".sol") ||
+         str_ends_with(next->file, ".csol")))
     {
         if ((mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
@@ -1093,11 +1270,14 @@ int  progress_next_avail(void)
         else
             return level_opened(next);
     }
+
     return 0;
 }
 
 int  progress_same_avail(void)
 {
+    PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
+
     /* Cannot restart in home room. */
 
     if (mode == MODE_NONE
@@ -1133,7 +1313,11 @@ int  progress_same_avail(void)
 
 int  progress_next(void)
 {
-    if (next && status == GAME_GOAL && !progress_dead())
+    PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
+
+    if (next && status == GAME_GOAL && !progress_dead() &&
+        (str_ends_with(next->file, ".sol") ||
+         str_ends_with(next->file, ".csol")))
     {
         progress_stop();
 
@@ -1157,6 +1341,8 @@ int  progress_next(void)
 
 int  progress_same(void)
 {
+    PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
+
     if (!progress_dead())
     {
         progress_stop();
@@ -1188,6 +1374,8 @@ int  progress_same(void)
 
 int  progress_dead(void)
 {
+    if (!is_init) return 1;
+
     /* Cannot restart in home room. */
 
     if (mode == MODE_NONE) return 1;
@@ -1215,11 +1403,13 @@ int  progress_dead(void)
 
 int  progress_done(void)
 {
-    return done;
+    return is_init ? done : 0;
 }
 
 int  progress_last(void)
 {
+    PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
+
     return (mode != MODE_CHALLENGE
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN 
          && mode != MODE_HARDCORE
@@ -1280,6 +1470,8 @@ int  progress_reward_ball(int s)
 #if ENABLE_RFD==1
 int progress_rfd_take_powerup(int t)
 {
+    PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
+
     switch (t)
     {
         case 0:

@@ -101,7 +101,6 @@ int goto_conf(struct state *back_state, int using_game, int demo)
 static int conf_check_playername(const char *regname)
 {
     for (int i = 0; i < text_length(regname); i++)
-    {
         if (regname[i] == '\\' ||
             regname[i] == '/'  ||
             regname[i] == ':'  ||
@@ -115,7 +114,6 @@ static int conf_check_playername(const char *regname)
             log_errorf("Can't accept other charsets!\n", regname[i]);
             return 0;
         }
-    }
 
     return text_length(config_get_s(CONFIG_PLAYER)) >= 3;
 }
@@ -366,7 +364,7 @@ static int conf_account_action(int tok, int val)
             config_save();
             break;
 
-    case CONF_ACCOUNT_PLAYER:
+        case CONF_ACCOUNT_PLAYER:
 #ifdef CONFIG_INCLUDES_ACCOUNT
             goto_shop_rename(&st_conf_account, &st_conf_account, 1);
 #else
@@ -581,10 +579,9 @@ static int conf_account_gui(void)
                         CONF_ACCOUNT_DEMO_LOCKED_DESC_INTRODUCTIVE,
                         _(status_to_str(3)));
 
-                time_remain_lbl_id = gui_multi(id,
-                                               "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
-                                               "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-                                               GUI_SML, GUI_COLOR_RED);
+                time_remain_lbl_id = gui_multi(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
+                                                   "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                                                   GUI_SML, GUI_COLOR_RED);
 
                 if (conf_covid_extended == 0)
                 {
@@ -637,18 +634,14 @@ static int conf_account_gui(void)
 
 #if NB_HAVE_PB_BOTH==1
         conf_toggle_simple(id, _("Show Tutorial"), CONF_ACCOUNT_TUTORIAL,
-                               config_get_d(CONFIG_ACCOUNT_TUTORIAL),
-                               1, 0);
+                               config_get_d(CONFIG_ACCOUNT_TUTORIAL), 1, 0);
         conf_toggle_simple(id, _("Show Hint"), CONF_ACCOUNT_HINT,
-                               config_get_d(CONFIG_ACCOUNT_HINT), 
-                               1, 0);
+                               config_get_d(CONFIG_ACCOUNT_HINT), 1, 0);
 #else
         conf_toggle(id, _("Show Tutorial"), CONF_ACCOUNT_TUTORIAL,
-                        config_get_d(CONFIG_ACCOUNT_TUTORIAL),
-                        _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_ACCOUNT_TUTORIAL), _("On"), 1, _("Off"), 0);
         conf_toggle(id, _("Show Hint"), CONF_ACCOUNT_HINT,
-                        config_get_d(CONFIG_ACCOUNT_HINT), 
-                        _("On"), 1, _("Off"), 0);
+                        config_get_d(CONFIG_ACCOUNT_HINT), _("On"), 1, _("Off"), 0);
 #endif
 
         gui_space(id);
@@ -812,9 +805,15 @@ static void conf_account_timer(int id, float dt)
     }
     else if (conf_covid_extended != 0 && !nolockdown)
     {
-        if (config_get_d(CONFIG_ACCOUNT_SAVE) > 2 && save_id && load_id)
+        if (config_get_d(CONFIG_ACCOUNT_SAVE) > 2 && save_id)
         {
+            config_set_d(CONFIG_ACCOUNT_SAVE, 2);
             gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
+        }
+
+        if (config_get_d(CONFIG_ACCOUNT_LOAD) > 2 && load_id)
+        {
+            config_set_d(CONFIG_ACCOUNT_LOAD, 2);
             gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
         }
 
@@ -966,20 +965,20 @@ static int conf_social_enter(struct state *st, struct state *prev)
 /*
  * Should be set the preset keys as well?
  */
-#define CONF_CONTROL_SET_PRESET_KEYS(cam_tgl, cam1, cam2, \
+#define CONF_CONTROL_SET_PRESET_KEYS(cam_tgl, cam1, cam2,    \
                                      cam3, camL, camR, axYP, \
-                                     axXN, axYN, axXP)   \
-    do {                                                 \
-        config_set_d(CONFIG_KEY_CAMERA_TOGGLE, cam_tgl); \
-        config_set_d(CONFIG_KEY_CAMERA_1, cam1);         \
-        config_set_d(CONFIG_KEY_CAMERA_2, cam2);         \
-        config_set_d(CONFIG_KEY_CAMERA_3, cam3);         \
-        config_set_d(CONFIG_KEY_CAMERA_L, camL);         \
-        config_set_d(CONFIG_KEY_CAMERA_R, camR);         \
-        config_set_d(CONFIG_KEY_FORWARD, axYP);          \
-        config_set_d(CONFIG_KEY_LEFT, axXN);             \
-        config_set_d(CONFIG_KEY_BACKWARD, axYN);         \
-        config_set_d(CONFIG_KEY_RIGHT, axXP);            \
+                                     axXN, axYN, axXP)       \
+    do {                                                     \
+        config_set_d(CONFIG_KEY_CAMERA_TOGGLE, cam_tgl);     \
+        config_set_d(CONFIG_KEY_CAMERA_1,      cam1);        \
+        config_set_d(CONFIG_KEY_CAMERA_2,      cam2);        \
+        config_set_d(CONFIG_KEY_CAMERA_3,      cam3);        \
+        config_set_d(CONFIG_KEY_CAMERA_L,      camL);        \
+        config_set_d(CONFIG_KEY_CAMERA_R,      camR);        \
+        config_set_d(CONFIG_KEY_FORWARD,       axYP);        \
+        config_set_d(CONFIG_KEY_LEFT,          axXN);        \
+        config_set_d(CONFIG_KEY_BACKWARD,      axYN);        \
+        config_set_d(CONFIG_KEY_RIGHT,         axXP);        \
     } while (0)
 
 enum
@@ -1126,10 +1125,15 @@ static int conf_control_action(int tok, int val)
 
         case CONF_CONTROL_CAMERA_ROTATE_MODE:
 #ifdef SWITCHBALL_GUI
-            config_tgl_d(CONFIG_CAMERA_ROTATE_MODE);
-            gui_set_label(camrot_mode_id,
-                          config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
-                          _("Inverted") : _("Normal"));
+            if (camrot_mode_id)
+            {
+                config_tgl_d(CONFIG_CAMERA_ROTATE_MODE);
+
+                const char *cam_rot_mode_text = config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
+                                                N_("Inverted") : N_("Normal");
+
+                gui_set_label(camrot_mode_id, _(cam_rot_mode_text));
+            }
 #endif
             break;
 
@@ -1168,7 +1172,7 @@ static int conf_control_action(int tok, int val)
     return 1;
 }
 
-int conf_control_gui(void)
+static int conf_control_gui(void)
 {
     int id;
 
@@ -1183,7 +1187,7 @@ int conf_control_gui(void)
         preset_id = conf_state(id, _("Preset"), "XXXXXXXXXXXXX",
                                    CONF_CONTROL_INPUT_PRESET);
 
-        const char *presetname = _("Custom");
+        const char *presetname = N_("Custom");
 
         switch (control_get_input())
         {
@@ -1201,7 +1205,7 @@ int conf_control_gui(void)
                 break;
         }
 
-        gui_set_label(preset_id, presetname);
+        gui_set_label(preset_id, _(presetname));
 
 #if NB_HAVE_PB_BOTH==1
         conf_toggle_simple(id, _("Tilting Floor"), CONF_CONTROL_TILTING_FLOOR,
@@ -1214,9 +1218,9 @@ int conf_control_gui(void)
 #endif
 
 #ifdef SWITCHBALL_GUI
-        camrot_mode_id = conf_state(id, _("Camera rotate"),
-                                    config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
-                                    _("Inverted") : _("Normal"),
+        const char *camrot_mode_text = config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
+                                       N_("Inverted") : N_("Normal");
+        camrot_mode_id = conf_state(id, _("Camera rotate"), camrot_mode_text,
                                     CONF_CONTROL_CAMERA_ROTATE_MODE);
 #endif
 
@@ -1321,24 +1325,35 @@ static int *conf_keybd_options[] = {
     &CONFIG_KEY_LEFT,
     &CONFIG_KEY_RIGHT,
     NULL,
-    &CONFIG_KEY_CAMERA_L,
-    &CONFIG_KEY_CAMERA_R
+    &CONFIG_KEY_CAMERA_R,
+    &CONFIG_KEY_CAMERA_L
 };
 
 static int conf_keybd_option_ids[ARRAYSIZE(conf_keybd_options)];
 
 static void conf_keybd_set_label(int id, int value)
 {
-    gui_set_label(id, SDL_GetKeyName(value));
+    gui_set_label(id, value ? SDL_GetKeyName(value) : _("Unassigned"));
 }
 
 static void conf_keybd_set_option(int index, int value)
 {
+    for (int i = 0; i < ARRAYSIZE(conf_keybd_options); i++)
+    {
+        int option_id = *conf_keybd_options[index];
+
+        if (value == config_get_d(option_id))
+        {
+            config_set_d(option_id, 0);
+            conf_keybd_set_label(option_id, 0);
+        }
+    }
+
     if (index < ARRAYSIZE(conf_keybd_options))
     {
-        int option = *conf_keybd_options[index];
+        int option_new = *conf_keybd_options[index];
 
-        config_set_d(option, value);
+        config_set_d(option_new, value);
 
         conf_keybd_set_label(conf_keybd_option_ids[index], value);
 
@@ -1388,7 +1403,7 @@ static int conf_keybd_action(int tok, int val)
 
 static int conf_keybd_gui(void)
 {
-    int id, jd;
+    int id;
 
     /* Initialize the configuration GUI. */
 
@@ -1418,7 +1433,7 @@ static int conf_keybd_gui(void)
                 value = config_get_d(*conf_keybd_options[i]);
 
                 if ((btn_id = conf_state(id, tmp_opt_name,
-                                             SDL_GetKeyName(value),
+                                             value ? SDL_GetKeyName(value) : _("Unassigned"),
                                              CONF_KEYBD_ASSIGN_KEY)))
                 {
                     conf_keybd_option_ids[i] = btn_id;
@@ -1466,6 +1481,7 @@ static int conf_keybd_enter(struct state *st, struct state *prev)
 
 static void conf_keybd_leave(struct state* st, struct state* next, int id)
 {
+    play_shared_leave(st, next, id);
     conf_common_leave(st, next, id);
 
     gui_delete(conf_keybd_modal_key_id);
@@ -1477,11 +1493,8 @@ static void conf_keybd_paint(int id, float t)
 {
     if (mainmenu_conf)
     {
-        video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-        {
-            back_draw_easy();
-        }
-        video_pop_matrix();
+        video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+        back_draw_easy();
     }
     else
         game_client_draw(0, t);
@@ -1710,6 +1723,12 @@ static void conf_controllers_set_label(int id, int value)
 {
     char str[20];
 
+    if (value == -1)
+    {
+        gui_set_label(id, _("Unassigned"));
+        return;
+    }
+
 #if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API || \
     NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
     if (conf_controllers_option_values_xbox[value % 100000])
@@ -1779,6 +1798,17 @@ static void conf_controllers_set_label(int id, int value)
 
 static void conf_controllers_set_option(int index, int value)
 {
+    for (int i = 0; i < ARRAYSIZE(conf_controllers_options); i++)
+    {
+        int option_id = *conf_controllers_options[index];
+
+        if (value == config_get_d(option_id))
+        {
+            config_set_d(option_id, -1);
+            conf_controllers_set_label(option_id, -1);
+        }
+    }
+
     if (index < ARRAYSIZE(conf_controllers_options))
     {
         int option = *conf_controllers_options[index];
@@ -1876,7 +1906,7 @@ static int conf_controllers_gui(void)
 
             if ((btn_id = conf_state(token == CONF_CONTROLLERS_ASSIGN_AXIS ?
                                      r_pane : l_pane,
-                _(conf_controllers_option_names[i]), "99", 0)))
+                                     _(conf_controllers_option_names[i]), "99", 0)))
             {
                 conf_controllers_option_ids[i] = btn_id;
 
@@ -1936,6 +1966,7 @@ static int conf_controllers_enter(struct state *st, struct state *prev)
 
 static void conf_controllers_leave(struct state *st, struct state *next, int id)
 {
+    play_shared_leave(st, next, id);
     conf_common_leave(st, next, id);
 
     gui_delete(conf_controllers_modal_button_id);
@@ -1948,11 +1979,8 @@ static void conf_controllers_paint(int id, float t)
 {
     if (mainmenu_conf)
     {
-        video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-        {
-            back_draw_easy();
-        }
-        video_pop_matrix();
+        video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+        back_draw_easy();
     }
     else
         game_client_draw(0, t);
@@ -2131,7 +2159,7 @@ static int conf_calibrate_enter(struct state *st, struct state *prev)
     return conf_calibrate_gui();
 }
 
-void conf_calibrate_stick(int id, int a, float v, int bump)
+static void conf_calibrate_stick(int id, int a, float v, int bump)
 {
     char axisattr[MAXSTR];
 
@@ -2459,7 +2487,7 @@ enum
 };
 
 #if GAME_TRANSFER_TARGET==0 && ENABLE_GAME_TRANSFER==1
-void demo_transfer_request_addreplay_dispatch_event(int status_limit)
+static void demo_transfer_request_addreplay_dispatch_event(int status_limit)
 {
     Array items = demo_dir_scan();
     int total = array_len(items);
@@ -2672,7 +2700,7 @@ static int conf_gui(void)
                 conf_state(id, _("Neverball Game Transfer"), _("Start"),
                                CONF_SYSTEMTRANSFER_TARGET);
 #else
-                conf_state(id, _("Pennyball Transfer Tool"), _("Start"),
+                conf_state(id, _("Neverball Transfer Tool"), _("Start"),
                                CONF_SYSTEMTRANSFER_SOURCE);
 #endif
                 gui_space(id);
@@ -2697,10 +2725,10 @@ static int conf_gui(void)
             gui_space(id);
 #endif
 
-            conf_state(id, _("Controls"), _("Configure"), CONF_CONTROLS);
-
             if (mainmenu_conf)
             {
+                conf_state(id, _("Controls"), _("Configure"), CONF_CONTROLS);
+
                 gui_space(id);
                 conf_state(id, _("Graphics"), _("Configure"), CONF_VIDEO);
             }
@@ -2820,6 +2848,7 @@ static int conf_enter(struct state *st, struct state *prev)
 
 static void conf_leave(struct state *st, struct state *next, int id)
 {
+    play_shared_leave(st, next, id);
     conf_common_leave(st, next, id);
 }
 
@@ -2908,15 +2937,12 @@ static void null_leave(struct state *st, struct state *next, int id)
 
 /*---------------------------------------------------------------------------*/
 
-void conf_paint(int id, float t)
+static void conf_paint(int id, float t)
 {
     if (mainmenu_conf)
     {
-        video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-        {
-            back_draw_easy();
-        }
-        video_pop_matrix();
+        video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+        back_draw_easy();
     }
     else
         game_client_draw(0, t);

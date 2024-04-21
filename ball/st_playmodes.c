@@ -166,25 +166,27 @@ static int playmodes_gui(void)
                 gui_back_button(jd);
         }
 
-        int         career_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER) ||
-                                       campaign_career_unlocked());
-        const char *career_title    = config_get_d(CONFIG_LOCK_GOALS) ?
-                                      _("Career Mode (Currently ENABLED!)") :
-                                      _("Career Mode (Currently disabled)");
-        const char *career_text     = _("Toggle career mode in the entire game.\n"
-                                        "Compatible with Level Set.");
+        int         career_unlocked     = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER) ||
+                                           campaign_career_unlocked());
+        const char *career_title        = config_get_d(CONFIG_LOCK_GOALS) ?
+                                          N_("Career Mode (Currently ENABLED!)") :
+                                          N_("Career Mode (Currently disabled)");
+        const char *career_title_locked = N_("Career Mode");
+        const char *career_text         = N_("Toggle career mode in the entire game.\n"
+                                             "Compatible with Level Set.");
+        const char* career_text_locked  = server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER) ?
+                                          N_("Complete the game to unlock.") :
+                                          N_("Career mode is not available\n"
+                                             "with server group policy.");
 
         playmodes_state(id, PLAYMODES_CAREER_MODE, 0,
                         career_unlocked &&
                         server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER),
                         career_unlocked &&
                         server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER) ?
-                        career_title : _("Career Mode"),
+                        _(career_title) : _(career_title_locked),
                         _(career_text),
-                        server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER) ?
-                        _("Complete the game to unlock.") :
-                        _("Career mode is not available\n"
-                          "with server group policy."));
+                        _(career_text_locked));
 
         int hardc_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE)
                            || campaign_hardcore_unlocked());
@@ -211,19 +213,24 @@ static int playmodes_gui(void)
         }
         else if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE))
         {
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+            const char *career_text_locked = !hardc_requirement ?
+                                             N_("Hardcore Mode is not available\n"
+                                                "with slowdown, cheat or smooth fix.") :
+                                             N_("Achieve all Silver Medals or above in Best Time\n"
+                                                "to unlock this Mode.");
+#else
+            const char *career_text_locked = hardc_requirement ?
+                                             N_("Hardcore Mode is not available\n"
+                                                "with slowdown or smooth fix.") :
+                                             N_("Achieve all Silver Medals or above in Best Time\n"
+                                                "to unlock this Mode.");
+#endif
+
             playmodes_state(id, PLAYMODES_HARDCORE, 0, hardc_unlocked && hardc_requirement,
                             mode_to_str(MODE_HARDCORE, 1),
                             _("Play the entire game without dying once."),
-                            !hardc_requirement ?
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
-                            _("Hardcore Mode is not available\n"
-                              "with slowdown, cheat or smooth fix.") :
-#else
-                            _("Hardcore Mode is not available\n"
-                              "with slowdown or smooth fix.") :
-#endif
-                            _("Achieve all Silver Medals or above in Best Time\n"
-                              "to unlock this Mode."));
+                            career_text_locked);
         }
         else
         {
@@ -246,10 +253,10 @@ static int playmodes_gui(void)
 static int playmodes_enter(struct state *st, struct state *prev)
 {
 #if NB_HAVE_PB_BOTH==1
-    audio_music_fade_to(0.5f, "bgm/inter_local.ogg");
+    audio_music_fade_to(0.5f, "bgm/inter_local.ogg", 1);
 #else
     audio_music_fade_to(0.0f, switchball_useable() ? "bgm/title-switchball.ogg" :
-                                                     BGM_TITLE_CONF_LANGUAGE);
+                                                     BGM_TITLE_CONF_LANGUAGE, 1);
 #endif
 
     if (&st_campaign == prev || &st_hardcore_start == prev)
@@ -311,23 +318,28 @@ static int hardcore_start_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
+            progress_exit();
             progress_init(MODE_CAMPAIGN);
             game_fade_color(0.0f, 0.0f, 0.0f);
             game_fade(-6.0f);
             return goto_state(&st_playmodes);
 
         case PLAYMODES_HARDCORE:
+            config_set_d(CONFIG_SMOOTH_FIX, val);
+            config_save();
+
+            progress_exit();
             progress_init(MODE_HARDCORE);
             audio_play(AUD_STARTGAME, 1.0f);
+            campaign_hardcore_play(!val);
+
+            campaign_load_camera_box_trigger("1");
+
             if (progress_play(campaign_get_level(0)))
             {
-                campaign_load_camera_box_trigger("1");
-                config_set_d(CONFIG_SMOOTH_FIX, val);
-                config_save();
-                campaign_hardcore_play(!val);
                 hud_update(0, 0.0f);
                 game_client_fly(1.0f);
-                return goto_state(&st_play_ready);
+                return goto_play_level();
             }
             break;
     }
@@ -390,10 +402,10 @@ static void hardcore_start_timer(int id, float dt)
 
 static int hardcore_start_enter(struct state *st, struct state *prev)
 {
-    progress_init(MODE_HARDCORE);
-    audio_music_fade_to(0.5f, "gui/bgm/inter.ogg");
+    audio_music_fade_to(0.5f, "gui/bgm/inter.ogg", 1);
     game_fade_color(0.25f, 0.0f, 0.0f);
     game_fade(+0.333f);
+
     return hardcore_start_gui();
 }
 

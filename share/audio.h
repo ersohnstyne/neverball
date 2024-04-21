@@ -28,11 +28,11 @@ void audio_play(const char *, float);
 
 void audio_narrator_play(const char *);
 
-void audio_music_queue(const char *, float);
-void audio_music_play(const char *);
+void audio_music_queue(const char *, float, int);
+void audio_music_play(const char *, int);
 void audio_music_stop(void);
 
-void audio_music_fade_to(float, const char *);
+void audio_music_fade_to(float, const char *, int);
 void audio_music_fade_in(float);
 void audio_music_fade_out(float);
 

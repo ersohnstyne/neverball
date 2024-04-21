@@ -87,23 +87,8 @@ static void game_draw_chnk_rings(struct s_rend *rend,
 
     for (i = 0; i < base->zc; i++)
     {
-        for (j = 1; j < 20; j++)
+        for (j = 1; j < 100; j++)
         {
-            glPushMatrix();
-            {
-                glScalef(j * SCL, 1, j * SCL);
-                glTranslatef(base->zv[i].p[0] / (j * SCL),
-                             Y - 10,
-                             base->zv[i].p[2] / (j * SCL));
-
-                glColor4ub(ROUND(c[0] * 255),
-                           ROUND(c[1] * 255),
-                           ROUND(c[2] * 255),
-                           ROUND(c[3] * 255));
-                chnk_ring_draw(rend, 0);
-            }
-            glPopMatrix();
-
             glPushMatrix();
             {
                 glScalef(j * SCL, 1, j * SCL);
@@ -116,6 +101,21 @@ static void game_draw_chnk_rings(struct s_rend *rend,
                            ROUND(c[2] * 255),
                            ROUND(c[3] * 255));
                 chnk_ring_draw(rend, 1);
+            }
+            glPopMatrix();
+
+            glPushMatrix();
+            {
+                glScalef(j * SCL, 1, j * SCL);
+                glTranslatef(base->zv[i].p[0] / (j * SCL),
+                             Y - 10,
+                             base->zv[i].p[2] / (j * SCL));
+
+                glColor4ub(ROUND(c[0] * 255),
+                           ROUND(c[1] * 255),
+                           ROUND(c[2] * 255),
+                           ROUND(c[3] * 255));
+                chnk_ring_draw(rend, 0);
             }
             glPopMatrix();
         }
@@ -687,7 +687,7 @@ static void game_draw_fore(struct s_rend *rend,
 
         if (!config_cheat()) glEnable(GL_FOG);
 
-        switch (pose)
+        if (draw && rend) switch (pose)
         {
             case POSE_LEVEL:
                 game_draw_items(rend, draw->vary, M, t);
@@ -727,6 +727,8 @@ static void game_draw_fore(struct s_rend *rend,
         }
 
         glDepthMask(GL_FALSE);
+
+        if (draw && rend && gd)
         {
             /* Draw the billboards, entity beams, and coin particles. */
 
@@ -751,6 +753,7 @@ static void game_draw_fore(struct s_rend *rend,
             glEnable (GL_LIGHT1);
             glEnable (GL_LIGHT0);
         }
+
         glDepthMask(GL_TRUE);
 
         if (!config_cheat()) glDisable(GL_FOG);
@@ -782,7 +785,7 @@ static void game_draw_fore_chnk(struct s_rend *rend,
 
         if (d < 0) glEnable(GL_CLIP_PLANE0);
 
-        switch (pose)
+        if (draw && rend) switch (pose)
         {
             case POSE_BALL:
                 /* No render available for map chunk overview. */
@@ -793,21 +796,26 @@ static void game_draw_fore_chnk(struct s_rend *rend,
         }
 
         glDepthMask(GL_FALSE);
+
+        if (draw && rend && gd)
         {
             /* Draw the billboards only. */
 
             sol_bill(draw, rend, M, t);
         }
+
         glDepthMask(GL_TRUE);
 
         if (d < 0) glDisable(GL_CLIP_PLANE0);
 
         glDepthMask(GL_FALSE);
+
+        if (rend && gd)
         {
             /* Draw the map chunk overview. */
 
-            game_draw_chnk_floor(rend, &gd->vary, M, t);
             game_draw_chnk_rings(rend, &gd->vary, M, t);
+            game_draw_chnk_floor(rend, &gd->vary, M, t);
             game_draw_chnk_balls(rend, &gd->vary, M, t);
             game_draw_chnk_jumps(rend, &gd->vary, M, t);
             game_draw_chnk_goals(rend, &gd->vary, M, t);
@@ -816,6 +824,7 @@ static void game_draw_fore_chnk(struct s_rend *rend,
             game_draw_chnk_chkps(rend, &gd->vary, M, t);
 #endif
         }
+
         glDepthMask(GL_TRUE);
     }
     glPopMatrix();
@@ -888,18 +897,9 @@ void game_draw(struct game_draw *gd, int pose, float t)
         game_shadow_conf(pose, 1);
         r_draw_enable(&rend);
 
-        video_push_persp(fov, 0.1f, FAR_DIST);
+        video_set_perspective(fov, 0.1f, FAR_DIST);
         glPushMatrix();
         {
-#if ENABLE_EARTHQUAKE==1
-            game_randomize_earthquake_shake();
-            float earthquake_rotation[3];
-            earthquake_rotation[0] = game_get_earthquake_shake()[0];
-            earthquake_rotation[1] = game_get_earthquake_shake()[1];
-            earthquake_rotation[2] = game_get_earthquake_shake()[2];
-            glRotatef(1.0f, earthquake_rotation[0], earthquake_rotation[1], earthquake_rotation[2]);
-#endif
-
             if (&game_lerp_pose_v)
             {
                 glRotatef(game_lerp_pose_v.pose_point_smooth_x, 0.0f, 1.0f, 0.0f);
@@ -1028,7 +1028,6 @@ void game_draw(struct game_draw *gd, int pose, float t)
             }
         }
         glPopMatrix();
-        video_pop_matrix();
 
         /* Draw the fade overlay. */
 

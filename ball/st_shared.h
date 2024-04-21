@@ -18,6 +18,8 @@
 #include "state.h"
 #include "util.h"
 
+void play_shared_leave(struct state*, struct state* next, int id);
+
 void shared_leave(struct state *, struct state *next, int id);
 void shared_paint(int id, float st);
 void shared_timer(int id, float dt);

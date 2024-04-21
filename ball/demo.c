@@ -549,8 +549,15 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
                 {
                     game_client_toggle_show_balls(1);
 
-                    if (g && s && tt)
-                        audio_music_fade_to(0.5f, BGM_TITLE_MAP(level.song));
+                    if (g && b && s && tt)
+                    {
+                        audio_music_fade_to(0.5f, demo_replay.mode == MODE_CHALLENGE || demo_replay.mode == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                                               || demo_replay.mode == MODE_HARDCORE
+#endif
+                                                ? "bgm/challenge_mbu.ogg" : 
+                                                  BGM_TITLE_MAP(level.song), 1);
+                    }
 
                     demo_update_read(0);
 
@@ -593,7 +600,7 @@ void demo_replay_stop(int d)
         demo_fp = NULL;
 
         if (d) fs_remove(demo_replay.path);
-        
+
         fs_persistent_sync();
         demo_refresh();
     }

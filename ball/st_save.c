@@ -30,6 +30,7 @@
 #include "text.h"
 #include "common.h"
 
+#include "game_server.h"
 #include "game_client.h"
 #include "game_common.h"
 
@@ -66,12 +67,6 @@ int goto_save(struct state *ok, struct state *cancel)
 #else
     return goto_state(&st_save);
 #endif
-}
-
-static void save_shared_exit(int id)
-{
-    progress_stop();
-    progress_exit();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -271,7 +266,7 @@ static void save_leave(struct state *st, struct state *next, int id)
 {
     text_input_stop();
 
-    gui_delete(id);
+    play_shared_leave(st, next, id);
 }
 
 static int save_keybd(int c, int d)
@@ -514,13 +509,12 @@ struct state st_save = {
     save_buttn,
     NULL,
     NULL,
-    NULL,
-    save_shared_exit,
+    NULL
 };
 
 struct state st_clobber = {
     clobber_enter,
-    shared_leave,
+    play_shared_leave,
     shared_paint,
     shared_timer,
     shared_point,
@@ -531,13 +525,12 @@ struct state st_clobber = {
     clobber_buttn,
     NULL,
     NULL,
-    NULL,
-    save_shared_exit,
+    NULL
 };
 
 struct state st_lockdown = {
     lockdown_enter,
-    shared_leave,
+    play_shared_leave,
     shared_paint,
     shared_timer,
     shared_point,
@@ -548,13 +541,12 @@ struct state st_lockdown = {
     lockdown_buttn,
     NULL,
     NULL,
-    NULL,
-    save_shared_exit,
+    NULL
 };
 
 struct state st_save_error = {
     save_error_enter,
-    shared_leave,
+    play_shared_leave,
     shared_paint,
     shared_timer,
     shared_point,
@@ -565,6 +557,5 @@ struct state st_save_error = {
     save_error_buttn,
     NULL,
     NULL,
-    NULL,
-    save_shared_exit,
+    NULL
 };

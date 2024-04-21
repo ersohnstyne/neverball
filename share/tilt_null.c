@@ -30,12 +30,6 @@ int  tilt_get_button(int *b, int *s)
     return 0;
 }
 
-void tilt_get_direct(int *x, int *y)
-{
-    *x = 1;
-    *y = 1;
-}
-
 float tilt_get_x(void)
 {
     return 0.0f;

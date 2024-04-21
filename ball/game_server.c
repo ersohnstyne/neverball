@@ -25,6 +25,11 @@
 #include "networking.h"
 #endif
 
+#if ENABLE_MOON_TASKLOADER!=0
+#define SKIP_MOON_TASKLOADER
+#include "moon_taskloader.h"
+#endif
+
 #ifdef MAPC_INCLUDES_CHKP
 #include "checkpoints.h" /* New: Checkpoints */
 #endif
@@ -35,6 +40,8 @@
 #include "config.h"
 #include "binary.h"
 #include "common.h"
+
+#include "state.h"
 
 #include "solid_sim.h"
 #include "solid_all.h"
@@ -63,6 +70,9 @@ static int server_state = 0;
 static struct s_vary vary;
 
 static int   timer_hold   = 0;          /* Hold timer                        */
+#if NB_HAVE_PB_BOTH==1
+static float time_travel  = 0;          /* Time travel                       */
+#endif
 static float time_limit   = 0;          /* Effective time limit              */
 static float time_elapsed = 0;          /* Time elapsed                      */
 static float timer        = 0.0f;       /* Clock                             */
@@ -100,6 +110,10 @@ static float jump_p[3];                 /* Jump destination                  */
 static int   chkp_e  =  1;      /* New: Checkpoints; Checkpoint enabled flag */
 static int   chkp_id = -1;
 #endif
+
+static int   powblock_b  = 0;
+static float powblock_dt = 0.0f;
+
 static float last_diraxis = 0.0f;
 
 static float goal_lock_p[3];
@@ -560,6 +574,400 @@ static void game_init_map_border(int ui)
 
 /*---------------------------------------------------------------------------*/
 
+#if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
+int game_server_load_moon_taskloader(void *data, void *execute_data)
+{
+    struct game_moon_taskloader_info *mtli = (struct game_moon_taskloader_info *) execute_data;
+
+    if (!mtli) return 0;
+
+    while (st_global_animating());
+
+    struct game_sol_version { int x, y; } version = { 0, 0 };
+    int i;
+
+    /* Load SOL data. */
+
+    if (!game_base_load(curr_file_name))
+        return (server_state = 0);
+
+    if (!sol_load_vary(&vary, &game_base))
+    {
+        game_base_free(NULL);
+        return (server_state = 0);
+    }
+
+    game_init_map_border(CURR_PLAYER);
+
+    for (int i = 0; i < vary.xc; i++)
+        curr_path_enabled_orcondition[i] = vary.xv[i].f;
+
+#ifdef MAPC_INCLUDES_CHKP
+    if (last_active)
+        for (int i = 0; i < vary.xc; i++)
+            curr_path_enabled_orcondition[i] = last_path_enabled_orcondition[i];
+#endif
+
+    server_state = 1;
+
+    /* Get SOL version. */
+
+    version.x = 0;
+    version.y = 0;
+
+    for (i = 0; i < vary.base->dc; i++)
+    {
+        char *k = vary.base->av + vary.base->dv[i].ai;
+        char *v = vary.base->av + vary.base->dv[i].aj;
+
+        if (strcmp(k, "version") == 0)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            if (sscanf_s(v,
+#else
+            if (sscanf(v,
+#endif
+                       "%d.%d", &version.x, &version.y) != 2)
+            {
+/*#ifndef NDEBUG
+                log_errorf("SOL key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
+                sol_free_vary(&vary);
+                game_base_free(NULL);
+                return (server_state = 0);
+#endif*/
+            }
+    }
+
+    /* Initialize the view (and put it at the ball). */
+
+    if (input_get_c() != config_get_d(CONFIG_CAMERA))
+        input_set_c(config_get_d(CONFIG_CAMERA));
+
+    for (int ui = 0; ui < vary.base->uc && ui < MAX_PLAYERS; ui++)
+    {
+        if (ui != CURR_PLAYER) continue;
+
+        fix_cam_lock[ui]  = 0;
+        fix_cam_alpha[ui] = 0.0f;
+        int uses_fix_cam  = (input_get_c() == CAM_AUTO && automode == CAM_2) ||
+                             input_get_c() == CAM_2;
+
+        /* Use target view as somewhere else */
+        if (vary.base->wv)
+            v_cpy(fix_cam_pos_targ[ui], vary.base->wv[0].p);
+        else
+            v_cpy(fix_cam_pos_targ[ui], vary.base->uv[ui].p);
+
+        v_cpy(fix_cam_pos, fix_cam_pos_targ[ui]);
+
+        while (fix_cam_pos[0] != fix_cam_pos_targ[ui][0] ||
+               fix_cam_pos[1] != fix_cam_pos_targ[ui][1] ||
+               fix_cam_pos[2] != fix_cam_pos_targ[ui][2])
+            v_cpy(fix_cam_pos, fix_cam_pos_targ[ui]);
+
+        game_view_set_static_cam_view(0, fix_cam_pos);
+
+        if (uses_fix_cam)
+        {
+            fix_cam_alpha[ui] = 1.0f;
+            game_view_init(&view);
+
+#pragma region Static camera
+            float c0[3] = { 0.0f, 0.0f, 0.0f };
+            float p0[3] = { 0.0f, 0.0f, 0.0f };
+            float c1[3] = { 0.0f, 0.0f, 0.0f };
+            float p1[3] = { 0.0f, 0.0f, 0.0f };
+            float v[3]  = { 0.0f, 0.0f, 0.0f };
+
+            v_cpy(c0, vary.uv[CURR_PLAYER].p);
+            v_cpy(p0, vary.uv[CURR_PLAYER].p);
+
+            v_cpy(p1, fix_cam_pos);
+            v_cpy(c1, vary.uv[CURR_PLAYER].p);
+
+            /* Interpolate the views. */
+
+            v_sub(v, p1, p0);
+            v_mad(view.p, p0, v, fix_cam_alpha[ui] * fix_cam_alpha[ui]);
+
+            v_sub(v, c1, c0);
+            v_mad(view.c, c0, v, fix_cam_alpha[ui] * fix_cam_alpha[ui]);
+
+            view.c[1] += view.dc;
+
+            /* Orthonormalize the view basis */
+
+            v_sub(view.e[2], view.p, view.c);
+            e_orthonrm_xz(view.e);
+
+            game_view_set_static_cam_view(1, fix_cam_pos);
+#pragma endregion
+        }
+        else
+            game_view_fly(&view, &vary, ui, 0.0f);
+    }
+
+    view.a = V_DEG(fatan2f(view.e[2][0], view.e[2][2]));
+
+    view_alt_velocity = 0.0f;
+
+    view_k = 1.0f;
+
+    view_time = 0.0f;
+    view_fade = 0.0f;
+
+    view_zoom_curr = 1.0f;
+    view_zoom_time = ZOOM_TIME;
+
+    view_zoom_diff_end  = 0;
+    view_zoom_diff_curr = 0;
+
+    for (int ui = 0; ui < vary.base->uc && ui < MAX_PLAYERS; ui++)
+    {
+        if (ui != CURR_PLAYER) continue;
+
+#ifdef MAPC_INCLUDES_CHKP
+        /*
+         * --- CHECKPOINT DATA ---
+         * If you haven't loaded your view data for each checkpoints,
+         * Data of view for your default will be used.
+         */
+
+        if (last_active)
+            last_diraxis = last_view[ui].a;
+#ifdef START_POS_ANGULAR_BETA
+        else
+            last_diraxis = vary.base->uv[ui].a;
+#endif
+#endif
+    }
+
+    /* Initialize simulation. */
+
+#ifdef MAPC_INCLUDES_CHKP
+    /*
+     * --- CHECKPOINT DATA ---
+     * If you haven't loaded simulation data for each checkpoints,
+     * Simulations for your default data will be used.
+     */
+    if (!last_active)
+#endif
+    {
+#if _WIN32 && _MSC_VER && ENABLE_NVIDIA_PHYSX==1
+        sol_init_sim_physx(&vary);
+#else
+        sol_init_sim(&vary);
+#endif
+    }
+
+    /* Send initial update. */
+
+    game_cmd_map(curr_file_name, version.x, version.y);
+    game_cmd_ups();
+    game_cmd_timer();
+
+    if (goal_e)
+        game_cmd_goalopen();
+
+    game_cmd_init_balls();
+
+#ifdef MAPC_INCLUDES_CHKP
+    /*
+     * --- CHECKPOINT DATA ---
+     * If you have loaded electricity data for each checkpoints,
+     * The electricity will travel BACK IN TIME!
+     */
+    if (last_active)
+    {
+        checkpoints_respawn(&vary, game_proxy_enq, &chkp_id);
+
+#ifndef NDEBUG
+        assert(vary.uv[CURR_PLAYER].p[0] == last_chkp_ball[CURR_PLAYER].p[0] &&
+               vary.uv[CURR_PLAYER].p[1] == last_chkp_ball[CURR_PLAYER].p[1] &&
+               vary.uv[CURR_PLAYER].p[2] == last_chkp_ball[CURR_PLAYER].p[2] &&
+               vary.uv[CURR_PLAYER].r    == last_chkp_ball[CURR_PLAYER].r    &&
+               vary.uv[CURR_PLAYER].size == last_chkp_ball[CURR_PLAYER].size);
+#endif
+    }
+    else
+    {
+        chkp_id = -1;
+        game_cmd_init_items();
+    }
+#else
+    game_cmd_init_items();
+#endif
+
+#ifdef MAPC_INCLUDES_CHKP
+    /*
+     * --- CHECKPOINT DATA ---
+     * If you have a coins for each checkpoints,
+     * The level progressions will be restored.
+     */
+    if (last_active && coins != 0)
+        game_cmd_coins();
+
+    /*
+     * --- CHECKPOINT DATA ---
+     * If you have an backup camera transform for each checkpoints,
+     * The camera view will be restored.
+     */
+    if (last_active)
+        game_update_view(0);
+    else
+#endif
+    game_cmd_updview();
+
+    game_cmd_eou();
+
+    /* Reset lockstep state. */
+
+    lockstep_clr(&server_step);
+
+    return server_state;
+}
+
+int game_server_init_moon_taskloader(const char *file_name, int t, int e,
+                                     struct moon_taskloader_callback callback)
+{
+    memset(curr_file_name, 0, MAXSTR);
+    SAFECPY(curr_file_name, file_name);
+
+    game_server_free(NULL);
+
+    /*
+     * --- MAYHEM ---
+     * Reduces time limit
+     */
+    int mayhem_time = 359999;
+    if (t > 0
+     && (
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+         !campaign_used() &&
+#endif
+        curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+     && curr_mode() != MODE_ZEN
+#endif
+         ))
+        mayhem_time = (int) t * 0.75f;
+
+#ifdef MAPC_INCLUDES_CHKP
+    time_limit = MAX(last_active ? checkpoints_respawn_time_limit() :
+                                   (float) t / 100.0f, 0);
+#else
+    time_limit = MAX((float) (t / 100.0f), 0);
+#endif
+
+#if NB_HAVE_PB_BOTH==1
+    time_travel = 0.0f;
+#endif
+
+    if (
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        campaign_used() ||
+#endif
+        curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+        || curr_mode() == MODE_ZEN
+#endif
+        )
+        time_limit = 0;
+
+#ifdef MAPC_INCLUDES_CHKP
+    /*
+     * --- CHECKPOINT DATA ---
+     * If you haven't loaded Level data for each checkpoints,
+     * Levels for your default data will be used.
+     */
+
+    time_elapsed =  last_active ? checkpoints_respawn_time_elapsed() : 0.0f;
+    coins        =  last_active ? checkpoints_respawn_coins() : 0;
+    timer_hold   = !last_active;
+#else
+    time_elapsed = 0.0f;
+    coins        = 0;
+    timer_hold   = 1;
+#endif
+
+    timer = fabsf(time_elapsed - time_limit);
+    status = GAME_NONE;
+
+#ifdef MAPC_INCLUDES_CHKP
+    if (!last_active)
+        chkp_id = -1;
+#endif
+
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+    /*
+     * --- MEDIATION ---
+     * If you use an Zen mode, all Achevements will disabled
+     * and sets to unlimited time.
+     */
+    if (mediation_enabled() == 1
+#ifdef MAPC_INCLUDES_CHKP
+        && !last_active
+#endif
+        )
+        time_elapsed = 0;
+#endif
+
+    input_init();
+
+    game_tilt_init(&tilt);
+
+    /* Switchball uses an automatic camera. */
+
+    automode     = 2;
+    autorotspeed = 0;
+
+    /* Initialize jump, chkp and goal states. */
+
+    jump_e = 1;
+    jump_b = 0;
+
+    /* Initialize pow block. */
+
+    powblock_b = 0;
+
+#ifdef MAPC_INCLUDES_CHKP
+    /* All checkpoints were removed in HARDCORE MODE! or last balls. */
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if ((time_limit > 0 && timer <= 60)
+        || (curr_mode() == MODE_HARDCORE) || curr_balls() < 1)
+#else
+    if ((timer_down && timer <= 60) || curr_balls() < 1)
+#endif
+        chkp_e = 0;
+    else
+        chkp_e = 1;
+#endif
+
+    goal_e = e ? 1 : 0;
+
+    if (input_get_c() != config_get_d(CONFIG_CAMERA))
+        input_set_c(config_get_d(CONFIG_CAMERA));
+
+    struct game_moon_taskloader_info *mtli = game_create_mtli();
+
+    if (mtli)
+    {
+        mtli->callback = callback;
+        mtli->filename = strdup(file_name);
+
+        callback.execute  = game_mtli_execute;
+        callback.progress = game_mtli_progress;
+        callback.done     = game_mtli_done;
+        callback.data     = mtli;
+
+        return moon_taskloader_load(file_name, callback);
+    }
+
+    return 0;
+}
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 int game_server_init(const char *file_name, int t, int e)
 {
     memset(curr_file_name, 0, MAXSTR);
@@ -590,6 +998,10 @@ int game_server_init(const char *file_name, int t, int e)
                                    (float) t / 100.0f, 0);
 #else
     time_limit = MAX((float) (t / 100.0f), 0);
+#endif
+
+#if NB_HAVE_PB_BOTH==1
+    time_travel = 0.0f;
 #endif
 
     if (
@@ -707,6 +1119,10 @@ int game_server_init(const char *file_name, int t, int e)
 
     jump_e = 1;
     jump_b = 0;
+
+    /* Initialize pow block. */
+
+    powblock_b = 0;
 
 #ifdef MAPC_INCLUDES_CHKP
     /* All checkpoints were removed in HARDCORE MODE! or last balls. */
@@ -883,8 +1299,6 @@ int game_server_init(const char *file_name, int t, int e)
     game_cmd_init_items();
 #endif
 
-    game_cmd_speedometer();
-
 #ifdef MAPC_INCLUDES_CHKP
     /*
      * --- CHECKPOINT DATA ---
@@ -924,20 +1338,23 @@ void game_server_free(const char *next)
         sol_free_vary(&vary);
 
         game_base_free(next);
-
-        server_state = 0;
     }
+
+    server_state = 0;
 }
 
 /*---------------------------------------------------------------------------*/
 
 /*
- * https://easings.net/#easeInOutBack
- * This function is deprecated and will be replaced onto game_easing_view
+ * This function is deprecated and will be replaced onto:
+ * game_easing_in_out_back_view
  */
 #define easeInOutBack game_easing_in_out_back_view
 
-static float game_easing_in_out_back_view(float x)
+/*
+ * https://easings.net/#easeInOutBack
+ */
+static float game_easing_in_out_back_view_old(float x)
 {
     const float c1 = 1.70158f;
     const float c2 = c1 * 1.525f;
@@ -947,6 +1364,37 @@ static float game_easing_in_out_back_view(float x)
         (fpowf(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2 :
         (fpowf(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2
         );
+}
+
+/*
+ * https://github.com/warrenm/AHEasing/blob/master/AHEasing/easing.c
+ *
+ * Modeled after the piecewise overshooting cubic function:
+ *
+ * y = (1/2)*((2x)^3-(2x)*sin(2*x*pi))           ; [0, 0.5]
+ * y = (1/2)*(1-((1-x)^3-(1-x)*sin((1-x)*pi))+1) ; [0.5, 1]
+ */
+static float game_easing_in_out_back_view_af(float t)
+{
+    if (t < 0.5)
+    {
+        float f = 2 * t;
+        return 0.5 * (f * f * f - f * fsinf(f * V_PI));
+    }
+    else
+    {
+        float f = (1 - (2 * t - 1));
+        return 0.5 * (1 - (f * f * f - f * fsinf(f * V_PI))) + 0.5;
+    }
+}
+
+/*
+ * https://github.com/nicolausYes/easing-functions/blob/master/src/easing.cpp
+ */
+static float game_easing_in_out_back_view(float t)
+{
+    if (t < 0.5) return t * t * (7 * t - 2.5) * 2;
+    else         return 1 + (--t) * t * 2 * (7 * t + 2.5);
 }
 
 void game_update_view(float dt)
@@ -988,7 +1436,8 @@ void game_update_view(float dt)
          * Switchball uses an automatic camera.
          *
          * Using modified camera speed value from the neverballrc
-         * does not offer within fixed value by the Switchball.
+         * forces reject their offers and will be used with hardcoded
+         * camera config values in auto-camera mode.
          */
 
         float spd = -1.0f;
@@ -1001,6 +1450,17 @@ void game_update_view(float dt)
                 case CAM_2: spd =    0.0f; break;
                 case CAM_3: spd = -0.001f; break;
             }
+
+            /* If camera speed value does not matched by the Switchball, reset it. */
+
+            if (config_get_d(CONFIG_CAMERA_1_SPEED) != 250)
+                config_set_d(CONFIG_CAMERA_1_SPEED, 250);
+            if (config_get_d(CONFIG_CAMERA_2_SPEED) != 0)
+                config_set_d(CONFIG_CAMERA_2_SPEED, 0);
+            if (config_get_d(CONFIG_CAMERA_3_SPEED) != -1)
+                config_set_d(CONFIG_CAMERA_3_SPEED, -1);
+
+            config_save();
         }
         else if (input_get_c() != CAM_AUTO)
         {
@@ -1024,6 +1484,19 @@ void game_update_view(float dt)
         {
             fix_cam_alpha[ui] -= dt / 1.5f;
             fix_cam_alpha[ui] = MAX(fix_cam_alpha[ui], 0);
+        }
+#pragma endregion
+
+#pragma region Pow camera shake
+        /* Pow camera shake for center camera view. */
+
+        float c_shake[3] = { 0.0f, 0.0f, 0.0f };
+
+        if (powblock_b > 0)
+        {
+            c_shake[0] = rand_between(-ANGLE_BOUND, ANGLE_BOUND) * (powblock_dt - 0.5f);
+            c_shake[1] = rand_between(-ANGLE_BOUND, ANGLE_BOUND) * (powblock_dt - 0.5f);
+            c_shake[2] = rand_between(-ANGLE_BOUND, ANGLE_BOUND) * (powblock_dt - 0.5f);
         }
 #pragma endregion
 
@@ -1052,6 +1525,11 @@ void game_update_view(float dt)
         v_mad(multiview2.c, c0, v, fix_cam_alpha[ui] * fix_cam_alpha[ui]);
 
         multiview2.c[1] += multiview2.dc;
+
+        /* Apply camera shake. */
+
+        v_add(multiview2.c, multiview2.c, c_shake);
+        v_add(multiview2.c, multiview2.c, c_shake);
 
         /* Orthonormalize the view basis */
 
@@ -1110,6 +1588,11 @@ void game_update_view(float dt)
         view_v[0] = -vary.uv[ui].v[0];
         view_v[1] =  0.0f;
         view_v[2] = -vary.uv[ui].v[2];
+
+        /* Apply camera shake. */
+
+        v_add(multiview1.c, multiview1.c, c_shake);
+        v_add(multiview1.c, multiview1.c, c_shake);
 
         /* Compute view vector. */
 
@@ -1253,6 +1736,15 @@ static void game_update_time(float dt, int b)
      * Timer must be freeze: jump_b == 0 && timer_hold == 0
      */
 
+#if NB_HAVE_PB_BOTH==1
+    if (b && time_travel > 0.0f && timer_hold == 0 && jump_b == 0)
+    {
+        time_travel -= dt;
+
+        return;
+    }
+#endif
+
     if (b && timer_hold == 0 && jump_b == 0)
     {
         time_elapsed += dt;
@@ -1382,6 +1874,38 @@ static int game_update_state(int bt)
 
             hp->t = ITEM_NONE;
         }
+
+#if NB_HAVE_PB_BOTH==1
+        /* Time travel: Time is paused for 5 seconds. */
+
+        else if (hp->t == ITEM_2_2_0_TIMETRAVEL)
+        {
+            audio_play(AUD_2_2_0_PICK_TT, 1.0f);
+
+            audio_play(AUD_CLOCK, 1.0f);
+            audio_play(AUD_2_2_0_USE_SHARED, 1.0f);
+
+            time_travel += 5.0f;
+
+            audio_play(AUD_COIN, 1.0f);
+
+            hp->t = ITEM_NONE;
+        }
+
+        /* Pow Block: Drops all coins onto the ground after activated. */
+
+        else if (hp->t == ITEM_2_2_0_POWBLOCK)
+        {
+            audio_play(AUD_2_2_0_USE_POW, 1.0f);
+
+            powblock_b  = 1;
+            powblock_dt = 0.0f;
+
+            audio_play(AUD_COIN, 1.0f);
+
+            hp->t = ITEM_NONE;
+        }
+#endif
     }
 
 #if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
@@ -1575,6 +2099,14 @@ static int game_step(const float g[3], float dt, int bt)
 
         game_tilt_grav(h, g, &tilt);
 
+        if (powblock_b > 0 && status != GAME_TIME)
+        {
+            powblock_dt += dt;
+
+            if (powblock_dt >= 0.5f)
+                powblock_b = 0;
+        }
+
         if (status == GAME_GOAL
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             && !campaign_used()
@@ -1687,7 +2219,13 @@ static void game_server_iter(float dt)
 #else
     if (status == GAME_GOAL)
 #endif
-        v_cpy(g, GRAVITY_UP);
+    {
+        /* TODO: Was flip'in through, or not? */
+
+        g[0] *= -1.0f;
+        g[1] *= -1.0f;
+        g[2] *= -1.0f;
+    }
 
 #ifdef MAPC_INCLUDES_CHKP
     if (checkpoints_busy)
@@ -1830,7 +2368,7 @@ void game_extend_time(float extratime)
 {
     status = GAME_NONE;
     game_cmd_status();
-    time_elapsed += extratime;
+    time_limit += extratime;
 }
 
 /* New: Zoom;

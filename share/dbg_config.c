@@ -13,6 +13,16 @@
  */
 
 /*
+ * HACK: Remembering the code file differences:
+ * Developers  who  programming  C++  can see more bedrock declaration
+ * than C.  Developers  who  programming  C  can  see  few  procedural
+ * declaration than  C++.  Keep  in  mind  when making  sure that your
+ * extern code must associated. The valid file types are *.c and *.cpp,
+ * so it's always best when making cross C++ compiler to keep both.
+ * - Ersohn Styne
+ */
+
+/*
  * Used with c++ signal protection from events.
  */
 
@@ -25,22 +35,28 @@
 static int  dbg_signum = 0;
 static char dbg_strerror[256];
 
-int         GameDbg_GetSigInt(void) { return dbg_signum; }
-void        GameDbg_ClrSigInt(void) { dbg_signum = 0; }
+#if __cplusplus
+extern "C" {
+#endif
+
+int         GameDbg_GetSigNum(void) { return dbg_signum; }
+void        GameDbg_ClrSigNum(void) { dbg_signum = 0; }
 const char *GameDbg_GetError(void)  { return dbg_strerror ? dbg_strerror : "Unknown error"; }
 
-void GameDbg_SigNum_Hangup(int signum)     { dbg_signum = signum; exit(1); }
-void GameDbg_SigNum_CtrlC(int signum)      { dbg_signum = signum; exit(0); }
-void GameDbg_SigNum_Quit(int signum)       { dbg_signum = signum; exit(1); }
-void GameDbg_SigNum_ElemAddr(int signum)   { dbg_signum = signum; exit(1); }
-void GameDbg_SigNum_Breakpt(int signum)    { dbg_signum = signum; exit(1); }
-void GameDbg_SigNum_FloatPoint(int signum) { dbg_signum = signum; exit(1); }
-void GameDbg_SigNum_Kill(int signum)       { dbg_signum = signum; exit(1); }
-void GameDbg_SigNum_Segments(int signum)   { dbg_signum = signum; exit(1); }
-void GameDbg_SigNum_Term(int signum)       { dbg_signum = signum; exit(1); }
-#ifdef _WIN32
-void GameDbg_SigNum_CtrlBreak(int signum)  { dbg_signum = signum; exit(0); }
+void GameDbg_SigHandler(int signum)
+{
+#if _DEBUG
+#if _WIN32
+    __debugbreak();
+#else
+    raise(SIGTRAP);
 #endif
+#endif
+
+    dbg_signum = signum;
+
+    exit((signum == 2 || signum == 21) ? 0 : 1);
+}
 
 void GameDbg_Check_SegPerformed(void)
 { 
@@ -71,8 +87,13 @@ void GameDbg_Check_SegPerformed(void)
     DW_FORMAT_MSG(dbg_strerror);
     log_errorf("Debug error: %s\n", dbg_strerror);
 #endif
-    GameDbg_ClrSigInt();
+    GameDbg_ClrSigNum();
+
 #if __cplusplus
     throw dbg_strerror;
 #endif
 }
+
+#if __cplusplus
+}
+#endif

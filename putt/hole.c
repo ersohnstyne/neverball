@@ -543,7 +543,7 @@ void hole_restart(void)
 
 void hole_song(void)
 {
-    audio_music_fade_to(0.5f, _(hole_v[hole].song));
+    audio_music_fade_to(0.5f, _(hole_v[hole].song), 1);
 }
 
 /*---------------------------------------------------------------------------*/

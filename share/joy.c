@@ -13,6 +13,7 @@
  */
 
 #include "base_config.h"
+#include "dbg_config.h"
 
 #if NB_PB_WITH_XBOX==0
 #if _WIN32 && __MINGW32__
@@ -62,6 +63,8 @@ int joy_init(void)
 {
     if (joy_is_init)
         return 1;
+
+    GAMEDBG_SIGFUNC_PREPARE;
 
     size_t i = 0;
 
@@ -119,6 +122,10 @@ void joy_add(int device)
         {
             log_errorf("Failure to add Joystick! Joystick must be initialized!: %s\n",
                        GAMEDBG_GETSTRERROR_CHOICES_SDL);
+#if _DEBUG
+            SDL_TriggerBreakpoint();
+#endif
+
             exit(1);
             return;
         }

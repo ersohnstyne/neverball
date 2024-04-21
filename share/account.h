@@ -66,4 +66,6 @@ int  account_get_d(int);
 void        account_set_s(int, const char *);
 const char *account_get_s(int);
 
+void account_set(const char *, const char *);
+
 #endif

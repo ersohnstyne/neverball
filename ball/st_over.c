@@ -80,24 +80,47 @@ static int over_action(int tok, int val)
 
         case GUI_SCORE:
             gui_score_set(val);
-            return goto_state(&st_over);
+            return goto_state_full(&st_over, 0, 0, 1);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         case OVER_TO_GROUP:
-            campaign_hardcore_quit();
-            campaign_theme_quit();
-            campaign_quit();
+            if (campaign_used())
+            {
+                campaign_hardcore_quit();
+                campaign_theme_quit();
+                campaign_quit();
+            }
 #endif
             return goto_playmenu(curr_mode());
 
 #if NB_HAVE_PB_BOTH==1
         case OVER_SHOP:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            campaign_hardcore_quit();
-            campaign_theme_quit();
-            campaign_quit();
+            if (campaign_used())
+            {
+                campaign_hardcore_quit();
+                campaign_theme_quit();
+                campaign_quit();
+            }
 #endif
-            return goto_state(&st_shop);
+#ifdef CONFIG_INCLUDES_ACCOUNT
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            if (!campaign_used())
+#endif
+            {
+                if (str_starts_with(set_id(curr_set()), "anime"))
+                    audio_music_fade_to(0.5f, "bgm/jp/title.ogg", 1);
+                else
+                    audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
+                                                              "bgm/inter_world.ogg", 1);
+            }
+
+            return goto_shop(
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                             campaign_used() ? &st_campaign :
+#endif
+                             &st_start, 0);
+#endif
 #endif
     }
     return 1;
@@ -203,12 +226,12 @@ static int over_gui(void)
         int gid;
 
 #if NB_HAVE_PB_BOTH==1
-        const char *s0 = CHECK_ACCOUNT_BANKRUPT ? _("Bankrupt") : _("GAME OVER");
+        const char *s0 = CHECK_ACCOUNT_BANKRUPT ? N_("Bankrupt") : N_("GAME OVER");
 #else
-        const char *s0 = _("GAME OVER");
+        const char *s0 = N_("GAME OVER");
 #endif
 
-        gid = gui_title_header(id, s0, GUI_MED, gui_blk, gui_red);
+        gid = gui_title_header(id, _(s0), GUI_MED, gui_blk, gui_red);
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
         gui_space(id);
@@ -369,7 +392,7 @@ static int over_buttn(int b, int d)
 #ifndef LEADERBOARD_ALLOWANCE
 struct state st_over = {
     over_enter,
-    shared_leave,
+    play_shared_leave,
     shared_paint,
     over_timer,
     NULL,
@@ -382,7 +405,7 @@ struct state st_over = {
 #else
 struct state st_over = {
     over_enter,
-    shared_leave,
+    play_shared_leave,
     shared_paint,
     over_timer,
     shared_point,

@@ -3,7 +3,12 @@ CC = emcc
 JSDIR = js
 
 # Default path as before: ../gl4es
-GL4ES_DIR ?= -l/usr/include/gl4es
+# On Windows, this generator and compiler should be MSVC.
+# On Linux, this should be GNUMake.
+# On all other platforms, this should be Ninja.
+#
+# FIXME: Change GL4ES directory path to provide
+GL4ES_DIR ?= E:/EMProjectFiles/gl4es
 
 # Emscripten fast linking: https://github.com/emscripten-core/emscripten/issues/17019
 BUILD ?= devel
@@ -90,8 +95,7 @@ EM_LDFLAGS := \
 	-s ALLOW_MEMORY_GROWTH=1 \
 	-s FULL_ES2=1 \
 	-s INVOKE_RUN=0 \
-	-s NO_EXIT_RUNTIME=1 \
-	-s EXPORTED_FUNCTIONS=_main,_push_user_event,_config_set \
+	-s EXPORTED_FUNCTIONS=_main,_push_user_event,_account_set,_config_set \
 	-s EXPORTED_RUNTIME_METHODS=callMain,ccall,cwrap \
 	-s HTML5_SUPPORT_DEFERRING_USER_SENSITIVE_REQUESTS=0 \
 	-s LLD_REPORT_UNDEFINED \

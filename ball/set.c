@@ -63,6 +63,8 @@ struct set
     int   star;                         /* Set completition stars (set)      */
     int   star_prev;                    /* Set completition stars (current)  */
     int   star_obtained;                /* Set completition stars (current)  */
+
+    int   balls_needed;                 /* Balls needed to start challenge   */
 #endif
 
     /* HS Info                                                               */
@@ -484,7 +486,7 @@ static int set_load(struct set *s, const char *filename)
          strcmp(filename, "set-tones.txt")  != 0 &&
          strcmp(filename, SET_MISC)         != 0) &&
         (!account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
-        !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET)))
+         !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET)))
         return 0;
 #else
     if ((strcmp(filename, "set-easy.txt")   != 0 &&
@@ -499,39 +501,42 @@ static int set_load(struct set *s, const char *filename)
         return 0;
 #endif
 
-    /* Limited region only */
+    /* Limited offered region only */
 
-    if (config_get_s(CONFIG_LANGUAGE))
+    if (str_starts_with(filename, "set-anime") &&
+        str_ends_with(filename, ".txt") &&
+        !config_cheat())
     {
-        if ((str_starts_with(filename, "set-anime") &&
-             str_ends_with  (filename, ".txt")) &&
+        if (server_policy_get_d(SERVER_POLICY_EDITION) < 3)
+            return 0;
+
+        if (config_get_s(CONFIG_LANGUAGE) &&
             (strcmp(config_get_s(CONFIG_LANGUAGE), "ja") != 0 &&
-             strcmp(config_get_s(CONFIG_LANGUAGE), "jp") != 0) &&
-            !config_cheat())
+             strcmp(config_get_s(CONFIG_LANGUAGE), "jp") != 0))
             return 0;
     }
-    else if (str_starts_with(filename, "set-anime") &&
-             str_ends_with  (filename, ".txt"))
-        return 0;
 
     /* Limited special offers only */
 
     if ((str_starts_with(filename, "set-valentine") &&
          str_ends_with  (filename, ".txt")) &&
         curr_date_month != 2 &&
-        !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))
+        !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET) &&
+        !config_cheat())
         return 0;
 
     if ((str_starts_with(filename, "set-halloween") &&
          str_ends_with  (filename, ".txt")) &&
         curr_date_month != 10 &&
-        !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))
+        !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET) &&
+        !config_cheat())
         return 0;
 
     if ((str_starts_with(filename, "set-christmas") &&
          str_ends_with  (filename, ".txt")) &&
         curr_date_month != 12 &&
-        !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))
+        !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET) &&
+        !config_cheat())
         return 0;
 
 #endif
@@ -568,7 +573,7 @@ static int set_load(struct set *s, const char *filename)
         sscanf(scores,
 #endif
 #if NB_HAVE_PB_BOTH==1
-               "%d %d %d %d %d %d %d",
+               "%d %d %d %d %d %d %d %d",
 #else
                "%d %d %d %d %d %d",
 #endif
@@ -579,7 +584,7 @@ static int set_load(struct set *s, const char *filename)
                &s->coin_score.coins[RANK_MEDM],
                &s->coin_score.coins[RANK_EASY]
 #if NB_HAVE_PB_BOTH==1
-               , &s->star
+               , &s->star, &s->balls_needed
 #endif
         );
 
@@ -619,7 +624,9 @@ static int set_load(struct set *s, const char *filename)
     free(s->desc);
     free(s->id);
     free(s->shot);
+
 #if NB_HAVE_PB_BOTH==1
+    s->balls_needed = 0;
     s->star = 0;
 #endif
 
@@ -641,7 +648,9 @@ static void set_free(struct set *s)
     free(s->desc);
     free(s->id);
     free(s->shot);
+
 #if NB_HAVE_PB_BOTH==1
+    s->balls_needed = 0;
     s->star = 0;
 #endif
 
@@ -813,6 +822,12 @@ int set_star_gained(int i)
     return set_exists(i) ?
            SET_GET(sets, i)->star_prev < SET_GET(sets, i)->star_obtained : NULL;
 }
+
+int set_balls_needed(int i)
+{
+    return set_exists(i) ?
+           SET_GET(sets, i)->balls_needed : NULL;
+}
 #endif
 
 const struct score *set_score(int i, int s)
@@ -880,30 +895,31 @@ static void set_load_levels(void)
     int         regular = 1,
                 bonus   = 1,
                 master  = 1;
-    int         i;
+
+    int i;
+
+    /* Atomic Elbow tried to retreat! */
+    int i_retreat = 0;
 
     default_set_maxtimelimit    = 0;
     default_set_mincoinrequired = 0;
 
+    for (i = 0; i < 150; i++)
+        memset(&level_v[i], 0, sizeof (struct level));
+
     for (i = 0; i < s->count; i++)
     {
-        struct level *l = &level_v[i];
-
-        l->number       = i;
-        l->is_locked    = 1;
-        l->is_completed = 0;
-
-        l->is_master    = 0;
-        l->is_bonus     = 0;
+        struct level *l = &level_v[i - i_retreat];
 
         int lvl_was_offered = level_load(s->level_name_v[i], l);
 
+        l->number       = i - i_retreat;
+        l->is_locked    = (i - i_retreat) > 0;
+        l->is_completed = 0;
+
         if (lvl_was_offered)
         {
-            l->is_locked    = (i != 0) && l->is_locked;
-            l->is_completed = 0;
-
-            if      (l->is_master)
+            if (l->is_master)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 sprintf_s(l->name, MAXSTR,
@@ -942,11 +958,10 @@ static void set_load_levels(void)
             if (l->goal && !l->is_bonus)
                 default_set_mincoinrequired += l->goal;
 
-            if (i > 0)
-                level_v[i - 1].next = l;
-            else if (l->is_locked)
-                l->is_locked = 0;
+            if ((i - i_retreat) > 0)
+                level_v[(i - i_retreat) - 1].next = l;
         }
+        else i_retreat++;
     }
 
     for (int r = 0; r < 3; r++)
@@ -968,8 +983,18 @@ void set_goto(int i)
 {
     curr = i;
 
+#if ENABLE_MOON_TASKLOADER==0
     set_load_levels();
     set_load_hs();
+#endif
+}
+
+int set_scan_level_files(void)
+{
+#if ENABLE_MOON_TASKLOADER!=0
+    set_load_levels();
+    set_load_hs();
+#endif
 }
 
 int set_find(const char *file)

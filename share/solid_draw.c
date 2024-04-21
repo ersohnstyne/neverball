@@ -12,6 +12,8 @@
  * General Public License for more details.
  */
 
+#include <assert.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -376,6 +378,9 @@ static void sol_load_mesh(struct d_mesh *mp,
                           const struct b_body *bp,
                           const struct s_draw *draw, int mi)
 {
+    assert(mp);
+    if (!mp) return;
+
     struct d_vert *vv = 0;
     struct d_geom *gv = 0;
     int           *iv = 0;
@@ -448,10 +453,10 @@ static void sol_free_mesh(struct d_mesh *mp)
 static void sol_draw_mesh(const struct d_mesh *mp,
                           struct s_rend *rend, int p)
 {
-    /* Mtrl references needed. */
+    /* Mesh references needed. */
 
-    if (!mp)
-        return;
+    assert(mp);
+    if (!mp) return;
 
     /* If this mesh has material matching the given flags... */
 
@@ -543,8 +548,8 @@ static void sol_draw_body(const struct d_body *bp, struct s_rend *rend, int p)
 {
     /* Body references needed. */
 
-    if (!bp)
-        return;
+    assert(bp);
+    if (!bp) return;
 
     int i;
 
@@ -620,8 +625,7 @@ void sol_free_draw(struct s_draw *draw)
 
 static void sol_draw_all(const struct s_draw *draw, struct s_rend *rend, int p)
 {
-    if (!draw || !draw->bv)
-        return;
+    if (!draw || !draw->bv) return;
 
     int bi;
 
@@ -698,8 +702,8 @@ void sol_back(const struct s_draw *draw,
               struct s_rend *rend,
               float n, float f, float t)
 {
-    if (!draw)
-        return;
+    assert(draw);
+    if (!draw) return;
 
     glDepthMask(GL_FALSE);
 
@@ -766,8 +770,8 @@ void sol_back(const struct s_draw *draw,
 void sol_bill(const struct s_draw *draw,
               struct s_rend *rend, const float *M, float t)
 {
-    if (!draw)
-        return;
+    assert(draw);
+    if (!draw) return;
 
     sol_bill_enable(draw);
     {
@@ -879,8 +883,7 @@ int sol_load_full(struct s_full *full, const char *filename, int s)
 
 void sol_free_full(struct s_full *full)
 {
-    if (!full)
-        return;
+    if (!full) return;
 
     sol_free_draw(&full->draw);
     sol_free_vary(&full->vary);
@@ -936,8 +939,7 @@ static void assert_mtrl(const struct mtrl *mp)
 
 void r_color_mtrl(struct s_rend *rend, int enable)
 {
-    if (!rend)
-        return;
+    if (!rend) return;
 
     if (enable)
     {
@@ -962,8 +964,7 @@ void r_color_mtrl(struct s_rend *rend, int enable)
 
 void r_apply_mtrl(struct s_rend *rend, int mi)
 {
-    if (!rend)
-        return;
+    if (!rend) return;
 
     struct mtrl *mp = mtrl_get(mi);
     struct mtrl *mq = &rend->curr_mtrl;

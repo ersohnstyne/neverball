@@ -33,6 +33,11 @@
 #include "checkpoints.h" /* New: Checkpoints */
 #endif
 
+#if ENABLE_MOON_TASKLOADER!=0
+#define SKIP_MOON_TASKLOADER
+#include "moon_taskloader.h"
+#endif
+
 #include "gui.h"
 #include "hud.h"
 #include "set.h"
@@ -75,6 +80,9 @@
 
 /*---------------------------------------------------------------------------*/
 
+struct state st_level_loading;
+struct state st_nodemo;
+
 struct state st_poser;
 struct state st_level_signin_required;
 
@@ -104,7 +112,99 @@ static int level_check_playername(const char *regname)
 
 /*---------------------------------------------------------------------------*/
 
+#ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
+
+const char level_loading_tip[][256] = {
+    TIP_1,
+    TIP_2,
+    TIP_3,
+    TIP_4,
+    TIP_5,
+    TIP_6,
+    TIP_7,
+    TIP_8
+};
+
+const char level_loading_tip_xbox[][256] = {
+    TIP_1,
+    TIP_2,
+    TIP_3_XBOX,
+    TIP_4_XBOX,
+    TIP_5,
+    TIP_6_XBOX
+};
+
+const char level_loading_tip_ps4[][256] = {
+    TIP_1,
+    TIP_2,
+    TIP_3_PS4,
+    TIP_4_XBOX,
+    TIP_5,
+    TIP_6_PS4
+};
+
+const char level_loading_covid_highrisk[][256] = {
+    N_("Stash your game transfer\nto reduce risks!"),
+    N_("Stash your replays with exceeded\nlevel status to reduce risks!"),
+    N_("Don't use challenge game mode\nto reduce risks!"),
+    N_("Use 3G+ rule to reduce risks!"),
+};
+
+#endif
+
+static int level_loading_enter(struct state *st, struct state *prev)
+{
+    int id, tip_id;
+
+    int max_index = 7;
+
+#ifndef __EMSCRIPTEN__
+    if (current_platform != PLATFORM_PC)
+        max_index = 5;
+#endif
+
+    int index_affect = rand_between(0, max_index);
+
+#ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
+    if ((id = gui_vstack(0)))
+    {
+        gui_title_header(id, _("Loading..."), GUI_MED, GUI_COLOR_DEFAULT);
+        gui_space(id);
+
+        while (index_affect > max_index)
+            index_affect -= max_index;
+
+#ifndef __EMSCRIPTEN__
+        if (current_platform == PLATFORM_PC)
+            tip_id = gui_multi(id, _(level_loading_tip[index_affect]),
+                                   GUI_SML, GUI_COLOR_WHT);
+        else if (current_platform == PLATFORM_PS)
+            tip_id = gui_multi(id, _(level_loading_tip_ps4[index_affect]),
+                                   GUI_SML, GUI_COLOR_WHT);
+        else
+            tip_id = gui_multi(id, _(level_loading_tip_xbox[index_affect]),
+                                   GUI_SML, GUI_COLOR_WHT);
+#else
+        tip_id = gui_multi(id, _(level_loading_tip[index_affect]),
+                               GUI_SML, GUI_COLOR_WHT);
+#endif
+        gui_layout(id, 0, 0);
+    }
+#else
+    if ((id = gui_title_header(0, _("Loading..."), GUI_MED, GUI_COLOR_DEFAULT)))
+        gui_layout(id, 0, 0);
+#endif
+
+    return id;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static int show_info = 0;
+
+#if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
+static int level_loading_with_moon_taskloader = 1;
+#endif
 
 static int check_nodemo = 1;
 static int nodemo_warnonlyonce = 1;
@@ -120,13 +220,6 @@ enum
     LEVEL_START = GUI_LAST,
     LEVEL_START_POWERUP
 };
-
-static void level_shared_exit(int id)
-{
-    progress_stat(GAME_NONE);
-    progress_stop();
-    progress_exit();
-}
 
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
 static int level_action(int tok, int val)
@@ -226,9 +319,7 @@ static int level_gui(void)
 
                 if ((kd = gui_harray(jd)))
                 {
-                    if (!CHECK_ACCOUNT_BANKRUPT)
-                        gui_label(kd, account_gemsattr, GUI_SML, gui_wht, gui_cya);
-
+                    gui_label(kd, account_gemsattr, GUI_SML, gui_wht, gui_cya);
                     gui_label(kd, account_coinsattr, GUI_SML, gui_wht, gui_yel);
                 }
 
@@ -266,8 +357,8 @@ static int level_gui(void)
                     sprintf_s(lvlattr, MAXSTR, _("Level %s"), ln);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (curr_mode() == MODE_CAMPAIGN
-                    || curr_mode() == MODE_HARDCORE)
+                if (curr_mode() == MODE_CAMPAIGN ||
+                    curr_mode() == MODE_HARDCORE)
                     sprintf_s(setattr, MAXSTR, "%s", mode_to_str(curr_mode(), 1));
                 else
 #endif
@@ -292,8 +383,8 @@ static int level_gui(void)
                     sprintf(lvlattr, _("Level %s"), ln);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (curr_mode() == MODE_CAMPAIGN
-                    || curr_mode() == MODE_HARDCORE)
+                if (curr_mode() == MODE_CAMPAIGN ||
+                    curr_mode() == MODE_HARDCORE)
                     sprintf(setattr, "%s", mode_to_str(curr_mode(), 1));
                 else
 #endif
@@ -305,9 +396,9 @@ static int level_gui(void)
                         sprintf(setattr, _("%s: %s"), set_name(curr_set()), mode_to_str(curr_mode(), 1));
 #endif
                 gui_title_header(kd, lvlattr,
-                    m || b ? GUI_MED : GUI_LRG,
-                    m ? gui_wht : (b ? gui_wht : 0),
-                    m ? gui_red : (b ? gui_grn : 0));
+                                     m || b ? GUI_MED : GUI_LRG,
+                                     m ? gui_wht : (b ? gui_wht : 0),
+                                     m ? gui_red : (b ? gui_grn : 0));
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (curr_mode() == MODE_HARDCORE)
                     gui_label(kd, _("Hardcore Mode!"), GUI_SML, GUI_COLOR_RED);
@@ -319,13 +410,23 @@ static int level_gui(void)
             }
             gui_filler(jd);
         }
+
         gui_space(id);
 
+        if (str_starts_with(set_id(curr_set()), "SB") ||
+            str_starts_with(set_id(curr_set()), "sb") ||
+            str_starts_with(set_id(curr_set()), "Sb") ||
+            str_starts_with(set_id(curr_set()), "sB"))
+        {
+            gui_label(id, _("Pre-Classic Campaign"), GUI_SML, GUI_COLOR_CYA);
+            gui_space(id);
+        }
+
 #ifdef ENABLE_POWERUP
-        if ((level_master(curr_level()) ||
-            curr_mode() == MODE_CHALLENGE ||
-            curr_mode() == MODE_BOOST_RUSH) &&
-            !show_info &&
+        if ((level_master(curr_level())    ||
+             curr_mode() == MODE_CHALLENGE ||
+             curr_mode() == MODE_BOOST_RUSH) &&
+            !show_info                       &&
             server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
         {
             if ((jd = gui_hstack(id)))
@@ -450,7 +551,7 @@ static int level_gui(void)
 
 static int level_enter(struct state *st, struct state *prev)
 {
-    game_lerp_pose_point_reset();
+    //game_lerp_pose_point_reset();
     game_client_fly(1.0f);
 
     nodemo_warnonlyonce = prev != &st_level  &&
@@ -476,7 +577,10 @@ static int level_enter(struct state *st, struct state *prev)
 
 static void level_paint(int id, float t)
 {
-    game_client_draw(0, t);
+#if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
+    if (!level_loading_with_moon_taskloader)
+#endif
+        game_client_draw(0, t);
 
     gui_paint(id);
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
@@ -514,14 +618,17 @@ static void level_timer(int id, float dt)
     geom_step(dt);
     hud_timer(dt);
     gui_timer(id, dt);
-    game_lerp_pose_point_tick(dt);
+    //game_lerp_pose_point_tick(dt);
 
-    game_step_fade(dt);
+#if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
+    if (!level_loading_with_moon_taskloader)
+#endif
+        game_step_fade(dt);
 }
 
 static int level_keybd(int c, int d)
 {
-    #ifdef MAPC_INCLUDES_CHKP
+#ifdef MAPC_INCLUDES_CHKP
     const char *message = last_active ? _("The checkpoint is in the\n"
                                           "last position as last time.\n\n"
                                           "Click to continue.") :
@@ -636,12 +743,12 @@ static void poser_timer(int id, float dt)
                                 config_get_d(CONFIG_SMOOTH_FIX) ? MIN(1 / 60, dt) :
                                                                   MIN(100.0f, dt));
     geom_step(dt);
-    game_lerp_pose_point_tick(dt);
+    //game_lerp_pose_point_tick(dt);
 }
 
 static void poser_point(int id, int x, int y, int dx, int dy)
 {
-    game_lerp_pose_point(dx, dy);
+    //game_lerp_pose_point(dx, dy);
 }
 
 static int poser_keybd(int c, int d)
@@ -666,12 +773,12 @@ static int poser_buttn(int c, int d)
 
 static int nodemo_enter(struct state *st, struct state *prev)
 {
-    audio_play("snd/warning.ogg", 1.0f);
+    audio_play(AUD_WARNING, 1.0f);
 
     nodemo_warnonlyonce = 0;
     check_nodemo = 0;
 
-    game_lerp_pose_point_reset();
+    //game_lerp_pose_point_reset();
     game_client_fly(1.0f);
 
     int id;
@@ -744,7 +851,7 @@ static int nodemo_buttn(int b, int d)
 
 static int level_signin_required_enter(struct state *st, struct state *prev)
 {
-    audio_play("snd/warning.ogg", 1.0f);
+    audio_play(AUD_WARNING, 1.0f);
 
     int id;
 
@@ -790,6 +897,24 @@ static int level_signin_required_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
+int goto_play_level(void)
+{
+#if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
+    if (level_loading_with_moon_taskloader)
+        return goto_state(&st_level_loading);
+#endif
+
+    if (config_get_d(CONFIG_ACCOUNT_SAVE) > 0 &&
+        curr_mode() != MODE_NONE && !demo_fp)
+        return goto_state(&st_nodemo);
+
+    return goto_state(
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                      campaign_used() ? &st_play_ready :
+#endif
+                      &st_level);
+}
+
 int goto_exit(void)
 {
     if (curr_mode() != MODE_NONE)
@@ -816,9 +941,6 @@ int goto_exit(void)
 #endif
 
     int done = progress_done();
-
-    progress_stop();
-    progress_exit();
 
     struct state *dst = NULL;
 
@@ -907,6 +1029,8 @@ int goto_exit(void)
         dst = curr_times() > 0 && progress_dead() ? &st_over :
                                                     &st_start;
 
+    progress_exit();
+
     if (dst)
     {
         /* Visit the auxilliary screen or exit to level selection. */
@@ -930,9 +1054,24 @@ int goto_exit(void)
 
 /*---------------------------------------------------------------------------*/
 
+struct state st_level_loading = {
+    level_loading_enter,
+    play_shared_leave,
+    level_paint,
+    level_timer,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
 struct state st_level = {
     level_enter,
-    shared_leave,
+    play_shared_leave,
     level_paint,
     level_timer,
     shared_point, /* Can hover on: point */
@@ -947,7 +1086,7 @@ struct state st_level = {
 
 struct state st_poser = {
     NULL,
-    NULL,
+    play_shared_leave,
     poser_paint,
     poser_timer,
     poser_point,
@@ -958,13 +1097,12 @@ struct state st_poser = {
     poser_buttn,
     NULL,
     NULL,
-    NULL,
-    level_shared_exit
+    NULL
 };
 
 struct state st_nodemo = {
     nodemo_enter,
-    shared_leave,
+    play_shared_leave,
     shared_paint,
     nodemo_timer,
     shared_point,
@@ -975,13 +1113,12 @@ struct state st_nodemo = {
     nodemo_buttn,
     NULL,
     NULL,
-    NULL,
-    level_shared_exit
+    NULL
 };
 
 struct state st_level_signin_required = {
     level_signin_required_enter,
-    shared_leave,
+    play_shared_leave,
     shared_paint,
     nodemo_timer,
     shared_point,
@@ -992,6 +1129,5 @@ struct state st_level_signin_required = {
     level_signin_required_buttn,
     NULL,
     NULL,
-    NULL,
-    level_shared_exit
+    NULL
 };

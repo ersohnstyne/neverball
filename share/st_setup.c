@@ -282,6 +282,10 @@ static void game_setup_terms_checkmark_update_all(void)
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * Premium: pennyball.stynegame.de
+ * Legacy downloads: play.neverball.org
+ */
 #define NB_CURRDOMAIN_PREMIUM "play.neverball.org"
 
 static const char *get_updated_url(const char *filename)
@@ -1222,7 +1226,7 @@ static int game_setup_enter(struct state *st, struct state *prev)
     }
 
     common_init(game_setup_action);
-    audio_music_fade_to(.5f, "bgm/setup.ogg");
+    audio_music_fade_to(.5f, "bgm/setup.ogg", 1);
     back_init("back/gui.png");
 
     if (setup_page == 3)
@@ -1257,9 +1261,8 @@ static void game_setup_leave(struct state *st, struct state *next, int id)
 
 static void game_setup_paint(int id, float t)
 {
-    video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+    video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
     back_draw_easy();
-    video_pop_matrix();
 
     gui_paint(id);
 }

@@ -24,33 +24,37 @@
 
 /*---------------------------------------------------------------------------*/
 
+#if _WIN32 && __MINGW32__
+#include <SDL2/SDL.h>
+#else
+#include <SDL.h>
+#endif
+
 #if NB_STEAM_API==1
 #if _MSC_VER || __GNUC__
 
 #include <steam/steam_api.h>
 
 #ifdef __EMSCRIPTEN__
-#error Cannot compile website in Steam games!
+#error Security compilation error: Cannot compile website in Steam games!
 #endif
 
 #ifdef FS_VERSION_1
-#error Steam OS implemented, but NO DLCs detected!
+#error Security compilation error: Steam OS implemented, but NO DLCs detected!
 #endif
 
 #elif _WIN32 && !_MSC_VER
-#error MinGW not supported! Use Visual Studio instead!
+#error Security compilation error: MinGW not supported! Use Visual Studio instead!
+#elif _WIN64 && _MSC_VER < 1940
+#error Security compilation error: Visual Studio 2022 requires MSVC 14.38.x and later version!
+#elif _WIN32 && !_WIN64
+#error Security compilation error: Game source code compilation requires x64 and not Win32!
 #endif
 #endif
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #include <emscripten/html5.h>
-#endif
-
-#if _WIN32 && __MINGW32__
-#include <SDL2/SDL.h>
-#else
-#include <SDL.h>
 #endif
 
 #if _MSC_VER
@@ -351,7 +355,7 @@ static int process_link(const char *link)
 
 static void refresh_packages_done(void *data, void *extra_data)
 {
-    struct state *start_state = data;
+    struct state *start_state = (struct state *) data;
 
     if (!process_link(opt_link))
     {
@@ -701,11 +705,12 @@ static void step(void *data)
     if (running)
     {
         Uint32 now = SDL_GetTicks();
-        Uint32 dt = (now - mainloop->now);
+        Uint32 dt  = (now - mainloop->now);
 
         if (0 < dt && dt < 1000)
         {
             /* Step the game state. */
+
 #define frame_smooth (1.f / 25.f) * 1000.f
             float deltaTime = config_get_d(CONFIG_SMOOTH_FIX) ? MIN(frame_smooth, dt) : MIN(100.f, dt);
 #undef frame_smooth
@@ -726,8 +731,7 @@ static void step(void *data)
             video_render_fill_or_line(1);
             st_paint(0.001f * now, 0);
         }
-        else
-            st_paint(0.001f * now, 1);
+        else st_paint(0.001f * now, 1);
 
         video_swap();
 
@@ -751,9 +755,7 @@ static void step(void *data)
 
 static int main_init(int argc, char *argv[])
 {
-#if _WIN32 && _MSC_VER
     GAMEDBG_SIGFUNC_PREPARE;
-#endif
 
 #if NB_STEAM_API==1    
     if (!SteamAPI_Init())
@@ -781,11 +783,11 @@ static int main_init(int argc, char *argv[])
     {
         if (!datadir_multi)
         {
-            config_paths(p->data);
+            config_paths((const char *) p->data);
             datadir_multi = 1;
         }
         else
-            fs_add_path_with_archives(p->data);
+            fs_add_path_with_archives((const char *) p->data);
     }
 
     log_init("Neverputt " VERSION, "neverputt.log");

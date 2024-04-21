@@ -20,7 +20,7 @@ static struct strbuf substr(const char *str, size_t start, size_t count)
         start = MIN(start, max_start);
         count = MIN(count, max_start - start);
 
-        sb.buf = malloc(max_start + 1);
+        sb.buf = (char *) malloc(max_start + 1);
 
         if (sb.buf)
         {

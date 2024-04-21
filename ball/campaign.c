@@ -205,8 +205,8 @@ int campaign_download(struct fetch_callback callback)
             /* Reuse variable. */
 
             callback.progress = campaign_download_progress;
-            callback.done = campaign_download_done;
-            callback.data = sfi;
+            callback.done     = campaign_download_done;
+            callback.data     = sfi;
 
             return (package_fetch(package_id, callback, PACKAGE_CATEGORY_CAMPAIGN) > 0);
         }
@@ -233,6 +233,9 @@ static char *campaign_name;
  *
  * NOTE: That ball and goal in level map must be containing Gyrocopter.
  * The view direction begins looking down Y-axis.
+ *
+ * Please review the GitHub repository template before downloading it:
+ * https://github.com/ersohnstyne/neverball-switchball-bundle-pack
  */
 static char *campaign_levelpath[30];
 static int   campaign_count = 30;
@@ -252,7 +255,8 @@ static struct campaign_hardcore_mode   hardcores;
 static struct campaign_medal_data      medal_datas;
 static struct campaign_cam_box_trigger cam_box_triggers[MAX_CAM_BOX_TRIGGER];
 
-static int autocam_count = 0; /* How many autocam box triggers have we got? */
+/* How many autocam box triggers have we got? */
+static int autocam_count = 0;
 
 /*
  * PennySchloss dynamically adds build-in electricity like
@@ -590,7 +594,7 @@ int campaign_load(const char *filename)
         free(scores);
         scores = NULL;
 
-        time_trial_leaderboard = concat_string("Campaign/time-trial.txt", NULL);
+        time_trial_leaderboard = strdup("Campaign/time-trial.txt");
 
         campaign_count = 0;
 
@@ -620,28 +624,35 @@ static void campaign_load_levels(void)
     /* Bonus levels won't be shown as of the level sets */
     int i, regular = 1;
 
+    /* Atomic Elbow tried to retreat! */
+    int i_retreat = 0;
+
+    for (i = 0; i < 30; i++)
+        memset(&campaign_lvl_v[i], 0, sizeof (struct level));
+
     for (i = 0; i < 30; ++i)
     {
-        struct level *l = &campaign_lvl_v[i];
+        struct level *l = &campaign_lvl_v[i - i_retreat];
 
-        l->number = i;
-
-        level_load(campaign_levelpath[i], l);
-
-        l->is_locked    = (i > 0);
+        int lvl_was_offered = level_load(campaign_levelpath[i], l);
+        
+        l->number       = i - i_retreat;
+        l->is_locked    = (i - i_retreat) > 0;
         l->is_completed = 0;
 
+        if (lvl_was_offered)
+        {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(l->name, MAXSTR,
+            sprintf_s(l->name, MAXSTR,
 #else
-        sprintf(l->name,
+            sprintf(l->name,
 #endif
-                "%d", regular++);
+                    "%d", regular++);
 
-        if (i > 0)
-            campaign_lvl_v[i - 1].next = l;
-        else if (l->is_locked)
-            l->is_locked = 0;
+            if ((i - i_retreat) > 0)
+                campaign_lvl_v[(i - i_retreat) - 1].next = l;
+        }
+        else i_retreat++;
     }
 }
 

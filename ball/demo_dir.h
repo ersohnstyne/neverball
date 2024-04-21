@@ -20,6 +20,7 @@
 #include "dir.h"
 
 #define DEMO_GET(a, i) ((struct demo *) DIR_ITEM_GET((a), (i))->data)
+#define DEMO_CHECK_GET(fp, a, i) (fp = DEMO_GET(a, i))
 
 Array demo_dir_scan(void);
 void  demo_dir_load(Array, int lo, int hi);

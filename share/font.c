@@ -66,8 +66,13 @@ int font_load(struct font *ft, const char *path, int sizes[FONT_SIZE_MAX])
         }
     }
     else
+    {
         log_errorf("Failure to load font! TTF must be initialized!: %s\n",
                    GAMEDBG_GETSTRERROR_CHOICES_SDL);
+#if _DEBUG
+        SDL_TriggerBreakpoint();
+#endif
+    }
 
     return 0;
 }

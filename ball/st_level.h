@@ -18,8 +18,8 @@
 #include "state.h"
 
 extern struct state st_level;
-extern struct state st_nodemo;
 
+int goto_play_level(void);
 int goto_exit(void);
 
 #endif

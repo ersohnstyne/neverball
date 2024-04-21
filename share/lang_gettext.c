@@ -75,7 +75,7 @@ extern "C" {
 
 #define GT_CODESET "UTF-8"
 
-void gt_init(const char *domain, const char *pref)
+static void gt_init(const char *domain, const char *pref)
 {
     static char default_lang[MAXSTR];
     static int  default_lang_init;

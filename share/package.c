@@ -1203,7 +1203,7 @@ static void package_fetch_progress(void *data, void *data2)
 static void package_fetch_done(void *data, void *extra_data)
 {
     struct package_fetch_info *pfi = data;
-    struct fetch_done *dn = extra_data;
+    struct fetch_done         *dn  = extra_data;
 
     if (pfi)
     {
@@ -1299,8 +1299,8 @@ unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
                     /* Reuse variable to pass our callbacks. */
 
                     callback.progress = package_fetch_progress;
-                    callback.done = package_fetch_done;
-                    callback.data = pfi;
+                    callback.done     = package_fetch_done;
+                    callback.data     = pfi;
 
                     fetch_id = fetch_url(url, pfi->temp_filename, callback);
 

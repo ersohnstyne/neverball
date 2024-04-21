@@ -591,7 +591,7 @@ static int package_enter(struct state *st, struct state *prev)
         total = package_count();
         first = MIN(first, (total - 1) - ((total - 1) % PACKAGE_STEP));
 
-        audio_music_fade_to(0.5f, "bgm/inter.ogg");
+        audio_music_fade_to(0.5f, "bgm/inter.ogg", 1);
 
         package_manual_hotreload = 0;
     }
@@ -637,18 +637,15 @@ static void package_leave(struct state *st, struct state *next, int id)
     }
 }
 
-void package_paint(int id, float st)
+static void package_paint(int id, float st)
 {
-    video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-    {
-        back_draw_easy();
-    }
-    video_pop_matrix();
+    video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+    back_draw_easy();
 
     gui_paint(id);
 }
 
-void package_timer(int id, float dt)
+static void package_timer(int id, float dt)
 {
     if (do_download && time_state() > 0.5f)
         package_start_download(selected);
@@ -714,7 +711,7 @@ enum package_confirm_action
 
 static enum package_confirm_action curr_confirm_action = PACKAGE_CONFIRM_NONE;
 
-int package_manage_action(int tok, int val)
+static int package_manage_action(int tok, int val)
 {
     switch (curr_confirm_action)
     {
@@ -732,7 +729,7 @@ int package_manage_action(int tok, int val)
                     return goto_state(&st_package);
             }
         }
-            break;
+        break;
 
         default:
         {
@@ -757,7 +754,7 @@ int package_manage_action(int tok, int val)
     return 1;
 }
 
-int package_manage_delete_gui(void)
+static int package_manage_delete_gui(void)
 {
     int id, jd;
 
@@ -785,7 +782,7 @@ int package_manage_delete_gui(void)
     return id;
 }
 
-int package_manage_gui(void)
+static int package_manage_gui(void)
 {
     int id, btn_id;
 
@@ -814,7 +811,7 @@ int package_manage_gui(void)
     return id;
 }
 
-int package_manage_enter(struct state *st, struct state *prev)
+static int package_manage_enter(struct state *st, struct state *prev)
 {
     common_init(package_manage_action);
 

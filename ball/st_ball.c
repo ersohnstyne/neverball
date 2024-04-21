@@ -35,6 +35,7 @@
 #include "video.h"
 #include "demo.h"
 #include "progress.h"
+#include "text.h"
 
 #include "game_server.h"
 #include "game_proxy.h"
@@ -152,7 +153,7 @@ static void scan_balls(void)
         {
             const char *path = DIR_ITEM_GET(balls, i)->path;
 
-            if (strncmp(ball_file, path, strlen(path)) == 0)
+            if (strncmp(ball_file, path, text_length(path)) == 0)
             {
                 curr_ball = i;
                 break;
@@ -345,7 +346,6 @@ static void load_ball_demo(void)
 static int ball_gui(void)
 {
     int root_id, id, jd;
-    int i;
 
     if ((root_id = gui_root()))
     {
@@ -373,11 +373,6 @@ static int ball_gui(void)
             }
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (!xbox_show_gui())
-#endif
-                gui_space(id);
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ?
 #if NB_STEAM_API==1
                                           N_("Open Steam Workshop!") :
@@ -391,6 +386,8 @@ static int ball_gui(void)
                 !xbox_show_gui() &&
                 !game_setup_process())
             {
+                gui_space(id);
+
                 int online_id;
                 if (online_id = gui_label(id, _(more_balls_text),
                                               GUI_SML, gui_wht, gui_grn))
@@ -401,9 +398,11 @@ static int ball_gui(void)
                         gui_set_state(online_id, MODEL_ONLINE, 0);
                 }
             }
-
             else if (!xbox_show_gui() && !game_setup_process())
+            {
+                gui_space(id);
                 gui_label(id, _(more_balls_text), GUI_SML, GUI_COLOR_GRY);
+            }
 
             gui_space(id);
 #endif
@@ -497,10 +496,10 @@ static void ball_leave(struct state *st, struct state *next, int id)
         gui_delete(id);
         back_free();
 
+        demo_replay_stop(0);
+
         if (next == &st_null)
             game_client_free(NULL);
-
-        demo_replay_stop(0);
     }
 
     free_balls();
@@ -508,14 +507,12 @@ static void ball_leave(struct state *st, struct state *next, int id)
 
 static void ball_paint(int id, float t)
 {
-    video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+    video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
 
 #if NB_HAVE_PB_BOTH==1
     if (super_environment == 0)
 #endif
         back_draw_easy();
-
-    video_pop_matrix();
 
 #if NB_HAVE_PB_BOTH==1
     game_client_draw(super_environment ? 0 : POSE_BALL, t);
@@ -572,6 +569,7 @@ static int ball_keybd(int c, int d)
                     return ball_action(GUI_BACK, 0);
 
             case KEY_LEVELSHOTS:
+#ifndef __EMSCRIPTEN__
                 video_set_window_size(800 / video.device_scale, 600 / video.device_scale);
                 video_resize         (800 / video.device_scale, 600 / video.device_scale);
 
@@ -595,9 +593,8 @@ static int ball_keybd(int c, int d)
                     set_curr_ball(i);
 
                     video_clear();
-                    video_push_persp((float) initial_fov, 0.1f, FAR_DIST);
+                    video_set_perspective((float) initial_fov, 0.1f, FAR_DIST);
                     back_draw_easy();
-                    video_pop_matrix();
 
                     game_client_draw(POSE_BALL, 0);
                     video_snap(filename);
@@ -614,7 +611,7 @@ static int ball_keybd(int c, int d)
                 video_resize         (initial_w, initial_h);
 
                 set_curr_ball(curr_ball);
-
+#endif
                 break;
         }
     }

@@ -101,7 +101,7 @@ static void (*on_text_input)(int);
             on_text_input(typing);              \
     } while (0)
 
-void text_input_start(void (*cb)(int))
+void text_input_start(void (*cb) (int))
 {
     on_text_input = cb;
     text_input[0] = 0;

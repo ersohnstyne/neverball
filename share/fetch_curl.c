@@ -133,12 +133,10 @@ struct fetch_event
     void *extra_data;
 };
 
-static int lock_hold_mutex = 0;
-
 /*
  * Dispatch a wrapped callback to the thread that calls fetch_handle_event.
  */
-static void (*fetch_dispatch_event)(void *) = NULL;
+static void (*fetch_dispatch_event) (void *) = NULL;
 
 /*
  * Create extra_data for a progress callback.
@@ -150,7 +148,7 @@ static struct fetch_progress *create_extra_progress(double total, double now)
     if (pr)
     {
         pr->total = total;
-        pr->now = now;
+        pr->now   = now;
     }
 
     return pr;
@@ -195,8 +193,17 @@ static void free_fetch_event(struct fetch_event *fe)
 {
     if (fe)
     {
-        free_extra_data(fe->extra_data);
-        fe->extra_data = NULL;
+        if (fe->callback_data)
+        {
+            free_extra_data(fe->callback_data);
+            fe->callback_data = NULL;
+        }
+
+        if (fe->extra_data)
+        {
+            free_extra_data(fe->extra_data);
+            fe->extra_data = NULL;
+        }
 
         free(fe);
         fe = NULL;
@@ -404,7 +411,7 @@ static void fetch_step(void)
 
                     int finished;
 
-                    CURL *handle = message->easy_handle;
+                    CURL *handle  = message->easy_handle;
                     CURLcode code = message->data.result;
 
                     curl_easy_getinfo(handle, CURLINFO_PRIVATE, &fi);
@@ -419,9 +426,7 @@ static void fetch_step(void)
                         finished = 0;
                     }
                     else
-                    {
                         finished = 1;
-                    }
 
                     curl_multi_remove_handle(multi_handle, handle);
 
@@ -465,6 +470,8 @@ static SDL_mutex   *fetch_mutex;
 static SDL_Thread  *fetch_thread;
 
 static SDL_atomic_t fetch_thread_running;
+
+static int lock_hold_mutex = 0;
 
 /*
  * Fetch thread entry point.
@@ -876,6 +883,14 @@ unsigned int fetch_url(const char *url,
                 log_errorf("URL: Failure to add handle! Multi-Handle must be initialized!\n");
                 unlink_and_free_fetch_info(fi);
                 curl_easy_cleanup(handle);
+
+#if _DEBUG
+#if _WIN32 && _MSC_VER
+                __debugbreak();
+#else
+                raise(SIGTRAP);
+#endif
+#endif
             }
         }
         else curl_easy_cleanup(handle);
@@ -953,6 +968,14 @@ unsigned int fetch_gdrive(const char *fileid,
                 log_errorf("Google Drive: Failure to add handle! Multi-Handle must be initialized!\n");
                 unlink_and_free_fetch_info(fi);
                 curl_easy_cleanup(handle);
+
+#if _DEBUG
+#if _WIN32 && _MSC_VER
+                __debugbreak();
+#else
+                raise(SIGTRAP);
+#endif
+#endif
             }
         }
         else curl_easy_cleanup(handle);

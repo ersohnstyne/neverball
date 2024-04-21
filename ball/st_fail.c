@@ -127,12 +127,6 @@ static int balls_bought;
 void detect_replay_filters(int exceeded);
 #endif
 
-static void fail_shared_exit(int id)
-{
-    progress_stop();
-    progress_exit();
-}
-
 static int fail_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
@@ -150,7 +144,6 @@ static int fail_action(int tok, int val)
              || (campaign_hardcore() && campaign_hardcore_norecordings())
 #endif
             );
-            powerup_stop();
             return goto_exit();
 
         /* We're just reverted back for you! */
@@ -165,11 +158,7 @@ static int fail_action(int tok, int val)
             {
                 powerup_stop();
                 return progress_same() ?
-                       goto_state(
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                                  campaign_used() ? &st_play_ready :
-#endif
-                                  &st_level) : 1;
+                       goto_play_level() : 1;
             }
             break;
 
@@ -200,11 +189,7 @@ static int fail_action(int tok, int val)
             if (progress_same())
             {
                 powerup_stop();
-                return goto_state(
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                                  campaign_used() ? &st_play_ready :
-#endif
-                                  &st_level);
+                return goto_play_level();
             }
             break;
 
@@ -236,7 +221,7 @@ static int fail_action(int tok, int val)
     return 1;
 }
 
-void detect_replay_checkpoints(void)
+static void detect_replay_checkpoints(void)
 {
     int save = config_get_d(CONFIG_ACCOUNT_SAVE);
 
@@ -297,7 +282,13 @@ static int fail_gui(void)
 #endif
                             ))
                     {
-                        audio_music_fade_out(0.0f);
+                        if (curr_mode() != MODE_CHALLENGE &&
+                            curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                         && curr_mode() != MODE_HARDCORE
+#endif
+                            )
+                            audio_music_fade_out(0.0f);
                         audio_play(AUD_INTRO_SHATTER, 1.0f);
 
 #ifdef COVID_HIGH_RISK
@@ -326,14 +317,26 @@ static int fail_gui(void)
                                 }
                                 else
                                 {
-                                    audio_music_fade_out(0.0f);
+                                    if (curr_mode() != MODE_CHALLENGE &&
+                                        curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                                     && curr_mode() != MODE_HARDCORE
+#endif
+                                        )
+                                        audio_music_fade_out(0.0f);
                                     gui_multi(jd, FAIL_ERROR_RESPAWN_1,
                                                   GUI_SML, GUI_COLOR_RED);
                                 }
                             }
                             else
                             {
-                                audio_music_fade_out(0.0f);
+                                if (curr_mode() != MODE_CHALLENGE &&
+                                    curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                                 && curr_mode() != MODE_HARDCORE
+#endif
+                                    )
+                                    audio_music_fade_out(0.0f);
                                 gui_multi(jd, FAIL_ERROR_RESPAWN_2,
                                               GUI_SML, GUI_COLOR_RED);
                             }
@@ -362,13 +365,25 @@ static int fail_gui(void)
                                 !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
                                 server_policy_get_d(SERVER_POLICY_EDITION) > -1)
                             {
-                                audio_music_fade_out(0.0f);
+                                if (curr_mode() != MODE_CHALLENGE &&
+                                    curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                                 && curr_mode() != MODE_HARDCORE
+#endif
+                                    )
+                                    audio_music_fade_out(0.0f);
                                 gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP,
                                               GUI_SML, GUI_COLOR_RED);
                             }
                             else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                             {
-                                audio_music_fade_out(0.0f);
+                                if (curr_mode() != MODE_CHALLENGE &&
+                                    curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                                 && curr_mode() != MODE_HARDCORE
+#endif
+                                    )
+                                    audio_music_fade_out(0.0f);
                                 gui_multi(jd, FAIL_UPGRADE_EDITION_2,
                                               GUI_SML, GUI_COLOR_RED);
                             }
@@ -381,7 +396,13 @@ static int fail_gui(void)
                             ))
                     {
                         detect_replay_checkpoints();
-                        audio_music_fade_out(0.0f);
+                        if (curr_mode() != MODE_CHALLENGE &&
+                            curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                         && curr_mode() != MODE_HARDCORE
+#endif
+                            )
+                            audio_music_fade_out(0.0f);
                         audio_play(AUD_INTRO_SHATTER, 1.0f);
                         nosaveid = gui_multi(jd, FAIL_ERROR_REPLAY,
                                                  GUI_SML, GUI_COLOR_RED);
@@ -437,7 +458,13 @@ static int fail_gui(void)
                     }
                     else
                     {
-                        audio_music_fade_out(0.0f);
+                        if (curr_mode() != MODE_CHALLENGE &&
+                            curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                         && curr_mode() != MODE_HARDCORE
+#endif
+                            )
+                            audio_music_fade_out(0.0f);
                         audio_play(AUD_INTRO_SHATTER, 1.0f);
                         nosaveid = gui_multi(jd, _("You can save new replays only once!"), GUI_SML, GUI_COLOR_RED);
                         gui_pulse(nosaveid, 1.2f);
@@ -497,7 +524,13 @@ static int fail_gui(void)
 #else
                     if (progress_dead())
                     {
-                        audio_music_fade_out(0.0f);
+                        if (curr_mode() != MODE_CHALLENGE &&
+                            curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                         && curr_mode() != MODE_HARDCORE
+#endif
+                            )
+                            audio_music_fade_out(0.0f);
                         audio_play(AUD_INTRO_SHATTER, 1.0f);
                         gui_multi(jd, FAIL_TRANSFER_MEMBER_1, GUI_SML, GUI_COLOR_RED);
                     }
@@ -659,7 +692,13 @@ static int fail_gui(void)
 
 static int fail_enter(struct state *st, struct state *prev)
 {
-    audio_music_fade_out(1.0f);
+    if (curr_mode() != MODE_CHALLENGE &&
+        curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+     && curr_mode() != MODE_HARDCORE
+#endif
+        )
+        audio_music_fade_out(2.0f);
     video_clr_grab();
 
     /* Check if we came from a known previous state. */
@@ -807,12 +846,13 @@ static int zen_warning_action(int tok, int val)
             break;
         case ZEN_SWITCH_ACCEPT:
 #ifdef LEVELGROUPS_INCLUDES_ZEN
+            progress_exit();
             mediation_init();
             progress_init(MODE_ZEN);
             if (progress_same())
             {
                 checkpoints_stop();
-                return goto_state(campaign_used() ? &st_play_ready : &st_level);
+                return goto_play_level();
             }
             else goto_state(&st_fail);
 #endif
@@ -824,7 +864,7 @@ static int zen_warning_action(int tok, int val)
 
 static int zen_warning_enter(struct state *st, struct state *prev)
 {
-    audio_play("snd/warning.ogg", 1.0f);
+    audio_play(AUD_WARNING, 1.0f);
 
     int id, jd;
 
@@ -921,7 +961,8 @@ static int ask_more_action(int tok, int val)
 
         case ASK_MORE_ACCEPT:
             video_set_grab(1);
-            audio_music_fade_in(0.5f);
+            if (curr_mode() != MODE_CHALLENGE && curr_mode() != MODE_BOOST_RUSH)
+                audio_music_fade_in(0.5f);
             game_extend_time(val);
             ask_more_target = ASK_MORE_DISABLED;
             return goto_state(&st_play_loop);
@@ -939,12 +980,13 @@ static int ask_more_action(int tok, int val)
                 account_set_d(ACCOUNT_PRODUCT_MEDIATION, 1);
                 account_save();
 
+                progress_exit();
                 mediation_init();
                 progress_init(MODE_ZEN);
                 if (progress_same())
                 {
                     checkpoints_stop();
-                    return goto_state(campaign_used() ? &st_play_ready : &st_level);
+                    return goto_play_level();
                 }
             }
             else if (account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= 15 &&
@@ -960,13 +1002,14 @@ static int ask_more_action(int tok, int val)
                 account_set_d(ACCOUNT_PRODUCT_MEDIATION, 1);
                 account_save();
 
+                progress_exit();
                 mediation_init();
                 progress_init(MODE_ZEN);
                 if (progress_same())
                 {
                     checkpoints_stop();
                     ask_more_target = ASK_MORE_DISABLED;
-                    return goto_state(campaign_used() ? &st_play_ready : &st_level);
+                    return goto_play_level();
                 }
             }
 #endif
@@ -986,7 +1029,7 @@ static int ask_more_action(int tok, int val)
                 if (last_active && status == GAME_FALL)
                     return goto_state(&st_fail);
                 else if (progress_same())
-                    return goto_state(campaign_used() ? &st_play_ready : &st_level);
+                    return goto_play_level();
                 else
                     return goto_state(&st_fail);
             }
@@ -1529,6 +1572,8 @@ static int raise_gems_prepare_gui(void)
                         {
                             char paramattr[MAXSTR];
 
+                            const char *converse_text = i == 0 ? N_("Gems") : N_("Coins");
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                             sprintf_s(paramattr, MAXSTR,
 #else
@@ -1536,8 +1581,7 @@ static int raise_gems_prepare_gui(void)
 #endif
                                     "%d %s " GUI_TRIANGLE_RIGHT " %d %s",
                                     (num_amounts_dst[i]), _(details_names[i]),
-                                    estimated_prices[i], i == 0 ? _("Gems") :
-                                    _("Coins"));
+                                    estimated_prices[i], _(converse_text));
 
                             gui_label(kd, paramattr,
                                           GUI_SML, gui_wht, details_colors[i]);
@@ -1749,7 +1793,7 @@ int ask_more_purchased(struct state *ok_state)
         else
 #endif
         if (progress_same())
-            return goto_state(campaign_used() ? &st_play_ready : &st_level);
+            return goto_play_level();
         else
             return goto_state(&st_fail);
     }
@@ -1773,7 +1817,7 @@ int ask_more_purchased(struct state *ok_state)
 
 struct state st_fail = {
     fail_enter,
-    shared_leave,
+    play_shared_leave,
     fail_paint,      /* Default: shared_paint */
     fail_timer,
     shared_point,
@@ -1784,15 +1828,14 @@ struct state st_fail = {
     fail_buttn,
     NULL,
     NULL,
-    NULL,
-    fail_shared_exit
+    NULL
 };
 
 #if NB_HAVE_PB_BOTH==1
 
 struct state st_zen_warning = {
     zen_warning_enter,
-    shared_leave,
+    play_shared_leave,
     shared_paint,
     shared_timer,
     shared_point,
@@ -1803,13 +1846,12 @@ struct state st_zen_warning = {
     zen_warning_buttn,
     NULL,
     NULL,
-    NULL,
-    fail_shared_exit
+    NULL
 };
 
 struct state st_ask_more = {
     ask_more_enter,
-    shared_leave,
+    play_shared_leave,
     shared_paint,
     shared_timer,
     shared_point,
@@ -1820,13 +1862,12 @@ struct state st_ask_more = {
     ask_more_buttn,
     NULL,
     NULL,
-    NULL,
-    fail_shared_exit
+    NULL
 };
 
 struct state st_raise_gems = {
     raise_gems_enter,
-    shared_leave,
+    play_shared_leave,
     shared_paint,
     raise_gems_timer,
     shared_point,
@@ -1837,8 +1878,7 @@ struct state st_raise_gems = {
     raise_gems_buttn,
     NULL,
     NULL,
-    NULL,
-    fail_shared_exit
+    NULL
 };
 
 #endif

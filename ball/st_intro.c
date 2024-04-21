@@ -18,10 +18,12 @@
 #endif
 
 #if NB_HAVE_PB_BOTH==1
-#include "networking.h"
 #ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
+
+#include "networking.h"
+
 #include "lang_switchball.h"
 #include "account.h"
 #endif
@@ -64,7 +66,7 @@
                goto_state(MAINTENANCE_HOLD ? &st_server_maintenance : \
                           (CHECK_ACCOUNT_ENABLED ? &st_title : \
                                                    &st_intro_accn_disabled)) : \
-               goto_state(networking_connected() == -1 ? \
+               goto_state(networking_connected() == 2 ? \
                           &st_intro_waitinternet : \
                           &st_intro_nointernet); \
     } while (0)
@@ -75,7 +77,7 @@
                goto_state(MAINTENANCE_HOLD ? &st_server_maintenance : \
                           (CHECK_ACCOUNT_ENABLED ? &st_title : \
                                                    &st_intro_accn_disabled)) : \
-               goto_state(networking_connected() == -1 ? \
+               goto_state(networking_connected() == 2 ? \
                           &st_intro_waitinternet : \
                           &st_intro_nointernet); \
     } while (0)
@@ -86,7 +88,7 @@
                                 (MAINTENANCE_HOLD ? &st_server_maintenance : \
                                  (CHECK_ACCOUNT_ENABLED ? &st_title : \
                                                           &st_intro_accn_disabled)) : \
-                                (networking_connected() == -1 ? \
+                                (networking_connected() == 2 ? \
                                  &st_intro_waitinternet : \
                                  &st_intro_nointernet)); \
     } while (0)
@@ -97,7 +99,7 @@
                                 (MAINTENANCE_HOLD ? &st_server_maintenance : \
                                  (CHECK_ACCOUNT_ENABLED ? &st_title : \
                                                           &st_intro_accn_disabled)) : \
-                                (networking_connected() == -1 ? \
+                                (networking_connected() == 2 ? \
                                  &st_intro_waitinternet : \
                                  &st_intro_nointernet)); \
     } while (0)
@@ -108,7 +110,7 @@
         return goto_end_support(networking_connected() == 1 ? \
                                 (MAINTENANCE_HOLD ? &st_server_maintenance : \
                                  &st_title) : \
-                                (networking_connected() == -1 ? \
+                                (networking_connected() == 2 ? \
                                  &st_intro_waitinternet : \
                                  &st_intro_nointernet)); \
     } while (0)
@@ -118,7 +120,7 @@
                goto_end_support(networking_connected() == 1 ? \
                                 (MAINTENANCE_HOLD ? &st_server_maintenance : \
                                  &st_title) : \
-                                (networking_connected() == -1 ? \
+                                (networking_connected() == 2 ? \
                                  &st_intro_waitinternet : \
                                  &st_intro_nointernet)); \
     } while (0)
@@ -148,8 +150,7 @@ static int intro_init = 0;
 static int intro_done;
 
 #ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
-const char intro_tip[][256] =
-{
+const char intro_tip[][256] = {
     TIP_1,
     TIP_2,
     TIP_3,
@@ -160,8 +161,7 @@ const char intro_tip[][256] =
     TIP_8
 };
 
-const char intro_tip_xbox[][256] =
-{
+const char intro_tip_xbox[][256] = {
     TIP_1,
     TIP_2,
     TIP_3_XBOX,
@@ -170,8 +170,7 @@ const char intro_tip_xbox[][256] =
     TIP_6_XBOX
 };
 
-const char intro_tip_ps4[][256] =
-{
+const char intro_tip_ps4[][256] = {
     TIP_1,
     TIP_2,
     TIP_3_PS4,
@@ -180,8 +179,7 @@ const char intro_tip_ps4[][256] =
     TIP_6_PS4
 };
 
-const char intro_covid_highrisk[][256] =
-{
+const char intro_covid_highrisk[][256] = {
     N_("Stash your game transfer\nto reduce risks!"),
     N_("Stash your replays with exceeded\nlevel status to reduce risks!"),
     N_("Don't use challenge game mode\nto reduce risks!"),
@@ -700,9 +698,8 @@ static int intro_restore_gui(void)
         char        restore_attr[MAXSTR];
         char        restore_singles[MAXSTR],
                     restore_doubles[MAXSTR];
-        const char *gfx_target_name              = "";
-        const char *gfx_target_values            = "";
-        char        gfx_target_values_v2[MAXSTR];
+        const char *gfx_target_name   = "",
+                   *gfx_target_values = "";
         
         int restore_statement = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
         int restore_val_1     = config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1);
@@ -718,7 +715,7 @@ static int intro_restore_gui(void)
                 assert(restore_val_1 == 0 || restore_val_1 == 1);
 #endif
                 gfx_target_name   = _("Fullscreen");
-                gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
+                gfx_target_values = (restore_val_1 == 1 ? N_("On") : N_("Off"));
                 break;
 
             case RESTORE_RESOLUTION:
@@ -738,7 +735,7 @@ static int intro_restore_gui(void)
                 assert(restore_val_1 > 0);
 #endif
                 gfx_target_name   = _("V-Sync");
-                gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
+                gfx_target_values = (restore_val_1 == 1 ? N_("On") : N_("Off"));
                 break;
 
             case RESTORE_MULTISAMPLE:
@@ -753,7 +750,7 @@ static int intro_restore_gui(void)
 #endif
                         "%dx", restore_val_1);
 
-                gfx_target_values = (restore_val_1 == 0 ? _(restore_attr) : _("Off"));
+                gfx_target_values = (restore_val_1 == 0 ? restore_attr : N_("Off"));
                 break;
 
             case RESTORE_REFLECTION:
@@ -761,7 +758,7 @@ static int intro_restore_gui(void)
                 assert(restore_val_1 == 0 || restore_val_1 == 1);
 #endif
                 gfx_target_name   = _("Reflection");
-                gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
+                gfx_target_values = (restore_val_1 == 1 ? N_("On") : N_("Off"));
                 break;
 
             case RESTORE_HMD:
@@ -769,7 +766,7 @@ static int intro_restore_gui(void)
                 assert(restore_val_1 == 0 || restore_val_1 == 1);
 #endif
                 gfx_target_name   = _("HMD");
-                gfx_target_values = (restore_val_1 == 1 ? _("On") : _("Off"));
+                gfx_target_values = (restore_val_1 == 1 ? N_("On") : N_("Off"));
                 break;
 
             case RESTORE_TEXTURES:
@@ -777,7 +774,7 @@ static int intro_restore_gui(void)
                 assert(restore_val_1 == 1 || restore_val_1 == 2);
 #endif
                 gfx_target_name   = _("Textures");
-                gfx_target_values = (restore_val_1 == 1 ? _("High") : _("Low"));
+                gfx_target_values = (restore_val_1 == 1 ? N_("High") : N_("Low"));
                 break;
 
 #ifndef NDEBUG
@@ -812,7 +809,7 @@ static int intro_restore_gui(void)
                     _("The game, that you've set up some graphics\n"
                       "has a crash. Would you restore them now?\n"
                       "%s: %s"),
-                    gfx_target_name, gfx_target_values);
+                    gfx_target_name, _(gfx_target_values));
             
             gui_multi(id, restore_singles, GUI_SML, GUI_COLOR_WHT);
         }
@@ -1014,7 +1011,7 @@ static int server_maintenance_action(int tok, int val)
 
 static int server_maintenance_enter(struct state *st, struct state *prev)
 {
-    audio_music_fade_to(0.5f, "bgm/maintenance.ogg");
+    audio_music_fade_to(0.5f, "bgm/maintenance.ogg", 1);
     int id;
 
     if ((id = gui_vstack(0)))
@@ -1101,6 +1098,9 @@ static int screensaver_enter(struct state *st, struct state *prev)
 
 static void screensaver_leave(struct state *st, struct state *next, int id)
 {
+    if (next == &st_null)
+        game_client_free(NULL);
+
     gui_delete(id);
 }
 

@@ -276,6 +276,10 @@ void account_load(void)
     if (!account_is_init)
     {
         log_errorf("Failure to load account file! Account must be initialized!\n");
+#if _DEBUG
+        SDL_TriggerBreakpoint();
+#endif
+
         exit(1);
         return;
     }
@@ -364,9 +368,12 @@ void account_save(void)
 #endif
             "Accounts/account-%s.txt", config_get_s(CONFIG_PLAYER));
 
-    if (!account_is_init)
+    if (dirty && !account_is_init)
     {
         log_errorf("Failure to save account file! Account must be initialized!\n");
+#if _DEBUG
+        SDL_TriggerBreakpoint();
+#endif
 
         if (fs_exists(paths))
             fs_remove(paths);

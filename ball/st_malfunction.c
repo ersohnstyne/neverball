@@ -115,8 +115,7 @@ static int malfunction_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            progress_stat(GAME_NONE);
-            progress_stop();
+            progress_exit();
             game_fade(+4.0f);
             goto_state_full(&st_null, 0, 0, 0);
             return 0;

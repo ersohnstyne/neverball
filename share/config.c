@@ -671,6 +671,10 @@ void config_load(void)
     if (!config_is_init)
     {
         log_errorf("Failure to load configuration file! Configurations must be initialized!\n");
+#if _DEBUG
+        SDL_TriggerBreakpoint();
+#endif
+
         exit(1);
         return;
     }
@@ -767,9 +771,12 @@ void config_save(void)
 
     const char *filename = USER_CONFIG_FILE;
 
-    if (!config_is_init)
+    if (dirty && !config_is_init)
     {
         log_errorf("Failure to save configuration file! Configurations must be initialized!\n");
+#if _DEBUG
+        SDL_TriggerBreakpoint();
+#endif
 
         if (fs_exists(filename))
             fs_remove(filename);

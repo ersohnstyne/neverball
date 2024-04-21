@@ -13,7 +13,7 @@
  */
 
 #if ENABLE_RFD==1 && _MSC_VER
-#pragma message("Neverball - Recipes for Disaster")
+#pragma message(__FILE__ ": Neverball - Recipes for Disaster")
 #endif
 
 #if _WIN32 && __MINGW32__
@@ -159,6 +159,10 @@ void rfd_load(void)
     if (!rfd_is_init)
     {
         log_errorf("Failure to load RFD file! RFD configs must be initialized!\n");
+#if _DEBUG
+        SDL_TriggerBreakpoint();
+#endif
+
         exit(1);
         return;
     }

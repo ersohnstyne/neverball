@@ -214,8 +214,7 @@ static void beam_style_leave(struct state *st, struct state *next, int id)
 
 static void beam_style_paint(int id, float t)
 {
-    video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-    video_pop_matrix();
+    video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
 
     game_client_draw(0, t);
 

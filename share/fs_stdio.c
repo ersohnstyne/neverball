@@ -20,8 +20,6 @@
 #include <unistd.h>
 #endif
 
-#include "zip.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,6 +31,7 @@
 #include "list.h"
 #include "common.h"
 #include "log.h"
+#include "zip.h"
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC

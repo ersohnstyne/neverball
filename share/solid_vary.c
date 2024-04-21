@@ -285,16 +285,14 @@ int sol_lerp_cmd(struct s_lerp *fp, struct cmd_state *cs, const union cmd *cmd)
 
         case CMD_MOVE_TIME:
             if ((mi = cmd->movetime.mi) >= 0 && mi < fp->mc)
-            {
                 fp->mv[mi][CURR].t = cmd->movetime.t;
-            }
             break;
 
         case CMD_BODY_PATH:
             /* Backward compatibility: update linear mover only. */
 
             if ((idx = cmd->bodypath.bi) >= 0 && idx < fp->vary->bc &&
-            (mi = fp->vary->bv[idx].mi) >= 0)
+                (mi = fp->vary->bv[idx].mi) >= 0)
             {
                 /* Be EXTRA paranoid. */
 
@@ -308,9 +306,7 @@ int sol_lerp_cmd(struct s_lerp *fp, struct cmd_state *cs, const union cmd *cmd)
 
             if ((idx = cmd->bodytime.bi) >= 0 && idx < fp->vary->bc &&
                 (mi = fp->vary->bv[idx].mi) >= 0)
-            {
                 fp->mv[mi][CURR].t = cmd->bodytime.t;
-            }
             break;
 
         case CMD_BALL_RADIUS:

@@ -83,9 +83,8 @@ void video_calc_view(float *, const float *,
                               const float *,
                               const float *);
 
-void video_push_persp(float, float, float);
-void video_push_ortho(void);
-void video_pop_matrix(void);
+void video_set_perspective(float, float, float);
+void video_set_ortho(void);
 void video_clear(void);
 
 /*---------------------------------------------------------------------------*/

@@ -82,7 +82,7 @@ struct part_lerp
 
 static struct part_lerp part_lerp_coin[PART_MAX_COIN];
 
-void part_lerp_copy(void)
+static void part_lerp_copy(void)
 {
     int i;
 
@@ -91,11 +91,7 @@ void part_lerp_copy(void)
               part_lerp_coin[i].p[CURR]);
 }
 
-void part_lerp_init(void)
-{
-}
-
-void part_lerp_burst(int i)
+static void part_lerp_burst(int i)
 {
     if (coin_draw[i].t >= 1.0f)
     {
@@ -133,8 +129,6 @@ void part_reset(void)
 
     for (i = 0; i < PART_MAX_COIN; i++)
         coin_draw[i].t = 0.0f;
-
-    part_lerp_init();
 }
 
 void part_init(void)
@@ -148,7 +142,7 @@ void part_init(void)
     glGenBuffers_(1,              &coin_vbo);
     glBindBuffer_(GL_ARRAY_BUFFER, coin_vbo);
     glBufferData_(GL_ARRAY_BUFFER, sizeof (coin_draw),
-                                          coin_draw, GL_DYNAMIC_DRAW);
+                                           coin_draw, GL_DYNAMIC_DRAW);
     glBindBuffer_(GL_ARRAY_BUFFER, 0);
 #endif
 

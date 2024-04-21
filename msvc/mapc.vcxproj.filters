@@ -54,7 +54,7 @@
     <ClCompile Include="..\share\base_image.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\zip.c">
+    <ClCompile Include="..\share\miniz.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -86,8 +86,13 @@
 
 /* For Handsets when in aircraft */
 
+#define TITLE_PLATFORM_AIRFRANCE _("Air France")
+#define TITLE_PLATFORM_ANA       _("ANA")
+#define TITLE_PLATFORM_ASIANA    _("Asiana Airlines")
+#define TITLE_PLATFORM_CATHAY    _("Cathay Pacific")
 #define TITLE_PLATFORM_EMIRATES  _("Emirates")
 #define TITLE_PLATFORM_ETIHAD    _("Etihad")
+#define TITLE_PLATFORM_SAUDIA    _("Saudia Airlines")
 #define TITLE_PLATFORM_THAI      _("Thai")
 
 /* For Amazon Games */

@@ -177,15 +177,21 @@
 
 /* Item types. */
 
-#define ITEM_NONE       0
-#define ITEM_COIN       1
-#define ITEM_GROW       2
-#define ITEM_SHRINK     3
-#define ITEM_CLOCK      4
+#define ITEM_NONE   0
+#define ITEM_COIN   1
+#define ITEM_GROW   2
+#define ITEM_SHRINK 3
+#define ITEM_CLOCK  4
 
-#define ITEM_GRAV_UP    5
-#define ITEM_GRAV_DN    6
-#define ITEM_GRAV_INV   7
+#if NB_HAVE_PB_BOTH==1
+
+/* 2.2 Item types. */
+
+#define ITEM_2_2_0_TIMETRAVEL 5
+#define ITEM_2_2_0_SUPERSPEED 6
+#define ITEM_2_2_0_POWBLOCK   7
+
+#endif
 
 /* Path flags. */
 

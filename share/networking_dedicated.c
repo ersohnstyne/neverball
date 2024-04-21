@@ -12,8 +12,11 @@
  * General Public License for more details.
  */
 
-#include <NB_Network_Client.h>
+#if NB_HAVE_PB_BOTH==1
 #include <PB_Network_Client.h>
+#else
+#include <NB_Network_Client.h>
+#endif
 
 #include "networking.h"
 #include "config.h"
@@ -28,7 +31,7 @@
 #error Security compilation error: Use the combined library, \
        that you've compiled from Microsoft Visual Studio!
 #else
-#pragma message("Neverball Dedicated Network for Microsoft Visual Studio")
+#pragma message(__FILE__ ": Neverball Dedicated Network for Microsoft Visual Studio")
 #endif
 #pragma comment(lib, "neverball_net_client.lib")
 
@@ -36,6 +39,12 @@
 #else
 #error Security compilation error: Dedicated networks requires Windows x86 or x64!
 #endif
+#endif
+
+#if NB_HAVE_PB_BOTH==1
+#define NETCLIENT_TNAME "PBNetClient"
+#else
+#define NETCLIENT_TNAME "NBNetClient"
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -155,12 +164,12 @@ struct networking_event
 
 /* Neverball netfunc system */
 
-static void (*networking_dispatch_event)(void *) = NULL;
-static void (*networking_error_dispatch_event)(int) = NULL;
+static void (*networking_dispatch_event)       (void *) = NULL;
+static void (*networking_error_dispatch_event) (int)    = NULL;
 
 /* End Neverball netfunc system */
 
-static SDL_mutex *networking_mutex;
+static SDL_mutex  *networking_mutex;
 static SDL_Thread *networking_thread;
 
 static SDL_atomic_t networking_thread_running;
@@ -205,21 +214,17 @@ static int authenticate_networking()
     char net_ipv4[MAXSTR];
     SAFECPY(net_ipv4, CLIENT_IPADDR);
 
-    if (PBNetwork_Connect(net_ipv4, net_port) == 1)
+    if (PBNetwork_Connect(net_ipv4, net_port))
     {
-        Sleep(1000);
-
         if (text_length(config_get_s(CONFIG_PLAYER)) > 2)
             PBNetwork_Login(config_get_s(CONFIG_PLAYER), 0);
 
         connected = 1;
     }
-
-    if (PBNetwork_IsConnected() == 0)
+    else
     {
         log_errorf("Can't connect to server: %s:%d",
-                   CLIENT_IPADDR,
-                   CLIENT_PORT);
+                   CLIENT_IPADDR, CLIENT_PORT);
 
         PBNetwork_Quit();
         connected = 0;
@@ -230,7 +235,9 @@ static int authenticate_networking()
 
 static int networking_thread_func(void *data)
 {
-    SDL_AtomicSet(&networking_thread_running, authenticate_networking());
+    log_printf("Starting networking thread\n");
+
+    SDL_AtomicSet(&networking_thread_running, 1);
 
     Uint32 last_time = SDL_GetTicks();
     Uint32 start_time = last_time;
@@ -254,7 +261,7 @@ static int networking_thread_func(void *data)
 
             SDL_AtomicSet(&networking_thread_running, 0);
         }
-        else
+        else if (connected)
         {
             if ((curr_time - last_time) > 0)
             {
@@ -274,6 +281,8 @@ static int networking_thread_func(void *data)
 
     PBNetwork_Quit();
 
+    log_printf("Stopping networking thread\n");
+
     return 0;
 }
 
@@ -285,13 +294,13 @@ void networking_init_dedicated_event(
     if (netlib_init == 1)
         networking_quit();
 
-    networking_dispatch_event = dispatch_event;
+    networking_dispatch_event       = dispatch_event;
     networking_error_dispatch_event = error_dispatch_event;
 
     SDL_AtomicSet(&networking_thread_running, 1);
     networking_mutex = SDL_CreateMutex();
     networking_thread = SDL_CreateThread(networking_thread_func,
-                                         "networking", NULL);
+                                         NETCLIENT_TNAME, NULL);
 }
 
 int networking_reinit_dedicated_event(void)
@@ -303,7 +312,7 @@ int networking_reinit_dedicated_event(void)
     SDL_AtomicSet(&networking_thread_running, 1);
     networking_mutex = SDL_CreateMutex();
     networking_thread = SDL_CreateThread(networking_thread_func,
-                                         "networking", NULL);
+                                         NETCLIENT_TNAME, NULL);
 
     authenticate_networking();
 
@@ -323,14 +332,12 @@ int networking_init(int support_online)
     server_policy_init();
     connected = -1;
 
-    authenticate_networking();
-
-    networking_busy = 0;
-
-    int tmp_res = PBNetwork_IsConnected();
+    int tmp_res = authenticate_networking();
 
     if (tmp_res)
         netlib_init = 1;
+
+    networking_busy = 0;
 
     return tmp_res;
 }
@@ -344,20 +351,20 @@ void networking_quit(void)
     networking_busy = 1;
 
     PBNetwork_Quit();
+
     SDL_AtomicSet(&networking_thread_running, 0);
 
-    if (networking_thread)
-        SDL_WaitThread(networking_thread, NULL);
+    SDL_WaitThread(networking_thread, NULL);
     networking_thread = NULL;
-        
-    if (networking_mutex)
-        SDL_DestroyMutex(networking_mutex);
+
+    SDL_DestroyMutex(networking_mutex);
     networking_mutex = NULL;
+
+    connected = 0;
 
     networking_busy = 0;
 
     netlib_init = 0;
-    connected = 0;
 }
 
 int networking_connected(void)

@@ -92,18 +92,15 @@ static SDL_AudioSpec spec;
 /* HACK: Have fun using AudioDevice for MSVC++ */
 static SDL_AudioSpec device_spec;
 
-static struct voice *music     = NULL;
-static struct voice *queue     = NULL;
-static struct voice *voices    = NULL;
-static struct voice *narrators = NULL;
-static short        *buffer    = NULL;
+static struct voice *voices_music     = NULL;
+static struct voice *voices_queue     = NULL;
+static struct voice *voices_sfx       = NULL;
+static struct voice *voices_narrators = NULL;
+static short        *buffer           = NULL;
 
 static ov_callbacks callbacks = {
     fs_ov_read, fs_ov_seek, fs_ov_close, fs_ov_tell
 };
-
-static int   has_multiple_music;
-static char *next_music_filename;
 
 /*---------------------------------------------------------------------------*/
 
@@ -190,42 +187,42 @@ static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
 
 static struct voice *voice_init(const char *filename, float a)
 {
-    struct voice *V;
-    fs_file      fp;
+    struct voice *VP = NULL;
+    fs_file       fp;
 
     /* Allocate and initialize a new voice structure. */
 
-    if ((V = (struct voice *) calloc(1, sizeof (struct voice))))
+    if ((VP = (struct voice *) calloc(1, sizeof (struct voice))))
     {
         /* Note the name. */
 
-        V->name = strdup(filename);
+        VP->name = strdup(filename);
 
         /* Attempt to open the named Ogg stream. */
 
         if ((fp = fs_open_read(filename)))
         {
-            if (ov_open_callbacks(fp, &V->vf, NULL, 0, callbacks) == 0)
+            if (ov_open_callbacks(fp, &VP->vf, NULL, 0, callbacks) == 0)
             {
-                vorbis_info *info = ov_info(&V->vf, -1);
+                vorbis_info *info = ov_info(&VP->vf, -1);
 
                 /* On success, configure the voice. */
 
-                V->amp  = a;
-                V->damp = 0;
-                V->chan = info->channels;
-                V->play = 1;
-                V->loop = 0;
+                VP->amp  = a;
+                VP->damp = 0;
+                VP->chan = info->channels;
+                VP->play = 1;
+                VP->loop = 0;
 
-                if (V->amp > 1.0f) V->amp = 1.0;
-                if (V->amp < 0.0f) V->amp = 0.0;
+                if (VP->amp > 1.0f) VP->amp = 1.0;
+                if (VP->amp < 0.0f) VP->amp = 0.0;
 
                 /* The file will be closed when the Ogg is cleared. */
             }
             else fs_close(fp);
         }
     }
-    return V;
+    return VP;
 }
 
 static void voice_free(struct voice *V)
@@ -233,7 +230,7 @@ static void voice_free(struct voice *V)
     ov_clear(&V->vf);
 
     free(V->name); V->name = NULL;
-    free(V);
+    free(V); V = NULL;
 }
 
 static void voice_quit(struct voice* V)
@@ -251,9 +248,9 @@ static void voice_quit(struct voice* V)
 
 static void audio_step(void *data, Uint8 *stream, int length)
 {
-    struct voice *V = voices;
-    struct voice *N = narrators;
-    struct voice *P = NULL;
+    struct voice *VSFX = voices_sfx;
+    struct voice *VNFX = voices_narrators;
+    struct voice *VP   = NULL;
 
     /* Zero the output buffer. */
 
@@ -261,73 +258,87 @@ static void audio_step(void *data, Uint8 *stream, int length)
 
     /* Mix the background music. */
 
-    if (music)
+    if (voices_music)
     {
-        voice_step(music, music_vol, stream, length);
+        if (voice_step(voices_music, music_vol, stream, length))
+        {
+            voice_free(voices_music);
+
+            if (voices_queue)
+            {
+                voices_music = voices_queue;
+                voices_queue = NULL;
+            }
+            else voices_music = NULL;
+        }
 
         /* If the track has faded out, move to a queued track. */
 
-        if (music && music->amp <= 0.0f && music->damp < 0.0f && queue)
+        if (voices_music && voices_music->amp <= 0.0f && voices_music->damp < 0.0f && voices_queue)
         {
-            voice_free(music);
-            music = queue;
-            queue = NULL;
+            voice_free(voices_music);
+
+            if (voices_queue)
+            {
+                voices_music = voices_queue;
+                voices_queue = NULL;
+            }
         }
     }
 
-    /* Iterate over all active voices. */
+    /* Iterate over all active game sound voices. */
 
-    while (V)
+    while (VSFX)
     {
-        /* Mix this voice. */
+        /* Mix this sound voice. */
 
-        if (V->play && voice_step(V, sound_vol, stream, length))
+        if (VSFX->play && voice_step(VSFX, sound_vol, stream, length))
         {
             /* Delete a finished voice... */
 
-            struct voice *T1 = V;
+            struct voice *VT = VSFX;
 
-            if (P)
-                V = P->next = V->next;
+            if (VP)
+                VSFX = VP->next   = VSFX->next;
             else
-                V = voices  = V->next;
+                VSFX = voices_sfx = VSFX->next;
 
-            voice_free(T1);
+            voice_free(VT);
         }
         else
         {
             /* ... or continue to the next. */
 
-            P = V;
-            V = V->next;
+            VP   = VSFX;
+            VSFX = VSFX->next;
         }
     }
 
-    /* Iterate over narrator active voices. */
+    /* Iterate over all active narrator voices. */
 
-    while (N)
+    while (VNFX)
     {
-        /* Mix this voice. */
+        /* Mix this narrator voice. */
 
-        if (N->play && voice_step(N, narrator_vol, stream, length))
+        if (VNFX->play && voice_step(VNFX, narrator_vol, stream, length))
         {
             /* Delete a finished voice... */
 
-            struct voice *T2 = N;
+            struct voice *VT = VNFX;
 
-            if (P)
-                N = P->next   = N->next;
+            if (VP)
+                VNFX = VP->next         = VNFX->next;
             else
-                N = narrators = N->next;
+                VNFX = voices_narrators = VNFX->next;
 
-            //voice_free(T2);
+            voice_free(VT);
         }
         else
         {
             /* ... or continue to the next. */
 
-            P = N;
-            N = N->next;
+            VP   = VNFX;
+            VNFX = VNFX->next;
         }
     }
 }
@@ -382,8 +393,6 @@ void audio_init(void)
         {
             audio_state = 1;
 
-            audio_paused = 0;
-
             SDL_PauseAudioDevice(audio_device_id, 0);
         }
         else
@@ -421,16 +430,16 @@ void audio_free(void)
 
     audio_music_stop();
 
-    if (voices)
+    if (voices_sfx)
     {
-        voice_quit(voices);
-        voices = NULL;
+        voice_quit(voices_sfx);
+        voices_sfx = NULL;
     }
 
-    if (narrators)
+    if (voices_narrators)
     {
-        voice_quit(narrators);
-        narrators = NULL;
+        voice_quit(voices_narrators);
+        voices_narrators = NULL;
     }
 
     if (buffer)
@@ -463,26 +472,27 @@ void audio_resume(void)
 void audio_play(const char *filename, float a)
 {
     /* Can't play game sound, master volume was set to 0. */
+
     if (config_get_d(CONFIG_MASTER_VOLUME) == 0) return;
 
     if (audio_state && !audio_paused && config_get_d(CONFIG_SOUND_VOLUME))
     {
         while (lock_hold) {}
-        struct voice *V;
+        struct voice *VSFX;
 
         /* If we're already playing this sound, preempt the running copy. */
 
         lock_hold = 1;
         {
-            for (V = voices; V; V = V->next)
-                if (strcmp(V->name, filename) == 0)
+            for (VSFX = voices_sfx; VSFX; VSFX = VSFX->next)
+                if (strcmp(VSFX->name, filename) == 0)
                 {
-                    ov_raw_seek(&V->vf, 0);
+                    ov_raw_seek(&VSFX->vf, 0);
 
-                    V->amp = a;
+                    VSFX->amp = a;
 
-                    if (V->amp > 1.0f) V->amp = 1.0;
-                    if (V->amp < 0.0f) V->amp = 0.0;
+                    if (VSFX->amp > 1.0f) VSFX->amp = 1.0;
+                    if (VSFX->amp < 0.0f) VSFX->amp = 0.0;
 
                     lock_hold = 0;
                     return;
@@ -492,45 +502,51 @@ void audio_play(const char *filename, float a)
 
         /* Create a new voice structure. */
 
-        V = voice_init(filename, a);
+        VSFX = voice_init(filename, a);
 
         /* Add it to the list of sounding voices. */
 
         lock_hold = 1;
         {
-            V->next = voices;
-            voices  = V;
+            VSFX->next = voices_sfx;
+            voices_sfx = VSFX;
         }
         lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
+    {
         log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n",
                    filename);
+#if _DEBUG
+        SDL_TriggerBreakpoint();
+#endif
+    }
 }
 
 void audio_narrator_play(const char *filename)
 {
     /* Can't play narrator sound, master volume was set to 0. */
+
     if (config_get_d(CONFIG_MASTER_VOLUME) == 0) return;
 
     if (audio_state && !audio_paused && config_get_d(CONFIG_NARRATOR_VOLUME))
     {
         while (lock_hold) {}
-        struct voice *V;
+        struct voice *VNFX;
 
         /* If we're already playing this sound, preempt the running copy. */
 
         lock_hold = 1;
         {
-            for (V = narrators; V; V = V->next)
-                if (strcmp(V->name, filename) == 0)
+            for (VNFX = voices_narrators; VNFX; VNFX = VNFX->next)
+                if (strcmp(VNFX->name, filename) == 0)
                 {
-                    ov_raw_seek(&V->vf, 0);
+                    ov_raw_seek(&VNFX->vf, 0);
 
-                    V->amp = 1.0f;
+                    VNFX->amp = 1.0f;
 
-                    if (V->amp > 1.0f) V->amp = 1.0;
-                    if (V->amp < 0.0f) V->amp = 0.0;
+                    if (VNFX->amp > 1.0f) VNFX->amp = 1.0;
+                    if (VNFX->amp < 0.0f) VNFX->amp = 0.0;
 
                     lock_hold = 0;
                     return;
@@ -540,25 +556,30 @@ void audio_narrator_play(const char *filename)
 
         /* Create a new voice structure. */
 
-        V = voice_init(filename, 1.0f);
+        VNFX = voice_init(filename, 1.0f);
 
         /* Add it to the list of sounding voices. */
 
         lock_hold = 1;
         {
-            V->next = narrators;
-            narrators = V;
+            VNFX->next = voices_narrators;
+            voices_narrators = VNFX;
         }
         lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
+    {
         log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n",
                    filename);
+#if _DEBUG
+        SDL_TriggerBreakpoint();
+#endif
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void audio_music_play(const char *filename)
+void audio_music_play(const char *filename, int loop)
 {
     if (audio_state && !audio_paused)
     {
@@ -567,17 +588,22 @@ void audio_music_play(const char *filename)
 
         lock_hold = 1;
         {
-            if ((music = voice_init(filename, 0.0f)))
-                music->loop = 1;
+            if ((voices_music = voice_init(filename, 0.0f)))
+                voices_music->loop = loop;
         }
         lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
+    {
         log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n",
                    filename);
+#if _DEBUG
+        SDL_TriggerBreakpoint();
+#endif
+    }
 }
 
-void audio_music_queue(const char *filename, float t)
+void audio_music_queue(const char *filename, float t, int loop)
 {
     float clampedTime = CLAMP(0.001f, t, 1.0f);
 
@@ -586,19 +612,24 @@ void audio_music_queue(const char *filename, float t)
         while (lock_hold) {}
         lock_hold = 1;
         {
-            if ((queue = voice_init(filename, 0.0f)))
+            if ((voices_queue = voice_init(filename, 0.0f)))
             {
-                queue->loop = 1;
+                voices_queue->loop = loop;
 
                 if (clampedTime > 0.0f)
-                    queue->damp = +1.0f / (AUDIO_RATE * clampedTime);
+                    voices_queue->damp = +1.0f / (AUDIO_RATE * clampedTime);
             }
         }
         lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
+    {
         log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n",
                    filename);
+#if _DEBUG
+        SDL_TriggerBreakpoint();
+#endif
+    }
 }
 
 void audio_music_stop(void)
@@ -607,11 +638,10 @@ void audio_music_stop(void)
     {
         while (lock_hold) {}
         lock_hold = 1;
+        if (voices_music)
         {
-            if (music)
-                voice_free(music);
-
-            music = NULL;
+            voice_free(voices_music);
+            voices_music = NULL;
         }
         lock_hold = 0;
     }
@@ -621,43 +651,43 @@ void audio_music_stop(void)
 
 void audio_music_fade_out(float t)
 {
-    float clampedTime = CLAMP(0.001f, t, 1.0f);
+    float clamped_time = CLAMP(0.001f, t, 1.0f);
 
     while (lock_hold) {}
     lock_hold = 1;
     {
-        if (music) music->damp = -1.0f / (AUDIO_RATE * clampedTime);
+        if (voices_music) voices_music->damp = -1.0f / (AUDIO_RATE * clamped_time);
     }
     lock_hold = 0;
 }
 
 void audio_music_fade_in(float t)
 {
-    float clampedTime = CLAMP(0.001f, t, 1.0f);
+    float clamped_time = CLAMP(0.001f, t, 1.0f);
 
     while (lock_hold) {}
     lock_hold = 1;
     {
-        if (music) music->damp = +1.0f / (AUDIO_RATE * clampedTime);
+        if (voices_music) voices_music->damp = +1.0f / (AUDIO_RATE * clamped_time);
     }
     lock_hold = 0;
 }
 
-void audio_music_fade_to(float t, const char *filename)
+void audio_music_fade_to(float t, const char *filename, int loop)
 {
-    float clampedTime = CLAMP(0.001f, t, 1.0f);
+    float clamped_time = CLAMP(0.001f, t, 1.0f);
 
-    if (music)
+    if (voices_music)
     {
-        if (!music->name)
+        if (!voices_music->name)
         {
             audio_music_stop();
-            audio_music_play(filename);
-            audio_music_fade_in(clampedTime);
+            audio_music_play(filename, loop);
+            audio_music_fade_in(clamped_time);
             return;
         }
 
-        if (strcmp(filename, music->name) == 0)
+        if (strcmp(filename, voices_music->name) == 0)
         {
             /*
              * We're fading to the current track.  Chances are,
@@ -665,37 +695,39 @@ void audio_music_fade_to(float t, const char *filename)
              * hear it anymore.
              */
 
-            if (queue)
+            if (voices_queue)
             {
-                voice_free(queue);
-                queue = NULL;
+                voice_free(voices_queue);
+                voices_queue = NULL;
             }
 
-            audio_music_fade_in(clampedTime);
+            audio_music_fade_in(clamped_time);
         }
         else
         {
             audio_music_fade_out(t);
-            audio_music_queue(filename, clampedTime);
+            audio_music_queue(filename, clamped_time, loop);
         }
     }
     else
     {
-        audio_music_play(filename);
-        audio_music_fade_in(clampedTime);
+        /* Track is not playing, just start immediately. */
+
+        audio_music_play(filename, loop);
+        audio_music_fade_in(clamped_time);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
 /*
- * Logarithmic volume control.
+ * Logarithmic volume control (must have calculating stuffs perks).
  */
-void audio_volume(int master, int snd, int mus, int narrator)
+void audio_volume(int master, int sound, int music, int narrator)
 {
     float master_logaritmic   = (float)  master   / 10.0f;
-    float sound_logaritmic    = (float) (snd      / 10.0f) * master_logaritmic;
-    float music_logaritmic    = (float) (mus      / 10.0f) * master_logaritmic;
+    float sound_logaritmic    = (float) (sound    / 10.0f) * master_logaritmic;
+    float music_logaritmic    = (float) (music    / 10.0f) * master_logaritmic;
     float narrator_logaritmic = (float) (narrator / 10.0f) * master_logaritmic;
 
     master_vol   = LOGF_VOLUME(master_logaritmic);

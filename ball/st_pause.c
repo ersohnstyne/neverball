@@ -69,25 +69,6 @@ static int quit_uses_restart = 0;
 
 /*---------------------------------------------------------------------------*/
 
-int goto_pause(struct state *returnable)
-{
-    st_continue = returnable;
-
-    /* Set it up some those states? */
-    if (st_continue == &st_play_ready ||
-        st_continue == &st_play_set   ||
-        st_continue == &st_play_loop  ||
-        st_continue == &st_look)
-    {
-        if (st_continue == &st_play_set)
-            st_continue = &st_play_ready;
-        if (st_continue == &st_look)
-            st_continue = &st_play_loop;
-    }
-
-    return goto_state(&st_pause);
-}
-
 #define PAUSED_ACTION_CONTINUE              \
     do {                                    \
         if (curr_state() == &st_pause) {    \
@@ -102,17 +83,38 @@ int goto_pause(struct state *returnable)
         } \
     } while (0)
 
+int goto_pause(struct state* returnable)
+{
+    st_continue = returnable;
+
+    /* Set it up some those states? */
+    if (st_continue == &st_play_ready ||
+        st_continue == &st_play_set ||
+        st_continue == &st_play_loop ||
+        st_continue == &st_look)
+    {
+        if (st_continue == &st_play_set)
+            st_continue = &st_play_ready;
+        if (st_continue == &st_look)
+            st_continue = &st_play_loop;
+    }
+
+    return goto_state(&st_pause);
+}
+
 static int pause_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
-        case PAUSE_CONF:
-            return goto_conf(&st_pause, 1, 0);
-            break;
+        case GUI_BACK:
         case PAUSE_CONTINUE:
             PAUSED_ACTION_CONTINUE;
+            break;
+
+        case PAUSE_CONF:
+            return goto_conf(&st_pause, 1, 0);
             break;
 
         case PAUSE_RESPAWN:
@@ -146,6 +148,7 @@ static int pause_action(int tok, int val)
 #if defined(LEVELGROUPS_INCLUDES_ZEN) && defined(CONFIG_INCLUDES_ACCOUNT)
             if (progress_same_avail())
             {
+                progress_exit();
                 mediation_init();
                 progress_init(MODE_ZEN);
             }
@@ -223,27 +226,16 @@ static int pause_action(int tok, int val)
                 return goto_exit();
             }
 #else
-        if (curr_status() == GAME_NONE)
-            progress_stat(GAME_NONE);
+            if (curr_status() == GAME_NONE)
+                progress_stat(GAME_NONE);
 
-        progress_stop();
-        audio_music_stop();
-        return goto_exit();
+            return goto_exit();
 #endif
 
         break;
     }
 
     return 1;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void pause_shared_exit(int id)
-{
-    progress_stat(GAME_NONE);
-    progress_stop();
-    progress_exit();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -271,7 +263,13 @@ static int pause_button_width(int allow_zen, int reset_puzzle)
     btn_width = gui_measure(_("Restart"), GUI_SML).w;
     if (btn_width > targ_width) targ_width = btn_width;
 
-    btn_width = gui_measure(_("Quit"), GUI_SML).w;
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    const char *quit_btn_text = campaign_used() ? N_("Quit") : N_("Give Up");
+#else
+    const char *quit_btn_text = N_("Give Up");
+#endif
+
+    btn_width = gui_measure(_(quit_btn_text), GUI_SML).w;
     if (btn_width > targ_width) targ_width = btn_width;
 
     return targ_width;
@@ -400,7 +398,13 @@ static int pause_enter(struct state *st, struct state *prev)
     video_clr_grab();
 
     /* Cannot pause the game in home room. */
-    if (curr_mode() != MODE_NONE)
+    if (curr_mode() != MODE_NONE       &&
+        curr_mode() != MODE_CHALLENGE  &&
+        curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+     && curr_mode() != MODE_HARDCORE
+#endif
+        )
         audio_music_fade_out(0.5f);
 
     hud_update(0, 0.0f);
@@ -502,7 +506,13 @@ static int pause_quit_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        int warn_title = gui_label(id, _("Quit"), GUI_MED, GUI_COLOR_RED);
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        const char *quit_header_text = campaign_used() ? N_("Quit") : N_("Give Up");
+#else
+        const char *quit_header_text = N_("Give Up");
+#endif
+
+        int warn_title = gui_label(id, _(quit_header_text), GUI_MED, GUI_COLOR_RED);
 
         if (quit_uses_restart)
             gui_set_label(warn_title, _("Restart"));
@@ -514,26 +524,30 @@ static int pause_quit_gui(void)
 
         gui_space(id);
 
-
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-
         if (campaign_used())
         {
-            const char *quit_warn_campaign = campaign_hardcore() ? _("Return to World selection?") :
-                                             (curr_mode() == MODE_NONE ? _("Return to main menu?") :
-                                              (quit_uses_resetpuzzle ? _("Are you sure?\n"
-                                                                         "You will restart at the last checkpoint.") :
-                                                                       _("Are you sure?\n"
-                                                                         "You will lose all progress on this level.")));
-            gui_multi(id, quit_warn_campaign, GUI_SML, GUI_COLOR_WHT);
+            const char *quit_warn_campaign = campaign_hardcore() ? N_("Return to World selection?") :
+                                             (curr_mode() == MODE_NONE ? N_("Return to main menu?") :
+                                              (quit_uses_resetpuzzle ? N_("Are you sure?\n"
+                                                                          "You will restart at the last checkpoint.") :
+                                                                       N_("Are you sure?\n"
+                                                                          "You will lose all progress on this level.")));
+            gui_multi(id, _(quit_warn_campaign), GUI_SML, GUI_COLOR_WHT);
         }
-        else 
+        else
 #endif
-        if (curr_times() > 0)
+        if (quit_uses_resetpuzzle)
         {
-            const char *quit_warn_set = _("Are you sure?\n"
-                                          "You will lose all progress on this level set.");
-            gui_multi(id, quit_warn_set, GUI_SML, GUI_COLOR_WHT);
+            gui_multi(id, _("Are you sure?\n"
+                            "You will restart at the last checkpoint."),
+                          GUI_SML, GUI_COLOR_WHT);
+        }
+        else if (curr_times() > 0)
+        {
+            const char *quit_warn_set = N_("Are you sure?\n"
+                                           "You will lose all progress on this level set.");
+            gui_multi(id, _(quit_warn_set), GUI_SML, GUI_COLOR_WHT);
         }
 
         gui_space(id);
@@ -544,7 +558,7 @@ static int pause_quit_gui(void)
             if (current_platform == PLATFORM_PC)
 #endif
             {
-                gui_start(jd, _("No"), GUI_SML, PAUSE_CONTINUE, 0);
+                gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
                 gui_state(jd, _("Yes"), GUI_SML,
                           quit_uses_restart ? PAUSE_RESTART :
                                               (quit_uses_resetpuzzle ? PAUSE_RESPAWN :
@@ -567,8 +581,16 @@ static int pause_quit_gui(void)
 
 static int pause_quit_enter(struct state *st, struct state *prev)
 {
-    if (curr_mode() != MODE_NONE)
+    if (curr_mode() != MODE_NONE       &&
+        curr_mode() != MODE_CHALLENGE  &&
+        curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+     && curr_mode() != MODE_HARDCORE
+#endif
+        )
         audio_music_fade_out(0.5f);
+
+    audio_play(AUD_WARNING, 1.0f);
 
     return pause_quit_gui();
 }
@@ -577,7 +599,7 @@ static int pause_quit_enter(struct state *st, struct state *prev)
 
 struct state st_pause = {
     pause_enter,
-    shared_leave,
+    play_shared_leave,
     pause_paint,
     pause_timer,
     shared_point,
@@ -588,13 +610,12 @@ struct state st_pause = {
     pause_buttn,
     NULL,
     NULL,
-    NULL,
-    pause_shared_exit
+    NULL
 };
 
 struct state st_pause_quit = {
     pause_quit_enter,
-    shared_leave,
+    play_shared_leave,
     shared_paint,
     pause_timer,
     shared_point,
@@ -605,6 +626,5 @@ struct state st_pause_quit = {
     pause_buttn,
     NULL,
     NULL,
-    NULL,
-    pause_shared_exit
+    NULL
 };

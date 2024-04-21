@@ -135,6 +135,10 @@ int game_init(const char *s)
                 idle_t = 1.0f;
         }
     }
+
+    fade_k =  1.0f;
+    fade_d = -2.0f;
+
     return 1;
 }
 
@@ -142,6 +146,39 @@ void game_free(void)
 {
     personal_respawnable = 0;
     sol_free_full(&file);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static float fade_k, fade_d;
+
+void game_kill_fade(void)
+{
+    fade_k = 0.0f;
+    fade_d = 0.0f;
+}
+
+void game_step_fade(float dt)
+{
+    if ((fade_k < 1.0f && fade_d > 0.0f) ||
+        (fade_k > 0.0f && fade_d < 0.0f))
+        fade_k += fade_d * dt;
+
+    if (fade_k < 0.0f)
+    {
+        fade_k = 0.0f;
+        fade_d = 0.0f;
+    }
+    if (fade_k > 1.0f)
+    {
+        fade_k = 1.0f;
+        fade_d = 0.0f;
+    }
+}
+
+void game_fade(float d)
+{
+    fade_d = d;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -314,7 +351,7 @@ void game_draw(int pose, float t)
 
     if (jump_b) fov *= 2.0f * fabsf(jump_dt - 0.5f);
 
-    video_push_persp(fov, 0.1f, FAR_DIST);
+    video_set_perspective(fov, 0.1f, FAR_DIST);
     glPushMatrix();
     {
 #if defined(ENABLE_EARTHQUAKE)
@@ -378,7 +415,10 @@ void game_draw(int pose, float t)
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     }
     glPopMatrix();
-    video_pop_matrix();
+
+    /* Draw the fade overlay. */
+
+    sol_fade(fp, &rend, fade_k);
 
     r_draw_disable(&rend);
     game_shadow_conf(0);

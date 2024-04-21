@@ -40,13 +40,15 @@
        Or download the OpenDriveAPI project: \
        https://1drv.ms/u/s!Airrmyu6L5eynGj7HtYcQU_0ERtA?e=9XU5Zp
 #else
-#pragma message("Using directory list for code compilation: Microsoft Visual Studio")
+#pragma message(__FILE__ ": Using code compilation: Microsoft Visual Studio")
 #endif
 #else
 /*
  * Relying on MinGW to provide, that uses from GetFileAttributes() (Windows.h).
  */
 #include <unistd.h>   /* access() */
+
+#pragma message(__FILE__ ": Using code compilation: GCC + G++")
 #endif
 
 #include "common.h"
@@ -189,7 +191,7 @@ char *dupe_string(const char *src)
 }
 #endif
 
-char *concat_string(const char *first, ...)
+char *concat_string(const char *first, ...) NULL_TERMINATED
 {
     char *full = NULL;
 

@@ -62,7 +62,7 @@ int queue_empty(Queue q)
 #ifndef NDEBUG
     assert(q);
 #endif
-    return q ? q->head == q->tail : NULL;
+    return q ? q->head == q->tail : 0;
 }
 
 void queue_enq(Queue q, void *data)

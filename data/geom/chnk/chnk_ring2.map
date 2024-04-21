@@ -1,0 +1,29 @@
+{
+"classname" "worldspawn"
+"model" "geom/chnk/chnk_ring2.obj"
+"target" "rot0"
+}
+{
+"classname" "path_corner"
+"targetname" "rot0"
+"angle" "0"
+"target" "rot120"
+"speed" "10.000"
+"smooth" "0"
+}
+{
+"classname" "path_corner"
+"targetname" "rot120"
+"angle" "120"
+"target" "rot240"
+"speed" "10.000"
+"smooth" "0"
+}
+{
+"classname" "path_corner"
+"targetname" "rot240"
+"angle" "240"
+"target" "rot0"
+"speed" "10.000"
+"smooth" "0"
+}

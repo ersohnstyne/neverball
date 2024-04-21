@@ -113,8 +113,8 @@ int tutorial_check(void)
         return 0;
     }
 
-    const char *ln = level_name(curr_level());
-    const char *sn = set_name(curr_set());
+    char *ln = level_name(curr_level());
+    char *sn = set_name(curr_set());
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (!campaign_used())
@@ -212,10 +212,12 @@ static int tutorial_action(int tok, int val)
             break;
     }
 
+    /* Next phase: hints */
+
     if (config_get_d(CONFIG_ACCOUNT_HINT) && hint_check())
         return 1;
 
-    video_set_grab(!tutorial_before_play);
+    video_set_grab(1);
     return goto_state_full(st_continue, GUI_ANIMATION_E_CURVE, 0, 0);
 }
 
@@ -244,9 +246,9 @@ static int tutorial_enter(struct state *st, struct state *prev)
         gui_space(id);
         if ((jd = gui_harray(id)))
         {
-            gui_state(jd, config_get_d(CONFIG_ACCOUNT_TUTORIAL) ? _("Tutorial Off") :
-                                                                  _("Tutorial On"),
-                          GUI_SML, TUTORIAL_TOGGLE, 0);
+            const char *toggle_tutorial_text = config_get_d(CONFIG_ACCOUNT_TUTORIAL) ?
+                                               N_("Tutorial Off") : N_("Tutorial On");
+            gui_state(jd, _(toggle_tutorial_text), GUI_SML, TUTORIAL_TOGGLE, 0);
             gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
         }
     }
@@ -310,8 +312,14 @@ const char hint_desc[][128] =
     "",
     HINT_BUNNY_SLOPE_TEXT,
     HINT_HAZARDOUS_CLIMB_TEXT,
-    HINT_HALFPIPE_TEXT,
-    HINT_UPWARD_SPIRAL_TEXT
+    HINT_PITFALLS_TEXT,
+    HINT_PLATFORM_PARTY,
+    HINT_HALF_PIPE_TEXT,
+    HINT_UPWARD_SPIRAL_TEXT,
+    HINT_SURVIVAL_FITTEST,
+    HINT_FORKROAD_TEXT,
+    HINT_ENDURANCE_TEXT,
+    HINT_UNDERCONSTRUCTION_TEXT
 };
 
 /*---------------------------------------------------------------------------*/
@@ -327,8 +335,8 @@ int hint_check(void)
         )
         return 0;
 
-    const char *ln = level_name(curr_level());
-    const char *sn = set_name(curr_set());
+    char *ln = level_name(curr_level());
+    char *sn = set_name(curr_set());
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (!campaign_used())
@@ -338,9 +346,14 @@ int hint_check(void)
         {
             if (strcmp(sn, _("Neverball Easy")) == 0)
             {
-                if (strcmp(ln, "13") == 0)
+                if (strcmp(ln, "10") == 0)
                 {
                     goto_hint_before_play(3);
+                    return 1;
+                }
+                if (strcmp(ln, "13") == 0)
+                {
+                    goto_hint_before_play(5);
                     return 1;
                 }
             }
@@ -352,8 +365,35 @@ int hint_check(void)
                     return 1;
                 }
             }
-            else if (strcmp(sn, _("Neverball Hard")) == 0)
+            else if (strcmp(sn, _("Tour de force")) == 0)
             {
+                if (strcmp(ln, "2") == 0 ||
+                    strcmp(ln, "V") == 0)
+                {
+                    goto_hint_before_play(9);
+                    return 1;
+                }
+            }
+            else if (strcmp(sn, _("Nevermania")) == 0)
+            {
+                if (strcmp(ln, "6") == 0)
+                {
+                    goto_hint_before_play(6);
+                    return 1;
+                }
+                if (strcmp(ln, "11") == 0)
+                {
+                    goto_hint_before_play(10);
+                    return 1;
+                }
+            }
+            else if (strcmp(sn, _("Tones Levels")) == 0)
+            {
+                if (strcmp(ln, "15") == 0)
+                {
+                    goto_hint_before_play(8);
+                    return 1;
+                }
             }
         }
     }
@@ -393,7 +433,7 @@ static int hint_action(int tok, int val)
             break;
     }
 
-    video_set_grab(!hint_before_play);
+    video_set_grab(1);
     return goto_state_full(st_continue, GUI_ANIMATION_E_CURVE, 0, 0);
 }
 
@@ -415,9 +455,9 @@ static int hint_enter(struct state *st, struct state *prev)
         gui_space(id);
         if ((jd = gui_harray(id)))
         {
-            gui_state(jd, config_get_d(CONFIG_ACCOUNT_TUTORIAL) ? _("Hint Off") :
-                                                                  _("Hint On"),
-                          GUI_SML, HINT_TOGGLE, 0);
+            const char *toggle_hint_text = config_get_d(CONFIG_ACCOUNT_HINT) ?
+                                               N_("Hint Off") : N_("Hint On");
+            gui_state(jd, _(toggle_hint_text), GUI_SML, HINT_TOGGLE, 0);
             gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
         }
     }
@@ -455,7 +495,7 @@ static int hint_buttn(int b, int d)
 
 struct state st_tutorial = {
     tutorial_enter,
-    shared_leave,
+    play_shared_leave,
     tutorial_paint,
     tutorial_timer,
     shared_point,
@@ -468,7 +508,7 @@ struct state st_tutorial = {
 
 struct state st_hint = {
     hint_enter,
-    shared_leave,
+    play_shared_leave,
     tutorial_paint,
     tutorial_timer,
     shared_point,

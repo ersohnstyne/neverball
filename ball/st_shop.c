@@ -23,7 +23,6 @@
 #endif
 
 #include "networking.h"
-#include "campaign.h"
 #include "account.h"
 #include "mediation.h"
 #include "currency.h"
@@ -106,6 +105,8 @@ static int switchball_useable(void)
 
 #if NB_HAVE_PB_BOTH==1
 
+struct state st_shop;
+
 static int productkey;
 
 static int coinwallet;
@@ -127,6 +128,17 @@ void shop_set_product_key(int newkey);
 
 static int purchase_product_usegems = 0;
 static int inaccept_playername = 0;
+
+static struct state *st_shop_back;
+static int         (*st_shop_back_fn) (void) = NULL;
+
+int goto_shop(struct state *shop_back, int (*shop_back_fn) (void))
+{
+    st_shop_back    = shop_back;
+    st_shop_back_fn = shop_back_fn;
+
+    return goto_state_full(&st_shop, 0, GUI_ANIMATION_N_CURVE, 0);
+}
 
 static int shop_action(int tok, int val)
 {
@@ -154,7 +166,10 @@ static int shop_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            return goto_state_full(&st_title, GUI_ANIMATION_N_CURVE, 0, 0);
+            if (st_shop_back_fn)
+                return st_shop_back_fn();
+
+            return goto_state_full(st_shop_back, GUI_ANIMATION_N_CURVE, 0, 0);
             break;
         case SHOP_CHANGE_NAME:
             /* Change the player names performs log in to another account. */
@@ -280,16 +295,13 @@ static int shop_gui(void)
         }
 
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
-        if ((account_get_d(ACCOUNT_SET_UNLOCKS) > 0
-          || server_policy_get_d(SERVER_POLICY_EDITION) > 1)
-         && (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER)
-          || campaign_career_unlocked()
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
-          || config_cheat()
+        if ((account_get_d(ACCOUNT_SET_UNLOCKS) > 0 ||
+             server_policy_get_d(SERVER_POLICY_EDITION) > 1) &&
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && defined(NDEBUG)
+            !config_cheat() &&
 #endif
-            )
-         && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES)
-         && CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
+            server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES) &&
+            CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
         {
             gui_space(id);
 
@@ -372,16 +384,13 @@ static int shop_gui(void)
             gui_filler(jd);
 
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
-            if ((account_get_d(ACCOUNT_SET_UNLOCKS) > 0
-              || server_policy_get_d(SERVER_POLICY_EDITION) > 1)
-             && (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER)
-              || campaign_career_unlocked()
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
-              || config_cheat()
+            if ((account_get_d(ACCOUNT_SET_UNLOCKS) > 0 ||
+                 server_policy_get_d(SERVER_POLICY_EDITION) > 1) &&
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && defined(NDEBUG)
+                !config_cheat() &&
 #endif
-                )
-             && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES)
-             && CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
+                server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES) &&
+                CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
             {
                 /* Consumables */
                 if ((kd = gui_vstack(jd)))
@@ -455,13 +464,13 @@ static int shop_gui(void)
                 }
             }
 
-            if (account_get_d(ACCOUNT_SET_UNLOCKS) > 0
-             || server_policy_get_d(SERVER_POLICY_EDITION) > 1
-             && (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER)
-              || campaign_career_unlocked())
-             && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES)
-             && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED)
-             && CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
+            if ((account_get_d(ACCOUNT_SET_UNLOCKS) > 0 ||
+                 server_policy_get_d(SERVER_POLICY_EDITION) > 1) &&
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && defined(NDEBUG)
+                !config_cheat() &&
+#endif
+                server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES) &&
+                CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
                 gui_space(jd);
 #endif
 
@@ -543,7 +552,8 @@ static int shop_gui(void)
 
 static int shop_enter(struct state *st, struct state *prev)
 {
-    audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" : BGM_TITLE_CONF_LANGUAGE);
+    //audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
+    //                                                 BGM_TITLE_CONF_LANGUAGE, 1);
 
     char newPlayername[MAXSTR];
     SAFECPY(newPlayername, config_get_s(CONFIG_PLAYER));
@@ -606,42 +616,6 @@ static int shop_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-static int shop_unlocked_gui(void)
-{
-    int id;
-
-    if ((id = gui_vstack(0)))
-    {
-        gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
-        gui_space(id);
-        gui_multi(id, _("The goal state is still unlocked\n"
-                        "during completed levels!\n\n"
-                        "Please lock the goal state first\n"
-                        "before you go to the shop."),
-                      GUI_SML, GUI_COLOR_WHT);
-
-#if !defined(__EMSCRIPTEN__)
-        if (current_platform == PLATFORM_PC)
-#endif
-        {
-            gui_space(id);
-            gui_back_button(id);
-        }
-    }
-    gui_layout(id, 0, 0);
-
-    return id;
-}
-
-static int shop_unlocked_enter(struct state *st, struct state *prev)
-{
-    audio_play("snd/warning.ogg", 1.0f);
-
-    return shop_unlocked_gui();
-}
-
-/*---------------------------------------------------------------------------*/
-
 enum
 {
     SHOP_RENAME_YES = GUI_LAST
@@ -685,6 +659,7 @@ static int shop_rename_action(int tok, int val)
 static int shop_rename_gui(void)
 {
     int id, jd;
+
     if ((id = gui_vstack(0)))
     {
         gui_title_header(id, _("Rename player?"), GUI_MED, GUI_COLOR_RED);
@@ -711,12 +686,13 @@ static int shop_rename_gui(void)
 
         gui_layout(id, 0, 0);
     }
+
     return id;
 }
 
 static int shop_rename_enter(struct state *st, struct state *prev)
 {
-    audio_play("snd/warning.ogg", 1.0f);
+    audio_play(AUD_WARNING, 1.0f);
 
     if (draw_back)
     {
@@ -733,20 +709,15 @@ static void shop_rename_leave(struct state *st, struct state *next, int id)
         back_free();
 
     if (next == &st_null)
-        game_client_free(NULL);
-
-    gui_delete(id);
+        play_shared_leave(st, next, id);
 }
 
 static void shop_rename_paint(int id, float t)
 {
     if (draw_back)
     {
-        video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-        {
-            back_draw_easy();
-        }
-        video_pop_matrix();
+        video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+        back_draw_easy();
     }
     else
         game_client_draw(0, t);
@@ -804,24 +775,27 @@ static int shop_unregistered_gui(void)
     int id, jd;
     if ((id = gui_vstack(0)))
     {
-        int fewest = (text_length(config_get_s(CONFIG_PLAYER)) < 3 && text_length(config_get_s(CONFIG_PLAYER)) != 0);
+        int fewest = (text_length(config_get_s(CONFIG_PLAYER)) < 3 &&
+                      text_length(config_get_s(CONFIG_PLAYER)) != 0);
 
-        const char *toptxt   = inaccept_playername ? _("Invalid Player Name!") : (fewest ? _("Too few characters!") : _("Unregistered!"));
+        const char *toptxt   = inaccept_playername ?
+                               N_("Invalid Player Name!") :
+                               (fewest ? N_("Too few characters!") :
+                                         N_("Unregistered!"));
         const char *multitxt = inaccept_playername ?
-                               _("You have an invalid player name using the\n"
-                                 "special chars! Would you like modify\n"
-                                 "player name first before you buy?") :
+                               N_("You have an invalid player name using the\n"
+                                  "special charset! Would you like modify\n"
+                                  "player name first before you buy?") :
                                (fewest ?
-                                _("You didn't have enough letters on your player name!\n"
-                                  "Would you like extend player name first\n"
-                                  "before you buy?") :
-                                _("You didn't registered your player name yet!\n"
-                                  "Would you like register now before you buy?"));
-        const char *yestxt   = _("Yes");
+                                N_("You didn't have enough letters on your player name!\n"
+                                   "Would you like extend player name first\n"
+                                   "before you buy?") :
+                                N_("You didn't registered your player name yet!\n"
+                                   "Would you like register now before you buy?"));
 
-        gui_title_header(id, toptxt, GUI_MED, gui_red, gui_blk);
+        gui_title_header(id, _(toptxt), GUI_MED, gui_red, gui_blk);
         gui_space(id);
-        gui_multi(id, multitxt, GUI_SML, GUI_COLOR_WHT);
+        gui_multi(id, _(multitxt), GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
 
         if ((jd = gui_harray(id)))
@@ -831,11 +805,11 @@ static int shop_unregistered_gui(void)
 #endif
             {
                 gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
-                gui_state(jd, yestxt, GUI_SML, SHOP_UNREGISTERED_YES, 0);
+                gui_state(jd, _("Yes"), GUI_SML, SHOP_UNREGISTERED_YES, 0);
             }
 #if !defined(__EMSCRIPTEN__)
             else
-                gui_start(jd, yestxt, GUI_SML, SHOP_UNREGISTERED_YES, 0);
+                gui_start(jd, _("Yes"), GUI_SML, SHOP_UNREGISTERED_YES, 0);
 #endif
         }
 
@@ -846,7 +820,7 @@ static int shop_unregistered_gui(void)
 
 static int shop_unregistered_enter(struct state *st, struct state *prev)
 {
-    audio_play("snd/warning.ogg", 1.0f);
+    audio_play(AUD_WARNING, 1.0f);
 
     return shop_unregistered_gui();
 }
@@ -1285,7 +1259,7 @@ static int shop_iap_gui(void)
 #else
                                 sprintf(iapattr,
 #endif
-                                        _("%s %d (%s)"), GUI_DIAMOND, iapgemvalue[multiply - 1], currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
+                                        "%s %d (%s)", GUI_DIAMOND, iapgemvalue[multiply - 1], currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
                                 btniapmobile = gui_label(jd, iapattr, GUI_SML, GUI_COLOR_WHT);
                                 gui_set_state(btniapmobile, SHOP_IAP_GET_BUY, multiply - 1);
                             }
@@ -2036,8 +2010,8 @@ static int shop_buy_confirmmulti_gui(void)
 
         INIT_BUY_DETAILS();
 
-        gui_title_header(id, _("Buy multiple Products?"),
-                             GUI_MED, GUI_COLOR_DEFAULT);
+        gui_title_header(id, _("Multiple Products!"),
+                             GUI_MED, GUI_COLOR_RED);
 
         int auction_value = prodcost;
         int piece_times = 1;
@@ -2062,6 +2036,9 @@ static int shop_buy_confirmmulti_gui(void)
 #endif
 
         char prodattr[MAXSTR];
+
+        const char *buy_currency_name = purchase_product_usegems ? N_("Gems") : N_("Coins");
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(prodattr, MAXSTR,
 #else
@@ -2070,7 +2047,7 @@ static int shop_buy_confirmmulti_gui(void)
                 _("You're trying to buy multiple Products!\n"
                   "%d %s costs %d %s."),
                 piece_times, prodname, auction_value,
-                _(purchase_product_usegems ? "Gems" : "Coins"));
+                _(buy_currency_name));
 
         gui_space(id);
         gui_multi(id, prodattr, GUI_SML, GUI_COLOR_WHT);
@@ -2106,7 +2083,7 @@ static int shop_buy_confirmmulti_gui(void)
 static int shop_buy_enter(struct state *st, struct state *prev)
 {
     if (confirm_multiple_items)
-        audio_play("snd/warning.ogg", 1.0f);
+        audio_play(AUD_WARNING, 1.0f);
 
     return confirm_multiple_items ? shop_buy_confirmmulti_gui() :
                                     shop_buy_gui();
@@ -2258,7 +2235,7 @@ static int expenses_export_gui(void)
 
 static int expenses_export_enter(struct state *st, struct state *prev)
 {
-    audio_play("snd/warning.ogg", 1.0f);
+    audio_play(AUD_WARNING, 1.0f);
 
     if (prev == &st_shop_iap)
     {
@@ -2297,19 +2274,6 @@ struct state st_shop = {
     shop_enter,
     shared_leave,
     shop_paint,
-    shared_timer,
-    shared_point,
-    shared_stick,
-    shared_angle,
-    shared_click,
-    shop_keybd,
-    shop_buttn
-};
-
-struct state st_shop_unlocked = {
-    shop_unlocked_enter,
-    shared_leave,
-    shared_paint,
     shared_timer,
     shared_point,
     shared_stick,

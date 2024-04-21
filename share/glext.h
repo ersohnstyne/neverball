@@ -33,9 +33,9 @@
 #endif
 
 #if _WIN32 || defined(__EMSCRIPTEN__)
-#include <GL/glext.h>
+//#include <GL/glext.h>
 #if _MSC_VER && ENABLE_OPENGL_ES
-#pragma comment(lib, "glext.lib")
+//#pragma comment(lib, "glext.lib")
 #endif
 #endif
 
@@ -183,10 +183,6 @@
 
 #ifndef GL_OPERAND2_RGB
 #define GL_OPERAND2_RGB               0x8592
-#endif
-
-#ifndef GL_COMBINE_RGB
-#define GL_COMBINE_RGB                0x8571
 #endif
 
 #ifndef GL_COMBINE_ALPHA

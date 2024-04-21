@@ -30,6 +30,10 @@
 #endif
 #endif
 
+#ifndef _CRT_STRINGIZE_
+#define _CRT_STRINGIZE_(x) #x
+#endif
+
 #include <signal.h>
 
 #ifndef SIGHUP
@@ -111,16 +115,16 @@
         GAMEDBG_GETSTRERROR
 
 #define GAMEDBG_CHECK_SEGMENTATIONS(func) \
-    do { func; if (GameDbg_GetSigInt() != 0) { \
+    do { func; if (GameDbg_GetSigNum() != 0) { \
         GameDbg_Check_SegPerformed(); \
-        GameDbg_ClrSigInt(); \
+        GameDbg_ClrSigNum(); \
     } } while(0)
 
 #define GAMEDBG_CHECK_SEGMENTATIONS_BOOL(func) \
-    do { func; if (GameDbg_GetSigInt() != 0) { \
+    do { func; if (GameDbg_GetSigNum() != 0) { \
         GameDbg_Check_SegPerformed(); \
-        if (GameDbg_GetSigInt() != 0) { GameDbg_ClrSigInt(); return 0; } \
-        GameDbg_ClrSigInt(); \
+        if (GameDbg_GetSigNum() != 0) { GameDbg_ClrSigNum(); return 0; } \
+        GameDbg_ClrSigNum(); \
     } } while(0)
 
 #if _WIN32
@@ -135,48 +139,41 @@
     outStr = strerror(errno)
 #endif
 
-int         GameDbg_GetSigInt(void);
-void        GameDbg_ClrSigInt(void);
+int         GameDbg_GetSigNum(void);
+void        GameDbg_ClrSigNum(void);
 const char *GameDbg_GetError(void);
 
-void GameDbg_SigNum_Hangup(int);
-void GameDbg_SigNum_CtrlC(int);
-void GameDbg_SigNum_Quit(int);
-void GameDbg_SigNum_ElemAddr(int);
-void GameDbg_SigNum_Breakpt(int);
-void GameDbg_SigNum_FloatPoint(int);
-void GameDbg_SigNum_Kill(int);
-void GameDbg_SigNum_Segments(int);
-void GameDbg_SigNum_Term(int);
-#ifdef _WIN32
-void GameDbg_SigNum_CtrlBreak(int);
-#endif
+void GameDbg_SigHandler(int);
 
 void GameDbg_Check_SegPerformed(void);
 
 #ifdef _WIN32
-#define GAMEDBG_SIGFUNC_PREPARE                  \
-    signal(SIGHUP,   GameDbg_SigNum_Hangup);     \
-    signal(SIGINT,   GameDbg_SigNum_CtrlC);      \
-    signal(SIGQUIT,  GameDbg_SigNum_Quit);       \
-    signal(SIGILL,   GameDbg_SigNum_ElemAddr);   \
-    signal(SIGTRAP,  GameDbg_SigNum_Breakpt);    \
-    signal(SIGFPE,   GameDbg_SigNum_FloatPoint); \
-    signal(SIGKILL,  GameDbg_SigNum_Kill);       \
-    signal(SIGSEGV,  GameDbg_SigNum_Segments);   \
-    signal(SIGTERM,  GameDbg_SigNum_Term);       \
-    signal(SIGBREAK, GameDbg_SigNum_CtrlBreak)
+#define GAMEDBG_SIGFUNC_PREPARE           \
+    log_printf("PB+NB Debug: Preparing sig func for " __FILE__ " at line " _CRT_STRINGIZE(__LINE__) "...\n"); \
+    signal(SIGHUP,   GameDbg_SigHandler); \
+    signal(SIGINT,   GameDbg_SigHandler); \
+    signal(SIGQUIT,  GameDbg_SigHandler); \
+    signal(SIGILL,   GameDbg_SigHandler); \
+    signal(SIGTRAP,  GameDbg_SigHandler); \
+    signal(SIGFPE,   GameDbg_SigHandler); \
+    signal(SIGKILL,  GameDbg_SigHandler); \
+    signal(SIGSEGV,  GameDbg_SigHandler); \
+    signal(SIGTERM,  GameDbg_SigHandler); \
+    signal(SIGBREAK, GameDbg_SigHandler); \
+    log_printf("PB+NB Debug: Sig func prepared for " __FILE__ " at line " _CRT_STRINGIZE(__LINE__) "!\n")
 #else
-#define GAMEDBG_SIGFUNC_PREPARE                  \
-    signal(SIGHUP,   GameDbg_SigNum_Hangup);     \
-    signal(SIGINT,   GameDbg_SigNum_CtrlC);      \
-    signal(SIGQUIT,  GameDbg_SigNum_Quit);       \
-    signal(SIGILL,   GameDbg_SigNum_ElemAddr);   \
-    signal(SIGTRAP,  GameDbg_SigNum_Breakpt);    \
-    signal(SIGFPE,   GameDbg_SigNum_FloatPoint); \
-    signal(SIGKILL,  GameDbg_SigNum_Kill);       \
-    signal(SIGSEGV,  GameDbg_SigNum_Segments);   \
-    signal(SIGTERM,  GameDbg_SigNum_Term)
+#define GAMEDBG_SIGFUNC_PREPARE           \
+    log_printf("PB+NB Debug: Preparing sig func for " __FILE__ " at line " _CRT_STRINGIZE(__LINE__) "...\n"); \
+    signal(SIGHUP,   GameDbg_SigHandler); \
+    signal(SIGINT,   GameDbg_SigHandler); \
+    signal(SIGQUIT,  GameDbg_SigHandler); \
+    signal(SIGILL,   GameDbg_SigHandler); \
+    signal(SIGTRAP,  GameDbg_SigHandler); \
+    signal(SIGFPE,   GameDbg_SigHandler); \
+    signal(SIGKILL,  GameDbg_SigHandler); \
+    signal(SIGSEGV,  GameDbg_SigHandler); \
+    signal(SIGTERM,  GameDbg_SigHandler); \
+    log_printf("PB+NB Debug: Sig func prepared for " __FILE__ " at line " _CRT_STRINGIZE(__LINE__) "!\n")
 #endif
 
 #endif

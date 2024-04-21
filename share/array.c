@@ -133,7 +133,7 @@ void array_free(Array a)
     if (a)
     {
         alloc_free(&a->alloc);
-        free(a);
+        free(a); a = NULL;
     }
 }
 
@@ -182,7 +182,7 @@ int array_len(Array a)
     assert(a);
 #endif
 
-    return a ? a->elem_num : NULL;
+    return a ? a->elem_num : 0;
 }
 
 void array_sort(Array a, int (*cmp)(const void *, const void *))

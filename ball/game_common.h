@@ -17,48 +17,73 @@
 
 #include "lang.h"
 #include "solid_vary.h"
+#if ENABLE_MOON_TASKLOADER!=0
+#include "moon_taskloader.h"
+#endif
 
 /*---------------------------------------------------------------------------*/
+
+/* Game UI SFX */
 
 #define AUD_INTRO_THROW   "snd/intro-throw.ogg"
 #define AUD_INTRO_SHATTER "snd/intro-shatter.ogg"
 
+#define AUD_CLOCK    "snd/clock.ogg"
 #define AUD_DISABLED "snd/disabled.ogg"
 #define AUD_FOCUS    "snd/focus.ogg"
 #define AUD_MENU     "snd/menu.ogg"
+#define AUD_TICK     "snd/tick.ogg"
+#define AUD_TOCK     "snd/tock.ogg"
+#define AUD_WARNING  "snd/warning.ogg"
+
+/* Game narrators */
+
 #define AUD_START  _("snd/select.ogg")
 #define AUD_READY  _("snd/ready.ogg")
 #define AUD_SET    _("snd/set.ogg")
 #define AUD_GO     _("snd/go.ogg")
+#define AUD_SCORE  _("snd/record.ogg")
+#define AUD_FALL   _("snd/fall.ogg")
+#define AUD_TIME   _("snd/time.ogg")
+#define AUD_OVER   _("snd/over.ogg")
+
+/* 2.2 narrators */
+
+#define AUD_2_2_0_PICK_POW _("snd/2.2/pick_pow.ogg")
+#define AUD_2_2_0_PICK_TT  _("snd/2.2/pick_tt.ogg")
+#define AUD_2_2_0_PICK_SS  _("snd/2.2/pick_ss.ogg")
+
+/* Generic SFX */
+
 #define AUD_BALL     "snd/ball.ogg"
 #define AUD_BUMPS    "snd/bumplil.ogg"
 #define AUD_BUMPM    "snd/bump.ogg"
 #define AUD_BUMPL    "snd/bumpbig.ogg"
 #define AUD_COIN     "snd/coin.ogg"
-#define AUD_TICK     "snd/tick.ogg"
-#define AUD_TOCK     "snd/tock.ogg"
 #define AUD_SWITCH   "snd/switch.ogg"
 #define AUD_JUMP     "snd/jump.ogg"
 #define AUD_GOAL     "snd/goal.ogg"
-#define AUD_SCORE  _("snd/record.ogg")
-#define AUD_FALL   _("snd/fall.ogg")
-#define AUD_TIME   _("snd/time.ogg")
-#define AUD_OVER   _("snd/over.ogg")
 #define AUD_GROW     "snd/grow.ogg"
 #define AUD_SHRINK   "snd/shrink.ogg"
-#define AUD_CLOCK    "snd/clock.ogg"
 
-/* And with Switchball features? */
+/* 2.2 SFX */
+
+#define AUD_2_2_0_USE_SHARED "snd/2.2/use_shared.ogg"
+#define AUD_2_2_0_USE_POW    "snd/2.2/use_pow.ogg"
+#define AUD_2_2_0_USE_TT     "snd/2.2/use_tt.ogg"
+#define AUD_2_2_0_USE_SS     "snd/2.2/use_ss.ogg"
+
+/* Switchball SFX */
+
+#define AUD_BACK          "snd/back.ogg"
+#define AUD_CHKP          "snd/checkpoint.ogg"
+#define AUD_RESPAWN       "snd/respawn.ogg"
+#define AUD_GOAL_CAMPAIGN "snd/goal_campaign.ogg"
+
+/* Geometry Dash SFX */
 
 #define AUD_STARTGAME "snd/startgame.ogg"
 #define AUD_QUITGAME  "snd/quitgame.ogg"
-#define AUD_BACK      "snd/back.ogg"
-#define AUD_CHKP      "snd/checkpoint.ogg"
-#define AUD_RESPAWN   "snd/respawn.ogg"
-#define AUD_GOAL_N    "snd/goal_noninvert.ogg"
-
-/* And with Geometry Dash features? */
-
 #define AUD_STARS     "snd/stars.ogg"
 
 /* OK, title music locales, but test. */
@@ -68,6 +93,7 @@
     str_starts_with(config_get_s(CONFIG_LANGUAGE), "fr") ? (fs_exists("bgm/fr/title.ogg") ? "bgm/fr/title.ogg" : "bgm/title.ogg") : \
     str_starts_with(config_get_s(CONFIG_LANGUAGE), "ja") ? (fs_exists("bgm/jp/title.ogg") ? "bgm/jp/title.ogg" : "bgm/title.ogg") : \
     str_starts_with(config_get_s(CONFIG_LANGUAGE), "jp") ? (fs_exists("bgm/jp/title.ogg") ? "bgm/jp/title.ogg" : "bgm/title.ogg") : \
+    str_starts_with(config_get_s(CONFIG_LANGUAGE), "ko") ? (fs_exists("bgm/ko/title.ogg") ? "bgm/ko/title.ogg" : "bgm/title.ogg") : \
     str_starts_with(config_get_s(CONFIG_LANGUAGE), "th") ? (fs_exists("bgm/th/title.ogg") ? "bgm/th/title.ogg" : "bgm/title.ogg") : \
     str_starts_with(config_get_s(CONFIG_LANGUAGE), "zh") ? (fs_exists("bgm/zh/title.ogg") ? "bgm/zh/title.ogg" : "bgm/title.ogg") : \
     "bgm/title.ogg"
@@ -77,6 +103,7 @@
     str_starts_with(bgm_path, "bgm/title.ogg") && str_starts_with(config_get_s(CONFIG_LANGUAGE), "fr") ? (fs_exists("bgm/fr/title.ogg") ? "bgm/fr/title.ogg" : "bgm/title.ogg") : \
     str_starts_with(bgm_path, "bgm/title.ogg") && str_starts_with(config_get_s(CONFIG_LANGUAGE), "ja") ? (fs_exists("bgm/jp/title.ogg") ? "bgm/jp/title.ogg" : "bgm/title.ogg") : \
     str_starts_with(bgm_path, "bgm/title.ogg") && str_starts_with(config_get_s(CONFIG_LANGUAGE), "jp") ? (fs_exists("bgm/jp/title.ogg") ? "bgm/jp/title.ogg" : "bgm/title.ogg") : \
+    str_starts_with(bgm_path, "bgm/title.ogg") && str_starts_with(config_get_s(CONFIG_LANGUAGE), "ko") ? (fs_exists("bgm/ko/title.ogg") ? "bgm/ko/title.ogg" : "bgm/title.ogg") : \
     str_starts_with(bgm_path, "bgm/title.ogg") && str_starts_with(config_get_s(CONFIG_LANGUAGE), "th") ? (fs_exists("bgm/th/title.ogg") ? "bgm/th/title.ogg" : "bgm/title.ogg") : \
     str_starts_with(bgm_path, "bgm/title.ogg") && str_starts_with(config_get_s(CONFIG_LANGUAGE), "zh") ? (fs_exists("bgm/zh/title.ogg") ? "bgm/zh/title.ogg" : "bgm/title.ogg") : \
     bgm_path
@@ -107,6 +134,17 @@
                 audio_play(first + itemstep < total ?        \
                            AUD_MENU : AUD_DISABLED, 1.0f);   \
         } else GENERIC_GAMEMENU_ACTION
+
+/*---------------------------------------------------------------------------*/
+
+#if ENABLE_MOON_TASKLOADER!=0
+struct game_moon_taskloader_info *game_create_mtli();
+void game_free_mtli(struct game_moon_taskloader_info *);
+
+int  game_mtli_execute (void *, void *);
+void game_mtli_progress(void *, void *);
+void game_mtli_done    (void *, void *);
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -144,18 +182,11 @@ int cam_speed(int);
 
 /*---------------------------------------------------------------------------*/
 
-#if ENABLE_EARTHQUAKE==1
-void   game_randomize_earthquake_shake(void);
-float *game_get_earthquake_shake(void);
-#endif
-
-/*---------------------------------------------------------------------------*/
-
 extern float view_zoom_diff_curr;
 extern float view_zoom_diff_end;
 
-extern const float GRAVITY_UP[];
-extern const float GRAVITY_DN[];
+extern const float GRAVITY_PY[];
+extern const float GRAVITY_NY[];
 extern const float GRAVITY_BUSY[];
 
 struct game_tilt
@@ -223,6 +254,7 @@ void lockstep_scl(struct lockstep *, float);
 /*---------------------------------------------------------------------------*/
 
 extern struct s_base game_base;
+extern struct s_base game_meta;
 
 int  game_base_load(const char *);
 void game_base_free(const char *);

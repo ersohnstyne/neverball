@@ -28,6 +28,7 @@
 #include "level.h"
 #include "set.h"
 #include "log.h"
+#include "text.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -474,7 +475,7 @@ static int scan_campaign_level(const struct s_base *base,
 
     if (accept_back && accept_grad)
     {
-        if (target_song && strlen(target_song) > 3 && strcmp(l->song, target_song))
+        if (target_song && text_length(target_song) > 3 && strcmp(l->song, target_song))
         {
             log_errorf("%s:\n    Campaign music replaced as Switchball: %s -> %s\n",
                        filename, l->song, target_song);
@@ -543,6 +544,14 @@ int level_load(const char *filename, struct level *level)
     memset(level, 0, sizeof (struct level));
     memset(&base, 0, sizeof (base));
 
+    if (!str_ends_with(filename, ".sol") &&
+        !str_ends_with(filename, ".csol"))
+    {
+        log_errorf("That's not the classic or campaign SOL extension!: %s\n",
+                   filename);
+        return 0;
+    }
+
     if (!sol_load_meta(&base, filename))
     {
         log_errorf("Failure to load level file: %s / %s\n",
@@ -551,7 +560,7 @@ int level_load(const char *filename, struct level *level)
     }
 
     SAFECPY(level->file, filename);
-    SAFECPY(level->name, "000");
+    SAFECPY(level->name, "0");
 
     score_init_hs(&level->scores[SCORE_TIME], 59999, 0);
     score_init_hs(&level->scores[SCORE_GOAL], 59999, 0);
@@ -720,8 +729,9 @@ const char *level_name(const struct level *level)
 
 const char *level_msg(const struct level *level)
 {
-    if (strlen(level->message) > 0)
+    if (text_length(level->message) > 0)
         return _(level->message);
+
     return "";
 }
 

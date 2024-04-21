@@ -104,11 +104,11 @@ struct campaign_hardcore_mode campaign_get_hardcore_data(void);
 
 /*---------------------------------------------------------------------------*/
 
-int campaign_load_camera_box_trigger(const char *levelname);
+int campaign_load_camera_box_trigger(const char *);
 void campaign_reset_camera_box_trigger(void);
-struct campaign_cam_box_trigger *campaign_get_camera_box_trigger(int index);
+struct campaign_cam_box_trigger *campaign_get_camera_box_trigger(int);
 int campaign_camera_box_trigger_count(void);
-int campaign_camera_box_trigger_test(struct s_vary *vary, int ui);
+int campaign_camera_box_trigger_test(struct s_vary *, int);
 
 /*---------------------------------------------------------------------------*/
 

@@ -19,6 +19,7 @@
 #ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
+
 #include "networking.h"
 #include "account.h"
 #include "campaign.h"
@@ -285,19 +286,19 @@ static int name_gui(void)
         else
         {
             const char *t_header = name_error ?
-                                   _("Register failed!") : _("New Players!"),
+                                   N_("Register failed!") : N_("New Players!"),
                        *t_desc   = name_error ?
-                                   _("Player names didn't meet the requirements!\n"
-                                     "- Minimum length: 3 letters") :
-                                   _("As of new players, you can\n"
-                                     "start new Campaign levels first\n"
-                                     "before select other game modes.");
+                                   N_("Player names didn't meet the requirements!\n"
+                                      "- Minimum length: 3 letters") :
+                                   N_("As of new players, you can\n"
+                                      "start new Campaign levels first\n"
+                                      "before select other game modes.");
 
-            gui_title_header(id, t_header, GUI_MED,
+            gui_title_header(id, _(t_header), GUI_MED,
                              name_error ? gui_red : 0,
                              name_error ? gui_blk : 0);
             gui_space(id);
-            gui_multi(id, t_desc, GUI_SML, GUI_COLOR_WHT);
+            gui_multi(id, _(t_desc), GUI_SML, GUI_COLOR_WHT);
             gui_space(id);
             gui_start(id, _("OK"), GUI_SML, NAME_CONTINUE, 0);
         }
@@ -344,24 +345,7 @@ static void name_leave(struct state *st, struct state *next, int id)
     if (draw_back)
         back_free();
 
-    if (next == &st_null)
-    {
-        /* Clear all memory leaks before quitting the game! */
-
-        progress_stop();
-        demo_replay_stop(0);
-
-#if NB_HAVE_PB_BOTH==1
-        progress_exit();
-        campaign_quit();
-#endif
-        set_quit();
-
-        game_server_free(NULL);
-        game_client_free(NULL);
-    }
-
-    gui_delete(id);
+    play_shared_leave(st, next, id);
 
 #if NB_HAVE_PB_BOTH==1 && ENABLE_DEDICATED_SERVER==1
     if (player_renamed)
@@ -376,9 +360,8 @@ static void name_paint(int id, float t)
 {
     if (draw_back)
     {
-        video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+        video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
         back_draw_easy();
-        video_pop_matrix();
     }
     else
         game_client_draw(0, t);

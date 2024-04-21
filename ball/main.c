@@ -26,9 +26,14 @@
 
 #define DISABLE_PANORAMA
 
+#if _WIN32 && __MINGW32__
+#include <SDL2/SDL.h>
+#else
+#include <SDL.h>
+#endif
+
 #if NB_STEAM_API==1
 #if _MSC_VER || __GNUC__
-
 #include <steam/steam_api.h>
 
 #ifdef __EMSCRIPTEN__
@@ -41,18 +46,16 @@
 
 #elif _WIN32 && !_MSC_VER
 #error Security compilation error: MinGW not supported! Use Visual Studio instead!
+#elif _WIN64 && _MSC_VER < 1940
+#error Security compilation error: Visual Studio 2022 requires MSVC 14.38.x and later version!
+#elif _WIN32 && !_WIN64
+#error Security compilation error: Game source code compilation requires x64 and not Win32!
 #endif
 #endif
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #include <emscripten/html5.h>
-#endif
-
-#if _WIN32 && __MINGW32__
-#include <SDL2/SDL.h>
-#else
-#include <SDL.h>
 #endif
 
 #if _MSC_VER
@@ -118,6 +121,7 @@ extern "C" {
 #include "geom.h"
 #include "joy.h"
 #include "fetch.h"
+#include "moon_taskloader.h"
 #include "package.h"
 #include "currency.h"
 #if ENABLE_RFD==1
@@ -401,6 +405,10 @@ static void opt_quit(void)
     }
 
     opt_link   = NULL;
+
+#if ENABLE_DEDICATED_SERVER==1
+    opt_ipaddr = NULL;
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -619,9 +627,47 @@ static void initialize_fetch(void)
 }
 #endif
 
+#if ENABLE_MOON_TASKLOADER!=0
+/*
+ * Custom SDL event code for moon taskloader events.
+ */
+Uint32 MOON_TASKLOADER_EVENT = -1u;
+
+/*
+ * Push a custom SDL event on the queue from another thread.
+ */
+static void dispatch_moon_taskloader_event(void* data)
+{
+    SDL_Event e;
+
+    memset(&e, 0, sizeof(e));
+
+    e.type = MOON_TASKLOADER_EVENT;
+    e.user.data1 = data;
+
+    /* This is thread safe. */
+
+    SDL_PushEvent(&e);
+}
+
+/*
+ * Start the moon taskloader thread.
+ *
+ * SDL must be initialized at this point for moon taskloader event dispatch to work.
+ */
+static void initialize_moon_taskloader(void)
+{
+    /* Get a custom event code for fetch events. */
+    MOON_TASKLOADER_EVENT = SDL_RegisterEvents(1);
+
+    /* Start the thread. */
+    moon_taskloader_init(dispatch_moon_taskloader_event);
+}
+#endif
+
 /*---------------------------------------------------------------------------*/
 
-static int goto_level(const List *level_multi)
+static int goto_level(const List level_multi)
 {
     if (level_multi == NULL) return 0;
 
@@ -634,11 +680,11 @@ static int goto_level(const List *level_multi)
     static int lvl_classic = 0;
     static int lvl_bonus = 0;
 
-    for (p = level_multi; p && lvl_count < 30; p = p->next)
+    for (p = (const List) level_multi; p && lvl_count < 30; p = p->next)
     {
         struct level* lvl = &lvl_v[lvl_count_loaded];
 
-        const char* path = fs_resolve(p->data);
+        const char* path = fs_resolve((const char *) p->data);
 
         if (path &&
             (str_ends_with(path, ".csol") ||
@@ -773,7 +819,7 @@ static int process_link(const char *link)
 
                             if (progress_play(level))
                             {
-                                goto_state(&st_level);
+                                goto_play_level();
                                 found_level = 1;
                                 processed = 1;
                             }
@@ -813,7 +859,7 @@ static int process_link(const char *link)
 
 static void refresh_packages_done(void *data, void *extra_data)
 {
-    struct state *start_state = data;
+    struct state *start_state = (struct state *) data;
 
     if (!process_link(opt_link))
     {
@@ -1022,8 +1068,10 @@ static int loop(void)
                             if (curr_state() == &st_play_ready ||
                                 curr_state() == &st_play_set   ||
                                 curr_state() == &st_play_loop)
-                                goto_pause(curr_state());
+                                play_pause_goto(curr_state());
                         }
+                        else if (curr_state() == &st_demo_play)
+                            demo_pause_goto();
                         break;
 
                     case SDL_WINDOWEVENT_FOCUS_GAINED:
@@ -1109,12 +1157,13 @@ static int loop(void)
                 break;
 
             default:
+#if ENABLE_MOON_TASKLOADER!=0
+                if (e.type == MOON_TASKLOADER_EVENT)
+                    moon_taskloader_handle_event(e.user.data1);
+#endif
 #if ENABLE_FETCH!=0
                 if (e.type == FETCH_EVENT)
                     fetch_handle_event(e.user.data1);
-#endif
-#if ENABLE_FETCH!=0 && ENABLE_DEDICATED_SERVER==1
-                else
 #endif
 #if ENABLE_DEDICATED_SERVER==1
                 if (e.type == DEDICATED_SERVER_EVENT)
@@ -1258,7 +1307,7 @@ static void step(void *data)
     if (running)
     {
         Uint32 now = SDL_GetTicks();
-        Uint32 dt = (now - mainloop->now);
+        Uint32 dt  = (now - mainloop->now);
 
         if (0 < dt && dt < 1000)
         {
@@ -1283,8 +1332,7 @@ static void step(void *data)
             video_render_fill_or_line(1);
             st_paint(0.001f * now, 0);
         }
-        else
-            st_paint(0.001f * now, 1);
+        else st_paint(0.001f * now, 1);
 
         video_swap();
 
@@ -1351,11 +1399,9 @@ static void panorama_snap_sides(void)
 
 static int main_init(int argc, char *argv[])
 {
-#if _WIN32 && _MSC_VER
     GAMEDBG_SIGFUNC_PREPARE;
-#endif
 
-#if NB_STEAM_API==1    
+#if NB_STEAM_API==1
     if (!SteamAPI_Init())
     {
         log_errorf("SteamAPI_Init() failed! Steam must be running to play this game.\n");
@@ -1379,11 +1425,11 @@ static int main_init(int argc, char *argv[])
     {
         if (!datadir_multi)
         {
-            config_paths(p->data);
+            config_paths((const char *) p->data);
             datadir_multi = 1;
         }
         else
-            fs_add_path_with_archives(p->data);
+            fs_add_path_with_archives((const char *) p->data);
     }
 
     log_init("Neverball " VERSION, "neverball.log");
@@ -1465,7 +1511,6 @@ static int main_init(int argc, char *argv[])
     rfd_load();
 #endif
 
-    /* Initialize networking. */
 #ifndef DISABLE_PANORAMA
     if (!opt_panorama)
     {
@@ -1477,23 +1522,22 @@ static int main_init(int argc, char *argv[])
 #if ENABLE_DEDICATED_SERVER==1
         if (opt_ipaddr)
             config_set_s(CONFIG_DEDICATED_IPADDRESS, opt_ipaddr);
-#endif
 
-        networking_init(1);
-
-#if ENABLE_DEDICATED_SERVER==1
         /* Initialize dedicated server. */
 
-        if (networking_connected() == -1)
+        if (networking_init(1))
         {
             DEDICATED_SERVER_EVENT = SDL_RegisterEvents(1);
-            networking_init_dedicated_event(
-                dispatch_networking_event,
-                dispatch_networking_error_event
-            );
-        }
-#endif
 
+            networking_init_dedicated_event(dispatch_networking_event,
+                                            dispatch_networking_error_event);
+        }
+#else
+        networking_init(1);
+#endif
+#if ENABLE_MOON_TASKLOADER!=0
+        initialize_moon_taskloader();
+#endif
 #if ENABLE_FETCH!=0
         initialize_fetch();
 #endif
@@ -1675,7 +1719,9 @@ static void main_quit(void)
 
         package_quit();
         fetch_quit  ();
-
+#if ENABLE_MOON_TASKLOADER!=0
+        moon_taskloader_quit();
+#endif
 #if NB_HAVE_PB_BOTH==1
         networking_quit();
 #endif
@@ -1742,7 +1788,7 @@ int main(int argc, char *argv[])
             int fov_cache = config_get_d(CONFIG_VIEW_FOV);
             config_set_d(CONFIG_VIEW_FOV, 90);
 
-            video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+            video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
             panorama_snap_sides();
 
             config_set_d(CONFIG_VIEW_FOV, fov_cache);
@@ -1760,17 +1806,10 @@ int main(int argc, char *argv[])
         fs_add_path(dir_name(opt_replay)) &&
         progress_replay(base_name(opt_replay)))
     {
-        if (config_get_d(CONFIG_ACCOUNT_LOAD) > 1)
-        {
-            demo_play_goto(1);
+        if (config_get_d(CONFIG_ACCOUNT_LOAD) > 1 && demo_play_goto(1))
             start_state = &st_demo_scan_allowance;
-        }
         else
-        {
-            log_errorf("Replay file %s is not allowed due only finish\n",
-                       opt_replay);
             start_state = &st_title;
-        }
     }
     else if (opt_level_multi)
     {

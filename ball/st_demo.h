@@ -21,6 +21,7 @@ extern struct state st_demo_scan_allowance;
 extern struct state st_demo;
 extern struct state st_demo_play;
 
-void demo_play_goto(int);
+int demo_pause_goto(void);
+int demo_play_goto(int);
 
 #endif

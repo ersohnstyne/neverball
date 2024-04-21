@@ -38,6 +38,11 @@ enum
 
 /*---------------------------------------------------------------------------*/
 
+#if ENABLE_MOON_TASKLOADER!=0
+int   game_server_init_moon_taskloader(const char *, int, int,
+                                       struct moon_taskloader_callback);
+int   game_server_load_moon_taskloader(void *, void *);
+#endif
 int   game_server_init(const char *, int, int);
 void  game_server_free(const char *);
 void  game_server_step(float);

@@ -37,6 +37,7 @@ void set_quit(void);
 
 int  set_exists(int);
 void set_goto(int);
+int  set_scan_level_files(void);
 int  set_find(const char *);
 
 int  curr_set(void);
@@ -51,6 +52,7 @@ const char         *set_shot(int);
 int                 set_star(int);
 int                 set_star_curr(int);
 int                 set_star_gained(int);
+int                 set_balls_needed(int);
 #endif
 const struct score *set_score(int, int);
 

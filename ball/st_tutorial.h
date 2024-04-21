@@ -17,20 +17,39 @@
 
 /* HINTS */
 
-#define HINT_BUNNY_SLOPE 1
-#define HINT_HAZARDOUS_CLIMB 2
-#define HINT_HALFPIPE 3
-#define HINT_UPWARD_SPIRAL 4
-
+/* MB Beginner - Bunny Slope > Classic Medium 9 */
 #define HINT_BUNNY_SLOPE_TEXT \
     N_("Build up momentum to reach the bottom quickly!")
+/* MB Beginner - Hazardous Climb > ? */
 #define HINT_HAZARDOUS_CLIMB_TEXT \
     N_("Don't let these hazards\n" \
        "throw you off the track to finish!")
-#define HINT_HALFPIPE_TEXT \
+/* MB Beginner - Pitfalls > Classic Easy 10 */
+#define HINT_PITFALLS_TEXT \
+    N_("Practice your rolling skills\n" \
+       "by avoiding the gaps in the floor!")
+/* MB Beginner - Platform Party > ? */
+#define HINT_PLATFORM_PARTY \
+    N_("Ride the moving platforms to reach the finish!")
+/* MB Beginner - Half-Pipe > Classic Med 13 */
+#define HINT_HALF_PIPE_TEXT \
     N_("Speed around the half pipe and collect the coins!")
+/* MB Beginner - Upward Spiral > FWP 6 */
 #define HINT_UPWARD_SPIRAL_TEXT \
     N_("Climb upward to reach the goal!")
+/* MB Advanced - Survival of the fittest > Tdf 2 */
+#define HINT_SURVIVAL_FITTEST \
+    N_("Stay on the platform to survive!")
+/* MB Intermediate - Fork in the road > Tones 16 */
+#define HINT_FORKROAD_TEXT \
+    N_("See how quickly you can collect all coins!")
+/* MB Advanced - Endurance > Tdf 2 / Tdf V */
+#define HINT_ENDURANCE_TEXT \
+    N_("Don't fall behind the platform\n" \
+       "- there's no going back!")
+/* MB Advanced - Under Construction > FWP 11 */
+#define HINT_UNDERCONSTRUCTION_TEXT \
+    N_("Be very cautious on this framework.")
 
 /* END HINTS */
 

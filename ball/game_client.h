@@ -26,7 +26,15 @@ enum
     POSE_BALL
 };
 
-int   game_client_init(const char *);
+int game_client_init(const char *);
+int game_client_init_metadata(const char *);
+
+#if ENABLE_MOON_TASKLOADER!=0
+int game_client_load_moon_taskloader(void *, void *);
+int game_client_init_moon_taskloader(const char *,
+                                     struct moon_taskloader_callback);
+#endif
+
 void  game_client_toggle_show_balls(int);
 void  game_client_free(const char *);
 void  game_client_sync(fs_file);

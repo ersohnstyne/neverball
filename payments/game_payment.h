@@ -22,8 +22,8 @@ typedef struct game_orderpack
     int Wallets[2];
 } OrderPack;
 
-int  game_payment_activate (const char*);
-void game_payment_browse   (int);
+int  game_payment_activate(const char *);
+void game_payment_browse  (int);
 
 struct game_orderpack curr_orderpack(void);
 

@@ -104,6 +104,8 @@ static ov_callbacks callbacks = {
 
 /*---------------------------------------------------------------------------*/
 
+#define SOUND_VOICE_COUNT 2
+
 #define LOGF_VOLUME(v) ((float) powf((v), 2.0f))
 #define LOG_VOLUME(v)  ((float) pow((double) (v), 2.0))
 
@@ -227,6 +229,8 @@ static struct voice *voice_init(const char *filename, float a)
 
 static void voice_free(struct voice *V)
 {
+    if (!V) return;
+
     ov_clear(&V->vf);
 
     free(V->name); V->name = NULL;
@@ -248,9 +252,23 @@ static void voice_quit(struct voice* V)
 
 static void audio_step(void *data, Uint8 *stream, int length)
 {
-    struct voice *VSFX = voices_sfx;
-    struct voice *VNFX = voices_narrators;
-    struct voice *VP   = NULL;
+    while (lock_hold) {}
+    lock_hold = 1;
+
+    struct voice *Vs[SOUND_VOICE_COUNT] = {
+        voices_sfx,
+        voices_narrators
+    };
+
+    struct voice *VPs[SOUND_VOICE_COUNT] = {
+        NULL,
+        NULL
+    };
+    
+    float voices_vols[SOUND_VOICE_COUNT] = {
+        sound_vol,
+        narrator_vol
+    };
 
     /* Zero the output buffer. */
 
@@ -260,7 +278,8 @@ static void audio_step(void *data, Uint8 *stream, int length)
 
     if (voices_music)
     {
-        if (voice_step(voices_music, music_vol, stream, length))
+        if (voices_music->play &&
+            voice_step(voices_music, music_vol, stream, length))
         {
             voice_free(voices_music);
 
@@ -286,61 +305,40 @@ static void audio_step(void *data, Uint8 *stream, int length)
         }
     }
 
-    /* Iterate over all active game sound voices. */
+    /* Iterate over all active sound voices. */
 
-    while (VSFX)
-    {
-        /* Mix this sound voice. */
-
-        if (VSFX->play && voice_step(VSFX, sound_vol, stream, length))
+    for (int i = 0; i < SOUND_VOICE_COUNT; i++)
+        while (Vs[i])
         {
-            /* Delete a finished voice... */
+            /* Mix this sound voice. */
 
-            struct voice *VT = VSFX;
+            if (Vs[i]->play && voice_step(Vs[i], voices_vols[i], stream, length))
+            {
+                /* Delete a finished voice... */
 
-            if (VP)
-                VSFX = VP->next   = VSFX->next;
+                struct voice *VT = Vs[i];
+
+                if (VPs[i])
+                    Vs[i] = VPs[i]->next = Vs[i]->next;
+                else switch (i)
+                {
+                    case 0: Vs[i] = voices_sfx       = Vs[i]->next; break;
+                    case 1: Vs[i] = voices_narrators = Vs[i]->next; break;
+                }
+
+                voice_free(VT);
+                VT = NULL;
+            }
             else
-                VSFX = voices_sfx = VSFX->next;
+            {
+                /* ... or continue to the next. */
 
-            voice_free(VT);
+                VPs[i] = Vs[i];
+                Vs[i]  = Vs[i]->next;
+            }
         }
-        else
-        {
-            /* ... or continue to the next. */
 
-            VP   = VSFX;
-            VSFX = VSFX->next;
-        }
-    }
-
-    /* Iterate over all active narrator voices. */
-
-    while (VNFX)
-    {
-        /* Mix this narrator voice. */
-
-        if (VNFX->play && voice_step(VNFX, narrator_vol, stream, length))
-        {
-            /* Delete a finished voice... */
-
-            struct voice *VT = VNFX;
-
-            if (VP)
-                VNFX = VP->next         = VNFX->next;
-            else
-                VNFX = voices_narrators = VNFX->next;
-
-            voice_free(VT);
-        }
-        else
-        {
-            /* ... or continue to the next. */
-
-            VP   = VNFX;
-            VNFX = VNFX->next;
-        }
-    }
+    lock_hold = 0;
 }
 
 /*---------------------------------------------------------------------------*/

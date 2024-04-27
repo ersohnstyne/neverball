@@ -101,7 +101,7 @@ static void ms_nls_init(const char *pref)
 {
     ms_nls_free();
 
-    char* dir = strdup(getenv("NEVERBALL_LOCALE"));
+    char *dir = strdup(getenv("NEVERBALL_LOCALE"));
 
     /* Select the location of message catalogs. */
 

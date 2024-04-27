@@ -2700,7 +2700,7 @@ static int conf_gui(void)
                 conf_state(id, _("Neverball Game Transfer"), _("Start"),
                                CONF_SYSTEMTRANSFER_TARGET);
 #else
-                conf_state(id, _("Neverball Transfer Tool"), _("Start"),
+                conf_state(id, _("Pennyball Transfer Tool"), _("Start"),
                                CONF_SYSTEMTRANSFER_SOURCE);
 #endif
                 gui_space(id);

@@ -37,7 +37,7 @@ void set_quit(void);
 
 int  set_exists(int);
 void set_goto(int);
-int  set_scan_level_files(void);
+void set_scan_level_files(void);
 int  set_find(const char *);
 
 int  curr_set(void);

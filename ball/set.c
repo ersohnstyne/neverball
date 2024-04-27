@@ -989,7 +989,7 @@ void set_goto(int i)
 #endif
 }
 
-int set_scan_level_files(void)
+void set_scan_level_files(void)
 {
 #if ENABLE_MOON_TASKLOADER!=0
     set_load_levels();

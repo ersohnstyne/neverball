@@ -282,10 +282,6 @@ static void game_setup_terms_checkmark_update_all(void)
 
 /*---------------------------------------------------------------------------*/
 
-/*
- * Premium: pennyball.stynegame.de
- * Legacy downloads: play.neverball.org
- */
 #define NB_CURRDOMAIN_PREMIUM "play.neverball.org"
 
 static const char *get_updated_url(const char *filename)

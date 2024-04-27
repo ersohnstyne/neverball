@@ -1084,7 +1084,7 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev)
         gui_title_header(id, _("Powerups available"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
         gui_multi(id,
-                  _("Neverball offers some of the most creative ways to\n"
+                  _("Pennyball offers some of the most creative ways to\n"
                     "compete with powerups! We just need you to upgrade\n"
                     "to Pro edition so that we can make sure you have\n"
                     "permission to use it."),
@@ -1114,7 +1114,7 @@ static int start_joinrequired_enter(struct state *st, struct state *prev)
         gui_title_header(id, _("Powerups available"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
         gui_multi(id,
-                  _("Neverball offers some of the most creative ways to\n"
+                  _("Pennyball offers some of the most creative ways to\n"
                     "compete with powerups! We just need you to join\n"
                     "and verify Discord server so that we can make sure\n"
                     "you have permission to use it."),

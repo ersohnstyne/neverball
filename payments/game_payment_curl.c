@@ -26,13 +26,23 @@
 extern "C"
 {
 #endif
+
 #include "game_payment.h"
 #include "common.h"
 #include "fetch.h"
 #include "fs.h"
 #include "log.h"
+
 #if __cplusplus
 }
+#endif
+
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
 #endif
 
 #include <stdbool.h>
@@ -55,9 +65,9 @@ extern "C"
 #endif
 #endif
 
-#define GAMEIAP_CURRDOMAIN "neverball.github.io"
+#define GAMEIAP_CURRDOMAIN "store.neverball.org"
 
-// Read-only mode for debug builds
+/* Read-only mode for debug builds */
 #define IAP_READ_ONLY_MODE
 
 /*---------------------------------------------------------------------------*/
@@ -90,7 +100,10 @@ static CURL *m_payment_handle;
 #endif
 static OrderPack m_order_pack;
 
-OrderPack WorldPayment__OrderRetrieval__GetOrderPack() { return m_order_pack; }
+static OrderPack WorldPayment__OrderRetrieval__GetOrderPack()
+{
+    return m_order_pack;
+}
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -98,7 +111,7 @@ OrderPack WorldPayment__OrderRetrieval__GetOrderPack() { return m_order_pack; }
 #if __cplusplus
 bool WorldPayment::OrderRetrieval::Initialize()
 #else
-int WorldPayment__OrderRetrieval__Initialize()
+static int WorldPayment__OrderRetrieval__Initialize()
 #endif
 {
 #if ENABLE_IAP
@@ -125,18 +138,16 @@ int WorldPayment__OrderRetrieval__Initialize()
 
 struct payment_recvdata
 {
-    int prepared;
-    char str[512];
+    int  prepared;
+    char str[1024];
 };
 
 static struct payment_recvdata curr_payment_recvdata;
 
-static size_t WriteFromWeb_Bedrock(
-    void *Buffer,
-    UINT64 Size,
-    UINT64 ByteMem,
-    void *Parameters
-)
+static size_t WriteFromWeb_Bedrock(void   *Buffer,
+                                   size_t  Size,
+                                   size_t  ByteMem,
+                                   void   *Parameters)
 {
     struct payment_recvdata *in_data = (struct payment_recvdata *) Parameters;
 
@@ -144,7 +155,7 @@ static size_t WriteFromWeb_Bedrock(
     {
         if (!in_data->prepared)
         {
-            memset(in_data->str, 0, 256);
+            memset(in_data->str, 0, 1024);
             in_data->prepared = 1;
         }
 
@@ -162,15 +173,15 @@ static size_t WriteFromWeb_Bedrock(
 #if __cplusplus
 int WorldPayment::OrderRetrieval::ActivateOrderPack(const char *ProductKey)
 #else
-int WorldPayment__OrderRetrieval__ActivateOrderPack(const char *ProductKey)
+static int WorldPayment__OrderRetrieval__ActivateOrderPack(const char *ProductKey)
 #endif
 {
-    int world_result = 1;
+    int  world_result = 1;
     char targetAdrrText[MAXSTR];
-    memset(&m_order_pack, 0, sizeof(OrderPack));
+    memset(&m_order_pack, 0, sizeof (OrderPack));
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(targetAdrrText, dstSize,
+    sprintf_s(targetAdrrText, MAXSTR,
 #else
     sprintf(targetAdrrText,
 #endif
@@ -178,13 +189,14 @@ int WorldPayment__OrderRetrieval__ActivateOrderPack(const char *ProductKey)
             "http://" GAMEIAP_CURRDOMAIN "/iap/showorder-key/%s", ProductKey);
 #else
             "http://" GAMEIAP_CURRDOMAIN "/iap/retrieve-order/%s", ProductKey);
+
     curl_easy_setopt(m_payment_handle, CURLOPT_POST, 1);
 #endif
 
-    curl_easy_setopt(m_payment_handle, CURLOPT_URL, targetAdrrText);
+    curl_easy_setopt(m_payment_handle, CURLOPT_URL,           targetAdrrText);
     curl_easy_setopt(m_payment_handle, CURLOPT_WRITEFUNCTION, WriteFromWeb_Bedrock);
-    curl_easy_setopt(m_payment_handle, CURLOPT_WRITEDATA, &curr_payment_recvdata);
-    curl_easy_setopt(m_payment_handle, CURLOPT_NOPROGRESS, 1L);
+    curl_easy_setopt(m_payment_handle, CURLOPT_WRITEDATA,     &curr_payment_recvdata);
+    curl_easy_setopt(m_payment_handle, CURLOPT_NOPROGRESS,    1L);
 
     CURLcode result = curl_easy_perform(m_payment_handle);
 
@@ -198,9 +210,14 @@ int WorldPayment__OrderRetrieval__ActivateOrderPack(const char *ProductKey)
 
             int orderpack_id, orderpack_edition;
 
-            char* outStr = strdup(curr_payment_recvdata.str + 22);
+            char *out_str = strdup(curr_payment_recvdata.str + 22);
 
-            sscanf(outStr, "\"IAPOrderID\":%d,\"EditionID\":%d,\"Coins\":%d,\"Gems\":%d,\"Balls\":%d,\"Earninator\":%d,\"Floatifier\":%d,\"Speedifier\":%d",
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sscanf_s(out_str,
+#else
+            sscanf(out_str,
+#endif
+                   "\"IAPOrderID\":%d,\"EditionID\":%d,\"Coins\":%d,\"Gems\":%d,\"Balls\":%d,\"Earninator\":%d,\"Floatifier\":%d,\"Speedifier\":%d",
                    &orderpack_id,
                    &orderpack_edition,
                    &m_order_pack.Wallets[0],
@@ -212,7 +229,8 @@ int WorldPayment__OrderRetrieval__ActivateOrderPack(const char *ProductKey)
 
             world_result = 0;
 
-            free(outStr);
+            free(out_str);
+            out_str = NULL;
         }
     }
     else
@@ -225,7 +243,7 @@ int WorldPayment__OrderRetrieval__ActivateOrderPack(const char *ProductKey)
 #if __cplusplus
 void WorldPayment::OrderRetrieval::Shutdown()
 #else
-void WorldPayment__OrderRetrieval__Shutdown()
+static void WorldPayment__OrderRetrieval__Shutdown()
 #endif
 {
 #if ENABLE_IAP
@@ -281,8 +299,14 @@ void game_payment_browse(int index)
 {
     char linkstr[MAXSTR];
 
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(linkstr, MAXSTR
+#if defined(__EMSCRIPTEN__)
+    sprintf(linkstr, "http://%s/iap/overview/%d",
+                     GAMEIAP_CURRDOMAIN, index + 1);
+
+    EM_ASM({ window.open($0); }, linkstr);
+#else
+#if _WIN32 && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(linkstr, MAXSTR,
 #else
     sprintf(linkstr,
 #endif
@@ -296,6 +320,7 @@ void game_payment_browse(int index)
             GAMEIAP_CURRDOMAIN, index + 1);
 
     system(linkstr);
+#endif
 }
 
 struct game_orderpack curr_orderpack(void)

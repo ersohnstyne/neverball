@@ -52,7 +52,7 @@ enum
 };
 
 #define SOL_VERSION_MIN  SOL_VERSION_1_5
-#define SOL_VERSION_CURR SOL_VERSION_DEV
+#define SOL_VERSION_CURR SOL_VERSION_2024_04
 
 #define SOL_MAGIC (0xAF | 'S' << 8 | 'O' << 16 | 'L' << 24)
 

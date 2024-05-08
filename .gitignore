@@ -51,6 +51,11 @@
 /putt/*.cpp.txt
 /share/*.c.txt
 /share/*.cpp.txt
+*.bak
+*.autosave.map
+.vscode
+.DS_Store
+autosave
 
 # Runtime
 /*.bat

@@ -59,7 +59,7 @@ enum cmd_type
 
     CMD_END_OF_UPDATE,
     CMD_MAKE_BALL,
-    CMD_MAKE_ITEM,
+    CMD_MAKE_ITEM, /* DEPTECATED: Do not use! */
     CMD_PICK_ITEM,
     CMD_TILT_ANGLES,
     CMD_SOUND,
@@ -76,7 +76,7 @@ enum cmd_type
     CMD_SWCH_EXIT,
     CMD_UPDATES_PER_SECOND,
     CMD_BALL_RADIUS,
-    CMD_CLEAR_ITEMS,
+    CMD_CLEAR_ITEMS, /* DEPTECATED: Do not use */
     CMD_CLEAR_BALLS,
     CMD_BALL_POSITION,
     CMD_BALL_BASIS,
@@ -123,13 +123,14 @@ struct cmd_make_ball
     CMD_HEADER;
 };
 
+_CRT_NB_CMD_DEPRECATED(
 struct cmd_make_item
 {
     CMD_HEADER;
     float p[3];
     int   t;
     int   n;
-};
+});
 
 struct cmd_pick_item
 {
@@ -236,10 +237,11 @@ struct cmd_ball_radius
     float r;
 };
 
+_CRT_NB_CMD_DEPRECATED(
 struct cmd_clear_items
 {
     CMD_HEADER;
-};
+});
 
 struct cmd_clear_balls
 {
@@ -386,7 +388,7 @@ union cmd
 
     struct cmd_end_of_update      eou;
     struct cmd_make_ball          mkball;
-    struct cmd_make_item          mkitem;
+    _CRT_NB_CMD_DEPRECATED        (struct cmd_make_item mkitem);
     struct cmd_pick_item          pkitem;
     struct cmd_tilt_angles        tiltangles;
     struct cmd_sound              sound;
@@ -403,7 +405,7 @@ union cmd
     struct cmd_swch_exit          swchexit;
     struct cmd_updates_per_second ups;
     struct cmd_ball_radius        ballradius;
-    struct cmd_clear_items        clritems;
+    _CRT_NB_CMD_DEPRECATED        (struct cmd_clear_items clritems);
     struct cmd_clear_balls        clrballs;
     struct cmd_ball_position      ballpos;
     struct cmd_ball_basis         ballbasis;

@@ -74,8 +74,8 @@ static void sol_transform(const struct s_vary *vary,
 
     /* Apply the body position and rotation to the model-view matrix. */
 
-    sol_body_p(p, vary, bp, 0.0f);
-    sol_body_e(e, vary, bp, 0.0f);
+    sol_body_p(p, vary, bp->mi, 0.0f);
+    sol_body_e(e, vary, bp->mj, 0.0f);
 
     q_as_axisangle(e, v, &a);
 
@@ -770,44 +770,52 @@ void sol_back(const struct s_draw *draw,
 void sol_bill(const struct s_draw *draw,
               struct s_rend *rend, const float *M, float t)
 {
-    assert(draw);
-    if (!draw) return;
+    float bill_p[3], bill_e[4], q[3];
+
+    if (!(draw && draw->base && draw->base->rc)) return;
 
     sol_bill_enable(draw);
     {
         int ri;
-
-        if (draw->base) for (ri = 0; ri < draw->base->rc; ++ri)
+        for (ri = 0; ri < draw->base->rc; ++ri)
         {
             const struct b_bill *rp = draw->base->rv + ri;
-
             float T = rp->t * t;
             float S = fsinf(T);
-
             float w  = rp->w [0] + rp->w [1] * T + rp->w [2] * S;
             float h  = rp->h [0] + rp->h [1] * T + rp->h [2] * S;
             float rx = rp->rx[0] + rp->rx[1] * T + rp->rx[2] * S;
             float ry = rp->ry[0] + rp->ry[1] * T + rp->ry[2] * S;
             float rz = rp->rz[0] + rp->rz[1] * T + rp->rz[2] * S;
 
+            /* Calculate the position without modelview to preserve the billboard effect. */
+
+            sol_entity_world(q, draw->vary, draw->vary->rv[ri].mi, draw->vary->rv[ri].mj, rp->p);
+
             r_apply_mtrl(rend, draw->base->mtrls[rp->mi]);
 
             glPushMatrix();
             {
-                glTranslatef(rp->p[0], rp->p[1], rp->p[2]);
+                glTranslatef(q[0], q[1], q[2]);
 
-                if (M && ((rp->fl & B_NOFACE) == 0))
-                    glMultMatrixf(M);
+                if (M && ((rp->fl & B_NOFACE) == 0)) glMultMatrixf(M);
 
                 if (fabsf(rx) > 0.0f) glRotatef(rx, 1.0f, 0.0f, 0.0f);
                 if (fabsf(ry) > 0.0f) glRotatef(ry, 0.0f, 1.0f, 0.0f);
                 if (fabsf(rz) > 0.0f) glRotatef(rz, 0.0f, 0.0f, 1.0f);
-
                 glScalef(w, h, 1.0f);
-
                 sol_draw_bill(GL_FALSE);
             }
             glPopMatrix();
+
+            bill_p[0] = 0.0f;
+            bill_p[1] = 0.0f;
+            bill_p[2] = 0.0f;
+
+            bill_e[0] = 1.0f;
+            bill_e[1] = 0.0f;
+            bill_e[2] = 0.0f;
+            bill_e[3] = 0.0f;
         }
     }
     sol_bill_disable();
@@ -968,6 +976,8 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
 
     struct mtrl *mp = mtrl_get(mi);
     struct mtrl *mq = &rend->curr_mtrl;
+
+    if (!mp || !mq) return;
 
     /* Mask ignored flags. */
 

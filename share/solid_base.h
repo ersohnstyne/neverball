@@ -267,7 +267,6 @@ struct b_node
     int l0;
     int lc;
 };
-
 struct b_path
 {
     float p[3];                                /* starting position          */
@@ -275,19 +274,19 @@ struct b_path
     float t;                                   /* travel time                */
     int   tm;                                  /* milliseconds               */
 
-    int pi;
+    int pi;                                    /* next path                  */
     int f;                                     /* enable flag                */
     int s;                                     /* smooth flag                */
 
     int fl;                                    /* flags                      */
 
-    /* TODO: merge enable and smooth into flags. */
+    /* TODO: merge enable and smooth into flags, somehow. */
 };
 
 struct b_body
 {
-    int pi;
-    int pj;
+    int p0;                                    /* translation path           */
+    int p1;                                    /* rotation path              */
 
     int ni;
     int l0;
@@ -295,30 +294,38 @@ struct b_body
     int g0;
     int gc;
 };
-
 struct b_item
 {
     float p[3];                                /* position                   */
     int   t;                                   /* type                       */
     int   n;                                   /* value                      */
+
+    int p0;                                    /* translation path           */
+    int p1;                                    /* rotation path              */
 };
 
 struct b_goal
 {
     float p[3];                                /* position                   */
     float r;                                   /* radius                     */
+
+    int p0;                                    /* translation path           */
+    int p1;                                    /* rotation path              */
 };
 
 struct b_swch
 {
     float p[3];                                /* position                   */
     float r;                                   /* radius                     */
-    int  pi;                                   /* the linked path            */
+    int  pi;                                   /* the activated path         */
 
     float t;                                   /* default timer              */
     int   tm;                                  /* milliseconds               */
     int   f;                                   /* default state              */
     int   i;                                   /* is invisible?              */
+
+    int p0;                                    /* translation path           */
+    int p1;                                    /* rotation path              */
 };
 
 struct b_bill
@@ -327,15 +334,16 @@ struct b_bill
     int  mi;
     float t;                                   /* repeat time interval       */
     float d;                                   /* distance                   */
-
     float w[3];                                /* width coefficients         */
     float h[3];                                /* height coefficients        */
-
     float rx[3];                               /* X rotation coefficients    */
     float ry[3];                               /* Y rotation coefficients    */
     float rz[3];                               /* Z rotation coefficients    */
 
     float p[3];
+
+    int p0;                                    /* translation path           */
+    int p1;                                    /* rotation path              */
 };
 
 struct b_jump
@@ -343,6 +351,9 @@ struct b_jump
     float p[3];                                /* position                   */
     float q[3];                                /* target position            */
     float r;                                   /* radius                     */
+
+    int p0;                                    /* translation path           */
+    int p1;                                    /* rotation path              */
 };
 
 struct b_ball
@@ -360,6 +371,9 @@ struct b_chkp
 {
     float p[3];                                /* position vector            */
     float r;                                   /* radius                     */
+
+    int p0;                                    /* translation path           */
+    int p1;                                    /* rotation path              */
 };
 #endif
 

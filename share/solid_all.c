@@ -37,14 +37,14 @@ static float derp(float t)
 
 void sol_body_p(float p[3],
                 const struct s_vary *vary,
-                const struct v_body *bp,
+                int mi,
                 float dt)
 {
-    float v[3] = { 0.0f, 0.0f, 0.0f };
+    float v[3];
 
-    if (bp->mi >= 0)
+    if (mi >= 0)
     {
-        const struct v_move *mp = vary->mv + bp->mi;
+        const struct v_move *mp = vary->mv + mi;
 
         const struct b_path *pp = vary->base->pv + mp->pi;
         const struct b_path *pq = vary->base->pv + pp->pi;
@@ -69,19 +69,19 @@ void sol_body_p(float p[3],
 
 void sol_body_v(float v[3],
                 const struct s_vary *vary,
-                const struct v_body *bp,
+                int mi,
                 float dt)
 {
-    if (bp->mi >= 0)
+    if (mi >= 0)
     {
-        const struct v_move *mp = vary->mv + bp->mi;
+        const struct v_move *mp = vary->mv + mi;
 
         if (vary->pv[mp->pi].f)
         {
             float p[3], q[3];
 
-            sol_body_p(p, vary, bp, 0.0f);
-            sol_body_p(q, vary, bp, dt);
+            sol_body_p(p, vary, mi, 0.0f);
+            sol_body_p(q, vary, mi, dt);
 
             v_sub(v, q, p);
 
@@ -100,12 +100,12 @@ void sol_body_v(float v[3],
 
 void sol_body_e(float e[4],
                 const struct s_vary *vary,
-                const struct v_body *bp,
+                int mi,
                 float dt)
 {
-    if (bp->mj >= 0)
+    if (mi >= 0)
     {
-        const struct v_move *mp = vary->mv + bp->mj;
+        const struct v_move *mp = vary->mv + mi;
 
         const struct b_path *pp = vary->base->pv + mp->pi;
         const struct b_path *pq = vary->base->pv + pp->pi;
@@ -134,12 +134,11 @@ void sol_body_e(float e[4],
 /*
  * Determine if the body might be rotating.
  */
-int sol_body_w(const struct s_vary *vary,
-               const struct v_body *bp)
+int sol_body_w(const struct s_vary *vary, int mi)
 {
-    if (bp->mj >= 0)
+    if (mi >= 0)
     {
-        const struct v_move *mp = vary->mv + bp->mj;
+        const struct v_move *mp = vary->mv + mi;
 
         if (vary->pv[mp->pi].f)
         {
@@ -151,6 +150,59 @@ int sol_body_w(const struct s_vary *vary,
         }
     }
     return 0;
+}
+
+void sol_entity_p(float p[3],
+                  const struct s_vary *vary,
+                  int mi, int mj)
+{
+    if (mj < 0)
+        mj = mi;
+
+    sol_body_p(p, vary, mi, 0.0f);
+}
+
+void sol_entity_e(float e[4], const struct s_vary *vary, int mi, int mj)
+{
+    if (mj < 0)
+        mj = mi;
+
+    sol_body_e(e, vary, mj, 0.0f);
+}
+
+/*
+ * Transform a mover-space point into world space.
+ */
+void sol_entity_world(float w[3],
+                      const struct s_vary *vary,
+                      int mi, int mj,
+                      const float v[3])
+{
+    float move_p[3], move_e[4];
+
+    sol_entity_p(move_p, vary, mi, mj);
+    sol_entity_e(move_e, vary, mi, mj);
+
+    q_rot(w, move_e, v);
+    v_add(w, move_p, w);
+}
+
+/*
+ * Transform a world-space point into mover space.
+ */
+void sol_entity_local(float w[3],
+                      const struct s_vary *vary,
+                      int mi, int mj,
+                      const float v[3])
+{
+    float move_p[3], move_e[4];
+
+    sol_entity_p(move_p, vary, mi, mj);
+    sol_entity_e(move_e, vary, mi, mj);
+
+    v_sub(w, v, move_p);
+    q_conj(move_e, move_e);
+    q_rot(w, move_e, w);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -406,8 +458,9 @@ void sol_ball_step(struct s_vary *vary, cmd_fn cmd_func, float dt)
 
 int sol_item_test(struct s_vary *vary, float *p, float item_r)
 {
-    const float *ball_p = vary->uv->p;
-    const float  ball_r = vary->uv->r;
+    float ball_r = vary->uv[0].r;
+    float ball_p[3];
+
     int hi;
 
     for (hi = 0; hi < vary->hc; hi++)
@@ -415,45 +468,44 @@ int sol_item_test(struct s_vary *vary, float *p, float item_r)
         struct v_item *hp = vary->hv + hi;
         float r[3];
 
+        /* Transform ball position into item space. */
+
+        sol_entity_local(ball_p, vary, hp->mi, hp->mj, vary->uv[0].p);
+
         v_sub(r, ball_p, hp->p);
 
         if (hp->t != ITEM_NONE && v_len(r) < ball_r + item_r)
-        {
-            p[0] = hp->p[0];
-            p[1] = hp->p[1];
-            p[2] = hp->p[2];
-
             return hi;
-        }
     }
     return -1;
 }
 
 struct b_goal *sol_goal_test(struct s_vary *vary, float *p, int ui)
 {
-    const float *ball_p = vary->uv[ui].p;
-    const float  ball_r = vary->uv[ui].r;
+    float ball_r = vary->uv[ui].r;
+    float ball_p[3];
+
     int zi;
 
     for (zi = 0; zi < vary->base->zc; zi++)
     {
         struct b_goal *zp = vary->base->zv + zi;
-        float r[3] = {
-            ball_p[0] - zp->p[0],
-            ball_p[2] - zp->p[2], 0
-        };
+        float r[3];
+
+        /* Transform ball position into goal space. */
+
+        sol_entity_local(ball_p, vary, vary->zv[zi].mi, vary->zv[zi].mj, vary->uv[ui].p);
+
+        r[0] = ball_p[0] - zp->p[0];
+        r[1] = ball_p[2] - zp->p[2];
+        r[2] = 0;
 
         if (v_len(r) + ball_r < zp->r &&
             ball_p[1] > zp->p[1] &&
             ball_p[1] < zp->p[1] + GOAL_HEIGHT / 2)
-        {
-            p[0] = zp->p[0];
-            p[1] = zp->p[1];
-            p[2] = zp->p[2];
-
             return zp;
-        }
     }
+
     return NULL;
 }
 
@@ -462,17 +514,23 @@ struct b_goal *sol_goal_test(struct s_vary *vary, float *p, int ui)
  */
 int sol_jump_test(struct s_vary *vary, float *p, int ui)
 {
-    const float *ball_p = vary->uv[ui].p;
-    const float  ball_r = vary->uv[ui].r;
+    float ball_r = vary->uv[ui].r;
+    float ball_p[3];
+
     int ji, touch = 0;
 
     for (ji = 0; ji < vary->base->jc; ji++)
     {
         struct b_jump *jp = vary->base->jv + ji;
-        float d, r[3] = {
-            ball_p[0] - jp->p[0],
-            ball_p[2] - jp->p[2], 0
-        };
+        float d, r[3];
+
+        /* Transform ball position into jump space. */
+
+        sol_entity_local(ball_p, vary, vary->jv[ji].mi, vary->jv[ji].mj, vary->uv[ui].p);
+
+        r[0] = ball_p[0] - jp->p[0];
+        r[1] = ball_p[2] - jp->p[2];
+        r[2] = 0;
 
         /* Distance of the far side from the edge of the halo. */
 
@@ -508,19 +566,22 @@ int sol_jump_test(struct s_vary *vary, float *p, int ui)
  */
 int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
 {
-    const float *ball_p = vary->uv[ui].p;
-    const float  ball_r = vary->uv[ui].r;
+    float ball_r = vary->uv[ui].r;
+    float ball_p[3];
 
     int xi, rc = SWCH_OUTSIDE;
 
     for (xi = 0; xi < vary->xc; xi++)
     {
-        struct v_swch *xp = vary->xv + xi;
+        struct v_swch* xp = vary->xv + xi;
 
-        float d, r[3] = {
-            ball_p[0] - xp->base->p[0],
-            ball_p[2] - xp->base->p[2], 0
-        };
+        float d, r[3];
+
+        sol_entity_local(ball_p, vary, xp->mi, xp->mj, vary->uv[ui].p);
+        
+        r[0] = ball_p[0] - xp->base->p[0];
+        r[1] = ball_p[2] - xp->base->p[2];
+        r[2] = 0;
 
         /* Distance of the far side from the edge of the halo. */
 
@@ -543,18 +604,18 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
                     /* The ball enters. */
 
                     xp->e = 1;
-                    
-                    /* Change switch state. */
 
                     xp->f = xp->f ? 0 : 1;
 
                     if (cmd_func)
                     {
-                        union cmd cmd    = { CMD_SWCH_ENTER };
+                        union cmd cmd;
+
+                        cmd.type         = CMD_SWCH_ENTER;
                         cmd.swchenter.xi = xi;
                         cmd_func(&cmd);
 
-                        cmd.type          = CMD_SWCH_TOGGLE;
+                        cmd.type         = CMD_SWCH_TOGGLE;
                         cmd.swchtoggle.xi = xi;
                         cmd_func(&cmd);
                     }
@@ -564,18 +625,20 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
 
                     sol_path_loop(vary, cmd_func, xp->base->pi, curr_path_enabled_orcondition[xp->base->pi] > 0);
 
-                    if (!xp->base->i) rc = SWCH_INSIDE;
+                    if (!xp->base->i)
+                        rc = SWCH_INSIDE;
                 }
             }
             else if (xp->e)
             {
+
                 /* The ball exits. */
 
                 xp->e = 0;
 
                 if (cmd_func)
                 {
-                    union cmd cmd   = { CMD_SWCH_EXIT };
+                    union cmd cmd = { CMD_SWCH_EXIT };
                     cmd.swchexit.xi = xi;
                     cmd_func(&cmd);
                 }
@@ -657,19 +720,22 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
 int sol_chkp_test(struct s_vary *vary, cmd_fn cmd_func, int ui, int *o_ci)
 {
 #ifdef MAPC_INCLUDES_CHKP
-    const float *ball_p = vary->uv[ui].p;
-    const float  ball_r = vary->uv[ui].r;
+    float ball_r = vary->uv[ui].r;
+    float ball_p[3];
 
     int ci, rc = CHKP_OUTSIDE;
 
     for (ci = 0; ci < vary->cc; ci++)
     {
-        struct v_chkp *cp = vary->cv + ci;
+        struct v_chkp* cp = vary->cv + ci;
 
-        float d, r[3] = {
-            ball_p[0] - cp->base->p[0],
-            ball_p[2] - cp->base->p[2], 0
-        };
+        float d, r[3];
+
+        sol_entity_local(ball_p, vary, cp->mi, cp->mj, vary->uv[ui].p);
+
+        r[0] = ball_p[0] - cp->base->p[0];
+        r[1] = ball_p[2] - cp->base->p[2];
+        r[2] = 0;
 
         /* Distance of the far side from the edge of the halo. */
 

@@ -325,26 +325,6 @@ static void game_cmd_init_balls(void)
     game_cmd_ballradius();
 }
 
-static void game_cmd_init_items(void)
-{
-    int i;
-
-    cmd.type = CMD_CLEAR_ITEMS;
-    game_proxy_enq(&cmd);
-
-    for (i = 0; i < (vary.hc); i++)
-    {
-        cmd.type = CMD_MAKE_ITEM;
-
-        v_cpy(cmd.mkitem.p, vary.hv[i].p);
-
-        cmd.mkitem.t = vary.hv[i].t;
-        cmd.mkitem.n = vary.hv[i].n;
-
-        game_proxy_enq(&cmd);
-    }
-}
-
 static void game_cmd_pkitem(int hi)
 {
     cmd.type      = CMD_PICK_ITEM;
@@ -788,13 +768,7 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
                vary.uv[CURR_PLAYER].size == last_chkp_ball[CURR_PLAYER].size);
 #endif
     }
-    else
-    {
-        chkp_id = -1;
-        game_cmd_init_items();
-    }
-#else
-    game_cmd_init_items();
+    else chkp_id = -1;
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -1290,13 +1264,7 @@ int game_server_init(const char *file_name, int t, int e)
                vary.uv[CURR_PLAYER].size == last_chkp_ball[CURR_PLAYER].size);
 #endif
     }
-    else
-    {
-        chkp_id = -1;
-        game_cmd_init_items();
-    }
-#else
-    game_cmd_init_items();
+    else chkp_id = -1;
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -1807,7 +1775,7 @@ static int game_update_state(int bt)
 
     /* Test for an item. */
 
-    if (bt && (hi = sol_item_test(&vary, p, ITEM_RADIUS)) != -1)
+    if (bt && (hi = sol_item_test(&vary, NULL, ITEM_RADIUS)) != -1)
     {
         struct v_item *hp = vary.hv + hi;
 
@@ -2017,7 +1985,7 @@ static int game_update_state(int bt)
     /* Test for a goal. */
 
     if (bt && !timer_hold &&
-        goal_e && (zp = sol_goal_test(&vary, p, CURR_PLAYER)))
+        goal_e && (zp = sol_goal_test(&vary, NULL, CURR_PLAYER)))
     {
 #if ENABLE_DEDICATED_SERVER==1
         networking_dedicated_levelstatus_send(curr_file_name, GAME_GOAL, p);

@@ -32,7 +32,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static int  dbg_signum = 0;
+static int  dbg_signum;
 static char dbg_strerror[256];
 
 #if __cplusplus
@@ -45,6 +45,10 @@ const char *GameDbg_GetError(void)  { return dbg_strerror ? dbg_strerror : "Unkn
 
 void GameDbg_SigHandler(int signum)
 {
+    dbg_signum = signum;
+
+    GameDbg_Check_SegPerformed();
+
 #if _DEBUG
 #if _WIN32
     __debugbreak();
@@ -52,8 +56,6 @@ void GameDbg_SigHandler(int signum)
     raise(SIGTRAP);
 #endif
 #endif
-
-    dbg_signum = signum;
 
     exit((signum == 2 || signum == 21) ? 0 : 1);
 }

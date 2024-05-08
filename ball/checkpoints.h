@@ -72,8 +72,11 @@ struct chkp_move
 struct chkp_item
 {
     float p[3];
-    int t;
-    int n;
+    int   t;
+    int   n;
+
+    int mi;
+    int mj;
 };
 
 struct chkp_swch
@@ -81,6 +84,33 @@ struct chkp_swch
     float t;
     int   tm;
     int   f;
+
+    int mi;
+    int mj;
+};
+
+struct chkp_goal
+{
+    int mi;
+    int mj;
+};
+
+struct chkp_jump
+{
+    int mi;
+    int mj;
+};
+
+struct chkp_bill
+{
+    int mi;
+    int mj;
+};
+
+struct chkp_chkp
+{
+    int mi;
+    int mj;
 };
 
 extern int last_active;

@@ -58,18 +58,40 @@ struct v_item
 {
     float p[3];                                /* position                   */
     int   t;                                   /* type                       */
-    int   rt;                                  /* previous type              */
     int   n;                                   /* value                      */
+
+    int mi;
+    int mj;
 };
 
 struct v_swch
 {
-    const struct b_swch *base;
-
+    const struct b_swch* base;
     float t;                                   /* current timer              */
     int   tm;                                  /* milliseconds               */
     int   f;                                   /* current state              */
     int   e;                                   /* is a ball inside it?       */
+
+    int mi;
+    int mj;
+};
+
+struct v_goal
+{
+    int mi;
+    int mj;
+};
+
+struct v_jump
+{
+    int mi;
+    int mj;
+};
+
+struct v_bill
+{
+    int mi;
+    int mj;
 };
 
 struct v_ball
@@ -94,6 +116,9 @@ struct v_chkp
 
     int   f;                                   /* current state              */
     int   e;                                   /* is a ball inside it?       */
+
+    int mi;
+    int mj;
 };
 #endif
 
@@ -105,7 +130,10 @@ struct s_vary
     int bc;
     int mc;
     int hc;
+    int zc;
+    int jc;
     int xc;
+    int rc;
     int uc;
 #ifdef MAPC_INCLUDES_CHKP
     /* New: Checkpoints */
@@ -116,7 +144,10 @@ struct s_vary
     struct v_body *bv;
     struct v_move *mv;
     struct v_item *hv;
+    struct v_goal *zv;
+    struct v_jump *jv;
     struct v_swch *xv;
+    struct v_bill *rv;
     struct v_ball *uv;
 #ifdef MAPC_INCLUDES_CHKP
     /* New: Checkpoints */

@@ -38,18 +38,57 @@
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * Find an existing mover for the given path index or allocate a new one.
+ */
+static void setup_mover(struct alloc *alloc, const struct s_vary *fp, int pi, int *mi)
+{
+    struct v_move *move;
+    int i;
+
+    if (mi)
+        *mi = -1;
+
+    if (pi < 0)
+        return;
+
+    for (i = 0; i < fp->mc; ++i)
+    {
+        if (fp->mv[i].pi == pi)
+        {
+            if (mi)
+                *mi = i;
+
+            return;
+        }
+    }
+
+    if ((move = alloc_add(alloc)))
+    {
+        memset(move, 0, sizeof (*move));
+
+        if (mi)
+            *mi = fp->mc - 1;
+
+        move->pi = pi;
+    }
+}
+
 int sol_load_vary(struct s_vary *fp, struct s_base *base)
 {
+    struct alloc mover_alloc;
     int i;
 
     memset(fp, 0, sizeof (*fp));
 
     fp->base = base;
 
+    alloc_new(&mover_alloc, sizeof (*fp->mv), (void **) &fp->mv, &fp->mc);
+
     if (fp->base->pc)
     {
+        fp->pv = calloc(fp->base->pc, sizeof (*fp->pv));
         fp->pc = fp->base->pc;
-        fp->pv = calloc(fp->pc, sizeof (*fp->pv));
         if (fp->pv == 0) return 0;
 
         for (i = 0; i < fp->base->pc; i++)
@@ -64,49 +103,26 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 
     if (fp->base->bc)
     {
-        struct alloc mv;
-
+        fp->bv = calloc(fp->base->bc, sizeof (*fp->bv));
         fp->bc = fp->base->bc;
-        fp->bv = calloc(fp->bc, sizeof (*fp->bv));
         if (fp->bv == 0) return 0;
-
-        alloc_new(&mv, sizeof (*fp->mv), (void **) &fp->mv, &fp->mc);
 
         for (i = 0; i < fp->base->bc; i++)
         {
-            struct b_body *bbody = fp->base->bv + i;
-            struct v_body *vbody = fp->bv + i;
-            struct v_move *vmove;
+            struct v_body *bp = fp->bv + i;
+            struct b_body *bq = fp->base->bv + i;
 
-            vbody->base = bbody;
+            bp->base = bq;
 
-            vbody->mi = -1;
-            vbody->mj = -1;
-
-            if (bbody->pi >= 0 && (vmove = alloc_add(&mv)))
-            {
-                memset(vmove, 0, sizeof (*vmove));
-
-                vbody->mi = fp->mc - 1;
-                vmove->pi = bbody->pi;
-            }
-
-            if (bbody->pj == bbody->pi)
-                vbody->mj = vbody->mi;
-            else if (bbody->pj >= 0 && (vmove = alloc_add(&mv)))
-            {
-                memset(vmove, 0, sizeof (*vmove));
-
-                vbody->mj = fp->mc - 1;
-                vmove->pi = bbody->pj;
-            }
+            setup_mover(&mover_alloc, fp, bq->p0, &bp->mi);
+            setup_mover(&mover_alloc, fp, bq->p1, &bp->mj);
         }
     }
 
     if (fp->base->hc)
     {
+        fp->hv = calloc(fp->base->hc, sizeof (*fp->hv));
         fp->hc = fp->base->hc;
-        fp->hv = calloc(fp->hc, sizeof (*fp->hv));
         if (fp->hv == 0) return 0;
 
         for (i = 0; i < fp->base->hc; i++)
@@ -118,13 +134,48 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 
             hp->t = hq->t;
             hp->n = hq->n;
+
+            setup_mover(&mover_alloc, fp, hq->p0, &hp->mi);
+            setup_mover(&mover_alloc, fp, hq->p1, &hp->mj);
+        }
+    }
+
+    if (fp->base->zc)
+    {
+        fp->zv = calloc(fp->base->zc, sizeof (*fp->zv));
+        fp->zc = fp->base->zc;
+        if (fp->zv == 0) return 0;
+
+        for (i = 0; i < fp->base->zc; i++)
+        {
+            struct v_goal *zp = fp->zv + i;
+            struct b_goal *zq = fp->base->zv + i;
+
+            setup_mover(&mover_alloc, fp, zq->p0, &zp->mi);
+            setup_mover(&mover_alloc, fp, zq->p1, &zp->mj);
+        }
+    }
+
+    if (fp->base->jc)
+    {
+        fp->jv = calloc(fp->base->jc, sizeof(*fp->jv));
+        fp->jc = fp->base->jc;
+        if (fp->jv == 0) return 0;
+
+        for (i = 0; i < fp->base->jc; i++)
+        {
+            struct v_jump *jp = fp->jv + i;
+            struct b_jump *jq = fp->base->jv + i;
+
+            setup_mover(&mover_alloc, fp, jq->p0, &jp->mi);
+            setup_mover(&mover_alloc, fp, jq->p1, &jp->mj);
         }
     }
 
     if (fp->base->xc)
     {
+        fp->xv = calloc(fp->base->xc, sizeof (*fp->xv));
         fp->xc = fp->base->xc;
-        fp->xv = calloc(fp->xc, sizeof (*fp->xv));
         if (fp->xv == 0) return 0;
 
         for (i = 0; i < fp->base->xc; i++)
@@ -136,13 +187,32 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
             xp->t    = xq->t;
             xp->tm   = xq->tm;
             xp->f    = xq->f;
+
+            setup_mover(&mover_alloc, fp, xq->p0, &xp->mi);
+            setup_mover(&mover_alloc, fp, xq->p1, &xp->mj);
+        }
+    }
+
+    if (fp->base->rc)
+    {
+        fp->rv = calloc(fp->base->rc, sizeof (*fp->rv));
+        fp->rc = fp->base->rc;
+        if (fp->rv == 0) return 0;
+
+        for (i = 0; i < fp->base->rc; i++)
+        {
+            struct v_bill *rp = fp->rv + i;
+            struct b_bill *rq = fp->base->rv + i;
+
+            setup_mover(&mover_alloc, fp, rq->p0, &rp->mi);
+            setup_mover(&mover_alloc, fp, rq->p1, &rp->mj);
         }
     }
 
     if (fp->base->uc)
     {
+        fp->uv = calloc(fp->base->uc, sizeof (*fp->uv));
         fp->uc = fp->base->uc;
-        fp->uv = calloc(fp->uc, sizeof (*fp->uv));
         if (fp->uv == 0) return 0;
 
         for (i = 0; i < fp->base->uc; i++)
@@ -153,7 +223,6 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
             v_cpy(up->p, uq->p);
 
             up->r = uq->r;
-
             up->r_vel = 0.0f;
 
             up->sizes[0] = uq->r * GROW_SMALL;
@@ -189,6 +258,9 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
             struct b_chkp *cq = fp->base->cv + i;
 
             cp->base = cq;
+
+            setup_mover(&mover_alloc, fp, cq->p0, &cp->mi);
+            setup_mover(&mover_alloc, fp, cq->p1, &cp->mj);
         }
     }
 #endif
@@ -203,6 +275,7 @@ void sol_free_vary(struct s_vary *fp)
     free(fp->mv); fp->mv = NULL;
     free(fp->hv); fp->hv = NULL;
     free(fp->xv); fp->xv = NULL;
+    free(fp->zv); fp->zv = NULL;
     free(fp->uv); fp->uv = NULL;
 #ifdef MAPC_INCLUDES_CHKP
     free(fp->cv); fp->cv = NULL;

@@ -52,6 +52,10 @@ struct chkp_body     last_chkp_body[1024];
 struct chkp_move     last_chkp_move[1024];
 struct chkp_item     last_chkp_item[2048];
 struct chkp_swch     last_chkp_swch[1024];
+struct chkp_goal     last_chkp_goal[1024];
+struct chkp_jump     last_chkp_jump[1024];
+struct chkp_bill     last_chkp_bill[1024];
+struct chkp_chkp     last_chkp_chkp[1024];
 struct chkp_view     last_view[1024];
 
 float last_pos[1024][3];
@@ -141,6 +145,9 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
         v_cpy(c_hp->p, hp->p);
         c_hp->t = hp->t;
         c_hp->n = hp->n;
+
+        c_hp->mi = hp->mi;
+        c_hp->mj = hp->mj;
     }
 
     /* Backed up from the gameplay (switch) */
@@ -152,6 +159,49 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
         c_xp->f  = xp->f;
         c_xp->t  = xp->t;
         c_xp->tm = xp->tm;
+
+        c_xp->mi = xp->mi;
+        c_xp->mj = xp->mj;
+    }
+
+    /* Backed up from the gameplay (goal) */
+    for (int backupidx = 0; backupidx < saved_vary.zc; backupidx++)
+    {
+        struct v_goal    *zp   = saved_vary.zv + backupidx;
+        struct chkp_goal *c_zp = last_chkp_goal + backupidx;
+
+        c_zp->mi = zp->mi;
+        c_zp->mj = zp->mj;
+    }
+
+    /* Backed up from the gameplay (jump) */
+    for (int backupidx = 0; backupidx < saved_vary.jc; backupidx++)
+    {
+        struct v_jump    *jp   = saved_vary.jv + backupidx;
+        struct chkp_jump *c_jp = last_chkp_jump + backupidx;
+
+        c_jp->mi = jp->mi;
+        c_jp->mj = jp->mj;
+    }
+
+    /* Backed up from the gameplay (bill) */
+    for (int backupidx = 0; backupidx < saved_vary.rc; backupidx++)
+    {
+        struct v_bill    *rp   = saved_vary.rv + backupidx;
+        struct chkp_bill *c_rp = last_chkp_bill + backupidx;
+
+        c_rp->mi = rp->mi;
+        c_rp->mj = rp->mj;
+    }
+    
+    /* Backed up from the gameplay (chkp) */
+    for (int backupidx = 0; backupidx < saved_vary.cc; backupidx++)
+    {
+        struct v_chkp    *cp   = saved_vary.cv + backupidx;
+        struct chkp_chkp *c_cp = last_chkp_chkp + backupidx;
+
+        c_cp->mi = cp->mi;
+        c_cp->mj = cp->mj;
     }
 
 #ifdef _DEBUG
@@ -333,8 +383,6 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int* ci)
             if (cmd_func)
             {
                 union cmd cmd   = { CMD_MOVE_TIME };
-
-                cmd.type        = CMD_MOVE_TIME;
                 cmd.movetime.mi = resetidx;
                 cmd.movetime.t  = mp->t;
                 cmd_func(&cmd);
@@ -377,31 +425,44 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int* ci)
         }
     }
 
-    if (cmd_func)
+    /* Restored from the checkpoints (goal) */
+    for (int resetidx = 0; resetidx < vary->zc; resetidx++)
     {
-        union cmd cmd = { CMD_CLEAR_ITEMS };
-        cmd_func(&cmd);
+        struct chkp_goal *last_zp = last_chkp_goal + resetidx;
+        struct v_goal    *zp      = vary->zv + resetidx;
+
+        zp->mi = last_zp->mi;
+        zp->mj = last_zp->mj;
     }
 
-    /* Restored from the checkpoints (item) */
-    for (int resetidx = 0; resetidx < vary->hc; resetidx++)
+    /* Restored from the checkpoints (jump) */
+    for (int resetidx = 0; resetidx < vary->jc; resetidx++)
     {
-        struct v_item    *hp   = vary->hv + resetidx;
-        struct chkp_item *c_hp = last_chkp_item + resetidx;
+        struct chkp_goal *last_jp = last_chkp_jump + resetidx;
+        struct v_goal    *jp      = vary->jv + resetidx;
 
-        v_cpy(hp->p, c_hp->p);
+        jp->mi = last_jp->mi;
+        jp->mj = last_jp->mj;
+    }
 
-        hp->t = c_hp->t;
-        hp->n = c_hp->n;
+    /* Restored from the checkpoints (bill) */
+    for (int resetidx = 0; resetidx < vary->rc; resetidx++)
+    {
+        struct chkp_bill *last_rp = last_chkp_bill + resetidx;
+        struct v_bill    *rp      = vary->rv + resetidx;
 
-        if (cmd_func)
-        {
-            union cmd cmd = { CMD_MAKE_ITEM };
-            v_cpy(cmd.mkitem.p, hp->p);
-            cmd.mkitem.t = hp->t;
-            cmd.mkitem.n = hp->n;
-            cmd_func(&cmd);
-        }
+        rp->mi = last_rp->mi;
+        rp->mj = last_rp->mj;
+    }
+
+    /* Restored from the checkpoints (chkp) */
+    for (int resetidx = 0; resetidx < vary->cc; resetidx++)
+    {
+        struct chkp_bill *last_cp = last_chkp_chkp + resetidx;
+        struct v_bill    *cp      = vary->cv + resetidx;
+
+        cp->mi = last_cp->mi;
+        cp->mj = last_cp->mj;
     }
 
     /* Phase 3: Finishing up loading checkpoint. */

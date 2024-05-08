@@ -27,6 +27,7 @@
 #include "solid_chkp.h"
 #endif
 #include "solid_draw.h"
+#include "solid_all.h"
 
 #ifdef MAPC_INCLUDES_CHKP
 #include "checkpoints.h" /* New: Checkpoints */
@@ -164,27 +165,7 @@ static void game_run_cmd(const union cmd *cmd)
                 break;
 
             case CMD_MAKE_ITEM:
-                /* Allocate and initialize a new item. */
-
-                if ((hp = realloc(vary->hv, sizeof (*hp) * (vary->hc + 1))))
-                {
-                    vary->hv = hp;
-                    hp = &vary->hv[vary->hc];
-
-                    vary->hc++;
-
-                    memset(hp, 0, sizeof (*hp));
-
-                    v_cpy(hp->p, cmd->mkitem.p);
-
-                    hp->t = cmd->mkitem.t;
-                    hp->n = cmd->mkitem.n;
-
-#if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
-                    if (!last_active)
-#endif
-                        max_coins += cmd->mkitem.n;
-                }
+                /* Not supported anymore. */
 
                 break;
 
@@ -193,10 +174,14 @@ static void game_run_cmd(const union cmd *cmd)
 
                 if ((idx = cmd->pkitem.hi) >= 0 && idx < vary->hc)
                 {
+                    float p[3];
+
                     hp = &vary->hv[idx];
 
+                    sol_entity_world(p, vary, hp->mi, hp->mj, hp->p);
+
                     item_color(hp, v);
-                    part_burst(hp->p, v);
+                    part_burst(p, v);
 
                     hp->t = ITEM_NONE;
                 }
@@ -326,9 +311,7 @@ static void game_run_cmd(const union cmd *cmd)
                 break;
 
             case CMD_CLEAR_ITEMS:
-                free(vary->hv);
-                vary->hv = NULL;
-                vary->hc = 0;
+                /* Not supported anymore. */
                 break;
 
             case CMD_CLEAR_BALLS:

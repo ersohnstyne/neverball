@@ -1715,6 +1715,14 @@ static void game_update_time(float dt, int b)
 
     if (b && timer_hold == 0 && jump_b == 0)
     {
+#if NB_HAVE_PB_BOTH==1
+        if (time_travel < 0.0f)
+        {
+            time_elapsed += time_travel * -1;
+            time_travel   = 0.0f;
+        }
+#endif
+
         time_elapsed += dt;
 
         if (time_limit > 0.0f
@@ -1834,7 +1842,13 @@ static int game_update_state(int bt)
             if (time_limit > 0)
                 time_limit = time_limit + value;
             else
+            {
+#if NB_HAVE_PB_BOTH==1
+                time_travel += value;
+#else
                 time_elapsed = MAX(0.0f, time_elapsed - value);
+#endif
+            }
 
             game_update_time(0.0f, bt);
 
@@ -1844,22 +1858,6 @@ static int game_update_state(int bt)
         }
 
 #if NB_HAVE_PB_BOTH==1
-        /* Time travel: Time is paused for 5 seconds. */
-
-        else if (hp->t == ITEM_2_2_0_TIMETRAVEL)
-        {
-            audio_play(AUD_2_2_0_PICK_TT, 1.0f);
-
-            audio_play(AUD_CLOCK, 1.0f);
-            audio_play(AUD_2_2_0_USE_SHARED, 1.0f);
-
-            time_travel += 5.0f;
-
-            audio_play(AUD_COIN, 1.0f);
-
-            hp->t = ITEM_NONE;
-        }
-
         /* Pow Block: Drops all coins onto the ground after activated. */
 
         else if (hp->t == ITEM_2_2_0_POWBLOCK)

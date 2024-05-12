@@ -281,6 +281,10 @@ ifeq ($(ENABLE_RADIANT_CONSOLE),1)
 	ALL_CPPFLAGS += -DENABLE_RADIANT_CONSOLE=1
 endif
 
+ifneq ($(BUILD),release)
+	ALL_CPPFLAGS += -DENABLE_VERSION=1
+endif
+
 MKLOCALVAR_CURL_PREPARED := 0
 
 ifneq ($(FS_VERSION),1)
@@ -550,9 +554,9 @@ MAPC_OBJS := \
 	share/mapc.o
 BALL_OBJS := \
 	payments/currency_curl.o\
+	share/accessibility.o\
 	share/dbg_config.o  \
 	share/st_setup.o    \
-	share/accessibility.o\
 	share/lang_gettext.o\
 	share/st_common.o   \
 	share/vec3.o        \

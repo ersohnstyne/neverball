@@ -637,7 +637,7 @@ static void campaign_load_levels(void)
         int lvl_was_offered = level_load(campaign_levelpath[i], l);
         
         l->number       = i - i_retreat;
-        l->is_locked    = (i - i_retreat) > 0;
+        l->is_locked    = (i - i_retreat) > 0 || !lvl_was_offered;
         l->is_completed = 0;
 
         if (lvl_was_offered)

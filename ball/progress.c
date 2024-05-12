@@ -542,7 +542,6 @@ static int init_level(void)
     {
         game_client_toggle_show_balls(1);
 
-        /* This method was attacking for their violentations. */
         game_client_sync(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                          !campaign_hardcore_norecordings() &&

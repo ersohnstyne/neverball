@@ -226,17 +226,8 @@ static int sol_count_geom(const struct s_base *base, int g0, int gc, int mi)
     /* given material                                                        */
 
     for (gi = 0; gi < gc; gi++)
-        if (base->gv)
-        {
-            if (base->iv)
-            {
-                if (base->gv[base->iv[g0 + gi]].mi == mi)
-                    c++;
-            }
-            else log_errorf("base->iv returned NULL!\n");
-        }
-        else log_errorf("base->gv returned NULL!\n");
-        
+        if (base->gv[base->iv[g0 + gi]].mi == mi)
+            c++;
 
     return c;
 }
@@ -249,20 +240,13 @@ static int sol_count_body(const struct b_body *bp,
     /* Count all lump geoms with the given material. */
 
     for (li = 0; li < bp->lc; li++)
-    {
         if (base->lv)
             c += sol_count_geom(base, base->lv[bp->l0 + li].g0,
                                       base->lv[bp->l0 + li].gc, mi);
-        else
-            log_errorf("base->lv returned NULL!\n");
-    }
 
     /* Count all body geoms with the given material. */
 
-    if (bp)
-        c += sol_count_geom(base, bp->g0, bp->gc, mi);
-    else
-        log_errorf("bp returned NULL!\n");
+    c += sol_count_geom(base, bp->g0, bp->gc, mi);
 
     return c;
 }
@@ -378,9 +362,6 @@ static void sol_load_mesh(struct d_mesh *mp,
                           const struct b_body *bp,
                           const struct s_draw *draw, int mi)
 {
-    assert(mp);
-    if (!mp) return;
-
     struct d_vert *vv = 0;
     struct d_geom *gv = 0;
     int           *iv = 0;
@@ -453,11 +434,6 @@ static void sol_free_mesh(struct d_mesh *mp)
 static void sol_draw_mesh(const struct d_mesh *mp,
                           struct s_rend *rend, int p)
 {
-    /* Mesh references needed. */
-
-    assert(mp);
-    if (!mp) return;
-
     /* If this mesh has material matching the given flags... */
 
     if (sol_test_mtrl(mp->mtrl, p))
@@ -546,11 +522,6 @@ static void sol_free_body(struct d_body *bp)
 
 static void sol_draw_body(const struct d_body *bp, struct s_rend *rend, int p)
 {
-    /* Body references needed. */
-
-    assert(bp);
-    if (!bp) return;
-
     int i;
 
     for (i = 0; i < bp->mc; ++i)
@@ -561,9 +532,6 @@ static void sol_draw_body(const struct d_body *bp, struct s_rend *rend, int p)
 
 int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
 {
-    if (!vary || !vary->base)
-        return 0;
-
     int i;
 
     memset(draw, 0, sizeof (struct s_draw));
@@ -625,15 +593,12 @@ void sol_free_draw(struct s_draw *draw)
 
 static void sol_draw_all(const struct s_draw *draw, struct s_rend *rend, int p)
 {
-    if (!draw || !draw->bv) return;
-
     int bi;
 
     /* Draw all meshes of all bodies matching the given material flags. */
 
     for (bi = 0; bi < draw->bc; ++bi)
-        if (draw->bv[bi].pass[p] &&
-            draw->vary && draw->vary->bv)
+        if (draw->bv[bi].pass[p])
         {
             glPushMatrix();
             {
@@ -702,8 +667,8 @@ void sol_back(const struct s_draw *draw,
               struct s_rend *rend,
               float n, float f, float t)
 {
-    assert(draw);
-    if (!draw) return;
+    if (!(draw && draw->base && draw->base->rc))
+        return;
 
     glDepthMask(GL_FALSE);
 
@@ -770,9 +735,10 @@ void sol_back(const struct s_draw *draw,
 void sol_bill(const struct s_draw *draw,
               struct s_rend *rend, const float *M, float t)
 {
-    float bill_p[3], bill_e[4], q[3];
+    float p[3];
 
-    if (!(draw && draw->base && draw->base->rc)) return;
+    if (!(draw && draw->base && draw->base->rc))
+        return;
 
     sol_bill_enable(draw);
     {
@@ -790,32 +756,25 @@ void sol_bill(const struct s_draw *draw,
 
             /* Calculate the position without modelview to preserve the billboard effect. */
 
-            sol_entity_world(q, draw->vary, draw->vary->rv[ri].mi, draw->vary->rv[ri].mj, rp->p);
+            sol_entity_world(p, draw->vary, draw->vary->rv[ri].mi, draw->vary->rv[ri].mj, rp->p);
 
             r_apply_mtrl(rend, draw->base->mtrls[rp->mi]);
 
             glPushMatrix();
             {
-                glTranslatef(q[0], q[1], q[2]);
+                glTranslatef(p[0], p[1], p[2]);
 
                 if (M && ((rp->fl & B_NOFACE) == 0)) glMultMatrixf(M);
 
                 if (fabsf(rx) > 0.0f) glRotatef(rx, 1.0f, 0.0f, 0.0f);
                 if (fabsf(ry) > 0.0f) glRotatef(ry, 0.0f, 1.0f, 0.0f);
                 if (fabsf(rz) > 0.0f) glRotatef(rz, 0.0f, 0.0f, 1.0f);
+
                 glScalef(w, h, 1.0f);
+
                 sol_draw_bill(GL_FALSE);
             }
             glPopMatrix();
-
-            bill_p[0] = 0.0f;
-            bill_p[1] = 0.0f;
-            bill_p[2] = 0.0f;
-
-            bill_e[0] = 1.0f;
-            bill_e[1] = 0.0f;
-            bill_e[2] = 0.0f;
-            bill_e[3] = 0.0f;
         }
     }
     sol_bill_disable();
@@ -947,8 +906,6 @@ static void assert_mtrl(const struct mtrl *mp)
 
 void r_color_mtrl(struct s_rend *rend, int enable)
 {
-    if (!rend) return;
-
     if (enable)
     {
         glEnable(GL_COLOR_MATERIAL);
@@ -972,12 +929,8 @@ void r_color_mtrl(struct s_rend *rend, int enable)
 
 void r_apply_mtrl(struct s_rend *rend, int mi)
 {
-    if (!rend) return;
-
     struct mtrl *mp = mtrl_get(mi);
     struct mtrl *mq = &rend->curr_mtrl;
-
-    if (!mp || !mq) return;
 
     /* Mask ignored flags. */
 
@@ -1112,13 +1065,8 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
             glEnable (GL_POINT_SPRITE);
             glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
             glPointParameterfv_(GL_POINT_DISTANCE_ATTENUATION, c);
-#if !defined(__EMSCRIPTEN__)
             glPointParameterf_ (GL_POINT_SIZE_MIN, 1);
             glPointParameterf_ (GL_POINT_SIZE_MAX, s);
-#else
-            glPointParameterf(GL_POINT_SIZE_MIN, 1);
-            glPointParameterf(GL_POINT_SIZE_MAX, s);
-#endif
         }
         else
             glDisable(GL_POINT_SPRITE);

@@ -506,8 +506,7 @@ static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
 static void game_draw_goals(struct s_rend *rend,
                             const struct game_draw *gd, float t)
 {
-    const struct s_base *base =  gd->vary.base;
-    const struct s_vary *vary = &gd->vary;
+    const struct s_base *base = gd->vary.base;
 
     /* New: Floor border damage. */
 
@@ -542,8 +541,7 @@ static void game_draw_goals(struct s_rend *rend,
 static void game_draw_jumps(struct s_rend *rend,
                             const struct game_draw *gd, float t)
 {
-    const struct s_base *base =  gd->vary.base;
-    const struct s_vary *vary = &gd->vary;
+    const struct s_base *base = gd->vary.base;
 
     /* New: Floor border damage. */
 

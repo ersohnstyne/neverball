@@ -36,12 +36,17 @@
 #endif
 #endif
 
+
+
 /*
  * HACK: Thank god using FindFirstFileA by Microsoft Elite Developers!
  * On Unix and linux, or using MinGW, include headers will be used as: dirent.h
  * - Ersohn Styne
  */
 
+#if ENABLE_OPENDRIVEAPI!=0
+#include <opendriveapi.h>
+#else
 #if _WIN32
 #if !defined(_MSC_VER)
 #error Security compilation error: This was already done with FindClose, \
@@ -55,6 +60,7 @@
 #else
 #pragma message(__FILE__ ": Using code compilation: GCC + G++")
 #endif
+#endif
 
 /*
  * Enumerate files in a system directory. Returns a List of allocated filenames.
@@ -63,8 +69,10 @@ List dir_list_files(const char *path)
 {
     List files = NULL;
 
+#if ENABLE_OPENDRIVEAPI!=0
+    files = (List) opendriveapi_dir_list_files(path);
+#else
     char outpath[MAXSTR];
-
 #if _WIN32 && _MSC_VER
     sprintf_s(outpath, MAXSTR, "%s\\*", path);
 
@@ -108,6 +116,7 @@ List dir_list_files(const char *path)
 
         closedir(dir);
     }
+#endif
 #endif
 
     return files;
@@ -211,6 +220,9 @@ void dir_free(Array items)
  */
 int dir_exists(const char *path)
 {
+#if ENABLE_OPENDRIVEAPI!=0
+    return opendriveapi_dir_exists(path);
+#else
 #if _WIN32 && _MSC_VER
     DWORD file_attr = GetFileAttributesA(path);
 
@@ -230,5 +242,6 @@ int dir_exists(const char *path)
         return 1;
     }
     return 0;
+#endif
 #endif
 }

@@ -1,4 +1,17 @@
 -------------------------------------------------------------------------------
+New in 2.2
+
+THE NEW SMB-UPDATE IS HERE! Are you waiting for?
+
+* New: Movable coins and items via moving objects.
+* New: All beams will now be able to attached onto the floor correctly, when using
+  moving floors for all maps.
+* New: Optional usage to enable dependencies for OpenDriveAPI o be tested:
+  ENABLE_OPENDRIVEAPI=1
+
+/ES Entertainment (ersohnstyne)
+
+-------------------------------------------------------------------------------
 New in 2.1.1
 
 * Changed policy: Even more security compilations for Windows, which prevents

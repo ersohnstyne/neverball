@@ -25,8 +25,8 @@
 
 /* Game UI SFX */
 
-#define AUD_INTRO_THROW   "snd/intro-throw.ogg"
-#define AUD_INTRO_SHATTER "snd/intro-shatter.ogg"
+#define AUD_INTRO_LOGO "snd/pennygames_sign.ogg"
+#define AUD_UI_SHATTER "snd/intro-shatter.ogg"
 
 #define AUD_CLOCK    "snd/clock.ogg"
 #define AUD_DISABLED "snd/disabled.ogg"
@@ -50,7 +50,6 @@
 /* 2.2 narrators */
 
 #define AUD_2_2_0_PICK_POW _("snd/2.2/pick_pow.ogg")
-#define AUD_2_2_0_PICK_TT  _("snd/2.2/pick_tt.ogg")
 #define AUD_2_2_0_PICK_SS  _("snd/2.2/pick_ss.ogg")
 
 /* Generic SFX */
@@ -70,7 +69,6 @@
 
 #define AUD_2_2_0_USE_SHARED "snd/2.2/use_shared.ogg"
 #define AUD_2_2_0_USE_POW    "snd/2.2/use_pow.ogg"
-#define AUD_2_2_0_USE_TT     "snd/2.2/use_tt.ogg"
 #define AUD_2_2_0_USE_SS     "snd/2.2/use_ss.ogg"
 
 /* Switchball SFX */

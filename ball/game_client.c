@@ -222,8 +222,7 @@ static void game_run_cmd(const union cmd *cmd)
 #if NB_HAVE_PB_BOTH==1
                     /* 2.2 narrator sound equivalent. */
 
-                    else if (strcmp(AUD_2_2_0_PICK_TT, cmd->sound.n) == 0 ||
-                             strcmp(AUD_2_2_0_PICK_SS, cmd->sound.n) == 0)
+                    else if (strcmp(AUD_2_2_0_PICK_SS, cmd->sound.n) == 0)
                         audio_narrator_play(cmd->sound.n);
 #endif
                     else audio_play(cmd->sound.n, cmd->sound.a);

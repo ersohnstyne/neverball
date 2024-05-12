@@ -187,9 +187,8 @@
 
 /* 2.2 Item types. */
 
-#define ITEM_2_2_0_TIMETRAVEL 5
-#define ITEM_2_2_0_SUPERSPEED 6
-#define ITEM_2_2_0_POWBLOCK   7
+#define ITEM_2_2_0_SUPERSPEED 5
+#define ITEM_2_2_0_POWBLOCK   6
 
 #endif
 

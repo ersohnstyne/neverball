@@ -350,10 +350,9 @@ static int title_action(int i)
 
 static int party_indiv_controllers = 0;
 
-static int gamepadinfo_id = 0;
 static int gamepadinfo_controller_ids[4];
 
-static int title_enter(struct state* st, struct state* prev)
+static int title_enter(struct state *st, struct state *prev)
 {
     if (party_indiv_controllers)
     {
@@ -363,91 +362,102 @@ static int title_enter(struct state* st, struct state* prev)
         joy_active_cursor(3, 0);
     }
 
-    int id, jd, kd;
+    int root_id, id, jd, kd;
 
     /* Build the title GUI. */
 
-    if ((id = gui_vstack(0)))
+    if ((root_id = gui_root()))
     {
-        char os_env[MAXSTR];
+        if ((id = gui_vstack(root_id)))
+        {
+            char os_env[MAXSTR];
 #if ENABLE_HMD
-        sprintf(os_env, _("%s Edition"), "OpenHMD");
+            sprintf(os_env, _("%s Edition"), "OpenHMD");
 #else
-        if (current_platform == PLATFORM_PC)
-        {
-#ifdef __linux__
-            sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_CINMAMON);
-#else
-            sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_WINDOWS);
-#endif
-        }
-        else if (current_platform == PLATFORM_XBOX)
-        {
-#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
-            sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_360);
-#else
-            sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_ONE);
-#endif
-        }
-        else if (current_platform == PLATFORM_PS)
-            sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_PS);
-        else if (current_platform == PLATFORM_SWITCH)
-            sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_SWITCH);
-#endif
-
-        if ((jd = gui_vstack(id)))
-        {
-            gui_title_header(jd, "  Neverputt  ", GUI_LRG, 0, 0);
-#if NB_STEAM_API==1
-            gui_label(jd, _("Steam Valve Edition"), GUI_SML, GUI_COLOR_WHT);
-#else
-            gui_label(jd, os_env, GUI_SML, GUI_COLOR_WHT);
-#endif
-            gui_set_rect(jd, GUI_ALL);
-        }
-
-        gui_space(id);
-
-        if ((jd = gui_harray(id)))
-        {
-            gui_filler(jd);
-
-            if ((kd = gui_varray(jd)))
+            if (current_platform == PLATFORM_PC)
             {
-                if (config_cheat())
-                    play_id = gui_start(kd, gt_prefix("menu^Cheat"),
-                                            GUI_MED, TITLE_PLAY, 1);
-                else
-                    play_id = gui_start(kd, gt_prefix("menu^Play"),
-                                            GUI_MED, TITLE_PLAY, 1);
+#ifdef __linux__
+                sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_CINMAMON);
+#else
+                sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_WINDOWS);
+#endif
+            }
+            else if (current_platform == PLATFORM_XBOX)
+            {
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
+                sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_360);
+#else
+                sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_ONE);
+#endif
+            }
+            else if (current_platform == PLATFORM_PS)
+                sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_PS);
+            else if (current_platform == PLATFORM_SWITCH)
+                sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_SWITCH);
+#endif
 
-                gui_state(kd, gt_prefix("menu^Help"),    GUI_MED, TITLE_HELP, 0);
-                gui_state(kd, gt_prefix("menu^Options"), GUI_MED, TITLE_CONF, 0);
-
-                /* Comment it, if you avoid quit the game */
-                //gui_state(kd, gt_prefix("menu^Exit"),    GUI_MED, TITLE_EXIT, 0);
-
-                /* Hilight the start button. */
-
-                gui_set_hilite(play_id, 1);
+            if ((jd = gui_vstack(id)))
+            {
+                gui_title_header(jd, "  Neverputt  ", GUI_LRG, 0, 0);
+#if NB_STEAM_API==1
+                gui_label(jd, _("Steam Valve Edition"), GUI_SML, GUI_COLOR_WHT);
+#else
+                gui_label(jd, os_env, GUI_SML, GUI_COLOR_WHT);
+#endif
+                gui_set_rect(jd, GUI_ALL);
             }
 
-            gui_filler(jd);
+            gui_space(id);
+
+            if ((jd = gui_harray(id)))
+            {
+                gui_filler(jd);
+
+                if ((kd = gui_varray(jd)))
+                {
+                    if (config_cheat())
+                        play_id = gui_start(kd, gt_prefix("menu^Cheat"),
+                            GUI_MED, TITLE_PLAY, 1);
+                    else
+                        play_id = gui_start(kd, gt_prefix("menu^Play"),
+                            GUI_MED, TITLE_PLAY, 1);
+
+                    gui_state(kd, gt_prefix("menu^Help"), GUI_MED, TITLE_HELP, 0);
+                    gui_state(kd, gt_prefix("menu^Options"), GUI_MED, TITLE_CONF, 0);
+
+                    /* Comment it, if you avoid quit the game */
+                    //gui_state(kd, gt_prefix("menu^Exit"),    GUI_MED, TITLE_EXIT, 0);
+
+                    /* Hilight the start button. */
+
+                    gui_set_hilite(play_id, 1);
+                }
+
+                gui_filler(jd);
+            }
+            gui_layout(id, 0, 0);
         }
-        gui_layout(id, 0, 0);
-    }
 
-    /* Build the gamepad GUI. */
+#if ENABLE_VERSION
+        if ((id = gui_label(root_id, "Neverputt " VERSION, GUI_TNY, gui_wht2, gui_wht2)))
+        {
+            gui_clr_rect(id);
+            gui_layout(id, -1, -1);
+        }
+#endif
 
-    if (gamepadinfo_id = gui_hstack(0))
-    {
-        gamepadinfo_controller_ids[3] = gui_label(gamepadinfo_id, _("P4 XXX"), GUI_SML, gui_gry, gui_gry);
-        gamepadinfo_controller_ids[2] = gui_label(gamepadinfo_id, _("P3 XXX"), GUI_SML, gui_gry, gui_gry);
-        gamepadinfo_controller_ids[1] = gui_label(gamepadinfo_id, _("P2 XXX"), GUI_SML, gui_gry, gui_gry);
-        gamepadinfo_controller_ids[0] = gui_label(gamepadinfo_id, _("P1 XXX"), GUI_SML, gui_wht, gui_red);
+        /* Build the gamepad GUI. */
 
-        gui_layout(gamepadinfo_id, 0, 1);
-        gui_set_rect(gamepadinfo_id, GUI_S);
+        if ((id = gui_hstack(root_id)))
+        {
+            gamepadinfo_controller_ids[3] = gui_label(id, _("P4 XXX"), GUI_SML, gui_gry, gui_gry);
+            gamepadinfo_controller_ids[2] = gui_label(id, _("P3 XXX"), GUI_SML, gui_gry, gui_gry);
+            gamepadinfo_controller_ids[1] = gui_label(id, _("P2 XXX"), GUI_SML, gui_gry, gui_gry);
+            gamepadinfo_controller_ids[0] = gui_label(id, _("P1 XXX"), GUI_SML, gui_wht, gui_red);
+
+            gui_layout(id, 0, 1);
+            gui_set_rect(id, GUI_S);
+        }
     }
 
     if (prev == &st_title)
@@ -461,7 +471,6 @@ static int title_enter(struct state* st, struct state* prev)
 
 static void title_leave(struct state *st, struct state *next, int id)
 {
-    gui_delete(gamepadinfo_id);
     gui_delete(id);
 
     if (next == &st_conf ||
@@ -479,7 +488,6 @@ static void title_paint(int id, float t)
 {
     game_draw(0, t);
     gui_paint(id);
-    gui_paint(gamepadinfo_id);
 
     xbox_control_title_gui_paint();
 }
@@ -598,12 +606,6 @@ static int title_buttn(int b, int d)
             return title_action(TITLE_EXIT);
     }
     return 1;
-}
-
-static void title_fade(float alpha)
-{
-    xbox_control_gui_set_alpha(alpha);
-    gui_set_alpha(gamepadinfo_id, alpha, GUI_ANIMATION_N_CURVE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2396,7 +2398,7 @@ struct state st_title = {
     title_buttn,
     NULL,
     NULL,
-    title_fade
+    shared_fade
 };
 
 struct state st_help = {

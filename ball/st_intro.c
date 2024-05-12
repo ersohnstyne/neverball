@@ -136,11 +136,7 @@ struct state st_server_maintenance;
 
 /*---------------------------------------------------------------------------*/
 
-static int iframe;
-static int image_id;
 static int tip_id;
-
-static int intro_soundqueue[2];
 
 #if DEVEL_BUILD
 static int devel_label_id;
@@ -282,15 +278,7 @@ static int intro_gui(void)
 #if DEVEL_BUILD
         /* Only debug and development builds */
 
-        char dev_str[MAXSTR];
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(dev_str, MAXSTR,
-#else
-        sprintf(dev_str,
-#endif
-                "   %s   ", _("DEVELOPMENT BUILD"));
-
-        if ((devel_label_id = gui_label(root_id, dev_str,
+        if ((devel_label_id = gui_label(root_id, _("DEVELOPMENT BUILD"),
                                                  GUI_SML, GUI_COLOR_RED)))
         {
             gui_clr_rect(devel_label_id);
@@ -300,7 +288,9 @@ static int intro_gui(void)
 
         /* Developer and publisher logos */
 
-        if ((image_id = gui_image(root_id, "gui/intro/0000.jpg", ww, hh)))
+        int image_id;
+
+        if ((image_id = gui_image(root_id, "gui/intro/pg_logo.jpg", ww, hh)))
         {
             gui_clr_rect(image_id);
             gui_layout(image_id, 0, 0);
@@ -312,15 +302,13 @@ static int intro_gui(void)
 
 static int intro_enter(struct state *st, struct state *prev)
 {
+    audio_play(AUD_INTRO_LOGO, 1.0f);
+
     audio_music_fade_out(1.0f);
 
     if (!intro_init)
     {
-        intro_soundqueue[0] = 0;
-        intro_soundqueue[1] = 0;
         intro_done = 0;
-        iframe = 0;
-
         intro_init = 1;
     }
 
@@ -381,33 +369,9 @@ static int intro_click(int b, int d)
     return 1;
 }
 
-static float frame_interval = 0;
-
 static void intro_timer(int id, float dt)
 {
-    frame_interval += MIN(INTRO_ANIMATION_60_FPS, dt);
-    if (frame_interval >= INTRO_ANIMATION_60_FPS)
-    {
-        frame_interval = 0;
-        iframe += 1;
-    }
-
-    if (intro_soundqueue[0] == 1)
-    {
-        intro_soundqueue[0] = 2;
-        audio_play(AUD_INTRO_THROW, 1.0f);
-    }
-    if (intro_soundqueue[1] == 1)
-    {
-        intro_soundqueue[1] = 2;
-        audio_play(AUD_INTRO_SHATTER, 1.0f);
-    }
-
-    if (iframe > 1 && intro_soundqueue[0] == 0)
-        intro_soundqueue[0] = 1;
-    if (iframe > 29 && intro_soundqueue[1] == 0)
-        intro_soundqueue[1] = 1;
-    if (iframe > 160 && !intro_done)
+    if (time_state() > 2 && !intro_done)
     {
         intro_done = 1;
         int val = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
@@ -426,16 +390,6 @@ static void intro_timer(int id, float dt)
     }
 
     if (intro_done) return;
-
-    char introattr[MAXSTR];
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(introattr, MAXSTR,
-#else
-    sprintf(introattr,
-#endif
-            "gui/intro/%04d.jpg", iframe);
-
-    gui_set_image(image_id, introattr);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -830,7 +784,6 @@ static int intro_restore_gui(void)
 
 static int intro_restore_enter(struct state *st, struct state *prev)
 {
-    iframe = 0;
     return intro_restore_gui();
 }
 
@@ -1086,10 +1039,7 @@ static void cleanup_screensaver(void)
 
 static int screensaver_enter(struct state *st, struct state *prev)
 {
-    intro_soundqueue[0] = 0;
-    intro_soundqueue[1] = 0;
     intro_done = 0;
-    iframe = 0;
 
     game_client_init_studio(1);
 

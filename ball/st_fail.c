@@ -289,7 +289,7 @@ static int fail_gui(void)
 #endif
                             )
                             audio_music_fade_out(0.0f);
-                        audio_play(AUD_INTRO_SHATTER, 1.0f);
+                        audio_play(AUD_UI_SHATTER, 1.0f);
 
 #ifdef COVID_HIGH_RISK
                         /* Unsaved replay files dissapear during covid high risks! */
@@ -403,7 +403,7 @@ static int fail_gui(void)
 #endif
                             )
                             audio_music_fade_out(0.0f);
-                        audio_play(AUD_INTRO_SHATTER, 1.0f);
+                        audio_play(AUD_UI_SHATTER, 1.0f);
                         nosaveid = gui_multi(jd, FAIL_ERROR_REPLAY,
                                                  GUI_SML, GUI_COLOR_RED);
                         gui_pulse(nosaveid, 1.2f);
@@ -465,7 +465,7 @@ static int fail_gui(void)
 #endif
                             )
                             audio_music_fade_out(0.0f);
-                        audio_play(AUD_INTRO_SHATTER, 1.0f);
+                        audio_play(AUD_UI_SHATTER, 1.0f);
                         nosaveid = gui_multi(jd, _("You can save new replays only once!"), GUI_SML, GUI_COLOR_RED);
                         gui_pulse(nosaveid, 1.2f);
 
@@ -531,7 +531,7 @@ static int fail_gui(void)
 #endif
                             )
                             audio_music_fade_out(0.0f);
-                        audio_play(AUD_INTRO_SHATTER, 1.0f);
+                        audio_play(AUD_UI_SHATTER, 1.0f);
                         gui_multi(jd, FAIL_TRANSFER_MEMBER_1, GUI_SML, GUI_COLOR_RED);
                     }
 #endif

@@ -301,7 +301,7 @@ static int over_enter(struct state *st, struct state *prev)
     {
         audio_music_fade_out(0.0f);
         audio_narrator_play(AUD_OVER);
-        audio_play(AUD_INTRO_SHATTER, 1.0f);
+        audio_play(AUD_UI_SHATTER, 1.0f);
 
 #if NB_HAVE_PB_BOTH==1
         if (CHECK_ACCOUNT_BANKRUPT)

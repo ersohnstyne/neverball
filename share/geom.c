@@ -283,8 +283,8 @@ enum
     GEOM_CLOCK15,
     GEOM_CLOCK30,
 #if NB_HAVE_PB_BOTH==1
-    GEOM_PUTIMETRAVEL,
     GEOM_PUSUPERSPEED,
+    GEOM_PUPOWBLOCK,
 #endif
 
     GEOM_MAX
@@ -496,8 +496,8 @@ static struct s_draw *item_file(const struct v_item *hp)
                 break;
 
 #if NB_HAVE_PB_BOTH==1
-            case ITEM_2_2_0_TIMETRAVEL: g = GEOM_PUTIMETRAVEL; break;
             case ITEM_2_2_0_SUPERSPEED: g = GEOM_PUSUPERSPEED; break;
+            case ITEM_2_2_0_POWBLOCK:   g = GEOM_PUPOWBLOCK;   break;
 #endif
 
             default:

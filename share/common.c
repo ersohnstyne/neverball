@@ -32,6 +32,11 @@
 #endif
 #endif
 
+#include "common.h"
+#include "fs.h"
+
+#if ENABLE_OPENDRIVEAPI!=0
+#include <opendriveapi.h>
 #if _WIN32
 #if !defined(_MSC_VER)
 #error Security compilation error: This was already done with GetFileAttributesA \
@@ -43,16 +48,14 @@
 #pragma message(__FILE__ ": Using code compilation: Microsoft Visual Studio")
 #endif
 #else
-/*
- * Relying on MinGW to provide, that uses from GetFileAttributes() (Windows.h).
- */
+ /*
+  * Relying on MinGW to provide, that uses from GetFileAttributes() (Windows.h).
+  */
 #include <unistd.h>   /* access() */
 
 #pragma message(__FILE__ ": Using code compilation: GCC + G++")
 #endif
-
-#include "common.h"
-#include "fs.h"
+#endif
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
@@ -60,6 +63,10 @@
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
+#endif
+
+#if ENABLE_OPENDRIVEAPI!=0
+#pragma comment(lib, "opendriveapi_ascii.lib")
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -271,6 +278,9 @@ const char *date_to_str(time_t i)
 
 int file_exists(const char *path)
 {
+#if ENABLE_OPENDRIVEAPI!=0
+    return opendriveapi_file_exists(path);
+#else
 #if _MSC_VER
     DWORD file_attr = GetFileAttributesA(path);
     
@@ -285,6 +295,7 @@ int file_exists(const char *path)
            file_attr & FILE_ATTRIBUTE_HIDDEN;
 #else
     return (access(path, F_OK) == 0);
+#endif
 #endif
 }
 
@@ -347,9 +358,9 @@ int path_is_abs(const char *path)
 char *path_join(const char *head, const char *tail)
 {
 #ifdef _WIN32
-    return *head ? concat_string(head, "\\", tail, NULL) : strdup(tail);
+    return (head && *head) ? concat_string(head, "\\", tail, NULL) : strdup(tail);
 #else
-    return *head ? concat_string(head, "/", tail, NULL) : strdup(tail);
+    return (head && *head) ? concat_string(head, "/", tail, NULL) : strdup(tail);
 #endif
 }
 

@@ -359,7 +359,7 @@ static void gui_geom_text(int id, int x, int y, int w, int h,
         color[0] = gui_shd[0];
         color[1] = gui_shd[1];
         color[2] = gui_shd[2];
-        color[3] = c0[3] < 0xFF ? (GLubyte)(c0[3] * 0.5f) : gui_shd[3];
+        color[3] = c0[3] < 0xFF ? (GLubyte) (c0[3] * 0.5f) : gui_shd[3];
 
         /* Generate vertex data for the colored text and its shadow. */
 

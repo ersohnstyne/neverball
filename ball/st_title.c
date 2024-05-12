@@ -987,7 +987,7 @@ static int title_gui(void)
         SAFECPY(gameversion, VERSION);
 
         const int version_id = gui_multi(root_id, gameversion, GUI_TNY, GUI_COLOR_WHT);
-        const int copyright_id = gui_label(root_id, "© 2024 Neverball Authors", GUI_TNY, GUI_COLOR_WHT);
+        const int copyright_id = gui_label(root_id, "� 2024 Neverball Authors", GUI_TNY, GUI_COLOR_WHT);
 
         gui_set_rect(version_id, GUI_NW);
         gui_set_rect(copyright_id, GUI_NE);

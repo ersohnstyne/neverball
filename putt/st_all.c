@@ -33,6 +33,7 @@
 #include "course.h"
 #include "config.h"
 #include "video.h"
+#include "version.h"
 
 #include "st_all.h"
 #include "st_conf.h"
@@ -466,7 +467,7 @@ static int title_enter(struct state *st, struct state *prev)
     course_init();
     course_rand();
 
-    return id;
+    return root_id;
 }
 
 static void title_leave(struct state *st, struct state *next, int id)

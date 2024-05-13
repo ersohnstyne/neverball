@@ -469,6 +469,14 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
         return (gd.state = 0);
     }
 
+#if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
+    if (last_active)
+    {
+        int chkp_id = -1;
+        checkpoints_respawn(&gd.vary, NULL, &chkp_id);
+    }
+#endif
+
     if (!sol_load_draw(&gd.draw, &gd.vary, config_get_d(CONFIG_SHADOW)))
     {
         sol_free_vary(&gd.vary);
@@ -668,6 +676,14 @@ int  game_client_init(const char *file_name)
         game_base_free(NULL);
         return (gd.state = 0);
     }
+
+#if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
+    if (last_active)
+    {
+        int chkp_id = -1;
+        checkpoints_respawn(&gd.vary, NULL, &chkp_id);
+    }
+#endif
 
     if (!sol_load_draw(&gd.draw, &gd.vary, config_get_d(CONFIG_SHADOW)))
     {

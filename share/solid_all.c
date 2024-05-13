@@ -727,7 +727,7 @@ int sol_chkp_test(struct s_vary *vary, cmd_fn cmd_func, int ui, int *o_ci)
 
     for (ci = 0; ci < vary->cc; ci++)
     {
-        struct v_chkp* cp = vary->cv + ci;
+        struct v_chkp *cp = vary->cv + ci;
 
         float d, r[3];
 

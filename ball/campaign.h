@@ -91,12 +91,12 @@ void campaign_theme_quit(void);
 
 struct level *campaign_get_level(int i);
 
-int campaign_career_unlocked(void);
+int  campaign_career_unlocked(void);
 
-int campaign_hardcore(void);
+int  campaign_hardcore(void);
 void campaign_hardcore_nextlevel(void);
-int campaign_hardcore_norecordings(void);
-int campaign_hardcore_unlocked(void);
+int  campaign_hardcore_norecordings(void);
+int  campaign_hardcore_unlocked(void);
 void campaign_hardcore_set_coordinates(float, float);
 void campaign_hardcore_play(int);
 void campaign_hardcore_quit(void);
@@ -104,11 +104,11 @@ struct campaign_hardcore_mode campaign_get_hardcore_data(void);
 
 /*---------------------------------------------------------------------------*/
 
-int campaign_load_camera_box_trigger(const char *);
-void campaign_reset_camera_box_trigger(void);
+int                              campaign_load_camera_box_trigger(const char *);
+void                             campaign_reset_camera_box_trigger(void);
 struct campaign_cam_box_trigger *campaign_get_camera_box_trigger(int);
-int campaign_camera_box_trigger_count(void);
-int campaign_camera_box_trigger_test(struct s_vary *, int);
+int                              campaign_camera_box_trigger_count(void);
+int                              campaign_camera_box_trigger_test(struct s_vary *, int);
 
 /*---------------------------------------------------------------------------*/
 

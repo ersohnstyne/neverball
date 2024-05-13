@@ -601,7 +601,7 @@ static void game_draw_chkps(struct s_rend *rend,
             {
                 glTranslatef(chkp_p[0], chkp_p[1], chkp_p[2]);
                 glRotatef(V_DEG(a), u[0], u[1], u[2]);
-                chkp_draw(rend, base->jv[i].p, base->jv[i].r, 1.0f, t);
+                chkp_draw(rend, base->cv[i].p, base->cv[i].r, 1.0f, t);
             }
             glPopMatrix();
         }

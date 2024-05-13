@@ -865,7 +865,7 @@ static int campaign_action(int tok, int val)
             audio_play(AUD_STARTGAME, 1.0f);
             game_fade(+4.0);
 
-            campaign_load_camera_box_trigger(level_name(curr_level()));
+            //campaign_load_camera_box_trigger(level_name(curr_level()));
 
             if (progress_play(campaign_get_level(val)))
                 return goto_play_level();

@@ -250,48 +250,11 @@ int checkpoints_load(void)
     return 0;
 }
 
-void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int* ci)
+void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
 {
     checkpoints_busy = 1;
 
-    /* Phase 1: Obtain the checkpoint index. */
-
-    assert(ci);
-
-    /* Restored from the checkpoints */
-    for (int resetidx = 0; resetidx < vary->cc; resetidx++)
-    {
-        struct v_chkp *cp = vary->cv + resetidx;
-
-        if (resetidx == *ci)
-        {
-            cp->e = 1;
-
-            if (cmd_func)
-            {
-                union cmd cmd    = { CMD_CHKP_ENTER };
-                cmd.chkpenter.ci = resetidx;
-                cmd_func(&cmd);
-            }
-
-            if (cp->f != 1)
-            {
-                cp->f = 1;
-
-                if (cmd_func)
-                {
-                    union cmd cmd     = { CMD_CHKP_TOGGLE };
-                    cmd.chkptoggle.ci = resetidx;
-                    cmd_func(&cmd);
-                }
-
-                if (*ci == -1)
-                    *ci = resetidx;
-            }
-        }
-    }
-
-    /* Phase 2: Restore SOL data's simulation from checkpoint. */
+    /* Restore SOL data's simulation from checkpoint. */
 
     /* Restored from the checkpoints */
     for (int resetidx = 0; resetidx < vary->uc; resetidx++)
@@ -458,14 +421,41 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int* ci)
     /* Restored from the checkpoints (chkp) */
     for (int resetidx = 0; resetidx < vary->cc; resetidx++)
     {
-        struct chkp_bill *last_cp = last_chkp_chkp + resetidx;
-        struct v_bill    *cp      = vary->cv + resetidx;
+        struct chkp_chkp *last_cp = last_chkp_chkp + resetidx;
+        struct v_chkp    *cp      = vary->cv + resetidx;
+
+        if (ci && resetidx == *ci)
+        {
+            cp->e = 1;
+
+            if (cmd_func)
+            {
+                union cmd cmd    = { CMD_CHKP_ENTER };
+                cmd.chkpenter.ci = resetidx;
+                cmd_func(&cmd);
+            }
+
+            if (cp->f != 1)
+            {
+                cp->f = 1;
+
+                if (cmd_func)
+                {
+                    union cmd cmd     = { CMD_CHKP_TOGGLE };
+                    cmd.chkptoggle.ci = resetidx;
+                    cmd_func(&cmd);
+                }
+
+                if (*ci == -1)
+                    *ci = resetidx;
+            }
+        }
 
         cp->mi = last_cp->mi;
         cp->mj = last_cp->mj;
     }
 
-    /* Phase 3: Finishing up loading checkpoint. */
+    /* Finishing up loading checkpoint. */
 
     checkpoints_busy = 0;
 

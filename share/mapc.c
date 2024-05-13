@@ -3960,7 +3960,6 @@ int main(int argc, char *argv[])
                 }
 
                 sol_stor_base(&f, base_name(dst));
-                free_file(&f);
 
                 if (!skip_verify)
                     interactive_web();
@@ -3981,6 +3980,7 @@ int main(int argc, char *argv[])
             dump_file(&f, dst, (time1.tv_sec  - time0.tv_sec) +
                                (time1.tv_usec - time0.tv_usec) / 1000000.0);
 #endif
+            free_file(&f);
         }
 
 #if ENABLE_RADIANT_CONSOLE

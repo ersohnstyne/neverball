@@ -205,30 +205,20 @@ void sol_body_e(float e[4],
 {
     if (mi >= 0)
     {
-        const struct v_move *mp = vary->mv + mi;
+        const struct vec4 rot = get_move_rot(vary, mi, dt);
 
-        const struct b_path *pp = vary->base->pv + mp->pi;
-        const struct b_path *pq = vary->base->pv + pp->pi;
-
-        if (pp->fl & P_ORIENTED || pq->fl & P_ORIENTED)
-        {
-            float s;
-
-            if (vary->pv[mp->pi].f)
-                s = (mp->t + dt) / pp->t;
-            else
-                s = mp->t / pp->t;
-
-            q_slerp(e, pp->e, pq->e, pp->s ? erp(s) : s);
-
-            return;
-        }
+        e[0] = rot.w;
+        e[1] = rot.x;
+        e[2] = rot.y;
+        e[3] = rot.z;
     }
-
-    e[0] = 1.0f;
-    e[1] = 0.0f;
-    e[2] = 0.0f;
-    e[3] = 0.0f;
+    else
+    {
+        e[0] = 1.0f;
+        e[1] = 0.0f;
+        e[2] = 0.0f;
+        e[3] = 0.0f;
+    }
 }
 
 /*

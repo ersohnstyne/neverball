@@ -195,6 +195,7 @@
 /* Path flags. */
 
 #define P_ORIENTED 1
+#define P_PARENTED 2
 
 /*---------------------------------------------------------------------------*/
 
@@ -280,6 +281,9 @@ struct b_path
     int fl;                                    /* flags                      */
 
     /* TODO: merge enable and smooth into flags, somehow. */
+
+    int p0;
+    int p1;
 };
 
 struct b_body

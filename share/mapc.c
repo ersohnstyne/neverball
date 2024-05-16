@@ -840,6 +840,12 @@ static void move_bill(struct s_base *fp,
     v_sub(rp->p, rp->p, fp->pv[rp->p0].p);
 }
 
+static void move_path(struct s_base *fp,
+                      struct b_path *pp)
+{
+    v_sub(pp->p, pp->p, fp->pv[pp->p0].p);
+}
+
 #ifdef MAPC_INCLUDES_CHKP
 static void move_chkp(struct s_base *fp,
                       struct b_chkp *cp)
@@ -875,6 +881,10 @@ static void move_file(struct s_base *fp)
     for (i = 0; i < fp->rc; i++)
         if (fp->rv[i].p0 >= 0)
             move_bill(fp, fp->rv + i);
+
+    for (i = 0; i < fp->pc; i++)
+        if (fp->pv[i].p0 >= 0)
+            move_path(fp, fp->pv + i);
 
 #ifdef MAPC_INCLUDES_CHKP
     for (i = 0; i < fp->cc; i++)
@@ -1319,13 +1329,27 @@ static void make_path(struct s_base *fp,
     pp->f    = 1;
     pp->s    = 1;
 
+    pp->p0 = pp->p1 = -1;
+
     for (i = 0; i < c; i++)
     {
         if (strcmp(k[i], "targetname") == 0)
             make_sym(SYM_PATH, v[i], pi);
 
-        if (strcmp(k[i], "target") == 0)
+        if (strcmp(k[i], "target") == 0 || strcmp(k[i], "target1") == 0)
             make_ref(SYM_PATH, v[i], &pp->pi);
+
+        if (strcmp(k[i], "target2") == 0)
+        {
+            make_ref(SYM_PATH, v[i], &pp->p0);
+            pp->fl |= P_PARENTED;
+        }
+
+        if (strcmp(k[i], "target3") == 0)
+        {
+            make_ref(SYM_PATH, v[i], &pp->p1);
+            pp->fl |= P_PARENTED;
+        }
 
         if (strcmp(k[i], "state") == 0)
             pp->f = atoi(v[i]);

@@ -880,21 +880,35 @@ static void move_file(struct s_base *fp)
 
     if (fp->pc > 0)
     {
-        float(*posv)[3] = calloc(fp->pc, sizeof(float[3]));
+        float (*posv)[3] = calloc(fp->pc, sizeof (float[3]));
 
         if (posv)
         {
             for (i = 0; i < fp->pc; i++)
             {
-                struct b_path* pp = fp->pv + i;
+                struct b_path *pp = fp->pv + i;
 
                 if (pp->p0 >= 0)
                 {
-                    struct b_path* pq = fp->pv + pp->p0;
+                    struct b_path *pq = fp->pv + pp->p0;
 
                     v_sub(posv[i], pp->p, pq->p);
                 }
             }
+
+            for (i = 0; i < fp->pc; i++)
+            {
+                struct b_path *pp = fp->pv + i;
+
+                if (pp->p0 >= 0)
+                    v_cpy(fp->pv[i].p, posv[i]);
+            }
+
+            free(posv);
+            posv = NULL;
+        }
+    }
+}
 
             for (i = 0; i < fp->pc; i++)
             {

@@ -140,13 +140,13 @@ static struct vec3 get_path_pos(const struct s_vary *vary, int pi, float dt)
     {
         float p[3], r[4];
 
-        q_mul(r, (float*)&rot, base->e);
+        q_mul(r, (float *) &rot, base->e);
         // q_conj(r, r);
         q_rot(p, r, base->p);
-        v_add((float*)&pos, (float*)&pos, p);
+        v_add((float *) &pos, (float *) &pos, p);
     }
     else
-        v_cpy((float*)&pos, base->p);
+        v_cpy((float *) &pos, base->p);
 
     return pos;
 }

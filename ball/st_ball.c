@@ -88,29 +88,33 @@ static int has_ball_sols(struct dir_item *item)
 {
     char *tmp_path = strdup(item->path);
     char *solid, *inner, *outer;
+    char *solid_x, *inner_x, *outer_x;
     int yes = 0;
 
-    solid = concat_string(tmp_path,
-                          "/",
-                          base_name(tmp_path),
-                          "-solid.sol",
-                          NULL);
-    inner = concat_string(tmp_path,
-                          "/",
-                          base_name(tmp_path),
-                          "-inner.sol",
-                          NULL);
-    outer = concat_string(tmp_path,
-                          "/",
-                          base_name(tmp_path),
-                          "-outer.sol",
-                          NULL);
+    solid = concat_string(tmp_path, "/", base_name(tmp_path),
+                          "-solid.sol", NULL);
+    inner = concat_string(tmp_path, "/", base_name(tmp_path),
+                          "-inner.sol", NULL);
+    outer = concat_string(tmp_path, "/", base_name(tmp_path),
+                          "-outer.sol", NULL);
 
-    yes = (fs_exists(solid) || fs_exists(inner) || fs_exists(outer));
+    solid_x = concat_string(tmp_path, "/", base_name(tmp_path),
+                            "-solid.solx", NULL);
+    inner_x = concat_string(tmp_path, "/", base_name(tmp_path),
+                            "-inner.solx", NULL);
+    outer_x = concat_string(tmp_path, "/", base_name(tmp_path),
+                            "-outer.solx", NULL);
+
+    yes = (fs_exists(solid) || fs_exists(inner) || fs_exists(outer)) ||
+          (fs_exists(solid_x) || fs_exists(inner_x) || fs_exists(outer_x));
 
     free(solid); solid = NULL;
     free(inner); inner = NULL;
     free(outer); outer = NULL;
+
+    free(solid_x); solid_x = NULL;
+    free(inner_x); inner_x = NULL;
+    free(outer_x); outer_x = NULL;
 
     free(tmp_path); tmp_path = NULL;
 

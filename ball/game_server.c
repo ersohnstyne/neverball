@@ -338,6 +338,7 @@ static void game_cmd_jump(int e)
     game_proxy_enq(&cmd);
 }
 
+#ifdef CMD_NBRX
 static void game_cmd_tilt(void)
 {
     cmd.type = CMD_TILT;
@@ -346,6 +347,17 @@ static void game_cmd_tilt(void)
 
     game_proxy_enq(&cmd);
 }
+#else
+static void game_cmd_tiltangles(void)
+{
+    cmd.type = CMD_TILT_ANGLES;
+
+    cmd.tiltangles.x = tilt.rx;
+    cmd.tiltangles.z = tilt.rz;
+
+    game_proxy_enq(&cmd);
+}
+#endif
 
 static void game_cmd_tiltaxes(void)
 {
@@ -566,7 +578,7 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
     struct game_sol_version { int x, y; } version = { 0, 0 };
     int i;
 
-    /* Load SOL data. */
+    /* Load SOL/SOLX data. */
 
     if (!game_base_load(curr_file_name))
         return (server_state = 0);
@@ -590,7 +602,7 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
 
     server_state = 1;
 
-    /* Get SOL version. */
+    /* Get SOL/SOLX version. */
 
     version.x = 0;
     version.y = 0;
@@ -609,7 +621,7 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
                        "%d.%d", &version.x, &version.y) != 2)
             {
 /*#ifndef NDEBUG
-                log_errorf("SOL key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
+                log_errorf("SOL/SOLX key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
                 sol_free_vary(&vary);
                 game_base_free(NULL);
                 return (server_state = 0);
@@ -1029,7 +1041,7 @@ int game_server_init(const char *file_name, int t, int e)
 
     game_server_free(file_name);
 
-    /* Load SOL data. */
+    /* Load SOL/SOLX data. */
 
     if (!game_base_load(file_name))
         return (server_state = 0);
@@ -1053,7 +1065,7 @@ int game_server_init(const char *file_name, int t, int e)
 
     server_state = 1;
 
-    /* Get SOL version. */
+    /* Get SOL/SOLX version. */
 
     version.x = 0;
     version.y = 0;
@@ -1072,7 +1084,7 @@ int game_server_init(const char *file_name, int t, int e)
                        "%d.%d", &version.x, &version.y) != 2)
             {
 /*#ifndef NDEBUG
-                log_errorf("SOL key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
+                log_errorf("SOL/SOLX key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
                 sol_free_vary(&vary);
                 game_base_free(NULL);
                 return (server_state = 0);
@@ -1926,7 +1938,7 @@ static int game_update_state(int bt)
             {
                 struct v_chkp *cp = &vary.cv[backupidx];
 
-                /* Backup the checkpoint's SOL varying data. */
+                /* Backup the checkpoint's SOL/SOLX varying data. */
 
                 if (cp->e && backupidx == chkp_id)
                 {
@@ -1940,7 +1952,7 @@ static int game_update_state(int bt)
                 }
 
                 /*
-                 * Discard other checkpoint's SOL varying data,
+                 * Discard other checkpoint's SOL/SOLX varying data,
                  * when other checkpoints is activated.
                  */
 
@@ -2057,9 +2069,16 @@ static int game_step(const float g[3], float dt, int bt)
         tilt.rz += ((jump_b == 0 && status == GAME_NONE ? input_get_z() : 0) - tilt.rz) *
                    dt / MAX(dt, input_get_s());
 
+#ifdef CMD_NBRX
         game_tilt_calc(&tilt, view.e);
 
         game_cmd_tilt();
+#else
+        game_tilt_axes(&tilt, view.e);
+
+        game_cmd_tiltaxes();
+        game_cmd_tiltangles();
+#endif
 
         grow_step(CURR_PLAYER, dt);
 

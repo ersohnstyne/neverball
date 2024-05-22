@@ -54,6 +54,9 @@ struct chkp_ball
 struct chkp_path
 {
     int f;
+
+    int mi;
+    int mj;
 };
 
 struct chkp_body

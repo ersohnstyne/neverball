@@ -44,7 +44,6 @@ void  game_client_blend(float);
 int   curr_viewangle(void);
 int   curr_clock(void);
 int   curr_coins(void);
-int   curr_max_coins(void);
 int   curr_status(void);
 float curr_speedometer(void);
 

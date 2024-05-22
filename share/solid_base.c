@@ -61,7 +61,7 @@ enum
 
 static int sol_version;
 
-static int sol_file(fs_file fin)
+static int sol_file(fs_file fin, int fp_ten)
 {
     int magic;
     int version;
@@ -69,8 +69,11 @@ static int sol_file(fs_file fin)
     magic   = get_index(fin);
     version = get_index(fin);
 
-    if (magic != SOL_MAGIC || (version < SOL_VERSION_MIN ||
-                               version > SOL_VERSION_CURR))
+    if (fp_ten && (magic != SOL_MAGIC ||
+                   (version < 10 || version > SOL_VERSION_CURR)))
+        return 0;
+    else if (!fp_ten && (magic != SOL_MAGIC ||
+                         (version < SOL_VERSION_MIN || version > 9)))
         return 0;
 
     sol_version = version;
@@ -555,11 +558,11 @@ static void sol_load_indx(fs_file fin, struct s_base *fp)
     if (fp->ic && fp->iv == NULL) return 0
 #endif
 
-static int sol_load_file(fs_file fin, struct s_base *fp)
+static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
 {
     int i;
 
-    if (!sol_file(fin))
+    if (!sol_file(fin, fp_ten))
         return 0;
 
     sol_load_indx(fin, fp);
@@ -673,9 +676,9 @@ static int sol_load_file(fs_file fin, struct s_base *fp)
     return 1;
 }
 
-static int sol_load_head(fs_file fin, struct s_base *fp)
+static int sol_load_head(fs_file fin, struct s_base *fp, int fp_ten)
 {
-    if (!sol_file(fin))
+    if (!sol_file(fin, fp_ten))
         return 0;
 
     sol_load_indx(fin, fp);
@@ -706,31 +709,93 @@ static int sol_load_head(fs_file fin, struct s_base *fp)
 
 int sol_load_base(struct s_base *fp, const char *filename)
 {
-    fs_file fin;
+    fs_file fin, fin_x;
     int res = 0;
 
     memset(fp, 0, sizeof (*fp));
 
-    if ((fin = fs_open_read(filename)))
+    if (str_ends_with(filename, ".csolx") || str_ends_with(filename, ".solx"))
     {
-        res = sol_load_file(fin, fp);
-        fs_close(fin);
+        /* *.csolx / *.solx = SOL version > 9 */
+
+        if ((fin = fs_open_read(filename)))
+        {
+            res = sol_load_file(fin, fp, 1);
+            fs_close(fin);
+        }
     }
+    else if (str_ends_with(filename, ".csol") || str_ends_with(filename, ".sol"))
+    {
+        /* *.csol / *.sol = SOL version <= 9 */
+
+        if ((fin = fs_open_read(filename)))
+        {
+            res = sol_load_file(fin, fp, 0);
+            fs_close(fin);
+        }
+
+        if (res) return res;
+
+        /* *.csolx / *.solx = SOL version > 9 */
+
+        char filename_x[256];
+        SAFECPY(filename_x, filename);
+        SAFECAT(filename_x, "x");
+
+        if ((fin_x = fs_open_read(filename_x)))
+        {
+            res = sol_load_file(fin_x, fp, 1);
+            fs_close(fin_x);
+        }
+    }
+
     return res;
 }
 
 int sol_load_meta(struct s_base *fp, const char *filename)
 {
-    fs_file fin;
+    fs_file fin, fin_x;
     int res = 0;
 
     memset(fp, 0, sizeof (*fp));
 
-    if ((fin = fs_open_read(filename)))
+    if (str_ends_with(filename, ".csolx") ||
+        str_ends_with(filename, ".solx"))
     {
-        res = sol_load_head(fin, fp);
-        fs_close(fin);
+        /* *.csolx / *.solx = SOL version > 9 */
+
+        if ((fin = fs_open_read(filename)))
+        {
+            res = sol_load_head(fin, fp, 1);
+            fs_close(fin);
+        }
     }
+    else if (str_ends_with(filename, ".csol") ||
+             str_ends_with(filename, ".sol"))
+    {
+        /* *.csol / *.sol = SOL version <= 9 */
+
+        if ((fin = fs_open_read(filename)))
+        {
+            res = sol_load_head(fin, fp, 0);
+            fs_close(fin);
+        }
+
+        if (res) return res;
+
+        /* *.csolx / *.solx = SOL version > 9 */
+
+        char filename_x[256];
+        SAFECPY(filename_x, filename);
+        SAFECAT(filename_x, "x");
+
+        if ((fin_x = fs_open_read(filename_x)))
+        {
+            res = sol_load_head(fin_x, fp, 1);
+            fs_close(fin_x);
+        }
+    }
+
     return res;
 }
 
@@ -992,11 +1057,11 @@ static void sol_stor_file(fs_file fout, struct s_base *fp)
     int magic   = SOL_MAGIC;
 
 #ifdef MAPC_INCLUDES_CHKP
-    int version = fp->cc > 0 ? SOL_VERSION_CURR : SOL_VERSION_1_7;
+    int version = fp->cc > 0 ? SOL_VERSION_CURR : SOL_VERSION_2024_05;
 
-    if (fp->cc == 0) version = SOL_VERSION_2024_04;
+    if (fp->cc == 0) version = SOL_VERSION_2024_05;
 #else
-    int version = SOL_VERSION_2024_04;
+    int version = SOL_VERSION_2024_05;
 #endif
 
     sol_version = version;
@@ -1072,6 +1137,19 @@ int sol_stor_base(struct s_base *fp, const char *filename)
         return 1;
     }
     return 0;
+}
+
+int sol_check_solx(struct s_base *fp)
+{
+#ifdef MAPC_INCLUDES_CHKP
+    int version = fp->cc > 0 ? SOL_VERSION_CURR : SOL_VERSION_2024_05;
+
+    if (fp->cc == 0) version = SOL_VERSION_2024_05;
+#else
+    int version = SOL_VERSION_2024_05;
+#endif
+
+    return version >= 10;
 }
 
 /*---------------------------------------------------------------------------*/

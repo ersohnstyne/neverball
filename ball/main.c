@@ -687,8 +687,10 @@ static int goto_level(const List level_multi)
         const char* path = fs_resolve((const char *) p->data);
 
         if (path &&
-            (str_ends_with(path, ".csol") ||
-             str_ends_with(path, ".sol")))
+            (str_ends_with(path, ".csol")  ||
+             str_ends_with(path, ".csolx") ||
+             str_ends_with(path, ".sol")   ||
+             str_ends_with(path, ".solx")))
         {
             if (level_load(path, lvl))
             {
@@ -1071,7 +1073,7 @@ static int loop(void)
                                 play_pause_goto(curr_state());
                         }
                         else if (curr_state() == &st_demo_play)
-                            demo_pause_goto();
+                            demo_pause_goto(1);
                         break;
 
                     case SDL_WINDOWEVENT_FOCUS_GAINED:
@@ -1229,7 +1231,7 @@ static int loop(void)
 
 static int is_replay(struct dir_item *item)
 {
-    return str_ends_with(item->path, ".nbr");
+    return str_ends_with(item->path, str_ends_with(item->path, ".nbrx") ? ".nbrx" : ".nbr");
 }
 
 static int is_score_file(struct dir_item *item)

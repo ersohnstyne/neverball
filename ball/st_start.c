@@ -101,8 +101,10 @@ static void gui_level(int id, int i)
         return;
     }
 
-    if (!str_ends_with(l->file, ".sol") &&
-        !str_ends_with(l->file, ".csol"))
+    if (!str_ends_with(l->file, ".csol")  &&
+        !str_ends_with(l->file, ".csolx") &&
+        !str_ends_with(l->file, ".sol")   &&
+        !str_ends_with(l->file, ".solx"))
     {
         gui_set_label(jd, " ");
         return;

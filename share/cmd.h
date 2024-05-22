@@ -15,6 +15,13 @@
 #ifndef CMD_H
 #define CMD_H
 
+#if NB_HAVE_PB_BOTH==1
+/* *.nbrx = NBR version > 9 */
+#define CMD_NBRX
+
+#pragma message(__FILE__ ": NBR files, that the version is greater than 9, leads the file type extension to NBRX.")
+#endif
+
 #if _WIN32
 #define _CRT_NB_CMD_DEPRECATED(_Element)                    \
     __declspec(deprecated(                                  \
@@ -88,10 +95,12 @@ enum cmd_type
     CMD_PATH_FLAG,
     CMD_STEP_SIMULATION,
     CMD_MAP,
-    CMD_TILT_AXES, /* DEPRECATED: Use CMD_TILT instead. */
+    CMD_TILT_AXES, /* INFORMATION: Use CMD_TILT instead, that uses NBRX. */
     CMD_MOVE_PATH,
     CMD_MOVE_TIME,
+#ifdef CMD_NBRX
     CMD_TILT,
+#endif
     CMD_CHKP_ENTER,
     CMD_CHKP_TOGGLE,
     CMD_CHKP_EXIT,
@@ -333,11 +342,13 @@ struct cmd_move_time
     float t;
 };
 
+#ifdef CMD_NBRX
 struct cmd_tilt
 {
     CMD_HEADER;
     float q[4];
 };
+#endif
 
 struct cmd_chkp_enter
 {
@@ -420,7 +431,9 @@ union cmd
     struct cmd_tilt_axes          tiltaxes;
     struct cmd_move_path          movepath;
     struct cmd_move_time          movetime;
+#ifdef CMD_NBRX
     struct cmd_tilt               tilt;
+#endif
     struct cmd_chkp_enter         chkpenter;
     struct cmd_chkp_toggle        chkptoggle;
     struct cmd_chkp_exit          chkpexit;

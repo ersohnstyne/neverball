@@ -179,10 +179,10 @@ static void sol_draw_bill(GLboolean edge)
 /*---------------------------------------------------------------------------*/
 
 /* NOTE: The state management here presumes that billboard rendering is      */
-/* NESTED within a wider SOL rendering process. That is: r_draw_enable       */
+/* NESTED within a wider SOL/SOLX rendering process. That is: r_draw_enable  */
 /* has been called and r_draw_disable will be called in the future.          */
 /* Thus the "default" VBO state retained by billboard rendering is the       */
-/* state appropriate for normal SOL rendering.                               */
+/* state appropriate for normal SOL/SOLX rendering.                          */
 
 static void sol_bill_enable(const struct s_draw *draw)
 {

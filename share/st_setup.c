@@ -29,6 +29,7 @@
 #include "st_common.h"
 
 #include "st_setup.h"
+#include "st_transfer.h"
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
@@ -210,6 +211,7 @@ enum
     SETUP_UPDATE_START,
     SETUP_UPDATE_SKIP,
 
+    SETUP_TRANSFER,
     SETUP_FINISHED
 };
 
@@ -392,7 +394,7 @@ static int load_updated_version(void)
 
 static int setup_is_replay(struct dir_item *item)
 {
-    return str_ends_with(item->path, ".nbr");
+    return str_ends_with(item->path, str_ends_with(item->path, ".nbrx") ? ".nbrx" : ".nbr");
 }
 
 static int setup_is_score_file(struct dir_item *item)
@@ -635,6 +637,8 @@ static int game_setup_action(int tok, int val)
                 config_set_s(CONFIG_LANGUAGE, "");
                 lang_init();
                 setup_page++;
+                lang_dir_free(setup_langs);
+                setup_langs = NULL;
                 return goto_state(&st_game_setup);
 
             case SETUP_LANG_SELECT:
@@ -643,6 +647,8 @@ static int game_setup_action(int tok, int val)
                 config_set_s(CONFIG_LANGUAGE, desc->code);
                 lang_init();
                 setup_page++;
+                lang_dir_free(setup_langs);
+                setup_langs = NULL;
                 return goto_state(&st_game_setup);
         }
     }
@@ -732,9 +738,16 @@ static int game_setup_action(int tok, int val)
                 {
                     switch (tok)
                     {
+#if ENABLE_GAME_TRANSFER==1 && defined(GAME_TRANSFER_TARGET)
+                        case SETUP_TRANSFER:
+                            setup_mkdir_migrate();
+                            setup_process = 0;
+                            config_save();
+                            return st_continue ? goto_game_transfer(st_continue) : 0;
+                            break;
+#endif
                         case SETUP_FINISHED:
-                            lang_dir_free(setup_langs);
-                            setup_langs = NULL;
+                            setup_mkdir_migrate();
                             setup_process = 0;
                             config_save();
                             return st_continue ? goto_state(st_continue) : 0;
@@ -949,8 +962,8 @@ static int game_setup_terms_gui(void)
 
             if ((jd = gui_vstack(id)))
             {
-                gui_title_header(jd, _("PB+NB Terms & Conditions, Discord TOS, MSA"), GUI_MED, GUI_COLOR_DEFAULT);
-                gui_multi(jd, _("To proceed with setup, you must agree to the PB+NB Terms & Conditions and acknowledge\n"
+                gui_title_header(jd, _("PB+NB Terms, Discord TOS, MSA"), GUI_MED, GUI_COLOR_DEFAULT);
+                gui_multi(jd, _("To proceed with setup, you must agree to the PB+NB Terms and acknowledge\n"
                                 "that you have read and understood the Discord TOS and MSA by selecting \"OK\" below.\n"
                                 "To learn more, click \"Read more\". You represent that you are a legally consenting adult\n"
                                 "and are authorised to consent for all users of this Game, including minors."),
@@ -964,7 +977,7 @@ static int game_setup_terms_gui(void)
 
         if ((id = gui_vstack(root_id)))
         {
-            setup_terms_card(id, _("PB+NB Terms and Conditions"),   0, 1);
+            setup_terms_card(id, _("PB+NB Terms"),                  0, 1);
             setup_terms_card(id, _("Discord Terms of Service"),     1, 0);
             setup_terms_card(id, _("Microsoft Services Agreement"), 2, 0);
 
@@ -1167,7 +1180,7 @@ static int game_setup_install_gui(void)
  */
 static int game_setup_welcome_gui(void)
 {
-    int root_id, id, jd;
+    int root_id, id, jd, kd;
 
     if ((root_id = gui_root()))
     {
@@ -1186,14 +1199,36 @@ static int game_setup_welcome_gui(void)
 
             gui_image(id, "png/premium-planet.png", ww, hh);
             gui_space(id);
+#if ENABLE_GAME_TRANSFER==1 && defined(GAME_TRANSFER_TARGET)
+            gui_multi(id, _("Select \"Start\", the game is ready to start.\n"
+                            "Or select \"Transfer\" to transfer from the source game."),
+                            GUI_TNY, GUI_COLOR_WHT);
+#else
             gui_label(id, _("Select \"Start\", the game is ready to start!"),
                             GUI_TNY, GUI_COLOR_WHT);
+#endif
 
             gui_layout(id, 0, 0);
         }
 
         if ((id = gui_vstack(root_id)))
         {
+#if ENABLE_GAME_TRANSFER==1 && defined(GAME_TRANSFER_TARGET)
+            if ((jd = gui_harray(id)))
+            {
+                gui_state(jd, _("Transfer"), GUI_SML, SETUP_TRANSFER, 0);
+
+                if ((kd = gui_hstack(jd)))
+                {
+                    gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
+                    gui_label(kd, _("Start"), GUI_SML, GUI_COLOR_WHT);
+
+                    gui_set_state(kd, SETUP_FINISHED, 0);
+                    gui_set_rect(kd, GUI_ALL);
+                    gui_focus(kd);
+                }
+            }
+#else
             if ((jd = gui_hstack(id)))
             {
                 gui_label(jd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
@@ -1203,7 +1238,7 @@ static int game_setup_welcome_gui(void)
                 gui_set_rect(jd, GUI_ALL);
                 gui_focus(jd);
             }
-
+#endif
             gui_space(id);
 
             gui_layout(id, 0, -1);
@@ -1228,9 +1263,6 @@ static int game_setup_enter(struct state *st, struct state *prev)
     if (setup_page == 3)
         fetch_available_updates(1);
 
-    if (setup_page == 6)
-        setup_mkdir_migrate();
-
     switch (setup_page)
     {
         case 0: return game_setup_lang_gui();
@@ -1251,7 +1283,7 @@ static void game_setup_leave(struct state *st, struct state *next, int id)
     gui_delete(id);
 
     if (next == &st_null &&
-        setup_page == 5)
+        (setup_page == 5 || setup_page == 6))
         setup_mkdir_migrate();
 }
 

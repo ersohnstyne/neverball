@@ -232,9 +232,6 @@ static int goal_gui(void)
                 if (!resume)
                     gui_pulse(gid, 1.2f);
 
-                if (curr_coins() == curr_max_coins() * get_coin_multiply())
-                    gui_label(jd, _("Perfect!"), GUI_SML, GUI_COLOR_GRN);
-
                 gui_set_rect(jd, GUI_ALL);
             }
 

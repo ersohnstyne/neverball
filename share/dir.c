@@ -36,8 +36,6 @@
 #endif
 #endif
 
-
-
 /*
  * HACK: Thank god using FindFirstFileA by Microsoft Elite Developers!
  * On Unix and linux, or using MinGW, include headers will be used as: dirent.h
@@ -70,10 +68,30 @@ List dir_list_files(const char *path)
     List files = NULL;
 
 #if ENABLE_OPENDRIVEAPI!=0
-    files = (List) opendriveapi_dir_list_files(path);
-#else
-    char outpath[MAXSTR];
+    OpenDriveAPI_PDIR          dir;
+    struct OpenDriveAPI_DirEnt ent;
+
+    if ((dir = opendriveapi_opendir(path, &ent)))
+    {
+        while ((opendriveapi_readdir(dir, &ent)) != 0)
+        {
 #if _WIN32 && _MSC_VER
+            if (strcmp(ent.dir_ent.cFileName, ".") == 0 || strcmp(ent.dir_ent.cFileName, "..") == 0)
+                continue;
+
+            files = list_cons(strdup(ent.dir_ent.cFileName), files);
+#else
+            if (strcmp(ent.dir_ent->d_name, ".") == 0 || strcmp(ent.dir_ent->d_name, "..") == 0)
+                continue;
+
+            files = list_cons(strdup(ent.dir_ent->d_name), files);
+#endif
+        }
+
+        opendriveapi_closedir(dir);
+    }
+#elif _WIN32 && _MSC_VER
+    char outpath[MAXSTR];
     sprintf_s(outpath, MAXSTR, "%s\\*", path);
 
     WIN32_FIND_DATAA find_data;
@@ -101,7 +119,7 @@ List dir_list_files(const char *path)
         hFind = 0;
     }
 #else
-    DIR* dir;
+    DIR *dir;
     if ((dir = opendir(path)))
     {
         struct dirent *ent;
@@ -116,7 +134,6 @@ List dir_list_files(const char *path)
 
         closedir(dir);
     }
-#endif
 #endif
 
     return files;

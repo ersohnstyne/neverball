@@ -64,17 +64,25 @@ static void load_item(struct dir_item *item)
 
 static int scan_item(struct dir_item *item)
 {
-    return str_ends_with(item->path, ".nbr");
+    return str_ends_with(item->path,
+                         str_ends_with(item->path, ".nbrx") ?
+                         ".nbrx" : ".nbr");
 }
 
 static int cmp_items(const void *A, const void *B)
 {
     const struct dir_item *a = A, *b = B;
 
-    /* Replay filename: Last.nbr */
-    if (strcmp(base_name_sans(a->path, ".nbr"), USER_REPLAY_FILE) == 0)
+    /* Replay filename: Last.nbr / Last.nbrx */
+    if (strcmp(base_name_sans(a->path,
+                              str_ends_with(a->path, ".nbrx") ?
+                              ".nbrx" : ".nbr"),
+               USER_REPLAY_FILE) == 0)
         return -1;
-    if (strcmp(base_name_sans(b->path, ".nbr"), USER_REPLAY_FILE) == 0)
+    if (strcmp(base_name_sans(b->path,
+                              str_ends_with(b->path, ".nbrx") ?
+                              ".nbrx" : ".nbr"),
+               USER_REPLAY_FILE) == 0)
         return +1;
 
     return strcmp(a->path, b->path);

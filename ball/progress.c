@@ -1257,8 +1257,10 @@ int  progress_next_avail(void)
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
 
     if (next &&
-        (str_ends_with(next->file, ".sol") ||
-         str_ends_with(next->file, ".csol")))
+        (str_ends_with(next->file, ".csol")  ||
+         str_ends_with(next->file, ".csolx") ||
+         str_ends_with(next->file, ".sol")   ||
+         str_ends_with(next->file, ".solx")))
     {
         if ((mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
@@ -1315,8 +1317,10 @@ int  progress_next(void)
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
 
     if (next && status == GAME_GOAL && !progress_dead() &&
-        (str_ends_with(next->file, ".sol") ||
-         str_ends_with(next->file, ".csol")))
+        (str_ends_with(next->file, ".csol")  ||
+         str_ends_with(next->file, ".csolx") ||
+         str_ends_with(next->file, ".sol")   ||
+         str_ends_with(next->file, ".solx")))
     {
         progress_stop();
 

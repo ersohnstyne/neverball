@@ -751,6 +751,7 @@ void fetch_quit(void)
         CURL_CONVERT_EXT_TMP(str, ".mov"); \
         CURL_CONVERT_EXT_TMP(str, ".mp4"); \
         CURL_CONVERT_EXT_TMP(str, ".nbr"); \
+        CURL_CONVERT_EXT_TMP(str, ".nbrx"); \
         CURL_CONVERT_EXT_TMP(str, ".ogg"); \
         CURL_CONVERT_EXT_TMP(str, ".wav"); \
         CURL_CONVERT_EXT_TMP(str, ".wma"); \
@@ -785,15 +786,17 @@ void fetch_quit(void)
 
 #define CURL_CONVERT_EXT_TMP_SOLS(str) \
     do { \
-        CURL_CONVERT_EXT_TMP(str, ".csol"); \
-        CURL_CONVERT_EXT_TMP(str, ".sol"); \
+        CURL_CONVERT_EXT_TMP(str, ".csol");  \
+        CURL_CONVERT_EXT_TMP(str, ".csolx"); \
+        CURL_CONVERT_EXT_TMP(str, ".sol");   \
+        CURL_CONVERT_EXT_TMP(str, ".solx");  \
     } while (0)
 
 #define CURL_CONVERT_EXT_TMP_TEXT(str) \
     do { \
         CURL_CONVERT_EXT_TMP(str, ".csv"); \
         CURL_CONVERT_EXT_TMP(str, ".tsv"); \
-        CURL_CONVERT_EXT_TMP(str, ".md"); \
+        CURL_CONVERT_EXT_TMP(str, ".md");  \
         CURL_CONVERT_EXT_TMP(str, ".txt"); \
     } while (0)
 

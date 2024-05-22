@@ -33,16 +33,16 @@
 /*
  * Material cache.
  *
- * These routines load materials from SOL files into a common cache
- * and create mappings from internal SOL indices to this cache. They
+ * These routines load materials from SOL/SOLX files into a common cache
+ * and create mappings from internal SOL/SOLX indices to this cache. They
  * can also reload materials from material specification files.
  *
  * Some unresolved stuff:
  *
- * Duplicates are ignored. SOLs define materials internally, so
- * conflicts can arise between different SOLs. Right now materials
- * start out with the values from the first cached SOL. If the values
- * are bad, every subsequent SOL will use them. On the upside,
+ * Duplicates are ignored. SOLs or SOLXs define materials internally, so
+ * conflicts can arise between different SOLs or SOLXs. Right now materials
+ * start out with the values from the first cached SOL or SOLX. If the values
+ * are bad, every subsequent SOL or SOLX will use them. On the upside,
  * duplicates are uncommon.
  *
  * Reloading does not reschedule meshes. Mesh counts for each geometry
@@ -254,7 +254,7 @@ struct mtrl *mtrl_get(int mi)
 }
 
 /*
- * Cache SOL materials.
+ * Cache SOL/SOLX materials.
  */
 void mtrl_cache_sol(struct s_base *fp)
 {

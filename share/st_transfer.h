@@ -17,17 +17,20 @@
 
 #include "state.h"
 
-#define ENABLE_GAME_TRANSFER 0
-#define GAME_TRANSFER_TARGET 1
+#define ENABLE_GAME_TRANSFER 1
+#if NB_HAVE_PB_BOTH==1
+#define GAME_TRANSFER_TARGET
+#endif
 
-#if GAME_TRANSFER_TARGET==0
-void transfer_add_dispatch_event(void (*request_addreplay_dispatch_event)(int status_limit));
+#ifndef GAME_TRANSFER_TARGET
+void transfer_add_dispatch_event(void (*request_addreplay_dispatch_event) (int status_limit));
 void transfer_addreplay(const char *path);
+void transfer_addreplay_unsupported(void);
 void transfer_addreplay_exceeded(void);
 #endif
 
 #if ENABLE_GAME_TRANSFER==1
-extern struct state st_transfer;
+int goto_game_transfer(struct state*);
 #endif
 
 #endif

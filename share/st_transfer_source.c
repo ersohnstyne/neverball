@@ -14,11 +14,15 @@
 
 #include "st_transfer.h"
 
-#if GAME_TRANSFER_TARGET==0 && ENABLE_GAME_TRANSFER==1
+#if !defined(GAME_TRANSFER_TARGET) && ENABLE_GAME_TRANSFER==1
 #if _WIN32
 #include <ShlObj.h>
 
 #define rmdir RemoveDirectoryA
+#endif
+
+#ifndef DRIVE_REMOVEABLE
+#define DRIVE_REMOVEABLE 2
 #endif
 
 #include <assert.h>
@@ -81,7 +85,7 @@
  * Function "int conf_action(int tok, int val)" for ball/st_conf.c:
  *
  *     #if ENABLE_GAME_TRANSFER==1
- *     #if GAME_TRANSFER_TARGET==1
+ *     #if !defined(GAME_TRANSFER_TARGET)
  *         case CONF_SYSTEMTRANSFER_TARGET:
  *     #else
  *         case CONF_SYSTEMTRANSFER_SOURCE:
@@ -112,15 +116,17 @@
        "otherwise data may be lost.")
 
 #define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_COVID \
-    N_("There are exceeded limits of level status currently stored in the\n" \
-       "Replay of this game. The Replay in the target Pennyball game\n" \
-       "has an COVID-19 feature, so the Replays\n"\
-       "will be lost, if you perform this transfer now.")
+    N_("There are exceeded limits of level status or legacy replays\n" \
+       "currently stored in the Replay of this game. The Replay in\n" \
+       "the target Pennyball game has an either premade filters,\n" \
+       "modern replays or COVID-19 features, so your Replays will be lost,\n"
+       "if you perform this transfer now.")
 #define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_USER \
-    N_("There are exceeded limits of level status currently stored in the\n" \
-       "Replay of this game. The Replay in the target Pennyball game\n" \
-       "has an premade filters, so the Replays\n" \
-       "will be lost, if you perform this transfer now.")
+    N_("There are exceeded limits of level status or legacy replays\n" \
+       "currently stored in the Replay of this game. The Replay in\n" \
+       "the target Pennyball game has an either premade filters or\n" \
+       "modern replays, so your Replays will be lost, if you perform\n" \
+       "this transfer now.")
 #define SOURCE_TRANSFER_WARNING_REPLAY_BACKUP \
     N_("If you do not want to delete these Replays,\n" \
        "you should move them to the backup folder\n" \
@@ -169,7 +175,10 @@ enum
 
 static int pretransfer_replay_status_limit = 3;
 static int pretransfer_replay_status_covid = 0;
+
 static int pretransfer_exceeded_state = 0;
+
+static int replayfilepath_unsupported_found = 0;
 static int replayfilepath_exceed_found = 0;
 
 static int transfer_walletamount[2];
@@ -190,7 +199,15 @@ static int show_transfer = 0;
 
 static int show_transfer_completed = 0;
 
+struct state st_transfer;
 static struct state *transfer_back;
+
+int goto_game_transfer(struct state *back)
+{
+    transfer_back = back;
+
+    return goto_state(&st_transfer);
+}
 
 static int transfer_introducory_gui(void)
 {
@@ -582,11 +599,7 @@ static int transfer_action(int tok, int val)
         transfer_pageindx++;
         return goto_state_full(&st_transfer, 0, GUI_ANIMATION_E_CURVE, 0);
     }
-    else if (show_transfer_completed)
-    {
-        if (tok == GUI_NEXT)
-            return 0; /* bye! */
-    }
+    else if (show_transfer_completed && tok == GUI_NEXT) return 0; /* bye! */
     else if (!show_preparations && !show_transfer)
     {
         if (tok == GUI_NEXT)
@@ -643,7 +656,8 @@ static int transfer_action(int tok, int val)
             }
             else if (transfer_pageindx == 2)
             {
-                pretransfer_exceeded_state = replayfilepath_exceed_found > 0;
+                pretransfer_exceeded_state = replayfilepath_exceed_found > 0 ||
+                                             replayfilepath_unsupported_found > 0;
                 if (pretransfer_exceeded_state)
                     return goto_state_full(&st_transfer, 0, 0, 0);
                 else
@@ -943,6 +957,7 @@ static void transfer_timer_preprocess_source(float dt)
                 break;
 
             case TRANSFER_WORKING_STATE_LOAD_INTERNAL:
+                replayfilepath_unsupported_found = 0;
                 replayfilepath_exceed_found = 0;
                 transfer_request_addreplay_dispatch_event(pretransfer_replay_status_limit);
                 transfer_addreplay_quit();
@@ -1103,6 +1118,11 @@ void transfer_addreplay(const char *path)
     replayfilepath_count++;
 }
 
+void transfer_addreplay_unsupported(void)
+{
+    replayfilepath_unsupported_found++;
+}
+
 void transfer_addreplay_exceeded(void)
 {
     replayfilepath_exceed_found++;
@@ -1206,7 +1226,7 @@ void transfer_timer_process_source(float dt)
 #else
                     sprintf(outwallet_result_csv,
 #endif
-                        "coins:%d ;gems:%d ;p_levels:%d ;p_balls:%d ;p_bonus:%d ;p_mediation:%d ;set_unlocks:%d ;c_earninator:%d ;c_floatifier:%d ;c_speedifier:%d ;ballfile: %s ; player: %s ;\n",
+                        "coins:%d ;gems:%d ;p_levels:%d ;p_balls:%d ;p_bonus:%d ;p_mediation:%d ;set_unlocks:%d ;c_earninator:%d ;c_floatifier:%d ;c_speedifier:%d ;c_extralives:%d ;ballfile: %s ; player: %s ;\n",
                         account_transfer_values_source.wallet_coins,
                         account_transfer_values_source.wallet_gems,
                         account_transfer_values_source.product_levels,
@@ -1432,8 +1452,6 @@ static int transfer_enter_source(struct state *st, struct state *prev)
 #if ENABLE_DEDICATED_SERVER==1 && !defined(TRANSFER_OFFLINE_ONLY)
         preparations_internet = 0;
 #endif
-
-        transfer_back = prev;
     }
 
     back_init("back/gui.png");

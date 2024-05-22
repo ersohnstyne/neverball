@@ -76,7 +76,6 @@ static struct game_lerp gl;
 
 static int   status      = GAME_NONE;   /* Outcome of the game               */
 static int   coins       = 0;           /* Collected coins                   */
-static int   max_coins   = 0;           /* Maximum coin amount               */
 static float speedometer = 0.0f;        /* New: Speedometer                  */
 
 static struct cmd_state cs;             /* Command state                     */
@@ -166,7 +165,6 @@ static void game_run_cmd(const union cmd *cmd)
 
             case CMD_MAKE_ITEM:
                 /* Not supported anymore. */
-
                 break;
 
             case CMD_PICK_ITEM:
@@ -201,14 +199,20 @@ static void game_run_cmd(const union cmd *cmd)
                      * tilt axes, we use the view vectors.
                      */
 
+#ifdef CMD_NBRX
                     game_tilt_calc(tilt, view->e);
+#else
+                    game_tilt_axes(tilt, view->e);
+#endif
                 }
+#ifdef CMD_NBRX
                 else
                 {
                     /* Use the axes we received via CMD_TILT_AXES. */
 
                     game_tilt_calc(tilt, NULL);
                 }
+#endif
                 break;
 
             case CMD_SOUND:
@@ -382,9 +386,11 @@ static void game_run_cmd(const union cmd *cmd)
                 v_cpy(tilt->z, cmd->tiltaxes.z);
                 break;
 
+#ifdef CMD_NBRX
             case CMD_TILT:
                 q_cpy(tilt->q, cmd->tilt.q);
                 break;
+#endif
 
 #ifdef MAPC_INCLUDES_CHKP
             case CMD_CHKP_ENTER:
@@ -458,7 +464,7 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
 
     char *back_name = "", *grad_name = "";
 
-    /* Load SOL data. */
+    /* Load SOL/SOLX data. */
 
     if (!game_base_load(mtli->filename))
         return (gd.state = 0);
@@ -550,7 +556,7 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
                        "%d.%d", &version.x, &version.y) != 2)
             {
 /*#ifndef NDEBUG
-                log_errorf("SOL key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
+                log_errorf("SOL/SOLX key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
                 sol_free_vary(&gd.vary);
                 game_base_free(NULL);
                 return (gd.state = 0);
@@ -605,11 +611,6 @@ int game_client_init_moon_taskloader(const char *file_name,
      */
 
 #if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
-    if (!last_active)
-#endif
-        max_coins = 0;
-
-#if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
     coins  = last_active ? checkpoints_respawn_coins() : 0;
 #else
     coins  = 0;
@@ -652,11 +653,6 @@ int  game_client_init(const char *file_name)
      */
 
 #if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
-    if (!last_active)
-#endif
-        max_coins = 0;
-
-#if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
     coins  = last_active ? checkpoints_respawn_coins() : 0;
 #else
     coins  = 0;
@@ -666,7 +662,7 @@ int  game_client_init(const char *file_name)
 
     game_client_free(file_name);
 
-    /* Load SOL data. */
+    /* Load SOL/SOLX data. */
 
     if (!game_base_load(file_name))
         return (gd.state = 0);
@@ -758,7 +754,7 @@ int  game_client_init(const char *file_name)
                        "%d.%d", &version.x, &version.y) != 2)
             {
 /*#ifndef NDEBUG
-                log_errorf("SOL key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
+                log_errorf("SOL/SOLX key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
                 sol_free_vary(&gd.vary);
                 game_base_free(NULL);
                 return (gd.state = 0);
@@ -868,11 +864,6 @@ int curr_clock(void)
 int curr_coins(void)
 {
     return coins;
-}
-
-int curr_max_coins(void)
-{
-    return max_coins;
 }
 
 int curr_status(void)
@@ -1180,9 +1171,9 @@ int game_client_init_safetyintro(void)
 
         /* HACK: Does not have a goal. */
         
-        back_init("back/skyS.png");
+        back_init("back/sky-SB.png");
 
-        sol_load_full(&gd.back, "map-back/skyS.sol", 0);
+        sol_load_full(&gd.back, "map-back/sky-SB.sol", 0);
 
         /* Initialize lighting. */
 

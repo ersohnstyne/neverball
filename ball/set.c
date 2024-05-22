@@ -538,7 +538,6 @@ static int set_load(struct set *s, const char *filename)
         !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET) &&
         !config_cheat())
         return 0;
-
 #endif
 
     if (!(fin = fs_open_read(filename)))
@@ -914,7 +913,7 @@ static void set_load_levels(void)
         int lvl_was_offered = level_load(s->level_name_v[i], l);
 
         l->number       = i - i_retreat;
-        l->is_locked    = (i - i_retreat) > 0 || !lvl_was_offered;
+        l->is_locked    = (i - i_retreat) > 0 && lvl_was_offered;
         l->is_completed = 0;
 
         if (lvl_was_offered)
@@ -961,7 +960,11 @@ static void set_load_levels(void)
             if ((i - i_retreat) > 0)
                 level_v[(i - i_retreat) - 1].next = l;
         }
-        else i_retreat++;
+        else
+        {
+            i_retreat++;
+            log_errorf("Could not load level file: %s / Retreated levels: %d\n", s->level_name_v[i], i_retreat);
+        }
     }
 
     for (int r = 0; r < 3; r++)
@@ -1012,7 +1015,7 @@ int set_find(const char *file)
 }
 
 /*
- * Find a level in the set given a SOL basename.
+ * Find a level in the set given a SOL/SOLX basename.
  */
 struct level *set_find_level(const char *basename)
 {

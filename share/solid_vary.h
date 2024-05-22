@@ -172,7 +172,7 @@ void sol_free_vary(struct s_vary *);
 /*---------------------------------------------------------------------------*/
 
 /*
- * Buffers changes to the varying SOL data for interpolation purposes.
+ * Buffers changes to the varying SOL/SOLX data for interpolation purposes.
  */
 
 struct l_move

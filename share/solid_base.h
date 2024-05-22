@@ -459,6 +459,8 @@ int  sol_load_meta(struct s_base *, const char *);
 void sol_free_base(struct s_base *);
 int  sol_stor_base(struct s_base *, const char *);
 
+int sol_check_solx(struct s_base *);
+
 /*---------------------------------------------------------------------------*/
 
 struct path

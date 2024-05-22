@@ -567,8 +567,8 @@ void back_init(const char *name)
     if (back_state)
         back_free();
 
-    /* Load the background SOL and modify its material in-place to use the   */
-    /* named gradient texture.                                               */
+    /* Load the background SOL/SOLX and modify its material in-place to use  */
+    /* the named gradient texture.                                           */
 
     if (sol_load_full(&back, "geom/back/back.sol", 0))
     {

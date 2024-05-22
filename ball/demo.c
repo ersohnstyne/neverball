@@ -43,15 +43,21 @@ fs_file demo_fp;
 
 /*---------------------------------------------------------------------------*/
 
-static const char *demo_path(const char *name)
+static const char *demo_path(const char *name, int name_ten)
 {
+    static char name_ext[MAXSTR];
+
+    SAFECPY(name_ext, name);
+    SAFECAT(name_ext, name_ten ? ".nbrx" : ".nbr");
+
     static char path[MAXSTR];
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(path, MAXSTR,
 #else
     sprintf(path,
 #endif
-            "Replays/%s.nbr", name);
+            "Replays/%s", name_ext);
 
     return path;
 }
@@ -59,16 +65,17 @@ static const char *demo_path(const char *name)
 static const char *demo_name(const char *path)
 {
     static char name[MAXSTR];
-    SAFECPY(name, base_name_sans(path, ".nbr"));
+    SAFECPY(name, base_name_sans(path,
+                                 str_ends_with(path, ".nbrx") ?
+                                 ".nbrx" : ".nbr"));
     return name;
 }
 
 /*---------------------------------------------------------------------------*/
 
 int demo_requires_update;
-int demo_old_detected;
 
-static int demo_header_read(fs_file fp, struct demo *d)
+static int demo_header_read(fs_file fp, struct demo *d, int fp_ten)
 {
     int magic;
     int version;
@@ -82,8 +89,16 @@ static int demo_header_read(fs_file fp, struct demo *d)
 
     t = get_index(fp);
 
-    if (magic == DEMO_MAGIC && t
-     && (version >= DEMO_VERSION_MIN && version <= DEMO_VERSION))
+#ifdef CMD_NBRX
+    if (magic == DEMO_MAGIC && t &&
+        ((!fp_ten &&
+          (version >= DEMO_VERSION_MIN && version <= 9)) ||
+         (fp_ten &&
+          (version >= 10 && version <= DEMO_VERSION))))
+#else
+    if (magic == DEMO_MAGIC && t &&
+        (version >= DEMO_VERSION_MIN && version <= DEMO_VERSION))
+#endif
     {
         d->timer = t;
 
@@ -126,10 +141,7 @@ static int demo_header_read(fs_file fp, struct demo *d)
         return 1;
     }
 
-    if (version < DEMO_VERSION_MIN)
-        demo_old_detected = 1;
-
-    if (version < DEMO_VERSION)
+    if (fp_ten && version > DEMO_VERSION)
         demo_requires_update = 1;
 
     return 0;
@@ -189,7 +201,7 @@ int demo_load(struct demo *d, const char *path)
             SAFECPY(d->path, path);
             SAFECPY(d->name, demo_name(path));
 
-            if (demo_header_read(fp, d))
+            if (demo_header_read(fp, d, str_ends_with(d->path, ".nbrx")))
                 rc = 1;
 
             fs_close(fp);
@@ -207,7 +219,11 @@ void demo_free(struct demo *d)
 
 int demo_exists(const char *name)
 {
-    return fs_exists(demo_path(name));
+#ifdef CMD_NBRX
+    return fs_exists(demo_path(name, 0)) || fs_exists(demo_path(name, 1));
+#else
+    return fs_exists(demo_path(name, 0));
+#endif
 }
 
 const char *demo_format_name(const char *fmt,
@@ -379,7 +395,7 @@ int demo_play_init(const char *name, const struct level *level,
 
     memset(d, 0, sizeof (*d));
 
-    SAFECPY(d->path,   demo_path(name));
+    SAFECPY(d->path,   demo_path(name, DEMO_VERSION > 9));
     SAFECPY(d->name,   name);
     SAFECPY(d->player, config_get_s(CONFIG_PLAYER));
     SAFECPY(d->shot,   level_shot(level));
@@ -451,12 +467,12 @@ int demo_saved(void)
 
 int demo_rename(const char *name)
 {
-    int r = 0;
+    int r = 1;
     char path[MAXSTR];
 
     if (name && *name)
     {
-        SAFECPY(path, demo_path(name));
+        SAFECPY(path, demo_path(name, DEMO_VERSION > 9));
 
         if (strcmp(demo_play.name, name) != 0 && fs_exists(demo_play.path))
         {
@@ -523,7 +539,7 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
 
     if ((demo_fp = fs_open_read(path)))
     {
-        if (demo_header_read(demo_fp, &demo_replay))
+        if (demo_header_read(demo_fp, &demo_replay, str_ends_with(path, ".nbrx")))
         {
             struct level level;
 

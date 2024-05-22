@@ -25,7 +25,14 @@ enum
 
 #define DEMO_VERSION_MIN  DEMO_VERSION_1_6
 #define DEMO_VERSION_CURR DEMO_VERSION_DEV
+
+#include "cmd.h"
+
+#if NB_HAVE_PB_BOTH==1 && defined(CMD_NBRX)
 #define DEMO_VERSION      DEMO_VERSION_CURR
+#else
+#define DEMO_VERSION      DEMO_VERSION_1_6
+#endif
 
 #include <time.h>
 #include <stdio.h>
@@ -102,7 +109,7 @@ void demo_replay_manual_speed(float);
 /*---------------------------------------------------------------------------*/
 
 extern int demo_requires_update;
-extern int demo_old_detected;
+
 extern fs_file demo_fp;
 
 /*---------------------------------------------------------------------------*/

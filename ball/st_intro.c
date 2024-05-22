@@ -955,6 +955,7 @@ static int server_maintenance_action(int tok, int val)
         case GUI_BACK:
             return 0; /* bye! */
             break;
+
         case MAINTENANCE_OFFLINE:
             return goto_state(&st_title);
             break;

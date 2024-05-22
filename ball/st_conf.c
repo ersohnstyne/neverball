@@ -45,6 +45,10 @@
 #include "game_client.h"
 #include "game_server.h"
 
+#ifndef ENABLE_GAME_TRANSFER
+#include "st_transfer.h"
+#endif
+
 #include "st_conf.h"
 #include "st_title.h"
 #include "st_common.h"
@@ -54,10 +58,6 @@
 #include "st_shop.h"
 #if ENABLE_FETCH
 #include "st_package.h"
-#endif
-
-#ifdef ENABLE_GAME_TRANSFER
-#include "st_transfer.h"
 #endif
 
 #if NB_HAVE_PB_BOTH!=1 && \
@@ -374,7 +374,9 @@ static int conf_account_action(int tok, int val)
 
 #if NB_HAVE_PB_BOTH==1
         case CONF_ACCOUNT_BALL:
-            if (fs_exists("gui/ball.sol") && fs_exists("gui/ball.nbr"))
+            if ((fs_exists("gui/ball.sol") ||
+                 fs_exists("gui/ball.solx")) &&
+                fs_exists("gui/ball.nbr"))
             {
                 game_fade(+6.0f);
                 goto_state(&st_ball);
@@ -382,7 +384,8 @@ static int conf_account_action(int tok, int val)
             break;
 
         case CONF_ACCOUNT_BEAM:
-            if (fs_exists("gui/beam-style.sol"))
+            if ((fs_exists("gui/beam-style.sol") ||
+                 fs_exists("gui/beam-style.solx")))
             {
                 game_fade(+6.0f);
                 goto_state(&st_beam_style);
@@ -878,8 +881,9 @@ static int conf_social_action(int tok, int val)
                 system(linkstr_cmd);
 #endif
 
-                if (mainmenu_conf)
-                    return 0; /* bye! */
+                /* bye! */
+
+                return !mainmenu_conf ? goto_state(&st_conf) : 0;
             }
 #if NB_HAVE_PB_BOTH==1
             else
@@ -2486,7 +2490,7 @@ enum
     CONF_LANGUAGE,
 };
 
-#if GAME_TRANSFER_TARGET==0 && ENABLE_GAME_TRANSFER==1
+#if !defined(GAME_TRANSFER_TARGET) && ENABLE_GAME_TRANSFER==1
 static void demo_transfer_request_addreplay_dispatch_event(int status_limit)
 {
     Array items = demo_dir_scan();
@@ -2498,6 +2502,7 @@ static void demo_transfer_request_addreplay_dispatch_event(int status_limit)
         for (int i = 0; i < total; i++)
         {
             struct demo *demo_data = ((struct demo *) ((struct dir_item *) array_get(items, i))->data);
+            struct demo *df;
 
             if (!demo_data)
                 continue;
@@ -2513,7 +2518,12 @@ static void demo_transfer_request_addreplay_dispatch_event(int status_limit)
                 max = 1;
 
             if (max <= limit)
-                transfer_addreplay(demo_data->path);
+            {
+                if (demo_load(df, demo_data->path))
+                    transfer_addreplay(demo_data->path);
+                else
+                    transfer_addreplay_unsupported();
+            }
             else
                 transfer_addreplay_exceeded();
         }
@@ -2542,13 +2552,13 @@ static int conf_action(int tok, int val)
             break;
 
 #if ENABLE_GAME_TRANSFER==1
-#if GAME_TRANSFER_TARGET==1
+#ifdef GAME_TRANSFER_TARGET
         case CONF_SYSTEMTRANSFER_TARGET:
 #else
         case CONF_SYSTEMTRANSFER_SOURCE:
             transfer_add_dispatch_event(demo_transfer_request_addreplay_dispatch_event);
 #endif
-            goto_state(&st_transfer);
+            goto_game_transfer(curr_state());
             break;
 #endif
 
@@ -2582,7 +2592,9 @@ static int conf_action(int tok, int val)
 
         case CONF_BALL:
             /* HACK: This avoids spamming stuff */
-            if (fs_exists("gui/ball.sol") && fs_exists("gui/ball.nbr"))
+            if (fs_exists("gui/ball.sol") &&
+                (fs_exists("gui/ball.nbr") ||
+                 fs_exists("gui/ball.nbrx")))
             {
                 game_fade(+6.0);
                 goto_state(&st_ball);
@@ -2685,7 +2697,7 @@ static int conf_gui(void)
 
     if ((root_id = gui_root()))
     {
-        int id;
+        int id, rd;
 
         if ((id = gui_vstack(root_id)))
         {
@@ -2696,18 +2708,19 @@ static int conf_gui(void)
 #if ENABLE_GAME_TRANSFER==1
             if (mainmenu_conf)
             {
-#if GAME_TRANSFER_TARGET==1
-                conf_state(id, _("Neverball Game Transfer"), _("Start"),
-                               CONF_SYSTEMTRANSFER_TARGET);
+#ifdef GAME_TRANSFER_TARGET
+                rd = conf_state(id, _("Neverball Game Transfer"), _("Start"),
+                                    CONF_SYSTEMTRANSFER_TARGET);
+                gui_set_color(rd, gui_wht, gui_yel);
 #else
-                conf_state(id, _("Pennyball Transfer Tool"), _("Start"),
-                               CONF_SYSTEMTRANSFER_SOURCE);
+                rd = conf_state(id, _("Pennyball Transfer Tool"), _("Start"),
+                                    CONF_SYSTEMTRANSFER_SOURCE);
+                gui_set_color(rd, gui_wht, gui_cya);
 #endif
-                gui_space(id);
             }
 #endif
 
-            int rd = conf_state(id, _("Community (Discord)"), _("Join"), CONF_SOCIAL);
+            rd = conf_state(id, _("Community (Discord)"), _("Join"), CONF_SOCIAL);
             gui_set_color(rd, gui_wht, gui_cya);
 
             gui_space(id);

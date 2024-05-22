@@ -48,18 +48,14 @@ static int scan_level_attribs(struct level *l,
     int difficulty_offered = 1;
 #endif
 
-    int have_goal = 0;
-    int have_time = 0;
+    int have_goal = 0, have_time = 0;
 
     int mingoal = 0;
     int maxtime = 0;
 
-    int need_time_medm = 0;
-    int need_time_easy = 0;
-    int need_goal_medm = 0;
-    int need_goal_easy = 0;
-    int need_coin_medm = 0;
-    int need_coin_easy = 0;
+    int need_time_medm = 0, need_time_easy = 0;
+    int need_goal_medm = 0, need_goal_easy = 0;
+    int need_coin_medm = 0, need_coin_easy = 0;
 
     for (i = 0; i < base->dc; i++)
     {
@@ -91,9 +87,7 @@ static int scan_level_attribs(struct level *l,
         if (strcmp(k, "message") == 0)
             SAFECPY(l->message, v);
         else if (strcmp(k, "song") == 0)
-        {
             SAFECPY(l->song, v);
-        }
         else if (strcmp(k, "shot") == 0)
             SAFECPY(l->shot, v);
         else if (strcmp(k, "goal") == 0)
@@ -194,7 +188,7 @@ static int scan_level_attribs(struct level *l,
                     else
                         need_goal_easy = 1;
                 }
-                break;
+                    break;
                 case 3: break;
             }
         }
@@ -230,6 +224,7 @@ static int scan_level_attribs(struct level *l,
         else if (strcmp(k, "master") == 0)
         {
             int is_master = atoi(v) ? 1 : 0;
+
             if ((campaign || pre_campaign) && is_master && werror_campaign)
             {
                 log_errorf("Switchball does not offer master levels!\n");
@@ -241,6 +236,7 @@ static int scan_level_attribs(struct level *l,
         else if (strcmp(k, "bonus") == 0)
         {
             int is_bonus = atoi(v) ? 1 : 0;
+
             if ((campaign || pre_campaign) && is_bonus && werror_campaign)
             {
                 log_errorf("Switchball does not offer bonus levels!\n");
@@ -264,13 +260,9 @@ static int scan_level_attribs(struct level *l,
         /* Best Time built-in limitations. */
 
         for (i = 0; i < 3; i++)
-        {
             for (int r = RANK_HARD; r < RANK_LAST; r++)
-            {
                 while (l->scores[i].timer[r] > maxtime)
                     l->scores[i].timer[r] = maxtime;
-            }
-        }
     }
 
     if (have_goal)
@@ -278,17 +270,12 @@ static int scan_level_attribs(struct level *l,
         /* Most coins and Fast Unlock built-in limitations. */
 
         for (i = 0; i < 3; i++)
-        {
             for (int r = RANK_HARD; r < RANK_LAST; r++)
-            {
                 while (l->scores[i].coins[r] < mingoal)
                     l->scores[i].coins[r] = mingoal;
-            }
-        }
     }
 
     for (i = 0; i < 3; i++)
-    {
         for (int r = RANK_HARD; r < RANK_LAST; r++)
         {
             if (l->scores[i].coins[r + 1] > l->scores[i].coins[r])
@@ -297,7 +284,6 @@ static int scan_level_attribs(struct level *l,
             if (l->scores[i].timer[r + 1] < l->scores[i].timer[r])
                 l->scores[i].timer[r + 1] = l->scores[i].timer[r];
         }
-    }
 
     return 1;
 }
@@ -388,7 +374,6 @@ static int scan_campaign_level(const struct s_base *base,
                 if (!levelset_have_back && !levelset_have_grad && !levelset_have_song)
                 {
                     for (int i = 0; i < 5 && !levelset_have_back; i++)
-                    {
                         if (strcmp(v, sbtheme_limitation_back[i]) == 0)
                         {
                             SAFECPY(target_grad, sbtheme_limitation_grad[i]);
@@ -397,7 +382,6 @@ static int scan_campaign_level(const struct s_base *base,
                             levelset_have_back = 1;
                             break;
                         }
-                    }
                 }
                 else if ((levelset_have_grad || levelset_have_song) && !levelset_have_back)
                     levelset_have_back = strcmp(v, target_back) == 0;
@@ -447,7 +431,6 @@ static int scan_campaign_level(const struct s_base *base,
                 if (!levelset_have_back && !levelset_have_grad && !levelset_have_song)
                 {
                     for (int i = 0; i < 5 && !levelset_have_grad; i++)
-                    {
                         if (strcmp(v, sbtheme_limitation_grad[i]) == 0)
                         {
                             SAFECPY(target_back, sbtheme_limitation_back[i]);
@@ -456,7 +439,6 @@ static int scan_campaign_level(const struct s_base *base,
                             levelset_have_grad = 1;
                             break;
                         }
-                    }
                 }
                 else if ((levelset_have_back || levelset_have_song) && !levelset_have_grad)
                     levelset_have_grad = strcmp(v, target_grad) == 0;
@@ -544,10 +526,12 @@ int level_load(const char *filename, struct level *level)
     memset(level, 0, sizeof (struct level));
     memset(&base, 0, sizeof (base));
 
-    if (!str_ends_with(filename, ".sol") &&
-        !str_ends_with(filename, ".csol"))
+    if (!str_ends_with(filename, ".csol")  &&
+        !str_ends_with(filename, ".csolx") &&
+        !str_ends_with(filename, ".sol")   &&
+        !str_ends_with(filename, ".solx"))
     {
-        log_errorf("That's not the classic or campaign SOL extension!: %s\n",
+        log_errorf("That's not the classic or campaign SOL or SOLX extension!: %s\n",
                    filename);
         return 0;
     }

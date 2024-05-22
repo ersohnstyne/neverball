@@ -908,20 +908,6 @@ static void move_file(struct s_base *fp)
             posv = NULL;
         }
     }
-}
-
-            for (i = 0; i < fp->pc; i++)
-            {
-                struct b_path* pp = fp->pv + i;
-
-                if (pp->p0 >= 0)
-                    v_cpy(fp->pv[i].p, posv[i]);
-            }
-
-            free(posv);
-            posv = NULL;
-        }
-    }
 
 #ifdef MAPC_INCLUDES_CHKP
     for (i = 0; i < fp->cc; i++)
@@ -3585,7 +3571,13 @@ static int check_profile_balls(const char *filename)
            strcmp(filename + strlen(filename) - 11, "-outer.csol") == 0 ||
            strcmp(filename + strlen(filename) - 11, "-solid.sol")  == 0 ||
            strcmp(filename + strlen(filename) - 11, "-inner.sol")  == 0 ||
-           strcmp(filename + strlen(filename) - 11, "-outer.sol")  == 0;
+           strcmp(filename + strlen(filename) - 11, "-outer.sol")  == 0 ||
+           strcmp(filename + strlen(filename) - 11, "-solid.cxol") == 0 ||
+           strcmp(filename + strlen(filename) - 11, "-inner.cxol") == 0 ||
+           strcmp(filename + strlen(filename) - 11, "-outer.cxol") == 0 ||
+           strcmp(filename + strlen(filename) - 11, "-solid.xol")  == 0 ||
+           strcmp(filename + strlen(filename) - 11, "-inner.xol")  == 0 ||
+           strcmp(filename + strlen(filename) - 11, "-outer.xol")  == 0;
 }
 
 static int check_campaign_level(const char *filename)
@@ -3749,6 +3741,9 @@ static void print_usage(const char *name)
  * - Ersohn Styne
  */
 
+#define MAPC_FILEEXT_CSOL ".csol"
+#define MAPC_FILEEXT_SOL  ".sol"
+
 int main(int argc, char *argv[])
 {
     char src[MAXSTR] = "";
@@ -3852,17 +3847,17 @@ int main(int argc, char *argv[])
             if (strcmp(dst + strlen(dst) - 5, ".cmap") == 0)
             {
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
-                strcpy_s(dst + strlen(dst) - 5, MAXSTR, ".csol");
+                strcpy_s(dst + strlen(dst) - 5, MAXSTR, MAPC_FILEEXT_CSOL);
 #else
-                strcpy(dst + strlen(dst) - 5, ".csol");
+                strcpy(dst + strlen(dst) - 5, MAPC_FILEEXT_CSOL);
 #endif
             }
             else if (strcmp(dst + strlen(dst) - 4, ".map") == 0)
             {
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
-                strcpy_s(dst + strlen(dst) - 4, MAXSTR, ".csol");
+                strcpy_s(dst + strlen(dst) - 4, MAXSTR, MAPC_FILEEXT_CSOL);
 #else
-                strcpy(dst + strlen(dst) - 4, ".csol");
+                strcpy(dst + strlen(dst) - 4, MAPC_FILEEXT_CSOL);
 #endif
             }
             else
@@ -3874,9 +3869,9 @@ int main(int argc, char *argv[])
         else if (strcmp(dst + strlen(dst) - 4, ".map") == 0)
         {
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
-            strcpy_s(dst + strlen(dst) - 4, MAXSTR, ".sol");
+            strcpy_s(dst + strlen(dst) - 4, MAXSTR, MAPC_FILEEXT_SOL);
 #else
-            strcpy(dst + strlen(dst) - 4, ".sol");
+            strcpy(dst + strlen(dst) - 4, MAPC_FILEEXT_SOL);
 #endif
         }
         else
@@ -4018,6 +4013,13 @@ int main(int argc, char *argv[])
 
                     MAPC_LOG_ERROR(buf);
                     return 1;
+                }
+
+                if (sol_check_solx(&f))
+                {
+                    /* Using newer SOL leads to csolx or solx. */
+
+                    SAFECAT(dst, "x");
                 }
 
                 sol_stor_base(&f, base_name(dst));

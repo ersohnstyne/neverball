@@ -693,7 +693,7 @@ static float sol_path_time(struct s_vary *vary, float dt)
 }
 
 /*
- * Move SOL state forward DT seconds.
+ * Move SOL/SOLX state forward DT seconds.
  */
 static void sol_move_once(struct s_vary *vary, cmd_fn cmd_func, float dt)
 {
@@ -714,7 +714,7 @@ static void sol_move_once(struct s_vary *vary, cmd_fn cmd_func, float dt)
 }
 
 /*
- * Move SOL state forward DT seconds across multiple path changes.
+ * Move SOL/SOLX state forward DT seconds across multiple path changes.
  */
 void sol_move(struct s_vary *vary, cmd_fn cmd_func, float dt)
 {

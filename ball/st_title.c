@@ -322,10 +322,10 @@ static int title_action(int tok, int val)
             if (support_exit)
 #endif
             {
+                title_prequit = 1;
+
                 /* bye! */
 
-                title_prequit = 1;
-                game_fade(+4.0f);
                 return 0;
             }
             break;
@@ -1285,10 +1285,10 @@ static int title_keybd(int c, int d)
 #ifndef __EMSCRIPTEN__
         if (c == KEY_EXIT && support_exit)
         {
+            title_prequit = 1;
+
             /* bye! */
 
-            title_prequit = 1;
-            game_fade(+4.0f);
             return 0;
         }
 #endif
@@ -1327,10 +1327,10 @@ static int title_buttn(int b, int d)
 #ifndef __EMSCRIPTEN__
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b) && support_exit)
         {
+            title_prequit = 1;
+
             /* bye! */
 
-            title_prequit = 1;
-            game_fade(+4.0f);
             return 0;
         }
 #endif

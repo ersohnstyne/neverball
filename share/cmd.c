@@ -398,11 +398,13 @@ DEFINE_CMD(CMD_MOVE_TIME, INDEX_BYTES + FLOAT_BYTES, {
 
 /*---------------------------------------------------------------------------*/
 
+#ifdef CMD_NBRX
 DEFINE_CMD(CMD_TILT, ARRAY_BYTES(4), {
     put_array(fp, cmd->tilt.q, 4);
 }, {
     get_array(fp, cmd->tilt.q, 4);
 });
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -484,7 +486,9 @@ int cmd_put(fs_file fp, const union cmd *cmd)
         PUT_CASE(CMD_TILT_AXES);
         PUT_CASE(CMD_MOVE_PATH);
         PUT_CASE(CMD_MOVE_TIME);
+#ifdef CMD_NBRX
         PUT_CASE(CMD_TILT);
+#endif
         PUT_CASE(CMD_CHKP_ENTER);
         PUT_CASE(CMD_CHKP_TOGGLE);
         PUT_CASE(CMD_CHKP_EXIT);
@@ -559,7 +563,9 @@ int cmd_get(fs_file fp, union cmd *cmd)
             GET_CASE(CMD_TILT_AXES);
             GET_CASE(CMD_MOVE_PATH);
             GET_CASE(CMD_MOVE_TIME);
+#ifdef CMD_NBRX
             GET_CASE(CMD_TILT);
+#endif
             GET_CASE(CMD_CHKP_ENTER);
             GET_CASE(CMD_CHKP_TOGGLE);
             GET_CASE(CMD_CHKP_EXIT);

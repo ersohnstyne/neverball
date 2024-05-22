@@ -458,7 +458,7 @@ void moon_taskloader_quit(void)
 }
 
 /*
- * Load SOL file into the taskloader.
+ * Load SOL/SOLX file into the taskloader.
  */
 unsigned int moon_taskloader_load(const char *filename,
                                   struct moon_taskloader_callback callback)

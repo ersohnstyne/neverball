@@ -89,7 +89,7 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
     while (last_view[ui].a < -180.0f)
         last_view[ui].a += 180.0f;
 
-    /* Phase 3: Backup all SOL data's simulation. */
+    /* Phase 3: Backup all SOL/SOLX data's simulation. */
 
     /* Backed up from the gameplay */
     for (int backupidx = 0; backupidx < saved_vary.uc; backupidx++)
@@ -113,6 +113,9 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
         struct chkp_path *c_pp = last_chkp_path + backupidx;
 
         c_pp->f = pp->f;
+
+        c_pp->mi = pp->mi;
+        c_pp->mj = pp->mj;
     }
 
     /* Backed up from the gameplay (body) */
@@ -125,7 +128,7 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
         c_bp->mj = bp->mj;
     }
 
-    /* Backed up from the gameplay (mover) (no saving SOL to files) */
+    /* Backed up from the gameplay (mover) (no saving SOL/SOLX to files) */
     for (int backupidx = 0; backupidx < saved_vary.mc; backupidx++)
     {
         struct v_move    *mp   = saved_vary.mv + backupidx;
@@ -254,7 +257,7 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
 {
     checkpoints_busy = 1;
 
-    /* Restore SOL data's simulation from checkpoint. */
+    /* Restore SOL/SOLX data's simulation from checkpoint. */
 
     /* Restored from the checkpoints */
     for (int resetidx = 0; resetidx < vary->uc; resetidx++)
@@ -309,6 +312,9 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
                 cmd.pathflag.f  = pp->f;
                 cmd_func(&cmd);
             }
+
+            pp->mi = last_pp->mi;
+            pp->mj = last_pp->mj;
         }
     }
 
@@ -322,7 +328,7 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
         bp->mj = c_bp->mj;
     }
 
-    /* Restored from the checkpoints (mover) (no loading SOL from files) */
+    /* Restored from the checkpoints (mover) (no loading SOL/SOLX from files) */
     for (int resetidx = 0; resetidx < vary->mc; resetidx++)
     {
         struct chkp_move *last_mp = last_chkp_move + resetidx;

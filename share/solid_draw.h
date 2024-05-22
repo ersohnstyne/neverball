@@ -100,7 +100,7 @@ struct s_draw
 
 /*
  * This structure holds rendering state shared between separate
- * SOLs. I am aware that the name leaves much to be desired.
+ * SOLs or SOLXs. I am aware that the name leaves much to be desired.
  */
 
 struct s_rend

@@ -197,6 +197,15 @@ void game_tilt_calc(struct game_tilt *tilt, float view_e[3][3])
     q_nrm(tilt->q, tilt->q);
 }
 
+/*
+ * Compute appropriate tilt axes from the view basis.
+ */
+void game_tilt_axes(struct game_tilt *tilt, float view_e[3][3])
+{
+    v_cpy(tilt->x, view_e[0]);
+    v_cpy(tilt->z, view_e[2]);
+}
+
 void game_tilt_grav(float h[3], const float g[3], const struct game_tilt *tilt)
 {
     q_rot(h, tilt->q, g);

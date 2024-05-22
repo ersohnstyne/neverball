@@ -637,7 +637,7 @@ static void campaign_load_levels(void)
         int lvl_was_offered = level_load(campaign_levelpath[i], l);
         
         l->number       = i - i_retreat;
-        l->is_locked    = (i - i_retreat) > 0 || !lvl_was_offered;
+        l->is_locked    = (i - i_retreat) > 0 && lvl_was_offered;
         l->is_completed = 0;
 
         if (lvl_was_offered)
@@ -652,16 +652,17 @@ static void campaign_load_levels(void)
             if ((i - i_retreat) > 0)
                 campaign_lvl_v[(i - i_retreat) - 1].next = l;
         }
-        else i_retreat++;
+        else
+        {
+            i_retreat++;
+            log_errorf("Could not load level file: %s / Retreated levels: %d\n", campaign_levelpath[i], i_retreat);
+        }
     }
 }
 
 int campaign_find(const char *file)
 {
-    if (strcmp(CAMPAIGN_FILE, file) == 0)
-        return 1;
-
-    return 0;
+    return (strcmp(CAMPAIGN_FILE, file) == 0);
 }
 
 int campaign_level_difficulty(void)

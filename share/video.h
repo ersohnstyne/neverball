@@ -83,6 +83,15 @@ void video_calc_view(float *, const float *,
                               const float *,
                               const float *);
 
+/* Use video_set_perspective instead of video_push_persp. */
+#define video_push_persp video_set_perspective
+
+/* Use video_set_ortho instead of video_push_ortho. */
+#define video_push_ortho video_set_ortho
+
+/* This function is deprecated and is removed without notices. */
+#define video_pop_matrix
+
 void video_set_perspective(float, float, float);
 void video_set_ortho(void);
 void video_clear(void);

@@ -217,7 +217,7 @@ int mtrl_cache(const struct b_mtrl *base)
             return array_len(mtrls) - 1;
         }
     }
-    else
+    else if (mi >= 0 && mi < array_len(mtrls))
     {
         mp = array_get(mtrls, mi);
         mp->refc++;
@@ -231,7 +231,7 @@ int mtrl_cache(const struct b_mtrl *base)
  */
 void mtrl_free(int mi)
 {
-    if (mtrls)
+    if (mtrls && mi >= 0 && mi < array_len(mtrls))
     {
         struct mtrl *mp = array_get(mtrls, mi);
 
@@ -250,7 +250,7 @@ void mtrl_free(int mi)
  */
 struct mtrl *mtrl_get(int mi)
 {
-    return mtrls ? array_get(mtrls, mi) : NULL;
+    return mtrls && mi >= 0 && mi < array_len(mtrls) ? array_get(mtrls, mi) : NULL;
 }
 
 /*

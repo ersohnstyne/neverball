@@ -67,7 +67,7 @@ extern "C"
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif

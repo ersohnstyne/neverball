@@ -113,8 +113,8 @@ int tutorial_check(void)
         return 0;
     }
 
-    char *ln = level_name(curr_level());
-    char *sn = set_name(curr_set());
+    const char *ln = level_name(curr_level());
+    const char *sn = set_name(curr_set());
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (!campaign_used())
@@ -335,8 +335,8 @@ int hint_check(void)
         )
         return 0;
 
-    char *ln = level_name(curr_level());
-    char *sn = set_name(curr_set());
+    const char *ln = level_name(curr_level());
+    const char *sn = set_name(curr_set());
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (!campaign_used())

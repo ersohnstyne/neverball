@@ -18,6 +18,9 @@
 /* Don't use the build-in resolutions */
 #define RESIZEABLE_WINDOW
 
+#define ENABLE_MULTISAMPLE_SOLUTION
+#define FPS_REALTIME
+
 /*---------------------------------------------------------------------------*/
 
 #if __cplusplus
@@ -94,6 +97,7 @@ void video_calc_view(float *, const float *,
 
 void video_set_perspective(float, float, float);
 void video_set_ortho(void);
+void video_set_current(void);
 void video_clear(void);
 
 /*---------------------------------------------------------------------------*/

@@ -32,6 +32,9 @@
 #include "video.h"
 #include "audio.h"
 
+#if ENABLE_DUALDISPLAY==1
+#include "game_dualdisplay.h"
+#endif
 #include "game_common.h"
 #include "game_client.h"
 
@@ -124,7 +127,17 @@ int hud_visibility(void)
 
 static void hud_fps(void)
 {
-    gui_set_count(fps_id, video_perf());
+    char perf_attr[MAXSTR];
+    float ms_latence = 1.f / video_perf();
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(perf_attr, MAXSTR
+#else
+    sprintf(perf_attr,
+#endif
+            "FPS: %d (%.3f ms)", video_perf(), ms_latence);
+
+    gui_set_label(fps_id, perf_attr);
 }
 
 void hud_init(void)
@@ -241,16 +254,17 @@ void hud_init(void)
 
     if ((cam_id = gui_label(0, str_cam, GUI_SML, GUI_COLOR_WHT)))
     {
-        gui_set_rect(cam_id, GUI_SW);
-        gui_layout(cam_id, 1, 1);
+        gui_set_rect(cam_id, GUI_SE);
+        gui_layout(cam_id, -1, 1);
     }
 
     /* This debug shows how it works */
 
-    if ((fps_id = gui_count(0, 1000, GUI_SML)))
+    if ((fps_id = gui_label(0, "XXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, GUI_COLOR_DEFAULT)))
     {
-        gui_set_rect(fps_id, GUI_SE);
-        gui_layout(fps_id, -1, 1);
+        gui_set_trunc(fps_id, TRUNC_TAIL);
+        gui_set_rect(fps_id, GUI_BOT);
+        gui_layout(fps_id, 0, 1);
     }
 
     if ((lvlname_id = gui_label(0, "XXXXXXXXXXXXXXXXXXXXXXXXX",
@@ -345,7 +359,7 @@ static void hud_update_alpha(void)
     }
 
     gui_set_alpha(fps_id,          standard_hud_alpha,
-                                   GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE);
+                                   GUI_ANIMATION_N_CURVE);
     gui_set_alpha(speed_id,        replay_hud_alpha,
                                    GUI_ANIMATION_S_CURVE);
     gui_set_alpha(lvlname_id,      standard_hud_alpha,
@@ -357,7 +371,7 @@ static void hud_update_alpha(void)
     gui_set_alpha(speedbar_hud_id, standard_hud_alpha,
                                    GUI_ANIMATION_N_CURVE);
     gui_set_alpha(cam_id,          cam_hud_alpha * standard_hud_alpha,
-                                   GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE);
+                                   GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE);
     gui_set_alpha(time_id,         standard_hud_alpha, GUI_ANIMATION_S_CURVE);
 #if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
     gui_set_alpha(touch_id,        standard_hud_alpha,
@@ -488,6 +502,10 @@ void hud_update(int pulse, float animdt)
     if (clock != (last = gui_value(time_id)))
     {
         gui_set_clock(time_id, clock);
+
+#if ENABLE_DUALDISPLAY==1
+        game_dualdisplay_set_time(clock);
+#endif
 
         if (pulse)
         {
@@ -723,32 +741,32 @@ int hud_touch(const SDL_TouchFingerEvent *e)
 void hud_update_camera_direction(float rot_direction)
 {
     float hdg_area = 22.5f;
-    float hdg_num = (hdg_area / 2) - rot_direction;
-    hdg_num -= (hdg_area / 2);
+    float hdg_num = (hdg_area / 2) - (rot_direction + (hdg_area / 2));
+    hdg_num -= (hdg_area / 4);
 
     char camdirref[MAXSTR];
     char *hdg_name = "N";
 
-    if (hdg_num < 0)
-        do hdg_num += 360; while (hdg_num < 0);
+    if (hdg_num < 0)   do hdg_num += 360; while (hdg_num < 0);
+    if (hdg_num > 360) do hdg_num -= 360; while (hdg_num > 360);
 
-    if (hdg_area * 1.5f >= hdg_num && hdg_num <= hdg_area * 2.5f)
+    if      (hdg_area * 1.5f  >= hdg_num && hdg_num <= hdg_area * 2.5f)
         hdg_name = "NNE";
-    else if (hdg_area * 2.5f >= hdg_num && hdg_num <= hdg_area * 3.5f)
+    else if (hdg_area * 2.5f  >= hdg_num && hdg_num <= hdg_area * 3.5f)
         hdg_name = "NE";
-    else if (hdg_area * 3.5f >= hdg_num && hdg_num <= hdg_area * 4.5f)
+    else if (hdg_area * 3.5f  >= hdg_num && hdg_num <= hdg_area * 4.5f)
         hdg_name = "ENE";
-    else if (hdg_area * 4.5f >= hdg_num && hdg_num <= hdg_area * 5.5f)
+    else if (hdg_area * 4.5f  >= hdg_num && hdg_num <= hdg_area * 5.5f)
         hdg_name = "E";
-    else if (hdg_area * 5.5f >= hdg_num && hdg_num <= hdg_area * 6.5f)
+    else if (hdg_area * 5.5f  >= hdg_num && hdg_num <= hdg_area * 6.5f)
         hdg_name = "ESE";
-    else if (hdg_area * 6.5f >= hdg_num && hdg_num <= hdg_area * 7.5f)
+    else if (hdg_area * 6.5f  >= hdg_num && hdg_num <= hdg_area * 7.5f)
         hdg_name = "SE";
-    else if (hdg_area * 7.5f >= hdg_num && hdg_num <= hdg_area * 8.5f)
+    else if (hdg_area * 7.5f  >= hdg_num && hdg_num <= hdg_area * 8.5f)
         hdg_name = "SSE";
-    else if (hdg_area * 8.5f >= hdg_num && hdg_num <= hdg_area * 9.5f)
+    else if (hdg_area * 8.5f  >= hdg_num && hdg_num <= hdg_area * 9.5f)
         hdg_name = "S";
-    else if (hdg_area * 9.5f >= hdg_num && hdg_num <= hdg_area * 10.5f)
+    else if (hdg_area * 9.5f  >= hdg_num && hdg_num <= hdg_area * 10.5f)
         hdg_name = "SSW";
     else if (hdg_area * 10.5f >= hdg_num && hdg_num <= hdg_area * 11.5f)
         hdg_name = "SW";
@@ -762,6 +780,10 @@ void hud_update_camera_direction(float rot_direction)
         hdg_name = "NW";
     else if (hdg_area * 15.5f >= hdg_num && hdg_num <= hdg_area * 16.5f)
         hdg_name = "NNW";
+
+    hdg_num += (hdg_area / 4);
+    if (hdg_num < 0)   do hdg_num += 360; while (hdg_num < 0);
+    if (hdg_num > 360) do hdg_num -= 360; while (hdg_num > 360);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(camdirref, MAXSTR,
@@ -826,6 +848,8 @@ void hud_lvlname_set_ana(const char *name, int b)
 
 void hud_lvlname_paint(void)
 {
+    if (config_get_d(CONFIG_FPS)) return;
+
     if ((speed_timer_length < 0.0f && !config_get_d(CONFIG_SCREEN_ANIMATIONS))
       || config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {

@@ -33,7 +33,9 @@
 #include "course.h"
 #include "config.h"
 #include "video.h"
+#ifndef VERSION
 #include "version.h"
+#endif
 
 #include "st_all.h"
 #include "st_conf.h"

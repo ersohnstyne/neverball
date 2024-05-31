@@ -24,7 +24,7 @@
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
@@ -104,14 +104,7 @@ void demo_dir_load(Array items, int lo, int hi)
 {
     int i;
 
-#ifndef NDEBUG
-    assert(lo >= 0  && lo < array_len(items));
-    assert(hi >= lo && hi < array_len(items));
-
-    for (i = lo; i <= hi; i++)
-#else
     for (i = CLAMP(0, lo, array_len(items)); i <= CLAMP(lo, hi, array_len(items) - 1); i++)
-#endif
         load_item(array_get(items, i));
 }
 

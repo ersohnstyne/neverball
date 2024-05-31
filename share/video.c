@@ -22,9 +22,6 @@
  * - Ersohn Styne
  */
 
-#define ENABLE_MULTISAMPLE_SOLUTION
-#define FPS_REALTIME
-
 #if __cplusplus
 #include <vcruntime_exception.h>
 #endif
@@ -52,6 +49,7 @@ extern "C" {
 #include "dbg_config.h"
 
 #include "video.h"
+#include "video_dualdisplay.h"
 #include "common.h"
 #include "image.h"
 #include "vec3.h"
@@ -169,6 +167,8 @@ static SDL_GLContext  context;
 #if !_MSC_VER && !defined(__APPLE__)
 static void set_window_icon(const char *filename)
 {
+    if (!window) return;
+
     SDL_Surface *icon;
 
     if ((icon = load_surface(filename)))
@@ -353,13 +353,13 @@ void video_quit(void)
         context = NULL;
     }
 
-#if NB_STEAM_API==0 && !defined(__EMSCRIPTEN__)
+//#if NB_STEAM_API==0 && !defined(__EMSCRIPTEN__)
     if (window)
     {
         SDL_DestroyWindow(window);
         window = NULL;
     }
-#endif
+//#endif
 
     hmd_free();
 }
@@ -413,7 +413,7 @@ video_mode_reconf:
         log_errorf("No display connected!: %d\n", dpy);
         return 0;
     }
-    
+
     SDL_Rect monitor_area_location;
     SDL_GetDisplayBounds(dpy, &monitor_area_location);
 
@@ -642,7 +642,11 @@ video_mode_reconf:
             SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buffers);
             if (buffers) glEnable(GL_MULTISAMPLE);
         }
-        else config_set_d(CONFIG_MULTISAMPLE, 0);
+        else
+        {
+            glDisable(GL_MULTISAMPLE);
+            config_set_d(CONFIG_MULTISAMPLE, 0);
+        }
 
 #if ENABLE_HMD
         /* Set up HMD display if requested. */
@@ -1127,7 +1131,11 @@ video_mode_auto_config_reconf:
             SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buffers);
             if (buffers) glEnable(GL_MULTISAMPLE);
         }
-        else config_set_d(CONFIG_MULTISAMPLE, 0);
+        else
+        {
+            glDisable(GL_MULTISAMPLE);
+            config_set_d(CONFIG_MULTISAMPLE, 0);
+        }
 
 #if ENABLE_HMD
         /* Set up HMD display if requested. */
@@ -1583,6 +1591,18 @@ void video_set_ortho(void)
         if (viewport_wireframe == 2 && render_right_viewport)
             glTranslatef(-w, 0, 0);
     }
+}
+
+#if __cplusplus
+extern "C"
+#endif
+void video_set_current(void)
+{
+    if (!window || !context) return;
+
+#if ENABLE_DUALDISPLAY==1
+    //SDL_GL_MakeCurrent(window, context);
+#endif
 }
 
 #if __cplusplus

@@ -53,8 +53,4 @@ unsigned int fetch_url(const char *url,
                        const char *dst,
                        struct fetch_callback);
 
-unsigned int fetch_gdrive(const char *fileid,
-                          const char *dst,
-                          struct fetch_callback);
-
 #endif

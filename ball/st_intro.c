@@ -566,7 +566,11 @@ static int intro_restore_action(int tok, int val)
                 goto_state(&st_null);
                 int oldVsync = config_get_d(CONFIG_VSYNC);
                 config_set_d(CONFIG_VSYNC, config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
+#if ENABLE_DUALDISPLAY==1
+                r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
                 r = video_mode(f, w, h);
+#endif
                 if (r)
                 {
                     remove_all();
@@ -581,7 +585,11 @@ static int intro_restore_action(int tok, int val)
                 int oldSamp = config_get_d(CONFIG_MULTISAMPLE);
                 config_set_d(CONFIG_MULTISAMPLE,
                              config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
+#if ENABLE_DUALDISPLAY==1
+                r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
                 r = video_mode(f, w, h);
+#endif
                 if (r)
                 {
                     remove_all();
@@ -596,7 +604,11 @@ static int intro_restore_action(int tok, int val)
                 int oldRefl = config_get_d(CONFIG_REFLECTION);
                 config_set_d(CONFIG_REFLECTION,
                              config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
+#if ENABLE_DUALDISPLAY==1
+                r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
                 r = video_mode(f, w, h);
+#endif
                 if (r)
                 {
                     remove_all();
@@ -611,7 +623,11 @@ static int intro_restore_action(int tok, int val)
                 int oldHmd = config_get_d(CONFIG_HMD);
                 config_set_d(CONFIG_HMD,
                              config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1));
+#if ENABLE_DUALDISPLAY==1
+                r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
                 r = video_mode(f, w, h);
+#endif
                 if (r)
                 {
                     remove_all();

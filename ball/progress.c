@@ -51,6 +51,9 @@
 
 #include "state.h"
 
+#if ENABLE_DUALDISPLAY==1
+#include "game_dualdisplay.h"
+#endif
 #include "game_common.h"
 #include "game_client.h"
 #include "game_server.h"
@@ -390,6 +393,11 @@ void progress_init(int m)
 
     done = 0;
 
+#if ENABLE_DUALDISPLAY==1
+    game_dualdisplay_set_mode(m);
+    game_dualdisplay_set_heart(curr.balls);
+#endif
+
     is_init = 1;
 }
 
@@ -401,6 +409,10 @@ void progress_extend(void)
     status      = GAME_NONE;
     curr.times -= extended_timer;
     curr.balls += 1;
+
+#if ENABLE_DUALDISPLAY==1
+    game_dualdisplay_set_heart(curr.balls);
+#endif
 }
 
 int progress_extended(void)
@@ -662,6 +674,10 @@ int  progress_play(struct level *l)
         goal_rank = RANK_LAST;
         coin_rank = RANK_LAST;
 
+#if ENABLE_DUALDISPLAY==1
+        game_dualdisplay_set_heart(curr.balls);
+#endif
+
         return init_level();
     }
     return 0;
@@ -760,6 +776,10 @@ void progress_stat(int s)
 
                 curr.score += coins;
                 curr.times += timer;
+
+#if ENABLE_DUALDISPLAY==1
+                game_dualdisplay_set_heart(curr.balls);
+#endif
             }
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -960,6 +980,10 @@ void progress_stat(int s)
 #endif
                 )
                     PROGRESS_PLAYER_PAYDEBT_BALLS;
+
+#if ENABLE_DUALDISPLAY==1
+                game_dualdisplay_set_heart(curr.balls);
+#endif
 
                 /* Decreases acceleration at half. */
 

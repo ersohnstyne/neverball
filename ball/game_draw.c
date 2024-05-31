@@ -601,7 +601,7 @@ static void game_draw_chkps(struct s_rend *rend,
             {
                 glTranslatef(chkp_p[0], chkp_p[1], chkp_p[2]);
                 glRotatef(V_DEG(a), u[0], u[1], u[2]);
-                chkp_draw(rend, base->cv[i].p, base->cv[i].r, 1.0f, t);
+                chkp_draw(rend, base->cv[i].p, base->cv[i].r, 1.0f);
             }
             glPopMatrix();
         }
@@ -1030,19 +1030,13 @@ void game_draw(struct game_draw *gd, int pose, float t)
             game_draw_back(&rend, gd, pose, +1, t, 0);
 
             /* If the view altitude is greater than 15 m from the surface,   */
-            /* map chunk must be rendered as their overview.                 */
+            /* map chunk must be rendered from their overview.               */
 
             if (view->p[1] > gd->vary.uv[0].p[1] + 15)
             {
-                /* Draw the map chunk overlay. Must be opaqued for mirrors.  */
-
                 game_draw_light(gd, 1, t);
 
-                if (gd->draw.reflective && config_get_d(CONFIG_REFLECTION))
-                {
-                    glEnable(GL_STENCIL_TEST);
-                    glDisable(GL_STENCIL_TEST);
-                }
+                /* Draw the map chunk overlay. Must be opaqued for mirrors.  */
 
                 r_color_mtrl(&rend, 1);
                 {

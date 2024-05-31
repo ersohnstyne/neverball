@@ -38,14 +38,6 @@
 #include "game_client.h"
 #include "game_proxy.h"
 
-#if _DEBUG && _MSC_VER
-#ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
-#endif
-
 /*---------------------------------------------------------------------------*/
 
 struct set
@@ -808,24 +800,24 @@ const char *set_shot(int i)
 #if NB_HAVE_PB_BOTH==1
 int set_star(int i)
 {
-    return set_exists(i) ? SET_GET(sets, i)->star : NULL;
+    return set_exists(i) ? SET_GET(sets, i)->star : 0;
 }
 
 int set_star_curr(int i)
 {
-    return set_exists(i) ? SET_GET(sets, i)->star_obtained : NULL;
+    return set_exists(i) ? SET_GET(sets, i)->star_obtained : 0;
 }
 
 int set_star_gained(int i)
 {
     return set_exists(i) ?
-           SET_GET(sets, i)->star_prev < SET_GET(sets, i)->star_obtained : NULL;
+           SET_GET(sets, i)->star_prev < SET_GET(sets, i)->star_obtained : 0;
 }
 
 int set_balls_needed(int i)
 {
     return set_exists(i) ?
-           SET_GET(sets, i)->balls_needed : NULL;
+           SET_GET(sets, i)->balls_needed : 0;
 }
 #endif
 

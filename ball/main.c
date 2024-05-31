@@ -70,6 +70,9 @@
 extern "C" {
 #endif
 
+#if ENABLE_DUALDISPLAY==1
+#include "game_dualdisplay.h"
+#endif
 #include "game_common.h"
 #include "game_client.h"
 
@@ -106,6 +109,9 @@ extern "C" {
 #include "glext.h"
 #include "config.h"
 #include "video.h"
+#if ENABLE_DUALDISPLAY==1
+#include "video_dualdisplay.h"
+#endif
 #include "image.h"
 #include "audio.h"
 #include "demo.h"
@@ -156,7 +162,7 @@ extern "C" {
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
@@ -169,7 +175,7 @@ const char TITLE[] = "Neverball - Epic Games";
 #else
 const char TITLE[] = "Neverball";
 #endif
-const char ICON[] = "icon/neverball.png";
+const char ICON[] = "icon/Neverball.png";
 
 #define SET_ALWAYS_UNLOCKED
 
@@ -421,18 +427,31 @@ static void shot(void)
 #endif
 
 #if NB_STEAM_API==0
-    static char filename[MAXSTR];
+    char filename_primary[MAXSTR];
+    char filename_secondary[MAXSTR];
 
     int secdecimal = ROUND(config_screenshot() / 10000);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(filename, MAXSTR,
+    sprintf_s(filename_primary, MAXSTR,
 #else
-    sprintf(filename,
+    sprintf(filename_primary,
 #endif
             "Screenshots/screen_%04d-%04d.png",
             secdecimal, config_screenshot());
-    video_snap(filename);
+    video_snap(filename_primary);
+
+#if ENABLE_DUALDISPLAY==1
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(filename_secondary, MAXSTR,
+#else
+    sprintf(filename_secondary,
+#endif
+            "Screenshots/screen_%04d-%04d_secondary.png",
+        filename_secondary, config_screenshot());
+
+    video_dualdisplay_snap(filename_secondary);
+#endif
 #endif
 }
 
@@ -488,6 +507,9 @@ static int handle_key_dn(SDL_Event *e)
             break;
         case KEY_FULLSCREEN:
             video_fullscreen(!config_get_d(CONFIG_FULLSCREEN));
+#if ENABLE_DUALDISPLAY==1
+            video_dualdisplay_fullscreen(config_get_d(CONFIG_FULLSCREEN));
+#endif
             config_save();
             goto_state_full(curr_state(), 0, 0, 1);
             break;
@@ -863,11 +885,10 @@ static void refresh_packages_done(void *data, void *extra_data)
 {
     struct state *start_state = (struct state *) data;
 
-    if (!process_link(opt_link))
-    {
-        if (start_state)
-            goto_state(start_state);
-    }
+    if (opt_link && process_link(opt_link))
+        return;
+
+    goto_state(start_state);
 }
 
 /*
@@ -892,7 +913,7 @@ static void main_preload(struct state *start_state)
 
     /* But attempt it even without a package list. */
 
-    if (process_link(opt_link))
+    if (opt_link && process_link(opt_link))
     {
         /* Link processing navigates to the appropriate screen. */
         return;
@@ -1096,6 +1117,11 @@ static int loop(void)
 
                         video_clear();
                         video_resize(e.window.data1, e.window.data2);
+#if ENABLE_DUALDISPLAY==1
+                        video_dualdisplay_resize(e.window.data1, e.window.data2);
+                        video_set_window_size(e.window.data1, e.window.data2);
+                        video_dualdisplay_set_window_size(e.window.data1, e.window.data2);
+#endif
                         gui_resize();
                         break;
 
@@ -1107,6 +1133,11 @@ static int loop(void)
 
                         video_clear();
                         video_resize(e.window.data1, e.window.data2);
+#if ENABLE_DUALDISPLAY==1
+                        video_dualdisplay_resize(e.window.data1, e.window.data2);
+                        video_set_window_size(e.window.data1, e.window.data2);
+                        video_dualdisplay_set_window_size(e.window.data1, e.window.data2);
+#endif
                         gui_resize();
                         config_save();
                         goto_state_full(curr_state(), 0, 0, 1);
@@ -1323,9 +1354,13 @@ static void step(void *data)
             st_timer(MAX((0.001f * deltaTime) * speedPercent, 0));
         }
 
+        hmd_step();
+
         /* Render. */
 
-        hmd_step();
+#if ENABLE_DUALDISPLAY==1
+        video_set_current();
+#endif
 
         if (viewport_wireframe == 2 || viewport_wireframe == 3)
         {
@@ -1337,6 +1372,14 @@ static void step(void *data)
         else st_paint(0.001f * now, 1);
 
         video_swap();
+
+#if ENABLE_DUALDISPLAY==1
+        video_dualdisplay_set_current();
+        video_dualdisplay_clear();
+        game_dualdisplay_draw();
+
+        video_dualdisplay_swap();
+#endif
 
         mainloop->now = now;
     }
@@ -1645,9 +1688,20 @@ static int main_init(int argc, char *argv[])
 
         if (!video_init())
             return 0;
+
+#if ENABLE_DUALDISPLAY==1
+        video_dualdisplay_init();
+#endif
+
 #ifndef DISABLE_PANORAMA
     }
-    else if (!video_mode(0, 1024, 1024)) return 0;
+    else
+    {
+        if (!video_mode(0, 1024, 1024)) return 0;
+#if ENABLE_DUALDISPLAY==1
+        !video_dualdisplay_mode(0, 1024, 1024);
+#endif
+    }
 #endif
 
     /* Material system. */
@@ -1696,6 +1750,9 @@ static void main_quit(void)
     goto_state_full(&st_null, 0, 0, 1);
 
     mtrl_quit ();
+#if ENABLE_DUALDISPLAY==1
+    video_dualdisplay_quit();
+#endif
     video_quit();
     audio_free();
     lang_quit ();

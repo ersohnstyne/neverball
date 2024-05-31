@@ -12,6 +12,8 @@
  * General Public License for more details.
  */
 
+#if ENABLE_FETCH!=1
+
 #include "fetch.h"
 
 void fetch_init(void (*dispatch_event) (void *))
@@ -35,7 +37,4 @@ unsigned int fetch_url(const char *url, const char *dst, struct fetch_callback c
     return 0;
 }
 
-unsigned int fetch_gdrive(const char *fileid, const char *dst, struct fetch_callback callback)
-{
-    return 0;
-}
+#endif

@@ -23,6 +23,9 @@
 #include "audio.h"
 #include "config.h"
 #include "video.h"
+#if ENABLE_DUALDISPLAY==1
+#include "video_dualdisplay.h"
+#endif
 #if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
 #endif
@@ -48,14 +51,6 @@
 #include "st_level.h"
 
 #include "cmd.h"
-
-#if _DEBUG && _MSC_VER
-#ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
-#endif
 
 #if NB_HAVE_PB_BOTH==1 && !defined(MAPC_INCLUDES_CHKP)
 #error Security compilation error: Please enable checkpoints after joined PB+NB Discord Server!

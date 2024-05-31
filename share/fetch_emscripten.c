@@ -12,6 +12,8 @@
  * General Public License for more details.
  */
 
+#if ENABLE_FETCH!=0 && defined(__EMSCRIPTEN__)
+
 #include <emscripten/fetch.h>
 
 #include "fetch.h"
@@ -240,39 +242,4 @@ unsigned int fetch_url(const char *url,
     return fetch_id;
 }
 
-unsigned int fetch_gdrive(const char *fileid,
-                          const char *filename,
-                          struct fetch_callback callback)
-{
-    unsigned int fetch_id = 0;
-    struct fetch_info *fi = create_and_link_fetch_info();
-
-    if (fi)
-    {
-        char gdrivelink_attr[MAXSTR];
-        SAFECPY(gdrivelink_attr, "https://drive.google.com/uc?export=download&id=");
-        SAFECAT(gdrivelink_attr, fileid);
-
-        emscripten_fetch_attr_t attr;
-        emscripten_fetch_attr_init(&attr);
-
-        strcpy(attr.requestMethod, "GET");
-
-        attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
-        attr.onsuccess  = fetch_success_func;
-        attr.onerror    = fetch_error_func;
-        attr.onprogress = fetch_progress_func;
-        attr.userData   = fi;
-
-        fi->callback      = callback;
-        fi->dest_filename = strdup(dst);
-        fi->handle        = emscripten_fetch(&attr, gdrivelink_attr);
-
-        if (fi->handle)
-            fetch_id = fi->fetch_id;
-        else
-            unlink_and_free_fetch_info(fi);
-    }
-
-    return fetch_id;
-}
+#endif

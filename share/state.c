@@ -24,6 +24,9 @@
 #include "accessibility.h"
 #include "config.h"
 #include "video.h"
+#if ENABLE_DUALDISPLAY==1
+#include "video_dualdisplay.h"
+#endif
 #include "common.h"
 #include "hmd.h"
 #include "geom.h"
@@ -153,6 +156,9 @@ void init_state(struct state *st)
     state = st;
     alpha = 1.0f;
     video_clear();
+#if ENABLE_DUALDISPLAY==1
+    video_dualdisplay_clear();
+#endif
     video_swap();
 
 #if _DEBUG

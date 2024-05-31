@@ -57,7 +57,7 @@ void GameDbg_SigHandler(int signum)
 #endif
 #endif
 
-    exit((signum == 2 || signum == 21) ? 0 : 1);
+    //exit((signum == 2 || signum == 21) ? 0 : 1);
 }
 
 void GameDbg_Check_SegPerformed(void)

@@ -28,7 +28,7 @@
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
@@ -55,7 +55,7 @@ enum
 #define SOL_VERSION_MIN  SOL_VERSION_1_5
 #define SOL_VERSION_CURR SOL_VERSION_DEV
 
-#define SOL_MAGIC (0xAF | 'S' << 8 | 'O' << 16 | 'L' << 24)
+#define SOL_MAGIC  (0xAF | 'S' << 8 | 'O' << 16 | 'L' << 24)
 
 /*---------------------------------------------------------------------------*/
 

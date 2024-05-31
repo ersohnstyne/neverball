@@ -12,6 +12,8 @@
  * General Public License for more details.
  */
 
+//#define MOONTASKLOADER_WITH_CAST 1
+
 #include "moon_taskloader.h"
 #include "log.h"
 #include "fs.h"
@@ -28,7 +30,7 @@
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
@@ -74,11 +76,15 @@ static void (*moon_taskloader_dispatch_event) (void *) = NULL;
  */
 static struct moon_taskloader_execute *create_extra_execute(const char *filename, int time_ms, int goal_enabled)
 {
+#if MOONTASKLOADER_WITH_CAST
     struct moon_taskloader_execute *exec = (struct moon_taskloader_execute *) calloc(sizeof (*exec), 1);
+#else
+    struct moon_taskloader_execute *exec = calloc(sizeof (*exec), 1);
+#endif
 
     if (exec)
     {
-        exec->filename     = filename;
+        exec->filename     = strdup(filename);
         exec->time_ms      = time_ms;
         exec->goal_enabled = goal_enabled;
     }
@@ -91,7 +97,11 @@ static struct moon_taskloader_execute *create_extra_execute(const char *filename
  */
 static struct moon_taskloader_progress *create_extra_progress(double total, double now)
 {
+#if MOONTASKLOADER_WITH_CAST
     struct moon_taskloader_progress *pr = (struct moon_taskloader_progress *) calloc(sizeof (*pr), 1);
+#else
+    struct moon_taskloader_progress *pr = calloc(sizeof (*pr), 1);
+#endif
 
     if (pr)
     {
@@ -107,7 +117,11 @@ static struct moon_taskloader_progress *create_extra_progress(double total, doub
  */
 static struct moon_taskloader_done *create_extra_done(int finished)
 {
+#if MOONTASKLOADER_WITH_CAST
     struct moon_taskloader_done *dn = (struct moon_taskloader_done *) calloc(sizeof (*dn), 1);
+#else
+    struct moon_taskloader_done *dn = calloc(sizeof (*dn), 1);
+#endif
 
     if (dn)
         dn->finished = !!finished;
@@ -132,7 +146,11 @@ static void free_extra_data(void *extra_data)
  */
 static struct moon_taskloader_event *create_moon_taskloader_event(void)
 {
+#if MOONTASKLOADER_WITH_CAST
     struct moon_taskloader_event *mtle = (struct moon_taskloader_event *) calloc(sizeof (*mtle), 1);
+#else
+    struct moon_taskloader_event *mtle = calloc(sizeof (*mtle), 1);
+#endif
 
     return mtle;
 }
@@ -141,7 +159,7 @@ static void free_moon_taskloader_event(struct moon_taskloader_event *mtle)
 {
     if (mtle)
     {
-        if (mtle->callback_data)
+        /*if (mtle->callback_data)
         {
             free_extra_data(mtle->callback_data);
             mtle->callback_data = NULL;
@@ -151,7 +169,10 @@ static void free_moon_taskloader_event(struct moon_taskloader_event *mtle)
         {
             free_extra_data(mtle->extra_data);
             mtle->extra_data = NULL;
-        }
+        }*/
+
+        free_extra_data(mtle->extra_data);
+        mtle->extra_data = NULL;
 
         free(mtle);
         mtle = NULL;
@@ -163,7 +184,11 @@ static void free_moon_taskloader_event(struct moon_taskloader_event *mtle)
  */
 void moon_taskloader_handle_event(void *data)
 {
+#if MOONTASKLOADER_WITH_CAST
     struct moon_taskloader_event *mtle = (struct moon_taskloader_event *) data;
+#else
+    struct moon_taskloader_event *mtle = data;
+#endif
 
     if (mtle->callback)
         mtle->callback(mtle->callback_data, mtle->extra_data);
@@ -194,7 +219,11 @@ static int count_active_loaders(void)
  */
 static struct moon_taskloader_info *create_moon_taskloader_info(void)
 {
+#if MOONTASKLOADER_WITH_CAST
     struct moon_taskloader_info *mtli = (struct moon_taskloader_info *) calloc(sizeof (*mtli), 1);
+#else
+    struct moon_taskloader_info *mtli = calloc(sizeof (*mtli), 1);
+#endif
 
     if (mtli)
         mtli->moon_taskloader_id = ++last_moon_taskloader_id;
@@ -267,7 +296,11 @@ static void free_all_moon_taskloader_infos(void)
 
     for (l = moon_taskloader_list; l; l = list_rest(l))
     {
+#if MOONTASKLOADER_WITH_CAST
         free_moon_taskloader_info((struct moon_taskloader_info *) l->data);
+#else
+        free_moon_taskloader_info(l->data);
+#endif
         l->data = NULL;
     }
 

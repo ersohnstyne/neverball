@@ -35,12 +35,18 @@
 #include "config.h"
 #include "text.h"
 #include "video.h"
+#if ENABLE_DUALDISPLAY==1
+#include "video_dualdisplay.h"
+#endif
 #include "common.h"
 #include "progress.h"
 #ifndef VERSION
 #include "version.h"
 #endif
 
+#if ENABLE_DUALDISPLAY==1
+#include "game_dualdisplay.h"
+#endif
 #include "game_common.h"
 #include "game_client.h"
 #include "game_server.h"
@@ -56,7 +62,7 @@
 #include "st_ball.h"
 #include "st_shared.h"
 #include "st_shop.h"
-#if ENABLE_FETCH
+#if ENABLE_FETCH!=0
 #include "st_package.h"
 #endif
 
@@ -309,6 +315,7 @@ enum
     CONF_ACCOUNT_COVID_EXTEND,
     CONF_ACCOUNT_AUTOUPDATE,
     CONF_ACCOUNT_MAYHEM,
+    CONF_ACCOUNT_PACKAGES,
     CONF_ACCOUNT_TUTORIAL,
     CONF_ACCOUNT_HINT,
     CONF_ACCOUNT_PLAYER,
@@ -343,14 +350,14 @@ static int conf_account_action(int tok, int val)
         case CONF_ACCOUNT_SIGNOUT:
             break;
 
+#if ENABLE_FETCH==1
         case CONF_ACCOUNT_AUTOUPDATE:
             break;
 
-        /*case CONF_ACCOUNT_MAYHEM:
-            config_set_d(CONFIG_ACCOUNT_MAYHEM, val);
-            goto_state(&st_conf_account);
-            config_save();
-            break;*/
+        case CONF_ACCOUNT_PACKAGES:
+            goto_package(0, curr_state());
+            break;
+#endif
 
         case CONF_ACCOUNT_TUTORIAL:
             config_set_d(CONFIG_ACCOUNT_TUTORIAL, val);
@@ -621,21 +628,12 @@ static int conf_account_gui(void)
         gui_space(id);
 #endif
 
-        if (mainmenu_conf)
-        {
-#if ENABLE_FETCH
 #if NB_HAVE_PB_BOTH==1
-            conf_toggle_simple(id, _("Auto-Update"), CONF_ACCOUNT_AUTOUPDATE,
-                                   config_get_d(CONFIG_ACCOUNT_AUTOUPDATE), 1, 0);
-#else
-            conf_toggle(id, _("Auto-Update"), CONF_ACCOUNT_AUTOUPDATE,
-                            config_get_d(CONFIG_ACCOUNT_AUTOUPDATE), _("On"), 1, _("Off"), 0);
+#if ENABLE_FETCH==1
+        if (CHECK_ACCOUNT_ENABLED && mainmenu_conf)
+            conf_state(id, _("Addons"), _("Manage"), CONF_ACCOUNT_PACKAGES);
 #endif
-            gui_space(id);
-#endif
-        }
 
-#if NB_HAVE_PB_BOTH==1
         conf_toggle_simple(id, _("Show Tutorial"), CONF_ACCOUNT_TUTORIAL,
                                config_get_d(CONFIG_ACCOUNT_TUTORIAL), 1, 0);
         conf_toggle_simple(id, _("Show Hint"), CONF_ACCOUNT_HINT,
@@ -1868,7 +1866,7 @@ static int conf_controllers_action(int tok, int val)
 
 static int conf_controllers_gui(void)
 {
-    int id, jd, l_pane, r_pane;
+    int id, jd, l_pane = 0, r_pane = 0;
 
     /* Initialize the configuration GUI. */
 
@@ -1907,6 +1905,9 @@ static int conf_controllers_gui(void)
                 continue;
 
             value = config_get_d(*conf_controllers_options[i]);
+
+            if (l_pane == 0 || r_pane == 0)
+                continue;
 
             if ((btn_id = conf_state(token == CONF_CONTROLLERS_ASSIGN_AXIS ?
                                      r_pane : l_pane,
@@ -2471,7 +2472,6 @@ enum
     CONF_SYSTEMTRANSFER_SOURCE,
     CONF_SOCIAL,
     CONF_MANAGE_ACCOUNT,
-    CONF_PACKAGES,
 #if NB_HAVE_PB_BOTH==1
     CONF_MANAGE_NOTIFICATIONS,
 #else
@@ -2584,12 +2584,6 @@ static int conf_action(int tok, int val)
 #endif
 
 #if NB_HAVE_PB_BOTH!=1
-        case CONF_PACKAGES:
-#if ENABLE_FETCH
-            return goto_package(curr_state());
-#endif
-            break;
-
         case CONF_BALL:
             /* HACK: This avoids spamming stuff */
             if (fs_exists("gui/ball.sol") &&
@@ -2730,25 +2724,20 @@ static int conf_gui(void)
                                            "Register" : "Manage"), CONF_MANAGE_ACCOUNT);
 
             conf_state(id, _("Notifications"), _("Manage"), CONF_MANAGE_NOTIFICATIONS);
-
-#if ENABLE_FETCH
-            if (CHECK_ACCOUNT_ENABLED)
-                conf_state(id, _("Addons"), _("Manage"), CONF_PACKAGES);
-#endif
-            gui_space(id);
 #endif
 
             if (mainmenu_conf)
             {
+#if NB_HAVE_PB_BOTH==1
+                gui_space(id);
+#endif
                 conf_state(id, _("Controls"), _("Configure"), CONF_CONTROLS);
-
                 gui_space(id);
                 conf_state(id, _("Graphics"), _("Configure"), CONF_VIDEO);
             }
 
             if (audio_available())
             {
-                gui_space(id);
 #if NB_HAVE_PB_BOTH==1
                 conf_state(id, _("Audio"), _("Configure"), CONF_AUDIO);
 #else
@@ -2814,11 +2803,10 @@ static int conf_gui(void)
 
             if (mainmenu_conf)
             {
+                gui_space(id);
+
 #if ENABLE_NLS==1 || _WIN32
                 int lang_id;
-#if NB_HAVE_PB_BOTH==1
-                gui_space(id);
-#endif
                 lang_id = conf_state(id, _("Language"), "                            ",
                                          CONF_LANGUAGE);
 
@@ -2880,6 +2868,9 @@ static int null_enter(struct state *st, struct state *prev)
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     xbox_control_gui_free();
 #endif
+#if ENABLE_DUALDISPLAY==1
+    game_dualdisplay_gui_free();
+#endif
     hud_free();
     gui_free();
 
@@ -2919,6 +2910,9 @@ static void null_leave(struct state *st, struct state *next, int id)
 
     gui_init();
     hud_init();
+#if ENABLE_DUALDISPLAY==1
+    game_dualdisplay_gui_init();
+#endif
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     xbox_control_gui_init();
 #endif

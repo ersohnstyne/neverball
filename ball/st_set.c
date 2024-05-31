@@ -50,14 +50,6 @@
 #endif
 #include "st_play.h"
 
-#if _DEBUG && _MSC_VER
-#ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
-#endif
-
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
 #define SET_ALWAYS_UNLOCKED
 #endif

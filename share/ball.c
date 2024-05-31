@@ -27,14 +27,6 @@
 #include "solid_draw.h"
 #include "solid_sim.h"
 
-#if _DEBUG && _MSC_VER
-#ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
-#endif
-
 /*---------------------------------------------------------------------------*/
 
 #define F_PENDULUM   1

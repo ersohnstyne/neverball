@@ -26,7 +26,7 @@
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
@@ -36,6 +36,9 @@
 #include "fs.h"
 
 #if ENABLE_OPENDRIVEAPI!=0
+/*
+ * https://gitea.stynegame.de/StyneGameHamburg/opendrivepi
+ */
 #include <opendriveapi.h>
 #if _WIN32
 #if !defined(_MSC_VER)
@@ -43,7 +46,7 @@
        or using OpenDriveAPI. \
        Install Visual Studio 2022 Community or later version to build it there. \
        Or download the OpenDriveAPI project: \
-       https://1drv.ms/u/s!Airrmyu6L5eynGj7HtYcQU_0ERtA?e=9XU5Zp
+       https://gitea.stynegame.de/StyneGameHamburg/opendrivepi
 #else
 #pragma message(__FILE__ ": Using code compilation: Microsoft Visual Studio")
 #endif
@@ -59,7 +62,7 @@
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif

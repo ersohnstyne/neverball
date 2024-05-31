@@ -22,9 +22,10 @@
 enum package_category
 {
     PACKAGE_CATEGORY_NONE = 0,
+    PACKAGE_CATEGORY_PROFILE,
+    PACKAGE_CATEGORY_GUI,
     PACKAGE_CATEGORY_CAMPAIGN,
     PACKAGE_CATEGORY_LEVELSET,
-    PACKAGE_CATEGORY_PROFILE,
     PACKAGE_CATEGORY_COURSE
 };
 
@@ -38,6 +39,7 @@ enum package_status
     PACKAGE_ERROR
 };
 
+void package_change_category(enum package_category);
 void package_init(void);
 void package_quit(void);
 

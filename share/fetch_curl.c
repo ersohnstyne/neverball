@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#if ENABLE_FETCH!=0 && !defined(__EMSCRIPTEN__)
+
+//#define FETCH_WITH_CAST 1
+
 #include "fetch.h"
 #include "common.h"
 #include "text.h"
@@ -34,7 +38,7 @@
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
@@ -143,7 +147,11 @@ static void (*fetch_dispatch_event) (void *) = NULL;
  */
 static struct fetch_progress *create_extra_progress(double total, double now)
 {
+#if FETCH_WITH_CAST
     struct fetch_progress *pr = (struct fetch_progress *) calloc(sizeof (*pr), 1);
+#else
+    struct fetch_progress *pr = calloc(sizeof (*pr), 1);
+#endif
 
     if (pr)
     {
@@ -159,7 +167,11 @@ static struct fetch_progress *create_extra_progress(double total, double now)
  */
 static struct fetch_done *create_extra_done(int finished)
 {
+#if FETCH_WITH_CAST
     struct fetch_done *dn = (struct fetch_done *) calloc(sizeof (*dn), 1);
+#else
+    struct fetch_done *dn = calloc(sizeof (*dn), 1);
+#endif
 
     if (dn)
         dn->finished = !!finished;
@@ -184,7 +196,11 @@ static void free_extra_data(void *extra_data)
  */
 static struct fetch_event *create_fetch_event(void)
 {
+#if FETCH_WITH_CAST
     struct fetch_event *fe = (struct fetch_event *) calloc(sizeof (*fe), 1);
+#else
+    struct fetch_event *fe = calloc(sizeof (*fe), 1);
+#endif
 
     return fe;
 }
@@ -193,7 +209,7 @@ static void free_fetch_event(struct fetch_event *fe)
 {
     if (fe)
     {
-        if (fe->callback_data)
+        /*if (fe->callback_data)
         {
             free_extra_data(fe->callback_data);
             fe->callback_data = NULL;
@@ -203,7 +219,10 @@ static void free_fetch_event(struct fetch_event *fe)
         {
             free_extra_data(fe->extra_data);
             fe->extra_data = NULL;
-        }
+        }*/
+
+        free_extra_data(fe->extra_data);
+        fe->extra_data = NULL;
 
         free(fe);
         fe = NULL;
@@ -215,7 +234,11 @@ static void free_fetch_event(struct fetch_event *fe)
  */
 void fetch_handle_event(void *data)
 {
+#if FETCH_WITH_CAST
     struct fetch_event *fe = (struct fetch_event *) data;
+#else
+    struct fetch_event *fe = data;
+#endif
 
     if (fe->callback)
         fe->callback(fe->callback_data, fe->extra_data);
@@ -246,7 +269,11 @@ static int count_active_transfers(void)
  */
 static struct fetch_info *create_fetch_info(void)
 {
+#if FETCH_WITH_CAST
     struct fetch_info *fi = (struct fetch_info *) calloc(sizeof (*fi), 1);
+#else
+    struct fetch_info *fi = calloc(sizeof (*fi), 1);
+#endif
 
     if (fi)
         fi->fetch_id = ++last_fetch_id;
@@ -331,7 +358,11 @@ static void free_all_fetch_infos(void)
 
     for (l = fetch_list; l; l = list_rest(l))
     {
+#if FETCH_WITH_CAST
         free_fetch_info((struct fetch_info *) l->data);
+#else
+        free_fetch_info(l->data);
+#endif
         l->data = NULL;
     }
 
@@ -345,7 +376,11 @@ static void free_all_fetch_infos(void)
  */
 static size_t fetch_write_func(void *buffer, size_t size, size_t nmemb, void *user_data)
 {
+#if FETCH_WITH_CAST
     struct fetch_info *fi = (struct fetch_info *) user_data;
+#else
+    struct fetch_info *fi = user_data;
+#endif
 
     if (fi)
     {
@@ -369,7 +404,11 @@ static size_t fetch_write_func(void *buffer, size_t size, size_t nmemb, void *us
  */
 static int fetch_progress_func(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
 {
+#if FETCH_WITH_CAST
     struct fetch_info *fi = (struct fetch_info *) clientp;
+#else
+    struct fetch_info *fi = clientp;
+#endif
 
     if (fi && fi->callback.progress)
     {
@@ -903,89 +942,4 @@ unsigned int fetch_url(const char *url,
 
     return fetch_id;
 }
-
-/*
- * Download from Google Drive file ID into FILENAME.
- */
-unsigned int fetch_gdrive(const char *fileid,
-                          const char *filename,
-                          struct fetch_callback callback)
-{
-    unsigned int fetch_id = 0;
-    CURL *handle;
-
-    fetch_lock_mutex();
-
-    handle = curl_easy_init();
-
-    if (handle)
-    {
-        struct fetch_info *fi = create_and_link_fetch_info();
-
-        if (fi)
-        {
-            char gdrivelink_attr[MAXSTR];
-            SAFECPY(gdrivelink_attr, "https://drive.google.com/uc?export=download&id=");
-            SAFECAT(gdrivelink_attr, fileid);
-
-            log_printf("Google Drive: Starting transfer %u\n", fi->fetch_id);
-
-            log_printf("Google Drive: Downloading from %s\n",  gdrivelink_attr);
-            log_printf("Google Drive: Saving to %s\n",         filename);
-
-            fi->callback      = callback;
-            fi->handle        = handle;
-            fi->dest_filename = strdup(filename);
-
-            curl_easy_setopt(handle, CURLOPT_PRIVATE,       fi);
-            curl_easy_setopt(handle, CURLOPT_URL,           gdrivelink_attr);
-            curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, fetch_write_func);
-            curl_easy_setopt(handle, CURLOPT_WRITEDATA,     fi);
-
-            /* Used with curl_xferinfo rather than curl_progress */
-
-            curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, fetch_progress_func);
-            curl_easy_setopt(handle, CURLOPT_XFERINFODATA,     fi);
-            curl_easy_setopt(handle, CURLOPT_NOPROGRESS,       0);
-
-            curl_easy_setopt(handle, CURLOPT_BUFFERSIZE,      102400L);
-            curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
-            curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
-            curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION,  1);
-
-#if _WIN32 && defined(CURLSSLOPT_NATIVE_CA)
-            curl_easy_setopt(handle, CURLOPT_SSL_OPTIONS,     CURLSSLOPT_NATIVE_CA);
 #endif
-
-            /* curl_easy_setopt(handle, CURLOPT_VERBOSE, 1); */
-
-            if (!multi_handle)
-                fetch_reinit();
-
-            if (multi_handle)
-            {
-                curl_multi_add_handle(multi_handle, handle);
-                fetch_id = fi->fetch_id;
-            }
-            else
-            {
-                log_errorf("Google Drive: Failure to add handle! Multi-Handle must be initialized!\n");
-                unlink_and_free_fetch_info(fi);
-                curl_easy_cleanup(handle);
-
-#if _DEBUG
-#if _WIN32 && _MSC_VER
-                __debugbreak();
-#else
-                raise(SIGTRAP);
-#endif
-#endif
-            }
-        }
-        else curl_easy_cleanup(handle);
-    }
-
-    fetch_unlock_mutex();
-
-    return fetch_id;
-}

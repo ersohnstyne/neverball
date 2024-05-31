@@ -27,7 +27,7 @@
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
@@ -434,8 +434,8 @@ static int package_gui(void)
     {
         if ((id = gui_vstack(0)))
         {
-            gui_label (id, _("No addons found"), GUI_SML, 0, 0);
-#if defined(CONFIG_INCLUDES_ACCOUNT) && ENABLE_FETCH
+            gui_title_header(id, _("No addons found"), GUI_MED, 0, 0);
+#if defined(CONFIG_INCLUDES_ACCOUNT) && ENABLE_FETCH!=0
 #if (NB_STEAM_API!=1 && NB_EOS_SDK!=1)
             gui_space (id);
             gui_multi (id, _("Use the web shop or mobile\nto buy new addons."),

@@ -2000,9 +2000,10 @@ static int game_update_state(int bt)
 #if ENABLE_DEDICATED_SERVER==1
         networking_dedicated_levelstatus_send(curr_file_name, GAME_GOAL, p);
 #endif
-        v_cpy(goal_lock_p, p);
-
+#if NB_HAVE_PB_BOTH==1
+        v_cpy(goal_lock_p, zp->p);
         goal_lock_p[1] += 1.5f;
+#endif
 
         audio_play(AUD_GOAL, 1.0f);
         return GAME_GOAL;
@@ -2092,7 +2093,7 @@ static int game_step(const float g[3], float dt, int bt)
                 powblock_b = 0;
         }
 
-        if (status == GAME_GOAL
+        /*if (status == GAME_GOAL
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             && !campaign_used()
 #endif
@@ -2115,7 +2116,7 @@ static int game_step(const float g[3], float dt, int bt)
             vary.uv[CURR_PLAYER].w[0] *= .995f;
             vary.uv[CURR_PLAYER].w[1] *= .995f;
             vary.uv[CURR_PLAYER].w[2] *= .995f;
-        }
+        }*/
 
         if (jump_b > 0 && status != GAME_TIME)
         {

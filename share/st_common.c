@@ -526,14 +526,22 @@ static int video_action(int tok, int val)
             config_set_d(CONFIG_HMD, val);
             config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 6);
             config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
+#if ENABLE_DUALDISPLAY==1
+            r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
             r = video_mode(f, w, h);
+#endif
 
             if (r)
                 goto_state(&st_video);
             else
             {
                 config_set_d(CONFIG_HMD, oldHmd);
+#if ENABLE_DUALDISPLAY==1
+                r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
                 r = video_mode(f, w, h);
+#endif
                 if (r)
                     goto_state(&st_video);
             }
@@ -557,12 +565,20 @@ static int video_action(int tok, int val)
 
         case VIDEO_AUTO_CONFIGURE:
             goto_state(&st_null);
+#if ENABLE_DUALDISPLAY==1
+            r = video_mode_auto_config(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
             r = video_mode_auto_config(f, w, h);
+#endif
             if (r)
                 goto_state(&st_video);
             else
             {
+#if ENABLE_DUALDISPLAY==1
+                r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
                 r = video_mode(f, w, h);
+#endif
                 if (r)
                     goto_state(&st_video);
             }
@@ -824,14 +840,22 @@ static int video_advanced_action(int tok, int val)
             config_save();
             goto_state(&st_null);
 
+#if ENABLE_DUALDISPLAY==1
+            r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
             r = video_mode(f, w, h);
+#endif
 
             if (r)
                 goto_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_HMD, oldHmd);
+#if ENABLE_DUALDISPLAY==1
+                r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
                 r = video_mode(f, w, h);
+#endif
                 if (r)
                     goto_state(&st_video_advanced);
             }
@@ -853,14 +877,22 @@ static int video_advanced_action(int tok, int val)
             config_save();
             goto_state(&st_null);
 
+#if ENABLE_DUALDISPLAY==1
+            r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
             r = video_mode(f, w, h);
+#endif
 
             if (r)
                 goto_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_REFLECTION, oldRefl);
+#if ENABLE_DUALDISPLAY==1
+                r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
                 r = video_mode(f, w, h);
+#endif
                 if (r)
                     goto_state(&st_video_advanced);
             }
@@ -910,14 +942,22 @@ static int video_advanced_action(int tok, int val)
             config_save();
             goto_state(&st_null);
 
+#if ENABLE_DUALDISPLAY==1
+            r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
             r = video_mode(f, w, h);
+#endif
 
             if (r)
                 goto_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_VSYNC, oldVsync);
+#if ENABLE_DUALDISPLAY==1
+                r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
                 r = video_mode(f, w, h);
+#endif
                 if (r)
                     goto_state(&st_video_advanced);
             }
@@ -951,13 +991,21 @@ static int video_advanced_action(int tok, int val)
             config_save();
             goto_state(&st_null);
 
+#if ENABLE_DUALDISPLAY==1
+            r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
             r = video_mode(f, w, h);
+#endif
             if (r)
                 goto_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_MULTISAMPLE, oldSamp);
+#if ENABLE_DUALDISPLAY==1
+                r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
                 r = video_mode(f, w, h);
+#endif
                 if (r)
                     goto_state(&st_video_advanced);
             }

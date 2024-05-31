@@ -33,7 +33,7 @@
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing CRT-Debugger include header, recreate: crtdbg.h")
+#pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
@@ -42,6 +42,8 @@
 #define AUD_MENU     "snd/menu.ogg"
 #define AUD_BACK     "snd/back.ogg"
 #define AUD_DISABLED "snd/disabled.ogg"
+
+//#define ENABLE_SOFTWARE_UPDATE 1
 
  /* Macros helps with the action game menu. */
 
@@ -145,7 +147,7 @@ int goto_game_setup(struct state *start_state,
 
 int goto_game_setup_finish(struct state *start_state)
 {
-#if _WIN32 && ENABLE_FETCH==1
+#if _WIN32 && ENABLE_FETCH!=0 && ENABLE_SOFTWARE_UPDATE!=0
     setup_page++;
 #else
     setup_page = 6;
@@ -528,31 +530,9 @@ static unsigned int fetch_available_updates(int gdrive_support)
 {
     unsigned int fetch_id = 0;
     const char  *filename = get_updated_path("version.txt");
+    const char  *url      = get_updated_url("version.txt");
 
-#if _WIN32 && ENABLE_FETCH>=2
-    if (filename)
-    {
-        struct fetch_callback          callback = {0};
-        struct setup_update_list_info *suli     = create_suli(callback);
-
-        callback.data = suli;
-        callback.done = available_updates_done;
-
-        fetch_id = fetch_gdrive("1RCfauN7HxxDXbSxltz82IC4BHeGZC9cH", filename, callback);
-
-        if (!fetch_id)
-        {
-            free_suli(&suli);
-            callback.data = NULL;
-        }
-    }
-
-    if (fetch_id) return fetch_id;
-#endif
-
-    const char *url = get_updated_url("version.txt");
-
-#if _WIN32 && ENABLE_FETCH<3
+#if _WIN32 && ENABLE_FETCH<3 && ENABLE_SOFTWARE_UPDATE!=0
     if (url && filename)
     {
         struct fetch_callback          callback = {0};
@@ -688,7 +668,7 @@ static int game_setup_action(int tok, int val)
                             if (goto_name_fn)
                                 return goto_name_fn(&st_game_setup, goto_ball_fn);
                             else
-#if _WIN32 && ENABLE_FETCH==1
+#if _WIN32 && ENABLE_FETCH==1 && ENABLE_SOFTWARE_UPDATE!=0
                                 setup_page++;
 #else
                                 setup_page = 6;
@@ -962,7 +942,7 @@ static int game_setup_terms_gui(void)
 
             if ((jd = gui_vstack(id)))
             {
-                gui_title_header(jd, _("PB+NB Terms, Discord TOS, MSA"), GUI_MED, GUI_COLOR_DEFAULT);
+                gui_title_header(jd, _("PB+NB, Discord TOS, MSA"), GUI_MED, GUI_COLOR_DEFAULT);
                 gui_multi(jd, _("To proceed with setup, you must agree to the PB+NB Terms and acknowledge\n"
                                 "that you have read and understood the Discord TOS and MSA by selecting \"OK\" below.\n"
                                 "To learn more, click \"Read more\". You represent that you are a legally consenting adult\n"
@@ -977,7 +957,7 @@ static int game_setup_terms_gui(void)
 
         if ((id = gui_vstack(root_id)))
         {
-            setup_terms_card(id, _("PB+NB Terms"),                  0, 1);
+            setup_terms_card(id, _("PB+NB Terms of Service"),       0, 1);
             setup_terms_card(id, _("Discord Terms of Service"),     1, 0);
             setup_terms_card(id, _("Microsoft Services Agreement"), 2, 0);
 
@@ -1083,7 +1063,8 @@ static int game_setup_install_confirm_gui(void)
             if ((id = gui_vstack(root_id)))
             {
                 gui_label(id, _("Install the latest game update."), GUI_SML, GUI_COLOR_WHT);
-                update_install_dnld_eta_id = gui_label(id, _("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX"), GUI_SML, GUI_COLOR_GRN);
+                update_install_dnld_eta_id = gui_label(id, _("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX"),
+                                                           GUI_TNY, GUI_COLOR_GRN);
                 gui_space(id);
                 gui_multi(id, _("Select \"Now\" to begin the update straight away.\n"
                                 "Or select \"Later\" to install the update next time."),
@@ -1101,7 +1082,7 @@ static int game_setup_install_confirm_gui(void)
                 if ((jd = gui_harray(id)))
                 {
                     gui_state(jd, _("Later"), GUI_SML, SETUP_UPDATE_SKIP, 0);
-                    gui_start(jd, _("Now"), GUI_SML, SETUP_UPDATE_START, 0);
+                    gui_start(jd, _("Now"),   GUI_SML, SETUP_UPDATE_START, 0);
                 }
 
                 gui_space(id);
@@ -1157,9 +1138,9 @@ static int game_setup_install_gui(void)
         {
             gui_label(id, _("Downloading..."), GUI_SML, GUI_COLOR_WHT);
             update_install_dnldprog_id = gui_label(id, "XXXXXXX", GUI_MED, GUI_COLOR_GRN);
-            update_install_dnld_eta_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, GUI_COLOR_GRN);
+            update_install_dnld_eta_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_TNY, GUI_COLOR_GRN);
             gui_space(id);
-            gui_multi(id, _("Once updated, the game will itself saved\n"
+            gui_multi(id, _("Once the update is completed, the game will itself saved\n"
                             "into the user data folder and quit automatically."),
                             GUI_TNY, GUI_COLOR_WHT);
 

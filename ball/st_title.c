@@ -59,7 +59,7 @@
 #include "st_set.h"
 #include "st_name.h"
 #include "st_shared.h"
-#if ENABLE_FETCH
+#if ENABLE_FETCH!=0
 #include "st_package.h"
 #endif
 #include "st_play.h"
@@ -347,7 +347,7 @@ static int title_action(int tok, int val)
             return goto_conf(&st_title, 0, 0);
             break;
 #if NB_HAVE_PB_BOTH!=1
-#if ENABLE_FETCH
+#if ENABLE_FETCH!=0
         case TITLE_PACKAGES: return goto_package(curr_state()); break;
 #endif
 
@@ -927,7 +927,7 @@ static int title_gui(void)
             }
 #endif
 
-#if ENABLE_FETCH
+#if ENABLE_FETCH!=0
             if ((id = gui_vstack(root_id)))
             {
                 if ((jd = gui_hstack(id)))

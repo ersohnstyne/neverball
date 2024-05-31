@@ -407,8 +407,8 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
     /* Restored from the checkpoints (jump) */
     for (int resetidx = 0; resetidx < vary->jc; resetidx++)
     {
-        struct chkp_goal *last_jp = last_chkp_jump + resetidx;
-        struct v_goal    *jp      = vary->jv + resetidx;
+        struct chkp_jump *last_jp = last_chkp_jump + resetidx;
+        struct v_jump    *jp      = vary->jv + resetidx;
 
         jp->mi = last_jp->mi;
         jp->mj = last_jp->mj;

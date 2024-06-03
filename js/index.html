@@ -34,14 +34,19 @@
       color: #fff;
     }
 
+    details > summary:hover {
+      cursor: pointer;
+    }
+
     .container {
-      max-width: 80rem;
-      padding: 0 0.8rem;
+      box-sizing: border-box;
+      max-width: 81.6rem;
+      padding: 0.8rem;
       margin: 0 auto;
     }
 
     .in-game .container {
-      max-width: min(80rem, calc(16 / 9 * 100dvmin));
+      max-width: min(81.6rem, calc(16 / 9 * 100dvmin));
     }
 
     #canvas-wrapper {
@@ -50,8 +55,10 @@
       height: auto;
       aspect-ratio: 16 / 9;
       max-width: calc(16 / 9 * 100dvmin);
-      max-height: calc(100dvmin - 2rem);
+      max-height: calc(100dvmin - 1.6rem);
       margin: 0 auto;
+      border-radius: 1rem;
+      overflow: hidden;
     }
 
     #overlay {
@@ -111,6 +118,7 @@
     }
 
     #canvas-wrapper:fullscreen {
+      border-radius: 0;
       aspect-ratio: auto;
       min-width: auto;
       min-height: auto;
@@ -202,7 +210,7 @@
     @media (min-width: 640px) {
       #screenshot {
         float: right;
-        margin: 0 0 1rem 1rem;
+        margin: 0 0 1.6rem 1.6rem;
       }
     }
 
@@ -218,7 +226,7 @@
 
     .neverball-box {
       background-color: rgba(25, 25, 25, 0.5);
-      padding: 1rem;
+      padding: 1.6rem;
       border-radius: 1rem;
     }
 
@@ -246,6 +254,10 @@
       gap: 1rem;
     }
 
+    .gap-4 {
+      gap: 1.6rem;
+    }
+
     .gap-5 {
       gap: 2rem;
     }
@@ -261,6 +273,11 @@
     .py-2\.5 {
       padding-top: 1rem;
       padding-bottom: 1rem;
+    }
+
+    .py-4 {
+      padding-top: 1.6rem;
+      padding-bottom: 1.6rem;
     }
 
     .py-5 {
@@ -282,6 +299,7 @@
 
     h1, h2 {
       margin-top: 0;
+      margin-bottom: 1.6rem;
     }
 
     .in-game .in-game\:pt-0 {
@@ -319,7 +337,7 @@
 </head>
 
 <body>
-  <section class="container flex flex-column gap-2.5 py-2.5">
+  <section class="container flex flex-column gap-4">
     <div class="neverball-box in-game:hidden">
       <h1><span class="neverball-text">Play Neverball</span></h1>
 
@@ -803,43 +821,43 @@
         Neverball.initUserFolder,
         Neverball.initBackButton,
       ],
+
       postRun: [],
 
       onRuntimeInitialized: function () {
         Neverball.ready();
       },
 
-      print: (function () {
-        var element = document.getElementById('output');
-        if (element) element.value = ''; // clear browser cache
-        return function (text) {
-          if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-          // These replacements are necessary if you render to raw HTML
-          //text = text.replace(/&/g, "&amp;");
-          //text = text.replace(/</g, "&lt;");
-          //text = text.replace(/>/g, "&gt;");
-          //text = text.replace('\n', '<br>', 'g');
-          console.log(text);
-          if (element) {
-            element.value += text + "\n";
-            element.scrollTop = element.scrollHeight; // focus on bottom
-          }
-        };
-      })(),
+      print: function (text) {
+        if (arguments.length > 1) {
+          text = Array.prototype.slice.call(arguments).join(' ');
+        }
+
+        console.log(text);
+      },
+
       printErr: function (text) {
-        if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+        if (arguments.length > 1) {
+          text = Array.prototype.slice.call(arguments).join(' ');
+        }
+
         console.error(text);
       },
+
       canvas: (function () {
         var canvas = document.getElementById('canvas');
 
         // As a default initial behavior, pop up an alert when webgl context is lost. To make your
         // application robust, you may want to override this behavior before shipping!
         // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
-        canvas.addEventListener("webglcontextlost", function (e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+        canvas.addEventListener("webglcontextlost", function (e) {
+          alert('WebGL context lost. You will need to reload the page.');
+          e.preventDefault();
+        }, false);
 
         return canvas;
       })(),
+
       setStatus: function (text) {
         if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
         if (text === Module.setStatus.last.text) return;
@@ -858,21 +876,26 @@
         }
         statusElement.innerHTML = text ? text : 'Ready';
       },
+
       totalDependencies: 0,
       monitorRunDependencies: function (left) {
         this.totalDependencies = Math.max(this.totalDependencies, left);
-        Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+        const message = left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.';
+        Module.setStatus(message);
       },
     };
 
-    Module.setStatus('Downloading...');
-
     window.onerror = function () {
       Module.setStatus('Exception thrown, see JavaScript console');
+
       Module.setStatus = function (text) {
-        if (text) Module.printErr('[post-exception status] ' + text);
+        if (text) {
+          Module.printErr('[post-exception status] ' + text);
+        }
       };
     };
+
+    Module.setStatus('Downloading...');
   </script>
 
   <!--

@@ -33,6 +33,8 @@
 #include "util.h"
 #include "common.h"
 #include "demo_dir.h"
+#include "video.h"
+#include "key.h"
 //#include "video.h"
 //#include "geom.h"
 //#include "vec3.h"

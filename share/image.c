@@ -29,6 +29,7 @@
 #include <png.h>
 #include <stdlib.h>
 
+#include "common.h"
 #include "glext.h"
 #include "image.h"
 #include "base_image.h"

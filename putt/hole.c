@@ -25,6 +25,7 @@
 #include "audio.h"
 #include "config.h"
 #include "fs.h"
+#include "lang.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -535,7 +536,7 @@ void hole_retry(int split)
 
 void hole_restart(void)
 {
-    memset(&score_v[hole][1], 0, sizeof(int) * party);
+    memset(&score_v[hole][1], 0, sizeof (int) * party);
     hole_goto(hole, party);
 }
 

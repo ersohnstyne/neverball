@@ -42,6 +42,7 @@
 #include "text.h"
 #include "video.h"
 #include "progress.h"
+#include "key.h"
 
 #if NB_HAVE_PB_BOTH==1
 #include "game_payment.h"
@@ -586,7 +587,7 @@ static void shop_paint(int id, float t)
 
     gui_paint(id);
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    xbox_control_shop_gui_paint();
+    console_gui_shop_paint();
 #endif
 }
 
@@ -1317,7 +1318,7 @@ static void shop_iap_paint(int id, float t)
 
     gui_paint(id);
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    xbox_control_shop_getcoins_gui_paint();
+    console_gui_shop_getcoins_paint();
 #endif
 }
 
@@ -1574,7 +1575,7 @@ static int shop_buy_action(int tok, int val)
 
                 case 1:
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-                    xbox_control_gui_free();
+                    console_gui_free();
 #endif
                     hud_free();
                     gui_free();
@@ -1582,7 +1583,7 @@ static int shop_buy_action(int tok, int val)
                     gui_init();
                     hud_init();
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-                    xbox_control_gui_init();
+                    console_gui_init();
 #endif
                     break;
 

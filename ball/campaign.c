@@ -32,6 +32,7 @@
 #include "score.h"
 #include "vec3.h"
 #include "package.h"
+#include "lang.h"
 
 #include "game_client.h"
 

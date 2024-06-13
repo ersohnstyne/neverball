@@ -287,8 +287,7 @@ void account_load(void)
         {
             char tmp_account_s[MAXSTR];
             get_string(fh, tmp_account_s, MAXSTR);
-            steam_account_s[i].curr = strdup(tmp_account_s);
-            account_s[i].cur = strdup(tmp_account_s);
+            account_set_s(i, tmp_account_s);
         }
 
         fs_close(fh);

@@ -296,7 +296,7 @@ static const char *get_updated_url(const char *filename)
         memset(url, 0, sizeof (url));
 
 #if NB_HAVE_PB_BOTH==1
-        SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/update/");
+        SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/app/");
 #else
         SAFECPY(url, "https://play.neverball.org/update/");
 #endif

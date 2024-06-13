@@ -280,7 +280,12 @@ static void play_shared_fade(float alpha)
 #ifdef MAPC_INCLUDES_CHKP
 static int restart_cancel_allchkp;
 #endif
+
 static int play_freeze_all;
+
+static int play_update_server = 0;
+static int play_update_client = 1;
+
 static int use_mouse;
 static int use_keyboard;
 
@@ -325,11 +330,17 @@ static int play_ready_enter(struct state *st, struct state *prev)
     video_set_grab(1);
     hud_speedup_reset();
 
-    game_client_sync(
+    if (play_update_client)
+    {
+        game_client_sync(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                     !campaign_hardcore_norecordings() &&
+                         !campaign_hardcore_norecordings() &&
 #endif
-                     curr_mode() != MODE_NONE ? demo_fp : NULL);
+                         curr_mode() != MODE_NONE ? demo_fp : NULL);
+
+        play_update_client = 0;
+        play_update_server = 1;
+    }
     hud_update(0, 0.0f);
     hud_update_camera_direction(curr_viewangle());
 
@@ -350,7 +361,7 @@ static void play_ready_timer(int id, float dt)
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (current_platform != PLATFORM_PC)
     {
-        xbox_control_gui_set_alpha(1.0f);
+        console_gui_set_alpha(1.0f);
         hud_set_alpha(0.0f);
         hud_timer(dt);
     }
@@ -362,17 +373,24 @@ static void play_ready_timer(int id, float dt)
     set_lvlinfo();
 
     game_step_fade(dt);
-    game_client_blend(game_server_blend());
-    game_client_sync(
+
+    if (play_update_client)
+    {
+        game_client_blend(game_server_blend());
+        game_client_sync(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                     !campaign_hardcore_norecordings() &&
+                         !campaign_hardcore_norecordings() &&
 #endif
-                     curr_mode() != MODE_NONE ? demo_fp : NULL);
+                         curr_mode() != MODE_NONE ? demo_fp : NULL);
+
+        play_update_client = 0;
+        play_update_server = 1;
+    }
 
     gui_timer(id, dt);
 
 #ifndef __EMSCRIPTEN__
-    if (xbox_show_gui())
+    if (console_gui_show())
         hud_cam_timer(dt);
     else if (hud_visibility())
 #endif
@@ -427,23 +445,30 @@ static void play_set_timer(int id, float dt)
     }
 
     game_step_fade(dt);
-    game_client_blend(game_server_blend());
-    game_client_sync(
+
+    if (play_update_client)
+    {
+        game_client_blend(game_server_blend());
+        game_client_sync(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                     !campaign_hardcore_norecordings() &&
+                         !campaign_hardcore_norecordings() &&
 #endif
-                     curr_mode() != MODE_NONE ? demo_fp : NULL);
+                         curr_mode() != MODE_NONE ? demo_fp : NULL);
+
+        play_update_client = 0;
+        play_update_server = 1;
+    }
 
     gui_timer(id, dt);
 
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (current_platform != PLATFORM_PC)
     {
-        xbox_control_gui_set_alpha(CLAMP(0.0f, flerp(6.0f, 0.0f, t), 1.0f));
+        console_gui_set_alpha(CLAMP(0.0f, flerp(6.0f, 0.0f, t), 1.0f));
         hud_set_alpha(CLAMP(0.0f, flerp(-5.0f, 1.0f, t), 1.0f));
     }
 
-    if (xbox_show_gui() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    if (console_gui_show() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_cam_timer(dt);
     else if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
 #endif
@@ -458,10 +483,10 @@ static void play_prep_paint(int id, float t)
 
     gui_paint(id);
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    if (xbox_show_gui() && current_platform != PLATFORM_PC)
+    if (console_gui_show() && current_platform != PLATFORM_PC)
     {
         hud_cam_paint();
-        xbox_control_preparation_gui_paint();
+        console_gui_preparation_paint();
 
         if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
         {
@@ -740,7 +765,8 @@ static void play_loop_timer(int id, float dt)
 
     game_lerp_pose_point_tick(dt);
 
-    if (!game_client_get_jump_b() && !play_freeze_all)
+    if (!game_client_get_jump_b() &&
+        !play_freeze_all)
         geom_step(dt);
 
     /* Boost rush uses auto forward */
@@ -822,15 +848,27 @@ static void play_loop_timer(int id, float dt)
 
     game_step_fade(dt);
 
-    if (!play_freeze_all)
+    if (!play_freeze_all &&
+        play_update_server && !play_update_client)
+    {
         game_server_step(dt);
 
-    game_client_blend(game_server_blend());
-    game_client_sync(
+        play_update_server = 0;
+        play_update_client = 1;
+    }
+
+    if (play_update_client && !play_update_server)
+    {
+        game_client_blend(game_server_blend());
+        game_client_sync(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                     !campaign_hardcore_norecordings() &&
+                         !campaign_hardcore_norecordings() &&
 #endif
-                     curr_mode() != MODE_NONE ? demo_fp : NULL);
+                         curr_mode() != MODE_NONE ? demo_fp : NULL);
+
+        play_update_client = 0;
+        play_update_server = 1;
+    }
 
     /* Cannot update state in home room. */
 
@@ -859,8 +897,7 @@ static void play_loop_timer(int id, float dt)
 
 static void play_loop_point(int id, int x, int y, int dx, int dy)
 {
-#if NDEBUG
-    /* Good news: This isn't controlled with mouse while debug mode. */
+#if NDEBUG || _MSC_VER
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     if (current_platform == PLATFORM_PC)
 #endif
@@ -868,28 +905,28 @@ static void play_loop_point(int id, int x, int y, int dx, int dy)
         if (use_mouse && !use_keyboard)
         {
             use_mouse = 1; use_keyboard = 0;
+
             if (max_speed)
             {
                 tilt_x = 0;
                 tilt_y = 0;
+
                 game_set_pos_max_speed(dx * get_tilt_multiply(),
                                        curr_mode() == MODE_BOOST_RUSH ? 0 : dy * get_tilt_multiply());
             }
             else if (man_rot)
             {
-                /* Reset tilt to horizontally */
+                /* Reset tilt to horizontal */
+
                 game_set_pos(0, 0);
 
-                float k = (fast_rotate ?
-                    (float) config_get_d(CONFIG_ROTATE_FAST) / 100.0f :
-                    (float) config_get_d(CONFIG_ROTATE_SLOW) / 100.0f);
-
-                rotation_offset = (-50 * dx) / config_get_d(CONFIG_MOUSE_SENSE);
+                rotation_offset = (-50.f * dx) / config_get_d(CONFIG_MOUSE_SENSE);
             }
             else if (!max_speed && !man_rot)
             {
-                tilt_x += (dx * 10);
-                tilt_y += (dy * 10);
+                tilt_x += dx * 10;
+                tilt_y += dy * 10;
+
                 game_set_pos((tilt_x * get_tilt_multiply()) * 10,
                              curr_mode() == MODE_BOOST_RUSH ? 0 : (tilt_y * get_tilt_multiply()) * 10);
             }
@@ -1087,6 +1124,7 @@ static int play_loop_buttn(int b, int d)
             hud_speedup_reset();
             goto_pause(curr_state());
         }
+
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b))
             rot_set(DIR_R, 1.0f, 0);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b))
@@ -1197,8 +1235,8 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
         }
         else
         {
-            int dx = (int)((float) video.device_w * e->dx);
-            int dy = (int)((float) video.device_h * -e->dy);
+            int dx = (int) ((float) video.device_w * +e->dx);
+            int dy = (int) ((float) video.device_h * -e->dy);
 
             game_set_pos(dx, dy);
         }
@@ -1210,19 +1248,21 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
 
 static void play_loop_wheel(int x, int y)
 {
-    if (config_get_d(CONFIG_VIEW_DP) == 75 &&
-        config_get_d(CONFIG_VIEW_DC) == 25 &&
-        config_get_d(CONFIG_VIEW_DZ) == 200)
-    {
-        if (y > 0) game_set_zoom(-0.05f);
-        if (y < 0) game_set_zoom( 0.05f);
-    }
-    return;
+    /*
+     * Hardcoded camera view position settings on 2.2 and later:
+     * DP: 75
+     * DC: 25
+     * DZ: 200 (adds 20)
+     */
+
+    if (y > 0) game_set_zoom(-0.05f);
+    if (y < 0) game_set_zoom(+0.05f);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void play_shared_leave_internal(struct state *st, struct state *next, int id)
+static void play_shared_leave_internal(struct state *st,
+                                       struct state *next, int id)
 {
     if (curr_mode() == MODE_NONE)
         game_set_pos(0, 0);

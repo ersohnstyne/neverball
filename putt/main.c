@@ -111,6 +111,9 @@ extern "C" {
 #include "fs.h"
 #include "joy.h"
 #include "log.h"
+#include "common.h"
+#include "lang.h"
+#include "key.h"
 #include "fetch.h"
 #include "package.h"
 #include "substr.h"
@@ -278,7 +281,7 @@ static void dispatch_fetch_event(void *data)
 {
     SDL_Event e;
 
-    memset(&e, 0, sizeof(e));
+    memset(&e, 0, sizeof (e));
 
     e.type = FETCH_EVENT;
     e.user.data1 = data;

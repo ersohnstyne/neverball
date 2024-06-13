@@ -45,6 +45,8 @@
 #include "audio.h"
 #include "config.h"
 #include "demo.h"
+#include "lang.h"
+#include "key.h"
 #include "geom.h"
 #include "text.h"
 
@@ -584,10 +586,10 @@ static void level_paint(int id, float t)
 
     gui_paint(id);
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    if (xbox_show_gui())
+    if (console_gui_show())
     {
         hud_cam_paint();
-        xbox_control_desc_gui_paint();
+        console_gui_desc_paint();
     }
     else
 #endif

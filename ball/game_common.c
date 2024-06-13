@@ -116,13 +116,13 @@ const char *cam_to_str(int c)
 {
     static char str[64];
 
-    int s;
-    if (c == CAM_AUTO) { s = -2; return _("Automatic"); }
+    int s = -1000;
+    if (c == CAM_AUTO) return _("Automatic");
 
     s = cam_speed(c);
 
     if (s <    0) return _("Manual Camera");
-    if (s <=   0) return _("Static Camera");
+    if (s ==   0) return _("Static Camera");
     if (s <= 100) return _("Lazy Camera");
     if (s <= 500) return _("Chase Camera");
 
@@ -237,19 +237,6 @@ void game_view_init(struct game_view *view)
 
     float zoom_diff = CLAMP(0, 1 + view_zoom_diff_curr, 1);
 
-    /*if (hmd_stat())
-    {
-        view->dp = (config_get_d(CONFIG_VIEW_DP))      / 100.0f;
-        view->dc =  config_get_d(CONFIG_VIEW_DP)       / 100.0f;
-        view->dz = (config_get_d(CONFIG_VIEW_DZ) + 20) / 100.0f;
-    }
-    else
-    {
-        view->dp = (config_get_d(CONFIG_VIEW_DP))      / 100.0f;
-        view->dc =  config_get_d(CONFIG_VIEW_DC)       / 100.0f;
-        view->dz = (config_get_d(CONFIG_VIEW_DZ) + 20) / 100.0f;
-    }*/
-
     if (hmd_stat())
     {
         view->dp = 0.25f;
@@ -276,24 +263,6 @@ void game_view_init(struct game_view *view)
     view->e[0][0] = 1.0f; view->e[0][1] = 0.0f; view->e[0][2] = 0.0f;
     view->e[1][0] = 0.0f; view->e[1][1] = 1.0f; view->e[1][2] = 0.0f;
     view->e[2][0] = 0.0f; view->e[2][1] = 0.0f; view->e[2][2] = 1.0f;
-}
-
-void game_view_zoom(struct game_view *view, float diff)
-{
-    /*
-     * Store with the zoom differences (just like a Switchball)
-     *
-     * Zoom functions: 
-     * view_dp + (sin(x / 60) * 75)
-     * view_dz + 20 + (sin((x / 80) - 0.5236) * 40)
-     */
-
-    view_zoom_diff_curr += diff;
-
-    if (view_zoom_diff_curr > 94) view_zoom_diff_curr = 94;
-    if (view_zoom_diff_curr < 0)  view_zoom_diff_curr = 0;
-
-    game_view_init(view);
 }
 
 void game_view_fly(struct game_view *view, const struct s_vary *vary, int ui, float k)

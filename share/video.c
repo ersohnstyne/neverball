@@ -482,7 +482,7 @@ video_mode_reconf:
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
 
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   8);
-    //SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     /* Try to set the currently specified mode. */
 
@@ -913,7 +913,7 @@ video_mode_auto_config_reconf:
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
 
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   8);
-    //SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     log_printf("Creating a window (%dx%d, %s (auto configuration))\n",
                w, h, (f ? "fullscreen" : "windowed"));

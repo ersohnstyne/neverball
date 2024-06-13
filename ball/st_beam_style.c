@@ -22,6 +22,7 @@
 #include "gui.h"
 #include "lang.h"
 #include "state.h"
+#include "key.h"
 
 #include "game_client.h"
 #include "game_common.h"
@@ -123,7 +124,7 @@ static int beam_style_gui(void)
         if ((jd = gui_hstack(id)))
         {
 #ifndef __EMSCRIPTEN__
-            if (!xbox_show_gui())
+            if (!console_gui_show())
 #endif
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png",
@@ -140,7 +141,7 @@ static int beam_style_gui(void)
             gui_set_fill(name_id);
 
 #ifndef __EMSCRIPTEN__
-            if (!xbox_show_gui())
+            if (!console_gui_show())
 #endif
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png",
@@ -220,7 +221,7 @@ static void beam_style_paint(int id, float t)
 
     gui_paint(id);
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    xbox_control_beam_style_gui_paint();
+    console_gui_beam_style_paint();
 #endif
 }
 

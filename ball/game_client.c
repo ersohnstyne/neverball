@@ -409,10 +409,8 @@ static void game_run_cmd(const union cmd *cmd)
                 break;
 
             case CMD_ZOOM:
-                /*
-                 * New: Zoom; Store with the zoom differences (just like a Switchball)
-                 */
-                game_view_zoom(view, cmd->zoom.xi);
+                /* Unsupported: Not used anymore. */
+
                 break;
 
 #ifdef MAPC_INCLUDES_CHKP

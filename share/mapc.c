@@ -682,7 +682,7 @@ static void size_image(const char *name, int *w, int *h)
         if (image_n + 1 >= image_alloc)
         {
             struct _imagedata *tmp =
-                (struct _imagedata *) malloc(sizeof(struct _imagedata) * (image_alloc + IMAGE_REALLOC));
+                (struct _imagedata *) malloc(sizeof (struct _imagedata) * (image_alloc + IMAGE_REALLOC));
             if (!tmp)
             {
                 MAPC_LOG_ERROR("malloc error\n");
@@ -690,7 +690,7 @@ static void size_image(const char *name, int *w, int *h)
             }
             if (imagedata)
             {
-                (void) memcpy(tmp, imagedata, sizeof(struct _imagedata) * image_alloc);
+                (void) memcpy(tmp, imagedata, sizeof (struct _imagedata) * image_alloc);
                 free(imagedata);
                 imagedata = NULL;
             }
@@ -886,11 +886,11 @@ static void move_file(struct s_base *fp)
         {
             for (i = 0; i < fp->pc; i++)
             {
-                struct b_path *pp = fp->pv + i;
+                struct b_path* pp = fp->pv + i;
 
                 if (pp->p0 >= 0)
                 {
-                    struct b_path *pq = fp->pv + pp->p0;
+                    struct b_path* pq = fp->pv + pp->p0;
 
                     v_sub(posv[i], pp->p, pq->p);
                 }
@@ -898,7 +898,7 @@ static void move_file(struct s_base *fp)
 
             for (i = 0; i < fp->pc; i++)
             {
-                struct b_path *pp = fp->pv + i;
+                struct b_path* pp = fp->pv + i;
 
                 if (pp->p0 >= 0)
                     v_cpy(fp->pv[i].p, posv[i]);
@@ -2212,7 +2212,7 @@ static void read_ent(struct s_base *fp, fs_file fin)
         if (campaign_output) campaign_cost += 408;
 
 #if LEGACY_MODE
-        memset(&specification_type, 0, sizeof(specification_type));
+        memset(&specification_type, 0, sizeof (specification_type));
         SAFECPY(specification_type, "ball");
         
         if (request_legacy(k, v, c))

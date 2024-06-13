@@ -21,6 +21,7 @@
 #endif
 
 #include "gui.h"
+#include "lang.h"
 #include "util.h"
 #include "config.h"
 

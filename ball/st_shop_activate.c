@@ -24,6 +24,7 @@
 #include "state.h"
 #include "text.h"
 #include "vec3.h"
+#include "key.h"
 
 #include "game_common.h"
 #include "game_payment.h"

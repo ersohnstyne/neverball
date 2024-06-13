@@ -29,6 +29,7 @@
 #include "progress.h"
 #include "text.h"
 #include "common.h"
+#include "key.h"
 
 #include "game_server.h"
 #include "game_client.h"

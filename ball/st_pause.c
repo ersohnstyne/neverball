@@ -35,6 +35,7 @@
 #include "level.h"
 #include "audio.h"
 #include "hud.h"
+#include "key.h"
 
 #include "game_common.h"
 #include "game_server.h"
@@ -417,8 +418,8 @@ static void pause_paint(int id, float t)
     shared_paint(id, t);
 
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    if (xbox_show_gui())
-        xbox_control_paused_gui_paint();
+    if (console_gui_show())
+        console_gui_paused_paint();
     else if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
 #endif
         hud_paint();

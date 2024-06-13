@@ -43,6 +43,7 @@
 #ifndef VERSION
 #include "version.h"
 #endif
+#include "lang.h"
 
 #if ENABLE_DUALDISPLAY==1
 #include "game_dualdisplay.h"
@@ -831,6 +832,15 @@ static void conf_account_timer(int id, float dt)
 
 static int conf_join_confirm = 0;
 
+static struct state *st_conf_social_back;
+
+static int conf_goto_social(struct state *back)
+{
+    st_conf_social_back = back;
+
+    return goto_state(&st_conf_social);
+}
+
 enum
 {
     CONF_SOCIAL_DISCORD = GUI_LAST,
@@ -846,6 +856,8 @@ static int conf_social_action(int tok, int val)
     {
         case GUI_BACK:
             conf_join_confirm = 0;
+            st_conf_social_back = NULL;
+
             return goto_state(&st_conf);
             break;
         case CONF_SOCIAL_DISCORD:
@@ -853,7 +865,7 @@ static int conf_social_action(int tok, int val)
             if (conf_join_confirm)
 #endif
             {
-#if defined(__EMSCRIPTEN__)
+#ifdef __EMSCRIPTEN__
 #if NB_HAVE_PB_BOTH==1
                 EM_ASM({ window.open("https://discord.gg/qnJR263Hm2");  }, 0);
 #else
@@ -2563,7 +2575,7 @@ static int conf_action(int tok, int val)
 #endif
 
         case CONF_SOCIAL:
-            goto_state(&st_conf_social);
+            conf_goto_social(curr_state());
             break;
 
         case CONF_MANAGE_ACCOUNT:
@@ -2866,7 +2878,7 @@ static void conf_shared_timer(int id, float dt)
 static int null_enter(struct state *st, struct state *prev)
 {
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    xbox_control_gui_free();
+    console_gui_free();
 #endif
 #if ENABLE_DUALDISPLAY==1
     game_dualdisplay_gui_free();
@@ -2914,7 +2926,7 @@ static void null_leave(struct state *st, struct state *next, int id)
     game_dualdisplay_gui_init();
 #endif
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    xbox_control_gui_init();
+    console_gui_init();
 #endif
 
     if (mainmenu_conf)

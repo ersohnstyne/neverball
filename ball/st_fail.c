@@ -41,6 +41,7 @@
 #include "mediation.h"
 #endif
 #include "video.h"
+#include "key.h"
 #include "hud.h"
 
 #include "game_common.h"
@@ -725,8 +726,8 @@ static void fail_paint(int id, float t)
     
     gui_paint(id);
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    if (xbox_show_gui())
-        xbox_control_death_gui_paint();
+    if (console_gui_show())
+        console_gui_death_paint();
     if (hud_visibility())
 #endif
         hud_paint();

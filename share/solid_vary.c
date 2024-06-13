@@ -161,7 +161,7 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 
     if (fp->base->jc)
     {
-        fp->jv = calloc(fp->base->jc, sizeof(*fp->jv));
+        fp->jv = calloc(fp->base->jc, sizeof (*fp->jv));
         fp->jc = fp->base->jc;
         if (fp->jv == 0) return 0;
 

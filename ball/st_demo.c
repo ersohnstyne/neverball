@@ -1207,7 +1207,7 @@ static void demo_paint(int id, float t)
 #if ENABLE_MOON_TASKLOADER!=0
     if (!demo_is_scanning_with_moon_taskloader)
 #endif
-        xbox_control_list_gui_paint();
+        console_gui_list_paint();
 #endif
 }
 
@@ -1219,7 +1219,7 @@ static void demo_stick(int id, int a, float v, int bump)
 #endif
 
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    xbox_toggle_gui(1);
+    console_gui_toggle(1);
 #endif
     int jd = shared_stick_basic(id, a, v, bump);
 
@@ -1734,12 +1734,12 @@ static void demo_end_paint(int id, float t)
     gui_paint(id);
 
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    if (xbox_show_gui())
+    if (console_gui_show())
     {
         if (demo_paused)
-            xbox_control_paused_gui_paint();
+            console_gui_paused_paint();
         else
-            xbox_control_replay_eof_paint();
+            console_gui_replay_eof_paint();
     }
 #endif
 }

@@ -41,6 +41,7 @@
 #ifndef VERSION
 #include "version.h"
 #endif
+#include "key.h"
 #include "progress.h"
 #include "text.h"
 
@@ -277,7 +278,9 @@ enum
     TITLE_CONF,
     TITLE_PACKAGES,
 
-    TITLE_UNLOCK_FULL_GAME = 999
+    TITLE_UNLOCK_FULL_GAME = 99,
+
+    TITLE_SOCIAL = 199
 };
 
 int edition_id;
@@ -313,6 +316,21 @@ static int title_action(int tok, int val)
 
     size_t queue_len = text_length(queue);
 
+#if NB_HAVE_PB_BOTH==1
+    const char title_social_url[3][MAXSTR] =
+    {
+        "https://gitea.stynegame.de/Neverball",
+        "https://github.com/Neverball",
+        "https://discord.gg/qnJR263Hm2/",
+    };
+#else
+    const char title_social_url[2][MAXSTR] =
+    {
+        "https://github.com/Neverball",
+        "https://discord.gg/HhMfr4N6H6/",
+    };
+#endif
+
     GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
@@ -328,6 +346,24 @@ static int title_action(int tok, int val)
 
                 return 0;
             }
+            break;
+
+        case TITLE_SOCIAL:
+#ifdef __EMSCRIPTEN__
+            EM_ASM({ window.open(title_social_url[val]);}, 0);
+#else
+#if _WIN32
+            SAFECPY(linkstr_cmd, "start msedge ");
+#elif defined(__APPLE__)
+            SAFECPY(linkstr_cmd, "open ");
+#elif defined(__linux__)
+            SAFECPY(linkstr_cmd, "x-www-browser ");
+#endif
+
+            SAFECAT(linkstr_cmd, title_social_url[val]);
+
+            system(linkstr_cmd);
+#endif
             break;
 
         case TITLE_PLAY:
@@ -871,7 +907,54 @@ static int title_gui(void)
 
         if (!title_lockscreen)
         {
+            if ((id = gui_vstack(root_id)))
+            {
+                if ((jd = gui_hstack(id)))
+                {
 #if NB_HAVE_PB_BOTH==1
+                    const char title_social_image_paths[3][MAXSTR] =
+                    {
+                        "gui/social/ic_gitea.jpg",
+                        "gui/social/ic_github.jpg",
+                        "gui/social/ic_discord.jpg",
+                    };
+#else
+                    const char title_social_image_paths[2][MAXSTR] =
+                    {
+                        "gui/social/ic_github.jpg",
+                        "gui/social/ic_discord.jpg",
+                    };
+#endif
+
+                    for (int i = (ARRAYSIZE(title_social_image_paths) - 1);
+                         i >= 0; i--)
+                    {
+                        int btn_social = gui_image(jd, title_social_image_paths[i],
+                                                       video.device_h / 16,
+                                                       video.device_h / 16);
+
+                        gui_set_state(btn_social, TITLE_SOCIAL, i);
+
+                        gui_clr_rect(btn_social);
+                    }
+
+                    gui_space(jd);
+                }
+
+                gui_space(id);
+
+                gui_layout(id, -1, -1);
+            }
+
+#if NB_HAVE_PB_BOTH==1
+#if ENABLE_VERSION
+            if ((id = gui_label(root_id, "Neverball " VERSION, GUI_TNY, gui_wht2, gui_wht2)))
+            {
+                gui_clr_rect(id);
+                gui_layout(id, -1, -1);
+            }
+#endif
+
 #ifdef CONFIG_INCLUDES_ACCOUNT
             char account_coinsattr[MAXSTR], account_gemsattr[MAXSTR];
 
@@ -908,17 +991,6 @@ static int title_gui(void)
             }
 #endif
 #else
-            if ((id = gui_vstack(root_id)))
-            {
-                if ((jd = gui_hstack(id)))
-                {
-                    gui_state(jd, _("Unlock full game"),
-                                  GUI_SML, TITLE_UNLOCK_FULL_GAME, 0);
-                }
-
-                gui_layout(id, -1, 0);
-            }
-
 #if ENABLE_VERSION
             if ((id = gui_label(root_id, "Neverball " VERSION, GUI_TNY, gui_wht2, gui_wht2)))
             {
@@ -927,18 +999,23 @@ static int title_gui(void)
             }
 #endif
 
-#if ENABLE_FETCH!=0
             if ((id = gui_vstack(root_id)))
             {
+#if ENABLE_FETCH!=0
                 if ((jd = gui_hstack(id)))
                 {
                     gui_space(jd);
                     gui_state(jd, _("Addons"), GUI_SML, TITLE_PACKAGES, 0);
                 }
-
-                gui_layout(id, +1, 0);
-            }
 #endif
+                if ((jd = gui_hstack(id)))
+                {
+                    gui_state(jd, _("Unlock full game"),
+                                  GUI_SML, TITLE_UNLOCK_FULL_GAME, 0);
+                }
+
+                gui_layout(id, +1, -1);
+            }
 #endif
         }
         else
@@ -959,7 +1036,6 @@ static int title_gui(void)
                     {
                         float upscaled = text_height * 1.2f;
                         gui_image(jd, "gui/lockscr/mouse.png", upscaled, upscaled);
-                        gui_image(jd, "gui/lockscr/keybd.png", upscaled, upscaled);
 
                         gui_space(jd);
                     }
@@ -970,7 +1046,7 @@ static int title_gui(void)
                     if (current_platform != PLATFORM_PC)
                     {
                         gui_space(jd);
-                        create_a_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        console_gui_create_start_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_START));
                     }
 #endif
                     gui_set_rect(jd, GUI_ALL);
@@ -980,21 +1056,6 @@ static int title_gui(void)
                 gui_layout(id, 0, -1);
             }
         }
-
-#if NB_HAVE_PB_BOTH==1
-        char gameversion[MAXSTR];
-
-        SAFECPY(gameversion, VERSION);
-
-        const int version_id = gui_multi(root_id, gameversion, GUI_TNY, GUI_COLOR_WHT);
-        const int copyright_id = gui_label(root_id, "© 2024 Neverball authors", GUI_TNY, GUI_COLOR_WHT);
-
-        gui_set_rect(version_id, GUI_NW);
-        gui_set_rect(copyright_id, GUI_NE);
-
-        gui_layout(version_id, +1, -1);
-        gui_layout(copyright_id, -1, -1);
-#endif
     }
 
     return root_id;
@@ -1095,7 +1156,7 @@ static void title_paint(int id, float t)
     gui_paint(id);
 
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    xbox_control_title_gui_paint();
+    console_gui_title_paint();
 #endif
 }
 
@@ -1237,7 +1298,7 @@ static void title_point(int id, int x, int y, int dx, int dy)
     int jd;
 
 #ifndef __EMSCRIPTEN__
-    xbox_toggle_gui(0);
+    console_gui_toggle(0);
 #endif
 
     if ((jd = gui_point(id, x, y)))
@@ -1251,7 +1312,7 @@ static void title_stick(int id, int a, float v, int bump)
     int jd;
 
 #ifndef __EMSCRIPTEN__
-    xbox_toggle_gui(1);
+    console_gui_toggle(1);
 #endif
 
     if ((jd = gui_stick(id, a, v, bump)))
@@ -1277,7 +1338,7 @@ static int title_keybd(int c, int d)
     if (title_lockscreen) return 1;
 
 #ifndef __EMSCRIPTEN__
-    xbox_toggle_gui(0);
+    console_gui_toggle(0);
 #endif
 
     if (d)
@@ -1307,7 +1368,7 @@ static int title_buttn(int b, int d)
 
     if (title_lockscreen)
     {
-        if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) && title_can_unlock)
+        if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b) && title_can_unlock)
         {
             title_can_unlock = 0;
             goto_state(&st_title);

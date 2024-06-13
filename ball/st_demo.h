@@ -20,6 +20,7 @@
 extern struct state st_demo_scan_allowance;
 extern struct state st_demo;
 extern struct state st_demo_play;
+extern struct state st_demo_look;
 
 int demo_pause_goto(int);
 int demo_play_goto(int);

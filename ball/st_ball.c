@@ -34,6 +34,7 @@
 #include "geom.h"
 #include "video.h"
 #include "demo.h"
+#include "key.h"
 #include "progress.h"
 #include "text.h"
 
@@ -379,7 +380,7 @@ static int ball_gui(void)
 
             if ((account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
                  server_policy_get_d(SERVER_POLICY_EDITION) < 0) &&
-                !xbox_show_gui() &&
+                !console_gui_show() &&
                 !game_setup_process())
             {
                 gui_space(id);
@@ -394,7 +395,7 @@ static int ball_gui(void)
                         gui_set_state(online_id, MODEL_ONLINE, 0);
                 }
             }
-            else if (!xbox_show_gui() && !game_setup_process())
+            else if (!console_gui_show() && !game_setup_process())
             {
                 gui_space(id);
                 gui_label(id, _(more_balls_text), GUI_SML, GUI_COLOR_GRY);
@@ -408,7 +409,7 @@ static int ball_gui(void)
                 int total_ball_name = array_len(balls);
 
 #ifndef __EMSCRIPTEN__
-                if (!xbox_show_gui() && total_ball_name > 1)
+                if (!console_gui_show() && total_ball_name > 1)
 #else
                 if (total_ball_name > 1)
 #endif
@@ -427,7 +428,7 @@ static int ball_gui(void)
                 gui_set_fill (name_id);
 
 #ifndef __EMSCRIPTEN__
-                if (!xbox_show_gui() && total_ball_name > 1)
+                if (!console_gui_show() && total_ball_name > 1)
 #else
                 if (total_ball_name > 1)
 #endif
@@ -518,7 +519,7 @@ static void ball_paint(int id, float t)
 
     gui_paint(id);
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    xbox_control_model_gui_paint();
+    console_gui_model_paint();
 #endif
 }
 

@@ -25,6 +25,7 @@
 #include "config.h"
 #include "video.h"
 #include "demo.h"
+#include "key.h"
 
 #include "game_common.h"
 #include "game_client.h"

@@ -31,6 +31,7 @@
 #include "progress.h"
 #include "audio.h"
 #include "config.h"
+#include "key.h"
 
 #include "game_common.h"
 #include "game_client.h"

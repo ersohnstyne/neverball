@@ -16,7 +16,8 @@
 #define CONSOLE_CONTROL_GUI_H
 
 /* Supported Platforms */
-enum console_platforms {
+enum console_platforms
+{
     PLATFORM_PC,
     PLATFORM_XBOX,      /* Xbox Controllers        */
     PLATFORM_PS,        /* PlayStation Controllers */
@@ -103,54 +104,54 @@ enum console_platforms {
 
 extern enum console_platforms current_platform;
 
-void init_controller_type(enum console_platforms);
-void xbox_control_gui_set_alpha(float);
+void console_init_controller_type(enum console_platforms);
+void console_gui_set_alpha(float);
 
-void create_a_button(int, int);
-void create_b_button(int, int);
-void create_x_button(int, int);
-void create_y_button(int, int);
-void create_lb_button(int, int);
-void create_rb_button(int, int);
-void create_lt_button(int, int);
-void create_rt_button(int, int);
-void create_ls_button(int, int);
-void create_rs_button(int, int);
-void create_start_button(int, int);
-void create_select_button(int, int);
+void console_gui_create_a_button(int, int);
+void console_gui_create_b_button(int, int);
+void console_gui_create_x_button(int, int);
+void console_gui_create_y_button(int, int);
+void console_gui_create_lb_button(int, int);
+void console_gui_create_rb_button(int, int);
+void console_gui_create_lt_button(int, int);
+void console_gui_create_rt_button(int, int);
+void console_gui_create_ls_button(int, int);
+void console_gui_create_rs_button(int, int);
+void console_gui_create_start_button(int, int);
+void console_gui_create_select_button(int, int);
 
-int xbox_show_gui(void);
+int console_gui_show(void);
 
-void xbox_toggle_gui(int);
+void console_gui_toggle(int);
 
-void xbox_control_gui_init(void);
-void xbox_control_gui_free(void);
+void console_gui_init(void);
+void console_gui_free(void);
 
 
 /* Shared */
 
-void xbox_control_title_gui_paint(void);
-void xbox_control_list_gui_paint(void);
-void xbox_control_paused_gui_paint(void);
+void console_gui_title_paint(void);
+void console_gui_list_paint(void);
+void console_gui_paused_paint(void);
 
 
 /* Generic */
 
-void xbox_control_desc_gui_paint(void);
-void xbox_control_preparation_gui_paint(void);
-void xbox_control_replay_paint(void);
-void xbox_control_replay_eof_paint(void);
-void xbox_control_shop_gui_paint(void);
-void xbox_control_shop_getcoins_gui_paint(void);
-void xbox_control_model_gui_paint(void);
-void xbox_control_beam_style_gui_paint(void);
-void xbox_control_death_gui_paint(void);
+void console_gui_desc_paint(void);
+void console_gui_preparation_paint(void);
+void console_gui_replay_paint(void);
+void console_gui_replay_eof_paint(void);
+void console_gui_shop_paint(void);
+void console_gui_shop_getcoins_paint(void);
+void console_gui_model_paint(void);
+void console_gui_beam_style_paint(void);
+void console_gui_death_paint(void);
 
 
 /* Putt */
 
-void xbox_control_putt_stroke_gui_paint(void);
-void xbox_control_putt_stop_gui_paint(void);
-void xbox_control_putt_scores_gui_paint(void);
+void console_gui_putt_stroke_paint(void);
+void console_gui_putt_stop_paint(void);
+void console_gui_putt_scores_paint(void);
 
 #endif

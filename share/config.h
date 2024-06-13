@@ -21,15 +21,6 @@
  */
 #define LOG_NO_STATS
 
-#if _WIN32 && __MINGW32__
-#include <SDL2/SDL.h>
-#else
-#include <SDL.h>
-#endif
-
-#include "base_config.h"
-#include "lang.h"
-
 /*---------------------------------------------------------------------------*/
 
 extern int config_busy;
@@ -217,22 +208,5 @@ void config_clr_cheat(void);
 int config_screenshot(void);
 
 /*---------------------------------------------------------------------------*/
-
-/* Names for some hard-coded keys. */
-
-#define KEY_EXIT       SDLK_ESCAPE
-
-#define KEY_LOOKAROUND SDLK_F5
-#define KEY_WIREFRAME  SDLK_F6
-#define KEY_RESOURCES  SDLK_F7
-#define KEY_LEVELSHOTS SDLK_F8
-
-#define KEY_FPS        SDLK_F9
-#define KEY_POSE       SDLK_F1
-#define KEY_FULLSCREEN SDLK_F11
-#define KEY_SCREENSHOT SDLK_F12
-
-#define KEY_PUTT_UPGRADE SDLK_w
-#define KEY_PUTT_DNGRADE SDLK_s
 
 #endif

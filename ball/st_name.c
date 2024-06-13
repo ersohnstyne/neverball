@@ -35,6 +35,7 @@
 #include "video.h"
 #include "text.h"
 #include "geom.h"
+#include "key.h"
 
 #include "set.h"
 #include "demo.h"

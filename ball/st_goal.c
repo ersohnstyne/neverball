@@ -45,6 +45,7 @@
 #include "config.h"
 #include "video.h"
 #include "demo.h"
+#include "key.h"
 #include "geom.h"
 
 #include "game_common.h"
@@ -543,7 +544,7 @@ static void goal_paint(int id, float t)
 
     gui_paint(id);
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    xbox_control_death_gui_paint();
+    console_gui_death_paint();
 #endif
 }
 

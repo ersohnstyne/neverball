@@ -21,6 +21,7 @@
 #include "common.h"
 #include "package.h"
 #include "geom.h"
+#include "lang.h"
 
 #include "st_package.h"
 #include "st_common.h"

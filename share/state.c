@@ -208,7 +208,7 @@ int goto_state_full(struct state *st,
             }
 
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-            xbox_control_gui_set_alpha(alpha);
+            console_gui_set_alpha(alpha);
 #endif
 
             CHECK_GAMESPEED(20, 100);
@@ -243,7 +243,7 @@ int goto_state_full(struct state *st,
     }
 
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    xbox_control_gui_set_alpha(alpha);
+    console_gui_set_alpha(alpha);
 #endif
 
     if (state && state->leave)
@@ -285,7 +285,7 @@ int goto_state_full(struct state *st,
             }
 
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-            xbox_control_gui_set_alpha(alpha);
+            console_gui_set_alpha(alpha);
 #endif
 
             CHECK_GAMESPEED(20, 100);
@@ -319,7 +319,7 @@ int goto_state_full(struct state *st,
     }
 
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    xbox_control_gui_set_alpha(alpha);
+    console_gui_set_alpha(alpha);
 #endif
 
     anim_queue = 0;

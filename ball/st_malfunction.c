@@ -21,6 +21,7 @@
 #include "gui.h"
 #include "audio.h"
 #include "progress.h"
+#include "key.h"
 
 #include "game_common.h"
 #include "game_client.h"

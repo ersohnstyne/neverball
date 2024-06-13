@@ -28,6 +28,7 @@
 #include "lang.h"
 #include "progress.h"
 #include "set.h"
+#include "key.h"
 
 #include "game_client.h"
 #include "game_common.h"
@@ -264,8 +265,8 @@ static void tutorial_paint(int id, float t)
 
     gui_paint(id);
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    if (xbox_show_gui())
-        xbox_control_death_gui_paint();
+    if (console_gui_show())
+        console_gui_death_paint();
 #endif
 }
 

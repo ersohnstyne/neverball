@@ -34,6 +34,7 @@
 #include "config.h"
 #include "demo.h"
 #include "video.h"
+#include "key.h"
 
 #include "game_common.h"
 #include "game_server.h"
@@ -228,7 +229,7 @@ static int help_menu(int id)
 
     if ((jd = gui_hstack(id)))
     {
-        if (xbox_show_gui())
+        if (console_gui_show())
             gui_filler(jd);
 
         if ((kd = gui_harray(jd)))
@@ -242,12 +243,12 @@ static int help_menu(int id)
             help_button(kd, _("Rules"),    HELP_SELECT, PAGE_RULES);
         }
 
-        if (!xbox_show_gui())
+        if (!console_gui_show())
             gui_space(jd);
 
         gui_filler(jd);
 
-        if (!xbox_show_gui())
+        if (!console_gui_show())
             gui_back_button(jd);
     }
 
@@ -594,17 +595,17 @@ static void controls_console(int id)
         if ((kd = gui_harray(jd)))
         {
             gui_label(kd, s_exit, GUI_SML, GUI_COLOR_WHT);
-            create_b_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+            console_gui_create_b_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
         }
         if ((kd = gui_harray(jd)))
         {
             gui_label(kd, s_pause, GUI_SML, GUI_COLOR_WHT);
-            create_start_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_START));
+            console_gui_create_start_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_START));
         }
         if ((kd = gui_harray(jd)))
         {
             gui_label(kd, s_camToggle, GUI_SML, GUI_COLOR_WHT);
-            create_x_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+            console_gui_create_x_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_X));
         }
 
         gui_set_rect(jd, GUI_ALL);
@@ -1312,8 +1313,8 @@ static void help_paint(int id, float t)
 
     gui_paint(id);
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    if (xbox_show_gui())
-        xbox_control_list_gui_paint();
+    if (console_gui_show())
+        console_gui_list_paint();
 #endif
 }
 

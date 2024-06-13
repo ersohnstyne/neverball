@@ -36,6 +36,7 @@
 #include "audio.h"
 #include "image.h"
 #include "video.h"
+#include "key.h"
 
 #include "game_server.h"
 #include "game_client.h"
@@ -143,138 +144,26 @@ static int devel_label_id;
 #endif
 
 static int intro_init = 0;
+static int intro_page;
 static int intro_done;
-
-#ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
-const char intro_tip[][256] = {
-    TIP_1,
-    TIP_2,
-    TIP_3,
-    TIP_4,
-    TIP_5,
-    TIP_6,
-    TIP_7,
-    TIP_8
-};
-
-const char intro_tip_xbox[][256] = {
-    TIP_1,
-    TIP_2,
-    TIP_3_XBOX,
-    TIP_4_XBOX,
-    TIP_5,
-    TIP_6_XBOX
-};
-
-const char intro_tip_ps4[][256] = {
-    TIP_1,
-    TIP_2,
-    TIP_3_PS4,
-    TIP_4_XBOX,
-    TIP_5,
-    TIP_6_PS4
-};
-
-const char intro_covid_highrisk[][256] = {
-    N_("Stash your game transfer\nto reduce risks!"),
-    N_("Stash your replays with exceeded\nlevel status to reduce risks!"),
-    N_("Don't use challenge game mode\nto reduce risks!"),
-    N_("Use 3G+ rule to reduce risks!"),
-};
-
-static void intro_create_tip(int id)
-{
-    int max_index = 7;
-    int index_affect = config_get_d(CONFIG_TIPS_INDEX) + 1;
-
-#ifdef INTRO_CELEBRATE_COMMIT
-    if ((tip_id = gui_multi(id, _("Happy 4000 commits!\nLet's celebrate PB+NB on Discord!"),
-                                GUI_SML, GUI_COLOR_WHT)))
-    {
-        gui_clr_rect(tip_id);
-        gui_layout(tip_id, 0, -1);
-    }
-#else
-#if !defined(COVID_HIGH_RISK)
-#ifndef __EMSCRIPTEN__
-    if (current_platform != PLATFORM_PC)
-        max_index = 5;
-#endif
-
-    if (index_affect > max_index)
-        index_affect = 0;
-
-    config_set_d(CONFIG_TIPS_INDEX, index_affect);
-#ifndef __EMSCRIPTEN__
-    if (current_platform == PLATFORM_PC)
-    {
-        if ((tip_id = gui_multi(id, _(intro_tip[index_affect]),
-                                    GUI_SML, GUI_COLOR_WHT)))
-        {
-            gui_clr_rect(tip_id);
-            gui_layout(tip_id, 0, -1);
-        }
-    }
-    else if (current_platform == PLATFORM_PS)
-    {
-        if ((tip_id = gui_multi(id, _(intro_tip_ps4[index_affect]),
-                                    GUI_SML, GUI_COLOR_WHT)))
-        {
-            gui_clr_rect(tip_id);
-            gui_layout(tip_id, 0, -1);
-        }
-    }
-    else
-#endif
-    {
-        if ((tip_id = gui_multi(id, _(intro_tip_xbox[index_affect]),
-                                    GUI_SML, GUI_COLOR_WHT)))
-        {
-            gui_clr_rect(tip_id);
-            gui_layout(tip_id, 0, -1);
-        }
-    }
-#else
-    max_index = 3;
-    index_affect = config_get_d(CONFIG_TIPS_INDEX) + 1;
-
-    if (index_affect > max_index)
-        index_affect = 0;
-
-    if ((tip_id = gui_multi(id, _(intro_covid_highrisk[index_affect])
-                                GUI_SML, GUI_COLOR_WHT)))
-    {
-        gui_clr_rect(tip_id);
-        gui_layout(tip_id, 0, -1);
-    }
-#endif
-#endif
-}
-#endif
 
 static int intro_gui(void)
 {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform != PLATFORM_PC)
-        xbox_toggle_gui(1);
+        console_gui_toggle(1);
 #endif
 
     int w = video.device_w;
     int h = video.device_h;
 
     const int ww = h * MIN(w, h) / 16;
-    const int hh = ww / 16 * 9;
+    const int hh = ww / 16 * 10;
 
-    int root_id;
+    int root_id, id;
 
     if ((root_id = gui_root()))
     {
-#ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
-        /* Switchball HD features */
-
-        intro_create_tip(root_id);
-#endif
-
 #if DEVEL_BUILD
         /* Only debug and development builds */
 
@@ -290,7 +179,14 @@ static int intro_gui(void)
 
         int image_id;
 
-        if ((image_id = gui_image(root_id, "gui/intro/pg_logo.jpg", ww, hh)))
+        const char intro_logo_image_path[2][MAXSTR] =
+        {
+            "gui/intro/pg_logo.jpg",
+            "gui/intro/ae_logo.jpg"
+        };
+
+        if ((image_id = gui_image(root_id, intro_logo_image_path[intro_page - 1],
+                                           ww, hh)))
         {
             gui_clr_rect(image_id);
             gui_layout(image_id, 0, 0);
@@ -302,15 +198,18 @@ static int intro_gui(void)
 
 static int intro_enter(struct state *st, struct state *prev)
 {
-    audio_play(AUD_INTRO_LOGO, 1.0f);
-
     audio_music_fade_out(1.0f);
+
+    intro_done = 0;
 
     if (!intro_init)
     {
-        intro_done = 0;
         intro_init = 1;
+        intro_page = 1;
+
+        audio_play(AUD_INTRO_LOGO, 1.0f);
     }
+    else intro_page = 2;
 
     return intro_gui();
 }
@@ -320,7 +219,9 @@ static void intro_leave(struct state *st, struct state *next, int id)
     if (next != &st_intro)
     {
         gui_delete(id);
-        intro_init = 0;
+
+        if (intro_page == 2)
+            intro_init = 0;
     }
 }
 
@@ -336,6 +237,9 @@ static int intro_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) ||
             config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
         {
+            if (intro_page == 1)
+                return goto_state_full(curr_state(), 0, 0, 1);
+
             int val = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
             if (val == -1)
                 RETURN_INTROLOGO_FINISHED;
@@ -355,6 +259,9 @@ static int intro_click(int b, int d)
 {
     if (d == 1)
     {
+        if (intro_page == 1)
+            return goto_state_full(curr_state(), 0, 0, 1);
+
         int val = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
         if (val == -1)
             RETURN_INTROLOGO_FINISHED;
@@ -374,6 +281,10 @@ static void intro_timer(int id, float dt)
     if (time_state() > 2 && !intro_done)
     {
         intro_done = 1;
+
+        if (intro_page == 1)
+            return goto_state_full(curr_state(), 0, 0, 1);
+
         int val = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
         if (val == -1)
         {
@@ -806,7 +717,7 @@ static int intro_restore_enter(struct state *st, struct state *prev)
 static int intro_restore_keybd(int c, int d)
 {
 #ifndef __EMSCRIPTEN__
-    xbox_toggle_gui(0);
+    console_gui_toggle(0);
 #endif
 
     if (d)

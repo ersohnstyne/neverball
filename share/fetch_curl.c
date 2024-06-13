@@ -942,4 +942,5 @@ unsigned int fetch_url(const char *url,
 
     return fetch_id;
 }
+
 #endif

@@ -136,6 +136,7 @@ extern "C" {
 #include "log.h"
 #include "game_client.h"
 #include "substr.h"
+#include "lang.h"
 
 #if NB_HAVE_PB_BOTH==1
 #include "st_setup.h"
@@ -175,7 +176,7 @@ const char TITLE[] = "Neverball - Epic Games";
 #else
 const char TITLE[] = "Neverball";
 #endif
-const char ICON[] = "icon/Neverball.png";
+const char ICON[] = "icon/neverball.png";
 
 #define SET_ALWAYS_UNLOCKED
 
@@ -662,7 +663,7 @@ static void dispatch_moon_taskloader_event(void* data)
 {
     SDL_Event e;
 
-    memset(&e, 0, sizeof(e));
+    memset(&e, 0, sizeof (e));
 
     e.type = MOON_TASKLOADER_EVENT;
     e.user.data1 = data;
@@ -744,6 +745,7 @@ static int goto_level(const List level_multi)
         lvl_count++;
     }
 
+    progress_exit();
     progress_init(MODE_STANDALONE);
 
     /* Check whether standalone set is loaded correctly. */
@@ -757,6 +759,7 @@ static int goto_level(const List level_multi)
 
     /* ...otherwise go to main menu screen. */
 
+    progress_exit();
     progress_init(MODE_NONE);
 
     return 0;
@@ -839,6 +842,7 @@ static int process_link(const char *link)
                         {
                             log_printf("Found level with the given reference.\n");
 
+                            progress_exit();
                             progress_init(MODE_NORMAL);
 
                             if (progress_play(level))
@@ -1020,9 +1024,13 @@ static int loop(void)
                         {
                             if (curr_state() == &st_play_ready ||
                                 curr_state() == &st_play_set   ||
-                                curr_state() == &st_play_loop)
-                                goto_pause(curr_state());
+                                curr_state() == &st_play_loop  ||
+                                curr_state() == &st_play_look)
+                                play_pause_goto(curr_state());
                         }
+                        else if (curr_state() == &st_demo_play ||
+                                 curr_state() == &st_demo_look)
+                            demo_pause_goto(1);
                         break;
                 }
                 break;
@@ -1090,10 +1098,12 @@ static int loop(void)
                         {
                             if (curr_state() == &st_play_ready ||
                                 curr_state() == &st_play_set   ||
-                                curr_state() == &st_play_loop)
+                                curr_state() == &st_play_loop  ||
+                                curr_state() == &st_look)
                                 play_pause_goto(curr_state());
                         }
-                        else if (curr_state() == &st_demo_play)
+                        else if (curr_state() == &st_demo_play ||
+                                 curr_state() == &st_demo_look)
                             demo_pause_goto(1);
                         break;
 
@@ -1600,35 +1610,35 @@ static int main_init(int argc, char *argv[])
 
 #if NB_HAVE_PB_BOTH==1
 #if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
-    init_controller_type(PLATFORM_PC);
+    console_init_controller_type(PLATFORM_PC);
 #endif
 #if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API
-    init_controller_type(PLATFORM_XBOX);
+    console_init_controller_type(PLATFORM_XBOX);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
 #if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
-    init_controller_type(PLATFORM_XBOX);
+    console_init_controller_type(PLATFORM_XBOX);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
 #if NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
-    init_controller_type(PLATFORM_PS);
+    console_init_controller_type(PLATFORM_PS);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
 #if NEVERBALL_FAMILY_API == NEVERBALL_STEAMDECK_FAMILY_API
-    init_controller_type(PLATFORM_STEAMDECK);
+    console_init_controller_type(PLATFORM_STEAMDECK);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
 #if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
-    init_controller_type(PLATFORM_SWITCH);
+    console_init_controller_type(PLATFORM_SWITCH);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
 #if NEVERBALL_FAMILY_API == NEVERBALL_HANDSET_FAMILY_API
-    init_controller_type(PLATFORM_HANDSET);
+    console_init_controller_type(PLATFORM_HANDSET);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif

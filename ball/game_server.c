@@ -1136,8 +1136,7 @@ int game_server_init(const char *file_name, int t, int e)
 
         fix_cam_lock[ui]  = 0;
         fix_cam_alpha[ui] = 0.0f;
-        int uses_fix_cam  = (input_get_c() == CAM_AUTO && automode == CAM_2) ||
-                             input_get_c() == CAM_2;
+        int uses_fix_cam  = cam_speed(input_get_c()) == 0;
 
         /* Use target view as somewhere else */
         if (vary.base->wv)
@@ -1381,7 +1380,8 @@ void game_update_view(float dt)
 {
     /* Current view scale. */
 
-    view_zoom_diff_curr = flerp(view_zoom_diff_curr, view_zoom_diff_end, dt);
+    view_zoom_diff_curr = flerp(view_zoom_diff_curr,
+                                view_zoom_diff_end, dt * 5.f);
 
     if (view_zoom_time < ZOOM_TIME)
     {
@@ -1451,7 +1451,7 @@ void game_update_view(float dt)
         }
 
 #pragma region Camera Modes
-        fix_cam_used[ui] = spd <= -5.0e-4f && !(spd < -5.0e-4f);
+        fix_cam_used[ui] = cam_speed(input_get_c()) == 0;
 
         if (fix_cam_lock[ui])
             fix_cam_alpha[ui] = 1;
@@ -1481,7 +1481,7 @@ void game_update_view(float dt)
 #pragma endregion
 
 #pragma region Static camera
-        if (spd <= -5.0e-4f && !(spd < -5.0e-4f))
+        if (cam_speed(input_get_c()) == 0)
             v_lerp(fix_cam_pos, fix_cam_pos, fix_cam_pos_targ[ui], dt);
 
         float c0[3] = { 0.0f, 0.0f, 0.0f };

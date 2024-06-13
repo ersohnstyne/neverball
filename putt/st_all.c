@@ -36,6 +36,8 @@
 #ifndef VERSION
 #include "version.h"
 #endif
+#include "lang.h"
+#include "key.h"
 
 #include "st_all.h"
 #include "st_conf.h"
@@ -268,7 +270,7 @@ static void shared_timer(int id, float dt)
 
 static void shared_point(int id, int x, int y, int dx, int dy)
 {
-    xbox_toggle_gui(0);
+    console_gui_toggle(0);
     gui_pulse(gui_point(id, x, y), 1.2f);
 }
 
@@ -294,7 +296,7 @@ static int paused_indiv_ctrl_index = -1;
 
 static void shared_stick(int id, int a, float v, int bump)
 {
-    xbox_toggle_gui(1);
+    console_gui_toggle(1);
 
     if (paused_indiv_ctrl_index != -1 || joy_get_active_cursor(0))
         shared_stick_basic(id, a, v, bump);
@@ -302,7 +304,7 @@ static void shared_stick(int id, int a, float v, int bump)
 
 static void shared_fade(float alpha)
 {
-    xbox_control_gui_set_alpha(alpha);
+    console_gui_set_alpha(alpha);
 }
 
 static int shared_back_button(int pd)
@@ -492,7 +494,7 @@ static void title_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-    xbox_control_title_gui_paint();
+    console_gui_title_paint();
 }
 
 static void title_timer(int id, float dt)
@@ -661,12 +663,12 @@ static void help_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-    xbox_control_list_gui_paint();
+    console_gui_list_paint();
 }
 
 static void help_point(int id, int x, int y, int dx, int dy)
 {
-    xbox_toggle_gui(0);
+    console_gui_toggle(0);
 
     if (joy_get_cursor_actions(0))
         gui_pulse(gui_point(id, x, y), 1.2f);
@@ -674,7 +676,7 @@ static void help_point(int id, int x, int y, int dx, int dy)
 
 static void help_stick(int id, int a, float v, int bump)
 {
-    xbox_toggle_gui(1);
+    console_gui_toggle(1);
 
     if (joy_get_cursor_actions(0))
         gui_pulse(shared_stick_basic(id, a, v, bump), 1.2f);
@@ -866,12 +868,12 @@ static void course_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-    xbox_control_list_gui_paint();
+    console_gui_list_paint();
 }
 
 static void course_point(int id, int x, int y, int dx, int dy)
 {
-    xbox_toggle_gui(0);
+    console_gui_toggle(0);
 
     int jd;
 
@@ -890,7 +892,7 @@ static void course_point(int id, int x, int y, int dx, int dy)
 
 static void course_stick(int id, int a, float v, int bump)
 {
-    xbox_toggle_gui(1);
+    console_gui_toggle(1);
 
     int jd;
 
@@ -1029,7 +1031,7 @@ static void party_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-    xbox_control_list_gui_paint();
+    console_gui_list_paint();
 }
 
 static int party_click(int b, int d)
@@ -1138,7 +1140,7 @@ static void controltype_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-    xbox_control_list_gui_paint();
+    console_gui_list_paint();
 }
 
 static void controltype_timer(int id, float dt)
@@ -1689,7 +1691,7 @@ static void stroke_paint(int id, float t)
     game_draw(0, t);
     hud_paint();
 
-    xbox_control_putt_stroke_gui_paint();
+    console_gui_putt_stroke_paint();
 }
 
 static void stroke_timer(int id, float dt)
@@ -1722,14 +1724,14 @@ static void stroke_timer(int id, float dt)
 
 static void stroke_point(int id, int x, int y, int dx, int dy)
 {
-    xbox_toggle_gui(0);
+    console_gui_toggle(0);
     game_set_rot(dx);
     game_set_mag(dy);
 }
 
 static void stroke_stick(int id, int a, float v, int bump)
 {
-    xbox_toggle_gui(1);
+    console_gui_toggle(1);
 
     if (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers)
     {
@@ -1806,7 +1808,7 @@ static int stroke_buttn(int b, int d)
 
 static void stroke_fade(float alpha)
 {
-    xbox_control_gui_set_alpha(alpha);
+    console_gui_set_alpha(alpha);
     hud_set_alpha(alpha);
 }
 
@@ -2047,7 +2049,7 @@ static void goal_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-    xbox_control_putt_stop_gui_paint();
+    console_gui_putt_stop_paint();
 }
 
 static void goal_timer(int id, float dt)
@@ -2111,7 +2113,7 @@ static void stop_paint(int id, float t)
 {
     game_draw(0, t);
 
-    xbox_control_putt_stop_gui_paint();
+    console_gui_putt_stop_paint();
 }
 
 static void stop_timer(int id, float dt)
@@ -2197,7 +2199,7 @@ static void fall_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-    xbox_control_putt_stop_gui_paint();
+    console_gui_putt_stop_paint();
 }
 
 static void fall_timer(int id, float dt)
@@ -2271,7 +2273,7 @@ static void retry_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-    xbox_control_putt_stop_gui_paint();
+    console_gui_putt_stop_paint();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2299,7 +2301,7 @@ static void score_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-    xbox_control_putt_scores_gui_paint();
+    console_gui_putt_scores_paint();
 }
 
 static int score_keybd(int c, int d)
@@ -2359,7 +2361,7 @@ static void over_paint(int id, float t)
     game_draw(0, t);
     gui_paint(id);
 
-    xbox_control_putt_scores_gui_paint();
+    console_gui_putt_scores_paint();
 }
 
 static int over_keybd(int c, int d)

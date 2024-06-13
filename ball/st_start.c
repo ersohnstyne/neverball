@@ -31,6 +31,7 @@
 #include "audio.h"
 #include "config.h"
 #include "common.h"
+#include "key.h"
 #include "text.h"
 
 #include "game_common.h"
@@ -778,8 +779,8 @@ static void start_paint(int id, float t)
 
     gui_paint(id);
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    if (xbox_show_gui())
-        xbox_control_list_gui_paint();
+    if (console_gui_show())
+        console_gui_list_paint();
 #endif
 }
 
@@ -853,7 +854,7 @@ static void start_point(int id, int x, int y, int dx, int dy)
 {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform == PLATFORM_PC)
-        xbox_toggle_gui(0);
+        console_gui_toggle(0);
 #endif
 
 #if ENABLE_MOON_TASKLOADER
@@ -873,7 +874,7 @@ static void start_point(int id, int x, int y, int dx, int dy)
 static void start_stick(int id, int a, float v, int bump)
 {
 #ifndef __EMSCRIPTEN__
-    xbox_toggle_gui(1);
+    console_gui_toggle(1);
 #endif
 
 #if ENABLE_MOON_TASKLOADER

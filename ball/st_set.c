@@ -30,6 +30,7 @@
 #include "config.h"
 #include "util.h"
 #include "common.h"
+#include "key.h"
 
 #include "game_common.h"
 #include "game_draw.h"
@@ -590,8 +591,8 @@ static void set_paint(int id, float t)
     if (set_is_scanning_with_moon_taskloader) return;
 #endif
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    if (xbox_show_gui())
-        xbox_control_list_gui_paint();
+    if (console_gui_show())
+        console_gui_list_paint();
 #endif
 }
 
@@ -627,7 +628,7 @@ static void set_over(int i)
 static void set_point(int id, int x, int y, int dx, int dy)
 {
 #ifndef __EMSCRIPTEN__
-    xbox_toggle_gui(0);
+    console_gui_toggle(0);
 #endif
 
     int jd = shared_point_basic(id, x, y);
@@ -643,7 +644,7 @@ static void set_point(int id, int x, int y, int dx, int dy)
 static void set_stick(int id, int a, float v, int bump)
 {
 #ifndef __EMSCRIPTEN__
-    xbox_toggle_gui(1);
+    console_gui_toggle(1);
 #endif
 
     int jd = shared_stick_basic(id, a, v, bump);
@@ -1150,8 +1151,8 @@ static void campaign_paint(int id, float t)
 
     gui_paint(id);
 #if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
-    if (xbox_show_gui())
-        xbox_control_list_gui_paint();
+    if (console_gui_show())
+        console_gui_list_paint();
 #endif
 }
 

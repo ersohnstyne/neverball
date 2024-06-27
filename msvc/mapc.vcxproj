@@ -70,12 +70,35 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <NMakeOutput>$(SolutionDir)pennyball_education.exe</NMakeOutput>
+    <NMakePreprocessorDefinitions>NDEBUG</NMakePreprocessorDefinitions>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)share;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)share;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)share;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)share;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_CONSOLE;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;WIN32;_CONSOLE;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -84,7 +107,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
@@ -94,10 +117,10 @@ if exist ($(OutDir)mapc.exe) (forfiles /P "$(SolutionDir)data_development" /S /M
 </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.idb"
-del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.ilk"
-del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.obj"
-del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.pdb"
+      <Command>del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.idb"
+del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.ilk"
+del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.obj"
+del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.pdb"
 del "$(SolutionDir)share\*.bc"
 del "$(SolutionDir)share\*.d"
 del "$(SolutionDir)share\*.o"</Command>
@@ -108,9 +131,9 @@ del "$(SolutionDir)share\*.o"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CONSOLE;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;_CONSOLE;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -121,7 +144,7 @@ del "$(SolutionDir)share\*.o"</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
@@ -131,10 +154,10 @@ if exist ($(OutDir)mapc.exe) (forfiles /P "$(SolutionDir)data_development" /S /M
 </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.idb"
-del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.ilk"
-del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.obj"
-del "$(ProjectDir)$(Configuration)\$(ProjectName)\*.pdb"
+      <Command>del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.idb"
+del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.ilk"
+del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.obj"
+del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.pdb"
 del "$(SolutionDir)share\*.bc"
 del "$(SolutionDir)share\*.d"
 del "$(SolutionDir)share\*.o"</Command>
@@ -143,9 +166,9 @@ del "$(SolutionDir)share\*.o"</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CONSOLE;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;_CONSOLE;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -154,7 +177,7 @@ del "$(SolutionDir)share\*.o"</Command>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
@@ -164,10 +187,10 @@ if exist ($(OutDir)mapc.exe) (forfiles /P "$(SolutionDir)data_development" /S /M
 </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.idb"
-del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.ilk"
-del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.obj"
-del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.pdb"
+      <Command>del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.idb"
+del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.ilk"
+del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.obj"
+del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.pdb"
 del "$(SolutionDir)share\*.bc"
 del "$(SolutionDir)share\*.d"
 del "$(SolutionDir)share\*.o"</Command>
@@ -178,9 +201,9 @@ del "$(SolutionDir)share\*.o"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CONSOLE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;_CONSOLE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -191,7 +214,7 @@ del "$(SolutionDir)share\*.o"</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
@@ -201,10 +224,10 @@ if exist ($(OutDir)mapc.exe) (forfiles /P "$(SolutionDir)data_development" /S /M
 </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.idb"
-del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.ilk"
-del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.obj"
-del "$(ProjectDir)$(Platform)\$(Configuration)\$(ProjectName)\*.pdb"
+      <Command>del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.idb"
+del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.ilk"
+del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.obj"
+del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.pdb"
 del "$(SolutionDir)share\*.bc"
 del "$(SolutionDir)share\*.d"
 del "$(SolutionDir)share\*.o"</Command>

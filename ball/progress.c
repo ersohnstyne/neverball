@@ -20,6 +20,7 @@
 #include "networking.h"
 #include "powerup.h"
 #include "account.h"
+#include "account_wgcl.h"
 #include "accessibility.h"
 #if ENABLE_RFD==1
 #include "rfd.h"
@@ -75,21 +76,18 @@
  *
  * Try to not overuse the gems as it causes bankrupt.
  */
-#define PROGRESS_PLAYER_PAYDEBT_BALLS                                          \
-    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) {              \
-            int temp_account_balls =                                           \
-            account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);                     \
-            temp_account_balls--;                                              \
-            account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, temp_account_balls); \
-            account_save(); } else {                                           \
-            if (curr.rfd_balls > -1)                                           \
-                curr.rfd_balls -= 1;                                           \
-            else                                                               \
-                curr.balls -= 1;                                               \
-            if (chkp.rfd_balls > -1)                                           \
-                chkp.rfd_balls -= 1;                                           \
-            else if (chkp.balls > -1)                                          \
-                chkp.balls -= 1;                                               \
+#define PROGRESS_PLAYER_PAYDEBT_BALLS                             \
+    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) { \
+            account_wgcl_do_add(0, 0, -1, 0, 0, 0);               \
+            account_wgcl_save(); } else {                         \
+            if (curr.rfd_balls > -1)                              \
+                curr.rfd_balls -= 1;                              \
+            else                                                  \
+                curr.balls -= 1;                                  \
+            if (chkp.rfd_balls > -1)                              \
+                chkp.rfd_balls -= 1;                              \
+            else if (chkp.balls > -1)                             \
+                chkp.balls -= 1;                                  \
     } } while (0)
 #else
 /*
@@ -100,16 +98,13 @@
  *
  * Try to not overuse the gems as it causes bankrupt.
  */
-#define PROGRESS_PLAYER_PAYDEBT_BALLS                                          \
-    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) {              \
-            int temp_account_balls =                                           \
-            account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);                     \
-            temp_account_balls--;                                              \
-            account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, temp_account_balls); \
-            account_save(); } else {                                           \
-            curr.balls -= 1;                                                   \
-            if (chkp.balls > -1)                                               \
-                chkp.balls -= 1;                                               \
+#define PROGRESS_PLAYER_PAYDEBT_BALLS                             \
+    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) { \
+            account_wgcl_do_add(0, 0, -1, 0, 0, 0);               \
+            account_wgcl_save(); } else {                         \
+            curr.balls -= 1;                                      \
+            if (chkp.balls > -1)                                  \
+                chkp.balls -= 1;                                  \
     } } while (0)
 #endif
 #else
@@ -124,17 +119,14 @@
  *
  * Try to not overuse the gems as it causes bankrupt.
  */
-#define PROGRESS_PLAYER_PAYDEBT_BALLS                                          \
-    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) {              \
-            int temp_account_balls =                                           \
-                account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);                 \
-            temp_account_balls--;                                              \
-            account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, temp_account_balls); \
-            account_save(); } else {                                           \
-            if (curr.rfd_balls > -1)                                           \
-                curr.rfd_balls -= 1;                                           \
-            else                                                               \
-                curr.balls -= 1;                                               \
+#define PROGRESS_PLAYER_PAYDEBT_BALLS                             \
+    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) { \
+            account_wgcl_do_add(0, 0, -1, 0, 0, 0);               \
+            account_wgcl_save(); } else {                         \
+            if (curr.rfd_balls > -1)                              \
+                curr.rfd_balls -= 1;                              \
+            else                                                  \
+                curr.balls -= 1;                                  \
     } } while (0)
 #else
 /*
@@ -145,14 +137,11 @@
  *
  * Try to not overuse the gems as it causes bankrupt.
  */
-#define PROGRESS_PLAYER_PAYDEBT_BALLS                                          \
-    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) {              \
-            int temp_account_balls =                                           \
-                account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);                 \
-            temp_account_balls--;                                              \
-            account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, temp_account_balls); \
-            account_save(); } else {                                           \
-            curr.balls -= 1;                                                   \
+#define PROGRESS_PLAYER_PAYDEBT_BALLS                             \
+    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) { \
+            account_wgcl_do_add(0, 0, -1, 0, 0, 0);               \
+            account_wgcl_save(); } else {                         \
+            curr.balls -= 1;                                      \
     } } while (0)
 #endif
 #endif
@@ -281,13 +270,14 @@ static int status = GAME_NONE;
 
 static int coins = 0;
 
+static int timer_offset = 0;
 #ifdef MAPC_INCLUDES_CHKP
-static int timer_shared_group = 0;
+static int timer_total  = 0;
 
 /*
  * Precalculated total timer for each levels with checkpoints.
  */
-#define    timer timer_shared_group
+#define    timer timer_total
 #else
 static int timer = 0;
 #endif
@@ -732,19 +722,21 @@ void progress_stat(int s)
     int i;
 
     /* Cannot save highscore in home room. */
+
     if (mode == MODE_NONE) return;
 
     if (status != GAME_NONE) return;
+
     status = s;
 
     coins = curr_coins();
 
-    /*
-     * HACK: Each timer must be substracted for each checkpoints!
-     */
+    /* HACK: Each timer must be substracted for each checkpoints! */
 
 #ifdef MAPC_INCLUDES_CHKP
-    timer = ROUND((curr_time_elapsed() - checkpoints_respawn_time_elapsed()) * 100);
+    timer_offset = checkpoints_respawn_time_elapsed();
+    timer = ROUND((curr_time_elapsed() -
+                   checkpoints_respawn_time_elapsed()) * 100);
 #else
     timer = ROUND(curr_time_elapsed() * 100);
 #endif
@@ -790,7 +782,7 @@ void progress_stat(int s)
             if (!campaign_used() &&
                 (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN))
                 level_score_update(level,
-                                   timer,
+                                   timer + timer_offset,
 #ifdef ENABLE_POWERUP
                                    coins / get_coin_multiply(),
 #else
@@ -806,7 +798,7 @@ void progress_stat(int s)
 #endif
                       (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN)))
                 level_score_update(level,
-                                   timer,
+                                   timer + timer_offset,
 #ifdef ENABLE_POWERUP
                                    coins / get_coin_multiply(),
 #else
@@ -816,7 +808,8 @@ void progress_stat(int s)
                                    career_unlocked && goal == 0 ? &goal_rank : NULL,
                                    career_unlocked ? &coin_rank : NULL);
 #else
-            level_score_update(level, timer,
+            level_score_update(level,
+                               timer + timer_offset,
 #ifdef ENABLE_POWERUP
                                coins / get_coin_multiply(),
 #else
@@ -901,11 +894,14 @@ void progress_stat(int s)
 #endif
                     )
                 {
-                    int curr_wallet = MIN(ACCOUNT_WALLET_MAX_COINS,
-                        account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_coins());
-                    account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_wallet);
+                    if (account_get_d(ACCOUNT_DATA_WALLET_COINS) < ACCOUNT_WALLET_MAX_COINS
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+                     && !config_cheat()
+#endif
+                        )
+                        account_wgcl_do_add(curr_coins(), 0, 0, 0, 0, 0);
 
-                    account_save();
+                    account_wgcl_save();
                 }
             }
 #endif
@@ -916,6 +912,21 @@ void progress_stat(int s)
             {
                 if (!level_opened(next))
                     level_open(next);
+
+                struct level *tmp_n;
+
+                for (tmp_n = next;
+                     tmp_n && (level_bonus(tmp_n) || level_master(tmp_n));
+                     tmp_n = tmp_n->next)
+                    if (tmp_n                &&
+                        !level_bonus (tmp_n) &&
+                        !level_master(tmp_n))
+                    {
+                        if (!level_opened(tmp_n))
+                            level_open(tmp_n);
+
+                        break;
+                    }
             }
             else
             {
@@ -1092,27 +1103,28 @@ void progress_exit(void)
         if (server_policy_get_d(SERVER_POLICY_EDITION) > -1
             && !CHECK_ACCOUNT_BANKRUPT)
         {
-            account_set_d(ACCOUNT_DATA_WALLET_COINS,
-                          MIN(account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score(),
-                              ACCOUNT_WALLET_MAX_COINS));
-
             /* This gems will earn only, after competed the challenge mode. */
 
-            if (mode == MODE_CHALLENGE ||
-                mode == MODE_BOOST_RUSH)
+            if ((mode == MODE_CHALLENGE ||
+                 mode == MODE_BOOST_RUSH)
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+             && !config_cheat()
+#endif
+                )
             {
 #if ENABLE_RFD==1
-                account_set_d(ACCOUNT_DATA_WALLET_GEMS,
-                              (curr.balls * 5) + (curr.rfd_balls * 5) +
-                              account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+                account_wgcl_do_add(curr_score(), (curr.balls * 5) + (curr.rfd_balls * 5), 0, 0, 0, 0);
 #else
-                account_set_d(ACCOUNT_DATA_WALLET_GEMS,
-                              (curr.balls * 5) +
-                              account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+                account_wgcl_do_add(curr_score(), (curr.balls * 5), 0, 0, 0, 0);
 #endif
             }
+            else
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+                if (!config_cheat())
+#endif
+                account_wgcl_do_add(curr_score(), 0, 0, 0, 0, 0);
 
-            account_save();
+            account_wgcl_save();
         }
 #endif
     }
@@ -1264,11 +1276,9 @@ int  progress_raise_gems(int action_performed, int needed,
 
     if (action_performed && temp_src_gems + final_resale >= needed)
     {
-        account_set_d(ACCOUNT_DATA_WALLET_GEMS,       temp_src_gems + final_resale);
-        account_set_d(ACCOUNT_DATA_WALLET_COINS,      diff_coins);
-        account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, diff_wgearn);
-        account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, diff_wgfloat);
-        account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, diff_wgspeed);
+        account_wgcl_do_set(diff_coins, temp_src_gems + final_resale,
+                            account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES),
+                            diff_wgearn, diff_wgfloat, diff_wgspeed);
     }
 
 #endif

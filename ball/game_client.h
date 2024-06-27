@@ -27,7 +27,6 @@ enum
 };
 
 int game_client_init(const char *);
-int game_client_init_metadata(const char *);
 
 #if ENABLE_MOON_TASKLOADER!=0
 int game_client_load_moon_taskloader(void *, void *);

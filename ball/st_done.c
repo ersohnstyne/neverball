@@ -22,6 +22,7 @@
 #include "networking.h"
 #include "campaign.h" /* New: Campaign */
 #include "account.h"
+#include "account_wgcl.h"
 #endif
 
 #include "gui.h"
@@ -230,11 +231,11 @@ static int done_gui_set(void)
             gui_set_rect(jd, GUI_ALL);
         }
 
+        gui_space(id);
+
 #ifdef CONFIG_INCLUDES_ACCOUNT
         if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
         {
-            gui_space(id);
-
             if ((jd = gui_hstack(id)))
             {
                 int calc_new_wallet_coin_id, calc_new_wallet_gem_id;
@@ -264,8 +265,15 @@ static int done_gui_set(void)
 
         /* View the file in st_over.c */
 
-        gui_space(id);
-        gui_score_board(id, GUI_SCORE_COIN | GUI_SCORE_TIME, 1, high);
+#if NB_HAVE_PB_BOTH==1
+        gui_score_board(id, GUI_SCORE_COIN | GUI_SCORE_TIME,
+                            1,
+                            high && !account_wgcl_name_read_only());
+#else
+        gui_score_board(id, GUI_SCORE_COIN | GUI_SCORE_TIME,
+                            1,
+                            high);
+#endif
         gui_space(id);
 
         if ((jd = gui_harray(id)))
@@ -292,6 +300,10 @@ static int done_gui_set(void)
 
 static int done_enter(struct state *st, struct state *prev)
 {
+#if NB_HAVE_PB_BOTH==1
+    account_wgcl_restart_attempt();
+#endif
+
     if (prev == &st_name)
         progress_rename(1);
 

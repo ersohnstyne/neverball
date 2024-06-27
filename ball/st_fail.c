@@ -22,6 +22,7 @@
 
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
+#include "account_wgcl.h"
 #include "campaign.h" /* New: Campaign */
 #endif
 
@@ -198,7 +199,7 @@ static int fail_action(int tok, int val)
 #if defined(__EMSCRIPTEN__)
             EM_ASM({ window.open("https://forms.office.com/r/upfWqaVVtA"); }, 0);
 #elif _WIN32
-            system("start msedge https://forms.office.com/r/upfWqaVVtA");
+            system("explorer https://forms.office.com/r/upfWqaVVtA");
 #elif defined(__APPLE__)
             system("open https://forms.office.com/r/upfWqaVVtA");
 #elif defined(__linux__)
@@ -210,7 +211,7 @@ static int fail_action(int tok, int val)
 #if defined(__EMSCRIPTEN__)
             EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/"); }, 0);
 #elif _WIN32
-            system("start msedge https://discord.gg/qnJR263Hm2/");
+            system("explorer https://discord.gg/qnJR263Hm2/");
 #elif defined(__APPLE__)
             system("open https://discord.gg/qnJR263Hm2/");
 #elif defined(__linux__)
@@ -693,6 +694,10 @@ static int fail_gui(void)
 
 static int fail_enter(struct state *st, struct state *prev)
 {
+#if NB_HAVE_PB_BOTH==1
+    account_wgcl_restart_attempt();
+#endif
+
     if (curr_mode() != MODE_CHALLENGE &&
         curr_mode() != MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -725,7 +730,7 @@ static void fail_paint(int id, float t)
     game_client_draw(0, t);
     
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
         console_gui_death_paint();
     if (hud_visibility())
@@ -976,10 +981,9 @@ static int ask_more_action(int tok, int val)
                 ask_more_target == ASK_MORE_TIME)
             {
                 audio_play("snd/buyproduct.ogg", 1.0f);
-                int coinwallet = account_get_d(ACCOUNT_DATA_WALLET_COINS) - 120;
-                account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
+                account_wgcl_do_add(-120, 0, 0, 0, 0, 0);
                 account_set_d(ACCOUNT_PRODUCT_MEDIATION, 1);
-                account_save();
+                account_wgcl_save();
 
                 progress_exit();
                 mediation_init();
@@ -994,14 +998,9 @@ static int ask_more_action(int tok, int val)
                     ask_more_target == ASK_MORE_TIME)
             {
                 audio_play("snd/buyproduct.ogg", 1.0f);
-                int gemwallet = account_get_d(ACCOUNT_DATA_WALLET_GEMS) - 50;
-                account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
-
-                int coinwallet = account_get_d(ACCOUNT_DATA_WALLET_COINS) + 130;
-                account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
-
+                account_wgcl_do_add(130, -50, 0, 0, 0, 0);
                 account_set_d(ACCOUNT_PRODUCT_MEDIATION, 1);
-                account_save();
+                account_wgcl_save();
 
                 progress_exit();
                 mediation_init();
@@ -1019,9 +1018,8 @@ static int ask_more_action(int tok, int val)
             {
                 audio_play("snd/buyproduct.ogg", 1.0f);
 
-                int coinwallet = account_get_d(ACCOUNT_DATA_WALLET_GEMS) - 15;
-                account_set_d(ACCOUNT_DATA_WALLET_GEMS, coinwallet);
-                account_save();
+                account_wgcl_do_add(0, -15, 0, 0, 0, 0);
+                account_wgcl_save();
 
                 progress_buy_balls(1);
 
@@ -1358,6 +1356,8 @@ static int raise_gems_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
+    int gems_final_resale = 0;
+
     switch (tok)
     {
         case GUI_BACK:
@@ -1382,12 +1382,17 @@ static int raise_gems_action(int tok, int val)
             break;
 
         case RAISEGEMS_BANKRUPTCY:
-            account_set_d(ACCOUNT_DATA_WALLET_COINS, 0);
-            account_set_d(ACCOUNT_DATA_WALLET_GEMS, -1);
-            account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, 0);
-            account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, 0);
-            account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, 0);
-            account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, -1);
+            gems_final_resale = progress_raise_gems(0, raisegems_dst_amount,
+                                                       &num_amounts_dst[0],
+                                                       &num_amounts_dst[1],
+                                                       &num_amounts_dst[2],
+                                                       &num_amounts_dst[3]);
+            account_wgcl_do_set(num_amounts_dst[0],
+                                gems_final_resale - raisegems_dst_amount,
+                                account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES),
+                                num_amounts_dst[1],
+                                num_amounts_dst[2],
+                                num_amounts_dst[3]);
             return goto_exit();
             break;
     }
@@ -1409,8 +1414,8 @@ static int raise_gems_working_gui(void)
                                              GUI_MED);
             gui_label(jd, _("Coins"), GUI_SML, GUI_COLOR_WHT);
         }
-        gui_set_rect(jd, GUI_ALL);
 
+        gui_set_rect(jd, GUI_ALL);
         gui_space(id);
 
         /* Build the powerup panel. */
@@ -1458,10 +1463,10 @@ static int raise_gems_prepare_gui(void)
     num_amounts_curr[3] = account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER);
 
     int raisegems_eta = progress_raise_gems(0, raisegems_dst_amount,
-                                            &num_amounts_dst[0],
-                                            &num_amounts_dst[1],
-                                            &num_amounts_dst[2],
-                                            &num_amounts_dst[3]);
+                                               &num_amounts_dst[0],
+                                               &num_amounts_dst[1],
+                                               &num_amounts_dst[2],
+                                               &num_amounts_dst[3]);
 
     int allow_raise =
         raisegems_eta + account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= raisegems_dst_amount;
@@ -1526,8 +1531,8 @@ static int raise_gems_prepare_gui(void)
 
             SAFECPY(infoattr_full, infoattr0);
 
-            if (curr_mode() == MODE_CHALLENGE
-             || curr_mode() == MODE_BOOST_RUSH)
+            if (curr_mode() == MODE_CHALLENGE ||
+                curr_mode() == MODE_BOOST_RUSH)
             {
                 SAFECAT(infoattr_full, "\n");
                 SAFECAT(infoattr_full, bankrupt_str2);
@@ -1553,27 +1558,27 @@ static int raise_gems_prepare_gui(void)
             gui_filler(jd);
 
             if (!pay_debt_ready)
-            {
                 if ((kd = gui_vstack(jd)))
                 {
                     for (i = 0; i < 4; i++)
                     {
-                        if (num_amounts_curr[i] - num_amounts_dst[i] < 0
-                         || num_amounts_dst[i] < 0)
+                        if (num_amounts_curr[i] - num_amounts_dst[i] < 0 ||
+                            num_amounts_dst[i] < 0)
                         {
                             estimated_prices[i] = 0;
                             continue;
                         }
 
-                        estimated_prices[i] = ROUND(num_amounts_dst[i] * 38);
-                        if (i == 0)
-                            estimated_prices[i] = ROUND(num_amounts_dst[i] / 10);
+                        estimated_prices[i] = i == 0 ?
+                                              ROUND(num_amounts_dst[i] / 10) :
+                                              ROUND(num_amounts_dst[i] * 38);
 
                         if (num_amounts_dst[i] > 0)
                         {
                             char paramattr[MAXSTR];
-
-                            const char *converse_text = i == 0 ? N_("Gems") : N_("Coins");
+                            const char *converse_text = i == 0 ?
+                                                        N_("Gems") :
+                                                        N_("Coins");
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                             sprintf_s(paramattr, MAXSTR,
@@ -1619,11 +1624,11 @@ static int raise_gems_prepare_gui(void)
 #else
                     sprintf(elemattr,
 #endif
-                            _("Estimate received: %d Gems"),
+                            _("ETA: %d Gems"),
                             raisegems_eta);
-                    gui_label(kd, elemattr, GUI_SML, gui_wht, gui_cya);
+                    gui_label(kd, elemattr,
+                                  GUI_SML, gui_wht, gui_cya);
                 }
-            }
 
             if (((float) video.device_w / (float) video.device_h) > 1.0f)
             {
@@ -1697,8 +1702,8 @@ static void raise_gems_timer(int id, float dt)
 
     t += dt;
 
-    if (time_state() > (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.0f)
-     && t > 0.025f && raisegems_working && !st_global_animating())
+    if (time_state() > (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.0f) &&
+        t > 0.025f && raisegems_working && !st_global_animating())
     {
         for (int i = 0; i < 4; i++)
         {
@@ -1731,8 +1736,8 @@ static void raise_gems_timer(int id, float dt)
 
     gui_timer(id, dt);
 
-    if (time_state() > time_state_tofinish
-        && raisegems_working && !st_global_animating())
+    if (time_state() > time_state_tofinish &&
+        raisegems_working && !st_global_animating())
     {
         raisegems_working = 0;
         goto_state(curr_state());
@@ -1778,16 +1783,14 @@ int ask_more_purchased(struct state *ok_state)
     {
         int gemswallet = account_get_d(ACCOUNT_DATA_WALLET_GEMS);
 
-        while (gemswallet >= 15)
+        if (gemswallet >= 15)
         {
-            gemswallet -= 15;
             balls_bought++;
+            account_wgcl_do_add(0, -15, 1, 0, 0, 0);
             progress_buy_balls(1);
-            account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, 0);
         }
 
-        account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemswallet);
-        account_save();
+        account_wgcl_save();
 #ifdef MAPC_INCLUDES_CHKP
         if (last_active && status == GAME_FALL)
             return goto_state(&st_fail);
@@ -1800,9 +1803,8 @@ int ask_more_purchased(struct state *ok_state)
     }
     else if (ask_more_target == ASK_MORE_TIME)
     {
-        int coinwallet = account_get_d(ACCOUNT_DATA_WALLET_COINS) - 120;
-        account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
-        account_save();
+        account_wgcl_do_add(-120, 0, 0, 0, 0, 0);
+        account_wgcl_save();
 
         return goto_state(&st_zen_warning);
     }
@@ -1810,6 +1812,7 @@ int ask_more_purchased(struct state *ok_state)
     return goto_state(st_returnable);
 #else
     /* IMPOSSIBRU! */
+
     return goto_state(&st_fail);
 #endif
 }
@@ -1826,10 +1829,7 @@ struct state st_fail = {
     shared_angle,
     shared_click,
     fail_keybd,
-    fail_buttn,
-    NULL,
-    NULL,
-    NULL
+    fail_buttn
 };
 
 #if NB_HAVE_PB_BOTH==1
@@ -1844,10 +1844,7 @@ struct state st_zen_warning = {
     shared_angle,
     shared_click,
     zen_warning_keybd,
-    zen_warning_buttn,
-    NULL,
-    NULL,
-    NULL
+    zen_warning_buttn
 };
 
 struct state st_ask_more = {
@@ -1860,10 +1857,7 @@ struct state st_ask_more = {
     shared_angle,
     shared_click,
     ask_more_keybd,
-    ask_more_buttn,
-    NULL,
-    NULL,
-    NULL
+    ask_more_buttn
 };
 
 struct state st_raise_gems = {
@@ -1876,10 +1870,7 @@ struct state st_raise_gems = {
     shared_angle,
     shared_click,
     raise_gems_keybd,
-    raise_gems_buttn,
-    NULL,
-    NULL,
-    NULL
+    raise_gems_buttn
 };
 
 #endif

@@ -417,7 +417,7 @@ static void pause_paint(int id, float t)
 {
     shared_paint(id, t);
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
         console_gui_paused_paint();
     else if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
@@ -608,10 +608,7 @@ struct state st_pause = {
     shared_angle,
     shared_click,
     pause_keybd,
-    pause_buttn,
-    NULL,
-    NULL,
-    NULL
+    pause_buttn
 };
 
 struct state st_pause_quit = {
@@ -624,8 +621,5 @@ struct state st_pause_quit = {
     shared_angle,
     shared_click,
     pause_keybd,
-    pause_buttn,
-    NULL,
-    NULL,
-    NULL
+    pause_buttn
 };

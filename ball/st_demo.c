@@ -33,19 +33,17 @@
 #include "util.h"
 #include "common.h"
 #include "demo_dir.h"
-#include "video.h"
-#include "key.h"
 //#include "video.h"
 //#include "geom.h"
 //#include "vec3.h"
 #include "text.h"
 
-#include "st_play_sync.h"
-
 //#include "game_common.h"
 //#include "game_client.h"
 //#include "game_server.h"
 //#include "game_proxy.h"
+
+#include "st_play_sync.h"
 
 #include "st_demo.h"
 #include "st_title.h"
@@ -366,7 +364,7 @@ static int gui_demo_thumbs(int id)
                             gui_space(ld);
 
                             thumb->shot_id = gui_image(ld, " ", ww, hh);
-                            thumb->name_id = gui_label(ld, " ", GUI_SML,
+                            thumb->name_id = gui_label(ld, " ", GUI_TNY,
                                                        GUI_COLOR_WHT);
 
                             gui_set_trunc(thumb->name_id, TRUNC_TAIL);
@@ -1205,7 +1203,7 @@ static void demo_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #if ENABLE_MOON_TASKLOADER!=0
     if (!demo_is_scanning_with_moon_taskloader)
 #endif
@@ -1220,7 +1218,7 @@ static void demo_stick(int id, int a, float v, int bump)
         return;
 #endif
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_toggle(1);
 #endif
     int jd = shared_stick_basic(id, a, v, bump);
@@ -1581,7 +1579,7 @@ static int demo_play_keybd(int c, int d)
         if (c == KEY_EXIT && !speed_manual)
             return demo_pause_goto(1);
 
-        if (c == KEY_POSE && !speed_manual)
+        if ((c == KEY_POSE || c == KEY_TOGGLESHOWHUD) && !speed_manual)
             toggle_hud_visibility(!hud_visibility());
 
         if (c == SDLK_8 && !faster) DEMO_SET_SPEED(SPEED_SLOWESTESTEST);
@@ -1735,7 +1733,7 @@ static void demo_end_paint(int id, float t)
 
     gui_paint(id);
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
     {
         if (demo_paused)
@@ -2173,9 +2171,7 @@ struct state st_demo_end = {
     shared_angle,
     shared_click,
     demo_end_keybd,
-    demo_end_buttn,
-    NULL,
-    NULL
+    demo_end_buttn
 };
 
 struct state st_demo_del = {
@@ -2204,9 +2200,7 @@ struct state st_demo_compat = {
     shared_angle,
     shared_click_basic,
     demo_compat_keybd,
-    demo_compat_buttn,
-    NULL,
-    NULL
+    demo_compat_buttn
 };
 
 struct state st_demo_look = {

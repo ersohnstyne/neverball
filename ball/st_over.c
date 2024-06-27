@@ -16,6 +16,7 @@
 #include "networking.h"
 #include "campaign.h"
 #include "account.h"
+#include "account_wgcl.h"
 #endif
 
 #include "gui.h"
@@ -234,50 +235,23 @@ static int over_gui(void)
 
         gid = gui_title_header(id, _(s0), GUI_MED, gui_blk, gui_red);
 
-#ifdef CONFIG_INCLUDES_ACCOUNT
         gui_space(id);
-        
-        if ((jd = gui_hstack(id)))
-        {
-            int calc_new_wallet_id;
-
-            gui_filler(jd);
-
-            if ((kd = gui_harray(jd)))
-            {
-                calc_new_wallet_id = gui_count(kd, 1000, GUI_MED);
-                gui_label(kd, _("Coins"),
-                              GUI_SML, GUI_COLOR_WHT);
-
-                gui_set_count(calc_new_wallet_id, curr_score());
-            }
-
-            gui_filler(jd);
-
-            gui_set_rect(jd, GUI_ALL);
-        }
+#if NB_HAVE_PB_BOTH==1
+        gui_score_board(id, GUI_SCORE_COIN | GUI_SCORE_TIME,
+                            1,
+                            high && !account_wgcl_name_read_only());
+#else
+        gui_score_board(id, GUI_SCORE_COIN | GUI_SCORE_TIME,
+                            1,
+                            high);
 #endif
-
-        gui_space(id);
-        gui_score_board(id, GUI_SCORE_COIN | GUI_SCORE_TIME, 1, high);
         gui_space(id);
 
         if ((jd = gui_harray(id)))
             gui_start(jd, _("Select Level"), GUI_SML, GUI_BACK, 0);
 
-        if (!resume
-#if NB_HAVE_PB_BOTH==1
-            && server_policy_get_d(SERVER_POLICY_EDITION) > -1
-#endif
-            )
-        {
+        if (!resume)
             gui_pulse(gid, 1.2f);
-#ifdef CONFIG_INCLUDES_ACCOUNT
-            int curr_wallet = account_get_d(ACCOUNT_DATA_WALLET_COINS) + ((curr_balls() * 100) + curr_score());
-            account_set_d(ACCOUNT_DATA_WALLET_COINS, curr_wallet);
-            account_save();
-#endif
-        }
 
         gui_layout(id, 0, 0);
     }
@@ -291,6 +265,10 @@ static int over_gui(void)
 
 static int over_enter(struct state *st, struct state *prev)
 {
+#if NB_HAVE_PB_BOTH==1
+    account_wgcl_restart_attempt();
+#endif
+
 #ifdef LEADERBOARD_ALLOWANCE
     if (prev == &st_name)
         progress_rename(1);

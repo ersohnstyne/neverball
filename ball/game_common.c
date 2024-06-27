@@ -222,6 +222,7 @@ float pos_static_cam_view[3];
 void game_view_set_static_cam_view(int activated, float pos[3])
 {
     use_static_cam_view = activated;
+
     if (activated)
         v_cpy(pos_static_cam_view, pos);
 }

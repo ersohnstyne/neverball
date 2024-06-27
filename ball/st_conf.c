@@ -18,6 +18,7 @@
 
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
+#include "account_wgcl.h"
 #include "st_intro_covid.h"
 #include "st_beam_style.h"
 #include "networking.h"
@@ -67,6 +68,10 @@
 #include "st_package.h"
 #endif
 
+#if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1
+#include "st_wgcl.h"
+#endif
+
 #if NB_HAVE_PB_BOTH!=1 && \
     (defined(ENABLE_GAME_TRANSFER) || defined(GAME_TRANSFER_TARGET))
 #error Security compilation error: Preprocessor definitions can be used it, \
@@ -82,6 +87,7 @@ extern const char ICON[];
 
 struct state st_conf_covid_extend;
 struct state st_conf_social;
+struct state st_conf_gameplay;
 struct state st_conf_notification;
 struct state st_conf_control;
 struct state st_conf_keybd;
@@ -271,6 +277,153 @@ static int conf_covid_extend_enter(struct state *st, struct state *prev)
     return conf_covid_extend_gui();
 }
 
+
+/*---------------------------------------------------------------------------*/
+
+static int conf_join_confirm = 0;
+
+static struct state *st_conf_social_back;
+
+static int conf_goto_social(struct state *back)
+{
+    st_conf_social_back = back;
+
+    return goto_state(&st_conf_social);
+}
+
+enum
+{
+    CONF_SOCIAL_DISCORD = GUI_LAST,
+};
+
+static int conf_social_action(int tok, int val)
+{
+    GENERIC_GAMEMENU_ACTION;
+
+    char linkstr_cmd[MAXSTR], linkstr_code[64];
+
+    switch (tok)
+    {
+        case GUI_BACK:
+            conf_join_confirm = 0;
+            st_conf_social_back = NULL;
+
+            return goto_state(&st_conf);
+            break;
+        case CONF_SOCIAL_DISCORD:
+#if NB_HAVE_PB_BOTH==1
+            if (conf_join_confirm)
+#endif
+            {
+#ifdef __EMSCRIPTEN__
+#if NB_HAVE_PB_BOTH==1
+                EM_ASM({ window.open("https://discord.gg/qnJR263Hm2");  }, 0);
+#else
+                EM_ASM({ window.open("https://discord.gg/HhMfr4N6H6"); }, 0);
+#endif
+#else
+#if NB_HAVE_PB_BOTH==1
+                SAFECPY(linkstr_code, "qnJR263Hm2");
+#else
+                SAFECPY(linkstr_code, "HhMfr4N6H6");
+#endif
+
+#if _WIN32
+                SAFECPY(linkstr_cmd, "explorer https://discord.gg/");
+#elif defined(__APPLE__)
+                SAFECPY(linkstr_cmd, "open https://discord.gg/");
+#elif defined(__linux__)
+                SAFECPY(linkstr_cmd, "x-www-browser https://discord.gg/");
+#endif
+
+                SAFECAT(linkstr_cmd, linkstr_code);
+
+                system(linkstr_cmd);
+#endif
+
+                /* bye! */
+
+                return !mainmenu_conf ? goto_state(&st_conf) : 0;
+            }
+#if NB_HAVE_PB_BOTH==1
+            else
+            {
+                conf_join_confirm = 1;
+                goto_state(curr_state());
+            }
+#endif
+            break;
+    }
+    return 1;
+}
+
+static int conf_social_gui(void)
+{
+    int id, jd;
+
+    if ((id = gui_vstack(0)))
+    {
+        gui_title_header(id, _("Join Discord?"), GUI_MED, GUI_COLOR_DEFAULT);
+
+        gui_space(id);
+
+        if ((jd = gui_vstack(id)))
+        {
+            if (!conf_join_confirm)
+            {
+                gui_label(jd, _("Inviting Discord server will allow to:"),
+                              GUI_SML, gui_wht, gui_cya);
+
+#if NB_HAVE_PB_BOTH==1
+                gui_multi(jd, _("- Access the game edition to you\n"
+                                "- Keep collected coins into your account\n"
+                                "- Use powerups in Challenge mode\n"
+                                "- Adds your checkpoints from map compiler\n"
+                                "- Share any levels from MAPC for PB\n"),
+                              GUI_SML, GUI_COLOR_WHT);
+#else
+                gui_multi(jd, _("- Access all Discord public channels\n"
+                                "- Share any levels from MAPC for NB\n"),
+                              GUI_SML, GUI_COLOR_WHT);
+#endif
+            }
+            else
+                gui_multi(jd, _("Please make sure that you've verified the\n"
+                                "new members after joined, before send community messages,\n"
+                                "connect voice chats and watch streaming."),
+                              GUI_SML, GUI_COLOR_WHT);
+
+#if NB_HAVE_PB_BOTH==1
+            if (mainmenu_conf && conf_join_confirm)
+#endif
+                gui_label(jd, _("This may take a while, and the game will then exit."),
+                              GUI_SML, gui_twi, gui_vio);
+
+            gui_set_rect(jd, GUI_ALL);
+        }
+
+        gui_space(id);
+
+        if ((jd = gui_harray(id)))
+        {
+            gui_state(jd, _("Join"), GUI_SML, CONF_SOCIAL_DISCORD, 0);
+            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+        }
+    }
+    gui_layout(id, 0, 0);
+
+    return id;
+}
+
+static int conf_social_enter(struct state *st, struct state *prev)
+{
+    if (mainmenu_conf)
+        game_client_free(NULL);
+
+    conf_common_init(conf_social_action, mainmenu_conf);
+    return conf_social_gui();
+}
+
 /*---------------------------------------------------------------------------*/
 
 #define CONF_ACCOUNT_DEMO_LOCKED_DESC_INGAME \
@@ -316,10 +469,8 @@ enum
     CONF_ACCOUNT_COVID_EXTEND,
     CONF_ACCOUNT_AUTOUPDATE,
     CONF_ACCOUNT_MAYHEM,
-    CONF_ACCOUNT_PACKAGES,
-    CONF_ACCOUNT_TUTORIAL,
-    CONF_ACCOUNT_HINT,
     CONF_ACCOUNT_PLAYER,
+    CONF_ACCOUNT_PACKAGES,
 #if NB_HAVE_PB_BOTH==1
     CONF_ACCOUNT_BALL,
     CONF_ACCOUNT_BEAM,
@@ -338,17 +489,16 @@ static int conf_account_action(int tok, int val)
             goto_state(&st_conf);
             break;
 
-#ifdef ENABLE_SQL
-        case CONF_ACCOUNT_SIGNIN:
-            goto_signin(&st_conf_account, &st_conf_account, 1);
-            break;
-#endif
-
         case CONF_ACCOUNT_COVID_EXTEND:
             goto_conf_covid_extend(&st_conf_account);
             break;
 
+        case CONF_ACCOUNT_SIGNIN:
+            return goto_wgcl_login(&st_conf_account);
+            break;
+
         case CONF_ACCOUNT_SIGNOUT:
+            return goto_wgcl_logout(&st_conf_account);
             break;
 
 #if ENABLE_FETCH==1
@@ -360,25 +510,13 @@ static int conf_account_action(int tok, int val)
             break;
 #endif
 
-        case CONF_ACCOUNT_TUTORIAL:
-            config_set_d(CONFIG_ACCOUNT_TUTORIAL, val);
-            goto_state_full(&st_conf_account, 0, 0, 1);
-            config_save();
-            break;
-
-        case CONF_ACCOUNT_HINT:
-            config_set_d(CONFIG_ACCOUNT_HINT, val);
-            goto_state_full(&st_conf_account, 0, 0, 1);
-            config_save();
-            break;
-
         case CONF_ACCOUNT_PLAYER:
 #ifdef CONFIG_INCLUDES_ACCOUNT
             goto_shop_rename(&st_conf_account, &st_conf_account, 1);
 #else
             goto_name(&st_conf_account, &st_conf_account, 0, 0, 1);
 #endif
-        break;
+            break;
 
 #if NB_HAVE_PB_BOTH==1
         case CONF_ACCOUNT_BALL:
@@ -535,14 +673,6 @@ static int conf_account_gui(void)
         const char *ball   = config_get_s(CONFIG_BALL_FILE);
 #endif
 
-#ifdef ENABLE_SQL
-        if (online_mode)
-        {
-            config_set_s(CONFIG_PLAYER, config_get_s(CONFIG_ACCOUNT_ONLINE_USERNAME));
-            player = config_get_s(CONFIG_PLAYER);
-        }
-#endif
-
         int save = config_get_d(CONFIG_ACCOUNT_SAVE);
         int load = config_get_d(CONFIG_ACCOUNT_LOAD);
 
@@ -617,41 +747,28 @@ static int conf_account_gui(void)
 #endif
         }
 
-#ifdef ENABLE_SQL
-        int signin_id = gui_state(id, _("Sign in as Neverball"),
-                                      GUI_SML, CONF_ACCOUNT_SIGNIN, 0);
-
-        if (online_mode)
+        if (mainmenu_conf)
         {
-            gui_set_state(signin_id, CONF_ACCOUNT_SIGNOUT, 0);
-            gui_set_label(signin_id, _("Sign out from Neverball"));
-        }
-        gui_space(id);
+#if _WIN32 && _MSC_VER
+            if (account_wgcl_name_read_only())
+                gui_state(id, _("Sign out from Pennyball + Neverball WGCL"),
+                              GUI_SML, CONF_ACCOUNT_SIGNOUT, 0);
+            else
+                gui_state(id, _("Sign in to Pennyball + Neverball WGCL"),
+                              GUI_SML, CONF_ACCOUNT_SIGNIN, 0);
 #endif
+
+            gui_space(id);
+
+            name_id = conf_state(id, _("Player Name"), "XXXXXXXXXXXXXX",
+                                     CONF_ACCOUNT_PLAYER);
 
 #if NB_HAVE_PB_BOTH==1
 #if ENABLE_FETCH==1
-        if (CHECK_ACCOUNT_ENABLED && mainmenu_conf)
-            conf_state(id, _("Addons"), _("Manage"), CONF_ACCOUNT_PACKAGES);
+            if (CHECK_ACCOUNT_ENABLED)
+                conf_state(id, _("Addons"), _("Manage"), CONF_ACCOUNT_PACKAGES);
 #endif
-
-        conf_toggle_simple(id, _("Show Tutorial"), CONF_ACCOUNT_TUTORIAL,
-                               config_get_d(CONFIG_ACCOUNT_TUTORIAL), 1, 0);
-        conf_toggle_simple(id, _("Show Hint"), CONF_ACCOUNT_HINT,
-                               config_get_d(CONFIG_ACCOUNT_HINT), 1, 0);
-#else
-        conf_toggle(id, _("Show Tutorial"), CONF_ACCOUNT_TUTORIAL,
-                        config_get_d(CONFIG_ACCOUNT_TUTORIAL), _("On"), 1, _("Off"), 0);
-        conf_toggle(id, _("Show Hint"), CONF_ACCOUNT_HINT,
-                        config_get_d(CONFIG_ACCOUNT_HINT), _("On"), 1, _("Off"), 0);
-#endif
-
-        gui_space(id);
-        if (mainmenu_conf)
-        {
-            name_id = conf_state(id, _("Player Name"), "XXXXXXXXXXXXXX",
-                                     CONF_ACCOUNT_PLAYER);
-#if NB_HAVE_PB_BOTH==1
+            gui_space(id);
             ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX",
                                      CONF_ACCOUNT_BALL);
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -661,18 +778,21 @@ static int conf_account_gui(void)
 #endif
 
             gui_set_trunc(name_id, TRUNC_TAIL);
+#if NB_HAVE_PB_BOTH==1
             gui_set_trunc(ball_id, TRUNC_TAIL);
 #ifdef CONFIG_INCLUDES_ACCOUNT
             gui_set_trunc(beam_id, TRUNC_TAIL);
 #endif
+#endif
 
 #if NB_HAVE_PB_BOTH==1
 #if NB_EOS_SDK==0 || NB_STEAM_API==0
-            if (online_mode || !account_changeable)
+            if (account_wgcl_name_read_only() ||
+                online_mode || !account_changeable)
 #endif
             {
                 /*
-                 * If the account is signed in e.g. Steam,
+                 * If the account is signed in e.g. PB+NB WGCL or Steam,
                  * you cannot change the player name.
                  */
 
@@ -680,8 +800,6 @@ static int conf_account_gui(void)
                 gui_set_color(name_id, GUI_COLOR_GRY);
             }
 #endif
-
-            gui_space(id);
 
             gui_set_label(name_id, player);
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
@@ -711,6 +829,8 @@ static int conf_account_gui(void)
 #endif
 
             gui_set_label(beam_id, beam_version_name);
+
+            gui_space(id);
         }
 
         /* Those filters will use some replays */
@@ -830,148 +950,73 @@ static void conf_account_timer(int id, float dt)
 
 /*---------------------------------------------------------------------------*/
 
-static int conf_join_confirm = 0;
-
-static struct state *st_conf_social_back;
-
-static int conf_goto_social(struct state *back)
-{
-    st_conf_social_back = back;
-
-    return goto_state(&st_conf_social);
-}
-
 enum
 {
-    CONF_SOCIAL_DISCORD = GUI_LAST,
+    CONF_GAMEPLAY_TUTORIAL = GUI_LAST,
+    CONF_GAMEPLAY_HINT
 };
 
-static int conf_social_action(int tok, int val)
+static int conf_gameplay_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
-
-    char linkstr_cmd[MAXSTR], linkstr_code[64];
 
     switch (tok)
     {
         case GUI_BACK:
-            conf_join_confirm = 0;
-            st_conf_social_back = NULL;
-
-            return goto_state(&st_conf);
+            goto_state(&st_conf);
             break;
-        case CONF_SOCIAL_DISCORD:
-#if NB_HAVE_PB_BOTH==1
-            if (conf_join_confirm)
-#endif
-            {
-#ifdef __EMSCRIPTEN__
-#if NB_HAVE_PB_BOTH==1
-                EM_ASM({ window.open("https://discord.gg/qnJR263Hm2");  }, 0);
-#else
-                EM_ASM({ window.open("https://discord.gg/HhMfr4N6H6"); }, 0);
-#endif
-#else
-#if NB_HAVE_PB_BOTH==1
-                SAFECPY(linkstr_code, "qnJR263Hm2");
-#else
-                SAFECPY(linkstr_code, "HhMfr4N6H6");
-#endif
 
-#if _WIN32
-                SAFECPY(linkstr_cmd, "start msedge https://discord.gg/");
-#elif defined(__APPLE__)
-                SAFECPY(linkstr_cmd, "open https://discord.gg/");
-#elif defined(__linux__)
-                SAFECPY(linkstr_cmd, "x-www-browser https://discord.gg/");
-#endif
+        case CONF_GAMEPLAY_TUTORIAL:
+            config_set_d(CONFIG_ACCOUNT_TUTORIAL, val);
+            goto_state_full(&st_conf_account, 0, 0, 1);
+            config_save();
+            break;
 
-                SAFECAT(linkstr_cmd, linkstr_code);
-
-                system(linkstr_cmd);
-#endif
-
-                /* bye! */
-
-                return !mainmenu_conf ? goto_state(&st_conf) : 0;
-            }
-#if NB_HAVE_PB_BOTH==1
-            else
-            {
-                conf_join_confirm = 1;
-                goto_state(curr_state());
-            }
-#endif
+        case CONF_GAMEPLAY_HINT:
+            config_set_d(CONFIG_ACCOUNT_HINT, val);
+            goto_state_full(&st_conf_account, 0, 0, 1);
+            config_save();
             break;
     }
+
     return 1;
 }
 
-static int conf_social_gui(void)
+static int conf_gameplay_gui(void)
 {
-    int id, jd;
+    int id;
+    
+    /* Initialize the configuration GUI. */
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Join Discord?"), GUI_MED, GUI_COLOR_DEFAULT);
+        conf_header(id, _("Gameplay"), GUI_BACK);
 
-        gui_space(id);
-
-        if ((jd = gui_vstack(id)))
-        {
-            if (!conf_join_confirm)
-            {
-                gui_label(jd, _("Inviting Discord server will allow to:"),
-                              GUI_SML, gui_wht, gui_cya);
-
-#if NB_HAVE_PB_BOTH==1
-                gui_multi(jd, _("- Access the game edition to you\n"
-                                "- Keep collected coins into your account\n"
-                                "- Use powerups in Challenge mode\n"
-                                "- Adds your checkpoints from map compiler\n"
-                                "- Share any levels from MAPC for PB\n"),
-                              GUI_SML, GUI_COLOR_WHT);
+        #if NB_HAVE_PB_BOTH==1
+        conf_toggle_simple(id, _("Show Tutorial"), CONF_GAMEPLAY_TUTORIAL,
+                               config_get_d(CONFIG_ACCOUNT_TUTORIAL), 1, 0);
+        conf_toggle_simple(id, _("Show Hint"), CONF_GAMEPLAY_HINT,
+                               config_get_d(CONFIG_ACCOUNT_HINT), 1, 0);
 #else
-                gui_multi(jd, _("- Access all Discord public channels\n"
-                                "- Share any levels from MAPC for NB\n"),
-                              GUI_SML, GUI_COLOR_WHT);
+        conf_toggle(id, _("Show Tutorial"), CONF_GAMEPLAY_TUTORIAL,
+                        config_get_d(CONFIG_ACCOUNT_TUTORIAL), _("On"), 1, _("Off"), 0);
+        conf_toggle(id, _("Show Hint"), CONF_GAMEPLAY_HINT,
+                        config_get_d(CONFIG_ACCOUNT_HINT), _("On"), 1, _("Off"), 0);
 #endif
-            }
-            else
-                gui_multi(jd, _("Please make sure that you've verified the\n"
-                                "new members after joined, before send community messages,\n"
-                                "connect voice chats and watch streaming."),
-                              GUI_SML, GUI_COLOR_WHT);
 
-#if NB_HAVE_PB_BOTH==1
-            if (mainmenu_conf && conf_join_confirm)
-#endif
-                gui_label(jd, _("This may take a while, and the game will then exit."),
-                              GUI_SML, gui_twi, gui_vio);
-
-            gui_set_rect(jd, GUI_ALL);
-        }
-
-        gui_space(id);
-
-        if ((jd = gui_harray(id)))
-        {
-            gui_state(jd, _("Join"), GUI_SML, CONF_SOCIAL_DISCORD, 0);
-            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
-        }
+        gui_layout(id, 0, 0);
     }
-    gui_layout(id, 0, 0);
 
     return id;
 }
 
-static int conf_social_enter(struct state *st, struct state *prev)
+static int conf_gameplay_enter(struct state *st, struct state *prev)
 {
     if (mainmenu_conf)
         game_client_free(NULL);
 
-    conf_common_init(conf_social_action, mainmenu_conf);
-    return conf_social_gui();
+    conf_common_init(conf_gameplay_action, mainmenu_conf);
+    return conf_gameplay_gui();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2484,6 +2529,7 @@ enum
     CONF_SYSTEMTRANSFER_SOURCE,
     CONF_SOCIAL,
     CONF_MANAGE_ACCOUNT,
+    CONF_MANAGE_GAMEPLAY,
 #if NB_HAVE_PB_BOTH==1
     CONF_MANAGE_NOTIFICATIONS,
 #else
@@ -2587,6 +2633,10 @@ static int conf_action(int tok, int val)
 #else
             goto_name(&st_conf_account, &st_conf, 0, 0, 1);
 #endif
+            break;
+
+        case CONF_MANAGE_GAMEPLAY:
+            goto_state(&st_conf_gameplay);
             break;
 
 #if NB_HAVE_PB_BOTH==1
@@ -2742,10 +2792,20 @@ static int conf_gui(void)
             {
 #if NB_HAVE_PB_BOTH==1
                 gui_space(id);
+                conf_state(id, _("Gameplay"), _("Configure"), CONF_MANAGE_GAMEPLAY);
+                gui_space(id);
 #endif
                 conf_state(id, _("Controls"), _("Configure"), CONF_CONTROLS);
                 gui_space(id);
                 conf_state(id, _("Graphics"), _("Configure"), CONF_VIDEO);
+            }
+            else
+            {
+#if NB_HAVE_PB_BOTH==1
+                gui_space(id);
+                conf_state(id, _("Gameplay"), _("Configure"), CONF_MANAGE_GAMEPLAY);
+                gui_space(id);
+#endif
             }
 
             if (audio_available())
@@ -2800,11 +2860,12 @@ static int conf_gui(void)
 
 #if NB_HAVE_PB_BOTH!=1
 #if NB_EOS_SDK==0 || NB_STEAM_API==0
-            if (online_mode)
+            if (account_wgcl_name_read_only() ||
+                online_mode)
 #endif
             {
                 /*
-                 * If the account is signed in e.g. Steam,
+                 * If the account is signed in e.g. PB+NB WGCL or Steam,
                  * you cannot change the player name.
                  */
 
@@ -2877,7 +2938,7 @@ static void conf_shared_timer(int id, float dt)
 
 static int null_enter(struct state *st, struct state *prev)
 {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_free();
 #endif
 #if ENABLE_DUALDISPLAY==1
@@ -2925,18 +2986,9 @@ static void null_leave(struct state *st, struct state *next, int id)
 #if ENABLE_DUALDISPLAY==1
     game_dualdisplay_gui_init();
 #endif
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_init();
 #endif
-
-    if (mainmenu_conf)
-    {
-#ifdef ENABLE_SQL
-        if (database_init(config_get_s(CONFIG_ACCOUNT_ONLINE_USERNAME),
-                          config_get_s(CONFIG_ACCOUNT_ONLINE_PASSWORD)))
-            if (database_signin() > 0) online_mode = 1;
-#endif
-    }
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
     const char *ball;
@@ -2981,26 +3033,7 @@ struct state st_conf_covid_extend = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn,
-    NULL,
-    NULL,
-    NULL,
-};
-
-struct state st_conf_account = {
-    conf_account_enter,
-    conf_leave,
-    conf_paint,
-    conf_account_timer,
-    common_point,
-    common_stick,
-    NULL,
-    common_click,
-    common_keybd,
-    common_buttn,
-    NULL,
-    NULL,
-    NULL,
+    common_buttn
 };
 
 struct state st_conf_social = {
@@ -3013,10 +3046,33 @@ struct state st_conf_social = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn,
+    common_buttn
+};
+
+struct state st_conf_account = {
+    conf_account_enter,
+    conf_leave,
+    conf_paint,
+    conf_account_timer,
+    common_point,
+    common_stick,
     NULL,
+    common_click,
+    common_keybd,
+    common_buttn
+};
+
+struct state st_conf_gameplay = {
+    conf_gameplay_enter,
+    conf_leave,
+    conf_paint,
+    common_timer,
+    common_point,
+    common_stick,
     NULL,
-    NULL,
+    common_click,
+    common_keybd,
+    common_buttn
 };
 
 struct state st_conf_notification = {
@@ -3029,10 +3085,7 @@ struct state st_conf_notification = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn,
-    NULL,
-    NULL,
-    NULL,
+    common_buttn
 };
 
 struct state st_conf_control = {
@@ -3045,10 +3098,7 @@ struct state st_conf_control = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn,
-    NULL,
-    NULL,
-    NULL,
+    common_buttn
 };
 
 struct state st_conf_keybd = {
@@ -3060,11 +3110,7 @@ struct state st_conf_keybd = {
     common_stick,
     NULL,
     common_click,
-    conf_keybd_keybd,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    conf_keybd_keybd
 };
 
 struct state st_conf_controllers = {
@@ -3077,10 +3123,7 @@ struct state st_conf_controllers = {
     NULL,
     common_click,
     common_keybd,
-    conf_controllers_buttn,
-    NULL,
-    NULL,
-    NULL,
+    conf_controllers_buttn
 };
 
 struct state st_conf_calibrate = {
@@ -3093,10 +3136,7 @@ struct state st_conf_calibrate = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn,
-    NULL,
-    NULL,
-    NULL,
+    common_buttn
 };
 
 struct state st_conf_audio = {
@@ -3109,10 +3149,7 @@ struct state st_conf_audio = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn,
-    NULL,
-    NULL,
-    NULL,
+    common_buttn
 };
 
 struct state st_conf = {
@@ -3125,24 +3162,10 @@ struct state st_conf = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn,
-    NULL,
-    NULL,
-    NULL,
+    common_buttn
 };
 
 struct state st_null = {
     null_enter,
-    null_leave,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    null_leave
 };

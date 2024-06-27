@@ -762,7 +762,14 @@ static void step(void *data)
         video_set_current();
 #endif
 
-        if (viewport_wireframe == 2 || viewport_wireframe == 3)
+        if (viewport_wireframe == 4)
+        {
+            video_render_fill_or_line(1);
+            st_paint(0.001f * now, 1);
+            video_render_fill_or_line(0);
+            st_paint(0.001f * now, 0);
+        }
+        else if (viewport_wireframe == 2 || viewport_wireframe == 3)
         {
             video_render_fill_or_line(0);
             st_paint(0.001f * now, 1);

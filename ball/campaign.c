@@ -58,7 +58,7 @@
 #endif
 
 #if DEVEL_BUILD
-//#define CAREER_PERMA_UNLOCKED
+#define CAREER_PERMA_UNLOCKED
 //#define HARDCORE_PERMA_UNLOCKED
 #endif
 
@@ -518,9 +518,9 @@ int campaign_score_update(int timer, int coins, int *score_rank, int *times_rank
     if (!campaign_used()) return 0;
 
     const char *player = config_get_s(CONFIG_PLAYER);
-    
-    int career_hs_unlocked = (campaign_career_unlocked()
-                           && config_get_d(CONFIG_LOCK_GOALS));
+
+    int career_hs_unlocked = (campaign_career_unlocked() &&
+                              config_get_d(CONFIG_LOCK_GOALS));
 
     score_coin_insert(&coin_trials, score_rank, player,
                       career_hs_unlocked ? timer : 360000, career_hs_unlocked ? coins : 0);
@@ -580,9 +580,9 @@ int campaign_load(const char *filename)
     if (read_line(&scores, fin))
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sscanf_s(scores,
+        int val_currents = sscanf_s(scores,
 #else
-        sscanf(scores,
+        int val_currents = sscanf(scores,
 #endif
               "%d %d %d %d %d %d",
               &time_trials.timer[RANK_HARD],
@@ -591,6 +591,16 @@ int campaign_load(const char *filename)
               &time_trials.coins[RANK_HARD],
               &time_trials.coins[RANK_MEDM],
               &time_trials.coins[RANK_EASY]);
+
+        if (val_currents != 6)
+        {
+            time_trials.timer[RANK_HARD] = 359999;
+            time_trials.timer[RANK_MEDM] = 359999;
+            time_trials.timer[RANK_EASY] = 359999;
+            time_trials.coins[RANK_HARD] = 0;
+            time_trials.coins[RANK_MEDM] = 0;
+            time_trials.coins[RANK_EASY] = 0;
+        }
 
         free(scores);
         scores = NULL;
@@ -917,10 +927,10 @@ int campaign_load_camera_box_trigger(const char *levelname)
              * 
              * Valid values:
              * 
-             *     pos: -65536 - 65536
-             *     size: -65536 - 65536
+             *     pos: -65536 - 65536 (require 3 float values)
+             *     size: -65536 - 65536 (require 3 float values)
              *     mode: 0 - 2
-             *     campos: -65536 - 65536
+             *     campos: -65536 - 65536 (require 3 float values)
              *     dir: -180 - 180 (0 = North; 90 = East; 180/-180 = South; -90 = West)
              * 
              * Auto-Camera values per line must be programmed

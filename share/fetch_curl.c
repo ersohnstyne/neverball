@@ -715,148 +715,149 @@ void fetch_quit(void)
 
 /*---------------------------------------------------------------------------*/
 
-#define CURL_CONVERT_EXT_TMP_APP(str) \
-    do { \
+#define CURL_CONVERT_EXT_TMP_APP(str)      \
+    do {                                   \
         CURL_CONVERT_EXT_TMP(str, ".dll"); \
         CURL_CONVERT_EXT_TMP(str, ".exe"); \
         CURL_CONVERT_EXT_TMP(str, ".exp"); \
         CURL_CONVERT_EXT_TMP(str, ".lib"); \
         CURL_CONVERT_EXT_TMP(str, ".pdb"); \
-        CURL_CONVERT_EXT_TMP(str, ".so"); \
+        CURL_CONVERT_EXT_TMP(str, ".so");  \
     } while (0)
 
-#define CURL_CONVERT_EXT_TMP_ARCHIVE(str) \
-    do { \
-        CURL_CONVERT_EXT_TMP(str, ".7z"); \
-        CURL_CONVERT_EXT_TMP(str, ".gz"); \
+#define CURL_CONVERT_EXT_TMP_ARCHIVE(str)  \
+    do {                                   \
+        CURL_CONVERT_EXT_TMP(str, ".7z");  \
+        CURL_CONVERT_EXT_TMP(str, ".gz");  \
         CURL_CONVERT_EXT_TMP(str, ".pk3"); \
         CURL_CONVERT_EXT_TMP(str, ".tar"); \
         CURL_CONVERT_EXT_TMP(str, ".zip"); \
     } while (0)
 
-#define CURL_CONVERT_EXT_TMP_ASM(str) \
-    do { \
-        CURL_CONVERT_EXT_TMP(str, ".asm"); \
+#define CURL_CONVERT_EXT_TMP_ASM(str)       \
+    do {                                    \
+        CURL_CONVERT_EXT_TMP(str, ".asm");  \
         CURL_CONVERT_EXT_TMP(str, ".wasm"); \
     } while (0)
 
-#define CURL_CONVERT_EXT_TMP_BACKUP(str) \
-    do { \
+#define CURL_CONVERT_EXT_TMP_BACKUP(str)   \
+    do {                                   \
         CURL_CONVERT_EXT_TMP(str, ".bak"); \
     } while (0)
 
-#define CURL_CONVERT_EXT_TMP_CODE(str) \
-    do { \
-        CURL_CONVERT_EXT_TMP(str, ".c"); \
+#define CURL_CONVERT_EXT_TMP_CODE(str)     \
+    do {                                   \
+        CURL_CONVERT_EXT_TMP(str, ".c");   \
         CURL_CONVERT_EXT_TMP(str, ".cpp"); \
-        CURL_CONVERT_EXT_TMP(str, ".cs"); \
-        CURL_CONVERT_EXT_TMP(str, ".h"); \
+        CURL_CONVERT_EXT_TMP(str, ".cs");  \
+        CURL_CONVERT_EXT_TMP(str, ".h");   \
         CURL_CONVERT_EXT_TMP(str, ".hpp"); \
-        CURL_CONVERT_EXT_TMP(str, ".js"); \
-        CURL_CONVERT_EXT_TMP(str, ".py"); \
-        CURL_CONVERT_EXT_TMP(str, ".rs"); \
+        CURL_CONVERT_EXT_TMP(str, ".js");  \
+        CURL_CONVERT_EXT_TMP(str, ".py");  \
+        CURL_CONVERT_EXT_TMP(str, ".rs");  \
         CURL_CONVERT_EXT_TMP(str, ".sql"); \
-        CURL_CONVERT_EXT_TMP(str, ".ts"); \
+        CURL_CONVERT_EXT_TMP(str, ".ts");  \
     } while (0)
 
-#define CURL_CONVERT_EXT_TMP_DATABIN(str) \
-    do { \
+#define CURL_CONVERT_EXT_TMP_DATABIN(str)  \
+    do {                                   \
         CURL_CONVERT_EXT_TMP(str, ".bin"); \
         CURL_CONVERT_EXT_TMP(str, ".dat"); \
     } while (0)
 
-#define CURL_CONVERT_EXT_TMP_IMAGE(str) \
-    do { \
-        CURL_CONVERT_EXT_TMP(str, ".gif"); \
-        CURL_CONVERT_EXT_TMP(str, ".img"); \
-        CURL_CONVERT_EXT_TMP(str, ".jpg"); \
+#define CURL_CONVERT_EXT_TMP_IMAGE(str)     \
+    do {                                    \
+        CURL_CONVERT_EXT_TMP(str, ".gif");  \
+        CURL_CONVERT_EXT_TMP(str, ".img");  \
+        CURL_CONVERT_EXT_TMP(str, ".jpg");  \
         CURL_CONVERT_EXT_TMP(str, ".jpeg"); \
-        CURL_CONVERT_EXT_TMP(str, ".png"); \
-        CURL_CONVERT_EXT_TMP(str, ".tga"); \
+        CURL_CONVERT_EXT_TMP(str, ".png");  \
+        CURL_CONVERT_EXT_TMP(str, ".tga");  \
         CURL_CONVERT_EXT_TMP(str, ".tiff"); \
     } while (0)
 
-#define CURL_CONVERT_EXT_TMP_MCPACK(str) \
-    do { \
-        CURL_CONVERT_EXT_TMP(str, ".mcpack"); \
+#define CURL_CONVERT_EXT_TMP_MCPACK(str)       \
+    do {                                       \
+        CURL_CONVERT_EXT_TMP(str, ".mcpack");  \
         CURL_CONVERT_EXT_TMP(str, ".mcworld"); \
     } while (0)
 
-#define CURL_CONVERT_EXT_TMP_MEDIA(str) \
-    do { \
+#define CURL_CONVERT_EXT_TMP_MEDIA(str)     \
+    do {                                    \
         CURL_CONVERT_EXT_TMP(str, ".aiff"); \
-        CURL_CONVERT_EXT_TMP(str, ".flv"); \
-        CURL_CONVERT_EXT_TMP(str, ".m4a"); \
-        CURL_CONVERT_EXT_TMP(str, ".mov"); \
-        CURL_CONVERT_EXT_TMP(str, ".mp4"); \
-        CURL_CONVERT_EXT_TMP(str, ".nbr"); \
+        CURL_CONVERT_EXT_TMP(str, ".flv");  \
+        CURL_CONVERT_EXT_TMP(str, ".m4a");  \
+        CURL_CONVERT_EXT_TMP(str, ".mov");  \
+        CURL_CONVERT_EXT_TMP(str, ".mp4");  \
+        CURL_CONVERT_EXT_TMP(str, ".nbr");  \
         CURL_CONVERT_EXT_TMP(str, ".nbrx"); \
-        CURL_CONVERT_EXT_TMP(str, ".ogg"); \
-        CURL_CONVERT_EXT_TMP(str, ".wav"); \
-        CURL_CONVERT_EXT_TMP(str, ".wma"); \
+        CURL_CONVERT_EXT_TMP(str, ".ogg");  \
+        CURL_CONVERT_EXT_TMP(str, ".wav");  \
+        CURL_CONVERT_EXT_TMP(str, ".wma");  \
     } while (0)
 
-#define CURL_CONVERT_EXT_TMP_MS365(str) \
-    do { \
-        CURL_CONVERT_EXT_TMP(str, ".doc"); \
+#define CURL_CONVERT_EXT_TMP_MS365(str)     \
+    do {                                    \
+        CURL_CONVERT_EXT_TMP(str, ".doc");  \
         CURL_CONVERT_EXT_TMP(str, ".docx"); \
         CURL_CONVERT_EXT_TMP(str, ".dotx"); \
-        CURL_CONVERT_EXT_TMP(str, ".odt"); \
-        CURL_CONVERT_EXT_TMP(str, ".odp"); \
-        CURL_CONVERT_EXT_TMP(str, ".ods"); \
-        CURL_CONVERT_EXT_TMP(str, ".pot"); \
+        CURL_CONVERT_EXT_TMP(str, ".odt");  \
+        CURL_CONVERT_EXT_TMP(str, ".odp");  \
+        CURL_CONVERT_EXT_TMP(str, ".ods");  \
+        CURL_CONVERT_EXT_TMP(str, ".pot");  \
         CURL_CONVERT_EXT_TMP(str, ".potx"); \
-        CURL_CONVERT_EXT_TMP(str, ".ppt"); \
+        CURL_CONVERT_EXT_TMP(str, ".ppt");  \
         CURL_CONVERT_EXT_TMP(str, ".pptx"); \
-        CURL_CONVERT_EXT_TMP(str, ".rtf"); \
-        CURL_CONVERT_EXT_TMP(str, ".xls"); \
+        CURL_CONVERT_EXT_TMP(str, ".rtf");  \
+        CURL_CONVERT_EXT_TMP(str, ".xls");  \
         CURL_CONVERT_EXT_TMP(str, ".xlsx"); \
         CURL_CONVERT_EXT_TMP(str, ".xltx"); \
     } while (0)
 
-#define CURL_CONVERT_EXT_TMP_MSVC(str) \
-    do { \
-        CURL_CONVERT_EXT_TMP(str, ".sln"); \
-        CURL_CONVERT_EXT_TMP(str, ".vcproj"); \
+#define CURL_CONVERT_EXT_TMP_MSVC(str)         \
+    do {                                       \
+        CURL_CONVERT_EXT_TMP(str, ".sln");     \
+        CURL_CONVERT_EXT_TMP(str, ".vcproj");  \
         CURL_CONVERT_EXT_TMP(str, ".vcsproj"); \
         CURL_CONVERT_EXT_TMP(str, ".vcxproj"); \
-        CURL_CONVERT_EXT_TMP(str, ".user"); \
+        CURL_CONVERT_EXT_TMP(str, ".user");    \
     } while (0)
 
-#define CURL_CONVERT_EXT_TMP_SOLS(str) \
-    do { \
+#define CURL_CONVERT_EXT_TMP_SOLS(str)       \
+    do {                                     \
         CURL_CONVERT_EXT_TMP(str, ".csol");  \
         CURL_CONVERT_EXT_TMP(str, ".csolx"); \
         CURL_CONVERT_EXT_TMP(str, ".sol");   \
         CURL_CONVERT_EXT_TMP(str, ".solx");  \
     } while (0)
 
-#define CURL_CONVERT_EXT_TMP_TEXT(str) \
-    do { \
-        CURL_CONVERT_EXT_TMP(str, ".csv"); \
-        CURL_CONVERT_EXT_TMP(str, ".tsv"); \
-        CURL_CONVERT_EXT_TMP(str, ".md");  \
-        CURL_CONVERT_EXT_TMP(str, ".txt"); \
+#define CURL_CONVERT_EXT_TMP_TEXT(str)      \
+    do {                                    \
+        CURL_CONVERT_EXT_TMP(str, ".csv");  \
+        CURL_CONVERT_EXT_TMP(str, ".json"); \
+        CURL_CONVERT_EXT_TMP(str, ".md");   \
+        CURL_CONVERT_EXT_TMP(str, ".tsv");  \
+        CURL_CONVERT_EXT_TMP(str, ".txt");  \
     } while (0)
 
 /*---------------------------------------------------------------------------*/
 
 /* Convert filename extensions into temporary, but much lags. */
-#define CURL_CONVERT_EXT_TMP_ENTIRE(str) \
-    do { \
-        CURL_CONVERT_EXT_TMP_APP(str); \
+#define CURL_CONVERT_EXT_TMP_ENTIRE(str)   \
+    do {                                   \
+        CURL_CONVERT_EXT_TMP_APP(str);     \
         CURL_CONVERT_EXT_TMP_ARCHIVE(str); \
-        CURL_CONVERT_EXT_TMP_ASM(str); \
-        CURL_CONVERT_EXT_TMP_BACKUP(str); \
-        CURL_CONVERT_EXT_TMP_CODE(str); \
+        CURL_CONVERT_EXT_TMP_ASM(str);     \
+        CURL_CONVERT_EXT_TMP_BACKUP(str);  \
+        CURL_CONVERT_EXT_TMP_CODE(str);    \
         CURL_CONVERT_EXT_TMP_DATABIN(str); \
-        CURL_CONVERT_EXT_TMP_IMAGE(str); \
-        CURL_CONVERT_EXT_TMP_MCPACK(str); \
-        CURL_CONVERT_EXT_TMP_MEDIA(str); \
-        CURL_CONVERT_EXT_TMP_MS365(str); \
-        CURL_CONVERT_EXT_TMP_MSVC(str); \
-        CURL_CONVERT_EXT_TMP_SOLS(str); \
-        CURL_CONVERT_EXT_TMP_TEXT(str); \
+        CURL_CONVERT_EXT_TMP_IMAGE(str);   \
+        CURL_CONVERT_EXT_TMP_MCPACK(str);  \
+        CURL_CONVERT_EXT_TMP_MEDIA(str);   \
+        CURL_CONVERT_EXT_TMP_MS365(str);   \
+        CURL_CONVERT_EXT_TMP_MSVC(str);    \
+        CURL_CONVERT_EXT_TMP_SOLS(str);    \
+        CURL_CONVERT_EXT_TMP_TEXT(str);    \
     } while (0)
 
 /*---------------------------------------------------------------------------*/
@@ -883,8 +884,8 @@ unsigned int fetch_url(const char *url,
         {
             log_printf("URL: Starting transfer %u\n", fi->fetch_id);
 
-            log_printf("URL: Downloading from %s\n",  url);
-            log_printf("URL: Saving to %s\n",         filename);
+            log_printf("     Downloading from %s\n",  url);
+            log_printf("     Saving to %s\n",         filename);
 
             fi->callback      = callback;
             fi->handle        = handle;

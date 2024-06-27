@@ -24,6 +24,7 @@
 
 #include "networking.h"
 #include "account.h"
+#include "account_wgcl.h"
 #include "mediation.h"
 #include "currency.h"
 #endif
@@ -278,7 +279,9 @@ static int shop_gui(void)
                     gui_set_label(player_id, player);
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-                    if (!online_mode) gui_set_state(player_id, SHOP_CHANGE_NAME, 0);
+                    if (!online_mode &&
+                        !account_wgcl_name_read_only())
+                        gui_set_state(player_id, SHOP_CHANGE_NAME, 0);
 #endif
                 }
 
@@ -553,6 +556,10 @@ static int shop_gui(void)
 
 static int shop_enter(struct state *st, struct state *prev)
 {
+#if NB_HAVE_PB_BOTH==1
+    account_wgcl_restart_attempt();
+#endif
+
     //audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
     //                                                 BGM_TITLE_CONF_LANGUAGE, 1);
 
@@ -586,7 +593,7 @@ static void shop_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_shop_paint();
 #endif
 }
@@ -647,7 +654,7 @@ static int shop_rename_action(int tok, int val)
     switch (tok)
     {
         case SHOP_RENAME_YES:
-            account_save();
+            account_wgcl_save();
             return goto_name(ok_state, cancel_state, 0, 0, draw_back);
             break;
         case GUI_BACK:
@@ -938,16 +945,16 @@ int goto_shop_iap(struct state *ok, struct state *cancel,
                   int (*new_cancel_fn) (struct state *),
                   int newmin, int display_gems, int allow_multipage)
 {
-    ok_state = ok;
+    ok_state     = ok;
     cancel_state = cancel;
 
-    curr_ok_fn = new_ok_fn;
+    curr_ok_fn     = new_ok_fn;
     curr_cancel_fn = new_cancel_fn;
 
     curr_min = newmin;
 
     multipage = allow_multipage;
-    iappage = display_gems;
+    iappage   = display_gems;
 
     return goto_state_full(&st_shop_iap, 0, 0, 0);
 }
@@ -957,13 +964,12 @@ static void shop_convert_to_coins(int gems, int coins)
     int substr_gems = account_get_d(ACCOUNT_DATA_WALLET_GEMS)  - gems;
     int add_coins   = account_get_d(ACCOUNT_DATA_WALLET_COINS) + coins;
 
-    account_set_d(ACCOUNT_DATA_WALLET_GEMS, substr_gems);
-    account_set_d(ACCOUNT_DATA_WALLET_COINS, add_coins);
+    account_wgcl_do_add(coins, -gems, 0, 0, 0, 0);
 
     coinwallet = substr_gems;
     gemwallet  = add_coins;
 
-    account_save();
+    account_wgcl_save();
 }
 
 static int shop_iap_action(int tok, int val)
@@ -985,9 +991,9 @@ static int shop_iap_action(int tok, int val)
             {
                 if (account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[val])
                 {
-                shop_convert_to_coins(iapcoinfromgems[val], iapcoinvalue[val]);
-                log_printf("Succesfully converted: %d Gems to %d Coins\n", iapcoinfromgems[val], iapcoinvalue[val]);
-                purchased = 1;
+                    shop_convert_to_coins(iapcoinfromgems[val], iapcoinvalue[val]);
+                    log_printf("Succesfully converted: %d Gems to %d Coins\n", iapcoinfromgems[val], iapcoinvalue[val]);
+                    purchased = 1;
                 }
             }
             else
@@ -1274,8 +1280,8 @@ static int shop_iap_gui(void)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && ENABLE_IAP==1
         if (iappage)
         {
-            gui_space(id);
-            int enterkey_btn_id = gui_state(id, _("I have an order code!"), GUI_SML, SHOP_IAP_ENTERCODE, 0);
+            //gui_space(id);
+            //gui_state(id, _("I have an order code!"), GUI_SML, SHOP_IAP_ENTERCODE, 0);
         }
 #endif
 
@@ -1305,6 +1311,10 @@ static int shop_iap_gui(void)
 
 static int shop_iap_enter(struct state *st, struct state *prev)
 {
+#if NB_HAVE_PB_BOTH==1
+    account_wgcl_restart_attempt();
+#endif
+
     purchased = 0;
 #ifdef CONFIG_INCLUDES_ACCOUNT
     coinwallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
@@ -1317,7 +1327,7 @@ static void shop_iap_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_shop_getcoins_paint();
 #endif
 }
@@ -1453,7 +1463,6 @@ static int shop_buy_action(int tok, int val)
 #ifndef NDEBUG
                 assert(gemwallet >= 0);
 #endif
-                account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
             }
             else
             {
@@ -1461,32 +1470,31 @@ static int shop_buy_action(int tok, int val)
 #ifndef NDEBUG
                 assert(coinwallet >= 0 && coinwallet <= ACCOUNT_WALLET_MAX_COINS);
 #endif
-                account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
             }
 
             switch (productkey)
             {
                 case 4:
                     evalue += piece_times;
-                    account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, evalue);
+                    account_wgcl_do_add(-auction_value, 0, 0, piece_times, 0, 0);
                     break;
 
                 case 5:
                     fvalue += piece_times;
-                    account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, fvalue);
+                    account_wgcl_do_add(-auction_value, 0, 0, 0, piece_times, 0);
                     break;
 
                 case 6:
                     svalue += piece_times;
-                    account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, svalue);
+                    account_wgcl_do_add(-auction_value, 0, 0, 0, 0, piece_times);
                     break;
 
                 case 7:
                     lvalue += piece_times;
-                    account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, lvalue);
+                    account_wgcl_do_add(0, -auction_value, piece_times, 0, 0, 0);
                     break;
             }
-            account_save();
+            account_wgcl_save();
 #endif
             return goto_state(&st_shop);
             break;
@@ -1508,7 +1516,6 @@ static int shop_buy_action(int tok, int val)
 #ifndef NDEBUG
                 assert(gemwallet >= 0);
 #endif
-                account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
             }
             else
             {
@@ -1516,32 +1523,31 @@ static int shop_buy_action(int tok, int val)
 #ifndef NDEBUG
                 assert(coinwallet >= 0 && coinwallet <= ACCOUNT_WALLET_MAX_COINS);
 #endif
-                account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
             }
 
             switch (productkey)
             {
                 case 4:
                     evalue += 5;
-                    account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, evalue);
+                    account_wgcl_do_add(-prodcost * 5, 0, 0, 5, 0, 0);
                     break;
 
                 case 5:
                     fvalue += 5;
-                    account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, fvalue);
+                    account_wgcl_do_add(-prodcost * 5, 0, 0, 0, 5, 0);
                     break;
 
                 case 6:
                     svalue += 5;
-                    account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, svalue);
+                    account_wgcl_do_add(-prodcost * 5, 0, 0, 0, 0, 5);
                     break;
 
                 case 7:
                     lvalue += 5;
-                    account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, lvalue);
+                    account_wgcl_do_add(0, -prodcost * 5, 5, 0, 0, 0);
                     break;
             }
-            account_save();
+            account_wgcl_save();
 #endif
             return goto_state(&st_shop);
             break;
@@ -1556,7 +1562,6 @@ static int shop_buy_action(int tok, int val)
 #ifndef NDEBUG
                 assert(gemwallet >= 0);
 #endif
-                account_set_d(ACCOUNT_DATA_WALLET_GEMS, gemwallet);
             }
             else
             {
@@ -1564,17 +1569,18 @@ static int shop_buy_action(int tok, int val)
 #ifndef NDEBUG
                 assert(coinwallet >= 0 && coinwallet <= ACCOUNT_WALLET_MAX_COINS);
 #endif
-                account_set_d(ACCOUNT_DATA_WALLET_COINS, coinwallet);
             }
 
             switch (productkey)
             {
                 case 0:
+                    account_wgcl_do_add(-prodcost, 0, 0, 0, 0, 0);
                     account_set_d(ACCOUNT_PRODUCT_LEVELS, 1);
                     break;
 
                 case 1:
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+                    account_wgcl_do_add(-prodcost, 0, 0, 0, 0, 0);
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                     console_gui_free();
 #endif
                     hud_free();
@@ -1582,16 +1588,18 @@ static int shop_buy_action(int tok, int val)
                     account_set_d(ACCOUNT_PRODUCT_BALLS, 1);
                     gui_init();
                     hud_init();
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                     console_gui_init();
 #endif
                     break;
 
                 case 2:
+                    account_wgcl_do_add(-prodcost, 0, 0, 0, 0, 0);
                     account_set_d(ACCOUNT_PRODUCT_BONUS, 1);
                     break;
 
                 case 3:
+                    account_wgcl_do_add(-prodcost, 0, 0, 0, 0, 0);
 #ifdef LEVELGROUPS_INCLUDES_ZEN
                     account_set_d(ACCOUNT_PRODUCT_MEDIATION, 1);
 #else
@@ -1601,28 +1609,25 @@ static int shop_buy_action(int tok, int val)
 
                 case 4:
                     evalue += 1;
-                    account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, evalue);
+                    account_wgcl_do_add(-prodcost, 0, 0, 1, 0, 0);
                     break;
 
                 case 5:
                     fvalue += 1;
-                    account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, fvalue);
+                    account_wgcl_do_add(-prodcost, 0, 0, 0, 1, 0);
                     break;
 
                 case 6:
                     svalue += 1;
-                    account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, svalue);
+                    account_wgcl_do_add(-prodcost, 0, 0, 0, 0, 1);
                     break;
 
                 case 7:
-                    if (CHECK_ACCOUNT_BANKRUPT)
-                        lvalue = 1;
-                    else
-                        lvalue += 1;
-                    account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, lvalue);
+                    lvalue += 1;
+                    account_wgcl_do_add(0, -prodcost, 1, 0, 0, 0);
                     break;
             }
-            account_save();
+            account_wgcl_save();
 #endif
             return goto_state(&st_shop);
             break;
@@ -2083,6 +2088,10 @@ static int shop_buy_confirmmulti_gui(void)
 
 static int shop_buy_enter(struct state *st, struct state *prev)
 {
+#if NB_HAVE_PB_BOTH==1
+    account_wgcl_restart_attempt();
+#endif
+
     if (confirm_multiple_items)
         audio_play(AUD_WARNING, 1.0f);
 
@@ -2136,13 +2145,16 @@ static void expenses_export_start(void)
         export_totalgems++;
     }
 
-    account_set_d(ACCOUNT_DATA_WALLET_COINS, temp_totalcoins);
-
     export_totalgems += account_get_d(ACCOUNT_DATA_WALLET_GEMS);
-
     export_totalvalue += export_totalgems * 16;
-    account_set_d(ACCOUNT_DATA_WALLET_GEMS, 0);
-    account_save();
+
+    account_wgcl_do_set(temp_totalcoins, 0,
+                        account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES),
+                        account_get_d(ACCOUNT_CONSUMEABLE_EARNINATOR),
+                        account_get_d(ACCOUNT_CONSUMEABLE_FLOATIFIER),
+                        account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER));
+
+    account_wgcl_save();
 
     expenses_exported = 1;
 }

@@ -45,8 +45,8 @@
 #include "st_help.h"
 #include "st_shared.h"
 
-#if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN) \
- && defined(SWITCHBALL_GUI)
+#if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN) &&\
+    defined(SWITCHBALL_GUI)
 #define SWITCHBALL_HELP
 #endif
 
@@ -225,8 +225,6 @@ static int help_menu(int id)
 {
     int jd, kd;
 
-    gui_space(id);
-
     if ((jd = gui_hstack(id)))
     {
         if (console_gui_show())
@@ -342,7 +340,7 @@ static int page_introduction(int id)
 #else
 static int help_allow_control_demos(int id)
 {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     return fs_exists(current_platform == PLATFORM_PC ?
                      demos[id] : demos_xbox[id]);
 #else
@@ -1173,11 +1171,13 @@ static int page_tricks(int id)
 
 static int help_gui(void)
 {
-    int id, jd, kd;
+    int root_id, id, jd, kd;
 
-    if ((id = gui_vstack(0)))
-    {
 #ifdef SWITCHBALL_HELP
+    root_id = gui_root();
+
+    if ((id = gui_vstack(root_id)))
+    {
         if ((jd = gui_vstack(id)))
         {
             const char *help_header = gt_prefix("menu^Help");
@@ -1276,25 +1276,36 @@ static int help_gui(void)
         }
 
         gui_layout(id, 0, 0);
+    }
 #else
-        help_menu(id);
-
-        switch (page)
+    if ((root_id = gui_root()))
+    {
+        if ((id = gui_vstack(root_id)))
         {
-            case PAGE_RULES:         page_rules(id);         break;
-            case PAGE_CONTROLS:      page_controls(id);      break;
-            case PAGE_MODES:         page_modes(id);         break;
-#if NB_HAVE_PB_BOTH==1
-            case PAGE_MODES_SPECIAL: page_modes_special(id); break;
-#endif
-            case PAGE_TRICKS:        page_tricks(id);        break;
+            gui_space(id);
+            help_menu(id);
+            gui_layout(id, 0, +1);
         }
 
-        gui_layout(id, 0, +1);
+        if ((id = gui_vstack(root_id)))
+        {
+            switch (page)
+            {
+                case PAGE_RULES:         page_rules(id);         break;
+                case PAGE_CONTROLS:      page_controls(id);      break;
+                case PAGE_MODES:         page_modes(id);         break;
+#if NB_HAVE_PB_BOTH==1
+                case PAGE_MODES_SPECIAL: page_modes_special(id); break;
 #endif
-    }
+                case PAGE_TRICKS:        page_tricks(id);        break;
+            }
 
-    return id;
+            gui_layout(id, 0, 0);
+        }
+    }
+#endif
+
+    return root_id;
 }
 
 static int help_enter(struct state *st, struct state *prev)
@@ -1312,7 +1323,7 @@ static void help_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
         console_gui_list_paint();
 #endif

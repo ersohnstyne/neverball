@@ -363,7 +363,7 @@ static int end_support_action(int tok, int val)
 #if defined(__EMSCRIPTEN__)
             EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/"); }, 0);
 #elif _WIN32
-            system("start msedge https://discord.gg/qnJR263Hm2/");
+            system("explorer https://discord.gg/qnJR263Hm2/");
 #elif defined(__APPLE__)
             system("open https://discord.gg/qnJR263Hm2/");
 #elif defined(__linux__)

@@ -444,7 +444,7 @@ static int title_enter(struct state *st, struct state *prev)
         }
 
 #if ENABLE_VERSION
-        if ((id = gui_label(root_id, "Neverputt " VERSION, GUI_TNY, gui_wht2, gui_wht2)))
+        if ((id = gui_label(root_id, "Neverputt " VERSION, GUI_TNY, GUI_COLOR_WHT2)))
         {
             gui_clr_rect(id);
             gui_layout(id, -1, -1);
@@ -1664,8 +1664,8 @@ static int stroke_enter(struct state *st, struct state *prev)
     config_set_d(CONFIG_CAMERA, 2);
     video_set_grab(1);
 
-    if (paused)
-        paused = 0;
+    if (paused) paused = 0;
+    else        stroke_type = 0;
 
     audio_music_fade_in(0.5f);
 

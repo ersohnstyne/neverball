@@ -19,6 +19,7 @@
 
 #include "powerup.h"
 #include "account.h"
+#include "account_wgcl.h"
 #include "solid_chkp.h"
 #endif
 
@@ -34,25 +35,18 @@
 //#include "config.h"
 //#include "video.h"
 //#include "cmd.h"
-#include "hud.h"
-#include "demo.h"
-#include "progress.h"
-#include "audio.h"
-#include "config.h"
-#include "video.h"
-#include "cmd.h"
-#include "key.h"
+//#include "key.h"
 
 //#include "geom.h"
 //#include "vec3.h"
-
-#include "st_play_sync.h"
 
 //#include "game_draw.h"
 //#include "game_common.h"
 //#include "game_server.h"
 //#include "game_proxy.h"
 //#include "game_client.h"
+
+#include "st_play_sync.h"
 
 #include "st_play.h"
 #include "st_goal.h"
@@ -323,17 +317,20 @@ static int play_ready_enter(struct state *st, struct state *prev)
     restart_cancel_allchkp = 0;
 #endif
     play_freeze_all = 0;
+
     if (curr_mode() == MODE_NONE)
     {
         video_set_grab(1);
 
         hud_cam_pulse(config_get_d(CONFIG_CAMERA));
-        toggle_hud_visibility(1);
 
-        /* Cannot run traffic in home room. */
+        //toggle_hud_visibility(1);
+
+        /* Cannot run traffic lights in home room. */
 
         return 0;
     }
+
     audio_narrator_play(AUD_READY);
     video_set_grab(1);
     hud_speedup_reset();
@@ -353,7 +350,8 @@ static int play_ready_enter(struct state *st, struct state *prev)
     hud_update_camera_direction(curr_viewangle());
 
     hud_cam_pulse(config_get_d(CONFIG_CAMERA));
-    toggle_hud_visibility(1);
+
+    //toggle_hud_visibility(1);
 
     return play_ready_gui();
 }
@@ -366,7 +364,7 @@ static void play_ready_timer(int id, float dt)
 
     game_client_fly(1.0f - 0.5f * t);
     
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform != PLATFORM_PC)
     {
         console_gui_set_alpha(1.0f);
@@ -398,7 +396,7 @@ static void play_ready_timer(int id, float dt)
     gui_timer(id, dt);
 
 #ifndef __EMSCRIPTEN__
-    if (console_gui_show())
+    if (console_gui_show() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_cam_timer(dt);
     else if (hud_visibility())
 #endif
@@ -427,11 +425,13 @@ static int play_set_enter(struct state *st, struct state *prev)
 #endif
     play_freeze_all = 0;
 
-    /* Cannot run traffic in home room. */
+    /* Cannot run traffic lights in home room. */
+
     if (curr_mode() == MODE_NONE) return 0;
+
     audio_narrator_play(AUD_SET);
 
-    toggle_hud_visibility(1);
+    //toggle_hud_visibility(1);
 
     return play_set_gui();
 }
@@ -469,7 +469,7 @@ static void play_set_timer(int id, float dt)
 
     gui_timer(id, dt);
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform != PLATFORM_PC)
     {
         console_gui_set_alpha(CLAMP(0.0f, flerp(6.0f, 0.0f, t), 1.0f));
@@ -490,7 +490,7 @@ static void play_prep_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show() && current_platform != PLATFORM_PC)
     {
         hud_cam_paint();
@@ -625,10 +625,6 @@ static int rot_get(float *v)
 
 static int play_block_state;
 
-static int evalue;
-static int fvalue;
-static int svalue;
-
 static int lmb_holded;
 static int rmb_holded;
 static float lmb_hold_time;
@@ -681,7 +677,8 @@ static int play_loop_enter(struct state *st, struct state *prev)
 
     tilt_x = 0; tilt_y = 0;
 
-    /* Cannot run traffic in home room. */
+    /* Cannot run traffic lights in home room. */
+
     if (curr_mode() == MODE_NONE) return 0;
 
     if ((prev != &st_play_ready &&
@@ -696,42 +693,30 @@ static int play_loop_enter(struct state *st, struct state *prev)
 #if ENABLE_RFD==1
         if (!progress_rfd_take_powerup(0))
 #endif
-        {
-            evalue = account_get_d(ACCOUNT_CONSUMEABLE_EARNINATOR);
-            evalue -= 1;
-            account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, evalue);
-        }
+            account_wgcl_do_add(0, 0, 0, -1, 0, 0);
     }
     if (get_grav_multiply() <= 0.51f)
     {
 #if ENABLE_RFD==1
         if (!progress_rfd_take_powerup(1))
 #endif
-        {
-            fvalue = account_get_d(ACCOUNT_CONSUMEABLE_FLOATIFIER);
-            fvalue -= 1;
-            account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, fvalue);
-        }
+            account_wgcl_do_add(0, 0, 0, 0, -1, 0);
     }
     if (get_tilt_multiply() == 2)
     {
 #if ENABLE_RFD==1
         if (!progress_rfd_take_powerup(2))
 #endif
-        {
-            svalue = account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER);
-            svalue -= 1;
-            account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, svalue);
-        }
+            account_wgcl_do_add(0, 0, 0, 0, 0, -1);
     }
-    account_save();
+    account_wgcl_save();
 #endif
 
     audio_narrator_play(AUD_GO);
 
     game_client_fly(0.0f);
 
-    toggle_hud_visibility(1);
+    //toggle_hud_visibility(1);
 
     return play_loop_gui();
 }
@@ -906,7 +891,7 @@ static void play_loop_timer(int id, float dt)
 static void play_loop_point(int id, int x, int y, int dx, int dy)
 {
 #if NDEBUG || _MSC_VER
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform == PLATFORM_PC)
 #endif
     {
@@ -1110,7 +1095,7 @@ static int play_loop_keybd(int c, int d)
      * During the game with no time limits and no required coins,
      * you can disable at any time.
      */
-    if (d && c == KEY_POSE)
+    if (d && (c == KEY_POSE || c == KEY_TOGGLESHOWHUD))
         toggle_hud_visibility(!hud_visibility());
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0

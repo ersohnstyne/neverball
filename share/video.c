@@ -223,7 +223,7 @@ void video_resize(int window_w, int window_h)
         
         if (!config_get_d(CONFIG_FULLSCREEN))
         {
-            config_set_d(CONFIG_WIDTH, video.window_w);
+            config_set_d(CONFIG_WIDTH,  video.window_w);
             config_set_d(CONFIG_HEIGHT, video.window_h);
         }
 
@@ -470,7 +470,6 @@ video_mode_reconf:
     /*
      * Optional 16-bit double buffer with 16-bit depth buffer.
      *
-     * TODO: Uncomment, if you want to set the required buffer.
      * Default RGB size: 2 - Either 5 (16-bit) or 8 (32-bit)
      * Default depth size: 8 - Either 8 or 16
      */
@@ -1445,6 +1444,7 @@ void video_render_fill_or_line(int lined)
         render_fill_overlay = 0;
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDisable(GL_TEXTURE_2D);
+        glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
         if (viewport_wireframe == 2)
         {
             render_right_viewport = 1;
@@ -1464,6 +1464,7 @@ void video_render_fill_or_line(int lined)
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnable(GL_TEXTURE_2D);
+        glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
         if (viewport_wireframe == 2)
         {
             render_left_viewport = 1;
@@ -1483,6 +1484,7 @@ void video_render_fill_or_line(int lined)
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnable(GL_TEXTURE_2D);
+        glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
         glViewport(0, 0,
                    video.device_w * video.scale_w,
                    video.device_h * video.scale_h);

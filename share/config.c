@@ -58,7 +58,8 @@ int CONFIG_GRAPHIC_RESTORE_ID;
 int CONFIG_GRAPHIC_RESTORE_VAL1;
 int CONFIG_GRAPHIC_RESTORE_VAL2;
 
-int CONFIG_TIPS_INDEX;
+int CONFIG_MAINMENU_PANONLY;
+
 int CONFIG_SCREEN_ANIMATIONS;
 int CONFIG_SMOOTH_FIX;
 int CONFIG_FORCE_SMOOTH_FIX;
@@ -171,11 +172,6 @@ int CONFIG_TOUCH_ROTATE;
 
 /* String options. */
 
-#ifdef ENABLE_SQL
-int CONFIG_ACCOUNT_ONLINE_USERNAME;
-int CONFIG_ACCOUNT_ONLINE_PASSWORD;
-#endif
-
 int CONFIG_PLAYER;
 #if !defined(CONFIG_INCLUDES_ACCOUNT)
 int CONFIG_BALL_FILE;
@@ -214,7 +210,8 @@ static struct
     { &CONFIG_GRAPHIC_RESTORE_VAL1, "graphic_restore_val1",  0 },
     { &CONFIG_GRAPHIC_RESTORE_VAL2, "graphic_restore_val2",  0 },
 
-    { &CONFIG_TIPS_INDEX,     "tips_index",   0 },
+    { &CONFIG_MAINMENU_PANONLY,"mainmenu_panonly",0 },
+
     { &CONFIG_SCREEN_ANIMATIONS,"screen_animation",1 },
     { &CONFIG_SMOOTH_FIX,     "smooth_fix",   1 },
     { &CONFIG_FORCE_SMOOTH_FIX, "force_smooth_fix", 0 },
@@ -337,10 +334,6 @@ static struct
     const char *def;
     char       *cur;
 } option_s[] = {
-#ifdef ENABLE_SQL
-    { &CONFIG_ACCOUNT_ONLINE_USERNAME, "online_username", ""},
-    { &CONFIG_ACCOUNT_ONLINE_PASSWORD, "online_password", ""},
-#endif
     { &CONFIG_PLAYER,                  "player",          "" },
 #if !defined(CONFIG_INCLUDES_ACCOUNT)
     { &CONFIG_BALL_FILE,               "ball_file",       "ball/basic-ball/basic-ball" },
@@ -461,17 +454,18 @@ static int scan_key_and_value(char **dst_key, char **dst_val, char *line)
 {
     if (line)
     {
-        int ks, ke, vs;
+        int valid_num, ks, ke, vs;
 
         ks = -1;
         ke = -1;
         vs = -1;
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sscanf_s(line,
+        valid_num = sscanf_s(line,
 #else
-        sscanf(line,
+        valid_num = sscanf(line,
 #endif
-               " %n%*s%n %n", &ks, &ke, &vs);
+                           " %n%*s%n %n", &ks, &ke, &vs);
 
         if (ks < 0 || ke < 0 || vs < 0)
             return 0;

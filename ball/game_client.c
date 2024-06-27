@@ -790,11 +790,6 @@ int  game_client_init(const char *file_name)
     return gd.state;
 }
 
-int  game_client_init_metadata(const char *file_name)
-{
-    return 1;
-}
-
 void game_client_toggle_show_balls(int visible)
 {
     ball_visible = visible;
@@ -878,6 +873,9 @@ void game_look(float phi, float theta)
     view->c[0] = view->p[0] + fsinf(V_RAD(theta)) * fcosf(V_RAD(phi));
     view->c[1] = view->p[1] +                       fsinf(V_RAD(phi));
     view->c[2] = view->p[2] - fcosf(V_RAD(theta)) * fcosf(V_RAD(phi));
+
+    v_sub(view->e[2], view->p, view->c);
+    e_orthonrm_xz(view->e);
 
     gl.view[PREV] = gl.view[CURR];
 }

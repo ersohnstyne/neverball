@@ -235,7 +235,7 @@ static int ball_action(int tok, int val)
 #if defined(__EMSCRIPTEN__)
                 EM_ASM({ window.open("https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");}, 0);
 #elif _WIN32
-                system("start msedge https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
+                system("explorer https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
 #elif defined(__APPLE__)
                 system("open https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
 #elif defined(__linux__)
@@ -249,7 +249,7 @@ static int ball_action(int tok, int val)
 #if defined(__EMSCRIPTEN__)
             EM_ASM({ window.open("https://forms.office.com/r/upfWqaVVtA"); }, 0);
 #elif _WIN32
-            system("start msedge https://forms.office.com/r/upfWqaVVtA");
+            system("explorer https://forms.office.com/r/upfWqaVVtA");
 #elif defined(__APPLE__)
             system("open https://forms.office.com/r/upfWqaVVtA");
 #elif defined(__linux__)
@@ -518,7 +518,7 @@ static void ball_paint(int id, float t)
 #endif
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_model_paint();
 #endif
 }

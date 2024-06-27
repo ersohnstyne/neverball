@@ -744,11 +744,10 @@ void hud_update_camera_direction(float rot_direction)
     float hdg_num = (hdg_area / 2) - (rot_direction + (hdg_area / 2));
     hdg_num -= (hdg_area / 4);
 
-    char camdirref[MAXSTR];
-    char *hdg_name = "N";
+    if (hdg_num < 0)    do hdg_num += 360; while (hdg_num < 0);
+    if (hdg_num >= 360) do hdg_num -= 360; while (hdg_num >= 360);
 
-    if (hdg_num < 0)   do hdg_num += 360; while (hdg_num < 0);
-    if (hdg_num > 360) do hdg_num -= 360; while (hdg_num > 360);
+    char *hdg_name = "N";
 
     if      (hdg_area * 1.5f  >= hdg_num && hdg_num <= hdg_area * 2.5f)
         hdg_name = "NNE";
@@ -782,8 +781,10 @@ void hud_update_camera_direction(float rot_direction)
         hdg_name = "NNW";
 
     hdg_num += (hdg_area / 4);
-    if (hdg_num < 0)   do hdg_num += 360; while (hdg_num < 0);
-    if (hdg_num > 360) do hdg_num -= 360; while (hdg_num > 360);
+    if (hdg_num < 0)    do hdg_num += 360; while (hdg_num < 0);
+    if (hdg_num >= 360) do hdg_num -= 360; while (hdg_num >= 360);
+
+    char camdirref[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(camdirref, MAXSTR,

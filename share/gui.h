@@ -134,6 +134,8 @@
 #define GUI_COLOR_BLK gui_blk, gui_blk
 #define GUI_COLOR_GRY gui_gry, gui_gry
 
+#define GUI_COLOR_WHT2 gui_wht2, gui_wht2
+
 extern const GLubyte gui_wht[4];
 extern const GLubyte gui_yel[4];
 extern const GLubyte gui_cya[4];

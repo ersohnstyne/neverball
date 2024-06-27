@@ -24,6 +24,7 @@
 #include "binary.h"
 #include "common.h"
 #include "fs.h"
+#include "log.h"
 #include "vec3.h"
 
 #if _DEBUG && _MSC_VER
@@ -71,10 +72,20 @@ static int sol_file(fs_file fin, int fp_ten)
 
     if (fp_ten && (magic != SOL_MAGIC ||
                    (version < 10 || version > SOL_VERSION_CURR)))
+    {
+        if (version < 10)
+            log_errorf("SOLX is unsupported, must have SOL extension (SOL_VERSION < 10)!\n");
+
         return 0;
+    }
     else if (!fp_ten && (magic != SOL_MAGIC ||
                          (version < SOL_VERSION_MIN || version > 9)))
+    {
+        if (version > 9)
+            log_errorf("Unsupported SOL version, must have SOLX extension (SOL_VERSION > 9)!\n");
+
         return 0;
+    }
 
     sol_version = version;
 

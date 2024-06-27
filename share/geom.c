@@ -317,8 +317,8 @@ static const char item_sols[GEOM_MAX][PATHMAX] = {
     "item/clock/clock15.sol",
     "item/clock/clock30.sol",
 #if NB_HAVE_PB_BOTH==1
-    "item/pu/timetravel.sol",
     "item/pu/superspeed.sol",
+    "item/pu/powblock.sol",
 #endif
 };
 

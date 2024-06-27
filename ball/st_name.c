@@ -22,6 +22,7 @@
 
 #include "networking.h"
 #include "account.h"
+#include "account_wgcl.h"
 #include "campaign.h"
 #endif
 
@@ -179,7 +180,7 @@ static int name_action(int tok, int val)
                 name_error = 1;
             else if (player_renamed)
             {
-                account_save();
+                account_wgcl_save();
 
                 config_set_s(CONFIG_PLAYER, text_input);
 
@@ -200,7 +201,7 @@ static int name_action(int tok, int val)
                 ball_init();
 #endif
 
-                account_save();
+                account_wgcl_save();
             }
 #endif
             config_save();

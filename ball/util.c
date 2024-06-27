@@ -124,7 +124,7 @@ static void gui_scores(int id, int e)
 
 static void gui_stats(int id)
 {
-    int at, rt;
+    int at;
 
     if ((at = gui_vstack(id)))
     {
@@ -261,12 +261,14 @@ void gui_score_board(int pd, unsigned int types, int e, int h)
         }
 
         gui_filler(id);
+        gui_space(id);
 
         gui_scores(id, e);
 
         if ((types & GUI_SCORE_TIME) &&
             (types & GUI_SCORE_GOAL))
         {
+            gui_space(id);
             gui_filler(id);
             gui_stats(id);
         }

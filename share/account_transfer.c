@@ -152,17 +152,18 @@ static int scan_key_and_value(char **dst_key, char **dst_val, char *line)
 {
     if (line)
     {
-        int ks, ke, vs;
+        int valid_num, ks, ke, vs;
 
         ks = -1;
         ke = -1;
         vs = -1;
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sscanf_s(line,
+        valid_num = sscanf_s(line,
 #else
-        sscanf(line,
+        valid_num = sscanf(line,
 #endif
-               " %n%*s%n %n", &ks, &ke, &vs);
+                           " %n%*s%n %n", &ks, &ke, &vs);
 
         if (ks < 0 || ke < 0 || vs < 0)
             return 0;

@@ -18,6 +18,7 @@
 
 #include "audio.h"
 #include "account.h"
+#include "account_wgcl.h"
 #include "config.h"
 #include "gui.h"
 #include "lang.h"
@@ -158,14 +159,10 @@ static int shop_activate_action(int tok, int val)
 
                 /* Do the same as well? */
 
-                account_set_d(ACCOUNT_DATA_WALLET_COINS,      new_coins);
-                account_set_d(ACCOUNT_DATA_WALLET_GEMS,       new_gems);
-                account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, new_lives);
-                account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, new_powers[0]);
-                account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, new_powers[1]);
-                account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, new_powers[2]);
+                account_wgcl_do_set(new_coins, new_gems, new_lives,
+                                    new_powers[0], new_powers[1], new_powers[2]);
 
-                account_save();
+                account_wgcl_save();
 
                 audio_play("snd/import.ogg", 1.0f);
 

@@ -281,7 +281,6 @@ static int conf_enter(struct state *st, struct state *prev)
             gui_multi(id, _("Copyright © 2024 Neverball authors\n"
                             "Neverball is free software available under the terms of GPL v2 or later."),
                           GUI_TNY, GUI_COLOR_WHT);
-#endif
             gui_clr_rect(id);
             gui_layout(id, 0, -1);
         }
@@ -354,7 +353,7 @@ static int conf_buttn(int b, int d)
 
 static int null_enter(struct state *st, struct state *prev)
 {
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     xbox_control_gui_free();
 #endif
     gui_free();
@@ -373,7 +372,7 @@ static void null_leave(struct state *st, struct state *next, int id)
     ball_init();
     geom_init();
     gui_init();
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     xbox_control_gui_init();
 #endif
 }
@@ -395,13 +394,5 @@ struct state st_conf = {
 
 struct state st_null = {
     null_enter,
-    null_leave,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL
+    null_leave
 };

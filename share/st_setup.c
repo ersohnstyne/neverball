@@ -28,6 +28,9 @@
 
 #include "st_common.h"
 
+#if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1
+#include "st_wgcl.h"
+#endif
 #include "st_setup.h"
 #include "st_transfer.h"
 
@@ -96,12 +99,13 @@ struct state st_game_setup;
 
 struct state *st_continue;
 
-static int    (*goto_name_fn) (struct state *finish,
-                               int         (*finish_fn) (struct state *));
-static int    (*goto_ball_fn) (struct state *finish);
+static int  (*goto_name_fn) (struct state *finish,
+                             int         (*finish_fn) (struct state *));
+static int  (*goto_ball_fn) (struct state *finish);
 
-static int    setup_page = 0;
-static int    setup_process = 0;
+static int setup_page       = 0;
+static int setup_process    = 0;
+static int setup_login_wgcl = 1;
 
 static int setup_btn_confirm_id = 0;
 
@@ -182,11 +186,25 @@ int check_game_setup(void)
 {
     const char *curr_write_dir = fs_get_write_dir();
 
-    return dir_exists(path_join(curr_write_dir, "Accounts"))    &&
-           dir_exists(path_join(curr_write_dir, "Campaign"))    &&
-           dir_exists(path_join(curr_write_dir, "Replays"))     &&
-           dir_exists(path_join(curr_write_dir, "Scores"))      &&
-           dir_exists(path_join(curr_write_dir, "Screenshots"));
+    char *path_accounts = path_join(curr_write_dir, "Accounts"),
+         *path_campaign = path_join(curr_write_dir, "Campaign"),
+         *path_demo     = path_join(curr_write_dir, "Replays"),
+         *path_scores   = path_join(curr_write_dir, "Scores"),
+         *path_shots    = path_join(curr_write_dir, "Screenshots");
+
+    int skip_setup = dir_exists(path_accounts) &&
+                     dir_exists(path_campaign) &&
+                     dir_exists(path_demo)     &&
+                     dir_exists(path_scores)   &&
+                     dir_exists(path_shots);
+
+    free(path_accounts); path_accounts = NULL;
+    free(path_campaign); path_campaign = NULL;
+    free(path_demo);     path_demo     = NULL;
+    free(path_scores);   path_scores   = NULL;
+    free(path_shots);    path_shots    = NULL;
+
+    return skip_setup;
 }
 
 /*
@@ -286,7 +304,11 @@ static void game_setup_terms_checkmark_update_all(void)
 
 /*---------------------------------------------------------------------------*/
 
-#define NB_CURRDOMAIN_PREMIUM "play.neverball.org"
+/*
+ * Premium: appdownload.stynegame.de
+ * Legacy downloads: play.neverball.org
+ */
+#define NB_CURRDOMAIN_PREMIUM "appdownload.stynegame.de"
 
 static const char *get_updated_url(const char *filename)
 {
@@ -332,17 +354,17 @@ static int load_updated_version(void)
     {
         char line[MAXSTR] = "";
 
-        int curr_major = 0,
-            curr_minor = 0,
-            curr_patch = 0,
+        int curr_major    = 0,
+            curr_minor    = 0,
+            curr_patch    = 0,
             curr_revision = 0,
-            curr_build = 0;
+            curr_build    = 0;
 
-        int new_major = 0,
-            new_minor = 0,
-            new_patch = 0,
+        int new_major    = 0,
+            new_minor    = 0,
+            new_patch    = 0,
             new_revision = 0,
-            new_build = 0;
+            new_build    = 0;
 
         while (fs_gets(line, sizeof (line), fp))
         {
@@ -566,7 +588,7 @@ static void game_setup_terms_openlink(const char *link)
 #ifdef __EMSCRIPTEN__
     EM_ASM({ window.open($0); }, link);
 #elif _WIN32
-    SAFECPY(buf, "start msedge ");
+    SAFECPY(buf, "explorer ");
 #elif defined(__APPLE__)
     SAFECPY(buf, "open ");
 #elif defined(__linux__)
@@ -660,13 +682,18 @@ static int game_setup_action(int tok, int val)
                     }
                 }
                 break;
+
             case 2:
                 {
                     switch (tok)
                     {
                         case GUI_NEXT:
                             if (goto_name_fn)
+#if NB_EOS_SDK==0 || NB_STEAM_API==0
                                 return goto_name_fn(&st_game_setup, goto_ball_fn);
+#else
+                                return goto_ball_fn(&st_game_setup);
+#endif
                             else
 #if _WIN32 && ENABLE_FETCH==1 && ENABLE_SOFTWARE_UPDATE!=0
                                 setup_page++;
@@ -674,15 +701,22 @@ static int game_setup_action(int tok, int val)
                                 setup_page = 6;
 #endif
 
+#if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1
+                            if (setup_page == 6)
+                                return goto_wgcl_login(&st_game_setup);
+#endif
+
                             return goto_state(&st_game_setup);
-                            break;
+
                         case SETUP_TERMS_TOGGLE:
                             setup_terms_accepted[val] = setup_terms_accepted[val] == 0;
                             game_setup_terms_checkmark_update_all();
                             break;
 
                         case SETUP_TERMS_READMORE:
-                            if (val == 1)
+                            if (val == 0)
+                                game_setup_terms_openlink("https://neverball.stynegame.de/terms");
+                            else if (val == 1)
                                 game_setup_terms_openlink("https://discord.com/terms");
                             else if (val == 2)
                                 game_setup_terms_openlink("https://aka.ms/servicesagreement");
@@ -711,6 +745,10 @@ static int game_setup_action(int tok, int val)
 
                         case SETUP_UPDATE_SKIP:
                             setup_page = 6;
+#if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1
+                            if (setup_page == 6)
+                                return goto_wgcl_login(&st_game_setup);
+#endif
                             return goto_state(&st_game_setup);
                     }
                 }
@@ -724,7 +762,6 @@ static int game_setup_action(int tok, int val)
                             setup_process = 0;
                             config_save();
                             return st_continue ? goto_game_transfer(st_continue) : 0;
-                            break;
 #endif
                         case SETUP_FINISHED:
                             setup_mkdir_migrate();
@@ -957,7 +994,7 @@ static int game_setup_terms_gui(void)
 
         if ((id = gui_vstack(root_id)))
         {
-            setup_terms_card(id, _("PB+NB Terms of Service"),       0, 1);
+            setup_terms_card(id, _("PB+NB Terms of Service"),       0, 0);
             setup_terms_card(id, _("Discord Terms of Service"),     1, 0);
             setup_terms_card(id, _("Microsoft Services Agreement"), 2, 0);
 

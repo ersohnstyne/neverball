@@ -34,6 +34,12 @@
     <Filter Include="Headerdateien\payments">
       <UniqueIdentifier>{0605c8f1-5e20-47e5-8974-ed798aff59e9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Quelldateien\wgcl">
+      <UniqueIdentifier>{25971029-4d9a-48b9-b879-c1b03d333b97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\wgcl">
+      <UniqueIdentifier>{60b04abb-808a-4ce6-a023-542c23811241}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\share\video.c">
@@ -279,9 +285,6 @@
     <ClCompile Include="..\ball\hud.c">
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
-    <ClCompile Include="..\ball\lang_switchball.c">
-      <Filter>Quelldateien\ball</Filter>
-    </ClCompile>
     <ClCompile Include="..\ball\level.c">
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
@@ -423,11 +426,23 @@
     <ClCompile Include="..\share\st_setup.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\payments\json.c">
-      <Filter>Quelldateien\payments</Filter>
-    </ClCompile>
     <ClCompile Include="..\share\moon_taskloader.c">
       <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\video_dualdisplay.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\game_dualdisplay.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\payments\parson.c">
+      <Filter>Quelldateien\payments</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\st_wgcl.c">
+      <Filter>Quelldateien\wgcl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\account_wgcl.c">
+      <Filter>Quelldateien\wgcl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -725,7 +740,7 @@
     <ClInclude Include="..\ball\st_intro_covid.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
-    <ClInclude Include="..\dist\pennyball_rc.h">
+    <ClInclude Include="..\dist\neverball_rc.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="..\ball\score_online.h">
@@ -755,15 +770,30 @@
     <ClInclude Include="..\share\substr.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
-    <ClInclude Include="..\payments\json.h">
-      <Filter>Headerdateien\payments</Filter>
-    </ClInclude>
     <ClInclude Include="..\share\moon_taskloader.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
+    <ClInclude Include="..\share\video_dualdisplay.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\game_dualdisplay.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\key.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\payments\parson.h">
+      <Filter>Headerdateien\payments</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\st_wgcl.h">
+      <Filter>Headerdateien\wgcl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\account_wgcl.h">
+      <Filter>Headerdateien\wgcl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\dist\pennyball_rc.rc">
+    <ResourceCompile Include="..\dist\neverball_rc.rc">
       <Filter>Ressourcendateien\resource</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -771,10 +801,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\dist\ico\pennyball.ico">
+    <Image Include="..\dist\ico\neverball.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
-    <Image Include="..\dist\ico\pennyputt.ico">
+    <Image Include="..\dist\ico\neverputt.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
   </ItemGroup>

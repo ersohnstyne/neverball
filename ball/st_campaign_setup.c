@@ -182,46 +182,19 @@ struct state st_setup_intro = {
     setup_intro_enter,
     shared_leave,
     shared_paint,
-    setup_timer,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL
+    setup_timer
 };
 
 struct state st_setup_progressions = {
     setup_progressions_enter,
     shared_leave,
     shared_paint,
-    setup_timer,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL
+    setup_timer
 };
 
 struct state st_setup_done = {
     setup_done_enter,
     shared_leave,
     shared_paint,
-    setup_timer,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL
+    setup_timer
 };

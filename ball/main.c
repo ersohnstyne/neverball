@@ -79,6 +79,7 @@ extern "C" {
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 #include "account.h"
+#include "account_wgcl.h"
 #ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
@@ -429,7 +430,6 @@ static void shot(void)
 
 #if NB_STEAM_API==0
     char filename_primary[MAXSTR];
-    char filename_secondary[MAXSTR];
 
     int secdecimal = ROUND(config_screenshot() / 10000);
 
@@ -443,13 +443,14 @@ static void shot(void)
     video_snap(filename_primary);
 
 #if ENABLE_DUALDISPLAY==1
+    char filename_secondary[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(filename_secondary, MAXSTR,
 #else
     sprintf(filename_secondary,
 #endif
             "Screenshots/screen_%04d-%04d_secondary.png",
-        filename_secondary, config_screenshot());
+            secdecimal, config_screenshot());
 
     video_dualdisplay_snap(filename_secondary);
 #endif
@@ -1372,7 +1373,14 @@ static void step(void *data)
         video_set_current();
 #endif
 
-        if (viewport_wireframe == 2 || viewport_wireframe == 3)
+        if (viewport_wireframe == 4)
+        {
+            video_render_fill_or_line(1);
+            st_paint(0.001f * now, 1);
+            video_render_fill_or_line(0);
+            st_paint(0.001f * now, 0);
+        }
+        else if (viewport_wireframe == 2 || viewport_wireframe == 3)
         {
             video_render_fill_or_line(0);
             st_paint(0.001f * now, 1);
@@ -1667,7 +1675,7 @@ static int main_init(int argc, char *argv[])
 #if NB_HAVE_PB_BOTH==1
         /* Initialize account. */
 
-        int account_res = account_init();
+        int account_res = account_wgcl_init();
 
         if (account_res == 0)
         {
@@ -1679,13 +1687,13 @@ static int main_init(int argc, char *argv[])
 #endif
         }
 
-        account_load();
+        account_wgcl_load();
 
         if (server_policy_get_d(SERVER_POLICY_EDITION) > 1 &&
             account_get_d(ACCOUNT_SET_UNLOCKS) < 1)
             account_set_d(ACCOUNT_SET_UNLOCKS, 1);
 
-        account_save();
+        account_wgcl_save();
 #endif
 
 #if ENABLE_NLS==1 || _MSC_VER
@@ -1744,7 +1752,7 @@ static void main_quit(void)
         accessibility_save();
 #endif
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        account_save      ();
+        account_wgcl_save ();
 #endif
         tilt_free         ();
     }
@@ -1772,7 +1780,7 @@ static void main_quit(void)
 #endif
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-    account_quit();
+    account_wgcl_quit();
 #endif
 
 #if ENABLE_RFD==1

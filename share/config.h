@@ -41,7 +41,8 @@ extern int CONFIG_GRAPHIC_RESTORE_ID;
 extern int CONFIG_GRAPHIC_RESTORE_VAL1;
 extern int CONFIG_GRAPHIC_RESTORE_VAL2;
 
-extern int CONFIG_TIPS_INDEX;
+extern int CONFIG_MAINMENU_PANONLY;
+
 extern int CONFIG_SCREEN_ANIMATIONS;
 extern int CONFIG_SMOOTH_FIX;
 extern int CONFIG_FORCE_SMOOTH_FIX;
@@ -152,11 +153,6 @@ extern int CONFIG_CAMERA_3_SPEED;
 extern int CONFIG_TOUCH_ROTATE;
 
 /* String options. */
-
-#ifdef __linux__
-extern int CONFIG_ACCOUNT_ONLINE_USERNAME;
-extern int CONFIG_ACCOUNT_ONLINE_PASSWORD;
-#endif
 
 extern int CONFIG_PLAYER;
 #if !defined(CONFIG_INCLUDES_ACCOUNT)

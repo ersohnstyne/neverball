@@ -470,7 +470,7 @@
     <ClInclude Include="..\putt\st_conf.h">
       <Filter>Headerdateien\putt</Filter>
     </ClInclude>
-    <ClInclude Include="..\dist\pennyputt_rc.h">
+    <ClInclude Include="..\dist\neverputt_rc.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="..\share\dbg_config.h">
@@ -488,17 +488,20 @@
     <ClInclude Include="..\share\substr.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
+    <ClInclude Include="..\share\key.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\dist\pennyputt_rc.rc">
+    <ResourceCompile Include="..\dist\neverputt_rc.rc">
       <Filter>Ressourcendateien\resource</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="ico\pennyputt.ico">
+    <Image Include="ico\neverputt.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
-    <Image Include="..\dist\ico\pennyputt.ico">
+    <Image Include="..\dist\ico\neverputt.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
   </ItemGroup>

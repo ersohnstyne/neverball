@@ -14,7 +14,7 @@
 
 #include "gui.h"
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
 #endif
 
@@ -112,10 +112,10 @@ static int bump_stick(int a)
 
 /*---------------------------------------------------------------------------*/
 
-#define LOOP_DURING_SCREENANIMATE                                          \
-    do { if (!st_global_loop()) {                                          \
-        log_errorf("UI will animating, but the game attempts to exit!\n"); \
-        exit(1);                                                           \
+#define LOOP_DURING_SCREENANIMATE                                         \
+    do { if (!st_global_loop()) {                                         \
+        log_errorf("The game attempts to exit, but UI are animating!\n"); \
+        exit(1);                                                          \
     } } while (0)
 
 /*---------------------------------------------------------------------------*/
@@ -160,10 +160,6 @@ void init_state(struct state *st)
     video_dualdisplay_clear();
 #endif
     video_swap();
-
-#if _DEBUG
-    //Sleep(500);
-#endif
 }
 
 int goto_state(struct state *st)
@@ -184,8 +180,7 @@ int goto_state_full(struct state *st,
     anim_queue_directions[1] = todirection;
     anim_queue_allowskip     = noanimation;
 
-    if (anim_queue)
-        return 1;
+    if (anim_queue) return 1;
 
     anim_done  = 0;
     anim_queue = 1;
@@ -207,7 +202,7 @@ int goto_state_full(struct state *st,
                 gui_set_alpha(state->gui_id, alpha, fromdirection);
             }
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             console_gui_set_alpha(alpha);
 #endif
 
@@ -242,7 +237,7 @@ int goto_state_full(struct state *st,
         gui_set_alpha(state->gui_id, alpha, fromdirection);
     }
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_set_alpha(alpha);
 #endif
 
@@ -284,7 +279,7 @@ int goto_state_full(struct state *st,
                 gui_set_alpha(state->gui_id, alpha, todirection);
             }
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             console_gui_set_alpha(alpha);
 #endif
 
@@ -311,6 +306,7 @@ int goto_state_full(struct state *st,
     }
 
     alpha = 1.0f;
+
     if (state)
     {
         if (state->fade != NULL) state->fade(alpha);
@@ -318,7 +314,7 @@ int goto_state_full(struct state *st,
         gui_set_alpha(state->gui_id, alpha, todirection);
     }
 
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_set_alpha(alpha);
 #endif
 
@@ -330,6 +326,7 @@ int goto_state_full(struct state *st,
                         anim_queue_directions[0],
                         anim_queue_directions[1],
                         anim_queue_allowskip);
+
         anim_queue_state         = NULL;
         anim_queue_directions[0] = 0;
         anim_queue_directions[1] = 0;
@@ -486,9 +483,9 @@ int st_touch(const SDL_TouchFingerEvent *event)
     /* Otherwise, emulate mouse events. */
 
     st_point(video.device_w * event->x,
-        video.device_h * (1.0f - event->y),
-        video.device_w * event->dx,
-        video.device_h * -event->dy);
+             video.device_h * (1.0f - event->y),
+             video.device_w * event->dx,
+             video.device_h * -event->dy);
 
     if (event->type == SDL_FINGERDOWN)
         d = st_click(SDL_BUTTON_LEFT, 1);

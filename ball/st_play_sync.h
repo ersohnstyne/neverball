@@ -12,8 +12,8 @@
 #include "audio.h"
 #include "config.h"
 #include "video.h"
-#include "key.h"
 #include "cmd.h"
+#include "key.h"
 
 #include "geom.h"
 #include "vec3.h"

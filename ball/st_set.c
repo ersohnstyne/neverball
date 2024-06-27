@@ -218,7 +218,7 @@ static int set_action(int tok, int val)
 #if defined(__EMSCRIPTEN__)
             EM_ASM({ window.open("https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV"); }, 0);
 #elif _WIN32
-            system("start msedge https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV");
+            system("explorer https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV");
 #elif defined(__APPLE__)
             system("open https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV");
 #elif defined(__linux__)
@@ -590,7 +590,7 @@ static void set_paint(int id, float t)
 #if ENABLE_MOON_TASKLOADER!=0
     if (set_is_scanning_with_moon_taskloader) return;
 #endif
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
         console_gui_list_paint();
 #endif
@@ -1102,10 +1102,39 @@ static int campaign_gui(void)
     return id;
 }
 
-static int campaign_enter(struct state *st, struct state *prev)
+static int campaign_gui_comingsoon(void)
 {
-    audio_music_fade_to(0.5f, "bgm/inter_local.ogg", 1);
+    int root_id, id;
 
+    if ((root_id = gui_root()))
+    {
+        if ((id = gui_vstack(root_id)))
+        {
+            gui_title_header(id, _("Campaign"), GUI_MED, GUI_COLOR_DEFAULT);
+
+            gui_space(id);
+
+            gui_multi(id, _("This level group and modes can be played in\n"
+                            "version 2.20.X and later."),
+                          GUI_SML, GUI_COLOR_WHT);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            if (current_platform == PLATFORM_PC)
+            {
+                gui_space(id);
+                gui_back_button(id);
+            }
+#endif
+
+            gui_layout(id, 0, 0);
+        }
+    }
+
+    return root_id;
+}
+
+static void campaign_prepare(struct state *prev)
+{
     campaign_level_unlocks[0] = 0;
     campaign_level_unlocks[1] = 0;
     campaign_level_unlocks[2] = 0;
@@ -1127,8 +1156,15 @@ static int campaign_enter(struct state *st, struct state *prev)
         progress_init(MODE_CAMPAIGN);
         campaign_theme_index = 0;
     }
+}
 
-    return campaign_gui();
+static int campaign_enter(struct state *st, struct state *prev)
+{
+    audio_music_fade_to(0.5f, "bgm/inter_local.ogg", 1);
+
+    campaign_prepare(prev);
+
+    return campaign_gui_comingsoon();
 }
 
 static void campaign_leave(struct state *st, struct state *next, int id)
@@ -1150,7 +1186,7 @@ static void campaign_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
         console_gui_list_paint();
 #endif
@@ -1357,9 +1393,7 @@ static int levelgroup_enter(struct state *st, struct state *prev)
         return goto_state(&st_set);
     else if (server_policy_get_d(SERVER_POLICY_EDITION) > 1 &&
              account_get_d(ACCOUNT_SET_UNLOCKS) == 0)
-    {
         account_set_d(ACCOUNT_SET_UNLOCKS, 1);
-    }
 
     boost_on = 0;
 

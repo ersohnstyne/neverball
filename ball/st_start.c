@@ -68,7 +68,8 @@ enum
     START_LOCK_GOALS,
     START_LEVEL,
     START_CHECKSTARS,
-    START_STARVIEWER_SHOP
+    START_STARVIEWER_SHOP,
+    START_OPTIONS
 };
 
 static int shot_id;
@@ -196,7 +197,9 @@ static void start_over(int id, int pulse)
 
 /*---------------------------------------------------------------------------*/
 
-static int set_star_view;
+static int set_star_view = 0;
+
+static int set_level_options = 0;
 
 #if ENABLE_MOON_TASKLOADER!=0
 static int start_is_scanning_with_moon_taskloader = 0;
@@ -225,16 +228,16 @@ static int start_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-        if (set_star_view)
-        {
-            set_star_view = 0;
-            return goto_state(&st_start);
-        }
-
-        return goto_state_full(&st_set,
-                               curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_N_CURVE : GUI_ANIMATION_S_CURVE,
-                               curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_S_CURVE : GUI_ANIMATION_N_CURVE,
-                               0);
+            if (set_star_view || set_level_options)
+            {
+                set_level_options = 0;
+                set_star_view = 0;
+                return goto_state(&st_start);
+            }
+            return goto_state_full(&st_set,
+                                   curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_N_CURVE : GUI_ANIMATION_S_CURVE,
+                                   curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_S_CURVE : GUI_ANIMATION_N_CURVE,
+                                   0);
 
         case GUI_PREV:
             if (first > 1) {
@@ -357,6 +360,13 @@ static int start_action(int tok, int val)
         case START_STARVIEWER_SHOP:
             return goto_shop(&st_start, 0);
 #endif
+
+#if NB_HAVE_PB_BOTH==1
+        case START_OPTIONS:
+            set_level_options = 1;
+            return goto_state(&st_start);
+            break;
+#endif
     }
 
     return 1;
@@ -383,15 +393,12 @@ static int start_star_view_gui(void)
             const char *s0 = _("Complete the level set and earn stars\n"
                                "during playing Challenge Mode.");
 
-            gui_label(id, set_star_attr,
-                          GUI_LRG, gui_wht, gui_yel);
-            gui_space(id);
-
             if ((jd = gui_vstack(id)))
             {
-                char s_recommend[MAXSTR], s_needed[MAXSTR];
+                char s_needed[MAXSTR];
 
-                gui_multi(jd, s0, GUI_SML, GUI_COLOR_WHT);
+                gui_label(jd, set_star_attr,
+                              GUI_LRG, gui_wht, gui_yel);
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                 if (set_balls_needed(curr_set()) > account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + 3)
@@ -410,15 +417,20 @@ static int start_star_view_gui(void)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                     sprintf_s(s_recommend, MAXSTR,
 #else
-                    sprintf(s_recommend,
+                    sprintf(s_needed,
 #endif
                             _("Balls recommended: %d"), set_balls_needed(curr_set()));
 
-                    gui_multi(jd, s_recommend, GUI_SML, GUI_COLOR_YEL);
+                    gui_multi(jd, s_needed, GUI_SML, GUI_COLOR_YEL);
                 }
 #endif
+
                 gui_set_rect(jd, GUI_ALL);
             }
+
+            gui_space(id);
+
+            gui_multi(id, s0, GUI_SML, GUI_COLOR_WHT);
         }
         else
             gui_multi(id,
@@ -546,7 +558,7 @@ static int start_gui(void)
 
                         shot_id = gui_image(kd, set_shot(curr_set()),
                                                 ww, hh);
-                        file_id = gui_label(kd, " ", GUI_SML, GUI_COLOR_DEFAULT);
+                        file_id = gui_label(kd, " ", GUI_TNY, GUI_COLOR_DEFAULT);
                     }
                 }
                 else
@@ -608,6 +620,9 @@ static int start_gui(void)
                              GUI_SCORE_GOAL), 0, 0);
         gui_space(id);
 
+#if NB_HAVE_PB_BOTH==1
+        gui_state(id, _("Level Options"), GUI_SML, START_OPTIONS, 0);
+#else
         if (video.aspect_ratio >= 1.0f)
         {
             if ((jd = gui_hstack(id)))
@@ -636,6 +651,7 @@ static int start_gui(void)
                 gui_set_fill(kd);
             }
         }
+#endif
 
         gui_layout(id, 0, 0);
 
@@ -648,6 +664,70 @@ static int start_gui(void)
     }
 
     return id;
+}
+
+static int start_gui_options(void)
+{
+    int root_id, id, jd, kd;
+
+    if ((root_id = gui_root()))
+    {
+        if ((id = gui_vstack(root_id)))
+        {
+            if ((jd = gui_hstack(id)))
+            {
+                gui_label(jd, _("Level Options"), GUI_SML, GUI_COLOR_DEFAULT);
+                gui_filler(jd);
+
+#ifndef __EMSCRIPTEN__
+                if (current_platform == PLATFORM_PC)
+#endif
+                    gui_back_button(jd);
+            }
+
+            gui_space(id);
+
+            if ((jd = gui_hstack(id)))
+            {
+                if ((kd = gui_harray(jd)))
+                {
+                    int btn0, btn1;
+
+#if NB_HAVE_PB_BOTH==1
+                    btn1 = gui_state(kd, GUI_BALLOT_X,
+                                         GUI_SML, START_LOCK_GOALS, 1);
+                    btn0 = gui_state(kd, GUI_CHECKMARK,
+                                         GUI_SML, START_LOCK_GOALS, 0);
+
+                    gui_set_color(btn1, GUI_COLOR_RED);
+                    gui_set_color(btn0, GUI_COLOR_GRN);
+#else
+                    btn0 = gui_state(kd, _("Unlocked"),
+                                         GUI_SML, START_LOCK_GOALS, 0);
+                    btn1 = gui_state(kd, _("Locked"),
+                                         GUI_SML, START_LOCK_GOALS, 1);
+#endif
+
+                    if (config_get_d(CONFIG_LOCK_GOALS))
+                        gui_set_hilite(btn1, 1);
+                    else
+                        gui_set_hilite(btn0, 1);
+                }
+
+                gui_space(jd);
+
+                kd = gui_label(jd, _("Goal State in Completed Levels"),
+                                   GUI_SML, 0, 0);
+
+                gui_set_trunc(kd, TRUNC_TAIL);
+                gui_set_fill(kd);
+            }
+
+            gui_layout(id, 0, 0);
+        }
+    }
+
+    return root_id;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -778,7 +858,7 @@ static void start_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
         console_gui_list_paint();
 #endif
@@ -847,7 +927,7 @@ static int start_enter(struct state *st, struct state *prev)
     progress_exit();
     progress_init(MODE_NORMAL);
 
-    return start_gui();
+    return set_level_options ? start_gui_options() : start_gui();
 }
 
 static void start_point(int id, int x, int y, int dx, int dy)
@@ -865,7 +945,7 @@ static void start_point(int id, int x, int y, int dx, int dy)
     }
 #endif
 
-    if (!set_star_view)
+    if (!set_star_view && !set_level_options)
         start_over(gui_point(id, x, y), 1);
     else
         shared_point(id, x, y, dx, dy);
@@ -885,7 +965,7 @@ static void start_stick(int id, int a, float v, int bump)
     }
 #endif
 
-    if (!set_star_view)
+    if (!set_star_view && !set_level_options)
         start_over(gui_stick(id, a, v, bump), 1);
     else
         shared_stick_basic(id, a, v, bump);
@@ -898,7 +978,7 @@ static int start_score(int d)
         return 1;
 #endif
 
-    if (!set_star_view) return 1;
+    if (!set_star_view && !set_level_options) return 1;
 
     int s = (d < 0 ?
              GUI_SCORE_PREV(gui_score_get()) :
@@ -913,7 +993,7 @@ static void start_wheel(int x, int y)
     if (start_is_scanning_with_moon_taskloader)
         return;
 #endif
-    if (!set_star_view) return;
+    if (!set_star_view && !set_level_options) return;
 
     if (y > 0) start_score(-1);
     if (y < 0) start_score(+1);
@@ -940,6 +1020,7 @@ static int start_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
          && current_platform == PLATFORM_PC
          && !set_star_view
+         && !set_level_options
 #endif
             )
         {
@@ -950,6 +1031,7 @@ static int start_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
               && current_platform == PLATFORM_PC
               && !set_star_view
+              && !set_level_options
 #endif
             )
         {
@@ -973,6 +1055,7 @@ static int start_keybd(int c, int d)
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c)
 #if NB_HAVE_PB_BOTH==1
          && !set_star_view
+         && !set_level_options
 #endif
             )
             return start_score(+1);
@@ -1014,7 +1097,7 @@ static int start_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return start_action(GUI_BACK, 0);
 #if NB_HAVE_PB_BOTH==1
-        if (!set_star_view)
+        if (!set_star_view && !set_level_options)
 #endif
         {
             if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b))
@@ -1047,7 +1130,7 @@ static int start_joinrequired_action(int tok, int val)
 #if defined(__EMSCRIPTEN__)
             EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/"); }, 0);
 #elif _WIN32
-            system("start msedge https://discord.gg/qnJR263Hm2/");
+            system("explorer https://discord.gg/qnJR263Hm2/");
 #elif defined(__APPLE__)
             system("open https://discord.gg/qnJR263Hm2/");
 #elif defined(__linux__)

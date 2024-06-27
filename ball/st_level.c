@@ -585,7 +585,7 @@ static void level_paint(int id, float t)
         game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
     {
         hud_cam_paint();
@@ -890,7 +890,14 @@ static int level_signin_required_buttn(int b, int d)
     if (d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return goto_name(&st_level, &st_level_signin_required, 0, 0, 0);
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            return goto_name(demo_fp ?
+                             (campaign_used() ? &st_play_ready : &st_level) :
+                             &st_nodemo, &st_level_signin_required, 0, 0, 0);
+#else
+            return goto_name(demo_fp ? &st_level : &st_nodemo,
+                             &st_level_signin_required, 0, 0, 0);
+#endif
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return goto_exit();
     }
@@ -938,9 +945,9 @@ int goto_exit(void)
     checkpoints_stop();
 #endif
 
-#ifdef CONFIG_INCLUDES_ACCOUNT
+/*#ifdef CONFIG_INCLUDES_ACCOUNT
     int prev_wallet_gems = account_get_d(ACCOUNT_DATA_WALLET_GEMS);
-#endif
+#endif*/
 
     int done = progress_done();
 
@@ -1060,15 +1067,7 @@ struct state st_level_loading = {
     level_loading_enter,
     play_shared_leave,
     level_paint,
-    level_timer,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL
+    level_timer
 };
 
 struct state st_level = {
@@ -1081,9 +1080,7 @@ struct state st_level = {
     shared_angle, /* Can hover on: angle */
     level_click,
     level_keybd,
-    level_buttn,
-    NULL,
-    NULL
+    level_buttn
 };
 
 struct state st_poser = {
@@ -1096,10 +1093,7 @@ struct state st_poser = {
     NULL,
     NULL,
     poser_keybd,
-    poser_buttn,
-    NULL,
-    NULL,
-    NULL
+    poser_buttn
 };
 
 struct state st_nodemo = {
@@ -1112,10 +1106,7 @@ struct state st_nodemo = {
     shared_angle,
     level_click,
     nodemo_keybd,
-    nodemo_buttn,
-    NULL,
-    NULL,
-    NULL
+    nodemo_buttn
 };
 
 struct state st_level_signin_required = {
@@ -1128,8 +1119,5 @@ struct state st_level_signin_required = {
     shared_angle,
     shared_click_basic,
     level_signin_required_keybd,
-    level_signin_required_buttn,
-    NULL,
-    NULL,
-    NULL
+    level_signin_required_buttn
 };

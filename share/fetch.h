@@ -49,6 +49,12 @@ void fetch_reinit(void);
 void fetch_handle_event(void *);
 void fetch_quit(void);
 
+/*
+ * This function will be replaced into the fetch_url_download.
+ * Your functions will be replaced with same remaining parameters.
+ */
+#define fetch_url fetch_url_download
+
 unsigned int fetch_url(const char *url,
                        const char *dst,
                        struct fetch_callback);

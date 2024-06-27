@@ -178,7 +178,7 @@ void video_dualdisplay_resize(int window_w, int window_h)
 
         if (!config_get_d(CONFIG_FULLSCREEN))
         {
-            config_set_d(CONFIG_WIDTH, video_ddpy.ddpy_window_w);
+            config_set_d(CONFIG_WIDTH,  video_ddpy.ddpy_window_w);
             config_set_d(CONFIG_HEIGHT, video_ddpy.ddpy_window_h);
         }
 
@@ -238,7 +238,7 @@ void video_dualdisplay_set_display(int dpy)
         video_ddpy.ddpy_window_h > ddm.h)
     {
         log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n",
-            video_ddpy.ddpy_window_w, video_ddpy.ddpy_window_h, ddm.w, ddm.h);
+                   video_ddpy.ddpy_window_w, video_ddpy.ddpy_window_h, ddm.w, ddm.h);
         video_set_window_size(ddm.w, ddm.h);
     }
 
@@ -389,7 +389,6 @@ int video_dualdisplay_mode(int f, int w, int h)
     /*
      * Optional 16-bit double buffer with 16-bit depth buffer.
      *
-     * TODO: Uncomment, if you want to set the required buffer.
      * Default RGB size: 2 - Either 5 (16-bit) or 8 (32-bit)
      * Default depth size: 8 - Either 8 or 16
      */

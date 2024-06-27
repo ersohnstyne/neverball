@@ -283,7 +283,10 @@ static void intro_timer(int id, float dt)
         intro_done = 1;
 
         if (intro_page == 1)
-            return goto_state_full(curr_state(), 0, 0, 1);
+        {
+            goto_state_full(curr_state(), 0, 0, 1);
+            return;
+        }
 
         int val = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
         if (val == -1)
@@ -322,13 +325,13 @@ static int intro_accn_disabled_action(int tok, int val)
 
         case ACCOUNT_DISBALED_OPEN:
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://neverball.org/community-standards.php"); }, 0);
+            EM_ASM({ window.open("https://pennyball.stynegame.de/communityguide"); }, 0);
 #elif _WIN32
-            system("start msedge https://neverball.org/community-standards.php");
+            system("explorer https://pennyball.stynegame.de/communityguide");
 #elif defined(__APPLE__)
-            system("open https://neverball.org/community-standards.php");
+            system("open https://pennyball.stynegame.de/communityguide");
 #elif defined(__linux__)
-            system("x-www-browser https://neverball.org/community-standards.php");
+            system("x-www-browser https://pennyball.stynegame.de/communityguide");
 #endif
 
         case ACCOUNT_DISBALED_CANCEL:
@@ -763,8 +766,9 @@ static int nointernet_gui(void)
             gui_multi(id, _("Not to worry, you can play offline!"),
                           GUI_SML, GUI_COLOR_WHT);
         else
-            gui_multi(id, _("We're unable to connect the server!\n"
-                            "Make sure, that is connected by the internet!"),
+            gui_multi(id, _("Please check your internet connection\n"
+                            "or configure your router first.\n"
+                            "(e.g. Wi-Fi settings or ethernet)"),
                           GUI_SML, GUI_COLOR_WHT);
 
         gui_layout(id, 0, 0);
@@ -1036,10 +1040,7 @@ struct state st_intro = {
     shared_angle,
     intro_click,
     NULL,
-    intro_buttn,
-    NULL,
-    NULL,
-    NULL
+    intro_buttn
 };
 
 struct state st_intro_accn_disabled = {
@@ -1120,8 +1121,5 @@ struct state st_screensaver = {
     shared_angle,
     NULL,
     screensaver_keybd,
-    screensaver_buttn,
-    NULL,
-    NULL,
-    NULL
+    screensaver_buttn
 };

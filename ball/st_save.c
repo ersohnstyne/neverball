@@ -507,10 +507,7 @@ struct state st_save = {
     shared_angle,
     shared_click,
     save_keybd,
-    save_buttn,
-    NULL,
-    NULL,
-    NULL
+    save_buttn
 };
 
 struct state st_clobber = {
@@ -523,10 +520,7 @@ struct state st_clobber = {
     shared_angle,
     shared_click,
     clobber_keybd,
-    clobber_buttn,
-    NULL,
-    NULL,
-    NULL
+    clobber_buttn
 };
 
 struct state st_lockdown = {
@@ -539,10 +533,7 @@ struct state st_lockdown = {
     shared_angle,
     shared_click,
     lockdown_keybd,
-    lockdown_buttn,
-    NULL,
-    NULL,
-    NULL
+    lockdown_buttn
 };
 
 struct state st_save_error = {
@@ -555,8 +546,5 @@ struct state st_save_error = {
     shared_angle,
     shared_click_basic,
     save_error_keybd,
-    save_error_buttn,
-    NULL,
-    NULL,
-    NULL
+    save_error_buttn
 };

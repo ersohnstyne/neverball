@@ -19,7 +19,7 @@
 /* *.nbrx = NBR version > 9 */
 #define CMD_NBRX
 
-#pragma message(__FILE__ ": NBR files, that the version is greater than 9, leads the file type extension to NBRX.")
+#pragma message(__FILE__ ": Replay files, that the NBR version is greater than 9, leads the file type extension to NBRX.")
 #endif
 
 #if _WIN32

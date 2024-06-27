@@ -18,6 +18,7 @@
 #include "solid_chkp.h"
 
 #include "account.h"
+#include "account_wgcl.h"
 #include "campaign.h" /* New: Campaign */
 #include "networking.h"
 #endif
@@ -377,11 +378,19 @@ static int goal_gui(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             if (!campaign_used())
             {
+#if NB_HAVE_PB_BOTH==1
+                gui_score_board(id, (GUI_SCORE_COIN |
+                                     GUI_SCORE_TIME |
+                                     GUI_SCORE_GOAL), 1,
+                                    !resume && !account_wgcl_name_read_only() &&
+                                    (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
+#else
                 gui_score_board(id, (GUI_SCORE_COIN |
                                      GUI_SCORE_TIME |
                                      GUI_SCORE_GOAL), 1,
                                     !resume &&
                                     (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
+#endif
 
                 gui_campaign_stats(curr_level());
 
@@ -393,24 +402,38 @@ static int goal_gui(void)
 #endif
                      (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN)))
             {
+#if NB_HAVE_PB_BOTH==1
                 gui_score_board(id, ((campaign_career_unlocked() ? GUI_SCORE_COIN : 0) |
                                      GUI_SCORE_TIME |
-                                     (campaign_career_unlocked() ? GUI_SCORE_GOAL : 0)),
-                                    1,
-                                    !resume && (shop_product_available ||
-                                                challenge_disable_all_buttons) ? 0 :
-                                    high);
+                                     (campaign_career_unlocked() ? GUI_SCORE_GOAL : 0)), 1,
+                                    !resume && !account_wgcl_name_read_only() &&
+                                    (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
+#else
+                gui_score_board(id, ((campaign_career_unlocked() ? GUI_SCORE_COIN : 0) |
+                                     GUI_SCORE_TIME |
+                                     (campaign_career_unlocked() ? GUI_SCORE_GOAL : 0)), 1,
+                                    !resume &&
+                                    (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
+#endif
 
                 gui_set_stats(curr_level());
 
                 gui_space(id);
             }
 #else
+#if NB_HAVE_PB_BOTH==1
+            gui_score_board(id, (GUI_SCORE_COIN |
+                                 GUI_SCORE_TIME |
+                                 GUI_SCORE_GOAL), 1,
+                                !resume && !account_wgcl_name_read_only() &&
+                                (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
+#else
             gui_score_board(id, (GUI_SCORE_COIN |
                                  GUI_SCORE_TIME |
                                  GUI_SCORE_GOAL), 1,
                                 !resume &&
                                 (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
+#endif
 
             gui_set_stats(curr_level());
 
@@ -543,7 +566,7 @@ static void goal_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if !defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_death_paint();
 #endif
 }
@@ -909,6 +932,10 @@ static int restrict_hardcore_nextstate = 0;
 
 static int goal_hardcore_enter(struct state *st, struct state *prev)
 {
+#if NB_HAVE_PB_BOTH==1
+    account_wgcl_restart_attempt();
+#endif
+
     restrict_hardcore_nextstate = 0;
     powerup_stop();
 
@@ -979,10 +1006,7 @@ struct state st_goal = {
     shared_angle,
     shared_click,
     goal_keybd,
-    goal_buttn,
-    NULL,
-    NULL,
-    NULL
+    goal_buttn
 };
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -990,16 +1014,7 @@ struct state st_goal_hardcore = {
     goal_hardcore_enter,
     play_shared_leave,
     goal_hardcore_paint,
-    goal_hardcore_timer,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL
+    goal_hardcore_timer
 };
 #endif
 
@@ -1013,10 +1028,7 @@ struct state st_goal_extraballs = {
     shared_angle,
     shared_click_basic,
     goal_extraballs_keybd,
-    goal_extraballs_buttn,
-    NULL,
-    NULL,
-    NULL
+    goal_extraballs_buttn
 };
 
 struct state st_goal_shop = {
@@ -1029,8 +1041,5 @@ struct state st_goal_shop = {
     shared_angle,
     shared_click_basic,
     goal_shop_keybd,
-    goal_shop_buttn,
-    NULL,
-    NULL,
-    NULL
+    goal_shop_buttn
 };

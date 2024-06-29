@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2024 Microsoft / Neverball authors
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -17,13 +17,13 @@
 
 #include <string.h>
 #include "common.h"
-#include "substr.h"
+#include "strbuf.h"
 
-static struct strbuf joinstr(const char* head, const char* tail)
+static struct strbuf joinstr(const char *head, const char *tail)
 {
     struct strbuf sb = { "" };
 
-    const size_t max_len = sizeof(sb.buf) - 1u;
+    const size_t max_len = sizeof (sb.buf) - 1u;
     const size_t head_len = head ? MIN(strlen(head), max_len) : 0u;
     const size_t tail_len = tail ? MIN(strlen(tail), max_len - head_len) : 0u;
 

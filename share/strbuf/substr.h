@@ -11,6 +11,7 @@
  * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
  * General Public License for more details.
  */
+
 #ifndef SUBSTR_H
 #define SUBSTR_H 1
 
@@ -26,14 +27,9 @@
 #endif
 #endif
 
-struct strbuf
+static struct strbuf substr(const char *str, size_t start, size_t count)
 {
-    char buf[64];
-};
-
-static struct strbuf substr(const char* str, size_t start, size_t count)
-{
-    struct strbuf sb = { NULL };
+    struct strbuf sb = { "" };
 
     if (str)
     {
@@ -41,18 +37,12 @@ static struct strbuf substr(const char* str, size_t start, size_t count)
 
         start = MIN(start, max_start);
         count = MIN(count, max_start - start);
+        count = MIN(count, sizeof (sb.buf) - 1u);
 
-        sb.buf = (char*)malloc(max_start + 1);
-
-        if (sb.buf)
+        if (count > 0)
         {
-            count = MIN(count, sizeof(sb.buf));
-
-            if (count > 0 && count < max_start + 1)
-            {
-                memcpy(sb.buf, str + start, count);
-                sb.buf[count] = 0;
-            }
+            memcpy(sb.buf, str + start, count);
+            sb.buf[count] = 0;
         }
     }
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2024 Microsoft / Neverball authors
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -16,7 +16,7 @@
 
 #include <string.h>
 #include "common.h"
-<<<<<<<< HEAD:share/substr.h
+#include "strbuf.h"
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
@@ -28,12 +28,10 @@
 
 struct strbuf
 {
+    char buf[64];
 };
-========
-#include "strbuf.h"
->>>>>>>> c279f0857d12b5bd55c9f91a29bf81eb4018b6ce:share/strbuf/substr.h
 
-static struct strbuf substr(const char *str, size_t start, size_t count)
+static struct strbuf substr(const char* str, size_t start, size_t count)
 {
     struct strbuf sb = { NULL };
 
@@ -44,11 +42,11 @@ static struct strbuf substr(const char *str, size_t start, size_t count)
         start = MIN(start, max_start);
         count = MIN(count, max_start - start);
 
-        sb.buf = (char *) malloc(max_start + 1);
+        sb.buf = (char*)malloc(max_start + 1);
 
         if (sb.buf)
         {
-            count = MIN(count, sizeof (sb.buf));
+            count = MIN(count, sizeof(sb.buf));
 
             if (count > 0 && count < max_start + 1)
             {

@@ -285,6 +285,9 @@ static void fetch_package_images(void)
 
 /*---------------------------------------------------------------------------*/
 
+static int package_manage_can_start = 0;
+static int package_manage_selected  = 0;
+
 static void package_start_download(int id)
 {
     do_download = 0;
@@ -354,7 +357,13 @@ static int package_action(int tok, int val)
 
             if (status == PACKAGE_INSTALLED ||
                 status == PACKAGE_UPDATE)
+            {
+                package_manage_can_start = strcmp(package_get_type(selected), "set") == 0;
+
+                package_manage_selected = selected;
+
                 return goto_state(&st_package_manage);
+            }
             else if (status == PACKAGE_AVAILABLE ||
                      status == PACKAGE_ERROR)
             {
@@ -557,33 +566,16 @@ static void package_select(int pi)
     gui_set_label(type_id,  package_get_formatted_type(pi));
     gui_set_label(title_id, package_get_name(pi));
 
-    if (status == PACKAGE_INSTALLED)
-    {
-        if (strcmp(package_get_type(selected), "set") == 0)
-        {
-            gui_set_color(install_status_id, gui_grn, gui_grn);
-            gui_set_color(install_label_id, gui_wht, gui_wht);
-
-            gui_set_label(install_label_id, _("Start"));
-            gui_set_label(install_status_id, GUI_TRIANGLE_RIGHT);
-        }
-        else
-        {
-            gui_set_color(install_status_id, gui_gry, gui_gry);
-            gui_set_color(install_label_id, gui_gry, gui_gry);
-        }
-    }
-    if (status == PACKAGE_UPDATE)
+    if      (status == PACKAGE_UPDATE)
         gui_set_label(install_label_id, _("Update"));
-    else
+    else if (status != PACKAGE_INSTALLED)
         gui_set_label(install_label_id, _("Install"));
+    else
+        gui_set_label(install_label_id, _("Manage"));
 
     if (package_get_status(pi) == PACKAGE_INSTALLED)
     {
         /* HACK: Mojang made done this. */
-
-        //gui_set_color(install_status_id, gui_gry, gui_gry);
-        //gui_set_color(install_label_id, gui_gry, gui_gry);
 
         gui_set_color(install_status_id, gui_wht, gui_wht);
         gui_set_color(install_label_id,  gui_wht, gui_wht);
@@ -712,7 +704,7 @@ static int package_keybd(int c, int d)
 
 enum
 {
-    PACKAGE_MANAGE_EXPLORER = GUI_LAST,
+    PACKAGE_MANAGE_START = GUI_LAST,
     PACKAGE_MANAGE_UPDATE,
     PACKAGE_MANAGE_DELETE
 };
@@ -753,6 +745,10 @@ static int package_manage_action(int tok, int val)
         {
             switch (tok)
             {
+                case PACKAGE_MANAGE_START:
+                    if (package_manage_can_start)
+                        return installed_action ? installed_action(package_manage_selected) : 1;
+
                 case PACKAGE_MANAGE_UPDATE:
                     selected = val;
                     do_download = 1;
@@ -813,6 +809,15 @@ static int package_manage_gui(void)
         gui_multi(id, desc, GUI_SML, gui_wht, gui_wht);
 
         gui_space(id);
+
+        if (package_manage_can_start)
+        {
+            if ((btn_id = gui_state(id, _("Start"),
+                                        GUI_SML, PACKAGE_MANAGE_START, selected)))
+                gui_set_color(btn_id, gui_wht, gui_wht);
+
+            gui_space(id);
+        }
 
         if ((btn_id = gui_state(id, _("Update"),
                                     GUI_SML, PACKAGE_MANAGE_UPDATE, selected)))

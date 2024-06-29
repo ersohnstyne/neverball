@@ -136,7 +136,8 @@ extern "C" {
 #endif
 #include "log.h"
 #include "game_client.h"
-#include "substr.h"
+#include "strbuf/substr.h"
+#include "strbuf/joinstr.h"
 #include "lang.h"
 
 #if NB_HAVE_PB_BOTH==1
@@ -1334,6 +1335,29 @@ static void make_dirs_and_migrate(void)
 
 /*---------------------------------------------------------------------------*/
 
+static int handle_installed_action(int pi)
+{
+    /* Go to level set. */
+
+    if (pi >= 0 && strcmp(package_get_type(pi), "set") == 0)
+    {
+        const char *package_id = package_get_id(pi);
+        const char *file = JOINSTR(package_id, ".txt");
+        int index = -1;
+
+        set_init(0);
+
+        index = set_find(file);
+
+        return index >= 0 ? goto_start(index, &st_package) : 1;
+    }
+
+    return 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+
 static void main_quit(void);
 
 struct main_loop
@@ -1606,6 +1630,8 @@ static int main_init(int argc, char *argv[])
 #endif
 
         package_init();
+
+        package_set_installed_action(handle_installed_action);
 #ifndef DISABLE_PANORAMA
     }
 #endif

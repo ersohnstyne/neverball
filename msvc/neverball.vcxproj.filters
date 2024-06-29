@@ -40,6 +40,9 @@
     <Filter Include="Headerdateien\wgcl">
       <UniqueIdentifier>{60b04abb-808a-4ce6-a023-542c23811241}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Quelldateien\share\strbuf">
+      <UniqueIdentifier>{3f7ebfba-3009-4fe0-a457-ee792fc3c5f1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\share\video.c">
@@ -740,7 +743,7 @@
     <ClInclude Include="..\ball\st_intro_covid.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
-    <ClInclude Include="..\dist\neverball_rc.h">
+    <ClInclude Include="..\dist\pennyball_rc.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="..\ball\score_online.h">
@@ -767,9 +770,6 @@
     <ClInclude Include="..\share\st_setup.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
-    <ClInclude Include="..\share\substr.h">
-      <Filter>Headerdateien\share</Filter>
-    </ClInclude>
     <ClInclude Include="..\share\moon_taskloader.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
@@ -791,9 +791,15 @@
     <ClInclude Include="..\wgcl\account_wgcl.h">
       <Filter>Headerdateien\wgcl</Filter>
     </ClInclude>
+    <ClInclude Include="..\share\strbuf\joinstr.h">
+      <Filter>Quelldateien\share\strbuf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\strbuf\strbuf.h">
+      <Filter>Quelldateien\share\strbuf</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\dist\neverball_rc.rc">
+    <ResourceCompile Include="..\dist\pennyball_rc.rc">
       <Filter>Ressourcendateien\resource</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -801,10 +807,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\dist\ico\neverball.ico">
+    <Image Include="..\dist\ico\pennyball.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
-    <Image Include="..\dist\ico\neverputt.ico">
+    <Image Include="..\dist\ico\pennyputt.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
   </ItemGroup>

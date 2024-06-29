@@ -116,7 +116,8 @@ extern "C" {
 #include "key.h"
 #include "fetch.h"
 #include "package.h"
-#include "substr.h"
+#include "strbuf/substr.h"
+#include "strbuf/joinstr.h"
 
 #if NB_HAVE_PB_BOTH==1
 #include "st_setup.h"

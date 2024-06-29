@@ -518,7 +518,7 @@ int campaign_score_update(int timer, int coins, int *score_rank, int *times_rank
     if (!campaign_used()) return 0;
 
     const char *player = config_get_s(CONFIG_PLAYER);
-
+    
     int career_hs_unlocked = (campaign_career_unlocked() &&
                               config_get_d(CONFIG_LOCK_GOALS));
 

@@ -65,7 +65,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-struct state st_package;
 struct state st_package_manage;
 
 #define PACKAGE_STEP 4
@@ -109,6 +108,8 @@ struct download_info
     char *package_id;
     char  label[32];
 };
+
+static int (*installed_action)(int pi);
 
 /*---------------------------------------------------------------------------*/
 
@@ -844,6 +845,11 @@ void goto_package(int package_id, struct state *back_state)
     /* Finally, select the package. */
 
     package_select(package_id);
+}
+
+void package_set_installed_action(int (*installed_action_fn)(int pi))
+{
+    installed_action = installed_action_fn;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -76,6 +76,8 @@ static int shot_id;
 static int file_id;
 static int challenge_id;
 
+static struct state *start_back;
+
 /*---------------------------------------------------------------------------*/
 
 /* Create a level selector button based upon its existence and status. */
@@ -234,7 +236,7 @@ static int start_action(int tok, int val)
                 set_star_view = 0;
                 return goto_state(&st_start);
             }
-            return goto_state_full(&st_set,
+            return goto_state_full(start_back ? start_back : &st_set,
                                    curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_N_CURVE : GUI_ANIMATION_S_CURVE,
                                    curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_S_CURVE : GUI_ANIMATION_N_CURVE,
                                    0);
@@ -1236,6 +1238,14 @@ static int start_joinrequired_buttn(int b, int d)
             return start_joinrequired_action(GUI_BACK, 0);
     }
     return 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+int goto_start(int index, struct state *back_state)
+{
+    set_goto(index);
+    return goto_state(&st_start);
 }
 
 /*---------------------------------------------------------------------------*/

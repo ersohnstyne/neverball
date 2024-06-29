@@ -715,7 +715,7 @@ static int game_setup_action(int tok, int val)
 
                         case SETUP_TERMS_READMORE:
                             if (val == 0)
-                                game_setup_terms_openlink("https://neverball.stynegame.de/terms");
+                                game_setup_terms_openlink("https://pennyball.stynegame.de/terms");
                             else if (val == 1)
                                 game_setup_terms_openlink("https://discord.com/terms");
                             else if (val == 2)

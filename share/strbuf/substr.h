@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2024 Microsoft / Neverball authors
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -12,14 +12,12 @@
  * General Public License for more details.
  */
 
-#ifndef ST_START_H
-#define ST_START_H
+#ifndef STRBUF_H
+#define STRBUF_H 1
 
-#include "state.h"
-
-extern struct state st_start;
-extern struct state st_start_compat;
-
-int goto_start(int index, struct state *back_state);
+struct strbuf
+{
+    char buf[64];
+};
 
 #endif

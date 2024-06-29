@@ -4,15 +4,16 @@
 # Please keep this list sorted alphabetically.
 
 N: Ersohn Styne (PennySchloss)
+N: @stynersohnentertainment
 E: ersohn.styne@gmail.com
 E: ersohn@styne.de
-W: https://www.styne.de
+W: https://www.stynegame.de
+W: https://pennyball.stynegame.de
 W: https://discord.gg/qnJR263Hm2
 D: Microsoft Developer Estates Hamburg (primary)
 D: Ubuntu (Unix) 21th century programming
 D: Windows 21th century builds
 D: Dedicated Game Server Networks
-D: Shapez Payments for Challenge Mode
 D: Premium balls (Beach, Fairy, Legacy, Shinbi-Globe)
 D: New shop screen
 D: Campaign level

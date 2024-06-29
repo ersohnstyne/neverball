@@ -557,6 +557,22 @@ static void package_select(int pi)
     gui_set_label(type_id,  package_get_formatted_type(pi));
     gui_set_label(title_id, package_get_name(pi));
 
+    if (status == PACKAGE_INSTALLED)
+    {
+        if (strcmp(package_get_type(selected), "set") == 0)
+        {
+            gui_set_color(install_status_id, gui_grn, gui_grn);
+            gui_set_color(install_label_id, gui_wht, gui_wht);
+
+            gui_set_label(install_label_id, _("Start"));
+            gui_set_label(install_status_id, GUI_TRIANGLE_RIGHT);
+        }
+        else
+        {
+            gui_set_color(install_status_id, gui_gry, gui_gry);
+            gui_set_color(install_label_id, gui_gry, gui_gry);
+        }
+    }
     if (status == PACKAGE_UPDATE)
         gui_set_label(install_label_id, _("Update"));
     else

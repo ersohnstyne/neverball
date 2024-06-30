@@ -49,9 +49,7 @@ static int Rhud_id;
 static int FSLhud_id;
 
 static int time_id;
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
 static int touch_id;
-#endif
 
 static int speedometer_id;
 
@@ -92,9 +90,7 @@ static float speedup_logo_timer;
 
 static float cam_timer;
 static float speed_timer_length;
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
 static float touch_timer;
-#endif
 
 /* Visibility */
 
@@ -205,7 +201,6 @@ void hud_init(void)
     }
 
     /* Let Mojang done these */
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
     if ((touch_id = gui_vstack(0)))
     {
         gui_space(touch_id);
@@ -219,7 +214,6 @@ void hud_init(void)
 
         gui_layout(touch_id, -1, +1);
     }
-#endif
 
     /* Default is 59999 (24h = 360000 * 24) */
     if ((time_id = gui_clock(0, 8640000, GUI_MED)))
@@ -314,9 +308,7 @@ void hud_free(void)
     gui_delete(Rhud_id);
     gui_delete(Lhud_id);
     gui_delete(FSLhud_id);
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
     gui_delete(touch_id);
-#endif
     gui_delete(time_id);
     gui_delete(cam_id);
     gui_delete(fps_id);
@@ -373,10 +365,8 @@ static void hud_update_alpha(void)
     gui_set_alpha(cam_id,          cam_hud_alpha * standard_hud_alpha,
                                    GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE);
     gui_set_alpha(time_id,         standard_hud_alpha, GUI_ANIMATION_S_CURVE);
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
     gui_set_alpha(touch_id,        standard_hud_alpha,
                                    GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE);
-#endif
     gui_set_alpha(FSLhud_id,       standard_hud_alpha, GUI_ANIMATION_W_CURVE);
     gui_set_alpha(Lhud_id,         standard_hud_alpha,
                                    GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE);
@@ -429,9 +419,7 @@ void hud_paint(void)
 
     hud_cam_paint();
     hud_speed_paint();
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
     hud_touch_paint();
-#endif
 }
 
 void hud_update(int pulse, float animdt)
@@ -466,9 +454,7 @@ void hud_update(int pulse, float animdt)
         gui_set_color(text_balls_id,       GUI_COLOR_WHT);
         gui_set_color(text_score_id,       GUI_COLOR_WHT);
         gui_set_color(text_speed_id,       GUI_COLOR_WHT);
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
         gui_set_color(touch_id,            GUI_COLOR_WHT);
-#endif
 
         gui_pulse(ball_id, 0.0f);
         gui_pulse(time_id, 0.0f);
@@ -519,9 +505,7 @@ void hud_update(int pulse, float animdt)
                     gui_set_color(text_balls_id,       GUI_COLOR_RED);
                     gui_set_color(text_score_id,       GUI_COLOR_RED);
                     gui_set_color(text_speed_id,       GUI_COLOR_RED);
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
                     gui_set_color(touch_id,            GUI_COLOR_RED);
-#endif
 
                     audio_play(AUD_TICK, 1.0f);
                     gui_pulse(time_id, 1.50);
@@ -534,9 +518,7 @@ void hud_update(int pulse, float animdt)
                     gui_set_color(text_balls_id,       GUI_COLOR_VIO);
                     gui_set_color(text_score_id,       GUI_COLOR_VIO);
                     gui_set_color(text_speed_id,       GUI_COLOR_VIO);
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
                     gui_set_color(touch_id,            GUI_COLOR_VIO);
-#endif
 
                     audio_play(AUD_TOCK, 1.0f);
                     gui_pulse(time_id, 1.25);
@@ -549,9 +531,7 @@ void hud_update(int pulse, float animdt)
                     gui_set_color(text_balls_id,       GUI_COLOR_WHT);
                     gui_set_color(text_score_id,       GUI_COLOR_WHT);
                     gui_set_color(text_speed_id,       GUI_COLOR_WHT);
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
                     gui_set_color(touch_id,            GUI_COLOR_WHT);
-#endif
                 }
             }
             else
@@ -709,19 +689,14 @@ void hud_timer(float dt)
 
     gui_timer(Rhud_id, dt);
     gui_timer(Lhud_id, dt);
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
     gui_timer(touch_id, dt);
-#endif
     gui_timer(time_id, dt);
 
     hud_cam_timer(dt);
     hud_speed_timer(dt);
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
     hud_touch_timer(dt);
-#endif
 }
 
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
 int hud_touch(const SDL_TouchFingerEvent *e)
 {
     touch_timer = 5.0f;
@@ -736,7 +711,6 @@ int hud_touch(const SDL_TouchFingerEvent *e)
 
     return 0;
 }
-#endif
 
 void hud_update_camera_direction(float rot_direction)
 {
@@ -934,7 +908,6 @@ void hud_speed_paint(void)
         gui_paint(speed_id);
 }
 
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
 void hud_touch_timer(float dt)
 {
     touch_timer -= dt;
@@ -946,6 +919,5 @@ void hud_touch_paint(void)
     if (touch_timer > 0.0f && curr_state() != &st_pause)
         gui_paint(touch_id);
 }
-#endif
 
 /*---------------------------------------------------------------------------*/

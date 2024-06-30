@@ -28,6 +28,8 @@ extern const char TITLE[];
 extern const char ICON[];
 #endif
 
+extern int opt_touch;
+
 struct video
 {
     int device_w, device_h;

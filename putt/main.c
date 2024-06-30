@@ -463,6 +463,36 @@ static int loop(void)
 
     int event_threshold = 0;
 
+    /* Process SDL events. */
+
+    SDL_TouchFingerEvent opt_touch_event = {0};
+
+    if (opt_touch)
+    {
+        switch (e.type)
+        {
+            case SDL_MOUSEMOTION:
+                opt_touch_event.type = SDL_FINGERMOTION;
+                opt_touch_event.x  = (float) (e.motion.x / video.device_w);
+                opt_touch_event.y  = (float) (e.motion.y / video.device_h);
+                opt_touch_event.dx = (float) (e.motion.xrel / video.device_w);
+                opt_touch_event.dy = (float) (e.motion.yrel / video.device_h);
+
+                if (config_get_d(CONFIG_MOUSE_INVERT))
+                    opt_touch_event.dy *= -1;
+
+                break;
+
+            case SDL_MOUSEBUTTONDOWN:
+                opt_touch_event.type = SDL_FINGERDOWN;
+                break;
+
+            case SDL_MOUSEBUTTONUP:
+                opt_touch_event.type = SDL_FINGERUP;
+                break;
+        }
+    }
+
     while (d && SDL_PollEvent(&e))
     {
         if (e.type == SDL_QUIT)
@@ -510,16 +540,16 @@ static int loop(void)
                         splitview_crossed = 1;
                 }
 
-                st_point(ax, ay, dx, dy);
+                if (opt_touch) st_touch(&opt_touch_event); else st_point(ax, ay, dx, dy);
 
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
-                d = st_click(e.button.button, 1);
+                if (opt_touch) d = st_touch(&opt_touch_event); else d = st_click(e.button.button, 1);
                 break;
 
             case SDL_MOUSEBUTTONUP:
-                d = st_click(e.button.button, 0);
+                if (opt_touch) d = st_touch(&opt_touch_event); else d = st_click(e.button.button, 0);
                 break;
 #endif
 

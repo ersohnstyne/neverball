@@ -1141,7 +1141,8 @@ static int play_loop_buttn(int b, int d)
 
 static int play_loop_touch(const SDL_TouchFingerEvent *e)
 {
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
+    if (!opt_touch) return 1;
+
     static SDL_FingerID rotate_finger = -1;
 
     static float rotate = 0.0f; /* Filtered input. */
@@ -1234,7 +1235,6 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
             game_set_pos(dx, dy);
         }
     }
-#endif
 
     return 1;
 }

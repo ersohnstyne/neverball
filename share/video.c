@@ -67,6 +67,8 @@ extern const char TITLE[];
 extern const char ICON [];
 #endif
 
+int opt_touch;
+
 struct video video;
 
 /*---------------------------------------------------------------------------*/

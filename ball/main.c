@@ -207,6 +207,7 @@ static char *opt_panorama;
     "  -v, --version             show version.\n" \
     "  -s, --screensaver         show screensaver.\n" \
     "      --safetysetup         show safety video (not yet implemented).\n" \
+    "      --touch               force mobile/tablet touch version instead of keyboard.\n" \
     "  -d, --data <dir>          use 'dir' as game data directory.\n" \
     "  -r, --replay <file>       play the replay 'file'.\n" \
     "  -l, --level <file>        load the level 'file'\n" \
@@ -221,6 +222,7 @@ static char *opt_panorama;
     "  -v, --version             show version.\n" \
     "  -s, --screensaver         show screensaver.\n" \
     "      --safetysetup         show safety video (not yet implemented).\n" \
+    "      --touch               force mobile/tablet touch version instead of keyboard.\n" \
     "  -d, --data <dir>          use 'dir' as game data directory.\n" \
     "  -r, --replay <file>       play the replay 'file'.\n" \
     "  -l, --level <file>        load the level 'file'\n" \
@@ -240,6 +242,7 @@ static char *opt_panorama;
     "  -v, --version             show version.\n" \
     "  -s, --screensaver         show screensaver.\n" \
     "      --safetysetup         show safety video (not yet implemented).\n" \
+    "      --touch               force mobile/tablet touch version instead of keyboard.\n" \
     "  -d, --data <dir>          use 'dir' as game data directory.\n" \
     "  -r, --replay <file>       play the replay 'file'.\n" \
     "  -l, --level <file>        load the level 'file'\n" \
@@ -252,6 +255,7 @@ static char *opt_panorama;
     "  -v, --version             show version.\n" \
     "  -s, --screensaver         show screensaver.\n" \
     "      --safetysetup         show safety video (not yet implemented).\n" \
+    "      --touch               force mobile/tablet touch version instead of keyboard.\n" \
     "  -d, --data <dir>          use 'dir' as game data directory.\n" \
     "  -r, --replay <file>       play the replay 'file'.\n" \
     "  -l, --level <file>        load the level 'file'\n" \
@@ -301,6 +305,12 @@ static void opt_init(int argc, char **argv)
         if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--screensaver") == 0)
         {
             opt_screensaver = 1;
+        }
+
+        if (strcmp(argv[i], "--touch") == 0)
+        {
+            opt_touch = 1;
+            i++;
         }
 
         if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--data")    == 0)
@@ -1005,6 +1015,34 @@ static int loop(void)
 
     /* Process SDL events. */
 
+    SDL_TouchFingerEvent opt_touch_event = {0};
+
+    if (opt_touch)
+    {
+        switch (e.type)
+        {
+            case SDL_MOUSEMOTION:
+                opt_touch_event.type = SDL_FINGERMOTION;
+                opt_touch_event.x  = (float) (e.motion.x / video.device_w);
+                opt_touch_event.y  = (float) (e.motion.y / video.device_h);
+                opt_touch_event.dx = (float) (e.motion.xrel / video.device_w);
+                opt_touch_event.dy = (float) (e.motion.yrel / video.device_h);
+
+                if (config_get_d(CONFIG_MOUSE_INVERT))
+                    opt_touch_event.dy *= -1;
+
+                break;
+
+            case SDL_MOUSEBUTTONDOWN:
+                opt_touch_event.type = SDL_FINGERDOWN;
+                break;
+
+            case SDL_MOUSEBUTTONUP:
+                opt_touch_event.type = SDL_FINGERUP;
+                break;
+        }
+    }
+
     while (d && SDL_PollEvent(&e))
     {
         switch (e.type)
@@ -1062,16 +1100,15 @@ static int loop(void)
                         splitview_crossed = 1;
                 }
 
-            st_point(ax, ay, dx, dy);
-
-            break;
+                if (opt_touch) st_touch(&opt_touch_event); else st_point(ax, ay, dx, dy);
+                break;
 
             case SDL_MOUSEBUTTONDOWN:
-                d = st_click(e.button.button, 1);
+                if (opt_touch) d = st_touch(&opt_touch_event); else d = st_click(e.button.button, 1);
                 break;
 
             case SDL_MOUSEBUTTONUP:
-                d = st_click(e.button.button, 0);
+                if (opt_touch) d = st_touch(&opt_touch_event); else d = st_click(e.button.button, 0);
                 break;
 #endif
 

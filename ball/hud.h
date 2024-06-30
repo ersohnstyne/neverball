@@ -31,9 +31,7 @@ void hud_timer(float);
 void hud_update(int, float);
 void hud_update_camera_direction(float);
 
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
 int hud_touch(const SDL_TouchFingerEvent *);
-#endif
 
 void hud_speedup_reset(void);
 void hud_speedup_pulse(void);
@@ -53,10 +51,8 @@ void hud_speed_pulse(int);
 void hud_speed_timer(float);
 void hud_speed_paint(void);
 
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
 void hud_touch_timer(float);
 void hud_touch_paint(void);
-#endif
 
 /*---------------------------------------------------------------------------*/
 

@@ -1,7 +1,7 @@
 ﻿/*
  * Copyright (C) 2024 Microsoft / Neverball authors
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -19,6 +19,7 @@
 
 #include "networking.h"
 #include "account.h"
+#include "account_wgcl.h"
 #include "campaign.h" /* New: Campaign */
 #endif
 
@@ -1437,8 +1438,21 @@ static int levelgroup_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
+static int goto_playgame_param(struct state *next_st)
+{
+#ifdef CONFIG_INCLUDES_ACCOUNT
+    if (!account_wgcl_reload()) return 1;
+#endif
+
+    return goto_state(next_st);
+}
+
 int goto_playgame(void)
 {
+#ifdef CONFIG_INCLUDES_ACCOUNT
+    if (!account_wgcl_restart_attempt()) return 1;
+#endif
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
         return goto_state(&st_campaign);
@@ -1455,13 +1469,13 @@ int goto_playgame_register(void)
 {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
-        return goto_name(&st_campaign, &st_title, 0, 0, 0);
+        return goto_name(&st_campaign, &st_title, goto_playgame_param, 0, 0);
     else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET))
 #endif
-        return goto_name(&st_set, &st_title, 0, 0, 0);
+        return goto_name(&st_set, &st_title, goto_playgame_param, 0, 0);
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     else
-        return goto_name(&st_levelgroup, &st_title, 0, 0, 0);
+        return goto_name(&st_levelgroup, &st_title, goto_playgame_param, 0, 0);
 #endif
 }
 

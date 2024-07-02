@@ -395,6 +395,13 @@ int account_wgcl_reload(void)
 
     root_obj = json_value_get_object(root);
 
+    if (json_object_get_number(root_obj, "web_return_code") != 200 &&
+        json_object_get_number(root_obj, "web_return_code") != 302)
+    {
+        log_errorf("WGCL + CURL error: Reload failed: %s\n", json_object_get_string(root_obj, "message_text"));
+        goto account_wgcl_reload_fail;
+    }
+
     if (!json_object_has_value(root_obj, "data_session"))
     {
         log_errorf("WGCL + CURL error: Not an data_session JSON object!\n");
@@ -464,22 +471,27 @@ int account_wgcl_reload(void)
         account_set_s(ACCOUNT_PLAYER, expected_player_name);
     }
 
-    if (account_get_d(ACCOUNT_DATA_WALLET_COINS) != expected_wallet_coins)
+    if (account_get_d(ACCOUNT_DATA_WALLET_COINS) != expected_wallet_coins &&
+        expected_wallet_coins >= 0)
         account_set_d(ACCOUNT_DATA_WALLET_COINS, expected_wallet_coins);
 
     if (account_get_d(ACCOUNT_DATA_WALLET_GEMS) != expected_wallet_gems)
         account_set_d(ACCOUNT_DATA_WALLET_GEMS, expected_wallet_gems);
 
-    if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) != expected_consumable_hp)
+    if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) != expected_consumable_hp &&
+        expected_wallet_coins >= -1)
         account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, expected_consumable_hp);
 
-    if (account_get_d(ACCOUNT_CONSUMEABLE_EARNINATOR) != expected_consumable_doublecash)
+    if (account_get_d(ACCOUNT_CONSUMEABLE_EARNINATOR) != expected_consumable_doublecash &&
+        expected_consumable_doublecash >= -1)
         account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, expected_consumable_doublecash);
 
-    if (account_get_d(ACCOUNT_CONSUMEABLE_FLOATIFIER) != expected_consumable_halfgrav)
+    if (account_get_d(ACCOUNT_CONSUMEABLE_FLOATIFIER) != expected_consumable_halfgrav &&
+        expected_consumable_halfgrav >= -1)
         account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, expected_consumable_halfgrav);
 
-    if (account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER) != expected_consumable_doublespeed)
+    if (account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER) != expected_consumable_doublespeed &&
+        expected_consumable_doublespeed >= -1)
         account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, expected_consumable_doublespeed);
 #else
     if (strcmp(config_get_s(CONFIG_PLAYER), expected_player_name) != 0)

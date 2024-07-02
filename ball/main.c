@@ -1017,34 +1017,34 @@ static int loop(void)
 
     SDL_TouchFingerEvent opt_touch_event = {0};
 
-    if (opt_touch)
-    {
-        switch (e.type)
-        {
-            case SDL_MOUSEMOTION:
-                opt_touch_event.type = SDL_FINGERMOTION;
-                opt_touch_event.x  = (float) (e.motion.x / video.device_w);
-                opt_touch_event.y  = (float) (e.motion.y / video.device_h);
-                opt_touch_event.dx = (float) (e.motion.xrel / video.device_w);
-                opt_touch_event.dy = (float) (e.motion.yrel / video.device_h);
-
-                if (config_get_d(CONFIG_MOUSE_INVERT))
-                    opt_touch_event.dy *= -1;
-
-                break;
-
-            case SDL_MOUSEBUTTONDOWN:
-                opt_touch_event.type = SDL_FINGERDOWN;
-                break;
-
-            case SDL_MOUSEBUTTONUP:
-                opt_touch_event.type = SDL_FINGERUP;
-                break;
-        }
-    }
-
     while (d && SDL_PollEvent(&e))
     {
+        if (opt_touch)
+        {
+            switch (e.type)
+            {
+                case SDL_MOUSEMOTION:
+                    opt_touch_event.type = SDL_FINGERMOTION;
+                    opt_touch_event.x    = (float) (e.motion.x    / video.device_w);
+                    opt_touch_event.y    = (float) (e.motion.y    / video.device_h);
+                    opt_touch_event.dx   = (float) (e.motion.xrel / video.device_w);
+                    opt_touch_event.dy   = (float) (e.motion.yrel / video.device_h);
+
+                    if (config_get_d(CONFIG_MOUSE_INVERT))
+                        opt_touch_event.dy *= -1;
+
+                break;
+
+                case SDL_MOUSEBUTTONDOWN:
+                    opt_touch_event.type = SDL_FINGERDOWN;
+                    break;
+
+                case SDL_MOUSEBUTTONUP:
+                opt_touch_event.type = SDL_FINGERUP;
+                    break;
+            }
+        }
+
         switch (e.type)
         {
             case SDL_QUIT:

@@ -139,6 +139,8 @@ int goto_shop(struct state *shop_back, int (*shop_back_fn) (void))
     st_shop_back    = shop_back;
     st_shop_back_fn = shop_back_fn;
 
+    if (!account_wgcl_restart_attempt()) return 1;
+
     return goto_state_full(&st_shop, 0, GUI_ANIMATION_N_CURVE, 0);
 }
 
@@ -333,7 +335,7 @@ static int shop_gui(void)
                     sprintf_s(powerups, MAXSTR, "%s (" GUI_CROWN GUI_CROWN GUI_CROWN ")", _("Balls"));
                 else if (temp_lives >= 1100)
                     sprintf_s(powerups, MAXSTR, "%s (" GUI_CROWN GUI_CROWN "%01d)", _("Balls"), (lvalue) - 1100);
-                else if (temp_lives >= 100)
+                else if (temp_lives >= 1000)
                     sprintf_s(powerups, MAXSTR, "%s (" GUI_CROWN "%02d)", _("Balls"), (lvalue) - 1000);
                 else
                     sprintf_s(powerups, MAXSTR, "%s (%d)", _("Balls"), lvalue);
@@ -342,7 +344,7 @@ static int shop_gui(void)
                     sprintf(powerups, "%s (" GUI_CROWN GUI_CROWN GUI_CROWN ")", _("Balls"));
                 else if (temp_lives >= 1100)
                     sprintf(powerups, "%s (" GUI_CROWN GUI_CROWN "%01d)", _("Balls"), (lvalue) - 1100);
-                else if (temp_lives >= 100)
+                else if (temp_lives >= 1000)
                     sprintf(powerups, "%s (" GUI_CROWN "%02d)", _("Balls"), (lvalue) - 1000);
                 else
                     sprintf(powerups, "%s (%d)", _("Balls"), lvalue);

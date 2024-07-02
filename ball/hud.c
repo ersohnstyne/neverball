@@ -210,6 +210,10 @@ void hud_init(void)
             gui_state(id, GUI_ROMAN_2, GUI_TCH, GUI_BACK, 0);
 
             gui_space(id);
+
+            gui_state(id, GUI_FISHEYE, GUI_TCH, GUI_CAMERA, 0);
+
+            gui_space(id);
         }
 
         gui_layout(touch_id, -1, +1);

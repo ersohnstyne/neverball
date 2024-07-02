@@ -283,6 +283,9 @@ static void play_shared_fade(float alpha)
 static int restart_cancel_allchkp;
 #endif
 
+static float prep_tilt_x;
+static float prep_tilt_y;
+
 static int play_freeze_all;
 
 static int play_update_server = 0;
@@ -313,6 +316,9 @@ static int play_ready_gui(void)
 
 static int play_ready_enter(struct state *st, struct state *prev)
 {
+    prep_tilt_x = 0;
+    prep_tilt_y = 0;
+
 #ifdef MAPC_INCLUDES_CHKP
     restart_cancel_allchkp = 0;
 #endif
@@ -512,7 +518,19 @@ static void play_prep_paint(int id, float t)
 
 static void play_prep_stick(int id, int a, float v, int bump)
 {
-    use_mouse = 0; use_keyboard = 1;
+    if (!use_mouse && use_keyboard)
+    {
+        if (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))
+            prep_tilt_x = v * get_tilt_multiply();
+        if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y0, a))
+            prep_tilt_y = (curr_mode() == MODE_BOOST_RUSH ? 0 :
+                                                            v * get_tilt_multiply());
+
+        game_set_z(prep_tilt_x);
+        game_set_x(prep_tilt_y);
+    }
+    else
+        use_mouse = 0; use_keyboard = 1;
 }
 
 static int play_prep_click(int b, int d)
@@ -675,7 +693,10 @@ static int play_loop_enter(struct state *st, struct state *prev)
     global_prev = prev;
     video_set_grab(0);
 
-    tilt_x = 0; tilt_y = 0;
+    tilt_x = prep_tilt_x; tilt_y = prep_tilt_y;
+
+    prep_tilt_x = 0;
+    prep_tilt_y = 0;
 
     /* Cannot run traffic lights in home room. */
 
@@ -1174,9 +1195,9 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
         gui_pulse(id, 1.2f);
 
         if (token == GUI_BACK)
-            goto_state(&st_pause);
+            play_pause_goto(curr_state());
         else if (token == GUI_CAMERA)
-            toggle_camera();
+            next_camera();
 
         gui_focus(0);
     }

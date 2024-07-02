@@ -81,6 +81,12 @@ extern "C"
 #endif
 void video_show_cursor(void)
 {
+    if (opt_touch)
+    {
+        gui_set_cursor(0);
+        return;
+    }
+
     int cursor_visible = 0;
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -124,6 +130,8 @@ extern "C"
 #endif
 void video_hide_cursor(void)
 {
+    if (opt_touch) return;
+
     gui_set_cursor(0);
 
     SDL_ShowCursor(SDL_DISABLE);
@@ -1317,6 +1325,8 @@ extern "C"
 #endif
 void video_set_grab(int w)
 {
+    if (opt_touch) return;
+
     if (w)
     {
         SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);

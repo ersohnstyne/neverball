@@ -559,6 +559,10 @@ video_mode_reconf:
         if ((context = SDL_GL_CreateContext(window)))
         {
 #ifdef __EMSCRIPTEN__
+            /* Weird hack to force gl4es to get MAX_TEXTURE_SIZE from WebGL. */
+            extern void *emscripten_GetProcAddress(const char *name);
+            set_getprocaddress(emscripten_GetProcAddress);
+
             initialize_gl4es();
 #endif
 
@@ -1074,6 +1078,10 @@ video_mode_auto_config_reconf:
         if ((context = SDL_GL_CreateContext(window)))
         {
 #ifdef __EMSCRIPTEN__
+            /* Weird hack to force gl4es to get MAX_TEXTURE_SIZE from WebGL. */
+            extern void *emscripten_GetProcAddress(const char *name);
+            set_getprocaddress(emscripten_GetProcAddress);
+
             initialize_gl4es();
 #endif
             int buf, smp;

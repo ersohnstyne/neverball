@@ -350,7 +350,11 @@ int glext_init(void);
 #define glIsBuffer_            glIsBuffer
 #define glPointParameterfv_    glPointParameterfv
 
+#ifdef __EMSCRIPTEN__
+#define glOrtho_               glOrtho
+#else
 #define glOrtho_               glOrthof
+#endif
 
 #define glStringMarker_(s) ((void) (s))
 

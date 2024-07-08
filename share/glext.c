@@ -429,7 +429,7 @@ void glClipPlane4f_(GLenum p, GLfloat a, GLfloat b, GLfloat c, GLfloat d)
 #if ENABLE_OPENGLES && !_WIN32
     GLfloat v[4] = { a, b, c, d };
 
-    glClipPlanefOES(p, v);
+    glClipPlanef(p, v);
 #else
     GLdouble v[4] = { a, b, c, d };
 

@@ -481,7 +481,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\ball\st_title.h" />
     <ClInclude Include="..\ball\st_tutorial.h" />
     <ClInclude Include="..\ball\util.h" />
-    <ClInclude Include="..\dist\NEVERBALL_rc.h" />
+    <ClInclude Include="..\dist\neverball_rc.h" />
     <ClInclude Include="..\payments\game_payment.h" />
     <ClInclude Include="..\payments\currency.h" />
     <ClInclude Include="..\payments\parson.h" />
@@ -552,7 +552,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\share\strbuf\strbuf.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\dist\NEVERBALL_rc.rc" />
+    <ResourceCompile Include="..\dist\neverball_rc.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

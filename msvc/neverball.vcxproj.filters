@@ -743,7 +743,7 @@
     <ClInclude Include="..\ball\st_intro_covid.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
-    <ClInclude Include="..\dist\NEVERBALL_rc.h">
+    <ClInclude Include="..\dist\neverball_rc.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="..\ball\score_online.h">
@@ -799,7 +799,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\dist\NEVERBALL_rc.rc">
+    <ResourceCompile Include="..\dist\neverball_rc.rc">
       <Filter>Ressourcendateien\resource</Filter>
     </ResourceCompile>
   </ItemGroup>

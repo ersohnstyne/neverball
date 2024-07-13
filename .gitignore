@@ -10,6 +10,9 @@
 # Mac XCode
 .DS_Store
 
+# All autosave files
+autosave
+
 # Should be edited in the pictures
 !*.drawio
 !/dist/*.svg
@@ -51,11 +54,6 @@
 /putt/*.cpp.txt
 /share/*.c.txt
 /share/*.cpp.txt
-*.bak
-*.autosave.map
-.vscode
-.DS_Store
-autosave
 
 # Runtime
 /*.bat

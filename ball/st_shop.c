@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2024 Microsoft / Neverball authors
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -947,6 +947,8 @@ int goto_shop_iap(struct state *ok, struct state *cancel,
                   int (*new_cancel_fn) (struct state *),
                   int newmin, int display_gems, int allow_multipage)
 {
+    if (!account_wgcl_restart_attempt()) return 1;
+
     ok_state     = ok;
     cancel_state = cancel;
 
@@ -1320,6 +1322,7 @@ static int shop_iap_enter(struct state *st, struct state *prev)
     purchased = 0;
 #ifdef CONFIG_INCLUDES_ACCOUNT
     coinwallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
+    gemwallet  = account_get_d(ACCOUNT_DATA_WALLET_GEMS);
 #endif
     return shop_iap_gui();
 }
@@ -1405,8 +1408,8 @@ static int shop_buy_action(int tok, int val)
     GENERIC_GAMEMENU_ACTION;
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-    gemwallet = account_get_d(ACCOUNT_DATA_WALLET_GEMS);
     coinwallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
+    gemwallet  = account_get_d(ACCOUNT_DATA_WALLET_GEMS);
 #endif
 
     int prodcost = 0;

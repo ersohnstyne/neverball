@@ -474,9 +474,9 @@ fs_file fs_open_read(const char *path)
     fs_file fh;
 
     char parsed_path[MAXSTR];
-    SAFECPY(parsed_path, path);
+    SAFECPY(parsed_path, (path) ? path : "");
 
-    for (int i = 0; i < strlen(path); i++)
+    for (int i = 0; i < strlen((path) ? path : ""); i++)
     {
         if (!parsed_path[i])
             continue;
@@ -548,9 +548,9 @@ static fs_file fs_open_write_flags(const char *path, int append)
     fs_file fh = NULL;
 
     char parsed_path[MAXSTR];
-    SAFECPY(parsed_path, path);
+    SAFECPY(parsed_path, (path) ? path : "");
 
-    for (int i = 0; i < strlen(path); i++)
+    for (int i = 0; i < strlen((path) ? path : ""); i++)
     {
         if (!parsed_path[i])
             continue;
@@ -641,9 +641,9 @@ int fs_mkdir(const char *path)
     int success = 0;
 
     char parsed_path[MAXSTR];
-    SAFECPY(parsed_path, path);
+    SAFECPY(parsed_path, (path) ? path : "");
 
-    for (int i = 0; i < strlen(path); i++)
+    for (int i = 0; i < strlen((path) ? path : ""); i++)
     {
         if (!parsed_path[i])
             continue;
@@ -671,9 +671,9 @@ int fs_mkdir(const char *path)
 int fs_exists(const char *path)
 {
     char parsed_path[MAXSTR];
-    SAFECPY(parsed_path, path);
+    SAFECPY(parsed_path, (path) ? path : "");
 
-    for (int i = 0; i < strlen(path); i++)
+    for (int i = 0; i < strlen((path) ? path : ""); i++)
     {
         if (!parsed_path[i])
             continue;
@@ -687,63 +687,14 @@ int fs_exists(const char *path)
 #endif
     }
 
-#if _MSC_VER
-    DWORD file_attr = GetFileAttributesA(parsed_path);
+    fs_file fh;
 
-    if (!(file_attr & FILE_ATTRIBUTE_OFFLINE             ||
-          file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
-          file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA))
-        return file_attr & FILE_ATTRIBUTE_NORMAL   ||
-               file_attr & FILE_ATTRIBUTE_ARCHIVE  ||
-               file_attr & FILE_ATTRIBUTE_READONLY ||
-               file_attr & FILE_ATTRIBUTE_HIDDEN;
-
-    if (fs_dir_write)
+    if ((fh = fs_open_read(parsed_path)))
     {
-        char *real = path_join(fs_dir_write, parsed_path);
-
-        DWORD file_attr = GetFileAttributesA(real);
-        free(real);
-        real = NULL;
-
-        if (!(file_attr & FILE_ATTRIBUTE_OFFLINE             ||
-              file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
-              file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA))
-            return file_attr & FILE_ATTRIBUTE_NORMAL   ||
-                   file_attr & FILE_ATTRIBUTE_ARCHIVE  ||
-                   file_attr & FILE_ATTRIBUTE_READONLY ||
-                   file_attr & FILE_ATTRIBUTE_HIDDEN;
+        fs_close(fh);
+        return 1;
     }
-
-    List p;
-
-    for (p = fs_path; p; p = p->next)
-    {
-        struct fs_path_item *path_item = (struct fs_path_item *) p->data;
-
-        if (path_item->type == FS_PATH_DIRECTORY ||
-            path_item->type == FS_PATH_ZIP)
-        {
-            char *real = path_join(path_item->path, parsed_path);
-
-            DWORD file_attr = GetFileAttributesA(real);
-            free(real);
-            real = NULL;
-
-            if (!(file_attr & FILE_ATTRIBUTE_OFFLINE             ||
-                  file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
-                  file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA))
-                return file_attr & FILE_ATTRIBUTE_NORMAL   ||
-                       file_attr & FILE_ATTRIBUTE_ARCHIVE  ||
-                       file_attr & FILE_ATTRIBUTE_READONLY ||
-                       file_attr & FILE_ATTRIBUTE_HIDDEN;
-        }
-    }
-
     return 0;
-#else
-    return (access(parsed_path, F_OK) == 0);
-#endif
 }
 
 int fs_recycle(const char *path)
@@ -751,9 +702,9 @@ int fs_recycle(const char *path)
     int success = 0;
 
     char parsed_path[MAXSTR];
-    SAFECPY(parsed_path, path);
+    SAFECPY(parsed_path, (path) ? path : "");
 
-    for (int i = 0; i < strlen(path); i++)
+    for (int i = 0; i < strlen((path) ? path : ""); i++)
     {
         if (!parsed_path[i])
             continue;
@@ -805,9 +756,9 @@ int fs_remove(const char *path)
     int success = 0;
 
     char parsed_path[MAXSTR];
-    SAFECPY(parsed_path, path);
+    SAFECPY(parsed_path, (path) ? path : "");
 
-    for (int i = 0; i < strlen(path); i++)
+    for (int i = 0; i < strlen((path) ? path : ""); i++)
     {
         if (!parsed_path[i])
             continue;
@@ -826,7 +777,7 @@ int fs_remove(const char *path)
 
     if (fs_dir_write)
     {
-        char *real = path_join(fs_dir_write, path);
+        char *real = path_join(fs_dir_write, parsed_path);
         success = (remove(real) == 0);
         free(real);
         real = NULL;
@@ -936,6 +887,23 @@ int fs_eof(fs_file fh)
 
 int fs_size(const char *path)
 {
+    char parsed_path[MAXSTR];
+    SAFECPY(parsed_path, (path) ? path : "");
+
+    for (int i = 0; i < strlen((path) ? path : ""); i++)
+    {
+        if (!parsed_path[i])
+            continue;
+
+#if _WIN32
+        if (parsed_path[i] == '/')
+            parsed_path[i] = '\\';
+#else
+        if (parsed_path[i] == '\\')
+            parsed_path[i] = '/';
+#endif
+    }
+
     List p;
 
     for (p = fs_path; p; p = p->next)
@@ -944,26 +912,22 @@ int fs_size(const char *path)
 
         if (path_item->type == FS_PATH_DIRECTORY)
         {
-            char *real = path_join(path_item->path, path);
+            char *real = path_join(path_item->path, parsed_path);
 
             if (real)
             {
-                if (file_exists(real))
-                {
-                    int s = file_size(real);
-                    free(real);
-                    real = NULL;
-                    return s;
-                }
-
+                int s = file_size(real);
                 free(real);
                 real = NULL;
+
+                if (s >= 0) return s;
             }
         }
-        else if (path_item->type == FS_PATH_ZIP)
+
+        if (path_item->type == FS_PATH_ZIP)
         {
             mz_zip_archive *zip = (mz_zip_archive *) path_item->data;
-            int file_index = mz_zip_reader_locate_file(zip, path, NULL, 0);
+            int file_index = mz_zip_reader_locate_file(zip, parsed_path, NULL, 0);
 
             if (file_index >= 0)
             {

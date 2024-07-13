@@ -743,7 +743,7 @@
     <ClInclude Include="..\ball\st_intro_covid.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
-    <ClInclude Include="..\dist\pennyball_rc.h">
+    <ClInclude Include="..\dist\NEVERBALL_rc.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="..\ball\score_online.h">
@@ -799,7 +799,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\dist\pennyball_rc.rc">
+    <ResourceCompile Include="..\dist\NEVERBALL_rc.rc">
       <Filter>Ressourcendateien\resource</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -807,10 +807,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\dist\ico\pennyball.ico">
+    <Image Include="..\dist\ico\neverball.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
-    <Image Include="..\dist\ico\pennyputt.ico">
+    <Image Include="..\dist\ico\neverputt.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
   </ItemGroup>

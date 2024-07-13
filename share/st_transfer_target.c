@@ -252,7 +252,7 @@ static int transfer_about_transferring_gui(void)
                 gui_multi(jd, _("For level sets, either transfer it back to the\\"
                                 "source Neverball, before performing the transfer,\\"
                                 "or redownload it after the transfer\\"
-                                "using the Pennyball."),
+                                "using the Neverball."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
             case 10:

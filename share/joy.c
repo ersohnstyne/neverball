@@ -36,7 +36,7 @@
 
 #if NB_PB_WITH_XBOX==0
 #if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
-#define JOY_MAX 10 /* Default: 16 */
+#define JOY_MAX 16
 #else
 /*
  * HACK: On Xbox, Playstation or Nintendo Switch, this causes

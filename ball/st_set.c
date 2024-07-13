@@ -1,7 +1,7 @@
 ﻿/*
  * Copyright (C) 2024 Microsoft / Neverball authors
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -1441,7 +1441,7 @@ static int levelgroup_buttn(int b, int d)
 static int goto_playgame_param(struct state *next_st)
 {
 #ifdef CONFIG_INCLUDES_ACCOUNT
-    if (!account_wgcl_reload()) return 1;
+    if (!account_wgcl_restart_attempt()) return 1;
 #endif
 
     return goto_state(next_st);

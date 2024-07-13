@@ -248,7 +248,8 @@ static void shot(void)
 
 static void toggle_wire(void)
 {
-    video_toggle_wire();
+    glToggleWireframe_();
+    //video_toggle_wire();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -464,8 +465,6 @@ static int loop(void)
 #if NB_PB_WITH_XBOX==1
     d = joy_update();
 #endif
-
-    int event_threshold = 0;
 
     /* Process SDL events. */
 

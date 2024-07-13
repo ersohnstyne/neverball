@@ -22,7 +22,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{136C8C74-C235-408E-99F3-49A365D2EE46}</ProjectGuid>
-    <RootNamespace>pennyball</RootNamespace>
+    <RootNamespace>neverputt</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -93,7 +93,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;PENNYBALL_FAMILY_API=0;VERSION="2.2.0";PENNYBALL_EDITION=-1;PENNYBALL_RFD=0;ENABLE_OPENDRIVEAPI=1;ENABLE_DUALDISPLAY=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=0;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;DEVEL_BUILD;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=-1;NEVERBALL_RFD=0;ENABLE_OPENDRIVEAPI=1;ENABLE_DUALDISPLAY=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=0;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;DEVEL_BUILD;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;C:\Users\$(Username)\source\sdk\curl\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -130,7 +130,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;PENNYBALL_FAMILY_API=0;VERSION="2.2.0";PENNYBALL_EDITION=-1;PENNYBALL_RFD=0;ENABLE_OPENDRIVEAPI=1;ENABLE_DUALDISPLAY=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=0;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=-1;NEVERBALL_RFD=0;ENABLE_OPENDRIVEAPI=1;ENABLE_DUALDISPLAY=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=0;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;C:\Users\$(Username)\source\sdk\curl\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -167,7 +167,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;PENNYBALL_FAMILY_API=0;VERSION="2.2.0";PENNYBALL_EDITION=-1;PENNYBALL_RFD=0;ENABLE_OPENDRIVEAPI=1;ENABLE_DUALDISPLAY=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=0;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;DEVEL_BUILD;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=-1;NEVERBALL_RFD=0;ENABLE_OPENDRIVEAPI=1;ENABLE_DUALDISPLAY=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=0;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;DEVEL_BUILD;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;C:\Users\$(Username)\source\sdk\curl\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -204,7 +204,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;PENNYBALL_FAMILY_API=0;VERSION="2.2.0";PENNYBALL_EDITION=-1;PENNYBALL_RFD=0;ENABLE_OPENDRIVEAPI=1;ENABLE_DUALDISPLAY=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=0;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=-1;NEVERBALL_RFD=0;ENABLE_OPENDRIVEAPI=1;ENABLE_DUALDISPLAY=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=0;CURL_STATICLIB;ENABLE_DEDICATED_SERVER=0;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;C:\Users\$(Username)\source\sdk\curl\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\win10_libraries\steam\public\steam;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -383,7 +383,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\putt\hud.h" />
     <ClInclude Include="..\putt\st_all.h" />
     <ClInclude Include="..\putt\st_conf.h" />
-    <ClInclude Include="..\dist\pennyputt_rc.h" />
+    <ClInclude Include="..\dist\neverputt_rc.h" />
     <ClInclude Include="..\share\accessibility.h" />
     <ClInclude Include="..\share\account.h" />
     <ClInclude Include="..\share\account_transfer.h" />
@@ -445,11 +445,11 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\share\zip.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\dist\pennyputt_rc.rc" />
+    <ResourceCompile Include="..\dist\neverputt_rc.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\dist\ico\pennyputt.ico" />
-    <Image Include="ico\pennyputt.ico" />
+    <Image Include="..\dist\ico\neverputt.ico" />
+    <Image Include="ico\neverputt.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

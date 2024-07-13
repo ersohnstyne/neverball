@@ -807,7 +807,7 @@ void shad_init(void)
     /* Create the clip texture. */
 
     glGenTextures(1, &clip_text);
-    glBindTexture(GL_TEXTURE_2D, clip_text);
+    glBindTexture_(GL_TEXTURE_2D, clip_text);
 
     glTexImage2D(GL_TEXTURE_2D, 0,
                  GL_LUMINANCE_ALPHA, 1, 2, 0,
@@ -839,14 +839,14 @@ void shad_draw_set(void)
         glEnable(GL_TEXTURE_2D);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-        glBindTexture(GL_TEXTURE_2D, shad_text);
+        glBindTexture_(GL_TEXTURE_2D, shad_text);
 
         if (tex_env_stage(TEX_STAGE_CLIP))
         {
             glEnable(GL_TEXTURE_2D);
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-            glBindTexture(GL_TEXTURE_2D, clip_text);
+            glBindTexture_(GL_TEXTURE_2D, clip_text);
         }
 
         tex_env_stage(TEX_STAGE_TEXTURE);
@@ -860,14 +860,14 @@ void shad_draw_clr(void)
 #else
     if (tex_env_stage(TEX_STAGE_SHADOW))
     {
-        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture_(GL_TEXTURE_2D, 0);
 
         glDisable(GL_TEXTURE_2D);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
         if (tex_env_stage(TEX_STAGE_CLIP))
         {
-            glBindTexture(GL_TEXTURE_2D, 0);
+            glBindTexture_(GL_TEXTURE_2D, 0);
 
             glDisable(GL_TEXTURE_2D);
             glDisableClientState(GL_TEXTURE_COORD_ARRAY);

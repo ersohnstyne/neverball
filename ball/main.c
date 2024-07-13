@@ -472,7 +472,8 @@ static void shot(void)
 
 static void toggle_wire(void)
 {
-    video_toggle_wire();
+    glToggleWireframe_();
+    //video_toggle_wire();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1418,8 +1419,14 @@ static int handle_installed_action(int pi)
 
         index = set_find(file);
 
+        if (!(index >= 0))
+            log_errorf("Failure to find level set from package ID: %s / %s\n",
+                       package_id, fs_error());
+
         return index >= 0 ? goto_start(index, &st_package) : 1;
     }
+
+    log_errorf("%s: That's not the level set!\n", package_get_id(pi));
 
     return 1;
 }

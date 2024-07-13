@@ -305,7 +305,7 @@ int file_exists(const char *path)
 int file_rename(const char *src, const char *dst)
 {
 #if _WIN32
-    if (file_exists(dst))
+    if (fs_exists(dst))
         remove(dst);
 #endif
     return rename(src, dst) == 0;
@@ -317,6 +317,8 @@ int file_size(const char *path)
 
     if (stat(path, &buf) == 0)
         return (int) buf.st_size;
+    else
+        return -1;
 
     return 0;
 }

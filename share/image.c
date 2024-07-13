@@ -168,7 +168,7 @@ GLuint make_texture(const void *p, int w, int h, int b, int fl)
     /* Generate and configure a new OpenGL texture. */
 
     glGenTextures(1, &o);
-    glBindTexture(GL_TEXTURE_2D, o);
+    glBindTexture_(GL_TEXTURE_2D, o);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

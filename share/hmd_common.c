@@ -174,7 +174,7 @@ void hmd_common_draw(GLuint texture, GLuint buffer)
 {
     if (buffer)
     {
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glBindTexture_(GL_TEXTURE_2D, texture);
         glBindBuffer_(GL_ARRAY_BUFFER, buffer);
 
         glVertexPointer  (2, GL_FLOAT, sizeof (struct point), (GLvoid *) 0);

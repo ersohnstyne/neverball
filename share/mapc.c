@@ -3678,7 +3678,7 @@ static void interactive_web(void)
     char target_url[256];
     char buf_url[256];
 
-    SAFECPY(target_url, "https://forms.office.com/r/yH4hHAFHF8");
+    SAFECPY(target_url, "https://nextcloud.stynegame.de/apps/forms/s/CKFzf7qtbHifX6j3QC69fiTg");
 
 #if _WIN32
 #ifndef _CRT_SECURE_NO_WARNINGS
@@ -3686,7 +3686,7 @@ static void interactive_web(void)
 #else
     sprintf(buf_url,
 #endif
-            "start msedge %s", target_url);
+            "explorer %s", target_url);
 #elif defined(__APPLE__)
     sprintf(buf_url, "open %s", target_url);
 #elif defined(__linux__)

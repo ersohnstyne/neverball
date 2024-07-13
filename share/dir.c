@@ -25,6 +25,8 @@
 #include <assert.h>
 #endif
 
+#include <sys/stat.h>
+
 #include "dir.h"
 #include "common.h"
 
@@ -98,14 +100,13 @@ List dir_list_files(const char *path)
             if (strcmp(find_data.cFileName, ".")  == 0 ||
                 strcmp(find_data.cFileName, "..") == 0)
                 continue;
-            else if (!(find_data.dwFileAttributes & FILE_ATTRIBUTE_OFFLINE             ||
-                       find_data.dwFileAttributes & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
-                       find_data.dwFileAttributes & FILE_ATTRIBUTE_NO_SCRUB_DATA) &&
-                     (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ||
-                      find_data.dwFileAttributes & FILE_ATTRIBUTE_NORMAL    ||
-                      find_data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE   ||
-                      find_data.dwFileAttributes & FILE_ATTRIBUTE_READONLY  ||
-                      find_data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN))
+
+            struct stat _buf;
+            char tmp_real[256];
+
+            sprintf_s(tmp_real, 256, "%s\\%s", outpath, find_data.cFileName);
+
+            if (stat(tmp_real, &_buf) == 0)
                 files = list_cons(strdup(find_data.cFileName), files);
         }
         while (FindNextFileA(hFind, &find_data));

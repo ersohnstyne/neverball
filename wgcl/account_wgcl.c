@@ -296,7 +296,7 @@ void account_wgcl_load(void)
     account_load();
 
     fs_file wgcl_fin;
-    if ((wgcl_fin = fs_open_read("pennyball_wgcl.dat")))
+    if ((wgcl_fin = fs_open_read("NEVERBALL_wgcl.dat")))
     {
         if (session_uuid4 && *session_uuid4)
         {
@@ -323,7 +323,7 @@ void account_wgcl_save(void)
     if (session_uuid4 && *session_uuid4)
     {
         fs_file wgcl_fout;
-        if ((wgcl_fout = fs_open_write("pennyball_wgcl.dat")))
+        if ((wgcl_fout = fs_open_write("NEVERBALL_wgcl.dat")))
         {
             fs_write(session_uuid4, text_length(session_uuid4), wgcl_fout);
             fs_close(wgcl_fout);
@@ -640,7 +640,7 @@ int account_wgcl_logout(void)
 
     read_only = 0;
 
-    fs_remove("pennyball_wgcl.dat");
+    fs_remove("NEVERBALL_wgcl.dat");
     return 1;
 }
 

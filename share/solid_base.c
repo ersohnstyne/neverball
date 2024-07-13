@@ -49,7 +49,7 @@ enum
     SOL_VERSION_2017_09 = 8,
     SOL_VERSION_2024_04 = 9,
     SOL_VERSION_2024_05 = 10,
-    SOL_VERSION_1_7,
+    SOL_VERSION_CHKP,
     SOL_VERSION_DEV
 };
 
@@ -512,7 +512,7 @@ static void sol_load_indx(fs_file fin, struct s_base *fp)
     fp->uc = get_index(fin);
 #ifdef MAPC_INCLUDES_CHKP
     /* New: Checkpoints */
-    if (sol_version > SOL_VERSION_1_7)
+    if (sol_version >= SOL_VERSION_CHKP)
         fp->cc = get_index(fin);
 #endif
     fp->wc = get_index(fin);
@@ -539,7 +539,7 @@ static void sol_load_indx(fs_file fin, struct s_base *fp)
     if (fp->xc && fp->xv == NULL) return 0; \
     if (fp->rc && fp->rv == NULL) return 0; \
     if (fp->uc && fp->uv == NULL) return 0; \
-    if (sol_version > SOL_VERSION_1_7 && fp->cc && fp->cv == NULL) return 0; \
+    if (sol_version >= SOL_VERSION_CHKP && fp->cc && fp->cv == NULL) return 0; \
     if (fp->wc && fp->wv == NULL) return 0; \
     if (fp->dc && fp->dv == NULL) return 0; \
     if (fp->ic && fp->iv == NULL) return 0
@@ -615,7 +615,7 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
     if (fp->uc)
         fp->uv = (struct b_ball *) calloc(fp->uc, sizeof (*fp->uv));
 #ifdef MAPC_INCLUDES_CHKP
-    if (sol_version > SOL_VERSION_1_7)
+    if (sol_version >= SOL_VERSION_CHKP)
     {
         /* New: Checkpoints */
         if (fp->cc)
@@ -657,7 +657,7 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
     for (i = 0; i < fp->uc; i++) sol_load_ball(fin, fp->uv + i);
 #ifdef MAPC_INCLUDES_CHKP
     /* New: Checkpoints */
-    if (sol_version > SOL_VERSION_1_7)
+    if (sol_version >= SOL_VERSION_CHKP)
         for (i = 0; i < fp->cc; i++) sol_load_chkp(fin, fp->cv + i);
 #endif
     for (i = 0; i < fp->wc; i++) sol_load_view(fin, fp->wv + i);
@@ -1101,7 +1101,7 @@ static void sol_stor_file(fs_file fout, struct s_base *fp)
     put_index(fout, fp->uc);
 #ifdef MAPC_INCLUDES_CHKP
     /* New: Checkpoints */
-    if (version > SOL_VERSION_1_7)
+    if (version >= SOL_VERSION_CHKP)
         put_index(fout, fp->cc);
 #endif
     put_index(fout, fp->wc);
@@ -1129,7 +1129,7 @@ static void sol_stor_file(fs_file fout, struct s_base *fp)
     for (i = 0; i < fp->uc; i++) sol_stor_ball(fout, fp->uv + i);
 #ifdef MAPC_INCLUDES_CHKP
     /* New: Checkpoints */
-    if (version > SOL_VERSION_1_7)
+    if (version >= SOL_VERSION_CHKP)
         for (i = 0; i < fp->cc; i++) sol_stor_chkp(fout, fp->cv + i);
 #endif
     for (i = 0; i < fp->wc; i++) sol_stor_view(fout, fp->wv + i);

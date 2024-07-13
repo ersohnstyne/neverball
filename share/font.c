@@ -55,6 +55,11 @@ int font_load(struct font *ft, const char *path, int sizes[FONT_SIZE_MAX])
                 }
                 return 1;
             }
+            else
+            {
+                log_errorf("Failure to load font: %s / %s\n",
+                           path, fs_error());
+            }
         }
     }
     else

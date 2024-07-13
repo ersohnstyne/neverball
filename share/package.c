@@ -31,7 +31,7 @@
  * Premium: dlcball.stynegame.de
  * Legacy downloads: play.neverball.org
  */
-#define NB_CURRDOMAIN_PREMIUM "play.neverball.org"
+#define NB_CURRDOMAIN_PREMIUM "dlcball.stynegame.de"
 
 enum package_image_status
 {
@@ -46,7 +46,7 @@ struct package
     char id      [64];
     char type    [64];
     char filename[MAXSTR];
-    char files   [MAXSTR];
+    char files   [1024];
     char name    [64];
     char desc    [MAXSTR];
     char shot    [64];
@@ -64,7 +64,7 @@ struct package
 };
 
 static Array available_packages;
-static int   package_curr_category = PACKAGE_CATEGORY_NONE;
+static int   package_curr_category = PACKAGE_CATEGORY_LEVELSET;
 
 #define PACKAGE_GET(a, i) ((struct package *) array_get((a), (i)))
 
@@ -186,6 +186,7 @@ static const char *get_package_path(const char *filename)
  * the package directory and figure out which ZIP files can be added to the FS
  * and which ones can't.
  */
+
 struct local_package
 {
     char id[64];
@@ -226,8 +227,7 @@ static int mount_package_file(const char *filename)
 
     if (filename && *filename && write_dir)
     {
-        char *path = concat_string(write_dir, NB_DOWNLOADPATH_ROOT,
-                                   filename, NULL);
+        char *path = concat_string(write_dir, "/" PACKAGE_DIR "/", filename, NULL);
 
         if (path)
         {
@@ -250,7 +250,7 @@ static void unmount_package_file(const char *filename)
 
     if (filename && *filename && write_dir)
     {
-        char *path = concat_string(write_dir, NB_DOWNLOADPATH_ROOT, filename, NULL);
+        char *path = concat_string(write_dir, "/" PACKAGE_DIR "/", filename, NULL);
 
         if (path)
         {
@@ -265,7 +265,7 @@ static void unmount_package_file(const char *filename)
 /*
  * Unmount and uninstall other instances of the given local package.
  */
-static void unmount_duplicate_local_packages(const struct local_package* keep_lpkg)
+static void unmount_duplicate_local_packages(const struct local_package *keep_lpkg)
 {
     List p, l;
 
@@ -273,7 +273,7 @@ static void unmount_duplicate_local_packages(const struct local_package* keep_lp
 
     for (p = NULL, l = installed_packages; l; p = l, l = l->next)
     {
-        struct local_package* test_lpkg = l->data;
+        struct local_package *test_lpkg = l->data;
 
         if (test_lpkg != keep_lpkg && strcmp(test_lpkg->id, keep_lpkg->id) == 0)
         {
@@ -297,6 +297,8 @@ static void unmount_duplicate_local_packages(const struct local_package* keep_lp
     }
 }
 
+static int save_installed_packages(void);
+
 /*
  * Add a package to the FS path and to the list, if not yet added.
  */
@@ -306,6 +308,7 @@ static int mount_local_package(struct local_package *lpkg)
     {
         installed_packages = list_cons(lpkg, installed_packages);
         unmount_duplicate_local_packages(lpkg);
+        save_installed_packages();
         return 1;
     }
 
@@ -353,7 +356,7 @@ static int load_installed_packages(void)
         char line[MAXSTR] = "";
 
         Array pkgs = array_new(sizeof (struct local_package));
-        struct local_package* lpkg = NULL;
+        struct local_package *lpkg = NULL;
         int i, n;
 
         while (fs_gets(line, sizeof (line), fp))
@@ -463,9 +466,9 @@ static int save_installed_packages(void)
 
             for (l = installed_packages; l; l = l->next)
             {
-                struct local_package* lpkg = l->data;
+                struct local_package *lpkg = l->data;
 
-                if (lpkg)
+                if (lpkg && fs_exists(get_package_path(lpkg->filename)))
                     fs_printf(fp, "package %s\nfilename %s\n", lpkg->id, lpkg->filename);
             }
 
@@ -680,7 +683,7 @@ static struct package_image_info *create_pii(struct fetch_callback callback, str
     if (pii)
     {
         pii->callback = callback;
-        pii->pkg      = pkg;
+        pii->pkg = pkg;
     }
 
     return pii;
@@ -698,7 +701,7 @@ static void free_pii(struct package_image_info **pii)
 static void package_image_done(void *data, void *extra_data)
 {
     struct package_image_info *pii = data;
-    struct fetch_done         *fd  = extra_data;
+    struct fetch_done *fd = extra_data;
 
     if (pii)
     {
@@ -779,6 +782,9 @@ static void free_pli(struct package_list_info **pli)
     }
 }
 
+/*
+ * Load the list of available packages and initiate image downloads.
+ */
 static void available_packages_done(void *data, void *extra_data)
 {
     struct package_list_info *pli = data;
@@ -1158,6 +1164,22 @@ static void package_fetch_done(void *data, void *extra_data)
 
         free_pfi(pfi);
         pfi = NULL;
+    }
+}
+
+void package_delete(int pi)
+{
+    if (pi >= 0 && pi < array_len(installed_packages))
+    {
+        struct package *pkg = array_get(installed_packages, pi);
+        unmount_package_file(pkg->filename);
+        fs_remove(get_package_path(pkg->filename));
+
+        pkg->status = PACKAGE_AVAILABLE;
+
+        save_installed_packages();
+        free_installed_packages();
+        load_installed_packages();
     }
 }
 

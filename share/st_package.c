@@ -57,10 +57,10 @@
         } else if (tok == tok1 || tok == tok2) {             \
             if (tok == tok1)                                 \
                 audio_play(first > 1 ?                       \
-                           AUD_DISABLED : AUD_MENU, 1.0f);   \
+                           AUD_MENU : AUD_DISABLED, 1.0f);   \
             if (tok == tok2)                                 \
                 audio_play(first + itemstep < total ?        \
-                           AUD_DISABLED : AUD_MENU, 1.0f);   \
+                           AUD_MENU : AUD_DISABLED, 1.0f);   \
         } else GENERIC_GAMEMENU_ACTION
 
 /*---------------------------------------------------------------------------*/
@@ -209,6 +209,7 @@ static void download_done(void *data1, void *data2)
                 }
                 else
                 {
+                    audio_play("snd/uierror.ogg", 1.0f);
                     gui_set_label(id, "!");
                     gui_set_color(id, gui_red, gui_red);
                 }
@@ -291,6 +292,7 @@ static int package_manage_selected  = 0;
 static void package_start_download(int id)
 {
     do_download = 0;
+    selected = id;
 
     struct fetch_callback callback = {0};
 
@@ -522,8 +524,10 @@ static int package_gui(void)
             {
                 install_status_id = gui_label(kd, GUI_ARROW_DN,
                                                   GUI_SML, gui_grn, gui_grn);
-                install_label_id  = gui_label(kd, _("Install"),
+                install_label_id  = gui_label(kd, "XXXXXXXXXXXX",
                                                   GUI_SML, gui_wht, gui_wht);
+
+                gui_set_label(install_label_id, _("Install"));
 
                 gui_set_font(install_status_id, GUI_FACE);
 
@@ -567,17 +571,28 @@ static void package_select(int pi)
     gui_set_label(title_id, package_get_name(pi));
 
     if      (status == PACKAGE_UPDATE)
+    {
+        gui_set_label(install_status_id, GUI_CIRCLE_ARROW);
         gui_set_label(install_label_id, _("Update"));
-    else if (status != PACKAGE_INSTALLED)
-        gui_set_label(install_label_id, _("Install"));
-    else
+    }
+    else if (status == PACKAGE_INSTALLED)
+    {
+        gui_set_label(install_status_id, "");
         gui_set_label(install_label_id, _("Manage"));
+    }
+    else
+    {
+        gui_set_label(install_status_id, GUI_ARROW_DN);
+        gui_set_label(install_label_id, _("Install"));
+    }
 
-    if (package_get_status(pi) == PACKAGE_INSTALLED)
+    gui_set_font(install_status_id, GUI_FACE);
+
+    if (status == PACKAGE_INSTALLED)
     {
         /* HACK: Mojang made done this. */
 
-        gui_set_color(install_status_id, gui_wht, gui_wht);
+        gui_set_color(install_status_id, gui_gry, gui_gry);
         gui_set_color(install_label_id,  gui_wht, gui_wht);
     }
     else
@@ -657,8 +672,10 @@ static void package_paint(int id, float st)
 
 static void package_timer(int id, float dt)
 {
-    if (do_download && time_state() > 0.5f)
-        package_start_download(selected);
+    if (do_download &&
+        package_manage_selected >= 0 &&
+        time_state() > 0.5f)
+        package_start_download(package_manage_selected);
 
     gui_timer(id, dt);
 }
@@ -719,25 +736,25 @@ enum package_confirm_action
     PACKAGE_CONFIRM_MAX
 };
 
+static int manage_del_confirm_btn_enabled = 0;
+static int manage_del_confirm_btn_id      = 0;
+
 static enum package_confirm_action curr_confirm_action = PACKAGE_CONFIRM_NONE;
 
 static int package_manage_action(int tok, int val)
 {
+    GENERIC_GAMEMENU_ACTION;
+
     switch (curr_confirm_action)
     {
         case PACKAGE_CONFIRM_DELETE:
         {
-            switch (tok)
-            {
-                case PACKAGE_MANAGE_DELETE:
-                    curr_confirm_action = PACKAGE_CONFIRM_NONE;
-                    fs_remove(package_get_files(selected));
-                    return goto_state(&st_package);
+            if (tok == PACKAGE_MANAGE_DELETE)
+                package_delete(package_manage_selected);
 
-                case GUI_BACK:
-                    curr_confirm_action = PACKAGE_CONFIRM_NONE;
-                    return goto_state(&st_package);
-            }
+            package_manage_selected = -1;
+            curr_confirm_action = PACKAGE_CONFIRM_NONE;
+            return goto_state(&st_package);
         }
         break;
 
@@ -750,7 +767,7 @@ static int package_manage_action(int tok, int val)
                         return installed_action ? installed_action(package_manage_selected) : 1;
 
                 case PACKAGE_MANAGE_UPDATE:
-                    selected = val;
+                    selected = package_manage_selected;
                     do_download = 1;
                     return goto_state(&st_package);
 
@@ -759,6 +776,7 @@ static int package_manage_action(int tok, int val)
                     return goto_state(&st_package_manage);
 
                 case GUI_BACK:
+                    package_manage_selected = -1;
                     return goto_state(&st_package);
             }
         }
@@ -770,13 +788,17 @@ static int package_manage_action(int tok, int val)
 
 static int package_manage_delete_gui(void)
 {
+    manage_del_confirm_btn_enabled = 0;
+
+    audio_play("snd/warning.ogg", 1.0f);
+
     int id, jd;
 
     if ((id = gui_vstack(0)))
     {
         char desc[MAXSTR];
-        sprintf(desc, _("Seriously, this action cannot be undone!:\n%s"),
-                      package_get_name(selected));
+        sprintf(desc, _("%s\nSeriously, this action cannot be undone!"),
+                      package_get_name(package_manage_selected));
 
         gui_title_header(id, _("Delete package?"), GUI_MED, gui_red, gui_red);
 
@@ -788,9 +810,15 @@ static int package_manage_delete_gui(void)
 
         if ((jd = gui_harray(id)))
         {
-            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
-            gui_start(jd, _("Delete"), GUI_SML, PACKAGE_MANAGE_DELETE, selected);
+            gui_start(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+            manage_del_confirm_btn_id = gui_state(jd, _("Delete"),
+                                                      GUI_SML, GUI_NONE, 0);
+
+            if (manage_del_confirm_btn_id)
+                gui_set_color(manage_del_confirm_btn_id, GUI_COLOR_GRY);
         }
+
+        gui_layout(id, 0, 0);
     }
 
     return id;
@@ -803,8 +831,9 @@ static int package_manage_gui(void)
     if ((id = gui_vstack(0)))
     {
         char desc[MAXSTR];
-        sprintf(desc, _("Installed package path:\n%s"),
-                         package_get_files(selected));
+        sprintf(desc, _("Installed package ID / Name:\n%s / %s"),
+                         package_get_files(package_manage_selected),
+                         package_get_name(package_manage_selected));
 
         gui_multi(id, desc, GUI_SML, gui_wht, gui_wht);
 
@@ -812,23 +841,40 @@ static int package_manage_gui(void)
 
         if (package_manage_can_start)
         {
-            if ((btn_id = gui_state(id, _("Start"),
-                                        GUI_SML, PACKAGE_MANAGE_START, selected)))
-                gui_set_color(btn_id, gui_wht, gui_wht);
+            if ((btn_id = gui_hstack(id)))
+            {
+                gui_filler(btn_id);
+                gui_label(btn_id, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
+                gui_label(btn_id, _("Start"), GUI_SML, GUI_COLOR_WHT);
+                gui_filler(btn_id);
+
+                gui_set_state(btn_id, PACKAGE_MANAGE_START, package_manage_selected);
+                gui_set_rect(btn_id, GUI_ALL);
+            }
 
             gui_space(id);
         }
 
-        if ((btn_id = gui_state(id, _("Update"),
-                                    GUI_SML, PACKAGE_MANAGE_UPDATE, selected)))
-            gui_set_color(btn_id, gui_wht, gui_wht);
+        if ((btn_id = gui_hstack(id)))
+        {
+            gui_filler(btn_id);
+            gui_label(btn_id, GUI_CIRCLE_ARROW, GUI_SML, GUI_COLOR_GRN);
+            gui_label(btn_id, _("Update"), GUI_SML, GUI_COLOR_WHT);
+            gui_filler(btn_id);
+
+            gui_set_state(btn_id, PACKAGE_MANAGE_UPDATE, package_manage_selected);
+            gui_set_rect(btn_id, GUI_ALL);
+        }
+
         if ((btn_id = gui_state(id, _("Delete"),
-                                    GUI_SML, PACKAGE_MANAGE_DELETE, selected)))
+                                    GUI_SML, PACKAGE_MANAGE_DELETE, package_manage_selected)))
             gui_set_color(btn_id, gui_red, gui_red);
 
         gui_space(id);
 
         gui_back_button(id);
+
+        gui_layout(id, 0, 0);
     }
 
     return id;
@@ -845,6 +891,27 @@ static int package_manage_enter(struct state *st, struct state *prev)
 static void package_manage_leave(struct state *st, struct state *next, int id)
 {
     gui_delete(id);
+
+    manage_del_confirm_btn_enabled = 0;
+}
+
+static void package_manage_timer(int id, float dt)
+{
+    if (curr_confirm_action == PACKAGE_CONFIRM_DELETE)
+    {
+        if (time_state() > 3 && !manage_del_confirm_btn_enabled)
+        {
+            manage_del_confirm_btn_enabled = 1;
+
+            if (manage_del_confirm_btn_id)
+            {
+                gui_set_state(manage_del_confirm_btn_id, PACKAGE_MANAGE_DELETE, package_manage_selected);
+                gui_set_color(manage_del_confirm_btn_id, GUI_COLOR_RED);
+            }
+        }
+    }
+
+    gui_timer(id, dt);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -892,7 +959,7 @@ struct state st_package_manage = {
     package_manage_enter,
     package_manage_leave,
     package_paint,
-    common_timer,
+    package_manage_timer,
     package_point,
     package_stick,
     NULL,

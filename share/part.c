@@ -141,14 +141,17 @@ void part_init(void)
     glBufferData_(GL_ELEMENT_ARRAY_BUFFER, sizeof (elems), elems, GL_STATIC_DRAW);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+    glGenBuffers_(1, &coin_ebo);
+    glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, coin_ebo);
+    glBufferData_(GL_ELEMENT_ARRAY_BUFFER, sizeof (elems), elems, GL_STATIC_DRAW);
+    glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
+
     part_reset();
 }
 
 void part_free(void)
 {
-#ifdef PARTICLEVBO
     glDeleteBuffers_(1, &coin_vbo);
-#endif
 
     mtrl_free(coin_mtrl);
     coin_mtrl = 0;

@@ -12,6 +12,8 @@
  * General Public License for more details.
  */
 
+#include <assert.h>
+
 #if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
 #include "campaign.h" /* New: Campaign levels */

@@ -442,7 +442,6 @@ static void demo_refresh(void)
         Neverball.refreshReplays();
     });
 #endif
-    return;
 }
 
 void demo_play_stop(int d)

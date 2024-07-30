@@ -63,6 +63,11 @@
 #define END_SUPPORT_DESC_3_2 N_("- No simple start position\n- No goal decals\n- No simple switch and simple platform") /* DO NOT EDIT! */
 #define END_SUPPORT_DESC_3_3 N_("PennySchloss requires using\nPennyball 2.2.0 on a new campaigns\nfor the latest huge guideline features.") /* DO NOT EDIT! */
 
+#if defined(__WII__)
+/* We're using SDL 1.2 on Wii, which has SDLKey instead of SDL_Keycode. */
+typedef SDLKey SDL_Keycode;
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 /* DO NOT EDIT! */
@@ -360,6 +365,9 @@ static int end_support_action(int tok, int val)
             goto_state(st_hide);
             break;
         case END_SUPPORT_INVITE:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if defined(__EMSCRIPTEN__)
             EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/"); }, 0);
 #elif _WIN32
@@ -368,6 +376,7 @@ static int end_support_action(int tok, int val)
             system("open https://discord.gg/qnJR263Hm2/");
 #elif defined(__linux__)
             system("x-www-browser https://discord.gg/qnJR263Hm2/");
+#endif
 #endif
             break;
     }
@@ -455,11 +464,14 @@ static int end_support_gui(void)
 
         if ((jd = gui_varray(id)))
         {
-            if ((kd = gui_varray(jd)))
-            {
-                gui_start(jd, _("Transfer now!"), GUI_SML, END_SUPPORT_INVITE, 0);
-                gui_state(jd, _("Remind me later"), GUI_SML, GUI_BACK, 0);
-            }
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+            gui_start(jd, _("Transfer now!"), GUI_SML, END_SUPPORT_INVITE, 0);
+            gui_state(jd, _("Remind me later"), GUI_SML, GUI_BACK, 0);
+#else
+            gui_start(jd, _("Remind me later"), GUI_SML, GUI_BACK, 0);
+#endif
 
             //gui_state(jd, _("Do not remind me again"), GUI_SML, GUI_BACK, 0);
         }

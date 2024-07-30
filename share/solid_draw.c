@@ -746,8 +746,10 @@ void sol_bill(const struct s_draw *draw,
         for (ri = 0; ri < draw->base->rc; ++ri)
         {
             const struct b_bill *rp = draw->base->rv + ri;
+
             float T = rp->t * t;
             float S = fsinf(T);
+
             float w  = rp->w [0] + rp->w [1] * T + rp->w [2] * S;
             float h  = rp->h [0] + rp->h [1] * T + rp->h [2] * S;
             float rx = rp->rx[0] + rp->rx[1] * T + rp->rx[2] * S;

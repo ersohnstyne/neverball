@@ -423,7 +423,10 @@ void hud_paint(void)
 
     hud_cam_paint();
     hud_speed_paint();
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     hud_touch_paint();
+#endif
 }
 
 void hud_update(int pulse, float animdt)
@@ -556,32 +559,20 @@ void hud_update(int pulse, float animdt)
 
     switch (curr_mode())
     {
-        case MODE_CHALLENGE:
-            if (gui_value(ball_id) != balls)     gui_set_count(ball_id, balls);
-            if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
-
-            c_id = coin_id;
-            break;
-
         case MODE_BOOST_RUSH:
             gui_set_label(speed_percent_id, speedattr);
             gui_set_color(speed_percent_id, gui_yel,
                                             speedpercent >= 100.0f ? gui_red : gui_yel);
 
-            if (gui_value(ball_id) != balls)     gui_set_count(ball_id, balls);
-            if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
-
-            c_id = coin_id;
-            break;
-
+        case MODE_CHALLENGE:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         case MODE_HARDCORE:
+#endif
             if (gui_value(ball_id) != balls)     gui_set_count(ball_id, 0);
             if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
 
             c_id = coin_id;
             break;
-#endif
 
         default:
             c_id = coin_id;
@@ -701,6 +692,8 @@ void hud_timer(float dt)
     hud_touch_timer(dt);
 }
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__)
 int hud_touch(const SDL_TouchFingerEvent *e)
 {
     touch_timer = 5.0f;
@@ -715,6 +708,7 @@ int hud_touch(const SDL_TouchFingerEvent *e)
 
     return 0;
 }
+#endif
 
 void hud_update_camera_direction(float rot_direction)
 {
@@ -920,8 +914,11 @@ void hud_touch_timer(float dt)
 
 void hud_touch_paint(void)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     if (touch_timer > 0.0f && curr_state() != &st_pause)
         gui_paint(touch_id);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

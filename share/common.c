@@ -40,7 +40,7 @@
  * https://gitea.stynegame.de/StyneGameHamburg/opendrivepi
  */
 #include <opendriveapi.h>
-#if _WIN32
+#elif _WIN32
 #if !defined(_MSC_VER)
 #error Security compilation error: This was already done with GetFileAttributesA \
        or using OpenDriveAPI. \
@@ -51,13 +51,12 @@
 #pragma message(__FILE__ ": Using code compilation: Microsoft Visual Studio")
 #endif
 #else
- /*
-  * Relying on MinGW to provide, that uses from GetFileAttributes() (Windows.h).
-  */
+/*
+ * Relying on MinGW to provide, that uses from GetFileAttributes() (Windows.h).
+ */
 #include <unistd.h>   /* access() */
 
 #pragma message(__FILE__ ": Using code compilation: GCC + G++")
-#endif
 #endif
 
 #if _DEBUG && _MSC_VER
@@ -116,28 +115,28 @@ int read_line(char **dst, fs_file fin)
 #if UNICODE
 wchar_t *wcsip_newline(wchar_t *wstr)
 {
-    if (str && *str)
+    if (wstr && *wstr)
     {
-        wchar_t *c = wstr + wcslen(wstr) - 1;
+        wchar_t *p = wstr + wcslen(wstr) - 1;
 
-        while (c >= wstr && (*c == L'\n' || *c == L'\r'))
-            *c-- = L'\0';
+        while (p >= wstr && (*p == L'\n' || *p == L'\r'))
+            *p-- = L'\0';
     }
 
     return wstr;
 }
 
-wchar_t *wcsip_spaces(wchar_t *str)
+wchar_t *wcsip_spaces(wchar_t * wstr)
 {
-    if (str && *str)
+    if (wstr && *wstr)
     {
-        wchar_t *p = str + wcslen(str) - 1;
+        wchar_t *p = wstr + wcslen(wstr) - 1;
 
-        while (p >= str && isspace(*p))
+        while (p >= wstr && isspace(*p))
             *p-- = '\0';
     }
 
-    return str;
+    return wstr;
 }
 #endif
 
@@ -172,6 +171,7 @@ char *strip_newline(char *str)
     return str;
 }
 
+#ifndef _CONSOLE
 char *strip_spaces(char *str)
 {
     if (str && *str)
@@ -179,13 +179,14 @@ char *strip_spaces(char *str)
         char *p = str + strlen(str) - 1;
 
         while (p >= str && isspace(*p))
-            *p-- = '\0';
+            *p-- = 0;
     }
 
     return str;
 }
+#endif
 
-#if _NONSTDC
+#if !_MSC_VER || _NONSTDC
 char *dupe_string(const char *src)
 {
     char *dst = NULL;
@@ -201,7 +202,7 @@ char *dupe_string(const char *src)
 }
 #endif
 
-char *concat_string(const char *first, ...) NULL_TERMINATED
+char *concat_string(const char *first, ...)
 {
     char *full = NULL;
 
@@ -279,6 +280,7 @@ const char *date_to_str(time_t i)
     return str;
 }
 
+#ifndef _CONSOLE
 int file_exists(const char *path)
 {
 #if ENABLE_OPENDRIVEAPI!=0
@@ -301,6 +303,7 @@ int file_exists(const char *path)
 #endif
 #endif
 }
+#endif
 
 int file_rename(const char *src, const char *dst)
 {

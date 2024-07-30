@@ -14,6 +14,10 @@
 
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #endif
@@ -36,6 +40,11 @@
 #include "config.h"
 #include "common.h"
 #include "fs.h"
+
+#if defined(__WII__)
+/* We're using SDL 1.2 on Wii, which has SDLKey instead of SDL_Keycode. */
+typedef SDLKey SDL_Keycode;
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -63,6 +72,7 @@ int CONFIG_MAINMENU_PANONLY;
 int CONFIG_SCREEN_ANIMATIONS;
 int CONFIG_SMOOTH_FIX;
 int CONFIG_FORCE_SMOOTH_FIX;
+int CONFIG_WIDESCREEN;
 int CONFIG_FULLSCREEN;
 int CONFIG_MAXIMIZED;
 int CONFIG_DISPLAY;
@@ -215,6 +225,7 @@ static struct
     { &CONFIG_SCREEN_ANIMATIONS,"screen_animation",1 },
     { &CONFIG_SMOOTH_FIX,     "smooth_fix",   1 },
     { &CONFIG_FORCE_SMOOTH_FIX, "force_smooth_fix", 0 },
+    { &CONFIG_WIDESCREEN,     "widescreen",   0 },
     { &CONFIG_FULLSCREEN,     "fullscreen",   0 },
     { &CONFIG_MAXIMIZED,      "maximized",    0 },
     { &CONFIG_DISPLAY,        "display",      0 },
@@ -342,7 +353,7 @@ static struct
     { &CONFIG_REPLAY_NAME,             "replay_name",     "%s-%l-%r" },
     { &CONFIG_LANGUAGE,                "language",        "" },
     { &CONFIG_THEME,                   "theme",           "classic" },
-    { &CONFIG_DEDICATED_IPADDRESS,     "dedicated_ipaddress", "play.neverball.org" },
+    { &CONFIG_DEDICATED_IPADDRESS,     "dedicated_ipaddress", "pennyball.stynegame.de" },
     { &CONFIG_DEDICATED_IPPORT,        "dedicated_ipport", "5000" }
 };
 
@@ -662,7 +673,6 @@ void config_load(void)
         SDL_TriggerBreakpoint();
 #endif
 
-        exit(1);
         return;
     }
 
@@ -708,10 +718,10 @@ void config_load(void)
                                  i == CONFIG_KEY_SCORE_NEXT    ||
                                  i == CONFIG_KEY_ROTATE_FAST)
                             config_key(val, i);
-                        else
-#if NDEBUG || NB_STEAM_API!=0 && NB_EOS_SDK!=0
-                        if (i != CONFIG_CHEAT)
-#endif
+                        else if (i != CONFIG_CHEAT   &&
+                                 i != CONFIG_VIEW_DP &&
+                                 i != CONFIG_VIEW_DC &&
+                                 i != CONFIG_VIEW_DZ)
                             config_set_d(i, atoi(val));
 
                         /* Stop looking. */
@@ -768,7 +778,6 @@ void config_save(void)
         if (fs_exists(filename))
             fs_remove(filename);
 
-        exit(1);
         return;
     }
 
@@ -782,6 +791,13 @@ void config_save(void)
         for (i = 0; i < ARRAYSIZE(option_d); i++)
         {
             const char *s = NULL;
+
+            /* Switchball Classic / HD made me do it. */
+
+            if (i == CONFIG_VIEW_DP ||
+                i == CONFIG_VIEW_DC ||
+                i == CONFIG_VIEW_DZ)
+                continue;
 
             /* Translate some integers to strings. */
 

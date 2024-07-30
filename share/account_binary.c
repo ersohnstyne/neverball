@@ -14,6 +14,10 @@
 
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #endif
@@ -269,7 +273,6 @@ void account_load(void)
         SDL_TriggerBreakpoint();
 #endif
 
-        exit(1);
         return;
     }
 
@@ -345,7 +348,6 @@ void account_save(void)
         if (fs_exists(paths))
             fs_remove(paths);
 
-        exit(1);
         return;
     }
 

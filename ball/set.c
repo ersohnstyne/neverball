@@ -590,7 +590,9 @@ static int set_load(struct set *s, const char *filename)
 
         while (s->count < MAXLVL_SET && read_line(&level_name, fin))
         {
+#ifndef _CONSOLE
             strip_spaces(level_name);
+#endif
 
             if (*level_name)
             {
@@ -694,7 +696,6 @@ static int is_unseen_boost(struct dir_item *item)
 int set_init(int boost_active)
 {
     fs_file fin;
-    char *name;
 
     Array items;
     int i;
@@ -708,8 +709,11 @@ int set_init(int boost_active)
     /*
      * First, load the sets listed in the set file, preserving order.
      */
+
     if ((fin = fs_open_read(boost_active == 1 ? BOOST_FILE : SET_FILE)))
     {
+        char *name;
+
         while (read_line(&name, fin))
         {
             struct set *s = array_add(sets);

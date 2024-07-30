@@ -14,7 +14,10 @@
 
 #include "st_transfer.h"
 
-#if !defined(GAME_TRANSFER_TARGET) && ENABLE_GAME_TRANSFER==1
+#if !defined(GAME_TRANSFER_TARGET) && ENABLE_GAME_TRANSFER==1 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if _WIN32
 #include <ShlObj.h>
 

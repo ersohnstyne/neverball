@@ -74,7 +74,11 @@ extern struct state st_null;
  */
 extern struct state st_video;
 extern struct state st_video_advanced;
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 extern struct state st_display;
+#endif
 #if !defined(RESIZEABLE_WINDOW)
 extern struct state st_resol;
 #endif

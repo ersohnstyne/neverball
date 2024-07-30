@@ -81,6 +81,11 @@
         mode = _mode;                          \
     } while (0)
 
+#if defined(__WII__)
+/* We're using SDL 1.2 on Wii, which has SDLKey instead of SDL_Keycode. */
+typedef SDLKey SDL_Keycode;
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 static int switchball_useable(void)
@@ -312,7 +317,7 @@ static int title_check_playername(const char *regname)
             regname[i] == '>'  ||
             regname[i] == '|')
         {
-            log_errorf("Can't accept other charsets!\n", regname[i]);
+            log_errorf("Can't accept other charsets!: %c\n", regname[i]);
             return 0;
         }
     }
@@ -362,6 +367,9 @@ static int title_action(int tok, int val)
             break;
 
         case TITLE_SOCIAL:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #ifdef __EMSCRIPTEN__
             EM_ASM({ window.open(title_social_url[val]);}, 0);
 #else
@@ -376,6 +384,7 @@ static int title_action(int tok, int val)
             SAFECAT(linkstr_cmd, title_social_url[val]);
 
             system(linkstr_cmd);
+#endif
 #endif
             break;
 
@@ -406,6 +415,9 @@ static int title_action(int tok, int val)
 #endif
 
         case TITLE_UNLOCK_FULL_GAME:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if defined(__EMSCRIPTEN__)
             EM_ASM({ window.open("https://discord.gg/qnJR263Hm2"); }, 0);
 #else
@@ -422,6 +434,7 @@ static int title_action(int tok, int val)
             SAFECAT(linkstr_cmd, linkstr_code);
 
             system(linkstr_cmd);
+#endif
 #endif
             break;
 #endif
@@ -506,6 +519,16 @@ static int title_action(int tok, int val)
             {
                 sprintf(dev_env, _("%s Edition / %s"), TITLE_PLATFORM_SWITCH, _("Developer Mode"));
                 sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_SWITCH);
+            }
+            else if (current_platform == PLATFORM_WII)
+            {
+                sprintf(dev_env, _("%s Edition / %s"), TITLE_PLATFORM_WII, _("Developer Mode"));
+                sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_WII);
+            }
+            else if (current_platform == PLATFORM_WIIU)
+            {
+                sprintf(dev_env, _("%s Edition / %s"), TITLE_PLATFORM_WIIU, _("Developer Mode"));
+                sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_WIIU);
             }
 #endif
 
@@ -704,6 +727,18 @@ static int title_gui(void)
                 sprintf(dev_env, _("%s Edition / %s"), 
                         TITLE_PLATFORM_SWITCH, _("Developer Mode"));
                 sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_SWITCH);
+            }
+            else if (current_platform == PLATFORM_WII)
+            {
+                sprintf(dev_env, _("%s Edition / %s"),
+                        TITLE_PLATFORM_WII, _("Developer Mode"));
+                sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_WII);
+            }
+            else if (current_platform == PLATFORM_WIIU)
+            {
+                sprintf(dev_env, _("%s Edition / %s"),
+                        TITLE_PLATFORM_WIIU, _("Developer Mode"));
+                sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_WIIU);
             }
 #endif
 
@@ -979,6 +1014,9 @@ static int title_gui(void)
             }
 #endif
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             if ((id = gui_vstack(root_id)))
             {
                 if ((jd = gui_hstack(id)))
@@ -1017,6 +1055,7 @@ static int title_gui(void)
 
                 gui_layout(id, -1, -1);
             }
+#endif
 
 #if NB_HAVE_PB_BOTH==1
 #if ENABLE_VERSION
@@ -1076,18 +1115,25 @@ static int title_gui(void)
 
             if ((id = gui_vstack(root_id)))
             {
-#if ENABLE_FETCH!=0
+#if ENABLE_FETCH!=0 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 if ((jd = gui_hstack(id)))
                 {
                     gui_space(jd);
                     gui_state(jd, _("Addons"), GUI_SML, TITLE_PACKAGES, 0);
                 }
 #endif
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
                 if ((jd = gui_hstack(id)))
                 {
                     gui_state(jd, _("Unlock full game"),
                                   GUI_SML, TITLE_UNLOCK_FULL_GAME, 0);
                 }
+#endif
 
                 gui_layout(id, +1, -1);
             }
@@ -1143,13 +1189,13 @@ static int filter_cmd(const union cmd *cmd)
 
 static int title_enter(struct state *st, struct state *prev)
 {
-    if (title_load_lockscreen)
-    {
-        title_load_lockscreen = 0;
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+    if (prev != &st_title)
         account_wgcl_restart_attempt();
 #endif
-    }
+
+    if (title_load_lockscreen)
+        title_load_lockscreen = 0;
 
     title_lockscreen = title_can_unlock;
 

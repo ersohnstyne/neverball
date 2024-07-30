@@ -43,6 +43,11 @@
 #include "st_shared.h"
 #include "st_play.h"
 
+#if defined(__WII__)
+/* We're using SDL 1.2 on Wii, which has SDLKey instead of SDL_Keycode. */
+typedef SDLKey SDL_Keycode;
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 static int switchball_useable(void)

@@ -31,7 +31,10 @@ void hud_timer(float);
 void hud_update(int, float);
 void hud_update_camera_direction(float);
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__)
 int hud_touch(const SDL_TouchFingerEvent *);
+#endif
 
 void hud_speedup_reset(void);
 void hud_speedup_pulse(void);

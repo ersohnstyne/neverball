@@ -324,6 +324,9 @@ static int intro_accn_disabled_action(int tok, int val)
             return 0; /* bye! */
 
         case ACCOUNT_DISBALED_OPEN:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if defined(__EMSCRIPTEN__)
             EM_ASM({ window.open("https://pennyball.stynegame.de/communityguide"); }, 0);
 #elif _WIN32
@@ -333,6 +336,8 @@ static int intro_accn_disabled_action(int tok, int val)
 #elif defined(__linux__)
             system("x-www-browser https://pennyball.stynegame.de/communityguide");
 #endif
+#endif
+            break;
 
         case ACCOUNT_DISBALED_CANCEL:
             return goto_state(&st_title);
@@ -369,8 +374,14 @@ static int intro_accn_disabled_enter(struct state *st, struct state *prev)
 
         if ((jd = gui_harray(id)))
         {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             gui_state(jd, _("Cancel"), GUI_SML, ACCOUNT_DISBALED_CANCEL, 0);
             gui_state(jd, _("Review"), GUI_SML, ACCOUNT_DISBALED_OPEN, 0);
+#else
+            gui_state(jd, _("Back"),   GUI_SML, ACCOUNT_DISBALED_CANCEL, 0);
+#endif
             gui_start(jd, _("Exit"),   GUI_SML, GUI_BACK, 0);
         }
     }

@@ -28,6 +28,10 @@
 
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #endif
@@ -47,7 +51,7 @@
 #elif _WIN32 && !_MSC_VER
 #error Security compilation error: MinGW not supported! Use Visual Studio instead!
 #elif _WIN64 && _MSC_VER < 1940
-#error Security compilation error: Visual Studio 2022 requires MSVC 14.38.x and later version!
+#error Security compilation error: Visual Studio 2022 requires MSVC 14.40.x and later version!
 #elif _WIN32 && !_WIN64
 #error Security compilation error: Game source code compilation requires x64 and not Win32!
 #endif
@@ -65,6 +69,13 @@
 
 #include <stdio.h>
 #include <string.h>
+
+#if defined(__GAMECUBE__) && defined(__WII__)
+#include <gccore.h>
+#include <ogcsys.h>
+#include <ogc/conf.h>
+#include <wiiuse/wpad.h>
+#endif
 
 #if __cplusplus
 extern "C" {
@@ -296,22 +307,29 @@ static void opt_init(int argc, char **argv)
         }
 #endif
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0)
         {
             printf("%s\n", VERSION);
             exit(EXIT_SUCCESS);
         }
+#endif
         
         if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--screensaver") == 0)
         {
             opt_screensaver = 1;
         }
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
         if (strcmp(argv[i], "--touch") == 0)
         {
             opt_touch = 1;
             i++;
         }
+#endif
 
         if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--data")    == 0)
         {
@@ -434,6 +452,9 @@ static void opt_quit(void)
 
 static void shot(void)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if NB_HAVE_PB_BOTH==1
     if (game_setup_process())
         return;
@@ -466,6 +487,7 @@ static void shot(void)
     video_dualdisplay_snap(filename_secondary);
 #endif
 #endif
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -491,7 +513,6 @@ static int handle_key_dn(SDL_Event *e)
     if (c == SDLK_F4 && e->key.keysym.mod & KMOD_ALT)
 #endif
     {
-        st_exit();
         return 0;
     }
 
@@ -517,8 +538,10 @@ static int handle_key_dn(SDL_Event *e)
         break;
 #endif
         case SDLK_RETURN:
+        case SDLK_KP_ENTER:
             d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
             break;
+
         case KEY_FULLSCREEN:
             video_fullscreen(!config_get_d(CONFIG_FULLSCREEN));
 #if ENABLE_DUALDISPLAY==1
@@ -571,6 +594,7 @@ static int handle_key_up(SDL_Event *e)
     switch (c)
     {
         case SDLK_RETURN:
+        case SDLK_KP_ENTER:
             d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
             break;
         case KEY_EXIT:
@@ -905,6 +929,16 @@ static void refresh_packages_done(void *data, void *extra_data)
     if (opt_link && process_link(opt_link))
         return;
 
+#if NB_HAVE_PB_BOTH==1
+    if (!check_game_setup())
+    {
+        goto_game_setup(start_state,
+                        goto_name_setup,
+                        goto_ball_setup);
+        return;
+    }
+#endif
+
     goto_state(start_state);
 }
 
@@ -988,12 +1022,194 @@ int st_global_loop(void)
     return loop();
 }
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__)
 static struct SDL_TouchFingerEvent opt_touch_event;
 
 static int opt_touch_anchor = 0;
+#endif
+
+#if defined(__GAMECUBE__) && defined(__WII__)
+static int handleSysIsHomeMenu = 0;
+
+static int handleSysQuit     = 0;
+static int handleSysShutdown = 0;
+static int handleSysReset    = 0;
+
+static void console_power_pressed(void)
+{
+    handleSysShutdown = 1;
+}
+
+static void console_reset_pressed(void)
+{
+    handleSysReset = 1;
+}
+
+static void remote_power_pressed(s32 chan)
+{
+    handleSysShutdown = 1;
+}
+
+static s8  prevCtrlStickX    = 0;
+static s8  prevCtrlStickY    = 0;
+static s8  prevCStickX       = 0;
+static s8  prevCStickY       = 0;
+static int prevWiiX          = 0;
+static int prevWiiY          = 0;
+static int handleWiimoteTilt = 0;
+
+static int clamp_stick_axis(int val)
+{
+    if (val > 0)
+    {
+        if (val > 16)
+            return val - 16;
+        else
+            return 0;
+    }
+    if (val < 0)
+    {
+        if (val < -16)
+            return val + 16;
+        else
+            return 0;
+    }
+    return 0;
+}
+#endif
 
 static int loop(void)
 {
+#if defined(__GAMECUBE__) && defined(__WII__)
+    if (handleSysQuit || handleSysShutdown || handleSysReset)
+        return 0;
+
+    u16 gcButtonsPressed;
+    u16 gcButtonsReleased;
+    s16 ctrlStickX;
+    s16 ctrlStickY;
+    s16 cStickX;
+    s16 cStickY;
+    
+    WPADData *wpad;
+    u16 wiiButtonsPressed;
+    u16 wiiButtonsReleased;
+    u16 wiiButtonsHeld;
+    
+    PAD_ScanPads();
+    WPAD_ScanPads();
+    
+    gcButtonsPressed = PAD_ButtonsDown(0);
+    wiiButtonsPressed = WPAD_ButtonsDown(0);
+    if (gcButtonsPressed)
+        handleWiimoteTilt = 0;
+    if (wiiButtonsPressed)
+        handleWiimoteTilt = 1;
+    if      (gcButtonsPressed & PAD_BUTTON_A || wiiButtonsPressed & WPAD_BUTTON_A)
+        return st_buttn(0, 1);
+    else if (gcButtonsPressed & PAD_BUTTON_B || wiiButtonsPressed & WPAD_BUTTON_B)
+        return st_buttn(1, 1);
+    else if (gcButtonsPressed & PAD_BUTTON_X || wiiButtonsPressed & WPAD_BUTTON_1)
+        return st_buttn(2, 1);
+    else if (gcButtonsPressed & PAD_BUTTON_Y || wiiButtonsPressed & WPAD_BUTTON_2)
+        return st_buttn(3, 1);
+    else if (gcButtonsPressed & PAD_BUTTON_START || wiiButtonsPressed & WPAD_BUTTON_PLUS)
+        return st_buttn(8, 1);
+    else if (wiiButtonsPressed & WPAD_BUTTON_LEFT)
+    {
+        st_stick(2, -1);
+        return 1;
+    }
+    else if (wiiButtonsPressed & WPAD_BUTTON_RIGHT)
+    {
+        st_stick(2, +1);
+        return 1;
+    }
+    else if (gcButtonsPressed & PAD_TRIGGER_Z)
+        config_tgl_d(CONFIG_FPS);
+
+    gcButtonsReleased = PAD_ButtonsUp(0);
+    wiiButtonsReleased = WPAD_ButtonsUp(0);
+    if      (gcButtonsReleased & PAD_BUTTON_A || wiiButtonsReleased & WPAD_BUTTON_A)
+        return st_buttn(0, 0);
+    else if (gcButtonsReleased & PAD_BUTTON_B || wiiButtonsReleased & WPAD_BUTTON_B)
+        return st_buttn(1, 0);
+    else if (gcButtonsReleased & PAD_BUTTON_X || wiiButtonsReleased & WPAD_BUTTON_1)
+        return st_buttn(2, 0);
+    else if (gcButtonsReleased & PAD_BUTTON_Y || wiiButtonsReleased & WPAD_BUTTON_2)
+        return st_buttn(3, 0);
+    else if (gcButtonsReleased & PAD_BUTTON_START || wiiButtonsReleased & WPAD_BUTTON_2)
+        return st_buttn(8, 0);
+    else if (wiiButtonsReleased & WPAD_BUTTON_LEFT)
+    {
+        st_stick(2, 0);
+        return 1;
+    }
+    else if (wiiButtonsReleased & WPAD_BUTTON_RIGHT)
+    {
+        st_stick(2, 0);
+        return 1;
+    }
+
+    ctrlStickX =  clamp_stick_axis(PAD_StickX(0));
+    ctrlStickY = -clamp_stick_axis(PAD_StickY(0));
+    if (ctrlStickX != prevCtrlStickX)
+    {
+        st_stick(0, (float)(ctrlStickX << 8));
+        prevCtrlStickX = ctrlStickX;
+    }
+    if (ctrlStickY != prevCtrlStickY)
+    {
+        st_stick(1, (float)(ctrlStickY << 8));
+        prevCtrlStickY = ctrlStickY;
+    }
+
+    cStickX =  clamp_stick_axis(PAD_SubStickX(0));
+    cStickY = -clamp_stick_axis(PAD_SubStickY(0));
+    if (cStickX != prevCStickX)
+    {
+        st_stick(2, (float)(cStickX) / 50.0);
+        prevCStickX = cStickX;
+    }
+    if (cStickY != prevCStickY)
+    {
+        st_stick(3, (float)(cStickY) / 50.0);
+        prevCStickY = cStickY;
+    }
+
+    wpad = WPAD_Data(WPAD_CHAN_0);
+
+    if (wpad->ir.valid)
+    {
+        int xrel = wpad->ir.x - prevWiiX;
+        int yrel = wpad->ir.y - prevWiiY;
+
+        /* Convert to OpenGL coordinates. */
+
+        int ax = +wpad->ir.x;
+        int ay = -wpad->ir.y + video.window_h;
+        int dx = +xrel;
+        int dy = (config_get_d(CONFIG_MOUSE_INVERT) ?
+                 +yrel : -yrel);
+
+        /* Convert to pixels. */
+
+        ax = ROUND(ax * video.device_scale);
+        ay = ROUND(ay * video.device_scale);
+        dx = ROUND(dx * video.device_scale);
+        dy = ROUND(dy * video.device_scale);
+
+        st_point(ax, ay, dx, dy);
+        prevWiiX = ax;
+        prevWiiY = ay;
+    }
+
+    if (handleWiimoteTilt)
+        st_angle(wpad->orient.pitch, wpad->orient.roll);
+
+    return 1;
+#else
     SDL_Event e;
 
     int d = 1;
@@ -1022,6 +1238,8 @@ static int loop(void)
 
     while (d && SDL_PollEvent(&e))
     {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
         if (opt_touch)
         {
             switch (e.type)
@@ -1073,11 +1291,11 @@ static int loop(void)
                     break;
             }
         }
+#endif
 
         switch (e.type)
         {
             case SDL_QUIT:
-                st_exit();
                 return 0;
 
 #ifdef __EMSCRIPTEN__
@@ -1129,19 +1347,32 @@ static int loop(void)
                         splitview_crossed = 1;
                 }
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 if (opt_touch)       st_touch(&opt_touch_event);
-                else if (!opt_touch) st_point(ax, ay, dx, dy);
+                else if (!opt_touch)
+#endif
+                    st_point(ax, ay, dx, dy);
 
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 if (opt_touch)       d = st_touch(&opt_touch_event);
-                else if (!opt_touch) d = st_click(e.button.button, 1);
+                else if (!opt_touch)
+#endif
+                    d = st_click(e.button.button, 1);
                 break;
 
             case SDL_MOUSEBUTTONUP:
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 if (opt_touch)       d = st_touch(&opt_touch_event);
-                else if (!opt_touch) d = st_click(e.button.button, 0);
+                else if (!opt_touch)
+#endif
+                    d = st_click(e.button.button, 0);
                 break;
 #endif
 
@@ -1338,6 +1569,7 @@ static int loop(void)
     }
 
     return d;
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1433,7 +1665,6 @@ static int handle_installed_action(int pi)
 
 /*---------------------------------------------------------------------------*/
 
-
 static void main_quit(void);
 
 struct main_loop
@@ -1463,9 +1694,9 @@ static void step(void *data)
             CHECK_GAMESPEED(20, 100);
             float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
             st_timer(MAX((0.001f * deltaTime) * speedPercent, 0));
-        }
 
-        hmd_step();
+            hmd_step();
+        }
 
         /* Render. */
 
@@ -1572,6 +1803,21 @@ static int main_init(int argc, char *argv[])
     }
 #endif
 
+#if defined(__GAMECUBE__) && defined(__WII__)
+    /* HACK! When run in Dolphin, argc is set to zero and argv is NULL.
+     * This abomination must be corrected. */
+    if (argc == 0)
+    {
+        static char* argv_[1];
+        argv = argv_;
+        argc = 1;
+    }
+    /* HACK! We need to make sure we have the right path when booting from the
+     * network (via wiiload). */
+    static char argv0[] = "/apps/neverball/boot.dol";
+    argv[0] = argv0;
+#endif
+
     if (!fs_init(argc > 0 ? argv[0] : NULL))
     {
         fprintf(stderr, "Failure to initialize file system (%s)\n",
@@ -1595,7 +1841,13 @@ static int main_init(int argc, char *argv[])
             fs_add_path_with_archives((const char *) p->data);
     }
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     log_init("Neverball " VERSION, "neverball.log");
+#else
+    log_init(TITLE, "neverball.log");
+#endif
     config_log_userpath();
 #if NB_HAVE_PB_BOTH!=1
     make_dirs_and_migrate();
@@ -1603,6 +1855,9 @@ static int main_init(int argc, char *argv[])
 
     /* Initialize SDL. */
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #ifdef SDL_HINT_TOUCH_MOUSE_EVENTS
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 #endif
@@ -1639,7 +1894,9 @@ static int main_init(int argc, char *argv[])
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS, "1");
 #endif
 #endif
+#endif
 
+#if !defined(__GAMECUBE__) && !defined(__WII__)
 #if _cplusplus
     try {
 #endif
@@ -1660,6 +1917,7 @@ static int main_init(int argc, char *argv[])
 
 #ifndef NDEBUG
     SDL_LogSetPriority(SDL_LOG_CATEGORY_ERROR, SDL_LOG_PRIORITY_DEBUG);
+#endif
 #endif
 
     /* Initialize configuration. */
@@ -1713,6 +1971,8 @@ static int main_init(int argc, char *argv[])
 #endif
 
     /* Enable joystick events. */
+
+#if !defined(__GAMECUBE__) && !defined(__WII__)
 #if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
     if (!joy_init())
         return 0;
@@ -1742,7 +2002,8 @@ static int main_init(int argc, char *argv[])
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
-#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API || \
+    defined(__SWITCH__)
     console_init_controller_type(PLATFORM_SWITCH);
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
@@ -1752,6 +2013,22 @@ static int main_init(int argc, char *argv[])
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
+#if NEVERBALL_FAMILY_API == NEVERBALL_WII_FAMILY_API
+    console_init_controller_type(PLATFORM_WII);
+    config_set_d(CONFIG_JOYSTICK, 1);
+    config_save();
+#endif
+#if NEVERBALL_FAMILY_API == NEVERBALL_WIIU_FAMILY_API || \
+    defined(__WIIU__)
+    console_init_controller_type(PLATFORM_WIIU);
+    config_set_d(CONFIG_JOYSTICK, 1);
+    config_save();
+#endif
+#endif
+#else
+    console_init_controller_type(PLATFORM_WII);
+    config_set_d(CONFIG_JOYSTICK, 1);
+    config_save();
 #endif
 
 #if NB_STEAM_API==1 || NB_EOS_SDK==1
@@ -1806,6 +2083,21 @@ static int main_init(int argc, char *argv[])
 
         tilt_init();
 
+#if defined(__GAMECUBE__) && defined(__WII__)
+        GXRModeObj *rmode = VIDEO_GetPreferredMode(NULL);
+
+        if (rmode == 0)
+            return 0;
+
+        rmode->viWidth = CONF_GetAspectRatio() == CONF_ASPECT_16_9 ? 854 : 640;
+        rmode->viXOrigin = (VI_MAX_WIDTH_PAL - rmode->viWidth) / 2;
+        VIDEO_Configure(rmode);
+
+        config_set_d(CONFIG_WIDTH,
+                     CONF_GetAspectRatio() == CONF_ASPECT_16_9 ? 854 : 640);
+        config_set_d(CONFIG_HEIGHT, 480);
+#endif
+
         if (!video_init())
             return 0;
 
@@ -1822,6 +2114,21 @@ static int main_init(int argc, char *argv[])
         !video_dualdisplay_mode(0, 1024, 1024);
 #endif
     }
+#endif
+
+#if defined(__GAMECUBE__) && defined(__WII__)
+    /* Initialize Wii console system callback */
+
+    SYS_SetPowerCallback(console_power_pressed);
+    SYS_SetResetCallback(console_reset_pressed);
+
+    /* Initialize Wiimote and GameCube controller */
+
+    PAD_Init();
+    WPAD_Init();
+    WPAD_SetPowerCallback(remote_power_pressed);
+    WPAD_SetDataFormat(WPAD_CHAN_ALL, WPAD_FMT_BTNS_ACC_IR);
+    WPAD_SetVRes(WPAD_CHAN_ALL, video.window_w, video.window_h);
 #endif
 
     /* Material system. */
@@ -1895,7 +2202,6 @@ static void main_quit(void)
     if (!opt_panorama)
     {
 #endif
-
         package_quit();
         fetch_quit  ();
 #if ENABLE_MOON_TASKLOADER!=0
@@ -1931,6 +2237,15 @@ static void main_quit(void)
 
 #if _WIN32 && _MSC_VER && _DEBUG && defined(_CRTDBG_MAP_ALLOC)
     _CrtDumpMemoryLeaks();
+#endif
+
+#if defined(__GAMECUBE__) && defined(__WII__)
+    if (handleSysShutdown)
+        SYS_ResetSystem(SYS_POWEROFF, 0, 0);
+    else if (handleSysReset)
+        SYS_ResetSystem(SYS_RESTART, 0, 0);
+    else
+        SYS_ResetSystem(SYS_RETURNTOMENU, 0, 0);
 #endif
 }
 

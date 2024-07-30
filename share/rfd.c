@@ -18,6 +18,10 @@
 
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #endif
@@ -44,7 +48,7 @@
 /*---------------------------------------------------------------------------*/
 
 /*
- * Neverball - Recipes for Disaster
+ * Pennyball + Neverball - Recipes for Disaster
  * - Ersohn Styne
  */
 
@@ -164,7 +168,6 @@ void rfd_load(void)
         SDL_TriggerBreakpoint();
 #endif
 
-        exit(1);
         return;
     }
 

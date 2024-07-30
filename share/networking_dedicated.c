@@ -12,6 +12,9 @@
  * General Public License for more details.
  */
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if NB_HAVE_PB_BOTH==1
 #include <PB_Network_Client.h>
 #else
@@ -433,4 +436,5 @@ int networking_dedicated_buyballs_send(int amount)
     return 0;
 }
 
+#endif
 #endif

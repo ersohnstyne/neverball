@@ -37,7 +37,7 @@
 
 #if NB_HAVE_PB_BOTH!=1 && defined(MAPC_INCLUDES_CHKP)
 #error Security compilation error: Preprocessor definitions can be used it, \
-       once you've transferred or joined into the target Discord Server, \
+       once you have transferred or joined into the target Discord Server, \
        and verified and promoted as Developer Role. \
        This invite link can be found under https://discord.gg/qnJR263Hm2/.
 #endif
@@ -53,8 +53,9 @@ enum
     SOL_VERSION_DEV
 };
 
-#define SOL_VERSION_MIN  SOL_VERSION_1_5
-#define SOL_VERSION_CURR SOL_VERSION_DEV
+#define SOL_VERSION_MIN        SOL_VERSION_1_5
+#define SOL_VERSION_CURR       SOL_VERSION_2024_04
+#define SOL_VERSION_CURR_CHKP  SOL_VERSION_DEV
 
 #define SOL_MAGIC  (0xAF | 'S' << 8 | 'O' << 16 | 'L' << 24)
 
@@ -1068,11 +1069,11 @@ static void sol_stor_file(fs_file fout, struct s_base *fp)
     int magic   = SOL_MAGIC;
 
 #ifdef MAPC_INCLUDES_CHKP
-    int version = fp->cc > 0 ? SOL_VERSION_CURR : SOL_VERSION_2024_05;
+    int version = fp->cc > 0 ? SOL_VERSION_CURR_CHKP : SOL_VERSION_CURR;
 
-    if (fp->cc == 0) version = SOL_VERSION_2024_05;
+    if (fp->cc == 0) version = SOL_VERSION_CURR;
 #else
-    int version = SOL_VERSION_2024_05;
+    int version = SOL_VERSION_CURR;
 #endif
 
     sol_version = version;
@@ -1153,11 +1154,11 @@ int sol_stor_base(struct s_base *fp, const char *filename)
 int sol_check_solx(struct s_base *fp)
 {
 #ifdef MAPC_INCLUDES_CHKP
-    int version = fp->cc > 0 ? SOL_VERSION_CURR : SOL_VERSION_2024_05;
+    int version = fp->cc > 0 ? SOL_VERSION_CURR_CHKP : SOL_VERSION_CURR;
 
-    if (fp->cc == 0) version = SOL_VERSION_2024_05;
+    if (fp->cc == 0) version = SOL_VERSION_CURR;
 #else
-    int version = SOL_VERSION_2024_05;
+    int version = SOL_VERSION_CURR;
 #endif
 
     return version >= 10;

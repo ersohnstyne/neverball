@@ -141,11 +141,6 @@ void part_init(void)
     glBufferData_(GL_ELEMENT_ARRAY_BUFFER, sizeof (elems), elems, GL_STATIC_DRAW);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    glGenBuffers_(1, &coin_ebo);
-    glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, coin_ebo);
-    glBufferData_(GL_ELEMENT_ARRAY_BUFFER, sizeof (elems), elems, GL_STATIC_DRAW);
-    glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
-
     part_reset();
 }
 
@@ -245,7 +240,7 @@ void part_draw_coin(const struct s_draw *draw, struct s_rend *rend, const float 
                         glMultMatrixf(M);
 
                     glScalef(PART_SIZE * 2.0f, PART_SIZE * 2.0f, 1.0f);
-                    glRotatef(t * coin_part[i].w, 0.0f, 0.0f, 1.0f);
+                    glRotatef((coin_part[i].t - 1) * coin_part[i].w, 0.0f, 0.0f, 1.0f);
 
                     glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, (GLvoid *) 0u);
                 }

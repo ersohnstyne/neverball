@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /*
  * Copyright (C) 2024 Microsoft / Neverball authors
  *
@@ -20,12 +19,16 @@
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
-#include <SDL2/SDL_hints.h>
 #include <SDL2/SDL_joystick.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#include <SDL_events.h>
+#include <SDL_joystick.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #include <SDL_events.h>
-#include <SDL_hints.h>
 #include <SDL_joystick.h>
 #endif
 #endif
@@ -35,7 +38,7 @@
 #include "common.h"
 #include "log.h"
 
-#if NB_PB_WITH_XBOX==0
+#if NB_PB_WITH_XBOX==0 && !defined(__GAMECUBE__) && !defined(__WII__)
 #if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
 #define JOY_MAX 16
 #else
@@ -127,7 +130,6 @@ void joy_add(int device)
             SDL_TriggerBreakpoint();
 #endif
 
-            exit(1);
             return;
         }
     }

@@ -146,7 +146,7 @@ static int save_action(int tok, int val)
                     text_input[i] == '>'  ||
                     text_input[i] == '|')
                 {
-                    log_errorf("Can't accept other charsets!\n", text_input[i]);
+                    log_errorf("Can't accept other charsets!: %c\n", text_input[i]);
                     return 1;
                 }
             }

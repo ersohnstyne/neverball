@@ -932,7 +932,7 @@ static int restrict_hardcore_nextstate = 0;
 
 static int goal_hardcore_enter(struct state *st, struct state *prev)
 {
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_wgcl_restart_attempt();
 #endif
 

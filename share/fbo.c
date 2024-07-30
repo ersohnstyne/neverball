@@ -44,6 +44,9 @@ void fbo_delete(fbo *F)
 
 GLboolean fbo_create(fbo *F, GLsizei w, GLsizei h)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     if (gli.framebuffer_object == 0) return GL_FALSE;
 
     F->width  = w;
@@ -87,10 +90,16 @@ GLboolean fbo_create(fbo *F, GLsizei w, GLsizei h)
         glBindFramebuffer_(GL_FRAMEBUFFER, 0);
         return GL_FALSE;
     }
+#else
+    return GL_FALSE;
+#endif
 }
 
 void fbo_delete(fbo *F)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     if (gli.framebuffer_object == 0) return;
 
     if (F->color_texture) glDeleteTextures     (1, &F->color_texture);
@@ -98,6 +107,7 @@ void fbo_delete(fbo *F)
     if (F->framebuffer)   glDeleteFramebuffers_(1, &F->framebuffer);
 
     memset(F, 0, sizeof (fbo));
+#endif
 }
 
 #endif

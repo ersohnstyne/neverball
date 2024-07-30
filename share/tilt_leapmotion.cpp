@@ -26,6 +26,7 @@ extern "C" {
 #include "config.h"
 }
 
+#if defined(__LEAPMOTION__)
 #include <Leap.h>
 
 using namespace Leap;
@@ -116,3 +117,5 @@ float tilt_get_z(void)
 }
 
 }
+
+#endif

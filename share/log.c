@@ -93,8 +93,10 @@ void log_printf(const char *fmt, ...)
 #endif
 
 #ifndef NDEBUG
+#if _WIN32 && _MSC_VER
         OutputDebugStringA("[i] NB INFO: ");
         OutputDebugStringA(str);
+#endif
 #endif
 
         free(str);
@@ -152,8 +154,10 @@ void log_errorf(const char *fmt, ...)
 #endif
 
 #ifndef NDEBUG
+#if _WIN32 && _MSC_VER
         OutputDebugStringA("[!] NB ERROR: ");
         OutputDebugStringA(str);
+#endif
 #endif
 
         free(str);
@@ -185,12 +189,14 @@ void log_init(const char *name, const char *path)
         else
         {
 #ifndef NDEBUG
+#if _WIN32 && _MSC_VER
             OutputDebugStringA("[!] NB ERROR: ");
             OutputDebugStringA("Failure to open ");
             OutputDebugStringA(path);
             OutputDebugStringA("!: ");
             OutputDebugStringA(fs_error());
             OutputDebugStringA("\n");
+#endif
 #endif
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             fprintf_s(stderr, "Failure to open %s!: %s\n", path, fs_error());

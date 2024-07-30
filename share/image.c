@@ -15,6 +15,11 @@
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#include <SDL_ttf.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #include <SDL_ttf.h>

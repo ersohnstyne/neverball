@@ -471,6 +471,8 @@ int st_buttn(int b, int d)
     return (state && state->buttn) ? state->buttn(b, d) : 1;
 }
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__)
 int st_touch(const SDL_TouchFingerEvent *event)
 {
     int d = 1;
@@ -494,13 +496,6 @@ int st_touch(const SDL_TouchFingerEvent *event)
 
     return d;
 }
-
-/*---------------------------------------------------------------------------*/
-
-void st_exit(void)
-{
-    if (state && state->exit)
-        state->exit(state->gui_id);
-}
+#endif
 
 /*---------------------------------------------------------------------------*/

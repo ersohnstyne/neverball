@@ -12,9 +12,14 @@
  * General Public License for more details.
  */
 
-#if _WIN32
+#if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
-#include <SDL/SDL_thread.h>
+#include <SDL2/SDL_thread.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#include <SDL_thread.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #include <SDL_thread.h>
@@ -26,6 +31,8 @@
 #include "config.h"
 
 /*---------------------------------------------------------------------------*/
+
+#if (defined(__WII__) || defined(__WIIU__)) && !defined(__GAMECUBE__)
 
 #define _ENABLE_TILT
 #include <libcwiimote/wiimote.h>
@@ -299,5 +306,7 @@ int tilt_stat(void)
     }
     return b;
 }
+
+#endif
 
 /*---------------------------------------------------------------------------*/

@@ -33,7 +33,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static char *camiaign_theme_name;
+static char *campaign_theme_name;
 
 static int scan_level_attribs(struct level *l,
                               const struct s_base *base,

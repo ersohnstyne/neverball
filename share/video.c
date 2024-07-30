@@ -35,6 +35,10 @@
 
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #endif
@@ -81,6 +85,8 @@ extern "C"
 #endif
 void video_show_cursor(void)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__SWITCH__)
     if (opt_touch)
     {
         gui_set_cursor(0);
@@ -120,6 +126,9 @@ void video_show_cursor(void)
 #endif
 
     SDL_ShowCursor(cursor_visible);
+#elif defined(__WII__) || defined(__WIIU__)
+    gui_set_cursor(1);
+#endif
 }
 
 /* When the cursor is to be hidden, make sure neither the virtual cursor     */
@@ -130,11 +139,15 @@ extern "C"
 #endif
 void video_hide_cursor(void)
 {
-    if (opt_touch) return;
-
     gui_set_cursor(0);
 
+    if (opt_touch) return;
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     SDL_ShowCursor(SDL_DISABLE);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -156,7 +169,11 @@ static void snapshot_take(void)
 {
     if (snapshot_path[0])
     {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         image_snap(snapshot_path);
+#endif
         snapshot_path[0] = 0;
     }
 }
@@ -171,10 +188,12 @@ void video_snap(const char *path)
 
 /*---------------------------------------------------------------------------*/
 
+#if !defined(__WII__)
 static SDL_Window    *window;
 static SDL_GLContext  context;
+#endif
 
-#if !_MSC_VER && !defined(__APPLE__)
+#if !_MSC_VER && !defined(__APPLE__) && !defined(__WII__)
 static void set_window_icon(const char *filename)
 {
     if (!window) return;
@@ -201,6 +220,7 @@ extern "C"
 #endif
 int video_fullscreen(int f)
 {
+#if !defined(__WII__)
     int code = SDL_SetWindowFullscreen(window,
                                        f ? SDL_WINDOW_FULLSCREEN_DESKTOP :
                                            0);
@@ -212,6 +232,9 @@ int video_fullscreen(int f)
                    GAMEDBG_GETSTRERROR_CHOICES_SDL);
 
     return (code == 0);
+#else
+    return video_mode(1, config_get_d(CONFIG_WIDTH), config_get_d(CONFIG_HEIGHT));
+#endif
 }
 
 /*
@@ -222,6 +245,7 @@ extern "C"
 #endif
 void video_resize(int window_w, int window_h)
 {
+#if !defined(__WII__)
     if (window)
     {
         /* Update window size (for mouse events). */
@@ -257,6 +281,9 @@ void video_resize(int window_w, int window_h)
 
         video.aspect_ratio = (float) video.device_w / (float) video.window_h;
     }
+#else
+    video_mode(1, window_w, window_h);
+#endif
 }
 
 #if __cplusplus
@@ -279,7 +306,11 @@ void video_set_window_size(int w, int h)
      * https://github.com/emscripten-ports/SDL2/issues/138
      */
 
+#if defined(__WII__)
+    video_mode(1, w, h);
+#else
     SDL_SetWindowSize(window, w, h);
+#endif
 }
 
 #if __cplusplus
@@ -287,6 +318,9 @@ extern "C"
 #endif
 void video_set_display(int dpy)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     SDL_DisplayMode ddm;
     if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
     {
@@ -318,6 +352,7 @@ void video_set_display(int dpy)
     }
 
     SDL_SetWindowPosition(window, X, Y);
+#endif
 }
 
 #if __cplusplus
@@ -325,10 +360,14 @@ extern "C"
 #endif
 int video_display(void)
 {
+#if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     if (window)
         return SDL_GetWindowDisplayIndex(window);
     else
         return -1;
+#else
+    return 0;
+#endif
 }
 
 #if __cplusplus
@@ -336,6 +375,12 @@ extern "C"
 #endif
 int video_init(void)
 {
+#if defined(__WII__)
+    wiigl_create_context();
+    video_mode(1,
+               config_get_d(CONFIG_WIDTH),
+               config_get_d(CONFIG_HEIGHT));
+#else
     if (!video_mode(config_get_d(CONFIG_FULLSCREEN),
                     config_get_d(CONFIG_WIDTH),
                     config_get_d(CONFIG_HEIGHT)))
@@ -344,6 +389,7 @@ int video_init(void)
                    GAMEDBG_GETSTRERROR_CHOICES_SDL);
         return 0;
     }
+#endif
 
     return 1;
 }
@@ -353,6 +399,9 @@ extern "C"
 #endif
 void video_quit(void)
 {
+    hmd_free();
+
+#if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     if (context)
     {
 #ifdef __EMSCRIPTEN__
@@ -370,8 +419,7 @@ void video_quit(void)
         window = NULL;
     }
 //#endif
-
-    hmd_free();
+#endif
 }
 
 #if __cplusplus
@@ -379,6 +427,35 @@ extern "C"
 #endif
 int video_mode(int f, int w, int h)
 {
+#if defined(__WII__)
+    video.window_w     = video.device_w = w;
+    video.window_h     = video.device_h = h;
+    video.device_scale = (float) video.device_h / (float) video.window_h;
+
+    glext_init();
+
+    glViewport(0, 0, video.device_w, video.device_h);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+    glEnable(GL_NORMALIZE);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_BLEND);
+
+    glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL,
+                  GL_SEPARATE_SPECULAR_COLOR);
+
+    glPixelStorei(GL_PACK_ALIGNMENT,   1);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthFunc(GL_LEQUAL);
+    
+    video_show_cursor();
+    return 1;
+#else
 #if ENABLE_OPENGLES
     int init_gles = 1;
 #endif
@@ -391,6 +468,12 @@ int video_mode(int f, int w, int h)
     int vsync    = config_get_d(CONFIG_VSYNC)       ? 1 : 0;
     int hmd      = config_get_d(CONFIG_HMD)         ? 1 : 0;
     int highdpi  = config_get_d(CONFIG_HIGHDPI)     ? 1 : 0;
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+    stencil = 1;
+#endif
 
 video_mode_reconf:
 
@@ -474,8 +557,16 @@ video_mode_reconf:
 
     SDL_GL_SetAttribute(SDL_GL_STEREO,             stereo);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,       stencil);
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, buffers);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, samples);
+#else
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+#endif
 
     /*
      * Optional 16-bit double buffer with 16-bit depth buffer.
@@ -566,6 +657,9 @@ video_mode_reconf:
             initialize_gl4es();
 #endif
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             /*
              * Check whether the sampling and buffer values are
              * NOT in negative values in the multisampling settings.
@@ -605,6 +699,7 @@ video_mode_reconf:
                 SDL_GL_DeleteContext(context);
                 context = NULL;
             }
+#endif
         }
     }
 
@@ -648,6 +743,9 @@ video_mode_reconf:
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDepthFunc(GL_LEQUAL);
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         /* If GL supports multisample, and SDL got a multisample buffer... */
 
         if (glext_check_ext("ARB_multisample"))
@@ -660,6 +758,7 @@ video_mode_reconf:
             glDisable(GL_MULTISAMPLE);
             config_set_d(CONFIG_MULTISAMPLE, 0);
         }
+#endif
 
 #if ENABLE_HMD
         /* Set up HMD display if requested. */
@@ -708,6 +807,9 @@ video_mode_failinit_window_context:
     }
 #endif
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     /* If the mode failed, try decreasing the level of multisampling. */
 
     if (buffers)
@@ -715,6 +817,7 @@ video_mode_failinit_window_context:
         config_set_d(CONFIG_MULTISAMPLE, samples / 2);
         goto video_mode_reconf;
     }
+#endif
 
     /* If the mode failed, try decreasing the level of textures. */
 
@@ -766,6 +869,9 @@ video_mode_failinit_window_context:
     }
 #endif
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     /* If that mode failed, get the soloution. */
 
     if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
@@ -788,6 +894,7 @@ video_mode_failinit_window_context:
 
         goto video_mode_reconf;
     }
+#endif
 
     /* If THAT mode failed, punt. */
 #else
@@ -821,6 +928,7 @@ video_mode_failinit_window_context:
 #endif
 
     return 0;
+#endif
 }
 
 #if __cplusplus
@@ -828,6 +936,35 @@ extern "C"
 #endif
 int video_mode_auto_config(int f, int w, int h)
 {
+#if defined(__WII__)
+    video.window_w     = video.device_w = w;
+    video.window_h     = video.device_h = h;
+    video.device_scale = (float) video.device_h / (float) video.window_h;
+
+    glext_init();
+
+    glViewport(0, 0, video.device_w, video.device_h);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+    glEnable(GL_NORMALIZE);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_BLEND);
+
+    glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL,
+                  GL_SEPARATE_SPECULAR_COLOR);
+
+    glPixelStorei(GL_PACK_ALIGNMENT,   1);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthFunc(GL_LEQUAL);
+
+    video_show_cursor();
+    return 1;
+#else
 #if ENABLE_OPENGLES
     int init_gles = 1;
 #endif
@@ -908,8 +1045,16 @@ video_mode_auto_config_reconf:
     int stencil_ok    = SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, auto_stencils);
 
     int auto_samples = 16;
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     int smpbuf_ok    = SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, auto_samples ? 1 : 0);
     int smp_ok       = SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, auto_samples);
+#else
+    int smpbuf_ok    = SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+    int smp_ok       = SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+#endif
 
     /*
      * Optional 16-bit double buffer with 16-bit depth buffer.
@@ -1030,6 +1175,9 @@ video_mode_auto_config_reconf:
         {
             if ((context = SDL_GL_CreateContext(window)))
             {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
                 int buf, smp;
 
                 if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buf) != 0 ||
@@ -1060,6 +1208,7 @@ video_mode_auto_config_reconf:
                 }
                 else
                     return 0;
+#endif
             }
         }
         else
@@ -1084,6 +1233,10 @@ video_mode_auto_config_reconf:
 
             initialize_gl4es();
 #endif
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             int buf, smp;
 
             SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buf);
@@ -1096,6 +1249,7 @@ video_mode_auto_config_reconf:
                 context = NULL;
                 return 0;
             }
+#endif
         }
     }
 
@@ -1140,6 +1294,9 @@ video_mode_auto_config_reconf:
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDepthFunc(GL_LEQUAL);
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         /* If GL supports multisample, and SDL got a multisample buffer... */
 
         if (glext_check_ext("ARB_multisample"))
@@ -1153,6 +1310,7 @@ video_mode_auto_config_reconf:
             glDisable(GL_MULTISAMPLE);
             config_set_d(CONFIG_MULTISAMPLE, 0);
         }
+#endif
 
 #if ENABLE_HMD
         /* Set up HMD display if requested. */
@@ -1212,7 +1370,10 @@ video_mode_auto_config_failinit_window_context:
     }
 #endif
 
-#if defined(ENABLE_MULTISAMPLE_SOLUTION)
+#if defined(ENABLE_MULTISAMPLE_SOLUTION) && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     /* Get the soloution first. */
 
     if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
@@ -1239,6 +1400,7 @@ video_mode_auto_config_failinit_window_context:
     /* For some reasons, this may not work on oldest hardware. */
 
     return 0;
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1264,6 +1426,9 @@ void video_swap(void)
 {
     int dt;
 
+#if defined(__WII__)
+    wiigl_swap_buffers();
+#else
     if (hmd_stat())
         hmd_swap();
 
@@ -1272,6 +1437,7 @@ void video_swap(void)
     snapshot_take();
 
     SDL_GL_SwapWindow(window);
+#endif
 
     /* Accumulate time passed and frames rendered. */
 
@@ -1281,13 +1447,16 @@ void video_swap(void)
 #ifdef FPS_REALTIME
     /* Compute frame time and frames-per-second stats. */
 
-    fps = 1 / (0.001f * dt);
-    ms  = 0.001f * dt;
+    if (dt > 0 && dt < 100)
+    {
+        fps = 1 / (0.001f * dt);
+        ms  = 0.001f * dt;
+    }
 
 #if NB_STEAM_API==0 && !defined(LOG_NO_STATS)
     /* Output statistics if configured. */
 
-    if (config_get_d(CONFIG_STATS))
+    if (config_get_d(CONFIG_STATS) && dt > 0 && dt < 100)
         fprintf(stdout, "%4d %8.4f\n", fps, (double) ms);
 #endif
 #else
@@ -1317,7 +1486,7 @@ void video_swap(void)
 #if NB_STEAM_API==0 && !defined(LOG_NO_STATS)
         /* Output statistics if configured. */
 
-        if (config_get_d(CONFIG_STATS))
+        if (config_get_d(CONFIG_STATS) && dt > 0 && dt < 100)
             fprintf(stdout, "%4d %8.4f\n", fps, (double) ms);
 #endif
     }
@@ -1333,6 +1502,9 @@ extern "C"
 #endif
 void video_set_grab(int w)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     if (opt_touch) return;
 
     if (w)
@@ -1348,6 +1520,8 @@ void video_set_grab(int w)
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
     SDL_SetWindowGrab(window, SDL_TRUE);
+#endif
+
     video_hide_cursor();
 
     grabbed = 1;
@@ -1358,12 +1532,16 @@ extern "C"
 #endif
 void video_clr_grab(void)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     SDL_SetRelativeMouseMode(SDL_FALSE);
 
     /* Never release the grab in HMD mode. */
 
     if (!hmd_stat())
         SDL_SetWindowGrab(window, SDL_FALSE);
+#endif
 
     video_show_cursor();
 
@@ -1568,6 +1746,12 @@ void video_set_perspective(float fov, float n, float f)
 
         glMatrixMode(GL_PROJECTION);
         {
+#if defined(__WII__)
+            /* TODO: figure out why the matrix isn't working */
+            GLfloat fH = ftanf(fov / 360.0 * V_PI) * n;
+            GLfloat fW = fH * a;
+            glFrustum(-fW, fW, -fH, fH, n, f);
+#else
             GLfloat m[16] = {
                 c / a, 0.0f,  0.0f,                    0.0f,
                 0.0f,  c,     0.0f,                    0.0f,
@@ -1576,6 +1760,7 @@ void video_set_perspective(float fov, float n, float f)
             };
 
             glLoadMatrixf(m);
+#endif
         }
 
         glMatrixMode(GL_MODELVIEW);
@@ -1620,7 +1805,9 @@ extern "C"
 #endif
 void video_set_current(void)
 {
+#if !defined(__WII__)
     if (!window || !context) return;
+#endif
 
 #if ENABLE_DUALDISPLAY==1
     //SDL_GL_MakeCurrent(window, context);

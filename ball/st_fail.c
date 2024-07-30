@@ -79,7 +79,13 @@
     _("Upgrade to Pro edition, to buy Mediation!")
 #define FAIL_UPGRADE_EDITION_2 _("Upgrade to Pro edition, to buy more balls!")
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #define FAIL_TRANSFER_MEMBER_1 _("Join Pennyball Discord, to buy more balls!")
+#else
+#define FAIL_TRANSFER_MEMBER_1 _("Join Pennyball Discord via Desktop or Mobile, to buy more balls!")
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -195,6 +201,9 @@ static int fail_action(int tok, int val)
             }
             break;
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         case FAIL_UPGRADE_EDITION:
 #if defined(__EMSCRIPTEN__)
             EM_ASM({ window.open("https://forms.office.com/r/upfWqaVVtA"); }, 0);
@@ -218,6 +227,7 @@ static int fail_action(int tok, int val)
             system("x-www-browser https://discord.gg/qnJR263Hm2/");
 #endif
         break;
+#endif
     }
 
     return 1;
@@ -386,6 +396,7 @@ static int fail_gui(void)
 #endif
                                     )
                                     audio_music_fade_out(0.0f);
+
                                 gui_multi(jd, FAIL_UPGRADE_EDITION_2,
                                               GUI_SML, GUI_COLOR_RED);
                             }
@@ -586,19 +597,30 @@ static int fail_gui(void)
 
                     /* New: Checkpoints; An optional can be respawn from last location */
                     if ((progress_same_avail() && last_active) &&
-                        (((checkpoints_last_time_limit() - checkpoints_last_time_elapsed()) > 60.0f || checkpoints_last_time_limit() == 0.0f)))
+                        (((checkpoints_last_time_limit() - checkpoints_last_time_elapsed()) > 60.0f ||
+                          checkpoints_last_time_limit() == 0.0f)))
                         gui_state(jd, _("Respawn"),
-                            GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
+                                      GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
                     else if ((!campaign_hardcore() && progress_dead()) &&
-                        (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                            server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
+                             (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
                         gui_state(jd, _("Buy more balls!"),
-                            GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
+                                      GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
                     else if (!campaign_hardcore() &&
-                        server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                        progress_dead())
+                             server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                             progress_dead())
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
                         gui_state(jd, _("Upgrade edition!"),
-                            GUI_SML, FAIL_UPGRADE_EDITION, 0);
+                                      GUI_SML, FAIL_UPGRADE_EDITION, 0);
+#else
+                    {
+                        int rd;
+                        if ((rd = gui_state(jd, _("Respawn"), GUI_SML, GUI_NONE, 0)))
+                            gui_set_color(rd, GUI_COLOR_GRY);
+                    }
+#endif
                 }
 #elif defined(MAPC_INCLUDES_CHKP)
                 if (respawnable && progress_same_avail())
@@ -608,18 +630,28 @@ static int fail_gui(void)
                     /* New: Checkpoints; An optional can be respawn last location */
                     if ((progress_same_avail() && last_active) &&
                         ((last_timer > 60.0f && last_timer_down) ||
-                            !last_timer_down))
+                         !last_timer_down))
                         gui_state(jd, _("Respawn"),
-                            GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
+                                      GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
                     else if (progress_dead() &&
-                        (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                            server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
+                             (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                              server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
                         gui_state(jd, _("Buy more balls!"),
-                            GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
+                                      GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
                     else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                        progress_dead())
+                             progress_dead())
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
                         gui_state(jd, _("Upgrade edition!"),
-                            GUI_SML, FAIL_UPGRADE_EDITION, 0);
+                                      GUI_SML, FAIL_UPGRADE_EDITION, 0);
+#else
+                    {
+                        int rd;
+                        if ((rd = gui_state(jd, _("Respawn"), GUI_SML, GUI_NONE, 0)))
+                            gui_set_color(rd, GUI_COLOR_GRY);
+                    }
+#endif
                 }
 #endif
                 else
@@ -636,32 +668,42 @@ static int fail_gui(void)
                     gui_start(jd, _("Back To Menu"), GUI_SML, FAIL_OVER, 0);
 
 #if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
-                    if (!campaign_hardcore())
+                    if (!campaign_hardcore() && !progress_dead())
+#else
+                    if (!progress_dead())
 #endif
                     {
-                        if ((progress_same_avail() && !progress_dead()))
-                            gui_state(jd, _("Retry Level"), GUI_SML, FAIL_SAME, 0);
-#if NB_HAVE_PB_BOTH==1
-                        else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                            server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-                            gui_state(jd, _("Buy more balls!"),
-                                GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
-                        else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                            gui_state(jd, _("Upgrade edition!"),
-                                GUI_SML, FAIL_UPGRADE_EDITION, 0);
-#else
-                        else
-                            gui_state(jd, _("Join PB"),
-                                GUI_SML, FAIL_TRANSFER_MEMBER, 0);
-#endif
-                    }
+                        gui_state(jd, _("Retry Level"), GUI_SML, FAIL_SAME, 0);
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-                    if (account_get_d(ACCOUNT_PRODUCT_MEDIATION) == 1 &&
-                        status == GAME_TIME && curr_mode() == MODE_NORMAL)
-                        gui_state(jd, _("Switch to Zen"),
-                            GUI_SML, FAIL_ZEN_SWITCH, 0);
+                        if (account_get_d(ACCOUNT_PRODUCT_MEDIATION) == 1 &&
+                            status == GAME_TIME && curr_mode() == MODE_NORMAL)
+                            gui_state(jd, _("Switch to Zen"),
+                                          GUI_SML, FAIL_ZEN_SWITCH, 0);
 #endif
+                    }
+#if NB_HAVE_PB_BOTH==1
+                    else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                        server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+                        gui_state(jd, _("Buy more balls!"),
+                                      GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
+                    else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                        gui_state(jd, _("Upgrade edition!"),
+                                      GUI_SML, FAIL_UPGRADE_EDITION, 0);
+#elif !defined(__NDS__) && !defined(__3DS__) && \
+      !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+      !defined(__SWITCH__)
+                    else
+                        gui_state(jd, _("Join PB"),
+                                      GUI_SML, FAIL_TRANSFER_MEMBER, 0);
+#else
+                    else {
+                        int rd;
+                        if ((rd = gui_state(jd, _("Retry Level"), GUI_SML, GUI_NONE, 0)))
+                            gui_set_color(rd, GUI_COLOR_GRY);
+                    }
+#endif
+
                     /* We're just reverted back for you! */
                     if (demo_saved())
                     {
@@ -694,7 +736,7 @@ static int fail_gui(void)
 
 static int fail_enter(struct state *st, struct state *prev)
 {
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_wgcl_restart_attempt();
 #endif
 
@@ -1378,7 +1420,11 @@ static int raise_gems_action(int tok, int val)
             break;
 
         case RAISEGEMS_IAP:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             return goto_shop_iap(&st_raise_gems, st_returnable, 0, 0, val, 1, 0);
+#endif
             break;
 
         case RAISEGEMS_BANKRUPTCY:
@@ -1495,7 +1541,10 @@ static int raise_gems_prepare_gui(void)
         char infoattr_full[MAXSTR], infoattr0[MAXSTR];
         
         const char *bankrupt_str0 = _("Your debt of %d gems exceeds your net-worth.");
-#if (NB_STEAM_API==1 || NB_EOS_SDK==1) && ENABLE_IAP==1
+#if (NB_STEAM_API==1 || NB_EOS_SDK==1) && ENABLE_IAP==1 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         const char *bankrupt_str1 = _("You may attempt to increasing through skillful payers.");
         const char *bankrupt_str2 = _("You may declare bankruptcy or you may attempt to\n"
                                       "avoid bankruptcy through skillful payers.");
@@ -1664,7 +1713,10 @@ static int raise_gems_prepare_gui(void)
             }
             else if (!allow_raise && tmp_startbtn_id)
             {
-#if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
+#if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
                 gui_set_label(tmp_startbtn_id, _("Get gems!"));
                 gui_set_state(tmp_startbtn_id, RAISEGEMS_IAP,
                                                raisegems_dst_amount);

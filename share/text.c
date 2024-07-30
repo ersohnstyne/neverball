@@ -94,6 +94,8 @@ char text_input[MAXSTR];
 static void (*on_text_input)(int);
 
 #ifdef CALLBACK
+#pragma message(__FILE__ "("_CRT_STRINGIZE(__LINE__)")" ": " \
+                "CALLBACK: Preprocessor definitions found! Replacing to functions!")
 #undef CALLBACK
 #endif
 #define CALLBACK(typing) do {                   \
@@ -107,13 +109,21 @@ void text_input_start(void (*cb) (int))
     text_input[0] = 0;
     CALLBACK(0);
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     SDL_StartTextInput();
+#endif
 }
 
 void text_input_stop(void)
 {
     on_text_input = NULL;
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     SDL_StopTextInput();
+#endif
 }
 
 int text_input_str(const char *input, int typing)

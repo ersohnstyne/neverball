@@ -513,15 +513,15 @@ static int start_gui(void)
                                             star_completed ? gui_yel : gui_wht,
                                             star_completed ? gui_grn : gui_yel);
 
-#ifdef CONFIG_INCLUDES_ACCOUNT
-                if (CHECK_ACCOUNT_BANKRUPT)
-                    gui_set_color(star_btn_id, gui_red, gui_blk);
-                if (!star_completed && !CHECK_ACCOUNT_BANKRUPT)
-                    gui_set_state(star_btn_id, START_CHECKSTARS, 0);
-#else
                 if (!star_completed)
-                    gui_set_state(star_btn_id, START_CHECKSTARS, 0);
+                {
+#ifdef CONFIG_INCLUDES_ACCOUNT
+                    if (CHECK_ACCOUNT_BANKRUPT)
+                        gui_set_color(star_btn_id, gui_red, gui_blk);
+                    else
 #endif
+                        gui_set_state(star_btn_id, START_CHECKSTARS, 0);
+                }
 
                 gui_space(jd);
             }
@@ -895,6 +895,7 @@ static int start_enter(struct state *st, struct state *prev)
     audio_music_fade_to(0.5f, "gui/bgm/inter.ogg", 1);
 #endif
 
+#if ENABLE_MOON_TASKLOADER!=0
     if (prev == &st_set)
     {
         start_is_scanning_with_moon_taskloader = 1;
@@ -907,6 +908,7 @@ static int start_enter(struct state *st, struct state *prev)
 
         return start_gui();
     }
+#endif
 
     if (set_star_view) return start_star_view_gui();
 
@@ -1129,6 +1131,9 @@ static int start_joinrequired_action(int tok, int val)
             return goto_state(&st_start);
 
         case START_JOINREQUIRED_OPEN:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if defined(__EMSCRIPTEN__)
             EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/"); }, 0);
 #elif _WIN32
@@ -1137,6 +1142,7 @@ static int start_joinrequired_action(int tok, int val)
             system("open https://discord.gg/qnJR263Hm2/");
 #elif defined(__linux__)
             system("x-www-browser https://discord.gg/qnJR263Hm2/");
+#endif
 #endif
             break;
 
@@ -1173,9 +1179,15 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev)
 
         if ((jd = gui_harray(id)))
         {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             gui_start(jd, _("Join/Upgrade"),
                           GUI_SML, START_JOINREQUIRED_OPEN, 0);
             gui_state(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
+#else
+            gui_start(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
+#endif
             gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
         }
     }
@@ -1203,8 +1215,14 @@ static int start_joinrequired_enter(struct state *st, struct state *prev)
 
         if ((jd = gui_harray(id)))
         {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             gui_start(jd, _("Join"), GUI_SML, START_JOINREQUIRED_OPEN, 0);
             gui_state(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
+#else
+            gui_start(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
+#endif
             gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
         }
     }

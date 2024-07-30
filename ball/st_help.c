@@ -54,9 +54,14 @@
     (defined(SWITCHBALL_GUI) || defined(SWITCHBALL_HELP) || \
      defined(LEVELGROUPS_INCLUDES_CAMPAIGN) || defined(CONFIG_INCLUDES_ACCOUNT))
 #error Security compilation error: Preprocessor definitions can be used it, \
-       once you've transferred or joined into the target Discord Server, \
+       once you have transferred or joined into the target Discord Server, \
        and verified and promoted as Developer Role. \
        This invite link can be found under https://discord.gg/qnJR263Hm2/.
+#endif
+
+#if defined(__WII__)
+/* We're using SDL 1.2 on Wii, which has SDLKey instead of SDL_Keycode. */
+typedef SDLKey SDL_Keycode;
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -359,6 +364,10 @@ static int page_rules(int id)
                        "unlock the goal and finish\n"
                        "the level.\n");
 
+    const char *s_wii = _("Tilt the Wii Remote or move\n"
+                          "the nunchuck stick to\n"
+                          "tilt the floor causing the\n"
+                          "ball to roll.\n");
     const char *s_xbox = _("Move the left stick to\n"
                            "tilt the floor causing the\n"
                            "ball to roll.\n");
@@ -381,8 +390,12 @@ static int page_rules(int id)
             {
                 gui_space(ld);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#if defined(__WII__)
+                gui_multi(ld, s_wii, GUI_SML, GUI_COLOR_WHT);
+#else
                 gui_multi(ld, current_platform == PLATFORM_PC ? s_pc : s_xbox,
                               GUI_SML, GUI_COLOR_WHT);
+#endif
 #else
                 gui_multi(ld, s_pc, GUI_SML, GUI_COLOR_WHT);
 #endif
@@ -578,8 +591,12 @@ static void controls_touch(int id)
 #ifndef __EMSCRIPTEN__
 static void controls_console(int id)
 {
+#if defined(__WII__)
+    const char *s_rotate    = _("Use D-Pad to rotate the view.");
+#else
     const char *s_rotate    = _("Move the right stick left or right\n"
                                 "to rotate the view.");
+#endif
     const char *s_exit      = _("Exit");
     const char *s_pause     = _("Pause");
     const char *s_camToggle = _("Cycle Camera Mode");
@@ -622,10 +639,14 @@ static void controls_console(int id)
 static int page_controls(int id)
 {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#if defined(__WII__)
+    controls_console(id);
+#else
     if (current_platform == PLATFORM_PC)
         controls_pc(id);
     else
         controls_console(id);
+#endif
 #else
     controls_pc(id);
 #endif

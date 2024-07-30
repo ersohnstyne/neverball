@@ -14,6 +14,8 @@
 
 /*---------------------------------------------------------------------------*/
 
+#if !defined(__OHMD__) && !defined(__OVR__)
+
 int  hmd_stat(void) { return 0; }
 
 void hmd_init(void) { }
@@ -26,5 +28,7 @@ void hmd_prep_right(void) { }
 
 void hmd_persp(float n, float f) { }
 void hmd_ortho(void) { }
+
+#endif
 
 /*---------------------------------------------------------------------------*/

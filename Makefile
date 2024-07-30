@@ -5,7 +5,7 @@
 BUILD := $(shell cat neverball-build.txt 2> /dev/null || echo release)
 
 # Version: MJ.MN.PT.RV.BD
-VERSION := $(shell sh scripts/version.sh || echo 1.6.1)
+VERSION := $(shell sh scripts/version.sh || echo 1.7.0)
 
 $(info Will make a "$(BUILD)" build of Neverball $(VERSION).)
 
@@ -16,12 +16,6 @@ endif
 ifeq ($(ENABLE_IAP),paypal)
 $(error The Paypal payment for Neverball requires latest FS version!)
 endif
-endif
-
-ENABLE_ACCOUNT_BINARY := 1
-
-ifneq ($(ENABLE_ACCOUNT_BINARY),1)
-$(error ENABLE_ACCOUNT_BINARY!=1 is not allowed to use!)
 endif
 
 ifeq ($(LEGACY_MODE),0)
@@ -217,6 +211,22 @@ endif
 
 ALL_CXXFLAGS := -fno-rtti -fno-exceptions $(CXXFLAGS)
 
+ifeq ($(ENABLE_TILT),wii)
+	ALL_CFLAGS += -D__WII__ -D__WIIU__
+else
+ifeq ($(ENABLE_TILT),wiiuse)
+	ALL_CFLAGS += -D__WII__ -D__WIIU__
+else
+ifeq ($(ENABLE_TILT),loop)
+	ALL_CFLAGS += -D__HILLCREST_LOOP__
+else
+ifeq ($(ENABLE_TILT),leapmotion)
+	ALL_CXXFLAGS += -D__LEAPMOTION__
+endif
+endif
+endif
+endif
+
 # Preprocessor...
 # New: Game Transfer
 ifeq ($(ENABLE_GAME_TRANSFER_SOURCE),1)
@@ -230,11 +240,6 @@ endif
 # New: Steam support
 ifeq ($(ENABLE_STEAM),1)
 	STEAM_CPPFLAGS := -I/usr/local/include -DSTEAM_GAMES=1
-endif
-
-# New: MySQL
-ifeq ($(ENABLE_SQL),1)
-	SQL_CPPFLAGS := $(shell mysql_config --cflags) -DENABLE_SQL
 endif
 
 # New: Dedicated server
@@ -253,7 +258,7 @@ PNG_CPPFLAGS := $(shell libpng-config --cflags)
 
 ALL_CPPFLAGS += $(GAMETRANSFER_CPPFLAGS) $(DEDICATED_CPPFLAGS) \
 	$(STEAM_CPPFLAGS) $(SDL_CPPFLAGS) $(PNG_CPPFLAGS) $(SQL_CPPFLAGS) \
-	$(RFD_CPPFLAGS) -Ishare -Ipayments
+	$(RFD_CPPFLAGS) -Iwgcl -Ipayments -Ishare
 
 ALL_CPPFLAGS += \
 	-DCONFIG_USER=\"$(USERDIR)\" \
@@ -271,10 +276,10 @@ else
 endif
 
 ifeq ($(ENABLE_HMD),openhmd)
-	ALL_CPPFLAGS += -DENABLE_HMD=1
+	ALL_CPPFLAGS += -DENABLE_HMD=1 -D__OHMD__
 endif
 ifeq ($(ENABLE_HMD),libovr)
-	ALL_CPPFLAGS += -DENABLE_HMD=1
+	ALL_CPPFLAGS += -DENABLE_HMD=1 -D__OVR__
 endif
 
 ifeq ($(ENABLE_RADIANT_CONSOLE),1)
@@ -290,12 +295,6 @@ MKLOCALVAR_CURL_PREPARED := 0
 ifneq ($(FS_VERSION),1)
 # Paypal payment support
 ifeq ($(ENABLE_IAP),paypal)
-	# $(shell curl-config --cflags) =	\
-		-DENABLE_IAP=1					\
-		-I"C:/msys64/usr/include"		\
-		-DCURL_STATICLIB				\
-		-DENABLE_FETCH=1
-
 	ALL_CPPFLAGS +=						\
 		$(shell curl-config --cflags)	\
 		-DENABLE_FETCH=1
@@ -305,40 +304,10 @@ endif
 
 ifeq ($(ENABLE_FETCH),curl)
 ifneq ($(MKLOCALVAR_CURL_PREPARED),1)
-	# $(shell curl-config --cflags) =	\
-		-I"C:/msys64/usr/include"		\
-		-DCURL_STATICLIB				\
-		-DENABLE_FETCH=1
-
 	ALL_CPPFLAGS +=						\
 		$(shell curl-config --cflags)	\
 		-DENABLE_FETCH=1
 endif
-endif
-
-ifeq ($(ENABLE_FETCH),curl_gdrive)
-ifneq ($(MKLOCALVAR_CURL_PREPARED),1)
-	# $(shell curl-config --cflags) =	\
-		-I"C:/msys64/usr/include"		\
-		-DCURL_STATICLIB				\
-		-DENABLE_FETCH=1
-
-	ALL_CPPFLAGS +=						\
-		$(shell curl-config --cflags)
-endif
-	ALL_CPPFLAGS += -DENABLE_FETCH=2
-endif
-
-ifeq ($(ENABLE_FETCH),curl_gdrive_only)
-ifneq ($(MKLOCALVAR_CURL_PREPARED),1)
-	# $(shell curl-config --cflags) =	\
-		-I"C:/msys64/usr/include"		\
-		-DCURL_STATICLIB
-
-	ALL_CPPFLAGS +=						\
-		$(shell curl-config --cflags)
-endif
-	ALL_CPPFLAGS += -DENABLE_FETCH=3
 endif
 
 ifeq ($(PLATFORM),darwin)
@@ -382,16 +351,10 @@ ifeq ($(ENABLE_STEAM),1)
 	STEAM_LIBS := -L/usr/local/lib/steam/libsteam_api.so -lsteam_api
 endif
 
-# New: MySQL
-ifeq ($(ENABLE_SQL),1)
-	SQL_LIBS := $(shell mysql_config --libs)
-endif
-
 # New: Dedicated server
 ifeq ($(ENABLE_DEDICATED_SERVER),1)
-	DEDICATED_LIBS := -L"C:/msys64/mingw64/x86_64-w64-mingw32/lib" \
-					  -L"."                                        \
-					  -lneverball_net_client                       \
+	DEDICATED_LIBS := -L"."                  \
+					  -lneverball_net_client \
 					  -lws2_32
 endif
 
@@ -410,15 +373,8 @@ FS_LIBS := -lphysfs
 endif
 endif
 
-# -L"C:/msys64/usr/lib/libcurl.a" -lcurl
 ifneq ($(FS_VERSION),1)
 ifeq ($(ENABLE_FETCH),curl)
-	FETCH_LIBS += $(shell curl-config --libs) 
-endif
-ifeq ($(ENABLE_FETCH),curl_gdrive)
-	FETCH_LIBS += $(shell curl-config --libs) 
-endif
-ifeq ($(ENABLE_FETCH),curl_gdrive_only)
 	FETCH_LIBS += $(shell curl-config --libs) 
 endif
 # Paypal payment support
@@ -438,7 +394,7 @@ ifeq ($(ENABLE_TILT),wii)
 	TILT_LIBS := -lcwiimote -lbluetooth
 else
 ifeq ($(ENABLE_TILT),wiiuse)
-	TILT_LIBS := -lwiiuse -lbluetooth
+	TILT_LIBS := -lbluetooth
 else
 ifeq ($(ENABLE_TILT),loop)
 	TILT_LIBS := -lusb-1.0 -lfreespace
@@ -496,12 +452,6 @@ ifeq ($(PLATFORM), haiku)
 endif
 
 ifeq ($(ENABLE_FETCH),curl)
-	CURL_LIBS := $(shell curl-config --libs)
-endif
-ifeq ($(ENABLE_FETCH),curl_gdrive)
-	CURL_LIBS := $(shell curl-config --libs)
-endif
-ifeq ($(ENABLE_FETCH),curl_gdrive_only)
 	CURL_LIBS := $(shell curl-config --libs)
 endif
 
@@ -709,10 +659,10 @@ endif
 endif
 
 ifeq ($(ENABLE_STEAM),1)
-BALL_OBJS += share/account_steam.o
+BALL_OBJS += share/account_steam.o wgcl/account_wgcl.o wgcl/st_wgcl.o
 PUTT_OBJS += share/account_steam.o
 else
-BALL_OBJS += share/account_binary.o
+BALL_OBJS += share/account_binary.o wgcl/account_wgcl.o wgcl/st_wgcl.o
 PUTT_OBJS += share/account_binary.o
 endif
 
@@ -773,9 +723,9 @@ endif
 
 ifeq ($(FS_VERSION),1)
 ifeq ($(ENABLE_FS),stdio)
-BALL_OBJS += share/fs_stdio_v1.o
-PUTT_OBJS += share/fs_stdio_v1.o
-MAPC_OBJS += share/fs_stdio_v1.o
+BALL_OBJS += share/fs_stdio.o
+PUTT_OBJS += share/fs_stdio.o
+MAPC_OBJS += share/fs_stdio.o
 endif
 ifeq ($(ENABLE_FS),physfs)
 BALL_OBJS += share/fs_physfs.o
@@ -835,12 +785,6 @@ endif
 
 FETCH_OBJS := share/fetch_null.o
 ifeq ($(ENABLE_FETCH),curl)
-FETCH_OBJS := share/fetch_curl.o
-endif
-ifeq ($(ENABLE_FETCH),curl_gdrive)
-FETCH_OBJS := share/fetch_curl.o
-endif
-ifeq ($(ENABLE_FETCH),curl_gdrive_only)
 FETCH_OBJS := share/fetch_curl.o
 endif
 
@@ -906,8 +850,8 @@ ifneq ($(ALTERNATIVE_BUILDENV),Msys2)
 endif
 endif
 
-all : $(BALL_BUILDCOND) $(PUTT_BUILDCOND) $(MAPC_BUILDCOND) \
-	$(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) sols locales desktops
+#all : $(BALL_BUILDCOND) $(PUTT_BUILDCOND) $(MAPC_BUILDCOND) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) locales
+#all : $(error No target specified! Usage: ball, putt, mapc, publish, test, sols, csols, locales, desktops, clean-src, clean-sols, clean)
 
 ball : $(BALL_BUILDCOND) $(BALL_TARG)
 putt : $(PUTT_BUILDCOND) $(PUTT_TARG)

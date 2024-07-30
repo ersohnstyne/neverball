@@ -47,7 +47,7 @@
        or it will not show up to be synced belonging st_done.h.
 #elif NB_HAVE_PB_BOTH!=1
 #error Security compilation error: Preprocessor definitions can be used it, \
-       once you've transferred or joined into the target Discord Server, \
+       once you have transferred or joined into the target Discord Server, \
        and verified and promoted as Developer Role. \
        This invite link can be found under https://discord.gg/qnJR263Hm2/.
 #endif
@@ -265,7 +265,7 @@ static int over_gui(void)
 
 static int over_enter(struct state *st, struct state *prev)
 {
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_wgcl_restart_attempt();
 #endif
 

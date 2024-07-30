@@ -75,13 +75,18 @@
 #if NB_HAVE_PB_BOTH!=1 && \
     (defined(ENABLE_GAME_TRANSFER) || defined(GAME_TRANSFER_TARGET))
 #error Security compilation error: Preprocessor definitions can be used it, \
-       once you've transferred or joined into the target Discord Server, \
+       once you have transferred or joined into the target Discord Server, \
        and verified and promoted as Developer Role. \
        This invite link can be found under https://discord.gg/qnJR263Hm2/.
 #endif
 
 extern const char TITLE[];
 extern const char ICON[];
+
+#if defined(__WII__)
+/* We're using SDL 1.2 on Wii, which has SDLKey instead of SDL_Keycode. */
+typedef SDLKey SDL_Keycode;
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -124,7 +129,7 @@ static int conf_check_playername(const char *regname)
             regname[i] == '>'  ||
             regname[i] == '|')
         {
-            log_errorf("Can't accept other charsets!\n", regname[i]);
+            log_errorf("Can't accept other charsets!: %c\n", regname[i]);
             return 0;
         }
 
@@ -315,6 +320,9 @@ static int conf_social_action(int tok, int val)
             if (conf_join_confirm)
 #endif
             {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #ifdef __EMSCRIPTEN__
 #if NB_HAVE_PB_BOTH==1
                 EM_ASM({ window.open("https://discord.gg/qnJR263Hm2");  }, 0);
@@ -339,11 +347,12 @@ static int conf_social_action(int tok, int val)
                 SAFECAT(linkstr_cmd, linkstr_code);
 
                 system(linkstr_cmd);
-#endif
 
                 /* bye! */
 
                 return !mainmenu_conf ? goto_state(&st_conf) : 0;
+#endif
+#endif
             }
 #if NB_HAVE_PB_BOTH==1
             else
@@ -389,15 +398,26 @@ static int conf_social_gui(void)
             }
             else
                 gui_multi(jd, _("Please make sure that you've verified the\n"
-                                "new members after joined, before send community messages,\n"
-                                "connect voice chats and watch streaming."),
+                                "new members after joined, before send\n"
+                                "community messages, connect voice chats\n"
+                                "and watch streaming."),
                               GUI_SML, GUI_COLOR_WHT);
 
 #if NB_HAVE_PB_BOTH==1
             if (mainmenu_conf && conf_join_confirm)
 #endif
+            {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
                 gui_label(jd, _("This may take a while, and the game will then exit."),
                               GUI_SML, gui_twi, gui_vio);
+#else
+                gui_label(jd, _("Join on Desktop: https://discord.gg/qnJR263Hm2"),
+                              GUI_SML, gui_twi, gui_vio);
+#endif
+            }
+
 
             gui_set_rect(jd, GUI_ALL);
         }
@@ -493,6 +513,8 @@ static int conf_account_action(int tok, int val)
             goto_conf_covid_extend(&st_conf_account);
             break;
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
         case CONF_ACCOUNT_SIGNIN:
             return goto_wgcl_login(&st_conf_account);
             break;
@@ -500,6 +522,7 @@ static int conf_account_action(int tok, int val)
         case CONF_ACCOUNT_SIGNOUT:
             return goto_wgcl_logout(&st_conf_account);
             break;
+#endif
 
 #if ENABLE_FETCH==1
         case CONF_ACCOUNT_AUTOUPDATE:
@@ -749,6 +772,9 @@ static int conf_account_gui(void)
 
         if (mainmenu_conf)
         {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__EMSCRIPTEN__)
 #if _WIN32 && _MSC_VER
             if (account_wgcl_name_read_only())
                 gui_state(id, _("Sign out from Pennyball + Neverball WGCL"),
@@ -757,14 +783,19 @@ static int conf_account_gui(void)
                 gui_state(id, _("Sign in to Pennyball + Neverball WGCL"),
                               GUI_SML, CONF_ACCOUNT_SIGNIN, 0);
 #endif
+#endif
 
             gui_space(id);
 
+#ifndef __EMSCRIPTEN__
             name_id = conf_state(id, _("Player Name"), "XXXXXXXXXXXXXX",
                                      CONF_ACCOUNT_PLAYER);
+#endif
 
 #if NB_HAVE_PB_BOTH==1
-#if ENABLE_FETCH==1
+#if ENABLE_FETCH==1 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
             if (CHECK_ACCOUNT_ENABLED)
                 conf_state(id, _("Addons"), _("Manage"), CONF_ACCOUNT_PACKAGES);
 #endif
@@ -777,7 +808,9 @@ static int conf_account_gui(void)
 #endif
 #endif
 
+#ifndef __EMSCRIPTEN__
             gui_set_trunc(name_id, TRUNC_TAIL);
+#endif
 #if NB_HAVE_PB_BOTH==1
             gui_set_trunc(ball_id, TRUNC_TAIL);
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -1316,10 +1349,12 @@ static int conf_control_gui(void)
         if (current_platform != PLATFORM_PC)
 #endif
         {
+#if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
             gui_space(id);
 
             conf_state(id, _("Gamepad"), _("Change"), CONF_CONTROL_CHANGECONTROLLERS);
             conf_state(id, _("Axis"), _("Calibrate"), CONF_CONTROL_CALIBRATE);
+#endif
         }
 
         gui_layout(id, 0, 0);
@@ -1776,6 +1811,28 @@ static const char *conf_controllers_option_values_handset[] = {
     "",
 };
 
+static const char* conf_controllers_option_values_wii[] = {
+    "A",
+    "B",
+    "C",
+    "Z",
+    "",
+    "",
+    "",
+    "",
+    "-",
+    "+",
+
+    "",
+
+    "X",
+    "Y",
+    "",
+    "",
+    "",
+    "",
+};
+
 static int conf_controllers_option_ids[ARRAYSIZE(conf_controllers_options)];
 
 static void conf_controllers_set_label(int id, int value)
@@ -1838,6 +1895,17 @@ static void conf_controllers_set_label(int id, int value)
         sprintf(str,
 #endif
                 "%s", conf_controllers_option_values_switch[value % 100000]);
+    }
+#elif NEVERBALL_FAMILY_API == NEVERBALL_WII_FAMILY_API || \
+      NEVERBALL_FAMILY_API == NEVERBALL_WIIU_FAMILY_API
+    if (conf_controllers_option_values_wii[value % 100000])
+    {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(str, 20,
+#else
+        sprintf(str,
+#endif
+                "%s", conf_controllers_option_values_wii[value % 100000]);
     }
 #else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -2761,6 +2829,9 @@ static int conf_gui(void)
 
             conf_header(id, _("Options"), GUI_BACK);
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if ENABLE_GAME_TRANSFER==1
             if (mainmenu_conf)
             {
@@ -2780,10 +2851,18 @@ static int conf_gui(void)
             gui_set_color(rd, gui_wht, gui_cya);
 
             gui_space(id);
+#endif
 
 #if NB_HAVE_PB_BOTH==1
-            conf_state(id, _("Account"), _(!conf_check_playername(config_get_s(CONFIG_PLAYER)) ?
-                                           "Register" : "Manage"), CONF_MANAGE_ACCOUNT);
+#ifndef __EMSCRIPTEN__
+            const char *conf_account_btn_txt = !conf_check_playername(config_get_s(CONFIG_PLAYER)) ?
+                                               N_("Register") : N_("Manage");
+
+            conf_state(id, _("Account"), _(conf_account_btn_txt), CONF_MANAGE_ACCOUNT);
+#else
+            if (conf_check_playername(config_get_s(CONFIG_PLAYER)))
+                conf_state(id, _("Account"), _("Manage"), CONF_MANAGE_ACCOUNT);
+#endif
 
             conf_state(id, _("Notifications"), _("Manage"), CONF_MANAGE_NOTIFICATIONS);
 #endif
@@ -2876,9 +2955,9 @@ static int conf_gui(void)
 
             if (mainmenu_conf)
             {
+#if ENABLE_NLS==1 || _WIN32
                 gui_space(id);
 
-#if ENABLE_NLS==1 || _WIN32
                 int lang_id;
                 lang_id = conf_state(id, _("Language"), "                            ",
                                          CONF_LANGUAGE);
@@ -2897,7 +2976,11 @@ static int conf_gui(void)
 
         if ((id = gui_vstack(root_id)))
         {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             gui_label(id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT);
+#endif
             gui_multi(id, _("Copyright © 2024 Neverball authors\n"
                             "Neverball is free software available under the terms of GPL v2 or later."),
                           GUI_TNY, GUI_COLOR_WHT);

@@ -241,6 +241,9 @@ static int setup_terms_card(int pd, const char *name, int idx, int readmore_disa
 
     if ((id = gui_hstack(pd)))
     {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         if ((jd = gui_state(id, _("Read More"), GUI_SML, SETUP_TERMS_READMORE, idx)))
         {
             if (readmore_disabled)
@@ -251,6 +254,7 @@ static int setup_terms_card(int pd, const char *name, int idx, int readmore_disa
         }
 
         gui_space(id);
+#endif
 
         int tmp_lbl_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, GUI_COLOR_WHT);
         gui_set_label(tmp_lbl_id, name);
@@ -308,7 +312,7 @@ static void game_setup_terms_checkmark_update_all(void)
  * Premium: appdownload.stynegame.de
  * Legacy downloads: play.neverball.org
  */
-#define NB_CURRDOMAIN_PREMIUM "appdownload.stynegame.de"
+#define NB_CURRDOMAIN_PREMIUM "play.neverball.org"
 
 static const char *get_updated_url(const char *filename)
 {
@@ -348,6 +352,7 @@ static const char *get_updated_path(const char *filename)
 
 static int load_updated_version(void)
 {
+#if ENABLE_SOFTWARE_UPDATE!=0
     fs_file fp = fs_open_read(get_updated_path("version.txt"));
 
     if (fp)
@@ -410,6 +415,7 @@ static int load_updated_version(void)
 
         return 1;
     }
+#endif
 
     return 0;
 }
@@ -695,7 +701,10 @@ static int game_setup_action(int tok, int val)
                                 return goto_ball_fn(&st_game_setup);
 #endif
                             else
-#if _WIN32 && ENABLE_FETCH==1 && ENABLE_SOFTWARE_UPDATE!=0
+#if _WIN32 && ENABLE_FETCH==1 && ENABLE_SOFTWARE_UPDATE!=0 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
                                 setup_page++;
 #else
                                 setup_page = 6;
@@ -714,12 +723,16 @@ static int game_setup_action(int tok, int val)
                             break;
 
                         case SETUP_TERMS_READMORE:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
                             if (val == 0)
                                 game_setup_terms_openlink("https://pennyball.stynegame.de/terms");
                             else if (val == 1)
                                 game_setup_terms_openlink("https://discord.com/terms");
                             else if (val == 2)
                                 game_setup_terms_openlink("https://aka.ms/servicesagreement");
+#endif
                             break;
 
                         case SETUP_TERMS_TOGGLE_ALL:
@@ -979,12 +992,23 @@ static int game_setup_terms_gui(void)
 
             if ((jd = gui_vstack(id)))
             {
-                gui_title_header(jd, _("PB+NB, Discord TOS, MSA"), GUI_MED, GUI_COLOR_DEFAULT);
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+                gui_title_header(jd, _("PB+NB, Discord ToS, MSA"), GUI_MED, GUI_COLOR_DEFAULT);
                 gui_multi(jd, _("To proceed with setup, you must agree to the PB+NB Terms and acknowledge\n"
                                 "that you have read and understood the Discord TOS and MSA by selecting \"OK\" below.\n"
                                 "To learn more, click \"Read more\". You represent that you are a legally consenting adult\n"
                                 "and are authorised to consent for all users of this Game, including minors."),
                               GUI_TNY, GUI_COLOR_WHT);
+#else
+                gui_title_header(jd, _("PB+NB, Discord, Nintendo ToS"), GUI_MED, GUI_COLOR_DEFAULT);
+                gui_multi(jd, _("To proceed with setup, you must agree to the PB+NB Terms and acknowledge\n"
+                                "that you have read and understood the Discord and Nintendo ToS by selecting \"OK\" below.\n"
+                                "You represent that you are a legally consenting adult and are authorised to consent for\n"
+                                "all users of this Game, including minors."),
+                              GUI_TNY, GUI_COLOR_WHT);
+#endif
 
                 gui_set_rect(jd, GUI_ALL);
             }
@@ -996,7 +1020,13 @@ static int game_setup_terms_gui(void)
         {
             setup_terms_card(id, _("PB+NB Terms of Service"),       0, 0);
             setup_terms_card(id, _("Discord Terms of Service"),     1, 0);
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             setup_terms_card(id, _("Microsoft Services Agreement"), 2, 0);
+#else
+            setup_terms_card(id, _("Nintendo Terms of Service"),    2, 0);
+#endif
 
             gui_layout(id, 0, 0);
         }
@@ -1042,6 +1072,9 @@ static int game_setup_terms_gui(void)
     return root_id;
 }
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 /*
  * Setup Page 4: Game updates
  */
@@ -1193,6 +1226,8 @@ static int game_setup_install_gui(void)
     return root_id;
 }
 
+#endif
+
 /*
  * Setup Page 7: Install updates
  */
@@ -1286,9 +1321,13 @@ static int game_setup_enter(struct state *st, struct state *prev)
         case 0: return game_setup_lang_gui();
         case 1: return game_setup_controls_gui();
         case 2: return game_setup_terms_gui();
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         case 3: return game_setup_update_gui();
         case 4: return game_setup_install_confirm_gui();
         case 5: return game_setup_install_gui();
+#endif
         case 6: return game_setup_welcome_gui();
         default: return 0;
     }

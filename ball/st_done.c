@@ -260,6 +260,8 @@ static int done_gui_set(void)
 
                 gui_set_rect(jd, GUI_ALL);
             }
+
+            gui_space(id);
         }
 #endif
 
@@ -300,7 +302,7 @@ static int done_gui_set(void)
 
 static int done_enter(struct state *st, struct state *prev)
 {
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_wgcl_restart_attempt();
 #endif
 

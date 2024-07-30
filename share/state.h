@@ -34,6 +34,10 @@
 
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL_events.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL_events.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL_events.h>
 #endif
@@ -67,9 +71,13 @@ struct state
     int  (*keybd) (int c,  int d);
     int  (*buttn) (int b,  int d);
     void (*wheel) (int x,  int y);
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__)
     int  (*touch) (const SDL_TouchFingerEvent *);
+#else
+    int  (*touch) (const void *);
+#endif
     void (*fade)  (float alpha);
-    void (*exit)  (int);
 
     int gui_id;
 };
@@ -99,8 +107,10 @@ void st_wheel(int, int);
 int  st_click(int, int);
 int  st_keybd(int, int);
 int  st_buttn(int, int);
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__)
 int  st_touch(const SDL_TouchFingerEvent *);
-void st_exit (void);
+#endif
 
 /*---------------------------------------------------------------------------*/
 

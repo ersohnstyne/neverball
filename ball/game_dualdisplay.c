@@ -20,7 +20,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ENABLE_DUALDISPLAY==1
+#if ENABLE_DUALDISPLAY==1 && !defined(__GAMECUBE__) && !defined(__WII__)
 
 static int ddpy_state;
 

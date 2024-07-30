@@ -1,7 +1,19 @@
 #ifndef KEY_H
 #define KEY_H 1
 
+#if !defined(__GAMECUBE__) && !defined(__WII__)
+#if _WIN32 && __MINGW32__
+#include <SDL2/SDL_keycode.h>
+#elif _WIN32 && _MSC_VER
 #include <SDL_keycode.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
+#else
+#include <SDL_keycode.h>
+#endif
+#else
+#include <SDL_keysym.h>
+#endif
 
 /* Names for some hard-coded keys. */
 

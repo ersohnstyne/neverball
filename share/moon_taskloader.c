@@ -15,6 +15,8 @@
 //#define MOONTASKLOADER_WITH_CAST 1
 
 #include "moon_taskloader.h"
+
+#if ENABLE_MOON_TASKLOADER!=0
 #include "log.h"
 #include "fs.h"
 
@@ -23,6 +25,11 @@
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL_mutex.h>
 #include <SDL2/SDL_thread.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL_mutex.h>
+#include <SDL_thread.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL_mutex.h>
 #include <SDL_thread.h>
@@ -519,3 +526,5 @@ unsigned int moon_taskloader_load(const char *filename,
 }
 
 /*---------------------------------------------------------------------------*/
+
+#endif

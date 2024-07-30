@@ -24,6 +24,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#if defined(__NDS__) || defined(__3DS__) || \
+    defined(__GAMECUBE__) || defined(__WII__) || defined(__WIIU__) || \
+    defined(__SWITCH__)
+#include <fat.h>
+#endif
 
 #include "fs.h"
 #include "dir.h"
@@ -31,7 +36,11 @@
 #include "list.h"
 #include "common.h"
 #include "log.h"
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #include "zip.h"
+#endif
 
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
@@ -87,6 +96,9 @@ static void free_path_item(struct fs_path_item *path_item)
             path_item->path = NULL;
         }
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         if (path_item->type == FS_PATH_ZIP)
         {
             mz_zip_archive *zip = path_item->data;
@@ -100,6 +112,7 @@ static void free_path_item(struct fs_path_item *path_item)
 
             path_item->data = NULL;
         }
+#endif
 
         free(path_item);
         path_item = NULL;
@@ -127,7 +140,9 @@ int fs_quit(void)
 {
     /* Close all files to be quitting the game! */
 
+#if _WIN32 && _MSC_VER
     _fcloseall();
+#endif
 
     if (fs_dir_base)
     {
@@ -207,6 +222,9 @@ int fs_add_path(const char *path)
 
         return 1;
     }
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     else
     {
         mz_zip_archive *zip;
@@ -238,6 +256,7 @@ int fs_add_path(const char *path)
             zip = NULL;
         }
     }
+#endif
 
     free_path_item(path_item);
     path_item = NULL;
@@ -304,6 +323,9 @@ const char *fs_get_write_dir(void)
 
 /*---------------------------------------------------------------------------*/
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 /*
  * Like dir_list_files, but for ZIP archives.
  */
@@ -350,6 +372,7 @@ static void zip_list_free(List files)
         files = list_rest(files);
     }
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -418,11 +441,15 @@ static List list_files(const char *path)
             free(real);
             real = NULL;
         }
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         else if (path_item->type == FS_PATH_ZIP)
         {
             mz_zip_archive *zip = (mz_zip_archive *) path_item->data;
             path_files = zip_list_files(zip, path);
         }
+#endif
 
         if (path_files)
             insert_strings_into_list(&all_files, path_files);
@@ -431,8 +458,12 @@ static List list_files(const char *path)
 
         if (path_item->type == FS_PATH_DIRECTORY)
             dir_list_free(path_files);
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         else if (path_item->type == FS_PATH_ZIP)
             zip_list_free(path_files);
+#endif
     }
 
     return all_files;
@@ -516,6 +547,9 @@ fs_file fs_open_read(const char *path)
                 free(real);
                 real = NULL;
             }
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             else if (path_item->type == FS_PATH_ZIP)
             {
                 mz_zip_archive *zip = (mz_zip_archive *) path_item->data;
@@ -532,6 +566,7 @@ fs_file fs_open_read(const char *path)
                     opened = 1;
                 }
             }
+#endif
         }
 
         if (opened == 0)
@@ -564,7 +599,7 @@ static fs_file fs_open_write_flags(const char *path, int append)
 #endif
     }
 
-    if (fs_dir_write && parsed_path && *parsed_path)
+    if (fs_dir_write)
     {
         if ((fh = (fs_file) calloc(1, sizeof (*fh))))
         {
@@ -923,7 +958,9 @@ int fs_size(const char *path)
                 if (s >= 0) return s;
             }
         }
-
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         if (path_item->type == FS_PATH_ZIP)
         {
             mz_zip_archive *zip = (mz_zip_archive *) path_item->data;
@@ -937,6 +974,7 @@ int fs_size(const char *path)
                     return file_stat.m_uncomp_size;
             }
         }
+#endif
     }
 
     return 0;

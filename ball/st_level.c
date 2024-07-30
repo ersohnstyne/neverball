@@ -75,7 +75,7 @@
 
 #if NB_HAVE_PB_BOTH!=1 && (defined(CONFIG_INCLUDES_ACCOUNT) || defined(MAPC_INCLUDES_CHKP))
 #error Security compilation error: Preprocessor definitions can be used it, \
-       once you've transferred or joined into the target Discord Server, \
+       once you have transferred or joined into the target Discord Server, \
        and verified and promoted as Developer Role. \
        This invite link can be found under https://discord.gg/qnJR263Hm2/.
 #endif
@@ -104,7 +104,7 @@ static int level_check_playername(const char *regname)
             regname[i] == '>'  ||
             regname[i] == '|')
         {
-            log_errorf("Can't accept other charsets!\n", regname[i]);
+            log_errorf("Can't accept other charsets!: %c\n", regname[i]);
             return 0;
         }
     }
@@ -346,11 +346,11 @@ static int level_gui(void)
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 if (m && curr_mode() == MODE_STANDALONE)
-                    sprintf_s(lvlattr, MAXSTR, _("Master Level"), ln);
+                    sprintf_s(lvlattr, MAXSTR, _("Master Level"));
                 else if (m)
                     sprintf_s(lvlattr, MAXSTR, _("Master Level %s"), ln);
                 else if (b && curr_mode() == MODE_STANDALONE)
-                    sprintf_s(lvlattr, MAXSTR, _("Bonus Level"), ln);
+                    sprintf_s(lvlattr, MAXSTR, _("Bonus Level"));
                 else if (b)
                     sprintf_s(lvlattr, MAXSTR, _("Bonus Level %s"), ln);
                 else if (curr_mode() == MODE_STANDALONE)
@@ -372,11 +372,11 @@ static int level_gui(void)
                         sprintf_s(setattr, MAXSTR, _("%s: %s"), set_name(curr_set()), mode_to_str(curr_mode(), 1));
 #else
                 if (m && curr_mode() == MODE_STANDALONE)
-                    sprintf(lvlattr, _("Master Level"), ln);
+                    sprintf(lvlattr, _("Master Level"));
                 else if (m)
                     sprintf(lvlattr, _("Master Level %s"), ln);
                 else if (b && curr_mode() == MODE_STANDALONE)
-                    sprintf(lvlattr, _("Bonus Level"), ln);
+                    sprintf(lvlattr, _("Bonus Level"));
                 else if (b)
                     sprintf(lvlattr, _("Bonus Level %s"), ln);
                 else if (curr_mode() == MODE_STANDALONE)

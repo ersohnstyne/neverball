@@ -26,6 +26,10 @@
 
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #endif
@@ -46,7 +50,7 @@
 #elif _WIN32 && !_MSC_VER
 #error Security compilation error: MinGW not supported! Use Visual Studio instead!
 #elif _WIN64 && _MSC_VER < 1940
-#error Security compilation error: Visual Studio 2022 requires MSVC 14.38.x and later version!
+#error Security compilation error: Visual Studio 2022 requires MSVC 14.40.x and later version!
 #elif _WIN32 && !_WIN64
 #error Security compilation error: Game source code compilation requires x64 and not Win32!
 #endif
@@ -384,6 +388,14 @@ static void refresh_packages_done(void *data, void *extra_data)
     if (opt_link && process_link(opt_link))
         return;
 
+#if NB_HAVE_PB_BOTH==1
+    if (!check_game_setup())
+    {
+        goto_game_setup(start_state, 0, 0);
+        return;
+    }
+#endif
+
     goto_state(start_state);
 }
 
@@ -474,8 +486,8 @@ static int loop(void)
     {
         if (e.type == SDL_QUIT)
         {
-            st_exit();
-            return 0;
+            d = 0;
+            break;
         }
 
         if (opt_touch)
@@ -604,7 +616,6 @@ static int loop(void)
 #endif
                 {
                     d = 0;
-                    st_exit();
                     break;
                 }
 

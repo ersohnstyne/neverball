@@ -28,7 +28,7 @@
 
 #if NB_HAVE_PB_BOTH!=1 && defined(SWITCHBALL_GUI)
 #error Security compilation error: Preprocessor definitions can be used it, \
-       once you've transferred or joined into the target Discord Server, \
+       once you have transferred or joined into the target Discord Server, \
        and verified and promoted as Developer Role. \
        This invite link can be found under https://discord.gg/qnJR263Hm2/.
 #endif
@@ -61,6 +61,11 @@
                 audio_play(first + itemstep < total ?        \
                            AUD_MENU : AUD_DISABLED, 1.0f);   \
         } else GENERIC_GAMEMENU_ACTION
+
+#if defined(__WII__)
+/* We're using SDL 1.2 on Wii, which has SDLKey instead of SDL_Keycode. */
+typedef SDLKey SDL_Keycode;
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -441,6 +446,7 @@ enum
     VIDEO_SCREENANIMATIONS = GUI_LAST,
     VIDEO_DISPLAY,
     VIDEO_FULLSCREEN,
+    VIDEO_WIDESCREEN,
     VIDEO_RESOLUTION,
     VIDEO_TEXTURES,
     VIDEO_HMD,
@@ -482,10 +488,17 @@ static int video_action(int tok, int val)
             break;
 
         case VIDEO_DISPLAY:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             goto_state(&st_display);
+#endif
             break;
 
         case VIDEO_FULLSCREEN:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             if (oldF == val)
                 return 1;
 
@@ -506,12 +519,25 @@ static int video_action(int tok, int val)
             }
 
             config_save();
-
+#endif
             break;
 
+        /*case VIDEO_WIDESCREEN:
+#if defined(__WII__)
+            config_set_d(CONFIG_WIDESCREEN, val);
+            w = val ? 854 : 640;
+            config_set_d(CONFIG_WIDTH, w);
+            video_set_window_size(w, 480);
+#endif
+            break;*/
+
         case VIDEO_RESOLUTION:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #ifndef RESIZEABLE_WINDOW
             goto_state(&st_resol);
+#endif
 #endif
             break;
 
@@ -603,6 +629,9 @@ static int video_gui(void)
         conf_header(id, _("Graphics"), GUI_BACK);
 
 #ifdef SWITCHBALL_GUI
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #ifndef __EMSCRIPTEN__
         SDL_DisplayMode dpyMode;
         SDL_GetCurrentDisplayMode(config_get_d(CONFIG_DISPLAY), &dpyMode);
@@ -625,6 +654,7 @@ static int video_gui(void)
         gui_multi(id, dpy_info, GUI_SML, gui_wht, gui_wht);
 
         gui_space(id);
+#endif
 #endif
 
 #if NB_HAVE_PB_BOTH==1
@@ -650,6 +680,9 @@ static int video_gui(void)
         char resolution[sizeof ("12345678 x 12345678")];
 #endif
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         gui_space(id);
 
         /* This ignores display configurations, sorry for incoherence problems. */
@@ -693,6 +726,15 @@ static int video_gui(void)
         }
 #endif
 
+#if defined(__WII__)
+/*#if NB_HAVE_PB_BOTH==1
+        conf_toggle_simple(id, _("Widescreen"), VIDEO_WIDESCREEN,
+                               config_get_d(CONFIG_WIDESCREEN), 1, 0);
+#else
+        conf_toggle(id, _("Widescreen"), VIDEO_WIDESCREEN,
+                        config_get_d(CONFIG_WIDESCREEN), _("On"), 1, _("Off"), 0);
+#endif*/
+#else
 #if NB_HAVE_PB_BOTH==1
         conf_toggle_simple(id, _("Fullscreen"), VIDEO_FULLSCREEN,
                                config_get_d(CONFIG_FULLSCREEN), 1, 0);
@@ -700,17 +742,22 @@ static int video_gui(void)
         conf_toggle(id, _("Fullscreen"), VIDEO_FULLSCREEN,
                         config_get_d(CONFIG_FULLSCREEN), _("On"), 1, _("Off"), 0);
 #endif
+#endif
 
         gui_space(id);
 
         conf_toggle(id, _("Textures"), VIDEO_TEXTURES,
                         config_get_d(CONFIG_TEXTURES), _("High"), 1, _("Low"), 2);
-#endif
 
         gui_space(id);
-
+#endif
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         autoconf_id = gui_state(id, _("Auto Configure"),
                                     GUI_SML, VIDEO_AUTO_CONFIGURE, 0);
+#endif
+#endif
 
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
         if (autoconf_id)
@@ -748,6 +795,7 @@ static int video_enter(struct state *st, struct state *prev)
 enum
 {
     VIDEO_ADVANCED_FULLSCREEN = GUI_LAST,
+    VIDEO_ADVANCED_WIDESCREEN,
     VIDEO_ADVANCED_SMOOTH_FIX,
     VIDEO_ADVANCED_FORCE_SMOOTH_FIX,
     VIDEO_ADVANCED_DISPLAY,
@@ -791,7 +839,11 @@ static int video_advanced_action(int tok, int val)
             break;
 
         case VIDEO_ADVANCED_DISPLAY:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             goto_state(&st_display);
+#endif
             break;
 
         case VIDEO_ADVANCED_RESOLUTION:
@@ -801,6 +853,9 @@ static int video_advanced_action(int tok, int val)
             break;
 
         case VIDEO_ADVANCED_FULLSCREEN:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             if (oldF == val)
                 return 1;
 
@@ -823,7 +878,17 @@ static int video_advanced_action(int tok, int val)
                     goto_state_full(&st_video_advanced, 0, 0, 1);
             }
 #endif
+#endif
             break;
+
+        /*case VIDEO_ADVANCED_WIDESCREEN:
+#if defined(__WII__)
+            config_set_d(CONFIG_WIDESCREEN, val);
+            w = val ? 854 : 640;
+            config_set_d(CONFIG_WIDTH, w);
+            video_set_window_size(w, 480);
+#endif
+            break;*/
 
         case VIDEO_ADVANCED_HMD:
             if (oldHmd == val)
@@ -862,7 +927,10 @@ static int video_advanced_action(int tok, int val)
 #endif
             break;
 
-            case VIDEO_ADVANCED_REFLECTION:
+        case VIDEO_ADVANCED_REFLECTION:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             if (oldRefl == val)
                 return 1;
 
@@ -897,6 +965,9 @@ static int video_advanced_action(int tok, int val)
                     goto_state(&st_video_advanced);
             }
 #endif
+#else
+            config_set_d(CONFIG_REFLECTION, val);
+#endif
 
             break;
 
@@ -928,6 +999,9 @@ static int video_advanced_action(int tok, int val)
 #endif
 
         case VIDEO_ADVANCED_VSYNC:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             if (oldVsync == val)
                 return 1;
 
@@ -962,7 +1036,7 @@ static int video_advanced_action(int tok, int val)
                     goto_state(&st_video_advanced);
             }
 #endif
-
+#endif
             break;
 
         case VIDEO_ADVANCED_TEXTURES:
@@ -977,6 +1051,9 @@ static int video_advanced_action(int tok, int val)
             break;
 
         case VIDEO_ADVANCED_MULTISAMPLE:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             if (oldSamp == val)
                 return 1;
 
@@ -1009,6 +1086,7 @@ static int video_advanced_action(int tok, int val)
                 if (r)
                     goto_state(&st_video_advanced);
             }
+#endif
 #endif
             break;
 
@@ -1134,19 +1212,22 @@ static int video_advanced_gui(void)
                         config_get_d(CONFIG_SHADOW),     _("On"), 1, _("Off"), 0);
 #endif
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         gui_space(id);
 
         conf_select(id, _("Antialiasing"), VIDEO_ADVANCED_MULTISAMPLE,
                         config_get_d(CONFIG_MULTISAMPLE),
                         multisample_opts_sixteen,
                         ARRAYSIZE(multisample_opts_sixteen));
-
 #if NB_HAVE_PB_BOTH==1
         conf_toggle_simple(id, _("V-Sync"), VIDEO_ADVANCED_VSYNC,
                                config_get_d(CONFIG_VSYNC), 1, 0);
 #else
         conf_toggle(id, _("V-Sync"), VIDEO_ADVANCED_VSYNC,
                         config_get_d(CONFIG_VSYNC), _("On"), 1, _("Off"), 0);
+#endif
 #endif
 #else
         char resolution[sizeof ("12345678 x 12345678")];
@@ -1168,6 +1249,10 @@ static int video_advanced_gui(void)
         conf_header(id, _("Graphics"), GUI_BACK);
 
         /* This ignores display configurations and resolutions. */
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #ifndef __EMSCRIPTEN__
         if (SDL_GetNumVideoDisplays() > 1)
         {
@@ -1181,6 +1266,8 @@ static int video_advanced_gui(void)
 
         conf_toggle(id, _("Fullscreen"), VIDEO_ADVANCED_FULLSCREEN,
                         config_get_d(CONFIG_FULLSCREEN), _("On"), 1, _("Off"), 0);
+        /*conf_toggle(id, _("Widescreen"), VIDEO_ADVANCED_WIDESCREEN,
+                        config_get_d(CONFIG_WIDESCREEN), _("On"), 1, _("Off"), 0);*/
 #endif
 #ifndef RESIZEABLE_WINDOW
         if ((jd = conf_state(id, _("Resolution"), resolution,
@@ -1203,12 +1290,16 @@ static int video_advanced_gui(void)
         conf_toggle(id, _("HMD"), VIDEO_ADVANCED_HMD,
                         config_get_d(CONFIG_HMD), _("On"), 1, _("Off"), 0);
 #endif
+#endif
 
         conf_toggle(id, _("Smooth fix"), VIDEO_ADVANCED_SMOOTH_FIX,
                         config_get_d(CONFIG_SMOOTH_FIX), _("On"), 1, _("Off"), 0);
 
         gui_space(id);
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         conf_toggle(id, _("V-Sync"), VIDEO_ADVANCED_VSYNC,
                         config_get_d(CONFIG_VSYNC), _("On"), 1, _("Off"), 0);
 
@@ -1216,6 +1307,7 @@ static int video_advanced_gui(void)
                         config_get_d(CONFIG_MULTISAMPLE),
                         multisample_opts_sixteen,
                         ARRAYSIZE(multisample_opts_sixteen));
+#endif
 
         gui_space(id);
 
@@ -1256,6 +1348,9 @@ static int video_advanced_enter(struct state *st, struct state *prev)
 
 /*---------------------------------------------------------------------------*/
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 enum
 {
     DISPLAY_SELECT = GUI_LAST
@@ -1277,6 +1372,9 @@ static int display_action(int tok, int val)
             break;
 
         case DISPLAY_SELECT:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             if (val != config_get_d(CONFIG_DISPLAY))
             {
                 config_set_d(CONFIG_DISPLAY, val);
@@ -1286,9 +1384,10 @@ static int display_action(int tok, int val)
                 r = 1;
             }
 
-        config_save();
+            config_save();
+#endif
 
-        break;
+            break;
     }
 
     return r;
@@ -1357,6 +1456,7 @@ static int display_enter(struct state *st, struct state *prev)
     conf_common_init(display_action, 1);
     return display_gui();
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -1467,6 +1567,9 @@ static int resol_action(int tok, int val)
             break;
 
         case RESOL_MODE:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             if (customresol_modes[val].w == oldW &&
                 customresol_modes[val].h == oldH) {
                 log_printf("Resolutions remains the same size!\n");
@@ -1478,7 +1581,7 @@ static int resol_action(int tok, int val)
             r = 1;
 
             config_save();
-
+#endif
             break;
     }
 
@@ -1928,6 +2031,9 @@ struct state st_video_advanced = {
     common_buttn
 };
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 struct state st_display = {
     display_enter,
     conf_common_leave,
@@ -1940,6 +2046,7 @@ struct state st_display = {
     common_keybd,
     common_buttn
 };
+#endif
 
 #ifndef RESIZEABLE_WINDOW
 struct state st_resol = {

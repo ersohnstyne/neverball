@@ -137,12 +137,17 @@ static int shop_activate_action(int tok, int val)
                 curr_cancel_fn(cancel_state);
 
             return goto_state(cancel_state);
+
         case ACTIVATE_OK:
             if (activate_introducory)
             {
                 activate_introducory = 0;
                 return goto_state(curr_state());
             }
+#if ENABLE_IAP!=0 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             else if (game_payment_activate(text_input) == 0)
             {
                 text_input_stop();
@@ -171,6 +176,7 @@ static int shop_activate_action(int tok, int val)
 
                 return goto_state(ok_state);
             }
+#endif
             break;
 
         case GUI_BS:

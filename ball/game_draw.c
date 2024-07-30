@@ -834,7 +834,9 @@ static void game_draw_fore(struct s_rend *rend,
 
         if (d < 0) glEnable(GL_CLIP_PLANE0);
 
+#if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
         if (!config_cheat()) glEnable(GL_FOG);
+#endif
 
         if (draw && rend) switch (pose)
         {
@@ -904,7 +906,9 @@ static void game_draw_fore(struct s_rend *rend,
 
         glDepthMask(GL_TRUE);
 
+#if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
         if (!config_cheat()) glDisable(GL_FOG);
+#endif
 
         if (d < 0) glDisable(GL_CLIP_PLANE0);
     }
@@ -982,9 +986,11 @@ static void game_draw_fog()
 {
     GLfloat fog_color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
+#if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     glFogfv(GL_FOG_COLOR,   fog_color);
     glFogf (GL_FOG_MODE,    GL_EXP2);
     glFogf (GL_FOG_DENSITY, 0.0125);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1102,6 +1108,8 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
                 game_draw_light(gd, 1, t);
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 if (gd->draw.reflective && config_get_d(CONFIG_REFLECTION))
                 {
                     glEnable(GL_STENCIL_TEST);
@@ -1139,6 +1147,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
                     }
                     glDisable(GL_STENCIL_TEST);
                 }
+#endif
 
                 /* Ready the lights for foreground rendering. */
 
@@ -1147,7 +1156,10 @@ void game_draw(struct game_draw *gd, int pose, float t)
                 /* When reflection is disabled, mirrors must be rendered opaque  */
                 /* to prevent the background from showing.                       */
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 if (gd->draw.reflective && !config_get_d(CONFIG_REFLECTION))
+#endif
                 {
                     r_color_mtrl(&rend, 1);
                     {
@@ -1162,11 +1174,15 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
                 game_refl_all(&rend, gd, 0);
 
+#if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 if (!config_cheat()) glEnable(GL_FOG);
+#endif
 
                 game_draw_fore(&rend, gd, pose, T, +1, t, 0);
 
+#if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 glDisable(GL_FOG);
+#endif
             }
         }
         glPopMatrix();

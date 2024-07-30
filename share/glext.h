@@ -18,6 +18,7 @@
 /*---------------------------------------------------------------------------*/
 /* Include the system OpenGL headers.                                        */
 
+#ifndef __WII__
 #ifdef _WIN32
 #define NOMINMAX
 #ifndef WIN32_LEAN_AND_MEAN
@@ -30,13 +31,6 @@
 #include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
-#endif
-
-#if _WIN32 || defined(__EMSCRIPTEN__)
-//#include <GL/glext.h>
-#if _MSC_VER && ENABLE_OPENGL_ES
-//#pragma comment(lib, "glext.lib")
-#endif
 #endif
 
 /* Windows calling convention cruft. */
@@ -319,6 +313,9 @@
 #endif
 
 #endif
+#else
+#include "wiigl.h"
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -358,7 +355,7 @@ int glext_init(void);
 
 #define glStringMarker_(s) ((void) (s))
 
-#else /* No native linkage?  Define the extension API. */
+#elif !defined(__WII__) /* No native linkage?  Define the extension API. */
 
 #define glOrtho_               glOrtho
 

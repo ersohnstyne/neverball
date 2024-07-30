@@ -41,8 +41,7 @@
  * https://gitea.stynegame.de/StyneGameHamburg/opendrivepi
  */
 #include <opendriveapi.h>
-#else
-#if _WIN32
+#elif _WIN32
 #if !defined(_MSC_VER)
 #error Security compilation error: This was already done with FindClose, \
        FindFirstFileA, FindNextFile and GetFileAttributesA or using OpenDriveAPI. \
@@ -54,7 +53,6 @@
 #endif
 #else
 #pragma message(__FILE__ ": Using code compilation: GCC + G++")
-#endif
 #endif
 
 /*

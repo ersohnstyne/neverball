@@ -1901,17 +1901,25 @@ static void gui_paint_array(int id)
 
         /* Recursively paint all subwidgets. */
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         if (widget[id].flags & GUI_CLIP)
         {
             glScissor(widget[id].x, widget[id].y, widget[id].w, widget[id].h);
             glEnable(GL_SCISSOR_TEST);
         }
+#endif
 
         for (jd = widget[id].car; jd; jd = widget[jd].cdr)
             gui_paint_text(jd);
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         if (widget[id].flags & GUI_CLIP)
             glDisable(GL_SCISSOR_TEST);
+#endif
     }
     glPopMatrix();
 }

@@ -80,7 +80,6 @@ static int         compile_time_limit = 60;
 static int         linenum       = 0;
 static int         bracket_linenum[256];
 static int         bracket_stack = 0;
-static int         dquote_stack  = 0;
 static const char *input_file;
 static int         debug_output  = 0;
 static int           csv_output  = 0;
@@ -1131,7 +1130,7 @@ static void make_plane(int   pi, float x0, float y0, float      z0,
 static int map_token(fs_file fin, int pi, char key[MAXSTR], char val[MAXSTR])
 {
     int doit = 1;
-    char stderr_buf[MAXSTR];
+    char stderr_buf[512];
     char buf[MAXSTR];
 
     if (fs_gets(buf, MAXSTR, fin))
@@ -3675,14 +3674,15 @@ static int skip_verify;
 
 static void interactive_web(void)
 {
+#ifndef __EMSCRIPTEN__
     char target_url[256];
-    char buf_url[256];
+    char buf_url[512];
 
     SAFECPY(target_url, "https://nextcloud.stynegame.de/apps/forms/s/CKFzf7qtbHifX6j3QC69fiTg");
 
 #if _WIN32
 #ifndef _CRT_SECURE_NO_WARNINGS
-    sprintf_s(buf_url, 256,
+    sprintf_s(buf_url, 512,
 #else
     sprintf(buf_url,
 #endif
@@ -3691,13 +3691,8 @@ static void interactive_web(void)
     sprintf(buf_url, "open %s", target_url);
 #elif defined(__linux__)
     sprintf(buf_url, "x-www-browser %s", target_url);
-#elif defined(__EMSCRIPTEN__)
-    EM_ASM({ window.open($0) }, target_url);
-#else
-#error No interactive web platform specified!
 #endif
 
-#ifndef __EMSCRIPTEN__
     system(buf_url);
 #endif
 }

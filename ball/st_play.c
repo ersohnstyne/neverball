@@ -238,6 +238,7 @@ static void next_camera(void)
     set_camera(cam);
 }
 
+#if !defined(__WII__)
 static void keybd_camera(int c)
 {
     if (config_tst_d(CONFIG_KEY_CAMERA_1, c))
@@ -263,6 +264,7 @@ static void click_camera(int b)
     if (config_tst_d(CONFIG_MOUSE_CAMERA_TOGGLE, b))
         toggle_camera();
 }
+#endif
 
 static void buttn_camera(int b)
 {
@@ -538,7 +540,9 @@ static int play_prep_click(int b, int d)
     if (d)
     {
         use_mouse = 1; use_keyboard = 0;
+#if !defined(__WII__)
         click_camera(b);
+#endif
 
         if (b == SDL_BUTTON_LEFT)
             goto_state_full(&st_play_loop, 0, 0, 1);
@@ -550,7 +554,9 @@ static int play_prep_keybd(int c, int d)
 {
     if (d)
     {
+#if !defined(__WII__)
         keybd_camera(c);
+#endif
 
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -911,7 +917,8 @@ static void play_loop_timer(int id, float dt)
 
 static void play_loop_point(int id, int x, int y, int dx, int dy)
 {
-#if NDEBUG || _MSC_VER
+#if (NDEBUG || _MSC_VER) && !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform == PLATFORM_PC)
 #endif
@@ -956,7 +963,15 @@ static void play_loop_stick(int id, int a, float v, int bump)
     if (!use_mouse && use_keyboard)
     {
         use_mouse = 0; use_keyboard = 1;
+
+        if (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))
+            tilt_x = v * get_tilt_multiply();
+        if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y0, a))
+            tilt_y = (curr_mode() == MODE_BOOST_RUSH ? 0 :
+                                                       v * get_tilt_multiply());
+
         /* Camera movement */
+
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X1, a))
         {
             if (v + axis_offset[2] > 0.0f)
@@ -968,12 +983,6 @@ static void play_loop_stick(int id, int a, float v, int bump)
         }
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y1, a))
             game_set_zoom((v + +axis_offset[3]) * 0.1f);
-
-        if (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))
-            tilt_x = v * get_tilt_multiply();
-        if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y0, a))
-            tilt_y = (curr_mode() == MODE_BOOST_RUSH ? 0 :
-                                                       v * get_tilt_multiply());
 
         game_set_z(tilt_x);
         game_set_x(tilt_y);
@@ -991,6 +1000,9 @@ static void play_loop_angle(int id, float x, float z)
 
 static int play_loop_click(int b, int d)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     if (d && use_mouse && !use_keyboard)
     {
         /*if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
@@ -1014,7 +1026,9 @@ static int play_loop_click(int b, int d)
             rmb_holded = 1;
 #endif
 
+#if !defined(__WII__)
         click_camera(b);
+#endif
     }
     else if (use_mouse && !use_keyboard
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -1036,12 +1050,16 @@ static int play_loop_click(int b, int d)
     {
         use_mouse = 1; use_keyboard = 0;
     }
+#endif
 
     return 1;
 }
 
 static int play_loop_keybd(int c, int d)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     if (d)
     {
 #ifdef MAPC_INCLUDES_CHKP
@@ -1124,6 +1142,7 @@ static int play_loop_keybd(int c, int d)
     if (d && c == KEY_LOOKAROUND && config_cheat())
         return goto_state(&st_look);
 #endif
+#endif
 
     return 1;
 }
@@ -1160,6 +1179,8 @@ static int play_loop_buttn(int b, int d)
     return 1;
 }
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__)
 static int play_loop_touch(const SDL_TouchFingerEvent *e)
 {
     if (!opt_touch) return 1;
@@ -1259,9 +1280,13 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
 
     return 1;
 }
+#endif
 
 static void play_loop_wheel(int x, int y)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     /*
      * Hardcoded camera view position settings on 2.2 and later:
      * DP: 75
@@ -1271,6 +1296,7 @@ static void play_loop_wheel(int x, int y)
 
     if (y > 0) game_set_zoom(-0.05f);
     if (y < 0) game_set_zoom(+0.05f);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1448,7 +1474,12 @@ struct state st_play_loop = {
     play_loop_keybd,
     play_loop_buttn,
     play_loop_wheel,
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__)
     play_loop_touch,
+#else
+    NULL,
+#endif
     play_shared_fade
 };
 

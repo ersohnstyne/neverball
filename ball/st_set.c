@@ -36,6 +36,7 @@
 #include "game_common.h"
 #include "game_draw.h"
 
+#include "st_package.h"
 #include "st_common.h"
 #if NB_HAVE_PB_BOTH==1
 #include "st_malfunction.h"
@@ -54,6 +55,11 @@
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
 #define SET_ALWAYS_UNLOCKED
+#endif
+
+#if defined(__WII__)
+/* We're using SDL 1.2 on Wii, which has SDLKey instead of SDL_Keycode. */
+typedef SDLKey SDL_Keycode;
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -214,17 +220,12 @@ static int set_action(int tok, int val)
             break;
 
         case SET_GET_MORE:
-#if NB_STEAM_API==1 || NB_EOS_SDK==1
-#else
-#if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV"); }, 0);
-#elif _WIN32
-            system("explorer https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV");
-#elif defined(__APPLE__)
-            system("open https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV");
-#elif defined(__linux__)
-            system("x-www-browser https://drive.google.com/drive/folders/19mrhFl54vM_AYEpWCjmqNBRQIVqojJbV");
-#endif
+#if ENABLE_FETCH!=0 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+            package_change_category(PACKAGE_CATEGORY_LEVELSET);
+            goto_package(0, curr_state());
 #endif
             break;
     }
@@ -397,6 +398,9 @@ static int set_gui(void)
                                   SET_TOGGLE_BOOST, 0);
                 else
                 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if NB_STEAM_API==1
                     gui_state(id, _("Get Level Sets from Steam Workshop!"),
                                   GUI_SML, SET_GET_MORE, 0);
@@ -404,8 +408,9 @@ static int set_gui(void)
                     gui_state(id, _("Get Level Sets from Epic Games Store!"),
                                   GUI_SML, SET_GET_MORE, 0);
 #else
-                    gui_state(id, _("Get Level Sets from Website!"),
+                    gui_state(id, _("Get Level Sets from Addons!"),
                                   GUI_SML, SET_GET_MORE, 0);
+#endif
 #endif
                 }
             }
@@ -422,7 +427,10 @@ static int set_gui(void)
         {
             if ((jd = gui_hstack(id)))
             {
-#ifdef CONFIG_INCLUDES_ACCOUNT
+#if defined(CONFIG_INCLUDES_ACCOUNT) && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
                 if (account_get_d(ACCOUNT_PRODUCT_LEVELS) == 1 &&
                     server_policy_get_d(SERVER_POLICY_EDITION) > -1)
                 {

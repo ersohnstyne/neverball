@@ -22,6 +22,8 @@ enum console_platforms
     PLATFORM_XBOX,      /* Xbox Controllers        */
     PLATFORM_PS,        /* PlayStation Controllers */
     PLATFORM_SWITCH,    /* Switch Controllers      */
+    PLATFORM_WII,       /* Wii Controllers         */
+    PLATFORM_WIIU,      /* Wii U Controllers       */
     PLATFORM_STEAMDECK, /* Steam Deck Controllers  */
     PLATFORM_HANDSET    /* Etihad Handset          */
 };

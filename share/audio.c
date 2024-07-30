@@ -14,13 +14,22 @@
 
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #endif
 
 #define OV_EXCLUDE_STATIC_CALLBACKS
+#if defined(__WII__)
+#include <tremor/ivorbiscodec.h>
+#include <tremor/ivorbisfile.h>
+#else
 #include <vorbis/codec.h>
 #include <vorbis/vorbisfile.h>
+#endif
 
 #include <string.h>
 #include <stdlib.h>
@@ -51,7 +60,11 @@
 
 /*---------------------------------------------------------------------------*/
 
+#if defined(__WII__)
+#define AUDIO_RATE 32000
+#else
 #define AUDIO_RATE 44100
+#endif
 #define AUDIO_CHAN 2
 
 struct voice
@@ -91,6 +104,21 @@ static SDL_AudioSpec spec;
 
 /* HACK: Have fun using AudioDevice for MSVC++ */
 static SDL_AudioSpec device_spec;
+
+#if defined(__WII__)
+#define VOICE_CACHE_COUNT 8 /* Was: 16 */
+
+#define SDL_OpenAudioDevice(_name, _capture, _req, _res, _changes) \
+        SDL_OpenAudio(_req, _res)
+
+#define SDL_PauseAudioDevice(_devid, _paused) \
+        SDL_PauseAudio(_paused)
+
+#define SDL_CloseAudioDevice(_devid) \
+        SDL_CloseAudio()
+
+static struct voice* voice_cache[VOICE_CACHE_COUNT];
+#endif
 
 static struct voice *voices_music     = NULL;
 static struct voice *voices_queue     = NULL;
@@ -137,8 +165,11 @@ static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
     while (n > 0 && r > 0)
     {
         /* Read audio from the stream. */
-
+#if defined(__WII__)
+        if ((n = (int) ov_read(&V->vf, ibuf, r, &b)) > 0)
+#else
         if ((n = (int) ov_read(&V->vf, ibuf, r, order, 2, 1, &b)) > 0)
+#endif
         {
             /* Mix mono audio. */
 
@@ -187,10 +218,35 @@ static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
     return 0;
 }
 
+void voice_free(struct voice *V);
+
 static struct voice *voice_init(const char *filename, float a)
 {
     struct voice *VP = NULL;
     fs_file       fp;
+
+#if defined(__WII__)
+    int i;
+
+    /* Search cache for voice */
+
+    for (i = 0; i < VOICE_CACHE_COUNT; i++)
+    {
+        if (voice_cache[i] != NULL)
+        {
+            if (strcmp(filename, voice_cache[i]->name) == 0)
+            {
+                VP = voice_cache[i];
+                VP->amp  = a;
+                VP->damp = 0;
+                VP->play = 1;
+                VP->loop = 0;
+                ov_raw_seek(&VP->vf, 0);
+                return VP;
+            }
+        }
+    }
+#endif
 
     /* Allocate and initialize a new voice structure. */
 
@@ -224,10 +280,37 @@ static struct voice *voice_init(const char *filename, float a)
             else fs_close(fp);
         }
     }
+
+#if defined(__WII__)
+    /* Put it in the cache */
+
+    for (i = 0; i < VOICE_CACHE_COUNT; i++)
+    {
+        if (voice_cache[i] == NULL)
+        {
+            voice_cache[i] = VP;
+            return VP;
+        }
+    }
+
+    /* Replace a voice that isn't playing */
+
+    for (i = 0; i < VOICE_CACHE_COUNT; i++)
+    {
+        if (voice_cache[i] != NULL && !voice_cache[i]->play)
+        {
+            voice_free(voice_cache[i]);
+            voice_cache[i] = VP;
+            return VP;
+        }
+    }
+#endif
+
     return VP;
 }
 
-static void voice_free(struct voice *V)
+#if !defined(__WII__)
+void voice_free(struct voice *V)
 {
     if (!V) return;
 
@@ -247,6 +330,7 @@ static void voice_quit(struct voice* V)
 
     voice_free(V);
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -281,7 +365,11 @@ static void audio_step(void *data, Uint8 *stream, int length)
         if (voices_music->play &&
             voice_step(voices_music, music_vol, stream, length))
         {
+#if defined(__WII__)
+            voices_music->play = 0;
+#else
             voice_free(voices_music);
+#endif
 
             if (voices_queue)
             {
@@ -295,7 +383,11 @@ static void audio_step(void *data, Uint8 *stream, int length)
 
         if (voices_music && voices_music->amp <= 0.0f && voices_music->damp < 0.0f && voices_queue)
         {
+#if defined(__WII__)
+            voices_music->play = 0;
+#else
             voice_free(voices_music);
+#endif
 
             if (voices_queue)
             {
@@ -326,7 +418,11 @@ static void audio_step(void *data, Uint8 *stream, int length)
                     case 1: Vs[i] = voices_narrators = Vs[i]->next; break;
                 }
 
+#if defined(__WII__)
+                VT->play = 0;
+#else
                 voice_free(VT);
+#endif
                 VT = NULL;
             }
             else
@@ -428,6 +524,7 @@ void audio_free(void)
 
     audio_music_stop();
 
+#if !defined(__WII__)
     if (voices_sfx)
     {
         voice_quit(voices_sfx);
@@ -439,6 +536,7 @@ void audio_free(void)
         voice_quit(voices_narrators);
         voices_narrators = NULL;
     }
+#endif
 
     if (buffer)
     {
@@ -634,6 +732,13 @@ void audio_music_stop(void)
 {
     if (audio_state)
     {
+#if defined(__WII__)
+        if (voices_music)
+        {
+            voices_music->play = 0;
+            voices_music = NULL;
+        }
+#else
         while (lock_hold) {}
         lock_hold = 1;
         if (voices_music)
@@ -642,6 +747,7 @@ void audio_music_stop(void)
             voices_music = NULL;
         }
         lock_hold = 0;
+#endif
     }
 }
 
@@ -695,7 +801,11 @@ void audio_music_fade_to(float t, const char *filename, int loop)
 
             if (voices_queue)
             {
+#if defined(__WII__)
+                voices_queue->play = 0;
+#else
                 voice_free(voices_queue);
+#endif
                 voices_queue = NULL;
             }
 

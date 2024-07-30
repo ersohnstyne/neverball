@@ -14,7 +14,10 @@
 
 #include "st_transfer.h"
 
-#if defined(GAME_TRANSFER_TARGET) && ENABLE_GAME_TRANSFER==1
+#if defined(GAME_TRANSFER_TARGET) && ENABLE_GAME_TRANSFER==1 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if _WIN32
 #include <ShlObj.h>
 #endif
@@ -252,7 +255,7 @@ static int transfer_about_transferring_gui(void)
                 gui_multi(jd, _("For level sets, either transfer it back to the\\"
                                 "source Neverball, before performing the transfer,\\"
                                 "or redownload it after the transfer\\"
-                                "using the Neverball."),
+                                "using the Pennyball."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
             case 10:

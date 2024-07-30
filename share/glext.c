@@ -14,9 +14,14 @@
 
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #endif
+
 #include <stdio.h>
 
 #include "common.h"
@@ -27,6 +32,7 @@ struct gl_info gli;
 
 /*---------------------------------------------------------------------------*/
 
+#if !defined(__WII__)
 #if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
 
 PFNGLCLIENTACTIVETEXTURE_PROC    glClientActiveTexture_;
@@ -105,6 +111,7 @@ PFNGLCALLCOMMANDLISTNV_PROC              glCallCommandListNV_;
 #endif
 
 #endif
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -180,6 +187,7 @@ static int glext_assert(const char *ext)
 }
 #endif
 
+#if !defined(__WII__)
 static int glext_count(void)
 {
     int n = 0;
@@ -199,6 +207,7 @@ static int glext_count(void)
 
     return n;
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -251,6 +260,8 @@ int glext_fail(const char *title, const char *message)
 {
 #if _WIN32 && _MSC_VER
     MessageBoxA(0, message, title, MB_ICONERROR);
+#elif defined(__WII__)
+    printf("%s: %s\n", title, message);
 #else
     if (SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title, message, NULL) != 0)
     {
@@ -294,6 +305,7 @@ int glext_init(void)
     if (glext_check_ext("GL_EXT_texture_filter_anisotropic"))
         gli.texture_filter_anisotropic = 1;
 
+#if !defined(__WII__)
     /* Desktop init. */
 
 #if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
@@ -416,6 +428,7 @@ int glext_init(void)
 #endif
 
 #endif
+#endif
 
     log_opengl();
 
@@ -434,26 +447,6 @@ void glClipPlane4f_(GLenum p, GLfloat a, GLfloat b, GLfloat c, GLfloat d)
     GLdouble v[4] = { a, b, c, d };
 
     glClipPlane(p, v);
-#endif
-}
-
-void glBindTexture_(GLenum target, GLuint texture)
-{
-    if (gli.wireframe)
-        texture = 0u;
-
-    glBindTexture(target, texture);
-}
-
-void glToggleWireframe_(void)
-{
-    gli.wireframe = !gli.wireframe;
-
-#if !ENABLE_OPENGLES
-    if (gli.wireframe)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    else
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 #endif
 }
 

@@ -223,7 +223,7 @@ void tex_env_active(const struct tex_env *env)
 /*
  * Select an appropriate texture pipeline out of several.
  */
-void tex_env_select(const struct tex_env *first, ...) NULL_TERMINATED
+void tex_env_select(const struct tex_env *first, ...)
 {
     const struct tex_env *sel = &tex_env_default;
     const struct tex_env *env;

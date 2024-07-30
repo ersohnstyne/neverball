@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2024 Microsoft / Neverball authors
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -57,6 +57,11 @@
 #include "st_title.h"
 #include "st_shared.h"
 #include "st_name.h"
+
+#if defined(__WII__)
+/* We're using SDL 1.2 on Wii, which has SDLKey instead of SDL_Keycode. */
+typedef SDLKey SDL_Keycode;
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -229,6 +234,8 @@ static int shop_gui(void)
     {
         if ((jd = gui_hstack(id)))
         {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
 #if !defined(__EMSCRIPTEN__)
             if (current_platform == PLATFORM_PC
              && !inaccept_playername
@@ -241,6 +248,7 @@ static int shop_gui(void)
                 if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP))
                     gui_state(jd, "+", GUI_SML, SHOP_IAP, 0);
             }
+#endif
 
             if (!CHECK_ACCOUNT_BANKRUPT)
             {
@@ -656,8 +664,12 @@ static int shop_rename_action(int tok, int val)
     switch (tok)
     {
         case SHOP_RENAME_YES:
+#ifdef __EMSCRIPTEN__
+            EM_ASM({ window.open("https://pennyball.stynegame.de/"); }, 0)
+#else
             account_wgcl_save();
             return goto_name(ok_state, cancel_state, 0, 0, draw_back);
+#endif
             break;
         case GUI_BACK:
             return goto_state(cancel_state);
@@ -666,33 +678,49 @@ static int shop_rename_action(int tok, int val)
     return 1;
 }
 
+
 static int shop_rename_gui(void)
 {
     int id, jd;
 
     if ((id = gui_vstack(0)))
     {
-        gui_title_header(id, _("Rename player?"), GUI_MED, GUI_COLOR_RED);
+        gui_title_header(id, _("Rename player"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
+#ifndef __EMSCRIPTEN__
         gui_multi(id, _("Renaming players will log in\n"
                         "to another account."),
                       GUI_SML, GUI_COLOR_WHT);
+#else
+        gui_multi(id, _("Renaming players can be done\n"
+                        "with WGCL's account settings."),
+                      GUI_SML, GUI_COLOR_WHT);
+#endif
         gui_space(id);
 
+#ifndef __EMSCRIPTEN__
         if ((jd = gui_harray(id)))
         {
-#if !defined(__EMSCRIPTEN__)
             if (current_platform == PLATFORM_PC)
-#endif
             {
                 gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
                 gui_state(jd, _("Yes"), GUI_SML, SHOP_RENAME_YES, 0);
             }
-#if !defined(__EMSCRIPTEN__)
             else
                 gui_start(jd, _("Yes"), GUI_SML, SHOP_RENAME_YES, 0);
-#endif
         }
+#else
+        if ((jd = gui_harray(id)))
+        {
+            if (current_platform == PLATFORM_PC)
+            {
+                gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+                gui_state(jd, _("Open WGCL"), GUI_SML, SHOP_RENAME_YES, 0);
+            }
+            else
+                gui_start(jd, _("Open WGCL"), GUI_SML, SHOP_RENAME_YES, 0);
+        }
+#endif
 
         gui_layout(id, 0, 0);
     }
@@ -702,7 +730,11 @@ static int shop_rename_gui(void)
 
 static int shop_rename_enter(struct state *st, struct state *prev)
 {
+#ifdef __EMSCRIPTEN__
+    audio_play("snd/uierror.ogg", 1.0f);
+#else
     audio_play(AUD_WARNING, 1.0f);
+#endif
 
     if (draw_back)
     {
@@ -1070,7 +1102,10 @@ static int shop_iap_gui(void)
 
             gui_label(jd, walletattr, GUI_SML, GUI_COLOR_DEFAULT);
 
-#if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
+#if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             if (multipage && video.aspect_ratio >= 1.0f)
             {
                 gui_space(jd);
@@ -1090,7 +1125,10 @@ static int shop_iap_gui(void)
                 gui_back_button(jd);
         }
 
-#if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
+#if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         if (multipage && video.aspect_ratio < 1.0f)
         {
             if (iappage)
@@ -1298,14 +1336,6 @@ static int shop_iap_gui(void)
             gui_space(id);
             gui_state(id, _("Export to Expenses"), GUI_SML, SHOP_IAP_EXPORT, 0);
         }
-
-        /* HACK: Does not make any sense to watch ad? */
-
-        /*if (curr_min == 0 && progress_raise_gems(0, 5, 0, 0, 0, 0))
-        {
-            gui_space(id);
-            gui_state(id, _("Get gems for free"), GUI_SML, SHOP_IAP_RAISEGEMS, 0);
-        }*/
 #endif
 
         gui_layout(id, 0, 0);
@@ -1827,7 +1857,10 @@ static int shop_buy_gui(void)
                     sprintf(prodattr, _("Would you like buy this Products?\n"
                                         "%s costs %i gems."),
                                       prodname, prodcost);
-#if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
+#if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
                 else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP) && prodcost <= 1920)
                     sprintf(prodattr, _("You need at least %i gems to buy %s,\n"
                                         "but you can review from IAP."),

@@ -52,7 +52,7 @@
 
 #if NB_HAVE_PB_BOTH!=0 && NB_HAVE_PB_BOTH!=1
 #error Security compilation error: NB_HAVE_PB_BOTH must be set with \
-       either 1 or 0 in the project's properties!
+       either 1 or 0 inside the properties in MSVC project or Ubuntu CLI!
 #endif
 
 /* Neverball Platform API */
@@ -64,6 +64,8 @@
 #define NEVERBALL_STEAMDECK_FAMILY_API 4
 #define NEVERBALL_SWITCH_FAMILY_API    5
 #define NEVERBALL_HANDSET_FAMILY_API   6
+#define NEVERBALL_WII_FAMILY_API       7
+#define NEVERBALL_WIIU_FAMILY_API      8
 
 /* Random stuff. */
 
@@ -74,7 +76,7 @@
 #define MAXSTR MAX_STR_BLOCKREASON
 #endif
 
-#ifdef __GNUC__
+#if defined(__GNUC__)
 #define NULL_TERMINATED __attribute__ ((__sentinel__))
 #else
 #define NULL_TERMINATED
@@ -82,31 +84,45 @@
 
 /* Math. */
 
+#ifndef MIN
 #ifdef __min
 #define MIN __min
 #else
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
+#endif
 
+#ifndef MAX
 #ifdef __max
 #define MAX __max
 #else
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif
+#endif
 
 #ifdef min
+#pragma message(__FILE__ "("_CRT_STRINGIZE(__LINE__)")" ": " \
+                "min: Preprocessor definitions found! Replacing to parameter defines!")
 #undef min
 #endif
 #ifdef max
+#pragma message(__FILE__ "("_CRT_STRINGIZE(__LINE__)")" ": " \
+                "max: Preprocessor definitions found! Replacing to parameter defines!")
 #undef max
 #endif
 
+#ifndef CLAMP
 #define CLAMP(min, val, max) MIN(MAX((min), (val)), (max))
+#endif
 
+#ifndef SIGN
 #define SIGN(n) ((n) < 0 ? -1 : ((n) ? +1 : 0))
+#endif
+#ifndef ROUND
 #define ROUND(f) ((int) ((f) + 0.5f * SIGN(f)))
+#endif
 
-#define TIME_TO_MS(t) ROUND((t) * 1000.0f)
+#define TIME_TO_MS(t) ROUND((t) * 1000)
 #define MS_TO_TIME(m) ((m) * 0.001f)
 
 int rand_between(int low, int high);
@@ -155,6 +171,8 @@ wchar_t *dupe_wstring(const wchar_t *);
 
 #if UNICODE
 #ifdef wcsdup
+#pragma message(__FILE__ "("_CRT_STRINGIZE(__LINE__)")" ": " \
+                "wcsdup: Preprocessor or Posix definitions found! Replacing to dupe_wstring!")
 #undef wcsdup
 #endif
 #if _MSC_VER && !_NONSTDC
@@ -193,7 +211,9 @@ wchar_t *dupe_wstring(const wchar_t *);
 
 int   read_line(char **, fs_file);
 char *strip_newline(char *);
+#ifndef _CONSOLE
 char *strip_spaces(char *);
+#endif
 #if _MSC_VER && !_NONSTDC
 #define dupe_string _strdup
 #else
@@ -202,6 +222,8 @@ char *dupe_string(const char *);
 char *concat_string(const char *first, ...) NULL_TERMINATED;
 
 #ifdef strdup
+#pragma message(__FILE__ "("_CRT_STRINGIZE(__LINE__)")" ": " \
+                "strdup: Preprocessor or Posix definitions found! Replacing to dupe_string!")
 #undef strdup
 #endif
 #if _MSC_VER && !_NONSTDC
@@ -230,7 +252,9 @@ const char *date_to_str(time_t);
 
 /* Files. */
 
+#ifndef _CONSOLE
 int  file_exists(const char *);
+#endif
 int  file_rename(const char *, const char *);
 int  file_size(const char *path);
 void file_copy(FILE *fin, FILE *fout);

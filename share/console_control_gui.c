@@ -1085,8 +1085,13 @@ static void init_xbox_title(void)
         if (current_platform != PLATFORM_SWITCH
             && current_platform != PLATFORM_STEAMDECK)
         {
+#if defined(__WII__)
+            gui_label(xbox_control_title_id, _("Wii Menu"),
+                      GUI_SML, gui_wht, gui_wht);
+#else
             gui_label(xbox_control_title_id, _("Exit"),
                       GUI_SML, gui_wht, gui_wht);
+#endif
 
             console_gui_create_b_button(xbox_control_title_id,
                             config_get_d(CONFIG_JOYSTICK_BUTTON_B));

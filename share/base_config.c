@@ -45,13 +45,13 @@ static const char *pick_data_path(const char *arg_data_path)
 #if defined(__EMSCRIPTEN__)
     return "/data";
 #else
-    size_t requiredSize = MAX_PATH;
     static char dir[MAX_PATH];
 
     if (arg_data_path)
         return arg_data_path;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    size_t requiredSize = MAX_PATH;
     char *data_env_dir;
     errno_t result = getenv_s(&requiredSize, 0, 0, "NEVERBALL_DATA");
 
@@ -85,7 +85,7 @@ static const char *pick_home_path(void)
     size_t requiredSize;
     static char path[MAX_PATH];
 
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+#if !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     char *userdir_env;
     errno_t result = getenv_s(&requiredSize, 0, 0, "NEVERBALL_USERDIR");
 
@@ -116,6 +116,8 @@ static const char *pick_home_path(void)
     }
     else
         return fs_base_dir();
+#elif defined(__WII__)
+    return "/";
 #else
     char *userdir_env;
     if ((userdir_env = getenv("NEVERBALL_USERDIR")))

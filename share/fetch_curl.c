@@ -31,6 +31,11 @@
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL_mutex.h>
 #include <SDL2/SDL_thread.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL_mutex.h>
+#include <SDL_thread.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL_mutex.h>
 #include <SDL_thread.h>
@@ -97,6 +102,9 @@ struct fetch_info
 static List fetch_list = NULL;
 
 /*---------------------------------------------------------------------------*/
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
 
 /*
  * Here's a bit of odd decision making:
@@ -229,11 +237,15 @@ static void free_fetch_event(struct fetch_event *fe)
     }
 }
 
+#endif
+
 /*
  * Invoke a wrapped callback. This should happen on the main thread.
  */
 void fetch_handle_event(void *data)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
 #if FETCH_WITH_CAST
     struct fetch_event *fe = (struct fetch_event *) data;
 #else
@@ -244,9 +256,13 @@ void fetch_handle_event(void *data)
         fe->callback(fe->callback_data, fe->extra_data);
 
     free_fetch_event(fe);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
 
 /*
  * Count transfers in the linked list.
@@ -600,6 +616,8 @@ static int fetch_unlock_mutex(void)
     return SDL_UnlockMutex(fetch_mutex);
 }
 
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 static int curl_was_init;
@@ -609,6 +627,8 @@ static int curl_was_init;
  */
 void fetch_init(void (*dispatch_event) (void *))
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     if (curl_was_init)
         fetch_quit();
 
@@ -640,6 +660,7 @@ void fetch_init(void (*dispatch_event) (void *))
     fetch_dispatch_event = dispatch_event;
 
     fetch_thread_init();
+#endif
 }
 
 /*
@@ -647,6 +668,8 @@ void fetch_init(void (*dispatch_event) (void *))
  */
 void fetch_reinit(void)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     if (curl_was_init)
         fetch_quit();
 
@@ -676,6 +699,7 @@ void fetch_reinit(void)
     curl_multi_setopt(multi_handle, CURLMOPT_MAX_TOTAL_CONNECTIONS, 1);
 
     fetch_thread_init();
+#endif
 }
 
 /*
@@ -683,6 +707,8 @@ void fetch_reinit(void)
  */
 void fetch_quit(void)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     if (curl_was_init)
     {
         fetch_thread_quit();
@@ -699,6 +725,7 @@ void fetch_quit(void)
 
         curl_was_init = 0;
     }
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -869,6 +896,8 @@ unsigned int fetch_url(const char *url,
                        const char *filename,
                        struct fetch_callback callback)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     unsigned int fetch_id = 0;
     CURL *handle;
 
@@ -942,6 +971,9 @@ unsigned int fetch_url(const char *url,
     fetch_unlock_mutex();
 
     return fetch_id;
+#else
+    return 0;
+#endif
 }
 
 #endif

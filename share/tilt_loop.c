@@ -12,9 +12,14 @@
  * General Public License for more details.
  */
 
-#if _WIN32
+#if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
-#include <SDL/SDL_thread.h>
+#include <SDL2/SDL_thread.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#include <SDL_thread.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #include <SDL_thread.h>
@@ -26,6 +31,8 @@
 #include "config.h"
 
 /*---------------------------------------------------------------------------*/
+
+#if defined(__HILLCREST_LOOP__)
 
 /* FIXME: I did not copy paste this from tilt_wii.c, I swear! */
 
@@ -103,6 +110,7 @@ struct tilt_state
 };
 
 static struct tilt_state state;
+
 static SDL_mutex        *mutex  = NULL;
 static SDL_Thread       *thread = NULL;
 
@@ -118,7 +126,7 @@ static SDL_Thread       *thread = NULL;
 static int tilt_func(void *data)
 {
     FreespaceDeviceId                  deviceId;
-    uint8_t                          buffer[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
+    uint8_t                            buffer[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
     int                                rc;
     float                              x, y, z;
     struct freespace_DataMotionControl d;
@@ -341,5 +349,7 @@ int tilt_stat(void)
     }
     return b;
 }
+
+#endif
 
 /*---------------------------------------------------------------------------*/

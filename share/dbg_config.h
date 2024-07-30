@@ -34,6 +34,11 @@
 #define _CRT_STRINGIZE_(x) #x
 #endif
 
+#ifndef _CRT_STRINGIZE
+#define _CRT_STRINGIZE(x) _CRT_STRINGIZE_(x)
+#endif
+
+#include <errno.h>
 #include <signal.h>
 
 #ifndef SIGHUP
@@ -136,7 +141,7 @@
 #define GetLastError() strerror(errno)
 #endif
 #define DW_FORMAT_MSG(outStr) \
-    outStr = strerror(errno)
+    SAFECPY(outStr, strerror(errno))
 #endif
 
 int         GameDbg_GetSigNum(void);

@@ -12,6 +12,8 @@
  * General Public License for more details.
  */
 
+#if defined(__OHMD__)
+
 #include <openhmd/openhmd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -121,3 +123,5 @@ void hmd_ortho(void)
 }
 
 /*---------------------------------------------------------------------------*/
+
+#endif

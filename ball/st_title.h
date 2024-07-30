@@ -83,6 +83,8 @@
 /* For Nintendo */
 
 #define TITLE_PLATFORM_SWITCH  _("Nintendo Switch")
+#define TITLE_PLATFORM_WII     _("Wii")
+#define TITLE_PLATFORM_WIIU    _("Wii U")
 
 /* For Handsets when in aircraft */
 

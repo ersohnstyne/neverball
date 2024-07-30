@@ -12,19 +12,27 @@
  * General Public License for more details.
  */
 
-#if _WIN32
+#if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_thread.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#include <SDL_thread.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #include <SDL_thread.h>
 #endif
+
 #include <math.h>
 #include <stdio.h>
 
 #include "config.h"
 
- /*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+#if (defined(__WII__) || defined(__WIIU__)) && !defined(__GAMECUBE__)
 
 #define _ENABLE_TILT
 #include "wiiuse.h"
@@ -188,7 +196,7 @@ void tilt_init(void)
                sizeof (wiiUseButtons));
 
     mutex  = SDL_CreateMutex();
-    thread = SDL_CreateThread(tilt_thread, "", NULL);
+    thread = SDL_CreateThread(tilt_thread, "wiiuse", NULL);
 }
 
 void tilt_free(void)
@@ -274,5 +282,7 @@ int tilt_stat(void)
     }
     return b;
 }
+
+#endif
 
 /*---------------------------------------------------------------------------*/

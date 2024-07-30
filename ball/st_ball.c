@@ -69,6 +69,13 @@ int goto_ball_setup(struct state *finish)
 
 /*---------------------------------------------------------------------------*/
 
+#define MODEL_BALL_GET(a, i) ((struct model_ball *) array_get((a), (i)))
+
+struct model_ball
+{
+    char *path;
+};
+
 static int ball_manual_hotreload = 0;
 
 static Array balls;
@@ -77,25 +84,24 @@ static char  ball_file[64];
 
 static int   name_id = 0;
 
-static int has_ball_sols(struct dir_item *item)
+static int has_ball_sols(const char *path)
 {
-    char *tmp_path = strdup(item->path);
     char *solid, *inner, *outer;
     char *solid_x, *inner_x, *outer_x;
     int yes = 0;
 
-    solid = concat_string(tmp_path, "/", base_name(tmp_path),
+    solid = concat_string(path, "/", base_name(path),
                           "-solid.sol", NULL);
-    inner = concat_string(tmp_path, "/", base_name(tmp_path),
+    inner = concat_string(path, "/", base_name(path),
                           "-inner.sol", NULL);
-    outer = concat_string(tmp_path, "/", base_name(tmp_path),
+    outer = concat_string(path, "/", base_name(path),
                           "-outer.sol", NULL);
 
-    solid_x = concat_string(tmp_path, "/", base_name(tmp_path),
+    solid_x = concat_string(path, "/", base_name(path),
                             "-solid.solx", NULL);
-    inner_x = concat_string(tmp_path, "/", base_name(tmp_path),
+    inner_x = concat_string(path, "/", base_name(path),
                             "-inner.solx", NULL);
-    outer_x = concat_string(tmp_path, "/", base_name(tmp_path),
+    outer_x = concat_string(path, "/", base_name(path),
                             "-outer.solx", NULL);
 
     yes = (fs_exists(solid) || fs_exists(inner) || fs_exists(outer)) ||
@@ -109,9 +115,18 @@ static int has_ball_sols(struct dir_item *item)
     free(inner_x); inner_x = NULL;
     free(outer_x); outer_x = NULL;
 
-    free(tmp_path); tmp_path = NULL;
-
     return yes;
+}
+
+static int has_ball_sols_dir(struct dir_item* item)
+{
+    char *tmp_path = strdup(item->path);
+
+    int r = has_ball_sols(tmp_path);
+
+    free(tmp_path);
+
+    return r;
 }
 
 static int cmp_dir_items(const void *A, const void *B)
@@ -122,8 +137,6 @@ static int cmp_dir_items(const void *A, const void *B)
 
 static void scan_balls(void)
 {
-    int i;
-
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
     switch (ball_multi_curr())
     {
@@ -142,27 +155,113 @@ static void scan_balls(void)
     SAFECPY(ball_file, config_get_s(CONFIG_BALL_FILE));
 #endif
 
-    if ((balls = fs_dir_scan("ball", has_ball_sols)))
+    fs_file fin;
+
+    Array items;
+    int i, j;
+
+    balls = array_new(sizeof (struct model_ball));
+
+    /*
+     * First, load the model listed in the model file, preserving order.
+     */
+
+    if ((fin = fs_open_read("ball/balls.txt")))
     {
-        array_sort(balls, cmp_dir_items);
+        char *path;
 
-        for (i = 0; i < array_len(balls); i++)
+        while (read_line(&path, fin))
         {
-            const char *path = DIR_ITEM_GET(balls, i)->path;
+            struct model_ball *ball = array_add(balls);
 
-            if (strncmp(ball_file, path, text_length(path)) == 0)
+            char tmp_path[64];
+            SAFECPY(tmp_path, path);
+
+#if _WIN32
+            for (j = 0; j < 64; j++)
+                if (tmp_path[j] == '/')
+                    tmp_path[j] == '\\';
+#endif
+
+            if (!has_ball_sols(tmp_path))
+                array_del(balls);
+            else
+                ball->path = strdup(tmp_path);
+        }
+        fs_close(fin);
+    }
+
+    /*
+     * Then, scan for any remaining model files, and add
+     * them after the first group in alphabetic order.
+     */
+
+    /*if ((items = fs_dir_scan("ball", has_ball_sols_dir)))
+    {
+        array_sort(items, cmp_dir_items);
+
+        for (i = 0; i < array_len(items); i++)
+        {
+            struct model_ball *ball = array_add(balls);
+
+            char tmp_path[64];
+            SAFECPY(tmp_path, DIR_ITEM_GET(items, i)->path);
+
+#if _WIN32
+            for (j = 0; j < 64; j++)
+                if (tmp_path[j] == '/')
+                    tmp_path[j] == '\\';
+#endif
+
+            if (!has_ball_sols(tmp_path))
+                array_del(balls);
+            else
             {
-                curr_ball = i;
-                break;
+                int skip_scan = 0;
+
+                for (j = 0; j < array_len(balls) && !skip_scan; j++)
+                {
+                    if (strcmp(MODEL_BALL_GET(balls, j)->path, tmp_path) == 0)
+                        skip_scan = 1;
+                }
+
+                if (!skip_scan)
+                    ball->path = strdup(tmp_path);
+                else
+                    array_del(balls);
             }
+        }
+
+        fs_dir_free(items);
+    }*/
+
+    for (i = 0; i < array_len(balls); i++)
+    {
+        struct model_ball *ball = array_get(balls, i);
+
+        if (strncmp(ball_file, ball->path, text_length(ball->path)) == 0)
+        {
+            curr_ball = i;
+            break;
         }
     }
 }
 
 static void free_balls(void)
 {
-    fs_dir_free(balls);
-    balls = NULL;
+    if (balls)
+    {
+        while (array_len(balls))
+        {
+            struct model_ball *m = MODEL_BALL_GET(balls, array_len(balls) - 1);
+
+            free((void *) m->path);
+            array_del(balls);
+        }
+
+        array_free(balls);
+        balls = NULL;
+    }
 }
 
 static void set_curr_ball(int ball_index)
@@ -173,8 +272,8 @@ static void set_curr_ball(int ball_index)
     sprintf(ball_file,
 #endif
             "%s/%s",
-            DIR_ITEM_GET(balls, ball_index)->path,
-            base_name(DIR_ITEM_GET(balls, ball_index)->path));
+            MODEL_BALL_GET(balls, ball_index)->path,
+            base_name(MODEL_BALL_GET(balls, ball_index)->path));
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
     account_set_s(ACCOUNT_BALL_FILE, ball_file);
@@ -227,21 +326,16 @@ static int ball_action(int tok, int val)
 
     switch (tok)
     {
-#if !defined(__EMSCRIPTEN__)
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         case MODEL_ONLINE:
-#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-            if (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1)
-            {
-#if defined(__EMSCRIPTEN__)
-                EM_ASM({ window.open("https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");}, 0);
-#elif _WIN32
-                system("explorer https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
-#elif defined(__APPLE__)
-                system("open https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
-#elif defined(__linux__)
-                system("x-www-browser https://drive.google.com/drive/folders/1jBX7QtFcg3w7KUlSaH25xp-5qHItmVUT");
-#endif
-            }
+#if ENABLE_FETCH!=0 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+            package_change_category(PACKAGE_CATEGORY_PROFILE);
+            goto_package(0, curr_state());
 #endif
             break;
 
@@ -303,11 +397,9 @@ static void load_ball_demo(void)
     {
         if (!game_client_init("gui/model-studio.sol"))
         {
-#ifndef NDEBUG
-            assert(!game_setup_process());
-#endif
+            if (!game_setup_process())
+                ball_action(GUI_BACK, 0);
 
-            ball_action(GUI_BACK, 0);
             return;
         }
         else
@@ -315,11 +407,9 @@ static void load_ball_demo(void)
     }
     else if (!progress_replay_full("gui/ball.nbr", 0, 0, 0, 0, 0, 0))
     {
-#ifndef NDEBUG
-        assert(!game_setup_process());
-#endif
+        if (!game_setup_process())
+            ball_action(GUI_BACK, 0);
 
-        ball_action(GUI_BACK, 0);
         return;
     }
     else
@@ -369,6 +459,9 @@ static int ball_gui(void)
 #endif
             }
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ?
 #if NB_STEAM_API==1
@@ -402,6 +495,7 @@ static int ball_gui(void)
             }
 
             gui_space(id);
+#endif
 #endif
 
             if ((jd = gui_hstack(id)))
@@ -585,7 +679,7 @@ static int ball_keybd(int c, int d)
                     static char filename[64];
 
                     sprintf(filename, "Screenshots/ball-%s.png",
-                                      base_name(DIR_ITEM_GET(balls, i)->path));
+                                      base_name(MODEL_BALL_GET(balls, i)->path));
 
                     set_curr_ball(i);
 

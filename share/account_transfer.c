@@ -14,6 +14,10 @@
 
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #endif
@@ -280,7 +284,7 @@ void account_transfer_load(const char *paths)
 #ifndef NDEBUG
     SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
 #endif
-    
+
     if (!account_transfer_is_init)
     {
         log_errorf("Failure to load account transfer file! Account transfer must be initialized!");

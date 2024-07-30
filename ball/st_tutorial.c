@@ -90,6 +90,36 @@ const char tutorial_desc_xbox[][128] =
     TUTORIAL_10_DESC,
 };
 
+const char tutorial_desc_wii[][128] =
+{
+    "",
+    TUTORIAL_1_DESC_WII,
+    TUTORIAL_2_DESC,
+    TUTORIAL_3_DESC_WII,
+    TUTORIAL_4_DESC_WII,
+    TUTORIAL_5_DESC,
+    TUTORIAL_6_DESC,
+    TUTORIAL_7_DESC,
+    TUTORIAL_8_DESC,
+    TUTORIAL_9_DESC,
+    TUTORIAL_10_DESC,
+};
+
+const char tutorial_desc_wiiu[][128] =
+{
+    "",
+    TUTORIAL_1_DESC_WIIU,
+    TUTORIAL_2_DESC,
+    TUTORIAL_3_DESC_WII,
+    TUTORIAL_4_DESC_WII,
+    TUTORIAL_5_DESC,
+    TUTORIAL_6_DESC,
+    TUTORIAL_7_DESC,
+    TUTORIAL_8_DESC,
+    TUTORIAL_9_DESC,
+    TUTORIAL_10_DESC,
+};
+
 static int tutorial_index = 0;
 static int hint_index = 0;
 
@@ -238,6 +268,12 @@ static int tutorial_enter(struct state *st, struct state *prev)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC)
             gui_multi(id, _(tutorial_desc[tutorial_index]),
+                          GUI_SML, GUI_COLOR_WHT);
+        else if (current_platform == PLATFORM_WII)
+            gui_multi(id, _(tutorial_desc_wii[tutorial_index]),
+                          GUI_SML, GUI_COLOR_WHT);
+        else if (current_platform == PLATFORM_WIIU)
+            gui_multi(id, _(tutorial_desc_wiiu[tutorial_index]),
                           GUI_SML, GUI_COLOR_WHT);
         else
 #endif

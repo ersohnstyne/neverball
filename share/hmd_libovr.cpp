@@ -22,6 +22,8 @@
  * - Ersohn Styne
  */
 
+#if defined(__OVR__)
+
 #include <OVR.h>
 
 extern "C"
@@ -210,3 +212,5 @@ extern "C" void hmd_ortho(void)
 }
 
 /*---------------------------------------------------------------------------*/
+
+#endif

@@ -41,6 +41,8 @@
 #include "common.h"
 #include "fs.h"
 
+#include "log.h"
+
 #if defined(__WII__)
 /* We're using SDL 1.2 on Wii, which has SDLKey instead of SDL_Keycode. */
 typedef SDLKey SDL_Keycode;
@@ -82,6 +84,7 @@ int CONFIG_STEREO;
 int CONFIG_CAMERA;
 int CONFIG_CAMERA_ROTATE_MODE;
 int CONFIG_TEXTURES;
+int CONFIG_MOTIONBLUR;
 int CONFIG_REFLECTION;
 int CONFIG_MULTISAMPLE;
 #ifdef GL_GENERATE_MIPMAP_SGIS
@@ -235,6 +238,7 @@ static struct
     { &CONFIG_CAMERA,         "camera",       0 },
     { &CONFIG_CAMERA_ROTATE_MODE, "camera_rotate_mode",       1 },
     { &CONFIG_TEXTURES,       "textures",     1 },
+    { &CONFIG_MOTIONBLUR,     "motion_blur",  1 },
     { &CONFIG_REFLECTION,     "reflection",   1 },
     { &CONFIG_MULTISAMPLE,    "multisample",  0 },
 #ifdef GL_GENERATE_MIPMAP_SGIS
@@ -353,7 +357,7 @@ static struct
     { &CONFIG_REPLAY_NAME,             "replay_name",     "%s-%l-%r" },
     { &CONFIG_LANGUAGE,                "language",        "" },
     { &CONFIG_THEME,                   "theme",           "classic" },
-    { &CONFIG_DEDICATED_IPADDRESS,     "dedicated_ipaddress", "pennyball.stynegame.de" },
+    { &CONFIG_DEDICATED_IPADDRESS,     "dedicated_ipaddress", "play.neverball.org" },
     { &CONFIG_DEDICATED_IPPORT,        "dedicated_ipport", "5000" }
 };
 

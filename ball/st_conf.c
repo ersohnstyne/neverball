@@ -516,7 +516,8 @@ static int conf_account_action(int tok, int val)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
         case CONF_ACCOUNT_SIGNIN:
-            return goto_wgcl_login(&st_conf_account);
+            return goto_wgcl_login(&st_conf_account, 0,
+                                   &st_conf_account, 0);
             break;
 
         case CONF_ACCOUNT_SIGNOUT:
@@ -788,8 +789,11 @@ static int conf_account_gui(void)
             gui_space(id);
 
 #ifndef __EMSCRIPTEN__
-            name_id = conf_state(id, _("Player Name"), "XXXXXXXXXXXXXX",
-                                     CONF_ACCOUNT_PLAYER);
+#if NB_HAVE_PB_BOTH==1
+            if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
+#endif
+                name_id = conf_state(id, _("Player Name"), "XXXXXXXXXXXXXX",
+                                         CONF_ACCOUNT_PLAYER);
 #endif
 
 #if NB_HAVE_PB_BOTH==1
@@ -809,7 +813,10 @@ static int conf_account_gui(void)
 #endif
 
 #ifndef __EMSCRIPTEN__
-            gui_set_trunc(name_id, TRUNC_TAIL);
+#if NB_HAVE_PB_BOTH==1
+            if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
+#endif
+                gui_set_trunc(name_id, TRUNC_TAIL);
 #endif
 #if NB_HAVE_PB_BOTH==1
             gui_set_trunc(ball_id, TRUNC_TAIL);
@@ -829,12 +836,20 @@ static int conf_account_gui(void)
                  * you cannot change the player name.
                  */
 
-                gui_set_state(name_id, GUI_NONE, 0);
-                gui_set_color(name_id, GUI_COLOR_GRY);
+#ifndef __EMSCRIPTEN__
+                if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
+                {
+                    gui_set_state(name_id, GUI_NONE, 0);
+                    gui_set_color(name_id, GUI_COLOR_GRY);
+                }
+#endif
             }
 #endif
 
-            gui_set_label(name_id, player);
+#if NB_HAVE_PB_BOTH==1
+            if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
+                gui_set_label(name_id, player);
+#endif
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
             gui_set_label(ball_id, _("Manage"));
 #else
@@ -2979,7 +2994,7 @@ static int conf_gui(void)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-            gui_label(id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT);
+            gui_label(id, "Pennyball " VERSION, GUI_TNY, GUI_COLOR_WHT);
 #endif
             gui_multi(id, _("Copyright © 2024 Neverball authors\n"
                             "Neverball is free software available under the terms of GPL v2 or later."),
@@ -3021,6 +3036,10 @@ static void conf_shared_timer(int id, float dt)
 
 static int null_enter(struct state *st, struct state *prev)
 {
+#if ENABLE_MOTIONBLUR!=0
+    video_motionblur_quit();
+#endif
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_free();
 #endif
@@ -3086,6 +3105,10 @@ static void null_leave(struct state *st, struct state *next, int id)
     }
 
     account_set_s(ACCOUNT_BALL_FILE, ball);
+#endif
+
+#if ENABLE_MOTIONBLUR!=0
+    video_motionblur_init();
 #endif
 }
 

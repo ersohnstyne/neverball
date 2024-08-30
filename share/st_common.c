@@ -25,6 +25,7 @@
 #include "gui.h"
 
 #include "st_common.h"
+#include "st_setup.h"
 
 #if NB_HAVE_PB_BOTH!=1 && defined(SWITCHBALL_GUI)
 #error Security compilation error: Preprocessor definitions can be used it, \
@@ -405,11 +406,13 @@ void conf_common_init(int (*action_fn)(int, int), int allowfade)
     {
         back_init("back/gui.png");
         is_common_bg = 1;
+
+        if (!game_setup_process())
 #if NB_HAVE_PB_BOTH==1
-        audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
-                                                       _("bgm/title.ogg"), 1);
+            audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
+                                                           _("bgm/title.ogg"), 1);
 #else
-        audio_music_fade_to(0.5f, "gui/bgm/inter.ogg", 1);
+            audio_music_fade_to(0.5f, "gui/bgm/inter.ogg", 1);
 #endif
     }
 
@@ -437,6 +440,156 @@ void conf_common_paint(int id, float t)
         back_draw_easy();
 
     gui_paint(id);
+}
+
+/*---------------------------------------------------------------------------*/
+
+struct state st_perf_warning;
+
+enum
+{
+    PERF_WARNING_DO_IT = GUI_LAST,
+};
+
+static int perf_warning_mode = -1;
+
+static int perf_warning_action(int tok, int val)
+{
+    GENERIC_GAMEMENU_ACTION;
+
+    int f = config_get_d(CONFIG_FULLSCREEN);
+    int w = config_get_d(CONFIG_WIDTH);
+    int h = config_get_d(CONFIG_HEIGHT);
+    int r = 1;
+
+    if (tok == PERF_WARNING_DO_IT)
+    {
+#if ENABLE_MOTIONBLUR!=0
+        if (perf_warning_mode == 0)
+            config_tgl_d(CONFIG_MOTIONBLUR);
+#endif
+        if (perf_warning_mode == 1)
+        {
+            config_tgl_d(CONFIG_REFLECTION);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_ID,   5);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, config_get_d(CONFIG_REFLECTION));
+
+#if ENABLE_DUALDISPLAY==1
+            r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
+            r = video_mode(f, w, h);
+#endif
+            if (r)
+            {
+                config_set_d(CONFIG_GRAPHIC_RESTORE_ID,  -1);
+                config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, 0);
+            }
+        }
+    }
+
+    if (r)
+    {
+        perf_warning_mode = -1;
+        return goto_state(&st_video_advanced);
+    }
+    else return 0;
+}
+
+static int perf_warning_confirm_btns(int pd, int enabled)
+{
+    int id;
+
+    const char *s_enable  = N_("Enable");
+    const char *s_disable = N_("Disable");
+
+    if ((id = gui_harray(pd)))
+    {
+        gui_start(id, _("Cancel"), GUI_SML, GUI_BACK, 0);
+        gui_state(id, _(enabled ? s_enable : s_disable),
+                      GUI_SML, PERF_WARNING_DO_IT, 0);
+    }
+
+    return id;
+}
+
+#if ENABLE_MOTIONBLUR!=0
+static int perf_warning_motionblur_gui(int enabled)
+{
+    int id;
+
+    if ((id = gui_vstack(0)))
+    {
+        gui_label(id, _("Warning"), GUI_MED, gui_red, gui_red);
+
+        gui_space(id);
+
+        const char *s_disable =
+                   N_("Disabling motion blur is not recommended.\n"
+                      "Disable it anyway?\n"
+                      "This may decrease performance.");
+
+        const char *s_enable  =
+                   N_("Enable motion blur?\n"
+                      "This may increase performance.");
+
+        gui_multi(id, _(enabled ? s_enable : s_disable),
+                      GUI_SML, gui_wht, gui_wht);
+        gui_space(id);
+
+        perf_warning_confirm_btns(id, enabled);
+    }
+
+    gui_layout(id, 0, 0);
+
+    return id;
+}
+#endif
+
+static int perf_warning_refl_gui(int enabled)
+{
+    int id;
+
+    if ((id = gui_vstack(0)))
+    {
+        gui_label(id, _("Warning"), GUI_MED, gui_red, gui_red);
+
+        gui_space(id);
+
+        const char *s_disable =
+                   N_("Disabling reflection is not recommended.\n"
+                      "Disable it anyway?\n"
+                      "This may decrease performance.");
+
+        const char *s_enable  =
+                   N_("Enable reflection?\n"
+                      "This may increase performance.");
+
+        gui_multi(id, _(enabled ? s_enable : s_disable),
+                      GUI_SML, gui_wht, gui_wht);
+        gui_space(id);
+
+        perf_warning_confirm_btns(id, enabled);
+    }
+
+    gui_layout(id, 0, 0);
+
+    return id;
+}
+
+static int perf_warning_enter(struct state *st, struct state *prev)
+{
+    audio_play("snd/warning.ogg", 1.0f);
+
+    conf_common_init(perf_warning_action, 1);
+
+#if ENABLE_MOTIONBLUR!=0
+    if (perf_warning_mode == 0)
+        return perf_warning_motionblur_gui(!config_get_d(CONFIG_MOTIONBLUR));
+    else
+#endif
+        if (perf_warning_mode == 1)
+        return perf_warning_refl_gui(!config_get_d(CONFIG_REFLECTION));
+    else return 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -801,6 +954,7 @@ enum
     VIDEO_ADVANCED_DISPLAY,
     VIDEO_ADVANCED_RESOLUTION,
     VIDEO_ADVANCED_HMD,
+    VIDEO_ADVANCED_MOTIONBLUR,
     VIDEO_ADVANCED_REFLECTION,
     VIDEO_ADVANCED_BACKGROUND,
     VIDEO_ADVANCED_SHADOW,
@@ -824,6 +978,9 @@ static int video_advanced_action(int tok, int val)
     /* Revert values */
     int oldHmd   = config_get_d(CONFIG_HMD);
     int oldF     = config_get_d(CONFIG_FULLSCREEN);
+#if ENABLE_MOTIONBLUR!=0
+    int oldMBlur = config_get_d(CONFIG_MOTIONBLUR);
+#endif
     int oldRefl  = config_get_d(CONFIG_REFLECTION);
     int oldVsync = config_get_d(CONFIG_VSYNC);
     int oldSamp  = config_get_d(CONFIG_MULTISAMPLE);
@@ -927,6 +1084,16 @@ static int video_advanced_action(int tok, int val)
 #endif
             break;
 
+        case VIDEO_ADVANCED_MOTIONBLUR:
+#if ENABLE_MOTIONBLUR!=0
+            if (oldMBlur == val)
+                return 1;
+
+            perf_warning_mode = 0;
+            return goto_state(&st_perf_warning);
+#endif
+            break;
+
         case VIDEO_ADVANCED_REFLECTION:
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -935,11 +1102,11 @@ static int video_advanced_action(int tok, int val)
                 return 1;
 
             backups = 1;
-#if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
             config_set_d(CONFIG_REFLECTION, val);
+
+#if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
             goto_state(&st_restart_required);
 #else
-            config_set_d(CONFIG_REFLECTION, val);
             config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 5);
             config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
             config_save();
@@ -965,8 +1132,6 @@ static int video_advanced_action(int tok, int val)
                     goto_state(&st_video_advanced);
             }
 #endif
-#else
-            config_set_d(CONFIG_REFLECTION, val);
 #endif
 
             break;
@@ -1177,6 +1342,10 @@ static int video_advanced_gui(void)
 
         gui_space(id);
 
+#if ENABLE_MOTIONBLUR!=0
+        conf_toggle_simple(id, _("Motion Blur"),  VIDEO_ADVANCED_MOTIONBLUR,
+                               config_get_d(CONFIG_MOTIONBLUR), 1, 0);
+#endif
         conf_toggle_simple(id, _("Reflection"),   VIDEO_ADVANCED_REFLECTION,
                                config_get_d(CONFIG_REFLECTION), 1, 0);
         conf_toggle_simple(id, _("Background"),   VIDEO_ADVANCED_BACKGROUND,
@@ -1204,6 +1373,10 @@ static int video_advanced_gui(void)
 
         gui_space(id);
 
+#if ENABLE_MOTIONBLUR!=0
+        conf_toggle(id, _("Motion Blur"),  VIDEO_ADVANCED_MOTIONBLUR,
+                        config_get_d(CONFIG_MOTIONBLUR), _("On"), 1, _("Off"), 0);
+#endif
         conf_toggle(id, _("Reflection"),   VIDEO_ADVANCED_REFLECTION,
                         config_get_d(CONFIG_REFLECTION), _("On"), 1, _("Off"), 0);
         conf_toggle(id, _("Background"),   VIDEO_ADVANCED_BACKGROUND,
@@ -2004,6 +2177,19 @@ static void loading_paint(int id, float t)
 }
 
 /*---------------------------------------------------------------------------*/
+
+struct state st_perf_warning = {
+    perf_warning_enter,
+    conf_common_leave,
+    conf_common_paint,
+    common_timer,
+    common_point,
+    common_stick,
+    NULL,
+    common_click,
+    common_keybd,
+    common_buttn
+};
 
 struct state st_video = {
     video_enter,

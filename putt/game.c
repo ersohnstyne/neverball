@@ -240,7 +240,11 @@ static void game_draw_balls(struct s_rend *rend,
                 glColor4f(color[ui][0],
                           color[ui][1],
                           color[ui][2],
+#if ENABLE_MOTIONBLUR!=0
+                          config_get_d(CONFIG_MOTIONBLUR) ? (color[ui][3] * video_motionblur_alpha_get()) : color[ui][3]);
+#else
                           color[ui][3]);
+#endif
                 ball_draw(rend, ball_M, pend_M, bill_M, t);
             }
             glPopMatrix();
@@ -258,7 +262,12 @@ static void game_draw_balls(struct s_rend *rend,
 
                 glColor4f(color[ui][0],
                           color[ui][1],
-                          color[ui][2], 0.5f);
+                          color[ui][2],
+#if ENABLE_MOTIONBLUR!=0
+                          config_get_d(CONFIG_MOTIONBLUR) ? (0.5f * video_motionblur_alpha_get()) : 0.5f);
+#else
+                          0.5f);
+#endif
 
                 mark_draw(rend);
             }
@@ -266,7 +275,12 @@ static void game_draw_balls(struct s_rend *rend,
         }
     }
 
+#if ENABLE_MOTIONBLUR!=0
+    glColor4f(1.0f, 1.0f, 1.0f,
+              config_get_d(CONFIG_MOTIONBLUR) ? (1.0f * video_motionblur_alpha_get()) : 1.0f);
+#else
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+#endif
     r_color_mtrl(rend, 0);
 }
 
@@ -381,7 +395,9 @@ void game_draw(int pose, float t)
         /* Center the skybox about the position of the camera. */
 
         glPushMatrix();
+        if (!video_can_swap_window)
         {
+            video_can_swap_window = 1;
             glTranslatef(view_p[0], view_p[1], view_p[2]);
             back_draw(&rend);
         }
@@ -412,7 +428,12 @@ void game_draw(int pose, float t)
         }
         glDepthMask(GL_TRUE);
 
+#if ENABLE_MOTIONBLUR!=0
+        glColor4f(1.0f, 1.0f, 1.0f,
+              config_get_d(CONFIG_MOTIONBLUR) ? (1.0f * video_motionblur_alpha_get()) : 1.0f);
+#else
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+#endif
     }
     glPopMatrix();
 

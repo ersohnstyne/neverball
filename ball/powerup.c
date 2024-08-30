@@ -27,35 +27,35 @@ void powerup_stop(void)
     tiltmultiply = 1;
 }
 
-void init_earninator(void)
+void powerup_init_earninator(void)
 {
     /* If you use earninator, set the Coin Multiply to 2 */
     coinmultiply = 2;
 }
 
-void init_floatifier(void)
+void powerup_init_floatifier(void)
 {
     /* If you use floatifier, reduce the Gravity to 50% */
     gravmultiply = 0.5f;
 }
 
-void init_speedifier(void)
+void powerup_init_speedifier(void)
 {
     /* If you use speedifier, set the Tilt Multiply to 2 */
     tiltmultiply = 2;
 }
 
-float get_coin_multiply(void)
+float powerup_get_coin_multiply(void)
 {
     return coinmultiply;
 }
 
-float get_grav_multiply(void)
+float powerup_get_grav_multiply(void)
 {
     return gravmultiply;
 }
 
-float get_tilt_multiply(void)
+float powerup_get_tilt_multiply(void)
 {
     return tiltmultiply;
 }

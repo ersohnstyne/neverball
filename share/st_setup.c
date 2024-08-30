@@ -30,6 +30,7 @@
 
 #if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1
 #include "st_wgcl.h"
+#include "networking.h"
 #endif
 #include "st_setup.h"
 #include "st_transfer.h"
@@ -98,6 +99,7 @@
 struct state st_game_setup;
 
 struct state *st_continue;
+static int  (*fn_continue) (struct state *st_continue);
 
 static int  (*goto_name_fn) (struct state *finish,
                              int         (*finish_fn) (struct state *));
@@ -123,12 +125,14 @@ static int update_install_dnld_eta_id;
 
 static int setup_update_version_finished = 0;
 
-int goto_game_setup(struct state *start_state,
+int goto_game_setup(struct state *start_state, int (*start_fn)(struct state *),
                     int (*new_goto_name_fn) (struct state *,
                                              int         (*new_finish_fn) (struct state *)),
                     int (*new_goto_ball_fn) (struct state *))
 {
     st_continue   = start_state;
+    fn_continue   = start_fn;
+
     setup_page    = 0;
     setup_process = 1;
 
@@ -312,7 +316,7 @@ static void game_setup_terms_checkmark_update_all(void)
  * Premium: appdownload.stynegame.de
  * Legacy downloads: play.neverball.org
  */
-#define NB_CURRDOMAIN_PREMIUM "play.neverball.org"
+#define NB_CURRDOMAIN_PREMIUM "appdownload.stynegame.de"
 
 static const char *get_updated_url(const char *filename)
 {
@@ -694,13 +698,20 @@ static int game_setup_action(int tok, int val)
                     switch (tok)
                     {
                         case GUI_NEXT:
-                            if (goto_name_fn)
+#if NB_HAVE_PB_BOTH==1
+                            if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
+                            {
 #if NB_EOS_SDK==0 || NB_STEAM_API==0
-                                return goto_name_fn(&st_game_setup, goto_ball_fn);
+                                if (goto_name_fn)
+                                    return goto_name_fn(&st_game_setup, goto_ball_fn);
 #else
-                                return goto_ball_fn(&st_game_setup);
+                                if (goto_ball_fn)
+                                    return goto_ball_fn(&st_game_setup);
 #endif
+                            }
                             else
+#endif
+                            {
 #if _WIN32 && ENABLE_FETCH==1 && ENABLE_SOFTWARE_UPDATE!=0 && \
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -709,10 +720,14 @@ static int game_setup_action(int tok, int val)
 #else
                                 setup_page = 6;
 #endif
+                            }
 
-#if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1
+#if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                             if (setup_page == 6)
-                                return goto_wgcl_login(&st_game_setup);
+                                return goto_wgcl_login(&st_game_setup, 0,
+                                                       &st_game_setup, goto_ball_fn ? goto_ball_fn : 0);
 #endif
 
                             return goto_state(&st_game_setup);
@@ -760,7 +775,8 @@ static int game_setup_action(int tok, int val)
                             setup_page = 6;
 #if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1
                             if (setup_page == 6)
-                                return goto_wgcl_login(&st_game_setup);
+                                return goto_wgcl_login(&st_game_setup, 0,
+                                                       &st_game_setup, 0);
 #endif
                             return goto_state(&st_game_setup);
                     }
@@ -780,7 +796,8 @@ static int game_setup_action(int tok, int val)
                             setup_mkdir_migrate();
                             setup_process = 0;
                             config_save();
-                            return st_continue ? goto_state(st_continue) : 0;
+                            return fn_continue ? fn_continue(st_continue) :
+                                                 st_continue ? goto_state(st_continue) : 0;
                     }
                 }
                 break;

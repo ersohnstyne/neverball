@@ -48,7 +48,7 @@
 /*---------------------------------------------------------------------------*/
 
 /*
- * Pennyball + Neverball - Recipes for Disaster
+ * Neverball - Recipes for Disaster
  * - Ersohn Styne
  */
 

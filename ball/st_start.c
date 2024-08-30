@@ -34,6 +34,8 @@
 #include "key.h"
 #include "text.h"
 
+#include "activity_services.h"
+
 #include "game_common.h"
 #include "game_client.h"
 
@@ -309,7 +311,13 @@ static int start_action(int tok, int val)
                         audio_play(AUD_STARTGAME, 1.0f);
 
                         if (progress_play(get_level(0)))
+                        {
+                            activity_services_gamemode(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
+                                                       (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE : 
+                                                                                        AS_MODE_NORMAL));
+
                             return goto_play_level();
+                        }
                     }
                 }
                 else return goto_state(&st_start_unavailable);
@@ -329,7 +337,13 @@ static int start_action(int tok, int val)
                 audio_play(AUD_STARTGAME, 1.0f);
 
                 if (progress_play(get_level(0)))
+                {
+                    activity_services_gamemode(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
+                                               (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE : 
+                                                                                AS_MODE_NORMAL));
+
                     return goto_play_level();
+                }
             }
             break;
 
@@ -350,7 +364,13 @@ static int start_action(int tok, int val)
             audio_play(AUD_STARTGAME, 1.0f);
             game_fade(+4.0);
             if (progress_play(get_level(val)))
+            {
+                activity_services_gamemode(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
+                                           (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE : 
+                                                                            AS_MODE_NORMAL));
+
                 return goto_play_level();
+            }
 
         break;
 
@@ -488,6 +508,22 @@ static int start_gui(void)
     }
 #endif
 
+    if (total == 0)
+    {
+        if ((id = gui_vstack(0)))
+        {
+            gui_title_header(id, _("No Levels"), GUI_MED, GUI_COLOR_DEFAULT);
+            gui_space(id);
+            gui_back_button(id);
+
+            gui_layout(id, 0, 0);
+
+            return id;
+        }
+        else
+            return 0;
+    }
+
     if ((id = gui_vstack(0)))
     {
         if ((jd = gui_hstack(id)))
@@ -527,6 +563,23 @@ static int start_gui(void)
             }
 #endif
 
+            const char *curr_setname = set_name(curr_set());
+            char curr_setname_final[MAXSTR];
+
+            if (!curr_setname)
+            {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(curr_setname_final, MAXSTR,
+#else
+                sprintf(curr_setname_final,
+#endif
+                        _("Untitled set name (%d)"), curr_set());
+            }
+            else
+                SAFECPY(curr_setname_final, curr_setname);
+
+            int set_title_id = gui_label(jd, "XXXXXXXXXXXXXXXXXX", GUI_SML, GUI_COLOR_DEFAULT);
+
             if (str_starts_with(set_id(curr_set()), "anime") ||
                 str_starts_with(set_id(curr_set()), "SB") ||
                 str_starts_with(set_id(curr_set()), "sb") ||
@@ -534,20 +587,25 @@ static int start_gui(void)
                 str_starts_with(set_id(curr_set()), "sB"))
             {
                 SAFECPY(set_name_final, GUI_AIRPLANE " ");
-                SAFECAT(set_name_final, set_name(curr_set()));
+                SAFECAT(set_name_final, curr_setname_final);
             }
             else
-                SAFECPY(set_name_final, set_name(curr_set()));
+                SAFECPY(set_name_final, curr_setname_final);
 
-            gui_label(jd, set_name_final, GUI_SML, GUI_COLOR_DEFAULT);
+            gui_set_trunc(set_title_id, TRUNC_TAIL);
+            gui_set_label(set_title_id, set_name_final);
+
             gui_filler(jd);
+            gui_space(jd);
             gui_navig(jd, total, first, LEVEL_STEP);
         }
 
         gui_space(id);
 
-        if ((jd = gui_harray(id)))
+        if ((jd = gui_hstack(id)))
         {
+            gui_filler(jd);
+
             if (video.aspect_ratio >= 1.0f)
             {
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
@@ -614,6 +672,8 @@ static int start_gui(void)
                                        curr_mode() == MODE_CHALLENGE);
                 }
             }
+
+            gui_filler(jd);
         }
 
         gui_space(id);
@@ -681,8 +741,10 @@ static int start_gui_options(void)
                 gui_label(jd, _("Level Options"), GUI_SML, GUI_COLOR_DEFAULT);
                 gui_filler(jd);
 
+#if NB_HAVE_PB_BOTH==1
 #ifndef __EMSCRIPTEN__
                 if (current_platform == PLATFORM_PC)
+#endif
 #endif
                     gui_back_button(jd);
             }
@@ -738,6 +800,8 @@ static int start_gui_options(void)
 
 static int start_unavailable_enter(struct state *st, struct state *prev)
 {
+    audio_play("snd/uierror.ogg", 1.0f);
+
     int id;
 
     if ((id = gui_vstack(0)))
@@ -811,6 +875,21 @@ static int start_compat_gui()
         gui_label(id, _("Play this level pack?"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
 
+        const char *curr_setname = set_name(curr_set());
+        char curr_setname_final[MAXSTR];
+
+        if (!curr_setname)
+        {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(curr_setname_final, MAXSTR,
+#else
+            sprintf(curr_setname_final,
+#endif
+                    _("Untitled set name (%d)"), curr_set());
+        }
+        else
+            SAFECPY(curr_setname_final, curr_setname);
+
         char multiattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -818,7 +897,7 @@ static int start_compat_gui()
 #else
         sprintf(multiattr,
 #endif
-                "%s (%s)", set_name(curr_set()), set_id(curr_set()));
+                "%s (%s)", curr_setname_final, set_id(curr_set()));
 
         gui_multi(id, multiattr, GUI_SML, GUI_COLOR_WHT);
 
@@ -871,13 +950,17 @@ static int start_howmany()
     int loctotal = 1;
     int loop = 1;
 
-    while (loop == 1) {
+    while (loop == 1)
+    {
         struct level *l = get_level(loctotal);
 
         /* End of level track */
+
         if (!l) loop = 0;
 
-        loctotal++;
+        /* ...or continue to the next */
+
+        else loctotal++;
     }
 
     return loctotal - 1;

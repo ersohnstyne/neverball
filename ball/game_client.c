@@ -548,12 +548,13 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
 #endif
                        "%d.%d", &version.x, &version.y) != 2)
             {
-/*#ifndef NDEBUG
-                log_errorf("SOL/SOLX key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
-                sol_free_vary(&gd.vary);
-                game_base_free(NULL);
-                return (gd.state = 0);
-#endif*/
+                /*
+                 * Was:
+                 *     log_errorf("SOL/SOLX key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
+                 *     sol_free_vary(&vary);
+                 *     game_base_free(NULL);
+                 *     return (gd.state = 0);
+                 */
             }
     }
 
@@ -746,12 +747,13 @@ int  game_client_init(const char *file_name)
 #endif
                        "%d.%d", &version.x, &version.y) != 2)
             {
-/*#ifndef NDEBUG
-                log_errorf("SOL/SOLX key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
-                sol_free_vary(&gd.vary);
-                game_base_free(NULL);
-                return (gd.state = 0);
-#endif*/
+                /*
+                 * Was:
+                 *     log_errorf("SOL/SOLX key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
+                 *     sol_free_vary(&vary);
+                 *     game_base_free(NULL);
+                 *     return (gd.state = 0);
+                 */
             }
     }
 
@@ -763,11 +765,11 @@ int  game_client_init(const char *file_name)
      */
 
     /*
-     * 1.5.0 replays will not be able to trigger any map compatibility
-     * warnings, 2.1 are not affected.
+     * 2.2 and later: We always trigger map compatibility warnings
+     * in the future version.
      */
 
-    game_compat_map = version.x == 1;
+    game_compat_map = 0; /* Was: version.x == 1 */
 
     /* Initialize particles. */
 
@@ -829,7 +831,7 @@ void game_client_blend(float a)
 
 void game_client_draw(int pose, float t)
 {
-    if (gd.state)
+    if (gd.state && !progress_loading())
     {
         game_lerp_apply(&gl, &gd);
 

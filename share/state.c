@@ -18,6 +18,8 @@
 #include "console_control_gui.h"
 #endif
 
+#include "activity_services.h"
+
 #include "vec3.h"
 #include "glext.h"
 #include "state.h"
@@ -112,10 +114,10 @@ static int bump_stick(int a)
 
 /*---------------------------------------------------------------------------*/
 
-#define LOOP_DURING_SCREENANIMATE                                         \
-    do { if (!st_global_loop()) {                                         \
-        log_errorf("The game attempts to exit, but UI are animating!\n"); \
-        exit(1);                                                          \
+#define LOOP_DURING_SCREENANIMATE   \
+    do { if (!st_global_loop()) {   \
+        SDL_Event e = { SDL_QUIT }; \
+        SDL_PushEvent(&e);          \
     } } while (0)
 
 /*---------------------------------------------------------------------------*/
@@ -191,6 +193,9 @@ int goto_state_full(struct state *st,
         {
             currtime = SDL_GetTicks();
             dt = MAX(currtime - prevtime, 0);
+
+            activity_services_step(dt);
+
             alpha = alpha - ((config_get_d(CONFIG_SMOOTH_FIX) ?
                               MIN(state_frame_smooth, dt) :
                               MIN(100.0f, dt)) * state_anim_speed) * 0.001f;
@@ -214,16 +219,13 @@ int goto_state_full(struct state *st,
                                     speedPercent, 0));
             hmd_step();
 
-            if (viewport_wireframe == 2 || viewport_wireframe == 3)
-            {
-                video_render_fill_or_line(1);
-                st_paint(0.001f * currtime, 1);
-                video_render_fill_or_line(0);
-                st_paint(0.001f * currtime, 0);
-            }
-            else st_paint(0.001f * currtime, 1);
+            st_paint(0.001f * currtime, 1);
 
             video_swap();
+
+            if (config_get_d(CONFIG_NICE))
+                SDL_Delay((1.0f / 30.0f) * 1000);
+
             prevtime = currtime;
         }
     }
@@ -267,6 +269,9 @@ int goto_state_full(struct state *st,
 
             currtime = SDL_GetTicks();
             dt = MAX(currtime - prevtime, 0);
+
+            activity_services_step(dt);
+
             alpha = alpha + ((config_get_d(CONFIG_SMOOTH_FIX) ?
                               MIN(state_frame_smooth, dt) :
                               MIN(100.0f, dt)) * state_anim_speed) * 0.001f;
@@ -291,16 +296,13 @@ int goto_state_full(struct state *st,
                                     speedPercent, 0));
             hmd_step();
 
-            if (viewport_wireframe == 2 || viewport_wireframe == 3)
-            {
-                video_render_fill_or_line(1);
-                st_paint(0.001f * currtime, 1);
-                video_render_fill_or_line(0);
-                st_paint(0.001f * currtime, 0);
-            }
-            else st_paint(0.001f * currtime, 1);
+            st_paint(0.001f * currtime, 1);
 
             video_swap();
+
+            if (config_get_d(CONFIG_NICE))
+                SDL_Delay((1.0f / 30.0f) * 1000);
+
             prevtime = currtime;
         }
     }
@@ -353,6 +355,11 @@ void st_paint(float t, int allow_clear)
     {
         if (allow_clear)
             video_clear();
+
+#if ENABLE_MOTIONBLUR!=0
+        if (config_get_d(CONFIG_MOTIONBLUR))
+            video_motionblur_prep();
+#endif
 
         if (hmd_stat())
         {
@@ -497,5 +504,28 @@ int st_touch(const SDL_TouchFingerEvent *event)
     return d;
 }
 #endif
+
+int st_dpad(int b, int d, int *p)
+{
+    /* If the state can handle it, do it. */
+
+    if (state && state->dpad)
+        return state->dpad(state->gui_id, b, d);
+
+    /* Otherwise, convert D-pad button events into joystick axis motion. */
+
+    const int X = config_get_d(CONFIG_JOYSTICK_AXIS_X0);
+    const int Y = config_get_d(CONFIG_JOYSTICK_AXIS_Y0);
+
+    if      (p[0] && !p[1]) st_stick(X, -1.0f);
+    else if (p[1] && !p[0]) st_stick(X, +1.0f);
+    else                    st_stick(X,  0.0f);
+
+    if      (p[2] && !p[3]) st_stick(Y, -1.0f);
+    else if (p[3] && !p[2]) st_stick(Y, +1.0f);
+    else                    st_stick(Y,  0.0f);
+
+    return 1;
+}
 
 /*---------------------------------------------------------------------------*/

@@ -258,7 +258,9 @@ static void log_opengl(void)
 
 int glext_fail(const char *title, const char *message)
 {
-#if _WIN32 && _MSC_VER
+#if _WIN32
+    /* Let's do Windows message box stuff, because it's already in there. */
+
     MessageBoxA(0, message, title, MB_ICONERROR);
 #elif defined(__WII__)
     printf("%s: %s\n", title, message);
@@ -452,18 +454,22 @@ void glClipPlane4f_(GLenum p, GLfloat a, GLfloat b, GLfloat c, GLfloat d)
 
 void glBindTexture_(GLenum target, GLuint texture)
 {
-    if (gli.wireframe)
-        texture = 0u;
+    //if (gli.wireframe) texture = 0u;
 
     glBindTexture(target, texture);
 }
 
 void glToggleWireframe_(void)
 {
-    gli.wireframe = !gli.wireframe;
+    glSetWireframe_(!gli.wireframe);
+}
+
+void glSetWireframe_(int enabled)
+{
+    gli.wireframe = enabled;
 
 #if !ENABLE_OPENGLES
-    if (gli.wireframe)
+    if (enabled)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     else
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

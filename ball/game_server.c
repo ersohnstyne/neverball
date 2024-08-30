@@ -158,8 +158,8 @@ static void input_set_s(float s)
 
 static void input_set_x(float x)
 {
-    if (x < -ANGLE_BOUND * get_tilt_multiply()) x = -ANGLE_BOUND * get_tilt_multiply();
-    if (x >  ANGLE_BOUND * get_tilt_multiply()) x =  ANGLE_BOUND * get_tilt_multiply();
+    if (x < -ANGLE_BOUND * powerup_get_tilt_multiply()) x = -ANGLE_BOUND * powerup_get_tilt_multiply();
+    if (x >  ANGLE_BOUND * powerup_get_tilt_multiply()) x =  ANGLE_BOUND * powerup_get_tilt_multiply();
 
     input_current.x = x;
 
@@ -173,8 +173,8 @@ static void input_set_x(float x)
 
 static void input_set_z(float z)
 {
-    if (z < -ANGLE_BOUND * get_tilt_multiply()) z = -ANGLE_BOUND * get_tilt_multiply();
-    if (z >  ANGLE_BOUND * get_tilt_multiply()) z =  ANGLE_BOUND * get_tilt_multiply();
+    if (z < -ANGLE_BOUND * powerup_get_tilt_multiply()) z = -ANGLE_BOUND * powerup_get_tilt_multiply();
+    if (z >  ANGLE_BOUND * powerup_get_tilt_multiply()) z =  ANGLE_BOUND * powerup_get_tilt_multiply();
 
     input_current.z = z;
 
@@ -620,12 +620,13 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
 #endif
                        "%d.%d", &version.x, &version.y) != 2)
             {
-/*#ifndef NDEBUG
-                log_errorf("SOL/SOLX key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
-                sol_free_vary(&vary);
-                game_base_free(NULL);
-                return (server_state = 0);
-#endif*/
+                /*
+                 * Was:
+                 *     log_errorf("SOL/SOLX key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
+                 *     sol_free_vary(&vary);
+                 *     game_base_free(NULL);
+                 *     return (server_state = 0);
+                 */
             }
     }
 
@@ -1083,12 +1084,13 @@ int game_server_init(const char *file_name, int t, int e)
 #endif
                        "%d.%d", &version.x, &version.y) != 2)
             {
-/*#ifndef NDEBUG
-                log_errorf("SOL/SOLX key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
-                sol_free_vary(&vary);
-                game_base_free(NULL);
-                return (server_state = 0);
-#endif*/
+                /*
+                 * Was:
+                 *     log_errorf("SOL/SOLX key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
+                 *     sol_free_vary(&vary);
+                 *     game_base_free(NULL);
+                 *     return (server_state = 0);
+                 */
             }
     }
 
@@ -1805,7 +1807,7 @@ static int game_update_state(int bt)
 
         if (hp->t == ITEM_COIN)
         {
-            coins += hp->n * get_coin_multiply();
+            coins += hp->n * powerup_get_coin_multiply();
             game_cmd_coins();
 
             progress_rush_collect_coin_value(hp->n);
@@ -2198,7 +2200,14 @@ static void game_server_iter(float dt)
 
     if (status == GAME_TIME) return;
 
+    const float additive_move_v = 2.45f;// *dt;
+
     float g[3] = { 0.0f, -9.8f, 0.0f };
+
+    //g[0] = additive_move_v * (((fcosf(V_RAD(view.a)) * tilt.rz) + (fsinf(V_RAD(view.a)) * -tilt.rx)) * CLAMP(0, 1 - fabsf(powerup_get_grav_multiply()), 1));
+    //g[2] = additive_move_v * (((fsinf(V_RAD(view.a)) * -tilt.rz) + (fcosf(V_RAD(view.a)) * -tilt.rx)) * CLAMP(0, 1 - fabsf(powerup_get_grav_multiply()), 1));
+
+    g[1] *= powerup_get_grav_multiply();
 
 #if defined(MAPC_INCLUDES_CHKP) && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
     if (status == GAME_GOAL && !campaign_used())

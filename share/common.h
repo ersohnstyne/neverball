@@ -222,7 +222,7 @@ char *dupe_string(const char *);
 char *concat_string(const char *first, ...) NULL_TERMINATED;
 
 #ifdef strdup
-#pragma message(__FILE__ "("_CRT_STRINGIZE(__LINE__)")" ": " \
+#pragma message(__FILE__ "(" _CRT_STRINGIZE(__LINE__) "): " \
                 "strdup: Preprocessor or Posix definitions found! Replacing to dupe_string!")
 #undef strdup
 #endif

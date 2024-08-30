@@ -580,19 +580,11 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
                         return 1;
                 }
             }
-            else
-                log_errorf("Could not find level map!: %s / %s\n",
-                           demo_replay.file, fs_error());
         }
-        else
-            log_errorf("Could not find the replay header file!\n");
 
         fs_close(demo_fp);
         demo_fp = NULL;
     }
-    else
-        log_errorf("Could not find the replay file!: %s / %s\n",
-                   path, fs_error());
 
     return 0;
 }

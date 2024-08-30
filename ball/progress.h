@@ -22,6 +22,27 @@
 
 /*---------------------------------------------------------------------------*/
 
+#if ENABLE_LIVESPLIT!=0
+
+/* TODO: For LiveSplit, use this method inside this source. */
+
+void  progress_livesplit_init (int);
+void  progress_livesplit_exit (void);
+void  progress_livesplit_step (float);
+void  progress_livesplit_stat (int);
+void  progress_livesplit_pause(int);
+void  progress_livesplit_next (void);
+
+int   progress_livesplit_started  (void);
+int   progress_livesplit_paused   (void);
+int   progress_livesplit_reseted  (void);
+int   progress_livesplit_level    (void);
+float progress_livesplit_game_time(void);
+
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 void progress_rush_collect_coin_value(int);
 
 /*---------------------------------------------------------------------------*/
@@ -31,6 +52,7 @@ void progress_init(int);
 void progress_extend(void);
 int  progress_extended(void);
 
+int  progress_loading(void);
 int  progress_play(struct level *);
 void progress_buy_balls(int);
 void progress_step(void);

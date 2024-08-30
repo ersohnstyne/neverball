@@ -12,6 +12,16 @@
  * General Public License for more details.
  */
 
+/*
+ * HACK: Remembering the code file differences:
+ * Developers  who  programming  C++  can see more bedrock declaration
+ * than C.  Developers  who  programming  C  can  see  few  procedural
+ * declaration than  C++.  Keep  in  mind  when making  sure that your
+ * extern code must associated. The valid file types are *.c and *.cpp,
+ * so it's always best when making cross C++ compiler to keep both.
+ * - Ersohn Styne
+ */
+
 /*---------------------------------------------------------------------------*/
 
 #ifndef _CONSOLE
@@ -19,6 +29,11 @@
 #endif
 
 #include <stdio.h>
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+
 #include <stdlib.h>
 #include <stddef.h> /* offsetof */
 #include <string.h>
@@ -3739,6 +3754,9 @@ static void print_usage(const char *name)
 #define MAPC_FILEEXT_CSOL ".csol"
 #define MAPC_FILEEXT_SOL  ".sol"
 
+#ifdef __cplusplus
+extern "C"
+#endif
 int main(int argc, char *argv[])
 {
     char src[MAXSTR] = "";
@@ -4056,3 +4074,18 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+#else
+
+int main(int argc, char *argv[])
+{
+    char p_buf[MAXSTR];
+
+    SAFECPY(p_buf, "Nintendo consoles not supported!");
+    SAFECAT(p_buf, "\n");
+    MAPC_LOG_MESSAGE(p_buf);
+
+    return 0;
+}
+
+#endif

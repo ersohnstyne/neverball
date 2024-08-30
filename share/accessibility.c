@@ -36,6 +36,8 @@
 #include "common.h"
 #include "fs.h"
 
+#include "log.h"
+
 /*---------------------------------------------------------------------------*/
 
 int accessibility_busy = 0;

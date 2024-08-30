@@ -40,7 +40,7 @@ static void game_draw_chnk_floor(struct s_rend *rend,
                                  const struct game_draw *gd,
                                  const float *bill_M, float t)
 {
-    float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float c[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
     const float SCL = 10.0f;
 
     const struct s_base *base =  gd->vary.base;
@@ -76,7 +76,7 @@ static void game_draw_chnk_rings(struct s_rend *rend,
                                  const struct game_draw *gd,
                                  const float *bill_M, float t)
 {
-    float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float c[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
     const float SCL = 0.25f;
 
     const struct s_base *base =  gd->vary.base;
@@ -139,7 +139,7 @@ static void game_draw_chnk_balls(struct s_rend *rend,
                                  const struct game_draw *gd,
                                  const float *bill_M, float t)
 {
-    float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float c[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
 
     const struct s_base *base =  gd->vary.base;
     const struct s_vary *vary = &gd->vary;
@@ -171,7 +171,7 @@ static void game_draw_chnk_jumps(struct s_rend *rend,
                                  const struct game_draw *gd,
                                  const float *bill_M, float t)
 {
-    float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float c[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
 
     const struct s_base *base =  gd->vary.base;
     const struct s_vary *vary = &gd->vary;
@@ -218,7 +218,7 @@ static void game_draw_chnk_goals(struct s_rend *rend,
                                  const struct game_draw *gd,
                                  const float *bill_M, float t)
 {
-    float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float c[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
 
     const struct s_base *base =  gd->vary.base;
     const struct s_vary *vary = &gd->vary;
@@ -265,7 +265,7 @@ static void game_draw_chnk_swchs(struct s_rend *rend,
                                  const struct game_draw *gd,
                                  const float *bill_M, float t)
 {
-    float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float c[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
 
     const struct s_base *base =  gd->vary.base;
     const struct s_vary *vary = &gd->vary;
@@ -313,7 +313,7 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
                                  const struct game_draw *gd,
                                  const float *bill_M, float t)
 {
-    float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float c[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
 
     const struct s_base *base =  gd->vary.base;
     const struct s_vary *vary = &gd->vary;
@@ -363,7 +363,7 @@ static void game_draw_balls(struct s_rend *rend,
                             const struct s_vary *vary,
                             const float *bill_M, float t)
 {
-    float c[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float c[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
 
     float ball_M[16];
     float pend_M[16];
@@ -691,11 +691,11 @@ static void game_draw_tilt(const struct game_draw *gd, int d, int flip)
     }
 }
 
-static void game_refl_all(struct s_rend *rend, const struct game_draw *gd, int flip)
+static void game_refl_all(struct s_rend *rend, const struct game_draw *gd)
 {
     glPushMatrix();
     {
-        game_draw_tilt(gd, 1, flip);
+        game_draw_tilt(gd, 1, 0);
 
         /* Draw the floor. */
 
@@ -728,6 +728,11 @@ static void game_draw_back(struct s_rend *rend,
                            const struct game_draw *gd,
                            int pose, int d, float t, int flip)
 {
+    if (video_can_swap_window)
+        return;
+
+    video_can_swap_window = 1;
+
     if (pose == POSE_BALL)
         return;
 
@@ -743,18 +748,18 @@ static void game_draw_back(struct s_rend *rend,
 
             q_as_axisangle(tilt->q, axis, &angle);
 
-            if (!flip)
+            if (flip)
                 v_reflect(axis, axis, Y);
 
             /* See Git-issues #167, which you don't include tilting the floor. */
             if (config_get_d(CONFIG_TILTING_FLOOR)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
              && !(campaign_used()
-              || (curr_mode() == MODE_CAMPAIGN
-               || curr_mode() == MODE_HARDCORE))
+               || (curr_mode() == MODE_CAMPAIGN
+                || curr_mode() == MODE_HARDCORE))
 #endif
                 )
-                glRotatef(V_DEG(angle), axis[0], axis[1], axis[2]);
+                glRotatef(V_DEG(-angle), axis[0], axis[1], axis[2]);
         }
 
         glTranslatef(view->p[0], view->p[1] * d, view->p[2]);
@@ -1041,6 +1046,8 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
     if (gd->state)
     {
+        float c[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
+
         const struct game_view *view = &gd->view;
         struct s_rend rend;
 
@@ -1092,13 +1099,16 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
                 r_color_mtrl(&rend, 1);
                 {
-                    glColor4ub   (0, 0, 0, 0xFF);
-                    game_refl_all(&rend, gd, 0);
-                    glColor4ub   (0xFF, 0xFF, 0xFF, 0xFF);
+                    glColor4ub   (0, 0, 0, ROUND(c[3] * 255));
+                    game_refl_all(&rend, gd);
+                    glColor4ub   (ROUND(c[0] * 255),
+                                  ROUND(c[1] * 255),
+                                  ROUND(c[2] * 255),
+                                  ROUND(c[3] * 255));
                 }
                 r_color_mtrl(&rend, 0);
 
-                game_refl_all(&rend, gd, 0);
+                game_refl_all(&rend, gd);
 
                 game_draw_fore_chnk(&rend, gd, pose, U, +1, t, 0);
             }
@@ -1106,45 +1116,42 @@ void game_draw(struct game_draw *gd, int pose, float t)
             {
                 /* Draw the reflection. */
 
-                game_draw_light(gd, 1, t);
-
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 if (gd->draw.reflective && config_get_d(CONFIG_REFLECTION))
                 {
                     glEnable(GL_STENCIL_TEST);
+
+                    /* Draw the mirrors only into the stencil buffer. */
+
+                    glStencilFunc(GL_ALWAYS, 1, 0xFFFFFFFF);
+                    glStencilOp  (GL_DECR, GL_DECR, GL_REPLACE);
+                    glColorMask  (GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+                    glDepthMask  (GL_FALSE);
+
+                    game_refl_all(&rend, gd);
+
+                    glDepthMask  (GL_TRUE);
+                    glColorMask  (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+                    glStencilOp  (GL_KEEP, GL_KEEP, GL_KEEP);
+                    glStencilFunc(GL_EQUAL, 1, 0xFFFFFFFF);
+
+                    /* Draw the scene reflected into color and depth buffers. */
+
+                    glFrontFace(GL_CW);
+                    glPushMatrix();
                     {
-                        /* Draw the mirrors only into the stencil buffer. */
+                        glScalef(+1.0f, -1.0f, +1.0f);
 
-                        glStencilFunc(GL_ALWAYS, 1, 0xFFFFFFFF);
-                        glStencilOp  (GL_KEEP, GL_KEEP, GL_REPLACE);
-                        glColorMask  (GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-                        glDepthMask  (GL_FALSE);
+                        game_draw_light(gd, -1, t);
 
-                        game_refl_all(&rend, gd, 0);
-
-                        glDepthMask  (GL_TRUE);
-                        glColorMask  (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-                        glStencilOp  (GL_KEEP, GL_KEEP, GL_KEEP);
-                        glStencilFunc(GL_EQUAL, 1, 0xFFFFFFFF);
-
-                        /* Draw the scene reflected into color and depth buffers. */
-
-                        glFrontFace(GL_CW);
-                        glPushMatrix();
-                        {
-                            glScalef(+1.0f, -1.0f, +1.0f);
-
-                            game_draw_light(gd, -1, t);
-
-                            game_draw_back(&rend, gd, pose, -1, t, 1);
-                            game_draw_fore(&rend, gd, pose, U, -1, t, 1);
-                        }
-                        glPopMatrix();
-                        glFrontFace(GL_CCW);
-
-                        glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
+                        game_draw_back(&rend, gd, pose,    -1, t, 1);
+                        game_draw_fore(&rend, gd, pose, U, -1, t, 1);
                     }
+                    glPopMatrix();
+                    glFrontFace(GL_CCW);
+
+                    glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
                     glDisable(GL_STENCIL_TEST);
                 }
 #endif
@@ -1156,32 +1163,31 @@ void game_draw(struct game_draw *gd, int pose, float t)
                 /* When reflection is disabled, mirrors must be rendered opaque  */
                 /* to prevent the background from showing.                       */
 
-#if !defined(__NDS__) && !defined(__3DS__) && \
-    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 if (gd->draw.reflective && !config_get_d(CONFIG_REFLECTION))
-#endif
                 {
                     r_color_mtrl(&rend, 1);
                     {
-                        glColor4ub   (0, 0, 0, 0xFF);
-                        game_refl_all(&rend, gd, 0);
-                        glColor4ub   (0xFF, 0xFF, 0xFF, 0xFF);
+                        glColor4ub   (0, 0, 0, ROUND(c[3] * 255));
+                        game_refl_all(&rend, gd);
+                        glColor4ub   (ROUND(c[0] * 255),
+                                      ROUND(c[1] * 255),
+                                      ROUND(c[2] * 255),
+                                      ROUND(c[3] * 255));
                     }
                     r_color_mtrl(&rend, 0);
                 }
-
-                /* Draw the mirrors and the rest of the foreground. */
-
-                game_refl_all(&rend, gd, 0);
 
 #if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 if (!config_cheat()) glEnable(GL_FOG);
 #endif
 
+                /* Draw the mirrors and the rest of the foreground. */
+
+                game_refl_all (&rend, gd);
                 game_draw_fore(&rend, gd, pose, T, +1, t, 0);
 
 #if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-                glDisable(GL_FOG);
+                if (!config_cheat()) glDisable(GL_FOG);
 #endif
             }
         }

@@ -495,7 +495,7 @@ static void campaign_load_hs(void)
 #else
             if (sscanf(buf,
 #endif
-                       "version %d", & time_trial_version) == 1)
+                       "version %d", &time_trial_version) == 1)
             {
                 switch (time_trial_version)
                 {
@@ -665,6 +665,7 @@ static void campaign_load_levels(void)
         }
         else
         {
+            SAFECPY(l->file, ""); l->file[0] = 0;
             i_retreat++;
             log_errorf("Could not load level file: %s / Retreated levels: %d\n", campaign_levelpath[i], i_retreat);
         }
@@ -721,20 +722,22 @@ int campaign_init(void)
         /* As this should, it will be calculate the ranks. */
         for (int i = 0; i < 30; i++)
         {
-            if (level_opened(campaign_get_level(i)))
+            struct level *l = campaign_get_level(i);
+
+            if (l && level_opened(l))
             {
                 medal_datas.unlocks++;
 
-                if (strcmp(campaign_get_level(i)->scores->player[0], N_("Hard")) != 0 &&
-                    strcmp(campaign_get_level(i)->scores->player[0], "") != 0)
+                if (strcmp(l->scores->player[0], N_("Hard")) != 0 &&
+                    strcmp(l->scores->player[0], "") != 0)
                     medal_datas.gold++;
 
-                else if (strcmp(campaign_get_level(i)->scores->player[1], N_("Medium")) != 0 &&
-                         strcmp(campaign_get_level(i)->scores->player[1], "") != 0)
+                else if (strcmp(l->scores->player[1], N_("Medium")) != 0 &&
+                         strcmp(l->scores->player[1], "") != 0)
                     medal_datas.silver++;
 
-                else if (strcmp(campaign_get_level(i)->scores->player[2], N_("Easy")) == 0 &&
-                         strcmp(campaign_get_level(i)->scores->player[2], "") == 0)
+                else if (strcmp(l->scores->player[2], N_("Easy")) == 0 &&
+                         strcmp(l->scores->player[2], "") == 0)
                     medal_datas.bronze++;
             }
         }
@@ -813,7 +816,8 @@ void campaign_theme_quit(void)
 
 struct level *campaign_get_level(int i)
 {
-    return (i >= 0 && i < campaign_count) ? &campaign_lvl_v[i] : NULL;
+    return (i >= 0 && i < campaign_count) ?
+            (campaign_lvl_v[i].file[0] ? &campaign_lvl_v[i] : NULL) : NULL;
 }
 
 int campaign_career_unlocked(void)
@@ -853,9 +857,12 @@ int campaign_hardcore_unlocked(void)
 {
 #if !defined(HARDCORE_PERMA_UNLOCKED)
     for (int i = 0; i < 30; i++)
-        if (strcmp(campaign_get_level(i)->scores->player[1], N_("Medium")) == 0 ||
-            strcmp(campaign_get_level(i)->scores->player[1], "") == 0)
+    {
+        struct level *l = campaign_get_level(i);
+        if (!l || (strcmp(l->scores->player[1], N_("Medium")) == 0 ||
+                   strcmp(l->scores->player[1], "") == 0))
             return 0;
+    }
 #endif
     return 1;
 }

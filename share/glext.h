@@ -543,7 +543,9 @@ extern PFNGLCALLCOMMANDLISTNV_PROC              glCallCommandListNV_;
 
 void glClipPlane4f_(GLenum, GLfloat, GLfloat, GLfloat, GLfloat);
 void glBindTexture_(GLenum target, GLuint texture);
+
 void glToggleWireframe_(void);
+void glSetWireframe_   (int);
 
 /*---------------------------------------------------------------------------*/
 

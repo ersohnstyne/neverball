@@ -116,9 +116,17 @@ static void load_mtrl_objects(struct mtrl *mp)
     if (mp->o || !mp->base.f[0])
         return;
 
+    const char *tex_filename = _(mp->base.f);
+
+    if (strcmp(tex_filename, "default") == 0)
+    {
+        mp->o = 0;
+        return;
+    }
+
     /* Load the texture. */
 
-    if ((mp->o = find_texture(_(mp->base.f))))
+    if ((mp->o = find_texture(tex_filename)))
     {
         /* Set the texture to clamp or repeat based on material type. */
 
@@ -134,7 +142,7 @@ static void load_mtrl_objects(struct mtrl *mp)
     }
     else
         log_errorf("Failed to load texture: %s / %s\n",
-                   _(mp->base.f), fs_error());
+                   tex_filename, fs_error());
 }
 
 /*

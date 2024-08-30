@@ -110,7 +110,22 @@ static int over_action(int tok, int val)
             if (!campaign_used())
 #endif
             {
-                if (str_starts_with(set_id(curr_set()), "anime"))
+                const char *curr_setid = set_id(curr_set());
+                char curr_setid_final[MAXSTR];
+
+                if (!curr_setid)
+                {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sprintf_s(curr_setid_final, MAXSTR,
+#else
+                    sprintf(curr_setid_final,
+#endif
+                            _("none_%d"), curr_set());
+                }
+                else
+                    SAFECPY(curr_setid_final, curr_setid);
+
+                if (str_starts_with(curr_setid_final, "anime"))
                     audio_music_fade_to(0.5f, "bgm/jp/title.ogg", 1);
                 else
                     audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :

@@ -41,6 +41,8 @@
 #include "checkpoints.h" /* New: Checkpoints */
 #endif
 
+#include "activity_services.h"
+
 #include "progress.h"
 #include "config.h"
 #include "demo.h"
@@ -223,6 +225,21 @@
 
 /*---------------------------------------------------------------------------*/
 
+#if ENABLE_LIVESPLIT!=0
+struct progress_livesplit
+{
+    int started; /* S = 83; 0 = Disabled */
+    int paused;  /* P = 80; 0 = Disabled */
+    int reseted; /* R = 82; 0 = Disabled */
+
+    int level;   /* 1 - infinite; -1 = Disabled */
+
+    float game_time;
+};
+
+static struct progress_livesplit curr_livesplit;
+#endif
+
 struct progress
 {
 #if ENABLE_RFD==1
@@ -251,7 +268,8 @@ static int mode = MODE_NORMAL;
 
 static struct level *level, *next;
 
-static int done  =  0;
+static int loading = 0; /* L = 76; 0 = Disabled */
+static int done    = 0;
 
 #ifdef MAPC_INCLUDES_CHKP
 static struct progress curr, prev, chkp;
@@ -268,20 +286,18 @@ static int times_rank = RANK_LAST;
 
 static int lvl_warn_timer;
 
-static int status = GAME_NONE;
-
-static int coins = 0;
-
+static int status       = GAME_NONE;
+static int coins        = 0;
 static int timer_offset = 0;
 #ifdef MAPC_INCLUDES_CHKP
-static int timer_total  = 0;
-
 /*
  * Precalculated total timer for each levels with checkpoints.
  */
 #define    timer timer_total
+
+static int timer_total  = 0;
 #else
-static int timer = 0;
+static int timer        = 0;
 #endif
 
 static int goal   = 0; /* Current goal value */
@@ -295,8 +311,120 @@ static int coin_rank = RANK_LAST;
 
 /* Extension time */
 
-static int extended = 0;
+static int extended       = 0;
 static int extended_timer = 0;
+
+/*---------------------------------------------------------------------------*/
+
+#if ENABLE_LIVESPLIT!=0
+void progress_livesplit_init(int m)
+{
+    curr_livesplit.reseted = 'R';
+    curr_livesplit.started = 0;
+    curr_livesplit.paused  = 0;
+
+    if (mode == MODE_CHALLENGE
+     || mode == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+     || mode == MODE_HARDCORE
+#endif
+        )
+        curr_livesplit.level = 1;
+    else
+        curr_livesplit.level = -1;
+
+    curr_livesplit.game_time = 0;
+}
+
+void progress_livesplit_exit(void)
+{
+    curr_livesplit.reseted = 'R';
+    curr_livesplit.started = 0;
+    curr_livesplit.paused  = 0;
+    curr_livesplit.level   = -1;
+
+    curr_livesplit.game_time = 0;
+}
+
+void progress_livesplit_step(float dt)
+{
+    curr_livesplit.game_time += dt;
+}
+
+void progress_livesplit_stat(int s)
+{
+    if (curr_livesplit.level > 0 &&
+        (mode == MODE_CHALLENGE
+      || mode == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+      || mode == MODE_HARDCORE
+#endif
+        ))
+    {
+        curr_livesplit.reseted = 0;
+
+        if (s == GAME_GOAL)
+            curr_livesplit.level++;
+
+        curr_livesplit.paused  = 'P';
+        curr_livesplit.started = 0;
+    }
+}
+
+void progress_livesplit_pause(int paused)
+{
+    if (paused != curr_livesplit.paused &&
+        (mode == MODE_CHALLENGE
+      || mode == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+      || mode == MODE_HARDCORE
+#endif
+        ))
+    {
+        curr_livesplit.reseted = 0;
+
+        curr_livesplit.paused  = paused ? 'P' :  0;
+        curr_livesplit.started = paused ?  0  : 'S';
+    }
+}
+
+void progress_livesplit_next(void)
+{
+    if (curr_livesplit.level > 0 &&
+        (mode == MODE_CHALLENGE
+      || mode == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+      || mode == MODE_HARDCORE
+#endif
+        ))
+        curr_livesplit.reseted = 0;
+}
+
+int progress_livesplit_started(void)
+{
+    return curr_livesplit.started;
+}
+
+int progress_livesplit_paused(void)
+{
+    return curr_livesplit.paused;
+}
+
+int progress_livesplit_reseted(void)
+{
+    return curr_livesplit.reseted;
+}
+
+int progress_livesplit_level(void)
+{
+    return curr_livesplit.level;
+}
+
+float progress_livesplit_game_time(void)
+{
+    return curr_livesplit.game_time;
+}
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -334,6 +462,12 @@ void progress_init_home(void)
     curr.score        = 0;
     curr.times        = 0;
     curr.speedpercent = 0;
+
+    done = 0;
+
+#if ENABLE_LIVESPLIT!=0
+    progress_livesplit_init(mode);
+#endif
 
     is_init = 1;
 }
@@ -384,6 +518,10 @@ void progress_init(int m)
     times_rank = RANK_LAST;
 
     done = 0;
+
+#if ENABLE_LIVESPLIT!=0
+    progress_livesplit_init(mode);
+#endif
 
 #if ENABLE_DUALDISPLAY==1
     game_dualdisplay_set_mode(m);
@@ -449,6 +587,8 @@ static void init_level_moon_taskloader_done(void *data, void *done_data)
                                  curr_mode() != MODE_NONE ? demo_fp : NULL);
 
                 lvl_warn_timer = curr_clock() < 1000 && curr_time_limit() > 0;
+
+                loading = 0;
             }
         }
 
@@ -500,6 +640,8 @@ static int init_level_moon_taskloader(void)
 static int init_level(void)
 {
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
+
+    loading = 'L';
 
     int curr_rfd_balls = 0;
 #if ENABLE_RFD==1
@@ -561,13 +703,21 @@ static int init_level(void)
                                   ? "bgm/challenge_mbu.ogg" :
                                   lvl_warn_timer ? "bgm/time-warning.ogg" :
                                                    BGM_TITLE_MAP(level_song(level)), 1);
+        loading = 0;
+
         return 1;
     }
 #endif
 
     demo_play_stop(1);
+    loading = 0;
 
     return 0;
+}
+
+int  progress_loading(void)
+{
+    return loading;
 }
 
 int  progress_play(struct level *l)
@@ -670,6 +820,8 @@ int  progress_play(struct level *l)
         game_dualdisplay_set_heart(curr.balls);
 #endif
 
+        activity_services_level_update();
+
         return init_level();
     }
     return 0;
@@ -736,16 +888,22 @@ void progress_stat(int s)
     /* HACK: Each timer must be substracted for each checkpoints! */
 
 #ifdef MAPC_INCLUDES_CHKP
-    timer_offset = checkpoints_respawn_time_elapsed();
+    timer_offset = checkpoints_respawn_time_elapsed() * 100;
     timer = ROUND((curr_time_elapsed() -
                    checkpoints_respawn_time_elapsed()) * 100);
 #else
     timer = ROUND(curr_time_elapsed() * 100);
 #endif
 
+#if ENABLE_LIVESPLIT!=0
+    progress_livesplit_stat(s);
+#endif
+
     switch (status)
     {
         case GAME_GOAL:
+            activity_services_status_update(AS_GAME_STATCODE_G);
+
             if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
             {
 #ifdef MAPC_INCLUDES_CHKP
@@ -786,7 +944,7 @@ void progress_stat(int s)
                 level_score_update(level,
                                    timer + timer_offset,
 #ifdef ENABLE_POWERUP
-                                   coins / get_coin_multiply(),
+                                   coins / powerup_get_coin_multiply(),
 #else
                                    coins,
 #endif
@@ -802,7 +960,7 @@ void progress_stat(int s)
                 level_score_update(level,
                                    timer + timer_offset,
 #ifdef ENABLE_POWERUP
-                                   coins / get_coin_multiply(),
+                                   coins / powerup_get_coin_multiply(),
 #else
                                    coins,
 #endif
@@ -813,7 +971,7 @@ void progress_stat(int s)
             level_score_update(level,
                                timer + timer_offset,
 #ifdef ENABLE_POWERUP
-                               coins / get_coin_multiply(),
+                               coins / powerup_get_coin_multiply(),
 #else
                                coins,
 #endif
@@ -968,6 +1126,9 @@ void progress_stat(int s)
         case GAME_TIME:
             if (status != GAME_GOAL)
             {
+                activity_services_status_update(status == GAME_FALL ? AS_GAME_STATCODE_XF :
+                                                                      AS_GAME_STATCODE_XT);
+
                 /* Rejects offer after end of the level. */
 
                 done = 0;
@@ -1069,6 +1230,13 @@ void progress_exit(void)
     if (!is_init) return;
 
     progress_stop();
+
+#if ENABLE_LIVESPLIT!=0
+    if (!done)
+        progress_livesplit_exit();
+#endif
+
+    activity_services_gamemode(AS_MODE_NONE);
 
     if (done)
     {
@@ -1372,7 +1540,15 @@ int  progress_next(void)
         }
 #endif
 
+#if ENABLE_LIVESPLIT!=0
+        int r = progress_play(next);
+
+        if (r) progress_livesplit_next();
+
+        return r;
+#else
         return progress_play(next);
+#endif
     }
 
     return 0;

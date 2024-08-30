@@ -162,7 +162,7 @@ static int fail_action(int tok, int val)
 #ifdef MAPC_INCLUDES_CHKP
         /* New: Checkpoints */
         case FAIL_CHECKPOINT_RESPAWN:
-        if (checkpoints_load() && progress_same_avail() && !progress_dead())
+            if (checkpoints_load() && progress_same_avail() && !progress_dead())
             {
                 powerup_stop();
                 return progress_same() ?
@@ -362,20 +362,19 @@ static int fail_gui(void)
                                     gui_multi(jd, FAIL_UPGRADE_EDITION_2,
                                                   GUI_SML, GUI_COLOR_RED);
 
-                                else if (curr_mode() == MODE_NORMAL &&
-                                    progress_extended() &&
-                                    server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                                    gui_multi(jd, FAIL_UPGRADE_EDITION_1,
-                                                  GUI_SML, GUI_COLOR_RED);
+                                else if ((curr_mode() == MODE_NORMAL && progress_extended()) &&
+                                         server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                                         gui_multi(jd, FAIL_UPGRADE_EDITION_1,
+                                                       GUI_SML, GUI_COLOR_RED);
 
                                 else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_MANAGED) == 0)
                                     gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED,
                                                   GUI_SML, GUI_COLOR_RED);
                             }
-                            else if (((curr_mode() == MODE_NORMAL && progress_extended())
-                                || progress_dead()) &&
-                                !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
-                                server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+                            else if (((curr_mode() == MODE_NORMAL && progress_extended()) ||
+                                      progress_dead()) &&
+                                     !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
+                                     server_policy_get_d(SERVER_POLICY_EDITION) > -1)
                             {
                                 if (curr_mode() != MODE_CHALLENGE &&
                                     curr_mode() != MODE_BOOST_RUSH
@@ -387,18 +386,11 @@ static int fail_gui(void)
                                 gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP,
                                               GUI_SML, GUI_COLOR_RED);
                             }
-                            else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                            else if (progress_dead() &&
+                                     server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                             {
-                                if (curr_mode() != MODE_CHALLENGE &&
-                                    curr_mode() != MODE_BOOST_RUSH
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                                 && curr_mode() != MODE_HARDCORE
-#endif
-                                    )
-                                    audio_music_fade_out(0.0f);
-
-                                gui_multi(jd, FAIL_UPGRADE_EDITION_2,
-                                              GUI_SML, GUI_COLOR_RED);
+                                audio_music_fade_out(0.0f);
+                                gui_multi(jd, FAIL_UPGRADE_EDITION_2, GUI_SML, GUI_COLOR_RED);
                             }
                     }
                     else if (status == GAME_TIME &&
@@ -465,7 +457,8 @@ static int fail_gui(void)
                                 server_policy_get_d(SERVER_POLICY_EDITION) > -1)
                                 gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP,
                                               GUI_SML, GUI_COLOR_RED);
-                            else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                            else if (progress_dead() &&
+                                     server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                                 gui_multi(jd, FAIL_UPGRADE_EDITION_2,
                                               GUI_SML, GUI_COLOR_RED);
                     }
@@ -525,14 +518,17 @@ static int fail_gui(void)
                                     gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP_MANAGED,
                                                   GUI_SML, GUI_COLOR_RED);
                             }
-                            else if (((curr_mode() == MODE_NORMAL && progress_extended())
-                                || progress_dead()) &&
+                            else if (((curr_mode() == MODE_NORMAL && progress_extended()) ||
+                                      progress_dead()) &&
                                 !server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) && server_policy_get_d(SERVER_POLICY_EDITION) > -1)
                                 gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP,
                                               GUI_SML, GUI_COLOR_RED);
-                            else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                                gui_multi(jd, FAIL_UPGRADE_EDITION_2,
-                                              GUI_SML, GUI_COLOR_RED);
+                            else if (progress_dead() &&
+                                     server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                            {
+                                audio_music_fade_out(0.0f);
+                                gui_multi(jd, FAIL_UPGRADE_EDITION_2, GUI_SML, GUI_COLOR_RED);
+                            }
                     }
 #else
                     if (progress_dead())
@@ -717,7 +713,7 @@ static int fail_gui(void)
             gui_layout(id, 0, 0);
         }
 
-        if ((id = gui_vstack(root_id)))
+        /*if ((id = gui_vstack(root_id)))
         {
             gui_space(id);
 
@@ -728,7 +724,7 @@ static int fail_gui(void)
             }
 
             gui_layout(id, -1, +1);
-        }
+        }*/
     }
 
     return root_id;

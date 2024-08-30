@@ -180,7 +180,7 @@ static void scan_balls(void)
 #if _WIN32
             for (j = 0; j < 64; j++)
                 if (tmp_path[j] == '/')
-                    tmp_path[j] == '\\';
+                    tmp_path[j] = '\\';
 #endif
 
             if (!has_ball_sols(tmp_path))

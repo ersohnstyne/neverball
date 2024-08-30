@@ -79,6 +79,8 @@ struct state
 #endif
     void (*fade)  (float alpha);
 
+    int  (*dpad)  (int id, int b, int d);
+
     int gui_id;
 };
 
@@ -111,6 +113,7 @@ int  st_buttn(int, int);
     !defined(__GAMECUBE__) && !defined(__WII__)
 int  st_touch(const SDL_TouchFingerEvent *);
 #endif
+int  st_dpad (int, int, int *);
 
 /*---------------------------------------------------------------------------*/
 

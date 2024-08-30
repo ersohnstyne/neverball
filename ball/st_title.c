@@ -46,6 +46,8 @@
 #include "progress.h"
 #include "text.h"
 
+#include "activity_services.h"
+
 #include "game_common.h"
 #include "game_server.h"
 #include "game_client.h"
@@ -66,7 +68,11 @@
 #endif
 #include "st_play.h"
 
-#define TITLE_USE_DVD_BOX_OR_EMAIL
+#if NB_HAVE_PB_BOTH==1
+#include "st_wgcl.h"
+#endif
+
+#define TITLE_USE_DVD_BOX
 
 #ifdef SWITCHBALL_GUI
 #define SWITCHBALL_TITLE
@@ -141,7 +147,9 @@ int load_title_background(void)
     {
         if (game_client_init("gui/title/switchball-title.sol"))
         {
+#if NB_HAVE_PB_BOTH==1
             if (CHECK_ACCOUNT_BANKRUPT) return 1;
+#endif
 
             union cmd cmd = { CMD_GOAL_OPEN };
 
@@ -155,7 +163,9 @@ int load_title_background(void)
     }
     else if (game_client_init("gui/title/title.sol"))
     {
+#if NB_HAVE_PB_BOTH==1
         if (CHECK_ACCOUNT_BANKRUPT) return 1;
+#endif
 
         union cmd cmd = { CMD_GOAL_OPEN };
 
@@ -316,10 +326,7 @@ static int title_check_playername(const char *regname)
             regname[i] == '<'  ||
             regname[i] == '>'  ||
             regname[i] == '|')
-        {
-            log_errorf("Can't accept other charsets!: %c\n", regname[i]);
             return 0;
-        }
     }
 
     return text_length(regname) >= 3;
@@ -389,6 +396,11 @@ static int title_action(int tok, int val)
             break;
 
         case TITLE_PLAY:
+#if NB_HAVE_PB_BOTH==1
+            if (server_policy_get_d(SERVER_POLICY_EDITION) == 0 &&
+                !account_wgcl_name_read_only())
+                return goto_wgcl_login(0, goto_playgame(), &st_title, 0);
+#endif
             return title_check_playername(config_get_s(CONFIG_PLAYER)) ?
                                           goto_playgame() : goto_playgame_register();
             break;
@@ -411,7 +423,7 @@ static int title_action(int tok, int val)
             break;
 #if NB_HAVE_PB_BOTH!=1
 #if ENABLE_FETCH!=0
-        case TITLE_PACKAGES: return goto_package(curr_state()); break;
+        case TITLE_PACKAGES: return goto_state(&st_package); break;
 #endif
 
         case TITLE_UNLOCK_FULL_GAME:
@@ -464,7 +476,7 @@ static int title_action(int tok, int val)
 
             /* Developer or Public */
             char os_env[MAXSTR], dev_env[MAXSTR];
-#if  NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || !defined(TITLE_USE_DVD_BOX_OR_EMAIL)
+#if  NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || !defined(TITLE_USE_DVD_BOX)
 #if ENABLE_HMD
             sprintf(dev_env, _(editions_developer[EDITION_CURRENT]),
                              "OpenHMD", _("Developer Mode"));
@@ -644,8 +656,8 @@ static int title_action(int tok, int val)
             }
             else if (config_cheat())
             {
+                glSetWireframe_(0);
                 config_clr_cheat();
-                video_set_wire(0);
                 gui_set_label(play_id, gt_prefix("menu^Play"));
                 gui_pulse(play_id, 1.2f);
                 if (edition_id) gui_set_label(edition_id, os_env);
@@ -675,7 +687,7 @@ static int title_gui(void)
 
             char os_env[MAXSTR], dev_env[MAXSTR];
 #if NB_HAVE_PB_BOTH==1 && \
-    (NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || !defined(TITLE_USE_DVD_BOX_OR_EMAIL))
+    (NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || !defined(TITLE_USE_DVD_BOX))
 #ifndef __EMSCRIPTEN__
 #if ENABLE_HMD
             sprintf(dev_env, _(editions_developer[EDITION_CURRENT]),
@@ -1189,6 +1201,8 @@ static int filter_cmd(const union cmd *cmd)
 
 static int title_enter(struct state *st, struct state *prev)
 {
+    activity_services_group(AS_GROUP_NONE);
+
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     if (prev != &st_title)
         account_wgcl_restart_attempt();

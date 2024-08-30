@@ -136,7 +136,7 @@ void part_init(void)
     glBufferData_(GL_ARRAY_BUFFER, sizeof (verts), verts, GL_STATIC_DRAW);
     glBindBuffer_(GL_ARRAY_BUFFER, 0);
 
-    glGenBuffers_(1, &coin_ebo);
+    glGenBuffers_(1,                      &coin_ebo);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, coin_ebo);
     glBufferData_(GL_ELEMENT_ARRAY_BUFFER, sizeof (elems), elems, GL_STATIC_DRAW);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -230,7 +230,14 @@ void part_draw_coin(const struct s_draw *draw, struct s_rend *rend, const float 
         for (i = 0; i < PART_MAX_COIN; ++i)
             if (coin_part[i].t > 0.0f)
             {
-                glColor4f(coin_part[i].c[0], coin_part[i].c[1], coin_part[i].c[2], coin_part[i].t);
+                glColor4f(coin_part[i].c[0],
+                          coin_part[i].c[1],
+                          coin_part[i].c[2],
+#if ENABLE_MOTIONBLUR!=0
+                          config_get_d(CONFIG_MOTIONBLUR) ? (coin_part[i].t * video_motionblur_alpha_get()) : coin_part[i].t);
+#else
+                          coin_part[i].t);
+#endif
 
                 glPushMatrix();
                 {
@@ -252,7 +259,12 @@ void part_draw_coin(const struct s_draw *draw, struct s_rend *rend, const float 
     glBindBuffer_(GL_ARRAY_BUFFER, 0);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glColor4f(1.0f, 1.0f, 1.0f,
+#if ENABLE_MOTIONBLUR!=0
+              config_get_d(CONFIG_MOTIONBLUR) ? (1.0f * video_motionblur_alpha_get()) : coin_part[i].t);
+#else
+              1.0f);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

@@ -19,14 +19,14 @@
 
 void powerup_stop(void);
 
-void init_earninator(void);
-void init_floatifier(void);
-void init_speedifier(void);
+void powerup_init_earninator(void);
+void powerup_init_floatifier(void);
+void powerup_init_speedifier(void);
 
 /*---------------------------------------------------------------------------*/
 
-float get_coin_multiply(void);
-float get_grav_multiply(void);
-float get_tilt_multiply(void);
+float powerup_get_coin_multiply(void);
+float powerup_get_grav_multiply(void);
+float powerup_get_tilt_multiply(void);
 
 #endif

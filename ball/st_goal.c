@@ -74,7 +74,9 @@ enum
     GOAL_SAME,
     GOAL_SAVE,
     GOAL_DONE,
-    GOAL_LAST
+    GOAL_LAST,
+
+    GOAL_IAP = GOAL_LAST + 1
 };
 
 static int shop_product_available;
@@ -146,6 +148,16 @@ static int goal_action(int tok, int val)
                 return goto_play_level();
             }
             break;
+
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        case GOAL_IAP:
+#if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
+            return goto_shop_iap(&st_goal, &st_goal, 0, 0, 0, 0, 1);
+#else
+            return goto_shop_iap(&st_goal, &st_goal, 0, 0, 0, 0, 0);
+#endif
+            break;
+#endif
     }
 
     return 1;
@@ -493,18 +505,50 @@ static int goal_gui(void)
             if ((jd = gui_hstack(id)))
             {
                 int back_btn_id = gui_back_button(jd);
-
-                if (back_btn_id)
-                {
-                    gui_set_color(back_btn_id, GUI_COLOR_GRY);
-                    gui_set_state(back_btn_id, GUI_NONE, 0);
-                }
-
                 gui_space(jd);
             }
 
             gui_layout(id, -1, +1);
         }
+
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        char account_coinsattr[MAXSTR], account_gemsattr[MAXSTR];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(account_gemsattr, MAXSTR, "%s %d", GUI_DIAMOND,
+                  account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+        sprintf_s(account_coinsattr, MAXSTR, "%s %d", GUI_COIN,
+                  account_get_d(ACCOUNT_DATA_WALLET_COINS));
+#else
+        sprintf(account_gemsattr, "%s %d", GUI_DIAMOND,
+                account_get_d(ACCOUNT_DATA_WALLET_GEMS));
+        sprintf(account_coinsattr, "%s %d", GUI_COIN,
+                account_get_d(ACCOUNT_DATA_WALLET_COINS));
+#endif
+
+        if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+        {
+            if ((id = gui_vstack(root_id)))
+            {
+                gui_space(id);
+
+                if ((jd = gui_hstack(id)))
+                {
+                    gui_space(jd);
+
+                    if (!CHECK_ACCOUNT_BANKRUPT)
+                    {
+                        gui_state(jd, "+", GUI_XS, GOAL_IAP, 1);
+                        gui_label(jd, account_gemsattr, GUI_XS, gui_wht, gui_cya);
+                    }
+
+                    gui_label(jd, account_coinsattr, GUI_XS, gui_wht, gui_yel);
+                }
+
+                gui_layout(id, +1, +1);
+            }
+        }
+#endif
     }
 
     set_score_board(level_score(curr_level(), SCORE_COIN), progress_coin_rank(),

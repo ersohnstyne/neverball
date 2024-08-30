@@ -320,6 +320,8 @@ static int package_action(int tok, int val)
 {
     enum package_status status;
 
+    int r = 1;
+
     /*
      * Issue #352: This gamepad features has been fixed, which it has
      * found on out of bounds bug, so let Mojang doing this.
@@ -330,6 +332,7 @@ static int package_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
+            package_manage_selected = -1;
             return goto_state(package_back);
             break;
 
@@ -371,10 +374,10 @@ static int package_action(int tok, int val)
             {
                 package_start_download(selected);
 
-                return 1;
+                return r;
             }
             else if (status == PACKAGE_DOWNLOADING)
-                return 1;
+                return r;
             break;
 
         case PACKAGE_CHANGEGROUP:
@@ -384,7 +387,7 @@ static int package_action(int tok, int val)
             break;
     }
 
-    return 1;
+    return r;
 }
 
 static int gui_package_button(int id, int pi)
@@ -608,6 +611,9 @@ static int package_enter(struct state *st, struct state *prev)
 
     back_init("back/gui.png");
 
+    if (!package_back)
+        package_back = prev;
+
     if (do_init || package_manual_hotreload)
     {
         if (package_manual_hotreload)
@@ -648,6 +654,9 @@ static int package_enter(struct state *st, struct state *prev)
 static void package_leave(struct state *st, struct state *next, int id)
 {
     gui_delete(id);
+
+    if (package_manage_selected == -1)
+        package_back = 0;
 
     if (status_ids)
     {
@@ -872,7 +881,7 @@ static int package_manage_gui(void)
 
         gui_space(id);
 
-        gui_back_button(id);
+        gui_state(id, _("Back"), GUI_SML, GUI_BACK, 0);
 
         gui_layout(id, 0, 0);
     }

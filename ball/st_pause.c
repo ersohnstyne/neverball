@@ -100,6 +100,10 @@ int goto_pause(struct state* returnable)
             st_continue = &st_play_loop;
     }
 
+#if ENABLE_LIVESPLIT!=0
+    progress_livesplit_pause(1);
+#endif
+
     return goto_state(&st_pause);
 }
 

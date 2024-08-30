@@ -17,9 +17,9 @@
 
 /* Don't use the build-in resolutions */
 #define RESIZEABLE_WINDOW
+#define FPS_REALTIME
 
 #define ENABLE_MULTISAMPLE_SOLUTION
-#define FPS_REALTIME
 
 /*---------------------------------------------------------------------------*/
 
@@ -42,14 +42,11 @@ struct video
 
 extern struct video video;
 
-extern int viewport_wireframe;
-extern int wireframe_splitview;
-extern int splitview_crossed;
+#if ENABLE_MOTIONBLUR!=0
+#define VIDEO_MOTIONBLUR_MAX_TEXTURE 8
+#endif
 
-extern int render_fill_overlay;
-extern int render_line_overlay;
-extern int render_left_viewport;
-extern int render_right_viewport;
+extern int video_can_swap_window;
 
 int  video_init(void);
 void video_quit(void);
@@ -80,9 +77,19 @@ int  video_display(void);
 
 /*---------------------------------------------------------------------------*/
 
-void video_set_wire(int);
-void video_render_fill_or_line(int);
-void video_toggle_wire(void);
+#if ENABLE_MOTIONBLUR!=0
+void video_motionblur_init(void);
+void video_motionblur_quit(void);
+
+void  video_motionblur_alpha_set(float);
+float video_motionblur_alpha_get(void);
+
+void video_motionblur_prep(void);
+void video_motionblur_set_texture(void);
+void video_motionblur_swap(void);
+#endif
+
+/*---------------------------------------------------------------------------*/
 
 void video_calc_view(float *, const float *,
                               const float *,

@@ -56,7 +56,7 @@ GLboolean fbo_create(fbo *F, GLsizei w, GLsizei h)
     glGenTextures     (1, &F->depth_texture);
     glGenFramebuffers_(1, &F->framebuffer);
 
-    glBindTexture  (GL_TEXTURE_2D, F->color_texture);
+    glBindTexture_ (GL_TEXTURE_2D, F->color_texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -64,7 +64,7 @@ GLboolean fbo_create(fbo *F, GLsizei w, GLsizei h)
     glTexImage2D   (GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0,
                     GL_RGBA, GL_UNSIGNED_INT, NULL);
 
-    glBindTexture  (GL_TEXTURE_2D, F->depth_texture);
+    glBindTexture_ (GL_TEXTURE_2D, F->depth_texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

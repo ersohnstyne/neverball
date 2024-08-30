@@ -78,18 +78,18 @@ static void hole_init_rc(const char *filename)
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             while (fs_gets(buff, sizeof (buff), fin) &&
-                   sscanf(buff, "%s %s %d %s",
+                   sscanf_s(buff, "%s %s %d %s",
                           hole_v[count].file,
                           hole_v[count].back,
                          &hole_v[count].par,
                           hole_v[count].song) >= 1)
 #else
             while (fs_gets(buff, sizeof (buff), fin) &&
-                   sscanf_s(buff, "%s %s %d %s",
-                            hole_v[count].file,
-                            hole_v[count].back,
-                           &hole_v[count].par,
-                            hole_v[count].song) >= 1)
+                   sscanf(buff, "%s %s %d %s",
+                          hole_v[count].file,
+                          hole_v[count].back,
+                         &hole_v[count].par,
+                          hole_v[count].song) >= 1)
 #endif
                 count++;
         }

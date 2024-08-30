@@ -46,6 +46,8 @@
 #include "common.h"
 #include "fs.h"
 
+#include "log.h"
+
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
 #pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")

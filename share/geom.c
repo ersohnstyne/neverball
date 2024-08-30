@@ -602,12 +602,14 @@ void beam_draw(struct s_rend *rend, const GLfloat *p,
 {
     glPushMatrix();
     {
+        unsigned char motionblur_c[4] = DRAW_COLOR4UBV_CNF_MOTIONBLUR;
+
         glTranslatef(p[0], p[1], p[2]);
         glScalef(r, h, r);
-        glColor4ub(ROUND(c[0] * 255),
-                   ROUND(c[1] * 255),
-                   ROUND(c[2] * 255),
-                   ROUND(c[3] * 255));
+        glColor4ub(ROUND(c[0] * motionblur_c[0]),
+                   ROUND(c[1] * motionblur_c[1]),
+                   ROUND(c[2] * motionblur_c[2]),
+                   ROUND(c[3] * motionblur_c[3]));
         sol_draw(&beam.draw, rend, 1, 1);
     }
     glPopMatrix();
@@ -680,8 +682,11 @@ void flag_draw(struct s_rend *rend, const GLfloat *p)
 {
     glPushMatrix();
     {
+        unsigned char motionblur_c[4] = DRAW_COLOR4UBV_CNF_MOTIONBLUR;
+
         glTranslatef(p[0], p[1], p[2]);
-        glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
+        glColor4ub(motionblur_c[0], motionblur_c[1], motionblur_c[2],
+                   motionblur_c[3]);
         sol_draw(&flag.draw, rend, 1, 1);
     }
     glPopMatrix();

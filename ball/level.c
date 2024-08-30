@@ -52,7 +52,7 @@ static int scan_level_attribs(struct level *l,
     int have_goal = 0, have_time = 0;
 
     int mingoal = 0;
-    int maxtime = 0;
+    int maxtime = 360000;
 
     int need_time_medm = 0, need_time_easy = 0;
     int need_goal_medm = 0, need_goal_easy = 0;
@@ -213,12 +213,35 @@ static int scan_level_attribs(struct level *l,
         else if (strcmp(k, "version") == 0)
         {
             SAFECPY(l->version_str, v);
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(v,
+            int r = sscanf_s(l->version_str,
 #else
-            sscanf(v,
+            int r = sscanf(l->version_str,
 #endif
-                   "%d", & l->version_num);
+                           "%d", &l->version_num);
+
+            if (!r)
+            {
+                log_errorf("SOL/SOLX key parameter \"version\" contains unknown version!\n");
+                return 0;
+            }
+
+            int version_major, version_minor;
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            if (sscanf_s(l->version_str,
+#else
+            if (sscanf(l->version_str,
+#endif
+                       "%d.%d", &version_major, &version_minor) != 2)
+            {
+                /*
+                 * Was:
+                 *     log_errorf("SOL/SOLX key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
+                 *     return 0;
+                 */
+            }
         }
         else if (strcmp(k, "author") == 0)
             SAFECPY(l->author, v);
@@ -255,6 +278,21 @@ static int scan_level_attribs(struct level *l,
         return 0;
     }
 #endif
+
+    /*
+     * No goals associated:
+     * - Set to unlimited time
+     * - Set to zeroed required coins
+     */
+
+    if (base->zc == 0)
+    {
+        l->time = 0;
+        l->goal = 0;
+
+        maxtime = 360000;
+        mingoal = 0;
+    }
 
     if (have_time)
     {
@@ -307,7 +345,7 @@ static int scan_campaign_level(const struct s_base *base,
         "back/sky-SB.png",
         "back/ice-SB.png",
         "back/cave-SB.png",
-        "back/cloud-SB.png",
+        "back/clouds-SB.png",
         "back/lava-SB.png"
     };
     const char sbtheme_limitation_back[][MAXSTR] =
@@ -551,96 +589,65 @@ int level_load(const char *filename, struct level *level)
     score_init_hs(&level->scores[SCORE_GOAL], 59999, 0);
     score_init_hs(&level->scores[SCORE_COIN], 59999, 0);
 
-    const char *curr_setname = set_id(curr_set());
+    const char *curr_setid = set_id(curr_set());
+    char curr_setid_final[MAXSTR];
+
+    if (!curr_setid)
+    {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(curr_setid_final, MAXSTR,
+#else
+        sprintf(curr_setid_final,
+#endif
+                _("none_%d"), curr_set());
+    }
+    else
+        SAFECPY(curr_setid_final, curr_setid);
 
     int level_offered = 0;
 
     int campaign_werror = !config_cheat();
 
-    if (curr_setname)
-    {
-        level_offered = scan_level_attribs(
-            level,
-            &base,
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            campaign_used(),
-#else
-            0,
+    if (campaign_used())
+    {
+        level_offered = scan_level_attribs(level, &base, 1, 0, campaign_werror);
+
+        if (level_offered)
+            level_offered = scan_campaign_level(&base, filename, level, 1, 0, campaign_werror);
+    }
+    else
 #endif
-            str_starts_with(curr_setname, "SB") ||
-            str_starts_with(curr_setname, "sb") ||
-            str_starts_with(curr_setname, "Sb") ||
-            str_starts_with(curr_setname, "sB"),
+    {
+        level_offered = scan_level_attribs(level, &base, 0,
+            str_starts_with(curr_setid_final, "SB") ||
+            str_starts_with(curr_setid_final, "sb") ||
+            str_starts_with(curr_setid_final, "Sb") ||
+            str_starts_with(curr_setid_final, "sB"),
             campaign_werror
         );
 
         if (level_offered)
-            level_offered = scan_campaign_level(
-                &base,
-                filename,
-                level,
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                campaign_used(),
-#else
-                0,
-#endif
-                str_starts_with(curr_setname, "SB") ||
-                str_starts_with(curr_setname, "sb") ||
-                str_starts_with(curr_setname, "Sb") ||
-                str_starts_with(curr_setname, "sB"),
+            level_offered = scan_campaign_level(&base, filename, level, 0,
+                str_starts_with(curr_setid_final, "SB") ||
+                str_starts_with(curr_setid_final, "sb") ||
+                str_starts_with(curr_setid_final, "Sb") ||
+                str_starts_with(curr_setid_final, "sB"),
                 campaign_werror
             );
 
-        if ((
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            campaign_used() ||
-#endif
-            str_starts_with(curr_setname, "SB") ||
-            str_starts_with(curr_setname, "sb") ||
-            str_starts_with(curr_setname, "Sb") ||
-            str_starts_with(curr_setname, "sB")
-            ) && !level_offered)
+        if ((str_starts_with(curr_setid_final, "SB") ||
+             str_starts_with(curr_setid_final, "sb") ||
+             str_starts_with(curr_setid_final, "Sb") ||
+             str_starts_with(curr_setid_final, "sB")) &&
+            !level_offered)
             log_errorf("%s:\n    Switchball level creation was disqualified!\n", filename);
-    }
-    else
-    {
-        level_offered = scan_level_attribs(
-            level,
-            &base,
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            campaign_used(),
-#else
-            0,
-#endif
-            0,
-            campaign_werror
-        );
-
-        if (level_offered
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            && (campaign_used())
-#endif
-            )
-            level_offered = scan_campaign_level(
-                &base,
-                filename,
-                level,
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                campaign_used(),
-#else
-                0,
-#endif
-                0,
-                campaign_werror
-            );
     }
 
     sol_free_base(&base);
 
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (!level_offered)
         memset(level, 0, sizeof (struct level));
-#endif
 
     return level_offered;
 }
@@ -654,67 +661,67 @@ int level_exists(int i)
 
 void level_open(struct level *level)
 {
-    level->is_locked = 0;
+    if (level) level->is_locked = 0;
 }
 
 int level_opened(const struct level *level)
 {
-    return level->is_locked == 0;
+    return level ? level->is_locked == 0 : 1;
 }
 
 void level_complete(struct level *level)
 {
-    level->is_completed = 1;
+    if (level) level->is_completed = 1;
 }
 
 int level_completed(const struct level *level)
 {
-    return level->is_completed;
+    return level ? level->is_completed : 0;
 }
 
 int level_time(const struct level *level)
 {
-    return level->time;
+    return level ? level->time : 0;
 }
 
 int level_goal(const struct level *level)
 {
-    return level->goal;
+    return level ? level->goal : 0;
 }
 
 int  level_bonus(const struct level *level)
 {
-    return level->is_bonus;
+    return level ? level->is_bonus : 0;
 }
 
 int  level_master(const struct level* level)
 {
-    return level->is_master;
+    return level ? level->is_master : 0;
 }
 
 const char *level_shot(const struct level *level)
 {
-    return level->shot;
+    return level ? level->shot : NULL;
 }
 
 const char *level_file(const struct level *level)
 {
-    return level->file;
+    return level ? level->file : NULL;
 }
 
 const char *level_song(const struct level *level)
 {
-    return level->song;
+    return level ? level->song : NULL;
 }
 
 const char *level_name(const struct level *level)
 {
-    return level->name;
+    return level ? level->name : NULL;
 }
 
 const char *level_msg(const struct level *level)
 {
-    if (text_length(level->message) > 0)
+    if (level && text_length(level->message) > 0)
         return _(level->message);
 
     return "";
@@ -722,7 +729,7 @@ const char *level_msg(const struct level *level)
 
 const struct score *level_score(struct level *level, int s)
 {
-    return &level->scores[s];
+    return level ? &level->scores[s] : NULL;
 }
 
 /*---------------------------------------------------------------------------*/

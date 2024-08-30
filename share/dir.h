@@ -55,10 +55,22 @@ int dir_exists(const char *);
     !(CreateDirectoryA(path, 0) != 0 || GetLastError() == ERROR_ALREADY_EXISTS)
 #elif _WIN32 && __MINGW32__
 #include <direct.h>
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #define dir_make(path) _mkdir(path)
 #else
+#define dir_make(path) 0
+#endif
+#else
 #include <sys/stat.h>
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #define dir_make(path) mkdir(path, 0777)
+#else
+#define dir_make(path) 0
+#endif
 #endif
 
 #endif

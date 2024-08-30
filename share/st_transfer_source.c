@@ -122,7 +122,7 @@
     N_("There are exceeded limits of level status or legacy replays\n" \
        "currently stored in the Replay of this game. The Replay in\n" \
        "the target Pennyball game has an either premade filters,\n" \
-       "modern replays or COVID-19 features, so your Replays will be lost,\n"
+       "modern replays or COVID-19 features, so your Replays will be lost,\n" \
        "if you perform this transfer now.")
 #define SOURCE_TRANSFER_WARNING_REPLAY_LIMITED_USER \
     N_("There are exceeded limits of level status or legacy replays\n" \
@@ -1200,8 +1200,8 @@ void transfer_timer_process_source(float dt)
                 {
                     /* Is directory, skipped */
                 }
-                else if (strcmp(ffd.cFileName, ".") != 0 ||
-                         strcmp(ffd.cFileName, "..") != 0)
+                else if (strcmp(src_ffd.cFileName, ".") != 0 ||
+                         strcmp(src_ffd.cFileName, "..") != 0)
                 {
                     account_transfer_init();
                     account_transfer_load(concat_string("Accounts/", src_ffd.cFileName, NULL));

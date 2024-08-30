@@ -62,6 +62,9 @@ extern "C" {
 #include "gui.h"
 #include "hmd.h"
 #include "log.h"
+#if ENABLE_MOTIONBLUR!=0
+#include "fbo.h"
+#endif
 #if __cplusplus
 }
 #endif
@@ -575,13 +578,14 @@ video_mode_reconf:
      * Default depth size: 8 - Either 8 or 16
      */
 
-    int rgb_size_fixed = 2;
+    int rgb_size_fixed   = 2;
+    int depth_size_fixed = 8;
 
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
 
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   8);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   depth_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     /* Try to set the currently specified mode. */
@@ -1064,13 +1068,14 @@ video_mode_auto_config_reconf:
      * Default depth size: 8 - Either 8 or 16
      */
 
-    int rgb_size_fixed = 2;
+    int rgb_size_fixed   = 2;
+    int depth_size_fixed = 8;
 
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  rgb_size_fixed);
 
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   8);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   depth_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     log_printf("Creating a window (%dx%d, %s (auto configuration))\n",
@@ -1405,6 +1410,8 @@ video_mode_auto_config_failinit_window_context:
 
 /*---------------------------------------------------------------------------*/
 
+int video_can_swap_window = 1;
+
 static float ms     = 0;
 static int   fps    = 0;
 static int   last   = 0;
@@ -1424,7 +1431,17 @@ extern "C"
 #endif
 void video_swap(void)
 {
+    if (!video_can_swap_window)
+        return;
+
+    video_can_swap_window = 0;
+
     int dt;
+
+#if ENABLE_MOTIONBLUR!=0
+    if (config_get_d(CONFIG_MOTIONBLUR))
+        video_motionblur_swap();
+#endif
 
 #if defined(__WII__)
     wiigl_swap_buffers();
@@ -1558,149 +1575,254 @@ int  video_get_grab(void)
 
 /*---------------------------------------------------------------------------*/
 
-int viewport_wireframe  = 0;
-int wireframe_splitview = 0;
-int splitview_crossed   = 0;
+#if ENABLE_MOTIONBLUR!=0
+static fbo motionblur_fbo[VIDEO_MOTIONBLUR_MAX_TEXTURE] =
+{ { 0, 0, 0 }, { 0, 0, 0 },
+  { 0, 0, 0 }, { 0, 0, 0 }, 
+  { 0, 0, 0 }, { 0, 0, 0 }, 
+  { 0, 0, 0 }, { 0, 0, 0 }, };
 
-int render_fill_overlay   = 0;
-int render_line_overlay   = 0;
-int render_left_viewport  = 0;
-int render_right_viewport = 0;
+static int motionblur_renderable[VIDEO_MOTIONBLUR_MAX_TEXTURE];
+
+static unsigned int motionblur_vbo;
+static unsigned int motionblur_ebo;
+
+static int   motionblur_index;
+static float motionblur_alpha;
 
 #if __cplusplus
 extern "C"
 #endif
-void video_set_wire(int wire)
+void video_motionblur_init(void)
 {
-#if !ENABLE_OPENGLES
-    wireframe_splitview = 0;
-    if (wire == 4)
-        viewport_wireframe = 4;
-    if (wire == 3)
-        viewport_wireframe = 3;
-    else if (wire == 2)
+    const int w = video.device_w;
+    const int h = video.device_h;
+
+    for (int i = 0; i < VIDEO_MOTIONBLUR_MAX_TEXTURE; i++)
     {
-        viewport_wireframe = 2;
-        wireframe_splitview = 1;
+        glGenTextures(1, &motionblur_fbo[i].color_texture);
+        glGenTextures(1, &motionblur_fbo[i].depth_texture);
+
+        if (gli.framebuffer_object != 0)
+            glGenFramebuffers_(1, &motionblur_fbo[i].framebuffer);
+
+        glBindTexture_ (GL_TEXTURE_2D, motionblur_fbo[i].color_texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexImage2D   (GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0,
+                        GL_RGBA, GL_UNSIGNED_INT, NULL);
+
+        glBindTexture_ (GL_TEXTURE_2D, motionblur_fbo[i].depth_texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexImage2D   (GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, w, h, 0,
+                        GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+
+        if (gli.framebuffer_object != 0)
+        {
+            glBindFramebuffer_     (GL_FRAMEBUFFER, motionblur_fbo[i].framebuffer);
+            glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                    GL_TEXTURE_2D, motionblur_fbo[i].color_texture, 0);
+            glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                                    GL_TEXTURE_2D, motionblur_fbo[i].depth_texture, 0);
+            glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
+                                    GL_TEXTURE_2D, motionblur_fbo[i].depth_texture, 0);
+
+            if (glCheckFramebufferStatus_(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+            {
+                glBindFramebuffer_(GL_FRAMEBUFFER, 0);
+                motionblur_renderable[i] == 0;
+            }
+            else
+            {
+                glBindFramebuffer_(GL_FRAMEBUFFER, 0);
+                motionblur_renderable[i] == -1;
+            }
+        }
     }
-    else if (wire == 1)
-    {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glDisable(GL_TEXTURE_2D);
-        viewport_wireframe = 1;
-        glViewport(0, 0,
-                   video.device_w * video.scale_w,
-                   video.device_h * video.scale_h);
-    }
-    else
-    {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glEnable(GL_TEXTURE_2D);
-        viewport_wireframe = 0;
-        glViewport(0, 0,
-                   video.device_w * video.scale_w,
-                   video.device_h * video.scale_h);
-    }
-#endif
+
+    static const GLfloat verts[4][5] = {
+        { -0.5f, -0.5f, 0.0f, 0.0f, 0.0f },
+        { +0.5f, -0.5f, 0.0f, 1.0f, 0.0f },
+        { -0.5f, +0.5f, 0.0f, 0.0f, 1.0f },
+        { +0.5f, +0.5f, 0.0f, 1.0f, 1.0f },
+    };
+
+    static const GLuint elems[4] = {
+        0u, 1u, 2u, 3u
+    };
+
+    glGenBuffers_(1,              &motionblur_vbo);
+    glBindBuffer_(GL_ARRAY_BUFFER, motionblur_vbo);
+    glBufferData_(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+    glBindBuffer_(GL_ARRAY_BUFFER, 0);
+
+    glGenBuffers_(1,                      &motionblur_ebo);
+    glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, motionblur_ebo);
+    glBufferData_(GL_ELEMENT_ARRAY_BUFFER, sizeof(elems), elems, GL_STATIC_DRAW);
+    glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 #if __cplusplus
 extern "C"
 #endif
-void video_render_fill_or_line(int lined)
+void video_motionblur_quit(void)
 {
-#if !ENABLE_OPENGLES
-    render_fill_overlay = 0;
-    render_line_overlay = 0;
-
-    render_left_viewport  = 0;
-    render_right_viewport = 0;
-
-    if (viewport_wireframe == 4)
+    for (int i = 0; i < VIDEO_MOTIONBLUR_MAX_TEXTURE; i++)
     {
-        if (lined)
-        {
-            render_fill_overlay = 0;
-            render_line_overlay = 1;
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glDisable(GL_TEXTURE_2D);
-            glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
-        }
-        else
-        {
-            render_line_overlay = 0;
-            render_fill_overlay = 1;
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            glEnable(GL_TEXTURE_2D);
-            glColor4ub(0x80, 0x80, 0x80, 0x80);
-        }
-    }
-    else if (lined && viewport_wireframe == 2 ||
-             viewport_wireframe == 3)
-    {
-        render_line_overlay = 0;
-        render_fill_overlay = 0;
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glDisable(GL_TEXTURE_2D);
-        glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
-        if (viewport_wireframe == 2)
-        {
-            render_right_viewport = 1;
-            glViewport((int) video.device_w / 2, 0,
-                       (video.device_w / 2.0f) * video.scale_w,
-                       video.device_h * video.scale_h);
-        }
-        else
-            glViewport(0, 0,
-                       video.device_w * video.scale_w,
-                       video.device_h * video.scale_h);
-    }
-    else if (viewport_wireframe == 2 || viewport_wireframe == 3)
-    {
-        render_line_overlay = 0;
-        render_fill_overlay = 0;
+        if (gli.framebuffer_object != 0)
+            glDeleteFramebuffers_(1, &motionblur_fbo[i].framebuffer);
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glEnable(GL_TEXTURE_2D);
-        glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
-        if (viewport_wireframe == 2)
-        {
-            render_left_viewport = 1;
-            glViewport(0, 0,
-                       (video.device_w / 2.0f) * video.scale_w,
-                       video.device_h * video.scale_h);
-        }
-        else
-            glViewport(0, 0,
-                       video.device_w * video.scale_w,
-                       video.device_h * video.scale_h);
-    }
-    else if (viewport_wireframe == 0)
-    {
-        render_line_overlay = 0;
-        render_fill_overlay = 0;
+        glDeleteTextures     (1, &motionblur_fbo[i].depth_texture);
+        glDeleteTextures     (1, &motionblur_fbo[i].color_texture);
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glEnable(GL_TEXTURE_2D);
-        glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
-        glViewport(0, 0,
-                   video.device_w * video.scale_w,
-                   video.device_h * video.scale_h);
+        memset(&motionblur_fbo[i], 0, sizeof (fbo));
     }
-#endif
+
+    glDeleteBuffers_(1, &motionblur_vbo);
 }
 
 #if __cplusplus
 extern "C"
 #endif
-void video_toggle_wire(void)
+void video_motionblur_alpha_set(float a)
 {
-    viewport_wireframe++;
-    if (viewport_wireframe > 3)
-        viewport_wireframe = 0;
-
-    video_set_wire(viewport_wireframe);
+    motionblur_alpha = a;
 }
+
+#if __cplusplus
+extern "C"
+#endif
+float video_motionblur_alpha_get(void)
+{
+    return motionblur_alpha;
+}
+
+#if __cplusplus
+extern "C"
+#endif
+void video_motionblur_prep(void)
+{
+    if (motionblur_index >= VIDEO_MOTIONBLUR_MAX_TEXTURE)
+        return;
+
+    if (motionblur_renderable[motionblur_index] != 0)
+        return;
+
+    const int w = video.device_w;
+    const int h = video.device_h;
+
+    if (gli.framebuffer_object != 0)
+        glBindFramebuffer_(GL_FRAMEBUFFER, motionblur_fbo[motionblur_index].framebuffer);
+
+    glViewport(0, 0, w, h);
+}
+
+#if __cplusplus
+extern "C"
+#endif
+void video_motionblur_set_texture(void)
+{
+    if (motionblur_renderable[motionblur_index] != 0)
+    {
+        motionblur_index++;
+        return;
+    }
+
+    const int w = video.device_w;
+    const int h = video.device_h;
+
+    unsigned char *p = NULL;
+
+    if ((p = (unsigned char *) malloc(w * h * 4)))
+    {
+        glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, p);
+
+        glBindTexture_ (GL_TEXTURE_2D, motionblur_fbo[motionblur_index].color_texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexImage2D   (GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0,
+                        GL_RGBA, GL_UNSIGNED_BYTE, p);
+
+        free(p);
+        p = NULL;
+
+        motionblur_renderable[motionblur_index] = 1;
+        motionblur_index++;
+    }
+}
+
+#if __cplusplus
+extern "C"
+#endif
+void video_motionblur_swap(void)
+{
+    motionblur_index = 0;
+
+    if (gli.framebuffer_object != 0)
+        glBindFramebuffer_(GL_FRAMEBUFFER, 0);
+
+    video_clear();
+    video_set_ortho();
+
+    glViewport(0, 0, video.device_w, video.device_h);
+
+    glColor4ub(255, 255, 255, 255);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+    glDisable(GL_BLEND);
+    glDisableClientState(GL_NORMAL_ARRAY);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glScalef(2.0f, 2.0f, 1.0f);
+
+    for (int i = 0; i < VIDEO_MOTIONBLUR_MAX_TEXTURE; i++)
+    {
+        if (motionblur_renderable[i] == 1)
+        {
+            glBindTexture_(GL_TEXTURE_2D,           motionblur_fbo[i].color_texture);
+            glBindBuffer_ (GL_ARRAY_BUFFER,         motionblur_vbo);
+            glBindBuffer_ (GL_ELEMENT_ARRAY_BUFFER, motionblur_ebo);
+
+            glVertexPointer  (2, GL_FLOAT, sizeof (GLfloat) * 5, (GLvoid *) (                   0u));
+            glTexCoordPointer(2, GL_FLOAT, sizeof (GLfloat) * 5, (GLvoid *) (sizeof (GLfloat) * 3u));
+
+            glDrawArrays (GL_TRIANGLE_STRIP, 0, 4);
+
+            glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
+            glBindBuffer_(GL_ARRAY_BUFFER,         0);
+
+            motionblur_renderable[i] = 0;
+        }
+    }
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glEnable(GL_BLEND);
+}
+#endif
+
+/*---------------------------------------------------------------------------*/
 
 #if __cplusplus
 extern "C"
@@ -1740,10 +1862,6 @@ void video_set_perspective(float fov, float n, float f)
         GLfloat a = ((GLfloat) video.device_w /
                      (GLfloat) video.device_h);
 
-        if (viewport_wireframe == 2)
-            a = ((GLfloat) (video.device_w / 2) /
-                 (GLfloat)  video.device_h);
-
         glMatrixMode(GL_PROJECTION);
         {
 #if defined(__WII__)
@@ -1780,9 +1898,6 @@ void video_set_ortho(void)
         GLfloat w = (GLfloat) video.device_w;
         GLfloat h = (GLfloat) video.device_h;
 
-        if (viewport_wireframe == 2)
-            w /= 2;
-
         glMatrixMode(GL_PROJECTION);
 
         glLoadIdentity();
@@ -1794,9 +1909,6 @@ void video_set_ortho(void)
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-
-        if (viewport_wireframe == 2 && render_right_viewport)
-            glTranslatef(-w, 0, 0);
     }
 }
 

@@ -1028,7 +1028,6 @@ static int shop_iap_action(int tok, int val)
                 if (account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[val])
                 {
                     shop_convert_to_coins(iapcoinfromgems[val], iapcoinvalue[val]);
-                    log_printf("Succesfully converted: %d Gems to %d Coins\n", iapcoinfromgems[val], iapcoinvalue[val]);
                     purchased = 1;
                 }
             }

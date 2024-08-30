@@ -252,10 +252,30 @@ static int save_enter(struct state *st, struct state *prev)
     if (curr_mode() == MODE_STANDALONE)
         name = "standalone";
     else
+    {
+
+        const char *curr_setid = set_id(curr_set());
+        char curr_setid_final[MAXSTR];
+
+        if (!curr_setid)
+        {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(curr_setid_final, MAXSTR,
+#else
+            sprintf(curr_setid_final,
+#endif
+                    _("none_%d"), curr_set());
+        }
+        else
+            SAFECPY(curr_setid_final, curr_setid);
+
+        const char *curr_lvlname = level_name(curr_level());
+
         name = demo_format_name(config_get_s(CONFIG_REPLAY_NAME),
-                                set_id(curr_set()),
-                                level_name(curr_level()),
+                                curr_setid_final,
+                                curr_lvlname ? curr_lvlname : "0",
                                 curr_status());
+    }
 
     text_input_start(on_text_input);
     text_input_str(name, 0);
@@ -481,6 +501,8 @@ static int save_error_gui(void)
 
 static int save_error_enter(struct state *st, struct state *prev)
 {
+    audio_play("snd/uierror.ogg", 1.0f);
+
     return save_error_gui();
 }
 

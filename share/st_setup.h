@@ -15,7 +15,7 @@
 #ifndef ST_SETUP_H
 #define ST_SETUP_H
 
-int goto_game_setup(struct state *start_state,
+int goto_game_setup(struct state *start_state, int (*start_fn)(struct state *),
                     int (*new_goto_name_fn) (struct state *,
                                              int         (*new_finish_fn) (struct state *)),
                     int (*new_goto_ball_fn) (struct state *));

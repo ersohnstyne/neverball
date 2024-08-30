@@ -33,6 +33,8 @@
 #include "common.h"
 #include "key.h"
 
+#include "activity_services.h"
+
 #include "game_common.h"
 #include "game_draw.h"
 
@@ -203,6 +205,8 @@ static int set_action(int tok, int val)
 
             set_goto(val);
 
+            activity_services_setname(set_name(val));
+
             return goto_state_full(&st_start,
                                    GUI_ANIMATION_N_CURVE,
                                    GUI_ANIMATION_S_CURVE, 0);
@@ -246,7 +250,36 @@ static void gui_set(int id, int i)
         int set_name_locked = 0;
 #endif
 
+        const char *curr_setname = set_name(i);
+        char curr_setname_final[MAXSTR];
         char set_name_final[MAXSTR];
+
+        if (!curr_setname)
+        {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(curr_setname_final, MAXSTR,
+#else
+            sprintf(curr_setname_final,
+#endif
+                    _("Untitled set name (%d)"), i);
+        }
+        else
+            SAFECPY(curr_setname_final, curr_setname);
+
+        const char *curr_setid = set_id(i);
+        char curr_setid_final[MAXSTR];
+
+        if (!curr_setid)
+        {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(curr_setid_final, MAXSTR,
+#else
+            sprintf(curr_setid_final,
+#endif
+                    _("none_%d"), curr_set());
+        }
+        else
+            SAFECPY(curr_setid_final, curr_setid);
 
         if (i % SET_STEP == 0)
             set_text_name_id = gui_start(id, "XXXXXXXXXXXXXXXXXX",
@@ -255,46 +288,46 @@ static void gui_set(int id, int i)
             set_text_name_id = gui_state(id, "XXXXXXXXXXXXXXXXXX",
                                              GUI_SML, SET_SELECT, i);
 
-        if (str_starts_with(set_id(i), "valentine"))
+        if (str_starts_with(curr_setid_final, "valentine"))
         {
             gui_set_color(set_text_name_id, gui_pnk, gui_red);
 
-            SAFECPY(set_name_final, set_name(i));
+            SAFECPY(set_name_final, curr_setname_final);
         }
-        else if (str_starts_with(set_id(i), "halloween"))
+        else if (str_starts_with(curr_setid_final, "halloween"))
         {
             gui_set_color(set_text_name_id, gui_red, gui_yel);
 
-            SAFECPY(set_name_final, set_name(i));
+            SAFECPY(set_name_final, curr_setname_final);
         }
-        else if (str_starts_with(set_id(i), "christmas"))
+        else if (str_starts_with(curr_setid_final, "christmas"))
         {
             gui_set_color(set_text_name_id, gui_red, gui_grn);
 
-            SAFECPY(set_name_final, set_name(i));
+            SAFECPY(set_name_final, curr_setname_final);
         }
-        else if (str_starts_with(set_id(i), "anime"))
+        else if (str_starts_with(curr_setid_final, "anime"))
         {
             gui_set_color(set_text_name_id, gui_cya, gui_blu);
 
             SAFECPY(set_name_final, GUI_AIRPLANE " ");
-            SAFECAT(set_name_final, set_name(i));
+            SAFECAT(set_name_final, curr_setname_final);
         }
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        else if (str_starts_with(set_id(i), "SB")
-              || str_starts_with(set_id(i), "sb")
-              || str_starts_with(set_id(i), "Sb")
-              || str_starts_with(set_id(i), "sB"))
+        else if (str_starts_with(curr_setid_final, "SB")
+              || str_starts_with(curr_setid_final, "sb")
+              || str_starts_with(curr_setid_final, "Sb")
+              || str_starts_with(curr_setid_final, "sB"))
         {
             campaign_marked = 1;
 
             gui_set_color(set_text_name_id, GUI_COLOR_CYA);
 
             SAFECPY(set_name_final, GUI_AIRPLANE " ");
-            SAFECAT(set_name_final, set_name(i));
+            SAFECAT(set_name_final, curr_setname_final);
         }
 #endif
-        else SAFECPY(set_name_final, set_name(i));
+        else SAFECPY(set_name_final, curr_setname_final);
 
         gui_set_trunc(set_text_name_id, TRUNC_TAIL);
         gui_set_label(set_text_name_id, set_name_final);
@@ -539,9 +572,9 @@ static int set_enter(struct state *st, struct state *prev)
 #endif
 
     do_init = (prev == &st_set ||
-               prev == &st_start ||
+               prev == &st_start
 #if NB_HAVE_PB_BOTH==1
-               prev == &st_start_compat
+            || prev == &st_start_compat
 #endif
               );
 
@@ -628,8 +661,10 @@ static void set_over(int i)
         else
 #endif
         {
+            const char *curr_setdesc = set_desc(i);
+
             gui_set_image(shot_id, set_shot(i));
-            gui_set_multi(desc_id, set_desc(i));
+            gui_set_multi(desc_id, curr_setdesc ? curr_setdesc : _("Unknown set description"));
         }
     }
 }
@@ -1251,13 +1286,21 @@ static int levelgroup_action(int tok, int val)
     {
         case GUI_BACK:
             return goto_state(&st_title);
+
         case LEVELGROUP_CAMPAIGN:
             if (campaign_init())
+            {
+                activity_services_group(AS_GROUP_CAMPAIGN);
+
                 return goto_state_full(&st_campaign,
                                        GUI_ANIMATION_E_CURVE,
                                        GUI_ANIMATION_W_CURVE, 0);
+            }
             break;
+
         case LEVELGROUP_LEVELSET:
+            activity_services_group(AS_GROUP_LEVELSET);
+
             return goto_state_full(&st_set,
                                    GUI_ANIMATION_W_CURVE,
                                    GUI_ANIMATION_E_CURVE, 0);
@@ -1388,6 +1431,8 @@ static int levelgroup_gui(void)
 
 static int levelgroup_enter(struct state *st, struct state *prev)
 {
+    activity_services_group(AS_GROUP_NONE);
+
     campaign_init();
 
     if (prev == &st_campaign)
@@ -1477,13 +1522,21 @@ int goto_playgame_register(void)
 {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
+    {
+        activity_services_group(AS_GROUP_CAMPAIGN);
         return goto_name(&st_campaign, &st_title, goto_playgame_param, 0, 0);
+    }
     else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET))
 #endif
+    {
+        activity_services_group(AS_GROUP_LEVELSET);
         return goto_name(&st_set, &st_title, goto_playgame_param, 0, 0);
+    }
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     else
+    {
         return goto_name(&st_levelgroup, &st_title, goto_playgame_param, 0, 0);
+    }
 #endif
 }
 

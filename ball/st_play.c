@@ -68,7 +68,7 @@ typedef struct __countdown_preparation
     float positions[2];
     float position_scaled;
     float alpha;
-    float colorfill[3];
+    float colorfill[4];
 } countdown_preparation;
 
 /* Have modern preparation start timer countdown */
@@ -135,6 +135,13 @@ static void __countdown_preparation_draw()
             }
         }
 
+#if ENABLE_MOTIONBLUR!=0
+        local_countdown_preparation[i].colorfill[3] =
+            config_get_d(CONFIG_MOTIONBLUR) ? (1.0f * video_motionblur_alpha_get()) : 1.0f;
+#else
+        local_countdown_preparation[i].colorfill[3] = 1.f;
+#endif
+
         glTranslatef(
             local_countdown_preparation[i].positions[0] *
             local_countdown_preparation[i].position_scaled,
@@ -148,6 +155,7 @@ static void __countdown_preparation_draw()
         glDisable(GL_TEXTURE_2D);
         glBegin(GL_TRIANGLE_STRIP);
         {
+
             glColor4ub(ROUND(local_countdown_preparation[i].colorfill[0] * 255),
                        ROUND(local_countdown_preparation[i].colorfill[1] * 255),
                        ROUND(local_countdown_preparation[i].colorfill[2] * 255),
@@ -189,7 +197,23 @@ static void set_lvlinfo(void)
             SAFECPY(setname, _("Campaign"));
         else
 #endif
-            SAFECPY(setname, set_name(curr_set()));
+        {
+            const char *curr_setname = set_name(curr_set());
+
+            if (!curr_setname)
+            {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(setname, MAXSTR,
+#else
+                sprintf(setname,
+#endif
+                        _("Untitled set name (%d)"), curr_set());
+            }
+            else
+                 SAFECPY(setname, curr_setname);
+        }
+
+        const char *curr_lvlname = level_name(curr_level());
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(lvlname, MAXSTR,
@@ -197,17 +221,34 @@ static void set_lvlinfo(void)
         sprintf(lvlname,
 #endif
                 level_bonus(curr_level()) ? "%s - Bonus %s" : "%s - %s",
-                setname, level_name(curr_level()));
+                setname, curr_lvlname ? curr_lvlname : "---");
+
+
+        const char *curr_setid = set_id(curr_set());
+        char curr_setid_final[MAXSTR];
+
+        if (!curr_setid)
+        {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(curr_setid_final, MAXSTR,
+#else
+            sprintf(curr_setid_final,
+#endif
+                    _("none_%d"), curr_set());
+        }
+        else
+            SAFECPY(curr_setid_final, curr_setid);
+
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (str_starts_with(set_id(curr_set()), "SB") ||
-            str_starts_with(set_id(curr_set()), "sb") ||
-            str_starts_with(set_id(curr_set()), "Sb") ||
-            str_starts_with(set_id(curr_set()), "sB"))
+        if (str_starts_with(curr_setid_final, "SB") ||
+            str_starts_with(curr_setid_final, "sb") ||
+            str_starts_with(curr_setid_final, "Sb") ||
+            str_starts_with(curr_setid_final, "sB"))
             hud_lvlname_campaign(lvlname, level_bonus(curr_level()));
         else
 #endif
-        if (str_starts_with(set_id(curr_set()), "anime"))
+        if (str_starts_with(curr_setid_final, "anime"))
             hud_lvlname_set_ana(lvlname, level_bonus(curr_level()));
         else
             hud_lvlname_set(lvlname, level_bonus(curr_level()));
@@ -523,10 +564,10 @@ static void play_prep_stick(int id, int a, float v, int bump)
     if (!use_mouse && use_keyboard)
     {
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))
-            prep_tilt_x = v * get_tilt_multiply();
+            prep_tilt_x = v * powerup_get_tilt_multiply();
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y0, a))
             prep_tilt_y = (curr_mode() == MODE_BOOST_RUSH ? 0 :
-                                                            v * get_tilt_multiply());
+                                                            v * powerup_get_tilt_multiply());
 
         game_set_z(prep_tilt_x);
         game_set_x(prep_tilt_y);
@@ -715,21 +756,21 @@ static int play_loop_enter(struct state *st, struct state *prev)
         return 0;
 
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
-    if (get_coin_multiply() == 2)
+    if (powerup_get_coin_multiply() == 2)
     {
 #if ENABLE_RFD==1
         if (!progress_rfd_take_powerup(0))
 #endif
             account_wgcl_do_add(0, 0, 0, -1, 0, 0);
     }
-    if (get_grav_multiply() <= 0.51f)
+    if (powerup_get_grav_multiply() <= 0.51f)
     {
 #if ENABLE_RFD==1
         if (!progress_rfd_take_powerup(1))
 #endif
             account_wgcl_do_add(0, 0, 0, 0, -1, 0);
     }
-    if (get_tilt_multiply() == 2)
+    if (powerup_get_tilt_multiply() == 2)
     {
 #if ENABLE_RFD==1
         if (!progress_rfd_take_powerup(2))
@@ -895,7 +936,13 @@ static void play_loop_timer(int id, float dt)
     if (curr_mode() == MODE_NONE) return;
 
     if (curr_status() == GAME_NONE && !play_freeze_all)
+    {
+#if ENABLE_LIVESPLIT!=0
+        progress_livesplit_pause(0);
+        progress_livesplit_step(dt);
+#endif
         progress_step();
+    }
     else if (!play_freeze_all && !play_block_state)
     {
         play_block_state = 1;
@@ -932,8 +979,8 @@ static void play_loop_point(int id, int x, int y, int dx, int dy)
                 tilt_x = 0;
                 tilt_y = 0;
 
-                game_set_pos_max_speed(dx * get_tilt_multiply(),
-                                       curr_mode() == MODE_BOOST_RUSH ? 0 : dy * get_tilt_multiply());
+                game_set_pos_max_speed(dx * powerup_get_tilt_multiply(),
+                                       curr_mode() == MODE_BOOST_RUSH ? 0 : dy * powerup_get_tilt_multiply());
             }
             else if (man_rot)
             {
@@ -948,8 +995,8 @@ static void play_loop_point(int id, int x, int y, int dx, int dy)
                 tilt_x += dx * 10;
                 tilt_y += dy * 10;
 
-                game_set_pos((tilt_x * get_tilt_multiply()) * 10,
-                             curr_mode() == MODE_BOOST_RUSH ? 0 : (tilt_y * get_tilt_multiply()) * 10);
+                game_set_pos((tilt_x * powerup_get_tilt_multiply()) * 10,
+                             curr_mode() == MODE_BOOST_RUSH ? 0 : (tilt_y * powerup_get_tilt_multiply()) * 10);
             }
         }
         else
@@ -965,10 +1012,10 @@ static void play_loop_stick(int id, int a, float v, int bump)
         use_mouse = 0; use_keyboard = 1;
 
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))
-            tilt_x = v * get_tilt_multiply();
+            tilt_x = v * powerup_get_tilt_multiply();
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y0, a))
             tilt_y = (curr_mode() == MODE_BOOST_RUSH ? 0 :
-                                                       v * get_tilt_multiply());
+                                                       v * powerup_get_tilt_multiply());
 
         /* Camera movement */
 
@@ -1100,6 +1147,10 @@ static int play_loop_keybd(int c, int d)
 #ifdef MAPC_INCLUDES_CHKP
             if (restart_cancel_allchkp)
                 checkpoints_stop();
+
+            if (last_active)
+                if (!checkpoints_load())
+                    checkpoints_stop();
 #endif
             if (progress_same())
                 goto_state(&st_play_ready);

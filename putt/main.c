@@ -253,7 +253,6 @@ static void shot(void)
 static void toggle_wire(void)
 {
     glToggleWireframe_();
-    //video_toggle_wire();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -339,42 +338,73 @@ static int goto_hole(const char *hole)
  *
  * This navigates to the appropriate screen, if the asset was found.
  */
-static int process_link(const char *link)
+static int link_handle(const char *link)
 {
     if (!(link && *link)) return 0;
 
     int processed = 0;
 
-    log_printf("Processing link: %s\n", link);
+    log_printf("Link: handling %s\n", link);
 
     if (str_starts_with(link, "holes-"))
     {
-        /* Search installed courses and package list. */
+        /* Search installed sets and package list. */
 
         const size_t prefix_len = strcspn(link, "/");
-        const char *course_part = SUBSTR(link, 0, prefix_len);
-        const char *map_part    = SUBSTR(link, prefix_len + 1, 64);
 
-        const char *course_file = concat_string(course_part, ".txt", NULL);
+        const char* set_part = SUBSTR(link, 0, prefix_len);
+        const char* map_part = SUBSTR(link, prefix_len + 1, 64);
+        const char* set_file = JOINSTR(set_part, ".txt");
 
-        if (course_file)
+        int index;
+        int found_level = 0;
+
+        log_printf("Link: searching for course %s\n", set_file);
+
+        course_init();
+
+        if ((index = set_find(set_file)) >= 0)
         {
-            int index;
+            log_printf("Link: found course match for %s\n", set_file);
 
-            log_printf("Link is a course reference, searching for %s.\n", course_file);
+            course_goto(index);
 
-            course_init();
-
-            if ((index = package_search(course_file)) >= 0)
+            if (map_part && *map_part)
             {
-                log_printf("Found package with the given reference.\n");
-                goto_package(index, &st_title);
+                /* Search for the given level. */
+
+                const char *sol_basename = JOINSTR(map_part, ".sol");
+                struct level *level;
+
+                log_printf("Link: searching for hole %s\n", sol_basename);
+
+                if ((level = set_find_level(sol_basename)))
+                {
+                    log_printf("Link: found hole match for %s\n", sol_basename);
+
+                    goto_state(&st_next);
+                    found_level = 1;
+                    processed = 1;
+                }
+                else
+                    log_printf("Link: no such hole\n");
+            }
+
+            if (!found_level)
+            {
+                game_kill_fade();
+                goto_state(&st_next);
                 processed = 1;
             }
-            else log_errorf("Link did not match.\n", link);
         }
+        else if ((index = package_search(set_file)) >= 0)
+        {
+            log_printf("Link: found package match for %s\n", set_file);
+            goto_package(index, &st_title);
+            processed = 1;
+        }
+        else log_printf("Link: no such set or package\n", link);
     }
-    else log_errorf("Link is bad.\n");
 
     return processed;
 }
@@ -385,13 +415,13 @@ static void refresh_packages_done(void *data, void *extra_data)
 {
     struct state *start_state = (struct state *) data;
 
-    if (opt_link && process_link(opt_link))
+    if (opt_link && link_handle(opt_link))
         return;
 
 #if NB_HAVE_PB_BOTH==1
     if (!check_game_setup())
     {
-        goto_game_setup(start_state, 0, 0);
+        goto_game_setup(start_state, 0, 0, 0);
         return;
     }
 #endif
@@ -402,7 +432,7 @@ static void refresh_packages_done(void *data, void *extra_data)
 /*
  * Start package refresh and go to given state when done.
  */
-static void main_preload(struct state *start_state)
+static void main_preload(struct state *start_state, int (*start_fn)(struct state *))
 {
     struct fetch_callback callback = { 0 };
 
@@ -421,7 +451,7 @@ static void main_preload(struct state *start_state)
 
     /* But attempt it even without a package list. */
 
-    if (opt_link && process_link(opt_link))
+    if (opt_link && link_handle(opt_link))
     {
         /* Link processing navigates to the appropriate screen. */
         return;
@@ -432,12 +462,15 @@ static void main_preload(struct state *start_state)
 #if NB_HAVE_PB_BOTH==1
     if (!check_game_setup())
     {
-        goto_game_setup(start_state, 0, 0);
+        goto_game_setup(start_state, start_fn, 0, 0);
         return;
     }
 #endif
 
-    goto_state(start_state);
+    if (start_fn)
+        start_fn(start_state);
+    else
+        goto_state(start_state);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -575,13 +608,6 @@ static int loop(void)
                 ay = ROUND(ay * video.device_scale);
                 dx = ROUND(dx * video.device_scale);
                 dy = ROUND(dy * video.device_scale);
-
-                if (wireframe_splitview)
-                {
-                    splitview_crossed = 0;
-                    if (ax > video.device_w / 2)
-                        splitview_crossed = 1;
-                }
 
                 if (opt_touch)       st_touch(&opt_touch_event);
                 else if (!opt_touch) st_point(ax, ay, dx, dy);
@@ -793,6 +819,7 @@ static int loop(void)
         if (event_threshold > 3)
             SDL_EVENT_ANTI_MALFUNCTIONS(e);
     }
+
     return d;
 }
 
@@ -803,12 +830,38 @@ static int em_cached_cam;
 struct main_loop
 {
     Uint32 now;
+
+    Uint32 motionblur_leftover;
+
     unsigned int done : 1;
 };
 
+#define frame_smooth (1.f / 25.f) * 1000.f
+
+static void step_primary_screen(Uint32 now, Uint32 dt)
+{
+    if (0 < dt && dt < 1000)
+    {
+        /* Step the game state. */
+
+        float deltaSecond = config_get_d(CONFIG_SMOOTH_FIX) ?
+                            MIN(frame_smooth, dt) : MIN(100.0f, dt);
+
+        CHECK_GAMESPEED(20, 100);
+        float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
+        st_timer(MAX((0.001f * deltaSecond) * speedPercent, 0));
+
+        hmd_step();
+    }
+
+    /* Render. */
+
+    st_paint(0.001f * now, 1);
+}
+
 static void step(void *data)
 {
-    struct main_loop* mainloop = (struct main_loop*) data;
+    struct main_loop* mainloop = (struct main_loop *) data;
 
     int running = loop();
 
@@ -817,42 +870,57 @@ static void step(void *data)
         Uint32 now = SDL_GetTicks();
         Uint32 dt  = (now - mainloop->now);
 
-        if (0 < dt && dt < 1000)
-        {
-            /* Step the game state. */
-
-#define frame_smooth (1.f / 25.f) * 1000.f
-            float deltaTime = config_get_d(CONFIG_SMOOTH_FIX) ? MIN(frame_smooth, dt) : MIN(100.f, dt);
-#undef frame_smooth
-
-            CHECK_GAMESPEED(20, 100);
-            float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
-            st_timer(MAX((0.001f * deltaTime) * speedPercent, 0));
-        }
-
-        hmd_step();
-
-        /* Render. */
-
 #if ENABLE_DUALDISPLAY==1
         video_set_current();
 #endif
 
-        if (viewport_wireframe == 4)
+#if ENABLE_MOTIONBLUR!=0
+        if (config_get_d(CONFIG_MOTIONBLUR))
         {
-            video_render_fill_or_line(1);
-            st_paint(0.001f * now, 1);
-            video_render_fill_or_line(0);
-            st_paint(0.001f * now, 0);
+            /* TODO: Do we have 90 FPS? */
+
+            const float expected_dt = (1.0f / 90) * 1000.f;
+            mainloop->motionblur_leftover += config_get_d(CONFIG_SMOOTH_FIX) ?
+                                             MIN(frame_smooth, dt) : MIN(100.0f, dt);
+
+            while (mainloop->motionblur_leftover > expected_dt)
+            {
+                const float blur_alpha = mainloop->motionblur_leftover > expected_dt ?
+                                         ((float) (expected_dt / mainloop->motionblur_leftover)) :
+                                         1.0f;
+
+                video_motionblur_alpha_set(CLAMP(0, blur_alpha, 1));
+
+                Uint32 fixed_dt = MIN(mainloop->motionblur_leftover, expected_dt);
+
+                step_primary_screen(mainloop->now + (dt - mainloop->motionblur_leftover),
+                                    fixed_dt);
+
+                video_motionblur_set_texture();
+
+                mainloop->motionblur_leftover -= expected_dt;
+            }
+
+            video_motionblur_alpha_set(1);
+
+            step_primary_screen(mainloop->now + (dt - mainloop->motionblur_leftover),
+                                mainloop->motionblur_leftover);
+
+            video_motionblur_set_texture();
+
+            mainloop->motionblur_leftover = 0;
         }
-        else if (viewport_wireframe == 2 || viewport_wireframe == 3)
+        else
         {
-            video_render_fill_or_line(0);
-            st_paint(0.001f * now, 1);
-            video_render_fill_or_line(1);
-            st_paint(0.001f * now, 0);
+            video_motionblur_alpha_set(1);
+#endif
+
+            step_primary_screen(now, dt);
+
+#if ENABLE_MOTIONBLUR!=0
+            video_motionblur_set_texture();
         }
-        else st_paint(0.001f * now, 1);
+#endif
 
         video_swap();
 
@@ -864,6 +932,9 @@ static void step(void *data)
 #endif
 
         mainloop->now = now;
+
+        if (config_get_d(CONFIG_NICE))
+            SDL_Delay((1.0f / 30.0f) * 1000);
     }
 
     mainloop->done = !running;
@@ -873,11 +944,11 @@ static void step(void *data)
     {
         emscripten_cancel_main_loop();
         main_quit();
-    }
 
-    EM_ASM({
-        Neverputt.quit();
-    });
+        EM_ASM({
+            Neverputt.quit();
+        });
+    }
 #endif
 }
 
@@ -1038,6 +1109,9 @@ static void main_quit()
 #endif
 }
 
+#ifdef __cplusplus
+extern "C"
+#endif
 int main(int argc, char *argv[])
 {
     int retval = 0;
@@ -1158,7 +1232,7 @@ int main(int argc, char *argv[])
 
             mainloop.now = SDL_GetTicks();
 
-            main_preload(start_state);
+            main_preload(start_state, 0);
 
 #ifdef __EMSCRIPTEN__
             emscripten_set_main_loop_arg(step, (void *) &mainloop, 0, 1);

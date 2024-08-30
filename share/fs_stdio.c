@@ -629,7 +629,13 @@ static fs_file fs_open_write_flags(const char *path, int append)
 
 fs_file fs_open_write(const char *path)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
     return fs_open_write_flags(path, 0);
+#else
+    return 0;
+#endif
 }
 
 fs_file fs_open_append(const char *path)
@@ -695,7 +701,11 @@ int fs_mkdir(const char *path)
     if (fs_dir_write)
     {
         char *real = path_join(fs_dir_write, parsed_path);
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
         success = dir_make(real) == 0;
+#endif
         free((void *) real);
         real = NULL;
     }
@@ -761,22 +771,25 @@ int fs_recycle(const char *path)
         /* Windows makes to move this file to recycle bin. */
 
         SHFILEOPSTRUCTA operation = {0};
-        operation.hwnd  = NULL;
-        operation.wFunc = FO_DELETE;
-        operation.pFrom = real;
-        operation.pTo   = NULL;
-
-        operation.fFlags = FOF_ALLOWUNDO | FOF_NOERRORUI | FOF_NOCONFIRMATION | FOF_SILENT;
+        memset(&operation, 0, sizeof (SHFILEOPSTRUCTA));
+        operation.hwnd   = NULL;
+        operation.wFunc  = FO_DELETE;
+        operation.pFrom  = real;
+        operation.fFlags = FOF_ALLOWUNDO | FOF_NO_UI;
 
         int winretval = SHFileOperationA(&operation);
-        success = winretval == 0 || winretval == 75;
+        success = winretval == 0;
 
-        if (success && winretval == 0)
+        if (success)
             log_printf("Done moving recycle bin: '%s'\n", real);
-        else if (winretval == 75)
-            log_printf("Moving recycle bin canceled: '%s'\n", real);
+        else if (winretval == ERROR_CANCELLED)
+        {
+            log_printf("Moving to recycle bin canceled: '%s'\n", real);
+            success = 1;
+        }
         else
-            log_errorf("Failure to move recycle bin! Attempt to permanent delete: '%s'\n", real);
+            log_errorf("Failure to move recycle bin! Attempt to permanent delete: '%s'\n",
+                       real);
 
         free(real);
         real = NULL;

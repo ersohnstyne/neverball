@@ -62,6 +62,7 @@ int (*cancel_fn) (struct state *);
 static unsigned int draw_back;
 static int newplayers;
 static int name_error;
+static int name_readonly;
 
 int goto_name(struct state *ok, struct state *cancel,
               int (*new_ok_fn) (struct state *),
@@ -152,18 +153,15 @@ static int name_action(int tok, int val)
     {
         case GUI_BACK:
             if (name_error)
-            return goto_state(&st_name);
+                return goto_state(&st_name);
 
             if (newplayers)
-            return ok_fn ? ok_fn(ok_state) : goto_state(ok_state);
+                return ok_fn ? ok_fn(ok_state) : goto_state(ok_state);
 
             account_init();
             account_load();
 
-            if (cancel_fn)
-                return cancel_fn(cancel_state);
-
-            return goto_state(cancel_state);
+            return cancel_fn ? cancel_fn(cancel_state) : goto_state(cancel_state);
             break;
 
         case NAME_OK:
@@ -206,19 +204,15 @@ static int name_action(int tok, int val)
 #endif
             config_save();
 
-            if (!name_error && !newplayers && ok_fn)
-                return ok_fn(ok_state);
-
-            return goto_state(newplayers || name_error ? &st_name : ok_state);
+            return !name_error && !newplayers && ok_fn ? ok_fn(ok_state) :
+                                                         goto_state(newplayers || name_error ? &st_name : ok_state);
             break;
 
         case NAME_CONTINUE:
             newplayers = 0;
 
-            if (!name_error && ok_fn)
-                return ok_fn(ok_state);
-
-            return goto_state(name_error ? &st_name : ok_state);
+            return !name_error && ok_fn ? ok_fn(ok_state) :
+                                          goto_state(name_error ? &st_name : ok_state);
             break;
 
         case GUI_CL:
@@ -243,7 +237,7 @@ static int name_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        if (!newplayers && !name_error)
+        if (!newplayers && !name_error && !name_readonly)
         {
             gui_title_header(id, _("Player Name"), GUI_MED, GUI_COLOR_DEFAULT);
             gui_space(id);
@@ -284,6 +278,16 @@ static int name_gui(void)
             gui_set_label(name_id, text_input);
 
             name_update_enter_btn();
+        }
+        else if (name_readonly)
+        {
+            gui_title_header(id, _("Read-Only"), GUI_MED, gui_red, gui_blk);
+            gui_space(id);
+            gui_multi(id, _("The player name is read-only and\n"
+                            "can be changed with WGCL's account settings."),
+                          GUI_SML, GUI_COLOR_WHT);
+            gui_space(id);
+            gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
         }
         else
         {
@@ -326,6 +330,15 @@ static void on_text_input(int typing)
 static int name_enter(struct state *st, struct state *prev)
 {
     player_renamed = 0;
+
+#if NB_HAVE_PB_BOTH==1
+    name_readonly = account_wgcl_name_read_only();
+#else
+    name_readonly = 0;
+#endif
+
+    if (name_error || name_readonly)
+        audio_play("snd/uierror.ogg", 1.0f);
 
     if (draw_back)
     {

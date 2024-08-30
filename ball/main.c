@@ -151,6 +151,8 @@ extern "C" {
 #include "strbuf/joinstr.h"
 #include "lang.h"
 
+#include "activity_services.h"
+
 #if NB_HAVE_PB_BOTH==1
 #include "st_setup.h"
 #endif
@@ -495,7 +497,6 @@ static void shot(void)
 static void toggle_wire(void)
 {
     glToggleWireframe_();
-    //video_toggle_wire();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -814,107 +815,79 @@ static int goto_level(const List level_multi)
  * --link set-easy
  * --link set-easy/peasy
  */
-static int process_link(const char *link)
+static int link_handle(const char *link)
 {
     int processed = 0;
 
     if (!(link && *link))
         return 0;
 
-    log_printf("Processing link: %s\n", link);
+    log_printf("Link: handling %s\n", link);
 
     if (str_starts_with(link, "set-"))
     {
         /* Search installed sets and package list. */
 
         const size_t prefix_len = strcspn(link, "/");
-        const char *set_part    = SUBSTR(link, 0, prefix_len);
-        const char *map_part    = SUBSTR(link, prefix_len + 1, 64);
 
-        char *set_file = concat_string(set_part, ".txt", NULL);
+        const char *set_part = SUBSTR(link, 0, prefix_len);
+        const char *map_part = SUBSTR(link, prefix_len + 1, 64);
+        const char *set_file = JOINSTR(set_part, ".txt");
 
-        if (set_file)
+        int index;
+        int found_level = 0;
+
+        log_printf("Link: searching for set %s\n", set_file);
+
+        set_init(0);
+
+        if ((index = set_find(set_file)) >= 0)
         {
-            int index;
-            int found_level = 0;
+            log_printf("Link: found set match for %s\n", set_file);
 
-            log_printf("Link is a set reference, searching for %s.\n", set_file);
+            set_goto(index);
 
-#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
-            int career_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER) ||
-                                   campaign_career_unlocked());
-
-            if (!career_unlocked)
+            if (map_part && *map_part)
             {
-                log_errorf("Complete the game in campaign mode to link the set reference!\n");
+                /* Search for the given level. */
 
-                free(set_file);
-                set_file = NULL;
+                const char *sol_basename = JOINSTR(map_part, ".sol");
+                struct level *level;
 
-                return 0;
-            }
-#endif
+                log_printf("Link: searching for level %s\n", sol_basename);
 
-            set_init(0);
-
-            if ((index = set_find(set_file)) >= 0)
-            {
-                log_printf("Found set with the given reference.\n");
-
-                set_goto(index);
-
-                if (map_part && *map_part)
+                if ((level = set_find_level(sol_basename)))
                 {
-                    /* Search for the given level. */
+                    log_printf("Link: found level match for %s\n", sol_basename);
 
-                    char *sol_basename = concat_string(map_part, ".sol", NULL);
+                    progress_init(MODE_NORMAL);
 
-                    log_printf("Link is also a level reference, searching for %s\n", sol_basename);
-
-                    if (sol_basename)
+                    if (progress_play(level))
                     {
-                        struct level *level = set_find_level(sol_basename);
-
-                        if (level)
-                        {
-                            log_printf("Found level with the given reference.\n");
-
-                            progress_exit();
-                            progress_init(MODE_NORMAL);
-
-                            if (progress_play(level))
-                            {
-                                goto_play_level();
-                                found_level = 1;
-                                processed = 1;
-                            }
-                        }
-
-                        free(sol_basename);
-                        sol_basename = NULL;
+                        goto_state(&st_level);
+                        found_level = 1;
+                        processed = 1;
                     }
                 }
-
-                if (!found_level)
-                {
-                    load_title_background();
-                    game_kill_fade();
-                    goto_state(&st_start);
-                    processed = 1;
-                }
+                else
+                    log_printf("Link: no such level\n");
             }
-            else if ((index = package_search(set_file)) >= 0)
+
+            if (!found_level)
             {
-                log_printf("Found package with the given reference.\n");
-                goto_package(index, &st_title);
+                load_title_background();
+                game_kill_fade();
+                goto_state(&st_start);
                 processed = 1;
             }
-            else log_printf("Link did not match.\n", link);
-
-            free(set_file);
-            set_file = NULL;
         }
-        else log_printf("Link is bad.\n");
+        else if ((index = package_search(set_file)) >= 0)
+        {
+            log_printf("Link: found package match for %s\n", set_file);
+            goto_package(index, &st_title);
+            processed = 1;
+        }
+        else log_printf("Link: no such set or package\n", link);
     }
 
     return processed;
@@ -926,26 +899,27 @@ static void refresh_packages_done(void *data, void *extra_data)
 {
     struct state *start_state = (struct state *) data;
 
-    if (opt_link && process_link(opt_link))
+    if (opt_link && link_handle(opt_link))
         return;
 
 #if NB_HAVE_PB_BOTH==1
     if (!check_game_setup())
     {
-        goto_game_setup(start_state,
+        goto_game_setup(start_state, 0,
                         goto_name_setup,
                         goto_ball_setup);
         return;
     }
-#endif
-
     goto_state(start_state);
+#else
+    return goto_end_support(start_state);
+#endif
 }
 
 /*
  * Start package refresh and go to given state when done.
  */
-static void main_preload(struct state *start_state)
+static void main_preload(struct state *start_state, int (*start_fn)(struct state *))
 {
     struct fetch_callback callback = {0};
 
@@ -964,7 +938,7 @@ static void main_preload(struct state *start_state)
 
     /* But attempt it even without a package list. */
 
-    if (opt_link && process_link(opt_link))
+    if (opt_link && link_handle(opt_link))
     {
         /* Link processing navigates to the appropriate screen. */
         return;
@@ -975,14 +949,17 @@ static void main_preload(struct state *start_state)
 #if NB_HAVE_PB_BOTH==1
     if (!check_game_setup())
     {
-        goto_game_setup(start_state,
+        goto_game_setup(start_state, start_fn,
                         goto_name_setup,
                         goto_ball_setup);
         return;
     }
 #endif
 
-    goto_state(start_state);
+    if (start_fn)
+        start_fn(start_state);
+    else
+        goto_state(start_state);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1340,13 +1317,6 @@ static int loop(void)
                 dx = ROUND(dx * video.device_scale);
                 dy = ROUND(dy * video.device_scale);
 
-                if (wireframe_splitview)
-                {
-                    splitview_crossed = 0;
-                    if (ax > video.device_w / 2)
-                        splitview_crossed = 1;
-                }
-
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 if (opt_touch)       st_touch(&opt_touch_event);
@@ -1554,15 +1524,7 @@ static int loop(void)
                 else if (b == U) pad[2] = s;
                 else if (b == D) pad[3] = s;
 
-                /* Convert D-pad button events into joystick axis motion. */
-
-                if      (pad[0] && !pad[1]) st_stick(X, -1.0f);
-                else if (pad[1] && !pad[0]) st_stick(X, +1.0f);
-                else                        st_stick(X,  0.0f);
-
-                if      (pad[2] && !pad[3]) st_stick(Y, -1.0f);
-                else if (pad[3] && !pad[2]) st_stick(Y, +1.0f);
-                else                        st_stick(Y,  0.0f);
+                d = st_dpad(b, s, pad);
             }
             else d = st_buttn(b, s);
         }
@@ -1620,7 +1582,7 @@ static void make_dirs_and_migrate(void)
             {
                 src = DIR_ITEM_GET(items, i)->path;
                 dst = concat_string("Scores/",
-                                    src + sizeof ("neverballhs-") - 1,
+                                    src + sizeof ("pennyballhs-") - 1,
                                     ".txt",
                                     NULL);
                 fs_rename(src, dst);
@@ -1670,8 +1632,32 @@ static void main_quit(void);
 struct main_loop
 {
     Uint32 now;
+#if ENABLE_MOTIONBLUR!=0
+    Uint32 motionblur_leftover;
+#endif
     unsigned int done : 1;
 };
+
+static void step_primary_screen(Uint32 now, Uint32 dt)
+{
+    if (0 < dt && dt < 1000)
+    {
+        /* Step the game state. */
+
+        float deltaSecond = config_get_d(CONFIG_SMOOTH_FIX) ?
+                            MIN(frame_smooth, dt) : MIN(100.0f, dt);
+
+        CHECK_GAMESPEED(20, 100);
+        float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
+        st_timer(MAX((0.001f * deltaSecond) * speedPercent, 0));
+
+        hmd_step();
+    }
+
+    /* Render. */
+
+    st_paint(0.001f * now, 1);
+}
 
 static void step(void *data)
 {
@@ -1684,41 +1670,59 @@ static void step(void *data)
         Uint32 now = SDL_GetTicks();
         Uint32 dt  = (now - mainloop->now);
 
-        if (0 < dt && dt < 1000)
-        {
-            /* Step the game state. */
-
-            float deltaTime = config_get_d(CONFIG_SMOOTH_FIX) ?
-                              MIN(frame_smooth, dt) : MIN(100.0f, dt);
-
-            CHECK_GAMESPEED(20, 100);
-            float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
-            st_timer(MAX((0.001f * deltaTime) * speedPercent, 0));
-
-            hmd_step();
-        }
-
-        /* Render. */
+        activity_services_step(dt);
 
 #if ENABLE_DUALDISPLAY==1
         video_set_current();
 #endif
 
-        if (viewport_wireframe == 4)
+#if ENABLE_MOTIONBLUR!=0
+        if (config_get_d(CONFIG_MOTIONBLUR))
         {
-            video_render_fill_or_line(1);
-            st_paint(0.001f * now, 1);
-            video_render_fill_or_line(0);
-            st_paint(0.001f * now, 0);
+            /* TODO: Do we have 90 FPS? */
+
+            const float expected_dt = (1.0f / 90) * 1000.f;
+            mainloop->motionblur_leftover += config_get_d(CONFIG_SMOOTH_FIX) ?
+                                             MIN(frame_smooth, dt) : MIN(100.0f, dt);
+
+            while (mainloop->motionblur_leftover > expected_dt)
+            {
+                const float blur_alpha = mainloop->motionblur_leftover > expected_dt ?
+                                         ((float) (expected_dt / mainloop->motionblur_leftover)) :
+                                         1.0f;
+
+                video_motionblur_alpha_set(CLAMP(0, blur_alpha, 1));
+
+                Uint32 fixed_dt = MIN(mainloop->motionblur_leftover, expected_dt);
+
+                step_primary_screen(mainloop->now + (dt - mainloop->motionblur_leftover),
+                                    fixed_dt);
+
+                video_motionblur_set_texture();
+
+                mainloop->motionblur_leftover -= expected_dt;
+            }
+
+            video_motionblur_alpha_set(1);
+
+            step_primary_screen(mainloop->now + (dt - mainloop->motionblur_leftover),
+                                mainloop->motionblur_leftover);
+
+            video_motionblur_set_texture();
+
+            mainloop->motionblur_leftover = 0;
         }
-        else if (viewport_wireframe == 2 || viewport_wireframe == 3)
+        else
         {
-            video_render_fill_or_line(0);
-            st_paint(0.001f * now, 1);
-            video_render_fill_or_line(1);
-            st_paint(0.001f * now, 0);
+            video_motionblur_alpha_set(1);
+#endif
+
+            step_primary_screen(now, dt);
+
+#if ENABLE_MOTIONBLUR!=0
+            video_motionblur_set_texture();
         }
-        else st_paint(0.001f * now, 1);
+#endif
 
         video_swap();
 
@@ -1731,6 +1735,9 @@ static void step(void *data)
 #endif
 
         mainloop->now = now;
+
+        if (config_get_d(CONFIG_NICE))
+            SDL_Delay((1.0f / 30.0f) * 1000);
     }
 
     mainloop->done = !running;
@@ -1740,11 +1747,11 @@ static void step(void *data)
     {
         emscripten_cancel_main_loop();
         main_quit();
-    }
 
-    EM_ASM({
-        Neverball.quit();
-    });
+        EM_ASM({
+            Neverball.quit();
+        });
+    }
 #endif
 }
 
@@ -2083,6 +2090,10 @@ static int main_init(int argc, char *argv[])
 
         tilt_init();
 
+        /* Start activity service. */
+
+        activity_services_init();
+
 #if defined(__GAMECUBE__) && defined(__WII__)
         GXRModeObj *rmode = VIDEO_GetPreferredMode(NULL);
 
@@ -2126,7 +2137,7 @@ static int main_init(int argc, char *argv[])
 
     PAD_Init();
     WPAD_Init();
-    WPAD_SetPowerCallback(remote_power_pressed);
+    //WPAD_SetPowerCallback(remote_power_pressed);
     WPAD_SetDataFormat(WPAD_CHAN_ALL, WPAD_FMT_BTNS_ACC_IR);
     WPAD_SetVRes(WPAD_CHAN_ALL, video.window_w, video.window_h);
 #endif
@@ -2134,10 +2145,6 @@ static int main_init(int argc, char *argv[])
     /* Material system. */
 
     mtrl_init();
-
-    /* Screen states. */
-
-    init_state(&st_null);
 
 #ifdef DEMO_QUARANTINED_MODE
     if (config_get_d(CONFIG_ACCOUNT_SAVE) > 2)
@@ -2183,6 +2190,8 @@ static void main_quit(void)
     video_quit();
     audio_free();
     lang_quit ();
+
+    activity_services_quit();
 
 #if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
     joy_quit();
@@ -2249,15 +2258,24 @@ static void main_quit(void)
 #endif
 }
 
+#ifdef __cplusplus
+extern "C"
+#endif
 int main(int argc, char *argv[])
 {
-    SDL_Joystick *joy = NULL;
     struct main_loop mainloop = { 0 };
 
 #if NB_HAVE_PB_BOTH==1
     struct state *start_state = &st_intro;
 #else
-    struct state *start_state = &st_title;
+    struct state *start_state;
+
+    int val = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
+
+    if (val == -1)
+        start_state = &st_title;
+    else
+        start_state = &st_intro_restore;
 #endif
 
 #if _cplusplus
@@ -2268,6 +2286,10 @@ int main(int argc, char *argv[])
 #if _cplusplus
     } catch (...) { return 1; }
 #endif
+
+    /* Screen states. */
+
+    init_state(&st_null);
 
 #ifndef DISABLE_PANORAMA
     if (opt_panorama)
@@ -2302,17 +2324,13 @@ int main(int argc, char *argv[])
     {
         if (config_get_d(CONFIG_ACCOUNT_LOAD) > 1 && demo_play_goto(1))
             start_state = &st_demo_scan_allowance;
-        else
-            start_state = &st_title;
     }
     else if (opt_level_multi)
     {
         if (goto_level(opt_level_multi))
             start_state = &st_level;
+#ifndef SKIP_END_SUPPORT
         else
-#ifdef SKIP_END_SUPPORT
-            start_state = &st_title;
-#else
             start_state = &st_end_support;
 #endif
     }
@@ -2323,17 +2341,14 @@ int main(int argc, char *argv[])
 #if NB_HAVE_PB_BOTH==1
         log_printf("Attempt to show intro\n");
         start_state = &st_intro;
-#else
-        int val = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
-
-        if (val == -1)
-            start_state = &st_title;
-        else
-            start_state = &st_intro_restore;
 #endif
     }
 
-    main_preload(start_state);
+#ifndef SKIP_END_SUPPORT
+    main_preload(start_state, goto_end_support);
+#else
+    main_preload(start_state, 0);
+#endif
 
     /* Run the main game loop. */
 

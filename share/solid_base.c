@@ -72,12 +72,13 @@ static int sol_file(fs_file fin, int fp_ten)
     version = get_index(fin);
 
     if (fp_ten && (magic != SOL_MAGIC ||
-                   (version < 10 || version > SOL_VERSION_CURR)))
+                   (version < 10 || version > SOL_VERSION_CURR_CHKP)))
     {
         if (version < 10)
+        {
             log_errorf("SOLX is unsupported, must have SOL extension (SOL_VERSION < 10)!\n");
-
-        return 0;
+            return 0;
+        }
     }
     else if (!fp_ten && (magic != SOL_MAGIC ||
                          (version < SOL_VERSION_MIN || version > 9)))
@@ -726,7 +727,8 @@ int sol_load_base(struct s_base *fp, const char *filename)
 
     memset(fp, 0, sizeof (*fp));
 
-    if (str_ends_with(filename, ".csolx") || str_ends_with(filename, ".solx"))
+    if (str_ends_with(filename, ".csolx") ||
+        str_ends_with(filename, ".solx"))
     {
         /* *.csolx / *.solx = SOL version > 9 */
 
@@ -736,7 +738,8 @@ int sol_load_base(struct s_base *fp, const char *filename)
             fs_close(fin);
         }
     }
-    else if (str_ends_with(filename, ".csol") || str_ends_with(filename, ".sol"))
+    else if (str_ends_with(filename, ".csol") ||
+             str_ends_with(filename, ".sol"))
     {
         /* *.csol / *.sol = SOL version <= 9 */
 
@@ -746,7 +749,9 @@ int sol_load_base(struct s_base *fp, const char *filename)
             fs_close(fin);
         }
 
-        if (res) return res;
+        if (res != 0) return res;
+
+        log_errorf("No SOL found, migrating to SOLX: %s\n", filename);
 
         /* *.csolx / *.solx = SOL version > 9 */
 
@@ -793,7 +798,9 @@ int sol_load_meta(struct s_base *fp, const char *filename)
             fs_close(fin);
         }
 
-        if (res) return res;
+        if (res != 0) return res;
+
+        log_errorf("No SOL found, migrating to SOLX: %s\n", filename);
 
         /* *.csolx / *.solx = SOL version > 9 */
 

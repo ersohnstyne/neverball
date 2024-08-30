@@ -278,7 +278,7 @@ static int conf_enter(struct state *st, struct state *prev)
         if ((id = gui_vstack(root_id)))
         {
             gui_label(id, "Neverputt " VERSION, GUI_TNY, GUI_COLOR_WHT);
-            gui_multi(id, _("Copyright © 2024 Neverball authors\n"
+            gui_multi(id, _("Copyright Â© 2024 Neverball authors\n"
                             "Neverball is free software available under the terms of GPL v2 or later."),
                           GUI_TNY, GUI_COLOR_WHT);
             gui_clr_rect(id);
@@ -353,6 +353,8 @@ static int conf_buttn(int b, int d)
 
 static int null_enter(struct state *st, struct state *prev)
 {
+    video_motionblur_quit();
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     xbox_control_gui_free();
 #endif
@@ -375,6 +377,8 @@ static void null_leave(struct state *st, struct state *next, int id)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     xbox_control_gui_init();
 #endif
+
+    video_motionblur_init();
 }
 
 /*---------------------------------------------------------------------------*/

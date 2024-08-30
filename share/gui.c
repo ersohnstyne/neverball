@@ -53,6 +53,14 @@
 #endif
 #endif
 
+#if ENABLE_MOTIONBLUR!=0
+#define GUI_COLOR4UB \
+        gui_wht[0], gui_wht[1], gui_wht[2], ROUND((gui_wht[3] * widget[id].alpha) * video_motionblur_alpha_get())
+#else
+#define GUI_COLOR4UB \
+        gui_wht[0], gui_wht[1], gui_wht[2], ROUND((gui_wht[3] * widget[id].alpha))
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 /* Very pure colors for the GUI. I was watching BANZAI when I designed this. */
@@ -1938,7 +1946,7 @@ static void gui_paint_image(int id)
                  widget[id].pulse_scale);
 
         glBindTexture_(GL_TEXTURE_2D, widget[id].image);
-        glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+        glColor4ub(GUI_COLOR4UB);
         draw_image(id);
     }
     glPopMatrix();
@@ -1977,7 +1985,7 @@ static void gui_paint_count(int id)
                 int jd = digit_id[i][j % 10];
 
                 glBindTexture_(GL_TEXTURE_2D, widget[jd].image);
-                glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+                glColor4ub(GUI_COLOR4UB);
                 draw_text(jd);
                 glTranslatef((GLfloat) -widget[jd].text_w, 0.0f, 0.0f);
             }
@@ -1987,7 +1995,7 @@ static void gui_paint_count(int id)
             /* If the value is zero, just display a zero in place. */
 
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][0]].image);
-            glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+            glColor4ub(GUI_COLOR4UB);
             draw_text(digit_id[i][0]);
         }
     }
@@ -2057,7 +2065,7 @@ static void gui_paint_clock(int id)
         /*if (dyh > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][dyh]].image);
-            glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+            glColor4ub(GUI_COLOR4UB);
             draw_text(digit_id[i][dyh]);
             glTranslatef(dx_large, 0.0f, 0.0f);
         }
@@ -2065,7 +2073,7 @@ static void gui_paint_clock(int id)
         if (dyt > 0 || dyh > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][dyt]].image);
-            glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+            glColor4ub(GUI_COLOR4UB);
             draw_text(digit_id[i][dyt]);
             glTranslatef(dx_large, 0.0f, 0.0f);
         }
@@ -2073,7 +2081,7 @@ static void gui_paint_clock(int id)
         if (dyo > 0 || dyt > 0 || dyh > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][dyo]].image);
-            glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+            glColor4ub(GUI_COLOR4UB);
             draw_text(digit_id[i][dyo]);
             glTranslatef(dx_small, 0.0f, 0.0f);
         }*/
@@ -2083,7 +2091,7 @@ static void gui_paint_clock(int id)
         /*if (dyo > 0 || dyt > 0 || dyh > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][10]].image);
-            glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+            glColor4ub(GUI_COLOR4UB);
             draw_text(digit_id[i][11]);
             glTranslatef(dx_small, 0.0f, 0.0f);
         }*/
@@ -2093,7 +2101,7 @@ static void gui_paint_clock(int id)
         if (hrt > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][hrt]].image);
-            glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+            glColor4ub(GUI_COLOR4UB);
             draw_text(digit_id[i][hrt]);
             glTranslatef(dx_large, 0.0f, 0.0f);
         }
@@ -2101,7 +2109,7 @@ static void gui_paint_clock(int id)
         if (hro > 0 || hrt > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][hro]].image);
-            glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+            glColor4ub(GUI_COLOR4UB);
             draw_text(digit_id[i][hro]);
             glTranslatef(dx_small, 0.0f, 0.0f);
         }
@@ -2111,7 +2119,7 @@ static void gui_paint_clock(int id)
         if (hro > 0 || hrt > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][10]].image);
-            glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+            glColor4ub(GUI_COLOR4UB);
             draw_text(digit_id[i][10]);
             glTranslatef(dx_small, 0.0f, 0.0f);
         }
@@ -2121,32 +2129,32 @@ static void gui_paint_clock(int id)
         if (mt > 0 || hro > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][mt]].image);
-            glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+            glColor4ub(GUI_COLOR4UB);
             draw_text(digit_id[i][mt]);
             glTranslatef(dx_large, 0.0f, 0.0f);
         }
 
         glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][mo]].image);
-        glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+        glColor4ub(GUI_COLOR4UB);
         draw_text(digit_id[i][mo]);
         glTranslatef(dx_small, 0.0f, 0.0f);
 
         /* Render the colon (before seconds). */
 
         glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][10]].image);
-        glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+        glColor4ub(GUI_COLOR4UB);
         draw_text(digit_id[i][10]);
         glTranslatef(dx_small, 0.0f, 0.0f);
 
         /* Render the seconds counter. */
 
         glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][st]].image);
-        glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+        glColor4ub(GUI_COLOR4UB);
         draw_text(digit_id[i][st]);
         glTranslatef(dx_large, 0.0f, 0.0f);
 
         glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][so]].image);
-        glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+        glColor4ub(GUI_COLOR4UB);
         draw_text(digit_id[i][so]);
         glTranslatef(dx_small, 0.0f, 0.0f);
 
@@ -2155,12 +2163,12 @@ static void gui_paint_clock(int id)
         glScalef(0.5f, 0.5f, 1.0f);
 
         glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][ht]].image);
-        glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+        glColor4ub(GUI_COLOR4UB);
         draw_text(digit_id[i][ht]);
         glTranslatef(dx_large, 0.0f, 0.0f);
 
         glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][ho]].image);
-        glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+        glColor4ub(GUI_COLOR4UB);
         draw_text(digit_id[i][ho]);
     }
     glPopMatrix();
@@ -2185,7 +2193,7 @@ static void gui_paint_label(int id)
                  widget[id].pulse_scale);
 
         glBindTexture_(GL_TEXTURE_2D, widget[id].image);
-        glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], ROUND(gui_wht[3] * widget[id].alpha));
+        glColor4ub(GUI_COLOR4UB);
         draw_text(id);
     }
     glPopMatrix();
@@ -2347,6 +2355,8 @@ void gui_animate(int id)
 
 void gui_paint(int id)
 {
+    video_can_swap_window = 1;
+
     if (id)
     {
         video_set_ortho();
@@ -2356,24 +2366,20 @@ void gui_paint(int id)
             gui_animate(id);
 
             draw_enable(GL_FALSE, GL_TRUE, GL_TRUE);
-            glColor4ub(gui_wht[0],
-                       gui_wht[1],
-                       gui_wht[2],
-                       ROUND(gui_wht[3] * widget[id].alpha));
+            glColor4ub(GUI_COLOR4UB);
             gui_paint_rect(id, 0, 0);
 
             draw_enable(GL_TRUE, GL_TRUE, GL_TRUE);
-            glColor4ub(gui_wht[0],
-                       gui_wht[1],
-                       gui_wht[2],
-                       ROUND(gui_wht[3] * widget[id].alpha));
+            glColor4ub(GUI_COLOR4UB);
             gui_paint_text(id);
 
             draw_disable();
-            glColor4ub(gui_wht[0],
-                       gui_wht[1],
-                       gui_wht[2],
-                       viewport_wireframe == 4 && render_fill_overlay == 1 ? 0x80 : 0xFF);
+            glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2],
+#if ENABLE_MOTIONBLUR!=0
+                       ROUND(gui_wht[3] * video_motionblur_alpha_get()));
+#else
+                       ROUND(gui_wht[3]));
+#endif
         }
         glEnable(GL_DEPTH_TEST);
     }
@@ -2387,27 +2393,15 @@ void gui_paint(int id)
 
             draw_enable(GL_TRUE, GL_TRUE, GL_TRUE);
 
-            if (viewport_wireframe == 2)
-            {
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                glEnable(GL_TEXTURE_2D);
-
-                if (render_left_viewport && !splitview_crossed)
-                    gui_paint_image(cursor_id);
-                if (render_right_viewport && splitview_crossed)
-                    gui_paint_image(cursor_id);
-
-                if (render_right_viewport)
-                {
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                    glDisable(GL_TEXTURE_2D);
-                }
-            }
-            else
-                gui_paint_image(cursor_id);
+            gui_paint_image(cursor_id);
 
             draw_disable();
-            glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2], gui_wht[3]);
+            glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2],
+#if ENABLE_MOTIONBLUR!=0
+                       ROUND(gui_wht[3] * video_motionblur_alpha_get()));
+#else
+                       ROUND(gui_wht[3]));
+#endif
 
             glEnable(GL_DEPTH_TEST);
         }
@@ -2904,7 +2898,7 @@ int gui_navig_full(int id, int total, int first, int step, int back_disabled)
 #endif
             }
 
-            if ((kd = gui_label(jd, "9999/9999", GUI_SML, gui_wht, gui_wht)))
+            if ((kd = gui_label(jd, "9999999/9999999", GUI_SML, gui_wht, gui_wht)))
             {
                 char str[16];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS

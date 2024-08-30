@@ -31,7 +31,7 @@
  * Premium: dlcball.stynegame.de
  * Legacy downloads: play.neverball.org
  */
-#define NB_CURRDOMAIN_PREMIUM "play.neverball.org"
+#define NB_CURRDOMAIN_PREMIUM "dlcball.stynegame.de"
 
 enum package_image_status
 {

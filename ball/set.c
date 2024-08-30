@@ -959,6 +959,7 @@ static void set_load_levels(void)
         }
         else
         {
+            SAFECPY(l->file, ""); l->file[0] = 0;
             i_retreat++;
             log_errorf("Could not load level file: %s / Retreated levels: %d\n", s->level_name_v[i], i_retreat);
         }
@@ -1039,7 +1040,8 @@ int curr_set(void)
 
 struct level *get_level(int i)
 {
-    return (i >= 0 && i < SET_GET(sets, curr)->count) ? &level_v[i] : NULL;
+    return (i >= 0 && i < SET_GET(sets, curr)->count) ?
+           (level_v[i].file[0] ? &level_v[i] : NULL) : NULL;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1123,17 +1125,11 @@ void level_snap(int i, const char *path)
 
         video_clear();
 
-        if (viewport_wireframe)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
         game_client_fly(1.0f);
         game_kill_fade();
         game_client_draw(POSE_LEVEL, 0);
         video_snap(filename);
         video_swap();
-
-        if (viewport_wireframe)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
 
     free(filename);

@@ -25,6 +25,8 @@
 #include "common.h"
 #include "fs.h"
 
+#include "log.h"
+
 /*---------------------------------------------------------------------------*/
 
 static int _ft_is_init = 0;

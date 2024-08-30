@@ -344,51 +344,57 @@ static int gui_demo_thumbs(int id)
     int w = video.device_w;
     int h = video.device_h;
 
-    int jd, kd, ld;
+    int jd, kd, ld, md;
     int i, j;
 
     struct thumb *thumb;
 
-    if ((jd = gui_varray(id)))
-        for (i = first; i < first + DEMO_STEP; i += DEMO_LINE)
-            if ((kd = gui_harray(jd)))
-            {
-                for (j = i + DEMO_LINE - 1; j >= i; j--)
+    if ((jd = gui_hstack(id)))
+    {
+        gui_filler(jd);
+
+        if ((kd = gui_varray(jd)))
+            for (i = first; i < first + DEMO_STEP; i += DEMO_LINE)
+                if ((ld = gui_harray(kd)))
                 {
-                    thumb = &thumbs[j % DEMO_STEP];
-
-                    thumb->item = j;
-
-                    if (j < total)
+                    for (j = i + DEMO_LINE - 1; j >= i; j--)
                     {
-                        if ((ld = gui_vstack(kd)))
-                        {
-                            const int ww = MIN(w, h) * 2 / 9;
-                            const int hh = ww / 4 * 3;
+                        thumb = &thumbs[j % DEMO_STEP];
 
+                        thumb->item = j;
+
+                        if (j < total)
+                        {
+                            if ((md = gui_vstack(ld)))
+                            {
+                                const int ww = MIN(w, h) * 2 / 9;
+                                const int hh = ww / 4 * 3;
+
+                                gui_space(md);
+
+                                thumb->shot_id = gui_image(md, " ", ww, hh);
+                                thumb->name_id = gui_label(md, " ", GUI_TNY,
+                                                           GUI_COLOR_WHT);
+
+                                gui_set_trunc(thumb->name_id, TRUNC_TAIL);
+                                gui_set_state(md, DEMO_SELECT, j);
+
+                                thumb->thumb_id = md;
+                            }
+                        }
+                        else
+                        {
                             gui_space(ld);
 
-                            thumb->shot_id = gui_image(ld, " ", ww, hh);
-                            thumb->name_id = gui_label(ld, " ", GUI_TNY,
-                                                       GUI_COLOR_WHT);
-
-                            gui_set_trunc(thumb->name_id, TRUNC_TAIL);
-                            gui_set_state(ld, DEMO_SELECT, j);
-
-                            thumb->thumb_id = ld;
+                            thumb->shot_id = 0;
+                            thumb->name_id = 0;
+                            thumb->thumb_id = 0;
                         }
                     }
-                    else
-                    {
-                        gui_space(kd);
-
-                        thumb->shot_id = 0;
-                        thumb->name_id = 0;
-                        thumb->thumb_id = 0;
-                    }
                 }
-            }
 
+        gui_filler(jd);
+    }
     return jd;
 }
 
@@ -1024,11 +1030,11 @@ static int demo_gui(void)
 
         /* HACK: Must center-aligned for two side vertical space bars. */
 
-        /*if ((jd = gui_hstack(id)))
+        /*if ((kd = gui_hstack(id)))
         {
-            gui_filler(jd);
-            gui_demo_thumbs(jd);
-            gui_filler(jd);
+            gui_filler(kd);
+            gui_demo_thumbs(kd);
+            gui_filler(kd);
         }*/
 
         gui_demo_thumbs(id);
@@ -1058,6 +1064,8 @@ static int demo_gui(void)
             gui_space(id);
             gui_back_button(id);
         }
+#else
+        gui_back_button(id);
 #endif
 
         gui_layout(id, 0, 0);
@@ -1076,6 +1084,8 @@ static int demo_gui(void)
             gui_space(id);
             gui_back_button(id);
         }
+#else
+        gui_back_button(id);
 #endif
 
         gui_layout(id, 0, 0);
@@ -1696,7 +1706,7 @@ static int demo_end_gui(void)
             /* Microsoft and Windows Games can do it! */
 #ifndef _MSC_VER
             if (!standalone)
-                gui_state(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
+                gui_state(kd, _("Delete"), GUI_SML, DEMO_DEL, 0);
 #endif
 
             /* Only that is limit underneath it */

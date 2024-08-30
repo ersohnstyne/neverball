@@ -434,6 +434,7 @@ static void sol_free_mesh(struct d_mesh *mp)
 static void sol_draw_mesh(const struct d_mesh *mp,
                           struct s_rend *rend, int p)
 {
+
     /* If this mesh has material matching the given flags... */
 
     if (sol_test_mtrl(mp->mtrl, p))
@@ -804,6 +805,8 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
         glPushMatrix();
         glLoadIdentity();
         {
+            unsigned char motionblur_c[4] = DRAW_COLOR4UBV_CNF_MOTIONBLUR;
+
             glDisable(GL_DEPTH_TEST);
             glDisable(GL_TEXTURE_2D);
 
@@ -818,7 +821,8 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
             sol_draw_bill(GL_FALSE);
             sol_bill_disable();
 
-            glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
+            glColor4ub(motionblur_c[0], motionblur_c[1], motionblur_c[2],
+                       motionblur_c[3]);
 
             glEnable(GL_TEXTURE_2D);
             glEnable(GL_DEPTH_TEST);
@@ -916,7 +920,10 @@ void r_color_mtrl(struct s_rend *rend, int enable)
     }
     else
     {
-        glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
+        unsigned char motionblur_c[4] = DRAW_COLOR4UBV_CNF_MOTIONBLUR;
+
+        glColor4ub(motionblur_c[0], motionblur_c[1], motionblur_c[2],
+                   motionblur_c[3]);
 
         glDisable(GL_COLOR_MATERIAL);
 
@@ -950,16 +957,39 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
 
     /* Set material properties. */
 
-    if (mp->d != mq->d && !rend->color_mtrl)
-        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   mp->base.d);
-    if (mp->a != mq->a && !rend->color_mtrl)
-        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,   mp->base.a);
-    if (mp->s != mq->s)
-        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  mp->base.s);
-    if (mp->e != mq->e)
-        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION,  mp->base.e);
-    if (mp->h != mq->h)
-        glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mp->base.h);
+#if ENABLE_MOTIONBLUR!=0
+    if (config_get_d(CONFIG_MOTIONBLUR))
+    {
+        float d_blur[4]; v_cpy(d_blur, mp->base.d); d_blur[3] = mp->base.d[3] * video_motionblur_alpha_get();
+        float a_blur[4]; v_cpy(a_blur, mp->base.a); a_blur[3] = mp->base.a[3] * video_motionblur_alpha_get();
+        float s_blur[4]; v_cpy(s_blur, mp->base.s); s_blur[3] = mp->base.s[3] * video_motionblur_alpha_get();
+        float e_blur[4]; v_cpy(e_blur, mp->base.e); e_blur[3] = mp->base.e[3] * video_motionblur_alpha_get();
+
+        if (mp->d != mq->d && !rend->color_mtrl)
+            glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   d_blur);
+        if (mp->a != mq->a && !rend->color_mtrl)
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,   a_blur);
+        if (mp->s != mq->s)
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  s_blur);
+        if (mp->e != mq->e)
+            glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION,  e_blur);
+        if (mp->h != mq->h)
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mp->base.h);
+    }
+    else
+#endif
+    {
+        if (mp->d != mq->d && !rend->color_mtrl)
+            glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   mp->base.d);
+        if (mp->a != mq->a && !rend->color_mtrl)
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,   mp->base.a);
+        if (mp->s != mq->s)
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  mp->base.s);
+        if (mp->e != mq->e)
+            glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION,  mp->base.e);
+        if (mp->h != mq->h)
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mp->base.h);
+    }
 
     /* Ball shadow. */
 

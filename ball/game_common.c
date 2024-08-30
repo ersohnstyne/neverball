@@ -335,28 +335,50 @@ void game_view_fly(struct game_view *view, const struct s_vary *vary, int ui, fl
 
     /* k = +1.0 view is s_view 0 */
 
-    if (k >= 0 && vary->base->wc > 0)
+    if (k >= 0)
     {
+        if (vary->base->wc > 0)
+        {
 #ifdef MAPC_INCLUDES_CHKP
-        v_cpy(p1, last_active ? chkp_campos : vary->base->wv[0].p);
-        v_cpy(c1, last_active ? chkp_campos_center : vary->base->wv[0].q);
+            v_cpy(p1, last_active ? chkp_campos        : vary->base->wv[0].p);
+            v_cpy(c1, last_active ? chkp_campos_center : vary->base->wv[0].q);
 #else
-        v_cpy(p1, vary->base->wv[0].p);
-        v_cpy(c1, vary->base->wv[0].q);
+            v_cpy(p1, vary->base->wv[0].p);
+            v_cpy(c1, vary->base->wv[0].q);
 #endif
+        }
+        else if (vary->base->uc > 0)
+        {
+            v_cpy(p1, vary->base->uv[0].p);
+            v_cpy(c1, vary->base->uv[0].p);
+
+            p1[1] += 10.0f;
+            p1[2] += 10.0f;
+        }
     }
 
     /* k = -1.0 view is s_view 1 */
 
-    if (k <= 0 && vary->base->wc > 1)
+    if (k <= 0)
     {
+        if (vary->base->wc > 1)
+        {
 #ifdef MAPC_INCLUDES_CHKP
-        v_cpy(p1, last_active ? chkp_campos : vary->base->wv[1].p);
-        v_cpy(c1, last_active ? chkp_campos_center : vary->base->wv[1].q);
+            v_cpy(p1, last_active ? chkp_campos        : vary->base->wv[1].p);
+            v_cpy(c1, last_active ? chkp_campos_center : vary->base->wv[1].q);
 #else
-        v_cpy(p1, vary->base->wv[1].p);
-        v_cpy(c1, vary->base->wv[1].q);
+            v_cpy(p1, vary->base->wv[1].p);
+            v_cpy(c1, vary->base->wv[1].q);
 #endif
+        }
+        else if (vary->base->uc > 0)
+        {
+            v_cpy(p1, vary->base->uv[0].p);
+            v_cpy(c1, vary->base->uv[0].p);
+
+            p1[1] += 10.0f;
+            p1[2] += 10.0f;
+        }
     }
 
     /* Interpolate the views. */

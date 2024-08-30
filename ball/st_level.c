@@ -54,6 +54,8 @@
 #include "powerup.h"
 #endif
 
+#include "activity_services.h"
+
 #include "game_draw.h"
 #include "game_server.h"
 #include "game_client.h"
@@ -103,10 +105,7 @@ static int level_check_playername(const char *regname)
             regname[i] == '<'  ||
             regname[i] == '>'  ||
             regname[i] == '|')
-        {
-            log_errorf("Can't accept other charsets!: %c\n", regname[i]);
             return 0;
-        }
     }
 
     return 1;
@@ -160,9 +159,11 @@ static int level_loading_enter(struct state *st, struct state *prev)
 
     int max_index = 7;
 
+#if NB_HAVE_PB_BOTH==1
 #ifndef __EMSCRIPTEN__
     if (current_platform != PLATFORM_PC)
         max_index = 5;
+#endif
 #endif
 
     int index_affect = rand_between(0, max_index);
@@ -231,20 +232,23 @@ static int level_action(int tok, int val)
     switch (tok)
     {
         case LEVEL_START_POWERUP:
-            if (val == 3)
+            if     (val == 3)
             {
+                activity_services_powerup_update(AS_POWERUP_SPEEDIFIER);
                 audio_play("snd/speedifier.ogg", 1.0f);
-                init_speedifier();
+                powerup_init_speedifier();
             }
             else if (val == 2)
             {
+                activity_services_powerup_update(AS_POWERUP_FLOATIFIER);
                 audio_play("snd/floatifier.ogg", 1.0f);
-                init_floatifier();
+                powerup_init_floatifier();
             }
             else if (val == 1)
             {
+                activity_services_powerup_update(AS_POWERUP_EARNINATOR);
                 audio_play("snd/earninator.ogg", 1.0f);
-                init_earninator();
+                powerup_init_earninator();
             }
 
             /* Combined enum buttons: LEVEL_START */
@@ -297,6 +301,47 @@ static int level_gui(void)
 
     if ((id = gui_vstack(0)))
     {
+        int  set_special_lbl = 0;
+        char set_special_txt[MAXSTR];
+
+        const char *curr_setid = set_id(curr_set());
+        char curr_setid_final[MAXSTR];
+
+        if (!curr_setid)
+        {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(curr_setid_final, MAXSTR,
+#else
+            sprintf(curr_setid_final,
+#endif
+                    _("none_%d"), curr_set());
+        }
+        else
+            SAFECPY(curr_setid_final, curr_setid);
+
+        if (str_starts_with(curr_setid_final, "SB") ||
+            str_starts_with(curr_setid_final, "sb") ||
+            str_starts_with(curr_setid_final, "Sb") ||
+            str_starts_with(curr_setid_final, "sB"))
+        {
+            SAFECPY(set_special_txt, GUI_AIRPLANE " ");
+            SAFECAT(set_special_txt, _("Pre-Classic Campaign"));
+            set_special_lbl = 1;
+        }
+
+        if (str_starts_with(curr_setid_final, "anime"))
+        {
+            SAFECPY(set_special_txt, GUI_AIRPLANE " ");
+            SAFECAT(set_special_txt, _("ANA-Exclusive"));
+            set_special_lbl = 1;
+        }
+
+        if (set_special_lbl)
+        {
+            gui_label(id, set_special_txt, GUI_SML, gui_cya, gui_blu);
+            gui_space(id);
+        }
+
 #ifdef CONFIG_INCLUDES_ACCOUNT
         if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) &&
             server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
@@ -342,6 +387,21 @@ static int level_gui(void)
                 int b = level_bonus(curr_level());
                 int m = level_master(curr_level());
 
+                const char *curr_setname = set_name(curr_set());
+                char curr_setname_final[MAXSTR];
+
+                if (!curr_setname)
+                {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sprintf_s(curr_setname_final, MAXSTR,
+#else
+                    sprintf(curr_setname_final,
+#endif
+                            _("Untitled set name (%d)"), curr_set());
+                }
+                else
+                        SAFECPY(curr_setname_final, curr_setname);
+
                 char setattr[MAXSTR], lvlattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -367,9 +427,9 @@ static int level_gui(void)
                     if (curr_mode() == MODE_STANDALONE)
                         sprintf_s(setattr, MAXSTR, _("Standalone level"));
                     else if (curr_mode() == MODE_NORMAL)
-                        sprintf_s(setattr, MAXSTR, "%s", set_name(curr_set()));
+                        sprintf_s(setattr, MAXSTR, "%s", curr_setname_final);
                     else if (curr_mode() != MODE_NONE)
-                        sprintf_s(setattr, MAXSTR, _("%s: %s"), set_name(curr_set()), mode_to_str(curr_mode(), 1));
+                        sprintf_s(setattr, MAXSTR, _("%s: %s"), curr_setname_final, mode_to_str(curr_mode(), 1));
 #else
                 if (m && curr_mode() == MODE_STANDALONE)
                     sprintf(lvlattr, _("Master Level"));
@@ -393,9 +453,9 @@ static int level_gui(void)
                     if (curr_mode() == MODE_STANDALONE)
                         sprintf(setattr, _("Standalone level"));
                     else if (curr_mode() == MODE_NORMAL)
-                        sprintf(setattr, "%s", set_name(curr_set()));
+                        sprintf(setattr, "%s", curr_setname_final);
                     else if (curr_mode() != MODE_NONE)
-                        sprintf(setattr, _("%s: %s"), set_name(curr_set()), mode_to_str(curr_mode(), 1));
+                        sprintf(setattr, _("%s: %s"), curr_setname_final, mode_to_str(curr_mode(), 1));
 #endif
                 gui_title_header(kd, lvlattr,
                                      m || b ? GUI_MED : GUI_LRG,
@@ -414,15 +474,6 @@ static int level_gui(void)
         }
 
         gui_space(id);
-
-        if (str_starts_with(set_id(curr_set()), "SB") ||
-            str_starts_with(set_id(curr_set()), "sb") ||
-            str_starts_with(set_id(curr_set()), "Sb") ||
-            str_starts_with(set_id(curr_set()), "sB"))
-        {
-            gui_label(id, _("Pre-Classic Campaign"), GUI_SML, GUI_COLOR_CYA);
-            gui_space(id);
-        }
 
 #ifdef ENABLE_POWERUP
         if ((level_master(curr_level())    ||
@@ -720,7 +771,7 @@ static int level_click(int b, int d)
 #elif SWITCHBALL_HAVE_TIP_AND_TUTORIAL
         return (!tutorial_check() && !hint_check()) ? goto_state(&st_play_ready) : 1;
 #else
-        return goto_state(&st_play_ready) : 1;
+        return goto_state(&st_play_ready);
 #endif
     }
 

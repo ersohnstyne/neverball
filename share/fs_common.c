@@ -344,24 +344,4 @@ const char *fs_resolve(const char *system)
     return NULL;
 }
 
-void fs_persistent_sync(void)
-{
-    /* This synchronizes in-memory state to persistent storage. The persistent
-     * store is created/loaded during Emscripten's Module['preInit'].  */
-#ifdef __EMSCRIPTEN__
-    EM_ASM({
-        console.log('Synchronizing to persistent storage...');
-
-        FS.syncfs(false, function(err) {
-            if (err) {
-                console.error('Failed to synchronize to persistent storage: ' + err);
-            }
-             else {
-                console.log('Successfully synced to persistent storage.');
-            }
-        });
-    });
-#endif
-}
-
 /*---------------------------------------------------------------------------*/

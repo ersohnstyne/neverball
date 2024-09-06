@@ -454,7 +454,6 @@ void demo_play_stop(int d)
         if (d)
             fs_remove(demo_play.path);
 
-        fs_persistent_sync();
         demo_refresh();
     }
 }
@@ -476,7 +475,6 @@ int demo_rename(const char *name)
         if (strcmp(demo_play.name, name) != 0 && fs_exists(demo_play.path))
         {
             r = fs_rename(demo_play.path, path);
-            fs_persistent_sync();
             demo_refresh();
         }
     }
@@ -608,7 +606,6 @@ void demo_replay_stop(int d)
 
         if (d) fs_remove(demo_replay.path);
 
-        fs_persistent_sync();
         demo_refresh();
     }
 }

@@ -70,6 +70,4 @@ void  fs_dir_free(Array);
 
 const char *fs_resolve(const char *);
 
-void fs_persistent_sync(void);
-
 #endif

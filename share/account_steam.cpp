@@ -378,7 +378,6 @@ extern "C" void account_save(void)
             put_string(fh, account_s[i].cur);
 
         fs_close(fh);
-        fs_persistent_sync();
 
         dirty = 0;
     }

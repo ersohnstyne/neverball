@@ -420,7 +420,6 @@ void account_transfer_load_externals(const char *paths)
         }
 #endif
         fs_close(fh);
-        fs_persistent_sync();
 
         account_transfer_busy = 0;
     }
@@ -484,7 +483,6 @@ void account_transfer_save(const char *playername)
             fs_printf(fh, "%-25s %s\n", account_transfer_s[i].name, account_transfer_s[i].cur);
 #endif
         fs_close(fh);
-        fs_persistent_sync();
     }
     else
         log_errorf("Failure to save account transfer file!: %s / %s\n", paths, fs_error());

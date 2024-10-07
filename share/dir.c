@@ -102,7 +102,7 @@ List dir_list_files(const char *path)
             struct stat _buf;
             char tmp_real[256];
 
-            sprintf_s(tmp_real, 256, "%s\\%s", outpath, find_data.cFileName);
+            sprintf_s(tmp_real, 256, "%s\\%s", path, find_data.cFileName);
 
             if (stat(tmp_real, &_buf) == 0)
                 files = list_cons(strdup(find_data.cFileName), files);

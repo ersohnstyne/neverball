@@ -12,6 +12,8 @@
  * General Public License for more details.
  */
 
+#ifndef __EMSCRIPTEN__
+
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #elif _WIN32 && _MSC_VER
@@ -856,3 +858,5 @@ void audio_volume(int master, int sound, int music, int narrator)
 }
 
 /*---------------------------------------------------------------------------*/
+
+#endif

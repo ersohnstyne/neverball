@@ -95,30 +95,30 @@ static const char *get_package_url(const char *filename, int category)
         {
             case PACKAGE_CATEGORY_PROFILE:
                 /* Uses ball models */
-                SAFECPY(url, "/packages/ball/");
+                SAFECPY(url, "packages/ball/");
                 break;
             case PACKAGE_CATEGORY_GUI:
                 /* Uses GUI interfaces */
-                SAFECPY(url, "/packages/gui/");
+                SAFECPY(url, "packages/gui/");
                 break;
             case PACKAGE_CATEGORY_CAMPAIGN:
                 /* Uses campaign */
-                SAFECPY(url, "/packages/campaign/");
+                SAFECPY(url, "packages/campaign/");
                 break;
             case PACKAGE_CATEGORY_LEVELSET:
                 /* Uses premium sets */
-                SAFECPY(url, "/packages/levelsets/");
+                SAFECPY(url, "packages/levelsets/");
                 break;
             case PACKAGE_CATEGORY_COURSE:
                 /* Uses courses */
-                SAFECPY(url, "/packages/course/");
+                SAFECPY(url, "packages/course/");
                 break;
             default:
-                SAFECPY(url, "/packages/");
+                SAFECPY(url, "packages/");
         }
 #else
         /* Uses standard vanilla game */
-        SAFECPY(url, "/packages/");
+        SAFECPY(url, "packages/");
 #endif
 #else
 #if defined(NB_PACKAGES_PREMIUM)

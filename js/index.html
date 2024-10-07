@@ -63,6 +63,7 @@ General Public License for more details.
     .container {
       box-sizing: border-box;
       max-width: 81.6rem;
+      flex-basis: 81.6rem;
       padding: 0.8rem;
       margin: 0 auto;
     }
@@ -162,7 +163,7 @@ General Public License for more details.
       --size: 48px;
       background-color: rgba(103, 104, 109, 0.7);
       position: relative;
-      margin-bottom: 2rem;
+      margin-bottom: 1.6rem;
       border-radius: var(--size);
       overflow: hidden;
       display: flex;
@@ -235,7 +236,7 @@ General Public License for more details.
       font-size: 1.4rem;
       text-shadow: 0.08em 0.08em rgba(0, 0, 0, 0.5);
       font-family: "DejaVu Sans", Verdana, sans-serif;
-      display: inline-block;
+      display: inline-flex;
     }
 
     .neverball-button:disabled {
@@ -339,12 +340,20 @@ General Public License for more details.
       margin: 0;
     }
 
+    .mb-2\.5 {
+      margin-bottom: 1rem;
+    }
+
     .list-none {
       list-style-type: none;
     }
 
     .hidden {
       display: none;
+    }
+
+    .min-h-7 {
+      min-height: 2.8rem;
     }
 
     h1, h2 {
@@ -366,6 +375,12 @@ General Public License for more details.
 
     .text-xs {
       font-size: 1.2rem;
+      line-height: 1.6rem;
+    }
+
+    .text-sm {
+      font-size: 1.4rem;
+      line-height: 2.0rem;
     }
 
     .flex-wrap {
@@ -418,6 +433,22 @@ General Public License for more details.
         transform: rotate(20deg);
       }
     }
+
+    @media (display-mode: standalone) {
+      .in-app\:hidden {
+        display: none;
+      }
+
+      body {
+        display: flex;
+        align-items: center;
+        min-height: 100dvh;
+      }
+
+      main {
+        min-width: 0;
+      }
+    }
   </style>
 </head>
 
@@ -428,7 +459,7 @@ General Public License for more details.
     }
   </script>
 
-  <section class="container flex flex-column gap-4">
+  <main class="container flex flex-column gap-4">
     <div class="neverball-box in-game:hidden">
       <h1><span class="neverball-text">Play Neverball</span></h1>
 
@@ -473,6 +504,11 @@ General Public License for more details.
         </div>
       </div>
 
+      <div class="mb-2.5 text-xs flex items-center gap-1">
+        <input type="checkbox" id="fullscreen-checkbox" autocomplete="off">
+        <label for="fullscreen-checkbox">Start game in fullscreen</label>
+      </div>
+
       <div class="flex gap-2 items-center">
         <button id="run-button" type="button" class="neverball-button" disabled autocomplete="off">Play Now</button>
         <div id="status" class="text-white">Downloading...</div>
@@ -491,7 +527,7 @@ General Public License for more details.
       <h2><span class="neverball-text">Replays</span></h2>
 
       <div class="flex flex-column gap-2.5">
-        <div id="replay-list-desc">Save or add some replays to see them here.</div>
+        <div id="replay-list-desc" class="min-h-7">Save or add some replays to see them here.</div>
 
         <ol class="list-none p-0 m-0 flex gap-1 flex-wrap" id="replay-list">
         </ol>
@@ -514,10 +550,10 @@ General Public License for more details.
       </div>
     </div> -->
 
-    <div class="neverball-box in-game:hidden">
+    <div class="neverball-box in-game:hidden in-app:hidden">
       <h2><span class="neverball-text">About the game</span></h2>
 
-      <img id="screenshot" alt="Screenshot of the Neverball title screen." src="screenshot.png">
+      <img id="screenshot" alt="Screenshot of the Neverball title screen." width="320" height="180" src="screenshot.png">
 
       <p>Play Neverball in your browser!</p>
 
@@ -539,7 +575,7 @@ General Public License for more details.
       <p>You also have the freedom to run, study, modify, and distribute Neverball and its modified versions. Grab the source code here: <a href="./neverball-source.zip" download="neverball-source.zip">neverball-source.zip</a></p>
 
     </div>
-  </div>
+  </main>
 
   <script>
     'use strict';
@@ -561,6 +597,7 @@ General Public License for more details.
       _replayListBox: document.getElementById('replay-list-box'),
       _replayListDesc: document.getElementById('replay-list-desc'),
       _replayList: document.getElementById('replay-list'),
+      _fullscreenCheckbox: document.getElementById('fullscreen-checkbox'),
 
       events: {
         runButtonClick: function (event) {
@@ -572,13 +609,14 @@ General Public License for more details.
          * Request fullscreen on the container.
          */
         fullscreenButtonClick: function (event) {
-          var wrapper = document.getElementById('canvas-wrapper');
+          Neverball.requestFullscreen();
+        },
 
-          if ('webkitRequestFullscreen' in wrapper) {
-            wrapper.webkitRequestFullscreen();
-          } else {
-            wrapper.requestFullscreen();
-          }
+        /**
+         * Request fullscreen on the container.
+         */
+        fullscreenCheckboxChange: function (event) {
+          window.localStorage.setItem('launchInFullscreen', this.checked ? '1' : '0');
         },
 
         /**
@@ -751,11 +789,14 @@ General Public License for more details.
       },
 
       ready: function () {
-        console.log('ready');
         this._runButton.disabled = false;
+
 
         this._runButton.addEventListener('click', this.events.runButtonClick);
         this._fullscreenButton.addEventListener('click', this.events.fullscreenButtonClick);
+
+        this._fullscreenCheckbox.checked = (window.localStorage.getItem('launchInFullscreen') === '1');
+        this._fullscreenCheckbox.addEventListener('change', this.events.fullscreenCheckboxChange);
 
         document.addEventListener('fullscreenchange', this.events.fullscreenChange);
         document.addEventListener('pointerlockchange', this.events.pointerLockChange);
@@ -765,12 +806,26 @@ General Public License for more details.
         this.refreshReplays();
       },
 
+      requestFullscreen: function () {
+        var wrapper = document.getElementById('canvas-wrapper');
+
+        if ('webkitRequestFullscreen' in wrapper) {
+          wrapper.webkitRequestFullscreen();
+        } else {
+          wrapper.requestFullscreen();
+        }
+      },
+
       run: function () {
         this.isRunning = true;
 
         document.body.classList.add('in-game');
 
         Module.callMain(Neverball.arguments);
+
+        if (this._fullscreenCheckbox.checked) {
+          this.requestFullscreen();
+        }
       },
 
       quit: function () {
@@ -909,6 +964,160 @@ General Public License for more details.
         } else {
           persistInput.disabled = true;
         }
+      },
+
+      /** @type {AudioContext?} */
+      audioContext: null,
+
+      /** @type {GainNode?} */
+      audioSoundSink: null,
+
+      /** @type {GainNode?} */
+      audioMusicSink: null,
+
+      /** @type {string?} */
+      audioMusicFile: null,
+
+      /** @type {AudioBufferSourceNode?} */
+      audioMusicSourceNode: null,
+
+      /** @type {GainNode?} */
+      audioMusicGainNode: null,
+
+      audioInit: function () {
+        this.audioContext = new AudioContext({
+          sampleRate: 44100.0
+        });
+
+        this.audioSoundSink = new GainNode(this.audioContext);
+        this.audioMusicSink = new GainNode(this.audioContext);
+
+        this.audioSoundSink.connect(this.audioContext.destination);
+        this.audioMusicSink.connect(this.audioContext.destination);
+      },
+
+      audioVolume: function (soundVolume, musicVolume) {
+        this.audioSoundSink?.gain.setValueAtTime(soundVolume, this.audioContext.currentTime);
+        this.audioMusicSink?.gain.setValueAtTime(musicVolume, this.audioContext.currentTime);
+      },
+
+      audioQuit: function () {
+        this.audioContext?.close();
+
+        this.audioContext = null;
+
+        this.audioSoundSink = null;
+        this.audioMusicSink = null;
+
+        this.audioMusicFile = null;
+        this.audioMusicSourceNode = null;
+        this.audioMusicGainNode = null;
+
+        this.audioCanPlayOgg = (new Audio()).canPlayType('audio/ogg') !== '';
+      },
+
+      audioPlay: async function (fileName, fileData, a) {
+        if (fileName.endsWith('.ogg') && !this.audioCanPlayOgg) {
+          // MP3 fallback for Safari.
+
+          const response = await fetch('packages/mp3/' + fileName.replace('.ogg', '.mp3'));
+
+          if (response.ok) {
+            fileData = await response.arrayBuffer();
+          }
+        }
+
+        const audioBuffer = await this.audioContext?.decodeAudioData(fileData);
+
+        if (!audioBuffer) {
+          return;
+        }
+
+        const sourceNode = new AudioBufferSourceNode(this.audioContext, {
+            buffer: audioBuffer,
+        });
+
+        const gainNode = new GainNode(this.audioContext, {
+          gain: a
+        });
+
+        sourceNode.onended = () => {
+          gainNode.disconnect();
+        };
+
+        sourceNode.connect(gainNode);
+        gainNode.connect(this.audioSoundSink);
+
+        sourceNode.start();
+      },
+
+      audioMusicFadeTo: async function (fileName, fileData, fadeTime) {
+        if (this.audioMusicFile && fileName === this.audioMusicFile) {
+          // If we're already playing this BGM, just force a fade-in.
+
+          this.audioMusicFadeIn(fadeTime);
+        } else {
+          // Fade out any existing BGM.
+
+          this.audioMusicFadeOut(fadeTime);
+
+          // Set up and fade in the new BGM.
+
+          let url;
+
+          if (this.audioCanPlayOgg) {
+            const blob = new Blob([fileData], {type: 'audio/ogg'});
+
+            url = URL.createObjectURL(blob);
+          } else {
+            url = 'packages/mp3/' + fileName.replace('.ogg', '.mp3');
+          }
+
+          const audioElem = new Audio(url);
+
+          audioElem.loop = true;
+
+          const sourceNode = new MediaElementAudioSourceNode(this.audioContext, {
+            mediaElement: audioElem,
+          });
+
+          const gainNode = new GainNode(this.audioContext, {
+            gain: 0.0,
+          });
+
+          this.audioMusicFile = fileName;
+          this.audioMusicSourceNode = sourceNode;
+          this.audioMusicGainNode = gainNode;
+
+          // Weird rules.
+          gainNode.gain.setValueAtTime(gainNode.gain.value, this.audioContext.currentTime);
+          gainNode.gain.linearRampToValueAtTime(1.0, this.audioContext.currentTime + fadeTime);
+
+          sourceNode.onended = () => {
+            gainNode.disconnect();
+          };
+
+          sourceNode.connect(gainNode);
+          gainNode.connect(this.audioMusicSink);
+
+          audioElem.play();
+        }
+      },
+
+      audioMusicFadeIn: function (fadeTime) {
+        // Weird rules.
+        this.audioMusicGainNode?.gain.setValueAtTime(this.audioMusicGainNode?.gain.value, this.audioContext.currentTime);
+        this.audioMusicGainNode?.gain.linearRampToValueAtTime(1.0, this.audioContext.currentTime + fadeTime);
+      },
+
+      audioMusicFadeOut: function (fadeTime) {
+        // Weird rules.
+        this.audioMusicGainNode?.gain.setValueAtTime(this.audioMusicGainNode?.gain.value, this.audioContext.currentTime);
+        this.audioMusicGainNode?.gain.linearRampToValueAtTime(0.0, this.audioContext.currentTime + fadeTime);
+      },
+
+      audioMusicStop: function () {
+        this.audioMusicSourceNode?.mediaElement.pause();
       },
 
       init: function () {

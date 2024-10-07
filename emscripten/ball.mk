@@ -25,7 +25,6 @@ endif
 EM_CFLAGS := \
 	-s USE_SDL=2 \
 	-s USE_SDL_TTF=2 \
-	-s USE_VORBIS=1 \
 	-s USE_LIBPNG=1 \
 	-s USE_LIBJPEG=1
 
@@ -140,7 +139,7 @@ BALL_SRCS := \
 	ball/st_title.c \
 	ball/util.c \
 	share/array.c \
-	share/audio.c \
+	share/audio_emscripten.c \
 	share/ball.c \
 	share/base_config.c \
 	share/base_image.c \
@@ -153,7 +152,6 @@ BALL_SRCS := \
 	share/font.c \
 	share/fs_common.c \
 	share/fs_jpg.c \
-	share/fs_ov.c \
 	share/fs_png.c \
 	share/fs_stdio.c \
 	share/miniz.c \
@@ -200,7 +198,7 @@ $(DATA_ZIP):
 
 .PHONY: packages
 packages: clean-packages
-	$(MAKE) -f mk/packages.mk OUTPUT_DIR=$$(pwd)/js/packages
+	$(MAKE) -f mk/packages.mk OUTPUT_DIR=$$(pwd)/js/packages all mp3s
 
 .PHONY: clean-packages
 clean-packages:

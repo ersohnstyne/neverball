@@ -461,6 +461,8 @@ void audio_init(void)
         return;
     }
 
+    audio_state = 0;
+
     /* Configure the audio. */
 
     memset(&device_spec, 0, sizeof (device_spec));

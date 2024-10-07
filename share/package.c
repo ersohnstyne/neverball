@@ -427,56 +427,78 @@ static int load_installed_packages(void)
  */
 static int save_installed_packages(void)
 {
-    if (installed_packages)
+    if (filename && *filename)
     {
-#if defined(NB_PACKAGES_PREMIUM)
-        char default_filename[64];
+        static char url[MAXSTR];
 
-        switch (package_curr_category)
+        memset(url, 0, sizeof (url));
+
+#ifdef __EMSCRIPTEN__
+#if defined(NB_PACKAGES_PREMIUM)
+        switch (category)
         {
             case PACKAGE_CATEGORY_PROFILE:
-                SAFECPY(default_filename, "installed-packages_ball.txt");
+                /* Uses ball models */
+                SAFECPY(url, "packages/ball/");
                 break;
             case PACKAGE_CATEGORY_GUI:
-                SAFECPY(default_filename, "installed-packages_gui.txt");
+                /* Uses GUI interfaces */
+                SAFECPY(url, "packages/gui/");
                 break;
             case PACKAGE_CATEGORY_CAMPAIGN:
-                SAFECPY(default_filename, "installed-packages_campaign.txt");
+                /* Uses campaign */
+                SAFECPY(url, "packages/campaign/");
                 break;
             case PACKAGE_CATEGORY_LEVELSET:
-                SAFECPY(default_filename, "installed-packages_levelset.txt");
+                /* Uses premium sets */
+                SAFECPY(url, "packages/levelsets/");
                 break;
             case PACKAGE_CATEGORY_COURSE:
-                SAFECPY(default_filename, "installed-packages_course.txt");
+                /* Uses courses */
+                SAFECPY(url, "packages/course/");
                 break;
             default:
-                SAFECPY(default_filename, "installed-packages.txt");
-                break;
+                SAFECPY(url, "packages/");
         }
-
 #else
-        const char *default_filename = "installed-packages.txt";
+        /* Uses standard vanilla game */
+        SAFECPY(url, "packages/");
 #endif
-
-        fs_file fp = fs_open_write(get_package_path(default_filename));
-
-        if (fp)
+#else
+#if defined(NB_PACKAGES_PREMIUM)
+        switch (category)
         {
-            List l;
-
-            for (l = installed_packages; l; l = l->next)
-            {
-                struct local_package *lpkg = l->data;
-
-                if (lpkg && fs_exists(get_package_path(lpkg->filename)))
-                    fs_printf(fp, "package %s\nfilename %s\n", lpkg->id, lpkg->filename);
-            }
-
-            fs_close(fp);
-            fp = NULL;
-
-            return 1;
+            case PACKAGE_CATEGORY_PROFILE:
+                /* Uses ball models */
+                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/ball/");
+                break;
+            case PACKAGE_CATEGORY_GUI:
+                /* Uses GUI interfaces */
+                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/gui/");
+                break;
+            case PACKAGE_CATEGORY_CAMPAIGN:
+                /* Uses campaign */
+                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/campaign/");
+                break;
+            case PACKAGE_CATEGORY_LEVELSET:
+                /* Uses premium sets */
+                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/levelsets/");
+                break;
+            case PACKAGE_CATEGORY_COURSE:
+                /* Uses courses */
+                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/course/");
+                break;
+            default:
+                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/");
         }
+#else
+        /* Uses legacy vanilla game */
+        SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/");
+#endif
+#endif
+        SAFECAT(url, filename);
+
+        return url;
     }
 
     return 0;

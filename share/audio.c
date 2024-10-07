@@ -218,7 +218,9 @@ static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
     return 0;
 }
 
+#if defined(__WII__)
 void voice_free(struct voice *V);
+#endif
 
 static struct voice *voice_init(const char *filename, float a)
 {
@@ -309,26 +311,27 @@ static struct voice *voice_init(const char *filename, float a)
     return VP;
 }
 
-#if !defined(__WII__)
 void voice_free(struct voice *V)
 {
-    if (!V) return;
+    if (V)
+    {
+        ov_clear(&V->vf);
 
-    ov_clear(&V->vf);
-
-    free(V->name); V->name = NULL;
-    free(V); V = NULL;
+        free(V->name); V->name = NULL;
+        free(V); V = NULL;
+    }
 }
 
+#if !defined(__WII__)
 static void voice_quit(struct voice* V)
 {
-    if (V->next)
-    {
-        voice_quit(V->next);
-        V->next = NULL;
-    }
+    struct voice *VP;
 
-    voice_free(V);
+    for (VP = V; VP; VP = VP->next)
+    {
+        voice_free(VP);
+        VP = NULL;
+    }
 }
 #endif
 
@@ -452,6 +455,12 @@ void audio_init(void)
     if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 40)
         return;
 
+    if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
+    {
+        log_printf("Failure to initialize audio (%s)\n", SDL_GetError());
+        return;
+    }
+
     /* Configure the audio. */
 
     memset(&device_spec, 0, sizeof (device_spec));
@@ -522,7 +531,13 @@ void audio_free(void)
 
     /* Release the input buffer. */
 
-    audio_music_stop();
+    if (buffer)
+    {
+        free(buffer);
+        buffer = NULL;
+    }
+
+    /* Free the voices. */
 
 #if !defined(__WII__)
     if (voices_sfx)
@@ -538,13 +553,7 @@ void audio_free(void)
     }
 #endif
 
-    if (buffer)
-    {
-        free(buffer);
-        buffer = NULL;
-    }
-
-    /* Ogg streams and voice structure remain open to allow quality setting. */
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
     audio_state = 0;
 }
@@ -675,7 +684,7 @@ void audio_narrator_play(const char *filename)
 
 /*---------------------------------------------------------------------------*/
 
-void audio_music_play(const char *filename, int loop)
+static void audio_music_play(const char *filename, int loop)
 {
     if (audio_state && !audio_paused)
     {
@@ -699,7 +708,7 @@ void audio_music_play(const char *filename, int loop)
     }
 }
 
-void audio_music_queue(const char *filename, float t, int loop)
+static void audio_music_queue(const char *filename, float t, int loop)
 {
     float clampedTime = CLAMP(0.001f, t, 1.0f);
 

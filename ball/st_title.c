@@ -198,12 +198,17 @@ static const char *check_unlocked_demo(struct demo *rawdemo)
 
 static const char *pick_demo(Array items)
 {
-    int total        = array_len(items);
+    /* Do not allow pick replay, if replay files are empty. */
+
+    int total;
+
+    if ((total = array_len(items)) < 1) return NULL;
+
     int selectedDemo = rand_between(0, total - 1);
 
     demo_dir_load(items, 0, total - 1);
 
-    struct demo* demo_data = ((struct demo*) ((struct dir_item*) array_get(items, selectedDemo))->data);
+    struct demo *demo_data = ((struct demo *) ((struct dir_item *) array_get(items, selectedDemo))->data);
 
     /* Have demo data? */
 

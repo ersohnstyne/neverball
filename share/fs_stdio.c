@@ -169,6 +169,8 @@ int fs_quit(void)
         fs_path = list_rest(fs_path);
     }
 
+    fs_cache_quit();
+
     return 1;
 }
 

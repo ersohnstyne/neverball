@@ -41,9 +41,11 @@ void audio_init(void)
     });
 
     /* Set the initial volumes. */
-
-    audio_volume(config_get_d(CONFIG_SOUND_VOLUME),
-                 config_get_d(CONFIG_MUSIC_VOLUME));
+    
+    audio_volume(CLAMP(0, config_get_d(CONFIG_MASTER_VOLUME),   10),
+                 CLAMP(0, config_get_d(CONFIG_SOUND_VOLUME),    10),
+                 CLAMP(0, config_get_d(CONFIG_MUSIC_VOLUME),    10),
+                 CLAMP(0, config_get_d(CONFIG_NARRATOR_VOLUME), 10));
 }
 
 void audio_free(void)
@@ -71,6 +73,28 @@ void audio_play(const char *filename, float a)
             const fileData = Module.HEAP8.buffer.slice(data, data + size);
 
             Neverball.audioPlay(fileName, fileData, a);
+        }, filename, data, size, LOG_VOLUME(CLAMP(0.0f, a, 1.0f)));
+    }
+}
+
+void audio_narrator_play(const char *filename, float a)
+{
+    int size = 0;
+    unsigned char *data = fs_load_cache(filename, &size);
+
+    if (data)
+    {
+        // Play the file data.
+
+        EM_ASM({
+            const fileName = UTF8ToString($0);
+            const data = $1;
+            const size = $2;
+            const a = $3;
+
+            const fileData = Module.HEAP8.buffer.slice(data, data + size);
+
+            Neverball.audioPlayNarrator(fileName, fileData, a);
         }, filename, data, size, LOG_VOLUME(CLAMP(0.0f, a, 1.0f)));
     }
 }
@@ -125,17 +149,21 @@ void audio_music_stop(void)
 /*
  * Logarithmic volume control.
  */
-void audio_volume(int s, int m)
+void audio_volume(int master, int sound, int music, int narrator)
 {
-    float sl = (float) s / 10.0f;
-    float ml = (float) m / 10.0f;
+    float master_logaritmic   = (float)  master   / 10.0f;
+    float sound_logaritmic    = (float) (sound    / 10.0f) * master_logaritmic;
+    float music_logaritmic    = (float) (music    / 10.0f) * master_logaritmic;
+    float narrator_logaritmic = (float) (narrator / 10.0f) * master_logaritmic;
 
-    float sound_vol = LOG_VOLUME(sl);
-    float music_vol = LOG_VOLUME(ml);
+    float master_vol   = LOG_VOLUME(master_logaritmic);
+    float sound_vol    = LOG_VOLUME(sound_logaritmic);
+    float music_vol    = LOG_VOLUME(music_logaritmic);
+    float narrator_vol = LOG_VOLUME(narrator_logaritmic);
 
     EM_ASM({
-        Neverball.audioVolume($0, $1);
-    }, sound_vol, music_vol);
+        Neverball.audioVolume($0, $1, $2, $3);
+    }, master_logaritmic, sound_vol, music_vol, narrator_vol);
 }
 
 /*---------------------------------------------------------------------------*/

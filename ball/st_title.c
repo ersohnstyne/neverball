@@ -337,6 +337,11 @@ static int title_check_playername(const char *regname)
     return text_length(regname) >= 3;
 }
 
+static int title_goto_playgame(struct state *st)
+{
+    return goto_playgame();
+}
+
 static int title_action(int tok, int val)
 {
     static const char keyphrase[] = "msxdev";
@@ -404,7 +409,7 @@ static int title_action(int tok, int val)
 #if NB_HAVE_PB_BOTH==1
             if (server_policy_get_d(SERVER_POLICY_EDITION) == 0 &&
                 !account_wgcl_name_read_only())
-                return goto_wgcl_login(0, goto_playgame(), &st_title, 0);
+                return goto_wgcl_login(&st_title, 0, 0, title_goto_playgame);
 #endif
             return title_check_playername(config_get_s(CONFIG_PLAYER)) ?
                                           goto_playgame() : goto_playgame_register();

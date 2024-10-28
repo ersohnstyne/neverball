@@ -3,6 +3,19 @@ $gameProjectPath_ball = ".\ball\"
 $gameProjectPath_putt = ".\putt\"
 $gameProjectPath_share = ".\share\"
 
+# ===================================================================================================================================================
+
+# NORMAL LIMITS
+#     Game Project: 80000
+#     Game Project + WGCL Server: 120000
+#
+# HIGH LIMITS
+#     Game Project: 1280000
+#     Game Project + WGCL Server: 1920000
+
+[int]$linecount_limit_normal = 80000
+[int]$linecount_limit_high_g = 1280000 # Normal limit x 16
+
 [int]$lineCount_wgcl_c_total   = 0
 [int]$lineCount_wgcl_cpp_total = 0
 
@@ -63,15 +76,25 @@ Get-ChildItem $gameProjectPath_share -Filter ".\*.cpp" | ForEach-Object {
 	$lineCount_share_cpp_total = $lineCount_share_cpp_total + $lineCount_share_cpp_current
 }
 
+# ===================================================================================================================================================
+
 Write-Host "===== Zusammenfassung für Neverball-Quellcode ====="
 Write-Host ""
 
-if (($lineCount_ball_c_total + $lineCount_wgcl_c_total + $lineCount_putt_c_total + $lineCount_share_c_total + $lineCount_ball_cpp_total + $lineCount_wgcl_cpp_total + $lineCount_putt_cpp_total + $lineCount_share_cpp_total) -gt 90000)
+if (($lineCount_ball_c_total + $lineCount_wgcl_c_total + $lineCount_putt_c_total + $lineCount_share_c_total + $lineCount_ball_cpp_total + $lineCount_wgcl_cpp_total + $lineCount_putt_cpp_total + $lineCount_share_cpp_total) -gt $linecount_limit_high_g)
 {
 	Write-Host "(!) HOHE CODEZEILEN"
-	Write-Host "    Sie haben die maximale Grenze von 90000 Zeilen erreicht."
-	Write-Host "    Sie können den Wert auf 1280000 erhöhen, aber Ihre Projekte können auf einigen alten Geräten instabil werden, daher wird empfohlen, unter diesem Grenzwert zu bleiben."
-	Write-Host "    Entwickler, deren Zeilenzahl über diesem Limit liegt, zeigen beim Herunterladen von PB+NB Game Core Launcher's Projekt eine Warnung an."
+	Write-Host "    Sie können nich mehr als $linecount_limit_high_g zeilen in einem einziges Projekt."
+	Write-Host ""
+	exit 1
+}
+
+if (($lineCount_ball_c_total + $lineCount_wgcl_c_total + $lineCount_putt_c_total + $lineCount_share_c_total + $lineCount_ball_cpp_total + $lineCount_wgcl_cpp_total + $lineCount_putt_cpp_total + $lineCount_share_cpp_total) -gt $linecount_limit_normal)
+{
+	Write-Host "(!) HOHE CODEZEILEN"
+	Write-Host "    Sie haben die gesamte maximale Grenze von $linecount_limit_normal Zeilen erreicht."
+	Write-Host "    Sie können den Wert auf $linecount_limit_high_g erhöhen, aber Ihre Projekte können auf einigen alten Geräten instabil werden, daher wird empfohlen, unter diesem Grenzwert zu bleiben."
+	Write-Host "    Spielprojekt, deren gesamte Zeilenzahl im Code über diesem Limit liegt, zeigen beim Herunterladen von PB+NB Game Core Launcher eine Warnung an."
 	Write-Host ""
 }
 

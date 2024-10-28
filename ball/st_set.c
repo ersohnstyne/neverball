@@ -345,10 +345,9 @@ static int set_is_scanning_with_moon_taskloader = 0;
 
 static int set_scan_moon_taskloader(void* data, void* execute_data)
 {
-    while (st_global_animating());
+    //while (st_global_animating());
 
-    if ((!do_init && set_manual_hotreload) ||
-        (do_init && set_manual_hotreload))
+    if (!do_init || set_manual_hotreload)
     {
         if (set_manual_hotreload)
             first = 0;

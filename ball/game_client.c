@@ -453,7 +453,7 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
 
     if (!mtli) return 0;
 
-    while (st_global_animating());
+    //while (st_global_animating());
 
     char *back_name = "", *grad_name = "";
 

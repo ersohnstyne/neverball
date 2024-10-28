@@ -937,7 +937,7 @@ static int demo_is_scanning_with_moon_taskloader = 0;
 
 static int demo_scan_moon_taskloader(void *data, void *execute_data)
 {
-    while (st_global_animating());
+    //while (st_global_animating());
 
     if (demo_hotreload)
     {

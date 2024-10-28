@@ -573,7 +573,7 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
 
     if (!mtli) return 0;
 
-    while (st_global_animating());
+    //while (st_global_animating());
 
     struct game_sol_version { int x, y; } version = { 0, 0 };
     int i;

@@ -1663,7 +1663,7 @@ static int demo_end_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            return goto_state(demo_paused ? &st_demo_play : &st_demo);
+            return exit_state(demo_paused ? &st_demo_play : &st_demo);
 
         case DEMO_CONF:
             return goto_conf(&st_demo_end, 1, 1);
@@ -1680,7 +1680,7 @@ static int demo_end_action(int tok, int val)
 
             /* bye! */
 
-            return !standalone ? goto_state(&st_demo) : 0;
+            return !standalone ? exit_state(&st_demo) : 0;
 
         case DEMO_REPLAY:
             if (demo_paused)

@@ -77,7 +77,7 @@ static int quit_uses_restart = 0;
             audio_music_fade_in(0.5f);      \
             if (st_continue != &st_level)   \
                 video_set_grab(0);          \
-            return goto_state(st_continue); \
+            return exit_state(st_continue); \
         } else {                            \
             quit_uses_resetpuzzle = 0;      \
             quit_uses_restart     = 0;      \

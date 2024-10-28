@@ -692,16 +692,7 @@ static int title_gui(void)
     {
         if ((id = gui_vstack(root_id)))
         {
-<<<<<<< HEAD
 #ifdef SWITCHBALL_TITLE_BTN_V2
-=======
-            if ((jd = gui_label(id, "  Neverball  ", GUI_LRG, 0, 0)))
-            {
-                gui_set_fill(jd);
-                gui_set_slide(jd, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 1.6f, 0);
-            }
-
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
             gui_space(id);
 #endif
 
@@ -923,7 +914,6 @@ static int title_gui(void)
 #endif
 #endif
 
-<<<<<<< HEAD
             if ((jd = gui_vstack(id)))
             {
                 gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" : "  Neverball  ", 
@@ -1095,10 +1085,6 @@ static int title_gui(void)
                     gui_set_slide(id, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 0.8f, 0.05f);
 
                     gui_space(jd);
-=======
-                    gui_set_hilite(play_id, 1);
-                    gui_set_slide(kd, GUI_N | GUI_EASE_ELASTIC, 0.8f, 0.8f, 0.05f);
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
                 }
 
                 gui_space(id);
@@ -1109,39 +1095,14 @@ static int title_gui(void)
 
 #if NB_HAVE_PB_BOTH==1
 #if ENABLE_VERSION
-<<<<<<< HEAD
             if ((id = gui_label(root_id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT2)))
-=======
-        if ((id = gui_label(root_id, "Neverball " VERSION, GUI_TNY, gui_wht2, gui_wht2)))
-        {
-            gui_clr_rect(id);
-            gui_set_slide(id, GUI_S, 0.85f, 0.4f, 0);
-            gui_layout(id, 0, -1);
-        }
-#endif
-
-#if ENABLE_FETCH
-        if ((id = gui_vstack(root_id)))
-        {
-            if ((jd = gui_hstack(id)))
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
             {
                 gui_clr_rect(id);
                 gui_set_slide(id, GUI_SW, 0, 1.6f, 0);
                 gui_layout(id, -1, -1);
             }
-<<<<<<< HEAD
-=======
-            gui_space(id);
-
-            gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 1.2f, 1.4f, 0);
-
-            gui_layout(id, +1, -1);
-        }
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 #endif
 
-<<<<<<< HEAD
 #ifdef CONFIG_INCLUDES_ACCOUNT
             char account_coinsattr[MAXSTR], account_gemsattr[MAXSTR];
 
@@ -1261,8 +1222,6 @@ static int title_gui(void)
         }
     }
 
-=======
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     return root_id;
 }
 
@@ -1351,7 +1310,6 @@ static int title_leave(struct state *st, struct state *next, int id, int intent)
 
     game_proxy_filter(NULL);
 
-<<<<<<< HEAD
     if (next == &st_null ||
         next == &st_conf)
     {
@@ -1363,8 +1321,6 @@ static int title_leave(struct state *st, struct state *next, int id, int intent)
 
     progress_exit();
 
-=======
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     return transition_slide(id, 0, intent);
 }
 

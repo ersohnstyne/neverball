@@ -168,11 +168,7 @@ void init_state(struct state *st)
     video_swap();
 }
 
-<<<<<<< HEAD
 int goto_state_intent(struct state *st, int intent)
-=======
-static int goto_state_intent(struct state *st, int intent)
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 {
     return goto_state_full_intent(st, 0, 0, 0, intent);
 }
@@ -183,12 +179,7 @@ int goto_state_full_intent(struct state *st,
     Uint32 currtime, prevtime, dt;
     struct state *prev = state;
 
-<<<<<<< HEAD
     prevtime = SDL_GetTicks();
-=======
-    if (state && state->leave)
-        state->leave(state, st, state->gui_id, intent);
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
     anim_queue_state         = st;
     anim_queue_directions[0] = fromdirection;
@@ -199,6 +190,55 @@ int goto_state_full_intent(struct state *st,
 
     anim_done  = 0;
     anim_queue = 1;
+
+    // For some reasons, this may not work on alpha transparent
+
+    /*
+    if (!noanimation && config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    {
+        while (alpha > 0.01)
+        {
+            currtime = SDL_GetTicks();
+            dt = MAX(currtime - prevtime, 0);
+
+            activity_services_step(dt);
+
+            alpha = alpha - ((config_get_d(CONFIG_SMOOTH_FIX) ?
+                              MIN(state_frame_smooth, dt) :
+                              MIN(100.0f, dt)) * state_anim_speed) * 0.001f;
+            alpha = CLAMP(0, alpha, 1);
+
+            if (state)
+            {
+                if (state->fade != NULL) state->fade(alpha);
+                gui_set_alpha(state->gui_id, alpha, fromdirection);
+            }
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            console_gui_set_alpha(alpha);
+#endif
+
+            CHECK_GAMESPEED(20, 100);
+            float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
+
+            st_timer(MAX((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ?
+                                    MIN(state_frame_smooth, dt) : dt)) *
+                                    speedPercent, 0));
+            hmd_step();
+
+            st_paint(0.001f * currtime, 1);
+
+            video_swap();
+
+            if (config_get_d(CONFIG_NICE))
+                SDL_Delay((1.0f / 30.0f) * 1000);
+
+            prevtime = currtime;
+        }
+    }
+
+    alpha = 0;
+    */
 
     if (state)
     {
@@ -228,7 +268,57 @@ int goto_state_full_intent(struct state *st,
 
     if (state && state->enter)
         state->gui_id = state->enter(state, prev, intent);
-<<<<<<< HEAD
+
+    // For some reasons, this may not work on alpha transparent
+
+    /*if (!noanimation && config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    {
+        while (alpha < 0.99 && !anim_done)
+        {
+            LOOP_DURING_SCREENANIMATE;
+
+            currtime = SDL_GetTicks();
+            dt = MAX(currtime - prevtime, 0);
+
+            activity_services_step(dt);
+
+            alpha = alpha + ((config_get_d(CONFIG_SMOOTH_FIX) ?
+                              MIN(state_frame_smooth, dt) :
+                              MIN(100.0f, dt)) * state_anim_speed) * 0.001f;
+            alpha = CLAMP(0, alpha, 1);
+
+            if (state)
+            {
+                if (state->fade != NULL) state->fade(alpha);
+
+                gui_set_alpha(state->gui_id, alpha, todirection);
+            }
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            console_gui_set_alpha(alpha);
+#endif
+
+            CHECK_GAMESPEED(20, 100);
+            float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
+
+            st_timer(MAX((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ?
+                                    MIN(state_frame_smooth, dt) : dt)) *
+                                    speedPercent, 0));
+            hmd_step();
+
+            st_paint(0.001f * currtime, 1);
+
+            video_swap();
+
+            if (config_get_d(CONFIG_NICE))
+                SDL_Delay((1.0f / 30.0f) * 1000);
+
+            prevtime = currtime;
+        }
+    }
+
+    alpha = 1.0f;
+    */
 
     if (state)
     {
@@ -259,8 +349,6 @@ int goto_state_full_intent(struct state *st,
     }
 
     anim_done = 1;
-=======
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
     return 1;
 }
@@ -275,14 +363,11 @@ int exit_state(struct state *st)
     return goto_state_intent(st, INTENT_BACK);
 }
 
-<<<<<<< HEAD
 int st_global_animating(void)
 {
     return anim_queue;
 }
 
-=======
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 /*---------------------------------------------------------------------------*/
 
 void st_paint(float t, int allow_clear)

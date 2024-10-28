@@ -207,13 +207,9 @@ static void fetch_progress_func(emscripten_fetch_t* handle)
     }
 }
 
-<<<<<<< HEAD
 unsigned int fetch_file(const char *url,
                         const char *dst,
                          struct fetch_callback callback)
-=======
-unsigned int fetch_file(const char *url, const char *dst, struct fetch_callback callback)
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 {
     unsigned int fetch_id = 0;
     struct fetch_info *fi = create_and_link_fetch_info();

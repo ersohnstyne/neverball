@@ -829,25 +829,8 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
 
         if (!fetch_id)
         {
-<<<<<<< HEAD
             free_pli(&pli);
             callback.data = NULL;
-=======
-            struct fetch_callback callback = { 0 };
-
-            struct package_list_info *pli = create_pli(nested_callback);
-
-            callback.data = pli;
-            callback.done = available_packages_done;
-
-            fetch_id = fetch_file(url, filename, callback);
-
-            if (!fetch_id)
-            {
-                free_pli(&pli);
-                callback.data = NULL;
-            }
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
         }
     }
 #endif
@@ -1195,21 +1178,7 @@ unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
             {
                 struct package_fetch_info *pfi = create_pfi(pkg);
 
-<<<<<<< HEAD
                 if (pfi)
-=======
-                pfi->callback = callback;
-
-                /* Reuse variable to pass our callbacks. */
-
-                callback.progress = package_fetch_progress;
-                callback.done = package_fetch_done;
-                callback.data = pfi;
-
-                fetch_id = fetch_file(url, pfi->temp_filename, callback);
-
-                if (fetch_id)
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
                 {
                     /* Store passed callback. */
 

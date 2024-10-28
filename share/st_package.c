@@ -332,28 +332,16 @@ static int package_action(int tok, int val)
 
     switch (tok)
     {
-<<<<<<< HEAD
         case GUI_BACK:
             package_manage_selected = -1;
             return exit_state(package_back);
             break;
-=======
-    case GUI_BACK:
-        return exit_state(package_back);
-        break;
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
         case GUI_PREV:
             first = MAX(first - PACKAGE_STEP, 0);
 
-<<<<<<< HEAD
             do_init = 0;
             return exit_state(&st_package);
-=======
-        first = MAX(first - PACKAGE_STEP, 0);
-        do_init = 0;
-        return exit_state(&st_package);
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
             break;
 
@@ -666,12 +654,9 @@ static int package_enter(struct state *st, struct state *prev, int intent)
 
 static int package_leave(struct state *st, struct state *next, int id, int intent)
 {
-<<<<<<< HEAD
     if (package_manage_selected == -1)
         package_back = 0;
 
-=======
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     if (status_ids)
     {
         free(status_ids);

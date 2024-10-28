@@ -41,11 +41,7 @@
 #include "binary.h"
 #include "common.h"
 #include "ease.h"
-<<<<<<< HEAD
-
 #include "state.h"
-=======
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
 #include "solid_sim.h"
 #include "solid_all.h"
@@ -1330,11 +1326,7 @@ void game_server_free(const char *next)
 
 /*---------------------------------------------------------------------------*/
 
-<<<<<<< HEAD
 void game_update_view(float dt)
-=======
-static void game_update_view(float dt)
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 {
     /* Current view scale. */
 

@@ -24,7 +24,6 @@
 
 #include "gui.h"
 #include "transition.h"
-<<<<<<< HEAD
 //#include "hud.h"
 //#include "set.h"
 #include "binary.h"
@@ -32,14 +31,6 @@
 //#include "progress.h"
 //#include "audio.h"
 //#include "config.h"
-=======
-#include "hud.h"
-#include "set.h"
-#include "demo.h"
-#include "progress.h"
-#include "audio.h"
-#include "config.h"
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 #include "util.h"
 #include "common.h"
 #include "demo_dir.h"
@@ -224,26 +215,14 @@ static int demo_action(int tok, int val)
 
     switch (tok)
     {
-<<<<<<< HEAD
         case GUI_BACK:
             return exit_state(&st_title);
-=======
-    case GUI_BACK:
-        return exit_state(&st_title);
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
         case GUI_PREV:
             first = MAX(first - DEMO_STEP, 0);
 
-<<<<<<< HEAD
             return exit_state(&st_demo);
             break;
-=======
-    case GUI_PREV:
-        first -= DEMO_STEP;
-        return exit_state(&st_demo);
-        break;
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
         case GUI_NEXT:
             first = MIN(first + DEMO_STEP, total - 1);
@@ -1155,21 +1134,7 @@ static int demo_enter(struct state *st, struct state *prev, int intent)
     last        = MIN(first + DEMO_STEP - 1, total - 1);
     last_viewed = MIN(MAX(first, last_viewed), last);
 
-<<<<<<< HEAD
     if (demo_items && total)
-=======
-    if (total)
-        demo_dir_load(items, first, last);
-
-    audio_music_fade_to(0.5f, "bgm/inter.ogg");
-
-    return transition_slide(demo_gui(), 1, intent);
-}
-
-static int demo_leave(struct state *st, struct state *next, int id, int intent)
-{
-    if (next == &st_title)
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     {
         Array quarantined_demo_items = demo_dir_scan();
         demo_dir_load(quarantined_demo_items, 0, total - 1);
@@ -1204,7 +1169,6 @@ static int demo_leave(struct state *st, struct state *next, int id, int intent)
         quarantined_demo_items = NULL;
     }
 
-<<<<<<< HEAD
     if (total)
         demo_dir_load(demo_items, first, last);
 
@@ -1230,9 +1194,6 @@ static int demo_leave(struct state *st, struct state *next, int id, int intent)
     }
 
     return transition_slide(demo_gui(), 1, intent);
-=======
-    return transition_slide(id, 0, intent);
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 }
 
 static int demo_leave(struct state *st, struct state *next, int id, int intent)
@@ -1439,11 +1400,7 @@ static int demo_play_gui(void)
 
 static int demo_play_enter(struct state *st, struct state *prev, int intent)
 {
-<<<<<<< HEAD
     smoothfix_slowdown_time = 0;
-=======
-    int id;
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
     video_hide_cursor();
 
@@ -1480,24 +1437,15 @@ static int demo_play_enter(struct state *st, struct state *prev, int intent)
 
     speed = SPEED_NORMAL;
     demo_replay_speed(speed);
-<<<<<<< HEAD
-    faster = 0;
-
-    return transition_slide(demo_play_gui(), 1, intent);
-=======
-    show_hud = 1;
-    hud_update(0);
     transition = 0;
 
-    id = demo_play_gui();
+    int id = demo_play_gui();
     gui_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.8f, 0);
     return id;
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 }
 
 static int demo_play_leave(struct state *st, struct state *next, int id, int intent)
 {
-<<<<<<< HEAD
     if (next == &st_null)
     {
         demo_replay_stop(0);
@@ -1512,11 +1460,6 @@ static int demo_play_leave(struct state *st, struct state *next, int id, int int
     video_show_cursor();
 
     return transition_slide(id, 0, intent);
-=======
-    video_show_cursor();
-    gui_delete(id);
-    return 0;
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 }
 
 static void demo_play_paint(int id, float t)
@@ -1866,7 +1809,6 @@ static int demo_end_buttn(int b, int d)
 
 static int demo_del_action(int tok, int val)
 {
-<<<<<<< HEAD
     GENERIC_GAMEMENU_ACTION;
 
     if (st_global_animating() || tok == GUI_NONE)
@@ -1879,11 +1821,6 @@ static int demo_del_action(int tok, int val)
     }
 
     return 1;
-=======
-    audio_play(AUD_MENU, 1.0f);
-    demo_replay_stop(tok == DEMO_DEL);
-    return tok == GUI_BACK ? exit_state(&st_demo) : goto_state(&st_demo);
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 }
 
 static int demo_del_gui(void)
@@ -1967,11 +1904,8 @@ static int demo_del_enter(struct state *st, struct state *prev, int intent)
 {
     audio_music_fade_out(demo_paused ? 0.2f : 1.0f);
 
-<<<<<<< HEAD
     audio_play(AUD_WARNING, 1.0f);
 
-=======
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     return transition_slide(demo_del_gui(), 1, intent);
 }
 
@@ -2031,12 +1965,9 @@ static int demo_compat_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play(AUD_WARNING, 1.0f);
 
-<<<<<<< HEAD
     check_compat         = 0;
     allow_exact_versions = 0;
 
-=======
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     return transition_slide(demo_compat_gui(), 1, intent);
 }
 

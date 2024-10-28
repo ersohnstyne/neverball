@@ -152,14 +152,9 @@ static int name_action(int tok, int val)
 
     switch (tok)
     {
-<<<<<<< HEAD
         case GUI_BACK:
             if (name_error)
                 return exit_state(&st_name);
-=======
-    case GUI_BACK:
-        return exit_state(cancel_state);
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
             if (newplayers)
                 return ok_fn ? ok_fn(ok_state) : goto_state(ok_state);

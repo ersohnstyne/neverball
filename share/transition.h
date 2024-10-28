@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
- * Copyright (C) 2024 Microsoft / Neverball Authors
-=======
- * Copyright (C) 2024 Jānis Rūcis
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
+ * Copyright (C) 2024 Microsoft / Neverball Authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published

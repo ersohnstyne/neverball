@@ -573,7 +573,6 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
         audio_music_fade_out(2.0f);
 
     video_clr_grab();
-<<<<<<< HEAD
 
     resume = (prev != &st_play_loop || (prev == &st_goal && !resume_hold));
 
@@ -614,10 +613,6 @@ static void goal_paint(int id, float t)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_death_paint();
 #endif
-=======
-    resume = (prev == &st_goal || prev == &st_name || prev == &st_save);
-    return transition_slide(goal_gui(), 1, intent);
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 }
 
 static void goal_timer(int id, float dt)

@@ -762,7 +762,6 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
     }
 
     return transition_slide(fail_gui(), 1, intent);
-<<<<<<< HEAD
 }
 
 static void fail_paint(int id, float t)
@@ -776,8 +775,6 @@ static void fail_paint(int id, float t)
     if (hud_visibility())
 #endif
         hud_paint();
-=======
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 }
 
 static void fail_timer(int id, float dt)

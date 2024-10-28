@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /*
  * Copyright (C) 2024 Microsoft / Neverball authors
  *
@@ -13,8 +12,6 @@
  * General Public License for more details.
  */
 
-=======
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 #include "ease.h"
 #include "vec3.h"
 
@@ -108,8 +105,4 @@ float easeInOutElastic(float x)
             )
         )
     );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50

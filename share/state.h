@@ -60,7 +60,6 @@ extern int st_global_loop(void);
 
 struct state
 {
-<<<<<<< HEAD
     int  (*enter) (struct state *, struct state *prev, int intent);
     int  (*leave) (struct state *, struct state *next, int id, int intent);
     void (*paint) (int id, float t);
@@ -81,19 +80,6 @@ struct state
     void (*fade)  (float alpha);
 
     int  (*dpad)  (int id, int b, int d);
-=======
-    int  (*enter)(struct state *, struct state *prev, int intent);
-    int  (*leave)(struct state *, struct state *next, int id, int intent);
-    void (*paint)(int id, float t);
-    void (*timer)(int id, float dt);
-    void (*point)(int id, int x, int y, int dx, int dy);
-    void (*stick)(int id, int a, float v, int bump);
-    void (*angle)(int id, float x, float z);
-    int  (*click)(int b,  int d);
-    int  (*keybd)(int c,  int d);
-    int  (*buttn)(int b,  int d);
-    void (*wheel)(int x,  int y);
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
     int gui_id;
 };
@@ -103,11 +89,6 @@ struct state *queue_state(void);
 
 float time_state(void);
 void  init_state(struct state *);
-<<<<<<< HEAD
-=======
-int   goto_state(struct state *);
-int   exit_state(struct state *);
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
 /*
  * This screenstate transition will be replaced into the goto_state_full_intent.

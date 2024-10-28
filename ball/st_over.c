@@ -223,11 +223,7 @@ static int over_gui_hardcore(void)
 }
 #endif
 
-<<<<<<< HEAD
 static int over_gui(void)
-=======
-static int over_enter(struct state *st, struct state *prev, int intent)
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 {
 #ifndef LEADERBOARD_ALLOWANCE
     int id;
@@ -310,15 +306,11 @@ static int over_enter(struct state *st, struct state *prev, int intent)
 
     video_clr_grab();
 
-<<<<<<< HEAD
     return transition_slide(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         (campaign_used() && campaign_hardcore()) ? over_gui_hardcore() :
 #endif
         over_gui(), 1, intent);
-=======
-    return transition_slide(over_gui(), 1, intent);
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 }
 
 static void over_timer(int id, float dt)

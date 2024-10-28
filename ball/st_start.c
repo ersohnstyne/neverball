@@ -232,7 +232,6 @@ static int start_action(int tok, int val)
 
     switch (tok)
     {
-<<<<<<< HEAD
         case GUI_BACK:
             if (set_star_view || set_level_options)
             {
@@ -241,10 +240,6 @@ static int start_action(int tok, int val)
                 return exit_state(&st_start);
             }
             else return exit_state(start_back ? start_back : &st_set);
-=======
-    case GUI_BACK:
-        return exit_state(start_back ? start_back : &st_set);
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
         case GUI_PREV:
             if (first > 1) {
@@ -727,11 +722,7 @@ static int start_gui(void)
     return id;
 }
 
-<<<<<<< HEAD
 static int start_gui_options(void)
-=======
-static int start_enter(struct state *st, struct state *prev, int intent)
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 {
     int root_id, id, jd, kd;
 
@@ -1017,13 +1008,7 @@ static int start_enter(struct state *st, struct state *prev, int intent)
     progress_exit();
     progress_init(MODE_NORMAL);
 
-<<<<<<< HEAD
     return transition_slide(set_level_options ? start_gui_options() : start_gui(), 1, intent);
-=======
-    audio_music_fade_to(0.5f, "bgm/inter.ogg");
-
-    return transition_slide(start_gui(), 1, intent);
->>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 }
 
 static void start_point(int id, int x, int y, int dx, int dy)

@@ -67,6 +67,7 @@ struct wgcl_res_data
     size_t size;
 };
 
+#ifndef __EMSCRIPTEN__
 static size_t write_callback(void *buffer, size_t size, size_t nmemb, void *user_data)
 {
     size_t realsize = size * nmemb;
@@ -87,8 +88,12 @@ static size_t write_callback(void *buffer, size_t size, size_t nmemb, void *user
 
     return realsize;
 }
+#endif
 
-#if _WIN32 && _MSC_VER
+#if _WIN32 && _MSC_VER && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__EMSCRIPTEN__)
 static CURL *account_wgcl_curl_prepare_get(const char *url, void *out_data)
 {
 #if ENABLE_FETCH!=1
@@ -260,6 +265,23 @@ static int pending_set_consumable_doublecash  = 0;
 static int pending_set_consumable_halfgrav    = 0;
 static int pending_set_consumable_doublespeed = 0;
 
+static void account_wgcl_visit_browser_login()
+{
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__EMSCRIPTEN__)
+#if !defined(__SWITCH__)
+#if _WIN32
+    system("explorer https://pennyball.stynegame.de/login");
+#elif defined(__APPLE__)
+    system("open https://pennyball.stynegame.de/login");
+#elif defined(__linux__)
+    system("x-www-browser https://pennyball.stynegame.de/login");
+#endif
+#endif
+#endif
+}
+
 int account_wgcl_init(void)
 {
     account_wgcl_quit();
@@ -293,8 +315,11 @@ int account_wgcl_exists(void)
  */
 void account_wgcl_load(void)
 {
+#ifndef __EMSCRIPTEN__
     account_load();
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     fs_file wgcl_fin;
     if ((wgcl_fin = fs_open_read("pennyball_wgcl.dat")))
     {
@@ -306,9 +331,9 @@ void account_wgcl_load(void)
 
         read_line(&session_uuid4, wgcl_fin);
         fs_close(wgcl_fin);
-
-        account_wgcl_reload();
     }
+#endif
+#endif
 }
 
 /*
@@ -316,8 +341,11 @@ void account_wgcl_load(void)
  */
 void account_wgcl_save(void)
 {
+#ifndef __EMSCRIPTEN__
     account_save();
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     if (!read_only) return;
 
     if (session_uuid4 && *session_uuid4)
@@ -329,6 +357,10 @@ void account_wgcl_save(void)
             fs_close(wgcl_fout);
         }
     }
+#endif
+#else
+    /* Saving player account on web browser is available on database game. */
+#endif
 }
 
 /*
@@ -336,6 +368,9 @@ void account_wgcl_save(void)
  */
 int account_wgcl_reload(void)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__EMSCRIPTEN__)
 #if _WIN32 && _MSC_VER
     if (!(session_uuid4 && *session_uuid4))
         return 1;
@@ -367,15 +402,9 @@ int account_wgcl_reload(void)
     if (res != CURLE_OK)
     {
         log_errorf("WGCL + CURL error: Get session is not possible, either offline or needs to log in again.\n");
-#if defined(__EMSCRIPTEN__)
-        EM_ASM({ window.open("https://pennyball.stynegame.de/login"); }, 0);
-#elif _WIN32
-        system("explorer https://pennyball.stynegame.de/login");
-#elif defined(__APPLE__)
-        system("open https://pennyball.stynegame.de/login");
-#elif defined(__linux__)
-        system("x-www-browser https://pennyball.stynegame.de/login");
-#endif
+
+        account_wgcl_visit_browser_login();
+
         goto account_wgcl_reload_fail;
     }
 
@@ -390,6 +419,9 @@ int account_wgcl_reload(void)
     if (!root || json_value_get_type(root) != JSONObject)
     {
         log_errorf("WGCL + CURL error: Not an JSON object!\n");
+
+        account_wgcl_visit_browser_login();
+
         goto account_wgcl_reload_fail;
     }
 
@@ -439,15 +471,7 @@ int account_wgcl_reload(void)
     }
 
     if (!session_uuid4 || strcmp(session_uuid4, json_object_get_string(data_session, "player_uuid4")) != 0)
-    {
-        if (session_uuid4)
-        {
-            free(session_uuid4);
-            session_uuid4 = NULL;
-        }
-
-        session_uuid4 = strdup(json_object_get_string(data_session, "player_uuid4"));
-    }
+        account_wgcl_set_session_uuid4(json_object_get_string(data_session, "player_uuid4"));
 
     char expected_player_name[MAXSTR];
     SAFECPY(expected_player_name, json_object_get_string(data_session, "player_name"));
@@ -467,6 +491,7 @@ int account_wgcl_reload(void)
 
         account_save();
         config_set_s(CONFIG_PLAYER, expected_player_name);
+        account_init();
         account_load();
         account_set_s(ACCOUNT_PLAYER, expected_player_name);
     }
@@ -516,6 +541,37 @@ account_wgcl_reload_fail:
 #else
     return 1;
 #endif
+#elif defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+    if (session_uuid4)
+    {
+        free(session_uuid4);
+        session_uuid4 = NULL;
+    }
+
+    EM_ASM({
+        Neverball.gamecore_account_try_reload();
+    }, 0);
+
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+void account_wgcl_set_session_uuid4(const char *uuid4)
+{
+    if (session_uuid4)
+    {
+        free(session_uuid4);
+        session_uuid4 = NULL;
+    }
+
+    session_uuid4 = strdup(uuid4);
+}
+
+void account_wgcl_set_readonly_playername(int f)
+{
+    read_only = f;
 }
 
 /*
@@ -523,8 +579,14 @@ account_wgcl_reload_fail:
  */
 int account_wgcl_name_read_only(void)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__EMSCRIPTEN__)
 #if NB_HAVE_PB_BOTH==1
     return read_only;
+#else
+    return 0;
+#endif
 #else
     return 0;
 #endif
@@ -535,6 +597,9 @@ int account_wgcl_name_read_only(void)
  */
 int account_wgcl_login(const char *name, const char *password)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__EMSCRIPTEN__)
 #if _WIN32 && _MSC_VER
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
@@ -562,15 +627,9 @@ int account_wgcl_login(const char *name, const char *password)
     if (res != CURLE_OK)
     {
         log_errorf("WGCL + CURL error: Login is not possible, either offline or needs to log in again.\n");
-#if defined(__EMSCRIPTEN__)
-        EM_ASM({ window.open("https://pennyball.stynegame.de/login"); }, 0);
-#elif _WIN32
-        system("explorer https://pennyball.stynegame.de/login");
-#elif defined(__APPLE__)
-        system("open https://pennyball.stynegame.de/login");
-#elif defined(__linux__)
-        system("x-www-browser https://pennyball.stynegame.de/login");
-#endif
+
+        account_wgcl_visit_browser_login();
+
         goto account_wgcl_login_fail;
     }
 
@@ -584,6 +643,9 @@ int account_wgcl_login(const char *name, const char *password)
     if (!root || json_value_get_type(root) != JSONObject)
     {
         log_errorf("WGCL + CURL error: Not an JSON object!\n");
+
+        account_wgcl_visit_browser_login();
+
         goto account_wgcl_login_fail;
     }
 
@@ -607,13 +669,7 @@ int account_wgcl_login(const char *name, const char *password)
     {
         read_only = 0;
 
-        if (session_uuid4)
-        {
-            free(session_uuid4);
-            session_uuid4 = NULL;
-        }
-
-        session_uuid4 = strdup(json_object_get_string(root_obj, "session_player_uuid4"));
+        account_wgcl_set_session_uuid4(json_object_get_string(root_obj, "session_player_uuid4"));
     }
 
     free(res_data.data);
@@ -624,6 +680,9 @@ account_wgcl_login_fail:
     return 0;
 #else
     return 1;
+#endif
+#else
+    return 0;
 #endif
 }
 
@@ -647,6 +706,9 @@ int account_wgcl_logout(void)
 int account_wgcl_try_add(int w_coins, int w_gems,
                          int c_hp, int c_doublecash, int c_halfgrav, int c_doublespeed)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__EMSCRIPTEN__)
 #if _WIN32 && _MSC_VER
 #if NB_HAVE_PB_BOTH==1
     if (!(session_uuid4 && *session_uuid4))
@@ -715,15 +777,9 @@ int account_wgcl_try_add(int w_coins, int w_gems,
     if (res != CURLE_OK)
     {
         log_errorf("Updating asset value is not possible, either offline or needs to log in again.\n");
-#if defined(__EMSCRIPTEN__)
-        EM_ASM({ window.open("https://pennyball.stynegame.de/login"); }, 0);
-#elif _WIN32
-        system("explorer https://pennyball.stynegame.de/login");
-#elif defined(__APPLE__)
-        system("open https://pennyball.stynegame.de/login");
-#elif defined(__linux__)
-        system("x-www-browser https://pennyball.stynegame.de/login");
-#endif
+
+        account_wgcl_visit_browser_login();
+
         goto account_wgcl_try_add_fail;
     }
 
@@ -737,6 +793,9 @@ int account_wgcl_try_add(int w_coins, int w_gems,
     if (!root || json_value_get_type(root) != JSONObject)
     {
         log_errorf("WGCL + CURL error: Not an JSON object!\n");
+
+        account_wgcl_visit_browser_login();
+
         goto account_wgcl_try_add_fail;
     }
 
@@ -746,11 +805,17 @@ int account_wgcl_try_add(int w_coins, int w_gems,
         !json_object_has_value(root_obj, "message_desc"))
     {
         log_errorf("WGCL + CURL error: Session's column values does not matched exactly!\n");
+
+        account_wgcl_visit_browser_login();
+
         goto account_wgcl_try_add_fail;
     }
     else if (json_object_get_number(root_obj, "web_return_code") != 200)
     {
         log_errorf("WGCL + CURL error: Update failed: %s\n", json_object_get_string(root_obj, "message_text"));
+
+        account_wgcl_visit_browser_login();
+
         goto account_wgcl_try_add_fail;
     }
 
@@ -776,11 +841,37 @@ account_wgcl_try_add_fail:
 #else
     return 1;
 #endif
+#elif defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+    char json_data[512];
+    sprintf(json_data,
+            "{"
+            "    \"player_uuid4\":\"%s\","
+            "    \"player_wallet_coins\":%d,"
+            "    \"player_wallet_gems\":%d,"
+            "    \"player_consumable_hp\":%d,"
+            "    \"player_consumable_doublecash\":%d,"
+            "    \"player_consumable_halfgrav\":%d,"
+            "    \"player_consumable_doublespeed\":%d"
+            "}",
+            session_uuid4,
+            w_coins_next, w_gems_next,
+            c_hp_next, c_doublecash_next, c_halfgrav_next, c_doublespeed_next);
+    EM_ASM({
+        Neverball.gamecore_account_try_update($0);
+    }, json_data);
+
+    return 1;
+#else
+    return 1;
+#endif
 }
 
 int account_wgcl_try_set(int w_coins, int w_gems,
                          int c_hp, int c_doublecash, int c_halfgrav, int c_doublespeed)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__EMSCRIPTEN__)
 #if _WIN32 && _MSC_VER
 #if NB_HAVE_PB_BOTH==1
     if (!(session_uuid4 && *session_uuid4))
@@ -833,15 +924,9 @@ int account_wgcl_try_set(int w_coins, int w_gems,
     if (res != CURLE_OK)
     {
         log_errorf("WGCL + CURL error: Updating asset value is not possible, either offline or needs to log in again.\n");
-#if defined(__EMSCRIPTEN__)
-        EM_ASM({ window.open("https://pennyball.stynegame.de/login"); }, 0);
-#elif _WIN32
-        system("explorer https://pennyball.stynegame.de/login");
-#elif defined(__APPLE__)
-        system("open https://pennyball.stynegame.de/login");
-#elif defined(__linux__)
-        system("x-www-browser https://pennyball.stynegame.de/login");
-#endif
+
+        account_wgcl_visit_browser_login();
+
         goto account_wgcl_try_set_fail;
     }
 
@@ -855,6 +940,9 @@ int account_wgcl_try_set(int w_coins, int w_gems,
     if (!root || json_value_get_type(root) != JSONObject)
     {
         log_errorf("WGCL + CURL error: Not an JSON object!\n");
+
+        account_wgcl_visit_browser_login();
+
         goto account_wgcl_try_set_fail;
     }
 
@@ -864,11 +952,17 @@ int account_wgcl_try_set(int w_coins, int w_gems,
         !json_object_has_value(root_obj, "message_desc"))
     {
         log_errorf("WGCL + CURL error: Session's column values does not matched exactly!\n");
+
+        account_wgcl_visit_browser_login();
+
         goto account_wgcl_try_set_fail;
     }
     else if (json_object_get_number(root_obj, "web_return_code") != 200)
     {
         log_errorf("WGCL + CURL error: Update failed: %s\n", json_object_get_string(root_obj, "message_text"));
+
+        account_wgcl_visit_browser_login();
+
         goto account_wgcl_try_set_fail;
     }
 
@@ -891,6 +985,29 @@ account_wgcl_try_set_fail:
 #else
     return 1;
 #endif
+#else
+    return 1;
+#endif
+#elif defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+    char json_data[512];
+    sprintf(json_data,
+            "{"
+            "    \"player_uuid4\":\"%s\","
+            "    \"player_wallet_coins\":%d,"
+            "    \"player_wallet_gems\":%d,"
+            "    \"player_consumable_hp\":%d,"
+            "    \"player_consumable_doublecash\":%d,"
+            "    \"player_consumable_halfgrav\":%d,"
+            "    \"player_consumable_doublespeed\":%d"
+            "}",
+            session_uuid4,
+            w_coins_next, w_gems_next,
+            c_hp_next, c_doublecash_next, c_halfgrav_next, c_doublespeed_next);
+    EM_ASM({
+        Neverball.gamecore_account_try_update($0);
+    }, json_data);
+
+    return 1;
 #else
     return 1;
 #endif

@@ -34,6 +34,7 @@
 #include "config.h"
 #include "geom.h"
 #include "gui.h"
+#include "transition.h"
 #include "lang.h"
 #include "networking.h"
 
@@ -739,9 +740,7 @@ static int transfer_action(int tok, int val)
             show_about = 0;
             show_preparations = 1;
             preparations_pageindx = 1;
-            goto_state_full(&st_transfer,
-                            GUI_ANIMATION_W_CURVE,
-                            GUI_ANIMATION_E_CURVE, 0);
+            goto_state(curr_state());
         }
         else
         {
@@ -752,9 +751,7 @@ static int transfer_action(int tok, int val)
                 // Must connect to the internet first, if TRANSFER_OFFLINE_ONLY is undefined
                 //if (about_pageindx == 2) about_pageindx = 3;
 #endif
-                goto_state_full(&st_transfer,
-                                GUI_ANIMATION_W_CURVE,
-                                GUI_ANIMATION_E_CURVE, 0);
+                goto_state(curr_state());
             }
             else if (!show_about && !show_transfer)
             {
@@ -780,9 +777,7 @@ static int transfer_action(int tok, int val)
 #if ENABLE_DEDICATED_SERVER==0 || defined(TRANSFER_OFFLINE_ONLY)
                 if (preparations_pageindx == 2) preparations_pageindx = 3;
 #endif
-                goto_state_full(&st_transfer,
-                                GUI_ANIMATION_W_CURVE,
-                                GUI_ANIMATION_E_CURVE, 0);
+                goto_state(curr_state());
             }
             else if (!show_about && show_transfer)
             {
@@ -809,9 +804,7 @@ static int transfer_action(int tok, int val)
                     if (!(transfer_walletamount[0] > 0 || transfer_walletamount[1] > 0))
                         transfer_pageindx++;
                 }
-                goto_state_full(&st_transfer,
-                                GUI_ANIMATION_W_CURVE,
-                                GUI_ANIMATION_E_CURVE, 0);
+                goto_state(curr_state());
             }
         }
         break;
@@ -822,9 +815,7 @@ static int transfer_action(int tok, int val)
 #if ENABLE_DEDICATED_SERVER==0 || defined(TRANSFER_OFFLINE_ONLY)
             if (about_pageindx == 2) about_pageindx = 1;
 #endif
-            goto_state_full(&st_transfer,
-                            GUI_ANIMATION_E_CURVE,
-                            GUI_ANIMATION_W_CURVE, 0);
+            exit_state(curr_state());
         }
         else if (!show_about && !show_transfer)
         {
@@ -833,15 +824,13 @@ static int transfer_action(int tok, int val)
                 have_entered = 0;
                 transfer_process_have_wallet = 0;
                 transfer_process_have_account = 0;
-                return goto_state(transfer_back);
+                return exit_state(transfer_back);
             }
             preparations_pageindx--;
 #if ENABLE_DEDICATED_SERVER==0 || defined(TRANSFER_OFFLINE_ONLY)
             if (preparations_pageindx == 2) preparations_pageindx = 1;
 #endif
-            goto_state_full(&st_transfer,
-                           GUI_ANIMATION_E_CURVE,
-                           GUI_ANIMATION_W_CURVE, 0);
+            exit_state(curr_state());
         }
         else if (!show_about && show_transfer)
         {
@@ -854,9 +843,7 @@ static int transfer_action(int tok, int val)
             }
 
             transfer_pageindx--;
-            goto_state_full(&st_transfer,
-                            GUI_ANIMATION_E_CURVE,
-                            GUI_ANIMATION_W_CURVE, 0);
+            exit_state(curr_state());
         }
         break;
     }
@@ -1005,9 +992,7 @@ static void transfer_timer_preparation_target(float dt)
                     transfer_ui_transition_busy = 1;
                     preparations_working = 0;
                     preparations_pageindx = 4;
-                    goto_state_full(&st_transfer,
-                                    GUI_ANIMATION_W_CURVE,
-                                    GUI_ANIMATION_E_CURVE, 0);
+                    goto_state(curr_state());
                     return;
                 }
             }
@@ -1051,9 +1036,7 @@ static void transfer_timer_preparation_target(float dt)
             transfer_ui_transition_busy = 1;
             preparations_working = 0;
             preparations_pageindx = 3;
-            goto_state_full(&st_transfer,
-                            GUI_ANIMATION_E_CURVE,
-                            GUI_ANIMATION_W_CURVE, 0);
+            exit_state(curr_state());
         }
         break;
     case 4:
@@ -1069,20 +1052,14 @@ static void transfer_timer_preparation_target(float dt)
             transfer_ui_transition_busy = 1;
             preparations_working = 0;
             preparations_pageindx = 5;
-            goto_state_full(&st_transfer,
-                            GUI_ANIMATION_W_CURVE,
-                            GUI_ANIMATION_E_CURVE,
-                            0);
+            goto_state(curr_state());
             return;
         }
 
         transfer_ui_transition_busy = 1;
         preparations_working = 0;
         preparations_pageindx = 3;
-        goto_state_full(&st_transfer,
-                        GUI_ANIMATION_E_CURVE,
-                        GUI_ANIMATION_W_CURVE,
-                        0);
+        goto_state(curr_state());
         break;
     case 5:
         dir_make(concat_string(pick_home_path(),
@@ -1188,9 +1165,7 @@ static void transfer_timer_preparation_target(float dt)
                 transfer_ui_transition_busy = 1;
                 preparations_working = 0;
                 preparations_pageindx = 6;
-                goto_state_full(&st_transfer,
-                                GUI_ANIMATION_W_CURVE,
-                                GUI_ANIMATION_E_CURVE, 0);
+                goto_state(curr_state());
 
                 return;
             }
@@ -1205,9 +1180,7 @@ static void transfer_timer_preparation_target(float dt)
         transfer_ui_transition_busy = 1;
         preparations_working = 0;
         preparations_pageindx = 3;
-        goto_state_full(&st_transfer,
-                        GUI_ANIMATION_E_CURVE,
-                        GUI_ANIMATION_W_CURVE, 0);
+        exit_state(curr_state());
         break;
     }
 }
@@ -1261,9 +1234,7 @@ static void transfer_timer_preprocess_target(float dt)
                 transfer_working = 0;
                 transfer_ui_transition_busy = 1;
                 transfer_pageindx = 2;
-                goto_state_full(&st_transfer,
-                                GUI_ANIMATION_W_CURVE,
-                                GUI_ANIMATION_E_CURVE, 0);
+                goto_state(curr_state());
                 return;
             }
 
@@ -1290,9 +1261,7 @@ static void transfer_timer_preprocess_target(float dt)
         transfer_working = 0;
         transfer_ui_transition_busy = 0;
         transfer_pageindx = 1;
-        goto_state_full(&st_transfer,
-                        GUI_ANIMATION_E_CURVE,
-                        GUI_ANIMATION_W_CURVE, 0);
+        exit_state(curr_state());
     }
 }
 
@@ -1377,7 +1346,7 @@ static void transfer_timer_process_target(float dt)
         transfer_ui_transition_busy = 1;
         preparations_working = 0;
         preparations_pageindx = 3;
-        goto_state_full(&st_transfer, GUI_ANIMATION_E_CURVE, GUI_ANIMATION_W_CURVE, 0);
+        exit_state(&st_transfer);
     }
 
 #if _WIN32
@@ -1649,29 +1618,32 @@ static int transfer_enter_target(struct state *st, struct state *prev)
     if (show_about && !show_transfer)
     {
         if (about_pageindx == 0)
-            return transfer_introducory_gui();
+            return transition_slide(transfer_introducory_gui(), 1, intent);
         else if (about_pageindx == 12) 
-            return transfer_starting_gui();
+            return transition_slide(transfer_starting_gui(), 1, intent);
         else
-            return transfer_about_transferring_gui();
+            return transition_slide(transfer_about_transferring_gui(), 1, intent);
     }
     else if (!show_about && !show_transfer)
     {
         if (!show_preparations && preparations_pageindx == 0)
-            return transfer_starting_gui();
-        else return transfer_preparing_gui();
+            return transition_slide(transfer_starting_gui(), 1, intent);
+        else
+            return transition_slide(transfer_preparing_gui(), 1, intent);
     }
     else if (!show_about && show_transfer)
-        return transfer_gui();
+        return transition_slide(transfer_gui(), 1, intent);
     else assert(0 && "Unknown state!");
 
     return 0;
 }
 
-static void transfer_leave(struct state *st, struct state *next, int id)
+static int transfer_leave(struct state *st, struct state *next, int id, int intent)
 {
     conf_common_leave(st, next, id);
     transfer_ui_transition_busy = 0;
+
+    return transition_slide(id, 0, intent);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1686,9 +1658,7 @@ static void transfer_timer(int id, float dt)
         preparations_pageindx = 0;
         transfer_pageindx = 1;
         show_transfer = 1;
-        goto_state_full(&st_transfer,
-                        GUI_ANIMATION_W_CURVE,
-                        GUI_ANIMATION_E_CURVE, 0);
+        goto_state(curr_state());
     }
 
     if (!transfer_ui_transition_busy && transfer_alpha > 0.99f)
@@ -1721,9 +1691,7 @@ static void transfer_timer(int id, float dt)
 
                 transfer_process = 0;
                 transfer_working = 0;
-                goto_state_full(&st_transfer, 
-                                GUI_ANIMATION_W_CURVE,
-                                GUI_ANIMATION_E_CURVE, 0);
+                goto_state(curr_state());
                 break;
             }
         }

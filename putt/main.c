@@ -131,6 +131,9 @@ extern "C" {
 #include "st_all.h"
 #include "st_common.h"
 #include "st_package.h"
+
+#include "main_share.h"
+
 #if __cplusplus
 }
 #endif
@@ -663,7 +666,7 @@ static int loop(void)
                         video_dualdisplay_fullscreen(config_get_d(CONFIG_FULLSCREEN));
 #endif
                         config_save();
-                        goto_state_full(curr_state(), 0, 0, 1);
+                        goto_state(curr_state());
                         break;
 #endif
                     case SDLK_RETURN:
@@ -740,7 +743,7 @@ static int loop(void)
                         if (config_get_d(CONFIG_DISPLAY) != video_display())
                         {
                             config_set_d(CONFIG_DISPLAY, video_display());
-                            goto_state_full(curr_state(), 0, 0, 1);
+                            goto_state(curr_state());
                         }
                         break;
 
@@ -765,21 +768,21 @@ static int loop(void)
 #endif
                         gui_resize();
                         config_save();
-                        goto_state_full(curr_state(), 0, 0, 1);
+                        goto_state(curr_state());
                         break;
 
                     case SDL_WINDOWEVENT_MAXIMIZED:
                         config_set_d(CONFIG_MAXIMIZED, 1);
                         gui_resize();
                         config_save();
-                        goto_state_full(curr_state(), 0, 0, 1);
+                        goto_state(curr_state());
                         break;
 
                     case SDL_WINDOWEVENT_RESTORED:
                         config_set_d(CONFIG_MAXIMIZED, 0);
                         gui_resize();
                         config_save();
-                        goto_state_full(curr_state(), 0, 0, 1);
+                        goto_state(curr_state());
                         break;
                 }
                 break;
@@ -1054,7 +1057,7 @@ static int main_init(int argc, char *argv[])
 
 static void main_quit()
 {
-    goto_state_full(&st_null, 0, 0, 1);
+    goto_state(&st_null);
 
     mtrl_quit();
 #if ENABLE_DUALDISPLAY==1
@@ -1112,7 +1115,7 @@ static void main_quit()
 #ifdef __cplusplus
 extern "C"
 #endif
-int main(int argc, char *argv[])
+int main_share(int argc, char *argv[])
 {
     int retval = 0;
 

@@ -20,6 +20,7 @@
 #include "config.h"
 #include "geom.h"
 #include "gui.h"
+#include "transition.h"
 #include "lang.h"
 #include "state.h"
 #include "key.h"
@@ -74,16 +75,19 @@ static int beam_style_action(int tok, int val)
     {
         case GUI_BACK:
             game_fade(+4.0);
-            return goto_state(&st_conf_account);
-            break;
+            return exit_state(&st_conf_account);
+
         case GUI_PREV:
             beam_index--;
+
             if (beam_index < 0) beam_index = 3;
 
             set_curr_beam();
             break;
+
         case GUI_NEXT:
             beam_index++;
+
             if (beam_index > 3) beam_index = 0;
 
             set_curr_beam();
@@ -180,7 +184,7 @@ static int beam_style_gui(void)
     return id;
 }
 
-static int beam_style_enter(struct state *st, struct state *prev)
+static int beam_style_enter(struct state *st, struct state *prev, int intent)
 {
     if (game_client_init("gui/beam-style.sol"))
     {
@@ -197,7 +201,7 @@ static int beam_style_enter(struct state *st, struct state *prev)
 
         game_client_toggle_show_balls(0);
 
-        return beam_style_gui();
+        return transition_slide(beam_style_gui(), 1, intent);
     }
 
     /* Ignore this, we don't have any map files. */
@@ -205,12 +209,12 @@ static int beam_style_enter(struct state *st, struct state *prev)
     return beam_style_action(GUI_BACK, 0);
 }
 
-static void beam_style_leave(struct state *st, struct state *next, int id)
+static int beam_style_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next == &st_null)
         game_client_free(NULL);
 
-    gui_delete(id);
+    return transition_slide(id, 0, intent);
 }
 
 static void beam_style_paint(int id, float t)

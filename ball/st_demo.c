@@ -23,6 +23,7 @@
 #endif
 
 #include "gui.h"
+#include "transition.h"
 //#include "hud.h"
 //#include "set.h"
 #include "binary.h"
@@ -215,22 +216,18 @@ static int demo_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            return goto_state(&st_title);
+            return exit_state(&st_title);
 
         case GUI_PREV:
             first = MAX(first - DEMO_STEP, 0);
 
-            return goto_state_full(&st_demo,
-                                   GUI_ANIMATION_E_CURVE,
-                                   GUI_ANIMATION_W_CURVE, 0);
+            return exit_state(&st_demo);
             break;
 
         case GUI_NEXT:
             first = MIN(first + DEMO_STEP, total - 1);
 
-            return goto_state_full(&st_demo,
-                                   GUI_ANIMATION_W_CURVE,
-                                   GUI_ANIMATION_E_CURVE, 0);
+            return goto_state(&st_demo);
             break;
 
         case DEMO_UPGRADE_LIMIT:
@@ -736,22 +733,22 @@ static int demo_restricted_gui(void)
     return id;
 }
 
-static int demo_restricted_enter(struct state *st, struct state *prev)
+static int demo_restricted_enter(struct state *st, struct state *prev, int intent)
 {
     audio_music_fade_out(0.0f);
     audio_play(AUD_UI_SHATTER, 1.0f);
-    return demo_restricted_gui();
+    return transition_slide(demo_restricted_gui(), 1, intent);
 }
 
-static void demo_restricted_leave(struct state *st, struct state *next, int id)
+static int demo_restricted_leave(struct state *st, struct state *next, int id, int intent)
 {
-    gui_delete(id);
-
     if (reported_status)
     {
         free(reported_status);
         reported_status = NULL;
     }
+
+    return transition_slide(id, 0, intent);
 }
 
 static void demo_restricted_timer(int id, float dt)
@@ -773,7 +770,7 @@ static int demo_restricted_keybd(int c, int d)
             if (is_opened)
                 return goto_state(&st_demo_end);
             else
-                return goto_state(&st_demo);
+                return exit_state(&st_demo);
     }
     return 1;
 }
@@ -786,12 +783,12 @@ static int demo_restricted_buttn(int b, int d)
             if (is_opened)
                 return goto_state(&st_demo_end);
             else
-                return goto_state(&st_demo);
+                return exit_state(&st_demo);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             if (is_opened)
                 return goto_state(&st_demo_end);
             else
-                return goto_state(&st_demo);
+                return exit_state(&st_demo);
     }
     return 1;
 }
@@ -819,14 +816,14 @@ static int demo_scan_allowance_gui()
     return detailpanel;
 }
 
-static int demo_scan_allowance_enter(struct state *st, struct state *prev)
+static int demo_scan_allowance_enter(struct state *st, struct state *prev, int intent)
 {
     threshold = 0;
     /* Scan levels */
     game_proxy_filter(filter_cmd);
 
     premaded_timer = curr_clock();
-    return demo_scan_allowance_gui();
+    return transition_slide(demo_scan_allowance_gui(), 1, intent);
 }
 
 static void demo_scan_allowance_timer(int id, float dt)
@@ -860,7 +857,7 @@ static void demo_scan_allowance_timer(int id, float dt)
         if (!progress_replay(curr_demo()))
         {
             if (!standalone)
-                goto_state(&st_demo);
+                exit_state(&st_demo);
             else
             {
                 SDL_Event e = { SDL_QUIT };
@@ -914,7 +911,7 @@ static int demo_scan_allowance_keybd(int c, int d)
 #endif
         {
             demo_replay_stop(0);
-            return standalone ? 0 : goto_state(&st_demo);
+            return standalone ? 0 : exit_state(&st_demo);
         }
     }
     return 1;
@@ -925,7 +922,7 @@ static int demo_scan_allowance_buttn(int b, int d)
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
     {
         demo_replay_stop(0);
-        return standalone ? 0 : goto_state(&st_demo);
+        return standalone ? 0 : exit_state(&st_demo);
     }
     return 1;
 }
@@ -1091,12 +1088,12 @@ static int demo_gui(void)
         gui_layout(id, 0, 0);
     }
     else
-        goto_state(&st_title);
+        exit_state(&st_title);
 
     return id;
 }
 
-static int demo_enter(struct state *st, struct state *prev)
+static int demo_enter(struct state *st, struct state *prev, int intent)
 {
     is_opened = 0; availibility = 0;
     game_proxy_filter(NULL);
@@ -1130,7 +1127,7 @@ static int demo_enter(struct state *st, struct state *prev)
 
 #if ENABLE_MOON_TASKLOADER!=0
     if (demo_is_scanning_with_moon_taskloader)
-        return demo_gui();
+        return transition_slide(demo_gui(), 1, intent);
 #endif
 
     first       = first < total ? first : 0;
@@ -1190,12 +1187,16 @@ static int demo_enter(struct state *st, struct state *prev)
     audio_music_fade_to(0.0f, "gui/bgm/inter.ogg", 1);
 #endif
 
-    demo_hotreload = 0;
+    if (demo_hotreload)
+    {
+        demo_hotreload = 0;
+        return demo_gui();
+    }
 
-    return demo_gui();
+    return transition_slide(demo_gui(), 1, intent);
 }
 
-static void demo_leave(struct state *st, struct state *next, int id)
+static int demo_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next == &st_title ||
         next == &st_null)
@@ -1210,7 +1211,11 @@ static void demo_leave(struct state *st, struct state *next, int id)
         }
     }
 
-    gui_delete(id);
+    if (demo_manual_hotreload)
+        gui_delete(id);
+    else return transition_slide(id, 0, intent);
+
+    return 0;
 }
 
 static void demo_paint(int id, float t)
@@ -1392,7 +1397,7 @@ static int demo_play_gui(void)
     return id;
 }
 
-static int demo_play_enter(struct state *st, struct state *prev)
+static int demo_play_enter(struct state *st, struct state *prev, int intent)
 {
     smoothfix_slowdown_time = 0;
 
@@ -1433,10 +1438,10 @@ static int demo_play_enter(struct state *st, struct state *prev)
     demo_replay_speed(speed);
     faster = 0;
 
-    return demo_play_gui();
+    return transition_slide(demo_play_gui(), 1, intent);
 }
 
-static void demo_play_leave(struct state *st, struct state *next, int id)
+static int demo_play_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next == &st_null)
     {
@@ -1449,9 +1454,9 @@ static void demo_play_leave(struct state *st, struct state *next, int id)
         game_client_free(NULL);
     }
 
-    gui_delete(id);
-
     video_show_cursor();
+
+    return transition_slide(id, 0, intent);
 }
 
 static void demo_play_paint(int id, float t)
@@ -1651,11 +1656,9 @@ static int demo_end_action(int tok, int val)
     {
         case GUI_BACK:
             return goto_state(demo_paused ? &st_demo_play : &st_demo);
-            break;
 
         case DEMO_CONF:
             return goto_conf(&st_demo_end, 1, 1);
-            break;
 
         case DEMO_DEL:
             demo_paused = 0;
@@ -1678,10 +1681,10 @@ static int demo_end_action(int tok, int val)
             demo_replay_stop(0);
 
             if (progress_replay(curr_demo()))
-                return goto_state(&st_demo_play);
+                return exit_state(&st_demo_play);
 
         case DEMO_CONTINUE:
-            return goto_state(&st_demo_play);
+            return exit_state(&st_demo_play);
     }
     return 1;
 }
@@ -1735,11 +1738,11 @@ static int demo_end_gui(void)
     return id;
 }
 
-static int demo_end_enter(struct state *st, struct state *prev)
+static int demo_end_enter(struct state *st, struct state *prev, int intent)
 {
     audio_music_fade_out(demo_paused ? 0.2f : 2.0f);
 
-    return demo_end_gui();
+    return transition_slide(demo_end_gui(), 1, intent);
 }
 
 static void demo_end_paint(int id, float t)
@@ -1800,13 +1803,13 @@ static int demo_del_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
-    if (tok == DEMO_QUIT)
-        return goto_state(&st_demo);
+    if (st_global_animating() || tok == GUI_NONE)
+        return 1;
 
-    if (tok == DEMO_DEL)
+    switch (tok)
     {
-        demo_replay_stop(1);
-        return goto_state(&st_demo);
+        case DEMO_DEL:  demo_replay_stop(1);
+        case DEMO_QUIT: return exit_state(&st_demo);
     }
 
     return 1;
@@ -1889,13 +1892,13 @@ static int demo_del_gui(void)
     return id;
 }
 
-static int demo_del_enter(struct state *st, struct state *prev)
+static int demo_del_enter(struct state *st, struct state *prev, int intent)
 {
     audio_music_fade_out(demo_paused ? 0.2f : 1.0f);
 
     audio_play(AUD_WARNING, 1.0f);
 
-    return demo_del_gui();
+    return transition_slide(demo_del_gui(), 1, intent);
 }
 
 static int demo_del_keybd(int c, int d)
@@ -1950,14 +1953,14 @@ static int demo_compat_gui(void)
     return id;
 }
 
-static int demo_compat_enter(struct state *st, struct state *prev)
+static int demo_compat_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play(AUD_WARNING, 1.0f);
 
     check_compat         = 0;
     allow_exact_versions = 0;
 
-    return demo_compat_gui();
+    return transition_slide(demo_compat_gui(), 1, intent);
 }
 
 static void demo_compat_timer(int id, float dt)
@@ -1995,7 +1998,7 @@ static float demo_look_stick_x[2],
              demo_look_stick_y[2],
              demo_look_stick_z;
 
-static int demo_look_enter(struct state *st, struct state *prev)
+static int demo_look_enter(struct state *st, struct state *prev, int intent)
 {
     demo_look_stick_x[0] = 0;
     demo_look_stick_y[0] = 0;
@@ -2007,7 +2010,7 @@ static int demo_look_enter(struct state *st, struct state *prev)
     return 0;
 }
 
-static void demo_look_leave(struct state *st, struct state *next, int id)
+static int demo_look_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next == &st_null)
     {
@@ -2019,6 +2022,8 @@ static void demo_look_leave(struct state *st, struct state *next, int id)
         game_server_free(NULL);
         game_client_free(NULL);
     }
+
+    return 0;
 }
 
 static void demo_look_timer(int id, float dt)
@@ -2093,7 +2098,7 @@ static int demo_look_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT || c == KEY_LOOKAROUND)
-            return goto_state(&st_demo_play);
+            return exit_state(&st_demo_play);
         if (c == SDLK_LSHIFT)
             demo_look_stick_z = -1;
         if (c == SDLK_SPACE)

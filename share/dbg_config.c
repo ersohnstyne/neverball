@@ -27,6 +27,7 @@
  */
 
 #include "log.h"
+#include "common.h"
 
 #include "dbg_config.h"
 

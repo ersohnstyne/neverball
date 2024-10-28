@@ -53,7 +53,11 @@ extern "C" {
 #include "dbg_config.h"
 
 #include "video.h"
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #include "video_dualdisplay.h"
+#endif
 #include "common.h"
 #include "image.h"
 #include "vec3.h"

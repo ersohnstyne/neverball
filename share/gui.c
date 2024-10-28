@@ -38,6 +38,8 @@
 #include "theme.h"
 #include "log.h"
 #include "lang.h"
+#include "ease.h"
+#include "transition.h"
 
 #include "fs.h"
 
@@ -147,6 +149,17 @@ struct widget
 
     float   alpha;
     int     animation_direction;
+
+    float offset_init_x;
+    float offset_init_y;
+
+    float offset_x;
+    float offset_y;
+
+    int   slide_flags;
+    float slide_delay;
+    float slide_dur;
+    float slide_time;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -534,8 +547,12 @@ static void gui_font_init(int s)
 
         /* Load the default font at index 0. */
 
+#if ENABLE_NLS==1
         int fi = gui_font_load(*curr_lang.font ? curr_lang.font : GUI_FACE);
-        
+#else
+        int fi = gui_font_load(GUI_FACE);
+#endif
+
         if (!fonts[fi].ttf)
         {
             log_errorf("Unable to load font!: %s / %s\n",
@@ -813,6 +830,16 @@ static int gui_widget(int pd, int type)
             widget[id].init_value  = 0;
             widget[id].layout_xd   = 0;
             widget[id].layout_yd   = 0;
+
+            widget[id].offset_init_x = 0.0f;
+            widget[id].offset_init_y = 0.0f;
+            widget[id].offset_x      = 0.0f;
+            widget[id].offset_y      = 0.0f;
+
+            widget[id].slide_flags = 0;
+            widget[id].slide_delay = 0.0f;
+            widget[id].slide_dur   = 0.0f;
+            widget[id].slide_time  = 0.0f;
 
             /* Insert the new widget into the parent's widget list. */
 
@@ -1724,6 +1751,91 @@ static void gui_widget_dn(int id, int x, int y, int w, int h)
 
 /*---------------------------------------------------------------------------*/
 
+static void gui_widget_offset(int id)
+{
+    if (id)
+    {
+        int jd;
+
+        for (jd = widget[id].car; jd; jd = widget[jd].cdr)
+            gui_widget_offset(jd);
+
+        widget[id].offset_init_x = widget[id].offset_x = 0.0f;
+        widget[id].offset_init_y = widget[id].offset_y = 0.0f;
+
+        if (widget[id].slide_flags & GUI_FLING)
+        {
+            // Offset position is a full frame away.
+
+            if (widget[id].slide_flags & GUI_W)
+                widget[id].offset_init_x = (float) -video.device_w;
+
+            if (widget[id].slide_flags & GUI_E)
+                widget[id].offset_init_x = (float) +video.device_w;
+
+            if (widget[id].slide_flags & GUI_S)
+                widget[id].offset_init_y = (float) -video.device_h;
+
+            if (widget[id].slide_flags & GUI_N)
+                widget[id].offset_init_y = (float) +video.device_h;
+        }
+        else
+        {
+            // Offset position is just offscreen.
+
+            if (widget[id].slide_flags & GUI_W)
+                widget[id].offset_init_x = -widget[id].x - widget[id].w;
+
+            if (widget[id].slide_flags & GUI_E)
+                widget[id].offset_init_x = video.device_w - widget[id].x + 1;
+
+            if (widget[id].slide_flags & GUI_S)
+                widget[id].offset_init_y = -widget[id].y - widget[id].h - 1;
+
+            if (widget[id].slide_flags & GUI_N)
+                widget[id].offset_init_y = video.device_h - widget[id].y;
+        }
+
+        if (!(widget[id].slide_flags & GUI_BACKWARD))
+        {
+            widget[id].offset_x = widget[id].offset_init_x;
+            widget[id].offset_y = widget[id].offset_init_y;
+        }
+    }
+}
+
+void gui_set_slide(int id, int flags, float delay, float t, float stagger)
+{
+    if (!config_get_d(CONFIG_SCREEN_ANIMATIONS)) return;
+
+    if (id)
+    {
+        int jd, c = 0;
+
+        widget[id].slide_flags = flags;
+        widget[id].slide_delay = delay;
+        widget[id].slide_dur = t;
+        widget[id].slide_time = 0.0f;
+
+        for (jd = widget[id].car; jd; jd = widget[jd].cdr)
+            c++;
+
+        for (jd = widget[id].car; jd; jd = widget[jd].cdr, c--)
+            gui_set_slide(jd, flags, delay + (stagger * (c - 1)), t, 0.0f);
+    }
+}
+
+void gui_slide(int id, int flags, float delay, float t, float stagger)
+{
+    if (id)
+    {
+        gui_set_slide(id, flags, delay, t, stagger);
+        gui_widget_offset(id);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void gui_render_text(int id)
 {
     int jd;
@@ -1767,6 +1879,10 @@ void gui_layout(int id, int xd, int yd)
     else             y = (H - h) / 2;
 
     gui_widget_dn(id, x, y, w, h);
+
+    /* Initialize animation state. */
+
+    gui_widget_offset(id);
 
     /* Set up GUI rendering state. */
 
@@ -1842,6 +1958,51 @@ int gui_delete(int id)
     return 0;
 }
 
+/*
+ * Delete this widget and update the layout of its parent widget.
+ */
+void gui_remove(int id)
+{
+    if (id && widget[id].type != GUI_FREE)
+    {
+        int pd = 0;
+        int i;
+
+        for (i = 1; i < WIDGET_MAX; ++i)
+            if (widget[i].type != GUI_FREE)
+            {
+                int jd, pjd;
+
+                for (pjd = 0, jd = widget[i].car; jd; pjd = jd, jd = widget[jd].cdr)
+                    if (jd == id)
+                    {
+                        /* Note the parent widget. */
+
+                        pd = i;
+
+                        /* Remove from linked list. */
+
+                        if (pjd)
+                            widget[pjd].cdr = widget[jd].cdr; /* prev = next */
+                        else
+                            widget[i].car = widget[jd].cdr; /* head = next */
+                    }
+            }
+
+        /* Update parent widget layout. */
+
+        if (pd)
+        {
+            gui_widget_dn(pd, widget[pd].x, widget[pd].y, widget[pd].w, widget[pd].h);
+            gui_geom_widget(pd, widget[pd].flags);
+        }
+
+        gui_delete(id);
+
+        transition_remove(id);
+    }
+}
+
 /*---------------------------------------------------------------------------*/
 
 static void gui_paint_rect(int id, int st, int flags)
@@ -1859,8 +2020,8 @@ static void gui_paint_rect(int id, int st, int flags)
 
         glPushMatrix();
         {
-            glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2),
-                         (GLfloat) (widget[id].y + widget[id].h / 2), 0.0f);
+            glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2 + widget[id].offset_x),
+                         (GLfloat) (widget[id].y + widget[id].h / 2 + widget[id].offset_y), 0.0f);
 
             glBindTexture_(GL_TEXTURE_2D, curr_theme.tex[i]);
             draw_rect(id);
@@ -1896,8 +2057,8 @@ static void gui_paint_array(int id)
 
     glPushMatrix();
     {
-        GLfloat cx = widget[id].x + widget[id].w / 2.0f;
-        GLfloat cy = widget[id].y + widget[id].h / 2.0f;
+        GLfloat cx = widget[id].x + widget[id].w / 2.0f + widget[id].offset_x;
+        GLfloat cy = widget[id].y + widget[id].h / 2.0f + widget[id].offset_y;
         GLfloat ck = widget[id].pulse_scale;
 
         if (1.0f < ck || ck < 1.0f)
@@ -1914,7 +2075,12 @@ static void gui_paint_array(int id)
     !defined(__SWITCH__)
         if (widget[id].flags & GUI_CLIP)
         {
-            glScissor(widget[id].x, widget[id].y, widget[id].w, widget[id].h);
+            glScissor(
+                widget[id].x + widget[id].offset_x,
+                widget[id].y + widget[id].offset_y,
+                widget[id].w,
+                widget[id].h
+            );
             glEnable(GL_SCISSOR_TEST);
         }
 #endif
@@ -1938,8 +2104,8 @@ static void gui_paint_image(int id)
 
     glPushMatrix();
     {
-        glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2),
-                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.0f);
+        glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2 + widget[id].offset_x),
+                     (GLfloat) (widget[id].y + widget[id].h / 2 + widget[id].offset_y), 0.0f);
 
         glScalef(widget[id].pulse_scale,
                  widget[id].pulse_scale,
@@ -1960,8 +2126,8 @@ static void gui_paint_count(int id)
     {
         /* Translate to the widget center, and apply the pulse scale. */
 
-        glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2),
-                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.0f);
+        glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2 + widget[id].offset_x),
+                     (GLfloat) (widget[id].y + widget[id].h / 2 + widget[id].offset_y), 0.0f);
 
         glScalef(widget[id].pulse_scale,
                  widget[id].pulse_scale,
@@ -2036,8 +2202,8 @@ static void gui_paint_clock(int id)
     {
         /* Translate to the widget center, and apply the pulse scale. */
 
-        glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2),
-                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.0f);
+        glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2 + widget[id].offset_x),
+                     (GLfloat) (widget[id].y + widget[id].h / 2 + widget[id].offset_y), 0.0f);
 
         glScalef(widget[id].pulse_scale,
                  widget[id].pulse_scale,
@@ -2185,8 +2351,8 @@ static void gui_paint_label(int id)
 
     glPushMatrix();
     {
-        glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2),
-                     (GLfloat) (widget[id].y + widget[id].h / 2), 0.0f);
+        glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2 + widget[id].offset_x),
+                     (GLfloat) (widget[id].y + widget[id].h / 2 + widget[id].offset_y), 0.0f);
 
         glScalef(widget[id].pulse_scale,
                  widget[id].pulse_scale,
@@ -2357,7 +2523,7 @@ void gui_paint(int id)
 {
     video_can_swap_window = 1;
 
-    if (id)
+    if (id && widget[id].type != GUI_FREE)
     {
         video_set_ortho();
 
@@ -2467,14 +2633,58 @@ void gui_timer(int id, float dt)
 {
     int jd;
 
-    if (id && widget[id].alpha >= .5f)
+    if (id && widget[id].type != GUI_FREE)
     {
         for (jd = widget[id].car; jd; jd = widget[jd].cdr)
             gui_timer(jd, dt);
-        
-        //widget[id].pulse_scale = MAX(widget[id].pulse_scale - dt, 1.0f);
 
-        widget[id].pulse_scale = flerp(1.0f, widget[id].pulse_scale, 0.8f);
+        if (widget[id].alpha >= .5f)
+            widget[id].pulse_scale = flerp(1.0f, widget[id].pulse_scale, 0.8f);
+
+        if (widget[id].slide_dur)
+        {
+            float alpha = 0.0f;
+            int at_end = 0;
+
+            widget[id].slide_time += dt;
+
+            alpha = (widget[id].slide_time - widget[id].slide_delay) / widget[id].slide_dur;
+            alpha = CLAMP(0.0f, alpha, 1.0f);
+
+            at_end = (alpha >= 1.0f);
+
+            if (widget[id].slide_flags & GUI_BACKWARD)
+            {
+                // Approaching offset position.
+
+                if (widget[id].slide_flags & GUI_EASE_ELASTIC)
+                    alpha = easeOutElastic(alpha);
+                else if (widget[id].slide_flags & GUI_EASE_BACK)
+                    alpha = easeOutBack(alpha);
+                else
+                    /* Linear interpolation. */;
+            }
+            else
+            {
+                // Approaching widget position.
+
+                if (widget[id].slide_flags & GUI_EASE_ELASTIC)
+                    alpha = easeInElastic(1.0f - alpha);
+                else if (widget[id].slide_flags & GUI_EASE_BACK)
+                    alpha = easeInBack(1.0f - alpha);
+                else
+                    alpha = 1.0f - alpha;
+            }
+
+            widget[id].offset_x = widget[id].offset_init_x * alpha;
+            widget[id].offset_y = widget[id].offset_init_y * alpha;
+
+            if (at_end && (widget[id].slide_flags & GUI_REMOVE))
+            {
+                gui_remove(id);
+                return;
+            }
+        }
     }
 }
 

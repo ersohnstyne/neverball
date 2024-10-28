@@ -19,6 +19,7 @@
 #include "state.h"
 #include "config.h"
 #include "gui.h"
+#include "transition.h"
 #include "audio.h"
 #include "progress.h"
 #include "key.h"
@@ -118,7 +119,6 @@ static int malfunction_action(int tok, int val)
         case GUI_BACK:
             progress_exit();
             game_fade(+4.0f);
-            goto_state_full(&st_null, 0, 0, 0);
             return 0;
     }
 
@@ -145,11 +145,11 @@ static int malfunction_gui(void)
     return id;
 }
 
-static int malfunction_enter(struct state *st, struct state *prev)
+static int malfunction_enter(struct state *st, struct state *prev, int intent)
 {
     audio_music_fade_out(0.0f);
     audio_play(AUD_UI_SHATTER, 1.0f);
-    return malfunction_gui();
+    return transition_slide(malfunction_gui(), 1, intent);
 }
 
 static int malfunction_keybd(int c, int d)
@@ -201,7 +201,7 @@ static int handsoff_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            return goto_state(back_state);
+            return exit_state(back_state);
     }
 
     return 1;
@@ -220,15 +220,17 @@ static int handsoff_gui(void)
         gui_space(id);
         gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
     }
+
     gui_layout(id, 0, 0);
+
     return id;
 }
 
-static int handsoff_enter(struct state *st, struct state *prev)
+static int handsoff_enter(struct state *st, struct state *prev, int intent)
 {
     handson_threshold++;
 
-    return handsoff_gui();
+    return transition_slide(handsoff_gui(), 1, intent);
 }
 
 static int handsoff_keybd(int c, int d)

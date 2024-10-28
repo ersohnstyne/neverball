@@ -21,6 +21,7 @@
 #include "account_wgcl.h"
 #include "config.h"
 #include "gui.h"
+#include "transition.h"
 #include "lang.h"
 #include "state.h"
 #include "text.h"
@@ -376,12 +377,12 @@ static int shop_activate_gui(void)
     return id;
 }
 
-static int shop_activate_enter(struct state *st, struct state *prev)
+static int shop_activate_enter(struct state *st, struct state *prev, int intent)
 {
     additive = 0;
 
-    return activate_introducory ?
-        shop_activate_gui_introducory() : shop_activate_gui();
+    return transition_slide(activate_introducory ? shop_activate_gui_introducory() :
+                                                   shop_activate_gui(), 1, intent);
 }
 
 static void shop_activate_timer(int id, float dt)

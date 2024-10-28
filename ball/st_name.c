@@ -30,6 +30,7 @@
 
 #include "common.h"
 #include "gui.h"
+#include "transition.h"
 #include "util.h"
 #include "audio.h"
 #include "config.h"
@@ -153,7 +154,7 @@ static int name_action(int tok, int val)
     {
         case GUI_BACK:
             if (name_error)
-                return goto_state(&st_name);
+                return exit_state(&st_name);
 
             if (newplayers)
                 return ok_fn ? ok_fn(ok_state) : goto_state(ok_state);
@@ -161,7 +162,7 @@ static int name_action(int tok, int val)
             account_init();
             account_load();
 
-            return cancel_fn ? cancel_fn(cancel_state) : goto_state(cancel_state);
+            return cancel_fn ? cancel_fn(cancel_state) : exit_state(cancel_state);
             break;
 
         case NAME_OK:
@@ -327,7 +328,7 @@ static void on_text_input(int typing)
     }
 }
 
-static int name_enter(struct state *st, struct state *prev)
+static int name_enter(struct state *st, struct state *prev, int intent)
 {
     player_renamed = 0;
 
@@ -346,21 +347,19 @@ static int name_enter(struct state *st, struct state *prev)
         back_init("back/gui.png");
     }
 
-    if (!newplayers)
+    if (!newplayers && !name_readonly)
     {
         text_input_start(on_text_input);
         text_input_str(config_get_s(CONFIG_PLAYER), 0);
     }
 
-    return name_gui();
+    return transition_slide(name_gui(), 1, intent);
 }
 
-static void name_leave(struct state *st, struct state *next, int id)
+static int name_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (draw_back)
         back_free();
-
-    play_shared_leave(st, next, id);
 
 #if NB_HAVE_PB_BOTH==1 && ENABLE_DEDICATED_SERVER==1
     if (player_renamed)
@@ -369,6 +368,8 @@ static void name_leave(struct state *st, struct state *next, int id)
         networking_dedicated_refresh_login(config_get_s(CONFIG_PLAYER));
     }
 #endif
+
+    return transition_slide(id, 0, intent);
 }
 
 static void name_paint(int id, float t)

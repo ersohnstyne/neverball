@@ -51,7 +51,6 @@ int package_search(const char *file);
 int package_search_id(const char *package_id);
 int package_next(const char *type, int start);
 
-void         package_delete(int pi);
 unsigned int package_fetch(int, struct fetch_callback, int);
 unsigned int package_fetch_image(int, struct fetch_callback);
 

@@ -21,17 +21,20 @@
 #if _WIN32 && _MSC_VER
 #include "account_wgcl.h"
 #endif
+#include "networking.h"
 #endif
 
 #include "audio.h"
 #include "config.h"
 #include "gui.h"
+#include "transition.h"
 #include "lang.h"
 #include "key.h"
 #include "state.h"
 #include "text.h"
 
 #include "st_common.h"
+#include "st_setup.h"
 
 #define AUD_MENU     "snd/menu.ogg"
 #define AUD_BACK     "snd/back.ogg"
@@ -85,7 +88,7 @@ static int keyd[127];
 static int keyd_en[127];
 
 /* Britain Keyboards */
-static void wgcl_gui_keyboard_en(int id)
+void wgcl_gui_keyboard_en(int id)
 {
     int jd, kd, ld;
 
@@ -113,12 +116,14 @@ static void wgcl_gui_keyboard_en(int id)
                 keyd_en['3'] = gui_state(ld, "#", GUI_SML, GUI_CHAR, '#');
                 keyd_en['2'] = gui_state(ld, "@", GUI_SML, GUI_CHAR, '@');
                 keyd_en['1'] = gui_state(ld, "!", GUI_SML, GUI_CHAR, '!');
-                keyd_en['`'] = gui_state(ld, "~", GUI_SML, GUI_CHAR, '~');
                 gui_filler(ld);
             }
             if ((ld = gui_hstack(kd)))
             {
                 gui_filler(ld);
+                gui_space(ld);
+                keyd_en[']'] = gui_state(ld, "}", GUI_SML, GUI_CHAR, '}');
+                keyd_en['['] = gui_state(ld, "{", GUI_SML, GUI_CHAR, '{');
                 keyd_en['P'] = gui_state(ld, "P", GUI_SML, GUI_CHAR, 'P');
                 keyd_en['O'] = gui_state(ld, "O", GUI_SML, GUI_CHAR, 'O');
                 keyd_en['I'] = gui_state(ld, "I", GUI_SML, GUI_CHAR, 'I');
@@ -129,11 +134,16 @@ static void wgcl_gui_keyboard_en(int id)
                 keyd_en['E'] = gui_state(ld, "E", GUI_SML, GUI_CHAR, 'E');
                 keyd_en['W'] = gui_state(ld, "W", GUI_SML, GUI_CHAR, 'W');
                 keyd_en['Q'] = gui_state(ld, "Q", GUI_SML, GUI_CHAR, 'Q');
+                gui_space(ld);
+                gui_space(ld);
                 gui_filler(ld);
             }
             if ((ld = gui_hstack(kd)))
             {
                 gui_filler(ld);
+                keyd_en['\\'] = gui_state(ld, "|", GUI_SML, GUI_CHAR, '|');
+                keyd_en['\''] = gui_state(ld, "\"", GUI_SML, GUI_CHAR, '\"');
+                keyd_en[';'] = gui_state(ld, ":", GUI_SML, GUI_CHAR, ':');
                 keyd_en['L'] = gui_state(ld, "L", GUI_SML, GUI_CHAR, 'L');
                 keyd_en['K'] = gui_state(ld, "K", GUI_SML, GUI_CHAR, 'K');
                 keyd_en['J'] = gui_state(ld, "J", GUI_SML, GUI_CHAR, 'J');
@@ -143,12 +153,15 @@ static void wgcl_gui_keyboard_en(int id)
                 keyd_en['D'] = gui_state(ld, "D", GUI_SML, GUI_CHAR, 'D');
                 keyd_en['S'] = gui_state(ld, "S", GUI_SML, GUI_CHAR, 'S');
                 keyd_en['A'] = gui_state(ld, "A", GUI_SML, GUI_CHAR, 'A');
-                gui_state(ld, _("caps"), GUI_SML, GUI_CL, 0);
+                gui_state(ld, "⇩", GUI_SML, GUI_CL, 0);
                 gui_filler(ld);
             }
             if ((ld = gui_hstack(kd)))
             {
                 gui_filler(ld);
+                keyd_en['/'] = gui_state(ld, "?", GUI_SML, GUI_CHAR, '?');
+                keyd_en['.'] = gui_state(ld, ">", GUI_SML, GUI_CHAR, '>');
+                keyd_en[','] = gui_state(ld, "<", GUI_SML, GUI_CHAR, '<');
                 keyd_en['M'] = gui_state(ld, "M", GUI_SML, GUI_CHAR, 'M');
                 keyd_en['N'] = gui_state(ld, "N", GUI_SML, GUI_CHAR, 'N');
                 keyd_en['B'] = gui_state(ld, "B", GUI_SML, GUI_CHAR, 'B');
@@ -156,6 +169,8 @@ static void wgcl_gui_keyboard_en(int id)
                 keyd_en['C'] = gui_state(ld, "C", GUI_SML, GUI_CHAR, 'C');
                 keyd_en['X'] = gui_state(ld, "X", GUI_SML, GUI_CHAR, 'X');
                 keyd_en['Z'] = gui_state(ld, "Z", GUI_SML, GUI_CHAR, 'Z');
+                keyd_en['`'] = gui_state(ld, "~", GUI_SML, GUI_CHAR, '~');
+                gui_space(ld);
                 gui_filler(ld);
             }
         }
@@ -163,13 +178,12 @@ static void wgcl_gui_keyboard_en(int id)
 }
 
 /* Britain Keyboards */
-static void wgcl_gui_keyboard_lock_en(void)
+void wgcl_gui_keyboard_lock_en(void)
 {
     lock = lock ? 0 : 1;
 
-    gui_set_label(keyd_en['`'], lock ? "~" : "`");
-    gui_set_label(keyd_en['-'], lock ? "_" : "-");
-    gui_set_label(keyd_en['='], lock ? "+" : "=");
+    gui_set_label(keyd_en['-'], lock ? "_" : "-"); gui_set_state(keyd_en['-'], GUI_CHAR, lock ? '_' : '-');
+    gui_set_label(keyd_en['='], lock ? "+" : "="); gui_set_state(keyd_en['='], GUI_CHAR, lock ? '+' : '=');
     gui_set_label(keyd_en['1'], lock ? "!" : "1");
     gui_set_label(keyd_en['2'], lock ? "@" : "2");
     gui_set_label(keyd_en['3'], lock ? "#" : "3");
@@ -206,6 +220,15 @@ static void wgcl_gui_keyboard_lock_en(void)
     gui_set_label(keyd_en['X'], lock ? "X" : "x");
     gui_set_label(keyd_en['Y'], lock ? "Y" : "y");
     gui_set_label(keyd_en['Z'], lock ? "Z" : "z");
+    gui_set_label(keyd_en['`'], lock ? "~" : "`"); gui_set_state(keyd_en['`'], GUI_CHAR, lock ? '~' : '`');
+    gui_set_label(keyd_en['['], lock ? "{" : "["); gui_set_state(keyd_en['['], GUI_CHAR, lock ? '{' : '[');
+    gui_set_label(keyd_en[']'], lock ? "}" : "]"); gui_set_state(keyd_en[']'], GUI_CHAR, lock ? '}' : ']');
+    gui_set_label(keyd_en[';'], lock ? ":" : ";"); gui_set_state(keyd_en[';'], GUI_CHAR, lock ? ':' : ';');
+    gui_set_label(keyd_en['\\'], lock ? "|" : "\\"); gui_set_state(keyd_en['\\'], GUI_CHAR, lock ? '|' : '\\');
+    gui_set_label(keyd_en['\''], lock ? "\"" : "'"); gui_set_state(keyd_en['\''], GUI_CHAR, lock ? '"' : '\'');
+    gui_set_label(keyd_en[','], lock ? "<" : ","); gui_set_state(keyd_en[','], GUI_CHAR, lock ? '<' : ',');
+    gui_set_label(keyd_en['.'], lock ? ">" : "."); gui_set_state(keyd_en['.'], GUI_CHAR, lock ? '>' : '.');
+    gui_set_label(keyd_en['/'], lock ? "?" : "/"); gui_set_state(keyd_en['/'], GUI_CHAR, lock ? '?' : '/');
 }
 
 /*###########################################################################*/
@@ -216,7 +239,7 @@ struct state st_wgcl_logout_confirm;
 
 /*###########################################################################*/
 
-static int wgcl_error_offline_enter(struct state *st, struct state *prev)
+static int wgcl_error_offline_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play("snd/uierror.ogg", 1.0f);
 
@@ -247,9 +270,14 @@ enum
     WGCL_LOGIN_TEXTFIELD = GUI_LAST,
     WGCL_LOGIN_SUBMIT,
     WGCL_LOGIN_SIGNUP,
+    WGCL_LOGIN_DONE
 };
 
 static struct state *login_back;
+static struct state *login_next;
+
+static int (*login_back_fn)(struct state *);
+static int (*login_next_fn)(struct state *);
 
 static int login_introduction = 1;
 
@@ -258,7 +286,6 @@ static int login_result = 0;
 static int login_enter_id;
 
 static int login_field_id;
-
 static int login_field_name_id;
 static int login_field_password_id;
 
@@ -267,15 +294,31 @@ static char login_field_password[MAXSTR];
 
 static int login_write_protected;
 
-int goto_wgcl_login(struct state *back)
+int goto_wgcl_login(struct state *back_state, int (*back_fn)(struct state *),
+                    struct state *next_state, int (*next_fn)(struct state *))
 {
-    login_back = back;
+    login_back = back_state;
+    login_next = next_state;
+
+    login_back_fn = back_fn;
+    login_next_fn = next_fn;
 
     return goto_state(&st_wgcl_login);
 }
 
 static int wgcl_login_action(int tok, int val)
 {
+    if (tok == GUI_BACK && login_entertext_mode == 0 &&
+        (game_setup_process()
+#if NB_HAVE_PB_BOTH==1
+     && server_policy_get_d(SERVER_POLICY_EDITION) == 0
+#endif
+        ))
+    {
+        audio_play(AUD_DISABLED, 1.0f);
+        return 1;
+    }
+
     GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
@@ -285,7 +328,8 @@ static int wgcl_login_action(int tok, int val)
             {
                 login_introduction = 1;
                 login_write_protected = 0;
-                return goto_state(login_back);
+                return login_back_fn ? login_back_fn(login_back) :
+                                       login_back ? goto_state(login_back) : 0;
             }
             else
             {
@@ -308,6 +352,11 @@ static int wgcl_login_action(int tok, int val)
             text_input_char(val);
             break;
 
+        case WGCL_LOGIN_DONE:
+            return login_next_fn ? login_next_fn(login_next) :
+                                   login_next ? goto_state(login_next) : 0;
+            break;
+
         case WGCL_LOGIN_TEXTFIELD:
             login_write_protected = 1;
             login_entertext_mode = val;
@@ -315,6 +364,9 @@ static int wgcl_login_action(int tok, int val)
             break;
 
         case WGCL_LOGIN_SIGNUP:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if defined(__EMSCRIPTEN__)
             EM_ASM({ window.open("https://pennyball.stynegame.de/signup"); }, 0);
 #elif _WIN32
@@ -323,6 +375,7 @@ static int wgcl_login_action(int tok, int val)
             system("open https://pennyball.stynegame.de/signup");
 #elif defined(__linux__)
             system("x-www-browser https://pennyball.stynegame.de/signup");
+#endif
 #endif
             break;
 
@@ -337,7 +390,7 @@ static int wgcl_login_action(int tok, int val)
                 case 1:
                     login_write_protected = 1;
                     SAFECPY(login_field_name, text_input);
-                    
+
                     login_entertext_mode = 0;
                     text_input_stop();
                     return goto_state(&st_wgcl_login);
@@ -353,7 +406,9 @@ static int wgcl_login_action(int tok, int val)
                     break;
 
                 default:
-
+#ifndef __EMSCRIPTEN__
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                     if (text_length(login_field_name) < 3 ||
                         text_length(login_field_password) < 14)
                     {
@@ -370,6 +425,8 @@ static int wgcl_login_action(int tok, int val)
                         return goto_state(&st_wgcl_login_result);
                     }
                     else audio_play("snd/uierror.ogg", 1.0f);
+#endif
+#endif
             }
             break;
     }
@@ -394,17 +451,17 @@ static int wgcl_login_gui_introduction(void)
 
         if ((jd = gui_harray(id)))
         {
-#if !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
+            gui_start(jd, _("Login"), GUI_SML, WGCL_LOGIN_SUBMIT, 0);
+            
+            if (!game_setup_process()
+#if NB_HAVE_PB_BOTH==1
+#ifndef __EMSCRIPTEN__
+                && current_platform == PLATFORM_PC
 #endif
-            {
-                gui_start(jd, _("Login"), GUI_SML, WGCL_LOGIN_SUBMIT, 0);
+                && server_policy_get_d(SERVER_POLICY_EDITION) != 0
+#endif
+                )
                 gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
-            }
-#if !defined(__EMSCRIPTEN__)
-            else
-                gui_start(jd, _("Login"), GUI_SML, WGCL_LOGIN_SUBMIT, 0);
-#endif
         }
 
         gui_layout(id, 0, 0);
@@ -517,7 +574,15 @@ static int wgcl_login_gui_forms(void)
         {
             gui_state(jd, _("Login"), GUI_SML, WGCL_LOGIN_SUBMIT, 0);
             gui_space(jd);
-            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+
+            if (!game_setup_process()
+#if NB_HAVE_PB_BOTH==1
+                && server_policy_get_d(SERVER_POLICY_EDITION) != 0
+#endif
+                )
+                gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+            else
+                gui_space(jd);
         }
 
         gui_set_label(login_field_name_id, login_field_name);
@@ -564,7 +629,7 @@ static void on_text_input(int typing)
     }
 }
 
-static int wgcl_login_enter(struct state *st, struct state *prev)
+static int wgcl_login_enter(struct state *st, struct state *prev, int intent)
 {
     conf_common_init(wgcl_login_action, 1);
 
@@ -574,14 +639,13 @@ static int wgcl_login_enter(struct state *st, struct state *prev)
     if (login_introduction)
         return wgcl_login_gui_introduction();
 
-    return login_entertext_mode == 0 ? wgcl_login_gui_forms() :
-                                       wgcl_login_gui_keyboard();
+    return transition_slide(login_entertext_mode == 0 ? wgcl_login_gui_forms() :
+                                                        wgcl_login_gui_keyboard(),
+                            1, intent);
 }
 
-static void wgcl_login_leave(struct state *st, struct state *next, int id)
+static int wgcl_login_leave(struct state *st, struct state *next, int id, int intent)
 {
-    conf_common_leave(st, next, id);
-
     if (login_entertext_mode == 0 &&
         !login_write_protected)
     {
@@ -590,6 +654,8 @@ static void wgcl_login_leave(struct state *st, struct state *next, int id)
     }
 
     login_write_protected = 0;
+
+    return conf_common_leave(st, next, id, intent);
 }
 
 static int wgcl_login_keybd(int c, int d)
@@ -645,7 +711,7 @@ static int wgcl_login_result_gui_success(void)
         gui_space(id);
         gui_multi(id, _(desc_info), GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
-        gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
+        gui_start(id, _("OK"), GUI_SML, WGCL_LOGIN_DONE, 0);
 
         gui_layout(id, 0, 0);
     }
@@ -653,7 +719,7 @@ static int wgcl_login_result_gui_success(void)
     return id;
 }
 
-static int wgcl_login_result_enter(struct state *st, struct state *prev)
+static int wgcl_login_result_enter(struct state *st, struct state *prev, int intent)
 {
     conf_common_init(wgcl_login_action, 1);
 
@@ -682,9 +748,12 @@ static int wgcl_logout_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     if (tok == WGCL_LOGOUT_SUBMIT)
         if (!account_wgcl_logout())
             return 1;
+#endif
 
     return goto_state(login_back);
 }
@@ -704,17 +773,15 @@ static int wgcl_logout_confirm_gui(void)
 
         if ((jd = gui_harray(id)))
         {
-#if !defined(__EMSCRIPTEN__)
+            gui_start(jd, _("Logout"), GUI_SML, WGCL_LOGOUT_SUBMIT, 0);
+#if NB_HAVE_PB_BOTH==1
+#ifndef __EMSCRIPTEN__
             if (current_platform == PLATFORM_PC)
 #endif
-            {
-                gui_state(jd, _("Logout"), GUI_SML, WGCL_LOGOUT_SUBMIT, 0);
-                gui_start(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
-            }
-#if !defined(__EMSCRIPTEN__)
-            else
-                gui_start(jd, _("Logout"), GUI_SML, WGCL_LOGOUT_SUBMIT, 0);
 #endif
+            {
+                gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+            }
         }
 
         gui_layout(id, 0, 0);
@@ -723,7 +790,7 @@ static int wgcl_logout_confirm_gui(void)
     return id;
 }
 
-static int wgcl_logout_confirm_enter(struct state *st, struct state *prev)
+static int wgcl_logout_confirm_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play("snd/warning.ogg", 1.0f);
 

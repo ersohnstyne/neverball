@@ -34,8 +34,7 @@
 #include <sstream>
 #include <vector>
 
-extern "C"
-{
+extern "C" {
 #include "lang.h"
 
 #include "array.h"
@@ -100,6 +99,8 @@ void ms_nls_free(void);
 static void ms_nls_init(const char *pref)
 {
     ms_nls_free();
+
+    char *dir = strdup(getenv("NEVERBALL_LOCALE"));
 
     /* Select the location of message catalogs. */
 

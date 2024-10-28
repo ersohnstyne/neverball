@@ -173,7 +173,7 @@ static struct fetch_progress *create_extra_progress(double total, double now)
 /*
  * Create extra_data for a done callback.
  */
-static struct fetch_done *create_extra_done(int finished)
+static struct fetch_done *create_extra_done(int success)
 {
 #if FETCH_WITH_CAST
     struct fetch_done *dn = (struct fetch_done *) calloc(sizeof (*dn), 1);
@@ -182,7 +182,7 @@ static struct fetch_done *create_extra_done(int finished)
 #endif
 
     if (dn)
-        dn->finished = !!finished;
+        dn->success = !!success;
 
     return dn;
 }
@@ -464,7 +464,7 @@ static void fetch_step(void)
                 {
                     struct fetch_info *fi;
 
-                    int finished;
+                    int success;
 
                     CURL *handle  = message->easy_handle;
                     CURLcode code = message->data.result;
@@ -478,10 +478,10 @@ static void fetch_step(void)
                         else
                             log_errorf("Transfer %u error: %s\n", fi->fetch_id, curl_easy_strerror(code));
 
-                        finished = 0;
+                        success = 0;
                     }
                     else
-                        finished = 1;
+                        success = 1;
 
                     curl_multi_remove_handle(multi_handle, handle);
 
@@ -501,7 +501,7 @@ static void fetch_step(void)
                         {
                             fe->callback      = fi->callback.done;
                             fe->callback_data = fi->callback.data;
-                            fe->extra_data    = create_extra_done(finished);
+                            fe->extra_data    = create_extra_done(success);
 
                             fetch_dispatch_event(fe);
                         }
@@ -892,7 +892,7 @@ void fetch_quit(void)
 /*
  * Download from URL into FILENAME.
  */
-unsigned int fetch_url(const char *url,
+unsigned int fetch_file(const char *url,
                        const char *filename,
                        struct fetch_callback callback)
 {

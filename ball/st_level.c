@@ -39,6 +39,7 @@
 #endif
 
 #include "gui.h"
+#include "transition.h"
 #include "hud.h"
 #include "set.h"
 #include "progress.h"
@@ -153,7 +154,7 @@ const char level_loading_covid_highrisk[][256] = {
 
 #endif
 
-static int level_loading_enter(struct state *st, struct state *prev)
+static int level_loading_enter(struct state *st, struct state *prev, int intent)
 {
     int id, tip_id;
 
@@ -198,7 +199,7 @@ static int level_loading_enter(struct state *st, struct state *prev)
         gui_layout(id, 0, 0);
 #endif
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -602,7 +603,7 @@ static int level_gui(void)
     return id;
 }
 
-static int level_enter(struct state *st, struct state *prev)
+static int level_enter(struct state *st, struct state *prev, int intent)
 {
     //game_lerp_pose_point_reset();
     game_client_fly(1.0f);
@@ -625,7 +626,7 @@ static int level_enter(struct state *st, struct state *prev)
     game_client_fly(1.0f);
     hud_update(0, 0.0f);
 
-    return level_gui();
+    return transition_slide(level_gui(), 1, intent);
 }
 
 static void level_paint(int id, float t)
@@ -824,7 +825,7 @@ static int poser_buttn(int c, int d)
 
 /*---------------------------------------------------------------------------*/
 
-static int nodemo_enter(struct state *st, struct state *prev)
+static int nodemo_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play(AUD_WARNING, 1.0f);
 
@@ -847,7 +848,7 @@ static int nodemo_enter(struct state *st, struct state *prev)
         gui_layout(id, 0, 0);
     }
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
 static void nodemo_timer(int id, float dt)
@@ -864,16 +865,16 @@ static int nodemo_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            return goto_state(campaign_used() ? &st_play_ready : &st_level);
+            return campaign_used() ? goto_state(&st_play_ready) : exit_state(&st_level);
 #else
-            return goto_state(&st_level);
+            return exit_state(&st_level);
 #endif
 #else
         if (c == KEY_EXIT)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            return goto_state(campaign_used() ? &st_play_ready : &st_level);
+            return campaign_used() ? goto_state(&st_play_ready) : exit_state(&st_level);
 #else
-            return goto_state(&st_level);
+            return exit_state(&st_level);
 #endif
 #endif
     }
@@ -886,15 +887,15 @@ static int nodemo_buttn(int b, int d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            return goto_state(campaign_used() ? &st_play_ready : &st_level);
+            return campaign_used() ? goto_state(&st_play_ready) : exit_state(&st_level);
 #else
-            return goto_state(&st_play_ready);
+            return exit_state(&st_level);
 #endif
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            return goto_state(campaign_used() ? &st_play_ready : &st_level);
+            return campaign_used() ? goto_state(&st_play_ready) : exit_state(&st_level);
 #else
-            return goto_state(&st_play_ready);
+            return exit_state(&st_level);
 #endif
     }
     return 1;
@@ -902,7 +903,7 @@ static int nodemo_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-static int level_signin_required_enter(struct state *st, struct state *prev)
+static int level_signin_required_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play(AUD_WARNING, 1.0f);
 
@@ -1096,9 +1097,9 @@ int goto_exit(void)
         /* Visit the auxilliary screen or exit to level selection. */
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        goto_state(dst != curr ? dst : &st_start);
+        exit_state(dst != curr ? dst : &st_start);
 #else
-        goto_state(&st_start);
+        exit_state(&st_start);
 #endif
     }
     else
@@ -1116,14 +1117,14 @@ int goto_exit(void)
 
 struct state st_level_loading = {
     level_loading_enter,
-    play_shared_leave,
+    shared_leave,
     level_paint,
     level_timer
 };
 
 struct state st_level = {
     level_enter,
-    play_shared_leave,
+    shared_leave,
     level_paint,
     level_timer,
     shared_point, /* Can hover on: point */
@@ -1136,7 +1137,7 @@ struct state st_level = {
 
 struct state st_poser = {
     NULL,
-    play_shared_leave,
+    NULL,
     poser_paint,
     poser_timer,
     poser_point,
@@ -1149,7 +1150,7 @@ struct state st_poser = {
 
 struct state st_nodemo = {
     nodemo_enter,
-    play_shared_leave,
+    shared_leave,
     shared_paint,
     nodemo_timer,
     shared_point,
@@ -1162,7 +1163,7 @@ struct state st_nodemo = {
 
 struct state st_level_signin_required = {
     level_signin_required_enter,
-    play_shared_leave,
+    shared_leave,
     shared_paint,
     nodemo_timer,
     shared_point,

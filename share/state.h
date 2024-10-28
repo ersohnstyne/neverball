@@ -60,8 +60,8 @@ extern int st_global_loop(void);
 
 struct state
 {
-    int  (*enter) (struct state *, struct state *prev);
-    void (*leave) (struct state *, struct state *next, int id);
+    int  (*enter) (struct state *, struct state *prev, int intent);
+    int  (*leave) (struct state *, struct state *next, int id, int intent);
     void (*paint) (int id, float t);
     void (*timer) (int id, float dt);
     void (*point) (int id, int x, int y, int dx, int dy);
@@ -91,12 +91,30 @@ float time_state(void);
 void  init_state(struct state *);
 
 /*
- * This screenstate transition will be replaced into the goto_state_full.
- * Your functions will be replaced using four parameters.
+ * This screenstate transition will be replaced into the goto_state_full_intent.
+ * Your functions will be replaced using five parameters.
  */
-_CRT_NB_SCREENSTATE_DEPRECATED(int, (struct state *st), goto_state, goto_state_full);
+_CRT_NB_SCREENSTATE_DEPRECATED(int, (struct state *st), goto_state, goto_state_full_intent);
 
-int  goto_state_full(struct state *st, int fromdirection, int todirection, int noanimation);
+/*
+ * This screenstate transition will be replaced into the goto_state_full_intent.
+ * Your functions will be replaced using five parameters.
+ */
+_CRT_NB_SCREENSTATE_DEPRECATED(int, (struct state *st, int intent), goto_state_intent, goto_state_full_intent);
+
+/*
+ * This screenstate transition will be replaced into the goto_state_full_intent.
+ * Your functions will be replaced using five parameters.
+ */
+_CRT_NB_SCREENSTATE_DEPRECATED(int, (struct state *st, int fromdirection, int todirection, int noanimation), goto_state_full, goto_state_full_intent);
+
+int  goto_state_full_intent(struct state *st, int fromdirection, int todirection, int noanimation, int intent);
+
+/*
+ * This screenstate transition will be replaced into the goto_state_full.
+ * Your functions will be replaced using five parameters.
+ */
+_CRT_NB_SCREENSTATE_DEPRECATED(int, (struct state *st), exit_state, goto_state_full_intent);
 
 int  st_global_animating(void);
 

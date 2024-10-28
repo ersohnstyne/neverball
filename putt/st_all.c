@@ -26,6 +26,7 @@
 #include "hud.h"
 #include "geom.h"
 #include "gui.h"
+#include "transition.h"
 #include "vec3.h"
 #include "game.h"
 #include "hole.h"
@@ -255,12 +256,12 @@ static int score_card(const char  *title,
 
 /*---------------------------------------------------------------------------*/
 
-static void shared_leave(struct state *st, struct state *next, int id)
+static void shared_leave(struct state *st, struct state *next, int id, int intent)
 {
-    gui_delete(id);
-
     if (next == &st_null)
         course_free();
+
+    return transition_slide(id, 0, intent);
 }
 
 static void shared_timer(int id, float dt)
@@ -357,7 +358,7 @@ static int party_indiv_controllers = 0;
 
 static int gamepadinfo_controller_ids[4];
 
-static int title_enter(struct state *st, struct state *prev)
+static int title_enter(struct state *st, struct state *prev, int intent)
 {
     if (party_indiv_controllers)
     {
@@ -466,18 +467,16 @@ static int title_enter(struct state *st, struct state *prev)
     }
 
     if (prev == &st_title)
-        return id;
+        return transition_slide(root_id, 1, intent);
 
     course_init();
     course_rand();
 
-    return root_id;
+    return transition_slide(root_id, 1, intent);
 }
 
-static void title_leave(struct state *st, struct state *next, int id)
+static int title_leave(struct state *st, struct state *next, int id, int intent)
 {
-    gui_delete(id);
-
     if (next == &st_conf ||
         next == &st_null)
     {
@@ -487,6 +486,8 @@ static void title_leave(struct state *st, struct state *next, int id)
          */
         course_free();
     }
+
+    return transition_slide(id, 0, intent);
 }
 
 static void title_paint(int id, float t)
@@ -628,7 +629,7 @@ static int help_action(int i)
     return 1;
 }
 
-static int help_enter(struct state *st, struct state *prev)
+static int help_enter(struct state *st, struct state *prev, int intent)
 {
     int id, jd;
 
@@ -655,7 +656,7 @@ static int help_enter(struct state *st, struct state *prev)
 
     gui_layout(id, 0, 0);
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
 static void help_paint(int id, float t)
@@ -738,7 +739,7 @@ static int course_action(int i)
         goto_state(&st_party);
     }
     if (i == COURSE_BACK)
-        goto_state(&st_title);
+        exit_state(&st_title);
 
     return 1;
 }
@@ -760,7 +761,7 @@ static int comp_rows(int n)
     return n <= s * (s - 1) ? s - 1 : s;
 }
 
-static int course_enter(struct state *st, struct state *prev)
+static int course_enter(struct state *st, struct state *prev, int intent)
 {
     int w = video.device_w;
     int h = video.device_h;
@@ -794,7 +795,7 @@ static int course_enter(struct state *st, struct state *prev)
             gui_layout(id, 0, 0);
         }
 
-        return id;
+        return transition_slide(id, 1, intent);
     }
 
     r = comp_rows(n);
@@ -860,7 +861,7 @@ static int course_enter(struct state *st, struct state *prev)
 
     audio_music_fade_to(0.5f, _("bgm/title.ogg"), 1);
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
 static void course_paint(int id, float t)
@@ -968,13 +969,13 @@ static int party_action(int i)
             goto_state(&st_controltype);
             break;
         case PARTY_B:
-            goto_state(&st_course);
+            exit_state(&st_course);
             break;
     }
     return 1;
 }
 
-static int party_enter(struct state *st, struct state *prev)
+static int party_enter(struct state *st, struct state *prev, int intent)
 {
     int id, jd;
 
@@ -1023,7 +1024,7 @@ static int party_enter(struct state *st, struct state *prev)
         gui_layout(id, 0, 0);
     }
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
 static void party_paint(int id, float t)
@@ -1094,7 +1095,7 @@ static int controltype_action(int i)
     return 1;
 }
 
-static int controltype_enter(struct state *st, struct state *prev)
+static int controltype_enter(struct state *st, struct state *prev, int intent)
 {
     int id, jd;
 
@@ -1132,7 +1133,7 @@ static int controltype_enter(struct state *st, struct state *prev)
         gui_layout(id, 0, 0);
     }
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
 static void controltype_paint(int id, float t)
@@ -1259,7 +1260,7 @@ static int pause_action(int i)
 
 static int stroke_allowed = 0;
 
-static int pause_enter(struct state *st, struct state *prev)
+static int pause_enter(struct state *st, struct state *prev, int intent)
 {
     int pdid;
     int id, jd, td;
@@ -1312,10 +1313,10 @@ static int pause_enter(struct state *st, struct state *prev)
     }
     
     hud_init();
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
-static void pause_leave(struct state *st, struct state *next, int id)
+static void pause_leave(struct state *st, struct state *next, int id, int intent)
 {
     paused_indiv_ctrl_index = -1;
     gui_delete(id);
@@ -1376,7 +1377,7 @@ static int shared_keybd(int c, int d)
 static int num = 0;
 static int next_show_scorecard = 0;
 
-static int next_enter(struct state *st, struct state *prev)
+static int next_enter(struct state *st, struct state *prev, int intent)
 {
     int id, jd;
     char str[MAXSTR];
@@ -1449,7 +1450,7 @@ static int next_enter(struct state *st, struct state *prev)
 
     game_set_fly(1.f);
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
 static void next_paint(int id, float t)
@@ -1529,7 +1530,7 @@ static int next_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-static int poser_enter(struct state *st, struct state *prev)
+static int poser_enter(struct state *st, struct state *prev, int intent)
 {
     if (!next_show_scorecard)
     {
@@ -1569,7 +1570,7 @@ static int poser_buttn(int b, int d)
 
 static int flyby_done = 0;
 
-static int flyby_enter(struct state *st, struct state *prev)
+static int flyby_enter(struct state *st, struct state *prev, int intent)
 {
     if (party_indiv_controllers)
     {
@@ -1589,7 +1590,7 @@ static int flyby_enter(struct state *st, struct state *prev)
     return 0;
 }
 
-static void flyby_leave(struct state *st, struct state *next, int id)
+static int flyby_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next == &st_null)
         course_free();
@@ -1599,6 +1600,8 @@ static void flyby_leave(struct state *st, struct state *next, int id)
 
         flyby_done = 1;
     }
+
+    return 0;
 }
 
 static void flyby_paint(int id, float t)
@@ -1648,7 +1651,7 @@ static int stroke_rotate_alt = 0;
 static int stroke_mag        = 0;
 static int stroke_type       = 0;
 
-static int stroke_enter(struct state *st, struct state *prev)
+static int stroke_enter(struct state *st, struct state *prev, int intent)
 {
     if (party_indiv_controllers)
     {
@@ -1672,18 +1675,21 @@ static int stroke_enter(struct state *st, struct state *prev)
     return 0;
 }
 
-static void stroke_leave(struct state *st, struct state *next, int id)
+static void stroke_leave(struct state *st, struct state *next, int id, int intent)
 {
     hud_free();
     video_clr_grab();
     config_set_d(CONFIG_CAMERA, 0);
     stroke_rotate = 0.0f;
+    stroke_mag = 0.0f;
 
     if (next == &st_null)
     {
         course_free();
         video_show_cursor();
     }
+
+    return 0;
 }
 
 static void stroke_paint(int id, float t)
@@ -1753,14 +1759,14 @@ static int stroke_keybd(int c, int d)
             stroke_type++;
             stroke_set_type(stroke_type);
             game_set_mag(0);
-            return goto_state_full(&st_stroke, 0, 0, 1);
+            return goto_state(&st_stroke);
         }
         if (c == KEY_PUTT_DNGRADE && stroke_type > 0)
         {
             stroke_type--;
             stroke_set_type(stroke_type);
             game_set_mag(0);
-            return goto_state_full(&st_stroke, 0, 0, 1);
+            return goto_state(&st_stroke);
         }
     }
     return 1;
@@ -1784,14 +1790,14 @@ static int stroke_buttn(int b, int d)
             stroke_type++;
             stroke_set_type(stroke_type);
             game_set_mag(0);
-            return goto_state_full(&st_stroke, 0, 0, 1);
+            return goto_state(&st_stroke);
         }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) && stroke_type > 0)
         {
             stroke_type--;
             stroke_set_type(stroke_type);
             game_set_mag(0);
-            return goto_state_full(&st_stroke, 0, 0, 1);
+            return goto_state(&st_stroke);
         }
     }
     else if (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers)
@@ -1821,14 +1827,14 @@ static void stroke_wheel(int x, int y)
             stroke_type++;
             stroke_set_type(stroke_type);
             game_set_mag(0);
-            return goto_state_full(&st_stroke, 0, 0, 1);
+            return goto_state(&st_stroke);
         }
         if (y < 0 && stroke_type > 0)
         {
             stroke_type--;
             stroke_set_type(stroke_type);
             game_set_mag(0);
-            return goto_state_full(&st_stroke, 0, 0, 1);
+            return goto_state(&st_stroke);
         }
     }
 }
@@ -1912,7 +1918,7 @@ static int stroke_touch(const SDL_TouchFingerEvent *e)
 
 /*---------------------------------------------------------------------------*/
 
-static int roll_enter(struct state *st, struct state *prev)
+static int roll_enter(struct state *st, struct state *prev, int intent)
 {
     if (party_indiv_controllers)
     {
@@ -1931,12 +1937,14 @@ static int roll_enter(struct state *st, struct state *prev)
     return 0;
 }
 
-static void roll_leave(struct state *st, struct state *next, int id)
+static int roll_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next == &st_null)
         course_free();
 
     video_show_cursor();
+
+    return 0;
 }
 
 static void roll_paint(int id, float t)
@@ -1970,7 +1978,7 @@ static int roll_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-static int goal_enter(struct state *st, struct state *prev)
+static int goal_enter(struct state *st, struct state *prev, int intent)
 {
     if (party_indiv_controllers)
     {
@@ -2041,7 +2049,7 @@ static int goal_enter(struct state *st, struct state *prev)
     else
         hole_goal();
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
 static void goal_paint(int id, float t)
@@ -2054,6 +2062,8 @@ static void goal_paint(int id, float t)
 
 static void goal_timer(int id, float dt)
 {
+    gui_timer(id, dt);
+
     if (time_state() > 3 && !st_global_animating())
     {
         if (hole_next())
@@ -2085,7 +2095,7 @@ static int goal_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-static int stop_enter(struct state *st, struct state *prev)
+static int stop_enter(struct state *st, struct state *prev, int intent)
 {
     if (party_indiv_controllers)
     {
@@ -2103,10 +2113,12 @@ static int stop_enter(struct state *st, struct state *prev)
     return 0;
 }
 
-static void stop_leave(struct state *st, struct state *next, int id)
+static int stop_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next == &st_null)
         course_free();
+
+    return 0;
 }
 
 static void stop_paint(int id, float t)
@@ -2157,7 +2169,7 @@ static int stop_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-static int fall_enter(struct state *st, struct state *prev)
+static int fall_enter(struct state *st, struct state *prev, int intent)
 {
     if (party_indiv_controllers)
     {
@@ -2183,15 +2195,17 @@ static int fall_enter(struct state *st, struct state *prev)
 
     stroke_allowed = 1;
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
-static void fall_leave(struct state *st, struct state *next, int id)
+static int fall_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next == &st_null)
         course_free();
 
     gui_delete(id);
+
+    return transition_slide(id, 0, intent);
 }
 
 static void fall_paint(int id, float t)
@@ -2204,6 +2218,8 @@ static void fall_paint(int id, float t)
 
 static void fall_timer(int id, float dt)
 {
+    gui_timer(id, dt);
+
     if (time_state() > (curr_party() > 1 ? 3 : 1) && !st_global_animating())
     {
         if (hole_next())
@@ -2214,8 +2230,6 @@ static void fall_timer(int id, float dt)
 
     if (curr_party() == 1)
         game_set_fly(1.f - time_state());
-
-    gui_timer(id, dt);
 }
 
 static int fall_buttn(int b, int d)
@@ -2240,8 +2254,18 @@ static int fall_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-static int retry_enter(struct state *st, struct state *prev)
+static int retry_enter(struct state *st, struct state *prev, int intent)
 {
+    int id;
+
+    if (party_indiv_controllers)
+    {
+        joy_active_cursor(curr_player() - 1, curr_player() == 1);
+        joy_active_cursor(curr_player() - 1, curr_player() == 2);
+        joy_active_cursor(curr_player() - 1, curr_player() == 3);
+        joy_active_cursor(curr_player() - 1, curr_player() == 4);
+    }
+
     int id;
 
     if ((id = gui_title_header(0, _("Retry"), GUI_MED, gui_blk, gui_red)))
@@ -2257,15 +2281,17 @@ static int retry_enter(struct state *st, struct state *prev)
 
     stroke_allowed = 1;
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
-static void retry_leave(struct state *st, struct state *next, int id)
+static void retry_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next == &st_null)
         course_free();
 
     gui_delete(id);
+
+    return transition_slide(id, 0, intent);
 }
 
 static void retry_paint(int id, float t)
@@ -2278,7 +2304,7 @@ static void retry_paint(int id, float t)
 
 /*---------------------------------------------------------------------------*/
 
-static int score_enter(struct state *st, struct state *prev)
+static int score_enter(struct state *st, struct state *prev, int intent)
 {
     if (party_indiv_controllers)
     {
@@ -2293,7 +2319,7 @@ static int score_enter(struct state *st, struct state *prev)
     if (paused)
         paused = 0;
 
-    return score_card(_("Scores"), GUI_COLOR_DEFAULT);
+    return transition_slide(score_card(_("Scores"), GUI_COLOR_DEFAULT), 1, intent);
 }
 
 static void score_paint(int id, float t)
@@ -2330,7 +2356,7 @@ static int score_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-static int over_enter(struct state *st, struct state *prev)
+static int over_enter(struct state *st, struct state *prev, int intent)
 {
     hole_hilited = 0;
 
@@ -2343,10 +2369,10 @@ static int over_enter(struct state *st, struct state *prev)
     }
 
     audio_music_fade_out(2.f);
-    return score_card(_("Final Scores"), GUI_COLOR_DEFAULT);
+    return transition_slide(score_card(_("Final Scores"), GUI_COLOR_DEFAULT), 1, intent);
 }
 
-static void over_leave(struct state *st, struct state *next, int id)
+static int over_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next == &st_null)
         course_free();
@@ -2354,6 +2380,8 @@ static void over_leave(struct state *st, struct state *next, int id)
     party_indiv_controllers = 0;
 
     gui_delete(id);
+
+    return transition_slide(id, 0, intent);
 }
 
 static void over_paint(int id, float t)

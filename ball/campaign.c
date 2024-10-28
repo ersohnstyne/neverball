@@ -168,7 +168,7 @@ static void campaign_download_done(void *data, void *extra_data)
 
     if (cfi)
     {
-        if (fd->finished)
+        if (fd->success)
         {
             /* Find set index by filename, in case it has changed places. */
 

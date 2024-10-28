@@ -24,6 +24,7 @@
 #endif
 
 #include "gui.h"
+#include "transition.h"
 #include "demo.h"
 #include "set.h"
 #include "progress.h"
@@ -170,13 +171,11 @@ static int set_action(int tok, int val)
             set_quit();
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET))
-                return goto_state(&st_title);
+                return exit_state(&st_title);
             else
-                return goto_state_full(&st_levelgroup,
-                                       GUI_ANIMATION_E_CURVE,
-                                       GUI_ANIMATION_W_CURVE, 0);
+                return exit_state(&st_levelgroup);
 #else
-            return goto_state(&st_title);
+            return exit_state(&st_title);
 #endif
             break;
 
@@ -184,9 +183,7 @@ static int set_action(int tok, int val)
             first = MAX(first - SET_STEP, 0);
 
             do_init = 0;
-            return goto_state_full(&st_set,
-                                   GUI_ANIMATION_E_CURVE,
-                                   GUI_ANIMATION_W_CURVE, 0);
+            return exit_state(&st_set);
 
             break;
 
@@ -194,9 +191,7 @@ static int set_action(int tok, int val)
             first = MIN(first + SET_STEP, total - 1);
 
             do_init = 0;
-            return goto_state_full(&st_set,
-                                   GUI_ANIMATION_W_CURVE,
-                                   GUI_ANIMATION_E_CURVE, 0);
+            return goto_state(&st_set);
 
             break;
 
@@ -207,20 +202,14 @@ static int set_action(int tok, int val)
 
             activity_services_setname(set_name(val));
 
-            return goto_state_full(&st_start,
-                                   GUI_ANIMATION_N_CURVE,
-                                   GUI_ANIMATION_S_CURVE, 0);
+            return goto_state(&st_start);
 
             break;
 
         case SET_TOGGLE_BOOST:
             boost_on = !boost_on;
             set_manual_hotreload = 1;
-            return goto_state_full(&st_set,
-                                   boost_on ? GUI_ANIMATION_S_CURVE :
-                                              GUI_ANIMATION_N_CURVE,
-                                   boost_on ? GUI_ANIMATION_N_CURVE :
-                                              GUI_ANIMATION_S_CURVE, 0);
+            return goto_state(&st_set);
             break;
 
         case SET_GET_MORE:
@@ -562,7 +551,7 @@ static int set_gui(void)
     return id;
 }
 
-static int set_enter(struct state *st, struct state *prev)
+static int set_enter(struct state *st, struct state *prev, int intent)
 {
 #if NB_HAVE_PB_BOTH==1
     audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
@@ -607,10 +596,16 @@ static int set_enter(struct state *st, struct state *prev)
 #endif
     }
 
-    return set_gui();
+    if (set_manual_hotreload)
+    {
+        set_manual_hotreload = 0;
+        return set_gui();
+    }
+
+    return transition_slide(set_gui(), 1, intent);
 }
 
-static void set_leave(struct state *st, struct state *next, int id)
+static int set_leave(struct state *st, struct state *next, int id, int intent)
 {
     do_init = 0;
 
@@ -620,7 +615,11 @@ static void set_leave(struct state *st, struct state *next, int id)
         game_client_free(NULL);
     }
 
-    gui_delete(id);
+    if (set_manual_hotreload)
+        gui_delete(id);
+    else return transition_slide(id, 0, intent);
+
+    return 0;
 }
 
 static void set_paint(int id, float t)
@@ -847,21 +846,17 @@ static int campaign_action(int tok, int val)
             if (campaign_show_rank)
             {
                 campaign_show_rank = 0;
-                return goto_state(&st_campaign);
+                return exit_state(&st_campaign);
             }
             else if (campaign_theme_used())
             {
                 campaign_theme_quit();
-                return goto_state_full(&st_campaign,
-                                       GUI_ANIMATION_W_CURVE,
-                                       GUI_ANIMATION_E_CURVE, 0);
+                return exit_state(&st_campaign);
             }
             else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
-                return goto_state(&st_title);
+                return exit_state(&st_title);
             else
-                return goto_state_full(&st_levelgroup,
-                                       GUI_ANIMATION_W_CURVE,
-                                       GUI_ANIMATION_E_CURVE, 0);
+                return exit_state(&st_levelgroup);
 
         case CAMPAIGN_RANK:
             campaign_show_rank = 1;
@@ -881,15 +876,11 @@ static int campaign_action(int tok, int val)
             break;
 
         case 999:
-            return goto_state_full(&st_playmodes,
-                                   GUI_ANIMATION_N_CURVE,
-                                   GUI_ANIMATION_S_CURVE, 0);
+            return goto_state(&st_playmodes);
 
         case CAMPAIGN_SELECT_THEME:
             campaign_theme_init();
-            return goto_state_full(&st_campaign,
-                                   GUI_ANIMATION_E_CURVE,
-                                   GUI_ANIMATION_W_CURVE, 0);
+            return goto_state(&st_campaign);
 
         case CAMPAIGN_SELECT_LEVEL:
             if (check_handsoff())
@@ -901,8 +892,6 @@ static int campaign_action(int tok, int val)
             audio_music_stop();
             audio_play(AUD_STARTGAME, 1.0f);
             game_fade(+4.0);
-
-            //campaign_load_camera_box_trigger(level_name(curr_level()));
 
             if (progress_play(campaign_get_level(val)))
                 return goto_play_level();
@@ -1202,16 +1191,16 @@ static void campaign_prepare(struct state *prev)
     }
 }
 
-static int campaign_enter(struct state *st, struct state *prev)
+static int campaign_enter(struct state *st, struct state *prev, int intent)
 {
     audio_music_fade_to(0.5f, "bgm/inter_local.ogg", 1);
 
     campaign_prepare(prev);
 
-    return campaign_gui_comingsoon();
+    return transition_slide(campaign_gui_comingsoon(), 1, intent);
 }
 
-static void campaign_leave(struct state *st, struct state *next, int id)
+static int campaign_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next == &st_levelgroup ||
         next == &st_null)
@@ -1222,7 +1211,7 @@ static void campaign_leave(struct state *st, struct state *next, int id)
             game_client_free(NULL);
     }
 
-    gui_delete(id);
+    return transition_slide(id, 1, intent);
 }
 
 static void campaign_paint(int id, float t)
@@ -1292,18 +1281,14 @@ static int levelgroup_action(int tok, int val)
             {
                 activity_services_group(AS_GROUP_CAMPAIGN);
 
-                return goto_state_full(&st_campaign,
-                                       GUI_ANIMATION_E_CURVE,
-                                       GUI_ANIMATION_W_CURVE, 0);
+                return goto_state(&st_campaign);
             }
             break;
 
         case LEVELGROUP_LEVELSET:
             activity_services_group(AS_GROUP_LEVELSET);
 
-            return goto_state_full(&st_set,
-                                   GUI_ANIMATION_W_CURVE,
-                                   GUI_ANIMATION_E_CURVE, 0);
+            return goto_state(&st_set);
     }
     return 1;
 }
@@ -1429,7 +1414,7 @@ static int levelgroup_gui(void)
     return id;
 }
 
-static int levelgroup_enter(struct state *st, struct state *prev)
+static int levelgroup_enter(struct state *st, struct state *prev, int intent)
 {
     activity_services_group(AS_GROUP_NONE);
 
@@ -1458,7 +1443,7 @@ static int levelgroup_enter(struct state *st, struct state *prev)
                                                      BGM_TITLE_CONF_LANGUAGE, 1);
 #endif
 
-    return levelgroup_gui();
+    return transition_slide(levelgroup_gui(), 1, intent);
 }
 
 static int levelgroup_keybd(int c, int d)

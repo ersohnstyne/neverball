@@ -12,7 +12,6 @@
  * General Public License for more details.
  */
 
-/* miniz.c with Neverball defaults. */
+#include "lang_switchball.h"
 
-#include "zip.h"
-#include "miniz.c"
+/* See the header file */

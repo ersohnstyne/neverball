@@ -28,6 +28,7 @@
 #endif
 
 #include "gui.h"
+#include "transition.h"
 #include "config.h"
 #include "video.h"
 #include "progress.h"
@@ -133,10 +134,10 @@ static int pause_action(int tok, int val)
                     {
                         audio_music_fade_in(0.5f);
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                        return goto_state(campaign_used() ? &st_play_ready :
+                        return exit_state(campaign_used() ? &st_play_ready :
                                                             &st_level);
 #else
-                        return goto_state(&st_play_ready);
+                        return exit_state(&st_play_ready);
 #endif
                     }
                 }
@@ -162,9 +163,9 @@ static int pause_action(int tok, int val)
             {
                 audio_music_fade_in(0.5f);
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                return goto_state(campaign_used() ? &st_play_ready : &st_level);
+                return exit_state(campaign_used() ? &st_play_ready : &st_level);
 #else
-                return goto_state(&st_play_ready);
+                return exit_state(&st_play_ready);
 #endif
             }
 #endif
@@ -187,7 +188,7 @@ static int pause_action(int tok, int val)
                     {
                         audio_music_fade_in(0.5f);
                         video_set_grab(1);
-                        return goto_state(&st_play_ready);
+                        return exit_state(&st_play_ready);
                     }
                 }
                 else if (!quit_uses_restart)
@@ -398,7 +399,7 @@ static int pause_gui(void)
     return id;
 }
 
-static int pause_enter(struct state *st, struct state *prev)
+static int pause_enter(struct state *st, struct state *prev, int intent)
 {
     video_clr_grab();
 
@@ -414,7 +415,7 @@ static int pause_enter(struct state *st, struct state *prev)
 
     hud_update(0, 0.0f);
 
-    return pause_gui();
+    return transition_slide(pause_gui(), 1, intent);
 }
 
 static void pause_paint(int id, float t)
@@ -584,7 +585,7 @@ static int pause_quit_gui(void)
     return id;
 }
 
-static int pause_quit_enter(struct state *st, struct state *prev)
+static int pause_quit_enter(struct state *st, struct state *prev, int intent)
 {
     if (curr_mode() != MODE_NONE       &&
         curr_mode() != MODE_CHALLENGE  &&
@@ -604,7 +605,7 @@ static int pause_quit_enter(struct state *st, struct state *prev)
 
 struct state st_pause = {
     pause_enter,
-    play_shared_leave,
+    shared_leave,
     pause_paint,
     pause_timer,
     shared_point,
@@ -617,7 +618,7 @@ struct state st_pause = {
 
 struct state st_pause_quit = {
     pause_quit_enter,
-    play_shared_leave,
+    shared_leave,
     shared_paint,
     pause_timer,
     shared_point,

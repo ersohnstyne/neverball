@@ -28,6 +28,7 @@
 #include "demo.h"
 #include "demo_dir.h"
 #include "gui.h"
+#include "transition.h"
 #include "hud.h"
 #include "geom.h"
 #include "ball.h"
@@ -178,7 +179,7 @@ int goto_conf_covid_extend(struct state *returnable)
     conf_covid_extend_method = 1;
 
     conf_covid_extended = 1;
-    return goto_state_full(returnable, 0, 0, 0);
+    return goto_state(returnable);
 }
 
 void conf_covid_retract(void)
@@ -209,13 +210,13 @@ static int conf_covid_extend_action(int tok, int val)
 
             config_save();
 
-            goto_state(returnstate);
-            break;
+            return exit_state(returnstate);
+
         case GUI_NEXT:
             if (conf_covid_extend_method == 2)
             {
                 conf_covid_extended = 1;
-                goto_state(returnstate);
+                exit_state(returnstate);
             }
             else
             {
@@ -273,13 +274,13 @@ static int conf_covid_extend_gui(void)
     return id;
 }
 
-static int conf_covid_extend_enter(struct state *st, struct state *prev)
+static int conf_covid_extend_enter(struct state *st, struct state *prev, int intent)
 {
     if (mainmenu_conf)
         game_client_free(NULL);
 
     conf_common_init(conf_covid_extend_action, mainmenu_conf);
-    return conf_covid_extend_gui();
+    return transition_slide(conf_covid_extend_gui(), 1, intent);
 }
 
 
@@ -313,8 +314,8 @@ static int conf_social_action(int tok, int val)
             conf_join_confirm = 0;
             st_conf_social_back = NULL;
 
-            return goto_state(&st_conf);
-            break;
+            return exit_state(&st_conf);
+
         case CONF_SOCIAL_DISCORD:
 #if NB_HAVE_PB_BOTH==1
             if (conf_join_confirm)
@@ -350,7 +351,7 @@ static int conf_social_action(int tok, int val)
 
                 /* bye! */
 
-                return !mainmenu_conf ? goto_state(&st_conf) : 0;
+                return !mainmenu_conf ? exit_state(&st_conf) : 0;
 #endif
 #endif
             }
@@ -358,7 +359,7 @@ static int conf_social_action(int tok, int val)
             else
             {
                 conf_join_confirm = 1;
-                goto_state(curr_state());
+                return goto_state(curr_state());
             }
 #endif
             break;
@@ -435,13 +436,13 @@ static int conf_social_gui(void)
     return id;
 }
 
-static int conf_social_enter(struct state *st, struct state *prev)
+static int conf_social_enter(struct state *st, struct state *prev, int intent)
 {
     if (mainmenu_conf)
         game_client_free(NULL);
 
     conf_common_init(conf_social_action, mainmenu_conf);
-    return conf_social_gui();
+    return transition_slide(conf_social_gui(), 1, intent);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -506,8 +507,7 @@ static int conf_account_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            goto_state(&st_conf);
-            break;
+            return exit_state(&st_conf);
 
         case CONF_ACCOUNT_COVID_EXTEND:
             goto_conf_covid_extend(&st_conf_account);
@@ -841,15 +841,12 @@ static int conf_account_gui(void)
                 {
                     gui_set_state(name_id, GUI_NONE, 0);
                     gui_set_color(name_id, GUI_COLOR_GRY);
+                    gui_set_label(name_id, player);
                 }
 #endif
             }
 #endif
 
-#if NB_HAVE_PB_BOTH==1
-            if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
-                gui_set_label(name_id, player);
-#endif
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
             gui_set_label(ball_id, _("Manage"));
 #else
@@ -927,7 +924,7 @@ static int conf_account_gui(void)
     return id;
 }
 
-static int conf_account_enter(struct state *st, struct state *prev)
+static int conf_account_enter(struct state *st, struct state *prev, int intent)
 {
     if (prev == &st_ball) game_fade(-6.0f);
 
@@ -935,7 +932,7 @@ static int conf_account_enter(struct state *st, struct state *prev)
         game_client_free(NULL);
 
     conf_common_init(conf_account_action, mainmenu_conf);
-    return conf_account_gui();
+    return transition_slide(conf_account_gui(), 1, intent);
 }
 
 static void conf_account_timer(int id, float dt)
@@ -1011,18 +1008,17 @@ static int conf_gameplay_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            goto_state(&st_conf);
-            break;
+            return exit_state(&st_conf);
 
         case CONF_GAMEPLAY_TUTORIAL:
             config_set_d(CONFIG_ACCOUNT_TUTORIAL, val);
-            goto_state_full(&st_conf_gameplay, 0, 0, 1);
+            goto_state(curr_state());
             config_save();
             break;
 
         case CONF_GAMEPLAY_HINT:
             config_set_d(CONFIG_ACCOUNT_HINT, val);
-            goto_state_full(&st_conf_gameplay, 0, 0, 1);
+            goto_state(curr_state());
             config_save();
             break;
     }
@@ -1058,13 +1054,13 @@ static int conf_gameplay_gui(void)
     return id;
 }
 
-static int conf_gameplay_enter(struct state *st, struct state *prev)
+static int conf_gameplay_enter(struct state *st, struct state *prev, int intent)
 {
     if (mainmenu_conf)
         game_client_free(NULL);
 
     conf_common_init(conf_gameplay_action, mainmenu_conf);
-    return conf_gameplay_gui();
+    return transition_slide(conf_gameplay_gui(), 1, intent);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1215,9 +1211,8 @@ static int conf_control_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            goto_state(&st_null);
-            goto_state(&st_conf);
-            break;
+            exit_state(&st_null);
+            return exit_state(&st_conf);
 
         case CONF_CONTROL_INPUT_PRESET:
             control_set_input();
@@ -1227,7 +1222,7 @@ static int conf_control_action(int tok, int val)
         case CONF_CONTROL_TILTING_FLOOR:
             config_set_d(CONFIG_TILTING_FLOOR, val);
             config_save();
-            goto_state_full(&st_conf_control, 0, 0, 1);
+            goto_state(&st_conf_control);
             break;
 
         case CONF_CONTROL_CAMERA_ROTATE_MODE:
@@ -1249,7 +1244,7 @@ static int conf_control_action(int tok, int val)
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(mouse_id, val);
-            goto_state_full(curr_state(), 0, 0, 1);
+            goto_state(curr_state());
 #else
             gui_toggle(mouse_id[val]);
             gui_toggle(mouse_id[mouse]);
@@ -1260,7 +1255,7 @@ static int conf_control_action(int tok, int val)
         case CONF_CONTROL_INVERT_MOUSE_Y:
             config_set_d(CONFIG_MOUSE_INVERT, val);
             config_save();
-            goto_state_full(&st_conf_control, 0, 0, 1);
+            goto_state(&st_conf_control);
         break;
 
         case CONF_CONTROL_CHANGEKEYBD:
@@ -1378,13 +1373,13 @@ static int conf_control_gui(void)
     return id;
 }
 
-static int conf_control_enter(struct state *st, struct state *prev)
+static int conf_control_enter(struct state *st, struct state *prev, int intent)
 {
     if (mainmenu_conf)
         game_client_free(NULL);
 
     conf_common_init(conf_control_action, mainmenu_conf);
-    return conf_control_gui();
+    return transition_slide(conf_control_gui(), 1, intent);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1492,10 +1487,10 @@ static int conf_keybd_action(int tok, int val)
                 conf_keybd_modal = 0;
             else
             {
-                goto_state(conf_keybd_back);
+                exit_state(conf_keybd_back);
                 while (curr_state() != conf_keybd_back)
                 {
-                    goto_state(conf_keybd_back);
+                    exit_state(conf_keybd_back);
                     conf_keybd_back = NULL;
                 }
             }
@@ -1571,7 +1566,7 @@ static int conf_keybd_modal_key_gui(void)
     return id;
 }
 
-static int conf_keybd_enter(struct state *st, struct state *prev)
+static int conf_keybd_enter(struct state *st, struct state *prev, int intent)
 {
     if (!conf_keybd_back)
         conf_keybd_back = prev;
@@ -1585,17 +1580,18 @@ static int conf_keybd_enter(struct state *st, struct state *prev)
 
     conf_keybd_modal_key_id = conf_keybd_modal_key_gui();
 
-    return conf_keybd_gui();
+    return transition_slide(conf_keybd_gui(), 1, intent);
 }
 
-static void conf_keybd_leave(struct state* st, struct state* next, int id)
+static int conf_keybd_leave(struct state* st, struct state* next, int id, int intent)
 {
-    play_shared_leave(st, next, id);
-    conf_common_leave(st, next, id);
+    conf_common_leave(st, next, id, intent);
 
     gui_delete(conf_keybd_modal_key_id);
 
     keybd_modal_alpha = 0.0f;
+
+    return transition_slide(id, 0, intent);
 }
 
 static void conf_keybd_paint(int id, float t)
@@ -1982,13 +1978,13 @@ static int conf_controllers_action(int tok, int val)
     {
         case GUI_BACK:
             if (conf_controllers_modal)
-            conf_controllers_modal = 0;
+                conf_controllers_modal = 0;
             else
             {
-                goto_state(conf_controllers_back);
+                exit_state(conf_controllers_back);
                 while (curr_state() != conf_controllers_back)
                 {
-                    goto_state(conf_controllers_back);
+                    exit_state(conf_controllers_back);
                     conf_controllers_back = NULL;
                 }
             }
@@ -2091,7 +2087,7 @@ static int conf_controllers_modal_axis_gui(void)
     return id;
 }
 
-static int conf_controllers_enter(struct state *st, struct state *prev)
+static int conf_controllers_enter(struct state *st, struct state *prev, int intent)
 {
     if (!conf_controllers_back)
         conf_controllers_back = prev;
@@ -2106,18 +2102,19 @@ static int conf_controllers_enter(struct state *st, struct state *prev)
     conf_controllers_modal_button_id = conf_controllers_modal_button_gui();
     conf_controllers_modal_axis_id   = conf_controllers_modal_axis_gui();
 
-    return conf_controllers_gui();
+    return transition_slide(conf_controllers_gui(), 1, intent);
 }
 
-static void conf_controllers_leave(struct state *st, struct state *next, int id)
+static int conf_controllers_leave(struct state *st, struct state *next, int id, int intent)
 {
-    play_shared_leave(st, next, id);
-    conf_common_leave(st, next, id);
+    conf_common_leave(st, next, id, intent);
 
     gui_delete(conf_controllers_modal_button_id);
     gui_delete(conf_controllers_modal_axis_id);
 
     controllers_modal_alpha = 0.0f;
+
+    return transition_slide(id, 0, intent);
 }
 
 static void conf_controllers_paint(int id, float t)
@@ -2237,7 +2234,8 @@ static int conf_calibrate_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            return goto_state(&st_conf_control);
+            return exit_state(&st_conf_control);
+
         case CONF_CONTROL_CALIBRATE:
             if (calibrate_method == 2)
             {
@@ -2292,7 +2290,7 @@ static int conf_calibrate_gui(void)
     return id;
 }
 
-static int conf_calibrate_enter(struct state *st, struct state *prev)
+static int conf_calibrate_enter(struct state *st, struct state *prev, int intent)
 {
     calibrate_method = 1;
     calib_x0 = 0; calib_x1 = 0; calib_y0 = 0; calib_y1 = 0;
@@ -2301,7 +2299,7 @@ static int conf_calibrate_enter(struct state *st, struct state *prev)
         game_client_free(NULL);
 
     conf_common_init(conf_calibrate_action, mainmenu_conf);
-    return conf_calibrate_gui();
+    return transition_slide(conf_calibrate_gui(), 1, intent);
 }
 
 static void conf_calibrate_stick(int id, int a, float v, int bump)
@@ -2364,26 +2362,26 @@ static int conf_notification_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            goto_state(&st_conf);
+            exit_state(&st_conf);
             while (curr_state() != &st_conf)
-                goto_state(&st_conf);
+                exit_state(&st_conf);
         break;
 
         case CONF_NOTIFICATION_CHKP:
             config_set_d(CONFIG_NOTIFICATION_CHKP, val);
-            goto_state_full(&st_conf_notification, 0, 0, 1);
+            goto_state(curr_state());
             config_save();
             break;
 
         case CONF_NOTIFICATION_REWARD:
             config_set_d(CONFIG_NOTIFICATION_REWARD, val);
-            goto_state_full(&st_conf_notification, 0, 0, 1);
+            goto_state(curr_state());
             config_save();
             break;
 
         case CONF_NOTIFICATION_SHOP:
             config_set_d(CONFIG_NOTIFICATION_SHOP, val);
-            goto_state_full(&st_conf_notification, 0, 0, 1);
+            goto_state(curr_state());
             config_save();
             break;
     }
@@ -2429,13 +2427,13 @@ static int conf_notification_gui(void)
     return id;
 }
 
-static int conf_notification_enter(struct state *st, struct state *prev)
+static int conf_notification_enter(struct state *st, struct state *prev, int intent)
 {
     if (mainmenu_conf)
         game_client_free(NULL);
 
     conf_common_init(conf_notification_action, mainmenu_conf);
-    return conf_notification_gui();
+    return transition_slide(conf_notification_gui(), 1, intent);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2474,6 +2472,9 @@ static int conf_audio_action(int tok, int val)
 
     switch (tok)
     {
+        case GUI_BACK:
+            return exit_state(&st_conf);
+
 #if NB_HAVE_PB_BOTH==1
         case CONF_AUDIO_MASTER_VOLUME:
             config_set_d(CONFIG_MASTER_VOLUME, val);
@@ -2481,7 +2482,7 @@ static int conf_audio_action(int tok, int val)
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(master_id, val);
-            goto_state_full(curr_state(), 0, 0, 1);
+            goto_state(curr_state());
 #else
             gui_toggle(master_id[val]);
             gui_toggle(master_id[master]);
@@ -2496,7 +2497,7 @@ static int conf_audio_action(int tok, int val)
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(music_id, val);
-            goto_state_full(curr_state(), 0, 0, 1);
+            goto_state(curr_state());
 #else
             gui_toggle(music_id[val]);
             gui_toggle(music_id[master]);
@@ -2512,7 +2513,7 @@ static int conf_audio_action(int tok, int val)
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(sound_id, val);
-            goto_state_full(curr_state(), 0, 0, 1);
+            goto_state(curr_state());
 #else
             gui_toggle(sound_id[val]);
             gui_toggle(sound_id[master]);
@@ -2527,7 +2528,7 @@ static int conf_audio_action(int tok, int val)
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(narrator, val);
-            goto_state_full(curr_state(), 0, 0, 1);
+            goto_state(curr_state());
 #else
             gui_toggle(narrator_id[val]);
             gui_toggle(narrator_id[master]);
@@ -2536,9 +2537,6 @@ static int conf_audio_action(int tok, int val)
 
             break;
 #endif
-        case GUI_BACK:
-            return goto_state(&st_conf);
-            break;
     }
 
     return 1;
@@ -2595,13 +2593,13 @@ static int conf_audio_gui(void)
     return id;
 }
 
-static int conf_audio_enter(struct state *st, struct state *prev)
+static int conf_audio_enter(struct state *st, struct state *prev, int intent)
 {
     if (mainmenu_conf)
         game_client_free(NULL);
 
     conf_common_init(conf_audio_action, mainmenu_conf);
-    return conf_audio_gui();
+    return transition_slide(conf_audio_gui(), 1, intent);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2689,10 +2687,12 @@ static int conf_action(int tok, int val)
             if (mainmenu_conf)
                 game_fade(+6.0f);
 
-            goto_state(conf_back_state);
-            break;
+            return exit_state(conf_back_state);
 
-#if ENABLE_GAME_TRANSFER==1
+#if ENABLE_GAME_TRANSFER==1 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #ifdef GAME_TRANSFER_TARGET
         case CONF_SYSTEMTRANSFER_TARGET:
 #else
@@ -2760,7 +2760,7 @@ static int conf_action(int tok, int val)
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(master_id, val);
-            goto_state_full(curr_state(), 0, 0, 1);
+            goto_state(curr_state());
 #else
             gui_toggle(master_id[val]);
             gui_toggle(master_id[master]);
@@ -2775,7 +2775,7 @@ static int conf_action(int tok, int val)
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(music_id, val);
-            goto_state_full(curr_state(), 0, 0, 1);
+            goto_state(curr_state());
 #else
             gui_toggle(music_id[val]);
             gui_toggle(music_id[master]);
@@ -2791,7 +2791,7 @@ static int conf_action(int tok, int val)
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(sound_id, val);
-            goto_state_full(curr_state(), 0, 0, 1);
+            goto_state(curr_state());
 #else
             gui_toggle(sound_id[val]);
             gui_toggle(sound_id[master]);
@@ -2806,7 +2806,7 @@ static int conf_action(int tok, int val)
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(narrator_id, val);
-            goto_state_full(curr_state(), 0, 0, 1);
+            goto_state(curr_state());
 #else
             gui_toggle(narrator_id[val]);
             gui_toggle(narrator_id[master]);
@@ -2994,7 +2994,7 @@ static int conf_gui(void)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-            gui_label(id, "Pennyball " VERSION, GUI_TNY, GUI_COLOR_WHT);
+            gui_label(id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT);
 #endif
             gui_multi(id, _("Copyright © 2024 Neverball authors\n"
                             "Neverball is free software available under the terms of GPL v2 or later."),
@@ -3009,19 +3009,18 @@ static int conf_gui(void)
     return root_id;
 }
 
-static int conf_enter(struct state *st, struct state *prev)
+static int conf_enter(struct state *st, struct state *prev, int intent)
 {
     if (mainmenu_conf && prev == &st_title)
         game_fade(-6.0f);
 
     conf_common_init(conf_action, mainmenu_conf);
-    return conf_gui();
+    return transition_slide(conf_gui(), 1, intent);
 }
 
-static void conf_leave(struct state *st, struct state *next, int id)
+static int conf_leave(struct state *st, struct state *next, int id, int intent)
 {
-    play_shared_leave(st, next, id);
-    conf_common_leave(st, next, id);
+    return conf_common_leave(st, next, id, intent);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -3034,7 +3033,7 @@ static void conf_shared_timer(int id, float dt)
 
 /*---------------------------------------------------------------------------*/
 
-static int null_enter(struct state *st, struct state *prev)
+static int null_enter(struct state *st, struct state *prev, int intent)
 {
 #if ENABLE_MOTIONBLUR!=0
     video_motionblur_quit();
@@ -3047,6 +3046,7 @@ static int null_enter(struct state *st, struct state *prev)
     game_dualdisplay_gui_free();
 #endif
     hud_free();
+    transition_quit();
     gui_free();
 
     if (mainmenu_conf)
@@ -3066,7 +3066,7 @@ static int null_enter(struct state *st, struct state *prev)
     return 0;
 }
 
-static void null_leave(struct state *st, struct state *next, int id)
+static int null_leave(struct state *st, struct state *next, int id, int intent)
 {
     online_mode = 0;
 
@@ -3084,6 +3084,7 @@ static void null_leave(struct state *st, struct state *next, int id)
     }
 
     gui_init();
+    transition_init();
     hud_init();
 #if ENABLE_DUALDISPLAY==1
     game_dualdisplay_gui_init();
@@ -3110,6 +3111,8 @@ static void null_leave(struct state *st, struct state *next, int id)
 #if ENABLE_MOTIONBLUR!=0
     video_motionblur_init();
 #endif
+
+    return 0;
 }
 
 /*---------------------------------------------------------------------------*/

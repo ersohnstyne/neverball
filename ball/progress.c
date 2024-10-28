@@ -562,7 +562,7 @@ static void init_level_moon_taskloader_done(void *data, void *done_data)
 
     if (mtli && dn)
     {
-        if (dn->finished)
+        if (dn->success)
         {
             if (moon_taskloader_phase != 2)
             {
@@ -594,7 +594,7 @@ static void init_level_moon_taskloader_done(void *data, void *done_data)
 
         if (mtli->callback.done)
             mtli->callback.done(mtli, dn);
-        else if (dn->finished)
+        else if (dn->success)
             goto_play_level();
         else
             goto_exit();

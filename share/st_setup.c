@@ -23,6 +23,7 @@
 #include "geom.h"
 #include "lang.h"
 #include "gui.h"
+#include "transition.h"
 #include "text.h"
 #include "fetch.h"
 
@@ -133,7 +134,11 @@ int goto_game_setup(struct state *start_state, int (*start_fn)(struct state *),
     st_continue   = start_state;
     fn_continue   = start_fn;
 
+#if ENABLE_NLS==1 || _MSC_VER
     setup_page    = 0;
+#else
+    setup_page    = 1;
+#endif
     setup_process = 1;
 
     setup_langs_first = 0;
@@ -185,25 +190,25 @@ static int title_check_playername(const char *regname)
 
 /*
  * Check whether has meet fullfilled folder requirements
+ * in the user data folder.
+ *
+ * Returns TRUE to launch the game normally, unless go to the game setup.
  */
 int check_game_setup(void)
 {
     const char *curr_write_dir = fs_get_write_dir();
 
     char *path_accounts = path_join(curr_write_dir, "Accounts"),
-         *path_campaign = path_join(curr_write_dir, "Campaign"),
          *path_demo     = path_join(curr_write_dir, "Replays"),
          *path_scores   = path_join(curr_write_dir, "Scores"),
          *path_shots    = path_join(curr_write_dir, "Screenshots");
 
     int skip_setup = dir_exists(path_accounts) &&
-                     dir_exists(path_campaign) &&
                      dir_exists(path_demo)     &&
                      dir_exists(path_scores)   &&
                      dir_exists(path_shots);
 
     free(path_accounts); path_accounts = NULL;
-    free(path_campaign); path_campaign = NULL;
     free(path_demo);     path_demo     = NULL;
     free(path_scores);   path_scores   = NULL;
     free(path_shots);    path_shots    = NULL;
@@ -212,7 +217,7 @@ int check_game_setup(void)
 }
 
 /*
- * Check whether setup is in process
+ * Check whether setup is in process.
  */
 int game_setup_process(void)
 {
@@ -545,7 +550,7 @@ static void available_updates_done(void *data, void *extra_data)
     struct setup_update_list_info *pli = data;
     struct fetch_done             *fd  = extra_data;
 
-    if (fd && fd->finished)
+    if (fd && fd->success)
     {
         const char *filename = get_updated_path("version.txt");
 
@@ -573,7 +578,7 @@ static unsigned int fetch_available_updates(int gdrive_support)
         callback.data = suli;
         callback.done = available_updates_done;
 
-        fetch_id = fetch_url(url, filename, callback);
+        fetch_id = fetch_file(url, filename, callback);
 
         if (!fetch_id)
         {
@@ -644,6 +649,7 @@ static int game_setup_action(int tok, int val)
 
                 break;
 
+#if ENABLE_NLS==1 || _MSC_VER
             case SETUP_LANG_DEFAULT:
                 goto_state(&st_null);
                 config_set_s(CONFIG_LANGUAGE, "");
@@ -662,6 +668,7 @@ static int game_setup_action(int tok, int val)
                 lang_dir_free(setup_langs);
                 setup_langs = NULL;
                 return goto_state(&st_game_setup);
+#endif
         }
     }
     else
@@ -698,6 +705,9 @@ static int game_setup_action(int tok, int val)
                     switch (tok)
                     {
                         case GUI_NEXT:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if NB_HAVE_PB_BOTH==1
                             if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
                             {
@@ -712,15 +722,15 @@ static int game_setup_action(int tok, int val)
                             else
 #endif
                             {
-#if _WIN32 && ENABLE_FETCH==1 && ENABLE_SOFTWARE_UPDATE!=0 && \
-    !defined(__NDS__) && !defined(__3DS__) && \
-    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
+#if _WIN32 && ENABLE_FETCH==1 && ENABLE_SOFTWARE_UPDATE!=0
                                 setup_page++;
 #else
                                 setup_page = 6;
 #endif
                             }
+#else
+                            setup_page = 6;
+#endif
 
 #if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1 && \
     !defined(__NDS__) && !defined(__3DS__) && \
@@ -742,7 +752,7 @@ static int game_setup_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
                             if (val == 0)
-                                game_setup_terms_openlink("https://pennyball.stynegame.de/terms");
+                                game_setup_terms_openlink("https://Neverball.stynegame.de/terms");
                             else if (val == 1)
                                 game_setup_terms_openlink("https://discord.com/terms");
                             else if (val == 2)
@@ -773,7 +783,10 @@ static int game_setup_action(int tok, int val)
 
                         case SETUP_UPDATE_SKIP:
                             setup_page = 6;
-#if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1
+#if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
                             if (setup_page == 6)
                                 return goto_wgcl_login(&st_game_setup, 0,
                                                        &st_game_setup, 0);
@@ -1318,13 +1331,15 @@ static int game_setup_welcome_gui(void)
     return root_id;
 }
 
-static int game_setup_enter(struct state *st, struct state *prev)
+static int game_setup_enter(struct state *st, struct state *prev, int intent)
 {
+#if ENABLE_NLS==1 || _MSC_VER
     if (!setup_langs)
     {
-        setup_langs = lang_dir_scan();
+        setup_langs       = lang_dir_scan();
         setup_langs_first = 0;
     }
+#endif
 
     common_init(game_setup_action);
     audio_music_fade_to(.5f, "bgm/setup.ogg", 1);
@@ -1335,30 +1350,30 @@ static int game_setup_enter(struct state *st, struct state *prev)
 
     switch (setup_page)
     {
-        case 0: return game_setup_lang_gui();
-        case 1: return game_setup_controls_gui();
-        case 2: return game_setup_terms_gui();
+        case 0: return transition_slide(game_setup_lang_gui(),     1, intent);
+        case 1: return transition_slide(game_setup_controls_gui(), 1, intent);
+        case 2: return transition_slide(game_setup_terms_gui(),    1, intent);
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-        case 3: return game_setup_update_gui();
-        case 4: return game_setup_install_confirm_gui();
-        case 5: return game_setup_install_gui();
+        case 3: return transition_slide(game_setup_update_gui(),          1, intent);
+        case 4: return transition_slide(game_setup_install_confirm_gui(), 1, intent);
+        case 5: return transition_slide(game_setup_install_gui(),         1, intent);
 #endif
-        case 6: return game_setup_welcome_gui();
+        case 6: return transition_slide(game_setup_welcome_gui(), 1, intent);
         default: return 0;
     }
 }
 
-static void game_setup_leave(struct state *st, struct state *next, int id)
+static int game_setup_leave(struct state *st, struct state *next, int id, int intent)
 {
     back_free();
-
-    gui_delete(id);
 
     if (next == &st_null &&
         (setup_page == 5 || setup_page == 6))
         setup_mkdir_migrate();
+
+    return transition_slide(id, 0, intent);
 }
 
 static void game_setup_paint(int id, float t)

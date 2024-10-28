@@ -92,6 +92,14 @@
 #define GUI_NE   (GUI_N | GUI_E)
 #define GUI_SE   (GUI_S | GUI_E)
 
+/* Animation flags */
+
+#define GUI_BACKWARD     (GUI_W << 1)
+#define GUI_FLING        (GUI_W << 2)
+#define GUI_REMOVE       (GUI_W << 3)
+#define GUI_EASE_ELASTIC (GUI_W << 4)
+#define GUI_EASE_BACK    (GUI_W << 5)
+
 /* Multiple corners */
 
 #define GUI_LFT  (GUI_NW  | GUI_SW)
@@ -207,11 +215,11 @@ void gui_dump(int, int);
 void gui_layout(int, int, int);
 int  gui_search(int, int, int);
 int  gui_delete(int);
+void gui_remove(int id);
 
 /*---------------------------------------------------------------------------*/
 
 void gui_set_alpha(int, float, int);
-void gui_animate(int);
 void gui_paint(int);
 void gui_pulse(int, float);
 void gui_timer(int, float);
@@ -228,7 +236,11 @@ void gui_toggle(int);
 
 /*---------------------------------------------------------------------------*/
 
+void gui_set_slide(int id, int flags, float delay, float t, float stagger);
 
+void gui_slide(int id, int flags, float delay, float t, float stagger);
+
+/*---------------------------------------------------------------------------*/
 
 /*
  * Reserved GUI tokens. (Mostly Neverball specific.)

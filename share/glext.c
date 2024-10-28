@@ -286,6 +286,8 @@ int glext_init(void)
 {
     void *ptr = 0;
 
+#if !defined(__WII__)
+#if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
     if (glext_count() >= GLEXT_COUNT_LIMIT)
     {
 #ifdef GLEXT_COUNT_LIMIT_WITH_BREAKPT
@@ -296,6 +298,8 @@ int glext_init(void)
         log_printf("Too many GL extensions on this PC!\n");
 #endif
     }
+#endif
+#endif
 
     memset(&gli, 0, sizeof (struct gl_info));
 

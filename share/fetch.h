@@ -31,7 +31,7 @@ struct fetch_progress
  */
 struct fetch_done
 {
-    unsigned int finished : 1;
+    unsigned int success:1;
 };
 
 /*
@@ -50,13 +50,13 @@ void fetch_handle_event(void *);
 void fetch_quit(void);
 
 /*
- * This function will be replaced into the fetch_url_download.
+ * This function will be replaced into the fetch_file_download.
  * Your functions will be replaced with same remaining parameters.
  */
-#define fetch_url fetch_url_download
+#define fetch_file fetch_file_download
 
-unsigned int fetch_url(const char *url,
-                       const char *dst,
-                       struct fetch_callback);
+unsigned int fetch_file(const char *url,
+                        const char *dst,
+                        struct fetch_callback);
 
 #endif

@@ -32,6 +32,9 @@
 #include "common.h"
 #include "hmd.h"
 #include "geom.h"
+#include "gui.h"
+#include "transition.h"
+#include "log.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -136,6 +139,7 @@ static struct state *state;
 
 static struct state *anim_queue_state;
 static int           anim_queue_allowskip;
+static int           anim_queue_intent;
 static int           anim_queue_directions[2];
 
 struct state *curr_state(void)
@@ -164,13 +168,13 @@ void init_state(struct state *st)
     video_swap();
 }
 
-int goto_state(struct state *st)
+int goto_state_intent(struct state *st, int intent)
 {
-    return goto_state_full(st, 0, 0, 0);
+    return goto_state_full_intent(st, 0, 0, 0, intent);
 }
 
-int goto_state_full(struct state *st,
-                    int fromdirection, int todirection, int noanimation)
+int goto_state_full_intent(struct state *st,
+                           int fromdirection, int todirection, int noanimation, int intent)
 {
     Uint32 currtime, prevtime, dt;
     struct state *prev = state;
@@ -187,51 +191,6 @@ int goto_state_full(struct state *st,
     anim_done  = 0;
     anim_queue = 1;
 
-    if (!noanimation && config_get_d(CONFIG_SCREEN_ANIMATIONS))
-    {
-        while (alpha > 0.01)
-        {
-            currtime = SDL_GetTicks();
-            dt = MAX(currtime - prevtime, 0);
-
-            activity_services_step(dt);
-
-            alpha = alpha - ((config_get_d(CONFIG_SMOOTH_FIX) ?
-                              MIN(state_frame_smooth, dt) :
-                              MIN(100.0f, dt)) * state_anim_speed) * 0.001f;
-            alpha = CLAMP(0, alpha, 1);
-
-            if (state)
-            {
-                if (state->fade != NULL) state->fade(alpha);
-                gui_set_alpha(state->gui_id, alpha, fromdirection);
-            }
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            console_gui_set_alpha(alpha);
-#endif
-
-            CHECK_GAMESPEED(20, 100);
-            float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
-
-            st_timer(MAX((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ?
-                                    MIN(state_frame_smooth, dt) : dt)) *
-                                    speedPercent, 0));
-            hmd_step();
-
-            st_paint(0.001f * currtime, 1);
-
-            video_swap();
-
-            if (config_get_d(CONFIG_NICE))
-                SDL_Delay((1.0f / 30.0f) * 1000);
-
-            prevtime = currtime;
-        }
-    }
-
-    alpha = 0;
-
     if (state)
     {
         if (state->fade != NULL) state->fade(alpha);
@@ -245,7 +204,7 @@ int goto_state_full(struct state *st,
 
     if (state && state->leave)
     {
-        state->leave(state, st, state->gui_id);
+        state->leave(state, st, state->gui_id, intent);
         state->gui_id = 0;
     }
 
@@ -259,55 +218,7 @@ int goto_state_full(struct state *st,
     stick_count = 0;
 
     if (state && state->enter)
-        state->gui_id = state->enter(state, prev);
-
-    if (!noanimation && config_get_d(CONFIG_SCREEN_ANIMATIONS))
-    {
-        while (alpha < 0.99 && !anim_done)
-        {
-            LOOP_DURING_SCREENANIMATE;
-
-            currtime = SDL_GetTicks();
-            dt = MAX(currtime - prevtime, 0);
-
-            activity_services_step(dt);
-
-            alpha = alpha + ((config_get_d(CONFIG_SMOOTH_FIX) ?
-                              MIN(state_frame_smooth, dt) :
-                              MIN(100.0f, dt)) * state_anim_speed) * 0.001f;
-            alpha = CLAMP(0, alpha, 1);
-
-            if (state)
-            {
-                if (state->fade != NULL) state->fade(alpha);
-
-                gui_set_alpha(state->gui_id, alpha, todirection);
-            }
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            console_gui_set_alpha(alpha);
-#endif
-
-            CHECK_GAMESPEED(20, 100);
-            float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
-
-            st_timer(MAX((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ?
-                                    MIN(state_frame_smooth, dt) : dt)) *
-                                    speedPercent, 0));
-            hmd_step();
-
-            st_paint(0.001f * currtime, 1);
-
-            video_swap();
-
-            if (config_get_d(CONFIG_NICE))
-                SDL_Delay((1.0f / 30.0f) * 1000);
-
-            prevtime = currtime;
-        }
-    }
-
-    alpha = 1.0f;
+        state->gui_id = state->enter(state, prev, intent);
 
     if (state)
     {
@@ -324,20 +235,32 @@ int goto_state_full(struct state *st,
 
     if (queue_state())
     {
-        goto_state_full(anim_queue_state,
-                        anim_queue_directions[0],
-                        anim_queue_directions[1],
-                        anim_queue_allowskip);
+        goto_state_full_intent(anim_queue_state,
+                               anim_queue_directions[0],
+                               anim_queue_directions[1],
+                               anim_queue_allowskip,
+                               anim_queue_intent);
 
         anim_queue_state         = NULL;
         anim_queue_directions[0] = 0;
         anim_queue_directions[1] = 0;
         anim_queue_allowskip     = 0;
+        anim_queue_intent        = -1;
     }
 
     anim_done = 1;
 
     return 1;
+}
+
+int goto_state(struct state *st)
+{
+    return goto_state_intent(st, INTENT_FORWARD);
+}
+
+int exit_state(struct state *st)
+{
+    return goto_state_intent(st, INTENT_BACK);
 }
 
 int st_global_animating(void)
@@ -370,15 +293,23 @@ void st_paint(float t, int allow_clear)
 
             state->paint(state->gui_id, t);
 
+            transition_paint();
+
             hmd_prep_right();
 
             if (allow_clear)
                 video_clear();
 
             state->paint(state->gui_id, t);
+
+            transition_paint();
         }
         else
+        {
             state->paint(state->gui_id, t);
+
+            transition_paint();
+        }
     }
 }
 
@@ -388,6 +319,8 @@ void st_timer(float dt)
 
     if (!state_drawn)
         return;
+
+    transition_timer(dt);
 
     state_time += dt;
 

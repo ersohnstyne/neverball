@@ -32,6 +32,7 @@
 #include "config.h"
 #include "geom.h"
 #include "gui.h"
+#include "transition.h"
 #include "vec3.h"
 #include "audio.h"
 #include "image.h"
@@ -160,7 +161,7 @@ static int intro_gui(void)
     const int ww = h * MIN(w, h) / 16;
     const int hh = ww / 16 * 10;
 
-    int root_id, id;
+    int root_id;
 
     if ((root_id = gui_root()))
     {
@@ -196,7 +197,7 @@ static int intro_gui(void)
     return root_id;
 }
 
-static int intro_enter(struct state *st, struct state *prev)
+static int intro_enter(struct state *st, struct state *prev, int intent)
 {
     audio_music_fade_out(1.0f);
 
@@ -214,15 +215,16 @@ static int intro_enter(struct state *st, struct state *prev)
     return intro_gui();
 }
 
-static void intro_leave(struct state *st, struct state *next, int id)
+static int intro_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next != &st_intro)
     {
-        gui_delete(id);
-
         if (intro_page == 2)
             intro_init = 0;
     }
+
+    gui_delete(id);
+    return 0;
 }
 
 static void intro_paint(int id, float t)
@@ -238,7 +240,7 @@ static int intro_buttn(int b, int d)
             config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
         {
             if (intro_page == 1)
-                return goto_state_full(curr_state(), 0, 0, 1);
+                return goto_state(curr_state());
 
             int val = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
             if (val == -1)
@@ -260,7 +262,7 @@ static int intro_click(int b, int d)
     if (d == 1)
     {
         if (intro_page == 1)
-            return goto_state_full(curr_state(), 0, 0, 1);
+            return goto_state(curr_state());
 
         int val = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
         if (val == -1)
@@ -284,7 +286,7 @@ static void intro_timer(int id, float dt)
 
         if (intro_page == 1)
         {
-            goto_state_full(curr_state(), 0, 0, 1);
+            goto_state(curr_state());
             return;
         }
 
@@ -346,7 +348,7 @@ static int intro_accn_disabled_action(int tok, int val)
     return 1;
 }
 
-static int intro_accn_disabled_enter(struct state *st, struct state *prev)
+static int intro_accn_disabled_enter(struct state *st, struct state *prev, int intent)
 {
     int id, jd;
 
@@ -388,7 +390,7 @@ static int intro_accn_disabled_enter(struct state *st, struct state *prev)
 
     gui_layout(id, 0, 0);
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
 static int intro_accn_disabled_keybd(int c, int d)
@@ -723,9 +725,9 @@ static int intro_restore_gui(void)
     return id;
 }
 
-static int intro_restore_enter(struct state *st, struct state *prev)
+static int intro_restore_enter(struct state *st, struct state *prev, int intent)
 {
-    return intro_restore_gui();
+    return transition_slide(intro_restore_gui(), 1, intent);
 }
 
 static int intro_restore_keybd(int c, int d)
@@ -788,10 +790,10 @@ static int nointernet_gui(void)
     return id;
 }
 
-static int nointernet_enter(struct state *st, struct state *prev)
+static int nointernet_enter(struct state *st, struct state *prev, int intent)
 {
     nointernet_transition_busy = 0;
-    return nointernet_gui();
+    return transition_slide(nointernet_gui(), 1, intent);
 }
 
 static void nointernet_timer(int id, float dt)
@@ -849,10 +851,10 @@ static int waitinternet_gui(void)
     return id;
 }
 
-static int waitinternet_enter(struct state *st, struct state *prev)
+static int waitinternet_enter(struct state *st, struct state *prev, int intent)
 {
     connect_done = 0;
-    return waitinternet_gui();
+    return transition_slide(waitinternet_gui(), 1, intent);
 }
 
 static void waitinternet_timer(int id, float dt)
@@ -905,7 +907,7 @@ static int server_maintenance_action(int tok, int val)
     return 1;
 }
 
-static int server_maintenance_enter(struct state *st, struct state *prev)
+static int server_maintenance_enter(struct state *st, struct state *prev, int intent)
 {
     audio_music_fade_to(0.5f, "bgm/maintenance.ogg", 1);
     int id;
@@ -917,12 +919,12 @@ static int server_maintenance_enter(struct state *st, struct state *prev)
         gui_space(id);
         if (networking_standalone())
             gui_multi(id, _("It might take a while until\n"
-                            "the server maintenance is finished.\n"
+                            "the server maintenance is success.\n"
                             "You can play offline instead!"),
                           GUI_SML, GUI_COLOR_WHT);
         else
             gui_multi(id, _("It might take a while until\n"
-                            "the server maintenance is finished."),
+                            "the server maintenance is success."),
                           GUI_SML, GUI_COLOR_WHT);
 
         gui_space(id);
@@ -935,12 +937,12 @@ static int server_maintenance_enter(struct state *st, struct state *prev)
         gui_layout(id, 0, 0);
     }
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
-static void server_maintenance_leave(struct state *st, struct state *next, int id)
+static int server_maintenance_leave(struct state *st, struct state *next, int id, int intent)
 {
-    gui_delete(id);
+    return transition_slide(id, 0, intent);
 }
 
 static void server_maintenance_paint(int id, float t)
@@ -980,7 +982,7 @@ static void cleanup_screensaver(void)
     screensaver_done = 1;
 }
 
-static int screensaver_enter(struct state *st, struct state *prev)
+static int screensaver_enter(struct state *st, struct state *prev, int intent)
 {
     intro_done = 0;
 
@@ -989,12 +991,12 @@ static int screensaver_enter(struct state *st, struct state *prev)
     return 0;
 }
 
-static void screensaver_leave(struct state *st, struct state *next, int id)
+static int screensaver_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next == &st_null)
         game_client_free(NULL);
 
-    gui_delete(id);
+    return 0;
 }
 
 static void screensaver_paint(int id, float t)

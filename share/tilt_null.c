@@ -12,8 +12,7 @@
  * General Public License for more details.
  */
 
-#if !defined(__LEAPMOTION__) && !defined(__HILLCREST_LOOP__) && \
-    !defined(__WII__) && !defined(__WIIU__)
+#if !defined(__LEAPMOTION__) && !defined(__HILLCREST_LOOP__)
 
 void tilt_init(void)
 {

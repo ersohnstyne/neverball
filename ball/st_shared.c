@@ -25,6 +25,7 @@
 #include "demo.h"
 #include "progress.h"
 #include "gui.h"
+#include "transition.h"
 #include "config.h"
 #include "audio.h"
 #include "state.h"
@@ -36,43 +37,9 @@
 
 #include "st_shared.h"
 
-void play_shared_leave(struct state* st, struct state* next, int id)
+int shared_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if (next == &st_null)
-    {
-        /* Clear all memory leaks before quitting the game! */
-
-        progress_exit();
-#if NB_HAVE_PB_BOTH==1
-        campaign_quit();
-#endif
-        set_quit();
-
-        game_server_free(NULL);
-        game_client_free(NULL);
-    }
-
-    gui_delete(id);
-}
-
-void shared_leave(struct state *st, struct state *next, int id)
-{
-    if (next == &st_null)
-    {
-        /* Clear all memory leaks before quitting the game! */
-
-        demo_replay_stop(0);
-
-#if NB_HAVE_PB_BOTH==1
-        campaign_quit();
-#endif
-        set_quit();
-
-        game_server_free(NULL);
-        game_client_free(NULL);
-    }
-
-    gui_delete(id);
+    return transition_slide(id, 0, intent);
 }
 
 void shared_paint(int id, float t)

@@ -141,7 +141,7 @@ static void fetch_success_func(emscripten_fetch_t *handle)
 
     if (fi)
     {
-        int finished = 0;
+        int success = 0;
 
         if (fi->dest_filename && *fi->dest_filename)
         {
@@ -150,7 +150,7 @@ static void fetch_success_func(emscripten_fetch_t *handle)
             if (fp)
             {
                 if (fs_write(handle->data, handle->numBytes, fp) == handle->numBytes)
-                    finished = 1;
+                    success = 1;
 
                 fs_close(fp);
                 fp = NULL;
@@ -161,7 +161,7 @@ static void fetch_success_func(emscripten_fetch_t *handle)
         {
             struct fetch_done extra_data = { 0 };
 
-            extra_data.finished = !!finished;
+            extra_data.success = !!success;
 
             fi->callback.done(fi->callback.data, &extra_data);
         }
@@ -180,7 +180,7 @@ static void fetch_error_func(emscripten_fetch_t* handle)
         {
             struct fetch_done extra_data = { 0 };
 
-            extra_data.finished = 0;
+            extra_data.success = 0;
 
             fi->callback.done(fi->callback.data, &extra_data);
         }
@@ -207,9 +207,9 @@ static void fetch_progress_func(emscripten_fetch_t* handle)
     }
 }
 
-unsigned int fetch_url(const char *url,
-                       const char *dst,
-                       struct fetch_callback callback)
+unsigned int fetch_file(const char *url,
+                        const char *dst,
+                         struct fetch_callback callback)
 {
     unsigned int fetch_id = 0;
     struct fetch_info *fi = create_and_link_fetch_info();

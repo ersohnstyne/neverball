@@ -24,6 +24,7 @@
 #include "config.h"
 #include "geom.h"
 #include "gui.h"
+#include "transition.h"
 #include "hud.h"
 #include "lang.h"
 #include "progress.h"
@@ -227,7 +228,7 @@ int goto_tutorial_before_play(int idx)
 
     st_continue = &st_play_ready;
 
-    return goto_state_full(&st_tutorial, 0, GUI_ANIMATION_E_CURVE, 0);
+    return goto_state(&st_tutorial);
 }
 
 static int tutorial_action(int tok, int val)
@@ -239,7 +240,7 @@ static int tutorial_action(int tok, int val)
         case TUTORIAL_TOGGLE:
             config_set_d(CONFIG_ACCOUNT_TUTORIAL,
                      !config_get_d(CONFIG_ACCOUNT_TUTORIAL));
-            return goto_state_full(&st_tutorial, 0, 0, 1);
+            return goto_state(&st_tutorial);
             break;
     }
 
@@ -249,10 +250,10 @@ static int tutorial_action(int tok, int val)
         return 1;
 
     video_set_grab(1);
-    return goto_state_full(st_continue, GUI_ANIMATION_E_CURVE, 0, 0);
+    return exit_state(st_continue);
 }
 
-static int tutorial_enter(struct state *st, struct state *prev)
+static int tutorial_enter(struct state *st, struct state *prev, int intent)
 {
     if (!tutorial_before_play)
         if (prev == &st_play_loop)
@@ -292,7 +293,7 @@ static int tutorial_enter(struct state *st, struct state *prev)
 
     gui_layout(id, 0, 0);
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
 static void tutorial_paint(int id, float t)
@@ -455,7 +456,7 @@ int goto_hint_before_play(int idx)
 
     st_continue = &st_play_ready;
 
-    return goto_state_full(&st_hint, 0, GUI_ANIMATION_E_CURVE, 0);
+    return goto_state(&st_hint);
 }
 
 static int hint_action(int tok, int val)
@@ -466,15 +467,15 @@ static int hint_action(int tok, int val)
         case HINT_TOGGLE:
             config_set_d(CONFIG_ACCOUNT_TUTORIAL,
                      !config_get_d(CONFIG_ACCOUNT_TUTORIAL));
-            return goto_state_full(&st_hint, 0, 0, 1);
+            return goto_state(&st_hint);
             break;
     }
 
     video_set_grab(1);
-    return goto_state_full(st_continue, GUI_ANIMATION_E_CURVE, 0, 0);
+    return exit_state(st_continue);
 }
 
-static int hint_enter(struct state *st, struct state *prev)
+static int hint_enter(struct state *st, struct state *prev, int intent)
 {
     if (!tutorial_before_play)
         if (prev == &st_play_loop)
@@ -501,7 +502,7 @@ static int hint_enter(struct state *st, struct state *prev)
 
     gui_layout(id, 0, 0);
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
 static int hint_keybd(int c, int d)
@@ -532,7 +533,7 @@ static int hint_buttn(int b, int d)
 
 struct state st_tutorial = {
     tutorial_enter,
-    play_shared_leave,
+    shared_leave,
     tutorial_paint,
     tutorial_timer,
     shared_point,
@@ -545,7 +546,7 @@ struct state st_tutorial = {
 
 struct state st_hint = {
     hint_enter,
-    play_shared_leave,
+    shared_leave,
     tutorial_paint,
     tutorial_timer,
     shared_point,

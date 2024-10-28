@@ -17,7 +17,7 @@
 
 #include "state.h"
 
-#define ENABLE_GAME_TRANSFER 1
+//#define ENABLE_GAME_TRANSFER 1
 #if NB_HAVE_PB_BOTH==1
 #define GAME_TRANSFER_TARGET
 #endif

@@ -26,6 +26,7 @@
 #endif
 
 #include "gui.h"
+#include "transition.h"
 #include "set.h"
 #include "util.h"
 #include "demo.h"
@@ -89,7 +90,7 @@ static int done_action(int tok, int val)
 
         case GUI_SCORE:
             gui_score_set(val);
-            return goto_state_full(&st_done, 0, 0, 1);
+            return goto_state(&st_done);
 
         case DONE_SHOP:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -315,7 +316,7 @@ static int done_gui_set(void)
     return id;
 }
 
-static int done_enter(struct state *st, struct state *prev)
+static int done_enter(struct state *st, struct state *prev, int intent)
 {
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_wgcl_restart_attempt();
@@ -340,12 +341,12 @@ static int done_enter(struct state *st, struct state *prev)
 
     if (high && !resume)
         audio_narrator_play(AUD_SCORE);
-
+    
+    return transition_slide(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    return campaign_used() ? done_gui_campaign() : done_gui_set();
-#else
-    return done_gui_set();
+                            campaign_used() ? done_gui_campaign() :
 #endif
+                            done_gui_set(), 1, intent);
 }
 
 static void done_timer(int id, float dt)
@@ -389,7 +390,7 @@ static int done_buttn(int b, int d)
 
 static int wealthlogo_done = 0;
 
-static int capital_enter(struct state *st, struct state *prev)
+static int capital_enter(struct state *st, struct state *prev, int intent)
 {
     wealthlogo_done = 0;
 
@@ -411,7 +412,7 @@ static int capital_enter(struct state *st, struct state *prev)
         gui_layout(id, 0, 0);
     }
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
 static void capital_timer(int id, float dt)
@@ -454,7 +455,7 @@ static int capital_buttn(int b, int d)
 
 struct state st_done = {
     done_enter,
-    play_shared_leave,
+    shared_leave,
     shared_paint,
     done_timer,
     shared_point,
@@ -467,7 +468,7 @@ struct state st_done = {
 
 struct state st_capital = {
     capital_enter,
-    play_shared_leave,
+    shared_leave,
     shared_paint,
     capital_timer,
     NULL,

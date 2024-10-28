@@ -16,7 +16,7 @@ struct moon_taskloader_progress
 
 struct moon_taskloader_done
 {
-    unsigned int finished : 1;
+    unsigned int success:1;
 };
 
 struct moon_taskloader_callback

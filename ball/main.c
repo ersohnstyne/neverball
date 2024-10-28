@@ -115,9 +115,8 @@ extern "C" {
 extern "C" {
 #endif
 
-#if _WIN32 && _MSC_VER
 #include "dbg_config.h"
-#endif
+
 #include "glext.h"
 #include "config.h"
 #include "video.h"
@@ -172,6 +171,8 @@ extern "C" {
 #include "st_start.h"
 #include "st_package.h"
 
+#include "main_share.h"
+
 #if __cplusplus
 }
 #endif
@@ -197,6 +198,11 @@ const char ICON[] = "icon/neverball.png";
 
 /* This fixes some malfunctions instead */
 #define SDL_EVENT_ANTI_MALFUNCTIONS(events) do { events.type = 0; } while (0)
+
+#ifdef main
+#undef main
+#endif
+#define main main_share
 
 /*---------------------------------------------------------------------------*/
 
@@ -549,7 +555,7 @@ static int handle_key_dn(SDL_Event *e)
             video_dualdisplay_fullscreen(config_get_d(CONFIG_FULLSCREEN));
 #endif
             config_save();
-            goto_state_full(curr_state(), 0, 0, 1);
+            goto_state(curr_state());
             break;
         case KEY_EXIT:
             d = st_keybd(KEY_EXIT, 1);
@@ -1388,7 +1394,7 @@ static int loop(void)
                         if (config_get_d(CONFIG_DISPLAY) != video_display())
                         {
                             config_set_d(CONFIG_DISPLAY, video_display());
-                            goto_state_full(curr_state(), 0, 0, 1);
+                            goto_state(curr_state());
                         }
                         break;
 
@@ -1423,21 +1429,21 @@ static int loop(void)
 #endif
                         gui_resize();
                         config_save();
-                        goto_state_full(curr_state(), 0, 0, 1);
+                        goto_state(curr_state());
                         break;
 
                     case SDL_WINDOWEVENT_MAXIMIZED:
                         config_set_d(CONFIG_MAXIMIZED, 1);
                         gui_resize();
                         config_save();
-                        goto_state_full(curr_state(), 0, 0, 1);
+                        goto_state(curr_state());
                         break;
 
                     case SDL_WINDOWEVENT_RESTORED:
                         config_set_d(CONFIG_MAXIMIZED, 0);
                         gui_resize();
                         config_save();
-                        goto_state_full(curr_state(), 0, 0, 1);
+                        goto_state(curr_state());
                         break;
                 }
                 break;
@@ -1582,7 +1588,7 @@ static void make_dirs_and_migrate(void)
             {
                 src = DIR_ITEM_GET(items, i)->path;
                 dst = concat_string("Scores/",
-                                    src + sizeof ("pennyballhs-") - 1,
+                                    src + sizeof ("neverballhs-") - 1,
                                     ".txt",
                                     NULL);
                 fs_rename(src, dst);
@@ -2181,7 +2187,7 @@ static void main_quit(void)
 
     /* Free everything else. */
 
-    goto_state_full(&st_null, 0, 0, 1);
+    goto_state(&st_null);
 
     mtrl_quit ();
 #if ENABLE_DUALDISPLAY==1
@@ -2189,11 +2195,13 @@ static void main_quit(void)
 #endif
     video_quit();
     audio_free();
+#if ENABLE_NLS==1
     lang_quit ();
-
+#endif
     activity_services_quit();
 
-#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
+#if (NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1) && \
+    !defined(__GAMECUBE__) && !defined(__WII__)
     joy_quit();
 #endif
 
@@ -2261,7 +2269,7 @@ static void main_quit(void)
 #ifdef __cplusplus
 extern "C"
 #endif
-int main(int argc, char *argv[])
+int main_share(int argc, char *argv[])
 {
     struct main_loop mainloop = { 0 };
 

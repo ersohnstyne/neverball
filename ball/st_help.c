@@ -30,6 +30,7 @@
 #include "progress.h"
 #include "geom.h"
 #include "gui.h"
+#include "transition.h"
 #include "audio.h"
 #include "config.h"
 #include "demo.h"
@@ -139,10 +140,10 @@ static int help_action(int tok, int val)
             {
                 help_open = 0;
                 help_page_current = 1;
-                return goto_state(&st_help);
+                return exit_state(&st_help);
             }
             else
-                return goto_state(&st_title);
+                return exit_state(&st_title);
 
         case HELP_DEMO:
             progress_exit();
@@ -186,7 +187,7 @@ static int help_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            return goto_state(&st_title);
+            return exit_state(&st_title);
 
         case HELP_DEMO:
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -201,8 +202,14 @@ static int help_action(int tok, int val)
             break;
 
         case HELP_SELECT:
-            page = val;
-            return goto_state(&st_help);
+            if (val != page)
+            {
+                int old_page = page;
+
+                page = val;
+
+                return page < old_page ? exit_state(&st_help) : goto_state(&st_help);
+            }
     }
 #endif
     return 1;
@@ -1329,14 +1336,14 @@ static int help_gui(void)
     return root_id;
 }
 
-static int help_enter(struct state *st, struct state *prev)
+static int help_enter(struct state *st, struct state *prev, int intent)
 {
 #ifndef SWITCHBALL_HELP
     if (prev == &st_title)
         page = PAGE_RULES;
 #endif
 
-    return help_gui();
+    return transition_slide(help_gui(), 1, intent);
 }
 
 static void help_paint(int id, float t)
@@ -1379,19 +1386,21 @@ static int help_buttn(int b, int d)
 
 static int demo_freeze_all;
 
-static int help_demo_enter(struct state *st, struct state *prev)
+static int help_demo_enter(struct state *st, struct state *prev, int intent)
 {
     demo_freeze_all = 0;
     game_client_fly(0.0f);
     return 0;
 }
 
-static void help_demo_leave(struct state *st, struct state *next, int id)
+static int help_demo_leave(struct state *st, struct state *next, int id, int intent)
 {
     demo_replay_stop(0);
 
     if (next == &st_null)
         game_client_free(NULL);
+
+    return 0;
 }
 
 static void help_demo_paint(int id, float t)
@@ -1410,7 +1419,7 @@ static void help_demo_timer(int id, float dt)
         if (!demo_replay_step(dt))
         {
             demo_freeze_all = 1;
-            goto_state(&st_help);
+            exit_state(&st_help);
         }
 
         game_client_blend(demo_replay_blend());
@@ -1426,7 +1435,7 @@ static int help_demo_keybd(int c, int d)
 #endif
         {
             demo_freeze_all = 1;
-            return goto_state(&st_help);
+            return exit_state(&st_help);
         }
     }
     return 1;

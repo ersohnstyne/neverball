@@ -23,6 +23,7 @@
 #include "geom.h"
 #include "lang.h"
 #include "gui.h"
+#include "transition.h"
 
 #include "st_common.h"
 #include "st_setup.h"
@@ -320,9 +321,9 @@ void common_init(int (*action_fn)(int, int))
     common_action = action_fn;
 }
 
-void common_leave(struct state *st, struct state *next, int id)
+int common_leave(struct state *st, struct state *next, int id, int intent)
 {
-    gui_delete(id);
+    return transition_slide(id, 0, intent);
 }
 
 void common_paint(int id, float st)
@@ -419,7 +420,7 @@ void conf_common_init(int (*action_fn)(int, int), int allowfade)
     common_init(action_fn);
 }
 
-void conf_common_leave(struct state *st, struct state *next, int id)
+int conf_common_leave(struct state *st, struct state *next, int id, int intent)
 {
     config_save();
 
@@ -429,7 +430,7 @@ void conf_common_leave(struct state *st, struct state *next, int id)
         back_free();
     }
 
-    gui_delete(id);
+    return transition_slide(id, 0, intent);
 }
 
 void conf_common_paint(int id, float t)
@@ -576,7 +577,7 @@ static int perf_warning_refl_gui(int enabled)
     return id;
 }
 
-static int perf_warning_enter(struct state *st, struct state *prev)
+static int perf_warning_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play("snd/warning.ogg", 1.0f);
 
@@ -629,13 +630,13 @@ static int video_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            goto_state(video_back);
+            exit_state(video_back);
             video_back = NULL;
             break;
 
         case VIDEO_SCREENANIMATIONS:
             config_set_d(CONFIG_SCREEN_ANIMATIONS, val);
-            goto_state_full(&st_video, 0, 0, 1);
+            goto_state(&st_video);
 
             config_save();
             break;
@@ -655,15 +656,15 @@ static int video_action(int tok, int val)
             if (oldF == val)
                 return 1;
 
-            goto_state_full(&st_null, 0, 0, 1);
+            goto_state(&st_null);
             r = video_fullscreen(val);
             if (r)
-                goto_state_full(&st_video, 0, 0, 1);
+                goto_state(&st_video);
             else
             {
                 r = video_fullscreen(oldF);
                 if (r)
-                    goto_state_full(&st_video, 0, 0, 1);
+                    goto_state(&st_video);
                 else
                 {
                     config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 0);
@@ -934,7 +935,7 @@ static int video_gui(void)
     return id;
 }
 
-static int video_enter(struct state *st, struct state *prev)
+static int video_enter(struct state *st, struct state *prev, int intent)
 {
     if (!video_back)
         video_back = prev;
@@ -1023,16 +1024,16 @@ static int video_advanced_action(int tok, int val)
             config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 0);
             config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
             config_save();
-            goto_state_full(&st_null, 0, 0, 1);
+            goto_state(&st_null);
             r = video_fullscreen(val);
 
             if (r)
-                goto_state_full(&st_video_advanced, 0, 0, 1);
+                goto_state(&st_video_advanced);
             else
             {
                 r = video_fullscreen(val);
                 if (r)
-                    goto_state_full(&st_video_advanced, 0, 0, 1);
+                    goto_state(&st_video_advanced);
             }
 #endif
 #endif
@@ -1139,19 +1140,19 @@ static int video_advanced_action(int tok, int val)
         case VIDEO_ADVANCED_BACKGROUND:
             config_set_d(CONFIG_BACKGROUND, val);
             config_save();
-            goto_state_full(&st_video_advanced, 0, 0, 1);
+            goto_state(&st_video_advanced);
             break;
 
         case VIDEO_ADVANCED_SHADOW:
             config_set_d(CONFIG_SHADOW, val);
             config_save();
-            goto_state_full(&st_video_advanced, 0, 0, 1);
+            goto_state(&st_video_advanced);
             break;
 #ifdef GL_GENERATE_MIPMAP_SGIS
         case VIDEO_ADVANCED_MIPMAP:
             config_set_d(CONFIG_MIPMAP, val);
             config_save();
-            goto_state_full(&st_video_advanced, 0, 0, 1);
+            goto_state(&st_video_advanced);
             break;
 #endif
 
@@ -1159,7 +1160,7 @@ static int video_advanced_action(int tok, int val)
         case VIDEO_ADVANCED_ANISO:
             config_set_d(CONFIG_ANISO, val);
             config_save();
-            goto_state_full(&st_video_advanced, 0, 0, 1);
+            goto_state(&st_video_advanced, 0, 0, 1);
             break;
 #endif
 
@@ -1258,13 +1259,13 @@ static int video_advanced_action(int tok, int val)
         case VIDEO_ADVANCED_SMOOTH_FIX:
             config_set_d(CONFIG_SMOOTH_FIX, val);
             config_save();
-            goto_state_full(&st_video_advanced, 0, 0, 1);
+            goto_state(&st_video_advanced);
             break;
 
         case VIDEO_ADVANCED_FORCE_SMOOTH_FIX:
             config_set_d(CONFIG_FORCE_SMOOTH_FIX, val);
             config_save();
-            goto_state_full(&st_video_advanced, 0, 0, 1);
+            goto_state(&st_video_advanced);
             break;
     }
 
@@ -1510,7 +1511,7 @@ static int video_advanced_gui(void)
     return id;
 }
 
-static int video_advanced_enter(struct state *st, struct state *prev)
+static int video_advanced_enter(struct state *st, struct state *prev, int intent)
 {
     if (!video_advanced_back)
         video_advanced_back = prev;
@@ -1552,7 +1553,7 @@ static int display_action(int tok, int val)
             {
                 config_set_d(CONFIG_DISPLAY, val);
                 video_set_display(val);
-                goto_state_full(&st_display, 0, 0, 1);
+                goto_state(&st_display);
 
                 r = 1;
             }
@@ -1621,7 +1622,7 @@ static int display_gui(void)
     return id;
 }
 
-static int display_enter(struct state *st, struct state *prev)
+static int display_enter(struct state *st, struct state *prev, int intent)
 {
     if (!display_back)
         display_back = prev;
@@ -1847,7 +1848,7 @@ static int resol_gui(void)
     return id;
 }
 
-static int resol_enter(struct state *st, struct state *prev)
+static int resol_enter(struct state *st, struct state *prev, int intent)
 {
     if (!resol_back)
         resol_back = prev;
@@ -1908,6 +1909,7 @@ static int lang_action(int tok, int val)
 
             break;
 
+#if ENABLE_NLS==1 || _MSC_VER
         case LANG_DEFAULT:
             /* HACK: Reload resources to load the localized font. */
             goto_state(&st_null);
@@ -1927,6 +1929,7 @@ static int lang_action(int tok, int val)
             goto_state(&st_lang);
             config_save();
             break;
+#endif
     }
 
     return r;
@@ -2040,13 +2043,15 @@ static int lang_gui(void)
     return id;
 }
 
-static int lang_enter(struct state *st, struct state *prev)
+static int lang_enter(struct state *st, struct state *prev, int intent)
 {
+#if ENABLE_NLS==1 || _MSC_VER
     if (!langs)
     {
         langs = lang_dir_scan();
         first = 0;
     }
+#endif
 
     if (!lang_back)
         lang_back = prev;
@@ -2055,15 +2060,19 @@ static int lang_enter(struct state *st, struct state *prev)
     return lang_gui();
 }
 
-static void lang_leave(struct state *st, struct state *next, int id)
+static int lang_leave(struct state *st, struct state *next, int id, int intent)
 {
+#if ENABLE_NLS==1 || _MSC_VER
     if (!(next == &st_lang || next == &st_null))
     {
         lang_dir_free(langs);
         langs = NULL;
     }
+#endif
 
-    conf_common_leave(st, next, id);
+    conf_common_leave(st, next, id, intent);
+
+    return conf_common_leave(st, next, id, intent);
 }
 
 static int lang_buttn(int b, int d)
@@ -2130,7 +2139,7 @@ static int restart_required_gui(void)
     return id;
 }
 
-static int restart_required_enter(struct state *st, struct state *prev)
+static int restart_required_enter(struct state *st, struct state *prev, int intent)
 {
     if (!restart_required_back)
         restart_required_back = prev;
@@ -2156,7 +2165,7 @@ static int loading_gui(void)
     return id;
 }
 
-static int loading_enter(struct state *st, struct state *prev)
+static int loading_enter(struct state *st, struct state *prev, int intent)
 {
 #if NB_HAVE_PB_BOTH!=1
     back_init("back/space.png");
@@ -2164,9 +2173,10 @@ static int loading_enter(struct state *st, struct state *prev)
     return loading_gui();
 }
 
-static void loading_leave(struct state* st, struct state* next, int id)
+static int loading_leave(struct state* st, struct state* next, int id, int intent)
 {
     gui_delete(id);
+    return 0;
 }
 
 static void loading_paint(int id, float t)

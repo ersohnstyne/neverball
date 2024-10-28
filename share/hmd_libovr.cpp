@@ -26,12 +26,11 @@
 
 #include <OVR.h>
 
-extern "C"
-{
-    #include "hmd_common.h"
-    #include "config.h"
-    #include "glext.h"
-    #include "video.h"
+extern "C" {
+#include "hmd_common.h"
+#include "config.h"
+#include "glext.h"
+#include "video.h"
 }
 
 /*---------------------------------------------------------------------------*/

@@ -367,7 +367,11 @@ static int dirty = 0;
 
 static void config_key(const char *s, int i)
 {
+#if !defined(__GAMECUBE__) && !defined(__WII__)
     SDL_Keycode c = SDL_GetKeyFromName(s);
+#else
+    SDL_Keycode c = 0;
+#endif
 
     if (c == SDLK_UNKNOWN)
         config_set_d(i, option_d[i].def);

@@ -36,7 +36,7 @@
 #define AUD_SWITCH     "snd/switch.ogg"
 #define AUD_SUCCESS  _("snd/success.ogg")
 
-/* Same as Neverball? */
+/* Same as Switchball? */
 
 #define AUD_BACK    "snd/back.ogg"
 

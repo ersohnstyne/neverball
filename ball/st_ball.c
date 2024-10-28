@@ -22,6 +22,7 @@
 #endif
 
 #include "gui.h"
+#include "transition.h"
 #include "state.h"
 #include "array.h"
 #include "dir.h"
@@ -368,9 +369,9 @@ static int ball_action(int tok, int val)
         case GUI_BACK:
             game_fade(+4.0);
 #if NB_HAVE_PB_BOTH==1
-            goto_state(&st_conf_account);
+            exit_state(&st_conf_account);
 #else
-            goto_state(&st_conf);
+            exit_state(&st_conf);
 #endif
             break;
 
@@ -564,7 +565,7 @@ static int ball_gui(void)
     return root_id;
 }
 
-static int ball_enter(struct state *st, struct state *prev)
+static int ball_enter(struct state *st, struct state *prev, int intent)
 {
     if (prev != &st_ball || ball_manual_hotreload)
         scan_balls();
@@ -575,16 +576,19 @@ static int ball_enter(struct state *st, struct state *prev)
         load_ball_demo();
     }
 
-    ball_manual_hotreload = 0;
+    if (ball_manual_hotreload)
+    {
+        ball_manual_hotreload = 0;
+        return ball_gui();
+    }
 
-    return ball_gui();
+    return transition_slide(ball_gui(), 1, intent);
 }
 
-static void ball_leave(struct state *st, struct state *next, int id)
+static int ball_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next != &st_ball)
     {
-        gui_delete(id);
         back_free();
 
         demo_replay_stop(0);
@@ -594,6 +598,12 @@ static void ball_leave(struct state *st, struct state *next, int id)
     }
 
     free_balls();
+
+    if (ball_manual_hotreload)
+        gui_delete(id);
+    else return transition_slide(id, 0, intent);
+
+    return 0;
 }
 
 static void ball_paint(int id, float t)

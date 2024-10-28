@@ -27,11 +27,7 @@
 #endif
 #endif
 
-/*
- * Premium: dlcball.stynegame.de
- * Legacy downloads: play.neverball.org
- */
-#define NB_CURRDOMAIN_PREMIUM "dlcball.stynegame.de"
+#define NB_CURRDOMAIN_PREMIUM "play.neverball.org"
 
 enum package_image_status
 {
@@ -427,78 +423,56 @@ static int load_installed_packages(void)
  */
 static int save_installed_packages(void)
 {
-    if (filename && *filename)
+    if (installed_packages)
     {
-        static char url[MAXSTR];
-
-        memset(url, 0, sizeof (url));
-
-#ifdef __EMSCRIPTEN__
 #if defined(NB_PACKAGES_PREMIUM)
-        switch (category)
+        char default_filename[64];
+
+        switch (package_curr_category)
         {
             case PACKAGE_CATEGORY_PROFILE:
-                /* Uses ball models */
-                SAFECPY(url, "packages/ball/");
+                SAFECPY(default_filename, "installed-packages_ball.txt");
                 break;
             case PACKAGE_CATEGORY_GUI:
-                /* Uses GUI interfaces */
-                SAFECPY(url, "packages/gui/");
+                SAFECPY(default_filename, "installed-packages_gui.txt");
                 break;
             case PACKAGE_CATEGORY_CAMPAIGN:
-                /* Uses campaign */
-                SAFECPY(url, "packages/campaign/");
+                SAFECPY(default_filename, "installed-packages_campaign.txt");
                 break;
             case PACKAGE_CATEGORY_LEVELSET:
-                /* Uses premium sets */
-                SAFECPY(url, "packages/levelsets/");
+                SAFECPY(default_filename, "installed-packages_levelset.txt");
                 break;
             case PACKAGE_CATEGORY_COURSE:
-                /* Uses courses */
-                SAFECPY(url, "packages/course/");
+                SAFECPY(default_filename, "installed-packages_course.txt");
                 break;
             default:
-                SAFECPY(url, "packages/");
+                SAFECPY(default_filename, "installed-packages.txt");
+                break;
         }
-#else
-        /* Uses standard vanilla game */
-        SAFECPY(url, "packages/");
-#endif
-#else
-#if defined(NB_PACKAGES_PREMIUM)
-        switch (category)
-        {
-            case PACKAGE_CATEGORY_PROFILE:
-                /* Uses ball models */
-                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/ball/");
-                break;
-            case PACKAGE_CATEGORY_GUI:
-                /* Uses GUI interfaces */
-                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/gui/");
-                break;
-            case PACKAGE_CATEGORY_CAMPAIGN:
-                /* Uses campaign */
-                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/campaign/");
-                break;
-            case PACKAGE_CATEGORY_LEVELSET:
-                /* Uses premium sets */
-                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/levelsets/");
-                break;
-            case PACKAGE_CATEGORY_COURSE:
-                /* Uses courses */
-                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/course/");
-                break;
-            default:
-                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/");
-        }
-#else
-        /* Uses legacy vanilla game */
-        SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/");
-#endif
-#endif
-        SAFECAT(url, filename);
 
-        return url;
+#else
+        const char *default_filename = "installed-packages.txt";
+#endif
+
+        fs_file fp = fs_open_write(get_package_path(default_filename));
+
+        if (fp)
+        {
+            List l;
+
+            for (l = installed_packages; l; l = l->next)
+            {
+                struct local_package *lpkg = l->data;
+
+                if (lpkg && fs_exists(get_package_path(lpkg->filename)))
+                    fs_printf(fp, "package %s\nfilename %s\n", lpkg->id, lpkg->filename);
+            }
+
+            fs_close(fp);
+            fp = NULL;
+
+            return 1;
+        }
     }
 
     return 0;
@@ -725,7 +699,7 @@ static void package_image_done(void *data, void *extra_data)
 
     if (pii)
     {
-        if (fd && fd->finished && pii->pkg)
+        if (fd && fd->success && pii->pkg)
             pii->pkg->image_status = PACKAGE_IMAGE_NONE;
 
         if (pii->callback.done)
@@ -760,7 +734,7 @@ unsigned int package_fetch_image(int pi, struct fetch_callback nested_callback)
                 callback.data = pii;
                 callback.done = package_image_done;
 
-                fetch_id = fetch_url(url, filename, callback);
+                fetch_id = fetch_file(url, filename, callback);
 
                 if (fetch_id)
                     pkg->image_status = PACKAGE_IMAGE_DOWNLOADING;
@@ -810,7 +784,7 @@ static void available_packages_done(void *data, void *extra_data)
     struct package_list_info *pli = data;
     struct fetch_done *fd = extra_data;
 
-    if (fd && fd->finished)
+    if (fd && fd->success)
     {
         const char *filename = get_package_path("available-packages.txt");
 
@@ -851,7 +825,7 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
         callback.data = pli;
         callback.done = available_packages_done;
 
-        fetch_id = fetch_url(url, filename, callback);
+        fetch_id = fetch_file(url, filename, callback);
 
         if (!fetch_id)
         {
@@ -1155,7 +1129,7 @@ static void package_fetch_done(void *data, void *extra_data)
         struct package *pkg = pfi->pkg;
         pkg->status = PACKAGE_ERROR;
 
-        if (dn->finished)
+        if (dn->success)
         {
             struct local_package *lpkg = create_local_package(pkg->id, pkg->filename);
 
@@ -1184,22 +1158,6 @@ static void package_fetch_done(void *data, void *extra_data)
 
         free_pfi(pfi);
         pfi = NULL;
-    }
-}
-
-void package_delete(int pi)
-{
-    if (pi >= 0 && pi < array_len(installed_packages))
-    {
-        struct package *pkg = array_get(installed_packages, pi);
-        unmount_package_file(pkg->filename);
-        fs_remove(get_package_path(pkg->filename));
-
-        pkg->status = PACKAGE_AVAILABLE;
-
-        save_installed_packages();
-        free_installed_packages();
-        load_installed_packages();
     }
 }
 
@@ -1232,7 +1190,7 @@ unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
                     callback.done     = package_fetch_done;
                     callback.data     = pfi;
 
-                    fetch_id = fetch_url(url, pfi->temp_filename, callback);
+                    fetch_id = fetch_file(url, pfi->temp_filename, callback);
 
                     if (fetch_id)
                         pkg->status = PACKAGE_DOWNLOADING;

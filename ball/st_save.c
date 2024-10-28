@@ -22,6 +22,7 @@
 
 #include "log.h"
 #include "gui.h"
+#include "transition.h"
 #include "util.h"
 #include "audio.h"
 #include "config.h"
@@ -118,7 +119,7 @@ static int save_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            return goto_state(cancel_state);
+            return exit_state(cancel_state);
 
         case SAVE_OK:
 #if NB_HAVE_PB_BOTH==1 && defined(DEMO_QUARANTINED_MODE) && !defined(DEMO_LOCKDOWN_COMPLETE)
@@ -161,8 +162,8 @@ static int save_action(int tok, int val)
                 if (curr_status() == GAME_FALL)
                     conf_covid_retract();
 
-                int r = demo_rename(text_input);
-                return goto_state(r ? ok_state : &st_save_error);
+                return demo_rename(text_input) ? exit_state(ok_state) :
+                                                 goto_state(&st_save_error);
             }
 
         case GUI_CL:
@@ -230,7 +231,7 @@ static void on_text_input(int typing)
     }
 }
 
-static int save_enter(struct state *st, struct state *prev)
+static int save_enter(struct state *st, struct state *prev, int intent)
 {
     const char *name;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -280,14 +281,14 @@ static int save_enter(struct state *st, struct state *prev)
     text_input_start(on_text_input);
     text_input_str(name, 0);
 
-    return save_gui();
+    return transition_slide(save_gui(), 1, intent);
 }
 
-static void save_leave(struct state *st, struct state *next, int id)
+static int save_leave(struct state *st, struct state *next, int id, int intent)
 {
     text_input_stop();
 
-    play_shared_leave(st, next, id);
+    return transition_slide(id, 0, intent);
 }
 
 static int save_keybd(int c, int d)
@@ -348,10 +349,11 @@ static int clobber_action(int tok, int val)
         if (curr_status() == GAME_FALL)
             conf_covid_retract();
 
-        int r = demo_rename(text_input);
-        return goto_state(r ? ok_state : &st_save_error);
+        return demo_rename(text_input) ? exit_state(ok_state) :
+                                         goto_state(&st_save_error);
     }
-    return goto_state(&st_save);
+
+    return exit_state(&st_save);
 }
 
 static int clobber_gui(void)
@@ -382,7 +384,7 @@ static int clobber_gui(void)
     return id;
 }
 
-static int clobber_enter(struct state *st, struct state *prev)
+static int clobber_enter(struct state *st, struct state *prev, int intent)
 {
     return clobber_gui();
 }
@@ -418,7 +420,7 @@ static int lockdown_action(int tok, int val)
     if (curr_status() == GAME_FALL)
         conf_covid_retract();
 
-    return goto_state(cancel_state);
+    return exit_state(cancel_state);
 }
 
 static int lockdown_gui(void)
@@ -446,7 +448,7 @@ static int lockdown_gui(void)
     return id;
 }
 
-static int lockdown_enter(struct state *st, struct state *prev)
+static int lockdown_enter(struct state *st, struct state *prev, int intent)
 {
     return lockdown_gui();
 }
@@ -499,22 +501,22 @@ static int save_error_gui(void)
     return id;
 }
 
-static int save_error_enter(struct state *st, struct state *prev)
+static int save_error_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play("snd/uierror.ogg", 1.0f);
 
-    return save_error_gui();
+    return transition_slide(save_error_gui(), 1, intent);
 }
 
 static int save_error_keybd(int c, int d)
 {
-    return (d && c == KEY_EXIT) ? goto_state(&st_save) : 1;
+    return (d && c == KEY_EXIT) ? exit_state(&st_save) : 1;
 }
 
 static int save_error_buttn(int b, int d)
 {
     return (d && b == config_get_d(CONFIG_JOYSTICK_BUTTON_A)) ?
-           goto_state(&st_save) : 1;
+           exit_state(&st_save) : 1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -534,7 +536,7 @@ struct state st_save = {
 
 struct state st_clobber = {
     clobber_enter,
-    play_shared_leave,
+    shared_leave,
     shared_paint,
     shared_timer,
     shared_point,
@@ -547,7 +549,7 @@ struct state st_clobber = {
 
 struct state st_lockdown = {
     lockdown_enter,
-    play_shared_leave,
+    shared_leave,
     shared_paint,
     shared_timer,
     shared_point,
@@ -560,7 +562,7 @@ struct state st_lockdown = {
 
 struct state st_save_error = {
     save_error_enter,
-    play_shared_leave,
+    shared_leave,
     shared_paint,
     shared_timer,
     shared_point,

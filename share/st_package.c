@@ -13,6 +13,7 @@
  */
 
 #include "gui.h"
+#include "transition.h"
 #include "audio.h"
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
@@ -196,7 +197,7 @@ static void download_done(void *data1, void *data2)
 
             if (id)
             {
-                if (dn->finished)
+                if (dn->success)
                 {
                     gui_set_label(id, GUI_CHECKMARK);
                     gui_set_color(id, gui_grn, gui_grn);
@@ -254,7 +255,7 @@ static void image_download_done(void *data, void *extra_data)
 
     if (idi)
     {
-        if (fd && fd->finished)
+        if (fd && fd->success)
         {
             if (idi->pi == selected)
                 gui_set_image(shot_id, package_get_shot_filename(selected));
@@ -333,14 +334,14 @@ static int package_action(int tok, int val)
     {
         case GUI_BACK:
             package_manage_selected = -1;
-            return goto_state(package_back);
+            return exit_state(package_back);
             break;
 
         case GUI_PREV:
             first = MAX(first - PACKAGE_STEP, 0);
 
             do_init = 0;
-            return goto_state(&st_package);
+            return exit_state(&st_package);
 
             break;
 
@@ -605,7 +606,7 @@ static void package_select(int pi)
     }
 }
 
-static int package_enter(struct state *st, struct state *prev)
+static int package_enter(struct state *st, struct state *prev, int intent)
 {
     common_init(package_action);
 
@@ -648,13 +649,11 @@ static int package_enter(struct state *st, struct state *prev)
 
     fetch_package_images();
 
-    return package_gui();
+    return transition_slide(package_gui(), 1, intent);
 }
 
-static void package_leave(struct state *st, struct state *next, int id)
+static int package_leave(struct state *st, struct state *next, int id, int intent)
 {
-    gui_delete(id);
-
     if (package_manage_selected == -1)
         package_back = 0;
 
@@ -669,6 +668,8 @@ static void package_leave(struct state *st, struct state *next, int id)
         free(name_ids);
         name_ids = NULL;
     }
+
+    return transition_slide(id, 0, intent);
 }
 
 static void package_paint(int id, float st)
@@ -731,15 +732,13 @@ static int package_keybd(int c, int d)
 enum
 {
     PACKAGE_MANAGE_START = GUI_LAST,
-    PACKAGE_MANAGE_UPDATE,
-    PACKAGE_MANAGE_DELETE
+    PACKAGE_MANAGE_UPDATE
 };
 
 enum package_confirm_action
 {
     PACKAGE_CONFIRM_NONE = 0,
 
-    PACKAGE_CONFIRM_DELETE,
     PACKAGE_CONFIRM_RENAME,
 
     PACKAGE_CONFIRM_MAX
@@ -756,17 +755,6 @@ static int package_manage_action(int tok, int val)
 
     switch (curr_confirm_action)
     {
-        case PACKAGE_CONFIRM_DELETE:
-        {
-            if (tok == PACKAGE_MANAGE_DELETE)
-                package_delete(package_manage_selected);
-
-            package_manage_selected = -1;
-            curr_confirm_action = PACKAGE_CONFIRM_NONE;
-            return goto_state(&st_package);
-        }
-        break;
-
         default:
         {
             switch (tok)
@@ -779,10 +767,6 @@ static int package_manage_action(int tok, int val)
                     selected = package_manage_selected;
                     do_download = 1;
                     return goto_state(&st_package);
-
-                case PACKAGE_MANAGE_DELETE:
-                    curr_confirm_action = PACKAGE_CONFIRM_DELETE;
-                    return goto_state(&st_package_manage);
 
                 case GUI_BACK:
                     package_manage_selected = -1;
@@ -875,10 +859,6 @@ static int package_manage_gui(void)
             gui_set_rect(btn_id, GUI_ALL);
         }
 
-        if ((btn_id = gui_state(id, _("Delete"),
-                                    GUI_SML, PACKAGE_MANAGE_DELETE, package_manage_selected)))
-            gui_set_color(btn_id, gui_red, gui_red);
-
         gui_space(id);
 
         gui_state(id, _("Back"), GUI_SML, GUI_BACK, 0);
@@ -889,37 +869,22 @@ static int package_manage_gui(void)
     return id;
 }
 
-static int package_manage_enter(struct state *st, struct state *prev)
+static int package_manage_enter(struct state *st, struct state *prev, int intent)
 {
     common_init(package_manage_action);
 
-    return curr_confirm_action == PACKAGE_CONFIRM_DELETE ?
-           package_manage_delete_gui() : package_manage_gui();
+    return transition_slide(package_manage_gui(), 1, intent);
 }
 
-static void package_manage_leave(struct state *st, struct state *next, int id)
+static int package_manage_leave(struct state* st, struct state* next, int id, int intent)
 {
-    gui_delete(id);
-
     manage_del_confirm_btn_enabled = 0;
+
+    return transition_slide(id, 0, intent);
 }
 
 static void package_manage_timer(int id, float dt)
 {
-    if (curr_confirm_action == PACKAGE_CONFIRM_DELETE)
-    {
-        if (time_state() > 3 && !manage_del_confirm_btn_enabled)
-        {
-            manage_del_confirm_btn_enabled = 1;
-
-            if (manage_del_confirm_btn_id)
-            {
-                gui_set_state(manage_del_confirm_btn_id, PACKAGE_MANAGE_DELETE, package_manage_selected);
-                gui_set_color(manage_del_confirm_btn_id, GUI_COLOR_RED);
-            }
-        }
-    }
-
     gui_timer(id, dt);
 }
 
@@ -929,7 +894,7 @@ void goto_package(int package_id, struct state *back_state)
 {
     /* Initialize the state. */
 
-    goto_state(&st_package);
+    //goto_state(&st_package);
 
     package_back = back_state;
 

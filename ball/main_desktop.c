@@ -12,7 +12,25 @@
  * General Public License for more details.
  */
 
-/* miniz.c with Neverball defaults. */
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 
-#include "zip.h"
-#include "miniz.c"
+#if _WIN32 && __MINGW32__
+#include <SDL2/SDL.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
+#else
+#include <SDL.h>
+#endif
+
+#endif
+
+#include "main_share.h"
+
+int main(int argc, char *argv[])
+{
+    return main_share(argc, argv);
+}

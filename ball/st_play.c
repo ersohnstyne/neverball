@@ -337,11 +337,13 @@ static int play_update_client = 1;
 static int use_mouse;
 static int use_keyboard;
 
+static int ready_transition = 0;
+
 int play_pause_goto(struct state *returnable)
 {
     play_freeze_all = 1;
 
-    return goto_pause(returnable);
+    return exit_state(returnable);
 }
 
 static int play_ready_gui(void)
@@ -357,7 +359,7 @@ static int play_ready_gui(void)
     return id;
 }
 
-static int play_ready_enter(struct state *st, struct state *prev)
+static int play_ready_enter(struct state *st, struct state *prev, int intent)
 {
     prep_tilt_x = 0;
     prep_tilt_y = 0;
@@ -402,13 +404,16 @@ static int play_ready_enter(struct state *st, struct state *prev)
 
     //toggle_hud_visibility(1);
 
-    return play_ready_gui();
+    int id = play_ready_gui();
+    gui_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.8f, 0);
+    return id;
 }
 
 static void play_ready_timer(int id, float dt)
 {
     game_lerp_pose_point_tick(dt);
     geom_step(dt);
+
     float t = time_state();
 
     game_client_fly(1.0f - 0.5f * t);
@@ -423,7 +428,7 @@ static void play_ready_timer(int id, float dt)
 #endif
 
     if (dt > 0.0f && t > 1.0f && !st_global_animating())
-        goto_state_full(&st_play_set, 0, 0, 1);
+        goto_state(&st_play_set);
 
     set_lvlinfo();
 
@@ -444,15 +449,25 @@ static void play_ready_timer(int id, float dt)
 
     gui_timer(id, dt);
 
+    if (time_state() >= 1.0f && !ready_transition)
+    {
+        gui_slide(id, GUI_W | GUI_FLING | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.6f, 0);
+        ready_transition = 1;
+    }
+
+    /* Powerful screen animations! */
+
 #ifndef __EMSCRIPTEN__
-    if (console_gui_show() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
-        hud_cam_timer(dt);
-    else if (hud_visibility())
-#endif
+    if (config_get_d(CONFIG_SCREEN_ANIMATIONS) && !console_gui_show())
         hud_timer(dt);
+    else if (console_gui_show())
+        hud_cam_timer(dt);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
+
+static int set_transition = 0;
 
 static int play_set_gui(void)
 {
@@ -467,7 +482,7 @@ static int play_set_gui(void)
     return id;
 }
 
-static int play_set_enter(struct state *st, struct state *prev)
+static int play_set_enter(struct state *st, struct state *prev, int intent)
 {
 #ifdef MAPC_INCLUDES_CHKP
     restart_cancel_allchkp = 0;
@@ -498,7 +513,7 @@ static void play_set_timer(int id, float dt)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform != PLATFORM_PC) hud_set_alpha(1.0f);
 #endif
-        goto_state_full(&st_play_loop, 0, 0, 1);
+        goto_state(&st_play_loop);
     }
 
     game_step_fade(dt);
@@ -518,14 +533,20 @@ static void play_set_timer(int id, float dt)
 
     gui_timer(id, dt);
 
+    if (time_state() >= 1.0f && !set_transition)
+    {
+        gui_slide(id, GUI_W | GUI_FLING | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.6f, 0);
+        set_transition = 1;
+    }
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (current_platform != PLATFORM_PC)
+    if (current_platform != PLATFORM_PC || console_gui_show())
     {
         console_gui_set_alpha(CLAMP(0.0f, flerp(6.0f, 0.0f, t), 1.0f));
         hud_set_alpha(CLAMP(0.0f, flerp(-5.0f, 1.0f, t), 1.0f));
     }
 
-    if (console_gui_show() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    if (console_gui_show() && !config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_cam_timer(dt);
     else if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
 #endif
@@ -586,7 +607,7 @@ static int play_prep_click(int b, int d)
 #endif
 
         if (b == SDL_BUTTON_LEFT)
-            goto_state_full(&st_play_loop, 0, 0, 1);
+            goto_state(&st_play_loop);
     }
     return 1;
 }
@@ -619,7 +640,7 @@ static int play_prep_buttn(int b, int d)
         buttn_camera(b);
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return goto_state_full(&st_play_loop, 0, 0, 1);
+            return goto_state(&st_play_loop);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
         {
             hud_speedup_reset();
@@ -696,6 +717,7 @@ static float lmb_hold_time;
 static float rmb_hold_time;
 
 static int fast_rotate;
+static int loop_transition;
 static int max_speed;
 static int man_rot;
 static float rotation_offset;
@@ -719,7 +741,7 @@ static int play_loop_gui(void)
 struct state *global_prev;
 static float smoothfix_slowdown_time;
 
-static int play_loop_enter(struct state *st, struct state *prev)
+static int play_loop_enter(struct state *st, struct state *prev, int intent)
 {
     smoothfix_slowdown_time = 0;
 #ifdef MAPC_INCLUDES_CHKP
@@ -786,7 +808,15 @@ static int play_loop_enter(struct state *st, struct state *prev)
 
     //toggle_hud_visibility(1);
 
-    return play_loop_gui();
+    int id = play_loop_gui();
+    gui_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.8f, 0);
+    return id;
+}
+
+static int play_loop_leave(struct state *st, struct state *next, int id, int intent)
+{
+    gui_delete(id);
+    return 0;
 }
 
 static void play_loop_paint(int id, float t)
@@ -845,6 +875,12 @@ static void play_loop_timer(int id, float dt)
     hud_update_camera_direction(curr_viewangle());
     gui_timer(id, dt);
     hud_timer(dt);
+    
+    if (time_state() >= 1.0f && !loop_transition)
+    {
+        gui_slide(id, GUI_W | GUI_FLING | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.6f, 0);
+        loop_transition = 1;
+    }
 
     /* Switchball works on max speed and manual rotation */
 
@@ -948,16 +984,14 @@ static void play_loop_timer(int id, float dt)
         play_block_state = 1;
         progress_stat(curr_status());
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        goto_state_full(curr_status() == GAME_GOAL ?
-                        (curr_mode() == MODE_HARDCORE &&
-                         !progress_done() ? &st_goal_hardcore :
-                                            &st_goal) :
-                        &st_fail,
-                        0, GUI_ANIMATION_E_CURVE, 0);
+        goto_state(curr_status() == GAME_GOAL ?
+                   (curr_mode() == MODE_HARDCORE &&
+                    !progress_done() ? &st_goal_hardcore :
+                                       &st_goal) :
+                   &st_fail);
 #else
-        goto_state_full(curr_status() == GAME_GOAL ?
-                        &st_goal : &st_fail,
-                        0, GUI_ANIMATION_E_CURVE, 0);
+        goto_state(curr_status() == GAME_GOAL ?
+                   &st_goal : &st_fail);
 #endif
     }
 }
@@ -1352,17 +1386,6 @@ static void play_loop_wheel(int x, int y)
 
 /*---------------------------------------------------------------------------*/
 
-static void play_shared_leave_internal(struct state *st,
-                                       struct state *next, int id)
-{
-    if (curr_mode() == MODE_NONE)
-        game_set_pos(0, 0);
-
-    play_shared_leave(st, next, id);
-}
-
-/*---------------------------------------------------------------------------*/
-
 static float phi, theta;
 
 static int   look_panning;
@@ -1370,7 +1393,7 @@ static float look_stick_x[2],
              look_stick_y[2],
              look_stick_z;
 
-static int look_enter(struct state *st, struct state *prev)
+static int look_enter(struct state *st, struct state *prev, int intent)
 {
     look_panning = 0;
     look_stick_x[0] = 0;
@@ -1380,6 +1403,11 @@ static int look_enter(struct state *st, struct state *prev)
     look_stick_z = 0;
     phi   = 0;
     theta = 0;
+    return 0;
+}
+
+static int look_leave(struct state *st, struct state *next, int id, int intent)
+{
     return 0;
 }
 
@@ -1483,7 +1511,7 @@ static int look_buttn(int b, int d)
 
 struct state st_play_ready = {
     play_ready_enter,
-    play_shared_leave_internal,
+    shared_leave,
     play_prep_paint,
     play_ready_timer,
     NULL,
@@ -1499,7 +1527,7 @@ struct state st_play_ready = {
 
 struct state st_play_set = {
     play_set_enter,
-    play_shared_leave_internal,
+    shared_leave,
     play_prep_paint,
     play_set_timer,
     NULL,
@@ -1515,7 +1543,7 @@ struct state st_play_set = {
 
 struct state st_play_loop = {
     play_loop_enter,
-    play_shared_leave_internal,
+    play_loop_leave,
     play_loop_paint,
     play_loop_timer,
     play_loop_point,
@@ -1536,7 +1564,7 @@ struct state st_play_loop = {
 
 struct state st_look = {
     look_enter,
-    play_shared_leave_internal,
+    look_leave,
     look_paint,
     look_timer,
     look_point,

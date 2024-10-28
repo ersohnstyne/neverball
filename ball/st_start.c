@@ -25,6 +25,7 @@
 #endif
 
 #include "gui.h"
+#include "transition.h"
 #include "set.h"
 #include "util.h"
 #include "progress.h"
@@ -236,19 +237,14 @@ static int start_action(int tok, int val)
             {
                 set_level_options = 0;
                 set_star_view = 0;
-                return goto_state(&st_start);
+                return exit_state(&st_start);
             }
-            return goto_state_full(start_back ? start_back : &st_set,
-                                   curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_N_CURVE : GUI_ANIMATION_S_CURVE,
-                                   curr_mode() == MODE_BOOST_RUSH ? GUI_ANIMATION_S_CURVE : GUI_ANIMATION_N_CURVE,
-                                   0);
+            else return exit_state(start_back ? start_back : &st_set);
 
         case GUI_PREV:
             if (first > 1) {
                 first -= LEVEL_STEP;
-                return goto_state_full(&st_start,
-                                       GUI_ANIMATION_E_CURVE,
-                                       GUI_ANIMATION_W_CURVE, 0);
+                return exit_state(&st_start);
             }
             break;
 
@@ -256,9 +252,7 @@ static int start_action(int tok, int val)
             if (first + LEVEL_STEP < total)
             {
                 first += LEVEL_STEP;
-                return goto_state_full(&st_start,
-                                       GUI_ANIMATION_W_CURVE,
-                                       GUI_ANIMATION_E_CURVE, 0);
+                return goto_state(&st_start);
             }
             break;
 
@@ -322,7 +316,7 @@ static int start_action(int tok, int val)
                 }
                 else return goto_state(&st_start_unavailable);
 #else
-                goto_state(&st_start_joinrequired);
+                return goto_state(&st_start_joinrequired);
 #endif 
             }
             break;
@@ -355,7 +349,7 @@ static int start_action(int tok, int val)
         case START_LOCK_GOALS:
             config_set_d(CONFIG_LOCK_GOALS, val);
             config_save();
-            return goto_state_full(&st_start, 0, 0, 1);
+            return goto_state(&st_start);
 
         case START_LEVEL:
             if (check_handsoff())
@@ -798,7 +792,7 @@ static int start_gui_options(void)
 
 #if NB_HAVE_PB_BOTH==1
 
-static int start_unavailable_enter(struct state *st, struct state *prev)
+static int start_unavailable_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play("snd/uierror.ogg", 1.0f);
 
@@ -828,7 +822,7 @@ static int start_unavailable_enter(struct state *st, struct state *prev)
         gui_layout(id, 0, 0);
     }
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
 static int start_unavailable_click(int b, int d)
@@ -924,12 +918,12 @@ static int start_compat_gui()
     return id;
 }
 
-static int start_compat_enter(struct state *st, struct state *prev)
+static int start_compat_enter(struct state *st, struct state *prev, int intent)
 {
     progress_exit();
     progress_init(MODE_BOOST_RUSH);
 
-    return start_compat_gui();
+    return transition_slide(start_compat_gui(), 1, intent);
 }
 
 #endif
@@ -966,7 +960,7 @@ static int start_howmany()
     return loctotal - 1;
 }
 
-static int start_enter(struct state *st, struct state *prev)
+static int start_enter(struct state *st, struct state *prev, int intent)
 {
 #if NB_HAVE_PB_BOTH==1
     if (str_starts_with(set_id(curr_set()), "anime"))
@@ -989,7 +983,7 @@ static int start_enter(struct state *st, struct state *prev)
 
         moon_taskloader_load(NULL, callback);
 
-        return start_gui();
+        return transition_slide(start_gui(), 1, intent);
     }
 #endif
 
@@ -1014,7 +1008,7 @@ static int start_enter(struct state *st, struct state *prev)
     progress_exit();
     progress_init(MODE_NORMAL);
 
-    return set_level_options ? start_gui_options() : start_gui();
+    return transition_slide(set_level_options ? start_gui_options() : start_gui(), 1, intent);
 }
 
 static void start_point(int id, int x, int y, int dx, int dy)
@@ -1244,7 +1238,7 @@ static int start_joinrequired_action(int tok, int val)
     return 1;
 }
 
-static int start_upgraderequired_enter(struct state *st, struct state *prev)
+static int start_upgraderequired_enter(struct state *st, struct state *prev, int intent)
 {
     int id, jd;
 
@@ -1277,10 +1271,10 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev)
 
     gui_layout(id, 0, 0);
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
-static int start_joinrequired_enter(struct state *st, struct state *prev)
+static int start_joinrequired_enter(struct state *st, struct state *prev, int intent)
 {
     int id, jd;
 
@@ -1312,7 +1306,7 @@ static int start_joinrequired_enter(struct state *st, struct state *prev)
 
     gui_layout(id, 0, 0);
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
 static int start_joinrequired_keybd(int c, int d)

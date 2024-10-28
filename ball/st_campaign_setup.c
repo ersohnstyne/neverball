@@ -55,7 +55,7 @@ static int setup_intro_gui(void)
     return txt_id;
 }
 
-static int setup_intro_enter(struct state *st, struct state *prev)
+static int setup_intro_enter(struct state *st, struct state *prev, int intent)
 {
     return setup_intro_gui();
 }
@@ -76,7 +76,7 @@ static int setup_progressions_gui(void)
     return txt_id;
 }
 
-static int setup_progressions_enter(struct state *st, struct state *prev)
+static int setup_progressions_enter(struct state *st, struct state *prev, int intent)
 {
     if (st == &st_title)
     {
@@ -98,7 +98,7 @@ static int setup_done_gui(void)
     return txt_id;
 }
 
-static int setup_done_enter(struct state *st, struct state *prev)
+static int setup_done_enter(struct state *st, struct state *prev, int intent)
 {
     if (st == &st_title)
     {

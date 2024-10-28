@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Microsoft / Valve / Neverball Authors
+ * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -10,16 +10,6 @@
  * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
  * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
  * General Public License for more details.
- */
-
-/*
- * HACK: Remembering the code file differences:
- * Developers  who  programming  C++  can see more bedrock declaration
- * than C.  Developers  who  programming  C  can  see  few  procedural
- * declaration than  C++.  Keep  in  mind  when making  sure that your
- * extern code must associated. The valid file types are *.c and *.cpp,
- * so it's always best when making cross C++ compiler to keep both.
- * - Ersohn Styne
  */
 
 #if _WIN32 && __MINGW32__
@@ -40,20 +30,11 @@
 #include <assert.h>
 #endif
 
-#if NB_STEAM_API==1 && NB_EOS_SDK==0
-
-#include <steam/steam_api.h>
-#include <steam/isteamuser.h>
-
-#if _WIN32 && _WIN64
-#pragma comment(lib, "D:\\sdk\\SteamSDK\\redistributable_bin\\win64\\steam_api64.lib")
-#elif _WIN32
-#pragma comment(lib, "D:\\sdk\\SteamSDK\\redistributable_bin\\steam_api.lib")
+#if __cplusplus
+extern "C"
+{
 #endif
 
-/*---------------------------------------------------------------------------*/
-
-extern "C" {
 #include "accessibility.h"
 #include "account.h"
 #include "config.h"
@@ -63,31 +44,42 @@ extern "C" {
 #include "common.h"
 #include "fs.h"
 
-#include "binary.h"
-
-#include "log.h"
+#if __cplusplus
 }
-
-#if _DEBUG && _MSC_VER
-#ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
 #endif
 
 /*---------------------------------------------------------------------------*/
 
-extern "C" {
-static struct
-{
-    int curr;
-} steam_account_d[11];
+int account_is_init = 0;
+int account_changeable = 1;
+int account_busy = 0;
 
-static struct
-{
-    char *curr;
-} steam_account_s[7];
+/* Integer options. */
+
+int ACCOUNT_DATA_WALLET_COINS;
+int ACCOUNT_DATA_WALLET_GEMS;
+int ACCOUNT_PRODUCT_LEVELS;
+int ACCOUNT_PRODUCT_BALLS;
+int ACCOUNT_PRODUCT_BONUS;
+int ACCOUNT_PRODUCT_MEDIATION;
+int ACCOUNT_SET_UNLOCKS;
+int ACCOUNT_CONSUMEABLE_EARNINATOR;
+int ACCOUNT_CONSUMEABLE_FLOATIFIER;
+int ACCOUNT_CONSUMEABLE_SPEEDIFIER;
+int ACCOUNT_CONSUMEABLE_EXTRALIVES;
+
+
+/* String options. */
+
+int ACCOUNT_PLAYER;
+int ACCOUNT_BALL_FILE;
+int ACCOUNT_BALL_FILE_LL;
+int ACCOUNT_BALL_FILE_L;
+int ACCOUNT_BALL_FILE_C;
+int ACCOUNT_BALL_FILE_R;
+int ACCOUNT_BALL_FILE_RR;
+
+/*---------------------------------------------------------------------------*/
 
 static struct
 {
@@ -95,7 +87,9 @@ static struct
     const char *name;
     const int   def;
     int         cur;
-} account_d[] = {
+}
+account_d[] =
+{
     { &ACCOUNT_DATA_WALLET_COINS,      "wallet_coins",           0 },
     { &ACCOUNT_DATA_WALLET_GEMS,       "wallet_gems",            15 },
     { &ACCOUNT_PRODUCT_LEVELS,         "product_levels",         0 },
@@ -106,7 +100,7 @@ static struct
     { &ACCOUNT_CONSUMEABLE_EARNINATOR, "consumeable_earninator", 1 },
     { &ACCOUNT_CONSUMEABLE_FLOATIFIER, "consumeable_floatifier", 1 },
     { &ACCOUNT_CONSUMEABLE_SPEEDIFIER, "consumeable_speedifier", 1 },
-    { &ACCOUNT_CONSUMEABLE_EXTRALIVES, "consumeable_extralives", 0 }
+    { &ACCOUNT_CONSUMEABLE_SPEEDIFIER, "consumeable_extralives", 0 }
 };
 
 static struct
@@ -115,7 +109,8 @@ static struct
     const char *name;
     const char *def;
     char       *cur;
-} account_s[] = {
+} account_s[] =
+{
     { &ACCOUNT_PLAYER,       "player",       "" },
 #if defined(CONFIG_INCLUDES_MULTIBALLS)
     { &ACCOUNT_BALL_FILE,    "ball_file", "ball/" },
@@ -130,18 +125,53 @@ static struct
 };
 
 static int dirty = 0;
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * Scan an option string and store pointers to the start of key and
+ * value at the passed-in locations.  No memory is allocated to store
+ * the strings; instead, the option string is modified in-place as
+ * needed.  Return 1 on success, 0 on error.
+ */
+static int scan_key_and_value(char **dst_key, char **dst_val, char *line)
+{
+    if (line)
+    {
+        int valid_num, ks, ke, vs;
+
+        ks = -1;
+        ke = -1;
+        vs = -1;
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        valid_num = sscanf_s(line,
+#else
+        valid_num = sscanf(line,
+#endif
+                           " %n%*s%n %n", &ks, &ke, &vs);
+
+        if (ks < 0 || ke < 0 || vs < 0)
+            return 0;
+
+        if (vs - ke < 1)
+            return 0;
+
+        line[ke] = 0;
+
+        *dst_key = line + ks;
+        *dst_val = line + vs;
+
+        return 1;
+    }
+
+    return 0;
 }
 
 /*---------------------------------------------------------------------------*/
 
-extern "C" int account_init(void)
+int account_init(void)
 {
-    if (!SteamUser()->BLoggedOn())
-        return 0;
-
-    SteamFriends()->ActivateGameOverlay("Friends");
-    SteamFriends()->ActivateGameOverlay("Players");
-
     account_busy = 1;
 
     /*
@@ -161,56 +191,30 @@ extern "C" int account_init(void)
         account_set_s(i, account_s[i].def);
     }
 
-    for (int i = 0; i < ARRAYSIZE(account_d); i++)
-    {
-        steam_account_d[i].curr = account_d[i].cur;
-        dirty = 1;
-    }
-
-    for (int i = 0; i < ARRAYSIZE(account_s); i++)
-    {
-        steam_account_s[i].curr = strdup(account_s[i].cur);
-        dirty = 1;
-    }
-
     account_busy = 0;
     account_is_init = 1;
 
     return 1;
 }
 
-extern "C" void account_quit(void)
+void account_quit(void)
 {
-    if (!account_is_init) return;
-
 #ifndef NDEBUG
     assert(!account_busy);
 #endif
 
     int i;
 
-    for (i = 0; i < ARRAYSIZE(steam_account_s); i++)
-    {
-        if (steam_account_s[i].curr)
-        {
-            free(steam_account_s[i].curr);
-            steam_account_s[i].curr = NULL;
-        }
-    }
-
     for (i = 0; i < ARRAYSIZE(account_s); i++)
     {
-        if (account_s[i].cur)
-        {
-            free(account_s[i].cur);
-            account_s[i].cur = NULL;
-        }
+        free(account_s[i].cur);
+        account_s[i].cur = NULL;
     }
 
     account_is_init = 0;
 }
 
-extern "C" int account_exists(void)
+int  account_exists(void)
 {
     char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -218,7 +222,7 @@ extern "C" int account_exists(void)
 #else
     sprintf(paths,
 #endif
-            "Accounts/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
+            "Accounts/account-%s.txt", config_get_s(CONFIG_PLAYER));
 
 #ifndef NDEBUG
     assert(!networking_busy && !config_busy && !accessibility_busy &&
@@ -228,7 +232,7 @@ extern "C" int account_exists(void)
     return fs_exists(paths);
 }
 
-extern "C" void account_load(void)
+void account_load(void)
 {
     fs_file fh;
 
@@ -264,7 +268,7 @@ extern "C" void account_load(void)
 #else
     sprintf(paths,
 #endif
-            "Accounts/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
+            "Accounts/account-%s.txt", config_get_s(CONFIG_PLAYER));
 
     if (!account_is_init)
     {
@@ -280,31 +284,50 @@ extern "C" void account_load(void)
     if (dirty && (fh = fs_open_read(paths)))
     {
         account_busy = 1;
+        char *line, * key, * val;
 
-        for (int i = 0; i < ARRAYSIZE(account_d); i++)
+        while (read_line(&line, fh))
         {
-            steam_account_d[i].curr = get_index(fh);
-            account_d[i].cur = steam_account_d[i].curr;
-        }
+            if (scan_key_and_value(&key, &val, line))
+            {
+                int i;
 
-        for (int i = 0; i < ARRAYSIZE(account_s); i++)
-        {
-            char tmp_account_s[MAXSTR];
-            get_string(fh, tmp_account_s, MAXSTR);
-            account_set_s(i, tmp_account_s);
-        }
+                /* Look up an integer option by that name. */
 
+                for (i = 0; i < ARRAYSIZE(account_d); i++)
+                {
+                    if (strcmp(key, account_d[i].name) == 0)
+                    {
+                        account_set_d(i, atoi(val));
+
+                        /* Stop looking. */
+
+                        break;
+                    }
+                }
+
+                /* Look up a string option by that name.*/
+
+                for (i = 0; i < ARRAYSIZE(account_s); i++)
+                {
+                    if (strcmp(key, account_s[i].name) == 0)
+                    {
+                        account_set_s(i, val);
+                        break;
+                    }
+                }
+            }
+            free(line);
+            line = NULL;
+        }
         fs_close(fh);
 
         dirty = 0;
         account_busy = 0;
-
-        config_set_s(CONFIG_PLAYER, SteamFriends()->GetPersonaName());
-        config_save();
     }
 }
 
-extern "C" void account_save(void)
+void account_save(void)
 {
     fs_file fh;
 
@@ -315,14 +338,11 @@ extern "C" void account_save(void)
 #endif
 
     if (text_length(config_get_s(CONFIG_PLAYER)) < 1)
-    {
-        log_errorf("Cannot save account! No player name!\n");
         return;
-    }
 
     for (int i = 0; i < text_length(config_get_s(CONFIG_PLAYER)); i++)
     {
-        if (config_get_s(CONFIG_PLAYER)[i] == '\\' ||
+        if (config_get_s(CONFIG_PLAYER)[i] == '\n' ||
             config_get_s(CONFIG_PLAYER)[i] == '/'  ||
             config_get_s(CONFIG_PLAYER)[i] == ':'  ||
             config_get_s(CONFIG_PLAYER)[i] == '*'  ||
@@ -331,17 +351,11 @@ extern "C" void account_save(void)
             config_get_s(CONFIG_PLAYER)[i] == '<'  ||
             config_get_s(CONFIG_PLAYER)[i] == '>'  ||
             config_get_s(CONFIG_PLAYER)[i] == '|')
-        {
-            log_errorf("Cannot save account! Can't accept other charsets!\n");
             return;
-        }
     }
 
     if (text_length(config_get_s(CONFIG_PLAYER)) < 3)
-    {
-        log_errorf("Cannot save account! Too few characters!\n");
         return;
-    }
 
     char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -349,7 +363,7 @@ extern "C" void account_save(void)
 #else
     sprintf(paths,
 #endif
-            "Accounts/account-%s.nbaccount", config_get_s(CONFIG_PLAYER));
+            "Accounts/account-%s.txt", config_get_s(CONFIG_PLAYER));
 
     if (dirty && !account_is_init)
     {
@@ -368,14 +382,27 @@ extern "C" void account_save(void)
     if (dirty && (fh = fs_open_write(paths)))
     {
         account_busy = 1;
+        int i;
 
-        for (int i = 0; i < ARRAYSIZE(account_d); i++)
-            put_index(fh, account_d[i].cur);
+        /* Write out integer options. */
 
-        for (int i = 0; i < ARRAYSIZE(account_s); i++)
-            put_string(fh, account_s[i].cur);
+        for (i = 0; i < ARRAYSIZE(account_d); i++)
+        {
+            const char *s = NULL;
+
+            if (s)
+                fs_printf(fh, "%-25s %s\n", account_d[i].name, s);
+            else
+                fs_printf(fh, "%-25s %d\n", account_d[i].name, account_d[i].cur);
+        }
+
+        /* Write out string options. */
+
+        for (i = 0; i < ARRAYSIZE(account_s); i++)
+            fs_printf(fh, "%-25s %s\n", account_s[i].name, account_s[i].cur);
 
         fs_close(fh);
+        fs_persistent_sync();
 
         dirty = 0;
     }
@@ -388,7 +415,7 @@ extern "C" void account_save(void)
 
 /*---------------------------------------------------------------------------*/
 
-extern "C" void account_set_d(int i, int d)
+void account_set_d(int i, int d)
 {
 #ifndef NDEBUG
     assert(!networking_busy && !config_busy && !accessibility_busy &&
@@ -398,13 +425,12 @@ extern "C" void account_set_d(int i, int d)
     {
         account_busy = 1;
         account_d[i].cur = d;
-        steam_account_d[i].curr = d;
         dirty = 1;
         account_busy = 0;
     }
 }
 
-extern "C" void account_tgl_d(int i)
+void account_tgl_d(int i)
 {
 #ifndef NDEBUG
     assert(!networking_busy && !config_busy && !accessibility_busy &&
@@ -414,52 +440,24 @@ extern "C" void account_tgl_d(int i)
     {
         account_busy = 1;
         account_d[i].cur = (account_d[i].cur ? 0 : 1);
-        steam_account_d[i].curr = (steam_account_d[i].curr ? 0 : 1);
         dirty = 1;
         account_busy = 0;
     }
 }
 
-extern "C" int account_tst_d(int i, int d)
+int account_tst_d(int i, int d)
 {
     return (account_d[i].cur == d) ? 1 : 0;
 }
 
-extern "C" int account_get_d(int i)
+int account_get_d(int i)
 {
     return account_d[i].cur;
 }
 
 /*---------------------------------------------------------------------------*/
 
-/*
- * Set an account option from a string value.
- *
- * Works for both int and string options. Don't use this if you already have an int.
- */
-extern "C" void account_set(const char *key, const char *value)
-{
-    if (key && *key)
-    {
-        int i;
-
-        for (i = 0; i < ARRAYSIZE(account_s); ++i)
-        {
-            if (strcmp(account_s[i].name, key) == 0)
-                account_set_s(i, value);
-        }
-
-        for (i = 0; i < ARRAYSIZE(account_d); ++i)
-        {
-            if (strcmp(account_d[i].name, key) == 0)
-                account_set_d(i, atoi(value));
-        }
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-extern "C" void account_set_s(int i, const char *src)
+void account_set_s(int i, const char *src)
 {
 #ifndef NDEBUG
     assert(!networking_busy && !config_busy && !accessibility_busy &&
@@ -475,25 +473,16 @@ extern "C" void account_set_s(int i, const char *src)
             account_s[i].cur = NULL;
         }
 
-        if (steam_account_s[i].curr)
-        {
-            free(steam_account_s[i].curr);
-            steam_account_s[i].curr = NULL;
-        }
-
-        account_s[i].cur = strdup(src);
-        steam_account_s[i].curr = strdup(src);
+        account_s[i].cur = dupe_string(src);
 
         dirty = 1;
         account_busy = 0;
     }
 }
 
-extern "C" const char *account_get_s(int i)
+const char *account_get_s(int i)
 {
     return account_s[i].cur;
 }
-
-#endif
 
 /*---------------------------------------------------------------------------*/

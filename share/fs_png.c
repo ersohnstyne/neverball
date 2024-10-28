@@ -20,7 +20,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifdef _MSC_VER
-#ifndef DNDEBUG
+#ifndef NDEBUG
 #pragma comment(lib, "zlibstaticd.lib")
 #pragma comment(lib, "libpng16_staticd.lib")
 #else

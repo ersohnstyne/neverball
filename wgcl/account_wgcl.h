@@ -22,6 +22,8 @@ void account_wgcl_load(void);
 void account_wgcl_save(void);
 
 int  account_wgcl_reload(void);
+void account_wgcl_set_session_uuid4(const char *uuid4);
+void account_wgcl_set_readonly_playername(int f);
 int  account_wgcl_name_read_only(void);
 
 int  account_wgcl_login(const char *name, const char *password);

@@ -37,6 +37,7 @@
 #include "geom.h"
 #include "hud.h"
 #include "gui.h"
+#include "transition.h"
 #include "vec3.h"
 #include "audio.h"
 #include "image.h"
@@ -146,7 +147,7 @@ int goto_shop(struct state *shop_back, int (*shop_back_fn) (void))
 
     if (!account_wgcl_restart_attempt()) return 1;
 
-    return goto_state_full(&st_shop, 0, GUI_ANIMATION_N_CURVE, 0);
+    return goto_state(&st_shop);
 }
 
 static int shop_action(int tok, int val)
@@ -178,7 +179,7 @@ static int shop_action(int tok, int val)
             if (st_shop_back_fn)
                 return st_shop_back_fn();
 
-            return goto_state_full(st_shop_back, GUI_ANIMATION_N_CURVE, 0, 0);
+            return exit_state(st_shop_back);
             break;
         case SHOP_CHANGE_NAME:
             /* Change the player names performs log in to another account. */
@@ -206,11 +207,9 @@ static int shop_action(int tok, int val)
             purchase_product_usegems = val == 7;
             shop_set_product_key(val);
 
-            if (inaccept_playername ||
-                text_length(config_get_s(CONFIG_PLAYER)) < 3)
-                return goto_state(&st_shop_unregistered);
-            else
-                return goto_state(&st_shop_buy);
+            return goto_state(inaccept_playername ||
+                              text_length(config_get_s(CONFIG_PLAYER)) < 3 ? &st_shop_unregistered :
+                                                                             &st_shop_buy);
 
             break;
     }
@@ -561,10 +560,11 @@ static int shop_gui(void)
 
         gui_layout(id, 0, 0);
     }
+
     return id;
 }
 
-static int shop_enter(struct state *st, struct state *prev)
+static int shop_enter(struct state *st, struct state *prev, int intent)
 {
 #if NB_HAVE_PB_BOTH==1
     account_wgcl_restart_attempt();
@@ -595,7 +595,7 @@ static int shop_enter(struct state *st, struct state *prev)
     gemwallet  = account_get_d(ACCOUNT_DATA_WALLET_GEMS);
 #endif
 
-    return shop_gui();
+    return transition_slide(shop_gui(), 1, intent);
 }
 
 static void shop_paint(int id, float t)
@@ -670,10 +670,9 @@ static int shop_rename_action(int tok, int val)
             account_wgcl_save();
             return goto_name(ok_state, cancel_state, 0, 0, draw_back);
 #endif
-            break;
+
         case GUI_BACK:
-            return goto_state(cancel_state);
-            break;
+            return exit_state(cancel_state);
     }
     return 1;
 }
@@ -728,7 +727,7 @@ static int shop_rename_gui(void)
     return id;
 }
 
-static int shop_rename_enter(struct state *st, struct state *prev)
+static int shop_rename_enter(struct state *st, struct state *prev, int intent)
 {
 #ifdef __EMSCRIPTEN__
     audio_play("snd/uierror.ogg", 1.0f);
@@ -742,16 +741,15 @@ static int shop_rename_enter(struct state *st, struct state *prev)
         back_init("back/gui.png");
     }
 
-    return shop_rename_gui();
+    return transition_slide(shop_rename_gui(), 1, intent);
 }
 
-static void shop_rename_leave(struct state *st, struct state *next, int id)
+static int shop_rename_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (draw_back)
         back_free();
 
-    if (next == &st_null)
-        play_shared_leave(st, next, id);
+    return transition_slide(id, 0, intent);
 }
 
 static void shop_rename_paint(int id, float t)
@@ -793,7 +791,7 @@ static int shop_rename_buttn(int b, int d)
 
 enum
 {
-    SHOP_UNREGISTERED_YES = GUI_LAST
+    SHOP_UNREGISTERED_DOIT = GUI_LAST
 };
 
 static int shop_unregistered_action(int tok, int val)
@@ -802,12 +800,11 @@ static int shop_unregistered_action(int tok, int val)
     
     switch (tok)
     {
-        case SHOP_UNREGISTERED_YES:
+        case SHOP_UNREGISTERED_DOIT:
             return goto_name(&st_shop_buy, &st_shop, 0, 0, 0);
-            break;
+
         case GUI_BACK:
             return goto_state(&st_shop);
-            break;
     }
     return 1;
 }
@@ -847,11 +844,11 @@ static int shop_unregistered_gui(void)
 #endif
             {
                 gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
-                gui_state(jd, _("Yes"), GUI_SML, SHOP_UNREGISTERED_YES, 0);
+                gui_state(jd, _("Yes"), GUI_SML, SHOP_UNREGISTERED_DOIT, 0);
             }
 #if !defined(__EMSCRIPTEN__)
             else
-                gui_start(jd, _("Yes"), GUI_SML, SHOP_UNREGISTERED_YES, 0);
+                gui_start(jd, _("Yes"), GUI_SML, SHOP_UNREGISTERED_DOIT, 0);
 #endif
         }
 
@@ -860,11 +857,11 @@ static int shop_unregistered_gui(void)
     return id;
 }
 
-static int shop_unregistered_enter(struct state *st, struct state *prev)
+static int shop_unregistered_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play(AUD_WARNING, 1.0f);
 
-    return shop_unregistered_gui();
+    return transition_slide(shop_unregistered_gui(), 1, intent);
 }
 
 static int shop_unregistered_keybd(int c, int d)
@@ -992,7 +989,7 @@ int goto_shop_iap(struct state *ok, struct state *cancel,
     multipage = allow_multipage;
     iappage   = display_gems;
 
-    return goto_state_full(&st_shop_iap, 0, 0, 0);
+    return goto_state(&st_shop_iap);
 }
 
 static void shop_convert_to_coins(int gems, int coins)
@@ -1018,7 +1015,7 @@ static int shop_iap_action(int tok, int val)
             if (curr_cancel_fn)
                 return curr_cancel_fn(cancel_state);
 
-            return goto_state(cancel_state);
+            return exit_state(cancel_state);
             break;
 
         case SHOP_IAP_GET_BUY:
@@ -1053,11 +1050,13 @@ static int shop_iap_action(int tok, int val)
 
         case SHOP_IAP_GET_SWITCH:
             iappage = !iappage;
-            goto_state_full(&st_shop_iap,
-                            iappage ? GUI_ANIMATION_W_CURVE : GUI_ANIMATION_E_CURVE,
-                            iappage ? GUI_ANIMATION_E_CURVE : GUI_ANIMATION_W_CURVE,
-                            0);
+
+            if (iappage)
+                goto_state(curr_state());
+            else
+                exit_state(curr_state());
             break;
+
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && ENABLE_IAP==1
         case SHOP_IAP_ENTERCODE:
             return goto_shop_activate(ok_state, cancel_state,
@@ -1342,7 +1341,7 @@ static int shop_iap_gui(void)
     return id;
 }
 
-static int shop_iap_enter(struct state *st, struct state *prev)
+static int shop_iap_enter(struct state *st, struct state *prev, int intent)
 {
 #if NB_HAVE_PB_BOTH==1
     account_wgcl_restart_attempt();
@@ -1353,7 +1352,7 @@ static int shop_iap_enter(struct state *st, struct state *prev)
     coinwallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
     gemwallet  = account_get_d(ACCOUNT_DATA_WALLET_GEMS);
 #endif
-    return shop_iap_gui();
+    return transition_slide(shop_iap_gui(), 1, intent);
 }
 
 static void shop_iap_paint(int id, float t)
@@ -1530,8 +1529,7 @@ static int shop_buy_action(int tok, int val)
             }
             account_wgcl_save();
 #endif
-            return goto_state(&st_shop);
-            break;
+            return exit_state(&st_shop);
 
         case SHOP_BUY_FIVE:
             if (confirm_multiple_items == 0)
@@ -1583,8 +1581,7 @@ static int shop_buy_action(int tok, int val)
             }
             account_wgcl_save();
 #endif
-            return goto_state(&st_shop);
-            break;
+            return exit_state(&st_shop);
 
         case SHOP_BUY_YES:
             audio_play("snd/buyproduct.ogg", 1.0f);
@@ -1614,6 +1611,7 @@ static int shop_buy_action(int tok, int val)
 
                 case 1:
                     account_wgcl_do_add(-prodcost, 0, 0, 0, 0, 0);
+                    transition_quit();
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                     console_gui_free();
 #endif
@@ -1625,6 +1623,7 @@ static int shop_buy_action(int tok, int val)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                     console_gui_init();
 #endif
+                    transition_init();
                     break;
 
                 case 2:
@@ -1663,21 +1662,17 @@ static int shop_buy_action(int tok, int val)
             }
             account_wgcl_save();
 #endif
-            return goto_state(&st_shop);
-            break;
+            return exit_state(&st_shop);
 
         case SHOP_BUY_IAP:
             return goto_shop_iap(&st_shop_buy, &st_shop, 0, 0, prodcost, purchase_product_usegems, 0);
-            break;
 
         case SHOP_BUY_RAISEGEMS:
             return goto_raise_gems(&st_shop_buy, prodcost);
-            break;
 
         case GUI_BACK:
             confirm_multiple_items = 0;
-            return goto_state(&st_shop);
-            break;
+            return exit_state(&st_shop);
     }
     return 1;
 }
@@ -2123,7 +2118,7 @@ static int shop_buy_confirmmulti_gui(void)
     return id;
 }
 
-static int shop_buy_enter(struct state *st, struct state *prev)
+static int shop_buy_enter(struct state *st, struct state *prev, int intent)
 {
 #if NB_HAVE_PB_BOTH==1
     account_wgcl_restart_attempt();
@@ -2132,8 +2127,8 @@ static int shop_buy_enter(struct state *st, struct state *prev)
     if (confirm_multiple_items)
         audio_play(AUD_WARNING, 1.0f);
 
-    return confirm_multiple_items ? shop_buy_confirmmulti_gui() :
-                                    shop_buy_gui();
+    return transition_slide(confirm_multiple_items ? shop_buy_confirmmulti_gui() :
+                                                     shop_buy_gui(), 1, intent);
 }
 
 static int shop_buy_keybd(int c, int d)
@@ -2203,13 +2198,12 @@ static int expenses_export_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            return goto_state(&st_shop);
-            break;
+            return exit_state(&st_shop);
+
         case EXPENSES_EXPORT_START:
             audio_play("snd/buyproduct.ogg", 1.0f);
             expenses_export_start();
-            goto_state(curr_state());
-            break;
+            return goto_state(curr_state());
     }
 
     return 1;
@@ -2283,7 +2277,7 @@ static int expenses_export_gui(void)
     return id;
 }
 
-static int expenses_export_enter(struct state *st, struct state *prev)
+static int expenses_export_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play(AUD_WARNING, 1.0f);
 
@@ -2293,7 +2287,7 @@ static int expenses_export_enter(struct state *st, struct state *prev)
         export_totalvalue = 0;
     }
 
-    return expenses_export_gui();
+    return transition_slide(expenses_export_gui(), 1, intent);
 }
 
 static int expenses_export_keybd(int c, int d)

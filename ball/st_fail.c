@@ -36,6 +36,7 @@
 #include "demo.h"
 #include "audio.h"
 #include "gui.h"
+#include "transition.h"
 #include "config.h"
 #ifdef CONFIG_INCLUDES_ACCOUNT
 #include "powerup.h"
@@ -174,7 +175,7 @@ static int fail_action(int tok, int val)
         case FAIL_CHECKPOINT_CANCEL:
             powerup_stop();
             respawnable = 0;
-            goto_state(&st_fail);
+            exit_state(&st_fail);
             break;
 #endif
 
@@ -730,7 +731,7 @@ static int fail_gui(void)
     return root_id;
 }
 
-static int fail_enter(struct state *st, struct state *prev)
+static int fail_enter(struct state *st, struct state *prev, int intent)
 {
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_wgcl_restart_attempt();
@@ -760,7 +761,7 @@ static int fail_enter(struct state *st, struct state *prev)
         balls_bought = 0;
     }
 
-    return fail_gui();
+    return transition_slide(fail_gui(), 1, intent);
 }
 
 static void fail_paint(int id, float t)
@@ -774,7 +775,6 @@ static void fail_paint(int id, float t)
     if (hud_visibility())
 #endif
         hud_paint();
-
 }
 
 static void fail_timer(int id, float dt)
@@ -886,8 +886,8 @@ static int zen_warning_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            return goto_state(&st_fail);
-            break;
+            return exit_state(&st_fail);
+
         case ZEN_SWITCH_ACCEPT:
 #ifdef LEVELGROUPS_INCLUDES_ZEN
             progress_exit();
@@ -898,7 +898,7 @@ static int zen_warning_action(int tok, int val)
                 checkpoints_stop();
                 return goto_play_level();
             }
-            else goto_state(&st_fail);
+            else return goto_state(&st_fail);
 #endif
             break;
     }
@@ -906,7 +906,7 @@ static int zen_warning_action(int tok, int val)
     return 1;
 }
 
-static int zen_warning_enter(struct state *st, struct state *prev)
+static int zen_warning_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play(AUD_WARNING, 1.0f);
 
@@ -930,7 +930,8 @@ static int zen_warning_enter(struct state *st, struct state *prev)
     }
 
     gui_layout(id, 0, 0);
-    return id;
+
+    return transition_slide(id, 1, intent);
 }
 
 static int zen_warning_keybd(int c, int d)
@@ -986,31 +987,30 @@ static int ask_more_action(int tok, int val)
     {
         case GUI_BACK:
             ask_more_target = ASK_MORE_DISABLED;
-            return goto_state(&st_fail);
-            break;
+            return exit_state(&st_fail);
 
         case ASK_MORE_GET_COINS:
             return goto_shop_iap(0, &st_fail, ask_more_purchased, 0, val, 0, 0);
-            break;
 
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
         case ASK_MORE_GET_GEMS:
             return goto_shop_iap(0, &st_fail, ask_more_purchased, 0, val, 1, 0);
-            break;
 #endif
 
         case ASK_MORE_RAISE_GEMS:
             return goto_raise_gems(&st_fail, 15);
-            break;
 
         case ASK_MORE_ACCEPT:
             video_set_grab(1);
+
             if (curr_mode() != MODE_CHALLENGE && curr_mode() != MODE_BOOST_RUSH)
                 audio_music_fade_in(0.5f);
+
             game_extend_time(val);
+
             ask_more_target = ASK_MORE_DISABLED;
-            return goto_state(&st_play_loop);
-            break;
+
+            return exit_state(&st_play_loop);
 
         case ASK_MORE_BUY:
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -1064,11 +1064,11 @@ static int ask_more_action(int tok, int val)
                 balls_bought = 1;
 
                 if (last_active && status == GAME_FALL)
-                    return goto_state(&st_fail);
+                    return exit_state(&st_fail);
                 else if (progress_same())
                     return goto_play_level();
                 else
-                    return goto_state(&st_fail);
+                    return exit_state(&st_fail);
             }
 #endif
             break;
@@ -1077,7 +1077,7 @@ static int ask_more_action(int tok, int val)
     return 1;
 }
 
-static int ask_more_enter(struct state *st, struct state *prev)
+static int ask_more_enter(struct state *st, struct state *prev, int intent)
 {
 #ifdef CONFIG_INCLUDES_ACCOUNT
     int coinwallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
@@ -1334,7 +1334,8 @@ static int ask_more_enter(struct state *st, struct state *prev)
     }
 
     gui_layout(id, 0, 0);
-    return id;
+
+    return transition_slide(id, 1, intent);
 }
 
 static int ask_more_keybd(int c, int d)
@@ -1400,7 +1401,7 @@ static int raise_gems_action(int tok, int val)
     {
         case GUI_BACK:
             raisegems_working = 0;
-            return goto_state(st_returnable);
+            return exit_state(st_returnable);
             break;
 
         case RAISEGEMS_START:
@@ -1737,10 +1738,11 @@ static int raise_gems_prepare_gui(void)
     return id;
 }
 
-static int raise_gems_enter(struct state *st, struct state *prev)
+static int raise_gems_enter(struct state *st, struct state *prev, int intent)
 {
-    return raisegems_working ?
-           raise_gems_working_gui() : raise_gems_prepare_gui();
+    return transition_slide(raisegems_working ? raise_gems_working_gui() :
+                                                raise_gems_prepare_gui(),
+                            1, intent);
 }
 
 static void raise_gems_timer(int id, float dt)
@@ -1788,7 +1790,7 @@ static void raise_gems_timer(int id, float dt)
         raisegems_working && !st_global_animating())
     {
         raisegems_working = 0;
-        goto_state(curr_state());
+        exit_state(curr_state());
     }
 }
 
@@ -1869,7 +1871,7 @@ int ask_more_purchased(struct state *ok_state)
 
 struct state st_fail = {
     fail_enter,
-    play_shared_leave,
+    shared_leave,
     fail_paint,      /* Default: shared_paint */
     fail_timer,
     shared_point,
@@ -1884,7 +1886,7 @@ struct state st_fail = {
 
 struct state st_zen_warning = {
     zen_warning_enter,
-    play_shared_leave,
+    shared_leave,
     shared_paint,
     shared_timer,
     shared_point,
@@ -1897,7 +1899,7 @@ struct state st_zen_warning = {
 
 struct state st_ask_more = {
     ask_more_enter,
-    play_shared_leave,
+    shared_leave,
     shared_paint,
     shared_timer,
     shared_point,
@@ -1910,7 +1912,7 @@ struct state st_ask_more = {
 
 struct state st_raise_gems = {
     raise_gems_enter,
-    play_shared_leave,
+    shared_leave,
     shared_paint,
     raise_gems_timer,
     shared_point,

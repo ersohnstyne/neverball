@@ -75,14 +75,14 @@ static int over_action(int tok, int val)
             campaign_theme_quit();
             campaign_quit();
 #endif
-            return goto_state(&st_start);
+            return exit_state(&st_start);
 
         case GUI_NAME:
             return goto_name(&st_over, &st_over, 0, 0, 0);
 
         case GUI_SCORE:
             gui_score_set(val);
-            return goto_state_full(&st_over, 0, 0, 1);
+            return goto_state(&st_over);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         case OVER_TO_GROUP:
@@ -278,7 +278,7 @@ static int over_gui(void)
     return id;
 }
 
-static int over_enter(struct state *st, struct state *prev)
+static int over_enter(struct state *st, struct state *prev, int intent)
 {
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_wgcl_restart_attempt();
@@ -305,11 +305,11 @@ static int over_enter(struct state *st, struct state *prev)
 
     video_clr_grab();
 
-    return
+    return transition_slide(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         (campaign_used() && campaign_hardcore()) ? over_gui_hardcore() :
 #endif
-        over_gui();
+        over_gui(), 1, intent);
 }
 
 static void over_timer(int id, float dt)
@@ -317,7 +317,7 @@ static void over_timer(int id, float dt)
 #ifndef LEADERBOARD_ALLOWANCE
     if (time_state() > 3.0f && !st_global_animating())
     {
-        goto_state(&st_start);
+        exit_state(&st_start);
         return;
     }
 #endif
@@ -329,7 +329,7 @@ static void over_timer(int id, float dt)
 #ifndef LEADERBOARD_ALLOWANCE
 static int over_click(int b, int d)
 {
-    return (b == SDL_BUTTON_LEFT && d == 1) ? goto_state(&st_start) : 1;
+    return (b == SDL_BUTTON_LEFT && d == 1) ? exit_state(&st_start) : 1;
 }
 #endif
 
@@ -386,7 +386,7 @@ static int over_buttn(int b, int d)
 #ifndef LEADERBOARD_ALLOWANCE
 struct state st_over = {
     over_enter,
-    play_shared_leave,
+    shared_leave,
     shared_paint,
     over_timer,
     NULL,
@@ -399,7 +399,7 @@ struct state st_over = {
 #else
 struct state st_over = {
     over_enter,
-    play_shared_leave,
+    shared_leave,
     shared_paint,
     over_timer,
     shared_point,

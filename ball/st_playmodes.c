@@ -25,6 +25,7 @@
 
 #include "hud.h"
 #include "gui.h"
+#include "transition.h"
 #include "audio.h"
 #include "config.h"
 #include "progress.h"
@@ -129,10 +130,7 @@ static int playmodes_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-        return goto_state_full(&st_campaign,
-                               GUI_ANIMATION_S_CURVE,
-                               GUI_ANIMATION_N_CURVE,
-                               0);
+            return exit_state(&st_campaign);
 
         case PLAYMODES_CAREER_MODE:
             config_set_d(CONFIG_LOCK_GOALS,
@@ -147,7 +145,7 @@ static int playmodes_action(int tok, int val)
 
             config_save();
 
-            return goto_state_full(&st_playmodes, 0, 0, 1);
+            return goto_state(&st_playmodes);
 
         case PLAYMODES_HARDCORE:
             return goto_state(&st_hardcore_start);
@@ -250,13 +248,14 @@ static int playmodes_gui(void)
                                 _("Hardcore Mode is not available\n"
                                   "with Server Group Policy."));
         }
+
+        gui_layout(id, 0, 0);
     }
 
-    gui_layout(id, 0, 0);
     return id;
 }
 
-static int playmodes_enter(struct state *st, struct state *prev)
+static int playmodes_enter(struct state *st, struct state *prev, int intent)
 {
 #if NB_HAVE_PB_BOTH==1
     audio_music_fade_to(0.5f, "bgm/inter_local.ogg", 1);
@@ -270,7 +269,7 @@ static int playmodes_enter(struct state *st, struct state *prev)
 
     if (&st_hardcore_start == prev) game_kill_fade();
 
-    return playmodes_gui();
+    return transition_slide(playmodes_gui(), 1, intent);
 }
 
 static void playmodes_paint(int id, float t)
@@ -328,7 +327,7 @@ static int hardcore_start_action(int tok, int val)
             progress_init(MODE_CAMPAIGN);
             game_fade_color(0.0f, 0.0f, 0.0f);
             game_fade(-6.0f);
-            return goto_state(&st_playmodes);
+            return exit_state(&st_playmodes);
 
         case PLAYMODES_HARDCORE:
             config_set_d(CONFIG_SMOOTH_FIX, val);
@@ -406,13 +405,13 @@ static void hardcore_start_timer(int id, float dt)
     game_step_fade(dt);
 }
 
-static int hardcore_start_enter(struct state *st, struct state *prev)
+static int hardcore_start_enter(struct state *st, struct state *prev, int intent)
 {
     audio_music_fade_to(0.5f, "gui/bgm/inter.ogg", 1);
     game_fade_color(0.25f, 0.0f, 0.0f);
     game_fade(+0.333f);
 
-    return hardcore_start_gui();
+    return transition_slide(hardcore_start_gui(), 1, intent);
 }
 
 static int hardcore_start_keybd(int c, int d)

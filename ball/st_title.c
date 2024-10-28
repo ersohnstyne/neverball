@@ -32,6 +32,7 @@
 #include "base_config.h"
 #include "common.h"
 #include "gui.h"
+#include "transition.h"
 #include "vec3.h"
 #include "demo.h"
 #include "geom.h"
@@ -344,7 +345,7 @@ static int title_goto_playgame(struct state *st)
 
 static int title_action(int tok, int val)
 {
-    static const char keyphrase[] = "msxdev";
+    static const char keyphrase[] = "xyzzy";
     static char queue[sizeof (keyphrase)] = "";
 
     char linkstr_code[MAXSTR], linkstr_cmd[MAXSTR];
@@ -785,31 +786,32 @@ static int title_gui(void)
                                                GUI_SML, GUI_COLOR_WHT);
 #endif
                     gui_set_rect(jd, GUI_ALL);
+                    gui_set_slide(jd, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 1.6f, 0);
                 }
             }
             else
 #endif
 #endif
+            if ((jd = gui_vstack(id)))
             {
-                if ((jd = gui_vstack(id)))
-                {
-                    /* Use with edition below title */
-                    gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" :
-                                                                     "  Neverball  ",
-                                         video.aspect_ratio < 1.0f ? GUI_MED :
-                                                                     GUI_LRG,
-                                                                     0, 0);
+                /* Use with edition below title */
+                gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" :
+                                                                 "  Neverball  ",
+                                     video.aspect_ratio < 1.0f ? GUI_MED :
+                                                                 GUI_LRG,
+                                                                 0, 0);
 #if NB_STEAM_API==1
-                    edition_id = gui_label(jd, _("Steam Valve Edition"), GUI_SML, GUI_COLOR_WHT);
+                edition_id = gui_label(jd, _("Steam Valve Edition"), GUI_SML, GUI_COLOR_WHT);
 #elif NB_EOS_SDK==1
-                    edition_id = gui_label(jd, _("Epic Games Edition"), GUI_SML, GUI_COLOR_WHT);
+                edition_id = gui_label(jd, _("Epic Games Edition"), GUI_SML, GUI_COLOR_WHT);
 #elif defined(__EMSCRIPTEN__)
-                    edition_id = gui_label(jd, _("WebGL Edition"), GUI_SML, GUI_COLOR_WHT);
+                edition_id = gui_label(jd, _("WebGL Edition"), GUI_SML, GUI_COLOR_WHT);
 #else
-                    edition_id = gui_label(jd, os_env, GUI_SML, GUI_COLOR_WHT);
+                edition_id = gui_label(jd, os_env, GUI_SML, GUI_COLOR_WHT);
 #endif
-                    gui_set_rect(jd, GUI_ALL);
-                }
+                gui_set_rect(jd, GUI_ALL);
+                gui_set_fill(jd);
+                gui_set_slide(jd, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 1.6f, 0);
             }
 
 #if ENABLE_RFD==1
@@ -922,12 +924,18 @@ static int title_gui(void)
                     edition_id = gui_label(jd, config_cheat() ? dev_env : os_env,
                                                GUI_SML, GUI_COLOR_WHT);
                 gui_set_rect(jd, GUI_ALL);
+                gui_set_fill(jd);
+                gui_set_slide(jd, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 1.6f, 0);
             }
 #else
-            gui_title_header(id, video.aspect_ratio < 1.0f ? "Neverball" :
-                                                             "  Neverball  ",
-                                 video.aspect_ratio < 1.0f ? GUI_MED :
-                                                             GUI_LRG, 0, 0);
+            if (jd = gui_title_header(id, video.aspect_ratio < 1.0f ? "Neverball" :
+                                                                      "  Neverball  ",
+                                          video.aspect_ratio < 1.0f ? GUI_MED :
+                                                                      GUI_LRG, 0, 0))
+            {
+                gui_set_fill(jd);
+                gui_set_slide(jd, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 1.6f, 0);
+            }
 #endif
 
 #ifndef SWITCHBALL_TITLE_BTN_V2
@@ -952,9 +960,6 @@ static int title_gui(void)
                             play_id = gui_start(kd, gt_prefix("menu^Play"),
                                                     btn_size, TITLE_PLAY, 0);
 
-                        /* Hilight the start button. */
-                        gui_set_hilite(play_id, 1);
-
 #ifdef CONFIG_INCLUDES_ACCOUNT
                         if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
                             gui_state(kd, gt_prefix("menu^Shop"),
@@ -976,6 +981,11 @@ static int title_gui(void)
                             gui_state(kd, gt_prefix("menu^Exit"),
                                           btn_size, GUI_BACK, 0);
 #endif
+
+                        /* Hilight the start button. */
+
+                        gui_set_hilite(play_id, 1);
+                        gui_set_slide(kd, GUI_N | GUI_EASE_ELASTIC, 0.8f, 0.8f, 0.05f);
                     }
 
                     gui_filler(jd);
@@ -1004,9 +1014,6 @@ static int title_gui(void)
                     play_id = gui_start(id, gt_prefix("menu^Play"),
                                             btn_size, TITLE_PLAY, 0);
 
-                /* Hilight the start button. */
-                gui_set_hilite(play_id, 1);
-
 #ifdef CONFIG_INCLUDES_ACCOUNT
                 if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
                     gui_state(id, gt_prefix("menu^Shop"),
@@ -1031,6 +1038,11 @@ static int title_gui(void)
 
                 gui_space(id);
                 gui_space(id);
+
+                /* Hilight the start button. */
+
+                gui_set_hilite(play_id, 1);
+                gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 0.8f, 0.8f, 0.05f);
 
                 gui_layout(id, 0, -1);
             }
@@ -1070,6 +1082,8 @@ static int title_gui(void)
                         gui_clr_rect(btn_social);
                     }
 
+                    gui_set_slide(id, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 0.8f, 0.05f);
+
                     gui_space(jd);
                 }
 
@@ -1084,6 +1098,7 @@ static int title_gui(void)
             if ((id = gui_label(root_id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT2)))
             {
                 gui_clr_rect(id);
+                gui_set_slide(id, GUI_SW, 0, 1.6f, 0);
                 gui_layout(id, -1, -1);
             }
 #endif
@@ -1122,6 +1137,7 @@ static int title_gui(void)
                         gui_label(jd, account_coinsattr, GUI_XS, gui_wht, gui_yel);
                     }
 
+                    gui_set_slide(id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 0.8f, 0.05f);
                     gui_layout(id, +1, +1);
                 }
             }
@@ -1131,6 +1147,7 @@ static int title_gui(void)
             if ((id = gui_label(root_id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT2)))
             {
                 gui_clr_rect(id);
+                gui_set_slide(id, GUI_SW, 0.85f, 0.4f, 0);
                 gui_layout(id, -1, -1);
             }
 #endif
@@ -1156,6 +1173,9 @@ static int title_gui(void)
                                   GUI_SML, TITLE_UNLOCK_FULL_GAME, 0);
                 }
 #endif
+                gui_space(id);
+
+                gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 1.2f, 1.4f, 0);
 
                 gui_layout(id, +1, -1);
             }
@@ -1196,6 +1216,7 @@ static int title_gui(void)
                 }
 
                 gui_space(id);
+                gui_set_slide(id, GUI_S | GUI_EASE_ELASTIC, 2.0f, 1.4f, 0);
                 gui_layout(id, 0, -1);
             }
         }
@@ -1209,7 +1230,7 @@ static int filter_cmd(const union cmd *cmd)
     return (cmd ? cmd->type != CMD_SOUND : 1);
 }
 
-static int title_enter(struct state *st, struct state *prev)
+static int title_enter(struct state *st, struct state *prev, int intent)
 {
     activity_services_group(AS_GROUP_NONE);
 
@@ -1270,15 +1291,11 @@ static int title_enter(struct state *st, struct state *prev)
     return title_gui();
 }
 
-static void title_leave(struct state *st, struct state *next, int id)
+static int title_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if (title_lockscreen && next != &st_null) return;
-
-    if (next == &st_title)
-    {
-        gui_delete(id);
-        return;
-    }
+    if ((title_lockscreen && next != &st_null) ||
+        next == &st_title)
+        return transition_slide(id, 0, intent);
 
     demo_replay_stop(0);
 
@@ -1301,7 +1318,7 @@ static void title_leave(struct state *st, struct state *next, int id)
 
     progress_exit();
 
-    gui_delete(id);
+    return transition_slide(id, 0, intent);
 }
 
 static void title_paint(int id, float t)

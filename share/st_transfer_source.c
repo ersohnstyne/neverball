@@ -35,6 +35,7 @@
 #include "config.h"
 #include "geom.h"
 #include "gui.h"
+#include "transition.h"
 #include "lang.h"
 #include "networking.h"
 
@@ -600,7 +601,7 @@ static int transfer_action(int tok, int val)
     {
         pretransfer_exceeded_state = 0;
         transfer_pageindx++;
-        return goto_state_full(&st_transfer, 0, GUI_ANIMATION_E_CURVE, 0);
+        return exit_state(curr_state());
     }
     else if (show_transfer_completed && tok == GUI_NEXT) return 0; /* bye! */
     else if (!show_preparations && !show_transfer)
@@ -609,9 +610,7 @@ static int transfer_action(int tok, int val)
         {
             transfer_pageindx = 1;
             show_preparations = 1;
-            return goto_state_full(&st_transfer,
-                                   GUI_ANIMATION_W_CURVE,
-                                   GUI_ANIMATION_E_CURVE, 0);
+            return goto_state(curr_state());
         }
         else
         {
@@ -627,17 +626,13 @@ static int transfer_action(int tok, int val)
             show_preparations = 0;
             show_transfer = 1;
             transfer_pageindx = 1;
-            return goto_state_full(&st_transfer,
-                                   GUI_ANIMATION_W_CURVE,
-                                   GUI_ANIMATION_E_CURVE, 0);
+            return goto_state(curr_state());
         }
         else if (tok == GUI_PREV || tok == GUI_BACK)
         {
             show_preparations = 0;
             show_transfer = 0;
-            return goto_state_full(&st_transfer,
-                                   GUI_ANIMATION_E_CURVE,
-                                   GUI_ANIMATION_W_CURVE, 0);
+            return goto_state(curr_state());
         }
     }
     else if (show_transfer)
@@ -662,13 +657,11 @@ static int transfer_action(int tok, int val)
                 pretransfer_exceeded_state = replayfilepath_exceed_found > 0 ||
                                              replayfilepath_unsupported_found > 0;
                 if (pretransfer_exceeded_state)
-                    return goto_state_full(&st_transfer, 0, 0, 0);
+                    return goto_state(curr_state());
                 else
                 {
                     transfer_pageindx = 3;
-                    return goto_state_full(&st_transfer,
-                                           GUI_ANIMATION_W_CURVE,
-                                           GUI_ANIMATION_E_CURVE, 0);
+                    return goto_state(curr_state());
                 }
             }
             else if (transfer_pageindx == 4)
@@ -681,9 +674,7 @@ static int transfer_action(int tok, int val)
             {
                 transfer_ui_transition_busy = 1;
                 transfer_pageindx++;
-                return goto_state_full(&st_transfer,
-                                       GUI_ANIMATION_W_CURVE,
-                                       GUI_ANIMATION_E_CURVE, 0);
+                return goto_state(curr_state());
             }
             break;
 
@@ -712,9 +703,7 @@ static int transfer_action(int tok, int val)
         case GUI_PREV:
             transfer_ui_transition_busy = 1;
             transfer_pageindx--;
-            return goto_state_full(&st_transfer,
-                                   GUI_ANIMATION_E_CURVE,
-                                   GUI_ANIMATION_W_CURVE, 0);
+            return goto_state(curr_state());
         }
 
     }
@@ -912,7 +901,7 @@ static void transfer_timer_preprocess_source(float dt)
                     transfer_working = TRANSFER_WORKING_STATE_NONE;
                     transfer_ui_transition_busy = 1;
                     transfer_pageindx = 1;
-                    goto_state_full(&st_transfer,
+                    goto_state_full_intent(&st_transfer,
                                     GUI_ANIMATION_E_CURVE,
                                     GUI_ANIMATION_W_CURVE, 0);
                 }
@@ -968,7 +957,7 @@ static void transfer_timer_preprocess_source(float dt)
                 transfer_working = TRANSFER_WORKING_STATE_NONE;
                 transfer_ui_transition_busy = 1;
                 transfer_pageindx = 2;
-                goto_state_full(&st_transfer, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
+                goto_state_full_intent(&st_transfer, GUI_ANIMATION_W_CURVE, GUI_ANIMATION_E_CURVE, 0);
                 break;
             }
             break;
@@ -1460,25 +1449,27 @@ static int transfer_enter_source(struct state *st, struct state *prev)
     back_init("back/gui.png");
 
     if (show_transfer_completed)
-        return transfer_completed_gui();
+        return transition_slide(transfer_completed_gui(), 1, intent);
     else if (pretransfer_exceeded_state)
-        return transfer_replay_gui();
+        return transition_slide(transfer_replay_gui(), 1, intent);
     else if (!show_transfer && !show_preparations)
-        return transfer_introducory_gui();
+        return transition_slide(transfer_introducory_gui(), 1, intent);
     else if (!show_transfer && show_preparations)
-        return transfer_prepare_gui();
+        return transition_slide(transfer_prepare_gui(), 1, intent);
     else if (show_transfer && !show_preparations)
-        return transfer_gui();
+        return transition_slide(transfer_gui(), 1, intent);
 
     return 0;
 }
 
-static void transfer_leave(struct state *st, struct state *next, int id)
+static int transfer_leave(struct state *st, struct state *next, int id, int intent)
 {
-    conf_common_leave(st, next, id);
     if (transfer_process == 1)
         transfer_process = 2;
+
     transfer_ui_transition_busy = 0;
+
+    return conf_common_leave(st, next, id, intent);
 }
 
 /*---------------------------------------------------------------------------*/

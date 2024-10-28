@@ -40,6 +40,7 @@
 #include "config.h"
 #include "binary.h"
 #include "common.h"
+#include "ease.h"
 
 #include "state.h"
 
@@ -1325,58 +1326,6 @@ void game_server_free(const char *next)
 }
 
 /*---------------------------------------------------------------------------*/
-
-/*
- * This function is deprecated and will be replaced onto:
- * game_easing_in_out_back_view
- */
-#define easeInOutBack game_easing_in_out_back_view
-
-/*
- * https://easings.net/#easeInOutBack
- */
-static float game_easing_in_out_back_view_old(float x)
-{
-    const float c1 = 1.70158f;
-    const float c2 = c1 * 1.525f;
-
-    return (
-        x < 0.5f ?
-        (fpowf(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2 :
-        (fpowf(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2
-        );
-}
-
-/*
- * https://github.com/warrenm/AHEasing/blob/master/AHEasing/easing.c
- *
- * Modeled after the piecewise overshooting cubic function:
- *
- * y = (1/2)*((2x)^3-(2x)*sin(2*x*pi))           ; [0, 0.5]
- * y = (1/2)*(1-((1-x)^3-(1-x)*sin((1-x)*pi))+1) ; [0.5, 1]
- */
-static float game_easing_in_out_back_view_af(float t)
-{
-    if (t < 0.5)
-    {
-        float f = 2 * t;
-        return 0.5 * (f * f * f - f * fsinf(f * V_PI));
-    }
-    else
-    {
-        float f = (1 - (2 * t - 1));
-        return 0.5 * (1 - (f * f * f - f * fsinf(f * V_PI))) + 0.5;
-    }
-}
-
-/*
- * https://github.com/nicolausYes/easing-functions/blob/master/src/easing.cpp
- */
-static float game_easing_in_out_back_view(float t)
-{
-    if (t < 0.5) return t * t * (7 * t - 2.5) * 2;
-    else         return 1 + (--t) * t * 2 * (7 * t + 2.5);
-}
 
 void game_update_view(float dt)
 {

@@ -70,17 +70,10 @@ List dir_list_files(const char *path)
     {
         while ((opendriveapi_readdir(dir, &ent)) != 0)
         {
-#if _WIN32 && _MSC_VER
-            if (strcmp(ent.dir_ent.cFileName, ".") == 0 || strcmp(ent.dir_ent.cFileName, "..") == 0)
+            if (strcmp(ent.dir_ent_d_name, ".") == 0 || strcmp(ent.dir_ent_d_name, "..") == 0)
                 continue;
 
-            files = list_cons(strdup(ent.dir_ent.cFileName), files);
-#else
-            if (strcmp(ent.dir_ent->d_name, ".") == 0 || strcmp(ent.dir_ent->d_name, "..") == 0)
-                continue;
-
-            files = list_cons(strdup(ent.dir_ent->d_name), files);
-#endif
+            files = list_cons(strdup(ent.dir_ent_d_name), files);
         }
 
         opendriveapi_closedir(dir);

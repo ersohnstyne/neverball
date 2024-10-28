@@ -17,7 +17,9 @@
 
 extern struct state st_wgcl_error_offline;
 
-int goto_wgcl_login(struct state *);
+int goto_wgcl_login(struct state *back_state, int (*back_fn)(struct state *),
+                    struct state *next_state, int (*next_fn)(struct state *));
+
 int goto_wgcl_logout(struct state *);
 
 #endif

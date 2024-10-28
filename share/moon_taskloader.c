@@ -122,7 +122,7 @@ static struct moon_taskloader_progress *create_extra_progress(double total, doub
 /*
  * Create extra_data for a done callback.
  */
-static struct moon_taskloader_done *create_extra_done(int finished)
+static struct moon_taskloader_done *create_extra_done(int success)
 {
 #if MOONTASKLOADER_WITH_CAST
     struct moon_taskloader_done *dn = (struct moon_taskloader_done *) calloc(sizeof (*dn), 1);
@@ -131,7 +131,7 @@ static struct moon_taskloader_done *create_extra_done(int finished)
 #endif
 
     if (dn)
-        dn->finished = !!finished;
+        dn->success = !!success;
 
     return dn;
 }
@@ -355,10 +355,10 @@ static void moon_taskloader_step(void)
 
             if (mtli)
             {
-                int finished = -1;
+                int success = -1;
 
                 if (mtli->callback.execute)
-                    finished = mtli->callback.execute(mtli, mtli->callback.data);
+                    success = mtli->callback.execute(mtli, mtli->callback.data);
 
                 if (mtli->callback.done)
                 {
@@ -368,7 +368,7 @@ static void moon_taskloader_step(void)
                     {
                         mtle->callback      = mtli->callback.done;
                         mtle->callback_data = mtli->callback.data;
-                        mtle->extra_data    = create_extra_done(finished);
+                        mtle->extra_data    = create_extra_done(success);
 
                         moon_taskloader_dispatch_event(mtle);
                     }

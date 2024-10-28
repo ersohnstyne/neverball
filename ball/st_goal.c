@@ -40,6 +40,7 @@
 #endif
 
 #include "gui.h"
+#include "transition.h"
 #include "util.h"
 #include "progress.h"
 #include "audio.h"
@@ -127,7 +128,7 @@ static int goal_action(int tok, int val)
 
         case GUI_SCORE:
             gui_score_set(val);
-            return goto_state_full(&st_goal, 0, 0, 1);
+            return goto_state(&st_goal);
 
         case GOAL_NEXT:
             if (progress_next())
@@ -558,7 +559,7 @@ static int goal_gui(void)
     return root_id;
 }
 
-static int goal_enter(struct state *st, struct state *prev)
+static int goal_enter(struct state *st, struct state *prev, int intent)
 {
     if (prev == &st_name)
         progress_rename(0);
@@ -586,10 +587,10 @@ static int goal_enter(struct state *st, struct state *prev)
 #endif
     }
 
-    return goal_gui();
+    return transition_slide(goal_gui(), 1, intent);
 }
 
-static void goal_leave(struct state *st, struct state *next, int id)
+static int goal_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (!resume || !resume_hold)
     {
@@ -601,8 +602,7 @@ static void goal_leave(struct state *st, struct state *next, int id)
         resume = !resume_hold;
     }
 
-    if (next == &st_null)
-        play_shared_leave(st, next, id);
+    return transition_slide(id, 0, intent);
 }
 
 static void goal_paint(int id, float t)
@@ -843,10 +843,10 @@ static int goal_extraballs_gui(void)
     return id;
 }
 
-static int goal_extraballs_enter(struct state *st, struct state *prev)
+static int goal_extraballs_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play("snd/extralives.ogg", 1.0f);
-    return goal_extraballs_gui();
+    return transition_slide(goal_extraballs_gui(), 1, intent);
 }
 
 static int goal_extraballs_keybd(int c, int d)
@@ -869,9 +869,9 @@ static int goal_extraballs_buttn(int b, int d)
     if (d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return goto_state(&st_goal);
+            return exit_state(&st_goal);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return goto_state(&st_goal);
+            return exit_state(&st_goal);
     }
     return 1;
 }
@@ -937,10 +937,10 @@ static int goal_shop_gui(void)
     return id;
 }
 
-static int goal_shop_enter(struct state *st, struct state *prev)
+static int goal_shop_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play("snd/extralives.ogg", 1.0f);
-    return goal_shop_gui();
+    return transition_slide(goal_shop_gui(), 1, intent);
 }
 
 static int goal_shop_keybd(int c, int d)
@@ -952,7 +952,7 @@ static int goal_shop_keybd(int c, int d)
 #else
         if (c == KEY_EXIT)
 #endif
-            return goto_state(&st_goal);
+            return exit_state(&st_goal);
     }
 
     return 1;
@@ -963,9 +963,9 @@ static int goal_shop_buttn(int b, int d)
     if (d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return goto_state(&st_goal);
+            return exit_state(&st_goal);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return goto_state(&st_goal);
+            return exit_state(&st_goal);
     }
     return 1;
 }
@@ -974,7 +974,7 @@ static int goal_shop_buttn(int b, int d)
 
 static int restrict_hardcore_nextstate = 0;
 
-static int goal_hardcore_enter(struct state *st, struct state *prev)
+static int goal_hardcore_enter(struct state *st, struct state *prev, int intent)
 {
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_wgcl_restart_attempt();
@@ -1042,7 +1042,7 @@ static void goal_hardcore_paint(int id, float t)
 
 struct state st_goal = {
     goal_enter,
-    play_shared_leave,
+    shared_leave,
     goal_paint,
     goal_timer,
     shared_point,
@@ -1056,7 +1056,7 @@ struct state st_goal = {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
 struct state st_goal_hardcore = {
     goal_hardcore_enter,
-    play_shared_leave,
+    shared_leave,
     goal_hardcore_paint,
     goal_hardcore_timer
 };
@@ -1064,7 +1064,7 @@ struct state st_goal_hardcore = {
 
 struct state st_goal_extraballs = {
     goal_extraballs_enter,
-    play_shared_leave,
+    shared_leave,
     shared_paint,
     shared_timer,
     shared_point,
@@ -1077,7 +1077,7 @@ struct state st_goal_extraballs = {
 
 struct state st_goal_shop = {
     goal_shop_enter,
-    play_shared_leave,
+    shared_leave,
     shared_paint,
     shared_timer,
     shared_point,

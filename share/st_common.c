@@ -629,10 +629,17 @@ static int video_action(int tok, int val)
 
     switch (tok)
     {
+<<<<<<< HEAD
         case GUI_BACK:
             exit_state(video_back);
             video_back = NULL;
             break;
+=======
+    case GUI_BACK:
+        exit_state(video_back);
+        video_back = NULL;
+        break;
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
         case VIDEO_SCREENANIMATIONS:
             config_set_d(CONFIG_SCREEN_ANIMATIONS, val);
@@ -1511,13 +1518,22 @@ static int video_advanced_gui(void)
     return id;
 }
 
+<<<<<<< HEAD
 static int video_advanced_enter(struct state *st, struct state *prev, int intent)
+=======
+static int video_enter(struct state *st, struct state *prev, int intent)
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 {
     if (!video_advanced_back)
         video_advanced_back = prev;
 
+<<<<<<< HEAD
     conf_common_init(video_advanced_action, 1);
     return video_advanced_gui();
+=======
+    conf_common_init(video_action);
+    return transition_slide(video_gui(), 1, intent);
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1540,10 +1556,17 @@ static int display_action(int tok, int val)
 
     switch (tok)
     {
+<<<<<<< HEAD
         case GUI_BACK:
             goto_state(display_back);
             display_back = NULL;
             break;
+=======
+    case GUI_BACK:
+        exit_state(display_back);
+        display_back = NULL;
+        break;
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
         case DISPLAY_SELECT:
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -1627,8 +1650,13 @@ static int display_enter(struct state *st, struct state *prev, int intent)
     if (!display_back)
         display_back = prev;
 
+<<<<<<< HEAD
     conf_common_init(display_action, 1);
     return display_gui();
+=======
+    conf_common_init(display_action);
+    return transition_slide(display_gui(), 1, intent);
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 }
 #endif
 
@@ -1735,10 +1763,17 @@ static int resol_action(int tok, int val)
 
     switch (tok)
     {
+<<<<<<< HEAD
         case GUI_BACK:
             goto_state(resol_back);
             resol_back = NULL;
             break;
+=======
+    case GUI_BACK:
+        exit_state(resol_back);
+        resol_back = NULL;
+        break;
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
         case RESOL_MODE:
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -1853,8 +1888,13 @@ static int resol_enter(struct state *st, struct state *prev, int intent)
     if (!resol_back)
         resol_back = prev;
 
+<<<<<<< HEAD
     conf_common_init(resol_action, 1);
     return resol_gui();
+=======
+    conf_common_init(resol_action);
+    return transition_slide(resol_gui(), 1, intent);
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 }
 
 #endif
@@ -1890,6 +1930,7 @@ static int lang_action(int tok, int val)
 
     switch (tok)
     {
+<<<<<<< HEAD
         case GUI_BACK:
             goto_state(lang_back);
             lang_back = NULL;
@@ -1897,6 +1938,17 @@ static int lang_action(int tok, int val)
 
         case GUI_PREV:
             first = MAX(first - LANG_STEP, 0);
+=======
+    case GUI_BACK:
+        exit_state(lang_back);
+        lang_back = NULL;
+        break;
+
+    case GUI_PREV:
+        first -= LANG_STEP;
+        exit_state(&st_lang);
+        break;
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
             return goto_state(&st_lang);
 
@@ -2056,11 +2108,19 @@ static int lang_enter(struct state *st, struct state *prev, int intent)
     if (!lang_back)
         lang_back = prev;
 
+<<<<<<< HEAD
     conf_common_init(lang_action, 1);
     return lang_gui();
 }
 
 static int lang_leave(struct state *st, struct state *next, int id, int intent)
+=======
+    conf_common_init(lang_action);
+    return transition_slide(lang_gui(), 1, intent);
+}
+
+int lang_leave(struct state *st, struct state *next, int id, int intent)
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 {
 #if ENABLE_NLS==1 || _MSC_VER
     if (!(next == &st_lang || next == &st_null))
@@ -2070,8 +2130,11 @@ static int lang_leave(struct state *st, struct state *next, int id, int intent)
     }
 #endif
 
+<<<<<<< HEAD
     conf_common_leave(st, next, id, intent);
 
+=======
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     return conf_common_leave(st, next, id, intent);
 }
 
@@ -2102,7 +2165,51 @@ static int restart_required_action(int tok, int val)
 {
     if (tok == GUI_BACK)
     {
+<<<<<<< HEAD
         return goto_state(restart_required_back);
+=======
+        int option = *joystick_options[index];
+
+        config_set_d(option, value);
+
+        joystick_set_label(joystick_option_ids[index], value);
+
+        // Focus the next button.
+
+        if (index < ARRAYSIZE(joystick_options) - 1)
+        {
+            /* Skip over marker, if any. */
+
+            if (index < ARRAYSIZE(joystick_options) - 2 && joystick_options[index + 1] == NULL)
+                gui_focus(joystick_option_ids[index + 2]);
+            else
+                gui_focus(joystick_option_ids[index + 1]);
+        }
+    }
+}
+
+static int joystick_action(int tok, int val)
+{
+    switch (tok)
+    {
+        case GUI_BACK:
+            if (joystick_modal)
+            {
+                joystick_modal = 0;
+            }
+            else
+            {
+                exit_state(joystick_back);
+                joystick_back = NULL;
+            }
+            break;
+
+        case JOYSTICK_ASSIGN_BUTTON:
+        case JOYSTICK_ASSIGN_AXIS:
+            joystick_modal = tok;
+            joystick_option_index = val;
+            break;
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     }
     return 1;
 }
@@ -2144,8 +2251,104 @@ static int restart_required_enter(struct state *st, struct state *prev, int inte
     if (!restart_required_back)
         restart_required_back = prev;
 
+<<<<<<< HEAD
     conf_common_init(restart_required_action, 1);
     return restart_required_gui();
+=======
+    if ((id = gui_label(0, _("Press a button..."), GUI_MED, gui_wht, gui_wht)))
+        gui_layout(id, 0, 0);
+
+    return id;
+}
+
+static int joystick_modal_axis_gui(void)
+{
+    int id;
+
+    if ((id = gui_label(0, _("Move a stick..."), GUI_MED, gui_wht, gui_wht)))
+        gui_layout(id, 0, 0);
+
+    return id;
+}
+
+static int joystick_enter(struct state *st, struct state *prev, int intent)
+{
+    if (!joystick_back)
+        joystick_back = prev;
+
+    conf_common_init(joystick_action);
+
+    joystick_modal = 0;
+
+    joystick_modal_button_id = joystick_modal_button_gui();
+    joystick_modal_axis_id = joystick_modal_axis_gui();
+
+    return transition_slide(joystick_gui(), 1, intent);
+}
+
+static int joystick_leave(struct state *st, struct state *next, int id, int intent)
+{
+    gui_delete(joystick_modal_button_id);
+    gui_delete(joystick_modal_axis_id);
+
+    return conf_common_leave(st, next, id, intent);
+}
+
+static void joystick_paint(int id, float t)
+{
+    conf_common_paint(id, t);
+
+    if (joystick_modal == JOYSTICK_ASSIGN_BUTTON)
+        gui_paint(joystick_modal_button_id);
+
+    if (joystick_modal == JOYSTICK_ASSIGN_AXIS)
+        gui_paint(joystick_modal_axis_id);
+}
+
+static int joystick_buttn(int b, int d)
+{
+    if (d)
+    {
+        if (joystick_modal == JOYSTICK_ASSIGN_BUTTON)
+        {
+            joystick_set_option(joystick_option_index, b);
+            joystick_modal = 0;
+            return 1;
+        }
+        else if (joystick_modal)
+        {
+            /* Allow backing out of other modal types with B. */
+
+            if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+                joystick_modal = 0;
+
+            return 1;
+        }
+    }
+
+    return common_buttn(b, d);
+}
+
+static void joystick_stick(int id, int a, float v, int bump)
+{
+    if (joystick_modal == JOYSTICK_ASSIGN_AXIS)
+    {
+        if (bump)
+        {
+            joystick_set_option(joystick_option_index, a);
+            joystick_modal = 0;
+        }
+
+        return;
+    }
+    else if (joystick_modal)
+    {
+        /* Ignore stick motion if another type of modal is active. */
+        return;
+    }
+
+    gui_pulse(gui_stick(id, a, v, bump), 1.2f);
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2173,7 +2376,11 @@ static int loading_enter(struct state *st, struct state *prev, int intent)
     return loading_gui();
 }
 
+<<<<<<< HEAD
 static int loading_leave(struct state* st, struct state* next, int id, int intent)
+=======
+static int loading_leave(struct state *st, struct state *next, int id, int intent)
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 {
     gui_delete(id);
     return 0;

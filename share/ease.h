@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
  * Copyright (C) 2024 Microsoft / Neverball authors
  *
@@ -12,6 +13,8 @@
  * General Public License for more details.
  */
 
+=======
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 #ifndef EASE_H
 #define EASE_H 1
 
@@ -22,4 +25,8 @@ float easeInElastic(float x);
 float easeOutElastic(float x);
 float easeInOutElastic(float x);
 
+<<<<<<< HEAD
 #endif
+=======
+#endif
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50

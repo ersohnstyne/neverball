@@ -118,8 +118,13 @@ static int save_action(int tok, int val)
 
     switch (tok)
     {
+<<<<<<< HEAD
         case GUI_BACK:
             return exit_state(cancel_state);
+=======
+    case GUI_BACK:
+        return exit_state(cancel_state);
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
         case SAVE_OK:
 #if NB_HAVE_PB_BOTH==1 && defined(DEMO_QUARANTINED_MODE) && !defined(DEMO_LOCKDOWN_COMPLETE)
@@ -352,7 +357,10 @@ static int clobber_action(int tok, int val)
         return demo_rename(text_input) ? exit_state(ok_state) :
                                          goto_state(&st_save_error);
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     return exit_state(&st_save);
 }
 
@@ -386,7 +394,7 @@ static int clobber_gui(void)
 
 static int clobber_enter(struct state *st, struct state *prev, int intent)
 {
-    return clobber_gui();
+    return transition_slide(clobber_gui(), 1, intent);
 }
 
 static int clobber_keybd(int c, int d)

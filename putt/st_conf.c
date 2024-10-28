@@ -79,9 +79,15 @@ static int conf_action(int i)
 
     switch (i)
     {
+<<<<<<< HEAD
         case CONF_BACK:
             exit_state(&st_title);
             break;
+=======
+    case CONF_BACK:
+        exit_state(&st_title);
+        break;
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
         case CONF_VIDEO:
             goto_state(&st_video);
@@ -296,10 +302,14 @@ static int conf_enter(struct state *st, struct state *prev, int intent)
     return transition_slide(root_id, 1, intent);
 }
 
+<<<<<<< HEAD
 static void conf_leave(struct state *st, struct state *next, int id, int intent)
+=======
+static int conf_leave(struct state *st, struct state *next, int id, int intent)
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 {
     back_free();
-    gui_delete(id);
+    return transition_slide(id, 0, intent);
 }
 
 static void conf_paint(int id, float st)
@@ -354,6 +364,7 @@ static int conf_buttn(int b, int d)
 
 static int null_enter(struct state *st, struct state *prev, int intent)
 {
+<<<<<<< HEAD
 #if ENABLE_MOTIONBLUR!=0
     video_motionblur_quit();
 #endif
@@ -361,6 +372,8 @@ static int null_enter(struct state *st, struct state *prev, int intent)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     xbox_control_gui_free();
 #endif
+=======
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     transition_quit();
     gui_free();
     geom_free();
@@ -371,7 +384,11 @@ static int null_enter(struct state *st, struct state *prev, int intent)
     return 0;
 }
 
+<<<<<<< HEAD
 static void null_leave(struct state *st, struct state *next, int id, int intent)
+=======
+static int null_leave(struct state *st, struct state *next, int id, int intent)
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 {
     mtrl_load_objects();
     shad_init();
@@ -379,12 +396,15 @@ static void null_leave(struct state *st, struct state *next, int id, int intent)
     geom_init();
     gui_init();
     transition_init();
+<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     xbox_control_gui_init();
 #endif
 #if ENABLE_MOTIONBLUR!=0
     video_motionblur_init();
 #endif
+=======
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     return 0;
 }
 

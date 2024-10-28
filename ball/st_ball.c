@@ -375,6 +375,7 @@ static int ball_action(int tok, int val)
 #endif
             break;
 
+<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1
         case MODEL_SETUP_FINISH:
             game_fade(+4.0);
@@ -382,6 +383,11 @@ static int ball_action(int tok, int val)
 
             break;
 #endif
+=======
+    case GUI_BACK:
+        exit_state(&st_conf);
+        break;
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     }
 
     return 1;
@@ -570,6 +576,7 @@ static int ball_enter(struct state *st, struct state *prev, int intent)
     if (prev != &st_ball || ball_manual_hotreload)
         scan_balls();
 
+<<<<<<< HEAD
     if (prev != &st_ball)
     {
         game_proxy_filter(filter_cmd);
@@ -582,11 +589,14 @@ static int ball_enter(struct state *st, struct state *prev, int intent)
         return ball_gui();
     }
 
+=======
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     return transition_slide(ball_gui(), 1, intent);
 }
 
 static int ball_leave(struct state *st, struct state *next, int id, int intent)
 {
+<<<<<<< HEAD
     if (next != &st_ball)
     {
         back_free();
@@ -604,6 +614,12 @@ static int ball_leave(struct state *st, struct state *next, int id, int intent)
     else return transition_slide(id, 0, intent);
 
     return 0;
+=======
+    back_free();
+    demo_replay_stop(0);
+    free_balls();
+    return transition_slide(id, 0, intent);
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 }
 
 static void ball_paint(int id, float t)

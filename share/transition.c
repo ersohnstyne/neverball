@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (C) 2024 Microsoft / Neverball Authors
+=======
+ * Copyright (C) 2024 Jānis Rūcis
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -17,8 +21,11 @@
 #include "gui.h"
 #include "log.h"
 
+<<<<<<< HEAD
 #include "config.h"
 
+=======
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 /*
  * How to create a screen transition:
  *
@@ -104,6 +111,7 @@ void transition_paint(void)
 
 int transition_slide(int id, int in, int intent)
 {
+<<<<<<< HEAD
     return transition_slide_full(id, in,
                                  (intent == INTENT_BACK ? GUI_W : GUI_E),
                                  (intent == INTENT_BACK ? GUI_E : GUI_W));
@@ -129,9 +137,24 @@ int transition_slide_full(int id, int in,
             transition_add(id);
         }
         else gui_delete(id);
+=======
+    if (in)
+    {
+        gui_slide(id, (intent == INTENT_BACK ? GUI_W : GUI_E) | GUI_FLING, 0, 0.16f, 0);
+    }
+    else
+    {
+        gui_slide(id, (intent == INTENT_BACK ? GUI_E : GUI_W) | GUI_BACKWARD | GUI_FLING | GUI_REMOVE, 0, 0.16f, 0);
+
+        transition_add(id);
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     }
 
     return id;
 }
 
+<<<<<<< HEAD
 /*---------------------------------------------------------------------------*/
+=======
+/*---------------------------------------------------------------------------*/
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50

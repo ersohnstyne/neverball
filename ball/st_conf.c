@@ -1210,6 +1210,7 @@ static int conf_control_action(int tok, int val)
 
     switch (tok)
     {
+<<<<<<< HEAD
         case GUI_BACK:
             exit_state(&st_null);
             return exit_state(&st_conf);
@@ -1256,6 +1257,10 @@ static int conf_control_action(int tok, int val)
             config_set_d(CONFIG_MOUSE_INVERT, val);
             config_save();
             goto_state(&st_conf_control);
+=======
+    case GUI_BACK:
+        exit_state(&st_title);
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
         break;
 
         case CONF_CONTROL_CHANGEKEYBD:
@@ -3011,10 +3016,15 @@ static int conf_gui(void)
 
 static int conf_enter(struct state *st, struct state *prev, int intent)
 {
+<<<<<<< HEAD
     if (mainmenu_conf && prev == &st_title)
         game_fade(-6.0f);
 
     conf_common_init(conf_action, mainmenu_conf);
+=======
+    game_client_free(NULL);
+    conf_common_init(conf_action);
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     return transition_slide(conf_gui(), 1, intent);
 }
 
@@ -3025,7 +3035,11 @@ static int conf_leave(struct state *st, struct state *next, int id, int intent)
 
 /*---------------------------------------------------------------------------*/
 
+<<<<<<< HEAD
 static void conf_shared_timer(int id, float dt)
+=======
+static int null_enter(struct state *st, struct state *prev, int intent)
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 {
     game_step_fade(dt);
     gui_timer(id, dt);
@@ -3086,6 +3100,7 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
     gui_init();
     transition_init();
     hud_init();
+<<<<<<< HEAD
 #if ENABLE_DUALDISPLAY==1
     game_dualdisplay_gui_init();
 #endif
@@ -3112,6 +3127,8 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
     video_motionblur_init();
 #endif
 
+=======
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     return 0;
 }
 

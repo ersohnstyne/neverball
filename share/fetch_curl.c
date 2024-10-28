@@ -481,7 +481,13 @@ static void fetch_step(void)
                         success = 0;
                     }
                     else
+<<<<<<< HEAD
                         success = 1;
+=======
+                    {
+                        success = 1;
+                    }
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
                     curl_multi_remove_handle(multi_handle, handle);
 
@@ -501,7 +507,11 @@ static void fetch_step(void)
                         {
                             fe->callback      = fi->callback.done;
                             fe->callback_data = fi->callback.data;
+<<<<<<< HEAD
                             fe->extra_data    = create_extra_done(success);
+=======
+                            fe->extra_data = create_extra_done(success);
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 
                             fetch_dispatch_event(fe);
                         }
@@ -893,8 +903,13 @@ void fetch_quit(void)
  * Download from URL into FILENAME.
  */
 unsigned int fetch_file(const char *url,
+<<<<<<< HEAD
                        const char *filename,
                        struct fetch_callback callback)
+=======
+                        const char *filename,
+                        struct fetch_callback callback)
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 {
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)

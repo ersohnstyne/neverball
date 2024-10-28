@@ -848,7 +848,18 @@ static int nodemo_enter(struct state *st, struct state *prev, int intent)
         gui_layout(id, 0, 0);
     }
 
+<<<<<<< HEAD
     return transition_slide(id, 1, intent);
+=======
+    return id;
+}
+
+static int nodemo_enter(struct state *st, struct state *prev, int intent)
+{
+    check_nodemo = 0;
+
+    return transition_slide(nodemo_gui(), 1, intent);
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 }
 
 static void nodemo_timer(int id, float dt)
@@ -1096,11 +1107,18 @@ int goto_exit(void)
     {
         /* Visit the auxilliary screen or exit to level selection. */
 
+<<<<<<< HEAD
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         exit_state(dst != curr ? dst : &st_start);
 #else
         exit_state(&st_start);
 #endif
+=======
+        if (dst != curr && dst != &st_start)
+            goto_state(dst);
+        else
+            exit_state(&st_start);
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
     }
     else
     {

@@ -327,6 +327,7 @@ static int done_enter(struct state *st, struct state *prev, int intent)
 
     resume = prev != &st_goal;
 
+<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1
     if (!campaign_used()
      &&  set_star(curr_set()) > 0 && set_star_gained(curr_set())
@@ -353,6 +354,9 @@ static void done_timer(int id, float dt)
 {
     gui_timer(id, dt);
     game_step_fade(dt);
+=======
+    return transition_slide(done_gui(), 1, intent);
+>>>>>>> b7d565d1c0298d675625db737a6460be6ff92e50
 }
 
 static int done_keybd(int c, int d)

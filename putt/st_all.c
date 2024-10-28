@@ -1675,7 +1675,7 @@ static int stroke_enter(struct state *st, struct state *prev, int intent)
     return 0;
 }
 
-static void stroke_leave(struct state *st, struct state *next, int id, int intent)
+static int stroke_leave(struct state *st, struct state *next, int id, int intent)
 {
     hud_free();
     video_clr_grab();

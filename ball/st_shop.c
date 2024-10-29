@@ -1044,7 +1044,7 @@ static int shop_iap_action(int tok, int val)
                 if (curr_ok_fn)
                     return curr_ok_fn(ok_state);
 
-                return goto_state(ok_state);
+                return exit_state(ok_state);
             }
 #endif
 

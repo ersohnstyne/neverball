@@ -987,7 +987,8 @@ static int start_enter(struct state *st, struct state *prev, int intent)
     }
 #endif
 
-    if (set_star_view) return start_star_view_gui();
+    if (set_star_view)
+        return transition_slide(start_star_view_gui(), 1, intent);
 
     /* Bonus levels will be unlocked automatically, if you use the bonus pack */
 #if NB_HAVE_PB_BOTH==1

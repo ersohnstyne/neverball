@@ -1298,7 +1298,10 @@ static int title_leave(struct state *st, struct state *next, int id, int intent)
 {
     if ((title_lockscreen && next != &st_null) ||
         next == &st_title)
-        return transition_slide(id, 0, intent);
+    {
+        gui_delete(id);
+        return 0;
+    }
 
     demo_replay_stop(0);
 

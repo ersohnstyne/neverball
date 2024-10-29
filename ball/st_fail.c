@@ -772,8 +772,8 @@ static void fail_paint(int id, float t)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
         console_gui_death_paint();
-    if (hud_visibility())
 #endif
+    if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_paint();
 }
 
@@ -787,8 +787,7 @@ static void fail_timer(int id, float dt)
             game_server_step(dt);
             game_client_blend(game_server_blend());
 
-            int record_screenanimations = time_state() < (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 2.5f :
-                                                                                                   2.0f);
+            int record_screenanimations = time_state() < 2.0f;
             int record_modes            = curr_mode() != MODE_NONE;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             int record_campaign         = !campaign_hardcore_norecordings();
@@ -804,6 +803,7 @@ static void fail_timer(int id, float dt)
         }*/
     }
 
+    hud_timer(dt);
     gui_timer(id, dt);
 }
 
@@ -1752,8 +1752,8 @@ static void raise_gems_timer(int id, float dt)
 
     t += dt;
 
-    if (time_state() > (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.0f) &&
-        t > 0.025f && raisegems_working && !st_global_animating())
+    while (time_state() > 1.0f &&
+           t > 0.05f && raisegems_working && !st_global_animating())
     {
         for (int i = 0; i < 4; i++)
         {
@@ -1781,7 +1781,7 @@ static void raise_gems_timer(int id, float dt)
             }
         }
 
-        t -= 0.025f;
+        t -= 0.05f;
     }
 
     gui_timer(id, dt);

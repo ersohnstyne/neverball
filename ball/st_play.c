@@ -403,6 +403,7 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
     hud_cam_pulse(config_get_d(CONFIG_CAMERA));
 
     //toggle_hud_visibility(1);
+    toggle_hud_visibility_expected(1);
 
     int id = play_ready_gui();
     gui_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.8f, 0);
@@ -497,7 +498,9 @@ static int play_set_enter(struct state *st, struct state *prev, int intent)
 
     //toggle_hud_visibility(1);
 
-    return play_set_gui();
+    int id = play_set_gui();
+    gui_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.8f, 0);
+    return id;
 }
 
 static void play_set_timer(int id, float dt)
@@ -572,8 +575,9 @@ static void play_prep_paint(int id, float t)
             hud_lvlname_paint();
         }
     }
-    else if (hud_visibility())
+    else
 #endif
+    if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {
         hud_paint();
         hud_lvlname_paint();
@@ -766,6 +770,8 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
 
     prep_tilt_x = 0;
     prep_tilt_y = 0;
+
+    toggle_hud_visibility_expected(1);
 
     /* Cannot run traffic lights in home room. */
 
@@ -982,6 +988,7 @@ static void play_loop_timer(int id, float dt)
     else if (!play_freeze_all && !play_block_state)
     {
         play_block_state = 1;
+        toggle_hud_visibility_expected(0);
         progress_stat(curr_status());
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         goto_state(curr_status() == GAME_GOAL ?

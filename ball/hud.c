@@ -116,9 +116,14 @@ void toggle_hud_visibility(int active)
     show_hud = active;
 }
 
+void toggle_hud_visibility_expected(int active)
+{
+    show_hud_expected = active;
+}
+
 int hud_visibility(void)
 {
-    return show_hud;
+    return show_hud && show_hud_expected;
 }
 
 static void hud_fps(void)
@@ -474,7 +479,7 @@ void hud_update(int pulse, float animdt)
 
     if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {
-        show_hud_alpha += show_hud ? animdt : -animdt;
+        show_hud_alpha += show_hud && show_hud_expected ? animdt : -animdt;
         show_hud_alpha  = CLAMP(0.0f, show_hud_alpha, 1.0f);
         cam_alpha      += cam_timer > 0.25f ? animdt : -animdt;
         cam_alpha       = CLAMP(0.0f, cam_alpha, 1.0f);

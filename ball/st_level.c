@@ -645,6 +645,7 @@ static void level_paint(int id, float t)
     }
     else
 #endif
+    if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_paint();
 }
 

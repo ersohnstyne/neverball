@@ -20,6 +20,7 @@
 /*---------------------------------------------------------------------------*/
 
 void toggle_hud_visibility(int);
+void toggle_hud_visibility_expected(int);
 int  hud_visibility(void);
 
 void hud_init(void);

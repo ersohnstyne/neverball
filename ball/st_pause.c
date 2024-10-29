@@ -81,8 +81,8 @@ static int quit_uses_restart = 0;
         } else {                            \
             quit_uses_resetpuzzle = 0;      \
             quit_uses_restart     = 0;      \
-            return goto_state(&st_pause);   \
-        } \
+            return exit_state(&st_pause);   \
+        }                                   \
     } while (0)
 
 int goto_pause(struct state* returnable)
@@ -414,6 +414,7 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
         audio_music_fade_out(0.5f);
 
     hud_update(0, 0.0f);
+    toggle_hud_visibility_expected(0);
 
     return transition_slide(pause_gui(), 1, intent);
 }
@@ -425,8 +426,9 @@ static void pause_paint(int id, float t)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
         console_gui_paused_paint();
-    else if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    else
 #endif
+    if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_paint();
 }
 
@@ -518,15 +520,15 @@ static int pause_quit_gui(void)
         const char *quit_header_text = N_("Give Up");
 #endif
 
-        int warn_title = gui_label(id, _(quit_header_text), GUI_MED, GUI_COLOR_RED);
+        int warn_title_id = gui_label(id, _(quit_header_text), GUI_MED, GUI_COLOR_RED);
 
         if (quit_uses_restart)
-            gui_set_label(warn_title, _("Restart"));
+            gui_set_label(warn_title_id, _("Restart"));
 
         if (quit_uses_resetpuzzle)
-            gui_set_label(warn_title, _("Reset Puzzle"));
+            gui_set_label(warn_title_id, _("Reset Puzzle"));
 
-        gui_pulse(warn_title, 1.2f);
+        gui_pulse(warn_title_id, 1.2f);
 
         gui_space(id);
 
@@ -598,7 +600,7 @@ static int pause_quit_enter(struct state *st, struct state *prev, int intent)
 
     audio_play(AUD_WARNING, 1.0f);
 
-    return pause_quit_gui();
+    return transition_slide(pause_quit_gui(), 1, intent);
 }
 
 /*---------------------------------------------------------------------------*/

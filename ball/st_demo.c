@@ -1403,6 +1403,7 @@ static int demo_play_enter(struct state *st, struct state *prev, int intent)
     smoothfix_slowdown_time = 0;
 
     video_hide_cursor();
+    toggle_hud_visibility_expected(1);
 
     if (demo_paused ||
         prev == &st_demo_play ||
@@ -1466,8 +1467,8 @@ static void demo_play_paint(int id, float t)
 {
     game_client_draw(0, t);
 
-    if ((config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        (!speed_manual || config_get_d(CONFIG_SCREEN_ANIMATIONS)))
+    if (!speed_manual &&
+        (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS)))
         hud_paint();
 
     gui_paint(id);
@@ -1749,6 +1750,7 @@ static int demo_end_gui(void)
 static int demo_end_enter(struct state *st, struct state *prev, int intent)
 {
     audio_music_fade_out(demo_paused ? 0.2f : 2.0f);
+    toggle_hud_visibility_expected(0);
 
     return transition_slide(demo_end_gui(), 1, intent);
 }
@@ -1767,7 +1769,18 @@ static void demo_end_paint(int id, float t)
         else
             console_gui_replay_eof_paint();
     }
+    else
 #endif
+        if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+            hud_paint();
+}
+
+static void demo_end_timer(int id, float dt)
+{
+    gui_timer(id, dt);
+    hud_timer(dt);
+
+    hud_update(0, dt);
 }
 
 static int demo_end_keybd(int c, int d)
@@ -2193,7 +2206,7 @@ struct state st_demo_end = {
     demo_end_enter,
     demo_leave,
     demo_end_paint,
-    shared_timer,
+    demo_end_timer,
     shared_point,
     shared_stick,
     shared_angle,

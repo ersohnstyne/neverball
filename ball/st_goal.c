@@ -40,6 +40,7 @@
 #endif
 
 #include "gui.h"
+#include "hud.h"
 #include "transition.h"
 #include "util.h"
 #include "progress.h"
@@ -610,9 +611,13 @@ static void goal_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    console_gui_death_paint();
+    if (console_gui_show())
+        console_gui_death_paint();
 #endif
+    if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        hud_paint();
 }
 
 static void goal_timer(int id, float dt)
@@ -626,7 +631,7 @@ static void goal_timer(int id, float dt)
         geom_step(dt);
         game_server_step(dt);
 
-        int record_screenanimations = time_state() < (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f : 1.0f);
+        int record_screenanimations = time_state() < 1.0f;
         int record_modes            = curr_mode() != MODE_NONE;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         int record_campaign         = !campaign_hardcore_norecordings();
@@ -640,10 +645,8 @@ static void goal_timer(int id, float dt)
                       && record_modes
                       && record_campaign ? demo_fp : NULL);
 
-        if ((t > 0.05f && coins_id) &&
-            (!resume &&
-             time_state() > (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? 1.3f :
-                                                                      1.0f)))
+        while ((t > 0.05f && coins_id) &&
+               (!resume && time_state() > 1.0f))
         {
             int coins = 0;
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -753,6 +756,7 @@ static void goal_timer(int id, float dt)
     }
 
     gui_timer(id, dt);
+    hud_timer(dt);
 
     if (challenge_caught_extra && config_get_d(CONFIG_NOTIFICATION_REWARD) &&
         (curr_mode() == MODE_CHALLENGE ||

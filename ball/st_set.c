@@ -349,8 +349,7 @@ static int set_scan_moon_taskloader(void* data, void* execute_data)
 
     if (!do_init || set_manual_hotreload)
     {
-        if (set_manual_hotreload)
-            first = 0;
+        first = 0;
 
         total = set_init(boost_on);
         first = MIN(first, (total - 1) - ((total - 1) % SET_STEP));
@@ -552,6 +551,8 @@ static int set_gui(void)
 
 static int set_enter(struct state *st, struct state *prev, int intent)
 {
+    activity_services_group(AS_GROUP_LEVELSET);
+
 #if NB_HAVE_PB_BOTH==1
     audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
                                               "bgm/inter_world.ogg", 1);
@@ -596,10 +597,7 @@ static int set_enter(struct state *st, struct state *prev, int intent)
     }
 
     if (set_manual_hotreload)
-    {
         set_manual_hotreload = 0;
-        return set_gui();
-    }
 
     return transition_slide(set_gui(), 1, intent);
 }
@@ -1193,10 +1191,15 @@ static void campaign_prepare(struct state *prev)
 static int campaign_enter(struct state *st, struct state *prev, int intent)
 {
     audio_music_fade_to(0.5f, "bgm/inter_local.ogg", 1);
+    activity_services_group(AS_GROUP_CAMPAIGN);
 
     campaign_prepare(prev);
 
+#ifndef NDEBUG
+    return transition_slide(campaign_gui(), 1, intent);
+#else
     return transition_slide(campaign_gui_comingsoon(), 1, intent);
+#endif
 }
 
 static int campaign_leave(struct state *st, struct state *next, int id, int intent)
@@ -1210,7 +1213,7 @@ static int campaign_leave(struct state *st, struct state *next, int id, int inte
             game_client_free(NULL);
     }
 
-    return transition_slide(id, 1, intent);
+    return transition_slide(id, 0, intent);
 }
 
 static void campaign_paint(int id, float t)
@@ -1273,20 +1276,14 @@ static int levelgroup_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            return goto_state(&st_title);
+            return exit_state(&st_title);
 
         case LEVELGROUP_CAMPAIGN:
             if (campaign_init())
-            {
-                activity_services_group(AS_GROUP_CAMPAIGN);
-
                 return goto_state(&st_campaign);
-            }
             break;
 
         case LEVELGROUP_LEVELSET:
-            activity_services_group(AS_GROUP_LEVELSET);
-
             return goto_state(&st_set);
     }
     return 1;
@@ -1506,21 +1503,13 @@ int goto_playgame_register(void)
 {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
-    {
-        activity_services_group(AS_GROUP_CAMPAIGN);
         return goto_name(&st_campaign, &st_title, goto_playgame_param, 0, 0);
-    }
     else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET))
 #endif
-    {
-        activity_services_group(AS_GROUP_LEVELSET);
         return goto_name(&st_set, &st_title, goto_playgame_param, 0, 0);
-    }
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     else
-    {
         return goto_name(&st_levelgroup, &st_title, goto_playgame_param, 0, 0);
-    }
 #endif
 }
 

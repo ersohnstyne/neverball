@@ -963,6 +963,7 @@ enum
 
 static struct state *ok_state;
 static struct state *cancel_state;
+static struct state *expenses_export_back;
 
 static int (*curr_ok_fn)     (struct state *) = NULL;
 static int (*curr_cancel_fn) (struct state *) = NULL;
@@ -978,8 +979,9 @@ int goto_shop_iap(struct state *ok, struct state *cancel,
 {
     if (!account_wgcl_restart_attempt()) return 1;
 
-    ok_state     = ok;
-    cancel_state = cancel;
+    ok_state             = ok;
+    cancel_state         = cancel;
+    expenses_export_back = cancel;
 
     curr_ok_fn     = new_ok_fn;
     curr_cancel_fn = new_cancel_fn;
@@ -2198,7 +2200,7 @@ static int expenses_export_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            return exit_state(&st_shop);
+            return exit_state(expenses_export_back);
 
         case EXPENSES_EXPORT_START:
             audio_play("snd/buyproduct.ogg", 1.0f);

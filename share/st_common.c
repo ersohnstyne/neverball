@@ -941,7 +941,7 @@ static int video_enter(struct state *st, struct state *prev, int intent)
         video_back = prev;
 
     conf_common_init(video_action, 1);
-    return video_gui();
+    return transition_slide(video_gui(), 1, intent);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -992,7 +992,7 @@ static int video_advanced_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            goto_state(video_advanced_back);
+            exit_state(video_advanced_back);
             video_advanced_back = NULL;
             break;
 
@@ -1541,7 +1541,7 @@ static int display_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            goto_state(display_back);
+            exit_state(display_back);
             display_back = NULL;
             break;
 
@@ -1736,7 +1736,7 @@ static int resol_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            goto_state(resol_back);
+            exit_state(resol_back);
             resol_back = NULL;
             break;
 
@@ -1891,7 +1891,7 @@ static int lang_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            goto_state(lang_back);
+            exit_state(lang_back);
             lang_back = NULL;
             break;
 

@@ -320,26 +320,30 @@ static int goal_gui(void)
                             gui_set_count(coins_id, coins);
                         }
 
-#ifdef CONFIG_INCLUDES_ACCOUNT
-                        if (account_get_d(ACCOUNT_PRODUCT_BONUS) == 0)
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                        if (!campaign_used())
 #endif
-                            if ((ld = gui_harray(kd)))
-                            {
-                                const struct level *l;
 
-                                gui_label(ld, "", GUI_SML, 0, 0);
+#ifdef CONFIG_INCLUDES_ACCOUNT
+                            if (account_get_d(ACCOUNT_PRODUCT_BONUS) == 0)
+#endif
+                                if ((ld = gui_harray(kd)))
+                                {
+                                    const struct level *l;
 
-                                for (int j = MAXLVL - 1; j >= 0; j--)
-                                    if ((l = get_level(j)) && level_bonus(l))
-                                    {
-                                        const GLubyte *c = (level_opened(l) ?
-                                                            gui_grn : gui_gry);
+                                    gui_label(ld, "", GUI_SML, 0, 0);
 
-                                        gui_label(ld, level_name(l), GUI_SML, c, c);
-                                    }
+                                    for (int j = MAXLVL - 1; j >= 0; j--)
+                                        if ((l = get_level(j)) && level_bonus(l))
+                                        {
+                                            const GLubyte *c = (level_opened(l) ?
+                                                                gui_grn : gui_gry);
 
-                                gui_label(ld, "", GUI_SML, 0, 0);
-                            }
+                                            gui_label(ld, level_name(l), GUI_SML, c, c);
+                                        }
+
+                                    gui_label(ld, "", GUI_SML, 0, 0);
+                                }
 
                         gui_set_rect(kd, GUI_ALL);
                     }

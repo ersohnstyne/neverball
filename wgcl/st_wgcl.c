@@ -258,7 +258,7 @@ static int wgcl_error_offline_enter(struct state *st, struct state *prev, int in
         gui_layout(id, 0, 0);
     }
 
-    return id;
+    return transition_slide(id, 1, intent);
 }
 
 /*===========================================================================*/
@@ -329,14 +329,14 @@ static int wgcl_login_action(int tok, int val)
                 login_introduction = 1;
                 login_write_protected = 0;
                 return login_back_fn ? login_back_fn(login_back) :
-                                       login_back ? goto_state(login_back) : 0;
+                                       login_back ? exit_state(login_back) : 0;
             }
             else
             {
                 login_write_protected = 1;
                 login_entertext_mode = 0;
                 text_input_stop();
-                return goto_state(&st_wgcl_login);
+                return exit_state(&st_wgcl_login);
             }
             break;
 
@@ -723,7 +723,7 @@ static int wgcl_login_result_enter(struct state *st, struct state *prev, int int
 {
     conf_common_init(wgcl_login_action, 1);
 
-    return wgcl_login_result_gui_success();
+    return transition_slide(wgcl_login_result_gui_success(), 1, intent);
 }
 
 /*===========================================================================*/
@@ -755,7 +755,7 @@ static int wgcl_logout_action(int tok, int val)
             return 1;
 #endif
 
-    return goto_state(login_back);
+    return exit_state(login_back);
 }
 
 static int wgcl_logout_confirm_gui(void)
@@ -796,7 +796,7 @@ static int wgcl_logout_confirm_enter(struct state *st, struct state *prev, int i
 
     conf_common_init(wgcl_logout_action, 1);
 
-    return wgcl_logout_confirm_gui();
+    return transition_slide(wgcl_logout_confirm_gui(), 1, intent);
 }
 
 /*###########################################################################*/

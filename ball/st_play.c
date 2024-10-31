@@ -12,10 +12,23 @@
  * General Public License for more details.
  */
 
+<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1
 #ifndef __EMSCRIPTEN__
 #include "console_control_gui.h"
 #endif
+=======
+#include "gui.h"
+#include "transition.h"
+#include "hud.h"
+#include "demo.h"
+#include "progress.h"
+#include "audio.h"
+#include "config.h"
+#include "video.h"
+#include "cmd.h"
+#include "key.h"
+>>>>>>> aa55fb3a38bbba571d09490c795438340f460723
 
 #include "powerup.h"
 #include "account.h"
@@ -316,6 +329,7 @@ static void buttn_camera(int b)
 
 /*---------------------------------------------------------------------------*/
 
+<<<<<<< HEAD
 static void play_shared_fade(float alpha)
 {
     hud_set_alpha(alpha);
@@ -323,12 +337,15 @@ static void play_shared_fade(float alpha)
 
 /*---------------------------------------------------------------------------*/
 
+=======
+>>>>>>> aa55fb3a38bbba571d09490c795438340f460723
 static const float time_in   = 0.5f;
 static const float time_out  = 0.6f;
 static const int   flags_in  = GUI_E | GUI_FLING | GUI_EASE_BACK;
 static const int   flags_out = GUI_W | GUI_FLING | GUI_EASE_BACK | GUI_BACKWARD;
 
 /*---------------------------------------------------------------------------*/
+<<<<<<< HEAD
 
 #ifdef MAPC_INCLUDES_CHKP
 static int restart_cancel_allchkp;
@@ -346,6 +363,8 @@ static int use_mouse;
 static int use_keyboard;
 
 static int ready_transition = 0;
+=======
+>>>>>>> aa55fb3a38bbba571d09490c795438340f460723
 
 int play_pause_goto(struct state *returnable)
 {
@@ -410,8 +429,22 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
 
     hud_cam_pulse(config_get_d(CONFIG_CAMERA));
 
+<<<<<<< HEAD
     //toggle_hud_visibility(1);
     toggle_hud_visibility_expected(1);
+=======
+    id = play_ready_gui();
+    gui_slide(id, flags_in, 0, time_in, 0);
+    return id;
+}
+
+static int play_ready_leave(struct state *st, struct state *next, int id, int intent)
+{
+    gui_slide(id, flags_out | GUI_REMOVE, 0, time_out, 0);
+    transition_add(id);
+    return id;
+}
+>>>>>>> aa55fb3a38bbba571d09490c795438340f460723
 
     int id = play_ready_gui();
     gui_slide(id, flags_in, 0, time_in, 0);
@@ -457,8 +490,12 @@ static void play_ready_timer(int id, float dt)
     }
 
     gui_timer(id, dt);
+<<<<<<< HEAD
 
     /* Powerful screen animations! */
+=======
+}
+>>>>>>> aa55fb3a38bbba571d09490c795438340f460723
 
 #ifndef __EMSCRIPTEN__
     if (config_get_d(CONFIG_SCREEN_ANIMATIONS) && !console_gui_show())
@@ -469,8 +506,6 @@ static void play_ready_timer(int id, float dt)
 }
 
 /*---------------------------------------------------------------------------*/
-
-static int set_transition = 0;
 
 static int play_set_gui(void)
 {
@@ -494,6 +529,7 @@ static int play_set_enter(struct state *st, struct state *prev, int intent)
 
     /* Cannot run traffic lights in home room. */
 
+<<<<<<< HEAD
     if (curr_mode() == MODE_NONE) return 0;
 
     audio_narrator_play(AUD_SET);
@@ -502,6 +538,17 @@ static int play_set_enter(struct state *st, struct state *prev, int intent)
 
     int id = play_set_gui();
     gui_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.8f, 0);
+=======
+    id = play_set_gui();
+    gui_slide(id, flags_in, 0, time_in, 0);
+    return id;
+}
+
+static int play_set_leave(struct state *st, struct state *next, int id, int intent)
+{
+    gui_slide(id, flags_out | GUI_REMOVE, 0, time_out, 0);
+    transition_add(id);
+>>>>>>> aa55fb3a38bbba571d09490c795438340f460723
     return id;
 }
 
@@ -537,6 +584,7 @@ static void play_set_timer(int id, float dt)
     }
 
     gui_timer(id, dt);
+<<<<<<< HEAD
 
     if (time_state() >= 1.0f && !set_transition)
     {
@@ -556,6 +604,8 @@ static void play_set_timer(int id, float dt)
     else if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
 #endif
         hud_timer(dt);
+=======
+>>>>>>> aa55fb3a38bbba571d09490c795438340f460723
 }
 
 /*---------------------------------------------------------------------------*/
@@ -823,7 +873,11 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
 
     //toggle_hud_visibility(1);
 
+<<<<<<< HEAD
     int id = play_loop_gui();
+=======
+    id = play_loop_gui();
+>>>>>>> aa55fb3a38bbba571d09490c795438340f460723
     gui_slide(id, flags_in, 0, time_in, 0);
     return id;
 }
@@ -893,7 +947,7 @@ static void play_loop_timer(int id, float dt)
 
     if (time_state() >= 1.0f && !loop_transition)
     {
-        gui_slide(id, GUI_W | GUI_FLING | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.6f, 0);
+        gui_slide(id, flags_out, 0, time_out, 0);
         loop_transition = 1;
     }
 
@@ -1527,8 +1581,13 @@ static int look_buttn(int b, int d)
 
 struct state st_play_ready = {
     play_ready_enter,
+<<<<<<< HEAD
     play_prep_leave,
     play_prep_paint,
+=======
+    play_ready_leave,
+    play_ready_paint,
+>>>>>>> aa55fb3a38bbba571d09490c795438340f460723
     play_ready_timer,
     NULL,
     play_prep_stick,
@@ -1543,8 +1602,13 @@ struct state st_play_ready = {
 
 struct state st_play_set = {
     play_set_enter,
+<<<<<<< HEAD
     play_prep_leave,
     play_prep_paint,
+=======
+    play_set_leave,
+    play_set_paint,
+>>>>>>> aa55fb3a38bbba571d09490c795438340f460723
     play_set_timer,
     NULL,
     play_prep_stick,

@@ -28,6 +28,7 @@
 #endif
 
 #include "gui.h"
+#include "transition.h"
 //#include "hud.h"
 //#include "demo.h"
 //#include "progress.h"
@@ -322,6 +323,13 @@ static void play_shared_fade(float alpha)
 
 /*---------------------------------------------------------------------------*/
 
+static const float time_in   = 0.5f;
+static const float time_out  = 0.6f;
+static const int   flags_in  = GUI_E | GUI_FLING | GUI_EASE_BACK;
+static const int   flags_out = GUI_W | GUI_FLING | GUI_EASE_BACK | GUI_BACKWARD;
+
+/*---------------------------------------------------------------------------*/
+
 #ifdef MAPC_INCLUDES_CHKP
 static int restart_cancel_allchkp;
 #endif
@@ -406,7 +414,7 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
     toggle_hud_visibility_expected(1);
 
     int id = play_ready_gui();
-    gui_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.8f, 0);
+    gui_slide(id, flags_in, 0, time_in, 0);
     return id;
 }
 
@@ -449,12 +457,6 @@ static void play_ready_timer(int id, float dt)
     }
 
     gui_timer(id, dt);
-
-    if (time_state() >= 1.0f && !ready_transition)
-    {
-        gui_slide(id, GUI_W | GUI_FLING | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.6f, 0);
-        ready_transition = 1;
-    }
 
     /* Powerful screen animations! */
 
@@ -557,6 +559,13 @@ static void play_set_timer(int id, float dt)
 }
 
 /*---------------------------------------------------------------------------*/
+
+static int play_prep_leave(struct state* st, struct state* next, int id, int intent)
+{
+    gui_slide(id, flags_out | GUI_REMOVE, 0, time_out, 0);
+    transition_add(id);
+    return id;
+}
 
 static void play_prep_paint(int id, float t)
 {
@@ -815,7 +824,7 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
     //toggle_hud_visibility(1);
 
     int id = play_loop_gui();
-    gui_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.8f, 0);
+    gui_slide(id, flags_in, 0, time_in, 0);
     return id;
 }
 
@@ -881,7 +890,7 @@ static void play_loop_timer(int id, float dt)
     hud_update_camera_direction(curr_viewangle());
     gui_timer(id, dt);
     hud_timer(dt);
-    
+
     if (time_state() >= 1.0f && !loop_transition)
     {
         gui_slide(id, GUI_W | GUI_FLING | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.6f, 0);
@@ -1518,7 +1527,7 @@ static int look_buttn(int b, int d)
 
 struct state st_play_ready = {
     play_ready_enter,
-    shared_leave,
+    play_prep_leave,
     play_prep_paint,
     play_ready_timer,
     NULL,
@@ -1534,7 +1543,7 @@ struct state st_play_ready = {
 
 struct state st_play_set = {
     play_set_enter,
-    shared_leave,
+    play_prep_leave,
     play_prep_paint,
     play_set_timer,
     NULL,

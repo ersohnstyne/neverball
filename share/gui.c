@@ -2671,12 +2671,6 @@ void gui_timer(int id, float dt)
         if (widget[id].alpha >= .5f)
             widget[id].pulse_scale = flerp(1.0f, widget[id].pulse_scale, 0.8f);
 
-<<<<<<< HEAD
-=======
-        if (widget[id].scale < 1.0f)
-            widget[id].scale = 1.0f;
-
->>>>>>> 99ad14964f477526e558bffa1be6a7732d5d3a83
         if ((widget[id].flags & GUI_OFFSET) && widget[id].slide_time < widget[id].slide_delay + widget[id].slide_dur)
         {
             float alpha = 0.0f;

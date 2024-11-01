@@ -638,7 +638,7 @@ static int game_setup_action(int tok, int val)
             case GUI_PREV:
                 setup_langs_first = MAX(setup_langs_first - SETUP_LANG_STEP, 0);
 
-                return goto_state(&st_game_setup);
+                return exit_state(&st_game_setup);
 
                 break;
 

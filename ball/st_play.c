@@ -383,8 +383,6 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
 
         hud_cam_pulse(config_get_d(CONFIG_CAMERA));
 
-        //toggle_hud_visibility(1);
-
         /* Cannot run traffic lights in home room. */
 
         return 0;
@@ -409,9 +407,6 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
     hud_update_camera_direction(curr_viewangle());
 
     hud_cam_pulse(config_get_d(CONFIG_CAMERA));
-
-    //toggle_hud_visibility(1);
-    toggle_hud_visibility_expected(1);
 
     int id = play_ready_gui();
     gui_slide(id, flags_in, 0, time_in, 0);
@@ -497,8 +492,6 @@ static int play_set_enter(struct state *st, struct state *prev, int intent)
     if (curr_mode() == MODE_NONE) return 0;
 
     audio_narrator_play(AUD_SET);
-
-    //toggle_hud_visibility(1);
 
     int id = play_set_gui();
     gui_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.8f, 0);
@@ -780,8 +773,6 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
     prep_tilt_x = 0;
     prep_tilt_y = 0;
 
-    toggle_hud_visibility_expected(1);
-
     /* Cannot run traffic lights in home room. */
 
     if (curr_mode() == MODE_NONE) return 0;
@@ -790,7 +781,12 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
          prev != &st_play_set &&
          prev != &st_tutorial) ||
         prev == &st_play_loop)
+    {
+        hud_show(0.0f);
         return 0;
+    }
+
+    audio_narrator_play(AUD_GO);
 
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
     if (powerup_get_coin_multiply() == 2)
@@ -817,11 +813,11 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
     account_wgcl_save();
 #endif
 
-    audio_narrator_play(AUD_GO);
-
     game_client_fly(0.0f);
 
-    //toggle_hud_visibility(1);
+    hud_update(0, 0.0f);
+    hud_show(0.9f);
+    loop_transition = 0;
 
     int id = play_loop_gui();
     gui_slide(id, flags_in, 0, time_in, 0);
@@ -830,6 +826,7 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
 
 static int play_loop_leave(struct state *st, struct state *next, int id, int intent)
 {
+    hud_hide();
     gui_delete(id);
     return 0;
 }
@@ -997,7 +994,6 @@ static void play_loop_timer(int id, float dt)
     else if (!play_freeze_all && !play_block_state)
     {
         play_block_state = 1;
-        toggle_hud_visibility_expected(0);
         progress_stat(curr_status());
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         goto_state(curr_status() == GAME_GOAL ?

@@ -404,17 +404,16 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
     video_clr_grab();
 
     /* Cannot pause the game in home room. */
-    if (curr_mode() != MODE_NONE       &&
-        curr_mode() != MODE_CHALLENGE  &&
+    if (curr_mode() != MODE_NONE &&
+        curr_mode() != MODE_CHALLENGE &&
         curr_mode() != MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-     && curr_mode() != MODE_HARDCORE
+        && curr_mode() != MODE_HARDCORE
 #endif
         )
-        audio_music_fade_out(0.5f);
+        audio_music_fade_out(1.0f);
 
     hud_update(0, 0.0f);
-    toggle_hud_visibility_expected(0);
 
     return transition_slide(pause_gui(), 1, intent);
 }

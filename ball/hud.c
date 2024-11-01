@@ -697,6 +697,32 @@ void hud_timer(float dt)
     hud_touch_timer(dt);
 }
 
+void hud_show(float delay)
+{
+    gui_slide(FSLhud_id,        GUI_W  | GUI_EASE_BACK, delay + 0.0f, 0.3f, 0);
+    gui_slide(Lhud_id,          GUI_SW | GUI_EASE_BACK, delay + 0.0f, 0.3f, 0);
+    gui_slide(time_id,          GUI_S  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
+    gui_slide(camcompass_id,    GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
+    gui_slide(lvlname_id,       GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
+    gui_slide(speed_percent_id, GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
+    gui_slide(Rhud_id,          GUI_SE | GUI_EASE_BACK, delay + 0.2f, 0.3f, 0);
+
+    show_hud_expected = 1;
+}
+
+void hud_hide(void)
+{
+    show_hud_expected = 0;
+
+    gui_slide(FSLhud_id,        GUI_W  | GUI_EASE_BACK, 0, 0.3f, 0);
+    gui_slide(Lhud_id,          GUI_SW | GUI_EASE_BACK, 0, 0.3f, 0);
+    gui_slide(time_id,          GUI_S  | GUI_EASE_BACK, 0, 0.3f, 0);
+    gui_slide(camcompass_id,    GUI_N  | GUI_EASE_BACK, 0, 0.3f, 0);
+    gui_slide(lvlname_id,       GUI_N  | GUI_EASE_BACK, 0, 0.3f, 0);
+    gui_slide(speed_percent_id, GUI_N  | GUI_EASE_BACK, 0, 0.3f, 0);
+    gui_slide(Rhud_id,          GUI_SE | GUI_EASE_BACK, 0, 0.3f, 0);
+}
+
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
 int hud_touch(const SDL_TouchFingerEvent *e)

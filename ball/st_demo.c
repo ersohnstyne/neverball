@@ -1398,12 +1398,12 @@ static int demo_play_gui(void)
     return id;
 }
 
+
 static int demo_play_enter(struct state *st, struct state *prev, int intent)
 {
     smoothfix_slowdown_time = 0;
 
     video_hide_cursor();
-    toggle_hud_visibility_expected(1);
 
     if (demo_paused ||
         prev == &st_demo_play ||
@@ -1412,6 +1412,7 @@ static int demo_play_enter(struct state *st, struct state *prev, int intent)
         demo_paused = 0;
         prelude = 0;
         audio_music_fade_in(0.5f);
+        hud_show(0.0f);
         return 0;
     }
 
@@ -1422,6 +1423,7 @@ static int demo_play_enter(struct state *st, struct state *prev, int intent)
     //game_client_fly(0.0f);
     
     hud_update(0, 0.0f);
+    hud_show(0.9f);
 
     demo_timer_last = 0;
     demo_timer_down = -1;
@@ -1441,7 +1443,7 @@ static int demo_play_enter(struct state *st, struct state *prev, int intent)
     transition = 0;
 
     int id = demo_play_gui();
-    gui_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.8f, 0);
+    gui_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.5f, 0);
     return id;
 }
 
@@ -1471,7 +1473,8 @@ static void demo_play_paint(int id, float t)
         (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS)))
         hud_paint();
 
-    gui_paint(id);
+    if (time_state() < prelude)
+        gui_paint(id);
 }
 
 static void demo_play_timer(int id, float dt)
@@ -1513,12 +1516,6 @@ static void demo_play_timer(int id, float dt)
 
     if (demo_timer_down == -1 && time_state() >= prelude)
         demo_timer_down = demo_timer_last > demo_timer_curr;
-
-    if (time_state() >= 1.0f && !transition)
-    {
-        gui_slide(id, GUI_W | GUI_FLING | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.6f, 0);
-        transition = 1;
-    }
 
     /* Pause briefly before starting playback. */
 
@@ -1750,7 +1747,8 @@ static int demo_end_gui(void)
 static int demo_end_enter(struct state *st, struct state *prev, int intent)
 {
     audio_music_fade_out(demo_paused ? 0.2f : 2.0f);
-    toggle_hud_visibility_expected(0);
+
+    hud_hide();
 
     return transition_slide(demo_end_gui(), 1, intent);
 }
@@ -1769,19 +1767,21 @@ static void demo_end_paint(int id, float t)
         else
             console_gui_replay_eof_paint();
     }
-    else
+    else 
 #endif
-        if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
-            hud_paint();
+    if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        hud_paint();
 }
 
 static void demo_end_timer(int id, float dt)
 {
+    game_step_fade(dt);
     gui_timer(id, dt);
     hud_timer(dt);
 
     hud_update(0, dt);
 }
+
 
 static int demo_end_keybd(int c, int d)
 {

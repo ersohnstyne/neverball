@@ -71,17 +71,20 @@ static int sol_file(fs_file fin, int fp_ten)
     magic   = get_index(fin);
     version = get_index(fin);
 
-    if (fp_ten && (magic != SOL_MAGIC ||
-                   (version < 10 || version > SOL_VERSION_CURR_CHKP)))
+    if (magic != SOL_MAGIC)
+    {
+        log_errorf("That's not the SOL or SOLX file!\n");
+        return 0;
+    }
+
+    if (fp_ten && (version < 10 || version > SOL_VERSION_CURR_CHKP))
     {
         if (version < 10)
-        {
             log_errorf("SOLX is unsupported, must have SOL extension (SOL_VERSION < 10)!\n");
-            return 0;
-        }
+
+        return 0;
     }
-    else if (!fp_ten && (magic != SOL_MAGIC ||
-                         (version < SOL_VERSION_MIN || version > 9)))
+    else if (!fp_ten && (version < SOL_VERSION_MIN || version > 9))
     {
         if (version > 9)
             log_errorf("Unsupported SOL version, must have SOLX extension (SOL_VERSION > 9)!\n");
@@ -1073,17 +1076,36 @@ static void sol_stor_dict(fs_file fout, struct b_dict *dp)
 static void sol_stor_file(fs_file fout, struct s_base *fp)
 {
     int i;
-    int magic   = SOL_MAGIC;
+    const int magic = SOL_MAGIC;
 
 #ifdef MAPC_INCLUDES_CHKP
-    int version = fp->cc > 0 ? SOL_VERSION_CURR_CHKP : SOL_VERSION_CURR;
-
-    if (fp->cc == 0) version = SOL_VERSION_CURR;
+    const int chkp_support = fp->cc > 0;
+    const int version      = chkp_support ? SOL_VERSION_CURR_CHKP : SOL_VERSION_CURR;
 #else
-    int version = SOL_VERSION_CURR;
+    const int version = SOL_VERSION_CURR;
 #endif
 
     sol_version = version;
+
+    if (magic != SOL_MAGIC)
+    {
+        log_errorf("That's not the SOL or SOLX file!\n");
+        return;
+    }
+
+#ifdef MAPC_INCLUDES_CHKP
+    if (version     != sol_version ||
+        version     != (chkp_support ? SOL_VERSION_CURR_CHKP : SOL_VERSION_CURR) ||
+        sol_version != (chkp_support ? SOL_VERSION_CURR_CHKP : SOL_VERSION_CURR))
+#else
+    if (version     != sol_version ||
+        version     != SOL_VERSION_CURR ||
+        sol_version != SOL_VERSION_CURR)
+#endif
+    {
+        log_errorf("SOL version does not matched with current version!\n");
+        return;
+    }
 
     put_index(fout, magic);
     put_index(fout, version);

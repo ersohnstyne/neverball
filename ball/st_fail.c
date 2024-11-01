@@ -36,6 +36,7 @@
 #include "demo.h"
 #include "audio.h"
 #include "gui.h"
+#include "hud.h"
 #include "transition.h"
 #include "config.h"
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -44,7 +45,6 @@
 #endif
 #include "video.h"
 #include "key.h"
-#include "hud.h"
 
 #include "game_common.h"
 #include "game_server.h"
@@ -803,8 +803,8 @@ static void fail_timer(int id, float dt)
         }*/
     }
 
-    hud_timer(dt);
     gui_timer(id, dt);
+    hud_timer(dt);
 }
 
 static int fail_keybd(int c, int d)

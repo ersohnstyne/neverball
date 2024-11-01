@@ -32,26 +32,18 @@ void put_float(fs_file fout, float f)
     fs_putc((val >> 24) & 0xff, fout);
 }
 
-void put_index(fs_file fout, int i)
+void put_index(fs_file fout, int val)
 {
-#define val i
-
     fs_putc((val)       & 0xff, fout);
     fs_putc((val >> 8)  & 0xff, fout);
     fs_putc((val >> 16) & 0xff, fout);
     fs_putc((val >> 24) & 0xff, fout);
-
-#undef val
 }
 
-void put_short(fs_file fout, short s)
+void put_short(fs_file fout, short val)
 {
-#define val s
-
     fs_putc((val)      & 0xff, fout);
     fs_putc((val >> 8) & 0xff, fout);
-
-#undef val
 }
 
 void put_array(fs_file fout, const float *v, size_t n)

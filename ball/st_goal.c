@@ -40,7 +40,6 @@
 #endif
 
 #include "gui.h"
-#include "hud.h"
 #include "transition.h"
 #include "util.h"
 #include "progress.h"
@@ -48,6 +47,7 @@
 #include "config.h"
 #include "video.h"
 #include "demo.h"
+#include "hud.h"
 #include "key.h"
 #include "geom.h"
 
@@ -759,9 +759,6 @@ static void goal_timer(int id, float dt)
         }
     }
 
-    gui_timer(id, dt);
-    hud_timer(dt);
-
     if (challenge_caught_extra && config_get_d(CONFIG_NOTIFICATION_REWARD) &&
         (curr_mode() == MODE_CHALLENGE ||
          curr_mode() == MODE_BOOST_RUSH))
@@ -774,6 +771,9 @@ static void goal_timer(int id, float dt)
         server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
         goto_state(&st_goal_shop);
 #endif
+
+    gui_timer(id, dt);
+    hud_timer(dt);
 }
 
 static int goal_keybd(int c, int d)

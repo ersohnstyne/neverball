@@ -32,6 +32,9 @@ void hud_timer(float);
 void hud_update(int, float);
 void hud_update_camera_direction(float);
 
+void hud_show(float delay);
+void hud_hide(void);
+
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
 int hud_touch(const SDL_TouchFingerEvent *);

@@ -403,6 +403,7 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
 {
     video_clr_grab();
 
+<<<<<<< HEAD
     /* Cannot pause the game in home room. */
     if (curr_mode() != MODE_NONE &&
         curr_mode() != MODE_CHALLENGE &&
@@ -415,6 +416,8 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
 
     hud_update(0, 0.0f);
 
+=======
+>>>>>>> 99ad14964f477526e558bffa1be6a7732d5d3a83
     return transition_slide(pause_gui(), 1, intent);
 }
 

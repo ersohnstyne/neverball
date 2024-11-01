@@ -757,6 +757,7 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
     play_block_state        = 0;
     rot_init();
 
+<<<<<<< HEAD
     lmb_holded    =  0;
     lmb_hold_time = -0.01f;
 
@@ -781,6 +782,9 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
          prev != &st_play_set &&
          prev != &st_tutorial) ||
         prev == &st_play_loop)
+=======
+    if (prev == &st_pause)
+>>>>>>> 99ad14964f477526e558bffa1be6a7732d5d3a83
     {
         hud_show(0.0f);
         return 0;
@@ -815,7 +819,12 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
 
     game_client_fly(0.0f);
 
+<<<<<<< HEAD
     hud_update(0, 0.0f);
+=======
+    show_hud = 1;
+    hud_update(0);
+>>>>>>> 99ad14964f477526e558bffa1be6a7732d5d3a83
     hud_show(0.9f);
     loop_transition = 0;
 

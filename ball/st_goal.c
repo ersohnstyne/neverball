@@ -595,6 +595,7 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
     return transition_slide(goal_gui(), 1, intent);
 }
 
+<<<<<<< HEAD
 static int goal_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (!resume || !resume_hold)
@@ -622,6 +623,13 @@ static void goal_paint(int id, float t)
 #endif
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_paint();
+=======
+static void goal_paint(int id, float t)
+{
+    game_client_draw(0, t);
+    gui_paint(id);
+    hud_paint();
+>>>>>>> 99ad14964f477526e558bffa1be6a7732d5d3a83
 }
 
 static void goal_timer(int id, float dt)

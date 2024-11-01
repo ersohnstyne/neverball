@@ -35,8 +35,11 @@ void hud_update_camera_direction(float);
 void hud_show(float delay);
 void hud_hide(void);
 
+<<<<<<< HEAD
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
+=======
+>>>>>>> 99ad14964f477526e558bffa1be6a7732d5d3a83
 int hud_touch(const SDL_TouchFingerEvent *);
 #endif
 

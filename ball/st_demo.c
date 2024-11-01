@@ -1440,9 +1440,18 @@ static int demo_play_enter(struct state *st, struct state *prev, int intent)
 
     speed = SPEED_NORMAL;
     demo_replay_speed(speed);
+<<<<<<< HEAD
     transition = 0;
 
     int id = demo_play_gui();
+=======
+    show_hud = 1;
+    hud_update(0);
+    hud_show(0.9f);
+    transition = 0;
+
+    id = demo_play_gui();
+>>>>>>> 99ad14964f477526e558bffa1be6a7732d5d3a83
     gui_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.5f, 0);
     return id;
 }
@@ -1758,7 +1767,10 @@ static void demo_end_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
+    hud_paint();
+}
 
+<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
     {
@@ -1771,6 +1783,13 @@ static void demo_end_paint(int id, float t)
 #endif
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_paint();
+=======
+static void demo_end_timer(int id, float dt)
+{
+    game_step_fade(dt);
+    gui_timer(id, dt);
+    hud_timer(dt);
+>>>>>>> 99ad14964f477526e558bffa1be6a7732d5d3a83
 }
 
 static void demo_end_timer(int id, float dt)

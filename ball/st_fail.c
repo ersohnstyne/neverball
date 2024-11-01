@@ -805,6 +805,16 @@ static void fail_timer(int id, float dt)
 
     gui_timer(id, dt);
     hud_timer(dt);
+<<<<<<< HEAD
+=======
+}
+
+static void fail_paint(int id, float t)
+{
+    game_client_draw(0, t);
+    gui_paint(id);
+    hud_paint();
+>>>>>>> 99ad14964f477526e558bffa1be6a7732d5d3a83
 }
 
 static int fail_keybd(int c, int d)
@@ -1872,7 +1882,11 @@ int ask_more_purchased(struct state *ok_state)
 struct state st_fail = {
     fail_enter,
     shared_leave,
+<<<<<<< HEAD
     fail_paint,      /* Default: shared_paint */
+=======
+    fail_paint,
+>>>>>>> 99ad14964f477526e558bffa1be6a7732d5d3a83
     fail_timer,
     shared_point,
     shared_stick,

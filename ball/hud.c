@@ -719,21 +719,15 @@ void hud_show(float delay)
 
 void hud_hide(void)
 {
-<<<<<<< HEAD
     show_hud_expected = 0;
 
-    gui_slide(FSLhud_id,        GUI_W  | GUI_EASE_BACK, 0, 0.3f, 0);
-    gui_slide(Lhud_id,          GUI_SW | GUI_EASE_BACK, 0, 0.3f, 0);
-    gui_slide(time_id,          GUI_S  | GUI_EASE_BACK, 0, 0.3f, 0);
-    gui_slide(camcompass_id,    GUI_N  | GUI_EASE_BACK, 0, 0.3f, 0);
-    gui_slide(lvlname_id,       GUI_N  | GUI_EASE_BACK, 0, 0.3f, 0);
-    gui_slide(speed_percent_id, GUI_N  | GUI_EASE_BACK, 0, 0.3f, 0);
-    gui_slide(Rhud_id,          GUI_SE | GUI_EASE_BACK, 0, 0.3f, 0);
-=======
-    gui_slide(Lhud_id, GUI_S | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
-    gui_slide(time_id, GUI_S | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
-    gui_slide(Rhud_id, GUI_S | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
->>>>>>> e5bfb71a9a614242a2ebd424c9ece9f50a6ab9ad
+    gui_slide(FSLhud_id,        GUI_W  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+    gui_slide(Lhud_id,          GUI_SW | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+    gui_slide(time_id,          GUI_S  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+    gui_slide(camcompass_id,    GUI_N  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+    gui_slide(lvlname_id,       GUI_N  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+    gui_slide(speed_percent_id, GUI_N  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+    gui_slide(Rhud_id,          GUI_SE | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
 
     if (touch_timer > 0.0f)
     {

@@ -816,7 +816,7 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
     game_client_fly(0.0f);
 
     hud_update(0, 0.0f);
-    hud_show(0.9f);
+    hud_show(0.0f);
     loop_transition = 0;
 
     int id = play_loop_gui();

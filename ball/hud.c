@@ -49,7 +49,7 @@ static int Rhud_id;
 static int FSLhud_id;
 
 static int time_id;
-static int touch_id;
+static int Touch_id;
 
 static int speedometer_id;
 
@@ -94,7 +94,8 @@ static float touch_timer;
 
 /* Visibility */
 
-static int show_hud = 1;
+static int show_hud          = 1;
+static int show_hud_expected = 1;
 
 /* Screen animations */
 
@@ -206,11 +207,11 @@ void hud_init(void)
     }
 
     /* Let Mojang done these */
-    if ((touch_id = gui_vstack(0)))
+    if ((Touch_id = gui_vstack(0)))
     {
-        gui_space(touch_id);
+        gui_space(Touch_id);
 
-        if ((id = gui_hstack(touch_id)))
+        if ((id = gui_hstack(Touch_id)))
         {
             gui_state(id, GUI_ROMAN_2, GUI_TCH, GUI_BACK, 0);
 
@@ -220,8 +221,11 @@ void hud_init(void)
 
             gui_space(id);
         }
+        
+        // HACK: hide by default.
+        gui_set_slide(Touch_id, GUI_N, 0, 0, 0);
 
-        gui_layout(touch_id, -1, +1);
+        gui_layout(Touch_id, -1, +1);
     }
 
     /* Default is 59999 (24h = 360000 * 24) */
@@ -317,7 +321,7 @@ void hud_free(void)
     gui_delete(Rhud_id);
     gui_delete(Lhud_id);
     gui_delete(FSLhud_id);
-    gui_delete(touch_id);
+    gui_delete(Touch_id);
     gui_delete(time_id);
     gui_delete(cam_id);
     gui_delete(fps_id);
@@ -374,7 +378,7 @@ static void hud_update_alpha(void)
     gui_set_alpha(cam_id,          cam_hud_alpha * standard_hud_alpha,
                                    GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE);
     gui_set_alpha(time_id,         standard_hud_alpha, GUI_ANIMATION_S_CURVE);
-    gui_set_alpha(touch_id,        standard_hud_alpha,
+    gui_set_alpha(Touch_id,        standard_hud_alpha,
                                    GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE);
     gui_set_alpha(FSLhud_id,       standard_hud_alpha, GUI_ANIMATION_W_CURVE);
     gui_set_alpha(Lhud_id,         standard_hud_alpha,
@@ -466,7 +470,7 @@ void hud_update(int pulse, float animdt)
         gui_set_color(text_balls_id,       GUI_COLOR_WHT);
         gui_set_color(text_score_id,       GUI_COLOR_WHT);
         gui_set_color(text_speed_id,       GUI_COLOR_WHT);
-        gui_set_color(touch_id,            GUI_COLOR_WHT);
+        gui_set_color(Touch_id,            GUI_COLOR_WHT);
 
         gui_pulse(ball_id, 0.0f);
         gui_pulse(time_id, 0.0f);
@@ -517,7 +521,7 @@ void hud_update(int pulse, float animdt)
                     gui_set_color(text_balls_id,       GUI_COLOR_RED);
                     gui_set_color(text_score_id,       GUI_COLOR_RED);
                     gui_set_color(text_speed_id,       GUI_COLOR_RED);
-                    gui_set_color(touch_id,            GUI_COLOR_RED);
+                    gui_set_color(Touch_id,            GUI_COLOR_RED);
 
                     audio_play(AUD_TICK, 1.0f);
                     gui_pulse(time_id, 1.50);
@@ -530,7 +534,7 @@ void hud_update(int pulse, float animdt)
                     gui_set_color(text_balls_id,       GUI_COLOR_VIO);
                     gui_set_color(text_score_id,       GUI_COLOR_VIO);
                     gui_set_color(text_speed_id,       GUI_COLOR_VIO);
-                    gui_set_color(touch_id,            GUI_COLOR_VIO);
+                    gui_set_color(Touch_id,            GUI_COLOR_VIO);
 
                     audio_play(AUD_TOCK, 1.0f);
                     gui_pulse(time_id, 1.25);
@@ -543,7 +547,7 @@ void hud_update(int pulse, float animdt)
                     gui_set_color(text_balls_id,       GUI_COLOR_WHT);
                     gui_set_color(text_score_id,       GUI_COLOR_WHT);
                     gui_set_color(text_speed_id,       GUI_COLOR_WHT);
-                    gui_set_color(touch_id,            GUI_COLOR_WHT);
+                    gui_set_color(Touch_id,            GUI_COLOR_WHT);
                 }
             }
             else
@@ -689,7 +693,7 @@ void hud_timer(float dt)
 
     gui_timer(Rhud_id, dt);
     gui_timer(Lhud_id, dt);
-    gui_timer(touch_id, dt);
+    gui_timer(Touch_id, dt);
     gui_timer(time_id, dt);
 
     hud_cam_timer(dt);
@@ -721,12 +725,21 @@ void hud_hide(void)
     gui_slide(lvlname_id,       GUI_N  | GUI_EASE_BACK, 0, 0.3f, 0);
     gui_slide(speed_percent_id, GUI_N  | GUI_EASE_BACK, 0, 0.3f, 0);
     gui_slide(Rhud_id,          GUI_SE | GUI_EASE_BACK, 0, 0.3f, 0);
+
+    if (touch_timer > 0.0f)
+    {
+        touch_timer = 0.0f;
+        gui_slide(Touch_id, GUI_N | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+    }
 }
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
 int hud_touch(const SDL_TouchFingerEvent *e)
 {
+    if (touch_timer == 0.0f)
+        gui_slide(Touch_id, GUI_N | GUI_EASE_BACK, 0, 0.3f, 0);
+
     touch_timer = 5.0f;
 
     if (e->type == SDL_FINGERUP)
@@ -734,7 +747,7 @@ int hud_touch(const SDL_TouchFingerEvent *e)
         const int x = (int) ((float) video.device_w * e->x);
         const int y = (int) ((float) video.device_h * (1.0f - e->y));
 
-        return gui_point(touch_id, x, y);
+        return gui_point(Touch_id, x, y);
     }
 
     return 0;
@@ -880,12 +893,14 @@ void hud_lvlname_paint(void)
 void hud_cam_pulse(int c)
 {
     gui_set_label(cam_id, cam_to_str(c));
-    gui_slide(cam_id, GUI_N | GUI_EASE_BACK, 0, 0.2f, 0);
-    cam_timer = 0.0f;
+    gui_pulse(cam_id, 1.2f);
+    gui_slide(cam_id, GUI_NW | GUI_EASE_BACK, 0, 0.2f, 0);
+    cam_timer = 2.0f;
 }
 
 void hud_cam_timer(float dt)
 {
+    cam_timer -= dt;
     gui_timer(cam_id, dt);
 
     if (cam_timer < 2.0f)
@@ -902,7 +917,8 @@ void hud_cam_timer(float dt)
 
 void hud_cam_paint(void)
 {
-    gui_paint(cam_id);
+    if (cam_timer > 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        gui_paint(cam_id);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -948,16 +964,25 @@ void hud_speed_paint(void)
 
 void hud_touch_timer(float dt)
 {
-    touch_timer -= dt;
-    gui_timer(touch_id, dt);
+    if (touch_timer > 0.0f)
+    {
+        touch_timer -= dt;
+
+        if (touch_timer <= 0.0f)
+        {
+            touch_timer = 0.0f;
+            gui_slide(Touch_id, GUI_N | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+        }
+    }
+
+    gui_timer(Touch_id, dt);
 }
 
 void hud_touch_paint(void)
 {
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-    if (touch_timer > 0.0f && curr_state() != &st_pause)
-        gui_paint(touch_id);
+    gui_paint(Touch_id);
 #endif
 }
 

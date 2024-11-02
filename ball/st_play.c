@@ -815,7 +815,12 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
 
     game_client_fly(0.0f);
 
+<<<<<<< HEAD
     hud_update(0, 0.0f);
+=======
+    show_hud = 1;
+    hud_update(0);
+>>>>>>> e5bfb71a9a614242a2ebd424c9ece9f50a6ab9ad
     hud_show(0.0f);
     loop_transition = 0;
 

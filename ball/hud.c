@@ -983,14 +983,10 @@ void hud_touch_timer(float dt)
 
 void hud_touch_paint(void)
 {
-<<<<<<< HEAD
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     gui_paint(Touch_id);
 #endif
-=======
-    gui_paint(Touch_id);
->>>>>>> e5bfb71a9a614242a2ebd424c9ece9f50a6ab9ad
 }
 
 /*---------------------------------------------------------------------------*/

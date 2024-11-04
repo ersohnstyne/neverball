@@ -50,12 +50,12 @@
 #include "game_server.h"
 #include "game_client.h"
 
+#include "st_common.h"
 #include "st_play.h"
 #include "st_shop.h"
 #include "st_save.h"
 #include "st_fail.h"
 #include "st_level.h"
-#include "st_play.h"
 #include "st_shared.h"
 
 /*---------------------------------------------------------------------------*/
@@ -127,6 +127,7 @@ enum ask_more_options
 static int ask_more_target;
 
 static int resume;
+static int resume_hold;
 static int status;
 
 static int respawnable;
@@ -764,6 +765,32 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
     return transition_slide(fail_gui(), 1, intent);
 }
 
+static int fail_leave(struct state *st, struct state *next, int id, int intent)
+{
+    if (!resume || !resume_hold)
+    {
+        resume = (next != &st_fail);
+
+        if (!resume_hold)
+            resume_hold = (next == &st_fail);
+
+        resume = !resume_hold;
+    }
+
+    if (next == &st_null)
+    {
+        progress_exit();
+
+        campaign_quit();
+        set_quit();
+
+        game_server_free(NULL);
+        game_client_free(NULL);
+    }
+
+    return transition_slide(id, 0, intent);
+}
+
 static void fail_paint(int id, float t)
 {
     game_client_draw(0, t);
@@ -787,7 +814,7 @@ static void fail_timer(int id, float dt)
             game_server_step(dt);
             game_client_blend(game_server_blend());
 
-            int record_screenanimations = time_state() < 2.0f;
+            int record_screenanimations = time_state() < 2.0;
             int record_modes            = curr_mode() != MODE_NONE;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             int record_campaign         = !campaign_hardcore_norecordings();
@@ -1871,7 +1898,7 @@ int ask_more_purchased(struct state *ok_state)
 
 struct state st_fail = {
     fail_enter,
-    shared_leave,
+    fail_leave,
     fail_paint,      /* Default: shared_paint */
     fail_timer,
     shared_point,

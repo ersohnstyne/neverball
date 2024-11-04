@@ -531,6 +531,14 @@ int account_wgcl_reload(void)
 
     free(res_data.data);
 
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
+    ball_multi_free();
+    ball_multi_init();
+#else
+    ball_free();
+    ball_init();
+#endif
+
     log_printf("WGCL + CURL info: Done!\n");
     return 1;
 
@@ -549,7 +557,7 @@ account_wgcl_reload_fail:
     }
 
     EM_ASM({
-        Neverball.gamecore_account_try_reload();
+        Pennyball.gamecore_account_try_reload();
     }, 0);
 
     return 1;
@@ -857,7 +865,7 @@ account_wgcl_try_add_fail:
             w_coins_next, w_gems_next,
             c_hp_next, c_doublecash_next, c_halfgrav_next, c_doublespeed_next);
     EM_ASM({
-        Neverball.gamecore_account_try_update($0);
+        Pennyball.gamecore_account_try_update($0);
     }, json_data);
 
     return 1;
@@ -1004,7 +1012,7 @@ account_wgcl_try_set_fail:
             w_coins_next, w_gems_next,
             c_hp_next, c_doublecash_next, c_halfgrav_next, c_doublespeed_next);
     EM_ASM({
-        Neverball.gamecore_account_try_update($0);
+        Pennyball.gamecore_account_try_update($0);
     }, json_data);
 
     return 1;
@@ -1033,6 +1041,11 @@ int account_wgcl_restart_attempt(void)
 void account_wgcl_do_add(int w_coins, int w_gems,
                          int c_hp, int c_doublecash, int c_halfgrav, int c_doublespeed)
 {
+    if (!assets_add_is_pending &&
+        (w_coins == 0 && w_gems == 0 &&
+         c_hp == 0 && c_doublecash == 0 && c_halfgrav == 0 && c_doublespeed == 0))
+        return;
+
     const int w_coins_curr       = account_get_d(ACCOUNT_DATA_WALLET_COINS);
     const int w_gems_curr        = account_get_d(ACCOUNT_DATA_WALLET_GEMS);
     const int c_hp_curr          = account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);
@@ -1059,6 +1072,15 @@ void account_wgcl_do_add(int w_coins, int w_gems,
 void account_wgcl_do_set(int w_coins, int w_gems,
                          int c_hp, int c_doublecash, int c_halfgrav, int c_doublespeed)
 {
+    if (!assets_add_is_pending &&
+        (w_coins       == account_get_d(ACCOUNT_DATA_WALLET_COINS)      &&
+         w_gems        == account_get_d(ACCOUNT_DATA_WALLET_GEMS)       &&
+         c_hp          == account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) &&
+         c_doublecash  == account_get_d(ACCOUNT_CONSUMEABLE_EARNINATOR) &&
+         c_halfgrav    == account_get_d(ACCOUNT_CONSUMEABLE_FLOATIFIER) &&
+         c_doublespeed == account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER)))
+        return;
+
     if (read_only)
         if (!account_wgcl_try_set(w_coins, w_gems,
                                   c_hp, c_doublecash, c_halfgrav, c_doublespeed))

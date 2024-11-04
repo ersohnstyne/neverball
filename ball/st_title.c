@@ -232,7 +232,7 @@ static const char *pick_demo(Array items)
     /* OK, demo file opened, but test! */
 
 #if defined(COVID_HIGH_RISK)
-    const char* demopath = check_unlocked_demo(demo_data);
+    const char *demopath = check_unlocked_demo(demo_data);
     if (demopath)
         return demopath;
     else

@@ -46,10 +46,10 @@ static int speedbar_hud_id;
 static int Lhud_id;
 static int Rhud_id;
 
-static int FSLhud_id;
-
 static int time_id;
 static int Touch_id;
+
+static int FSLhud_id;
 
 static int speedometer_id;
 
@@ -87,7 +87,6 @@ static const char *speed_labels[SPEED_MAX] = {
 };
 
 static float speedup_logo_timer;
-
 static float cam_timer;
 static float speed_timer_length;
 static float touch_timer;
@@ -95,11 +94,10 @@ static float touch_timer;
 /* Visibility */
 
 static int show_hud          = 1;
-static int show_hud_expected = 1;
+static int show_hud_expected = 0;
 
 /* Screen animations */
 
-static float hud_animdt;
 static float show_hud_alpha;
 static float show_hud_total_alpha;
 
@@ -129,7 +127,7 @@ int hud_visibility(void)
 
 static void hud_fps(void)
 {
-    char perf_attr[MAXSTR];
+    char  perf_attr[MAXSTR];
     float ms_latence = 1.f / video_perf();
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -193,19 +191,6 @@ void hud_init(void)
         gui_layout(Lhud_id, -1, -1);
     }
 
-    if ((FSLhud_id = gui_hstack(0)))
-    {
-        if ((id = gui_vstack(FSLhud_id)))
-            text_speedometer_id = gui_label(id, _("km/h"),
-                                                GUI_SML, GUI_COLOR_WHT);
-
-        if ((id = gui_vstack(FSLhud_id)))
-            speedometer_id      = gui_count(id, 9999, GUI_SML);
-
-        gui_set_rect(FSLhud_id, GUI_RGT);
-        gui_layout(FSLhud_id, -1, 0);
-    }
-
     /* Let Mojang done these */
     if ((Touch_id = gui_vstack(0)))
     {
@@ -225,9 +210,6 @@ void hud_init(void)
         // HACK: hide by default.
         gui_set_slide(Touch_id, GUI_N, 0, 0, 0);
 
-        // HACK: hide by default.
-        gui_set_slide(Touch_id, GUI_N, 0, 0, 0);
-
         gui_layout(Touch_id, -1, +1);
     }
 
@@ -237,6 +219,19 @@ void hud_init(void)
         gui_set_clock(time_id, 0);
         gui_set_rect(time_id, GUI_TOP);
         gui_layout(time_id, 0, -1);
+    }
+
+    if ((FSLhud_id = gui_hstack(0)))
+    {
+        if ((id = gui_vstack(FSLhud_id)))
+            text_speedometer_id = gui_label(id, _("km/h"),
+                GUI_SML, GUI_COLOR_WHT);
+
+        if ((id = gui_vstack(FSLhud_id)))
+            speedometer_id = gui_count(id, 9999, GUI_SML);
+
+        gui_set_rect(FSLhud_id, GUI_RGT);
+        gui_layout(FSLhud_id, -1, 0);
     }
 
     /* NEW: Boost Rush Mode */
@@ -321,9 +316,9 @@ void hud_free(void)
     gui_delete(speedbar_hud_id);
     gui_delete(speedup_logo_id);
 
+    gui_delete(FSLhud_id);
     gui_delete(Rhud_id);
     gui_delete(Lhud_id);
-    gui_delete(FSLhud_id);
     gui_delete(Touch_id);
     gui_delete(time_id);
     gui_delete(cam_id);
@@ -366,6 +361,8 @@ static void hud_update_alpha(void)
         }
     }
 
+    gui_set_alpha(FSLhud_id,       standard_hud_alpha,
+                                   GUI_ANIMATION_W_CURVE);
     gui_set_alpha(fps_id,          standard_hud_alpha,
                                    GUI_ANIMATION_N_CURVE);
     gui_set_alpha(speed_id,        replay_hud_alpha,
@@ -383,7 +380,6 @@ static void hud_update_alpha(void)
     gui_set_alpha(time_id,         standard_hud_alpha, GUI_ANIMATION_S_CURVE);
     gui_set_alpha(Touch_id,        standard_hud_alpha,
                                    GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE);
-    gui_set_alpha(FSLhud_id,       standard_hud_alpha, GUI_ANIMATION_W_CURVE);
     gui_set_alpha(Lhud_id,         standard_hud_alpha,
                                    GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE);
     gui_set_alpha(Rhud_id,         standard_hud_alpha,
@@ -400,33 +396,21 @@ void hud_paint(void)
 {
     if (curr_mode() == MODE_NONE) return; /* Cannot render in home room. */
 
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    if (((curr_mode() == MODE_CHALLENGE  ||
-          curr_mode() == MODE_BOOST_RUSH ||
-          curr_mode() == MODE_HARDCORE) &&
-         (speed_timer_length < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))))
-        gui_paint(Lhud_id);
-    else if ((curr_mode() == MODE_CHALLENGE  ||
-              curr_mode() == MODE_BOOST_RUSH ||
-              curr_mode() == MODE_HARDCORE) &&
-             !config_get_d(CONFIG_SCREEN_ANIMATIONS))
-        gui_paint(Lhud_id);
-#else
-    if (((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) &&
-         (speed_timer_length < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))))
-        gui_paint(Lhud_id);
-    else if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) &&
-             !config_get_d(CONFIG_SCREEN_ANIMATIONS))
-        gui_paint(Lhud_id);
-#endif
-
-    if ((speed_timer_length < 0.0f && !config_get_d(CONFIG_SCREEN_ANIMATIONS))
-      || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    if (speed_timer_length < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {
+        gui_paint(FSLhud_id);
+
+        if (curr_mode() == MODE_CHALLENGE ||
+            curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+         || curr_mode() == MODE_HARDCORE
+#endif
+            )
+            gui_paint(Lhud_id);
+
         if (curr_coins() > 0 || curr_goal() > 0)
             gui_paint(Rhud_id);
 
-        gui_paint(FSLhud_id);
         gui_paint(time_id);
     }
 
@@ -486,9 +470,9 @@ void hud_update(int pulse, float animdt)
 
     if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {
-        show_hud_alpha += show_hud && show_hud_expected ? animdt : -animdt;
+        show_hud_alpha += (show_hud && show_hud_expected ? animdt : -animdt) * 6;
         show_hud_alpha  = CLAMP(0.0f, show_hud_alpha, 1.0f);
-        cam_alpha      += cam_timer > 0.25f ? animdt : -animdt;
+        cam_alpha      += (cam_timer > 0.0f ? animdt : -animdt) * 6;
         cam_alpha       = CLAMP(0.0f, cam_alpha, 1.0f);
     }
     else
@@ -497,7 +481,7 @@ void hud_update(int pulse, float animdt)
         cam_alpha      = 1.0f;
     }
 
-    replay_speed_alpha += speed_timer_length > 0.25f ? animdt : -animdt;
+    replay_speed_alpha += (speed_timer_length > 0.75f ? animdt : -animdt) * 6;
     replay_speed_alpha  = CLAMP(0.0f, replay_speed_alpha, 1.0f);
 
     hud_set_alpha(show_hud_total_alpha);
@@ -685,20 +669,23 @@ void hud_update(int pulse, float animdt)
 
 void hud_timer(float dt)
 {
-    hud_animdt = ((config_get_d(CONFIG_SMOOTH_FIX) ?
-                   MIN(.01666666f, dt) : dt) * 6.0f);
-
-    hud_update(1, hud_animdt);
+    hud_update(1, dt);
 
     gui_timer(speedbar_hud_id, dt);
     gui_timer(speedup_logo_id, dt);
-    hud_speedup_timer(dt);
 
+    gui_timer(FSLhud_id, dt);
     gui_timer(Rhud_id, dt);
     gui_timer(Lhud_id, dt);
     gui_timer(Touch_id, dt);
     gui_timer(time_id, dt);
 
+    gui_timer(camcompass_id, dt);
+    gui_timer(lvlname_id, dt);
+    gui_timer(fps_id, dt);
+    gui_timer(speed_percent_id, dt);
+
+    hud_speedup_timer(dt);
     hud_cam_timer(dt);
     hud_speed_timer(dt);
     hud_touch_timer(dt);
@@ -706,19 +693,24 @@ void hud_timer(float dt)
 
 void hud_show(float delay)
 {
+    if (show_hud_expected == 1) return;
+
+    show_hud_expected = 1;
+
     gui_slide(FSLhud_id,        GUI_W  | GUI_EASE_BACK, delay + 0.0f, 0.3f, 0);
     gui_slide(Lhud_id,          GUI_SW | GUI_EASE_BACK, delay + 0.0f, 0.3f, 0);
     gui_slide(time_id,          GUI_S  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
     gui_slide(camcompass_id,    GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
     gui_slide(lvlname_id,       GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
+    gui_slide(fps_id,           GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
     gui_slide(speed_percent_id, GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
     gui_slide(Rhud_id,          GUI_SE | GUI_EASE_BACK, delay + 0.2f, 0.3f, 0);
-
-    show_hud_expected = 1;
 }
 
 void hud_hide(void)
 {
+    if (show_hud_expected == 0) return;
+
     show_hud_expected = 0;
 
     gui_slide(FSLhud_id,        GUI_W  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
@@ -726,14 +718,17 @@ void hud_hide(void)
     gui_slide(time_id,          GUI_S  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
     gui_slide(camcompass_id,    GUI_N  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
     gui_slide(lvlname_id,       GUI_N  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+    gui_slide(fps_id,           GUI_N  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
     gui_slide(speed_percent_id, GUI_N  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
     gui_slide(Rhud_id,          GUI_SE | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
 
-    if (touch_timer > 0.0f)
+    if (touch_timer < 0.0f)
     {
         touch_timer = 0.0f;
         gui_slide(Touch_id, GUI_N | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
     }
+
+    gui_slide(speed_id, GUI_S | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
 }
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -832,17 +827,29 @@ void hud_speedup_pulse(void)
     gui_set_label(speedup_logo_id, _(speedup_text));
     gui_pulse(speedup_logo_id, 1.2f);
     speedup_logo_timer = 1.0f;
+
+    gui_slide(speedup_logo_id, GUI_W | GUI_EASE_BACK, 0, 0.5f, 0);
 }
 
 void hud_speedup_timer(float dt)
 {
-    speedup_logo_timer -= dt;
+    if (speedup_logo_timer > 0.0f)
+    {
+        speedup_logo_timer -= dt;
+
+        if (speedup_logo_timer <= 0.0f)
+        {
+            speedup_logo_timer = 0.0f;
+            gui_slide(speedup_logo_id, GUI_E | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.5f, 0);
+        }
+    }
+
     gui_timer(speedup_logo_id, dt);
 }
 
 void hud_speedup_paint(void)
 {
-    if (speedup_logo_timer > 0.0f)
+    if (speedup_logo_timer < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(speedup_logo_id);
 }
 
@@ -870,8 +877,7 @@ void hud_lvlname_paint(void)
 {
     if (config_get_d(CONFIG_FPS)) return;
 
-    if ((speed_timer_length < 0.0f && !config_get_d(CONFIG_SCREEN_ANIMATIONS))
-      || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    if (speed_timer_length < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {
 #if NB_HAVE_PB_BOTH==1
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -897,30 +903,32 @@ void hud_cam_pulse(int c)
 {
     gui_set_label(cam_id, cam_to_str(c));
     gui_pulse(cam_id, 1.2f);
-    gui_slide(cam_id, GUI_NW | GUI_EASE_BACK, 0, 0.2f, 0);
-    cam_timer = 2.0f;
+
+    if (cam_timer <= 0.0f)
+        gui_slide(cam_id, GUI_NW | GUI_EASE_BACK, 0, 0.2f, 0);
+
+    cam_timer = 1.0f;
 }
 
 void hud_cam_timer(float dt)
 {
-    cam_timer -= dt;
     gui_timer(cam_id, dt);
 
-    if (cam_timer < 2.0f)
+    if (cam_timer > 0.0f)
     {
-        cam_timer += dt;
+        cam_timer -= dt;
 
-        if (cam_timer >= 2.0f)
+        if (cam_timer <= 0.0f)
         {
-            cam_timer = 2.0f;
-            gui_slide(cam_id, GUI_N | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.2f, 0);
+            cam_timer = 0.0f;
+            gui_slide(cam_id, GUI_NW | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.2f, 0);
         }
     }
 }
 
 void hud_cam_paint(void)
 {
-    if (cam_timer > 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    if (cam_timer < 2.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(cam_id);
 }
 
@@ -950,12 +958,25 @@ void hud_speed_pulse(int speed)
             gui_pulse(speed_ids[i], 1.2f);
     }
 
+    if (speed_timer_length <= 0.0f)
+        gui_slide(speed_id, GUI_S | GUI_EASE_BACK, 0, 0.3f, 0);
+
     speed_timer_length = 2.0f;
 }
 
 void hud_speed_timer(float dt)
 {
-    speed_timer_length -= dt;
+    if (speed_timer_length > 0.0f)
+    {
+        speed_timer_length -= dt;
+
+        if (speed_timer_length <= 0.0f)
+        {
+            speed_timer_length = 0.0f;
+            gui_slide(speed_id, GUI_S | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+        }
+    }
+
     gui_timer(speed_id, dt);
 }
 
@@ -964,6 +985,8 @@ void hud_speed_paint(void)
     if (speed_timer_length > 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(speed_id);
 }
+
+/*---------------------------------------------------------------------------*/
 
 void hud_touch_timer(float dt)
 {

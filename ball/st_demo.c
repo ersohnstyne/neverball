@@ -148,11 +148,6 @@ static int st_demo_version_read(fs_file fp, struct demo *d)
 
 /*---------------------------------------------------------------------------*/
 
-static int check_full_access(const char *replay_pname)
-{
-    return 0;
-}
-
 static int stat_limit_busy = 0;
 static int stat_max = 0;
 
@@ -267,8 +262,6 @@ static int demo_action(int tok, int val)
                 default:        set_max_game_stat(2);
             }
 
-            stat_limit_busy = 0;
-
             time_max_minutes = df->timer / 6000;
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -277,6 +270,8 @@ static int demo_action(int tok, int val)
             else
 #endif
                 time_limit_minutes = 10;
+
+            stat_limit_busy = 0;
 
             /* Make sure, that the status limit is underneath it. */
 
@@ -581,29 +576,14 @@ static void gui_demo_update_status(int i)
         return;
     }
 
-    gui_set_label(name_id, d->name);
-    gui_set_label(date_id, date_to_str(d->date));
-    gui_set_label(player_id, d->player);
-
-    if (d->status == GAME_GOAL)
-        gui_set_color(status_id, GUI_COLOR_GRN);
-    else
-        gui_set_color(status_id, GUI_COLOR_RED);
-
-    gui_set_label(status_id, status_to_str(d->status));
-    gui_set_count(coin_id, d->coins);
-    gui_set_clock(time_id, d->timer);
-
     stat_limit_busy = 1;
 
     switch (d->status)
     {
-        case GAME_GOAL: set_max_game_stat(1); break;
-        case GAME_FALL: set_max_game_stat(3); break;
-        default:        set_max_game_stat(2);
+    case GAME_GOAL: set_max_game_stat(1); break;
+    case GAME_FALL: set_max_game_stat(3); break;
+    default:        set_max_game_stat(2);
     }
-
-    stat_limit_busy = 0;
 
     time_max_minutes = d->timer / 6000;
 
@@ -614,29 +594,39 @@ static void gui_demo_update_status(int i)
 #endif
         time_limit_minutes = 10;
 
-    /* Has Full-access? */
-    if (!check_full_access(d->name))
+    const int stat_high_limit = get_max_game_stat() > get_limit_game_stat(),
+              time_high_limit = time_max_minutes > time_limit_minutes;
+
+    stat_limit_busy = 0;
+
+    gui_set_label(name_id, d->name);
+    gui_set_label(date_id, date_to_str(d->date));
+    gui_set_label(player_id, d->player);
+
+    if (d->status == GAME_GOAL)
+        gui_set_color(status_id, GUI_COLOR_GRN);
+    else
+        gui_set_color(status_id, GUI_COLOR_RED);
+
+    gui_set_label(status_id, status_to_str(d->status));
+
+    gui_set_count(coin_id, d->coins);
+    gui_set_clock(time_id, d->timer);
+
+    /* Make sure, that the level status limit is underneath it. */
+
+    if (stat_high_limit || time_high_limit)
     {
-        /* Make sure, that the status limit is underneath it. */
-        if (get_max_game_stat() > get_limit_game_stat() ||
-            time_max_minutes > time_limit_minutes)
-        {
-            /* Max status exceeds limits! */
-            gui_set_color(name_id,   gui_gry, gui_red);
-            gui_set_color(date_id,   gui_gry, gui_red);
-            gui_set_color(player_id, gui_gry, gui_red);
-        }
-        else
-        {
-            gui_set_color(name_id,   GUI_COLOR_DEFAULT);
-            gui_set_color(date_id,   GUI_COLOR_DEFAULT);
-            gui_set_color(player_id, GUI_COLOR_DEFAULT);
-        }
+        /* Max level status exceeds limits! */
+
+        gui_set_color(name_id, gui_gry, gui_red);
+        gui_set_color(date_id, gui_gry, gui_red);
+        gui_set_color(player_id, gui_gry, gui_red);
     }
     else
     {
-        gui_set_color(name_id,   GUI_COLOR_DEFAULT);
-        gui_set_color(date_id,   GUI_COLOR_DEFAULT);
+        gui_set_color(name_id, GUI_COLOR_DEFAULT);
+        gui_set_color(date_id, GUI_COLOR_DEFAULT);
         gui_set_color(player_id, GUI_COLOR_DEFAULT);
     }
 }
@@ -722,7 +712,7 @@ static int demo_restricted_gui(void)
         }
         else
             gui_multi(id, _("You can't open selected replay,\n"
-                            "because it was restricted for you!"),
+                            "because it was restricted by you!"),
                           GUI_SML, GUI_COLOR_WHT);
 
         demo_requires_update = 0;
@@ -742,6 +732,15 @@ static int demo_restricted_enter(struct state *st, struct state *prev, int inten
 
 static int demo_restricted_leave(struct state *st, struct state *next, int id, int intent)
 {
+    if (next == &st_null)
+    {
+        demo_dir_free(demo_items);
+        demo_items = NULL;
+
+        game_server_free(NULL);
+        game_client_free(NULL);
+    }
+
     if (reported_status)
     {
         free(reported_status);
@@ -789,140 +788,6 @@ static int demo_restricted_buttn(int b, int d)
                 return goto_state(&st_demo_end);
             else
                 return exit_state(&st_demo);
-    }
-    return 1;
-}
-
-/*---------------------------------------------------------------------------*/
-
-int detailpanel;
-int scanfastforwards = 0;
-int threshold = 0;
-
-static int demo_scan_allowance_gui()
-{
-    char cancelattr[MAXSTR];
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(cancelattr, MAXSTR,
-#else
-    sprintf(cancelattr,
-#endif
-            _("Scan in progress...\n" \
-              "To cancel scanning, press %s"),
-            SDL_GetKeyName(KEY_EXIT));
-
-    detailpanel = gui_multi(0, cancelattr, GUI_SML, GUI_COLOR_WHT);
-    gui_layout(detailpanel, 0, 0);
-    return detailpanel;
-}
-
-static int demo_scan_allowance_enter(struct state *st, struct state *prev, int intent)
-{
-    threshold = 0;
-    /* Scan levels */
-    game_proxy_filter(filter_cmd);
-
-    premaded_timer = curr_clock();
-    return transition_slide(demo_scan_allowance_gui(), 1, intent);
-}
-
-static void demo_scan_allowance_timer(int id, float dt)
-{
-    if (premaded_timer == -1) { premaded_timer = curr_clock(); return; }
-
-    int aim_timer = premaded_timer - curr_clock();
-
-    stat_limit_busy = 1;
-
-    switch (curr_status())
-    {
-        case GAME_GOAL: set_max_game_stat(1); break;
-        case GAME_FALL: set_max_game_stat(3); break;
-        default:        set_max_game_stat(2);
-    }
-
-    stat_limit_busy = 0;
-
-    if (get_max_game_stat() > get_limit_game_stat() &&
-        (!scanfastforwards || standalone))
-    {
-        demo_replay_stop(0);
-        goto_state(&st_demo_restricted);
-        return;
-    }
-
-    if (!demo_replay_step(dt))
-    {
-        demo_replay_stop(0);
-        if (!progress_replay(curr_demo()))
-        {
-            if (!standalone)
-                exit_state(&st_demo);
-            else
-            {
-                SDL_Event e = { SDL_QUIT };
-                SDL_PushEvent(&e);
-            }
-        }
-        else
-        {
-            threshold++;
-
-            if (threshold == 5)
-                goto_state(&st_demo_play);
-        }
-    }
-    else
-        progress_step();
-
-    if (!standalone)
-    {
-        if (premaded_timer > 0)
-        {
-            if (aim_timer >= target_timer - 100)
-            {
-                demo_replay_manual_speed(1);
-                scanfastforwards = 0;
-                return;
-            }
-        }
-        else if (curr_clock() >= target_timer - 100)
-        {
-            demo_replay_manual_speed(1);
-            scanfastforwards = 0;
-            return;
-        }
-
-        scanfastforwards = 1;
-        demo_replay_manual_speed(target_timer / 100.0f);
-    }
-    else
-        demo_replay_manual_speed(32);
-}
-
-static int demo_scan_allowance_keybd(int c, int d)
-{
-    if (d)
-    {
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-#else
-        if (c == KEY_EXIT)
-#endif
-        {
-            demo_replay_stop(0);
-            return standalone ? 0 : exit_state(&st_demo);
-        }
-    }
-    return 1;
-}
-
-static int demo_scan_allowance_buttn(int b, int d)
-{
-    if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-    {
-        demo_replay_stop(0);
-        return standalone ? 0 : exit_state(&st_demo);
     }
     return 1;
 }
@@ -1398,12 +1263,13 @@ static int demo_play_gui(void)
     return id;
 }
 
-
 static int demo_play_enter(struct state *st, struct state *prev, int intent)
 {
     smoothfix_slowdown_time = 0;
 
     video_hide_cursor();
+
+    hud_update(0, 0.0f);
 
     if (demo_paused ||
         prev == &st_demo_play ||
@@ -1421,8 +1287,7 @@ static int demo_play_enter(struct state *st, struct state *prev, int intent)
      * line is currently left in for compatibility with older replays.
      */
     //game_client_fly(0.0f);
-    
-    hud_update(0, 0.0f);
+
     hud_show(0.9f);
 
     demo_timer_last = 0;
@@ -1460,9 +1325,13 @@ static int demo_play_leave(struct state *st, struct state *next, int id, int int
         game_client_free(NULL);
     }
 
+    prelude = 0.0f;
+
     video_show_cursor();
 
-    return transition_slide(id, 0, intent);
+    hud_hide();
+    gui_delete(id);
+    return 0;
 }
 
 static void demo_play_paint(int id, float t)
@@ -1473,7 +1342,11 @@ static void demo_play_paint(int id, float t)
         (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS)))
         hud_paint();
 
-    if (time_state() < prelude)
+    if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        gui_set_alpha(id, CLAMP(0, 1.5f - time_state(), 1), GUI_ANIMATION_NONE);
+
+    if (!st_global_animating() && id &&
+        (time_state() < prelude || config_get_d(CONFIG_SCREEN_ANIMATIONS)))
         gui_paint(id);
 }
 
@@ -1660,8 +1533,18 @@ static int demo_end_action(int tok, int val)
 
     switch (tok)
     {
+        case DEMO_QUIT:
+            demo_paused = 0;
+
         case GUI_BACK:
-            return exit_state(demo_paused ? &st_demo_play : &st_demo);
+            if (!demo_paused)
+            {
+                is_opened = 0;
+                demo_replay_stop(0);
+            }
+
+            return exit_state(demo_paused ? &st_demo_play :
+                                           (!standalone ? &st_demo : 0));
 
         case DEMO_CONF:
             return goto_conf(&st_demo_end, 1, 1);
@@ -1669,16 +1552,6 @@ static int demo_end_action(int tok, int val)
         case DEMO_DEL:
             demo_paused = 0;
             return goto_state(&st_demo_del);
-
-        case DEMO_QUIT:
-            demo_paused = 0;
-
-            is_opened = 0;
-            demo_replay_stop(0);
-
-            /* bye! */
-
-            return !standalone ? exit_state(&st_demo) : 0;
 
         case DEMO_REPLAY:
             if (demo_paused)
@@ -1767,10 +1640,10 @@ static void demo_end_paint(int id, float t)
         else
             console_gui_replay_eof_paint();
     }
-    else
+    else 
 #endif
-        if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
-            hud_paint();
+    if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        hud_paint();
 }
 
 static void demo_end_timer(int id, float dt)
@@ -1781,25 +1654,13 @@ static void demo_end_timer(int id, float dt)
 
     hud_update(0, dt);
 }
-
-static void demo_end_timer(int id, float dt)
-{
-    game_step_fade(dt);
-    gui_timer(id, dt);
-    hud_timer(dt);
-
-    hud_update(0, dt);
-}
-
 
 static int demo_end_keybd(int c, int d)
 {
-    if (d)
-    {
-        if (c == KEY_EXIT)
-            return demo_end_action(demo_paused && allow_exact_versions ?
-                                   GUI_BACK : GUI_NONE, 0);
-    }
+    if (d && c == KEY_EXIT)
+        return demo_end_action(!demo_paused || allow_exact_versions ?
+                               GUI_BACK : GUI_NONE, 0);
+
     return 1;
 }
 
@@ -1818,11 +1679,8 @@ static int demo_end_buttn(int b, int d)
                 config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
                 return demo_end_action(GUI_BACK, 0);
         }
-        else
-        {
-            if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-                return demo_end_action(DEMO_QUIT, 0);
-        }
+        else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            return demo_end_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -2152,19 +2010,6 @@ static int demo_look_buttn(int b, int d)
 }
 
 /*---------------------------------------------------------------------------*/
-
-struct state st_demo_scan_allowance = {
-    demo_scan_allowance_enter,
-    shared_leave,
-    shared_paint,
-    demo_scan_allowance_timer,
-    shared_point,
-    shared_stick,
-    shared_angle,
-    NULL,
-    demo_scan_allowance_keybd,
-    demo_scan_allowance_buttn
-};
 
 struct state st_demo_restricted = {
     demo_restricted_enter,

@@ -69,7 +69,7 @@
 
 /* Random stuff. */
 
-#if !defined(MAX_STR_BLOCKREASON)
+#ifndef MAX_STR_BLOCKREASON
 #define MAX_STR_BLOCKREASON 256
 #endif
 #ifndef MAXSTR

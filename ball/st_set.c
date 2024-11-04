@@ -451,6 +451,7 @@ static int set_gui(void)
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
+#if NB_STEAM_API==1
                 if (account_get_d(ACCOUNT_PRODUCT_LEVELS) == 1 &&
                     server_policy_get_d(SERVER_POLICY_EDITION) > -1)
                 {
@@ -462,13 +463,10 @@ static int set_gui(void)
                         gui_space(jd);
                     }*/
 
-#if NB_STEAM_API==1
                     gui_state(jd, _("Workshop"), GUI_SML, SET_GET_MORE, 0);
-#else
-                    gui_state(jd, _("Get more!"), GUI_SML, SET_GET_MORE, 0);
-#endif
                 }
                 else
+#endif
 #endif
                     gui_label(jd, _("Level Set"), GUI_SML, GUI_COLOR_DEFAULT);
 
@@ -485,6 +483,7 @@ static int set_gui(void)
 #ifdef CONFIG_INCLUDES_ACCOUNT
             if ((jd = gui_hstack(id)))
             {
+#if NB_STEAM_API==1
                 if (account_get_d(ACCOUNT_PRODUCT_LEVELS) == 1 &&
                     server_policy_get_d(SERVER_POLICY_EDITION) > 0) {
                     gui_filler(jd);
@@ -496,13 +495,10 @@ static int set_gui(void)
                     }*/
 
                     gui_space(jd);
-#if NB_STEAM_API==1
                     gui_state(jd, _("Workshop"), GUI_SML, SET_GET_MORE, 0);
-#else
-                    gui_state(jd, _("Get more!"), GUI_SML, SET_GET_MORE, 0);
-#endif
                     gui_filler(jd);
                 }
+#endif
             }
 #endif
         }

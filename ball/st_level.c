@@ -62,6 +62,7 @@
 #include "game_client.h"
 #include "game_common.h"
 
+#include "st_common.h"
 #include "st_pause.h"
 #include "st_level.h"
 #include "st_play.h"
@@ -629,6 +630,22 @@ static int level_enter(struct state *st, struct state *prev, int intent)
     return transition_slide(level_gui(), 1, intent);
 }
 
+static int level_leave(struct state* st, struct state* next, int id, int intent)
+{
+    if (next == &st_null)
+    {
+        progress_exit();
+
+        campaign_quit();
+        set_quit();
+
+        game_server_free(NULL);
+        game_client_free(NULL);
+    }
+
+    return transition_slide(id, 0, intent);
+}
+
 static void level_paint(int id, float t)
 {
 #if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
@@ -636,17 +653,15 @@ static void level_paint(int id, float t)
 #endif
         game_client_draw(0, t);
 
-    gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
     {
         hud_cam_paint();
         console_gui_desc_paint();
     }
-    else
 #endif
-    if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
-        hud_paint();
+
+    gui_paint(id);
 }
 
 static void level_timer(int id, float dt)
@@ -671,7 +686,6 @@ static void level_timer(int id, float dt)
     }
 
     geom_step(dt);
-    hud_timer(dt);
     gui_timer(id, dt);
     //game_lerp_pose_point_tick(dt);
 
@@ -850,13 +864,6 @@ static int nodemo_enter(struct state *st, struct state *prev, int intent)
     }
 
     return transition_slide(id, 1, intent);
-}
-
-static void nodemo_timer(int id, float dt)
-{
-    geom_step(dt);
-    game_step_fade(dt);
-    gui_timer(id, dt);
 }
 
 static void nodemo_timer(int id, float dt)
@@ -1132,7 +1139,7 @@ struct state st_level_loading = {
 
 struct state st_level = {
     level_enter,
-    shared_leave,
+    level_leave,
     level_paint,
     level_timer,
     shared_point, /* Can hover on: point */
@@ -1145,7 +1152,7 @@ struct state st_level = {
 
 struct state st_poser = {
     NULL,
-    NULL,
+    level_leave,
     poser_paint,
     poser_timer,
     poser_point,
@@ -1158,7 +1165,7 @@ struct state st_poser = {
 
 struct state st_nodemo = {
     nodemo_enter,
-    shared_leave,
+    level_leave,
     shared_paint,
     nodemo_timer,
     shared_point,
@@ -1171,7 +1178,7 @@ struct state st_nodemo = {
 
 struct state st_level_signin_required = {
     level_signin_required_enter,
-    shared_leave,
+    level_leave,
     shared_paint,
     nodemo_timer,
     shared_point,

@@ -293,6 +293,8 @@ static int tutorial_enter(struct state *st, struct state *prev, int intent)
 
     gui_layout(id, 0, 0);
 
+    hud_hide();
+
     return transition_slide(id, 1, intent);
 }
 
@@ -300,11 +302,13 @@ static void tutorial_paint(int id, float t)
 {
     game_client_draw(0, t);
 
-    gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
         console_gui_death_paint();
 #endif
+
+    hud_paint();
+    gui_paint(id);
 }
 
 static void tutorial_timer(int id, float dt)
@@ -312,6 +316,7 @@ static void tutorial_timer(int id, float dt)
     if (tutorial_before_play || hint_before_play)
         geom_step(dt);
 
+    hud_timer(dt);
     gui_timer(id, dt);
 }
 
@@ -501,6 +506,8 @@ static int hint_enter(struct state *st, struct state *prev, int intent)
     }
 
     gui_layout(id, 0, 0);
+
+    hud_hide();
 
     return transition_slide(id, 1, intent);
 }

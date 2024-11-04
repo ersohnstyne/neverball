@@ -49,6 +49,7 @@
 
 #include "st_play_sync.h"
 
+#include "st_common.h"
 #include "st_play.h"
 #include "st_goal.h"
 #include "st_fail.h"
@@ -403,8 +404,10 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
         play_update_client = 0;
         play_update_server = 1;
     }
+
     hud_update(0, 0.0f);
     hud_update_camera_direction(curr_viewangle());
+    hud_show(0.0f);
 
     hud_cam_pulse(config_get_d(CONFIG_CAMERA));
 
@@ -555,6 +558,18 @@ static void play_set_timer(int id, float dt)
 
 static int play_prep_leave(struct state* st, struct state* next, int id, int intent)
 {
+    if (next == &st_null)
+    {
+        progress_stat(GAME_NONE);
+        progress_exit();
+
+        campaign_quit();
+        set_quit();
+
+        game_server_free(NULL);
+        game_client_free(NULL);
+    }
+
     gui_slide(id, flags_out | GUI_REMOVE, 0, time_out, 0);
     transition_add(id);
     return id;
@@ -564,11 +579,9 @@ static void play_prep_paint(int id, float t)
 {
     game_client_draw(0, t);
 
-    gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show() && current_platform != PLATFORM_PC)
     {
-        hud_cam_paint();
         console_gui_preparation_paint();
 
         if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
@@ -584,6 +597,8 @@ static void play_prep_paint(int id, float t)
         hud_paint();
         hud_lvlname_paint();
     }
+
+    gui_paint(id);
 }
 
 static void play_prep_stick(int id, int a, float v, int bump)
@@ -777,14 +792,14 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
 
     if (curr_mode() == MODE_NONE) return 0;
 
+    hud_update(0, 0.0f);
+    hud_show(0.0f);
+
     if ((prev != &st_play_ready &&
          prev != &st_play_set &&
          prev != &st_tutorial) ||
         prev == &st_play_loop)
-    {
-        hud_show(0.0f);
         return 0;
-    }
 
     audio_narrator_play(AUD_GO);
 
@@ -815,8 +830,6 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
 
     game_client_fly(0.0f);
 
-    hud_update(0, 0.0f);
-    hud_show(0.0f);
     loop_transition = 0;
 
     int id = play_loop_gui();
@@ -826,6 +839,18 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
 
 static int play_loop_leave(struct state *st, struct state *next, int id, int intent)
 {
+    if (next == &st_null)
+    {
+        progress_stat(GAME_NONE);
+        progress_exit();
+
+        campaign_quit();
+        set_quit();
+
+        game_server_free(NULL);
+        game_client_free(NULL);
+    }
+
     hud_hide();
     gui_delete(id);
     return 0;
@@ -841,13 +866,12 @@ static void play_loop_paint(int id, float t)
         hud_lvlname_paint();
     }
 
-    if (!st_global_animating() && time_state() < 1.0f && id)
-    {
-        if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
-            gui_set_alpha(id, CLAMP(0, 1.0f - time_state(), 1), GUI_ANIMATION_NONE);
+    if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        gui_set_alpha(id, CLAMP(0, 1.5f - time_state(), 1), GUI_ANIMATION_NONE);
 
+    if (!st_global_animating() && id &&
+        (time_state() < 1.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS)))
         gui_paint(id);
-    }
 }
 
 static void play_loop_timer(int id, float dt)
@@ -1420,6 +1444,18 @@ static int look_enter(struct state *st, struct state *prev, int intent)
 
 static int look_leave(struct state *st, struct state *next, int id, int intent)
 {
+    if (next == &st_null)
+    {
+        progress_stat(GAME_NONE);
+        progress_exit();
+
+        campaign_quit();
+        set_quit();
+
+        game_server_free(NULL);
+        game_client_free(NULL);
+    }
+
     return 0;
 }
 

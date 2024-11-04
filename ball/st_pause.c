@@ -42,6 +42,7 @@
 #include "game_server.h"
 #include "game_client.h"
 
+#include "st_common.h"
 #include "st_play.h"
 #include "st_level.h"
 #include "st_pause.h"
@@ -404,11 +405,11 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
     video_clr_grab();
 
     /* Cannot pause the game in home room. */
-    if (curr_mode() != MODE_NONE &&
-        curr_mode() != MODE_CHALLENGE &&
+    if (curr_mode() != MODE_NONE       &&
+        curr_mode() != MODE_CHALLENGE  &&
         curr_mode() != MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        && curr_mode() != MODE_HARDCORE
+     && curr_mode() != MODE_HARDCORE
 #endif
         )
         audio_music_fade_out(1.0f);
@@ -418,9 +419,26 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
     return transition_slide(pause_gui(), 1, intent);
 }
 
+static int pause_leave(struct state *st, struct state *next, int id, int intent)
+{
+    if (next == &st_null)
+    {
+        progress_stat(GAME_NONE);
+        progress_exit();
+
+        campaign_quit();
+        set_quit();
+
+        game_server_free(NULL);
+        game_client_free(NULL);
+    }
+
+    return transition_slide(id, 0, intent);
+}
+
 static void pause_paint(int id, float t)
 {
-    shared_paint(id, t);
+    game_client_draw(0, t);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
@@ -429,6 +447,8 @@ static void pause_paint(int id, float t)
 #endif
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_paint();
+
+    gui_paint(id);
 }
 
 static void pause_timer(int id, float dt)
@@ -606,7 +626,7 @@ static int pause_quit_enter(struct state *st, struct state *prev, int intent)
 
 struct state st_pause = {
     pause_enter,
-    shared_leave,
+    pause_leave,
     pause_paint,
     pause_timer,
     shared_point,
@@ -619,7 +639,7 @@ struct state st_pause = {
 
 struct state st_pause_quit = {
     pause_quit_enter,
-    shared_leave,
+    pause_leave,
     shared_paint,
     pause_timer,
     shared_point,

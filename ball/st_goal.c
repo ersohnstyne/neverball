@@ -607,6 +607,17 @@ static int goal_leave(struct state *st, struct state *next, int id, int intent)
         resume = !resume_hold;
     }
 
+    if (next == &st_null)
+    {
+        progress_exit();
+
+        campaign_quit();
+        set_quit();
+
+        game_server_free(NULL);
+        game_client_free(NULL);
+    }
+
     return transition_slide(id, 0, intent);
 }
 
@@ -635,7 +646,7 @@ static void goal_timer(int id, float dt)
         geom_step(dt);
         game_server_step(dt);
 
-        int record_screenanimations = time_state() < 1.0f;
+        int record_screenanimations = resume && time_state() < 1.0f;
         int record_modes            = curr_mode() != MODE_NONE;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         int record_campaign         = !campaign_hardcore_norecordings();
@@ -1050,7 +1061,7 @@ static void goal_hardcore_paint(int id, float t)
 
 struct state st_goal = {
     goal_enter,
-    shared_leave,
+    goal_leave,
     goal_paint,
     goal_timer,
     shared_point,

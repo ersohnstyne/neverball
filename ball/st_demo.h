@@ -17,7 +17,6 @@
 
 #include "state.h"
 
-extern struct state st_demo_scan_allowance;
 extern struct state st_demo;
 extern struct state st_demo_play;
 extern struct state st_demo_look;

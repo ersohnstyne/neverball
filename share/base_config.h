@@ -94,21 +94,11 @@
 
 #define JOY_VALUE(k) ((float) (k) / ((k) < 0 ? 32768 : 32767))
 
-#if !defined(MAX_STR_BLOCKREASON)
-#if _WIN32 && !_MSC_VER
-#error Security compilation error: This preprocessor is superceded with \
-       WinUser.h include headers. Consider using MAX_PATH from Windows.h \
-       with IDE or build tools for Microsoft Visual Studio Community instead.
-#endif
+#ifndef MAX_STR_BLOCKREASON
 #define MAX_STR_BLOCKREASON 256
 #endif
 
 #if !defined(MAX_PATH)
-#if _WIN32 && !_MSC_VER
-#error Security compilation error: This preprocessor is superceded with \
-       minwindef.h include headers. Consider using MAX_PATH from Windows.h \
-       with IDE or build tools for Microsoft Visual Studio Community instead.
-#endif
 #define MAX_PATH 260
 #endif
 

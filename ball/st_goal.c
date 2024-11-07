@@ -227,7 +227,6 @@ static int goal_gui(void)
             int save = 2;
 #endif
 
-<<<<<<< HEAD
             if ((jd = gui_vstack(id)))
             {
                 if (high &&
@@ -254,12 +253,6 @@ static int goal_gui(void)
 
             if (save == 0)
                 demo_play_stop(1);
-=======
-            if (high)
-                gid = gui_label(id, s1, GUI_MED, gui_grn, gui_grn);
-            else
-                gid = gui_label(id, s2, GUI_MED, gui_blu, gui_grn);
->>>>>>> 885e126e62e6fd9044f35537467a08404a14aa8a
 
             gui_space(id);
 

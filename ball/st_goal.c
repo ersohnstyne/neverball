@@ -242,7 +242,7 @@ static int goal_gui(void)
                     gid = gui_title_header(jd, s1, GUI_MED, GUI_COLOR_GRN);
                 else
                     gid = gui_title_header(jd, master ? s3 : s2,
-                                               master ? GUI_MED : GUI_LRG,
+                                               GUI_MED,
                                                gui_blu, gui_grn);
 
                 if (!resume)

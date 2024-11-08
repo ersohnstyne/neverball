@@ -200,7 +200,7 @@ static int set_action(int tok, int val)
 
             set_goto(val);
 
-            activity_services_setname(set_name(val));
+            activity_services_setname_update(set_name(val));
 
             return goto_state(&st_start);
 
@@ -280,6 +280,12 @@ static void gui_set(int id, int i)
         if (str_starts_with(curr_setid_final, "valentine"))
         {
             gui_set_color(set_text_name_id, gui_pnk, gui_red);
+
+            SAFECPY(set_name_final, curr_setname_final);
+
+        else if (str_starts_with(curr_setid_final, "freeland"))
+        {
+            gui_set_color(set_text_name_id, gui_grn, gui_cya);
 
             SAFECPY(set_name_final, curr_setname_final);
         }
@@ -547,7 +553,9 @@ static int set_gui(void)
 
 static int set_enter(struct state *st, struct state *prev, int intent)
 {
-    activity_services_group(AS_GROUP_LEVELSET);
+    if (prev == &st_title ||
+        prev == &st_levelgroup)
+        activity_services_group_update(AS_GROUP_CAMPAIGN);
 
 #if NB_HAVE_PB_BOTH==1
     audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
@@ -601,6 +609,10 @@ static int set_enter(struct state *st, struct state *prev, int intent)
 static int set_leave(struct state *st, struct state *next, int id, int intent)
 {
     do_init = 0;
+
+    if (next == &st_title ||
+        next == &st_levelgroup)
+        activity_services_group_update(AS_GROUP_NONE);
 
     if (next == &st_null)
     {
@@ -887,7 +899,12 @@ static int campaign_action(int tok, int val)
             game_fade(+4.0);
 
             if (progress_play(campaign_get_level(val)))
+            {
+                activity_services_mode_update(AS_MODE_CAMPAIGN);
+
                 return goto_play_level();
+            }
+
             break;
     }
 
@@ -1186,8 +1203,11 @@ static void campaign_prepare(struct state *prev)
 
 static int campaign_enter(struct state *st, struct state *prev, int intent)
 {
+    if (prev == &st_title ||
+        prev == &st_levelgroup)
+        activity_services_group_update(AS_GROUP_CAMPAIGN);
+
     audio_music_fade_to(0.5f, "bgm/inter_local.ogg", 1);
-    activity_services_group(AS_GROUP_CAMPAIGN);
 
     campaign_prepare(prev);
 
@@ -1200,6 +1220,10 @@ static int campaign_enter(struct state *st, struct state *prev, int intent)
 
 static int campaign_leave(struct state *st, struct state *next, int id, int intent)
 {
+    if (next == &st_title ||
+        next == &st_levelgroup)
+        activity_services_group_update(AS_GROUP_NONE);
+
     if (next == &st_levelgroup ||
         next == &st_null)
     {
@@ -1408,8 +1432,6 @@ static int levelgroup_gui(void)
 
 static int levelgroup_enter(struct state *st, struct state *prev, int intent)
 {
-    activity_services_group(AS_GROUP_NONE);
-
     campaign_init();
 
     if (prev == &st_campaign)

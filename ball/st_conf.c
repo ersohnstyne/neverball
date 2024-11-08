@@ -91,7 +91,6 @@ typedef SDLKey SDL_Keycode;
 
 /*---------------------------------------------------------------------------*/
 
-struct state st_conf_covid_extend;
 struct state st_conf_social;
 struct state st_conf_gameplay;
 struct state st_conf_notification;
@@ -136,153 +135,6 @@ static int conf_check_playername(const char *regname)
 
     return text_length(config_get_s(CONFIG_PLAYER)) >= 3;
 }
-
-/*---------------------------------------------------------------------------*/
-
-static int conf_covid_extend_method;
-
-/**
- * There was an replay duplication bug in version 1.8 that gave users extra
- * replays during COVID 19. This has been fixed in 1.8.6 and those replays
- * will removed. So, if it falls before saving your replays again its
- * because they were bugged. Sorry :/
- */
-int conf_covid_extended = 0;
-
-/**
- * de_DE:
- * In Version 1.8 gab es einen Fehler beim Duplizieren von Video,
- * durch den Benutzer während COVID 19 zusätzliche Video erhielten.
- * Dieser Fehler wurde in 1.8.6 behoben und diese Video werden entfernt.
- * Wenn dein Kugel also fällt, bevor Sie Ihre Video erneut speichern,
- * liegt es daran dass sie fehlerhaft waren. Es tut uns leid :/
- *
- * fr_FR:
- * Il y avait un bogue de duplication de film dans la version 1.8 qui
- * donnait aux utilisateurs des films supplémentaires pendant COVID 19.
- * Cela a été corrigé dans la 1.8.6 et ces films seront supprimées. Donc,
- * si votre balle tombe avant de sauvegarder vos films, c'est parce
- * qu'elles ont été mises sur écoute. Pardon :/
- * 
- * es_ES:
- * Hubo un error de duplicación de repetición en la versión 1.8 que dio a
- * los usuarios repeticiónes adicionales durante COVID 19. Esto se ha corregido
- * en 1.8.6 y esas repeticiónes se eliminarán. Entonces, si tu bola cae antes
- * de guardar tus repeticiónes nuevamente, es porque tenían micrófonos.
- * Lo siento :/
- */
-
-static struct state *returnstate;
-
-int goto_conf_covid_extend(struct state *returnable)
-{
-    conf_covid_extend_method = 1;
-
-    conf_covid_extended = 1;
-    return goto_state(returnable);
-}
-
-void conf_covid_retract(void)
-{
-    conf_covid_extended = 0;
-
-    if (config_get_d(CONFIG_ACCOUNT_SAVE) > 2)
-        config_set_d(CONFIG_ACCOUNT_SAVE, 2);
-    if (config_get_d(CONFIG_ACCOUNT_LOAD) > 2)
-        config_set_d(CONFIG_ACCOUNT_LOAD, 2);
-
-    config_save();
-}
-
-static int conf_covid_extend_action(int tok, int val)
-{
-    GENERIC_GAMEMENU_ACTION;
-
-    switch (tok)
-    {
-        case GUI_BACK:
-            conf_covid_extended = 0;
-
-            if (config_get_d(CONFIG_ACCOUNT_SAVE) > 2)
-                config_set_d(CONFIG_ACCOUNT_SAVE, 2);
-            if (config_get_d(CONFIG_ACCOUNT_LOAD) > 2)
-                config_set_d(CONFIG_ACCOUNT_LOAD, 2);
-
-            config_save();
-
-            return exit_state(returnstate);
-
-        case GUI_NEXT:
-            if (conf_covid_extend_method == 2)
-            {
-                conf_covid_extended = 1;
-                exit_state(returnstate);
-            }
-            else
-            {
-                conf_covid_extend_method++;
-                goto_state(&st_conf_covid_extend);
-            }
-            break;
-    }
-
-    return 1;
-}
-
-static int conf_covid_extend_gui(void)
-{
-    int id, jd;
-    if ((id = gui_vstack(0)))
-    {
-        if (conf_covid_extend_method == 2)
-        {
-            gui_label(id, _("Do you have your real vaccine certificates?"),
-                          GUI_SML, 0, 0);
-            gui_space(id);
-            gui_multi(id, _("To use campaign, check your real vaccine\n"
-                            "certificates with valid date\n"
-                            "to switch off the replay filters!"),
-                          GUI_SML, GUI_COLOR_WHT);
-            gui_space(id);
-        }
-        else
-        {
-            gui_label(id, _("Do you have your FFP-2 masks?"), GUI_SML, 0, 0);
-            gui_space(id);
-            gui_multi(id, _("To use campaign, FFP-2 masks are required\n"
-                            "to switch off the replay filters!"),
-                          GUI_SML, GUI_COLOR_WHT);
-            gui_space(id);
-        }
-
-        if ((jd = gui_harray(id)))
-        {
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
-#endif
-            {
-                gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
-                gui_state(jd, _("Yes"), GUI_SML, GUI_NEXT, 0);
-            }
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            else
-                gui_start(jd, _("Yes"), GUI_SML, GUI_NEXT, 0);
-#endif
-        }
-    }
-    gui_layout(id, 0, 0);
-    return id;
-}
-
-static int conf_covid_extend_enter(struct state *st, struct state *prev, int intent)
-{
-    if (mainmenu_conf)
-        game_client_free(NULL);
-
-    conf_common_init(conf_covid_extend_action, mainmenu_conf);
-    return transition_slide(conf_covid_extend_gui(), 1, intent);
-}
-
 
 /*---------------------------------------------------------------------------*/
 
@@ -447,6 +299,8 @@ static int conf_social_enter(struct state *st, struct state *prev, int intent)
 
 /*---------------------------------------------------------------------------*/
 
+static int conf_covid_extended = 0;
+
 #define CONF_ACCOUNT_DEMO_LOCKED_DESC_INGAME \
     _("You can't change save filters\n" \
       "during the game.")
@@ -510,7 +364,8 @@ static int conf_account_action(int tok, int val)
             return exit_state(&st_conf);
 
         case CONF_ACCOUNT_COVID_EXTEND:
-            goto_conf_covid_extend(&st_conf_account);
+            conf_covid_extended = 1;
+            goto_state(&st_conf_account);
             break;
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -816,7 +671,10 @@ static int conf_account_gui(void)
 #if NB_HAVE_PB_BOTH==1
             if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
 #endif
+            {
                 gui_set_trunc(name_id, TRUNC_TAIL);
+                gui_set_label(name_id, player);
+            }
 #endif
 #if NB_HAVE_PB_BOTH==1
             gui_set_trunc(ball_id, TRUNC_TAIL);
@@ -837,11 +695,12 @@ static int conf_account_gui(void)
                  */
 
 #ifndef __EMSCRIPTEN__
+#if NB_HAVE_PB_BOTH==1
                 if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
+#endif
                 {
                     gui_set_state(name_id, GUI_NONE, 0);
                     gui_set_color(name_id, GUI_COLOR_GRY);
-                    gui_set_label(name_id, player);
                 }
 #endif
             }
@@ -984,7 +843,6 @@ static void conf_account_timer(int id, float dt)
             gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_2);
         }
 
-        conf_covid_retract();
         config_save();
 
         if (time_remain_lbl_id != 0)
@@ -3133,19 +2991,6 @@ static void conf_paint(int id, float t)
 }
 
 /*---------------------------------------------------------------------------*/
-
-struct state st_conf_covid_extend = {
-    conf_covid_extend_enter,
-    conf_leave,
-    conf_paint,
-    conf_shared_timer,
-    common_point,
-    common_stick,
-    NULL,
-    common_click,
-    common_keybd,
-    common_buttn
-};
 
 struct state st_conf_social = {
     conf_social_enter,

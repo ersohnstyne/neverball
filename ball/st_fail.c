@@ -1899,7 +1899,7 @@ int ask_more_purchased(struct state *ok_state)
 struct state st_fail = {
     fail_enter,
     fail_leave,
-    fail_paint,      /* Default: shared_paint */
+    fail_paint,
     fail_timer,
     shared_point,
     shared_stick,

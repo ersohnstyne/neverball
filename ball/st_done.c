@@ -207,6 +207,16 @@ static int done_gui_set(void)
     if (high && !resume)
         audio_narrator_play(AUD_SCORE);
 
+#if NB_HAVE_PB_BOTH==1
+    if (!campaign_used()
+        && set_star(curr_set()) > 0 && set_star_gained(curr_set())
+        && !resume)
+    {
+        set_star_update(1);
+        audio_play(AUD_STARS, 1.0f);
+    }
+#endif
+
     if ((id = gui_vstack(0)))
     {
         int gid;
@@ -327,21 +337,6 @@ static int done_enter(struct state *st, struct state *prev, int intent)
 
     resume = prev != &st_goal;
 
-#if NB_HAVE_PB_BOTH==1
-    if (!campaign_used()
-     &&  set_star(curr_set()) > 0 && set_star_gained(curr_set())
-     && !resume)
-    {
-        set_star_update(1);
-        audio_play(AUD_STARS, 1.0f);
-    }
-#endif
-
-    int high = progress_set_high();
-
-    if (high && !resume)
-        audio_narrator_play(AUD_SCORE);
-    
     return transition_slide(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                             campaign_used() ? done_gui_campaign() :

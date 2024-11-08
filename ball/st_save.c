@@ -158,13 +158,8 @@ static int save_action(int tok, int val)
             if (demo_exists(text_input))
                 return goto_state(&st_clobber);
             else
-            {
-                if (curr_status() == GAME_FALL)
-                    conf_covid_retract();
-
                 return demo_rename(text_input) ? exit_state(ok_state) :
                                                  goto_state(&st_save_error);
-            }
 
         case GUI_CL:
             gui_keyboard_lock_en();
@@ -346,9 +341,6 @@ static int clobber_action(int tok, int val)
             return goto_state(&st_lockdown);
 #endif
 
-        if (curr_status() == GAME_FALL)
-            conf_covid_retract();
-
         return demo_rename(text_input) ? exit_state(ok_state) :
                                          goto_state(&st_save_error);
     }
@@ -386,6 +378,8 @@ static int clobber_gui(void)
 
 static int clobber_enter(struct state *st, struct state *prev, int intent)
 {
+    audio_play(AUD_WARNING, 1.0f);
+
     return transition_slide(clobber_gui(), 1, intent);
 }
 
@@ -417,9 +411,6 @@ static int lockdown_action(int tok, int val)
 {
     audio_play(AUD_BACK, 1.0f);
 
-    if (curr_status() == GAME_FALL)
-        conf_covid_retract();
-
     return exit_state(cancel_state);
 }
 
@@ -450,6 +441,8 @@ static int lockdown_gui(void)
 
 static int lockdown_enter(struct state *st, struct state *prev, int intent)
 {
+    audio_play("snd/uierror.ogg", 1.0f);
+
     return lockdown_gui();
 }
 

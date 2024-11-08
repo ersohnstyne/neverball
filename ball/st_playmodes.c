@@ -32,6 +32,8 @@
 #include "video.h"
 #include "key.h"
 
+#include "activity_services.h"
+
 #include "game_client.h"
 #include "game_common.h"
 
@@ -342,6 +344,8 @@ static int hardcore_start_action(int tok, int val)
 
             if (progress_play(campaign_get_level(0)))
             {
+                activity_services_mode_update(AS_MODE_HARDCORE);
+
                 hud_update(0, 0.0f);
                 game_client_fly(1.0f);
                 return goto_play_level();

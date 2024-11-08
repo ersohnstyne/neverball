@@ -751,7 +751,8 @@ static int page_modes(int id)
                             "Restore from the backup or delete the\n"
                             "local account and start over from scratch."),
                           GUI_SML, GUI_COLOR_WHT);
-            else if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0)
+            else if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0 &&
+                     server_policy_get_d(SERVER_POLICY_EDITION) > 0)
                 gui_multi(jd,
                           _("Start playing from the first level of the set.\n"
                             "You start with which you've already purchased from the shop.\n"

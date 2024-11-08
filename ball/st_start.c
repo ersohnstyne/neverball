@@ -230,6 +230,14 @@ static int start_action(int tok, int val)
 {
     GAMEPAD_GAMEMENU_ACTION_SCROLL(GUI_PREV, GUI_NEXT, LEVEL_STEP);
 
+#ifdef CONFIG_INCLUDES_ACCOUNT
+    const int curr_balls =
+        server_policy_get_d(SERVER_POLICY_EDITION) > 0 ?
+        account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) : 3;
+#else
+    const int curr_balls = 0;
+#endif
+
     switch (tok)
     {
         case GUI_BACK:
@@ -290,7 +298,7 @@ static int start_action(int tok, int val)
 #if NB_HAVE_PB_BOTH==1
                 if (CHECK_ACCOUNT_ENABLED)
                 {
-                    if (set_balls_needed(curr_set()) > account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES))
+                    if (set_balls_needed(curr_set()) > curr_balls)
                     {
                     }
                     else if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
@@ -306,7 +314,7 @@ static int start_action(int tok, int val)
 
                         if (progress_play(get_level(0)))
                         {
-                            activity_services_gamemode(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
+                            activity_services_mode_update(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
                                                        (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE : 
                                                                                         AS_MODE_NORMAL));
 
@@ -332,7 +340,7 @@ static int start_action(int tok, int val)
 
                 if (progress_play(get_level(0)))
                 {
-                    activity_services_gamemode(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
+                    activity_services_mode_update(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
                                                (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE : 
                                                                                 AS_MODE_NORMAL));
 
@@ -359,7 +367,7 @@ static int start_action(int tok, int val)
             game_fade(+4.0);
             if (progress_play(get_level(val)))
             {
-                activity_services_gamemode(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
+                activity_services_mode_update(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
                                            (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE : 
                                                                             AS_MODE_NORMAL));
 
@@ -413,11 +421,19 @@ static int start_star_view_gui(void)
             {
                 char s_needed[MAXSTR];
 
+#ifdef CONFIG_INCLUDES_ACCOUNT
+                const int curr_balls =
+                    server_policy_get_d(SERVER_POLICY_EDITION) > 0 ?
+                    account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) : 3;
+#else
+                const int curr_balls = 0;
+#endif
+
                 gui_label(jd, set_star_attr,
                               GUI_LRG, gui_wht, gui_yel);
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-                if (set_balls_needed(curr_set()) > account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + 3)
+                if (set_balls_needed(curr_set()) > curr_balls + 3)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                     sprintf_s(s_needed, MAXSTR,
@@ -428,7 +444,7 @@ static int start_star_view_gui(void)
 
                     gui_multi(jd, s_needed, GUI_SML, GUI_COLOR_RED);
                 }
-                else if (set_balls_needed(curr_set()) > account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES))
+                else if (set_balls_needed(curr_set()) > curr_balls)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                     sprintf_s(s_recommend, MAXSTR,
@@ -465,7 +481,9 @@ static int start_star_view_gui(void)
         if ((jd = gui_harray(id)))
         {
             gui_start(jd, _("OK"),   GUI_SML, GUI_BACK, 0);
-            gui_state(jd, _("Shop"), GUI_SML, START_STARVIEWER_SHOP, 0);
+
+            if (server_policy_get_d(SERVER_POLICY_EDITION) > 0)
+                gui_state(jd, _("Shop"), GUI_SML, START_STARVIEWER_SHOP, 0);
         }
 #else
         gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
@@ -636,18 +654,26 @@ static int start_gui(void)
                 if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
 #endif
                 {
+#ifdef CONFIG_INCLUDES_ACCOUNT
+                    const int curr_balls =
+                        server_policy_get_d(SERVER_POLICY_EDITION) > 0 ?
+                        account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) : 3;
+#else
+                    const int curr_balls = 0;
+#endif
+
                     if ((md = gui_harray(kd)))
                     {
                         challenge_id = gui_state(md, _("Challenge"),
                                                      GUI_SML, START_CHALLENGE, 0);
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-                        if (set_balls_needed(curr_set()) > account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + 3)
+                        if (set_balls_needed(curr_set()) > curr_balls + 3)
                         {
                             gui_set_color(challenge_id, GUI_COLOR_RED);
                             gui_set_state(challenge_id, GUI_NONE, 0);
                         }
-                        else if (set_balls_needed(curr_set()) > account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES))
+                        else if (set_balls_needed(curr_set()) > curr_balls)
                             gui_set_color(challenge_id, GUI_COLOR_YEL);
                         else
                             gui_set_color(challenge_id, GUI_COLOR_GRN);
@@ -828,7 +854,7 @@ static int start_unavailable_enter(struct state *st, struct state *prev, int int
 static int start_unavailable_click(int b, int d)
 {
     if (b == SDL_BUTTON_LEFT && d == 1)
-        return goto_state(&st_start);
+        return exit_state(&st_start);
 
     return 1;
 }
@@ -842,7 +868,7 @@ static int start_unavailable_keybd(int c, int d)
          && current_platform == PLATFORM_PC
 #endif
             )
-            return goto_state(&st_start);
+            return exit_state(&st_start);
     }
     return 1;
 }
@@ -853,7 +879,7 @@ static int start_unavailable_buttn(int b, int d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b)
          || config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return goto_state(&st_start);
+            return exit_state(&st_start);
     }
     return 1;
 }

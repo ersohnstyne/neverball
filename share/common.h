@@ -39,20 +39,17 @@
  * Edit it via the project's properties and set this to either 1 or 0,
  * if you're member of PB+NB.
  *
- *     0 = NB only
- *     1 = PB+NB
+ *     0 = Neverball only
+ *     1 = Pennyball + Neverball
  *
  * If you're not sure, request it's developer to activate!
  */
 #define NB_HAVE_PB_BOTH -1
-#elif _WIN32 && defined(NB_HAVE_PB_BOTH) && !defined(_MSC_VER)
-#error Security compilation error: Do not compile with "NB_HAVE_PB_BOTH" directly, \
-       compile with Project solution or MSBuild only!
 #endif
 
 #if NB_HAVE_PB_BOTH!=0 && NB_HAVE_PB_BOTH!=1
 #error Security compilation error: NB_HAVE_PB_BOTH must be set with \
-       either 1 or 0 inside the properties in MSVC project or Ubuntu CLI!
+       either 1 or 0 inside the properties in MSVC project!
 #endif
 
 /* Neverball Platform API */

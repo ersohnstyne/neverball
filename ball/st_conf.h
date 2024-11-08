@@ -27,7 +27,6 @@ extern struct state st_null;
 extern struct state st_conf_video;
 extern struct state st_conf_display;
 
-int  goto_conf(struct state *, int, int);
-void conf_covid_retract(void);
+int goto_conf(struct state *, int, int);
 
 #endif

@@ -35,19 +35,19 @@ void activity_services_partyid(const char *uuid4)
 {
 }
 
-void activity_services_group(const enum activity_services_group g)
+void activity_services_group_update(const enum activity_services_group g)
 {
 }
 
-void activity_services_gamemode(const enum activity_services_mode m)
+void activity_services_mode_update(const enum activity_services_mode m)
 {
 }
 
-void activity_services_setname(const char *name)
+void activity_services_setname_update(const char *name)
 {
 }
 
-void activity_services_level_update(void)
+void activity_services_level_update(const int b)
 {
 }
 

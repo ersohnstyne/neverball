@@ -1232,8 +1232,6 @@ static int filter_cmd(const union cmd *cmd)
 
 static int title_enter(struct state *st, struct state *prev, int intent)
 {
-    activity_services_group(AS_GROUP_NONE);
-
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     if (prev != &st_title)
         account_wgcl_restart_attempt();
@@ -1287,9 +1285,6 @@ static int title_enter(struct state *st, struct state *prev, int intent)
         mode = TITLE_MODE_NONE;
 
     real_time = 0.0f;
-
-    if (intent == INTENT_BACK)
-        return transition_slide(title_gui(), 1, intent);
 
     return title_gui();
 }

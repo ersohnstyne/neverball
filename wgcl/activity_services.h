@@ -72,10 +72,10 @@ void activity_services_quit(void);
 void activity_services_step(const float);
 
 void activity_services_partyid       (const char *);
-void activity_services_group         (const enum activity_services_group);
-void activity_services_gamemode      (const enum activity_services_mode);
-void activity_services_setname       (const char *);
-void activity_services_level_update  (void);
+void activity_services_group_update  (const enum activity_services_group);
+void activity_services_mode_update   (const enum activity_services_mode);
+void activity_services_setname_update(const char *);
+void activity_services_level_update  (const int);
 void activity_services_status_update (const int);
 void activity_services_powerup_update(const int);
 

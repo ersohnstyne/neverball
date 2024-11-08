@@ -70,8 +70,8 @@
 #ifdef CONFIG_INCLUDES_ACCOUNT
 #ifdef MAPC_INCLUDES_CHKP
 #if ENABLE_RFD==1
-/*
- * Neverball - Recipes for Disaster
+/**
+ * Pennyball + Neverball - Recipes for Disaster
  *
  * Paid debts after timer expires.
  *
@@ -80,21 +80,27 @@
  *
  * Try to not overuse the gems as it causes bankrupt.
  */
-#define PROGRESS_PLAYER_PAYDEBT_BALLS                             \
-    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) { \
-            account_wgcl_do_add(0, 0, -1, 0, 0, 0);               \
-            account_wgcl_save(); } else {                         \
-            if (curr.rfd_balls > -1)                              \
-                curr.rfd_balls -= 1;                              \
-            else                                                  \
-                curr.balls -= 1;                                  \
-            if (chkp.rfd_balls > -1)                              \
-                chkp.rfd_balls -= 1;                              \
-            else if (chkp.balls > -1)                             \
-                chkp.balls -= 1;                                  \
-    } } while (0)
+#define PROGRESS_PLAYER_PAYDEBT_BALLS                                  \
+    do {                                                               \
+        if (chkp.rfd_balls > 0)                                        \
+            chkp.rfd_balls -= 1;                                       \
+        else if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) {} \
+        else chkp.balls -= 1;                                          \
+                                                                       \
+        if (curr.rfd_balls > 0)                                        \
+            curr.rfd_balls -= 1;                                       \
+        else if (curr.balls > 0)                                       \
+            curr.balls -= 1;                                           \
+        else if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0)    \
+        {                                                              \
+            account_wgcl_do_add(0, 0, -1, 0, 0, 0);                    \
+            account_wgcl_save();                                       \
+        }                                                              \
+        else                                                           \
+            curr.balls -= 1;                                           \
+    } while (0)
 #else
-/*
+/**
  * Paid debts after timer expires.
  *
  * If they owe gems and can't pay, but net-worth is greater than debt,
@@ -102,19 +108,26 @@
  *
  * Try to not overuse the gems as it causes bankrupt.
  */
-#define PROGRESS_PLAYER_PAYDEBT_BALLS                             \
-    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) { \
-            account_wgcl_do_add(0, 0, -1, 0, 0, 0);               \
-            account_wgcl_save(); } else {                         \
-            curr.balls -= 1;                                      \
-            if (chkp.balls > -1)                                  \
-                chkp.balls -= 1;                                  \
-    } } while (0)
+#define PROGRESS_PLAYER_PAYDEBT_BALLS                               \
+    do {                                                            \
+        if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) {}   \
+        else chkp.balls -= 1;                                       \
+                                                                    \
+        if (curr.balls > 0)                                         \
+            curr.balls -= 1;                                        \
+        else if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) \
+        {                                                           \
+            account_wgcl_do_add(0, 0, -1, 0, 0, 0);                 \
+            account_wgcl_save();                                    \
+        }                                                           \
+        else                                                        \
+            curr.balls -= 1;                                        \
+    } while (0)
 #endif
 #else
 #if ENABLE_RFD==1
-/*
- * Neverball - Recipes for Disaster
+/**
+ * Pennyball + Neverball - Recipes for Disaster
  *
  * Paid debts after timer expires.
  *
@@ -123,17 +136,21 @@
  *
  * Try to not overuse the gems as it causes bankrupt.
  */
-#define PROGRESS_PLAYER_PAYDEBT_BALLS                             \
-    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) { \
-            account_wgcl_do_add(0, 0, -1, 0, 0, 0);               \
-            account_wgcl_save(); } else {                         \
-            if (curr.rfd_balls > -1)                              \
-                curr.rfd_balls -= 1;                              \
-            else                                                  \
-                curr.balls -= 1;                                  \
-    } } while (0)
+#define PROGRESS_PLAYER_PAYDEBT_BALLS                               \
+    do {                                                            \
+        if (curr.rfd_balls > 0)                                     \
+            curr.rfd_balls -= 1;                                    \
+        else if (curr.balls > 0)                                    \
+            curr.balls -= 1;                                        \
+        else if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) \
+        {                                                           \
+            account_wgcl_do_add(0, 0, -1, 0, 0, 0);                 \
+            account_wgcl_save();                                    \
+        }                                                           \
+        else curr.balls -= 1;                                       \
+    } while (0)
 #else
-/*
+/**
  * Paid debts after timer expires.
  *
  * If they owe gems and can't pay, but net-worth is greater than debt,
@@ -141,17 +158,22 @@
  *
  * Try to not overuse the gems as it causes bankrupt.
  */
-#define PROGRESS_PLAYER_PAYDEBT_BALLS                             \
-    do { if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) { \
-            account_wgcl_do_add(0, 0, -1, 0, 0, 0);               \
-            account_wgcl_save(); } else {                         \
-            curr.balls -= 1;                                      \
-    } } while (0)
+#define PROGRESS_PLAYER_PAYDEBT_BALLS                               \
+    do {                                                            \
+        if (curr.balls > 0)                                         \
+            curr.balls -= 1;                                        \
+        else if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) \
+        {                                                           \
+            account_wgcl_do_add(0, 0, -1, 0, 0, 0);                 \
+            account_wgcl_save();                                    \
+        }                                                           \
+        else curr.balls -= 1;                                       \
+    } while (0)
 #endif
 #endif
 #else
 #ifdef MAPC_INCLUDES_CHKP
-/*
+/**
  * Paid debts after timer expires.
  *
  * You need to join Pennyball Discord Server in order
@@ -160,12 +182,13 @@
  * https://discord.gg/qnJR263Hm2/
  */
 #define PROGRESS_PLAYER_PAYDEBT_BALLS \
-    do { curr.balls -= 1;             \
+    do {                              \
+         curr.balls -= 1;             \
          if (chkp.balls > -1)         \
              chkp.balls -= 1;         \
     } while (0)
 #else
-/*
+/**
  * Paid debts after timer expires.
  *
  * You need to join Pennyball Discord Server in order
@@ -174,13 +197,12 @@
  * https://discord.gg/qnJR263Hm2/
  */
 #define PROGRESS_PLAYER_PAYDEBT_BALLS \
-    do { curr.balls -= 1;             \
-    } while (0)
+    curr.balls -= 1
 #endif
 #endif
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-/*
+/**
  * Their debt exceeds above the limit from the net-worth.
  *
  * If debt is greater than net-worth, it will gone bankrupt.  The net-worth is
@@ -197,7 +219,7 @@
         next = 0; done = 0;                             \
     } } while (0)
 #else
-/*
+/**
  * Their debt exceeds above the limit from the net-worth.
  *
  * You need to join Pennyball Discord Server in order
@@ -498,7 +520,8 @@ void progress_init(int m)
 #ifdef CONFIG_INCLUDES_ACCOUNT
     /* HACK: Those purchased balls are associated from the shop. */
 
-    if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0)
+    if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0 &&
+        server_policy_get_d(SERVER_POLICY_EDITION) > 0)
     {
         curr.balls -= account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES);
         curr.balls = MAX(curr.balls, 0);
@@ -756,6 +779,7 @@ int  progress_play(struct level *l)
         if (!campaign_used())
         {
             /* When they using level set, it will be added in the required coins. */
+
             goal_e = (((mode != MODE_CHALLENGE &&
                         mode != MODE_HARDCORE  &&
                         mode != MODE_BOOST_RUSH) &&
@@ -771,6 +795,7 @@ int  progress_play(struct level *l)
             goal_e = !config_get_d(CONFIG_LOCK_GOALS) || goal == 0;
 
             /* Seriously, this will never use the required coins without career mode. */
+
             if (goal_e)
                 goal = 0;
         }
@@ -780,6 +805,7 @@ int  progress_play(struct level *l)
              * Seriously, this will never lock the goal state
              * and never use the required coins without career mode.
              */
+
             goal   = 0;
             goal_e = 1;
         }
@@ -791,6 +817,14 @@ int  progress_play(struct level *l)
               || mode == MODE_ZEN
 #endif
             ;
+#endif
+
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        const int account_curr_balls =
+            server_policy_get_d(SERVER_POLICY_EDITION) > 0 ?
+            account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) : 0;
+#else
+        const int account_curr_balls = 0;
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -817,10 +851,10 @@ int  progress_play(struct level *l)
         coin_rank = RANK_LAST;
 
 #if ENABLE_DUALDISPLAY==1
-        game_dualdisplay_set_heart(curr.balls);
+        game_dualdisplay_set_heart(curr.balls + account_curr_balls);
 #endif
 
-        activity_services_level_update();
+        activity_services_level_update(curr.balls + account_curr_balls);
 
         return init_level();
     }
@@ -1236,7 +1270,7 @@ void progress_exit(void)
         progress_livesplit_exit();
 #endif
 
-    activity_services_gamemode(AS_MODE_NONE);
+    activity_services_mode_update(AS_MODE_NONE);
 
     if (done)
     {

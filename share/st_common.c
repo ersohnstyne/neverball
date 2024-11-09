@@ -2171,7 +2171,7 @@ static int loading_enter(struct state *st, struct state *prev, int intent)
     return loading_gui();
 }
 
-static int loading_leave(struct state* st, struct state* next, int id, int intent)
+static int loading_leave(struct state *st, struct state *next, int id, int intent)
 {
     gui_delete(id);
     return 0;

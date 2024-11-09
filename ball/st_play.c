@@ -556,7 +556,7 @@ static void play_set_timer(int id, float dt)
 
 /*---------------------------------------------------------------------------*/
 
-static int play_prep_leave(struct state* st, struct state* next, int id, int intent)
+static int play_prep_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next == &st_null)
     {

@@ -161,6 +161,8 @@ struct widget
     float slide_delay;
     float slide_dur;
     float slide_time;
+
+    unsigned int hidden:1;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -810,6 +812,7 @@ static int gui_widget(int pd, int type)
 
             widget[id].type        = type;
             widget[id].flags       = 0;
+            widget[id].hidden      = 0;
             widget[id].token       = 0;
             widget[id].value       = 0;
             widget[id].text        = NULL;
@@ -1184,6 +1187,12 @@ void gui_clr_rect(int id)
 void gui_set_cursor(int st)
 {
     cursor_st = st;
+}
+
+void gui_set_hidden(int id, int hidden)
+{
+    if (id)
+        widget[id].hidden = hidden ? 1u : 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2041,6 +2050,9 @@ static void gui_paint_rect(int id, int st, int flags)
 {
     int jd, i = 0;
 
+    if (widget[id].hidden)
+        return;
+
     /* Use the widget status to determine the background color. */
 
     i = st | (((widget[id].flags & GUI_HILITE) ? 2 : 0) |
@@ -2132,6 +2144,9 @@ static void gui_paint_array(int id)
 
 static void gui_paint_image(int id)
 {
+    if (widget[id].hidden)
+        return;
+
     /* Draw the widget rect, textured using the image. */
 
     glPushMatrix();
@@ -2152,6 +2167,9 @@ static void gui_paint_image(int id)
 
 static void gui_paint_count(int id)
 {
+    if (widget[id].hidden)
+        return;
+
     int j, i = widget[id].size;
 
     glPushMatrix();
@@ -2202,6 +2220,9 @@ static void gui_paint_count(int id)
 
 static void gui_paint_clock(int id)
 {
+    if (widget[id].hidden)
+        return;
+
     int i   =   widget[id].size;
 
     if (widget[id].value < 0)
@@ -2376,7 +2397,7 @@ static void gui_paint_label(int id)
 {
     /* Short-circuit empty labels. */
 
-    if (widget[id].image == 0)
+    if (widget[id].image == 0 || widget[id].hidden)
         return;
 
     /* Draw the widget text box, textured using the glyph. */
@@ -2399,7 +2420,7 @@ static void gui_paint_label(int id)
 
 static void gui_paint_text(int id)
 {
-    if (widget[id].alpha < .5f)
+    if (widget[id].hidden || widget[id].alpha < .5f)
         return;
 
     switch (widget[id].type)

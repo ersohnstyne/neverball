@@ -1441,7 +1441,7 @@ static int conf_keybd_enter(struct state *st, struct state *prev, int intent)
     return transition_slide(conf_keybd_gui(), 1, intent);
 }
 
-static int conf_keybd_leave(struct state* st, struct state* next, int id, int intent)
+static int conf_keybd_leave(struct state *st, struct state *next, int id, int intent)
 {
     conf_common_leave(st, next, id, intent);
 

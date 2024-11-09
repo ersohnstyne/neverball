@@ -630,7 +630,7 @@ static int level_enter(struct state *st, struct state *prev, int intent)
     return transition_slide(level_gui(), 1, intent);
 }
 
-static int level_leave(struct state* st, struct state* next, int id, int intent)
+static int level_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next == &st_null)
     {

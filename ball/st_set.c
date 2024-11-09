@@ -130,6 +130,8 @@ static int set_manual_hotreload = 0;
 static int total = 0;
 static int first = 0;
 
+static int head_id;
+static int body_id;
 static int shot_id;
 static int desc_id;
 
@@ -282,7 +284,7 @@ static void gui_set(int id, int i)
             gui_set_color(set_text_name_id, gui_pnk, gui_red);
 
             SAFECPY(set_name_final, curr_setname_final);
-
+        }
         else if (str_starts_with(curr_setid_final, "freeland"))
         {
             gui_set_color(set_text_name_id, gui_grn, gui_cya);
@@ -444,6 +446,7 @@ static int set_gui(void)
 
             gui_layout(id, 0, 0);
         }
+
         return id;
     }
 
@@ -479,6 +482,8 @@ static int set_gui(void)
                 gui_space(jd);
                 gui_filler(jd);
                 gui_navig(jd, total, first, SET_STEP);
+
+                head_id = jd;
             }
         }
 
@@ -486,6 +491,7 @@ static int set_gui(void)
         {
             gui_navig(id, total, first, SET_STEP);
             gui_space(id);
+
 #ifdef CONFIG_INCLUDES_ACCOUNT
             if ((jd = gui_hstack(id)))
             {
@@ -504,6 +510,8 @@ static int set_gui(void)
                     gui_state(jd, _("Workshop"), GUI_SML, SET_GET_MORE, 0);
                     gui_filler(jd);
                 }
+
+                head_id = jd;
 #endif
             }
 #endif
@@ -511,41 +519,71 @@ static int set_gui(void)
 
         gui_space(id);
 
-        if ((jd = gui_harray(id)))
+        if ((body_id = gui_vstack(id)))
         {
-            if (video.aspect_ratio >= 1.0f)
+            if ((jd = gui_harray(body_id)))
             {
-                const int ww = MIN(w, h) * 7 / 12;
-                const int hh = ww / 4 * 3;
+                if (video.aspect_ratio >= 1.0f)
+                {
+                    const int ww = MIN(w, h) * 7 / 12;
+                    const int hh = ww / 4 * 3;
 
-                shot_id = gui_image(jd, set_shot(first), ww, hh);
+                    shot_id = gui_image(jd, set_shot(first), ww, hh);
 
 #if NB_HAVE_PB_BOTH==1
-                if ((account_get_d(ACCOUNT_SET_UNLOCKS) <= i
+                    if ((account_get_d(ACCOUNT_SET_UNLOCKS) <= i
 #if NB_STEAM_API == 0 && NB_EOS_SDK == 0
-                  && !config_cheat()
+                      && !config_cheat()
 #endif
-                    ) && !is_boost_on() &&
-                    (server_policy_get_d(SERVER_POLICY_EDITION) < SET_UNLOCKABLE_EDITION &&
-                     server_policy_get_d(SERVER_POLICY_EDITION) != -1))
-                    gui_set_image(shot_id, "gui/campaign/locked.jpg");
+                        ) && !is_boost_on() &&
+                        (server_policy_get_d(SERVER_POLICY_EDITION) < SET_UNLOCKABLE_EDITION &&
+                            server_policy_get_d(SERVER_POLICY_EDITION) != -1))
+                        gui_set_image(shot_id, "gui/campaign/locked.jpg");
 #endif
+                }
+
+                if ((kd = gui_varray(jd)))
+                {
+                    for (i = first; i < first + SET_STEP; i++)
+                        gui_set(kd, i);
+                }
             }
 
-            if ((kd = gui_varray(jd)))
+            if (video.aspect_ratio >= 1.0f)
             {
-                for (i = first; i < first + SET_STEP; i++)
-                    gui_set(kd, i);
+                gui_space(body_id);
+                desc_id = gui_multi(body_id, " \n \n \n \n \n", GUI_SML, gui_yel, gui_wht);
             }
-        }
-
-        if (video.aspect_ratio >= 1.0f)
-        {
-            gui_space(id);
-            desc_id = gui_multi(id, " \n \n \n \n \n", GUI_SML, gui_yel, gui_wht);
         }
 
         gui_layout(id, 0, 0);
+    }
+
+    return id;
+}
+
+/*
+ * Custom slide transition for page flipping.
+ */
+static int set_transition(int id, int in, int intent)
+{
+    if (in)
+    {
+        // Slide in page content.
+        gui_slide(body_id, (intent == INTENT_BACK ? GUI_W : GUI_E) | GUI_FLING, 0, 0.16f, 0);
+    }
+    else
+    {
+        // Just hide the header, header from the next page takes over immediately.
+        gui_set_hidden(head_id, 1);
+
+        // Remove GUI after timeout (this doesn't do a slide).
+        gui_slide(id, GUI_REMOVE, 0, 0.16f, 0);
+
+        // Slide out page content.
+        gui_slide(body_id, (intent == INTENT_BACK ? GUI_E : GUI_W) | GUI_BACKWARD | GUI_FLING, 0, 0.16f, 0);
+
+        transition_add(id);
     }
 
     return id;
@@ -603,6 +641,9 @@ static int set_enter(struct state *st, struct state *prev, int intent)
     if (set_manual_hotreload)
         set_manual_hotreload = 0;
 
+    if (prev == &st_set)
+        return set_transition(set_gui(), 1, intent);
+
     return transition_slide(set_gui(), 1, intent);
 }
 
@@ -622,7 +663,10 @@ static int set_leave(struct state *st, struct state *next, int id, int intent)
 
     if (set_manual_hotreload)
         gui_delete(id);
-    else return transition_slide(id, 0, intent);
+    else if (next == &st_set)
+        return set_transition(id, 0, intent);
+    else
+        return transition_slide(id, 0, intent);
 
     return 0;
 }

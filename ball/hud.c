@@ -131,7 +131,7 @@ static void hud_fps(void)
     float ms_latence = 1.f / video_perf();
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(perf_attr, MAXSTR
+    sprintf_s(perf_attr, MAXSTR,
 #else
     sprintf(perf_attr,
 #endif

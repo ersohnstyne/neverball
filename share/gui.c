@@ -810,6 +810,7 @@ static int gui_widget(int pd, int type)
         {
             /* Set the type and default properties. */
 
+<<<<<<< HEAD
             widget[id].type        = type;
             widget[id].flags       = 0;
             widget[id].hidden      = 0;
@@ -834,6 +835,35 @@ static int gui_widget(int pd, int type)
             widget[id].init_value  = 0;
             widget[id].layout_xd   = 0;
             widget[id].layout_yd   = 0;
+=======
+            widget[id].type   = type;
+            widget[id].flags  = 0;
+            widget[id].hidden = 0;
+            widget[id].token  = 0;
+            widget[id].value  = 0;
+            widget[id].text   = NULL;
+            widget[id].font   = 0;
+            widget[id].size   = 0;
+            widget[id].rect   = GUI_ALL;
+            widget[id].x      = 0;
+            widget[id].y      = 0;
+            widget[id].w      = 0;
+            widget[id].h      = 0;
+            widget[id].image  = 0;
+            widget[id].color0 = gui_wht;
+            widget[id].color1 = gui_wht;
+            widget[id].scale  = 1.0f;
+            widget[id].trunc  = TRUNC_NONE;
+            widget[id].text_w = 0;
+            widget[id].text_h = 0;
+
+            widget[id].init_text = NULL;
+            widget[id].init_value = 0;
+
+            widget[id].layout_xd = 0;
+            widget[id].layout_yd = 0;
+
+>>>>>>> 221653f83f8773813a9d09e8a3d00a2b24d04950
 
             widget[id].offset_init_x = 0.0f;
             widget[id].offset_init_y = 0.0f;
@@ -2420,7 +2450,11 @@ static void gui_paint_label(int id)
 
 static void gui_paint_text(int id)
 {
+<<<<<<< HEAD
     if (widget[id].hidden || widget[id].alpha < .5f)
+=======
+    if (widget[id].hidden)
+>>>>>>> 221653f83f8773813a9d09e8a3d00a2b24d04950
         return;
 
     switch (widget[id].type)

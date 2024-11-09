@@ -483,11 +483,7 @@ static int package_gui(void)
         {
             gui_label (jd, _("Addons"), GUI_SML, 0, 0);
             gui_filler(jd);
-<<<<<<< HEAD
             gui_navig (jd, total, first, PACKAGE_STEP);
-=======
-            gui_navig(jd, total, first, PACKAGE_STEP);
->>>>>>> 221653f83f8773813a9d09e8a3d00a2b24d04950
 
             head_id = jd;
         }
@@ -535,17 +531,12 @@ static int package_gui(void)
             {
                 if ((kd = gui_hstack(jd)))
                 {
-<<<<<<< HEAD
                     install_status_id = gui_label(kd, GUI_ARROW_DN,
                         GUI_SML, gui_grn, gui_grn);
                     install_label_id = gui_label(kd, "XXXXXXXXXXXX",
                         GUI_SML, gui_wht, gui_wht);
 
                     gui_set_label(install_label_id, _("Install"));
-=======
-                    install_status_id = gui_label(kd, GUI_ARROW_DN, GUI_SML, gui_grn, gui_grn);
-                    install_label_id = gui_label(kd, _("Install"), GUI_SML, gui_wht, gui_wht);
->>>>>>> 221653f83f8773813a9d09e8a3d00a2b24d04950
 
                     gui_set_font(install_status_id, GUI_FACE);
 
@@ -557,11 +548,7 @@ static int package_gui(void)
 
                 gui_filler(jd);
 
-<<<<<<< HEAD
                 type_id = gui_label(jd, "XXXXXXX", GUI_SML, GUI_COLOR_DEFAULT);
-=======
-                type_id = gui_label(jd, "ABCDEFG", GUI_SML, 0, 0);
->>>>>>> 221653f83f8773813a9d09e8a3d00a2b24d04950
             }
         }
 
@@ -652,10 +639,6 @@ static int package_transition(int id, int in, int intent)
     return id;
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 221653f83f8773813a9d09e8a3d00a2b24d04950
 static int package_enter(struct state *st, struct state *prev, int intent)
 {
     common_init(package_action);

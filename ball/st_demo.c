@@ -907,7 +907,7 @@ static int demo_gui(void)
                 gui_demo_status(jd);
             }
 
-            gui_layout(jd, 0, 0);
+            gui_layout(id, 0, 0);
 
             gui_demo_update_thumbs();
             gui_demo_update_status(last_viewed);

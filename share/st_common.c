@@ -659,7 +659,7 @@ static int video_action(int tok, int val)
             goto_state(&st_null);
             r = video_fullscreen(val);
             if (r)
-                goto_state(&st_video);
+                exit_state(&st_video);
             else
             {
                 r = video_fullscreen(oldF);
@@ -713,7 +713,7 @@ static int video_action(int tok, int val)
 #endif
 
             if (r)
-                goto_state(&st_video);
+                exit_state(&st_video);
             else
             {
                 config_set_d(CONFIG_HMD, oldHmd);
@@ -723,7 +723,7 @@ static int video_action(int tok, int val)
                 r = video_mode(f, w, h);
 #endif
                 if (r)
-                    goto_state(&st_video);
+                    exit_state(&st_video);
             }
 #endif
 
@@ -737,7 +737,7 @@ static int video_action(int tok, int val)
 
             goto_state(&st_null);
             config_set_d(CONFIG_TEXTURES, val);
-            goto_state(&st_video);
+            exit_state(&st_video);
 
             config_save();
 
@@ -751,7 +751,7 @@ static int video_action(int tok, int val)
             r = video_mode_auto_config(f, w, h);
 #endif
             if (r)
-                goto_state(&st_video);
+                exit_state(&st_video);
             else
             {
 #if ENABLE_DUALDISPLAY==1
@@ -760,7 +760,7 @@ static int video_action(int tok, int val)
                 r = video_mode(f, w, h);
 #endif
                 if (r)
-                    goto_state(&st_video);
+                    exit_state(&st_video);
             }
 
             config_save();
@@ -1028,12 +1028,12 @@ static int video_advanced_action(int tok, int val)
             r = video_fullscreen(val);
 
             if (r)
-                goto_state(&st_video_advanced);
+                exit_state(&st_video_advanced);
             else
             {
                 r = video_fullscreen(val);
                 if (r)
-                    goto_state(&st_video_advanced);
+                    exit_state(&st_video_advanced);
             }
 #endif
 #endif
@@ -1070,7 +1070,7 @@ static int video_advanced_action(int tok, int val)
 #endif
 
             if (r)
-                goto_state(&st_video_advanced);
+                exit_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_HMD, oldHmd);
@@ -1080,7 +1080,7 @@ static int video_advanced_action(int tok, int val)
                 r = video_mode(f, w, h);
 #endif
                 if (r)
-                    goto_state(&st_video_advanced);
+                    exit_state(&st_video_advanced);
             }
 #endif
             break;
@@ -1120,7 +1120,7 @@ static int video_advanced_action(int tok, int val)
 #endif
 
             if (r)
-                goto_state(&st_video_advanced);
+                exit_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_REFLECTION, oldRefl);
@@ -1130,7 +1130,7 @@ static int video_advanced_action(int tok, int val)
                 r = video_mode(f, w, h);
 #endif
                 if (r)
-                    goto_state(&st_video_advanced);
+                    exit_state(&st_video_advanced);
             }
 #endif
 #endif
@@ -1189,7 +1189,7 @@ static int video_advanced_action(int tok, int val)
 #endif
 
             if (r)
-                goto_state(&st_video_advanced);
+                exit_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_VSYNC, oldVsync);
@@ -1199,7 +1199,7 @@ static int video_advanced_action(int tok, int val)
                 r = video_mode(f, w, h);
 #endif
                 if (r)
-                    goto_state(&st_video_advanced);
+                    exit_state(&st_video_advanced);
             }
 #endif
 #endif
@@ -1240,7 +1240,7 @@ static int video_advanced_action(int tok, int val)
             r = video_mode(f, w, h);
 #endif
             if (r)
-                goto_state(&st_video_advanced);
+                exit_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_MULTISAMPLE, oldSamp);
@@ -1250,7 +1250,7 @@ static int video_advanced_action(int tok, int val)
                 r = video_mode(f, w, h);
 #endif
                 if (r)
-                    goto_state(&st_video_advanced);
+                    exit_state(&st_video_advanced);
             }
 #endif
 #endif
@@ -1897,16 +1897,12 @@ static int lang_action(int tok, int val)
 
         case GUI_PREV:
             first = MAX(first - LANG_STEP, 0);
-
-            return goto_state(&st_lang);
-
+            return exit_state(&st_lang);
             break;
 
         case GUI_NEXT:
             first = MIN(first + LANG_STEP, total - 1);
-
             return goto_state(&st_lang);
-
             break;
 
 #if ENABLE_NLS==1 || _MSC_VER
@@ -1916,7 +1912,7 @@ static int lang_action(int tok, int val)
             config_set_s(CONFIG_LANGUAGE, "");
             lang_init();
             audio_play(_("snd/lang/preview.ogg"), 1.0f);
-            goto_state(&st_lang);
+            exit_state(&st_lang);
             config_save();
             break;
 
@@ -1926,7 +1922,7 @@ static int lang_action(int tok, int val)
             config_set_s(CONFIG_LANGUAGE, desc->code);
             lang_init();
             audio_play(_("snd/lang/preview.ogg"), 1.0f);
-            goto_state(&st_lang);
+            exit_state(&st_lang);
             config_save();
             break;
 #endif
@@ -1952,88 +1948,91 @@ static int lang_gui(void)
             gui_navig(jd, array_len(langs), first, LANG_STEP);
         }
 
-        gui_space(id);
-
-        if (step < LANG_STEP)
+        if ((jd = gui_vstack(id)))
         {
-            int default_id;
-            default_id = gui_state(id, _("Default"), GUI_SML, LANG_DEFAULT, 0);
-            gui_set_hilite(default_id, !*config_get_s(CONFIG_LANGUAGE));
-        }
+            gui_space(jd);
 
-        for (i = (step < LANG_STEP ? first : first - 1);
-            i < (step < LANG_STEP ? first : first - 1) + step;
-            i++)
-        {
-            if (i < array_len(langs))
+            if (step < LANG_STEP)
             {
-                struct lang_desc *desc = LANG_GET(langs, i);
+                int default_id;
+                default_id = gui_state(jd, _("Default"), GUI_SML, LANG_DEFAULT, 0);
+                gui_set_hilite(default_id, !*config_get_s(CONFIG_LANGUAGE));
+            }
+
+            for (i = (step < LANG_STEP ? first : first - 1);
+                 i < (step < LANG_STEP ? first : first - 1) + step;
+                 i++)
+            {
+                if (i < array_len(langs))
+                {
+                    struct lang_desc* desc = LANG_GET(langs, i);
 
 #if NB_HAVE_PB_BOTH==1
-                int lang_root_id, lang_top_id, lang_bot_id;
+                    int lang_root_id, lang_top_id, lang_bot_id;
 
-                if ((lang_root_id = gui_vstack(id)))
-                {
-                    lang_top_id = gui_label(lang_root_id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, GUI_COLOR_WHT);
-                    lang_bot_id = gui_label(lang_root_id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_TNY, GUI_COLOR_WHT);
-                    gui_set_label(lang_top_id, " ");
-                    gui_set_label(lang_bot_id, " ");
-                    gui_set_trunc(lang_top_id, TRUNC_TAIL);
-                    gui_set_trunc(lang_bot_id, TRUNC_TAIL);
+                    if ((lang_root_id = gui_vstack(jd)))
+                    {
+                        lang_top_id = gui_label(lang_root_id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, GUI_COLOR_WHT);
+                        lang_bot_id = gui_label(lang_root_id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXX", GUI_TNY, GUI_COLOR_WHT);
+                        gui_set_label(lang_top_id, " ");
+                        gui_set_label(lang_bot_id, " ");
+                        gui_set_trunc(lang_top_id, TRUNC_TAIL);
+                        gui_set_trunc(lang_bot_id, TRUNC_TAIL);
 
-                    gui_set_rect(lang_root_id, GUI_ALL);
+                        gui_set_rect(lang_root_id, GUI_ALL);
+
+                        /* Set font and rebuild texture. */
+
+                        gui_set_font(lang_top_id, desc->font);
+                        gui_set_label(lang_top_id, lang_name(desc));
+                        gui_set_label(lang_bot_id, desc->name1);
+
+                        gui_set_hilite(lang_root_id, (strcmp(config_get_s(CONFIG_LANGUAGE),
+                                                      desc->code) == 0));
+                        gui_set_state(lang_root_id, LANG_SELECT, i);
+                    }
+#else
+                    int lang_id;
+
+                    lang_id = gui_state(jd, "XXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                                            GUI_SML, LANG_SELECT, i);
+                    gui_set_label(lang_id, " ");
+                    gui_set_trunc(lang_id, TRUNC_TAIL);
+
+                    gui_set_hilite(lang_id, (strcmp(config_get_s(CONFIG_LANGUAGE),
+                                             desc->code) == 0));
+
+                    /* Set detailed locale informations. */
+
+                    char lang_infotext[MAXSTR];
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sprintf_s(lang_infotext, MAXSTR,
+#else
+                    sprintf(lang_infotext,
+#endif
+                            "%s / %s", desc->name1, lang_name(desc));
 
                     /* Set font and rebuild texture. */
 
-                    gui_set_font(lang_top_id, desc->font);
-                    gui_set_label(lang_top_id, lang_name(desc));
-                    gui_set_label(lang_bot_id, desc->name1);
-
-                    gui_set_hilite(lang_root_id, (strcmp(config_get_s(CONFIG_LANGUAGE),
-                                                         desc->code) == 0));
-                    gui_set_state(lang_root_id, LANG_SELECT, i);
+                    gui_set_font(lang_id, desc->font);
+                    gui_set_label(lang_id, lang_infotext);
+#endif
                 }
-#else
-                int lang_id;
-
-                lang_id = gui_state(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-                                    GUI_SML, LANG_SELECT, i);
-                gui_set_label(lang_id, " ");
-                gui_set_trunc(lang_id, TRUNC_TAIL);
-
-                gui_set_hilite(lang_id, (strcmp(config_get_s(CONFIG_LANGUAGE),
-                                                desc->code) == 0));
-
-                /* Set detailed locale informations. */
-
-                char lang_infotext[MAXSTR];
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(lang_infotext, MAXSTR,
-#else
-                sprintf(lang_infotext,
-#endif
-                        "%s / %s", desc->name1, lang_name(desc));
-
-                /* Set font and rebuild texture. */
-
-                gui_set_font(lang_id, desc->font);
-                gui_set_label(lang_id, lang_infotext);
-#endif
-            }
-            else
-            {
-#if NB_HAVE_PB_BOTH==1
-                int lang_root_id;
-
-                if ((lang_root_id = gui_vstack(id)))
+                else
                 {
-                    gui_label(lang_root_id, " ", GUI_SML, 0, 0);
-                    gui_label(lang_root_id, " ", GUI_TNY, 0, 0);
-                    gui_set_rect(lang_root_id, GUI_ALL);
-                }
+#if NB_HAVE_PB_BOTH==1
+                    int lang_root_id;
+
+                    if ((lang_root_id = gui_vstack(jd)))
+                    {
+                        gui_label(lang_root_id, " ", GUI_SML, 0, 0);
+                        gui_label(lang_root_id, " ", GUI_TNY, 0, 0);
+                        gui_set_rect(lang_root_id, GUI_ALL);
+                    }
 #else
-                gui_label(id, " ", GUI_SML, 0, 0);
+                    gui_label(jd, " ", GUI_SML, 0, 0);
 #endif
+                }
             }
         }
 
@@ -2057,6 +2056,10 @@ static int lang_enter(struct state *st, struct state *prev, int intent)
         lang_back = prev;
 
     conf_common_init(lang_action, 1);
+
+    if (prev == &st_lang)
+        return transition_page(lang_gui(), 1, intent);
+
     return transition_slide(lang_gui(), 1, intent);
 }
 
@@ -2069,6 +2072,9 @@ static int lang_leave(struct state *st, struct state *next, int id, int intent)
         langs = NULL;
     }
 #endif
+
+    if (next == &st_lang)
+        return transition_page(id, 0, intent);
 
     return conf_common_leave(st, next, id, intent);
 }
@@ -2100,7 +2106,7 @@ static int restart_required_action(int tok, int val)
 {
     if (tok == GUI_BACK)
     {
-        return goto_state(restart_required_back);
+        return exit_state(restart_required_back);
     }
     return 1;
 }

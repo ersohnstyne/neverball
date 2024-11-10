@@ -77,8 +77,6 @@ enum
     START_OPTIONS
 };
 
-static int head_id;
-static int body_id;
 static int shot_id;
 static int file_id;
 static int challenge_id;
@@ -614,31 +612,29 @@ static int start_gui(void)
             gui_filler(jd);
             gui_space(jd);
             gui_navig(jd, total, first, LEVEL_STEP);
-
-            head_id = jd;
         }
 
-        gui_space(id);
-
-        if ((body_id = gui_vstack(id)))
+        if ((jd = gui_vstack(id)))
         {
-            if ((jd = gui_hstack(body_id)))
+            gui_space(jd);
+
+            if ((kd = gui_hstack(jd)))
             {
-                gui_filler(jd);
+                gui_filler(kd);
 
                 if (video.aspect_ratio >= 1.0f)
                 {
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
                     if (config_cheat())
                     {
-                        if ((kd = gui_vstack(jd)))
+                        if ((ld = gui_vstack(kd)))
                         {
                             const int ww = MIN(w, h) / 2;
                             const int hh = ww / 4 * 3;
 
-                            shot_id = gui_image(kd, set_shot(curr_set()),
+                            shot_id = gui_image(ld, set_shot(curr_set()),
                                                     ww, hh);
-                            file_id = gui_label(kd, " ", GUI_TNY, GUI_COLOR_DEFAULT);
+                            file_id = gui_label(ld, " ", GUI_TNY, GUI_COLOR_DEFAULT);
                         }
                     }
                     else
@@ -647,16 +643,16 @@ static int start_gui(void)
                         const int ww = MIN(w, h) * 7 / 12;
                         const int hh = ww / 4 * 3;
 
-                        shot_id = gui_image(jd, set_shot(curr_set()), ww, hh);
+                        shot_id = gui_image(kd, set_shot(curr_set()), ww, hh);
                     }
                 }
 
-                if ((kd = gui_varray(jd)))
+                if ((ld = gui_varray(kd)))
                 {
                     for (i = 0; i < 5; i++)
-                        if ((ld = gui_harray(kd)))
+                        if ((md = gui_harray(ld)))
                             for (j = 4; j >= 0; j--)
-                                gui_level(ld, ((i * 5) + j) + first);
+                                gui_level(md, ((i * 5) + j) + first);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(COVID_HIGH_RISK)
                     if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
@@ -670,7 +666,7 @@ static int start_gui(void)
                         const int curr_balls = 0;
 #endif
 
-                        if ((md = gui_harray(kd)))
+                        if ((md = gui_harray(ld)))
                         {
                             challenge_id = gui_state(md, _("Challenge"),
                                                          GUI_SML, START_CHALLENGE, 0);
@@ -685,45 +681,43 @@ static int start_gui(void)
                                 gui_set_color(challenge_id, GUI_COLOR_YEL);
                             else
                                 gui_set_color(challenge_id, GUI_COLOR_GRN);
-#endif
-                        }
 
-#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-                        if (CHECK_ACCOUNT_BANKRUPT)
-                        {
-                            gui_set_state(challenge_id, GUI_NONE, 0);
-                            gui_set_color(challenge_id, GUI_COLOR_GRY);
-                        }
-                        else
+                            if (CHECK_ACCOUNT_BANKRUPT)
+                            {
+                                gui_set_state(challenge_id, GUI_NONE, 0);
+                                gui_set_color(challenge_id, GUI_COLOR_GRY);
+                            }
+                            else
 #endif
-                            gui_set_hilite(challenge_id,
-                                curr_mode() == MODE_CHALLENGE);
+                                gui_set_hilite(challenge_id,
+                                               curr_mode() == MODE_CHALLENGE);
+                        }
                     }
                 }
 
-                gui_filler(jd);
+                gui_filler(kd);
             }
 
-            gui_space(body_id);
-            gui_score_board(body_id, (GUI_SCORE_COIN |
-                                      GUI_SCORE_TIME |
-                                      GUI_SCORE_GOAL), 0, 0);
-            gui_space(body_id);
+            gui_space(jd);
+            gui_score_board(jd, (GUI_SCORE_COIN |
+                                 GUI_SCORE_TIME |
+                                 GUI_SCORE_GOAL), 0, 0);
+            gui_space(jd);
 
 #if NB_HAVE_PB_BOTH==1
-            gui_state(body_id, _("Level Options"), GUI_SML, START_OPTIONS, 0);
+            gui_state(jd, _("Level Options"), GUI_SML, START_OPTIONS, 0);
 #else
             if (video.aspect_ratio >= 1.0f)
             {
-                if ((jd = gui_hstack(body_id)))
+                if ((kd = gui_hstack(jd)))
                 {
-                    if ((kd = gui_harray(jd)))
+                    if ((ld = gui_harray(kd)))
                     {
                         int btn0, btn1;
 
-                        btn0 = gui_state(kd, _("Unlocked"),
+                        btn0 = gui_state(ld, _("Unlocked"),
                                              GUI_SML, START_LOCK_GOALS, 0);
-                        btn1 = gui_state(kd, _("Locked"),
+                        btn1 = gui_state(ld, _("Locked"),
                                              GUI_SML, START_LOCK_GOALS, 1);
 
                         if (config_get_d(CONFIG_LOCK_GOALS))
@@ -732,13 +726,13 @@ static int start_gui(void)
                             gui_set_hilite(btn0, 1);
                     }
 
-                    gui_space(jd);
+                    gui_space(kd);
 
-                    kd = gui_label(jd, _("Goal State in Completed Levels"),
+                    ld = gui_label(kd, _("Goal State in Completed Levels"),
                                        GUI_SML, 0, 0);
 
-                    gui_set_trunc(kd, TRUNC_TAIL);
-                    gui_set_fill(kd);
+                    gui_set_trunc(ld, TRUNC_TAIL);
+                    gui_set_fill(ld);
                 }
             }
 #endif
@@ -995,33 +989,6 @@ static int start_howmany()
     return loctotal - 1;
 }
 
-/*
- * Custom slide transition for page flipping.
- */
-static int start_transition(int id, int in, int intent)
-{
-    if (in)
-    {
-        // Slide in page content.
-        gui_slide(body_id, (intent == INTENT_BACK ? GUI_W : GUI_E) | GUI_FLING, 0, 0.16f, 0);
-    }
-    else
-    {
-        // Just hide the header, header from the next page takes over immediately.
-        gui_set_hidden(head_id, 1);
-
-        // Remove GUI after timeout (this doesn't do a slide).
-        gui_slide(id, GUI_REMOVE, 0, 0.16f, 0);
-
-        // Slide out page content.
-        gui_slide(body_id, (intent == INTENT_BACK ? GUI_E : GUI_W) | GUI_BACKWARD | GUI_FLING, 0, 0.16f, 0);
-
-        transition_add(id);
-    }
-
-    return id;
-}
-
 static int start_enter(struct state *st, struct state *prev, int intent)
 {
 #if NB_HAVE_PB_BOTH==1
@@ -1072,7 +1039,7 @@ static int start_enter(struct state *st, struct state *prev, int intent)
     progress_init(MODE_NORMAL);
 
     if (prev == &st_start)
-        return start_transition(set_level_options ? start_gui_options() : start_gui(), 1, intent);
+        return transition_page(set_level_options ? start_gui_options() : start_gui(), 1, intent);
 
     return transition_slide(set_level_options ? start_gui_options() : start_gui(), 1, intent);
 }
@@ -1091,7 +1058,7 @@ static int start_leave(struct state *st, struct state *next, int id, int intent)
     }
 
     if (next == &st_start)
-        return start_transition(id, 0, intent);
+        return transition_page(id, 0, intent);
 
     return transition_slide(id, 0, intent);
 }

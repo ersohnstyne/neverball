@@ -53,4 +53,6 @@ _CRT_NB_TRANSITION_DEPRECATED(int, (int id, int in, int intent), transition_slid
 int transition_slide_full(int id, int in,
                           int enter_flags, int exit_flags);
 
+int transition_page(int id, int in, int intent);
+
 #endif

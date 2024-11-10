@@ -130,8 +130,6 @@ static int set_manual_hotreload = 0;
 static int total = 0;
 static int first = 0;
 
-static int head_id;
-static int body_id;
 static int shot_id;
 static int desc_id;
 
@@ -183,7 +181,6 @@ static int set_action(int tok, int val)
 
         case GUI_PREV:
             first = MAX(first - SET_STEP, 0);
-
             do_init = 0;
             return exit_state(&st_set);
 
@@ -191,7 +188,6 @@ static int set_action(int tok, int val)
 
         case GUI_NEXT:
             first = MIN(first + SET_STEP, total - 1);
-
             do_init = 0;
             return goto_state(&st_set);
 
@@ -201,11 +197,8 @@ static int set_action(int tok, int val)
             if (set_name_locked) return 1;
 
             set_goto(val);
-
             activity_services_setname_update(set_name(val));
-
             return goto_state(&st_start);
-
             break;
 
         case SET_TOGGLE_BOOST:
@@ -385,7 +378,7 @@ static int set_gui(void)
     int w = video.device_w;
     int h = video.device_h;
 
-    int id, jd, kd;
+    int id, jd, kd, ld;
 
     int i = 0;
 
@@ -482,12 +475,9 @@ static int set_gui(void)
                 gui_space(jd);
                 gui_filler(jd);
                 gui_navig(jd, total, first, SET_STEP);
-
-                head_id = jd;
             }
         }
-
-        if (video.aspect_ratio < 1.0f)
+        else if (video.aspect_ratio < 1.0f)
         {
             gui_navig(id, total, first, SET_STEP);
             gui_space(id);
@@ -517,18 +507,18 @@ static int set_gui(void)
 #endif
         }
 
-        gui_space(id);
-
-        if ((body_id = gui_vstack(id)))
+        if ((jd = gui_vstack(id)))
         {
-            if ((jd = gui_harray(body_id)))
+            gui_space(jd);
+
+            if ((kd = gui_harray(jd)))
             {
                 if (video.aspect_ratio >= 1.0f)
                 {
                     const int ww = MIN(w, h) * 7 / 12;
                     const int hh = ww / 4 * 3;
 
-                    shot_id = gui_image(jd, set_shot(first), ww, hh);
+                    shot_id = gui_image(kd, set_shot(first), ww, hh);
 
 #if NB_HAVE_PB_BOTH==1
                     if ((account_get_d(ACCOUNT_SET_UNLOCKS) <= i
@@ -542,48 +532,22 @@ static int set_gui(void)
 #endif
                 }
 
-                if ((kd = gui_varray(jd)))
+                if ((ld = gui_varray(kd)))
                 {
                     for (i = first; i < first + SET_STEP; i++)
-                        gui_set(kd, i);
+                        gui_set(ld, i);
                 }
             }
 
             if (video.aspect_ratio >= 1.0f)
             {
-                gui_space(body_id);
-                desc_id = gui_multi(body_id, " \n \n \n \n \n", GUI_SML, gui_yel, gui_wht);
+                gui_space(jd);
+
+                desc_id = gui_multi(jd, " \n \n \n \n \n", GUI_SML, gui_yel, gui_wht);
             }
         }
 
         gui_layout(id, 0, 0);
-    }
-
-    return id;
-}
-
-/*
- * Custom slide transition for page flipping.
- */
-static int set_transition(int id, int in, int intent)
-{
-    if (in)
-    {
-        // Slide in page content.
-        gui_slide(body_id, (intent == INTENT_BACK ? GUI_W : GUI_E) | GUI_FLING, 0, 0.16f, 0);
-    }
-    else
-    {
-        // Just hide the header, header from the next page takes over immediately.
-        gui_set_hidden(head_id, 1);
-
-        // Remove GUI after timeout (this doesn't do a slide).
-        gui_slide(id, GUI_REMOVE, 0, 0.16f, 0);
-
-        // Slide out page content.
-        gui_slide(body_id, (intent == INTENT_BACK ? GUI_E : GUI_W) | GUI_BACKWARD | GUI_FLING, 0, 0.16f, 0);
-
-        transition_add(id);
     }
 
     return id;
@@ -642,7 +606,7 @@ static int set_enter(struct state *st, struct state *prev, int intent)
         set_manual_hotreload = 0;
 
     if (prev == &st_set)
-        return set_transition(set_gui(), 1, intent);
+        return transition_page(set_gui(), 1, intent);
 
     return transition_slide(set_gui(), 1, intent);
 }
@@ -664,7 +628,7 @@ static int set_leave(struct state *st, struct state *next, int id, int intent)
     if (set_manual_hotreload)
         gui_delete(id);
     else if (next == &st_set)
-        return set_transition(id, 0, intent);
+        return transition_page(id, 0, intent);
     else
         return transition_slide(id, 0, intent);
 

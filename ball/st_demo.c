@@ -851,106 +851,116 @@ static int demo_gui(void)
     }
 #endif
 
-    id = gui_vstack(0);
-
     if (total && availibility)
     {
-        if ((jd = gui_hstack(id)))
+        if ((id = gui_vstack(0)))
         {
-            if (total != availibility)
+            if ((jd = gui_hstack(id)))
             {
-                char availibility_header_monitor[MAXSTR];
+                if (total != availibility)
+                {
+                    char availibility_header_monitor[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(availibility_header_monitor, MAXSTR,
+                    sprintf_s(availibility_header_monitor, MAXSTR,
 #else
-                sprintf(availibility_header_monitor,
+                    sprintf(availibility_header_monitor,
 #endif
-                        _("Replays unlocked: %d/%d"), availibility, total);
+                            _("Replays unlocked: %d/%d"), availibility, total);
 
-                int header_id = gui_label(jd, availibility_header_monitor,
-                                              GUI_SML, 0, 0);
+                    int header_id = gui_label(jd, availibility_header_monitor,
+                        GUI_SML, 0, 0);
 
-                float availibility_percent = ((float) availibility / (float) total);
+                    float availibility_percent = ((float)availibility / (float)total);
 
-                if (availibility_percent >= 0.75f)
-                    gui_set_color(header_id, gui_wht, gui_cya);
-                else if (availibility_percent >= 0.5f)
-                    gui_set_color(header_id, gui_wht, gui_grn);
-                else if (availibility_percent >= 0.25f)
-                    gui_set_color(header_id, gui_wht, gui_yel);
+                    if (availibility_percent >= 0.75f)
+                        gui_set_color(header_id, gui_wht, gui_cya);
+                    else if (availibility_percent >= 0.5f)
+                        gui_set_color(header_id, gui_wht, gui_grn);
+                    else if (availibility_percent >= 0.25f)
+                        gui_set_color(header_id, gui_wht, gui_yel);
+                    else
+                        gui_set_color(header_id, gui_gry, gui_red);
+                }
                 else
-                    gui_set_color(header_id, gui_gry, gui_red);
+                    gui_label(jd, _("Select Replay"), GUI_SML, 0, 0);
+
+                gui_filler(jd);
+                gui_space(jd);
+                gui_navig(jd, total, first, DEMO_STEP);
             }
-            else
-                gui_label(jd, _("Select Replay"), GUI_SML, 0, 0);
 
-            gui_filler(jd);
-            gui_space(jd);
-            gui_navig(jd, total, first, DEMO_STEP);
+            /* HACK: Must center-aligned for two side vertical space bars. */
+
+            /*
+            if ((kd = gui_hstack(id)))
+            {
+                gui_filler(kd);
+                gui_demo_thumbs(kd);
+                gui_filler(kd);
+            }
+            */
+
+            gui_demo_thumbs(id);
+
+            gui_space(id);
+
+            gui_demo_status(id);
+
+            gui_layout(id, 0, 0);
+
+            gui_demo_update_thumbs();
+            gui_demo_update_status(last_viewed);
+
+            demo_select(first);
         }
-
-        /* HACK: Must center-aligned for two side vertical space bars. */
-
-        /*if ((kd = gui_hstack(id)))
-        {
-            gui_filler(kd);
-            gui_demo_thumbs(kd);
-            gui_filler(kd);
-        }*/
-
-        gui_demo_thumbs(id);
-
-        gui_space(id);
-        gui_demo_status(id);
-
-        gui_layout(id, 0, 0);
-
-        gui_demo_update_thumbs();
-        gui_demo_update_status(last_viewed);
-
-        demo_select(first);
     }
     else if (total && !availibility)
     {
-        gui_title_header(id, _("All replays locked!"),
-                             GUI_MED, gui_red, gui_blk);
-        gui_space(id);
-        gui_multi(id, _("Open the file manager to delete\n"
-                        "or backup your replays."),
-                      GUI_SML, GUI_COLOR_WHT);
+        if ((id = gui_vstack(0)))
+        {
+            gui_title_header(id, _("All replays locked!"),
+                                 GUI_MED, gui_red, gui_blk);
+            gui_space(id);
+            gui_multi(id, _("Open the file manager to delete\n"
+                            "or backup your replays."),
+                          GUI_SML, GUI_COLOR_WHT);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (current_platform == PLATFORM_PC)
-        {
-            gui_space(id);
-            gui_back_button(id);
-        }
+            if (current_platform == PLATFORM_PC)
+            {
+                gui_space(id);
+                gui_back_button(id);
+            }
 #else
-        gui_back_button(id);
+            gui_back_button(id);
 #endif
 
-        gui_layout(id, 0, 0);
+            gui_layout(id, 0, 0);
+        }
     }
     else if (!total && !availibility)
     {
-        gui_title_header(id, _("No Replays"), GUI_MED, GUI_COLOR_DEFAULT);
-        gui_space(id);
-        gui_multi(id, _("Your Replays will appear here\n"
-                        "once you've recorded."),
-                      GUI_SML, GUI_COLOR_WHT);
+        if ((id = gui_vstack(0)))
+        {
+            gui_title_header(id, _("No Replays"), GUI_MED, GUI_COLOR_DEFAULT);
+            gui_space(id);
+            gui_multi(id, _("Your Replays will appear here\n"
+                            "once you've recorded."),
+                          GUI_SML, GUI_COLOR_WHT);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (current_platform == PLATFORM_PC)
-        {
-            gui_space(id);
-            gui_back_button(id);
-        }
+            if (current_platform == PLATFORM_PC)
+            {
+                gui_space(id);
+                gui_back_button(id);
+            }
 #else
-        gui_back_button(id);
+            gui_back_button(id);
 #endif
 
-        gui_layout(id, 0, 0);
+            gui_layout(id, 0, 0);
+        }
     }
     else
         exit_state(&st_title);
@@ -1058,6 +1068,9 @@ static int demo_enter(struct state *st, struct state *prev, int intent)
         return demo_gui();
     }
 
+    if (prev == &st_demo)
+        return transition_page(demo_gui(), 1, intent);
+
     return transition_slide(demo_gui(), 1, intent);
 }
 
@@ -1077,10 +1090,15 @@ static int demo_leave(struct state *st, struct state *next, int id, int intent)
     }
 
     if (demo_manual_hotreload)
+    {
         gui_delete(id);
-    else return transition_slide(id, 0, intent);
+        return 0;
+    }
 
-    return 0;
+    if (next == &st_demo)
+        return transition_page(id, 0, intent);
+
+    return transition_slide(id, 0, intent);
 }
 
 static void demo_paint(int id, float t)

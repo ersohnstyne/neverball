@@ -717,8 +717,7 @@ static int demo_restricted_gui(void)
 
         demo_requires_update = 0;
 
-            gui_layout(id, 0, 0);
-        }
+        gui_layout(id, 0, 0);
     }
 
     return id;
@@ -1068,9 +1067,6 @@ static int demo_enter(struct state *st, struct state *prev, int intent)
         demo_hotreload = 0;
         return demo_gui();
     }
-
-    if (prev == &st_demo)
-        return transition_page(demo_gui(), 1, intent);
 
     if (prev == &st_demo)
         return transition_page(demo_gui(), 1, intent);

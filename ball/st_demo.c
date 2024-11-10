@@ -905,14 +905,14 @@ static int demo_gui(void)
                 gui_space(jd);
 
                 gui_demo_status(jd);
-
-                gui_layout(jd, 0, 0);
-
-                gui_demo_update_thumbs();
-                gui_demo_update_status(last_viewed);
-
-                demo_select(first);
             }
+
+            gui_layout(jd, 0, 0);
+
+            gui_demo_update_thumbs();
+            gui_demo_update_status(last_viewed);
+
+            demo_select(first);
         }
     }
     else if (total && !availibility)

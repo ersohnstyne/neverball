@@ -900,12 +900,13 @@ static int demo_gui(void)
                 }
                 */
 
-                gui_demo_thumbs(jd);
-
-                gui_space(jd);
-
-                gui_demo_status(jd);
             }
+
+            gui_demo_thumbs(id);
+
+            gui_space(id);
+
+            gui_demo_status(id);
 
             gui_layout(id, 0, 0);
 

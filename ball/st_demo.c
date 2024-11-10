@@ -888,31 +888,31 @@ static int demo_gui(void)
                 gui_filler(jd);
                 gui_space(jd);
                 gui_navig(jd, total, first, DEMO_STEP);
+
+                /* HACK: Must center-aligned for two side vertical space bars. */
+
+                /*
+                if ((kd = gui_hstack(id)))
+                {
+                    gui_filler(kd);
+                    gui_demo_thumbs(kd);
+                    gui_filler(kd);
+                }
+                */
+
+                gui_demo_thumbs(id);
+
+                gui_space(id);
+
+                gui_demo_status(id);
+
+                gui_layout(id, 0, 0);
+
+                gui_demo_update_thumbs();
+                gui_demo_update_status(last_viewed);
+
+                demo_select(first);
             }
-
-            /* HACK: Must center-aligned for two side vertical space bars. */
-
-            /*
-            if ((kd = gui_hstack(id)))
-            {
-                gui_filler(kd);
-                gui_demo_thumbs(kd);
-                gui_filler(kd);
-            }
-            */
-
-            gui_demo_thumbs(id);
-
-            gui_space(id);
-
-            gui_demo_status(id);
-
-            gui_layout(id, 0, 0);
-
-            gui_demo_update_thumbs();
-            gui_demo_update_status(last_viewed);
-
-            demo_select(first);
         }
     }
     else if (total && !availibility)

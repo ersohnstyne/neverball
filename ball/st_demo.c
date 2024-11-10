@@ -892,7 +892,7 @@ static int demo_gui(void)
                 /* HACK: Must center-aligned for two side vertical space bars. */
 
                 /*
-                if ((kd = gui_hstack(id)))
+                if ((kd = gui_hstack(jd)))
                 {
                     gui_filler(kd);
                     gui_demo_thumbs(kd);
@@ -900,13 +900,13 @@ static int demo_gui(void)
                 }
                 */
 
-                gui_demo_thumbs(id);
+                gui_demo_thumbs(jd);
 
-                gui_space(id);
+                gui_space(jd);
 
-                gui_demo_status(id);
+                gui_demo_status(jd);
 
-                gui_layout(id, 0, 0);
+                gui_layout(jd, 0, 0);
 
                 gui_demo_update_thumbs();
                 gui_demo_update_status(last_viewed);

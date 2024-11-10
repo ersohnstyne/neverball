@@ -81,6 +81,10 @@ enum
     GOAL_IAP = GOAL_LAST + 1
 };
 
+static float score_count_anim_time;
+static int   score_count_anim_index;
+static int   score_count_anim_locked;
+
 static int shop_product_available;
 
 static int challenge_caught_extra;
@@ -566,6 +570,9 @@ static int goal_gui(void)
 
 static int goal_enter(struct state *st, struct state *prev, int intent)
 {
+    score_count_anim_time = 0.2f;
+    score_count_anim_index = 0;
+
     if (prev == &st_name)
         progress_rename(0);
 
@@ -717,6 +724,31 @@ static void goal_timer(int id, float dt)
 
                 gui_set_count(score_id, score + 1);
                 gui_pulse(score_id, 1.1f);
+
+#if NB_HAVE_PB_BOTH==1
+                score_count_anim_time += 0.05f;
+
+                if (score_count_anim_locked && score_count_anim_time > 0.2f)
+                    score_count_anim_locked = 0;
+
+                while (score_count_anim_time > 0.2f)
+                {
+                    score_count_anim_time -= 0.2f;
+
+                    if (score_count_anim_index == 0 && !score_count_anim_locked)
+                    {
+                        audio_play("snd/rank_countup_1.ogg", 1.0f);
+                        score_count_anim_locked = 1;
+                        score_count_anim_index = 1;
+                    }
+                    if (score_count_anim_index == 1 && !score_count_anim_locked)
+                    {
+                        audio_play("snd/rank_countup_2.ogg", 1.0f);
+                        score_count_anim_locked = 1;
+                        score_count_anim_index = 0;
+                    }
+                }
+#endif
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN

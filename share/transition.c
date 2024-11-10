@@ -161,4 +161,35 @@ int transition_page(int id, int in, int intent)
     return id;
 }
 
+<<<<<<< HEAD
 /*---------------------------------------------------------------------------*/
+=======
+int transition_page(int id, int in, int intent)
+{
+    const int head_id = gui_child(id, 0);
+    const int body_id = gui_child(id, 1);
+
+    if (in)
+    {
+        // Slide in page content.
+        gui_slide(body_id, (intent == INTENT_BACK ? GUI_W : GUI_E) | GUI_FLING, 0, 0.16f, 0);
+    }
+    else
+    {
+        // Just hide the header, header from the next page takes over immediately.
+        gui_set_hidden(head_id, 1);
+
+        // Remove GUI after timeout (this doesn't do a slide).
+        gui_slide(id, GUI_REMOVE, 0, 0.16f, 0);
+
+        // Slide out page content.
+        gui_slide(body_id, (intent == INTENT_BACK ? GUI_E : GUI_W) | GUI_BACKWARD | GUI_FLING, 0, 0.16f, 0);
+
+        transition_add(id);
+    }
+
+    return id;
+}
+
+/*---------------------------------------------------------------------------*/
+>>>>>>> 8d01ce92fe23c13879a059624852eb2d2dcc4cc9

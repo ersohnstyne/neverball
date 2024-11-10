@@ -650,6 +650,7 @@ static int demo_restricted_gui(void)
 {
     int id, jd, kd, ld, md;
 
+<<<<<<< HEAD
     if ((id = gui_vstack(0)))
     {
         if ((jd = gui_vstack(id)))
@@ -716,8 +717,47 @@ static int demo_restricted_gui(void)
                           GUI_SML, GUI_COLOR_WHT);
 
         demo_requires_update = 0;
+=======
+    if (total)
+    {
+        if ((id = gui_vstack(0)))
+        {
+            if ((jd = gui_hstack(id)))
+            {
+                gui_label(jd, _("Select Replay"), GUI_SML, 0,0);
+                gui_filler(jd);
+                gui_navig(jd, total, first, DEMO_STEP);
+            }
 
-        gui_layout(id, 0, 0);
+            if ((jd = gui_vstack(id)))
+            {
+                gui_demo_thumbs(jd);
+
+                gui_space(jd);
+
+                gui_demo_status(jd);
+
+            }
+
+            gui_layout(id, 0, 0);
+
+            gui_demo_update_thumbs();
+            gui_demo_update_status(last_viewed);
+
+            demo_select(first);
+        }
+    }
+    else
+    {
+        if ((id = gui_vstack(0)))
+        {
+            gui_label(id, _("No Replays"), GUI_MED, 0, 0);
+            gui_space(id);
+            gui_state(id, _("Back"), GUI_SML, GUI_BACK, 0);
+>>>>>>> 8d01ce92fe23c13879a059624852eb2d2dcc4cc9
+
+            gui_layout(id, 0, 0);
+        }
     }
 
     return id;
@@ -1071,6 +1111,9 @@ static int demo_enter(struct state *st, struct state *prev, int intent)
     if (prev == &st_demo)
         return transition_page(demo_gui(), 1, intent);
 
+    if (prev == &st_demo)
+        return transition_page(demo_gui(), 1, intent);
+
     return transition_slide(demo_gui(), 1, intent);
 }
 
@@ -1089,12 +1132,15 @@ static int demo_leave(struct state *st, struct state *next, int id, int intent)
         }
     }
 
+<<<<<<< HEAD
     if (demo_manual_hotreload)
     {
         gui_delete(id);
         return 0;
     }
 
+=======
+>>>>>>> 8d01ce92fe23c13879a059624852eb2d2dcc4cc9
     if (next == &st_demo)
         return transition_page(id, 0, intent);
 

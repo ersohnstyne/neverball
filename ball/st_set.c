@@ -184,18 +184,25 @@ static int set_action(int tok, int val)
             do_init = 0;
             return exit_state(&st_set);
 
+<<<<<<< HEAD
             break;
 
         case GUI_NEXT:
             first = MIN(first + SET_STEP, total - 1);
             do_init = 0;
             return goto_state(&st_set);
+=======
+        first -= SET_STEP;
+        do_init = 0;
+        return exit_state(&st_set);
+>>>>>>> 8d01ce92fe23c13879a059624852eb2d2dcc4cc9
 
             break;
 
         case SET_SELECT:
             if (set_name_locked) return 1;
 
+<<<<<<< HEAD
             set_goto(val);
             activity_services_setname_update(set_name(val));
             return goto_state(&st_start);
@@ -206,6 +213,11 @@ static int set_action(int tok, int val)
             set_manual_hotreload = 1;
             return goto_state(&st_set);
             break;
+=======
+        first += SET_STEP;
+        do_init = 0;
+        return goto_state(&st_set);
+>>>>>>> 8d01ce92fe23c13879a059624852eb2d2dcc4cc9
 
         case SET_GET_MORE:
 #if ENABLE_FETCH!=0 && \
@@ -447,6 +459,7 @@ static int set_gui(void)
     {
         if (video.aspect_ratio >= 1.0f)
         {
+<<<<<<< HEAD
             if ((jd = gui_hstack(id)))
             {
 #if defined(CONFIG_INCLUDES_ACCOUNT) && \
@@ -531,6 +544,23 @@ static int set_gui(void)
                         gui_set_image(shot_id, "gui/campaign/locked.jpg");
 #endif
                 }
+=======
+            gui_label(jd, _("Level Set"), GUI_SML, gui_yel, gui_red);
+            gui_filler(jd);
+            gui_navig(jd, total, first, SET_STEP);
+        }
+
+        if ((jd = gui_vstack(id)))
+        {
+            gui_space(jd);
+
+            if ((kd = gui_harray(jd)))
+            {
+                const int ww = MIN(w, h) * 7 / 12;
+                const int hh = ww / 4 * 3;
+
+                shot_id = gui_image(kd, set_shot(first), ww, hh);
+>>>>>>> 8d01ce92fe23c13879a059624852eb2d2dcc4cc9
 
                 if ((ld = gui_varray(kd)))
                 {
@@ -539,12 +569,18 @@ static int set_gui(void)
                 }
             }
 
+<<<<<<< HEAD
             if (video.aspect_ratio >= 1.0f)
             {
                 gui_space(jd);
 
                 desc_id = gui_multi(jd, " \n \n \n \n \n", GUI_SML, gui_yel, gui_wht);
             }
+=======
+            gui_space(jd);
+
+            desc_id = gui_multi(jd, " \n \n \n \n \n", GUI_SML, gui_yel, gui_wht);
+>>>>>>> 8d01ce92fe23c13879a059624852eb2d2dcc4cc9
         }
 
         gui_layout(id, 0, 0);
@@ -608,11 +644,15 @@ static int set_enter(struct state *st, struct state *prev, int intent)
     if (prev == &st_set)
         return transition_page(set_gui(), 1, intent);
 
+    if (prev == &st_set)
+        return transition_page(set_gui(), 1, intent);
+
     return transition_slide(set_gui(), 1, intent);
 }
 
 static int set_leave(struct state *st, struct state *next, int id, int intent)
 {
+<<<<<<< HEAD
     do_init = 0;
 
     if (next == &st_title ||
@@ -648,6 +688,12 @@ static void set_paint(int id, float t)
     if (console_gui_show())
         console_gui_list_paint();
 #endif
+=======
+    if (next == &st_set)
+        return transition_page(id, 0, intent);
+
+    return transition_slide(id, 0, intent);
+>>>>>>> 8d01ce92fe23c13879a059624852eb2d2dcc4cc9
 }
 
 static void set_over(int i)

@@ -44,16 +44,11 @@ void transition_remove(int id);
 void transition_timer(float dt);
 void transition_paint(void);
 
-<<<<<<< HEAD
 /*
  * This screenstate transition will be replaced into the transition_slide_full.
  * Your functions will be replaced using four parameters.
  */
 _CRT_NB_TRANSITION_DEPRECATED(int, (int id, int in, int intent), transition_slide, transition_slide_full);
-=======
-int transition_slide(int id, int in, int intent);
-int transition_page(int id, int in, int intent);
->>>>>>> 8d01ce92fe23c13879a059624852eb2d2dcc4cc9
 
 int transition_slide_full(int id, int in,
                           int enter_flags, int exit_flags);

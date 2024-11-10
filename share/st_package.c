@@ -443,10 +443,6 @@ static int package_gui(void)
 {
     int w = video.device_w;
     int h = video.device_h;
-<<<<<<< HEAD
-=======
-
->>>>>>> 8d01ce92fe23c13879a059624852eb2d2dcc4cc9
     int id, jd, kd, ld;
 
     int i;
@@ -485,19 +481,12 @@ static int package_gui(void)
         {
             gui_label (jd, _("Addons"), GUI_SML, 0, 0);
             gui_filler(jd);
-<<<<<<< HEAD
             gui_navig (jd, total, first, PACKAGE_STEP);
         }
 
         gui_space(id);
 
         if ((jd = gui_hstack(id)))
-=======
-            gui_navig(jd, total, first, PACKAGE_STEP);
-        }
-
-        if ((jd = gui_vstack(id)))
->>>>>>> 8d01ce92fe23c13879a059624852eb2d2dcc4cc9
         {
             gui_space(jd);
 
@@ -540,17 +529,12 @@ static int package_gui(void)
             {
                 if ((ld = gui_hstack(kd)))
                 {
-<<<<<<< HEAD
                     install_status_id = gui_label(ld, GUI_ARROW_DN,
                                                       GUI_SML, gui_grn, gui_grn);
                     install_label_id = gui_label(ld, "XXXXXXXXXXXX",
                                                      GUI_SML, gui_wht, gui_wht);
 
                     gui_set_label(install_label_id, _("Install"));
-=======
-                    install_status_id = gui_label(ld, GUI_ARROW_DN, GUI_SML, gui_grn, gui_grn);
-                    install_label_id = gui_label(ld, _("Install"), GUI_SML, gui_wht, gui_wht);
->>>>>>> 8d01ce92fe23c13879a059624852eb2d2dcc4cc9
 
                     gui_set_font(install_status_id, GUI_FACE);
 
@@ -562,11 +546,7 @@ static int package_gui(void)
 
                 gui_filler(kd);
 
-<<<<<<< HEAD
                 type_id = gui_label(kd, "XXXXXXX", GUI_SML, GUI_COLOR_DEFAULT);
-=======
-                type_id = gui_label(kd, "ABCDEFG", GUI_SML, 0, 0);
->>>>>>> 8d01ce92fe23c13879a059624852eb2d2dcc4cc9
             }
         }
 

@@ -39,6 +39,7 @@ void  game_client_free(const char *);
 void  game_client_sync(fs_file);
 void  game_client_draw(int, float);
 void  game_client_blend(float);
+void  game_client_maxspeed(float, int);
 
 int   curr_viewangle(void);
 int   curr_clock(void);

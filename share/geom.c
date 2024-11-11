@@ -322,6 +322,8 @@ static const char item_sols[GEOM_MAX][PATHMAX] = {
 #endif
 };
 
+static struct s_full maxspeed;
+
 static struct s_full beam;
 static struct s_full jump;
 static struct s_full goal;
@@ -353,6 +355,8 @@ static int back_state = 0;
 void geom_init(void)
 {
     int i;
+
+    sol_load_full(&maxspeed, "geom/maxspeed/maxspeed.sol", 0);
 
     sol_load_full(&beam, "geom/beam/beam.sol", 0);
     
@@ -450,6 +454,8 @@ void geom_free(void)
     sol_free_full(&goal);
     sol_free_full(&jump);
     sol_free_full(&beam);
+
+    sol_free_full(&maxspeed);
 }
 
 void geom_step(float dt)
@@ -591,6 +597,15 @@ void back_free(void)
         sol_free_full(&back);
 
     back_state = 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/* Draw max speed indicator with position (p) and angle (a) */
+
+void maxspeed_draw(struct s_rend* rend)
+{
+    sol_draw(&maxspeed.draw, rend, 0, 1);
 }
 
 /*---------------------------------------------------------------------------*/

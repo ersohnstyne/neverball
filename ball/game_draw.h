@@ -55,6 +55,8 @@ struct game_draw
 
 void game_draw(struct game_draw *, int, float);
 
+void game_draw_set_maxspeed(float, int);
+
 /*---------------------------------------------------------------------------*/
 
 struct game_lerp

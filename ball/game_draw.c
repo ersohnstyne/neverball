@@ -359,6 +359,49 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
 
 /*---------------------------------------------------------------------------*/
 
+static int   max_speed_enabled = 0;     /* New: Max speed indicator          */
+static float max_speed_angle = 0.0f;  /* New: Max speed indicator          */
+
+void game_draw_set_maxspeed(float a, int f)
+{
+    max_speed_enabled = f;
+    max_speed_angle = a;
+}
+
+static void game_draw_maxspeed(struct s_rend* rend,
+    const struct game_draw* gd)
+{
+    float c[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
+
+    const struct s_vary* vary = &gd->vary;
+
+    const float view_angle = V_DEG(fatan2f(gd->view.e[2][0], gd->view.e[2][2]));
+
+    glPushMatrix();
+
+    if (max_speed_enabled)
+    {
+        glTranslatef(vary->uv[0].p[0],
+            vary->uv[0].p[1] + BALL_FUDGE,
+            vary->uv[0].p[2]);
+        glRotatef(max_speed_angle + view_angle,
+            0.0f, 90.0f, 0.0f);
+        glScalef(vary->uv[0].r,
+            vary->uv[0].r,
+            vary->uv[0].r);
+
+        glColor4ub(ROUND(c[0] * 255),
+            ROUND(c[1] * 255),
+            ROUND(c[2] * 255),
+            ROUND(c[3] * 255));
+        maxspeed_draw(rend);
+    }
+
+    glPopMatrix();
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void game_draw_balls(struct s_rend *rend,
                             const struct s_vary *vary,
                             const float *bill_M, float t)
@@ -877,6 +920,8 @@ static void game_draw_fore(struct s_rend *rend,
                 /* Draw the ball. */
 
                 game_draw_balls(rend, draw->vary, M, t);
+
+                game_draw_maxspeed(rend, gd);
 
                 break;
         }

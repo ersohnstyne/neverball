@@ -2264,8 +2264,8 @@ void game_set_pos_max_speed(int x, int y)
 {
     const float range = ANGLE_BOUND * 2;
 
-    input_set_x(input_get_x() + range * y / config_get_d(CONFIG_MOUSE_SENSE));
-    input_set_z(input_get_z() + range * x / config_get_d(CONFIG_MOUSE_SENSE));
+    input_set_x(range * y / config_get_d(CONFIG_MOUSE_SENSE));
+    input_set_z(range * x / config_get_d(CONFIG_MOUSE_SENSE));
 
     input_set_s(config_get_d(CONFIG_MOUSE_RESPONSE) * 0.001f);
 }

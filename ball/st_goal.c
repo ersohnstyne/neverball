@@ -648,7 +648,8 @@ static void goal_timer(int id, float dt)
     {
         static float t = 0.0f;
 
-        t += dt;
+        if (time_state() > 1.0f)
+            t += dt;
 
         geom_step(dt);
         game_server_step(dt);

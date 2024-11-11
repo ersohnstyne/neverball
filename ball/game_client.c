@@ -839,6 +839,11 @@ void game_client_draw(int pose, float t)
     }
 }
 
+void game_client_maxspeed(float a, int f)
+{
+    game_draw_set_maxspeed(a, f);
+}
+
 /*---------------------------------------------------------------------------*/
 
 int curr_viewangle(void)

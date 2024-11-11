@@ -924,7 +924,11 @@ static void play_loop_timer(int id, float dt)
     {
         tilt_x = flerp(0, tilt_x, 0.5f);
         tilt_y = flerp(0, tilt_y, 0.5f);
+
+        game_client_maxspeed(0.0f, 0);
     }
+    else if (max_speed)
+        game_client_maxspeed(V_DEG(fatan2f(tilt_y, tilt_x)), 1);
 
     if (!lmb_holded && use_mouse && !use_keyboard)
     {
@@ -1046,11 +1050,16 @@ static void play_loop_point(int id, int x, int y, int dx, int dy)
 
             if (max_speed)
             {
-                tilt_x = 0;
-                tilt_y = 0;
+                
+                tilt_x = CLAMP((-ANGLE_BOUND * 20) * powerup_get_tilt_multiply(),
+                               tilt_x + dx,
+                               (ANGLE_BOUND * 20) * powerup_get_tilt_multiply());
+                tilt_y = CLAMP((-ANGLE_BOUND * 20) * powerup_get_tilt_multiply(),
+                               tilt_y + dy,
+                               (ANGLE_BOUND * 20) * powerup_get_tilt_multiply());
 
-                game_set_pos_max_speed(dx * powerup_get_tilt_multiply(),
-                                       curr_mode() == MODE_BOOST_RUSH ? 0 : dy * powerup_get_tilt_multiply());
+                game_set_pos_max_speed(tilt_x * powerup_get_tilt_multiply(),
+                                       curr_mode() == MODE_BOOST_RUSH ? 0 : tilt_y * powerup_get_tilt_multiply());
             }
             else if (man_rot)
             {

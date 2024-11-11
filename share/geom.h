@@ -76,6 +76,8 @@ void item_draw (struct s_rend *, const struct v_item *, const GLfloat *, float);
 void back_init(const char *s);
 void back_free(void);
 
+void maxspeed_draw(struct s_rend *);
+
 void beam_draw(struct s_rend *, const GLfloat *, const GLfloat *, GLfloat, GLfloat);
 void goal_draw(struct s_rend *, const GLfloat *, GLfloat, GLfloat, GLfloat);
 void jump_draw(struct s_rend *, const GLfloat *, GLfloat, GLfloat, GLfloat);

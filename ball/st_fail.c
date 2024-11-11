@@ -1399,6 +1399,10 @@ struct state st_raise_gems;
 
 static struct state *st_returnable;
 
+static float score_count_anim_time;
+static int   score_count_anim_index;
+static int   score_count_anim_locked;
+
 static int raisegems_dst_amount = 15;
 static int raisegems_working = 0;
 static int gui_count_ids[4], num_amounts_curr[4], num_amounts_dst[4];
@@ -1767,6 +1771,9 @@ static int raise_gems_prepare_gui(void)
 
 static int raise_gems_enter(struct state *st, struct state *prev, int intent)
 {
+    score_count_anim_time  = 0.2f;
+    score_count_anim_index = 0;
+
     return transition_slide(raisegems_working ? raise_gems_working_gui() :
                                                 raise_gems_prepare_gui(),
                             1, intent);
@@ -1807,6 +1814,34 @@ static void raise_gems_timer(int id, float dt)
                 time_state_tofinish = time_state() + 3.0f;
             }
         }
+
+#if NB_HAVE_PB_BOTH==1
+        if (time_state_tofinish - 3 <= time_state() - 0.05f)
+        {
+            score_count_anim_time += 0.05f;
+
+            if (score_count_anim_locked && score_count_anim_time > 0.2f)
+                score_count_anim_locked = 0;
+
+            while (score_count_anim_time > 0.2f)
+            {
+                score_count_anim_time -= 0.2f;
+
+                if (score_count_anim_index == 0 && !score_count_anim_locked)
+                {
+                    audio_play("snd/rank_countdown_1.ogg", 1.0f);
+                    score_count_anim_locked = 1;
+                    score_count_anim_index = 1;
+                }
+                if (score_count_anim_index == 1 && !score_count_anim_locked)
+                {
+                    audio_play("snd/rank_countdown_2.ogg", 1.0f);
+                    score_count_anim_locked = 1;
+                    score_count_anim_index = 0;
+                }
+            }
+        }
+#endif
 
         t -= 0.05f;
     }

@@ -393,7 +393,7 @@ static int wgcl_login_action(int tok, int val)
 
                     login_entertext_mode = 0;
                     text_input_stop();
-                    return goto_state(&st_wgcl_login);
+                    return exit_state(&st_wgcl_login);
                     break;
 
                 case 2:
@@ -402,7 +402,7 @@ static int wgcl_login_action(int tok, int val)
 
                     login_entertext_mode = 0;
                     text_input_stop();
-                    return goto_state(&st_wgcl_login);
+                    return exit_state(&st_wgcl_login);
                     break;
 
                 default:
@@ -637,7 +637,7 @@ static int wgcl_login_enter(struct state *st, struct state *prev, int intent)
         text_input_start(on_text_input);
 
     if (login_introduction)
-        return wgcl_login_gui_introduction();
+        return transition_slide(wgcl_login_gui_introduction(), 1, intent);
 
     return transition_slide(login_entertext_mode == 0 ? wgcl_login_gui_forms() :
                                                         wgcl_login_gui_keyboard(),

@@ -258,7 +258,7 @@ static int name_gui(void)
             if ((jd = gui_harray(id)))
             {
                 enter_id = gui_start(jd, _("OK"), GUI_SML, NAME_OK, 0);
-                
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                 if (current_platform == PLATFORM_PC && !game_setup_process())
 #endif

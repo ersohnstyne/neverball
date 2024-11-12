@@ -498,6 +498,17 @@ static int level_gui(void)
                     gui_focus(kd);
                 }
 
+#ifndef __EMSCRIPTEN__
+                if (current_platform != PLATFORM_PC &&
+                    current_platform != PLATFORM_XBOX &&
+                    current_platform != PLATFORM_PS &&
+                    current_platform != PLATFORM_WII)
+#endif
+                {
+                    gui_filler(jd);
+                    gui_back_button(jd);
+                }
+
                 gui_filler(jd);
             }
 
@@ -592,6 +603,17 @@ static int level_gui(void)
                     gui_set_state(kd, LEVEL_START, 0);
                     gui_set_rect(kd, GUI_ALL);
                     gui_focus(kd);
+                }
+
+#ifndef __EMSCRIPTEN__
+                if (current_platform != PLATFORM_PC &&
+                    current_platform != PLATFORM_XBOX &&
+                    current_platform != PLATFORM_PS &&
+                    current_platform != PLATFORM_WII)
+#endif
+                {
+                    gui_filler(jd);
+                    gui_back_button(jd);
                 }
 
                 gui_filler(jd);
@@ -725,7 +747,7 @@ static int level_keybd(int c, int d)
                 (message && *message))
             {
                 show_info = show_info == 0 ? 1 : 0;
-                goto_state(&st_level);
+                show_info ? goto_state(&st_level) : exit_state(&st_level);
             }
         }
     }
@@ -745,8 +767,6 @@ static int level_buttn(int b, int d)
             {
                 if (curr_state() == &st_level)
                     return level_action(gui_token(active), gui_value(active));
-                else
-                    goto_state(&st_level);
             }
             else
 #endif
@@ -759,7 +779,7 @@ static int level_buttn(int b, int d)
             if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH))
             {
                 show_info = show_info == 0 ? 1 : 0;
-                goto_state(&st_level);
+                show_info ? goto_state(&st_level) : exit_state(&st_level);
             }
         }
     }
@@ -782,7 +802,6 @@ static int level_click(int b, int d)
                 int active = gui_active();
                 return level_action(gui_token(active), gui_value(active));
             }
-            else return goto_state(&st_level);
         }
 #elif SWITCHBALL_HAVE_TIP_AND_TUTORIAL
         return (!tutorial_check() && !hint_check()) ? goto_state(&st_play_ready) : 1;
@@ -975,20 +994,28 @@ static int level_signin_required_buttn(int b, int d)
 
 int goto_play_level(void)
 {
+    struct state *curr_st = curr_state();
+    int         (*fn_state)(struct state *);
+
+    if (curr_st == &st_pause)
+        fn_state = exit_state;
+    else
+        fn_state = goto_state;
+
 #if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
     if (level_loading_with_moon_taskloader)
-        return goto_state(&st_level_loading);
+        return fn_state(&st_level_loading);
 #endif
 
     if (config_get_d(CONFIG_ACCOUNT_SAVE) > 0 &&
         curr_mode() != MODE_NONE && !demo_fp)
-        return goto_state(&st_nodemo);
+        return fn_state(&st_nodemo);
 
-    return goto_state(
+    return fn_state(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                      campaign_used() ? &st_play_ready :
+                    campaign_used() ? &st_play_ready :
 #endif
-                      &st_level);
+                    &st_level);
 }
 
 int goto_exit(void)
@@ -1094,7 +1121,7 @@ int goto_exit(void)
             game_fade_color(0.25f, 0.0f, 0.0f);
             game_fade(+0.333f);
         }
-        
+
         dst = curr_times() > 0 && progress_dead() ? &st_over :
                                                     &st_start;
     }

@@ -317,7 +317,7 @@ static int start_action(int tok, int val)
                         if (progress_play(get_level(0)))
                         {
                             activity_services_mode_update(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
-                                                       (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE : 
+                                                       (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE :
                                                                                         AS_MODE_NORMAL));
 
                             return goto_play_level();
@@ -327,7 +327,7 @@ static int start_action(int tok, int val)
                 else return goto_state(&st_start_unavailable);
 #else
                 return goto_state(&st_start_joinrequired);
-#endif 
+#endif
             }
             break;
 
@@ -343,7 +343,7 @@ static int start_action(int tok, int val)
                 if (progress_play(get_level(0)))
                 {
                     activity_services_mode_update(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
-                                               (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE : 
+                                               (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE :
                                                                                 AS_MODE_NORMAL));
 
                     return goto_play_level();
@@ -554,8 +554,8 @@ static int start_gui(void)
                 sprintf(set_star_attr,
 #endif
                         GUI_STAR " %d", set_star(curr_set()));
-                
-                int star_completed = 
+
+                int star_completed =
                     set_star(curr_set()) == set_star_curr(curr_set());
 
                 int star_btn_id = gui_label(jd,

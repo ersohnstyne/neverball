@@ -19,7 +19,7 @@
 
 /*
  * HACK: Does not makes any sense
- * 
+ *
  * extern struct state st_save;
  * extern struct state st_clobber;
  * extern struct state st_lockdown;

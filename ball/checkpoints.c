@@ -75,11 +75,11 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
                                  int ui)
 {
     /* Phase 1: Activate the checkpoints. */
-    
+
     last_active = 1;
 
     /* Phase 2: Backup the camera view */
-    
+
     memset(&last_view, 0, sizeof (saved_view));
     last_view[ui].a = saved_view.a;
 
@@ -196,7 +196,7 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
         c_rp->mi = rp->mi;
         c_rp->mj = rp->mj;
     }
-    
+
     /* Backed up from the gameplay (chkp) */
     for (int backupidx = 0; backupidx < saved_vary.cc; backupidx++)
     {

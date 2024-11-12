@@ -452,7 +452,7 @@ static int wgcl_login_gui_introduction(void)
         if ((jd = gui_harray(id)))
         {
             gui_start(jd, _("Login"), GUI_SML, WGCL_LOGIN_SUBMIT, 0);
-            
+
             if (!game_setup_process()
 #if NB_HAVE_PB_BOTH==1
 #ifndef __EMSCRIPTEN__

@@ -296,7 +296,7 @@ static int get_score(fs_file fp, struct score *s)
         if (sscanf_s(line,
 #else
         if (sscanf(line,
-#endif 
+#endif
                    "%d %d %n", &s->timer[i], &s->coins[i], &n) < 2)
             return 0;
 
@@ -518,7 +518,7 @@ int campaign_score_update(int timer, int coins, int *score_rank, int *times_rank
     if (!campaign_used()) return 0;
 
     const char *player = config_get_s(CONFIG_PLAYER);
-    
+
     int career_hs_unlocked = (campaign_career_unlocked() &&
                               config_get_d(CONFIG_LOCK_GOALS));
 
@@ -646,7 +646,7 @@ static void campaign_load_levels(void)
         struct level *l = &campaign_lvl_v[i - i_retreat];
 
         int lvl_was_offered = level_load(campaign_levelpath[i], l);
-        
+
         l->number       = i - i_retreat;
         l->is_locked    = (i - i_retreat) > 0 && lvl_was_offered;
         l->is_completed = 0;
@@ -928,29 +928,29 @@ int campaign_load_camera_box_trigger(const char *levelname)
 
             /* This level uses automatic camera for campaign
              * and is written the filename as follows:
-             * 
+             *
              *     autocam-level-5.txt
              *     autocam-level-12.txt
-             * 
+             *
              * Valid values:
-             * 
+             *
              *     pos: -65536 - 65536 (require 3 float values)
              *     size: -65536 - 65536 (require 3 float values)
              *     mode: 0 - 2
              *     campos: -65536 - 65536 (require 3 float values)
              *     dir: -180 - 180 (0 = North; 90 = East; 180/-180 = South; -90 = West)
-             * 
+             *
              * Auto-Camera values per line must be programmed
              * with corrected order:
-             * 
+             *
              *     pos (float vector)
              *     size (float vector)
              *     mode (integer)
              *     campos (float vector)
              *     dir (float)
-             * 
+             *
              * Especially, 64 units called 1 metres.
-             * 
+             *
              * Autocam files must be placed in the directory
              * "buildin-map-campaign" in the data folder, so it can be
              * test your camera modes in a single level.

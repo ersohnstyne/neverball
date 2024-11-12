@@ -206,7 +206,7 @@ void hud_init(void)
 
             gui_space(id);
         }
-        
+
         // HACK: hide by default.
         gui_set_slide(Touch_id, GUI_N, 0, 0, 0);
 

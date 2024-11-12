@@ -207,9 +207,10 @@ static const char *pick_demo(Array items)
 
     int selectedDemo = rand_between(0, total - 1);
 
-    demo_dir_load(items, 0, total - 1);
+    //demo_dir_load(items, 0, total - 1);
 
-    struct demo *demo_data = ((struct demo *) ((struct dir_item *) array_get(items, selectedDemo))->data);
+    struct demo *demo_data = (struct demo *)
+                             DIR_ITEM_GET(items, selectedDemo < total ? selectedDemo : 0)->data;
 
     /* Have demo data? */
 
@@ -504,7 +505,7 @@ static int title_action(int tok, int val)
                                  TITLE_PLATFORM_CINMAMON, _("Developer Mode"));
                 sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_CINMAMON);
 #else
-                sprintf(dev_env, _(editions_developer[EDITION_CURRENT]), 
+                sprintf(dev_env, _(editions_developer[EDITION_CURRENT]),
                                  TITLE_PLATFORM_WINDOWS, _("Developer Mode"));
                 sprintf(os_env, _(editions_common[EDITION_CURRENT]),
                                 TITLE_PLATFORM_WINDOWS);
@@ -716,7 +717,7 @@ static int title_gui(void)
                         TITLE_PLATFORM_CINMAMON, _("Developer Mode"));
                 sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_CINMAMON);
 #else
-                sprintf(dev_env, _(editions_developer[EDITION_CURRENT]), 
+                sprintf(dev_env, _(editions_developer[EDITION_CURRENT]),
                         TITLE_PLATFORM_WINDOWS, _("Developer Mode"));
                 sprintf(os_env, _(editions_common[EDITION_CURRENT]), TITLE_PLATFORM_WINDOWS);
 #endif
@@ -747,7 +748,7 @@ static int title_gui(void)
             }
             else if (current_platform == PLATFORM_SWITCH)
             {
-                sprintf(dev_env, _("%s Edition / %s"), 
+                sprintf(dev_env, _("%s Edition / %s"),
                         TITLE_PLATFORM_SWITCH, _("Developer Mode"));
                 sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_SWITCH);
             }
@@ -771,7 +772,7 @@ static int title_gui(void)
                 if ((jd = gui_vstack(id)))
                 {
                     gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" :
-                                                                     "  Neverball  ", 
+                                                                     "  Neverball  ",
                                          video.aspect_ratio < 1.0f ? GUI_MED :
                                                                      GUI_LRG,
                                                                      0, 0);
@@ -916,8 +917,8 @@ static int title_gui(void)
 
             if ((jd = gui_vstack(id)))
             {
-                gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" : "  Neverball  ", 
-                                     video.aspect_ratio < 1.0f ? GUI_MED : 
+                gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" : "  Neverball  ",
+                                     video.aspect_ratio < 1.0f ? GUI_MED :
                                                                  GUI_LRG,
                                                                  0, 0);
                 if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
@@ -1286,6 +1287,9 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
     real_time = 0.0f;
 
+    if (intent == INTENT_BACK)
+        return transition_slide(title_gui(), 1, intent);
+
     return title_gui();
 }
 
@@ -1383,7 +1387,7 @@ static void title_timer(int id, float dt)
                              progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
                                                                 "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
 #else
-                    else if (!config_get_d(CONFIG_MAINMENU_PANONLY) && 
+                    else if (!config_get_d(CONFIG_MAINMENU_PANONLY) &&
                              progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
                                                                 "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
 #endif

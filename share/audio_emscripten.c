@@ -41,7 +41,7 @@ void audio_init(void)
     });
 
     /* Set the initial volumes. */
-    
+
     audio_volume(CLAMP(0, config_get_d(CONFIG_MASTER_VOLUME),   10),
                  CLAMP(0, config_get_d(CONFIG_SOUND_VOLUME),    10),
                  CLAMP(0, config_get_d(CONFIG_MUSIC_VOLUME),    10),
@@ -103,16 +103,20 @@ void audio_narrator_play(const char *filename, float a)
 
 void audio_music_fade_out(float t)
 {
+    float clamped_time = CLAMP(0.001f, t, 1.0f);
+
     EM_ASM({
         Neverball.audioMusicFadeOut($0);
-    }, t);
+    }, clamped_time);
 }
 
 void audio_music_fade_in(float t)
 {
+    float clamped_time = CLAMP(0.001f, t, 1.0f);
+
     EM_ASM({
         Neverball.audioMusicFadeIn($0);
-    }, t);
+    }, clamped_time);
 }
 
 void audio_music_fade_to(float t, const char *filename)

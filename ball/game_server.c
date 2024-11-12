@@ -1722,7 +1722,7 @@ static int game_update_state(int bt)
 {
     struct b_goal *zp;
     int hi, cami;
-    
+
     float p[3];
 
     /* New: Hold timer mode */
@@ -2206,7 +2206,7 @@ float game_server_blend(void)
 void game_set_goal(void)
 {
     if (goal_e) return;
-    
+
     audio_play(AUD_SWITCH, 1.0f);
     goal_e = 1;
 

@@ -124,6 +124,8 @@ enum ask_more_options
     ASK_MORE_BALLS
 };
 
+static int fail_intro_animation_phase;
+
 static int ask_more_target;
 
 static int resume;
@@ -140,6 +142,8 @@ void detect_replay_filters(int exceeded);
 static int fail_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
+
+    fail_intro_animation_phase = 0;
 
     int save = config_get_d(CONFIG_ACCOUNT_SAVE);
 
@@ -200,6 +204,12 @@ static int fail_action(int tok, int val)
             {
                 powerup_stop();
                 return goto_play_level();
+            }
+            else
+            {
+                /* Can't do yet, play buzzer sound. */
+
+                audio_play(AUD_DISABLED, 1.0f);
             }
             break;
 
@@ -269,6 +279,18 @@ static int fail_gui(void)
         label = _("Fall-out!");
     else if (status == GAME_TIME)
         label = _("Time's Up!");
+
+    if (fail_intro_animation_phase == 1)
+    {
+        if ((id = gui_title_header(0, label, GUI_LRG, gui_blu, gui_grn)))
+        {
+            gui_set_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.5f, 0);
+            gui_layout(id, 0, 0);
+            gui_pulse(id, 1.2f);
+            return id;
+        }
+        else return 0;
+    }
 
     if ((root_id = gui_root()))
     {
@@ -553,6 +575,9 @@ static int fail_gui(void)
 #endif
 
                 gui_set_rect(jd, GUI_ALL);
+
+                if (fail_intro_animation_phase == 2)
+                    gui_set_slide(jd, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 0.8f, 0);
             }
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
@@ -709,6 +734,9 @@ static int fail_gui(void)
                             gui_state(jd, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
                     }
                 }
+
+                if (fail_intro_animation_phase == 2)
+                    gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.6, 0.8f, 0.05f);
             }
 
             gui_pulse(fid, 1.2f);
@@ -745,11 +773,17 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
 #endif
         )
         audio_music_fade_out(2.0f);
+
     video_clr_grab();
 
     /* Check if we came from a known previous state. */
 
     resume = (prev != &st_play_loop);
+
+    if (!resume && config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        fail_intro_animation_phase = 1;
+    else if (!resume)
+        fail_intro_animation_phase = 2;
 
     /* Note the current status if we got here from elsewhere. */
 
@@ -761,6 +795,9 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
         status = curr_status();
         balls_bought = 0;
     }
+
+    if ((prev == &st_play_loop || prev == &st_fail))
+        return fail_gui();
 
     return transition_slide(fail_gui(), 1, intent);
 }
@@ -794,7 +831,7 @@ static int fail_leave(struct state *st, struct state *next, int id, int intent)
 static void fail_paint(int id, float t)
 {
     game_client_draw(0, t);
-    
+
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
@@ -806,32 +843,54 @@ static void fail_paint(int id, float t)
 
 static void fail_timer(int id, float dt)
 {
+    if (fail_intro_animation_phase == 1)
+    {
+        if (time_state() >= 2.0f)
+        {
+            fail_intro_animation_phase = 2;
+            goto_state(&st_fail);
+        }
+    }
+
     if (status == GAME_FALL)
     {
         /* TODO: Uncomment, if you have game "crash balls" implemented. */
-        /*{
-            geom_step(dt);
-            game_server_step(dt);
-            game_client_blend(game_server_blend());
+        /*
+        geom_step(dt);
+        game_server_step(dt);
 
-            int record_screenanimations = time_state() < 2.0;
-            int record_modes            = curr_mode() != MODE_NONE;
+        int record_time_state = time_state() < 2.0f;
+        int record_modes      = curr_mode() != MODE_NONE;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            int record_campaign         = !campaign_hardcore_norecordings();
-            game_client_sync(!resume                 &&
-                             record_screenanimations &&
-                             record_modes            &&
-                             record_campaign ? demo_fp : NULL);
+        int record_campaign   = !campaign_hardcore_norecordings();
 #else
-            game_client_sync(!resume                 &&
-                             record_screenanimations &&
-                             record_modes ? demo_fp : NULL);
+        int record_campaign   = 1;
 #endif
-        }*/
+
+        game_client_blend(game_server_blend());
+        game_client_sync(!resume
+                      && record_time_state
+                      && record_modes
+                      && record_campaign ? demo_fp : NULL);
+         */
     }
 
     gui_timer(id, dt);
     hud_timer(dt);
+}
+
+static int fail_click(int b, int d)
+{
+    if (fail_intro_animation_phase == 1)
+    {
+        fail_intro_animation_phase = 2;
+
+        return (b == SDL_BUTTON_LEFT && d) ?
+               st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
+    }
+
+    return gui_click(b, d) ?
+           st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
 }
 
 static int fail_keybd(int c, int d)
@@ -849,11 +908,6 @@ static int fail_keybd(int c, int d)
 #endif
             return 1;
 
-        /*
-         * There is still available in this checkpoints,
-         * but if you permanent restart the default location,
-         * all checkpoints will erased.
-         */
         if (config_tst_d(CONFIG_KEY_RESTART, c)
 #if NB_HAVE_PB_BOTH==1
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -867,10 +921,8 @@ static int fail_keybd(int c, int d)
         {
             if (progress_same())
             {
-#ifdef MAPC_INCLUDES_CHKP
-                checkpoints_stop();
-#endif
-                goto_state(&st_play_ready);
+                powerup_stop();
+                return goto_play_level();
             }
             else
             {
@@ -887,6 +939,13 @@ static int fail_buttn(int b, int d)
 {
     if (d)
     {
+        if (fail_intro_animation_phase == 1 &&
+            config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+        {
+            fail_intro_animation_phase = 2;
+            return goto_state(&st_fail);
+        }
+
         int active = gui_active();
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
@@ -922,10 +981,11 @@ static int zen_warning_action(int tok, int val)
             progress_init(MODE_ZEN);
             if (progress_same())
             {
+                powerup_stop();
                 checkpoints_stop();
                 return goto_play_level();
             }
-            else return goto_state(&st_fail);
+            else return exit_state(&st_fail);
 #endif
             break;
     }
@@ -1058,6 +1118,7 @@ static int ask_more_action(int tok, int val)
                     checkpoints_stop();
                     return goto_play_level();
                 }
+                else return exit_state(&st_fail);
             }
             else if (account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= 15 &&
                     ask_more_target == ASK_MORE_TIME)
@@ -1076,6 +1137,7 @@ static int ask_more_action(int tok, int val)
                     ask_more_target = ASK_MORE_DISABLED;
                     return goto_play_level();
                 }
+                else return exit_state(&st_fail);
             }
 #endif
             else if (account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= 15 &&
@@ -1567,7 +1629,7 @@ static int raise_gems_prepare_gui(void)
     {
         /* TODO: Detailed informations for assistants? */
         char infoattr_full[MAXSTR], infoattr0[MAXSTR];
-        
+
         const char *bankrupt_str0 = _("Your debt of %d gems exceeds your net-worth.");
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) && ENABLE_IAP==1 && \
     !defined(__NDS__) && !defined(__3DS__) && \
@@ -1784,7 +1846,8 @@ static void raise_gems_timer(int id, float dt)
     static float t = 0.0f;
     static float time_state_tofinish = 3.0f;
 
-    t += dt;
+    if (time_state() > 1.0f)
+        t += dt;
 
     while (time_state() > 1.0f &&
            t > 0.05f && raisegems_working && !st_global_animating())
@@ -1816,7 +1879,7 @@ static void raise_gems_timer(int id, float dt)
         }
 
 #if NB_HAVE_PB_BOTH==1
-        if (time_state_tofinish - 3 <= time_state() - 0.05f)
+        if (time_state_tofinish - 3 >= time_state() - 0.05f)
         {
             score_count_anim_time += 0.05f;
 
@@ -1905,27 +1968,27 @@ int ask_more_purchased(struct state *ok_state)
         account_wgcl_save();
 #ifdef MAPC_INCLUDES_CHKP
         if (last_active && status == GAME_FALL)
-            return goto_state(&st_fail);
+            return exit_state(&st_fail);
         else
 #endif
         if (progress_same())
             return goto_play_level();
         else
-            return goto_state(&st_fail);
+            return exit_state(&st_fail);
     }
     else if (ask_more_target == ASK_MORE_TIME)
     {
         account_wgcl_do_add(-120, 0, 0, 0, 0, 0);
         account_wgcl_save();
 
-        return goto_state(&st_zen_warning);
+        return exit_state(&st_zen_warning);
     }
 
-    return goto_state(st_returnable);
+    return exit_state(st_returnable);
 #else
     /* IMPOSSIBRU! */
 
-    return goto_state(&st_fail);
+    return exit_state(&st_fail);
 #endif
 }
 

@@ -127,6 +127,8 @@ static int hint_index = 0;
 static int tutorial_before_play = 0;
 static int hint_before_play = 0;
 
+static int toggle_id;
+
 /*---------------------------------------------------------------------------*/
 
 int tutorial_check(void)
@@ -204,7 +206,7 @@ int tutorial_check(void)
             }
         }
     }
-    
+
     /* No tutorial available, use hint instead! */
 
     if (config_get_d(CONFIG_ACCOUNT_HINT) == 1)
@@ -238,10 +240,11 @@ static int tutorial_action(int tok, int val)
     switch (tok)
     {
         case TUTORIAL_TOGGLE:
-            config_set_d(CONFIG_ACCOUNT_TUTORIAL,
-                     !config_get_d(CONFIG_ACCOUNT_TUTORIAL));
-            return goto_state(&st_tutorial);
-            break;
+            config_tgl_d(CONFIG_ACCOUNT_TUTORIAL);
+            gui_set_label(toggle_id, config_get_d(CONFIG_ACCOUNT_TUTORIAL) ?
+                                     _("Tutorial Off") :
+                                     _("Tutorial On"));
+            return 1;
     }
 
     /* Next phase: hints */
@@ -286,7 +289,7 @@ static int tutorial_enter(struct state *st, struct state *prev, int intent)
         {
             const char *toggle_tutorial_text = config_get_d(CONFIG_ACCOUNT_TUTORIAL) ?
                                                N_("Tutorial Off") : N_("Tutorial On");
-            gui_state(jd, _(toggle_tutorial_text), GUI_SML, TUTORIAL_TOGGLE, 0);
+            toggle_id = gui_state(jd, _(toggle_tutorial_text), GUI_SML, TUTORIAL_TOGGLE, 0);
             gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
         }
     }
@@ -470,10 +473,11 @@ static int hint_action(int tok, int val)
     switch (tok)
     {
         case HINT_TOGGLE:
-            config_set_d(CONFIG_ACCOUNT_TUTORIAL,
-                     !config_get_d(CONFIG_ACCOUNT_TUTORIAL));
-            return goto_state(&st_hint);
-            break;
+            config_tgl_d(CONFIG_ACCOUNT_HINT);
+            gui_set_label(toggle_id, config_get_d(CONFIG_ACCOUNT_HINT) ?
+                                     _("Hint Off") :
+                                     _("Hint On"));
+            return 1;
     }
 
     video_set_grab(1);
@@ -499,8 +503,8 @@ static int hint_enter(struct state *st, struct state *prev, int intent)
         if ((jd = gui_harray(id)))
         {
             const char *toggle_hint_text = config_get_d(CONFIG_ACCOUNT_HINT) ?
-                                               N_("Hint Off") : N_("Hint On");
-            gui_state(jd, _(toggle_hint_text), GUI_SML, HINT_TOGGLE, 0);
+                                           N_("Hint Off") : N_("Hint On");
+            toggle_id = gui_state(jd, _(toggle_hint_text), GUI_SML, HINT_TOGGLE, 0);
             gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
         }
     }

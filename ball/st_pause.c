@@ -77,7 +77,7 @@ static int quit_uses_restart = 0;
         if (curr_state() == &st_pause) {    \
             audio_music_fade_in(0.5f);      \
             if (st_continue != &st_level)   \
-                video_set_grab(0);          \
+                video_set_grab(1);          \
             return exit_state(st_continue); \
         } else {                            \
             quit_uses_resetpuzzle = 0;      \
@@ -134,12 +134,7 @@ static int pause_action(int tok, int val)
                     if (checkpoints_load() && progress_same())
                     {
                         audio_music_fade_in(0.5f);
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                        return exit_state(campaign_used() ? &st_play_ready :
-                                                            &st_level);
-#else
-                        return exit_state(&st_play_ready);
-#endif
+                        return goto_play_level();
                     }
                 }
                 else if (!quit_uses_resetpuzzle)
@@ -163,11 +158,7 @@ static int pause_action(int tok, int val)
             if (progress_same())
             {
                 audio_music_fade_in(0.5f);
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                return exit_state(campaign_used() ? &st_play_ready : &st_level);
-#else
-                return exit_state(&st_play_ready);
-#endif
+                return goto_play_level();
             }
 #endif
             break;
@@ -188,8 +179,7 @@ static int pause_action(int tok, int val)
                     if (progress_same())
                     {
                         audio_music_fade_in(0.5f);
-                        video_set_grab(1);
-                        return exit_state(&st_play_ready);
+                        return goto_play_level();
                     }
                 }
                 else if (!quit_uses_restart)
@@ -320,7 +310,7 @@ static int pause_gui(void)
 
         gui_state(id, _("Options"), GUI_SML, PAUSE_CONF, 0);
         gui_space(id);
-        
+
         /*
          * If the wide button is drastic from width pixels,
          * stack more buttons.
@@ -414,7 +404,7 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
         )
         audio_music_fade_out(1.0f);
 
-    hud_update(0, 0.0f);
+    hud_update(config_get_d(CONFIG_SCREEN_ANIMATIONS), 0.0f);
 
     return transition_slide(pause_gui(), 1, intent);
 }
@@ -469,7 +459,7 @@ static void pause_timer(int id, float dt)
     gui_timer(id, dt);
     hud_timer(dt);
 
-    hud_update(0, dt);
+    hud_update(config_get_d(CONFIG_SCREEN_ANIMATIONS), dt);
 }
 
 static int pause_keybd(int c, int d)

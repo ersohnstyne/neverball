@@ -157,7 +157,7 @@ static void demo_header_write(fs_file fp, struct demo *d)
 #else
     strftime(datestr, sizeof (datestr), "%Y-%m-%dT%H:%M:%S", gmtime(&d->date));
 #endif
-    
+
     put_index(fp, DEMO_MAGIC);
     put_index(fp, DEMO_VERSION);
     put_index(fp, 0);
@@ -568,7 +568,7 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                                                || demo_replay.mode == MODE_HARDCORE
 #endif
-                                                ? "bgm/challenge_mbu.ogg" : 
+                                                ? "bgm/challenge_mbu.ogg" :
                                                   BGM_TITLE_MAP(level.song), 1);
                     }
 

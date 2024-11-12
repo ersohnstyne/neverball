@@ -1032,7 +1032,7 @@ void gui_set_label(int id, const char *text)
     widget[id].text = full_str;
     widget[id].text_w = 0;
     widget[id].text_h = 0;
-    
+
     widget[id].image = make_image_from_font(NULL, NULL,
                                             &widget[id].text_w,
                                             &widget[id].text_h,
@@ -1294,7 +1294,7 @@ int gui_state(int pd, const char *text, int size, int token, int value)
                              &widget[id].text_w,
                              &widget[id].text_h,
                              text, ttf);
-        
+
         widget[id].size  = size;
         widget[id].token = token;
         widget[id].value = value;

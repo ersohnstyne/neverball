@@ -19,7 +19,7 @@
  * This source is prewritten. DO NOT EDIT!
  * Editing files may misleadingly matches when the lifecycle
  * is running via the game.
- * 
+ *
  * Place the "goto_end_support" in main entry for "main.c"
  */
 

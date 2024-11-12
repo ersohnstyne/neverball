@@ -1378,7 +1378,7 @@ static int levelgroup_gui(void)
                                   ww, hh);
                 gui_label(ld, set_was_unlocked ? _("Level Set") : _("Locked"),
                               GUI_SML,
-                              set_was_unlocked ? gui_wht : gui_gry, 
+                              set_was_unlocked ? gui_wht : gui_gry,
                               set_was_unlocked ? gui_wht : gui_gry);
                 gui_set_state(ld, set_was_unlocked ? LEVELGROUP_LEVELSET : GUI_NONE, 0);
                 gui_filler(ld);

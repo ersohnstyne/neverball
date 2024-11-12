@@ -119,17 +119,14 @@ int transition_slide_full(int id, int in,
         if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
             gui_slide(id, (enter_flags) | GUI_FLING, 0, 0.16f, 0);
     }
-    else
+    else if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {
         // Was: (intent == INTENT_BACK ? GUI_E : GUI_W)
 
-        if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
-        {
-            gui_slide(id, (exit_flags) | GUI_BACKWARD | GUI_FLING | GUI_REMOVE, 0, 0.16f, 0);
-            transition_add(id);
-        }
-        else gui_delete(id);
+        gui_slide(id, (exit_flags) | GUI_BACKWARD | GUI_FLING | GUI_REMOVE, 0, 0.16f, 0);
+        transition_add(id);
     }
+    else gui_delete(id);
 
     return id;
 }
@@ -142,9 +139,11 @@ int transition_page(int id, int in, int intent)
     if (in)
     {
         // Slide in page content.
-        gui_slide(body_id, (intent == INTENT_BACK ? GUI_W : GUI_E) | GUI_FLING, 0, 0.16f, 0);
+
+        if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
+            gui_slide(body_id, (intent == INTENT_BACK ? GUI_W : GUI_E) | GUI_FLING, 0, 0.16f, 0);
     }
-    else
+    else if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {
         // Just hide the header, header from the next page takes over immediately.
         gui_set_hidden(head_id, 1);
@@ -157,6 +156,7 @@ int transition_page(int id, int in, int intent)
 
         transition_add(id);
     }
+    else gui_delete(id);
 
     return id;
 }

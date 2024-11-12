@@ -38,6 +38,9 @@
 #include "image.h"
 #include "video.h"
 #include "key.h"
+#ifndef VERSION
+#include "version.h"
+#endif
 
 #include "game_server.h"
 #include "game_client.h"
@@ -140,10 +143,6 @@ struct state st_server_maintenance;
 
 static int tip_id;
 
-#if DEVEL_BUILD
-static int devel_label_id;
-#endif
-
 static int intro_init = 0;
 static int intro_page;
 static int intro_done;
@@ -165,15 +164,50 @@ static int intro_gui(void)
 
     if ((root_id = gui_root()))
     {
-#if DEVEL_BUILD
-        /* Only debug and development builds */
 
+#ifndef NDEBUG
+        int devel_label_id;
+        int build_date_lbl_id;
+
+#if _DEBUG
+        if ((devel_label_id = gui_label(root_id, _("DEBUG BUILD"),
+                                                 GUI_SML, GUI_COLOR_RED)))
+        {
+            gui_clr_rect(devel_label_id);
+
+            if (intro_page == 1)
+                gui_slide(devel_label_id, GUI_N | GUI_FLING | GUI_EASE_BACK,
+                                          0, 0.5f, 0);
+
+            gui_layout(devel_label_id, -1, 1);
+        }
+#elif DEVEL_BUILD
         if ((devel_label_id = gui_label(root_id, _("DEVELOPMENT BUILD"),
                                                  GUI_SML, GUI_COLOR_RED)))
         {
             gui_clr_rect(devel_label_id);
-            gui_layout(devel_label_id, 0, 1);
+
+            if (intro_page == 1)
+                gui_slide(devel_label_id, GUI_N | GUI_FLING | GUI_EASE_BACK,
+                                          0, 0.5f, 0);
+
+            gui_layout(devel_label_id, -1, 1);
         }
+#endif
+
+#if defined(__DATE__)
+        if ((build_date_lbl_id = gui_label(root_id, VERSION " (High) - " __DATE__,
+                                                    GUI_TNY, GUI_COLOR_RED)))
+        {
+            gui_clr_rect(build_date_lbl_id);
+
+            if (intro_page == 1)
+                gui_slide(build_date_lbl_id, GUI_N | GUI_FLING | GUI_EASE_BACK,
+                                             0, 0.5f, 0);
+
+            gui_layout(build_date_lbl_id, +1, 1);
+        }
+#endif
 #endif
 
         /* Developer and publisher logos */
@@ -305,7 +339,7 @@ static void intro_timer(int id, float dt)
         }
     }
 
-    if (intro_done) return;
+    gui_timer(id, dt);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -456,7 +490,7 @@ static void remove_all(void)
 
 static int intro_restore_action(int tok, int val)
 {
-    /* 
+    /*
      * If the restore graphic case does not matched them,
      * use default values.
      */
@@ -525,7 +559,7 @@ static int intro_restore_action(int tok, int val)
                 else
                     config_set_d(CONFIG_MULTISAMPLE, oldSamp);
                 break;
-        
+
             case RESTORE_REFLECTION:
                 goto_state(&st_null);
                 int oldRefl = config_get_d(CONFIG_REFLECTION);
@@ -581,7 +615,7 @@ static int intro_restore_action(int tok, int val)
             RETURN_INTROLOGO_FINISHED;
             break;
     }
-    
+
     return r;
 }
 
@@ -597,7 +631,7 @@ static int intro_restore_gui(void)
                     restore_doubles[MAXSTR];
         const char *gfx_target_name   = "",
                    *gfx_target_values = "";
-        
+
         int restore_statement = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
         int restore_val_1     = config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1);
         int restore_val_2     = config_get_d(CONFIG_GRAPHIC_RESTORE_VAL1);
@@ -693,7 +727,7 @@ static int intro_restore_gui(void)
                       "has a crash. Would you restore them now?\n"
                       "%s: %i x %i"),
                     gfx_target_name, restore_val_1, restore_val_2);
-            
+
             gui_multi(id, restore_doubles, GUI_SML, GUI_COLOR_WHT);
         }
         else
@@ -707,7 +741,7 @@ static int intro_restore_gui(void)
                       "has a crash. Would you restore them now?\n"
                       "%s: %s"),
                     gfx_target_name, _(gfx_target_values));
-            
+
             gui_multi(id, restore_singles, GUI_SML, GUI_COLOR_WHT);
         }
 

@@ -61,7 +61,7 @@ void collect_coin_value(int coin_val)
 void increase_speed(void)
 {
     curr_speed += 14.28571429f;
-    
+
     if (curr_speed >= 100.0f)
         curr_speed = 100.0f;
 }

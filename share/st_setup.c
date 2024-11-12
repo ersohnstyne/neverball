@@ -1154,7 +1154,7 @@ static int game_setup_install_confirm_gui(void)
         {
             gui_space(id);
             gui_title_header(id, _("An even better version may be available"), GUI_MED, GUI_COLOR_DEFAULT);
-            
+
             gui_layout(id, 0, +1);
         }
 

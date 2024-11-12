@@ -324,7 +324,7 @@ static void opt_init(int argc, char **argv)
             exit(EXIT_SUCCESS);
         }
 #endif
-        
+
         if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--screensaver") == 0)
         {
             opt_screensaver = 1;
@@ -1074,15 +1074,15 @@ static int loop(void)
     s16 ctrlStickY;
     s16 cStickX;
     s16 cStickY;
-    
+
     WPADData *wpad;
     u16 wiiButtonsPressed;
     u16 wiiButtonsReleased;
     u16 wiiButtonsHeld;
-    
+
     PAD_ScanPads();
     WPAD_ScanPads();
-    
+
     gcButtonsPressed = PAD_ButtonsDown(0);
     wiiButtonsPressed = WPAD_ButtonsDown(0);
     if (gcButtonsPressed)

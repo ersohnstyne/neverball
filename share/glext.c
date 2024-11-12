@@ -315,7 +315,7 @@ int glext_init(void)
     /* Desktop init. */
 
 #if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
-    
+
     if (glext_assert("ARB_multitexture"))
     {
         SDL_GL_GFPA(glClientActiveTexture_, "glClientActiveTextureARB");

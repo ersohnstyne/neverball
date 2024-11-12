@@ -848,7 +848,7 @@ static int default_set_mincoinrequired;
 static void set_load_levels(void)
 {
     /*
-     * Legacy roman numbers doesn't: I V X C D M 
+     * Legacy roman numbers doesn't: I V X C D M
      * New roman numbers should work: Ⅰ Ⅱ Ⅲ Ⅳ Ⅴ Ⅵ Ⅶ Ⅷ Ⅸ Ⅹ Ⅺ Ⅻ Ⅼ Ⅽ Ⅾ Ⅿ
      */
     static const char *roman[] = {

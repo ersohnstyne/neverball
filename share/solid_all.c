@@ -701,7 +701,7 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
         float d, r[3];
 
         sol_entity_local(ball_p, vary, xp->mi, xp->mj, vary->uv[ui].p);
-        
+
         r[0] = ball_p[0] - xp->base->p[0];
         r[1] = ball_p[2] - xp->base->p[2];
         r[2] = 0;

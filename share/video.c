@@ -261,7 +261,7 @@ void video_resize(int window_w, int window_h)
         video.window_h = window_h;
 
         /* User experience thing: don't save fullscreen size to config. */
-        
+
         if (!config_get_d(CONFIG_FULLSCREEN))
         {
             config_set_d(CONFIG_WIDTH,  video.window_w);
@@ -271,7 +271,7 @@ void video_resize(int window_w, int window_h)
         /* Update drawable size (for rendering). */
 
         int wszW, wszH;
-        
+
         SDL_GetWindowSize(window, &wszW, &wszH);
         SDL_GetWindowSizeInPixels(window, &video.device_w, &video.device_h);
 
@@ -459,7 +459,7 @@ int video_mode(int f, int w, int h)
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthFunc(GL_LEQUAL);
-    
+
     video_show_cursor();
     return 1;
 #else
@@ -792,7 +792,7 @@ video_mode_reconf:
             SDL_WarpMouseInWindow(window,
                                   video.window_w / 2,
                                   video.window_h / 2);
-        
+
         config_set_d(CONFIG_DISPLAY, dpy);
         config_set_d(CONFIG_WIDTH,   video.window_w);
         config_set_d(CONFIG_HEIGHT,  video.window_h);
@@ -1582,8 +1582,8 @@ int  video_get_grab(void)
 #if ENABLE_MOTIONBLUR!=0
 static fbo motionblur_fbo[VIDEO_MOTIONBLUR_MAX_TEXTURE] =
 { { 0, 0, 0 }, { 0, 0, 0 },
-  { 0, 0, 0 }, { 0, 0, 0 }, 
-  { 0, 0, 0 }, { 0, 0, 0 }, 
+  { 0, 0, 0 }, { 0, 0, 0 },
+  { 0, 0, 0 }, { 0, 0, 0 },
   { 0, 0, 0 }, { 0, 0, 0 }, };
 
 static int motionblur_renderable[VIDEO_MOTIONBLUR_MAX_TEXTURE];

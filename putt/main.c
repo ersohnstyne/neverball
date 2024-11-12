@@ -959,7 +959,7 @@ static int main_init(int argc, char *argv[])
 {
     GAMEDBG_SIGFUNC_PREPARE;
 
-#if NB_STEAM_API==1    
+#if NB_STEAM_API==1
     if (!SteamAPI_Init())
     {
         log_errorf("SteamAPI_Init() failed! Steam must be running to play this game.\n");

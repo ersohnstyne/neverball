@@ -526,7 +526,7 @@ static int transfer_process_have_account = 0;
 static int transfer_gui(void)
 {
     int id, jd;
-    
+
     if ((id = gui_vstack(0)))
     {
 #if ENABLE_DEDICATED_SERVER==1 && !defined(TRANSFER_OFFLINE_ONLY)
@@ -796,7 +796,7 @@ static int transfer_action(int tok, int val)
                     transfer_working = 1;
                     return goto_state(&st_transfer);
                 }
-                
+
                 transfer_pageindx++;
 
                 if (transfer_pageindx == 4)
@@ -1142,7 +1142,7 @@ static void transfer_timer_preparation_target(float dt)
             if (replayfilter_file)
             {
                 int replay_loadfilter_transfer = config_get_d(CONFIG_ACCOUNT_LOAD);
-                
+
                 switch (replay_loadfilter_transfer)
                 {
                 case 3:
@@ -1619,7 +1619,7 @@ static int transfer_enter_target(struct state *st, struct state *prev)
     {
         if (about_pageindx == 0)
             return transition_slide(transfer_introducory_gui(), 1, intent);
-        else if (about_pageindx == 12) 
+        else if (about_pageindx == 12)
             return transition_slide(transfer_starting_gui(), 1, intent);
         else
             return transition_slide(transfer_about_transferring_gui(), 1, intent);

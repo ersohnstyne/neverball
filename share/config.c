@@ -264,7 +264,7 @@ static struct
     { &CONFIG_MOUSE_CAMERA_TOGGLE, "mouse_camera_toggle", SDL_BUTTON_MIDDLE },
     { &CONFIG_MOUSE_CAMERA_L,      "mouse_camera_l",      SDL_BUTTON_LEFT },
     { &CONFIG_MOUSE_CAMERA_R,      "mouse_camera_r",      SDL_BUTTON_RIGHT },
-    
+
     { &CONFIG_NICE,             "nice",            0 },
     { &CONFIG_FPS,              "fps",             0 },
     { &CONFIG_MASTER_VOLUME,    "master_volume",   10 },

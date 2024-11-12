@@ -34,6 +34,7 @@
 
 #include "activity_services.h"
 
+#include "game_server.h"
 #include "game_client.h"
 #include "game_common.h"
 
@@ -41,6 +42,7 @@
 #include "st_playmodes.h"
 #endif
 
+#include "st_common.h"
 #include "st_set.h"
 #include "st_level.h"
 #include "st_shared.h"
@@ -271,7 +273,32 @@ static int playmodes_enter(struct state *st, struct state *prev, int intent)
 
     if (&st_hardcore_start == prev) game_kill_fade();
 
+    if (prev == &st_playmodes)
+        return playmodes_gui();
+
     return transition_slide(playmodes_gui(), 1, intent);
+}
+
+static int playmodes_leave(struct state *st, struct state *next, int id, int intent)
+{
+    if (next == &st_null)
+    {
+        progress_exit();
+
+        campaign_quit();
+        set_quit();
+
+        game_server_free(NULL);
+        game_client_free(NULL);
+    }
+
+    if (next == &st_playmodes)
+    {
+        gui_delete(id);
+        return 0;
+    }
+
+    return transition_slide(id, 0, intent);
 }
 
 static void playmodes_paint(int id, float t)
@@ -283,11 +310,6 @@ static void playmodes_paint(int id, float t)
     if (console_gui_show())
         console_gui_list_paint();
 #endif
-}
-
-static void playmodes_timer(int id, float dt)
-{
-    gui_timer(id, dt);
 }
 
 static int playmodes_keybd(int c, int d)
@@ -449,7 +471,7 @@ struct state st_playmodes = {
     playmodes_enter,
     shared_leave,
     playmodes_paint,
-    playmodes_timer,
+    shared_timer,
     shared_point,
     shared_stick,
     shared_angle,

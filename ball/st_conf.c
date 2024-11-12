@@ -887,7 +887,7 @@ static int conf_gameplay_action(int tok, int val)
 static int conf_gameplay_gui(void)
 {
     int id;
-    
+
     /* Initialize the configuration GUI. */
 
     if ((id = gui_vstack(0)))
@@ -2771,7 +2771,6 @@ static int conf_gui(void)
                 narrator_id = conf_slider_v2(id, _("Narrator Volume"), CONF_AUDIO_NARRATOR_VOLUME,
                                                  narrator);
 #else
-        
                 conf_slider(id, _("Master Volume"), CONF_AUDIO_MUSIC_VOLUME, music,
                             music_id, ARRAYSIZE(music_id));
                 conf_slider(id, _("Music Volume"), CONF_AUDIO_MUSIC_VOLUME, music,

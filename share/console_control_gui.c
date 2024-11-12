@@ -1137,7 +1137,7 @@ static void init_xbox_paused(void)
 {
     if ((xbox_control_paused_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_paused_id, _("Continue"), 
+        gui_label(xbox_control_paused_id, _("Continue"),
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_paused_id,
@@ -1346,7 +1346,7 @@ static void init_xbox_beam_style(void)
 {
     if ((xbox_control_beam_style_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_beam_style_id, _("Change Style"), 
+        gui_label(xbox_control_beam_style_id, _("Change Style"),
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_rb_button(xbox_control_model_id,

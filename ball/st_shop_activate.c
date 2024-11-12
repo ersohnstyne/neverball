@@ -206,7 +206,7 @@ static int shop_activate_gui_introducory(void)
                   _("Your order code should be in an email\n"
                     "from whoever sold Pennyball IAP to you.\n\n"
                     "The order code should be following like this:\n"
-                    "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"), 
+                    "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"),
                   GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
 

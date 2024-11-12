@@ -62,7 +62,7 @@ void GameDbg_SigHandler(int signum)
 }
 
 void GameDbg_Check_SegPerformed(void)
-{ 
+{
     memset(dbg_strerror, 0, 256);
 #if _WIN32 && _MSC_VER
     switch (dbg_signum) {

@@ -466,7 +466,7 @@ static void sol_draw_mesh(const struct d_mesh *mp,
         glTexCoordPointer(2, T, s, (GLvoid *) offsetof (struct d_vert, t));
 
         /* Draw the mesh. */
-        
+
         if (rend && rend->curr_mtrl.base.fl & M_PARTICLE)
             glDrawArrays(GL_POINTS, 0, mp->vbc);
         else

@@ -46,7 +46,7 @@ static void set_curr_beam(void)
     geom_init();
 
     char *beam_version_name = "";
-    
+
     switch (beam_index)
     {
         case 0:

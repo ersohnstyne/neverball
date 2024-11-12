@@ -153,7 +153,7 @@ int goto_shop(struct state *shop_back, int (*shop_back_fn) (void))
 static int shop_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
-    
+
     inaccept_playername = 0;
 
     char newPlayername[MAXSTR];
@@ -328,7 +328,7 @@ static int shop_gui(void)
                  * One crown (Player): +1000 balls = 15000 gems
                  * Two crowns (Player): +1100 balls = 16500 gems
                  * Three crowns (Player): 1110 balls = 16650 gems
-                 * 
+                 *
                  * One crown (Game Banker): +1000000 balls = 15000000 gems
                  * Two crowns (Game Banker): +1100000 balls = 16500000 gems
                  * Three crowns (Game Banker): +1110000 balls = 16650000 gems
@@ -362,7 +362,7 @@ static int shop_gui(void)
                 if ((kd = gui_harray(jd)))
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(powerups, MAXSTR, 
+                    sprintf_s(powerups, MAXSTR,
                             "%s (%i)", _("Speedifier"), svalue);
                     gui_label(kd, powerups, GUI_SML, gui_wht, gui_grn);
                     sprintf_s(powerups, MAXSTR,
@@ -797,7 +797,7 @@ enum
 static int shop_unregistered_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
-    
+
     switch (tok)
     {
         case SHOP_UNREGISTERED_DOIT:
@@ -897,6 +897,8 @@ static int shop_unregistered_buttn(int b, int d)
  * Philosoph
  */
 
+static int shop_iap_intro_animation = 1;
+
 static int purchased;
 static int gem_to_coins;
 
@@ -973,7 +975,7 @@ static int multipage;
 static int iappage;
 
 int goto_shop_iap(struct state *ok, struct state *cancel,
-                  int (*new_ok_fn) (struct state *), 
+                  int (*new_ok_fn) (struct state *),
                   int (*new_cancel_fn) (struct state *),
                   int newmin, int display_gems, int allow_multipage)
 {
@@ -1010,10 +1012,14 @@ static void shop_convert_to_coins(int gems, int coins)
 static int shop_iap_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
-    
+
+    shop_iap_intro_animation = 0;
+
     switch (tok)
     {
         case GUI_BACK:
+            shop_iap_intro_animation = 1;
+
             if (curr_cancel_fn)
                 return curr_cancel_fn(cancel_state);
 
@@ -1066,6 +1072,7 @@ static int shop_iap_action(int tok, int val)
             break;
 #endif
         case SHOP_IAP_EXPORT:
+            shop_iap_intro_animation = 1;
             goto_state(&st_expenses_export);
             break;
     }
@@ -1123,6 +1130,9 @@ static int shop_iap_gui(void)
             if (current_platform == PLATFORM_PC)
 #endif
                 gui_back_button(jd);
+
+            if (shop_iap_intro_animation)
+                gui_set_slide(jd, GUI_S | GUI_EASE_ELASTIC, 0.0f, 0.8f, 0.0f);
         }
 
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1 && \
@@ -1135,6 +1145,9 @@ static int shop_iap_gui(void)
                 gui_state(jd, _("Switch to Coins"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
             else
                 gui_state(jd, _("Switch to Gems"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
+
+            if (shop_iap_intro_animation)
+                gui_set_slide(jd, GUI_S | GUI_EASE_ELASTIC, 0.0f, 0.8f, 0.0f);
         }
 #endif
 
@@ -1156,7 +1169,10 @@ static int shop_iap_gui(void)
                 sprintf(missionattr, _("Need %i coins to complete transaction!"), (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS)));
 #endif
 
-            gui_label(id, missionattr, GUI_SML, GUI_COLOR_RED);
+            const int mission_txt_id = gui_label(id, missionattr, GUI_SML, GUI_COLOR_RED);
+
+            if (shop_iap_intro_animation)
+                gui_set_slide(mission_txt_id, GUI_S | GUI_EASE_ELASTIC, 0.2f, 0.8f, 0.0f);
         }
 
         gui_space(id);
@@ -1165,9 +1181,12 @@ static int shop_iap_gui(void)
         if (account_get_d(ACCOUNT_DATA_WALLET_COINS) >= ACCOUNT_WALLET_MAX_COINS
          && iappage == 0)
         {
-            gui_multi(id, _("Can't buy more coins!\n"
-                            "Max coin stack full!"),
-                          GUI_SML, GUI_COLOR_RED);
+            const int txt_dsc_id = gui_multi(id, _("Can't buy more coins!\n"
+                                                   "Max coin stack full!"),
+                                                 GUI_SML, GUI_COLOR_RED);
+
+            if (shop_iap_intro_animation)
+                gui_set_slide(txt_dsc_id, GUI_S | GUI_EASE_ELASTIC, 0.4f, 0.8f, 0.05f);
         }
         else
 #endif
@@ -1258,9 +1277,11 @@ static int shop_iap_gui(void)
 #endif
                             break;
                     }
-
                 }
                 gui_filler(jd);
+
+                if (shop_iap_intro_animation)
+                    gui_set_slide(jd, GUI_S | GUI_EASE_ELASTIC, 0.6f, 0.8f, 0.05f);
             }
         }
         else
@@ -1316,6 +1337,9 @@ static int shop_iap_gui(void)
                         break;
                     }
                 }
+
+                if (shop_iap_intro_animation)
+                    gui_set_slide(jd, GUI_S | GUI_EASE_ELASTIC, 0.6f, 0.8f, 0.05f);
             }
         }
 
@@ -1334,12 +1358,16 @@ static int shop_iap_gui(void)
          && curr_min == 0)
         {
             gui_space(id);
-            gui_state(id, _("Export to Expenses"), GUI_SML, SHOP_IAP_EXPORT, 0);
+            const int export_id = gui_state(id, _("Export to Expenses"), GUI_SML, SHOP_IAP_EXPORT, 0);
+
+            if (shop_iap_intro_animation)
+                gui_set_slide(export_id, GUI_S | GUI_EASE_ELASTIC, 0.8f, 0.8f, 0.05f);
         }
 #endif
 
         gui_layout(id, 0, 0);
     }
+
     return id;
 }
 
@@ -1354,6 +1382,10 @@ static int shop_iap_enter(struct state *st, struct state *prev, int intent)
     coinwallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
     gemwallet  = account_get_d(ACCOUNT_DATA_WALLET_GEMS);
 #endif
+
+    if (shop_iap_intro_animation)
+        return shop_iap_gui();
+
     return transition_slide(shop_iap_gui(), 1, intent);
 }
 
@@ -1893,7 +1925,7 @@ static int shop_buy_gui(void)
                  && prodincomsumeable)
                 {
                     gui_space(id);
-                    gui_state(id, _("Unload balance and buy!"), 
+                    gui_state(id, _("Unload balance and buy!"),
                                   GUI_SML, SHOP_BUY_WHOLE, prodcost);
                     gui_space(id);
                     gui_state(id, _("Buy 5 products!"),
@@ -1954,7 +1986,7 @@ static int shop_buy_gui(void)
                             getcoins_id = gui_state(jd, _("Get gems!"),
                                                         GUI_SML, SHOP_BUY_IAP, 0);
 #endif
-                            gui_start(jd, _("Raise gems"), 
+                            gui_start(jd, _("Raise gems"),
                                           GUI_SML, SHOP_BUY_RAISEGEMS, 0);
                         }
 #if !defined(__EMSCRIPTEN__)
@@ -1969,7 +2001,7 @@ static int shop_buy_gui(void)
                         }
 #endif
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
-                        if (!server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP) && 
+                        if (!server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP) &&
                             prodcost >= 1920)
                         {
                             gui_set_color(getcoins_id, GUI_COLOR_GRY);

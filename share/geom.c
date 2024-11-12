@@ -359,7 +359,7 @@ void geom_init(void)
     sol_load_full(&maxspeed, "geom/maxspeed/maxspeed.sol", 0);
 
     sol_load_full(&beam, "geom/beam/beam.sol", 0);
-    
+
 #if defined(BEAM_INCLUDES_MULTISTYLE)
     beam_styles = config_get_d(CONFIG_ACCOUNT_BEAM_STYLE);
 

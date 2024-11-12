@@ -378,10 +378,10 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
 #endif
     play_freeze_all = 0;
 
+    video_set_grab(1);
+
     if (curr_mode() == MODE_NONE)
     {
-        video_set_grab(1);
-
         hud_cam_pulse(config_get_d(CONFIG_CAMERA));
 
         /* Cannot run traffic lights in home room. */
@@ -390,7 +390,6 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
     }
 
     audio_narrator_play(AUD_READY);
-    video_set_grab(1);
     hud_speedup_reset();
 
     if (play_update_client)
@@ -424,7 +423,7 @@ static void play_ready_timer(int id, float dt)
     float t = time_state();
 
     game_client_fly(1.0f - 0.5f * t);
-    
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform != PLATFORM_PC)
     {
@@ -455,6 +454,12 @@ static void play_ready_timer(int id, float dt)
     }
 
     gui_timer(id, dt);
+
+    if (t >= 1.0f && !ready_transition)
+    {
+        gui_slide(id, flags_out, 0, time_out, 0);
+        ready_transition = 1;
+    }
 
     /* Powerful screen animations! */
 
@@ -497,7 +502,7 @@ static int play_set_enter(struct state *st, struct state *prev, int intent)
     audio_narrator_play(AUD_SET);
 
     int id = play_set_gui();
-    gui_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.8f, 0);
+    gui_slide(id, flags_in, 0, time_in, 0);
     return id;
 }
 
@@ -508,14 +513,11 @@ static void play_set_timer(int id, float dt)
     float t = time_state();
 
     game_client_fly(0.5f - 0.5f * t);
-    
+
     if (dt > 0.0f && t > 1.0f && !st_global_animating())
-    {
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (current_platform != PLATFORM_PC) hud_set_alpha(1.0f);
-#endif
         goto_state(&st_play_loop);
-    }
+
+    set_lvlinfo();
 
     game_step_fade(dt);
 
@@ -534,11 +536,13 @@ static void play_set_timer(int id, float dt)
 
     gui_timer(id, dt);
 
-    if (time_state() >= 1.0f && !set_transition)
+    if (t >= 1.0f && !ready_transition)
     {
-        gui_slide(id, GUI_W | GUI_FLING | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.6f, 0);
-        set_transition = 1;
+        gui_slide(id, flags_out, 0, time_out, 0);
+        ready_transition = 1;
     }
+
+    /* Powerful screen animations! */
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform != PLATFORM_PC || console_gui_show())
@@ -569,6 +573,9 @@ static int play_prep_leave(struct state *st, struct state *next, int id, int int
         game_server_free(NULL);
         game_client_free(NULL);
     }
+
+    if (next == &st_pause)
+        hud_hide();
 
     gui_slide(id, flags_out | GUI_REMOVE, 0, time_out, 0);
     transition_add(id);
@@ -781,7 +788,7 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
     rotation_offset = 0;
 
     global_prev = prev;
-    video_set_grab(0);
+    video_set_grab(1);
 
     tilt_x = prep_tilt_x; tilt_y = prep_tilt_y;
 
@@ -898,7 +905,7 @@ static void play_loop_timer(int id, float dt)
 
     /* Boost rush uses auto forward */
     if (curr_mode() == MODE_BOOST_RUSH)
-        game_set_x(curr_speed_percent() / 100.0f * -0.875f + 
+        game_set_x(curr_speed_percent() / 100.0f * -0.875f +
                    (time_state() < 1.0f && global_prev != &st_pause ? -0.5f :
                                                                        0));
 
@@ -914,7 +921,7 @@ static void play_loop_timer(int id, float dt)
 
     if (time_state() >= 1.0f && !loop_transition)
     {
-        gui_slide(id, GUI_W | GUI_FLING | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.6f, 0);
+        gui_slide(id, flags_out, 0, 0.6f, 0);
         loop_transition = 1;
     }
 
@@ -1050,7 +1057,6 @@ static void play_loop_point(int id, int x, int y, int dx, int dy)
 
             if (max_speed)
             {
-                
                 tilt_x = CLAMP((-ANGLE_BOUND * 20) * powerup_get_tilt_multiply(),
                                tilt_x + dx,
                                (ANGLE_BOUND * 20) * powerup_get_tilt_multiply());

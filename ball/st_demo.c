@@ -662,7 +662,7 @@ static int demo_restricted_gui(void)
 #endif
                     "%s: %s > %s", _("Player"),
                     reported_player_name, reported_status);
-            
+
             if (demo_requires_update)
                 kd = gui_label(jd, _("Update required!"),
                                       GUI_MED, gui_red, gui_blk);
@@ -888,25 +888,16 @@ static int demo_gui(void)
                 gui_filler(jd);
                 gui_space(jd);
                 gui_navig(jd, total, first, DEMO_STEP);
-
-                /* HACK: Must center-aligned for two side vertical space bars. */
-
-                /*
-                if ((kd = gui_hstack(jd)))
-                {
-                    gui_filler(kd);
-                    gui_demo_thumbs(kd);
-                    gui_filler(kd);
-                }
-                */
-
             }
 
-            gui_demo_thumbs(id);
+            if ((jd = gui_vstack(id)))
+            {
+                gui_demo_thumbs(jd);
 
-            gui_space(id);
+                gui_space(jd);
 
-            gui_demo_status(id);
+                gui_demo_status(jd);
+            }
 
             gui_layout(id, 0, 0);
 
@@ -1468,7 +1459,7 @@ static int demo_play_click(int b, int d)
 {
     if (d && time_state() > prelude)
     {
-        if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b)) 
+        if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
         {
             demo_replay_manual_speed(2.0f); speed_manual = 1;
             game_proxy_filter(filter_cmd);
@@ -1482,7 +1473,7 @@ static int demo_play_click(int b, int d)
             demo_replay_speed(speed);
             speed_manual = 0;
         }
-        
+
         game_proxy_filter(NULL);
         audio_music_fade_in(0.5f);
     }
@@ -1659,7 +1650,7 @@ static void demo_end_paint(int id, float t)
         else
             console_gui_replay_eof_paint();
     }
-    else 
+    else
 #endif
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_paint();
@@ -1671,7 +1662,7 @@ static void demo_end_timer(int id, float dt)
     gui_timer(id, dt);
     hud_timer(dt);
 
-    hud_update(0, dt);
+    hud_update(config_get_d(CONFIG_SCREEN_ANIMATIONS), dt);
 }
 
 static int demo_end_keybd(int c, int d)

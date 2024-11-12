@@ -429,7 +429,7 @@ static void sol_load_jump(fs_file fin, struct b_jump *jp)
     get_array(fin, jp->q, 3);
 
     jp->r = get_float(fin);
-    
+
     if (sol_version >= SOL_VERSION_2024_04)
     {
         jp->p0 = get_index(fin);
@@ -462,7 +462,7 @@ static void sol_load_chkp(fs_file fin, struct b_chkp *cp)
     get_array(fin, cp->p, 3);
 
     cp->r = get_float(fin);
-    
+
     if (sol_version >= SOL_VERSION_2024_04)
     {
         cp->p0 = get_index(fin);

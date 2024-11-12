@@ -224,7 +224,7 @@ void conf_toggle_simple(int id, const char *label, int token, int value,
     if ((jd = gui_harray(id)) && (kd = gui_harray(jd)))
     {
         int btn0, btn1;
-        
+
         btn1 = gui_label(kd, GUI_CHECKMARK, GUI_SML, GUI_COLOR_GRN);
         btn0 = gui_label(kd, GUI_CROSS,     GUI_SML, GUI_COLOR_RED);
 
@@ -436,7 +436,7 @@ int conf_common_leave(struct state *st, struct state *next, int id, int intent)
 void conf_common_paint(int id, float t)
 {
     video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-    
+
     if (is_common_bg)
         back_draw_easy();
 
@@ -1417,7 +1417,6 @@ static int video_advanced_gui(void)
                 video.window_w,
                 video.window_h);
 
-        
         if (!(display = SDL_GetDisplayName(dpy)))
             display = _("Unknown Display");
         conf_header(id, _("Graphics"), GUI_BACK);

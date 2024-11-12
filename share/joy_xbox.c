@@ -71,7 +71,7 @@ int joy_init(void)
     }
 
     joy_active_cursor(0, 1);
-    
+
     return 1;
 }
 
@@ -145,7 +145,7 @@ int joy_button(int instance, int b, int d)
     if (joy_curr != instance)
     {
         /* Make joystick current. */
-        
+
         joy_curr = instance;
 
         /* log_printf("XInput: Joystick %d made current via button press\n",

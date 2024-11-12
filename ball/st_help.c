@@ -237,9 +237,13 @@ static int help_menu(int id)
 {
     int jd, kd;
 
+    gui_space(id);
+
     if ((jd = gui_hstack(id)))
     {
+#ifndef __EMSCRIPTEN__
         if (console_gui_show())
+#endif
             gui_filler(jd);
 
         if ((kd = gui_harray(jd)))
@@ -908,9 +912,9 @@ static int page_modes_special(int id)
         gui_set_rect(jd, GUI_ALL);
     }
 #endif
-    
+
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
-    gui_space(id);
+    //gui_space(id);
 #endif
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -1306,35 +1310,29 @@ static int help_gui(void)
 
         gui_layout(id, 0, 0);
     }
-#else
-    if ((root_id = gui_root()))
-    {
-        if ((id = gui_vstack(root_id)))
-        {
-            gui_space(id);
-            help_menu(id);
-            gui_layout(id, 0, +1);
-        }
-
-        if ((id = gui_vstack(root_id)))
-        {
-            switch (page)
-            {
-                case PAGE_RULES:         page_rules(id);         break;
-                case PAGE_CONTROLS:      page_controls(id);      break;
-                case PAGE_MODES:         page_modes(id);         break;
-#if NB_HAVE_PB_BOTH==1
-                case PAGE_MODES_SPECIAL: page_modes_special(id); break;
-#endif
-                case PAGE_TRICKS:        page_tricks(id);        break;
-            }
-
-            gui_layout(id, 0, 0);
-        }
-    }
-#endif
 
     return root_id;
+#else
+    if ((id = gui_vstack(0)))
+    {
+        help_menu(id);
+
+        switch (page)
+        {
+            case PAGE_RULES:         page_rules(id);         break;
+            case PAGE_CONTROLS:      page_controls(id);      break;
+            case PAGE_MODES:         page_modes(id);         break;
+#if NB_HAVE_PB_BOTH==1
+            case PAGE_MODES_SPECIAL: page_modes_special(id); break;
+#endif
+            case PAGE_TRICKS:        page_tricks(id);        break;
+        }
+
+        gui_layout(id, 0, +1);
+    }
+
+    return id;
+#endif
 }
 
 static int help_enter(struct state *st, struct state *prev, int intent)

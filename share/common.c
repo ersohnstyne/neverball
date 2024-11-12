@@ -288,7 +288,7 @@ int file_exists(const char *path)
 #else
 #if _MSC_VER
     DWORD file_attr = GetFileAttributesA(path);
-    
+
     if (file_attr & FILE_ATTRIBUTE_OFFLINE             ||
         file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
         file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA)

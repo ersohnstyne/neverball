@@ -469,7 +469,7 @@ void hole_skip(void)
     /* Cap scores at specific stroke limit or par plus 3. */
 
     int maxscore = (score_v[hole][0] > stroke_limit - 3) ? score_v[hole][0] + 3 : stroke_limit;
-    
+
     for (int i = 1; i <= party; i++)
     {
         score_v[hole][i] = maxscore;

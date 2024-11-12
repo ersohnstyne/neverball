@@ -706,7 +706,7 @@ static int init_level(void)
     if (init_level_moon_taskloader())
         return 1;
 #else
-    if (game_client_init(level_file(level)) && 
+    if (game_client_init(level_file(level)) &&
         game_server_init(level_file(level), level_time(level), goal_e))
     {
         game_client_toggle_show_balls(1);
@@ -1660,10 +1660,10 @@ int  progress_last(void)
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
 
     return (mode != MODE_CHALLENGE
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN 
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
          && mode != MODE_HARDCORE
 #endif
-         && mode != MODE_BOOST_RUSH) 
+         && mode != MODE_BOOST_RUSH)
         && status == GAME_GOAL && !next;
 }
 

@@ -107,8 +107,8 @@ static void NB_EOS_SDK_LoginActionPerformed(const EOS_Auth_LoginCallbackInfo *da
             EOS_ELoginStatus login_status =
                 EOS_Auth_GetLoginStatus(auth_handle, data->LocalUserId);
 
-            log_printf("[EOS SDK] [%d] - Account ID: %ls, Status: %d", 
-                i, account_id, login_status);
+            log_printf("[EOS SDK] [%d] - Account ID: %ls, Status: %d",
+                       i, account_id, login_status);
         }
 
         curr_account_id = data->LocalUserId;

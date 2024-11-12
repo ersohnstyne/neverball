@@ -174,7 +174,7 @@ wchar_t *dupe_wstring(const wchar_t *);
 #endif
 #if _MSC_VER && !_NONSTDC
 #define wcsdup _wcsdup
-#else 
+#else
 #define wcsdup dupe_wstring
 #endif
 #endif
@@ -225,7 +225,7 @@ char *concat_string(const char *first, ...) NULL_TERMINATED;
 #endif
 #if _MSC_VER && !_NONSTDC
 #define strdup _strdup
-#else 
+#else
 #define strdup dupe_string
 #endif
 #define str_starts_with(s, h) \

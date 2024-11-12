@@ -69,7 +69,7 @@
  * DejaVu Sans V2: DejaVuSans-Bold-v2.ttf
  * Fiolex: FiolexGirls.ttf
  */
-#define GUI_FACE "ttf/DejaVuSans-Bold.ttf" 
+#define GUI_FACE "ttf/DejaVuSans-Bold.ttf"
 
 #define GUI_TNY FONT_SIZE_TNY
 #define GUI_XS  FONT_SIZE_XS

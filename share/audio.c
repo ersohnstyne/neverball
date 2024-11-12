@@ -353,7 +353,7 @@ static void audio_step(void *data, Uint8 *stream, int length)
         NULL,
         NULL
     };
-    
+
     float voices_vols[SOUND_VOICE_COUNT] = {
         sound_vol,
         narrator_vol

@@ -335,7 +335,7 @@ static void ms_nls_init(const char *pref)
     }
     else
         log_errorf("Can't load poedit file!: %s / %s\n", inPath, fs_error());
-    
+
     free(inPath);    inPath    = NULL;
     free(inPathExt); inPathExt = NULL;
 

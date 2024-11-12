@@ -130,7 +130,7 @@ static void gui_stats(int id)
     {
         gui_filler(at);
         gui_label(at, _("Stats"), GUI_SML, 0, 0);
-        
+
         stats_labels.completed = gui_label(at, "XXXXXXXXXXX",
                                                GUI_SML, gui_grn, gui_wht);
         stats_labels.timeout   = gui_label(at, "XXXXXXXXXXX",
@@ -371,7 +371,7 @@ void gui_levelgroup_stats(const struct level *l)
             gui_set_color(stats_labels.clear_rate, GUI_COLOR_GRN);
         else if (clr_rate_val < 85)
             gui_set_color(stats_labels.clear_rate, GUI_COLOR_CYA);
-        else 
+        else
             gui_set_color(stats_labels.clear_rate, gui_wht, gui_cya);
 
         if (l->stats.completed == 0 &&

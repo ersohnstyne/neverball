@@ -81,6 +81,8 @@ enum
     GOAL_IAP = GOAL_LAST + 1
 };
 
+static int goal_intro_animation_phase;
+
 static float score_count_anim_time;
 static int   score_count_anim_index;
 static int   score_count_anim_locked;
@@ -109,6 +111,8 @@ static int goal_action(int tok, int val)
     }
 
     GENERIC_GAMEMENU_ACTION;
+
+    goal_intro_animation_phase = 0;
 
     switch (tok)
     {
@@ -175,22 +179,37 @@ static int goal_gui(void)
     const char *s2 = _("GOAL");
     const char *s3 = _("Master complete");
 
+    struct level *l = curr_level();
+
     int id, jd, kd, ld, md;
     int root_id;
 
     int high   = progress_lvl_high();
-    int master = curr_level()->is_master;
+    int master = l ? l->is_master : 0;
 
     shop_product_available = 0;
 
     challenge_caught_extra = 0;
     challenge_disable_all_buttons = 0;
 
+    if (goal_intro_animation_phase == 1)
+    {
+        if ((id = gui_title_header(0, s2, GUI_LRG, gui_blu, gui_grn)))
+        {
+            gui_set_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.5f, 0);
+            gui_layout(id, 0, 0);
+            gui_pulse(id, 1.2f);
+            return id;
+        }
+        else return 0;
+    }
+
 #if NB_HAVE_PB_BOTH==1
-    if (!resume && config_get_d(CONFIG_NOTIFICATION_SHOP) &&
+    if ((!resume || goal_intro_animation_phase == 2) &&
+        config_get_d(CONFIG_NOTIFICATION_SHOP) &&
         server_policy_get_d(SERVER_POLICY_EDITION) > -1)
 #else
-    if (!resume)
+    if (!resume || goal_intro_animation_phase == 2)
 #endif
     {
         if (curr_mode() == MODE_NORMAL
@@ -253,6 +272,9 @@ static int goal_gui(void)
                     gui_pulse(gid, 1.2f);
 
                 gui_set_rect(jd, GUI_ALL);
+
+                if (goal_intro_animation_phase == 2)
+                    gui_set_slide(jd, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 0.8f, 0);
             }
 
             if (save == 0)
@@ -266,13 +288,13 @@ static int goal_gui(void)
 #endif
                 )
             {
-                int coins = !resume ? curr_coins() : 0,
-                    score = !resume ? curr_score() - coins : curr_score(),
+                int coins = (!resume || goal_intro_animation_phase == 2) ? curr_coins() : 0,
+                    score = (!resume || goal_intro_animation_phase == 2) ? curr_score() - coins : curr_score(),
                     balls = curr_balls();
 
                 /* Reverse-engineer initial score and balls. */
 
-                if (!resume
+                if ((!resume || goal_intro_animation_phase == 2)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                  && curr_mode() != MODE_HARDCORE
 #endif
@@ -353,6 +375,9 @@ static int goal_gui(void)
                     }
 
                     gui_filler(jd);
+
+                    if (goal_intro_animation_phase == 2)
+                        gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.2f, 0.8f, 0);
                 }
 
                 gui_space(id);
@@ -366,8 +391,8 @@ static int goal_gui(void)
 
                 /* Reverse-engineer initial wallet. */
 
-                int coins = !resume ? curr_coins() : 0,
-                    wallet = !resume ? account_get_d(ACCOUNT_DATA_WALLET_COINS) - coins :
+                int coins  = (!resume || goal_intro_animation_phase == 2) ? curr_coins() : 0,
+                    wallet = (!resume || goal_intro_animation_phase == 2) ? account_get_d(ACCOUNT_DATA_WALLET_COINS) - coins :
                     account_get_d(ACCOUNT_DATA_WALLET_COINS);
 
                 if ((jd = gui_hstack(id)))
@@ -391,28 +416,39 @@ static int goal_gui(void)
                     gui_filler(jd);
 
                     gui_set_rect(jd, GUI_ALL);
+
+                    if (goal_intro_animation_phase == 2)
+                        gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.2f, 0.8f, 0);
                 }
 
                 gui_space(id);
             }
 #endif
 
+            int scoreboard_id;
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             if (!campaign_used())
             {
+                if ((scoreboard_id = gui_hstack(id)))
+                {
+                    gui_filler(scoreboard_id);
 #if NB_HAVE_PB_BOTH==1
-                gui_score_board(id, (GUI_SCORE_COIN |
+                    gui_score_board(scoreboard_id,
+                                    (GUI_SCORE_COIN |
                                      GUI_SCORE_TIME |
                                      GUI_SCORE_GOAL), 1,
-                                    !resume && !account_wgcl_name_read_only() &&
+                                    (!resume || goal_intro_animation_phase == 2) && !account_wgcl_name_read_only() &&
                                     (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
 #else
-                gui_score_board(id, (GUI_SCORE_COIN |
+                    gui_score_board(scoreboard_id,
+                                    (GUI_SCORE_COIN |
                                      GUI_SCORE_TIME |
                                      GUI_SCORE_GOAL), 1,
-                                    !resume &&
+                                    (!resume || goal_intro_animation_phase == 2) &&
                                     (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
 #endif
+                }
 
                 gui_campaign_stats(curr_level());
 
@@ -424,43 +460,58 @@ static int goal_gui(void)
 #endif
                      (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN)))
             {
+                if ((scoreboard_id = gui_hstack(id)))
+                {
+                    gui_filler(scoreboard_id);
 #if NB_HAVE_PB_BOTH==1
-                gui_score_board(id, ((campaign_career_unlocked() ? GUI_SCORE_COIN : 0) |
+                    gui_score_board(scoreboard_id,
+                                    (campaign_career_unlocked() ? GUI_SCORE_COIN : 0 |
                                      GUI_SCORE_TIME |
-                                     (campaign_career_unlocked() ? GUI_SCORE_GOAL : 0)), 1,
-                                    !resume && !account_wgcl_name_read_only() &&
+                                     campaign_career_unlocked() ? GUI_SCORE_GOAL : 0), 1,
+                                    (!resume || goal_intro_animation_phase == 2) && !account_wgcl_name_read_only() &&
                                     (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
 #else
-                gui_score_board(id, ((campaign_career_unlocked() ? GUI_SCORE_COIN : 0) |
+                    gui_score_board(scoreboard_id,
+                                    (campaign_career_unlocked() ? GUI_SCORE_COIN : 0 |
                                      GUI_SCORE_TIME |
-                                     (campaign_career_unlocked() ? GUI_SCORE_GOAL : 0)), 1,
-                                    !resume &&
+                                     campaign_career_unlocked() ? GUI_SCORE_GOAL : 0), 1,
+                                    (!resume || goal_intro_animation_phase == 2) &&
                                     (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
 #endif
+                }
 
                 gui_set_stats(curr_level());
 
                 gui_space(id);
             }
 #else
+            if ((scoreboard_id = gui_hstack(id)))
+            {
+                gui_filler(scoreboard_id);
 #if NB_HAVE_PB_BOTH==1
-            gui_score_board(id, (GUI_SCORE_COIN |
+                gui_score_board(scoreboard_id,
+                                (GUI_SCORE_COIN |
                                  GUI_SCORE_TIME |
-                                 GUI_SCORE_GOAL), 1,
-                                !resume && !account_wgcl_name_read_only() &&
+                                 GUI_SCORE_COIN), 1,
+                                (!resume || goal_intro_animation_phase == 2) && !account_wgcl_name_read_only() &&
                                 (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
 #else
-            gui_score_board(id, (GUI_SCORE_COIN |
+                gui_score_board(scoreboard_id,
+                                (GUI_SCORE_COIN |
                                  GUI_SCORE_TIME |
                                  GUI_SCORE_GOAL), 1,
-                                !resume &&
+                                (!resume || goal_intro_animation_phase == 2) &&
                                 (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
 #endif
+            }
 
             gui_set_stats(curr_level());
 
             gui_space(id);
 #endif
+
+            if (goal_intro_animation_phase == 2)
+                gui_set_slide(scoreboard_id, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.4f, 0.8f, 0);
 
             if ((jd = gui_harray(id)))
             {
@@ -469,7 +520,7 @@ static int goal_gui(void)
                  * --- OR ---
                  * check, if products is still available
                  */
-                int btns_disabled = !resume &&
+                int btns_disabled = (!resume || goal_intro_animation_phase == 2) &&
                                     ((config_get_d(CONFIG_NOTIFICATION_REWARD) && challenge_disable_all_buttons) ||
                                      (config_get_d(CONFIG_NOTIFICATION_SHOP) &&
                                       shop_product_available));
@@ -503,6 +554,9 @@ static int goal_gui(void)
                         gui_set_color(btn_ids[i], GUI_COLOR_GRY);
                         gui_set_state(btn_ids[i], GUI_NONE, 0);
                     }
+
+                if (goal_intro_animation_phase == 2)
+                    gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.6, 0.8f, 0.05f);
             }
 
             gui_layout(id, 0, 0);
@@ -519,6 +573,9 @@ static int goal_gui(void)
             }
 
             gui_layout(id, -1, +1);
+
+            if (goal_intro_animation_phase == 2)
+                gui_set_slide(id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0.0f, 0.8f, 0.05f);
         }
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -556,6 +613,9 @@ static int goal_gui(void)
                 }
 
                 gui_layout(id, +1, +1);
+
+                if (goal_intro_animation_phase == 2)
+                    gui_set_slide(id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0.0f, 0.8f, 0.05f);
             }
         }
 #endif
@@ -570,7 +630,7 @@ static int goal_gui(void)
 
 static int goal_enter(struct state *st, struct state *prev, int intent)
 {
-    score_count_anim_time = 0.2f;
+    score_count_anim_time  = 0.2f;
     score_count_anim_index = 0;
 
     if (prev == &st_name)
@@ -588,6 +648,11 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
 
     resume = (prev != &st_play_loop || (prev == &st_goal && !resume_hold));
 
+    if (!resume && config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        goal_intro_animation_phase = 1;
+    else if (!resume)
+        goal_intro_animation_phase = 2;
+
     if (prev == &st_play_loop)
     {
 #ifdef MAPC_INCLUDES_CHKP
@@ -598,6 +663,9 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
             audio_play(AUD_GOAL_CAMPAIGN, 1.0f);
 #endif
     }
+
+    if ((prev == &st_play_loop || prev == &st_goal))
+        return goal_gui();
 
     return transition_slide(goal_gui(), 1, intent);
 }
@@ -625,6 +693,12 @@ static int goal_leave(struct state *st, struct state *next, int id, int intent)
         game_client_free(NULL);
     }
 
+    if (next == &st_goal && goal_intro_animation_phase == 0)
+    {
+        gui_delete(id);
+        return 0;
+    }
+
     return transition_slide(id, 0, intent);
 }
 
@@ -644,6 +718,18 @@ static void goal_paint(int id, float t)
 
 static void goal_timer(int id, float dt)
 {
+    if (goal_intro_animation_phase == 1)
+    {
+        if (time_state() >= 2.0f)
+        {
+            goal_intro_animation_phase = 2;
+            goto_state(&st_goal);
+        }
+    }
+
+    gui_timer(id, dt);
+    hud_timer(dt);
+
     if (!resume || resume_hold)
     {
         static float t = 0.0f;
@@ -654,22 +740,26 @@ static void goal_timer(int id, float dt)
         geom_step(dt);
         game_server_step(dt);
 
-        int record_screenanimations = resume && time_state() < 1.0f;
-        int record_modes            = curr_mode() != MODE_NONE;
+        int record_time_state = time_state() < 1.0f;
+        int record_modes      = curr_mode() != MODE_NONE;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        int record_campaign         = !campaign_hardcore_norecordings();
+        int record_campaign   = !campaign_hardcore_norecordings();
 #else
-        int record_campaign         = 1;
+        int record_campaign   = 1;
 #endif
 
         game_client_blend(game_server_blend());
         game_client_sync(!resume
-                      && record_screenanimations
+                      && record_time_state
                       && record_modes
                       && record_campaign ? demo_fp : NULL);
 
+        if (goal_intro_animation_phase == 1)
+            return;
+
         while ((t > 0.05f && coins_id) &&
-               (!resume && time_state() > 1.0f))
+               ((!resume || goal_intro_animation_phase == 2) &&
+                time_state() > 1.0f))
         {
             int coins = 0;
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -809,15 +899,27 @@ static void goal_timer(int id, float dt)
         goto_state(&st_goal_extraballs);
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-    if (!resume && time_state() >= 1.0f &&
+    if ((!resume || goal_intro_animation_phase == 2) &&
+        time_state() >= 1.0f &&
         shop_product_available && config_get_d(CONFIG_NOTIFICATION_SHOP) &&
         server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
         server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
         goto_state(&st_goal_shop);
 #endif
+}
 
-    gui_timer(id, dt);
-    hud_timer(dt);
+static int goal_click(int b, int d)
+{
+    if (goal_intro_animation_phase == 1)
+    {
+        goal_intro_animation_phase = 2;
+
+        return (b == SDL_BUTTON_LEFT && d) ?
+               st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
+    }
+
+    return gui_click(b, d) ?
+           st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
 }
 
 static int goal_keybd(int c, int d)
@@ -859,6 +961,13 @@ static int goal_buttn(int b, int d)
 {
     if (d)
     {
+        if (goal_intro_animation_phase == 1 &&
+            config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+        {
+            goal_intro_animation_phase = 2;
+            return goto_state(&st_goal);
+        }
+
         int active = gui_active();
 
         /*
@@ -1100,7 +1209,7 @@ struct state st_goal = {
     shared_point,
     shared_stick,
     shared_angle,
-    shared_click,
+    goal_click,
     goal_keybd,
     goal_buttn
 };

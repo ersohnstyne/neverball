@@ -12,8 +12,6 @@
  * General Public License for more details.
  */
 
-#include "gui.h"
-
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
 #endif
@@ -38,8 +36,8 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define STICK_MAX 32
-#define STICK_HOLD_TIME 0.5f
+#define STICK_MAX         32
+#define STICK_HOLD_TIME   0.5f
 #define STICK_REPEAT_TIME 0.2f
 
 struct stick_cache
@@ -129,7 +127,6 @@ static int bump_stick(int a)
 #define state_frame_smooth (1.0f / 25.0f) * 1000
 #define state_anim_speed 6.0f
 
-static float alpha      = 0;
 static int   anim_queue = 0;
 static int   anim_done  = 0;
 
@@ -160,12 +157,6 @@ float time_state(void)
 void init_state(struct state *st)
 {
     state = st;
-    alpha = 1.0f;
-    video_clear();
-#if ENABLE_DUALDISPLAY==1
-    video_dualdisplay_clear();
-#endif
-    video_swap();
 }
 
 int goto_state_intent(struct state *st, int intent)
@@ -176,10 +167,7 @@ int goto_state_intent(struct state *st, int intent)
 int goto_state_full_intent(struct state *st,
                            int fromdirection, int todirection, int noanimation, int intent)
 {
-    Uint32 currtime, prevtime, dt;
     struct state *prev = state;
-
-    prevtime = SDL_GetTicks();
 
     anim_queue_state         = st;
     anim_queue_directions[0] = fromdirection;
@@ -191,64 +179,15 @@ int goto_state_full_intent(struct state *st,
     anim_done  = 0;
     anim_queue = 1;
 
-    // For some reasons, this may not work on alpha transparent
-
-    /*
-    if (!noanimation && config_get_d(CONFIG_SCREEN_ANIMATIONS))
-    {
-        while (alpha > 0.01)
-        {
-            currtime = SDL_GetTicks();
-            dt = MAX(currtime - prevtime, 0);
-
-            activity_services_step(dt);
-
-            alpha = alpha - ((config_get_d(CONFIG_SMOOTH_FIX) ?
-                              MIN(state_frame_smooth, dt) :
-                              MIN(100.0f, dt)) * state_anim_speed) * 0.001f;
-            alpha = CLAMP(0, alpha, 1);
-
-            if (state)
-            {
-                if (state->fade != NULL) state->fade(alpha);
-                gui_set_alpha(state->gui_id, alpha, fromdirection);
-            }
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            console_gui_set_alpha(alpha);
-#endif
-
-            CHECK_GAMESPEED(20, 100);
-            float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
-
-            st_timer(MAX((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ?
-                                    MIN(state_frame_smooth, dt) : dt)) *
-                                    speedPercent, 0));
-            hmd_step();
-
-            st_paint(0.001f * currtime, 1);
-
-            video_swap();
-
-            if (config_get_d(CONFIG_NICE))
-                SDL_Delay((1.0f / 30.0f) * 1000);
-
-            prevtime = currtime;
-        }
-    }
-
-    alpha = 0;
-    */
-
     if (state)
     {
-        if (state->fade != NULL) state->fade(alpha);
+        if (state->fade != NULL) state->fade(1.0f);
 
-        gui_set_alpha(state->gui_id, alpha, fromdirection);
+        gui_set_alpha(state->gui_id, 1.0f, fromdirection);
     }
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    console_gui_set_alpha(alpha);
+    console_gui_set_alpha(1.0f);
 #endif
 
     if (state && state->leave)
@@ -269,66 +208,15 @@ int goto_state_full_intent(struct state *st,
     if (state && state->enter)
         state->gui_id = state->enter(state, prev, intent);
 
-    // For some reasons, this may not work on alpha transparent
-
-    /*if (!noanimation && config_get_d(CONFIG_SCREEN_ANIMATIONS))
-    {
-        while (alpha < 0.99 && !anim_done)
-        {
-            LOOP_DURING_SCREENANIMATE;
-
-            currtime = SDL_GetTicks();
-            dt = MAX(currtime - prevtime, 0);
-
-            activity_services_step(dt);
-
-            alpha = alpha + ((config_get_d(CONFIG_SMOOTH_FIX) ?
-                              MIN(state_frame_smooth, dt) :
-                              MIN(100.0f, dt)) * state_anim_speed) * 0.001f;
-            alpha = CLAMP(0, alpha, 1);
-
-            if (state)
-            {
-                if (state->fade != NULL) state->fade(alpha);
-
-                gui_set_alpha(state->gui_id, alpha, todirection);
-            }
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            console_gui_set_alpha(alpha);
-#endif
-
-            CHECK_GAMESPEED(20, 100);
-            float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
-
-            st_timer(MAX((0.001f * (config_get_d(CONFIG_SMOOTH_FIX) ?
-                                    MIN(state_frame_smooth, dt) : dt)) *
-                                    speedPercent, 0));
-            hmd_step();
-
-            st_paint(0.001f * currtime, 1);
-
-            video_swap();
-
-            if (config_get_d(CONFIG_NICE))
-                SDL_Delay((1.0f / 30.0f) * 1000);
-
-            prevtime = currtime;
-        }
-    }
-
-    alpha = 1.0f;
-    */
-
     if (state)
     {
-        if (state->fade != NULL) state->fade(alpha);
+        if (state->fade != NULL) state->fade(1.0f);
 
-        gui_set_alpha(state->gui_id, alpha, todirection);
+        gui_set_alpha(state->gui_id, 1.0f, todirection);
     }
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    console_gui_set_alpha(alpha);
+    console_gui_set_alpha(1.0f);
 #endif
 
     anim_queue = 0;

@@ -210,7 +210,7 @@ static int tilt_func(void *data)
                 /*
                  * Since the game expects "rotate the world type",
                  * conjugate by negating all angles & convert to degrees
-                 * 
+                 *
                  * Z is yaw
                  * Y is pitch
                  * X is roll

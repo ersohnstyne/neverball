@@ -238,7 +238,7 @@ extern "C" void sol_init_sim_physx(struct s_vary *vary)
     vary_pvd           = PxCreatePvd(*vary_foundation);
     vary_pvd_transport = physx::PxDefaultPvdSocketTransportCreate("127.0.0.1",
                                                                   5425, 500);
-    
+
     vary_pvd->connect(*vary_pvd_transport,
                       physx::PxPvdInstrumentationFlag::eALL);
 #endif

@@ -1168,7 +1168,7 @@ int game_client_init_safetyintro(void)
         game_client_toggle_show_balls(1);
 
         /* HACK: Does not have a goal. */
-        
+
         back_init("back/sky-SB.png");
 
         sol_load_full(&gd.back, "map-back/sky-SB.sol", 0);
@@ -1176,7 +1176,7 @@ int game_client_init_safetyintro(void)
         /* Initialize lighting. */
 
         light_reset();
-        
+
         game_kill_fade();
 
         return 1;

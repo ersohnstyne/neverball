@@ -756,7 +756,7 @@ int account_wgcl_try_add(int w_coins, int w_gems,
     sprintf(in_url,
 #endif
             "https://%s/api/internal/updateassets", WGCL_URL);
-    
+
     struct wgcl_res_data res_data = {0};
 
     char json_data[512];
@@ -777,7 +777,7 @@ int account_wgcl_try_add(int w_coins, int w_gems,
               session_uuid4,
               w_coins_next, w_gems_next,
               c_hp_next, c_doublecash_next, c_halfgrav_next, c_doublespeed_next);
-        
+
     CURL *handle = account_wgcl_curl_prepare_post(in_url, json_data, &res_data);
     CURLcode res = account_wgcl_curl_execute(handle);
 
@@ -903,7 +903,7 @@ int account_wgcl_try_set(int w_coins, int w_gems,
     sprintf(in_url,
 #endif
             "https://%s/api/internal/updateassets", WGCL_URL);
-    
+
     struct wgcl_res_data res_data = {0};
 
     char json_data[512];
@@ -924,7 +924,7 @@ int account_wgcl_try_set(int w_coins, int w_gems,
               session_uuid4,
               pending_set_wallet_coins, pending_set_wallet_gems,
               pending_set_consumable_hp, pending_set_consumable_doublecash, pending_set_consumable_halfgrav, pending_set_consumable_doublespeed);
-        
+
     CURL *handle = account_wgcl_curl_prepare_post(in_url, json_data, &res_data);
     CURLcode res = account_wgcl_curl_execute(handle);
 

@@ -512,7 +512,7 @@ static void title_timer(int id, float dt)
 
     game_set_fly(fcosf(V_PI * time_state() / 10.f));
 
-    int battery_level, gamepad_wired; 
+    int battery_level, gamepad_wired;
 
     if (joy_connected(0, &battery_level, &gamepad_wired) &&
         gamepadinfo_controller_ids[0])
@@ -1119,7 +1119,7 @@ static int controltype_enter(struct state *st, struct state *prev, int intent)
             gui_set_rect(jd, GUI_ALL);
             gui_set_state(jd, CONTROLTYPE_M, 0);
         }
-        
+
         gui_space(id);
 
         if ((jd = gui_vstack(id)))
@@ -1162,7 +1162,7 @@ static void controltype_timer(int id, float dt)
 
             gui_set_color(ctrltype_name_id, gui_gry, gui_red);
             gui_set_multi(ctrltype_desc_id, descattr);
-            
+
             indiv_ctrltype_ready = 0;
             break;
         }
@@ -1311,7 +1311,7 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
         gui_pulse(td, 1.2f);
         gui_layout(id, 0, 0);
     }
-    
+
     hud_init();
     return transition_slide(id, 1, intent);
 }
@@ -1444,7 +1444,7 @@ static int next_enter(struct state *st, struct state *prev, int intent)
         }
         gui_layout(id, 0, 0);
     }
-    
+
     if (paused)
         paused = 0;
 

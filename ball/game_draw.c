@@ -1022,7 +1022,7 @@ static void game_draw_fore_chnk(struct s_rend *rend,
             game_draw_chnk_jumps(rend, gd, M, t);
             game_draw_chnk_goals(rend, gd, M, t);
             game_draw_chnk_swchs(rend, gd, M, t);
-#ifdef MAPC_INCLUDES_CHKP 
+#ifdef MAPC_INCLUDES_CHKP
             game_draw_chnk_chkps(rend, gd, M, t);
 #endif
         }

@@ -838,7 +838,10 @@ static void fail_paint(int id, float t)
         console_gui_death_paint();
 #endif
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    {
         hud_paint();
+        hud_lvlname_paint();
+    }
 }
 
 static void fail_timer(int id, float dt)

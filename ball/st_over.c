@@ -340,7 +340,7 @@ static int over_keybd(int c, int d)
     {
 #ifndef LEADERBOARD_ALLOWANCE
         if (c == KEY_EXIT)
-            return goto_state(&st_start);
+            return exit_state(&st_start);
 #else
         if (c == KEY_EXIT)
             return over_action(
@@ -362,11 +362,7 @@ static int over_buttn(int b, int d)
 {
     if (d)
     {
-#ifndef LEADERBOARD_ALLOWANCE
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) ||
-            config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return goto_state(&st_start);
-#else
+#ifdef LEADERBOARD_ALLOWANCE
         int active = gui_active();
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
@@ -377,6 +373,10 @@ static int over_buttn(int b, int d)
                                campaign_hardcore() ? OVER_TO_GROUP :
 #endif
                 GUI_BACK, 0);
+#else
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) ||
+            config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            return exit_state(&st_start);
 #endif
     }
     return 1;
@@ -384,20 +384,7 @@ static int over_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-#ifndef LEADERBOARD_ALLOWANCE
-struct state st_over = {
-    over_enter,
-    shared_leave,
-    shared_paint,
-    over_timer,
-    NULL,
-    NULL,
-    NULL,
-    over_click,
-    over_keybd,
-    over_buttn
-};
-#else
+#ifdef LEADERBOARD_ALLOWANCE
 struct state st_over = {
     over_enter,
     shared_leave,
@@ -407,6 +394,19 @@ struct state st_over = {
     shared_stick,
     shared_angle,
     shared_click,
+    over_keybd,
+    over_buttn
+};
+#else
+struct state st_over = {
+    over_enter,
+    shared_leave,
+    shared_paint,
+    over_timer,
+    NULL,
+    NULL,
+    NULL,
+    over_click,
     over_keybd,
     over_buttn
 };

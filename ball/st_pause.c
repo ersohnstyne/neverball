@@ -433,10 +433,12 @@ static void pause_paint(int id, float t)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_show())
         console_gui_paused_paint();
-    else
 #endif
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    {
         hud_paint();
+        hud_lvlname_paint();
+    }
 
     gui_paint(id);
 }

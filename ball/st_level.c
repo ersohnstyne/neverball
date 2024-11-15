@@ -844,7 +844,7 @@ static int poser_keybd(int c, int d)
     if (d)
     {
         if (c == KEY_EXIT || c == KEY_POSE)
-            return goto_state(&st_level);
+            return exit_state(&st_level);
     }
     return 1;
 }
@@ -852,7 +852,7 @@ static int poser_keybd(int c, int d)
 static int poser_buttn(int c, int d)
 {
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_B, c))
-        return goto_state(&st_level);
+        return exit_state(&st_level);
 
     return 1;
 }

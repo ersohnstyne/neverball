@@ -465,16 +465,20 @@ static int goal_gui(void)
                     gui_filler(scoreboard_id);
 #if NB_HAVE_PB_BOTH==1
                     gui_score_board(scoreboard_id,
-                                    (campaign_career_unlocked() ? GUI_SCORE_COIN : 0 |
-                                     GUI_SCORE_TIME |
-                                     campaign_career_unlocked() ? GUI_SCORE_GOAL : 0), 1,
+                                    campaign_career_unlocked() ? (GUI_SCORE_COIN |
+                                                                  GUI_SCORE_TIME |
+                                                                  GUI_SCORE_GOAL) :
+                                                                 GUI_SCORE_TIME,
+                                    1,
                                     (!resume || goal_intro_animation_phase == 2) && !account_wgcl_name_read_only() &&
                                     (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
 #else
                     gui_score_board(scoreboard_id,
-                                    (campaign_career_unlocked() ? GUI_SCORE_COIN : 0 |
-                                     GUI_SCORE_TIME |
-                                     campaign_career_unlocked() ? GUI_SCORE_GOAL : 0), 1,
+                                    campaign_career_unlocked() ? (GUI_SCORE_COIN |
+                                                                  GUI_SCORE_TIME |
+                                                                  GUI_SCORE_GOAL) :
+                                                                 GUI_SCORE_TIME,
+                                    1,
                                     (!resume || goal_intro_animation_phase == 2) &&
                                     (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
 #endif
@@ -713,7 +717,10 @@ static void goal_paint(int id, float t)
         console_gui_death_paint();
 #endif
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    {
         hud_paint();
+        hud_lvlname_paint();
+    }
 }
 
 static void goal_timer(int id, float dt)

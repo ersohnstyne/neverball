@@ -955,7 +955,7 @@ static int demo_gui(void)
         }
     }
     else
-        exit_state(&st_title);
+        return exit_state(&st_title);
 
     return id;
 }
@@ -1394,6 +1394,12 @@ static void demo_play_timer(int id, float dt)
     if (!speed_manual || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_timer(dt);
 
+    if (time_state() >= 1.0f && !transition)
+    {
+        gui_slide(id, GUI_W | GUI_FLING | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.6f, 0);
+        transition = 1;
+    }
+
     demo_timer_last = demo_timer_curr;
     demo_timer_curr = curr_clock();
 
@@ -1650,7 +1656,6 @@ static void demo_end_paint(int id, float t)
         else
             console_gui_replay_eof_paint();
     }
-    else
 #endif
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_paint();

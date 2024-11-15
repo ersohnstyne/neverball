@@ -269,6 +269,9 @@ static int   title_load_lockscreen = 1;
 static int   title_lockscreen = 1;
 static int   title_can_unlock = 1;
 
+static int   title_lockscreen_gamename_id;
+static int   title_lockscreen_press_id;
+
 static int   title_freeze_all;
 static int   title_prequit;
 
@@ -915,27 +918,30 @@ static int title_gui(void)
 #endif
 #endif
 
-            if ((jd = gui_vstack(id)))
+            if ((title_lockscreen_gamename_id = gui_vstack(id)))
             {
-                gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" : "  Neverball  ",
-                                     video.aspect_ratio < 1.0f ? GUI_MED :
-                                                                 GUI_LRG,
-                                                                 0, 0);
+                gui_title_header(title_lockscreen_gamename_id,
+                                 video.aspect_ratio < 1.0f ? "Neverball" :
+                                                             "  Neverball  ",
+                                 video.aspect_ratio < 1.0f ? GUI_MED :
+                                                             GUI_LRG, 0, 0);
                 if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
-                    edition_id = gui_label(jd, config_cheat() ? dev_env : os_env,
-                                               GUI_SML, GUI_COLOR_WHT);
-                gui_set_rect(jd, GUI_ALL);
-                gui_set_fill(jd);
-                gui_set_slide(jd, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 1.6f, 0);
+                    edition_id = gui_label(title_lockscreen_gamename_id,
+                                           config_cheat() ? dev_env : os_env,
+                                           GUI_SML, GUI_COLOR_WHT);
+                gui_set_rect(title_lockscreen_gamename_id, GUI_ALL);
+                gui_set_fill(title_lockscreen_gamename_id);
+                gui_set_slide(title_lockscreen_gamename_id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 1.6f, 0);
             }
 #else
-            if (jd = gui_title_header(id, video.aspect_ratio < 1.0f ? "Neverball" :
-                                                                      "  Neverball  ",
-                                          video.aspect_ratio < 1.0f ? GUI_MED :
-                                                                      GUI_LRG, 0, 0))
+            if (title_lockscreen_gamename_id = gui_title_header(id,
+                                                                video.aspect_ratio < 1.0f ? "Neverball" :
+                                                                                            "  Neverball  ",
+                                                                video.aspect_ratio < 1.0f ? GUI_MED :
+                                                                                            GUI_LRG, 0, 0))
             {
-                gui_set_fill(jd);
-                gui_set_slide(jd, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 1.6f, 0);
+                gui_set_fill(title_lockscreen_gamename_id);
+                gui_set_slide(title_lockscreen_gamename_id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 1.6f, 0);
             }
 #endif
 
@@ -1184,11 +1190,11 @@ static int title_gui(void)
         }
         else
         {
-            if ((id = gui_vstack(root_id)))
+            if ((title_lockscreen_press_id = gui_vstack(root_id)))
             {
                 char presstostart_pc_attr[MAXSTR];
 
-                if ((jd = gui_hstack(id)))
+                if ((jd = gui_hstack(title_lockscreen_press_id)))
                 {
                     SAFECPY(presstostart_pc_attr, N_("Press to start"));
 
@@ -1216,9 +1222,9 @@ static int title_gui(void)
                     gui_set_rect(jd, GUI_ALL);
                 }
 
-                gui_space(id);
-                gui_set_slide(id, GUI_S | GUI_EASE_ELASTIC, 2.0f, 1.4f, 0);
-                gui_layout(id, 0, -1);
+                gui_space(title_lockscreen_press_id);
+                gui_set_slide(title_lockscreen_press_id, GUI_S | GUI_EASE_ELASTIC, 2.0f, 1.4f, 0);
+                gui_layout(title_lockscreen_press_id, 0, -1);
             }
         }
     }
@@ -1295,11 +1301,27 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
 static int title_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if ((title_lockscreen && next != &st_null) ||
-        next == &st_title)
+    if (title_lockscreen && next == &st_title)
     {
-        gui_delete(id);
-        return 0;
+        if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        {
+            gui_slide(id, GUI_REMOVE, 0, 0.16f, 0);
+
+            gui_slide(title_lockscreen_gamename_id,
+                      GUI_N | GUI_FLING | GUI_BACKWARD,
+                      0, 0.16f, 0);
+            gui_slide(title_lockscreen_press_id,
+                      GUI_S | GUI_FLING | GUI_BACKWARD,
+                      0, 0.16f, 0);
+
+            transition_add(id);
+            return id;
+        }
+        else
+        {
+            gui_delete(id);
+            return 0;
+        }
     }
 
     demo_replay_stop(0);
@@ -1322,6 +1344,12 @@ static int title_leave(struct state *st, struct state *next, int id, int intent)
     }
 
     progress_exit();
+
+    if (next == &st_null)
+    {
+        gui_delete(id);
+        return 0;
+    }
 
     return transition_slide(id, 0, intent);
 }

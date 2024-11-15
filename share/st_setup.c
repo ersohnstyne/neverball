@@ -1194,10 +1194,17 @@ static int game_setup_install_confirm_gui(void)
         {
             if ((id = gui_vstack(root_id)))
             {
-                gui_label(id, _("Your game is up to date."), GUI_SML, GUI_COLOR_WHT);
+                gui_label(id, _("Your game is all up to date!"), GUI_SML, GUI_COLOR_WHT);
                 gui_space(id);
-                gui_label(id, _("Select \"OK\", the game is ready to start!"),
+#if NB_HAVE_PB_BOTH==1
+                gui_label(id, _("There are no new updates available.\n"
+                                "However, there are downloads available under pennyball.stynegame.de"),
                               GUI_TNY, GUI_COLOR_WHT);
+#else
+                gui_label(id, _("There are no new updates available.\n"
+                                "However, there are downloads available under neverball.org"),
+                              GUI_TNY, GUI_COLOR_WHT);
+#endif
 
                 gui_layout(id, 0, 0);
 

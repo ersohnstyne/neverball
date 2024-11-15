@@ -205,13 +205,18 @@ static int done_gui_set(void)
     int high = progress_set_high();
 
     if (high && !resume)
+    {
+        audio_play("snd/new_time_record.ogg", 1.0f);
         audio_narrator_play(AUD_SCORE);
-
+    }
+    
 #if NB_HAVE_PB_BOTH==1
     if (!campaign_used()
         && set_star(curr_set()) > 0 && set_star_gained(curr_set())
         && !resume)
     {
+        stars_gained = 1;
+
         set_star_update(1);
         audio_play(AUD_STARS, 1.0f);
     }
@@ -226,7 +231,7 @@ static int done_gui_set(void)
             gui_filler(jd);
 
 #if NB_HAVE_PB_BOTH==1
-            if (set_star(curr_set()) > 0 && set_star_gained(curr_set()))
+            if (stars_gained)
             {
                 char set_star_attr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS

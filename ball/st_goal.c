@@ -118,15 +118,14 @@ static int goal_action(int tok, int val)
     {
         case GUI_BACK:
         case GOAL_LAST:
+            resume_hold = 0;
             return goto_exit();
 
         case GOAL_SAVE:
-            resume_hold = 0;
             progress_stop();
             return goto_save(&st_goal, &st_goal);
 
         case GUI_NAME:
-            resume_hold = 0;
             progress_stop();
 #ifdef CONFIG_INCLUDES_ACCOUNT
             return goto_shop_rename(&st_goal, &st_goal, 0);
@@ -135,6 +134,7 @@ static int goal_action(int tok, int val)
 #endif
 
         case GOAL_DONE:
+            resume_hold = 0;
             return goto_exit();
 
         case GUI_SCORE:
@@ -142,6 +142,7 @@ static int goal_action(int tok, int val)
             return goto_state(&st_goal);
 
         case GOAL_NEXT:
+            resume_hold = 0;
             if (progress_next())
             {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -153,13 +154,13 @@ static int goal_action(int tok, int val)
             break;
 
         case GOAL_SAME:
+            resume_hold = 0;
             if (progress_same())
                 return goto_play_level();
             break;
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
         case GOAL_IAP:
-            resume_hold = 0;
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
             return goto_shop_iap(&st_goal, &st_goal, 0, 0, 0, 0, 1);
 #else

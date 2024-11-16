@@ -782,13 +782,16 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
 
     if (!resume && config_get_d(CONFIG_SCREEN_ANIMATIONS))
         fail_intro_animation_phase = 1;
-    else if (!resume)
+    else
         fail_intro_animation_phase = 2;
 
     /* Note the current status if we got here from elsewhere. */
 
     if (!resume)
     {
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        powerup_stop();
+#endif
 #ifdef MAPC_INCLUDES_CHKP
         respawnable = last_active;
 #endif

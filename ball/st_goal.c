@@ -121,10 +121,12 @@ static int goal_action(int tok, int val)
             return goto_exit();
 
         case GOAL_SAVE:
+            resume_hold = 0;
             progress_stop();
             return goto_save(&st_goal, &st_goal);
 
         case GUI_NAME:
+            resume_hold = 0;
             progress_stop();
 #ifdef CONFIG_INCLUDES_ACCOUNT
             return goto_shop_rename(&st_goal, &st_goal, 0);
@@ -142,7 +144,6 @@ static int goal_action(int tok, int val)
         case GOAL_NEXT:
             if (progress_next())
             {
-                powerup_stop();
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (campaign_used() && campaign_hardcore())
                     campaign_hardcore_nextlevel();
@@ -153,14 +154,12 @@ static int goal_action(int tok, int val)
 
         case GOAL_SAME:
             if (progress_same())
-            {
-                powerup_stop();
                 return goto_play_level();
-            }
             break;
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
         case GOAL_IAP:
+            resume_hold = 0;
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
             return goto_shop_iap(&st_goal, &st_goal, 0, 0, 0, 0, 1);
 #else
@@ -650,15 +649,22 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
 
     video_clr_grab();
 
+    /* Check if we came from a known previous state. */
+
     resume = (prev != &st_play_loop || (prev == &st_goal && !resume_hold));
 
     if (!resume && config_get_d(CONFIG_SCREEN_ANIMATIONS))
         goal_intro_animation_phase = 1;
-    else if (!resume)
+    else
         goal_intro_animation_phase = 2;
 
-    if (prev == &st_play_loop)
+    /* Note the current status if we got here from elsewhere. */
+
+    if (!resume)
     {
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        powerup_stop();
+#endif
 #ifdef MAPC_INCLUDES_CHKP
         checkpoints_stop();
 #endif
@@ -1149,7 +1155,9 @@ static int goal_hardcore_enter(struct state *st, struct state *prev, int intent)
 #endif
 
     restrict_hardcore_nextstate = 0;
+#ifdef CONFIG_INCLUDES_ACCOUNT
     powerup_stop();
+#endif
 
     video_clr_grab();
 

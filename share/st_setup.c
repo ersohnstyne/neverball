@@ -163,7 +163,7 @@ int goto_game_setup_finish(struct state *start_state)
 #if _WIN32 && ENABLE_FETCH!=0 && ENABLE_SOFTWARE_UPDATE!=0
     setup_page++;
 #else
-    setup_page = 6;
+    setup_page = 7;
 #endif
 
     return goto_state(&st_game_setup);
@@ -243,6 +243,71 @@ enum
     SETUP_TRANSFER,
     SETUP_FINISHED
 };
+
+static int setup_gamedeps_card(int pd,
+                               const int install_id,
+                               const char *install_path_classic,
+                               const char *install_path_epic,
+                               const char *install_path_steam)
+{
+    int id;
+
+    const int h = video.device_h;
+
+    const char *s0 = N_("Not installed");
+    const char *s1 = N_("Installed");
+
+    char program_path[MAXSTR];
+    char gameapp_path_classic[MAXSTR];
+    char gameapp_path_epic[MAXSTR];
+    char gameapp_path_steam[MAXSTR];
+
+    char img_path_installed[MAXSTR];
+    char img_path_uninstalled[MAXSTR];
+
+    switch (install_id)
+    {
+        case 0:
+            SAFECPY(img_path_uninstalled, "gui/setup/game_switchball_0.png");
+            SAFECPY(img_path_installed,   "gui/setup/game_switchball_1.png");
+            break;
+    }
+
+#if _WIN32
+    SAFECPY(program_path, "C:\\Program Files\\");
+#else
+    SAFECPY(program_path, "/");
+#endif
+
+    SAFECPY(gameapp_path_classic, program_path);
+    SAFECPY(gameapp_path_epic, program_path);
+    SAFECPY(gameapp_path_steam, program_path);
+
+    SAFECAT(gameapp_path_classic, install_path_classic);
+
+    SAFECAT(gameapp_path_epic, "Epic Games\\");
+    SAFECAT(gameapp_path_epic, install_path_epic);
+
+    SAFECAT(gameapp_path_steam, "Steam\\steamapps\\common\\");
+    SAFECAT(gameapp_path_steam, install_path_steam);
+
+    if ((id = gui_vstack(pd)))
+    {
+        const int is_installed = file_exists(gameapp_path_classic) ||
+                                 file_exists(gameapp_path_epic) ||
+                                 file_exists(gameapp_path_steam);
+
+        gui_image(id, is_installed ? img_path_installed :
+                                     img_path_uninstalled,
+                      h / 5, h / 5);
+
+        gui_label(id, _(is_installed ? s1 : s0), GUI_TNY, GUI_COLOR_WHT);
+
+        gui_set_rect(id, GUI_ALL);
+    }
+
+    return id;
+}
 
 static int setup_terms_card(int pd, const char *name, int idx, int readmore_disabled)
 {
@@ -438,7 +503,7 @@ static int setup_is_replay(struct dir_item *item)
 
 static int setup_is_score_file(struct dir_item *item)
 {
-    return str_starts_with(item->path, "neverballhs-");
+    return str_starts_with(item->path, "pennyballhs-");
 }
 
 static void setup_mkdir_migrate(void)
@@ -478,7 +543,7 @@ static void setup_mkdir_migrate(void)
             {
                 src = DIR_ITEM_GET(items, i)->path;
                 dst = concat_string("Scores/",
-                                    src + sizeof ("neverballhs-") - 1,
+                                    src + sizeof ("pennyballhs-") - 1,
                                     ".txt",
                                     NULL);
                 fs_rename(src, dst);
@@ -693,6 +758,21 @@ static int game_setup_action(int tok, int val)
                                                               SDLK_d, SDLK_a,
                                                               SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT);
 
+#if _WIN32
+                            setup_page++;
+#else
+                            setup_page = 3;
+#endif
+                            return goto_state(&st_game_setup);
+                    }
+                }
+                break;
+
+            case 2:
+                {
+                    switch (tok)
+                    {
+                        case GUI_NEXT:
                             setup_page++;
 
                             return goto_state(&st_game_setup);
@@ -700,7 +780,7 @@ static int game_setup_action(int tok, int val)
                 }
                 break;
 
-            case 2:
+            case 3:
                 {
                     switch (tok)
                     {
@@ -725,17 +805,17 @@ static int game_setup_action(int tok, int val)
 #if _WIN32 && ENABLE_FETCH==1 && ENABLE_SOFTWARE_UPDATE!=0
                                 setup_page++;
 #else
-                                setup_page = 6;
+                                setup_page = 7;
 #endif
                             }
 #else
-                            setup_page = 6;
+                            setup_page = 7;
 #endif
 
 #if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1 && \
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-                            if (setup_page == 6)
+                            if (setup_page == 7)
                                 return goto_wgcl_login(&st_game_setup, 0,
                                                        &st_game_setup, goto_ball_fn ? goto_ball_fn : 0);
 #endif
@@ -752,7 +832,7 @@ static int game_setup_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
                             if (val == 0)
-                                game_setup_terms_openlink("https://Neverball.stynegame.de/terms");
+                                game_setup_terms_openlink("https://pennyball.stynegame.de/terms");
                             else if (val == 1)
                                 game_setup_terms_openlink("https://discord.com/terms");
                             else if (val == 2)
@@ -771,8 +851,8 @@ static int game_setup_action(int tok, int val)
                     }
                 }
                 break;
-            case 3:
             case 4:
+            case 5:
                 {
                     switch (tok)
                     {
@@ -782,19 +862,19 @@ static int game_setup_action(int tok, int val)
                             return goto_state(&st_game_setup);
 
                         case SETUP_UPDATE_SKIP:
-                            setup_page = 6;
+                            setup_page = 7;
 #if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1 && \
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-                            if (setup_page == 6)
+                            if (setup_page == 7)
                                 return goto_wgcl_login(&st_game_setup, 0,
                                                        &st_game_setup, 0);
 #endif
                             return goto_state(&st_game_setup);
                     }
                 }
-            case 6:
+            case 7:
                 {
                     switch (tok)
                     {
@@ -1008,7 +1088,68 @@ static int game_setup_controls_gui(void)
 }
 
 /*
- * Setup Page 3: PB+NB Terms & Conditions, Discord TOS, MSA
+ * Setup Page 3: Pre-existing installs
+ */
+static int game_setup_preexisting_gui(void)
+{
+    int root_id, id, jd;
+
+    if ((root_id = gui_root()))
+    {
+        if ((id = gui_vstack(root_id)))
+        {
+            gui_space(id);
+
+            if ((jd = gui_vstack(id)))
+            {
+#if NB_HAVE_PB_BOTH==1
+                gui_title_header(jd, _("Pennyball is all you need"), GUI_MED, GUI_COLOR_DEFAULT);
+#else
+                gui_title_header(jd, _("Neverball is all you need"), GUI_MED, GUI_COLOR_DEFAULT);
+#endif
+                gui_multi(jd, _("You can simply install and run another games.\n"
+                                "When you're ready, move on to the next step."),
+                              GUI_SML, GUI_COLOR_WHT);
+
+                gui_set_rect(jd, GUI_ALL);
+            }
+
+            gui_layout(id, 0, +1);
+        }
+
+        if ((id = gui_hstack(root_id)))
+        {
+            setup_gamedeps_card(id, 0,
+                                "Switchball\\switchball.exe",
+                                "SwitchballHD\\switchball.exe",
+                                "Switchball HD\\switchball.exe");
+
+            gui_layout(id, 0, 0);
+        }
+
+        if ((id = gui_vstack(root_id)))
+        {
+            if ((jd = gui_hstack(id)))
+            {
+                gui_label(jd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
+                gui_label(jd, _("Next"), GUI_SML, GUI_COLOR_WHT);
+
+                gui_set_state(jd, GUI_NEXT, 0);
+                gui_set_rect(jd, GUI_ALL);
+                gui_focus(jd);
+            }
+
+            gui_space(id);
+
+            gui_layout(id, 0, -1);
+        }
+    }
+
+    return root_id;
+}
+
+/*
+ * Setup Page 4: PB+NB Terms & Conditions, Discord TOS, MSA
  */
 static int game_setup_terms_gui(void)
 {
@@ -1106,7 +1247,7 @@ static int game_setup_terms_gui(void)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 /*
- * Setup Page 4: Game updates
+ * Setup Page 5: Game updates
  */
 static int game_setup_update_gui(void)
 {
@@ -1142,7 +1283,7 @@ static int game_setup_update_gui(void)
 }
 
 /*
- * Setup Page 5: Confirm install updates
+ * Setup Page 6: Confirm install updates
  */
 static int game_setup_install_confirm_gui(void)
 {
@@ -1225,7 +1366,7 @@ static int game_setup_install_confirm_gui(void)
 }
 
 /*
- * Setup Page 6: Install updates
+ * Setup Page 7: Install updates
  */
 static int game_setup_install_gui(void)
 {
@@ -1266,7 +1407,7 @@ static int game_setup_install_gui(void)
 #endif
 
 /*
- * Setup Page 7: Install updates
+ * Setup Page 8: Finish setup
  */
 static int game_setup_welcome_gui(void)
 {
@@ -1277,7 +1418,7 @@ static int game_setup_welcome_gui(void)
         if ((id = gui_vstack(root_id)))
         {
             gui_space(id);
-            gui_title_header(id, _("Welcome to Neverball!"), GUI_MED, GUI_COLOR_DEFAULT);
+            gui_title_header(id, _("Welcome to Pennyball!"), GUI_MED, GUI_COLOR_DEFAULT);
 
             gui_layout(id, 0, +1);
         }
@@ -1352,22 +1493,25 @@ static int game_setup_enter(struct state *st, struct state *prev, int intent)
     audio_music_fade_to(.5f, "bgm/setup.ogg", 1);
     back_init("back/gui.png");
 
-    if (setup_page == 3)
+    if (setup_page == 4)
         fetch_available_updates(1);
 
     switch (setup_page)
     {
-        case 0: return transition_slide(game_setup_lang_gui(),     1, intent);
-        case 1: return transition_slide(game_setup_controls_gui(), 1, intent);
-        case 2: return transition_slide(game_setup_terms_gui(),    1, intent);
+        case 0: return transition_slide(game_setup_lang_gui(),        1, intent);
+        case 1: return transition_slide(game_setup_controls_gui(),    1, intent);
+#if _WIN32
+        case 2: return transition_slide(game_setup_preexisting_gui(), 1, intent);
+#endif
+        case 3: return transition_slide(game_setup_terms_gui(),       1, intent);
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-        case 3: return transition_slide(game_setup_update_gui(),          1, intent);
-        case 4: return transition_slide(game_setup_install_confirm_gui(), 1, intent);
-        case 5: return transition_slide(game_setup_install_gui(),         1, intent);
+        case 4: return transition_slide(game_setup_update_gui(),          1, intent);
+        case 5: return transition_slide(game_setup_install_confirm_gui(), 1, intent);
+        case 6: return transition_slide(game_setup_install_gui(),         1, intent);
 #endif
-        case 6: return transition_slide(game_setup_welcome_gui(), 1, intent);
+        case 7: return transition_slide(game_setup_welcome_gui(), 1, intent);
         default: return 0;
     }
 }
@@ -1377,7 +1521,8 @@ static int game_setup_leave(struct state *st, struct state *next, int id, int in
     back_free();
 
     if (next == &st_null &&
-        (setup_page == 5 || setup_page == 6))
+        ((setup_page == 6 && setup_update_version_finished) ||
+         setup_page == 7))
         setup_mkdir_migrate();
 
     return transition_slide(id, 0, intent);
@@ -1395,7 +1540,7 @@ static void game_setup_timer(int id, float dt)
 {
     gui_timer(id, dt);
 
-    if (setup_page == 5 && setup_update_version_finished &&
+    if (setup_page == 6 && setup_update_version_finished &&
         !st_global_animating())
     {
         setup_mkdir_migrate();

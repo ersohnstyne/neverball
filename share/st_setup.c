@@ -14,6 +14,7 @@
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "console_control_gui.h"
+#include "account_wgcl.h"
 #endif
 
 #include "glext.h"
@@ -759,10 +760,12 @@ static int game_setup_action(int tok, int val)
                                                               SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT);
 
 #if _WIN32
-                            setup_page++;
-#else
-                            setup_page = 3;
+                            if (val != 0)
+                                setup_page++;
+                            else
 #endif
+                                setup_page = 3;
+
                             return goto_state(&st_game_setup);
                     }
                 }
@@ -788,8 +791,14 @@ static int game_setup_action(int tok, int val)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
+#if _WIN32 && ENABLE_FETCH==1 && ENABLE_SOFTWARE_UPDATE!=0
+                            setup_page++;
+#else
+                            setup_page = 7;
 #if NB_HAVE_PB_BOTH==1
-                            if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
+                            if (account_wgcl_reload())
+                                /* Let WGCL choose, how to load player datas. */;
+                            else if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
                             {
 #if NB_EOS_SDK==0 || NB_STEAM_API==0
                                 if (goto_name_fn)
@@ -799,15 +808,8 @@ static int game_setup_action(int tok, int val)
                                     return goto_ball_fn(&st_game_setup);
 #endif
                             }
-                            else
 #endif
-                            {
-#if _WIN32 && ENABLE_FETCH==1 && ENABLE_SOFTWARE_UPDATE!=0
-                                setup_page++;
-#else
-                                setup_page = 7;
 #endif
-                            }
 #else
                             setup_page = 7;
 #endif
@@ -815,7 +817,8 @@ static int game_setup_action(int tok, int val)
 #if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1 && \
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-                            if (setup_page == 7)
+                            if (setup_page == 7 &&
+                                !account_wgcl_name_read_only())
                                 return goto_wgcl_login(&st_game_setup, 0,
                                                        &st_game_setup, goto_ball_fn ? goto_ball_fn : 0);
 #endif
@@ -868,8 +871,23 @@ static int game_setup_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
                             if (setup_page == 7)
-                                return goto_wgcl_login(&st_game_setup, 0,
-                                                       &st_game_setup, 0);
+                            {
+                                if (account_wgcl_reload())
+                                    /* Let WGCL choose, how to load player datas. */;
+                                else if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
+                                {
+#if NB_EOS_SDK==0 || NB_STEAM_API==0
+                                    if (goto_name_fn)
+                                        return goto_name_fn(&st_game_setup, goto_ball_fn);
+#else
+                                    if (goto_ball_fn)
+                                        return goto_ball_fn(&st_game_setup);
+#endif
+                                }
+                                else if (!account_wgcl_name_read_only())
+                                    return goto_wgcl_login(&st_game_setup, 0,
+                                                           &st_game_setup, goto_ball_fn ? goto_ball_fn : 0);
+                            }
 #endif
                             return goto_state(&st_game_setup);
                     }
@@ -1026,7 +1044,7 @@ static int game_setup_controls_gui(void)
 
             if ((jd = gui_vstack(id)))
             {
-                gui_title_header(jd, _("Three simple options"), GUI_MED, GUI_COLOR_DEFAULT);
+                gui_title_header(jd, _("Three input options"), GUI_MED, GUI_COLOR_DEFAULT);
                 gui_label(jd, _("How would you like to get started?"), GUI_SML, GUI_COLOR_WHT);
 
                 gui_set_rect(jd, GUI_ALL);
@@ -1057,7 +1075,7 @@ static int game_setup_controls_gui(void)
                 if ((kd = gui_vstack(jd)))
                 {
                     gui_label(kd, _("Switchball"), GUI_SML, gui_wht, gui_cya);
-                    gui_label(kd, _("Quick and Easy"), GUI_TNY, GUI_COLOR_WHT);
+                    gui_label(kd, _("Modern keybinding"), GUI_TNY, GUI_COLOR_WHT);
 
                     gui_set_rect(kd, GUI_ALL);
                 }
@@ -1335,15 +1353,15 @@ static int game_setup_install_confirm_gui(void)
         {
             if ((id = gui_vstack(root_id)))
             {
-                gui_label(id, _("Your game is all up to date!"), GUI_SML, GUI_COLOR_WHT);
+                gui_label(id, _("You have the latest game."), GUI_SML, GUI_COLOR_WHT);
                 gui_space(id);
 #if NB_HAVE_PB_BOTH==1
-                gui_label(id, _("There are no new updates available.\n"
-                                "However, there are downloads available under pennyball.stynegame.de"),
+                gui_label(id, _("There are no new updates right now.\n"
+                                "An update may be available for download at pennyball.stynegame.de"),
                               GUI_TNY, GUI_COLOR_WHT);
 #else
-                gui_label(id, _("There are no new updates available.\n"
-                                "However, there are downloads available under neverball.org"),
+                gui_label(id, _("There are no new updates right now.\n"
+                                "An update may be available for download at neverball.org"),
                               GUI_TNY, GUI_COLOR_WHT);
 #endif
 
@@ -1418,7 +1436,7 @@ static int game_setup_welcome_gui(void)
         if ((id = gui_vstack(root_id)))
         {
             gui_space(id);
-            gui_title_header(id, _("Welcome to Pennyball!"), GUI_MED, GUI_COLOR_DEFAULT);
+            gui_title_header(id, _("Welcome to Neverball!"), GUI_MED, GUI_COLOR_DEFAULT);
 
             gui_layout(id, 0, +1);
         }

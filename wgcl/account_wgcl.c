@@ -25,6 +25,7 @@
 #include "parson.h"
 
 #include "state.h"
+#include "st_setup.h"
 #include "st_wgcl.h"
 
 #if _DEBUG && _MSC_VER
@@ -373,7 +374,7 @@ int account_wgcl_reload(void)
     !defined(__EMSCRIPTEN__)
 #if _WIN32 && _MSC_VER
     if (!(session_uuid4 && *session_uuid4))
-        return 1;
+        return !game_setup_process();
 
     /* Read JSON session file using CURL from the server. */
 

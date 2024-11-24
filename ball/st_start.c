@@ -95,19 +95,15 @@ static void gui_level(int id, int i)
     const GLubyte *back = gui_gry;
 
     int jd = gui_label(id, "XXX", GUI_SML, back, fore);
-
-    if (!l)
+    
+    if (!l ||
+        (!str_ends_with(l->file, ".csol")  &&
+         !str_ends_with(l->file, ".csolx") &&
+         !str_ends_with(l->file, ".sol")   &&
+         !str_ends_with(l->file, ".solx")))
     {
         gui_set_label(jd, " ");
-        return;
-    }
-
-    if (!str_ends_with(l->file, ".csol")  &&
-        !str_ends_with(l->file, ".csolx") &&
-        !str_ends_with(l->file, ".sol")   &&
-        !str_ends_with(l->file, ".solx"))
-    {
-        gui_set_label(jd, " ");
+        gui_set_hidden(jd, 1);
         return;
     }
 

@@ -411,6 +411,7 @@ static int title_enter(struct state *st, struct state *prev, int intent)
                 gui_label(jd, os_env, GUI_SML, GUI_COLOR_WHT);
 #endif
                 gui_set_rect(jd, GUI_ALL);
+                gui_set_slide(jd, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 1.6f, 0);
             }
 
             gui_space(id);
@@ -437,6 +438,7 @@ static int title_enter(struct state *st, struct state *prev, int intent)
                     /* Hilight the start button. */
 
                     gui_set_hilite(play_id, 1);
+                    gui_set_slide(kd, GUI_N | GUI_EASE_ELASTIC, 0.8f, 0.8f, 0.05f);
                 }
 
                 gui_filler(jd);
@@ -463,11 +465,12 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
             gui_layout(id, 0, 1);
             gui_set_rect(id, GUI_S);
+            gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 1.6f, 0.8f, 0.05f);
         }
     }
 
     if (prev == &st_title)
-        return transition_slide(root_id, 1, intent);
+        return root_id;
 
     course_init();
     course_rand();
@@ -485,6 +488,12 @@ static int title_leave(struct state *st, struct state *next, int id, int intent)
          * object names from a previous GL context.
          */
         course_free();
+    }
+
+    if (next == &st_title)
+    {
+        gui_delete(id);
+        return 0;
     }
 
     return transition_slide(id, 0, intent);

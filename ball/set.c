@@ -131,6 +131,8 @@ static int get_score(fs_file fp, struct score *s)
 
 void set_store_hs(void)
 {
+    if (!sets) return;
+
     const struct set *s = SET_GET(sets, curr);
     fs_file fp;
 #if NB_STEAM_API==0 && NB_EOS_SDK==0

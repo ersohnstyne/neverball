@@ -212,11 +212,9 @@
  * If they bankrupt, all products will be sold, then all the wallet
  * will be transferred to the player to whom they owe the debt.
  */
-#define PROGRESS_PLAYER_BANKRUPT                        \
-    do { if ((campaign_used() && campaign_hardcore() && \
-              mode == MODE_HARDCORE)                    \
-          || progress_dead()) {                         \
-        next = 0; done = 0;                             \
+#define PROGRESS_PLAYER_BANKRUPT \
+    do { if (progress_dead()) {  \
+        next = 0; done = 0;      \
     } } while (0)
 #else
 /**
@@ -265,7 +263,7 @@ static struct progress_livesplit curr_livesplit;
 struct progress
 {
 #if ENABLE_RFD==1
-    /* Neverball - Recipes for Disaster */
+    /* Pennyball + Neverball - Recipes for Disaster */
 
     int   rfd_balls;
     int   rfd_earninator;
@@ -509,7 +507,7 @@ void progress_init(int m)
 #endif
 
 #if ENABLE_RFD==1
-    /* Neverball - Recipes for Disaster */
+    /* Pennyball + Neverball - Recipes for Disaster */
 
     curr.rfd_balls      = rfd_get_d(RFD_CHALLENGE_BALLS);
     curr.rfd_earninator = rfd_get_d(RFD_CHALLENGE_EARNINATOR);
@@ -836,7 +834,7 @@ int  progress_play(struct level *l)
         if (last_active)
         {
 #if ENABLE_RFD==1
-            /* Neverball - Recipes for Disaster */
+            /* Pennyball + Neverball - Recipes for Disaster */
 
             prev.rfd_balls = curr.rfd_balls;
 #endif
@@ -938,13 +936,17 @@ void progress_stat(int s)
         case GAME_GOAL:
             activity_services_status_update(AS_GAME_STATCODE_G);
 
-            if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
+            if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+             || mode == MODE_HARDCORE
+#endif
+                )
             {
 #ifdef MAPC_INCLUDES_CHKP
                 if (last_active)
                 {
 #if ENABLE_RFD==1
-                    /* Neverball - Recipes for Disaster */
+                    /* Pennyball + Neverball - Recipes for Disaster */
 
                     chkp.rfd_balls = curr.rfd_balls;
 #endif
@@ -1067,14 +1069,12 @@ void progress_stat(int s)
 #ifdef CONFIG_INCLUDES_ACCOUNT
             /* Add coins for each levels to your account */
 
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             int disable_live_earn = mode == MODE_CHALLENGE
                                  || mode == MODE_BOOST_RUSH
-                                 || mode == MODE_HARDCORE;
-#else
-            int disable_live_earn = mode == MODE_CHALLENGE
-                                 || mode == MODE_BOOST_RUSH;
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                                 || mode == MODE_HARDCORE
 #endif
+            ;
 
             if (status == GAME_GOAL && !disable_live_earn && !CHECK_ACCOUNT_BANKRUPT &&
                 server_policy_get_d(SERVER_POLICY_EDITION) > -1)
@@ -1215,6 +1215,10 @@ void progress_stat(int s)
         break;
     }
 
+    demo_play_stat(status, coins, timer);
+
+    if (status == GAME_NONE) return;
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (campaign_used())
     {
@@ -1231,8 +1235,6 @@ void progress_stat(int s)
     if (mode != MODE_STANDALONE)
 #endif
         set_store_hs();
-
-    demo_play_stat(status, coins, timer);
 }
 
 void progress_stop(void)
@@ -1305,7 +1307,7 @@ void progress_exit(void)
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
         if (server_policy_get_d(SERVER_POLICY_EDITION) > -1
-            && !CHECK_ACCOUNT_BANKRUPT)
+         && !CHECK_ACCOUNT_BANKRUPT)
         {
             /* This gems will earn only, after competed the challenge mode. */
 
@@ -1323,9 +1325,21 @@ void progress_exit(void)
 #endif
             }
             else
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            if (mode == MODE_HARDCORE
+             && !CHECK_ACCOUNT_BANKRUPT
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-                if (!config_cheat())
+             && !config_cheat()
 #endif
+                )
+                account_wgcl_do_add(curr_score(), ROUND(curr_score() / 10), 0, 0, 0, 0);
+            else
+#endif
+            if (!CHECK_ACCOUNT_BANKRUPT
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+             && !config_cheat()
+#endif
+                )
                 account_wgcl_do_add(curr_score(), 0, 0, 0, 0, 0);
 
             account_wgcl_save();
@@ -1517,7 +1531,7 @@ int  progress_same_avail(void)
 {
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
 
-    /* Cannot restart in home room. */
+    /* Cannot restart in home room or hardcore mode. */
 
     if (mode == MODE_NONE
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -1529,20 +1543,10 @@ int  progress_same_avail(void)
     {
         case GAME_NONE:
             return (mode != MODE_CHALLENGE &&
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                    mode != MODE_HARDCORE  &&
-#endif
                     mode != MODE_BOOST_RUSH) ||
                    config_cheat();
 
         default:
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            /* Cannot respawn in hardcore mode. */
-
-            if (campaign_used() && campaign_hardcore() && mode == MODE_HARDCORE)
-                return status == GAME_GOAL;
-            else
-#endif
             if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
                 return !progress_dead();
             else
@@ -1632,7 +1636,8 @@ int  progress_dead(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     /* Cannot respawn in hardcore mode. */
 
-    if (mode == MODE_HARDCORE && status == GAME_FALL) return 1;
+    if (mode == MODE_HARDCORE &&
+        (status == GAME_FALL || status == GAME_TIME)) return 1;
 #endif
 
     return (mode == MODE_CHALLENGE

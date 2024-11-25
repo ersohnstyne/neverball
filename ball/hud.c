@@ -115,11 +115,6 @@ void toggle_hud_visibility(int active)
     show_hud = active;
 }
 
-void toggle_hud_visibility_expected(int active)
-{
-    show_hud_expected = active;
-}
-
 int hud_visibility(void)
 {
     return show_hud && show_hud_expected;

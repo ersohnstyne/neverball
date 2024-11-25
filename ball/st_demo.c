@@ -1637,6 +1637,9 @@ static int demo_end_enter(struct state *st, struct state *prev, int intent)
 {
     audio_music_fade_out(demo_paused ? 0.2f : 2.0f);
 
+    if (demo_paused && prev == &st_demo_play)
+        audio_play("snd/2.2/game_pause.ogg", 1.0f);
+
     hud_hide();
 
     return transition_slide(demo_end_gui(), 1, intent);

@@ -17,11 +17,17 @@
 
 /*---------------------------------------------------------------------------*/
 
+void toggle_hud_visibility(int);
+int  hud_visibility(void);
+
 void hud_init(void);
 void hud_free(void);
 
 void hud_paint(void);
+void hud_timer(float);
 void hud_set_alpha(float);
+void hud_show(float);
+void hud_hide(void);
 
 /*---------------------------------------------------------------------------*/
 

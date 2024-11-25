@@ -341,7 +341,11 @@ static int goal_gui(void)
                                     GUI_COLOR_WHT);
                             }
 
-                            gui_set_count(balls_id, balls);
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                            if (curr_mode() != MODE_HARDCORE)
+#endif
+                                gui_set_count(balls_id, balls);
+
                             gui_set_count(score_id, score);
                             gui_set_count(coins_id, coins);
                         }
@@ -541,7 +545,8 @@ static int goal_gui(void)
                     btn_ids[2] = gui_start(jd, _("Finish"), GUI_SML, GOAL_LAST, 0);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (progress_same_avail() && !campaign_hardcore())
+                if (progress_same_avail() &&
+                    (!campaign_hardcore() && curr_mode() != MODE_HARDCORE))
 #else
                 if (progress_same_avail())
 #endif
@@ -663,7 +668,8 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
 
     if (!resume)
     {
-#ifdef CONFIG_INCLUDES_ACCOUNT
+#if NB_HAVE_PB_BOTH==1 && \
+    defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
         powerup_stop();
 #endif
 #ifdef MAPC_INCLUDES_CHKP
@@ -956,16 +962,28 @@ static int goal_keybd(int c, int d)
 #endif
             )
             return goal_action(GUI_SCORE, GUI_SCORE_NEXT(gui_score_get()));
+
         if (config_tst_d(CONFIG_KEY_RESTART, c)
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-         && !campaign_hardcore()
-#endif
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
          && current_platform == PLATFORM_PC
 #endif
             )
-            return goal_action(progress_same_avail() ? GOAL_SAME :
-                                                       GUI_NONE, 0);
+        {
+            if (progress_same())
+            {
+#if NB_HAVE_PB_BOTH==1 && \
+    defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
+                powerup_stop();
+#endif
+                return goto_play_level();
+            }
+            else
+            {
+                /* Can't do yet, play buzzer sound. */
+
+                audio_play(AUD_DISABLED, 1.0f);
+            }
+        }
     }
 
     return 1;
@@ -1156,7 +1174,8 @@ static int goal_hardcore_enter(struct state *st, struct state *prev, int intent)
 #endif
 
     restrict_hardcore_nextstate = 0;
-#ifdef CONFIG_INCLUDES_ACCOUNT
+#if NB_HAVE_PB_BOTH==1 && \
+    defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
     powerup_stop();
 #endif
 

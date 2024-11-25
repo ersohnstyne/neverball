@@ -86,8 +86,10 @@ static int quit_uses_restart = 0;
         }                                   \
     } while (0)
 
-int goto_pause(struct state* returnable)
+int goto_pause(struct state *returnable)
 {
+    audio_play("snd/2.2/game_pause.ogg", 1.0f);
+
     st_continue = returnable;
 
     /* Set it up some those states? */
@@ -483,12 +485,25 @@ static int pause_keybd(int c, int d)
                 audio_play(AUD_DISABLED, 1.0f);
         }
 
-        if (config_tst_d(CONFIG_KEY_RESTART, c))
+        if (config_tst_d(CONFIG_KEY_RESTART, c)
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+         && current_platform == PLATFORM_PC
+#endif
+            )
         {
-            if (progress_same_avail())
-                return pause_action(PAUSE_RESTART, 0);
+            if (progress_same_avail() && progress_same())
+            {
+#if NB_HAVE_PB_BOTH==1
+                powerup_stop();
+#endif
+                return goto_play_level();
+            }
             else
+            {
+                /* Can't do yet, play buzzer sound. */
+
                 audio_play(AUD_DISABLED, 1.0f);
+            }
         }
     }
     return 1;

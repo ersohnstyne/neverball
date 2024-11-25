@@ -27,11 +27,29 @@ static int Lhud_id;
 static int Rhud_id;
 static int fps_id;
 
-static int touch_id;
+static int Touch_id;
 
 static int stroke_type_id;
 
+static float touch_timer;
+
 static int is_init;
+
+static int show_hud;
+static int show_hud_expected;
+
+static float show_hud_alpha;
+static float show_hud_total_alpha;
+
+void toggle_hud_visibility(int active)
+{
+    show_hud = active;
+}
+
+int hud_visibility(void)
+{
+    return show_hud && show_hud_expected;
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -104,6 +122,7 @@ void hud_init(void)
 void hud_free(void)
 {
     if (!is_init) return;
+
     gui_delete(stroke_type_id);
     gui_delete(Lhud_id);
     gui_delete(Rhud_id);
@@ -128,12 +147,62 @@ void hud_paint(void)
     gui_paint(stroke_type_id);
     gui_paint(Rhud_id);
     gui_paint(Lhud_id);
-    gui_paint(touch_id);
+    gui_paint(Touch_id);
+}
+
+void hud_timer(float dt)
+{
+    if (touch_timer > 0.0f)
+    {
+        touch_timer -= dt;
+
+        if (touch_timer <= 0.0f)
+        {
+            touch_timer = 0.0f;
+            gui_slide(Touch_id, GUI_N | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+        }
+    }
+
+    gui_timer(fps_id, dt);
+    gui_timer(stroke_type_id, dt);
+    gui_timer(Lhud_id, dt);
+    gui_timer(Rhud_id, dt);
+
+    gui_timer(Touch_id, dt);
+}
+
+void hud_show(float delay)
+{
+    if (show_hud_expected == 1) return;
+
+    show_hud_expected = 1;
+    
+    gui_slide(fps_id,         GUI_NW | GUI_EASE_BACK, delay + 0.0f, 0.3f, 0);
+    gui_slide(Lhud_id,        GUI_SW | GUI_EASE_BACK, delay + 0.0f, 0.3f, 0);
+    gui_slide(stroke_type_id, GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
+    gui_slide(Rhud_id,        GUI_SE | GUI_EASE_BACK, delay + 0.2f, 0.3f, 0);
+}
+
+void hud_hide(void)
+{
+    if (show_hud_expected == 0) return;
+
+    show_hud_expected = 0;
+
+    gui_slide(fps_id,         GUI_NW | GUI_EASE_BACK, 0, 0.3f, 0);
+    gui_slide(Lhud_id,        GUI_SW | GUI_EASE_BACK, 0, 0.3f, 0);
+    gui_slide(stroke_type_id, GUI_N  | GUI_EASE_BACK, 0, 0.3f, 0);
+    gui_slide(Rhud_id,        GUI_SE | GUI_EASE_BACK, 0, 0.3f, 0);
 }
 
 #if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
 int hud_touch(const SDL_TouchFingerEvent *e)
 {
+    if (touch_timer == 0.0f)
+        gui_slide(Touch_id, GUI_N | GUI_EASE_BACK, 0, 0.3f, 0);
+
+    touch_timer = 5.0f;
+
     if (e->type == SDL_FINGERUP)
     {
         const int x = (int) ((float) video.device_w * e->x);
@@ -146,20 +215,33 @@ int hud_touch(const SDL_TouchFingerEvent *e)
 }
 #endif
 
+
+static void hud_update_alpha(void)
+{
+    float standard_hud_alpha   = show_hud_alpha *
+                                 show_hud_total_alpha;
+    float cam_hud_alpha        = show_hud_total_alpha;
+    float replay_hud_alpha     = show_hud_alpha *
+                                 show_hud_total_alpha;
+
+    gui_set_alpha(fps_id,          standard_hud_alpha,
+                                   GUI_ANIMATION_N_CURVE);
+#if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
+    gui_set_alpha(camcompass_id,   standard_hud_alpha,
+                                   GUI_ANIMATION_N_CURVE);
+#endif
+    gui_set_alpha(Touch_id,        standard_hud_alpha,
+                                   GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE);
+    gui_set_alpha(Lhud_id,         standard_hud_alpha,
+                                   GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE);
+    gui_set_alpha(Rhud_id,         standard_hud_alpha,
+                                   GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE);
+}
+
 void hud_set_alpha(float a)
 {
-    gui_set_alpha(fps_id,         a,
-                                  GUI_ANIMATION_N_CURVE | GUI_ANIMATION_W_CURVE);
-    gui_set_alpha(stroke_type_id, a,
-                                  GUI_ANIMATION_N_CURVE);
-    gui_set_alpha(Rhud_id,        a,
-                                  GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE);
-    gui_set_alpha(Lhud_id,        a,
-                                  GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE);
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
-    gui_set_alpha(touch_id,       a,
-                                  GUI_ANIMATION_N_CURVE | GUI_ANIMATION_E_CURVE);
-#endif
+    show_hud_total_alpha = a;
+    hud_update_alpha();
 }
 
 /*---------------------------------------------------------------------------*/

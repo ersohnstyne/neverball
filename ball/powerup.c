@@ -22,9 +22,9 @@ static float tiltmultiply = 1.0f;
 
 void powerup_stop(void)
 {
-    coinmultiply = 1;
+    coinmultiply = 1.0f;
     gravmultiply = 1.0f;
-    tiltmultiply = 1;
+    tiltmultiply = 1.0f;
 }
 
 void powerup_init_earninator(void)

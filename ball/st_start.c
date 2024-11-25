@@ -63,14 +63,12 @@ struct state st_start_upgraderequired;
 
 #define LEVEL_STEP 25
 
-static int total = 0;
-static int first = 0;
-
 enum
 {
     START_CHALLENGE = GUI_LAST,
     START_BOOST_RUSH,
     START_LOCK_GOALS,
+    START_HARDCORE,
     START_LEVEL,
     START_CHECKSTARS,
     START_STARVIEWER_SHOP,
@@ -95,7 +93,7 @@ static void gui_level(int id, int i)
     const GLubyte *back = gui_gry;
 
     int jd = gui_label(id, "XXX", GUI_SML, back, fore);
-    
+
     if (!l ||
         (!str_ends_with(l->file, ".csol")  &&
          !str_ends_with(l->file, ".csolx") &&
@@ -262,7 +260,35 @@ static int start_action(int tok, int val)
             }
             break;
 
+        case START_HARDCORE:
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            progress_exit();
+            progress_init(val ? MODE_HARDCORE : MODE_NORMAL);
+            return goto_state(&st_start);
+#endif
+            break;
+
         case START_CHALLENGE:
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            if (curr_mode() == MODE_HARDCORE)
+            {
+                if (check_handsoff())
+                    return goto_handsoff(&st_start);
+                else if (CHECK_ACCOUNT_ENABLED)
+                {
+                    audio_play(AUD_STARTGAME, 1.0f);
+
+                    if (progress_play(get_level(0)))
+                    {
+                        activity_services_mode_update(AS_MODE_HARDCORE);
+
+                        return goto_play_level();
+                    }
+                }
+                else return goto_state(&st_start_unavailable);
+            }
+#endif
+
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
 #if NB_HAVE_PB_BOTH==1
             if (config_cheat() ||
@@ -366,7 +392,7 @@ static int start_action(int tok, int val)
             if (progress_play(get_level(val)))
             {
                 activity_services_mode_update(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
-                                           (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE : 
+                                           (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE :
                                                                             AS_MODE_NORMAL));
 
                 return goto_play_level();
@@ -429,7 +455,10 @@ static int start_star_view_gui(void)
 
                 gui_label(jd, set_star_attr,
                               GUI_LRG, gui_wht, gui_yel);
-
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                if (curr_mode() == MODE_HARDCORE);
+                else
+#endif
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                 if (set_balls_needed(curr_set()) > curr_balls + 3)
                 {
@@ -454,13 +483,21 @@ static int start_star_view_gui(void)
                     gui_multi(jd, s_needed, GUI_SML, GUI_COLOR_YEL);
                 }
 #endif
+                ; /* None what to say */
 
                 gui_set_rect(jd, GUI_ALL);
             }
 
             gui_space(id);
 
-            gui_multi(id, s0, GUI_SML, GUI_COLOR_WHT);
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            if (curr_mode() == MODE_HARDCORE)
+                gui_multi(id, _("Some products are not purchasable\n"
+                                "because you selected hardcore mode."),
+                              GUI_SML, GUI_COLOR_WHT);
+            else
+#endif
+                gui_multi(id, s0, GUI_SML, GUI_COLOR_WHT);
         }
         else
             gui_multi(id,
@@ -643,61 +680,85 @@ static int start_gui(void)
                     }
                 }
 
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                if ((ld = curr_mode() == MODE_HARDCORE ? gui_vstack(kd) :
+                                                         gui_varray(kd)))
+#else
                 if ((ld = gui_varray(kd)))
+#endif
                 {
-                    for (i = 0; i < 5; i++)
-                        if ((md = gui_harray(ld)))
-                            for (j = 4; j >= 0; j--)
-                                gui_level(md, ((i * 5) + j) + first);
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                    if (curr_mode() == MODE_HARDCORE)
+                    {
+                        gui_multi(ld, _("You can't respawn if you die\n"
+                                        "or finish levels for each.\n"
+                                        "Good luck! You'll need it.\n"),
+                                      GUI_SML, GUI_COLOR_RED);
 
-#if NB_HAVE_PB_BOTH==1 && !defined(COVID_HIGH_RISK)
-                    if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
+                        gui_filler(ld);
+
+                        challenge_id = gui_state(ld, _("Start Game"),
+                                                     GUI_SML, START_CHALLENGE, 0);
+                    }
+                    else
 #endif
                     {
+                        for (i = 0; i < 5; i++)
+                            if ((md = gui_harray(ld)))
+                                for (j = 4; j >= 0; j--)
+                                    gui_level(md, ((i * 5) + j) + first);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(COVID_HIGH_RISK)
+                        if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
+#endif
+                        {
 #ifdef CONFIG_INCLUDES_ACCOUNT
-                        const int curr_balls =
-                            server_policy_get_d(SERVER_POLICY_EDITION) > 0 ?
-                            account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) : 3;
+                            const int curr_balls =
+                                server_policy_get_d(SERVER_POLICY_EDITION) > 0 ?
+                                account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) : 3;
 #else
-                        const int curr_balls = 0;
+                            const int curr_balls = 0;
 #endif
 
-                        if ((md = gui_harray(ld)))
-                        {
-                            challenge_id = gui_state(md, _("Challenge"),
-                                                         GUI_SML, START_CHALLENGE, 0);
+                            if ((md = gui_harray(ld)))
+                            {
+                                challenge_id = gui_state(md, _("Challenge"),
+                                                             GUI_SML, START_CHALLENGE, 0);
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-                            if (set_balls_needed(curr_set()) > curr_balls + 3)
-                            {
-                                gui_set_color(challenge_id, GUI_COLOR_RED);
-                                gui_set_state(challenge_id, GUI_NONE, 0);
-                            }
-                            else if (set_balls_needed(curr_set()) > curr_balls)
-                                gui_set_color(challenge_id, GUI_COLOR_YEL);
-                            else
-                                gui_set_color(challenge_id, GUI_COLOR_GRN);
+                                if (set_balls_needed(curr_set()) > curr_balls + 3)
+                                {
+                                    gui_set_color(challenge_id, GUI_COLOR_RED);
+                                    gui_set_state(challenge_id, GUI_NONE, 0);
+                                }
+                                else if (set_balls_needed(curr_set()) > curr_balls)
+                                    gui_set_color(challenge_id, GUI_COLOR_YEL);
+                                else
+                                    gui_set_color(challenge_id, GUI_COLOR_GRN);
 
-                            if (CHECK_ACCOUNT_BANKRUPT)
-                            {
-                                gui_set_state(challenge_id, GUI_NONE, 0);
-                                gui_set_color(challenge_id, GUI_COLOR_GRY);
-                            }
-                            else
+                                if (CHECK_ACCOUNT_BANKRUPT)
+                                {
+                                    gui_set_state(challenge_id, GUI_NONE, 0);
+                                    gui_set_color(challenge_id, GUI_COLOR_GRY);
+                                }
+                                else
 #endif
-                                gui_set_hilite(challenge_id,
-                                               curr_mode() == MODE_CHALLENGE);
+                                    gui_set_hilite(challenge_id,
+                                        curr_mode() == MODE_CHALLENGE);
+                            }
                         }
                     }
                 }
 
                 gui_filler(kd);
             }
+            
+            const int scoreboard_flags = curr_mode() == MODE_HARDCORE ?
+                                         (GUI_SCORE_COIN | GUI_SCORE_TIME) :
+                                         (GUI_SCORE_COIN | GUI_SCORE_TIME | GUI_SCORE_GOAL);
 
             gui_space(jd);
-            gui_score_board(jd, (GUI_SCORE_COIN |
-                                 GUI_SCORE_TIME |
-                                 GUI_SCORE_GOAL), 0, 0);
+            gui_score_board(jd, scoreboard_flags, 0, 0);
             gui_space(jd);
 
 #if NB_HAVE_PB_BOTH==1
@@ -777,7 +838,7 @@ static int start_gui_options(void)
                     int btn0, btn1;
 
 #if NB_HAVE_PB_BOTH==1
-                    btn1 = gui_state(kd, GUI_BALLOT_X,
+                    btn1 = gui_state(kd, GUI_CROSS,
                                          GUI_SML, START_LOCK_GOALS, 1);
                     btn0 = gui_state(kd, GUI_CHECKMARK,
                                          GUI_SML, START_LOCK_GOALS, 0);
@@ -805,6 +866,29 @@ static int start_gui_options(void)
                 gui_set_trunc(kd, TRUNC_TAIL);
                 gui_set_fill(kd);
             }
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            gui_space(id);
+
+            /* OK, how about hardcore mode? */
+
+            int hardc_requirement = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+                !config_cheat() &&
+#endif
+                (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN);
+
+            if (hardc_requirement)
+#ifdef SWITCHBALL_GUI
+                conf_toggle_simple(id, _("Hardcore Mode"), START_HARDCORE,
+                                       curr_mode() == MODE_HARDCORE,
+                                       1, 0);
+#else
+                conf_toggle(id, _("Hardcore Mode"), START_HARDCORE,
+                                curr_mode() == MODE_HARDCORE,
+                                _("On"), 1, _("Off"), 0);
+#endif
+#endif
 
             gui_layout(id, 0, 0);
         }
@@ -1024,15 +1108,17 @@ static int start_enter(struct state *st, struct state *prev, int intent)
 #endif
 
     if (prev == &st_set)
+    {
         first = 0;
+
+        progress_exit();
+        progress_init(MODE_NORMAL);
+    }
 
     /* For Switchball, it uses for 30 levels */
 
     total = start_howmany();
     first = MIN(first, (total - 1) - ((total - 1) % LEVEL_STEP));
-
-    progress_exit();
-    progress_init(MODE_NORMAL);
 
     if (prev == &st_start)
         return transition_page(set_level_options ? start_gui_options() : start_gui(), 1, intent);
@@ -1253,7 +1339,7 @@ static int start_joinrequired_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            return goto_state(&st_start);
+            return exit_state(&st_start);
 
         case START_JOINREQUIRED_OPEN:
 #if !defined(__NDS__) && !defined(__3DS__) && \

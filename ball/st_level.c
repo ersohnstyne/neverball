@@ -234,7 +234,9 @@ static int level_action(int tok, int val)
     switch (tok)
     {
         case LEVEL_START_POWERUP:
-            if     (val == 3)
+#if NB_HAVE_PB_BOTH==1 && \
+    defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
+            if      (val == 3)
             {
                 activity_services_powerup_update(AS_POWERUP_SPEEDIFIER);
                 audio_play("snd/speedifier.ogg", 1.0f);
@@ -254,6 +256,9 @@ static int level_action(int tok, int val)
             }
 
             /* Combined enum buttons: LEVEL_START */
+#else
+            break;
+#endif
 
         case LEVEL_START:
             show_info = 0;
@@ -274,7 +279,7 @@ static int level_action(int tok, int val)
 
 static int level_gui(void)
 {
-#ifdef ENABLE_POWERUP
+#if NB_HAVE_PB_BOTH==1 && defined(ENABLE_POWERUP)
 #ifdef CONFIG_INCLUDES_ACCOUNT
     evalue = account_get_d(ACCOUNT_CONSUMEABLE_EARNINATOR);
     fvalue = account_get_d(ACCOUNT_CONSUMEABLE_FLOATIFIER);
@@ -345,7 +350,13 @@ static int level_gui(void)
         }
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) &&
+        if ((level_master(curr_level())
+          || curr_mode() == MODE_CHALLENGE
+          || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+          || curr_mode() == MODE_HARDCORE
+#endif
+            ) &&
             server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
         {
             char account_coinsattr[MAXSTR], account_gemsattr[MAXSTR];
@@ -421,17 +432,16 @@ static int level_gui(void)
                     sprintf_s(lvlattr, MAXSTR, _("Level %s"), ln);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (curr_mode() == MODE_CAMPAIGN ||
-                    curr_mode() == MODE_HARDCORE)
+                if (curr_mode() == MODE_CAMPAIGN)
                     sprintf_s(setattr, MAXSTR, "%s", mode_to_str(curr_mode(), 1));
                 else
 #endif
-                    if (curr_mode() == MODE_STANDALONE)
-                        sprintf_s(setattr, MAXSTR, _("Standalone level"));
-                    else if (curr_mode() == MODE_NORMAL)
-                        sprintf_s(setattr, MAXSTR, "%s", curr_setname_final);
-                    else if (curr_mode() != MODE_NONE)
-                        sprintf_s(setattr, MAXSTR, _("%s: %s"), curr_setname_final, mode_to_str(curr_mode(), 1));
+                if (curr_mode() == MODE_STANDALONE)
+                    sprintf_s(setattr, MAXSTR, _("Standalone level"));
+                else if (curr_mode() == MODE_NORMAL)
+                    sprintf_s(setattr, MAXSTR, "%s", curr_setname_final);
+                else if (curr_mode() != MODE_NONE)
+                    sprintf_s(setattr, MAXSTR, _("%s: %s"), curr_setname_final, mode_to_str(curr_mode(), 1));
 #else
                 if (m && curr_mode() == MODE_STANDALONE)
                     sprintf(lvlattr, _("Master Level"));
@@ -447,28 +457,28 @@ static int level_gui(void)
                     sprintf(lvlattr, _("Level %s"), ln);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (curr_mode() == MODE_CAMPAIGN ||
-                    curr_mode() == MODE_HARDCORE)
+                if (curr_mode() == MODE_CAMPAIGN)
                     sprintf(setattr, "%s", mode_to_str(curr_mode(), 1));
                 else
 #endif
-                    if (curr_mode() == MODE_STANDALONE)
-                        sprintf(setattr, _("Standalone level"));
-                    else if (curr_mode() == MODE_NORMAL)
-                        sprintf(setattr, "%s", curr_setname_final);
-                    else if (curr_mode() != MODE_NONE)
-                        sprintf(setattr, _("%s: %s"), curr_setname_final, mode_to_str(curr_mode(), 1));
+                if (curr_mode() == MODE_STANDALONE)
+                    sprintf(setattr, _("Standalone level"));
+                else if (curr_mode() == MODE_NORMAL)
+                    sprintf(setattr, "%s", curr_setname_final);
+                else if (curr_mode() != MODE_NONE)
+                    sprintf(setattr, _("%s: %s"), curr_setname_final, mode_to_str(curr_mode(), 1));
 #endif
                 gui_title_header(kd, lvlattr,
                                      m || b ? GUI_MED : GUI_LRG,
                                      m ? gui_wht : (b ? gui_wht : 0),
                                      m ? gui_red : (b ? gui_grn : 0));
+
+                const int mode_id = gui_label(kd, setattr, GUI_SML, GUI_COLOR_WHT);
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (curr_mode() == MODE_HARDCORE)
-                    gui_label(kd, _("Hardcore Mode!"), GUI_SML, GUI_COLOR_RED);
-                else
+                    gui_set_color(mode_id, GUI_COLOR_RED);
 #endif
-                    gui_label(kd, setattr, GUI_SML, GUI_COLOR_WHT);
 
                 gui_set_rect(kd, GUI_ALL);
             }
@@ -477,11 +487,16 @@ static int level_gui(void)
 
         gui_space(id);
 
-#ifdef ENABLE_POWERUP
-        if ((level_master(curr_level())    ||
-             curr_mode() == MODE_CHALLENGE ||
-             curr_mode() == MODE_BOOST_RUSH) &&
-            !show_info                       &&
+#if NB_HAVE_PB_BOTH==1 && \
+    defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
+        if ((level_master(curr_level())
+          || curr_mode() == MODE_CHALLENGE
+          || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+          || curr_mode() == MODE_HARDCORE
+#endif
+            ) &&
+            !show_info &&
             server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
         {
             if ((jd = gui_hstack(id)))
@@ -743,7 +758,14 @@ static int level_keybd(int c, int d)
 #endif
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c))
         {
-            if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) &&
+            if ((level_master(curr_level())
+              || curr_mode() == MODE_CHALLENGE
+              || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+              || curr_mode() == MODE_HARDCORE
+#endif
+                ) &&
+                server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES) &&
                 (message && *message))
             {
                 show_info = show_info == 0 ? 1 : 0;
@@ -762,7 +784,13 @@ static int level_buttn(int b, int d)
         {
             int active = gui_active();
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
-            if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) &&
+            if ((level_master(curr_level())
+              || curr_mode() == MODE_CHALLENGE
+              || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+              || curr_mode() == MODE_HARDCORE
+#endif
+                ) &&
                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
             {
                 if (curr_state() == &st_level)
@@ -776,7 +804,14 @@ static int level_buttn(int b, int d)
             return goto_pause(curr_state());
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b) && curr_state() == &st_level)
         {
-            if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH))
+            if ((level_master(curr_level())
+              || curr_mode() == MODE_CHALLENGE
+              || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+              || curr_mode() == MODE_HARDCORE
+#endif
+                ) &&
+                server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
             {
                 show_info = show_info == 0 ? 1 : 0;
                 show_info ? goto_state(&st_level) : exit_state(&st_level);
@@ -794,7 +829,13 @@ static int level_click(int b, int d)
     else if (b == SDL_BUTTON_LEFT && d == 0)
     {
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
-        if ((curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH) &&
+        if ((level_master(curr_level())
+          || curr_mode() == MODE_CHALLENGE
+          || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+          || curr_mode() == MODE_HARDCORE
+#endif
+            ) &&
             server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
         {
             if (curr_state() == &st_level)
@@ -1031,7 +1072,8 @@ int goto_exit(void)
     mediation_stop();
 #endif
 
-#ifdef ENABLE_POWERUP
+#if NB_HAVE_PB_BOTH==1 && \
+    defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
     powerup_stop();
 #endif
 

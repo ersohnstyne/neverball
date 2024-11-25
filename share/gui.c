@@ -43,6 +43,8 @@
 
 #include "fs.h"
 
+#include "audio.h"
+
 #ifndef NDEBUG
 #include <assert.h>
 #endif
@@ -628,14 +630,13 @@ static void gui_glyphs_init(void)
     /* Cache an image for the cursor. Scale it to the same size as a digit. */
 
 #ifdef SWITCHBALL_GUI
-    if ((cursor_id = gui_image(0, "gui/cursor.png", widget[digit_id[1][0]].w * 4,
-                                                    widget[digit_id[1][0]].h * 4)))
-        gui_layout(cursor_id, 0, 0);
+    if ((cursor_id = gui_image(0, "gui/cursor.png", ROUND(256.0f / ((float) (video.device_h / 1080.0f))),
+                                                    ROUND(256.0f / ((float) (video.device_h / 1080.0f))))))
 #else
     if ((cursor_id = gui_image(0, "gui/cursor.png", widget[digit_id[1][0]].w * 2,
                                                     widget[digit_id[1][0]].h * 2)))
-        gui_layout(cursor_id, 0, 0);
 #endif
+        gui_layout(cursor_id, 0, 0);
 }
 
 static void gui_glyphs_free(void)
@@ -834,6 +835,7 @@ static int gui_widget(int pd, int type)
             widget[id].init_value  = 0;
             widget[id].layout_xd   = 0;
             widget[id].layout_yd   = 0;
+
             widget[id].offset_init_x = 0.0f;
             widget[id].offset_init_y = 0.0f;
             widget[id].offset_x      = 0.0f;
@@ -2798,7 +2800,10 @@ int gui_point(int id, int x, int y)
     if (jd == 0 || jd == active)
         return 0;
     else
+    {
+        audio_play("snd/focus.ogg", 1.0f);
         return active = jd;
+    }
 }
 
 void gui_alpha(int id, float alpha)
@@ -3123,7 +3128,10 @@ int gui_stick(int id, int a, float v, int bump)
     if (jd == 0 || jd == active)
         return 0;
     else
+    {
+        audio_play("snd/focus.ogg", 1.0f);
         return active = jd;
+    }
 }
 
 int gui_click(int b, int d)

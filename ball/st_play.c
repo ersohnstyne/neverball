@@ -1032,7 +1032,7 @@ static void play_loop_timer(int id, float dt)
         progress_stat(curr_status());
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         goto_state(curr_status() == GAME_GOAL ?
-                   (curr_mode() == MODE_HARDCORE &&
+                   (campaign_used() && curr_mode() == MODE_HARDCORE &&
                     !progress_done() ? &st_goal_hardcore :
                                        &st_goal) :
                    &st_fail);

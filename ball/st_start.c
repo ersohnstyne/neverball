@@ -876,7 +876,8 @@ static int start_gui_options(void)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
                 !config_cheat() &&
 #endif
-                (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN);
+                (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN) &&
+                server_policy_get_d(SERVER_POLICY_EDITION) > 0;
 
             if (hardc_requirement)
 #ifdef SWITCHBALL_GUI

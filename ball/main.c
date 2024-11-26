@@ -507,10 +507,26 @@ static void toggle_wire(void)
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * Track held direction keys.
+ */
+static char key_pressed[4];
+
+static const int key_other[4] = { 1, 0, 3, 2 };
+
+static const int *key_axis[4] = {
+    &CONFIG_JOYSTICK_AXIS_Y0,
+    &CONFIG_JOYSTICK_AXIS_Y0,
+    &CONFIG_JOYSTICK_AXIS_X0,
+    &CONFIG_JOYSTICK_AXIS_X0
+};
+
 static int handle_key_dn(SDL_Event *e)
 {
     int d = 1;
     int c = e->key.keysym.sym;
+
+    int dir = -1;
 
     /* SDL made me do it. */
 #ifdef __APPLE__
@@ -563,28 +579,23 @@ static int handle_key_dn(SDL_Event *e)
 
         default:
             if (config_tst_d(CONFIG_KEY_FORWARD, c))
-            {
-                arrow_downcounter[0] += 1;
-                arrow_downcounter[0]  = CLAMP(0, arrow_downcounter[0], 1);
-                st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), -1);
-            }
+                dir = 0;
             else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
-            {
-                arrow_downcounter[1] += 1;
-                arrow_downcounter[1]  = CLAMP(0, arrow_downcounter[1], 1);
-                st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 1);
-            }
+                dir = 1;
             else if (config_tst_d(CONFIG_KEY_LEFT, c))
-            {
-                arrow_downcounter[2] += 1;
-                arrow_downcounter[2]  = CLAMP(0, arrow_downcounter[2], 1);
-                st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), -1);
-            }
+                dir = 2;
             else if (config_tst_d(CONFIG_KEY_RIGHT, c))
+                dir = 3;
+
+            if (dir != -1)
             {
-                arrow_downcounter[3] += 1;
-                arrow_downcounter[3]  = CLAMP(0, arrow_downcounter[3], 1);
-                st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), 1);
+                /* Ignore auto-repeat on direction keys. */
+
+                if (e->key.repeat)
+                    break;
+
+                key_pressed[dir] = 1;
+                st_stick(config_get_d(*key_axis[dir]), key_tilt[dir]);
             }
             else
                 d = st_keybd(e->key.keysym.sym, 1);
@@ -1840,19 +1851,10 @@ static int main_init(int argc, char *argv[])
 
     opt_init(argc, argv);
 
-    List p             = NULL;
-    int  datadir_multi = 0;
+    config_paths(NULL);
 
-    for (p = opt_data_multi; p; p = p->next)
-    {
-        if (!datadir_multi)
-        {
-            config_paths((const char *) p->data);
-            datadir_multi = 1;
-        }
-        else
-            fs_add_path_with_archives((const char *) p->data);
-    }
+    for (List p = opt_data_multi; p; p = p->next)
+        fs_add_path_with_archives((const char *) p->data);
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \

@@ -975,22 +975,13 @@ static int main_init(int argc, char *argv[])
     }
 
     srand((int) time(NULL));
-
+    
     opt_init(argc, argv);
+    
+    config_paths(NULL);
 
-    List p             = NULL;
-    int  datadir_multi = 0;
-
-    for (p = opt_data_multi; p; p = p->next)
-    {
-        if (!datadir_multi)
-        {
-            config_paths((const char *) p->data);
-            datadir_multi = 1;
-        }
-        else
-            fs_add_path_with_archives((const char *) p->data);
-    }
+    for (List p = opt_data_multi; p; p = p->next)
+        fs_add_path_with_archives((const char *) p->data);
 
     log_init("Neverputt " VERSION, "neverputt.log");
 #if NB_HAVE_PB_BOTH!=1

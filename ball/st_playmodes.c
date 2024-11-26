@@ -347,8 +347,6 @@ static int hardcore_start_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            progress_exit();
-            progress_init(MODE_CAMPAIGN);
             game_fade_color(0.0f, 0.0f, 0.0f);
             game_fade(-6.0f);
             return exit_state(&st_playmodes);

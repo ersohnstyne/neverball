@@ -387,6 +387,9 @@ static int start_action(int tok, int val)
             if (check_handsoff())
                 return goto_handsoff(&st_start);
 
+            progress_exit();
+            progress_init(MODE_NORMAL);
+
             audio_play(AUD_STARTGAME, 1.0f);
             game_fade(+4.0);
             if (progress_play(get_level(val)))

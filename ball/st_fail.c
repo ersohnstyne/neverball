@@ -129,7 +129,6 @@ static int fail_intro_animation_phase;
 static int ask_more_target;
 
 static int resume;
-static int resume_hold;
 static int status;
 
 static int respawnable;
@@ -637,12 +636,18 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
 
     /* Check if we came from a known previous state. */
 
-    resume = (prev != &st_play_loop);
+    const int stat_allow_intro = prev == &st_play_loop;
 
-    if (!resume && config_get_d(CONFIG_SCREEN_ANIMATIONS))
-        fail_intro_animation_phase = 1;
-    else
-        fail_intro_animation_phase = 2;
+    fail_intro_animation_phase =  stat_allow_intro && prev != &st_fail ? 1 :
+                                 !stat_allow_intro && prev == &st_fail ? 2 : 0;
+
+    resume = !stat_allow_intro;
+
+#ifndef NDEBUG
+    if (stat_allow_intro)
+        assert(stat_allow_intro && prev != &st_fail &&
+               fail_intro_animation_phase == 1 && !resume);
+#endif
 
     /* Note the current status if we got here from elsewhere. */
 
@@ -659,7 +664,7 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
         balls_bought = 0;
     }
 
-    if ((prev == &st_play_loop || prev == &st_fail))
+    if (!resume && fail_intro_animation_phase != 0)
         return fail_gui();
 
     return transition_slide(fail_gui(), 1, intent);
@@ -667,16 +672,6 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
 
 static int fail_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if (!resume || !resume_hold)
-    {
-        resume = (next != &st_fail);
-
-        if (!resume_hold)
-            resume_hold = (next == &st_fail);
-
-        resume = !resume_hold;
-    }
-
     if (next == &st_null)
     {
         progress_exit();
@@ -686,6 +681,9 @@ static int fail_leave(struct state *st, struct state *next, int id, int intent)
 
         game_server_free(NULL);
         game_client_free(NULL);
+
+        gui_delete(id);
+        return 0;
     }
 
     return transition_slide(id, 0, intent);
@@ -709,12 +707,16 @@ static void fail_paint(int id, float t)
 
 static void fail_timer(int id, float dt)
 {
+    const float fail_time_state = time_state();
+
     if (fail_intro_animation_phase == 1)
     {
-        if (time_state() >= 2.0f)
+        if (fail_time_state >= 2.0f)
         {
             fail_intro_animation_phase = 2;
             goto_state(&st_fail);
+
+            return;
         }
     }
 
@@ -725,7 +727,6 @@ static void fail_timer(int id, float dt)
         geom_step(dt);
         game_server_step(dt);
 
-        int record_time_state = time_state() < 2.0f;
         int record_modes      = curr_mode() != MODE_NONE;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         int record_campaign   = !campaign_hardcore_norecordings();
@@ -735,7 +736,7 @@ static void fail_timer(int id, float dt)
 
         game_client_blend(game_server_blend());
         game_client_sync(!resume
-                      && record_time_state
+                      && fail_time_state
                       && record_modes
                       && record_campaign ? demo_fp : NULL);
          */
@@ -748,12 +749,8 @@ static void fail_timer(int id, float dt)
 static int fail_click(int b, int d)
 {
     if (fail_intro_animation_phase == 1)
-    {
-        fail_intro_animation_phase = 2;
-
         return (b == SDL_BUTTON_LEFT && d) ?
                st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
-    }
 
     return gui_click(b, d) ?
            st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;

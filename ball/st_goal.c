@@ -99,7 +99,6 @@ static int score_id;
 static int wallet_id;
 
 static int resume;
-static int resume_hold;
 
 static int goal_action(int tok, int val)
 {
@@ -118,7 +117,6 @@ static int goal_action(int tok, int val)
     {
         case GUI_BACK:
         case GOAL_LAST:
-            resume_hold = 0;
             return goto_exit();
 
         case GOAL_SAVE:
@@ -134,7 +132,6 @@ static int goal_action(int tok, int val)
 #endif
 
         case GOAL_DONE:
-            resume_hold = 0;
             return goto_exit();
 
         case GUI_SCORE:
@@ -142,7 +139,6 @@ static int goal_action(int tok, int val)
             return goto_state(&st_goal);
 
         case GOAL_NEXT:
-            resume_hold = 0;
             if (progress_next())
             {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -154,7 +150,6 @@ static int goal_action(int tok, int val)
             break;
 
         case GOAL_SAME:
-            resume_hold = 0;
             if (progress_same())
                 return goto_play_level();
             break;
@@ -657,12 +652,18 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
 
     /* Check if we came from a known previous state. */
 
-    resume = (prev != &st_play_loop || (prev == &st_goal && !resume_hold));
+    const int stat_allow_intro = prev == &st_play_loop;
 
-    if (!resume && config_get_d(CONFIG_SCREEN_ANIMATIONS))
-        goal_intro_animation_phase = 1;
-    else
-        goal_intro_animation_phase = 2;
+    goal_intro_animation_phase =  stat_allow_intro && prev != &st_goal ? 1 :
+                                 !stat_allow_intro && prev == &st_goal ? 2 : 0;
+
+    resume = !stat_allow_intro;
+
+#ifndef NDEBUG
+    if (stat_allow_intro)
+        assert(stat_allow_intro && prev != &st_goal &&
+               goal_intro_animation_phase == 1 && !resume);
+#endif
 
     /* Note the current status if we got here from elsewhere. */
 
@@ -681,7 +682,7 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
 #endif
     }
 
-    if ((prev == &st_play_loop || prev == &st_goal))
+    if (!resume && goal_intro_animation_phase != 0)
         return goal_gui();
 
     return transition_slide(goal_gui(), 1, intent);
@@ -689,16 +690,6 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
 
 static int goal_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if (!resume || !resume_hold)
-    {
-        resume = (next != &st_goal);
-
-        if (!resume_hold)
-            resume_hold = (next == &st_goal);
-
-        resume = !resume_hold;
-    }
-
     if (next == &st_null)
     {
         progress_exit();
@@ -708,10 +699,7 @@ static int goal_leave(struct state *st, struct state *next, int id, int intent)
 
         game_server_free(NULL);
         game_client_free(NULL);
-    }
 
-    if (next == &st_goal && goal_intro_animation_phase == 0)
-    {
         gui_delete(id);
         return 0;
     }
@@ -738,29 +726,32 @@ static void goal_paint(int id, float t)
 
 static void goal_timer(int id, float dt)
 {
+    const float goal_time_state = time_state();
+
     if (goal_intro_animation_phase == 1)
     {
-        if (time_state() >= 2.0f)
+        if (goal_time_state >= 2.0f)
         {
             goal_intro_animation_phase = 2;
             goto_state(&st_goal);
+
+            return;
         }
     }
 
     gui_timer(id, dt);
     hud_timer(dt);
 
-    if (!resume || resume_hold)
+    if (!resume || goal_intro_animation_phase == 2)
     {
         static float t = 0.0f;
 
-        if (time_state() > 1.0f)
+        if (goal_time_state > 1.0f)
             t += dt;
 
         geom_step(dt);
         game_server_step(dt);
 
-        int record_time_state = time_state() < 1.0f;
         int record_modes      = curr_mode() != MODE_NONE;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         int record_campaign   = !campaign_hardcore_norecordings();
@@ -770,16 +761,12 @@ static void goal_timer(int id, float dt)
 
         game_client_blend(game_server_blend());
         game_client_sync(!resume
-                      && record_time_state
+                      && goal_time_state
                       && record_modes
                       && record_campaign ? demo_fp : NULL);
 
-        if (goal_intro_animation_phase == 1)
-            return;
-
         while ((t > 0.05f && coins_id) &&
-               ((!resume || goal_intro_animation_phase == 2) &&
-                time_state() > 1.0f))
+               goal_time_state > 1.0f)
         {
             int coins = 0;
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -920,7 +907,7 @@ static void goal_timer(int id, float dt)
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
     if ((!resume || goal_intro_animation_phase == 2) &&
-        time_state() >= 1.0f &&
+        goal_time_state >= 1.0f &&
         shop_product_available && config_get_d(CONFIG_NOTIFICATION_SHOP) &&
         server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
         server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
@@ -931,12 +918,8 @@ static void goal_timer(int id, float dt)
 static int goal_click(int b, int d)
 {
     if (goal_intro_animation_phase == 1)
-    {
-        goal_intro_animation_phase = 2;
-
         return (b == SDL_BUTTON_LEFT && d) ?
                st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
-    }
 
     return gui_click(b, d) ?
            st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;

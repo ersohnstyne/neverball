@@ -871,18 +871,23 @@ static int start_gui_options(void)
             }
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            gui_space(id);
-
             /* OK, how about hardcore mode? */
 
-            int hardc_requirement = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
+            const int hardc_requirement = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-                !config_cheat() &&
+                                          !config_cheat() &&
 #endif
-                (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN) &&
-                server_policy_get_d(SERVER_POLICY_EDITION) > 0;
+                                          (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN) &&
+                                          server_policy_get_d(SERVER_POLICY_EDITION) > 0;
 
-            if (hardc_requirement)
+#ifdef CONFIG_INCLUDES_ACCOUNT
+            const int hardc_available = !CHECK_ACCOUNT_BANKRUPT;
+#else
+            const int hardc_available = 0;
+#endif
+            if (hardc_requirement && hardc_available)
+            {
+                gui_space(id);
 #ifdef SWITCHBALL_GUI
                 conf_toggle_simple(id, _("Hardcore Mode"), START_HARDCORE,
                                        curr_mode() == MODE_HARDCORE,
@@ -892,6 +897,7 @@ static int start_gui_options(void)
                                 curr_mode() == MODE_HARDCORE,
                                 _("On"), 1, _("Off"), 0);
 #endif
+            }
 #endif
 
             gui_layout(id, 0, 0);

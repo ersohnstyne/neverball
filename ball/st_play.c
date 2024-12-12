@@ -846,6 +846,8 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
 
 static int play_loop_leave(struct state *st, struct state *next, int id, int intent)
 {
+    game_client_maxspeed(0.0f, 0);
+
     if (next == &st_null)
     {
         progress_stat(GAME_NONE);

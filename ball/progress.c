@@ -1627,32 +1627,31 @@ int  progress_same(void)
 
 int  progress_dead(void)
 {
-    if (!is_init) return 1;
+    if (!is_init || mode == MODE_NONE) return 1;
 
-    /* Cannot restart in home room. */
-
-    if (mode == MODE_NONE) return 1;
-
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    /* Cannot respawn in hardcore mode. */
-
-    if (mode == MODE_HARDCORE &&
-        (status == GAME_FALL || status == GAME_TIME)) return 1;
-#endif
-
-    return (mode == MODE_CHALLENGE
-         || mode == MODE_BOOST_RUSH)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-         && !config_cheat()
+    if (config_cheat()) return 0;
 #endif
-             ? curr.balls
+
+    switch (mode)
+    {
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        case MODE_HARDCORE: return status != GAME_GOAL;
+#endif
+
+        case MODE_CHALLENGE:
+        case MODE_BOOST_RUSH:
+            return curr.balls
 #if ENABLE_RFD==1
-             + curr.rfd_balls
+                 + curr.rfd_balls
 #endif
 #ifdef CONFIG_INCLUDES_ACCOUNT
-             + account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES)
+                 + account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES)
 #endif
-             < 0 : 0;
+                 < 0;
+
+        default: return 0;
+    }
 }
 
 int  progress_done(void)

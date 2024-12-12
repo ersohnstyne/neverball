@@ -220,6 +220,14 @@ static int evalue;
 static int fvalue;
 static int svalue;
 
+static int level_infocard_intro;
+
+static int level_infocard_wallet_id;
+static int level_infocard_title_id;
+static int level_infocard_msg_id;
+static int level_infocard_ctrls_id;
+static int level_infocard_power_id;
+
 enum
 {
     LEVEL_START = GUI_LAST,
@@ -384,6 +392,12 @@ static int level_gui(void)
                 }
 
                 gui_filler(jd);
+
+                level_infocard_wallet_id = jd;
+                
+                if (level_infocard_intro)
+                    gui_slide(level_infocard_wallet_id,
+                              GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0.5f, 1.0f, 0.2f);
             }
 
             gui_space(id);
@@ -482,54 +496,80 @@ static int level_gui(void)
 
                 gui_set_rect(kd, GUI_ALL);
             }
+
             gui_filler(jd);
+
+            level_infocard_title_id = jd;
+
+            if (level_infocard_intro)
+                gui_slide(level_infocard_title_id,
+                          GUI_N | GUI_FLING | GUI_EASE_BACK, 0.0f, 0.5f, 0.0f);
         }
 
         gui_space(id);
 
 #if NB_HAVE_PB_BOTH==1 && \
     defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
-        if ((level_master(curr_level())
-          || curr_mode() == MODE_CHALLENGE
-          || curr_mode() == MODE_BOOST_RUSH
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-          || curr_mode() == MODE_HARDCORE
+        if (show_info)
 #endif
-            ) &&
-            !show_info &&
-            server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
         {
-            if ((jd = gui_hstack(id)))
+            if (message && *message)
             {
-                gui_filler(jd);
+                level_infocard_msg_id = gui_multi(id, message, GUI_SML, GUI_COLOR_WHT);
+                gui_space(id);
 
-                if ((kd = gui_hstack(jd)))
-                {
-                    gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
-                    gui_label(kd, _("Start"), GUI_SML, GUI_COLOR_WHT);
+                if (level_infocard_intro)
+                    gui_slide(level_infocard_msg_id,
+                              GUI_S | GUI_FLING | GUI_EASE_BACK, 0.0f, 0.5f, 0.0f);
+            }
+        }
 
-                    gui_set_state(kd, LEVEL_START, 0);
-                    gui_set_rect(kd, GUI_ALL);
-                    gui_focus(kd);
-                }
+        if ((jd = gui_hstack(id)))
+        {
+            gui_filler(jd);
 
-#ifndef __EMSCRIPTEN__
-                if (current_platform != PLATFORM_PC &&
-                    current_platform != PLATFORM_XBOX &&
-                    current_platform != PLATFORM_PS &&
-                    current_platform != PLATFORM_WII)
-#endif
-                {
-                    gui_filler(jd);
-                    gui_back_button(jd);
-                }
+            if ((kd = gui_hstack(jd)))
+            {
+                gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
+                gui_label(kd, _("Start"), GUI_SML, GUI_COLOR_WHT);
 
-                gui_filler(jd);
+                gui_set_state(kd, LEVEL_START, 0);
+                gui_set_rect(kd, GUI_ALL);
+                gui_focus(kd);
             }
 
-            gui_space(id);
+#ifndef __EMSCRIPTEN__
+            if (current_platform != PLATFORM_PC &&
+                current_platform != PLATFORM_XBOX &&
+                current_platform != PLATFORM_PS &&
+                current_platform != PLATFORM_WII)
+#endif
+            {
+                gui_filler(jd);
+                gui_back_button(jd);
+            }
 
-            gui_label(id, _("Use special powers"), GUI_SML, GUI_COLOR_WHT);
+            gui_filler(jd);
+
+            level_infocard_ctrls_id = jd;
+            if (level_infocard_intro)
+                gui_slide(level_infocard_ctrls_id,
+                          GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.0f, 1.0f, 0.2f);
+        }
+
+#if NB_HAVE_PB_BOTH==1 && \
+    defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
+        if (!show_info &&
+            ((level_master(curr_level())
+           || curr_mode() == MODE_CHALLENGE
+           || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+           || curr_mode() == MODE_HARDCORE
+#endif
+             ) &&
+             server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES)))
+        {
+            gui_space(id);
 
             if ((jd = gui_harray(id)))
             {
@@ -596,44 +636,14 @@ static int level_gui(void)
                         gui_set_state(ced, GUI_NONE, 0);
                 }
             }
+
+            level_infocard_power_id = jd;
+
+            if (level_infocard_intro)
+                gui_slide(level_infocard_power_id,
+                          GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.8f, 1.0f, 0.2f);
         }
-        else
 #endif
-        {
-            if (message && *message)
-            {
-                gui_multi(id, message, GUI_SML, GUI_COLOR_WHT);
-                gui_space(id);
-            }
-
-            if ((jd = gui_hstack(id)))
-            {
-                gui_filler(jd);
-
-                if ((kd = gui_hstack(jd)))
-                {
-                    gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
-                    gui_label(kd, _("Start"), GUI_SML, GUI_COLOR_WHT);
-
-                    gui_set_state(kd, LEVEL_START, 0);
-                    gui_set_rect(kd, GUI_ALL);
-                    gui_focus(kd);
-                }
-
-#ifndef __EMSCRIPTEN__
-                if (current_platform != PLATFORM_PC &&
-                    current_platform != PLATFORM_XBOX &&
-                    current_platform != PLATFORM_PS &&
-                    current_platform != PLATFORM_WII)
-#endif
-                {
-                    gui_filler(jd);
-                    gui_back_button(jd);
-                }
-
-                gui_filler(jd);
-            }
-        }
 
         gui_layout(id, 0, 0);
     }
@@ -651,8 +661,23 @@ static int level_enter(struct state *st, struct state *prev, int intent)
                           prev != &st_pause;
     check_nodemo        = nodemo_warnonlyonce;
 
-    if (prev != &st_level)
-        show_info = 0;
+    level_infocard_intro = prev != &st_level;
+
+    level_infocard_wallet_id = 0;
+    level_infocard_title_id  = 0;
+    level_infocard_msg_id    = 0;
+    level_infocard_ctrls_id  = 0;
+    level_infocard_power_id  = 0;
+
+    if (level_infocard_intro)
+        show_info = !((level_master(curr_level())
+                    || curr_mode() == MODE_CHALLENGE
+                    || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                    || curr_mode() == MODE_HARDCORE
+#endif
+                      ) &&
+                     server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES));
 
     /* New: Checkpoints */
     game_client_sync(
@@ -663,6 +688,9 @@ static int level_enter(struct state *st, struct state *prev, int intent)
 
     game_client_fly(1.0f);
     hud_update(0, 0.0f);
+
+    if (level_infocard_intro)
+        return level_gui();
 
     return transition_slide(level_gui(), 1, intent);
 }
@@ -678,6 +706,38 @@ static int level_leave(struct state *st, struct state *next, int id, int intent)
 
         game_server_free(NULL);
         game_client_free(NULL);
+    }
+
+    if (next != &st_level)
+    {
+        if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        {
+            gui_slide(id, GUI_REMOVE, 0, 0.16f, 0);
+            
+            if (level_infocard_wallet_id)
+                gui_slide(level_infocard_wallet_id,
+                          GUI_N | GUI_FLING | GUI_BACKWARD, 0.0f, 0.16f, 0.0f);
+
+            if (level_infocard_msg_id)
+                gui_slide(level_infocard_msg_id,
+                          GUI_S | GUI_FLING | GUI_BACKWARD, 0.0f, 0.16f, 0.0f);
+
+            if (level_infocard_ctrls_id)
+                gui_slide(level_infocard_ctrls_id,
+                          GUI_S | GUI_FLING | GUI_BACKWARD, 0.0f, 0.16f, 0.0f);
+
+            if (level_infocard_power_id)
+                gui_slide(level_infocard_power_id,
+                          GUI_S | GUI_FLING | GUI_BACKWARD, 0.0f, 0.16f, 0.0f);
+
+            transition_add(id);
+            return id;
+        }
+        else
+        {
+            gui_delete(id);
+            return 0;
+        }
     }
 
     return transition_slide(id, 0, intent);

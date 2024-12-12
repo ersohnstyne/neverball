@@ -544,6 +544,18 @@ void audio_free(void)
     /* Free the voices. */
 
 #if !defined(__WII__)
+    if (voices_queue)
+    {
+        voice_quit(voices_queue);
+        voices_queue = NULL;
+    }
+
+    if (voices_music)
+    {
+        voice_quit(voices_music);
+        voices_music = NULL;
+    }
+
     if (voices_sfx)
     {
         voice_quit(voices_sfx);
@@ -826,7 +838,7 @@ void audio_music_fade_to(float t, const char *filename, int loop)
         }
         else
         {
-            audio_music_fade_out(t);
+            audio_music_fade_out(clamped_time);
             audio_music_queue(filename, clamped_time, loop);
         }
     }

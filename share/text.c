@@ -13,6 +13,7 @@
  */
 
 #include <string.h>
+#include <assert.h>
 
 #include "common.h"
 #include "text.h"
@@ -154,6 +155,27 @@ int text_input_del(void)
         CALLBACK(0);
         return 1;
     }
+    return 0;
+}
+
+int text_input_paste(void)
+{
+#if _WIN32 && _MSC_VER
+    HANDLE clip;
+
+    if (OpenClipboard(0))
+    {
+        clip = GetClipboardData(CF_TEXT);
+
+        SAFECPY(text_input, (char *) clip);
+
+        assert(CloseClipboard());
+
+        CALLBACK(0);
+        return 1;
+    }
+#endif
+
     return 0;
 }
 

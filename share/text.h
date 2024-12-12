@@ -34,5 +34,6 @@ void text_input_stop(void);
 int  text_input_str(const char *, int typing);
 int  text_input_char(int);
 int  text_input_del(void);
+int  text_input_paste(void);
 
 #endif

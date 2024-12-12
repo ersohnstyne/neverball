@@ -867,11 +867,10 @@ static int link_handle(const char *link)
             if (map_part && *map_part)
             {
                 /* Search for the given level. */
-
-                const char *sol_basename = JOINSTR(map_part, ".sol");
+                
                 struct level *level;
-
-                log_printf("Link: searching for level %s\n", sol_basename);
+                const char *sol_basename  = JOINSTR(map_part, ".sol");
+                const char *solx_basename = JOINSTR(map_part, ".solx");
 
                 if ((level = set_find_level(sol_basename)))
                 {
@@ -887,7 +886,22 @@ static int link_handle(const char *link)
                     }
                 }
                 else
-                    log_printf("Link: no such level\n");
+                {
+                    if ((level = set_find_level(solx_basename)))
+                    {
+                        log_printf("Link: found level match for %s\n", solx_basename);
+
+                        progress_init(MODE_NORMAL);
+
+                        if (progress_play(level))
+                        {
+                            goto_state(&st_level);
+                            found_level = 1;
+                            processed = 1;
+                        }
+                    }
+                    else log_errorf("Link: no such level\n");
+                }
             }
 
             if (!found_level)
@@ -904,7 +918,7 @@ static int link_handle(const char *link)
             goto_package(index, &st_title);
             processed = 1;
         }
-        else log_printf("Link: no such set or package\n", link);
+        else log_errorf("Link: no such set or package\n", link);
     }
 
     return processed;

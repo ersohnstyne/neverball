@@ -36,6 +36,8 @@
 #include "st_common.h"
 #include "st_setup.h"
 
+ //#define WGCL_ENABLE_CLIPBOARD
+
 #define AUD_MENU     "snd/menu.ogg"
 #define AUD_BACK     "snd/back.ogg"
 #define AUD_DISABLED "snd/disabled.ogg"
@@ -294,6 +296,11 @@ static char login_field_password[MAXSTR];
 
 static int login_write_protected;
 
+#ifdef WGCL_ENABLE_CLIPBOARD
+static int login_write_hold_lctrl;
+static int login_write_hold_rctrl;
+#endif
+
 int goto_wgcl_login(struct state *back_state, int (*back_fn)(struct state *),
                     struct state *next_state, int (*next_fn)(struct state *))
 {
@@ -336,6 +343,10 @@ static int wgcl_login_action(int tok, int val)
                 login_write_protected = 1;
                 login_entertext_mode = 0;
                 text_input_stop();
+#ifdef WGCL_ENABLE_CLIPBOARD
+                login_write_hold_lctrl = 0;
+                login_write_hold_rctrl = 0;
+#endif
                 return exit_state(&st_wgcl_login);
             }
             break;
@@ -349,7 +360,13 @@ static int wgcl_login_action(int tok, int val)
             break;
 
         case GUI_CHAR:
-            text_input_char(val);
+#ifdef WGCL_ENABLE_CLIPBOARD
+            if ((login_write_hold_lctrl || login_write_hold_rctrl) &&
+                (val == 'V' || val == 'v'))
+                text_input_paste();
+#endif
+            else
+                text_input_char(val);
             break;
 
         case WGCL_LOGIN_DONE:
@@ -680,6 +697,10 @@ static int wgcl_login_keybd(int c, int d)
                 gui_focus(login_enter_id);
                 return 1;
             }
+#ifdef WGCL_ENABLE_CLIPBOARD
+            if (c == SDLK_LCTRL) login_write_hold_lctrl = d;
+            if (c == SDLK_RCTRL) login_write_hold_rctrl = d;
+#endif
         }
     }
     return 1;

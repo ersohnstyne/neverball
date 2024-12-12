@@ -361,6 +361,17 @@ static int name_leave(struct state *st, struct state *next, int id, int intent)
     if (draw_back)
         back_free();
 
+    if (next == &st_null)
+    {
+        progress_exit();
+
+        campaign_quit();
+        set_quit();
+
+        game_server_free(NULL);
+        game_client_free(NULL);
+    }
+
 #if NB_HAVE_PB_BOTH==1 && ENABLE_DEDICATED_SERVER==1
     if (player_renamed)
     {

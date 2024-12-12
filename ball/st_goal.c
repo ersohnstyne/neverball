@@ -250,17 +250,16 @@ static int goal_gui(void)
                 if (high &&
                     (
 #ifdef CONFIG_INCLUDES_ACCOUNT
-                        !campaign_used() ||
+                     !campaign_used() ||
 #endif
-                        (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
+                     (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
-                            !config_cheat() &&
+                      !config_cheat() &&
 #endif
-                            (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN))))
+                      (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN))))
                     gid = gui_title_header(jd, s1, GUI_MED, GUI_COLOR_GRN);
                 else
-                    gid = gui_title_header(jd, master ? s3 : s2,
-                                               GUI_MED,
+                    gid = gui_title_header(jd, master ? s3 : s2, GUI_MED,
                                                gui_blu, gui_grn);
 
                 if (!resume)
@@ -682,7 +681,7 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
 #endif
     }
 
-    if (!resume && goal_intro_animation_phase != 0)
+    if (goal_intro_animation_phase != 0)
         return goal_gui();
 
     return transition_slide(goal_gui(), 1, intent);

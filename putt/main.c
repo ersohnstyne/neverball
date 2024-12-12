@@ -354,10 +354,10 @@ static int link_handle(const char *link)
         /* Search installed sets and package list. */
 
         const size_t prefix_len = strcspn(link, "/");
-
-        const char* set_part = SUBSTR(link, 0, prefix_len);
-        const char* map_part = SUBSTR(link, prefix_len + 1, 64);
-        const char* set_file = JOINSTR(set_part, ".txt");
+        
+        const char *set_part = SUBSTR(link, 0, prefix_len);
+        const char *map_part = SUBSTR(link, prefix_len + 1, 64);
+        const char *set_file = JOINSTR(set_part, ".txt");
 
         int index;
         int found_level = 0;
@@ -372,10 +372,8 @@ static int link_handle(const char *link)
 
             course_goto(index);
 
-            if (map_part && *map_part)
+            /*if (map_part && *map_part)
             {
-                /* Search for the given level. */
-
                 const char *sol_basename = JOINSTR(map_part, ".sol");
                 struct level *level;
 
@@ -389,9 +387,8 @@ static int link_handle(const char *link)
                     found_level = 1;
                     processed = 1;
                 }
-                else
-                    log_printf("Link: no such hole\n");
-            }
+                else log_errorf("Link: no such hole\n");
+            }*/
 
             if (!found_level)
             {
@@ -406,7 +403,7 @@ static int link_handle(const char *link)
             goto_package(index, &st_title);
             processed = 1;
         }
-        else log_printf("Link: no such set or package\n", link);
+        else log_errorf("Link: no such course or package\n", link);
     }
 
     return processed;
@@ -970,7 +967,7 @@ static int main_init(int argc, char *argv[])
     if (!fs_init(argc > 0 ? argv[0] : NULL))
     {
         fprintf(stderr, "Failure to initialize file system (%s)\n",
-            fs_error());
+                        fs_error());
         return 0;
     }
 

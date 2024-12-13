@@ -78,6 +78,10 @@ extern "C" {
 
 /*---------------------------------------------------------------------------*/
 
+static int steam_overlay_initialized = 0;
+
+/*---------------------------------------------------------------------------*/
+
 extern "C" {
 static struct
 {
@@ -139,10 +143,15 @@ extern "C" int account_init(void)
     if (!SteamUser()->BLoggedOn())
         return 0;
 
-    SteamFriends()->ActivateGameOverlay("Friends");
-    SteamFriends()->ActivateGameOverlay("Players");
-
     account_busy = 1;
+
+    if (!steam_overlay_initialized)
+    {
+        SteamFriends()->ActivateGameOverlay("Friends");
+        SteamFriends()->ActivateGameOverlay("Players");
+
+        steam_overlay_initialized = 1;
+    }
 
     /*
      * Store index of each option in its associated config symbol and
@@ -230,6 +239,9 @@ extern "C" int account_exists(void)
 
 extern "C" void account_load(void)
 {
+    config_set_s(CONFIG_PLAYER, SteamFriends()->GetPersonaName());
+    config_save();
+
     fs_file fh;
 
 #ifndef NDEBUG
@@ -298,9 +310,6 @@ extern "C" void account_load(void)
 
         dirty = 0;
         account_busy = 0;
-
-        config_set_s(CONFIG_PLAYER, SteamFriends()->GetPersonaName());
-        config_save();
     }
 }
 

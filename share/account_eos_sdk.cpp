@@ -79,8 +79,8 @@ extern "C"
 
 /*---------------------------------------------------------------------------*/
 
+static int eos_login_initialized = 0;
 static int eos_login_result;
-static bool eos_login_waiting;
 
 static EOS_EpicAccountId curr_account_id;
 static EOS_HAuth auth_handle;
@@ -220,22 +220,23 @@ extern "C" int account_init(void)
 
     /* TODO: Find Epic Games logged in account (required) */
 
-    EOS_Auth_Credentials cred = {0};
-    cred.ApiVersion = EOS_AUTH_CREDENTIALS_API_LATEST;
-    cred.Type       = EOS_ELoginCredentialType::EOS_LCT_AccountPortal;
+    if (!eos_login_initialized)
+    {
+        EOS_Auth_Credentials cred = { 0 };
+        cred.ApiVersion = EOS_AUTH_CREDENTIALS_API_LATEST;
+        cred.Type       = EOS_ELoginCredentialType::EOS_LCT_AccountPortal;
 
-    EOS_Auth_LoginOptions login_opt = {0};
-    login_opt.ApiVersion = EOS_AUTH_LOGIN_API_LATEST;
-    login_opt.ScopeFlags = EOS_EAuthScopeFlags::EOS_AS_BasicProfile |
-                           EOS_EAuthScopeFlags::EOS_AS_FriendsList  |
-                           EOS_EAuthScopeFlags::EOS_AS_Presence;
+        EOS_Auth_LoginOptions login_opt = { 0 };
+        login_opt.ApiVersion = EOS_AUTH_LOGIN_API_LATEST;
+        login_opt.ScopeFlags = EOS_EAuthScopeFlags::EOS_AS_BasicProfile |
+                               EOS_EAuthScopeFlags::EOS_AS_FriendsList  |
+                               EOS_EAuthScopeFlags::EOS_AS_Presence;
 
-    eos_login_waiting = true;
+        EOS_Auth_Login(auth_handle, &login_opt, 0,
+                       NB_EOS_SDK_LoginActionPerformed);
 
-    EOS_Auth_Login(auth_handle, &login_opt, 0,
-                   NB_EOS_SDK_LoginActionPerformed);
-
-    while (eos_login_waiting);
+        eos_login_initialized = 1;
+    }
 
     /*
      * Store index of each option in its associated config symbol and

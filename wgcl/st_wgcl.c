@@ -772,8 +772,13 @@ static int wgcl_logout_action(int tok, int val)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     if (tok == WGCL_LOGOUT_SUBMIT)
+    {
         if (!account_wgcl_logout())
             return 1;
+
+        account_wgcl_init();
+        account_wgcl_load();
+    }
 #endif
 
     return exit_state(login_back);

@@ -56,6 +56,7 @@
 extern "C" {
 #include "accessibility.h"
 #include "account.h"
+#include "account_wgcl.h"
 #include "config.h"
 #include "networking.h"
 #include "text.h"
@@ -239,7 +240,9 @@ extern "C" int account_exists(void)
 
 extern "C" void account_load(void)
 {
-    config_set_s(CONFIG_PLAYER, SteamFriends()->GetPersonaName());
+    if (!account_wgcl_name_read_only())
+        config_set_s(CONFIG_PLAYER, SteamFriends()->GetPersonaName());
+
     config_save();
 
     fs_file fh;

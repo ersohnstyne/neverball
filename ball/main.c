@@ -471,7 +471,8 @@ static void shot(void)
 #if NB_STEAM_API==0
     char filename_primary[MAXSTR];
 
-    int secdecimal = ROUND(config_screenshot() / 10000);
+    const int decimal    = config_screenshot();
+    const int secdecimal = ROUND(decimal / 10000);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(filename_primary, MAXSTR,
@@ -479,7 +480,7 @@ static void shot(void)
     sprintf(filename_primary,
 #endif
             "Screenshots/screen_%04d-%04d.png",
-            secdecimal, config_screenshot());
+            secdecimal, decimal);
     video_snap(filename_primary);
 
 #if ENABLE_DUALDISPLAY==1
@@ -490,7 +491,7 @@ static void shot(void)
     sprintf(filename_secondary,
 #endif
             "Screenshots/screen_%04d-%04d_secondary.png",
-            secdecimal, config_screenshot());
+            secdecimal, decimal);
 
     video_dualdisplay_snap(filename_secondary);
 #endif

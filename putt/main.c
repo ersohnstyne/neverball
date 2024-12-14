@@ -217,6 +217,9 @@ static void opt_quit(void)
 
 static void shot(void)
 {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if NB_HAVE_PB_BOTH==1
     if (game_setup_process())
         return;
@@ -224,9 +227,9 @@ static void shot(void)
 
 #if NB_STEAM_API==0
     char filename_primary[MAXSTR];
-    char filename_secondary[MAXSTR];
 
-    int secdecimal = ROUND(config_screenshot() / 10000);
+    const int decimal    = config_screenshot();
+    const int secdecimal = ROUND(decimal / 10000);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(filename_primary, MAXSTR,
@@ -234,19 +237,21 @@ static void shot(void)
     sprintf(filename_primary,
 #endif
             "Screenshots/screen_%04d-%04d.png",
-            secdecimal, config_screenshot());
+            secdecimal, decimal);
     video_snap(filename_primary);
 
 #if ENABLE_DUALDISPLAY==1
+    char filename_secondary[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(filename_secondary, MAXSTR,
 #else
     sprintf(filename_secondary,
 #endif
             "Screenshots/screen_%04d-%04d_secondary.png",
-        filename_secondary, config_screenshot());
+            secdecimal, decimal);
 
     video_dualdisplay_snap(filename_secondary);
+#endif
 #endif
 #endif
 }

@@ -726,7 +726,10 @@ void config_load(void)
                                  i == CONFIG_KEY_SCORE_NEXT    ||
                                  i == CONFIG_KEY_ROTATE_FAST)
                             config_key(val, i);
-                        else if (i != CONFIG_CHEAT   &&
+                        else if (
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
+                                 i != CONFIG_CHEAT   &&
+#endif
                                  i != CONFIG_VIEW_DP &&
                                  i != CONFIG_VIEW_DC &&
                                  i != CONFIG_VIEW_DZ)

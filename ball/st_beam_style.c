@@ -12,9 +12,10 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
 #include "audio.h"
 #include "config.h"
@@ -128,7 +129,7 @@ static int beam_style_gui(void)
         if ((jd = gui_hstack(id)))
         {
 #ifndef __EMSCRIPTEN__
-            if (!console_gui_show())
+            if (!console_gui_shown())
 #endif
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png",
@@ -145,7 +146,7 @@ static int beam_style_gui(void)
             gui_set_fill(name_id);
 
 #ifndef __EMSCRIPTEN__
-            if (!console_gui_show())
+            if (!console_gui_shown())
 #endif
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png",

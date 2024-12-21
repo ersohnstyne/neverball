@@ -14,6 +14,8 @@
 
 #include "base_config.h"
 
+#include "console_control_gui.h"
+
 #include "joy.h"
 #include "config.h"
 #include "state.h"
@@ -27,6 +29,7 @@
  */
 
 #if NB_PB_WITH_XBOX==1
+#include <XInput.h>
 #pragma comment(lib, "xinput.lib")
 
 /*
@@ -259,6 +262,10 @@ int  joy_update(void)
 
             if (memcmp(prevState, currState, sizeof (*currState)) != 0)
             {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+                console_gui_toggle(1);
+#endif
+
                 float currLX = currState->Gamepad.sThumbLX;
                 float currLY = -currState->Gamepad.sThumbLY;
                 float prevLX = prevState->Gamepad.sThumbLX;

@@ -111,7 +111,7 @@ _CRT_NB_SCREENSTATE_DEPRECATED(int, (struct state *st, int fromdirection, int to
 int  goto_state_full_intent(struct state *st, int fromdirection, int todirection, int noanimation, int intent);
 
 /*
- * This screenstate transition will be replaced into the goto_state_full.
+ * This screenstate transition will be replaced into the goto_state_full_intent.
  * Your functions will be replaced using five parameters.
  */
 _CRT_NB_SCREENSTATE_DEPRECATED(int, (struct state *st), exit_state, goto_state_full_intent);

@@ -12,9 +12,10 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
@@ -474,7 +475,7 @@ static int ball_gui(void)
 
             if ((account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
                  server_policy_get_d(SERVER_POLICY_EDITION) < 0) &&
-                !console_gui_show() &&
+                !console_gui_shown() &&
                 !game_setup_process())
             {
                 gui_space(id);
@@ -489,7 +490,7 @@ static int ball_gui(void)
                         gui_set_state(online_id, MODEL_ONLINE, 0);
                 }
             }
-            else if (!console_gui_show() && !game_setup_process())
+            else if (!console_gui_shown() && !game_setup_process())
             {
                 gui_space(id);
                 gui_label(id, _(more_balls_text), GUI_SML, GUI_COLOR_GRY);
@@ -504,7 +505,7 @@ static int ball_gui(void)
                 int total_ball_name = array_len(balls);
 
 #ifndef __EMSCRIPTEN__
-                if (!console_gui_show() && total_ball_name > 1)
+                if (!console_gui_shown() && total_ball_name > 1)
 #else
                 if (total_ball_name > 1)
 #endif
@@ -523,7 +524,7 @@ static int ball_gui(void)
                 gui_set_fill (name_id);
 
 #ifndef __EMSCRIPTEN__
-                if (!console_gui_show() && total_ball_name > 1)
+                if (!console_gui_shown() && total_ball_name > 1)
 #else
                 if (total_ball_name > 1)
 #endif

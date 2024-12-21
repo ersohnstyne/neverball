@@ -21,9 +21,10 @@
 #include <unistd.h>
 #endif
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+ /*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
 #include "dbg_config.h"
 

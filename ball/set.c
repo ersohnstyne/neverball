@@ -514,7 +514,7 @@ static int set_load(struct set *s, const char *filename)
     /* Limited special offers only */
 
     if ((str_starts_with(filename, "set-valentine") &&
-        str_ends_with(filename, ".txt")) &&
+         str_ends_with  (filename, ".txt")) &&
         curr_date_month != 2 &&
         !config_cheat())
         return 0;
@@ -526,13 +526,13 @@ static int set_load(struct set *s, const char *filename)
         return 0;
 
     if ((str_starts_with(filename, "set-halloween") &&
-        str_ends_with(filename, ".txt")) &&
+         str_ends_with  (filename, ".txt")) &&
         curr_date_month != 10 &&
         !config_cheat())
         return 0;
 
     if ((str_starts_with(filename, "set-christmas") &&
-        str_ends_with(filename, ".txt")) &&
+         str_ends_with  (filename, ".txt")) &&
         curr_date_month != 12 &&
         !config_cheat())
         return 0;

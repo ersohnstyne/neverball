@@ -12,10 +12,12 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH==1
-#ifndef __EMSCRIPTEN__
+ /*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
+
+#if NB_HAVE_PB_BOTH==1
 
 #include "networking.h"
 #include "accessibility.h"
@@ -307,7 +309,7 @@ static void playmodes_paint(int id, float t)
 
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (console_gui_show())
+    if (console_gui_shown())
         console_gui_list_paint();
 #endif
 }

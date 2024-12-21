@@ -18,7 +18,11 @@
 #include <emscripten.h>
 #endif
 
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
+
 #include "account.h"
 #include "networking.h"
 
@@ -271,7 +275,6 @@ static void shared_timer(int id, float dt)
 
 static void shared_point(int id, int x, int y, int dx, int dy)
 {
-    console_gui_toggle(0);
     gui_pulse(gui_point(id, x, y), 1.2f);
 }
 
@@ -297,8 +300,6 @@ static int paused_indiv_ctrl_index = -1;
 
 static void shared_stick(int id, int a, float v, int bump)
 {
-    console_gui_toggle(1);
-
     if (paused_indiv_ctrl_index != -1 || joy_get_active_cursor(0))
         shared_stick_basic(id, a, v, bump);
 }
@@ -678,16 +679,12 @@ static void help_paint(int id, float t)
 
 static void help_point(int id, int x, int y, int dx, int dy)
 {
-    console_gui_toggle(0);
-
     if (joy_get_cursor_actions(0))
         gui_pulse(gui_point(id, x, y), 1.2f);
 }
 
 static void help_stick(int id, int a, float v, int bump)
 {
-    console_gui_toggle(1);
-
     if (joy_get_cursor_actions(0))
         gui_pulse(shared_stick_basic(id, a, v, bump), 1.2f);
 }
@@ -883,8 +880,6 @@ static void course_paint(int id, float t)
 
 static void course_point(int id, int x, int y, int dx, int dy)
 {
-    console_gui_toggle(0);
-
     int jd;
 
     if ((jd = gui_point(id, x, y)))
@@ -902,8 +897,6 @@ static void course_point(int id, int x, int y, int dx, int dy)
 
 static void course_stick(int id, int a, float v, int bump)
 {
-    console_gui_toggle(1);
-
     int jd;
 
     if ((jd = shared_stick_basic(id, a, v, bump)))
@@ -1748,15 +1741,12 @@ static void stroke_timer(int id, float dt)
 
 static void stroke_point(int id, int x, int y, int dx, int dy)
 {
-    console_gui_toggle(0);
     game_set_rot(dx);
     game_set_mag(dy);
 }
 
 static void stroke_stick(int id, int a, float v, int bump)
 {
-    console_gui_toggle(1);
-
     if (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers)
     {
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))

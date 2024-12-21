@@ -15,11 +15,12 @@
 #include <string.h>
 #include <ctype.h>
 
-#if NB_HAVE_PB_BOTH==1
-#ifndef __EMSCRIPTEN__
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
+#if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 #include "account.h"
 #include "account_wgcl.h"
@@ -81,7 +82,7 @@ int goto_name(struct state *ok, struct state *cancel,
     return goto_state(&st_name);
 }
 
-int goto_name_setup(struct state* finish,
+int goto_name_setup(struct state *finish,
                     int (*new_finish_fn) (struct state *))
 {
     ok_state     = finish;

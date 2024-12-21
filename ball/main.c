@@ -81,6 +81,11 @@
 extern "C" {
 #endif
 
+/*
+ * HACK: Used with console version
+ */
+#include "console_control_gui.h"
+
 #if ENABLE_DUALDISPLAY==1
 #include "game_dualdisplay.h"
 #endif
@@ -91,9 +96,6 @@ extern "C" {
 #include "networking.h"
 #include "account.h"
 #include "account_wgcl.h"
-#ifndef __EMSCRIPTEN__
-#include "console_control_gui.h"
-#endif
 #else
 #include "st_end_support.h"
 #endif
@@ -522,6 +524,8 @@ static const int *key_axis[4] = {
     &CONFIG_JOYSTICK_AXIS_X0
 };
 
+static const float key_tilt[4] = { -1.0f, +1.0f, -1.0f, +1.0f };
+
 static int handle_key_dn(SDL_Event *e)
 {
     int d = 1;
@@ -872,6 +876,8 @@ static int link_handle(const char *link)
                 struct level *level;
                 const char *sol_basename  = JOINSTR(map_part, ".sol");
                 const char *solx_basename = JOINSTR(map_part, ".solx");
+
+                log_printf("Link: searching for level %s\n", sol_basename);
 
                 if ((level = set_find_level(sol_basename)))
                 {
@@ -1614,7 +1620,7 @@ static void make_dirs_and_migrate(void)
             {
                 src = DIR_ITEM_GET(items, i)->path;
                 dst = concat_string("Scores/",
-                                    src + sizeof ("neverballhs-") - 1,
+                                    src + sizeof ("neverball-") - 1,
                                     ".txt",
                                     NULL);
                 fs_rename(src, dst);

@@ -14,10 +14,12 @@
 
 #include <stdio.h>
 
-#if NB_HAVE_PB_BOTH==1
-#ifndef __EMSCRIPTEN__
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
+
+#if NB_HAVE_PB_BOTH==1
 
 #include "networking.h"
 
@@ -154,6 +156,10 @@ const char level_loading_covid_highrisk[][256] = {
 };
 
 #endif
+
+#define LEVEL_MESSAGE_CHKP_POST_RESPAWN \
+    _("The checkpoint is in the\nlast position as last time.\n\n" \
+      "Click to continue.")
 
 static int level_loading_enter(struct state *st, struct state *prev, int intent)
 {
@@ -306,9 +312,7 @@ static int level_gui(void)
     int id, jd, kd;
 
 #ifdef MAPC_INCLUDES_CHKP
-    const char *message = last_active ? _("The checkpoint is in the\n"
-                                          "last position as last time.\n\n"
-                                          "Click to continue.") :
+    const char *message = last_active ? LEVEL_MESSAGE_CHKP_POST_RESPAWN :
                                         level_msg(curr_level());
 #else
     const char *message = level_msg(curr_level());
@@ -394,7 +398,7 @@ static int level_gui(void)
                 gui_filler(jd);
 
                 level_infocard_wallet_id = jd;
-                
+
                 if (level_infocard_intro)
                     gui_slide(level_infocard_wallet_id,
                               GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0.5f, 1.0f, 0.2f);
@@ -552,6 +556,7 @@ static int level_gui(void)
             gui_filler(jd);
 
             level_infocard_ctrls_id = jd;
+
             if (level_infocard_intro)
                 gui_slide(level_infocard_ctrls_id,
                           GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.0f, 1.0f, 0.2f);
@@ -721,6 +726,10 @@ static int level_leave(struct state *st, struct state *next, int id, int intent)
                 gui_slide(level_infocard_wallet_id,
                           GUI_N | GUI_FLING | GUI_BACKWARD, 0.0f, 0.16f, 0.0f);
 
+            if (level_infocard_title_id)
+                gui_slide(level_infocard_title_id,
+                          GUI_N | GUI_FLING | GUI_BACKWARD, 0.0f, 0.16f, 0.0f);
+
             if (level_infocard_msg_id)
                 gui_slide(level_infocard_msg_id,
                           GUI_S | GUI_FLING | GUI_BACKWARD, 0.0f, 0.16f, 0.0f);
@@ -754,7 +763,7 @@ static void level_paint(int id, float t)
         game_client_draw(0, t);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (console_gui_show())
+    if (console_gui_shown())
     {
         hud_cam_paint();
         console_gui_desc_paint();
@@ -798,9 +807,7 @@ static void level_timer(int id, float dt)
 static int level_keybd(int c, int d)
 {
 #ifdef MAPC_INCLUDES_CHKP
-    const char *message = last_active ? _("The checkpoint is in the\n"
-                                          "last position as last time.\n\n"
-                                          "Click to continue.") :
+    const char *message = last_active ? LEVEL_MESSAGE_CHKP_POST_RESPAWN :
                                         level_msg(curr_level());
 #else
     const char *message = level_msg(curr_level());

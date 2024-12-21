@@ -31,10 +31,6 @@
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
-
-/* Shall the Xbox live begin? */
-//#define NB_PB_WITH_XBOX 1
-//#include <XInput.h>
 #endif
 
 #include <stdio.h>

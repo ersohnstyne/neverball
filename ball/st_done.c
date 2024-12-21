@@ -14,9 +14,10 @@
 
 #include <string.h>
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
@@ -209,7 +210,7 @@ static int done_gui_set(void)
         audio_play("snd/new_time_record.ogg", 1.0f);
         audio_narrator_play(AUD_SCORE);
     }
-    
+
 #if NB_HAVE_PB_BOTH==1
     if (!campaign_used()
         && set_star(curr_set()) > 0 && set_star_gained(curr_set())

@@ -12,10 +12,12 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH==1
-#ifndef __EMSCRIPTEN__
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
+
+#if NB_HAVE_PB_BOTH==1
 
 #include "powerup.h"
 #include "account.h"
@@ -465,9 +467,9 @@ static void play_ready_timer(int id, float dt)
     /* Powerful screen animations! */
 
 #ifndef __EMSCRIPTEN__
-    if (config_get_d(CONFIG_SCREEN_ANIMATIONS) && !console_gui_show())
+    if (config_get_d(CONFIG_SCREEN_ANIMATIONS) && !console_gui_shown())
         hud_timer(dt);
-    else if (console_gui_show())
+    else if (console_gui_shown())
         hud_cam_timer(dt);
 #endif
 }
@@ -546,13 +548,13 @@ static void play_set_timer(int id, float dt)
     /* Powerful screen animations! */
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (current_platform != PLATFORM_PC || console_gui_show())
+    if (current_platform != PLATFORM_PC || console_gui_shown())
     {
         console_gui_set_alpha(CLAMP(0.0f, flerp(6.0f, 0.0f, t), 1.0f));
         hud_set_alpha(CLAMP(0.0f, flerp(-5.0f, 1.0f, t), 1.0f));
     }
 
-    if (console_gui_show() && !config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    if (console_gui_shown() && !config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_cam_timer(dt);
     else if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
 #endif
@@ -591,7 +593,7 @@ static void play_prep_paint(int id, float t)
     game_client_draw(0, t);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (console_gui_show() && current_platform != PLATFORM_PC)
+    if (console_gui_shown() && current_platform != PLATFORM_PC)
     {
         console_gui_preparation_paint();
 

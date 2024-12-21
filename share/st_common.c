@@ -12,9 +12,10 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
 #include "glext.h"
 #include "config.h"

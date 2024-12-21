@@ -17,11 +17,12 @@
 #include <assert.h>
 #endif
 
-#if NB_HAVE_PB_BOTH==1
-#ifndef __EMSCRIPTEN__
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
+#if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 
 #include "lang_switchball.h"
@@ -149,11 +150,6 @@ static int intro_done;
 
 static int intro_gui(void)
 {
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (current_platform != PLATFORM_PC)
-        console_gui_toggle(1);
-#endif
-
     int w = video.device_w;
     int h = video.device_h;
 
@@ -164,7 +160,6 @@ static int intro_gui(void)
 
     if ((root_id = gui_root()))
     {
-
 #ifndef NDEBUG
         int devel_label_id;
         int build_date_lbl_id;
@@ -766,10 +761,6 @@ static int intro_restore_enter(struct state *st, struct state *prev, int intent)
 
 static int intro_restore_keybd(int c, int d)
 {
-#ifndef __EMSCRIPTEN__
-    console_gui_toggle(0);
-#endif
-
     if (d)
     {
         if (c == KEY_EXIT

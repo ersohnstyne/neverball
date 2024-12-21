@@ -33,20 +33,18 @@
 #endif
 #endif
 
+#include "console_control_gui.h"
+
 #include "joy.h"
 #include "state.h"
 #include "common.h"
 #include "log.h"
 
 #if NB_PB_WITH_XBOX==0 && !defined(__GAMECUBE__) && !defined(__WII__)
-#if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
 #define JOY_MAX 16
-#else
-/*
- * HACK: On Xbox, Playstation or Nintendo Switch, this causes
- * only limited number of gamepads.
- */
-#define JOY_MAX 4
+
+#if _WIN32
+static_assert(JOY_MAX == 4);
 #endif
 
 static int joy_is_init = 0;
@@ -202,6 +200,10 @@ int joy_button(int instance, int b, int d)
 
     if (joy_curr != instance)
     {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        console_gui_toggle(1);
+#endif
+
         /* Make joystick current. */
 #if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API
         joy_curr = instance;
@@ -223,6 +225,10 @@ void joy_axis(int instance, int a, float v)
 
     if (joy_curr == instance)
     {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        console_gui_toggle(1);
+#endif
+
         /* Process axis events from current joystick only. */
         st_stick(a, v);
     }

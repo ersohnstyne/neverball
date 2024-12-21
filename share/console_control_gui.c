@@ -66,7 +66,7 @@ static int xbox_control_putt_scores_id = 0;
 
 /*---------------------------------------------------------------------------*/
 
-void console_init_controller_type(enum console_platforms new_platforms)
+void console_init_controller_type(const enum console_platforms new_platforms)
 {
     current_platform = new_platforms;
 }
@@ -77,28 +77,28 @@ void console_gui_set_alpha(float alpha)
 
     /* Shared */
 
-    gui_set_alpha(xbox_control_title_id, alpha, GUI_ANIMATION_S_LINEAR);
-    gui_set_alpha(xbox_control_list_id, alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_title_id,  alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_list_id,   alpha, GUI_ANIMATION_S_LINEAR);
     gui_set_alpha(xbox_control_paused_id, alpha, GUI_ANIMATION_S_LINEAR);
 
 
     /* Generic */
 
-    gui_set_alpha(xbox_control_desc_id, alpha, GUI_ANIMATION_S_LINEAR);
-    gui_set_alpha(xbox_control_preparation_id, alpha, GUI_ANIMATION_S_LINEAR);
-    gui_set_alpha(xbox_control_replay_id, alpha, GUI_ANIMATION_S_LINEAR);
-    gui_set_alpha(xbox_control_replay_eof_id, alpha, GUI_ANIMATION_S_LINEAR);
-    gui_set_alpha(xbox_control_shop_id, alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_desc_id,          alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_preparation_id,   alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_replay_id,        alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_replay_eof_id,    alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_shop_id,          alpha, GUI_ANIMATION_S_LINEAR);
     gui_set_alpha(xbox_control_shop_getcoins_id, alpha, GUI_ANIMATION_S_LINEAR);
-    gui_set_alpha(xbox_control_model_id, alpha, GUI_ANIMATION_S_LINEAR);
-    gui_set_alpha(xbox_control_beam_style_id, alpha, GUI_ANIMATION_S_LINEAR);
-    gui_set_alpha(xbox_control_death_id, alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_model_id,         alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_beam_style_id,    alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_death_id,         alpha, GUI_ANIMATION_S_LINEAR);
 
 
     /* Putt */
 
     gui_set_alpha(xbox_control_putt_stroke_id, alpha, GUI_ANIMATION_S_LINEAR);
-    gui_set_alpha(xbox_control_putt_stop_id, alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_putt_stop_id,   alpha, GUI_ANIMATION_S_LINEAR);
     gui_set_alpha(xbox_control_putt_scores_id, alpha, GUI_ANIMATION_S_LINEAR);
 }
 
@@ -1446,18 +1446,23 @@ static void init_xbox_putt_scores()
 
 /*---------------------------------------------------------------------------*/
 
-int console_gui_show(void)
+int console_gui_shown(void)
 {
     return show_control_gui;
 }
 
 void console_gui_toggle(int active)
 {
+    if (show_control_gui == active)
+        return;
+
 #if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API
     show_control_gui = 1;
 #else
-    show_control_gui = 0;
+    show_control_gui = active;
 #endif
+
+    console_gui_slide(GUI_S | GUI_EASE_ELASTIC | (active ? 0 : GUI_BACKWARD));
 }
 
 void console_gui_init(void)
@@ -1520,25 +1525,52 @@ void console_gui_free(void)
     gui_delete(xbox_control_putt_scores_id);
 }
 
+void console_gui_slide(int flags)
+{
+    /* Shared */
+    gui_slide(xbox_control_title_id,  flags, 0, 0.16f, 0);
+    gui_slide(xbox_control_list_id,   flags, 0, 0.16f, 0);
+    gui_slide(xbox_control_paused_id, flags, 0, 0.16f, 0);
+
+    /* Generic */
+    gui_slide(xbox_control_desc_id,          flags, 0, 0.16f, 0);
+    gui_slide(xbox_control_preparation_id,   flags, 0, 0.16f, 0);
+    gui_slide(xbox_control_replay_id,        flags, 0, 0.16f, 0);
+    gui_slide(xbox_control_replay_eof_id,    flags, 0, 0.16f, 0);
+    gui_slide(xbox_control_shop_id,          flags, 0, 0.16f, 0);
+    gui_slide(xbox_control_shop_getcoins_id, flags, 0, 0.16f, 0);
+    gui_slide(xbox_control_model_id,         flags, 0, 0.16f, 0);
+    gui_slide(xbox_control_beam_style_id,    flags, 0, 0.16f, 0);
+    gui_slide(xbox_control_death_id,         flags, 0, 0.16f, 0);
+
+    /* Putt */
+    gui_slide(xbox_control_putt_stroke_id, flags, 0, 0.16f, 0);
+    gui_slide(xbox_control_putt_stop_id,   flags, 0, 0.16f, 0);
+    gui_slide(xbox_control_putt_scores_id, flags, 0, 0.16f, 0);
+}
+
 /*---------------------------------------------------------------------------*/
 
 /* Shared */
 
 void console_gui_title_paint(void)
 {
-    if (show_control_gui && current_platform != PLATFORM_PC)
+    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        current_platform != PLATFORM_PC)
         gui_paint(xbox_control_title_id);
 }
 
 void console_gui_list_paint(void)
 {
-    if (show_control_gui && current_platform != PLATFORM_PC)
+    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        current_platform != PLATFORM_PC)
         gui_paint(xbox_control_list_id);
 }
 
 void console_gui_paused_paint(void)
 {
-    if (show_control_gui && current_platform != PLATFORM_PC)
+    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        current_platform != PLATFORM_PC)
         gui_paint(xbox_control_paused_id);
 }
 
@@ -1546,72 +1578,85 @@ void console_gui_paused_paint(void)
 
 void console_gui_desc_paint(void)
 {
+    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        current_platform != PLATFORM_PC)
     gui_paint(xbox_control_desc_id);
 }
 
 void console_gui_preparation_paint(void)
 {
-    if (show_control_gui && current_platform != PLATFORM_PC)
+    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        current_platform != PLATFORM_PC)
         gui_paint(xbox_control_preparation_id);
 }
 
 void console_gui_replay_paint(void)
 {
-    if (show_control_gui && current_platform != PLATFORM_PC)
+    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        current_platform != PLATFORM_PC)
         gui_paint(xbox_control_replay_id);
 }
 
 void console_gui_replay_eof_paint(void)
 {
-    if (show_control_gui && current_platform != PLATFORM_PC)
+    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        current_platform != PLATFORM_PC)
         gui_paint(xbox_control_replay_eof_id);
 }
 
 void console_gui_shop_paint(void)
 {
-    if (show_control_gui && current_platform != PLATFORM_PC)
+    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        current_platform != PLATFORM_PC)
         gui_paint(xbox_control_shop_id);
 }
 
 void console_gui_shop_getcoins_paint(void)
 {
-    if (show_control_gui && current_platform != PLATFORM_PC)
+    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        current_platform != PLATFORM_PC)
         gui_paint(xbox_control_shop_getcoins_id);
 }
 
 void console_gui_model_paint(void)
 {
-    if (show_control_gui && current_platform != PLATFORM_PC)
+    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        current_platform != PLATFORM_PC)
         gui_paint(xbox_control_model_id);
 }
 
 void console_gui_beam_style_paint(void)
 {
-    if (show_control_gui && current_platform != PLATFORM_PC)
+    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        current_platform != PLATFORM_PC)
         gui_paint(xbox_control_beam_style_id);
 }
 
 void console_gui_death_paint(void)
 {
-    if (show_control_gui && current_platform != PLATFORM_PC)
+    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        current_platform != PLATFORM_PC)
         gui_paint(xbox_control_death_id);
 }
 
 /* Putt */
 void console_gui_putt_stroke_paint(void)
 {
-    if (show_control_gui && current_platform != PLATFORM_PC)
+    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        current_platform != PLATFORM_PC)
         gui_paint(xbox_control_putt_stroke_id);
 }
 
 void console_gui_putt_stop_paint(void)
 {
-    if (show_control_gui && current_platform != PLATFORM_PC)
+    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        current_platform != PLATFORM_PC)
         gui_paint(xbox_control_putt_stop_id);
 }
 
 void console_gui_putt_scores_paint(void)
 {
-    if (show_control_gui && current_platform != PLATFORM_PC)
+    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
+        current_platform != PLATFORM_PC)
         gui_paint(xbox_control_putt_scores_id);
 }

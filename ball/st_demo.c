@@ -18,9 +18,10 @@
 #include <emscripten.h>
 #endif
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
 #include "gui.h"
 #include "transition.h"
@@ -1113,9 +1114,6 @@ static void demo_stick(int id, int a, float v, int bump)
         return;
 #endif
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    console_gui_toggle(1);
-#endif
     int jd = shared_stick_basic(id, a, v, bump);
 
     if (gui_token(jd) == DEMO_SELECT)
@@ -1652,7 +1650,7 @@ static void demo_end_paint(int id, float t)
     gui_paint(id);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (console_gui_show())
+    if (console_gui_shown())
     {
         if (demo_paused)
             console_gui_paused_paint();

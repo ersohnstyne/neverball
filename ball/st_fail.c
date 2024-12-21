@@ -16,9 +16,10 @@
 #include "solid_chkp.h"
 #endif
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
@@ -695,7 +696,7 @@ static void fail_paint(int id, float t)
 
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (console_gui_show())
+    if (console_gui_shown())
         console_gui_death_paint();
 #endif
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))

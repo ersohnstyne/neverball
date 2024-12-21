@@ -17,11 +17,12 @@
 #include <assert.h>
 #endif
 
-#if NB_HAVE_PB_BOTH==1
-#ifndef __EMSCRIPTEN__
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
+#if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 #include "account.h"
 #include "account_wgcl.h"

@@ -12,9 +12,10 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
 #include "activity_services.h"
 
@@ -188,6 +189,7 @@ int goto_state_full_intent(struct state *st,
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_set_alpha(1.0f);
+    console_gui_slide(GUI_S | GUI_EASE_ELASTIC | GUI_BACKWARD);
 #endif
 
     if (state && state->leave)
@@ -217,6 +219,7 @@ int goto_state_full_intent(struct state *st,
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_set_alpha(1.0f);
+    console_gui_slide(GUI_S | GUI_EASE_ELASTIC | GUI_BACKWARD);
 #endif
 
     anim_queue = 0;
@@ -330,6 +333,10 @@ void st_timer(float dt)
 
 void st_point(int x, int y, int dx, int dy)
 {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    console_gui_toggle(0);
+#endif
+
     if (state && state->point)
     {
         if (hmd_stat())
@@ -378,6 +385,10 @@ void st_angle(float x, float z)
 
 void st_wheel(int x, int y)
 {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    console_gui_toggle(0);
+#endif
+
     if (state && state->wheel)
         state->wheel(x, y);
 }
@@ -386,11 +397,19 @@ void st_wheel(int x, int y)
 
 int st_click(int b, int d)
 {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    console_gui_toggle(0);
+#endif
+
     return (state && state->click) ? state->click(b, d) : 1;
 }
 
 int st_keybd(int c, int d)
 {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    console_gui_toggle(0);
+#endif
+
     return (state && state->keybd) ? state->keybd(c, d) : 1;
 }
 

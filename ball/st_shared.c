@@ -12,11 +12,12 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH==1
-#ifndef __EMSCRIPTEN__
+ /*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
+#if NB_HAVE_PB_BOTH==1
 #include "account.h"
 #include "campaign.h"
 #endif
@@ -77,11 +78,6 @@ int shared_point_basic(int id, int x, int y)
 
 void shared_point(int id, int x, int y, int dx, int dy)
 {
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (current_platform == PLATFORM_PC)
-        console_gui_toggle(0);
-#endif
-
     shared_point_basic(id, x, y);
 }
 
@@ -97,9 +93,6 @@ int shared_stick_basic(int id, int a, float v, int bump)
 
 void shared_stick(int id, int a, float v, int bump)
 {
-#ifndef __EMSCRIPTEN__
-    console_gui_toggle(1);
-#endif
     shared_stick_basic(id, a, v, bump);
 }
 

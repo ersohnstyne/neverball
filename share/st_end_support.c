@@ -21,14 +21,6 @@
 /* TODO: Uncomment, if you want to test the end support. */
 //#define TEST_END_SUPPORT
 
-/*
- * TODO: If you don't have an gamepad controllers,
- * comment it in the include header below.
- */
-#ifndef __EMSCRIPTEN__
-//#include "console_control_gui.h"
-#endif
-
 #ifndef NDEBUG
 #include <assert.h>
 #endif
@@ -52,15 +44,15 @@
 #define END_SUPPORT_MONTH    4 /* DO NOT EDIT! */
 #define END_SUPPORT_DAY     21 /* DO NOT EDIT! */
 
-#define END_SUPPORT_TITLE_1  N_("Simple entities support is ending May 21, 2035.") /* DO NOT EDIT! */
-#define END_SUPPORT_TITLE_2  N_("After %d years, support for Neverball 1.7 is nearing the end.") /* DO NOT EDIT! */
-#define END_SUPPORT_TITLE_3  N_("Your Neverball 1.7 is out of support!") /* DO NOT EDIT! */
+#define END_SUPPORT_TITLE_1  N_("Simple entities support is ending May 21, 2024.") /* DO NOT EDIT! */
+#define END_SUPPORT_TITLE_2  N_("After %d years, support for Neverball 1.6 is nearing the end.") /* DO NOT EDIT! */
+#define END_SUPPORT_TITLE_3  N_("Your Neverball 1.6 is out of support!") /* DO NOT EDIT! */
 
 #define END_SUPPORT_IMAGE    "gui/end_support_%d.png" /* DO NOT EDIT! */
 
-#define END_SUPPORT_DESC_1   N_("After %d years, support for Neverball 1.7 is coming to an end.\nThe best two things you can do to prepare for the transition are,\nback up your levels and highscores, and then get ready for what's next.\nWe have tools to help you with both.") /* DO NOT EDIT! */
-#define END_SUPPORT_DESC_2   N_("May 21, 2035 is the last day Jānis Rūcis will offer\nsimple entities and technical support for running Neverball 1.7.\nWe know change can be difficult, that's why we're reaching out early\nto help you back up your levels and highscores, and prepare for what's next.") /* DO NOT EDIT! */
-#define END_SUPPORT_DESC_3_1 N_("As of May 21, 2035, support for Neverball 1.6\nhas come to an end. Your entities is\nmore vulnerable to legacies due to:") /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_1   N_("After %d years, support for Neverball 1.6 is coming to an end.\nThe best two things you can do to prepare for the transition are,\nback up your levels and highscores, and then get ready for what's next.\nWe have tools to help you with both.") /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_2   N_("May 21, 2024 is the last day Jānis Rūcis will offer\nsimple entities and technical support for running Neverball 1.6.\nWe know change can be difficult, that's why we're reaching out early\nto help you back up your levels and highscores, and prepare for what's next.") /* DO NOT EDIT! */
+#define END_SUPPORT_DESC_3_1 N_("As of May 21, 2024, support for Neverball 1.6\nhas come to an end. Your entities is\nmore vulnerable to legacies due to:") /* DO NOT EDIT! */
 #define END_SUPPORT_DESC_3_2 N_("- No simple start position\n- No goal decals\n- No simple switch and simple platform") /* DO NOT EDIT! */
 #define END_SUPPORT_DESC_3_3 N_("PennySchloss requires using\nPennyball 2.2.0 on a new campaigns\nfor the latest huge guideline features.") /* DO NOT EDIT! */
 

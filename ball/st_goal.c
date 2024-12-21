@@ -29,9 +29,10 @@
 
 #include "accessibility.h"
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
 #include "powerup.h"
@@ -713,7 +714,7 @@ static void goal_paint(int id, float t)
     gui_paint(id);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (console_gui_show())
+    if (console_gui_shown())
         console_gui_death_paint();
 #endif
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))

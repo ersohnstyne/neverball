@@ -12,9 +12,10 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
@@ -958,7 +959,7 @@ enum InputType
 {
     CONTROL_NONE,
 
-    CONTROL_PENNYBALL,
+    CONTROL_NEVERBALL,
     CONTROL_SWITCHBALL_V1,
     CONTROL_SWITCHBALL_V2,
 
@@ -1024,7 +1025,7 @@ static int control_get_input(void)
     else if (k_auto == SDLK_e && k_cam1 == SDLK_1 && k_cam2 == SDLK_2 && k_cam3 == SDLK_3
              && k_caml == SDLK_s && k_camr == SDLK_d
              && k_arrowkey[0] == SDLK_UP && k_arrowkey[1] == SDLK_LEFT && k_arrowkey[2] == SDLK_DOWN && k_arrowkey[3] == SDLK_RIGHT)
-        return CONTROL_PENNYBALL;
+        return CONTROL_NEVERBALL;
 
     return CONTROL_MAX;
 }
@@ -1040,7 +1041,7 @@ static void control_set_input()
         gui_set_label(preset_id, "Switchball HD");
         key_preset_id = CONTROL_SWITCHBALL_V2;
     }
-    else if (key_preset_id == CONTROL_PENNYBALL)
+    else if (key_preset_id == CONTROL_NEVERBALL)
     {
         CONF_CONTROL_SET_PRESET_KEYS(SDLK_c, SDLK_3, SDLK_1, SDLK_2,
                                      SDLK_d, SDLK_a,
@@ -1056,7 +1057,7 @@ static void control_set_input()
                                      SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT);
 
         gui_set_label(preset_id, "Neverball");
-        key_preset_id = CONTROL_PENNYBALL;
+        key_preset_id = CONTROL_NEVERBALL;
     }
 }
 
@@ -1151,7 +1152,7 @@ static int conf_control_gui(void)
 
         switch (control_get_input())
         {
-            case CONTROL_PENNYBALL:
+            case CONTROL_NEVERBALL:
                 key_preset_id = control_get_input();
                 presetname = "Neverball";
                 break;
@@ -1714,8 +1715,8 @@ static void conf_controllers_set_label(int id, int value)
         return;
     }
 
-#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_FAMILY_API || \
-    PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API || \
+    NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
     if (conf_controllers_option_values_xbox[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1725,7 +1726,7 @@ static void conf_controllers_set_label(int id, int value)
 #endif
                 "%s", conf_controllers_option_values_xbox[value % 100000]);
     }
-#elif PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API
+#elif NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
     if (conf_controllers_option_values_ps[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1735,7 +1736,7 @@ static void conf_controllers_set_label(int id, int value)
 #endif
                 "%s", conf_controllers_option_values_ps[value % 100000]);
     }
-#elif PENNYBALL_FAMILY_API == PENNYBALL_STEAMDECK_FAMILY_API
+#elif NEVERBALL_FAMILY_API == NEVERBALL_STEAMDECK_FAMILY_API
     if (conf_controllers_option_values_steamdeck[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1745,7 +1746,7 @@ static void conf_controllers_set_label(int id, int value)
 #endif
                 "%s", conf_controllers_option_values_steamdeck[value % 100000]);
     }
-#elif PENNYBALL_FAMILY_API == PENNYBALL_SWITCH_FAMILY_API
+#elif NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
     if (conf_controllers_option_values_switch[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1755,7 +1756,7 @@ static void conf_controllers_set_label(int id, int value)
 #endif
                 "%s", conf_controllers_option_values_switch[value % 100000]);
     }
-#elif PENNYBALL_FAMILY_API == PENNYBALL_HANDSET_FAMILY_API
+#elif NEVERBALL_FAMILY_API == NEVERBALL_HANDSET_FAMILY_API
     if (conf_controllers_option_values_switch[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1765,8 +1766,8 @@ static void conf_controllers_set_label(int id, int value)
 #endif
                 "%s", conf_controllers_option_values_switch[value % 100000]);
     }
-#elif PENNYBALL_FAMILY_API == PENNYBALL_WII_FAMILY_API || \
-      PENNYBALL_FAMILY_API == PENNYBALL_WIIU_FAMILY_API
+#elif NEVERBALL_FAMILY_API == NEVERBALL_WII_FAMILY_API || \
+      NEVERBALL_FAMILY_API == NEVERBALL_WIIU_FAMILY_API
     if (conf_controllers_option_values_wii[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -1785,7 +1786,7 @@ static void conf_controllers_set_label(int id, int value)
             "%d", value % 100000);
 #endif
 
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API
     else SAFECPY(str, "");
 #endif
 
@@ -2842,7 +2843,7 @@ static int conf_gui(void)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-            gui_label(id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT);
+            gui_label(id, "Neverball " VERSION " (High)", GUI_TNY, GUI_COLOR_WHT);
 #endif
             gui_multi(id, _("Copyright © 2024 Neverball authors\n"
                             "Neverball is free software available under the terms of GPL v2 or later."),

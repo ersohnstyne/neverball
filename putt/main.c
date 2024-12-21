@@ -75,12 +75,15 @@
 #if __cplusplus
 extern "C" {
 #endif
+
+/*
+ * HACK: Used with console version
+ */
+#include "console_control_gui.h"
+
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 #include "account.h"
-#ifndef __EMSCRIPTEN__
-#include "console_control_gui.h"
-#endif
 #endif
 
 #include "accessibility.h"
@@ -359,7 +362,7 @@ static int link_handle(const char *link)
         /* Search installed sets and package list. */
 
         const size_t prefix_len = strcspn(link, "/");
-        
+
         const char *set_part = SUBSTR(link, 0, prefix_len);
         const char *map_part = SUBSTR(link, prefix_len + 1, 64);
         const char *set_file = JOINSTR(set_part, ".txt");
@@ -977,7 +980,7 @@ static int main_init(int argc, char *argv[])
     }
 
     srand((int) time(NULL));
-    
+
     opt_init(argc, argv);
     
     config_paths(NULL);

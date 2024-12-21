@@ -18,13 +18,13 @@
 
 #include <string.h>
 
+/*
+ * HACK: Used with console version
+ */
+#include "console_control_gui.h"
+
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
-
-#ifndef __EMSCRIPTEN__
-#include "console_control_gui.h"
-#endif
-
 #include "account.h"
 #include "account_wgcl.h"
 #endif
@@ -210,7 +210,7 @@ static const char *pick_demo(Array items)
     //demo_dir_load(items, 0, total - 1);
 
     struct demo *demo_data = (struct demo *)
-                             DIR_ITEM_GET(items, selectedDemo < total ? selectedDemo : 0)->data;
+                             (DIR_ITEM_GET(items, selectedDemo < total ? selectedDemo : 0)->data);
 
     /* Have demo data? */
 
@@ -350,7 +350,7 @@ static int title_goto_playgame(struct state *st)
 static int title_action(int tok, int val)
 {
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
-    static const char keyphrase[]               = "xyzzy";
+    static const char keyphrase[]               = "msxdev";
     static char       queue[sizeof (keyphrase)] = "";
 
     size_t queue_len = text_length(queue);
@@ -1496,10 +1496,6 @@ static void title_point(int id, int x, int y, int dx, int dy)
 {
     int jd;
 
-#ifndef __EMSCRIPTEN__
-    console_gui_toggle(0);
-#endif
-
     if ((jd = gui_point(id, x, y)))
         gui_pulse(jd, 1.2f);
 }
@@ -1509,10 +1505,6 @@ static void title_stick(int id, int a, float v, int bump)
     if (title_lockscreen) return;
 
     int jd;
-
-#ifndef __EMSCRIPTEN__
-    console_gui_toggle(1);
-#endif
 
     if ((jd = gui_stick(id, a, v, bump)))
         gui_pulse(jd, 1.2f);
@@ -1535,10 +1527,6 @@ static int title_click(int b, int d)
 static int title_keybd(int c, int d)
 {
     if (title_lockscreen) return 1;
-
-#ifndef __EMSCRIPTEN__
-    console_gui_toggle(0);
-#endif
 
     if (d)
     {

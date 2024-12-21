@@ -12,13 +12,14 @@
  * General Public License for more details.
  */
 
+/*
+ * HACK: Used with console version
+ */
+#include "console_control_gui.h"
+
 /* Have some Switchball guides? */
 
 #if NB_HAVE_PB_BOTH==1
-#ifndef __EMSCRIPTEN__
-#include "console_control_gui.h"
-#endif
-
 #include "campaign.h"
 #include "account.h"
 
@@ -48,7 +49,7 @@
 
 #if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN) &&\
     defined(SWITCHBALL_GUI)
-#define SWITCHBALL_HELP
+//#define SWITCHBALL_HELP
 #endif
 
 #if NB_HAVE_PB_BOTH!=1 && \
@@ -242,7 +243,7 @@ static int help_menu(int id)
     if ((jd = gui_hstack(id)))
     {
 #ifndef __EMSCRIPTEN__
-        if (console_gui_show())
+        if (console_gui_shown())
 #endif
             gui_filler(jd);
 
@@ -257,12 +258,12 @@ static int help_menu(int id)
             help_button(kd, _("Rules"),    HELP_SELECT, PAGE_RULES);
         }
 
-        if (!console_gui_show())
+        if (!console_gui_shown())
             gui_space(jd);
 
         gui_filler(jd);
 
-        if (!console_gui_show())
+        if (!console_gui_shown())
             gui_back_button(jd);
     }
 
@@ -815,7 +816,7 @@ static int page_modes(int id)
                             "with server group policy."),
                           GUI_SML, GUI_COLOR_WHT);
         }
-#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
         else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 ||
                  config_cheat())
         {
@@ -857,7 +858,7 @@ static int page_modes_special(int id)
     gui_space(id);
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-    if ((jd = gui_vstack(id)))
+    /*if ((jd = gui_vstack(id)))
     {
         if (account_get_d(ACCOUNT_SET_UNLOCKS) > 0 &&
             (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER) ||
@@ -910,7 +911,7 @@ static int page_modes_special(int id)
         }
 
         gui_set_rect(jd, GUI_ALL);
-    }
+    }*/
 #endif
 
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
@@ -1351,7 +1352,7 @@ static void help_paint(int id, float t)
 
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (console_gui_show())
+    if (console_gui_shown())
         console_gui_list_paint();
 #endif
 }

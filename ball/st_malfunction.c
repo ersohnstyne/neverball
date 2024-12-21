@@ -12,9 +12,10 @@
  * General Public License for more details.
  */
 
-#ifndef __EMSCRIPTEN__
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
 #include "state.h"
 #include "config.h"

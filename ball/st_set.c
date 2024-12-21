@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2024 Microsoft / Neverball authors
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
@@ -12,11 +12,12 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH==1
-#ifndef __EMSCRIPTEN__
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
+#if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 #include "account.h"
 #include "account_wgcl.h"
@@ -608,9 +609,6 @@ static int set_enter(struct state *st, struct state *prev, int intent)
     if (prev == &st_set)
         return transition_page(set_gui(), 1, intent);
 
-    if (prev == &st_set)
-        return transition_page(set_gui(), 1, intent);
-
     return transition_slide(set_gui(), 1, intent);
 }
 
@@ -648,7 +646,7 @@ static void set_paint(int id, float t)
     if (set_is_scanning_with_moon_taskloader) return;
 #endif
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (console_gui_show())
+    if (console_gui_shown())
         console_gui_list_paint();
 #endif
 }
@@ -686,10 +684,6 @@ static void set_over(int i)
 
 static void set_point(int id, int x, int y, int dx, int dy)
 {
-#ifndef __EMSCRIPTEN__
-    console_gui_toggle(0);
-#endif
-
     int jd = shared_point_basic(id, x, y);
 
 #if ENABLE_MOON_TASKLOADER!=0
@@ -702,10 +696,6 @@ static void set_point(int id, int x, int y, int dx, int dy)
 
 static void set_stick(int id, int a, float v, int bump)
 {
-#ifndef __EMSCRIPTEN__
-    console_gui_toggle(1);
-#endif
-
     int jd = shared_stick_basic(id, a, v, bump);
 
 #if ENABLE_MOON_TASKLOADER!=0
@@ -1253,7 +1243,7 @@ static void campaign_paint(int id, float t)
 
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (console_gui_show())
+    if (console_gui_shown())
         console_gui_list_paint();
 #endif
 }

@@ -12,13 +12,16 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
-#include "audio.h"
+#if NB_HAVE_PB_BOTH==1
 #include "account.h"
 #include "account_wgcl.h"
+#endif
+#include "audio.h"
 #include "config.h"
 #include "gui.h"
 #include "transition.h"

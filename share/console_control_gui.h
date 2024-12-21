@@ -106,7 +106,7 @@ enum console_platforms
 
 extern enum console_platforms current_platform;
 
-void console_init_controller_type(enum console_platforms);
+void console_init_controller_type(const enum console_platforms);
 void console_gui_set_alpha(float);
 
 void console_gui_create_a_button(int, int);
@@ -122,13 +122,13 @@ void console_gui_create_rs_button(int, int);
 void console_gui_create_start_button(int, int);
 void console_gui_create_select_button(int, int);
 
-int console_gui_show(void);
+int console_gui_shown(void);
 
 void console_gui_toggle(int);
 
 void console_gui_init(void);
 void console_gui_free(void);
-
+void console_gui_slide(int);
 
 /* Shared */
 

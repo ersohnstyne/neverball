@@ -12,10 +12,12 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+ /*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
+
 #include "account_wgcl.h"
-#endif
 
 #include "glext.h"
 #include "config.h"
@@ -504,7 +506,7 @@ static int setup_is_replay(struct dir_item *item)
 
 static int setup_is_score_file(struct dir_item *item)
 {
-    return str_starts_with(item->path, "pennyballhs-");
+    return str_starts_with(item->path, "neverballhs-");
 }
 
 static void setup_mkdir_migrate(void)
@@ -544,7 +546,7 @@ static void setup_mkdir_migrate(void)
             {
                 src = DIR_ITEM_GET(items, i)->path;
                 dst = concat_string("Scores/",
-                                    src + sizeof ("pennyballhs-") - 1,
+                                    src + sizeof ("neverballhs-") - 1,
                                     ".txt",
                                     NULL);
                 fs_rename(src, dst);

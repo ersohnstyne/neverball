@@ -12,11 +12,12 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH==1
-#ifndef __EMSCRIPTEN__
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
 
+#if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 #include "accessibility.h"
 #include "account.h"
@@ -750,7 +751,7 @@ static int start_gui(void)
                                 else
 #endif
                                     gui_set_hilite(challenge_id,
-                                        curr_mode() == MODE_CHALLENGE);
+                                                   curr_mode() == MODE_CHALLENGE);
                             }
                         }
                     }
@@ -758,7 +759,7 @@ static int start_gui(void)
 
                 gui_filler(kd);
             }
-            
+
             const int scoreboard_flags = curr_mode() == MODE_HARDCORE ?
                                          (GUI_SCORE_COIN | GUI_SCORE_TIME) :
                                          (GUI_SCORE_COIN | GUI_SCORE_TIME | GUI_SCORE_GOAL);
@@ -1056,7 +1057,7 @@ static void start_paint(int id, float t)
 
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (console_gui_show())
+    if (console_gui_shown())
         console_gui_list_paint();
 #endif
 }
@@ -1160,11 +1161,6 @@ static int start_leave(struct state *st, struct state *next, int id, int intent)
 
 static void start_point(int id, int x, int y, int dx, int dy)
 {
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (current_platform == PLATFORM_PC)
-        console_gui_toggle(0);
-#endif
-
 #if ENABLE_MOON_TASKLOADER
     if (start_is_scanning_with_moon_taskloader)
     {
@@ -1181,10 +1177,6 @@ static void start_point(int id, int x, int y, int dx, int dy)
 
 static void start_stick(int id, int a, float v, int bump)
 {
-#ifndef __EMSCRIPTEN__
-    console_gui_toggle(1);
-#endif
-
 #if ENABLE_MOON_TASKLOADER
     if (start_is_scanning_with_moon_taskloader)
     {

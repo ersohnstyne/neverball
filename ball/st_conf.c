@@ -1215,7 +1215,7 @@ static int conf_control_gui(void)
         conf_state(id, _("Keyboard"), _("Change"), CONF_CONTROL_CHANGEKEYBD);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (current_platform != PLATFORM_PC)
+        if (current_platform != PLATFORM_PC || console_gui_shown())
 #endif
         {
 #if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)

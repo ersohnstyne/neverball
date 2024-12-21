@@ -340,6 +340,9 @@ static int restart_cancel_allchkp;
 static float prep_tilt_x;
 static float prep_tilt_y;
 
+static int lmb_holded;
+static int rmb_holded;
+
 static int play_freeze_all;
 
 static int play_update_server = 0;
@@ -375,6 +378,9 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
     prep_tilt_x = 0;
     prep_tilt_y = 0;
 
+    lmb_holded = 0;
+    rmb_holded = 0;
+
 #ifdef MAPC_INCLUDES_CHKP
     restart_cancel_allchkp = 0;
 #endif
@@ -409,7 +415,9 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
 
     hud_update(0, 0.0f);
     hud_update_camera_direction(curr_viewangle());
-    hud_show(0.0f);
+
+    if (!console_gui_shown())
+        hud_show(0.0f);
 
     hud_cam_pulse(config_get_d(CONFIG_CAMERA));
 
@@ -426,15 +434,6 @@ static void play_ready_timer(int id, float dt)
     float t = time_state();
 
     game_client_fly(1.0f - 0.5f * t);
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (current_platform != PLATFORM_PC)
-    {
-        console_gui_set_alpha(1.0f);
-        hud_set_alpha(0.0f);
-        hud_timer(dt);
-    }
-#endif
 
     if (dt > 0.0f && t > 1.0f && !st_global_animating())
         goto_state(&st_play_set);
@@ -466,12 +465,12 @@ static void play_ready_timer(int id, float dt)
 
     /* Powerful screen animations! */
 
-#ifndef __EMSCRIPTEN__
-    if (config_get_d(CONFIG_SCREEN_ANIMATIONS) && !console_gui_shown())
-        hud_timer(dt);
-    else if (console_gui_shown())
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if (console_gui_shown() && !config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_cam_timer(dt);
+    else
 #endif
+        hud_timer(dt);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -503,6 +502,9 @@ static int play_set_enter(struct state *st, struct state *prev, int intent)
     if (curr_mode() == MODE_NONE) return 0;
 
     audio_narrator_play(AUD_SET);
+
+    if (!console_gui_shown())
+        hud_show(0.0f);
 
     int id = play_set_gui();
     gui_slide(id, flags_in, 0, time_in, 0);
@@ -548,23 +550,14 @@ static void play_set_timer(int id, float dt)
     /* Powerful screen animations! */
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (current_platform != PLATFORM_PC || console_gui_shown())
-    {
-        console_gui_set_alpha(CLAMP(0.0f, flerp(6.0f, 0.0f, t), 1.0f));
-        hud_set_alpha(CLAMP(0.0f, flerp(-5.0f, 1.0f, t), 1.0f));
-    }
-
     if (console_gui_shown() && !config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_cam_timer(dt);
-    else if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    else
 #endif
         hud_timer(dt);
 }
 
 /*---------------------------------------------------------------------------*/
-
-static int lmb_holded;
-static int rmb_holded;
 
 static int play_prep_leave(struct state *st, struct state *next, int id, int intent)
 {
@@ -593,7 +586,7 @@ static void play_prep_paint(int id, float t)
     game_client_draw(0, t);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (console_gui_shown() && current_platform != PLATFORM_PC)
+    if (current_platform != PLATFORM_PC || console_gui_shown())
     {
         console_gui_preparation_paint();
 
@@ -612,6 +605,11 @@ static void play_prep_paint(int id, float t)
     }
 
     gui_paint(id);
+}
+
+static void play_prep_point(int id, int x, int y, int dx, int dy)
+{
+    hud_show(0.0f);
 }
 
 static void play_prep_stick(int id, int a, float v, int bump)
@@ -633,6 +631,8 @@ static void play_prep_stick(int id, int a, float v, int bump)
 
 static int play_prep_click(int b, int d)
 {
+    hud_show(0.0f);
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform == PLATFORM_PC)
 #endif
@@ -660,6 +660,8 @@ static int play_prep_click(int b, int d)
 
 static int play_prep_keybd(int c, int d)
 {
+    hud_show(0.0f);
+
     if (d)
     {
 #if !defined(__WII__)
@@ -795,8 +797,8 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
     play_block_state        = 0;
     rot_init();
 
-    lmb_holded    =  0;
     lmb_hold_time = -0.01f;
+    rmb_hold_time = -0.01f;
 
     fast_rotate     = 0;
     max_speed       = 0;
@@ -1568,7 +1570,7 @@ struct state st_play_ready = {
     play_prep_leave,
     play_prep_paint,
     play_ready_timer,
-    NULL,
+    play_prep_point,
     play_prep_stick,
     NULL,
     play_prep_click,
@@ -1584,7 +1586,7 @@ struct state st_play_set = {
     play_prep_leave,
     play_prep_paint,
     play_set_timer,
-    NULL,
+    play_prep_point,
     play_prep_stick,
     NULL,
     play_prep_click,

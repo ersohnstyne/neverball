@@ -1363,7 +1363,8 @@ static void title_paint(int id, float t)
     gui_paint(id);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    console_gui_title_paint();
+    if (!title_lockscreen)
+        console_gui_title_paint();
 #endif
 }
 

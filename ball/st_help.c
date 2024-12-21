@@ -715,7 +715,7 @@ static int page_modes(int id)
         if (account_get_d(ACCOUNT_SET_UNLOCKS) > 0
             && (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER)
                 || campaign_career_unlocked()
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                 || config_cheat()
 #endif
             ))
@@ -736,7 +736,7 @@ static int page_modes(int id)
                 gui_multi(jd, _("Challenge Mode is not available\n"
                                 "with server group policy."),
                               GUI_SML, GUI_COLOR_WHT);
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
             else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 ||
                      config_cheat())
                 gui_multi(jd, _("Challenge Mode is not available\n"
@@ -782,7 +782,7 @@ static int page_modes(int id)
                 gui_multi(jd, _("Challenge Mode is not available\n"
                                 "with server group policy."),
                               GUI_SML, GUI_COLOR_WHT);
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
             else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 ||
                      config_cheat())
                 gui_multi(jd, _("Challenge Mode is not available\n"
@@ -815,7 +815,7 @@ static int page_modes(int id)
                             "with server group policy."),
                           GUI_SML, GUI_COLOR_WHT);
         }
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
         else if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 ||
                  config_cheat())
         {
@@ -927,13 +927,13 @@ static int page_modes_special(int id)
             )
         {
             if ((accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 100 ||
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                  config_cheat() ||
 #endif
                  (config_get_d(CONFIG_SMOOTH_FIX) && video_perf() < NB_FRAMERATE_MIN)))
             {
                 gui_label(jd, _("Hardcore Mode"), GUI_SML, gui_gry, gui_red);
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                 gui_multi(jd, _("Hardcore Mode is not available\n"
                                 "with slowdown, cheat or smooth fix."),
                               GUI_SML, GUI_COLOR_WHT);

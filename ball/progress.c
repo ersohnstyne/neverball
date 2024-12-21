@@ -989,7 +989,7 @@ void progress_stat(int s)
                                    &coin_rank);
             else if (!campaign_hardcore() && campaign_used() &&
                      (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                       !config_cheat() &&
 #endif
                       (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN)))
@@ -1089,7 +1089,7 @@ void progress_stat(int s)
                     )
                 {
                     if (account_get_d(ACCOUNT_DATA_WALLET_COINS) < ACCOUNT_WALLET_MAX_COINS
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                      && !config_cheat()
 #endif
                         )
@@ -1146,11 +1146,9 @@ void progress_stat(int s)
                     account_set_d(ACCOUNT_SET_UNLOCKS, 1);
                 else
 #endif
-                if (server_policy_get_d(SERVER_POLICY_EDITION) == 0)
-                {
-                    if (account_get_d(ACCOUNT_SET_UNLOCKS) == curr_set() + 1)
-                        account_set_d(ACCOUNT_SET_UNLOCKS, curr_set() + 2);
-                }
+                if (server_policy_get_d(SERVER_POLICY_EDITION) == 0 &&
+                    account_get_d(ACCOUNT_SET_UNLOCKS) == curr_set() + 1)
+                    account_set_d(ACCOUNT_SET_UNLOCKS, curr_set() + 2);
 #endif
             }
             break;
@@ -1183,7 +1181,7 @@ void progress_stat(int s)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                  && mode != MODE_HARDCORE
 #endif
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                  && !config_cheat()
 #endif
                 )
@@ -1245,9 +1243,7 @@ void progress_stop(void)
 
     /* Cannot save replay in home room. */
 
-    if (mode == MODE_NONE) return;
-
-    if (replay) return;
+    if (mode == MODE_NONE || replay) return;
 
     if (level)
     {
@@ -1313,7 +1309,7 @@ void progress_exit(void)
 
             if ((mode == MODE_CHALLENGE ||
                  mode == MODE_BOOST_RUSH)
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
              && !config_cheat()
 #endif
                 )
@@ -1328,7 +1324,7 @@ void progress_exit(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             if (mode == MODE_HARDCORE
              && !CHECK_ACCOUNT_BANKRUPT
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
              && !config_cheat()
 #endif
                 )
@@ -1336,7 +1332,7 @@ void progress_exit(void)
             else
 #endif
             if (!CHECK_ACCOUNT_BANKRUPT
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
              && !config_cheat()
 #endif
                 )
@@ -1515,7 +1511,7 @@ int  progress_next_avail(void)
          str_ends_with(next->file, ".solx")))
     {
         if ((mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
          && !config_cheat()
 #endif
             )
@@ -1629,7 +1625,7 @@ int  progress_dead(void)
 {
     if (!is_init || mode == MODE_NONE) return 1;
 
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
     if (config_cheat()) return 0;
 #endif
 
@@ -1728,15 +1724,15 @@ int progress_rfd_take_powerup(int t)
     switch (t)
     {
         case 0:
-            if (curr.rfd_earninator == 0) return 0;
+            if (curr.rfd_earninator <= 0) return 0;
             else curr.rfd_earninator--;
             break;
         case 1:
-            if (curr.rfd_floatifier == 0) return 0;
+            if (curr.rfd_floatifier <= 0) return 0;
             else curr.rfd_floatifier--;
             break;
         case 2:
-            if (curr.rfd_speedifier == 0) return 0;
+            if (curr.rfd_speedifier <= 0) return 0;
             else curr.rfd_speedifier--;
             break;
     }

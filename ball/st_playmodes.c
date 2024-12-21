@@ -199,7 +199,7 @@ static int playmodes_gui(void)
         int hardc_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE)
                            || campaign_hardcore_unlocked());
         int hardc_requirement = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                !config_cheat() &&
 #endif
                (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN);
@@ -221,7 +221,7 @@ static int playmodes_gui(void)
         }
         else if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE))
         {
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
             const char *career_text_locked = !hardc_requirement ?
                                              N_("Hardcore Mode is not available\n"
                                                 "with slowdown, cheat or smooth fix.") :
@@ -467,7 +467,7 @@ static int hardcore_start_buttn(int b, int d)
 
 struct state st_playmodes = {
     playmodes_enter,
-    shared_leave,
+    playmodes_leave,
     playmodes_paint,
     shared_timer,
     shared_point,

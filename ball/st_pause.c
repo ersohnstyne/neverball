@@ -452,12 +452,12 @@ static void pause_timer(int id, float dt)
     {
         game_step_fade(dt);
         game_server_step(dt);
+        game_client_blend(game_server_blend());
         game_client_sync(curr_mode() != MODE_NONE
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                       && !campaign_hardcore_norecordings()
 #endif
                              ? demo_fp : NULL);
-        game_client_blend(game_server_blend());
     }
 
     gui_timer(id, dt);

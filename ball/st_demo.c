@@ -680,7 +680,7 @@ static int demo_restricted_gui(void)
                 ld = gui_label(jd, infoattr, GUI_SML, GUI_COLOR_RED);
                 gui_pulse(ld, 1.2f);
 
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                 if (config_cheat())
                 {
                     md = gui_label(jd, config_get_d(CONFIG_ACCOUNT_LOAD) == 1 ?

@@ -349,12 +349,14 @@ static int title_goto_playgame(struct state *st)
 
 static int title_action(int tok, int val)
 {
-    static const char keyphrase[] = "xyzzy";
-    static char queue[sizeof (keyphrase)] = "";
-
-    char linkstr_code[MAXSTR], linkstr_cmd[MAXSTR];
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
+    static const char keyphrase[]               = "xyzzy";
+    static char       queue[sizeof (keyphrase)] = "";
 
     size_t queue_len = text_length(queue);
+#endif
+
+    char linkstr_code[MAXSTR], linkstr_cmd[MAXSTR];
 
 #if NB_HAVE_PB_BOTH==1
     const char title_social_url[3][MAXSTR] =
@@ -661,7 +663,7 @@ static int title_action(int tok, int val)
 #endif
 #endif
 
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
             if (strcmp(queue, keyphrase) == 0)
             {
                 config_set_cheat();
@@ -769,7 +771,7 @@ static int title_gui(void)
             }
 #endif
 
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
             if (config_cheat())
             {
                 if ((jd = gui_vstack(id)))
@@ -958,7 +960,7 @@ static int title_gui(void)
 
                     if ((kd = gui_varray(jd)))
                     {
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                         if (config_cheat())
                             play_id = gui_start(kd, gt_prefix("menu^Cheat"),
                                                     btn_size, TITLE_PLAY, 0);
@@ -1012,7 +1014,7 @@ static int title_gui(void)
             {
                 int btn_size = GUI_TCH;
 
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                 if (config_cheat())
                     play_id = gui_start(id, gt_prefix("menu^Cheat"),
                                             btn_size, TITLE_PLAY, 0);

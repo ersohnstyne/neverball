@@ -542,7 +542,7 @@ static int handle_key_dn(SDL_Event *e)
 
     switch (c)
     {
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
         case KEY_SCREENSHOT:
             shot();
             break;

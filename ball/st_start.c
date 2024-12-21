@@ -63,6 +63,9 @@ struct state st_start_upgraderequired;
 
 #define LEVEL_STEP 25
 
+static int total = 0;
+static int first = 0;
+
 enum
 {
     START_CHALLENGE = GUI_LAST,
@@ -136,7 +139,7 @@ static void gui_level(int id, int i)
     gui_set_label(jd, level_name(l));
 
     if (level_opened(l)
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
      || config_cheat()
 #endif
         )
@@ -154,7 +157,7 @@ static void start_over_level(int i)
     struct level *l = get_level(i);
 
     if (level_opened(l)
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
      || config_cheat()
 #endif
         )
@@ -168,10 +171,10 @@ static void start_over_level(int i)
                         level_score(l, SCORE_TIME), -1,
                         level_score(l, SCORE_GOAL), -1);
 
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
         if (config_cheat() && file_id)
-#endif
             gui_set_label(file_id, level_file(l));
+#endif
     }
 }
 
@@ -660,7 +663,7 @@ static int start_gui(void)
 
                 if (video.aspect_ratio >= 1.0f)
                 {
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                     if (config_cheat())
                     {
                         if ((ld = gui_vstack(kd)))
@@ -800,7 +803,7 @@ static int start_gui(void)
 
         gui_layout(id, 0, 0);
 
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
         if (config_cheat() && file_id)
             gui_set_trunc(file_id, TRUNC_HEAD);
 #endif
@@ -874,7 +877,7 @@ static int start_gui_options(void)
             /* OK, how about hardcore mode? */
 
             const int hardc_requirement = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                                           !config_cheat() &&
 #endif
                                           (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN) &&
@@ -1240,7 +1243,7 @@ static int start_keybd(int c, int d)
             )
             return start_action(GUI_BACK, 0);
 
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
         if (c == SDLK_c && config_cheat()
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
          && current_platform == PLATFORM_PC

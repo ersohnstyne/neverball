@@ -712,8 +712,11 @@ static int level_leave(struct state *st, struct state *next, int id, int intent)
     {
         if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
         {
+            if (st == &st_nodemo)
+                return transition_slide(id, 0, intent);
+
             gui_slide(id, GUI_REMOVE, 0, 0.16f, 0);
-            
+
             if (level_infocard_wallet_id)
                 gui_slide(level_infocard_wallet_id,
                           GUI_N | GUI_FLING | GUI_BACKWARD, 0.0f, 0.16f, 0.0f);
@@ -806,16 +809,15 @@ static int level_keybd(int c, int d)
     if (d)
     {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-            return goto_pause(&st_level);
-        if (c == KEY_POSE && current_platform == PLATFORM_PC)
-            return goto_state(&st_poser);
-#else
-        if (c == KEY_EXIT)
-            return goto_pause(&st_level);
-        if (c == KEY_POSE)
-            return goto_state(&st_poser);
+        if (current_platform == PLATFORM_PC)
 #endif
+        {
+            if (c == KEY_EXIT)
+                return goto_pause(&st_level);
+            if (c == KEY_POSE)
+                return goto_state(&st_poser);
+        }
+
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c))
         {
             if ((level_master(curr_level())
@@ -918,7 +920,7 @@ static int level_click(int b, int d)
 
 static void poser_paint(int id, float t)
 {
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
     game_client_draw(config_cheat() ? 0 : POSE_LEVEL, t);
 #else
     game_client_draw(0, t);
@@ -1018,19 +1020,13 @@ static int nodemo_keybd(int c, int d)
 
 static int nodemo_buttn(int b, int d)
 {
-    if (d)
+    if (d && (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) ||
+              config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b)))
     {
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            return campaign_used() ? goto_state(&st_play_ready) : exit_state(&st_level);
+        return campaign_used() ? goto_state(&st_play_ready) : exit_state(&st_level);
 #else
-            return exit_state(&st_level);
-#endif
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            return campaign_used() ? goto_state(&st_play_ready) : exit_state(&st_level);
-#else
-            return exit_state(&st_level);
+        return exit_state(&st_level);
 #endif
     }
     return 1;
@@ -1300,7 +1296,7 @@ struct state st_nodemo = {
     shared_point,
     shared_stick,
     shared_angle,
-    level_click,
+    shared_click_basic,
     nodemo_keybd,
     nodemo_buttn
 };

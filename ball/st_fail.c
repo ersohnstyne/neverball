@@ -736,9 +736,10 @@ static void fail_timer(int id, float dt)
 
         game_client_blend(game_server_blend());
         game_client_sync(!resume
-                      && fail_time_state
+                      && fail_time_state < 1.0f
                       && record_modes
-                      && record_campaign ? demo_fp : NULL);
+                      && record_campaign
+                      && fail_intro_animation_phase == 1 ? demo_fp : NULL);
          */
     }
 

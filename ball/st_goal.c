@@ -253,7 +253,7 @@ static int goal_gui(void)
                      !campaign_used() ||
 #endif
                      (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                       !config_cheat() &&
 #endif
                       (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN))))
@@ -453,7 +453,7 @@ static int goal_gui(void)
                 gui_space(id);
             }
             else if (campaign_used() && (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                      !config_cheat() &&
 #endif
                      (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN)))
@@ -760,9 +760,10 @@ static void goal_timer(int id, float dt)
 
         game_client_blend(game_server_blend());
         game_client_sync(!resume
-                      && goal_time_state
+                      && goal_time_state < 1.0f
                       && record_modes
-                      && record_campaign ? demo_fp : NULL);
+                      && record_campaign
+                      && goal_intro_animation_phase == 1 ? demo_fp : NULL);
 
         while ((t > 0.05f && coins_id) &&
                goal_time_state > 1.0f)
@@ -1188,8 +1189,8 @@ static void goal_hardcore_timer(int id, float dt)
     if (!restrict_hardcore_nextstate)
     {
         game_server_step(dt);
-        game_client_sync(NULL);
         game_client_blend(game_server_blend());
+        game_client_sync(NULL);
 
         game_step_fade(dt);
     }

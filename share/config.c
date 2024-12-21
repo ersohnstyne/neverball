@@ -168,7 +168,7 @@ int CONFIG_VIEW_DC;
 int CONFIG_VIEW_DZ;
 int CONFIG_ROTATE_FAST;
 int CONFIG_ROTATE_SLOW;
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
 int CONFIG_CHEAT;
 #if !defined(LOG_NO_STATS)
 int CONFIG_STATS;
@@ -325,7 +325,7 @@ static struct
     { &CONFIG_VIEW_DZ,     "view_dz",     200 },
     { &CONFIG_ROTATE_FAST, "rotate_fast", 300 },
     { &CONFIG_ROTATE_SLOW, "rotate_slow", 150 },
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
     { &CONFIG_CHEAT,       "cheat",       0 },
 #if !defined(LOG_NO_STATS)
     { &CONFIG_STATS,       "stats",       0 },
@@ -830,7 +830,7 @@ void config_save(void)
                      i == CONFIG_KEY_SCORE_NEXT    ||
                      i == CONFIG_KEY_ROTATE_FAST)
                 s = SDL_GetKeyName((SDL_Keycode) option_d[i].cur);
-#if _DEBUG && NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
             else if (i == CONFIG_CHEAT)
             {
                 if (!config_cheat())
@@ -978,7 +978,7 @@ void config_set(const char *key, const char *value)
 
 /*---------------------------------------------------------------------------*/
 
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
 int config_cheat(void)
 {
     return config_get_d(CONFIG_CHEAT);

@@ -394,6 +394,7 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
 
     if (play_update_client)
     {
+        game_client_blend(game_server_blend());
         game_client_sync(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                          !campaign_hardcore_norecordings() &&
@@ -523,12 +524,12 @@ static void play_set_timer(int id, float dt)
 
     if (play_update_client)
     {
-        game_client_blend(game_server_blend());
         game_client_sync(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                          !campaign_hardcore_norecordings() &&
 #endif
                          curr_mode() != MODE_NONE ? demo_fp : NULL);
+        game_client_blend(game_server_blend());
 
         play_update_client = 0;
         play_update_server = 1;
@@ -559,6 +560,9 @@ static void play_set_timer(int id, float dt)
 }
 
 /*---------------------------------------------------------------------------*/
+
+static int lmb_holded;
+static int rmb_holded;
 
 static int play_prep_leave(struct state *st, struct state *next, int id, int intent)
 {
@@ -627,9 +631,21 @@ static void play_prep_stick(int id, int a, float v, int bump)
 
 static int play_prep_click(int b, int d)
 {
-    if (d)
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if (current_platform == PLATFORM_PC)
+#endif
     {
         use_mouse = 1; use_keyboard = 0;
+
+        if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
+            lmb_holded = d;
+
+        if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
+            rmb_holded = d;
+    }
+
+    if (d)
+    {
 #if !defined(__WII__)
         click_camera(b);
 #endif
@@ -739,8 +755,6 @@ static int rot_get(float *v)
 
 static int play_block_state;
 
-static int lmb_holded;
-static int rmb_holded;
 static float lmb_hold_time;
 static float rmb_hold_time;
 
@@ -1005,12 +1019,12 @@ static void play_loop_timer(int id, float dt)
 
     if (play_update_client && !play_update_server)
     {
-        game_client_blend(game_server_blend());
         game_client_sync(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                          !campaign_hardcore_norecordings() &&
 #endif
                          curr_mode() != MODE_NONE ? demo_fp : NULL);
+        game_client_blend(game_server_blend());
 
         play_update_client = 0;
         play_update_server = 1;
@@ -1061,10 +1075,10 @@ static void play_loop_point(int id, int x, int y, int dx, int dy)
             {
                 tilt_x = CLAMP((-ANGLE_BOUND * 20) * powerup_get_tilt_multiply(),
                                tilt_x + dx,
-                               (ANGLE_BOUND * 20) * powerup_get_tilt_multiply());
+                               ( ANGLE_BOUND * 20) * powerup_get_tilt_multiply());
                 tilt_y = CLAMP((-ANGLE_BOUND * 20) * powerup_get_tilt_multiply(),
                                tilt_y + dy,
-                               (ANGLE_BOUND * 20) * powerup_get_tilt_multiply());
+                               ( ANGLE_BOUND * 20) * powerup_get_tilt_multiply());
 
                 game_set_pos_max_speed(tilt_x * powerup_get_tilt_multiply(),
                                        curr_mode() == MODE_BOOST_RUSH ? 0 : tilt_y * powerup_get_tilt_multiply());
@@ -1137,28 +1151,25 @@ static int play_loop_click(int b, int d)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if (current_platform == PLATFORM_PC)
+#endif
+    {
+        use_mouse = 1; use_keyboard = 0;
+
+        if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
+            lmb_holded = d;
+
+        if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
+            rmb_holded = d;
+    }
+
     if (d && use_mouse && !use_keyboard)
     {
         /*if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
             rot_set(config_get_d(DIR_R);
         if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
             rot_set(config_get_d(DIR_L);*/
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b) &&
-            current_platform == PLATFORM_PC)
-            lmb_holded = 1;
-
-        if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b) &&
-            current_platform == PLATFORM_PC)
-            rmb_holded = 1;
-#else
-        if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
-            lmb_holded = 1;
-
-        if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
-            rmb_holded = 1;
-#endif
 
 #if !defined(__WII__)
         click_camera(b);
@@ -1174,15 +1185,6 @@ static int play_loop_click(int b, int d)
             rot_clr(config_get_d(DIR_R);
         if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
             rot_clr(config_get_d(DIR_L);*/
-
-        if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
-            lmb_holded = 0;
-        if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
-            rmb_holded = 0;
-    }
-    else
-    {
-        use_mouse = 1; use_keyboard = 0;
     }
 #endif
 
@@ -1196,61 +1198,46 @@ static int play_loop_keybd(int c, int d)
     !defined(__SWITCH__)
     if (d)
     {
-#ifdef MAPC_INCLUDES_CHKP
-        if (c == SDLK_LCTRL || c == SDLK_LGUI)
-            restart_cancel_allchkp = 1;
-#endif
 
-        if (config_tst_d(CONFIG_KEY_CAMERA_R, c)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-         && current_platform == PLATFORM_PC
+        if (current_platform == PLATFORM_PC)
 #endif
-            )
-            rot_set(DIR_R, 1.0f, 0);
-        if (config_tst_d(CONFIG_KEY_CAMERA_L, c)
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-         && current_platform == PLATFORM_PC
-#endif
-            )
-            rot_set(DIR_L, 1.0f, 0);
-        if (config_tst_d(CONFIG_KEY_ROTATE_FAST, c)
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-         && current_platform == PLATFORM_PC
-#endif
-            )
-            fast_rotate = 1;
-
-        keybd_camera(c);
-
-        if (config_tst_d(CONFIG_KEY_RESTART, c)
-         && progress_same_avail()
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-         && current_platform == PLATFORM_PC
-#endif
-            )
         {
-            play_freeze_all = 1;
+#ifdef MAPC_INCLUDES_CHKP
+            if (c == SDLK_LCTRL || c == SDLK_LGUI)
+                restart_cancel_allchkp = 1;
+#endif
+            if (config_tst_d(CONFIG_KEY_CAMERA_R, c))
+                rot_set(DIR_R, 1.0f, 0);
+            if (config_tst_d(CONFIG_KEY_CAMERA_L, c))
+                rot_set(DIR_L, 1.0f, 0);
+            if (config_tst_d(CONFIG_KEY_ROTATE_FAST, c))
+                fast_rotate = 1;
+
+            keybd_camera(c);
+
+            if (config_tst_d(CONFIG_KEY_RESTART, c) &&
+                progress_same_avail())
+            {
+                play_freeze_all = 1;
 
 #ifdef MAPC_INCLUDES_CHKP
-            if (restart_cancel_allchkp)
-                checkpoints_stop();
-
-            if (last_active)
-                if (!checkpoints_load())
+                if (restart_cancel_allchkp)
                     checkpoints_stop();
+
+                if (last_active)
+                    if (!checkpoints_load())
+                        checkpoints_stop();
 #endif
-            if (progress_same())
-                goto_state(&st_play_ready);
-        }
-        if (c == KEY_EXIT
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-         && current_platform == PLATFORM_PC
-#endif
-            )
-        {
-            play_freeze_all = 1;
-            hud_speedup_reset();
-            goto_pause(curr_state());
+                if (progress_same())
+                    goto_state(&st_play_ready);
+            }
+            if (c == KEY_EXIT)
+            {
+                play_freeze_all = 1;
+                hud_speedup_reset();
+                goto_pause(curr_state());
+            }
         }
     }
     else
@@ -1275,7 +1262,7 @@ static int play_loop_keybd(int c, int d)
     if (d && (c == KEY_POSE || c == KEY_TOGGLESHOWHUD))
         toggle_hud_visibility(!hud_visibility());
 
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
     /* Used centered player or special camera orientation */
     if (d && c == KEY_LOOKAROUND && config_cheat())
         return goto_state(&st_look);

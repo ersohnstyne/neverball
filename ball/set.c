@@ -135,7 +135,7 @@ void set_store_hs(void)
 
     const struct set *s = SET_GET(sets, curr);
     fs_file fp;
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
     if ((fp = fs_open_write(config_cheat() ? s->cheat_scores : s->user_scores)))
 #else
     if ((fp = fs_open_write(s->user_scores)))
@@ -174,7 +174,7 @@ void set_store_hs(void)
 
         fs_close(fp);
     }
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
     else log_errorf("Failure to save set highscores!: %s / %s\n",
                     config_cheat() ? s->cheat_scores : s->user_scores,
                     fs_error());
@@ -410,7 +410,7 @@ static void set_load_hs(void)
 {
     struct set *s = SET_GET(sets, curr);
     fs_file fp;
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
     if ((fp = fs_open_read(config_cheat() ? s->cheat_scores : s->user_scores)))
 #else
     if ((fp = fs_open_read(s->user_scores)))
@@ -463,7 +463,7 @@ static int set_load(struct set *s, const char *filename)
     /* Skip "Misc" when not in dev mode. */
 
     if ((strcmp(filename, SET_MISC) == 0)
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
         && !config_cheat()
 #endif
         ) return 0;

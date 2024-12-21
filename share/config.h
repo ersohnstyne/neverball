@@ -139,7 +139,7 @@ extern int CONFIG_VIEW_DC;
 extern int CONFIG_VIEW_DZ;
 extern int CONFIG_ROTATE_FAST;
 extern int CONFIG_ROTATE_SLOW;
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
 extern int CONFIG_CHEAT;
 #if !defined(LOG_NO_STATS)
 extern int CONFIG_STATS;
@@ -192,7 +192,7 @@ void config_set(const char *, const char *);
 
 /*---------------------------------------------------------------------------*/
 
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
 int  config_cheat(void);
 #else
 /* This keys is not available for cheat */

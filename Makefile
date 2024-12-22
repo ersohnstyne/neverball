@@ -72,13 +72,13 @@ endif
 ifneq ($(FS_VERSION),1)
 ifeq ($(ENABLE_FETCH),curl)
 ifeq (, $(LIBCURL_CHECK))
-$(error No $(LIBCURL_PKGNAME) installed, consider doing $(LIBCURL_DOINSTALL))
+$(error No package $(LIBCURL_PKGNAME) installed, consider doing $(LIBCURL_DOINSTALL))
 endif
 endif
 ifneq (, $(LIBCURL_CHECK))
 ENABLE_FETCH := curl
 else
-$(info No $(LIBCURL_PKGNAME) installed, so downloads are disabled)
+$(info No package $(LIBCURL_PKGNAME) installed, so downloads are disabled)
 endif
 DATADIR := ./data
 endif

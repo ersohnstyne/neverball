@@ -982,11 +982,12 @@ static int main_init(int argc, char *argv[])
     srand((int) time(NULL));
 
     opt_init(argc, argv);
-    
-    config_paths(NULL);
 
-    for (List p = opt_data_multi; p; p = p->next)
-        fs_add_path_with_archives((const char *) p->data);
+    if (opt_data_multi)
+        for (List p = opt_data_multi; p; p = p->next)
+            fs_add_path_with_archives((const char*)p->data);
+
+    config_paths(NULL);
 
     log_init("Neverputt " VERSION, "neverputt.log");
 #if NB_HAVE_PB_BOTH!=1

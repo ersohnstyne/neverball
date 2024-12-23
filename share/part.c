@@ -31,8 +31,11 @@ struct part
 {
     float v[3];               /* Velocity                                    */
     float w;                  /* Angular velocity (degrees)                  */
+    float dv;                 /* Drag                                        */
+
     float p[3];               /* Position                                    */
     float c[3];               /* Color                                       */
+
     float t;                  /* Time until death. Doubles as opacity.       */
 };
 
@@ -179,6 +182,8 @@ void part_burst(const float *p, const float *c)
 
             coin_part[i].w = V_DEG(w);
 
+            coin_part[i].dv = 0.0f;
+
             coin_part[i].t = 1.f;
 
             part_lerp_burst(i);
@@ -199,6 +204,9 @@ static void part_fall(const float *g, float dt)
             coin_part[i].t -= dt;
 
             v_mad(coin_part[i].v, coin_part[i].v, g, dt);
+
+            if (coin_part[i].dv > 0.0f)
+                v_scl(coin_part[i].v, coin_part[i].v, CLAMP(0.0f, 1.0f / MAX(1.0f, coin_part[i].dv + 1.0f), 1.0f));
 
             v_mad(part_lerp_coin[i].p[CURR], part_lerp_coin[i].p[CURR], coin_part[i].v, dt);
         }
@@ -234,17 +242,16 @@ void part_draw_coin(const struct s_draw *draw, struct s_rend *rend, const float 
                           coin_part[i].c[1],
                           coin_part[i].c[2],
 #if ENABLE_MOTIONBLUR!=0
-                          config_get_d(CONFIG_MOTIONBLUR) ? (coin_part[i].t * video_motionblur_alpha_get()) : coin_part[i].t);
+                          config_get_d(CONFIG_MOTIONBLUR) ? (MAX(1, coin_part[i].t) * video_motionblur_alpha_get()) : MIN(1, coin_part[i].t));
 #else
-                          coin_part[i].t);
+                          MIN(1, coin_part[i].t));
 #endif
 
                 glPushMatrix();
                 {
                     glTranslatef(coin_part[i].p[0], coin_part[i].p[1], coin_part[i].p[2]);
 
-                    if (M)
-                        glMultMatrixf(M);
+                    if (M) glMultMatrixf(M);
 
                     glScalef(PART_SIZE * 2.0f, PART_SIZE * 2.0f, 1.0f);
                     glRotatef((coin_part[i].t - 1) * coin_part[i].w, 0.0f, 0.0f, 1.0f);
@@ -261,7 +268,7 @@ void part_draw_coin(const struct s_draw *draw, struct s_rend *rend, const float 
 
     glColor4f(1.0f, 1.0f, 1.0f,
 #if ENABLE_MOTIONBLUR!=0
-              config_get_d(CONFIG_MOTIONBLUR) ? (1.0f * video_motionblur_alpha_get()) : coin_part[i].t);
+              config_get_d(CONFIG_MOTIONBLUR) ? (1.0f * video_motionblur_alpha_get()) : 1.0f);
 #else
               1.0f);
 #endif

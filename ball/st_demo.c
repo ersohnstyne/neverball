@@ -1241,6 +1241,12 @@ static int demo_timer_down = -1;
 /* Keyboard inputs */
 static int faster;
 
+static int filter_cmd_goal(const union cmd* cmd)
+{
+    return (cmd ? cmd->type != CMD_SOUND &&
+                  cmd->type != CMD_TIMER    : 1);
+}
+
 int demo_pause_goto(int paused)
 {
     demo_paused = paused && curr_status() == GAME_NONE;
@@ -1404,6 +1410,8 @@ static void demo_play_timer(int id, float dt)
     if (demo_timer_down == -1 && time_state() >= prelude)
         demo_timer_down = demo_timer_last > demo_timer_curr;
 
+    game_proxy_filter(curr_status() != GAME_NONE ? filter_cmd_goal : 0);
+
     /* Pause briefly before starting playback. */
 
     if (time_state() < prelude || st_global_animating())
@@ -1466,7 +1474,7 @@ static int demo_play_click(int b, int d)
         if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
         {
             demo_replay_manual_speed(2.0f); speed_manual = 1;
-            game_proxy_filter(filter_cmd);
+            game_proxy_filter(curr_status() != GAME_NONE ? filter_cmd_goal : filter_cmd);
             audio_music_fade_out(0.2f);
         }
     }
@@ -1478,7 +1486,7 @@ static int demo_play_click(int b, int d)
             speed_manual = 0;
         }
 
-        game_proxy_filter(NULL);
+        game_proxy_filter(curr_status() != GAME_NONE ? filter_cmd_goal : NULL);
         audio_music_fade_in(0.5f);
     }
 
@@ -1633,6 +1641,9 @@ static int demo_end_gui(void)
 
 static int demo_end_enter(struct state *st, struct state *prev, int intent)
 {
+    if (!demo_paused)
+        game_proxy_filter(NULL);
+
     audio_music_fade_out(demo_paused ? 0.2f : 2.0f);
 
     if (demo_paused && prev == &st_demo_play)

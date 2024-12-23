@@ -1872,10 +1872,11 @@ static int main_init(int argc, char *argv[])
 
     opt_init(argc, argv);
 
-    config_paths(NULL);
+    if (opt_data_multi)
+        for (List p = opt_data_multi; p; p = p->next)
+            fs_add_path_with_archives((const char*)p->data);
 
-    for (List p = opt_data_multi; p; p = p->next)
-        fs_add_path_with_archives((const char *) p->data);
+    config_paths(NULL);
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \

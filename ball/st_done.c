@@ -37,8 +37,10 @@
 #include "key.h"
 
 #include "game_common.h"
+#include "game_server.h"
 #include "game_client.h"
 
+#include "st_common.h"
 #include "st_done.h"
 #include "st_goal.h"
 #include "st_start.h"
@@ -350,6 +352,31 @@ static int done_enter(struct state *st, struct state *prev, int intent)
                             done_gui_set(), 1, intent);
 }
 
+static int done_leave(struct state *st, struct state *next, int id, int intent)
+{
+    if (next == &st_null)
+    {
+        progress_exit();
+
+        campaign_quit();
+        set_quit();
+
+        game_server_free(NULL);
+        game_client_free(NULL);
+
+        gui_delete(id);
+        return 0;
+    }
+
+    if (next == &st_done)
+    {
+        gui_delete(id);
+        return 0;
+    }
+
+    return transition_slide(id, 0, intent);
+}
+
 static void done_timer(int id, float dt)
 {
     gui_timer(id, dt);
@@ -456,7 +483,7 @@ static int capital_buttn(int b, int d)
 
 struct state st_done = {
     done_enter,
-    shared_leave,
+    done_leave,
     shared_paint,
     done_timer,
     shared_point,

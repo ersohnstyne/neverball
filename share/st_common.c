@@ -901,12 +901,13 @@ static int video_gui(void)
 #endif
 
         gui_space(id);
+#endif
 
         conf_toggle(id, _("Textures"), VIDEO_TEXTURES,
                         config_get_d(CONFIG_TEXTURES), _("High"), 1, _("Low"), 2);
 
         gui_space(id);
-#endif
+
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)

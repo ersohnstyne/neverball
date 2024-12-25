@@ -67,11 +67,12 @@ static int switchball_useable(void)
     const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
     const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
 
-    SDL_Keycode k_arrowkey[4];
-    k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
-    k_arrowkey[1] = config_get_d(CONFIG_KEY_LEFT);
-    k_arrowkey[2] = config_get_d(CONFIG_KEY_BACKWARD);
-    k_arrowkey[3] = config_get_d(CONFIG_KEY_RIGHT);
+    SDL_Keycode k_arrowkey[4] = {
+        config_get_d(CONFIG_KEY_FORWARD),
+        config_get_d(CONFIG_KEY_LEFT),
+        config_get_d(CONFIG_KEY_BACKWARD),
+        config_get_d(CONFIG_KEY_RIGHT)
+    };
 
     if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2 &&
         k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT &&

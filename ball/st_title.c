@@ -136,11 +136,11 @@ int load_title_background(void)
     game_client_toggle_show_balls(1);
 #endif
 
-    float home_pos[3];
-
-    home_pos[0] = switchball_useable() ? 0.0f : -1.0f;
-    home_pos[1] = 10.0f;
-    home_pos[2] = 10.0f;
+    float home_pos[3] = {
+        switchball_useable() ? 0.0f : -1.0f,
+        10.0f,
+        10.0f
+    };
 
     game_view_set_static_cam_view(1, home_pos);
 
@@ -321,7 +321,7 @@ enum
     TITLE_SOCIAL = 199
 };
 
-int edition_id;
+static int edition_id;
 
 static int title_check_playername(const char *regname)
 {
@@ -350,13 +350,13 @@ static int title_goto_playgame(struct state *st)
 static int title_action(int tok, int val)
 {
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
-    static const char keyphrase[]               = "msxdev";
+           const char keyphrase[]               = "msxdev";
     static char       queue[sizeof (keyphrase)] = "";
 
     size_t queue_len = text_length(queue);
 #endif
 
-    char linkstr_code[MAXSTR], linkstr_cmd[MAXSTR];
+    char linkstr_cmd[MAXSTR];
 
 #if NB_HAVE_PB_BOTH==1
     const char title_social_url[3][MAXSTR] =
@@ -449,21 +449,17 @@ static int title_action(int tok, int val)
     !defined(__SWITCH__)
 #if defined(__EMSCRIPTEN__)
             EM_ASM({ window.open("https://discord.gg/qnJR263Hm2"); }, 0);
-#else
-            SAFECPY(linkstr_code, "qnJR263Hm2");
-
-#if _WIN32
-            SAFECPY(linkstr_cmd, "start msedge https://discord.gg/");
+#elif _WIN32
+            SAFECPY(linkstr_cmd, "start msedge https://discord.gg/qnJR263Hm2");
 #elif defined(__APPLE__)
-            SAFECPY(linkstr_cmd, "open https://discord.gg/");
+            SAFECPY(linkstr_cmd, "open https://discord.gg/qnJR263Hm2");
 #elif defined(__linux__)
-            SAFECPY(linkstr_cmd, "x-www-browser https://discord.gg/");
+            SAFECPY(linkstr_cmd, "x-www-browser https://discord.gg/qnJR263Hm2");
 #endif
 
             SAFECAT(linkstr_cmd, linkstr_code);
 
             system(linkstr_cmd);
-#endif
 #endif
             break;
 #endif
@@ -994,7 +990,7 @@ static int title_gui(void)
                         /* Hilight the start button. */
 
                         gui_set_hilite(play_id, 1);
-                        gui_set_slide(kd, GUI_N | GUI_EASE_ELASTIC, 0.8f, 0.8f, 0.05f);
+                        gui_set_slide(kd, GUI_N | GUI_EASE_ELASTIC, 0.8f, 1.0f, 0.05f);
                     }
 
                     gui_filler(jd);
@@ -1051,7 +1047,7 @@ static int title_gui(void)
                 /* Hilight the start button. */
 
                 gui_set_hilite(play_id, 1);
-                gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 0.8f, 0.8f, 0.05f);
+                gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 0.8f, 1.0f, 0.05f);
 
                 gui_layout(id, 0, -1);
             }
@@ -1091,7 +1087,7 @@ static int title_gui(void)
                         gui_clr_rect(btn_social);
                     }
 
-                    gui_set_slide(id, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 0.8f, 0.05f);
+                    gui_set_slide(id, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 1.0f, 0.05f);
 
                     gui_space(jd);
                 }
@@ -1146,7 +1142,7 @@ static int title_gui(void)
                         gui_label(jd, account_coinsattr, GUI_XS, gui_wht, gui_yel);
                     }
 
-                    gui_set_slide(id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 0.8f, 0.05f);
+                    gui_set_slide(id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 1.0f, 0.05f);
                     gui_layout(id, +1, +1);
                 }
             }

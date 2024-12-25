@@ -520,16 +520,20 @@ static int gui_demo_status(int id)
             if ((ld = gui_vstack(kd)))
             {
                 gui_filler(ld);
-
-                name_id   = gui_label(ld, " ", GUI_SML, 0, 0);
-                player_id = gui_label(ld, " ", GUI_SML, 0, 0);
-                date_id   = gui_label(ld, date_to_str(time(NULL)),
-                                      GUI_SML, 0, 0);
+                
+                name_id   = gui_label(ld, "XXXXXXXXXXXXXXXXX", GUI_SML, 0, 0);
+                player_id = gui_label(ld, "XXXXXXXXXXXXXXXXX", GUI_SML, 0, 0);
+                date_id   = gui_label(ld, "XXXXXXXXXXXXXXXXX", GUI_SML, 0, 0);
 
                 gui_filler(ld);
 
                 gui_set_trunc(name_id,   TRUNC_TAIL);
                 gui_set_trunc(player_id, TRUNC_TAIL);
+                gui_set_trunc(date_id,   TRUNC_TAIL);
+
+                gui_set_label(name_id,   " ");
+                gui_set_label(player_id, " ");
+                gui_set_label(date_id,   date_to_str(time(NULL)));
             }
 
             if ((ld = gui_vstack(kd)))
@@ -872,7 +876,7 @@ static int demo_gui(void)
                     int header_id = gui_label(jd, availibility_header_monitor,
                         GUI_SML, 0, 0);
 
-                    float availibility_percent = ((float)availibility / (float)total);
+                    float availibility_percent = ((float) availibility / (float) total);
 
                     if (availibility_percent >= 0.75f)
                         gui_set_color(header_id, gui_wht, gui_cya);

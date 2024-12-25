@@ -237,7 +237,7 @@ static int over_gui(void)
     }
 #else
     /* Do this for now! */
-    int id, jd, kd;
+    int id, jd;
 
     int high = progress_set_high();
 

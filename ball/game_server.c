@@ -1723,7 +1723,7 @@ static int game_update_state(int bt)
     struct b_goal *zp;
     int hi, cami;
 
-    float p[3];
+    float p[3] = { 0.0f, 0.0f, 0.0f };
 
     /* New: Hold timer mode */
 

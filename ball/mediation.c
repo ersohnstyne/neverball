@@ -18,8 +18,6 @@
 
 static int mediation = 0;
 
-void mediation_init(void) { mediation = 1; }
-
-void mediation_stop(void) { mediation = 0; }
-
-int mediation_enabled(void) { return mediation; }
+void mediation_init(void)    { mediation = 1;    }
+void mediation_stop(void)    { mediation = 0;    }
+int  mediation_enabled(void) { return mediation; }

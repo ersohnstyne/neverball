@@ -936,6 +936,7 @@ static void game_draw_fore(struct s_rend *rend,
 
             game_draw_beams(rend, gd);
             part_draw_coin(draw, rend, M, t);
+            part_draw_goal(draw, rend, M, t);
 
             /* Draw the entity particles using only the sparkle light. */
 

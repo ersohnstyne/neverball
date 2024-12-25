@@ -184,6 +184,7 @@ static void *image_load_jpg(const char *filename, int *width,
         /* Initialize the JPG decompressor. */
 
         memset(&cinfo, 0, sizeof (cinfo));
+        memset(&err,   0, sizeof (err));
 
         /* Install our error_exit replacement. */
 

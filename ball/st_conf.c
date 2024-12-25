@@ -335,7 +335,7 @@ static int conf_covid_extended = 0;
 #define CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3 \
     _("Always active")
 
-int save_id, load_id;
+static int save_id, load_id;
 int online_mode;
 
 enum
@@ -370,7 +370,8 @@ static int conf_account_action(int tok, int val)
             break;
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
-    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__EMSCRIPTEN__)
         case CONF_ACCOUNT_SIGNIN:
             return goto_wgcl_login(&st_conf_account, 0,
                                    &st_conf_account, 0);
@@ -523,7 +524,7 @@ static int conf_account_action(int tok, int val)
     return 1;
 }
 
-int time_remain_lbl_id;
+static int time_remain_lbl_id;
 
 static int conf_account_gui(void)
 {
@@ -556,7 +557,7 @@ static int conf_account_gui(void)
         int save = config_get_d(CONFIG_ACCOUNT_SAVE);
         int load = config_get_d(CONFIG_ACCOUNT_LOAD);
 
-        int name_id, ball_id, beam_id;
+        int name_id = 0, ball_id, beam_id;
 
         conf_header(id, _("Account"), GUI_BACK);
 
@@ -670,21 +671,23 @@ static int conf_account_gui(void)
 
 #ifndef __EMSCRIPTEN__
 #if NB_HAVE_PB_BOTH==1
-            if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
+            if (server_policy_get_d(SERVER_POLICY_EDITION) != 0 &&
+                name_id)
+#else
+            if (name_id)
 #endif
             {
                 gui_set_trunc(name_id, TRUNC_TAIL);
                 gui_set_label(name_id, player);
             }
 #endif
+
 #if NB_HAVE_PB_BOTH==1
             gui_set_trunc(ball_id, TRUNC_TAIL);
 #ifdef CONFIG_INCLUDES_ACCOUNT
             gui_set_trunc(beam_id, TRUNC_TAIL);
 #endif
-#endif
 
-#if NB_HAVE_PB_BOTH==1
 #if NB_EOS_SDK==0 || NB_STEAM_API==0
             if (account_wgcl_name_read_only() ||
                 online_mode || !account_changeable)
@@ -696,21 +699,19 @@ static int conf_account_gui(void)
                  */
 
 #ifndef __EMSCRIPTEN__
-#if NB_HAVE_PB_BOTH==1
                 if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
-#endif
                 {
                     gui_set_state(name_id, GUI_NONE, 0);
                     gui_set_color(name_id, GUI_COLOR_GRY);
                 }
 #endif
             }
-#endif
 
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
             gui_set_label(ball_id, _("Manage"));
 #else
             gui_set_label(ball_id, base_name(ball));
+#endif
 #endif
 
             const char *beam_version_name = "";
@@ -733,7 +734,9 @@ static int conf_account_gui(void)
             }
 #endif
 
+#if NB_HAVE_PB_BOTH==1
             gui_set_label(beam_id, beam_version_name);
+#endif
 
             gui_space(id);
         }

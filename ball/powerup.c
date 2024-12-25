@@ -20,13 +20,6 @@ static float coinmultiply = 1.0f;
 static float gravmultiply = 1.0f;
 static float tiltmultiply = 1.0f;
 
-void powerup_stop(void)
-{
-    coinmultiply = 1.0f;
-    gravmultiply = 1.0f;
-    tiltmultiply = 1.0f;
-}
-
 void powerup_init_earninator(void)
 {
     /* If you use earninator, set the Coin Multiply to 2 */
@@ -45,17 +38,13 @@ void powerup_init_speedifier(void)
     tiltmultiply = 2;
 }
 
-float powerup_get_coin_multiply(void)
+void powerup_stop(void)
 {
-    return coinmultiply;
+    coinmultiply = 1.0f;
+    gravmultiply = 1.0f;
+    tiltmultiply = 1.0f;
 }
 
-float powerup_get_grav_multiply(void)
-{
-    return gravmultiply;
-}
-
-float powerup_get_tilt_multiply(void)
-{
-    return tiltmultiply;
-}
+float powerup_get_coin_multiply(void) { return coinmultiply; }
+float powerup_get_grav_multiply(void) { return gravmultiply; }
+float powerup_get_tilt_multiply(void) { return tiltmultiply; }

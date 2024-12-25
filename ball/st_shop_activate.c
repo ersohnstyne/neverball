@@ -160,10 +160,12 @@ static int shop_activate_action(int tok, int val)
                 int new_gems  = account_get_d(ACCOUNT_DATA_WALLET_GEMS)       + curr_orderpack().Wallets[1];
                 int new_lives = account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + curr_orderpack().Balls;
 
-                int prev_powers[3], new_powers[3];
-                prev_powers[0] = account_get_d(ACCOUNT_CONSUMEABLE_EARNINATOR);
-                prev_powers[1] = account_get_d(ACCOUNT_CONSUMEABLE_FLOATIFIER);
-                prev_powers[2] = account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER);
+                int new_powers[3], prev_powers[3] = {
+                    account_get_d(ACCOUNT_CONSUMEABLE_EARNINATOR),
+                    account_get_d(ACCOUNT_CONSUMEABLE_FLOATIFIER),
+                    account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER)
+                };
+
                 v_add(new_powers, prev_powers, curr_orderpack().Powerups);
 
                 /* Do the same as well? */

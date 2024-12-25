@@ -281,10 +281,10 @@ static int setup_gamedeps_card(int pd,
 #else
     SAFECPY(program_path, "/");
 #endif
-
+    
     SAFECPY(gameapp_path_classic, program_path);
-    SAFECPY(gameapp_path_epic, program_path);
-    SAFECPY(gameapp_path_steam, program_path);
+    SAFECPY(gameapp_path_epic,    program_path);
+    SAFECPY(gameapp_path_steam,   program_path);
 
     SAFECAT(gameapp_path_classic, install_path_classic);
 

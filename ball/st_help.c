@@ -1205,9 +1205,9 @@ static int page_tricks(int id)
 
 static int help_gui(void)
 {
+#ifdef SWITCHBALL_HELP
     int root_id, id, jd, kd;
 
-#ifdef SWITCHBALL_HELP
     root_id = gui_root();
 
     if ((id = gui_vstack(root_id)))
@@ -1314,6 +1314,8 @@ static int help_gui(void)
 
     return root_id;
 #else
+    int id;
+
     if ((id = gui_vstack(0)))
     {
         help_menu(id);

@@ -18,7 +18,6 @@
 #include "console_control_gui.h"
 
 #if NB_HAVE_PB_BOTH==1
-
 #include "campaign.h"
 #include "powerup.h"
 #include "mediation.h"

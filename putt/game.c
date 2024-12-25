@@ -734,7 +734,7 @@ void game_set_fly(float k)
     float p0[3] = { 0.f, 0.f, 0.f };
     float c1[3] = { 0.f, 0.f, 0.f };
     float p1[3] = { 0.f, 0.f, 0.f };
-    float  v[3];
+    float  v[3] = { 0.f, 0.f, 0.f };
 
     if (!state)
         return;

@@ -269,7 +269,7 @@ time_t make_time_from_utc(struct tm *tm)
 
 const char *date_to_str(time_t i)
 {
-    static char str[sizeof ("dd.mm.YYYY HH:MM:SS")];
+    char str[sizeof ("dd.mm.YYYY HH:MM:SS")];
 #if _MSC_VER
     struct tm output_tm;
     localtime_s(&output_tm, &i);

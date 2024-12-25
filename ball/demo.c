@@ -110,17 +110,18 @@ static int demo_header_read(fs_file fp, struct demo *d, int fp_ten)
         get_string(fp, datestr, sizeof (datestr));
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sscanf_s(datestr,
+        if (sscanf_s(datestr,
 #else
-        sscanf(datestr,
+        if (sscanf(datestr,
 #endif
-               "%d-%d-%dT%d:%d:%d",
-               &date.tm_year,
-               &date.tm_mon,
-               &date.tm_mday,
-               &date.tm_hour,
-               &date.tm_min,
-               &date.tm_sec);
+                  "%d-%d-%dT%d:%d:%d",
+                  &date.tm_year,
+                  &date.tm_mon,
+                  &date.tm_mday,
+                  &date.tm_hour,
+                  &date.tm_min,
+                  &date.tm_sec) != 6)
+            return 0;
 
         date.tm_year -= 1900;
         date.tm_mon  -= 1;

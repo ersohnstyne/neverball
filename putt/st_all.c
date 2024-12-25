@@ -726,24 +726,15 @@ static int course_action(int i)
 {
     PUTT_GAMEMENU_ACTION(COURSE_BACK);
 
-    if (i == COURSE_GETONLINE)
-    {
-#if NB_STEAM_API==1
-#elif defined(__EMSCRIPTEN__)
-        EM_ASM({ window.open("https://drive.google.com/drive/folders/1YJzHckEBn15rNemvFy56Ig5skY3KX3Rp"); }, 0);
-#elif _WIN32
-        system("start msedge https://drive.google.com/drive/folders/1YJzHckEBn15rNemvFy56Ig5skY3KX3Rp");
-#elif defined(__APPLE__)
-        system("open https://drive.google.com/drive/folders/1YJzHckEBn15rNemvFy56Ig5skY3KX3Rp");
-#elif defined(__linux__)
-        system("x-www-browser https://drive.google.com/drive/folders/1YJzHckEBn15rNemvFy56Ig5skY3KX3Rp");
-#endif
-    }
+    if (i == COURSE_GETONLINE);
+        /* Not in use */
+
     if (course_exists(i))
     {
         course_goto(i);
         goto_state(&st_party);
     }
+
     if (i == COURSE_BACK)
         exit_state(&st_title);
 
@@ -788,15 +779,6 @@ static int course_enter(struct state *st, struct state *prev, int intent)
             if (current_platform == PLATFORM_PC)
 #endif
                 shared_back_button(id);
-
-            if (server_policy_get_d(SERVER_POLICY_EDITION) >= 0)
-            {
-#if NB_STEAM_API==1
-                gui_state(id, _("Get Courses from Steam Workshop!"), GUI_SML, COURSE_GETONLINE, 0);
-#else
-                gui_state(id, _("Get Courses from Website!"), GUI_SML, COURSE_GETONLINE, 0);
-#endif
-            }
 
             gui_layout(id, 0, 0);
         }
@@ -2279,8 +2261,6 @@ static int retry_enter(struct state *st, struct state *prev, int intent)
         joy_active_cursor(curr_player() - 1, curr_player() == 3);
         joy_active_cursor(curr_player() - 1, curr_player() == 4);
     }
-
-    int id;
 
     if ((id = gui_title_header(0, _("Retry"), GUI_MED, gui_blk, gui_red)))
     {

@@ -1690,6 +1690,7 @@ void video_motionblur_quit(void)
     }
 
     glDeleteBuffers_(1, &motionblur_vbo);
+    glDeleteBuffers_(1, &motionblur_ebo);
 }
 
 #if __cplusplus

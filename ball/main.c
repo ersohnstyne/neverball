@@ -147,7 +147,6 @@ extern "C" {
 #include "rfd.h"
 #endif
 #include "log.h"
-#include "game_client.h"
 #include "strbuf/substr.h"
 #include "strbuf/joinstr.h"
 #include "lang.h"
@@ -422,11 +421,21 @@ static void opt_init(int argc, char **argv)
 
             if (level)
                 opt_level = argv[i];
-            else
+            else if (str_ends_with(argv[i], ".nbr") ||
+                     str_ends_with(argv[i], ".nbrx"))
                 opt_replay = argv[i];
 
             break;
         }*/
+
+        if (argc == 2)
+        {
+            size_t len = strlen(argv[i]);
+
+            if (str_ends_with(argv[i], ".nbr") ||
+                str_ends_with(argv[i], ".nbrx"))
+                opt_replay = argv[i];
+        }
     }
 }
 
@@ -756,18 +765,14 @@ static int goto_level(const List level_multi)
 
     List                p = NULL;
     static struct level lvl_v[30];
-
-    int        lvl_count = 0;
-    static int lvl_count_loaded = 0;
-
-    static int lvl_classic = 0;
-    static int lvl_bonus = 0;
+    
+    int lvl_count        = 0;
+    int lvl_count_loaded = 0;
 
     for (p = (const List) level_multi; p && lvl_count < 30; p = p->next)
     {
-        struct level* lvl = &lvl_v[lvl_count_loaded];
-
-        const char* path = fs_resolve((const char *) p->data);
+        struct level *lvl  = &lvl_v[lvl_count_loaded];
+        const char   *path = fs_resolve((const char *) p->data);
 
         if (path &&
             (str_ends_with(path, ".csol")  ||

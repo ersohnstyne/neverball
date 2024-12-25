@@ -558,7 +558,7 @@ account_wgcl_reload_fail:
     }
 
     EM_ASM({
-        Pennyball.gamecore_account_try_reload();
+        Neverball.gamecore_account_try_reload();
     }, 0);
 
     return 1;
@@ -715,11 +715,6 @@ int account_wgcl_logout(void)
 int account_wgcl_try_add(int w_coins, int w_gems,
                          int c_hp, int c_doublecash, int c_halfgrav, int c_doublespeed)
 {
-#if !defined(__NDS__) && !defined(__3DS__) && \
-    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__EMSCRIPTEN__)
-#if _WIN32 && _MSC_VER
-#if NB_HAVE_PB_BOTH==1
     if (!(session_uuid4 && *session_uuid4))
         return 1;
 
@@ -750,6 +745,11 @@ int account_wgcl_try_add(int w_coins, int w_gems,
     const int c_halfgrav_next    = c_halfgrav_curr    + pending_add_consumable_halfgrav;
     const int c_doublespeed_next = c_doublespeed_curr + pending_add_consumable_doublespeed;
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__EMSCRIPTEN__)
+#if _WIN32 && _MSC_VER
+#if NB_HAVE_PB_BOTH==1
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
     sprintf_s(in_url, 512,
@@ -851,6 +851,9 @@ account_wgcl_try_add_fail:
     return 1;
 #endif
 #elif defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+    char in_url[512];
+    sprintf(in_url, "https://%s/api/internal/updateassets", WGCL_URL);
+
     char json_data[512];
     sprintf(json_data,
             "{"
@@ -865,9 +868,10 @@ account_wgcl_try_add_fail:
             session_uuid4,
             w_coins_next, w_gems_next,
             c_hp_next, c_doublecash_next, c_halfgrav_next, c_doublespeed_next);
+
     EM_ASM({
-        Pennyball.gamecore_account_try_update($0);
-    }, json_data);
+        Neverball.gamecore_account_try_update($0, $1);
+    }, in_url, json_data);
 
     return 1;
 #else
@@ -878,25 +882,25 @@ account_wgcl_try_add_fail:
 int account_wgcl_try_set(int w_coins, int w_gems,
                          int c_hp, int c_doublecash, int c_halfgrav, int c_doublespeed)
 {
-#if !defined(__NDS__) && !defined(__3DS__) && \
-    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__EMSCRIPTEN__)
-#if _WIN32 && _MSC_VER
-#if NB_HAVE_PB_BOTH==1
     if (!(session_uuid4 && *session_uuid4))
         return 1;
 
     if (!assets_set_is_pending)
     {
-        assets_set_is_pending              = 1;
-        pending_set_wallet_coins           = w_coins;
-        pending_set_wallet_gems            = w_gems;
-        pending_set_consumable_hp          = c_hp;
-        pending_set_consumable_doublecash  = c_doublecash;
-        pending_set_consumable_halfgrav    = c_halfgrav;
+        assets_set_is_pending = 1;
+        pending_set_wallet_coins = w_coins;
+        pending_set_wallet_gems = w_gems;
+        pending_set_consumable_hp = c_hp;
+        pending_set_consumable_doublecash = c_doublecash;
+        pending_set_consumable_halfgrav = c_halfgrav;
         pending_set_consumable_doublespeed = c_doublespeed;
     }
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__EMSCRIPTEN__)
+#if _WIN32 && _MSC_VER
+#if NB_HAVE_PB_BOTH==1
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
     sprintf_s(in_url, 512,
@@ -998,6 +1002,9 @@ account_wgcl_try_set_fail:
     return 1;
 #endif
 #elif defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+    char in_url[512];
+    sprintf(in_url, "https://%s/api/internal/updateassets", WGCL_URL);
+
     char json_data[512];
     sprintf(json_data,
             "{"
@@ -1010,11 +1017,12 @@ account_wgcl_try_set_fail:
             "    \"player_consumable_doublespeed\":%d"
             "}",
             session_uuid4,
-            w_coins_next, w_gems_next,
-            c_hp_next, c_doublecash_next, c_halfgrav_next, c_doublespeed_next);
+            pending_set_wallet_coins, pending_set_wallet_gems,
+            pending_set_consumable_hp, pending_set_consumable_doublecash, pending_set_consumable_halfgrav, pending_set_consumable_doublespeed);
+
     EM_ASM({
-        Pennyball.gamecore_account_try_update($0);
-    }, json_data);
+        Neverball.gamecore_account_try_update($0, $1);
+    }, in_url, json_data);
 
     return 1;
 #else

@@ -246,6 +246,10 @@ static void game_run_cmd(const union cmd *cmd)
 
             case CMD_STATUS:
                 status = cmd->status.t;
+
+                if (status == GAME_GOAL)
+                    part_goal(gl.lerp.uv[0][0].p);
+
                 break;
 
             case CMD_COINS:

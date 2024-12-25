@@ -75,7 +75,7 @@ int goto_ball_setup(struct state *finish)
 
 struct model_ball
 {
-    char *path;
+    char path[MAX_PATH];
 };
 
 static int ball_manual_hotreload = 0;
@@ -176,11 +176,11 @@ static void scan_balls(void)
         {
             struct model_ball *ball = array_add(balls);
 
-            char tmp_path[64];
+            char tmp_path[MAX_PATH];
             SAFECPY(tmp_path, path);
 
 #if _WIN32
-            for (j = 0; j < 64; j++)
+            for (j = 0; j < MAX_PATH; j++)
                 if (tmp_path[j] == '/')
                     tmp_path[j] = '\\';
 #endif
@@ -188,7 +188,7 @@ static void scan_balls(void)
             if (!has_ball_sols(tmp_path))
                 array_del(balls);
             else
-                ball->path = strdup(tmp_path);
+                SAFECPY(ball->path, tmp_path);
         }
         fs_close(fin);
     }
@@ -198,7 +198,7 @@ static void scan_balls(void)
      * them after the first group in alphabetic order.
      */
 
-    /*if ((items = fs_dir_scan("ball", has_ball_sols_dir)))
+    if ((items = fs_dir_scan("ball", has_ball_sols_dir)))
     {
         array_sort(items, cmp_dir_items);
 
@@ -206,36 +206,38 @@ static void scan_balls(void)
         {
             struct model_ball *ball = array_add(balls);
 
-            char tmp_path[64];
+            char tmp_path[MAX_PATH];
             SAFECPY(tmp_path, DIR_ITEM_GET(items, i)->path);
 
 #if _WIN32
-            for (j = 0; j < 64; j++)
+            for (j = 0; j < MAX_PATH; j++)
                 if (tmp_path[j] == '/')
                     tmp_path[j] == '\\';
 #endif
 
-            if (!has_ball_sols(tmp_path))
-                array_del(balls);
+            if (!has_ball_sols(tmp_path)) array_del(balls);
             else
             {
                 int skip_scan = 0;
 
                 for (j = 0; j < array_len(balls) && !skip_scan; j++)
                 {
-                    if (strcmp(MODEL_BALL_GET(balls, j)->path, tmp_path) == 0)
-                        skip_scan = 1;
+                    struct model_ball *tmp_ball = MODEL_BALL_GET(balls, j);
+
+                    if (tmp_ball)
+                        if (strcmp(tmp_ball->path, tmp_path) == 0)
+                            skip_scan = 1;
                 }
 
                 if (!skip_scan)
-                    ball->path = strdup(tmp_path);
+                    SAFECPY(ball->path, tmp_path);
                 else
                     array_del(balls);
             }
         }
 
         fs_dir_free(items);
-    }*/
+    }
 
     for (i = 0; i < array_len(balls); i++)
     {
@@ -254,12 +256,7 @@ static void free_balls(void)
     if (balls)
     {
         while (array_len(balls))
-        {
-            struct model_ball *m = MODEL_BALL_GET(balls, array_len(balls) - 1);
-
-            free((void *) m->path);
             array_del(balls);
-        }
 
         array_free(balls);
         balls = NULL;

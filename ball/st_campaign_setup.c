@@ -38,8 +38,8 @@
 #define TARGET_DATA_OUTPUT "YOUR_TARGET_DATA_DIR_HERE"
 #define CAMPAIGN_MAPC_OPTS " --campaign --skip_verify"
 
-int intro_phase;
-int donot_id;
+static int intro_phase;
+static int donot_id;
 
 /*---------------------------------------------------------------------------*/
 

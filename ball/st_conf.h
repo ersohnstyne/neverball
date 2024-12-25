@@ -17,7 +17,6 @@
 
 #include "state.h"
 
-extern int conf_covid_extended;
 extern int online_mode;
 
 extern struct state st_conf_account;

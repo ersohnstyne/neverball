@@ -35,13 +35,15 @@
 
 enum console_platforms current_platform;
 
-static int show_control_gui = 0;
+static int show_control_gui;
 
 
 /* Shared */
 
 static int xbox_control_title_id = 0;
+static int xbox_control_keybd_id = 0;
 static int xbox_control_list_id = 0;
+static int xbox_control_levelopt_id = 0;
 static int xbox_control_paused_id = 0;
 
 
@@ -73,13 +75,13 @@ void console_init_controller_type(const enum console_platforms new_platforms)
 
 void console_gui_set_alpha(float alpha)
 {
-    if (current_platform == PLATFORM_PC) return;
-
     /* Shared */
 
-    gui_set_alpha(xbox_control_title_id,  alpha, GUI_ANIMATION_S_LINEAR);
-    gui_set_alpha(xbox_control_list_id,   alpha, GUI_ANIMATION_S_LINEAR);
-    gui_set_alpha(xbox_control_paused_id, alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_title_id,    alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_keybd_id,    alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_list_id,     alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_levelopt_id, alpha, GUI_ANIMATION_S_LINEAR);
+    gui_set_alpha(xbox_control_paused_id,   alpha, GUI_ANIMATION_S_LINEAR);
 
 
     /* Generic */
@@ -448,9 +450,6 @@ void console_gui_create_a_button(int gui_id, int btn_id)
         case PLATFORM_HANDSET:
         create_handset_y_button(gui_id);
         break;
-        case PLATFORM_XBOX:
-        create_xbox_a_button(gui_id);
-        break;
         case PLATFORM_PS:
         create_ps4_a_button(gui_id);
         break;
@@ -460,6 +459,8 @@ void console_gui_create_a_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_a_button(gui_id);
         break;
+        default:
+        create_xbox_a_button(gui_id);
     }
 }
 
@@ -507,9 +508,6 @@ void console_gui_create_b_button(int gui_id, int btn_id)
         case PLATFORM_HANDSET:
         create_handset_x_button(gui_id);
         break;
-        case PLATFORM_XBOX:
-        create_xbox_b_button(gui_id);
-        break;
         case PLATFORM_PS:
         create_ps4_b_button(gui_id);
         break;
@@ -519,6 +517,8 @@ void console_gui_create_b_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_b_button(gui_id);
         break;
+        default:
+        create_xbox_b_button(gui_id);
     }
 }
 
@@ -566,9 +566,6 @@ void console_gui_create_x_button(int gui_id, int btn_id)
         case PLATFORM_HANDSET:
         create_handset_b_button(gui_id);
         break;
-        case PLATFORM_XBOX:
-        create_xbox_x_button(gui_id);
-        break;
         case PLATFORM_PS:
         create_ps4_x_button(gui_id);
         break;
@@ -578,6 +575,8 @@ void console_gui_create_x_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_x_button(gui_id);
         break;
+        default:
+        create_xbox_x_button(gui_id);
     }
 }
 
@@ -625,9 +624,6 @@ void console_gui_create_y_button(int gui_id, int btn_id)
         case PLATFORM_HANDSET:
         create_handset_a_button(gui_id);
         break;
-        case PLATFORM_XBOX:
-        create_xbox_y_button(gui_id);
-        break;
         case PLATFORM_PS:
         create_ps4_y_button(gui_id);
         break;
@@ -637,6 +633,8 @@ void console_gui_create_y_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_y_button(gui_id);
         break;
+        default:
+        create_xbox_y_button(gui_id);
     }
 }
 
@@ -684,9 +682,6 @@ void console_gui_create_lb_button(int gui_id, int btn_id)
         case PLATFORM_HANDSET:
         create_handset_lb_button(gui_id);
         break;
-        case PLATFORM_XBOX:
-        create_xbox_lb_button(gui_id);
-        break;
         case PLATFORM_PS:
         create_ps4_lb_button(gui_id);
         break;
@@ -696,6 +691,8 @@ void console_gui_create_lb_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_lb_button(gui_id);
         break;
+        default:
+        create_xbox_lb_button(gui_id);
     }
 }
 
@@ -743,9 +740,6 @@ void console_gui_create_rb_button(int gui_id, int btn_id)
         case PLATFORM_HANDSET:
         create_handset_rb_button(gui_id);
         break;
-        case PLATFORM_XBOX:
-        create_xbox_rb_button(gui_id);
-        break;
         case PLATFORM_PS:
         create_ps4_rb_button(gui_id);
         break;
@@ -755,11 +749,19 @@ void console_gui_create_rb_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_rb_button(gui_id);
         break;
+        default:
+        create_xbox_rb_button(gui_id);
     }
 }
 
 void console_gui_create_lt_button(int gui_id, int btn_id)
 {
+    if (current_platform == PLATFORM_HANDSET)
+    {
+        /* Not available in handset */
+        return;
+    }
+
     switch (btn_id)
     {
         case 0:
@@ -799,9 +801,6 @@ void console_gui_create_lt_button(int gui_id, int btn_id)
 
     switch (current_platform)
     {
-        case PLATFORM_XBOX:
-        create_xbox_lt_button(gui_id);
-        break;
         case PLATFORM_PS:
         create_ps4_lt_button(gui_id);
         break;
@@ -811,11 +810,19 @@ void console_gui_create_lt_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_lt_button(gui_id);
         break;
+        default:
+        create_xbox_lt_button(gui_id);
     }
 }
 
 void console_gui_create_rt_button(int gui_id, int btn_id)
 {
+    if (current_platform == PLATFORM_HANDSET)
+    {
+        /* Not available in handset */
+        return;
+    }
+
     switch (btn_id)
     {
         case 0:
@@ -855,9 +862,6 @@ void console_gui_create_rt_button(int gui_id, int btn_id)
 
     switch (current_platform)
     {
-        case PLATFORM_XBOX:
-        create_xbox_rt_button(gui_id);
-        break;
         case PLATFORM_PS:
         create_ps4_rt_button(gui_id);
         break;
@@ -867,11 +871,19 @@ void console_gui_create_rt_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_rt_button(gui_id);
         break;
+        default:
+        create_xbox_rt_button(gui_id);
     }
 }
 
 void console_gui_create_ls_button(int gui_id, int btn_id)
 {
+    if (current_platform == PLATFORM_HANDSET)
+    {
+        /* Not available in handset */
+        return;
+    }
+
     switch (btn_id)
     {
         case 0:
@@ -911,9 +923,6 @@ void console_gui_create_ls_button(int gui_id, int btn_id)
 
     switch (current_platform)
     {
-        case PLATFORM_XBOX:
-        create_xbox_ls_button(gui_id);
-        break;
         case PLATFORM_PS:
         create_ps4_ls_button(gui_id);
         break;
@@ -923,11 +932,19 @@ void console_gui_create_ls_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_ls_button(gui_id);
         break;
+        default:
+        create_xbox_ls_button(gui_id);
     }
 }
 
 void console_gui_create_rs_button(int gui_id, int btn_id)
 {
+    if (current_platform == PLATFORM_HANDSET)
+    {
+        /* Not available in handset */
+        return;
+    }
+
     switch (btn_id)
     {
         case 0:
@@ -967,9 +984,6 @@ void console_gui_create_rs_button(int gui_id, int btn_id)
 
     switch (current_platform)
     {
-        case PLATFORM_XBOX:
-        create_xbox_rs_button(gui_id);
-        break;
         case PLATFORM_PS:
         create_ps4_rs_button(gui_id);
         break;
@@ -979,11 +993,19 @@ void console_gui_create_rs_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_rs_button(gui_id);
         break;
+        default:
+        create_xbox_rs_button(gui_id);
     }
 }
 
 void console_gui_create_start_button(int gui_id, int btn_id)
 {
+    if (current_platform == PLATFORM_HANDSET)
+    {
+        /* Not available in handset */
+        return;
+    }
+
     switch (btn_id)
     {
         case 0:
@@ -1011,9 +1033,6 @@ void console_gui_create_start_button(int gui_id, int btn_id)
 
     switch (current_platform)
     {
-        case PLATFORM_XBOX:
-        create_xbox_start_button(gui_id);
-        break;
         case PLATFORM_PS:
         create_ps4_start_button(gui_id);
         break;
@@ -1023,11 +1042,19 @@ void console_gui_create_start_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_start_button(gui_id);
         break;
+        default:
+        create_xbox_start_button(gui_id);
     }
 }
 
 void console_gui_create_select_button(int gui_id, int btn_id)
 {
+    if (current_platform == PLATFORM_HANDSET)
+    {
+        /* Not available in handset */
+        return;
+    }
+
     switch (btn_id)
     {
         case 0:
@@ -1055,9 +1082,6 @@ void console_gui_create_select_button(int gui_id, int btn_id)
 
     switch (current_platform)
     {
-        case PLATFORM_XBOX:
-        create_xbox_select_button(gui_id);
-        break;
         case PLATFORM_PS:
         create_ps4_select_button(gui_id);
         break;
@@ -1067,6 +1091,8 @@ void console_gui_create_select_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_select_button(gui_id);
         break;
+        default:
+        create_xbox_select_button(gui_id);
     }
 }
 
@@ -1110,6 +1136,42 @@ static void init_xbox_title(void)
     }
 }
 
+static void init_xbox_keybd(void)
+{
+    if ((xbox_control_keybd_id = gui_hstack(0)))
+    {
+        gui_label(xbox_control_keybd_id, _("OK"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_x_button(xbox_control_keybd_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_R2));
+
+        create_controller_spacer(xbox_control_list_id);
+
+        gui_label(xbox_control_keybd_id, _("Shift"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_x_button(xbox_control_keybd_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_L2));
+
+        create_controller_spacer(xbox_control_list_id);
+
+        gui_label(xbox_control_keybd_id, _("Backsp"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_x_button(xbox_control_keybd_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+
+        create_controller_spacer(xbox_control_list_id);
+
+        gui_label(xbox_control_keybd_id, _("Back"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_b_button(xbox_control_keybd_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+    }
+}
+
 static void init_xbox_list(void)
 {
     if ((xbox_control_list_id = gui_hstack(0)))
@@ -1130,6 +1192,37 @@ static void init_xbox_list(void)
 
         gui_set_rect(xbox_control_list_id, GUI_TOP);
         gui_layout(xbox_control_list_id, 0, -1);
+    }
+}
+
+static void init_xbox_levelopt(void)
+{
+    if ((xbox_control_levelopt_id = gui_hstack(0)))
+    {
+        gui_label(xbox_control_levelopt_id, _("Options"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_y_button(xbox_control_levelopt_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_Y));
+
+        create_controller_spacer(xbox_control_levelopt_id);
+
+        gui_label(xbox_control_levelopt_id, _("Back"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_b_button(xbox_control_levelopt_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+
+        create_controller_spacer(xbox_control_levelopt_id);
+
+        gui_label(xbox_control_levelopt_id, _("Select"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_a_button(xbox_control_levelopt_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+
+        gui_set_rect(xbox_control_levelopt_id, GUI_TOP);
+        gui_layout(xbox_control_levelopt_id, 0, -1);
     }
 }
 
@@ -1212,7 +1305,7 @@ static void init_xbox_replay(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_replay_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
 
         gui_set_rect(xbox_control_replay_id, GUI_TOP);
         gui_layout(xbox_control_replay_id, 0, -1);
@@ -1223,7 +1316,7 @@ static void init_xbox_replay_eof(void)
 {
     if ((xbox_control_replay_eof_id = gui_hstack(0)))
     {
-        gui_label(xbox_control_replay_eof_id, _("Quit"),
+        gui_label(xbox_control_replay_eof_id, _("Exit"),
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_replay_eof_id,
@@ -1325,9 +1418,9 @@ static void init_xbox_model(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_rb_button(xbox_control_model_id,
-                         config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
+                         config_get_d(CONFIG_JOYSTICK_BUTTON_R1));
         console_gui_create_lb_button(xbox_control_model_id,
-                         config_get_d(CONFIG_JOYSTICK_BUTTON_L2));
+                         config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
 
         create_controller_spacer(xbox_control_model_id);
 
@@ -1348,11 +1441,11 @@ static void init_xbox_beam_style(void)
     {
         gui_label(xbox_control_beam_style_id, _("Change Style"),
                   GUI_SML, gui_wht, gui_wht);
-
+        
         console_gui_create_rb_button(xbox_control_model_id,
-                         config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
+                         config_get_d(CONFIG_JOYSTICK_BUTTON_R1));
         console_gui_create_lb_button(xbox_control_model_id,
-                         config_get_d(CONFIG_JOYSTICK_BUTTON_L2));
+                         config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
 
         create_controller_spacer(xbox_control_beam_style_id);
 
@@ -1456,7 +1549,7 @@ void console_gui_toggle(int active)
     if (show_control_gui == active)
         return;
 
-#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API
+#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API
     show_control_gui = 1;
 #else
     show_control_gui = active;
@@ -1467,12 +1560,11 @@ void console_gui_toggle(int active)
 
 void console_gui_init(void)
 {
-    if (current_platform == PLATFORM_PC)
-        return;
-
     /* Shared */
     init_xbox_title();
+    init_xbox_keybd();
     init_xbox_list();
+    init_xbox_levelopt();
     init_xbox_paused();
 
     /* Generic */
@@ -1500,12 +1592,11 @@ void console_gui_init(void)
 
 void console_gui_free(void)
 {
-    if (current_platform == PLATFORM_PC)
-        return;
-
     /* Shared */
     gui_delete(xbox_control_title_id);
+    gui_delete(xbox_control_keybd_id);
     gui_delete(xbox_control_list_id);
+    gui_delete(xbox_control_levelopt_id);
     gui_delete(xbox_control_paused_id);
 
     /* Generic */
@@ -1528,25 +1619,26 @@ void console_gui_free(void)
 void console_gui_slide(int flags)
 {
     /* Shared */
-    gui_slide(xbox_control_title_id,  flags, 0, 0.16f, 0);
-    gui_slide(xbox_control_list_id,   flags, 0, 0.16f, 0);
-    gui_slide(xbox_control_paused_id, flags, 0, 0.16f, 0);
+    gui_slide(xbox_control_title_id,  flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_keybd_id,  flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_list_id,   flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_paused_id, flags, 0, 0.3f, 0);
 
     /* Generic */
-    gui_slide(xbox_control_desc_id,          flags, 0, 0.16f, 0);
-    gui_slide(xbox_control_preparation_id,   flags, 0, 0.16f, 0);
-    gui_slide(xbox_control_replay_id,        flags, 0, 0.16f, 0);
-    gui_slide(xbox_control_replay_eof_id,    flags, 0, 0.16f, 0);
-    gui_slide(xbox_control_shop_id,          flags, 0, 0.16f, 0);
-    gui_slide(xbox_control_shop_getcoins_id, flags, 0, 0.16f, 0);
-    gui_slide(xbox_control_model_id,         flags, 0, 0.16f, 0);
-    gui_slide(xbox_control_beam_style_id,    flags, 0, 0.16f, 0);
-    gui_slide(xbox_control_death_id,         flags, 0, 0.16f, 0);
+    gui_slide(xbox_control_desc_id,          flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_preparation_id,   flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_replay_id,        flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_replay_eof_id,    flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_shop_id,          flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_shop_getcoins_id, flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_model_id,         flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_beam_style_id,    flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_death_id,         flags, 0, 0.3f, 0);
 
     /* Putt */
-    gui_slide(xbox_control_putt_stroke_id, flags, 0, 0.16f, 0);
-    gui_slide(xbox_control_putt_stop_id,   flags, 0, 0.16f, 0);
-    gui_slide(xbox_control_putt_scores_id, flags, 0, 0.16f, 0);
+    gui_slide(xbox_control_putt_stroke_id, flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_putt_stop_id,   flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_putt_scores_id, flags, 0, 0.3f, 0);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1555,22 +1647,31 @@ void console_gui_slide(int flags)
 
 void console_gui_title_paint(void)
 {
-    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        current_platform != PLATFORM_PC)
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_title_id);
+}
+
+void console_gui_keybd_paint(void)
+{
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        gui_paint(xbox_control_keybd_id);
 }
 
 void console_gui_list_paint(void)
 {
-    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        current_platform != PLATFORM_PC)
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_list_id);
+}
+
+void console_gui_levelopt_paint(void)
+{
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        gui_paint(xbox_control_levelopt_id);
 }
 
 void console_gui_paused_paint(void)
 {
-    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        current_platform != PLATFORM_PC)
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_paused_id);
 }
 
@@ -1578,85 +1679,73 @@ void console_gui_paused_paint(void)
 
 void console_gui_desc_paint(void)
 {
-    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        current_platform != PLATFORM_PC)
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
     gui_paint(xbox_control_desc_id);
 }
 
 void console_gui_preparation_paint(void)
 {
-    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        current_platform != PLATFORM_PC)
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_preparation_id);
 }
 
 void console_gui_replay_paint(void)
 {
-    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        current_platform != PLATFORM_PC)
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_replay_id);
 }
 
 void console_gui_replay_eof_paint(void)
 {
-    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        current_platform != PLATFORM_PC)
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_replay_eof_id);
 }
 
 void console_gui_shop_paint(void)
 {
-    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        current_platform != PLATFORM_PC)
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_shop_id);
 }
 
 void console_gui_shop_getcoins_paint(void)
 {
-    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        current_platform != PLATFORM_PC)
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_shop_getcoins_id);
 }
 
 void console_gui_model_paint(void)
 {
-    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        current_platform != PLATFORM_PC)
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_model_id);
 }
 
 void console_gui_beam_style_paint(void)
 {
-    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        current_platform != PLATFORM_PC)
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_beam_style_id);
 }
 
 void console_gui_death_paint(void)
 {
-    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        current_platform != PLATFORM_PC)
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_death_id);
 }
 
 /* Putt */
 void console_gui_putt_stroke_paint(void)
 {
-    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        current_platform != PLATFORM_PC)
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_putt_stroke_id);
 }
 
 void console_gui_putt_stop_paint(void)
 {
-    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        current_platform != PLATFORM_PC)
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_putt_stop_id);
 }
 
 void console_gui_putt_scores_paint(void)
 {
-    if ((show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS)) &&
-        current_platform != PLATFORM_PC)
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_putt_scores_id);
 }

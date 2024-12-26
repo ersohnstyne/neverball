@@ -77,9 +77,7 @@ enum
     GOAL_SAME,
     GOAL_SAVE,
     GOAL_DONE,
-    GOAL_LAST,
-
-    GOAL_IAP = GOAL_LAST + 1
+    GOAL_LAST
 };
 
 static int goal_intro_animation_phase;
@@ -156,16 +154,6 @@ static int goal_action(int tok, int val)
             if (progress_same())
                 return goto_play_level();
             break;
-
-#ifdef CONFIG_INCLUDES_ACCOUNT
-        case GOAL_IAP:
-#if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
-            return goto_shop_iap(&st_goal, &st_goal, 0, 0, 0, 0, 1);
-#else
-            return goto_shop_iap(&st_goal, &st_goal, 0, 0, 0, 0, 0);
-#endif
-            break;
-#endif
     }
 
     return 1;
@@ -237,7 +225,9 @@ static int goal_gui(void)
         }
     }
 
-    if ((root_id = gui_root()))
+    root_id = !console_gui_shown() ? gui_root() : 0;
+
+    //if ((root_id = gui_root()))
     {
         if ((id = gui_vstack(root_id)))
         {
@@ -568,7 +558,7 @@ static int goal_gui(void)
             gui_layout(id, 0, 0);
         }
 
-        if ((id = gui_vstack(root_id)))
+        if (root_id && (id = gui_vstack(root_id)))
         {
             gui_space(id);
 
@@ -576,62 +566,20 @@ static int goal_gui(void)
             {
                 int back_btn_id = gui_back_button(jd);
                 gui_space(jd);
+
+                if (!resume_locked && goal_intro_animation_phase == 2)
+                    gui_set_slide(back_btn_id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0.0f, 0.8f, 0.05f);
             }
 
             gui_layout(id, -1, +1);
-
-            if (!resume_locked && goal_intro_animation_phase == 2)
-                gui_set_slide(id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0.0f, 0.8f, 0.05f);
         }
-
-#ifdef CONFIG_INCLUDES_ACCOUNT
-        char account_coinsattr[MAXSTR], account_gemsattr[MAXSTR];
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(account_gemsattr, MAXSTR, "%s %d", GUI_DIAMOND,
-                  account_get_d(ACCOUNT_DATA_WALLET_GEMS));
-        sprintf_s(account_coinsattr, MAXSTR, "%s %d", GUI_COIN,
-                  account_get_d(ACCOUNT_DATA_WALLET_COINS));
-#else
-        sprintf(account_gemsattr, "%s %d", GUI_DIAMOND,
-                account_get_d(ACCOUNT_DATA_WALLET_GEMS));
-        sprintf(account_coinsattr, "%s %d", GUI_COIN,
-                account_get_d(ACCOUNT_DATA_WALLET_COINS));
-#endif
-
-        if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-        {
-            if ((id = gui_vstack(root_id)))
-            {
-                gui_space(id);
-
-                if ((jd = gui_hstack(id)))
-                {
-                    gui_space(jd);
-
-                    if (!CHECK_ACCOUNT_BANKRUPT)
-                    {
-                        gui_state(jd, "+", GUI_XS, GOAL_IAP, 1);
-                        gui_label(jd, account_gemsattr, GUI_XS, gui_wht, gui_cya);
-                    }
-
-                    gui_label(jd, account_coinsattr, GUI_XS, gui_wht, gui_yel);
-                }
-
-                gui_layout(id, +1, +1);
-
-                if (!resume_locked && goal_intro_animation_phase == 2)
-                    gui_set_slide(id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0.0f, 0.8f, 0.05f);
-            }
-        }
-#endif
     }
 
     set_score_board(level_score(curr_level(), SCORE_COIN), progress_coin_rank(),
                     level_score(curr_level(), SCORE_TIME), progress_time_rank(),
                     level_score(curr_level(), SCORE_GOAL), progress_goal_rank());
 
-    return root_id;
+    return root_id ? root_id : id;
 }
 
 static int goal_enter(struct state *st, struct state *prev, int intent)
@@ -726,7 +674,6 @@ static void goal_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_shown())
         console_gui_death_paint();
@@ -773,12 +720,12 @@ static void goal_timer(int id, float dt)
         int record_campaign = 1;
 #endif
 
-        game_client_blend(game_server_blend());
         game_client_sync(!resume
                       && goal_time_state < 1.0f
                       && record_modes
                       && record_campaign
                       && goal_intro_animation_phase == 1 ? demo_fp : NULL);
+        game_client_blend(game_server_blend());
 
         while ((t > 0.05f && coins_id) &&
                goal_time_state > 1.0f)
@@ -1167,10 +1114,6 @@ static int restrict_hardcore_nextstate = 0;
 
 static int goal_hardcore_enter(struct state *st, struct state *prev, int intent)
 {
-#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-    account_wgcl_restart_attempt();
-#endif
-
     restrict_hardcore_nextstate = 0;
 #if NB_HAVE_PB_BOTH==1 && \
     defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
@@ -1204,8 +1147,8 @@ static void goal_hardcore_timer(int id, float dt)
     if (!restrict_hardcore_nextstate)
     {
         game_server_step(dt);
-        game_client_blend(game_server_blend());
         game_client_sync(NULL);
+        game_client_blend(game_server_blend());
 
         game_step_fade(dt);
     }

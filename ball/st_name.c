@@ -61,7 +61,10 @@ static struct state *cancel_state;
 int (*ok_fn)     (struct state *);
 int (*cancel_fn) (struct state *);
 
+static int allow_entertext;
+
 static unsigned int draw_back;
+
 static int newplayers;
 static int name_error;
 static int name_readonly;
@@ -82,7 +85,7 @@ int goto_name(struct state *ok, struct state *cancel,
     return goto_state(&st_name);
 }
 
-int goto_name_setup(struct state *finish,
+int goto_name_setup(struct state* finish,
                     int (*new_finish_fn) (struct state *))
 {
     ok_state     = finish;
@@ -154,6 +157,9 @@ static int name_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
+            allow_entertext = 0;
+            text_input_stop();
+
             if (name_error)
                 return exit_state(&st_name);
 
@@ -171,8 +177,9 @@ static int name_action(int tok, int val)
             name_error = 0;
 
             if (strcmp(config_get_s(CONFIG_PLAYER), text_input) != 0)
-            player_renamed = 1;
+                player_renamed = 1;
 
+            allow_entertext = 0;
             text_input_stop();
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -241,6 +248,8 @@ static int name_gui(void)
     {
         if (!newplayers && !name_error && !name_readonly)
         {
+            allow_entertext = 1;
+
             gui_title_header(id, _("Player Name"), GUI_MED, GUI_COLOR_DEFAULT);
             gui_space(id);
 
@@ -318,6 +327,8 @@ static int name_gui(void)
 
 static void on_text_input(int typing)
 {
+    if (!allow_entertext) return;
+
     if (name_id)
     {
         gui_set_label(name_id, text_input);
@@ -395,6 +406,11 @@ static void name_paint(int id, float t)
         game_client_draw(0, t);
 
     gui_paint(id);
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if ((current_platform != PLATFORM_PC || console_gui_shown()) &&
+        allow_entertext)
+        console_gui_keybd_paint();
+#endif
 }
 
 static int name_keybd(int c, int d)
@@ -408,15 +424,18 @@ static int name_keybd(int c, int d)
             )
             return name_action(GUI_BACK, 0);
 
-        if (c == '\b' || c == 0x7F)
+        else if (allow_entertext)
         {
-            gui_focus(enter_id);
-            return name_action(GUI_BS, 0);
-        }
-        else
-        {
-            gui_focus(enter_id);
-            return 1;
+            if (c == '\b' || c == 0x7F)
+            {
+                gui_focus(enter_id);
+                return name_action(GUI_BS, 0);
+            }
+            else
+            {
+                gui_focus(enter_id);
+                return 1;
+            }
         }
     }
     return 1;
@@ -431,12 +450,28 @@ static int name_buttn(int b, int d)
             int tok = gui_token(gui_active());
             int val = gui_value(gui_active());
 
-            return name_action(tok, (tok == GUI_CHAR ?
+            return name_action(tok, (tok == GUI_CHAR && allow_entertext ?
                                      gui_keyboard_char(val) :
                                      val));
         }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             name_action(GUI_BACK, 0);
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b) &&
+            allow_entertext)
+            name_action(GUI_BS, 0);
+        else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) &&
+                 allow_entertext)
+            name_action(GUI_CL, 0);
+        else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R2, b) &&
+                 allow_entertext)
+            name_action(NAME_OK, 0);
+    }
+    else
+    {
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) &&
+            allow_entertext)
+            name_action(GUI_CL, 0);
     }
     return 1;
 }

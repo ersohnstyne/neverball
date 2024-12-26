@@ -1244,7 +1244,7 @@ static int help_gui(void)
 
                 if (!help_open)
 #ifndef __EMSCRIPTEN__
-                    if (current_platform == PLATFORM_PC)
+                    if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
                         gui_back_button(kd);
             }

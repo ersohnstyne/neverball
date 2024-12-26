@@ -543,10 +543,11 @@ static int level_gui(void)
             }
 
 #ifndef __EMSCRIPTEN__
-            if (current_platform != PLATFORM_PC &&
-                current_platform != PLATFORM_XBOX &&
-                current_platform != PLATFORM_PS &&
-                current_platform != PLATFORM_WII)
+            if ((current_platform != PLATFORM_PC &&
+                 current_platform != PLATFORM_XBOX &&
+                 current_platform != PLATFORM_PS &&
+                 current_platform != PLATFORM_WII) &&
+                !console_gui_shown())
 #endif
             {
                 gui_filler(jd);

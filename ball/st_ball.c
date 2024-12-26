@@ -445,17 +445,12 @@ static int ball_gui(void)
                 gui_filler(jd);
                 gui_space (jd);
 
-#if NB_HAVE_PB_BOTH==1
-#ifndef __EMSCRIPTEN__
-                if (current_platform != PLATFORM_PC)
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+                if (current_platform != PLATFORM_PC || console_gui_shown())
                     gui_filler(jd);
                 else
 #endif
-                if (!game_setup_process())
                     gui_back_button(jd);
-#else
-                gui_back_button(jd);
-#endif
             }
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -621,7 +616,8 @@ static void ball_paint(int id, float t)
 
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    console_gui_model_paint();
+    if (!console_gui_shown())
+        console_gui_model_paint();
 #endif
 }
 

@@ -319,36 +319,40 @@ int  joy_update(void)
                 float normalizedRX = currRX / magnitudeR;
                 float normalizedRY = currRY / magnitudeR;
 
-                if (d && (prevLX != currLX || prevLY != currLY))
+                if (d && (prevLX != currLX))
                 {
                     if (magnitudeL > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
-                    {
                         joy_axis(i, config_get_d(CONFIG_JOYSTICK_AXIS_X0),
                                     normalizedLX);
-                        joy_axis(i, config_get_d(CONFIG_JOYSTICK_AXIS_Y0),
-                                    normalizedLY);
-                    }
                     else
-                    {
                         joy_axis(i, config_get_d(CONFIG_JOYSTICK_AXIS_X0), 0);
-                        joy_axis(i, config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 0);
-                    }
                 }
 
-                if (d && (prevRX != currRX || prevRY != currRY))
+                if (d && (prevLY != currLY))
+                {
+                    if (magnitudeL > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
+                        joy_axis(i, config_get_d(CONFIG_JOYSTICK_AXIS_Y0),
+                                    normalizedLY);
+                    else
+                        joy_axis(i, config_get_d(CONFIG_JOYSTICK_AXIS_Y0), 0);
+                }
+
+                if (d && (prevRX != currRX))
                 {
                     if (magnitudeR > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
-                    {
                         joy_axis(i, config_get_d(CONFIG_JOYSTICK_AXIS_X1),
                                     normalizedRX);
+                    else
+                        joy_axis(i, config_get_d(CONFIG_JOYSTICK_AXIS_X1), 0);
+                }
+
+                if (d && (prevRY != currRY))
+                {
+                    if (magnitudeR > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
                         joy_axis(i, config_get_d(CONFIG_JOYSTICK_AXIS_Y1),
                                     normalizedRY);
-                    }
                     else
-                    {
-                        joy_axis(i, config_get_d(CONFIG_JOYSTICK_AXIS_X1), 0);
                         joy_axis(i, config_get_d(CONFIG_JOYSTICK_AXIS_Y1), 0);
-                    }
                 }
 
                 memcpy(prevState, currState, sizeof (*currState));

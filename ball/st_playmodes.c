@@ -172,7 +172,7 @@ static int playmodes_gui(void)
             gui_filler(jd);
 
 #ifndef __EMSCRIPTEN__
-            if (current_platform == PLATFORM_PC)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
                 gui_back_button(jd);
         }

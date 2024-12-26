@@ -105,11 +105,12 @@ static int switchball_useable(void)
     const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
     const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
 
-    SDL_Keycode k_arrowkey[4];
-    k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
-    k_arrowkey[1] = config_get_d(CONFIG_KEY_LEFT);
-    k_arrowkey[2] = config_get_d(CONFIG_KEY_BACKWARD);
-    k_arrowkey[3] = config_get_d(CONFIG_KEY_RIGHT);
+    SDL_Keycode k_arrowkey[4] = {
+        config_get_d(CONFIG_KEY_FORWARD),
+        config_get_d(CONFIG_KEY_LEFT),
+        config_get_d(CONFIG_KEY_BACKWARD),
+        config_get_d(CONFIG_KEY_RIGHT)
+    };
 
     if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2 &&
         k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT &&
@@ -204,17 +205,15 @@ static const char *pick_demo(Array items)
     int total;
 
     if ((total = array_len(items)) < 1) return NULL;
+    
+    const int selected = rand_between(0, total - 1);
 
-    int selectedDemo = rand_between(0, total - 1);
+    demo_dir_load(items, 0, total - 1);
 
-    //demo_dir_load(items, 0, total - 1);
+    struct demo *demo_data;
 
-    struct demo *demo_data = (struct demo *)
-                             (DIR_ITEM_GET(items, selectedDemo < total ? selectedDemo : 0)->data);
-
-    /* Have demo data? */
-
-    if (!demo_data) return NULL;
+    if (!DEMO_CHECK_GET(demo_data, items, selected < total ? selected : 0))
+        return NULL;
 
 #if NB_HAVE_PB_BOTH==1
     /* Classic only? */
@@ -225,10 +224,6 @@ static const char *pick_demo(Array items)
 
     if ((demo_data->timer / 6000.0f) >= 10) return NULL;
 #endif
-
-    /* Compatibility supported? */
-
-    if (!game_compat_map) return NULL;
 
     /* OK, demo file opened, but test! */
 
@@ -424,12 +419,7 @@ static int title_action(int tok, int val)
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
         case TITLE_SHOP:
-#if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
-            if (val) goto_shop_iap(&st_title, &st_title, 0, 0, 0, 0, 1);
-#else
-            if (val) goto_shop_iap(&st_title, &st_title, 0, 0, 0, 0, 0);
-#endif
-            else     goto_shop(curr_state(), 0);
+            return goto_shop(curr_state(), 0);
             break;
 #endif
         case TITLE_HELP: return goto_state(&st_help); break;
@@ -865,10 +855,10 @@ static int title_gui(void)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 sprintf_s(dev_env, MAXSTR, _("Edu Edition / %s"),
                           _("Developer Mode"));
-                sprintf_s(os_env, MAXSTR, _("Edu Edition"));
+                sprintf_s(os_env, MAXSTR, _("Education Edition"));
 #else
                 sprintf(dev_env, _("Edu Edition / %s"), _("Developer Mode"));
-                sprintf(os_env, _("Edu Edition"));
+                sprintf(os_env, _("Education Edition"));
 #endif
             }
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 2)
@@ -1009,6 +999,7 @@ static int title_gui(void)
             if ((id = gui_varray(root_id)))
             {
                 int btn_size = GUI_TCH;
+                gui_space(id);
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                 if (config_cheat())
@@ -1041,15 +1032,12 @@ static int title_gui(void)
                                   btn_size, GUI_BACK, 0);
 #endif
 
-                gui_space(id);
-                gui_space(id);
-
                 /* Hilight the start button. */
 
                 gui_set_hilite(play_id, 1);
                 gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 0.8f, 1.0f, 0.05f);
 
-                gui_layout(id, 0, -1);
+                gui_layout(id, 0, 0);
             }
 #endif
 
@@ -1087,13 +1075,11 @@ static int title_gui(void)
                         gui_clr_rect(btn_social);
                     }
 
-                    gui_set_slide(id, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 1.0f, 0.05f);
-
                     gui_space(jd);
+                    gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 1.0f, 0.05f);
                 }
 
                 gui_space(id);
-
                 gui_layout(id, -1, -1);
             }
 #endif
@@ -1105,46 +1091,6 @@ static int title_gui(void)
                 gui_clr_rect(id);
                 gui_set_slide(id, GUI_SW, 0, 1.6f, 0);
                 gui_layout(id, -1, -1);
-            }
-#endif
-
-#ifdef CONFIG_INCLUDES_ACCOUNT
-            char account_coinsattr[MAXSTR], account_gemsattr[MAXSTR];
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(account_gemsattr, MAXSTR, "%s %d", GUI_DIAMOND,
-                      account_get_d(ACCOUNT_DATA_WALLET_GEMS));
-            sprintf_s(account_coinsattr, MAXSTR, "%s %d", GUI_COIN,
-                      account_get_d(ACCOUNT_DATA_WALLET_COINS));
-#else
-            sprintf(account_gemsattr, "%s %d", GUI_DIAMOND,
-                    account_get_d(ACCOUNT_DATA_WALLET_GEMS));
-            sprintf(account_coinsattr, "%s %d", GUI_COIN,
-                    account_get_d(ACCOUNT_DATA_WALLET_COINS));
-#endif
-
-            if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-            {
-                if ((id = gui_vstack(root_id)))
-                {
-                    gui_space(id);
-
-                    if ((jd = gui_hstack(id)))
-                    {
-                        gui_space(jd);
-
-                        if (!CHECK_ACCOUNT_BANKRUPT)
-                        {
-                            gui_state(jd, "+", GUI_XS, TITLE_SHOP, 1);
-                            gui_label(jd, account_gemsattr, GUI_XS, gui_wht, gui_cya);
-                        }
-
-                        gui_label(jd, account_coinsattr, GUI_XS, gui_wht, gui_yel);
-                    }
-
-                    gui_set_slide(id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 1.0f, 0.05f);
-                    gui_layout(id, +1, +1);
-                }
             }
 #endif
 #else
@@ -1211,7 +1157,7 @@ static int title_gui(void)
                     gui_label(jd, _(presstostart_pc_attr), GUI_SML, GUI_COLOR_WHT);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-                    if (current_platform != PLATFORM_PC)
+                    if (current_platform != PLATFORM_PC || console_gui_shown())
                     {
                         gui_space(jd);
                         console_gui_create_start_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_START));
@@ -1237,11 +1183,6 @@ static int filter_cmd(const union cmd *cmd)
 
 static int title_enter(struct state *st, struct state *prev, int intent)
 {
-#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-    if (prev != &st_title)
-        account_wgcl_restart_attempt();
-#endif
-
     if (title_load_lockscreen)
         title_load_lockscreen = 0;
 
@@ -1249,6 +1190,11 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
     if (prev == &st_title)
         return title_gui();
+
+#ifdef CONFIG_INCLUDES_ACCOUNT
+    if (title_lockscreen)
+        account_wgcl_restart_attempt();
+#endif
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     support_exit = (current_platform != PLATFORM_PS &&
@@ -1359,7 +1305,7 @@ static void title_paint(int id, float t)
     gui_paint(id);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (!title_lockscreen)
+    if (!title_lockscreen && console_gui_shown())
         console_gui_title_paint();
 #endif
 }
@@ -1489,22 +1435,10 @@ static void title_timer(int id, float dt)
     game_step_fade(dt);
 }
 
-static void title_point(int id, int x, int y, int dx, int dy)
-{
-    int jd;
-
-    if ((jd = gui_point(id, x, y)))
-        gui_pulse(jd, 1.2f);
-}
-
 static void title_stick(int id, int a, float v, int bump)
 {
-    if (title_lockscreen) return;
-
-    int jd;
-
-    if ((jd = gui_stick(id, a, v, bump)))
-        gui_pulse(jd, 1.2f);
+    if (!title_lockscreen)
+        gui_pulse(gui_stick(id, a, v, bump), 1.2f);
 }
 
 static int title_click(int b, int d)
@@ -1590,7 +1524,7 @@ struct state st_title = {
     title_leave,
     title_paint,  /* Default: shared_paint */
     title_timer,
-    title_point,
+    shared_point,
     title_stick,
     shared_angle,
     title_click,

@@ -15,6 +15,11 @@
 #include <string.h>
 #include <ctype.h>
 
+/*
+ * HACK: Used with console version
+ */
+#include "console_control_gui.h"
+
 #if NB_HAVE_PB_BOTH==1
 #include "campaign.h"
 #include "st_intro_covid.h"
@@ -72,6 +77,8 @@ int goto_save(struct state *ok, struct state *cancel)
 }
 
 /*---------------------------------------------------------------------------*/
+
+static int allow_entertext;
 
 static int file_id;
 
@@ -182,6 +189,8 @@ static int save_gui(void)
 
     if ((id = gui_vstack(0)))
     {
+        allow_entertext = 1;
+
         gui_title_header(id, _("Replay Name"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
 
@@ -281,6 +290,7 @@ static int save_enter(struct state *st, struct state *prev, int intent)
 
 static int save_leave(struct state *st, struct state *next, int id, int intent)
 {
+    allow_entertext = 1;
     text_input_stop();
 
     if (next == &st_null)
@@ -295,6 +305,18 @@ static int save_leave(struct state *st, struct state *next, int id, int intent)
     }
 
     return transition_slide(id, 0, intent);
+}
+
+static void save_paint(int id, float t)
+{
+    game_client_draw(0, t);
+
+    gui_paint(id);
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if ((current_platform != PLATFORM_PC || console_gui_shown()) &&
+        allow_entertext)
+        console_gui_keybd_paint();
+#endif
 }
 
 static int save_keybd(int c, int d)
@@ -327,12 +349,28 @@ static int save_buttn(int b, int d)
             int tok = gui_token(gui_active());
             int val = gui_value(gui_active());
 
-            return save_action(tok, (tok == GUI_CHAR ?
+            return save_action(tok, (tok == GUI_CHAR && allow_entertext ?
                                      gui_keyboard_char(val) :
                                      val));
         }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return save_action(GUI_BACK, 0);
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b) &&
+            allow_entertext)
+            save_action(GUI_BS, 0);
+        else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) &&
+                 allow_entertext)
+            save_action(GUI_CL, 0);
+        else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R2, b) &&
+                 allow_entertext)
+            save_action(SAVE_OK, 0);
+    }
+    else
+    {
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) &&
+            allow_entertext)
+            save_action(GUI_CL, 0);
     }
     return 1;
 }
@@ -528,7 +566,7 @@ static int save_error_buttn(int b, int d)
 struct state st_save = {
     save_enter,
     save_leave,
-    shared_paint,
+    save_paint,
     shared_timer,
     shared_point,
     shared_stick,

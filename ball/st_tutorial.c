@@ -271,7 +271,10 @@ static int tutorial_enter(struct state *st, struct state *prev, int intent)
         gui_label(id, _(tutorial_title[tutorial_index]), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (current_platform == PLATFORM_PC)
+        if (console_gui_shown())
+            gui_multi(id, _(tutorial_desc_xbox[tutorial_index]),
+                          GUI_SML, GUI_COLOR_WHT);
+        else if (current_platform == PLATFORM_PC)
             gui_multi(id, _(tutorial_desc[tutorial_index]),
                           GUI_SML, GUI_COLOR_WHT);
         else if (current_platform == PLATFORM_WII)
@@ -281,9 +284,12 @@ static int tutorial_enter(struct state *st, struct state *prev, int intent)
             gui_multi(id, _(tutorial_desc_wiiu[tutorial_index]),
                           GUI_SML, GUI_COLOR_WHT);
         else
-#endif
             gui_multi(id, _(tutorial_desc_xbox[tutorial_index]),
                           GUI_SML, GUI_COLOR_WHT);
+#else
+        gui_multi(id, _(tutorial_desc[tutorial_index]),
+                        GUI_SML, GUI_COLOR_WHT);
+#endif
 
         gui_space(id);
         if ((jd = gui_harray(id)))

@@ -333,9 +333,7 @@ void st_timer(float dt)
 
 void st_point(int x, int y, int dx, int dy)
 {
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    console_gui_toggle(0);
-#endif
+    if (console_gui_shown()) return;
 
     if (state && state->point)
     {
@@ -382,9 +380,10 @@ void st_angle(float x, float z)
         state->angle(state->gui_id, x, z);
 }
 
-
 void st_wheel(int x, int y)
 {
+    if (console_gui_shown()) return;
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_toggle(0);
 #endif
@@ -422,6 +421,10 @@ int st_buttn(int b, int d)
     !defined(__GAMECUBE__) && !defined(__WII__)
 int st_touch(const SDL_TouchFingerEvent *event)
 {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    console_gui_toggle(0);
+#endif
+
     int d = 1;
 
     /* If the state can handle it, do it. */

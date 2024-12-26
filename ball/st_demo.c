@@ -250,7 +250,7 @@ static int demo_action(int tok, int val)
             if (val != selected)
                 return 1;
 
-            struct demo* df;
+            struct demo *df;
 
             if (!DEMO_CHECK_GET(df, demo_items, selected < total ? selected : 0)) return 1;
 
@@ -924,14 +924,11 @@ static int demo_gui(void)
                           GUI_SML, GUI_COLOR_WHT);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
-            {
-                gui_space(id);
-                gui_back_button(id);
-            }
-#else
-            gui_back_button(id);
+            if (current_platform != PLATFORM_PC || !console_gui_shown())
+                gui_filler(id);
+            else
 #endif
+                gui_back_button(id);
 
             gui_layout(id, 0, 0);
         }
@@ -947,14 +944,11 @@ static int demo_gui(void)
                           GUI_SML, GUI_COLOR_WHT);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
-            {
-                gui_space(id);
-                gui_back_button(id);
-            }
-#else
-            gui_back_button(id);
+            if (current_platform != PLATFORM_PC || !console_gui_shown())
+                gui_filler(id);
+            else
 #endif
+                gui_back_button(id);
 
             gui_layout(id, 0, 0);
         }
@@ -1103,12 +1097,14 @@ static void demo_paint(int id, float t)
     game_client_draw(0, t);
 
     gui_paint(id);
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #if ENABLE_MOON_TASKLOADER!=0
     if (!demo_is_scanning_with_moon_taskloader)
 #endif
-        console_gui_list_paint();
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        if (console_gui_shown())
+            console_gui_list_paint();
 #endif
+    ;
 }
 
 static void demo_stick(int id, int a, float v, int bump)
@@ -1609,7 +1605,10 @@ static int demo_end_gui(void)
 
         if ((jd = gui_harray(id)))
         {
-            gui_start(jd, _("Exit"), GUI_SML, DEMO_QUIT, 0);
+            int btn0_id = 0, btn1_id = 0;
+
+            if (demo_paused || !console_gui_shown())
+                gui_state(jd, _("Exit"), GUI_SML, DEMO_QUIT, 0);
 
             /* Microsoft and Windows Games can do it! */
 #ifndef _MSC_VER
@@ -1617,22 +1616,22 @@ static int demo_end_gui(void)
                 gui_state(kd, _("Delete"), GUI_SML, DEMO_DEL, 0);
 #endif
 
-            /* Only that is limit underneath it */
-            if (get_max_game_stat() <= get_limit_game_stat() &&
-                allow_exact_versions) {
-                gui_state(jd, _("Repeat"), GUI_SML, DEMO_REPLAY, 0);
-                if (demo_paused)
-                    gui_start(jd, _("Continue"), GUI_SML, DEMO_CONTINUE, 0);
-            }
-            else
-            {
-                gui_label(jd, _("Repeat"), GUI_SML, GUI_COLOR_GRY);
+            btn0_id = gui_state(jd, _("Repeat"), GUI_SML, DEMO_REPLAY, 0);
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-                if (demo_paused && current_platform == PLATFORM_PC)
+            if (demo_paused && current_platform == PLATFORM_PC && !console_gui_shown())
 #else
-                if (demo_paused)
+            if (demo_paused)
 #endif
-                    gui_label(jd, _("Continue"), GUI_SML, GUI_COLOR_GRY);
+                btn1_id = gui_start(jd, _("Continue"), GUI_SML, DEMO_CONTINUE, 0);
+
+            /* Only that is limit underneath it */
+            if (!(get_max_game_stat() <= get_limit_game_stat() &&
+                  allow_exact_versions)) {
+                gui_set_color(btn0_id, GUI_COLOR_GRY);
+                gui_set_color(btn1_id, GUI_COLOR_GRY);
+                gui_set_state(btn0_id, GUI_NONE, 0);
+                gui_set_state(btn1_id, GUI_NONE, 0);
             }
         }
 

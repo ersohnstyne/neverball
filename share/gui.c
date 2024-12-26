@@ -832,8 +832,10 @@ static int gui_widget(int pd, int type)
             widget[id].trunc       = TRUNC_NONE;
             widget[id].text_w      = 0;
             widget[id].text_h      = 0;
+
             widget[id].init_text   = NULL;
             widget[id].init_value  = 0;
+
             widget[id].layout_xd   = 0;
             widget[id].layout_yd   = 0;
 
@@ -1777,6 +1779,7 @@ static void gui_widget_offset(int id, int pd)
             return;
         }
 
+        /* HACK: restart animations in case we got here via resize event. */
         widget[id].slide_time = 0.0f;
 
         widget[id].offset_init_x = widget[id].offset_x = 0.0f;
@@ -1946,8 +1949,8 @@ int gui_search(int id, int x, int y)
 
     if (id &&
         (widget[id].type == GUI_ROOT ||
-            (widget[id].x <= x && x < widget[id].x + widget[id].w &&
-                widget[id].y <= y && y < widget[id].y + widget[id].h)))
+         (widget[id].x <= x && x < widget[id].x + widget[id].w &&
+          widget[id].y <= y && y < widget[id].y + widget[id].h)))
     {
         if (gui_hot(id))
             return id;
@@ -2623,7 +2626,11 @@ void gui_paint(int id)
     }
 
     /* Should be used within the splitview? */
+#ifndef __EMSCRIPTEN__
+    if (!video_get_grab() && !console_gui_shown() && cursor_st && cursor_id)
+#else
     if (!video_get_grab() && cursor_st && cursor_id)
+#endif
     {
         video_set_ortho();
         {
@@ -2707,11 +2714,18 @@ void gui_timer(int id, float dt)
 
     if (id && widget[id].type != GUI_FREE)
     {
+        if (!config_get_d(CONFIG_SCREEN_ANIMATIONS) &&
+            widget[id].slide_flags & GUI_REMOVE)
+        {
+            gui_remove(id);
+            return;
+        }
+
         for (jd = widget[id].car; jd; jd = widget[jd].cdr)
             gui_timer(jd, dt);
 
         if (widget[id].alpha >= .5f)
-            widget[id].pulse_scale = flerp(1.0f, widget[id].pulse_scale, 0.8f);
+            widget[id].pulse_scale = flerp(widget[id].pulse_scale, 1.0f, dt * 10.0f);
 
         if ((widget[id].flags & GUI_OFFSET) && widget[id].slide_time < widget[id].slide_delay + widget[id].slide_dur)
         {
@@ -2814,6 +2828,9 @@ void gui_alpha(int id, float alpha)
 
 void gui_focus(int i)
 {
+    if (active != i)
+        audio_play("snd/focus.ogg", 1.0f);
+
     active = i;
 }
 
@@ -3176,7 +3193,7 @@ int gui_navig_full(int id, int total, int first, int step, int back_disabled)
         if (next || prev)
         {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
             {
 #ifdef SWITCHBALL_GUI
@@ -3186,11 +3203,11 @@ int gui_navig_full(int id, int total, int first, int step, int back_disabled)
 #endif
             }
 
-            if ((kd = gui_label(jd, "9999999/9999999", GUI_SML, gui_wht, gui_wht)))
+            if ((kd = gui_label(jd, "99999/99999", GUI_XS, gui_wht, gui_wht)))
             {
-                char str[16];
+                char str[12];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(str, 16,
+                sprintf_s(str, 12,
 #else
                 sprintf(str,
 #endif
@@ -3198,7 +3215,7 @@ int gui_navig_full(int id, int total, int first, int step, int back_disabled)
                 gui_set_label(kd, str);
             }
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
             {
 #ifdef SWITCHBALL_GUI
@@ -3209,7 +3226,7 @@ int gui_navig_full(int id, int total, int first, int step, int back_disabled)
             }
         }
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (current_platform == PLATFORM_PC)
+        if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
         {
             gui_space(jd);

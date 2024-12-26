@@ -349,7 +349,7 @@ static int pause_gui(void)
 #endif
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
             {
                 gui_state(jd, _(quit_btn_text), GUI_SML, PAUSE_EXIT, 0);
@@ -435,7 +435,7 @@ static void pause_paint(int id, float t)
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_shown())
-        console_gui_paused_paint();
+        console_gui_death_paint();
 #endif
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {
@@ -453,12 +453,12 @@ static void pause_timer(int id, float dt)
     {
         game_step_fade(dt);
         game_server_step(dt);
-        game_client_blend(game_server_blend());
         game_client_sync(curr_mode() != MODE_NONE
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                       && !campaign_hardcore_norecordings()
 #endif
                              ? demo_fp : NULL);
+        game_client_blend(game_server_blend());
     }
 
     gui_timer(id, dt);

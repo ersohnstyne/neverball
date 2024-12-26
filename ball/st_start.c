@@ -701,7 +701,6 @@ static int start_gui(void)
                                         "or finish levels for each.\n"
                                         "Good luck! You'll need it.\n"),
                                       GUI_SML, GUI_COLOR_RED);
-
                         gui_filler(ld);
 
                         challenge_id = gui_state(ld, _("Start Game"),
@@ -759,20 +758,25 @@ static int start_gui(void)
 
                 gui_filler(kd);
             }
-
-            const int scoreboard_flags = curr_mode() == MODE_HARDCORE ?
-                                         (GUI_SCORE_COIN | GUI_SCORE_TIME) :
-                                         (GUI_SCORE_COIN | GUI_SCORE_TIME | GUI_SCORE_GOAL);
+            
+            const int scoreboard_flags = (GUI_SCORE_COIN | GUI_SCORE_TIME |
+                                          (curr_mode() == MODE_HARDCORE ? 0 : GUI_SCORE_GOAL));
 
             gui_space(jd);
             gui_score_board(jd, scoreboard_flags, 0, 0);
-            gui_space(jd);
 
 #if NB_HAVE_PB_BOTH==1
-            gui_state(jd, _("Level Options"), GUI_SML, START_OPTIONS, 0);
-#else
-            if (video.aspect_ratio >= 1.0f)
+#ifndef __EMSCRIPTEN__
+            if (!console_gui_shown())
+#endif
             {
+                gui_space(jd);
+                gui_state(jd, _("Level Options"), GUI_SML, START_OPTIONS, 0);
+            }
+#else
+            gui_space(jd);
+
+            if (video.aspect_ratio >= 1.0f)
                 if ((kd = gui_hstack(jd)))
                 {
                     if ((ld = gui_harray(kd)))
@@ -798,7 +802,6 @@ static int start_gui(void)
                     gui_set_trunc(ld, TRUNC_TAIL);
                     gui_set_fill(ld);
                 }
-            }
 #endif
         }
 
@@ -817,98 +820,93 @@ static int start_gui(void)
 
 static int start_gui_options(void)
 {
-    int root_id, id, jd, kd;
+    int id, jd, kd;
 
-    if ((root_id = gui_root()))
+    if ((id = gui_vstack(0)))
     {
-        if ((id = gui_vstack(root_id)))
+        if ((jd = gui_hstack(id)))
         {
-            if ((jd = gui_hstack(id)))
+            gui_label(jd, _("Level Options"), GUI_SML, GUI_COLOR_DEFAULT);
+            gui_filler(jd);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
+#endif
+                gui_back_button(jd);
+        }
+
+        gui_space(id);
+
+        if ((jd = gui_hstack(id)))
+        {
+            if ((kd = gui_harray(jd)))
             {
-                gui_label(jd, _("Level Options"), GUI_SML, GUI_COLOR_DEFAULT);
-                gui_filler(jd);
+                int btn0, btn1;
 
 #if NB_HAVE_PB_BOTH==1
-#ifndef __EMSCRIPTEN__
-                if (current_platform == PLATFORM_PC)
-#endif
-#endif
-                    gui_back_button(jd);
-            }
+                btn1 = gui_state(kd, GUI_CROSS,
+                                     GUI_SML, START_LOCK_GOALS, 1);
+                btn0 = gui_state(kd, GUI_CHECKMARK,
+                                     GUI_SML, START_LOCK_GOALS, 0);
 
-            gui_space(id);
-
-            if ((jd = gui_hstack(id)))
-            {
-                if ((kd = gui_harray(jd)))
-                {
-                    int btn0, btn1;
-
-#if NB_HAVE_PB_BOTH==1
-                    btn1 = gui_state(kd, GUI_CROSS,
-                                         GUI_SML, START_LOCK_GOALS, 1);
-                    btn0 = gui_state(kd, GUI_CHECKMARK,
-                                         GUI_SML, START_LOCK_GOALS, 0);
-
-                    gui_set_color(btn1, GUI_COLOR_RED);
-                    gui_set_color(btn0, GUI_COLOR_GRN);
+                gui_set_color(btn1, GUI_COLOR_RED);
+                gui_set_color(btn0, GUI_COLOR_GRN);
 #else
-                    btn0 = gui_state(kd, _("Unlocked"),
-                                         GUI_SML, START_LOCK_GOALS, 0);
-                    btn1 = gui_state(kd, _("Locked"),
-                                         GUI_SML, START_LOCK_GOALS, 1);
+                btn0 = gui_state(kd, _("Unlocked"),
+                                     GUI_SML, START_LOCK_GOALS, 0);
+                btn1 = gui_state(kd, _("Locked"),
+                                     GUI_SML, START_LOCK_GOALS, 1);
 #endif
 
-                    if (config_get_d(CONFIG_LOCK_GOALS))
-                        gui_set_hilite(btn1, 1);
-                    else
-                        gui_set_hilite(btn0, 1);
-                }
-
-                gui_space(jd);
-
-                kd = gui_label(jd, _("Goal State in Completed Levels"),
-                                   GUI_SML, 0, 0);
-
-                gui_set_trunc(kd, TRUNC_TAIL);
-                gui_set_fill(kd);
+                if (config_get_d(CONFIG_LOCK_GOALS))
+                    gui_set_hilite(btn1, 1);
+                else
+                    gui_set_hilite(btn0, 1);
             }
+
+            gui_space(jd);
+
+            kd = gui_label(jd, _("Goal State in Completed Levels"),
+                               GUI_SML, 0, 0);
+
+            gui_set_trunc(kd, TRUNC_TAIL);
+            gui_set_fill(kd);
+        }
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            /* OK, how about hardcore mode? */
+        /* OK, how about hardcore mode? */
 
-            const int hardc_requirement = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
+        const int hardc_requirement = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
-                                          !config_cheat() &&
+                                      !config_cheat() &&
 #endif
-                                          (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN) &&
-                                          server_policy_get_d(SERVER_POLICY_EDITION) > 0;
+                                      (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN) &&
+                                      server_policy_get_d(SERVER_POLICY_EDITION) > 0;
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-            const int hardc_available = !CHECK_ACCOUNT_BANKRUPT;
+        const int hardc_available = !CHECK_ACCOUNT_BANKRUPT;
 #else
-            const int hardc_available = 0;
+        const int hardc_available = 0;
 #endif
-            if (hardc_requirement && hardc_available)
-            {
-                gui_space(id);
+        if (hardc_requirement && hardc_available)
+        {
+            gui_space(id);
 #ifdef SWITCHBALL_GUI
-                conf_toggle_simple(id, _("Hardcore Mode"), START_HARDCORE,
-                                       curr_mode() == MODE_HARDCORE,
-                                       1, 0);
+            conf_toggle_simple(id, _("Hardcore Mode"), START_HARDCORE,
+                                   curr_mode() == MODE_HARDCORE,
+                                   1, 0);
 #else
-                conf_toggle(id, _("Hardcore Mode"), START_HARDCORE,
-                                curr_mode() == MODE_HARDCORE,
-                                _("On"), 1, _("Off"), 0);
+            conf_toggle(id, _("Hardcore Mode"), START_HARDCORE,
+                            curr_mode() == MODE_HARDCORE,
+                            _("On"), 1, _("Off"), 0);
 #endif
-            }
+        }
 #endif
 
-            gui_layout(id, 0, 0);
-        }
+        gui_layout(id, 0, 0);
     }
 
-    return root_id;
+    return id;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1058,7 +1056,12 @@ static void start_paint(int id, float t)
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_shown())
-        console_gui_list_paint();
+    {
+        if (!set_star_view && !set_level_options)
+            console_gui_levelopt_paint();
+        else
+            console_gui_list_paint();
+    }
 #endif
 }
 
@@ -1317,6 +1320,8 @@ static int start_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return start_action(GUI_BACK, 0);
 #if NB_HAVE_PB_BOTH==1
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_Y, b))
+            return start_action(START_OPTIONS, 0);
         if (!set_star_view && !set_level_options)
 #endif
         {

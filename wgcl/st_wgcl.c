@@ -14,10 +14,12 @@
 
 #include "st_wgcl.h"
 
-#if NB_HAVE_PB_BOTH==1
-#ifndef __EMSCRIPTEN__
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
-#endif
+
+#if NB_HAVE_PB_BOTH==1
 #if _WIN32 && _MSC_VER
 #include "account_wgcl.h"
 #endif
@@ -233,6 +235,11 @@ void wgcl_gui_keyboard_lock_en(void)
     gui_set_label(keyd_en['/'], lock ? "?" : "/"); gui_set_state(keyd_en['/'], GUI_CHAR, lock ? '?' : '/');
 }
 
+char wgcl_gui_keyboard_char(char c)
+{
+    return lock ? toupper(c) : tolower(c);
+}
+
 /*###########################################################################*/
 
 struct state st_wgcl_login;
@@ -364,8 +371,8 @@ static int wgcl_login_action(int tok, int val)
             if ((login_write_hold_lctrl || login_write_hold_rctrl) &&
                 (val == 'V' || val == 'v'))
                 text_input_paste();
-#endif
             else
+#endif
                 text_input_char(val);
             break;
 
@@ -675,6 +682,15 @@ static int wgcl_login_leave(struct state *st, struct state *next, int id, int in
     return conf_common_leave(st, next, id, intent);
 }
 
+static void wgcl_login_paint(int id, float t)
+{
+    conf_common_paint(id, t);
+
+    if ((current_platform != PLATFORM_PC || console_gui_shown()) &&
+        login_entertext_mode != 0)
+        console_gui_keybd_paint();
+}
+
 static int wgcl_login_keybd(int c, int d)
 {
     if (d)
@@ -685,7 +701,8 @@ static int wgcl_login_keybd(int c, int d)
 #endif
             )
             return wgcl_login_action(GUI_BACK, 0);
-        else if (login_entertext_mode)
+
+        else if (login_entertext_mode != 0)
         {
             if (c == '\b' || c == 0x7F)
             {
@@ -702,6 +719,42 @@ static int wgcl_login_keybd(int c, int d)
             if (c == SDLK_RCTRL) login_write_hold_rctrl = d;
 #endif
         }
+    }
+    return 1;
+}
+
+static int name_buttn(int b, int d)
+{
+    if (d)
+    {
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+        {
+            int tok = gui_token(gui_active());
+            int val = gui_value(gui_active());
+
+            if (login_entertext_mode != 0)
+                return wgcl_login_action(tok, (tok == GUI_CHAR && login_entertext_mode != 0 ?
+                                               wgcl_gui_keyboard_char(val) :
+                                               val));
+        }
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            wgcl_login_action(GUI_BACK, 0);
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b) &&
+            login_entertext_mode != 0)
+            wgcl_login_action(GUI_BS, 0);
+        else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) &&
+                 login_entertext_mode != 0)
+            wgcl_login_action(GUI_CL, 0);
+        else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R2, b) &&
+                 login_entertext_mode != 0)
+            wgcl_login_action(WGCL_LOGIN_SUBMIT, 0);
+    }
+    else
+    {
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) &&
+            login_entertext_mode != 0)
+            wgcl_login_action(GUI_CL, 0);
     }
     return 1;
 }
@@ -845,7 +898,7 @@ struct state st_wgcl_login =
 {
     wgcl_login_enter,
     wgcl_login_leave,
-    conf_common_paint,
+    wgcl_login_paint,
     common_timer,
     common_point,
     common_stick,

@@ -295,7 +295,6 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\ball\st_set.c" />
     <ClCompile Include="..\ball\st_shared.c" />
     <ClCompile Include="..\ball\st_shop.c" />
-    <ClCompile Include="..\ball\st_shop_activate.c" />
     <ClCompile Include="..\ball\st_start.c" />
     <ClCompile Include="..\ball\st_title.c" />
     <ClCompile Include="..\ball\st_tutorial.c" />

@@ -191,6 +191,10 @@ static int shop_action(int tok, int val)
         case SHOP_IAP:
             /* Attempt to open the In-App Purchases. */
 
+#if NB_HAVE_PB_BOTH==1
+            if (!account_wgcl_restart_attempt()) return 1;
+#endif
+
             if (!inaccept_playername &&
                 text_length(config_get_s(CONFIG_PLAYER)) >= 3)
             {
@@ -302,7 +306,7 @@ static int shop_gui(void)
             gui_filler(jd);
 
 #if !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
             {
                 gui_space(jd);
@@ -542,6 +546,7 @@ static int shop_gui(void)
                         gui_image(ld, "gui/shop/levels.jpg", ww, hh);
                         gui_filler(ld);
                         gui_set_state(ld, (account_get_d(ACCOUNT_PRODUCT_LEVELS) ? GUI_NONE : SHOP_BUY), 0);
+                        gui_focus(ld);
                     }
 
                     if ((ld = gui_vstack(kd)))
@@ -607,7 +612,8 @@ static void shop_paint(int id, float t)
 
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    console_gui_shop_paint();
+    if (console_gui_shown())
+        console_gui_shop_paint();
 #endif
 }
 
@@ -902,6 +908,21 @@ static int shop_unregistered_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
+#if _WIN32 && _MSC_VER
+#define LANG_CURRENCY_RESET_DEFAULTS                            \
+    do {                                                        \
+        GetSystemDefaultLocaleName(pWLocaleName, 85);           \
+        wcstombs_s(&pCharC, pChar, MAXSTR, pWLocaleName, 2);    \
+        wcstombs_s(&pCharC, pCharExt, MAXSTR, pWLocaleName, 5); \
+        for (size_t i = 0; i < strlen(pCharExt); i++)           \
+            if (pCharExt[i] == '-')                             \
+                pCharExt[i] = '_';                              \
+    } while (0)
+#else
+#define LANG_CURRENCY_RESET_DEFAULTS \
+    do { SAFECPY(pChar, "de_DE"); } while (0)
+#endif
+
 /*
  * Handful of ?
  * Pile of ?
@@ -968,7 +989,6 @@ enum
 {
     SHOP_IAP_GET_BUY = GUI_LAST,
     SHOP_IAP_GET_SWITCH,
-    SHOP_IAP_ENTERCODE,
     SHOP_IAP_EXPORT
 
     /*
@@ -1079,12 +1099,6 @@ static int shop_iap_action(int tok, int val)
                 exit_state(curr_state());
             break;
 
-#if NB_STEAM_API==0 && NB_EOS_SDK==0 && ENABLE_IAP==1
-        case SHOP_IAP_ENTERCODE:
-            return goto_shop_activate(ok_state, cancel_state,
-                                      curr_ok_fn, curr_cancel_fn);
-            break;
-#endif
         case SHOP_IAP_EXPORT:
             shop_iap_intro_animation = 1;
             goto_state(&st_expenses_export);
@@ -1141,7 +1155,7 @@ static int shop_iap_gui(void)
             gui_space(jd);
 
 #if !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
                 gui_back_button(jd);
 
@@ -1206,6 +1220,7 @@ static int shop_iap_gui(void)
 #endif
         if (video.aspect_ratio >= 1.0f)
         {
+            int btniapdesktop;
             if ((jd = gui_hstack(id)))
             {
                 const int ww = MIN(w, h) / 6;
@@ -1242,6 +1257,7 @@ static int shop_iap_gui(void)
                                 gui_label(kd, iapattr, GUI_SML, sufficent_col, sufficent_col);
                                 gui_filler(kd);
                                 gui_set_state(kd, sufficent_action, multiply - 1);
+                                btniapdesktop = kd;
                             }
 #endif
                             break;
@@ -1250,21 +1266,6 @@ static int shop_iap_gui(void)
                             if (iapgemvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_GEMS)))
                                 if ((kd = gui_vstack(jd)))
                                 {
-#if _WIN32 && _MSC_VER
-#define LANG_CURRENCY_RESET_DEFAULTS                            \
-    do {                                                        \
-        GetSystemDefaultLocaleName(pWLocaleName, 85);           \
-        wcstombs_s(&pCharC, pChar, MAXSTR, pWLocaleName, 2);    \
-        wcstombs_s(&pCharC, pCharExt, MAXSTR, pWLocaleName, 5); \
-        for (size_t i = 0; i < strlen(pCharExt); i++)           \
-            if (pCharExt[i] == '-')                             \
-                pCharExt[i] = '_';                              \
-    } while (0)
-#else
-#define LANG_CURRENCY_RESET_DEFAULTS \
-    do { SAFECPY(pChar, "de_DE"); } while (0)
-#endif
-
                                     wchar_t pWLocaleName[MAXSTR];
                                     size_t pCharC;
                                     char pCharExt[MAXSTR], pChar[MAXSTR];
@@ -1293,6 +1294,8 @@ static int shop_iap_gui(void)
                     }
                 }
                 gui_filler(jd);
+
+                gui_focus(btniapdesktop);
 
                 if (shop_iap_intro_animation)
                     gui_set_slide(jd, GUI_S | GUI_EASE_ELASTIC, 0.6f, 0.8f, 0.05f);
@@ -1352,18 +1355,12 @@ static int shop_iap_gui(void)
                     }
                 }
 
+                gui_focus(btniapmobile);
+
                 if (shop_iap_intro_animation)
                     gui_set_slide(jd, GUI_S | GUI_EASE_ELASTIC, 0.6f, 0.8f, 0.05f);
             }
         }
-
-#if NB_STEAM_API==0 && NB_EOS_SDK==0 && ENABLE_IAP==1
-        if (iappage)
-        {
-            //gui_space(id);
-            //gui_state(id, _("I have an order code!"), GUI_SML, SHOP_IAP_ENTERCODE, 0);
-        }
-#endif
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
         if (server_policy_get_d(SERVER_POLICY_EDITION) >= 10000
@@ -1387,10 +1384,6 @@ static int shop_iap_gui(void)
 
 static int shop_iap_enter(struct state *st, struct state *prev, int intent)
 {
-#if NB_HAVE_PB_BOTH==1
-    account_wgcl_restart_attempt();
-#endif
-
     purchased = 0;
 #ifdef CONFIG_INCLUDES_ACCOUNT
     coinwallet = account_get_d(ACCOUNT_DATA_WALLET_COINS);
@@ -1409,7 +1402,8 @@ static void shop_iap_paint(int id, float t)
 
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    console_gui_shop_getcoins_paint();
+    if (console_gui_shown())
+        console_gui_shop_getcoins_paint();
 #endif
 }
 
@@ -1991,7 +1985,7 @@ static int shop_buy_gui(void)
                     {
                         int getcoins_id;
 #if !defined(__EMSCRIPTEN__)
-                        if (current_platform == PLATFORM_PC)
+                        if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
                         {
                             gui_back_button(jd);

@@ -74,6 +74,7 @@ static int course_ranks;
 static int hole_hilited;
 static int stroke_type;
 static int play_id;
+static int support_exit;
 
 static char *number(int i)
 {
@@ -361,6 +362,13 @@ static int gamepadinfo_controller_ids[4];
 
 static int title_enter(struct state *st, struct state *prev, int intent)
 {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    support_exit = (current_platform != PLATFORM_PS &&
+                    current_platform != PLATFORM_STEAMDECK &&
+                    current_platform != PLATFORM_SWITCH) &&
+                   (current_platform == PLATFORM_PC);
+#endif
+
     if (party_indiv_controllers)
     {
         joy_active_cursor(0, 1);
@@ -425,16 +433,16 @@ static int title_enter(struct state *st, struct state *prev, int intent)
                 {
                     if (config_cheat())
                         play_id = gui_start(kd, gt_prefix("menu^Cheat"),
-                            GUI_MED, TITLE_PLAY, 1);
+                                                GUI_MED, TITLE_PLAY, 1);
                     else
                         play_id = gui_start(kd, gt_prefix("menu^Play"),
-                            GUI_MED, TITLE_PLAY, 1);
+                                                GUI_MED, TITLE_PLAY, 1);
 
-                    gui_state(kd, gt_prefix("menu^Help"), GUI_MED, TITLE_HELP, 0);
+                    gui_state(kd, gt_prefix("menu^Help"),    GUI_MED, TITLE_HELP, 0);
                     gui_state(kd, gt_prefix("menu^Options"), GUI_MED, TITLE_CONF, 0);
 
-                    /* Comment it, if you avoid quit the game */
-                    //gui_state(kd, gt_prefix("menu^Exit"),    GUI_MED, TITLE_EXIT, 0);
+                    if (support_exit && config_get_d(CONFIG_FULLSCREEN))
+                        gui_state(kd, gt_prefix("menu^Exit"), GUI_MED, TITLE_EXIT, 0);
 
                     /* Hilight the start button. */
 

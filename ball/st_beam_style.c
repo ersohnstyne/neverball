@@ -112,16 +112,12 @@ static int beam_style_gui(void)
             gui_filler(jd);
             gui_space(jd);
 
-#if NB_HAVE_PB_BOTH==1
-#ifndef __EMSCRIPTEN__
-            if (current_platform == PLATFORM_PC)
-                gui_back_button(jd);
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            if (current_platform != PLATFORM_PC || console_gui_shown())
+                gui_filler(jd);
             else
 #endif
-                gui_filler(jd);
-#else
-            gui_back_button(jd);
-#endif
+                gui_back_button(jd);
         }
 
         gui_space(id);
@@ -226,7 +222,8 @@ static void beam_style_paint(int id, float t)
 
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    console_gui_beam_style_paint();
+    if (console_gui_shown())
+        console_gui_beam_style_paint();
 #endif
 }
 

@@ -296,7 +296,9 @@ static int fail_gui(void)
 
     int try_shatter_snd = 0;
 
-    if ((root_id = gui_root()))
+    root_id = !console_gui_shown() ? gui_root() : 0;
+
+    //if ((root_id = gui_root()))
     {
         if ((id = gui_vstack(root_id)))
         {
@@ -605,6 +607,22 @@ static int fail_gui(void)
             gui_pulse(fid, 1.2f);
             gui_layout(id, 0, 0);
         }
+
+        if (root_id && (id = gui_vstack(root_id)))
+        {
+            gui_space(id);
+
+            if ((jd = gui_hstack(id)))
+            {
+                int back_btn_id = gui_back_button(jd);
+                gui_space(jd);
+
+                if (fail_intro_animation_phase == 2)
+                    gui_set_slide(back_btn_id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0.0f, 0.8f, 0.05f);
+            }
+
+            gui_layout(id, -1, +1);
+        }
     }
 
     if (try_shatter_snd)
@@ -616,7 +634,7 @@ static int fail_gui(void)
         audio_play(AUD_UI_SHATTER, 1.0f);
     }
 
-    return root_id;
+    return root_id ? root_id : id;
 }
 
 static int fail_enter(struct state *st, struct state *prev, int intent)
@@ -735,12 +753,12 @@ static void fail_timer(int id, float dt)
         int record_campaign   = 1;
 #endif
 
-        game_client_blend(game_server_blend());
         game_client_sync(!resume
                       && fail_time_state < 1.0f
                       && record_modes
                       && record_campaign
                       && fail_intro_animation_phase == 1 ? demo_fp : NULL);
+        game_client_blend(game_server_blend());
          */
     }
 

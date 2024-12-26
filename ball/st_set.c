@@ -408,10 +408,7 @@ static int set_gui(void)
         {
             gui_label(id, _("No Level Sets"), GUI_MED, GUI_COLOR_DEFAULT);
             gui_space(id);
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
-#endif
-                gui_back_button(id);
+            gui_back_button(id);
 
 #if NB_HAVE_PB_BOTH==1
             if (server_policy_get_d(SERVER_POLICY_EDITION) >= 0)
@@ -541,7 +538,7 @@ static int set_gui(void)
                 }
             }
 
-            if (video.aspect_ratio >= 1.0f)
+            if (video.aspect_ratio >= 1.0f && !console_gui_shown())
             {
                 gui_space(jd);
 
@@ -764,6 +761,7 @@ static int set_buttn(int b, int d)
 static int campaign_rank_btn_id;
 
 static int campaign_show_rank = 0;
+static int campaign_theme_style_carousel;
 
 static int campaign_theme_unlocks = 1;
 static int campaign_theme_index   = 0;
@@ -932,12 +930,156 @@ static int campaign_action(int tok, int val)
     return 1;
 }
 
+static int campaign_worldselect_carousel_gui(int id)
+{
+    campaign_theme_style_carousel = 1;
+
+    const int w = video.device_w;
+    const int h = video.device_h;
+
+    int jd, kd, ld, md;
+
+    if ((jd = gui_hstack(id)))
+    {
+        gui_filler(jd);
+
+        /* Arrows are very tricky. But now, in REVERSE! */
+#ifndef __EMSCRIPTEN__
+        if (!campaign_theme_used() && current_platform == PLATFORM_PC && !console_gui_shown())
+#else
+        if (!campaign_theme_used())
+#endif
+        {
+#ifdef SWITCHBALL_GUI
+            gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png",
+                              "gui/navig/arrow_right.png",
+                              GUI_NEXT, GUI_NONE, 1);
+#else
+            gui_maybe(jd, GUI_TRIANGLE_RIGHT, GUI_NEXT, GUI_NONE, 1);
+#endif
+            gui_space(jd);
+        }
+
+        if ((kd = gui_vstack(jd)))
+        {
+            if (!campaign_theme_used())
+            {
+                if ((ld = gui_hstack(kd)))
+                {
+                    gui_filler(ld);
+
+                    if ((md = gui_vstack(ld)))
+                    {
+                        const int ww = 3 * MIN(w, h) / 6;
+                        const int hh = ww / 4 * 3;
+
+                        if (campaign_level_unlocks[campaign_theme_index] > 0)
+                        {
+                            campaign_theme_image_id = gui_image(md, campaign_theme_images[campaign_theme_index],
+                                                                    ww, hh);
+                            campaign_theme_text_id = gui_label(md, _(campaign_theme_texts[campaign_theme_index]),
+                                                                   GUI_SML, GUI_COLOR_WHT);
+                        }
+                        else
+                        {
+                            campaign_theme_image_id = gui_image(md, "gui/campaign/locked.jpg",
+                                                                    ww, hh);
+                            campaign_theme_text_id = gui_label(md, _("Locked"),
+                                                                   GUI_SML, GUI_COLOR_GRY);
+                        }
+
+                        gui_filler(md);
+                    }
+                }
+
+                gui_filler(ld); campaign_theme_btn_id = ld;
+                gui_set_state(campaign_theme_btn_id,
+                              campaign_level_unlocks[campaign_theme_index] > 0 ?
+                              CAMPAIGN_SELECT_THEME : GUI_NONE, 0);
+            }
+            else
+            {
+                if ((ld = gui_hstack(kd)))
+                {
+                    const int ww = 3 * MIN(w, h) / 6;
+                    const int hh = ww / 4 * 3;
+
+                    gui_filler(ld);
+                    gui_image(ld, campaign_theme_images[campaign_theme_index],
+                                  ww, hh);
+                    gui_filler(ld);
+                }
+
+                gui_space(kd);
+
+                if ((ld = gui_harray(kd)))
+                {
+                    for (int i = 5; i > -1; i--)
+                    {
+                        /* Classic campaign levels are needed in the level group system */
+
+                        struct level *l = campaign_get_level((campaign_theme_index * 6) + i);
+
+                        const GLubyte *fore = gui_gry;
+                        const GLubyte *back = gui_gry;
+
+                        if (l && l->file[0])
+                        {
+                            /* Got the level? Continue searching. */
+
+                            if (level_opened(l))
+                            {
+                                fore = level_completed(l) ? gui_yel :
+                                                            gui_red;
+                                back = level_completed(l) ? gui_grn :
+                                                            gui_yel;
+                            }
+
+                            md = gui_label(ld, level_name(l),
+                                               GUI_SML, back, fore);
+
+                            if (level_opened(l))
+                            {
+                                gui_set_state(md, CAMPAIGN_SELECT_LEVEL,
+                                                  (campaign_theme_index * 6) + i);
+
+                                if (i == 0)
+                                    gui_focus(md);
+                            }
+                        }
+                        else
+                            gui_label(ld, " ", GUI_SML, GUI_COLOR_BLK);
+                    }
+                }
+            }
+        }
+
+#ifndef __EMSCRIPTEN__
+        if (!campaign_theme_used() && current_platform == PLATFORM_PC && !console_gui_shown())
+#else
+        if (!campaign_theme_used())
+#endif
+        {
+            gui_space(jd);
+#ifdef SWITCHBALL_GUI
+            gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png",
+                              "gui/navig/arrow_left.png",
+                              GUI_PREV, GUI_NONE, 1);
+#else
+            gui_maybe(kd, GUI_TRIANGLE_LEFT, GUI_PREV, GUI_NONE, 1);
+#endif
+        }
+
+        gui_filler(jd);
+    }
+}
+
 static int campaign_gui(void)
 {
-    int w = video.device_w;
-    int h = video.device_h;
+    const int w = video.device_w;
+    const int h = video.device_h;
 
-    int id, jd, kd, ld, md, nd;
+    int id, jd, kd;
 
     if (campaign_show_rank)
     {
@@ -965,7 +1107,7 @@ static int campaign_gui(void)
             }
 
             gui_space(id);
-            gui_state(id, _("OK"), GUI_SML, GUI_BACK, 0);
+            gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
 
             gui_layout(id, 0, 0);
         }
@@ -987,152 +1129,21 @@ static int campaign_gui(void)
             gui_filler(jd);
 
 #ifndef __EMSCRIPTEN__
-            if (current_platform == PLATFORM_PC)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
                 gui_back_button(jd);
         }
 
         gui_space(id);
 
-        campaign_rank_btn_id = gui_label(id, _(campaign_ranks[campaign_rank()].text_rank),
-                                             GUI_SML, gui_wht, campaign_ranks[campaign_rank()].col_rank);
+        campaign_rank_btn_id = gui_start(id, _(campaign_ranks[campaign_rank()].text_rank),
+                                             GUI_SML, CAMPAIGN_RANK, 0);
+        gui_set_color(campaign_rank_btn_id, gui_wht, campaign_ranks[campaign_rank()].col_rank);
         gui_pulse(campaign_rank_btn_id, 1.2f);
-        gui_set_state(campaign_rank_btn_id, CAMPAIGN_RANK, 0);
 
         gui_space(id);
 
-        if ((kd = gui_hstack(id)))
-        {
-            gui_filler(kd);
-
-            /* Arrows are very tricky. But now, in REVERSE! */
-#ifndef __EMSCRIPTEN__
-            if (!campaign_theme_used() && current_platform == PLATFORM_PC)
-#else
-            if (!campaign_theme_used())
-#endif
-            {
-#ifdef SWITCHBALL_GUI
-                gui_maybe_img(kd, "gui/navig/arrow_right_disabled.png",
-                                  "gui/navig/arrow_right.png",
-                                  GUI_NEXT, GUI_NONE, 1);
-#else
-                gui_maybe(kd, GUI_TRIANGLE_RIGHT, GUI_NEXT, GUI_NONE, 1);
-#endif
-                gui_space(kd);
-            }
-
-            if ((ld = gui_vstack(kd)))
-            {
-                if (!campaign_theme_used())
-                {
-                    if ((md = gui_hstack(ld)))
-                    {
-                        gui_filler(md);
-
-                        if ((nd = gui_vstack(md)))
-                        {
-                            const int ww = 3 * MIN(w, h) / 6;
-                            const int hh = ww / 4 * 3;
-
-                            if (campaign_level_unlocks[campaign_theme_index] > 0)
-                            {
-                                campaign_theme_image_id = gui_image(nd, campaign_theme_images[campaign_theme_index],
-                                                                        ww, hh);
-                                campaign_theme_text_id  = gui_label(nd, _(campaign_theme_texts[campaign_theme_index]),
-                                                                        GUI_SML, GUI_COLOR_WHT);
-                            }
-                            else
-                            {
-                                campaign_theme_image_id = gui_image(nd, "gui/campaign/locked.jpg",
-                                                                        ww, hh);
-                                campaign_theme_text_id  = gui_label(nd, _("Locked"),
-                                                                        GUI_SML, GUI_COLOR_GRY);
-                            }
-                        }
-                        gui_filler(md);
-                    }
-
-                    gui_filler(ld); campaign_theme_btn_id = ld;
-                    gui_set_state(campaign_theme_btn_id,
-                                  campaign_level_unlocks[campaign_theme_index] > 0 ?
-                                  CAMPAIGN_SELECT_THEME : GUI_NONE, 0);
-                }
-                else
-                {
-                    if ((md = gui_hstack(ld)))
-                    {
-                        const int ww = 3 * MIN(w, h) / 6;
-                        const int hh = ww / 4 * 3;
-
-                        gui_filler(md);
-                        gui_image(md, campaign_theme_images[campaign_theme_index],
-                                      ww, hh);
-                        gui_filler(md);
-                    }
-
-                    gui_space(ld);
-
-                    if ((md = gui_harray(ld)))
-                    {
-                        for (int i = 5; i > -1; i--)
-                        {
-                            /* Classic campaign levels are needed in the level group system */
-
-                            struct level *l = campaign_get_level((campaign_theme_index * 6) + i);
-
-                            const GLubyte *fore = gui_gry;
-                            const GLubyte *back = gui_gry;
-
-                            if (l && l->file[0])
-                            {
-                                /* Got the level? Continue searching. */
-
-                                if (level_opened(l))
-                                {
-                                    fore = level_completed(l) ? gui_yel :
-                                                                gui_red;
-                                    back = level_completed(l) ? gui_grn :
-                                                                gui_yel;
-                                }
-
-                                nd = gui_label(md, level_name(l),
-                                                   GUI_SML, back, fore);
-
-                                if (level_opened(l))
-                                {
-                                    gui_set_state(nd, CAMPAIGN_SELECT_LEVEL,
-                                                      (campaign_theme_index * 6) + i);
-
-                                    if (i == 0)
-                                        gui_focus(nd);
-                                }
-                            }
-                            else
-                                gui_label(md, " ", GUI_SML, GUI_COLOR_BLK);
-                        }
-                    }
-                }
-            }
-
-#ifndef __EMSCRIPTEN__
-            if (!campaign_theme_used() && current_platform == PLATFORM_PC)
-#else
-            if (!campaign_theme_used())
-#endif
-            {
-                gui_space(kd);
-#ifdef SWITCHBALL_GUI
-                gui_maybe_img(kd, "gui/navig/arrow_left_disabled.png",
-                                  "gui/navig/arrow_left.png",
-                                  GUI_PREV, GUI_NONE, 1);
-#else
-                gui_maybe(kd, GUI_TRIANGLE_LEFT, GUI_PREV, GUI_NONE, 1);
-#endif
-            }
-
-            gui_filler(kd);
-        }
+        campaign_worldselect_carousel_gui(id);
 
         if (!campaign_theme_used() &&
             server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED))
@@ -1149,33 +1160,30 @@ static int campaign_gui(void)
 
 static int campaign_gui_comingsoon(void)
 {
-    int root_id, id;
+    int id;
 
-    if ((root_id = gui_root()))
+    if ((id = gui_vstack(0)))
     {
-        if ((id = gui_vstack(root_id)))
-        {
-            gui_title_header(id, _("Campaign"), GUI_MED, GUI_COLOR_DEFAULT);
+        gui_title_header(id, _("Campaign"), GUI_MED, GUI_COLOR_DEFAULT);
 
-            gui_space(id);
+        gui_space(id);
 
-            gui_multi(id, _("This level group and modes can be played in\n"
-                            "version 2.20.X and later."),
-                          GUI_SML, GUI_COLOR_WHT);
+        gui_multi(id, _("This level group and modes can be played in\n"
+                        "version 2.20.X and later."),
+                      GUI_SML, GUI_COLOR_WHT);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
-            {
-                gui_space(id);
-                gui_back_button(id);
-            }
+        if (current_platform == PLATFORM_PC && !console_gui_shown())
+        {
+            gui_space(id);
+            gui_back_button(id);
+        }
 #endif
 
-            gui_layout(id, 0, 0);
-        }
+        gui_layout(id, 0, 0);
     }
 
-    return root_id;
+    return 0;
 }
 
 static void campaign_prepare(struct state *prev)
@@ -1222,6 +1230,8 @@ static int campaign_enter(struct state *st, struct state *prev, int intent)
 
 static int campaign_leave(struct state *st, struct state *next, int id, int intent)
 {
+    campaign_theme_style_carousel = 0;
+
     if (next == &st_title ||
         next == &st_levelgroup)
         activity_services_group_update(AS_GROUP_NONE);
@@ -1272,7 +1282,7 @@ static int campaign_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return campaign_action(GUI_BACK, 0);
 
-        if (!campaign_theme_used())
+        if (!campaign_theme_used() && campaign_theme_style_carousel)
         {
             if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b))
                 return campaign_action(GUI_PREV, 0);
@@ -1334,7 +1344,7 @@ static int levelgroup_gui(void)
             gui_filler(jd);
 
 #ifndef __EMSCRIPTEN__
-            if (current_platform == PLATFORM_PC)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
                 gui_back_button(jd);
         }
@@ -1422,6 +1432,7 @@ static int levelgroup_gui(void)
                     gui_filler(ld);
                     gui_set_state(ld, GUI_NONE, 0);
                 }
+                gui_focus(ld);
             }
         }
         gui_layout(id, 0, 0);
@@ -1536,9 +1547,9 @@ int goto_playgame_register(void)
 int goto_playmenu(int m)
 {
     if (m == MODE_BOOST_RUSH)
-        return goto_state(&st_set);
+        return exit_state(&st_set);
 
-    return goto_state(
+    return exit_state(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                       campaign_used() ? &st_campaign :
 #endif

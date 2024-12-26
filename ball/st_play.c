@@ -402,12 +402,12 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
 
     if (play_update_client)
     {
-        game_client_blend(game_server_blend());
         game_client_sync(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                          !campaign_hardcore_norecordings() &&
 #endif
                          curr_mode() != MODE_NONE ? demo_fp : NULL);
+        game_client_blend(game_server_blend());
 
         play_update_client = 0;
         play_update_server = 1;
@@ -444,12 +444,12 @@ static void play_ready_timer(int id, float dt)
 
     if (play_update_client)
     {
-        game_client_blend(game_server_blend());
         game_client_sync(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                          !campaign_hardcore_norecordings() &&
 #endif
                          curr_mode() != MODE_NONE ? demo_fp : NULL);
+        game_client_blend(game_server_blend());
 
         play_update_client = 0;
         play_update_server = 1;
@@ -1127,14 +1127,14 @@ static void play_loop_stick(int id, int a, float v, int bump)
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X1, a))
         {
             if (v + axis_offset[2] > 0.0f)
-                rot_set(DIR_R, +v + axis_offset[2], 1);
+                rot_set(DIR_R, -v + axis_offset[2], 1);
             else if (v + axis_offset[2] < 0.0f)
-                rot_set(DIR_L, -v + axis_offset[2], 1);
+                rot_set(DIR_L, +v + axis_offset[2], 1);
             else
                 rot_clr(DIR_R | DIR_L);
         }
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y1, a))
-            game_set_zoom((v + +axis_offset[3]) * 0.1f);
+            game_set_zoom((-v + axis_offset[3]) * 0.02f);
 
         game_set_z(tilt_x);
         game_set_x(tilt_y);
@@ -1278,7 +1278,7 @@ static int play_loop_keybd(int c, int d)
 
 static int play_loop_buttn(int b, int d)
 {
-    if (d == 1)
+    if (d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
         {

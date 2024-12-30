@@ -62,6 +62,14 @@ int dir_exists(const char *);
 #else
 #define dir_make(path) 0
 #endif
+/*#elif defined(__EMSCRIPTEN__)
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+#define dir_make(path) EM_ASM({ Pennyball.mkdir_p($0); }, path)
+#else
+#define dir_make(path) 0
+#endif*/
 #else
 #include <sys/stat.h>
 #if !defined(__NDS__) && !defined(__3DS__) && \

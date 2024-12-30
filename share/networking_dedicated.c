@@ -178,9 +178,7 @@ static SDL_Thread *networking_thread;
 
 static SDL_atomic_t networking_thread_running;
 
-void server_policy_set_d(int i, int d);
-
-static void server_policy_init(void)
+void server_policy_init(void)
 {
     /*
      * Store index of each option in its associated config symbol and
@@ -333,7 +331,9 @@ int networking_init(int support_online)
 
     networking_busy = 1;
 
+#ifndef __EMSCRIPTEN__
     server_policy_init();
+#endif
     connected = -1;
 
     int tmp_res = authenticate_networking();

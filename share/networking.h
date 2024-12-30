@@ -57,7 +57,9 @@ int networking_connected(void);
 int networking_standalone(void);
 int networking_error(void);
 
-int server_policy_get_d(int);
+void server_policy_init(void);
+void server_policy_set_d(int i, int d);
+int  server_policy_get_d(int);
 
 #if ENABLE_DEDICATED_SERVER==1
 int networking_dedicated_refresh_login(const char *);

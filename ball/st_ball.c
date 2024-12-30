@@ -616,7 +616,7 @@ static void ball_paint(int id, float t)
 
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (!console_gui_shown())
+    if (console_gui_shown())
         console_gui_model_paint();
 #endif
 }

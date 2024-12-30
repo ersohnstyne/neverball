@@ -21,6 +21,8 @@
 #include "config.h"
 #include "account.h"
 
+#include "ball.h"
+
 #include "log.h"
 #include "parson.h"
 
@@ -248,23 +250,28 @@ static void account_wgcl_curl_quit(CURL *handle)
 
 #define WGCL_URL "pennyball.stynegame.de"
 
+static int managed_buy_is_pending = 0;
+
+static int managed_buy_flags_pending;
+static int managed_buy_coins_cost_pending;
+
 static int assets_add_is_pending = 0;
 
-static int pending_add_wallet_coins           = 0;
-static int pending_add_wallet_gems            = 0;
-static int pending_add_consumable_hp          = 0;
-static int pending_add_consumable_doublecash  = 0;
-static int pending_add_consumable_halfgrav    = 0;
-static int pending_add_consumable_doublespeed = 0;
+static int pending_add_wallet_coins;
+static int pending_add_wallet_gems;
+static int pending_add_consumable_hp;
+static int pending_add_consumable_doublecash;
+static int pending_add_consumable_halfgrav;
+static int pending_add_consumable_doublespeed;
 
 static int assets_set_is_pending = 0;
 
-static int pending_set_wallet_coins           = 0;
-static int pending_set_wallet_gems            = 0;
-static int pending_set_consumable_hp          = 0;
-static int pending_set_consumable_doublecash  = 0;
-static int pending_set_consumable_halfgrav    = 0;
-static int pending_set_consumable_doublespeed = 0;
+static int pending_set_wallet_coins;
+static int pending_set_wallet_gems;
+static int pending_set_consumable_hp;
+static int pending_set_consumable_doublecash;
+static int pending_set_consumable_halfgrav;
+static int pending_set_consumable_doublespeed;
 
 static void account_wgcl_visit_browser_login()
 {
@@ -484,6 +491,7 @@ int account_wgcl_reload(void)
     const int expected_consumable_doublecash  = ROUND(json_object_get_number(data_session, "player_consumable_doublecash"));
     const int expected_consumable_halfgrav    = ROUND(json_object_get_number(data_session, "player_consumable_halfgrav"));
     const int expected_consumable_doublespeed = ROUND(json_object_get_number(data_session, "player_consumable_doublespeed"));
+    const int expected_managed_product_flags  = ROUND(json_object_get_number(data_session, "player_managed_product_flags"));
 
     if (strcmp(config_get_s(CONFIG_PLAYER), expected_player_name) != 0)
     {
@@ -519,6 +527,24 @@ int account_wgcl_reload(void)
     if (account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER) != expected_consumable_doublespeed &&
         expected_consumable_doublespeed >= -1)
         account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, expected_consumable_doublespeed);
+
+    // Managed product are very trick from integer flags
+    // 1 = Extra Levels
+    // 2 = Online balls
+    // 4 = Bonus packs
+    // 8 = Mediation (Zen mode (PB Premium))
+
+    if (account_get_d(ACCOUNT_PRODUCT_LEVELS) != (((expected_managed_product_flags & 1) == 1) ? 1 : 0))
+        account_set_d(ACCOUNT_PRODUCT_LEVELS, (((expected_managed_product_flags & 1) == 1) ? 1 : 0));
+
+    if (account_get_d(ACCOUNT_PRODUCT_BALLS) != (((expected_managed_product_flags & 2) == 2) ? 1 : 0))
+        account_set_d(ACCOUNT_PRODUCT_BALLS, (((expected_managed_product_flags & 2) == 2) ? 1 : 0));
+
+    if (account_get_d(ACCOUNT_PRODUCT_BONUS) != (((expected_managed_product_flags & 4) == 4) ? 1 : 0))
+        account_set_d(ACCOUNT_PRODUCT_BONUS, (((expected_managed_product_flags & 4) == 4) ? 1 : 0));
+
+    if (account_get_d(ACCOUNT_PRODUCT_MEDIATION) != (((expected_managed_product_flags & 8) == 8) ? 1 : 0))
+        account_set_d(ACCOUNT_PRODUCT_MEDIATION, (((expected_managed_product_flags & 8) == 8) ? 1 : 0));
 #else
     if (strcmp(config_get_s(CONFIG_PLAYER), expected_player_name) != 0)
     {
@@ -578,9 +604,9 @@ void account_wgcl_set_session_uuid4(const char *uuid4)
     session_uuid4 = strdup(uuid4);
 }
 
-void account_wgcl_set_readonly_playername(int f)
+void account_wgcl_set_readonly_playername(const char* f)
 {
-    read_only = f;
+    read_only = atoi(f);
 }
 
 /*
@@ -851,6 +877,8 @@ account_wgcl_try_add_fail:
     return 1;
 #endif
 #elif defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+    assets_add_is_pending = 0;
+
     char in_url[512];
     sprintf(in_url, "https://%s/api/internal/updateassets", WGCL_URL);
 
@@ -1002,6 +1030,8 @@ account_wgcl_try_set_fail:
     return 1;
 #endif
 #elif defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+    assets_set_is_pending = 0;
+
     char in_url[512];
     sprintf(in_url, "https://%s/api/internal/updateassets", WGCL_URL);
 
@@ -1030,8 +1060,152 @@ account_wgcl_try_set_fail:
 #endif
 }
 
+int account_wgcl_try_buy(int w_coins_cost, int flags)
+{
+    if (!(session_uuid4 && *session_uuid4))
+        return 1;
+
+    if (!managed_buy_is_pending)
+    {
+        managed_buy_is_pending = 1;
+        managed_buy_coins_cost_pending = w_coins_cost;
+        managed_buy_flags_pending = flags;
+    }
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__EMSCRIPTEN__)
+#if _WIN32 && _MSC_VER
+#if NB_HAVE_PB_BOTH==1
+    /* TODO: Buy managed products into online browser from in-game instead. */
+
+    char in_url[512];
+#if !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_url, 512,
+#else
+    sprintf(in_url,
+#endif
+            "https://%s/api/internal/shop/buy", WGCL_URL);
+
+    struct wgcl_res_data res_data = {0};
+
+    char json_data[512];
+#if !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(json_data, 512,
+#else
+    sprintf(json_data,
+#endif
+            "{"
+            "    \"player_uuid4\":\"%s\","
+            "    \"new_product_flags\":%d"
+            "}",
+            session_uuid4,
+            managed_buy_flags_pending);
+
+    CURL *handle = account_wgcl_curl_prepare_post(in_url, json_data, &res_data);
+    CURLcode res = account_wgcl_curl_execute(handle);
+
+    account_wgcl_curl_quit(handle);
+    if (res != CURLE_OK)
+    {
+        log_errorf("WGCL + CURL error: Updating asset value is not possible, either offline or needs to log in again.\n");
+
+        account_wgcl_visit_browser_login();
+
+        goto account_wgcl_try_buy_fail;
+    }
+
+    /* Now, parse JSON! */
+
+    JSON_Value  *root;
+    JSON_Object *root_obj;
+
+    root = json_parse_string(res_data.data);
+
+    if (!root || json_value_get_type(root) != JSONObject)
+    {
+        log_errorf("WGCL + CURL error: Not an JSON object!\n");
+
+        account_wgcl_visit_browser_login();
+
+        goto account_wgcl_try_buy_fail;
+    }
+
+    root_obj = json_value_get_object(root);
+    if (!json_object_has_value(root_obj, "web_return_code") ||
+        !json_object_has_value(root_obj, "message_text") ||
+        !json_object_has_value(root_obj, "message_desc"))
+    {
+        log_errorf("WGCL + CURL error: Session's column values does not matched exactly!\n");
+
+        account_wgcl_visit_browser_login();
+
+        goto account_wgcl_try_buy_fail;
+    }
+    else if (json_object_get_number(root_obj, "web_return_code") != 200)
+    {
+        log_errorf("WGCL + CURL error: Buying failed: %s\n", json_object_get_string(root_obj, "message_text"));
+
+        account_wgcl_visit_browser_login();
+
+        goto account_wgcl_try_buy_fail;
+    }
+
+    managed_buy_is_pending         = 0;
+    managed_buy_flags_pending      = 0;
+    managed_buy_coins_cost_pending = 0;
+
+    free(res_data.data);
+
+    log_printf("WGCL + CURL info: Done!\n");
+    return 1;
+
+account_wgcl_try_buy_fail:
+    free(res_data.data);
+    return 0;
+#else
+    return 1;
+#endif
+#else
+    return 1;
+#endif
+#elif defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
+    managed_buy_is_pending = 0;
+
+    char in_url[512];
+    sprintf(in_url, "https://%s/api/internal/shop/buy", WGCL_URL);
+
+    char json_data[512];
+    sprintf(json_data,
+            "{"
+            "    \"player_uuid4\":\"%s\","
+            "    \"new_product_flags\":%d"
+            "}",
+            session_uuid4,
+            managed_buy_flags_pending);
+
+    EM_ASM({
+        Neverball.gamecore_account_try_buy($0, $1);
+    }, in_url, json_data);
+
+    return 1;
+#else
+    return 1;
+#endif
+}
+
 int account_wgcl_restart_attempt(void)
 {
+    if (managed_buy_flags_pending)
+    {
+        if (!account_wgcl_try_buy(0, 0))
+            return 0;
+
+        int prev_coins = account_get_d(ACCOUNT_DATA_WALLET_COINS);
+
+        account_set_d(ACCOUNT_DATA_WALLET_COINS, prev_coins - managed_buy_coins_cost_pending);
+    }
+
     if (assets_add_is_pending)
     {
         if (!account_wgcl_try_add(0, 0, 0, 0, 0, 0))
@@ -1104,4 +1278,24 @@ void account_wgcl_do_set(int w_coins, int w_gems,
     account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, c_doublecash);
     account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, c_halfgrav);
     account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, c_doublespeed);
+}
+
+int account_wgcl_do_buy(int w_coins_cost, int flags)
+{
+    if (!managed_buy_is_pending &&
+        (w_coins_cost <= 0 &&
+         flags != 1 && flags != 2 && flags != 4 && flags != 8))
+        return 0;
+
+    if (read_only)
+        if (!account_wgcl_try_buy(w_coins_cost, flags))
+        {
+            goto_state(&st_wgcl_error_offline);
+            return 0;
+        }
+
+    int prev_coins = account_get_d(ACCOUNT_DATA_WALLET_COINS);
+
+    account_set_d(ACCOUNT_DATA_WALLET_COINS, prev_coins - w_coins_cost);
+    return 1;
 }

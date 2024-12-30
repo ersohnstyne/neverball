@@ -31,10 +31,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-void server_policy_set_d(int i, int d);
-
-/*---------------------------------------------------------------------------*/
-
 int network_result = 0;
 int networking_busy;
 
@@ -135,7 +131,7 @@ static int scan_key_and_value(char **dst_key, char **dst_val, char *line)
 
 /*---------------------------------------------------------------------------*/
 
-static void server_policy_init(void)
+void server_policy_init(void)
 {
     /*
      * Store index of each option in its associated config symbol and
@@ -154,9 +150,9 @@ int networking_init(int support_online)
     standalone = 1;
     net_error = 0;
     network_result = 1;
-
+#ifndef __EMSCRIPTEN__
     server_policy_init();
-
+#endif
     connected = 1;
 
     return network_result;

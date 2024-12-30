@@ -69,6 +69,7 @@ typedef SDLKey SDL_Keycode;
 /*---------------------------------------------------------------------------*/
 
 #if NB_HAVE_PB_BOTH==1
+struct state st_shop_maxout;
 struct state st_shop_rename;
 struct state st_shop_unregistered;
 struct state st_shop_iap;
@@ -638,6 +639,51 @@ static int shop_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_Y, b) && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP))
             return shop_action(SHOP_IAP, 0);
     }
+    return 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static int shop_maxout_gui(void)
+{
+    int id;
+
+    if ((id = gui_vstack(0)))
+    {
+        gui_title_header(id, _("Assets maxed out!"), GUI_MED, gui_blu, gui_grn);
+
+        gui_space(id);
+        gui_multi(id, _("Congratulations!\n"
+                        "You've maxed out your assets!"),
+                      GUI_SML, GUI_COLOR_WHT);
+        gui_space(id);
+
+        gui_layout(id, 0, 0);
+    }
+
+    return id;
+}
+
+static int shop_maxout_enter(struct state *st, struct state *prev, int intent)
+{
+    audio_play(AUD_GOAL, 1.0f);
+
+    return transition_slide(shop_maxout_gui(), 1, intent);
+}
+
+static int shop_maxout_keybd(int c, int d)
+{
+    if (d && c == KEY_EXIT)
+        return exit_state(&st_shop);
+
+    return 1;
+}
+
+static int shop_maxout_buttn(int b, int d)
+{
+    if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+        return exit_state(&st_shop);
+
     return 1;
 }
 
@@ -1288,6 +1334,7 @@ static int shop_iap_gui(void)
                                     gui_label(kd, iapattr, GUI_SML, GUI_COLOR_WHT);
                                     gui_filler(kd);
                                     gui_set_state(kd, SHOP_IAP_GET_BUY, multiply - 1);
+                                    btniapdesktop = kd;
                                 }
 #endif
                             break;
@@ -1647,64 +1694,67 @@ static int shop_buy_action(int tok, int val)
             switch (productkey)
             {
                 case 0:
-                    account_wgcl_do_add(-prodcost, 0, 0, 0, 0, 0);
-                    account_set_d(ACCOUNT_PRODUCT_LEVELS, 1);
+                    if (account_wgcl_do_buy(prodcost, 1))
+                        account_set_d(ACCOUNT_PRODUCT_LEVELS, 1);
+                    else return 1;
                     break;
 
                 case 1:
-                    account_wgcl_do_add(-prodcost, 0, 0, 0, 0, 0);
-                    transition_quit();
+                    if (account_wgcl_do_buy(prodcost, 2))
+                    {
+                        transition_quit();
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-                    console_gui_free();
+                        console_gui_free();
 #endif
-                    hud_free();
-                    gui_free();
-                    account_set_d(ACCOUNT_PRODUCT_BALLS, 1);
-                    gui_init();
-                    hud_init();
+                        hud_free();
+                        gui_free();
+                        account_set_d(ACCOUNT_PRODUCT_BALLS, 1);
+                        gui_init();
+                        hud_init();
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-                    console_gui_init();
+                        console_gui_init();
 #endif
-                    transition_init();
+                        transition_init();
+                    }
+                    else return 1;
                     break;
 
                 case 2:
-                    account_wgcl_do_add(-prodcost, 0, 0, 0, 0, 0);
-                    account_set_d(ACCOUNT_PRODUCT_BONUS, 1);
+                    if (account_wgcl_do_buy(prodcost, 4))
+                        account_set_d(ACCOUNT_PRODUCT_BONUS, 1);
+                    else return 1;
                     break;
 
                 case 3:
-                    account_wgcl_do_add(-prodcost, 0, 0, 0, 0, 0);
+                    if (account_wgcl_do_buy(prodcost, 8))
 #ifdef LEVELGROUPS_INCLUDES_ZEN
-                    account_set_d(ACCOUNT_PRODUCT_MEDIATION, 1);
-#else
-                    return 1;
+                        account_set_d(ACCOUNT_PRODUCT_MEDIATION, 1)
 #endif
+                    ; else return 1;
                     break;
 
                 case 4:
-                    evalue += 1;
                     account_wgcl_do_add(-prodcost, 0, 0, 1, 0, 0);
                     break;
 
                 case 5:
-                    fvalue += 1;
                     account_wgcl_do_add(-prodcost, 0, 0, 0, 1, 0);
                     break;
 
                 case 6:
-                    svalue += 1;
                     account_wgcl_do_add(-prodcost, 0, 0, 0, 0, 1);
                     break;
 
                 case 7:
-                    lvalue += 1;
                     account_wgcl_do_add(0, -prodcost, 1, 0, 0, 0);
                     break;
             }
             account_wgcl_save();
 #endif
-            return exit_state(&st_shop);
+            return exit_state(account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
+                              account_get_d(ACCOUNT_PRODUCT_BALLS) &&
+                              account_get_d(ACCOUNT_PRODUCT_BONUS) &&
+                              account_get_d(ACCOUNT_PRODUCT_MEDIATION) ? &st_shop_maxout : &st_shop);
 
         case SHOP_BUY_IAP:
             return goto_shop_iap(&st_shop_buy, &st_shop, 0, 0, prodcost, purchase_product_usegems, 0);
@@ -2041,7 +2091,7 @@ static int shop_buy_gui(void)
                 {
                     int getcoins_id;
 #if !defined(__EMSCRIPTEN__)
-                    if (current_platform == PLATFORM_PC)
+                    if (!console_gui_shown())
 #endif
                     {
                         gui_back_button(jd);
@@ -2366,6 +2416,19 @@ struct state st_shop = {
     shared_click,
     shop_keybd,
     shop_buttn
+};
+
+struct state st_shop_maxout = {
+    shop_maxout_enter,
+    shared_leave,
+    shared_paint,
+    shared_timer,
+    shared_point,
+    shared_stick,
+    shared_angle,
+    shared_click_basic,
+    shop_maxout_keybd,
+    shop_maxout_buttn
 };
 
 struct state st_shop_rename = {

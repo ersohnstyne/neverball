@@ -31,7 +31,7 @@ static void WGCLCallMain_Real(void)
 
     server_policy_set_d(SERVER_POLICY_LEVELSET_ENABLED_BONUS, 1);
     server_policy_set_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET, server_policy_get_d(SERVER_POLICY_EDITION) != 0 ? 1 : 0);
-    server_policy_set_d(SERVER_POLICY_LEVELSET_UNLOCKED_BONUS, server_policy_get_d(SERVER_POLICY_EDITION) > 1 : 1 : 0);
+    server_policy_set_d(SERVER_POLICY_LEVELSET_UNLOCKED_BONUS, server_policy_get_d(SERVER_POLICY_EDITION) > 1 ? 1 : 0);
 
     server_policy_set_d(SERVER_POLICY_PLAYMODES_ENABLED, server_policy_get_d(SERVER_POLICY_EDITION) > -1);
     server_policy_set_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER, server_policy_get_d(SERVER_POLICY_EDITION) > -1);
@@ -44,8 +44,6 @@ static void WGCLCallMain_Real(void)
     server_policy_set_d(SERVER_POLICY_SHOP_ENABLED_IAP, server_policy_get_d(SERVER_POLICY_EDITION) > -1);
     server_policy_set_d(SERVER_POLICY_SHOP_ENABLED_MANAGED, server_policy_get_d(SERVER_POLICY_EDITION) > -1);
     server_policy_set_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES, server_policy_get_d(SERVER_POLICY_EDITION) > 0 ? 1 : 0);
-
-    return 0;
 }
 
 /********************************************************************/

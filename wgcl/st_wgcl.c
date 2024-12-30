@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include "st_wgcl.h"
 
 /*
@@ -20,7 +24,7 @@
 #include "console_control_gui.h"
 
 #if NB_HAVE_PB_BOTH==1
-#if _WIN32 && _MSC_VER
+#if (_WIN32 && _MSC_VER) || defined(__EMSCRIPTEN__)
 #include "account_wgcl.h"
 #endif
 #include "networking.h"
@@ -392,7 +396,7 @@ static int wgcl_login_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://pennyball.stynegame.de/signup"); }, 0);
+            EM_ASM({ window.open("https://pennyball.stynegame.de/signup"); });
 #elif _WIN32
             system("explorer https://pennyball.stynegame.de/signup");
 #elif defined(__APPLE__)
@@ -556,7 +560,7 @@ static int wgcl_login_gui_keyboard(void)
                 gui_space(jd);
                 gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
             }
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             else
             {
                 gui_space(jd);

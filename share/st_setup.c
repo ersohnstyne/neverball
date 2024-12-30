@@ -17,6 +17,10 @@
  */
 #include "console_control_gui.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include "account_wgcl.h"
 
 #include "glext.h"
@@ -29,12 +33,12 @@
 #include "transition.h"
 #include "text.h"
 #include "fetch.h"
+#include "networking.h"
 
 #include "st_common.h"
 
 #if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1
 #include "st_wgcl.h"
-#include "networking.h"
 #endif
 #include "st_setup.h"
 #include "st_transfer.h"

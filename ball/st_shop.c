@@ -22,6 +22,10 @@
  */
 #include "console_control_gui.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 #include "account.h"
@@ -74,7 +78,9 @@ struct state st_shop_rename;
 struct state st_shop_unregistered;
 struct state st_shop_iap;
 struct state st_shop_buy;
+#ifndef __EMSCRIPTEN__
 struct state st_expenses_export;
+#endif
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -720,7 +726,7 @@ static int shop_rename_action(int tok, int val)
     {
         case SHOP_RENAME_YES:
 #ifdef __EMSCRIPTEN__
-            EM_ASM({ window.open("https://pennyball.stynegame.de/"); }, 0)
+            EM_ASM({ window.open("https://pennyball.stynegame.de/"); });
 #else
             account_wgcl_save();
             return goto_name(ok_state, cancel_state, 0, 0, draw_back);
@@ -1137,18 +1143,24 @@ static int shop_iap_action(int tok, int val)
             break;
 
         case SHOP_IAP_GET_SWITCH:
+#ifdef __EMSCRIPTEN__
+            EM_ASM({ Pennyball.showIAP_Gems(); });
+#else
             iappage = !iappage;
 
             if (iappage)
                 goto_state(curr_state());
             else
                 exit_state(curr_state());
+#endif
             break;
 
+#ifndef __EMSCRIPTEN__
         case SHOP_IAP_EXPORT:
             shop_iap_intro_animation = 1;
             goto_state(&st_expenses_export);
             break;
+#endif
     }
     return 1;
 }
@@ -1308,7 +1320,7 @@ static int shop_iap_gui(void)
 #endif
                             break;
                         case 1:
-#ifdef CONFIG_INCLUDES_ACCOUNT
+#if defined(CONFIG_INCLUDES_ACCOUNT) && !defined(__EMSCRIPTEN__)
                             if (iapgemvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_GEMS)))
                                 if ((kd = gui_vstack(jd)))
                                 {
@@ -1377,7 +1389,7 @@ static int shop_iap_gui(void)
 #endif
                             break;
                         case 1:
-#ifdef CONFIG_INCLUDES_ACCOUNT
+#if defined(CONFIG_INCLUDES_ACCOUNT) && !defined(__EMSCRIPTEN__)
                             if (iapgemvalue[multiply - 1] >= (curr_min - account_get_d(ACCOUNT_DATA_WALLET_GEMS)))
                             {
                                 wchar_t pWLocaleName[MAXSTR];
@@ -1409,7 +1421,7 @@ static int shop_iap_gui(void)
             }
         }
 
-#ifdef CONFIG_INCLUDES_ACCOUNT
+#if defined(CONFIG_INCLUDES_ACCOUNT) && !defined(__EMSCRIPTEN__)
         if (server_policy_get_d(SERVER_POLICY_EDITION) >= 10000
          && ((account_get_d(ACCOUNT_DATA_WALLET_COINS) / 5) >= 1
           || account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= 1)
@@ -1757,7 +1769,14 @@ static int shop_buy_action(int tok, int val)
                               account_get_d(ACCOUNT_PRODUCT_MEDIATION) ? &st_shop_maxout : &st_shop);
 
         case SHOP_BUY_IAP:
+#ifdef __EMSCRIPTEN__
+            if (purchase_product_usegems)
+                EM_ASM({ Pennyball.showIAP_Gems(); });
+            else
+                return goto_shop_iap(&st_shop_buy, &st_shop, 0, 0, prodcost, 0, 0);
+#else
             return goto_shop_iap(&st_shop_buy, &st_shop, 0, 0, prodcost, purchase_product_usegems, 0);
+#endif
 
         case SHOP_BUY_RAISEGEMS:
             return goto_raise_gems(&st_shop_buy, prodcost);
@@ -2246,6 +2265,7 @@ static int shop_buy_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
+#ifndef __EMSCRIPTEN__
 enum
 {
     EXPENSES_EXPORT_START = GUI_LAST
@@ -2402,6 +2422,7 @@ static int expenses_export_buttn(int b, int d)
     }
     return 1;
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -2483,6 +2504,7 @@ struct state st_shop_buy = {
     shop_buy_buttn
 };
 
+#ifndef __EMSCRIPTEN__
 struct state st_expenses_export = {
     expenses_export_enter,
     shared_leave,
@@ -2495,5 +2517,6 @@ struct state st_expenses_export = {
     expenses_export_keybd,
     expenses_export_buttn
 };
+#endif
 
 #endif

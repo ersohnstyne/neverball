@@ -644,6 +644,8 @@ void gui_keyboard_lock_en(void)
     gui_set_label(keyd_en['/'], lock ? "?" : "/"); gui_set_state(keyd_en['/'], GUI_CHAR, lock ? '?' : '/');
 }
 
+#ifndef __EMSCRIPTEN__
+
 /* German Keyboards */
 void gui_keyboard_de(int id)
 {
@@ -782,6 +784,8 @@ void gui_keyboard_lock_de(void)
     gui_set_label(keyd_de[(unsigned char) 'Ö'], lock ? "Ö" : "ö");
     gui_set_label(keyd_de[(unsigned char) 'Ü'], lock ? "Ü" : "ü");
 }
+
+#endif
 
 char gui_keyboard_char(char c)
 {

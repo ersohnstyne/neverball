@@ -33,6 +33,10 @@
 #include <GL/gl.h>
 #endif
 
+#ifndef _WIN32
+#include <GL/glext.h>
+#endif
+
 /* Windows calling convention cruft. */
 
 #ifndef APIENTRY
@@ -346,6 +350,7 @@ int glext_init(void);
 #define glDeleteBuffers_       glDeleteBuffers
 #define glIsBuffer_            glIsBuffer
 #define glPointParameterfv_    glPointParameterfv
+#define glPointParameterf_     glPointParameterf
 
 #ifdef __EMSCRIPTEN__
 #define glOrtho_               glOrtho

@@ -26,6 +26,10 @@
 #endif
 #include <time.h>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include "st_end_support.h"
 
 #include "audio.h"
@@ -363,7 +367,7 @@ static int end_support_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/"); }, 0);
+            EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/"); });
 #elif _WIN32
             system("explorer https://discord.gg/qnJR263Hm2/");
 #elif defined(__APPLE__)

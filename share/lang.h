@@ -52,10 +52,8 @@ const char *ms_nls_gettext(const char *);
 /* No-op, useful for marking up strings for extraction-only. */
 #define N_(s) s
 
-#if ENABLE_NLS==1 || _MSC_VER
 /* Disambiguate strings with a caret-separated prefix. */
 const char *gt_prefix(const char *);
-#endif
 
 /*---------------------------------------------------------------------------*/
 

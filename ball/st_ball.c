@@ -17,6 +17,10 @@
  */
 #include "console_control_gui.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
 #include "networking.h"
@@ -45,6 +49,7 @@
 #include "game_client.h"
 #include "game_common.h"
 
+#include "st_package.h"
 #include "st_ball.h"
 #include "st_conf.h"
 #include "st_shared.h"
@@ -340,7 +345,7 @@ static int ball_action(int tok, int val)
 
         case MODEL_UPGRADE_EDITION:
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://forms.office.com/r/upfWqaVVtA"); }, 0);
+            EM_ASM({ window.open("https://forms.office.com/r/upfWqaVVtA"); });
 #elif _WIN32
             system("explorer https://forms.office.com/r/upfWqaVVtA");
 #elif defined(__APPLE__)

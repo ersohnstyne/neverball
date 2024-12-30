@@ -390,7 +390,7 @@ static int title_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 #ifdef __EMSCRIPTEN__
-            EM_ASM({ window.open(title_social_url[val]);}, 0);
+            EM_ASM({ window.open($0); }, title_social_url[val]);
 #else
 #if _WIN32
             SAFECPY(linkstr_cmd, "explorer ");
@@ -438,7 +438,7 @@ static int title_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://discord.gg/qnJR263Hm2"); }, 0);
+            EM_ASM({ window.open("https://discord.gg/qnJR263Hm2"); });
 #elif _WIN32
             SAFECPY(linkstr_cmd, "start msedge https://discord.gg/qnJR263Hm2");
 #elif defined(__APPLE__)

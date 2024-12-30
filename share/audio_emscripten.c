@@ -32,6 +32,13 @@
 
 /*---------------------------------------------------------------------------*/
 
+int audio_available(void)
+{
+    return 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void audio_init(void)
 {
     /* Initialize web audio. */
@@ -72,12 +79,12 @@ void audio_play(const char *filename, float a)
 
             const fileData = Module.HEAP8.buffer.slice(data, data + size);
 
-            Neverball.audioPlay(fileName, fileData, a);
-        }, filename, data, size, LOG_VOLUME(CLAMP(0.0f, a, 1.0f)));
+            Pennyball.audioPlay(fileName, fileData, a);
+        }, filename, data, size, CLAMP(0.0f, a, 1.0f));
     }
 }
 
-void audio_narrator_play(const char *filename, float a)
+void audio_narrator_play(const char *filename)
 {
     int size = 0;
     unsigned char *data = fs_load_cache(filename, &size);
@@ -94,8 +101,8 @@ void audio_narrator_play(const char *filename, float a)
 
             const fileData = Module.HEAP8.buffer.slice(data, data + size);
 
-            Neverball.audioPlayNarrator(fileName, fileData, a);
-        }, filename, data, size, LOG_VOLUME(CLAMP(0.0f, a, 1.0f)));
+            Pennyball.audioPlayNarrator(fileName, fileData, a);
+        }, filename, data, size, 1.0f);
     }
 }
 
@@ -119,7 +126,7 @@ void audio_music_fade_in(float t)
     }, clamped_time);
 }
 
-void audio_music_fade_to(float t, const char *filename)
+void audio_music_fade_to(float t, const char *filename, int loop)
 {
     int size = 0;
     unsigned char *data = fs_load_cache(filename, &size);

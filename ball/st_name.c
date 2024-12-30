@@ -276,7 +276,7 @@ static int name_gui(void)
                     gui_space(jd);
                     gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
                 }
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                 else
                 {
                     gui_space(jd);

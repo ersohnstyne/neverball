@@ -445,15 +445,9 @@ int glext_init(void)
 
 void glClipPlane4f_(GLenum p, GLfloat a, GLfloat b, GLfloat c, GLfloat d)
 {
-#if ENABLE_OPENGLES && !_WIN32
-    GLfloat v[4] = { a, b, c, d };
-
-    glClipPlanef(p, v);
-#else
     GLdouble v[4] = { a, b, c, d };
 
     glClipPlane(p, v);
-#endif
 }
 
 void glBindTexture_(GLenum target, GLuint texture)

@@ -946,6 +946,7 @@ static void refresh_packages_done(void *data, void *extra_data)
         return;
 
 #if NB_HAVE_PB_BOTH==1
+#ifndef __EMSCRIPTEN__
     if (!check_game_setup())
     {
         goto_game_setup(start_state, 0,
@@ -953,6 +954,7 @@ static void refresh_packages_done(void *data, void *extra_data)
                         goto_ball_setup);
         return;
     }
+#endif
     goto_state(start_state);
 #else
     return goto_end_support(start_state);
@@ -989,7 +991,7 @@ static void main_preload(struct state *start_state, int (*start_fn)(struct state
 
     /* Otherwise, go to the starting screen. */
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (!check_game_setup())
     {
         goto_game_setup(start_state, start_fn,
@@ -1332,7 +1334,7 @@ static int loop(void)
                             if (curr_state() == &st_play_ready ||
                                 curr_state() == &st_play_set   ||
                                 curr_state() == &st_play_loop  ||
-                                curr_state() == &st_play_look)
+                                curr_state() == &st_look)
                                 play_pause_goto(curr_state());
                         }
                         else if (curr_state() == &st_demo_play ||
@@ -1409,7 +1411,9 @@ static int loop(void)
                 switch (e.window.event)
                 {
                     case SDL_WINDOWEVENT_FOCUS_LOST:
+#ifndef __EMSCRIPTEN__
                         audio_suspend();
+#endif
                         if (video_get_grab())
                         {
                             if (curr_state() == &st_play_ready ||
@@ -1424,7 +1428,9 @@ static int loop(void)
                         break;
 
                     case SDL_WINDOWEVENT_FOCUS_GAINED:
+#ifndef __EMSCRIPTEN__
                         audio_resume();
+#endif
                         break;
 
                     case SDL_WINDOWEVENT_MOVED:
@@ -1891,7 +1897,7 @@ static int main_init(int argc, char *argv[])
     log_init(TITLE, "neverball.log");
 #endif
     config_log_userpath();
-#if NB_HAVE_PB_BOTH!=1
+#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
     make_dirs_and_migrate();
 #endif
 
@@ -1978,10 +1984,11 @@ static int main_init(int argc, char *argv[])
     if (!opt_panorama)
     {
 #endif
+#ifndef __EMSCRIPTEN__
         /* Initialize currency units. */
 
         currency_init();
-
+#endif
 #if ENABLE_DEDICATED_SERVER==1
         if (opt_ipaddr)
             config_set_s(CONFIG_DEDICATED_IPADDRESS, opt_ipaddr);

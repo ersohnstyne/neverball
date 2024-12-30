@@ -21,6 +21,10 @@
  */
 #include "console_control_gui.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
 #include "account_wgcl.h"
@@ -223,7 +227,7 @@ static int fail_action(int tok, int val)
     !defined(__SWITCH__)
         case FAIL_UPGRADE_EDITION:
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://forms.office.com/r/upfWqaVVtA"); }, 0);
+            EM_ASM({ window.open("https://forms.office.com/r/upfWqaVVtA"); });
 #elif _WIN32
             system("explorer https://forms.office.com/r/upfWqaVVtA");
 #elif defined(__APPLE__)
@@ -235,7 +239,7 @@ static int fail_action(int tok, int val)
 
         case FAIL_TRANSFER_MEMBER:
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/"); }, 0);
+            EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/"); });
 #elif _WIN32
             system("explorer https://discord.gg/qnJR263Hm2/");
 #elif defined(__APPLE__)
@@ -965,7 +969,12 @@ static int ask_more_action(int tok, int val)
 
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
         case ASK_MORE_GET_GEMS:
+#ifdef __EMSCRIPTEN__
+            EM_ASM({ Pennyball.showIAP_Gems(); });
+            return 1
+#else
             return goto_shop_iap(0, &st_fail, ask_more_purchased, 0, val, 1, 0);
+#endif
 #endif
 
         case ASK_MORE_RAISE_GEMS:
@@ -1397,7 +1406,12 @@ static int raise_gems_action(int tok, int val)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
+#ifdef __EMSCRIPTEN__
+            EM_ASM({ Pennyball.showIAP_Gems(); });
+            return 1;
+#else
             return goto_shop_iap(&st_raise_gems, st_returnable, 0, 0, val, 1, 0);
+#endif
 #endif
             break;
 

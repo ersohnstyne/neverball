@@ -426,7 +426,7 @@ static void refresh_packages_done(void *data, void *extra_data)
     if (opt_link && link_handle(opt_link))
         return;
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     if (!check_game_setup())
     {
         goto_game_setup(start_state, 0, 0, 0);
@@ -467,7 +467,7 @@ static void main_preload(struct state *start_state, int (*start_fn)(struct state
 
     /* Otherwise, go to the starting screen. */
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (!check_game_setup())
     {
         goto_game_setup(start_state, start_fn, 0, 0);

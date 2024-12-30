@@ -1163,7 +1163,7 @@ static int video_advanced_action(int tok, int val)
         case VIDEO_ADVANCED_ANISO:
             config_set_d(CONFIG_ANISO, val);
             config_save();
-            goto_state(&st_video_advanced, 0, 0, 1);
+            goto_state(&st_video_advanced);
             break;
 #endif
 

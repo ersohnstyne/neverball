@@ -17,6 +17,10 @@
  */
 #include "console_control_gui.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
 #include "account_wgcl.h"
@@ -179,9 +183,9 @@ static int conf_social_action(int tok, int val)
     !defined(__SWITCH__)
 #ifdef __EMSCRIPTEN__
 #if NB_HAVE_PB_BOTH==1
-                EM_ASM({ window.open("https://discord.gg/qnJR263Hm2");  }, 0);
+                EM_ASM({ window.open("https://discord.gg/qnJR263Hm2"); });
 #else
-                EM_ASM({ window.open("https://discord.gg/HhMfr4N6H6"); }, 0);
+                EM_ASM({ window.open("https://discord.gg/HhMfr4N6H6"); });
 #endif
 #else
 #if NB_HAVE_PB_BOTH==1

@@ -20,6 +20,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
+#include <stdarg.h>
 #include <assert.h>
 
 #include <sys/stat.h>
@@ -35,7 +37,7 @@
 #include "common.h"
 #include "fs.h"
 
-#if ENABLE_OPENDRIVEAPI!=0
+#if ENABLE_OPENDRIVEAPI!=0 && !defined(__EMSCRIPTEN__)
 /*
  * https://gitea.stynegame.de/StyneGameHamburg/opendrivepi
  */
@@ -54,6 +56,7 @@
 /*
  * Relying on MinGW to provide, that uses from GetFileAttributes() (Windows.h).
  */
+#include <sys/stat.h> /* stat() */
 #include <unistd.h>   /* access() */
 
 #pragma message(__FILE__ ": Using code compilation: GCC + G++")

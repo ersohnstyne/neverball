@@ -148,6 +148,10 @@ static void gt_init(const char *domain, const char *pref)
     dir = NULL;
 }
 
+#endif
+
+#if !(_WIN32 && _MSC_VER && NLS_GETTEXT!=1)
+
 #if __cplusplus
 extern "C"
 #endif
@@ -168,7 +172,11 @@ const char *gt_prefix(const char *msgid)
     return msgval;
 }
 
+#endif
+
 /*---------------------------------------------------------------------------*/
+
+#if NLS_GETTEXT==1
 
 #if __cplusplus
 extern "C"

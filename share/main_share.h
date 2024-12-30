@@ -5,15 +5,15 @@ int main_share(int, char **);
 
 #ifdef __EMSCRIPTEN__
 
-int WGCLCallMain_Lite(void);
-int WGCLCallMain_Home(void);
-int WGCLCallMain_Pro(void);
-int WGCLCallMain_Enterprise(void);
-int WGCLCallMain_Education(void);
+void WGCLCallMain_Lite(void);
+void WGCLCallMain_Home(void);
+void WGCLCallMain_Pro(void);
+void WGCLCallMain_Enterprise(void);
+void WGCLCallMain_Education(void);
 
-int WGCLCallMain_Srv_Essentials(void);
-int WGCLCallMain_Srv_Standard(void);
-int WGCLCallMain_Srv_Datacenter(void);
+void WGCLCallMain_Srv_Essentials(void);
+void WGCLCallMain_Srv_Standard(void);
+void WGCLCallMain_Srv_Datacenter(void);
 
 #endif
 

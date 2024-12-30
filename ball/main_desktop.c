@@ -30,11 +30,7 @@
 
 #include "main_share.h"
 
-#ifndef __EMSCRIPTEN__
-
 int main(int argc, char *argv[])
 {
     return main_share(argc, argv);
 }
-
-#endif

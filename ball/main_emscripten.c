@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2024 Microsoft / Neverball authors
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -18,7 +18,7 @@
 
 #ifdef __EMSCRIPTEN__ && NB_HAVE_PB_BOTH==1
 
-static int WGCLCallMain_Real()
+static void WGCLCallMain_Real(void)
 {
     server_policy_set_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN, 0);
     server_policy_set_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET, server_policy_get_d(SERVER_POLICY_EDITION) == -1 ? 1 : 0);
@@ -45,11 +45,7 @@ static int WGCLCallMain_Real()
     server_policy_set_d(SERVER_POLICY_SHOP_ENABLED_MANAGED, server_policy_get_d(SERVER_POLICY_EDITION) > -1);
     server_policy_set_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES, server_policy_get_d(SERVER_POLICY_EDITION) > 0 ? 1 : 0);
 
-    const char argv[1][16] = {
-        "",
-    }
-
-    return main_share(0, argv);
+    return 0;
 }
 
 /********************************************************************/
@@ -59,44 +55,44 @@ static int WGCLCallMain_Real()
  * logged in with owned game. - Ersohn Styne
  */
 
-int WGCLCallMain_Lite()
+void WGCLCallMain_Lite(void)
 {
     server_policy_init();
     server_policy_set_d(SERVER_POLICY_EDITION, -1);
 
-    return WGCLCallMain_Real();
+    WGCLCallMain_Real();
 }
 
-int WGCLCallMain_Home()
+void WGCLCallMain_Home(void)
 {
     server_policy_init();
     server_policy_set_d(SERVER_POLICY_EDITION, 0);
 
-    return WGCLCallMain_Real();
+    WGCLCallMain_Real();
 }
 
-int WGCLCallMain_Pro()
+void WGCLCallMain_Pro(void)
 {
     server_policy_init();
     server_policy_set_d(SERVER_POLICY_EDITION, 1);
 
-    return WGCLCallMain_Real();
+    WGCLCallMain_Real();
 }
 
-int WGCLCallMain_Enterprise()
+void WGCLCallMain_Enterprise(void)
 {
     server_policy_init();
     server_policy_set_d(SERVER_POLICY_EDITION, 2);
 
-    return WGCLCallMain_Real();
+    WGCLCallMain_Real();
 }
 
-int WGCLCallMain_Education()
+void WGCLCallMain_Education(void)
 {
     server_policy_init();
     server_policy_set_d(SERVER_POLICY_EDITION, 3);
 
-    return WGCLCallMain_Real();
+    WGCLCallMain_Real();
 }
 
 /********************************************************************/
@@ -106,28 +102,28 @@ int WGCLCallMain_Education()
  * already logged in with owned game. - Ersohn Styne
  */
 
-int WGCLCallMain_Srv_Essentials()
+void WGCLCallMain_Srv_Essentials(void)
 {
     server_policy_init();
     server_policy_set_d(SERVER_POLICY_EDITION, 10000);
 
-    return WGCLCallMain_Real();
+    WGCLCallMain_Real();
 }
 
-int WGCLCallMain_Srv_Standard()
+void WGCLCallMain_Srv_Standard(void)
 {
     server_policy_init();
     server_policy_set_d(SERVER_POLICY_EDITION, 10001);
 
-    return WGCLCallMain_Real();
+    WGCLCallMain_Real();
 }
 
-int WGCLCallMain_Srv_Datacenter()
+void WGCLCallMain_Srv_Datacenter(void)
 {
     server_policy_init();
     server_policy_set_d(SERVER_POLICY_EDITION, 10002);
 
-    return WGCLCallMain_Real();
+    WGCLCallMain_Real();
 }
 
 #endif

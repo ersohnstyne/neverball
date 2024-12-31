@@ -366,6 +366,11 @@ void st_stick(int a, float v)
             break;
         }
 
+<<<<<<< HEAD
+=======
+    /* Poor man's deadzone. */
+
+>>>>>>> 33097269938f318f710d639dd0aba45476a462f7
     if (fabsf(v) < 0.05f)
         v = 0.0f;
 

@@ -89,7 +89,7 @@ void audio_play(const char *filename, float a)
 #endif
     if (len > 3)
     {
-        const char *mp3 = JOINSTR(SUBSTR(filename, 0, len - 3));
+        const char *mp3 = JOINSTR(SUBSTR(filename, 0, len - 3), "mp3");
 
         data = fs_load_cache(mp3, &size);
     }
@@ -133,12 +133,7 @@ void audio_narrator_play(const char *filename)
 #endif
     if (len > 3)
     {
-        const char *mp3 = JOINSTR(SUBSTR(filename, 0, len - 3));
-=======
-    else if (len > 3)
-    {
         const char *mp3 = JOINSTR(SUBSTR(filename, 0, len - 3), "mp3");
->>>>>>> 33097269938f318f710d639dd0aba45476a462f7
 
         data = fs_load_cache(mp3, &size);
     }

@@ -66,17 +66,11 @@ void audio_free(void)
 
 void audio_play(const char *filename, float a)
 {
-<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH!=1
     int can_play_ogg = EM_ASM_INT({
         return Neverball.audioCanPlayOgg ? 1 : 0
     });
 #endif
-=======
-    const int can_play_ogg = EM_ASM_INT({
-        return Neverball.audioCanPlayOgg ? 1 : 0;
-    });
->>>>>>> 33097269938f318f710d639dd0aba45476a462f7
 
     int size = 0;
     unsigned char *data = NULL;
@@ -86,15 +80,11 @@ void audio_play(const char *filename, float a)
 
     size_t len = strlen(filename);
 
-<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH!=1
-=======
->>>>>>> 33097269938f318f710d639dd0aba45476a462f7
     if (can_play_ogg)
     {
         data = fs_load_cache(filename, &size);
     }
-<<<<<<< HEAD
     else
 #endif
     if (len > 3)
@@ -192,17 +182,11 @@ void audio_music_fade_in(float t)
 
 void audio_music_fade_to(float t, const char *filename, int loop)
 {
-<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH!=1
     const int can_play_ogg = EM_ASM_INT({
         return Neverball.audioCanPlayOgg ? 1 : 0;
     });
 #endif
-=======
-    const int can_play_ogg = EM_ASM_INT({
-        return Neverball.audioCanPlayOgg ? 1 : 0;
-    });
->>>>>>> 33097269938f318f710d639dd0aba45476a462f7
 
     int size = 0;
     unsigned char *data = NULL;
@@ -212,21 +196,14 @@ void audio_music_fade_to(float t, const char *filename, int loop)
 
     size_t len = strlen(filename);
 
-<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH!=1
-=======
->>>>>>> 33097269938f318f710d639dd0aba45476a462f7
     if (can_play_ogg)
     {
         data = fs_load_cache(filename, &size);
     }
-<<<<<<< HEAD
     else
 #endif
     if (len > 3)
-=======
-    else if (len > 3)
->>>>>>> 33097269938f318f710d639dd0aba45476a462f7
     {
         const char *mp3 = JOINSTR(SUBSTR(filename, 0, len - 3), "mp3");
 

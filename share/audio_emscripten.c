@@ -25,6 +25,8 @@
 #include "common.h"
 #include "fs.h"
 #include "log.h"
+#include "strbuf/substr.h"
+#include "strbuf/joinstr.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -64,30 +66,77 @@ void audio_free(void)
 
 void audio_play(const char *filename, float a)
 {
+#if NB_HAVE_PB_BOTH!=1
+    int can_play_ogg = EM_ASM_INT({
+        return Neverball.audioCanPlayOgg ? 1 : 0
+    });
+#endif
+
     int size = 0;
-    unsigned char *data = fs_load_cache(filename, &size);
+    unsigned char *data = NULL;
+
+    if (!(filename && *filename))
+        return;
+
+    size_t len = strlen(filename);
+
+#if NB_HAVE_PB_BOTH!=1
+    if (can_play_ogg)
+    {
+        data = fs_load_cache(filename, &size);
+    }
+    else
+#endif
+    if (len > 3)
+    {
+        const char *mp3 = JOINSTR(SUBSTR(filename, 0, len - 3));
+
+        data = fs_load_cache(mp3, &size);
+    }
 
     if (data)
     {
         // Play the file data.
-
         EM_ASM({
             const fileName = UTF8ToString($0);
             const data = $1;
             const size = $2;
             const a = $3;
-
             const fileData = Module.HEAP8.buffer.slice(data, data + size);
-
-            Pennyball.audioPlay(fileName, fileData, a);
-        }, filename, data, size, CLAMP(0.0f, a, 1.0f));
+            Neverball.audioPlay(fileName, fileData, a);
+        }, filename, data, size, LOG_VOLUME(CLAMP(0.0f, a, 1.0f)));
     }
 }
 
 void audio_narrator_play(const char *filename)
 {
+#if NB_HAVE_PB_BOTH!=1
+    int can_play_ogg = EM_ASM_INT({
+        return Neverball.audioCanPlayOgg ? 1 : 0
+    });
+#endif
+
     int size = 0;
-    unsigned char *data = fs_load_cache(filename, &size);
+    unsigned char *data = NULL;
+
+    if (!(filename && *filename))
+        return;
+
+    size_t len = strlen(filename);
+
+#if NB_HAVE_PB_BOTH!=1
+    if (can_play_ogg)
+    {
+        data = fs_load_cache(filename, &size);
+    }
+    else
+#endif
+    if (len > 3)
+    {
+        const char *mp3 = JOINSTR(SUBSTR(filename, 0, len - 3));
+
+        data = fs_load_cache(mp3, &size);
+    }
 
     if (data)
     {
@@ -101,7 +150,7 @@ void audio_narrator_play(const char *filename)
 
             const fileData = Module.HEAP8.buffer.slice(data, data + size);
 
-            Pennyball.audioPlayNarrator(fileName, fileData, a);
+            Neverball.audioPlayNarrator(fileName, fileData, a);
         }, filename, data, size, 1.0f);
     }
 }
@@ -128,8 +177,33 @@ void audio_music_fade_in(float t)
 
 void audio_music_fade_to(float t, const char *filename, int loop)
 {
+#if NB_HAVE_PB_BOTH!=1
+    const int can_play_ogg = EM_ASM_INT({
+        return Neverball.audioCanPlayOgg ? 1 : 0;
+    });
+#endif
+
     int size = 0;
-    unsigned char *data = fs_load_cache(filename, &size);
+    unsigned char *data = NULL;
+
+    if (!(filename && *filename))
+        return;
+
+    size_t len = strlen(filename);
+
+#if NB_HAVE_PB_BOTH!=1
+    if (can_play_ogg)
+    {
+        data = fs_load_cache(filename, &size);
+    }
+    else
+#endif
+    if (len > 3)
+    {
+        const char *mp3 = JOINSTR(SUBSTR(filename, 0, len - 3), "mp3");
+
+        data = fs_load_cache(mp3, &size);
+    }
 
     if (data)
     {

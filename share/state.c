@@ -366,6 +366,9 @@ void st_stick(int a, float v)
             break;
         }
 
+    if (fabsf(v) < 0.05f)
+        v = 0.0f;
+
     if (state && state->stick)
     {
         cache_stick(a, v, state_time + STICK_HOLD_TIME);

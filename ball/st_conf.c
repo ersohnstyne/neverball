@@ -2852,7 +2852,7 @@ static int conf_gui(void)
     !defined(__SWITCH__)
             gui_label(id, "Neverball " VERSION " (High)", GUI_TNY, GUI_COLOR_WHT);
 #endif
-            gui_multi(id, _("Copyright © 2024 Neverball authors\n"
+            gui_multi(id, _("Copyright © 2025 Neverball authors\n"
                             "Neverball is free software available under the terms of GPL v2 or later."),
                           GUI_TNY, GUI_COLOR_WHT);
             gui_clr_rect(id);

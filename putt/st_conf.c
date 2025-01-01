@@ -282,7 +282,7 @@ static int conf_enter(struct state *st, struct state *prev, int intent)
         if ((id = gui_vstack(root_id)))
         {
             gui_label(id, "Neverputt " VERSION " (High)", GUI_TNY, GUI_COLOR_WHT);
-            gui_multi(id, _("Copyright © 2024 Neverball authors\n"
+            gui_multi(id, _("Copyright © 2025 Neverball authors\n"
                             "Neverball is free software available under the terms of GPL v2 or later."),
                           GUI_TNY, GUI_COLOR_WHT);
             gui_clr_rect(id);

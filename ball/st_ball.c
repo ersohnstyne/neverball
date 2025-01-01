@@ -209,7 +209,7 @@ static void scan_balls(void)
      * First, load the model listed in the model file, preserving order.
      */
 
-    if ((fin = fs_open_read("ball/balls.txt")))
+    if ((fin = fs_open_read("balls.txt")))
     {
         char *path;
 

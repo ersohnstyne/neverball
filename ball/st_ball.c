@@ -81,6 +81,8 @@ int goto_ball_setup(struct state *finish)
 struct model_ball
 {
     char path[MAX_PATH];
+    char name[32];
+    int  has_name;
 };
 
 static int ball_manual_hotreload = 0;
@@ -142,6 +144,40 @@ static int cmp_dir_items(const void *A, const void *B)
     return strcmp(a->path, b->path);
 }
 
+static void load_ball_name_real(struct model_ball *b, const char *path)
+{
+    SAFECPY(b->path, path);
+
+    char tmp_ball_name_path[64];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(tmp_ball_name_path, 64,
+#else
+    sprintf(tmp_ball_name_path,
+#endif
+            "%s/ball.txt",
+            b->path);
+
+    b->has_name = 0;
+
+    fs_file fin_name;
+
+    if ((fin_name = fs_open_read(tmp_ball_name_path)))
+    {
+        char *tmp_name_parted;
+
+        if (read_line(&tmp_name_parted, fin_name))
+            if (str_starts_with(tmp_name_parted, "name "))
+            {
+                SAFECPY(b->name, tmp_name_parted + 5);
+                b->has_name = 1;
+            }
+
+        fs_close(fin_name);
+        free(tmp_name_parted); tmp_name_parted = NULL;
+    }
+}
+
 static void scan_balls(void)
 {
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
@@ -184,16 +220,14 @@ static void scan_balls(void)
             char tmp_path[MAX_PATH];
             SAFECPY(tmp_path, path);
 
-#if _WIN32
             for (j = 0; j < MAX_PATH; j++)
-                if (tmp_path[j] == '/')
-                    tmp_path[j] = '\\';
-#endif
+                if (tmp_path[j] == '\\')
+                    tmp_path[j] = '/';
 
             if (!has_ball_sols(tmp_path))
                 array_del(balls);
             else
-                SAFECPY(ball->path, tmp_path);
+                load_ball_name_real(ball, path);
         }
         fs_close(fin);
     }
@@ -205,6 +239,8 @@ static void scan_balls(void)
 
     if ((items = fs_dir_scan("ball", has_ball_sols_dir)))
     {
+        int skip_scan = 0;
+
         array_sort(items, cmp_dir_items);
 
         for (i = 0; i < array_len(items); i++)
@@ -214,28 +250,28 @@ static void scan_balls(void)
             char tmp_path[MAX_PATH];
             SAFECPY(tmp_path, DIR_ITEM_GET(items, i)->path);
 
-#if _WIN32
             for (j = 0; j < MAX_PATH; j++)
-                if (tmp_path[j] == '/')
-                    tmp_path[j] == '\\';
-#endif
+                if (tmp_path[j] == '\\')
+                    tmp_path[j] = '/';
 
             if (!has_ball_sols(tmp_path)) array_del(balls);
             else
             {
-                int skip_scan = 0;
+                skip_scan = 0;
 
                 for (j = 0; j < array_len(balls) && !skip_scan; j++)
                 {
-                    struct model_ball *tmp_ball = MODEL_BALL_GET(balls, j);
+                    const struct model_ball *tmp_ball = MODEL_BALL_GET(balls, j);
 
-                    if (tmp_ball)
-                        if (strcmp(tmp_ball->path, tmp_path) == 0)
-                            skip_scan = 1;
+                    if (strcmp(tmp_ball->path, tmp_path) == 0)
+                    {
+                        skip_scan = 1;
+                        break;
+                    }
                 }
 
                 if (!skip_scan)
-                    SAFECPY(ball->path, tmp_path);
+                    load_ball_name_real(ball, tmp_path);
                 else
                     array_del(balls);
             }
@@ -270,14 +306,14 @@ static void free_balls(void)
 
 static void set_curr_ball(int ball_index)
 {
+    const struct model_ball *ball = MODEL_BALL_GET(balls, ball_index);
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(ball_file, 64,
 #else
     sprintf(ball_file,
 #endif
-            "%s/%s",
-            MODEL_BALL_GET(balls, ball_index)->path,
-            base_name(MODEL_BALL_GET(balls, ball_index)->path));
+            "%s/%s", ball->path, base_name(ball->path));
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
     account_set_s(ACCOUNT_BALL_FILE, ball_file);
@@ -308,7 +344,8 @@ static void set_curr_ball(int ball_index)
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_save();
 #endif
-    gui_set_label(name_id, _(base_name(ball_file)));
+    gui_set_label(name_id, _(ball->has_name ? ball->name :
+                                              base_name(ball_file)));
 }
 
 enum
@@ -536,7 +573,10 @@ static int ball_gui(void)
 
             gui_layout(id, 0, +1);
 
-            gui_set_label(name_id, _(base_name(ball_file)));
+            const struct model_ball *ball = MODEL_BALL_GET(balls, curr_ball);
+
+            gui_set_label(name_id, _(ball->has_name ? ball->name :
+                                     base_name(ball_file)));
         }
 
         if (game_setup_process())
@@ -565,6 +605,10 @@ static int ball_gui(void)
 
 static int ball_enter(struct state *st, struct state *prev, int intent)
 {
+    const float home_pos[3] = { 0.0f, 1.4f, 0.35f };
+
+    game_view_set_static_cam_view(1, home_pos);
+
     if (prev != &st_ball || ball_manual_hotreload)
         scan_balls();
 
@@ -593,9 +637,9 @@ static int ball_leave(struct state *st, struct state *next, int id, int intent)
 
         if (next == &st_null)
             game_client_free(NULL);
-    }
 
-    free_balls();
+        free_balls();
+    }
 
     if (ball_manual_hotreload)
         gui_delete(id);
@@ -669,17 +713,21 @@ static int ball_keybd(int c, int d)
                     return ball_action(GUI_BACK, 0);
 
             case KEY_LEVELSHOTS:
+                if (!config_cheat()) return 1;
+
 #ifndef __EMSCRIPTEN__
-                video_set_window_size(800 / video.device_scale, 600 / video.device_scale);
-                video_resize         (800 / video.device_scale, 600 / video.device_scale);
+                demo_replay_stop(0);
+                load_ball_demo();
+                game_kill_fade();
 
-                /* Zoom in on the ball. */
-
-                config_set_d(CONFIG_VIEW_DC,  0);
-                config_set_d(CONFIG_VIEW_DP,  50);
-                config_set_d(CONFIG_VIEW_FOV, 20);
+                video_set_window_size(400 / video.device_scale, 300 / video.device_scale);
+                video_resize         (400 / video.device_scale, 300 / video.device_scale);
 
                 game_client_fly(0.0f);
+
+                /* Zoom in the camera. */
+
+                config_set_d(CONFIG_VIEW_FOV, 17);
 
                 /* Take screenshots. */
 
@@ -704,8 +752,6 @@ static int ball_keybd(int c, int d)
                 /* Restore config. */
 
                 config_set_d(CONFIG_VIEW_FOV, initial_fov);
-                config_set_d(CONFIG_VIEW_DC,  initial_dc);
-                config_set_d(CONFIG_VIEW_DP,  initial_dp);
 
                 video_set_window_size(initial_w, initial_h);
                 video_resize         (initial_w, initial_h);

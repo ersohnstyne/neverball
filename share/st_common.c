@@ -646,7 +646,7 @@ static int video_action(int tok, int val)
         case VIDEO_DISPLAY:
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
+    !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
             goto_state(&st_display);
 #endif
             break;
@@ -654,7 +654,7 @@ static int video_action(int tok, int val)
         case VIDEO_FULLSCREEN:
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
+    !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
             if (oldF == val)
                 return 1;
 
@@ -690,7 +690,7 @@ static int video_action(int tok, int val)
         case VIDEO_RESOLUTION:
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
+    !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
 #ifndef RESIZEABLE_WINDOW
             goto_state(&st_resol);
 #endif
@@ -910,7 +910,7 @@ static int video_gui(void)
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
+    !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
         autoconf_id = gui_state(id, _("Auto Configure"),
                                     GUI_SML, VIDEO_AUTO_CONFIGURE, 0);
 #endif
@@ -1002,21 +1002,25 @@ static int video_advanced_action(int tok, int val)
         case VIDEO_ADVANCED_DISPLAY:
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
+    !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
             goto_state(&st_display);
 #endif
             break;
 
         case VIDEO_ADVANCED_RESOLUTION:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
 #ifndef RESIZEABLE_WINDOW
             goto_state(&st_resol);
+#endif
 #endif
             break;
 
         case VIDEO_ADVANCED_FULLSCREEN:
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
+    !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
             if (oldF == val)
                 return 1;
 
@@ -1444,7 +1448,7 @@ static int video_advanced_gui(void)
                         config_get_d(CONFIG_FULLSCREEN), _("On"), 1, _("Off"), 0);
         /*conf_toggle(id, _("Widescreen"), VIDEO_ADVANCED_WIDESCREEN,
                         config_get_d(CONFIG_WIDESCREEN), _("On"), 1, _("Off"), 0);*/
-#endif
+
 #ifndef RESIZEABLE_WINDOW
         if ((jd = conf_state(id, _("Resolution"), resolution,
             VIDEO_ADVANCED_RESOLUTION)))
@@ -1460,6 +1464,7 @@ static int video_advanced_gui(void)
                 gui_set_color(jd, gui_gry, gui_gry);
             }
         }
+#endif
 #endif
 
 #if ENABLE_HMD

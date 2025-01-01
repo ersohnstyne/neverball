@@ -137,7 +137,7 @@ int load_title_background(void)
     game_client_toggle_show_balls(1);
 #endif
 
-    float home_pos[3] = {
+    const float home_pos[3] = {
         switchball_useable() ? 0.0f : -1.0f,
         10.0f,
         10.0f

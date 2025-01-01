@@ -313,7 +313,7 @@ void game_view_fly(struct game_view *view, const struct s_vary *vary, int ui, fl
         v_sub(v, c1, c0);
         v_mad(c0, c0, v, 1.0f);
 
-        c0[1] += view->dc;
+        //c0[1] += view->dc;
     }
 
 #ifdef MAPC_INCLUDES_CHKP

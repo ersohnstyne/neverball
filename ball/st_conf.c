@@ -2449,7 +2449,7 @@ static int conf_audio_gui(void)
 #endif
 #else
         gui_multi(id, _("Switchball configurations\n"
-                        "requires NB_HAVE_PB_BOTH\n"
+                        "requires NB_HAVE_PB_BOTH=1\n"
                         "preprocessor definitions"),
                       GUI_SML, GUI_COLOR_RED);
 #endif

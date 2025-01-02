@@ -359,6 +359,26 @@ enum
     CONF_ACCOUNT_LOAD
 };
 
+static void account_set_refresh_packages_done(void* data1, void* data2)
+{
+    struct fetch_done *dn = data2;
+
+    if (dn->success) goto_package(0, &st_conf_account);
+    else audio_play("snd/uierror.ogg", 1.0f);
+}
+
+static unsigned int account_set_refresh_packages(void)
+{
+    package_change_category(PACKAGE_CATEGORY_LEVELSET);
+
+    struct fetch_callback callback = { 0 };
+
+    callback.data = NULL;
+    callback.done = account_set_refresh_packages_done;
+
+    return package_refresh(callback);
+}
+
 static int conf_account_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
@@ -391,7 +411,7 @@ static int conf_account_action(int tok, int val)
             break;
 
         case CONF_ACCOUNT_PACKAGES:
-            goto_package(0, curr_state());
+            account_set_refresh_packages();
             break;
 #endif
 

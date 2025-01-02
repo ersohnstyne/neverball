@@ -129,6 +129,7 @@ void console_gui_toggle(int);
 void console_gui_init(void);
 void console_gui_free(void);
 void console_gui_slide(int);
+void console_gui_timer(float);
 
 /* Shared */
 

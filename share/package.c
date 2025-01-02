@@ -19,6 +19,8 @@
 #include "fs.h"
 #include "lang.h"
 
+#include "log.h"
+
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
 #pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
@@ -58,6 +60,8 @@ struct package
     enum package_status status;
     enum package_image_status image_status;
 };
+
+static int package_is_init;
 
 static Array available_packages;
 static int   package_curr_category = PACKAGE_CATEGORY_LEVELSET;
@@ -714,6 +718,12 @@ static void package_image_done(void *data, void *extra_data)
  */
 unsigned int package_fetch_image(int pi, struct fetch_callback nested_callback)
 {
+    if (!package_is_init)
+    {
+        log_errorf("Failure to fetch image! Package must be initialized!\n");
+        return 0;
+    }
+
     unsigned int fetch_id = 0;
 
     if (available_packages && pi >= 0 && pi < array_len(available_packages))
@@ -843,9 +853,18 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
 /*
  * Change package category.
  */
-void package_change_category(enum package_category pkg_category)
+void package_change_category(const enum package_category pkg_category)
 {
-    package_curr_category = pkg_category;
+    if (package_is_init &&
+        package_curr_category != pkg_category)
+    {
+        package_quit();
+
+        package_curr_category = pkg_category;
+
+        package_init();
+    }
+    else package_curr_category = pkg_category;
 }
 
 /*
@@ -853,6 +872,9 @@ void package_change_category(enum package_category pkg_category)
  */
 void package_init(void)
 {
+    if (package_is_init)
+        package_quit();
+
     const char *write_dir;
 
     /* Create the downloads directory. */
@@ -865,8 +887,11 @@ void package_init(void)
 
         if (package_dir)
         {
-            if (!dir_exists(package_dir))
-                fs_mkdir(PACKAGE_DIR);
+            package_is_init = dir_exists(package_dir);
+
+            if (package_is_init)
+                if (!fs_mkdir(PACKAGE_DIR))
+                    package_is_init = 1;
 
             free(package_dir);
             package_dir = NULL;
@@ -883,6 +908,12 @@ void package_init(void)
  */
 unsigned int package_refresh(struct fetch_callback callback)
 {
+    if (!package_is_init)
+    {
+        log_errorf("Failure to refresh package! Package must be initialized!\n");
+        return 0;
+    }
+
     return fetch_available_packages(callback, package_curr_category);
 }
 
@@ -896,6 +927,8 @@ void package_quit(void)
 
     save_installed_packages();
     free_installed_packages();
+
+    package_is_init = 0;
 }
 
 int package_count(void)

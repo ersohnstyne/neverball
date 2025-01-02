@@ -334,7 +334,13 @@ static int package_action(int tok, int val)
     {
         case GUI_BACK:
             package_manage_selected = -1;
-            return exit_state(package_back);
+
+            r = exit_state(package_back);
+
+            if (package_manage_selected == -1)
+                package_back = 0;
+
+            return r;
             break;
 
         case GUI_PREV:
@@ -486,10 +492,8 @@ static int package_gui(void)
 
         gui_space(id);
 
-        if ((jd = gui_hstack(id)))
+        if ((jd = gui_vstack(id)))
         {
-            gui_space(jd);
-
             if ((kd = gui_hstack(jd)))
             {
                 const int ww = MIN(w, h) * 5 / 12;
@@ -616,7 +620,7 @@ static int package_enter(struct state *st, struct state *prev, int intent)
 
     back_init("back/gui.png");
 
-    if (!package_back)
+    if (package_back == 0)
         package_back = prev;
 
     if (do_init || package_manual_hotreload)
@@ -661,9 +665,6 @@ static int package_enter(struct state *st, struct state *prev, int intent)
 
 static int package_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if (package_manage_selected == -1)
-        package_back = 0;
-
     if (status_ids)
     {
         free(status_ids);
@@ -776,11 +777,11 @@ static int package_manage_action(int tok, int val)
                 case PACKAGE_MANAGE_UPDATE:
                     selected = package_manage_selected;
                     do_download = 1;
-                    return goto_state(&st_package);
+                    return exit_state(&st_package);
 
                 case GUI_BACK:
                     package_manage_selected = -1;
-                    return goto_state(&st_package);
+                    return exit_state(&st_package);
             }
         }
         break;
@@ -833,23 +834,29 @@ static int package_manage_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        char desc[MAXSTR];
+        /*char desc[MAXSTR];
         sprintf(desc, _("Installed package ID / Name:\n%s / %s"),
                          package_get_files(package_manage_selected),
                          package_get_name(package_manage_selected));
 
-        gui_multi(id, desc, GUI_SML, gui_wht, gui_wht);
+        gui_multi(id, desc, GUI_SML, gui_wht, gui_wht);*/
 
-        gui_space(id);
+        //gui_space(id);
 
         if (package_manage_can_start)
         {
-            if ((btn_id = gui_hstack(id)))
+            if ((btn_id = gui_vstack(id)))
             {
-                gui_filler(btn_id);
-                gui_label(btn_id, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
-                gui_label(btn_id, _("Start"), GUI_SML, GUI_COLOR_WHT);
-                gui_filler(btn_id);
+                if ((jd = gui_hstack(btn_id)))
+                {
+                    gui_filler(jd);
+                    gui_label(jd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
+                    gui_label(jd, _("Start"), GUI_SML, GUI_COLOR_DEFAULT);
+                    gui_filler(jd);
+                }
+
+                gui_multi(btn_id, _("Start this current Level Set"),
+                                  GUI_SML, GUI_COLOR_WHT);
 
                 gui_set_state(btn_id, PACKAGE_MANAGE_START, package_manage_selected);
                 gui_set_rect(btn_id, GUI_ALL);
@@ -858,12 +865,18 @@ static int package_manage_gui(void)
             gui_space(id);
         }
 
-        if ((btn_id = gui_hstack(id)))
+        if ((btn_id = gui_vstack(id)))
         {
-            gui_filler(btn_id);
-            gui_label(btn_id, GUI_CIRCLE_ARROW, GUI_SML, GUI_COLOR_GRN);
-            gui_label(btn_id, _("Update"), GUI_SML, GUI_COLOR_WHT);
-            gui_filler(btn_id);
+            if ((jd = gui_hstack(btn_id)))
+            {
+                gui_filler(jd);
+                gui_label(jd, GUI_CIRCLE_ARROW, GUI_SML, GUI_COLOR_GRN);
+                gui_label(jd, _("Update"), GUI_SML, GUI_COLOR_DEFAULT);
+                gui_filler(jd);
+            }
+
+            gui_multi(btn_id, _("Update the new package"),
+                              GUI_SML, GUI_COLOR_WHT);
 
             gui_set_state(btn_id, PACKAGE_MANAGE_UPDATE, package_manage_selected);
             gui_set_rect(btn_id, GUI_ALL);
@@ -871,7 +884,7 @@ static int package_manage_gui(void)
 
         gui_space(id);
 
-        gui_state(id, _("Back"), GUI_SML, GUI_BACK, 0);
+        gui_start(id, _("Back"), GUI_SML, GUI_BACK, 0);
 
         gui_layout(id, 0, 0);
     }
@@ -904,9 +917,10 @@ void goto_package(int package_id, struct state *back_state)
 {
     /* Initialize the state. */
 
-    //goto_state(&st_package);
+    goto_state(&st_package);
 
-    package_back = back_state;
+    if (package_back == 0)
+        package_back = back_state;
 
     /* Navigate to the page. */
 

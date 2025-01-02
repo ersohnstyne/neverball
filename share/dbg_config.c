@@ -26,6 +26,10 @@
  * Used with c++ signal protection from events.
  */
 
+#if defined(_DEBUG) && !_WIN32
+#include <execinfo.h>
+#endif
+
 #include "log.h"
 #include "common.h"
 
@@ -35,6 +39,9 @@
 
 static int  dbg_signum;
 static char dbg_strerror[256];
+
+static void  *dbg_frames[20];
+static char **dbg_strings;
 
 #if __cplusplus
 extern "C" {
@@ -50,15 +57,25 @@ void GameDbg_SigHandler(int signum)
 
     GameDbg_Check_SegPerformed();
 
-#if _DEBUG
+#ifdef _DEBUG
 #if _WIN32
+    int nptrs = CaptureStackBackTrace(1, 20, dbg_frames, 0);
     __debugbreak();
 #else
-    raise(SIGTRAP);
+    void *buffer[240];
+    int   nptrs = backtrace(buffer, 240);
+    dbg_strings = backtrace_symbols(buffer, nptrs);
+
+    log_errorf("> Backtrace:\n", strings[i]);
+
+    for (int i = 0; i < nptrs; i++)
+        log_errorf("    %s\n", strings[i]);
+
+    free(dbg_strings);
 #endif
 #endif
 
-    //exit((signum == 2 || signum == 21) ? 0 : 1);
+    exit((signum == 2 || signum == 21) ? 0 : 1);
 }
 
 void GameDbg_Check_SegPerformed(void)

@@ -355,6 +355,26 @@ enum
     MODEL_SETUP_FINISH
 };
 
+static void ball_refresh_packages_done(void* data1, void* data2)
+{
+    struct fetch_done* dn = data2;
+
+    if (dn->success) goto_package(0, &st_ball);
+    else audio_play("snd/uierror.ogg", 1.0f);
+}
+
+static unsigned int ball_refresh_packages(void)
+{
+    package_change_category(PACKAGE_CATEGORY_PROFILE);
+
+    struct fetch_callback callback = {0};
+
+    callback.data = NULL;
+    callback.done = ball_refresh_packages_done;
+
+    return package_refresh(callback);
+}
+
 static int ball_action(int tok, int val)
 {
     if (game_setup_process() && tok == GUI_BACK)
@@ -375,8 +395,7 @@ static int ball_action(int tok, int val)
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-            package_change_category(PACKAGE_CATEGORY_PROFILE);
-            goto_package(0, curr_state());
+            ball_refresh_packages();
 #endif
             break;
 

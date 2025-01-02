@@ -157,6 +157,26 @@ enum
     SET_GET_MORE
 };
 
+static void set_refresh_packages_done(void* data1, void* data2)
+{
+    struct fetch_done *dn = data2;
+
+    if (dn->success) goto_package(0, &st_set);
+    else audio_play("snd/uierror.ogg", 1.0f);
+}
+
+static unsigned int set_refresh_packages(void)
+{
+    package_change_category(PACKAGE_CATEGORY_LEVELSET);
+
+    struct fetch_callback callback = { 0 };
+
+    callback.data = NULL;
+    callback.done = set_refresh_packages_done;
+
+    return package_refresh(callback);
+}
+
 static int set_action(int tok, int val)
 {
     GAMEPAD_GAMEMENU_ACTION_SCROLL(GUI_PREV, GUI_NEXT, SET_STEP);
@@ -214,8 +234,7 @@ static int set_action(int tok, int val)
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-            package_change_category(PACKAGE_CATEGORY_LEVELSET);
-            goto_package(0, curr_state());
+            set_refresh_packages();
 #endif
             break;
     }

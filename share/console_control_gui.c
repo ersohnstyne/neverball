@@ -1641,6 +1641,32 @@ void console_gui_slide(int flags)
     gui_slide(xbox_control_putt_scores_id, flags, 0, 0.3f, 0);
 }
 
+void console_gui_timer(float dt)
+{
+    /* Shared */
+    gui_timer(xbox_control_title_id, dt);
+    gui_timer(xbox_control_keybd_id, dt);
+    gui_timer(xbox_control_list_id, dt);
+    gui_timer(xbox_control_levelopt_id, dt);
+    gui_timer(xbox_control_paused_id, dt);
+
+    /* Generic */
+    gui_timer(xbox_control_desc_id, dt);
+    gui_timer(xbox_control_preparation_id, dt);
+    gui_timer(xbox_control_replay_id, dt);
+    gui_timer(xbox_control_replay_eof_id, dt);
+    gui_timer(xbox_control_shop_id, dt);
+    gui_timer(xbox_control_shop_getcoins_id, dt);
+    gui_timer(xbox_control_model_id, dt);
+    gui_timer(xbox_control_beam_style_id, dt);
+    gui_timer(xbox_control_death_id, dt);
+
+    /* Putt */
+    gui_timer(xbox_control_putt_stroke_id, dt);
+    gui_timer(xbox_control_putt_stop_id, dt);
+    gui_timer(xbox_control_putt_scores_id, dt);
+}
+
 /*---------------------------------------------------------------------------*/
 
 /* Shared */

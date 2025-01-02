@@ -168,6 +168,7 @@ int goto_state_intent(struct state *st, int intent)
 int goto_state_full_intent(struct state *st,
                            int fromdirection, int todirection, int noanimation, int intent)
 {
+    int r = 1;
     struct state *prev = state;
 
     anim_queue_state         = st;
@@ -219,18 +220,18 @@ int goto_state_full_intent(struct state *st,
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_set_alpha(1.0f);
-    console_gui_slide(GUI_S | GUI_EASE_ELASTIC | GUI_BACKWARD);
+    console_gui_slide(GUI_S | GUI_EASE_ELASTIC);
 #endif
 
     anim_queue = 0;
 
     if (queue_state())
     {
-        goto_state_full_intent(anim_queue_state,
-                               anim_queue_directions[0],
-                               anim_queue_directions[1],
-                               anim_queue_allowskip,
-                               anim_queue_intent);
+        r = goto_state_full_intent(anim_queue_state,
+                                   anim_queue_directions[0],
+                                   anim_queue_directions[1],
+                                   anim_queue_allowskip,
+                                   anim_queue_intent);
 
         anim_queue_state         = NULL;
         anim_queue_directions[0] = 0;
@@ -241,7 +242,12 @@ int goto_state_full_intent(struct state *st,
 
     anim_done = 1;
 
-    return 1;
+#ifndef NDEBUG
+    if (!(r && state))
+        log_errorf("(r && state) returned 0!\n");
+#endif
+
+    return r && state;
 }
 
 int goto_state(struct state *st)
@@ -312,6 +318,8 @@ void st_timer(float dt)
         return;
 
     transition_timer(dt);
+
+    console_gui_timer(dt);
 
     state_time += dt;
 

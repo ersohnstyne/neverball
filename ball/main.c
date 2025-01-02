@@ -957,7 +957,7 @@ static void refresh_packages_done(void *data, void *extra_data)
 #endif
     goto_state(start_state);
 #else
-    return goto_end_support(start_state);
+    goto_end_support(start_state);
 #endif
 }
 

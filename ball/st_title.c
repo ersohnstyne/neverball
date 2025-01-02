@@ -342,6 +342,26 @@ static int title_goto_playgame(struct state *st)
     return goto_playgame();
 }
 
+static void title_refresh_packages_done(void* data1, void* data2)
+{
+    struct fetch_done* dn = data2;
+
+    if (dn->success) goto_package(0, &st_set);
+    else audio_play("snd/uierror.ogg", 1.0f);
+}
+
+static unsigned int title_refresh_packages(void)
+{
+    package_change_category(PACKAGE_CATEGORY_LEVELSET);
+
+    struct fetch_callback callback = {0};
+
+    callback.data = NULL;
+    callback.done = title_refresh_packages_done;
+
+    return package_refresh(callback);
+}
+
 static int title_action(int tok, int val)
 {
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
@@ -430,7 +450,7 @@ static int title_action(int tok, int val)
             break;
 #if NB_HAVE_PB_BOTH!=1
 #if ENABLE_FETCH!=0
-        case TITLE_PACKAGES: return goto_state(&st_package); break;
+        case TITLE_PACKAGES: return title_refresh_packages(); break;
 #endif
 
         case TITLE_UNLOCK_FULL_GAME:

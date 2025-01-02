@@ -39,7 +39,7 @@ enum package_status
     PACKAGE_ERROR
 };
 
-void package_change_category(enum package_category);
+void package_change_category(const enum package_category);
 void package_init(void);
 void package_quit(void);
 

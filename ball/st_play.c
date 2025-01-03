@@ -357,7 +357,7 @@ int play_pause_goto(struct state *returnable)
 {
     play_freeze_all = 1;
 
-    return exit_state(returnable);
+    return goto_pause(returnable);
 }
 
 static int play_ready_gui(void)
@@ -1310,6 +1310,8 @@ static int play_loop_buttn(int b, int d)
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
+static int touch_arrow_enabled;
+
 static int play_loop_touch(const SDL_TouchFingerEvent *e)
 {
     if (!opt_touch) return 1;
@@ -1353,13 +1355,14 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
     }
     else if (e->type == SDL_FINGERDOWN)
     {
-        SDL_Finger* finger = SDL_GetTouchFinger(e->touchId, 1); /* Second finger. */
+        SDL_Finger *finger = SDL_GetTouchFinger(e->touchId, 1); /* Second finger. */
 
         if (finger && e->fingerId == finger->id)
         {
             rotate_finger = finger->id;
             rotate = 0.0f;
         }
+        else touch_arrow_enabled = 1;
     }
     else if (e->type == SDL_FINGERUP)
     {
@@ -1369,6 +1372,7 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
             rot_clr(DIR_R | DIR_L);
             rotate = 0.0f;
         }
+        else touch_arrow_enabled = 0;
     }
     else if (e->type == SDL_FINGERMOTION)
     {
@@ -1403,6 +1407,7 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
             int dx = (int) ((float) video.device_w * +e->dx);
             int dy = (int) ((float) video.device_h * -e->dy);
 
+            game_client_maxspeed(V_DEG(fatan2f(dy, dx)), touch_arrow_enabled);
             game_set_pos(dx, dy);
         }
     }

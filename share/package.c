@@ -107,7 +107,7 @@ static const char *get_package_url(const char *filename, int category)
                 break;
             case PACKAGE_CATEGORY_LEVELSET:
                 /* Uses premium sets */
-                SAFECPY(url, "packages/levelsets/");
+                SAFECPY(url, "packages/levelset/");
                 break;
             case PACKAGE_CATEGORY_COURSE:
                 /* Uses courses */
@@ -138,7 +138,7 @@ static const char *get_package_url(const char *filename, int category)
                 break;
             case PACKAGE_CATEGORY_LEVELSET:
                 /* Uses premium sets */
-                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/levelsets/");
+                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/levelset/");
                 break;
             case PACKAGE_CATEGORY_COURSE:
                 /* Uses courses */

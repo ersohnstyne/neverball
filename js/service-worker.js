@@ -1,9 +1,8 @@
-const cacheName = 'neverball-v9';
+const cacheName = 'neverball-v10';
 
 const urls = [
   '/',
   '/index.html',
-  '/neverball.data',
   '/neverball.js',
   '/neverball.wasm',
   '/screenshot.png',

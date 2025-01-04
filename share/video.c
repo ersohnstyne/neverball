@@ -414,7 +414,7 @@ void video_quit(void)
     if (context)
     {
 #ifdef __EMSCRIPTEN__
-        close_gl4es();
+        //close_gl4es();
 #endif
 
         SDL_GL_DeleteContext(context);
@@ -547,14 +547,14 @@ video_mode_reconf:
 #if ENABLE_OPENGLES
     if (init_gles) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  SDL_GL_CONTEXT_PROFILE_ES);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     }
     else
     {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  0);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     }
 #endif
 
@@ -605,7 +605,9 @@ video_mode_reconf:
 #if __cplusplus
         try {
 #endif
+#ifndef __EMSCRIPTEN__
         if (w && h && TITLE)
+#endif
         {
             window = SDL_CreateWindow(TITLE, X, Y, MAX(w, 320), MAX(h, 240),
                 SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI
@@ -678,7 +680,7 @@ video_mode_reconf:
             if (buffers < 0)
             {
 #ifdef __EMSCRIPTEN__
-                close_gl4es();
+                //close_gl4es();
 #endif
                 log_errorf("Buffers cannot be negative!\n");
                 SDL_GL_DeleteContext(context);
@@ -688,7 +690,7 @@ video_mode_reconf:
             if (samples < 0)
             {
 #ifdef __EMSCRIPTEN__
-                close_gl4es();
+                //close_gl4es();
 #endif
                 log_errorf("Samples cannot be negative!\n");
                 SDL_GL_DeleteContext(context);
@@ -703,7 +705,7 @@ video_mode_reconf:
             if (buf < buffers || smp < samples)
             {
 #ifdef __EMSCRIPTEN__
-                close_gl4es();
+                //close_gl4es();
 #endif
                 log_errorf("GL context does not meet minimum specifications!\n");
                 SDL_GL_DeleteContext(context);
@@ -1038,8 +1040,8 @@ video_mode_auto_config_reconf:
 #if ENABLE_OPENGLES
     if (init_gles) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  SDL_GL_CONTEXT_PROFILE_ES);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     }
     else
     {
@@ -1093,7 +1095,9 @@ video_mode_auto_config_reconf:
 #if __cplusplus
         try {
 #endif
+#ifndef __EMSCRIPTEN__
         if (w && h && TITLE)
+#endif
         {
             window = SDL_CreateWindow(TITLE, X, Y, MAX(w, 320), MAX(h, 240),
                 SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI
@@ -1153,7 +1157,7 @@ video_mode_auto_config_reconf:
                 if (stn >= auto_stencils)
                 {
 #ifdef __EMSCRIPTEN__
-                    close_gl4es();
+                    //close_gl4es();
 #endif
                     SDL_GL_DeleteContext(context);
                     context = NULL;
@@ -1163,7 +1167,7 @@ video_mode_auto_config_reconf:
                 else if (auto_stencils != 0)
                 {
 #ifdef __EMSCRIPTEN__
-                    close_gl4es();
+                    //close_gl4es();
 #endif
                     SDL_GL_DeleteContext(context);
                     context = NULL;
@@ -1198,7 +1202,7 @@ video_mode_auto_config_reconf:
                 if (buf >= 1 && smp >= auto_samples)
                 {
 #ifdef __EMSCRIPTEN__
-                    close_gl4es();
+                    //close_gl4es();
 #endif
                     SDL_GL_DeleteContext(context);
                     context = NULL;
@@ -1208,7 +1212,7 @@ video_mode_auto_config_reconf:
                 else if (auto_samples != 0)
                 {
 #ifdef __EMSCRIPTEN__
-                    close_gl4es();
+                    //close_gl4es();
 #endif
                     SDL_GL_DeleteContext(context);
                     context = NULL;
@@ -1908,11 +1912,7 @@ void video_set_ortho(void)
         glMatrixMode(GL_PROJECTION);
 
         glLoadIdentity();
-#if defined(__EMSCRIPTEN__)
-        glOrtho(0.0, w, h, 0.0f, -1.0f, 1.0f);
-#else
         glOrtho_(0.0, w, 0.0, h, -1.0, +1.0);
-#endif
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();

@@ -232,8 +232,16 @@ static struct
     { &CONFIG_FULLSCREEN,     "fullscreen",   0 },
     { &CONFIG_MAXIMIZED,      "maximized",    0 },
     { &CONFIG_DISPLAY,        "display",      0 },
+#ifdef __EMSCRIPTEN__
+    { &CONFIG_WIDTH,          "width",        1280 },
+#else
     { &CONFIG_WIDTH,          "width",        1200 },
+#endif
+#ifdef __EMSCRIPTEN__
+    { &CONFIG_HEIGHT,         "height",       720 },
+#else
     { &CONFIG_HEIGHT,         "height",       900 },
+#endif
     { &CONFIG_STEREO,         "stereo",       0 },
     { &CONFIG_CAMERA,         "camera",       0 },
     { &CONFIG_CAMERA_ROTATE_MODE, "camera_rotate_mode",       1 },

@@ -410,7 +410,7 @@ static int title_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 #ifdef __EMSCRIPTEN__
-            EM_ASM({ window.open($0); }, title_social_url[val]);
+            EM_ASM({ window.open(UTF8ToString($0));}, title_social_url[val]);
 #else
 #if _WIN32
             SAFECPY(linkstr_cmd, "explorer ");

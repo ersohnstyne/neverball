@@ -970,7 +970,7 @@ static int ask_more_action(int tok, int val)
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
         case ASK_MORE_GET_GEMS:
 #ifdef __EMSCRIPTEN__
-            EM_ASM({ Pennyball.showIAP_Gems(); });
+            EM_ASM({ Neverball.showIAP_Gems(); });
             return 1
 #else
             return goto_shop_iap(0, &st_fail, ask_more_purchased, 0, val, 1, 0);
@@ -1407,7 +1407,7 @@ static int raise_gems_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 #ifdef __EMSCRIPTEN__
-            EM_ASM({ Pennyball.showIAP_Gems(); });
+            EM_ASM({ Neverball.showIAP_Gems(); });
             return 1;
 #else
             return goto_shop_iap(&st_raise_gems, st_returnable, 0, 0, val, 1, 0);

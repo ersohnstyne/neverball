@@ -1351,6 +1351,9 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
         else if (token == GUI_CAMERA)
             next_camera();
 
+        touch_arrow_enabled = 0;
+        game_client_maxspeed(0.0f, touch_arrow_enabled);
+
         gui_focus(0);
     }
     else if (e->type == SDL_FINGERDOWN)

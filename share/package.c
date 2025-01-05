@@ -90,67 +90,9 @@ static const char *get_package_url(const char *filename, int category)
         memset(url, 0, sizeof (url));
 
 #ifdef __EMSCRIPTEN__
-#if defined(NB_PACKAGES_PREMIUM)
-        switch (category)
-        {
-            case PACKAGE_CATEGORY_PROFILE:
-                /* Uses ball models */
-                SAFECPY(url, "packages/ball/");
-                break;
-            case PACKAGE_CATEGORY_GUI:
-                /* Uses GUI interfaces */
-                SAFECPY(url, "packages/gui/");
-                break;
-            case PACKAGE_CATEGORY_CAMPAIGN:
-                /* Uses campaign */
-                SAFECPY(url, "packages/campaign/");
-                break;
-            case PACKAGE_CATEGORY_LEVELSET:
-                /* Uses premium sets */
-                SAFECPY(url, "packages/levelset/");
-                break;
-            case PACKAGE_CATEGORY_COURSE:
-                /* Uses courses */
-                SAFECPY(url, "packages/course/");
-                break;
-            default:
-                SAFECPY(url, "packages/");
-        }
-#else
-        /* Uses standard vanilla game */
         SAFECPY(url, "packages/");
-#endif
 #else
-#if defined(NB_PACKAGES_PREMIUM)
-        switch (category)
-        {
-            case PACKAGE_CATEGORY_PROFILE:
-                /* Uses ball models */
-                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/ball/");
-                break;
-            case PACKAGE_CATEGORY_GUI:
-                /* Uses GUI interfaces */
-                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/gui/");
-                break;
-            case PACKAGE_CATEGORY_CAMPAIGN:
-                /* Uses campaign */
-                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/campaign/");
-                break;
-            case PACKAGE_CATEGORY_LEVELSET:
-                /* Uses premium sets */
-                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/levelset/");
-                break;
-            case PACKAGE_CATEGORY_COURSE:
-                /* Uses courses */
-                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/course/");
-                break;
-            default:
-                SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/");
-        }
-#else
-        /* Uses legacy vanilla game */
         SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/");
-#endif
 #endif
         SAFECAT(url, filename);
 
@@ -320,7 +262,7 @@ static int mount_local_package(struct local_package *lpkg)
  */
 static int load_installed_packages(void)
 {
-#if defined(NB_PACKAGES_PREMIUM)
+#ifdef UNUSED // NB_PACKAGES_PREMIUM
     char default_filename[64];
 
     switch (package_curr_category)
@@ -337,14 +279,9 @@ static int load_installed_packages(void)
         case PACKAGE_CATEGORY_LEVELSET:
             SAFECPY(default_filename, "installed-packages_levelset.txt");
             break;
-        case PACKAGE_CATEGORY_COURSE:
-            SAFECPY(default_filename, "installed-packages_course.txt");
-            break;
         default:
             SAFECPY(default_filename, "installed-packages.txt");
-            break;
     }
-
 #else
     const char *default_filename = "installed-packages.txt";
 #endif
@@ -429,7 +366,7 @@ static int save_installed_packages(void)
 {
     if (installed_packages)
     {
-#if defined(NB_PACKAGES_PREMIUM)
+#ifdef UNUSED // NB_PACKAGES_PREMIUM
         char default_filename[64];
 
         switch (package_curr_category)
@@ -446,14 +383,9 @@ static int save_installed_packages(void)
             case PACKAGE_CATEGORY_LEVELSET:
                 SAFECPY(default_filename, "installed-packages_levelset.txt");
                 break;
-            case PACKAGE_CATEGORY_COURSE:
-                SAFECPY(default_filename, "installed-packages_course.txt");
-                break;
             default:
                 SAFECPY(default_filename, "installed-packages.txt");
-                break;
         }
-
 #else
         const char *default_filename = "installed-packages.txt";
 #endif
@@ -551,6 +483,8 @@ static Array load_packages_from_file(const char *filename)
 
     if ((fp = fs_open_read(filename)))
     {
+        int available_packages_kicked = 0;
+
         struct package *pkg = NULL;
         char line[MAXSTR];
 
@@ -560,49 +494,76 @@ static Array load_packages_from_file(const char *filename)
 
             if (str_starts_with(line, "package "))
             {
+                available_packages_kicked = 0;
+
                 /* Start reading a new package. */
 
-                pkg = array_add(packages);
-
-                if (pkg)
+#ifdef NB_PACKAGES_PREMIUM
+                switch (package_curr_category)
                 {
-                    size_t prefix_len;
+                    case PACKAGE_CATEGORY_PROFILE:
+                        if (!str_starts_with(line + 8, "ball-"))
+                            available_packages_kicked = 1;
+                        break;
+                    case PACKAGE_CATEGORY_GUI:
+                        if (!str_starts_with(line + 8, "gui-"))
+                            available_packages_kicked = 1;
+                        break;
+                    case PACKAGE_CATEGORY_CAMPAIGN:
+                        if (!str_starts_with(line + 8, "campaign-"))
+                            available_packages_kicked = 1;
+                        break;
+                    case PACKAGE_CATEGORY_LEVELSET:
+                        if (!str_starts_with(line + 8, "set-"))
+                            available_packages_kicked = 1;
+                        break;
+                }
+#endif
 
-                    memset(pkg, 0, sizeof (*pkg));
+                if (!available_packages_kicked)
+                {
+                    pkg = array_add(packages);
 
-                    SAFECPY(pkg->id, line + 8);
-                    prefix_len = strcspn(pkg->id, "-");
+                    if (pkg)
+                    {
+                        size_t prefix_len;
+
+                        memset(pkg, 0, sizeof(*pkg));
+
+                        SAFECPY(pkg->id, line + 8);
+                        prefix_len = strcspn(pkg->id, "-");
 #if _MSC_VER && _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    strncpy_s(pkg->type, 64,
-                              pkg->id, MIN(sizeof (pkg->type) - 1, prefix_len));
+                        strncpy_s(pkg->type, 64,
 #else
-                    strncpy(pkg->type,
-                            pkg->id, MIN(sizeof (pkg->type) - 1, prefix_len));
+                        strncpy(pkg->type,
 #endif
-                    pkg->size = 0;
-                    pkg->filename[0] = 0;
-                    pkg->files[0] = 0;
-                    pkg->name[0] = 0;
-                    pkg->desc[0] = 0;
-                    pkg->shot[0] = 0;
+                                pkg->id, MIN(sizeof(pkg->type) - 1, prefix_len));
+
+                        pkg->size        = 0;
+                        pkg->filename[0] = 0;
+                        pkg->files[0]    = 0;
+                        pkg->name[0]     = 0;
+                        pkg->desc[0]     = 0;
+                        pkg->shot[0]     = 0;
 #if NB_HAVE_PB_BOTH==1
-                    pkg->category[0] = 0;
+                        pkg->category[0] = 0;
 #endif
+                    }
                 }
             }
 #if NB_HAVE_PB_BOTH==1
-            else if (str_starts_with(line, "category "))
+            else if (str_starts_with(line, "category ") && !available_packages_kicked)
             {
                 if (pkg)
                     SAFECPY(pkg->category, line + 9);
             }
 #endif
-            else if (str_starts_with(line, "filename "))
+            else if (str_starts_with(line, "filename ") && !available_packages_kicked)
             {
                 if (pkg)
                     SAFECPY(pkg->filename, line + 9);
             }
-            else if (str_starts_with(line, "size "))
+            else if (str_starts_with(line, "size ") && !available_packages_kicked)
             {
                 if (pkg)
 #if _MSC_VER && _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -612,17 +573,17 @@ static Array load_packages_from_file(const char *filename)
 #endif
                            "%u", &pkg->size);
             }
-            else if (str_starts_with(line, "files "))
+            else if (str_starts_with(line, "files ") && !available_packages_kicked)
             {
                 if (pkg)
                     SAFECPY(pkg->files, line + 6);
             }
-            else if (str_starts_with(line, "name "))
+            else if (str_starts_with(line, "name ") && !available_packages_kicked)
             {
                 if (pkg)
                     SAFECPY(pkg->name, line + 5);
             }
-            else if (str_starts_with(line, "desc "))
+            else if (str_starts_with(line, "desc ") && !available_packages_kicked)
             {
                 if (pkg)
                 {
@@ -639,7 +600,7 @@ static Array load_packages_from_file(const char *filename)
                     }
                 }
             }
-            else if (str_starts_with(line, "shot "))
+            else if (str_starts_with(line, "shot ") && !available_packages_kicked)
             {
                 if (pkg)
                     SAFECPY(pkg->shot, line + 5);
@@ -889,8 +850,8 @@ void package_init(void)
         {
             package_is_init = dir_exists(package_dir);
 
-            if (package_is_init)
-                if (!fs_mkdir(PACKAGE_DIR))
+            if (!package_is_init)
+                if (fs_mkdir(PACKAGE_DIR))
                     package_is_init = 1;
 
             free(package_dir);

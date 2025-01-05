@@ -193,19 +193,19 @@ void hud_init(void)
 
         if ((id = gui_hstack(Touch_id)))
         {
+            gui_space(id);
+
             gui_state(id, GUI_ROMAN_2, GUI_TCH, GUI_BACK, 0);
 
             gui_space(id);
 
             gui_state(id, GUI_FISHEYE, GUI_TCH, GUI_CAMERA, 0);
-
-            gui_space(id);
         }
 
         // HACK: hide by default.
         gui_set_slide(Touch_id, GUI_N, 0, 0, 0);
 
-        gui_layout(Touch_id, -1, +1);
+        gui_layout(Touch_id, +1, +1);
     }
 
     /* Default is 59999 (24h = 360000 * 24) */

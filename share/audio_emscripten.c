@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2024 Microsoft / Neverball Authors
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -13,6 +13,10 @@
  */
 
 #ifdef __EMSCRIPTEN__
+
+#if NB_HAVE_PB_BOTH==1
+#define FORCE_LOAD_MP3_MUSIC_FROM_WGCL
+#endif
 
 #include <emscripten.h>
 
@@ -66,6 +70,11 @@ void audio_free(void)
 
 void audio_play(const char *filename, float a)
 {
+#ifdef FORCE_LOAD_MP3_MUSIC_FROM_WGCL
+    EM_ASM({
+        Neverball.WGCLaudioPlay(UTF8ToString($0), $1);
+    }, filename, a);
+#else
 #if NB_HAVE_PB_BOTH!=1
     int can_play_ogg = EM_ASM_INT({
         return Neverball.audioCanPlayOgg ? 1 : 0
@@ -106,10 +115,24 @@ void audio_play(const char *filename, float a)
             Neverball.audioPlay(fileName, fileData, a);
         }, filename, data, size, LOG_VOLUME(CLAMP(0.0f, a, 1.0f)));
     }
+    else
+    {
+        // Play game sound from the WGCL.
+
+        EM_ASM({
+            Neverball.WGCLaudioPlay(UTF8ToString($0), $1);
+        }, filename, a);
+    }
+#endif
 }
 
 void audio_narrator_play(const char *filename)
 {
+#ifdef FORCE_LOAD_MP3_MUSIC_FROM_WGCL
+    EM_ASM({
+        Neverball.WGCLaudioNarratorPlay(UTF8ToString($0), $1);
+    }, filename, 1.0f);
+#else
 #if NB_HAVE_PB_BOTH!=1
     int can_play_ogg = EM_ASM_INT({
         return Neverball.audioCanPlayOgg ? 1 : 0
@@ -153,6 +176,15 @@ void audio_narrator_play(const char *filename)
             Neverball.audioPlayNarrator(fileName, fileData, a);
         }, filename, data, size, 1.0f);
     }
+    else
+    {
+        // Play narrator sound from the WGCL.
+
+        EM_ASM({
+            Neverball.WGCLaudioNarratorPlay(UTF8ToString($0), $1);
+        }, filename, 1.0f);
+    }
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -177,6 +209,13 @@ void audio_music_fade_in(float t)
 
 void audio_music_fade_to(float t, const char *filename, int loop)
 {
+    float clamped_time = CLAMP(0.001f, t, 1.0f);
+
+#ifdef FORCE_LOAD_MP3_MUSIC_FROM_WGCL
+    EM_ASM({
+        Neverball.WGCLaudioMusicFadeTo(UTF8ToString($0), $1);
+    }, filename, clamped_time);
+#else
 #if NB_HAVE_PB_BOTH!=1
     const int can_play_ogg = EM_ASM_INT({
         return Neverball.audioCanPlayOgg ? 1 : 0;
@@ -218,8 +257,17 @@ void audio_music_fade_to(float t, const char *filename, int loop)
             const fileData = Module.HEAP8.buffer.slice(data, data + size);
 
             Neverball.audioMusicFadeTo(fileName, fileData, t);
-        }, filename, data, size, t);
+        }, filename, data, size, clamped_time);
     }
+    else
+    {
+        // Play music from the WGCL.
+
+        EM_ASM({
+            Neverball.WGCLaudioMusicFadeTo(UTF8ToString($0), $1);
+        }, filename, clamped_time);
+    }
+#endif
 }
 
 void audio_music_stop(void)

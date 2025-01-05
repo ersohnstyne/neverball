@@ -1144,7 +1144,7 @@ static int shop_iap_action(int tok, int val)
 
         case SHOP_IAP_GET_SWITCH:
 #ifdef __EMSCRIPTEN__
-            EM_ASM({ Pennyball.showIAP_Gems(); });
+            EM_ASM({ Neverball.showIAP_Gems(); });
 #else
             iappage = !iappage;
 
@@ -1771,7 +1771,7 @@ static int shop_buy_action(int tok, int val)
         case SHOP_BUY_IAP:
 #ifdef __EMSCRIPTEN__
             if (purchase_product_usegems)
-                EM_ASM({ Pennyball.showIAP_Gems(); });
+                EM_ASM({ Neverball.showIAP_Gems(); });
             else
                 return goto_shop_iap(&st_shop_buy, &st_shop, 0, 0, prodcost, 0, 0);
 #else

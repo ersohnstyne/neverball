@@ -168,7 +168,8 @@ int goto_state_intent(struct state *st, int intent)
 int goto_state_full_intent(struct state *st,
                            int fromdirection, int todirection, int noanimation, int intent)
 {
-    int r = 1;
+    int r           = 1;
+    int prev_gui_id = 0;
     struct state *prev = state;
 
     anim_queue_state         = st;
@@ -192,11 +193,14 @@ int goto_state_full_intent(struct state *st,
     console_gui_set_alpha(1.0f);
     console_gui_slide(GUI_S | GUI_EASE_ELASTIC | GUI_BACKWARD);
 #endif
-
+    
     if (state && state->leave)
     {
-        state->leave(state, st, state->gui_id, intent);
-        state->gui_id = 0;
+        prev_gui_id   = state->gui_id;
+        state->gui_id = state->leave(state, st, state->gui_id, intent);
+
+        if (!state->gui_id)
+            gui_remove(prev_gui_id);
     }
 
     state       = anim_queue_state;

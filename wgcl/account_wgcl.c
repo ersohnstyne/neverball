@@ -589,7 +589,7 @@ account_wgcl_reload_fail:
 
     EM_ASM({
         Neverball.gamecore_account_try_reload();
-    }, 0);
+    });
 
     return 1;
 #else
@@ -902,7 +902,7 @@ account_wgcl_try_add_fail:
             c_hp_next, c_doublecash_next, c_halfgrav_next, c_doublespeed_next);
 
     EM_ASM({
-        Neverball.gamecore_account_try_update($0, $1);
+        Neverball.gamecore_account_try_update(UTF8ToString($0), UTF8ToString($1));
     }, in_url, json_data);
 
     return 1;
@@ -1055,7 +1055,7 @@ account_wgcl_try_set_fail:
             pending_set_consumable_hp, pending_set_consumable_doublecash, pending_set_consumable_halfgrav, pending_set_consumable_doublespeed);
 
     EM_ASM({
-        Neverball.gamecore_account_try_update($0, $1);
+        Neverball.gamecore_account_try_update(UTF8ToString($0), UTF8ToString($1));
     }, in_url, json_data);
 
     return 1;
@@ -1189,7 +1189,7 @@ account_wgcl_try_buy_fail:
             managed_buy_flags_pending);
 
     EM_ASM({
-        Neverball.gamecore_account_try_buy($0, $1);
+        Neverball.gamecore_account_try_buy(UTF8ToString($0), UTF8ToString($1));
     }, in_url, json_data);
 
     return 1;

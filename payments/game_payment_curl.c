@@ -58,7 +58,7 @@ void game_payment_browse(int index)
     sprintf(linkstr, "https://%s/iap/gems/overview?packid=%d",
             GAMEIAP_CURRDOMAIN, index + 1);
 
-    EM_ASM({ window.open($0); }, linkstr);
+    EM_ASM({ window.open(UTF8ToString($0)); }, linkstr);
 #else
 #if _WIN32 && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(linkstr, MAXSTR,

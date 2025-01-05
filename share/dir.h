@@ -66,7 +66,7 @@ int dir_exists(const char *);
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-#define dir_make(path) EM_ASM({ Pennyball.mkdir_p($0); }, path)
+#define dir_make(path) EM_ASM({ Neverball.mkdir_p(UTF8ToString($0)); }, path)
 #else
 #define dir_make(path) 0
 #endif*/

@@ -33,7 +33,7 @@ EM_LDFLAGS := \
 	-s ALLOW_MEMORY_GROWTH=1 \
 	-s FULL_ES2=1 \
 	-s INVOKE_RUN=0 \
-	-s EXPORTED_FUNCTIONS=_main,_push_user_event,_account_set,_config_set \
+	-s EXPORTED_FUNCTIONS=_main,_push_user_event,_account_set,_config_set,_account_wgcl_set_session_uuid4,_account_wgcl_set_readonly_playername,_WGCLCallMain \
 	-s EXPORTED_RUNTIME_METHODS=callMain,ccall,cwrap,addRunDependency,removeRunDependency \
 	-s HTML5_SUPPORT_DEFERRING_USER_SENSITIVE_REQUESTS=0 \
 	-s LLD_REPORT_UNDEFINED \

@@ -53,75 +53,10 @@ static void WGCLCallMain_Real(void)
  * logged in with owned game. - Ersohn Styne
  */
 
-void WGCLCallMain_Lite(void)
+void WGCLCallMain(int edition_id)
 {
     server_policy_init();
-    server_policy_set_d(SERVER_POLICY_EDITION, -1);
-
-    WGCLCallMain_Real();
-}
-
-void WGCLCallMain_Home(void)
-{
-    server_policy_init();
-    server_policy_set_d(SERVER_POLICY_EDITION, 0);
-
-    WGCLCallMain_Real();
-}
-
-void WGCLCallMain_Pro(void)
-{
-    server_policy_init();
-    server_policy_set_d(SERVER_POLICY_EDITION, 1);
-
-    WGCLCallMain_Real();
-}
-
-void WGCLCallMain_Enterprise(void)
-{
-    server_policy_init();
-    server_policy_set_d(SERVER_POLICY_EDITION, 2);
-
-    WGCLCallMain_Real();
-}
-
-void WGCLCallMain_Education(void)
-{
-    server_policy_init();
-    server_policy_set_d(SERVER_POLICY_EDITION, 3);
-
-    WGCLCallMain_Real();
-}
-
-/********************************************************************/
-
-/*
- * HACK: IT Tech players will be choosen, if specific account was
- * already logged in with owned game. - Ersohn Styne
- */
-
-void WGCLCallMain_Srv_Essentials(void)
-{
-    server_policy_init();
-    server_policy_set_d(SERVER_POLICY_EDITION, 10000);
-
-    WGCLCallMain_Real();
-}
-
-void WGCLCallMain_Srv_Standard(void)
-{
-    server_policy_init();
-    server_policy_set_d(SERVER_POLICY_EDITION, 10001);
-
-    WGCLCallMain_Real();
-}
-
-void WGCLCallMain_Srv_Datacenter(void)
-{
-    server_policy_init();
-    server_policy_set_d(SERVER_POLICY_EDITION, 10002);
-
-    WGCLCallMain_Real();
+    server_policy_set_d(SERVER_POLICY_EDITION, edition_id);
 }
 
 #endif

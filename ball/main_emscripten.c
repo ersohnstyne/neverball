@@ -12,13 +12,15 @@
  * General Public License for more details.
  */
 
+#include <stdlib.h>
+
 #include "main_share.h"
 
 #include "networking.h"
 
 #ifdef __EMSCRIPTEN__ && NB_HAVE_PB_BOTH==1
 
-static void WGCLCallMain_Real(void)
+static void WGCL_CallMain_Real(void)
 {
     server_policy_set_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN, 0);
     server_policy_set_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET, server_policy_get_d(SERVER_POLICY_EDITION) == -1 ? 1 : 0);
@@ -53,10 +55,12 @@ static void WGCLCallMain_Real(void)
  * logged in with owned game. - Ersohn Styne
  */
 
-void WGCLCallMain(int edition_id)
+void WGCL_CallMain(const char *edition_id)
 {
     server_policy_init();
-    server_policy_set_d(SERVER_POLICY_EDITION, edition_id);
+    server_policy_set_d(SERVER_POLICY_EDITION, atoi(edition_id));
+
+    WGCL_CallMain_Real();
 }
 
 #endif

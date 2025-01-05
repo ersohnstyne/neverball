@@ -587,11 +587,11 @@ account_wgcl_reload_fail:
         session_uuid4 = NULL;
     }
 
-    EM_ASM({
-        Neverball.gamecore_account_try_reload();
+    int r = EM_ASM_INT({
+        return Neverball.gamecore_account_try_reload() ? 1 : 0;
     });
 
-    return 1;
+    return r;
 #else
     return 0;
 #endif
@@ -901,11 +901,11 @@ account_wgcl_try_add_fail:
             w_coins_next, w_gems_next,
             c_hp_next, c_doublecash_next, c_halfgrav_next, c_doublespeed_next);
 
-    EM_ASM({
-        Neverball.gamecore_account_try_update(UTF8ToString($0), UTF8ToString($1));
+    int r = EM_ASM_INT({
+        return Neverball.gamecore_account_try_update(UTF8ToString($0), UTF8ToString($1)) ? 1 : 0;
     }, in_url, json_data);
 
-    return 1;
+    return r;
 #else
     return 1;
 #endif
@@ -1054,8 +1054,8 @@ account_wgcl_try_set_fail:
             pending_set_wallet_coins, pending_set_wallet_gems,
             pending_set_consumable_hp, pending_set_consumable_doublecash, pending_set_consumable_halfgrav, pending_set_consumable_doublespeed);
 
-    EM_ASM({
-        Neverball.gamecore_account_try_update(UTF8ToString($0), UTF8ToString($1));
+    int r = EM_ASM_INT({
+        return Neverball.gamecore_account_try_update(UTF8ToString($0), UTF8ToString($1)) ? 1 : 0;
     }, in_url, json_data);
 
     return 1;
@@ -1188,11 +1188,11 @@ account_wgcl_try_buy_fail:
             session_uuid4,
             managed_buy_flags_pending);
 
-    EM_ASM({
-        Neverball.gamecore_account_try_buy(UTF8ToString($0), UTF8ToString($1));
+    int r = EM_ASM_INT({
+        Neverball.gamecore_account_try_buy(UTF8ToString($0), UTF8ToString($1)) ? 1 : 0;
     }, in_url, json_data);
 
-    return 1;
+    return r;
 #else
     return 1;
 #endif

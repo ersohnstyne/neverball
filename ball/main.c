@@ -1903,9 +1903,11 @@ static int main_init(int argc, char *argv[])
 
     /* Initialize SDL. */
 
-#if !defined(__NDS__) && !defined(__3DS__) && \
-    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
+#if defined(__EMSCRIPTEN__)
+    SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");
+#elif !defined(__NDS__) && !defined(__3DS__) && \
+      !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+      !defined(__SWITCH__)
 #ifdef SDL_HINT_TOUCH_MOUSE_EVENTS
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 #endif

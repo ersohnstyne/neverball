@@ -994,6 +994,11 @@ static int main_init(int argc, char *argv[])
     fs_mkdir("Screenshots");
 #endif
 
+    SDL_SetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD, "0");
+
+#if defined(__EMSCRIPTEN__)
+    SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");
+#else
 #if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API \
     && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX, "1");
@@ -1024,6 +1029,7 @@ static int main_init(int argc, char *argv[])
 #endif
 #if defined(SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS, "1");
+#endif
 #endif
 #endif
 

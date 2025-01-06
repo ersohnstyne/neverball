@@ -517,7 +517,7 @@ static int ball_gui(void)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#if NB_HAVE_PB_BOTH==1
             const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) > -1 ?
 #if NB_STEAM_API==1
                                           N_("Open Steam Workshop!") :
@@ -548,10 +548,10 @@ static int ball_gui(void)
                 gui_space(id);
                 gui_label(id, _(more_balls_text), GUI_SML, GUI_COLOR_GRY);
             }
+#endif
+#endif
 
             gui_space(id);
-#endif
-#endif
 
             if ((jd = gui_hstack(id)))
             {

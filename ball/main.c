@@ -1687,7 +1687,7 @@ struct main_loop
     unsigned int done : 1;
 };
 
-static void step_primary_screen(Uint32 now, Uint32 dt)
+static void step_primary_screen(Uint32 now, Uint32 dt, int allow_clear)
 {
     if (0 < dt && dt < 1000)
     {
@@ -1730,6 +1730,8 @@ static void step(void *data)
         {
             /* TODO: Do we have 90 FPS? */
 
+            int first_frame = 1;
+
             const float expected_dt = (1.0f / 90) * 1000.f;
             mainloop->motionblur_leftover += config_get_d(CONFIG_SMOOTH_FIX) ?
                                              MIN(frame_smooth, dt) : MIN(100.0f, dt);
@@ -1745,19 +1747,17 @@ static void step(void *data)
                 Uint32 fixed_dt = MIN(mainloop->motionblur_leftover, expected_dt);
 
                 step_primary_screen(mainloop->now + (dt - mainloop->motionblur_leftover),
-                                    fixed_dt);
-
-                video_motionblur_set_texture();
+                                    fixed_dt, first_frame);
 
                 mainloop->motionblur_leftover -= expected_dt;
+
+                first_frame = 0;
             }
 
             video_motionblur_alpha_set(1);
 
             step_primary_screen(mainloop->now + (dt - mainloop->motionblur_leftover),
-                                mainloop->motionblur_leftover);
-
-            video_motionblur_set_texture();
+                                mainloop->motionblur_leftover, 0);
 
             mainloop->motionblur_leftover = 0;
         }
@@ -1766,10 +1766,9 @@ static void step(void *data)
             video_motionblur_alpha_set(1);
 #endif
 
-            step_primary_screen(now, dt);
+            step_primary_screen(now, dt, 1);
 
 #if ENABLE_MOTIONBLUR!=0
-            video_motionblur_set_texture();
         }
 #endif
 

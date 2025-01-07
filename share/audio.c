@@ -119,7 +119,7 @@ static SDL_AudioSpec device_spec;
 #define SDL_CloseAudioDevice(_devid) \
         SDL_CloseAudio()
 
-static struct voice* voice_cache[VOICE_CACHE_COUNT];
+static struct voice *voice_cache[VOICE_CACHE_COUNT];
 #endif
 
 static struct voice *voices_music     = NULL;

@@ -449,6 +449,20 @@ void conf_common_paint(int id, float t)
 
 struct state st_perf_warning;
 
+struct state st_video;
+struct state st_video_advanced;
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+struct state st_display;
+#endif
+#if !defined(RESIZEABLE_WINDOW)
+struct state st_resol;
+#endif
+struct state st_restart_required;
+
+/*---------------------------------------------------------------------------*/
+
 enum
 {
     PERF_WARNING_DO_IT = GUI_LAST,
@@ -611,6 +625,13 @@ enum
 };
 
 static struct state *video_back;
+
+int goto_video(struct state *returnable)
+{
+    video_back = returnable;
+
+    return goto_state(&st_video);
+}
 
 static int video_action(int tok, int val)
 {
@@ -969,7 +990,7 @@ enum
     VIDEO_ADVANCED_TEXTURES
 };
 
-static struct state * video_advanced_back;
+static struct state *video_advanced_back;
 
 static int video_advanced_action(int tok, int val)
 {
@@ -1972,7 +1993,7 @@ static int lang_gui(void)
             {
                 if (i < array_len(langs))
                 {
-                    struct lang_desc* desc = LANG_GET(langs, i);
+                    struct lang_desc *desc = LANG_GET(langs, i);
 
 #if NB_HAVE_PB_BOTH==1
                     int lang_root_id, lang_top_id, lang_bot_id;

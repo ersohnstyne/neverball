@@ -694,7 +694,7 @@ int  level_bonus(const struct level *level)
     return level ? level->is_bonus : 0;
 }
 
-int  level_master(const struct level* level)
+int  level_master(const struct level *level)
 {
     return level ? level->is_master : 0;
 }

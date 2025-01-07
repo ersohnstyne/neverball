@@ -368,12 +368,12 @@ void game_draw_set_maxspeed(float a, int f)
     max_speed_angle = a;
 }
 
-static void game_draw_maxspeed(struct s_rend* rend,
-    const struct game_draw* gd)
+static void game_draw_maxspeed(struct s_rend *rend,
+                               const struct game_draw *gd)
 {
     float c[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
 
-    const struct s_vary* vary = &gd->vary;
+    const struct s_vary *vary = &gd->vary;
 
     const float view_angle = V_DEG(fatan2f(gd->view.e[2][0], gd->view.e[2][2]));
 
@@ -674,7 +674,7 @@ static void game_draw_chkps(struct s_rend *rend,
 
     if (base->vc > 0) Y = base->vv[0].p[1];
 
-    const struct s_vary* vary = &gd->vary;
+    const struct s_vary *vary = &gd->vary;
 
     float chkp_p[3], chkp_e[4], u[3], a;
     int i;

@@ -453,7 +453,7 @@ static void load_package_statuses(Array packages)
 
             for (List l = installed_packages; l; l = l->next)
             {
-                struct local_package* lpkg = l->data;
+                struct local_package *lpkg = l->data;
 
                 if (strcmp(pkg->id, lpkg->id) == 0)
                 {

@@ -631,8 +631,8 @@ static void gui_glyphs_init(void)
     /* Cache an image for the cursor. Scale it to the same size as a digit. */
 
 #ifdef SWITCHBALL_GUI
-    if ((cursor_id = gui_image(0, "gui/cursor.png", ROUND(256.0f / ((float) (video.device_h / 1080.0f))),
-                                                    ROUND(256.0f / ((float) (video.device_h / 1080.0f))))))
+    if ((cursor_id = gui_image(0, "gui/cursor.png", ROUND(256.0f * ((float) (video.window_h / 1080.0f))),
+                                                    ROUND(256.0f * ((float) (video.window_h / 1080.0f))))))
 #else
     if ((cursor_id = gui_image(0, "gui/cursor.png", widget[digit_id[1][0]].w * 2,
                                                     widget[digit_id[1][0]].h * 2)))
@@ -2600,7 +2600,12 @@ void gui_paint(int id)
 
     if (id && widget[id].type != GUI_FREE)
     {
-        video_set_ortho();
+        /*if (config_get_d(CONFIG_UI_HWACCEL))
+        {
+            video_set_perspective(70.0f, 0.001f, 10000);
+            glTranslatef(video.device_w / -2.0f, video.device_h / -2.0f, -770.0f);
+        }
+        else*/ video_set_ortho();
 
         glDisable(GL_DEPTH_TEST);
         {
@@ -2632,7 +2637,13 @@ void gui_paint(int id)
     if (!video_get_grab() && cursor_st && cursor_id)
 #endif
     {
-        video_set_ortho();
+        /*if (config_get_d(CONFIG_UI_HWACCEL))
+        {
+            video_set_perspective(70.0f, 0.001f, 10000);
+            glTranslatef(video.device_w / -2.0f, video.device_h / -2.0f, -770.0f);
+        }
+        else*/ video_set_ortho();
+
         {
             glDisable(GL_DEPTH_TEST);
 

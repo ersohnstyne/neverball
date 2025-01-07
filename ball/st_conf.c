@@ -2632,7 +2632,7 @@ static int conf_action(int tok, int val)
             break;
 
         case CONF_VIDEO:
-            goto_state(&st_video);
+            goto_video(&st_conf);
             break;
 
 #if NB_HAVE_PB_BOTH==1

@@ -100,6 +100,14 @@
 #define GUI_EASE_ELASTIC (GUI_W << 4)
 #define GUI_EASE_BACK    (GUI_W << 5)
 
+/* Rotation animation flags */
+
+#define GUI_ROTATE                  (GUI_W << 6)
+#define GUI_ROTATE_IN_EASE_ELASTIC  (GUI_W << 7)
+#define GUI_ROTATE_OUT_EASE_ELASTIC (GUI_W << 8)
+#define GUI_ROTATE_IN_EASE_BACK     (GUI_W << 9)
+#define GUI_ROTATE_OUT_EASE_BACK    (GUI_W << 10)
+
 /* Multiple corners */
 
 #define GUI_LFT  (GUI_NW  | GUI_SW)

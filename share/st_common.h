@@ -63,6 +63,10 @@ void conf_common_paint(int id, float t);
 
 /*---------------------------------------------------------------------------*/
 
+int goto_video(struct state *);
+
+/*---------------------------------------------------------------------------*/
+
 /*
  * This is only a common declaration, this module does not implement
  * this state. Check out ball/st_conf.c and putt/st_conf.c instead.
@@ -72,18 +76,7 @@ extern struct state st_null;
 /*
  * These are actually implemented by this module.
  */
-extern struct state st_video;
-extern struct state st_video_advanced;
-#if !defined(__NDS__) && !defined(__3DS__) && \
-    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
-extern struct state st_display;
-#endif
-#if !defined(RESIZEABLE_WINDOW)
-extern struct state st_resol;
-#endif
 extern struct state st_lang;
-extern struct state st_restart_required;
 extern struct state st_loading;
 
 /*---------------------------------------------------------------------------*/

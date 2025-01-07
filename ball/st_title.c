@@ -344,7 +344,7 @@ static int title_goto_playgame(struct state *st)
 
 static void title_refresh_packages_done(void* data1, void* data2)
 {
-    struct fetch_done* dn = data2;
+    struct fetch_done *dn = data2;
 
     if (dn->success) goto_package(0, &st_set);
     else audio_play("snd/uierror.ogg", 1.0f);
@@ -1203,6 +1203,8 @@ static int filter_cmd(const union cmd *cmd)
 
 static int title_enter(struct state *st, struct state *prev, int intent)
 {
+    game_proxy_filter(filter_cmd);
+
     if (title_load_lockscreen)
         title_load_lockscreen = 0;
 
@@ -1227,8 +1229,6 @@ static int title_enter(struct state *st, struct state *prev, int intent)
     progress_init(MODE_NONE);
 
     title_freeze_all = 0;
-
-    game_proxy_filter(filter_cmd);
 
     /* Start the title screen music. */
 

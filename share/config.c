@@ -72,6 +72,7 @@ int CONFIG_GRAPHIC_RESTORE_VAL2;
 int CONFIG_MAINMENU_PANONLY;
 
 int CONFIG_SCREEN_ANIMATIONS;
+//int CONFIG_UI_HWACCEL;
 int CONFIG_SMOOTH_FIX;
 int CONFIG_FORCE_SMOOTH_FIX;
 int CONFIG_WIDESCREEN;
@@ -226,6 +227,7 @@ static struct
     { &CONFIG_MAINMENU_PANONLY,"mainmenu_panonly",0 },
 
     { &CONFIG_SCREEN_ANIMATIONS,"screen_animation",1 },
+//    { &CONFIG_UI_HWACCEL,     "ui_hwaccel",   1 },
     { &CONFIG_SMOOTH_FIX,     "smooth_fix",   1 },
     { &CONFIG_FORCE_SMOOTH_FIX, "force_smooth_fix", 0 },
     { &CONFIG_WIDESCREEN,     "widescreen",   0 },

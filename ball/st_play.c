@@ -397,6 +397,7 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
         return 0;
     }
 
+    audio_play("snd/2.2/game_countdown_prep.ogg", 1.0f);
     audio_narrator_play(AUD_READY);
     hud_speedup_reset();
 
@@ -501,6 +502,7 @@ static int play_set_enter(struct state *st, struct state *prev, int intent)
 
     if (curr_mode() == MODE_NONE) return 0;
 
+    audio_play("snd/2.2/game_countdown_prep.ogg", 1.0f);
     audio_narrator_play(AUD_SET);
 
     if (!console_gui_shown())
@@ -826,6 +828,7 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
         prev == &st_play_loop)
         return 0;
 
+    audio_play("snd/2.2/game_countdown_go.ogg", 1.0f);
     audio_narrator_play(AUD_GO);
 
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)

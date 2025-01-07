@@ -85,7 +85,6 @@ void  video_motionblur_alpha_set(float);
 float video_motionblur_alpha_get(void);
 
 void video_motionblur_prep(void);
-void video_motionblur_set_texture(void);
 void video_motionblur_swap(void);
 #endif
 

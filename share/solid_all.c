@@ -696,7 +696,7 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
 
     for (xi = 0; xi < vary->xc; xi++)
     {
-        struct v_swch* xp = vary->xv + xi;
+        struct v_swch *xp = vary->xv + xi;
 
         float d, r[3];
 

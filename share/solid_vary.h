@@ -69,7 +69,7 @@ struct v_item
 
 struct v_swch
 {
-    const struct b_swch* base;
+    const struct b_swch *base;
     float t;                                   /* current timer              */
     int   tm;                                  /* milliseconds               */
     int   f;                                   /* current state              */

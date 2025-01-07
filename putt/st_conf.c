@@ -87,7 +87,7 @@ static int conf_action(int i)
             break;
 
         case CONF_VIDEO:
-            goto_state(&st_video);
+            goto_video(&st_conf);
             break;
 
         case CONF_LANG:

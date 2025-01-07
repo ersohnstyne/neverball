@@ -127,7 +127,7 @@ static int has_ball_sols(const char *path)
     return yes;
 }
 
-static int has_ball_sols_dir(struct dir_item* item)
+static int has_ball_sols_dir(struct dir_item *item)
 {
     char *tmp_path = strdup(item->path);
 
@@ -357,7 +357,7 @@ enum
 
 static void ball_refresh_packages_done(void* data1, void* data2)
 {
-    struct fetch_done* dn = data2;
+    struct fetch_done *dn = data2;
 
     if (dn->success) goto_package(0, &st_ball);
     else audio_play("snd/uierror.ogg", 1.0f);

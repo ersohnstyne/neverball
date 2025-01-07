@@ -315,7 +315,7 @@ static int over_enter(struct state *st, struct state *prev, int intent)
         over_gui(), 1, intent);
 }
 
-static int over_leave(struct state* st, struct state* next, int id, int intent)
+static int over_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (next == &st_null)
     {

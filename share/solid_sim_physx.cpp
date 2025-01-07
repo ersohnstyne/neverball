@@ -127,7 +127,7 @@ extern "C" float sol_step_physx(struct s_vary *vary, cmd_fn cmd_func,
 
     if (ui < vary->uc)
     {
-        struct v_ball* up = vary->uv + ui;
+        struct v_ball *up = vary->uv + ui;
 
         //v_cpy(a, up->v);
         //v_cpy(v, up->v);

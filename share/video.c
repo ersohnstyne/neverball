@@ -1586,12 +1586,6 @@ int  video_get_grab(void)
 /*---------------------------------------------------------------------------*/
 
 #if ENABLE_MOTIONBLUR!=0
-static fbo motionblur_fbo[VIDEO_MOTIONBLUR_MAX_TEXTURE] =
-{ { 0, 0, 0 }, { 0, 0, 0 },
-  { 0, 0, 0 }, { 0, 0, 0 },
-  { 0, 0, 0 }, { 0, 0, 0 },
-  { 0, 0, 0 }, { 0, 0, 0 }, };
-
 static int motionblur_renderable[VIDEO_MOTIONBLUR_MAX_TEXTURE];
 
 static unsigned int motionblur_vbo;
@@ -1605,76 +1599,6 @@ extern "C"
 #endif
 void video_motionblur_init(void)
 {
-    const int w = video.device_w;
-    const int h = video.device_h;
-
-    for (int i = 0; i < VIDEO_MOTIONBLUR_MAX_TEXTURE; i++)
-    {
-        glGenTextures(1, &motionblur_fbo[i].color_texture);
-        glGenTextures(1, &motionblur_fbo[i].depth_texture);
-
-        if (gli.framebuffer_object != 0)
-            glGenFramebuffers_(1, &motionblur_fbo[i].framebuffer);
-
-        glBindTexture_ (GL_TEXTURE_2D, motionblur_fbo[i].color_texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexImage2D   (GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0,
-                        GL_RGBA, GL_UNSIGNED_INT, NULL);
-
-        glBindTexture_ (GL_TEXTURE_2D, motionblur_fbo[i].depth_texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexImage2D   (GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, w, h, 0,
-                        GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
-
-        if (gli.framebuffer_object != 0)
-        {
-            glBindFramebuffer_     (GL_FRAMEBUFFER, motionblur_fbo[i].framebuffer);
-            glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                                    GL_TEXTURE_2D, motionblur_fbo[i].color_texture, 0);
-            glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                                    GL_TEXTURE_2D, motionblur_fbo[i].depth_texture, 0);
-            glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
-                                    GL_TEXTURE_2D, motionblur_fbo[i].depth_texture, 0);
-
-            if (glCheckFramebufferStatus_(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
-            {
-                glBindFramebuffer_(GL_FRAMEBUFFER, 0);
-                motionblur_renderable[i] == 0;
-            }
-            else
-            {
-                glBindFramebuffer_(GL_FRAMEBUFFER, 0);
-                motionblur_renderable[i] == -1;
-            }
-        }
-    }
-
-    static const GLfloat verts[4][5] = {
-        { -0.5f, -0.5f, 0.0f, 0.0f, 0.0f },
-        { +0.5f, -0.5f, 0.0f, 1.0f, 0.0f },
-        { -0.5f, +0.5f, 0.0f, 0.0f, 1.0f },
-        { +0.5f, +0.5f, 0.0f, 1.0f, 1.0f },
-    };
-
-    static const GLuint elems[4] = {
-        0u, 1u, 2u, 3u
-    };
-
-    glGenBuffers_(1,              &motionblur_vbo);
-    glBindBuffer_(GL_ARRAY_BUFFER, motionblur_vbo);
-    glBufferData_(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
-    glBindBuffer_(GL_ARRAY_BUFFER, 0);
-
-    glGenBuffers_(1,                      &motionblur_ebo);
-    glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, motionblur_ebo);
-    glBufferData_(GL_ELEMENT_ARRAY_BUFFER, sizeof(elems), elems, GL_STATIC_DRAW);
-    glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 #if __cplusplus
@@ -1682,19 +1606,6 @@ extern "C"
 #endif
 void video_motionblur_quit(void)
 {
-    for (int i = 0; i < VIDEO_MOTIONBLUR_MAX_TEXTURE; i++)
-    {
-        if (gli.framebuffer_object != 0)
-            glDeleteFramebuffers_(1, &motionblur_fbo[i].framebuffer);
-
-        glDeleteTextures     (1, &motionblur_fbo[i].depth_texture);
-        glDeleteTextures     (1, &motionblur_fbo[i].color_texture);
-
-        memset(&motionblur_fbo[i], 0, sizeof (fbo));
-    }
-
-    glDeleteBuffers_(1, &motionblur_vbo);
-    glDeleteBuffers_(1, &motionblur_ebo);
 }
 
 #if __cplusplus
@@ -1723,50 +1634,11 @@ void video_motionblur_prep(void)
 
     if (motionblur_renderable[motionblur_index] != 0)
         return;
+    
+    glClear(GL_DEPTH_BUFFER_BIT |
+            (config_get_d(CONFIG_REFLECTION) ? GL_STENCIL_BUFFER_BIT : 0));
 
-    const int w = video.device_w;
-    const int h = video.device_h;
-
-    if (gli.framebuffer_object != 0)
-        glBindFramebuffer_(GL_FRAMEBUFFER, motionblur_fbo[motionblur_index].framebuffer);
-
-    glViewport(0, 0, w, h);
-}
-
-#if __cplusplus
-extern "C"
-#endif
-void video_motionblur_set_texture(void)
-{
-    if (motionblur_renderable[motionblur_index] != 0)
-    {
-        motionblur_index++;
-        return;
-    }
-
-    const int w = video.device_w;
-    const int h = video.device_h;
-
-    unsigned char *p = NULL;
-
-    if ((p = (unsigned char *) malloc(w * h * 4)))
-    {
-        glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, p);
-
-        glBindTexture_ (GL_TEXTURE_2D, motionblur_fbo[motionblur_index].color_texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexImage2D   (GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0,
-                        GL_RGBA, GL_UNSIGNED_BYTE, p);
-
-        free(p);
-        p = NULL;
-
-        motionblur_renderable[motionblur_index] = 1;
-        motionblur_index++;
-    }
+    glViewport(0, 0, video.device_w, video.device_h);
 }
 
 #if __cplusplus
@@ -1775,61 +1647,6 @@ extern "C"
 void video_motionblur_swap(void)
 {
     motionblur_index = 0;
-
-    if (gli.framebuffer_object != 0)
-        glBindFramebuffer_(GL_FRAMEBUFFER, 0);
-
-    video_clear();
-    video_set_ortho();
-
-    glViewport(0, 0, video.device_w, video.device_h);
-
-    glColor4ub(255, 255, 255, 255);
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-
-    glDisable(GL_BLEND);
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-
-    glScalef(2.0f, 2.0f, 1.0f);
-
-    for (int i = 0; i < VIDEO_MOTIONBLUR_MAX_TEXTURE; i++)
-    {
-        if (motionblur_renderable[i] == 1)
-        {
-            glBindTexture_(GL_TEXTURE_2D,           motionblur_fbo[i].color_texture);
-            glBindBuffer_ (GL_ARRAY_BUFFER,         motionblur_vbo);
-            glBindBuffer_ (GL_ELEMENT_ARRAY_BUFFER, motionblur_ebo);
-
-            glVertexPointer  (2, GL_FLOAT, sizeof (GLfloat) * 5, (GLvoid *) (                   0u));
-            glTexCoordPointer(2, GL_FLOAT, sizeof (GLfloat) * 5, (GLvoid *) (sizeof (GLfloat) * 3u));
-
-            glDrawArrays (GL_TRIANGLE_STRIP, 0, 4);
-
-            glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
-            glBindBuffer_(GL_ARRAY_BUFFER,         0);
-
-            motionblur_renderable[i] = 0;
-        }
-    }
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glEnable(GL_BLEND);
 }
 #endif
 
@@ -1938,12 +1755,8 @@ extern "C"
 #endif
 void video_clear(void)
 {
-    GLbitfield bufferBit = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
-
-    if (config_get_d(CONFIG_REFLECTION))
-        bufferBit |= GL_STENCIL_BUFFER_BIT;
-
-    glClear(bufferBit);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
+            (config_get_d(CONFIG_REFLECTION) ? GL_STENCIL_BUFFER_BIT : 0));
 }
 
 /*---------------------------------------------------------------------------*/

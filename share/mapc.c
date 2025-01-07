@@ -900,11 +900,11 @@ static void move_file(struct s_base *fp)
         {
             for (i = 0; i < fp->pc; i++)
             {
-                struct b_path* pp = fp->pv + i;
+                struct b_path *pp = fp->pv + i;
 
                 if (pp->p0 >= 0)
                 {
-                    struct b_path* pq = fp->pv + pp->p0;
+                    struct b_path *pq = fp->pv + pp->p0;
 
                     v_sub(posv[i], pp->p, pq->p);
                 }
@@ -912,7 +912,7 @@ static void move_file(struct s_base *fp)
 
             for (i = 0; i < fp->pc; i++)
             {
-                struct b_path* pp = fp->pv + i;
+                struct b_path *pp = fp->pv + i;
 
                 if (pp->p0 >= 0)
                     v_cpy(fp->pv[i].p, posv[i]);
@@ -2147,7 +2147,7 @@ static void make_legacy(struct s_base *fp,
     float y = 0.f;
     float z = 0.f;
 
-    struct b_body* bp = fp->bv + bi;
+    struct b_body *bp = fp->bv + bi;
 
     bp->p0 = -1;
     bp->p1 = -1;
@@ -3201,7 +3201,7 @@ static void sort_file(struct s_base *fp)
 
     for (i = 0; i < fp->bc; i++)
     {
-        const struct b_body* bp = &fp->bv[i];
+        const struct b_body *bp = &fp->bv[i];
 
         int li, lj;
 

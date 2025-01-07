@@ -272,7 +272,7 @@ static void set_load_hs_v3(fs_file fp, struct set *s, char *buf, int size)
 #endif
                         "level %d %d %n", &flags, &version, &n) >= 2)
         {
-            struct level* l;
+            struct level *l;
 
             if ((l = find_level(s, buf + n)))
             {

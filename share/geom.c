@@ -759,7 +759,7 @@ void chnk_pane_draw(struct s_rend *rend)
     sol_draw(&chnk_pane.draw, rend, chnk_allow_mask, chnk_allow_depth);
 }
 
-void chnk_ring_draw(struct s_rend* rend, int dot_line)
+void chnk_ring_draw(struct s_rend *rend, int dot_line)
 {
     sol_draw(&chnk_ring[dot_line ? 1 : 0].draw,
              rend, chnk_allow_mask, chnk_allow_depth);

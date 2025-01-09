@@ -581,10 +581,6 @@ static int shop_gui(void)
 
 static int shop_enter(struct state *st, struct state *prev, int intent)
 {
-#if NB_HAVE_PB_BOTH==1
-    account_wgcl_restart_attempt();
-#endif
-
     //audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
     //                                                 BGM_TITLE_CONF_LANGUAGE, 1);
 
@@ -2230,10 +2226,6 @@ static int shop_buy_confirmmulti_gui(void)
 
 static int shop_buy_enter(struct state *st, struct state *prev, int intent)
 {
-#if NB_HAVE_PB_BOTH==1
-    account_wgcl_restart_attempt();
-#endif
-
     if (confirm_multiple_items)
         audio_play(AUD_WARNING, 1.0f);
 

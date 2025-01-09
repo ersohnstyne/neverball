@@ -664,10 +664,10 @@ static int conf_account_gui(void)
             else
                 gui_state(id, _("Sign in to Pennyball + Neverball WGCL"),
                               GUI_SML, CONF_ACCOUNT_SIGNIN, 0);
-#endif
-#endif
 
             gui_space(id);
+#endif
+#endif
 
 #ifndef __EMSCRIPTEN__
 #if NB_HAVE_PB_BOTH==1

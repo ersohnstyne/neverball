@@ -654,13 +654,14 @@ static int page_controls(int id)
 #if defined(__WII__)
     controls_console(id);
 #else
-    if (current_platform == PLATFORM_PC)
+    if (opt_touch) controls_touch(id);
+    else if (current_platform == PLATFORM_PC)
         controls_pc(id);
-    else
-        controls_console(id);
+    else controls_console(id);
 #endif
 #else
-    controls_pc(id);
+    if (opt_touch) controls_touch(id);
+    else           controls_pc(id);
 #endif
 
     return id;

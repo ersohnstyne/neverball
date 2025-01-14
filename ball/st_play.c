@@ -17,8 +17,11 @@
  */
 #include "console_control_gui.h"
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
 
+#if NB_HAVE_PB_BOTH==1
 #include "powerup.h"
 #include "account.h"
 #include "account_wgcl.h"
@@ -343,6 +346,9 @@ static float prep_tilt_y;
 static int lmb_holded;
 static int rmb_holded;
 
+static float lmb_hold_time;
+static float rmb_hold_time;
+
 static int play_freeze_all;
 
 static int play_update_server = 0;
@@ -381,6 +387,9 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
     lmb_holded = 0;
     rmb_holded = 0;
 
+    lmb_hold_time = -0.01f;
+    rmb_hold_time = -0.01f;
+
 #ifdef MAPC_INCLUDES_CHKP
     restart_cancel_allchkp = 0;
 #endif
@@ -418,7 +427,18 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
     hud_update_camera_direction(curr_viewangle());
 
     if (!console_gui_shown())
+    {
         hud_show(0.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        EM_ASM({ Neverball.WGCLshowGameHUD(); });
+        if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+         || curr_mode() == MODE_HARDCORE
+#endif
+            )
+            EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
+#endif
+    }
 
     hud_cam_pulse(config_get_d(CONFIG_CAMERA));
 
@@ -506,7 +526,18 @@ static int play_set_enter(struct state *st, struct state *prev, int intent)
     audio_narrator_play(AUD_SET);
 
     if (!console_gui_shown())
+    {
         hud_show(0.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        EM_ASM({ Neverball.WGCLshowGameHUD(); });
+        if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+         || curr_mode() == MODE_HARDCORE
+#endif
+            )
+            EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
+#endif
+    }
 
     int id = play_set_gui();
     gui_slide(id, flags_in, 0, time_in, 0);
@@ -576,7 +607,12 @@ static int play_prep_leave(struct state *st, struct state *next, int id, int int
     }
 
     if (next == &st_pause)
+    {
         hud_hide();
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        EM_ASM({ Neverball.WGCLhideGameHUD(); });
+#endif
+    }
 
     gui_slide(id, flags_out | GUI_REMOVE, 0, time_out, 0);
     transition_add(id);
@@ -612,6 +648,19 @@ static void play_prep_paint(int id, float t)
 static void play_prep_point(int id, int x, int y, int dx, int dy)
 {
     hud_show(0.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({
+        Neverball.WGCLshowGameHUD();
+        Neverball.WGCLhideGameHUDTouch();
+    });
+
+    if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+     || curr_mode() == MODE_HARDCORE
+#endif
+        )
+        EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
+#endif
 }
 
 static void play_prep_stick(int id, int a, float v, int bump)
@@ -634,6 +683,19 @@ static void play_prep_stick(int id, int a, float v, int bump)
 static int play_prep_click(int b, int d)
 {
     hud_show(0.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({
+        Neverball.WGCLshowGameHUD();
+        Neverball.WGCLhideGameHUDTouch();
+    });
+
+    if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+     || curr_mode() == MODE_HARDCORE
+#endif
+        )
+        EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
+#endif
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform == PLATFORM_PC)
@@ -654,7 +716,7 @@ static int play_prep_click(int b, int d)
         click_camera(b);
 #endif
 
-        if (b == SDL_BUTTON_LEFT)
+        if (b == SDL_BUTTON_LEFT && !opt_touch)
             goto_state(&st_play_loop);
     }
     return 1;
@@ -663,6 +725,16 @@ static int play_prep_click(int b, int d)
 static int play_prep_keybd(int c, int d)
 {
     hud_show(0.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({ Neverball.WGCLshowGameHUD(); });
+
+    if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+     || curr_mode() == MODE_HARDCORE
+#endif
+        )
+        EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
+#endif
 
     if (d)
     {
@@ -761,9 +833,6 @@ static int rot_get(float *v)
 
 static int play_block_state;
 
-static float lmb_hold_time;
-static float rmb_hold_time;
-
 static int fast_rotate;
 static int loop_transition;
 static int max_speed;
@@ -799,6 +868,15 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
     play_block_state        = 0;
     rot_init();
 
+    if (opt_touch)
+    {
+        prep_tilt_x = 0;
+        prep_tilt_y = 0;
+
+        lmb_holded = 0;
+        rmb_holded = 0;
+    }
+
     lmb_hold_time = -0.01f;
     rmb_hold_time = -0.01f;
 
@@ -821,6 +899,16 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
 
     hud_update(0, 0.0f);
     hud_show(0.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({ Neverball.WGCLshowGameHUD(); });
+
+    if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+     || curr_mode() == MODE_HARDCORE
+#endif
+        )
+        EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
+#endif
 
     if ((prev != &st_play_ready &&
          prev != &st_play_set &&
@@ -882,6 +970,10 @@ static int play_loop_leave(struct state *st, struct state *next, int id, int int
     }
 
     hud_hide();
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({ Neverball.WGCLhideGameHUD(); });
+#endif
+
     gui_delete(id);
     return 0;
 }
@@ -906,24 +998,11 @@ static void play_loop_paint(int id, float t)
 
 static void play_loop_timer(int id, float dt)
 {
-    if (config_get_d(CONFIG_SMOOTH_FIX) && video_perf() < NB_FRAMERATE_MIN)
-    {
-        smoothfix_slowdown_time += dt;
-
-        if (smoothfix_slowdown_time >= 10)
-        {
-            config_set_d(CONFIG_SMOOTH_FIX,
-                         config_get_d(CONFIG_FORCE_SMOOTH_FIX));
-            smoothfix_slowdown_time = 0;
-        }
-    }
-    else
-        smoothfix_slowdown_time = 0;
+    ST_PLAY_SYNC_SMOOTH_FIX_TIMER(smoothfix_slowdown_time);
 
     game_lerp_pose_point_tick(dt);
 
-    if (!game_client_get_jump_b() &&
-        !play_freeze_all)
+    if (!game_client_get_jump_b() && !play_freeze_all)
         geom_step(dt);
 
     /* Boost rush uses auto forward */
@@ -1074,6 +1153,10 @@ static void play_loop_point(int id, int x, int y, int dx, int dy)
     if (current_platform == PLATFORM_PC)
 #endif
     {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        EM_ASM({ Neverball.WGCLhideGameHUDTouch(); });
+#endif
+
         if (use_mouse && !use_keyboard)
         {
             use_mouse = 1; use_keyboard = 0;
@@ -1100,15 +1183,14 @@ static void play_loop_point(int id, int x, int y, int dx, int dy)
             }
             else if (!max_speed && !man_rot)
             {
-                tilt_x += dx * 10;
-                tilt_y += dy * 10;
+                tilt_x += opt_touch ? 0 : dx * 10;
+                tilt_y += opt_touch ? 0 : dy * 10;
 
                 game_set_pos((tilt_x * powerup_get_tilt_multiply()) * 10,
                              curr_mode() == MODE_BOOST_RUSH ? 0 : (tilt_y * powerup_get_tilt_multiply()) * 10);
             }
         }
-        else
-            use_mouse = 1; use_keyboard = 0;
+        else use_mouse = 1; use_keyboard = 0;
     }
 #endif
 }
@@ -1137,13 +1219,12 @@ static void play_loop_stick(int id, int a, float v, int bump)
                 rot_clr(DIR_R | DIR_L);
         }
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y1, a))
-            game_set_zoom((-v + axis_offset[3]) * 0.02f);
+            game_set_zoom_rate(v);
 
         game_set_z(tilt_x);
         game_set_x(tilt_y);
     }
-    else
-        use_mouse = 0; use_keyboard = 1;
+    else use_mouse = 0; use_keyboard = 1;
 }
 
 static void play_loop_angle(int id, float x, float z)
@@ -1155,6 +1236,30 @@ static void play_loop_angle(int id, float x, float z)
 
 static int play_loop_click(int b, int d)
 {
+    if (opt_touch)
+    {
+        use_mouse = 1; use_keyboard = 0;
+
+        if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
+        {
+            lmb_holded    = d;
+            lmb_hold_time = d ? 1000.0f : -0.01f;
+            max_speed     = d;
+        }
+        if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
+        {
+            rmb_holded    = d;
+            rmb_hold_time = d ? 1000.0f : -0.01f;
+            man_rot       = d;
+        }
+
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        EM_ASM({ Neverball.WGCLshowGameHUDTouch(); });
+#endif
+
+        return 1;
+    }
+
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
@@ -1162,6 +1267,10 @@ static int play_loop_click(int b, int d)
     if (current_platform == PLATFORM_PC)
 #endif
     {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        EM_ASM({ Neverball.WGCLhideGameHUDTouch(); });
+#endif
+
         use_mouse = 1; use_keyboard = 0;
 
         if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
@@ -1174,9 +1283,9 @@ static int play_loop_click(int b, int d)
     if (d && use_mouse && !use_keyboard)
     {
         /*if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
-            rot_set(config_get_d(DIR_R);
+            rot_set(DIR_R, 1.0f, 0);
         if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
-            rot_set(config_get_d(DIR_L);*/
+            rot_set(DIR_L, 1.0f, 0);*/
 
 #if !defined(__WII__)
         click_camera(b);
@@ -1189,9 +1298,9 @@ static int play_loop_click(int b, int d)
         )
     {
         /*if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
-            rot_clr(config_get_d(DIR_R);
+            rot_clr(DIR_R);
         if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
-            rot_clr(config_get_d(DIR_L);*/
+            rot_clr(DIR_L);*/
     }
 #endif
 
@@ -1317,7 +1426,9 @@ static int touch_arrow_enabled;
 
 static int play_loop_touch(const SDL_TouchFingerEvent *e)
 {
-    if (!opt_touch) return 1;
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({ Neverball.WGCLshowGameHUDTouch(); });
+#endif
 
     static SDL_FingerID rotate_finger = -1;
 
@@ -1350,22 +1461,23 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
         gui_pulse(id, 1.2f);
 
         if (token == GUI_BACK)
+        {
+            touch_arrow_enabled = 0;
+            game_client_maxspeed(0.0f, touch_arrow_enabled);
             play_pause_goto(curr_state());
+        }
         else if (token == GUI_CAMERA)
             next_camera();
-
-        touch_arrow_enabled = 0;
-        game_client_maxspeed(0.0f, touch_arrow_enabled);
 
         gui_focus(0);
     }
     else if (e->type == SDL_FINGERDOWN)
     {
-        SDL_Finger *finger = SDL_GetTouchFinger(e->touchId, 1); /* Second finger. */
+        SDL_Finger *camrot_finger = SDL_GetTouchFinger(e->touchId, 1); /* Second finger. */
 
-        if (finger && e->fingerId == finger->id)
+        if (camrot_finger && e->fingerId == camrot_finger->id)
         {
-            rotate_finger = finger->id;
+            rotate_finger = camrot_finger->id;
             rotate = 0.0f;
         }
         else touch_arrow_enabled = 1;
@@ -1437,6 +1549,33 @@ static void play_loop_wheel(int x, int y)
     if (y > 0) game_set_zoom(-0.05f);
     if (y < 0) game_set_zoom(+0.05f);
 #endif
+}
+
+/*---------------------------------------------------------------------------*/
+
+void wgcl_play_touch_pause(void)
+{
+    goto_pause(curr_state());
+}
+
+void wgcl_play_touch_cammode(void)
+{
+    next_camera();
+}
+
+void wgcl_play_touch_rotate_camera(int rot_l, int rot_r)
+{
+    if      (rot_l && rot_r) rot_clr(DIR_L | DIR_R);
+    else if (rot_l)          rot_set(DIR_L, 1.0f, 0);
+    else if (rot_r)          rot_set(DIR_R, 1.0f, 0);
+    else                     rot_clr(DIR_L | DIR_R);
+}
+
+void wgcl_play_touch_zoom_camera(int v)
+{
+    if      (v < 0) game_set_zoom_rate(-1.0f);
+    else if (v > 0) game_set_zoom_rate(+1.0f);
+    else            game_set_zoom_rate(0.0f);
 }
 
 /*---------------------------------------------------------------------------*/

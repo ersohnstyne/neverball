@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
+
 /*
  * HACK: Used with console version
  */
@@ -69,6 +73,21 @@ const char tutorial_desc[][128] =
     TUTORIAL_2_DESC,
     TUTORIAL_3_DESC,
     TUTORIAL_4_DESC,
+    TUTORIAL_5_DESC,
+    TUTORIAL_6_DESC,
+    TUTORIAL_7_DESC,
+    TUTORIAL_8_DESC,
+    TUTORIAL_9_DESC,
+    TUTORIAL_10_DESC,
+};
+
+const char tutorial_desc_touch[][128] =
+{
+    "",
+    TUTORIAL_1_DESC_TOUCH,
+    TUTORIAL_2_DESC,
+    TUTORIAL_3_DESC_TOUCH,
+    TUTORIAL_4_DESC_TOUCH,
     TUTORIAL_5_DESC,
     TUTORIAL_6_DESC,
     TUTORIAL_7_DESC,
@@ -271,7 +290,10 @@ static int tutorial_enter(struct state *st, struct state *prev, int intent)
         gui_label(id, _(tutorial_title[tutorial_index]), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (console_gui_shown())
+        if (opt_touch && !console_gui_shown())
+            gui_multi(id, _(tutorial_desc_touch[tutorial_index]),
+                          GUI_SML, GUI_COLOR_WHT);
+        else if (console_gui_shown())
             gui_multi(id, _(tutorial_desc_xbox[tutorial_index]),
                           GUI_SML, GUI_COLOR_WHT);
         else if (current_platform == PLATFORM_PC)
@@ -287,7 +309,8 @@ static int tutorial_enter(struct state *st, struct state *prev, int intent)
             gui_multi(id, _(tutorial_desc_xbox[tutorial_index]),
                           GUI_SML, GUI_COLOR_WHT);
 #else
-        gui_multi(id, _(tutorial_desc[tutorial_index]),
+        gui_multi(id, _(opt_touch ? tutorial_desc_touch[tutorial_index] :
+                                    tutorial_desc[tutorial_index]),
                         GUI_SML, GUI_COLOR_WHT);
 #endif
 
@@ -304,6 +327,9 @@ static int tutorial_enter(struct state *st, struct state *prev, int intent)
     gui_layout(id, 0, 0);
 
     hud_hide();
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({ Neverball.WGCLhideGameHUD(); });
+#endif
 
     return transition_slide(id, 1, intent);
 }
@@ -519,6 +545,9 @@ static int hint_enter(struct state *st, struct state *prev, int intent)
     gui_layout(id, 0, 0);
 
     hud_hide();
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({ Neverball.WGCLhideGameHUD(); });
+#endif
 
     return transition_slide(id, 1, intent);
 }

@@ -580,11 +580,13 @@ static int handle_key_dn(SDL_Event *e)
             break;
 
         case KEY_FULLSCREEN:
+#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
             video_fullscreen(!config_get_d(CONFIG_FULLSCREEN));
 #if ENABLE_DUALDISPLAY==1
             video_dualdisplay_fullscreen(config_get_d(CONFIG_FULLSCREEN));
 #endif
             config_save();
+#endif
             goto_state(curr_state());
             break;
         case KEY_EXIT:

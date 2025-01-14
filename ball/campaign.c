@@ -247,9 +247,9 @@ static void campaign_load_hs_v2(fs_file fp, char *buf, int size)
 
     while (fs_gets(buf, size, fp))
     {
-        int version = 0;
-        int flags = 0;
-        int n = 0;
+        int campaign_version = 0;
+        int flags            = 0;
+        int n                = 0;
 
         strip_newline(buf);
 
@@ -265,7 +265,7 @@ static void campaign_load_hs_v2(fs_file fp, char *buf, int size)
 #else
         else if (sscanf(buf,
 #endif
-                        "level %d %d %n", &flags, &version, &n) >= 2)
+                        "level %d %d %n", &flags, &campaign_version, &n) >= 2)
         {
             struct level *l;
 
@@ -279,7 +279,7 @@ static void campaign_load_hs_v2(fs_file fp, char *buf, int size)
 
                 /* Only use "completed" flag and scores on version match. */
 
-                if (version == l->version_num)
+                if (campaign_version == l->version_num)
                 {
                     l->is_completed = !!(flags & LEVEL_COMPLETED);
 

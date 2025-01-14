@@ -208,9 +208,7 @@ wchar_t *dupe_wstring(const wchar_t *);
 
 int   read_line(char **, fs_file);
 char *strip_newline(char *);
-#ifndef _CONSOLE
 char *strip_spaces(char *);
-#endif
 #if _MSC_VER && !_NONSTDC
 #define dupe_string _strdup
 #else
@@ -249,9 +247,7 @@ const char *date_to_str(time_t);
 
 /* Files. */
 
-#ifndef _CONSOLE
 int  file_exists(const char *);
-#endif
 int  file_rename(const char *, const char *);
 int  file_size(const char *path);
 void file_copy(FILE *fin, FILE *fout);

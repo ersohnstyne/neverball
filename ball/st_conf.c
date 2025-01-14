@@ -1194,6 +1194,7 @@ static int conf_control_gui(void)
         }
 
         gui_set_label(preset_id, _(presetname));
+        gui_space(id);
 
 #if NB_HAVE_PB_BOTH==1
         conf_toggle_simple(id, _("Tilting Floor"), CONF_CONTROL_TILTING_FLOOR,
@@ -2251,7 +2252,7 @@ static int conf_notification_action(int tok, int val)
             exit_state(&st_conf);
             while (curr_state() != &st_conf)
                 exit_state(&st_conf);
-        break;
+            break;
 
         case CONF_NOTIFICATION_CHKP:
             config_set_d(CONFIG_NOTIFICATION_CHKP, val);
@@ -2468,7 +2469,7 @@ static int conf_audio_gui(void)
                     narrator_id, ARRAYSIZE(narrator_id));
 #endif
 #else
-        gui_multi(id, _("Switchball configurations\n"
+        gui_multi(id, _("Switchball's configurations\n"
                         "requires NB_HAVE_PB_BOTH=1\n"
                         "preprocessor definitions"),
                       GUI_SML, GUI_COLOR_RED);

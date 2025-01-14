@@ -15,6 +15,10 @@
 /* Usable for campaign */
 #define ENABLE_COMPASS 1
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
+
 #include <math.h>
 #include <string.h>
 
@@ -389,6 +393,7 @@ void hud_set_alpha(float alpha)
 
 void hud_paint(void)
 {
+#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
     if (curr_mode() == MODE_NONE) return; /* Cannot render in home room. */
 
     if (speed_timer_length < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
@@ -418,6 +423,12 @@ void hud_paint(void)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     hud_touch_paint();
 #endif
+#else
+    if (config_get_d(CONFIG_FPS))
+        gui_paint(fps_id);
+
+    hud_cam_paint();
+#endif
 }
 
 void hud_update(int pulse, float animdt)
@@ -443,6 +454,7 @@ void hud_update(int pulse, float animdt)
     int c_id;
     int last;
 
+#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
     if (!pulse)
     {
         /* reset the hud */
@@ -657,6 +669,11 @@ void hud_update(int pulse, float animdt)
         if (pulse && goal == 0 && last > 0)
             gui_pulse(goal_id, 2.00f);
     }
+#elif NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({
+        Neverball.WGCLupdateGameHUD($0, $1, $2, $3, $4, $5);
+    }, clock, coins, goal, balls, score, ROUND(ballspeed));
+#endif
 
     if (config_get_d(CONFIG_FPS))
         hud_fps();
@@ -923,8 +940,10 @@ void hud_cam_timer(float dt)
 
 void hud_cam_paint(void)
 {
+#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
     if (cam_timer < 2.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(cam_id);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -977,8 +996,10 @@ void hud_speed_timer(float dt)
 
 void hud_speed_paint(void)
 {
+#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
     if (speed_timer_length > 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(speed_id);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1001,9 +1022,11 @@ void hud_touch_timer(float dt)
 
 void hud_touch_paint(void)
 {
+#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     gui_paint(Touch_id);
+#endif
 #endif
 }
 

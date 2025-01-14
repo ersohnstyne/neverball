@@ -1202,7 +1202,7 @@ static int campaign_gui_comingsoon(void)
         gui_layout(id, 0, 0);
     }
 
-    return 0;
+    return id;
 }
 
 static void campaign_prepare(struct state *prev)

@@ -181,6 +181,7 @@ int cam_speed(int);
 /*---------------------------------------------------------------------------*/
 
 extern float view_zoom_diff_curr;
+extern float view_zoom_diff_rate;
 extern float view_zoom_diff_end;
 
 #define GRAVITY_UP GRAVITY_PY

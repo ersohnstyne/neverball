@@ -174,7 +174,6 @@ char *strip_newline(char *str)
     return str;
 }
 
-#ifndef _CONSOLE
 char *strip_spaces(char *str)
 {
     if (str && *str)
@@ -187,7 +186,6 @@ char *strip_spaces(char *str)
 
     return str;
 }
-#endif
 
 #if !_MSC_VER || _NONSTDC
 char *dupe_string(const char *src)
@@ -283,7 +281,6 @@ const char *date_to_str(time_t i)
     return str;
 }
 
-#ifndef _CONSOLE
 int file_exists(const char *path)
 {
 #if ENABLE_OPENDRIVEAPI!=0
@@ -306,7 +303,6 @@ int file_exists(const char *path)
 #endif
 #endif
 }
-#endif
 
 int file_rename(const char *src, const char *dst)
 {

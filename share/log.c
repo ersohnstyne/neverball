@@ -76,8 +76,8 @@ void log_printf(const char *fmt, ...)
             fs_printf(log_fp, TEMP_LOG_INFO, str);
             fs_flush(log_fp);
         }
-#ifndef _CONSOLE
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+#if !defined(_CONSOLE) && !defined(__EMSCRIPTEN__)
+#if _WIN32 && !_CRT_SECURE_NO_WARNINGS
         else
         {
             fprintf_s(stdout, TEMP_LOG_INFO, str);
@@ -137,18 +137,18 @@ void log_errorf(const char *fmt, ...)
             fs_printf(log_fp, TEMP_LOG_ERROR, str);
             fs_flush(log_fp);
         }
-#ifndef _CONSOLE
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+#if !defined(_CONSOLE) && !defined(__EMSCRIPTEN__)
+#if _WIN32 && !_CRT_SECURE_NO_WARNINGS
         else
         {
-            fprintf_s(stderr, TEMP_LOG_ERROR, str);
-            printf_s(TEMP_LOG_ERROR, str);
+            fprintf_s(stderr, TEMP_LOG_INFO, str);
+            printf_s(TEMP_LOG_INFO, str);
         }
 #else
         else
         {
-            fprintf(stderr, TEMP_LOG_ERROR, str);
-            printf(TEMP_LOG_ERROR, str);
+            fprintf(stderr, TEMP_LOG_INFO, str);
+            printf(TEMP_LOG_INFO, str);
         }
 #endif
 #endif

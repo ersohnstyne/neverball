@@ -22,4 +22,9 @@ extern struct state st_look;
 
 int play_pause_goto(struct state *);
 
+void wgcl_play_touch_pause(void);
+void wgcl_play_touch_cammode(void);
+void wgcl_play_touch_rotate_camera(int, int);
+void wgcl_play_touch_zoom_camera(int);
+
 #endif

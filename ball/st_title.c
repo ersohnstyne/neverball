@@ -993,9 +993,9 @@ static int title_gui(void)
                         /* Have some full screens? (Pressing ALT+F4 is not recommended) */
 
                         if (support_exit && config_get_d(CONFIG_FULLSCREEN))
+#endif
                             gui_state(kd, gt_prefix("menu^Exit"),
                                           btn_size, GUI_BACK, 0);
-#endif
 
                         /* Hilight the start button. */
 
@@ -1048,9 +1048,9 @@ static int title_gui(void)
                 /* Have some full screens? (Pressing ALT+F4 is not recommended) */
 
                 if (support_exit && config_get_d(CONFIG_FULLSCREEN))
+#endif
                     gui_state(id, gt_prefix("menu^Exit"),
                                   btn_size, GUI_BACK, 0);
-#endif
 
                 /* Hilight the start button. */
 
@@ -1140,12 +1140,12 @@ static int title_gui(void)
     !defined(__SWITCH__)
                 if ((jd = gui_hstack(id)))
                 {
+                    gui_space(jd);
                     gui_state(jd, _("Unlock full game"),
                                   GUI_SML, TITLE_UNLOCK_FULL_GAME, 0);
                 }
 #endif
                 gui_space(id);
-
                 gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 1.2f, 1.4f, 0);
 
                 gui_layout(id, +1, -1);
@@ -1156,12 +1156,12 @@ static int title_gui(void)
         {
             if ((title_lockscreen_press_id = gui_vstack(root_id)))
             {
-                char presstostart_pc_attr[MAXSTR];
-
-                if ((jd = gui_hstack(title_lockscreen_press_id)))
+                if (opt_touch && !console_gui_shown())
+                    gui_label(title_lockscreen_press_id, _("Tap the screen to start"), GUI_SML, GUI_COLOR_WHT);
+                else if ((jd = gui_hstack(title_lockscreen_press_id)))
                 {
+                    char presstostart_pc_attr[MAXSTR];
                     SAFECPY(presstostart_pc_attr, N_("Press to start"));
-
                     int text_height = gui_measure(_(presstostart_pc_attr), GUI_SML).h;
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -1223,6 +1223,10 @@ static int title_enter(struct state *st, struct state *prev, int intent)
                     current_platform != PLATFORM_STEAMDECK &&
                     current_platform != PLATFORM_SWITCH) &&
                    (current_platform == PLATFORM_PC);
+#endif
+
+#if defined(__IOS__) || defined(__IPHONE__) || defined(__IPAD__)
+    support_exit = 0;
 #endif
 
     progress_exit();

@@ -66,6 +66,7 @@ float game_get_ballspeed(void);        /* New: Speedometer                   */
 void game_extend_time(float);          /* New: Time Extension                */
 
 void game_set_zoom(float);             /* New: Zoom                          */
+void game_set_zoom_rate(float);        /* New: Zoom rate                     */
 
 /*---------------------------------------------------------------------------*/
 

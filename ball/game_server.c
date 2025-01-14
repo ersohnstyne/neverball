@@ -1208,6 +1208,7 @@ int game_server_init(const char *file_name, int t, int e)
     view_zoom_time = ZOOM_TIME;
 
     view_zoom_diff_end  = 0;
+    view_zoom_diff_rate = 0;
     view_zoom_diff_curr = 0;
 
     for (int ui = 0; ui < vary.base->uc && ui < MAX_PLAYERS; ui++)
@@ -1330,6 +1331,8 @@ void game_update_view(float dt)
 {
     /* Current view scale. */
 
+    view_zoom_diff_end = CLAMP(-1, view_zoom_diff_end + (view_zoom_diff_rate * dt), 0);
+
     view_zoom_diff_curr = flerp(view_zoom_diff_curr,
                                 view_zoom_diff_end, dt * 5.f);
 
@@ -1364,10 +1367,6 @@ void game_update_view(float dt)
 
         /*
          * Switchball uses an automatic camera.
-         *
-         * Using modified camera speed value from the neverballrc
-         * forces reject their offers and will be used with hardcoded
-         * camera config values in auto-camera mode.
          */
 
         float spd = -1.0f;
@@ -2319,4 +2318,12 @@ void game_extend_time(float extratime)
 void game_set_zoom(float diff)
 {
     view_zoom_diff_end = CLAMP(-1, view_zoom_diff_end - diff, 0);
+}
+
+/* New: Zoom rate;
+ * Store with the zoom rate differences (just like a Switchball) */
+void game_set_zoom_rate(float diff_rate)
+{
+    view_zoom_diff_rate = diff_rate < -0.1f || diff_rate > 0.1f ?
+                          diff_rate : 0.0f;
 }

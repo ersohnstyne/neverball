@@ -214,6 +214,7 @@ void game_tilt_grav(float h[3], const float g[3], const struct game_tilt *tilt)
 /*---------------------------------------------------------------------------*/
 
 float view_zoom_diff_curr = 0;
+float view_zoom_diff_rate;
 float view_zoom_diff_end;
 
 int use_static_cam_view;

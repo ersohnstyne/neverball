@@ -65,34 +65,31 @@ static int sol_version;
 
 static int sol_file(fs_file fin, int fp_ten)
 {
-    int magic;
-    int version;
+    const int sol_src_magic   = get_index(fin);
+    const int sol_src_version = get_index(fin);
 
-    magic   = get_index(fin);
-    version = get_index(fin);
-
-    if (magic != SOL_MAGIC)
+    if (sol_src_magic != SOL_MAGIC)
     {
-        log_errorf("That's not the SOL or SOLX file!\n");
+        log_errorf("That's not the SOL or SOLX file! (SOL_MAGIC returned %d, expected: 1280267183)\n", sol_src_magic);
         return 0;
     }
 
-    if (fp_ten && (version < 10 || version > SOL_VERSION_CURR_CHKP))
+    if (fp_ten && (sol_src_version < 10 || sol_src_version > SOL_VERSION_CURR_CHKP))
     {
-        if (version < 10)
-            log_errorf("SOLX is unsupported, must have SOL extension (SOL_VERSION < 10)!\n");
+        if (sol_src_version < 10)
+            log_errorf("SOLX is unsupported, must have SOL extension (SOL_VERSION < 10)! (SOL_VERSION returned %d)\n", sol_src_version);
 
         return 0;
     }
-    else if (!fp_ten && (version < SOL_VERSION_MIN || version > 9))
+    else if (!fp_ten && (sol_src_version < SOL_VERSION_MIN || sol_src_version > 9))
     {
-        if (version > 9)
-            log_errorf("Unsupported SOL version, must have SOLX extension (SOL_VERSION > 9)!\n");
+        if (sol_src_version > 9)
+            log_errorf("Unsupported SOL version, must have SOLX extension (SOL_VERSION > 9)! (SOL_VERSION returned %d)\n", sol_src_version);
 
         return 0;
     }
 
-    sol_version = version;
+    sol_version = sol_src_version;
 
     return 1;
 }
@@ -1089,7 +1086,7 @@ static void sol_stor_file(fs_file fout, struct s_base *fp)
 
     if (magic != SOL_MAGIC)
     {
-        log_errorf("That's not the SOL or SOLX file!\n");
+        log_errorf("That's not the SOL or SOLX file! (SOL_MAGIC returned %d, expected: 1280267183)\n", magic);
         return;
     }
 
@@ -1106,6 +1103,8 @@ static void sol_stor_file(fs_file fout, struct s_base *fp)
         log_errorf("SOL version does not matched with current version!\n");
         return;
     }
+
+    log_printf("SOL version: %d; SOL magic: %d\n", version, magic);
 
     put_index(fout, magic);
     put_index(fout, version);

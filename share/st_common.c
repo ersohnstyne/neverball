@@ -853,10 +853,6 @@ static int video_gui(void)
 #endif
 #endif
 
-#if !defined(__EMSCRIPTEN__) && !defined(RESIZEABLE_WINDOW)
-        char resolution[sizeof ("12345678 x 12345678")];
-#endif
-
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
@@ -878,6 +874,7 @@ static int video_gui(void)
         /* This ignores resolution and fullscreen configurations. */
 #ifndef __EMSCRIPTEN__
 #ifndef RESIZEABLE_WINDOW
+        char resolution[sizeof("12345678 x 12345678")];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(resolution, MAXSTR,
 #else
@@ -945,7 +942,7 @@ static int video_gui(void)
         }
 #endif
 #else
-        gui_multi(id, _("Switchball configurations\n"
+        gui_multi(id, _("Switchball's configurations\n"
                         "requires SWITCHBALL_GUI\n"
                         "definition preprocessors!"),
                       GUI_SML, gui_red, gui_red);

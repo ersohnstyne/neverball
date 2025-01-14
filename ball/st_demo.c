@@ -14,7 +14,7 @@
 
 #include <string.h>
 
-#ifdef __EMSCRIPTEN__
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
 #include <emscripten.h>
 #endif
 
@@ -1294,6 +1294,9 @@ static int demo_play_enter(struct state *st, struct state *prev, int intent)
         prelude = 0;
         audio_music_fade_in(0.5f);
         hud_show(0.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        EM_ASM({ Neverball.WGCLshowGameHUD(); });
+#endif
         return 0;
     }
 
@@ -1345,6 +1348,10 @@ static int demo_play_leave(struct state *st, struct state *next, int id, int int
     video_show_cursor();
 
     hud_hide();
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({ Neverball.WGCLhideGameHUD(); });
+#endif
+
     gui_delete(id);
     return 0;
 }
@@ -1367,30 +1374,14 @@ static void demo_play_paint(int id, float t)
 
 static void demo_play_timer(int id, float dt)
 {
-    if (config_get_d(CONFIG_SMOOTH_FIX) && video_perf() < NB_FRAMERATE_MIN)
-    {
-        smoothfix_slowdown_time += dt;
-
-        if (smoothfix_slowdown_time >= 10)
-        {
-            config_set_d(CONFIG_SMOOTH_FIX,
-                         config_get_d(CONFIG_FORCE_SMOOTH_FIX));
-            smoothfix_slowdown_time = 0;
-        }
-    }
-    else
-        smoothfix_slowdown_time = 0;
+    ST_PLAY_SYNC_SMOOTH_FIX_TIMER(smoothfix_slowdown_time);
 
     float timescale = 1.0f;
     DEMO_UPDATE_SPEED(speed, timescale);
 
     if (!game_client_get_jump_b() && !st_global_animating())
-    {
-        if (!speed_manual)
-            geom_step(speed == SPEED_NONE ? 0 : dt * timescale);
-        else
-            geom_step(dt * 2);
-    }
+        geom_step(speed_manual ? dt * 2 :
+                                 (speed == SPEED_NONE ? 0 : dt * timescale));
 
     game_step_fade(dt);
     hud_update_camera_direction(curr_viewangle());
@@ -1417,6 +1408,10 @@ static void demo_play_timer(int id, float dt)
 
     if (time_state() < prelude || st_global_animating())
         return;
+
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({ Neverball.WGCLshowGameHUD(); });
+#endif
 
     if (demo_timer_down)
     {
@@ -1654,6 +1649,9 @@ static int demo_end_enter(struct state *st, struct state *prev, int intent)
         audio_play("snd/2.2/game_pause.ogg", 1.0f);
 
     hud_hide();
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({ Neverball.WGCLhideGameHUD(); });
+#endif
 
     return transition_slide(demo_end_gui(), 1, intent);
 }

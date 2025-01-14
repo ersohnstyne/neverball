@@ -241,9 +241,9 @@ static void set_load_hs_v3(fs_file fp, struct set *s, char *buf, int size)
 
     while (fs_gets(buf, size, fp))
     {
-        int version = 0;
-        int flags   = 0;
-        int n       = 0;
+        int set_version = 0;
+        int flags       = 0;
+        int n           = 0;
 
         strip_newline(buf);
 
@@ -270,7 +270,7 @@ static void set_load_hs_v3(fs_file fp, struct set *s, char *buf, int size)
 #else
         else if (sscanf(buf,
 #endif
-                        "level %d %d %n", &flags, &version, &n) >= 2)
+                        "level %d %d %n", &flags, &set_version, &n) >= 2)
         {
             struct level *l;
 
@@ -284,7 +284,7 @@ static void set_load_hs_v3(fs_file fp, struct set *s, char *buf, int size)
 
                 /* Only use "completed" flag and scores on version match. */
 
-                if (version == l->version_num)
+                if (set_version == l->version_num)
                 {
                     l->is_completed = (flags & LEVEL_COMPLETED);
 
@@ -323,9 +323,9 @@ static void set_load_hs_v2(fs_file fp, struct set *s, char *buf, int size)
 
     while (fs_gets(buf, size, fp))
     {
-        int version = 0;
-        int flags   = 0;
-        int n       = 0;
+        int set_version = 0;
+        int flags       = 0;
+        int n           = 0;
 
         strip_newline(buf);
 
@@ -341,7 +341,7 @@ static void set_load_hs_v2(fs_file fp, struct set *s, char *buf, int size)
 #else
         else if (sscanf(buf,
 #endif
-                        "level %d %d %n", &flags, &version, &n) >= 2)
+                        "level %d %d %n", &flags, &set_version, &n) >= 2)
         {
             struct level *l;
 
@@ -355,7 +355,7 @@ static void set_load_hs_v2(fs_file fp, struct set *s, char *buf, int size)
 
                 /* Only use "completed" flag and scores on version match. */
 
-                if (version == l->version_num)
+                if (set_version == l->version_num)
                 {
                     l->is_completed = (flags & LEVEL_COMPLETED);
 
@@ -595,9 +595,7 @@ static int set_load(struct set *s, const char *filename)
 
         while (s->count < MAXLVL_SET && read_line(&level_name, fin))
         {
-#ifndef _CONSOLE
             strip_spaces(level_name);
-#endif
 
             if (*level_name)
             {

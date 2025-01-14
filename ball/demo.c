@@ -77,27 +77,25 @@ int demo_requires_update;
 
 static int demo_header_read(fs_file fp, struct demo *d, int fp_ten)
 {
-    int magic;
-    int version;
     int t;
 
     struct tm date = {0};
     char datestr[DATELEN];
 
-    magic   = get_index(fp);
-    version = get_index(fp);
+    const int demo_src_magic   = get_index(fp);
+    const int demo_src_version = get_index(fp);
 
     t = get_index(fp);
 
 #ifdef CMD_NBRX
-    if (magic == DEMO_MAGIC && t &&
+    if (demo_src_magic == DEMO_MAGIC && t &&
         ((!fp_ten &&
-          (version >= DEMO_VERSION_MIN && version <= 9)) ||
+          (demo_src_version >= DEMO_VERSION_MIN && demo_src_version <= 9)) ||
          (fp_ten &&
-          (version >= 10 && version <= DEMO_VERSION))))
+          (demo_src_version >= 10 && demo_src_version <= DEMO_VERSION))))
 #else
-    if (magic == DEMO_MAGIC && t &&
-        (version >= DEMO_VERSION_MIN && version <= DEMO_VERSION))
+    if (demo_src_magic == DEMO_MAGIC && t &&
+        (demo_src_version >= DEMO_VERSION_MIN && demo_src_version <= DEMO_VERSION))
 #endif
     {
         d->timer = t;
@@ -142,7 +140,7 @@ static int demo_header_read(fs_file fp, struct demo *d, int fp_ten)
         return 1;
     }
 
-    if (fp_ten && version > DEMO_VERSION)
+    if (fp_ten && demo_src_version > DEMO_VERSION)
         demo_requires_update = 1;
 
     return 0;

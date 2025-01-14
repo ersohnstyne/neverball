@@ -592,6 +592,8 @@ static void controls_pc(int id)
 
 static void controls_touch(int id)
 {
+    gui_space(id);
+
     gui_multi(id, _("Tap and hold the second finger to rotate the view."),
                   GUI_SML, GUI_COLOR_WHT);
     gui_space(id);

@@ -1904,15 +1904,20 @@ static int main_init(int argc, char *argv[])
 
     /* Initialize SDL. */
 
-#if defined(__EMSCRIPTEN__)
-    SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");
-#elif !defined(__NDS__) && !defined(__3DS__) && \
-      !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-      !defined(__SWITCH__)
+#ifdef SDL_HINT_ENABLE_SCREEN_KEYBOARD
+    SDL_SetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD, "0");
+#endif
+
 #ifdef SDL_HINT_TOUCH_MOUSE_EVENTS
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 #endif
 
+#if defined(__EMSCRIPTEN__)
+    // Uncomment, if you want to lock the keyboard element as #canvas
+    //SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");
+#elif !defined(__NDS__) && !defined(__3DS__) && \
+      !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+      !defined(__SWITCH__)
 #if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API \
     && defined(SDL_HINT_JOYSTICK_HIDAPI_XBOX)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX, "1");

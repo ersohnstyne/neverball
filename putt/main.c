@@ -993,7 +993,13 @@ static int main_init(int argc, char *argv[])
     fs_mkdir("Screenshots");
 #endif
 
+#ifdef SDL_HINT_ENABLE_SCREEN_KEYBOARD
     SDL_SetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD, "0");
+#endif
+
+#ifdef SDL_HINT_TOUCH_MOUSE_EVENTS
+    SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+#endif
 
 #if defined(__EMSCRIPTEN__)
     SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");

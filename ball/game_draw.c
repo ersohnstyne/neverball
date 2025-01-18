@@ -749,6 +749,10 @@ static void game_refl_all(struct s_rend *rend, const struct game_draw *gd)
 
 /*---------------------------------------------------------------------------*/
 
+#if ENABLE_MOTIONBLUR==1
+static int motionblur_refl_allow_draw_back;
+#endif
+
 static void game_draw_light(const struct game_draw *gd, int d, float t)
 {
     /* Configure the lighting. */
@@ -771,7 +775,11 @@ static void game_draw_back(struct s_rend *rend,
                            const struct game_draw *gd,
                            int pose, int d, float t, int flip)
 {
+#if ENABLE_MOTIONBLUR==1
+    if (video_can_swap_window && !motionblur_refl_allow_draw_back)
+#else
     if (video_can_swap_window)
+#endif
         return;
 
     video_can_swap_window = 1;
@@ -1092,6 +1100,10 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
     if (gd->state)
     {
+#if ENABLE_MOTIONBLUR==1
+        motionblur_refl_allow_draw_back = 0;
+#endif
+
         float c[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
 
         const struct game_view *view = &gd->view;
@@ -1166,6 +1178,11 @@ void game_draw(struct game_draw *gd, int pose, float t)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 if (gd->draw.reflective && config_get_d(CONFIG_REFLECTION))
                 {
+#if ENABLE_MOTIONBLUR==1
+                    if (config_get_d(CONFIG_MOTIONBLUR))
+                        motionblur_refl_allow_draw_back = 1;
+#endif
+
                     glEnable(GL_STENCIL_TEST);
 
                     /* Draw the mirrors only into the stencil buffer. */

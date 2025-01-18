@@ -129,17 +129,33 @@ static int switchball_useable(void)
     return 0;
 }
 
-int load_title_background(void)
+static int title_check_balls_shown(void)
 {
-#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-    game_client_toggle_show_balls(!CHECK_ACCOUNT_BANKRUPT);
+    const time_t time_local = time(NULL);
+#if _MSC_VER
+    struct tm output_tm;
+    localtime_s(&output_tm, &time_local);
 #else
-    game_client_toggle_show_balls(1);
+    struct tm output_tm = *localtime(&time_local);
 #endif
 
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+    const int ball_shown = !CHECK_ACCOUNT_BANKRUPT && (output_tm.tm_hour > 5 &&
+                                                       output_tm.tm_hour < 22);
+#else
+    const int ball_shown = 1;
+#endif
+
+    game_client_toggle_show_balls(ball_shown);
+
+    return ball_shown;
+}
+
+int load_title_background(void)
+{
     const float home_pos[3] = {
         switchball_useable() ? 0.0f : -1.0f,
-        10.0f,
+        7.5f,
         10.0f
     };
 
@@ -149,9 +165,7 @@ int load_title_background(void)
     {
         if (game_client_init("gui/title/switchball-title.sol"))
         {
-#if NB_HAVE_PB_BOTH==1
-            if (CHECK_ACCOUNT_BANKRUPT) return 1;
-#endif
+            if (!title_check_balls_shown()) return 1;
 
             union cmd cmd = { CMD_GOAL_OPEN };
 
@@ -165,9 +179,7 @@ int load_title_background(void)
     }
     else if (game_client_init("gui/title/title.sol"))
     {
-#if NB_HAVE_PB_BOTH==1
-        if (CHECK_ACCOUNT_BANKRUPT) return 1;
-#endif
+        if (!title_check_balls_shown()) return 1;
 
         union cmd cmd = { CMD_GOAL_OPEN };
 
@@ -1248,7 +1260,7 @@ static int title_enter(struct state *st, struct state *prev, int intent)
     else if (config_get_d(CONFIG_MAINMENU_PANONLY) && load_title_background())
         mode = TITLE_MODE_LEVEL;
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-    else if (!CHECK_ACCOUNT_BANKRUPT &&
+    else if (title_check_balls_shown() &&
              progress_replay_full("gui/title/title-l.nbr", 0, 0, 0, 0, 0, 0))
 #else
     else if (progress_replay_full("gui/title/title-l.nbr", 0, 0, 0, 0, 0, 0))
@@ -1379,7 +1391,7 @@ static void title_timer(int id, float dt)
                     if (progress_replay_full(demo, 0, 0, 0, 0, 0, 0))
                         TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-                    else if (!CHECK_ACCOUNT_BANKRUPT &&
+                    else if (title_check_balls_shown() &&
                              !config_get_d(CONFIG_MAINMENU_PANONLY) &&
                              progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
                                                                 "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
@@ -1393,7 +1405,7 @@ static void title_timer(int id, float dt)
                         mode = TITLE_MODE_LEVEL;
                 }
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-                else if (!CHECK_ACCOUNT_BANKRUPT &&
+                else if (title_check_balls_shown() &&
                          !config_get_d(CONFIG_MAINMENU_PANONLY) &&
                          progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
                                                             "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
@@ -1437,7 +1449,7 @@ static void title_timer(int id, float dt)
                 if (switchball_useable() && load_title_background())
                     mode = TITLE_MODE_LEVEL;
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-                else if (!CHECK_ACCOUNT_BANKRUPT &&
+                else if (title_check_balls_shown() &&
                          !config_get_d(CONFIG_MAINMENU_PANONLY) &&
                          progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
                                                             "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))

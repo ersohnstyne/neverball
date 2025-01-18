@@ -328,6 +328,7 @@
 int glext_check_renderer(const char *renderer);
 int glext_check_ext(const char *);
 int glext_init(void);
+int glext_get_recommended(void);
 
 /*---------------------------------------------------------------------------*/
 

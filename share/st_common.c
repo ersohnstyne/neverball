@@ -469,6 +469,7 @@ enum
 };
 
 static int perf_warning_mode = -1;
+static int perf_warning_value;
 
 static int perf_warning_action(int tok, int val)
 {
@@ -479,17 +480,20 @@ static int perf_warning_action(int tok, int val)
     int h = config_get_d(CONFIG_HEIGHT);
     int r = 1;
 
-    if (tok == PERF_WARNING_DO_IT)
+    if (tok == PERF_WARNING_DO_IT) switch (perf_warning_mode)
     {
 #if ENABLE_MOTIONBLUR!=0
-        if (perf_warning_mode == 0)
+        case 0:
             config_tgl_d(CONFIG_MOTIONBLUR);
+            break;
 #endif
-        if (perf_warning_mode == 1)
+        case 1:
         {
-            config_tgl_d(CONFIG_REFLECTION);
+            config_set_d(CONFIG_REFLECTION,           perf_warning_value);
             config_set_d(CONFIG_GRAPHIC_RESTORE_ID,   5);
-            config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, config_get_d(CONFIG_REFLECTION));
+            config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, perf_warning_value);
+
+            config_save();
 
 #if ENABLE_DUALDISPLAY==1
             r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
@@ -498,16 +502,44 @@ static int perf_warning_action(int tok, int val)
 #endif
             if (r)
             {
-                config_set_d(CONFIG_GRAPHIC_RESTORE_ID,  -1);
+                config_set_d(CONFIG_GRAPHIC_RESTORE_ID,   -1);
                 config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, 0);
             }
         }
+        break;
+
+        case 2:
+        {
+            config_set_d(CONFIG_MULTISAMPLE,          perf_warning_value);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_ID,   4);
+            config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, perf_warning_value);
+
+            config_save();
+
+#if ENABLE_DUALDISPLAY==1
+            r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
+            r = video_mode(f, w, h);
+#endif
+            if (r)
+            {
+                config_set_d(CONFIG_GRAPHIC_RESTORE_ID,   -1);
+                config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, 0);
+            }
+        }
+        break;
+
+        case 3:
+        {
+
+        }
+        break;
     }
 
     if (r)
     {
         perf_warning_mode = -1;
-        return goto_state(&st_video_advanced);
+        return exit_state(&st_video_advanced);
     }
     else return 0;
 }
@@ -523,7 +555,24 @@ static int perf_warning_confirm_btns(int pd, int enabled)
     {
         gui_start(id, _("Cancel"), GUI_SML, GUI_BACK, 0);
         gui_state(id, _(enabled ? s_enable : s_disable),
-                      GUI_SML, PERF_WARNING_DO_IT, 0);
+                      GUI_SML, PERF_WARNING_DO_IT, enabled);
+    }
+
+    return id;
+}
+
+static int perf_warning_confirm_range_btns(int pd, int higher)
+{
+    int id;
+
+    const char *s_higher = N_("Higher");
+    const char *s_lower  = N_("Lower");
+
+    if ((id = gui_harray(pd)))
+    {
+        gui_start(id, _("Cancel"), GUI_SML, GUI_BACK, 0);
+        gui_state(id, _(higher ? s_higher : s_lower),
+                      GUI_SML, PERF_WARNING_DO_IT, perf_warning_value);
     }
 
     return id;
@@ -540,16 +589,28 @@ static int perf_warning_motionblur_gui(int enabled)
 
         gui_space(id);
 
-        const char *s_disable =
+        const int videocard_recommended = glext_get_recommended();
+
+        const char *s_disable_recommended =
                    N_("Disabling motion blur is not recommended.\n"
                       "Disable it anyway?\n"
                       "This may decrease performance.");
+        const char *s_disable =
+                   N_("Disable motion blur?\n"
+                      "This may decrease performance.");
 
-        const char *s_enable  =
+        const char *s_enable_recommended =
                    N_("Enable motion blur?\n"
                       "This may increase performance.");
+        const char *s_enable =
+                   N_("Your video card may not fully support\n"
+                      "this feature.\n"
+                      "If you experience slower performance,\n"
+                      "please disable it.\n"
+                      "Enable it anyway?");
 
-        gui_multi(id, _(enabled ? s_enable : s_disable),
+        gui_multi(id, _(enabled ? (videocard_recommended ? s_enable_recommended : s_enable) :
+                                  (videocard_recommended ? s_disable_recommended : s_disable)),
                       GUI_SML, gui_wht, gui_wht);
         gui_space(id);
 
@@ -572,20 +633,66 @@ static int perf_warning_refl_gui(int enabled)
 
         gui_space(id);
 
-        const char *s_disable =
+        const int videocard_recommended = glext_get_recommended();
+
+        const char *s_disable_recommended =
                    N_("Disabling reflection is not recommended.\n"
                       "Disable it anyway?\n"
                       "This may decrease performance.");
+        const char *s_disable =
+                   N_("Disable reflection?\n"
+                      "This may decrease performance.");
 
-        const char *s_enable  =
+        const char *s_enable_recommended =
                    N_("Enable reflection?\n"
                       "This may increase performance.");
+        const char *s_enable =
+                   N_("Your video card may not fully support\n"
+                      "this feature.\n"
+                      "If you experience slower performance,\n"
+                      "please disable it.\n"
+                      "Enable it anyway?");
 
-        gui_multi(id, _(enabled ? s_enable : s_disable),
+        gui_multi(id, _(enabled ? (videocard_recommended ? s_enable_recommended : s_enable) :
+                                  (videocard_recommended ? s_disable_recommended : s_disable)),
                       GUI_SML, gui_wht, gui_wht);
         gui_space(id);
 
         perf_warning_confirm_btns(id, enabled);
+    }
+
+    gui_layout(id, 0, 0);
+
+    return id;
+}
+
+static int perf_warning_sampling_gui(int value)
+{
+    int id;
+
+    if ((id = gui_vstack(0)))
+    {
+        gui_label(id, _("Warning"), GUI_MED, gui_red, gui_red);
+
+        gui_space(id);
+
+        const int can_higher = value <= perf_warning_value;
+
+        const char *s_lower =
+                   N_("Set this to lower multisample\n"
+                      "decreases your video quality.\n"
+                      "Lower this value?");
+        
+        const char *s_higher =
+                   N_("Set this this to higher multisample\n"
+                      "increases your video quality.\n"
+                      "Higher this value?");
+
+        gui_multi(id, _(can_higher ? s_higher : s_lower),
+                      GUI_SML, gui_wht, gui_wht);
+        gui_space(id);
+
+        perf_warning_confirm_range_btns(id, can_higher);
     }
 
     gui_layout(id, 0, 0);
@@ -601,11 +708,19 @@ static int perf_warning_enter(struct state *st, struct state *prev, int intent)
 
 #if ENABLE_MOTIONBLUR!=0
     if (perf_warning_mode == 0)
-        return perf_warning_motionblur_gui(!config_get_d(CONFIG_MOTIONBLUR));
+        return transition_slide(
+            perf_warning_motionblur_gui(!config_get_d(CONFIG_MOTIONBLUR)),
+            1, intent);
     else
 #endif
-        if (perf_warning_mode == 1)
-        return perf_warning_refl_gui(!config_get_d(CONFIG_REFLECTION));
+    if (perf_warning_mode == 1)
+        return transition_slide(
+            perf_warning_refl_gui(!config_get_d(CONFIG_REFLECTION)),
+            1, intent);
+    else if (perf_warning_mode == 2)
+        return transition_slide(
+            perf_warning_sampling_gui(config_get_d(CONFIG_MULTISAMPLE)),
+            1, intent);
     else return 0;
 }
 
@@ -1114,8 +1229,9 @@ static int video_advanced_action(int tok, int val)
 #if ENABLE_MOTIONBLUR!=0
             if (oldMBlur == val)
                 return 1;
-
-            perf_warning_mode = 0;
+            
+            perf_warning_mode  = 0;
+            perf_warning_value = val;
             return goto_state(&st_perf_warning);
 #endif
             break;
@@ -1127,7 +1243,11 @@ static int video_advanced_action(int tok, int val)
             if (oldRefl == val)
                 return 1;
 
-            backups = 1;
+            perf_warning_mode  = 1;
+            perf_warning_value = val;
+            return goto_state(&st_perf_warning);
+
+            /*backups = 1;
             config_set_d(CONFIG_REFLECTION, val);
 
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
@@ -1157,7 +1277,7 @@ static int video_advanced_action(int tok, int val)
                 if (r)
                     exit_state(&st_video_advanced);
             }
-#endif
+#endif*/
 #endif
 
             break;
@@ -1248,7 +1368,11 @@ static int video_advanced_action(int tok, int val)
             if (oldSamp == val)
                 return 1;
 
-            backups = 1;
+            perf_warning_mode  = 2;
+            perf_warning_value = val;
+            return goto_state(&st_perf_warning);
+
+            /*backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
             config_set_d(CONFIG_MULTISAMPLE, val);
             goto_state(&st_restart_required);
@@ -1277,7 +1401,7 @@ static int video_advanced_action(int tok, int val)
                 if (r)
                     exit_state(&st_video_advanced);
             }
-#endif
+#endif*/
 #endif
             break;
 
@@ -1538,6 +1662,9 @@ static int video_advanced_gui(void)
 
 static int video_advanced_enter(struct state *st, struct state *prev, int intent)
 {
+    if (prev == &st_perf_warning)
+        config_save();
+
     if (!video_advanced_back)
         video_advanced_back = prev;
 

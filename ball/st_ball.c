@@ -462,8 +462,7 @@ static void load_ball_demo(void)
 
             return;
         }
-        else
-            game_client_toggle_show_balls(1);
+        else game_client_toggle_show_balls(1);
     }
     else if (!progress_replay_full("gui/ball.nbr", 0, 0, 0, 0, 0, 0))
     {
@@ -472,8 +471,7 @@ static void load_ball_demo(void)
 
         return;
     }
-    else
-        game_client_toggle_show_balls(1);
+    else game_client_toggle_show_balls(1);
 
 #if NB_HAVE_PB_BOTH==1
     demo_replay_speed(super_environment ? SPEED_SLOWER : SPEED_NORMAL);

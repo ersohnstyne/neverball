@@ -441,6 +441,16 @@ int glext_init(void)
     return 1;
 }
 
+int glext_get_recommended(void)
+{
+#ifndef __EMSCRIPTEN__
+    return glext_check_renderer("NVIDIA") || glext_check_renderer("AMD") ||
+           glext_check_renderer("GIGABYTE");
+#else
+    return 0;
+#endif
+}
+
 /*---------------------------------------------------------------------------*/
 
 void glClipPlane4f_(GLenum p, GLfloat a, GLfloat b, GLfloat c, GLfloat d)

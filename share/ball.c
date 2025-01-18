@@ -65,7 +65,7 @@ struct ball_full
 static struct ball_full ball_full_v[5];
 
 static int ball_idx = 2;
-static int tmp_ball_idx = 0;
+static int tmp_ball_idx;
 
 #define has_solid ball_full_v[ball_idx].multi_has_solid
 #define has_inner ball_full_v[ball_idx].multi_has_inner
@@ -342,8 +342,7 @@ static void ball_draw_inner(struct s_rend *rend,
             if (test == 0) glEnable(GL_DEPTH_TEST);
         }
 
-        if (pend)
-            glPopMatrix();
+        if (pend) glPopMatrix();
     }
 }
 
@@ -386,8 +385,7 @@ static void ball_draw_outer(struct s_rend *rend,
             if (test == 0) glEnable(GL_DEPTH_TEST);
         }
 
-        if (pend)
-            glPopMatrix();
+        if (pend) glPopMatrix();
     }
 }
 

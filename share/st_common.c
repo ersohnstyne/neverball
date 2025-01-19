@@ -914,7 +914,7 @@ static int video_action(int tok, int val)
 
 static int video_gui(void)
 {
-    int id, jd, autoconf_id;
+    int id, jd, autoconf_id = 0;
 
     if ((id = gui_vstack(0)))
     {

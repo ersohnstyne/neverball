@@ -236,20 +236,22 @@ static struct
     { &CONFIG_DISPLAY,        "display",      0 },
 #ifdef __EMSCRIPTEN__
     { &CONFIG_WIDTH,          "width",        1280 },
-#else
-    { &CONFIG_WIDTH,          "width",        1200 },
-#endif
-#ifdef __EMSCRIPTEN__
     { &CONFIG_HEIGHT,         "height",       720 },
 #else
+    { &CONFIG_WIDTH,          "width",        1200 },
     { &CONFIG_HEIGHT,         "height",       900 },
 #endif
     { &CONFIG_STEREO,         "stereo",       0 },
     { &CONFIG_CAMERA,         "camera",       0 },
     { &CONFIG_CAMERA_ROTATE_MODE, "camera_rotate_mode",       1 },
     { &CONFIG_TEXTURES,       "textures",     1 },
+#ifdef __EMSCRIPTEN__
+    { &CONFIG_MOTIONBLUR,     "motion_blur",  0 },
+    { &CONFIG_REFLECTION,     "reflection",   0 },
+#else
     { &CONFIG_MOTIONBLUR,     "motion_blur",  1 },
     { &CONFIG_REFLECTION,     "reflection",   1 },
+#endif
     { &CONFIG_MULTISAMPLE,    "multisample",  0 },
 #ifdef GL_GENERATE_MIPMAP_SGIS
     { &CONFIG_MIPMAP,         "mipmap",       1 },
@@ -279,8 +281,8 @@ static struct
     { &CONFIG_FPS,              "fps",             0 },
     { &CONFIG_MASTER_VOLUME,    "master_volume",   10 },
     { &CONFIG_SOUND_VOLUME,     "sound_volume",    10 },
-    { &CONFIG_MUSIC_VOLUME,     "music_volume",    4 },  /* NB 1.6 default: 6 */
-    { &CONFIG_NARRATOR_VOLUME,  "narrator_volume", 10 }, /* NB 1.6 default: 6 */
+    { &CONFIG_MUSIC_VOLUME,     "music_volume",    4 },  /* NB default config value: 6 */
+    { &CONFIG_NARRATOR_VOLUME,  "narrator_volume", 10 }, /* NB default config value: 6 */
 
     { &CONFIG_JOYSTICK,                "joystick",                1 },
     { &CONFIG_JOYSTICK_RESPONSE,       "joystick_response",       250 },

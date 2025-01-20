@@ -682,9 +682,9 @@ static int perf_warning_sampling_gui(int value)
                    N_("Set this to lower multisample\n"
                       "decreases your video quality.\n"
                       "Lower this value?");
-        
+
         const char *s_higher =
-                   N_("Set this this to higher multisample\n"
+                   N_("Set this to higher multisample\n"
                       "increases your video quality.\n"
                       "Higher this value?");
 

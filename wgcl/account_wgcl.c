@@ -608,7 +608,7 @@ void account_wgcl_set_session_uuid4(const char *uuid4)
     session_uuid4 = strdup(uuid4);
 }
 
-void account_wgcl_set_readonly_playername(const char* f)
+void account_wgcl_set_readonly_playername(const char *f)
 {
     read_only = atoi(f);
 }
@@ -882,28 +882,15 @@ account_wgcl_try_add_fail:
 #endif
 #elif defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     assets_add_is_pending = 0;
-
-    char in_url[512];
-    sprintf(in_url, "https://%s/api/internal/updateassets", WGCL_URL);
-
-    char json_data[512];
-    sprintf(json_data,
-            "{"
-            "    \"player_uuid4\":\"%s\","
-            "    \"player_wallet_coins\":%d,"
-            "    \"player_wallet_gems\":%d,"
-            "    \"player_consumable_hp\":%d,"
-            "    \"player_consumable_doublecash\":%d,"
-            "    \"player_consumable_halfgrav\":%d,"
-            "    \"player_consumable_doublespeed\":%d"
-            "}",
-            session_uuid4,
-            w_coins_next, w_gems_next,
-            c_hp_next, c_doublecash_next, c_halfgrav_next, c_doublespeed_next);
-
+    
     int r = EM_ASM_INT({
-        return Neverball.gamecore_account_try_update(UTF8ToString($0), UTF8ToString($1)) ? 1 : 0;
-    }, in_url, json_data);
+        return Neverball.gamecore_account_try_update(UTF8ToString($0), $1, $2, $3, $4, $5, $6) ? 1 : 0;
+    }, session_uuid4,
+       w_coins_curr + w_coins, w_gems_curr + w_gems,
+       c_hp_curr + c_hp,
+       c_doublecash_curr + c_doublecash,
+       c_halfgrav_curr + c_halfgrav,
+       c_doublespeed_curr + c_doublespeed);
 
     return r;
 #else
@@ -1036,29 +1023,16 @@ account_wgcl_try_set_fail:
 #elif defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     assets_set_is_pending = 0;
 
-    char in_url[512];
-    sprintf(in_url, "https://%s/api/internal/updateassets", WGCL_URL);
-
-    char json_data[512];
-    sprintf(json_data,
-            "{"
-            "    \"player_uuid4\":\"%s\","
-            "    \"player_wallet_coins\":%d,"
-            "    \"player_wallet_gems\":%d,"
-            "    \"player_consumable_hp\":%d,"
-            "    \"player_consumable_doublecash\":%d,"
-            "    \"player_consumable_halfgrav\":%d,"
-            "    \"player_consumable_doublespeed\":%d"
-            "}",
-            session_uuid4,
-            pending_set_wallet_coins, pending_set_wallet_gems,
-            pending_set_consumable_hp, pending_set_consumable_doublecash, pending_set_consumable_halfgrav, pending_set_consumable_doublespeed);
-
     int r = EM_ASM_INT({
-        return Neverball.gamecore_account_try_update(UTF8ToString($0), UTF8ToString($1)) ? 1 : 0;
-    }, in_url, json_data);
+        return Neverball.gamecore_account_try_update(UTF8ToString($0), $1, $2, $3, $4, $5, $6) ? 1 : 0;
+    }, session_uuid4,
+       w_coins, w_gems,
+       c_hp,
+       c_doublecash,
+       c_halfgrav,
+       c_doublespeed);
 
-    return 1;
+    return r;
 #else
     return 1;
 #endif
@@ -1176,21 +1150,9 @@ account_wgcl_try_buy_fail:
 #elif defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     managed_buy_is_pending = 0;
 
-    char in_url[512];
-    sprintf(in_url, "https://%s/api/internal/shop/buy", WGCL_URL);
-
-    char json_data[512];
-    sprintf(json_data,
-            "{"
-            "    \"player_uuid4\":\"%s\","
-            "    \"new_product_flags\":%d"
-            "}",
-            session_uuid4,
-            managed_buy_flags_pending);
-
     int r = EM_ASM_INT({
-        Neverball.gamecore_account_try_buy(UTF8ToString($0), UTF8ToString($1)) ? 1 : 0;
-    }, in_url, json_data);
+        return Neverball.gamecore_account_try_buy(UTF8ToString($0), $1) ? 1 : 0;
+    }, session_uuid4, managed_buy_flags_pending);
 
     return r;
 #else

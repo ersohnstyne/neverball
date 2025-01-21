@@ -219,7 +219,7 @@ struct game_view
     float a;                            /* Ideal view rotation about Y axis  */
 };
 
-void game_view_set_static_cam_view(int, float pos[3]);
+void game_view_set_static_cam_view(int, const float pos[3]);
 void game_view_init(struct game_view *);
 void game_view_fly(struct game_view *, const struct s_vary *, int, float);
 void game_view_set_pos_and_target(struct game_view *,

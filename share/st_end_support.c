@@ -287,19 +287,18 @@ static long long int difference_of_days(int day1, int month1, int year1,
 /* DO NOT EDIT! */
 static int switchball_useable(void)
 {
-    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
-    const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
 
     SDL_Keycode k_arrowkey[4] = {
         config_get_d(CONFIG_KEY_FORWARD),
         config_get_d(CONFIG_KEY_LEFT),
         config_get_d(CONFIG_KEY_BACKWARD),
-        config_get_d(CONFIG_KEY_RIGHT),
+        config_get_d(CONFIG_KEY_RIGHT)
     };
 
     if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2 &&

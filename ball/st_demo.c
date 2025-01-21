@@ -61,19 +61,19 @@ typedef SDLKey SDL_Keycode;
 
 static int switchball_useable(void)
 {
-    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
-    const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
 
-    SDL_Keycode k_arrowkey[4] = { 0, 0, 0, 0 };
-    k_arrowkey[0] = config_get_d(CONFIG_KEY_FORWARD);
-    k_arrowkey[1] = config_get_d(CONFIG_KEY_LEFT);
-    k_arrowkey[2] = config_get_d(CONFIG_KEY_BACKWARD);
-    k_arrowkey[3] = config_get_d(CONFIG_KEY_RIGHT);
+    SDL_Keycode k_arrowkey[4] = {
+        config_get_d(CONFIG_KEY_FORWARD),
+        config_get_d(CONFIG_KEY_LEFT),
+        config_get_d(CONFIG_KEY_BACKWARD),
+        config_get_d(CONFIG_KEY_RIGHT)
+    };
 
     if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2 &&
         k_caml == SDLK_RIGHT && k_camr == SDLK_LEFT &&
@@ -123,22 +123,18 @@ static int availibility = 0;
 static int selected    = 0;
 static int last_viewed = 0;
 
-static int target_timer   = 0; /* This is the target time limit */
-static int premaded_timer = 0; /* This is the premaded timer    */
-
 static int allow_exact_versions = 0;
 
 /*---------------------------------------------------------------------------*/
 
 static int st_demo_version_read(fs_file fp, struct demo *d)
 {
-    int magic;
-    int version;
+    const int demo_file_magic = get_index(fp);
+    const int demo_file_version = get_index(fp);
 
-    magic   = get_index(fp);
-    version = get_index(fp);
+    if (demo_file_magic == DEMO_MAGIC) return 0;
 
-    if (version > DEMO_VERSION)
+    if (demo_file_version > DEMO_VERSION)
     {
         demo_requires_update = 1;
         return 0;
@@ -466,7 +462,7 @@ static int player_id;
 static int gui_demo_status(int id)
 {
     const char *status;
-    int stat_len = 0;
+    //int stat_len = 0;
     int jd, kd, ld;
     int s;
 
@@ -653,7 +649,11 @@ int standalone;
 
 static int demo_restricted_gui(void)
 {
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
     int id, jd, kd, ld, md;
+#else
+    int id, jd, kd, ld;
+#endif
 
     if ((id = gui_vstack(0)))
     {
@@ -771,28 +771,25 @@ static int demo_restricted_keybd(int c, int d)
 #else
         if (c == KEY_EXIT)
 #endif
+        {
             if (is_opened)
                 return goto_state(&st_demo_end);
             else
                 return exit_state(&st_demo);
+        }
     }
     return 1;
 }
 
 static int demo_restricted_buttn(int b, int d)
 {
-    if (d)
+    if (d && (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) ||
+              config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b)))
     {
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            if (is_opened)
-                return goto_state(&st_demo_end);
-            else
-                return exit_state(&st_demo);
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            if (is_opened)
-                return goto_state(&st_demo_end);
-            else
-                return exit_state(&st_demo);
+        if (is_opened)
+            return goto_state(&st_demo_end);
+        else
+            return exit_state(&st_demo);
     }
     return 1;
 }
@@ -1470,9 +1467,12 @@ static int demo_play_click(int b, int d)
         if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
         {
             demo_replay_manual_speed(2.0f); speed_manual = 1;
-            game_proxy_filter(curr_status() != GAME_NONE ? filter_cmd_goal : filter_cmd);
+            game_proxy_filter(curr_status() != GAME_NONE ? filter_cmd_goal :
+                                                           filter_cmd);
             audio_music_fade_out(0.2f);
         }
+        else if (b == SDL_BUTTON_LEFT)
+            return demo_pause_goto(1);
     }
     else if (time_state() > prelude)
     {
@@ -1640,6 +1640,9 @@ static int demo_end_gui(void)
 
 static int demo_end_enter(struct state *st, struct state *prev, int intent)
 {
+    speed_manual = 0;
+    faster       = 0;
+
     if (!demo_paused)
         game_proxy_filter(NULL);
 
@@ -2077,7 +2080,7 @@ struct state st_demo_play = {
     NULL,
     demo_play_stick,
     NULL,
-    shared_click_basic,
+    demo_play_click,
     demo_play_keybd,
     demo_play_buttn,
     demo_play_wheel,

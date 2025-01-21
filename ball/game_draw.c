@@ -1118,11 +1118,8 @@ void game_draw(struct game_draw *gd, int pose, float t)
         video_set_perspective(fov, 0.1f, FAR_DIST);
         glPushMatrix();
         {
-            if (&game_lerp_pose_v)
-            {
-                glRotatef(game_lerp_pose_v.pose_point_smooth_x, 0.0f, 1.0f, 0.0f);
-                glRotatef(game_lerp_pose_v.pose_point_smooth_y, 1.0f, 0.0f, 0.0f);
-            }
+            glRotatef(game_lerp_pose_v.pose_point_smooth_x, 0.0f, 1.0f, 0.0f);
+            glRotatef(game_lerp_pose_v.pose_point_smooth_y, 1.0f, 0.0f, 0.0f);
 
             glRotatef(gd_rotate_roll, 0.0f, 0.0f, 1.0f);
 
@@ -1357,22 +1354,16 @@ void game_lerp_pose_point_init(void)
 
 void game_lerp_pose_point(int dx, int dy)
 {
-    if (&game_lerp_pose_v)
-    {
-        game_lerp_pose_v.pose_point_x += dx;
-        game_lerp_pose_v.pose_point_x = CLAMP(-60, game_lerp_pose_v.pose_point_x, 60);
-        game_lerp_pose_v.pose_point_y += dy * (config_get_d(CONFIG_MOUSE_INVERT) ? 1 : -1);
-        game_lerp_pose_v.pose_point_y = CLAMP(-60, game_lerp_pose_v.pose_point_y, 60);
-    }
+    game_lerp_pose_v.pose_point_x += dx;
+    game_lerp_pose_v.pose_point_x = CLAMP(-60, game_lerp_pose_v.pose_point_x, 60);
+    game_lerp_pose_v.pose_point_y += dy * (config_get_d(CONFIG_MOUSE_INVERT) ? 1 : -1);
+    game_lerp_pose_v.pose_point_y = CLAMP(-60, game_lerp_pose_v.pose_point_y, 60);
 }
 
 void game_lerp_pose_point_reset(void)
 {
-    if (&game_lerp_pose_v)
-    {
-        game_lerp_pose_v.pose_point_x = 0;
-        game_lerp_pose_v.pose_point_y = 0;
-    }
+    game_lerp_pose_v.pose_point_x = 0;
+    game_lerp_pose_v.pose_point_y = 0;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -558,14 +558,6 @@ static void gui_font_init(int s)
 #else
         int fi = gui_font_load(GUI_FACE);
 #endif
-
-        if (!fonts[fi].ttf)
-        {
-            log_errorf("Unable to load font!: %s / %s\n",
-                       *curr_lang.font ? curr_lang.font : GUI_FACE,
-                       GAMEDBG_GETSTRERROR_CHOICES_SDL);
-            gui_font_quit();
-        }
     }
     else
         log_errorf("Unable to init font!: %s\n",

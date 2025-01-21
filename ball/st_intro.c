@@ -146,8 +146,6 @@ struct state st_server_maintenance;
 
 /*---------------------------------------------------------------------------*/
 
-static int tip_id;
-
 static int intro_init = 0;
 static int intro_page;
 static int intro_done;
@@ -916,8 +914,6 @@ static int waitinternet_buttn(int b, int d)
 enum {
     MAINTENANCE_OFFLINE = GUI_LAST
 };
-
-static int background_id;
 
 static int server_maintenance_action(int tok, int val)
 {

@@ -430,8 +430,6 @@ static void opt_init(int argc, char **argv)
 
         if (argc == 2)
         {
-            size_t len = strlen(argv[i]);
-
             if (str_ends_with(argv[i], ".nbr") ||
                 str_ends_with(argv[i], ".nbrx"))
                 opt_replay = argv[i];
@@ -469,6 +467,7 @@ static void opt_quit(void)
 
 /*---------------------------------------------------------------------------*/
 
+#if NB_STEAM_API==0 && !defined(__EMSCRIPTEN__)
 static void shot(void)
 {
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -509,13 +508,16 @@ static void shot(void)
 #endif
 #endif
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
+#if DEVEL_BUILD && !defined(NDEBUG)
 static void toggle_wire(void)
 {
     glToggleWireframe_();
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -543,6 +545,7 @@ static int handle_key_dn(SDL_Event *e)
     int dir = -1;
 
     /* SDL made me do it. */
+#ifndef __EMSCRIPTEN__
 #ifdef __APPLE__
     if (c == SDLK_q  && e->key.keysym.mod & KMOD_GUI)
 #endif
@@ -552,13 +555,16 @@ static int handle_key_dn(SDL_Event *e)
     {
         return 0;
     }
+#endif
 
     switch (c)
     {
-#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
+#if NB_STEAM_API==0 && !defined(__EMSCRIPTEN__)
         case KEY_SCREENSHOT:
             shot();
             break;
+#endif
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
         case KEY_FPS:
             config_tgl_d(CONFIG_FPS);
             break;
@@ -605,13 +611,12 @@ static int handle_key_dn(SDL_Event *e)
 
             if (dir != -1)
             {
-                /* Ignore auto-repeat on direction keys. */
+                key_pressed[dir] = 0;
 
-                if (e->key.repeat)
-                    break;
-
-                key_pressed[dir] = 1;
-                st_stick(config_get_d(*key_axis[dir]), key_tilt[dir]);
+                if (key_pressed[key_other[dir]])
+                    st_stick(config_get_d(*key_axis[dir]), -key_tilt[dir]);
+                else
+                    st_stick(config_get_d(*key_axis[dir]), 0.0f);
             }
             else
                 d = st_keybd(e->key.keysym.sym, 1);
@@ -624,6 +629,8 @@ static int handle_key_up(SDL_Event *e)
 {
     int d = 1;
     int c = e->key.keysym.sym;
+
+    int dir = -1;
 
     switch (c)
     {
@@ -659,8 +666,17 @@ static int handle_key_up(SDL_Event *e)
                 arrow_downcounter[3]  = CLAMP(0, arrow_downcounter[3], 1);
                 st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), 0);
             }
-            else
-                d = st_keybd(e->key.keysym.sym, 0);
+
+            if (dir != -1)
+            {
+                key_pressed[dir] = 0;
+
+                if (key_pressed[key_other[dir]])
+                    st_stick(config_get_d(*key_axis[dir]), -key_tilt[dir]);
+                else
+                    st_stick(config_get_d(*key_axis[dir]), 0.0f);
+            }
+            else d = st_keybd(e->key.keysym.sym, 0);
     }
 
     return d;
@@ -879,7 +895,7 @@ static int link_handle(const char *link)
             if (map_part && *map_part)
             {
                 /* Search for the given level. */
-                
+
                 struct level *level;
                 const char *sol_basename  = JOINSTR(map_part, ".sol");
                 const char *solx_basename = JOINSTR(map_part, ".solx");
@@ -1557,8 +1573,6 @@ static int loop(void)
 
         while (tilt_get_button(&b, &s))
         {
-            const int X = config_get_d(CONFIG_JOYSTICK_AXIS_X0);
-            const int Y = config_get_d(CONFIG_JOYSTICK_AXIS_Y0);
             const int L = config_get_d(CONFIG_JOYSTICK_DPAD_L);
             const int R = config_get_d(CONFIG_JOYSTICK_DPAD_R);
             const int U = config_get_d(CONFIG_JOYSTICK_DPAD_U);
@@ -1597,6 +1611,7 @@ static int is_score_file(struct dir_item *item)
     return str_starts_with(item->path, "neverballhs-");
 }
 
+#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
 static void make_dirs_and_migrate(void)
 {
     Array items;
@@ -1647,6 +1662,7 @@ static void make_dirs_and_migrate(void)
 
     fs_mkdir("Screenshots");
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 

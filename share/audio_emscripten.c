@@ -296,7 +296,7 @@ void audio_volume(int master, int sound, int music, int narrator)
 
     EM_ASM({
         Neverball.audioVolume($0, $1, $2, $3);
-    }, master_logaritmic, sound_vol, music_vol, narrator_vol);
+    }, master_vol, sound_vol, music_vol, narrator_vol);
 }
 
 /*---------------------------------------------------------------------------*/

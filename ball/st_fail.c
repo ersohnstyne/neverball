@@ -1574,7 +1574,10 @@ static int raise_gems_prepare_gui(void)
                 SAFECAT(infoattr_full, "\n");
                 SAFECAT(infoattr_full, bankrupt_str2);
             }
-#if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
+#if (NB_STEAM_API == 1 || NB_EOS_SDK == 1) && ENABLE_IAP == 1 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
             else
             {
                 SAFECAT(infoattr_full, "\n");
@@ -1752,8 +1755,6 @@ static void raise_gems_timer(int id, float dt)
     {
         for (int i = 0; i < 4; i++)
         {
-            int num_amts = num_amounts_curr[i];
-
             if (num_amounts_dst[i] > 0)
             {
                 num_amounts_curr[i]--;

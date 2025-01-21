@@ -18,7 +18,7 @@
 
 #include "networking.h"
 
-#ifdef __EMSCRIPTEN__ && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
 
 static void WGCL_CallMain_Real(void)
 {

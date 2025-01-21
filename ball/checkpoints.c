@@ -510,8 +510,6 @@ void checkpoints_stop(void)
     respawn_coins        = 0;
     respawn_time_elapsed = 0;
     respawn_time_limit   = 0;
-
-    float resetpos[3] = { 0.0f, 0.0f, 0.0f };
 }
 
 #endif

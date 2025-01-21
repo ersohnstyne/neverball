@@ -451,10 +451,10 @@ void hud_update(int pulse, float animdt)
     int score       = curr_score();
     float ballspeed = curr_speedometer();
 
+#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
     int c_id;
     int last;
 
-#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
     if (!pulse)
     {
         /* reset the hud */

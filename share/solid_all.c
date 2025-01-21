@@ -60,8 +60,6 @@ static struct vec4 get_path_rot(const struct s_vary *vary, int pi, float dt);
 
 static struct vec3 get_move_pos(const struct s_vary *vary, int mi, float dt)
 {
-    static const struct vec3 o = { 0.0f, 0.0f, 0.0f };
-
     if (mi < 0)
         return POS_IDENTITY;
 

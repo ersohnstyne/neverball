@@ -531,9 +531,9 @@ static int ball_gui(void)
             {
                 gui_space(id);
 
-                int online_id;
-                if (online_id = gui_label(id, _(more_balls_text),
-                                              GUI_SML, gui_wht, gui_grn))
+                int online_id = 0;
+                if ((online_id = gui_label(id, _(more_balls_text),
+                                               GUI_SML, gui_wht, gui_grn)))
                 {
                     if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                         gui_set_state(online_id, MODEL_UPGRADE_EDITION, 0);
@@ -707,11 +707,13 @@ static void ball_timer(int id, float dt)
 
 static int ball_keybd(int c, int d)
 {
+#ifndef __EMSCRIPTEN__
     int initial_fov = config_get_d(CONFIG_VIEW_FOV);
     int initial_dc  = config_get_d(CONFIG_VIEW_DC);
     int initial_dp  = config_get_d(CONFIG_VIEW_DP);
     int initial_w   = config_get_d(CONFIG_WIDTH);
     int initial_h   = config_get_d(CONFIG_HEIGHT);
+#endif
 
     int i;
 

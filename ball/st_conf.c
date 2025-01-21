@@ -163,7 +163,9 @@ static int conf_social_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
+#ifndef __EMSCRIPTEN__
     char linkstr_cmd[MAXSTR], linkstr_code[64];
+#endif
 
     switch (tok)
     {
@@ -559,7 +561,10 @@ static int conf_account_gui(void)
 
     if ((id = gui_vstack(0)))
     {
+#ifndef __EMSCRIPTEN__
+        int name_id = 0;
         const char *player = config_get_s(CONFIG_PLAYER);
+#endif
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
         const char *ball;
         switch (ball_multi_curr()) {
@@ -578,10 +583,10 @@ static int conf_account_gui(void)
         const char *ball   = config_get_s(CONFIG_BALL_FILE);
 #endif
 
-        int save = config_get_d(CONFIG_ACCOUNT_SAVE);
-        int load = config_get_d(CONFIG_ACCOUNT_LOAD);
+        int ball_id, beam_id;
 
-        int name_id = 0, ball_id, beam_id;
+        int save = config_get_d(CONFIG_ACCOUNT_SAVE),
+            load = config_get_d(CONFIG_ACCOUNT_LOAD);
 
         conf_header(id, _("Account"), GUI_BACK);
 
@@ -1031,7 +1036,6 @@ static int control_get_input(void)
     const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
     const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
     const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
-    const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
     const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
     const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
 
@@ -1090,8 +1094,6 @@ static void control_set_input()
 
 static int conf_control_action(int tok, int val)
 {
-    int mouse = MOUSE_RANGE_MAP(config_get_d(CONFIG_MOUSE_SENSE));
-
     GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
@@ -2561,10 +2563,12 @@ static int conf_action(int tok, int val)
 {
     int r = 1;
 
+#if NB_HAVE_PB_BOTH!=1
     int master   = config_get_d(CONFIG_MASTER_VOLUME);
     int sound    = config_get_d(CONFIG_SOUND_VOLUME);
     int music    = config_get_d(CONFIG_MUSIC_VOLUME);
     int narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
+#endif
 
     GENERIC_GAMEMENU_ACTION;
 

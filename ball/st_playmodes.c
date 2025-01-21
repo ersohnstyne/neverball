@@ -57,15 +57,15 @@ typedef SDLKey SDL_Keycode;
 
 /*---------------------------------------------------------------------------*/
 
+#if NB_HAVE_PB_BOTH!=1
 static int switchball_useable(void)
 {
-    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
-    const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
 
     SDL_Keycode k_arrowkey[4] = {
         config_get_d(CONFIG_KEY_FORWARD),
@@ -90,6 +90,7 @@ static int switchball_useable(void)
 
     return 0;
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 

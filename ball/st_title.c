@@ -97,13 +97,12 @@ typedef SDLKey SDL_Keycode;
 
 static int switchball_useable(void)
 {
-    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
-    const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
 
     SDL_Keycode k_arrowkey[4] = {
         config_get_d(CONFIG_KEY_FORWARD),
@@ -290,7 +289,10 @@ static int   left_handed = 1;
 static Array items;
 
 static int play_id = 0;
+
+#ifndef __EMSCRIPTEN__
 static int support_exit = 1;
+#endif
 
 static const char editions_common[][26] =
 {
@@ -383,7 +385,11 @@ static int title_action(int tok, int val)
     size_t queue_len = text_length(queue);
 #endif
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
     char linkstr_cmd[MAXSTR];
+#endif
 
 #if NB_HAVE_PB_BOTH==1
     const char title_social_url[3][MAXSTR] =
@@ -708,7 +714,7 @@ static int title_action(int tok, int val)
 
 static int title_gui(void)
 {
-    int root_id, id, jd, kd;
+    int root_id, id, jd;
 
     /* Build the title GUI. */
 
@@ -972,6 +978,7 @@ static int title_gui(void)
 
                 if ((jd = gui_hstack(id)))
                 {
+                    int kd = 0;
                     int btn_size = video.aspect_ratio < 1.0f ? GUI_SML : GUI_MED;
 
                     gui_filler(jd);
@@ -1230,15 +1237,17 @@ static int title_enter(struct state *st, struct state *prev, int intent)
         account_wgcl_restart_attempt();
 #endif
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
+#if NB_HAVE_PB_BOTH==1
     support_exit = (current_platform != PLATFORM_PS &&
                     current_platform != PLATFORM_STEAMDECK &&
                     current_platform != PLATFORM_SWITCH) &&
                    (current_platform == PLATFORM_PC);
 #endif
-
-#if defined(__IOS__) || defined(__IPHONE__) || defined(__IPAD__)
+#if defined(__IOS__) || defined(__IPHONE__) || defined(__IPHONEOS__) || \
+    defined(__IPAD__)
     support_exit = 0;
+#endif
 #endif
 
     progress_exit();
@@ -1499,6 +1508,9 @@ static int title_keybd(int c, int d)
     {
 #ifndef __EMSCRIPTEN__
         if (c == KEY_EXIT && support_exit)
+#else
+        if (c == KEY_EXIT)
+#endif
         {
             title_prequit = 1;
 
@@ -1506,7 +1518,6 @@ static int title_keybd(int c, int d)
 
             return 0;
         }
-#endif
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
         if (c >= SDLK_a && c <= SDLK_z)
@@ -1541,6 +1552,9 @@ static int title_buttn(int b, int d)
             return title_action(gui_token(active), gui_value(active));
 #ifndef __EMSCRIPTEN__
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b) && support_exit)
+#else
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+#endif
         {
             title_prequit = 1;
 
@@ -1548,7 +1562,6 @@ static int title_buttn(int b, int d)
 
             return 0;
         }
-#endif
     }
     return 1;
 }

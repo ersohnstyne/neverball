@@ -72,15 +72,15 @@ struct state st_levelgroup;
 
 /*---------------------------------------------------------------------------*/
 
+#if NB_HAVE_PB_BOTH!=1
 static int switchball_useable(void)
 {
-    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
-    const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
 
     SDL_Keycode k_arrowkey[4] = {
         config_get_d(CONFIG_KEY_FORWARD),
@@ -105,6 +105,7 @@ static int switchball_useable(void)
 
     return 0;
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -137,17 +138,12 @@ static int desc_id;
 
 static int do_init = 1;
 
-static int boost_id;
+//static int boost_id;
 static int boost_on;
 
 int is_boost_on(void)
 {
     return boost_on == 1;
-}
-
-static void set_boost_on(int active)
-{
-    boost_on = active;
 }
 
 enum
@@ -247,7 +243,9 @@ static void gui_set(int id, int i)
     if (set_exists(i))
     {
         int set_text_name_id;
+#if defined(LEVELGROUPS_INCLUDES_CAMPAIGN) && !defined(MAPC_INCLUDES_CHKP)
         int campaign_marked = 0;
+#endif
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
         int set_name_locked = SET_CHECK_LOCKED(i);
@@ -330,8 +328,9 @@ static void gui_set(int id, int i)
               || str_starts_with(curr_setid_final, "Sb")
               || str_starts_with(curr_setid_final, "sB"))
         {
+#ifndef MAPC_INCLUDES_CHKP
             campaign_marked = 1;
-
+#endif
             gui_set_color(set_text_name_id, GUI_COLOR_CYA);
 
             SAFECPY(set_name_final, GUI_AIRPLANE " ");
@@ -782,7 +781,6 @@ static int campaign_rank_btn_id;
 static int campaign_show_rank = 0;
 static int campaign_theme_style_carousel;
 
-static int campaign_theme_unlocks = 1;
 static int campaign_theme_index   = 0;
 
 static int campaign_theme_image_id;
@@ -841,24 +839,6 @@ enum
     CAMPAIGN_SELECT_THEME,
     CAMPAIGN_SELECT_LEVEL
 };
-
-static char *campaign_label_clock(int timer)
-{
-    char timeclock[MAXSTR];
-
-    int clock_ms  = ROUND(timer /    10) % 100;
-    int clock_sec = ROUND(timer /  1000) %  60;
-    int clock_min = ROUND(timer / 60000) %  60;
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(timeclock, MAXSTR,
-#else
-    sprintf(timeclock,
-#endif
-           "%d:%02d.%02d", clock_min, clock_sec, clock_ms);
-
-    return timeclock;
-}
 
 static int campaign_action(int tok, int val)
 {
@@ -1091,6 +1071,8 @@ static int campaign_worldselect_carousel_gui(int id)
 
         gui_filler(jd);
     }
+
+    return jd;
 }
 
 static int campaign_gui(void)

@@ -642,8 +642,9 @@ static int loop(void)
             case SDL_KEYDOWN:
                 c = e.key.keysym.sym;
 
+#ifndef __EMSCRIPTEN__
 #ifdef __APPLE__
-                if (c == SDLK_q && e.key.keysym.mod & KMOD_GUI)
+                if (c == SDLK_q  && e.key.keysym.mod & KMOD_GUI)
 #endif
 #ifdef _WIN32
                 if (c == SDLK_F4 && e.key.keysym.mod & KMOD_ALT)
@@ -652,6 +653,7 @@ static int loop(void)
                     d = 0;
                     break;
                 }
+#endif
 
                 switch (c)
                 {

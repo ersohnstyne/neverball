@@ -151,13 +151,12 @@ static int over_gui_hardcore(void)
 {
     int id, jd;
 
-    int high = progress_set_high();
-
     if ((id = gui_vstack(0)))
     {
         int gid;
 
-        gid = gui_title_header(id, _("GAME OVER"), GUI_MED, gui_blk, gui_red);
+        if ((gid = gui_title_header(id, _("GAME OVER"), GUI_MED, gui_blk, gui_red)))
+            gui_pulse(gid, 1.2f);
 
         gui_space(id);
 

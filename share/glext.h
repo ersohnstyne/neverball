@@ -364,6 +364,13 @@ int glext_get_recommended(void);
 #elif !defined(__WII__) /* No native linkage?  Define the extension API. */
 
 #define glOrtho_               glOrtho
+#define glMatrixMode           glMatrixMode_
+#define glPushMatrix           glPushMatrix_
+#define glPopMatrix            glPopMatrix_
+
+void glMatrixMode_(unsigned int);
+void glPushMatrix_(void);
+void glPopMatrix_ (void);
 
 /*---------------------------------------------------------------------------*/
 /* ARB_multitexture                                                          */

@@ -110,12 +110,14 @@ static const char demos[][16] = {
     "gui/tricks2.nbr"
 };
 
+#ifndef __EMSCRIPTEN__
 static const char demos_xbox[][21] = {
     "gui/rules1_xbox.nbr",
     "gui/rules2_xbox.nbr",
     "gui/tricks1_xbox.nbr",
     "gui/tricks2_xbox.nbr"
 };
+#endif
 
 #if !defined(SWITCHBALL_HELP)
 static int page = PAGE_RULES;
@@ -273,20 +275,6 @@ static int help_menu(int id)
 
 /*---------------------------------------------------------------------------*/
 
-#if NB_HAVE_PB_BOTH==1
-#define HELP_RULES_WITH_DEMO
-
-static int help_allow_demos(int id)
-{
-#ifndef __EMSCRIPTEN__
-    return fs_exists(current_platform == PLATFORM_PC ?
-                     demos[id] : demos_xbox[id]);
-#else
-    return fs_exists(demos[id]);
-#endif
-}
-#endif
-
 #ifdef SWITCHBALL_HELP
 static int page_introduction(int id)
 {
@@ -376,16 +364,27 @@ static int page_rules(int id)
                        "unlock the goal and finish\n"
                        "the level.\n");
 
+#if defined(__WII__)
     const char *s_wii = _("Tilt the Wii Remote or move\n"
                           "the nunchuck stick to\n"
                           "tilt the floor causing the\n"
                           "ball to roll.\n");
-    const char *s_xbox = _("Move the left stick to\n"
+    const char *s_wii_notilt = _("Tilt the Wii Remote or move\n"
+                                 "the nunchuck stick to\n"
+                                 "move the ball.\n");
+#else
+    const char *s_xbox = _("Use the left stick to\n"
                            "tilt the floor causing the\n"
                            "ball to roll.\n");
     const char *s_pc = _("Move the mouse or use keyboard\n"
                          "to tilt the floor causing the\n"
                          "ball to roll.\n");
+
+    const char *s_xbox_notilt = _("Use the left stick to\n"
+                                  "move the ball.\n");
+    const char *s_pc_notilt = _("Move the mouse or use keyboard\n"
+                                "to move the ball.\n");
+#endif
 
     int w = video.device_w;
     int h = video.device_h;
@@ -403,13 +402,18 @@ static int page_rules(int id)
                 gui_space(ld);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #if defined(__WII__)
-                gui_multi(ld, s_wii, GUI_SML, GUI_COLOR_WHT);
+                gui_multi(ld, config_get_d(CONFIG_TILTING_FLOOR) ? s_wii :
+                                                                   s_wii_notilt,
+                              GUI_SML, GUI_COLOR_WHT);
 #else
-                gui_multi(ld, current_platform == PLATFORM_PC ? s_pc : s_xbox,
+                gui_multi(ld, current_platform == PLATFORM_PC ? (config_get_d(CONFIG_TILTING_FLOOR) ? s_pc :
+                                                                                                      s_pc_notilt) :
+                                                                (config_get_d(CONFIG_TILTING_FLOOR) ? s_xbox :
+                                                                                                      s_xbox_notilt),
                               GUI_SML, GUI_COLOR_WHT);
 #endif
 #else
-                gui_multi(ld, s_pc, GUI_SML, GUI_COLOR_WHT);
+                gui_multi(ld, s0, GUI_SML, GUI_COLOR_WHT);
 #endif
                 gui_filler(ld);
             }
@@ -426,7 +430,7 @@ static int page_rules(int id)
 
         if ((kd = gui_varray(jd)))
         {
-#ifdef HELP_RULES_WITH_DEMO
+#if defined(HELP_RULES_WITH_DEMO) || NB_HAVE_PB_BOTH==1
             if (help_allow_control_demos(0) && help_allow_control_demos(1))
             {
                 const int ww = MIN(w, h) / 4;
@@ -544,11 +548,13 @@ static void controls_pc(int id)
             gui_label(kd, s_exit, GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, ks_exit && *ks_exit ? ks_exit : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
+#if NB_HAVE_PB_BOTH==1
         if ((kd = gui_harray(jd)))
         {
             gui_label(kd, s_restart, GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, ks_restart && *ks_restart ? ks_restart : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
+#endif
         if ((kd = gui_harray(jd)))
         {
             gui_label(kd, s_camAuto, GUI_SML, GUI_COLOR_WHT);
@@ -570,13 +576,21 @@ static void controls_pc(int id)
             gui_label(kd, ks_cam3 && *ks_cam3 ? ks_cam3 : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
 
-        /* Screenshot won't be able to do that. We don't need this. */
-
         if ((kd = gui_harray(jd)))
         {
             gui_label(kd, _("Max Speed"), GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, _("LMB"), GUI_SML, GUI_COLOR_YEL);
         }
+
+#if NB_HAVE_PB_BOTH!=1
+#ifndef __EMSCRIPTEN__
+        if ((kd = gui_harray(jd)))
+        {
+            gui_label(kd, s_shot, GUI_SML, GUI_COLOR_WHT);
+            gui_label(kd, ks_shot && *ks_shot ? ks_shot : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
+        }
+#endif
+#endif
 
         gui_set_rect(jd, GUI_ALL);
     }

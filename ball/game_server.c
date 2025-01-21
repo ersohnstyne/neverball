@@ -963,23 +963,6 @@ int game_server_init(const char *file_name, int t, int e)
     struct game_sol_version { int x, y; } version = { 0, 0 };
     int i;
 
-    /*
-     * --- MAYHEM ---
-     * Reduces time limit
-     */
-    int mayhem_time = 359999;
-    if (t > 0
-     && (
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-         !campaign_used() &&
-#endif
-        curr_mode() != MODE_BOOST_RUSH
-#ifdef LEVELGROUPS_INCLUDES_ZEN
-     && curr_mode() != MODE_ZEN
-#endif
-         ))
-        mayhem_time = (int) t * 0.75f;
-
 #ifdef MAPC_INCLUDES_CHKP
     time_limit = MAX(last_active ? checkpoints_respawn_time_limit() :
                                    (float) t / 100.0f, 0);
@@ -1722,13 +1705,9 @@ static int game_update_state(int bt)
     struct b_goal *zp;
     int hi, cami;
 
-    float p[3] = { 0.0f, 0.0f, 0.0f };
+    //float p[3] = { 0.0f, 0.0f, 0.0f };
 
     /* New: Hold timer mode */
-
-    float vx = vary.uv[CURR_PLAYER].v[0];
-    float vy = vary.uv[CURR_PLAYER].v[1];
-    float vz = vary.uv[CURR_PLAYER].v[2];
 
     if (vary.uv[CURR_PLAYER].p[0] < game_base.uv[CURR_PLAYER].p[0] - .01f ||
         vary.uv[CURR_PLAYER].p[0] > game_base.uv[CURR_PLAYER].p[0] + .01f ||
@@ -2147,12 +2126,7 @@ static void game_server_iter(float dt)
 
     if (status == GAME_TIME) return;
 
-    const float additive_move_v = 2.45f;// *dt;
-
     float g[3] = { 0.0f, -9.8f, 0.0f };
-
-    //g[0] = additive_move_v * (((fcosf(V_RAD(view.a)) * tilt.rz) + (fsinf(V_RAD(view.a)) * -tilt.rx)) * CLAMP(0, 1 - fabsf(powerup_get_grav_multiply()), 1));
-    //g[2] = additive_move_v * (((fsinf(V_RAD(view.a)) * -tilt.rz) + (fcosf(V_RAD(view.a)) * -tilt.rx)) * CLAMP(0, 1 - fabsf(powerup_get_grav_multiply()), 1));
 
     g[1] *= powerup_get_grav_multiply();
 

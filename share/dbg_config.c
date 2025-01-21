@@ -40,8 +40,10 @@
 static int  dbg_signum;
 static char dbg_strerror[256];
 
+#if defined(_DEBUG) && _WIN32
 static void  *dbg_frames[20];
 static char **dbg_strings;
+#endif
 
 #if __cplusplus
 extern "C" {
@@ -49,7 +51,7 @@ extern "C" {
 
 int         GameDbg_GetSigNum(void) { return dbg_signum; }
 void        GameDbg_ClrSigNum(void) { dbg_signum = 0; }
-const char *GameDbg_GetError(void)  { return dbg_strerror ? dbg_strerror : "Unknown error"; }
+const char *GameDbg_GetError(void)  { return dbg_strerror; }
 
 void GameDbg_SigHandler(int signum)
 {

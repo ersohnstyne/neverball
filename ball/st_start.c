@@ -84,7 +84,9 @@ enum
 };
 
 static int shot_id;
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
 static int file_id;
+#endif
 static int challenge_id;
 
 static struct state *start_back;
@@ -281,7 +283,7 @@ static int start_action(int tok, int val)
             if (curr_mode() == MODE_HARDCORE)
             {
                 if (check_handsoff())
-                    return goto_handsoff(&st_start);
+                    return goto_handsoff(curr_state());
                 else if (CHECK_ACCOUNT_ENABLED)
                 {
                     audio_play(AUD_STARTGAME, 1.0f);
@@ -309,7 +311,7 @@ static int start_action(int tok, int val)
                 if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
                     return goto_state(&st_start_upgraderequired);
                 else if (check_handsoff())
-                    return goto_handsoff(&st_start);
+                    return goto_handsoff(curr_state());
                 else
 #endif
                 {
@@ -336,7 +338,7 @@ static int start_action(int tok, int val)
                     else if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
                         return goto_state(&st_start_upgraderequired);
                     else if (check_handsoff())
-                        return goto_handsoff(&st_start);
+                        return goto_handsoff(curr_state());
                     else
                     {
                         progress_exit();
@@ -393,7 +395,7 @@ static int start_action(int tok, int val)
 
         case START_LEVEL:
             if (check_handsoff())
-                return goto_handsoff(&st_start);
+                return goto_handsoff(curr_state());
 
             progress_exit();
             progress_init(MODE_NORMAL);

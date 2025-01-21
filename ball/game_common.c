@@ -220,7 +220,7 @@ float view_zoom_diff_end;
 int use_static_cam_view;
 float pos_static_cam_view[3];
 
-void game_view_set_static_cam_view(int activated, float pos[3])
+void game_view_set_static_cam_view(int activated, const float pos[3])
 {
     use_static_cam_view = activated;
 
@@ -232,12 +232,7 @@ void game_view_init(struct game_view *view)
 {
     /*
      * In VR, ensure the default view is level.
-     *
-     *      0 = 100%
-     *     -1 = 0%
      */
-
-    float zoom_diff = CLAMP(0, 1 + view_zoom_diff_curr, 1);
 
     if (hmd_stat())
     {

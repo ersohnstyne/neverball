@@ -163,7 +163,7 @@ const char level_loading_covid_highrisk[][256] = {
 
 static int level_loading_enter(struct state *st, struct state *prev, int intent)
 {
-    int id, tip_id;
+    int id;
 
     int max_index = 7;
 
@@ -187,17 +187,17 @@ static int level_loading_enter(struct state *st, struct state *prev, int intent)
 
 #ifndef __EMSCRIPTEN__
         if (current_platform == PLATFORM_PC)
-            tip_id = gui_multi(id, _(level_loading_tip[index_affect]),
-                                   GUI_SML, GUI_COLOR_WHT);
+            gui_multi(id, _(level_loading_tip[index_affect]),
+                          GUI_SML, GUI_COLOR_WHT);
         else if (current_platform == PLATFORM_PS)
-            tip_id = gui_multi(id, _(level_loading_tip_ps4[index_affect]),
-                                   GUI_SML, GUI_COLOR_WHT);
+            gui_multi(id, _(level_loading_tip_ps4[index_affect]),
+                          GUI_SML, GUI_COLOR_WHT);
         else
-            tip_id = gui_multi(id, _(level_loading_tip_xbox[index_affect]),
-                                   GUI_SML, GUI_COLOR_WHT);
+            gui_multi(id, _(level_loading_tip_xbox[index_affect]),
+                          GUI_SML, GUI_COLOR_WHT);
 #else
-        tip_id = gui_multi(id, _(level_loading_tip[index_affect]),
-                               GUI_SML, GUI_COLOR_WHT);
+        gui_multi(id, _(level_loading_tip[index_affect]),
+                      GUI_SML, GUI_COLOR_WHT);
 #endif
         gui_layout(id, 0, 0);
     }
@@ -219,8 +219,6 @@ static int level_loading_with_moon_taskloader = 1;
 
 static int check_nodemo = 1;
 static int nodemo_warnonlyonce = 1;
-
-static int check_campaign = 1;
 
 static int evalue;
 static int fvalue;
@@ -937,10 +935,6 @@ static void poser_paint(int id, float t)
 
 static void poser_timer(int id, float dt)
 {
-    float fix_deltatime = CLAMP(0.001f,
-                                dt,
-                                config_get_d(CONFIG_SMOOTH_FIX) ? MIN(1 / 60, dt) :
-                                                                  MIN(100.0f, dt));
     geom_step(dt);
     //game_lerp_pose_point_tick(dt);
 }

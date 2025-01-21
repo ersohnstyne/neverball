@@ -115,6 +115,17 @@ PFNGLCALLCOMMANDLISTNV_PROC              glCallCommandListNV_;
 
 /*---------------------------------------------------------------------------*/
 
+#undef glMatrixMode
+#undef glPushMatrix
+#undef glPopMatrix
+
+static unsigned int glext_matrix_mode;
+
+static int glext_curr_depth_modelview;
+static int glext_curr_depth_projection;
+
+/*---------------------------------------------------------------------------*/
+
 #define str_starts_with(s, h) (strncmp((s), (h), strlen(h)) == 0)
 
 /*---------------------------------------------------------------------------*/
@@ -145,6 +156,7 @@ int glext_check_ext(const char *needle)
 
 /*---------------------------------------------------------------------------*/
 
+#if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__) && !defined(__WII__)
 #if _DEBUG
 /*
  * HACK: WGL always makes sense to debug for the best experiences.
@@ -187,7 +199,6 @@ static int glext_assert(const char *ext)
 }
 #endif
 
-#if !defined(__WII__)
 static int glext_count(void)
 {
     int n = 0;
@@ -286,8 +297,7 @@ int glext_init(void)
 {
     void *ptr = 0;
 
-#if !defined(__WII__)
-#if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
+#if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__) && !defined(__WII__)
     if (glext_count() >= GLEXT_COUNT_LIMIT)
     {
 #ifdef GLEXT_COUNT_LIMIT_WITH_BREAKPT
@@ -299,11 +309,17 @@ int glext_init(void)
 #endif
     }
 #endif
-#endif
 
     memset(&gli, 0, sizeof (struct gl_info));
 
     /* Common init. */
+    
+    glGetIntegerv(GL_MAX_MODELVIEW_STACK_DEPTH,  &glext_max_depth_modelview);
+    glGetIntegerv(GL_MAX_PROJECTION_STACK_DEPTH, &glext_max_depth_projection);
+
+    if (glext_max_depth_modelview  < 6 ||
+        glext_max_depth_projection < 2)
+        return 0;
 
     glGetIntegerv(GL_MAX_TEXTURE_SIZE,  &gli.max_texture_size);
     glGetIntegerv(GL_MAX_TEXTURE_UNITS, &gli.max_texture_units);
@@ -483,5 +499,69 @@ void glSetWireframe_(int enabled)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 #endif
 }
+
+/*---------------------------------------------------------------------------*/
+
+#if !ENABLE_OPENGL_ES && !defined(__EMSCRIPTEN__)
+
+#undef glMatrixMode
+#undef glPushMatrix
+#undef glPopMatrix
+
+void glMatrixMode_(unsigned int mode)
+{
+    if (mode != glext_matrix_mode &&
+        (mode == GL_MODELVIEW  ||
+         mode == GL_PROJECTION ||
+         mode == GL_TEXTURE))
+    {
+        glext_matrix_mode = mode;
+        glMatrixMode(mode);
+    }
+}
+
+void glPushMatrix_(void)
+{
+    if (glext_matrix_mode == GL_MODELVIEW)
+    {
+        if (glext_curr_depth_modelview < glext_max_depth_modelview)
+        {
+            glext_curr_depth_modelview++;
+            glPushMatrix();
+        }
+    }
+
+    if (glext_matrix_mode == GL_PROJECTION)
+    {
+        if (glext_curr_depth_projection < glext_max_depth_projection)
+        {
+            glext_curr_depth_projection++;
+            glPushMatrix();
+        }
+    }
+}
+
+void glPopMatrix_(void)
+{
+    if (glext_matrix_mode == GL_MODELVIEW)
+    {
+        if (glext_curr_depth_modelview > 0)
+        {
+            glext_curr_depth_modelview--;
+            glPopMatrix();
+        }
+    }
+
+    if (glext_matrix_mode == GL_PROJECTION)
+    {
+        if (glext_curr_depth_projection > 0)
+        {
+            glext_curr_depth_projection--;
+            glPopMatrix();
+        }
+    }
+}
+
+#endif
 
 /*---------------------------------------------------------------------------*/

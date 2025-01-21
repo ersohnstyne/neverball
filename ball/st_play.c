@@ -496,8 +496,6 @@ static void play_ready_timer(int id, float dt)
 
 /*---------------------------------------------------------------------------*/
 
-static int set_transition = 0;
-
 static int play_set_gui(void)
 {
     int id;
@@ -677,7 +675,10 @@ static void play_prep_stick(int id, int a, float v, int bump)
         game_set_x(prep_tilt_y);
     }
     else
-        use_mouse = 0; use_keyboard = 1;
+    {
+        use_mouse = 0;
+        use_keyboard = 1;
+    }
 }
 
 static int play_prep_click(int b, int d)

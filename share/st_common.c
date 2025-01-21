@@ -74,19 +74,18 @@ typedef SDLKey SDL_Keycode;
 
 static int switchball_useable(void)
 {
-    const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
-    const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
-    const SDL_Keycode k_cam2    = config_get_d(CONFIG_KEY_CAMERA_2);
-    const SDL_Keycode k_cam3    = config_get_d(CONFIG_KEY_CAMERA_3);
-    const SDL_Keycode k_restart = config_get_d(CONFIG_KEY_RESTART);
-    const SDL_Keycode k_caml    = config_get_d(CONFIG_KEY_CAMERA_L);
-    const SDL_Keycode k_camr    = config_get_d(CONFIG_KEY_CAMERA_R);
+    const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
+    const SDL_Keycode k_cam1 = config_get_d(CONFIG_KEY_CAMERA_1);
+    const SDL_Keycode k_cam2 = config_get_d(CONFIG_KEY_CAMERA_2);
+    const SDL_Keycode k_cam3 = config_get_d(CONFIG_KEY_CAMERA_3);
+    const SDL_Keycode k_caml = config_get_d(CONFIG_KEY_CAMERA_L);
+    const SDL_Keycode k_camr = config_get_d(CONFIG_KEY_CAMERA_R);
 
     SDL_Keycode k_arrowkey[4] = {
         config_get_d(CONFIG_KEY_FORWARD),
         config_get_d(CONFIG_KEY_LEFT),
         config_get_d(CONFIG_KEY_BACKWARD),
-        config_get_d(CONFIG_KEY_RIGHT),
+        config_get_d(CONFIG_KEY_RIGHT)
     };
 
     if (k_auto == SDLK_c && k_cam1 == SDLK_3 && k_cam2 == SDLK_1 && k_cam3 == SDLK_2 &&
@@ -759,11 +758,12 @@ static int video_action(int tok, int val)
 
     /* Revert values */
     int oldHmd   = config_get_d(CONFIG_HMD);
-    int oldF     = config_get_d(CONFIG_FULLSCREEN);
-    int oldRefl  = config_get_d(CONFIG_REFLECTION);
-    int oldVsync = config_get_d(CONFIG_VSYNC);
-    int oldSamp  = config_get_d(CONFIG_MULTISAMPLE);
-    int oldText  = config_get_d(CONFIG_TEXTURES);
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
+    int oldF = config_get_d(CONFIG_FULLSCREEN);
+#endif
 
     switch (tok)
     {
@@ -870,9 +870,6 @@ static int video_action(int tok, int val)
             break;
 
         case VIDEO_TEXTURES:
-            if (oldText == val)
-                return 1;
-
             goto_state(&st_null);
             config_set_d(CONFIG_TEXTURES, val);
             exit_state(&st_video);
@@ -914,7 +911,11 @@ static int video_action(int tok, int val)
 
 static int video_gui(void)
 {
+#ifndef __EMSCRIPTEN__
     int id, jd, autoconf_id = 0;
+#else
+    int id, autoconf_id = 0;
+#endif
 
     if ((id = gui_vstack(0)))
     {
@@ -1107,14 +1108,15 @@ static struct state *video_advanced_back;
 static int video_advanced_action(int tok, int val)
 {
     int backups = 0;
+#if !defined(__EMSCRIPTEN__) && NB_STEAM_API!=1
     int f = config_get_d(CONFIG_FULLSCREEN);
     int w = config_get_d(CONFIG_WIDTH);
     int h = config_get_d(CONFIG_HEIGHT);
+#endif
     int r = 1;
 
     /* Revert values */
     int oldHmd   = config_get_d(CONFIG_HMD);
-    int oldF     = config_get_d(CONFIG_FULLSCREEN);
 #if ENABLE_MOTIONBLUR!=0
     int oldMBlur = config_get_d(CONFIG_MOTIONBLUR);
 #endif
@@ -1122,6 +1124,10 @@ static int video_advanced_action(int tok, int val)
     int oldVsync = config_get_d(CONFIG_VSYNC);
     int oldSamp  = config_get_d(CONFIG_MULTISAMPLE);
     int oldText  = config_get_d(CONFIG_TEXTURES);
+
+#ifndef __EMSCRIPTEN__
+    int oldF = config_get_d(CONFIG_FULLSCREEN);
+#endif
 
     GENERIC_GAMEMENU_ACTION;
 
@@ -1456,7 +1462,11 @@ static int video_advanced_gui(void)
         { N_("2x"),  2 },
     };
 
+#ifdef SWITCHBALL_GUI
+    int id;
+#else
     int id, jd;
+#endif
 
     if ((id = gui_vstack(0)))
     {
@@ -2034,7 +2044,9 @@ static int lang_action(int tok, int val)
 {
     int r = 1;
 
+#if ENABLE_NLS==1 || _MSC_VER
     struct lang_desc *desc;
+#endif
 
     int total = array_len(langs);
 

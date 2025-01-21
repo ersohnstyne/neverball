@@ -189,13 +189,14 @@ void config_paths(const char *arg_data_path)
 
 void config_log_userpath()
 {
-    const char *home, *user;
+    const char *user;
 
-    home = pick_home_path();
 #if defined(__EMSCRIPTEN__)
     /* Force persistent store created during Module['preInit']. */
-    user = strdup("/neverball");
+    user = strdup("/pennyball");
 #else
+    const char *home = pick_home_path();
+
 #if _WIN32
     user = concat_string(home, "\\", CONFIG_USER, NULL);
 #else

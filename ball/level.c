@@ -33,8 +33,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-static char *campaign_theme_name;
-
 static int scan_level_attribs(struct level *l,
                               const struct s_base *base,
                               int campaign,
@@ -140,8 +138,7 @@ static int scan_level_attribs(struct level *l,
                         log_errorf("Switchball requires three premaded best time!\n");
                         return 0;
                     }
-                    else
-                        need_time_medm = 1;
+                    else need_time_medm = 2;
                 }
                 case 2:
                 {
@@ -150,8 +147,7 @@ static int scan_level_attribs(struct level *l,
                         log_errorf("Switchball requires three premaded best time!\n");
                         return 0;
                     }
-                    else
-                        need_time_easy = 1;
+                    else need_time_easy = 1;
                 }
                     break;
                 case 3: break;
@@ -176,8 +172,7 @@ static int scan_level_attribs(struct level *l,
                         log_errorf("Switchball requires three premaded best time!\n");
                         return 0;
                     }
-                    else
-                        need_goal_medm = 1;
+                    else need_goal_medm = 2;
                 }
                 case 2:
                 {
@@ -186,8 +181,7 @@ static int scan_level_attribs(struct level *l,
                         log_errorf("Switchball requires three premaded best time!\n");
                         return 0;
                     }
-                    else
-                        need_goal_easy = 1;
+                    else need_goal_easy = 1;
                 }
                     break;
                 case 3: break;
@@ -334,8 +328,8 @@ static int scan_campaign_level(const struct s_base *base,
                                int pre_campaign,
                                int werror_campaign)
 {
-    int accept_back = 0, accept_grad = 0, accept_song = 0;
-    int levelset_have_back = 0, levelset_have_grad = 0, levelset_have_song = 0;
+    int  accept_back        = 0, accept_grad        = 0;
+    int  levelset_have_back = 0, levelset_have_grad = 0, levelset_have_song = 0;
     char target_back[MAXSTR]; memset(target_back, 0, MAXSTR);
     char target_grad[MAXSTR]; memset(target_grad, 0, MAXSTR);
     char target_song[MAXSTR]; memset(target_song, 0, MAXSTR);
@@ -356,21 +350,13 @@ static int scan_campaign_level(const struct s_base *base,
         "map-back/clouds-SB.sol",
         "map-back/lava-SB.sol"
     };
-    const char sbtheme_substitute_song_a[][MAXSTR] =
-    {
-        "bgm/track5.ogg", /* alien = sky world    */
-        "bgm/track3.ogg", /* city = ice world     */
-        "bgm/track4.ogg", /* space = cave world   */
-        "bgm/track1.ogg", /* clouds = cloud world */
-        "bgm/track6.ogg"  /* volcano = lava world */
-    };
     const char sbtheme_limitation_song[][MAXSTR] =
     {
-        "bgm/track-SB1.ogg",
-        "bgm/track-SB2.ogg",
-        "bgm/track-SB3.ogg",
-        "bgm/track-SB4.ogg",
-        "bgm/track-SB5.ogg"
+        "bgm/track-SB1.ogg", /* alien = sky world    */
+        "bgm/track-SB2.ogg", /* city = ice world     */
+        "bgm/track-SB3.ogg", /* space = cave world   */
+        "bgm/track-SB4.ogg", /* clouds = cloud world */
+        "bgm/track-SB5.ogg"  /* volcano = lava world */
     };
 
     for (int i = 0; i < base->dc; i++)
@@ -496,7 +482,7 @@ static int scan_campaign_level(const struct s_base *base,
 
     if (accept_back && accept_grad)
     {
-        if (target_song && text_length(target_song) > 3 && strcmp(l->song, target_song))
+        if (text_length(target_song) > 3 && strcmp(l->song, target_song))
         {
             log_errorf("%s:\n    Campaign music replaced as Switchball: %s -> %s\n",
                        filename, l->song, target_song);

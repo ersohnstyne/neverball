@@ -4,7 +4,7 @@
 |-|-----------|----------
 | Discord | <a href="https://discord.gg/qnJR263Hm2"><img src="https://img.shields.io/discord/886320472088797184?logo=discord"></a> | <a href="https://discord.gg/HhMfr4N6H6"><img src="https://img.shields.io/discord/669254822758711297?logo=discord"></a>
 | Website | https://pennyball.stynegame.de | https://neverball.org
-| Game Browser | coming soon | https://play.neverball.org
+| Game Browser | https://pennyball.stynegame.de | https://play.neverball.org
 
 ![Neverball](https://neverball.org/images/shots/01-neverball-easy/easy-07-01.jpg)
 

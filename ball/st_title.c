@@ -446,7 +446,7 @@ static int title_action(int tok, int val)
             break;
 
         case TITLE_PLAY:
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (server_policy_get_d(SERVER_POLICY_EDITION) == 0 &&
                 !account_wgcl_name_read_only())
                 return goto_wgcl_login(&st_title, 0, 0, title_goto_playgame);

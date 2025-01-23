@@ -653,10 +653,12 @@ video_mode_reconf:
 
     if (window)
     {
+#ifndef __EMSCRIPTEN__
 #if _WIN32
         SDL_SetWindowMinimumSize(window, 800, 600);
 #else
         SDL_SetWindowMinimumSize(window, 320, 240);
+#endif
 #endif
 
         if ((context = SDL_GL_CreateContext(window)))
@@ -1232,10 +1234,12 @@ video_mode_auto_config_reconf:
 
     if (window)
     {
+#ifndef __EMSCRIPTEN__
 #if _WIN32
-        SDL_SetWindowMinimumSize(window, 600, 600);
+        SDL_SetWindowMinimumSize(window, 800, 600);
 #else
         SDL_SetWindowMinimumSize(window, 320, 240);
+#endif
 #endif
 
         config_set_d(CONFIG_HIGHDPI, 1);

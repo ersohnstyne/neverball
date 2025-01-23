@@ -416,7 +416,7 @@ static int goal_gui(void)
             }
 #endif
 
-            int scoreboard_id;
+            int scoreboard_id = 0;
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             if (!campaign_used())
@@ -505,7 +505,8 @@ static int goal_gui(void)
             gui_space(id);
 #endif
 
-            if (!resume_locked && goal_intro_animation_phase == 2)
+            if (!resume_locked && goal_intro_animation_phase == 2 &&
+                scoreboard_id)
                 gui_set_slide(scoreboard_id, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.4f, 0.8f, 0);
 
             if ((jd = gui_harray(id)))
@@ -515,21 +516,21 @@ static int goal_gui(void)
                  * --- OR ---
                  * check, if products is still available
                  */
-                int btns_disabled = (!resume || (!resume_locked && goal_intro_animation_phase == 2)) &&
-                                    ((config_get_d(CONFIG_NOTIFICATION_REWARD) && challenge_disable_all_buttons) ||
-                                     (config_get_d(CONFIG_NOTIFICATION_SHOP) &&
-                                      shop_product_available));
+                const int btns_disabled = (!resume || (!resume_locked && goal_intro_animation_phase == 2)) &&
+                                          ((config_get_d(CONFIG_NOTIFICATION_REWARD) && challenge_disable_all_buttons) ||
+                                           (config_get_d(CONFIG_NOTIFICATION_SHOP) &&
+                                            shop_product_available));
 
                 int btn_ids[3] = { 0, 0, 0 };
 
-                if (progress_done())
-                    btn_ids[2] = gui_start(jd, _("Finish"), GUI_SML, GOAL_DONE, 0);
-                else if (progress_last())
-                    btn_ids[2] = gui_start(jd, _("Finish"), GUI_SML, GOAL_LAST, 0);
-                else if (progress_next_avail())
-                    btn_ids[2] = gui_start(jd, _("Next Level"), GUI_SML, GOAL_NEXT, 0);
-                else
-                    btn_ids[2] = gui_start(jd, _("Finish"), GUI_SML, GOAL_LAST, 0);
+                const char *next_btn_text = progress_next_avail() ? N_("Next Level") :
+                                                                    N_("Finish");
+
+                const int next_btn_tok = progress_done() ? GOAL_DONE :
+                                                           progress_next_avail() ? GOAL_NEXT :
+                                                                                   GOAL_LAST;
+
+                btn_ids[2] = gui_start(jd, _(next_btn_text), GUI_SML, next_btn_tok, 0);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (progress_same_avail() &&

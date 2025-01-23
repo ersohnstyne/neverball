@@ -882,7 +882,7 @@ account_wgcl_try_add_fail:
 #endif
 #elif defined(__EMSCRIPTEN__) && NB_HAVE_PB_BOTH==1
     assets_add_is_pending = 0;
-    
+
     int r = EM_ASM_INT({
         return Neverball.gamecore_account_try_update(UTF8ToString($0), $1, $2, $3, $4, $5, $6) ? 1 : 0;
     }, session_uuid4,
@@ -892,7 +892,7 @@ account_wgcl_try_add_fail:
        c_halfgrav_curr + c_halfgrav,
        c_doublespeed_curr + c_doublespeed);
 
-    return r;
+    return 1;
 #else
     return 1;
 #endif
@@ -1032,7 +1032,7 @@ account_wgcl_try_set_fail:
        c_halfgrav,
        c_doublespeed);
 
-    return r;
+    return 1;
 #else
     return 1;
 #endif
@@ -1154,7 +1154,7 @@ account_wgcl_try_buy_fail:
         return Neverball.gamecore_account_try_buy(UTF8ToString($0), $1) ? 1 : 0;
     }, session_uuid4, managed_buy_flags_pending);
 
-    return r;
+    return 1;
 #else
     return 1;
 #endif

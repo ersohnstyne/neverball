@@ -1174,6 +1174,15 @@ static int conf_control_gui(void)
 
         conf_header(id, _("Controls"), GUI_BACK);
 
+        if (opt_touch && !video_has_touch)
+        {
+            gui_multi(id, _("Emulated touch controls enabled!\n"
+                            "Touch pointers may not work as expected!"),
+                          GUI_SML, GUI_COLOR_RED);
+
+            gui_space(id);
+        }
+
         preset_id = conf_state(id, _("Preset"), "XXXXXXXXXXXXX",
                                    CONF_CONTROL_INPUT_PRESET);
 

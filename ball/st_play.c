@@ -1241,12 +1241,6 @@ static int play_loop_click(int b, int d)
     {
         use_mouse = 1; use_keyboard = 0;
 
-        if (config_tst_d(CONFIG_MOUSE_CAMERA_L, b))
-        {
-            lmb_holded    = d;
-            lmb_hold_time = d ? 1000.0f : -0.01f;
-            max_speed     = d;
-        }
         if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
         {
             rmb_holded    = d;
@@ -1481,7 +1475,13 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
             rotate_finger = camrot_finger->id;
             rotate = 0.0f;
         }
-        else touch_arrow_enabled = 1;
+        else
+        {
+            touch_arrow_enabled = 1;
+            lmb_holded    = 1;
+            lmb_hold_time = 1000.0f;
+            max_speed     = 1;
+        }
     }
     else if (e->type == SDL_FINGERUP)
     {
@@ -1491,7 +1491,17 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
             rot_clr(DIR_R | DIR_L);
             rotate = 0.0f;
         }
-        else touch_arrow_enabled = 0;
+        else
+        {
+            touch_arrow_enabled = 0;
+            lmb_holded    = 0;
+            lmb_hold_time = -0.01f;
+            max_speed     = 0;
+            tilt_x = 0; tilt_y = 0;
+
+            game_client_maxspeed(0.0f, 0);
+            game_set_pos(0, 0);
+        }
     }
     else if (e->type == SDL_FINGERMOTION)
     {
@@ -1527,7 +1537,17 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
             int dy = (int) ((float) video.device_h * -e->dy);
 
             game_client_maxspeed(V_DEG(fatan2f(dy, dx)), touch_arrow_enabled);
-            game_set_pos(dx, dy);
+
+            tilt_x = CLAMP((-ANGLE_BOUND * 20) * powerup_get_tilt_multiply(),
+                           tilt_x + dx,
+                           ( ANGLE_BOUND * 20) * powerup_get_tilt_multiply());
+            tilt_y = CLAMP((-ANGLE_BOUND * 20) * powerup_get_tilt_multiply(),
+                           tilt_y + dy,
+                           ( ANGLE_BOUND * 20) * powerup_get_tilt_multiply());
+
+            game_set_pos_max_speed(tilt_x * powerup_get_tilt_multiply(),
+                                   curr_mode() == MODE_BOOST_RUSH ? 0 : tilt_y * powerup_get_tilt_multiply());
+            /* game_set_pos(dx, dy); */
         }
     }
 
@@ -1567,15 +1587,15 @@ void wgcl_play_touch_cammode(void)
 void wgcl_play_touch_rotate_camera(int rot_l, int rot_r)
 {
     if      (rot_l && rot_r) rot_clr(DIR_L | DIR_R);
-    else if (rot_l)          rot_set(DIR_L, 1.0f, 0);
-    else if (rot_r)          rot_set(DIR_R, 1.0f, 0);
+    else if (rot_l)          rot_set(DIR_R, 1.0f, 0);
+    else if (rot_r)          rot_set(DIR_L, 1.0f, 0);
     else                     rot_clr(DIR_L | DIR_R);
 }
 
 void wgcl_play_touch_zoom_camera(int v)
 {
-    if      (v < 0) game_set_zoom_rate(-1.0f);
-    else if (v > 0) game_set_zoom_rate(+1.0f);
+    if      (v < 0) game_set_zoom_rate(+1.0f);
+    else if (v > 0) game_set_zoom_rate(-1.0f);
     else            game_set_zoom_rate(0.0f);
 }
 

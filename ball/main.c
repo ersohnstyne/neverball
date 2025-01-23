@@ -1365,6 +1365,8 @@ static int loop(void)
 
 #if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
             case SDL_MOUSEMOTION:
+                video_has_touch = 0;
+
                 /* Convert to bottom left origin. */
 
                 ax = +e.motion.x;
@@ -1390,6 +1392,7 @@ static int loop(void)
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
+                video_has_touch = 0;
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 if (opt_touch)       d = st_touch(&opt_touch_event);
@@ -1399,7 +1402,7 @@ static int loop(void)
                 break;
 
             case SDL_MOUSEBUTTONUP:
-
+                video_has_touch = 0;
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 if (opt_touch)       d = st_touch(&opt_touch_event);
@@ -1412,6 +1415,7 @@ static int loop(void)
             case SDL_FINGERDOWN:
             case SDL_FINGERUP:
             case SDL_FINGERMOTION:
+                video_has_touch = 1;
                 d = st_touch(&e.tfinger);
                 break;
 

@@ -29,6 +29,7 @@ extern const char ICON[];
 #endif
 
 extern int opt_touch;
+extern int video_has_touch;
 
 struct video
 {

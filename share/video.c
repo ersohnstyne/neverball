@@ -1639,11 +1639,11 @@ void video_motionblur_prep(void)
 
     if (motionblur_renderable[motionblur_index] != 0)
         return;
-    
-    glClear(GL_DEPTH_BUFFER_BIT |
-            (config_get_d(CONFIG_REFLECTION) ? GL_STENCIL_BUFFER_BIT : 0));
 
     glViewport(0, 0, video.device_w, video.device_h);
+
+    glClear(GL_DEPTH_BUFFER_BIT |
+            (config_get_d(CONFIG_REFLECTION) ? GL_STENCIL_BUFFER_BIT : 0));
 }
 
 #if __cplusplus
@@ -1760,6 +1760,8 @@ extern "C"
 #endif
 void video_clear(void)
 {
+    glViewport(0, 0, video.device_w, video.device_h);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
             (config_get_d(CONFIG_REFLECTION) ? GL_STENCIL_BUFFER_BIT : 0));
 }

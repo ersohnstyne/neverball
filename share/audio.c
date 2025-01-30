@@ -567,6 +567,34 @@ void audio_free(void)
         voice_quit(voices_narrators);
         voices_narrators = NULL;
     }
+
+    for (V = voices_music; V;)
+    {
+        struct voice *N = V ? V->next : NULL;
+        voice_free(V);
+        V = N;
+    }
+
+    voices_music = NULL;
+
+    for (V = voices_sfx; V;)
+    {
+        struct voice *N = V ? V->next : NULL;
+        voice_free(V);
+        V = N;
+    }
+
+    voices_sfx = NULL;
+
+    for (V = voices_narrators; V;)
+    {
+        struct voice *N = V ? V->next : NULL;
+        voice_free(V);
+        V = N;
+    }
+
+    voices_narrators = NULL;
+
 #endif
 
     SDL_QuitSubSystem(SDL_INIT_AUDIO);

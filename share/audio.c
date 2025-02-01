@@ -329,10 +329,10 @@ static void voice_quit(struct voice* V)
 {
     struct voice *VP;
 
-    for (VP = V; VP; VP = VP ? VP->next : NULL)
+    for (VP = V; VP; )
     {
-        voice_free(VP);
-        VP = NULL;
+        VN = VP->next;
+        voice_free(VP); VP = VN;
     }
 }
 #endif

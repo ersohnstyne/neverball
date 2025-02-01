@@ -691,17 +691,8 @@ static int page_modes(int id)
 
     if ((jd = gui_vstack(id)))
     {
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if ((server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER)
-             || campaign_career_unlocked())
-            && server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER))
-        {
-            gui_label(jd, _("Classic Mode"), GUI_SML, 0, 0);
-            gui_multi(jd, _("Finish a level before the time runs out.\n"
-                            "You need to collect coins in order to open the goal."),
-                          GUI_SML, GUI_COLOR_WHT);
-        }
-        else if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER))
+        if (server_policy_get_d(SERVER_POLICY_EDITION) == 0 &&
+            account_get_d(ACCOUNT_SET_UNLOCKS) < 1)
         {
             gui_label(jd, _("Classic Mode"), GUI_SML, gui_gry, gui_red);
             gui_multi(jd, _("Complete the game to unlock this Mode."),
@@ -709,17 +700,11 @@ static int page_modes(int id)
         }
         else
         {
-            gui_label(jd, _("Classic Mode"), GUI_SML, gui_gry, gui_red);
-            gui_multi(jd, _("Career mode is not available\n"
-                            "with server group policy."),
+            gui_label(jd, _("Classic Mode"), GUI_SML, 0, 0);
+            gui_multi(jd, _("Finish a level before the time runs out.\n"
+                            "You need to collect coins in order to open the goal."),
                           GUI_SML, GUI_COLOR_WHT);
         }
-#else
-        gui_label(jd, _("Classic Mode"), GUI_SML, 0, 0);
-        gui_multi(jd, _("Finish a level before the time runs out.\n"
-                        "You need to collect coins in order to open the goal."),
-                      GUI_SML, GUI_COLOR_WHT);
-#endif
 
         gui_set_rect(jd, GUI_ALL);
     }

@@ -35,6 +35,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "dbg_config.h"
 

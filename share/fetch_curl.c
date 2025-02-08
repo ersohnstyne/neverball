@@ -934,11 +934,7 @@ unsigned int fetch_file(const char *url,
             curl_easy_setopt(handle, CURLOPT_BUFFERSIZE,      102400L);
             curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
             curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
-<<<<<<< HEAD
             curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION,  1);
-=======
-            curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1);
->>>>>>> 6de282e0dde5499ec7c57d3c014a88c32a9ec1ab
             curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT, 20L); /* In seconds. */
 
 #if _WIN32 && defined(CURLSSLOPT_NATIVE_CA)

@@ -16,11 +16,16 @@
 #include <SDL2/SDL.h>
 #elif _WIN32 && _MSC_VER
 #include <SDL.h>
+<<<<<<< HEAD
 #elif _WIN32
 #error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #endif
+=======
+#include <stdio.h>
+#include <string.h>
+>>>>>>> 6de282e0dde5499ec7c57d3c014a88c32a9ec1ab
 
 #include <stdio.h>
 #include <string.h>

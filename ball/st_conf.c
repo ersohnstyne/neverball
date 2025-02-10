@@ -1177,7 +1177,7 @@ static int conf_control_gui(void)
         if (opt_touch && !video_has_touch)
         {
             gui_multi(id, _("Emulated touch controls enabled!\n"
-                            "Touch pointers may not work as expected!"),
+                            "Tilt angles may accelerate than expected."),
                           GUI_SML, GUI_COLOR_RED);
 
             gui_space(id);

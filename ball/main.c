@@ -1918,7 +1918,11 @@ static int main_init(int argc, char *argv[])
     log_init(TITLE, "neverball.log");
 #endif
     config_log_userpath();
-#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
+
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    fs_mkdir("Scores");
+    fs_mkdir("Replays");
+#else
     make_dirs_and_migrate();
 #endif
 

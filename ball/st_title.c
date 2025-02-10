@@ -446,13 +446,21 @@ static int title_action(int tok, int val)
             break;
 
         case TITLE_PLAY:
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#if NB_HAVE_PB_BOTH==1
+#ifndef __EMSCRIPTEN__
             if (server_policy_get_d(SERVER_POLICY_EDITION) == 0 &&
                 !account_wgcl_name_read_only())
                 return goto_wgcl_login(&st_title, 0, 0, title_goto_playgame);
-#endif
+
             return title_check_playername(config_get_s(CONFIG_PLAYER)) ?
                                           goto_playgame() : goto_playgame_register();
+#else
+            return goto_playgame();
+#endif
+#else
+            return title_check_playername(config_get_s(CONFIG_PLAYER)) ?
+                                          goto_playgame() : goto_playgame_register();
+#endif
             break;
 
 #ifdef CONFIG_INCLUDES_ACCOUNT

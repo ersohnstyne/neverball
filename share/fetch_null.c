@@ -16,7 +16,11 @@
 
 #include "fetch.h"
 
-void fetch_init(void (*dispatch_event) (void *))
+void fetch_enable(int enable)
+{
+}
+
+void fetch_init(void)
 {
 }
 

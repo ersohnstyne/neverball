@@ -611,12 +611,13 @@ static int handle_key_dn(SDL_Event *e)
 
             if (dir != -1)
             {
-                key_pressed[dir] = 0;
+                /* Ignore auto-repeat on direction keys. */
 
-                if (key_pressed[key_other[dir]])
-                    st_stick(config_get_d(*key_axis[dir]), -key_tilt[dir]);
-                else
-                    st_stick(config_get_d(*key_axis[dir]), 0.0f);
+                if (e->key.repeat)
+                    break;
+
+                key_pressed[dir] = 1;
+                st_stick(config_get_d(*key_axis[dir]), key_tilt[dir]);
             }
             else
                 d = st_keybd(e->key.keysym.sym, 1);
@@ -699,44 +700,6 @@ void push_user_event(int code)
 
 /*---------------------------------------------------------------------------*/
 
-#if ENABLE_FETCH!=0
-/*
- * Custom SDL event code for fetch events.
- */
-Uint32 FETCH_EVENT = -2u;
-
-/*
- * Push a custom SDL event on the queue from another thread.
- */
-static void dispatch_fetch_event(void *data)
-{
-    SDL_Event e;
-
-    memset(&e, 0, sizeof (e));
-
-    e.type       = FETCH_EVENT;
-    e.user.data1 = data;
-
-    /* This is thread safe. */
-
-    SDL_PushEvent(&e);
-}
-
-/*
- * Start the fetch thread.
- *
- * SDL must be initialized at this point for fetch event dispatch to work.
- */
-static void initialize_fetch(void)
-{
-    /* Get a custom event code for fetch events. */
-    FETCH_EVENT = SDL_RegisterEvents(1);
-
-    /* Start the thread. */
-    fetch_init(dispatch_fetch_event);
-}
-#endif
-
 #if ENABLE_MOON_TASKLOADER!=0
 /*
  * Custom SDL event code for moon taskloader events.
@@ -783,7 +746,7 @@ static int goto_level(const List level_multi)
 
     List                p = NULL;
     static struct level lvl_v[30];
-    
+
     int lvl_count        = 0;
     int lvl_count_loaded = 0;
 
@@ -1605,6 +1568,7 @@ static int loop(void)
 
 /*---------------------------------------------------------------------------*/
 
+#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
 static int is_replay(struct dir_item *item)
 {
     return str_ends_with(item->path, str_ends_with(item->path, ".nbrx") ? ".nbrx" : ".nbr");
@@ -1615,7 +1579,6 @@ static int is_score_file(struct dir_item *item)
     return str_starts_with(item->path, "neverballhs-");
 }
 
-#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
 static void make_dirs_and_migrate(void)
 {
     Array items;
@@ -1652,7 +1615,7 @@ static void make_dirs_and_migrate(void)
             {
                 src = DIR_ITEM_GET(items, i)->path;
                 dst = concat_string("Scores/",
-                                    src + sizeof ("neverball-") - 1,
+                                    src + sizeof ("neverballhs-") - 1,
                                     ".txt",
                                     NULL);
                 fs_rename(src, dst);
@@ -1727,7 +1690,7 @@ static void step_primary_screen(Uint32 now, Uint32 dt, int allow_clear)
 
     /* Render. */
 
-    st_paint(0.001f * now, 1);
+    st_paint(0.001f * now, allow_clear);
 }
 
 static void step(void *data)
@@ -1906,7 +1869,7 @@ static int main_init(int argc, char *argv[])
 
     if (opt_data_multi)
         for (List p = opt_data_multi; p; p = p->next)
-            fs_add_path_with_archives((const char*)p->data);
+            fs_add_path_with_archives((const char *) p->data);
 
     config_paths(NULL);
 
@@ -2039,9 +2002,6 @@ static int main_init(int argc, char *argv[])
 #endif
 #if ENABLE_MOON_TASKLOADER!=0
         initialize_moon_taskloader();
-#endif
-#if ENABLE_FETCH!=0
-        initialize_fetch();
 #endif
 
         package_init();

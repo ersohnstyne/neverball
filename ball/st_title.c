@@ -1155,10 +1155,13 @@ static int title_gui(void)
 #if ENABLE_FETCH!=0 && \
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-                if ((jd = gui_hstack(id)))
+                if (config_get_d(CONFIG_ONLINE))
                 {
-                    gui_space(jd);
-                    gui_state(jd, _("Addons"), GUI_SML, TITLE_PACKAGES, 0);
+                    if ((jd = gui_hstack(id)))
+                    {
+                        gui_space(jd);
+                        gui_state(jd, _("Addons"), GUI_SML, TITLE_PACKAGES, 0);
+                    }
                 }
 #endif
 

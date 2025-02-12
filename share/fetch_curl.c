@@ -31,14 +31,17 @@
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL_mutex.h>
 #include <SDL2/SDL_thread.h>
+#include <SDL2/SDL_events.h>
 #elif _WIN32 && _MSC_VER
 #include <SDL_mutex.h>
 #include <SDL_thread.h>
+#include <SDL_events.h>
 #elif _WIN32
 #error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL_mutex.h>
 #include <SDL_thread.h>
+#include <SDL_events.h>
 #endif
 
 #if _DEBUG && _MSC_VER
@@ -107,6 +110,30 @@ static List fetch_list = NULL;
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
 
 /*
+ * Set this to 0 to disable all fetch functionality.
+ */
+static int fetch_enabled = 0;
+
+void fetch_enable(int enable)
+{
+    int old_value = fetch_enabled;
+
+    fetch_enabled = !!enable;
+
+    if (fetch_enabled != old_value)
+    {
+        if (fetch_enabled)
+            fetch_init();
+        else
+            fetch_quit();
+    }
+
+    log_printf("Fetch is %s\n", fetch_enabled ? "enabled" : "disabled");
+}
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * Here's a bit of odd decision making:
  *
  * I was very impressed with the download speed gains of libcurl running
@@ -144,11 +171,6 @@ struct fetch_event
     void *callback_data;
     void *extra_data;
 };
-
-/*
- * Dispatch a wrapped callback to the thread that calls fetch_handle_event.
- */
-static void (*fetch_dispatch_event) (void *) = NULL;
 
 /*
  * Create extra_data for a progress callback.
@@ -239,8 +261,43 @@ static void free_fetch_event(struct fetch_event *fe)
 
 #endif
 
+/*---------------------------------------------------------------------------*/
+
 /*
- * Invoke a wrapped callback. This should happen on the main thread.
+ * Custom SDL event code for fetch events.
+ */
+unsigned long FETCH_EVENT = (unsigned long)-1;
+
+/*
+ * Prepare for event dispatch.
+ *
+ * SDL must be initialized at this point for fetch event dispatch to work.
+ */
+static void fetch_dispatch_init(void)
+{
+    /* Get a custom event code for fetch events. */
+    FETCH_EVENT = (unsigned long)SDL_RegisterEvents(1);
+}
+
+/*
+ * Push a custom SDL event on the event queue.
+ */
+static void fetch_dispatch_event(struct fetch_event* fe)
+{
+    SDL_Event e;
+
+    memset(&e, 0, sizeof(e));
+
+    e.type = FETCH_EVENT;
+    e.user.data1 = fe;
+
+    /* This is thread safe. */
+
+    SDL_PushEvent(&e);
+}
+
+/*
+ * Invoke a wrapped callback. Called from the main thread upon receiving a FETCH_EVENT custom event.
  */
 void fetch_handle_event(void *data)
 {
@@ -252,7 +309,7 @@ void fetch_handle_event(void *data)
     struct fetch_event *fe = data;
 #endif
 
-    if (fe->callback)
+    if (fe && fe->callback)
         fe->callback(fe->callback_data, fe->extra_data);
 
     free_fetch_event(fe);
@@ -531,7 +588,7 @@ static int lock_hold_mutex = 0;
 /*
  * Fetch thread entry point.
  */
-static int fetch_thread_func(void *data)
+static int fetch_thread_main(void *data)
 {
     /* Loop infinitely unless poll fails or requested to quit. */
 
@@ -572,7 +629,7 @@ static void fetch_thread_init(void)
 {
     SDL_AtomicSet(&fetch_thread_running, 1);
     fetch_mutex = SDL_CreateMutex();
-    fetch_thread = SDL_CreateThread(fetch_thread_func, "fetch", NULL);
+    fetch_thread = SDL_CreateThread(fetch_thread_main, "fetch", NULL);
 }
 
 /*
@@ -582,11 +639,17 @@ static void fetch_thread_quit(void)
 {
     SDL_AtomicSet(&fetch_thread_running, 0);
 
-    SDL_WaitThread(fetch_thread, NULL);
-    fetch_thread = NULL;
+    if (fetch_thread)
+    {
+        SDL_WaitThread(fetch_thread, NULL);
+        fetch_thread = NULL;
+    }
 
-    SDL_DestroyMutex(fetch_mutex);
-    fetch_mutex = NULL;
+    if (fetch_mutex)
+    {
+        SDL_DestroyMutex(fetch_mutex);
+        fetch_mutex = NULL;
+    }
 }
 
 /*
@@ -603,8 +666,9 @@ static int fetch_lock_mutex(void)
     }
 
     /* Then, attempt to acquire mutex. */
+
     lock_hold_mutex = 1;
-    return SDL_LockMutex(fetch_mutex);
+    return fetch_mutex ? SDL_LockMutex(fetch_mutex) : 0;
 }
 
 /*
@@ -625,7 +689,7 @@ static int curl_was_init;
 /*
  * Initialize the CURL.
  */
-void fetch_init(void (*dispatch_event) (void *))
+void fetch_init(void)
 {
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
@@ -657,7 +721,7 @@ void fetch_init(void (*dispatch_event) (void *))
 
     curl_multi_setopt(multi_handle, CURLMOPT_MAX_TOTAL_CONNECTIONS, 1);
 
-    fetch_dispatch_event = dispatch_event;
+    fetch_dispatch_init();
 
     fetch_thread_init();
 #endif
@@ -899,10 +963,20 @@ unsigned int fetch_file(const char *url,
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     unsigned int fetch_id = 0;
-    CURL *handle;
+    CURL *handle = NULL;
+    int has_lock = 0;
 
-    fetch_lock_mutex();
+    if (!fetch_enabled)
+        return 0;
 
+    has_lock = fetch_lock_mutex();
+
+    if (!has_lock)
+    {
+        log_errorf("Fetch mutex lock failed unexpectedly\n");
+        return 0;
+    }
+    
     handle = curl_easy_init();
 
     if (handle)
@@ -932,10 +1006,14 @@ unsigned int fetch_file(const char *url,
             curl_easy_setopt(handle, CURLOPT_NOPROGRESS,       0);
 
             curl_easy_setopt(handle, CURLOPT_BUFFERSIZE,      102400L);
+#if NB_HAVE_PB_BOTH==1
+            curl_easy_setopt(handle, CURLOPT_USERAGENT,       "pennyball/" VERSION);
+#else
             curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
+#endif
             curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
             curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION,  1);
-            curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT, 20L); /* In seconds. */
+            curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT,  20L); /* In seconds. */
 
 #if _WIN32 && defined(CURLSSLOPT_NATIVE_CA)
             curl_easy_setopt(handle, CURLOPT_SSL_OPTIONS,     CURLSSLOPT_NATIVE_CA);

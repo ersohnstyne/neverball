@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
  * Copyright (C) 2024 Microsoft / Neverball authors
-=======
- * Copyright (C) 2021-2025 Jānis Rūcis
->>>>>>> b2f1bbd2d168c0ab01a57dc66cb9be0fbcc5ddb7
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -40,7 +36,6 @@
 #include <SDL_mutex.h>
 #include <SDL_thread.h>
 #include <SDL_events.h>
-<<<<<<< HEAD
 #elif _WIN32
 #error Security compilation error: No target include file in path for Windows specified!
 #else
@@ -73,8 +68,6 @@
 #pragma comment(lib, "libcurl_a.lib")
 #endif
 #endif
-=======
->>>>>>> b2f1bbd2d168c0ab01a57dc66cb9be0fbcc5ddb7
 
 /*
  * The thing that lets us do async transfers in a single thread.
@@ -136,30 +129,6 @@ void fetch_enable(int enable)
     }
 
     log_printf("Fetch is %s\n", fetch_enabled ? "enabled" : "disabled");
-}
-
-/*---------------------------------------------------------------------------*/
-
-/*
- * Set this to 0 to disable all fetch functionality.
- */
-static int fetch_enabled = 0;
-
-void fetch_enable(int enable)
-{
-    int old_value = fetch_enabled;
-
-    fetch_enabled = !!enable;
-
-    if (fetch_enabled != old_value)
-    {
-        if (fetch_enabled)
-            fetch_init();
-        else
-            fetch_quit();
-    }
-
-    log_printf("Fetch is %s\n", fetch_enabled ? "enabled": "disabled");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -290,21 +259,14 @@ static void free_fetch_event(struct fetch_event *fe)
     }
 }
 
-<<<<<<< HEAD
 #endif
 
-=======
->>>>>>> b2f1bbd2d168c0ab01a57dc66cb9be0fbcc5ddb7
 /*---------------------------------------------------------------------------*/
 
 /*
  * Custom SDL event code for fetch events.
  */
-<<<<<<< HEAD
 unsigned long FETCH_EVENT = (unsigned long)-1;
-=======
-unsigned long FETCH_EVENT = (unsigned long) -1;
->>>>>>> b2f1bbd2d168c0ab01a57dc66cb9be0fbcc5ddb7
 
 /*
  * Prepare for event dispatch.
@@ -314,29 +276,17 @@ unsigned long FETCH_EVENT = (unsigned long) -1;
 static void fetch_dispatch_init(void)
 {
     /* Get a custom event code for fetch events. */
-<<<<<<< HEAD
     FETCH_EVENT = (unsigned long)SDL_RegisterEvents(1);
-=======
-    FETCH_EVENT = (unsigned long) SDL_RegisterEvents(1);
->>>>>>> b2f1bbd2d168c0ab01a57dc66cb9be0fbcc5ddb7
 }
 
 /*
  * Push a custom SDL event on the event queue.
  */
-<<<<<<< HEAD
 static void fetch_dispatch_event(struct fetch_event* fe)
 {
     SDL_Event e;
 
     memset(&e, 0, sizeof(e));
-=======
-static void fetch_dispatch_event(struct fetch_event *fe)
-{
-    SDL_Event e;
-
-    memset(&e, 0, sizeof (e));
->>>>>>> b2f1bbd2d168c0ab01a57dc66cb9be0fbcc5ddb7
 
     e.type = FETCH_EVENT;
     e.user.data1 = fe;
@@ -717,12 +667,8 @@ static int fetch_lock_mutex(void)
 
     /* Then, attempt to acquire mutex. */
 
-<<<<<<< HEAD
     lock_hold_mutex = 1;
     return fetch_mutex ? SDL_LockMutex(fetch_mutex) : 0;
-=======
-    return fetch_mutex ? SDL_LockMutex(fetch_mutex) == 0 : 0;
->>>>>>> b2f1bbd2d168c0ab01a57dc66cb9be0fbcc5ddb7
 }
 
 /*
@@ -751,9 +697,6 @@ void fetch_init(void)
         fetch_quit();
 
     curl_version_info_data *info;
-
-    if (!fetch_enabled)
-        return;
 
     curl_global_init(CURL_GLOBAL_ALL);
     curl_was_init = 1;
@@ -1025,17 +968,6 @@ unsigned int fetch_file(const char *url,
 
     if (!fetch_enabled)
         return 0;
-<<<<<<< HEAD
-=======
-
-    has_lock = fetch_lock_mutex();
-
-    if (!has_lock)
-    {
-        log_printf("Fetch mutex lock failed unexpectedly\n");
-        return 0;
-    }
->>>>>>> b2f1bbd2d168c0ab01a57dc66cb9be0fbcc5ddb7
 
     has_lock = fetch_lock_mutex();
 

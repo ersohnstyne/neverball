@@ -551,7 +551,6 @@ void audio_free(void)
         voices_queue = NULL;
     }
 
-<<<<<<< HEAD
     if (voices_music)
     {
         voice_quit(voices_music);
@@ -573,13 +572,6 @@ void audio_free(void)
     for (V = voices_music; V;)
     {
         struct voice *N = V ? V->next : NULL;
-=======
-    V = voices;
-
-    while (V)
-    {
-        struct voice *N = V->next;
->>>>>>> 65df52ac4bc3946fc0017c5f74a763ab09b84e60
         voice_free(V);
         V = N;
     }

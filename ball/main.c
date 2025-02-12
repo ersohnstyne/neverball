@@ -700,7 +700,6 @@ void push_user_event(int code)
 
 /*---------------------------------------------------------------------------*/
 
-<<<<<<< HEAD
 #if ENABLE_MOON_TASKLOADER!=0
 /*
  * Custom SDL event code for moon taskloader events.
@@ -742,9 +741,6 @@ static void initialize_moon_taskloader(void)
 /*---------------------------------------------------------------------------*/
 
 static int goto_level(const List level_multi)
-=======
-static int goto_level(const char *path)
->>>>>>> b2f1bbd2d168c0ab01a57dc66cb9be0fbcc5ddb7
 {
     if (level_multi == NULL) return 0;
 
@@ -1962,7 +1958,6 @@ static int main_init(int argc, char *argv[])
     }
 #endif
 
-<<<<<<< HEAD
 #ifndef NDEBUG
     SDL_LogSetPriority(SDL_LOG_CATEGORY_ERROR, SDL_LOG_PRIORITY_DEBUG);
 #endif
@@ -1973,26 +1968,14 @@ static int main_init(int argc, char *argv[])
     config_init();
     config_load();
 
-#if ENABLE_RFD==1
-    /* Initialize RFD. */
-=======
-    /* Intitialize configuration. */
-
-    config_init();
-    config_load();
-
     fetch_enable(config_get_d(CONFIG_ONLINE));
 
     package_init();
 
     package_set_installed_action(handle_installed_action);
 
-    /* Enable joystick events. */
-
-    joy_init();
-
-    /* Initialize localization. */
->>>>>>> b2f1bbd2d168c0ab01a57dc66cb9be0fbcc5ddb7
+#if ENABLE_RFD==1
+    /* Initialize RFD. */
 
     rfd_init();
     rfd_load();
@@ -2265,14 +2248,13 @@ static void main_quit(void)
 #endif
 
     config_quit();
-<<<<<<< HEAD
 
 #ifndef DISABLE_PANORAMA
     if (!opt_panorama)
     {
 #endif
         package_quit();
-        fetch_quit  ();
+        fetch_enable(0);
 #if ENABLE_MOON_TASKLOADER!=0
         moon_taskloader_quit();
 #endif
@@ -2283,11 +2265,6 @@ static void main_quit(void)
     }
 #endif
 
-=======
-    package_quit();
-    fetch_enable(0);
-    SDL_Quit();
->>>>>>> b2f1bbd2d168c0ab01a57dc66cb9be0fbcc5ddb7
     log_quit();
     fs_quit ();
     opt_quit();

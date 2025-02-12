@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
  * Copyright (C) 2024 Microsoft / Neverball authors
-=======
- * Copyright (C) 2021-2025 Jānis Rūcis
->>>>>>> b2f1bbd2d168c0ab01a57dc66cb9be0fbcc5ddb7
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -51,10 +47,7 @@ struct fetch_callback
 extern unsigned long FETCH_EVENT;
 
 void fetch_init(void);
-<<<<<<< HEAD
 void fetch_reinit(void);
-=======
->>>>>>> b2f1bbd2d168c0ab01a57dc66cb9be0fbcc5ddb7
 void fetch_handle_event(void *);
 void fetch_quit(void);
 

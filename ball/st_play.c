@@ -1327,7 +1327,7 @@ static int play_loop_keybd(int c, int d)
 
             keybd_camera(c);
 
-            if (config_tst_d(CONFIG_KEY_RESTART, c) &&
+            /*if (config_tst_d(CONFIG_KEY_RESTART, c) &&
                 progress_same_avail())
             {
                 play_freeze_all = 1;
@@ -1342,7 +1342,7 @@ static int play_loop_keybd(int c, int d)
 #endif
                 if (progress_same())
                     goto_state(&st_play_ready);
-            }
+            }*/
             if (c == KEY_EXIT)
             {
                 play_freeze_all = 1;

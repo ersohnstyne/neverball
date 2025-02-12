@@ -1511,7 +1511,7 @@ static int loop(void)
                 if (e.type == MOON_TASKLOADER_EVENT)
                     moon_taskloader_handle_event(e.user.data1);
 #endif
-#if ENABLE_FETCH!=0
+#if ENABLE_FETCH!=0 && !defined(__EMSCRIPTEN__)
                 if (e.type == FETCH_EVENT)
                     fetch_handle_event(e.user.data1);
 #endif

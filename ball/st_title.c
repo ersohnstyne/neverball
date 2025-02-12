@@ -1133,12 +1133,40 @@ static int title_gui(void)
 
 #if NB_HAVE_PB_BOTH==1
 #if ENABLE_VERSION
+<<<<<<< HEAD
             if ((id = gui_label(root_id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT2)))
             {
                 gui_clr_rect(id);
                 gui_set_slide(id, GUI_SW, 0, 1.6f, 0);
                 gui_layout(id, -1, -1);
             }
+=======
+        if ((id = gui_label(root_id, "Neverball " VERSION, GUI_TNY, gui_wht2, gui_wht2)))
+        {
+            gui_clr_rect(id);
+            gui_set_slide(id, GUI_S, 0.85f, 0.4f, 0);
+            gui_layout(id, 0, -1);
+        }
+#endif
+
+#if ENABLE_FETCH
+        if (config_get_d(CONFIG_ONLINE))
+        {
+            if ((id = gui_vstack(root_id)))
+            {
+                if ((jd = gui_hstack(id)))
+                {
+                    gui_space(jd);
+                    gui_state(jd, _("Addons"), GUI_SML, TITLE_PACKAGES, 0);
+                }
+                gui_space(id);
+
+                gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 1.2f, 1.4f, 0);
+
+                gui_layout(id, +1, -1);
+            }
+        }
+>>>>>>> b2f1bbd2d168c0ab01a57dc66cb9be0fbcc5ddb7
 #endif
 #else
 #if ENABLE_VERSION

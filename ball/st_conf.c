@@ -2881,6 +2881,7 @@ static int conf_gui(void)
 
         if ((id = gui_vstack(root_id)))
         {
+<<<<<<< HEAD
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
@@ -2889,6 +2890,14 @@ static int conf_gui(void)
             gui_multi(id, _("Copyright © 2025 Neverball authors\n"
                             "Neverball is free software available under the terms of GPL v2 or later."),
                           GUI_TNY, GUI_COLOR_WHT);
+=======
+            gui_label(id, "Neverball " VERSION, GUI_TNY, gui_wht, gui_wht);
+            gui_multi(id, _(
+                "Copyright © 2025 Neverball authors\n"
+                "Neverball is free software available under the terms of GPL v2 or later."
+            ), GUI_TNY, gui_wht, gui_wht);
+
+>>>>>>> b2f1bbd2d168c0ab01a57dc66cb9be0fbcc5ddb7
             gui_clr_rect(id);
             gui_layout(id, 0, -1);
         }

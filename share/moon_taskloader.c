@@ -395,19 +395,23 @@ static int lock_hold_mutex = 0;
 /*
  * Moon taskloader thread entry point.
  */
-static int moon_taskloader_thread_func(void *data)
+static int moon_taskloader_thread_main(void *data)
 {
     log_printf("Starting moon taskloader thread\n");
 
     while (SDL_AtomicGet(&moon_taskloader_thread_running))
     {
-        while (lock_hold_mutex) {}
+        while (lock_hold_mutex &&
+               SDL_AtomicGet(&moon_taskloader_thread_running)) {}
 
-        lock_hold_mutex = 1;
-        SDL_LockMutex(moon_taskloader_mutex);
-        moon_taskloader_step();
-        SDL_UnlockMutex(moon_taskloader_mutex);
-        lock_hold_mutex = 0;
+        if (SDL_AtomicGet(&moon_taskloader_thread_running))
+        {
+            lock_hold_mutex = 1;
+            SDL_LockMutex(moon_taskloader_mutex);
+            moon_taskloader_step();
+            SDL_UnlockMutex(moon_taskloader_mutex);
+            lock_hold_mutex = 0;
+        }
     }
 
     log_printf("Stopping moon taskloader thread\n");
@@ -422,7 +426,7 @@ static void moon_taskloader_thread_init(void)
 {
     SDL_AtomicSet(&moon_taskloader_thread_running, 1);
     moon_taskloader_mutex = SDL_CreateMutex();
-    moon_taskloader_thread = SDL_CreateThread(moon_taskloader_thread_func, "MoonTaskloader", NULL);
+    moon_taskloader_thread = SDL_CreateThread(moon_taskloader_thread_main, "MoonTaskloader", NULL);
 }
 
 /*
@@ -432,11 +436,17 @@ static void moon_taskloader_thread_quit(void)
 {
     SDL_AtomicSet(&moon_taskloader_thread_running, 0);
 
-    SDL_WaitThread(moon_taskloader_thread, NULL);
-    moon_taskloader_thread = NULL;
+    if (moon_taskloader_thread)
+    {
+        SDL_WaitThread(moon_taskloader_thread, NULL);
+        moon_taskloader_thread = NULL;
+    }
 
-    SDL_DestroyMutex(moon_taskloader_mutex);
-    moon_taskloader_mutex = NULL;
+    if (moon_taskloader_mutex)
+    {
+        SDL_DestroyMutex(moon_taskloader_mutex);
+        moon_taskloader_mutex = NULL;
+    }
 }
 
 /*
@@ -447,8 +457,8 @@ static int moon_taskloader_lock_mutex(void)
     while (lock_hold_mutex) {}
 
     /* Then, attempt to acquire mutex. */
-    lock_hold_mutex = 1;
-    return SDL_LockMutex(moon_taskloader_mutex);
+    lock_hold_mutex = moon_taskloader_mutex && SDL_LockMutex(moon_taskloader_mutex) == 0 ? 1 : 0;
+    return lock_hold_mutex;
 }
 
 /*

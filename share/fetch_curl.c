@@ -602,13 +602,17 @@ static int fetch_thread_main(void *data)
 
         if (code == CURLM_OK)
         {
-            while (lock_hold_mutex) {}
+            while (lock_hold_mutex &&
+                   SDL_AtomicGet(&fetch_thread_running)) {}
 
-            lock_hold_mutex = 1;
-            SDL_LockMutex(fetch_mutex);
-            fetch_step();
-            SDL_UnlockMutex(fetch_mutex);
-            lock_hold_mutex = 0;
+            if (SDL_AtomicGet(&fetch_thread_running))
+            {
+                lock_hold_mutex = 1;
+                SDL_LockMutex(fetch_mutex);
+                fetch_step();
+                SDL_UnlockMutex(fetch_mutex);
+                lock_hold_mutex = 0;
+            }
         }
         else
         {
@@ -667,8 +671,8 @@ static int fetch_lock_mutex(void)
 
     /* Then, attempt to acquire mutex. */
 
-    lock_hold_mutex = 1;
-    return fetch_mutex ? SDL_LockMutex(fetch_mutex) : 0;
+    lock_hold_mutex = fetch_mutex && SDL_LockMutex(fetch_mutex) == 0 ? 1 : 0;
+    return lock_hold_mutex;
 }
 
 /*
@@ -976,7 +980,7 @@ unsigned int fetch_file(const char *url,
         log_errorf("Fetch mutex lock failed unexpectedly\n");
         return 0;
     }
-    
+
     handle = curl_easy_init();
 
     if (handle)

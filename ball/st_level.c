@@ -341,15 +341,13 @@ static int level_gui(void)
             str_starts_with(curr_setid_final, "Sb") ||
             str_starts_with(curr_setid_final, "sB"))
         {
-            SAFECPY(set_special_txt, GUI_AIRPLANE " ");
-            SAFECAT(set_special_txt, _("Pre-Classic Campaign"));
+            SAFECPY(set_special_txt, _("Pre-Classic Campaign"));
             set_special_lbl = 1;
         }
 
         if (str_starts_with(curr_setid_final, "anime"))
         {
-            SAFECPY(set_special_txt, GUI_AIRPLANE " ");
-            SAFECAT(set_special_txt, _("ANA-Exclusive"));
+            SAFECPY(set_special_txt, _("ANA-Exclusive"));
             set_special_lbl = 1;
         }
 
@@ -385,15 +383,13 @@ static int level_gui(void)
 
             if ((jd = gui_hstack(id)))
             {
-                gui_filler(jd);
+                const int coin_id = gui_label(jd, account_gemsattr,
+                                                  GUI_SML, gui_wht, gui_cya);
+                const int gems_id = gui_label(jd, account_coinsattr,
+                                                  GUI_SML, gui_wht, gui_yel);
 
-                if ((kd = gui_harray(jd)))
-                {
-                    gui_label(kd, account_gemsattr, GUI_SML, gui_wht, gui_cya);
-                    gui_label(kd, account_coinsattr, GUI_SML, gui_wht, gui_yel);
-                }
-
-                gui_filler(jd);
+                gui_set_font(coin_id, "ttf/DejaVuSans-Bold.ttf");
+                gui_set_font(gems_id, "ttf/DejaVuSans-Bold.ttf");
 
                 level_infocard_wallet_id = jd;
 

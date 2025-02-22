@@ -203,7 +203,9 @@ void hud_init(void)
 
             gui_space(id);
 
-            gui_state(id, GUI_FISHEYE, GUI_TCH, GUI_CAMERA, 0);
+            const int cambtn_id = gui_state(id, GUI_FISHEYE,
+                                                GUI_TCH, GUI_CAMERA, 0);
+            gui_set_font(cambtn_id, "ttf/DejaVuSans-Bold.ttf");
         }
 
         // HACK: hide by default.

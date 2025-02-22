@@ -27,6 +27,7 @@
 #include "networking.h"
 #include "account.h"
 #include "account_wgcl.h"
+#include "config_wgcl.h"
 #endif
 
 #include "base_config.h"
@@ -216,7 +217,7 @@ static const char *pick_demo(Array items)
     int total;
 
     if ((total = array_len(items)) < 1) return NULL;
-    
+
     const int selected = rand_between(0, total - 1);
 
     demo_dir_load(items, 0, total - 1);
@@ -472,7 +473,12 @@ static int title_action(int tok, int val)
         case TITLE_DEMO: return goto_state(&st_demo); break;
         case TITLE_CONF:
             game_fade(+4.0);
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_WGCL_GAME_OPTIONS)
+            WGCL_InitGameOptions(&st_title);
+            return goto_state(&st_null);
+#else
             return goto_conf(&st_title, 0, 0);
+#endif
             break;
 #if NB_HAVE_PB_BOTH!=1
 #if ENABLE_FETCH!=0
@@ -808,11 +814,12 @@ static int title_gui(void)
             {
                 if ((jd = gui_vstack(id)))
                 {
-                    gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" :
-                                                                     "  Neverball  ",
-                                         video.aspect_ratio < 1.0f ? GUI_MED :
-                                                                     GUI_LRG,
-                                                                     0, 0);
+                    const int title_id = gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" :
+                                                                                          "  Neverball  ",
+                                                              video.aspect_ratio < 1.0f ? GUI_MED :
+                                                                                          GUI_LRG,
+                                                                                          0, 0);
+                    gui_set_font(title_id, "ttf/DejaVuSans-Bold.ttf");
 #if NB_STEAM_API==1
                     edition_id = gui_label(jd, _("Steam Valve Edition"),
                                                GUI_SML, GUI_COLOR_WHT);
@@ -833,11 +840,12 @@ static int title_gui(void)
             if ((jd = gui_vstack(id)))
             {
                 /* Use with edition below title */
-                gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" :
-                                                                 "  Neverball  ",
-                                     video.aspect_ratio < 1.0f ? GUI_MED :
-                                                                 GUI_LRG,
-                                                                 0, 0);
+                const int title_id = gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" :
+                                                                                      "  Neverball  ",
+                                                          video.aspect_ratio < 1.0f ? GUI_MED :
+                                                                                      GUI_LRG,
+                                                                                      0, 0);
+                gui_set_font(title_id, "ttf/DejaVuSans-Bold.ttf");
 #if NB_STEAM_API==1
                 edition_id = gui_label(jd, _("Steam Valve Edition"), GUI_SML, GUI_COLOR_WHT);
 #elif NB_EOS_SDK==1
@@ -954,11 +962,13 @@ static int title_gui(void)
 
             if ((title_lockscreen_gamename_id = gui_vstack(id)))
             {
-                gui_title_header(title_lockscreen_gamename_id,
-                                 video.aspect_ratio < 1.0f ? "Neverball" :
-                                                             "  Neverball  ",
-                                 video.aspect_ratio < 1.0f ? GUI_MED :
-                                                             GUI_LRG, 0, 0);
+                const int title_id = gui_title_header(title_lockscreen_gamename_id,
+                                                      video.aspect_ratio < 1.0f ? "Neverball" :
+                                                                                  "  Neverball  ",
+                                                      video.aspect_ratio < 1.0f ? GUI_MED :
+                                                                                  GUI_LRG, 0, 0);
+                gui_set_font(title_id, "ttf/DejaVuSans-Bold.ttf");
+
                 if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
                     edition_id = gui_label(title_lockscreen_gamename_id,
                                            config_cheat() ? dev_env : os_env,
@@ -974,6 +984,7 @@ static int title_gui(void)
                                                                 video.aspect_ratio < 1.0f ? GUI_MED :
                                                                                             GUI_LRG, 0, 0))
             {
+                gui_set_font(title_lockscreen_gamename_id, "ttf/DejaVuSans-Bold.ttf");
                 gui_set_fill(title_lockscreen_gamename_id);
                 gui_set_slide(title_lockscreen_gamename_id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 1.6f, 0);
             }

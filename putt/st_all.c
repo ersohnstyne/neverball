@@ -413,7 +413,8 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
             if ((jd = gui_vstack(id)))
             {
-                gui_title_header(jd, "  Neverputt  ", GUI_LRG, 0, 0);
+                const int title_id = gui_title_header(jd, "  Neverputt  ", GUI_LRG, 0, 0);
+                gui_set_font(title_id, "ttf/DejaVuSans-Bold.ttf");
 #if NB_STEAM_API==1
                 gui_label(jd, _("Steam Valve Edition"), GUI_SML, GUI_COLOR_WHT);
 #else

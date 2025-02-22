@@ -465,9 +465,11 @@ static int start_star_view_gui(void)
 #else
                 const int curr_balls = 0;
 #endif
+                
+                const int lbl_id = gui_label(jd, set_star_attr,
+                                                 GUI_LRG, gui_wht, gui_yel);
+                gui_set_font(lbl_id, "ttf/DejaVuSans-Bold.ttf");
 
-                gui_label(jd, set_star_attr,
-                              GUI_LRG, gui_wht, gui_yel);
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (curr_mode() == MODE_HARDCORE);
                 else
@@ -608,6 +610,7 @@ static int start_gui(void)
                                             set_star_attr, GUI_SML,
                                             star_completed ? gui_yel : gui_wht,
                                             star_completed ? gui_grn : gui_yel);
+                gui_set_font(star_btn_id, "ttf/DejaVuSans-Bold.ttf");
 
                 if (!star_completed)
                 {
@@ -640,17 +643,7 @@ static int start_gui(void)
 
             int set_title_id = gui_label(jd, "XXXXXXXXXXXXXXXXXX", GUI_SML, GUI_COLOR_DEFAULT);
 
-            if (str_starts_with(set_id(curr_set()), "anime") ||
-                str_starts_with(set_id(curr_set()), "SB") ||
-                str_starts_with(set_id(curr_set()), "sb") ||
-                str_starts_with(set_id(curr_set()), "Sb") ||
-                str_starts_with(set_id(curr_set()), "sB"))
-            {
-                SAFECPY(set_name_final, GUI_AIRPLANE " ");
-                SAFECAT(set_name_final, curr_setname_final);
-            }
-            else
-                SAFECPY(set_name_final, curr_setname_final);
+            SAFECPY(set_name_final, curr_setname_final);
 
             gui_set_trunc(set_title_id, TRUNC_TAIL);
             gui_set_label(set_title_id, set_name_final);

@@ -618,7 +618,10 @@ static void gui_glyphs_init(void)
 
     for (i = 0; i < FONT_SIZE_MAX; i++)
         for (j = 0; j < 11; ++j)
+        {
+            gui_set_font(digit_id[i][j], "ttf/DejaVuSans-Bold.ttf");
             gui_layout(digit_id[i][j], 0, 0);
+        }
 
     /* Cache an image for the cursor. Scale it to the same size as a digit. */
 

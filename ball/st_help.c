@@ -1156,7 +1156,7 @@ static int page_tricks(int id)
 
     if ((jd = gui_hstack(id)))
     {
-        gui_space(id);
+        gui_filler(jd);
 
         if ((kd = gui_varray(jd)))
         {

@@ -294,10 +294,10 @@ int file_exists(const char *path)
         file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA)
         return 0;
 
-    return file_attr & FILE_ATTRIBUTE_NORMAL   ||
-           file_attr & FILE_ATTRIBUTE_ARCHIVE  ||
-           file_attr & FILE_ATTRIBUTE_READONLY ||
-           file_attr & FILE_ATTRIBUTE_HIDDEN;
+    return (file_attr & FILE_ATTRIBUTE_NORMAL   ||
+            file_attr & FILE_ATTRIBUTE_ARCHIVE  ||
+            file_attr & FILE_ATTRIBUTE_READONLY ||
+            file_attr & FILE_ATTRIBUTE_HIDDEN) ? 1 : 0;
 #else
     return (access(path, F_OK) == 0);
 #endif

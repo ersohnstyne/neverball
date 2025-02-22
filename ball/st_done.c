@@ -243,7 +243,9 @@ static int done_gui_set(void)
                 sprintf(set_star_attr,
 #endif
                         GUI_STAR " +%d", set_star(curr_set()));
-                int sid = gui_label(jd, set_star_attr, GUI_MED, gui_wht, gui_yel);
+                const int sid = gui_label(jd, set_star_attr,
+                                              GUI_MED, gui_wht, gui_yel);
+                gui_set_font(sid, "ttf/DejaVuSans-Bold.ttf");
 
                 if (!resume)
                     gui_pulse(sid, 1.2f);

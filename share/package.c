@@ -425,6 +425,8 @@ static void free_installed_packages(void)
     {
         struct local_package *lpkg = l->data;
 
+        unmount_package_file(lpkg->filename);
+
         free_local_package(&lpkg);
 
         l = list_rest(l);
@@ -1129,12 +1131,14 @@ static void package_fetch_done(void *data, void *extra_data)
 
             /* Rename from temporary name to target name. */
 
+            int rename_done = 0;
+
             if (pfi->temp_filename && pfi->dest_filename)
-                fs_rename(pfi->temp_filename, pfi->dest_filename);
+                rename_done = fs_rename(pfi->temp_filename, pfi->dest_filename);
 
             /* Add package to installed packages and to FS. */
 
-            if (lpkg)
+            if (lpkg && rename_done)
             {
                 if (mount_local_package(lpkg))
                     pkg->status = PACKAGE_INSTALLED;
@@ -1143,6 +1147,8 @@ static void package_fetch_done(void *data, void *extra_data)
 
                 lpkg = NULL;
             }
+            else if (pfi->temp_filename)
+                fs_remove(pfi->temp_filename);
         }
         else if (pfi->temp_filename)
             fs_remove(pfi->temp_filename);

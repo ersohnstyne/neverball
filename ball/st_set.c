@@ -319,8 +319,7 @@ static void gui_set(int id, int i)
         {
             gui_set_color(set_text_name_id, gui_cya, gui_blu);
 
-            SAFECPY(set_name_final, GUI_AIRPLANE " ");
-            SAFECAT(set_name_final, curr_setname_final);
+            SAFECPY(set_name_final, curr_setname_final);
         }
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         else if (str_starts_with(curr_setid_final, "SB")
@@ -333,8 +332,7 @@ static void gui_set(int id, int i)
 #endif
             gui_set_color(set_text_name_id, GUI_COLOR_CYA);
 
-            SAFECPY(set_name_final, GUI_AIRPLANE " ");
-            SAFECAT(set_name_final, curr_setname_final);
+            SAFECPY(set_name_final, curr_setname_final);
         }
 #endif
         else SAFECPY(set_name_final, curr_setname_final);
@@ -351,7 +349,7 @@ static void gui_set(int id, int i)
 #ifndef MAPC_INCLUDES_CHKP
         else if (campaign_marked)
         {
-            gui_set_label(set_text_name_id, _(GUI_AIRPLANE " MAPC requires CHKP"));
+            gui_set_label(set_text_name_id, _("MAPC requires CHKP"));
             gui_set_color(set_text_name_id, GUI_COLOR_RED);
             gui_set_state(set_text_name_id, GUI_NONE, i);
         }

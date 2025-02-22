@@ -17,12 +17,14 @@
 #include "audio.h"
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
+#include "config_wgcl.h"
 #endif
 #include "config.h"
 #include "common.h"
 #include "package.h"
 #include "geom.h"
 #include "lang.h"
+#include "ball.h"
 
 #include "st_package.h"
 #include "st_common.h"
@@ -288,6 +290,7 @@ static void fetch_package_images(void)
 /*---------------------------------------------------------------------------*/
 
 static int package_manage_can_start = 0;
+static int package_manage_can_equip = 0;
 static int package_manage_selected  = 0;
 
 static void package_start_download(int id)
@@ -335,6 +338,11 @@ static int package_action(int tok, int val)
         case GUI_BACK:
             package_manage_selected = -1;
 
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_WGCL_GAME_OPTIONS)
+            if (package_manage_selected == -1 && WGCL_GameOptions_Exists)
+                WGCL_BackToGameOptions("gameoptions_st_data");
+#endif
+
             r = exit_state(package_back);
 
             if (package_manage_selected == -1)
@@ -371,6 +379,7 @@ static int package_action(int tok, int val)
                 status == PACKAGE_UPDATE)
             {
                 package_manage_can_start = strcmp(package_get_type(selected), "set") == 0;
+                package_manage_can_equip = strcmp(package_get_type(selected), "ball") == 0;
 
                 package_manage_selected = selected;
 
@@ -416,7 +425,7 @@ static int gui_package_button(int id, int pi)
             default:                  gui_set_label(status_id, GUI_ARROW_DN);     break;
         }
 
-        gui_set_font(status_id, GUI_FACE);
+        gui_set_font(status_id, "ttf/DejaVuSans-Bold.ttf");
 
         if (status_ids)
             status_ids[pi] = status_id;
@@ -540,7 +549,7 @@ static int package_gui(void)
 
                     gui_set_label(install_label_id, _("Install"));
 
-                    gui_set_font(install_status_id, GUI_FACE);
+                    gui_set_font(install_status_id, "ttf/DejaVuSans-Bold.ttf");
 
                     gui_set_rect(ld, GUI_ALL);
                     gui_set_state(ld, PACKAGE_INSTALL, 0);
@@ -598,7 +607,7 @@ static void package_select(int pi)
         gui_set_label(install_label_id, _("Install"));
     }
 
-    gui_set_font(install_status_id, GUI_FACE);
+    gui_set_font(install_status_id, "ttf/DejaVuSans-Bold.ttf");
 
     if (status == PACKAGE_INSTALLED)
     {
@@ -743,6 +752,7 @@ static int package_keybd(int c, int d)
 enum
 {
     PACKAGE_MANAGE_START = GUI_LAST,
+    PACKAGE_MANAGE_EQUIP,
     PACKAGE_MANAGE_UPDATE
 };
 
@@ -764,6 +774,11 @@ static int package_manage_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
+    const char *package_id = package_get_id(package_manage_selected);
+
+    char equip_ball_path[MAXSTR];
+    sprintf(equip_ball_path, "ball/%s/%s", package_id ? package_id + 5 : "(null)", package_id ? package_id + 5 : "(null)");
+
     switch (curr_confirm_action)
     {
         default:
@@ -773,6 +788,19 @@ static int package_manage_action(int tok, int val)
                 case PACKAGE_MANAGE_START:
                     if (package_manage_can_start)
                         return installed_action ? installed_action(package_manage_selected) : 1;
+
+                case PACKAGE_MANAGE_EQUIP:
+                    if (package_manage_can_equip && package_id)
+                    {
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+                        account_set_s(ACCOUNT_BALL_FILE, equip_ball_path);
+#else
+                        config_set_s(BALL_FILE, equip_ball_path);
+#endif
+                        ball_free();
+                        ball_init();
+                        return exit_state(&st_package);
+                    }
 
                 case PACKAGE_MANAGE_UPDATE:
                     selected = package_manage_selected;
@@ -830,18 +858,21 @@ static int package_manage_delete_gui(void)
 
 static int package_manage_gui(void)
 {
-    int id, btn_id;
+    int id, btn_id, jd;
 
     if ((id = gui_vstack(0)))
     {
-        /*char desc[MAXSTR];
+        const char *package_id   = package_get_id(package_manage_selected);
+        const char *package_name = package_get_name(package_manage_selected);
+
+        char desc[MAXSTR];
         sprintf(desc, _("Installed package ID / Name:\n%s / %s"),
-                         package_get_files(package_manage_selected),
-                         package_get_name(package_manage_selected));
+                         package_id   ? package_id   : "(null)",
+                         package_name ? package_name : "Unknown package");
 
-        gui_multi(id, desc, GUI_SML, gui_wht, gui_wht);*/
+        gui_multi(id, desc, GUI_SML, gui_wht, gui_wht);
 
-        //gui_space(id);
+        gui_space(id);
 
         if (package_manage_can_start)
         {
@@ -850,9 +881,11 @@ static int package_manage_gui(void)
                 if ((jd = gui_hstack(btn_id)))
                 {
                     gui_filler(jd);
-                    gui_label(jd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
+                    const int startbtn_id = gui_label(jd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
                     gui_label(jd, _("Start"), GUI_SML, GUI_COLOR_DEFAULT);
                     gui_filler(jd);
+
+                    gui_set_font(startbtn_id, "ttf/DejaVuSans-Bold.ttf");
                 }
 
                 gui_multi(btn_id, _("Start this current Level Set"),
@@ -865,14 +898,60 @@ static int package_manage_gui(void)
             gui_space(id);
         }
 
+        if (package_manage_can_equip)
+        {
+            if ((btn_id = gui_vstack(id)))
+            {
+                char expected_path[MAXSTR];
+                sprintf(expected_path, "ball/%s/%s", package_id ? package_id + 5 : "(null)", package_id ? package_id + 5 : "(null)");
+
+                const int equip_available = 1;
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+                const int equip_same = package_id && strcmp(account_get_s(ACCOUNT_BALL_FILE), expected_path) == 0;
+#else
+                const int equip_same = package_id && strcmp(config_get_s(CONFIG_BALL_FILE), expected_path) == 0;
+#endif
+
+                int equip_btn_id = 0;
+
+                if ((jd = gui_hstack(btn_id)))
+                {
+                    gui_filler(jd);
+                    equip_btn_id = gui_label(jd, _("Equip"), GUI_SML, GUI_COLOR_DEFAULT);
+                    gui_filler(jd);
+                }
+
+                const int equip_desc_id = gui_multi(btn_id, _("Equip this ball model"),
+                                                            GUI_SML, GUI_COLOR_WHT);
+
+                if (!equip_available)
+                {
+                    gui_set_color(equip_btn_id, gui_red, gui_blk);
+                    gui_set_multi(equip_desc_id, _("Package is not available"));
+                }
+                else if (equip_same)
+                {
+                    gui_set_color(equip_btn_id, gui_red, gui_blk);
+                    gui_set_multi(equip_desc_id, _("Already equipped"));
+                }
+
+                gui_set_state(btn_id, equip_available && !equip_same ? PACKAGE_MANAGE_EQUIP : GUI_NONE, package_manage_selected);
+                gui_set_rect(btn_id, GUI_ALL);
+            }
+
+            gui_space(id);
+        }
+
         if ((btn_id = gui_vstack(id)))
         {
             if ((jd = gui_hstack(btn_id)))
             {
                 gui_filler(jd);
-                gui_label(jd, GUI_CIRCLE_ARROW, GUI_SML, GUI_COLOR_GRN);
+                const int updatebtn_id = gui_label(jd, GUI_CIRCLE_ARROW, GUI_SML, GUI_COLOR_GRN);
                 gui_label(jd, _("Update"), GUI_SML, GUI_COLOR_DEFAULT);
                 gui_filler(jd);
+
+                gui_set_font(updatebtn_id, "ttf/DejaVuSans-Bold.ttf");
             }
 
             gui_multi(btn_id, _("Update the new package"),

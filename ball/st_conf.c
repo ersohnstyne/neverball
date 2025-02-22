@@ -1830,6 +1830,7 @@ static void conf_controllers_set_label(int id, int value)
 #endif
 
     gui_set_label(id, str);
+    gui_set_font(id, "ttf/DejaVuSans-Bold.ttf");
 }
 
 static void conf_controllers_set_option(int index, int value)

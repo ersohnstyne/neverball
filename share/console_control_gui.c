@@ -204,12 +204,16 @@ static void create_xbox_rs_button(int rs_id)
 
 static void create_xbox_start_button(int start_id)
 {
-    gui_label(start_id, XBOX_START_BUTTON, GUI_SML, gui_gry, gui_wht);
+    const int gamepadbtn_id = gui_label(start_id, XBOX_START_BUTTON,
+                                                  GUI_SML, gui_gry, gui_wht);
+    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
 }
 
 static void create_xbox_select_button(int select_id)
 {
-    gui_label(select_id, XBOX_SELECT_BUTTON, GUI_SML, gui_gry, gui_wht);
+    const int gamepadbtn_id = gui_label(select_id, XBOX_SELECT_BUTTON,
+                                                   GUI_SML, gui_gry, gui_wht);
+    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -218,22 +222,26 @@ static void create_xbox_select_button(int select_id)
 
 static void create_ps4_a_button(int a_id)
 {
-    gui_label(a_id, PS4_A_BUTTON, GUI_SML, gui_blu, gui_blu);
+    const int gamepadbtn_id = gui_label(a_id, PS4_A_BUTTON, GUI_SML, gui_blu, gui_blu);
+    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
 }
 
 static void create_ps4_b_button(int b_id)
 {
-    gui_label(b_id, PS4_B_BUTTON, GUI_SML, gui_red, gui_red);
+    const int gamepadbtn_id = gui_label(b_id, PS4_B_BUTTON, GUI_SML, gui_red, gui_red);
+    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
 }
 
 static void create_ps4_x_button(int x_id)
 {
-    gui_label(x_id, PS4_X_BUTTON, GUI_SML, gui_pnk, gui_pnk);
+    const int gamepadbtn_id = gui_label(x_id, PS4_X_BUTTON, GUI_SML, gui_pnk, gui_pnk);
+    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
 }
 
 static void create_ps4_y_button(int y_id)
 {
-    gui_label(y_id, PS4_Y_BUTTON, GUI_SML, gui_cya, gui_cya);
+    const int gamepadbtn_id = gui_label(y_id, PS4_Y_BUTTON, GUI_SML, gui_cya, gui_cya);
+    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
 }
 
 static void create_ps4_lb_button(int lb_id)
@@ -268,12 +276,16 @@ static void create_ps4_rs_button(int rs_id)
 
 static void create_ps4_start_button(int start_id)
 {
-    gui_label(start_id, PS4_START_BUTTON, GUI_SML, gui_gry, gui_wht);
+    const int gamepadbtn_id = gui_label(start_id, PS4_START_BUTTON,
+                                                  GUI_SML, gui_gry, gui_wht);
+    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
 }
 
 static void create_ps4_select_button(int select_id)
 {
-    gui_label(select_id, PS4_SELECT_BUTTON, GUI_SML, gui_gry, gui_wht);
+    const int gamepadbtn_id = gui_label(select_id, PS4_START_BUTTON,
+                                                   GUI_SML, gui_gry, gui_wht);
+    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1441,7 +1453,7 @@ static void init_xbox_beam_style(void)
     {
         gui_label(xbox_control_beam_style_id, _("Change Style"),
                   GUI_SML, gui_wht, gui_wht);
-        
+
         console_gui_create_rb_button(xbox_control_model_id,
                          config_get_d(CONFIG_JOYSTICK_BUTTON_R1));
         console_gui_create_lb_button(xbox_control_model_id,

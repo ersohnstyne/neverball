@@ -2010,8 +2010,6 @@ static int main_init(int argc, char *argv[])
         initialize_moon_taskloader();
 #endif
 
-        package_init();
-
         package_set_installed_action(handle_installed_action);
 #ifndef DISABLE_PANORAMA
     }

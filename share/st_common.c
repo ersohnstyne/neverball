@@ -229,6 +229,9 @@ void conf_toggle_simple(int id, const char *label, int token, int value,
         btn1 = gui_label(kd, GUI_CHECKMARK, GUI_SML, GUI_COLOR_GRN);
         btn0 = gui_label(kd, GUI_CROSS,     GUI_SML, GUI_COLOR_RED);
 
+        gui_set_font(btn1, "ttf/DejaVuSans-Bold.ttf");
+        gui_set_font(btn0, "ttf/DejaVuSans-Bold.ttf");
+
         gui_set_state(btn1, token, value1);
         gui_set_state(btn0, token, value0);
 

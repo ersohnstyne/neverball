@@ -235,8 +235,7 @@ int dir_exists(const char *path)
         file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA)
         return 0;
 
-    return file_attr & FILE_ATTRIBUTE_DIRECTORY ||
-           file_attr & FILE_ATTRIBUTE_ARCHIVE;
+    return file_attr & FILE_ATTRIBUTE_DIRECTORY ? 1 : 0;
 #else
     DIR *dir;
 

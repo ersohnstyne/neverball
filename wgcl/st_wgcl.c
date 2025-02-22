@@ -111,7 +111,7 @@ void wgcl_gui_keyboard_en(int id)
             if ((ld = gui_hstack(kd)))
             {
                 gui_filler(ld);
-                gui_state(ld, GUI_TRIANGLE_LEFT, GUI_SML, GUI_BS, 0);
+                const int bksp_id = gui_state(ld, GUI_TRIANGLE_LEFT, GUI_SML, GUI_BS, 0);
                 keyd_en['='] = gui_state(ld, "+", GUI_SML, GUI_CHAR, '+');
                 keyd_en['-'] = gui_state(ld, "_", GUI_SML, GUI_CHAR, '_');
                 keyd_en['0'] = gui_state(ld, ")", GUI_SML, GUI_CHAR, ')');
@@ -125,6 +125,8 @@ void wgcl_gui_keyboard_en(int id)
                 keyd_en['2'] = gui_state(ld, "@", GUI_SML, GUI_CHAR, '@');
                 keyd_en['1'] = gui_state(ld, "!", GUI_SML, GUI_CHAR, '!');
                 gui_filler(ld);
+
+                gui_set_font(bksp_id, "ttf/DejaVuSans-Bold.ttf");
             }
             if ((ld = gui_hstack(kd)))
             {
@@ -161,8 +163,10 @@ void wgcl_gui_keyboard_en(int id)
                 keyd_en['D'] = gui_state(ld, "D", GUI_SML, GUI_CHAR, 'D');
                 keyd_en['S'] = gui_state(ld, "S", GUI_SML, GUI_CHAR, 'S');
                 keyd_en['A'] = gui_state(ld, "A", GUI_SML, GUI_CHAR, 'A');
-                gui_state(ld, "⇩", GUI_SML, GUI_CL, 0);
+                const int caps_id = gui_state(ld, "⇩", GUI_SML, GUI_CL, 0);
                 gui_filler(ld);
+
+                gui_set_font(caps_id, "ttf/DejaVuSans-Bold.ttf");
             }
             if ((ld = gui_hstack(kd)))
             {

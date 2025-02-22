@@ -64,7 +64,7 @@
 #define TUTORIAL_10_TITLE N_("Lift")
 
 #define TUTORIAL_1_DESC        N_("To move the Ball use your Mouse")
-#define TUTORIAL_1_DESC_TOUCH  N_("To move the Ball, swipe any screen")
+#define TUTORIAL_1_DESC_TOUCH  N_("To move the Ball, tap and hold the touchscreen")
 #define TUTORIAL_1_DESC_WII    N_("To move the Ball, use with Nunchuck")
 #define TUTORIAL_1_DESC_WIIU   N_("To move the Ball, tilt your Wii remote")
 #define TUTORIAL_1_DESC_XBOX   N_("To move the Ball, use with Left stick")

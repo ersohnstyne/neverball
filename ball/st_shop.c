@@ -237,7 +237,10 @@ static int shop_gui(void)
 #endif
                         "%s %d", GUI_DIAMOND, gemwallet);
 
-                gui_label(jd, gemsattr, GUI_SML, gui_wht, gui_cya);
+                const int gems_id = gui_label(jd, "XXXXX",
+                                                  GUI_SML, gui_wht, gui_cya);
+                gui_set_font(gems_id, "ttf/DejaVuSans-Bold.ttf");
+                gui_set_label(gems_id, gemsattr);
             }
 
             char coinsattr[MAXSTR];
@@ -249,7 +252,10 @@ static int shop_gui(void)
 #endif
                     "%s %d", GUI_COIN, coinwallet);
 
-            gui_label(jd, coinsattr, GUI_SML, gui_wht, gui_yel);
+            const int coin_id = gui_label(jd, "XXXXXX",
+                                              GUI_SML, gui_wht, gui_yel);
+            gui_set_font(coin_id, "ttf/DejaVuSans-Bold.ttf");
+            gui_set_label(coin_id, coinsattr);
 
             if (!inaccept_playername
              && text_length(config_get_s(CONFIG_PLAYER)) >= 3
@@ -316,22 +322,22 @@ static int shop_gui(void)
                  */
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                if      (temp_lives >= 1110)
+                /*if      (temp_lives >= 1110)
                     sprintf_s(powerups, MAXSTR, "%s (" GUI_CROWN GUI_CROWN GUI_CROWN ")", _("Balls"));
                 else if (temp_lives >= 1100)
                     sprintf_s(powerups, MAXSTR, "%s (" GUI_CROWN GUI_CROWN "%01d)", _("Balls"), (lvalue) - 1100);
                 else if (temp_lives >= 1000)
                     sprintf_s(powerups, MAXSTR, "%s (" GUI_CROWN "%02d)", _("Balls"), (lvalue) - 1000);
-                else
+                else*/
                     sprintf_s(powerups, MAXSTR, "%s (%d)", _("Balls"), lvalue);
 #else
-                if      (temp_lives >= 1110)
+                /*if      (temp_lives >= 1110)
                     sprintf(powerups, "%s (" GUI_CROWN GUI_CROWN GUI_CROWN ")", _("Balls"));
                 else if (temp_lives >= 1100)
                     sprintf(powerups, "%s (" GUI_CROWN GUI_CROWN "%01d)", _("Balls"), (lvalue) - 1100);
                 else if (temp_lives >= 1000)
                     sprintf(powerups, "%s (" GUI_CROWN "%02d)", _("Balls"), (lvalue) - 1000);
-                else
+                else*/
                     sprintf(powerups, "%s (%d)", _("Balls"), lvalue);
 #endif
 
@@ -342,23 +348,23 @@ static int shop_gui(void)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                     sprintf_s(powerups, MAXSTR,
                             "%s (%i)", _("Speedifier"), svalue);
-                    gui_label(kd, powerups, GUI_SML, gui_wht, gui_grn);
+                    const int powe_id = gui_label(kd, powerups, GUI_SML, gui_wht, gui_grn);
                     sprintf_s(powerups, MAXSTR,
                             "%s (%i)", _("Floatifier"), fvalue);
-                    gui_label(kd, powerups, GUI_SML, gui_wht, gui_blu);
+                    const int powf_id = gui_label(kd, powerups, GUI_SML, gui_wht, gui_blu);
                     sprintf_s(powerups, MAXSTR,
                             "%s (%i)", _("Earninator"), evalue);
-                    gui_label(kd, powerups, GUI_SML, gui_wht, gui_red);
+                    const int pows_id = gui_label(kd, powerups, GUI_SML, gui_wht, gui_red);
 #else
                     sprintf(powerups,
                             "%s (%i)", _("Speedifier"), svalue);
-                    gui_label(kd, powerups, GUI_SML, gui_wht, gui_grn);
+                    const int powe_id = gui_label(kd, powerups, GUI_SML, gui_wht, gui_grn);
                     sprintf(powerups,
                             "%s (%i)", _("Floatifier"), fvalue);
-                    gui_label(kd, powerups, GUI_SML, gui_wht, gui_blu);
+                    const int powf_id = gui_label(kd, powerups, GUI_SML, gui_wht, gui_blu);
                     sprintf(powerups,
                             "%s (%i)", _("Earninator"), evalue);
-                    gui_label(kd, powerups, GUI_SML, gui_wht, gui_red);
+                    const int pows_id = gui_label(kd, powerups, GUI_SML, gui_wht, gui_red);
 #endif
                 }
 
@@ -1267,7 +1273,8 @@ static int shop_iap_gui(void)
 #endif
 
                                 gui_image(kd, imgattr, ww, hh);
-                                gui_label(kd, iapattr, GUI_SML, sufficent_col, sufficent_col);
+                                const int cost_lbl_id = gui_label(kd, iapattr, GUI_SML, sufficent_col, sufficent_col);
+                                gui_set_font(cost_lbl_id, "ttf/DejaVuSans-Bold.ttf");
                                 gui_filler(kd);
                                 gui_set_state(kd, sufficent_action, multiply - 1);
                                 btniapdesktop = kd;
@@ -1298,7 +1305,8 @@ static int shop_iap_gui(void)
 #endif
 
                                     gui_image(kd, imgattr, ww, hh);
-                                    gui_label(kd, iapattr, GUI_SML, GUI_COLOR_WHT);
+                                    const int cost_lbl_id = gui_label(kd, iapattr, GUI_SML, GUI_COLOR_WHT);
+                                    gui_set_font(cost_lbl_id, "ttf/DejaVuSans-Bold.ttf");
                                     gui_filler(kd);
                                     gui_set_state(kd, SHOP_IAP_GET_BUY, multiply - 1);
                                     btniapdesktop = kd;
@@ -1339,6 +1347,7 @@ static int shop_iap_gui(void)
                                                              GUI_SML,
                                                              account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? gui_wht : gui_red,
                                                              account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? gui_wht : gui_red);
+                                gui_set_font(btniapmobile, "ttf/DejaVuSans-Bold.ttf");
                                 gui_set_state(btniapmobile, account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[multiply - 1] ? SHOP_IAP_GET_BUY : GUI_NONE, multiply - 1);
                             }
 #endif
@@ -1362,6 +1371,7 @@ static int shop_iap_gui(void)
 #endif
                                         "%s %d (%s)", GUI_DIAMOND, iapgemvalue[multiply - 1], currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
                                 btniapmobile = gui_label(jd, iapattr, GUI_SML, GUI_COLOR_WHT);
+                                gui_set_font(btniapmobile, "ttf/DejaVuSans-Bold.ttf");
                                 gui_set_state(btniapmobile, SHOP_IAP_GET_BUY, multiply - 1);
                             }
 #endif

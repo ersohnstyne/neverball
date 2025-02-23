@@ -708,11 +708,12 @@ static void ball_timer(int id, float dt)
 static int ball_keybd(int c, int d)
 {
 #ifndef __EMSCRIPTEN__
-    int initial_fov = config_get_d(CONFIG_VIEW_FOV);
-    int initial_dc  = config_get_d(CONFIG_VIEW_DC);
-    int initial_dp  = config_get_d(CONFIG_VIEW_DP);
-    int initial_w   = config_get_d(CONFIG_WIDTH);
-    int initial_h   = config_get_d(CONFIG_HEIGHT);
+    int initial_fov  = config_get_d(CONFIG_VIEW_FOV);
+    int initial_dc   = config_get_d(CONFIG_VIEW_DC);
+    int initial_dp   = config_get_d(CONFIG_VIEW_DP);
+    int initial_w    = config_get_d(CONFIG_WIDTH);
+    int initial_h    = config_get_d(CONFIG_HEIGHT);
+    int initial_refl = config_get_d(CONFIG_REFLECTION);
 #endif
 
     int i;
@@ -735,6 +736,7 @@ static int ball_keybd(int c, int d)
                 if (!config_cheat()) return 1;
 
 #ifndef __EMSCRIPTEN__
+                config_set_d(CONFIG_REFLECTION, 0);
                 demo_replay_stop(0);
                 load_ball_demo();
                 game_kill_fade();
@@ -760,6 +762,7 @@ static int ball_keybd(int c, int d)
                     set_curr_ball(i);
 
                     video_clear();
+                    video_can_swap_window = 1;
                     video_set_perspective((float) initial_fov, 0.1f, FAR_DIST);
                     back_draw_easy();
 
@@ -770,7 +773,8 @@ static int ball_keybd(int c, int d)
 
                 /* Restore config. */
 
-                config_set_d(CONFIG_VIEW_FOV, initial_fov);
+                config_set_d(CONFIG_VIEW_FOV,   initial_fov);
+                config_set_d(CONFIG_REFLECTION, initial_refl);
 
                 video_set_window_size(initial_w, initial_h);
                 video_resize         (initial_w, initial_h);

@@ -528,7 +528,8 @@ static int level_gui(void)
 
             if ((kd = gui_hstack(jd)))
             {
-                gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
+                const int startbtn_id = gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
+                gui_set_font(startbtn_id, "ttf/DejaVuSans-Bold.ttf");
                 gui_label(kd, _("Start"), GUI_SML, GUI_COLOR_WHT);
 
                 gui_set_state(kd, LEVEL_START, 0);

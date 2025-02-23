@@ -288,7 +288,7 @@ static int fail_gui(void)
 
     if (fail_intro_animation_phase == 1)
     {
-        if ((id = gui_title_header(0, label, GUI_LRG, gui_blu, gui_grn)))
+        if ((id = gui_title_header(0, label, GUI_LRG, gui_gry, gui_red)))
         {
             gui_set_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.5f, 0);
             gui_layout(id, 0, 0);
@@ -612,6 +612,7 @@ static int fail_gui(void)
             gui_layout(id, 0, 0);
         }
 
+#ifndef __EMSCRIPTEN__
         if (root_id && (id = gui_vstack(root_id)))
         {
             gui_space(id);
@@ -627,6 +628,7 @@ static int fail_gui(void)
 
             gui_layout(id, -1, +1);
         }
+#endif
     }
 
     if (try_shatter_snd)

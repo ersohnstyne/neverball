@@ -276,6 +276,11 @@ void WGCL_SaveGameSystemSettings(void)
                                          SDLK_w, SDLK_a, SDLK_s, SDLK_d);
             break;
     }
+
+    audio_volume(CLAMP(0, config_get_d(CONFIG_MASTER_VOLUME),   10),
+                 CLAMP(0, config_get_d(CONFIG_SOUND_VOLUME),    10),
+                 CLAMP(0, config_get_d(CONFIG_MUSIC_VOLUME),    10),
+                 CLAMP(0, config_get_d(CONFIG_NARRATOR_VOLUME), 10));
 #endif
 }
 

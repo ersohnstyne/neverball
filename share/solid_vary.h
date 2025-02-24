@@ -20,6 +20,7 @@
 #endif
 #include "base_config.h"
 #include "solid_base.h"
+#include "vec3.h"
 
 /*
  * Varying solid data.
@@ -55,6 +56,11 @@ struct v_move
     int   tm;                                  /* milliseconds               */
 
     int pi;
+
+    struct vec3 pos;                           /* cached position            */
+    struct vec4 rot;                           /* cached orientation         */
+
+    unsigned int dirty : 1;
 };
 
 struct v_item
@@ -168,6 +174,9 @@ struct s_vary
 
 int  sol_load_vary(struct s_vary *, struct s_base *);
 void sol_free_vary(struct s_vary *);
+
+int  is_move_dirty (const struct s_vary *vary, int mi);
+void set_move_dirty(const struct s_vary *vary, int mi, unsigned int dirty);
 
 /*---------------------------------------------------------------------------*/
 

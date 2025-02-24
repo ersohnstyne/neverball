@@ -137,6 +137,17 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
         c_mp->t  = mp->t;
         c_mp->tm = mp->tm;
         c_mp->pi = mp->pi;
+
+        c_mp->pos.x = mp->pos.x;
+        c_mp->pos.y = mp->pos.y;
+        c_mp->pos.z = mp->pos.z;
+
+        c_mp->rot.x = mp->rot.x;
+        c_mp->rot.y = mp->rot.y;
+        c_mp->rot.z = mp->rot.z;
+        c_mp->rot.w = mp->rot.w;
+
+        c_mp->dirty = mp->dirty;
     }
 
     /* Backed up from the gameplay (coins) */
@@ -341,6 +352,17 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
             mp->t  = last_mp->t;
             mp->tm = last_mp->tm;
             mp->pi = last_mp->pi;
+
+            mp->pos.x = last_mp->pos.x;
+            mp->pos.y = last_mp->pos.y;
+            mp->pos.z = last_mp->pos.z;
+
+            mp->rot.x = last_mp->rot.x;
+            mp->rot.y = last_mp->rot.y;
+            mp->rot.z = last_mp->rot.z;
+            mp->rot.w = last_mp->rot.w;
+
+            mp->dirty = last_mp->dirty;
 
             if (mp->tm >= pp->base->tm)
             {

@@ -70,6 +70,11 @@ struct chkp_move
     int tm;
 
     int pi;
+
+    struct vec3 pos;                           /* cached position            */
+    struct vec4 rot;                           /* cached orientation         */
+
+    unsigned int dirty : 1;
 };
 
 struct chkp_item

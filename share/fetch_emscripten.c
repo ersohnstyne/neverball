@@ -19,6 +19,7 @@
 #include "fetch.h"
 #include "common.h"
 #include "list.h"
+#include "log.h"
 #include "fs.h"
 
 static int fetch_enabled = 0;
@@ -156,6 +157,8 @@ void fetch_reinit(void)
 {
     /* No possible, compile with -s FETCH=1! */
 }
+
+unsigned long FETCH_EVENT = (unsigned long)-1;
 
 void fetch_handle_event(void *data)
 {

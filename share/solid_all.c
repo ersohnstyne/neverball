@@ -465,6 +465,12 @@ int curr_path_enabled_orcondition[1024];
 static void sol_path_flag(struct s_vary *vary, cmd_fn cmd_func, int pi, int f)
 {
     int mi;
+<<<<<<< HEAD
+=======
+
+    if (pi < 0 || pi >= vary->pc)
+        return;
+>>>>>>> 6e50deaba8440c1b9ed0b4fab88df063e144db6c
 
     if (!vary) return;
     if (pi < 0 || pi >= vary->pc) return;

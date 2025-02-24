@@ -31,12 +31,14 @@
 
 #include <sys/stat.h>
 
-#include "state.h"
-#include "fs.h"
 #include "common.h"
+#include "fs.h"
+#include "dir.h"
+#include "array.h"
 #include "audio.h"
 #include "config.h"
 #include "package.h"
+#include "state.h"
 
 #include "st_common.h"
 #include "st_package.h"
@@ -44,9 +46,9 @@
 #include "config_wgcl.h"
 
 #if ENABLE_OPENDRIVEAPI!=0
-/*
- * https://gitea.stynegame.de/StyneGameHamburg/opendrivepi
- */
+ /*
+  * https://gitea.stynegame.de/StyneGameHamburg/opendrivepi
+  */
 #include <opendriveapi.h>
 #elif _WIN32
 #if !defined(_MSC_VER)
@@ -161,7 +163,7 @@ void WGCL_BackToGameOptions(const char *st_class_name)
 
 /*---------------------------------------------------------------------------*/
 
-static void wgcl_gameoptions_refresh_packages_done(void* data1, void* data2)
+static void wgcl_gameoptions_refresh_packages_done(void *data1, void *data2)
 {
     goto_package(0, &st_null);
 }
@@ -179,6 +181,184 @@ void WGCL_CallClassicPackagesUI(void)
 
         package_refresh(callback);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Array wgcloptions_file_items = NULL;
+
+static int hs_scan_item(struct dir_item *item)
+{
+    return str_ends_with(item->path, ".txt");
+}
+
+static int hs_cmp_items(const void *A, const void *B)
+{
+    const struct dir_item *a = A, *b = B;
+
+    return strcmp(a->path, b->path);
+}
+
+static Array wgcl_gameoptions_levelset_hs_dir_scan(void)
+{
+    Array items;
+
+    if ((items = fs_dir_scan("Scores", hs_scan_item)))
+        array_sort(items, hs_cmp_items);
+
+    return items;
+}
+
+static void set_hs_read_lines(fs_file fp, char *buf, int size)
+{
+    int total_g  = 0;
+    int total_xt = 0;
+    int total_xf = 0;
+
+    while (fs_gets(buf, size, fp))
+    {
+        strip_newline(buf);
+
+        if (strncmp(buf, "stats ", 6) == 0)
+        {
+            int additive_g  = 0;
+            int additive_xt = 0;
+            int additive_xf = 0;
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            if (sscanf_s(buf, "stats %d %d %d", &additive_g,
+                                                &additive_xt,
+                                                &additive_xf) == 3)
+#else
+            if (sscanf(buf, "stats %d %d %d", &additive_g,
+                                              &additive_xt,
+                                              &additive_xf) == 3)
+#endif
+            {
+                total_g  += additive_g;
+                total_xt += additive_xt;
+                total_xf += additive_xt;
+            }
+        }
+    }
+
+    if (total_g != 0 ||
+        total_xt != 0 || total_xf != 0)
+    {
+#ifdef __EMSCRIPTEN__
+        EM_ASM({
+            CoreLauncherOptions_GameOptions_SaveData_LevelSet_AddToHSFileCardContent_Stats($0, $1, $2);
+        }, total_g, total_xt, total_xf);
+#endif
+    }
+}
+
+static void set_load_hs(const char *filename)
+{
+    fs_file fp;
+
+    int score_version = 0;
+
+    if ((fp = fs_open_read(filename)))
+    {
+        char buf[MAXSTR];
+
+        if (fs_gets(buf, sizeof (buf), fp))
+        {
+            strip_newline(buf);
+
+            set_hs_read_lines(fp, buf, sizeof(buf));
+        }
+
+        fs_close(fp);
+    }
+
+}
+
+void WGCL_CallSaveDataUI(void)
+{
+#ifdef __EMSCRIPTEN__
+    int campaign_available = 0;
+    int levelset_available = 0;
+
+    /* === Campaign inside WGCL's game options === */
+
+    campaign_available = fs_exists("campaign.txt") &&
+                         fs_exists("Campaign/time-trial.txt");
+
+    /* === Level set inside WGCL's game options === */
+
+    char userdata_levelset_path[128];
+    sprintf(userdata_levelset_path, "%s/%s", fs_get_write_dir(), "Scores");
+
+    levelset_available = dir_exists(userdata_levelset_path);
+
+    EM_ASM({
+        gameoptions_campaign_available = $0;
+        gameoptions_levelset_available = $1;
+    }, campaign_available, levelset_available);
+#endif
+}
+
+void WGCL_CallHighscoreDataUI_Campaign(void)
+{
+}
+
+void WGCL_CallHighscoreDataUI_LevelSet(void)
+{
+#ifdef __EMSCRIPTEN__
+    EM_ASM({ CoreLauncherOptions_GameOptions_SaveData_LevelSet_ClearHSFileCards(); });
+#endif
+
+    wgcloptions_file_items = wgcl_gameoptions_levelset_hs_dir_scan();
+    const int file_count = array_len(wgcloptions_file_items);
+
+    for (int i = 0; i < file_count; i++)
+    {
+        struct dir_item *out_item = array_get(wgcloptions_file_items, i);
+
+        if (out_item &&
+            str_ends_with(out_item->path, ".txt") &&
+            !str_ends_with(out_item->path, "-cheat.txt"))
+        {
+            int filesize = fs_size(out_item->path);
+
+#ifdef __EMSCRIPTEN__
+            EM_ASM({
+                CoreLauncherOptions_GameOptions_SaveData_LevelSet_AddToHSFileCard(UTF8ToString($0), $1);
+            }, out_item->path, filesize);
+#endif
+            set_load_hs(out_item->path);
+        }
+    }
+
+    /*
+     * Note that array will be freed automatically upon succesfully scanned
+     * by the WGCL's game options (faster, but improvement).
+     */
+
+    array_free(wgcloptions_file_items);
+
+#ifdef __EMSCRIPTEN__
+    EM_ASM({
+        CoreLauncherOptions_GameOptions_SaveData_LevelSet_RenderHSFileCard(1);
+    });
+#endif
+}
+
+void WGCL_TryEraseHighscoreFile_Campaign(void)
+{
+    fs_remove("Campaign/time-trial.txt");
+}
+
+void WGCL_TryEraseHighscoreFile_LevelSet(const char *filename)
+{
+    char file_path[64];
+    sprintf(file_path, "Scores/%s", filename);
+
+    fs_remove(file_path);
+
+    WGCL_CallHighscoreDataUI_LevelSet();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -288,6 +468,11 @@ void WGCL_SaveGameSystemSettings(void)
 
 void WGCL_TryFormatUserData(void)
 {
+#ifdef __EMSCRIPTEN__
+    /* First things first, quit package first. */
+
+    package_quit();
+
     const char path_name[5][256] = {
         "Campaign",
         "DLC",
@@ -365,4 +550,5 @@ void WGCL_TryFormatUserData(void)
         }
 #endif
     }
+#endif
 }

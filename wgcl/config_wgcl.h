@@ -27,6 +27,13 @@ void WGCL_BackToGameOptions(const char *);
 
 void WGCL_CallClassicPackagesUI(void);
 
+void WGCL_CallSaveDataUI(void);
+void WGCL_CallHighscoreDataUI_Campaign(void);
+void WGCL_CallHighscoreDataUI_LevelSet(void);
+
+void WGCL_TryEraseHighscoreFile_Campaign(void);
+void WGCL_TryEraseHighscoreFile_LevelSet(const char *);
+
 void WGCL_LoadGameSystemSettings(void);
 void WGCL_SaveGameSystemSettings(void);
 

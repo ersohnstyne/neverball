@@ -153,16 +153,12 @@ void fetch_init(void)
     /* Just compile with -s FETCH=1 */
 }
 
-<<<<<<< HEAD
 void fetch_reinit(void)
 {
     /* No possible, compile with -s FETCH=1! */
 }
 
-unsigned long FETCH_EVENT = (unsigned long)-1;
-=======
 unsigned long FETCH_EVENT = (unsigned long) -1;
->>>>>>> 6e50deaba8440c1b9ed0b4fab88df063e144db6c
 
 void fetch_handle_event(void *data)
 {

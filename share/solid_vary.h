@@ -60,11 +60,7 @@ struct v_move
     struct vec3 pos;                           /* cached position            */
     struct vec4 rot;                           /* cached orientation         */
 
-<<<<<<< HEAD
     unsigned int dirty : 1;
-=======
-    unsigned int dirty:1;
->>>>>>> 6e50deaba8440c1b9ed0b4fab88df063e144db6c
 };
 
 struct v_item

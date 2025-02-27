@@ -750,9 +750,7 @@ int sol_load_base(struct s_base *fp, const char *filename)
         }
 
         if (res != 0) return res;
-
-        log_errorf("No SOL found, migrating to SOLX: %s\n", filename);
-
+        
         /* *.csolx / *.solx = SOL version > 9 */
 
         char filename_x[256];
@@ -761,6 +759,8 @@ int sol_load_base(struct s_base *fp, const char *filename)
 
         if ((fin_x = fs_open_read(filename_x)))
         {
+            log_errorf("Invalid SOL file, migrating to SOLX: %s\n", filename);
+
             res = sol_load_file(fin_x, fp, 1);
             fs_close(fin_x);
         }
@@ -800,8 +800,6 @@ int sol_load_meta(struct s_base *fp, const char *filename)
 
         if (res != 0) return res;
 
-        log_errorf("No SOL found, migrating to SOLX: %s\n", filename);
-
         /* *.csolx / *.solx = SOL version > 9 */
 
         char filename_x[256];
@@ -810,7 +808,9 @@ int sol_load_meta(struct s_base *fp, const char *filename)
 
         if ((fin_x = fs_open_read(filename_x)))
         {
-            res = sol_load_head(fin_x, fp, 1);
+            log_errorf("Invalid SOL file, migrating to SOLX: %s\n", filename);
+
+            res = sol_load_file(fin_x, fp, 1);
             fs_close(fin_x);
         }
     }

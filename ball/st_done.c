@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
+
 #include <string.h>
 
 /*
@@ -156,6 +160,18 @@ static int done_action(int tok, int val)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
 static int done_gui_campaign(void)
 {
+    if (!resume)
+    {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        /* FIXME: WGCL Narrator can do it! */
+
+        EM_ASM({
+            if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+                CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_finished_campaign.mp3");
+        });
+#endif
+    }
+
     int id, jd;
     if ((id = gui_vstack(0)))
     {
@@ -210,7 +226,27 @@ static int done_gui_set(void)
     if (high && !resume)
     {
         audio_play("snd/new_time_record.ogg", 1.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        /* FIXME: WGCL Narrator can do it! */
+
+        EM_ASM({
+            if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+                CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_finished_levelset_hs.mp3");
+        });
+#elif NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
         audio_narrator_play(AUD_SCORE);
+#endif
+    }
+    else if (!resume)
+    {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        /* FIXME: WGCL Narrator can do it! */
+
+        EM_ASM({
+            if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+                CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_finished_levelset.mp3");
+        });
+#endif
     }
 
 #if NB_HAVE_PB_BOTH==1

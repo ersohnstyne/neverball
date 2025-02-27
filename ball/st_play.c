@@ -407,7 +407,16 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
     }
 
     audio_play("snd/2.2/game_countdown_prep.ogg", 1.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    /* FIXME: WGCL Narrator can do it! */
+
+    /*EM_ASM({
+        if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+            CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_trafficlight_ready.mp3");
+    });*/
+#elif NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
     audio_narrator_play(AUD_READY);
+#endif
     hud_speedup_reset();
 
     if (play_update_client)
@@ -521,7 +530,16 @@ static int play_set_enter(struct state *st, struct state *prev, int intent)
     if (curr_mode() == MODE_NONE) return 0;
 
     audio_play("snd/2.2/game_countdown_prep.ogg", 1.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    /* FIXME: WGCL Narrator can do it! */
+
+    /*EM_ASM({
+        if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+            CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_trafficlight_set.mp3");
+    });*/
+#elif NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
     audio_narrator_play(AUD_SET);
+#endif
 
     if (!console_gui_shown())
     {
@@ -918,7 +936,16 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
         return 0;
 
     audio_play("snd/2.2/game_countdown_go.ogg", 1.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    /* FIXME: WGCL Narrator can do it! */
+
+    /*EM_ASM({
+        if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+            CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_trafficlight_start.mp3");
+    });*/
+#elif NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
     audio_narrator_play(AUD_GO);
+#endif
 
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
     if (powerup_get_coin_multiply() == 2)

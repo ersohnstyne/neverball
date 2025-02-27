@@ -296,7 +296,9 @@ static int over_enter(struct state *st, struct state *prev, int intent)
     if (!resume)
     {
         audio_music_fade_out(0.0f);
+#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
         audio_narrator_play(AUD_OVER);
+#endif
         audio_play(AUD_UI_SHATTER, 1.0f);
 
 #if NB_HAVE_PB_BOTH==1

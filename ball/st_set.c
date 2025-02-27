@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
+
 /*
  * HACK: Used with console version
  */
@@ -385,7 +389,18 @@ static void set_scan_done_moon_taskloader(void* data, void* done_data)
     set_is_scanning_with_moon_taskloader = 0;
 
     if (total > 0)
+    {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        /* FIXME: WGCL Narrator can do it! */
+
+        EM_ASM({
+            if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+                CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_levelset_select.mp3");
+        });
+#elif NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
         audio_narrator_play(AUD_START);
+#endif
+    }
 
     goto_state(curr_state());
 }
@@ -611,7 +626,18 @@ static int set_enter(struct state *st, struct state *prev, int intent)
         first = MIN(first, (total - 1) - ((total - 1) % SET_STEP));
 
         if (total > 0)
+        {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+            /* FIXME: WGCL Narrator can do it! */
+
+            EM_ASM({
+                if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+                    CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_levelset_select.mp3");
+            });
+#elif NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
             audio_narrator_play(AUD_START);
+#endif
+        }
 
         set_manual_hotreload = 0;
 #endif
@@ -881,6 +907,31 @@ static int campaign_action(int tok, int val)
             return goto_state(&st_playmodes);
 
         case CAMPAIGN_SELECT_THEME:
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+            /* FIXME: WGCL Narrator can do it! */
+
+            EM_ASM({
+                if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
+                    switch ($0) {
+                        case 0:
+                            CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_campaign_sky.mp3");
+                            break;
+                        case 1:
+                            CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_campaign_ice.mp3");
+                            break;
+                        case 2:
+                            CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_campaign_cave.mp3");
+                            break;
+                        case 3:
+                            CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_campaign_cloud.mp3");
+                            break;
+                        case 4:
+                            CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_campaign_lava.mp3");
+                            break;
+                    }
+                }
+            }, campaign_theme_index);
+#endif
             campaign_theme_init();
             return goto_state(&st_campaign);
 
@@ -1311,7 +1362,17 @@ static int levelgroup_action(int tok, int val)
 
         case LEVELGROUP_CAMPAIGN:
             if (campaign_init())
+            {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+                /* FIXME: WGCL Narrator can do it! */
+
+                EM_ASM({
+                    if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+                        CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_gameoptions_campaign.mp3");
+                });
+#endif
                 return goto_state(&st_campaign);
+            }
             break;
 
         case LEVELGROUP_LEVELSET:
@@ -1444,6 +1505,18 @@ static int levelgroup_gui(void)
 
 static int levelgroup_enter(struct state *st, struct state *prev, int intent)
 {
+    if (prev != &st_campaign && prev != &st_set)
+    {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        /* FIXME: WGCL Narrator can do it! */
+
+        EM_ASM({
+            if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+                CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_levelgroup_start.mp3");
+        });
+#endif
+    }
+
     campaign_init();
 
     if (prev == &st_campaign)

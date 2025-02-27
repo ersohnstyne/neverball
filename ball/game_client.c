@@ -215,6 +215,7 @@ static void game_run_cmd(const union cmd *cmd)
 
                 if (cmd->sound.n)
                 {
+#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
                     if (strcmp(AUD_TIME, cmd->sound.n) == 0 ||
                         strcmp(AUD_FALL, cmd->sound.n) == 0)
                         audio_narrator_play(cmd->sound.n);
@@ -224,7 +225,9 @@ static void game_run_cmd(const union cmd *cmd)
                     else if (strcmp(AUD_2_2_0_PICK_SS, cmd->sound.n) == 0)
                         audio_narrator_play(cmd->sound.n);
 #endif
-                    else audio_play(cmd->sound.n, cmd->sound.a);
+                    else
+#endif
+                        audio_play(cmd->sound.n, cmd->sound.a);
                 }
 
                 break;

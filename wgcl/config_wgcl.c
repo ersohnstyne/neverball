@@ -131,7 +131,10 @@ void WGCL_InitGameOptions(struct state *returnable)
 
     audio_music_fade_to(0.5f, "bgm/inter.ogg", 1);
 
-    EM_ASM({ CoreLauncherOptions_GameOptions_Init(); });
+    EM_ASM({
+        gameoptions_packages_available = navigator.onLine && $0;
+        CoreLauncherOptions_GameOptions_Init();
+    }, config_get_d(CONFIG_ONLINE));
 
     if (st_returnable == NULL)
         st_returnable = returnable;

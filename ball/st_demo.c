@@ -1038,10 +1038,12 @@ static int demo_enter(struct state *st, struct state *prev, int intent)
 
     if (prev != &st_demo || demo_hotreload)
     {
+#if 0 /* FIXME: Must have more narrator sounds! */
         if (total && availibility == 0)
             audio_narrator_play("snd/lockdown_all.ogg");
         else if (total != availibility)
             audio_narrator_play("snd/lockdown_least.ogg");
+#endif
     }
 
 #if NB_HAVE_PB_BOTH==1

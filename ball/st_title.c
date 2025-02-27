@@ -1513,6 +1513,19 @@ static int title_click(int b, int d)
     if (title_lockscreen && title_can_unlock &&
         b == SDL_BUTTON_LEFT && d)
     {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        /* FIXME: WGCL Narrator can do it! */
+
+        EM_ASM({
+            if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
+                if ($0 == 1 && tmp_online_session_data != undefined && tmp_online_session_data != null)
+                    CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_title_welcomeback.mp3");
+                else
+                    CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_title_welcome.mp3");
+            }
+        }, account_exists());
+#endif
+
         title_can_unlock = 0;
         return goto_state(&st_title);
     }
@@ -1557,6 +1570,18 @@ static int title_buttn(int b, int d)
     {
         if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b) && title_can_unlock)
         {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+            /* FIXME: WGCL Narrator can do it! */
+
+            EM_ASM({
+                if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
+                    if ($0 == 1 && tmp_online_session_data != undefined && tmp_online_session_data != null)
+                        CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_title_welcomeback.mp3");
+                    else
+                        CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_title_welcome.mp3");
+                }
+            }, account_exists());
+#endif
             title_can_unlock = 0;
             goto_state(&st_title);
         }

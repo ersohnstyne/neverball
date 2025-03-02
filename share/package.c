@@ -150,6 +150,7 @@ static struct local_package *create_local_package(const char *package_id, const 
     return lpkg;
 }
 
+static void unmount_package_file(const char *filename);
 static void free_local_package(struct local_package **lpkg)
 {
     if (lpkg && *lpkg)

@@ -154,6 +154,7 @@ static void free_local_package(struct local_package **lpkg)
 {
     if (lpkg && *lpkg)
     {
+        unmount_package_file((*lpkg)->filename);
         free(*lpkg);
         *lpkg = NULL;
     }
@@ -219,8 +220,6 @@ static void unmount_duplicate_local_packages(const struct local_package *keep_lp
 
         if (test_lpkg != keep_lpkg && strcmp(test_lpkg->id, keep_lpkg->id) == 0)
         {
-            unmount_package_file(test_lpkg->filename);
-
             free_local_package(&test_lpkg);
 
             l->data = NULL;
@@ -424,8 +423,6 @@ static void free_installed_packages(void)
     while (l)
     {
         struct local_package *lpkg = l->data;
-
-        unmount_package_file(lpkg->filename);
 
         free_local_package(&lpkg);
 

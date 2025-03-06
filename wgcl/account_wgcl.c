@@ -16,6 +16,9 @@
 #include <emscripten.h>
 #endif
 
+#include <stdio.h>
+#include <time.h>
+
 #include "common.h"
 #include "fs.h"
 #include "text.h"
@@ -398,6 +401,16 @@ int account_wgcl_reload(void)
             "https://%s/api/internal/getsession", WGCL_URL);
 
     struct wgcl_res_data res_data = {0};
+    
+    time_t     wgcl_time_now;
+    struct tm *wgcl_utc_time;
+    char       wgcl_utc_strfmt[40];
+
+    time(&wgcl_time_now);
+    wgcl_utc_time = gmtime(&wgcl_time_now);
+    sprintf(wgcl_utc_strfmt, "%04d-%02d-%02dT%02d:%02d:%02d.000Z",
+            wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
+            wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
 
     char json_post_data[MAXSTR];
 #if !_CRT_SECURE_NO_WARNINGS
@@ -405,7 +418,10 @@ int account_wgcl_reload(void)
 #else
     sprintf(json_post_data,
 #endif
-            "{\"player_uuid4\":\"%s\"}", session_uuid4);
+            "{"
+            "    \"fetch_post_date_iso\":\"%s\","
+            "    \"player_uuid4\":\"%s\""
+            "}", wgcl_utc_strfmt, session_uuid4);
 
     CURL *handle = account_wgcl_curl_prepare_post(in_url, json_post_data, &res_data);
     CURLcode res = account_wgcl_curl_execute(handle);
@@ -442,7 +458,9 @@ int account_wgcl_reload(void)
     if (json_object_get_number(root_obj, "web_return_code") != 200 &&
         json_object_get_number(root_obj, "web_return_code") != 302)
     {
-        log_errorf("WGCL + CURL error: Reload failed: %s\n", json_object_get_string(root_obj, "message_text"));
+        log_errorf("WGCL + CURL error: Reload failed: %s / %s\n",
+                   json_object_get_string(root_obj, "message_text"),
+                   json_object_get_string(root_obj, "message_desc"));
         goto account_wgcl_reload_fail;
     }
 
@@ -649,6 +667,16 @@ int account_wgcl_login(const char *name, const char *password)
             "https://%s/api/internal/login", WGCL_URL);
 
     struct wgcl_res_data res_data = {0};
+    
+    time_t     wgcl_time_now;
+    struct tm *wgcl_utc_time;
+    char       wgcl_utc_strfmt[40];
+
+    time(&wgcl_time_now);
+    wgcl_utc_time = gmtime(&wgcl_time_now);
+    sprintf(wgcl_utc_strfmt, "%04d-%02d-%02dT%02d:%02d:%02d.000Z",
+            wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
+            wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
 
     char json_data[512];
 #if !_CRT_SECURE_NO_WARNINGS
@@ -656,8 +684,12 @@ int account_wgcl_login(const char *name, const char *password)
 #else
     sprintf(json_data,
 #endif
-            "{\"name\":\"%s\",\"password\":\"%s\"}",
-            name, password);
+            "{"
+            "    \"fetch_post_date_iso\":\"%s\","
+            "    \"name\":\"%s\","
+            "    \"password\":\"%s\""
+            "}",
+            wgcl_utc_strfmt, name, password);
 
     CURL *handle = account_wgcl_curl_prepare_post(in_url, json_data, &res_data);
     CURLcode res = account_wgcl_curl_execute(handle);
@@ -701,7 +733,9 @@ int account_wgcl_login(const char *name, const char *password)
     if (json_object_get_number(root_obj, "web_return_code") != 200 &&
         json_object_get_number(root_obj, "web_return_code") != 302)
     {
-        log_errorf("WGCL + CURL error: Login failed: %s\n", json_object_get_string(root_obj, "message_text"));
+        log_errorf("WGCL + CURL error: Login failed: %s / %s\n",
+                   json_object_get_string(root_obj, "message_text"),
+                   json_object_get_string(root_obj, "message_desc"));
         goto account_wgcl_login_fail;
     }
     else
@@ -790,6 +824,16 @@ int account_wgcl_try_add(int w_coins, int w_gems,
 
     struct wgcl_res_data res_data = {0};
 
+    time_t     wgcl_time_now;
+    struct tm *wgcl_utc_time;
+    char       wgcl_utc_strfmt[40];
+
+    time(&wgcl_time_now);
+    wgcl_utc_time = gmtime(&wgcl_time_now);
+    sprintf(wgcl_utc_strfmt, "%04d-%02d-%02dT%02d:%02d:%02d.000Z",
+            wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
+            wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
+
     char json_data[512];
 #if !_CRT_SECURE_NO_WARNINGS
     sprintf_s(json_data, 512,
@@ -797,6 +841,7 @@ int account_wgcl_try_add(int w_coins, int w_gems,
     sprintf(json_data,
 #endif
               "{"
+              "    \"fetch_post_date_iso\":\"%s\","
               "    \"player_uuid4\":\"%s\","
               "    \"player_wallet_coins\":%d,"
               "    \"player_wallet_gems\":%d,"
@@ -805,7 +850,7 @@ int account_wgcl_try_add(int w_coins, int w_gems,
               "    \"player_consumable_halfgrav\":%d,"
               "    \"player_consumable_doublespeed\":%d"
               "}",
-              session_uuid4,
+              wgcl_utc_strfmt, session_uuid4,
               w_coins_next, w_gems_next,
               c_hp_next, c_doublecash_next, c_halfgrav_next, c_doublespeed_next);
 
@@ -851,7 +896,9 @@ int account_wgcl_try_add(int w_coins, int w_gems,
     }
     else if (json_object_get_number(root_obj, "web_return_code") != 200)
     {
-        log_errorf("WGCL + CURL error: Update failed: %s\n", json_object_get_string(root_obj, "message_text"));
+        log_errorf("WGCL + CURL error: Update failed: %s / %s\n",
+                   json_object_get_string(root_obj, "message_text"),
+                   json_object_get_string(root_obj, "message_desc"));
 
         account_wgcl_visit_browser_login();
 
@@ -929,6 +976,16 @@ int account_wgcl_try_set(int w_coins, int w_gems,
             "https://%s/api/internal/updateassets", WGCL_URL);
 
     struct wgcl_res_data res_data = {0};
+    
+    time_t     wgcl_time_now;
+    struct tm *wgcl_utc_time;
+    char       wgcl_utc_strfmt[40];
+
+    time(&wgcl_time_now);
+    wgcl_utc_time = gmtime(&wgcl_time_now);
+    sprintf(wgcl_utc_strfmt, "%04d-%02d-%02dT%02d:%02d:%02d.000Z",
+            wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
+            wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
 
     char json_data[512];
 #if !_CRT_SECURE_NO_WARNINGS
@@ -937,6 +994,7 @@ int account_wgcl_try_set(int w_coins, int w_gems,
     sprintf(json_data,
 #endif
               "{"
+              "    \"fetch_post_date_iso\":\"%s\","
               "    \"player_uuid4\":\"%s\","
               "    \"player_wallet_coins\":%d,"
               "    \"player_wallet_gems\":%d,"
@@ -945,7 +1003,7 @@ int account_wgcl_try_set(int w_coins, int w_gems,
               "    \"player_consumable_halfgrav\":%d,"
               "    \"player_consumable_doublespeed\":%d"
               "}",
-              session_uuid4,
+              wgcl_utc_strfmt, session_uuid4,
               pending_set_wallet_coins, pending_set_wallet_gems,
               pending_set_consumable_hp, pending_set_consumable_doublecash, pending_set_consumable_halfgrav, pending_set_consumable_doublespeed);
 
@@ -991,7 +1049,9 @@ int account_wgcl_try_set(int w_coins, int w_gems,
     }
     else if (json_object_get_number(root_obj, "web_return_code") != 200)
     {
-        log_errorf("WGCL + CURL error: Update failed: %s\n", json_object_get_string(root_obj, "message_text"));
+        log_errorf("WGCL + CURL error: Update failed: %s / %s\n",
+                   json_object_get_string(root_obj, "message_text"),
+                   json_object_get_string(root_obj, "message_desc"));
 
         account_wgcl_visit_browser_login();
 
@@ -1066,6 +1126,16 @@ int account_wgcl_try_buy(int w_coins_cost, int flags)
             "https://%s/api/internal/shop/buy", WGCL_URL);
 
     struct wgcl_res_data res_data = {0};
+    
+    time_t     wgcl_time_now;
+    struct tm *wgcl_utc_time;
+    char       wgcl_utc_strfmt[40];
+
+    time(&wgcl_time_now);
+    wgcl_utc_time = gmtime(&wgcl_time_now);
+    sprintf(wgcl_utc_strfmt, "%04d-%02d-%02dT%02d:%02d:%02d.000Z",
+            wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
+            wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
 
     char json_data[512];
 #if !_CRT_SECURE_NO_WARNINGS
@@ -1074,10 +1144,11 @@ int account_wgcl_try_buy(int w_coins_cost, int flags)
     sprintf(json_data,
 #endif
             "{"
+            "    \"fetch_post_date_iso\":\"%s\","
             "    \"player_uuid4\":\"%s\","
             "    \"new_product_flags\":%d"
             "}",
-            session_uuid4,
+            wgcl_utc_strfmt, session_uuid4,
             managed_buy_flags_pending);
 
     CURL *handle = account_wgcl_curl_prepare_post(in_url, json_data, &res_data);
@@ -1122,7 +1193,9 @@ int account_wgcl_try_buy(int w_coins_cost, int flags)
     }
     else if (json_object_get_number(root_obj, "web_return_code") != 200)
     {
-        log_errorf("WGCL + CURL error: Buying failed: %s\n", json_object_get_string(root_obj, "message_text"));
+        log_errorf("WGCL + CURL error: Buying failed: %s / %s\n",
+                   json_object_get_string(root_obj, "message_text"),
+                   json_object_get_string(root_obj, "message_desc"));
 
         account_wgcl_visit_browser_login();
 

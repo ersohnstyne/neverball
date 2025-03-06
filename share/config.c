@@ -33,6 +33,9 @@
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
 #include "networking.h"
+#ifdef __EMSCRIPTEN__
+#include "config_wgcl.h"
+#endif
 #endif
 #include "glext.h"
 #include "accessibility.h"
@@ -773,6 +776,10 @@ void config_load(void)
         }
         fs_close(fh);
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        WGCL_LoadGameSystemSettings();
+#endif
+
         dirty = 0;
         config_busy = 0;
     }
@@ -869,6 +876,10 @@ void config_save(void)
             fs_printf(fh, "%-25s %s\n", option_s[i].name, option_s[i].cur);
 
         fs_close(fh);
+
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        WGCL_SaveGameSystemSettings();
+#endif
     }
     else if (dirty)
         log_errorf("Failure to save configuration file!: %s / %s\n",

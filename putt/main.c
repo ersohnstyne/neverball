@@ -47,10 +47,10 @@
 #error Security compilation error: Steam OS implemented, but NO DLCs detected!
 #endif
 
-#elif _WIN32 && !_MSC_VER
-#error Security compilation error: MinGW not supported! Use Visual Studio instead!
-#elif _WIN64 && _MSC_VER < 1940
-#error Security compilation error: Visual Studio 2022 requires MSVC 14.40.x and later version!
+#elif _WIN32 && (!_MSC_VER || defined(__MINGW__))
+#error Security compilation error: MinGW not supported! Use Visual Studio for Windows instead!
+#elif _WIN64 && _MSC_VER < 1943
+#error Security compilation error: Visual Studio 2022 requires MSVC 14.43.x and later version!
 #elif _WIN32 && !_WIN64
 #error Security compilation error: Game source code compilation requires x64 and not Win32!
 #endif

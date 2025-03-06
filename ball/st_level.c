@@ -654,6 +654,7 @@ static int level_gui(void)
 
 static int level_enter(struct state *st, struct state *prev, int intent)
 {
+    activity_services_powerup_update(AS_POWERUP_NONE);
     //game_lerp_pose_point_reset();
     game_client_fly(1.0f);
 
@@ -1118,6 +1119,8 @@ int goto_exit(void)
 {
     if (curr_mode() != MODE_NONE)
         audio_play(AUD_QUITGAME, 1.0f);
+
+    activity_services_powerup_update(AS_POWERUP_NONE);
 
     struct state *curr = curr_state();
 

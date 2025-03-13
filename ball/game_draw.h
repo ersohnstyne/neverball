@@ -48,6 +48,15 @@ struct game_draw
 
     float fade_k;                       /* Fade in/out level                         */
     float fade_d;                       /* Fade in/out direction                     */
+
+    /*
+     * FIXME: Let Mojang done one of these!
+     */
+
+    int   mojang_death_enabled_flags;
+    float mojang_death_time_now;
+    float mojang_death_time_percent;
+    float mojang_death_view_angle;
 };
 
 /* FIXME: this is just for POSE_* constants. */

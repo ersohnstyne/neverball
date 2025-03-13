@@ -534,6 +534,13 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
     gd.fade_k =  1.0f;
     gd.fade_d = -2.0f;
 
+    /* FIXME: Let Mojang done one of these! */
+
+    gd.mojang_death_enabled_flags = 0;
+    gd.mojang_death_time_now      = 0.0f;
+    gd.mojang_death_time_percent  = 0.0f;
+    gd.mojang_death_view_angle    = 0.0f;
+
     /* Load level info. */
 
     version.x = 0;
@@ -733,6 +740,13 @@ int  game_client_init(const char *file_name)
     gd.fade_k =  1.0f;
     gd.fade_d = -2.0f;
 
+    /* FIXME: Let Mojang done one of these! */
+
+    gd.mojang_death_enabled_flags = 0;
+    gd.mojang_death_time_now      = 0.0f;
+    gd.mojang_death_time_percent  = 0.0f;
+    gd.mojang_death_view_angle    = 0.0f;
+
     /* Load level info. */
 
     version.x = 0;
@@ -840,7 +854,34 @@ void game_client_draw(int pose, float t)
 {
     if (gd.state && !progress_loading())
     {
+        if (status == GAME_FALL)
+        {
+            if (gd.mojang_death_enabled_flags)
+            {
+                const float mojang_death_time_dt = t - gd.mojang_death_time_now;
+
+                if (mojang_death_time_dt < 1.f)
+                {
+                    gd.mojang_death_time_percent =
+                        MIN(100, gd.mojang_death_time_percent +
+                            (mojang_death_time_dt * 0.05f));
+                }
+
+                gd.mojang_death_time_now = t;
+            }
+            else
+            {
+                gd.mojang_death_view_angle = gd.view.a;
+                v_cpy(client_view_center_fixed, gd.vary.uv[0].p);
+            }
+
+            gd.mojang_death_enabled_flags = 1;
+        }
+
         game_lerp_apply(&gl, &gd);
+
+        if (gd.mojang_death_enabled_flags)
+            game_view_death(&gd.view, client_view_center_fixed, 0, gd.mojang_death_view_angle);
 
         game_draw(&gd, ball_visible ? pose : POSE_LEVEL, t);
     }

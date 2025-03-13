@@ -391,6 +391,40 @@ void game_view_fly(struct game_view *view, const struct s_vary *vary, int ui, fl
     e_orthonrm_xz(view->e);
 }
 
+void game_view_death(struct game_view *view, const float p[3], int ui, float angle)
+{
+    const float vsin = fsinf(angle * V_PI / 180);
+    const float vcos = fcosf(angle * V_PI / 180);
+
+    float  x[3] = { vsin, 0.0f, 0.0f };
+    float  y[3] = { 0.0f, 1.0f, 0.0f };
+    float  z[3] = { 0.0f, 0.0f, vcos };
+    float c0[3] = { 0.0f, 0.0f, 0.0f };
+    float p0[3] = { 0.0f, 0.0f, 0.0f };
+    float c1[3] = { 0.0f, 0.0f, 0.0f };
+    float p1[3] = { 0.0f, 0.0f, 0.0f };
+    float  v[3] = { 0.0f, 0.0f, 0.0f };
+
+    game_view_init(view);
+
+    v_cpy(c0, p);
+    v_cpy(p0, p);
+
+    v_mad(p0, p0, y, 5);
+    v_mad(c0, c0, y, view->dc);
+
+    v_mad(p0, p0, z, 9);
+    v_mad(p0, p0, x, 9);
+
+    v_cpy(view->p, p0);
+    v_cpy(view->c, c0);
+
+    /* Orthonormalize the view basis. */
+
+    v_sub(view->e[2], view->p, view->c);
+    e_orthonrm_xz(view->e);
+}
+
 void game_view_set_pos_and_target(struct game_view *view,
                                   const struct s_vary *vary,
                                   float pos[3], float center[3])

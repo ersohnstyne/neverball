@@ -222,6 +222,7 @@ struct game_view
 void game_view_set_static_cam_view(int, const float pos[3]);
 void game_view_init(struct game_view *);
 void game_view_fly(struct game_view *, const struct s_vary *, int, float);
+void game_view_death(struct game_view *view, const float p[3], int ui, float angle);
 void game_view_set_pos_and_target(struct game_view *,
                                   const struct s_vary *,
                                   float pos[3], float center[3]);

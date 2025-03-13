@@ -36,12 +36,14 @@
 
 /*---------------------------------------------------------------------------*/
 
+static int draw_chnk_highaltitude;
+
 static void game_draw_chnk_floor(struct s_rend *rend,
                                  const struct game_draw *gd,
                                  const float *bill_M, float t)
 {
     float c[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
-    const float SCL = 10.0f;
+    const float SCL = (draw_chnk_highaltitude ? 20.0f : 10.0f);
 
     const struct s_base *base =  gd->vary.base;
     const struct s_vary *vary = &gd->vary;
@@ -59,7 +61,9 @@ static void game_draw_chnk_floor(struct s_rend *rend,
             glPushMatrix();
             {
                 glScalef    (SCL, 1, SCL);
-                glTranslatef((i * SCL) * 400, Y, (j * SCL) * 400);
+                glTranslatef((i * SCL) * (draw_chnk_highaltitude ? 800 : 400),
+                             Y,
+                             (j * SCL) * (draw_chnk_highaltitude ? 800 : 400));
 
                 glColor4ub(ROUND(c[0] * 255),
                            ROUND(c[1] * 255),
@@ -976,7 +980,7 @@ static void game_draw_fore(struct s_rend *rend,
 static void game_draw_fore_chnk(struct s_rend *rend,
                                 struct game_draw *gd,
                                 int pose, const float *M,
-                                int d, float t, int flip)
+                                int d, float t, int flip, int nofullmap)
 {
     const float *ball_p = gd->vary.uv[0].p;
 
@@ -995,7 +999,7 @@ static void game_draw_fore_chnk(struct s_rend *rend,
 
         if (d < 0) glEnable(GL_CLIP_PLANE0);
 
-        if (draw && rend) switch (pose)
+        if (draw && rend && !nofullmap) switch (pose)
         {
             case POSE_BALL:
                 /* No render available for map chunk overview. */
@@ -1114,8 +1118,13 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
         game_shadow_conf(pose, 1);
         r_draw_enable(&rend);
+        
+        const float effective_fov =
+            CLAMP(30,
+                  (fov / (gd->mojang_death_enabled_flags ? 1.25f : 1.0f)) +
+                  (25 * (gd->mojang_death_time_percent / 100.f)), 110);
 
-        video_set_perspective(fov, 0.1f, FAR_DIST);
+        video_set_perspective(effective_fov, 0.1f, FAR_DIST);
         glPushMatrix();
         {
             glRotatef(game_lerp_pose_v.pose_point_smooth_x, 0.0f, 1.0f, 0.0f);
@@ -1139,13 +1148,20 @@ void game_draw(struct game_draw *gd, int pose, float t)
             glTranslatef(-view->c[0], -view->c[1], -view->c[2]);
 
             /* Draw the background. */
-
-            game_draw_back(&rend, gd, pose, +1, t, 0);
+            
+            if (!(view->p[1] > gd->vary.uv[0].p[1] + 100 &&
+                  view->p[1] > gd->vary.base->vv[0].p[1] + 100))
+            {
+                game_draw_back(&rend, gd, pose, +1, t, 0);
+                draw_chnk_highaltitude = 0;
+            }
+            else draw_chnk_highaltitude = 1;
 
             /* If the view altitude is greater than 15 m from the surface,   */
             /* map chunk must be rendered from their overview.               */
 
-            if (view->p[1] > gd->vary.uv[0].p[1] + 15)
+            if (view->p[1] > gd->vary.uv[0].p[1] + 15 &&
+                view->p[1] > gd->vary.base->vv[0].p[1] + 15)
             {
                 game_draw_light(gd, 1, t);
 
@@ -1164,7 +1180,8 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
                 game_refl_all(&rend, gd);
 
-                game_draw_fore_chnk(&rend, gd, pose, U, +1, t, 0);
+                game_draw_fore_chnk(&rend, gd, pose, U, +1, t, 0,
+                                    draw_chnk_highaltitude);
             }
             else
             {

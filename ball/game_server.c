@@ -1424,7 +1424,7 @@ void game_update_view(float dt)
 
         v_cpy(c0, vary.uv[ui].p);
         v_cpy(p0, vary.uv[ui].p);
-
+        
         v_cpy(p1, fix_cam_pos);
         v_cpy(c1, vary.uv[ui].p);
 

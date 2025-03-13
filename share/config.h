@@ -210,4 +210,9 @@ int config_screenshot(void);
 
 /*---------------------------------------------------------------------------*/
 
+void config_lock_local_username(void);
+int  config_playername_locked(void);
+
+/*---------------------------------------------------------------------------*/
+
 #endif

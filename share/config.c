@@ -46,6 +46,12 @@
 
 #include "log.h"
 
+/*
+ * TODO: Uncomment, if you want to lock the player name
+ * by the system OS settings.
+ */
+//#define CONFIG_PLAYER_LOCKEDBY_SYSTEMOS
+
 #if defined(__WII__)
 /* We're using SDL 1.2 on Wii, which has SDLKey instead of SDL_Keycode. */
 typedef SDLKey SDL_Keycode;
@@ -1069,6 +1075,53 @@ int config_screenshot(void)
 #endif
 #endif
     return ++option_d[CONFIG_SCREENSHOT].cur;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static int local_username_locked;
+
+void config_lock_local_username(void)
+{
+#if !defined(__EMSCRIPTEN__) && defined(CONFIG_PLAYER_LOCKEDBY_SYSTEMOS)
+    char username[MAXSTR];
+
+#if _MSC_VER
+    /* Microsoft Windows Username Display */
+
+    DWORD username_len = MAXSTR;
+
+    if (GetUserNameA(username, &username_len))
+    {
+        log_errorf("This player name was locked to \"%s\" by the system os!\n", username);
+        config_set_s(CONFIG_PLAYER, username);
+        local_username_locked = 1;
+    }
+#else
+    /* POSIX Username Display */
+
+    uid_t          uid = geteuid();
+    struct passwd *pw  = getpwuid(uid);
+
+    if (pw)
+    {
+        SAFECPY(username, pw->pw_name);
+        log_errorf("This player name was locked to \"%s\" by the system os!\n", username);
+        config_set_s(CONFIG_PLAYER, username);
+        local_username_locked = 1;
+    }
+#endif
+    else local_username_locked = 0;
+#endif
+}
+
+int config_playername_locked(void)
+{
+#ifndef __EMSCRIPTEN__
+    return local_username_locked;
+#else
+    return 0;
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

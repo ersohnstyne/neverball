@@ -331,7 +331,11 @@ int account_wgcl_exists(void)
 void account_wgcl_load(void)
 {
 #ifndef __EMSCRIPTEN__
+    config_lock_local_username();
+    account_init();
     account_load();
+
+    account_set_s(ACCOUNT_PLAYER, config_get_s(CONFIG_PLAYER));
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
@@ -348,6 +352,14 @@ void account_wgcl_load(void)
         fs_close(wgcl_fin);
     }
 #endif
+
+/*#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
+    ball_multi_free();
+    ball_multi_init();
+#else
+    ball_free();
+    ball_init();
+#endif*/
 #endif
 }
 

@@ -68,6 +68,7 @@ static unsigned int draw_back;
 static int newplayers;
 static int name_error;
 static int name_readonly;
+static int name_lockedby_systemos;
 
 int goto_name(struct state *ok, struct state *cancel,
               int (*new_ok_fn) (struct state *),
@@ -246,7 +247,8 @@ static int name_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        if (!newplayers && !name_error && !name_readonly)
+        if (!newplayers && !name_error &&
+            !name_readonly && !name_lockedby_systemos)
         {
             allow_entertext = 1;
 
@@ -300,6 +302,16 @@ static int name_gui(void)
             gui_space(id);
             gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
         }
+        else if (name_lockedby_systemos)
+        {
+            gui_title_header(id, _("Read-Only"), GUI_MED, gui_red, gui_blk);
+            gui_space(id);
+            gui_multi(id, _("The player name is read-only and\n"
+                            "can be changed with system settings."),
+                          GUI_SML, GUI_COLOR_WHT);
+            gui_space(id);
+            gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
+        }
         else
         {
             const char *t_header = name_error ?
@@ -344,13 +356,15 @@ static int name_enter(struct state *st, struct state *prev, int intent)
 {
     player_renamed = 0;
 
+    name_lockedby_systemos = config_playername_locked();
+
 #if NB_HAVE_PB_BOTH==1
     name_readonly = account_wgcl_name_read_only();
 #else
     name_readonly = 0;
 #endif
 
-    if (name_error || name_readonly)
+    if (name_error || name_readonly || name_lockedby_systemos)
         audio_play("snd/uierror.ogg", 1.0f);
 
     if (draw_back)
@@ -359,7 +373,7 @@ static int name_enter(struct state *st, struct state *prev, int intent)
         back_init("back/gui.png");
     }
 
-    if (!newplayers && !name_readonly)
+    if (!newplayers && !name_readonly && !name_lockedby_systemos)
     {
         text_input_start(on_text_input);
         text_input_str(config_get_s(CONFIG_PLAYER), 0);

@@ -395,7 +395,25 @@ void hud_set_alpha(float alpha)
 
 void hud_paint(void)
 {
-#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    const int wgcl_newhud = EM_ASM_INT({
+        return systemsettings_conf_hudstyle_value != undefined &&
+               systemsettings_conf_hudstyle_value != null &&
+               systemsettings_conf_hudstyle_value == 0
+    });
+#else
+    const int wgcl_newhud = 0;
+#endif
+
+    if (wgcl_newhud)
+    {
+        if (config_get_d(CONFIG_FPS))
+            gui_paint(fps_id);
+
+        hud_cam_paint();
+        return;
+    }
+
     if (curr_mode() == MODE_NONE) return; /* Cannot render in home room. */
 
     if (speed_timer_length < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
@@ -424,12 +442,6 @@ void hud_paint(void)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     hud_touch_paint();
-#endif
-#else
-    if (config_get_d(CONFIG_FPS))
-        gui_paint(fps_id);
-
-    hud_cam_paint();
 #endif
 }
 
@@ -672,6 +684,8 @@ void hud_update(int pulse, float animdt)
             gui_pulse(goal_id, 2.00f);
     }
 #elif NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    ballspeed = (ballspeed * UPS) * 3600.0f / 1000.0f / 64.0f;
+
     EM_ASM({
         Neverball.WGCLupdateGameHUD($0, $1, $2, $3, $4, $5);
     }, clock, coins, goal, balls, score, ROUND(ballspeed));

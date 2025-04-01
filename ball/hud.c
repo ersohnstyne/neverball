@@ -465,7 +465,6 @@ void hud_update(int pulse, float animdt)
     int score       = curr_score();
     float ballspeed = curr_speedometer();
 
-#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
     int c_id;
     int last;
 
@@ -683,12 +682,16 @@ void hud_update(int pulse, float animdt)
         if (pulse && goal == 0 && last > 0)
             gui_pulse(goal_id, 2.00f);
     }
-#elif NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-    ballspeed = (ballspeed * UPS) * 3600.0f / 1000.0f / 64.0f;
 
-    EM_ASM({
-        Neverball.WGCLupdateGameHUD($0, $1, $2, $3, $4, $5);
-    }, clock, coins, goal, balls, score, ROUND(ballspeed));
+#ifdef __EMSCRIPTEN__
+    if (config_get_d(CONFIG_UNITS_METRIC))
+        EM_ASM({
+            Neverball.WGCLupdateGameHUD($0, $1, $2, $3, $4, $5);
+        }, clock, coins, goal, balls, score, ROUND(ballspeed));
+    else
+        EM_ASM({
+            Neverball.WGCLupdateGameHUD_imperial($0, $1, $2, $3, $4, $5);
+        }, clock, coins, goal, balls, score, ROUND(ballspeed));
 #endif
 
     if (config_get_d(CONFIG_FPS))

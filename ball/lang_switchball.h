@@ -69,6 +69,7 @@
 #define TUTORIAL_1_DESC_WIIU   N_("To move the Ball, tilt your Wii remote")
 #define TUTORIAL_1_DESC_XBOX   N_("To move the Ball, use with Left stick")
 #define TUTORIAL_2_DESC        N_("Use the left Mouse Button to stay at full speed.\nThis will help you climb slopes.")
+#define TUTORIAL_2_DESC_TOUCH  N_("Pull the touchscreen further to stay at full speed.\nThis will help you climb slopes.")
 #define TUTORIAL_3_DESC        N_("Hold down the right Mouse Button and move the Mouse\nfor free rotation of the camera")
 #define TUTORIAL_3_DESC_TOUCH  N_("Tap and hold the rotate buttons\nfor free rotation of the camera")
 #define TUTORIAL_3_DESC_WII    N_("Use the D-Pad to rotate the camera left or right")

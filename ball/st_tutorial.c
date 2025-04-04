@@ -85,7 +85,7 @@ const char tutorial_desc_touch[][128] =
 {
     "",
     TUTORIAL_1_DESC_TOUCH,
-    TUTORIAL_2_DESC,
+    TUTORIAL_2_DESC_TOUCH,
     TUTORIAL_3_DESC_TOUCH,
     TUTORIAL_4_DESC_TOUCH,
     TUTORIAL_5_DESC,

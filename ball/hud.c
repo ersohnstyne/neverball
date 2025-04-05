@@ -684,7 +684,14 @@ void hud_update(int pulse, float animdt)
     }
 
 #ifdef __EMSCRIPTEN__
-    if (config_get_d(CONFIG_UNITS_METRIC))
+    /* Let WGCL system choose, how to use these speed units. */
+
+    int autoconf_units_imperial = EM_ASM_INT({
+        var userLanguage = navigator.language || navigator.languages[0];
+        return userLanguage != "en-US";
+    });
+
+    if (config_get_d(CONFIG_UNITS_METRIC) || !autoconf_units_imperial)
         EM_ASM({
             Neverball.WGCLupdateGameHUD($0, $1, $2, $3, $4, $5);
         }, clock, coins, goal, balls, score, ROUND(ballspeed));

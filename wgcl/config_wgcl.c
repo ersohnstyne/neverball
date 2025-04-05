@@ -357,7 +357,7 @@ void WGCL_TryEraseHighscoreFile_Campaign(void)
 void WGCL_TryEraseHighscoreFile_LevelSet(const char *filename)
 {
     char file_path[64];
-    sprintf(file_path, "Scores/%s", filename);
+    sprintf(file_path, "Scores/%s.txt", filename);
 
     fs_remove(file_path);
 

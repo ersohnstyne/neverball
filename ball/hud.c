@@ -449,6 +449,17 @@ void hud_update(int pulse, float animdt)
 {
     if (curr_mode() == MODE_NONE) return;
 
+    /* Let WGCL system choose, how to use these speed units. */
+
+#ifdef __EMSCRIPTEN__
+    const int autoconf_units_imperial = EM_ASM_INT({
+        var userLanguage = navigator.language || navigator.userLanguage;
+        return userLanguage == "en-US";
+    });
+#else
+    const int autoconf_units_imperial = 0;
+#endif
+
     float speedpercent = curr_speed_percent();
     char  speedattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -598,7 +609,7 @@ void hud_update(int pulse, float animdt)
     /* New: Speedometer */
     ballspeed = ballspeed * UPS;
 
-    if (config_get_d(CONFIG_UNITS_METRIC))
+    if (config_get_d(CONFIG_UNITS_METRIC) || !autoconf_units_imperial)
         ballspeed = ballspeed * 3600.0f / 1000.0f / 64.0f;  /* convert to km/h */
     else
         ballspeed = ballspeed * 3600.0f / 1609.34f / 64.0f;  /* convert to mph */
@@ -684,13 +695,6 @@ void hud_update(int pulse, float animdt)
     }
 
 #ifdef __EMSCRIPTEN__
-    /* Let WGCL system choose, how to use these speed units. */
-
-    int autoconf_units_imperial = EM_ASM_INT({
-        var userLanguage = navigator.language || navigator.languages[0];
-        return userLanguage != "en-US";
-    });
-
     if (config_get_d(CONFIG_UNITS_METRIC) || !autoconf_units_imperial)
         EM_ASM({
             Neverball.WGCLupdateGameHUD($0, $1, $2, $3, $4, $5);

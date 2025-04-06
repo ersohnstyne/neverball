@@ -74,8 +74,13 @@ autosave
 /js/mapc.js
 /js/mapc.wasm
 /js/packages
+<<<<<<< HEAD
 
 # ZIP archives
 /*.tar
 /*.zip
 /base-neverball.zip
+=======
+/base-neverball.zip
+/packages
+>>>>>>> 4640f6957e3f60fbff0918ca7f9ba633784ac53b

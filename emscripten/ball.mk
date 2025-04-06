@@ -32,6 +32,10 @@ DATA_ZIP := base-pennyball-wgcl.zip
 
 EM_PRELOAD := --preload-file $(DATA_ZIP)@/data/base-neverball.zip
 
+DATA_ZIP := base-neverball.zip
+
+EM_PRELOAD := --preload-file $(DATA_ZIP)@/data/base-neverball.zip
+
 LDFLAGS := $(GL4ES_DIR)/lib/libGL.a
 EM_LDFLAGS := \
 	-s ALLOW_MEMORY_GROWTH=1 \
@@ -141,6 +145,10 @@ neverball: $(JSDIR)/neverball.js
 $(JSDIR)/neverball.js: $(BALL_OBJS) $(DATA_ZIP)
 	$(CC) -o $@ $(BALL_OBJS) $(CFLAGS) $(EM_CFLAGS) $(LDFLAGS) $(EM_LDFLAGS)
 	
+$(DATA_ZIP):
+	$(MAKE) -f mk/package-base.mk OUTPUT_DIR=$$(pwd) package-only && \
+	mv base-neverball-*.zip $(DATA_ZIP)
+
 $(DATA_ZIP):
 	$(MAKE) -f mk/package-base.mk OUTPUT_DIR=$$(pwd) package-only && \
 	mv base-neverball-*.zip $(DATA_ZIP)

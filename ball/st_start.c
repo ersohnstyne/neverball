@@ -236,7 +236,14 @@ static int start_action(int tok, int val)
 {
     GAMEPAD_GAMEMENU_ACTION_SCROLL(GUI_PREV, GUI_NEXT, LEVEL_STEP);
 
+    int have_online_session_data = 0;
+
 #ifdef CONFIG_INCLUDES_ACCOUNT
+#ifdef __EMSCRIPTEN__
+    have_online_session_data = EM_ASM_INT({ return tmp_online_session_data != undefined &&
+                                                   tmp_online_session_data != null ? 1 : 0; });
+#endif
+
     const int curr_balls =
         server_policy_get_d(SERVER_POLICY_EDITION) > 0 ?
         account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) : 3;
@@ -335,6 +342,10 @@ static int start_action(int tok, int val)
                     if (set_balls_needed(curr_set()) > curr_balls)
                     {
                     }
+#ifdef __EMSCRIPTEN__
+                    else if (!have_online_session_data)
+                        return goto_state(&st_start_signinrequired);
+#endif
                     else if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
                         return goto_state(&st_start_upgraderequired);
                     else if (check_handsoff())
@@ -349,8 +360,8 @@ static int start_action(int tok, int val)
                         if (progress_play(get_level(0)))
                         {
                             activity_services_mode_update(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
-                                                       (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE :
-                                                                                        AS_MODE_NORMAL));
+                                                          (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE :
+                                                                                           AS_MODE_NORMAL));
 
                             return goto_play_level();
                         }
@@ -1338,6 +1349,7 @@ static int start_buttn(int b, int d)
 enum
 {
     START_JOINREQUIRED_OPEN = GUI_LAST,
+    START_JOINREQUIRED_SIGNIN,
     START_JOINREQUIRED_SKIP
 };
 
@@ -1365,6 +1377,14 @@ static int start_joinrequired_action(int tok, int val)
 #endif
 #endif
             break;
+            
+        case START_JOINREQUIRED_SIGNIN:
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+            EM_ASM({
+                CoreLauncher_ShowLoginModalWindow();
+            });
+#endif
+            break;
 
         case START_JOINREQUIRED_SKIP:
             progress_exit();
@@ -1379,6 +1399,40 @@ static int start_joinrequired_action(int tok, int val)
     }
 
     return 1;
+}
+
+static int start_signinrequired_enter(struct state *st, struct state *prev, int intent)
+{
+    int id, jd;
+
+    if ((id = gui_vstack(0)))
+    {
+        gui_title_header(id, _("Powerups available"), GUI_MED, GUI_COLOR_DEFAULT);
+        gui_space(id);
+        gui_multi(id,
+                  _("Pennyball offers some of the most creative ways to\n"
+                    "compete with powerups! We just need you to login\n"
+                    "so that we can make sure you have permission to use it."),
+                  GUI_SML, GUI_COLOR_WHT);
+        gui_space(id);
+
+        if ((jd = gui_harray(id)))
+        {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+            gui_start(jd, _("Login"), GUI_SML, START_JOINREQUIRED_SIGNIN, 0);
+            gui_state(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
+#else
+            gui_start(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
+#endif
+            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+        }
+    }
+
+    gui_layout(id, 0, 0);
+
+    return transition_slide(id, 1, intent);
 }
 
 static int start_upgraderequired_enter(struct state *st, struct state *prev, int intent)

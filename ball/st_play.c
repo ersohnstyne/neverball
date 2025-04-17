@@ -359,6 +359,11 @@ static int use_keyboard;
 
 static int ready_transition = 0;
 
+static float devicemotion_timer_tilt;
+static int   devicemotion_tilt_can_autocalibrate;
+static int   devicemotion_tilt_init_x;
+static int   devicemotion_tilt_init_y;
+
 int play_pause_goto(struct state *returnable)
 {
     play_freeze_all = 1;
@@ -381,6 +386,8 @@ static int play_ready_gui(void)
 
 static int play_ready_enter(struct state *st, struct state *prev, int intent)
 {
+    devicemotion_tilt_can_autocalibrate = 1;
+
     prep_tilt_x = 0;
     prep_tilt_y = 0;
 
@@ -879,6 +886,8 @@ static float smoothfix_slowdown_time;
 
 static int play_loop_enter(struct state *st, struct state *prev, int intent)
 {
+    devicemotion_tilt_can_autocalibrate = 1;
+
     smoothfix_slowdown_time = 0;
 #ifdef MAPC_INCLUDES_CHKP
     restart_cancel_allchkp  = 0;
@@ -907,6 +916,7 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
     global_prev = prev;
     video_set_grab(1);
 
+    devicemotion_timer_tilt = 0;
     tilt_x = prep_tilt_x; tilt_y = prep_tilt_y;
 
     prep_tilt_x = 0;
@@ -915,6 +925,8 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
     /* Cannot run traffic lights in home room. */
 
     if (curr_mode() == MODE_NONE) return 0;
+
+    devicemotion_timer_tilt = 10.0f;
 
     hud_update(0, 0.0f);
     hud_show(0.0f);
@@ -1054,6 +1066,8 @@ static void play_loop_timer(int id, float dt)
         gui_slide(id, flags_out, 0, 0.6f, 0);
         loop_transition = 1;
     }
+
+    devicemotion_timer_tilt += dt;
 
     /* Switchball works on max speed and manual rotation */
 
@@ -1452,6 +1466,8 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
     EM_ASM({ Neverball.WGCLshowGameHUDTouch(); });
 #endif
 
+    devicemotion_timer_tilt = 0;
+
     static SDL_FingerID rotate_finger = -1;
 
     static float rotate = 0.0f; /* Filtered input. */
@@ -1624,6 +1640,28 @@ void wgcl_play_touch_zoom_camera(int v)
     if      (v < 0) game_set_zoom_rate(+1.0f);
     else if (v > 0) game_set_zoom_rate(-1.0f);
     else            game_set_zoom_rate(0.0f);
+}
+
+void wgcl_play_devicemotion_tilt(int x, int y)
+{
+    const int parsed_x = x > 180 ? x - 360 : x;
+    const int parsed_y = y > 180 ? y - 360 : y;
+
+    if (devicemotion_tilt_can_autocalibrate == 1)
+    {
+        devicemotion_tilt_can_autocalibrate = 0;
+
+        devicemotion_tilt_init_x = x;
+        devicemotion_tilt_init_y = y;
+    }
+
+    if (devicemotion_timer_tilt >= 10.0f)
+    {
+        tilt_x = (parsed_x - devicemotion_tilt_init_x) / ANGLE_BOUND;
+        tilt_y = (parsed_x - devicemotion_tilt_init_y) / ANGLE_BOUND;
+
+        game_set_pos(tilt_x * 2, tilt_y * 2);
+    }
 }
 
 /*---------------------------------------------------------------------------*/

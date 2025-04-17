@@ -1725,7 +1725,8 @@ static int shop_buy_action(int tok, int val)
             }
             account_wgcl_save();
 #endif
-            return exit_state(account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
+            return exit_state((productkey >= 0 && productkey <= 3) &&
+                              account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
                               account_get_d(ACCOUNT_PRODUCT_BALLS) &&
                               account_get_d(ACCOUNT_PRODUCT_BONUS) &&
                               account_get_d(ACCOUNT_PRODUCT_MEDIATION) ? &st_shop_maxout : &st_shop);

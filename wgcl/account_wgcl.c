@@ -621,7 +621,7 @@ account_wgcl_reload_fail:
         return Neverball.gamecore_account_try_reload() ? 1 : 0;
     });
 
-    return r;
+    return 1;
 #else
     return 0;
 #endif
@@ -1247,6 +1247,15 @@ account_wgcl_try_buy_fail:
 
 int account_wgcl_restart_attempt(void)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    const int wgcl_account_sync_done = EM_ASM_INT({
+        return tmp_online_session_data != undefined &&
+               tmp_online_session_data != null;
+    });
+
+    if (!wgcl_account_sync_done) return 1;
+#endif
+
     if (managed_buy_flags_pending)
     {
         if (!account_wgcl_try_buy(0, 0))
@@ -1275,6 +1284,15 @@ int account_wgcl_restart_attempt(void)
 void account_wgcl_do_add(int w_coins, int w_gems,
                          int c_hp, int c_doublecash, int c_halfgrav, int c_doublespeed)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    const int wgcl_account_sync_done = EM_ASM_INT({
+        return tmp_online_session_data != undefined &&
+               tmp_online_session_data != null;
+    });
+
+    if (!wgcl_account_sync_done) return;
+#endif
+
     if (!assets_add_is_pending &&
         (w_coins == 0 && w_gems == 0 &&
          c_hp == 0 && c_doublecash == 0 && c_halfgrav == 0 && c_doublespeed == 0))
@@ -1306,6 +1324,15 @@ void account_wgcl_do_add(int w_coins, int w_gems,
 void account_wgcl_do_set(int w_coins, int w_gems,
                          int c_hp, int c_doublecash, int c_halfgrav, int c_doublespeed)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    const int wgcl_account_sync_done = EM_ASM_INT({
+        return tmp_online_session_data != undefined &&
+               tmp_online_session_data != null;
+    });
+
+    if (!wgcl_account_sync_done) return;
+#endif
+
     if (!assets_add_is_pending &&
         (w_coins       == account_get_d(ACCOUNT_DATA_WALLET_COINS)      &&
          w_gems        == account_get_d(ACCOUNT_DATA_WALLET_GEMS)       &&
@@ -1333,6 +1360,15 @@ void account_wgcl_do_set(int w_coins, int w_gems,
 
 int account_wgcl_do_buy(int w_coins_cost, int flags)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    const int wgcl_account_sync_done = EM_ASM_INT({
+        return tmp_online_session_data != undefined &&
+               tmp_online_session_data != null;
+    });
+
+    if (!wgcl_account_sync_done) return 1;
+#endif
+
     if (!managed_buy_is_pending &&
         (w_coins_cost <= 0 &&
          flags != 1 && flags != 2 && flags != 4 && flags != 8))

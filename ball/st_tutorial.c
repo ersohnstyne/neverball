@@ -96,6 +96,21 @@ const char tutorial_desc_touch[][128] =
     TUTORIAL_10_DESC,
 };
 
+const char tutorial_desc_touch_gyroscope[][160] =
+{
+    "",
+    TUTORIAL_1_DESC_TOUCH_GYROSCOPE,
+    TUTORIAL_2_DESC_TOUCH,
+    TUTORIAL_3_DESC_TOUCH,
+    TUTORIAL_4_DESC_TOUCH,
+    TUTORIAL_5_DESC,
+    TUTORIAL_6_DESC,
+    TUTORIAL_7_DESC,
+    TUTORIAL_8_DESC,
+    TUTORIAL_9_DESC,
+    TUTORIAL_10_DESC,
+};
+
 const char tutorial_desc_xbox[][128] =
 {
     "",
@@ -289,13 +304,27 @@ static int tutorial_enter(struct state *st, struct state *prev, int intent)
     {
         gui_label(id, _(tutorial_title[tutorial_index]), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+
+#if NB_HAVE_PB_BOTH==1
         if (opt_touch && !console_gui_shown())
-            gui_multi(id, _(tutorial_desc_touch[tutorial_index]),
-                          GUI_SML, GUI_COLOR_WHT);
+        {
+#ifdef __EMSCRIPTEN__
+            const int gyroscope_supported = EM_ASM_INT({
+                return Neverball._gyroscopeSupported ? 1 : 0;
+            });
+
+            if (gyroscope_supported)
+                gui_multi(id, _(tutorial_desc_touch_gyroscope[tutorial_index]),
+                                GUI_SML, GUI_COLOR_WHT);
+            else
+#endif
+                gui_multi(id, _(tutorial_desc_touch[tutorial_index]),
+                              GUI_SML, GUI_COLOR_WHT);
+        }
         else if (console_gui_shown())
             gui_multi(id, _(tutorial_desc_xbox[tutorial_index]),
                           GUI_SML, GUI_COLOR_WHT);
+#ifndef __EMSCRIPTEN__
         else if (current_platform == PLATFORM_PC)
             gui_multi(id, _(tutorial_desc[tutorial_index]),
                           GUI_SML, GUI_COLOR_WHT);
@@ -308,6 +337,11 @@ static int tutorial_enter(struct state *st, struct state *prev, int intent)
         else
             gui_multi(id, _(tutorial_desc_xbox[tutorial_index]),
                           GUI_SML, GUI_COLOR_WHT);
+#else
+        else
+            gui_multi(id, _(tutorial_desc[tutorial_index]),
+                          GUI_SML, GUI_COLOR_WHT);
+#endif
 #else
         gui_multi(id, _(opt_touch ? tutorial_desc_touch[tutorial_index] :
                                     tutorial_desc[tutorial_index]),

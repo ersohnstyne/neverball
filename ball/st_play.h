@@ -26,5 +26,6 @@ void wgcl_play_touch_pause(void);
 void wgcl_play_touch_cammode(void);
 void wgcl_play_touch_rotate_camera(int, int);
 void wgcl_play_touch_zoom_camera(int);
+void wgcl_play_devicemotion_tilt(int, int);
 
 #endif

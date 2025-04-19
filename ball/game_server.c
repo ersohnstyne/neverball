@@ -458,7 +458,8 @@ static void grow_step(int ui, float dt)
 
         r = up->r + up->r_vel * dt;
 
-        if (fabsf(r - up->sizes[up->size]) < 0.0005f)
+        if ((up->r < up->sizes[up->size] && r >= up->sizes[up->size]) ||
+            (up->r > up->sizes[up->size] && r <= up->sizes[up->size]))
         {
             r = up->sizes[up->size];
             up->r_vel = 0.0f;
@@ -1669,17 +1670,12 @@ static void game_update_time(float dt, int b)
 
         time_elapsed += dt;
 
-        if (time_limit > 0.0f
-#ifdef LEVELGROUPS_INCLUDES_ZEN
-         && !mediation_enabled()
-#endif
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-         && !campaign_used()
-#endif
-            )
-            timer = fabsf(time_limit - time_elapsed);
-        else
-            timer = time_elapsed;
+        if (time_limit > 0.0f && time_elapsed > time_limit)
+            time_elapsed = time_limit;
+
+        /* Something that works for both timed and untimed levels. */
+
+        timer = fabsf(time_limit - time_elapsed);
 
 #ifdef MAPC_INCLUDES_CHKP
         if (chkp_e && time_limit > 0 && timer < 60.0f)

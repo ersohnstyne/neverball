@@ -1672,10 +1672,18 @@ static void game_update_time(float dt, int b)
 
         if (time_limit > 0.0f && time_elapsed > time_limit)
             time_elapsed = time_limit;
-
-        /* Something that works for both timed and untimed levels. */
-
-        timer = fabsf(time_limit - time_elapsed);
+        
+        if (time_limit > 0.0f
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+         && !mediation_enabled()
+#endif
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+         && !campaign_used()
+#endif
+            )
+            timer = fabsf(time_limit - time_elapsed);
+        else
+            timer = time_elapsed;
 
 #ifdef MAPC_INCLUDES_CHKP
         if (chkp_e && time_limit > 0 && timer < 60.0f)

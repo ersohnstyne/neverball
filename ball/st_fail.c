@@ -118,6 +118,7 @@ enum
     FAIL_ASK_MORE,
     FAIL_SAVE, /* We're just reverted back for you! */
     FAIL_OVER,
+    FAIL_LOGIN_WGCL,
     FAIL_UPGRADE_EDITION,
     FAIL_TRANSFER_MEMBER
 };
@@ -154,6 +155,12 @@ static int fail_action(int tok, int val)
     /* Some tokens were removed by Mojang in this future! */
     switch (tok)
     {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        case FAIL_LOGIN_WGCL:
+            EM_ASM({ CoreLauncher_ShowLoginModalWindow(); });
+            break;
+#endif
+
         case GUI_BACK:
         case FAIL_OVER:
             detect_replay_filters((status == GAME_FALL && save < 3) ||
@@ -276,6 +283,17 @@ void detect_replay_filters(int exceeded)
 
 static int fail_gui(void)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    const int wgcl_account_sync_done = EM_ASM_INT({
+        return tmp_online_session_data != undefined &&
+               tmp_online_session_data != null;
+    });
+
+    if (!wgcl_account_sync_done) return 1;
+#else
+    const int wgcl_account_sync_done = 0;
+#endif
+
     int fid = 0, id = 0, jd = 0, nosaveid = 0;
     int root_id;
 
@@ -375,6 +393,14 @@ static int fail_gui(void)
                             gui_multi(jd, _("Respawn is still available during active!"),
                                           GUI_SML, GUI_COLOR_GRN);
                         }
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+                        else if (progress_dead() && !wgcl_account_sync_done)
+                        {
+                            try_shatter_snd = 1;
+                            gui_multi(jd, _("Please login to buy more balls!"),
+                                          GUI_SML, GUI_COLOR_RED);
+                        }
+#endif
                         else
                         {
                             try_shatter_snd = 1;
@@ -492,6 +518,11 @@ static int fail_gui(void)
                           checkpoints_last_time_limit() == 0.0f)))
                         gui_state(jd, _("Respawn"),
                                       GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+                    else if (progress_dead() && !wgcl_account_sync_done)
+                        gui_state(jd, _("Login"),
+                                      GUI_SML, FAIL_LOGIN_WGCL, 0);
+#endif
                     else if (progress_dead() &&
                              (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                               server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
@@ -523,6 +554,11 @@ static int fail_gui(void)
                          !last_timer_down))
                         gui_state(jd, _("Respawn"),
                                       GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+                    else if (progress_dead() && !wgcl_account_sync_done)
+                        gui_state(jd, _("Login"),
+                                      GUI_SML, FAIL_LOGIN_WGCL, 0);
+#endif
                     else if (progress_dead() &&
                              (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                               server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
@@ -569,6 +605,11 @@ static int fail_gui(void)
                                           GUI_SML, FAIL_ZEN_SWITCH, 0);
 #endif
                     }
+#ifdef __EMSCRIPTEN__
+                    else if (!wgcl_account_sync_done)
+                        gui_state(jd, _("Login"),
+                                      GUI_SML, FAIL_LOGIN_WGCL, 0);
+#endif
                     else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                              server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
                         gui_state(jd, _("Buy more balls!"),

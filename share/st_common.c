@@ -2273,53 +2273,7 @@ static int restart_required_action(int tok, int val)
 {
     if (tok == GUI_BACK)
     {
-<<<<<<< HEAD
         return exit_state(restart_required_back);
-=======
-        int option = *joystick_options[index];
-
-        config_set_d(option, value);
-
-        joystick_set_label(joystick_option_ids[index], value);
-
-        // Focus the next button.
-
-        if (index < ARRAYSIZE(joystick_options) - 1)
-        {
-            /* Skip over marker, if any. */
-
-            if (index < ARRAYSIZE(joystick_options) - 2 && joystick_options[index + 1] == NULL)
-                gui_focus(joystick_option_ids[index + 2]);
-            else
-                gui_focus(joystick_option_ids[index + 1]);
-        }
-    }
-}
-
-static int joystick_action(int tok, int val)
-{
-    audio_play(AUD_MENU, 1.0f);
-
-    switch (tok)
-    {
-        case GUI_BACK:
-            if (joystick_modal)
-            {
-                joystick_modal = 0;
-            }
-            else
-            {
-                exit_state(joystick_back);
-                joystick_back = NULL;
-            }
-            break;
-
-        case JOYSTICK_ASSIGN_BUTTON:
-        case JOYSTICK_ASSIGN_AXIS:
-            joystick_modal = tok;
-            joystick_option_index = val;
-            break;
->>>>>>> 7da192c3b3494ebbcc1d7cff59535fd02432c3f8
     }
     return 1;
 }

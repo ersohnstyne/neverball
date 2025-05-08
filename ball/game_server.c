@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
+
 #include <math.h>
 #ifndef NDEBUG
 #include <assert.h>
@@ -2161,7 +2165,17 @@ static void game_server_iter(float dt)
                               && !checkpoints_busy
 #endif
                                  )) != GAME_NONE)
+    {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        /* HACK: OK, but now, with WGCL's Emscripten first! */
+
+        const int r = EM_ASM_INT({
+            return Neverball.gamecore_mapmarker_try_place(UTF8ToString($0), $1, $2, $3, $4);
+        }, curr_file_name, status,
+           ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
+#endif
         game_cmd_status();
+    }
 
     game_cmd_eou();
 }

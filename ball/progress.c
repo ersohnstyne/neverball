@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
+
 #include <assert.h>
 
 #if NB_HAVE_PB_BOTH==1
@@ -708,6 +712,10 @@ static int init_level(void)
         game_server_init(level_file(level), level_time(level), goal_e))
     {
         game_client_toggle_show_balls(1);
+
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        EM_ASM({ Neverball.gamecore_levelmap_loading_finished(true, false); });
+#endif
 
         game_client_sync(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -1572,6 +1580,12 @@ int  progress_next(void)
             curr.balls = chkp.balls;
             chkp.balls = -1;
         }
+#endif
+
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        EM_ASM({
+            Neverball.gamecore_levelmap_load($0, UTF8ToString($1), true);
+        }, next->num_indiv_theme, next->song);
 #endif
 
 #if ENABLE_LIVESPLIT!=0

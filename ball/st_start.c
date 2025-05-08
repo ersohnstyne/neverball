@@ -61,8 +61,9 @@
 /*---------------------------------------------------------------------------*/
 
 struct state st_start_unavailable;
-struct state st_start_joinrequired;
 struct state st_start_upgraderequired;
+struct state st_start_signinrequired;
+struct state st_start_joinrequired;
 
 /*---------------------------------------------------------------------------*/
 
@@ -232,6 +233,55 @@ static void start_scan_done_moon_taskloader(void* data, void* done_data)
 }
 #endif
 
+static int   start_play_level_index;
+static int   start_play_level_pending;
+static float start_play_level_state_time;
+
+static int set_level_play(int i)
+{
+    const struct level *l = campaign_get_level(i);
+
+    if (!l) return 0;
+
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({
+        Neverball.gamecore_levelmap_load($0, UTF8ToString($1), false);
+    }, l->num_indiv_theme, l->song);
+
+    start_play_level_state_time = time_state() + 0.2;
+#else
+    start_play_level_state_time = time_state();
+#endif
+
+    start_play_level_index   = i;
+    start_play_level_pending = 1;
+
+    audio_play(AUD_STARTGAME, 1.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    return 0;
+#else
+    return progress_play(l);
+#endif
+}
+
+static int set_level_play_timer(float dt)
+{
+    if (start_play_level_pending &&
+        time_state() >= start_play_level_state_time)
+    {
+        start_play_level_pending = 0;
+
+        if (progress_play(get_level(start_play_level_index)))
+        {
+            activity_services_mode_update((enum activity_services_mode) curr_mode());
+
+            return goto_play_level();
+        }
+    }
+
+    return 0;
+}
+
 static int start_action(int tok, int val)
 {
     GAMEPAD_GAMEMENU_ACTION_SCROLL(GUI_PREV, GUI_NEXT, LEVEL_STEP);
@@ -293,9 +343,7 @@ static int start_action(int tok, int val)
                     return goto_handsoff(curr_state());
                 else if (CHECK_ACCOUNT_ENABLED)
                 {
-                    audio_play(AUD_STARTGAME, 1.0f);
-
-                    if (progress_play(get_level(0)))
+                    if (set_level_play(0))
                     {
                         activity_services_mode_update(AS_MODE_HARDCORE);
 
@@ -355,9 +403,7 @@ static int start_action(int tok, int val)
                         progress_exit();
                         progress_init(MODE_CHALLENGE);
 
-                        audio_play(AUD_STARTGAME, 1.0f);
-
-                        if (progress_play(get_level(0)))
+                        if (set_level_play(0))
                         {
                             activity_services_mode_update(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
                                                           (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE :
@@ -381,9 +427,7 @@ static int start_action(int tok, int val)
             {
                 boost_rush_init();
 
-                audio_play(AUD_STARTGAME, 1.0f);
-
-                if (progress_play(get_level(0)))
+                if (set_level_play(0))
                 {
                     activity_services_mode_update(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
                                                (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE :
@@ -410,10 +454,9 @@ static int start_action(int tok, int val)
 
             progress_exit();
             progress_init(MODE_NORMAL);
-
-            audio_play(AUD_STARTGAME, 1.0f);
             game_fade(+4.0);
-            if (progress_play(get_level(val)))
+
+            if (set_level_play(val))
             {
                 activity_services_mode_update(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
                                            (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE :
@@ -476,7 +519,7 @@ static int start_star_view_gui(void)
 #else
                 const int curr_balls = 0;
 #endif
-                
+
                 const int lbl_id = gui_label(jd, set_star_attr,
                                                  GUI_LRG, gui_wht, gui_yel);
                 gui_set_font(lbl_id, "ttf/DejaVuSans-Bold.ttf");
@@ -768,7 +811,7 @@ static int start_gui(void)
 
                 gui_filler(kd);
             }
-            
+
             const int scoreboard_flags = (GUI_SCORE_COIN | GUI_SCORE_TIME |
                                           (curr_mode() == MODE_HARDCORE ? 0 : GUI_SCORE_GOAL));
 
@@ -1075,6 +1118,15 @@ static void start_paint(int id, float t)
 #endif
 }
 
+static void start_timer(int id, float dt)
+{
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    set_level_play_timer(dt);
+#endif
+
+    gui_timer(id, dt);
+}
+
 static int start_howmany()
 {
     int loctotal = 1;
@@ -1377,7 +1429,7 @@ static int start_joinrequired_action(int tok, int val)
 #endif
 #endif
             break;
-            
+
         case START_JOINREQUIRED_SIGNIN:
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
             EM_ASM({
@@ -1390,49 +1442,13 @@ static int start_joinrequired_action(int tok, int val)
             progress_exit();
             progress_init(MODE_CHALLENGE);
 
-            audio_play(AUD_STARTGAME, 1.0f);
-
-            if (progress_play(get_level(0)))
+            if (set_level_play(0))
                 return goto_play_level();
 
             break;
     }
 
     return 1;
-}
-
-static int start_signinrequired_enter(struct state *st, struct state *prev, int intent)
-{
-    int id, jd;
-
-    if ((id = gui_vstack(0)))
-    {
-        gui_title_header(id, _("Powerups available"), GUI_MED, GUI_COLOR_DEFAULT);
-        gui_space(id);
-        gui_multi(id,
-                  _("Pennyball offers some of the most creative ways to\n"
-                    "compete with powerups! We just need you to login\n"
-                    "so that we can make sure you have permission to use it."),
-                  GUI_SML, GUI_COLOR_WHT);
-        gui_space(id);
-
-        if ((jd = gui_harray(id)))
-        {
-#if !defined(__NDS__) && !defined(__3DS__) && \
-    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
-            gui_start(jd, _("Login"), GUI_SML, START_JOINREQUIRED_SIGNIN, 0);
-            gui_state(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
-#else
-            gui_start(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
-#endif
-            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
-        }
-    }
-
-    gui_layout(id, 0, 0);
-
-    return transition_slide(id, 1, intent);
 }
 
 static int start_upgraderequired_enter(struct state *st, struct state *prev, int intent)
@@ -1458,6 +1474,40 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev, int
     !defined(__SWITCH__)
             gui_start(jd, _("Join/Upgrade"),
                           GUI_SML, START_JOINREQUIRED_OPEN, 0);
+            gui_state(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
+#else
+            gui_start(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
+#endif
+            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+        }
+    }
+
+    gui_layout(id, 0, 0);
+
+    return transition_slide(id, 1, intent);
+}
+
+static int start_signinrequired_enter(struct state *st, struct state *prev, int intent)
+{
+    int id, jd;
+
+    if ((id = gui_vstack(0)))
+    {
+        gui_title_header(id, _("Powerups available"), GUI_MED, GUI_COLOR_DEFAULT);
+        gui_space(id);
+        gui_multi(id,
+                  _("Pennyball offers some of the most creative ways to\n"
+                    "compete with powerups! We just need you to login\n"
+                    "so that we can make sure you have permission to use it."),
+                  GUI_SML, GUI_COLOR_WHT);
+        gui_space(id);
+
+        if ((jd = gui_harray(id)))
+        {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+            gui_start(jd, _("Login"), GUI_SML, START_JOINREQUIRED_SIGNIN, 0);
             gui_state(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
 #else
             gui_start(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
@@ -1546,7 +1596,7 @@ struct state st_start = {
     start_enter,
     start_leave,
     start_paint,
-    shared_timer,
+    start_timer,
     start_point,
     start_stick,
     shared_angle,
@@ -1575,7 +1625,7 @@ struct state st_start_compat = {
     start_compat_enter,
     shared_leave,
     shared_paint,
-    shared_timer,
+    start_timer,
     shared_point,
     shared_stick,
     shared_angle,
@@ -1586,11 +1636,11 @@ struct state st_start_compat = {
 
 #endif
 
-struct state st_start_joinrequired = {
-    start_joinrequired_enter,
+struct state st_start_upgraderequired = {
+    start_upgraderequired_enter,
     shared_leave,
     shared_paint,
-    shared_timer,
+    start_timer,
     shared_point,
     shared_stick,
     shared_angle,
@@ -1599,11 +1649,24 @@ struct state st_start_joinrequired = {
     start_joinrequired_buttn
 };
 
-struct state st_start_upgraderequired = {
-    start_upgraderequired_enter,
+struct state st_start_signinrequired = {
+    start_signinrequired_enter,
     shared_leave,
     shared_paint,
-    shared_timer,
+    start_timer,
+    shared_point,
+    shared_stick,
+    shared_angle,
+    shared_click,
+    start_joinrequired_keybd,
+    start_joinrequired_buttn
+};
+
+struct state st_start_joinrequired = {
+    start_joinrequired_enter,
+    shared_leave,
+    shared_paint,
+    start_timer,
     shared_point,
     shared_stick,
     shared_angle,

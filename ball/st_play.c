@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
+
 /*
  * HACK: Used with console version
  */
@@ -465,6 +469,12 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
 
 static void play_ready_timer(int id, float dt)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    /* HACK: Do not attempt, when the level is loading. */
+
+    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading; })) return;
+#endif
+
     game_lerp_pose_point_tick(dt);
     geom_step(dt);
 
@@ -708,6 +718,12 @@ static void play_prep_stick(int id, int a, float v, int bump)
 
 static int play_prep_click(int b, int d)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    /* HACK: Do not attempt, when the level is loading. */
+
+    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading; })) return 1;
+#endif
+
     hud_show(0.0f);
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     EM_ASM({
@@ -783,6 +799,12 @@ static int play_prep_keybd(int c, int d)
 
 static int play_prep_buttn(int b, int d)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    /* HACK: Do not attempt, when the level is loading. */
+
+    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading; })) return 1;
+#endif
+
     if (d)
     {
         buttn_camera(b);
@@ -1038,6 +1060,12 @@ static void play_loop_paint(int id, float t)
 
 static void play_loop_timer(int id, float dt)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    /* HACK: Do not attempt, when the level is loading. */
+
+    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading; })) return;
+#endif
+
     ST_PLAY_SYNC_SMOOTH_FIX_TIMER(smoothfix_slowdown_time);
 
     game_lerp_pose_point_tick(dt);

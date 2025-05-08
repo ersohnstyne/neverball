@@ -58,6 +58,7 @@ struct level
     /* Set information. */
 
     int  number;
+    int  num_indiv_theme;
 
     /* String representation of the number (eg. "IV") */
     char name[MAXSTR];

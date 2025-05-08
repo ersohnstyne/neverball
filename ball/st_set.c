@@ -864,6 +864,55 @@ enum
     CAMPAIGN_SELECT_LEVEL
 };
 
+static int   start_play_level_index;
+static int   start_play_level_pending;
+static float start_play_level_state_time;
+
+static int campaign_level_play(int i)
+{
+    const struct level *l = campaign_get_level(i);
+
+    if (!l) return 0;
+
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({
+        Neverball.gamecore_levelmap_load($0, UTF8ToString($1), false);
+    }, l->num_indiv_theme, l->song);
+
+    start_play_level_state_time = time_state() + 0.2;
+#else
+    start_play_level_state_time = time_state();
+#endif
+
+    start_play_level_index   = i;
+    start_play_level_pending = 1;
+
+    audio_play(AUD_STARTGAME, 1.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    return 0;
+#else
+    return progress_play(l);
+#endif
+}
+
+static int campaign_level_play_timer(float dt)
+{
+    if (start_play_level_pending &&
+        time_state() >= start_play_level_state_time)
+    {
+        start_play_level_pending = 0;
+
+        if (progress_play(campaign_get_level(start_play_level_index)))
+        {
+            activity_services_mode_update(AS_MODE_CAMPAIGN);
+
+            return goto_play_level();
+        }
+    }
+
+    return 0;
+}
+
 static int campaign_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
@@ -941,12 +990,11 @@ static int campaign_action(int tok, int val)
 
             progress_exit();
             progress_init(MODE_CAMPAIGN);
-
-            audio_music_stop();
-            audio_play(AUD_STARTGAME, 1.0f);
             game_fade(+4.0);
 
-            if (progress_play(campaign_get_level(val)))
+            audio_music_stop();
+
+            if (campaign_level_play(val))
             {
                 activity_services_mode_update(AS_MODE_CAMPAIGN);
 
@@ -1309,6 +1357,16 @@ static void campaign_paint(int id, float t)
 #endif
 }
 
+static void campaign_timer(int id, float dt)
+{
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    campaign_level_play_timer(dt);
+#endif
+
+    gui_timer(id, dt);
+    game_step_fade(dt);
+}
+
 static int campaign_keybd(int c, int d)
 {
     if (d && (c == KEY_EXIT
@@ -1648,7 +1706,7 @@ struct state st_campaign = {
     campaign_enter,
     campaign_leave,
     campaign_paint,
-    shared_timer,
+    campaign_timer,
     shared_point,
     shared_stick,
     shared_angle,

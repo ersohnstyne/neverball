@@ -1272,9 +1272,9 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
     progress_exit();
     progress_init(MODE_NONE);
-
+    
     title_freeze_all = 0;
-
+    
     /* Start the title screen music. */
 
     audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :

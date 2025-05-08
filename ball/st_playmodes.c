@@ -12,13 +12,16 @@
  * General Public License for more details.
  */
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
+
  /*
  * HACK: Used with console version
  */
 #include "console_control_gui.h"
 
 #if NB_HAVE_PB_BOTH==1
-
 #include "networking.h"
 #include "accessibility.h"
 #include "campaign.h"
@@ -344,6 +347,53 @@ static int playmodes_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
+static int   start_play_level_pending;
+static float start_play_level_state_time;
+
+static int hardcore_start_play(void)
+{
+    const struct level *l = campaign_get_level(0);
+
+    if (!l) return 0;
+
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({
+        Neverball.gamecore_levelmap_load($0, UTF8ToString($1), false);
+    }, l->num_indiv_theme, l->song);
+
+    start_play_level_state_time = time_state() + 0.2;
+#else
+    start_play_level_state_time = time_state();
+#endif
+
+    start_play_level_pending = 1;
+
+    audio_play(AUD_STARTGAME, 1.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    return 0;
+#else
+    return progress_play(l);
+#endif
+}
+
+static int hardcore_start_play_timer(float dt)
+{
+    if (start_play_level_pending &&
+        time_state() >= start_play_level_state_time)
+    {
+        start_play_level_pending = 0;
+
+        if (progress_play(campaign_get_level(0)))
+        {
+            activity_services_mode_update(AS_MODE_HARDCORE);
+
+            return goto_play_level();
+        }
+    }
+
+    return 0;
+}
+
 static int hardcore_start_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
@@ -361,12 +411,11 @@ static int hardcore_start_action(int tok, int val)
 
             progress_exit();
             progress_init(MODE_HARDCORE);
-            audio_play(AUD_STARTGAME, 1.0f);
             campaign_hardcore_play(!val);
 
             campaign_load_camera_box_trigger("1");
 
-            if (progress_play(campaign_get_level(0)))
+            if (hardcore_start_play())
             {
                 activity_services_mode_update(AS_MODE_HARDCORE);
 
@@ -429,6 +478,10 @@ static int hardcore_start_gui(void)
 
 static void hardcore_start_timer(int id, float dt)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    hardcore_start_play_timer(dt);
+#endif
+
     gui_timer(id, dt);
     game_step_fade(dt);
 }

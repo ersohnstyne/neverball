@@ -485,6 +485,10 @@ static void campaign_load_levels(void)
     /* Bonus levels won't be shown as of the level sets */
     int i, regular = 1;
 
+    int  i_num_indiv_theme = 1;
+    char tmp_bgm_path[MAXSTR];
+    SAFECPY(tmp_bgm_path, "bgm/");
+
     /* Atomic Elbow tried to retreat! */
     int i_retreat = 0;
 
@@ -503,6 +507,16 @@ static void campaign_load_levels(void)
 
         if (lvl_was_offered)
         {
+            if (strcmp(tmp_bgm_path, l->song) == 0)
+                i_num_indiv_theme++;
+            else
+            {
+                i_num_indiv_theme = 1;
+                SAFECPY(tmp_bgm_path, l->song);
+            }
+
+            l->num_indiv_theme = i_num_indiv_theme;
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sprintf_s(l->name, MAXSTR,
 #else

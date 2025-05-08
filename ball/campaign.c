@@ -429,27 +429,39 @@ int campaign_load(const char *filename)
 
     if (read_line(&scores, fin))
     {
+        /* HACK: Using temporary HS values may especially efficient version. */
+
+        int tmp_hs_timer[RANK_LAST], tmp_hs_coins[RANK_LAST];
+
+        for (int i = 0; i < 3; i++)
+        {
+            tmp_hs_timer[i] = 359999;
+            tmp_hs_coins[i] = 0;
+        }
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         int val_currents = sscanf_s(scores,
 #else
         int val_currents = sscanf(scores,
 #endif
               "%d %d %d %d %d %d",
-              &time_trials.timer[RANK_HARD],
-              &time_trials.timer[RANK_MEDM],
-              &time_trials.timer[RANK_EASY],
-              &time_trials.coins[RANK_HARD],
-              &time_trials.coins[RANK_MEDM],
-              &time_trials.coins[RANK_EASY]);
-
-        if (val_currents != 6)
+              &tmp_hs_timer[RANK_HARD],
+              &tmp_hs_timer[RANK_MEDM],
+              &tmp_hs_timer[RANK_EASY],
+              &tmp_hs_coins[RANK_HARD],
+              &tmp_hs_coins[RANK_MEDM],
+              &tmp_hs_coins[RANK_EASY]);
+        
+        for (int i = 0; i < 3; i++)
         {
-            time_trials.timer[RANK_HARD] = 359999;
-            time_trials.timer[RANK_MEDM] = 359999;
-            time_trials.timer[RANK_EASY] = 359999;
-            time_trials.coins[RANK_HARD] = 0;
-            time_trials.coins[RANK_MEDM] = 0;
-            time_trials.coins[RANK_EASY] = 0;
+            if (tmp_hs_timer[i] != 0) time_trials.timer[i] = tmp_hs_timer[i];
+            if (tmp_hs_coins[i] != 0) time_trials.coins[i] = tmp_hs_coins[i];
+
+            if (val_currents != 6)
+            {
+                time_trials.timer[i] = 359999;
+                time_trials.coins[i] = 0;
+            }
         }
 
         free(scores);

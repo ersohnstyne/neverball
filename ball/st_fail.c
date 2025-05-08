@@ -412,6 +412,14 @@ static int fail_gui(void)
 #endif
                     if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
                     {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+                        if (progress_dead() && !wgcl_account_sync_done)
+                        {
+                            try_shatter_snd = 1;
+                            gui_multi(jd, _("Please login to buy more balls!"),
+                                          GUI_SML, GUI_COLOR_RED);
+                        } else
+#endif
                         if (progress_dead() &&
                             server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                         {

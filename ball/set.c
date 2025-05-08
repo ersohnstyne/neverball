@@ -564,6 +564,16 @@ static int set_load(struct set *s, const char *filename)
         read_line(&s->shot, fin) &&
         read_line(&scores,  fin))
     {
+        /* HACK: Using temporary HS values may especially efficient version. */
+
+        int tmp_hs_timer[RANK_LAST], tmp_hs_coins[RANK_LAST];
+
+        for (int i = 0; i < 3; i++)
+        {
+            tmp_hs_timer[i] = 359999;
+            tmp_hs_coins[i] = 0;
+        }
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sscanf_s(scores,
 #else
@@ -574,16 +584,22 @@ static int set_load(struct set *s, const char *filename)
 #else
                "%d %d %d %d %d %d",
 #endif
-               &s->time_score.timer[RANK_HARD],
-               &s->time_score.timer[RANK_MEDM],
-               &s->time_score.timer[RANK_EASY],
-               &s->coin_score.coins[RANK_HARD],
-               &s->coin_score.coins[RANK_MEDM],
-               &s->coin_score.coins[RANK_EASY]
+               &tmp_hs_timer[RANK_HARD],
+               &tmp_hs_timer[RANK_MEDM],
+               &tmp_hs_timer[RANK_EASY],
+               &tmp_hs_coins[RANK_HARD],
+               &tmp_hs_coins[RANK_MEDM],
+               &tmp_hs_coins[RANK_EASY]
 #if NB_HAVE_PB_BOTH==1
                , &s->star, &s->balls_needed
 #endif
         );
+
+        for (int i = 0; i < 3; i++)
+        {
+            if (tmp_hs_timer[i] != 0) s->time_score.timer[i] = tmp_hs_timer[i];
+            if (tmp_hs_coins[i] != 0) s->time_score.coins[i] = tmp_hs_coins[i];
+        }
 
         free(scores);
         scores = NULL;

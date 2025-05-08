@@ -902,6 +902,9 @@ static int start_gui_options(void)
                 btn0 = gui_state(kd, GUI_CHECKMARK,
                                      GUI_SML, START_LOCK_GOALS, 0);
 
+                gui_set_font(btn1, "ttf/DejaVuSans-Bold.ttf");
+                gui_set_font(btn0, "ttf/DejaVuSans-Bold.ttf");
+
                 gui_set_color(btn1, GUI_COLOR_RED);
                 gui_set_color(btn0, GUI_COLOR_GRN);
 #else

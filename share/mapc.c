@@ -3786,18 +3786,8 @@ int main(int argc, char *argv[])
 
         for (int argi = 3; argi < argc; ++argi)
         {
-<<<<<<< HEAD
-            if (strcmp(argv[argi], "--skip_verify") == 0)  skip_verify = 1;
-            if (strcmp(argv[argi], "--debug")       == 0) debug_output = 1;
-            if (strcmp(argv[argi], "--csv")         == 0)
-=======
             if (strcmp(argv[argi], "--debug") == 0) debug_output = 1;
-            if (strcmp(argv[argi], "--csv")   == 0)
->>>>>>> d3d4d7a8ab5ba8852aac31dc4186b4b8f00e5786
-            {
-                csv_output = 1;
-                fs_set_logging(0);
-            }
+            if (strcmp(argv[argi], "--csv")   == 0)   csv_output = 1;
 #if ENABLE_RADIANT_CONSOLE
             if (strcmp(argv[argi], "--bcast")       == 0) bcast_init();
 #endif

@@ -143,6 +143,11 @@ void fs_set_logging(int logging)
     fs_logging = logging;
 }
 
+void fs_set_logging(int logging)
+{
+    fs_logging = logging;
+}
+
 int fs_quit(void)
 {
     /* Close all files to be quitting the game! */

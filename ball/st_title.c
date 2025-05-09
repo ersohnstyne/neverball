@@ -1500,16 +1500,16 @@ static void title_timer(int id, float dt)
     game_step_fade(dt);
 }
 
-static int title_point(int id, int x, int y)
+static void title_point(int id, int x, int y, int dx, int dy)
 {
-    if (title_lockscreen) return 0;
+    if (title_lockscreen) return;
 
     int jd;
 
     if ((jd = gui_point(id, x, y)))
         gui_pulse(jd, 1.2f);
 
-    return jd;
+    return;
 }
 
 static void title_stick(int id, int a, float v, int bump)

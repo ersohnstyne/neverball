@@ -1403,7 +1403,8 @@ static int start_buttn(int b, int d)
 
 enum
 {
-    START_JOINREQUIRED_OPEN = GUI_LAST,
+    START_JOINREQUIRED_SWITCHTOWGCL = GUI_LAST,
+    START_JOINREQUIRED_DISCORDSERVER,
     START_JOINREQUIRED_SIGNIN,
     START_JOINREQUIRED_SKIP
 };
@@ -1417,7 +1418,25 @@ static int start_joinrequired_action(int tok, int val)
         case GUI_BACK:
             return exit_state(&st_start);
 
-        case START_JOINREQUIRED_OPEN:
+#if NB_HAVE_PB_BOTH!=1
+        case START_JOINREQUIRED_SWITCHTOWGCL:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+#if defined(__EMSCRIPTEN__)
+            EM_ASM({ window.open("https://pennyball.stynegame.de/"); });
+#elif _WIN32
+            system("explorer https://pennyball.stynegame.de/");
+#elif defined(__APPLE__)
+            system("open https://pennyball.stynegame.de/");
+#elif defined(__linux__)
+            system("x-www-browser https://pennyball.stynegame.de/");
+#endif
+#endif
+            break;
+#endif
+
+        case START_JOINREQUIRED_DISCORDSERVER:
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
@@ -1464,9 +1483,9 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev, int
         gui_space(id);
         gui_multi(id,
                   _("Pennyball offers some of the most creative ways to\n"
-                    "compete with powerups! We just need you to upgrade\n"
-                    "to Pro edition so that we can make sure you have\n"
-                    "permission to use it."),
+                    "compete with powerups! We just need you to request\n"
+                    "by upgrading to Pro edition so that we can make sure\n"
+                    "you have permission to use it."),
                   GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
 
@@ -1476,7 +1495,7 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev, int
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
             gui_start(jd, _("Join/Upgrade"),
-                          GUI_SML, START_JOINREQUIRED_OPEN, 0);
+                          GUI_SML, START_JOINREQUIRED_DISCORDSERVER, 0);
             gui_state(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
 #else
             gui_start(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
@@ -1532,12 +1551,21 @@ static int start_joinrequired_enter(struct state *st, struct state *prev, int in
     {
         gui_title_header(id, _("Powerups available"), GUI_MED, GUI_COLOR_DEFAULT);
         gui_space(id);
+#if NB_HAVE_PB_BOTH==1
         gui_multi(id,
                   _("Pennyball offers some of the most creative ways to\n"
                     "compete with powerups! We just need you to join\n"
                     "and verify Discord server so that we can make sure\n"
                     "you have permission to use it."),
                   GUI_SML, GUI_COLOR_WHT);
+#else
+        gui_multi(id,
+                  _("Pennyball offers some of the most creative ways to\n"
+                    "compete with powerups! We just need you to switch\n"
+                    "into WGCL's website so that we can make sure\n"
+                    "you have permission to use it."),
+                  GUI_SML, GUI_COLOR_WHT);
+#endif
         gui_space(id);
 
         if ((jd = gui_harray(id)))
@@ -1545,7 +1573,11 @@ static int start_joinrequired_enter(struct state *st, struct state *prev, int in
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-            gui_start(jd, _("Join"), GUI_SML, START_JOINREQUIRED_OPEN, 0);
+#if NB_HAVE_PB_BOTH==1
+            gui_start(jd, _("Join"), GUI_SML, START_JOINREQUIRED_DISCORDSERVER, 0);
+#else
+            gui_start(jd, _("Switch to WGCL"), GUI_SML, START_JOINREQUIRED_SWITCHTOWGCL, 0);
+#endif
             gui_state(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);
 #else
             gui_start(jd, _("Skip"), GUI_SML, START_JOINREQUIRED_SKIP, 0);

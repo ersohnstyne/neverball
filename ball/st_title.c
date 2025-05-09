@@ -735,7 +735,7 @@ static int title_gui(void)
         if ((id = gui_vstack(root_id)))
         {
 #ifdef SWITCHBALL_TITLE_BTN_V2
-            gui_space(id);
+            if (!title_lockscreen) gui_space(id);
 #endif
 
             char os_env[MAXSTR], dev_env[MAXSTR];
@@ -1500,6 +1500,18 @@ static void title_timer(int id, float dt)
     game_step_fade(dt);
 }
 
+static int title_point(int id, int x, int y)
+{
+    if (title_lockscreen) return 0;
+
+    int jd;
+
+    if ((jd = gui_point(id, x, y)))
+        gui_pulse(jd, 1.2f);
+
+    return jd;
+}
+
 static void title_stick(int id, int a, float v, int bump)
 {
     if (!title_lockscreen)
@@ -1618,7 +1630,7 @@ struct state st_title = {
     title_leave,
     title_paint,  /* Default: shared_paint */
     title_timer,
-    shared_point,
+    title_point,  /* Default: shared_point */
     title_stick,
     shared_angle,
     title_click,

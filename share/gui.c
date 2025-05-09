@@ -1941,11 +1941,14 @@ int gui_search(int id, int x, int y)
     int jd, kd;
 
     /* Search the hierarchy for the widget containing the given point. */
+    
+    const int offset_total_x = widget[id].x + ROUND(widget[id].offset_x);
+    const int offset_total_y = widget[id].y + ROUND(widget[id].offset_y);
 
     if (id &&
         (widget[id].type == GUI_ROOT ||
-         (widget[id].x <= x && x < widget[id].x + widget[id].w &&
-          widget[id].y <= y && y < widget[id].y + widget[id].h)))
+         (offset_total_x <= x && x < offset_total_x + widget[id].w &&
+          offset_total_y <= y && y < offset_total_y + widget[id].h)))
     {
         if (gui_hot(id))
             return id;

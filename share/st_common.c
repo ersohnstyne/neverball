@@ -1441,28 +1441,28 @@ static int video_advanced_gui(void)
 {
     static const struct conf_option multisample_opts_sixteen[] = {
         { N_("Off"), 0 },
-        { N_("2x"),  2 },
-        { N_("4x"),  4 },
-        { N_("8x"),  8 },
-        { N_("16x"), 16 },
+        { "2x",  2 },
+        { "4x",  4 },
+        { "8x",  8 },
+        { "16x", 16 },
     };
 
     static const struct conf_option multisample_opts_eight[] = {
         { N_("Off"), 0 },
-        { N_("2x"),  2 },
-        { N_("4x"),  4 },
-        { N_("8x"),  8 },
+        { "2x",  2 },
+        { "4x",  4 },
+        { "8x",  8 },
     };
 
     static const struct conf_option multisample_opts_four[] = {
         { N_("Off"), 0 },
-        { N_("2x"),  2 },
-        { N_("4x"),  4 },
+        { "2x",  2 },
+        { "4x",  4 },
     };
 
     static const struct conf_option multisample_opts_two[] = {
         { N_("Off"), 0 },
-        { N_("2x"),  2 },
+        { "2x",  2 },
     };
 
 #ifdef SWITCHBALL_GUI

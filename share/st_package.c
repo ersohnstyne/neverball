@@ -98,6 +98,22 @@ static int  button_ids[PACKAGE_STEP] = {0};
 static int *status_ids = NULL;
 static int *name_ids   = NULL;
 
+/* === PREFIX/SUFFIX CONVERTER === */
+
+/* This prefix enum "PACKAGE_*" will be replaced into "ADDONS_*". */
+#define PACKAGE_INSTALL     ADDONS_INSTALL
+
+/* This prefix enum "PACKAGE_*" will be replaced into "ADDONS_*". */
+#define PACKAGE_UNINSTALL   ADDONS_UNINSTALL
+
+/* This prefix enum "PACKAGE_*" will be replaced into "ADDONS_*". */
+#define PACKAGE_SELECT      ADDONS_SELECT
+
+/* This prefix enum "PACKAGE_*" will be replaced into "ADDONS_*". */
+#define PACKAGE_CHANGEGROUP ADDONS_CHANGEGROUP
+
+/* === END PREFIX/SUFFIX CONVERTER === */
+
 enum
 {
     PACKAGE_INSTALL = GUI_LAST,
@@ -115,6 +131,49 @@ struct download_info
 static int (*installed_action)(int pi);
 
 /*---------------------------------------------------------------------------*/
+
+/* === PREFIX/SUFFIX CONVERTER === */
+
+/* This prefix function "package_*" will be replaced into "addons_*". */
+#define package_start_download addons_start_download
+
+/* This prefix function "package_*" will be replaced into "addons_*". */
+#define package_action     addons_action
+
+/* This prefix function "package_*" will be replaced into "addons_*". */
+#define package_gui        addons_gui
+
+/* This prefix function "package_*" will be replaced into "addons_*". */
+#define package_select     addons_select
+
+/* This prefix function "package_*" will be replaced into "addons_*". */
+#define gui_package        gui_addons
+
+/* This prefix function "package_*" will be replaced into "addons_*". */
+#define gui_package_button gui_addons_button
+
+/* This prefix function "package_*" will be replaced into "addons_*". */
+#define package_enter      addons_enter
+
+/* This prefix function "package_*" will be replaced into "addons_*". */
+#define package_leave      addons_leave
+
+/* This prefix function "package_*" will be replaced into "addons_*". */
+#define package_paint      addons_paint
+
+/* This prefix function "package_*" will be replaced into "addons_*". */
+#define package_timer      addons_timer
+
+/* This prefix function "package_*" will be replaced into "addons_*". */
+#define package_point      addons_point
+
+/* This prefix function "package_*" will be replaced into "addons_*". */
+#define package_stick      addons_stick
+
+/* This prefix function "package_*" will be replaced into "addons_*". */
+#define package_keybd      addons_keybd
+
+/* === END PREFIX/SUFFIX CONVERTER === */
 
 static struct download_info *create_download_info(const char *package_id)
 {
@@ -832,7 +891,7 @@ static int package_manage_delete_gui(void)
         sprintf(desc, _("%s\nSeriously, this action cannot be undone!"),
                       package_get_name(package_manage_selected));
 
-        gui_title_header(id, _("Delete package?"), GUI_MED, gui_red, gui_red);
+        gui_title_header(id, _("Delete addon?"), GUI_MED, gui_red, gui_red);
 
         gui_space(id);
 
@@ -866,9 +925,9 @@ static int package_manage_gui(void)
         const char *package_name = package_get_name(package_manage_selected);
 
         char desc[MAXSTR];
-        sprintf(desc, _("Installed package ID / Name:\n%s / %s"),
+        sprintf(desc, _("Installed addon ID / Name:\n%s / %s"),
                          package_id   ? package_id   : "(null)",
-                         package_name ? package_name : "Unknown package");
+                         package_name ? package_name : "Unknown addon");
 
         gui_multi(id, desc, GUI_SML, gui_wht, gui_wht);
 
@@ -927,7 +986,7 @@ static int package_manage_gui(void)
                 if (!equip_available)
                 {
                     gui_set_color(equip_btn_id, gui_red, gui_blk);
-                    gui_set_multi(equip_desc_id, _("Package is not available"));
+                    gui_set_multi(equip_desc_id, _("Addon is not available"));
                 }
                 else if (equip_same)
                 {

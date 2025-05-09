@@ -1299,9 +1299,9 @@ static float keybd_modal_alpha = 0.0f;
 
 static const char* conf_keybd_option_names[] = {
     N_("Auto-Camera"),
-    N_("KEYBD_KEY_CAM_1"),
-    N_("KEYBD_KEY_CAM_2"),
-    N_("KEYBD_KEY_CAM_3"),
+    "KEYBD_KEY_CAM_1",
+    "KEYBD_KEY_CAM_2",
+    "KEYBD_KEY_CAM_3",
     "",
     N_("Restart Level"),
     "",

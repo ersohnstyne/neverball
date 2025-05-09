@@ -907,8 +907,8 @@ static int page_modes_special(int id)
                                "local account and start over from scratch."),
                               GUI_SML, GUI_COLOR_WHT);
             else
-                gui_multi(jd, _("Boost Rush Mode is not available\n"
-                                "please check your account settings."),
+                gui_multi(jd, _("Boost Rush Mode is not available.\n"
+                                "Please check your account settings!"),
                               GUI_SML, GUI_COLOR_WHT);
         }
 
@@ -981,8 +981,8 @@ static int page_modes_special(int id)
                                 "local account and start over from scratch."),
                               GUI_SML, GUI_COLOR_WHT);
             else
-                gui_multi(jd, _("Hardcore Mode is not available\n"
-                                "please check your account settings."),
+                gui_multi(jd, _("Hardcore Mode is not available.\n"
+                                "Please check your account settings!"),
                               GUI_SML, GUI_COLOR_WHT);
         }
         gui_set_rect(jd, GUI_ALL);

@@ -94,7 +94,7 @@ static size_t write_callback(void *buffer, size_t size, size_t nmemb, void *user
     res_data->data = ptr;
     memcpy(&(res_data->data[res_data->size]), buffer, realsize);
     res_data->size += realsize;
-    res_data->data[res_data->size] = buffer;
+    res_data->data[res_data->size] = (char) buffer;
 
     return realsize;
 }

@@ -106,3 +106,40 @@ float easeInOutElastic(float x)
         )
     );
 }
+
+/*
+/*
+ * https://easings.net/#easeInOutBounce
+ * Date: 2025-05-12
+ * License: GPLv3
+ */
+float easeInBounce(float x)
+{
+    return 1 - easeOutBounce(1 - x);
+}
+
+float easeOutBounce(float x)
+{
+    const int n1 = 7.5625;
+    const int d1 = 2.75;
+
+    if (x < 1 / d1) {
+        return n1 * x * x;
+    }
+    else if (x < 2 / d1) {
+        return n1 * (x -= 1.5 / d1) * x + 0.75;
+    }
+    else if (x < 2.5 / d1) {
+        return n1 * (x -= 2.25 / d1) * x + 0.9375;
+    }
+    else {
+        return n1 * (x -= 2.625 / d1) * x + 0.984375;
+    }
+}
+
+float easeInOutBounce(float x)
+{
+    return x < 0.5
+           ? (1 - easeOutBounce(x * 2))     / 2
+           : (1 + easeOutBounce(2 * x - 1)) / 2;
+}

@@ -239,7 +239,7 @@ static float start_play_level_state_time;
 
 static int set_level_play(int i)
 {
-    const struct level *l = campaign_get_level(i);
+    struct level *l = campaign_get_level(i);
 
     if (!l) return 0;
 
@@ -1100,6 +1100,13 @@ static int start_compat_enter(struct state *st, struct state *prev, int intent)
     progress_exit();
     progress_init(MODE_BOOST_RUSH);
 
+#if NB_HAVE_PB_BOTH==1
+    /* HACK: These two transition directions will be merged! */
+
+    if (prev == &st_set)
+        return transition_slide_full(set_level_options ? start_gui_options() : start_gui(), 0, GUI_NE, GUI_SW);
+#endif
+
     return transition_slide(start_compat_gui(), 1, intent);
 }
 
@@ -1205,6 +1212,16 @@ static int start_enter(struct state *st, struct state *prev, int intent)
     if (prev == &st_start)
         return transition_page(set_level_options ? start_gui_options() : start_gui(), 1, intent);
 
+#if NB_HAVE_PB_BOTH==1
+    /* HACK: These two transition directions will be merged! */
+
+    if (prev == &st_set)
+    {
+        const int transition_direction_upward = curr_mode() == MODE_BOOST_RUSH;
+        return transition_slide_full(set_level_options ? start_gui_options() : start_gui(), 1, transition_direction_upward ? GUI_SE : GUI_NE, transition_direction_upward ? GUI_SE : GUI_NE);
+    }
+#endif
+
     return transition_slide(set_level_options ? start_gui_options() : start_gui(), 1, intent);
 }
 
@@ -1223,6 +1240,16 @@ static int start_leave(struct state *st, struct state *next, int id, int intent)
 
     if (next == &st_start)
         return transition_page(id, 0, intent);
+    
+#if NB_HAVE_PB_BOTH==1
+    /* HACK: These two transition directions will be merged! */
+
+    if (next == &st_set)
+    {
+        const int transition_direction_upward = curr_mode() == MODE_BOOST_RUSH;
+        return transition_slide_full(id, 0, transition_direction_upward ? GUI_NE : GUI_SE, transition_direction_upward ? GUI_NE : GUI_SE);
+    }
+#endif
 
     return transition_slide(id, 0, intent);
 }

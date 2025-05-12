@@ -718,7 +718,10 @@ static int conf_account_gui(void)
 #endif
 
 #if NB_EOS_SDK==0 || NB_STEAM_API==0
-            if (account_wgcl_name_read_only() || config_playername_locked() ||
+            if (account_wgcl_name_read_only() ||
+#ifndef __EMSCRIPTEN__
+                config_playername_locked() ||
+#endif
                 online_mode || !account_changeable)
 #endif
             {

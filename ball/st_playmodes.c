@@ -283,6 +283,13 @@ static int playmodes_enter(struct state *st, struct state *prev, int intent)
     if (prev == &st_playmodes)
         return playmodes_gui();
 
+#if NB_HAVE_PB_BOTH==1
+    /* HACK: These two transition directions will be merged! */
+
+    if (prev == &st_campaign)
+        return transition_slide_full(playmodes_gui(), 1, GUI_SE, GUI_SE);
+#endif
+
     return transition_slide(playmodes_gui(), 1, intent);
 }
 
@@ -304,6 +311,13 @@ static int playmodes_leave(struct state *st, struct state *next, int id, int int
         gui_delete(id);
         return 0;
     }
+
+#if NB_HAVE_PB_BOTH==1
+    /* HACK: These two transition directions will be merged! */
+
+    if (next == &st_campaign)
+        return transition_slide_full(id, 0, GUI_SE, GUI_SE);
+#endif
 
     return transition_slide(id, 0, intent);
 }
@@ -352,7 +366,7 @@ static float start_play_level_state_time;
 
 static int hardcore_start_play(void)
 {
-    const struct level *l = campaign_get_level(0);
+    struct level *l = campaign_get_level(0);
 
     if (!l) return 0;
 

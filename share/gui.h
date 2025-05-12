@@ -99,14 +99,15 @@
 #define GUI_REMOVE       (GUI_W << 3)
 #define GUI_EASE_ELASTIC (GUI_W << 4)
 #define GUI_EASE_BACK    (GUI_W << 5)
+#define GUI_EASE_BOUNCE  (GUI_W << 6)
 
 /* Rotation animation flags */
 
-#define GUI_ROTATE                  (GUI_W << 6)
-#define GUI_ROTATE_IN_EASE_ELASTIC  (GUI_W << 7)
-#define GUI_ROTATE_OUT_EASE_ELASTIC (GUI_W << 8)
-#define GUI_ROTATE_IN_EASE_BACK     (GUI_W << 9)
-#define GUI_ROTATE_OUT_EASE_BACK    (GUI_W << 10)
+#define GUI_ROTATE                  (GUI_W << 7)
+#define GUI_ROTATE_IN_EASE_ELASTIC  (GUI_W << 8)
+#define GUI_ROTATE_OUT_EASE_ELASTIC (GUI_W << 9)
+#define GUI_ROTATE_IN_EASE_BACK     (GUI_W << 10)
+#define GUI_ROTATE_OUT_EASE_BACK    (GUI_W << 11)
 
 /* Multiple corners */
 

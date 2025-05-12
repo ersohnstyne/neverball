@@ -60,10 +60,10 @@
 
 #if ENABLE_MOTIONBLUR!=0
 #define GUI_COLOR4UB \
-        gui_wht[0], gui_wht[1], gui_wht[2], ROUND((gui_wht[3] * widget[id].alpha) * video_motionblur_alpha_get())
+        gui_wht[0], gui_wht[1], gui_wht[2], ROUND((gui_wht[3] * (widget[id].alpha_slide * widget[id].alpha)) * video_motionblur_alpha_get())
 #else
 #define GUI_COLOR4UB \
-        gui_wht[0], gui_wht[1], gui_wht[2], ROUND((gui_wht[3] * widget[id].alpha))
+        gui_wht[0], gui_wht[1], gui_wht[2], ROUND((gui_wht[3] * (widget[id].alpha_slide * widget[id].alpha)))
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -152,6 +152,7 @@ struct widget
     enum trunc trunc;
 
     float   alpha;
+    float   alpha_slide;
     int     animation_direction;
 
     float offset_init_x;
@@ -191,6 +192,18 @@ static int cursor_st = 0;
 /* GUI theme. */
 
 static struct theme curr_theme;
+
+#define FUNC_VOID_CHECK_LIMITS(_id)                           \
+    do if (_id < 0 || _id > WIDGET_MAX) {                     \
+        log_errorf("Widget index out of bounds!: %d\n", _id); \
+        return;                                               \
+    } while (0)
+
+#define FUNC_INT_CHECK_LIMITS(_id)                            \
+    do if (_id < 0 || _id > WIDGET_MAX) {                     \
+        log_errorf("Widget index out of bounds!: %d\n", _id); \
+        return _id;                                           \
+    } while (0)
 
 /*---------------------------------------------------------------------------*/
 
@@ -844,6 +857,9 @@ static int gui_widget(int pd, int type)
             widget[id].slide_dur   = 0.0f;
             widget[id].slide_time  = 0.0f;
 
+            widget[id].alpha       = 1.0f;
+            widget[id].alpha_slide = 0.0f;
+
             /* Insert the new widget into the parent's widget list. */
 
             if (pd)
@@ -994,6 +1010,8 @@ static char *gui_truncate(const char *text,
 
 void gui_set_image(int id, const char *file)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     glDeleteTextures(1, &widget[id].image);
     gui_img_used = 1;
     widget[id].image = make_image_from_file(file, IF_MIPMAP);
@@ -1002,6 +1020,8 @@ void gui_set_image(int id, const char *file)
 
 void gui_set_label(int id, const char *text)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     TTF_Font *ttf = fonts[widget[id].font].ttf[widget[id].size];
 
     int w = 0;
@@ -1057,17 +1077,23 @@ void gui_set_label(int id, const char *text)
 
 void gui_set_count(int id, int value)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     widget[id].value = value;
 }
 
 void gui_set_clock(int id, int value)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     widget[id].value = value;
 }
 
 void gui_set_color(int id, const GLubyte *c0,
                            const GLubyte *c1)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     if (id)
     {
 #if NB_HAVE_PB_BOTH==1
@@ -1092,6 +1118,8 @@ void gui_set_color(int id, const GLubyte *c0,
 
 void gui_set_multi(int id, const char *text)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     const char *p;
 
     char s[GUI_LINES][MAXSTR];
@@ -1132,16 +1160,22 @@ void gui_set_multi(int id, const char *text)
 
 void gui_set_trunc(int id, enum trunc trunc)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     widget[id].trunc = trunc;
 }
 
 void gui_set_font(int id, const char *path)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     widget[id].font = gui_font_load(path);
 }
 
 void gui_set_fill(int id)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     widget[id].flags |= GUI_FILL;
 }
 
@@ -1152,6 +1186,8 @@ void gui_set_fill(int id)
  */
 int gui_set_state(int id, int token, int value)
 {
+    FUNC_INT_CHECK_LIMITS(id);
+
     widget[id].flags |= GUI_STATE;
     widget[id].token  = token;
     widget[id].value  = value;
@@ -1161,6 +1197,8 @@ int gui_set_state(int id, int token, int value)
 
 void gui_set_hilite(int id, int hilite)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     if (hilite)
         widget[id].flags |= GUI_HILITE;
     else
@@ -1169,12 +1207,16 @@ void gui_set_hilite(int id, int hilite)
 
 void gui_set_rect(int id, int rect)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     widget[id].rect   = rect;
     widget[id].flags |= GUI_RECT;
 }
 
 void gui_clr_rect(int id)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     int jd;
 
     widget[id].flags &= ~GUI_RECT;
@@ -1190,6 +1232,8 @@ void gui_set_cursor(int st)
 
 void gui_set_hidden(int id, int hidden)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     if (id)
         widget[id].hidden = hidden ? 1u : 0;
 }
@@ -1762,6 +1806,8 @@ static void gui_widget_dn(int id, int x, int y, int w, int h)
 
 static void gui_widget_offset(int id, int pd)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     if (id)
     {
         int jd;
@@ -1847,6 +1893,8 @@ void gui_set_slide(int id, int flags, float delay, float t, float stagger)
 {
     if (!config_get_d(CONFIG_SCREEN_ANIMATIONS)) return;
 
+    FUNC_VOID_CHECK_LIMITS(id);
+
     if (id)
     {
         int jd, c = 0;
@@ -1868,6 +1916,8 @@ void gui_set_slide(int id, int flags, float delay, float t, float stagger)
 
 void gui_slide(int id, int flags, float delay, float t, float stagger)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     if (id)
     {
         gui_set_slide(id, flags, delay, t, stagger);
@@ -1938,10 +1988,12 @@ void gui_layout(int id, int xd, int yd)
 
 int gui_search(int id, int x, int y)
 {
+    FUNC_INT_CHECK_LIMITS(id);
+
     int jd, kd;
 
     /* Search the hierarchy for the widget containing the given point. */
-    
+
     const int offset_total_x = widget[id].x + ROUND(widget[id].offset_x);
     const int offset_total_y = widget[id].y + ROUND(widget[id].offset_y);
 
@@ -1962,6 +2014,8 @@ int gui_search(int id, int x, int y)
 
 int gui_child(int id, int index)
 {
+    FUNC_INT_CHECK_LIMITS(id);
+
     if (id)
     {
         int jd, c = 0, i;
@@ -1979,6 +2033,8 @@ int gui_child(int id, int index)
 
 int gui_delete(int id)
 {
+    FUNC_INT_CHECK_LIMITS(id);
+
     if (id && widget[id].type != GUI_FREE)
     {
         /* Recursively delete all subwidgets. */
@@ -2024,6 +2080,8 @@ int gui_delete(int id)
  */
 void gui_remove(int id)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     if (id && widget[id].type != GUI_FREE)
     {
         int pd = 0;
@@ -2440,7 +2498,7 @@ static void gui_paint_label(int id)
 
 static void gui_paint_text(int id)
 {
-    if (widget[id].hidden || widget[id].alpha < .5f)
+    if (widget[id].hidden || widget[id].alpha_slide < .5f)
         return;
 
     switch (widget[id].type)
@@ -2463,6 +2521,8 @@ static void gui_paint_text(int id)
 
 void gui_animate(int id)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     glTranslatef((GLfloat) (video.device_w / 2),
                  (GLfloat) (video.device_h / 2), 0.0f);
 
@@ -2596,6 +2656,8 @@ void gui_paint(int id)
 {
     video_can_swap_window = 1;
 
+    FUNC_VOID_CHECK_LIMITS(id);
+
     if (id && widget[id].type != GUI_FREE)
     {
         /*if (config_get_d(CONFIG_UI_HWACCEL))
@@ -2664,6 +2726,8 @@ void gui_paint(int id)
 
 void gui_set_alpha(int id, float alpha, int direction)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     if (id)
     {
         widget[id].alpha = CLAMP(0.0f, alpha, 1.0f);
@@ -2710,6 +2774,8 @@ void gui_dump(int id, int d)
 
 void gui_pulse(int id, float k)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     if (id)
     {
         if (widget[id].pulse_scale < k)
@@ -2719,54 +2785,68 @@ void gui_pulse(int id, float k)
 
 void gui_timer(int id, float dt)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     int jd;
 
     if (id && widget[id].type != GUI_FREE)
     {
-        if (!config_get_d(CONFIG_SCREEN_ANIMATIONS) &&
-            widget[id].slide_flags & GUI_REMOVE)
+        widget[id].alpha_slide = 1.0f;
+
+        if (!config_get_d(CONFIG_SCREEN_ANIMATIONS))
         {
-            gui_remove(id);
+            if (widget[id].slide_flags & GUI_REMOVE)
+                gui_remove(id);
+
             return;
         }
 
         for (jd = widget[id].car; jd; jd = widget[jd].cdr)
             gui_timer(jd, dt);
 
-        if (widget[id].alpha >= .5f)
+        if (widget[id].alpha_slide >= .5f)
             widget[id].pulse_scale = flerp(widget[id].pulse_scale, 1.0f, dt * 10.0f);
 
         if ((widget[id].flags & GUI_OFFSET) && widget[id].slide_time < widget[id].slide_delay + widget[id].slide_dur)
         {
             float alpha = 0.0f;
-            int at_end = 0;
 
             widget[id].slide_time += dt;
 
             alpha = (widget[id].slide_time - widget[id].slide_delay) / widget[id].slide_dur;
             alpha = CLAMP(0.0f, alpha, 1.0f);
 
-            at_end = (alpha >= 1.0f);
+            const int at_end = (alpha >= 1.0f);
 
             if (widget[id].slide_flags & GUI_BACKWARD)
             {
+                if (widget[id].offset_init_x == 0 && widget[id].offset_init_y == 0)
+                    widget[id].alpha_slide = 1.0f - alpha;
+
                 // Approaching offset position.
 
                 if (widget[id].slide_flags & GUI_EASE_ELASTIC)
                     alpha = easeOutElastic(alpha);
                 else if (widget[id].slide_flags & GUI_EASE_BACK)
                     alpha = easeOutBack(alpha);
+                else if (widget[id].slide_flags & GUI_EASE_BOUNCE)
+                    alpha = easeOutBounce(alpha);
                 else
                     /* Linear interpolation. */;
             }
             else
             {
+                if (widget[id].offset_init_x == 0 && widget[id].offset_init_y == 0)
+                    widget[id].alpha_slide = alpha;
+
                 // Approaching widget position.
 
                 if (widget[id].slide_flags & GUI_EASE_ELASTIC)
                     alpha = easeInElastic(1.0f - alpha);
                 else if (widget[id].slide_flags & GUI_EASE_BACK)
                     alpha = easeInBack(1.0f - alpha);
+                else if (widget[id].slide_flags & GUI_EASE_BOUNCE)
+                    alpha = easeInBounce(1.0f - alpha);
                 else
                     alpha = 1.0f - alpha;
             }
@@ -2832,7 +2912,9 @@ int gui_point(int id, int x, int y)
 
 void gui_alpha(int id, float alpha)
 {
-    widget[id].alpha = alpha;
+    FUNC_VOID_CHECK_LIMITS(id);
+
+    widget[id].alpha = CLAMP(0.0f, alpha, 1.0f);;
 }
 
 void gui_focus(int i)
@@ -2850,16 +2932,22 @@ int gui_active(void)
 
 int gui_token(int id)
 {
+    FUNC_INT_CHECK_LIMITS(id);
+
     return id ? widget[id].token : 0;
 }
 
 int gui_value(int id)
 {
+    FUNC_INT_CHECK_LIMITS(id);
+
     return id ? widget[id].value : 0;
 }
 
 void gui_toggle(int id)
 {
+    FUNC_VOID_CHECK_LIMITS(id);
+
     widget[id].flags ^= GUI_HILITE;
 }
 

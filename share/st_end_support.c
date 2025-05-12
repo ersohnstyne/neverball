@@ -85,10 +85,6 @@ static int no_of_days_in_month(int month, int year)
         month == 8 || month == 10 || month == 12)
         return 31;
 
-    // april, jun, sept, nov contains 30 days
-    if (month == 4 || month == 6 || month == 9 || month == 11)
-        return 30;
-
     if (month == 2)
     {
         int n = check_leap_year(year);
@@ -96,6 +92,9 @@ static int no_of_days_in_month(int month, int year)
         // if year is a leap year then Feb will contain 29 days, otherwise it contains 28 days
         return n == 1 ? 29 : 28;
     }
+
+    // april, jun, sept, nov or others contains 30 days
+    return 30;
 }
 
 /* DO NOT EDIT! */

@@ -21,5 +21,8 @@ float easeInOutBack(float x);
 float easeInElastic(float x);
 float easeOutElastic(float x);
 float easeInOutElastic(float x);
+float easeInBounce(float x);
+float easeOutBounce(float x);
+float easeInOutBounce(float x);
 
 #endif

@@ -646,6 +646,19 @@ static int set_enter(struct state *st, struct state *prev, int intent)
     if (set_manual_hotreload)
         set_manual_hotreload = 0;
 
+#if NB_HAVE_PB_BOTH==1
+    /* HACK: These two transition directions will be merged! */
+
+    if (prev == &st_start)
+    {
+        const int transition_direction_upward = curr_mode() == MODE_BOOST_RUSH;
+        return transition_slide_full(set_gui(), 1, !transition_direction_upward ? GUI_NW : GUI_SW, !transition_direction_upward ? GUI_NW : GUI_SW);
+    }
+
+    if (next == &st_campaign)
+        return transition_slide_full(id, 0, 0, 0);
+#endif
+
     if (prev == &st_set)
         return transition_page(set_gui(), 1, intent);
 
@@ -665,6 +678,16 @@ static int set_leave(struct state *st, struct state *next, int id, int intent)
         set_quit();
         game_client_free(NULL);
     }
+
+#if NB_HAVE_PB_BOTH==1
+    /* HACK: These two transition directions will be merged! */
+
+    if (next == &st_start)
+    {
+        const int transition_direction_upward = curr_mode() == MODE_BOOST_RUSH;
+        return transition_slide_full(id, 0, !transition_direction_upward ? GUI_NW : GUI_SW, !transition_direction_upward ? GUI_NW : GUI_SW);
+    }
+#endif
 
     if (set_manual_hotreload)
         gui_delete(id);
@@ -870,7 +893,7 @@ static float start_play_level_state_time;
 
 static int campaign_level_play(int i)
 {
-    const struct level *l = campaign_get_level(i);
+    struct level *l = campaign_get_level(i);
 
     if (!l) return 0;
 
@@ -1319,10 +1342,27 @@ static int campaign_enter(struct state *st, struct state *prev, int intent)
 
     campaign_prepare(prev);
 
+#if NB_HAVE_PB_BOTH==1
+    /* HACK: These two transition directions will be merged! */
+
+    if (prev == &st_playmodes)
+#ifndef NDEBUG
+        return transition_slide_full(campaign_gui(), 1, GUI_NW, GUI_NW);
+#else
+        return transition_slide_full(campaign_gui_comingsoon(), 1, GUI_NW, GUI_NW);
+#endif
+
+#ifndef NDEBUG
+    return transition_slide_full(campaign_gui(), 1, 0, 0);
+#else
+    return transition_slide_full(campaign_gui_comingsoon(), 1, 0, 0);
+#endif
+#else
 #ifndef NDEBUG
     return transition_slide(campaign_gui(), 1, intent);
 #else
     return transition_slide(campaign_gui_comingsoon(), 1, intent);
+#endif
 #endif
 }
 
@@ -1342,6 +1382,15 @@ static int campaign_leave(struct state *st, struct state *next, int id, int inte
         if (next == &st_null)
             game_client_free(NULL);
     }
+
+#if NB_HAVE_PB_BOTH==1
+    /* HACK: These two transition directions will be merged! */
+
+    if (next == &st_playmodes)
+        return transition_slide_full(id, 0, GUI_NW, GUI_NW);
+
+    return transition_slide_full(id, 0, 0, 0);
+#endif
 
     return transition_slide(id, 0, intent);
 }
@@ -1598,6 +1647,13 @@ static int levelgroup_enter(struct state *st, struct state *prev, int intent)
 #else
     audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
                                                      BGM_TITLE_CONF_LANGUAGE, 1);
+#endif
+
+#if NB_HAVE_PB_BOTH==1
+    /* HACK: These two transition directions will be merged! */
+
+    if (prev == &st_campaign)
+        return transition_slide_full(levelgroup_gui(), 1, 0, 0);
 #endif
 
     return transition_slide(levelgroup_gui(), 1, intent);

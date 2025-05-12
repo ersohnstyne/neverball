@@ -225,6 +225,8 @@ static int intro_gui(void)
         }
     }
 
+    gui_set_alpha(root_id, 1.0f, 0);
+
     return root_id;
 }
 

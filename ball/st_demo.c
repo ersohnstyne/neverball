@@ -716,9 +716,19 @@ static int demo_restricted_gui(void)
                               GUI_SML, GUI_COLOR_WHT);
         }
         else
-            gui_multi(id, _("You can't open selected replay,\n"
-                            "because it was restricted by you!"),
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+            gui_multi(id, _("You can't open selected replay, because\n"
+                            "it was restricted by the WGCL's system settings!"),
                           GUI_SML, GUI_COLOR_WHT);
+#elif NB_HAVE_PB_BOTH==1
+            gui_multi(id, _("You can't open selected replay, because\n"
+                            "it was restricted by the account settings!"),
+                          GUI_SML, GUI_COLOR_WHT);
+#else
+            gui_multi(id, _("You can't open selected replay, because\n"
+                            "it was restricted by the in-game settings!"),
+                          GUI_SML, GUI_COLOR_WHT);
+#endif
 
         demo_requires_update = 0;
 

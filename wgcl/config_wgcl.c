@@ -188,6 +188,28 @@ void WGCL_CallClassicPackagesUI(void)
 
 /*---------------------------------------------------------------------------*/
 
+struct WGCL_Campaign_Level
+{
+    int time_hundred[3];
+    int coins[3];
+
+    char player_name[3][MAXSTR];
+};
+
+struct WGCL_Campaign_WorldCard
+{
+    struct WGCL_Campaign_Level levels_time[6];
+    struct WGCL_Campaign_Level levels_goal[6];
+    struct WGCL_Campaign_Level levels_coin[6];
+
+    int locked[6];
+    int completed[6];
+
+    int time_hundred_total;
+};
+
+static struct WGCL_Campaign_WorldCard world_cards[5];
+
 static Array wgcloptions_file_items = NULL;
 
 static int hs_scan_item(struct dir_item *item)
@@ -200,6 +222,93 @@ static int hs_cmp_items(const void *A, const void *B)
     const struct dir_item *a = A, *b = B;
 
     return strcmp(a->path, b->path);
+}
+
+static int campaign_get_score(fs_file fp, struct WGCL_Campaign_Level *l)
+{
+    char line[MAXSTR];
+    int i;
+
+    for (i = 0; i <= 2; i++)
+    {
+        int n = -1;
+
+        if (!fs_gets(line, sizeof (line), fp))
+            return 0;
+
+        strip_newline(line);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        if (sscanf_s(line,
+#else
+        if (sscanf(line,
+#endif
+                   "%d %d %n", &l->time_hundred[i], &l->coins[i], &n) < 2)
+            return 0;
+
+        if (n < 0)
+            return 0;
+
+        SAFECPY(l->player_name[i], line + n);
+    }
+
+    return 1;
+}
+
+static void campaign_hs_read_lines(fs_file fp, char *buf, int size)
+{
+    int total_gold   = 0;
+    int total_silver = 0;
+    int total_bronze = 0;
+
+    int block_hs_total_time = 1;
+
+    int i = -1, j = 6;
+
+    struct WGCL_Campaign_Level tmp_classic;
+
+    while (fs_gets(buf, size, fp))
+    {
+        int campaign_version = 0;
+        int flags            = 0;
+        int n                = 0;
+
+        strip_newline(buf);
+
+        if (strncmp(buf, "campaign", 8) == 0)
+        {
+            campaign_get_score(fp, &tmp_classic.time_hundred);
+            campaign_get_score(fp, &tmp_classic.coins);
+        }
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        else if (sscanf_s(buf,
+#else
+        else if (sscanf(buf,
+#endif
+                 "level %d %d %n", &flags, &campaign_version, &n) >= 2)
+        {
+            block_hs_total_time = 0;
+
+            if (j > 5) {
+                i++;
+                j = 0;
+            } else j++;
+        }
+
+        if (!block_hs_total_time)
+        {
+            /* Same as locked levels in the level set. */
+
+            world_cards[i].locked[j]    = !!(flags & 1);
+            world_cards[i].completed[j] = !!(flags & 2);
+
+            campaign_get_score(fp, &world_cards[i].levels_time[j]);
+            campaign_get_score(fp, &world_cards[i].levels_goal[j]);
+            campaign_get_score(fp, &world_cards[i].levels_coin[j]);
+
+            j++;
+        }
+    }
 }
 
 static Array wgcl_gameoptions_levelset_hs_dir_scan(void)
@@ -256,11 +365,38 @@ static void set_hs_read_lines(fs_file fp, char *buf, int size)
     }
 }
 
-static void set_load_hs(const char *filename)
+static void campaign_load_hs(void)
 {
     fs_file fp;
 
-    int score_version = 0;
+    if ((fp = fs_open_read("Campaign/time-trial.txt")))
+    {
+        for (int i = 0; i < 5; i++)
+            for (int j = 0; j < 6; j++)
+                for (int k = 0; k < 3; k++)
+                {
+                    world_cards[i].levels_coin[j].time_hundred[k] = 360000;
+                    world_cards[i].levels_coin[j].coins[k] = 0;
+
+                    SAFECPY(world_cards[i].levels_time[j].player_name[k], "");
+                }
+
+        char buf[MAXSTR];
+
+        if (fs_gets(buf, sizeof(buf), fp))
+        {
+            strip_newline(buf);
+
+            campaign_hs_read_lines(fp, buf, sizeof(buf));
+        }
+
+        fs_close(fp);
+    }
+}
+
+static void set_load_hs(const char *filename)
+{
+    fs_file fp;
 
     if ((fp = fs_open_read(filename)))
     {
@@ -275,7 +411,6 @@ static void set_load_hs(const char *filename)
 
         fs_close(fp);
     }
-
 }
 
 void WGCL_CallSaveDataUI(void)
@@ -305,6 +440,74 @@ void WGCL_CallSaveDataUI(void)
 
 void WGCL_CallHighscoreDataUI_Campaign(void)
 {
+    /* HACK: Just read it first, then check whether first campaign level is unlocked. */
+
+    campaign_load_hs();
+
+    for (int i = 0; i < 5; i++)
+    {
+        int world_unlocked  = 0;
+        int world_progress  = 0;
+        int world_completed = 0;
+
+        int time_hundred_total = 0;
+
+        int medals[3] = { 0, 0, 0 };
+
+        for (int j = 0; j < 6; j++)
+        {
+            if (world_cards[i].locked[0])
+            {
+#ifdef __EMSCRIPTEN__
+                EM_ASM({
+                    CoreLauncherOptions_GameOptions_SaveData_Campaign_AddToWorldMedalCard(false, 0, false, 360000);
+                });
+#endif
+                break;
+            }
+
+            else if (strcmp(world_cards[i].levels_time[j].player_name[0], "Hard")   != 0)
+            {
+                time_hundred_total += world_cards[i].levels_time[j].time_hundred[0];
+                medals[0]++;
+                medals[1]++;
+                medals[2]++;
+            }
+            else if (strcmp(world_cards[i].levels_time[j].player_name[1], "Medium") != 0)
+            {
+                time_hundred_total += world_cards[i].levels_time[j].time_hundred[1];
+                medals[0]++;
+                medals[1]++;
+            }
+            else if (strcmp(world_cards[i].levels_time[j].player_name[2], "Easy")   != 0)
+            {
+                time_hundred_total += world_cards[i].levels_time[j].time_hundred[2];
+                medals[0]++;
+            }
+        }
+
+        if (!world_cards[i].locked[0])
+        {
+            int levelnum_progress = 0, levelnum_completed = 0;
+
+            for (int j = 0; j < 6; j++)
+            {
+                if (!world_cards[i].locked[j])
+                    levelnum_progress++;
+                if (!world_cards[i].completed[j])
+                    levelnum_completed++;
+            }
+#ifdef __EMSCRIPTEN__
+            EM_ASM({
+                CoreLauncherOptions_GameOptions_SaveData_Campaign_AddToWorldMedalCard(true, $0, $1 == 6, $2, $3, $4, $5);
+            }, levelnum_progress, levelnum_completed, time_hundred_total, medals[0], medals[1], medals[2]);
+#endif
+        }
+    }
+
+#ifdef __EMSCRIPTEN__
+    EM_ASM({ CoreLauncherOptions_GameOptions_SaveData_Campaign_RenderWorldCard(); });
+#endif
 }
 
 void WGCL_CallHighscoreDataUI_LevelSet(void)
@@ -352,6 +555,8 @@ void WGCL_CallHighscoreDataUI_LevelSet(void)
 void WGCL_TryEraseHighscoreFile_Campaign(void)
 {
     fs_remove("Campaign/time-trial.txt");
+
+    WGCL_CallHighscoreDataUI_Campaign();
 }
 
 void WGCL_TryEraseHighscoreFile_LevelSet(const char *filename)
@@ -509,7 +714,6 @@ void WGCL_TryFormatUserData(void)
 #endif
                 fs_remove(file_attr);
             }
-
             opendriveapi_closedir(dir);
         }
 #elif _WIN32 && _MSC_VER
@@ -548,10 +752,11 @@ void WGCL_TryFormatUserData(void)
                 sprintf(file_attr, "%s/%s", path_name[i], ent->d_name);
                 fs_remove(file_attr);
             }
-
             closedir(dir);
         }
 #endif
     }
+
+    EM_ASM({ CoreLauncherOptions_SystemSettings_OnFormatCompleted(); });
 #endif
 }

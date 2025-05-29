@@ -29,6 +29,10 @@
 #include "st_package.h"
 #include "st_common.h"
 
+#if NB_HAVE_PB_BOTH==1
+#include "st_wgcl.h"
+#endif
+
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
 #pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
@@ -274,6 +278,10 @@ static void download_done(void *data1, void *data2)
                     audio_play("snd/uierror.ogg", 1.0f);
                     gui_set_label(id, "!");
                     gui_set_color(id, gui_red, gui_red);
+
+#if NB_HAVE_PB_BOTH==1
+                    goto_state(&st_wgcl_error_offline);
+#endif
                 }
             }
         }

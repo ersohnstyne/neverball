@@ -1686,7 +1686,7 @@ void wgcl_play_devicemotion_tilt(int x, int y)
     if (devicemotion_timer_tilt >= 10.0f)
     {
         tilt_x = (parsed_x - devicemotion_tilt_init_x) / ANGLE_BOUND;
-        tilt_y = (parsed_x - devicemotion_tilt_init_y) / ANGLE_BOUND;
+        tilt_y = (parsed_y - devicemotion_tilt_init_y) / ANGLE_BOUND;
 
         game_set_pos(tilt_x * 2, tilt_y * 2);
     }

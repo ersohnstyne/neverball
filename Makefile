@@ -255,6 +255,7 @@ endif
 # Basically used
 SDL_CPPFLAGS := $(shell sdl2-config --cflags)
 PNG_CPPFLAGS := $(shell libpng-config --cflags)
+JPEG_CPPFLAGS := $(shell pkg-config --cflags libjpeg)
 
 ALL_CPPFLAGS += $(GAMETRANSFER_CPPFLAGS) $(DEDICATED_CPPFLAGS) \
 	$(STEAM_CPPFLAGS) $(SDL_CPPFLAGS) $(PNG_CPPFLAGS) $(SQL_CPPFLAGS) \
@@ -361,6 +362,7 @@ endif
 # Basically used
 SDL_LIBS := $(shell sdl2-config --libs)
 PNG_LIBS := $(shell libpng-config --libs)
+JPEG_LIBS := $(shell pkg-config --libs libjpeg)
 
 ENABLE_FS := stdio
 ifeq ($(ENABLE_FS),stdio)
@@ -436,7 +438,7 @@ ifeq ($(PLATFORM),haiku)
 	endif
 endif
 
-BASE_LIBS := -ljpeg $(PNG_LIBS) $(FS_LIBS) -lm
+BASE_LIBS := $(JPEG_LIBS) $(PNG_LIBS) $(FS_LIBS) -lm
 
 ifeq ($(PLATFORM),darwin)
 	BASE_LIBS += $(patsubst %, -L%, $(wildcard /opt/local/lib \

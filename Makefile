@@ -257,9 +257,13 @@ SDL_CPPFLAGS := $(shell sdl2-config --cflags)
 PNG_CPPFLAGS := $(shell libpng-config --cflags)
 JPEG_CPPFLAGS := $(shell pkg-config --cflags libjpeg)
 
+<<<<<<< HEAD
 ALL_CPPFLAGS += $(GAMETRANSFER_CPPFLAGS) $(DEDICATED_CPPFLAGS) \
 	$(STEAM_CPPFLAGS) $(SDL_CPPFLAGS) $(PNG_CPPFLAGS) $(SQL_CPPFLAGS) \
 	$(RFD_CPPFLAGS) -Iwgcl -Ipayments -Ishare
+=======
+ALL_CPPFLAGS := $(SDL_CPPFLAGS) $(JPEG_CPPFLAGS) $(PNG_CPPFLAGS) -Ishare
+>>>>>>> 1e5b2937a6917fdd222f8c2a8097fb3002f972c6
 
 ALL_CPPFLAGS += \
 	-DCONFIG_USER=\"$(USERDIR)\" \
@@ -361,7 +365,11 @@ endif
 
 # Basically used
 SDL_LIBS := $(shell sdl2-config --libs)
+<<<<<<< HEAD
 PNG_LIBS := $(shell libpng-config --libs)
+=======
+PNG_LIBS := $(shell libpng-config --ldflags)
+>>>>>>> 1e5b2937a6917fdd222f8c2a8097fb3002f972c6
 JPEG_LIBS := $(shell pkg-config --libs libjpeg)
 
 ENABLE_FS := stdio

@@ -1306,6 +1306,15 @@ static int loop(void)
                 switch (e.user.code)
                 {
                     case USER_EVENT_BACK:
+#if NB_HAVE_PB_BOTH==1
+                        EM_ASM({
+                            if (systemsettings_wgclstate_ui_enabled)
+                                CoreLauncherOptions_SystemSettings_BackBtnClicked();
+
+                            if (gameoptions_wgclstate_ui_enabled)
+                                CoreLauncherOptions_GameOptions_BackBtnClicked();
+                        });
+#endif
                         d = st_keybd(KEY_EXIT, 1);
                         break;
 

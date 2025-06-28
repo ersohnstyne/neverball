@@ -101,9 +101,8 @@ static void put_score(fs_file fp, const struct score *s)
 static int get_score(fs_file fp, struct score *s)
 {
     char line[MAXSTR];
-    int i;
 
-    for (i = RANK_HARD; i <= RANK_EASY; i++)
+    for (int i = RANK_HARD; i <= RANK_EASY; i++)
     {
         int n = -1;
 
@@ -141,8 +140,6 @@ void set_store_hs(void)
     if ((fp = fs_open_write(s->user_scores)))
 #endif
     {
-        int i;
-
 #if NB_HAVE_PB_BOTH==1
         fs_printf(fp, "version %d\nrewarded %d\nset %s\n", SCORE_VERSION,
                       s->star_obtained, s->id);
@@ -153,7 +150,7 @@ void set_store_hs(void)
         put_score(fp, &s->time_score);
         put_score(fp, &s->coin_score);
 
-        for (i = 0; i < s->count; i++)
+        for (int i = 0; i < s->count; i++)
         {
             const struct level *l = &level_v[i];
 
@@ -186,9 +183,7 @@ void set_store_hs(void)
 
 static struct level *find_level(const struct set *s, const char *file)
 {
-    int i;
-
-    for (i = 0; i < s->count; i++)
+    for (int i = 0; i < s->count; i++)
         if (strcmp(level_v[i].file, file) == 0)
             return &level_v[i];
 
@@ -655,8 +650,6 @@ static int set_load(struct set *s, const char *filename)
 
 static void set_free(struct set *s)
 {
-    int i;
-
     free(s->name);
     free(s->desc);
     free(s->id);
@@ -678,7 +671,7 @@ static void set_free(struct set *s)
     s->user_scores = NULL;
     s->cheat_scores = NULL;
 
-    for (i = 0; i < s->count; i++)
+    for (int i = 0; i < s->count; i++)
     {
         free(s->level_name_v[i]);
         s->level_name_v[i] = NULL;
@@ -717,7 +710,6 @@ int set_init(int boost_active)
     fs_file fin;
 
     Array items;
-    int i;
 
     if (sets)
         set_quit();
@@ -755,7 +747,7 @@ int set_init(int boost_active)
     {
         array_sort(items, cmp_dir_items);
 
-        for (i = 0; i < array_len(items); i++)
+        for (int i = 0; i < array_len(items); i++)
         {
             struct set *s = array_add(sets);
 
@@ -773,9 +765,9 @@ void set_quit(void)
 {
     if (sets)
     {
-        int i, n = array_len(sets);
+        int n = array_len(sets);
 
-        for (i = 0; i < n; i++)
+        for (int i = 0; i < n; i++)
             set_free(array_get(sets, i));
 
         array_free(sets);
@@ -1034,13 +1026,9 @@ void set_scan_level_files(void)
 int set_find(const char *file)
 {
     if (sets)
-    {
-        int i, n;
-
-        for (i = 0, n = array_len(sets); i < n; ++i)
+        for (int i = 0, n = array_len(sets); i < n; ++i)
             if (strcmp(SET_GET(sets, i)->file, file) == 0)
                 return i;
-    }
 
     return -1;
 }
@@ -1054,9 +1042,7 @@ struct level *set_find_level(const char *basename)
     {
         struct set *s = SET_GET(sets, curr_set());
 
-        int i;
-
-        for (i = 0; i < s->count; ++i)
+        for (int i = 0; i < s->count; ++i)
         {
             if (strcmp(basename, base_name(level_v[i].file)) == 0)
                 return &level_v[i];
@@ -1171,9 +1157,7 @@ void level_snap(int i, const char *path)
 
 void set_cheat(void)
 {
-    int i;
-
-    for (i = 0; i < SET_GET(sets, curr)->count; i++)
+    for (int i = 0; i < SET_GET(sets, curr)->count; i++)
     {
         level_v[i].is_locked    = 0;
         level_v[i].is_completed = 1;
@@ -1182,9 +1166,7 @@ void set_cheat(void)
 
 void set_detect_bonus_product(void)
 {
-    int i;
-
-    for (i = 0; i < SET_GET(sets, curr)->count; i++)
+    for (int i = 0; i < SET_GET(sets, curr)->count; i++)
     {
         if (level_v[i].is_bonus) {
             level_v[i].is_locked    = 0;

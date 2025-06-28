@@ -28,7 +28,18 @@
 #define DRIVE_REMOVEABLE 2
 #endif
 
+#ifndef NDEBUG
 #include <assert.h>
+#elif defined(_MSC_VER) && defined(_AFXDLL)
+#include <afx.h>
+/**
+ * HACK: assert() for Microsoft Windows Apps in Release builds
+ * will be replaced to VERIFY() - Ersohn Styne
+ */
+#define assert VERIFY
+#else
+#define assert(_x) (_x)
+#endif
 
 #include "fs.h"
 #include "audio.h"

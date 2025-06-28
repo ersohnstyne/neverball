@@ -716,8 +716,6 @@ static int ball_keybd(int c, int d)
     int initial_refl = config_get_d(CONFIG_REFLECTION);
 #endif
 
-    int i;
-
     if (d)
     {
         switch (c)
@@ -752,7 +750,7 @@ static int ball_keybd(int c, int d)
 
                 /* Take screenshots. */
 
-                for (i = 0; balls && i < array_len(balls); ++i)
+                for (int i = 0; balls && i < array_len(balls); ++i)
                 {
                     static char filename[64];
 

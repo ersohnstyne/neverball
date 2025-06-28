@@ -21,9 +21,6 @@
 /* TODO: Uncomment, if you want to test the end support. */
 //#define TEST_END_SUPPORT
 
-#ifndef NDEBUG
-#include <assert.h>
-#endif
 #include <time.h>
 
 #ifdef __EMSCRIPTEN__

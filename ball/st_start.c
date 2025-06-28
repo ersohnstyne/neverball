@@ -602,7 +602,6 @@ static int start_gui(void)
 {
     int w = video.device_w;
     int h = video.device_h;
-    int i, j;
 
     int id, jd, kd, ld, md;
 
@@ -762,9 +761,9 @@ static int start_gui(void)
                     else
 #endif
                     {
-                        for (i = 0; i < 5; i++)
+                        for (int i = 0; i < 5; i++)
                             if ((md = gui_harray(ld)))
-                                for (j = 4; j >= 0; j--)
+                                for (int j = 4; j >= 0; j--)
                                     gui_level(md, ((i * 5) + j) + first);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(COVID_HIGH_RISK)
@@ -1352,13 +1351,12 @@ static int start_keybd(int c, int d)
         {
             char *dir = concat_string("Screenshots/shot-",
                                       set_id(curr_set()), NULL);
-            int i;
 
             fs_mkdir(dir);
 
             /* Iterate over all levels, taking a screenshot of each. */
 
-            for (i = first; i < MAXLVL_SET + first; i++)
+            for (int i = first; i < MAXLVL_SET + first; i++)
                 if (level_exists(i))
                     level_snap(i, dir);
 

@@ -12,6 +12,19 @@
  * General Public License for more details.
  */
 
+#ifndef NDEBUG
+#include <assert.h>
+#elif defined(_MSC_VER) && defined(_AFXDLL)
+#include <afx.h>
+/**
+ * HACK: assert() for Microsoft Windows Apps in Release builds
+ * will be replaced to VERIFY() - Ersohn Styne
+ */
+#define assert VERIFY
+#else
+#define assert(_x) (_x)
+#endif
+
 #if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
 #endif
@@ -1537,7 +1550,7 @@ static int raise_gems_working_gui(void)
 
 static int raise_gems_prepare_gui(void)
 {
-    int i, id, jd, kd;
+    int id, jd, kd;
     int estimated_prices[4] = { 0, 0, 0, 0 };
 
     static int show_estimate_amount = 0;
@@ -1651,7 +1664,7 @@ static int raise_gems_prepare_gui(void)
             if (!pay_debt_ready)
                 if ((kd = gui_vstack(jd)))
                 {
-                    for (i = 0; i < 4; i++)
+                    for (int i = 0; i < 4; i++)
                     {
                         if (num_amounts_curr[i] - num_amounts_dst[i] < 0 ||
                             num_amounts_dst[i] < 0)

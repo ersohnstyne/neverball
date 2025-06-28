@@ -12,7 +12,6 @@
  * General Public License for more details.
  */
 
-#include <assert.h>
 #include "cmd.h"
 
 #include "game_common.h"

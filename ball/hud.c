@@ -294,9 +294,7 @@ void hud_init(void)
 
     if ((speed_id = gui_hstack(0)))
     {
-        int i;
-
-        for (i = SPEED_MAX - 1; i > SPEED_NONE; i--)
+        for (int i = SPEED_MAX - 1; i > SPEED_NONE; i--)
             speed_ids[i] = gui_label(speed_id, speed_labels[i], GUI_SML, 0, 0);
 
         gui_set_rect(speed_id, GUI_TOP);
@@ -306,8 +304,6 @@ void hud_init(void)
 
 void hud_free(void)
 {
-    int i;
-
     gui_delete(text_coins_id);
     gui_delete(text_goal_id);
     gui_delete(text_balls_id);
@@ -332,7 +328,7 @@ void hud_free(void)
 
     gui_delete(speed_id);
 
-    for (i = SPEED_NONE + 1; i < SPEED_MAX; i++)
+    for (int i = SPEED_NONE + 1; i < SPEED_MAX; i++)
         gui_delete(speed_ids[i]);
 }
 
@@ -980,9 +976,7 @@ void hud_cam_paint(void)
 
 void hud_speed_pulse(int speed)
 {
-    int i;
-
-    for (i = SPEED_NONE + 1; i < SPEED_MAX; i++)
+    for (int i = SPEED_NONE + 1; i < SPEED_MAX; i++)
     {
         const GLubyte *c = gui_gry;
 

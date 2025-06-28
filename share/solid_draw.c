@@ -12,8 +12,6 @@
  * General Public License for more details.
  */
 
-#include <assert.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -870,7 +868,7 @@ static void check_mtrl(const char *name, GLenum pname, GLuint curr)
 {
     static char buff[64];
 
-    GLuint real;
+    GLuint  real;
     GLfloat v[4];
 
     glGetMaterialfv(GL_FRONT, pname, v);

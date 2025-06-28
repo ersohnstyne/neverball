@@ -54,9 +54,9 @@ static void game_draw_chnk_floor(struct s_rend *rend,
 
     int i, j;
 
-    for (i = -4; i < 4; i++)
+    for (int i = -4; i < 4; i++)
     {
-        for (j = -4; j < 4; j++)
+        for (int j = -4; j < 4; j++)
         {
             glPushMatrix();
             {
@@ -90,15 +90,13 @@ static void game_draw_chnk_rings(struct s_rend *rend,
 
     if (base->vc > 0) Y = base->vv[0].p[1];
 
-    int i, j;
-
-    for (i = 0; i < base->zc; i++)
+    for (int i = 0; i < base->zc; i++)
     {
         float chnk_p[3];
 
         sol_entity_p(chnk_p, vary, vary->zv[i].mi, vary->zv[i].mj);
 
-        for (j = 1; j < 100; j++)
+        for (int j = 1; j < 100; j++)
         {
             glPushMatrix();
             {
@@ -452,9 +450,7 @@ static void game_draw_items(struct s_rend *rend,
 
     if (base->vc > 0) Y = base->vv[0].p[1];
 
-    int hi;
-
-    for (hi = 0; hi < vary->hc; hi++)
+    for (int hi = 0; hi < vary->hc; hi++)
     {
         struct v_item *hp = &vary->hv[hi];
 
@@ -611,14 +607,13 @@ static void game_draw_goals(struct s_rend *rend,
     const struct s_vary *vary = &gd->vary;
 
     float goal_p[3], goal_e[4], u[3], a;
-    int i;
 
     if (gd->goal_e)
-        for (i = 0; i < base->zc; i++)
-            if (base->zv[i].p[1] >= Y)
+        for (int zi = 0; zi < base->zc; zi++)
+            if (base->zv[zi].p[1] >= Y)
             {
-                sol_entity_p(goal_p, vary, vary->zv[i].mi, vary->zv[i].mj);
-                sol_entity_e(goal_e, vary, vary->zv[i].mi, vary->zv[i].mj);
+                sol_entity_p(goal_p, vary, vary->zv[zi].mi, vary->zv[zi].mj);
+                sol_entity_e(goal_e, vary, vary->zv[zi].mi, vary->zv[zi].mj);
 
                 q_as_axisangle(goal_e, u, &a);
 
@@ -626,7 +621,7 @@ static void game_draw_goals(struct s_rend *rend,
                 {
                     glTranslatef(goal_p[0], goal_p[1], goal_p[2]);
                     glRotatef(V_DEG(a), u[0], u[1], u[2]);
-                    goal_draw(rend, base->zv[i].p, base->zv[i].r, gd->goal_k, t);
+                    goal_draw(rend, base->zv[zi].p, base->zv[zi].r, gd->goal_k, t);
                 }
                 glPopMatrix();
             }
@@ -646,13 +641,12 @@ static void game_draw_jumps(struct s_rend *rend,
     const struct s_vary *vary = &gd->vary;
 
     float jump_p[3], jump_e[4], u[3], a;
-    int i;
 
-    for (i = 0; i < base->jc; i++)
-        if (base->jv[i].p[1] >= Y)
+    for (int ji = 0; ji < base->jc; ji++)
+        if (base->jv[ji].p[1] >= Y)
         {
-            sol_entity_p(jump_p, vary, vary->jv[i].mi, vary->jv[i].mj);
-            sol_entity_e(jump_e, vary, vary->jv[i].mi, vary->jv[i].mj);
+            sol_entity_p(jump_p, vary, vary->jv[ji].mi, vary->jv[ji].mj);
+            sol_entity_e(jump_e, vary, vary->jv[ji].mi, vary->jv[ji].mj);
 
             q_as_axisangle(jump_e, u, &a);
 
@@ -660,7 +654,7 @@ static void game_draw_jumps(struct s_rend *rend,
             {
                 glTranslatef(jump_p[0], jump_p[1], jump_p[2]);
                 glRotatef(V_DEG(a), u[0], u[1], u[2]);
-                jump_draw(rend, base->jv[i].p, base->jv[i].r, 1.0f, t);
+                jump_draw(rend, base->jv[ji].p, base->jv[ji].r, 1.0f, t);
             }
             glPopMatrix();
         }
@@ -681,13 +675,12 @@ static void game_draw_chkps(struct s_rend *rend,
     const struct s_vary *vary = &gd->vary;
 
     float chkp_p[3], chkp_e[4], u[3], a;
-    int i;
 
-    for (i = 0; i < base->cc; i++)
-        if (base->cv[i].p[1] >= Y)
+    for (int ci = 0; ci < base->cc; ci++)
+        if (base->cv[ci].p[1] >= Y)
         {
-            sol_entity_p(chkp_p, vary, vary->cv[i].mi, vary->cv[i].mj);
-            sol_entity_e(chkp_e, vary, vary->cv[i].mi, vary->cv[i].mj);
+            sol_entity_p(chkp_p, vary, vary->cv[ci].mi, vary->cv[ci].mj);
+            sol_entity_e(chkp_e, vary, vary->cv[ci].mi, vary->cv[ci].mj);
 
             q_as_axisangle(chkp_e, u, &a);
 
@@ -695,7 +688,7 @@ static void game_draw_chkps(struct s_rend *rend,
             {
                 glTranslatef(chkp_p[0], chkp_p[1], chkp_p[2]);
                 glRotatef(V_DEG(a), u[0], u[1], u[2]);
-                chkp_draw(rend, base->cv[i].p, base->cv[i].r, 1.0f);
+                chkp_draw(rend, base->cv[ci].p, base->cv[ci].r, 1.0f);
             }
             glPopMatrix();
         }

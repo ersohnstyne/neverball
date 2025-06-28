@@ -234,7 +234,6 @@ const char *demo_format_name(const char *fmt,
     static char name[MAXSTR];
     int         space_left;
     char       *numpart;
-    int         i;
 
     if (!fmt)
         return NULL;
@@ -365,7 +364,7 @@ const char *demo_format_name(const char *fmt,
     else
         numpart = name + MAXSTRLEN(name) - space_left;
 
-    for (i = 1; i < 100; i++)
+    for (int i = 1; i < 100; i++)
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(numpart, MAXSTR,

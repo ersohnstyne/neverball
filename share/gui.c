@@ -48,6 +48,15 @@
 
 #ifndef NDEBUG
 #include <assert.h>
+#elif defined(_MSC_VER) && defined(_AFXDLL)
+#include <afx.h>
+/**
+ * HACK: assert() for Microsoft Windows Apps in Release builds
+ * will be replaced to VERIFY() - Ersohn Styne
+ */
+#define assert VERIFY
+#else
+#define assert(_x) (_x)
 #endif
 
 #if _DEBUG && _MSC_VER
@@ -2498,7 +2507,7 @@ static void gui_paint_label(int id)
 
 static void gui_paint_text(int id)
 {
-    if (widget[id].hidden || widget[id].alpha_slide < .5f)
+    if (widget[id].hidden || (widget[id].alpha_slide * widget[id].alpha) < .5f)
         return;
 
     switch (widget[id].type)
@@ -2795,16 +2804,25 @@ void gui_timer(int id, float dt)
 
         if (!config_get_d(CONFIG_SCREEN_ANIMATIONS))
         {
-            if (widget[id].slide_flags & GUI_REMOVE)
-                gui_remove(id);
+            widget[id].offset_x = 0.0f;
+            widget[id].offset_y = 0.0f;
 
-            return;
+            widget[id].alpha_slide = 1.0f;
+            widget[id].alpha       = 1.0f;
+
+            gui_set_alpha(id, 1.0f, GUI_ANIMATION_NONE);
+
+            if (widget[id].slide_flags & GUI_REMOVE)
+            {
+                gui_remove(id);
+                return;
+            }
         }
 
         for (jd = widget[id].car; jd; jd = widget[jd].cdr)
             gui_timer(jd, dt);
 
-        if (widget[id].alpha_slide >= .5f)
+        if ((widget[id].alpha_slide * widget[id].alpha) >= .5f)
             widget[id].pulse_scale = flerp(widget[id].pulse_scale, 1.0f, dt * 10.0f);
 
         if ((widget[id].flags & GUI_OFFSET) && widget[id].slide_time < widget[id].slide_delay + widget[id].slide_dur)

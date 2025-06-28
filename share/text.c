@@ -23,7 +23,18 @@
 #endif
 
 #include <string.h>
+#ifndef NDEBUG
 #include <assert.h>
+#elif defined(_MSC_VER) && defined(_AFXDLL)
+#include <afx.h>
+/**
+ * HACK: assert() for Microsoft Windows Apps in Release builds
+ * will be replaced to VERIFY() - Ersohn Styne
+ */
+#define assert VERIFY
+#else
+#define assert(_x) (_x)
+#endif
 
 #include "common.h"
 #include "text.h"
@@ -179,7 +190,9 @@ int text_input_paste(void)
 
         SAFECPY(text_input, (char *) clip);
 
+#ifndef NDEBUG
         assert(CloseClipboard());
+#endif
 
         CALLBACK(0);
         return 1;

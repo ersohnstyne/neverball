@@ -652,7 +652,6 @@ static int ball_visible = 0;
 int  game_client_init(const char *file_name)
 {
     char *back_name = "", *grad_name = "";
-    int i;
 
     /*
      * --- CHECKPOINT DATA ---
@@ -752,7 +751,7 @@ int  game_client_init(const char *file_name)
     version.x = 0;
     version.y = 0;
 
-    for (i = 0; i < gd.vary.base->dc; i++)
+    for (int i = 0; i < gd.vary.base->dc; i++)
     {
         char *k = gd.vary.base->av + gd.vary.base->dv[i].ai;
         char *v = gd.vary.base->av + gd.vary.base->dv[i].aj;

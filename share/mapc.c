@@ -4082,11 +4082,7 @@ int main(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-    char p_buf[MAXSTR];
-
-    SAFECPY(p_buf, "Nintendo consoles not supported!");
-    SAFECAT(p_buf, "\n");
-    MAPC_LOG_MESSAGE(p_buf);
+    printf("Nintendo consoles not supported!\n");
 
     return 0;
 }

@@ -14,7 +14,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
 #include "array.h"
 #include "common.h"
@@ -102,17 +101,13 @@ Array demo_dir_scan(void)
 
 void demo_dir_load(Array items, int lo, int hi)
 {
-    int i;
-
-    for (i = CLAMP(0, lo, array_len(items)); i <= CLAMP(lo, hi, array_len(items) - 1); i++)
+    for (int i = CLAMP(0, lo, array_len(items)); i <= CLAMP(lo, hi, array_len(items) - 1); i++)
         load_item(array_get(items, i));
 }
 
 void demo_dir_free(Array items)
 {
-    int i;
-
-    for (i = 0; i < array_len(items); i++)
+    for (int i = 0; i < array_len(items); i++)
         free_item(array_get(items, i));
 
     dir_free(items);

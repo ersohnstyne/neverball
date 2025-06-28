@@ -18,7 +18,18 @@
 #include <string.h>
 #include <setjmp.h>
 
+#ifndef NDEBUG
 #include <assert.h>
+#elif defined(_MSC_VER) && defined(_AFXDLL)
+#include <afx.h>
+/**
+ * HACK: assert() for Microsoft Windows Apps in Release builds
+ * will be replaced to VERIFY() - Ersohn Styne
+ */
+#define assert VERIFY
+#else
+#define assert(_x) (_x)
+#endif
 
 #include "base_config.h"
 #include "base_image.h"
@@ -338,7 +349,11 @@ void image_white(void *p, int w, int h, int b)
 
     int i;
 
+#ifndef NDEBUG
     assert(b >= 1 && b <= 4);
+#else
+    if (!(b >= 1 && b <= 4)) return;
+#endif
 
     if (b == 1 || b == 3)
         memset(s, 0xFF, w * h * b);

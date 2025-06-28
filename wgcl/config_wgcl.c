@@ -25,10 +25,6 @@
 
 #include <string.h>
 #include <stdlib.h>
-#ifndef NDEBUG
-#include <assert.h>
-#endif
-
 #include <sys/stat.h>
 
 #include "common.h"
@@ -257,10 +253,6 @@ static int campaign_get_score(fs_file fp, struct WGCL_Campaign_Level *l)
 
 static void campaign_hs_read_lines(fs_file fp, char *buf, int size)
 {
-    int total_gold   = 0;
-    int total_silver = 0;
-    int total_bronze = 0;
-
     int block_hs_total_time = 1;
 
     int i = -1, j = 6;
@@ -277,8 +269,8 @@ static void campaign_hs_read_lines(fs_file fp, char *buf, int size)
 
         if (strncmp(buf, "campaign", 8) == 0)
         {
-            campaign_get_score(fp, &tmp_classic.time_hundred);
-            campaign_get_score(fp, &tmp_classic.coins);
+            campaign_get_score(fp, &tmp_classic);
+            campaign_get_score(fp, &tmp_classic);
         }
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         else if (sscanf_s(buf,
@@ -446,10 +438,6 @@ void WGCL_CallHighscoreDataUI_Campaign(void)
 
     for (int i = 0; i < 5; i++)
     {
-        int world_unlocked  = 0;
-        int world_progress  = 0;
-        int world_completed = 0;
-
         int time_hundred_total = 0;
 
         int medals[3] = { 0, 0, 0 };

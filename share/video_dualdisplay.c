@@ -25,9 +25,6 @@
 #if __cplusplus
 #include <vcruntime_exception.h>
 #endif
-#ifndef NDEBUG
-#include <assert.h>
-#endif
 
 #ifdef __EMSCRIPTEN__
 #include <gl4esinit.h>

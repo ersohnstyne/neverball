@@ -16,7 +16,18 @@
 #include <emscripten.h>
 #endif
 
+#ifndef NDEBUG
 #include <assert.h>
+#elif defined(_MSC_VER) && defined(_AFXDLL)
+#include <afx.h>
+/**
+ * HACK: assert() for Microsoft Windows Apps in Release builds
+ * will be replaced to VERIFY() - Ersohn Styne
+ */
+#define assert VERIFY
+#else
+#define assert(_x) (_x)
+#endif
 
 #if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
@@ -235,6 +246,7 @@
     } } while (0)
 #endif
 
+#ifndef NDEBUG
 #define PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL \
     do {                                       \
         assert(is_init);                       \
@@ -246,6 +258,13 @@
         assert(is_init);                       \
         if (!is_init) return;                  \
     } while (0)
+#else
+#define PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL \
+    if (!is_init) return 0
+
+#define PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_VOID \
+    if (!is_init) return
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -913,8 +932,6 @@ void progress_stat(int s)
 {
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_VOID;
 
-    int i;
-
     /* Cannot save highscore in home room. */
 
     if (mode == MODE_NONE) return;
@@ -962,7 +979,7 @@ void progress_stat(int s)
                 }
 #endif
 
-                for (i = curr.score + 1; i <= curr.score + coins; i++)
+                for (int i = curr.score + 1; i <= curr.score + coins; i++)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                     if (progress_reward_ball(i) && mode != MODE_HARDCORE)
 #else

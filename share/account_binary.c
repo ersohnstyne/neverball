@@ -28,6 +28,15 @@
 #include <ctype.h>
 #ifndef NDEBUG
 #include <assert.h>
+#elif defined(_MSC_VER) && defined(_AFXDLL)
+#include <afx.h>
+/**
+ * HACK: assert() for Microsoft Windows Apps in Release builds
+ * will be replaced to VERIFY() - Ersohn Styne
+ */
+#define assert VERIFY
+#else
+#define assert(_x) (_x)
 #endif
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0

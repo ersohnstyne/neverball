@@ -292,11 +292,9 @@ static int opt_screensaver;
 
 static void opt_init(int argc, char **argv)
 {
-    int i;
-
     /* Scan argument list. */
 
-    for (i = 1; i < argc; i++)
+    for (int i = 1; i < argc; i++)
     {
         if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help")    == 0)
         {
@@ -744,13 +742,12 @@ static int goto_level(const List level_multi)
 {
     if (level_multi == NULL) return 0;
 
-    List                p = NULL;
     static struct level lvl_v[30];
 
     int lvl_count        = 0;
     int lvl_count_loaded = 0;
 
-    for (p = (const List) level_multi; p && lvl_count < 30; p = p->next)
+    for (List p = (const List) level_multi; p && lvl_count < 30; p = p->next)
     {
         struct level *lvl  = &lvl_v[lvl_count_loaded];
         const char   *path = fs_resolve((const char *) p->data);

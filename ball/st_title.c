@@ -519,9 +519,7 @@ static int title_action(int tok, int val)
 
             else
             {
-                int k;
-
-                for (k = 1; k < queue_len; k++)
+                for (int k = 1; k < queue_len; k++)
                     queue[k - 1] = queue[k];
 
                 queue[queue_len - 1] = (char) val;

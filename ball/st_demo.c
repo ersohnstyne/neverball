@@ -334,7 +334,6 @@ static int gui_demo_thumbs(int id)
     int h = video.device_h;
 
     int jd, kd, ld, md;
-    int i, j;
 
     struct thumb *thumb;
 
@@ -343,10 +342,10 @@ static int gui_demo_thumbs(int id)
         gui_filler(jd);
 
         if ((kd = gui_varray(jd)))
-            for (i = first; i < first + DEMO_STEP; i += DEMO_LINE)
+            for (int i = first; i < first + DEMO_STEP; i += DEMO_LINE)
                 if ((ld = gui_harray(kd)))
                 {
-                    for (j = i + DEMO_LINE - 1; j >= i; j--)
+                    for (int j = i + DEMO_LINE - 1; j >= i; j--)
                     {
                         thumb = &thumbs[j % DEMO_STEP];
 
@@ -384,16 +383,17 @@ static int gui_demo_thumbs(int id)
 
         gui_filler(jd);
     }
+
     return jd;
 }
 
 static void gui_demo_update_thumbs(void)
 {
     struct dir_item *item;
-    struct demo *demo;
-    int i;
-
-    for (i = 0; i < ARRAYSIZE(thumbs) && thumbs[i].shot_id && thumbs[i].name_id;
+    struct demo     *demo;
+    
+    for (int i = 0;
+         i < ARRAYSIZE(thumbs) && thumbs[i].shot_id && thumbs[i].name_id;
          i++)
     {
         int stat_limit = config_get_d(CONFIG_ACCOUNT_LOAD);

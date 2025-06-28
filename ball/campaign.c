@@ -131,9 +131,8 @@ static void put_score(fs_file fp, const struct score *s)
 static int get_score(fs_file fp, struct score *s)
 {
     char line[MAXSTR];
-    int i;
 
-    for (i = RANK_HARD; i <= RANK_EASY; i++)
+    for (int i = RANK_HARD; i <= RANK_EASY; i++)
     {
         int n = -1;
 
@@ -205,14 +204,12 @@ void campaign_store_hs(void)
 
     if ((fp = fs_open_write(time_trial_leaderboard)))
     {
-        int i;
-
         fs_printf(fp, "version %d\ncampaign\n", TIME_TRIAL_VERSION);
 
         put_score(fp, &time_trials);
         put_score(fp, &coin_trials);
 
-        for (i = 0; i < campaign_count; i++)
+        for (int i = 0; i < campaign_count; i++)
         {
             const struct level *l = &campaign_lvl_v[i];
 
@@ -905,26 +902,25 @@ int campaign_camera_box_trigger_count(void)
 int campaign_camera_box_trigger_test(struct s_vary *vary, int ui)
 {
     const float *ball_p = vary->uv[ui].p;
-    int camidx;
 
-    for (camidx = 0; camidx < autocam_count; camidx++)
+    for (int cam_id = 0; cam_id < autocam_count; cam_id++)
     {
-        struct campaign_cam_box_trigger *localcamboxtrigger = cam_box_triggers + camidx;
+        struct campaign_cam_box_trigger *localcamboxtrigger = cam_box_triggers + cam_id;
 
         if (cam_box_trigger_test_master(ball_p, localcamboxtrigger, 0) &&
             cam_box_trigger_test_master(ball_p, localcamboxtrigger, 1) &&
             cam_box_trigger_test_master(ball_p, localcamboxtrigger, 2))
         {
-            cam_box_triggers[camidx].activated = -1;
-            cam_box_triggers[camidx].inside    =  1;
-            return camidx;
+            cam_box_triggers[cam_id].activated = -1;
+            cam_box_triggers[cam_id].inside    =  1;
+            return cam_id;
         }
 
-        if (cam_box_triggers[camidx].inside    != 0 &&
-            cam_box_triggers[camidx].activated == -1)
+        if (cam_box_triggers[cam_id].inside    != 0 &&
+            cam_box_triggers[cam_id].activated == -1)
         {
-            cam_box_triggers[camidx].activated = 1;
-            cam_box_triggers[camidx].inside    = 0;
+            cam_box_triggers[cam_id].activated = 1;
+            cam_box_triggers[cam_id].inside    = 0;
         }
     }
 

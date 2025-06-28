@@ -13,9 +13,6 @@
  */
 
 #include <stdlib.h>
-#ifndef NDEBUG
-#include <assert.h>
-#endif
 
 #include "solid_vary.h"
 #include "common.h"

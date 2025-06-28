@@ -1416,11 +1416,10 @@ static int conf_keybd_gui(void)
     {
         conf_header(id, _("Keyboard"), GUI_BACK);
 
-        int i;
         int btn_id;
         int value;
 
-        for (i = 0; i < ARRAYSIZE(conf_keybd_option_names); i++)
+        for (int i = 0; i < ARRAYSIZE(conf_keybd_option_names); i++)
         {
             if (conf_keybd_options[i])
             {
@@ -1920,9 +1919,8 @@ static int conf_controllers_gui(void)
         }
 
         int token = CONF_CONTROLLERS_ASSIGN_BUTTON;
-        int i;
 
-        for (i = 0; i < ARRAYSIZE(conf_controllers_options); ++i)
+        for (int i = 0; i < ARRAYSIZE(conf_controllers_options); ++i)
         {
             int btn_id;
             int value;

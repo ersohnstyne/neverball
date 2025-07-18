@@ -40,3 +40,9 @@ void account_wgcl_do_add(int w_coins, int w_gems,
 void account_wgcl_do_set(int w_coins, int w_gems,
                          int c_hp, int c_doublecash, int c_halfgrav, int c_doublespeed);
 int  account_wgcl_do_buy(int w_coins_cost, int flags);
+
+void account_wgcl_post_sync(const char *, const char *);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+int account_wgcl_mapmarkers_place(const char *, int, int, int, int);
+#endif

@@ -42,7 +42,7 @@ EM_LDFLAGS := \
 	-s FULL_ES2=1 \
 	-s INVOKE_RUN=0 \
 	-s NO_EXIT_RUNTIME=1 \
-	-s EXPORTED_FUNCTIONS=_main,_push_user_event,_account_set,_config_set,_account_wgcl_set_session_uuid4,_account_wgcl_set_readonly_playername,_WGCLCallMain \
+	-s EXPORTED_FUNCTIONS=_main,_push_user_event,_account_wgcl_post_sync,_config_set \
 	-s EXPORTED_RUNTIME_METHODS=callMain,ccall,cwrap,FS,IDBFS \
 	-s HTML5_SUPPORT_DEFERRING_USER_SENSITIVE_REQUESTS=0 \
 	-s LLD_REPORT_UNDEFINED \

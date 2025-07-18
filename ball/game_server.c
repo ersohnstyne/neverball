@@ -36,6 +36,8 @@
 #include "powerup.h"
 #include "mediation.h"
 #include "networking.h"
+
+#include "account_wgcl.h"
 #endif
 
 #if ENABLE_MOON_TASKLOADER!=0
@@ -2143,25 +2145,20 @@ static void game_server_iter(float dt)
 
     float g[3] = { 0.0f, -9.8f, 0.0f };
 
-    g[1] *= powerup_get_grav_multiply();
+    for (int i = 0; i < 3; i++)
+        g[i] *= powerup_get_grav_multiply();
+
+#ifdef MAPC_INCLUDES_CHKP
+    if (checkpoints_busy)
+        v_cpy(g, GRAVITY_BUSY);
+#endif
 
 #if defined(MAPC_INCLUDES_CHKP) && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
     if (status == GAME_GOAL && !campaign_used())
 #else
     if (status == GAME_GOAL)
 #endif
-    {
-        /* TODO: Was flip'in through, or not? */
-
-        g[0] *= -1.0f;
-        g[1] *= -1.0f;
-        g[2] *= -1.0f;
-    }
-
-#ifdef MAPC_INCLUDES_CHKP
-    if (checkpoints_busy)
-        v_cpy(g, GRAVITY_BUSY);
-#endif
+        v_scl(g, g, -1);
 
     if (status != GAME_NONE)
         game_step(g, dt, 0);
@@ -2173,13 +2170,20 @@ static void game_server_iter(float dt)
 #endif
                                  )) != GAME_NONE)
     {
-#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+#if NB_HAVE_PB_BOTH==1
+#ifdef __EMSCRIPTEN__
         /* HACK: OK, but now, with WGCL's Emscripten first! */
 
         const int r = EM_ASM_INT({
             return Neverball.gamecore_mapmarker_try_place(UTF8ToString($0), $1, $2, $3, $4);
         }, curr_file_name, status,
            ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
+#else
+        /* HACK: OK, but now, with WGCL's standalone gamenet first! */
+
+        account_wgcl_mapmarkers_place(curr_file_name, status,
+                                      ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
+#endif
 #endif
         game_cmd_status();
     }

@@ -55,10 +55,18 @@ static void WGCL_CallMain_Real(void)
  * logged in with owned game. - Ersohn Styne
  */
 
-void WGCL_CallMain(const char *edition_id)
+/*void WGCL_CallMain(const char* edition_id)
 {
     server_policy_init();
     server_policy_set_d(SERVER_POLICY_EDITION, atoi(edition_id));
+
+    WGCL_CallMain_Real();
+}*/
+
+void WGCL_CallMain(const int edition_id)
+{
+    server_policy_init();
+    server_policy_set_d(SERVER_POLICY_EDITION, edition_id);
 
     WGCL_CallMain_Real();
 }

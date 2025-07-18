@@ -31,6 +31,14 @@
 
 /*----------------------------------------------------------------------------*/
 
+#define GLSL_SAFE_DELETE_PROGRAM(_x) \
+    do if (_x) { glDeleteProgram_(_x); (_x) = 0; } while (0)
+
+#define GLSL_SAFE_DELETE_SHADER(_x) \
+    do if (_x) { glDeleteShader_(_x); (_x) = 0; } while (0)
+
+/*----------------------------------------------------------------------------*/
+
 #if ENABLE_OPENGLES
 
 /* OpenGL ES support in Neverball is targeted toward OpenGL ES version 1.1.   */
@@ -121,7 +129,7 @@ static GLuint glsl_init_shader(GLenum type, int strc, const char *const *strv)
     if (check_shader_log(shader))
         return shader;
     else
-        glDeleteShader_(shader);
+        GLSL_SAFE_DELETE_SHADER(shader);
 
     return 0;
 }
@@ -143,7 +151,7 @@ static GLuint glsl_init_program(GLuint shader_vert,
     if (check_program_log(program))
         return program;
     else
-        glDeleteProgram_(program);
+        GLSL_SAFE_DELETE_PROGRAM(program);
 
     return 0;
 }
@@ -163,11 +171,14 @@ GLboolean glsl_create(glsl *G, int vertc, const char *const *vertv,
     /* Link the program. */
 
     if (G->vert_shader && G->frag_shader)
-    {
         G->program = glsl_init_program(G->vert_shader, G->frag_shader);
-        return GL_TRUE;
-    }
-    return GL_FALSE;
+
+    int r = GL_FALSE;
+
+    if (!(r = G->vert_shader && G->frag_shader && G->program))
+        glsl_delete(G);
+
+    return r;
 }
 
 void glsl_delete(glsl *G)
@@ -176,9 +187,9 @@ void glsl_delete(glsl *G)
 
     /* Delete the program and shaders. */
 
-    if (G->program)     glDeleteProgram_(G->program);
-    if (G->frag_shader) glDeleteShader_ (G->frag_shader);
-    if (G->vert_shader) glDeleteShader_ (G->vert_shader);
+    GLSL_SAFE_DELETE_PROGRAM(G->program);
+    GLSL_SAFE_DELETE_SHADER (G->frag_shader);
+    GLSL_SAFE_DELETE_SHADER (G->vert_shader);
 
     memset(G, 0, sizeof (glsl));
 }

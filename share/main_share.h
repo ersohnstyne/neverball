@@ -5,7 +5,8 @@ int main_share(int, char **);
 
 #ifdef __EMSCRIPTEN__
 
-void WGCL_CallMain(const char *);
+//void WGCL_CallMain(const char *);
+void WGCL_CallMain(const int);
 
 #endif
 

@@ -24,6 +24,7 @@
 #include "text.h"
 
 #include "account_wgcl.h"
+#include "networking.h"
 
 #include "config.h"
 #include "account.h"
@@ -65,6 +66,37 @@
 #endif
 
 /*---------------------------------------------------------------------------*/
+
+static void WGCL_CallMain_Real(void)
+{
+    server_policy_set_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN, 0);
+    server_policy_set_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET, server_policy_get_d(SERVER_POLICY_EDITION) == -1 ? 1 : 0);
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    server_policy_set_d(SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET, server_policy_get_d(SERVER_POLICY_EDITION) == 0 || server_policy_get_d(SERVER_POLICY_EDITION) == 1 ? 1 : 0);
+#else
+    server_policy_set_d(SERVER_POLICY_LEVELGROUP_UNLOCKED_LEVELSET, 1);
+#endif
+
+    server_policy_set_d(SERVER_POLICY_LEVELSET_ENABLED_BONUS, 1);
+    server_policy_set_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET, server_policy_get_d(SERVER_POLICY_EDITION) != 0 ? 1 : 0);
+    server_policy_set_d(SERVER_POLICY_LEVELSET_UNLOCKED_BONUS, server_policy_get_d(SERVER_POLICY_EDITION) > 1 ? 1 : 0);
+
+    server_policy_set_d(SERVER_POLICY_PLAYMODES_ENABLED, server_policy_get_d(SERVER_POLICY_EDITION) > -1);
+    server_policy_set_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER, server_policy_get_d(SERVER_POLICY_EDITION) > -1);
+    server_policy_set_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE, server_policy_get_d(SERVER_POLICY_EDITION) != 0);
+    server_policy_set_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE, server_policy_get_d(SERVER_POLICY_EDITION) > 0);
+    server_policy_set_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER, server_policy_get_d(SERVER_POLICY_EDITION) > 1);
+    server_policy_set_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE, server_policy_get_d(SERVER_POLICY_EDITION) > 2);
+
+    server_policy_set_d(SERVER_POLICY_SHOP_ENABLED, server_policy_get_d(SERVER_POLICY_EDITION) != -1);
+    server_policy_set_d(SERVER_POLICY_SHOP_ENABLED_IAP, server_policy_get_d(SERVER_POLICY_EDITION) > -1);
+    server_policy_set_d(SERVER_POLICY_SHOP_ENABLED_MANAGED, server_policy_get_d(SERVER_POLICY_EDITION) > -1);
+    server_policy_set_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES, server_policy_get_d(SERVER_POLICY_EDITION) > 0 ? 1 : 0);
+}
+
+/*---------------------------------------------------------------------------*/
+
 
 static int curl_is_init;
 static int read_only;
@@ -1386,3 +1418,181 @@ int account_wgcl_do_buy(int w_coins_cost, int flags)
     account_set_d(ACCOUNT_DATA_WALLET_COINS, prev_coins - w_coins_cost);
     return 1;
 }
+
+void account_wgcl_post_sync(const char *uuid4, const char *player_name)
+{
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    account_wgcl_set_session_uuid4(uuid4);
+
+    if (strcmp(config_get_s(CONFIG_PLAYER), player_name) != 0)
+    {
+        log_errorf("WGCL error: Client's player name (config_get_s(CONFIG_PLAYER): %s) does not matched by the session's player name (account_wgcl_post_sync(uuid4, player_name)): %s)\n",
+                   config_get_s(CONFIG_PLAYER), player_name);
+
+        account_save();
+        config_set_s(CONFIG_PLAYER, player_name);
+        account_init();
+        account_load();
+        account_set_s(ACCOUNT_PLAYER, player_name);
+    }
+
+    int r_standalone = -1;
+    int r_server = EM_ASM_INT({
+        if (tmp_online_session_data.data_session.player_devrole_flags != undefined &&
+            tmp_online_session_data.data_session.player_devrole_flags != null) {
+            if      ((tmp_online_session_data.data_session.player_devrole_flags & 128) == 128) return 10002;
+            else if ((tmp_online_session_data.data_session.player_devrole_flags & 64)  == 64)  return 10001;
+            else if ((tmp_online_session_data.data_session.player_devrole_flags & 32)  == 32)  return 10001;
+            else if ((tmp_online_session_data.data_session.player_devrole_flags & 8)   == 8)   return 10001;
+        }
+
+        return 0;
+    });
+
+    if (r_server == 0) {
+        r_standalone = EM_ASM_INT({
+            if (tmp_online_session_data.data_session.player_game_edition_flags != undefined &&
+                tmp_online_session_data.data_session.player_game_edition_flags != null) {
+                if      ((tmp_online_session_data.data_session.player_game_edition_flags & 4) == 4) return 3;
+                else if ((tmp_online_session_data.data_session.player_game_edition_flags & 2) == 2) return 2;
+                else if ((tmp_online_session_data.data_session.player_game_edition_flags & 1) == 3) return 1;
+                else return 0;
+            }
+
+            return -1;
+        });
+
+        server_policy_set_d(SERVER_POLICY_EDITION, r_standalone);
+        WGCL_CallMain_Real();
+    }
+    else
+    {
+        r_standalone = 3;
+
+        server_policy_set_d(SERVER_POLICY_EDITION, r_server);
+        WGCL_CallMain_Real();
+    }
+
+    if (r_standalone != -1)
+    {
+        account_set_d(ACCOUNT_DATA_WALLET_COINS,      EM_ASM_INT({ return tmp_online_session_data.data_session.player_wallet_coins; }));
+        account_set_d(ACCOUNT_DATA_WALLET_GEMS,       EM_ASM_INT({ return tmp_online_session_data.data_session.player_wallet_gems; }));
+        account_set_d(ACCOUNT_PRODUCT_LEVELS,         EM_ASM_INT({ return (tmp_online_session_data.data_session.player_managed_product_flags & 1) == 1 ? 1 : 0; }));
+        account_set_d(ACCOUNT_PRODUCT_BALLS,          EM_ASM_INT({ return (tmp_online_session_data.data_session.player_managed_product_flags & 2) == 2 ? 1 : 0; }));
+        account_set_d(ACCOUNT_PRODUCT_BONUS,          EM_ASM_INT({ return (tmp_online_session_data.data_session.player_managed_product_flags & 4) == 4 ? 1 : 0; }));
+        account_set_d(ACCOUNT_PRODUCT_MEDIATION,      EM_ASM_INT({ return (tmp_online_session_data.data_session.player_managed_product_flags & 8) == 8 ? 1 : 0; }));
+        account_set_d(ACCOUNT_CONSUMEABLE_EARNINATOR, EM_ASM_INT({ return tmp_online_session_data.data_session.player_consumable_doublecash; }));
+        account_set_d(ACCOUNT_CONSUMEABLE_FLOATIFIER, EM_ASM_INT({ return tmp_online_session_data.data_session.player_consumable_halfgrav; }));
+        account_set_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER, EM_ASM_INT({ return tmp_online_session_data.data_session.player_consumable_doublespeed; }));
+        account_set_d(ACCOUNT_CONSUMEABLE_EXTRALIVES, EM_ASM_INT({ return tmp_online_session_data.data_session.player_consumable_hp; }));
+
+        read_only = 1;
+    }
+#endif
+}
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+int account_wgcl_mapmarkers_place(const char *map_name, int status, int x_cm, int y_cm, int z_cm)
+{
+    #if _WIN32 && _MSC_VER
+#if NB_HAVE_PB_BOTH==1
+    /* TODO: Buy managed products into online browser from in-game instead. */
+
+    char in_url[512];
+#if !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_url, 512,
+#else
+    sprintf(in_url,
+#endif
+            "https://%s/api/internal/mapmarkers/place", WGCL_URL);
+
+    struct wgcl_res_data res_data = {0};
+    
+    time_t     wgcl_time_now;
+    struct tm *wgcl_utc_time;
+    char       wgcl_utc_strfmt[40];
+
+    time(&wgcl_time_now);
+    wgcl_utc_time = gmtime(&wgcl_time_now);
+    sprintf(wgcl_utc_strfmt, "%04d-%02d-%02dT%02d:%02d:%02d.000Z",
+            wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
+            wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
+
+    char json_data[512];
+#if !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(json_data, 512,
+#else
+    sprintf(json_data,
+#endif
+            "{"
+            "    \"fetch_post_date_iso\":\"%s\","
+            "    \"map_name\":\"%s\","
+            "    \"status_type\":%d,"
+            "    \"position\":{"
+            "        \"x\":%d,"
+            "        \"y\":%d,"
+            "        \"z\":%d"
+            "    }"
+            "}",
+            wgcl_utc_strfmt, map_name,
+            status, x_cm, y_cm, z_cm);
+
+    CURL *handle = account_wgcl_curl_prepare_post(in_url, json_data, &res_data);
+    CURLcode res = account_wgcl_curl_execute(handle);
+
+    account_wgcl_curl_quit(handle);
+    if (res != CURLE_OK)
+    {
+        log_errorf("WGCL + CURL error: Placing map marker is not possible, you're offline!\n");
+
+        goto account_wgcl_mapmarkers_place_fail;
+    }
+
+    /* Now, parse JSON! */
+
+    JSON_Value  *root;
+    JSON_Object *root_obj;
+
+    root = json_parse_string(res_data.data);
+
+    if (!root || json_value_get_type(root) != JSONObject)
+    {
+        log_errorf("WGCL + CURL error: Not an JSON object!\n");
+
+        goto account_wgcl_mapmarkers_place_fail;
+    }
+
+    root_obj = json_value_get_object(root);
+    if (!json_object_has_value(root_obj, "web_return_code") ||
+        !json_object_has_value(root_obj, "message_text") ||
+        !json_object_has_value(root_obj, "message_desc"))
+    {
+        log_errorf("WGCL + CURL error: Session's column values does not matched exactly!\n");
+
+        goto account_wgcl_mapmarkers_place_fail;
+    }
+    else if (json_object_get_number(root_obj, "web_return_code") != 200)
+    {
+        log_errorf("WGCL + CURL error: Failed to place map marker: %s / %s\n",
+                   json_object_get_string(root_obj, "message_text"),
+                   json_object_get_string(root_obj, "message_desc"));
+
+        goto account_wgcl_mapmarkers_place_fail;
+    }
+
+    free(res_data.data);
+
+    log_printf("WGCL + CURL info: Done!\n");
+    return 1;
+
+account_wgcl_mapmarkers_place_fail:
+    free(res_data.data);
+    return 0;
+#else
+    return 1;
+#endif
+#else
+    return 1;
+#endif
+}
+#endif

@@ -462,7 +462,7 @@ int glext_get_recommended(void)
 {
 #ifndef __EMSCRIPTEN__
     return glext_check_renderer("NVIDIA") || glext_check_renderer("AMD") ||
-           glext_check_renderer("GIGABYTE");
+           glext_check_renderer("GIGABYTE") || glext_check_renderer("Radeon");
 #else
     return 0;
 #endif

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
  * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
  *
@@ -12,6 +13,8 @@
  * General Public License for more details.
  */
 
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 #ifndef DIR_NAME_H
 #define DIR_NAME_H 1
 

@@ -551,7 +551,13 @@ BALL_OBJS := \
 	share/fs_jpg.o      \
 	share/fs_ov.o       \
 	share/log.o         \
+<<<<<<< HEAD
 	share/console_control_gui.o\
+=======
+	share/joy.o         \
+	share/package.o     \
+	share/st_package.o  \
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 	share/mapclib.o     \
 	ball/hud.o          \
 	ball/game_common.o  \

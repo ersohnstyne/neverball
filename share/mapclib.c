@@ -1,5 +1,10 @@
 /*
+<<<<<<< HEAD
  * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+=======
+ * Copyright (C) 2003 Robert Kooima
+ * Copyright (C) 2025 Jānis Rūcis
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -12,15 +17,20 @@
  * General Public License for more details.
  */
 
+<<<<<<< HEAD
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
+=======
+/*---------------------------------------------------------------------------*/
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h> /* offsetof */
 #include <string.h>
 #include <math.h>
+<<<<<<< HEAD
 #if __GNUC__ || __MINGW32__
 #include <sys/time.h>
 #endif
@@ -41,6 +51,12 @@
 /* Uncomment and try this out with COMPLEX SOL */
 //#define ENABLE_COMPLEX_SOL_ONLY 1
 
+=======
+#include <sys/time.h>
+#include <assert.h>
+#include <setjmp.h>
+
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 #if ENABLE_RADIANT_CONSOLE
 /*
  * Mapc is not an SDL app, we just want the SDL_net symbols.
@@ -49,7 +65,12 @@
 #include <SDL_net.h>
 #endif
 
+<<<<<<< HEAD
 #include "solid_chkp.h"
+=======
+#include "mapclib.h"
+
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 #include "solid_base.h"
 
 #include "vec3.h"
@@ -62,6 +83,7 @@
 #include "strbuf/joinstr.h"
 #include "strbuf/substr.h"
 
+<<<<<<< HEAD
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
 #pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
@@ -73,6 +95,9 @@
 #ifndef MAXSTR
 #define MAXSTR MAX_STR_BLOCKREASON
 #endif
+=======
+#define MAXSTR 256
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 #define MAXKEY 16
 #define SCALE  64.f
 #define SMALL  0.0005f
@@ -87,6 +112,7 @@
 
 /*---------------------------------------------------------------------------*/
 
+<<<<<<< HEAD
 #ifdef MESSAGE
 #undef MESSAGE
 #endif
@@ -97,6 +123,8 @@
 #undef ERROR
 #endif
 
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 #if ENABLE_RADIANT_CONSOLE
 
 /*
@@ -190,6 +218,7 @@ static void bcast_send_msg(struct mapc_context *ctx, int lvl, const char *str)
      */
 
     maxstr = sizeof (buf) - sizeof ("<message level=\"1\"></message>");
+<<<<<<< HEAD
 
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
     sprintf_s(buf, 512, "<message level=\"%1d\">%.*s</message>", lvl, maxstr, str);
@@ -197,6 +226,9 @@ static void bcast_send_msg(struct mapc_context *ctx, int lvl, const char *str)
     sprintf(buf, "<message level=\"%1d\">%.*s</message>", lvl, maxstr, str);
 #endif
 
+=======
+    sprintf(buf, "<message level=\"%1d\">%.*s</message>", lvl, maxstr, str);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     bcast_send_str(ctx, buf);
 }
 
@@ -223,6 +255,7 @@ static void bcast_quit(struct mapc_context *ctx)
     SDLNet_Quit();
 }
 
+<<<<<<< HEAD
 #define MAPC_LOG_MESSAGE(str) do {              \
         bcast_send_msg(ctx, BCAST_STD, (str));  \
         fprintf(stdout, "%s", str);             \
@@ -235,11 +268,26 @@ static void bcast_quit(struct mapc_context *ctx)
 
 #define MAPC_LOG_ERROR(str) do {                \
         bcast_send_msg(ctx, BCAST_ERR, (str));  \
+=======
+#define MESSAGE(str) do {                       \
+        bcast_send_msg(BCAST_STD, (str));       \
+        fprintf(stdout, "%s", str);             \
+    } while (0)
+
+#define WARNING(str) do {                       \
+        bcast_send_msg(BCAST_WRN, (str));       \
+        fprintf(stderr, "%s", str);             \
+    } while (0)
+
+#define ERROR(str) do {                         \
+        bcast_send_msg(BCAST_ERR, (str));       \
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         fprintf(stderr, "%s", str);             \
     } while (0)
 
 #else /* ENABLE_RADIANT_CONSOLE */
 
+<<<<<<< HEAD
 #define MAPC_LOG_MESSAGE(str) do {              \
         fprintf(stdout, "%s", str);             \
     } while (0)
@@ -249,6 +297,17 @@ static void bcast_quit(struct mapc_context *ctx)
     } while (0)
 
 #define MAPC_LOG_ERROR(str) do {                \
+=======
+#define MESSAGE(str) do {                       \
+        fprintf(stdout, "%s", str);             \
+    } while (0)
+
+#define WARNING(str) do {                       \
+        fprintf(stderr, "%s", str);             \
+    } while (0)
+
+#define ERROR(str) do {                         \
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         fprintf(stderr, "%s", str);             \
     } while (0)
 
@@ -275,9 +334,12 @@ static void bcast_quit(struct mapc_context *ctx)
 #define MAXX    1024
 #define MAXR    2048
 #define MAXU    1024
+<<<<<<< HEAD
 #if defined(MAPC_INCLUDES_CHKP)
 #define MAXC    1024    /* New: Checkpoints */
 #endif
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 #define MAXW    1024
 #define MAXD    1024
 #define MAXA    16384
@@ -314,12 +376,20 @@ struct ref
 {
     int  type;
     char name[MAXSTR];
+<<<<<<< HEAD
     int* ptr;
+=======
+    int *ptr;
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 };
 
 struct _imagedata
 {
+<<<<<<< HEAD
     char* s;
+=======
+    char *s;
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     int w, h;
 };
 
@@ -338,6 +408,7 @@ struct mapc_context
     const char *opt_data;
     int opt_debug;
     int opt_csv;
+<<<<<<< HEAD
     int campaign_output;
     int campaign_cost;
     int campaign_budget;
@@ -346,6 +417,8 @@ struct mapc_context
     int linenum;
     int bracket_linenum[256];
     int bracket_stack;
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
     struct strbuf src_path;
     struct strbuf dst_path;
@@ -368,7 +441,11 @@ struct mapc_context
     int targ_ji[MAXW];
     int targ_n;
 
+<<<<<<< HEAD
     struct _imagedata* imagedata;
+=======
+    struct _imagedata *imagedata;
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     int image_n;
     int image_alloc;
 
@@ -395,7 +472,10 @@ struct mapc_context
     jmp_buf jmpbuf;
 
     double compile_time;
+<<<<<<< HEAD
     double compile_time_limit;
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 };
 
 static void init_file(struct s_base *fp);
@@ -435,12 +515,19 @@ int mapc_init(struct mapc_context **ctx_ptr)
     init_file(&ctx->file);
 
     *ctx_ptr = ctx;
+<<<<<<< HEAD
     if (!(*ctx_ptr)) return 0;
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
     return 1;
 }
 
+<<<<<<< HEAD
 void mapc_quit(struct mapc_context** ctx_ptr)
+=======
+void mapc_quit(struct mapc_context **ctx_ptr)
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 {
     struct mapc_context *ctx = NULL;
     int i;
@@ -449,7 +536,11 @@ void mapc_quit(struct mapc_context** ctx_ptr)
         return;
 
     ctx = *ctx_ptr;
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     if (!ctx)
         return;
 
@@ -480,6 +571,7 @@ void mapc_quit(struct mapc_context** ctx_ptr)
 static int overflow(struct mapc_context *ctx, const char s[64u - sizeof (" overflow\n")])
 {
     char buf[64];
+<<<<<<< HEAD
 
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
     sprintf_s(buf, 64, "%s overflow\n", s);
@@ -488,6 +580,10 @@ static int overflow(struct mapc_context *ctx, const char s[64u - sizeof (" overf
 #endif
 
     MAPC_LOG_ERROR(buf);
+=======
+    sprintf(buf, "%s overflow\n", s);
+    ERROR(buf);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     longjmp(ctx->jmpbuf, MAPC_ERROR);
     return 0;
 }
@@ -594,6 +690,7 @@ static int incu(struct mapc_context *ctx)
     return (fp->uc < MAXU) ? fp->uc++ : overflow(ctx, "ball");
 }
 
+<<<<<<< HEAD
 #if defined(MAPC_INCLUDES_CHKP)
 static int incc(struct mapc_context *ctx)
 {
@@ -602,6 +699,8 @@ static int incc(struct mapc_context *ctx)
 }
 #endif
 
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 static int incw(struct mapc_context *ctx)
 {
     struct s_base *fp = &ctx->file;
@@ -620,6 +719,7 @@ static int inci(struct mapc_context *ctx)
     return (fp->ic < MAXI) ? fp->ic++ : overflow(ctx, "indx");
 }
 
+<<<<<<< HEAD
 #if _WIN32
 #define MAPC_INIT_FILE_ENSURE_INIT_POINTER_ARRAY(_array, _cast_name, _limit) \
     do { \
@@ -635,6 +735,8 @@ static int inci(struct mapc_context *ctx)
     } while (0)
 #endif
 
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 static void init_file(struct s_base *fp)
 {
     fp->mc = 0;
@@ -654,14 +756,18 @@ static void init_file(struct s_base *fp)
     fp->xc = 0;
     fp->rc = 0;
     fp->uc = 0;
+<<<<<<< HEAD
 #if defined(MAPC_INCLUDES_CHKP)
     fp->cc = 0;
 #endif
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     fp->wc = 0;
     fp->dc = 0;
     fp->ac = 0;
     fp->ic = 0;
 
+<<<<<<< HEAD
     //fp->mv = (struct b_mtrl *) calloc(MAXM, sizeof (*fp->mv));
     //fp->vv = (struct b_vert *) calloc(MAXV, sizeof (*fp->vv));
     //fp->ev = (struct b_edge *) calloc(MAXE, sizeof (*fp->ev));
@@ -716,6 +822,29 @@ static void init_file(struct s_base *fp)
 static void free_file(struct s_base *fp)
 {
     sol_free_base(fp);
+=======
+    fp->mv = (struct b_mtrl *) calloc(MAXM, sizeof (*fp->mv));
+    fp->vv = (struct b_vert *) calloc(MAXV, sizeof (*fp->vv));
+    fp->ev = (struct b_edge *) calloc(MAXE, sizeof (*fp->ev));
+    fp->sv = (struct b_side *) calloc(MAXS, sizeof (*fp->sv));
+    fp->tv = (struct b_texc *) calloc(MAXT, sizeof (*fp->tv));
+    fp->ov = (struct b_offs *) calloc(MAXO, sizeof (*fp->ov));
+    fp->gv = (struct b_geom *) calloc(MAXG, sizeof (*fp->gv));
+    fp->lv = (struct b_lump *) calloc(MAXL, sizeof (*fp->lv));
+    fp->nv = (struct b_node *) calloc(MAXN, sizeof (*fp->nv));
+    fp->pv = (struct b_path *) calloc(MAXP, sizeof (*fp->pv));
+    fp->bv = (struct b_body *) calloc(MAXB, sizeof (*fp->bv));
+    fp->hv = (struct b_item *) calloc(MAXH, sizeof (*fp->hv));
+    fp->zv = (struct b_goal *) calloc(MAXZ, sizeof (*fp->zv));
+    fp->jv = (struct b_jump *) calloc(MAXJ, sizeof (*fp->jv));
+    fp->xv = (struct b_swch *) calloc(MAXX, sizeof (*fp->xv));
+    fp->rv = (struct b_bill *) calloc(MAXR, sizeof (*fp->rv));
+    fp->uv = (struct b_ball *) calloc(MAXU, sizeof (*fp->uv));
+    fp->wv = (struct b_view *) calloc(MAXW, sizeof (*fp->wv));
+    fp->dv = (struct b_dict *) calloc(MAXD, sizeof (*fp->dv));
+    fp->av = (char *)          calloc(MAXA, sizeof (*fp->av));
+    fp->iv = (int *)           calloc(MAXI, sizeof (*fp->iv));
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 }
 
 /*---------------------------------------------------------------------------*/
@@ -727,11 +856,15 @@ static void make_sym(struct mapc_context *ctx, int type, const char *name, int v
         struct sym *sym = &ctx->syms[ctx->symc];
 
         sym->type = type;
+<<<<<<< HEAD
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
         strncpy_s(sym->name, MAXSTR, name, MAXSTR - 1);
 #else
         strncpy(sym->name, name, MAXSTR - 1);
 #endif
+=======
+        strncpy(sym->name, name, MAXSTR - 1);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         sym->val = val;
 
         ctx->symc++;
@@ -745,11 +878,15 @@ static void make_ref(struct mapc_context *ctx, int type, const char *name, int *
         struct ref *ref = &ctx->refs[ctx->refc];
 
         ref->type = type;
+<<<<<<< HEAD
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
         strncpy_s(ref->name, MAXSTR, name, MAXSTR - 1);
 #else
         strncpy(ref->name, name, MAXSTR - 1);
 #endif
+=======
+        strncpy(ref->name, name, MAXSTR - 1);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         ref->ptr = ptr;
 
         ctx->refc++;
@@ -811,7 +948,10 @@ static int size_load(const char *file, int *w, int *h)
     if ((p = image_load(file, w, h, NULL)))
     {
         free(p);
+<<<<<<< HEAD
         p = NULL;
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         return 1;
     }
     return 0;
@@ -848,17 +988,29 @@ static void size_image(struct mapc_context *ctx, const char *name, int *w, int *
         if (ctx->image_n + 1 >= ctx->image_alloc)
         {
             struct _imagedata *tmp =
+<<<<<<< HEAD
                 (struct _imagedata *) malloc(sizeof (struct _imagedata) * (ctx->image_alloc + IMAGE_REALLOC));
             if (!tmp)
             {
                 MAPC_LOG_ERROR("malloc error\n");
+=======
+                (struct _imagedata *) malloc(sizeof(struct _imagedata) * (ctx->image_alloc + IMAGE_REALLOC));
+            if (!tmp)
+            {
+                printf("malloc error\n");
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
                 exit(1);
             }
             if (ctx->imagedata)
             {
+<<<<<<< HEAD
                 (void) memcpy(tmp, ctx->imagedata, sizeof (struct _imagedata) * ctx->image_alloc);
                 free(ctx->imagedata);
                 ctx->imagedata = NULL;
+=======
+                (void) memcpy(tmp, ctx->imagedata, sizeof(struct _imagedata) * ctx->image_alloc);
+                free(ctx->imagedata);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
             }
             ctx->imagedata = tmp;
             ctx->image_alloc += IMAGE_REALLOC;
@@ -867,12 +1019,16 @@ static void size_image(struct mapc_context *ctx, const char *name, int *w, int *
         ctx->imagedata[ctx->image_n].s = (char *) calloc(strlen(name) + 1, 1);
         ctx->imagedata[ctx->image_n].w = *w;
         ctx->imagedata[ctx->image_n].h = *h;
+<<<<<<< HEAD
 
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
         strcpy_s(ctx->imagedata[ctx->image_n].s, strlen(name) + 1, name);
 #else
         strcpy(ctx->imagedata[ctx->image_n].s, name);
 #endif
+=======
+        strcpy(ctx->imagedata[ctx->image_n].s, name);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
         ctx->image_n++;
     }
@@ -898,11 +1054,19 @@ static int read_mtrl(struct mapc_context *ctx, const char *name)
 
     if (!mtrl_read(mp, name))
     {
+<<<<<<< HEAD
         SAFECPY(buf, ctx->src_path.buf);
         SAFECAT(buf, ": unknown material \"");
         SAFECAT(buf, name);
         SAFECAT(buf, "\"\n");
         MAPC_LOG_WARNING(buf);
+=======
+        SAFECPY(buf, ctx->opt_file);
+        SAFECAT(buf, ": unknown material \"");
+        SAFECAT(buf, name);
+        SAFECAT(buf, "\"\n");
+        WARNING(buf);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     }
 
     return mi;
@@ -942,7 +1106,11 @@ static void move_lump(struct mapc_context *ctx,
         move_vert(fp->vv + fp->iv[lp->v0 + i], p);
 }
 
+<<<<<<< HEAD
 static void move_body(struct mapc_context* ctx,
+=======
+static void move_body(struct mapc_context *ctx,
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
                       struct b_body *bp)
 {
     struct s_base *fp = &ctx->file;
@@ -975,7 +1143,10 @@ static void move_body(struct mapc_context* ctx,
                 move_vert(fp->vv + i, fp->pv[bp->p0].p);
 
         free(b);
+<<<<<<< HEAD
         b = NULL;
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     }
 }
 
@@ -1014,6 +1185,7 @@ static void move_bill(struct mapc_context *ctx,
     v_sub(rp->p, rp->p, fp->pv[rp->p0].p);
 }
 
+<<<<<<< HEAD
 #ifdef MAPC_INCLUDES_CHKP
 static void move_chkp(struct mapc_context *ctx,
                       struct b_chkp *cp)
@@ -1023,6 +1195,8 @@ static void move_chkp(struct mapc_context *ctx,
 }
 #endif
 
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 static void move_file(struct mapc_context *ctx)
 {
     struct s_base *fp = &ctx->file;
@@ -1084,12 +1258,15 @@ static void move_file(struct mapc_context *ctx)
             posv = NULL;
         }
     }
+<<<<<<< HEAD
 
 #ifdef MAPC_INCLUDES_CHKP
     for (i = 0; i < fp->cc; i++)
         if (fp->cv[i].p0 >= 0)
             move_chkp(ctx, fp->cv + i);
 #endif
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1107,11 +1284,15 @@ static void read_vt(struct mapc_context *ctx, const char *line)
     struct s_base *fp = &ctx->file;
     struct b_texc *tp = fp->tv + inct(ctx);
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sscanf_s(line, "%f %f", tp->u, tp->u + 1);
 #else
     sscanf(line, "%f %f", tp->u, tp->u + 1);
 #endif
+=======
+    sscanf(line, "%f %f", tp->u, tp->u + 1);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 }
 
 static void read_vn(struct mapc_context *ctx, const char *line)
@@ -1119,11 +1300,15 @@ static void read_vn(struct mapc_context *ctx, const char *line)
     struct s_base *fp = &ctx->file;
     struct b_side *sp = fp->sv + incs(ctx);
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sscanf_s(line, "%f %f %f", sp->n, sp->n + 1, sp->n + 2);
 #else
     sscanf(line, "%f %f %f", sp->n, sp->n + 1, sp->n + 2);
 #endif
+=======
+    sscanf(line, "%f %f %f", sp->n, sp->n + 1, sp->n + 2);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 }
 
 static void read_v(struct mapc_context *ctx, const char *line)
@@ -1131,11 +1316,15 @@ static void read_v(struct mapc_context *ctx, const char *line)
     struct s_base *fp = &ctx->file;
     struct b_vert *vp = fp->vv + incv(ctx);
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sscanf_s(line, "%f %f %f", vp->p, vp->p + 1, vp->p + 2);
 #else
     sscanf(line, "%f %f %f", vp->p, vp->p + 1, vp->p + 2);
 #endif
+=======
+    sscanf(line, "%f %f %f", vp->p, vp->p + 1, vp->p + 2);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 }
 
 static void read_f(struct mapc_context *ctx, const char *line,
@@ -1144,13 +1333,20 @@ static void read_f(struct mapc_context *ctx, const char *line,
     struct s_base *fp = &ctx->file;
     struct b_geom *gp = fp->gv + incg(ctx);
 
+<<<<<<< HEAD
     struct b_offs *o0 = fp->ov + (gp->oi = inco(ctx));
     struct b_offs *o1 = fp->ov + (gp->oj = inco(ctx));
     struct b_offs *o2 = fp->ov + (gp->ok = inco(ctx));
+=======
+    struct b_offs *op = fp->ov + (gp->oi = inco(ctx));
+    struct b_offs *oq = fp->ov + (gp->oj = inco(ctx));
+    struct b_offs *or = fp->ov + (gp->ok = inco(ctx));
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
     char c1;
     char c2;
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sscanf_s(line, "%d%c%d%c%d %d%c%d%c%d %d%c%d%c%d",
              &o0->vi, &c1, &o0->ti, &c2, &o0->si,
@@ -1172,6 +1368,22 @@ static void read_f(struct mapc_context *ctx, const char *line,
     o0->si += (s0 - 1);
     o1->si += (s0 - 1);
     o2->si += (s0 - 1);
+=======
+    sscanf(line, "%d%c%d%c%d %d%c%d%c%d %d%c%d%c%d",
+           &op->vi, &c1, &op->ti, &c2, &op->si,
+           &oq->vi, &c1, &oq->ti, &c2, &oq->si,
+           &or->vi, &c1, &or->ti, &c2, &or->si);
+
+    op->vi += (v0 - 1);
+    oq->vi += (v0 - 1);
+    or->vi += (v0 - 1);
+    op->ti += (t0 - 1);
+    oq->ti += (t0 - 1);
+    or->ti += (t0 - 1);
+    op->si += (s0 - 1);
+    oq->si += (s0 - 1);
+    or->si += (s0 - 1);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
     gp->mi  = mi;
 }
@@ -1193,11 +1405,15 @@ static void read_obj(struct mapc_context *ctx, const char *name, int mi)
         {
             if (strncmp(line, "usemtl", 6) == 0)
             {
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 sscanf_s(line + 6, "%s", mtrl);
 #else
                 sscanf(line + 6, "%s", mtrl);
 #endif
+=======
+                sscanf(line + 6, "%s", mtrl);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
                 mi = read_mtrl(ctx, mtrl);
             }
 
@@ -1303,13 +1519,19 @@ static void make_plane(struct mapc_context *ctx, int   pi, float x0, float y0, f
 
 static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAXSTR], char val[MAXSTR])
 {
+<<<<<<< HEAD
     int doit = 1;
     char stderr_buf[512];
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     char buf[MAXSTR];
 
     if (fs_gets(buf, MAXSTR, fin))
     {
+<<<<<<< HEAD
         ctx->linenum += 1;
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         float x0, y0, z0;
         float x1, y1, z1;
         float x2, y2, z2;
@@ -1319,6 +1541,7 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
 
         /* Scan the beginning or end of a block. */
 
+<<<<<<< HEAD
         if (doit == 1 && buf[0] == '{')
         {
             if (ctx->bracket_stack > 10)
@@ -1364,13 +1587,30 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
 #endif
 
             doit = 0;
+=======
+        if (buf[0] == '{') return T_BEG;
+        if (buf[0] == '}') return T_END;
+
+        /* Scan a key-value pair. */
+
+        if (buf[0] == '\"')
+        {
+            strcpy(key, strtok(buf,  "\""));
+            (void)      strtok(NULL, "\"");
+            strcpy(val, strtok(NULL, "\""));
+
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
             return T_KEY;
         }
 
         /* Scan a plane. */
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         if (doit == 1 && sscanf_s(buf,
+=======
+        if (sscanf(buf,
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
                    "( %f %f %f ) "
                    "( %f %f %f ) "
                    "( %f %f %f ) "
@@ -1379,6 +1619,7 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
                    &x1, &y1, &z1,
                    &x2, &y2, &z2,
                    key, &tu, &tv, &r, &su, &sv, &fl) >= 15)
+<<<<<<< HEAD
 #else
         if (doit == 1 && sscanf(buf,
                    "( %f %f %f ) "
@@ -1390,18 +1631,26 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
                    &x2, &y2, &z2,
                    key, &tu, &tv, &r, &su, &sv, &fl) >= 15)
 #endif
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         {
             make_plane(ctx, pi, x0, y0, z0,
                        x1, y1, z1,
                        x2, y2, z2,
                        tu, tv, r, su, sv, fl, key);
+<<<<<<< HEAD
             doit = 0;
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
             return T_CLP;
         }
 
         /* If it's not recognized, it must be uninteresting. */
 
+<<<<<<< HEAD
         doit = 0;
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         return T_NOP;
     }
     return T_EOF;
@@ -1445,6 +1694,7 @@ static void read_lump(struct mapc_context *ctx, fs_file fin)
 
 /*---------------------------------------------------------------------------*/
 
+<<<<<<< HEAD
 /*
  * New design specifications for entities in Neverball
  *
@@ -1507,13 +1757,18 @@ static int request_legacy(char k[][MAXSTR],
 
 #pragma region Generic entities
 
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 static void make_path(struct mapc_context *ctx,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c)
 {
+<<<<<<< HEAD
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating paths...\n");
 #endif
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     struct s_base *fp = &ctx->file;
     int i, pi = incp(ctx);
 
@@ -1553,11 +1808,15 @@ static void make_path(struct mapc_context *ctx,
             pp->f = atoi(v[i]);
 
         if (strcmp(k[i], "speed") == 0)
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f", &pp->t);
 #else
             sscanf(v[i], "%f", &pp->t);
 #endif
+=======
+            sscanf(v[i], "%f", &pp->t);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
         if (strcmp(k[i], "smooth") == 0)
             pp->s = atoi(v[i]);
@@ -1566,11 +1825,15 @@ static void make_path(struct mapc_context *ctx,
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f %f %f", &x, &y, &z);
 #else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
 #endif
+=======
+            sscanf(v[i], "%f %f %f", &x, &y, &z);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
             pp->p[0] = +x / SCALE;
             pp->p[1] = +z / SCALE;
@@ -1591,11 +1854,15 @@ static void make_path(struct mapc_context *ctx,
 
             /* Yaw. */
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f", &y);
 #else
             sscanf(v[i], "%f", &y);
 #endif
+=======
+            sscanf(v[i], "%f", &y);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
             q_by_axisangle(pp->e, Y, V_RAD(+y));
             pp->fl |= P_ORIENTED;
         }
@@ -1611,11 +1878,15 @@ static void make_path(struct mapc_context *ctx,
 
             /* Pitch, yaw and roll. */
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f %f %f", &x, &y, &z);
 #else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
 #endif
+=======
+            sscanf(v[i], "%f %f %f", &x, &y, &z);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
             q_by_axisangle(pp->e, Y, V_RAD(+y));
 
@@ -1653,6 +1924,7 @@ static void make_dict(struct mapc_context *ctx,
     dp->ai = fp->ac;
     dp->aj = dp->ai + strlen(k) + 1;
     fp->ac = dp->aj + strlen(v) + 1;
+<<<<<<< HEAD
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
     strncpy_s(fp->av + dp->ai, MAXSTR, k, space_left);
     strncpy_s(fp->av + dp->aj, MAXSTR, v, space_left - strlen(k) - 1);
@@ -1660,15 +1932,23 @@ static void make_dict(struct mapc_context *ctx,
     strncpy(fp->av + dp->ai, k, space_left);
     strncpy(fp->av + dp->aj, v, space_left - strlen(k) - 1);
 #endif
+=======
+
+    memcpy(fp->av + dp->ai, k, strlen(k) + 1);
+    memcpy(fp->av + dp->aj, v, strlen(v) + 1);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 }
 
 static void make_body(struct mapc_context *ctx,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c, int l0)
 {
+<<<<<<< HEAD
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating objects...\n");
 #endif
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     struct s_base *fp = &ctx->file;
     int i, mi = 0, bi = incb(ctx);
 
@@ -1702,6 +1982,7 @@ static void make_body(struct mapc_context *ctx,
             read_obj(ctx, v[i], mi);
 
         else if (strcmp(k[i], "origin") == 0)
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f %f %f", &x, &y, &z);
 #else
@@ -1709,6 +1990,11 @@ static void make_body(struct mapc_context *ctx,
 #endif
 
         else if (read_dict_entries && strcmp(k[i], "classname") != 0)
+=======
+            sscanf(v[i], "%f %f %f", &x, &y, &z);
+
+        else if (ctx->read_dict_entries && strcmp(k[i], "classname") != 0)
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
             make_dict(ctx, k[i], v[i]);
     }
 
@@ -1727,16 +2013,23 @@ static void make_body(struct mapc_context *ctx,
     for (i = v0; i < fp->vc; i++)
         v_add(fp->vv[i].p, fp->vv[i].p, p);
 
+<<<<<<< HEAD
     read_dict_entries = 0;
+=======
+    ctx->read_dict_entries = 0;
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 }
 
 static void make_item(struct mapc_context *ctx,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c)
 {
+<<<<<<< HEAD
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating items...\n");
 #endif
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     struct s_base *fp = &ctx->file;
     int i, hi = inch(ctx);
 
@@ -1766,20 +2059,29 @@ static void make_item(struct mapc_context *ctx,
         }
 
         if (strcmp(k[i], "light") == 0)
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%d", &hp->n);
 #else
             sscanf(v[i], "%d", &hp->n);
 #endif
+=======
+            sscanf(v[i], "%d", &hp->n);
+
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         if (strcmp(k[i], "origin") == 0)
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f %f %f", &x, &y, &z);
 #else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
 #endif
+=======
+            sscanf(v[i], "%f %f %f", &x, &y, &z);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
             hp->p[0] = +x / SCALE;
             hp->p[1] = +z / SCALE;
@@ -1798,9 +2100,12 @@ static void make_bill(struct mapc_context *ctx,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c)
 {
+<<<<<<< HEAD
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating billboard...\n");
 #endif
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     struct s_base *fp = &ctx->file;
     int i, ri = incr(ctx);
 
@@ -1813,6 +2118,7 @@ static void make_bill(struct mapc_context *ctx,
 
     for (i = 0; i < c; i++)
     {
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         if (strcmp(k[i], "width") == 0)
             sscanf_s(v[i], "%f %f %f", rp->w, rp->w + 1, rp->w + 2);
@@ -1833,6 +2139,8 @@ static void make_bill(struct mapc_context *ctx,
         if (strcmp(k[i], "flag") == 0)
             sscanf_s(v[i], "%d", &rp->fl);
 #else
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         if (strcmp(k[i], "width") == 0)
             sscanf(v[i], "%f %f %f", rp->w, rp->w + 1, rp->w + 2);
         if (strcmp(k[i], "height") == 0)
@@ -1851,7 +2159,10 @@ static void make_bill(struct mapc_context *ctx,
             sscanf(v[i], "%f", &rp->d);
         if (strcmp(k[i], "flag") == 0)
             sscanf(v[i], "%d", &rp->fl);
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
         if (strcmp(k[i], "image") == 0)
         {
@@ -1863,11 +2174,15 @@ static void make_bill(struct mapc_context *ctx,
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f %f %f", &x, &y, &z);
 #else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
 #endif
+=======
+            sscanf(v[i], "%f %f %f", &x, &y, &z);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
             rp->p[0] = +x / SCALE;
             rp->p[1] = +z / SCALE;
@@ -1884,11 +2199,16 @@ static void make_bill(struct mapc_context *ctx,
 
 static void make_goal(struct mapc_context *ctx,
                       char k[][MAXSTR],
+<<<<<<< HEAD
                       char v[][MAXSTR], int c, int l0)
 {
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating goal...\n");
 #endif
+=======
+                      char v[][MAXSTR], int c)
+{
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     struct s_base *fp = &ctx->file;
     int i, zi = incz(ctx);
 
@@ -1904,27 +2224,39 @@ static void make_goal(struct mapc_context *ctx,
     for (i = 0; i < c; i++)
     {
         if (strcmp(k[i], "radius") == 0)
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f", &zp->r);
 #else
             sscanf(v[i], "%f", &zp->r);
 #endif
+=======
+            sscanf(v[i], "%f", &zp->r);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
         if (strcmp(k[i], "origin") == 0)
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f %f %f", &x, &y, &z);
 #else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
 #endif
+=======
+            sscanf(v[i], "%f %f %f", &x, &y, &z);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
             zp->p[0] = +(x)      / SCALE;
             zp->p[1] = +(z - 24) / SCALE;
             zp->p[2] = -(y)      / SCALE;
         }
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         if (strcmp(k[i], "target") == 0 || strcmp(k[i], "target1") == 0)
             make_ref(ctx, SYM_PATH, v[i], &zp->p0);
 
@@ -1937,9 +2269,12 @@ static void make_view(struct mapc_context *ctx,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c)
 {
+<<<<<<< HEAD
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating viewpoint...\n");
 #endif
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     struct s_base *fp = &ctx->file;
     int i, wi = incw(ctx);
 
@@ -1951,7 +2286,11 @@ static void make_view(struct mapc_context *ctx,
     wp->q[0] = 0.f;
     wp->q[1] = 0.f;
     wp->q[2] = 0.f;
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     for (i = 0; i < c; i++)
     {
         if (strcmp(k[i], "target") == 0)
@@ -1961,11 +2300,15 @@ static void make_view(struct mapc_context *ctx,
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f %f %f", &x, &y, &z);
 #else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
 #endif
+=======
+            sscanf(v[i], "%f %f %f", &x, &y, &z);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
             wp->p[0] = +x / SCALE;
             wp->p[1] = +z / SCALE;
@@ -1976,11 +2319,16 @@ static void make_view(struct mapc_context *ctx,
 
 static void make_jump(struct mapc_context *ctx,
                       char k[][MAXSTR],
+<<<<<<< HEAD
                       char v[][MAXSTR], int c, int l0)
 {
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating teleporter...\n");
 #endif
+=======
+                      char v[][MAXSTR], int c)
+{
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     struct s_base *fp = &ctx->file;
     int i, ji = incj(ctx);
 
@@ -1993,17 +2341,25 @@ static void make_jump(struct mapc_context *ctx,
     jp->q[1] = 0.f;
     jp->q[2] = 0.f;
     jp->r    = 0.5;
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     jp->p0 = jp->p1 = -1;
 
     for (i = 0; i < c; i++)
     {
         if (strcmp(k[i], "radius") == 0)
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f", &jp->r);
 #else
             sscanf(v[i], "%f", &jp->r);
 #endif
+=======
+            sscanf(v[i], "%f", &jp->r);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
         if (strcmp(k[i], "target") == 0)
             make_ref(ctx, SYM_TARG, v[i], ctx->targ_ji + ji);
@@ -2012,11 +2368,15 @@ static void make_jump(struct mapc_context *ctx,
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f %f %f", &x, &y, &z);
 #else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
 #endif
+=======
+            sscanf(v[i], "%f %f %f", &x, &y, &z);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
             jp->p[0] = +x / SCALE;
             jp->p[1] = +z / SCALE;
@@ -2033,11 +2393,16 @@ static void make_jump(struct mapc_context *ctx,
 
 static void make_swch(struct mapc_context *ctx,
                       char k[][MAXSTR],
+<<<<<<< HEAD
                       char v[][MAXSTR], int c, int l0)
 {
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating switch...\n");
 #endif
+=======
+                      char v[][MAXSTR], int c)
+{
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     struct s_base *fp = &ctx->file;
     int i, xi = incx(ctx);
 
@@ -2057,21 +2422,29 @@ static void make_swch(struct mapc_context *ctx,
     for (i = 0; i < c; i++)
     {
         if (strcmp(k[i], "radius") == 0)
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f", &xp->r);
 #else
             sscanf(v[i], "%f", &xp->r);
 #endif
+=======
+            sscanf(v[i], "%f", &xp->r);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
         if (strcmp(k[i], "target") == 0)
             make_ref(ctx, SYM_PATH, v[i], &xp->pi);
 
         if (strcmp(k[i], "timer") == 0)
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f", &xp->t);
 #else
             sscanf(v[i], "%f", &xp->t);
 #endif
+=======
+            sscanf(v[i], "%f", &xp->t);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
         if (strcmp(k[i], "state") == 0)
             xp->f = atoi(v[i]);
@@ -2083,11 +2456,15 @@ static void make_swch(struct mapc_context *ctx,
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f %f %f", &x, &y, &z);
 #else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
 #endif
+=======
+            sscanf(v[i], "%f %f %f", &x, &y, &z);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
             xp->p[0] = +x / SCALE;
             xp->p[1] = +z / SCALE;
@@ -2106,9 +2483,12 @@ static void make_targ(struct mapc_context *ctx,
                       char k[][MAXSTR],
                       char v[][MAXSTR], int c)
 {
+<<<<<<< HEAD
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating targets...\n");
 #endif
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     int i;
 
     ctx->targ_p[ctx->targ_n][0] = 0.f;
@@ -2124,11 +2504,15 @@ static void make_targ(struct mapc_context *ctx,
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f %f %f", &x, &y, &z);
 #else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
 #endif
+=======
+            sscanf(v[i], "%f %f %f", &x, &y, &z);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
             ctx->targ_p[ctx->targ_n][0] = +x / SCALE;
             ctx->targ_p[ctx->targ_n][1] = +z / SCALE;
@@ -2136,16 +2520,26 @@ static void make_targ(struct mapc_context *ctx,
         }
     }
 
+<<<<<<< HEAD
     ctx->targ_n++;
+=======
+    if (++ctx->targ_n == MAXW)
+        overflow(ctx, "target");
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 }
 
 static void make_ball(struct mapc_context *ctx,
                       char k[][MAXSTR],
+<<<<<<< HEAD
                       char v[][MAXSTR], int c, int l0)
 {
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating balls...\n");
 #endif
+=======
+                      char v[][MAXSTR], int c)
+{
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     struct s_base *fp = &ctx->file;
     int i, ui = incu(ctx);
 
@@ -2156,6 +2550,7 @@ static void make_ball(struct mapc_context *ctx,
     up->p[2] = 0.0f;
     up->r    = 0.25f;
 
+<<<<<<< HEAD
 #if defined(START_POS_ANGULAR_BETA)
     up->a    = 0.0f;
 #endif
@@ -2176,10 +2571,18 @@ static void make_ball(struct mapc_context *ctx,
             sscanf(v[i], "%f", &up->a);
 #endif
 #endif
+=======
+    for (i = 0; i < c; i++)
+    {
+        if (strcmp(k[i], "radius") == 0)
+            sscanf(v[i], "%f", &up->r);
+
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         if (strcmp(k[i], "origin") == 0)
         {
             float x = 0.f, y = 0.f, z = 0.f;
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f %f %f", &x, &y, &z);
 #else
@@ -2208,12 +2611,20 @@ static void make_ball(struct mapc_context *ctx,
             up->p[1] = +(z - 24) / SCALE;
             up->p[2] = -(y)      / SCALE;
 #endif
+=======
+            sscanf(v[i], "%f %f %f", &x, &y, &z);
+
+            up->p[0] = +(x)      / SCALE;
+            up->p[1] = +(z - 24) / SCALE;
+            up->p[2] = -(y)      / SCALE;
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         }
     }
 
     up->p[1] += up->r + SMALL;
 }
 
+<<<<<<< HEAD
 #if defined(MAPC_INCLUDES_CHKP)
 // New: Checkpoints
 static void make_chkp(struct mapc_context *ctx,
@@ -2364,6 +2775,8 @@ static void make_legacy(struct mapc_context *ctx,
 }
 #endif
 
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 /*---------------------------------------------------------------------------*/
 
 static void read_ent(struct mapc_context *ctx, fs_file fin)
@@ -2379,17 +2792,23 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
     {
         if (t == T_KEY)
         {
+<<<<<<< HEAD
             if (!strcmp(k[c], "classname"))
                 i = c;
 
             if (!strcmp(k[c], "author") && ctx->campaign_output && strlen(v[c]) > 2)
                 ctx->campaign_use_author_encrypt = 1;
 
+=======
+            if (strcmp(k[c], "classname") == 0)
+                i = c;
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
             c++;
         }
         if (t == T_BEG) read_lump(ctx, fin);
         if (t == T_END) break;
     }
+<<<<<<< HEAD
     /* New design specifications for entity */
     if (!strcmp(v[i], "info_camp"))              {
         if (ctx->campaign_output) ctx->campaign_cost += 5;
@@ -2483,6 +2902,27 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
         read_dict_entries = 1;
         make_body(ctx, k, v, c, l0);
     }
+=======
+
+    if (!strcmp(v[i], "light"))                    make_item(ctx, k, v, c);
+    if (!strcmp(v[i], "item_health_large"))        make_item(ctx, k, v, c);
+    if (!strcmp(v[i], "item_health_small"))        make_item(ctx, k, v, c);
+    if (!strcmp(v[i], "item_clock"))               make_item(ctx, k, v, c);
+    if (!strcmp(v[i], "info_camp"))                make_swch(ctx, k, v, c);
+    if (!strcmp(v[i], "info_null"))                make_bill(ctx, k, v, c);
+    if (!strcmp(v[i], "path_corner"))              make_path(ctx, k, v, c);
+    if (!strcmp(v[i], "info_player_start"))        make_ball(ctx, k, v, c);
+    if (!strcmp(v[i], "info_player_intermission")) make_view(ctx, k, v, c);
+    if (!strcmp(v[i], "info_player_deathmatch"))   make_goal(ctx, k, v, c);
+    if (!strcmp(v[i], "target_teleporter"))        make_jump(ctx, k, v, c);
+    if (!strcmp(v[i], "target_position"))          make_targ(ctx, k, v, c);
+    if (!strcmp(v[i], "worldspawn"))
+    {
+        ctx->read_dict_entries = 1;
+        make_body(ctx, k, v, c, l0);
+    }
+    if (!strcmp(v[i], "func_train"))               make_body(ctx, k, v, c, l0);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     if (!strcmp(v[i], "misc_model"))               make_body(ctx, k, v, c, l0);
 
     /* TrenchBroom compatibility: if func_group has any lumps, add it as a body; ignore otherwise. */
@@ -2588,11 +3028,19 @@ static void clip_vert(struct mapc_context *ctx,
 
         if (ok_vert(fp, lp, p))
         {
+<<<<<<< HEAD
             v_cpy(fp->vv[fp->vc].p, p);
 
             fp->iv[fp->ic] = fp->vc;
             inci(ctx);
             incv(ctx);
+=======
+            int vi = incv(ctx);
+
+            v_cpy(fp->vv[vi].p, p);
+
+            fp->iv[inci(ctx)] = vi;
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
             lp->vc++;
         }
     }
@@ -2669,7 +3117,15 @@ static void clip_geom(struct mapc_context *ctx,
             fp->tv[t[n]].u[0] = v_dot(v, ctx->plane_u[si]);
             fp->tv[t[n]].u[1] = v_dot(v, ctx->plane_v[si]);
 
+<<<<<<< HEAD
             n++;
+=======
+            if (++n >= ARRAYSIZE(m))
+            {
+                ERROR("Over 256 vertices on one side, skipping the rest\n");
+                break;
+            }
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         }
     }
 
@@ -2702,6 +3158,7 @@ static void clip_geom(struct mapc_context *ctx,
 
         struct b_geom *gp = fp->gv + gi;
 
+<<<<<<< HEAD
         struct b_offs *o0 = fp->ov + (gp->oi = inco(ctx));
         struct b_offs *o1 = fp->ov + (gp->oj = inco(ctx));
         struct b_offs *o2 = fp->ov + (gp->ok = inco(ctx));
@@ -2719,6 +3176,25 @@ static void clip_geom(struct mapc_context *ctx,
         o0->vi = m[0];
         o1->vi = m[i + 1];
         o2->vi = m[i + 2];
+=======
+        struct b_offs *op = fp->ov + (gp->oi = inco(ctx));
+        struct b_offs *oq = fp->ov + (gp->oj = inco(ctx));
+        struct b_offs *or = fp->ov + (gp->ok = inco(ctx));
+
+        gp->mi = ctx->plane_m[si];
+
+        op->ti = t[0];
+        oq->ti = t[i + 1];
+        or->ti = t[i + 2];
+
+        op->si = si;
+        oq->si = si;
+        or->si = si;
+
+        op->vi = m[0];
+        oq->vi = m[i + 1];
+        or->vi = m[i + 2];
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
         fp->iv[fp->ic] = gi;
         lp->gc++;
@@ -2761,8 +3237,12 @@ static void clip_lump(struct mapc_context *ctx, struct b_lump *lp)
 
     for (i = 0; i < lp->sc; i++)
         if (fp->mv[ctx->plane_m[fp->iv[lp->s0 + i]]].d[3] > 0.0f)
+<<<<<<< HEAD
             clip_geom(ctx, lp,
                       fp->iv[lp->s0 + i]);
+=======
+            clip_geom(ctx, lp, fp->iv[lp->s0 + i]);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
     for (i = 0; i < lp->sc; i++)
         if (ctx->plane_f[fp->iv[lp->s0 + i]])
@@ -3092,7 +3572,11 @@ static void uniq_offs(struct mapc_context *ctx)
         }
     }
 
+<<<<<<< HEAD
     apply_offs_swaps(ctx, fp);
+=======
+    apply_offs_swaps(ctx,fp);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
     fp->oc = k;
 }
@@ -3118,7 +3602,11 @@ static void uniq_geom(struct mapc_context *ctx)
         }
     }
 
+<<<<<<< HEAD
     apply_geom_swaps(ctx, fp);
+=======
+    apply_geom_swaps(ctx,fp);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
     fp->gc = k;
 }
@@ -3170,7 +3658,11 @@ static void uniq_side(struct mapc_context *ctx)
         }
     }
 
+<<<<<<< HEAD
     apply_side_swaps(ctx, fp);
+=======
+    apply_side_swaps(ctx,fp);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
     fp->sc = k;
 }
@@ -3296,7 +3788,11 @@ static void smth_file(struct mapc_context *ctx)
                         const float *Nl = fp->sv[T[l].si].n;
                         float deg = V_DEG(facosf(v_dot(Ni, Nl)));
 
+<<<<<<< HEAD
                         if (roundf(deg * 1000.0f) > roundf(angle * 1000.0f))
+=======
+                        if (ROUND(deg * 1000.0f) > ROUND(angle * 1000.0f))
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
                             break;
 
                         N[0] += Nl[0];
@@ -3329,6 +3825,7 @@ static void smth_file(struct mapc_context *ctx)
             for (i = 0; i < c; ++i)
             {
                 struct b_geom *gp = fp->gv + T[i].gi;
+<<<<<<< HEAD
                 struct b_offs *o0 = fp->ov + gp->oi;
                 struct b_offs *o1 = fp->ov + gp->oj;
                 struct b_offs *o2 = fp->ov + gp->ok;
@@ -3340,6 +3837,18 @@ static void smth_file(struct mapc_context *ctx)
 
             free(T);
             T = NULL;
+=======
+                struct b_offs *op = fp->ov + gp->oi;
+                struct b_offs *oq = fp->ov + gp->oj;
+                struct b_offs *or = fp->ov + gp->ok;
+
+                if (op->vi == T[i].vi) op->si = T[i].si;
+                if (oq->vi == T[i].vi) oq->si = T[i].si;
+                if (or->vi == T[i].vi) or->si = T[i].si;
+            }
+
+            free(T);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         }
 
         uniq_side(ctx);
@@ -3351,7 +3860,11 @@ static void smth_file(struct mapc_context *ctx)
 
 static void sort_file(struct mapc_context *ctx)
 {
+<<<<<<< HEAD
     struct s_base* fp = &ctx->file;
+=======
+    struct s_base *fp = &ctx->file;
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     int i, j, k;
 
     /* Sort materials by type to minimize state changes. */
@@ -3415,7 +3928,11 @@ static void sort_file(struct mapc_context *ctx)
                 {
                     struct b_lump t;
 
+<<<<<<< HEAD
                     t = fp->lv[li];
+=======
+                    t          = fp->lv[li];
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
                     fp->lv[li] = fp->lv[lj];
                     fp->lv[lj] = t;
                 }
@@ -3520,6 +4037,7 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
 
         for (si = 0; si < fp->sc; si++)
         {
+<<<<<<< HEAD
             /*if (si > 1500)
             {
                 char stdout_buf[MAXSTR];
@@ -3527,6 +4045,8 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
                 MAPC_LOG_MESSAGE(stdout_buf);
             }*/
 
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
             int o = 0;
             int d = 0;
             int k = 0;
@@ -3553,6 +4073,7 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
         /* Flag each lump with its position WRT the side. */
 
         for (li = 0; li < lc; li++)
+<<<<<<< HEAD
         {
             if (li > 500)
             {
@@ -3563,6 +4084,12 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
 
             if (ctx->opt_debug)
                 fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x20;
+=======
+            if (ctx->opt_debug)
+            {
+                fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x20;
+            }
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
             else
             {
                 switch (test_lump_side(fp,
@@ -3570,6 +4097,7 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
                                        fp->sv + sj,
                                        bsphere[l0 + li]))
                 {
+<<<<<<< HEAD
                     case +1:
                         fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x10;
                         break;
@@ -3584,10 +4112,26 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
                 }
             }
         }
+=======
+                case +1:
+                    fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x10;
+                    break;
+
+                case  0:
+                    fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x20;
+                    break;
+
+                case -1:
+                    fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x40;
+                    break;
+                }
+            }
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
         /* Sort all lumps in the range by their flag values. */
 
         for (li = 1; li < lc; li++)
+<<<<<<< HEAD
         {
             if (li > 500)
             {
@@ -3600,6 +4144,11 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
                 if (fp->lv[l0 + li].fl < fp->lv[l0 + lj].fl)
                 {
 
+=======
+            for (lj = 0; lj < li; lj++)
+                if (fp->lv[l0 + li].fl < fp->lv[l0 + lj].fl)
+                {
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
                     struct b_lump l;
                     float f;
 
@@ -3614,7 +4163,10 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
                     fp->lv[l0 + li] = fp->lv[l0 + lj];
                     fp->lv[l0 + lj] =               l;
                 }
+<<<<<<< HEAD
         }
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
         /* Establish the in-front, on, and behind lump ranges. */
 
@@ -3625,9 +4177,15 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
         for (i = lc - 1; i >= 0; i--)
             switch (fp->lv[l0 + i].fl & 0xf0)
             {
+<<<<<<< HEAD
                 case 0x10: li = l0 + i; lic++; break;
                 case 0x20: lj = l0 + i; ljc++; break;
                 case 0x40: lk = l0 + i; lkc++; break;
+=======
+            case 0x10: li = l0 + i; lic++; break;
+            case 0x20: lj = l0 + i; ljc++; break;
+            case 0x40: lk = l0 + i; lkc++; break;
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
             }
 
         /* Add the lumps on the side to the node. */
@@ -3700,8 +4258,11 @@ static void node_file(struct mapc_context *ctx)
         if (fp->lv[i].fl == 0)
             lump_bounding_sphere(fp, fp->lv + i, bsphere[i]);
 
+<<<<<<< HEAD
     /* Sort the lumps of each body into BSP nodes. */
 
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     for (i = 0; i < fp->bc; i++)
     {
         int lc;
@@ -3716,7 +4277,10 @@ static void node_file(struct mapc_context *ctx)
 
         fp->bv[i].ni = node_node(ctx, fp->bv[i].l0, lc, bsphere);
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 }
 
 /*---------------------------------------------------------------------------*/
@@ -3751,9 +4315,12 @@ static struct dump_stats stats[] = {
     { offsetof (struct s_base, xc), "swch", "switches" },
     { offsetof (struct s_base, rc), "bill", "billboards" },
     { offsetof (struct s_base, uc), "ball", "balls" },
+<<<<<<< HEAD
 #if defined(MAPC_INCLUDES_CHKP)
     { offsetof (struct s_base, cc), "chkp", "checkpoints" }, /* New: Checkpoints */
 #endif
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     { offsetof (struct s_base, ac), "char", "chars" },
     { offsetof (struct s_base, dc), "dict", "dicts" },
     { offsetof (struct s_base, ic), "indx", "indices" }
@@ -3772,10 +4339,13 @@ void mapc_dump(struct mapc_context *ctx)
     const char *name = STR(ctx->dst_path);
     double t = ctx->compile_time;
 
+<<<<<<< HEAD
     char name_solx[MAXSTR];
     SAFECPY(name_solx, STR(ctx->dst_path));
     SAFECAT(name_solx, "x");
 
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     struct s_base *p = &ctx->file;
     int i, j;
     int c = 0;
@@ -3820,7 +4390,11 @@ void mapc_dump(struct mapc_context *ctx)
         for (i = 0; i < ARRAYSIZE(stats); i++)
             printf("%s%s", stats[i].name, (i + 1 < ARRAYSIZE(stats) ?
                                            "," : "\n"));
+<<<<<<< HEAD
         printf("%s,%d,%d,%.3f,", sol_check_solx(&ctx->file) ? name_solx : name, n, c, t);
+=======
+        printf("%s,%d,%d,%.3f,", name, n, c, t);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
         for (i = 0; i < ARRAYSIZE(stats); i++)
             printf("%d%s", *stats[i].ptr, (i + 1 < ARRAYSIZE(stats) ?
@@ -3830,7 +4404,11 @@ void mapc_dump(struct mapc_context *ctx)
     {
         const int COLS = 11;
 
+<<<<<<< HEAD
         printf("%s (%d/$%d) %.3f\n", sol_check_solx(&ctx->file) ? name_solx : name, n, c, t);
+=======
+        printf("%s (%d/$%d) %.3f\n", name, n, c, t);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 
         for (i = 0, j = 0; i < ARRAYSIZE(stats); i++)
         {
@@ -3868,6 +4446,7 @@ struct s_base *mapc_get_base(struct mapc_context *ctx)
 
 /*---------------------------------------------------------------------------*/
 
+<<<<<<< HEAD
 static int skip_verify = 1;
 
 static void print_usage(const char *name)
@@ -3903,10 +4482,13 @@ static void print_usage(const char *name)
     MAPC_LOG_MESSAGE(p_buf);
 }
 
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
 {
     int argi;
 
+<<<<<<< HEAD
     ctx->compile_time_limit = 60;
 
     for (argi = 1; argi < argc; ++argi)
@@ -3914,10 +4496,20 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
         if      (strcmp(argv[argi], "--skip_verify") == 0)  skip_verify = 1;
         else if (strcmp(argv[argi], "--debug") == 0)        ctx->opt_debug = 1;
         else if (strcmp(argv[argi], "--csv") == 0)
+=======
+    for (argi = 1; argi < argc; ++argi)
+    {
+        if (strcmp(argv[argi], "--debug") == 0)
+        {
+            ctx->opt_debug = 1;
+        }
+        else if (strcmp(argv[argi], "--csv")   == 0)
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         {
             ctx->opt_csv = 1;
             fs_set_logging(0);
         }
+<<<<<<< HEAD
 #if ENABLE_RADIANT_CONSOLE
         else if (strcmp(argv[argi], "--bcast") == 0) bcast_init();
 #endif
@@ -3959,6 +4551,18 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
                 fprintf(stderr, "Option --timelimit requires second value!\n");
                 return 1;
             }
+=======
+        else if (strcmp(argv[argi], "--bcast") == 0)
+        {
+#if ENABLE_RADIANT_CONSOLE
+            bcast_init(ctx);
+#endif
+        }
+        else if (strcmp(argv[argi], "--data")  == 0)
+        {
+            if (++argi < argc)
+                fs_add_path(argv[argi]);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         }
         else if (!ctx->opt_file)
         {
@@ -3975,7 +4579,11 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
             }
             else
                 ctx->dst_path = joinstr(ctx->opt_file, ".sol");
+<<<<<<< HEAD
 
+=======
+            
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
             fs_add_path(DIR_NAME(STR(ctx->src_path)));
 
             fs_set_write_dir(DIR_NAME(STR(ctx->dst_path)));
@@ -3984,6 +4592,7 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
 
             ctx->full_dst_path = ctx->dst_path;
 
+<<<<<<< HEAD
             int src_absolute_path = 0;
             int dst_absolute_path = 0;
 
@@ -4032,15 +4641,31 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
             }
         }
         else if (!ctx->opt_data) {
+=======
+            ctx->src_path = base_name_strbuf(STR(ctx->src_path));
+            ctx->dst_path = base_name_strbuf(STR(ctx->dst_path));
+        }
+        else if (!ctx->opt_data)
+        {
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
             ctx->opt_data = argv[argi];
 
             fs_add_path_with_archives(ctx->opt_data);
         }
+<<<<<<< HEAD
+=======
+        else
+            fprintf(stderr, "Unknown option: %s\n", argv[argi]);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
     }
 
     if (!(ctx->opt_file && ctx->opt_data))
     {
+<<<<<<< HEAD
         print_usage(argv[0]);
+=======
+        fprintf(stderr, "Usage: %s <map> <data> [--debug] [--csv] [--data <dir>]\n", argv[0]);
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         return 0;
     }
 
@@ -4049,6 +4674,7 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
 
 /*---------------------------------------------------------------------------*/
 
+<<<<<<< HEAD
 static int campaign_check_budget(struct mapc_context *ctx)
 {
     struct s_base *fp = &ctx->file;
@@ -4117,10 +4743,14 @@ static void interactive_web(void)
 }
 
 static int mapc_compile_internal(struct mapc_context *ctx)
+=======
+static void mapc_compile_internal(struct mapc_context *ctx)
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 {
     const char *src = STR(ctx->src_path);
     const char *dst = STR(ctx->dst_path);
 
+<<<<<<< HEAD
     char dst_solx[MAXSTR];
     SAFECPY(dst_solx, STR(ctx->src_path));
     SAFECAT(dst_solx, "x");
@@ -4153,6 +4783,14 @@ static int mapc_compile_internal(struct mapc_context *ctx)
                 "Loading file...: %s\n", src);
         MAPC_LOG_MESSAGE(tmp_buf_loading);
 
+=======
+    struct timeval time0, time1;
+
+    gettimeofday(&time0, 0);
+    {
+        fs_file fin;
+
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         if ((fin = fs_open_read(src)))
         {
             read_map(ctx, fin);
@@ -4161,6 +4799,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
         }
         else
         {
+<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1
             char tmp_buf[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -4175,6 +4814,11 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #endif
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return 0;
+=======
+            ERROR("Failure to open file\n");
+            longjmp(ctx->jmpbuf, MAPC_ERROR);
+            return;
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         }
 
         resolve(ctx);
@@ -4187,6 +4831,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
         sort_file(ctx);
         node_file(ctx);
 
+<<<<<<< HEAD
 #if _MSC_VER
         if (!QueryPerformanceCounter(&QCPLastTime)) return 0;
         ctx->compile_time = (QCPLastTime.QuadPart - QCPStartTime.QuadPart) / 10000000.0;
@@ -4242,6 +4887,15 @@ static int mapc_compile_internal(struct mapc_context *ctx)
     }
 
     return 1;
+=======
+        if (dst && *dst)
+            sol_stor_base(&ctx->file, dst);
+    }
+    gettimeofday(&time1, 0);
+
+    ctx->compile_time = (time1.tv_sec  - time0.tv_sec) +
+                        (time1.tv_usec - time0.tv_usec) / 1000000.0;
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 }
 
 int mapc_compile(struct mapc_context *ctx)
@@ -4250,14 +4904,21 @@ int mapc_compile(struct mapc_context *ctx)
     {
         mapc_compile_internal(ctx);
 
+<<<<<<< HEAD
 #if _WIN32 && _MSC_VER && _DEBUG && defined(_CRTDBG_MAP_ALLOC)
         _CrtDumpMemoryLeaks();
 #endif
 
+=======
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         return 1;
     }
 
     return 0;
 }
 
+<<<<<<< HEAD
 #endif
+=======
+/*---------------------------------------------------------------------------*/
+>>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86

@@ -20,6 +20,7 @@
 #include "config_wgcl.h"
 #endif
 #include "config.h"
+#include "networking.h"
 #include "common.h"
 #include "package.h"
 #include "geom.h"
@@ -836,6 +837,98 @@ static int manage_del_confirm_btn_enabled = 0;
 static int manage_del_confirm_btn_id      = 0;
 
 static enum package_confirm_action curr_confirm_action = PACKAGE_CONFIRM_NONE;
+
+static int package_check_purchased_extralevels(const char *set_id)
+{
+    int curr_date_month = 0;
+
+    time_t     curr_date = time(NULL);
+    struct tm *curr_date_localtime = localtime(&curr_date);
+
+    if (curr_date_localtime)
+        curr_date_month = curr_date_localtime->tm_mon + 1;
+
+    /* HACK: Requires prefix filename "set-"! */
+
+    if (strcmp(package_get_type(selected), "set") == 0)
+        return 0;
+
+#if NB_HAVE_PB_BOTH==1
+#ifdef CONFIG_INCLUDES_ACCOUNT
+    /* Add more level sets when products bought. */
+
+    if ((str_starts_with(set_id, "set-easy")   &&
+         str_starts_with(set_id, "set-medium") &&
+         str_starts_with(set_id, "set-hard")   &&
+         str_starts_with(set_id, "set-mym")    &&
+         str_starts_with(set_id, "set-mym2")   &&
+         str_starts_with(set_id, "set-fwp")    &&
+         str_starts_with(set_id, "set-tones")  &&
+         str_starts_with(set_id, "set-misc")) &&
+        (!account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
+         !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET)))
+        return 0;
+#else
+    if (str_starts_with(set_id, "set-easy")   &&
+        str_starts_with(set_id, "set-medium") &&
+        str_starts_with(set_id, "set-hard")   &&
+        str_starts_with(set_id, "set-mym")    &&
+        str_starts_with(set_id, "set-mym2")   &&
+        str_starts_with(set_id, "set-fwp")    &&
+        str_starts_with(set_id, "set-tones")  &&
+        str_starts_with(set_id, "set-misc")   &&
+        !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))
+        return 0;
+#endif
+
+    /* Limited offered region only */
+
+    if (str_starts_with(set_id, "set-anime") &&
+        !config_cheat())
+    {
+        if (server_policy_get_d(SERVER_POLICY_EDITION) < 3)
+            return 0;
+
+        if (config_get_s(CONFIG_LANGUAGE) &&
+            (strcmp(config_get_s(CONFIG_LANGUAGE), "ja") != 0 &&
+             strcmp(config_get_s(CONFIG_LANGUAGE), "jp") != 0))
+            return 0;
+    }
+
+    /* Limited special offers only */
+
+    if (str_starts_with(set_id, "set-valentine") &&
+        curr_date_month != 2 &&
+        !config_cheat())
+        return 0;
+
+    if (str_starts_with(set_id, "set-freeland") &&
+        curr_date_month != 5 &&
+        !config_cheat())
+        return 0;
+
+    if (str_starts_with(set_id, "set-halloween") &&
+        curr_date_month != 10 &&
+        !config_cheat())
+        return 0;
+
+    if (str_starts_with(set_id, "set-christmas") &&
+        curr_date_month != 12 &&
+        !config_cheat())
+        return 0;
+#endif
+
+    return 1;
+}
+
+static int package_check_purchased_online_balls(void)
+{
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+    return account_get_d(ACCOUNT_PRODUCT_BALLS) == 1;
+#else
+    return 0;
+#endif
+}
 
 static int package_manage_action(int tok, int val)
 {

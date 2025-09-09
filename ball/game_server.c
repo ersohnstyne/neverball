@@ -1306,6 +1306,10 @@ int game_server_init(const char *file_name, int t, int e)
 
     lockstep_clr(&server_step);
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({ Neverball._current_map_name = UTF8ToString($0); }, file_name);
+#endif
+
     return server_state;
 }
 
@@ -2115,6 +2119,10 @@ static int game_step(const float g[3], float dt, int bt)
             if (b > 0.5f)
             {
                 float k = (b - 0.5f) * 2.0f;
+
+#ifdef __EMSCRIPTEN__
+                EM_ASM({ Neverball.events.vibrateGamepad($0, $1); }, k, 0.2f);
+#endif
 
                 if      (vary.uv->r > vary.uv->sizes[1]) audio_play(AUD_BUMPL, k);
                 else if (vary.uv->r < vary.uv->sizes[1]) audio_play(AUD_BUMPS, k);

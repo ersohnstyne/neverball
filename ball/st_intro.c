@@ -265,6 +265,13 @@ static int intro_leave(struct state *st, struct state *next, int id, int intent)
             intro_init = 0;
     }
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    if (next == &st_title)
+    {
+        EM_ASM({ CoreLauncher_EMSDK_RequestAutoSuggest_InputPreset(); });
+    }
+#endif
+
     gui_delete(id);
     return 0;
 }

@@ -63,6 +63,7 @@
 #endif
 #include "video.h"
 #include "key.h"
+#include "geom.h"
 
 #include "game_common.h"
 #include "game_server.h"
@@ -75,6 +76,8 @@
 #include "st_fail.h"
 #include "st_level.h"
 #include "st_shared.h"
+
+#pragma message(__FILE__ ": Reworked Minecraft Bedrock Edition!: 1.21.40 - Bundles and Bravery")
 
 /*---------------------------------------------------------------------------*/
 
@@ -143,7 +146,9 @@ enum ask_more_options
     ASK_MORE_BALLS
 };
 
+static int fail_intro_lock_now;
 static int fail_intro_animation_phase;
+static int fail_intro_incidents_triggered;
 
 static int ask_more_target;
 
@@ -157,8 +162,44 @@ static int balls_bought;
 void detect_replay_filters(int exceeded);
 #endif
 
+static int WGCL_fail_call_incident(void)
+{
+    if (fail_intro_incidents_triggered == 0)
+    {
+        /*
+         * Can be trigger incident for those, who playing.
+         *
+         * TODO: Only taken screenshot from the element <canvas>
+         * for the best experience!
+         */
+
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        video_clear();
+        game_client_draw(POSE_LEVEL, 0);
+
+        EM_ASM({ Neverball.gamecore_mapmarker_incident_try_call(); });
+#endif
+
+        fail_intro_incidents_triggered = 1;
+    }
+}
+
 static int fail_action(int tok, int val)
 {
+    if (time_state() < 2 && config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    {
+        /*
+         * HACK: Reworked Minecraft Bedrock Edition!:
+         * Bedrock 1.21.40 - Bundles and Bravery
+         *
+         * Perform action is locked for 2 seconds.
+         */
+
+        audio_play(AUD_DISABLED, 1.f);
+
+        return 1;
+    }
+
     GENERIC_GAMEMENU_ACTION;
 
     fail_intro_animation_phase = 0;
@@ -170,24 +211,32 @@ static int fail_action(int tok, int val)
     {
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
         case FAIL_LOGIN_WGCL:
+            WGCL_fail_call_incident();
             EM_ASM({ CoreLauncher_ShowLoginModalWindow(); });
             break;
 #endif
 
         case GUI_BACK:
         case FAIL_OVER:
+            WGCL_fail_call_incident();
+            fail_intro_lock_now = 0;
+
             detect_replay_filters((status == GAME_FALL && save < 3) ||
                                   (status == GAME_TIME && save < 2));
             return goto_exit();
 
         /* We're just reverted back for you! */
         case FAIL_SAVE:
-        progress_stop();
-        return goto_save(&st_fail, &st_fail);
+            WGCL_fail_call_incident();
+            fail_intro_lock_now = 0;
+
+            progress_stop();
+            return goto_save(&st_fail, &st_fail);
 
 #ifdef MAPC_INCLUDES_CHKP
         /* New: Checkpoints */
         case FAIL_CHECKPOINT_RESPAWN:
+            WGCL_fail_call_incident();
             if (checkpoints_load() && progress_same_avail() && !progress_dead())
             {
 #if NB_HAVE_PB_BOTH==1 && \
@@ -201,6 +250,7 @@ static int fail_action(int tok, int val)
 
         /* Need permanent restart the level? */
         case FAIL_CHECKPOINT_CANCEL:
+            WGCL_fail_call_incident();
 #if NB_HAVE_PB_BOTH==1 && \
     defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
             powerup_stop();
@@ -212,15 +262,20 @@ static int fail_action(int tok, int val)
 
 #if NB_HAVE_PB_BOTH==1
         case FAIL_ZEN_SWITCH:
+            WGCL_fail_call_incident();
+            fail_intro_lock_now = 0;
             return goto_state(&st_zen_warning);
 
         case FAIL_ASK_MORE:
+            WGCL_fail_call_incident();
+            fail_intro_lock_now = 0;
             ask_more_target = val;
             return goto_state(&st_ask_more);
             break;
 #endif
 
         case FAIL_SAME:
+            WGCL_fail_call_incident();
 #ifdef MAPC_INCLUDES_CHKP
             if (progress_same_avail() && !progress_dead())
                 checkpoints_stop();
@@ -246,6 +301,7 @@ static int fail_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
         case FAIL_UPGRADE_EDITION:
+            WGCL_fail_call_incident();
 #if defined(__EMSCRIPTEN__)
             EM_ASM({ window.open("https://forms.office.com/r/upfWqaVVtA"); });
 #elif _WIN32
@@ -258,6 +314,7 @@ static int fail_action(int tok, int val)
             break;
 
         case FAIL_TRANSFER_MEMBER:
+            WGCL_fail_call_incident();
 #if defined(__EMSCRIPTEN__)
             EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/"); });
 #elif _WIN32
@@ -740,6 +797,8 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
 
     if (!resume)
     {
+        fail_intro_incidents_triggered = 0;
+
 #if NB_HAVE_PB_BOTH==1 && \
     defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
         powerup_stop();
@@ -759,6 +818,8 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
 
 static int fail_leave(struct state *st, struct state *next, int id, int intent)
 {
+    WGCL_fail_call_incident();
+
     if (next == &st_null)
     {
         progress_exit();
@@ -798,6 +859,8 @@ static void fail_timer(int id, float dt)
 
     if (fail_intro_animation_phase == 1)
     {
+        fail_intro_lock_now = 1;
+
         if (fail_time_state >= 2.0f)
         {
             fail_intro_animation_phase = 2;
@@ -807,18 +870,24 @@ static void fail_timer(int id, float dt)
         }
     }
 
-    if (status == GAME_FALL)
+    if (fail_time_state >= 2.0f)
+        WGCL_fail_call_incident();
+
+    if (status == GAME_FALL && !resume && fail_intro_lock_now)
     {
-        /* TODO: Uncomment, if you have game "crash balls" implemented. */
         /*
+         * HACK: Reworked Minecraft Bedrock Edition!:
+         * Bedrock 1.21.40 - Bundles and Bravery
+         */
+
         geom_step(dt);
         game_server_step(dt);
 
-        int record_modes      = curr_mode() != MODE_NONE;
+        int record_modes    = curr_mode() != MODE_NONE;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        int record_campaign   = !campaign_hardcore_norecordings();
+        int record_campaign = !campaign_hardcore_norecordings();
 #else
-        int record_campaign   = 1;
+        int record_campaign = 1;
 #endif
 
         game_client_sync(!resume
@@ -827,7 +896,6 @@ static void fail_timer(int id, float dt)
                       && record_campaign
                       && fail_intro_animation_phase == 1 ? demo_fp : NULL);
         game_client_blend(game_server_blend());
-         */
     }
 
     gui_timer(id, dt);

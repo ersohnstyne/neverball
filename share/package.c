@@ -15,6 +15,9 @@
 #include "package.h"
 #include "array.h"
 #include "common.h"
+#if NB_HAVE_PB_BOTH==1
+#include "account.h"
+#endif
 #include "fetch.h"
 #include "fs.h"
 #include "lang.h"
@@ -497,6 +500,24 @@ static Array load_packages_from_file(const char *filename)
                 available_packages_kicked = 0;
 
                 /* Start reading a new package. */
+
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+                if (str_starts_with(line + 8, "set-") &&
+                    !str_starts_with(line + 8, "set-easy")   &&
+                    !str_starts_with(line + 8, "set-medium") &&
+                    !str_starts_with(line + 8, "set-hard")   &&
+                    !str_starts_with(line + 8, "set-mym")    &&
+                    !str_starts_with(line + 8, "set-mym2")   &&
+                    !str_starts_with(line + 8, "set-fwp")    &&
+                    !str_starts_with(line + 8, "set-tones")  &&
+                    !account_get_d(ACCOUNT_PRODUCT_LEVELS))
+                    available_packages_kicked = 1;
+
+                if (str_starts_with(line + 8, "ball-") &&
+                    !str_starts_with(line + 8, "ball-basic-ball") &&
+                    !account_get_d(ACCOUNT_PRODUCT_BALLS))
+                    available_packages_kicked = 1;
+#endif
 
 #ifdef NB_PACKAGES_PREMIUM
                 switch (package_curr_category)

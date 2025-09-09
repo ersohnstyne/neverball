@@ -1,10 +1,7 @@
 /*
-<<<<<<< HEAD
  * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
-=======
  * Copyright (C) 2003 Robert Kooima
  * Copyright (C) 2025 Jānis Rūcis
->>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -37,7 +34,6 @@
 #include <setjmp.h>
 #include <stdlib.h>
 
-<<<<<<< HEAD
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
@@ -58,18 +54,11 @@
 extern "C"
 #endif
 int main(int argc, char* argv[])
-=======
-#include "fs.h"
-#include "mapclib.h"
-
-int main(int argc, char *argv[])
->>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
 {
     mapc_context ctx = NULL;
 
     if (!fs_init(argc > 0 ? argv[0] : NULL))
     {
-<<<<<<< HEAD
         fprintf(stderr, "Failure to initialize virtual file system!: %s\n", fs_error());
         return 1;
     }
@@ -82,16 +71,6 @@ int main(int argc, char *argv[])
 
     if (mapc_opts(ctx, argc, argv))
     {
-=======
-        fprintf(stderr, "Failure to initialize virtual file system: %s\n", fs_error());
-        return 1;
-    }
-
-    mapc_init(&ctx);
-
-    if (mapc_opts(ctx, argc, argv))
-    {
->>>>>>> 28382048d48bba0d0f12edf53fce7cdb3cb3bc86
         if (mapc_compile(ctx))
         {
             mapc_dump(ctx);

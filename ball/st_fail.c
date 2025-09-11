@@ -174,10 +174,14 @@ static int WGCL_fail_call_incident(void)
          */
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        game_disable_fade(1);
+
         video_clear();
         game_client_draw(POSE_LEVEL, 0);
 
         EM_ASM({ Neverball.gamecore_mapmarker_incident_try_call(); });
+
+        game_disable_fade(0);
 #endif
 
         fail_intro_incidents_triggered = 1;

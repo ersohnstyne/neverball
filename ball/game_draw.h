@@ -46,6 +46,7 @@ struct game_draw
     int   chkp_k;                       /* New: Checkpoints; Checkpoint animation    */
 #endif
 
+    int   fade_disabled;
     float fade_k;                       /* Fade in/out level                         */
     float fade_d;                       /* Fade in/out direction                     */
 

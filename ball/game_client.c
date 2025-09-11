@@ -947,6 +947,19 @@ void game_look_v2(float dx, float dy, float dz, float phi, float theta)
 
 /*---------------------------------------------------------------------------*/
 
+void game_disable_fade(int e)
+{
+    gd.fade_disabled = e;
+}
+
+void game_kill_fade(void)
+{
+    gd.fade_disabled = 1;
+
+    gd.fade_k = 0.0f;
+    gd.fade_d = 0.0f;
+}
+
 void game_kill_fade(void)
 {
     gd.fade_k = 0.0f;
@@ -973,7 +986,8 @@ void game_step_fade(float dt)
 
 void game_fade(float d)
 {
-    gd.fade_d = d;
+    gd.fade_disabled = 0;
+    gd.fade_d        = d;
 }
 
 void game_fade_color(float r, float g, float b)

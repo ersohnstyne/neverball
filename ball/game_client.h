@@ -50,6 +50,7 @@ float curr_speedometer(void);
 void  game_look(float, float);
 void  game_look_v2(float, float, float, float, float);
 
+void  game_disable_fade(int);
 void  game_kill_fade(void);
 void  game_step_fade(float);
 void  game_fade(float);

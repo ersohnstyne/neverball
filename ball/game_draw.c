@@ -1264,7 +1264,8 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
         /* Draw the fade overlay. */
 
-        sol_fade(&gd->draw, &rend, gd->fade_k);
+        if (!gd->fade_disabled)
+            sol_fade(&gd->draw, &rend, gd->fade_k);
 
         r_draw_disable(&rend);
         game_shadow_conf(pose, 0);

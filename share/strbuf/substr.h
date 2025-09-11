@@ -27,7 +27,7 @@
 #endif
 #endif
 
-inline struct strbuf substr(const char *str, size_t start, size_t count)
+static inline struct strbuf substr(const char *str, size_t start, size_t count)
 {
     struct strbuf sb = { "" };
 

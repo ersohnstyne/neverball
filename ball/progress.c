@@ -97,11 +97,6 @@
  */
 #define PROGRESS_PLAYER_PAYDEBT_BALLS                                  \
     do {                                                               \
-        if (chkp.rfd_balls > 0)                                        \
-            chkp.rfd_balls -= 1;                                       \
-        else if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) {} \
-        else chkp.balls -= 1;                                          \
-                                                                       \
         if (curr.rfd_balls > 0)                                        \
             curr.rfd_balls -= 1;                                       \
         else if (curr.balls > 0)                                       \
@@ -125,9 +120,6 @@
  */
 #define PROGRESS_PLAYER_PAYDEBT_BALLS                               \
     do {                                                            \
-        if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) {}   \
-        else chkp.balls -= 1;                                       \
-                                                                    \
         if (curr.balls > 0)                                         \
             curr.balls -= 1;                                        \
         else if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0) \

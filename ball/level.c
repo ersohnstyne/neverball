@@ -295,7 +295,10 @@ static int scan_level_attribs(struct level *l,
         for (i = 0; i < 3; i++)
             for (int r = RANK_HARD; r < RANK_LAST; r++)
                 while (l->scores[i].timer[r] > maxtime)
+                {
+                    log_errorf("Hard limits detected!: Limit: %d ms; Current: %d ms\n", maxtime * 10, l->scores[i].timer[r] * 10);
                     l->scores[i].timer[r] = maxtime;
+                }
     }
 
     if (have_goal)
@@ -305,7 +308,10 @@ static int scan_level_attribs(struct level *l,
         for (i = 0; i < 3; i++)
             for (int r = RANK_HARD; r < RANK_LAST; r++)
                 while (l->scores[i].coins[r] < mingoal)
+                {
+                    log_errorf("Hard limits detected!: Required: %d; Current: %d\n", mingoal, l->scores[i].coins[r]);
                     l->scores[i].coins[r] = mingoal;
+                }
     }
 
     for (i = 0; i < 3; i++)

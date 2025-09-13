@@ -51,6 +51,7 @@
 #include <SDL_net.h>
 #endif
 
+#include "mapclib.h"
 #include "solid_chkp.h"
 #include "solid_base.h"
 
@@ -316,12 +317,12 @@ struct ref
 {
     int  type;
     char name[MAXSTR];
-    int* ptr;
+    int *ptr;
 };
 
 struct _imagedata
 {
-    char* s;
+    char *s;
     int w, h;
 };
 
@@ -370,7 +371,7 @@ struct mapc_context
     int targ_ji[MAXW];
     int targ_n;
 
-    struct _imagedata* imagedata;
+    struct _imagedata *imagedata;
     int image_n;
     int image_alloc;
 
@@ -442,7 +443,7 @@ int mapc_init(struct mapc_context **ctx_ptr)
     return 1;
 }
 
-void mapc_quit(struct mapc_context** ctx_ptr)
+void mapc_quit(struct mapc_context **ctx_ptr)
 {
     struct mapc_context *ctx = NULL;
     int i;
@@ -900,7 +901,7 @@ static int read_mtrl(struct mapc_context *ctx, const char *name)
 
     if (!mtrl_read(mp, name))
     {
-        SAFECPY(buf, ctx->src_path.buf);
+        SAFECPY(buf, ctx->opt_file);
         SAFECAT(buf, ": unknown material \"");
         SAFECAT(buf, name);
         SAFECAT(buf, "\"\n");
@@ -1464,8 +1465,6 @@ static void read_lump(struct mapc_context *ctx, fs_file fin)
  */
 #define LEGACY_MODE 1
 
-static int read_dict_entries = 0;
-
 #if LEGACY_MODE
 /* This variables uses legacy mode */
 #define LEGACY_Z_OFFSET 1
@@ -1655,12 +1654,18 @@ static void make_dict(struct mapc_context *ctx,
     dp->ai = fp->ac;
     dp->aj = dp->ai + strlen(k) + 1;
     fp->ac = dp->aj + strlen(v) + 1;
+
+#if NB_HAVE_PB_BOTH==1
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
     strncpy_s(fp->av + dp->ai, MAXSTR, k, space_left);
     strncpy_s(fp->av + dp->aj, MAXSTR, v, space_left - strlen(k) - 1);
 #else
     strncpy(fp->av + dp->ai, k, space_left);
     strncpy(fp->av + dp->aj, v, space_left - strlen(k) - 1);
+#endif
+#else
+    memcpy(fp->av + dp->ai, k, strlen(k) + 1);
+    memcpy(fp->av + dp->aj, v, strlen(v) + 1);
 #endif
 }
 
@@ -1710,7 +1715,7 @@ static void make_body(struct mapc_context *ctx,
             sscanf(v[i], "%f %f %f", &x, &y, &z);
 #endif
 
-        else if (read_dict_entries && strcmp(k[i], "classname") != 0)
+        else if (ctx->read_dict_entries && strcmp(k[i], "classname") != 0)
             make_dict(ctx, k[i], v[i]);
     }
 
@@ -1729,7 +1734,7 @@ static void make_body(struct mapc_context *ctx,
     for (i = v0; i < fp->vc; i++)
         v_add(fp->vv[i].p, fp->vv[i].p, p);
 
-    read_dict_entries = 0;
+    ctx->read_dict_entries = 0;
 }
 
 static void make_item(struct mapc_context *ctx,
@@ -1886,7 +1891,7 @@ static void make_bill(struct mapc_context *ctx,
 
 static void make_goal(struct mapc_context *ctx,
                       char k[][MAXSTR],
-                      char v[][MAXSTR], int c, int l0)
+                      char v[][MAXSTR], int c)
 {
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating goal...\n");
@@ -1926,7 +1931,7 @@ static void make_goal(struct mapc_context *ctx,
             zp->p[1] = +(z - 24) / SCALE;
             zp->p[2] = -(y)      / SCALE;
         }
-        
+
         if (strcmp(k[i], "target") == 0 || strcmp(k[i], "target1") == 0)
             make_ref(ctx, SYM_PATH, v[i], &zp->p0);
 
@@ -1953,7 +1958,7 @@ static void make_view(struct mapc_context *ctx,
     wp->q[0] = 0.f;
     wp->q[1] = 0.f;
     wp->q[2] = 0.f;
-    
+
     for (i = 0; i < c; i++)
     {
         if (strcmp(k[i], "target") == 0)
@@ -1978,7 +1983,7 @@ static void make_view(struct mapc_context *ctx,
 
 static void make_jump(struct mapc_context *ctx,
                       char k[][MAXSTR],
-                      char v[][MAXSTR], int c, int l0)
+                      char v[][MAXSTR], int c)
 {
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating teleporter...\n");
@@ -1995,7 +2000,7 @@ static void make_jump(struct mapc_context *ctx,
     jp->q[1] = 0.f;
     jp->q[2] = 0.f;
     jp->r    = 0.5;
-    
+
     jp->p0 = jp->p1 = -1;
 
     for (i = 0; i < c; i++)
@@ -2035,7 +2040,7 @@ static void make_jump(struct mapc_context *ctx,
 
 static void make_swch(struct mapc_context *ctx,
                       char k[][MAXSTR],
-                      char v[][MAXSTR], int c, int l0)
+                      char v[][MAXSTR], int c)
 {
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating switch...\n");
@@ -2138,12 +2143,13 @@ static void make_targ(struct mapc_context *ctx,
         }
     }
 
-    ctx->targ_n++;
+    if (++ctx->targ_n == MAXW)
+        overflow(ctx, "target");
 }
 
 static void make_ball(struct mapc_context *ctx,
                       char k[][MAXSTR],
-                      char v[][MAXSTR], int c, int l0)
+                      char v[][MAXSTR], int c)
 {
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating balls...\n");
@@ -2220,7 +2226,7 @@ static void make_ball(struct mapc_context *ctx,
 // New: Checkpoints
 static void make_chkp(struct mapc_context *ctx,
                       char k[][MAXSTR],
-                      char v[][MAXSTR], int c, int l0)
+                      char v[][MAXSTR], int c)
 {
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE("Creating chkp...\n");
@@ -2339,7 +2345,7 @@ static void make_legacy(struct mapc_context *ctx,
             sscanf(v[i], "%f %f %f", &x, &y, &z);
 #endif
 
-        else if (read_dict_entries && strcmp(k[i], "classname") != 0)
+        else if (ctx->read_dict_entries && strcmp(k[i], "classname") != 0)
             make_dict(ctx, k[i], v[i]);
     }
 
@@ -2362,7 +2368,7 @@ static void make_legacy(struct mapc_context *ctx,
     for (i = v0; i < fp->vc; i++)
         v_add(fp->vv[i].p, fp->vv[i].p, p);
 
-    read_dict_entries = 0;
+    ctx->read_dict_entries = 0;
 }
 #endif
 
@@ -2392,10 +2398,11 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
         if (t == T_BEG) read_lump(ctx, fin);
         if (t == T_END) break;
     }
+
     /* New design specifications for entity */
     if (!strcmp(v[i], "info_camp"))              {
         if (ctx->campaign_output) ctx->campaign_cost += 5;
-        make_swch(ctx, k, v, c, l0);
+        make_swch(ctx, k, v, c);
     }
     if (!strcmp(v[i], "info_player_start")) {
         if (ctx->campaign_output) ctx->campaign_cost += 408;
@@ -2403,14 +2410,14 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
 #if LEGACY_MODE
         memset(&specification_type, 0, sizeof (specification_type));
         SAFECPY(specification_type, "ball");
-        
+
         if (request_legacy(k, v, c))
         {
-            read_dict_entries = 1;
+            ctx->read_dict_entries = 1;
             make_legacy(ctx, k, v, c, l0, "obj/player-start-specification.obj", "mtrl/player-start-specification");
         }
 #endif
-        make_ball(ctx, k, v, c, l0);
+        make_ball(ctx, k, v, c);
     }
 #ifdef MAPC_INCLUDES_CHKP
     if (!strcmp(v[i], "info_player_checkpoint")) {
@@ -2418,7 +2425,7 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
         if (ctx->campaign_output)
 #endif
             ctx->campaign_cost += 66;
-        make_chkp(ctx, k, v, c, l0);
+        make_chkp(ctx, k, v, c);
     }
 #endif
     if (!strcmp(v[i], "info_player_deathmatch")) {
@@ -2426,7 +2433,7 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
         if (ctx->campaign_output)
 #endif
             ctx->campaign_cost += 413;
-        make_goal(ctx, k, v, c, l0);
+        make_goal(ctx, k, v, c);
     }
     if (!strcmp(v[i], "target_teleporter"))      {
 
@@ -2434,7 +2441,7 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
         if (ctx->campaign_output)
 #endif
             ctx->campaign_cost += 5;
-        make_jump(ctx, k, v, c, l0);
+        make_jump(ctx, k, v, c);
     }
 
     /* Electricity */
@@ -2482,7 +2489,7 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
     if (!strcmp(v[i], "target_position"))          make_targ(ctx, k, v, c);
     if (!strcmp(v[i], "worldspawn"))
     {
-        read_dict_entries = 1;
+        ctx->read_dict_entries = 1;
         make_body(ctx, k, v, c, l0);
     }
     if (!strcmp(v[i], "misc_model"))               make_body(ctx, k, v, c, l0);
@@ -2590,11 +2597,11 @@ static void clip_vert(struct mapc_context *ctx,
 
         if (ok_vert(fp, lp, p))
         {
-            v_cpy(fp->vv[fp->vc].p, p);
+            int vi = incv(ctx);
 
-            fp->iv[fp->ic] = fp->vc;
-            inci(ctx);
-            incv(ctx);
+            v_cpy(fp->vv[vi].p, p);
+
+            fp->iv[inci(ctx)] = vi;
             lp->vc++;
         }
     }
@@ -2671,7 +2678,11 @@ static void clip_geom(struct mapc_context *ctx,
             fp->tv[t[n]].u[0] = v_dot(v, ctx->plane_u[si]);
             fp->tv[t[n]].u[1] = v_dot(v, ctx->plane_v[si]);
 
-            n++;
+            if (++n >= ARRAYSIZE(m))
+            {
+                MAPC_LOG_ERROR("Over 256 vertices on one side, skipping the rest\n");
+                break;
+            }
         }
     }
 
@@ -2763,8 +2774,7 @@ static void clip_lump(struct mapc_context *ctx, struct b_lump *lp)
 
     for (i = 0; i < lp->sc; i++)
         if (fp->mv[ctx->plane_m[fp->iv[lp->s0 + i]]].d[3] > 0.0f)
-            clip_geom(ctx, lp,
-                      fp->iv[lp->s0 + i]);
+            clip_geom(ctx, lp, fp->iv[lp->s0 + i]);
 
     for (i = 0; i < lp->sc; i++)
         if (ctx->plane_f[fp->iv[lp->s0 + i]])
@@ -3298,7 +3308,7 @@ static void smth_file(struct mapc_context *ctx)
                         const float *Nl = fp->sv[T[l].si].n;
                         float deg = V_DEG(facosf(v_dot(Ni, Nl)));
 
-                        if (roundf(deg * 1000.0f) > roundf(angle * 1000.0f))
+                        if (ROUND(deg * 1000.0f) > ROUND(angle * 1000.0f))
                             break;
 
                         N[0] += Nl[0];
@@ -3353,7 +3363,7 @@ static void smth_file(struct mapc_context *ctx)
 
 static void sort_file(struct mapc_context *ctx)
 {
-    struct s_base* fp = &ctx->file;
+    struct s_base *fp = &ctx->file;
     int i, j, k;
 
     /* Sort materials by type to minimize state changes. */
@@ -3718,7 +3728,6 @@ static void node_file(struct mapc_context *ctx)
 
         fp->bv[i].ni = node_node(ctx, fp->bv[i].l0, lc, bsphere);
     }
-
 }
 
 /*---------------------------------------------------------------------------*/
@@ -4038,6 +4047,8 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
 
             fs_add_path_with_archives(ctx->opt_data);
         }
+        else
+            fprintf(stderr, "Unknown option: %s\n", argv[argi]);
     }
 
     if (!(ctx->opt_file && ctx->opt_data))
@@ -4099,7 +4110,14 @@ static void interactive_web(void)
     char target_url[256];
     char buf_url[512];
 
-    SAFECPY(target_url, "https://nextcloud.stynegame.de/apps/forms/s/CKFzf7qtbHifX6j3QC69fiTg");
+    /*
+     * HACK: This will be changed to Nextcloud AIO soon!
+     * - Ersohn Styne
+     */
+
+    /*
+
+    SAFECPY(target_url, "");
 
 #if _WIN32
 #ifndef _CRT_SECURE_NO_WARNINGS
@@ -4116,6 +4134,8 @@ static void interactive_web(void)
 
     system(buf_url);
 #endif
+
+     */
 }
 
 static int mapc_compile_internal(struct mapc_context *ctx)
@@ -4155,6 +4175,27 @@ static int mapc_compile_internal(struct mapc_context *ctx)
                 "Loading file...: %s\n", src);
         MAPC_LOG_MESSAGE(tmp_buf_loading);
 
+        if (ctx->campaign_output)
+        {
+            if (!check_campaign_level(src))
+            {
+#if NB_HAVE_PB_BOTH==1
+                char tmp_buf[MAXSTR];
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(tmp_buf, MAXSTR,
+#else
+                sprintf(tmp_buf,
+#endif
+                        "Failure to open file! Only Campaign Level Maps (.CMAP) is supported!: %s\n", src);
+                MAPC_LOG_ERROR(tmp_buf);
+#else
+                MAPC_LOG_ERROR("Failure to open file! Only Campaign Level Maps (.CMAP) is supported!\n");
+#endif
+                longjmp(ctx->jmpbuf, MAPC_ERROR);
+                return 0;
+            }
+        }
+
         if ((fin = fs_open_read(src)))
         {
             read_map(ctx, fin);
@@ -4177,6 +4218,26 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #endif
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return 0;
+        }
+
+        if (ctx->bracket_stack != 0)
+        {
+            char stderr_buf[MAXSTR];
+
+            sprintf(stderr_buf, "Expected: }\n\t{ / Line: %d\n", ctx->linenum);
+            MAPC_LOG_ERROR(stderr_buf);
+            longjmp(ctx->jmpbuf, MAPC_ERROR);
+            return 0;
+        }
+
+        if (ctx->campaign_output)
+        {
+            if (!ctx->campaign_use_author_encrypt)
+            {
+                MAPC_LOG_ERROR("Failure to compile level map! You need to sign the campaign map first!\n\tWithout that, this can be dangerous!\n");
+                longjmp(ctx->jmpbuf, MAPC_ERROR);
+                return 0;
+            }
         }
 
         resolve(ctx);
@@ -4212,6 +4273,46 @@ static int mapc_compile_internal(struct mapc_context *ctx)
             return 0;
         }
 
+        if (ctx->campaign_output)
+        {
+            if (!check_profile_balls(src))
+            {
+#if NB_HAVE_PB_BOTH==1
+                char tmp_buf[MAXSTR];
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(tmp_buf, MAXSTR,
+#else
+                sprintf(tmp_buf,
+#endif
+                        "Failure to save file! Only SOL extension for model profile is supported!: %s\n", src);
+                MAPC_LOG_ERROR(tmp_buf);
+#else
+                MAPC_LOG_ERROR("Failure to save file! Only SOL extension for model profile is supported!\n");
+#endif
+                longjmp(ctx->jmpbuf, MAPC_ERROR);
+                return 0;
+            }
+
+            if (!campaign_check_budget(ctx))
+            {
+#if NB_HAVE_PB_BOTH==1
+                char tmp_buf[MAXSTR];
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(tmp_buf, MAXSTR,
+#else
+                sprintf(tmp_buf,
+#endif
+                        "Failure to save file! Overbudget!: %s\n\tLump cost: %d; Lump budget: %d\n",
+                        src, ctx->campaign_cost, ctx->campaign_budget);
+                MAPC_LOG_ERROR(tmp_buf);
+#else
+                MAPC_LOG_ERROR("Failure to save file! Overbudget!\n");
+#endif
+                longjmp(ctx->jmpbuf, MAPC_ERROR);
+                return 0;
+            }
+        }
+
         /*
          * HACK: SOL file version, that is greater than 10,
          * leads the SOL file name extension to SOLX.
@@ -4221,7 +4322,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
         {
             if (!sol_stor_base(&ctx->file, dst_solx))
             {
-                MAPC_LOG_ERROR("Failure to save SOLX\n");
+                MAPC_LOG_ERROR("Failure to save SOLX!\n");
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
                 return 0;
             }
@@ -4230,16 +4331,33 @@ static int mapc_compile_internal(struct mapc_context *ctx)
         {
             if (!sol_stor_base(&ctx->file, dst))
             {
-                MAPC_LOG_ERROR("Failure to save SOL\n");
+                MAPC_LOG_ERROR("Failure to save SOL!\n");
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
                 return 0;
             }
         }
         else
         {
-            MAPC_LOG_ERROR("Failure to parse save path\n");
+            MAPC_LOG_ERROR("Failure to parse save path!\n");
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return 0;
+        }
+
+        if (ctx->campaign_output)
+        {
+            // Print campaign transaction message after compiled.
+
+#if NB_HAVE_PB_BOTH==1
+            char tmp_buf[MAXSTR];
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(tmp_buf, MAXSTR,
+#else
+            sprintf(tmp_buf,
+#endif
+                    "Transaction success!: %s\n\tLump cost: %d; Lump budget: %d\n",
+                    src, ctx->campaign_cost, ctx->campaign_budget);
+            MAPC_LOG_MESSAGE(tmp_buf);
+#endif
         }
     }
 
@@ -4263,3 +4381,5 @@ int mapc_compile(struct mapc_context *ctx)
 }
 
 #endif
+
+/*---------------------------------------------------------------------------*/

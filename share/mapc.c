@@ -63,7 +63,6 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-<<<<<<< HEAD
     if (!mapc_init(&ctx))
     {
         fprintf(stderr, "Failure to initialize mapc context!: %s\n", fs_error());
@@ -76,16 +75,6 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-=======
-    mapc_init(&ctx);
-
-    if (!mapc_opts(ctx, argc, argv))
-    {
-        mapc_quit(&ctx);
-        return 1;
-    }
-
->>>>>>> 026efb476e02114bb935fbd925a182180870c3cf
     if (!mapc_compile(ctx))
     {
         mapc_quit(&ctx);

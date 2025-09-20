@@ -407,7 +407,7 @@ static int title_action(int tok, int val)
     };
 #endif
 
-    GENERIC_GAMEMENU_ACTION;
+    KEYBOARD_GAMEMENU_ACTION(9999);
 
     switch (tok)
     {

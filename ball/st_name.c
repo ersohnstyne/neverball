@@ -153,7 +153,7 @@ static int name_action(int tok, int val)
         return 1;
     }
 
-    GENERIC_GAMEMENU_ACTION;
+    KEYBOARD_GAMEMENU_ACTION(NAME_OK);
 
     switch (tok)
     {

@@ -119,7 +119,7 @@ static void save_update_enter_btn(void)
 
 static int save_action(int tok, int val)
 {
-    GENERIC_GAMEMENU_ACTION;
+    KEYBOARD_GAMEMENU_ACTION(SAVE_OK);
 
     int save_nolockdown = 0;
 

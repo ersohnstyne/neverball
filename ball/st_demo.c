@@ -931,11 +931,12 @@ static int demo_gui(void)
                           GUI_SML, GUI_COLOR_WHT);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (current_platform != PLATFORM_PC || !console_gui_shown())
-                gui_filler(id);
-            else
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
+            {
+                gui_space(id);
                 gui_back_button(id);
+            }
 
             gui_layout(id, 0, 0);
         }

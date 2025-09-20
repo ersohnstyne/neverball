@@ -67,9 +67,12 @@
 
 /* 2.2 SFX */
 
-#define AUD_2_2_0_USE_SHARED "snd/2.2/use_shared.ogg"
-#define AUD_2_2_0_USE_POW    "snd/2.2/use_pow.ogg"
-#define AUD_2_2_0_USE_SS     "snd/2.2/use_ss.ogg"
+#define AUD_2_2_0_KEYBD_BS    "snd/2.2/keybd_backspace.ogg"
+#define AUD_2_2_0_KEYBD_CHAR  "snd/2.2/keybd_char.ogg"
+#define AUD_2_2_0_KEYBD_ENTER "snd/2.2/keybd_enter.ogg"
+#define AUD_2_2_0_USE_SHARED  "snd/2.2/use_shared.ogg"
+#define AUD_2_2_0_USE_POW     "snd/2.2/use_pow.ogg"
+#define AUD_2_2_0_USE_SS      "snd/2.2/use_ss.ogg"
 
 /* Switchball SFX */
 
@@ -131,6 +134,18 @@
             if (tok == tok2)                                 \
                 audio_play(first + itemstep < total ?        \
                            AUD_MENU : AUD_DISABLED, 1.0f);   \
+        } else GENERIC_GAMEMENU_ACTION
+
+#define KEYBOARD_GAMEMENU_ACTION(tok_enter)            \
+        if (st_global_animating()) {                   \
+            audio_play(AUD_DISABLED, 1.0f);            \
+            return 1;                                  \
+        } else if (tok == GUI_CHAR || tok == GUI_CL) { \
+            audio_play(AUD_2_2_0_KEYBD_CHAR, 1.0f);    \
+        } else if (tok == GUI_BS) {                    \
+            audio_play(AUD_2_2_0_KEYBD_BS, 1.0f);      \
+        } else if (tok == tok_enter) {                 \
+            audio_play(AUD_2_2_0_KEYBD_ENTER, 1.0f);   \
         } else GENERIC_GAMEMENU_ACTION
 
 /*---------------------------------------------------------------------------*/

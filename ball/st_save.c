@@ -229,7 +229,7 @@ static void on_text_input(int typing)
         gui_set_label(file_id, text_input);
 
         if (typing)
-            audio_play(AUD_MENU, 1.0f);
+            audio_play(AUD_2_2_0_KEYBD_CHAR, 1.0f);
 
         save_update_enter_btn();
     }

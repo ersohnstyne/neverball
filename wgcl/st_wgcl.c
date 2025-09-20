@@ -682,7 +682,7 @@ static void on_text_input(int typing)
         }
 
         if (typing)
-            audio_play(AUD_MENU, 1.0f);
+            audio_play(AUD_2_2_0_KEYBD_CHAR, 1.0f);
     }
 }
 

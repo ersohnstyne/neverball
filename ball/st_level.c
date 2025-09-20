@@ -242,9 +242,14 @@ enum
     LEVEL_START_POWERUP
 };
 
-#if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
 static int level_action(int tok, int val)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    /* HACK: Do not attempt, when the level is loading. */
+
+    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading; })) return 1;
+#endif
+
     GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
@@ -291,7 +296,6 @@ static int level_action(int tok, int val)
 
     return 1;
 }
-#endif
 
 static int level_gui(void)
 {

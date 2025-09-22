@@ -768,10 +768,6 @@ static int fail_gui(void)
 
 static int fail_enter(struct state *st, struct state *prev, int intent)
 {
-#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-    account_wgcl_restart_attempt();
-#endif
-
     if (curr_mode() != MODE_CHALLENGE &&
         curr_mode() != MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN

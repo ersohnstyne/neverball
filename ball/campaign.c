@@ -533,6 +533,9 @@ static void campaign_load_levels(void)
 #endif
                     "%d", regular++);
 
+            if ((i - i_retreat) - 1 >= 0)
+                campaign_lvl_v[(i - i_retreat)].prev = &campaign_lvl_v[(i - i_retreat) - 1];
+
             if ((i - i_retreat) > 0)
                 campaign_lvl_v[(i - i_retreat) - 1].next = l;
         }

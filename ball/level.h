@@ -67,7 +67,8 @@ struct level
     int is_bonus;
     int is_master;
     int is_completed;
-
+    
+    struct level *prev;
     struct level *next;
 };
 

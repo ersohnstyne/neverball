@@ -4144,7 +4144,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
     const char *dst = STR(ctx->dst_path);
 
     char dst_solx[MAXSTR];
-    SAFECPY(dst_solx, STR(ctx->src_path));
+    SAFECPY(dst_solx, STR(ctx->dst_path));
     SAFECAT(dst_solx, "x");
 
 #if _MSC_VER

@@ -979,6 +979,9 @@ static void set_load_levels(void)
             if (l->goal && !l->is_bonus)
                 default_set_mincoinrequired += l->goal;
 
+            if ((i - i_retreat) - 1 >= 0)
+                level_v[(i - i_retreat)].prev = &level_v[(i - i_retreat) - 1];
+
             if ((i - i_retreat) > 0)
                 level_v[(i - i_retreat) - 1].next = l;
         }

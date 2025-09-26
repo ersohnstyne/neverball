@@ -39,6 +39,8 @@
 /* Widget IDs with exit animations. */
 static int widget_ids[16];
 
+static int widget_flags_ids[16];
+
 /*---------------------------------------------------------------------------*/
 
 void transition_init(void)
@@ -53,12 +55,31 @@ void transition_quit(void)
 
 void transition_add(int id)
 {
+    transition_add_full(id, 0);
+}
+
+void transition_add_full(int id, int flags)
+{
     int i;
+
+    /*
+     * HACK: Sollte diesen alten GUI flags vor dem erstellen eines Übergang
+     * "GUI_REMOVE" versehen, wird sofort gelöscht.
+     * - Ersohn Styne
+     */
+
+    /*for (i = 0; i < ARRAYSIZE(widget_ids); ++i)
+        if (widget_flags_ids[i] | GUI_REMOVE)
+        {
+            gui_remove(widget_ids[i]);
+            widget_flags_ids[i] = 0;
+        }*/
 
     for (i = 0; i < ARRAYSIZE(widget_ids); ++i)
         if (!widget_ids[i])
         {
-            widget_ids[i] = id;
+            widget_ids[i]       = id;
+            widget_flags_ids[i] = flags;
             break;
         }
 
@@ -124,7 +145,7 @@ int transition_slide_full(int id, int in,
         // Was: (intent == INTENT_BACK ? GUI_E : GUI_W)
 
         gui_slide(id, (exit_flags) | GUI_BACKWARD | GUI_FLING | GUI_REMOVE, 0, 0.16f, 0);
-        transition_add(id);
+        transition_add_full(id, (exit_flags) | GUI_BACKWARD | GUI_FLING | GUI_REMOVE);
     }
     else gui_delete(id);
 
@@ -154,7 +175,7 @@ int transition_page(int id, int in, int intent)
         // Slide out page content.
         gui_slide(body_id, (intent == INTENT_BACK ? GUI_E : GUI_W) | GUI_BACKWARD | GUI_FLING, 0, 0.16f, 0);
 
-        transition_add(id);
+        transition_add_full(id, (intent == INTENT_BACK ? GUI_E : GUI_W) | GUI_BACKWARD | GUI_FLING);
     }
     else gui_delete(id);
 

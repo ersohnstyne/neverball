@@ -56,6 +56,10 @@
 #include "st_setup.h"
 
 #if NB_HAVE_PB_BOTH==1
+#include "st_wgcl.h"
+#endif
+
+#if NB_HAVE_PB_BOTH==1
 int super_environment = 1;
 #endif
 
@@ -359,7 +363,14 @@ static void ball_refresh_packages_done(void* data1, void* data2)
 {
     struct fetch_done *dn = data2;
 
-    if (dn->success) goto_package(0, &st_ball);
+    if (dn->success)
+    {
+#if NB_HAVE_PB_BOTH == 1
+        goto_wgcl_addons_login(0, &st_ball, 0);
+#else
+        goto_package(0, &st_ball);
+#endif
+    }
     else audio_play("snd/uierror.ogg", 1.0f);
 }
 

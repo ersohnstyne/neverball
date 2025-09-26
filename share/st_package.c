@@ -1156,15 +1156,15 @@ void goto_package(int package_id, struct state *back_state)
 {
     /* Initialize the state. */
 
-    goto_state(&st_package);
-
     if (package_back == 0)
         package_back = back_state;
+
+    //goto_state(&st_package);
 
     /* Navigate to the page. */
 
     first = (package_id / PACKAGE_STEP) * PACKAGE_STEP;
-    do_init = 0;
+    do_init = 1;
     goto_state(&st_package);
 
     /* Finally, select the package. */

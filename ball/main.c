@@ -155,6 +155,7 @@ extern "C" {
 
 #if NB_HAVE_PB_BOTH==1
 #include "st_setup.h"
+#include "st_wgcl.h"
 #endif
 
 #include "st_malfunction.h"
@@ -905,7 +906,11 @@ static int link_handle(const char *link)
         else if ((index = package_search(set_file)) >= 0)
         {
             log_printf("Link: found package match for %s\n", set_file);
+#if NB_HAVE_PB_BOTH==1
+            goto_wgcl_addons_login(index, &st_title, 0);
+#else
             goto_package(index, &st_title);
+#endif
             processed = 1;
         }
         else log_errorf("Link: no such set or package\n", link);

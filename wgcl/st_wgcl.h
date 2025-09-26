@@ -22,4 +22,6 @@ int goto_wgcl_login(struct state *back_state, int (*back_fn)(struct state *),
 
 int goto_wgcl_logout(struct state *);
 
+int goto_wgcl_addons_login(int id, struct state *back_state, int (back_fn) (struct state *));
+
 #endif

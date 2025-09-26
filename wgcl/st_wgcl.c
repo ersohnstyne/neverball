@@ -39,8 +39,17 @@
 #include "state.h"
 #include "text.h"
 
+#include "package.h"
+
 #include "st_common.h"
 #include "st_setup.h"
+#include "st_package.h"
+
+#if NB_HAVE_PB_BOTH==1
+#include "st_wgcl.h"
+#endif
+
+#include "config_wgcl.h"
 
 //#define WGCL_ENABLE_CLIPBOARD
 
@@ -913,6 +922,177 @@ static int wgcl_logout_confirm_enter(struct state *st, struct state *prev, int i
 
 /*###########################################################################*/
 
+static int state_entered;
+
+struct state st_wgcl_addons_login;
+
+static struct state *wgcl_package_login_back_state;
+static int (*wgcl_package_login_back_fn) (struct state *);
+
+static int wgcl_package_login_next_index;
+
+enum
+{
+    WGCL_ADDONS_LOGIN_ENTER = GUI_LAST,
+    WGCL_ADDONS_LOGIN_SKIP
+};
+
+int wgcl_addons_login_refresh_packages(struct state *next);
+
+int goto_wgcl_addons_login(int id, struct state *back_state, int (back_fn) (struct state *))
+{
+    state_entered = 1;
+
+#if NB_HAVE_PB_BOTH==1
+    wgcl_package_login_back_state = back_state;
+    wgcl_package_login_back_fn    = back_fn;
+    wgcl_package_login_next_index = id;
+
+    if (account_wgcl_name_read_only())
+    {
+        // No needed to login.
+
+        return wgcl_addons_login_refresh_packages(&st_package);
+    }
+
+    return goto_state(&st_wgcl_addons_login);
+#else
+    return wgcl_addons_login_refresh_packages(&st_package);
+#endif
+}
+
+static void wgcl_addons_login_refresh_packages_done(void *data1, void *data2)
+{
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+#ifdef CONFIG_WGCL_GAME_OPTIONS
+    if (WGCL_GameOptions_Exists)
+        WGCL_BackToGameOptions("gameoptions_st_data");
+
+    goto_package(wgcl_package_login_next_index,
+                 WGCL_GameOptions_Exists ? &st_null : wgcl_package_login_back_state);
+#else
+    goto_package(wgcl_package_login_next_index, wgcl_package_login_back_state);
+#endif
+#else
+    goto_package(wgcl_package_login_next_index, wgcl_package_login_back_state);
+#endif
+}
+
+int wgcl_addons_login_refresh_packages(struct state *next)
+{
+    package_change_category(0);
+
+    struct fetch_callback callback = { 0 };
+
+    callback.data = NULL;
+    callback.done = wgcl_addons_login_refresh_packages_done;
+
+    package_refresh(callback);
+
+    return 1;
+}
+
+static int wgcl_addons_login_action(int tok, int val)
+{
+    KEYBOARD_GAMEMENU_ACTION(WGCL_ADDONS_LOGIN_ENTER);
+
+    state_entered = 0;
+
+    switch (tok)
+    {
+        case GUI_BACK:
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_WGCL_GAME_OPTIONS)
+            if (WGCL_GameOptions_Exists)
+                WGCL_BackToGameOptions("gameoptions_st_data");
+#endif
+            wgcl_package_login_back_fn ? wgcl_package_login_back_fn(wgcl_package_login_back_state)
+                                       : exit_state(wgcl_package_login_back_state);
+
+            wgcl_package_login_back_fn    = 0;
+            wgcl_package_login_back_state = 0;
+
+            break;
+
+        case WGCL_ADDONS_LOGIN_ENTER:
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+            EM_ASM({ CoreLauncher_ShowLoginModalWindow(); });
+#elif NB_HAVE_PB_BOTH==1
+            goto_wgcl_login(wgcl_package_login_back_state, wgcl_package_login_back_fn,
+                            &st_package, wgcl_addons_login_refresh_packages);
+#endif
+            break;
+
+        case WGCL_ADDONS_LOGIN_SKIP:
+            return wgcl_addons_login_refresh_packages(&st_package);
+            break;
+    }
+
+    return 1;
+}
+
+static int wgcl_addons_login_gui(void)
+{
+    int id, jd;
+    
+    if (account_wgcl_name_read_only() && (id = gui_vstack(0)))
+    {
+        gui_title_header(id, _("Logged in"), GUI_MED, GUI_COLOR_DEFAULT);
+
+        gui_space(id);
+        
+        gui_multi(id, _("You've already logged in,\n"
+                        "so you don't need it again."),
+                      GUI_SML, GUI_COLOR_WHT);
+
+        gui_space(id);
+
+        if ((jd = gui_harray(id)))
+        {
+            gui_state(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+            gui_start(jd, _("Go Install!"), GUI_SML, WGCL_ADDONS_LOGIN_SKIP, 0);
+        }
+
+        gui_layout(id, 0, 0);
+    }
+
+    else if ((id = gui_vstack(0)))
+    {
+        gui_title_header(id, _("Login to download Add-ons"), GUI_MED, GUI_COLOR_DEFAULT);
+
+        gui_space(id);
+
+        gui_multi(id, _("Login with your WGCL account,\n"
+                        "buy Extra Levels and sync across devices\n"
+                        "to explore and download Add-ons such\n"
+                        "Level Sets, Ball Models, GUI, and more!"),
+                      GUI_SML, GUI_COLOR_WHT);
+
+        gui_space(id);
+
+        if ((jd = gui_harray(id)))
+        {
+            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+            gui_start(jd, _("Login"), GUI_SML, WGCL_ADDONS_LOGIN_ENTER, 0);
+        }
+
+        gui_space(id);
+
+        gui_state(id, _("Continue without Login"), GUI_SML, WGCL_ADDONS_LOGIN_SKIP, 0);
+
+        gui_layout(id, 0, 0);
+    }
+
+    return id;
+}
+
+static int wgcl_addons_login_enter(struct state *st, struct state *prev, int intent)
+{
+    conf_common_init(wgcl_addons_login_action, 1);
+    return transition_slide(wgcl_addons_login_gui(), 1, intent);
+}
+
+/*###########################################################################*/
+
 struct state st_wgcl_error_offline =
 {
     wgcl_error_offline_enter,
@@ -958,6 +1138,19 @@ struct state st_wgcl_login_result =
 struct state st_wgcl_logout_confirm =
 {
     wgcl_logout_confirm_enter,
+    conf_common_leave,
+    conf_common_paint,
+    common_timer,
+    common_point,
+    common_stick,
+    NULL,
+    common_click,
+    common_keybd,
+    common_buttn
+};
+
+struct state st_wgcl_addons_login = {
+    wgcl_addons_login_enter,
     conf_common_leave,
     conf_common_paint,
     common_timer,

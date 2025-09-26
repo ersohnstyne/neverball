@@ -74,7 +74,7 @@
 #include "st_package.h"
 #endif
 
-#if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1
 #include "st_wgcl.h"
 #endif
 
@@ -365,7 +365,14 @@ static void account_set_refresh_packages_done(void* data1, void* data2)
 {
     struct fetch_done *dn = data2;
 
-    if (dn->success) goto_package(0, &st_conf_account);
+    if (dn->success)
+    {
+#if NB_HAVE_PB_BOTH == 1
+        goto_wgcl_addons_login(0, &st_conf_account, 0);
+#else
+        goto_package(0, &st_conf_account);
+#endif
+    }
     else audio_play("snd/uierror.ogg", 1.0f);
 }
 

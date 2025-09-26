@@ -193,7 +193,7 @@ int goto_state_full_intent(struct state *st,
     console_gui_set_alpha(1.0f);
     console_gui_slide(GUI_S | GUI_EASE_ELASTIC | GUI_BACKWARD);
 #endif
-    
+
     if (state && state->leave)
     {
         prev_gui_id   = state->gui_id;
@@ -227,29 +227,34 @@ int goto_state_full_intent(struct state *st,
     console_gui_slide(GUI_S | GUI_EASE_ELASTIC);
 #endif
 
+    anim_done  = 1;
+
+#ifndef NDEBUG
+    if (!(r && state))
+        log_errorf("(r && state) returned 0!\n");
+#endif
+
     anim_queue = 0;
 
-    if (queue_state())
+    if (anim_queue_state != NULL)
     {
-        r = goto_state_full_intent(anim_queue_state,
-                                   anim_queue_directions[0],
-                                   anim_queue_directions[1],
-                                   anim_queue_allowskip,
-                                   anim_queue_intent);
+        int r = goto_state_full_intent(anim_queue_state,
+                                       anim_queue_directions[0],
+                                       anim_queue_directions[1],
+                                       anim_queue_allowskip,
+                                       anim_queue_intent);
 
         anim_queue_state         = NULL;
         anim_queue_directions[0] = 0;
         anim_queue_directions[1] = 0;
         anim_queue_allowskip     = 0;
         anim_queue_intent        = -1;
+
+        if (!r) {
+            SDL_Event e = { SDL_QUIT };
+            SDL_PushEvent(&e);
+        }
     }
-
-    anim_done = 1;
-
-#ifndef NDEBUG
-    if (!(r && state))
-        log_errorf("(r && state) returned 0!\n");
-#endif
 
     return r && state;
 }
@@ -340,19 +345,6 @@ void st_timer(float dt)
                 state->stick(state->gui_id, sc->a, sc->v, 1);
             sc->t = state_time + STICK_REPEAT_TIME;
         }
-    }
-}
-
-void st_point(int x, int y, int dx, int dy)
-{
-    if (console_gui_shown()) return;
-
-    if (state && state->point)
-    {
-        if (hmd_stat())
-            state->point(state->gui_id, x * 2, y, dx, dy);
-        else
-            state->point(state->gui_id, x,     y, dx, dy);
     }
 }
 

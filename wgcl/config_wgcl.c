@@ -162,23 +162,25 @@ void WGCL_BackToGameOptions(const char *st_class_name)
 
 /*---------------------------------------------------------------------------*/
 
-static void wgcl_gameoptions_refresh_packages_done(void *data1, void *data2)
+static int wgcl_options_back_gameoptions(struct state* back)
 {
-    goto_package(0, &st_null);
+#ifdef __EMSCRIPTEN__
+    if (WGCL_GameOptions_Exists)
+        EM_ASM({ CoreLauncherOptions_GameOptions_Init("gameoptions_st_data"); });
+#endif
+
+    return goto_state(&st_null);
 }
 
 void WGCL_CallClassicPackagesUI(void)
 {
     if (WGCL_GameOptions_Exists)
     {
-        package_change_category(0);
-
-        struct fetch_callback callback = { 0 };
-
-        callback.data = NULL;
-        callback.done = wgcl_gameoptions_refresh_packages_done;
-
-        package_refresh(callback);
+#ifdef __EMSCRIPTEN__
+        goto_wgcl_addons_login(0, &st_null, wgcl_options_back_gameoptions);
+#else
+        goto_wgcl_addons_login(0, &st_null, 0);
+#endif
     }
 }
 

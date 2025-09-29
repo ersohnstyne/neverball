@@ -32,6 +32,7 @@
 
 #include "audio.h"
 #include "config.h"
+#include "geom.h"
 #include "gui.h"
 #include "transition.h"
 #include "lang.h"
@@ -948,7 +949,15 @@ int goto_wgcl_addons_login(int id, struct state *back_state, int (back_fn) (stru
     wgcl_package_login_back_fn    = back_fn;
     wgcl_package_login_next_index = id;
 
-    if (account_wgcl_name_read_only())
+#ifdef __EMSCRIPTEN__
+    const int wgcl_logged_in = EM_ASM_INT({
+        return tmp_online_session_data != undefined && tmp_online_session_data != null ? 1 : 0;
+    }) || account_wgcl_name_read_only();
+#else
+    const int wgcl_logged_in = account_wgcl_name_read_only();
+#endif
+
+    if (wgcl_logged_in)
     {
         // No needed to login.
 
@@ -965,9 +974,6 @@ static void wgcl_addons_login_refresh_packages_done(void *data1, void *data2)
 {
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
 #ifdef CONFIG_WGCL_GAME_OPTIONS
-    if (WGCL_GameOptions_Exists)
-        WGCL_BackToGameOptions("gameoptions_st_data");
-
     goto_package(wgcl_package_login_next_index,
                  WGCL_GameOptions_Exists ? &st_null : wgcl_package_login_back_state);
 #else
@@ -1087,8 +1093,27 @@ static int wgcl_addons_login_gui(void)
 
 static int wgcl_addons_login_enter(struct state *st, struct state *prev, int intent)
 {
-    conf_common_init(wgcl_addons_login_action, 1);
+    common_init(wgcl_addons_login_action);
+
+    back_init("back/gui.png");
+
     return transition_slide(wgcl_addons_login_gui(), 1, intent);
+}
+
+static int wgcl_addons_login_leave(struct state *st, struct state *next, int id, int intent)
+{
+    back_free();
+
+    return common_leave(st, next, id, intent);
+}
+
+static void wgcl_addons_login_paint(int id, float t)
+{
+    video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+
+    back_draw_easy();
+
+    gui_paint(id);
 }
 
 /*###########################################################################*/
@@ -1151,7 +1176,7 @@ struct state st_wgcl_logout_confirm =
 
 struct state st_wgcl_addons_login = {
     wgcl_addons_login_enter,
-    conf_common_leave,
+    wgcl_addons_login_leave,
     conf_common_paint,
     common_timer,
     common_point,

@@ -109,9 +109,12 @@
 #define MAXX    1024
 #define MAXR    2048
 #define MAXU    1024
+<<<<<<< HEAD
 #if defined(MAPC_INCLUDES_CHKP)
 #define MAXC    1024    /* New: Checkpoints */
 #endif
+=======
+>>>>>>> de3602138978b502321c3491f92732db79e0358b
 #define MAXW    1024
 #define MAXD    1024
 #define MAXA    16384
@@ -176,6 +179,7 @@ struct mapc_context
     const char *opt_data;
     int opt_debug;
     int opt_csv;
+<<<<<<< HEAD
     int campaign_output;
     int campaign_cost;
     int campaign_budget;
@@ -184,6 +188,8 @@ struct mapc_context
     int linenum;
     int bracket_linenum[256];
     int bracket_stack;
+=======
+>>>>>>> de3602138978b502321c3491f92732db79e0358b
 
     struct strbuf src_path;
     struct strbuf dst_path;
@@ -233,6 +239,7 @@ struct mapc_context
     jmp_buf jmpbuf;
 
     double compile_time;
+<<<<<<< HEAD
     double compile_time_limit;
 };
 
@@ -251,6 +258,11 @@ struct mapc_context
                 "ERROR: Preprocessor definitions found! Replacing to functions!")
 #undef ERROR
 #endif
+=======
+};
+
+/*---------------------------------------------------------------------------*/
+>>>>>>> de3602138978b502321c3491f92732db79e0358b
 
 #if ENABLE_RADIANT_CONSOLE
 
@@ -376,6 +388,7 @@ static void bcast_quit(struct mapc_context *ctx)
     SDLNet_Quit();
 }
 
+<<<<<<< HEAD
 #define MAPC_LOG_MESSAGE(ctx, str) do {         \
         bcast_send_msg(ctx, BCAST_STD, (str));  \
         fprintf(stdout, "%s", str);             \
@@ -388,11 +401,26 @@ static void bcast_quit(struct mapc_context *ctx)
 
 #define MAPC_LOG_ERROR(ctx, str) do {           \
         bcast_send_msg(ctx, BCAST_ERR, (str));  \
+=======
+#define MESSAGE(ctx, str) do {                       \
+        bcast_send_msg(ctx, BCAST_STD, (str));       \
+        fprintf(stdout, "%s", str);             \
+    } while (0)
+
+#define WARNING(ctx, str) do {                       \
+        bcast_send_msg(ctx, BCAST_WRN, (str));       \
+        fprintf(stderr, "%s", str);             \
+    } while (0)
+
+#define ERROR(ctx, str) do {                         \
+        bcast_send_msg(ctx, BCAST_ERR, (str));       \
+>>>>>>> de3602138978b502321c3491f92732db79e0358b
         fprintf(stderr, "%s", str);             \
     } while (0)
 
 #else /* ENABLE_RADIANT_CONSOLE */
 
+<<<<<<< HEAD
 #define MAPC_LOG_MESSAGE(ctx, str) do {         \
         fprintf(stdout, "%s", str);             \
     } while (0)
@@ -402,6 +430,17 @@ static void bcast_quit(struct mapc_context *ctx)
     } while (0)
 
 #define MAPC_LOG_ERROR(ctx, str) do {           \
+=======
+#define MESSAGE(ctx, str) do {                       \
+        fprintf(stdout, "%s", str);             \
+    } while (0)
+
+#define WARNING(ctx, str) do {                       \
+        fprintf(stderr, "%s", str);             \
+    } while (0)
+
+#define ERROR(ctx, str) do {                         \
+>>>>>>> de3602138978b502321c3491f92732db79e0358b
         fprintf(stderr, "%s", str);             \
     } while (0)
 
@@ -496,9 +535,13 @@ static int overflow(struct mapc_context *ctx, const char s[64u - sizeof (" overf
     sprintf_s(buf, 64, "%s overflow\n", s);
 #else
     sprintf(buf, "%s overflow\n", s);
+<<<<<<< HEAD
 #endif
 
     MAPC_LOG_ERROR(ctx, buf);
+=======
+    ERROR(ctx, buf);
+>>>>>>> de3602138978b502321c3491f92732db79e0358b
     longjmp(ctx->jmpbuf, MAPC_ERROR);
     return 0;
 }
@@ -913,7 +956,11 @@ static int read_mtrl(struct mapc_context *ctx, const char *name)
         SAFECAT(buf, ": unknown material \"");
         SAFECAT(buf, name);
         SAFECAT(buf, "\"\n");
+<<<<<<< HEAD
         MAPC_LOG_WARNING(ctx, buf);
+=======
+        WARNING(ctx, buf);
+>>>>>>> de3602138978b502321c3491f92732db79e0358b
     }
 
     return mi;
@@ -2688,7 +2735,11 @@ static void clip_geom(struct mapc_context *ctx,
 
             if (++n >= ARRAYSIZE(m))
             {
+<<<<<<< HEAD
                 MAPC_LOG_ERROR(ctx, "Over 256 vertices on one side, skipping the rest\n");
+=======
+                ERROR(ctx, "Over 256 vertices on one side, skipping the rest\n");
+>>>>>>> de3602138978b502321c3491f92732db79e0358b
                 break;
             }
         }
@@ -4203,6 +4254,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
         }
         else
         {
+<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1
             char tmp_buf[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -4215,6 +4267,9 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #else
             MAPC_LOG_ERROR(ctx, "Failure to open file\n");
 #endif
+=======
+            ERROR(ctx, "Failure to open file\n");
+>>>>>>> de3602138978b502321c3491f92732db79e0358b
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return 0;
         }

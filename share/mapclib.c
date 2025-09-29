@@ -90,13 +90,165 @@
 
 /*---------------------------------------------------------------------------*/
 
+/* Ohhhh... arbitrary! */
+
+#define MAXM    1024
+#define MAXV    65536
+#define MAXE    131072
+#define MAXS    65536
+#define MAXT    131072
+#define MAXO    262144
+#define MAXG    65536
+#define MAXL    4096
+#define MAXN    2048
+#define MAXP    2048
+#define MAXB    1024
+#define MAXH    2048
+#define MAXZ    1024
+#define MAXJ    1024
+#define MAXX    1024
+#define MAXR    2048
+#define MAXU    1024
+#if defined(MAPC_INCLUDES_CHKP)
+#define MAXC    1024    /* New: Checkpoints */
+#endif
+#define MAXW    1024
+#define MAXD    1024
+#define MAXA    16384
+#define MAXI    262144
+
+/*
+ * The following is a small  symbol table data structure.  Symbols and
+ * their integer  values are collected  in symv and  valv.  References
+ * and pointers  to their unsatisfied integer values  are collected in
+ * refv and pntv.  The resolve procedure matches references to symbols
+ * and fills waiting ints with the proper values.
+ */
+
+#define MAXSYM 2048
+
+enum
+{
+    SYM_NONE = 0,
+
+    SYM_PATH,
+    SYM_TARG,
+
+    SYM_MAX
+};
+
+struct sym
+{
+    int  type;
+    char name[MAXSTR];
+    int  val;
+};
+
+struct ref
+{
+    int  type;
+    char name[MAXSTR];
+    int *ptr;
+};
+
+struct _imagedata
+{
+    char *s;
+    int w, h;
+};
+
+enum mapc_jmp
+{
+    MAPC_SUCCESS = 0,
+    MAPC_ERROR,
+};
+
+#if ENABLE_RADIANT_CONSOLE
+#define MAX_BCAST_MSG 512
+#endif
+
+/*
+ * Context structure to hold all global state.
+ */
+struct mapc_context
+{
+    const char *opt_file;
+    const char *opt_data;
+    int opt_debug;
+    int opt_csv;
+    int campaign_output;
+    int campaign_cost;
+    int campaign_budget;
+    int campaign_use_author_encrypt;
+
+    int linenum;
+    int bracket_linenum[256];
+    int bracket_stack;
+
+    struct strbuf src_path;
+    struct strbuf dst_path;
+
+    struct strbuf full_dst_path;
+
+#if ENABLE_RADIANT_CONSOLE
+    TCPsocket bcast_socket;
+    unsigned char bcast_msg[MAX_BCAST_MSG];
+    size_t bcast_msg_len;
+#endif
+
+    struct sym syms[MAXSYM];
+    struct ref refs[MAXSYM];
+    int symc;
+    int refc;
+
+    float targ_p[MAXW][3];
+    int targ_wi[MAXW];
+    int targ_ji[MAXW];
+    int targ_n;
+
+    struct _imagedata *imagedata;
+    int image_n;
+    int image_alloc;
+
+    float plane_d[MAXS];
+    float plane_n[MAXS][3];
+    float plane_p[MAXS][3];
+    float plane_u[MAXS][3];
+    float plane_v[MAXS][3];
+    int plane_f[MAXS];
+    int plane_m[MAXS];
+
+    int read_dict_entries;
+
+    int mtrl_swaps[MAXM];
+    int vert_swaps[MAXV];
+    int edge_swaps[MAXE];
+    int side_swaps[MAXS];
+    int texc_swaps[MAXT];
+    int offs_swaps[MAXO];
+    int geom_swaps[MAXG];
+
+    struct s_base file;
+
+    jmp_buf jmpbuf;
+
+    double compile_time;
+    double compile_time_limit;
+};
+
 #ifdef MESSAGE
+//#pragma message(__FILE__ "("_CRT_STRINGIZE(__LINE__)")" ": " \
+                "MESSAGE: Preprocessor definitions found! Replacing to functions!")
 #undef MESSAGE
 #endif
 #ifdef WARNING
+//#pragma message(__FILE__ "("_CRT_STRINGIZE(__LINE__)")" ": " \
+                "WARNING: Preprocessor definitions found! Replacing to functions!")
 #undef WARNING
 #endif
 #ifdef ERROR
+//#pragma message(__FILE__ "("_CRT_STRINGIZE(__LINE__)")" ": " \
+                "ERROR: Preprocessor definitions found! Replacing to functions!")
 #undef ERROR
 #endif
 
@@ -108,8 +260,6 @@
 #define BCAST_STD 1
 #define BCAST_WRN 2
 #define BCAST_ERR 3
-
-#define MAX_BCAST_MSG 512
 
 static void bcast_quit(struct mapc_context *ctx);
 
@@ -226,180 +376,38 @@ static void bcast_quit(struct mapc_context *ctx)
     SDLNet_Quit();
 }
 
-#define MAPC_LOG_MESSAGE(str) do {              \
+#define MAPC_LOG_MESSAGE(ctx, str) do {         \
         bcast_send_msg(ctx, BCAST_STD, (str));  \
         fprintf(stdout, "%s", str);             \
     } while (0)
 
-#define MAPC_LOG_WARNING(str) do {              \
+#define MAPC_LOG_WARNING(ctx, str) do {         \
         bcast_send_msg(ctx, BCAST_WRN, (str));  \
         fprintf(stderr, "%s", str);             \
     } while (0)
 
-#define MAPC_LOG_ERROR(str) do {                \
+#define MAPC_LOG_ERROR(ctx, str) do {           \
         bcast_send_msg(ctx, BCAST_ERR, (str));  \
         fprintf(stderr, "%s", str);             \
     } while (0)
 
 #else /* ENABLE_RADIANT_CONSOLE */
 
-#define MAPC_LOG_MESSAGE(str) do {              \
+#define MAPC_LOG_MESSAGE(ctx, str) do {         \
         fprintf(stdout, "%s", str);             \
     } while (0)
 
-#define MAPC_LOG_WARNING(str) do {              \
+#define MAPC_LOG_WARNING(ctx, str) do {         \
         fprintf(stderr, "%s", str);             \
     } while (0)
 
-#define MAPC_LOG_ERROR(str) do {                \
+#define MAPC_LOG_ERROR(ctx, str) do {           \
         fprintf(stderr, "%s", str);             \
     } while (0)
 
 #endif /* ENABLE_RADIANT_CONSOLE */
 
 /*---------------------------------------------------------------------------*/
-
-/* Ohhhh... arbitrary! */
-
-#define MAXM    1024
-#define MAXV    65536
-#define MAXE    131072
-#define MAXS    65536
-#define MAXT    131072
-#define MAXO    262144
-#define MAXG    65536
-#define MAXL    4096
-#define MAXN    2048
-#define MAXP    2048
-#define MAXB    1024
-#define MAXH    2048
-#define MAXZ    1024
-#define MAXJ    1024
-#define MAXX    1024
-#define MAXR    2048
-#define MAXU    1024
-#if defined(MAPC_INCLUDES_CHKP)
-#define MAXC    1024    /* New: Checkpoints */
-#endif
-#define MAXW    1024
-#define MAXD    1024
-#define MAXA    16384
-#define MAXI    262144
-
-/*
- * The following is a small  symbol table data structure.  Symbols and
- * their integer  values are collected  in symv and  valv.  References
- * and pointers  to their unsatisfied integer values  are collected in
- * refv and pntv.  The resolve procedure matches references to symbols
- * and fills waiting ints with the proper values.
- */
-
-#define MAXSYM 2048
-
-enum
-{
-    SYM_NONE = 0,
-
-    SYM_PATH,
-    SYM_TARG,
-
-    SYM_MAX
-};
-
-struct sym
-{
-    int  type;
-    char name[MAXSTR];
-    int  val;
-};
-
-struct ref
-{
-    int  type;
-    char name[MAXSTR];
-    int *ptr;
-};
-
-struct _imagedata
-{
-    char *s;
-    int w, h;
-};
-
-enum mapc_jmp
-{
-    MAPC_SUCCESS = 0,
-    MAPC_ERROR,
-};
-
-/*
- * Context structure to hold all global state.
- */
-struct mapc_context
-{
-    const char *opt_file;
-    const char *opt_data;
-    int opt_debug;
-    int opt_csv;
-    int campaign_output;
-    int campaign_cost;
-    int campaign_budget;
-    int campaign_use_author_encrypt;
-
-    int linenum;
-    int bracket_linenum[256];
-    int bracket_stack;
-
-    struct strbuf src_path;
-    struct strbuf dst_path;
-
-    struct strbuf full_dst_path;
-
-#if ENABLE_RADIANT_CONSOLE
-    TCPsocket bcast_socket;
-    unsigned char bcast_msg[MAX_BCAST_MSG];
-    size_t bcast_msg_len;
-#endif
-
-    struct sym syms[MAXSYM];
-    struct ref refs[MAXSYM];
-    int symc;
-    int refc;
-
-    float targ_p[MAXW][3];
-    int targ_wi[MAXW];
-    int targ_ji[MAXW];
-    int targ_n;
-
-    struct _imagedata *imagedata;
-    int image_n;
-    int image_alloc;
-
-    float plane_d[MAXS];
-    float plane_n[MAXS][3];
-    float plane_p[MAXS][3];
-    float plane_u[MAXS][3];
-    float plane_v[MAXS][3];
-    int plane_f[MAXS];
-    int plane_m[MAXS];
-
-    int read_dict_entries;
-
-    int mtrl_swaps[MAXM];
-    int vert_swaps[MAXV];
-    int edge_swaps[MAXE];
-    int side_swaps[MAXS];
-    int texc_swaps[MAXT];
-    int offs_swaps[MAXO];
-    int geom_swaps[MAXG];
-
-    struct s_base file;
-
-    jmp_buf jmpbuf;
-
-    double compile_time;
-    double compile_time_limit;
-};
 
 static void init_file(struct s_base *fp);
 
@@ -490,7 +498,7 @@ static int overflow(struct mapc_context *ctx, const char s[64u - sizeof (" overf
     sprintf(buf, "%s overflow\n", s);
 #endif
 
-    MAPC_LOG_ERROR(buf);
+    MAPC_LOG_ERROR(ctx, buf);
     longjmp(ctx->jmpbuf, MAPC_ERROR);
     return 0;
 }
@@ -854,7 +862,7 @@ static void size_image(struct mapc_context *ctx, const char *name, int *w, int *
                 (struct _imagedata *) malloc(sizeof (struct _imagedata) * (ctx->image_alloc + IMAGE_REALLOC));
             if (!tmp)
             {
-                MAPC_LOG_ERROR("malloc error\n");
+                MAPC_LOG_ERROR(ctx, "malloc error\n");
                 exit(1);
             }
             if (ctx->imagedata)
@@ -905,7 +913,7 @@ static int read_mtrl(struct mapc_context *ctx, const char *name)
         SAFECAT(buf, ": unknown material \"");
         SAFECAT(buf, name);
         SAFECAT(buf, "\"\n");
-        MAPC_LOG_WARNING(buf);
+        MAPC_LOG_WARNING(ctx, buf);
     }
 
     return mi;
@@ -945,7 +953,7 @@ static void move_lump(struct mapc_context *ctx,
         move_vert(fp->vv + fp->iv[lp->v0 + i], p);
 }
 
-static void move_body(struct mapc_context* ctx,
+static void move_body(struct mapc_context *ctx,
                       struct b_body *bp)
 {
     struct s_base *fp = &ctx->file;
@@ -1327,7 +1335,7 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
             if (ctx->bracket_stack > 10)
             {
                 sprintf(stderr_buf, "Stack overflow!\n\t%s / Line: %d\n", buf, ctx->linenum);
-                MAPC_LOG_ERROR(stderr_buf);
+                MAPC_LOG_ERROR(ctx, stderr_buf);
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
             }
 
@@ -1342,7 +1350,7 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
             if (ctx->bracket_stack - 1 < 0)
             {
                 sprintf(stderr_buf, "Expected: {\n\t%s / Line: %d\n", buf, ctx->linenum);
-                MAPC_LOG_ERROR(stderr_buf);
+                MAPC_LOG_ERROR(ctx, stderr_buf);
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
             }
             if (ctx->bracket_linenum[ctx->bracket_stack - 1] != 0)
@@ -1513,7 +1521,7 @@ static void make_path(struct mapc_context *ctx,
                       char v[][MAXSTR], int c)
 {
 #ifndef NDEBUG
-    //MAPC_LOG_MESSAGE("Creating paths...\n");
+    //MAPC_LOG_MESSAGE(ctx, "Creating paths...\n");
 #endif
     struct s_base *fp = &ctx->file;
     int i, pi = incp(ctx);
@@ -1674,7 +1682,7 @@ static void make_body(struct mapc_context *ctx,
                       char v[][MAXSTR], int c, int l0)
 {
 #ifndef NDEBUG
-    //MAPC_LOG_MESSAGE("Creating objects...\n");
+    //MAPC_LOG_MESSAGE(ctx, "Creating objects...\n");
 #endif
     struct s_base *fp = &ctx->file;
     int i, mi = 0, bi = incb(ctx);
@@ -1742,7 +1750,7 @@ static void make_item(struct mapc_context *ctx,
                       char v[][MAXSTR], int c)
 {
 #ifndef NDEBUG
-    //MAPC_LOG_MESSAGE("Creating items...\n");
+    //MAPC_LOG_MESSAGE(ctx, "Creating items...\n");
 #endif
     struct s_base *fp = &ctx->file;
     int i, hi = inch(ctx);
@@ -1806,7 +1814,7 @@ static void make_bill(struct mapc_context *ctx,
                       char v[][MAXSTR], int c)
 {
 #ifndef NDEBUG
-    //MAPC_LOG_MESSAGE("Creating billboard...\n");
+    //MAPC_LOG_MESSAGE(ctx, "Creating billboard...\n");
 #endif
     struct s_base *fp = &ctx->file;
     int i, ri = incr(ctx);
@@ -1894,7 +1902,7 @@ static void make_goal(struct mapc_context *ctx,
                       char v[][MAXSTR], int c)
 {
 #ifndef NDEBUG
-    //MAPC_LOG_MESSAGE("Creating goal...\n");
+    //MAPC_LOG_MESSAGE(ctx, "Creating goal...\n");
 #endif
     struct s_base *fp = &ctx->file;
     int i, zi = incz(ctx);
@@ -1945,7 +1953,7 @@ static void make_view(struct mapc_context *ctx,
                       char v[][MAXSTR], int c)
 {
 #ifndef NDEBUG
-    //MAPC_LOG_MESSAGE("Creating viewpoint...\n");
+    //MAPC_LOG_MESSAGE(ctx, "Creating viewpoint...\n");
 #endif
     struct s_base *fp = &ctx->file;
     int i, wi = incw(ctx);
@@ -1986,7 +1994,7 @@ static void make_jump(struct mapc_context *ctx,
                       char v[][MAXSTR], int c)
 {
 #ifndef NDEBUG
-    //MAPC_LOG_MESSAGE("Creating teleporter...\n");
+    //MAPC_LOG_MESSAGE(ctx, "Creating teleporter...\n");
 #endif
     struct s_base *fp = &ctx->file;
     int i, ji = incj(ctx);
@@ -2043,7 +2051,7 @@ static void make_swch(struct mapc_context *ctx,
                       char v[][MAXSTR], int c)
 {
 #ifndef NDEBUG
-    //MAPC_LOG_MESSAGE("Creating switch...\n");
+    //MAPC_LOG_MESSAGE(ctx, "Creating switch...\n");
 #endif
     struct s_base *fp = &ctx->file;
     int i, xi = incx(ctx);
@@ -2114,7 +2122,7 @@ static void make_targ(struct mapc_context *ctx,
                       char v[][MAXSTR], int c)
 {
 #ifndef NDEBUG
-    //MAPC_LOG_MESSAGE("Creating targets...\n");
+    //MAPC_LOG_MESSAGE(ctx, "Creating targets...\n");
 #endif
     int i;
 
@@ -2152,7 +2160,7 @@ static void make_ball(struct mapc_context *ctx,
                       char v[][MAXSTR], int c)
 {
 #ifndef NDEBUG
-    //MAPC_LOG_MESSAGE("Creating balls...\n");
+    //MAPC_LOG_MESSAGE(ctx, "Creating balls...\n");
 #endif
     struct s_base *fp = &ctx->file;
     int i, ui = incu(ctx);
@@ -2229,7 +2237,7 @@ static void make_chkp(struct mapc_context *ctx,
                       char v[][MAXSTR], int c)
 {
 #ifndef NDEBUG
-    //MAPC_LOG_MESSAGE("Creating chkp...\n");
+    //MAPC_LOG_MESSAGE(ctx, "Creating chkp...\n");
 #endif
     struct s_base *fp = &ctx->file;
     int i, ci = incc(ctx);
@@ -2314,7 +2322,7 @@ static void make_legacy(struct mapc_context *ctx,
     SAFECPY(buf, "New specifications not updated\n\tConvert to legacy mode (");
     SAFECAT(buf, specification_type);
     SAFECAT(buf, ")\n");
-    MAPC_LOG_WARNING(buf);
+    MAPC_LOG_WARNING(ctx, buf);
 
     int i, mi = 0, bi = incb(ctx);
 
@@ -2680,7 +2688,7 @@ static void clip_geom(struct mapc_context *ctx,
 
             if (++n >= ARRAYSIZE(m))
             {
-                MAPC_LOG_ERROR("Over 256 vertices on one side, skipping the rest\n");
+                MAPC_LOG_ERROR(ctx, "Over 256 vertices on one side, skipping the rest\n");
                 break;
             }
         }
@@ -3536,7 +3544,7 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
             {
                 char stdout_buf[MAXSTR];
                 sprintf(stdout_buf, "Finding sides...: %d/%d\n", si + 1, fp->sc);
-                MAPC_LOG_MESSAGE(stdout_buf);
+                MAPC_LOG_MESSAGE(ctx, stdout_buf);
             }*/
 
             int o = 0;
@@ -3570,7 +3578,7 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
             {
                 char stdout_buf[MAXSTR];
                 sprintf(stdout_buf, "Flag lumps...: %d/%d\n", li + 1, lc);
-                MAPC_LOG_MESSAGE(stdout_buf);
+                MAPC_LOG_MESSAGE(ctx, stdout_buf);
             }
 
             if (ctx->opt_debug)
@@ -3605,7 +3613,7 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
             {
                 char stdout_buf[MAXSTR];
                 sprintf(stdout_buf, "Sorting lumps...: %d/%d\n", li, lc - 1);
-                MAPC_LOG_MESSAGE(stdout_buf);
+                MAPC_LOG_MESSAGE(ctx, stdout_buf);
             }
 
             for (lj = 0; lj < li; lj++)
@@ -3911,7 +3919,7 @@ static void print_usage(const char *name)
     }
 
     SAFECAT(p_buf, "\n");
-    MAPC_LOG_MESSAGE(p_buf);
+    MAPC_LOG_MESSAGE(ctx, p_buf);
 }
 
 int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
@@ -4110,14 +4118,7 @@ static void interactive_web(void)
     char target_url[256];
     char buf_url[512];
 
-    /*
-     * HACK: This will be changed to Nextcloud AIO soon!
-     * - Ersohn Styne
-     */
-
-    /*
-
-    SAFECPY(target_url, "");
+    SAFECPY(target_url, "https://nextcloud.stynegame.de/apps/forms/s/CKFzf7qtbHifX6j3QC69fiTg");
 
 #if _WIN32
 #ifndef _CRT_SECURE_NO_WARNINGS
@@ -4134,8 +4135,6 @@ static void interactive_web(void)
 
     system(buf_url);
 #endif
-
-     */
 }
 
 static int mapc_compile_internal(struct mapc_context *ctx)
@@ -4173,7 +4172,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
         sprintf(tmp_buf_loading,
 #endif
                 "Loading file...: %s\n", src);
-        MAPC_LOG_MESSAGE(tmp_buf_loading);
+        MAPC_LOG_MESSAGE(ctx, tmp_buf_loading);
 
         if (ctx->campaign_output)
         {
@@ -4187,9 +4186,9 @@ static int mapc_compile_internal(struct mapc_context *ctx)
                 sprintf(tmp_buf,
 #endif
                         "Failure to open file! Only Campaign Level Maps (.CMAP) is supported!: %s\n", src);
-                MAPC_LOG_ERROR(tmp_buf);
+                MAPC_LOG_ERROR(ctx, tmp_buf);
 #else
-                MAPC_LOG_ERROR("Failure to open file! Only Campaign Level Maps (.CMAP) is supported!\n");
+                MAPC_LOG_ERROR(ctx, "Failure to open file! Only Campaign Level Maps (.CMAP) is supported!\n");
 #endif
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
                 return 0;
@@ -4212,9 +4211,9 @@ static int mapc_compile_internal(struct mapc_context *ctx)
             sprintf(tmp_buf,
 #endif
                     "Failure to open file: %s - %s\n", src, fs_error());
-            MAPC_LOG_ERROR(tmp_buf);
+            MAPC_LOG_ERROR(ctx, tmp_buf);
 #else
-            MAPC_LOG_ERROR("Failure to open file\n");
+            MAPC_LOG_ERROR(ctx, "Failure to open file\n");
 #endif
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return 0;
@@ -4225,7 +4224,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
             char stderr_buf[MAXSTR];
 
             sprintf(stderr_buf, "Expected: }\n\t{ / Line: %d\n", ctx->linenum);
-            MAPC_LOG_ERROR(stderr_buf);
+            MAPC_LOG_ERROR(ctx, stderr_buf);
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return 0;
         }
@@ -4234,7 +4233,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
         {
             if (!ctx->campaign_use_author_encrypt)
             {
-                MAPC_LOG_ERROR("Failure to compile level map! You need to sign the campaign map first!\n\tWithout that, this can be dangerous!\n");
+                MAPC_LOG_ERROR(ctx, "Failure to compile level map! You need to sign the campaign map first!\n\tWithout that, this can be dangerous!\n");
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
                 return 0;
             }
@@ -4268,7 +4267,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
             sprintf(tmp_buf,
 #endif
                     "Compile timed out after 60 seconds!\n", ctx->compile_time_limit);
-            MAPC_LOG_ERROR(tmp_buf);
+            MAPC_LOG_ERROR(ctx, tmp_buf);
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return 0;
         }
@@ -4285,9 +4284,9 @@ static int mapc_compile_internal(struct mapc_context *ctx)
                 sprintf(tmp_buf,
 #endif
                         "Failure to save file! Only SOL extension for model profile is supported!: %s\n", src);
-                MAPC_LOG_ERROR(tmp_buf);
+                MAPC_LOG_ERROR(ctx, tmp_buf);
 #else
-                MAPC_LOG_ERROR("Failure to save file! Only SOL extension for model profile is supported!\n");
+                MAPC_LOG_ERROR(ctx, "Failure to save file! Only SOL extension for model profile is supported!\n");
 #endif
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
                 return 0;
@@ -4304,9 +4303,9 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #endif
                         "Failure to save file! Overbudget!: %s\n\tLump cost: %d; Lump budget: %d\n",
                         src, ctx->campaign_cost, ctx->campaign_budget);
-                MAPC_LOG_ERROR(tmp_buf);
+                MAPC_LOG_ERROR(ctx, tmp_buf);
 #else
-                MAPC_LOG_ERROR("Failure to save file! Overbudget!\n");
+                MAPC_LOG_ERROR(ctx, "Failure to save file! Overbudget!\n");
 #endif
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
                 return 0;
@@ -4322,7 +4321,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
         {
             if (!sol_stor_base(&ctx->file, dst_solx))
             {
-                MAPC_LOG_ERROR("Failure to save SOLX!\n");
+                MAPC_LOG_ERROR(ctx, "Failure to save SOLX!\n");
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
                 return 0;
             }
@@ -4331,14 +4330,14 @@ static int mapc_compile_internal(struct mapc_context *ctx)
         {
             if (!sol_stor_base(&ctx->file, dst))
             {
-                MAPC_LOG_ERROR("Failure to save SOL!\n");
+                MAPC_LOG_ERROR(ctx, "Failure to save SOL!\n");
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
                 return 0;
             }
         }
         else
         {
-            MAPC_LOG_ERROR("Failure to parse save path!\n");
+            MAPC_LOG_ERROR(ctx, "Failure to parse save path!\n");
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return 0;
         }
@@ -4356,7 +4355,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #endif
                     "Transaction success!: %s\n\tLump cost: %d; Lump budget: %d\n",
                     src, ctx->campaign_cost, ctx->campaign_budget);
-            MAPC_LOG_MESSAGE(tmp_buf);
+            MAPC_LOG_MESSAGE(ctx, tmp_buf);
 #endif
         }
     }

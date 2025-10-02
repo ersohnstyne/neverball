@@ -1958,11 +1958,11 @@ static int game_update_state(int bt)
         return GAME_GOAL;
     }
 
-    /* Border controls */
+    /* Border controls (Was: 0.875f * 2.0f) */
 
     if (bt && !timer_hold &&
         (vary.base->vc == 0 ||
-         !game_check_map_border(CURR_PLAYER, 0.875f * 2.0f)))
+         !game_check_map_border(CURR_PLAYER, 0.5f)))
     {
         v_cpy(fix_cam_pos, view.p);
         fix_cam_lock[CURR_PLAYER] = 1;

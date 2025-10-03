@@ -1019,8 +1019,7 @@ static int campaign_action(int tok, int val)
             if (check_handsoff())
                 return goto_handsoff(&st_campaign);
 
-            progress_exit();
-            progress_init(MODE_CAMPAIGN);
+            progress_reinit(MODE_CAMPAIGN);
             game_fade(+4.0);
 
             audio_music_stop();
@@ -1334,8 +1333,7 @@ static void campaign_prepare(struct state *prev)
 
     if (prev == &st_levelgroup)
     {
-        progress_exit();
-        progress_init(MODE_CAMPAIGN);
+        progress_reinit(MODE_CAMPAIGN);
         campaign_theme_index = 0;
     }
 }
@@ -1635,10 +1633,7 @@ static int levelgroup_enter(struct state *st, struct state *prev, int intent)
     campaign_init();
 
     if (prev == &st_campaign)
-    {
-        progress_exit();
-        progress_init(MODE_NORMAL);
-    }
+        progress_reinit(MODE_NORMAL);
 
     if      (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
         return goto_state(&st_campaign);

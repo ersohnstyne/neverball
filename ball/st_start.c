@@ -329,8 +329,7 @@ static int start_action(int tok, int val)
 
         case START_HARDCORE:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            progress_exit();
-            progress_init(val ? MODE_HARDCORE : MODE_NORMAL);
+            progress_reinit(val ? MODE_HARDCORE : MODE_NORMAL);
             return goto_state(&st_start);
 #endif
             break;
@@ -371,9 +370,8 @@ static int start_action(int tok, int val)
 #endif
                 {
 #if DEVEL_BUILD
-                    progress_exit();
-                    progress_init(curr_mode() == MODE_CHALLENGE ? MODE_NORMAL :
-                                                                  MODE_CHALLENGE);
+                    progress_reinit(curr_mode() == MODE_CHALLENGE ? MODE_NORMAL :
+                                                                    MODE_CHALLENGE);
                     gui_toggle(challenge_id);
                     return 1;
 #else
@@ -400,8 +398,7 @@ static int start_action(int tok, int val)
                         return goto_handsoff(curr_state());
                     else
                     {
-                        progress_exit();
-                        progress_init(MODE_CHALLENGE);
+                        progress_reinit(MODE_CHALLENGE);
 
                         if (set_level_play(0))
                         {
@@ -452,8 +449,7 @@ static int start_action(int tok, int val)
             if (check_handsoff())
                 return goto_handsoff(curr_state());
 
-            progress_exit();
-            progress_init(MODE_NORMAL);
+            progress_reinit(MODE_NORMAL);
             game_fade(+4.0);
 
             if (set_level_play(val))
@@ -1096,8 +1092,7 @@ static int start_compat_gui()
 
 static int start_compat_enter(struct state *st, struct state *prev, int intent)
 {
-    progress_exit();
-    progress_init(MODE_BOOST_RUSH);
+    progress_reinit(MODE_BOOST_RUSH);
 
 #if NB_HAVE_PB_BOTH==1
     /* HACK: These two transition directions will be merged! */
@@ -1199,8 +1194,7 @@ static int start_enter(struct state *st, struct state *prev, int intent)
     {
         first = 0;
 
-        progress_exit();
-        progress_init(MODE_NORMAL);
+        progress_reinit(MODE_NORMAL);
     }
 
     /* For Switchball, it uses for 30 levels */
@@ -1486,8 +1480,7 @@ static int start_joinrequired_action(int tok, int val)
             break;
 
         case START_JOINREQUIRED_SKIP:
-            progress_exit();
-            progress_init(MODE_CHALLENGE);
+            progress_reinit(MODE_CHALLENGE);
 
             if (set_level_play(0))
                 return goto_play_level();

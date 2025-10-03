@@ -860,11 +860,9 @@ void game_client_draw(int pose, float t)
                 const float mojang_death_time_dt = t - gd.mojang_death_time_now;
 
                 if (mojang_death_time_dt < 1.f)
-                {
                     gd.mojang_death_time_percent =
-                        MIN(100, gd.mojang_death_time_percent +
-                            (mojang_death_time_dt * 0.05f));
-                }
+                        MIN(100, gd.mojang_death_time_percent + (mojang_death_time_dt * 0.05f));
+                else audio_play("snd/2.2/border_death.ogg", 1.0f);
 
                 gd.mojang_death_time_now = t;
             }

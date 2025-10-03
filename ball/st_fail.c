@@ -810,7 +810,7 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
         balls_bought = 0;
     }
 
-    if (!resume && fail_intro_animation_phase != 0)
+    if (fail_intro_animation_phase != 0)
         return fail_gui();
 
     return transition_slide(fail_gui(), 1, intent);
@@ -993,9 +993,8 @@ static int zen_warning_action(int tok, int val)
 
         case ZEN_SWITCH_ACCEPT:
 #ifdef LEVELGROUPS_INCLUDES_ZEN
-            progress_exit();
             mediation_init();
-            progress_init(MODE_ZEN);
+            progress_reinit(MODE_ZEN);
             if (progress_same())
             {
 #if NB_HAVE_PB_BOTH==1 && \

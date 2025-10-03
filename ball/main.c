@@ -789,8 +789,7 @@ static int goto_level(const List level_multi)
         lvl_count++;
     }
 
-    progress_exit();
-    progress_init(MODE_STANDALONE);
+    progress_reinit(MODE_STANDALONE);
 
     /* Check whether standalone set is loaded correctly. */
 
@@ -803,8 +802,7 @@ static int goto_level(const List level_multi)
 
     /* ...otherwise go to main menu screen. */
 
-    progress_exit();
-    progress_init(MODE_NONE);
+    progress_reinit(MODE_NONE);
 
     return 0;
 }

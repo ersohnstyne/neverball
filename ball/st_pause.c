@@ -153,9 +153,8 @@ static int pause_action(int tok, int val)
 #if defined(LEVELGROUPS_INCLUDES_ZEN) && defined(CONFIG_INCLUDES_ACCOUNT)
             if (progress_same_avail())
             {
-                progress_exit();
                 mediation_init();
-                progress_init(MODE_ZEN);
+                progress_reinit(MODE_ZEN);
             }
 
             if (progress_same())

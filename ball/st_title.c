@@ -1275,9 +1275,8 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 #endif
 #endif
 
-    progress_exit();
-    progress_init(MODE_NONE);
-    
+    progress_reinit(MODE_NONE);
+
     title_freeze_all = 0;
     
     /* Start the title screen music. */

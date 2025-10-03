@@ -149,8 +149,7 @@ static int help_action(int tok, int val)
                 return exit_state(&st_title);
 
         case HELP_DEMO:
-            progress_exit();
-            progress_init(MODE_NONE);
+            progress_reinit(MODE_NONE);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (progress_replay_full(current_platform == PLATFORM_PC ?
                                      demos[val] : demos_xbox[val],

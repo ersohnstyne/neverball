@@ -47,6 +47,9 @@ void progress_rush_collect_coin_value(int);
 
 /*---------------------------------------------------------------------------*/
 
+#define progress_reinit(_mode) \
+    do { progress_exit(); progress_init(_mode); } while (0)
+
 void progress_init_home(void);
 void progress_init(int);
 void progress_extend(void);

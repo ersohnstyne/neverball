@@ -423,8 +423,7 @@ static int hardcore_start_action(int tok, int val)
             config_set_d(CONFIG_SMOOTH_FIX, val);
             config_save();
 
-            progress_exit();
-            progress_init(MODE_HARDCORE);
+            progress_reinit(MODE_HARDCORE);
             campaign_hardcore_play(!val);
 
             campaign_load_camera_box_trigger("1");

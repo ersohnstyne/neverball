@@ -402,7 +402,7 @@ static void set_scan_done_moon_taskloader(void* data, void* done_data)
         /* FIXME: WGCL Narrator can do it! */
 
         EM_ASM({
-            if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+            if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
                 CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_levelset_select.mp3");
         });
 #elif NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
@@ -639,7 +639,7 @@ static int set_enter(struct state *st, struct state *prev, int intent)
             /* FIXME: WGCL Narrator can do it! */
 
             EM_ASM({
-                if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+                if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
                     CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_levelset_select.mp3");
             });
 #elif NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
@@ -991,7 +991,7 @@ static int campaign_action(int tok, int val)
             /* FIXME: WGCL Narrator can do it! */
 
             EM_ASM({
-                if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
+                if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
                     switch ($0) {
                         case 0:
                             CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_campaign_sky.mp3");
@@ -1480,7 +1480,7 @@ static int levelgroup_action(int tok, int val)
                 /* FIXME: WGCL Narrator can do it! */
 
                 EM_ASM({
-                    if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+                    if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
                         CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_gameoptions_campaign.mp3");
                 });
 #endif
@@ -1624,7 +1624,7 @@ static int levelgroup_enter(struct state *st, struct state *prev, int intent)
         /* FIXME: WGCL Narrator can do it! */
 
         EM_ASM({
-            if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+            if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
                 CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_levelgroup_start.mp3");
         });
 #endif

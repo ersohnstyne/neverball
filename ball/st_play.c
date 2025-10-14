@@ -422,7 +422,7 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
     /* FIXME: WGCL Narrator can do it! */
 
     /*EM_ASM({
-        if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+        if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
             CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_trafficlight_ready.mp3");
     });*/
 #elif NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
@@ -551,7 +551,7 @@ static int play_set_enter(struct state *st, struct state *prev, int intent)
     /* FIXME: WGCL Narrator can do it! */
 
     /*EM_ASM({
-        if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+        if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
             CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_trafficlight_set.mp3");
     });*/
 #elif NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
@@ -974,7 +974,7 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
     /* FIXME: WGCL Narrator can do it! */
 
     /*EM_ASM({
-        if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+        if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
             CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_trafficlight_start.mp3");
     });*/
 #elif NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)

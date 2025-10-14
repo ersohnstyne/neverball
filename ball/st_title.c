@@ -1531,7 +1531,7 @@ static int title_click(int b, int d)
         /* FIXME: WGCL Narrator can do it! */
 
         EM_ASM({
-            if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
+            if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
                 if ($0 == 1 && tmp_online_session_data != undefined && tmp_online_session_data != null)
                     CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_title_welcomeback.mp3");
                 else
@@ -1588,7 +1588,7 @@ static int title_buttn(int b, int d)
             /* FIXME: WGCL Narrator can do it! */
 
             EM_ASM({
-                if (navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
+                if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
                     if ($0 == 1 && tmp_online_session_data != undefined && tmp_online_session_data != null)
                         CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_title_welcomeback.mp3");
                     else

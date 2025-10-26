@@ -26,6 +26,7 @@
 #include "geom.h"
 #include "lang.h"
 #include "ball.h"
+#include "log.h"
 
 #include "st_package.h"
 #include "st_common.h"
@@ -853,33 +854,41 @@ static int package_check_purchased_extralevels(const char *set_id)
     if (strcmp(package_get_type(selected), "set") == 0)
         return 0;
 
-#if NB_HAVE_PB_BOTH==1
-#ifdef CONFIG_INCLUDES_ACCOUNT
-    /* Add more level sets when products bought. */
+    int set_has_event = str_starts_with(set_id, "set-valentine") ||
+                        str_starts_with(set_id, "set-freeland")  ||
+                        str_starts_with(set_id, "set-halloween") ||
+                        str_starts_with(set_id, "set-christmas");
 
-    if ((str_starts_with(set_id, "set-easy")   &&
-         str_starts_with(set_id, "set-medium") &&
-         str_starts_with(set_id, "set-hard")   &&
-         str_starts_with(set_id, "set-mym")    &&
-         str_starts_with(set_id, "set-mym2")   &&
-         str_starts_with(set_id, "set-fwp")    &&
-         str_starts_with(set_id, "set-tones")  &&
-         str_starts_with(set_id, "set-misc")) &&
-        (!account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
-         !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET)))
-        return 0;
+#if NB_HAVE_PB_BOTH==1
+    if (!set_has_event)
+    {
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        /* Add more level sets when products bought. */
+
+        if ((str_starts_with(set_id, "set-easy") &&
+            str_starts_with(set_id, "set-medium") &&
+            str_starts_with(set_id, "set-hard") &&
+            str_starts_with(set_id, "set-mym") &&
+            str_starts_with(set_id, "set-mym2") &&
+            str_starts_with(set_id, "set-fwp") &&
+            str_starts_with(set_id, "set-tones") &&
+            str_starts_with(set_id, "set-misc")) &&
+            (!account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
+             !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET)))
+            return 0;
 #else
-    if (str_starts_with(set_id, "set-easy")   &&
-        str_starts_with(set_id, "set-medium") &&
-        str_starts_with(set_id, "set-hard")   &&
-        str_starts_with(set_id, "set-mym")    &&
-        str_starts_with(set_id, "set-mym2")   &&
-        str_starts_with(set_id, "set-fwp")    &&
-        str_starts_with(set_id, "set-tones")  &&
-        str_starts_with(set_id, "set-misc")   &&
-        !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))
-        return 0;
+        if (str_starts_with(set_id, "set-easy") &&
+            str_starts_with(set_id, "set-medium") &&
+            str_starts_with(set_id, "set-hard") &&
+            str_starts_with(set_id, "set-mym") &&
+            str_starts_with(set_id, "set-mym2") &&
+            str_starts_with(set_id, "set-fwp") &&
+            str_starts_with(set_id, "set-tones") &&
+            str_starts_with(set_id, "set-misc") &&
+            !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))
+            return 0;
 #endif
+    }
 
     /* Limited offered region only */
 
@@ -894,12 +903,12 @@ static int package_check_purchased_extralevels(const char *set_id)
              strcmp(config_get_s(CONFIG_LANGUAGE), "jp") != 0))
         {
 #ifdef __EMSCRIPTEN__
-            if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+            if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
 #endif
                 return 0;
         }
 #ifdef __EMSCRIPTEN__
-        else if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+        else if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
             return 0;
 #endif
     }
@@ -908,23 +917,31 @@ static int package_check_purchased_extralevels(const char *set_id)
 
     if (str_starts_with(set_id, "set-valentine") &&
         curr_date_month != 2 &&
-        !config_cheat())
+        !config_cheat()){
+        log_errorf("Valentine is not available outside month February. (Current month: %d)\n", curr_date_month);
         return 0;
+    }
 
     if (str_starts_with(set_id, "set-freeland") &&
         curr_date_month != 5 &&
-        !config_cheat())
+        !config_cheat()){
+        log_errorf("Freeland is not available outside month May. (Current month: %d)\n", curr_date_month);
         return 0;
+    }
 
     if (str_starts_with(set_id, "set-halloween") &&
         curr_date_month != 10 &&
-        !config_cheat())
+        !config_cheat()){
+        log_errorf("Halloween is not available outside month October. (Current month: %d)\n", curr_date_month);
         return 0;
+    }
 
     if (str_starts_with(set_id, "set-christmas") &&
         curr_date_month != 12 &&
-        !config_cheat())
+        !config_cheat()){
+        log_errorf("Christmas is not available outside month December. (Current month: %d)\n", curr_date_month);
         return 0;
+    }
 #endif
 
     return 1;

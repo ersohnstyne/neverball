@@ -501,6 +501,11 @@ static Array load_packages_from_file(const char *filename)
 
                 /* Start reading a new package. */
 
+                int set_has_event = str_starts_with(line + 8, "set-valentine") ||
+                                    str_starts_with(line + 8, "set-freeland") ||
+                                    str_starts_with(line + 8, "set-halloween") ||
+                                    str_starts_with(line + 8, "set-christmas");
+
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                 if (str_starts_with(line + 8, "set-") &&
                     !str_starts_with(line + 8, "set-easy")   &&
@@ -510,6 +515,7 @@ static Array load_packages_from_file(const char *filename)
                     !str_starts_with(line + 8, "set-mym2")   &&
                     !str_starts_with(line + 8, "set-fwp")    &&
                     !str_starts_with(line + 8, "set-tones")  &&
+                    !set_has_event                           &&
                     !account_get_d(ACCOUNT_PRODUCT_LEVELS))
                     available_packages_kicked = 1;
 

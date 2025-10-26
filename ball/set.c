@@ -463,33 +463,41 @@ static int set_load(struct set *s, const char *filename)
 #endif
         ) return 0;
 
-#if NB_HAVE_PB_BOTH==1
-#ifdef CONFIG_INCLUDES_ACCOUNT
-    /* Add more level sets when products bought. */
+    int set_has_event = strcmp(filename, "set-valentine.txt") == 0 ||
+                        strcmp(filename, "set-freeland.txt")  == 0 ||
+                        strcmp(filename, "set-halloween.txt") == 0 ||
+                        strcmp(filename, "set-christmas.txt") == 0;
 
-    if ((strcmp(filename, "set-easy.txt")   != 0 &&
-         strcmp(filename, "set-medium.txt") != 0 &&
-         strcmp(filename, "set-hard.txt")   != 0 &&
-         strcmp(filename, "set-mym.txt")    != 0 &&
-         strcmp(filename, "set-mym2.txt")   != 0 &&
-         strcmp(filename, "set-fwp.txt")    != 0 &&
-         strcmp(filename, "set-tones.txt")  != 0 &&
-         strcmp(filename, SET_MISC)         != 0) &&
-        (!account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
-         !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET)))
-        return 0;
+#if NB_HAVE_PB_BOTH==1
+    if (!set_has_event)
+    {
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        /* Add more level sets when products bought. */
+
+        if ((strcmp(filename, "set-easy.txt") != 0 &&
+            strcmp(filename, "set-medium.txt") != 0 &&
+            strcmp(filename, "set-hard.txt") != 0 &&
+            strcmp(filename, "set-mym.txt") != 0 &&
+            strcmp(filename, "set-mym2.txt") != 0 &&
+            strcmp(filename, "set-fwp.txt") != 0 &&
+            strcmp(filename, "set-tones.txt") != 0 &&
+            strcmp(filename, SET_MISC) != 0) &&
+            (!account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
+             !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET)))
+            return 0;
 #else
-    if ((strcmp(filename, "set-easy.txt")   != 0 &&
-         strcmp(filename, "set-medium.txt") != 0 &&
-         strcmp(filename, "set-hard.txt")   != 0 &&
-         strcmp(filename, "set-mym.txt")    != 0 &&
-         strcmp(filename, "set-mym2.txt")   != 0 &&
-         strcmp(filename, "set-fwp.txt")    != 0 &&
-         strcmp(filename, "set-tones.txt")  != 0 &&
-         strcmp(filename, SET_MISC)         != 0) &&
-        !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))
-        return 0;
+        if ((strcmp(filename, "set-easy.txt") != 0 &&
+            strcmp(filename, "set-medium.txt") != 0 &&
+            strcmp(filename, "set-hard.txt") != 0 &&
+            strcmp(filename, "set-mym.txt") != 0 &&
+            strcmp(filename, "set-mym2.txt") != 0 &&
+            strcmp(filename, "set-fwp.txt") != 0 &&
+            strcmp(filename, "set-tones.txt") != 0 &&
+            strcmp(filename, SET_MISC) != 0) &&
+            !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))
+            return 0;
 #endif
+    }
 
     /* Limited offered region only */
 
@@ -505,12 +513,12 @@ static int set_load(struct set *s, const char *filename)
              strcmp(config_get_s(CONFIG_LANGUAGE), "jp") != 0))
         {
 #ifdef __EMSCRIPTEN__
-            if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+            if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
 #endif
                 return 0;
         }
 #ifdef __EMSCRIPTEN__
-        else if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+        else if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
             return 0;
 #endif
     }
@@ -520,26 +528,34 @@ static int set_load(struct set *s, const char *filename)
     if ((str_starts_with(filename, "set-valentine") &&
          str_ends_with  (filename, ".txt")) &&
         curr_date_month != 2 &&
-        !config_cheat())
+        !config_cheat()){
+        log_errorf("Valentine is not available outside month February. (Current month: %d)\n", curr_date_month);
         return 0;
+    }
 
     if ((str_starts_with(filename, "set-freeland") &&
         str_ends_with(filename, ".txt")) &&
         curr_date_month != 5 &&
-        !config_cheat())
+        !config_cheat()){
+        log_errorf("Freeland is not available outside month May. (Current month: %d)\n", curr_date_month);
         return 0;
+    }
 
     if ((str_starts_with(filename, "set-halloween") &&
          str_ends_with  (filename, ".txt")) &&
         curr_date_month != 10 &&
-        !config_cheat())
+        !config_cheat()){
+        log_errorf("Halloween is not available outside month October. (Current month: %d)\n", curr_date_month);
         return 0;
+    }
 
     if ((str_starts_with(filename, "set-christmas") &&
          str_ends_with  (filename, ".txt")) &&
         curr_date_month != 12 &&
-        !config_cheat())
+        !config_cheat()){
+        log_errorf("Christmas is not available outside month December. (Current month: %d)\n", curr_date_month);
         return 0;
+    }
 #endif
 
     if (!(fin = fs_open_read(filename)))

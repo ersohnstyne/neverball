@@ -524,6 +524,14 @@ static int fail_gui(void)
                         gui_multi(jd, FAIL_ERROR_SERVER_POLICY_SHOP,
                                       GUI_SML, GUI_COLOR_RED);
                     }
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+                    else if (progress_dead() && !wgcl_account_sync_done)
+                    {
+                        try_shatter_snd = 1;
+                        gui_multi(jd, _("Please login to buy more balls!"),
+                                      GUI_SML, GUI_COLOR_RED);
+                    }
+#endif
                     else if (progress_dead() &&
                              server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                     {
@@ -533,13 +541,6 @@ static int fail_gui(void)
 #else
                     if (progress_dead())
                     {
-                        if (curr_mode() != MODE_CHALLENGE &&
-                            curr_mode() != MODE_BOOST_RUSH
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                         && curr_mode() != MODE_HARDCORE
-#endif
-                            )
-                            audio_music_fade_out(0.0f);
                         try_shatter_snd = 1;
                         gui_multi(jd, FAIL_TRANSFER_MEMBER_1, GUI_SML, GUI_COLOR_RED);
                     }
@@ -608,7 +609,7 @@ static int fail_gui(void)
                     else if (progress_dead() &&
                              (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                               server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
-                        gui_state(jd, _("Buy more balls!"),
+                        gui_state(jd, _("Buy balls!"),
                                       GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
                     else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                              progress_dead())
@@ -644,7 +645,7 @@ static int fail_gui(void)
                     else if (progress_dead() &&
                              (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                               server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
-                        gui_state(jd, _("Buy more balls!"),
+                        gui_state(jd, _("Buy balls!"),
                                       GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
                     else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                              progress_dead())
@@ -694,7 +695,7 @@ static int fail_gui(void)
 #endif
                     else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                              server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-                        gui_state(jd, _("Buy more balls!"),
+                        gui_state(jd, _("Buy balls!"),
                                       GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
                     else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                         gui_state(jd, _("Upgrade edition!"),
@@ -1250,7 +1251,7 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
 #else
             if (gemswallet >= 15)
 #endif
-                gui_title_header(id, _("Buy more balls?"), GUI_MED, gui_gry, gui_red);
+                gui_title_header(id, _("Buy balls?"), GUI_MED, gui_gry, gui_red);
             else if (allow_raisegems)
                 gui_title_header(id, _("Raise gems!"), GUI_MED, gui_gry, gui_red);
             else

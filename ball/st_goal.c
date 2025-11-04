@@ -238,7 +238,7 @@ static int goal_gui(void)
         }
     }
 
-    root_id = !console_gui_shown() ? gui_root() : 0;
+    root_id = !console_gui_shown() && progress_next_avail() && !progress_done() ? gui_root() : 0;
 
     //if ((root_id = gui_root()))
     {

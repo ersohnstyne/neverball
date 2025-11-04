@@ -2121,7 +2121,7 @@ static int game_step(const float g[3], float dt, int bt)
                 float k = (b - 0.5f) * 2.0f;
 
 #ifdef __EMSCRIPTEN__
-                EM_ASM({ Neverball.events.vibrateGamepad($0, $1); }, k, 0.2f);
+                EM_ASM({ Neverball.events.vibratePhone($1); Neverball.events.vibrateGamepad($0, $1); }, k, 0.2f);
 #endif
 
                 if      (vary.uv->r > vary.uv->sizes[1]) audio_play(AUD_BUMPL, k);

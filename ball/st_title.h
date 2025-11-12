@@ -83,6 +83,7 @@
 /* For Nintendo */
 
 #define TITLE_PLATFORM_SWITCH  _("Nintendo Switch")
+#define TITLE_PLATFORM_SWITCH2 _("Nintendo Switch 2")
 #define TITLE_PLATFORM_WII     _("Wii")
 #define TITLE_PLATFORM_WIIU    _("Wii U")
 
@@ -104,5 +105,7 @@
 extern struct state st_title;
 
 int load_title_background(void);
+
+int title_check_wgcl(void);
 
 #endif

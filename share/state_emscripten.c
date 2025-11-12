@@ -12,7 +12,9 @@
  * General Public License for more details.
  */
 
-#ifndef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#else
 #error Only Emscripten SDK to be compiled with it!
 #endif
 
@@ -49,6 +51,17 @@ void st_stick_emscripten(int a, int vh)
         case 3: _a = 4; break;
     }
 
+#ifdef __EMSCRIPTEN__
+    if (EM_ASM_INT({ try { return wgclgame_hud_gamemenu_ringpad_menu_locked ? 0 : 1; } catch (e) { return 0; } }))
+    {
+        if (a == 0 && vh < -0.2f)
+            EM_ASM({ CoreLauncher_WGCLGame_MainMenu_RingPad_RotateLeft(); });
+
+        if (a == 0 && vh > 0.2f)
+            EM_ASM({ CoreLauncher_WGCLGame_MainMenu_RingPad_RotateRight(); });
+    }
+    else
+#endif
     if (_a != -1)
         st_stick(_a, (float) (vh / 100.f));
 }
@@ -73,10 +86,32 @@ void st_buttn_emscripten(int b, int d)
     }
 
     if (_b != -1)
+    {
+#ifdef __EMSCRIPTEN__
+        if (EM_ASM_INT({ try { return wgclgame_hud_gamemenu_ringpad_menu_locked ? 0 : 1; } catch (e) { return 0; } }))
+        {
+            switch (_b) {
+                case 0:
+                    EM_ASM({ CoreLauncher_WGCLGame_MainMenu_RingPad_PerformAction(wgclgame_hud_gamemenu_ringpad_menu_state, wgclgame_hud_gamemenu_ringpad_menubtn_index); });
+                    break;
+                case 1:
+                    EM_ASM({ CoreLauncher_WGCLGame_MainMenu_RingPad_PerformBackBtnClicked(); });
+                    break;
+                case 4:
+                    EM_ASM({ CoreLauncher_WGCLGame_MainMenu_RingPad_RotateLeft(); });
+                    break;
+                case 6:
+                    EM_ASM({ CoreLauncher_WGCLGame_MainMenu_RingPad_RotateRight(); });
+                    break;
+            }
+        }
+        else
+#endif
         if (!st_buttn(b, d)) {
             SDL_Event e = { SDL_QUIT };
             SDL_PushEvent(&e);
         }
+    }
 }
 
 void st_dpad_emscripten(int b, int d)
@@ -90,8 +125,24 @@ void st_dpad_emscripten(int b, int d)
 
     const int p[4] = { st_dpad_btn_left, st_dpad_btn_right, st_dpad_btn_up, st_dpad_btn_down };
 
+#ifdef __EMSCRIPTEN__
+    if (EM_ASM_INT({ try { return wgclgame_hud_gamemenu_ringpad_menu_locked ? 0 : 1; } catch (e) { return 0; } }))
+    {
+        switch (b) {
+            case 14:
+                EM_ASM({ CoreLauncher_WGCLGame_MainMenu_RingPad_RotateLeft(); });
+                break;
+            case 15:
+                EM_ASM({ CoreLauncher_WGCLGame_MainMenu_RingPad_RotateRight(); });
+                break;
+        }
+    }
+    else
+#endif
     if (!st_dpad(b, d, p)) {
         SDL_Event e = { SDL_QUIT };
         SDL_PushEvent(&e);
     }
 }
+
+/*---------------------------------------------------------------------------*/

@@ -587,8 +587,8 @@ static int title_action(int tok, int val)
             }
             else if (current_platform == PLATFORM_SWITCH)
             {
-                sprintf(dev_env, _("%s Edition / %s"), TITLE_PLATFORM_SWITCH, _("Developer Mode"));
-                sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_SWITCH);
+                sprintf(dev_env, _("%s Edition / %s"), TITLE_PLATFORM_SWITCH2, _("Developer Mode"));
+                sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_SWITCH2);
             }
             else if (current_platform == PLATFORM_WII)
             {
@@ -729,6 +729,48 @@ static int title_action(int tok, int val)
     return 1;
 }
 
+static int title_gui_wgcl_version_enabled;
+
+int title_check_wgcl(void)
+{
+    if (title_lockscreen) return 0;
+
+    title_gui_wgcl_version_enabled = 0;
+
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    items = demo_dir_scan();
+    const int demo_count = array_len(items);
+
+    demo_dir_free(items);
+
+    const int wgcl_gui_done = EM_ASM_INT({
+        var _wgclgame_mainmenu_created = false;
+        try {
+            wgclgame_hud_gamemenu_ringpad_replaycount            = $0;
+            wgclgame_hud_gamemenu_ringpad_mainmenu_havepremium   = $1 >= 0;
+            wgclgame_hud_gamemenu_ringpad_mainmenu_shopavailable = $1 >= 0 && $2 != 0;
+            CoreLauncher_WGCLGame_MainMenu_Screenstate_InitMainMenu(wgclgame_hud_gamemenu_ringpad_mainmenu_havepremium, wgclgame_hud_gamemenu_ringpad_mainmenu_shopavailable, wgclgame_hud_gamemenu_ringpad_replaycount > 0);
+            _wgclgame_mainmenu_created = true;
+        } catch (e) {}
+
+        return _wgclgame_mainmenu_created ? 1 : 0;
+    }, demo_count, server_policy_get_d(SERVER_POLICY_EDITION), server_policy_get_d(SERVER_POLICY_SHOP_ENABLED));
+
+    return (title_gui_wgcl_version_enabled = wgcl_gui_done);
+#else
+    /* No WGCL website available. */
+
+    return 0;
+#endif
+}
+
+static int title_gui_wgcl(void)
+{
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+#endif
+    return 0;
+}
+
 static int title_gui(void)
 {
     int root_id, id, jd;
@@ -795,8 +837,8 @@ static int title_gui(void)
             else if (current_platform == PLATFORM_SWITCH)
             {
                 sprintf(dev_env, _("%s Edition / %s"),
-                        TITLE_PLATFORM_SWITCH, _("Developer Mode"));
-                sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_SWITCH);
+                        TITLE_PLATFORM_SWITCH2, _("Developer Mode"));
+                sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_SWITCH2);
             }
             else if (current_platform == PLATFORM_WII)
             {
@@ -1254,8 +1296,10 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
     title_lockscreen = title_can_unlock;
 
+    const int title_gui_main = title_check_wgcl() ? title_gui_wgcl() : title_gui();
+
     if (prev == &st_title)
-        return title_gui();
+        return title_gui_main;
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
     if (title_lockscreen)
@@ -1307,13 +1351,15 @@ static int title_enter(struct state *st, struct state *prev, int intent)
     real_time = 0.0f;
 
     if (intent == INTENT_BACK)
-        return transition_slide(title_gui(), 1, intent);
+        return transition_slide(title_gui_main, 1, intent);
 
-    return title_gui();
+    return title_gui_main;
 }
 
 static int title_leave(struct state *st, struct state *next, int id, int intent)
 {
+    title_gui_wgcl_version_enabled = 0;
+
     if (title_lockscreen && next == &st_title)
     {
         if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
@@ -1506,7 +1552,7 @@ static void title_timer(int id, float dt)
 
 static void title_point(int id, int x, int y, int dx, int dy)
 {
-    if (title_lockscreen) return;
+    if (title_lockscreen || title_gui_wgcl_version_enabled) return;
 
     int jd;
 
@@ -1518,7 +1564,7 @@ static void title_point(int id, int x, int y, int dx, int dy)
 
 static void title_stick(int id, int a, float v, int bump)
 {
-    if (!title_lockscreen)
+    if (!title_lockscreen && !title_gui_wgcl_version_enabled)
         gui_pulse(gui_stick(id, a, v, bump), 1.2f);
 }
 
@@ -1551,7 +1597,7 @@ static int title_click(int b, int d)
 
 static int title_keybd(int c, int d)
 {
-    if (title_lockscreen) return 1;
+    if (title_lockscreen || title_gui_wgcl_version_enabled) return 1;
 
     if (d)
     {
@@ -1578,6 +1624,8 @@ static int title_keybd(int c, int d)
 
 static int title_buttn(int b, int d)
 {
+    if (title_gui_wgcl_version_enabled) return 1;
+
     /* Lockscreen menu */
 
     if (title_lockscreen)

@@ -167,14 +167,19 @@ static void game_run_cmd(const union cmd *cmd)
 
                 if ((idx = cmd->pkitem.hi) >= 0 && idx < vary->hc)
                 {
-                    float p[3];
+                    /* Don't spawn the particles at first update! */
 
-                    hp = &vary->hv[idx];
+                    if (!cs.first_update)
+                    {
+                        float p[3];
 
-                    sol_entity_world(p, vary, hp->mi, hp->mj, hp->p);
+                        hp = &vary->hv[idx];
 
-                    item_color(hp, v);
-                    part_burst(p, v);
+                        sol_entity_world(p, vary, hp->mi, hp->mj, hp->p);
+
+                        item_color(hp, v);
+                        part_burst(p, v);
+                    }
 
                     hp->t = ITEM_NONE;
                 }
@@ -250,7 +255,9 @@ static void game_run_cmd(const union cmd *cmd)
             case CMD_STATUS:
                 status = cmd->status.t;
 
-                if (status == GAME_GOAL)
+                /* Don't spawn the particles at first update! */
+
+                if (status == GAME_GOAL && !cs.first_update)
                     part_goal(gl.lerp.uv[0][0].p);
 
                 break;

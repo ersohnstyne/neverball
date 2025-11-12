@@ -394,6 +394,16 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
         v_cpy(hp->p, last_hp->p);
         hp->t = last_hp->t;
         hp->n = last_hp->n;
+
+        if (last_hp->t == ITEM_NONE)
+        {
+            if (cmd_func)
+            {
+                union cmd cmd = { CMD_PICK_ITEM };
+                cmd.pkitem.hi = resetidx;
+                cmd_func(&cmd);
+            }
+        }
     }
 
     /* Restored from the checkpoints (switch) */

@@ -96,7 +96,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;WIN32;_CONSOLE;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -105,7 +105,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
@@ -131,7 +131,7 @@ del "$(SolutionDir)share\*.o"</Command>
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;_CONSOLE;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -142,7 +142,7 @@ del "$(SolutionDir)share\*.o"</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x86-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
@@ -166,7 +166,7 @@ del "$(SolutionDir)share\*.o"</Command>
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;_CONSOLE;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -175,7 +175,7 @@ del "$(SolutionDir)share\*.o"</Command>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
@@ -201,7 +201,7 @@ del "$(SolutionDir)share\*.o"</Command>
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;_CONSOLE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -212,7 +212,7 @@ del "$(SolutionDir)share\*.o"</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2022_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\backup\ersohn\Downloads\SDK\cURL\curl-7.87.0\builds\libcurl-vc17-x64-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
@@ -245,6 +245,7 @@ del "$(SolutionDir)share\*.o"</Command>
     <ClCompile Include="..\share\list.c" />
     <ClCompile Include="..\share\log.c" />
     <ClCompile Include="..\share\mapc.c" />
+    <ClCompile Include="..\share\mapclib.c" />
     <ClCompile Include="..\share\miniz.c" />
     <ClCompile Include="..\share\solid_base.c" />
     <ClCompile Include="..\share\vec3.c" />

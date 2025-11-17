@@ -38,6 +38,10 @@
 void transition_init(void);
 void transition_quit(void);
 
+/*
+ * This screenstate transition will be replaced into the transition_add_full.
+ * Your functions will be replaced using two parameters.
+ */
 _CRT_NB_TRANSITION_DEPRECATED(void, (int id), transition_add, transition_add_full);
 
 void transition_add_full(int id, int flags);

@@ -1589,6 +1589,8 @@ static int title_click(int b, int d)
         title_can_unlock = 0;
         return goto_state(&st_title);
     }
+    else if (!title_lockscreen && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return title_keybd(KEY_EXIT, d);
     else if (gui_click(b, d) && !title_lockscreen)
         return st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 

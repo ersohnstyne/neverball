@@ -61,6 +61,8 @@
 int game_compat_map;                    /* Client/server map compat flag     */
 int game_compat_campaign;               /* Campaign compat flag              */
 
+static int game_status_goal;
+
 /*---------------------------------------------------------------------------*/
 
 #define CURR 0
@@ -88,7 +90,7 @@ static void game_run_cmd(const union cmd *cmd)
         struct game_tilt *tilt = &gl.tilt[CURR];
 
         struct s_vary *vary = &gd.vary;
-        struct v_item *hp;
+        struct v_item *hp   = NULL;
 
         float v[4];
         float dt;
@@ -126,6 +128,8 @@ static void game_run_cmd(const union cmd *cmd)
                     game_tilt_grav(v, GRAVITY_PY, tilt);
                 else
                     game_tilt_grav(v, GRAVITY_NY, tilt);
+
+                game_status_goal = status == GAME_GOAL;
 
                 /* Step particle, goal and jump effects. */
 
@@ -173,15 +177,18 @@ static void game_run_cmd(const union cmd *cmd)
                     {
                         float p[3];
 
-                        hp = &vary->hv[idx];
+                        hp = vary->hv + idx;
 
-                        sol_entity_world(p, vary, hp->mi, hp->mj, hp->p);
+                        if (hp)
+                        {
+                            sol_entity_world(p, vary, hp->mi, hp->mj, hp->p);
 
-                        item_color(hp, v);
-                        part_burst(p, v);
+                            item_color(hp, v);
+                            part_burst(p, v);
+                        }
                     }
 
-                    hp->t = ITEM_NONE;
+                    if (hp) hp->t = ITEM_NONE;
                 }
                 break;
 
@@ -218,7 +225,7 @@ static void game_run_cmd(const union cmd *cmd)
             case CMD_SOUND:
                 /* Play the sound. */
 
-                if (cmd->sound.n)
+                if (!game_status_goal && cmd->sound.n)
                 {
 #if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
                     if (strcmp(AUD_TIME, cmd->sound.n) == 0 ||
@@ -630,8 +637,9 @@ int game_client_init_moon_taskloader(const char *file_name,
 #else
     coins  = 0;
 #endif
-    speedometer = 0;
-    status = GAME_NONE;
+    speedometer      = 0;
+    status           = GAME_NONE;
+    game_status_goal = 0;
 
     struct game_moon_taskloader_info *mtli = game_create_mtli();
 
@@ -671,8 +679,9 @@ int  game_client_init(const char *file_name)
 #else
     coins  = 0;
 #endif
-    speedometer = 0;
-    status = GAME_NONE;
+    speedometer      = 0;
+    status           = GAME_NONE;
+    game_status_goal = 0;
 
     game_client_free(file_name);
 

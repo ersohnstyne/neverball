@@ -128,6 +128,7 @@ int CONFIG_MOUSE_CAMERA_3;
 int CONFIG_MOUSE_CAMERA_TOGGLE;
 int CONFIG_MOUSE_CAMERA_L;
 int CONFIG_MOUSE_CAMERA_R;
+int CONFIG_MOUSE_CANCEL_MENU;
 int CONFIG_NICE;
 int CONFIG_FPS;
 int CONFIG_MASTER_VOLUME;
@@ -296,6 +297,7 @@ static struct
     { &CONFIG_MOUSE_CAMERA_TOGGLE, "mouse_camera_toggle", SDL_BUTTON_MIDDLE },
     { &CONFIG_MOUSE_CAMERA_L,      "mouse_camera_l",      SDL_BUTTON_LEFT },
     { &CONFIG_MOUSE_CAMERA_R,      "mouse_camera_r",      SDL_BUTTON_RIGHT },
+    { &CONFIG_MOUSE_CANCEL_MENU,   "mouse_cancel_menu",   SDL_BUTTON_X1 },
 
     { &CONFIG_NICE,             "nice",            0 },
     { &CONFIG_FPS,              "fps",             0 },
@@ -744,7 +746,8 @@ void config_load(void)
                             i == CONFIG_MOUSE_CAMERA_3      ||
                             i == CONFIG_MOUSE_CAMERA_TOGGLE ||
                             i == CONFIG_MOUSE_CAMERA_L      ||
-                            i == CONFIG_MOUSE_CAMERA_R)
+                            i == CONFIG_MOUSE_CAMERA_R      ||
+                            i == CONFIG_MOUSE_CANCEL_MENU)
                             config_mouse(val, i);
                         else if (i == CONFIG_KEY_FORWARD       ||
                                  i == CONFIG_KEY_BACKWARD      ||
@@ -855,7 +858,8 @@ void config_save(void)
                 i == CONFIG_MOUSE_CAMERA_3      ||
                 i == CONFIG_MOUSE_CAMERA_TOGGLE ||
                 i == CONFIG_MOUSE_CAMERA_L      ||
-                i == CONFIG_MOUSE_CAMERA_R)
+                i == CONFIG_MOUSE_CAMERA_R      ||
+                i == CONFIG_MOUSE_CANCEL_MENU)
                 s = config_mouse_name(option_d[i].cur);
             else if (i == CONFIG_KEY_FORWARD       ||
                      i == CONFIG_KEY_BACKWARD      ||

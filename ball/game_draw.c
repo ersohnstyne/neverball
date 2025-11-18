@@ -776,8 +776,7 @@ static void game_draw_back(struct s_rend *rend,
     if (video_can_swap_window && !motionblur_refl_allow_draw_back)
         return;
 
-    if (config_get_d(CONFIG_MOTIONBLUR))
-        video_can_swap_window = 1;
+    video_can_swap_window = 1;
 #endif
 
     if (pose == POSE_BALL)

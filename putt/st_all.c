@@ -610,6 +610,9 @@ static void title_timer(int id, float dt)
 
 static int title_click(int b, int d)
 {
+    if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return title_action(TITLE_EXIT, 0);
+
     return gui_click(b, d) ? title_action(gui_token(gui_active())) : 1;
 }
 
@@ -700,6 +703,9 @@ static void help_stick(int id, int a, float v, int bump)
 
 static int help_click(int b, int d)
 {
+    if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return help_action(HELP_BACK);
+
     return gui_click(b, d) ? help_action(gui_token(gui_active())) : 1;
 }
 
@@ -905,6 +911,9 @@ static void course_stick(int id, int a, float v, int bump)
 
 static int course_click(int b, int d)
 {
+    if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return course_action(HELP_BACK);
+
     return gui_click(b, d) ? course_action(gui_token(gui_active())) : 1;
 }
 
@@ -1030,6 +1039,9 @@ static void party_paint(int id, float t)
 
 static int party_click(int b, int d)
 {
+    if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return party_action(PARTY_B);
+
     return gui_click(b, d) ? party_action(gui_token(gui_active())) : 1;
 }
 
@@ -1172,7 +1184,10 @@ static void controltype_timer(int id, float dt)
 
 static int controltype_click(int b, int d)
 {
-    return gui_click(b, d) ? party_action(gui_token(gui_active())) : 1;
+    if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return controltype_action(PARTY_B);
+
+    return gui_click(b, d) ? controltype_action(gui_token(gui_active())) : 1;
 }
 
 static int controltype_keybd(int c, int d)
@@ -1335,6 +1350,9 @@ static void pause_paint(int id, float t)
 
 static int pause_click(int b, int d)
 {
+    if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return pause_action(PAUSE_CONTINUE);
+
     return gui_click(b, d) ? pause_action(gui_token(gui_active())) : 1;
 }
 

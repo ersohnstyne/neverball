@@ -999,7 +999,7 @@ static int start_unavailable_enter(struct state *st, struct state *prev, int int
 
 static int start_unavailable_click(int b, int d)
 {
-    if (b == SDL_BUTTON_LEFT && d == 1)
+    if (d && (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b) || b == SDL_BUTTON_LEFT))
         return exit_state(&st_start);
 
     return 1;

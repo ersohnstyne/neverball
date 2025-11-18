@@ -1421,9 +1421,9 @@ int  progress_replay_full(const char *filename,
                          in_game && tt ? tt : (in_game ? &curr.times : 0),
                          &curr.speedpercent))
     {
-        goal_i = g ? (*g) : goal;
-
-        replay = 1;
+        goal_i  = g ? (*g) : goal;
+        replay  = 1;
+        loading = 0;
         return 1;
     }
     else

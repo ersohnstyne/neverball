@@ -358,6 +358,9 @@ static void over_timer(int id, float dt)
 #ifndef LEADERBOARD_ALLOWANCE
 static int over_click(int b, int d)
 {
+    if (d && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return exit_state(&st_start);
+
     return (b == SDL_BUTTON_LEFT && d == 1) ? exit_state(&st_start) : 1;
 }
 #endif

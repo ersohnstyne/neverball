@@ -82,6 +82,7 @@ extern int CONFIG_MOUSE_CAMERA_3;
 extern int CONFIG_MOUSE_CAMERA_TOGGLE;
 extern int CONFIG_MOUSE_CAMERA_L;
 extern int CONFIG_MOUSE_CAMERA_R;
+extern int CONFIG_MOUSE_CANCEL_MENU;
 extern int CONFIG_NICE;
 extern int CONFIG_FPS;
 extern int CONFIG_MASTER_VOLUME;

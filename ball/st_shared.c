@@ -105,6 +105,9 @@ int shared_click_basic(int b, int d)
 {
     /* Activate on left click. */
 
+    if (d && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return st_keybd(KEY_EXIT, d);
+
     return (b == SDL_BUTTON_LEFT && d) ?
            st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
 }
@@ -112,6 +115,9 @@ int shared_click_basic(int b, int d)
 int shared_click(int b, int d)
 {
     /* Activate based on GUI state. */
+
+    if (d && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return st_keybd(KEY_EXIT, d);
 
     return gui_click(b, d) ?
            st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;

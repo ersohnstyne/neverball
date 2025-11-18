@@ -1387,11 +1387,25 @@ static int help_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
+#define ST_HELP_DEMO_SMOOTH_FIX_TIMER(time_total) \
+    if (config_get_d(CONFIG_SMOOTH_FIX) &&        \
+        video_perf() < NB_FRAMERATE_MIN) {        \
+        time_total += dt;                         \
+        if (time_total >= 10) {                   \
+            config_set_d(CONFIG_SMOOTH_FIX,       \
+                         config_get_d(CONFIG_FORCE_SMOOTH_FIX));\
+            time_total = 0; } }                   \
+    else time_total = 0
+
+static float smoothfix_slowdown_time;
+
 static int demo_freeze_all;
 
 static int help_demo_enter(struct state *st, struct state *prev, int intent)
 {
-    demo_freeze_all = 0;
+    demo_freeze_all         = 0;
+    smoothfix_slowdown_time = 0;
+
     game_client_fly(0.0f);
     return 0;
 }
@@ -1413,6 +1427,8 @@ static void help_demo_paint(int id, float t)
 
 static void help_demo_timer(int id, float dt)
 {
+    ST_HELP_DEMO_SMOOTH_FIX_TIMER(smoothfix_slowdown_time);
+
     game_step_fade(dt);
 
     if (!demo_freeze_all)
@@ -1477,7 +1493,7 @@ struct state st_help_demo = {
     NULL,
     NULL,
     NULL,
-    NULL,
+    shared_click,
     help_demo_keybd,
     help_demo_buttn
 };

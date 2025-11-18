@@ -352,6 +352,9 @@ void common_stick(int id, int a, float v, int bump)
 
 int common_click(int b, int d)
 {
+    if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return common_action(GUI_BACK, 0);
+
     if (gui_click(b, d))
     {
         int active = gui_active();

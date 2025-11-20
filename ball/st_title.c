@@ -30,6 +30,7 @@
 #include "config_wgcl.h"
 #endif
 
+#include "state.h"
 #include "base_config.h"
 #include "common.h"
 #include "gui.h"
@@ -738,10 +739,13 @@ int title_check_wgcl(void)
     title_gui_wgcl_version_enabled = 0;
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    /* HACK: Faster way! - Ersohn Styne */
     items = demo_dir_scan();
+
     const int demo_count = array_len(items);
 
     demo_dir_free(items);
+    items = NULL;
 
     const int wgcl_gui_done = EM_ASM_INT({
         var _wgclgame_mainmenu_created = false;
@@ -1385,11 +1389,7 @@ static int title_leave(struct state *st, struct state *next, int id, int intent)
 
     demo_replay_stop(0);
 
-    if (items)
-    {
-        demo_dir_free(items);
-        items = NULL;
-    }
+    /* HACK: Faster way! - Ersohn Styne */
 
     game_proxy_filter(NULL);
 
@@ -1457,11 +1457,7 @@ static void title_timer(int id, float dt)
 
             if (real_time > 1.0f && !title_prequit && !st_global_animating())
             {
-                if (items)
-                {
-                    demo_dir_free(items);
-                    items = NULL;
-                }
+                /* HACK: Faster way! */
 
                 items = demo_dir_scan();
 
@@ -1501,6 +1497,14 @@ static void title_timer(int id, float dt)
                     mode = TITLE_MODE_LEVEL;
                 else
                     mode = TITLE_MODE_NONE;
+
+                /* HACK: Faster way! - Ersohn Styne */
+
+                if (items)
+                {
+                    demo_dir_free(items);
+                    items = NULL;
+                }
             }
             break;
 
@@ -1589,8 +1593,10 @@ static int title_click(int b, int d)
         title_can_unlock = 0;
         return goto_state(&st_title);
     }
+#ifndef __EMSCRIPTEN__
     else if (!title_lockscreen && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
-        return title_keybd(KEY_EXIT, d);
+        return st_keybd(KEY_EXIT, d);
+#endif
     else if (gui_click(b, d) && !title_lockscreen)
         return st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 

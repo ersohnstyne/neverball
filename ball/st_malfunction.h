@@ -36,6 +36,6 @@ extern int fwindow_downcounter[13];
 int check_malfunctions(void);
 int check_handsoff(void);
 
-int goto_handsoff(struct state *);
+int goto_handsoff(struct state *back);
 
 #endif

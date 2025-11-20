@@ -36,10 +36,18 @@
  * That's what all this is for.
  */
 
-/* Widget IDs with exit animations. */
-static int widget_ids[16];
+#define MAX_WIDGET_IDS 16
 
-static int widget_flags_ids[16];
+#define FORLOOP_CHECK_LIMITS(_id)                             \
+    do if (_id < 0 || _id > MAX_WIDGET_IDS) {                 \
+        log_errorf("Widget index out of bounds!: %d\n", _id); \
+        break;                                                \
+    } while (0)
+
+/* Widget IDs with exit animations. */
+static int widget_ids[MAX_WIDGET_IDS];
+
+static int widget_flags_ids[MAX_WIDGET_IDS];
 
 /*---------------------------------------------------------------------------*/
 
@@ -61,6 +69,7 @@ void transition_add(int id)
 void transition_add_full(int id, int flags)
 {
     int i;
+    int done = 0;
 
     /*
      * HACK: Sollte diesen alten GUI flags vor dem erstellen eines Übergang
@@ -68,24 +77,33 @@ void transition_add_full(int id, int flags)
      * - Ersohn Styne
      */
 
-    /*for (i = 0; i < ARRAYSIZE(widget_ids); ++i)
+    for (i = 0; i < ARRAYSIZE(widget_flags_ids); ++i)
+    {
+        FORLOOP_CHECK_LIMITS(i);
+
         if (widget_flags_ids[i] | GUI_REMOVE)
         {
             gui_remove(widget_ids[i]);
             widget_flags_ids[i] = 0;
-        }*/
+        }
+    }
 
     for (i = 0; i < ARRAYSIZE(widget_ids); ++i)
+    {
+        FORLOOP_CHECK_LIMITS(i);
+
         if (!widget_ids[i])
         {
-            widget_ids[i]       = id;
+            widget_ids[i] = id;
             widget_flags_ids[i] = flags;
+            done = 1;
             break;
         }
+    }
 
-    if (i == ARRAYSIZE(widget_ids))
+    if (i == ARRAYSIZE(widget_ids) || !done)
     {
-        log_printf("Out of transition slots\n");
+        log_errorf("Out of transition slots\n");
 
         gui_remove(id);
     }
@@ -96,11 +114,15 @@ void transition_remove(int id)
     int i;
 
     for (i = 0; i < ARRAYSIZE(widget_ids); ++i)
+    {
+        FORLOOP_CHECK_LIMITS(i);
+
         if (widget_ids[i] == id)
         {
             widget_ids[i] = 0;
             break;
         }
+    }
 }
 
 void transition_timer(float dt)
@@ -108,8 +130,12 @@ void transition_timer(float dt)
     int i;
 
     for (i = 0; i < ARRAYSIZE(widget_ids); ++i)
+    {
+        FORLOOP_CHECK_LIMITS(i);
+
         if (widget_ids[i])
             gui_timer(widget_ids[i], dt);
+    }
 }
 
 void transition_paint(void)
@@ -117,8 +143,12 @@ void transition_paint(void)
     int i;
 
     for (i = 0; i < ARRAYSIZE(widget_ids); ++i)
+    {
+        FORLOOP_CHECK_LIMITS(i);
+
         if (widget_ids[i])
             gui_paint(widget_ids[i]);
+    }
 }
 
 /*---------------------------------------------------------------------------*/

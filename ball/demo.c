@@ -212,6 +212,28 @@ int demo_load(struct demo *d, const char *path)
 
 void demo_free(struct demo *d)
 {
+    if (d) {
+        /* HACK: Just kick... ! - Ersohn Styne */
+
+        memset(d->path,   0, sizeof (d->path));
+        memset(d->name,   0, sizeof (d->path));
+        memset(d->player, 0, sizeof (d->path));
+        memset(d->shot,   0, sizeof (d->path));
+        memset(d->file,   0, sizeof (d->path));
+
+        d->timer  = 0;
+        d->coins  = 0;
+        d->status = 0;
+        d->mode   = 0;
+
+        d->time         = 0;
+        d->score        = 0;
+        d->balls        = 0;
+        d->times        = 0;
+        d->speedpercent = 0;
+
+        memset(d, 0, sizeof (*d));
+    }
 }
 
 /*---------------------------------------------------------------------------*/

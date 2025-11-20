@@ -1486,7 +1486,11 @@ static int demo_play_click(int b, int d)
             game_proxy_filter(filter_cmd);
             audio_music_fade_out(0.2f);
         }
+#ifndef __EMSCRIPTEN__
         else if (b == SDL_BUTTON_LEFT || config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+#else
+        else if (b == SDL_BUTTON_LEFT)
+#endif
             return demo_pause_goto(1);
     }
     else if (time_state() > prelude)

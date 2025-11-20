@@ -15,13 +15,15 @@
 #ifndef CONFIG_WGCL_H
 #define CONFIG_WGCL_H
 
+#include "state.h"
+
 #ifdef __EMSCRIPTEN__
 #define CONFIG_WGCL_GAME_OPTIONS
 #endif
 
 extern int WGCL_GameOptions_Exists;
 
-void WGCL_InitGameOptions(struct state *);
+void WGCL_InitGameOptions(struct state *returnable);
 void WGCL_QuitGameOptions(void);
 void WGCL_BackToGameOptions(const char *);
 

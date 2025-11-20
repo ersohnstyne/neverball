@@ -133,9 +133,9 @@ static int   anim_done  = 0;
 
 static float         state_time;
 static int           state_drawn;
-static struct state *state;
+static struct state *state = NULL;
 
-static struct state *anim_queue_state;
+static struct state *anim_queue_state = NULL;
 static int           anim_queue_allowskip;
 static int           anim_queue_intent;
 static int           anim_queue_directions[2];
@@ -171,6 +171,12 @@ int goto_state_full_intent(struct state *st,
     int r           = 1;
     int prev_gui_id = 0;
     struct state *prev = state;
+
+    if (!st)
+    {
+        log_errorf("st returned 0!\n");
+        return 0;
+    }
 
     anim_queue_state         = st;
     anim_queue_directions[0] = fromdirection;
@@ -238,11 +244,11 @@ int goto_state_full_intent(struct state *st,
 
     if (anim_queue_state != NULL)
     {
-        int r = goto_state_full_intent(anim_queue_state,
-                                       anim_queue_directions[0],
-                                       anim_queue_directions[1],
-                                       anim_queue_allowskip,
-                                       anim_queue_intent);
+        int r1 = goto_state_full_intent(anim_queue_state,
+                                        anim_queue_directions[0],
+                                        anim_queue_directions[1],
+                                        anim_queue_allowskip,
+                                        anim_queue_intent);
 
         anim_queue_state         = NULL;
         anim_queue_directions[0] = 0;
@@ -250,7 +256,7 @@ int goto_state_full_intent(struct state *st,
         anim_queue_allowskip     = 0;
         anim_queue_intent        = -1;
 
-        if (!r) {
+        if (!r1) {
             SDL_Event e = { SDL_QUIT };
             SDL_PushEvent(&e);
         }

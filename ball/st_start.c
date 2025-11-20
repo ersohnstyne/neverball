@@ -29,6 +29,7 @@
 #include "st_intro_covid.h"
 #endif
 
+#include "state.h"
 #include "gui.h"
 #include "transition.h"
 #include "set.h"
@@ -999,8 +1000,10 @@ static int start_unavailable_enter(struct state *st, struct state *prev, int int
 
 static int start_unavailable_click(int b, int d)
 {
+#ifndef __EMSCRIPTEN__
     if (d && (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b) || b == SDL_BUTTON_LEFT))
         return exit_state(&st_start);
+#endif
 
     return 1;
 }

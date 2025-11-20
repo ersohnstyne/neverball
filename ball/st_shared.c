@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
  /*
  * HACK: Used with console version
  */
@@ -105,8 +109,10 @@ int shared_click_basic(int b, int d)
 {
     /* Activate on left click. */
 
+#ifndef __EMSCRIPTEN__
     if (d && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
         return st_keybd(KEY_EXIT, d);
+#endif
 
     return (b == SDL_BUTTON_LEFT && d) ?
            st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
@@ -116,8 +122,10 @@ int shared_click(int b, int d)
 {
     /* Activate based on GUI state. */
 
+#ifndef __EMSCRIPTEN__
     if (d && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
         return st_keybd(KEY_EXIT, d);
+#endif
 
     return gui_click(b, d) ?
            st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;

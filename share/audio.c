@@ -627,6 +627,12 @@ void audio_play(const char *filename, float a)
 
     if (audio_state && !audio_paused && config_get_d(CONFIG_SOUND_VOLUME))
     {
+        if (!filename || !filename[0])
+        {
+            log_errorf("filename returned 0!\n");
+            return;
+        }
+
         while (lock_hold) {}
         struct voice *VSFX;
 
@@ -681,6 +687,12 @@ void audio_narrator_play(const char *filename)
 
     if (audio_state && !audio_paused && config_get_d(CONFIG_NARRATOR_VOLUME))
     {
+        if (!filename || !filename[0])
+        {
+            log_errorf("filename returned 0!\n");
+            return;
+        }
+
         while (lock_hold) {}
         struct voice *VNFX;
 
@@ -733,6 +745,12 @@ static void audio_music_play(const char *filename, int loop)
 {
     if (audio_state && !audio_paused)
     {
+        if (!filename || !filename[0])
+        {
+            log_errorf("filename returned 0!\n");
+            return;
+        }
+
         while (lock_hold) {}
         audio_music_stop();
 

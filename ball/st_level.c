@@ -903,8 +903,10 @@ static int level_buttn(int b, int d)
 
 static int level_click(int b, int d)
 {
+#ifndef __EMSCRIPTEN__
     if (d && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
         return st_keybd(KEY_EXIT, d);
+#endif
 
     if (gui_click(b, d))
         return level_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);

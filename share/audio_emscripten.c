@@ -70,6 +70,12 @@ void audio_free(void)
 
 void audio_play(const char *filename, float a)
 {
+    if (!filename || !filename[0])
+    {
+        log_errorf("filename returned 0!\n");
+        return;
+    }
+
 #ifdef FORCE_LOAD_MP3_MUSIC_FROM_WGCL
     EM_ASM({
         Neverball.WGCLaudioPlay(UTF8ToString($0), $1);
@@ -128,6 +134,12 @@ void audio_play(const char *filename, float a)
 
 void audio_narrator_play(const char *filename)
 {
+    if (!filename || !filename[0])
+    {
+        log_errorf("filename returned 0!\n");
+        return;
+    }
+
 #ifdef FORCE_LOAD_MP3_MUSIC_FROM_WGCL
     EM_ASM({
         Neverball.WGCLaudioNarratorPlay(UTF8ToString($0), $1);
@@ -209,6 +221,12 @@ void audio_music_fade_in(float t)
 
 void audio_music_fade_to(float t, const char *filename, int loop)
 {
+    if (!filename || !filename[0])
+    {
+        log_errorf("filename returned 0!\n");
+        return;
+    }
+
     float clamped_time = CLAMP(0.001f, t, 1.0f);
 
 #ifdef FORCE_LOAD_MP3_MUSIC_FROM_WGCL

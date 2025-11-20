@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 #include "campaign.h"
@@ -358,8 +362,10 @@ static void over_timer(int id, float dt)
 #ifndef LEADERBOARD_ALLOWANCE
 static int over_click(int b, int d)
 {
+#ifndef __EMSCRIPTEN__
     if (d && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
         return exit_state(&st_start);
+#endif
 
     return (b == SDL_BUTTON_LEFT && d == 1) ? exit_state(&st_start) : 1;
 }

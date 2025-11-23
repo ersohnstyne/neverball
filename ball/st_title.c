@@ -900,7 +900,19 @@ static int title_gui(void)
 #elif NB_EOS_SDK==1
                 edition_id = gui_label(jd, _("Epic Games Edition"), GUI_SML, GUI_COLOR_WHT);
 #elif defined(__EMSCRIPTEN__)
-                edition_id = gui_label(jd, _("WebGL Edition"), GUI_SML, GUI_COLOR_WHT);
+                /* HACK: Opera GX? */
+
+                const int is_opera_gx = EM_ASM_INT({
+                    var ua = navigator.userAgent.toLowerCase();
+                    var isOperaGX = ua.includes("opr") && ua.includes("chrome") && ua.includes("applewebkit") && ua.includes("mozilla") && !ua.includes("edg") && !ua.includes("firefox");
+
+                    return isOperaGX ? 1 : 0;
+                });
+
+                if (is_opera_gx)
+                    edition_id = gui_label(jd, _("Opera GX Edition"), GUI_SML, GUI_COLOR_WHT);
+                else
+                    edition_id = gui_label(jd, _("WebGL Edition"), GUI_SML, GUI_COLOR_WHT);
 #else
                 edition_id = gui_label(jd, os_env, GUI_SML, GUI_COLOR_WHT);
 #endif
@@ -1022,6 +1034,22 @@ static int title_gui(void)
                     edition_id = gui_label(title_lockscreen_gamename_id,
                                            config_cheat() ? dev_env : os_env,
                                            GUI_SML, GUI_COLOR_WHT);
+#ifdef __EMSCRIPTEN__
+                else
+                {
+                    /* HACK: Opera GX? */
+
+                    const int is_opera_gx = EM_ASM_INT({
+                        var ua = navigator.userAgent.toLowerCase();
+                        var isOperaGX = ua.includes("opr") && ua.includes("chrome") && ua.includes("applewebkit") && ua.includes("mozilla") && !ua.includes("edg") && !ua.includes("firefox");
+
+                        return isOperaGX ? 1 : 0;
+                    });
+
+                    if (is_opera_gx)
+                        edition_id = gui_label(title_lockscreen_gamename_id, _("Opera GX Edition"), GUI_SML, GUI_COLOR_WHT);
+                }
+#endif
                 gui_set_rect(title_lockscreen_gamename_id, GUI_ALL);
                 gui_set_fill(title_lockscreen_gamename_id);
                 gui_set_slide(title_lockscreen_gamename_id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 1.6f, 0);

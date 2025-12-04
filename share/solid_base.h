@@ -267,6 +267,7 @@ struct b_node
     int l0;
     int lc;
 };
+
 struct b_path
 {
     float p[3];                                /* starting position          */
@@ -297,6 +298,7 @@ struct b_body
     int g0;
     int gc;
 };
+
 struct b_item
 {
     float p[3];                                /* position                   */
@@ -366,6 +368,9 @@ struct b_ball
 #ifdef START_POS_ANGULAR_BETA
     float a;                                   /* angular direction          */
 #endif
+
+    //int p0;                                  /* translation path           */
+    //int p1;                                  /* rotation path              */
 };
 
 #ifdef MAPC_INCLUDES_CHKP

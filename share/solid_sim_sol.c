@@ -632,19 +632,22 @@ static float sol_test_file(float dt,
 
 static void ms_init(float *accum)
 {
-    *accum = 0.0f;
+    if (accum) *accum = 0.0f;
 }
 
 static int ms_step(float *accum, float dt)
 {
     int ms = 0;
 
-    *accum += dt;
+    if (accum) {
 
-    while (*accum >= 0.001f)
-    {
-        *accum -= 0.001f;
-        ms += 1;
+        *accum += dt;
+
+        while (*accum >= 0.001f)
+        {
+            *accum -= 0.001f;
+            ms += 1;
+        }
     }
 
     return ms;
@@ -652,7 +655,7 @@ static int ms_step(float *accum, float dt)
 
 static int ms_peek(float *accum, float dt)
 {
-    float at = *accum;
+    float at = accum ? *accum : 0;
 
     return ms_step(&at, dt);
 }

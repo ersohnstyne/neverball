@@ -1728,8 +1728,6 @@ static int game_update_state(int bt)
     struct b_goal *zp;
     int hi, cami;
 
-    //float p[3] = { 0.0f, 0.0f, 0.0f };
-
     /* New: Hold timer mode */
 
     if (vary.uv[CURR_PLAYER].p[0] < game_base.uv[CURR_PLAYER].p[0] - .01f ||
@@ -1754,24 +1752,18 @@ static int game_update_state(int bt)
 
         /* Temporary coin value leftover in the campaign. */
 
-        if (hp->t == ITEM_COIN)
+        if (hp && hp->t == ITEM_COIN)
         {
             coins += hp->n * powerup_get_coin_multiply();
             game_cmd_coins();
 
             progress_rush_collect_coin_value(hp->n);
-
-            audio_play(AUD_COIN, 1.0f);
-
-            hp->t = ITEM_NONE;
         }
 
         /* Morph and coin sizes (includes campaign). */
 
-        else if (hp->t == ITEM_GROW || hp->t == ITEM_SHRINK)
+        else if (hp && (hp->t == ITEM_GROW || hp->t == ITEM_SHRINK))
         {
-            audio_play(AUD_COIN, 1.0f);
-
             switch (grow_init(CURR_PLAYER, hp->t))
             {
                 case -1:
@@ -1785,11 +1777,11 @@ static int game_update_state(int bt)
                     break;
 
                 case 0:
-                    audio_play(AUD_DISABLED, 1.0f);
-                    break;
-            }
+                    audio_play(AUD_DISABLED, 1.0f); break;
 
-            hp->t = ITEM_NONE;
+                default:
+                    audio_play(AUD_DISABLED, 1.0f); break;
+            }
         }
 
         /* Increment time limits to avoid time-outs. */
@@ -1814,10 +1806,6 @@ static int game_update_state(int bt)
             }
 
             game_update_time(0.0f, bt);
-
-            audio_play(AUD_COIN, 1.0f);
-
-            hp->t = ITEM_NONE;
         }
 
 #if NB_HAVE_PB_BOTH==1
@@ -1829,12 +1817,13 @@ static int game_update_state(int bt)
 
             powblock_b  = 1;
             powblock_dt = 0.0f;
-
-            audio_play(AUD_COIN, 1.0f);
-
-            hp->t = ITEM_NONE;
         }
 #endif
+
+        else audio_play(AUD_DISABLED, 1.0f);
+
+        audio_play(AUD_COIN, 1.0f);
+        hp->t = ITEM_NONE;
     }
 
 #if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)

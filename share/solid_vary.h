@@ -115,6 +115,9 @@ struct v_ball
     float r_vel;                               /* radius velocity            */
     float sizes[3];                            /* sizes (small, base, big)   */
     short size;                                /* current size (0, 1, 2)     */
+
+    //int mi;
+    //int mj;
 };
 
 #ifdef MAPC_INCLUDES_CHKP

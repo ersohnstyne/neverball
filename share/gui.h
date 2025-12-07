@@ -197,6 +197,8 @@ int  gui_set_state (int, int, int);
 void gui_set_hilite(int, int);
 void gui_set_rect  (int, int);
 void gui_clr_rect  (int);
+void gui_set_clip  (int);
+void gui_clr_clip  (int);
 void gui_set_cursor(int);
 void gui_set_hidden(int id, int hidden);
 

@@ -863,6 +863,8 @@ static int title_gui(void)
             {
                 if ((jd = gui_vstack(id)))
                 {
+                    gui_set_font(jd, "ttf/DejaVuSans-Bold.ttf");
+
                     const int title_id = gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" :
                                                                                           "  Neverball  ",
                                                               video.aspect_ratio < 1.0f ? GUI_MED :
@@ -888,6 +890,8 @@ static int title_gui(void)
 #endif
             if ((jd = gui_vstack(id)))
             {
+                gui_set_font(jd, "ttf/DejaVuSans-Bold.ttf");
+
                 /* Use with edition below title */
                 const int title_id = gui_title_header(jd, video.aspect_ratio < 1.0f ? "Neverball" :
                                                                                       "  Neverball  ",
@@ -917,6 +921,7 @@ static int title_gui(void)
                 edition_id = gui_label(jd, os_env, GUI_SML, GUI_COLOR_WHT);
 #endif
                 gui_set_rect(jd, GUI_ALL);
+                gui_set_clip(jd);
                 gui_set_fill(jd);
                 gui_set_slide(jd, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 1.6f, 0);
             }
@@ -1023,6 +1028,8 @@ static int title_gui(void)
 
             if ((title_lockscreen_gamename_id = gui_vstack(id)))
             {
+                gui_set_font(title_lockscreen_gamename_id, "ttf/DejaVuSans-Bold.ttf");
+
                 const int title_id = gui_title_header(title_lockscreen_gamename_id,
                                                       video.aspect_ratio < 1.0f ? "Neverball" :
                                                                                   "  Neverball  ",
@@ -1062,6 +1069,7 @@ static int title_gui(void)
                                                                                             GUI_LRG, 0, 0))
             {
                 gui_set_font(title_lockscreen_gamename_id, "ttf/DejaVuSans-Bold.ttf");
+                gui_set_clip(title_lockscreen_gamename_id);
                 gui_set_fill(title_lockscreen_gamename_id);
                 gui_set_slide(title_lockscreen_gamename_id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 1.6f, 0);
             }

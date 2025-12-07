@@ -79,6 +79,7 @@ void gui_keyboard_de(int);
 void gui_keyboard_lock_de(void);
 char gui_keyboard_char(char);
 
+int gui_start_button(int, int);
 int gui_back_button(int);
 
 /*---------------------------------------------------------------------------*/

@@ -534,16 +534,8 @@ static int level_gui(void)
         {
             gui_filler(jd);
 
-            if ((kd = gui_hstack(jd)))
-            {
-                const int startbtn_id = gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
-                gui_set_font(startbtn_id, "ttf/DejaVuSans-Bold.ttf");
-                gui_label(kd, _("Start"), GUI_SML, GUI_COLOR_WHT);
-
-                gui_set_state(kd, LEVEL_START, 0);
-                gui_set_rect(kd, GUI_ALL);
+            if ((kd = gui_start_button(jd, LEVEL_START)))
                 gui_focus(kd);
-            }
 
 #ifndef __EMSCRIPTEN__
             if ((current_platform != PLATFORM_PC &&

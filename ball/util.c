@@ -811,6 +811,26 @@ char gui_keyboard_char(char c)
 
 /*---------------------------------------------------------------------------*/
 
+int gui_start_button(int pd, int tok)
+{
+    int id;
+
+    if ((id = gui_hstack(pd)))
+    {
+        gui_filler(id);
+        const int icn_id = gui_label(id, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
+        gui_label(id, _("Start"), GUI_SML, GUI_COLOR_WHT);
+        gui_filler(id);
+
+        gui_set_font(icn_id, "ttf/DejaVuSans-Bold.ttf");
+
+        gui_set_state(id, tok, 0);
+        gui_set_rect(id, GUI_ALL);
+    }
+
+    return id;
+}
+
 int gui_back_button(int pd)
 {
     int id;
@@ -818,9 +838,11 @@ int gui_back_button(int pd)
     if ((id = gui_hstack(pd)))
     {
         gui_filler(id);
-        gui_label(id, GUI_CROSS, GUI_SML, gui_red, gui_red);
-        gui_label(id, _("Back"), GUI_SML, gui_wht, gui_wht);
+        const int icn_id = gui_label(id, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
+        gui_label(id, _("Back"), GUI_SML, GUI_COLOR_WHT);
         gui_filler(id);
+
+        gui_set_font(icn_id, "ttf/DejaVuSans-Bold.ttf");
 
         gui_set_state(id, GUI_BACK, 0);
         gui_set_rect(id, GUI_ALL);

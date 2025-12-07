@@ -316,8 +316,9 @@ static int shared_back_button(int pd)
 
     if ((id = gui_hstack(pd)))
     {
-        gui_label(id, GUI_CROSS, GUI_SML, gui_red, gui_red);
-        gui_label(id, _("Back"), GUI_SML, gui_wht, gui_wht);
+        const int icn_id = gui_label(id, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
+        gui_label(id, _("Back"), GUI_SML, GUI_COLOR_WHT);
+        gui_set_font(icn_id, "ttf/DejaVuSans-Bold.ttf");
 
         gui_set_state(id, -1, 0);
         gui_set_rect(id, GUI_ALL);
@@ -468,10 +469,13 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
         if ((id = gui_hstack(root_id)))
         {
-            gamepadinfo_controller_ids[3] = gui_label(id, _("P4 XXX"), GUI_SML, gui_gry, gui_gry);
-            gamepadinfo_controller_ids[2] = gui_label(id, _("P3 XXX"), GUI_SML, gui_gry, gui_gry);
-            gamepadinfo_controller_ids[1] = gui_label(id, _("P2 XXX"), GUI_SML, gui_gry, gui_gry);
+            gamepadinfo_controller_ids[3] = gui_label(id, _("P4 XXX"), GUI_SML, GUI_COLOR_GRY);
+            gamepadinfo_controller_ids[2] = gui_label(id, _("P3 XXX"), GUI_SML, GUI_COLOR_GRY);
+            gamepadinfo_controller_ids[1] = gui_label(id, _("P2 XXX"), GUI_SML, GUI_COLOR_GRY);
             gamepadinfo_controller_ids[0] = gui_label(id, _("P1 XXX"), GUI_SML, gui_wht, gui_red);
+
+            for (int i = 0; i < 4; i++)
+                gui_set_font(gamepadinfo_controller_ids[i], "ttf/DejaVuSans-Bold.ttf");
 
             gui_layout(id, 0, 1);
             gui_set_rect(id, GUI_S);

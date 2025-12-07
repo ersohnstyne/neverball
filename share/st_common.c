@@ -43,7 +43,8 @@
 /* Macros helps with the action game menu. */
 
 #define GENERIC_GAMEMENU_ACTION                      \
-        if (st_global_animating()) {                 \
+        if (st_global_animating() ||                 \
+            time_state() < 0.1f) {                   \
             audio_play(AUD_DISABLED, 1.0f);          \
             return 1;                                \
         } else audio_play(GUI_BACK == tok ?          \
@@ -53,7 +54,7 @@
                           1.0f)
 
 #define GAMEPAD_GAMEMENU_ACTION_SCROLL(tok1, tok2, itemstep) \
-        if (st_global_animating()) {                         \
+        if (st_global_animating() || time_state() < 0.1f) {  \
             audio_play(AUD_DISABLED, 1.0f);                  \
             return 1;                                        \
         } else if (tok == tok1 || tok == tok2) {             \
@@ -278,8 +279,9 @@ void conf_header(int id, const char *text, int token)
         {
             if ((kd = gui_hstack(jd)))
             {
-                gui_label(kd, GUI_CROSS, GUI_SML, gui_red, gui_red);
-                gui_label(kd, _("Back"), GUI_SML, gui_wht, gui_wht);
+                const int icn_id = gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
+                gui_label(kd, _("Back"), GUI_SML, GUI_COLOR_WHT);
+                gui_set_font(icn_id, "ttf/DejaVuSans-Bold.ttf");
 
                 gui_set_state(kd, token, 0);
                 gui_set_rect(kd, GUI_ALL);

@@ -1234,6 +1234,25 @@ void gui_clr_rect(int id)
         gui_clr_rect(jd);
 }
 
+void gui_set_clip(int id)
+{
+    FUNC_VOID_CHECK_LIMITS(id);
+
+    widget[id].flags |= GUI_CLIP;
+}
+
+void gui_clr_clip(int id)
+{
+    FUNC_VOID_CHECK_LIMITS(id);
+
+    int jd;
+
+    widget[id].flags &= ~GUI_CLIP;
+
+    for (jd = widget[id].car; jd; jd = widget[jd].cdr)
+        gui_clr_clip(jd);
+}
+
 void gui_set_cursor(int st)
 {
     cursor_st = st;
@@ -3314,7 +3333,8 @@ int gui_navig_full(int id, int total, int first, int step, int back_disabled)
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_right_disabled.png", "gui/navig/arrow_right.png", GUI_NEXT, GUI_NONE, next);
 #else
-                gui_maybe(jd, GUI_TRIANGLE_RIGHT, GUI_NEXT, GUI_NONE, next);
+                const int icn_id = gui_maybe(jd, GUI_TRIANGLE_RIGHT, GUI_NEXT, GUI_NONE, next);
+                gui_set_font(icn_id, "ttf/DejaVuSans-Bold.ttf");
 #endif
             }
 
@@ -3336,7 +3356,8 @@ int gui_navig_full(int id, int total, int first, int step, int back_disabled)
 #ifdef SWITCHBALL_GUI
                 gui_maybe_img(jd, "gui/navig/arrow_left_disabled.png", "gui/navig/arrow_left.png", GUI_PREV, GUI_NONE, prev);
 #else
-                gui_maybe(jd, GUI_TRIANGLE_LEFT, GUI_PREV, GUI_NONE, prev);
+                const int icn_id = gui_maybe(jd, GUI_TRIANGLE_LEFT, GUI_PREV, GUI_NONE, prev);
+                gui_set_font(icn_id, "ttf/DejaVuSans-Bold.ttf");
 #endif
             }
         }
@@ -3348,8 +3369,9 @@ int gui_navig_full(int id, int total, int first, int step, int back_disabled)
 
             if ((kd = gui_hstack(jd)))
             {
-                gui_label(kd, GUI_CROSS, GUI_SML, back_disabled ? gui_gry : gui_red, back_disabled ? gui_gry : gui_red);
+                const int icn_id = gui_label(kd, GUI_CROSS, GUI_SML, back_disabled ? gui_gry : gui_red, back_disabled ? gui_gry : gui_red);
                 gui_label(kd, _("Back"), GUI_SML, back_disabled ? gui_gry : gui_wht, back_disabled ? gui_gry : gui_wht);
+                gui_set_font(icn_id, "ttf/DejaVuSans-Bold.ttf");
 
                 gui_set_state(kd, back_disabled ? GUI_NONE : GUI_BACK, 0);
                 gui_set_rect(kd, GUI_ALL);

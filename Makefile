@@ -24,7 +24,7 @@ endif
 
 #------------------------------------------------------------------------------
 # Provide a target system hint for the Makefile.
-# Recognized PLATFORM values: darwin, mingw, haiku.
+# Recognized PLATFORM values: darwin, freebsd, mingw, haiku.
 
 ifeq ($(shell uname),Darwin)
 	PLATFORM := darwin

@@ -30,6 +30,10 @@ ifeq ($(shell uname),Darwin)
 	PLATFORM := darwin
 endif
 
+ifeq ($(shell uname), FreeBSD)
+	PLATFORM := freebsd
+endif
+
 ifeq ($(shell uname -o 2> /dev/null),Msys)
 	PLATFORM := mingw
 endif
@@ -431,6 +435,12 @@ ifeq ($(PLATFORM),darwin)
 
 	TILT_LIBS :=
 	OGL_LIBS  := -framework OpenGL
+endif
+
+ifeq ($(PLATFORM),freebsd)
+	ifneq ($(ENABLE_NLS),0)
+		INTL_LIBS := -lintl
+	endif
 endif
 
 ifeq ($(PLATFORM),haiku)

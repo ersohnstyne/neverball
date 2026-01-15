@@ -787,6 +787,10 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
      */
     if (last_active)
     {
+#ifdef _DEBUG
+        log_printf("Starting respawn... (server): %s\n", curr_file_name);
+#endif
+
         checkpoints_respawn(&vary, game_proxy_enq, &chkp_id);
 
 #ifndef NDEBUG
@@ -1267,6 +1271,10 @@ int game_server_init(const char *file_name, int t, int e)
      */
     if (last_active)
     {
+#ifdef _DEBUG
+        log_printf("Starting respawn... (server): %s\n", file_name);
+#endif
+
         checkpoints_respawn(&vary, game_proxy_enq, &chkp_id);
 
 #ifndef NDEBUG

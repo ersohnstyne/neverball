@@ -773,8 +773,11 @@ static void game_draw_back(struct s_rend *rend,
                            int pose, int d, float t, int flip)
 {
 #if ENABLE_MOTIONBLUR==1
-    if (video_can_swap_window && !motionblur_refl_allow_draw_back)
-        return;
+    if (config_get_d(CONFIG_MOTIONBLUR))
+    {
+        if (video_can_swap_window && !motionblur_refl_allow_draw_back)
+            return;
+    }
 
     video_can_swap_window = 1;
 #endif

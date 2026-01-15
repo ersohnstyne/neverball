@@ -197,7 +197,7 @@ int goto_state_full_intent(struct state *st,
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_set_alpha(1.0f);
-    console_gui_slide(GUI_S | GUI_EASE_ELASTIC | GUI_BACKWARD);
+    console_gui_slide(GUI_S | GUI_EASE_BACK | GUI_BACKWARD);
 #endif
 
     if (state && state->leave)
@@ -230,7 +230,7 @@ int goto_state_full_intent(struct state *st,
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_set_alpha(1.0f);
-    console_gui_slide(GUI_S | GUI_EASE_ELASTIC);
+    console_gui_slide(GUI_S | GUI_EASE_BACK);
 #endif
 
     anim_done  = 1;

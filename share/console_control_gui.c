@@ -45,6 +45,9 @@ static int xbox_control_keybd_id = 0;
 static int xbox_control_list_id = 0;
 static int xbox_control_levelopt_id = 0;
 static int xbox_control_paused_id = 0;
+static int xbox_control_package_installable_id = 0;
+static int xbox_control_package_updateable_id = 0;
+static int xbox_control_package_manageable_id = 0;
 
 
 /* Generic */
@@ -1261,6 +1264,91 @@ static void init_xbox_paused(void)
     }
 }
 
+static void init_xbox_package_installable()
+{
+    if ((xbox_control_package_installable_id = gui_hstack(0)))
+    {
+        gui_label(xbox_control_package_installable_id, _("Back"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_b_button(xbox_control_package_installable_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+
+        create_controller_spacer(xbox_control_package_installable_id);
+
+        gui_label(xbox_control_package_installable_id, _("Install"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_a_button(xbox_control_package_installable_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+
+        gui_set_rect(xbox_control_package_installable_id, GUI_TOP);
+        gui_layout(xbox_control_package_installable_id, 0, -1);
+    }
+}
+
+static void init_xbox_package_updateable()
+{
+    if ((xbox_control_package_updateable_id = gui_hstack(0)))
+    {
+        gui_label(xbox_control_package_updateable_id, _("Update"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_x_button(xbox_control_package_updateable_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+
+        create_controller_spacer(xbox_control_package_updateable_id);
+
+        gui_label(xbox_control_package_updateable_id, _("Back"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_b_button(xbox_control_package_updateable_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+
+        create_controller_spacer(xbox_control_package_updateable_id);
+
+        gui_label(xbox_control_package_updateable_id, _("Select"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_a_button(xbox_control_package_updateable_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+
+        gui_set_rect(xbox_control_package_updateable_id, GUI_TOP);
+        gui_layout(xbox_control_package_updateable_id, 0, -1);
+    }
+}
+
+static void init_xbox_package_manageable()
+{
+    if ((xbox_control_package_manageable_id = gui_hstack(0)))
+    {
+        gui_label(xbox_control_package_manageable_id, _("Manage"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_x_button(xbox_control_package_manageable_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+
+        create_controller_spacer(xbox_control_package_manageable_id);
+
+        gui_label(xbox_control_package_manageable_id, _("Back"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_b_button(xbox_control_package_manageable_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+
+        create_controller_spacer(xbox_control_package_manageable_id);
+
+        gui_label(xbox_control_package_manageable_id, _("Select"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_a_button(xbox_control_package_manageable_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+
+        gui_set_rect(xbox_control_package_manageable_id, GUI_TOP);
+        gui_layout(xbox_control_package_manageable_id, 0, -1);
+    }
+}
+
 /* Generic */
 
 static void init_xbox_desc(void)
@@ -1579,6 +1667,10 @@ void console_gui_init(void)
     init_xbox_levelopt();
     init_xbox_paused();
 
+    init_xbox_package_installable();
+    init_xbox_package_updateable();
+    init_xbox_package_manageable();
+
     /* Generic */
     init_xbox_desc();
     init_xbox_preparation();
@@ -1610,6 +1702,9 @@ void console_gui_free(void)
     gui_delete(xbox_control_list_id);
     gui_delete(xbox_control_levelopt_id);
     gui_delete(xbox_control_paused_id);
+    gui_delete(xbox_control_package_installable_id);
+    gui_delete(xbox_control_package_updateable_id);
+    gui_delete(xbox_control_package_manageable_id);
 
     /* Generic */
     gui_delete(xbox_control_desc_id);
@@ -1631,10 +1726,13 @@ void console_gui_free(void)
 void console_gui_slide(int flags)
 {
     /* Shared */
-    gui_slide(xbox_control_title_id,  flags, 0, 0.3f, 0);
-    gui_slide(xbox_control_keybd_id,  flags, 0, 0.3f, 0);
-    gui_slide(xbox_control_list_id,   flags, 0, 0.3f, 0);
-    gui_slide(xbox_control_paused_id, flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_title_id,               flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_keybd_id,               flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_list_id,                flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_paused_id,              flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_package_installable_id, flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_package_updateable_id,  flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_package_manageable_id,  flags, 0, 0.3f, 0);
 
     /* Generic */
     gui_slide(xbox_control_desc_id,          flags, 0, 0.3f, 0);
@@ -1711,6 +1809,24 @@ void console_gui_paused_paint(void)
 {
     if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_paused_id);
+}
+
+void console_gui_package_installable_paint(void)
+{
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        gui_paint(xbox_control_package_installable_id);
+}
+
+void console_gui_package_updateable_paint(void)
+{
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        gui_paint(xbox_control_package_updateable_id);
+}
+
+void console_gui_package_manageable_paint(void)
+{
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        gui_paint(xbox_control_package_manageable_id);
 }
 
 /* Generic */

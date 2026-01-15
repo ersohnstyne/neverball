@@ -12,6 +12,11 @@
  * General Public License for more details.
  */
 
+ /*
+  * HACK: Used with console version
+  */
+#include "console_control_gui.h"
+
 #include "gui.h"
 #include "transition.h"
 #include "audio.h"
@@ -178,6 +183,12 @@ static int (*installed_action)(int pi);
 
 /* This prefix function "package_*" will be replaced into "addons_*". */
 #define package_keybd      addons_keybd
+
+/* This prefix function "package_*" will be replaced into "addons_*". */
+#define package_keybd      addons_keybd
+
+/* This prefix function "package_*" will be replaced into "addons_*". */
+#define package_buttn      addons_buttn
 
 /* === END PREFIX/SUFFIX CONVERTER === */
 
@@ -568,10 +579,10 @@ static int package_gui(void)
             gui_navig (jd, total, first, PACKAGE_STEP);
         }
 
-        gui_space(id);
-
         if ((jd = gui_vstack(id)))
         {
+            gui_space(jd);
+
             if ((kd = gui_hstack(jd)))
             {
                 const int ww = MIN(w, h) * 5 / 12;
@@ -609,21 +620,28 @@ static int package_gui(void)
 
             if ((kd = gui_hstack(jd)))
             {
-                if ((ld = gui_hstack(kd)))
+                install_id = 0;
+                
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+                if (current_platform != PLATFORM_PC || console_gui_shown())
+#endif
                 {
-                    install_status_id = gui_label(ld, GUI_ARROW_DN,
-                                                      GUI_SML, gui_grn, gui_grn);
-                    install_label_id = gui_label(ld, "XXXXXXXXXXXX",
-                                                     GUI_SML, gui_wht, gui_wht);
+                    if ((ld = gui_hstack(kd)))
+                    {
+                        install_status_id = gui_label(ld, GUI_ARROW_DN,
+                                                          GUI_SML, gui_grn, gui_grn);
+                        install_label_id = gui_label(ld, "XXXXXXXXXXXX",
+                                                         GUI_SML, gui_wht, gui_wht);
 
-                    gui_set_label(install_label_id, _("Install"));
+                        gui_set_label(install_label_id, _("Install"));
 
-                    gui_set_font(install_status_id, "ttf/DejaVuSans-Bold.ttf");
+                        gui_set_font(install_status_id, "ttf/DejaVuSans-Bold.ttf");
 
-                    gui_set_rect(ld, GUI_ALL);
-                    gui_set_state(ld, PACKAGE_INSTALL, 0);
+                        gui_set_rect(ld, GUI_ALL);
+                        gui_set_state(ld, PACKAGE_INSTALL, 0);
 
-                    install_id = ld;
+                        install_id = ld;
+                    }
                 }
 
                 gui_filler(kd);
@@ -767,6 +785,23 @@ static void package_paint(int id, float st)
     back_draw_easy();
 
     gui_paint(id);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if (console_gui_shown())
+    {
+        enum package_status status = package_get_status(selected);
+
+        switch (status)
+        {
+        case PACKAGE_INSTALLED: console_gui_package_manageable_paint(); break;
+        case PACKAGE_UPDATE:    console_gui_package_updateable_paint(); break;
+        case PACKAGE_ERROR:
+        case PACKAGE_AVAILABLE: console_gui_package_installable_paint(); break;
+
+        default: console_gui_list_paint(); break;
+        }
+    }
+#endif
 }
 
 static void package_timer(int id, float dt)
@@ -793,6 +828,9 @@ static void package_stick(int id, int a, float v, int bump)
 
     if (id)
         gui_pulse(jd, 1.2f);
+
+    if (gui_token(gui_active()) == PACKAGE_SELECT)
+        package_select(gui_value(gui_active()));
 }
 
 static int package_keybd(int c, int d)
@@ -809,6 +847,36 @@ static int package_keybd(int c, int d)
     }
 
     return 1;
+}
+
+static int package_buttn(int b, int d)
+{
+    if (d)
+    {
+        enum package_status status = package_get_status(selected);
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+        {
+            if (status == PACKAGE_AVAILABLE ||
+                status == PACKAGE_ERROR)
+                return package_action(PACKAGE_INSTALL, 0);
+        }
+        else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b))
+        {
+            if (status == PACKAGE_INSTALLED ||
+                status == PACKAGE_UPDATE)
+            {
+                package_manage_can_start = strcmp(package_get_type(selected), "set") == 0;
+                package_manage_can_equip = strcmp(package_get_type(selected), "ball") == 0;
+
+                package_manage_selected = selected;
+
+                return package_action(PACKAGE_INSTALL, 0);
+            }
+        }
+    }
+
+    return common_buttn(b, d);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1215,7 +1283,7 @@ struct state st_package = {
     NULL,
     common_click,
     package_keybd,
-    common_buttn
+    package_buttn
 };
 
 struct state st_package_manage = {

@@ -249,6 +249,23 @@ float checkpoints_last_time_limit(void)
 
 /*---------------------------------------------------------------------------*/
 
+#if defined(_DEBUG) && _WIN32 && _MSC_VER
+#define CHECKPOINTS_RESPAWN_DEBUG_COMPARE(_curr, _expected) \
+    do { \
+        if ((_curr) != (_expected)) { \
+            log_errorf("%s (%d): Current SOL value \"%s\" does not matched by checkpoint's SOL value \"%s\" [SOL_ENTITY_VALUE_MISMATCH]\n", __FILE__, __LINE__, #_curr, #_expected); \
+            _curr = _expected; \
+        } \
+    } while (0)
+#else
+#define CHECKPOINTS_RESPAWN_DEBUG_COMPARE(_curr, _expected) \
+    do { \
+        if ((_curr) != (_expected)) { \
+            _curr = _expected; \
+        } \
+    } while (0)
+#endif
+
 int checkpoints_load(void)
 {
     if (last_active)
@@ -273,15 +290,15 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
     for (int resetidx = 0; resetidx < vary->uc; resetidx++)
     {
         struct chkp_ball *c_up = last_chkp_ball + resetidx;
-        struct v_ball    *up   = vary->uv + resetidx;
+        struct v_ball    *up   = vary->uv       + resetidx;
 
         e_cpy(up->e, c_up->e);
         v_cpy(up->p, c_up->p);
         e_cpy(up->E, c_up->E);
 
-        up->r     = c_up->r;
-        up->r_vel = c_up->r_vel;
-        up->size  = c_up->size;
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(up->r,     c_up->r);
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(up->r_vel, c_up->r_vel);
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(up->size,  c_up->size);
 
         if (cmd_func)
         {
@@ -309,7 +326,7 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
     for (int resetidx = 0; resetidx < vary->pc; resetidx++)
     {
         struct chkp_path *last_pp = last_chkp_path + resetidx;
-        struct v_path    *pp      = vary->pv + resetidx;
+        struct v_path    *pp      = vary->pv       + resetidx;
 
         if (pp->f != last_pp->f)
         {
@@ -322,50 +339,50 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
                 cmd.pathflag.f  = pp->f;
                 cmd_func(&cmd);
             }
-
-            pp->mi = last_pp->mi;
-            pp->mj = last_pp->mj;
         }
+
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(pp->mi, last_pp->mi);
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(pp->mj, last_pp->mj);
     }
 
     /* Restored from the checkpoints (body) */
     for (int resetidx = 0; resetidx < vary->bc; resetidx++)
     {
         struct chkp_body *c_bp = last_chkp_body + resetidx;
-        struct v_body    *bp   = vary->bv + resetidx;
+        struct v_body    *bp   = vary->bv       + resetidx;
 
-        bp->mi = c_bp->mi;
-        bp->mj = c_bp->mj;
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(bp->mi, c_bp->mi);
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(bp->mj, c_bp->mj);
     }
 
     /* Restored from the checkpoints (mover) (no loading SOL/SOLX from files) */
     for (int resetidx = 0; resetidx < vary->mc; resetidx++)
     {
         struct chkp_move *last_mp = last_chkp_move + resetidx;
-        struct v_move    *mp      = vary->mv + resetidx;
+        struct v_move    *mp      = vary->mv       + resetidx;
 
-        if (vary->pv[mp->pi].f)
+        if (mp->pi >= 0 && mp->pi < vary->pc)
         {
             struct v_path *pp = vary->pv + mp->pi;
 
-            mp->t  = last_mp->t;
-            mp->tm = last_mp->tm;
-            mp->pi = last_mp->pi;
+            CHECKPOINTS_RESPAWN_DEBUG_COMPARE(mp->t,  last_mp->t);
+            CHECKPOINTS_RESPAWN_DEBUG_COMPARE(mp->tm, last_mp->tm);
+            CHECKPOINTS_RESPAWN_DEBUG_COMPARE(mp->pi, last_mp->pi);
 
-            mp->pos.x = last_mp->pos.x;
-            mp->pos.y = last_mp->pos.y;
-            mp->pos.z = last_mp->pos.z;
+            CHECKPOINTS_RESPAWN_DEBUG_COMPARE(mp->pos.x, last_mp->pos.x);
+            CHECKPOINTS_RESPAWN_DEBUG_COMPARE(mp->pos.y, last_mp->pos.y);
+            CHECKPOINTS_RESPAWN_DEBUG_COMPARE(mp->pos.z, last_mp->pos.z);
 
-            mp->rot.x = last_mp->rot.x;
-            mp->rot.y = last_mp->rot.y;
-            mp->rot.z = last_mp->rot.z;
-            mp->rot.w = last_mp->rot.w;
+            CHECKPOINTS_RESPAWN_DEBUG_COMPARE(mp->rot.x, last_mp->rot.x);
+            CHECKPOINTS_RESPAWN_DEBUG_COMPARE(mp->rot.y, last_mp->rot.y);
+            CHECKPOINTS_RESPAWN_DEBUG_COMPARE(mp->rot.z, last_mp->rot.z);
+            CHECKPOINTS_RESPAWN_DEBUG_COMPARE(mp->rot.w, last_mp->rot.w);
 
-            mp->dirty = last_mp->dirty;
+            CHECKPOINTS_RESPAWN_DEBUG_COMPARE(mp->dirty, last_mp->dirty);
 
             if (mp->tm >= pp->base->tm)
             {
-                mp->t = 0;
+                mp->t  = 0;
                 mp->tm = 0;
                 mp->pi = pp->base->pi;
             }
@@ -392,8 +409,9 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
         struct v_item    *hp      = vary->hv + resetidx;
 
         v_cpy(hp->p, last_hp->p);
-        hp->t = last_hp->t;
-        hp->n = last_hp->n;
+
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(hp->t, last_hp->t);
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(hp->n, last_hp->n);
 
         if (last_hp->t == ITEM_NONE)
         {
@@ -431,8 +449,8 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
         struct chkp_goal *last_zp = last_chkp_goal + resetidx;
         struct v_goal    *zp      = vary->zv + resetidx;
 
-        zp->mi = last_zp->mi;
-        zp->mj = last_zp->mj;
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(zp->mi, last_zp->mi);
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(zp->mj, last_zp->mj);
     }
 
     /* Restored from the checkpoints (jump) */
@@ -441,8 +459,8 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
         struct chkp_jump *last_jp = last_chkp_jump + resetidx;
         struct v_jump    *jp      = vary->jv + resetidx;
 
-        jp->mi = last_jp->mi;
-        jp->mj = last_jp->mj;
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(jp->mi, last_jp->mi);
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(jp->mj, last_jp->mj);
     }
 
     /* Restored from the checkpoints (bill) */
@@ -451,8 +469,8 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
         struct chkp_bill *last_rp = last_chkp_bill + resetidx;
         struct v_bill    *rp      = vary->rv + resetidx;
 
-        rp->mi = last_rp->mi;
-        rp->mj = last_rp->mj;
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(rp->mi, last_rp->mi);
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(rp->mj, last_rp->mj);
     }
 
     /* Restored from the checkpoints (chkp) */
@@ -488,8 +506,8 @@ void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
             }
         }
 
-        cp->mi = last_cp->mi;
-        cp->mj = last_cp->mj;
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(cp->mi, last_cp->mi);
+        CHECKPOINTS_RESPAWN_DEBUG_COMPARE(cp->mj, last_cp->mj);
     }
 
     /* Finishing up loading checkpoint. */

@@ -138,6 +138,9 @@ void console_gui_keybd_paint(void);
 void console_gui_list_paint(void);
 void console_gui_levelopt_paint(void);
 void console_gui_paused_paint(void);
+void console_gui_package_installable_paint(void);
+void console_gui_package_updateable_paint(void);
+void console_gui_package_manageable_paint(void);
 
 
 /* Generic */

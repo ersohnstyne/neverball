@@ -492,6 +492,10 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
 #if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
     if (last_active)
     {
+#ifdef _DEBUG
+        log_printf("Starting respawn... (client): %s\n", mtli->filename);
+#endif
+
         int chkp_id = -1;
         checkpoints_respawn(&gd.vary, NULL, &chkp_id);
     }
@@ -699,6 +703,10 @@ int  game_client_init(const char *file_name)
 #if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
     if (last_active)
     {
+#ifdef _DEBUG
+        log_printf("Starting respawn... (client): %s\n", file_name);
+#endif
+
         int chkp_id = -1;
         checkpoints_respawn(&gd.vary, NULL, &chkp_id);
     }

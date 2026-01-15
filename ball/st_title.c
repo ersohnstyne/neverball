@@ -771,6 +771,7 @@ int title_check_wgcl(void)
 static int title_gui_wgcl(void)
 {
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    video_hide_cursor();
 #endif
     return 0;
 }
@@ -778,6 +779,8 @@ static int title_gui_wgcl(void)
 static int title_gui(void)
 {
     int root_id, id, jd;
+
+    if (title_lockscreen) video_hide_cursor(); else video_show_cursor();
 
     /* Build the title GUI. */
 

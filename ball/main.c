@@ -1596,7 +1596,7 @@ static void make_dirs_and_migrate(void)
     const char *src;
     char *dst;
 
-    fs_mkdir("Accounts");
+    /* Only limited folders to be created */
     fs_mkdir("Campaign");
 
     if (fs_mkdir("Replays"))

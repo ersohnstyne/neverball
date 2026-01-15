@@ -241,6 +241,7 @@ static int intro_gui(void)
 
 static int intro_enter(struct state *st, struct state *prev, int intent)
 {
+    video_hide_cursor();
     audio_music_fade_out(1.0f);
 
     intro_done = 0;

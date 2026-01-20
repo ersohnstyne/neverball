@@ -69,8 +69,7 @@ int goto_save(struct state *ok, struct state *cancel)
     int nolockdown; DEMO_LOCKDOWN_RANGE_NIGHT(nolockdown, 16, 8);
     if (!nolockdown && curr_status() == GAME_FALL)
         return goto_state(&st_lockdown);
-    else
-        return goto_state(&st_save);
+    else return goto_state(&st_save);
 #else
     return goto_state(&st_save);
 #endif
@@ -79,15 +78,13 @@ int goto_save(struct state *ok, struct state *cancel)
 /*---------------------------------------------------------------------------*/
 
 static int allow_entertext;
-
 static int file_id;
+static int enter_id;
 
 enum
 {
     SAVE_OK = GUI_LAST
 };
-
-static int enter_id;
 
 static void save_update_enter_btn(void)
 {
@@ -96,15 +93,9 @@ static void save_update_enter_btn(void)
 
     for (int i = 0; i < text_length(text_input); i++)
     {
-        if (text_input[i] == '\\' ||
-            text_input[i] == '/'  ||
-            text_input[i] == ':'  ||
-            text_input[i] == '*'  ||
-            text_input[i] == '?'  ||
-            text_input[i] == '"'  ||
-            text_input[i] == '<'  ||
-            text_input[i] == '>'  ||
-            text_input[i] == '|')
+        if (text_input[i] == '\\' || text_input[i] == '/' || text_input[i] == ':'  ||
+            text_input[i] == '*'  || text_input[i] == '?' || text_input[i] == '"'  ||
+            text_input[i] == '<'  || text_input[i] == '>' || text_input[i] == '|')
         {
             name_accepted = 0;
             break;
@@ -144,15 +135,9 @@ static int save_action(int tok, int val)
 
             for (int i = 0; i < text_length(text_input); i++)
             {
-                if (text_input[i] == '\\' ||
-                    text_input[i] == '/'  ||
-                    text_input[i] == ':'  ||
-                    text_input[i] == '*'  ||
-                    text_input[i] == '?'  ||
-                    text_input[i] == '"'  ||
-                    text_input[i] == '<'  ||
-                    text_input[i] == '>'  ||
-                    text_input[i] == '|')
+                if (text_input[i] == '\\' || text_input[i] == '/' || text_input[i] == ':' ||
+                    text_input[i] == '*'  || text_input[i] == '?' || text_input[i] == '"' ||
+                    text_input[i] == '<'  || text_input[i] == '>' || text_input[i] == '|')
                 {
                     log_errorf("Can't accept other charsets!: %c\n", text_input[i]);
                     return 1;
@@ -243,14 +228,12 @@ static int save_enter(struct state *st, struct state *prev, int intent)
     {
         name = demo_format_name(config_get_s(CONFIG_REPLAY_NAME),
                                 "campaign",
-                                level_name(curr_level()),
-                                curr_status());
+                                level_name(curr_level()), curr_status());
 
         if (curr_mode() == MODE_HARDCORE)
             name = demo_format_name(config_get_s(CONFIG_REPLAY_NAME),
                                     "hardcore",
-                                    level_name(curr_level()),
-                                    curr_status());
+                                    level_name(curr_level()), curr_status());
     }
     else
 #endif
@@ -271,15 +254,13 @@ static int save_enter(struct state *st, struct state *prev, int intent)
 #endif
                     _("none_%d"), curr_set());
         }
-        else
-            SAFECPY(curr_setid_final, curr_setid);
+        else SAFECPY(curr_setid_final, curr_setid);
 
         const char *curr_lvlname = level_name(curr_level());
 
         name = demo_format_name(config_get_s(CONFIG_REPLAY_NAME),
                                 curr_setid_final,
-                                curr_lvlname ? curr_lvlname : "0",
-                                curr_status());
+                                curr_lvlname ? curr_lvlname : "0", curr_status());
     }
 
     text_input_start(on_text_input);
@@ -397,8 +378,10 @@ static int clobber_action(int tok, int val)
     return exit_state(&st_save);
 }
 
-static int clobber_gui(void)
+static int clobber_enter(struct state *st, struct state *prev, int intent)
 {
+    audio_play(AUD_WARNING, 1.0f);
+
     int id, jd, kd, file_id;
 
     if ((id = gui_vstack(0)))
@@ -422,14 +405,7 @@ static int clobber_gui(void)
         gui_set_label(file_id, text_input);
     }
 
-    return id;
-}
-
-static int clobber_enter(struct state *st, struct state *prev, int intent)
-{
-    audio_play(AUD_WARNING, 1.0f);
-
-    return transition_slide(clobber_gui(), 1, intent);
+    return transition_slide(id, 1, intent);
 }
 
 static int clobber_keybd(int c, int d)
@@ -463,13 +439,15 @@ static int lockdown_action(int tok, int val)
     return exit_state(cancel_state);
 }
 
-static int lockdown_gui(void)
+static int lockdown_enter(struct state *st, struct state *prev, int intent)
 {
-    int id, jd;
+    audio_play("snd/uierror.ogg", 1.0f);
 
+    int id, jd;
+    
     if ((id = gui_vstack(0)))
     {
-        jd = gui_title_header(id, _("Locked"), GUI_MED, gui_gry, gui_red);
+        jd = gui_title_header(id, _("Locked"), GUI_MED, gui_red, gui_blk);
         gui_space(id);
 #ifdef COVID_HIGH_RISK
         gui_multi(id, _("Replays have locked down\n"
@@ -485,14 +463,7 @@ static int lockdown_gui(void)
         gui_layout(id, 0, 0);
     }
 
-    return id;
-}
-
-static int lockdown_enter(struct state *st, struct state *prev, int intent)
-{
-    audio_play("snd/uierror.ogg", 1.0f);
-
-    return lockdown_gui();
+    return transition_slide(id, 1, intent);
 }
 
 static int lockdown_keybd(int c, int d)
@@ -516,8 +487,10 @@ static int lockdown_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-static int save_error_gui(void)
+static int save_error_enter(struct state *st, struct state *prev, int intent)
 {
+    audio_play("snd/uierror.ogg", 1.0f);
+
     int id;
 
     if ((id = gui_vstack(0)))
@@ -540,14 +513,7 @@ static int save_error_gui(void)
 
     gui_layout(id, 0, 0);
 
-    return id;
-}
-
-static int save_error_enter(struct state *st, struct state *prev, int intent)
-{
-    audio_play("snd/uierror.ogg", 1.0f);
-
-    return transition_slide(save_error_gui(), 1, intent);
+    return transition_slide(id, 1, intent);
 }
 
 static int save_error_keybd(int c, int d)

@@ -1028,6 +1028,9 @@ static int campaign_action(int tok, int val)
             {
                 activity_services_mode_update(AS_MODE_CAMPAIGN);
 
+#if NB_HAVE_PB_BOTH==1
+                account_wgcl_autokick_state_prepare(&st_campaign);
+#endif
                 return goto_play_level();
             }
 

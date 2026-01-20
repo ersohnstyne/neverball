@@ -31,6 +31,7 @@
 #include "mediation.h"
 #include "boost_rush.h"
 #include "account.h"
+#include "account_wgcl.h"
 
 #include "lang_switchball.h"
 #endif
@@ -104,15 +105,9 @@ static int level_check_playername(const char *regname)
 {
     for (int i = 0; i < text_length(regname); i++)
     {
-        if (regname[i] == '\\' ||
-            regname[i] == '/'  ||
-            regname[i] == ':'  ||
-            regname[i] == '*'  ||
-            regname[i] == '?'  ||
-            regname[i] == '"'  ||
-            regname[i] == '<'  ||
-            regname[i] == '>'  ||
-            regname[i] == '|')
+        if (regname[i] == '\\' || regname[i] == '/' || regname[i] == ':'  ||
+            regname[i] == '*'  || regname[i] == '?' || regname[i] == '"'  ||
+            regname[i] == '<'  || regname[i] == '>' || regname[i] == '|')
             return 0;
     }
 
@@ -247,7 +242,7 @@ static int level_action(int tok, int val)
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     /* HACK: Do not attempt, when the level is loading. */
 
-    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading; })) return 1;
+    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading ? 1 : 0; })) return 1;
 #endif
 
     GENERIC_GAMEMENU_ACTION;
@@ -775,7 +770,7 @@ static void level_timer(int id, float dt)
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     /* HACK: Do not attempt, when the level is loading. */
 
-    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading; })) return;
+    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading ? 1 : 0; })) return;
 #endif
 
     /* HACK: This shouldn't have a bug. This has been fixed. */
@@ -1107,8 +1102,11 @@ int goto_play_level(void)
 
     if (curr_st == &st_pause)
         fn_state = exit_state;
-    else
-        fn_state = goto_state;
+    else fn_state = goto_state;
+
+#if NB_HAVE_PB_BOTH==1
+    account_wgcl_autokick_func_prepare(goto_exit);
+#endif
 
 #if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
     if (level_loading_with_moon_taskloader)
@@ -1250,7 +1248,7 @@ int goto_exit(void)
         /* Visit the auxilliary screen or exit to level selection. */
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        exit_state(dst != curr ? dst : &st_start);
+        exit_state(dst != curr ? dst : campaign_used() ? &st_campaign : &st_start);
 #else
         exit_state(&st_start);
 #endif

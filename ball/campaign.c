@@ -577,6 +577,8 @@ int campaign_theme_used(void)
 /* Initialize the campaign */
 int campaign_init(void)
 {
+    campaign_quit();
+
     level_difficulty = -1;
 
     /* Load the campaign file. */
@@ -653,6 +655,7 @@ int campaign_init(void)
 /* Quit campaign */
 void campaign_quit(void)
 {
+    theme_used = 0;
     used = 0;
     exists = 0;
 

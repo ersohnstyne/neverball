@@ -86,8 +86,7 @@
     do {                                       \
         game_client_toggle_show_balls(1);      \
         game_client_fly(0.0f);                 \
-        real_time = 0.0f;                      \
-        mode = _mode;                          \
+        real_time = 0.0f; mode = _mode;        \
     } while (0)
 
 #if defined(__WII__)
@@ -96,6 +95,14 @@ typedef SDLKey SDL_Keycode;
 #endif
 
 /*---------------------------------------------------------------------------*/
+
+#define TITLE_PROXY_CALL(_cmd_fn_enum, _cmd_fn_body) \
+    do {                                             \
+        union cmd cmd = { _cmd_fn_enum };            \
+        _cmd_fn_body                                 \
+        game_proxy_enq(&cmd);                        \
+        game_client_sync(NULL);                      \
+    } while (0)
 
 static int switchball_useable(void)
 {
@@ -168,10 +175,7 @@ int load_title_background(void)
         {
             if (!title_check_balls_shown()) return 1;
 
-            union cmd cmd = { CMD_GOAL_OPEN };
-
-            game_proxy_enq(&cmd);
-            game_client_sync(NULL);
+            TITLE_PROXY_CALL(CMD_GOAL_OPEN, {});
 
             game_client_fly(1.0f);
 
@@ -182,10 +186,7 @@ int load_title_background(void)
     {
         if (!title_check_balls_shown()) return 1;
 
-        union cmd cmd = { CMD_GOAL_OPEN };
-
-        game_proxy_enq(&cmd);
-        game_client_sync(NULL);
+        TITLE_PROXY_CALL(CMD_GOAL_OPEN, {});
 
         game_client_fly(1.0f);
 
@@ -216,13 +217,11 @@ static const char *pick_demo(Array items)
     /* Do not allow pick replay, if replay files are empty. */
 
     int total;
-
     if ((total = array_len(items)) < 1) return NULL;
-
-    const int selected = rand_between(0, total - 1);
 
     demo_dir_load(items, 0, total - 1);
 
+    const int selected = rand_between(0, total - 1);
     struct demo *demo_data;
 
     if (!DEMO_CHECK_GET(demo_data, items, selected < total ? selected : 0))
@@ -296,8 +295,15 @@ static int play_id = 0;
 static int support_exit = 1;
 #endif
 
-static const char editions_common[][26] =
-{
+#define TITLE_DEMO_DIR_RESCAN(_items) \
+    do {                              \
+        if (_items) {                 \
+            demo_dir_free(_items);    \
+            _items = NULL;            \
+        } _items = demo_dir_scan();   \
+    } while (0)
+
+static const char editions_common[][26] = {
     "%s Home Edition",
     "%s Professional Edition",
     "%s Enterprise Edition",
@@ -307,8 +313,7 @@ static const char editions_common[][26] =
     "%s Datacenter Edition"
 };
 
-static const char editions_developer[][33] =
-{
+static const char editions_developer[][33] = {
     "%s Home Edition / %s",
     "%s Professional Edition / %s",
     "%s Enterprise Edition / %s",
@@ -338,15 +343,9 @@ static int title_check_playername(const char *regname)
 {
     for (int i = 0; i < text_length(regname); i++)
     {
-        if (regname[i] == '\\' ||
-            regname[i] == '/'  ||
-            regname[i] == ':'  ||
-            regname[i] == '*'  ||
-            regname[i] == '?'  ||
-            regname[i] == '"'  ||
-            regname[i] == '<'  ||
-            regname[i] == '>'  ||
-            regname[i] == '|')
+        if (regname[i] == '\\' || regname[i] == '/' || regname[i] == ':'  ||
+            regname[i] == '*'  || regname[i] == '?' || regname[i] == '"'  ||
+            regname[i] == '<'  || regname[i] == '>' || regname[i] == '|')
             return 0;
     }
 
@@ -401,15 +400,13 @@ static int title_action(int tok, int val)
 #endif
 
 #if NB_HAVE_PB_BOTH==1
-    const char title_social_url[3][MAXSTR] =
-    {
+    const char title_social_url[3][MAXSTR] = {
         "https://gitea.stynegame.de/Neverball",
         "https://github.com/Neverball",
         "https://discord.gg/qnJR263Hm2/",
     };
 #else
-    const char title_social_url[2][MAXSTR] =
-    {
+    const char title_social_url[2][MAXSTR] = {
         "https://github.com/Neverball",
         "https://discord.gg/HhMfr4N6H6/",
     };
@@ -457,6 +454,7 @@ static int title_action(int tok, int val)
         case TITLE_PLAY:
 #if NB_HAVE_PB_BOTH==1
 #ifdef __EMSCRIPTEN__
+            account_wgcl_autokick_state_prepare(&st_title);
             if (EM_ASM_INT({ return navigator.onLine ? 1 : 0; }))
                 return goto_playgame();
 #else
@@ -472,6 +470,9 @@ static int title_action(int tok, int val)
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
         case TITLE_SHOP:
+#ifdef __EMSCRIPTEN__
+            account_wgcl_autokick_state_prepare(&st_title);
+#endif
             return goto_shop(curr_state(), 0);
             break;
 #endif
@@ -740,7 +741,7 @@ int title_check_wgcl(void)
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     /* HACK: Faster way! - Ersohn Styne */
-    items = demo_dir_scan();
+    TITLE_DEMO_DIR_RESCAN(items);
 
     const int demo_count = array_len(items);
 
@@ -774,6 +775,21 @@ static int title_gui_wgcl(void)
     video_hide_cursor();
 #endif
     return 0;
+}
+
+static void title_play_narrator_welcome(void)
+{
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    /* FIXME: WGCL Narrator can do it! */
+
+    EM_ASM({
+        if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
+            if ($0 == 1 || (tmp_online_session_data != undefined && tmp_online_session_data != null))
+                 CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_title_welcomeback.mp3");
+            else CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_title_welcome.mp3");
+        }
+    }, account_exists());
+#endif
 }
 
 static int title_gui(void)
@@ -1116,9 +1132,7 @@ static int title_gui(void)
                                       btn_size, TITLE_CONF, 0);
 
 #ifndef __EMSCRIPTEN__
-                        /* Have some full screens? (Pressing ALT+F4 is not recommended) */
-
-                        if (support_exit && config_get_d(CONFIG_FULLSCREEN))
+                        if (support_exit)
 #endif
                             gui_state(kd, gt_prefix("menu^Exit"),
                                           btn_size, GUI_BACK, 0);
@@ -1171,9 +1185,7 @@ static int title_gui(void)
                               btn_size, TITLE_CONF, 0);
 
 #ifndef __EMSCRIPTEN__
-                /* Have some full screens? (Pressing ALT+F4 is not recommended) */
-
-                if (support_exit && config_get_d(CONFIG_FULLSCREEN))
+                if (support_exit)
 #endif
                     gui_state(id, gt_prefix("menu^Exit"),
                                   btn_size, GUI_BACK, 0);
@@ -1195,15 +1207,13 @@ static int title_gui(void)
                 if ((jd = gui_hstack(id)))
                 {
 #if NB_HAVE_PB_BOTH==1
-                    const char title_social_image_paths[3][MAXSTR] =
-                    {
+                    const char title_social_image_paths[3][MAXSTR] = {
                         "gui/social/ic_gitea.jpg",
                         "gui/social/ic_github.jpg",
                         "gui/social/ic_discord.jpg",
                     };
 #else
-                    const char title_social_image_paths[2][MAXSTR] =
-                    {
+                    const char title_social_image_paths[2][MAXSTR] = {
                         "gui/social/ic_github.jpg",
                         "gui/social/ic_discord.jpg",
                     };
@@ -1332,14 +1342,23 @@ static int filter_cmd(const union cmd *cmd)
 
 static int title_enter(struct state *st, struct state *prev, int intent)
 {
+#if NB_HAVE_PB_BOTH==1
+    account_wgcl_autokick_state_ignore();
+#endif
+
     game_proxy_filter(filter_cmd);
 
     if (title_load_lockscreen)
         title_load_lockscreen = 0;
 
     title_lockscreen = title_can_unlock;
+    
+    /* Start the title screen music. */
 
-    const int title_gui_main = title_check_wgcl() ? title_gui_wgcl() : title_gui();
+    audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
+                                                     BGM_TITLE_CONF_LANGUAGE, 1);
+
+    const int title_gui_main = !title_lockscreen && title_check_wgcl() ? title_gui_wgcl() : title_gui();
 
     if (prev == &st_title)
         return title_gui_main;
@@ -1365,11 +1384,6 @@ static int title_enter(struct state *st, struct state *prev, int intent)
     progress_reinit(MODE_NONE);
 
     title_freeze_all = 0;
-    
-    /* Start the title screen music. */
-
-    audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
-                                                     BGM_TITLE_CONF_LANGUAGE, 1);
 
     /* Initialize the build-in nor title level for display. */
 
@@ -1498,7 +1512,7 @@ static void title_timer(int id, float dt)
             {
                 /* HACK: Faster way! */
 
-                items = demo_dir_scan();
+                TITLE_DEMO_DIR_RESCAN(items);
 
                 if ((demo = pick_demo(items)))
                 {
@@ -1616,23 +1630,12 @@ static int title_click(int b, int d)
     if (title_lockscreen && title_can_unlock &&
         b == SDL_BUTTON_LEFT && d)
     {
-#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-        /* FIXME: WGCL Narrator can do it! */
-
-        EM_ASM({
-            if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
-                if ($0 == 1 && tmp_online_session_data != undefined && tmp_online_session_data != null)
-                    CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_title_welcomeback.mp3");
-                else
-                    CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_title_welcome.mp3");
-            }
-        }, account_exists());
-#endif
+        title_play_narrator_welcome();
 
         title_can_unlock = 0;
         return goto_state(&st_title);
     }
-#ifndef __EMSCRIPTEN__
+#if NB_HAVE_PB_BOTH!=1 && !defined(__EMSCRIPTEN__)
     else if (!title_lockscreen && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
         return st_keybd(KEY_EXIT, d);
 #endif
@@ -1648,18 +1651,20 @@ static int title_keybd(int c, int d)
 
     if (d)
     {
+#if NB_HAVE_PB_BOTH!=1
 #ifndef __EMSCRIPTEN__
         if (c == KEY_EXIT && support_exit)
 #else
         if (c == KEY_EXIT)
 #endif
         {
-            title_prequit = 1;
+            if (!title_gui_wgcl_version_enabled) title_prequit = 1;
 
             /* bye! */
 
-            return 0;
+            return title_gui_wgcl_version_enabled;
         }
+#endif
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
         if (c >= SDLK_a && c <= SDLK_z)
@@ -1679,18 +1684,8 @@ static int title_buttn(int b, int d)
     {
         if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b) && title_can_unlock)
         {
-#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-            /* FIXME: WGCL Narrator can do it! */
+            title_play_narrator_welcome();
 
-            EM_ASM({
-                if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
-                    if ($0 == 1 && tmp_online_session_data != undefined && tmp_online_session_data != null)
-                        CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_title_welcomeback.mp3");
-                    else
-                        CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_title_welcome.mp3");
-                }
-            }, account_exists());
-#endif
             title_can_unlock = 0;
             goto_state(&st_title);
         }
@@ -1706,6 +1701,7 @@ static int title_buttn(int b, int d)
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return title_action(gui_token(active), gui_value(active));
+#if NB_HAVE_PB_BOTH!=1
 #ifndef __EMSCRIPTEN__
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b) && support_exit)
 #else
@@ -1718,6 +1714,7 @@ static int title_buttn(int b, int d)
 
             return 0;
         }
+#endif
     }
     return 1;
 }

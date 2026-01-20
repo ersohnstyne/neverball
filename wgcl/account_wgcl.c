@@ -14,6 +14,7 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#include <SDL.h>
 #endif
 
 #include <stdio.h>
@@ -34,7 +35,6 @@
 #include "log.h"
 #include "parson.h"
 
-#include "state.h"
 #include "st_setup.h"
 #include "st_wgcl.h"
 
@@ -312,6 +312,10 @@ static int pending_set_consumable_doublecash;
 static int pending_set_consumable_halfgrav;
 static int pending_set_consumable_doublespeed;
 
+static int         (*fn_kick_returnable)(void);
+static int           st_kick_returnable;
+static struct state *st_kick_return;
+
 static void account_wgcl_visit_browser_login()
 {
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -332,6 +336,10 @@ static void account_wgcl_visit_browser_login()
 int account_wgcl_init(void)
 {
     account_wgcl_quit();
+
+    fn_kick_returnable = 0;
+    st_kick_returnable = 0;
+    st_kick_return     = NULL;
 
     return account_init();
 }
@@ -396,6 +404,34 @@ void account_wgcl_load(void)
 }
 
 /*
+ * Place the kick function as origin.
+ */
+void account_wgcl_autokick_func_prepare(int (*kick_fn) (void))
+{
+    fn_kick_returnable = kick_fn;
+    st_kick_returnable = 1;
+}
+
+/*
+ * Place the kick state as origin.
+ */
+void account_wgcl_autokick_state_prepare(struct state *st)
+{
+    st_kick_return     = st;
+    st_kick_returnable = 1;
+}
+
+/*
+ * Ignore auto-kick screen state.
+ */
+void account_wgcl_autokick_state_ignore(void)
+{
+    fn_kick_returnable = NULL;
+    st_kick_return     = NULL;
+    st_kick_returnable = 0;
+}
+
+/*
  * Save PB+NB account.
  */
 void account_wgcl_save(void)
@@ -445,7 +481,7 @@ int account_wgcl_reload(void)
             "https://%s/api/internal/getsession", WGCL_URL);
 
     struct wgcl_res_data res_data = {0};
-    
+
     time_t     wgcl_time_now;
     struct tm *wgcl_utc_time;
     char       wgcl_utc_strfmt[40];
@@ -649,8 +685,8 @@ account_wgcl_reload_fail:
         session_uuid4 = NULL;
     }
 
-    int r = EM_ASM_INT({
-        return Neverball.gamecore_account_try_reload() ? 1 : 0;
+    EM_ASM({
+        Neverball.gamecore_account_try_reload() ? 1 : 0;
     });
 
     return 1;
@@ -711,7 +747,7 @@ int account_wgcl_login(const char *name, const char *password)
             "https://%s/api/internal/login", WGCL_URL);
 
     struct wgcl_res_data res_data = {0};
-    
+
     time_t     wgcl_time_now;
     struct tm *wgcl_utc_time;
     char       wgcl_utc_strfmt[40];
@@ -1020,7 +1056,7 @@ int account_wgcl_try_set(int w_coins, int w_gems,
             "https://%s/api/internal/updateassets", WGCL_URL);
 
     struct wgcl_res_data res_data = {0};
-    
+
     time_t     wgcl_time_now;
     struct tm *wgcl_utc_time;
     char       wgcl_utc_strfmt[40];
@@ -1170,7 +1206,7 @@ int account_wgcl_try_buy(int w_coins_cost, int flags)
             "https://%s/api/internal/shop/buy", WGCL_URL);
 
     struct wgcl_res_data res_data = {0};
-    
+
     time_t     wgcl_time_now;
     struct tm *wgcl_utc_time;
     char       wgcl_utc_strfmt[40];
@@ -1426,7 +1462,7 @@ void account_wgcl_post_sync(const char *uuid4, const char *player_name)
 
     if (strcmp(config_get_s(CONFIG_PLAYER), player_name) != 0)
     {
-        log_errorf("WGCL error: Client's player name (config_get_s(CONFIG_PLAYER): %s) does not matched by the session's player name (account_wgcl_post_sync(uuid4, player_name)): %s)\n",
+        log_errorf("WGCL + CURL error: Client's player name (config_get_s(CONFIG_PLAYER): %s) does not matched by the session's player name (account_wgcl_post_sync(uuid4, player_name)): %s)\n",
                    config_get_s(CONFIG_PLAYER), player_name);
 
         account_save();
@@ -1507,7 +1543,7 @@ int account_wgcl_mapmarkers_place(const char *map_name, int status, int x_cm, in
             "https://%s/api/internal/mapmarkers/place", WGCL_URL);
 
     struct wgcl_res_data res_data = {0};
-    
+
     time_t     wgcl_time_now;
     struct tm *wgcl_utc_time;
     char       wgcl_utc_strfmt[40];
@@ -1596,3 +1632,37 @@ account_wgcl_mapmarkers_place_fail:
 #endif
 }
 #endif
+
+void WGCL_KickScreenState(void)
+{
+    if (st_kick_returnable)
+    {
+        int event_pushed = 0;
+
+        log_errorf("State kicked due to fetch account sync error!\n");
+
+        if (fn_kick_returnable)
+        {
+            if (!(fn_kick_returnable()))
+            {
+                SDL_Event e = { SDL_QUIT };
+                SDL_PushEvent(&e);
+                event_pushed = 1;
+            }
+
+            fn_kick_returnable = 0;
+        }
+
+        if (st_kick_return != NULL && st_kick_return != curr_state() && !event_pushed)
+            exit_state(st_kick_return);
+#ifdef __EMSCRIPTEN__
+        else if (st_kick_return != curr_state() && !event_pushed)
+        {
+            SDL_Event e = { SDL_QUIT };
+            SDL_PushEvent(&e);
+        }
+#endif
+
+        st_kick_returnable = 0;
+    }
+}

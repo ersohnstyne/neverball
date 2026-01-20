@@ -180,15 +180,9 @@ static int title_check_playername(const char *regname)
 {
     for (int i = 0; i < text_length(regname); i++)
     {
-        if (regname[i] == '\\' ||
-            regname[i] == '/' ||
-            regname[i] == ':' ||
-            regname[i] == '*' ||
-            regname[i] == '?' ||
-            regname[i] == '"' ||
-            regname[i] == '<' ||
-            regname[i] == '>' ||
-            regname[i] == '|')
+        if (regname[i] == '\\' || regname[i] == '/' || regname[i] == ':'  ||
+            regname[i] == '*'  || regname[i] == '?' || regname[i] == '"'  ||
+            regname[i] == '<'  || regname[i] == '>' || regname[i] == '|')
             return 0;
     }
 

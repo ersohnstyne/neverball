@@ -25,6 +25,7 @@
 #include "networking.h"
 #include "accessibility.h"
 #include "account.h"
+#include "account_wgcl.h"
 #include "boost_rush.h"
 #include "st_intro_covid.h"
 #endif
@@ -276,6 +277,9 @@ static int set_level_play_timer(float dt)
         {
             activity_services_mode_update((enum activity_services_mode) curr_mode());
 
+#if NB_HAVE_PB_BOTH==1
+            account_wgcl_autokick_state_prepare(&st_start);
+#endif
             return goto_play_level();
         }
     }
@@ -347,6 +351,9 @@ static int start_action(int tok, int val)
                     {
                         activity_services_mode_update(AS_MODE_HARDCORE);
 
+#if NB_HAVE_PB_BOTH==1
+                        account_wgcl_autokick_state_prepare(&st_start);
+#endif
                         return goto_play_level();
                     }
                 }
@@ -407,6 +414,9 @@ static int start_action(int tok, int val)
                                                           (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE :
                                                                                            AS_MODE_NORMAL));
 
+#if NB_HAVE_PB_BOTH==1
+                            account_wgcl_autokick_state_prepare(&st_start);
+#endif
                             return goto_play_level();
                         }
                     }
@@ -431,6 +441,9 @@ static int start_action(int tok, int val)
                                                (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE :
                                                                                 AS_MODE_NORMAL));
 
+#if NB_HAVE_PB_BOTH==1
+                    account_wgcl_autokick_state_prepare(&st_set);
+#endif
                     return goto_play_level();
                 }
             }
@@ -459,6 +472,9 @@ static int start_action(int tok, int val)
                                            (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE :
                                                                             AS_MODE_NORMAL));
 
+#if NB_HAVE_PB_BOTH==1
+                account_wgcl_autokick_state_prepare(&st_start);
+#endif
                 return goto_play_level();
             }
 
@@ -1486,7 +1502,12 @@ static int start_joinrequired_action(int tok, int val)
             progress_reinit(MODE_CHALLENGE);
 
             if (set_level_play(0))
+            {
+#if NB_HAVE_PB_BOTH==1
+                account_wgcl_autokick_state_prepare(&st_start);
+#endif
                 return goto_play_level();
+            }
 
             break;
     }

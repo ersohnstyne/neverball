@@ -123,15 +123,9 @@ static void name_update_enter_btn(void)
 
     for (int i = 0; i < text_length(text_input); i++)
     {
-        if (text_input[i] == '\\' ||
-            text_input[i] == '/'  ||
-            text_input[i] == ':'  ||
-            text_input[i] == '*'  ||
-            text_input[i] == '?'  ||
-            text_input[i] == '"'  ||
-            text_input[i] == '<'  ||
-            text_input[i] == '>'  ||
-            text_input[i] == '|')
+        if (text_input[i] == '\\' || text_input[i] == '/' || text_input[i] == ':'  ||
+            text_input[i] == '*'  || text_input[i] == '?' || text_input[i] == '"'  ||
+            text_input[i] == '<'  || text_input[i] == '>' || text_input[i] == '|')
         {
             name_accepted = 0;
             break;
@@ -416,8 +410,7 @@ static void name_paint(int id, float t)
         video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
         back_draw_easy();
     }
-    else
-        game_client_draw(0, t);
+    else game_client_draw(0, t);
 
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)

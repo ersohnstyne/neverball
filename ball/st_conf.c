@@ -124,15 +124,9 @@ int goto_conf(struct state *back_state, int using_game, int demo)
 static int conf_check_playername(const char *regname)
 {
     for (int i = 0; i < text_length(regname); i++)
-        if (regname[i] == '\\' ||
-            regname[i] == '/'  ||
-            regname[i] == ':'  ||
-            regname[i] == '*'  ||
-            regname[i] == '?'  ||
-            regname[i] == '"'  ||
-            regname[i] == '<'  ||
-            regname[i] == '>'  ||
-            regname[i] == '|')
+        if (regname[i] == '\\' || regname[i] == '/' || regname[i] == ':'  ||
+            regname[i] == '*'  || regname[i] == '?' || regname[i] == '"'  ||
+            regname[i] == '<'  || regname[i] == '>' || regname[i] == '|')
         {
             log_errorf("Can't accept other charsets!: %c\n", regname[i]);
             return 0;

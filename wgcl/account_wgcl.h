@@ -12,6 +12,11 @@
  * General Public License for more details.
  */
 
+#ifndef ACCOUNT_WGCL_H
+#define ACCOUNT_WGCL_H
+
+#include "state.h"
+
 #define ACCOUNT_WGCL_RESTART_POST_ATTEMPT_THEN_GOTOSTATE(next_state, from, to)  \
     if (account_wgcl_restart_attempt()) goto_state(next_state, from, to, 0); \
 
@@ -20,6 +25,10 @@ void account_wgcl_quit(void);
 int  account_wgcl_exists(void);
 void account_wgcl_load(void);
 void account_wgcl_save(void);
+
+void account_wgcl_autokick_func_prepare(int (*kick_fn) (void));
+void account_wgcl_autokick_state_prepare(struct state *st);
+void account_wgcl_autokick_state_ignore(void);
 
 int  account_wgcl_reload(void);
 void account_wgcl_set_session_uuid4(const char *uuid4);
@@ -45,4 +54,8 @@ void account_wgcl_post_sync(const char *, const char *);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 int account_wgcl_mapmarkers_place(const char *, int, int, int, int);
+#endif
+
+void WGCL_KickScreenState(void);
+
 #endif

@@ -472,7 +472,7 @@ static void play_ready_timer(int id, float dt)
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     /* HACK: Do not attempt, when the level is loading. */
 
-    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading; })) return;
+    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading ? 1 : 0; })) return;
 #endif
 
     game_lerp_pose_point_tick(dt);
@@ -721,7 +721,7 @@ static int play_prep_click(int b, int d)
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     /* HACK: Do not attempt, when the level is loading. */
 
-    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading; })) return 1;
+    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading ? 1 : 0; })) return 1;
 #endif
 
     hud_show(0.0f);
@@ -802,7 +802,7 @@ static int play_prep_buttn(int b, int d)
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     /* HACK: Do not attempt, when the level is loading. */
 
-    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading; })) return 1;
+    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading ? 1 : 0; })) return 1;
 #endif
 
     if (d)
@@ -1063,7 +1063,7 @@ static void play_loop_timer(int id, float dt)
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     /* HACK: Do not attempt, when the level is loading. */
 
-    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading; })) return;
+    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading ? 1 : 0; })) return;
 #endif
 
     ST_PLAY_SYNC_SMOOTH_FIX_TIMER(smoothfix_slowdown_time);

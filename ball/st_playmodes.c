@@ -26,6 +26,7 @@
 #include "accessibility.h"
 #include "campaign.h"
 #include "account.h"
+#include "account_wgcl.h"
 #endif
 
 #include "hud.h"
@@ -432,6 +433,9 @@ static int hardcore_start_action(int tok, int val)
             {
                 activity_services_mode_update(AS_MODE_HARDCORE);
 
+#if NB_HAVE_PB_BOTH==1
+                account_wgcl_autokick_state_prepare(&st_campaign);
+#endif
                 hud_update(0, 0.0f);
                 game_client_fly(1.0f);
                 return goto_play_level();

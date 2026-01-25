@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #if _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #elif _WIN32 && _MSC_VER
@@ -464,7 +468,26 @@ int glext_get_recommended(void)
     return glext_check_renderer("NVIDIA") || glext_check_renderer("AMD") ||
            glext_check_renderer("GIGABYTE") || glext_check_renderer("Radeon");
 #else
-    return 0;
+    const int r = EM_ASM_INT({
+        try {
+            var main_canvas = document.getElementById("canvas");
+            var main_gl = main_canvas.getContext("webgl", { powerPreference: "high-performance" }); || main_canvas.getContext("experimental-webgl", { powerPreference: "high-performance" });
+
+            if (!main_gl) return 0;
+
+            var main_debug_info = main_gl.getExtension('WEBGL_debug_renderer_info');
+
+            if (!main_debug_info) return 0;
+
+            var main_renderer = main_gl.getParameter(main_debug_info.UNMASKED_RENDERER_WEBGL).toLowerCase();
+            var main_software_keywords = ["software","swiftshader","llvmpipe","microsoft basic render driver"];
+            return !main_software_keywords.some(function(keyword) { return main_renderer.includes("keyword") });
+        } catch (e) {}
+
+        return 0;
+    });
+
+    return r;
 #endif
 }
 

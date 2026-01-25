@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 /*
  * HACK: Used with console version
  */
@@ -892,6 +896,17 @@ static int page_modes_special(int id)
         {
             gui_label(jd, _("Boost Rush Mode"), GUI_SML, gui_gry, gui_red);
 
+#ifdef __EMSCRIPTEN__
+            const int wgcl_account_sync_done = EM_ASM_INT({
+                return tmp_online_session_data != undefined &&
+                       tmp_online_session_data != null;
+            });
+
+            if (!wgcl_account_sync_done)
+                gui_multi(jd, _("Login with your account to play this Mode."),
+                              GUI_SML, GUI_COLOR_WHT);
+            else
+#endif
             if (server_policy_get_d(SERVER_POLICY_EDITION) < 0 &&
                 CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
                 gui_multi(jd, _("Upgrade to Pro edition to play this Mode."),
@@ -965,7 +980,18 @@ static int page_modes_special(int id)
         else
         {
             gui_label(jd, _("Hardcore Mode"), GUI_SML, gui_gry, gui_red);
+            
+#ifdef __EMSCRIPTEN__
+            const int wgcl_account_sync_done = EM_ASM_INT({
+                return tmp_online_session_data != undefined &&
+                       tmp_online_session_data != null;
+            });
 
+            if (!wgcl_account_sync_done)
+                gui_multi(jd, _("Login with your account to play this Mode."),
+                              GUI_SML, GUI_COLOR_WHT);
+            else
+#endif
             if (server_policy_get_d(SERVER_POLICY_EDITION) < 0 &&
                 CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
                 gui_multi(jd, _("Upgrade to Pro edition to play this Mode."),

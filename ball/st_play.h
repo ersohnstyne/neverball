@@ -20,6 +20,8 @@ extern struct state st_play_set;
 extern struct state st_play_loop;
 extern struct state st_look;
 
+void play_loop_touch_init(void);
+
 int play_pause_goto(struct state *);
 
 void wgcl_play_touch_pause(void);

@@ -161,7 +161,6 @@ int cam_speed(int c)
 
 /*---------------------------------------------------------------------------*/
 
-const float GRAVITY_PY[]   = { 0.0f, +9.8f, 0.0f };
 const float GRAVITY_NY[]   = { 0.0f, -9.8f, 0.0f };
 const float GRAVITY_BUSY[] = { 0.0f,  0.0f, 0.0f };
 

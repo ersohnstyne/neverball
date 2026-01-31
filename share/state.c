@@ -53,11 +53,9 @@ static int                stick_count;
 
 static void cache_stick(int a, float v, float t)
 {
-    int i;
-
     /* Cache new values. */
 
-    for (i = 0; i < stick_count; i++)
+    for (int i = 0; i < stick_count; i++)
     {
         struct stick_cache *sc = &stick_cache[i];
 
@@ -96,9 +94,7 @@ static void cache_stick(int a, float v, float t)
 
 static int bump_stick(int a)
 {
-    int i;
-
-    for (i = 0; i < stick_count; i++)
+    for (int i = 0; i < stick_count; i++)
     {
         struct stick_cache *sc = &stick_cache[i];
 
@@ -123,10 +119,6 @@ static int bump_stick(int a)
     } } while (0)
 
 /*---------------------------------------------------------------------------*/
-
-/* SCREEN ANIMATIONS */
-#define state_frame_smooth (1.0f / 25.0f) * 1000
-#define state_anim_speed 6.0f
 
 static int   anim_queue = 0;
 static int   anim_done  = 0;
@@ -242,27 +234,24 @@ int goto_state_full_intent(struct state *st,
 
     anim_queue = 0;
 
+    int r1 = 1;
+
     if (anim_queue_state != NULL)
     {
-        int r1 = goto_state_full_intent(anim_queue_state,
-                                        anim_queue_directions[0],
-                                        anim_queue_directions[1],
-                                        anim_queue_allowskip,
-                                        anim_queue_intent);
+        r1 = goto_state_full_intent(anim_queue_state,
+                                    anim_queue_directions[0],
+                                    anim_queue_directions[1],
+                                    anim_queue_allowskip,
+                                    anim_queue_intent);
 
         anim_queue_state         = NULL;
         anim_queue_directions[0] = 0;
         anim_queue_directions[1] = 0;
         anim_queue_allowskip     = 0;
         anim_queue_intent        = -1;
-
-        if (!r1) {
-            SDL_Event e = { SDL_QUIT };
-            SDL_PushEvent(&e);
-        }
     }
 
-    return r && state;
+    return r && r1 && state;
 }
 
 int goto_state(struct state *st)
@@ -327,8 +316,6 @@ void st_paint(float t, int allow_clear)
 
 void st_timer(float dt)
 {
-    int i;
-
     if (!state_drawn)
         return;
 
@@ -341,7 +328,7 @@ void st_timer(float dt)
     if (state && state->timer)
         state->timer(state->gui_id, dt);
 
-    for (i = 0; i < stick_count; i++)
+    for (int i = 0; i < stick_count; i++)
     {
         struct stick_cache *sc = &stick_cache[i];
 
@@ -352,6 +339,14 @@ void st_timer(float dt)
             sc->t = state_time + STICK_REPEAT_TIME;
         }
     }
+}
+
+void st_point(int x, int y, int dx, int dy)
+{
+    if (console_gui_shown()) return;
+
+    if (state && state->point)
+        state->point(state->gui_id, x * (hmd_stat() ? 2 : 1), y, dx, dy);
 }
 
 void st_stick(int a, float v)
@@ -367,17 +362,14 @@ void st_stick(int a, float v)
         { &CONFIG_JOYSTICK_AXIS_Y1, &CONFIG_JOYSTICK_AXIS_Y1_INVERT }
     };
 
-    int i;
-
-    for (i = 0; i < ARRAYSIZE(axes); i++)
+    for (int i = 0; i < ARRAYSIZE(axes); i++)
         if (config_tst_d(*axes[i].num, a) && config_get_d(*axes[i].inv))
         {
             v = -v;
             break;
         }
 
-    if (fabsf(v) < 0.05f)
-        v = 0.0f;
+    if (fabsf(v) < 0.05f) v = 0.0f;
 
     if (state && state->stick)
     {
@@ -452,10 +444,9 @@ int st_touch(const SDL_TouchFingerEvent *event)
              video.device_w * event->dx,
              video.device_h * -event->dy);
 
-    if (event->type == SDL_FINGERDOWN)
-        d = st_click(SDL_BUTTON_LEFT, 1);
-    else if (event->type == SDL_FINGERUP)
-        d = st_click(SDL_BUTTON_LEFT, 0);
+    if (event->type == SDL_FINGERDOWN ||
+        event->type == SDL_FINGERUP)
+        d = st_click(SDL_BUTTON_LEFT, event->type == SDL_FINGERDOWN);
 
     return d;
 }

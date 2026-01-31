@@ -2004,8 +2004,6 @@ static int game_step(const float g[3], float dt, int bt)
 {
     if (server_state)
     {
-        float h[3];
-
         /*
          * Smooth jittery or discontinuous input.
          * Floor must be keep horizontally: jump_b == 0
@@ -2027,9 +2025,9 @@ static int game_step(const float g[3], float dt, int bt)
         game_cmd_tiltangles();
 #endif
 
-        grow_step(CURR_PLAYER, dt);
+        if (status != GAME_TIME) grow_step(CURR_PLAYER, dt);
 
-        game_tilt_grav(h, g, &tilt);
+        float h[3];  game_tilt_grav(h, g, &tilt);
 
         if (powblock_b > 0 && status != GAME_TIME)
         {

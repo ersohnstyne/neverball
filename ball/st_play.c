@@ -1829,8 +1829,8 @@ void wgcl_play_touch_zoom_camera(int v)
 
 void wgcl_play_devicemotion_tilt(int x, int y)
 {
-    const int parsed_x = x > 180 ? x - 360 : x;
-    const int parsed_y = y > 180 ? y - 360 : y;
+    const int parsed_x = x;
+    const int parsed_y = y;
 
     if (devicemotion_tilt_can_autocalibrate == 1)
     {
@@ -1838,6 +1838,13 @@ void wgcl_play_devicemotion_tilt(int x, int y)
 
         devicemotion_tilt_init_x = x;
         devicemotion_tilt_init_y = y;
+        
+#ifdef __EMSCRIPTEN__
+        EM_ASM({
+            Neverball._gyroscopeRotateAxes.x = 0;
+            Neverball._gyroscopeRotateAxes.y = 0;
+        });
+#endif
     }
 
     if (devicemotion_timer_tilt >= 10.0f)

@@ -890,7 +890,7 @@ static void step(void *data)
 #if ENABLE_MOTIONBLUR!=0
         }
 #endif
-
+        if (curr_state() == &st_null && time_state() >= 3.0f) video_clear();
         video_swap();
 
 #if ENABLE_DUALDISPLAY==1

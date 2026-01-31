@@ -92,6 +92,9 @@ static void game_run_cmd(const union cmd *cmd)
         struct s_vary *vary = &gd.vary;
         struct v_item *hp   = NULL;
 
+        float g[3] = { 0.0f, -9.8f, 0.0f };
+        float h[3]; v_scl(h, g, -1);
+
         float v[4];
         float dt;
 
@@ -121,13 +124,10 @@ static void game_run_cmd(const union cmd *cmd)
                 /* Compute gravity for particle effects. */
 
 #if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
-                if (status == GAME_GOAL && !campaign_used())
+                game_tilt_grav(v, status == GAME_GOAL && !campaign_used() ? h : g, tilt);
 #else
-                if (status == GAME_GOAL)
+                game_tilt_grav(v, status == GAME_GOAL ? h : g, tilt);
 #endif
-                    game_tilt_grav(v, GRAVITY_PY, tilt);
-                else
-                    game_tilt_grav(v, GRAVITY_NY, tilt);
 
                 game_status_goal = status == GAME_GOAL;
 

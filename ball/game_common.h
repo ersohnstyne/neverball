@@ -201,10 +201,8 @@ extern float view_zoom_diff_curr;
 extern float view_zoom_diff_rate;
 extern float view_zoom_diff_end;
 
-#define GRAVITY_UP GRAVITY_PY
 #define GRAVITY_DN GRAVITY_NY
 
-extern const float GRAVITY_PY[];
 extern const float GRAVITY_NY[];
 extern const float GRAVITY_BUSY[];
 

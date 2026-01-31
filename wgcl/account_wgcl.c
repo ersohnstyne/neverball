@@ -1503,6 +1503,7 @@ void account_wgcl_post_sync(const char *uuid4, const char *player_name)
     }
     else
     {
+        EM_ASM({ gameoptions_systemsettings_server_available = true; });
         r_standalone = 3;
 
         server_policy_set_d(SERVER_POLICY_EDITION, r_server);
@@ -1530,10 +1531,8 @@ void account_wgcl_post_sync(const char *uuid4, const char *player_name)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 int account_wgcl_mapmarkers_place(const char *map_name, int status, int x_cm, int y_cm, int z_cm)
 {
-    #if _WIN32 && _MSC_VER
+#if _WIN32 && _MSC_VER
 #if NB_HAVE_PB_BOTH==1
-    /* TODO: Buy managed products into online browser from in-game instead. */
-
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
     sprintf_s(in_url, 512,

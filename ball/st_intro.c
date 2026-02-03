@@ -161,12 +161,6 @@ static int intro_done;
 
 static int intro_gui(void)
 {
-    int w = video.device_w;
-    int h = video.device_h;
-
-    const int ww = h * MIN(w, h) / 16;
-    const int hh = ww / 16 * 10;
-
     int root_id;
 
     if ((root_id = gui_root()))
@@ -226,8 +220,11 @@ static int intro_gui(void)
             "gui/intro/ae_logo.jpg"
         };
 
+        int image_width  = video.device_w >= video.device_h * 1.7 ? video.device_h * 1.7 : video.device_w ;
+        int image_height = video.device_w >= video.device_h * 1.7 ? video.device_h       : video.device_w / 1.7;
+
         if ((image_id = gui_image(root_id, intro_logo_image_path[intro_page - 1],
-                                           ww, hh)))
+                                           image_width, image_height)))
         {
             gui_clr_rect(image_id);
             gui_layout(image_id, 0, 0);

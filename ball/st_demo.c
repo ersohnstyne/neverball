@@ -1205,6 +1205,7 @@ static int demo_buttn(int b, int d)
 
 #define DEMO_SET_SPEED(s)         \
     do {                          \
+        demo_speed_dirty = 1;     \
         speed = s;                \
         demo_replay_speed(speed); \
         hud_speed_pulse(speed);   \
@@ -1214,6 +1215,7 @@ static int demo_buttn(int b, int d)
     do {                                    \
         if (d > 0) speed = SPEED_UP(speed); \
         if (d < 0) speed = SPEED_DN(speed); \
+        demo_speed_dirty = 1;               \
         demo_replay_speed(speed);           \
         hud_speed_pulse(speed);             \
     } while (0)
@@ -1249,10 +1251,13 @@ static float prelude;
 
 static float smoothfix_slowdown_time;
 
+static int demo_speed_dirty;
+
 /* Timers needed */
 static int demo_timer_curr;
 static int demo_timer_last;
 static int demo_timer_down = -1;
+static int demo_timer_warning;
 
 /* Keyboard inputs */
 static int faster;
@@ -1310,7 +1315,7 @@ static int demo_play_enter(struct state *st, struct state *prev, int intent)
         audio_music_fade_in(0.5f);
         hud_show(0.0f);
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-        EM_ASM({ Pennyball.WGCLshowGameHUD(); });
+        EM_ASM({ Neverball.WGCLshowGameHUD(); });
 #endif
         return 0;
     }
@@ -1332,6 +1337,7 @@ static int demo_play_enter(struct state *st, struct state *prev, int intent)
         return 0;
     }
 
+    demo_timer_warning = 0;
     prelude = 1.0f;
 
     speed_manual = 0;
@@ -1364,7 +1370,7 @@ static int demo_play_leave(struct state *st, struct state *next, int id, int int
 
     hud_hide();
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-    EM_ASM({ Pennyball.WGCLhideGameHUD(); });
+    EM_ASM({ Neverball.WGCLhideGameHUD(); });
 #endif
 
     gui_delete(id);
@@ -1411,23 +1417,30 @@ static void demo_play_timer(int id, float dt)
         transition = 1;
     }
 
-    demo_timer_last = demo_timer_curr;
-    demo_timer_curr = curr_clock();
-
-    if (demo_timer_down == -1 && time_state() >= prelude)
-        demo_timer_down = demo_timer_last > demo_timer_curr;
-
     /* Pause briefly before starting playback. */
 
     if (time_state() < prelude || st_global_animating())
         return;
 
+    demo_timer_last = demo_timer_curr;
+    demo_timer_curr = curr_clock();
+
+    if (time_state() >= prelude)
+        demo_timer_down = demo_timer_last > demo_timer_curr;
+    else demo_timer_down = 0;
+
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-    EM_ASM({ Pennyball.WGCLshowGameHUD(); });
+    EM_ASM({ Neverball.WGCLshowGameHUD(); });
 #endif
 
     if (demo_timer_down)
     {
+        if (demo_timer_curr < 1000 && !demo_timer_warning)
+        {
+            demo_timer_warning = 1;
+            audio_music_fade_to(.1f, "bgm/time-warning.ogg", 1);
+        }
+
         if      (demo_timer_curr < 1    && speed > SPEED_SLOWESTESTEST)
             DEMO_SET_SPEED(SPEED_SLOWESTESTEST);
         else if (demo_timer_curr < 12   && speed > SPEED_SLOWESTESTER)
@@ -1449,10 +1462,18 @@ static void demo_play_timer(int id, float dt)
         }
     }
 
+    if (demo_speed_dirty) {
+        demo_speed_dirty = 0;
+        return;
+    }
+
     if (!demo_replay_step(dt) && !st_global_animating())
         demo_pause_goto(0);
     else if (!st_global_animating())
     {
+        if (demo_timer_warning && curr_status() != GAME_NONE)
+            audio_music_fade_out(0.1f);
+
         progress_step();
         game_client_blend(demo_replay_blend());
     }

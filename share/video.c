@@ -353,18 +353,18 @@ void video_set_display(int dpy)
     int X = monitor_area_location.x + (ddm.w / 2) - (video.window_w / 2);
     int Y = monitor_area_location.y + (ddm.h / 2) - (video.window_h / 2);
 
-    if (video.window_w > ddm.w ||
+    /*if (video.window_w > ddm.w ||
         video.window_h > ddm.h)
     {
-        log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n",
+        log_errorf("Window size exceeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n",
                    video.window_w, video.window_h, ddm.w, ddm.h);
         video_set_window_size(ddm.w, ddm.h);
-    }
+    }*/
 
     if (X - monitor_area_location.x > ddm.w + monitor_area_location.x / 2 ||
         Y - monitor_area_location.y > ddm.h + monitor_area_location.y / 2)
     {
-        log_errorf("Window position exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n",
+        log_errorf("Window position exceeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n",
                    X, Y, ddm.w, ddm.h);
         X = MAX((ddm.w / 2) - (video.window_w / 2), 0) + monitor_area_location.x;
         Y = MAX((ddm.h / 2) - (video.window_h / 2), 0) + monitor_area_location.y;
@@ -532,19 +532,19 @@ video_mode_reconf:
     int X = monitor_area_location.x + (ddm.w / 2) - (w / 2);
     int Y = monitor_area_location.y + (ddm.h / 2) - (h / 2);
 
-    if (w > ddm.w ||
+    /*if (w > ddm.w ||
         h > ddm.h)
     {
-        log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n",
+        log_errorf("Window size exceeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n",
                    w, h, ddm.w, ddm.h);
         w = ddm.w;
         h = ddm.h;
-    }
+    }*/
 
     if (X - monitor_area_location.x > ddm.w + monitor_area_location.x / 2 ||
         Y - monitor_area_location.y > ddm.h + monitor_area_location.y / 2)
     {
-        log_errorf("Window position exeeds the desktop resolution limit during creation!: Current: %d/%d; Limit: %d/%d\n",
+        log_errorf("Window position exceeds the desktop resolution limit during creation!: Current: %d/%d; Limit: %d/%d\n",
                    X, Y, ddm.w, ddm.h);
         X = MAX((ddm.w / 2) - (w / 2), 0) + monitor_area_location.x;
         Y = MAX((ddm.h / 2) - (h / 2), 0) + monitor_area_location.y;
@@ -1027,19 +1027,19 @@ video_mode_auto_config_reconf:
     int X = monitor_area_location.x + (ddm.w / 2) - (w / 2);
     int Y = monitor_area_location.y + (ddm.h / 2) - (h / 2);
 
-    if (w > ddm.w ||
+    /*if (w > ddm.w ||
         h > ddm.h)
     {
-        log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n",
+        log_errorf("Window size exceeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n",
                    w, h, ddm.w, ddm.h);
         w = ddm.w;
         h = ddm.h;
-    }
+    }*/
 
     if (X - monitor_area_location.x > ddm.w + monitor_area_location.x / 2 ||
         Y - monitor_area_location.y > ddm.h + monitor_area_location.y / 2)
     {
-        log_errorf("Window position exeeds the desktop resolution limit during creation!: Current: %d/%d; Limit: %d/%d\n",
+        log_errorf("Window position exceeds the desktop resolution limit during creation!: Current: %d/%d; Limit: %d/%d\n",
                    X, Y, ddm.w, ddm.h);
         X = MAX((ddm.w / 2) - (w / 2), 0) + monitor_area_location.x;
         Y = MAX((ddm.h / 2) - (h / 2), 0) + monitor_area_location.y;

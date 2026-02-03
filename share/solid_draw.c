@@ -540,7 +540,7 @@ int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
 
     /* Determine whether this file has reflective materials. */
 
-    for (i = 0; i < draw->base->mc; i++)
+    for (i = 0; i < draw->base->mc && !draw->reflective; i++)
         if (draw->base->mv[i].fl & M_REFLECTIVE)
         {
             draw->reflective = 1;

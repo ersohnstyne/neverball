@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -21,7 +25,7 @@
 #include <unistd.h>
 #endif
 
- /*
+/*
  * HACK: Used with console version
  */
 #include "console_control_gui.h"
@@ -30,6 +34,7 @@
 
 #include "config.h"
 #include "video.h"
+#include "hmd.h"
 #include "glext.h"
 #include "image.h"
 #include "vec3.h"
@@ -74,6 +79,17 @@
 #define GUI_COLOR4UB \
         gui_wht[0], gui_wht[1], gui_wht[2], ROUND((gui_wht[3] * (widget[id].alpha_slide * widget[id].alpha)))
 #endif
+
+#ifndef __EMSCRIPTEN__
+#define GUI_CONFIG_HWACCEL_DECISION \
+    (config_get_d(CONFIG_UI_HWACCEL) || hmd_stat())
+#else
+#define GUI_CONFIG_HWACCEL_DECISION \
+    (hmd_stat())
+#endif
+
+#define GUI_CONFIG_HWACCEL_EXPERIENCEMODE \
+    (hmd_stat())
 
 /*---------------------------------------------------------------------------*/
 
@@ -2152,6 +2168,50 @@ void gui_remove(int id)
 
 /*---------------------------------------------------------------------------*/
 
+static int gui_hmd_experience_mode = 0;
+
+static int gui_paint_hmdexperience_push(int id)
+{
+#ifndef __EMSCRIPTEN__
+    if (!config_get_d(CONFIG_UI_HWACCEL)) return 0;
+
+    if (gui_hmd_experience_mode >= 32) {
+        log_errorf("Stack overflow for HMD experience! Limit: 32\n");
+        return 0;
+    }
+
+    gui_hmd_experience_mode++;
+
+    const float uiexperience_pos_x    = (widget[id].x + widget[id].w / 2.0f - (video.device_w / 2.0f)) / (video.device_w / 64.0f);
+    const float uiexperience_pos_y    = (widget[id].y + widget[id].h / 2.0f - (video.device_h / 2.0f)) / (video.device_h / 64.0f);
+    const float uiexperience_offset_x = widget[id].offset_x / (video.device_w / 64.0f);
+    const float uiexperience_offset_y = widget[id].offset_y / (video.device_h / 64.0f);
+
+    if (GUI_CONFIG_HWACCEL_DECISION && gui_hmd_experience_mode == 1)
+    {
+        glRotatef(uiexperience_pos_x + uiexperience_offset_x,
+                  0.0f, -5.0f, 0.0f);
+        glRotatef(uiexperience_pos_y + uiexperience_offset_y,
+                  5.0f, 0.0f, 0.0f);
+
+        return 1;
+    }
+
+    glRotatef(uiexperience_offset_x, 0.0f, -5.0f, 0.0f);
+    glRotatef(uiexperience_offset_y, 5.0f,  0.0f, 0.0f);
+#endif
+    return 0;
+}
+
+static void gui_paint_hmdexperience_pop(void)
+{
+#ifndef __EMSCRIPTEN__
+    if (gui_hmd_experience_mode != 0) gui_hmd_experience_mode--;
+#endif
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void gui_paint_rect(int id, int st, int flags)
 {
     int jd, i = 0;
@@ -2172,9 +2232,10 @@ static void gui_paint_rect(int id, int st, int flags)
         {
             glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2 + widget[id].offset_x),
                          (GLfloat) (widget[id].y + widget[id].h / 2 + widget[id].offset_y), 0.0f);
-
+            gui_paint_hmdexperience_push(id);
             glBindTexture_(GL_TEXTURE_2D, curr_theme.tex[i]);
             draw_rect(id);
+            gui_paint_hmdexperience_pop();
         }
         glPopMatrix();
 
@@ -2201,22 +2262,26 @@ static void gui_paint_rect(int id, int st, int flags)
 
 static void gui_paint_text(int id);
 
+static void gui_paint_array_pulse(int id, float cx, float cy, float ck)
+{
+    glTranslatef(+cx, +cy, 0.0f);
+
+    if (GUI_CONFIG_HWACCEL_DECISION)
+        glTranslatef(0.0f, 0.0f, (ck - 1.0f) * (video.device_h / 2.0f));
+    else glScalef(ck, ck, ck);
+
+    glTranslatef(-cx, -cy, 0.0f);
+}
+
 static void gui_paint_array(int id)
 {
-    int jd;
-
     glPushMatrix();
     {
         GLfloat cx = widget[id].x + widget[id].w / 2.0f + widget[id].offset_x;
         GLfloat cy = widget[id].y + widget[id].h / 2.0f + widget[id].offset_y;
         GLfloat ck = widget[id].pulse_scale;
 
-        if (1.0f < ck || ck < 1.0f)
-        {
-            glTranslatef(+cx, +cy, 0.0f);
-            glScalef(ck, ck, ck);
-            glTranslatef(-cx, -cy, 0.0f);
-        }
+        if (1.0f < ck || ck < 1.0f) gui_paint_array_pulse(id, cx, cy, ck);
 
         /* Recursively paint all subwidgets. */
 
@@ -2235,7 +2300,7 @@ static void gui_paint_array(int id)
         }
 #endif
 
-        for (jd = widget[id].car; jd; jd = widget[jd].cdr)
+        for (int jd = widget[id].car; jd; jd = widget[jd].cdr)
             gui_paint_text(jd);
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -2260,13 +2325,21 @@ static void gui_paint_image(int id)
         glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2 + widget[id].offset_x),
                      (GLfloat) (widget[id].y + widget[id].h / 2 + widget[id].offset_y), 0.0f);
 
-        glScalef(widget[id].pulse_scale,
-                 widget[id].pulse_scale,
-                 widget[id].pulse_scale);
+        if (!GUI_CONFIG_HWACCEL_DECISION)
+            glScalef(widget[id].pulse_scale,
+                     widget[id].pulse_scale,
+                     widget[id].pulse_scale);
+
+        gui_paint_hmdexperience_push(id);
+
+        if (GUI_CONFIG_HWACCEL_DECISION)
+            glTranslatef(0, 0, (widget[id].pulse_scale - 1.0f) * (video.device_h / 2.0f));
 
         glBindTexture_(GL_TEXTURE_2D, widget[id].image);
         glColor4ub(GUI_COLOR4UB);
         draw_image(id);
+
+        gui_paint_hmdexperience_pop();
     }
     glPopMatrix();
 }
@@ -2285,9 +2358,15 @@ static void gui_paint_count(int id)
         glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2 + widget[id].offset_x),
                      (GLfloat) (widget[id].y + widget[id].h / 2 + widget[id].offset_y), 0.0f);
 
-        glScalef(widget[id].pulse_scale,
-                 widget[id].pulse_scale,
-                 widget[id].pulse_scale);
+        if (!GUI_CONFIG_HWACCEL_DECISION)
+            glScalef(widget[id].pulse_scale,
+                     widget[id].pulse_scale,
+                     widget[id].pulse_scale);
+
+        gui_paint_hmdexperience_push(id);
+
+        if (GUI_CONFIG_HWACCEL_DECISION)
+            glTranslatef(0, 0, (widget[id].pulse_scale - 1.0f) * (video.device_h / 2.0f));
 
         if (widget[id].value > 0)
         {
@@ -2309,6 +2388,7 @@ static void gui_paint_count(int id)
                 glBindTexture_(GL_TEXTURE_2D, widget[jd].image);
                 glColor4ub(GUI_COLOR4UB);
                 draw_text(jd);
+
                 glTranslatef((GLfloat) -widget[jd].text_w, 0.0f, 0.0f);
             }
         }
@@ -2320,19 +2400,19 @@ static void gui_paint_count(int id)
             glColor4ub(GUI_COLOR4UB);
             draw_text(digit_id[i][0]);
         }
+
+        gui_paint_hmdexperience_pop();
     }
     glPopMatrix();
 }
 
 static void gui_paint_clock(int id)
 {
-    if (widget[id].hidden)
-        return;
+    if (widget[id].hidden) return;
 
-    int i   =   widget[id].size;
+    int i = widget[id].size;
 
-    if (widget[id].value < 0)
-        return;
+    if (widget[id].value < 0) return;
 
     /*int dyh = ((widget[id].value / 864000000) / 100) % 100;
     int dyt = ((widget[id].value / 864000000) / 10) % 10;
@@ -2364,9 +2444,15 @@ static void gui_paint_clock(int id)
         glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2 + widget[id].offset_x),
                      (GLfloat) (widget[id].y + widget[id].h / 2 + widget[id].offset_y), 0.0f);
 
-        glScalef(widget[id].pulse_scale,
-                 widget[id].pulse_scale,
-                 widget[id].pulse_scale);
+        if (!GUI_CONFIG_HWACCEL_DECISION)
+            glScalef(widget[id].pulse_scale,
+                     widget[id].pulse_scale,
+                     widget[id].pulse_scale);
+
+        gui_paint_hmdexperience_push(id);
+
+        if (GUI_CONFIG_HWACCEL_DECISION)
+            glTranslatef(0, 0, (widget[id].pulse_scale - 1.0f) * (video.device_h / 2.0f));
 
         /* Translate left by half the total width of the rendered value. */
 
@@ -2495,6 +2581,8 @@ static void gui_paint_clock(int id)
         glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][ho]].image);
         glColor4ub(GUI_COLOR4UB);
         draw_text(digit_id[i][ho]);
+
+        gui_paint_hmdexperience_pop();
     }
     glPopMatrix();
 }
@@ -2513,13 +2601,21 @@ static void gui_paint_label(int id)
         glTranslatef((GLfloat) (widget[id].x + widget[id].w / 2 + widget[id].offset_x),
                      (GLfloat) (widget[id].y + widget[id].h / 2 + widget[id].offset_y), 0.0f);
 
-        glScalef(widget[id].pulse_scale,
-                 widget[id].pulse_scale,
-                 widget[id].pulse_scale);
+        if (!GUI_CONFIG_HWACCEL_DECISION)
+            glScalef(widget[id].pulse_scale,
+                     widget[id].pulse_scale,
+                     widget[id].pulse_scale);
+
+        gui_paint_hmdexperience_push(id);
+
+        if (GUI_CONFIG_HWACCEL_DECISION)
+            glTranslatef(0, 0, (widget[id].pulse_scale - 1.0f) * (video.device_h / 2.0f));
 
         glBindTexture_(GL_TEXTURE_2D, widget[id].image);
         glColor4ub(GUI_COLOR4UB);
         draw_text(id);
+
+        gui_paint_hmdexperience_pop();
     }
     glPopMatrix();
 }
@@ -2538,7 +2634,7 @@ static void gui_paint_text(int id)
         case GUI_HARRAY:
         case GUI_VARRAY:
         case GUI_HSTACK:
-        case GUI_VSTACK: gui_paint_array(id); break;
+        case GUI_VSTACK:
         case GUI_ROOT:   gui_paint_array(id); break;
         case GUI_IMAGE:  gui_paint_image(id); break;
         case GUI_COUNT:  gui_paint_count(id); break;
@@ -2688,33 +2784,36 @@ void gui_paint(int id)
 
     if (id && widget[id].type != GUI_FREE)
     {
-        /*if (config_get_d(CONFIG_UI_HWACCEL))
+#ifndef __EMSCRIPTEN__
+        if (GUI_CONFIG_HWACCEL_DECISION)
         {
-            video_set_perspective(70.0f, 0.001f, 10000);
+            const float effective_fov = flerp(42.666f, 70.0f, ((video.device_h - 600) / 480.f));
+            video_set_perspective(effective_fov, 0.001f, 10000);
             glTranslatef(video.device_w / -2.0f, video.device_h / -2.0f, -770.0f);
         }
-        else*/ video_set_ortho();
+        else
+#endif
+            video_set_ortho();
 
         glDisable(GL_DEPTH_TEST);
-        {
-            gui_animate(id);
 
-            draw_enable(GL_FALSE, GL_TRUE, GL_TRUE);
-            glColor4ub(GUI_COLOR4UB);
-            gui_paint_rect(id, 0, 0);
+        gui_animate(id);
 
-            draw_enable(GL_TRUE, GL_TRUE, GL_TRUE);
-            glColor4ub(GUI_COLOR4UB);
-            gui_paint_text(id);
+        draw_enable(GL_FALSE, GL_TRUE, GL_TRUE);
+        glColor4ub(GUI_COLOR4UB);
+        gui_paint_rect(id, 0, 0);
 
-            draw_disable();
-            glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2],
+        draw_enable(GL_TRUE, GL_TRUE, GL_TRUE);
+        glColor4ub(GUI_COLOR4UB);
+        gui_paint_text(id);
+
+        draw_disable();
+        glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2],
 #if ENABLE_MOTIONBLUR!=0
-                       ROUND(gui_wht[3] * video_motionblur_alpha_get()));
+                   ROUND(gui_wht[3] * video_motionblur_alpha_get()));
 #else
-                       ROUND(gui_wht[3]));
+                   ROUND(gui_wht[3]));
 #endif
-        }
         glEnable(GL_DEPTH_TEST);
     }
 
@@ -2725,30 +2824,30 @@ void gui_paint(int id)
     if (!video_get_grab() && cursor_st && cursor_id)
 #endif
     {
-        /*if (config_get_d(CONFIG_UI_HWACCEL))
+#ifndef __EMSCRIPTEN__
+        if (config_get_d(CONFIG_UI_HWACCEL))
         {
-            video_set_perspective(70.0f, 0.001f, 10000);
+            const float effective_fov = flerp(42.666f, 70.0f, ((video.device_h - 600) / 480.f));
+            video_set_perspective(effective_fov, 0.001f, 10000);
             glTranslatef(video.device_w / -2.0f, video.device_h / -2.0f, -770.0f);
         }
-        else*/ video_set_ortho();
+        else
+#endif
+            video_set_ortho();
 
-        {
-            glDisable(GL_DEPTH_TEST);
+        glDisable(GL_DEPTH_TEST);
+        draw_enable(GL_TRUE, GL_TRUE, GL_TRUE);
+        gui_paint_image(cursor_id);
+        draw_disable();
 
-            draw_enable(GL_TRUE, GL_TRUE, GL_TRUE);
-
-            gui_paint_image(cursor_id);
-
-            draw_disable();
-            glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2],
+        glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2],
 #if ENABLE_MOTIONBLUR!=0
-                       ROUND(gui_wht[3] * video_motionblur_alpha_get()));
+                   ROUND(gui_wht[3] * video_motionblur_alpha_get()));
 #else
-                       ROUND(gui_wht[3]));
+                   ROUND(gui_wht[3]));
 #endif
 
-            glEnable(GL_DEPTH_TEST);
-        }
+        glEnable(GL_DEPTH_TEST);
     }
 }
 

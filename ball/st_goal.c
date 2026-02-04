@@ -724,6 +724,7 @@ static void goal_timer(int id, float dt)
         if (goal_time_state > 1.0f)
             t += dt;
 
+        game_camshake_update(dt);
         geom_step(dt);
         game_server_step(dt);
 

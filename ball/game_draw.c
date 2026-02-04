@@ -716,6 +716,7 @@ static void game_draw_tilt(const struct game_draw *gd, int d, int flip)
      * See Git-issues #167, which you don't include tilting the floor.
      */
     if (config_get_d(CONFIG_TILTING_FLOOR)
+     && gd->tilt_f
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      && !(campaign_used()
       || (curr_mode() == MODE_CAMPAIGN
@@ -1121,10 +1122,15 @@ void game_draw(struct game_draw *gd, int pose, float t)
         video_set_perspective(effective_fov, 0.1f, FAR_DIST);
         glPushMatrix();
         {
-            glRotatef(game_lerp_pose_v.pose_point_smooth_x, 0.0f, 1.0f, 0.0f);
-            glRotatef(game_lerp_pose_v.pose_point_smooth_y, 1.0f, 0.0f, 0.0f);
+            float shake_angles[3] = { 0, 0, 0 };
 
-            glRotatef(gd_rotate_roll, 0.0f, 0.0f, 1.0f);
+            if (config_get_d(CONFIG_CAMERA_SHAKE))
+                game_camshake_getangle(&shake_angles[0], &shake_angles[1], &shake_angles[2]);
+
+            glRotatef(game_lerp_pose_v.pose_point_smooth_x + shake_angles[2], 0.0f, 1.0f, 0.0f);
+            glRotatef(game_lerp_pose_v.pose_point_smooth_y + shake_angles[1], 1.0f, 0.0f, 0.0f);
+
+            glRotatef(gd_rotate_roll + shake_angles[0], 0.0f, 0.0f, 1.0f);
 
             float T[16], U[16], M[16],
                   v[3] = { +view->p[0], -view->p[1], +view->p[2] }; /* Compute direct and reflected view bases. */

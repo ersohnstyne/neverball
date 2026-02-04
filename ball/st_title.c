@@ -1346,13 +1346,14 @@ static int title_enter(struct state *st, struct state *prev, int intent)
     account_wgcl_autokick_state_ignore();
 #endif
 
+    game_client_toggle_sound(0);
     game_proxy_filter(filter_cmd);
 
     if (title_load_lockscreen)
         title_load_lockscreen = 0;
 
     title_lockscreen = title_can_unlock;
-    
+
     /* Start the title screen music. */
 
     audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
@@ -1516,7 +1517,7 @@ static void title_timer(int id, float dt)
 
                 if ((demo = pick_demo(items)))
                 {
-                    if (progress_replay_full(demo, 0, 0, 0, 0, 0, 0))
+                    if (progress_replay_full(demo, 0, 0, 0, 0, 0, 0) && game_compat_map)
                         TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                     else if (title_check_balls_shown() &&
@@ -1604,6 +1605,7 @@ static void title_timer(int id, float dt)
     }
 
     gui_timer(id, dt);
+    game_camshake_update(dt);
     game_step_fade(dt);
 }
 

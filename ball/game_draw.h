@@ -31,6 +31,7 @@ struct game_draw
 
     struct s_full back;
 
+    int              tilt_f;            /* Tilt enabled flag                         */
     struct game_tilt tilt;              /* Floor rotation                            */
     struct game_view view;              /* Current view                              */
 

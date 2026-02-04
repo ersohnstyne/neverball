@@ -1302,6 +1302,7 @@ static int demo_play_enter(struct state *st, struct state *prev, int intent)
 {
     smoothfix_slowdown_time = 0;
 
+    game_client_toggle_sound(1);
     video_hide_cursor();
 
     hud_update(0, 0.0f);
@@ -1417,23 +1418,28 @@ static void demo_play_timer(int id, float dt)
         transition = 1;
     }
 
+    if (speed != SPEED_NONE)
+    {
+        demo_timer_last = demo_timer_curr;
+        demo_timer_curr = curr_clock();
+    }
+
     /* Pause briefly before starting playback. */
 
     if (time_state() < prelude || st_global_animating())
         return;
 
-    demo_timer_last = demo_timer_curr;
-    demo_timer_curr = curr_clock();
-
-    if (time_state() >= prelude)
-        demo_timer_down = demo_timer_last > demo_timer_curr;
-    else demo_timer_down = 0;
+    if (time_state() >= prelude && (demo_timer_down != 1))
+        demo_timer_down = demo_timer_last > demo_timer_curr        &&
+                          demo_timer_last - demo_timer_curr <  200 &&
+                          demo_timer_last - demo_timer_curr > -200;
+    else if (demo_timer_down != 1) demo_timer_down = 0;
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     EM_ASM({ Neverball.WGCLshowGameHUD(); });
 #endif
 
-    if (demo_timer_down)
+    if (demo_timer_down && curr_status() == GAME_NONE)
     {
         if (demo_timer_curr < 1000 && !demo_timer_warning)
         {
@@ -1466,6 +1472,9 @@ static void demo_play_timer(int id, float dt)
         demo_speed_dirty = 0;
         return;
     }
+
+    if (speed != SPEED_NONE)
+        game_camshake_update(dt * timescale);
 
     if (!demo_replay_step(dt) && !st_global_animating())
         demo_pause_goto(0);

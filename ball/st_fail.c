@@ -881,6 +881,7 @@ static void fail_timer(int id, float dt)
          * Bedrock 1.21.40 - Bundles and Bravery
          */
 
+        game_camshake_update(dt);
         geom_step(dt);
         game_server_step(dt);
 

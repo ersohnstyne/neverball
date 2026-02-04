@@ -906,6 +906,8 @@ static int video_action(int tok, int val)
                     exit_state(&st_video);
             }
 
+            if (r) config_set_d(CONFIG_CAMERA_SHAKE, 1);
+
             config_save();
 
             break;
@@ -1095,6 +1097,7 @@ enum
 {
     VIDEO_ADVANCED_FULLSCREEN = GUI_LAST,
     VIDEO_ADVANCED_WIDESCREEN,
+    VIDEO_ADVANCED_CAMERA_SHAKE,
     VIDEO_ADVANCED_SMOOTH_FIX,
     VIDEO_ADVANCED_FORCE_SMOOTH_FIX,
     VIDEO_ADVANCED_DISPLAY,
@@ -1201,6 +1204,12 @@ static int video_advanced_action(int tok, int val)
             video_set_window_size(w, 480);
 #endif
             break;*/
+
+        case VIDEO_ADVANCED_CAMERA_SHAKE:
+            config_set_d(CONFIG_CAMERA_SHAKE, val);
+            config_save();
+            goto_state(&st_video_advanced);
+            break;
 
         case VIDEO_ADVANCED_HMD:
             if (oldHmd == val)
@@ -1490,6 +1499,9 @@ static int video_advanced_gui(void)
         conf_header(id, _("Graphics"), GUI_BACK);
 
 #if NB_HAVE_PB_BOTH==1
+        conf_toggle_simple(id, _("Camera Shake"), VIDEO_ADVANCED_CAMERA_SHAKE,
+                               config_get_d(CONFIG_CAMERA_SHAKE),
+                               1, 0);
         conf_toggle_simple(id, _("Smooth fix"), VIDEO_ADVANCED_SMOOTH_FIX,
                                config_get_d(CONFIG_SMOOTH_FIX),
                                1, 0);
@@ -1521,6 +1533,9 @@ static int video_advanced_gui(void)
         conf_toggle_simple(id, _("Shadow"),       VIDEO_ADVANCED_SHADOW,
                                config_get_d(CONFIG_SHADOW),     1, 0);
 #else
+        conf_toggle(id, _("Camera Shake"), VIDEO_ADVANCED_CAMERA_SHAKE,
+                        config_get_d(CONFIG_CAMERA_SHAKE),
+                        _("On"), 1, _("Off"), 0);
         conf_toggle(id, _("Smooth fix"), VIDEO_ADVANCED_SMOOTH_FIX,
                         config_get_d(CONFIG_SMOOTH_FIX),
                         _("On"), 1, _("Off"), 0);

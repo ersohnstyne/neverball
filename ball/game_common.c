@@ -221,6 +221,45 @@ void game_tilt_grav(float h[3], const float g[3], const struct game_tilt *tilt)
 
 /*---------------------------------------------------------------------------*/
 
+static float camshake_time;
+static float camshake_angles[3];
+
+void game_camshake_init(void)
+{
+    const float start_y = flerp(-10, 10, rand_between(0, 3) / 3.0f);
+    const float start_z = flerp(-10, 10, rand_between(0, 3) / 3.0f);
+
+    camshake_angles[0] = flerp(-5, 5, rand_between(0, 1));
+    camshake_angles[1] = start_y > start_z ? start_z : start_y;
+    camshake_angles[2] = start_y > start_z ? start_y : start_z;
+
+    camshake_time = 1.0f;
+}
+
+void game_camshake_free(void)
+{
+    camshake_time = 0.0f;
+
+    camshake_angles[0] = 0;
+    camshake_angles[1] = 0;
+    camshake_angles[2] = 0;
+}
+
+void game_camshake_update(float dt)
+{
+    if (camshake_time >= 0.0f)
+        camshake_time -= dt;
+}
+
+void game_camshake_getangle(float *x, float *y, float *z)
+{
+    if (x) *x = fcosf(5 * MAX(0, camshake_time) * V_PI) * camshake_angles[0] * MAX(0, camshake_time);
+    if (y) *y = fcosf(5 * MAX(0, camshake_time) * V_PI) * camshake_angles[1] * MAX(0, camshake_time);
+    if (z) *z = fsinf(5 * MAX(0, camshake_time) * V_PI) * camshake_angles[2] * MAX(0, camshake_time);
+}
+
+/*---------------------------------------------------------------------------*/
+
 float view_zoom_diff_curr = 0;
 float view_zoom_diff_rate;
 float view_zoom_diff_end;

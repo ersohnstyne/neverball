@@ -62,6 +62,7 @@ int game_compat_map;                    /* Client/server map compat flag     */
 int game_compat_campaign;               /* Campaign compat flag              */
 
 static int game_status_goal;
+static int game_sound_enabled;
 
 /*---------------------------------------------------------------------------*/
 
@@ -262,10 +263,15 @@ static void game_run_cmd(const union cmd *cmd)
             case CMD_STATUS:
                 status = cmd->status.t;
 
-                /* Don't spawn the particles at first update! */
+                /*
+                 * Don't spawn the particles and don't start camera shake
+                 * at first update!
+                 */
 
-                if (status == GAME_GOAL && !cs.first_update)
+                if (status == GAME_GOAL && !cs.first_update) {
                     part_goal(gl.lerp.uv[0][0].p);
+                    game_camshake_init();
+                }
 
                 break;
 
@@ -596,13 +602,13 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
      * bogus map compatibility warnings.  Post-1.5.0 replays will have
      * CMD_MAP override this.
      */
-
+    
     /*
-     * 1.5.0 replays will not be able to trigger any map compatibility
-     * warnings, 2.1 are not affected.
+     * 2.2 and later: We always trigger map compatibility warnings
+     * in the future version.
      */
 
-    game_compat_map = version.x == 1;
+    game_compat_map = 0; /* Was: version.x == 1 */
 
     /* Initialize particles. */
 
@@ -843,6 +849,9 @@ void game_client_toggle_show_balls(int visible)
 
 void game_client_free(const char *next)
 {
+    game_camshake_free();
+    game_camshake_update(0);
+
     if (gd.state)
     {
         gd.state = 0;
@@ -877,7 +886,9 @@ void game_client_draw(int pose, float t)
 {
     if (gd.state && !progress_loading())
     {
-        if (status == GAME_FALL)
+        gd.tilt_f = status != GAME_FALL;
+
+        if (!gd.tilt_f)
         {
             if (gd.mojang_death_enabled_flags)
             {
@@ -885,19 +896,15 @@ void game_client_draw(int pose, float t)
 
                 if (mojang_death_time_dt < 1.f)
                     gd.mojang_death_time_percent =
-                        MIN(100, gd.mojang_death_time_percent + (mojang_death_time_dt * 0.05f));
-                else audio_play("snd/2.2/border_death.ogg", 1.0f);
+                        MIN(100, gd.mojang_death_time_percent + (mojang_death_time_dt * 2.5f));
+                else if (game_sound_enabled) audio_play("snd/2.2/border_death.ogg", 1.0f);
 
                 gd.mojang_death_time_now = t;
             }
-            else
-            {
-                gd.mojang_death_view_angle = gd.view.a;
-                v_cpy(client_view_center_fixed, gd.vary.uv[0].p);
-            }
+            else v_cpy(client_view_center_fixed, gd.vary.uv[0].p);
 
             gd.mojang_death_enabled_flags = 1;
-        }
+        } else gd.mojang_death_view_angle = V_DEG(fatan2f(gd.view.e[2][0], gd.view.e[2][2]));
 
         game_lerp_apply(&gl, &gd);
 
@@ -1026,6 +1033,11 @@ void game_client_fly(float k)
     game_view_fly(&gl.view[CURR], &gd.vary, 0, k);
 
     gl.view[PREV] = gl.view[CURR];
+}
+
+void  game_client_toggle_sound(int enabled)
+{
+    game_sound_enabled = enabled;
 }
 
 /*---------------------------------------------------------------------------*/

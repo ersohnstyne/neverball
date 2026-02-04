@@ -197,6 +197,7 @@ int CONFIG_STATS;
 int CONFIG_SCREENSHOT;
 int CONFIG_LOCK_GOALS;
 int CONFIG_UNITS_METRIC;
+int CONFIG_CAMERA_SHAKE;
 int CONFIG_CAMERA_1_SPEED;
 int CONFIG_CAMERA_2_SPEED;
 int CONFIG_CAMERA_3_SPEED;
@@ -369,6 +370,7 @@ static struct
     { &CONFIG_LOCK_GOALS,  "lock_goals",  0 },
     { &CONFIG_UNITS_METRIC, "units_metric", 0 },
 
+    { &CONFIG_CAMERA_SHAKE,   "camera_shake",   1 },
     { &CONFIG_CAMERA_1_SPEED, "camera_1_speed", 250 },
     { &CONFIG_CAMERA_2_SPEED, "camera_2_speed", 0 },
     { &CONFIG_CAMERA_3_SPEED, "camera_3_speed", -1 },

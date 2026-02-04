@@ -406,6 +406,7 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
 #endif
     play_freeze_all = 0;
 
+    game_client_toggle_sound(1);
     video_set_grab(1);
     play_loop_touch_init();
 
@@ -444,6 +445,7 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
         play_update_server = 1;
     }
 
+    game_camshake_update(0);
     hud_update(0, 0.0f);
     hud_update_camera_direction(curr_viewangle());
 
@@ -1165,6 +1167,7 @@ static void play_loop_timer(int id, float dt)
         rotation_offset = 0;
     }
 
+    game_camshake_update(dt);
     game_step_fade(dt);
 
     if (!play_freeze_all &&

@@ -221,6 +221,13 @@ void game_tilt_grav(float h[3], const float g[3], const struct game_tilt *);
 
 /*---------------------------------------------------------------------------*/
 
+void game_camshake_init(void);
+void game_camshake_free(void);
+void game_camshake_update(float);
+void game_camshake_getangle(float *x, float *y, float *z);
+
+/*---------------------------------------------------------------------------*/
+
 struct game_view
 {
     float dc;                           /* Ideal view center distance above ball */

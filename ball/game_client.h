@@ -57,6 +57,7 @@ void  game_fade(float);
 void  game_fade_color(float, float, float);
 
 void  game_client_fly(float);
+void  game_client_toggle_sound(int);
 
 void  game_client_step_studio(float);
 int   game_client_init_studio(int);

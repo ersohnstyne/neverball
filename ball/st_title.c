@@ -1564,7 +1564,7 @@ static void title_timer(int id, float dt)
 
         case TITLE_MODE_DEMO: /* Run demo. */
 
-            if (!demo_replay_step(dt) && !title_prequit)
+            if ((!demo_replay_step(dt) || !game_compat_map) && !title_prequit)
             {
                 left_handed = !left_handed;
                 demo_replay_stop(0);

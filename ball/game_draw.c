@@ -1124,8 +1124,10 @@ void game_draw(struct game_draw *gd, int pose, float t)
         {
             float shake_angles[3] = { 0, 0, 0 };
 
-            if (config_get_d(CONFIG_CAMERA_SHAKE))
+            if (config_get_d(CONFIG_CAMERA_SHAKE)) {
+                game_camshake_update_view(&gd->view);
                 game_camshake_getangle(&shake_angles[0], &shake_angles[1], &shake_angles[2]);
+            }
 
             glRotatef(game_lerp_pose_v.pose_point_smooth_x + shake_angles[2], 0.0f, 1.0f, 0.0f);
             glRotatef(game_lerp_pose_v.pose_point_smooth_y + shake_angles[1], 1.0f, 0.0f, 0.0f);

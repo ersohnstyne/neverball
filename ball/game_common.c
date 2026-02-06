@@ -222,6 +222,7 @@ void game_tilt_grav(float h[3], const float g[3], const struct game_tilt *tilt)
 /*---------------------------------------------------------------------------*/
 
 static float camshake_time;
+static float camshake_multiplier;
 static float camshake_angles[3];
 
 void game_camshake_init(void)
@@ -230,15 +231,15 @@ void game_camshake_init(void)
     const float start_z = flerp(-10, 10, rand_between(0, 3) / 3.0f);
 
     camshake_angles[0] = flerp(-5, 5, rand_between(0, 1));
-    camshake_angles[1] = start_y > start_z ? start_z : start_y;
+    camshake_angles[1] = start_y < start_z ? start_z : start_y;
     camshake_angles[2] = start_y > start_z ? start_y : start_z;
 
-    camshake_time = 1.0f;
+    camshake_time = 1.0f; camshake_multiplier = 0.0f;
 }
 
 void game_camshake_free(void)
 {
-    camshake_time = 0.0f;
+    camshake_time = 0.0f; camshake_multiplier = 0.0f;
 
     camshake_angles[0] = 0;
     camshake_angles[1] = 0;
@@ -247,15 +248,24 @@ void game_camshake_free(void)
 
 void game_camshake_update(float dt)
 {
-    if (camshake_time >= 0.0f)
-        camshake_time -= dt;
+    if (camshake_time >= 0.0f) camshake_time -= dt;
+}
+
+void game_camshake_update_view(struct game_view *view)
+{
+    const float dx = view->p[0] - view->c[0] / 100;
+    const float dy = view->p[1] - view->c[1] / 100;
+    const float dz = view->p[2] - view->c[2] / 100;
+
+    const float collate_distance = sqrtf(dx * dx + dy * dy + dz * dz) / 3;
+    camshake_multiplier = collate_distance >= 0 ? (collate_distance >= 1.1431f ? CLAMP(0.0f, (2 / collate_distance) - 0.75f, 1.0f) : 1.0f) * CLAMP(0.0f, flerp(8.0f, 0.0f, camshake_time), 1.0f) : 0.0f;
 }
 
 void game_camshake_getangle(float *x, float *y, float *z)
 {
-    if (x) *x = fcosf(5 * MAX(0, camshake_time) * V_PI) * camshake_angles[0] * MAX(0, camshake_time);
-    if (y) *y = fcosf(5 * MAX(0, camshake_time) * V_PI) * camshake_angles[1] * MAX(0, camshake_time);
-    if (z) *z = fsinf(5 * MAX(0, camshake_time) * V_PI) * camshake_angles[2] * MAX(0, camshake_time);
+    if (x) *x = fcosf(5 * MAX(0, camshake_time) * V_PI) * camshake_angles[0] * MAX(0, camshake_time) * camshake_multiplier;
+    if (y) *y = fcosf(5 * MAX(0, camshake_time) * V_PI) * camshake_angles[1] * MAX(0, camshake_time) * camshake_multiplier;
+    if (z) *z = fsinf(5 * MAX(0, camshake_time) * V_PI) * camshake_angles[2] * MAX(0, camshake_time) * camshake_multiplier;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -271,8 +281,7 @@ void game_view_set_static_cam_view(int activated, const float pos[3])
 {
     use_static_cam_view = activated;
 
-    if (activated)
-        v_cpy(pos_static_cam_view, pos);
+    if (activated) v_cpy(pos_static_cam_view, pos);
 }
 
 void game_view_init(struct game_view *view)
@@ -281,18 +290,9 @@ void game_view_init(struct game_view *view)
      * In VR, ensure the default view is level.
      */
 
-    if (hmd_stat())
-    {
-        view->dp = 0.25f;
-        view->dc = 0.25f;
-        view->dz = 2.2f;
-    }
-    else
-    {
-        view->dp = 0.75f;
-        view->dc = 0.25f;
-        view->dz = 2.2f;
-    }
+    view->dp = hmd_stat() ? 0.25f : 0.75;
+    view->dc = 0.25f;
+    view->dz = 2.2f;
 
     view->a = 0.0f;
 
@@ -355,8 +355,6 @@ void game_view_fly(struct game_view *view, const struct s_vary *vary, int ui, fl
 
         v_sub(v, c1, c0);
         v_mad(c0, c0, v, 1.0f);
-
-        //c0[1] += view->dc;
     }
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -510,8 +508,7 @@ void game_view_set_pos_and_target(struct game_view *view,
         e_cpy(view->e, local_e);
     }
 #ifndef NDEBUG
-    else
-        assert(0 && "No cam position or cam target selected!");
+    else assert(0 && "No cam position or cam target selected!");
 #endif
 }
 

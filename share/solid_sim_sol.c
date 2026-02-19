@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -106,8 +106,7 @@ static float v_vert(float Q[3],
     {
         t = v_sol(P, V, r);
 
-        if (t < LARGE)
-            v_mad(Q, O, w, t);
+        if (t < LARGE) v_mad(Q, O, w, t);
     }
     return t;
 }
@@ -190,8 +189,7 @@ static float v_edge(float Q[3],
         v_mad(e, q, u, s);
         v_add(Q, e, d);
     }
-    else
-        t = LARGE;
+    else t = LARGE;
 
     return t;
 }
@@ -351,16 +349,14 @@ static int sol_test_fore(float dt,
     v_sub(q, up->p, o);
     d = sp->d;
 
-    if (v_dot(q, sp->n) - d + up->r >= 0)
-        return 1;
+    if (v_dot(q, sp->n) - d + up->r >= 0) return 1;
 
     /* If it's not behind the plane after DT seconds, the test passes. */
 
     v_mad(q, q, up->v, dt);
     d += v_dot(w, sp->n) * dt;
 
-    if (v_dot(q, sp->n) - d + up->r >= 0)
-        return 1;
+    if (v_dot(q, sp->n) - d + up->r >= 0) return 1;
 
     /* Else, test fails. */
 
@@ -380,16 +376,14 @@ static int sol_test_back(float dt,
     v_sub(q, up->p, o);
     d = sp->d;
 
-    if (v_dot(q, sp->n) - d - up->r <= 0)
-        return 1;
+    if (v_dot(q, sp->n) - d - up->r <= 0) return 1;
 
     /* If it's not in front of the plane after DT seconds, the test passes. */
 
     v_mad(q, q, up->v, dt);
     d += v_dot(w, sp->n) * dt;
 
-    if (v_dot(q, sp->n) - d - up->r <= 0)
-        return 1;
+    if (v_dot(q, sp->n) - d - up->r <= 0) return 1;
 
     /* Else, test fails. */
 
@@ -590,14 +584,11 @@ static float sol_test_body(float dt,
             dt = u;
         }
     }
-    else
+    else if ((u = sol_test_node(dt, U, up, vary->base, np, O, W)) < dt)
     {
-        if ((u = sol_test_node(dt, U, up, vary->base, np, O, W)) < dt)
-        {
-            v_cpy(T, U);
-            v_cpy(V, W);
-            dt = u;
-        }
+        v_cpy(T, U);
+        v_cpy(V, W);
+        dt = u;
     }
     return dt;
 }
@@ -674,8 +665,7 @@ static float sol_path_time(struct s_vary *vary, float dt)
         struct v_move *mp = vary->mv + mi;
         struct v_path *pp = vary->pv + mp->pi;
 
-        if (!pp->f)
-            continue;
+        if (!pp->f) continue;
 
         if (mp->tm + ms_peek(&vary->ms_accum, dt) > pp->base->tm)
             dt = MS_TO_TIME(pp->base->tm - mp->tm);
@@ -685,8 +675,7 @@ static float sol_path_time(struct s_vary *vary, float dt)
     {
         struct v_swch *xp = vary->xv + xi;
 
-        if (xp->tm >= xp->base->tm)
-            continue;
+        if (xp->tm >= xp->base->tm) continue;
 
         if (xp->tm + ms_peek(&vary->ms_accum, dt) > xp->base->tm)
             dt = MS_TO_TIME(xp->base->tm - xp->tm);
@@ -722,14 +711,12 @@ static void sol_move_once(struct s_vary *vary, cmd_fn cmd_func, float dt)
 void sol_move(struct s_vary *vary, cmd_fn cmd_func, float dt)
 {
     if (vary && vary->base)
-    {
         while (dt > 0.0f)
         {
             float pt = sol_path_time(vary, dt);
             sol_move_once(vary, cmd_func, pt);
             dt -= pt;
         }
-    }
 }
 
 /*
@@ -804,10 +791,7 @@ float sol_step(struct s_vary *vary, cmd_fn cmd_func,
 
             /* Miss collisions if we reach the iteration limit. */
 
-            if (c > 1)
-                nt = sol_test_file(pt, P, V, up, vary);
-            else
-                nt = tt;
+            nt = c > 1 ? sol_test_file(pt, P, V, up, vary) : tt;
 
             sol_move_once(vary, cmd_func, nt);
 

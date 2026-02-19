@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -180,8 +180,7 @@ static void snapshot_init(void)
 
 static void snapshot_prep(const char *path)
 {
-    if (path && *path)
-        SAFECPY(snapshot_path, path);
+    if (path && *path) SAFECPY(snapshot_path, path);
 }
 
 static void snapshot_take(void)
@@ -244,11 +243,9 @@ int video_fullscreen(int f)
                                        f ? SDL_WINDOW_FULLSCREEN_DESKTOP :
                                            0);
 
-    if (code == 0)
-        config_set_d(CONFIG_FULLSCREEN, f ? 1 : 0);
-    else
-        log_errorf("Failure to %s fullscreen (%s)\n", f ? "enter" : "exit",
-                   GAMEDBG_GETSTRERROR_CHOICES_SDL);
+    if (code == 0) config_set_d(CONFIG_FULLSCREEN, f ? 1 : 0);
+    else log_errorf("Failure to %s fullscreen (%s)\n", f ? "enter" : "exit",
+                    GAMEDBG_GETSTRERROR_CHOICES_SDL);
 
     return (code == 0);
 #else
@@ -380,10 +377,7 @@ extern "C"
 int video_display(void)
 {
 #if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
-    if (window)
-        return SDL_GetWindowDisplayIndex(window);
-    else
-        return -1;
+    return window ? SDL_GetWindowDisplayIndex(window) : -1;
 #else
     return 0;
 #endif
@@ -636,8 +630,7 @@ video_mode_reconf:
 #endif
 
 #ifdef RESIZEABLE_WINDOW
-        if (config_get_d(CONFIG_MAXIMIZED))
-            SDL_MaximizeWindow(window);
+        if (config_get_d(CONFIG_MAXIMIZED)) SDL_MaximizeWindow(window);
 #endif
 #if __cplusplus
         } catch (const std::exception& xO) {
@@ -787,8 +780,7 @@ video_mode_reconf:
 #if ENABLE_HMD
         /* Set up HMD display if requested. */
 
-        if (hmd)
-            hmd_init();
+        if (hmd) hmd_init();
 #endif
 
         /* Initialize screen snapshotting. */
@@ -1128,8 +1120,7 @@ video_mode_auto_config_reconf:
 #endif
 
 #ifdef RESIZEABLE_WINDOW
-        if (config_get_d(CONFIG_MAXIMIZED))
-            SDL_MaximizeWindow(window);
+        if (config_get_d(CONFIG_MAXIMIZED)) SDL_MaximizeWindow(window);
 #endif
 #if __cplusplus
         } catch (const std::exception& xO) {
@@ -1344,8 +1335,7 @@ video_mode_auto_config_reconf:
 #if ENABLE_HMD
         /* Set up HMD display if requested. */
 
-        if (hmd)
-            hmd_init();
+        if (hmd) hmd_init();
 #endif
 
         /* Initialize screen snapshotting. */
@@ -1455,23 +1445,20 @@ extern "C"
 #endif
 void video_swap(void)
 {
-    if (!video_can_swap_window)
-        return;
+    if (!video_can_swap_window) return;
 
     video_can_swap_window = 0;
 
     int dt;
 
 #if ENABLE_MOTIONBLUR!=0
-    if (config_get_d(CONFIG_MOTIONBLUR))
-        video_motionblur_swap();
+    if (config_get_d(CONFIG_MOTIONBLUR)) video_motionblur_swap();
 #endif
 
 #if defined(__WII__)
     wiigl_swap_buffers();
 #else
-    if (hmd_stat())
-        hmd_swap();
+    if (hmd_stat()) hmd_swap();
 
     /* Take a screenshot of the complete back buffer and swap it. */
 
@@ -1491,7 +1478,7 @@ void video_swap(void)
     if (dt > 0 && dt < 100)
     {
         fps = 1 / (0.001f * dt);
-        ms  = 0.001f * dt;
+        ms  =      0.001f * dt;
     }
 
 #if NB_STEAM_API==0 && !defined(LOG_NO_STATS)
@@ -1502,7 +1489,7 @@ void video_swap(void)
 #endif
 #else
     frames += 1;
-    ticks += dt;
+    ticks  += dt;
 
     /* Average over 250ms. */
 
@@ -1516,12 +1503,12 @@ void video_swap(void)
 
         /* Compute frame time and frames-per-second stats. */
 
-        fps = (int) ((c - k < k - f) ? c : f);
-        ms  = (float) ticks / (float) frames;
+        fps = (int)   ((c - k < k - f) ? c : f);
+        ms  = (float)  ticks / (float) frames;
 
         /* Reset the counters for the next update. */
 
-        frames = 0;
+        frames  = 0;
         ticks  -= 1000;
 
 #if NB_STEAM_API==0 && !defined(LOG_NO_STATS)
@@ -1580,8 +1567,7 @@ void video_clr_grab(void)
 
     /* Never release the grab in HMD mode. */
 
-    if (!hmd_stat())
-        SDL_SetWindowGrab(window, SDL_FALSE);
+    if (!hmd_stat()) SDL_SetWindowGrab(window, SDL_FALSE);
 #endif
 
     video_show_cursor();
@@ -1643,11 +1629,9 @@ extern "C"
 #endif
 void video_motionblur_prep(void)
 {
-    if (motionblur_index >= VIDEO_MOTIONBLUR_MAX_TEXTURE)
-        return;
+    if (motionblur_index >= VIDEO_MOTIONBLUR_MAX_TEXTURE) return;
 
-    if (motionblur_renderable[motionblur_index] != 0)
-        return;
+    if (motionblur_renderable[motionblur_index] != 0) return;
 
     glViewport(0, 0, video.device_w, video.device_h);
 
@@ -1693,8 +1677,7 @@ extern "C"
 #endif
 void video_set_perspective(float fov, float n, float f)
 {
-    if (hmd_stat())
-        hmd_persp(n, f);
+    if (hmd_stat()) hmd_persp(n, f);
     else
     {
         GLfloat r = fov / 2 * V_PI / 180;
@@ -1733,8 +1716,7 @@ extern "C"
 #endif
 void video_set_ortho(void)
 {
-    if (hmd_stat())
-        hmd_ortho();
+    if (hmd_stat()) hmd_ortho();
     else
     {
         GLfloat w = (GLfloat) video.device_w;

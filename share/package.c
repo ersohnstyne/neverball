@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -264,29 +264,7 @@ static int mount_local_package(struct local_package *lpkg)
  */
 static int load_installed_packages(void)
 {
-#ifdef UNUSED // NB_PACKAGES_PREMIUM
-    char default_filename[64];
-
-    switch (package_curr_category)
-    {
-        case PACKAGE_CATEGORY_PROFILE:
-            SAFECPY(default_filename, "installed-packages_ball.txt");
-            break;
-        case PACKAGE_CATEGORY_GUI:
-            SAFECPY(default_filename, "installed-packages_gui.txt");
-            break;
-        case PACKAGE_CATEGORY_CAMPAIGN:
-            SAFECPY(default_filename, "installed-packages_campaign.txt");
-            break;
-        case PACKAGE_CATEGORY_LEVELSET:
-            SAFECPY(default_filename, "installed-packages_levelset.txt");
-            break;
-        default:
-            SAFECPY(default_filename, "installed-packages.txt");
-    }
-#else
     const char *default_filename = "installed-packages.txt";
-#endif
 
     fs_file fp = fs_open_read(get_package_path(default_filename));
 
@@ -368,29 +346,7 @@ static int save_installed_packages(void)
 {
     if (installed_packages)
     {
-#ifdef UNUSED // NB_PACKAGES_PREMIUM
-        char default_filename[64];
-
-        switch (package_curr_category)
-        {
-            case PACKAGE_CATEGORY_PROFILE:
-                SAFECPY(default_filename, "installed-packages_ball.txt");
-                break;
-            case PACKAGE_CATEGORY_GUI:
-                SAFECPY(default_filename, "installed-packages_gui.txt");
-                break;
-            case PACKAGE_CATEGORY_CAMPAIGN:
-                SAFECPY(default_filename, "installed-packages_campaign.txt");
-                break;
-            case PACKAGE_CATEGORY_LEVELSET:
-                SAFECPY(default_filename, "installed-packages_levelset.txt");
-                break;
-            default:
-                SAFECPY(default_filename, "installed-packages.txt");
-        }
-#else
         const char *default_filename = "installed-packages.txt";
-#endif
 
         fs_file fp = fs_open_write(get_package_path(default_filename));
 
@@ -860,8 +816,7 @@ void package_change_category(const enum package_category pkg_category)
  */
 void package_init(void)
 {
-    if (package_is_init)
-        package_quit();
+    if (package_is_init)package_quit();
 
     const char *write_dir;
 

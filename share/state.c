@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -197,8 +197,7 @@ int goto_state_full_intent(struct state *st,
         prev_gui_id   = state->gui_id;
         state->gui_id = state->leave(state, st, state->gui_id, intent);
 
-        if (!state->gui_id)
-            gui_remove(prev_gui_id);
+        if (!state->gui_id) gui_remove(prev_gui_id);
     }
 
     state       = anim_queue_state;
@@ -228,8 +227,7 @@ int goto_state_full_intent(struct state *st,
     anim_done  = 1;
 
 #ifndef NDEBUG
-    if (!(r && state))
-        log_errorf("(r && state) returned 0!\n");
+    if (!(r && state)) log_errorf("(r && state) returned 0!\n");
 #endif
 
     anim_queue = 0;
@@ -277,8 +275,7 @@ void st_paint(float t, int allow_clear)
 
     if (state && state->paint)
     {
-        if (allow_clear)
-            video_clear();
+        if (allow_clear) video_clear();
 
 #if ENABLE_MOTIONBLUR!=0
         if (config_get_d(CONFIG_MOTIONBLUR))
@@ -289,8 +286,7 @@ void st_paint(float t, int allow_clear)
         {
             hmd_prep_left();
 
-            if (allow_clear)
-                video_clear();
+            if (allow_clear) video_clear();
 
             state->paint(state->gui_id, t);
 
@@ -298,8 +294,7 @@ void st_paint(float t, int allow_clear)
 
             hmd_prep_right();
 
-            if (allow_clear)
-                video_clear();
+            if (allow_clear) video_clear();
 
             state->paint(state->gui_id, t);
 
@@ -316,8 +311,7 @@ void st_paint(float t, int allow_clear)
 
 void st_timer(float dt)
 {
-    if (!state_drawn)
-        return;
+    if (!state_drawn) return;
 
     transition_timer(dt);
 

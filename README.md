@@ -21,9 +21,9 @@ Release highlights can be found in [doc/release-notes.md](doc/release-notes.md).
 ## Documentation
 
 * [LICENSE.md](LICENSE.md): a description of licensing and exceptions
-* [doc/install.txt](doc/install.txt): instructions on how to build the
+* [doc/install.md](doc/install.md): instructions on how to build the
   game from source code
-* [doc/manual.txt](doc/manual.txt): a detailed description of how to
+* [doc/manual.md](doc/manual.md): a detailed description of how to
   play and configure the game
 * [doc/authors.txt](doc/authors.txt): a list of people who have
   contributed to Neverball
@@ -38,4 +38,4 @@ Release highlights can be found in [doc/release-notes.md](doc/release-notes.md).
 
 Neverball uses the gettext approach to translations. We're always
 interested in covering more languages. Join the
-[Neverball project on Transifex](https://www.transifex.com/neverball/neverball/).
+[Neverball project on Transifex](https://app.transifex.com/neverball/neverball/).

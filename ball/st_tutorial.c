@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -334,13 +334,11 @@ static int tutorial_enter(struct state *st, struct state *prev, int intent)
         else if (current_platform == PLATFORM_WIIU)
             gui_multi(id, _(tutorial_desc_wiiu[tutorial_index]),
                           GUI_SML, GUI_COLOR_WHT);
-        else
-            gui_multi(id, _(tutorial_desc_xbox[tutorial_index]),
-                          GUI_SML, GUI_COLOR_WHT);
+        else gui_multi(id, _(tutorial_desc_xbox[tutorial_index]),
+                           GUI_SML, GUI_COLOR_WHT);
 #else
-        else
-            gui_multi(id, _(tutorial_desc[tutorial_index]),
-                          GUI_SML, GUI_COLOR_WHT);
+        else gui_multi(id, _(tutorial_desc[tutorial_index]),
+                           GUI_SML, GUI_COLOR_WHT);
 #endif
 #else
         gui_multi(id, _(opt_touch ? tutorial_desc_touch[tutorial_index] :
@@ -396,8 +394,7 @@ static int tutorial_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
            && current_platform == PLATFORM_PC
 #endif
-        ))
-        return tutorial_action(GUI_BACK, 0);
+        )) return tutorial_action(GUI_BACK, 0);
 
     return 1;
 }
@@ -445,8 +442,7 @@ int hint_check(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      || curr_mode() == MODE_HARDCORE
 #endif
-        )
-        return 0;
+        ) return 0;
 
     const char *ln = level_name(curr_level());
     const char *sn = set_name(curr_set());
@@ -592,8 +588,7 @@ static int hint_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
            && current_platform == PLATFORM_PC
 #endif
-        ))
-        return hint_action(GUI_BACK, 0);
+        )) return hint_action(GUI_BACK, 0);
 
     return 1;
 }

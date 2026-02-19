@@ -133,8 +133,7 @@ void transition_timer(float dt)
     {
         FORLOOP_CHECK_LIMITS(i);
 
-        if (widget_ids[i])
-            gui_timer(widget_ids[i], dt);
+        if (widget_ids[i]) gui_timer(widget_ids[i], dt);
     }
 }
 
@@ -146,8 +145,7 @@ void transition_paint(void)
     {
         FORLOOP_CHECK_LIMITS(i);
 
-        if (widget_ids[i])
-            gui_paint(widget_ids[i]);
+        if (widget_ids[i]) gui_paint(widget_ids[i]);
     }
 }
 

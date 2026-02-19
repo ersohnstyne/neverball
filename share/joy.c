@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -63,8 +63,7 @@ static SDL_JoystickID joy_curr = -1;
  */
 int joy_init(void)
 {
-    if (joy_is_init)
-        return 1;
+    if (joy_is_init) return 1;
 
     GAMEDBG_SIGFUNC_PREPARE;
 
@@ -101,8 +100,7 @@ int joy_init(void)
  */
 void joy_quit(void)
 {
-    if (!joy_is_init)
-        return;
+    if (!joy_is_init) return;
 
     size_t i = 0;
 
@@ -170,8 +168,7 @@ void joy_add(int device)
  */
 void joy_remove(int instance)
 {
-    if (!joy_is_init)
-        return;
+    if (!joy_is_init) return;
 
     size_t i;
 
@@ -195,8 +192,7 @@ void joy_remove(int instance)
  */
 int joy_button(int instance, int b, int d)
 {
-    if (!joy_is_init)
-        return 1;
+    if (!joy_is_init) return 1;
 
     if (joy_curr != instance)
     {
@@ -220,8 +216,7 @@ int joy_button(int instance, int b, int d)
  */
 void joy_axis(int instance, int a, float v)
 {
-    if (!joy_is_init)
-        return;
+    if (!joy_is_init) return;
 
     if (joy_curr == instance)
     {

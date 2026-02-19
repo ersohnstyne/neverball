@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -722,8 +722,7 @@ static int intro_restore_gui(void)
                 break;
 
 #ifndef NDEBUG
-            default:
-                assert(0 && "No restore graphics found!");
+            default: assert(0 && "No restore graphics found!");
 #endif
         }
 
@@ -785,8 +784,7 @@ static int intro_restore_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
          && current_platform == PLATFORM_PC
 #endif
-            )
-            return intro_restore_action(GUI_BACK, 0);
+            ) return intro_restore_action(GUI_BACK, 0);
     }
     return 1;
 }
@@ -821,11 +819,10 @@ static int nointernet_gui(void)
         if (networking_standalone())
             gui_multi(id, _("Not to worry, you can play offline!"),
                           GUI_SML, GUI_COLOR_WHT);
-        else
-            gui_multi(id, _("Please check your internet connection\n"
-                            "or configure your router first.\n"
-                            "(e.g. Wi-Fi settings or ethernet)"),
-                          GUI_SML, GUI_COLOR_WHT);
+        else gui_multi(id, _("Please check your internet connection\n"
+                             "or configure your router first.\n"
+                             "(e.g. Wi-Fi settings or ethernet)"),
+                           GUI_SML, GUI_COLOR_WHT);
 
         gui_layout(id, 0, 0);
     }
@@ -963,10 +960,9 @@ static int server_maintenance_enter(struct state *st, struct state *prev, int in
                             "the server maintenance is success.\n"
                             "You can play offline instead!"),
                           GUI_SML, GUI_COLOR_WHT);
-        else
-            gui_multi(id, _("It might take a while until\n"
-                            "the server maintenance is success."),
-                          GUI_SML, GUI_COLOR_WHT);
+        else gui_multi(id, _("It might take a while until\n"
+                             "the server maintenance is success."),
+                           GUI_SML, GUI_COLOR_WHT);
 
         gui_space(id);
 
@@ -1026,9 +1022,7 @@ static void cleanup_screensaver(void)
 static int screensaver_enter(struct state *st, struct state *prev, int intent)
 {
     intro_done = 0;
-
     game_client_init_studio(1);
-
     return 0;
 }
 
@@ -1058,27 +1052,23 @@ static void screensaver_timer(int id, float dt)
 
 static int screensaver_keybd(int c, int d)
 {
-    if (d)
+    if (d && c == KEY_EXIT)
     {
-        if (c == KEY_EXIT)
-        {
-            cleanup_screensaver();
-            return 0;
-        }
+        cleanup_screensaver();
+        return 0;
     }
+
     return 1;
 }
 
 static int screensaver_buttn(int b, int d)
 {
-    if (d)
+    if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
     {
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-        {
-            cleanup_screensaver();
-            return 0;
-        }
+        cleanup_screensaver();
+        return 0;
     }
+
     return 1;
 }
 

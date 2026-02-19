@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -11,6 +11,8 @@
  * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
  * General Public License for more details.
  */
+
+#include "common.h"
 
 #include "boost_rush.h"
 #include "hud.h"
@@ -60,10 +62,7 @@ void collect_coin_value(int coin_val)
 
 void increase_speed(void)
 {
-    curr_speed += 14.28571429f;
-
-    if (curr_speed >= 100.0f)
-        curr_speed = 100.0f;
+    curr_speed = MIN(curr_speed + 14.28571429f, 100.0f);
 }
 
 void substract_speed(void)
@@ -74,8 +73,7 @@ void substract_speed(void)
 
 void boost_rush_timer(float dt)
 {
-    if (sonic_timer > 0)
-        sonic_timer += dt;
+    if (sonic_timer > 0) sonic_timer += dt;
 }
 
 float get_speed_indicator(void)

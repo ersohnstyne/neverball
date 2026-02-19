@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -431,8 +431,7 @@ void progress_livesplit_next(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
       || mode == MODE_HARDCORE
 #endif
-        ))
-        curr_livesplit.reseted = 0;
+        )) curr_livesplit.reseted = 0;
 }
 
 int progress_livesplit_started(void)
@@ -470,15 +469,10 @@ void progress_rush_collect_coin_value(int coin_val)
     if (curr_mode() == MODE_BOOST_RUSH)
     {
         collect_coin_value(coin_val);
-
         need_coin_val += coin_val;
-        while (need_coin_val > 9)
-        {
-            curr.speedpercent += 14.28571429f;
 
-            if (curr.speedpercent >= 100.0f)
-                curr.speedpercent = 100.0f;
-
+        while (need_coin_val > 9) {
+            curr.speedpercent = MIN(curr.speedpercent + 14.28571429f, 100.0f);
             need_coin_val -= 10;
         }
     }
@@ -623,7 +617,6 @@ static void init_level_moon_taskloader_done(void *data, void *done_data)
                                  curr_mode() != MODE_NONE ? demo_fp : NULL);
 
                 lvl_warn_timer = curr_clock() < 1000 && curr_time_limit() > 0;
-
                 loading = 0;
             }
         }
@@ -744,14 +737,12 @@ static int init_level(void)
                                   lvl_warn_timer ? "bgm/time-warning.ogg" :
                                                    BGM_TITLE_MAP(level_song(level)), 1);
         loading = 0;
-
         return 1;
     }
 #endif
 
     demo_play_stop(1);
     loading = 0;
-
     return 0;
 }
 
@@ -813,8 +804,7 @@ int  progress_play(struct level *l)
 
             /* Seriously, this will never use the required coins without career mode. */
 
-            if (goal_e)
-                goal = 0;
+            if (goal_e) goal = 0;
         }
         else if (campaign_used())
         {
@@ -926,9 +916,7 @@ void progress_stat(int s)
 
     /* Cannot save highscore in home room. */
 
-    if (mode == MODE_NONE) return;
-
-    if (status != GAME_NONE) return;
+    if (mode == MODE_NONE || status != GAME_NONE) return;
 
     status = s;
 
@@ -1179,9 +1167,8 @@ void progress_stat(int s)
                                                                       AS_GAME_STATCODE_XT);
 
                 /* Rejects offer after end of the level. */
-
-                done = 0;
-
+                
+                done           = 0;
                 extended_timer = timer;
 
                 if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
@@ -1218,12 +1205,10 @@ void progress_stat(int s)
 
                     /* Kill speed percent immediately. */
 
-                    if (progress_dead())
-                        curr.speedpercent = 0;
+                    if (progress_dead()) curr.speedpercent = 0;
                 }
 
                 PROGRESS_PLAYER_BANKRUPT;
-
                 status == GAME_FALL ? level->stats.fallout++ : level->stats.timeout++;
             }
 
@@ -1361,7 +1346,6 @@ void progress_exit(void)
     }
 
     replay = 0;
-
     is_init = 0;
 }
 
@@ -1426,8 +1410,7 @@ int  progress_replay_full(const char *filename,
         loading = 0;
         return 1;
     }
-    else
-        return 0;
+    else return 0;
 }
 
 #if NB_HAVE_PB_BOTH==1
@@ -1498,11 +1481,11 @@ int  progress_raise_gems(int action_performed, int needed,
             diff_coins += 38;
             if (wgcoins) *wgcoins -= 38;
         }
+
         /* Debt is greater than net-worth, so go bankrupt. */
         else return MAX(final_resale, 0);
 
-        if (temp_src_gems + final_resale >= needed)
-            break;
+        if (temp_src_gems + final_resale >= needed) break;
     }
 
     if (action_performed && temp_src_gems + final_resale >= needed)
@@ -1533,8 +1516,7 @@ int  progress_next_avail(void)
 #endif
             )
             return status == GAME_GOAL;
-        else
-            return level_opened(next);
+        else return level_opened(next);
     }
 
     return 0;
@@ -1562,8 +1544,7 @@ int  progress_same_avail(void)
         default:
             if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
                 return !progress_dead();
-            else
-                return 1;
+            else return 1;
     }
 }
 
@@ -1598,8 +1579,7 @@ int  progress_next(void)
 #endif
 
 #if ENABLE_LIVESPLIT!=0
-        int r = progress_play(next);
-
+        const int r = progress_play(next);
         if (r) progress_livesplit_next();
 
         return r;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -113,8 +113,7 @@ static void load_mtrl_objects(struct mtrl *mp)
 {
     /* Make sure not to leak an already loaded object. */
 
-    if (mp->o || !mp->base.f[0])
-        return;
+    if (mp->o || !mp->base.f[0]) return;
 
     const char *tex_filename = _(mp->base.f);
 
@@ -132,17 +131,14 @@ static void load_mtrl_objects(struct mtrl *mp)
 
         if (mp->base.fl & M_CLAMP_S)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        else
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        else glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 
         if (mp->base.fl & M_CLAMP_T)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        else
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        else glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     }
-    else
-        log_errorf("Failed to load texture: %s / %s\n",
-                   tex_filename, fs_error());
+    else log_errorf("Failed to load texture: %s / %s\n",
+                    tex_filename, fs_error());
 }
 
 /*
@@ -153,7 +149,6 @@ static void free_mtrl_objects(struct mtrl *mp)
     if (mp->o)
     {
         glDeleteTextures(1, &mp->o);
-
         mp->o = 0;
     }
 }
@@ -247,8 +242,7 @@ void mtrl_free(int mi)
         {
             mp->refc--;
 
-            if (mp->refc == 0)
-                free_mtrl(mp);
+            if (mp->refc == 0) free_mtrl(mp);
         }
     }
 }
@@ -336,8 +330,7 @@ void mtrl_load_objects(void)
     {
         struct mtrl *mp = array_get(mtrls, i);
 
-        if (mp->refc > 0)
-            load_mtrl_objects(mp);
+        if (mp->refc > 0) load_mtrl_objects(mp);
     }
 }
 
@@ -352,8 +345,7 @@ void mtrl_free_objects(void)
     {
         struct mtrl *mp = array_get(mtrls, i);
 
-        if (mp->refc > 0)
-            free_mtrl_objects(mp);
+        if (mp->refc > 0) free_mtrl_objects(mp);
     }
 }
 
@@ -381,8 +373,7 @@ void mtrl_quit(void)
     {
         int i, c = array_len(mtrls);
 
-        for (i = 0; i < c; i++)
-            free_mtrl(array_get(mtrls, i));
+        for (i = 0; i < c; i++) free_mtrl(array_get(mtrls, i));
 
         array_free(mtrls);
         mtrls = NULL;
@@ -409,10 +400,8 @@ static GLenum mtrl_func_syms[8] = {
  */
 GLenum mtrl_func(int i)
 {
-    if (i >= 0 && i < ARRAYSIZE(mtrl_func_syms))
-        return mtrl_func_syms[i];
-    else
-        return GL_ALWAYS;
+    return (i >= 0 && i < ARRAYSIZE(mtrl_func_syms)) ? mtrl_func_syms[i] :
+                                                       GL_ALWAYS;
 }
 
 /*---------------------------------------------------------------------------*/

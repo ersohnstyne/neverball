@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -51,11 +51,9 @@ int text_add_char(unsigned int unicode, char *string, int maxbytes)
     else if (unicode < 0x10000) l = 3;
     else                        l = 4;
 
-    if (pos + l >= maxbytes)
-        return 0;
+    if (pos + l >= maxbytes) return 0;
 
-    if (unicode < 0x80)
-        string[pos++] = (char) unicode;
+    if (unicode < 0x80) string[pos++] = (char) unicode;
     else if (unicode < 0x0800)
     {
         string[pos++] = (char) ((unicode >> 6)   | 0xC0);
@@ -84,8 +82,7 @@ int text_del_char(char *string)
 {
     int pos = (int) strlen(string) - 1;
 
-    while (pos >= 0 && ((string[pos] & 0xC0) == 0x80))
-        string[pos--] = 0;
+    while (pos >= 0 && ((string[pos] & 0xC0) == 0x80)) string[pos--] = 0;
 
     if (pos >= 0)
     {
@@ -101,10 +98,8 @@ int text_length(const char *string)
     int result = 0;
 
     while (*string != '\0')
-    {
         if ((*string++ & 0xC0) != 0x80)
             result++;
-    }
 
     return result;
 }
@@ -113,16 +108,17 @@ int text_length(const char *string)
 
 char text_input[MAXSTR];
 
-static void (*on_text_input)(int);
+static void (*on_text_input) (int);
 
 #ifdef CALLBACK
 #pragma message(__FILE__ "("_CRT_STRINGIZE(__LINE__)")" ": " \
                 "CALLBACK: Preprocessor definitions found! Replacing to functions!")
 #undef CALLBACK
 #endif
-#define CALLBACK(typing) do {                   \
-        if (on_text_input)                      \
-            on_text_input(typing);              \
+#define CALLBACK(typing)           \
+    do {                           \
+        if (on_text_input)         \
+            on_text_input(typing); \
     } while (0)
 
 void text_input_start(void (*cb) (int))

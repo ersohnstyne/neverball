@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -117,8 +117,7 @@ static long long int difference_of_days(int day1, int month1, int year1,
 
             // for same year, same day but diff month
 
-            if      (day1 == day2)
-                return result;
+            if      (day1 == day2) return result;
             else if (day1 < day2)
             {
                 result = result + (day2 - day1);
@@ -136,8 +135,7 @@ static long long int difference_of_days(int day1, int month1, int year1,
             for (int i = month2; i < month1; i++)
                 result = result + no_of_days_in_month(i, year1);
 
-            if      (day1 == day2)
-                return result;
+            if      (day1 == day2) return result;
             else if (day2 < day1)
             {
                 result = result + (day1 - day2);
@@ -157,20 +155,16 @@ static long long int difference_of_days(int day1, int month1, int year1,
         {
             if (check_leap_year(i))
                 temp = temp + 366;
-            else
-                temp = temp + 365;
+            else temp = temp + 365;
         }
 
         if (month1 == month2)
         {
             // for same month, same day but diff year
 
-            if      (day1 == day2)
-                return temp;
-            else if (day1 < day2)
-                return temp + (day2 - day1);
-            else
-                return temp - (day1 - day2);
+            if      (day1 == day2) return temp;
+            else if (day1 < day2) return temp + (day2 - day1);
+            else return temp - (day1 - day2);
         }
         else if (month1 < month2)
         {
@@ -180,8 +174,7 @@ static long long int difference_of_days(int day1, int month1, int year1,
 
             // for same day, diff year and diff month
 
-            if      (day1 == day2)
-                return temp + result;
+            if      (day1 == day2) return temp + result;
             else if (day1 < day2)
             {
                 result = result + (day2 - day1);
@@ -199,8 +192,7 @@ static long long int difference_of_days(int day1, int month1, int year1,
             for (int i = month2; i < month1; i++)
                 result = result + no_of_days_in_month(i, year2);
 
-            if      (day1 == day2)
-                return temp - result;
+            if      (day1 == day2) return temp - result;
             else if (day2 < day1)
             {
                 result = result + (day1 - day2);
@@ -218,22 +210,17 @@ static long long int difference_of_days(int day1, int month1, int year1,
         long long int temp = 0;
         for (int i = year2; i < year1; i++)
         {
-            if (check_leap_year(i))
-                temp = temp + 366;
-            else
-                temp = temp + 365;
+            if (check_leap_year(i)) temp = temp + 366;
+            else temp = temp + 365;
         }
 
         if (month1 == month2)
         {
             // for same day, same month but diff year
 
-            if      (day1 == day2)
-                return temp;
-            else if (day2 < day1)
-                return temp + (day1 - day2);
-            else
-                return temp - (day2 - day1);
+            if      (day1 == day2) return temp;
+            else if (day2 < day1) return temp + (day1 - day2);
+            else return temp - (day2 - day1);
         }
         else if (month2 < month1)
         {
@@ -241,8 +228,7 @@ static long long int difference_of_days(int day1, int month1, int year1,
             for (int i = month2; i < month1; i++)
                 result = result + no_of_days_in_month(i, year1);
 
-            if (day1 == day2)
-                return temp + result;
+            if (day1 == day2) return temp + result;
             else if (day2 < day1)
             {
                 result = result + (day1 - day2);
@@ -262,8 +248,7 @@ static long long int difference_of_days(int day1, int month1, int year1,
 
             // for same day, diff year and diff month
 
-            if      (day1 == day2)
-                return temp - result;
+            if      (day1 == day2) return temp - result;
             else if (day1 < day2)
             {
                 result = result + (day2 - day1);
@@ -354,9 +339,8 @@ static int end_support_action(int tok, int val)
 {
     switch (tok)
     {
-        case GUI_BACK:
-            exit_state(st_hide);
-            break;
+        case GUI_BACK: return exit_state(st_hide);
+
         case END_SUPPORT_INVITE:
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -406,8 +390,7 @@ static int end_support_gui(void)
 #if !defined(TEST_END_SUPPORT)
         if (END_SUPPORT_YEAR >= timestamp.tm_year)
         {
-            if (diff >= 30)
-                return goto_state(st_hide);
+            if (diff >= 30) return goto_state(st_hide);
             else if (diff < 30)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS

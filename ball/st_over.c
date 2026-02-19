@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -134,9 +134,8 @@ static int over_action(int tok, int val)
 
                 if (str_starts_with(curr_setid_final, "anime"))
                     audio_music_fade_to(0.5f, "bgm/jp/title.ogg", 1);
-                else
-                    audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
-                                                              "bgm/inter_world.ogg", 1);
+                else audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
+                                                               "bgm/inter_world.ogg", 1);
             }
 
             return goto_shop(
@@ -240,8 +239,8 @@ static int over_gui(void)
     }
 #else
     /* Do this for now! */
-    int id, jd;
 
+    int id, jd;
     int high = progress_set_high();
 
     if ((id = gui_vstack(0)))
@@ -291,8 +290,7 @@ static int over_enter(struct state *st, struct state *prev, int intent)
 #endif
 
 #ifdef LEADERBOARD_ALLOWANCE
-    if (prev == &st_name)
-        progress_rename(1);
+    if (prev == &st_name) progress_rename(1);
 #endif
 
     resume = prev != &st_fail;
@@ -392,6 +390,7 @@ static int over_keybd(int c, int d)
             return over_action(GUI_SCORE, GUI_SCORE_NEXT(gui_score_get()));
 #endif
     }
+
     return 1;
 }
 

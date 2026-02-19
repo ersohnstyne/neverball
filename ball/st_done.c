@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -131,9 +131,8 @@ static int done_action(int tok, int val)
 
                 if (str_starts_with(curr_setid_final, "anime"))
                     audio_music_fade_to(0.5f, "bgm/jp/title.ogg", 1);
-                else
-                    audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
-                                                              "bgm/inter_world.ogg", 1);
+                else audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
+                                                               "bgm/inter_world.ogg", 1);
             }
 
             return goto_shop(
@@ -173,6 +172,7 @@ static int done_gui_campaign(void)
     }
 
     int id, jd;
+
     if ((id = gui_vstack(0)))
     {
         char sdescHardcore[MAXSTR];
@@ -220,8 +220,7 @@ static int done_gui_set(void)
     const char *s2 = _("Set Complete");
 
     int id, jd, kd;
-
-    int high = progress_set_high();
+    const int high = progress_set_high();
 
     if (high && !resume)
     {
@@ -292,14 +291,11 @@ static int done_gui_set(void)
 
             if (high)
                 gid = gui_title_header(jd, s1, GUI_MED, GUI_COLOR_GRN);
-            else
-                gid = gui_title_header(jd, s2, GUI_MED, gui_blu, gui_grn);
+            else gid = gui_title_header(jd, s2, GUI_MED, gui_blu, gui_grn);
 
-            if (!resume)
-                gui_pulse(gid, 1.2f);
+            if (!resume) gui_pulse(gid, 1.2f);
 
             gui_filler(jd);
-
             gui_set_rect(jd, GUI_ALL);
         }
 
@@ -329,7 +325,6 @@ static int done_gui_set(void)
                 }
 
                 gui_filler(jd);
-
                 gui_set_rect(jd, GUI_ALL);
             }
 
@@ -378,8 +373,7 @@ static int done_enter(struct state *st, struct state *prev, int intent)
     account_wgcl_restart_attempt();
 #endif
 
-    if (prev == &st_name)
-        progress_rename(1);
+    if (prev == &st_name) progress_rename(1);
 
     resume = prev != &st_goal;
 

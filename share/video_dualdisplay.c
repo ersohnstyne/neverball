@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -84,8 +84,7 @@ static void snapshot_prep(const char *path)
 {
 #if ENABLE_DUALDISPLAY==1 && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
-    if (path && *path)
-        SAFECPY(snapshot_path, path);
+    if (path && *path) SAFECPY(snapshot_path, path);
 #endif
 }
 
@@ -157,11 +156,9 @@ int video_dualdisplay_fullscreen(int f)
                                        f ? SDL_WINDOW_FULLSCREEN_DESKTOP :
                                            0);
 
-    if (code == 0)
-        config_set_d(CONFIG_FULLSCREEN, f ? 1 : 0);
-    else
-        log_errorf("Failure to %s fullscreen (%s)\n", f ? "enter" : "exit",
-                   GAMEDBG_GETSTRERROR_CHOICES_SDL);
+    if (code == 0) config_set_d(CONFIG_FULLSCREEN, f ? 1 : 0);
+    else log_errorf("Failure to %s fullscreen (%s)\n", f ? "enter" : "exit",
+                    GAMEDBG_GETSTRERROR_CHOICES_SDL);
 
     return (code == 0);
 #else
@@ -248,13 +245,13 @@ void video_dualdisplay_set_display(int dpy)
     int X = monitor_area_location.x + (ddm.w / 2) - (video_ddpy.ddpy_window_w / 2);
     int Y = monitor_area_location.y + (ddm.h / 2) - (video_ddpy.ddpy_window_h / 2);
 
-    if (video_ddpy.ddpy_window_w > ddm.w ||
+    /*if (video_ddpy.ddpy_window_w > ddm.w ||
         video_ddpy.ddpy_window_h > ddm.h)
     {
         log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n",
                    video_ddpy.ddpy_window_w, video_ddpy.ddpy_window_h, ddm.w, ddm.h);
         video_set_window_size(ddm.w, ddm.h);
-    }
+    }*/
 
     if (X - monitor_area_location.x > ddm.w + monitor_area_location.x / 2 ||
         Y - monitor_area_location.y > ddm.h + monitor_area_location.y / 2)
@@ -369,14 +366,13 @@ int video_dualdisplay_mode(int f, int w, int h)
     int X = monitor_area_location.x + (ddm.w / 2) - (w / 2);
     int Y = monitor_area_location.y + (ddm.h / 2) - (h / 2);
 
-    if (w > ddm.w ||
-        h > ddm.h)
+    /*if (w > ddm.w || h > ddm.h)
     {
         log_errorf("Window size exeeds the desktop resolution limit!: Current: %d/%d; Limit: %d/%d\n",
                    w, h, ddm.w, ddm.h);
         w = ddm.w;
         h = ddm.h;
-    }
+    }*/
 
     if (X - monitor_area_location.x > ddm.w + monitor_area_location.x / 2 ||
         Y - monitor_area_location.y > ddm.h + monitor_area_location.y / 2)
@@ -452,8 +448,7 @@ int video_dualdisplay_mode(int f, int w, int h)
 #endif
 
 #ifdef RESIZEABLE_WINDOW
-            if (config_get_d(CONFIG_MAXIMIZED))
-                SDL_MaximizeWindow(window_ddpy);
+            if (config_get_d(CONFIG_MAXIMIZED)) SDL_MaximizeWindow(window_ddpy);
 #endif
 #if __cplusplus
         }
@@ -613,12 +608,10 @@ void video_dualdisplay_clear(void)
 {
 #if ENABLE_DUALDISPLAY==1 && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
-    GLbitfield bufferBit = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
+    glViewport(0, 0, video_ddpy.ddpy_device_w, video_ddpy.ddpy_device_h);
 
-    if (config_get_d(CONFIG_REFLECTION))
-        bufferBit |= GL_STENCIL_BUFFER_BIT;
-
-    glClear(bufferBit);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
+            (config_get_d(CONFIG_REFLECTION) ? GL_STENCIL_BUFFER_BIT : 0));
 #endif
 }
 

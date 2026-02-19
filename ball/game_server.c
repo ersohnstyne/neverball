@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -1427,19 +1427,6 @@ void game_update_view(float dt)
         }
 #pragma endregion
 
-#pragma region Pow camera shake
-        /* Pow camera shake for center camera view. */
-
-        float c_shake[3] = { 0.0f, 0.0f, 0.0f };
-
-        if (powblock_b > 0)
-        {
-            c_shake[0] = rand_between(-ANGLE_BOUND, ANGLE_BOUND) * (powblock_dt - 0.5f);
-            c_shake[1] = rand_between(-ANGLE_BOUND, ANGLE_BOUND) * (powblock_dt - 0.5f);
-            c_shake[2] = rand_between(-ANGLE_BOUND, ANGLE_BOUND) * (powblock_dt - 0.5f);
-        }
-#pragma endregion
-
 #pragma region Static camera
         if (cam_speed(input_get_c()) == 0)
             v_lerp(fix_cam_pos, fix_cam_pos, fix_cam_pos_targ[ui], dt);
@@ -1465,11 +1452,6 @@ void game_update_view(float dt)
         v_mad(multiview2.c, c0, v, fix_cam_alpha[ui] * fix_cam_alpha[ui]);
 
         multiview2.c[1] += multiview2.dc;
-
-        /* Apply camera shake. */
-
-        v_add(multiview2.c, multiview2.c, c_shake);
-        v_add(multiview2.c, multiview2.c, c_shake);
 
         /* Orthonormalize the view basis */
 
@@ -1528,11 +1510,6 @@ void game_update_view(float dt)
         view_v[0] = -vary.uv[ui].v[0];
         view_v[1] =  0.0f;
         view_v[2] = -vary.uv[ui].v[2];
-
-        /* Apply camera shake. */
-
-        v_add(multiview1.c, multiview1.c, c_shake);
-        v_add(multiview1.c, multiview1.c, c_shake);
 
         /* Compute view vector. */
 
@@ -1680,7 +1657,6 @@ static void game_update_time(float dt, int b)
     if (b && time_travel > 0.0f && timer_hold == 0 && jump_b == 0)
     {
         time_travel -= dt;
-
         return;
     }
 #endif
@@ -2033,8 +2009,7 @@ static int game_step(const float g[3], float dt, int bt)
         {
             powblock_dt += dt;
 
-            if (powblock_dt >= 0.5f)
-                powblock_b = 0;
+            if (powblock_dt >= 0.5f) powblock_b = 0;
         }
 
         /*if (status == GAME_GOAL
@@ -2087,8 +2062,7 @@ static int game_step(const float g[3], float dt, int bt)
                 v_cpy(vary.uv[CURR_PLAYER].p, jump_p);
             }
 
-            if (jump_dt >= 1.0f)
-                jump_b = 0;
+            if (jump_dt >= 1.0f) jump_b = 0;
         }
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -2143,18 +2117,15 @@ static void game_server_iter(float dt)
      * HACK: Do not allow these functions as it causes
      * incoherence problems after timer expires.
      */
-
     if (status == GAME_TIME) return;
 
     float g[3] = { 0.0f, -9.8f, 0.0f };
 
-    for (int i = 0; i < 3; i++)
-        g[i] *= powerup_get_grav_multiply();
-
 #ifdef MAPC_INCLUDES_CHKP
-    if (checkpoints_busy)
-        v_cpy(g, GRAVITY_BUSY);
+    if (checkpoints_busy) v_cpy(g, GRAVITY_BUSY);
 #endif
+
+    for (int i = 0; i < 3; i++) g[i] *= powerup_get_grav_multiply();
 
 #if defined(MAPC_INCLUDES_CHKP) && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
     if (status == GAME_GOAL && !campaign_used())
@@ -2223,8 +2194,7 @@ void game_disable_chkp(void)
 {
     if (chkp_e && time_limit > 0)
     {
-        if (vary.cc)
-            audio_play(AUD_SWITCH, 1.0f);
+        if (vary.cc) audio_play(AUD_SWITCH, 1.0f);
 
         chkp_e = 0;
 

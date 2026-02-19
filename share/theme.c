@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -126,9 +126,8 @@ int theme_load(struct theme *theme, const char *name)
 
             fs_close(fp);
         }
-        else
-            log_errorf("Failure to open \"%s\" theme file: %s\n",
-                       name, fs_error());
+        else log_errorf("Failure to open \"%s\" theme file: %s\n",
+                        name, fs_error());
 
         theme->s[0] =  0.0f;
         theme->s[1] =  s[0];
@@ -147,6 +146,7 @@ int theme_load(struct theme *theme, const char *name)
 
         return 1;
     }
+
     return 0;
 }
 
@@ -158,8 +158,7 @@ void theme_free(struct theme *theme)
     {
         glDeleteTextures(THEME_IMAGES_MAX, theme->tex);
 
-        for (i = 0; i < THEME_IMAGES_MAX; i++)
-            theme->tex[i] = 0;
+        for (i = 0; i < THEME_IMAGES_MAX; i++) theme->tex[i] = 0;
     }
 }
 

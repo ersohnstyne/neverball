@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -141,22 +141,18 @@ static int playmodes_action(int tok, int val)
 
     switch (tok)
     {
-        case GUI_BACK:
-            return exit_state(&st_campaign);
+        case GUI_BACK: return exit_state(&st_campaign);
 
         case PLAYMODES_CAREER_MODE:
             config_set_d(CONFIG_LOCK_GOALS,
                          !config_get_d(CONFIG_LOCK_GOALS));
-
             career_changed = 1;
 
             audio_play(AUD_SWITCH, 1.0f);
 
-            if (config_get_d(CONFIG_LOCK_GOALS))
-                audio_play(AUD_GOAL, 1.0f);
+            if (config_get_d(CONFIG_LOCK_GOALS)) audio_play(AUD_GOAL, 1.0f);
 
             config_save();
-
             return goto_state(&st_playmodes);
 
         case PLAYMODES_HARDCORE:
@@ -340,8 +336,7 @@ static int playmodes_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
            && current_platform == PLATFORM_PC
 #endif
-        ))
-        return playmodes_action(GUI_BACK, 0);
+        )) return playmodes_action(GUI_BACK, 0);
 
     return 1;
 }
@@ -459,12 +454,11 @@ static int hardcore_start_gui(void)
                             "Would you like to disable the\n"
                             "recordings during the game?"),
                           GUI_SML, GUI_COLOR_WHT);
-        else
-            gui_multi(id, _("You can't save in this mode\n"
-                            "except unlocking levels.\n\n"
-                            "Would you like to disable the\n"
-                            "recordings during the game?"),
-                          GUI_SML, GUI_COLOR_WHT);
+        else gui_multi(id, _("You can't save in this mode\n"
+                             "except unlocking levels.\n\n"
+                             "Would you like to disable the\n"
+                             "recordings during the game?"),
+                           GUI_SML, GUI_COLOR_WHT);
 
         gui_space(id);
 
@@ -518,8 +512,8 @@ static int hardcore_start_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
            && current_platform == PLATFORM_PC
 #endif
-        ))
-        return hardcore_start_action(GUI_BACK, 0);
+        )) return hardcore_start_action(GUI_BACK, 0);
+
     return 1;
 }
 

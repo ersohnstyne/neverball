@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -3037,13 +3037,8 @@ int gui_point(int id, int x, int y)
 
     /* If the active widget has changed, return the new active id. */
 
-    if (jd == 0 || jd == active)
-        return 0;
-    else
-    {
-        audio_play("snd/focus.ogg", 1.0f);
-        return active = jd;
-    }
+    if (jd != 0 && jd != active) audio_play("snd/focus.ogg", 1.0f);
+    return (jd != 0 && jd != active) ? active = jd : 0;
 }
 
 void gui_alpha(int id, float alpha)
@@ -3055,8 +3050,7 @@ void gui_alpha(int id, float alpha)
 
 void gui_focus(int i)
 {
-    if (active != i)
-        audio_play("snd/focus.ogg", 1.0f);
+    if (active != i) audio_play("snd/focus.ogg", 1.0f);
 
     active = i;
 }
@@ -3313,8 +3307,7 @@ static int gui_wrap_L(int id, int dd)
     int jd, kd;
 
     if ((jd = gui_stick_L(id, dd)) == 0)
-        for (jd = dd; (kd = gui_stick_R(id, jd)); jd = kd)
-            ;
+        for (jd = dd; (kd = gui_stick_R(id, jd)); jd = kd);
 
     return jd;
 }
@@ -3324,8 +3317,7 @@ static int gui_wrap_R(int id, int dd)
     int jd, kd;
 
     if ((jd = gui_stick_R(id, dd)) == 0)
-        for (jd = dd; (kd = gui_stick_L(id, jd)); jd = kd)
-            ;
+        for (jd = dd; (kd = gui_stick_L(id, jd)); jd = kd);
 
     return jd;
 }
@@ -3335,8 +3327,7 @@ static int gui_wrap_U(int id, int dd)
     int jd, kd;
 
     if ((jd = gui_stick_U(id, dd)) == 0)
-        for (jd = dd; (kd = gui_stick_D(id, jd)); jd = kd)
-            ;
+        for (jd = dd; (kd = gui_stick_D(id, jd)); jd = kd);
 
     return jd;
 }
@@ -3358,8 +3349,7 @@ int gui_stick(int id, int a, float v, int bump)
 {
     int jd = 0;
 
-    if (!bump)
-        return 0;
+    if (!bump) return 0;
 
     /* Find a new active widget in the direction of joystick motion. */
 
@@ -3376,13 +3366,8 @@ int gui_stick(int id, int a, float v, int bump)
 
     /* If the active widget has changed, return the new active id. */
 
-    if (jd == 0 || jd == active)
-        return 0;
-    else
-    {
-        audio_play("snd/focus.ogg", 1.0f);
-        return active = jd;
-    }
+    if (jd != 0 && jd != active) audio_play("snd/focus.ogg", 1.0f);
+    return (jd != 0 && jd != active) ? active = jd : 0;
 }
 
 int gui_click(int b, int d)
@@ -3489,7 +3474,8 @@ int gui_maybe_img(int id, const char *dimage, const char *eimage, int etoken, in
 
     return bd;
 }
-#else
+#endif
+
 int gui_maybe(int id, const char *label, int etoken, int dtoken, int enabled)
 {
     int bd;
@@ -3499,11 +3485,9 @@ int gui_maybe(int id, const char *label, int etoken, int dtoken, int enabled)
         bd = gui_state(id, label, GUI_SML, dtoken, 0);
         gui_set_color(bd, gui_gry, gui_gry);
     }
-    else
-        bd = gui_state(id, label, GUI_SML, etoken, 0);
+    else bd = gui_state(id, label, GUI_SML, etoken, 0);
 
     return bd;
 }
-#endif
 
 /*---------------------------------------------------------------------------*/

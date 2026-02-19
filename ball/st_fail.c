@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -149,6 +149,9 @@ enum ask_more_options
 static int fail_intro_lock_now;
 static int fail_intro_animation_phase;
 static int fail_intro_incidents_triggered;
+
+static float fail_intro_speedmultiplier;
+static float fail_intro_animation_time;
 
 static int ask_more_target;
 
@@ -798,6 +801,7 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
 
     if (!resume)
     {
+        fail_intro_animation_time      = 0;
         fail_intro_incidents_triggered = 0;
 
 #if NB_HAVE_PB_BOTH==1 && \
@@ -860,16 +864,18 @@ static void fail_timer(int id, float dt)
 
     if (fail_intro_animation_phase == 1)
     {
+        fail_intro_speedmultiplier = flerp(fail_intro_speedmultiplier, MIN(0.05f + (fail_time_state * 2), 1.0f), dt * 10);
+        fail_intro_animation_time += dt * fail_intro_speedmultiplier;
+
         fail_intro_lock_now = 1;
 
         if (fail_time_state >= 2.0f)
         {
             fail_intro_animation_phase = 2;
-            goto_state(&st_fail);
-
-            return;
+            goto_state(&st_fail); return;
         }
     }
+    else fail_intro_speedmultiplier = 1.0f;
 
     if (fail_time_state >= 2.0f)
         WGCL_fail_call_incident();
@@ -881,9 +887,9 @@ static void fail_timer(int id, float dt)
          * Bedrock 1.21.40 - Bundles and Bravery
          */
 
-        game_camshake_update(dt);
-        geom_step(dt);
-        game_server_step(dt);
+        game_camshake_update(dt * fail_intro_speedmultiplier);
+        geom_step(dt * fail_intro_speedmultiplier);
+        game_server_step(dt * fail_intro_speedmultiplier);
 
         int record_modes    = curr_mode() != MODE_NONE;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -893,7 +899,7 @@ static void fail_timer(int id, float dt)
 #endif
 
         game_client_sync(!resume
-                      && fail_time_state < 1.0f
+                      && fail_intro_animation_time < 1.0f
                       && record_modes
                       && record_campaign
                       && fail_intro_animation_phase == 1 ? demo_fp : NULL);
@@ -1103,8 +1109,7 @@ static int ask_more_action(int tok, int val)
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
         case ASK_MORE_GET_GEMS:
 #ifdef __EMSCRIPTEN__
-            EM_ASM({ Neverball.showIAP_Gems(); });
-            return 1
+            EM_ASM({ Neverball.showIAP_Gems(); }); return 1
 #else
             return goto_shop_iap(0, &st_fail, ask_more_purchased, 0, val, 1, 0);
 #endif
@@ -1182,8 +1187,7 @@ static int ask_more_action(int tok, int val)
                     return exit_state(&st_fail);
                 else if (progress_same())
                     return goto_play_level();
-                else
-                    return exit_state(&st_fail);
+                else return exit_state(&st_fail);
             }
 #endif
             break;
@@ -1255,8 +1259,7 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
                 gui_title_header(id, _("Buy balls?"), GUI_MED, gui_gry, gui_red);
             else if (allow_raisegems)
                 gui_title_header(id, _("Raise gems!"), GUI_MED, gui_gry, gui_red);
-            else
-                gui_title_header(id, _("Sorry!"), GUI_MED, gui_gry, gui_red);
+            else gui_title_header(id, _("Sorry!"), GUI_MED, gui_gry, gui_red);
         }
         else
         {
@@ -1272,9 +1275,8 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
                       server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP)))
                 gui_title_header(id, _("Buy Mediation?"),
                                      GUI_MED, gui_gry, gui_red);
-            else
-                gui_title_header(id, _("Sorry!"),
-                                     GUI_MED, gui_gry, gui_red);
+            else gui_title_header(id, _("Sorry!"),
+                                      GUI_MED, gui_gry, gui_red);
         }
 
         gui_space(id);
@@ -1288,11 +1290,10 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
                                     "and respawn from checkpoint?\n \n"
                                     "You need 15 gems from your wallet!"),
                                   GUI_SML, GUI_COLOR_WHT);
-                else
-                    gui_multi(id, _("You want to buy more balls\n"
-                                    "and restart the level\n \n"
-                                    "You need 15 gems from your wallet!"),
-                                  GUI_SML, GUI_COLOR_WHT);
+                else gui_multi(id, _("You want to buy more balls\n"
+                                     "and restart the level\n \n"
+                                     "You need 15 gems from your wallet!"),
+                                   GUI_SML, GUI_COLOR_WHT);
             }
             else if (allow_raisegems
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
@@ -1310,10 +1311,9 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
 
                 gui_multi(id, gemsattr, GUI_SML, GUI_COLOR_WHT);
             }
-            else
-                gui_multi(id, _("You don't have enough gems\n"
-                                "to buy more balls!"),
-                              GUI_SML, GUI_COLOR_WHT);
+            else gui_multi(id, _("You don't have enough gems\n"
+                                 "to buy more balls!"),
+                               GUI_SML, GUI_COLOR_WHT);
         }
         else
         {
@@ -1345,10 +1345,9 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
                 gui_multi(id, _("Are you sure want to extend\n"
                                 "more time to finish the level?"),
                               GUI_SML, GUI_COLOR_WHT);
-            else
-                gui_multi(id, _("You don't have enough coins\n"
-                                "to buy Mediation!"),
-                              GUI_SML, GUI_COLOR_WHT);
+            else gui_multi(id, _("You don't have enough coins\n"
+                                 "to buy Mediation!"),
+                               GUI_SML, GUI_COLOR_WHT);
         }
 
         gui_space(id);
@@ -1375,8 +1374,7 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
                         gui_state(jd, _("Get gems!"),
                                       GUI_SML, ASK_MORE_GET_GEMS, 15);
                 }
-                else
-                    gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
+                else gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
             }
         }
         else
@@ -1442,14 +1440,12 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
                     gui_start(jd, _("No, thanks!"), GUI_SML, GUI_BACK, 0);
                     gui_state(jd, approveattr, GUI_SML, ASK_MORE_ACCEPT, extendvalue);
                 }
-                else
-                    gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
+                else gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
             }
         }
     }
 
     gui_layout(id, 0, 0);
-
     return transition_slide(id, 1, intent);
 }
 
@@ -1540,8 +1536,7 @@ static int raise_gems_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 #ifdef __EMSCRIPTEN__
-            EM_ASM({ Neverball.showIAP_Gems(); });
-            return 1;
+            EM_ASM({ Neverball.showIAP_Gems(); }); return 1;
 #else
             return goto_shop_iap(&st_raise_gems, st_returnable, 0, 0, val, 1, 0);
 #endif
@@ -1560,8 +1555,7 @@ static int raise_gems_action(int tok, int val)
                                 num_amounts_dst[1],
                                 num_amounts_dst[2],
                                 num_amounts_dst[3]);
-            return goto_exit();
-            break;
+            return goto_exit(); break;
     }
 
     return 1;
@@ -1656,9 +1650,7 @@ static int raise_gems_prepare_gui(void)
         gui_grn
     };
 
-    if ((id = gui_vstack(0)))
-    {
-        /* TODO: Detailed informations for assistants? */
+    if ((id = gui_vstack(0))) {
         char infoattr_full[MAXSTR], infoattr0[MAXSTR];
 
         const char *bankrupt_str0 = _("Your debt of %d gems exceeds your net-worth.");
@@ -1687,8 +1679,7 @@ static int raise_gems_prepare_gui(void)
                 sprintf(infoattr_full,
 #endif
                         paydebt_ready_str, raisegems_dst_amount);
-            else
-                SAFECPY(infoattr_full, _("If you sell some items, then you can raise gems."));
+            else SAFECPY(infoattr_full, _("If you sell some items, then you can raise gems."));
         }
         else
         {
@@ -2005,8 +1996,7 @@ int ask_more_purchased(struct state *ok_state)
 #endif
         if (progress_same())
             return goto_play_level();
-        else
-            return exit_state(&st_fail);
+        else return exit_state(&st_fail);
     }
     else if (ask_more_target == ASK_MORE_TIME)
     {

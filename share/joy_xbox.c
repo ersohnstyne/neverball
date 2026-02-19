@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -358,8 +358,7 @@ int  joy_update(void)
                 memcpy(prevState, currState, sizeof (*currState));
             }
         }
-        else if (joysticks[i].id != -1)
-            joy_remove(joysticks[i].id);
+        else if (joysticks[i].id != -1) joy_remove(joysticks[i].id);
     }
 
     return d;

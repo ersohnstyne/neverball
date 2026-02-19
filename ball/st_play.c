@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -738,8 +738,7 @@ static int play_prep_click(int b, int d)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      || curr_mode() == MODE_HARDCORE
 #endif
-        )
-        EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
+        ) EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
 #endif
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -777,8 +776,7 @@ static int play_prep_keybd(int c, int d)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      || curr_mode() == MODE_HARDCORE
 #endif
-        )
-        EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
+        ) EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
 #endif
 
     if (d)
@@ -962,8 +960,7 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      || curr_mode() == MODE_HARDCORE
 #endif
-        )
-        EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
+        ) EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
 #endif
 
     if ((prev != &st_play_ready &&
@@ -1112,33 +1109,41 @@ static void play_loop_timer(int id, float dt)
         game_client_maxspeed(0.0f, 0);
     }
     else if (max_speed)
-        game_client_maxspeed(V_DEG(fatan2f(tilt_y, tilt_x)), 1);
+        game_client_maxspeed(V_DEG(fatan2f(tilt_y, tilt_x)), lmb_holded);
 
     if (!lmb_holded && use_mouse && !use_keyboard)
     {
-        game_set_pos(tilt_x, tilt_y);
-        max_speed = 0;
-        lmb_hold_time = -0.01f;
+        lmb_hold_time -= dt;
+
+        if (lmb_hold_time < 0.9f) {
+            game_set_pos(tilt_x, tilt_y);
+            lmb_hold_time = -0.01f; max_speed = 0;
+        }
     }
     else if (use_mouse && !use_keyboard)
     {
         lmb_hold_time += dt;
-        if (lmb_hold_time > 0.5f) max_speed = 1;
+
+        if (lmb_hold_time > 0.5f) {
+            lmb_hold_time = 1; max_speed = 1;
+        }
     }
 
     if (!rmb_holded && use_mouse && !use_keyboard)
     {
-        rotation_offset = 0;
-        man_rot = 0;
-        rmb_hold_time = -0.01f;
+        rmb_hold_time -= dt;
+
+        if (rmb_hold_time < 0.9f) {
+            man_rot = 0; rotation_offset = 0; rmb_hold_time = -0.01f;
+        }
     }
     else if (use_mouse && !use_keyboard)
     {
         rmb_hold_time += dt;
-        if (rmb_hold_time > 0.5f)
-        {
+
+        if (rmb_hold_time > 0.5f) {
             game_set_pos(0, 0);
-            man_rot = 1;
+            rmb_hold_time = 1; man_rot = 1;
         }
     }
 
@@ -1266,7 +1271,7 @@ static void play_loop_point(int id, int x, int y, int dx, int dy)
                              curr_mode() == MODE_BOOST_RUSH ? 0 : (tilt_y * powerup_get_tilt_multiply()) * 10);
             }
         }
-        else use_mouse = 1; use_keyboard = 0;
+        else { use_mouse = 1; use_keyboard = 0; }
     }
 #endif
 }
@@ -1300,7 +1305,7 @@ static void play_loop_stick(int id, int a, float v, int bump)
         game_set_z(tilt_x);
         game_set_x(tilt_y);
     }
-    else use_mouse = 0; use_keyboard = 1;
+    else { use_mouse = 0; use_keyboard = 1; }
 }
 
 static void play_loop_angle(int id, float x, float z)

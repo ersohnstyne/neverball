@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -215,8 +215,7 @@ static void sol_load_geom(fs_file fin, struct b_geom *gp, struct s_base *fp)
                     break;
                 }
 
-            if (j == fp->oc)
-                oc++;
+            if (j == fp->oc) oc++;
         }
 
         if (oc && (p = realloc(fp->ov, sizeof (struct b_offs) * (fp->oc + oc))))
@@ -279,16 +278,14 @@ static void sol_load_path(fs_file fin, struct b_path *pp)
     pp->e[2] = 0.0f;
     pp->e[3] = 0.0f;
 
-    if (pp->fl & P_ORIENTED)
-        get_array(fin, pp->e, 4);
+    if (pp->fl & P_ORIENTED) get_array(fin, pp->e, 4);
 
     if (pp->fl & P_PARENTED)
     {
         pp->p0 = get_index(fin);
         pp->p1 = get_index(fin);
 
-        if (pp->p1 < 0)
-            pp->p1 = pp->p0;
+        if (pp->p1 < 0) pp->p1 = pp->p0;
     }
     else
     {
@@ -305,11 +302,9 @@ static void sol_load_body(fs_file fin, struct b_body *bp)
     {
         bp->p1 = get_index(fin);
 
-        if (bp->p1 < 0)
-            bp->p1 = bp->p0;
+        if (bp->p1 < 0) bp->p1 = bp->p0;
     }
-    else
-        bp->p1 = bp->p0;
+    else bp->p1 = bp->p0;
 
     bp->ni = get_index(fin);
     bp->l0 = get_index(fin);
@@ -330,8 +325,7 @@ static void sol_load_item(fs_file fin, struct b_item *hp)
         hp->p0 = get_index(fin);
         hp->p1 = get_index(fin);
 
-        if (hp->p1 < 0)
-            hp->p1 = hp->p0;
+        if (hp->p1 < 0) hp->p1 = hp->p0;
     }
     else
     {
@@ -351,8 +345,7 @@ static void sol_load_goal(fs_file fin, struct b_goal *zp)
         zp->p0 = get_index(fin);
         zp->p1 = get_index(fin);
 
-        if (zp->p1 < 0)
-            zp->p1 = zp->p0;
+        if (zp->p1 < 0) zp->p1 = zp->p0;
     }
     else
     {
@@ -378,8 +371,7 @@ static void sol_load_swch(fs_file fin, struct b_swch *xp)
         xp->p0 = get_index(fin);
         xp->p1 = get_index(fin);
 
-        if (xp->p1 < 0)
-            xp->p1 = xp->p0;
+        if (xp->p1 < 0) xp->p1 = xp->p0;
     }
     else
     {
@@ -410,8 +402,7 @@ static void sol_load_bill(fs_file fin, struct b_bill *rp)
         rp->p0 = get_index(fin);
         rp->p1 = get_index(fin);
 
-        if (rp->p1 < 0)
-            rp->p1 = rp->p0;
+        if (rp->p1 < 0) rp->p1 = rp->p0;
     }
     else
     {
@@ -432,8 +423,7 @@ static void sol_load_jump(fs_file fin, struct b_jump *jp)
         jp->p0 = get_index(fin);
         jp->p1 = get_index(fin);
 
-        if (jp->p1 < 0)
-            jp->p1 = jp->p0;
+        if (jp->p1 < 0) jp->p1 = jp->p0;
     }
     else
     {
@@ -465,8 +455,7 @@ static void sol_load_chkp(fs_file fin, struct b_chkp *cp)
         cp->p0 = get_index(fin);
         cp->p1 = get_index(fin);
 
-        if (cp->p1 < 0)
-            cp->p1 = cp->p0;
+        if (cp->p1 < 0) cp->p1 = cp->p0;
     }
     else
     {
@@ -682,8 +671,8 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
         for (i = 0; i < fp->mc; ++i)
             fp->mv[i].fl |= M_LIT;
 
-         for (i = 0; i < fp->rc; ++i)
-          fp->mv[fp->rv[i].mi].fl &= ~M_LIT;
+        for (i = 0; i < fp->rc; ++i)
+            fp->mv[fp->rv[i].mi].fl &= ~M_LIT;
     }
 
     return 1;
@@ -691,8 +680,7 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
 
 static int sol_load_head(fs_file fin, struct s_base *fp, int fp_ten)
 {
-    if (!sol_file(fin, fp_ten))
-        return 0;
+    if (!sol_file(fin, fp_ten)) return 0;
 
     sol_load_indx(fin, fp);
 
@@ -713,8 +701,7 @@ static int sol_load_head(fs_file fin, struct s_base *fp, int fp_ten)
 
         if (fp->dv == NULL) return 0;
 
-        for (i = 0; i < fp->dc; i++)
-            sol_load_dict(fin, fp->dv + i);
+        for (i = 0; i < fp->dc; i++) sol_load_dict(fin, fp->dv + i);
     }
 
     return 1;
@@ -1130,8 +1117,7 @@ static void sol_stor_file(fs_file fout, struct s_base *fp)
     put_index(fout, fp->uc);
 #ifdef MAPC_INCLUDES_CHKP
     /* New: Checkpoints */
-    if (version >= SOL_VERSION_CHKP)
-        put_index(fout, fp->cc);
+    if (version >= SOL_VERSION_CHKP) put_index(fout, fp->cc);
 #endif
     put_index(fout, fp->wc);
     put_index(fout, fp->ic);
@@ -1270,8 +1256,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
         {
             CONCAT_PATH(line, &mtrl_paths[i], name);
 
-            if ((fp = fs_open_read(line)))
-                break;
+            if ((fp = fs_open_read(line))) break;
         }
 
         if (fp)

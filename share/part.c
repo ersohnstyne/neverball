@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -124,12 +124,10 @@ static void part_lerp_copy(void)
     int i;
 
     for (i = 0; i < PART_MAX_COIN; i++)
-        v_cpy(part_lerp_coin[i].p[PREV],
-              part_lerp_coin[i].p[CURR]);
+        v_cpy(part_lerp_coin[i].p[PREV], part_lerp_coin[i].p[CURR]);
 
     for (i = 0; i < PART_MAX_GOAL; i++)
-        v_cpy(part_lerp_goal[i].p[PREV],
-              part_lerp_goal[i].p[CURR]);
+        v_cpy(part_lerp_goal[i].p[PREV], part_lerp_goal[i].p[CURR]);
 }
 
 void part_lerp_apply(float a)
@@ -139,14 +137,12 @@ void part_lerp_apply(float a)
     for (i = 0; i < PART_MAX_COIN; i++)
         if (coin_part[i].t > 0.0f)
             v_lerp(coin_part[i].p,
-                   part_lerp_coin[i].p[PREV],
-                   part_lerp_coin[i].p[CURR], a);
+                   part_lerp_coin[i].p[PREV], part_lerp_coin[i].p[CURR], a);
 
     for (i = 0; i < PART_MAX_GOAL; i++)
         if (goal_part[i].t > 0.0f)
             v_lerp(goal_part[i].p,
-                   part_lerp_goal[i].p[PREV],
-                   part_lerp_goal[i].p[CURR], a);
+                   part_lerp_goal[i].p[PREV], part_lerp_goal[i].p[CURR], a);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -155,11 +151,8 @@ void part_reset(void)
 {
     int i;
 
-    for (i = 0; i < PART_MAX_COIN; i++)
-        coin_part[i].t = 0;
-
-    for (i = 0; i < PART_MAX_GOAL; i++)
-        goal_part[i].t = 0;
+    for (i = 0; i < PART_MAX_COIN; i++) coin_part[i].t = 0;
+    for (i = 0; i < PART_MAX_GOAL; i++) goal_part[i].t = 0;
 }
 
 void part_init(void)

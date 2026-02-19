@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -198,17 +198,11 @@ int load_title_background(void)
 
 static const char *check_unlocked_demo(struct demo *rawdemo)
 {
-    int limit = config_get_d(CONFIG_ACCOUNT_LOAD);
-    int max = 0;
+    const int limit = config_get_d(CONFIG_ACCOUNT_LOAD);
+    const int max   = rawdemo->status == 3 ? 3 :
+                     (rawdemo->status == 1 || rawdemo->status == 0) ? 2 :
+                     (rawdemo->status == 2) ? 1 : 0;
 
-    if (rawdemo->status == 3)
-        max = 3;
-    else if (rawdemo->status == 1 || rawdemo->status == 0)
-        max = 2;
-    else if (rawdemo->status == 2)
-        max = 1;
-
-    /* Can access into the replay? */
     return (max <= limit) ? rawdemo->path : NULL;
 }
 
@@ -241,8 +235,7 @@ static const char *pick_demo(Array items)
 
 #if defined(COVID_HIGH_RISK)
     const char *demopath = check_unlocked_demo(demo_data);
-    if (demopath)
-        return demopath;
+    if (demopath) return demopath;
     else
     {
         log_errorf("Replay files deleted due covid high risks!: %s",
@@ -1102,7 +1095,8 @@ static int title_gui(void)
                 if ((jd = gui_hstack(id)))
                 {
                     int kd = 0;
-                    int btn_size = video.aspect_ratio < 1.0f ? GUI_SML : GUI_MED;
+                    int btn_size = video.aspect_ratio < 1.0f ? GUI_SML :
+                                                               GUI_MED;
 
                     gui_filler(jd);
 
@@ -1403,8 +1397,7 @@ static int title_enter(struct state *st, struct state *prev, int intent)
         TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
     else if (load_title_background())
         mode = TITLE_MODE_LEVEL;
-    else
-        mode = TITLE_MODE_NONE;
+    else mode = TITLE_MODE_NONE;
 
     real_time = 0.0f;
 
@@ -1452,8 +1445,7 @@ static int title_leave(struct state *st, struct state *next, int id, int intent)
     {
         game_client_free(NULL);
 
-        if (next == &st_null)
-            game_server_free(NULL);
+        if (next == &st_null) game_server_free(NULL);
     }
 
     progress_exit();
@@ -1549,8 +1541,7 @@ static void title_timer(int id, float dt)
                 }
                 else if (load_title_background())
                     mode = TITLE_MODE_LEVEL;
-                else
-                    mode = TITLE_MODE_NONE;
+                else mode = TITLE_MODE_NONE;
 
                 /* HACK: Faster way! - Ersohn Styne */
 
@@ -1598,8 +1589,7 @@ static void title_timer(int id, float dt)
                     TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
                 else if (load_title_background())
                     mode = TITLE_MODE_LEVEL;
-                else
-                    mode = TITLE_MODE_NONE;
+                else mode = TITLE_MODE_NONE;
             }
             break;
     }
@@ -1615,8 +1605,7 @@ static void title_point(int id, int x, int y, int dx, int dy)
 
     int jd;
 
-    if ((jd = gui_point(id, x, y)))
-        gui_pulse(jd, 1.2f);
+    if ((jd = gui_point(id, x, y))) gui_pulse(jd, 1.2f);
 
     return;
 }
@@ -1632,9 +1621,9 @@ static int title_click(int b, int d)
     if (title_lockscreen && title_can_unlock &&
         b == SDL_BUTTON_LEFT && d)
     {
-        title_play_narrator_welcome();
-
         title_can_unlock = 0;
+
+        title_play_narrator_welcome();
         return goto_state(&st_title);
     }
 #if NB_HAVE_PB_BOTH!=1 && !defined(__EMSCRIPTEN__)
@@ -1686,10 +1675,10 @@ static int title_buttn(int b, int d)
     {
         if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b) && title_can_unlock)
         {
-            title_play_narrator_welcome();
-
             title_can_unlock = 0;
-            goto_state(&st_title);
+
+            title_play_narrator_welcome();
+            return goto_state(&st_title);
         }
 
         return 1;

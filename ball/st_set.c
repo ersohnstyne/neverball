@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -200,10 +200,8 @@ static int set_action(int tok, int val)
         case GUI_BACK:
             set_quit();
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET))
-                return exit_state(&st_title);
-            else
-                return exit_state(&st_levelgroup);
+            return exit_state(server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET) ?
+                              &st_title : &st_levelgroup);
 #else
             return exit_state(&st_title);
 #endif
@@ -266,8 +264,8 @@ static void gui_set(int id, int i)
 #endif
 
         const char *curr_setname = set_name(i);
-        char curr_setname_final[MAXSTR];
-        char set_name_final[MAXSTR];
+        char        curr_setname_final[MAXSTR];
+        char        set_name_final[MAXSTR];
 
         if (!curr_setname)
         {
@@ -278,11 +276,10 @@ static void gui_set(int id, int i)
 #endif
                     _("Untitled set name (%d)"), i);
         }
-        else
-            SAFECPY(curr_setname_final, curr_setname);
+        else SAFECPY(curr_setname_final, curr_setname);
 
         const char *curr_setid = set_id(i);
-        char curr_setid_final[MAXSTR];
+        char        curr_setid_final[MAXSTR];
 
         if (!curr_setid)
         {
@@ -293,62 +290,39 @@ static void gui_set(int id, int i)
 #endif
                     _("none_%d"), curr_set());
         }
-        else
-            SAFECPY(curr_setid_final, curr_setid);
+        else SAFECPY(curr_setid_final, curr_setid);
 
         if (i % SET_STEP == 0)
             set_text_name_id = gui_start(id, "XXXXXXXXXXXXXXXXXX",
                                              GUI_SML, SET_SELECT, i);
-        else
-            set_text_name_id = gui_state(id, "XXXXXXXXXXXXXXXXXX",
-                                             GUI_SML, SET_SELECT, i);
+        else set_text_name_id = gui_state(id, "XXXXXXXXXXXXXXXXXX",
+                                              GUI_SML, SET_SELECT, i);
 
         if (str_starts_with(curr_setid_final, "valentine"))
-        {
             gui_set_color(set_text_name_id, gui_pnk, gui_red);
-
-            SAFECPY(set_name_final, curr_setname_final);
-        }
         else if (str_starts_with(curr_setid_final, "freeland"))
-        {
             gui_set_color(set_text_name_id, gui_grn, gui_cya);
-
-            SAFECPY(set_name_final, curr_setname_final);
-        }
         else if (str_starts_with(curr_setid_final, "halloween"))
-        {
             gui_set_color(set_text_name_id, gui_red, gui_yel);
-
-            SAFECPY(set_name_final, curr_setname_final);
-        }
         else if (str_starts_with(curr_setid_final, "christmas"))
-        {
             gui_set_color(set_text_name_id, gui_red, gui_grn);
-
-            SAFECPY(set_name_final, curr_setname_final);
-        }
         else if (str_starts_with(curr_setid_final, "anime"))
-        {
             gui_set_color(set_text_name_id, gui_cya, gui_blu);
-
-            SAFECPY(set_name_final, curr_setname_final);
-        }
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         else if (str_starts_with(curr_setid_final, "SB")
-              || str_starts_with(curr_setid_final, "sb")
-              || str_starts_with(curr_setid_final, "Sb")
-              || str_starts_with(curr_setid_final, "sB"))
+            || str_starts_with(curr_setid_final, "sb")
+            || str_starts_with(curr_setid_final, "Sb")
+            || str_starts_with(curr_setid_final, "sB"))
         {
 #ifndef MAPC_INCLUDES_CHKP
             campaign_marked = 1;
 #endif
-            gui_set_color(set_text_name_id, GUI_COLOR_CYA);
 
-            SAFECPY(set_name_final, curr_setname_final);
+            gui_set_color(set_text_name_id, GUI_COLOR_CYA);
         }
 #endif
-        else SAFECPY(set_name_final, curr_setname_final);
 
+        SAFECPY(set_name_final, curr_setname_final);
         gui_set_trunc(set_text_name_id, TRUNC_TAIL);
         gui_set_label(set_text_name_id, set_name_final);
 
@@ -375,9 +349,7 @@ static void gui_set(int id, int i)
 static int set_is_scanning_with_moon_taskloader = 0;
 
 static int set_scan_moon_taskloader(void* data, void* execute_data)
-{
-    //while (st_global_animating());
-
+{   
     if (!do_init || set_manual_hotreload)
     {
         first = 0;
@@ -436,8 +408,7 @@ static int set_gui(void)
 
             return id;
         }
-        else
-            return 0;
+        else return 0;
     }
 #endif
 
@@ -474,7 +445,6 @@ static int set_gui(void)
                 }
             }
 #endif
-
             gui_layout(id, 0, 0);
         }
 
@@ -571,16 +541,13 @@ static int set_gui(void)
                 }
 
                 if ((ld = gui_varray(kd)))
-                {
                     for (i = first; i < first + SET_STEP; i++)
                         gui_set(ld, i);
-                }
             }
 
             if (video.aspect_ratio >= 1.0f && !console_gui_shown())
             {
                 gui_space(jd);
-
                 desc_id = gui_multi(jd, " \n \n \n \n \n", GUI_SML, gui_yel, gui_wht);
             }
         }
@@ -627,8 +594,7 @@ static int set_enter(struct state *st, struct state *prev, int intent)
 
         moon_taskloader_load(NULL, callback);
 #else
-        if (set_manual_hotreload)
-            first = 0;
+        if (set_manual_hotreload) first = 0;
 
         total = set_init(boost_on);
         first = MIN(first, (total - 1) - ((total - 1) % SET_STEP));
@@ -789,8 +755,7 @@ static int set_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
          && current_platform == PLATFORM_PC
 #endif
-            )
-            return set_action(GUI_BACK, 0);
+            ) return set_action(GUI_BACK, 0);
 
         if (c == KEY_LOOKAROUND)
         {
@@ -963,8 +928,7 @@ static int campaign_action(int tok, int val)
             }
             else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
                 return exit_state(&st_title);
-            else
-                return exit_state(&st_levelgroup);
+            else return exit_state(&st_levelgroup);
 
         case CAMPAIGN_RANK:
             campaign_show_rank = 1;
@@ -973,14 +937,12 @@ static int campaign_action(int tok, int val)
 
         case GUI_NEXT:
             campaign_theme_index += 1;
-            if (campaign_theme_index > 4)
-                campaign_theme_index = 0;
+            if (campaign_theme_index > 4) campaign_theme_index = 0;
             break;
 
         case GUI_PREV:
             campaign_theme_index -= 1;
-            if (campaign_theme_index < 0)
-                campaign_theme_index = 4;
+            if (campaign_theme_index < 0) campaign_theme_index = 4;
             break;
 
         case 999:
@@ -1016,8 +978,7 @@ static int campaign_action(int tok, int val)
             return goto_state(&st_campaign);
 
         case CAMPAIGN_SELECT_LEVEL:
-            if (check_handsoff())
-                return goto_handsoff(&st_campaign);
+            if (check_handsoff()) return goto_handsoff(&st_campaign);
 
             progress_reinit(MODE_CAMPAIGN);
             game_fade(+4.0);
@@ -1176,8 +1137,7 @@ static int campaign_worldselect_carousel_gui(int id)
                                     gui_focus(md);
                             }
                         }
-                        else
-                            gui_label(ld, " ", GUI_SML, GUI_COLOR_BLK);
+                        else gui_label(ld, " ", GUI_SML, GUI_COLOR_BLK);
                     }
                 }
             }
@@ -1252,9 +1212,8 @@ static int campaign_gui(void)
         {
             if (!campaign_theme_used())
                 gui_label(jd, _("Select World"), GUI_SML, 0, 0);
-            else
-                gui_label(jd, _(campaign_theme_texts[campaign_theme_index]),
-                              GUI_SML, 0, 0);
+            else gui_label(jd, _(campaign_theme_texts[campaign_theme_index]),
+                               GUI_SML, 0, 0);
 
             gui_space(jd);
             gui_filler(jd);
@@ -1296,9 +1255,7 @@ static int campaign_gui_comingsoon(void)
     if ((id = gui_vstack(0)))
     {
         gui_title_header(id, _("Campaign"), GUI_MED, GUI_COLOR_DEFAULT);
-
         gui_space(id);
-
         gui_multi(id, _("This level group and modes can be played in\n"
                         "version 2.20.X and later."),
                       GUI_SML, GUI_COLOR_WHT);
@@ -1343,8 +1300,7 @@ static void campaign_prepare(struct state *prev)
 
 static int campaign_enter(struct state *st, struct state *prev, int intent)
 {
-    if (prev == &st_title ||
-        prev == &st_levelgroup)
+    if (prev == &st_title || prev == &st_levelgroup)
         activity_services_group_update(AS_GROUP_CAMPAIGN);
 
     audio_music_fade_to(0.5f, "bgm/inter_local.ogg", 1);
@@ -1379,17 +1335,14 @@ static int campaign_leave(struct state *st, struct state *next, int id, int inte
 {
     campaign_theme_style_carousel = 0;
 
-    if (next == &st_title ||
-        next == &st_levelgroup)
+    if (next == &st_title || next == &st_levelgroup)
         activity_services_group_update(AS_GROUP_NONE);
 
-    if (next == &st_levelgroup ||
-        next == &st_null)
+    if (next == &st_levelgroup || next == &st_null)
     {
         campaign_quit();
 
-        if (next == &st_null)
-            game_client_free(NULL);
+        if (next == &st_null) game_client_free(NULL);
     }
 
 #if NB_HAVE_PB_BOTH==1
@@ -1431,8 +1384,7 @@ static int campaign_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
            && current_platform == PLATFORM_PC
 #endif
-        ))
-        return campaign_action(GUI_BACK, 0);
+        )) return campaign_action(GUI_BACK, 0);
 
     return 1;
 }
@@ -1473,8 +1425,7 @@ static int levelgroup_action(int tok, int val)
 
     switch (tok)
     {
-        case GUI_BACK:
-            return exit_state(&st_title);
+        case GUI_BACK: return exit_state(&st_title);
 
         case LEVELGROUP_CAMPAIGN:
             if (campaign_init())
@@ -1491,8 +1442,7 @@ static int levelgroup_action(int tok, int val)
             }
             break;
 
-        case LEVELGROUP_LEVELSET:
-            return goto_state(&st_set);
+        case LEVELGROUP_LEVELSET: return goto_state(&st_set);
     }
     return 1;
 }
@@ -1671,8 +1621,7 @@ static int levelgroup_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
            && current_platform == PLATFORM_PC
 #endif
-        ))
-        return levelgroup_action(GUI_BACK, 0);
+        )) return levelgroup_action(GUI_BACK, 0);
 
     return 1;
 }
@@ -1688,6 +1637,7 @@ static int levelgroup_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return levelgroup_action(GUI_BACK, 0);
     }
+
     return 1;
 }
 
@@ -1717,8 +1667,7 @@ int goto_playgame(void)
 #endif
         return goto_state(&st_set);
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    else
-        return goto_state(&st_levelgroup);
+    else return goto_state(&st_levelgroup);
 #endif
 }
 
@@ -1731,15 +1680,13 @@ int goto_playgame_register(void)
 #endif
         return goto_name(&st_set, &st_title, goto_playgame_param, 0, 0);
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    else
-        return goto_name(&st_levelgroup, &st_title, goto_playgame_param, 0, 0);
+    else return goto_name(&st_levelgroup, &st_title, goto_playgame_param, 0, 0);
 #endif
 }
 
 int goto_playmenu(int m)
 {
-    if (m == MODE_BOOST_RUSH)
-        return exit_state(&st_set);
+    if (m == MODE_BOOST_RUSH) return exit_state(&st_set);
 
     return exit_state(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN

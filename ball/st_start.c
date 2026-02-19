@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -157,8 +157,7 @@ static void gui_level(int id, int i)
         gui_set_color(jd, back, fore);
         gui_set_state(jd, level_master(l) ? GUI_NONE : START_LEVEL, i);
 
-        if (i == 0)
-            gui_focus(jd);
+        if (i == 0) gui_focus(jd);
     }
 }
 
@@ -172,8 +171,7 @@ static void start_over_level(int i)
 #endif
         )
     {
-        if (shot_id)
-            gui_set_image(shot_id, level_shot(l));
+        if (shot_id) gui_set_image(shot_id, level_shot(l));
 
         gui_set_stats(l);
 
@@ -192,8 +190,7 @@ static void start_over(int id, int pulse)
 {
     if (id)
     {
-        if (pulse)
-            gui_pulse(id, 1.2f);
+        if (pulse) gui_pulse(id, 1.2f);
 
         if (gui_token(id) == START_LEVEL)
             start_over_level(gui_value(id));
@@ -220,8 +217,6 @@ static int start_is_scanning_with_moon_taskloader = 0;
 
 static int start_scan_moon_taskloader(void* data, void* execute_data)
 {
-    //while (st_global_animating());
-
     set_scan_level_files();
 
     return 1;
@@ -276,7 +271,6 @@ static int set_level_play_timer(float dt)
         if (progress_play(get_level(start_play_level_index)))
         {
             activity_services_mode_update((enum activity_services_mode) curr_mode());
-
 #if NB_HAVE_PB_BOTH==1
             account_wgcl_autokick_state_prepare(&st_start);
 #endif
@@ -350,7 +344,6 @@ static int start_action(int tok, int val)
                     if (set_level_play(0))
                     {
                         activity_services_mode_update(AS_MODE_HARDCORE);
-
 #if NB_HAVE_PB_BOTH==1
                         account_wgcl_autokick_state_prepare(&st_start);
 #endif
@@ -393,9 +386,7 @@ static int start_action(int tok, int val)
 #if NB_HAVE_PB_BOTH==1
                 if (CHECK_ACCOUNT_ENABLED)
                 {
-                    if (set_balls_needed(curr_set()) > curr_balls)
-                    {
-                    }
+                    if (set_balls_needed(curr_set()) > curr_balls);
 #ifdef __EMSCRIPTEN__
                     else if (!have_online_session_data)
                         return goto_state(&st_start_signinrequired);
@@ -549,9 +540,9 @@ static int start_star_view_gui(void)
 #else
                     sprintf(s_needed,
 #endif
-                            _("Balls needed: %d"), set_balls_needed(curr_set()));
+                            N_("Balls needed: %d"), set_balls_needed(curr_set()));
 
-                    gui_multi(jd, s_needed, GUI_SML, GUI_COLOR_RED);
+                    gui_multi(jd, _(s_needed), GUI_SML, GUI_COLOR_RED);
                 }
                 else if (set_balls_needed(curr_set()) > curr_balls)
                 {
@@ -560,9 +551,9 @@ static int start_star_view_gui(void)
 #else
                     sprintf(s_needed,
 #endif
-                            _("Balls recommended: %d"), set_balls_needed(curr_set()));
+                            N_("Balls recommended: %d"), set_balls_needed(curr_set()));
 
-                    gui_multi(jd, s_needed, GUI_SML, GUI_COLOR_YEL);
+                    gui_multi(jd, _(s_needed), GUI_SML, GUI_COLOR_YEL);
                 }
 #endif
                 ; /* None what to say */
@@ -581,11 +572,10 @@ static int start_star_view_gui(void)
 #endif
                 gui_multi(id, s0, GUI_SML, GUI_COLOR_WHT);
         }
-        else
-            gui_multi(id,
-                      _("This set difficulty is unrated until completes\n"
-                        "Challenge Mode by the developer or moderator."),
-                      GUI_SML, GUI_COLOR_WHT);
+        else gui_multi(id,
+                       _("This set difficulty is unrated until completes\n"
+                         "Challenge Mode by the developer or moderator."),
+                       GUI_SML, GUI_COLOR_WHT);
 #else
             gui_multi(id,
                       _("Set stars with Player level sets\n"
@@ -631,8 +621,7 @@ static int start_gui(void)
 
             return id;
         }
-        else
-            return 0;
+        else return 0;
     }
 #endif
 
@@ -648,8 +637,7 @@ static int start_gui(void)
 
             return id;
         }
-        else
-            return 0;
+        else return 0;
     }
 
     if ((id = gui_vstack(0)))
@@ -926,10 +914,7 @@ static int start_gui_options(void)
                                      GUI_SML, START_LOCK_GOALS, 1);
 #endif
 
-                if (config_get_d(CONFIG_LOCK_GOALS))
-                    gui_set_hilite(btn1, 1);
-                else
-                    gui_set_hilite(btn0, 1);
+                gui_set_hilite(config_get_d(CONFIG_LOCK_GOALS) ? btn1 : btn0, 1);
             }
 
             gui_space(jd);
@@ -980,7 +965,6 @@ static int start_gui_options(void)
 /*---------------------------------------------------------------------------*/
 
 #if NB_HAVE_PB_BOTH==1
-
 static int start_unavailable_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play("snd/uierror.ogg", 1.0f);
@@ -1003,10 +987,9 @@ static int start_unavailable_enter(struct state *st, struct state *prev, int int
                                 "with slowdown or cheat."),
                               GUI_SML, GUI_COLOR_WHT);
         }
-        else
-            gui_multi(id, _("Challenge Mode is not available.\n"
-                            "Please check your account settings!"),
-                          GUI_SML, GUI_COLOR_WHT);
+        else gui_multi(id, _("Challenge Mode is not available.\n"
+                             "Please check your account settings!"),
+                           GUI_SML, GUI_COLOR_WHT);
 
         gui_layout(id, 0, 0);
     }
@@ -1122,7 +1105,6 @@ static int start_compat_enter(struct state *st, struct state *prev, int intent)
 
     return transition_slide(start_compat_gui(), 1, intent);
 }
-
 #endif
 
 static void start_paint(int id, float t)
@@ -1212,7 +1194,6 @@ static int start_enter(struct state *st, struct state *prev, int intent)
     if (prev == &st_set)
     {
         first = 0;
-
         progress_reinit(MODE_NORMAL);
     }
 
@@ -1301,8 +1282,7 @@ static void start_stick(int id, int a, float v, int bump)
 static int start_score(int d)
 {
 #if ENABLE_MOON_TASKLOADER
-    if (start_is_scanning_with_moon_taskloader)
-        return 1;
+    if (start_is_scanning_with_moon_taskloader) return 1;
 #endif
 
     if (!set_star_view && !set_level_options) return 1;
@@ -1317,8 +1297,7 @@ static int start_score(int d)
 static void start_wheel(int x, int y)
 {
 #if ENABLE_MOON_TASKLOADER
-    if (start_is_scanning_with_moon_taskloader)
-        return;
+    if (start_is_scanning_with_moon_taskloader) return;
 #endif
     if (!set_star_view && !set_level_options) return;
 
@@ -1329,8 +1308,7 @@ static void start_wheel(int x, int y)
 static int start_keybd(int c, int d)
 {
 #if ENABLE_MOON_TASKLOADER
-    if (start_is_scanning_with_moon_taskloader)
-        return 1;
+    if (start_is_scanning_with_moon_taskloader) return 1;
 #endif
 
     if (d)
@@ -1339,8 +1317,7 @@ static int start_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
          && current_platform == PLATFORM_PC
 #endif
-            )
-            return start_action(GUI_BACK, 0);
+            ) return start_action(GUI_BACK, 0);
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
         if (c == SDLK_c && config_cheat()
@@ -1383,8 +1360,7 @@ static int start_keybd(int c, int d)
          && !set_star_view
          && !set_level_options
 #endif
-            )
-            return start_score(+1);
+            ) return start_score(+1);
     }
 
     return 1;
@@ -1393,16 +1369,14 @@ static int start_keybd(int c, int d)
 static int start_compat_keybd(int c, int d)
 {
 #if ENABLE_MOON_TASKLOADER
-    if (start_is_scanning_with_moon_taskloader)
-        return 1;
+    if (start_is_scanning_with_moon_taskloader) return 1;
 #endif
 
     if (d && (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
            && current_platform == PLATFORM_PC
 #endif
-        ))
-        return start_action(GUI_BACK, 0);
+        )) return start_action(GUI_BACK, 0);
 
     return 1;
 }
@@ -1410,8 +1384,7 @@ static int start_compat_keybd(int c, int d)
 static int start_buttn(int b, int d)
 {
 #if ENABLE_MOON_TASKLOADER
-    if (start_is_scanning_with_moon_taskloader)
-        return 1;
+    if (start_is_scanning_with_moon_taskloader) return 1;
 #endif
 
     if (d)
@@ -1453,8 +1426,7 @@ static int start_joinrequired_action(int tok, int val)
 
     switch (tok)
     {
-        case GUI_BACK:
-            return exit_state(&st_start);
+        case GUI_BACK: return exit_state(&st_start);
 
 #if NB_HAVE_PB_BOTH!=1
         case START_JOINREQUIRED_SWITCHTOWGCL:
@@ -1492,9 +1464,7 @@ static int start_joinrequired_action(int tok, int val)
 
         case START_JOINREQUIRED_SIGNIN:
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-            EM_ASM({
-                CoreLauncher_ShowLoginModalWindow();
-            });
+            EM_ASM({ CoreLauncher_ShowLoginModalWindow(); });
 #endif
             break;
 
@@ -1547,7 +1517,6 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev, int
     }
 
     gui_layout(id, 0, 0);
-
     return transition_slide(id, 1, intent);
 }
 
@@ -1581,7 +1550,6 @@ static int start_signinrequired_enter(struct state *st, struct state *prev, int 
     }
 
     gui_layout(id, 0, 0);
-
     return transition_slide(id, 1, intent);
 }
 
@@ -1629,7 +1597,6 @@ static int start_joinrequired_enter(struct state *st, struct state *prev, int in
     }
 
     gui_layout(id, 0, 0);
-
     return transition_slide(id, 1, intent);
 }
 
@@ -1639,8 +1606,8 @@ static int start_joinrequired_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
            && current_platform == PLATFORM_PC
 #endif
-        ))
-        return start_joinrequired_action(GUI_BACK, 0);
+        )) return start_joinrequired_action(GUI_BACK, 0);
+
     return 1;
 }
 

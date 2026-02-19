@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -282,7 +282,7 @@ static int conf_enter(struct state *st, struct state *prev, int intent)
         if ((id = gui_vstack(root_id)))
         {
             gui_label(id, "Neverputt " VERSION " (High)", GUI_TNY, GUI_COLOR_WHT);
-            gui_multi(id, _("Copyright © 2025 Neverball authors\n"
+            gui_multi(id, _("Copyright © 2026 Neverball authors\n"
                             "Neverball is free software available under the terms of GPL v2 or later."),
                           GUI_TNY, GUI_COLOR_WHT);
             gui_clr_rect(id);

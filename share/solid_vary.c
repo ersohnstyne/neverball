@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -43,29 +43,22 @@ static void setup_mover(struct alloc *alloc, const struct s_vary *fp, int pi, in
     struct v_move *move;
     int i;
 
-    if (mi)
-        *mi = -1;
-
-    if (pi < 0)
-        return;
+    if (mi) *mi = -1;
+    if (pi < 0) return;
 
     for (i = 0; i < fp->mc; ++i)
-    {
         if (fp->mv[i].pi == pi)
         {
-            if (mi)
-                *mi = i;
+            if (mi) *mi = i;
 
             return;
         }
-    }
 
     if ((move = alloc_add(alloc)))
     {
         memset(move, 0, sizeof (*move));
 
-        if (mi)
-            *mi = fp->mc - 1;
+        if (mi) *mi = fp->mc - 1;
 
         move->pi = pi;
 
@@ -303,8 +296,7 @@ void sol_free_vary(struct s_vary *fp)
  */
 static int is_path_dirty(const struct s_vary *vary, int pi)
 {
-    if (pi < 0 || pi >= vary->pc)
-        return 0;
+    if (pi < 0 || pi >= vary->pc) return 0;
 
     return is_move_dirty(vary, vary->pv[pi].mi) || is_move_dirty(vary, vary->pv[pi].mj);
 }
@@ -316,8 +308,7 @@ static int is_path_dirty(const struct s_vary *vary, int pi)
  */
 int is_move_dirty(const struct s_vary *vary, int mi)
 {
-    if (mi < 0 || mi >= vary->mc)
-        return 0;
+    if (mi < 0 || mi >= vary->mc) return 0;
 
     return vary->mv[mi].dirty || is_path_dirty(vary, vary->mv[mi].pi);
 }
@@ -352,8 +343,7 @@ int sol_vary_cmd(struct s_vary *fp, struct cmd_state *cs, const union cmd *cmd)
             fp->uc = 0;
             break;
 
-        default:
-            break;
+        default: break;
     }
 
     return rc;
@@ -473,8 +463,7 @@ int sol_lerp_cmd(struct s_lerp *fp, struct cmd_state *cs, const union cmd *cmd)
             }
             break;
 
-        default:
-            break;
+        default: break;
     }
 
     return rc;
@@ -484,11 +473,8 @@ void sol_lerp_copy(struct s_lerp *fp)
 {
     int i;
 
-    for (i = 0; i < fp->mc; i++)
-        fp->mv[i][PREV] = fp->mv[i][CURR];
-
-    for (i = 0; i < fp->uc; i++)
-        fp->uv[i][PREV] = fp->uv[i][CURR];
+    for (i = 0; i < fp->mc; i++) fp->mv[i][PREV] = fp->mv[i][CURR];
+    for (i = 0; i < fp->uc; i++) fp->uv[i][PREV] = fp->uv[i][CURR];
 }
 
 void sol_lerp_apply(struct s_lerp *fp, float a)
@@ -497,8 +483,8 @@ void sol_lerp_apply(struct s_lerp *fp, float a)
 
     for (i = 0; i < fp->mc; i++)
     {
-        const float old_t = fp->vary->mv[i].t;
-        const int old_pi = fp->vary->mv[i].pi;
+        const float old_t  = fp->vary->mv[i].t;
+        const int   old_pi = fp->vary->mv[i].pi;
 
         if (fp->mv[i][PREV].pi == fp->mv[i][CURR].pi)
             fp->vary->mv[i].t = flerp(fp->mv[i][PREV].t, fp->mv[i][CURR].t, a);

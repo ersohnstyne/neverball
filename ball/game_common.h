@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -116,6 +116,8 @@
 #define GENERIC_GAMEMENU_ACTION                      \
         if (st_global_animating() ||                 \
             time_state() < 0.1f) {                   \
+            if (time_state() < 0.1f)                 \
+                log_errorf("Clicking too fast!\n");  \
             audio_play(AUD_DISABLED, 1.0f);          \
             return 1;                                \
         } else audio_play(GUI_BACK == tok ?          \
@@ -126,6 +128,8 @@
 
 #define GAMEPAD_GAMEMENU_ACTION_SCROLL(tok1, tok2, itemstep) \
         if (st_global_animating() || time_state() < 0.1f) {  \
+            if (time_state() < 0.1f)                         \
+                log_errorf("Clicking too fast!\n");          \
             audio_play(AUD_DISABLED, 1.0f);                  \
             return 1;                                        \
         } else if (tok == tok1 || tok == tok2) {             \
@@ -140,6 +144,8 @@
 #define KEYBOARD_GAMEMENU_ACTION(tok_enter)            \
         if (st_global_animating() ||                   \
             time_state() < 0.1f) {                     \
+            if (time_state() < 0.1f)                   \
+                log_errorf("Clicking too fast!\n");    \
             audio_play(AUD_DISABLED, 1.0f);            \
             return 1;                                  \
         } else if (tok == GUI_CHAR || tok == GUI_CL) { \

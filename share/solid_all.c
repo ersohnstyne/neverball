@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -13,6 +13,10 @@
  */
 
 /* Random code used in more than one place. */
+
+#ifndef NDEBUG
+#include <assert.h>
+#endif
 
 #include "solid_all.h"
 #include "solid_vary.h"
@@ -50,8 +54,7 @@ static struct vec4 get_path_rot(const struct s_vary *vary, int pi, float dt);
 
 static struct vec3 get_move_pos(const struct s_vary *vary, int mi, float dt)
 {
-    if (mi < 0)
-        return POS_IDENTITY;
+    if (mi < 0) return POS_IDENTITY;
 
     const struct v_move *mp = vary->mv + mi;
 
@@ -67,8 +70,7 @@ static struct vec3 get_move_pos(const struct s_vary *vary, int mi, float dt)
 
     if (vary->pv[curr_pi].f)
         s = (mp->t + dt) / pp->t;
-    else
-        s = mp->t / pp->t;
+    else s = mp->t / pp->t;
 
     s = pp->s ? erp(s) : s;
 
@@ -88,8 +90,7 @@ static struct vec3 get_move_pos(const struct s_vary *vary, int mi, float dt)
 
 static struct vec4 get_move_rot(const struct s_vary *vary, int mi, float dt)
 {
-    if (mi < 0)
-        return ROT_IDENTITY;
+    if (mi < 0) return ROT_IDENTITY;
 
     const struct v_move *mp = vary->mv + mi;
 
@@ -105,12 +106,11 @@ static struct vec4 get_move_rot(const struct s_vary *vary, int mi, float dt)
 
     if (vary->pv[curr_pi].f)
         s = (mp->t + dt) / pp->t;
-    else
-        s = mp->t / pp->t;
+    else s = mp->t / pp->t;
 
     s = pp->s ? erp(s) : s;
 
-    struct vec4 rot;
+    struct vec4 rot = ROT_IDENTITY;
 
     q_slerp((float *) &rot, (float *) &e0, (float *) &e1, s);
 
@@ -121,8 +121,7 @@ static void get_move_transform(const struct s_vary *vary, int mi, float dt, stru
 
 static struct vec3 get_path_pos(const struct s_vary *vary, int pi, float dt)
 {
-    if (pi < 0)
-        return POS_IDENTITY;
+    if (pi < 0) return POS_IDENTITY;
 
     const struct v_path *vp = vary->pv + pi;
     const struct b_path *pp = vary->base->pv + pi;
@@ -139,16 +138,14 @@ static struct vec3 get_path_pos(const struct s_vary *vary, int pi, float dt)
         q_rot(p, (float *) &rot, pp->p);
         v_add((float *) &pos, (float *) &pos, p);
     }
-    else
-        v_add((float *) &pos, (float *) &pos, pp->p);
+    else v_add((float *) &pos, (float *) &pos, pp->p);
 
     return pos;
 }
 
 static struct vec4 get_path_rot(const struct s_vary *vary, int pi, float dt)
 {
-    if (pi < 0)
-        return ROT_IDENTITY;
+    if (pi < 0) return ROT_IDENTITY;
 
     const struct v_path *vp = vary->pv + pi;
     const struct b_path *pp = vary->base->pv + pi;
@@ -174,24 +171,17 @@ static struct vec4 get_path_rot(const struct s_vary *vary, int pi, float dt)
  */
 static void get_move_transform(const struct s_vary *vary, int mi, float dt, struct vec3 *pos_out, struct vec4 *rot_out)
 {
-    if (pos_out)
-        *pos_out = POS_IDENTITY;
+    if (pos_out) *pos_out = POS_IDENTITY;
+    if (rot_out) *rot_out = ROT_IDENTITY;
 
-    if (rot_out)
-        *rot_out = ROT_IDENTITY;
-
-    if (mi < 0 || mi >= vary->mc)
-        return;
+    if (mi < 0 || mi >= vary->mc) return;
 
     if (dt != 0.0f)
     {
         /* When passed a non-zero DT, bypass cache entirely. TODO: Figure out a way to cache these. */
 
-        if (pos_out)
-            *pos_out = get_move_pos(vary, mi, dt);
-
-        if (rot_out)
-            *rot_out = get_move_rot(vary, mi, dt);
+        if (pos_out) *pos_out = get_move_pos(vary, mi, dt);
+        if (rot_out) *rot_out = get_move_rot(vary, mi, dt);
     }
     else
     {
@@ -202,11 +192,8 @@ static void get_move_transform(const struct s_vary *vary, int mi, float dt, stru
             vary->mv[mi].pos = get_move_pos(vary, mi, dt);
             vary->mv[mi].rot = get_move_rot(vary, mi, dt);
 
-            if (pos_out)
-                *pos_out = vary->mv[mi].pos;
-
-            if (rot_out)
-                *rot_out = vary->mv[mi].rot;
+            if (pos_out) *pos_out = vary->mv[mi].pos;
+            if (rot_out) *rot_out = vary->mv[mi].rot;
 
             set_move_dirty(vary, mi, 0);
         }
@@ -214,14 +201,10 @@ static void get_move_transform(const struct s_vary *vary, int mi, float dt, stru
         {
             /* Cache hit: just use cached transform. */
 
-            if (pos_out)
-                *pos_out = vary->mv[mi].pos;
-
-            if (rot_out)
-                *rot_out = vary->mv[mi].rot;
+            if (pos_out) *pos_out = vary->mv[mi].pos;
+            if (rot_out) *rot_out = vary->mv[mi].rot;
         }
     }
-
 }
 
 /*---------------------------------------------------------------------------*/
@@ -314,8 +297,7 @@ int sol_body_w(const struct s_vary *vary, int mi)
             const struct b_path *pp = vary->base->pv + mp->pi;
             const struct b_path *pq = vary->base->pv + pp->pi;
 
-            if (pp->fl & P_ORIENTED || pq->fl & P_ORIENTED)
-                return 1;
+            if (pp->fl & P_ORIENTED || pq->fl & P_ORIENTED) return 1;
         }
     }
     return 0;
@@ -325,16 +307,14 @@ void sol_entity_p(float p[3],
                   const struct s_vary *vary,
                   int mi, int mj)
 {
-    if (mj < 0)
-        mj = mi;
+    if (mj < 0) mj = mi;
 
     sol_body_p(p, vary, mi, 0.0f);
 }
 
 void sol_entity_e(float e[4], const struct s_vary *vary, int mi, int mj)
 {
-    if (mj < 0)
-        mj = mi;
+    if (mj < 0) mj = mi;
 
     sol_body_e(e, vary, mj, 0.0f);
 }
@@ -434,8 +414,7 @@ void sol_pendulum(struct v_ball *up,
 
     /* Find the torque on the pendulum. */
 
-    if (fabsf(v_dot(r, F)) > 0.0f)
-        v_crs(T, F, r);
+    if (fabsf(v_dot(r, F)) > 0.0f) v_crs(T, F, r);
 
     /* Apply the torque and dampen the angular velocity. */
 
@@ -491,8 +470,7 @@ static void sol_path_loop(struct s_vary *vary, cmd_fn cmd_func, int p0, int f)
     int pj = p0;
     int pk;
 
-    if (p0 < 0 || p0 >= vary->pc)
-        return;
+    if (p0 < 0 || p0 >= vary->pc) return;
 
     do  /* Tortoise and hare cycle traverser. */
     {
@@ -651,8 +629,7 @@ int sol_item_test(struct s_vary *vary, float *p, float item_r)
 
         v_sub(r, ball_p, hp->p);
 
-        if (hp->t != ITEM_NONE && v_len(r) < ball_r + item_r)
-            return hi;
+        if (hp->t != ITEM_NONE && v_len(r) < ball_r + item_r) return hi;
     }
     return -1;
 }
@@ -781,7 +758,6 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
                     /* The ball enters. */
 
                     xp->e = 1;
-
                     xp->f = xp->f ? 0 : 1;
 
                     if (cmd_func)
@@ -948,6 +924,9 @@ int sol_chkp_test(struct s_vary *vary, cmd_fn cmd_func, int ui, int *o_ci)
 
                 /* Assign checkpoint index. */
 
+#ifndef NDEBUG
+                assert(o_ci);
+#endif
                 if (o_ci) *o_ci = ci;
 
                 rc = CHKP_INSIDE;

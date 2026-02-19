@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERPUTT is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -615,7 +615,7 @@ static void title_timer(int id, float dt)
 static int title_click(int b, int d)
 {
     if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
-        return title_action(TITLE_EXIT, 0);
+        return title_action(TITLE_EXIT);
 
     return gui_click(b, d) ? title_action(gui_token(gui_active())) : 1;
 }

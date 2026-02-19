@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -285,8 +285,7 @@ static int level_action(int tok, int val)
                 return goto_state(&st_play_ready);
             break;
 
-        case GUI_BACK:
-            return goto_pause(curr_state());
+        case GUI_BACK: return goto_pause(curr_state());
     }
 
     return 1;
@@ -443,8 +442,7 @@ static int level_gui(void)
                     sprintf_s(lvlattr, MAXSTR, _("Bonus Level %s"), ln);
                 else if (curr_mode() == MODE_STANDALONE)
                     sprintf_s(lvlattr, MAXSTR, _("Level ---"));
-                else
-                    sprintf_s(lvlattr, MAXSTR, _("Level %s"), ln);
+                else sprintf_s(lvlattr, MAXSTR, _("Level %s"), ln);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (curr_mode() == MODE_CAMPAIGN)
@@ -468,8 +466,7 @@ static int level_gui(void)
                     sprintf(lvlattr, _("Bonus Level %s"), ln);
                 else if (curr_mode() == MODE_STANDALONE)
                     sprintf(lvlattr, _("Level ---"));
-                else
-                    sprintf(lvlattr, _("Level %s"), ln);
+                else sprintf(lvlattr, _("Level %s"), ln);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (curr_mode() == MODE_CAMPAIGN)
@@ -513,7 +510,6 @@ static int level_gui(void)
     defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
         if (show_info)
 #endif
-        {
             if (message && *message)
             {
                 level_infocard_msg_id = gui_multi(id, message, GUI_SML, GUI_COLOR_WHT);
@@ -523,7 +519,6 @@ static int level_gui(void)
                     gui_slide(level_infocard_msg_id,
                               GUI_S | GUI_FLING | GUI_EASE_BACK, 0.0f, 0.5f, 0.0f);
             }
-        }
 
         if ((jd = gui_hstack(id)))
         {
@@ -586,8 +581,7 @@ static int level_gui(void)
                                    svalue > 0 ? gui_wht : gui_gry);
                     if (svalue > 0)
                         gui_set_state(csd, LEVEL_START_POWERUP, 3);
-                    else
-                        gui_set_state(csd, GUI_NONE, 0);
+                    else gui_set_state(csd, GUI_NONE, 0);
                 }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -604,8 +598,7 @@ static int level_gui(void)
                                    fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_wht : gui_gry);
                     if (fvalue > 0 && curr_mode() != MODE_BOOST_RUSH)
                         gui_set_state(cfd, LEVEL_START_POWERUP, 2);
-                    else
-                        gui_set_state(cfd, GUI_NONE, 0);
+                    else gui_set_state(cfd, GUI_NONE, 0);
                 }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -628,8 +621,7 @@ static int level_gui(void)
 #endif
                     if (evalue > 0)
                         gui_set_state(ced, LEVEL_START_POWERUP, 1);
-                    else
-                        gui_set_state(ced, GUI_NONE, 0);
+                    else gui_set_state(ced, GUI_NONE, 0);
                 }
             }
 

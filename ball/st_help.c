@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -126,12 +126,11 @@ static const char demos_xbox[][21] = {
 #if !defined(SWITCHBALL_HELP)
 static int page = PAGE_RULES;
 #else
-static int help_open = 0;
-static int help_page_current = 1;
-static int help_page_limit = 1;
+static int help_open          = 0;
+static int help_page_current  = 1;
+static int help_page_limit    = 1;
 static int help_page_category = PAGE_INTRODUCTION;
 #endif
-
 
 /*---------------------------------------------------------------------------*/
 
@@ -149,8 +148,7 @@ static int help_action(int tok, int val)
                 help_page_current = 1;
                 return exit_state(&st_help);
             }
-            else
-                return exit_state(&st_title);
+            else return exit_state(&st_title);
 
         case HELP_DEMO:
             progress_reinit(MODE_NONE);
@@ -171,15 +169,12 @@ static int help_action(int tok, int val)
             switch (val)
             {
                 case PAGE_INTRODUCTION:
-                    help_page_limit = 3;
-                    break;
+                    help_page_limit = 3; break;
                 case PAGE_MORPHS_AND_GENERATORS:
                 case PAGE_MACHINES:
-                    help_page_limit = 2;
-                    break;
+                    help_page_limit = 2; break;
                 default:
-                    help_page_limit = 1;
-                    break;
+                    help_page_limit = 1; break;
             }
 
             help_open = 1;
@@ -192,8 +187,7 @@ static int help_action(int tok, int val)
 #else
     switch (tok)
     {
-        case GUI_BACK:
-            return exit_state(&st_title);
+        case GUI_BACK: return exit_state(&st_title);
 
         case HELP_DEMO:
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -263,13 +257,11 @@ static int help_menu(int id)
             help_button(kd, _("Rules"),    HELP_SELECT, PAGE_RULES);
         }
 
-        if (!console_gui_shown())
-            gui_space(jd);
+        if (!console_gui_shown()) gui_space(jd);
 
         gui_filler(jd);
 
-        if (!console_gui_shown())
-            gui_back_button(jd);
+        if (!console_gui_shown()) gui_back_button(jd);
     }
 
     return jd;
@@ -409,14 +401,22 @@ static int page_rules(int id)
                                                                    s_wii_notilt,
                               GUI_SML, GUI_COLOR_WHT);
 #else
-                gui_multi(ld, current_platform == PLATFORM_PC ? (config_get_d(CONFIG_TILTING_FLOOR) ? s_pc :
-                                                                                                      s_pc_notilt) :
-                                                                (config_get_d(CONFIG_TILTING_FLOOR) ? s_xbox :
-                                                                                                      s_xbox_notilt),
-                              GUI_SML, GUI_COLOR_WHT);
+                if (opt_touch)
+                    gui_multi(ld, config_get_d(CONFIG_TILTING_FLOOR) ? s_touch :
+                                                                       s_touch_notilt,
+                                  GUI_SML, GUI_COLOR_WHT);
+                else gui_multi(ld, current_platform == PLATFORM_PC ? (config_get_d(CONFIG_TILTING_FLOOR) ? s_pc :
+                                                                                                           s_pc_notilt) :
+                                                                     (config_get_d(CONFIG_TILTING_FLOOR) ? s_xbox :
+                                                                                                           s_xbox_notilt),
+                                  GUI_SML, GUI_COLOR_WHT);
 #endif
 #else
-                gui_multi(ld, s0, GUI_SML, GUI_COLOR_WHT);
+                if (opt_touch)
+                    gui_multi(ld, config_get_d(CONFIG_TILTING_FLOOR) ? s_touch :
+                                                                       s_touch_notilt,
+                                  GUI_SML, GUI_COLOR_WHT);
+                else gui_multi(ld, s0, GUI_SML, GUI_COLOR_WHT);
 #endif
                 gui_filler(ld);
             }
@@ -546,49 +546,41 @@ static void controls_pc(int id)
 
     if ((jd = gui_vstack(id)))
     {
-        if ((kd = gui_harray(jd)))
-        {
+        if ((kd = gui_harray(jd))) {
             gui_label(kd, s_exit, GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, ks_exit && *ks_exit ? ks_exit : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
 #if NB_HAVE_PB_BOTH==1
-        if ((kd = gui_harray(jd)))
-        {
+        if ((kd = gui_harray(jd))) {
             gui_label(kd, s_restart, GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, ks_restart && *ks_restart ? ks_restart : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
 #endif
-        if ((kd = gui_harray(jd)))
-        {
+        if ((kd = gui_harray(jd))) {
             gui_label(kd, s_camAuto, GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, ks_auto && *ks_auto ? ks_auto : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
-        if ((kd = gui_harray(jd)))
-        {
+        if ((kd = gui_harray(jd))) {
             gui_label(kd, s_camera1, GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, ks_cam1 && *ks_cam1 ? ks_cam1 : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
-        if ((kd = gui_harray(jd)))
-        {
+        if ((kd = gui_harray(jd))) {
             gui_label(kd, s_camera2, GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, ks_cam2 && *ks_cam2 ? ks_cam2 : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
-        if ((kd = gui_harray(jd)))
-        {
+        if ((kd = gui_harray(jd))) {
             gui_label(kd, s_camera3, GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, ks_cam3 && *ks_cam3 ? ks_cam3 : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
 
-        if ((kd = gui_harray(jd)))
-        {
+        if ((kd = gui_harray(jd))) {
             gui_label(kd, _("Max Speed"), GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, _("LMB"), GUI_SML, GUI_COLOR_YEL);
         }
 
 #if NB_HAVE_PB_BOTH!=1
 #ifndef __EMSCRIPTEN__
-        if ((kd = gui_harray(jd)))
-        {
+        if ((kd = gui_harray(jd))) {
             gui_label(kd, s_shot, GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, ks_shot && *ks_shot ? ks_shot : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
@@ -638,18 +630,15 @@ static void controls_console(int id)
 
     if ((jd = gui_vstack(id)))
     {
-        if ((kd = gui_harray(jd)))
-        {
+        if ((kd = gui_harray(jd))) {
             gui_label(kd, s_exit, GUI_SML, GUI_COLOR_WHT);
             console_gui_create_b_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
         }
-        if ((kd = gui_harray(jd)))
-        {
+        if ((kd = gui_harray(jd))) {
             gui_label(kd, s_pause, GUI_SML, GUI_COLOR_WHT);
             console_gui_create_start_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_START));
         }
-        if ((kd = gui_harray(jd)))
-        {
+        if ((kd = gui_harray(jd))) {
             gui_label(kd, s_camToggle, GUI_SML, GUI_COLOR_WHT);
             console_gui_create_x_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_X));
         }
@@ -731,8 +720,7 @@ static int page_modes(int id)
                 !server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE) ||
                 CHECK_ACCOUNT_BANKRUPT)
                 gui_label(jd, _("Challenge Mode"), GUI_SML, gui_gry, gui_red);
-            else
-                gui_label(jd, _("Challenge Mode"), GUI_SML, 0, 0);
+            else gui_label(jd, _("Challenge Mode"), GUI_SML, 0, 0);
 
             if (!server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE) &&
                 server_policy_get_d(SERVER_POLICY_EDITION) == 0)
@@ -761,15 +749,14 @@ static int page_modes(int id)
                             "Restore from the backup or delete the\n"
                             "local account and start over from scratch."),
                           GUI_SML, GUI_COLOR_WHT);
-            else if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) > 0 &&
+            else if (account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) - 3 > 0 &&
                      server_policy_get_d(SERVER_POLICY_EDITION) > 0)
                 gui_multi(jd,
                           _("Start playing from the first level of the set.\n"
                             "You start with which you've already purchased from the shop.\n"
                             "Earn an extra ball for each 100 coins collected."),
                           GUI_SML, GUI_COLOR_WHT);
-            else
-                gui_multi(jd,
+            else gui_multi(jd,
                     _("Start playing from the first level of the set.\n"
                       "You start with only three balls, do not extra paid of them.\n"
                       "Earn an extra ball for each 100 coins collected."),
@@ -801,9 +788,8 @@ static int page_modes(int id)
                                 "with slowdown."),
                               GUI_SML, GUI_COLOR_WHT);
 #endif
-            else
-            gui_multi(jd, _("Complete the game to unlock this Mode."),
-                          GUI_SML, GUI_COLOR_WHT);
+            else gui_multi(jd, _("Complete the game to unlock this Mode."),
+                               GUI_SML, GUI_COLOR_WHT);
         }
 #else
 #if NB_HAVE_PB_BOTH==1
@@ -920,10 +906,9 @@ static int page_modes_special(int id)
                                "Restore from the backup or delete the\n"
                                "local account and start over from scratch."),
                               GUI_SML, GUI_COLOR_WHT);
-            else
-                gui_multi(jd, _("Boost Rush Mode is not available.\n"
-                                "Please check your account settings!"),
-                              GUI_SML, GUI_COLOR_WHT);
+            else gui_multi(jd, _("Boost Rush Mode is not available.\n"
+                                 "Please check your account settings!"),
+                               GUI_SML, GUI_COLOR_WHT);
         }
 
         gui_set_rect(jd, GUI_ALL);
@@ -1005,10 +990,9 @@ static int page_modes_special(int id)
                                 "Restore from the backup or delete the\n"
                                 "local account and start over from scratch."),
                               GUI_SML, GUI_COLOR_WHT);
-            else
-                gui_multi(jd, _("Hardcore Mode is not available.\n"
-                                "Please check your account settings!"),
-                              GUI_SML, GUI_COLOR_WHT);
+            else gui_multi(jd, _("Hardcore Mode is not available.\n"
+                                 "Please check your account settings!"),
+                               GUI_SML, GUI_COLOR_WHT);
         }
         gui_set_rect(jd, GUI_ALL);
     }
@@ -1016,9 +1000,9 @@ static int page_modes_special(int id)
 
 #if !defined(CONFIG_INCLUDES_ACCOUNT) && !defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
     gui_multi(id, _("Special game modes requires\n"
-                   "LEVELGROUPS_INCLUDES_CAMPAIGN\n"
-                   "or CONFIG_INCLUDES_ACCOUNT\n"
-                   "preprocessor definitions"),
+                    "LEVELGROUPS_INCLUDES_CAMPAIGN\n"
+                    "or CONFIG_INCLUDES_ACCOUNT\n"
+                    "preprocessor definitions"),
              GUI_SML, GUI_COLOR_RED);
 #endif
 
@@ -1424,8 +1408,7 @@ static int help_buttn(int b, int d)
     else time_total = 0
 
 static float smoothfix_slowdown_time;
-
-static int demo_freeze_all;
+static int   demo_freeze_all;
 
 static int help_demo_enter(struct state *st, struct state *prev, int intent)
 {
@@ -1440,8 +1423,7 @@ static int help_demo_leave(struct state *st, struct state *next, int id, int int
 {
     demo_replay_stop(0);
 
-    if (next == &st_null)
-        game_client_free(NULL);
+    if (next == &st_null) game_client_free(NULL);
 
     return 0;
 }
@@ -1460,6 +1442,7 @@ static void help_demo_timer(int id, float dt)
     if (!demo_freeze_all)
     {
         geom_step(dt);
+        game_camshake_update(dt);
 
         if (!demo_replay_step(dt))
         {

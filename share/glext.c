@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -469,7 +469,7 @@ int glext_get_recommended(void)
            glext_check_renderer("GIGABYTE") || glext_check_renderer("Radeon");
 #else
     const int r = EM_ASM_INT({
-        try {
+        /*try {
             var main_canvas = document.getElementById("canvas");
             var main_gl = main_canvas.getContext("webgl", { powerPreference: "high-performance" }); || main_canvas.getContext("experimental-webgl", { powerPreference: "high-performance" });
 
@@ -481,8 +481,8 @@ int glext_get_recommended(void)
 
             var main_renderer = main_gl.getParameter(main_debug_info.UNMASKED_RENDERER_WEBGL).toLowerCase();
             var main_software_keywords = ["software","swiftshader","llvmpipe","microsoft basic render driver"];
-            return !main_software_keywords.some(function(keyword) { return main_renderer.includes("keyword") });
-        } catch (e) {}
+            return !main_software_keywords.some(function(keyword) { return main_renderer.includes("keyword") }));
+        } catch (e) {}*/
 
         return 0;
     });

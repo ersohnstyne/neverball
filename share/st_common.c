@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -152,8 +152,7 @@ int  conf_slider_v2(int id, const char *text, int tok, int val)
 
         md = gui_label(kd, _("XXXXXX"), GUI_SML, gui_wht, gui_wht);
 
-        if (val == 0)
-            gui_set_label(md, _("Off"));
+        if (val == 0) gui_set_label(md, _("Off"));
         else
         {
             char valattr[MAXSTR];
@@ -187,8 +186,7 @@ int  conf_slider_v2(int id, const char *text, int tok, int val)
 
 void conf_set_slider_v2(int id, int val)
 {
-    if (val == 0)
-        gui_set_label(id, _("Off"));
+    if (val == 0) gui_set_label(id, _("Off"));
     else
     {
         char valattr[MAXSTR];
@@ -296,11 +294,10 @@ void conf_select(int id, const char *text, int token, int value,
                  const struct conf_option *opts, int num)
 {
     int jd, kd, ld;
-    int i;
 
     if ((jd = gui_harray(id)) && (kd = gui_harray(jd)))
     {
-        for (i = 0; i < num; i++)
+        for (int i = 0; i < num; i++)
         {
             ld = gui_state(kd, _(opts[i].text), GUI_SML,
                            token, opts[i].value);
@@ -412,6 +409,7 @@ static int is_common_bg;
 void conf_common_init(int (*action_fn)(int, int), int allowfade)
 {
     common_allowfade = allowfade;
+
     if (common_allowfade)
     {
         back_init("back/gui.png");
@@ -446,8 +444,7 @@ void conf_common_paint(int id, float t)
 {
     video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
 
-    if (is_common_bg)
-        back_draw_easy();
+    if (is_common_bg) back_draw_easy();
 
     gui_paint(id);
 }
@@ -490,9 +487,7 @@ static int perf_warning_action(int tok, int val)
     if (tok == PERF_WARNING_DO_IT) switch (perf_warning_mode)
     {
 #if ENABLE_MOTIONBLUR!=0
-        case 0:
-            config_tgl_d(CONFIG_MOTIONBLUR);
-            break;
+        case 0: config_tgl_d(CONFIG_MOTIONBLUR); break;
 #endif
         case 1:
         {
@@ -804,13 +799,11 @@ static int video_action(int tok, int val)
 
             goto_state(&st_null);
             r = video_fullscreen(val);
-            if (r)
-                exit_state(&st_video);
+            if (r) exit_state(&st_video);
             else
             {
                 r = video_fullscreen(oldF);
-                if (r)
-                    goto_state(&st_video);
+                if (r) exit_state(&st_video);
                 else
                 {
                     config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 0);
@@ -842,8 +835,7 @@ static int video_action(int tok, int val)
             break;
 
         case VIDEO_HMD:
-            if (oldHmd == val)
-                return 1;
+            if (oldHmd == val) return 1;
 
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
             goto_state(&st_restart_required);
@@ -858,8 +850,7 @@ static int video_action(int tok, int val)
             r = video_mode(f, w, h);
 #endif
 
-            if (r)
-                exit_state(&st_video);
+            if (r) exit_state(&st_video);
             else
             {
                 config_set_d(CONFIG_HMD, oldHmd);
@@ -868,8 +859,7 @@ static int video_action(int tok, int val)
 #else
                 r = video_mode(f, w, h);
 #endif
-                if (r)
-                    exit_state(&st_video);
+                if (r) exit_state(&st_video);
             }
 #endif
 
@@ -893,8 +883,7 @@ static int video_action(int tok, int val)
 #else
             r = video_mode_auto_config(f, w, h);
 #endif
-            if (r)
-                exit_state(&st_video);
+            if (r) exit_state(&st_video);
             else
             {
 #if ENABLE_DUALDISPLAY==1
@@ -902,8 +891,7 @@ static int video_action(int tok, int val)
 #else
                 r = video_mode(f, w, h);
 #endif
-                if (r)
-                    exit_state(&st_video);
+                if (r) exit_state(&st_video);
             }
 
             if (r) config_set_d(CONFIG_CAMERA_SHAKE, 1);
@@ -987,14 +975,12 @@ static int video_gui(void)
         /* This ignores display configurations, sorry for incoherence problems. */
 #if !defined(__EMSCRIPTEN__) && NB_STEAM_API==0
         if (SDL_GetNumVideoDisplays() > 1)
-        {
             if ((jd = conf_state(id, _("Display"), "Super Longest Name",
                                      VIDEO_DISPLAY)))
             {
                 gui_set_trunc(jd, TRUNC_TAIL);
                 gui_set_label(jd, display);
             }
-        }
 #endif
 
         /* This ignores resolution and fullscreen configurations. */
@@ -1077,15 +1063,14 @@ static int video_gui(void)
 
         gui_state(id, _("Advanced"), GUI_SML, VIDEO_ADVANCED, 0);
     }
-    gui_layout(id, 0, 0);
 
+    gui_layout(id, 0, 0);
     return id;
 }
 
 static int video_enter(struct state *st, struct state *prev, int intent)
 {
-    if (!video_back)
-        video_back = prev;
+    if (!video_back) video_back = prev;
 
     conf_common_init(video_action, 1);
     return transition_slide(video_gui(), 1, intent);
@@ -1171,8 +1156,7 @@ static int video_advanced_action(int tok, int val)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
-            if (oldF == val)
-                return 1;
+            if (oldF == val) return 1;
 
             backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
@@ -1184,13 +1168,11 @@ static int video_advanced_action(int tok, int val)
             goto_state(&st_null);
             r = video_fullscreen(val);
 
-            if (r)
-                exit_state(&st_video_advanced);
+            if (r) exit_state(&st_video_advanced);
             else
             {
                 r = video_fullscreen(val);
-                if (r)
-                    exit_state(&st_video_advanced);
+                if (r) exit_state(&st_video_advanced);
             }
 #endif
 #endif
@@ -1212,8 +1194,7 @@ static int video_advanced_action(int tok, int val)
             break;
 
         case VIDEO_ADVANCED_HMD:
-            if (oldHmd == val)
-                return 1;
+            if (oldHmd == val) return 1;
 
             backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
@@ -1232,8 +1213,7 @@ static int video_advanced_action(int tok, int val)
             r = video_mode(f, w, h);
 #endif
 
-            if (r)
-                exit_state(&st_video_advanced);
+            if (r) exit_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_HMD, oldHmd);
@@ -1242,17 +1222,15 @@ static int video_advanced_action(int tok, int val)
 #else
                 r = video_mode(f, w, h);
 #endif
-                if (r)
-                    exit_state(&st_video_advanced);
+                if (r) exit_state(&st_video_advanced);
             }
 #endif
             break;
 
         case VIDEO_ADVANCED_MOTIONBLUR:
 #if ENABLE_MOTIONBLUR!=0
-            if (oldMBlur == val)
-                return 1;
-            
+            if (oldMBlur == val)return 1;
+
             perf_warning_mode  = 0;
             perf_warning_value = val;
             return goto_state(&st_perf_warning);
@@ -1263,8 +1241,7 @@ static int video_advanced_action(int tok, int val)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-            if (oldRefl == val)
-                return 1;
+            if (oldRefl == val) return 1;
 
             perf_warning_mode  = 1;
             perf_warning_value = val;
@@ -1287,8 +1264,7 @@ static int video_advanced_action(int tok, int val)
             r = video_mode(f, w, h);
 #endif
 
-            if (r)
-                exit_state(&st_video_advanced);
+            if (r) exit_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_REFLECTION, oldRefl);
@@ -1297,8 +1273,7 @@ static int video_advanced_action(int tok, int val)
 #else
                 r = video_mode(f, w, h);
 #endif
-                if (r)
-                    exit_state(&st_video_advanced);
+                if (r) exit_state(&st_video_advanced);
             }
 #endif*/
 #endif
@@ -1336,8 +1311,7 @@ static int video_advanced_action(int tok, int val)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-            if (oldVsync == val)
-                return 1;
+            if (oldVsync == val) return 1;
 
             backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
@@ -1356,8 +1330,7 @@ static int video_advanced_action(int tok, int val)
             r = video_mode(f, w, h);
 #endif
 
-            if (r)
-                exit_state(&st_video_advanced);
+            if (r) exit_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_VSYNC, oldVsync);
@@ -1366,16 +1339,14 @@ static int video_advanced_action(int tok, int val)
 #else
                 r = video_mode(f, w, h);
 #endif
-                if (r)
-                    exit_state(&st_video_advanced);
+                if (r) exit_state(&st_video_advanced);
             }
 #endif
 #endif
             break;
 
         case VIDEO_ADVANCED_TEXTURES:
-            if (oldText == val)
-                return 1;
+            if (oldText == val) return 1;
 
             backups = 1;
             config_set_d(CONFIG_TEXTURES, val);
@@ -1388,8 +1359,7 @@ static int video_advanced_action(int tok, int val)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-            if (oldSamp == val)
-                return 1;
+            if (oldSamp == val) return 1;
 
             perf_warning_mode  = 2;
             perf_warning_value = val;
@@ -1411,8 +1381,7 @@ static int video_advanced_action(int tok, int val)
 #else
             r = video_mode(f, w, h);
 #endif
-            if (r)
-                exit_state(&st_video_advanced);
+            if (r) exit_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_MULTISAMPLE, oldSamp);
@@ -1421,8 +1390,7 @@ static int video_advanced_action(int tok, int val)
 #else
                 r = video_mode(f, w, h);
 #endif
-                if (r)
-                    exit_state(&st_video_advanced);
+                if (r) exit_state(&st_video_advanced);
             }
 #endif*/
 #endif
@@ -1610,14 +1578,12 @@ static int video_advanced_gui(void)
     !defined(__SWITCH__)
 #ifndef __EMSCRIPTEN__
         if (SDL_GetNumVideoDisplays() > 1)
-        {
             if ((jd = conf_state(id, _("Display"), "Super Longest Name",
                                      VIDEO_ADVANCED_DISPLAY)))
             {
                 gui_set_trunc(jd, TRUNC_TAIL);
                 gui_set_label(jd, display);
             }
-        }
 
         conf_toggle(id, _("Fullscreen"), VIDEO_ADVANCED_FULLSCREEN,
                         config_get_d(CONFIG_FULLSCREEN), _("On"), 1, _("Off"), 0);
@@ -1695,11 +1661,9 @@ static int video_advanced_gui(void)
 
 static int video_advanced_enter(struct state *st, struct state *prev, int intent)
 {
-    if (prev == &st_perf_warning)
-        config_save();
+    if (prev == &st_perf_warning) config_save();
 
-    if (!video_advanced_back)
-        video_advanced_back = prev;
+    if (!video_advanced_back) video_advanced_back = prev;
 
     conf_common_init(video_advanced_action, 1);
     return transition_slide(video_advanced_gui(), 1, intent);
@@ -1809,8 +1773,7 @@ static int display_gui(void)
 
 static int display_enter(struct state *st, struct state *prev, int intent)
 {
-    if (!display_back)
-        display_back = prev;
+    if (!display_back) display_back = prev;
 
     conf_common_init(display_action, 1);
     return transition_slide(display_gui(), 1, intent);
@@ -1985,9 +1948,7 @@ static int resol_gui(void)
         conf_header(id, _("Resolution"), GUI_BACK);
 
         for (i = 0; i < n; i += 4)
-        {
             if ((jd = gui_harray(id)))
-            {
                 for (int j = 3; j >= 0; j--)
                 {
                     int m = i + j;
@@ -2018,14 +1979,10 @@ static int resol_gui(void)
                             }
                         }
                     }
-                    else
-                        gui_space(jd);
+                    else gui_space(jd);
                 }
-            }
-        }
 
-        if (n == 0)
-            gui_label(id, _("Not available"), GUI_SML, 0, 0);
+        if (n == 0) gui_label(id, _("Not available"), GUI_SML, 0, 0);
 
         gui_layout(id, 0, 0);
     }
@@ -2035,8 +1992,7 @@ static int resol_gui(void)
 
 static int resol_enter(struct state *st, struct state *prev, int intent)
 {
-    if (!resol_back)
-        resol_back = prev;
+    if (!resol_back) resol_back = prev;
 
     conf_common_init(resol_action, 1);
     return transition_slide(resol_gui(), 1, intent);
@@ -2239,8 +2195,7 @@ static int lang_enter(struct state *st, struct state *prev, int intent)
     }
 #endif
 
-    if (!lang_back)
-        lang_back = prev;
+    if (!lang_back) lang_back = prev;
 
     conf_common_init(lang_action, 1);
 
@@ -2292,9 +2247,8 @@ static struct state *restart_required_back;
 static int restart_required_action(int tok, int val)
 {
     if (tok == GUI_BACK)
-    {
         return exit_state(restart_required_back);
-    }
+
     return 1;
 }
 
@@ -2332,8 +2286,7 @@ static int restart_required_gui(void)
 
 static int restart_required_enter(struct state *st, struct state *prev, int intent)
 {
-    if (!restart_required_back)
-        restart_required_back = prev;
+    if (!restart_required_back) restart_required_back = prev;
 
     conf_common_init(restart_required_action, 1);
     return restart_required_gui();

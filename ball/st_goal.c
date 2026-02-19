@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -95,6 +95,9 @@ enum
 
 static int goal_intro_animation_phase;
 
+static float goal_intro_speedmultiplier;
+static float goal_intro_animation_time;
+
 static float score_count_anim_time;
 static int   score_count_anim_index;
 static int   score_count_anim_locked;
@@ -116,8 +119,7 @@ static int resume_locked;
 static int goal_action(int tok, int val)
 {
     /* Waiting for extra balls by collecting 100 coins */
-    if (challenge_disable_all_buttons)
-    {
+    if (challenge_disable_all_buttons) {
         audio_play(AUD_DISABLED, 1.0f);
         return 1;
     }
@@ -232,8 +234,7 @@ static int goal_gui(void)
                  (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 250) ||
                 (!account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
                  (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 310)
-                )
-                shop_product_available = 1;
+                ) shop_product_available = 1;
 #endif
         }
     }
@@ -268,8 +269,7 @@ static int goal_gui(void)
                     gid = gui_title_header(jd, master ? s3 : s2, GUI_MED,
                                                gui_blu, gui_grn);
 
-                if (!resume)
-                    gui_pulse(gid, 1.2f);
+                if (!resume) gui_pulse(gid, 1.2f);
 
                 gui_set_rect(jd, GUI_ALL);
 
@@ -277,8 +277,7 @@ static int goal_gui(void)
                     gui_set_slide(jd, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 0.8f, 0);
             }
 
-            if (save == 0)
-                demo_play_stop(1);
+            if (save == 0) demo_play_stop(1);
 
             gui_space(id);
 
@@ -298,14 +297,12 @@ static int goal_gui(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                  && curr_mode() != MODE_HARDCORE
 #endif
-                    )
-                    for (int i = curr_score(); i > score; i--)
+                    ) for (int i = curr_score(); i > score; i--)
                         if (progress_reward_ball(i))
                         {
                             /* Disable all buttons after collecting 100 coins for each. */
 
                             challenge_disable_all_buttons = config_get_d(CONFIG_NOTIFICATION_REWARD) ? 1 : 0;
-
                             balls--;
                         }
 
@@ -455,7 +452,6 @@ static int goal_gui(void)
                 }
 
                 gui_campaign_stats(curr_level());
-
                 gui_space(id);
             }
             else if (campaign_used() && (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
@@ -489,7 +485,6 @@ static int goal_gui(void)
                 }
 
                 gui_set_stats(curr_level());
-
                 gui_space(id);
             }
 #else
@@ -514,7 +509,6 @@ static int goal_gui(void)
             }
 
             gui_set_stats(curr_level());
-
             gui_space(id);
 #endif
 
@@ -531,8 +525,7 @@ static int goal_gui(void)
                  */
                 const int btns_disabled = (!resume || (!resume_locked && goal_intro_animation_phase == 2)) &&
                                           ((config_get_d(CONFIG_NOTIFICATION_REWARD) && challenge_disable_all_buttons) ||
-                                           (config_get_d(CONFIG_NOTIFICATION_SHOP) &&
-                                            shop_product_available));
+                                           (config_get_d(CONFIG_NOTIFICATION_SHOP) && shop_product_available));
 
                 int btn_ids[3] = { 0, 0, 0 };
 
@@ -636,6 +629,8 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
 
     if (!resume)
     {
+        goal_intro_speedmultiplier = 1.0f;
+
 #if NB_HAVE_PB_BOTH==1 && \
     defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
         powerup_stop();
@@ -705,14 +700,15 @@ static void goal_timer(int id, float dt)
 
     if (goal_intro_animation_phase == 1)
     {
+        goal_intro_speedmultiplier = flerp(goal_intro_speedmultiplier, MIN(0.05f + (goal_time_state * 2), 1.0f), dt * 10);
+        goal_intro_animation_time += dt * goal_intro_speedmultiplier;
+
         if (goal_time_state >= 2.0f)
         {
             goal_intro_animation_phase = 2;
-            goto_state(&st_goal);
-
-            return;
+            goto_state(&st_goal); return;
         }
-    }
+    } else goal_intro_speedmultiplier = 1.0f;
 
     gui_timer(id, dt);
     hud_timer(dt);
@@ -721,12 +717,11 @@ static void goal_timer(int id, float dt)
     {
         static float t = 0.0f;
 
-        if (goal_time_state > 1.0f)
-            t += dt;
+        if (goal_time_state > 1.0f) t += dt;
 
-        game_camshake_update(dt);
-        geom_step(dt);
-        game_server_step(dt);
+        game_camshake_update(dt * goal_intro_speedmultiplier);
+        geom_step(dt * goal_intro_speedmultiplier);
+        game_server_step(dt * goal_intro_speedmultiplier);
 
         int record_modes    = curr_mode() != MODE_NONE;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -736,7 +731,7 @@ static void goal_timer(int id, float dt)
 #endif
 
         game_client_sync(!resume
-                      && goal_time_state < 1.0f
+                      && goal_intro_animation_time < 1.0f
                       && record_modes
                       && record_campaign
                       && goal_intro_animation_phase == 1 ? demo_fp : NULL);

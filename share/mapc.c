@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  * Copyright (C) 2003 Robert Kooima
- * Copyright (C) 2025 Jānis Rūcis
+ * Copyright (C) 2026 Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published

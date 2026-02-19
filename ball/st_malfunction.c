@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -52,34 +52,28 @@ int check_malfunctions(void)
     if (malfunction_locked) return 1;
 
     for (int ic = 0; ic < 128; ic++)
-    {
         if (char_downcounter[ic] >= MALFUNCTION_THRESHOLD)
         {
             /* Malfunction locked during exceeding threshold */
             malfunction_locked = 1;
             return goto_state(&st_malfunction);
         }
-    }
 
     for (int ia = 0; ia < 4; ia++)
-    {
         if (arrow_downcounter[ia] >= MALFUNCTION_THRESHOLD)
         {
             /* Malfunction locked during exceeding threshold */
             malfunction_locked = 1;
             return goto_state(&st_malfunction);
         }
-    }
 
     for (int ifw = 0; ifw < 4; ifw++)
-    {
         if (fwindow_downcounter[ifw] >= MALFUNCTION_THRESHOLD)
         {
             /* Malfunction locked during exceeding threshold */
             malfunction_locked = 1;
             return goto_state(&st_malfunction);
         }
-    }
 
     malfunction_locked = 0;
     return 0;
@@ -88,22 +82,16 @@ int check_malfunctions(void)
 int check_handsoff(void)
 {
     for (int ic = 0; ic < 128; ic++)
-    {
         if (char_downcounter[ic] >= 1)
             return 1;
-    }
 
     for (int ia = 0; ia < 4; ia++)
-    {
         if (arrow_downcounter[ia] >= 1)
             return 1;
-    }
 
     for (int ifw = 0; ifw < 4; ifw++)
-    {
         if (fwindow_downcounter[ifw] >= 1)
             return 1;
-    }
 
     handson_threshold = 0;
     return 0;
@@ -215,8 +203,9 @@ static int handsoff_gui(void)
     {
         gui_title_header(id, _("Hands off!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
-        gui_multi(id, _("Keep fingers away from the keyboard,\n"
-                        "before you play this level!"),
+        gui_multi(id, _("Keep fingers away from the keyboard\n"
+                        "or stick from gamepad, before you\n"
+                        "play this level!"),
                       GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
         gui_start(id, _("OK"), GUI_SML, GUI_BACK, 0);
@@ -229,7 +218,7 @@ static int handsoff_gui(void)
 
 static int handsoff_enter(struct state *st, struct state *prev, int intent)
 {
-    handson_threshold++;
+    //handson_threshold++;
 
     return transition_slide(handsoff_gui(), 1, intent);
 }
@@ -242,8 +231,7 @@ static int handsoff_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
          && current_platform == PLATFORM_PC
 #endif
-            )
-            return handsoff_action(GUI_BACK, 0);
+            ) return handsoff_action(GUI_BACK, 0);
     }
     return 1;
 }

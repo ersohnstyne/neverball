@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -645,7 +645,6 @@ static int shop_maxout_gui(void)
 static int shop_maxout_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play(AUD_GOAL, 1.0f);
-
     return transition_slide(shop_maxout_gui(), 1, intent);
 }
 
@@ -696,6 +695,8 @@ static int shop_rename_action(int tok, int val)
 
     switch (tok)
     {
+        case GUI_BACK: return exit_state(cancel_state);
+
         case SHOP_RENAME_YES:
 #ifdef __EMSCRIPTEN__
             EM_ASM({ window.open("https://pennyball.stynegame.de/"); });
@@ -703,13 +704,10 @@ static int shop_rename_action(int tok, int val)
             account_wgcl_save();
             return goto_name(ok_state, cancel_state, 0, 0, draw_back);
 #endif
-
-        case GUI_BACK:
-            return exit_state(cancel_state);
     }
+
     return 1;
 }
-
 
 static int shop_rename_gui(void)
 {
@@ -803,8 +801,7 @@ static void shop_rename_paint(int id, float t)
         video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
         back_draw_easy();
     }
-    else
-        game_client_draw(0, t);
+    else game_client_draw(0, t);
 
     gui_paint(id);
 }
@@ -844,11 +841,10 @@ static int shop_unregistered_action(int tok, int val)
 
     switch (tok)
     {
+        case GUI_BACK: return goto_state(&st_shop);
+
         case SHOP_UNREGISTERED_DOIT:
             return goto_name(&st_shop_buy, &st_shop, 0, 0, 0);
-
-        case GUI_BACK:
-            return goto_state(&st_shop);
     }
     return 1;
 }
@@ -1109,7 +1105,6 @@ static int shop_iap_action(int tok, int val)
                 return exit_state(ok_state);
             }
 #endif
-
             break;
 
         case SHOP_IAP_GET_SWITCH:
@@ -1118,10 +1113,8 @@ static int shop_iap_action(int tok, int val)
 #else
             iappage = !iappage;
 
-            if (iappage)
-                goto_state(curr_state());
-            else
-                exit_state(curr_state());
+            if (iappage) goto_state(curr_state());
+            else exit_state(curr_state());
 #endif
             break;
 
@@ -1172,10 +1165,9 @@ static int shop_iap_gui(void)
             if (multipage && video.aspect_ratio >= 1.0f)
             {
                 gui_space(jd);
-                if (iappage)
-                    gui_state(jd, _("Switch to Coins"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
-                else
-                    gui_state(jd, _("Switch to Gems"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
+
+                if (iappage) gui_state(jd, _("Switch to Coins"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
+                else         gui_state(jd, _("Switch to Gems"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
             }
 #endif
 
@@ -1197,10 +1189,8 @@ static int shop_iap_gui(void)
     !defined(__SWITCH__)
         if (multipage && video.aspect_ratio < 1.0f)
         {
-            if (iappage)
-                gui_state(jd, _("Switch to Coins"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
-            else
-                gui_state(jd, _("Switch to Gems"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
+            if (iappage) gui_state(jd, _("Switch to Coins"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
+            else         gui_state(jd, _("Switch to Gems"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
 
             if (shop_iap_intro_animation)
                 gui_set_slide(jd, GUI_S | GUI_EASE_ELASTIC, 0.0f, 0.8f, 0.0f);
@@ -1255,6 +1245,7 @@ static int shop_iap_gui(void)
                 const int hh = ww;
 
                 gui_filler(jd);
+
                 for (multiply = 6; multiply > 0; multiply--)
                 {
                     switch (iappage)
@@ -1325,7 +1316,6 @@ static int shop_iap_gui(void)
                     }
                 }
                 gui_filler(jd);
-
                 gui_focus(btniapdesktop);
 
                 if (shop_iap_intro_animation)
@@ -1408,7 +1398,6 @@ static int shop_iap_gui(void)
                 gui_set_slide(export_id, GUI_S | GUI_EASE_ELASTIC, 0.8f, 0.8f, 0.05f);
         }
 #endif
-
         gui_layout(id, 0, 0);
     }
 
@@ -1744,8 +1733,7 @@ static int shop_buy_action(int tok, int val)
 #ifdef __EMSCRIPTEN__
             if (purchase_product_usegems)
                 EM_ASM({ Neverball.showIAP_Gems(); });
-            else
-                return goto_shop_iap(&st_shop_buy, &st_shop, 0, 0, prodcost, 0, 0);
+            else return goto_shop_iap(&st_shop_buy, &st_shop, 0, 0, prodcost, 0, 0);
 #else
             return goto_shop_iap(&st_shop_buy, &st_shop, 0, 0, prodcost, purchase_product_usegems, 0);
 #endif
@@ -1852,8 +1840,7 @@ static int shop_buy_gui(void)
         else if ((!purchase_product_usegems && has_enough_coins(prodcost)) ||
                  (purchase_product_usegems  && has_enough_gems (prodcost)))
             gui_title_header(id, _("Buy Products?"), GUI_MED, GUI_COLOR_DEFAULT);
-        else
-            gui_title_header(id, _("Insufficent wallet!"), GUI_MED, gui_gry, gui_red);
+        else gui_title_header(id, _("Insufficent wallet!"), GUI_MED, gui_gry, gui_red);
 
         gui_space(id);
 
@@ -2146,13 +2133,11 @@ static int shop_buy_confirmmulti_gui(void)
         }
 
         if (productkey == 7)
-        {
             while (max_balls_limit < account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + piece_times)
             {
                 piece_times--;
                 auction_value = prodcost * piece_times;
             }
-        }
 #endif
 
         char prodattr[MAXSTR];
@@ -2276,8 +2261,7 @@ static int expenses_export_action(int tok, int val)
 
     switch (tok)
     {
-        case GUI_BACK:
-            return exit_state(expenses_export_back);
+        case GUI_BACK: return exit_state(expenses_export_back);
 
         case EXPENSES_EXPORT_START:
             audio_play("snd/buyproduct.ogg", 1.0f);

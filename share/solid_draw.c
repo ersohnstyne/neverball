@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -168,10 +168,7 @@ static void sol_free_bill(struct s_draw *draw)
 
 static void sol_draw_bill(GLboolean edge)
 {
-    if (edge)
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    else
-        glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, edge ? 0 : 4, 4);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -467,8 +464,7 @@ static void sol_draw_mesh(const struct d_mesh *mp,
 
         if (rend && rend->curr_mtrl.base.fl & M_PARTICLE)
             glDrawArrays(GL_POINTS, 0, mp->vbc);
-        else
-            glDrawElements(GL_TRIANGLES, mp->ebc, GL_UNSIGNED_SHORT, 0);
+        else glDrawElements(GL_TRIANGLES, mp->ebc, GL_UNSIGNED_SHORT, 0);
     }
 }
 
@@ -511,9 +507,7 @@ static void sol_load_body(struct d_body *bp,
 
 static void sol_free_body(struct d_body *bp)
 {
-    int mi;
-
-    for (mi = 0; mi < bp->mc; ++mi)
+    for (int  mi = 0; mi < bp->mc; ++mi)
         sol_free_mesh(bp->mv + mi);
 
     free(bp->mv); bp->mv = NULL;
@@ -521,9 +515,7 @@ static void sol_free_body(struct d_body *bp)
 
 static void sol_draw_body(const struct d_body *bp, struct s_rend *rend, int p)
 {
-    int i;
-
-    for (i = 0; i < bp->mc; ++i)
+    for (int i = 0; i < bp->mc; ++i)
         sol_draw_mesh(bp->mv + i, rend, p);
 }
 
@@ -576,13 +568,10 @@ int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
 
 void sol_free_draw(struct s_draw *draw)
 {
-    int i;
-
     mtrl_free_sol(draw->base);
-
     sol_free_bill(draw);
 
-    for (i = 0; i < draw->bc; i++)
+    for (int i = 0; i < draw->bc; i++)
         sol_free_body(draw->bv + i);
 
     free(draw->bv); draw->bv = NULL;
@@ -592,11 +581,9 @@ void sol_free_draw(struct s_draw *draw)
 
 static void sol_draw_all(const struct s_draw *draw, struct s_rend *rend, int p)
 {
-    int bi;
-
     /* Draw all meshes of all bodies matching the given material flags. */
 
-    for (bi = 0; bi < draw->bc; ++bi)
+    for (int bi = 0; bi < draw->bc; ++bi)
         if (draw->bv[bi].pass[p])
         {
             glPushMatrix();
@@ -614,8 +601,7 @@ void sol_draw(const struct s_draw *draw, struct s_rend *rend, int mask, int test
 {
     /* Disable shadowed material setup if not requested. */
 
-    if (rend)
-        rend->skip_flags |= (draw->shadowed ? 0 : M_SHADOWED);
+    if (rend) rend->skip_flags |= (draw->shadowed ? 0 : M_SHADOWED);
 
     /* Render all opaque geometry, decals last. */
 
@@ -638,16 +624,14 @@ void sol_draw(const struct s_draw *draw, struct s_rend *rend, int mask, int test
     glBindBuffer_(GL_ARRAY_BUFFER,         0);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    if (rend)
-        rend->skip_flags = 0;
+    if (rend) rend->skip_flags = 0;
 }
 
 void sol_refl(const struct s_draw *draw, struct s_rend *rend)
 {
     /* Disable shadowed material setup if not requested. */
 
-    if (rend)
-        rend->skip_flags |= (draw->shadowed ? 0 : M_SHADOWED);
+    if (rend) rend->skip_flags |= (draw->shadowed ? 0 : M_SHADOWED);
 
     /* Render all reflective geometry. */
 
@@ -658,8 +642,7 @@ void sol_refl(const struct s_draw *draw, struct s_rend *rend)
     glBindBuffer_(GL_ARRAY_BUFFER,         0);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    if (rend)
-        rend->skip_flags = 0;
+    if (rend) rend->skip_flags = 0;
 }
 
 void sol_back(const struct s_draw *draw,
@@ -673,11 +656,9 @@ void sol_back(const struct s_draw *draw,
 
     sol_bill_enable(draw);
     {
-        int ri;
-
         /* Consider each billboard. */
 
-        if (draw->base) for (ri = 0; ri < draw->base->rc; ri++)
+        if (draw->base) for (int ri = 0; ri < draw->base->rc; ri++)
         {
             const struct b_bill *rp = draw->base->rv + ri;
 
@@ -736,13 +717,11 @@ void sol_bill(const struct s_draw *draw,
 {
     float p[3];
 
-    if (!(draw && draw->base && draw->base->rc))
-        return;
+    if (!(draw && draw->base && draw->base->rc)) return;
 
     sol_bill_enable(draw);
     {
-        int ri;
-        for (ri = 0; ri < draw->base->rc; ++ri)
+        for (int ri = 0; ri < draw->base->rc; ++ri)
         {
             const struct b_bill *rp = draw->base->rv + ri;
 
@@ -950,8 +929,7 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
 
     /* Bind the texture. */
 
-    if (mp->o != mq->o)
-        glBindTexture_(GL_TEXTURE_2D, mp->o);
+    if (mp->o != mq->o) glBindTexture_(GL_TEXTURE_2D, mp->o);
 
     /* Set material properties. */
 
@@ -995,8 +973,7 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
     {
         if (mp_flags & M_SHADOWED)
             shad_draw_set();
-        else
-            shad_draw_clr();
+        else shad_draw_clr();
     }
 
     /* Environment mapping. */
@@ -1026,8 +1003,7 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
     {
         if (mp_flags & M_ADDITIVE)
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        else
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        else glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     /* Visibility-from-behind. */
@@ -1055,8 +1031,7 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
             glEnable(GL_POLYGON_OFFSET_FILL);
             glPolygonOffset(-1.0f, -2.0f);
         }
-        else
-            glDisable(GL_POLYGON_OFFSET_FILL);
+        else glDisable(GL_POLYGON_OFFSET_FILL);
     }
 
     /* Alpha test. */
@@ -1069,8 +1044,7 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
 
             glEnable(GL_ALPHA_TEST);
         }
-        else
-            glDisable(GL_ALPHA_TEST);
+        else glDisable(GL_ALPHA_TEST);
     }
 
     if (((mp_flags & mq_flags) & M_ALPHA_TEST) && (mp->base.alpha_func !=
@@ -1098,8 +1072,7 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
             glPointParameterf_ (GL_POINT_SIZE_MIN, 1);
             glPointParameterf_ (GL_POINT_SIZE_MAX, s);
         }
-        else
-            glDisable(GL_POINT_SPRITE);
+        else glDisable(GL_POINT_SPRITE);
     }
 
     /* Lighting. */
@@ -1108,8 +1081,7 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
     {
         if (mp_flags & M_LIT)
             glEnable(GL_LIGHTING);
-        else
-            glDisable(GL_LIGHTING);
+        else glDisable(GL_LIGHTING);
     }
 
     /* Update current material state. */

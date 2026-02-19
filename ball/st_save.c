@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Microsoft / Neverball authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -116,8 +116,7 @@ static int save_action(int tok, int val)
 
     switch (tok)
     {
-        case GUI_BACK:
-            return exit_state(cancel_state);
+        case GUI_BACK: return exit_state(cancel_state);
 
         case SAVE_OK:
 #if NB_HAVE_PB_BOTH==1 && defined(DEMO_QUARANTINED_MODE) && !defined(DEMO_LOCKDOWN_COMPLETE)

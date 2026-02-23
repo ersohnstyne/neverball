@@ -2179,8 +2179,8 @@ static void game_server_iter(float dt)
             fetch(internal_server_used ? server_internal_url : external_url, {
                 method:"POST",
                 headers: {
-                    "Content-Type": 'application/json",
-                    "Accept" : "application/json'
+                    "Content-Type": "application/json",
+                    "Accept" : "application/json"
                 },
                 body: JSON.stringify({
                     fetch_post_date_iso: new Date().toISOString(),

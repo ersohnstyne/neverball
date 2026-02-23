@@ -2172,13 +2172,13 @@ static void game_server_iter(float dt)
                 if (regexMatchURL instanceof RegExp) {
                     internal_server_used = regexMatchURL.test(parsedUrl.href);
                 } else if (typeof regexMatchURL === "string") {
-                    parsedUrl.href.toLowerCase().includes(regexMatchURL.toLowerCase());
+                    internal_server_used = parsedUrl.href.toLowerCase().includes(regexMatchURL.toLowerCase());
                 }
             } catch (e) {}
 
             fetch(internal_server_used ? server_internal_url : external_url, {
                 method:"POST",
-                headers : {
+                headers: {
                     "Content-Type": 'application/json",
                     "Accept" : "application/json'
                 },

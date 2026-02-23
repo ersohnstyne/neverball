@@ -12,7 +12,7 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__)
 #include <emscripten.h>
 #endif
 
@@ -2158,6 +2158,42 @@ static void game_server_iter(float dt)
         account_wgcl_mapmarkers_place(curr_file_name, status,
                                       ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
 #endif
+#elif defined(__EMSCRIPTEN__)
+        EM_ASM({
+            const server_internal_url = "/api/internal/mapmarkers/place";
+            const external_url = "https://pennyball.stynegame.de/api/internal/mapmarkers/place";
+
+            var internal_server_used = false;
+
+            try {
+                const parsedUrl = new URL(window.location.href);
+
+                const regexMatchURL = "/pennyball\.stynegame\.de$/";
+                if (regexMatchURL instanceof RegExp) {
+                    internal_server_used = regexMatchURL.test(parsedUrl.href);
+                } else if (typeof regexMatchURL === "string") {
+                    parsedUrl.href.toLowerCase().includes(regexMatchURL.toLowerCase());
+                }
+            } catch (e) {}
+
+            fetch(internal_server_used ? server_internal_url : external_url, {
+                method:"POST",
+                headers : {
+                    "Content-Type": 'application/json",
+                    "Accept" : "application/json'
+                },
+                body: JSON.stringify({
+                    fetch_post_date_iso: new Date().toISOString(),
+                    map_name: map_name,
+                    status_type: status_type,
+                    position: {
+                        x: pos_x_cm,
+                        y: pos_y_cm,
+                        z: pos_z_cm
+                    }
+                })
+            });
+        });
 #endif
         game_cmd_status();
     }

@@ -471,7 +471,7 @@ int glext_get_recommended(void)
     const int r = EM_ASM_INT({
         /*try {
             var main_canvas = document.getElementById("canvas");
-            var main_gl = main_canvas.getContext("webgl", { powerPreference: "high-performance" }); || main_canvas.getContext("experimental-webgl", { powerPreference: "high-performance" });
+            var main_gl = main_canvas.getContext("webgl", { powerPreference: "high-performance" }) || main_canvas.getContext("experimental-webgl", { powerPreference: "high-performance" });
 
             if (!main_gl) return 0;
 

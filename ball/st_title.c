@@ -916,8 +916,6 @@ static int title_gui(void)
 #elif NB_EOS_SDK==1
                 edition_id = gui_label(jd, _("Epic Games Edition"), GUI_SML, GUI_COLOR_WHT);
 #elif defined(__EMSCRIPTEN__)
-                /* HACK: Opera GX? */
-
                 const int is_opera_gx = EM_ASM_INT({
                     var ua = navigator.userAgent.toLowerCase();
                     var isOperaGX = ua.includes("opr") && ua.includes("chrome") && ua.includes("applewebkit") && ua.includes("mozilla") && !ua.includes("edg") && !ua.includes("firefox");
@@ -925,10 +923,20 @@ static int title_gui(void)
                     return isOperaGX ? 1 : 0;
                 });
 
+                const int is_nintendo_switch = EM_ASM_INT({
+                    var ua = navigator.userAgent.toLowerCase();
+                    var isNintendoSwitch    = ua.includes("nintendobrowser") && ua.includes("nintendo switch");
+                    var isNintendoSwitchTwo = ua.includes("nintendobrowser") && ua.includes("nintendo switch 2");
+
+                    return isNintendoSwitchTwo ? 2 : (isNintendoSwitch ? 1 : 0);
+                });
+
                 if (is_opera_gx)
                     edition_id = gui_label(jd, _("Opera GX Edition"), GUI_SML, GUI_COLOR_WHT);
-                else
-                    edition_id = gui_label(jd, _("WebGL Edition"), GUI_SML, GUI_COLOR_WHT);
+                else if (is_nintendo_switch == 1)
+                    edition_id = gui_label(jd, _("Nintendo Switch Edition"), GUI_SML, GUI_COLOR_WHT);
+                else if (is_nintendo_switch == 2)
+                    edition_id = gui_label(jd, _("Nintendo Switch 2 Edition"), GUI_SML, GUI_COLOR_WHT);
 #else
                 edition_id = gui_label(jd, os_env, GUI_SML, GUI_COLOR_WHT);
 #endif
@@ -1056,8 +1064,6 @@ static int title_gui(void)
 #ifdef __EMSCRIPTEN__
                 else
                 {
-                    /* HACK: Opera GX? */
-
                     const int is_opera_gx = EM_ASM_INT({
                         var ua = navigator.userAgent.toLowerCase();
                         var isOperaGX = ua.includes("opr") && ua.includes("chrome") && ua.includes("applewebkit") && ua.includes("mozilla") && !ua.includes("edg") && !ua.includes("firefox");
@@ -1065,8 +1071,20 @@ static int title_gui(void)
                         return isOperaGX ? 1 : 0;
                     });
 
+                    const int is_nintendo_switch = EM_ASM_INT({
+                        var ua = navigator.userAgent.toLowerCase();
+                        var isNintendoSwitch    = ua.includes("nintendobrowser") && ua.includes("nintendo switch");
+                        var isNintendoSwitchTwo = ua.includes("nintendobrowser") && ua.includes("nintendo switch 2");
+
+                        return isNintendoSwitchTwo ? 2 : (isNintendoSwitch ? 1 : 0);
+                    });
+
                     if (is_opera_gx)
                         edition_id = gui_label(title_lockscreen_gamename_id, _("Opera GX Edition"), GUI_SML, GUI_COLOR_WHT);
+                    else if (is_nintendo_switch == 1)
+                        edition_id = gui_label(title_lockscreen_gamename_id, _("Nintendo Switch Edition"), GUI_SML, GUI_COLOR_WHT);
+                    else if (is_nintendo_switch == 2)
+                        edition_id = gui_label(title_lockscreen_gamename_id, _("Nintendo Switch 2 Edition"), GUI_SML, GUI_COLOR_WHT);
                 }
 #endif
                 gui_set_rect(title_lockscreen_gamename_id, GUI_ALL);

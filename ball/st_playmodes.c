@@ -225,19 +225,16 @@ static int playmodes_gui(void)
         }
         else if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE))
         {
+            const char* career_text_locked = !hardcore_requirement ?
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
-            const char *career_text_locked = !hardcore_requirement ?
                                              N_("Hardcore Mode is not available\n"
                                                 "with slowdown, cheat or smooth fix.") :
-                                             N_("Achieve all Silver Medals or above in Best Time\n"
-                                                "to unlock this Mode.");
 #else
-            const char *career_text_locked = hardc_requirement ?
                                              N_("Hardcore Mode is not available\n"
                                                 "with slowdown or smooth fix.") :
+#endif
                                              N_("Achieve all Silver Medals or above in Best Time\n"
                                                 "to unlock this Mode.");
-#endif
 
             playmodes_state(id, PLAYMODES_HARDCORE, 0, hardcore_unlocked && hardcore_requirement,
                             mode_to_str(MODE_HARDCORE, 1),

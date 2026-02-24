@@ -307,10 +307,10 @@ void audio_volume(int master, int sound, int music, int narrator)
     float music_logarithmic    = (float) (music    / 10.0f) * master_logarithmic;
     float narrator_logarithmic = (float) (narrator / 10.0f) * master_logarithmic;
 
-    float master_vol   = LOGF_VOLUME(master_logarithmic);
-    float sound_vol    = LOGF_VOLUME(sound_logarithmic);
-    float music_vol    = LOGF_VOLUME(music_logarithmic);
-    float narrator_vol = LOGF_VOLUME(narrator_logarithmic);
+    float master_vol   = LOG_VOLUME(master_logarithmic);
+    float sound_vol    = LOG_VOLUME(sound_logarithmic);
+    float music_vol    = LOG_VOLUME(music_logarithmic);
+    float narrator_vol = LOG_VOLUME(narrator_logarithmic);
 
     EM_ASM({
         Neverball.audioVolume($0, $1, $2, $3);

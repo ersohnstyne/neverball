@@ -68,7 +68,7 @@ extern "C" {
 
 static std::ostringstream lang_splitstr(std::string str, std::string delim = "\n")
 {
-    std::ostringstream finalres;
+    std::ostringstream final_res;
 
     size_t start = 0, end = str.find(delim);
 
@@ -77,18 +77,18 @@ static std::ostringstream lang_splitstr(std::string str, std::string delim = "\n
     while (end != -1)
     {
         if (writeable)
-            finalres << str.substr(start, end - start);
+            final_res << str.substr(start, end - start);
 
         start = end + delim.size();
         end = str.find(delim, start);
 
-        if (writeable) finalres << '\n';
+        if (writeable) final_res << '\n';
 
         writeable = !writeable;
     }
 
-    finalres << str.substr(start, end - start);
-    return finalres;
+    final_res << str.substr(start, end - start);
+    return final_res;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -153,7 +153,7 @@ static void ms_nls_init(const char *pref)
     if (strlen(pref) < 2)
     {
         LANG_RESET_DEFAULTS;
-        log_printf("Choosed system locale code: %s\n", pCharExt);
+        log_printf("System locale code: %s\n", pCharExt);
         lang_available = true;
     }
     else

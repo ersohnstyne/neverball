@@ -190,7 +190,7 @@ static int title_check_playername(const char *regname)
 }
 
 /*
- * Check whether has meet fullfilled folder requirements
+ * Check whether has meet fulfilled folder requirements
  * in the user data folder.
  *
  * Returns TRUE to launch the game normally, unless go to the game setup.
@@ -797,7 +797,7 @@ static int game_setup_action(int tok, int val)
                             setup_page = 7;
 #if NB_HAVE_PB_BOTH==1
                             if (account_wgcl_reload())
-                                /* Let WGCL choose, how to load player datas. */;
+                                /* Let WGCL choose, how to load player data. */;
                             else if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
                             {
 #if NB_EOS_SDK==0 || NB_STEAM_API==0
@@ -873,7 +873,7 @@ static int game_setup_action(int tok, int val)
                             if (setup_page == 7)
                             {
                                 if (account_wgcl_reload())
-                                    /* Let WGCL choose, how to load player datas. */;
+                                    /* Let WGCL choose, how to load player data. */;
                                 else if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
                                 {
 #if NB_EOS_SDK==0 || NB_STEAM_API==0
@@ -1188,13 +1188,13 @@ static int game_setup_terms_gui(void)
                 gui_multi(jd, _("To proceed with setup, you must agree to the PB+NB Terms and acknowledge\n"
                                 "that you have read and understood the Discord TOS and MSA by selecting \"OK\" below.\n"
                                 "To learn more, click \"Read more\". You represent that you are a legally consenting adult\n"
-                                "and are authorised to consent for all users of this Game, including minors."),
+                                "and are authorized to consent for all users of this Game, including minors."),
                               GUI_TNY, GUI_COLOR_WHT);
 #else
                 gui_title_header(jd, _("PB+NB, Discord, Nintendo ToS"), GUI_MED, GUI_COLOR_DEFAULT);
                 gui_multi(jd, _("To proceed with setup, you must agree to the PB+NB Terms and acknowledge\n"
                                 "that you have read and understood the Discord and Nintendo ToS by selecting \"OK\" below.\n"
-                                "You represent that you are a legally consenting adult and are authorised to consent for\n"
+                                "You represent that you are a legally consenting adult and are authorized to consent for\n"
                                 "all users of this Game, including minors."),
                               GUI_TNY, GUI_COLOR_WHT);
 #endif

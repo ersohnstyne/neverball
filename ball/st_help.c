@@ -222,7 +222,7 @@ static int help_button(int id, const char *text, int token, int value)
 {
     int jd = gui_state(id, text, GUI_SML, token, value);
 
-    /* Hilight current page. */
+    /* Highlight current page. */
 
     if (token == HELP_SELECT && value == page)
     {

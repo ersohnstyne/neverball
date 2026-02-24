@@ -905,15 +905,15 @@ void audio_music_fade_to(float t, const char *filename, int loop)
  */
 void audio_volume(int master, int sound, int music, int narrator)
 {
-    float master_logaritmic   = (float)  master   / 10.0f;
-    float sound_logaritmic    = (float) (sound    / 10.0f) * master_logaritmic;
-    float music_logaritmic    = (float) (music    / 10.0f) * master_logaritmic;
-    float narrator_logaritmic = (float) (narrator / 10.0f) * master_logaritmic;
+    float master_logarithmic   = (float)  master   / 10.0f;
+    float sound_logarithmic    = (float) (sound    / 10.0f) * master_logarithmic;
+    float music_logarithmic    = (float) (music    / 10.0f) * master_logarithmic;
+    float narrator_logarithmic = (float) (narrator / 10.0f) * master_logarithmic;
 
-    master_vol   = LOGF_VOLUME(master_logaritmic);
-    sound_vol    = LOGF_VOLUME(sound_logaritmic);
-    music_vol    = LOGF_VOLUME(music_logaritmic);
-    narrator_vol = LOGF_VOLUME(narrator_logaritmic);
+    master_vol   = LOGF_VOLUME(master_logarithmic);
+    sound_vol    = LOGF_VOLUME(sound_logarithmic);
+    music_vol    = LOGF_VOLUME(music_logarithmic);
+    narrator_vol = LOGF_VOLUME(narrator_logarithmic);
 }
 
 /*---------------------------------------------------------------------------*/

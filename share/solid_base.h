@@ -18,7 +18,7 @@
 /*
  * Comment it, if you don't have an header file
  * --- OR ---
- * Create the header using premaded preprocessors by following
+ * Create the header using pre-written preprocessors by following
  */
 #include "solid_chkp.h"
 

@@ -249,7 +249,9 @@ static struct
     { &CONFIG_MAINMENU_PANONLY,"mainmenu_panonly",0 },
 
     { &CONFIG_SCREEN_ANIMATIONS,"screen_animation",1 },
+#ifndef __EMSCRIPTEN__
     { &CONFIG_UI_HWACCEL,     "ui_hwaccel",   1 },
+#endif
     { &CONFIG_SMOOTH_FIX,     "smooth_fix",   1 },
     { &CONFIG_FORCE_SMOOTH_FIX, "force_smooth_fix", 0 },
     { &CONFIG_WIDESCREEN,     "widescreen",   0 },
@@ -464,7 +466,7 @@ void config_init(void)
 
     /*
      * Store index of each option in its associated config symbol and
-     * initialise current values with defaults.
+     * initialize current values with defaults.
      */
 
     for (i = 0; i < ARRAYSIZE(option_d); i++)
@@ -545,7 +547,7 @@ static int scan_key_and_value(char **dst_key, char **dst_val, char *line)
 
 /*
  * HACK: These config file has lots of mapped text file to pretend,
- * but let's do it with macros as renamers, same as replay commands.
+ * but let's do it with macros as renamer, same as replay commands.
  * - Ersohn Styne
  */
 

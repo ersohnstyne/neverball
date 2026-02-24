@@ -836,7 +836,7 @@ int  progress_play(struct level *l)
 
 #ifdef MAPC_INCLUDES_CHKP
         /*
-         * HACK: Only lmited amount of where was bought from the shop
+         * HACK: Only limited amount of where was bought from the shop
          * and respawn onto it.
          */
 
@@ -914,7 +914,7 @@ void progress_stat(int s)
 {
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_VOID;
 
-    /* Cannot save highscore in home room. */
+    /* Cannot save high score in home room. */
 
     if (mode == MODE_NONE || status != GAME_NONE) return;
 
@@ -922,7 +922,7 @@ void progress_stat(int s)
 
     coins = curr_coins();
 
-    /* HACK: Each timer must be substracted for each checkpoints! */
+    /* HACK: Each timer must be subtracted for each checkpoints! */
 
 #ifdef MAPC_INCLUDES_CHKP
     timer_offset = checkpoints_respawn_time_elapsed() * 100;

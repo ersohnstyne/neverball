@@ -1024,7 +1024,7 @@ static int (*curr_cancel_fn) (struct state *) = NULL;
 
 static int curr_min;
 static int multipage;
-static int iappage;
+static int iap_page;
 
 int goto_shop_iap(struct state *ok, struct state *cancel,
                   int (*new_ok_fn) (struct state *),
@@ -1043,7 +1043,7 @@ int goto_shop_iap(struct state *ok, struct state *cancel,
     curr_min = newmin;
 
     multipage = allow_multipage;
-    iappage   = display_gems;
+    iap_page  = display_gems;
 
     return goto_state(&st_shop_iap);
 }
@@ -1080,7 +1080,7 @@ static int shop_iap_action(int tok, int val)
 
         case SHOP_IAP_GET_BUY:
 #ifdef CONFIG_INCLUDES_ACCOUNT
-            if (!iappage)
+            if (!iap_page)
             {
                 if (account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= iapcoinfromgems[val])
                 {
@@ -1111,9 +1111,9 @@ static int shop_iap_action(int tok, int val)
 #ifdef __EMSCRIPTEN__
             EM_ASM({ Neverball.showIAP_Gems(); });
 #else
-            iappage = !iappage;
+            iap_page = !iap_page;
 
-            if (iappage) goto_state(curr_state());
+            if (iap_page) goto_state(curr_state());
             else exit_state(curr_state());
 #endif
             break;
@@ -1141,7 +1141,7 @@ static int shop_iap_gui(void)
         if ((jd = gui_hstack(id)))
         {
             char walletattr[MAXSTR];
-            if (iappage)
+            if (iap_page)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 sprintf_s(walletattr, MAXSTR,
 #else
@@ -1166,8 +1166,8 @@ static int shop_iap_gui(void)
             {
                 gui_space(jd);
 
-                if (iappage) gui_state(jd, _("Switch to Coins"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
-                else         gui_state(jd, _("Switch to Gems"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
+                if (iap_page) gui_state(jd, _("Switch to Coins"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
+                else          gui_state(jd, _("Switch to Gems"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
             }
 #endif
 
@@ -1189,8 +1189,8 @@ static int shop_iap_gui(void)
     !defined(__SWITCH__)
         if (multipage && video.aspect_ratio < 1.0f)
         {
-            if (iappage) gui_state(jd, _("Switch to Coins"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
-            else         gui_state(jd, _("Switch to Gems"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
+            if (iap_page) gui_state(jd, _("Switch to Coins"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
+            else          gui_state(jd, _("Switch to Gems"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
 
             if (shop_iap_intro_animation)
                 gui_set_slide(jd, GUI_S | GUI_EASE_ELASTIC, 0.0f, 0.8f, 0.0f);
@@ -1204,12 +1204,12 @@ static int shop_iap_gui(void)
 
             char missionattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            if (iappage)
+            if (iap_page)
                 sprintf_s(missionattr, MAXSTR, _("Need %i gems to complete transaction!"),  (curr_min - account_get_d(ACCOUNT_DATA_WALLET_GEMS)));
             else
                 sprintf_s(missionattr, MAXSTR, _("Need %i coins to complete transaction!"), (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS)));
 #else
-            if (iappage)
+            if (iap_page)
                 sprintf(missionattr, _("Need %i gems to complete transaction!"),  (curr_min - account_get_d(ACCOUNT_DATA_WALLET_GEMS)));
             else
                 sprintf(missionattr, _("Need %i coins to complete transaction!"), (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS)));
@@ -1225,7 +1225,7 @@ static int shop_iap_gui(void)
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
         if (account_get_d(ACCOUNT_DATA_WALLET_COINS) >= ACCOUNT_WALLET_MAX_COINS
-         && iappage == 0)
+         && iap_page == 0)
         {
             const int txt_dsc_id = gui_multi(id, _("Can't buy more coins!\n"
                                                    "Max coin stack full!"),
@@ -1248,7 +1248,7 @@ static int shop_iap_gui(void)
 
                 for (multiply = 6; multiply > 0; multiply--)
                 {
-                    switch (iappage)
+                    switch (iap_page)
                     {
                         case 0:
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -1329,7 +1329,7 @@ static int shop_iap_gui(void)
             {
                 for (multiply = 1; multiply < 7; multiply++)
                 {
-                    switch (iappage)
+                    switch (iap_page)
                     {
                         case 0:
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -1840,7 +1840,7 @@ static int shop_buy_gui(void)
         else if ((!purchase_product_usegems && has_enough_coins(prodcost)) ||
                  (purchase_product_usegems  && has_enough_gems (prodcost)))
             gui_title_header(id, _("Buy Products?"), GUI_MED, GUI_COLOR_DEFAULT);
-        else gui_title_header(id, _("Insufficent wallet!"), GUI_MED, gui_gry, gui_red);
+        else gui_title_header(id, _("Insufficient wallet!"), GUI_MED, gui_gry, gui_red);
 
         gui_space(id);
 

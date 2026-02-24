@@ -757,7 +757,7 @@ static void game_draw_light(const struct game_draw *gd, int d, float t)
 
     light_conf();
 
-    /* Overrride light 2 position. */
+    /* Override light 2 position. */
 
     GLfloat p[4] = { cosf(t), 0.0f, sinf(t), 0.0f };
 

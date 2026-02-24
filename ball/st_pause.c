@@ -241,26 +241,26 @@ static int pause_action(int tok, int val)
 
 static int pause_button_width(int allow_zen, int reset_puzzle)
 {
-    int targ_width = 0;
+    int target_width = 0;
     int btn_width;
 
     if (allow_zen)
     {
         btn_width = gui_measure(_("Switch to Zen"), GUI_SML).w;
-        if (btn_width > targ_width) targ_width = btn_width;
+        if (btn_width > target_width) target_width = btn_width;
     }
 
     if (reset_puzzle)
     {
         btn_width = gui_measure(_("Reset Puzzle"), GUI_SML).w;
-        if (btn_width > targ_width) targ_width = btn_width;
+        if (btn_width > target_width) target_width = btn_width;
     }
 
     btn_width = gui_measure(_("Continue"), GUI_SML).w;
-    if (btn_width > targ_width) targ_width = btn_width;
+    if (btn_width > target_width) target_width = btn_width;
 
     btn_width = gui_measure(_("Restart"), GUI_SML).w;
-    if (btn_width > targ_width) targ_width = btn_width;
+    if (btn_width > target_width) target_width = btn_width;
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     const char *quit_btn_text = campaign_used() ? N_("Quit") : N_("Give Up");
@@ -269,9 +269,9 @@ static int pause_button_width(int allow_zen, int reset_puzzle)
 #endif
 
     btn_width = gui_measure(_(quit_btn_text), GUI_SML).w;
-    if (btn_width > targ_width) targ_width = btn_width;
+    if (btn_width > target_width) target_width = btn_width;
 
-    return targ_width;
+    return target_width;
 }
 
 static int pause_gui(void)

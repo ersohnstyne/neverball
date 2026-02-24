@@ -1032,7 +1032,7 @@ int game_server_init(const char *file_name, int t, int e)
 #ifdef LEVELGROUPS_INCLUDES_ZEN
     /*
      * --- MEDIATION ---
-     * If you use an Zen mode, all Achevements will disabled
+     * If you use an Zen mode, all Achievements will disabled
      * and sets to unlimited time.
      */
     if (mediation_enabled() == 1
@@ -2153,7 +2153,7 @@ static void game_server_iter(float dt)
         }, curr_file_name, status,
            ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
 #else
-        /* HACK: OK, but now, with WGCL's standalone gamenet first! */
+        /* HACK: OK, but now, with WGCL's standalone game network first! */
 
         account_wgcl_mapmarkers_place(curr_file_name, status,
                                       ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));

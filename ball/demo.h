@@ -67,7 +67,6 @@ struct demo
     int    times;                       /* Total time                        */
 
     float  speedpercent;                /* Speed in Percent                  */
-
 };
 
 /*---------------------------------------------------------------------------*/

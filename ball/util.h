@@ -18,7 +18,7 @@
 #if _WIN32
 #define _CRT_NB_UTIL_DEPRECATED(_Type, _Params, _Func, _Replaces) \
     __declspec(deprecated(                                        \
-        "This function or variable has been superceded by "       \
+        "This function or variable has been superseded by "       \
         "newer game UI or game logic functionality. Consider "    \
         "using " #_Replaces " instead."                           \
     )) _Type _Func _Params
@@ -26,7 +26,7 @@
 #define _CRT_NB_UTIL_DEPRECATED(_Type, _Params, _Func, _Replaces) \
     _Type _Func _Params                                           \
     __attribute__ ((deprecated(                                   \
-        "This function or variable has been superceded by "       \
+        "This function or variable has been superseded by "       \
         "newer game UI or game logic functionality. Consider "    \
         "using " #_Replaces " instead."                           \
     )))

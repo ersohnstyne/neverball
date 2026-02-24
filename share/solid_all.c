@@ -387,7 +387,7 @@ void sol_rotate(float e[3][3], const float w[3], float dt)
 
 /*
  * Compute the new angular velocity and orientation of a ball pendulum.
- * A gives the accelleration of the ball.  G gives the gravity vector.
+ * A gives the acceleration of the ball.  G gives the gravity vector.
  */
 void sol_pendulum(struct v_ball *up,
                   const float a[3],
@@ -530,7 +530,7 @@ void sol_swch_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
         }
         else
         {
-            /* First additive, then substractive, and so on */
+            /* First additive, then subtractive, and so on */
 
             if (xp->base->f) curr_path_enabled_orcondition[xp->base->pi]++;
             else             curr_path_enabled_orcondition[xp->base->pi]--;

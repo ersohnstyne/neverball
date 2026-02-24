@@ -22,4 +22,7 @@ libjpeg project.
 * The source files `share/miniz.[ch]` are included verbatim from the
 miniz project (https://github.com/richgel999/miniz) and are licensed
 under the MIT license. See `doc/legal/license-miniz.txt`.
+* The source file `payments/parson.[ch]` is based on `parson.c` from the
+parson project (https://github.com/kgabis/parson) and are licensed
+under the MIT license.
 * Easings in the file `share/ease.c` are licensed under GPLv3.

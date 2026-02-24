@@ -532,7 +532,7 @@ static int transfer_process_have_account = 0;
 /*
  * insert the external drive (after startup and connect to the internet and remove from external drive after preparations)
  * move data from external drive (after loaded from external drive's source game)
- * transfer of wallet complete, profile transfer complete and highscore transfer completed (after deleted game transfer data from local pc)
+ * transfer of wallet complete, profile transfer complete and high score transfer completed (after deleted game transfer data from local pc)
  */
 static int transfer_gui(void)
 {
@@ -1548,7 +1548,7 @@ static void transfer_timer_process_target(float dt)
 
         log_printf("Campaign path from source to target: %s => %s\n", src_dirpath_campaign, target_dirpath_campaign);
         log_printf("Replay path from source to target: %s => %s\n", src_dirpath_demo, target_dirpath_demo);
-        log_printf("Highscores path from source to target: %s => %s\n", src_dirpath_hs, target_dirpath_hs);
+        log_printf("High scores path from source to target: %s => %s\n", src_dirpath_hs, target_dirpath_hs);
         log_printf("Screenshots path from source to target: %s => %s\n", src_dirpath_screenshots, target_dirpath_screenshots);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS

@@ -173,7 +173,7 @@ int goto_state_full_intent(struct state *st,
     anim_queue_state         = st;
     anim_queue_directions[0] = fromdirection;
     anim_queue_directions[1] = todirection;
-    anim_queue_allowskip     = noanimation;
+    anim_queue_allow_skip    = noanimation;
 
     if (anim_queue) return 1;
 
@@ -239,13 +239,13 @@ int goto_state_full_intent(struct state *st,
         r1 = goto_state_full_intent(anim_queue_state,
                                     anim_queue_directions[0],
                                     anim_queue_directions[1],
-                                    anim_queue_allowskip,
+                                    anim_queue_allow_skip,
                                     anim_queue_intent);
 
         anim_queue_state         = NULL;
         anim_queue_directions[0] = 0;
         anim_queue_directions[1] = 0;
-        anim_queue_allowskip     = 0;
+        anim_queue_allow_skip    = 0;
         anim_queue_intent        = -1;
     }
 

@@ -249,7 +249,7 @@ extern "C" int account_init(void)
 
     /*
      * Store index of each option in its associated config symbol and
-     * initialise current values with defaults.
+     * initialize current values with defaults.
      */
 
     for (int i = 0; i < ARRAYSIZE(account_d); i++)

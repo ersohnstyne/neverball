@@ -166,7 +166,7 @@ static void gui_stats(int id)
 
 /* Set the top three score list values. */
 
-static void gui_set_scores(const char *label, const struct score *s, int hilite)
+static void gui_set_scores(const char *label, const struct score *s, int highlight)
 {
     const char *name;
     int j, n = score_extra_row ? RANK_LAST : RANK_EASY;
@@ -190,7 +190,7 @@ static void gui_set_scores(const char *label, const struct score *s, int hilite)
         {
             name = s->player[j];
 
-            if (j == hilite)
+            if (j == highlight)
                 set_score_color(score_name[j], j, gui_grn, gui_red);
             else
                 gui_set_color(score_name[j], gui_yel, gui_wht);

@@ -408,7 +408,7 @@ static int intro_accn_disabled_enter(struct state *st, struct state *prev, int i
         if ((jd = gui_vstack(id)))
         {
             gui_multi(jd,
-                _("We recently received a report for bad behaviour\n"
+                _("We recently received a report for bad behavior\n"
                   "by your account. Our moderators have reviewed in case\n"
                   "and identified that goes against Pennyball Community Standards."),
                 GUI_SML, GUI_COLOR_WHT);

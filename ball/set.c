@@ -43,7 +43,7 @@
 
 struct set
 {
-    /* Levelset info                                                         */
+    /* Level set info                                                        */
 
     char file[PATHMAX];
 
@@ -53,9 +53,9 @@ struct set
     char *shot;                         /* Set screen-shot                   */
 
 #if NB_HAVE_PB_BOTH==1
-    int   star;                         /* Set completition stars (set)      */
-    int   star_prev;                    /* Set completition stars (current)  */
-    int   star_obtained;                /* Set completition stars (current)  */
+    int   star;                         /* Set stars (set)                   */
+    int   star_prev;                    /* Set stars (current)               */
+    int   star_obtained;                /* Set stars (current)               */
 
     int   balls_needed;                 /* Balls needed to start challenge   */
 #endif
@@ -172,11 +172,11 @@ void set_store_hs(void)
         fs_close(fp);
     }
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
-    else log_errorf("Failure to save set highscores!: %s / %s\n",
+    else log_errorf("Failure to save set high scores!: %s / %s\n",
                     config_cheat() ? s->cheat_scores : s->user_scores,
                     fs_error());
 #else
-    else log_errorf("Failure to save set highscores!: %s / %s\n",
+    else log_errorf("Failure to save set high scores!: %s / %s\n",
                     s->user_scores, fs_error());
 #endif
 }

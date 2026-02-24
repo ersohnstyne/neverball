@@ -57,8 +57,8 @@
 /*---------------------------------------------------------------------------*/
 
 /**
- * We will transfer user datas from the multiple source Neverball game to ONLY
- * Pennyball game user datas.
+ * We will transfer user data from the multiple source Neverball game to ONLY
+ * Pennyball game user data.
  *
  * FIXME: Copy this function reference into the file ball/st_conf.c below:
  *
@@ -457,9 +457,9 @@ static int transfer_gui(void)
                               GUI_SML, gui_wht, gui_wht);
                 break;
             case 3:
-                gui_multi(jd, _("The following set highscores is present on both PCs.\n"
+                gui_multi(jd, _("The following set high scores is present on both PCs.\n"
                                 "Performing the game transfer will replace\n"
-                                "the highscore on this game."),
+                                "the high score on this game."),
                               GUI_SML, gui_wht, gui_wht);
                 break;
             case 4:

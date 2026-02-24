@@ -159,9 +159,9 @@ static int get_max_game_stat()
     return stat_max;
 }
 
-static void set_max_game_stat(int currstat)
+static void set_max_game_stat(int curr_stat)
 {
-    stat_max = currstat;
+    stat_max = curr_stat;
 }
 
 static int get_limit_game_stat()

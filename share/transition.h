@@ -21,7 +21,7 @@
 #if _WIN32
 #define _CRT_NB_TRANSITION_DEPRECATED(_Type, _Params, _Func, _Replaces) \
     __declspec(deprecated(                                               \
-        "This function or variable has been superceded by newer UI "     \
+        "This function or variable has been superseded by newer UI "     \
         "animations functionality. Consider using " #_Replaces           \
         " instead."                                                      \
     )) _Type _Func _Params
@@ -29,7 +29,7 @@
 #define _CRT_NB_TRANSITION_DEPRECATED(_Type, _Params, _Func, _Replaces) \
     _Type _Func _Params                                                  \
     __attribute__ ((deprecated(                                          \
-        "This function or variable has been superceded by newer UI "     \
+        "This function or variable has been superseded by newer UI "     \
         "animations functionality. Consider using " #_Replaces           \
         " instead."                                                      \
     )))
@@ -40,7 +40,7 @@ void transition_quit(void);
 
 /*
  * This screenstate transition will be replaced into the transition_add_full.
- * Your functions will be replaced using two parameters.
+ * Your functions will be replaced using one parameters.
  */
 _CRT_NB_TRANSITION_DEPRECATED(void, (int id), transition_add, transition_add_full);
 
@@ -52,7 +52,7 @@ void transition_paint(void);
 
 /*
  * This screenstate transition will be replaced into the transition_slide_full.
- * Your functions will be replaced using four parameters.
+ * Your functions will be replaced using three parameters.
  */
 _CRT_NB_TRANSITION_DEPRECATED(int, (int id, int in, int intent), transition_slide, transition_slide_full);
 

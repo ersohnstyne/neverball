@@ -88,13 +88,13 @@ List dir_list_files(const char *path)
         opendriveapi_closedir(dir);
     }
 #elif _WIN32 && _MSC_VER
-    char outpath[MAXSTR];
-    sprintf_s(outpath, MAXSTR, "%s\\*", path);
+    char out_path[MAXSTR];
+    sprintf_s(out_path, MAXSTR, "%s\\*", path);
 
     WIN32_FIND_DATAA find_data;
     HANDLE hFind;
 
-    if ((hFind = FindFirstFileA(outpath, &find_data)) != INVALID_HANDLE_VALUE)
+    if ((hFind = FindFirstFileA(out_path, &find_data)) != INVALID_HANDLE_VALUE)
     {
         do {
             if (strcmp(find_data.cFileName, ".")  == 0 ||

@@ -110,7 +110,7 @@
 
 /*
  * 0 = None
- * 1 = Email or Playername
+ * 1 = Email or Player name
  * 2 = Password
  */
 static int login_entertext_mode = 0;

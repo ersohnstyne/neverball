@@ -94,7 +94,7 @@ void rfd_init(void)
 
     /*
      * Store index of each option in its associated config symbol and
-     * initialise current values with defaults.
+     * initialize current values with defaults.
      */
 
     for (i = 0; i < ARRAYSIZE(option_d); i++)

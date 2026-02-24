@@ -135,7 +135,7 @@ static int scan_level_attribs(struct level *l,
                 {
                     if ((campaign || pre_campaign) && werror_campaign)
                     {
-                        log_errorf("Switchball requires three premaded best time!\n");
+                        log_errorf("Switchball requires three pre-recorded best time!\n");
                         return 0;
                     }
                     else need_time_medm = 2;
@@ -144,7 +144,7 @@ static int scan_level_attribs(struct level *l,
                 {
                     if ((campaign || pre_campaign) && werror_campaign)
                     {
-                        log_errorf("Switchball requires three premaded best time!\n");
+                        log_errorf("Switchball requires three pre-recorded best time!\n");
                         return 0;
                     }
                     else need_time_easy = 1;
@@ -169,7 +169,7 @@ static int scan_level_attribs(struct level *l,
                 {
                     if ((campaign || pre_campaign) && werror_campaign)
                     {
-                        log_errorf("Switchball requires three premaded best time!\n");
+                        log_errorf("Switchball requires three pre-recorded best time!\n");
                         return 0;
                     }
                     else need_goal_medm = 2;
@@ -178,7 +178,7 @@ static int scan_level_attribs(struct level *l,
                 {
                     if ((campaign || pre_campaign) && werror_campaign)
                     {
-                        log_errorf("Switchball requires three premaded best time!\n");
+                        log_errorf("Switchball requires three pre-recorded best time!\n");
                         return 0;
                     }
                     else need_goal_easy = 1;

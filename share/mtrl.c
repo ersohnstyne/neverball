@@ -51,7 +51,7 @@
  * e.g., opaque materials that are reloaded as transparent becoming
  * invisible because they are unaccounted for.
  *
- * Obviously, features that require geometry recomputation, such as
+ * Obviously, features that require geometry precomputation, such as
  * "angle" normal smoothing feature, are not handled by the reloader.
  */
 

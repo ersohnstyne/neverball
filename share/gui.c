@@ -341,7 +341,7 @@ static void draw_disable(void)
  * top-to-bottom and left-to-right, triangle strips are arranged
  * left-to-right and top-to-bottom (one strip per row). Degenerate
  * triangles (two extra indices per stitch) are inserted for a
- * continous strip.
+ * continuous strip.
  */
 
 static const GLushort rect_elem_base[RECT_ELEM] = {
@@ -1652,7 +1652,7 @@ static void gui_button_up(int id)
     if (widget[id].h < video.device_h)
         widget[id].h += padding;
 
-    /* A button should be at least wide enough to accomodate the borders. */
+    /* A button should be at least wide enough to accommodate the borders. */
 
     if (widget[id].w < borders[0] + borders[1])
         widget[id].w = borders[0] + borders[1];
@@ -2025,7 +2025,7 @@ void gui_layout(int id, int xd, int yd)
 
     gui_render_text(id);
 
-    /* Hilite the widget under the cursor, if any. */
+    /* Highlight the widget under the cursor, if any. */
 
     gui_point(id, -1, -1);
 }
@@ -2081,7 +2081,7 @@ int gui_delete(int id)
 
     if (id && widget[id].type != GUI_FREE)
     {
-        /* Recursively delete all subwidgets. */
+        /* Recursively delete all sub-widgets. */
 
         gui_delete(widget[id].cdr);
         gui_delete(widget[id].car);
@@ -2249,7 +2249,7 @@ static void gui_paint_rect(int id, int st, int flags)
         case GUI_HSTACK:
         case GUI_VSTACK:
         case GUI_ROOT:
-            /* Recursively paint all subwidgets. */
+            /* Recursively paint all sub-widgets. */
 
             for (jd = widget[id].car; jd; jd = widget[jd].cdr)
                 gui_paint_rect(jd, i, flags);
@@ -2283,7 +2283,7 @@ static void gui_paint_array(int id)
 
         if (1.0f < ck || ck < 1.0f) gui_paint_array_pulse(id, cx, cy, ck);
 
-        /* Recursively paint all subwidgets. */
+        /* Recursively paint all sub-widgets. */
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -2817,7 +2817,7 @@ void gui_paint(int id)
         glEnable(GL_DEPTH_TEST);
     }
 
-    /* Should be used within the splitview? */
+    /* Should be used within the split-view? */
 #ifndef __EMSCRIPTEN__
     if (!video_get_grab() && !console_gui_shown() && cursor_st && cursor_id)
 #else

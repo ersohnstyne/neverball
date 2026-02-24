@@ -49,9 +49,9 @@
 
 #ifndef CONFIG_LOCALE
 #ifdef _WIN32
-#define CONFIG_LOCALE ".\\locale"     /* Game localisation */
+#define CONFIG_LOCALE ".\\locale"     /* Game localization */
 #else
-#define CONFIG_LOCALE "./locale"     /* Game localisation */
+#define CONFIG_LOCALE "./locale"     /* Game localization */
 #endif
 #endif
 

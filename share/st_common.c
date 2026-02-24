@@ -681,12 +681,12 @@ static int perf_warning_sampling_gui(int value)
         const int can_higher = value <= perf_warning_value;
 
         const char *s_lower =
-                   N_("Set this to lower multisample\n"
+                   N_("Set this to lower Antialiasing (Multisample)\n"
                       "decreases your video quality.\n"
                       "Lower this value?");
 
         const char *s_higher =
-                   N_("Set this to higher multisample\n"
+                   N_("Set this to higher Antialiasing (Multisample)\n"
                       "increases your video quality.\n"
                       "Higher this value?");
 
@@ -2145,7 +2145,7 @@ static int lang_gui(void)
                     gui_set_hilite(lang_id, (strcmp(config_get_s(CONFIG_LANGUAGE),
                                              desc->code) == 0));
 
-                    /* Set detailed locale informations. */
+                    /* Set detailed locale information. */
 
                     char lang_infotext[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS

@@ -517,6 +517,7 @@ MAPC_OBJS := \
 	share/mapclib.o     \
 	share/mapc.o
 BALL_OBJS := \
+	payments/parson.o   \
 	payments/currency_curl.o\
 	share/accessibility.o\
 	share/dbg_config.o  \

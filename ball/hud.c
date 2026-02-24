@@ -127,14 +127,14 @@ int hud_visibility(void)
 static void hud_fps(void)
 {
     char  perf_attr[MAXSTR];
-    float ms_latence = 1.f / video_perf();
+    float ms_latency = 1.f / video_perf();
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(perf_attr, MAXSTR,
 #else
     sprintf(perf_attr,
 #endif
-            "FPS: %d (%.3f ms)", video_perf(), ms_latence);
+            "FPS: %d (%.3f ms)", video_perf(), ms_latency);
 
     gui_set_label(fps_id, perf_attr);
 }
@@ -578,7 +578,7 @@ void hud_update(int pulse, float animdt)
 
     /* balls and score + select coin widget */
 
-    int livecoins = score + coins;
+    int live_coins = score + coins;
 
     switch (curr_mode())
     {
@@ -591,8 +591,8 @@ void hud_update(int pulse, float animdt)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         case MODE_HARDCORE:
 #endif
-            if (gui_value(ball_id) != balls)     gui_set_count(ball_id, 0);
-            if (gui_value(scor_id) != livecoins) gui_set_count(scor_id, livecoins);
+            if (gui_value(ball_id) != balls)      gui_set_count(ball_id, 0);
+            if (gui_value(scor_id) != live_coins) gui_set_count(scor_id, live_coins);
 
             c_id = coin_id;
             break;
@@ -623,7 +623,7 @@ void hud_update(int pulse, float animdt)
 
         if (pulse && last > 0)
         {
-            /* Standard gamemode */
+            /* Standard game mode */
             if      (last >= 10) gui_pulse(coin_id, 2.00f);
             else if (last >=  5) gui_pulse(coin_id, 1.50f);
             else                 gui_pulse(coin_id, 1.25f);
@@ -635,7 +635,7 @@ void hud_update(int pulse, float animdt)
                 else                 gui_pulse(goal_id, 1.25f);
             }
 
-            /* Broadband gamemode */
+            /* Broadband game mode */
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             if (curr_mode() == MODE_CHALLENGE  ||
                 curr_mode() == MODE_BOOST_RUSH ||
@@ -650,7 +650,7 @@ void hud_update(int pulse, float animdt)
             }
         }
 
-        gui_set_count(scor_id, livecoins);
+        gui_set_count(scor_id, live_coins);
     }
 
     int hundred_score = ROUND(score / 100);

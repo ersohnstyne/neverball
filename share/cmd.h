@@ -30,7 +30,7 @@
     )) _Element
 #define _CRT_NB_CMD_DEPRECATED_REPLACE(_Element, _Replaces) \
     __declspec(deprecated(                                  \
-        "This function or variable has been superceded by " \
+        "This function or variable has been superseded by " \
         "newer commands functionality. Consider using "     \
         #_Replaces " instead."                              \
     )) _Element
@@ -42,7 +42,7 @@
     )))
 #define _CRT_NB_CMD_DEPRECATED_REPLACE(_Element, _Replaces) \
     _Element __attribute__ ((deprecated(                    \
-        "This function or variable has been superceded by " \
+        "This function or variable has been superseded by " \
         "newer commands functionality. Consider using "     \
         #_Replaces " instead."                              \
     )))

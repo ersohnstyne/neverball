@@ -1158,7 +1158,7 @@ int main_share(int argc, char *argv[])
 #endif
 #endif
 
-        /* Intitialize accessibility. */
+        /* Initialize accessibility. */
 
         accessibility_init();
 #if NB_STEAM_API==0 && NB_EOS_SDK==0

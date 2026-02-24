@@ -196,14 +196,16 @@ int load_title_background(void)
     return 0;
 }
 
-static const char *check_unlocked_demo(struct demo *rawdemo)
+static const char *check_unlocked_demo(struct demo *raw_demo)
 {
-    const int limit = config_get_d(CONFIG_ACCOUNT_LOAD);
-    const int max   = rawdemo->status == 3 ? 3 :
-                     (rawdemo->status == 1 || rawdemo->status == 0) ? 2 :
-                     (rawdemo->status == 2) ? 1 : 0;
+    if (!raw_demo) return NULL;
 
-    return (max <= limit) ? rawdemo->path : NULL;
+    const int limit = config_get_d(CONFIG_ACCOUNT_LOAD);
+    const int max   = raw_demo->status == 3 ? 3 :
+                     (raw_demo->status == 1 || rawdemo->status == 0) ? 2 :
+                     (raw_demo->status == 2) ? 1 : 0;
+
+    return (max <= limit) ? raw_demo->path : NULL;
 }
 
 static const char *pick_demo(Array items)
@@ -1202,7 +1204,7 @@ static int title_gui(void)
                     gui_state(id, gt_prefix("menu^Exit"),
                                   btn_size, GUI_BACK, 0);
 
-                /* Hilight the start button. */
+                /* Highlight the start button. */
 
                 gui_set_hilite(play_id, 1);
                 gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 0.8f, 1.0f, 0.05f);
@@ -1687,7 +1689,7 @@ static int title_buttn(int b, int d)
 {
     if (title_gui_wgcl_version_enabled) return 1;
 
-    /* Lockscreen menu */
+    /* Lock screen menu */
 
     if (title_lockscreen)
     {

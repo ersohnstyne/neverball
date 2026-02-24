@@ -24,7 +24,7 @@
 #define DEMO_QUARANTINED_MODE
 
 /*
- * This replays locks down completly permanent,
+ * This replays locks down completely permanent,
  * when using COVID 19 support.
  */
 //#define DEMO_LOCKDOWN_COMPLETE

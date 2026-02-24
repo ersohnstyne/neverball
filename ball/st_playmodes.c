@@ -200,9 +200,9 @@ static int playmodes_gui(void)
                         _(career_text),
                         _(career_text_locked));
 
-        int hardc_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE)
+        int hardcore_unlocked = (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_HARDCORE)
                            || campaign_hardcore_unlocked());
-        int hardc_requirement = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
+        int hardcore_requirement = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                !config_cheat() &&
 #endif
@@ -226,7 +226,7 @@ static int playmodes_gui(void)
         else if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE))
         {
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
-            const char *career_text_locked = !hardc_requirement ?
+            const char *career_text_locked = !hardcore_requirement ?
                                              N_("Hardcore Mode is not available\n"
                                                 "with slowdown, cheat or smooth fix.") :
                                              N_("Achieve all Silver Medals or above in Best Time\n"
@@ -239,7 +239,7 @@ static int playmodes_gui(void)
                                                 "to unlock this Mode.");
 #endif
 
-            playmodes_state(id, PLAYMODES_HARDCORE, 0, hardc_unlocked && hardc_requirement,
+            playmodes_state(id, PLAYMODES_HARDCORE, 0, hardcore_unlocked && hardcore_requirement,
                             mode_to_str(MODE_HARDCORE, 1),
                             _("Play the entire game without dying once."),
                             career_text_locked);

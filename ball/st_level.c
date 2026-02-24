@@ -101,13 +101,13 @@ struct state st_level_signin_required;
 
 /*---------------------------------------------------------------------------*/
 
-static int level_check_playername(const char *regname)
+static int level_check_playername(const char *reg_name)
 {
-    for (int i = 0; i < text_length(regname); i++)
+    for (int i = 0; i < text_length(reg_name); i++)
     {
-        if (regname[i] == '\\' || regname[i] == '/' || regname[i] == ':'  ||
-            regname[i] == '*'  || regname[i] == '?' || regname[i] == '"'  ||
-            regname[i] == '<'  || regname[i] == '>' || regname[i] == '|')
+        if (reg_name[i] == '\\' || reg_name[i] == '/' || reg_name[i] == ':'  ||
+            reg_name[i] == '*'  || reg_name[i] == '?' || reg_name[i] == '"'  ||
+            reg_name[i] == '<'  || reg_name[i] == '>' || reg_name[i] == '|')
             return 0;
     }
 
@@ -1237,7 +1237,7 @@ int goto_exit(void)
 
     if (dst)
     {
-        /* Visit the auxilliary screen or exit to level selection. */
+        /* Visit the auxiliary screen or exit to level selection. */
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         exit_state(dst != curr ? dst : campaign_used() ? &st_campaign : &st_start);

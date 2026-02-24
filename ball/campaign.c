@@ -231,7 +231,7 @@ void campaign_store_hs(void)
 
         fs_close(fp);
     }
-    else log_errorf("Save campaign highscores failed!: %s / %s\n", time_trial_leaderboard, fs_error());
+    else log_errorf("Save campaign high scores failed!: %s / %s\n", time_trial_leaderboard, fs_error());
 }
 
 static void campaign_load_hs_v2(fs_file fp, char *buf, int size)
@@ -830,9 +830,9 @@ int campaign_load_camera_box_trigger(const char *levelname)
              *
              * Especially, 64 units called 1 metres.
              *
-             * Autocam files must be placed in the directory
-             * "buildin-map-campaign" in the data folder, so it can be
-             * test your camera modes in a single level.
+             * Auto camera files (autocam-level-%NUMBER%.txt) must be placed in
+             * the directory "buildin-map-campaign" in the data folder, so it
+             * can be test your camera modes in a single level.
              */
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             if (sscanf_s(camLinePrefix,

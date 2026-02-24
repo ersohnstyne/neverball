@@ -33,7 +33,7 @@ static int cmd_stats = 0;
  * A command's "write" and "read" functions are defined by calling the
  * PUT_FUNC or the GET_FUNC macro, respectively, with the command type
  * as argument, followed by the body of the function (which has
- * variables "fp" and "cmd" available), and finalised with the
+ * variables "fp" and "cmd" available), and finalized with the
  * END_FUNC macro, which must be terminated with a semi-colon.  Before
  * the function definitions, the BYTES macro must be redefined for
  * each command to an expression evaluating to the number of bytes
@@ -509,7 +509,7 @@ int cmd_get(fs_file fp, union cmd *cmd)
     {
         size = get_short(fp);
 
-        /* Discard unrecognised commands. */
+        /* Discard unrecognized commands. */
 
         if (type >= CMD_MAX)
         {

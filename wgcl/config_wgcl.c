@@ -529,7 +529,7 @@ void WGCL_CallHighscoreDataUI_LevelSet(void)
     }
 
     /*
-     * Note that array will be freed automatically upon succesfully scanned
+     * Note that array will be freed automatically upon successfully scanned
      * by the WGCL's game options (faster, but improvement).
      */
 

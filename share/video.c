@@ -888,7 +888,7 @@ video_mode_failinit_window_context:
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-    /* If that mode failed, get the soloution. */
+    /* If that mode failed, get the solution. */
 
     if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
     {
@@ -915,7 +915,7 @@ video_mode_failinit_window_context:
     /* If THAT mode failed, punt. */
 #else
 #if defined(ENABLE_MULTISAMPLE_SOLUTION)
-    /* Get the soloution first. */
+    /* Get the solution first. */
 
     if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
     {
@@ -1393,7 +1393,7 @@ video_mode_auto_config_failinit_window_context:
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-    /* Get the soloution first. */
+    /* Get the solution first. */
 
     if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
     {

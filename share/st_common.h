@@ -54,7 +54,6 @@ int  common_click(int b, int d);
 int  common_keybd(int c, int d);
 int  common_buttn(int b, int d);
 
-
 /*---------------------------------------------------------------------------*/
 
 void conf_common_init(int (*action_fn)(int, int), int allowfade);

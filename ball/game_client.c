@@ -983,34 +983,27 @@ void game_disable_fade(int e)
 
 void game_kill_fade(void)
 {
-    gd.fade_disabled = 1;
+    //gd.fade_disabled = 1;
 
-    gd.fade_k = 0.0f;
-    gd.fade_d = 0.0f;
-}
-
-void game_kill_fade(void)
-{
     gd.fade_k = 0.0f;
     gd.fade_d = 0.0f;
 }
 
 void game_step_fade(float dt)
 {
-    if ((gd.fade_k < 1.0f && gd.fade_d > 0.0f) ||
+    /*if ((gd.fade_k < 1.0f && gd.fade_d > 0.0f) ||
         (gd.fade_k > 0.0f && gd.fade_d < 0.0f))
         gd.fade_k += gd.fade_d * dt;
 
-    if (gd.fade_k < 0.0f)
-    {
+    if (gd.fade_k < 0.0f) {
         gd.fade_k = 0.0f;
         gd.fade_d = 0.0f;
-    }
-    if (gd.fade_k > 1.0f)
-    {
+    } if (gd.fade_k > 1.0f) {
         gd.fade_k = 1.0f;
         gd.fade_d = 0.0f;
-    }
+    }*/
+
+    gd.fade_k = CLAMP(0.0f, gd.fade_k + gd.fade_d * dt, 1.0f);
 }
 
 void game_fade(float d)
@@ -1149,8 +1142,7 @@ static void game_client_next_studio_map(void)
 
         game_kill_fade();
     }
-    else
-        studio_map_index--;
+    else studio_map_index--;
 }
 
 void game_client_step_safetyintro(float);

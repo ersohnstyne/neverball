@@ -274,6 +274,8 @@ static int   title_can_unlock = 1;
 static int   title_lockscreen_gamename_id;
 static int   title_lockscreen_press_id;
 
+static int   title_intro_animation;
+
 static int   title_freeze_all;
 static int   title_prequit;
 
@@ -1398,8 +1400,6 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
     progress_reinit(MODE_NONE);
 
-    title_freeze_all = 0;
-
     /* Initialize the build-in nor title level for display. */
 
     game_fade_color(0.0f, 0.0f, 0.0f);
@@ -1419,9 +1419,11 @@ static int title_enter(struct state *st, struct state *prev, int intent)
         mode = TITLE_MODE_LEVEL;
     else mode = TITLE_MODE_NONE;
 
-    real_time = 0.0f;
+    title_freeze_all      = 0;
+    real_time             = 0.0f;
+    title_intro_animation = intent != INTENT_BACK;
 
-    if (intent == INTENT_BACK)
+    if (!title_intro_animation)
         return transition_slide(title_gui_main, 1, intent);
 
     return title_gui_main;
@@ -1638,6 +1640,9 @@ static void title_stick(int id, int a, float v, int bump)
 
 static int title_click(int b, int d)
 {
+    if (time_state() < 0.1f ||
+        (title_intro_animation && time_state() < 2.0f)) return 1;
+
     if (title_lockscreen && title_can_unlock &&
         b == SDL_BUTTON_LEFT && d)
     {
@@ -1658,6 +1663,9 @@ static int title_click(int b, int d)
 
 static int title_keybd(int c, int d)
 {
+    if (time_state() < 0.1f ||
+        (title_intro_animation && time_state() < 2.0f)) return 1;
+
     if (title_lockscreen || title_gui_wgcl_version_enabled) return 1;
 
     if (d)
@@ -1687,6 +1695,9 @@ static int title_keybd(int c, int d)
 
 static int title_buttn(int b, int d)
 {
+    if (time_state() < 0.1f ||
+        (title_intro_animation && time_state() < 2.0f)) return 1;
+
     if (title_gui_wgcl_version_enabled) return 1;
 
     /* Lock screen menu */

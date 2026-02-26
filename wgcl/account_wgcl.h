@@ -52,7 +52,7 @@ int  account_wgcl_do_buy(int w_coins_cost, int flags);
 
 void account_wgcl_post_sync(const char *, const char *);
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 int account_wgcl_mapmarkers_place(const char *, int, int, int, int);
 #endif
 

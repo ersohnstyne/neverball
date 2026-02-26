@@ -1528,11 +1528,10 @@ void account_wgcl_post_sync(const char *uuid4, const char *player_name)
 #endif
 }
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#ifndef __EMSCRIPTEN__
 int account_wgcl_mapmarkers_place(const char *map_name, int status, int x_cm, int y_cm, int z_cm)
 {
 #if _WIN32 && _MSC_VER
-#if NB_HAVE_PB_BOTH==1
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
     sprintf_s(in_url, 512,
@@ -1623,9 +1622,6 @@ int account_wgcl_mapmarkers_place(const char *map_name, int status, int x_cm, in
 account_wgcl_mapmarkers_place_fail:
     free(res_data.data);
     return 0;
-#else
-    return 1;
-#endif
 #else
     return 1;
 #endif

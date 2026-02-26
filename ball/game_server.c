@@ -2144,20 +2144,13 @@ static void game_server_iter(float dt)
 #endif
                                  )) != GAME_NONE)
     {
-#if NB_HAVE_PB_BOTH==1
-#ifdef __EMSCRIPTEN__
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
         /* HACK: OK, but now, with WGCL's Emscripten first! */
 
         const int r = EM_ASM_INT({
             return Neverball.gamecore_mapmarker_try_place(UTF8ToString($0), $1, $2, $3, $4);
         }, curr_file_name, status,
            ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
-#else
-        /* HACK: OK, but now, with WGCL's standalone game network first! */
-
-        account_wgcl_mapmarkers_place(curr_file_name, status,
-                                      ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
-#endif
 #elif defined(__EMSCRIPTEN__)
         EM_ASM({
             const server_internal_url = "/api/internal/mapmarkers/place";
@@ -2194,6 +2187,11 @@ static void game_server_iter(float dt)
                 })
             });
         });
+#else
+        /* HACK: OK, but now, with WGCL's standalone game network first! */
+
+        account_wgcl_mapmarkers_place(curr_file_name, status,
+                                      ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
 #endif
         game_cmd_status();
     }

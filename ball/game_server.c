@@ -2152,25 +2152,28 @@ static void game_server_iter(float dt)
         }, curr_file_name, status,
            ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
 #elif defined(__EMSCRIPTEN__)
-        EM_ASM({
+        const int r1 = EM_ASM_INT({
             const server_internal_url = "/api/internal/mapmarkers/place";
             const external_url = "https://pennyball.stynegame.de/api/internal/mapmarkers/place";
-
-            var internal_server_used = false;
 
             try {
                 const parsedUrl = new URL(window.location.href);
 
                 const regexMatchURL = "/pennyball\.stynegame\.de$/";
                 if (regexMatchURL instanceof RegExp) {
-                    internal_server_used = regexMatchURL.test(parsedUrl.href);
+                    return regexMatchURL.test(parsedUrl.href) ? 1 : 0;
                 } else if (typeof regexMatchURL === "string") {
-                    internal_server_used = parsedUrl.href.toLowerCase().includes(regexMatchURL.toLowerCase());
+                    return parsedUrl.href.toLowerCase().includes(regexMatchURL.toLowerCase()) ? 1 : 0;
                 }
-            } catch (e) {}
+            } catch (e) { return 0; }
+        });
 
-            fetch(internal_server_used ? server_internal_url : external_url, {
-                method:"POST",
+        EM_ASM({
+            const server_internal_url = "/api/internal/mapmarkers/place";
+            const external_url = "https://pennyball.stynegame.de/api/internal/mapmarkers/place";
+
+            fetch($0 == 1 ? server_internal_url : external_url, {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Accept" : "application/json"
@@ -2180,13 +2183,11 @@ static void game_server_iter(float dt)
                     map_name: map_name,
                     status_type: status_type,
                     position: {
-                        x: pos_x_cm,
-                        y: pos_y_cm,
-                        z: pos_z_cm
+                        x: pos_x_cm, y: pos_y_cm, z: pos_z_cm
                     }
                 })
             });
-        });
+        }, r1);
 #else
         /* HACK: OK, but now, with WGCL's standalone game network first! */
 

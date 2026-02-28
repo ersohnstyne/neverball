@@ -2176,18 +2176,18 @@ static void game_server_iter(float dt)
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Accept" : "application/json"
+                    "Accept": "application/json"
                 },
                 body: JSON.stringify({
                     fetch_post_date_iso: new Date().toISOString(),
-                    map_name: map_name,
-                    status_type: status_type,
+                    map_name: UTF8ToString($1),
+                    status_type: $2,
                     position: {
-                        x: pos_x_cm, y: pos_y_cm, z: pos_z_cm
+                        x: $3, y: $4, z: $5
                     }
                 })
             });
-        }, r1);
+        }, r1, curr_file_name, status, ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
 #else
         /* HACK: OK, but now, with WGCL's standalone game network first! */
 

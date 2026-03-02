@@ -177,14 +177,40 @@ int text_input_del(void)
 
 int text_input_paste(void)
 {
-#if _WIN32 && _MSC_VER
-    HANDLE clip;
+    char *clip_text = SDL_GetClipboardText();
 
-    if (OpenClipboard(0))
+    if (clip_text && *clip_text && text_length(clip_text) > 0)
     {
-        clip = GetClipboardData(CF_TEXT);
+        SAFECAT(text_input, clip_text);
+        free(clip_text);
 
-        SAFECPY(text_input, (char *) clip);
+        CALLBACK(0);
+        return 1;
+    }
+#if _WIN32 && _MSC_VER
+    else if (OpenClipboard(0))
+    {
+        int done = 0;
+
+        HANDLE  clip_handle_windows   = GetClipboardData(CF_TEXT);
+        char   *clip_text_windows     = 0;
+        size_t  clip_text_windows_amt = 0;
+
+        if (clip_handle_windows)
+        {
+            LPTSTR tmp_text = (LPTSTR) GlobalLock(clip_handle_windows);
+
+            if (tmp_text && *tmp_text)
+                done = wcstombs_s(&clip_text_windows_amt, &clip_text_windows, MAXSTR, tmp_text, MAXSTR) == 0;
+
+            GlobalUnlock(clip_handle_windows);
+        }
+
+        if (clip_text_windows && *clip_text_windows)
+            SAFECAT(text_input, clip_text_windows);
+
+        if (clip_text && *clip_text) free(clip_text);
+        free(clip_text_windows);
 
 #ifndef NDEBUG
         assert(CloseClipboard());

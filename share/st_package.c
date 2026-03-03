@@ -623,7 +623,7 @@ static int package_gui(void)
                 install_id = 0;
                 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-                if (current_platform != PLATFORM_PC || console_gui_shown())
+                if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
                 {
                     if ((ld = gui_hstack(kd)))

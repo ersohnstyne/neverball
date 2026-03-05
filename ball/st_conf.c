@@ -2939,6 +2939,8 @@ static void conf_shared_timer(int id, float dt)
 
 static int null_enter(struct state *st, struct state *prev, int intent)
 {
+    if (prev == &st_null) return 0;
+
 #if ENABLE_MOTIONBLUR!=0
     video_motionblur_quit();
 #endif
@@ -2972,6 +2974,8 @@ static int null_enter(struct state *st, struct state *prev, int intent)
 
 static int null_leave(struct state *st, struct state *next, int id, int intent)
 {
+    if (next == &st_null) return 0;
+
     online_mode = 0;
 
     if (mainmenu_conf)

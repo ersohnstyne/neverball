@@ -325,8 +325,8 @@ void part_goal(const float *p)
 
             v_cpy(goal_part[i].c, goal_part[i].c_i);
             goal_part[i].c[0] *= 1.0f;
-            goal_part[i].c[1] *= 0.25f;
-            goal_part[i].c[2] *= 1.0f;
+            goal_part[i].c[1] *= 1.0f;
+            goal_part[i].c[2] *= 0.0f;
             goal_part[i].c[0]  = CLAMP(0.0f, goal_part[i].c[0] + rnd(-goal_part[i].c_ri[0], goal_part[i].c_ri[0]), 1.0f);
             goal_part[i].c[1]  = CLAMP(0.0f, goal_part[i].c[1] + rnd(-goal_part[i].c_ri[1], goal_part[i].c_ri[1]), 1.0f);
             goal_part[i].c[2]  = CLAMP(0.0f, goal_part[i].c[2] + rnd(-goal_part[i].c_ri[2], goal_part[i].c_ri[2]), 1.0f);

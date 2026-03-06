@@ -777,6 +777,7 @@ static int video_action(int tok, int val)
 
         case VIDEO_SCREENANIMATIONS:
             config_set_d(CONFIG_SCREEN_ANIMATIONS, val);
+            config_set_d(CONFIG_TRANSITIONS,       val);
             goto_state(&st_video);
 
             config_save();
@@ -949,10 +950,10 @@ static int video_gui(void)
 #endif
 
 #if NB_HAVE_PB_BOTH==1
-        conf_toggle_simple(id, _("Screen animations"), VIDEO_SCREENANIMATIONS,
+        conf_toggle_simple(id, _("Screen animations / UI Transitions"), VIDEO_SCREENANIMATIONS,
                                config_get_d(CONFIG_SCREEN_ANIMATIONS), 1, 0);
 #else
-        conf_toggle(id, _("Screen animations"), VIDEO_SCREENANIMATIONS,
+        conf_toggle(id, _("Screen animations / UI Transitions"), VIDEO_SCREENANIMATIONS,
                         config_get_d(CONFIG_SCREEN_ANIMATIONS), _("On"), 1, _("Off"), 0);
 #endif
 
@@ -1096,7 +1097,8 @@ enum
     VIDEO_ADVANCED_ANISO,
     VIDEO_ADVANCED_VSYNC,
     VIDEO_ADVANCED_MULTISAMPLE,
-    VIDEO_ADVANCED_TEXTURES
+    VIDEO_ADVANCED_TEXTURES,
+    VIDEO_ADVANCED_TRANSITIONS
 };
 
 static struct state *video_advanced_back;
@@ -1396,6 +1398,13 @@ static int video_advanced_action(int tok, int val)
 #endif
             break;
 
+        case VIDEO_ADVANCED_TRANSITIONS:
+            config_set_d(CONFIG_SCREEN_ANIMATIONS, val);
+            config_set_d(CONFIG_TRANSITIONS,       val);
+            config_save();
+            goto_state(&st_video_advanced);
+            break;
+
         case VIDEO_ADVANCED_SMOOTH_FIX:
             config_set_d(CONFIG_SMOOTH_FIX, val);
             config_save();
@@ -1652,6 +1661,11 @@ static int video_advanced_gui(void)
 
         conf_toggle(id, _("Textures"), VIDEO_ADVANCED_TEXTURES,
                         config_get_d(CONFIG_TEXTURES), _("High"), 1, _("Low"), 2);
+
+        gui_space(id);
+
+        conf_toggle(id, _("Screen Animations / UI Transitions"), VIDEO_ADVANCED_TRANSITIONS,
+                        config_get_d(CONFIG_TRANSITIONS), _("On"), 1, _("Off"), 0);
 #endif
         gui_layout(id, 0, 0);
     }

@@ -76,6 +76,7 @@ extern int CONFIG_MOUSE_SENSE;
 extern int CONFIG_MOUSE_RESPONSE;
 extern int CONFIG_MOUSE_INVERT;
 extern int CONFIG_VSYNC;
+extern int CONFIG_TRANSITIONS;
 extern int CONFIG_HMD;
 extern int CONFIG_HIGHDPI;
 extern int CONFIG_MOUSE_CAMERA_1;

@@ -1347,6 +1347,7 @@ int gui_image(int pd, const char *file, int w, int h)
         widget[id].text_w  = ROUND(((float) w / (float) s) * 1000.0f);
         widget[id].text_h  = ROUND(((float) h / (float) s) * 1000.0f);
         widget[id].flags  |= GUI_RECT;
+        widget[id].flags  |= GUI_CLIP;
 
         gui_widget_size(id);
         gui_img_used = 0;
@@ -1423,6 +1424,7 @@ int gui_label(int pd, const char *text, int size, const GLubyte *c0,
 #endif
         widget[id].color1 = c1 ? c1 : gui_red;
         widget[id].flags |= GUI_RECT;
+        widget[id].flags |= GUI_CLIP;
         gui_widget_size(id);
     }
     return id;
@@ -2337,7 +2339,30 @@ static void gui_paint_image(int id)
 
         glBindTexture_(GL_TEXTURE_2D, widget[id].image);
         glColor4ub(GUI_COLOR4UB);
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+        if (widget[id].flags & GUI_CLIP)
+        {
+            glScissor(
+                widget[id].x + widget[id].offset_x,
+                widget[id].y + widget[id].offset_y,
+                widget[id].w,
+                widget[id].h
+            );
+            glEnable(GL_SCISSOR_TEST);
+        }
+#endif
+
         draw_image(id);
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+        if (widget[id].flags & GUI_CLIP)
+            glDisable(GL_SCISSOR_TEST);
+#endif
+
 
         gui_paint_hmdexperience_pop();
     }
@@ -2613,7 +2638,30 @@ static void gui_paint_label(int id)
 
         glBindTexture_(GL_TEXTURE_2D, widget[id].image);
         glColor4ub(GUI_COLOR4UB);
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+        if (widget[id].flags & GUI_CLIP)
+        {
+            glScissor(
+                widget[id].x + widget[id].offset_x,
+                widget[id].y + widget[id].offset_y,
+                widget[id].w,
+                widget[id].h
+            );
+            glEnable(GL_SCISSOR_TEST);
+        }
+#endif
+
         draw_text(id);
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+        if (widget[id].flags & GUI_CLIP)
+            glDisable(GL_SCISSOR_TEST);
+#endif
 
         gui_paint_hmdexperience_pop();
     }
@@ -2796,6 +2844,9 @@ void gui_paint(int id)
             video_set_ortho();
 
         glDisable(GL_DEPTH_TEST);
+
+        const float GUI_SCL = widget[id].w > video.device_w ? (float)((float)video.device_w / (float)widget[id].w) : 1.0f;
+        glScalef(GUI_SCL, GUI_SCL, GUI_SCL);
 
         gui_animate(id);
 

@@ -120,6 +120,7 @@ int CONFIG_MOUSE_SENSE;
 int CONFIG_MOUSE_RESPONSE;
 int CONFIG_MOUSE_INVERT;
 int CONFIG_VSYNC;
+int CONFIG_TRANSITIONS;
 int CONFIG_HMD;
 int CONFIG_HIGHDPI;
 int CONFIG_MOUSE_CAMERA_1;
@@ -291,6 +292,7 @@ static struct
     { &CONFIG_MOUSE_RESPONSE, "mouse_response", 50 },
     { &CONFIG_MOUSE_INVERT,   "mouse_invert", 0 },
     { &CONFIG_VSYNC,          "vsync",        1 },
+    { &CONFIG_TRANSITIONS,    "uitransitions", 1 },
     { &CONFIG_HMD,            "hmd",          0 },
     { &CONFIG_HIGHDPI,        "highdpi",      1 },
 
@@ -804,6 +806,16 @@ void config_load(void)
 
         dirty = 0;
         config_busy = 0;
+    }
+
+    if (config_get_d(CONFIG_SCREEN_ANIMATIONS) !=
+        config_get_d(CONFIG_TRANSITIONS))
+    {
+        log_errorf("screen_animation (%d) does not matched uitransitions (%d)!\n",
+                   config_get_d(CONFIG_SCREEN_ANIMATIONS),
+                   config_get_d(CONFIG_TRANSITIONS));
+        config_set_d(CONFIG_SCREEN_ANIMATIONS, 1);
+        config_set_d(CONFIG_TRANSITIONS, 1);
     }
 }
 

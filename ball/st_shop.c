@@ -1183,20 +1183,6 @@ static int shop_iap_gui(void)
                 gui_set_slide(jd, GUI_S | GUI_EASE_ELASTIC, 0.0f, 0.8f, 0.0f);
         }
 
-#if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1 && \
-    !defined(__NDS__) && !defined(__3DS__) && \
-    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
-        if (multipage && video.aspect_ratio < 1.0f)
-        {
-            if (iap_page) gui_state(jd, _("Switch to Coins"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
-            else          gui_state(jd, _("Switch to Gems"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
-
-            if (shop_iap_intro_animation)
-                gui_set_slide(jd, GUI_S | GUI_EASE_ELASTIC, 0.0f, 0.8f, 0.0f);
-        }
-#endif
-
         if (curr_min > 0)
         {
             /* Since that is tested the mission tasks like "Learn to fly 3" */
@@ -1385,6 +1371,23 @@ static int shop_iap_gui(void)
             }
         }
 
+#if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+        if (multipage && video.aspect_ratio < 1.0f)
+        {
+            int switchbtn_id = 0;
+
+            gui_space(id);
+            if (iap_page) switchbtn_id = gui_state(id, _("Switch to Coins"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
+            else          switchbtn_id = gui_state(id, _("Switch to Gems"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
+
+            if (shop_iap_intro_animation)
+                gui_set_slide(switchbtn_id, GUI_S | GUI_EASE_ELASTIC, 0.8f, 0.8f, 0.05f);
+        }
+#endif
+
 #if defined(CONFIG_INCLUDES_ACCOUNT) && !defined(__EMSCRIPTEN__)
         if (server_policy_get_d(SERVER_POLICY_EDITION) >= 10000
          && ((account_get_d(ACCOUNT_DATA_WALLET_COINS) / 5) >= 1
@@ -1395,7 +1398,7 @@ static int shop_iap_gui(void)
             const int export_id = gui_state(id, _("Export to Expenses"), GUI_SML, SHOP_IAP_EXPORT, 0);
 
             if (shop_iap_intro_animation)
-                gui_set_slide(export_id, GUI_S | GUI_EASE_ELASTIC, 0.8f, 0.8f, 0.05f);
+                gui_set_slide(export_id, GUI_S | GUI_EASE_ELASTIC, 0.8f + (video.aspect_ratio < 1.0f ? 0.05f : 0.0f), 0.8f, 0.05f);
         }
 #endif
         gui_layout(id, 0, 0);

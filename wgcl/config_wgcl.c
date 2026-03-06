@@ -590,7 +590,7 @@ void WGCL_LoadGameSystemSettings(void)
 #ifdef __EMSCRIPTEN__
     EM_ASM({ systemsettings_conf_game_tutorial         = $0; }, config_get_d(CONFIG_ACCOUNT_TUTORIAL));
     EM_ASM({ systemsettings_conf_game_hint             = $0; }, config_get_d(CONFIG_ACCOUNT_HINT));
-    EM_ASM({ systemsettings_conf_screenanimations      = $0; }, config_get_d(CONFIG_SCREEN_ANIMATIONS));
+    EM_ASM({ systemsettings_conf_screenanimations      = $0; }, config_get_d(CONFIG_SCREEN_ANIMATIONS) && config_get_d(CONFIG_TRANSITIONS));
     EM_ASM({ systemsettings_conf_gfx_textures          = $0; }, config_get_d(CONFIG_TEXTURES));
     EM_ASM({ systemsettings_conf_gfx_smoothfix_flags   = $0; }, config_get_d(CONFIG_SMOOTH_FIX));
     EM_ASM({ systemsettings_conf_gfx_shadows           = $0; }, config_get_d(CONFIG_SHADOW));
@@ -621,6 +621,7 @@ void WGCL_SaveGameSystemSettings(void)
     config_set_d(CONFIG_ACCOUNT_TUTORIAL,    EM_ASM_INT({ return systemsettings_conf_game_tutorial;                        }));
     config_set_d(CONFIG_ACCOUNT_HINT,        EM_ASM_INT({ return systemsettings_conf_game_hint;                            }));
     config_set_d(CONFIG_SCREEN_ANIMATIONS,   EM_ASM_INT({ return systemsettings_conf_screenanimations;                     }));
+    config_set_d(CONFIG_TRANSITIONS,         EM_ASM_INT({ return systemsettings_conf_screenanimations;                     }));
     config_set_d(CONFIG_TEXTURES,            EM_ASM_INT({ return systemsettings_conf_gfx_textures;                         }));
     config_set_d(CONFIG_SMOOTH_FIX,          EM_ASM_INT({ return systemsettings_conf_gfx_smoothfix_flags;                  }));
     config_set_d(CONFIG_SHADOW,              EM_ASM_INT({ return systemsettings_conf_gfx_shadows;                          }));

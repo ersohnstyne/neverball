@@ -50,6 +50,10 @@
 #include "state.h"
 #include "st_level.h"
 
+#if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
+#include "st_operator.h"
+#endif
+
 #include "cmd.h"
 
 #if NB_HAVE_PB_BOTH==1 && !defined(MAPC_INCLUDES_CHKP)
@@ -80,6 +84,8 @@ static struct cmd_state cs;             /* Command state                     */
 
 struct game_sol_version { int x, y; }
        version;                         /* Current map version               */
+
+static float fixed_death_position[3];
 
 /*---------------------------------------------------------------------------*/
 
@@ -226,7 +232,11 @@ static void game_run_cmd(const union cmd *cmd)
             case CMD_SOUND:
                 /* Play the sound. */
 
+#if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
+                if (!game_status_goal && cmd->sound.n && !demo_operator_activated())
+#else
                 if (!game_status_goal && cmd->sound.n)
+#endif
                 {
 #if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
                     if (strcmp(AUD_TIME, cmd->sound.n) == 0 ||
@@ -272,6 +282,17 @@ static void game_run_cmd(const union cmd *cmd)
                     part_goal(gl.lerp.uv[0][0].p);
                     game_camshake_init();
                 }
+
+                if (status == GAME_FALL || status == GAME_TIME)
+                    v_cpy(fixed_death_position, gl.lerp.uv[0]->p);
+
+#if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
+                if (demo_operator_activated())
+                    operator_send_incident_from_replay(status,
+                                                       gl.lerp.uv[0]->p[0],
+                                                       gl.lerp.uv[0]->p[1],
+                                                       gl.lerp.uv[0]->p[2]);
+#endif
 
                 break;
 
@@ -480,7 +501,7 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
 
     if (!mtli) return 0;
 
-    //while (st_global_animating());
+    while (st_global_animating());
 
     char *back_name = "", *grad_name = "";
 
@@ -557,7 +578,7 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
 
     gd.fade_k =  1.0f;
     gd.fade_d = -2.0f;
-
+    
     /* FIXME: Let Mojang done one of these! */
 
     gd.mojang_death_enabled_flags = 0;
@@ -685,10 +706,11 @@ int  game_client_init(const char *file_name)
      */
 
 #if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
-    coins  = last_active ? checkpoints_respawn_coins() : 0;
+    coins = last_active ? checkpoints_respawn_coins() : 0;
 #else
-    coins  = 0;
+    coins = 0;
 #endif
+
     speedometer      = 0;
     status           = GAME_NONE;
     game_status_goal = 0;
@@ -724,6 +746,11 @@ int  game_client_init(const char *file_name)
         game_base_free(NULL);
         return (gd.state = 0);
     }
+
+#if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
+    if (demo_operator_activated())
+        demo_operator_map_name(file_name);
+#endif
 
     gd.state = 1;
 
@@ -856,6 +883,7 @@ void game_client_free(const char *next)
     {
         gd.state = 0;
 
+        game_draw_set_maxspeed(0.0f, 0);
         game_proxy_clr();
 
         back_free();
@@ -876,6 +904,8 @@ int game_client_get_jump_b(void)
 }
 
 /*---------------------------------------------------------------------------*/
+
+static float client_view_center_fixed[3];
 
 void game_client_blend(float a)
 {
@@ -901,7 +931,7 @@ void game_client_draw(int pose, float t)
 
                 gd.mojang_death_time_now = t;
             }
-            else v_cpy(client_view_center_fixed, gd.vary.uv[0].p);
+            else v_cpy(client_view_center_fixed, fixed_death_position); // Was: gd.vary.uv[0].p
 
             gd.mojang_death_enabled_flags = 1;
         } else gd.mojang_death_view_angle = V_DEG(fatan2f(gd.view.e[2][0], gd.view.e[2][2]));
@@ -911,7 +941,10 @@ void game_client_draw(int pose, float t)
         if (gd.mojang_death_enabled_flags)
             game_view_death(&gd.view, client_view_center_fixed, 0, gd.mojang_death_view_angle);
 
-        game_draw(&gd, ball_visible ? pose : POSE_LEVEL, t);
+#if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
+        if (!demo_operator_activated())
+#endif
+            game_draw(&gd, ball_visible ? pose : POSE_LEVEL, t);
     }
 }
 
@@ -1041,7 +1074,7 @@ void  game_client_toggle_sound(int enabled)
 #define STUDIO_MAX_TIME_MEDIUM 2.5f
 #define STUDIO_MAX_TIME_FAST 1.0f
 
-static int studio_safetyintro;
+static int studio_safetyintro = 1;
 
 static int studio_map_index = 12;
 static float studio_time_length;

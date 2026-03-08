@@ -2997,13 +2997,22 @@ void gui_timer(int id, float dt)
         if ((widget[id].flags & GUI_OFFSET) && widget[id].slide_time < widget[id].slide_delay + widget[id].slide_dur)
         {
             float alpha = 0.0f;
+            int at_end = 0;
 
             widget[id].slide_time += dt;
 
-            alpha = (widget[id].slide_time - widget[id].slide_delay) / widget[id].slide_dur;
-            alpha = CLAMP(0.0f, alpha, 1.0f);
+            if (config_get_d(CONFIG_TRANSITIONS) == 0)
+            {
+                alpha = 1.0f;
+                at_end = 1;
+            }
+            else
+            {
+                alpha = (widget[id].slide_time - widget[id].slide_delay) / widget[id].slide_dur;
+                alpha = CLAMP(0.0f, alpha, 1.0f);
 
-            const int at_end = (alpha >= 1.0f);
+                at_end = (alpha >= 1.0f);
+            }
 
             if (widget[id].slide_flags & GUI_BACKWARD)
             {

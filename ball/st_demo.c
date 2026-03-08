@@ -52,6 +52,10 @@
 #include "st_shared.h"
 #include "st_conf.h"
 
+#if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
+#include "st_operator.h"
+#endif
+
 #if defined(__WII__)
 /* We're using SDL 1.2 on Wii, which has SDLKey instead of SDL_Keycode. */
 typedef SDLKey SDL_Keycode;
@@ -129,7 +133,7 @@ static int allow_exact_versions = 0;
 
 static int st_demo_version_read(fs_file fp, struct demo *d)
 {
-    const int demo_file_magic = get_index(fp);
+    const int demo_file_magic   = get_index(fp);
     const int demo_file_version = get_index(fp);
 
     if (demo_file_magic == DEMO_MAGIC) return 0;
@@ -271,9 +275,14 @@ static int demo_action(int tok, int val)
             stat_limit_busy = 0;
 
             /* Make sure, that the status limit is underneath it. */
-
+#if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
+            if (!config_cheat() && 
+                (get_max_game_stat() > get_limit_game_stat() ||
+                time_max_minutes > time_limit_minutes))
+#else
             if (get_max_game_stat() > get_limit_game_stat() ||
                 time_max_minutes > time_limit_minutes)
+#endif
             {
                 /* Max status exceeds limits! Set reported replay. */
                 set_replay_report(df->player, status_to_str(df->status));
@@ -304,6 +313,19 @@ static int demo_action(int tok, int val)
                     /* Stop execution. */
                     return goto_state(&st_demo_restricted);
                 }
+
+#if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
+                if (config_cheat())
+                {
+                    demo_operator_init();
+
+                    if (progress_replay(demo_path))
+                    {
+                        last_viewed = selected;
+                        return goto_operator_search();
+                    }
+                }
+#endif
             }
 
             if (progress_replay(demo_path))
@@ -391,7 +413,7 @@ static void gui_demo_update_thumbs(void)
 {
     struct dir_item *item;
     struct demo     *demo;
-    
+
     for (int i = 0;
          i < ARRAYSIZE(thumbs) && thumbs[i].shot_id && thumbs[i].name_id;
          i++)
@@ -516,7 +538,7 @@ static int gui_demo_status(int id)
             if ((ld = gui_vstack(kd)))
             {
                 gui_filler(ld);
-                
+
                 name_id   = gui_label(ld, "XXXXXXXXXXXXXXXXX", GUI_SML, 0, 0);
                 player_id = gui_label(ld, "XXXXXXXXXXXXXXXXX", GUI_SML, 0, 0);
                 date_id   = gui_label(ld, "XXXXXXXXXXXXXXXXX", GUI_SML, 0, 0);
@@ -970,6 +992,10 @@ static int demo_gui(void)
 
 static int demo_enter(struct state *st, struct state *prev, int intent)
 {
+#if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
+    demo_operator_quit();
+#endif
+
     is_opened = 0; availibility = 0;
     game_proxy_filter(NULL);
 
@@ -1444,7 +1470,7 @@ static void demo_play_timer(int id, float dt)
         if (demo_timer_curr < 1000 && !demo_timer_warning)
         {
             demo_timer_warning = 1;
-            audio_music_fade_to(.1f, "bgm/time-warning.ogg", 1);
+            //audio_music_fade_to(.1f, "bgm/time-warning.ogg", 1);
         }
 
         if      (demo_timer_curr < 1    && speed > SPEED_SLOWESTESTEST)

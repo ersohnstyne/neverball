@@ -1,6 +1,9 @@
 #ifndef MAIN_SHARE_H
 #define MAIN_SHARE_H
 
+/**
+ * Used for linux or win32 cli main entry function point
+ */
 int main_share(int, char **);
 
 #ifdef __EMSCRIPTEN__

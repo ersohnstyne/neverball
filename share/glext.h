@@ -27,6 +27,15 @@
 #include <windows.h>
 #endif
 
+/*
+ * HACK: GL/GLEXT features were ignored by D3D12 versions, which they came from
+ * Visual Studio for Windows. See documentation, how to get started:
+ *
+ * https://learn.microsoft.com/en-us/windows/win32/direct3d12/directx-12-programming-guide
+ *
+ * - Ersohn Styne
+ */
+#ifndef VIDEO_DIRECTX12
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #else
@@ -35,6 +44,9 @@
 
 #ifndef _WIN32
 #include <GL/glext.h>
+#endif
+#elif !defined(_MSC_VER)
+#error Use Visual Studio for Windows to compile for the best experiences!
 #endif
 
 /* Windows calling convention cruft. */
@@ -337,6 +349,11 @@ int glext_get_recommended(void);
 /* of the extensions we use. Otherwise, GetProc them regardless of whether   */
 /* they need it or not.                                                      */
 
+#define glPushScissor_(_x, _y, _w, _h) \
+    do { glScissor(_x, _y, _w, _h); glEnable(GL_SCISSOR_TEST); } while (0)
+#define glPopScissor_() \
+    glDisable(GL_SCISSOR_TEST)
+
 #if ENABLE_OPENGL_ES || \
     defined(__EMSCRIPTEN__)
 
@@ -578,4 +595,5 @@ struct gl_info
 extern struct gl_info gli;
 
 /*---------------------------------------------------------------------------*/
+
 #endif

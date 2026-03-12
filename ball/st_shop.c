@@ -1434,8 +1434,21 @@ static void shop_iap_paint(int id, float t)
 
 static int shop_iap_keybd(int c, int d)
 {
-    if (d && c == KEY_EXIT)
-        return shop_iap_action(GUI_BACK, 0);
+    if (d) {
+        if (c == KEY_EXIT)
+            return shop_iap_action(GUI_BACK, 0);
+#ifndef __EMSCRIPTEN__
+        else if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c) &&
+                 multipage &&
+                 (!config_get_d(CONFIG_SCREEN_ANIMATIONS) || time_state() > 0.16f)) {
+            shop_iap_intro_animation = 0;
+            iap_page = !iap_page;
+
+            if (iap_page) return goto_state(curr_state());
+            else return exit_state(curr_state());
+        }
+#endif
+    }
 
     return 1;
 }

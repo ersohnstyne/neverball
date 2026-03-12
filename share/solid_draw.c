@@ -776,10 +776,8 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
     if (k > 0.0f)
     {
         glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
         glLoadIdentity();
         glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
         glLoadIdentity();
         {
             unsigned char motionblur_c[4] = DRAW_COLOR4UBV_CNF_MOTIONBLUR;
@@ -804,10 +802,6 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
             glEnable(GL_TEXTURE_2D);
             glEnable(GL_DEPTH_TEST);
         }
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        glPopMatrix();
     }
 }
 

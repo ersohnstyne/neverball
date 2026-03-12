@@ -2291,15 +2291,12 @@ static void gui_paint_array(int id)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
         if (widget[id].flags & GUI_CLIP)
-        {
-            glScissor(
+            glPushScissor_(
                 widget[id].x + widget[id].offset_x,
                 widget[id].y + widget[id].offset_y,
                 widget[id].w,
                 widget[id].h
             );
-            glEnable(GL_SCISSOR_TEST);
-        }
 #endif
 
         for (int jd = widget[id].car; jd; jd = widget[jd].cdr)
@@ -2309,7 +2306,7 @@ static void gui_paint_array(int id)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
         if (widget[id].flags & GUI_CLIP)
-            glDisable(GL_SCISSOR_TEST);
+            glPopScissor_();
 #endif
     }
     glPopMatrix();
@@ -2343,15 +2340,12 @@ static void gui_paint_image(int id)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
         if (widget[id].flags & GUI_CLIP)
-        {
-            glScissor(
+            glPushScissor_(
                 widget[id].x + widget[id].offset_x,
                 widget[id].y + widget[id].offset_y,
                 widget[id].w,
                 widget[id].h
             );
-            glEnable(GL_SCISSOR_TEST);
-        }
 #endif
 
         draw_image(id);
@@ -2360,7 +2354,7 @@ static void gui_paint_image(int id)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
         if (widget[id].flags & GUI_CLIP)
-            glDisable(GL_SCISSOR_TEST);
+            glPopScissor_();
 #endif
 
 
@@ -2643,15 +2637,12 @@ static void gui_paint_label(int id)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
         if (widget[id].flags & GUI_CLIP)
-        {
-            glScissor(
+            glPushScissor_(
                 widget[id].x + widget[id].offset_x,
                 widget[id].y + widget[id].offset_y,
                 widget[id].w,
                 widget[id].h
             );
-            glEnable(GL_SCISSOR_TEST);
-        }
 #endif
 
         draw_text(id);
@@ -2660,7 +2651,7 @@ static void gui_paint_label(int id)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
         if (widget[id].flags & GUI_CLIP)
-            glDisable(GL_SCISSOR_TEST);
+            glPopScissor_();
 #endif
 
         gui_paint_hmdexperience_pop();

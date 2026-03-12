@@ -62,11 +62,6 @@
 #include <emscripten/html5.h>
 #endif
 
-#if _MSC_VER
-#pragma comment(lib, "SDL2.lib")
-#pragma comment(lib, "SDL2main.lib")
-#endif
-
 #include <stdio.h>
 #include <string.h>
 
@@ -177,14 +172,6 @@ extern "C" {
 
 #if __cplusplus
 }
-#endif
-
-#if _DEBUG && _MSC_VER
-#ifndef _CRTDBG_MAP_ALLOC
-#pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
 #endif
 
 #if NB_STEAM_API==1
@@ -2291,10 +2278,6 @@ static void main_quit(void)
 #if NB_STEAM_API==1
     /* We're done here */
     SteamAPI_Shutdown();
-#endif
-
-#if _WIN32 && _MSC_VER && _DEBUG && defined(_CRTDBG_MAP_ALLOC)
-    _CrtDumpMemoryLeaks();
 #endif
 
 #if defined(__GAMECUBE__) && defined(__WII__)

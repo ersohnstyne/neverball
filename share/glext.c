@@ -20,6 +20,8 @@
 #include <SDL2/SDL.h>
 #elif _WIN32 && _MSC_VER
 #include <SDL.h>
+#pragma comment(lib, "glu32.lib")
+#pragma comment(lib, "opengl32.lib")
 #elif _WIN32
 #error Security compilation error: No target include file in path for Windows specified!
 #else

@@ -384,18 +384,18 @@ static void game_draw_maxspeed(struct s_rend *rend,
     if (max_speed_enabled)
     {
         glTranslatef(vary->uv[0].p[0],
-            vary->uv[0].p[1] + BALL_FUDGE,
-            vary->uv[0].p[2]);
+                     vary->uv[0].p[1] + BALL_FUDGE,
+                     vary->uv[0].p[2]);
         glRotatef(max_speed_angle + view_angle,
-            0.0f, 90.0f, 0.0f);
+                  0.0f, 90.0f, 0.0f);
         glScalef(vary->uv[0].r,
-            vary->uv[0].r,
-            vary->uv[0].r);
+                 vary->uv[0].r,
+                 vary->uv[0].r);
 
         glColor4ub(ROUND(c[0] * 255),
-            ROUND(c[1] * 255),
-            ROUND(c[2] * 255),
-            ROUND(c[3] * 255));
+                   ROUND(c[1] * 255),
+                   ROUND(c[2] * 255),
+                   ROUND(c[3] * 255));
         maxspeed_draw(rend);
     }
 
@@ -1084,10 +1084,7 @@ static void game_shadow_conf(int pose, int enable)
                 break;
         }
     }
-    else
-    {
-        tex_env_active(&tex_env_default);
-    }
+    else tex_env_active(&tex_env_default);
 }
 
 void game_draw(struct game_draw *gd, int pose, float t)

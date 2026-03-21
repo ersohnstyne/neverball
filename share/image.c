@@ -276,8 +276,7 @@ GLuint make_image_from_font(int *W, int *H,
 
                 src = orig;
             }
-            else
-                SDL_FreeSurface(orig);
+            else SDL_FreeSurface(orig);
 
             /* Pad the text to power-of-two. */
 
@@ -343,15 +342,16 @@ void size_image_from_font(int *W, int *H,
 
 /*---------------------------------------------------------------------------*/
 
+#if !_MSC_VER && !defined(__APPLE__) && !defined(__WII__)
 /*
  * Load an image from the named file.  Return an SDL surface.
  */
 SDL_Surface *load_surface(const char *filename)
 {
-    void  *p;
-    int    w;
-    int    h;
-    int    b;
+    void *p;
+    int   w;
+    int   h;
+    int   b;
 
     SDL_Surface *srf = NULL;
 
@@ -369,5 +369,6 @@ SDL_Surface *load_surface(const char *filename)
     }
     return srf;
 }
+#endif
 
 /*---------------------------------------------------------------------------*/

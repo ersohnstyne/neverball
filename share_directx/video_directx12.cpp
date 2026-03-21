@@ -184,6 +184,7 @@ UINT8          *g_mappedCbModelObject[VIDEO_D3D12_MAX_FRAME_COUNT];
 
 static BOOL g_dx12Inited       = FALSE;
 static BOOL g_renderViewInited = FALSE;
+static BOOL g_framePrepared    = FALSE;
 
 #ifdef _DEBUG
 bool m_debugLayerEnabled = false;
@@ -624,10 +625,10 @@ extern "C" BOOL video_directx12_resize(int window_w, int window_h)
 
     g_currentFrame = g_swapChain->GetCurrentBackBufferIndex();
 
-    return true;
+    return TRUE;
 }
 
-extern "C" int video_directx12_set_window_size(int w, int h)
+extern "C" void video_directx12_set_window_size(int w, int h)
 {
     POINT pos { 0, 0 };
     GetCursorPos(&pos);
@@ -662,7 +663,7 @@ extern "C" int video_directx12_set_window_size(int w, int h)
         SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 }
 
-extern "C" int video_directx12_set_display(int dpy)
+extern "C" void video_directx12_set_display(int dpy)
 {
     UINT displayCount = 0;
     static RECT displayRects[9]{
@@ -1329,6 +1330,10 @@ extern "C" void video_directx12_prepare_cbv(const int ui, const int lit, const i
 
 extern "C" BOOL video_directx12_swap(void)
 {
+    if (!g_framePrepared) return TRUE;
+
+    g_framePrepared = FALSE;
+
     if (config_get_d(CONFIG_MULTISAMPLE) > 1) {
         NextResourceState(g_msaaRenderTarget.Get(), &g_msaaRenderTargetState, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
 
@@ -1356,10 +1361,26 @@ extern "C" BOOL video_directx12_swap(void)
         Ensure_HRESULT(hr);
 
     Ensure(NextFrame());
+
+    return TRUE;
+}
+
+extern "C" BOOL video_directx12_prepare_frame(void)
+{
+    if (g_framePrepared) return TRUE;
+
+    Ensure_HRESULT(g_cmdAllocators[g_currentFrame]->Reset());
+    Ensure_HRESULT(g_cmdList->Reset(g_cmdAllocators[g_currentFrame].Get(), g_psoDefault.Get()));
+
+    g_framePrepared = TRUE;
+
+    return TRUE;
 }
 
 extern "C" BOOL video_directx12_clear(void)
 {
+    if (!g_framePrepared) return TRUE;
+
     RECT gameRect;
     GetClientRect(g_hWnd, &gameRect);
 
@@ -1370,9 +1391,6 @@ extern "C" BOOL video_directx12_clear(void)
     D3D12_CPU_DESCRIPTOR_HANDLE dsv = config_get_d(CONFIG_MULTISAMPLE) > 1 ? g_msaaDsvHeap->GetCPUDescriptorHandleForHeapStart() : g_dsvHeap->GetCPUDescriptorHandleForHeapStart();
 
     const float c_clearColor[4] = { 0, 0, 0, 0 };
-
-    Ensure_HRESULT(g_cmdAllocators[g_currentFrame]->Reset());
-    Ensure_HRESULT(g_cmdList->Reset(g_cmdAllocators[g_currentFrame].Get(), g_psoDefault.Get()));
 
     if (config_get_d(CONFIG_MULTISAMPLE) > 1) {
         NextResourceState(g_msaaRenderTarget.Get(), &g_msaaRenderTargetState, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -1400,6 +1418,56 @@ extern "C" HRESULT directx12_next_resource_state(ID3D12Resource2       *ptr_reso
                                                  D3D12_RESOURCE_STATES  next_state)
 {
     Ensure_HRESULT(NextResourceState(ptr_resource, curr_state, next_state));
+    return S_OK;
+}
+
+extern "C" HRESULT directx12_create_buffer(UINT size, D3D12_RESOURCE_BUFFER_OBJECT *obj)
+{
+    CD3DX12_HEAP_PROPERTIES uploadHeap(D3D12_HEAP_TYPE_UPLOAD);
+    auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(size);
+
+    for (UINT i = 0; i < size; i++)
+        Ensure_HRESULT(
+            g_d3d12Device->CreateCommittedResource(
+                &uploadHeap,
+                D3D12_HEAP_FLAG_NONE,
+                &bufferDesc,
+                D3D12_RESOURCE_STATE_GENERIC_READ,
+                nullptr,
+                IID_PPV_ARGS(&obj[i].m_objectResource)
+            ));
+
+    return S_OK;
+}
+
+extern "C" void directx12_delete_buffer(UINT size, D3D12_RESOURCE_BUFFER_OBJECT *obj)
+{
+    for (UINT i = 0; i < size; i++)
+        if (obj[i].m_objectResource != nullptr) obj[i].m_objectResource.Reset();
+}
+
+extern "C" HRESULT directx12_set_buffer_data(D3D12_RESOURCE_BUFFER_OBJECT obj, long size, PVOID data)
+{
+    Ensure_HRESULT(NextResourceState(obj.m_objectResource.Get(), &obj.m_objectResourceState, D3D12_RESOURCE_STATE_GENERIC_READ));
+
+    void *mappedData = nullptr;
+    D3D12_RANGE readRange = { 0, 0 }; // We do not intend to read this resource on CPU
+    Ensure_HRESULT(obj.m_objectResource->Map(0, &readRange, &mappedData));
+    memcpy((char *) mappedData, data, size);
+    obj.m_objectResource->Unmap(0, nullptr);
+
+    return S_OK;
+}
+
+extern "C" HRESULT directx12_set_buffer_subdata(D3D12_RESOURCE_BUFFER_OBJECT obj, long offset, long size, PVOID data)
+{
+    Ensure_HRESULT(NextResourceState(obj.m_objectResource.Get(), &obj.m_objectResourceState, D3D12_RESOURCE_STATE_GENERIC_READ));
+
+    void *mappedData = nullptr;
+    D3D12_RANGE readRange = { 0, 0 }; // We do not intend to read this resource on CPU
+    Ensure_HRESULT(obj.m_objectResource->Map(0, &readRange, &mappedData));
+    memcpy((char *) mappedData + offset, data, size);
+    obj.m_objectResource->Unmap(0, nullptr);
 
     return S_OK;
 }
@@ -1463,6 +1531,23 @@ extern "C" void directx12_matrix_rotatef(float angle, float vaxis[3])
 
     g_mat_modelview[g_mat_modelview_depthRemaining] =
         DirectX::XMMatrixRotationAxis(axis, angle) *
+        g_mat_modelview[g_mat_modelview_depthRemaining];
+}
+
+extern "C" void directx12_matrix_set(float m[16])
+{
+    DirectX::XMFLOAT4X4 tab = DirectX::XMFLOAT4X4(m);
+
+    g_mat_modelview[g_mat_modelview_depthRemaining] =
+        DirectX::XMLoadFloat4x4(&tab);
+}
+
+extern "C" void directx12_matrix_multiply(float m[16])
+{
+    DirectX::XMFLOAT4X4 tab = DirectX::XMFLOAT4X4(m);
+
+    g_mat_modelview[g_mat_modelview_depthRemaining] =
+        DirectX::XMLoadFloat4x4(&tab) *
         g_mat_modelview[g_mat_modelview_depthRemaining];
 }
 

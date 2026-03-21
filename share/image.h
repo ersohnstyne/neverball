@@ -51,7 +51,9 @@ void   size_image_from_font(int *, int *,
                             int *, int *, const char *, TTF_Font *);
 GLuint make_texture(const void *, int, int, int, int);
 
+#if !_MSC_VER && !defined(__APPLE__) && !defined(__WII__)
 SDL_Surface *load_surface(const char *);
+#endif
 
 /*---------------------------------------------------------------------------*/
 

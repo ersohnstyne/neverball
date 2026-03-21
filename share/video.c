@@ -211,7 +211,7 @@ static SDL_Window    *window;
 static SDL_GLContext  context;
 #endif
 
-#if !_MSC_VER && !defined(__APPLE__) && !defined(__WII__)
+#if !_MSC_VER && !defined(__APPLE__) && !defined(__EMSCRIPTEN__) && !defined(__WII__)
 static void set_window_icon(const char *filename)
 {
     if (!window) return;
@@ -722,7 +722,7 @@ video_mode_reconf:
 
     if (window && context)
     {
-#if !_MSC_VER && !defined(__APPLE__)
+#if !_MSC_VER && !defined(__APPLE__) && !defined(__EMSCRIPTEN__) && !defined(__WII__)
         set_window_icon(ICON);
 #endif
 
@@ -1275,7 +1275,7 @@ video_mode_auto_config_reconf:
 
     if (window && context)
     {
-#if !_MSC_VER && !defined(__APPLE__)
+#if !_MSC_VER && !defined(__APPLE__) && !defined(__EMSCRIPTEN__) && !defined(__WII__)
         set_window_icon(ICON);
 #endif
 

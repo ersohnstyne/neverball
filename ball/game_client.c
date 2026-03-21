@@ -1024,18 +1024,6 @@ void game_kill_fade(void)
 
 void game_step_fade(float dt)
 {
-    /*if ((gd.fade_k < 1.0f && gd.fade_d > 0.0f) ||
-        (gd.fade_k > 0.0f && gd.fade_d < 0.0f))
-        gd.fade_k += gd.fade_d * dt;
-
-    if (gd.fade_k < 0.0f) {
-        gd.fade_k = 0.0f;
-        gd.fade_d = 0.0f;
-    } if (gd.fade_k > 1.0f) {
-        gd.fade_k = 1.0f;
-        gd.fade_d = 0.0f;
-    }*/
-
     gd.fade_k = CLAMP(0.0f, gd.fade_k + gd.fade_d * dt, 1.0f);
 }
 

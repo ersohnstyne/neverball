@@ -33,8 +33,7 @@ static int _ft_is_init = 0;
 
 int font_load(struct font *ft, const char *path, int sizes[FONT_SIZE_MAX])
 {
-    if (!_ft_is_init)
-        font_init();
+    if (!_ft_is_init) font_init();
 
     if (_ft_is_init)
     {
@@ -57,11 +56,8 @@ int font_load(struct font *ft, const char *path, int sizes[FONT_SIZE_MAX])
                 }
                 return 1;
             }
-            else
-            {
-                log_errorf("Failure to load font: %s / %s\n",
-                           path, fs_error());
-            }
+            else log_errorf("Failure to load font: %s / %s\n",
+                            path, fs_error());
         }
     }
     else
@@ -101,9 +97,7 @@ void font_free(struct font *ft)
 
 int font_init(void)
 {
-    if (_ft_is_init)
-        font_quit();
-
+    if (_ft_is_init) font_quit();
     _ft_is_init = (TTF_Init() == 0);
 
     return _ft_is_init;

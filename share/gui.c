@@ -755,7 +755,6 @@ void gui_resize(void)
     for (i = 1; i < WIDGET_MAX; ++i)
         if (widget[i].type != GUI_FREE && (widget[i].flags & GUI_LAYOUT))
             gui_layout(i, widget[i].layout_xd, widget[i].layout_yd);
-
 }
 
 void gui_init(void)

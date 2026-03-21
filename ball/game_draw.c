@@ -890,7 +890,7 @@ static void game_draw_fore(struct s_rend *rend,
         if (d < 0) glEnable(GL_CLIP_PLANE0);
 
 #if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-        if (!config_cheat()) glEnable(GL_FOG);
+        //if (!config_cheat()) glEnable(GL_FOG);
 #endif
 
         if (draw && rend) switch (pose)
@@ -965,7 +965,7 @@ static void game_draw_fore(struct s_rend *rend,
         glDepthMask(GL_TRUE);
 
 #if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-        if (!config_cheat()) glDisable(GL_FOG);
+        //if (!config_cheat()) glDisable(GL_FOG);
 #endif
 
         if (d < 0) glDisable(GL_CLIP_PLANE0);
@@ -1045,9 +1045,9 @@ static void game_draw_fog()
     GLfloat fog_color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 #if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-    glFogfv(GL_FOG_COLOR,   fog_color);
-    glFogf (GL_FOG_MODE,    GL_EXP2);
-    glFogf (GL_FOG_DENSITY, 0.0125);
+    //glFogfv(GL_FOG_COLOR,   fog_color);
+    //glFogf (GL_FOG_MODE,    GL_EXP2);
+    //glFogf (GL_FOG_DENSITY, 0.0125);
 #endif
 }
 
@@ -1253,7 +1253,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
                 }
 
 #if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-                if (!config_cheat()) glEnable(GL_FOG);
+                //if (!config_cheat()) glEnable(GL_FOG);
 #endif
 
                 /* Draw the mirrors and the rest of the foreground. */
@@ -1262,7 +1262,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
                 game_draw_fore(&rend, gd, pose, T, +1, t, 0);
 
 #if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-                if (!config_cheat()) glDisable(GL_FOG);
+                //if (!config_cheat()) glDisable(GL_FOG);
 #endif
             }
         }

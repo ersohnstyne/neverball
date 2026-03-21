@@ -62,35 +62,31 @@ static int scan_level_attribs(struct level *l,
         char *v = base->av + base->dv[i].aj;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         /* CAMPAIGN */
-        if (strcmp(k, "campaign_level_difficulty") == 0)
-        {
-            if (campaign && !pre_campaign)
-            {
+
+        if (strcmp(k, "campaign_level_difficulty") == 0) {
+            if (campaign && !pre_campaign) {
                 int diff = atoi(v);
-                if (campaign_level_difficulty() <= diff)
-                {
+
+                if (campaign_level_difficulty() <= diff) {
                     campaign_upgrade_difficulty(diff);
                     difficulty_offered = 1;
-                }
-                else if(werror_campaign)
-                {
+                } else if (werror_campaign) {
                     log_errorf("Switchball does not offer descent or random difficulty!\n");
                     return 0;
                 }
             }
-
         }
         else
 #endif
         /* Player levels */
+
         if (strcmp(k, "message") == 0)
             SAFECPY(l->message, v);
         else if (strcmp(k, "song") == 0)
             SAFECPY(l->song, v);
         else if (strcmp(k, "shot") == 0)
             SAFECPY(l->shot, v);
-        else if (strcmp(k, "goal") == 0)
-        {
+        else if (strcmp(k, "goal") == 0) {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             if (!campaign || config_get_d(CONFIG_LOCK_GOALS))
 #else
@@ -101,26 +97,19 @@ static int scan_level_attribs(struct level *l,
                 mingoal   = atoi(v);
                 have_goal = 1;
             }
-        }
-        else if (strcmp(k, "time") == 0)
-        {
+        } else if (strcmp(k, "time") == 0) {
             maxtime = atoi(v);
-            if (campaign || pre_campaign)
-            {
-                if (maxtime > 0 && werror_campaign)
-                {
+
+            if (campaign || pre_campaign) {
+                if (maxtime > 0 && werror_campaign) {
                     log_errorf("Switchball does not offer limited time!\n");
                     return 0;
                 }
-            }
-            else if (maxtime > 0)
-            {
+            } else if (maxtime > 0) {
                 l->time   = maxtime;
                 have_time = 1;
             }
-        }
-        else if (strcmp(k, "time_hs") == 0)
-        {
+        } else if (strcmp(k, "time_hs") == 0) {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             switch (sscanf_s(v,
 #else
@@ -129,32 +118,25 @@ static int scan_level_attribs(struct level *l,
                            "%d %d %d",
                            &l->scores[SCORE_TIME].timer[RANK_HARD],
                            &l->scores[SCORE_TIME].timer[RANK_MEDM],
-                           &l->scores[SCORE_TIME].timer[RANK_EASY]))
-            {
+                           &l->scores[SCORE_TIME].timer[RANK_EASY])) {
                 case 1:
                 {
-                    if ((campaign || pre_campaign) && werror_campaign)
-                    {
+                    if ((campaign || pre_campaign) && werror_campaign) {
                         log_errorf("Switchball requires three pre-recorded best time!\n");
                         return 0;
-                    }
-                    else need_time_medm = 2;
+                    } else need_time_medm = 2;
                 }
                 case 2:
                 {
-                    if ((campaign || pre_campaign) && werror_campaign)
-                    {
+                    if ((campaign || pre_campaign) && werror_campaign) {
                         log_errorf("Switchball requires three pre-recorded best time!\n");
                         return 0;
-                    }
-                    else need_time_easy = 1;
+                    } else need_time_easy = 1;
                 }
                     break;
                 case 3: break;
             }
-        }
-        else if (strcmp(k, "goal_hs") == 0)
-        {
+        } else if (strcmp(k, "goal_hs") == 0) {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             switch (sscanf_s(v,
 #else
@@ -163,32 +145,25 @@ static int scan_level_attribs(struct level *l,
                            "%d %d %d",
                            &l->scores[SCORE_GOAL].timer[RANK_HARD],
                            &l->scores[SCORE_GOAL].timer[RANK_MEDM],
-                           &l->scores[SCORE_GOAL].timer[RANK_EASY]))
-            {
+                           &l->scores[SCORE_GOAL].timer[RANK_EASY])) {
                 case 1:
                 {
-                    if ((campaign || pre_campaign) && werror_campaign)
-                    {
+                    if ((campaign || pre_campaign) && werror_campaign) {
                         log_errorf("Switchball requires three pre-recorded best time!\n");
                         return 0;
-                    }
-                    else need_goal_medm = 2;
+                    } else need_goal_medm = 2;
                 }
                 case 2:
                 {
-                    if ((campaign || pre_campaign) && werror_campaign)
-                    {
+                    if ((campaign || pre_campaign) && werror_campaign) {
                         log_errorf("Switchball requires three pre-recorded best time!\n");
                         return 0;
-                    }
-                    else need_goal_easy = 1;
+                    } else need_goal_easy = 1;
                 }
                     break;
                 case 3: break;
             }
-        }
-        else if (strcmp(k, "coin_hs") == 0)
-        {
+        } else if (strcmp(k, "coin_hs") == 0) {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             switch (sscanf_s(v,
 #else
@@ -197,15 +172,12 @@ static int scan_level_attribs(struct level *l,
                            "%d %d %d",
                            &l->scores[SCORE_COIN].coins[RANK_HARD],
                            &l->scores[SCORE_COIN].coins[RANK_MEDM],
-                           &l->scores[SCORE_COIN].coins[RANK_EASY]))
-            {
+                           &l->scores[SCORE_COIN].coins[RANK_EASY])) {
                 case 1: need_coin_medm = 2; break;
                 case 2: need_coin_easy = 1; break;
                 case 3: break;
             }
-        }
-        else if (strcmp(k, "version") == 0)
-        {
+        } else if (strcmp(k, "version") == 0) {
             SAFECPY(l->version_str, v);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -215,8 +187,7 @@ static int scan_level_attribs(struct level *l,
 #endif
                            "%d", &l->version_num);
 
-            if (!r)
-            {
+            if (!r) {
                 log_errorf("SOL/SOLX key parameter \"version\" contains unknown version!\n");
                 return 0;
             }
@@ -236,38 +207,27 @@ static int scan_level_attribs(struct level *l,
                  *     return 0;
                  */
             }
-        }
-        else if (strcmp(k, "author") == 0)
+        } else if (strcmp(k, "author") == 0)
             SAFECPY(l->author, v);
-        else if (strcmp(k, "master") == 0)
-        {
+        else if (strcmp(k, "master") == 0) {
             int is_master = atoi(v) ? 1 : 0;
 
-            if ((campaign || pre_campaign) && is_master && werror_campaign)
-            {
+            if ((campaign || pre_campaign) && is_master && werror_campaign) {
                 log_errorf("Switchball does not offer master levels!\n");
                 return 0;
-            }
-            else
-                l->is_master = is_master;
-        }
-        else if (strcmp(k, "bonus") == 0)
-        {
+            } else l->is_master = is_master;
+        } else if (strcmp(k, "bonus") == 0) {
             int is_bonus = atoi(v) ? 1 : 0;
 
-            if ((campaign || pre_campaign) && is_bonus && werror_campaign)
-            {
+            if ((campaign || pre_campaign) && is_bonus && werror_campaign) {
                 log_errorf("Switchball does not offer bonus levels!\n");
                 return 0;
-            }
-            else
-                l->is_bonus = is_bonus;
+            } else l->is_bonus = is_bonus;
         }
     }
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    if (difficulty_offered == 0 && campaign)
-    {
+    if (difficulty_offered == 0 && campaign) {
         log_errorf("Switchball requires campaign level difficulty!\n");
         return 0;
     }
@@ -279,44 +239,45 @@ static int scan_level_attribs(struct level *l,
      * - Set to zeroed required coins
      */
 
-    if (base->zc == 0)
-    {
-        l->time = 0;
-        l->goal = 0;
+    if (base->zc == 0) {
+        l->time = 0; l->goal = 0;
 
-        maxtime = 360000;
-        mingoal = 0;
+        maxtime = 360000; mingoal = 0;
+
+#ifndef NDEBUG
+        if (!config_cheat()) return 0;
+#endif
     }
 
-    if (have_time)
-    {
+    if (have_time) {
         /* Best Time built-in limitations. */
 
         for (i = 0; i < 3; i++)
             for (int r = RANK_HARD; r < RANK_LAST; r++)
-                while (l->scores[i].timer[r] > maxtime)
-                {
-                    log_errorf("Hard limits detected!: Limit: %d ms; Current: %d ms\n", maxtime * 10, l->scores[i].timer[r] * 10);
+                while (l->scores[i].timer[r] > maxtime) {
+                    if (l->scores[i].timer[r] < 59999)
+                        log_errorf("Hard limits detected!: Limit: %d ms; Current: %d ms\n", maxtime * 10, l->scores[i].timer[r] * 10);
+
                     l->scores[i].timer[r] = maxtime;
                 }
     }
 
-    if (have_goal)
-    {
+    if (have_goal) {
         /* Most coins and Fast Unlock built-in limitations. */
 
         for (i = 0; i < 3; i++)
             for (int r = RANK_HARD; r < RANK_LAST; r++)
-                while (l->scores[i].coins[r] < mingoal)
-                {
+                while (l->scores[i].coins[r] < mingoal) {
+                    if (l->scores[i].coins[r] != 0)
+                        log_errorf("Hard limits detected!: Required: %d; Current: %d\n", mingoal, l->scores[i].coins[r]);
+
                     log_errorf("Hard limits detected!: Required: %d; Current: %d\n", mingoal, l->scores[i].coins[r]);
                     l->scores[i].coins[r] = mingoal;
                 }
     }
 
     for (i = 0; i < 3; i++)
-        for (int r = RANK_HARD; r < RANK_LAST; r++)
-        {
+        for (int r = RANK_HARD; r < RANK_LAST; r++) {
             if (l->scores[i].coins[r + 1] > l->scores[i].coins[r])
                 l->scores[i].coins[r + 1] = l->scores[i].coins[r];
 
@@ -340,40 +301,34 @@ static int scan_campaign_level(const struct s_base *base,
     char target_grad[MAXSTR]; memset(target_grad, 0, MAXSTR);
     char target_song[MAXSTR]; memset(target_song, 0, MAXSTR);
 
-    const char sbtheme_limitation_grad[][MAXSTR] =
-    {
+    const char sbtheme_limitation_grad[][MAXSTR] = {
         "back/sky-SB.png",
         "back/ice-SB.png",
         "back/cave-SB.png",
         "back/clouds-SB.png",
         "back/lava-SB.png"
     };
-    const char sbtheme_limitation_back[][MAXSTR] =
-    {
+    const char sbtheme_limitation_back[][MAXSTR] = {
         "map-back/sky-SB.sol",
         "map-back/ice-SB.sol",
         "map-back/cave-SB.sol",
         "map-back/clouds-SB.sol",
         "map-back/lava-SB.sol"
     };
-    const char sbtheme_limitation_song[][MAXSTR] =
-    {
+    const char sbtheme_limitation_song[][MAXSTR] = {
         "bgm/track-SB1.ogg", /* alien = sky world    */
         "bgm/track-SB2.ogg", /* city = ice world     */
         "bgm/track-SB3.ogg", /* space = cave world   */
         "bgm/track-SB4.ogg", /* clouds = cloud world */
         "bgm/track-SB5.ogg"  /* volcano = lava world */
     };
-
-    for (int i = 0; i < base->dc; i++)
-    {
+    
+    for (int i = 0; i < base->dc; i++) {
         char *k = base->av + base->dv[i].ai;
         char *v = base->av + base->dv[i].aj;
 
-        if (strcmp(k, "back") == 0)
-        {
-            if (campaign)
-            {
+        if (strcmp(k, "back") == 0) {
+            if (campaign) {
                 if (str_starts_with(filename, "buildin-map-campaign/sky"))
                     SAFECPY(target_back, sbtheme_limitation_back[0]);
                 else if (str_starts_with(filename, "buildin-map-campaign/ice"))
@@ -384,8 +339,7 @@ static int scan_campaign_level(const struct s_base *base,
                     SAFECPY(target_back, sbtheme_limitation_back[3]);
                 else if (str_starts_with(filename, "buildin-map-campaign/lava"))
                     SAFECPY(target_back, sbtheme_limitation_back[4]);
-                else
-                {
+                else {
                     log_errorf("%s:\n    Switchball does not offer different backgrounds!\n",
                                filename);
                     return 0;
@@ -393,32 +347,25 @@ static int scan_campaign_level(const struct s_base *base,
 
                 accept_back = strcmp(v, target_back) == 0;
 
-                if (!accept_back)
-                {
+                if (!accept_back) {
                     log_errorf("%s:\n    Switchball requires background environment with matched filename!\n",
                                filename);
                     return 0;
                 }
-            }
-            else if (pre_campaign)
-            {
-                if (!levelset_have_back && !levelset_have_grad && !levelset_have_song)
-                {
+            } else if (pre_campaign) {
+                if (!levelset_have_back && !levelset_have_grad && !levelset_have_song) {
                     for (int i = 0; i < 5 && !levelset_have_back; i++)
-                        if (strcmp(v, sbtheme_limitation_back[i]) == 0)
-                        {
+                        if (strcmp(v, sbtheme_limitation_back[i]) == 0) {
                             SAFECPY(target_grad, sbtheme_limitation_grad[i]);
                             SAFECPY(target_song, sbtheme_limitation_song[i]);
 
                             levelset_have_back = 1;
                             break;
                         }
-                }
-                else if ((levelset_have_grad || levelset_have_song) && !levelset_have_back)
+                } else if ((levelset_have_grad || levelset_have_song) && !levelset_have_back)
                     levelset_have_back = strcmp(v, target_back) == 0;
 
-                if (!levelset_have_back)
-                {
+                if (!levelset_have_back) {
                     log_errorf("%s:\n    Switchball does not offer different backgrounds!\n",
                                filename);
                     if (werror_campaign) return 0;
@@ -426,11 +373,8 @@ static int scan_campaign_level(const struct s_base *base,
                 else if (levelset_have_back || levelset_have_grad || levelset_have_song)
                     accept_back = 1;
             }
-        }
-        else if (strcmp(k, "grad") == 0)
-        {
-            if (campaign)
-            {
+        } else if (strcmp(k, "grad") == 0) {
+            if (campaign) {
                 if (str_starts_with(filename, "buildin-map-campaign/sky"))
                     SAFECPY(target_grad, sbtheme_limitation_grad[0]);
                 else if (str_starts_with(filename, "buildin-map-campaign/ice"))
@@ -441,8 +385,7 @@ static int scan_campaign_level(const struct s_base *base,
                     SAFECPY(target_grad, sbtheme_limitation_grad[3]);
                 else if (str_starts_with(filename, "buildin-map-campaign/lava"))
                     SAFECPY(target_grad, sbtheme_limitation_grad[4]);
-                else
-                {
+                else {
                     log_errorf("%s:\n    Switchball does not offer different gradients!\n",
                                filename);
                     return 0;
@@ -450,80 +393,62 @@ static int scan_campaign_level(const struct s_base *base,
 
                 accept_grad = strcmp(v, target_grad) == 0;
 
-                if (!accept_grad)
-                {
+                if (!accept_grad) {
                     log_errorf("%s:\n    Switchball requires gradient with matched filename!\n",
                                filename);
                     return 0;
                 }
-            }
-            else if (pre_campaign)
-            {
-                if (!levelset_have_back && !levelset_have_grad && !levelset_have_song)
-                {
+            } else if (pre_campaign) {
+                if (!levelset_have_back && !levelset_have_grad && !levelset_have_song) {
                     for (int i = 0; i < 5 && !levelset_have_grad; i++)
-                        if (strcmp(v, sbtheme_limitation_grad[i]) == 0)
-                        {
+                        if (strcmp(v, sbtheme_limitation_grad[i]) == 0) {
                             SAFECPY(target_back, sbtheme_limitation_back[i]);
                             SAFECPY(target_song, sbtheme_limitation_song[i]);
 
                             levelset_have_grad = 1;
                             break;
                         }
-                }
-                else if ((levelset_have_back || levelset_have_song) && !levelset_have_grad)
+                } else if ((levelset_have_back || levelset_have_song) && !levelset_have_grad)
                     levelset_have_grad = strcmp(v, target_grad) == 0;
 
-                if (!levelset_have_grad)
-                {
+                if (!levelset_have_grad) {
                     log_errorf("%s:\n    Switchball does not offer different gradients!\n",
                                filename);
                     if (werror_campaign) return 0;
-                }
-                else if (levelset_have_back || levelset_have_grad || levelset_have_song)
+                } else if (levelset_have_back || levelset_have_grad || levelset_have_song)
                     accept_grad = 1;
             }
         }
     }
 
-    if (accept_back && accept_grad)
-    {
-        if (text_length(target_song) > 3 && strcmp(l->song, target_song))
-        {
+    if (accept_back && accept_grad) {
+        if (text_length(target_song) > 3 && strcmp(l->song, target_song)) {
             log_errorf("%s:\n    Campaign music replaced as Switchball: %s -> %s\n",
                        filename, l->song, target_song);
             memset(l->song, 0, 260);
             SAFECPY(l->song, target_song);
         }
 
-        if (base->uc)
-        {
-            if (base->uc != 1 && werror_campaign)
-            {
+        if (base->uc) {
+            if (base->uc != 1 && werror_campaign) {
                 log_errorf("%s:\n    Switchball does not offer multiple balls!\n",
                            filename);
                 return 0;
             }
-        }
-        else
-        {
-            log_errorf("%s:\n    Switchball requires start position!\n",
+        } else {
+            log_errorf("%s:\n    Switchball requires player start position!\n",
                        filename);
             return 0;
         }
 
-        if (base->zc)
-        {
-            if (base->zc != 1 && werror_campaign)
-            {
+        if (base->zc) {
+            if (base->zc != 1 && werror_campaign) {
                 log_errorf("%s:\n    Switchball does not offer multiple goals!\n",
                            filename);
                 return 0;
             }
-        }
-        else
-        {
-            log_errorf("%s:\n    Switchball requires goal!\n",
+        } else {
+            log_errorf("%s:\n    Switchball requires level exit, which means goal!\n",
                        filename);
             return 0;
         }
@@ -539,8 +464,7 @@ static int scan_campaign_level(const struct s_base *base,
         return 1;
     }
 
-    if (campaign || pre_campaign)
-    {
+    if (campaign || pre_campaign) {
         log_errorf("%s:\n    Switchball requires background environment and gradient"
                    "\n    with matched filename!\n",
                    filename);
@@ -560,15 +484,13 @@ int level_load(const char *filename, struct level *level)
     if (!str_ends_with(filename, ".csol")  &&
         !str_ends_with(filename, ".csolx") &&
         !str_ends_with(filename, ".sol")   &&
-        !str_ends_with(filename, ".solx"))
-    {
+        !str_ends_with(filename, ".solx")) {
         log_errorf("That's not the classic or campaign SOL or SOLX extension!: %s\n",
                    filename);
         return 0;
     }
 
-    if (!sol_load_meta(&base, filename))
-    {
+    if (!sol_load_meta(&base, filename)) {
         log_errorf("Failure to load level file: %s / %s\n",
                    filename, fs_error());
         return 0;
@@ -593,16 +515,14 @@ int level_load(const char *filename, struct level *level)
 #endif
                 _("none_%d"), curr_set());
     }
-    else
-        SAFECPY(curr_setid_final, curr_setid);
+    else SAFECPY(curr_setid_final, curr_setid);
 
     int level_offered = 0;
 
     int campaign_werror = !config_cheat();
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    if (campaign_used())
-    {
+    if (campaign_used()) {
         level_offered = scan_level_attribs(level, &base, 1, 0, campaign_werror);
 
         if (level_offered)
@@ -633,7 +553,7 @@ int level_load(const char *filename, struct level *level)
              str_starts_with(curr_setid_final, "Sb") ||
              str_starts_with(curr_setid_final, "sB")) &&
             !level_offered)
-            log_errorf("%s:\n    Switchball level creation was disqualified!\n", filename);
+            log_errorf("%s:\n    Switchball level creation map was disqualified!\n", filename);
     }
 
     sol_free_base(&base);

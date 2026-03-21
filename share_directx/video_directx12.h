@@ -54,6 +54,13 @@ DEFINE_CBV_STRUCT({
     float padding[1];
 }, CB_ModelObject);
 
+struct _D3D12_RESOURCE_BUFFER_OBJECT {
+    Microsoft::WRL::ComPtr<ID3D12Resource2> m_objectResource;
+    D3D12_RESOURCE_STATES                   m_objectResourceState;
+};
+
+typedef struct _D3D12_RESOURCE_BUFFER_OBJECT D3D12_RESOURCE_BUFFER_OBJECT;
+
 /* === END DX12 DECLARATIONS === */
 
 extern ComPtr<ID3D12GraphicsCommandList2> g_cmdList;
@@ -75,8 +82,8 @@ void video_directx12_hide_cursor(void);
 
 void video_directx12_fullscreen(int);
 BOOL video_directx12_resize(int, int);
-int  video_directx12_set_window_size(int, int);
-int  video_directx12_set_display(int);
+void video_directx12_set_window_size(int, int);
+void video_directx12_set_display(int);
 int  video_directx12_display(void);
 
 /*---------------------------------------------------------------------------*/
@@ -89,13 +96,23 @@ void video_directx12_prepare_cbv(const int, const int, const int);
 
 /*---------------------------------------------------------------------------*/
 
+BOOL video_directx12_prepare_frame(void);
 BOOL video_directx12_clear(void);
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * Exercise extreme caution, when assuming DirectX native linkage for Windows.
+ */
+
 HRESULT directx12_next_resource_state(ID3D12Resource2 *,
                                       D3D12_RESOURCE_STATES *,
                                       D3D12_RESOURCE_STATES);
+
+HRESULT directx12_create_buffer(UINT, D3D12_RESOURCE_BUFFER_OBJECT *);
+void    directx12_delete_buffer(UINT, D3D12_RESOURCE_BUFFER_OBJECT *);
+HRESULT directx12_set_buffer_data(D3D12_RESOURCE_BUFFER_OBJECT, long, PVOID);
+HRESULT directx12_set_buffer_subdata(D3D12_RESOURCE_BUFFER_OBJECT, long, long, PVOID);
 
 void directx12_push_matrix_modelview(void);
 void directx12_pop_matrix_modelview (void);
@@ -108,6 +125,9 @@ void directx12_matrix_scalef(float multiply[3]);
 
 void directx12_matrix_rotatef(float angle, float x, float y, float z);
 void directx12_matrix_rotatef(float angle, float vaxis[3]);
+
+void directx12_matrix_set     (float m[16]);
+void directx12_matrix_multiply(float m[16]);
 
 void directx12_color4ub(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 void directx12_color4ub(unsigned char vcolor[4]);

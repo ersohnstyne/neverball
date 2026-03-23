@@ -49,8 +49,8 @@
 
 #elif _WIN32 && (!_MSC_VER || defined(__MINGW__))
 #error Security compilation error: MinGW not supported! Use Visual Studio for Windows instead!
-#elif _WIN64 && _MSC_VER < 1943
-#error Security compilation error: Visual Studio 2022 requires MSVC 14.43.x and later version!
+#elif _WIN64 && _MSC_VER < 1950
+#error Security compilation error: Visual Studio 2026 requires MSVC 14.50.x and later version!
 #elif _WIN32 && !_WIN64
 #error Security compilation error: Game source code compilation requires x64 and not Win32!
 #endif
@@ -59,11 +59,6 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #include <emscripten/html5.h>
-#endif
-
-#if _MSC_VER
-#pragma comment(lib, "SDL2.lib")
-#pragma comment(lib, "SDL2main.lib")
 #endif
 
 #include <time.h>
@@ -152,6 +147,11 @@ const char ICON[] = "icon/neverputt.png";
 
 /* This fixes some malfunctions instead */
 #define SDL_EVENT_ANTI_MALFUNCTIONS(events) do { events.type = 0; } while (0)
+
+#ifdef main
+#undef main
+#endif
+#define main main_share
 
 /*---------------------------------------------------------------------------*/
 
@@ -843,7 +843,8 @@ static void step(void *data)
 #if ENABLE_DUALDISPLAY==1
         video_set_current();
 #endif
-
+        
+        
 #if ENABLE_MOTIONBLUR!=0
         if (config_get_d(CONFIG_MOTIONBLUR))
         {
@@ -855,8 +856,10 @@ static void step(void *data)
             mainloop->motionblur_leftover += config_get_d(CONFIG_SMOOTH_FIX) ?
                                              MIN(frame_smooth, dt) : MIN(100.0f, dt);
 
-            while (mainloop->motionblur_leftover > expected_dt)
+            while (mainloop->motionblur_leftover > expected_dt && running)
             {
+                if (first_frame && running) running = loop();
+
                 const float blur_alpha = mainloop->motionblur_leftover > expected_dt ?
                                          ((float) (expected_dt / mainloop->motionblur_leftover)) :
                                          1.0f;
@@ -873,12 +876,16 @@ static void step(void *data)
                 first_frame = 0;
             }
 
-            video_motionblur_alpha_set(1);
+            if (running) {
+                running = loop();
 
-            step_primary_screen(mainloop->now + (dt - mainloop->motionblur_leftover),
-                                mainloop->motionblur_leftover, 0);
+                video_motionblur_alpha_set(1);
 
-            mainloop->motionblur_leftover = 0;
+                step_primary_screen(mainloop->now + (dt - mainloop->motionblur_leftover),
+                                    mainloop->motionblur_leftover, 0);
+
+                mainloop->motionblur_leftover = 0;
+            }
         }
         else
         {
@@ -903,7 +910,7 @@ static void step(void *data)
         mainloop->now = now;
 
         if (config_get_d(CONFIG_NICE))
-            SDL_Delay((1.0f / 30.0f) * 1000);
+            SDL_Delay((1.0f / 45.0f) * 1000);
     }
 
     mainloop->done = !running;

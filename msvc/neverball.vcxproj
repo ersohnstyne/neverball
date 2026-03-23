@@ -262,7 +262,6 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\ball\hud.c" />
     <ClCompile Include="..\ball\level.c" />
     <ClCompile Include="..\ball\main.c" />
-    <ClCompile Include="..\ball\main_desktop.c" />
     <ClCompile Include="..\ball\mediation.c" />
     <ClCompile Include="..\ball\powerup.c" />
     <ClCompile Include="..\ball\progress.c" />
@@ -365,6 +364,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\share\lang_msvc.cpp" />
     <ClCompile Include="..\share\list.c" />
     <ClCompile Include="..\share\log.c" />
+    <ClCompile Include="..\share\main_desktop.c" />
     <ClCompile Include="..\share\miniz.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>

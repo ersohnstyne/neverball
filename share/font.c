@@ -15,10 +15,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if _MSC_VER
-#pragma comment(lib, "SDL2_ttf.lib")
-#endif
-
 #include "dbg_config.h"
 
 #include "font.h"

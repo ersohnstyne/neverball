@@ -382,7 +382,9 @@ static bool UpdateRenderViews()
         const float c_clearColor[4] = { 0, 0, 0, 0 };
         D3D12_CLEAR_VALUE msaaClearValue = {};
         msaaClearValue.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-        memcpy(msaaClearValue.Color, c_clearColor, sizeof(float) * 4);
+
+        /* Same as memcpy() */
+        CopyMemory(msaaClearValue.Color, c_clearColor, sizeof(float) * 4);
 
         g_msaaRenderTargetState = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
         Ensure_HRESULT(g_d3d12Device->CreateCommittedResource(
@@ -1051,9 +1053,9 @@ extern "C" int video_directx12_init(int f, int w, int h)
             };
 
             D3D12_INPUT_ELEMENT_DESC interfaceIADescs[] = {
-                { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 0,  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-                { "COLOR",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 8,  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-                { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 20, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+                { "COLOR",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+                { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+                { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 20, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
             };
 
             // Default PSO
@@ -1453,7 +1455,10 @@ extern "C" HRESULT directx12_set_buffer_data(D3D12_RESOURCE_BUFFER_OBJECT obj, l
     void *mappedData = nullptr;
     D3D12_RANGE readRange = { 0, 0 }; // We do not intend to read this resource on CPU
     Ensure_HRESULT(obj.m_objectResource->Map(0, &readRange, &mappedData));
-    memcpy((char *) mappedData, data, size);
+
+    /* Same as memcpy */
+    CopyMemory((char *) mappedData, data, size);
+
     obj.m_objectResource->Unmap(0, nullptr);
 
     return S_OK;
@@ -1466,7 +1471,10 @@ extern "C" HRESULT directx12_set_buffer_subdata(D3D12_RESOURCE_BUFFER_OBJECT obj
     void *mappedData = nullptr;
     D3D12_RANGE readRange = { 0, 0 }; // We do not intend to read this resource on CPU
     Ensure_HRESULT(obj.m_objectResource->Map(0, &readRange, &mappedData));
-    memcpy((char *) mappedData + offset, data, size);
+
+    /* Same as memcpy() */
+    CopyMemory((char *) mappedData + offset, data, size);
+
     obj.m_objectResource->Unmap(0, nullptr);
 
     return S_OK;

@@ -25,10 +25,6 @@
 #include <SDL_ttf.h>
 #endif
 
-#if _MSC_VER
-#pragma comment(lib, "SDL2_ttf.lib")
-#endif
-
 #include <string.h>
 #include <math.h>
 #include <png.h>

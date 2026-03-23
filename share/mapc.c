@@ -37,7 +37,6 @@
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-
 #include "fs.h"
 #include "mapclib.h"
 
@@ -53,7 +52,7 @@
 #ifdef __cplusplus
 extern "C"
 #endif
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     mapc_context ctx = NULL;
 
@@ -86,17 +85,14 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-
 #else
-
 #ifdef __cplusplus
 extern "C"
 #endif
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     printf("Nintendo consoles not supported!\n");
 
     return 0;
 }
-
 #endif

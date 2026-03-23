@@ -153,6 +153,9 @@
     <ClCompile Include="..\share\log.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
+    <ClCompile Include="..\share\main_desktop.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
     <ClCompile Include="..\share\miniz.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>

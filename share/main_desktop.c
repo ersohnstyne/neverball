@@ -22,11 +22,11 @@
 # define SDL_MAIN_HANDLED
 # include <SDL.h>
 # pragma comment(lib, "SDL2.lib")
+# pragma comment(lib, "SDL2_ttf.lib")
 # if _MSC_VER && !defined(SDL_MAIN_HANDLED)
 #  pragma comment(lib, "SDL2main.lib")
 # elif _MSC_VER && defined(SDL_MAIN_HANDLED)
 #  include <Windows.h>
-#  include <ShlObj.h>
 # endif
 # ifndef _CRTDBG_MAP_ALLOC
 #  pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")

@@ -940,7 +940,6 @@ static int goal_keybd(int c, int d)
             }
         }
     }
-
     return 1;
 }
 
@@ -964,8 +963,6 @@ static int goal_buttn(int b, int d)
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return goal_action(gui_token(active), gui_value(active));
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return 1;
     }
     return 1;
 }

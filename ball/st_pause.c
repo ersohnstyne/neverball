@@ -481,8 +481,7 @@ static int pause_keybd(int c, int d)
                 audio_play(AUD_BACK, 1.0f);
                 PAUSED_ACTION_CONTINUE;
             }
-            else
-                audio_play(AUD_DISABLED, 1.0f);
+            else audio_play(AUD_DISABLED, 1.0f);
         }
 
         if (config_tst_d(CONFIG_KEY_RESTART, c)
@@ -525,8 +524,7 @@ static int pause_buttn(int b, int d)
                 audio_play(AUD_BACK, 1.0f);
                 PAUSED_ACTION_CONTINUE;
             }
-            else
-                audio_play(AUD_DISABLED, 1.0f);
+            else audio_play(AUD_DISABLED, 1.0f);
         }
     }
     return 1;

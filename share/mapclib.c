@@ -3952,7 +3952,6 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
                 fs_add_path_with_archives(argv[argi]);
             }
         }
-
         else if (strcmp(argv[argi], "--timelimit") == 0)
         {
             ++argi;
@@ -3967,9 +3966,9 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
                     return 1;
                 }
 
-                if (ctx->compile_time_limit > 1920)
+                if (ctx->compile_time_limit > 1800)
                 {
-                    fprintf(stderr, "Invalid value!: Max: 1920\n");
+                    fprintf(stderr, "Invalid value!: Max: 1800\n");
                     return 1;
                 }
             }
@@ -4010,53 +4009,42 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
             /* HACK: Absolute path only, if there's colon for Windows! */
 
             for (int i = 1; i < argc && !src_absolute_path; i++)
-            {
                 if (argc == 1) for (int j = 0; j < strnlen_s(ctx->src_path.buf, 128); j++)
                 {
                     if (ctx->src_path.buf[j] == ':')
                         src_absolute_path = 1;
                 }
-            }
+
             for (int i = 1; i < argc && !dst_absolute_path; i++)
-            {
                 if (argc == 2) for (int j = 0; j < strnlen_s(ctx->dst_path.buf, 128); j++)
                 {
                     if (ctx->dst_path.buf[j] == ':')
                         dst_absolute_path = 1;
                 }
-            }
 #else
             /* HACK: Absolute path only, if there's slash on first characters! */
 
             for (int i = 1; i < argc && !src_absolute_path; i++)
-            {
                 if (argc == 1 && ctx->src_path.buf[0] == '/')
                     src_absolute_path = 1;
-            }
+
             for (int i = 1; i < argc && !dst_absolute_path; i++)
-            {
                 if (argc == 2 && ctx->src_path.buf[0] == '/')
                     dst_absolute_path = 1;
-            }
 #endif
 
             if (!src_absolute_path)
-            {
                 ctx->src_path = base_name_strbuf(STR(ctx->src_path));
-            }
 
             if (!dst_absolute_path)
-            {
                 ctx->dst_path = base_name_strbuf(STR(ctx->dst_path));
-            }
         }
         else if (!ctx->opt_data) {
             ctx->opt_data = argv[argi];
 
             fs_add_path_with_archives(ctx->opt_data);
         }
-        else
-            fprintf(stderr, "Unknown option: %s\n", argv[argi]);
+        else fprintf(stderr, "Unknown option: %s\n", argv[argi]);
     }
 
     if (!(ctx->opt_file && ctx->opt_data))
@@ -4081,7 +4069,6 @@ static int campaign_check_budget(struct mapc_context *ctx)
             n++;
 
     ctx->campaign_budget = n - ctx->campaign_cost;
-
     if (ctx->campaign_budget < 0) return 0;
 
     return 1;
@@ -4257,16 +4244,41 @@ static int mapc_compile_internal(struct mapc_context *ctx)
         ctx->compile_time = (time1.tv_sec - time0.tv_sec) +
                             (time1.tv_usec - time0.tv_usec) / 1000000.0;
 #endif
-
+        
         if (ctx->compile_time >= ctx->compile_time_limit)
         {
             char tmp_buf[MAXSTR];
+
+            if (ctx->compile_time >= 1800)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(tmp_buf, MAXSTR,
+                sprintf_s(tmp_buf, MAXSTR,
 #else
-            sprintf(tmp_buf,
+                sprintf(tmp_buf,
 #endif
-                    "Compile timed out after 60 seconds!\n", ctx->compile_time_limit);
+                        "Compile timed out after %d seconds!\n"
+                        "\tCurrently, they exceeds 30 minute compile time, which has slow and old devices.\n"
+                        "\tSimplify more structural lumps, or buy the brand new PC!", ctx->compile_time_limit);
+            else
+            {
+                const int timelimits_available[] = {
+                    120, 180, 240, 300, 600, 900, 1200, 1800
+                };
+
+                int timelimit_canset_seconds = 0;
+
+                for (int i = 0; i < 8; i++)
+                    timelimit_canset_seconds = timelimits_available[i];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(tmp_buf, MAXSTR,
+#else
+                sprintf(tmp_buf,
+#endif
+                        "Compile timed out after %d seconds!\n"
+                        "\tRaise compilation time limit to %d seconds (--timelimit %d)",
+                        ctx->compile_time_limit, timelimit_canset_seconds, timelimit_canset_seconds);
+            }
+
             MAPC_LOG_ERROR(ctx, tmp_buf);
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return 0;

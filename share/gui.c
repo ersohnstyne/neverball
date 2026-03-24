@@ -1851,6 +1851,8 @@ static void gui_widget_dn(int id, int x, int y, int w, int h)
 
 static void gui_widget_offset(int id, int pd)
 {
+    const int animations_enabled = config_get_d(CONFIG_SCREEN_ANIMATIONS);
+
     FUNC_VOID_CHECK_LIMITS(id);
 
     if (id)
@@ -1871,7 +1873,7 @@ static void gui_widget_offset(int id, int pd)
         widget[id].offset_init_x = widget[id].offset_x = 0.0f;
         widget[id].offset_init_y = widget[id].offset_y = 0.0f;
 
-        if (widget[id].slide_flags & GUI_FLING)
+        if (widget[id].slide_flags & GUI_FLING && animations_enabled)
         {
             // Offset position is a full frame away.
 
@@ -1887,7 +1889,7 @@ static void gui_widget_offset(int id, int pd)
             if (widget[id].slide_flags & GUI_N)
                 widget[id].offset_init_y = (float) +video.device_h;
         }
-        else
+        else if (animations_enabled)
         {
             // Offset position is just offscreen.
 
@@ -1923,7 +1925,7 @@ static void gui_widget_offset(int id, int pd)
             }
         }
 
-        if (!(widget[id].slide_flags & GUI_BACKWARD))
+        if (!(widget[id].slide_flags & GUI_BACKWARD) && animations_enabled)
         {
             widget[id].offset_x = widget[id].offset_init_x;
             widget[id].offset_y = widget[id].offset_init_y;
@@ -1936,7 +1938,7 @@ static void gui_widget_offset(int id, int pd)
 
 void gui_set_slide(int id, int flags, float delay, float t, float stagger)
 {
-    if (!config_get_d(CONFIG_SCREEN_ANIMATIONS)) return;
+    const int animations_enabled = config_get_d(CONFIG_SCREEN_ANIMATIONS);
 
     FUNC_VOID_CHECK_LIMITS(id);
 
@@ -1944,12 +1946,13 @@ void gui_set_slide(int id, int flags, float delay, float t, float stagger)
     {
         int jd, c = 0;
 
-        widget[id].flags |= GUI_OFFSET;
+        if (animations_enabled)
+            widget[id].flags |= GUI_OFFSET;
 
         widget[id].slide_flags = flags;
-        widget[id].slide_delay = delay;
-        widget[id].slide_dur = t;
-        widget[id].slide_time = 0.0f;
+        widget[id].slide_delay = animations_enabled ? delay : 0.0f;
+        widget[id].slide_dur   = animations_enabled ? t     : 0.0f;
+        widget[id].slide_time  = 0.0f;
 
         for (jd = widget[id].car; jd; jd = widget[jd].cdr)
             c++;
@@ -3011,13 +3014,13 @@ void gui_timer(int id, float dt)
 
                 // Approaching offset position.
 
-                if (widget[id].slide_flags & GUI_EASE_ELASTIC)
+                if (widget[id].slide_flags & GUI_EASE_ELASTIC && config_get_d(CONFIG_SCREEN_ANIMATIONS))
                     alpha = easeOutElastic(alpha);
-                else if (widget[id].slide_flags & GUI_EASE_BACK)
+                else if (widget[id].slide_flags & GUI_EASE_BACK && config_get_d(CONFIG_SCREEN_ANIMATIONS))
                     alpha = easeOutBack(alpha);
-                else if (widget[id].slide_flags & GUI_EASE_BOUNCE)
+                else if (widget[id].slide_flags & GUI_EASE_BOUNCE && config_get_d(CONFIG_SCREEN_ANIMATIONS))
                     alpha = easeOutBounce(alpha);
-                else
+                else if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
                     /* Linear interpolation. */;
             }
             else
@@ -3027,18 +3030,18 @@ void gui_timer(int id, float dt)
 
                 // Approaching widget position.
 
-                if (widget[id].slide_flags & GUI_EASE_ELASTIC)
+                if (widget[id].slide_flags & GUI_EASE_ELASTIC && config_get_d(CONFIG_SCREEN_ANIMATIONS))
                     alpha = easeInElastic(1.0f - alpha);
-                else if (widget[id].slide_flags & GUI_EASE_BACK)
+                else if (widget[id].slide_flags & GUI_EASE_BACK && config_get_d(CONFIG_SCREEN_ANIMATIONS))
                     alpha = easeInBack(1.0f - alpha);
-                else if (widget[id].slide_flags & GUI_EASE_BOUNCE)
+                else if (widget[id].slide_flags & GUI_EASE_BOUNCE && config_get_d(CONFIG_SCREEN_ANIMATIONS))
                     alpha = easeInBounce(1.0f - alpha);
-                else
+                else if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
                     alpha = 1.0f - alpha;
             }
 
-            widget[id].offset_x = widget[id].offset_init_x * alpha;
-            widget[id].offset_y = widget[id].offset_init_y * alpha;
+            widget[id].offset_x = widget[id].offset_init_x * (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? alpha : 0.0f);
+            widget[id].offset_y = widget[id].offset_init_y * (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? alpha : 0.0f);
 
             if (at_end && (widget[id].slide_flags & GUI_REMOVE))
             {

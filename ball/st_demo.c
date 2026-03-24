@@ -1427,7 +1427,7 @@ static void demo_play_timer(int id, float dt)
     float timescale = 1.0f;
     DEMO_UPDATE_SPEED(speed, timescale);
 
-    if (!game_client_get_jump_b() && !st_global_animating())
+    if (!game_client_get_jump_b() && !st_global_animating() && !demo_speed_dirty)
         geom_step(speed_manual ? dt * 2 :
                                  (speed == SPEED_NONE ? 0 : dt * timescale));
 
@@ -1467,6 +1467,8 @@ static void demo_play_timer(int id, float dt)
 
     if (demo_timer_down && curr_status() == GAME_NONE)
     {
+        int speed_old = speed;
+
         if (demo_timer_curr < 1000 && !demo_timer_warning)
         {
             demo_timer_warning = 1;
@@ -1492,6 +1494,8 @@ static void demo_play_timer(int id, float dt)
             speed_manual = 0;
             DEMO_SET_SPEED(SPEED_NORMAL);
         }
+
+        if (speed_old > speed) audio_play(AUD_DISABLED, 1.0f);
     }
 
     if (demo_speed_dirty) {

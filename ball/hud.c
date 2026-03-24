@@ -412,7 +412,7 @@ void hud_paint(void)
 
     if (curr_mode() == MODE_NONE) return; /* Cannot render in home room. */
 
-    if (speed_timer_length < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    if (speed_timer_length <= 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {
         gui_paint(FSLhud_id);
 
@@ -743,6 +743,9 @@ void hud_show(float delay)
     gui_slide(fps_id,           GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
     gui_slide(speed_percent_id, GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
     gui_slide(Rhud_id,          GUI_SE | GUI_EASE_BACK, delay + 0.2f, 0.3f, 0);
+
+    touch_timer = 0.0f;
+    gui_slide(Touch_id, GUI_N | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
 }
 
 void hud_hide(void)
@@ -967,7 +970,7 @@ void hud_cam_timer(float dt)
 void hud_cam_paint(void)
 {
 #if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
-    if (cam_timer < 2.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+    if ((cam_timer > 0.0f && cam_timer < 2.0f) || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(cam_id);
 #endif
 }
@@ -1049,7 +1052,8 @@ void hud_touch_paint(void)
 #if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-    gui_paint(Touch_id);
+    if (touch_timer > 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        gui_paint(Touch_id);
 #endif
 #endif
 }

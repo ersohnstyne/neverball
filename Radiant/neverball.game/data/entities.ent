@@ -4,6 +4,9 @@
 <group name="func_train" color="0 0.5 0.8">
 Defines the geometry of a moving object.  Think of it as a container or a grouping mechanism for lumps, rather than an object in-and-of itself.
 
+The moving object does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
+* Neverball entity design specifications
+
 <target key="target" name="Path">Path that the train will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
 <target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the train, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
 </group>
@@ -12,6 +15,9 @@ Defines the geometry of a moving object.  Think of it as a container or a groupi
 <point name="info_camp" color="0 0.5 0" box="-8 -8 -8 8 8 8">
 Defines a switch.
 
+The switch does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
+* Neverball entity design specifications
+
 <target key="target" name="Target">Refers to the path that the switch controls.</target>
 <target key="target2" name="Path">Path that the switch will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
 <target key="target3" name="Path (rotation)">An optional second path that controls the orientation of the switch, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
@@ -19,6 +25,17 @@ Defines a switch.
 <boolean key="state" name="State" value="0">Initial state of the switch.  "0" is off, "1" is on.  The default is off.  This parallels the state attribute of the path_corner.  An info_camp entity should always have the same initial "state" value as the path_corner it targets.</boolean>
 <real key="timer" name="Timer" value="0">A delay time.  The time begins when a switch is toggled to its non-initial state.  The switch toggles back to its initial state when the timer expires.  A timer value of zero indicates an untimed switch.  The default is zero.  This may be used to define a door that opens only for a moment before closing, or a func_train that moves along its path in discrete activated steps.</real>
 <boolean key="invisible" name="Invisible" value="0">Determines whether the switch is invisible or not.  "0" is off, "1" is on.  The default is off.</boolean>
+</point>
+
+<point name="info_player_checkpoint" color="0.5 0 0" box="-8 -8 -8 8 8 8">
+Defines a checkpoint.  If it merely falls, Neverball respawns on the last location.  Neverputt respawns the position in the last shot for each player slot plus one.
+
+The checkpoint does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
+* Neverball entity design specifications
+
+<target key="target" name="Path">Path that the billboard will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
+<target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the billboard, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
+<real key="radius" name="Radius" value="0.5">Checkpoint radius.  The default is "0.5".  The ball must fall entirely within this radius to trigger the checkpoint.</real>
 </point>
 
 
@@ -33,6 +50,9 @@ Defines a billboard.
 <point name="info_player_deathmatch" color="1 0 1" box="-16 -16 -24 16 16 32">
 Defines a goal.
 
+The goal does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
+* Neverball entity design specifications
+
 <real key="radius" name="Radius" value="0.75">Goal radius in meters.  The default radius is "0.75".  The ball must fall entirely within this radius to trigger a goal.</real>
 <target key="target" name="Path">Path that the goal will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
 <target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the goal, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
@@ -46,16 +66,30 @@ Defines the camera position at the beginning of a level fly-in
 </point>
 
 
+<list name="playerdecotype">
+  <item name="Vehicle" value="vehicle"/>
+  <item name="Electricity" value="electricity"/>
+  <item name="Platform" value="platform"/>
+</list>
+
 <point name="info_player_start" color="1 0 0" box="-16 -16 -24 16 16 32">
-Defines a ball.  While multiple balls may be defined, Neverball uses only the first of them.  Neverputt requires an info_player_start entity for each player slot plus one.
+Player Start
+
+Defines a ball.  Neverputt requires an info_player_start entity for each player slot plus one.
+
+The ball does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
+* Neverball entity design specifications
 
 <real key="radius" name="Radius" value="0.25">Ball radius in meters.  The default radius is "0.25".  In Neverputt, this should be set to "0.0625".</real>
+<playerdecotype key="type" name="Decoration type">Name of the player start decoration type.</playerdecotype>
 </point>
 
 
 <point name="item_health_large" color="1 0 0" box="-16 -16 -16 16 16 16">
 Defines a grow coin.
 
+The coin does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
+* Neverball entity design specifications
 <target key="target" name="Path">Path that the item will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
 <target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the item, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
 </point>
@@ -63,6 +97,9 @@ Defines a grow coin.
 
 <point name="item_health_small" color="0 1 0" box="-16 -16 -16 16 16 16">
 Defines a shrink coin.
+
+The coin does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
+* Neverball entity design specifications
 
 <target key="target" name="Path">Path that the item will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
 <target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the item, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
@@ -89,6 +126,9 @@ Defines a clock, adding time to a level.
   <item name="Yellow" value="1"/>
   <item name="Red" value="5"/>
   <item name="Blue" value="10"/>
+  <item name="Violet" value="25"/>
+  <item name="Green" value="50"/>
+  <item name="Orange" value="100"/>
 </list>
 
 <point name="light" color="0.65 0.65 1" box="-8 -8 -8 8 8 8">
@@ -105,6 +145,8 @@ Imports an arbitrary polygonal model into a level.  It may be used to increase t
 
 misc_model entities define visible geometry, but not physical geometry.  So, if the ball is to bounce off of a misc_model entity, the entity should be placed within one or more invisible structural lumps.
 
+To display the model first, set "modelscale" to "64" and "angles" to "0 0 90" before importing the model.
+
 <model key="model" name="Model">Path to the model file.  The model must be in OBJ format.  It must have triangular tessellation.  All vertices must have normals and texture coordinates.</model>
 <target key="target" name="Path">Path that the model will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
 <target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the model, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
@@ -113,6 +155,9 @@ misc_model entities define visible geometry, but not physical geometry.  So, if 
 
 <point name="path_corner" color="0.5 0.3 0" box="-8 -8 -8 8 8 8">
 Defines a path segment of a moving object.
+
+The path segment does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines: 
+* Neverball entity design specifications
 
 <target key="target" name="Target">Refers to another path_corner defining the destination of the path.</target>
 <targetname key="targetname" name="Target name">Name used by other path_corner entities to target this entity.</targetname>
@@ -134,6 +179,9 @@ Defines the initial view direction of a level fly-in, as well as the destination
 <point name="target_teleporter" color="0 0.5 0" box="-8 -8 -8 8 8 8">
 Defines a teleporter.
 
+The teleport does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines: 
+* Neverball entity design specifications
+
 <target key="target" name="Target">Refers to a target_position entity defining the destination of the teleporter.</target>
 <target key="target2" name="Path">Path that the teleporter will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
 <target key="target3" name="Path (rotation)">An optional second path that controls the orientation of the teleporter, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
@@ -141,49 +189,118 @@ Defines a teleporter.
 </point>
 
 <list name="background">
+  <item name="Cave (Campaign)" value="map-back/cave-SB.sol"/>
+  <item name="Cloud (Campaign)" value="map-back/clouds-SB.sol"/>
+  <item name="Ice (Campaign)" value="map-back/ice-SB.sol"/>
+  <item name="Lava (Campaign)" value="map-back/lava-SB.sol"/>
+  <item name="Sky (Campaign)" value="map-back/sky-SB.sol"/>
   <item name="Alien" value="map-back/alien.sol"/>
   <item name="City" value="map-back/city.sol"/>
+  <item name="City II" value="map-back/city2.sol"/>
   <item name="Clouds" value="map-back/clouds.sol"/>
+  <item name="Earth" value="map-back/blue-earth.sol"/>
+  <item name="Halloween City" value="map-back/halloween-city.sol"/>
   <item name="Jupiter" value="map-back/jupiter.sol"/>
+  <item name="Mars" value="map-back/mars.sol"/>
+  <item name="Morning Pyramids" value="map-back/morning-pyramids.sol"/>
+  <item name="Morning Underwater" value="map-back/morning-underwater.sol"/>
+  <item name="Neptune" value="map-back/neptune.sol"/>
+  <item name="Night Alien" value="map-back/night-alien.sol"/>
+  <item name="Night City" value="map-back/night-city.sol"/>
+  <item name="Night Hills" value="map-back/night-hills.sol"/>
+  <item name="Night Ocean" value="map-back/night-ocean.sol"/>
+  <item name="Night Pyramids" value="map-back/night-pyramids.sol"/>
+  <item name="Night Snow" value="map-back/night-snow.sol"/>
+  <item name="Night Snow City" value="map-back/night-snowcity.sol"/>
+  <item name="Night Underwater" value="map-back/night-underwater.sol"/>
+  <item name="Night Volcano" value="map-back/night-volcano.sol"/>
   <item name="Ocean" value="map-back/ocean.sol"/>
+  <item name="Orange Alien" value="map-back/orange-alien.sol"/>
+  <item name="Pyramids" value="map-back/pyramids.sol"/>
+  <item name="Snow City" value="map-back/snowcity.sol"/>
+  <item name="Snow City (Day)" value="map-back/snowcity-day.sol"/>
+  <item name="Snow Clouds" value="map-back/snowclouds.sol"/>
+  <item name="Underwater" value="map-back/underwater.sol"/>
   <item name="Volcano" value="map-back/volcano.sol"/>
+  <item name="Volcano II" value="map-back/volcano2.sol"/>
 </list>
 
 <list name="gradient">
-  <item name="Alien" value="back/alien.png"/>
-  <item name="City" value="back/city.png"/>
-  <item name="Land" value="back/land.png"/>
-  <item name="Ocean" value="back/ocean.png"/>
-  <item name="Pastel" value="back/pastel.png"/>
-  <item name="Space" value="back/space.png"/>
-  <item name="Volcano" value="back/volcano.png"/>
+  <item name="Sky (Campaign)" value="back/sky-SB.png"/>
+  <item name="Cave (Campaign)" value="back/cave-SB.png"/>
+  <item name="Cloud (Campaign)" value="back/clouds-SB.png"/>
+  <item name="Ice (Campaign)" value="back/ice-SB.png"/>
+  <item name="Lava (Campaign)" value="back/lava-SB.png"/>
+  <item name="Alien (Player Levels)" value="back/alien.png"/>
+  <item name="Black Space (Player Levels)" value="back/black-space.png"/>
+  <item name="City (Player Levels)" value="back/city.png"/>
+  <item name="City II (Player Levels)" value="back/city2.png"/>
+  <item name="Desert (Player Levels)" value="back/desert-sand.png"/>
+  <item name="Halloween City (Player Levels)" value="back/halloween-city.png"/>
+  <item name="Land (Player Levels)" value="back/land.png"/>
+  <item name="Land II (Player Levels)" value="back/land2.png"/>
+  <item name="Morning Alien (Player Levels)" value="back/morning-alien.png"/>
+  <item name="Morning City (Player Levels)" value="back/morning-city.png"/>
+  <item name="Morning Desert (Player Levels)" value="back/morning-desert-sand.png"/>
+  <item name="Morning Land (Player Levels)" value="back/morning-land.png"/>
+  <item name="Morning Ocean (Player Levels)" value="back/morning-ocean.png"/>
+  <item name="Morning Underwater (Player Levels)" value="back/morning-underwater.png"/>
+  <item name="Night Alien (Player Levels)" value="back/night-alien.png"/>
+  <item name="Night City (Player Levels)" value="back/night-city.png"/>
+  <item name="Night Desert (Player Levels)" value="back/night-desert-sand.png"/>
+  <item name="Night Land (Player Levels)" value="back/night-land.png"/>
+  <item name="Night Ocean (Player Levels)" value="back/night-ocean.png"/>
+  <item name="Night Snow (Player Levels)" value="back/night-snow.png"/>
+  <item name="Night Snow City (Player Levels)" value="back/night-snowcity.png"/>
+  <item name="Night Underwater (Player Levels)" value="back/night-underwater.png"/>
+  <item name="Night Volcano (Player Levels)" value="back/night-volcano.png"/>
+  <item name="Ocean (Player Levels)" value="back/ocean.png"/>
+  <item name="Ocean II (Player Levels)" value="back/ocean2.png"/>
+  <item name="Orange Alien (Player Levels)" value="back/orange-alien.png"/>
+  <item name="Snow (Player Levels)" value="back/snow.png"/>
+  <item name="Snow City (Player Levels)" value="back/snowcity.png"/>
+  <item name="Snow City (Day) (Player Levels)" value="back/snowcity-day.png"/>
+  <item name="Space (Player Levels)" value="back/space.png"/>
+  <item name="Space II (Player Levels)" value="back/space2.png"/>
+  <item name="Underwater (Player Levels)" value="back/underwater.png"/>
+  <item name="Volcano (Player Levels)" value="back/volcano.png"/>
+  <item name="Volcano II (Player Levels)" value="back/volcano2.png"/>
 </list>
 
 <list name="song">
+  <item name="Cave (Campaign)" value="bgm/track-SB3.ogg"/>
+  <item name="Cloud (Campaign)" value="bgm/track-SB4.ogg"/>
+  <item name="Ice (Campaign)" value="bgm/track-SB2.ogg"/>
+  <item name="Lava (Campaign)" value="bgm/track-SB5.ogg"/>
+  <item name="Sky (Campaign)" value="bgm/track-SB1.ogg"/>
   <item name="Title" value="bgm/title.ogg"/>
-  <item name="Track1" value="bgm/track1.ogg"/>
-  <item name="Track2" value="bgm/track2.ogg"/>
-  <item name="Track3" value="bgm/track3.ogg"/>
-  <item name="Track4" value="bgm/track4.ogg"/>
-  <item name="Track5" value="bgm/track5.ogg"/>
-  <item name="Track6" value="bgm/track6.ogg"/>
+  <item name="Meadows (Clouds) (Player Levels)" value="bgm/track1.ogg"/>
+  <item name="Marble Run (Ocean) (Player Levels)" value="bgm/track2.ogg"/>
+  <item name="Grassy Cliff (City) (Player Levels)" value="bgm/track3.ogg"/>
+  <item name="Space (Player Levels)" value="bgm/track4.ogg"/>
+  <item name="Gentle Awakening (Alien) (Player Levels)" value="bgm/track5.ogg"/>
+  <item name="Espionage (Volcano) (Player Levels)" value="bgm/track6.ogg"/>
+  <item name="Track7" value="bgm/track7.ogg"/>
+  <item name="Track8" value="bgm/track8.ogg"/>
 </list>
 
 <group name="worldspawn" color="0 0 0">
 Used for most static level geometry.
 
+For portability, all filenames should use the "/" (forward slash) character as the directory separator.
+
 <string key="message" name="Introduction">Text that appears as a level begins.  A "\" (backslash) starts a new line.</string>
-<background key="back" name="Background environment">Path to the background file.</background>
-<gradient key="grad" name="Background gradient">Path to the background gradient image file.</gradient>
-<song key="song" name="Background music">Path to the background music file.</song>
+<background key="back" name="Background environment">Path to the background file. You need obtain from the template pack in order to use Switchball background levels: https://github.com/ersohnstyne/neverball-switchball-bundle-pack</background>
+<gradient key="grad" name="Background gradient">Path to the background gradient image file. You need obtain from the template pack in order to use Switchball background gradients: https://github.com/ersohnstyne/neverball-switchball-bundle-pack</gradient>
+<song key="song" name="Background music">Path to the background music file. You need obtain from the template pack in order to use Switchball soundtrack: https://github.com/ersohnstyne/neverball-switchball-bundle-pack</song>
 <string key="shot" name="Level shot">Path to the level shot file.</string>
-<integer key="goal" name="Required coins">Number of coins needed to unlock the goal.</integer>
-<integer key="time" name="Time limit">Level time limit in hundredths of a second.</integer>
-<string key="time_hs" name="Best Times">Default values for Best Times highscore, in order: Hard, Medium, and Easy (optional, defaults to time limit).</string>
-<string key="goal_hs" name="Fast Unlock">Default values for Fast Unlock highscore, in order: Hard, Medium, and Easy (optional, defaults to time limit).</string>
-<string key="coin_hs" name="Most Coins">Default values for Most Coins highscore, in order: Hard, Medium, and Easy (optional, defaults to required coins).</string>
+<integer key="goal" name="Required coins">Number of coins needed to unlock the goal. In Switchball, set the optional coins.</integer>
+<integer key="time" name="Time limit">Level time limit in hundredths of a second. In Switchball, this value must be set as zero.</integer>
+<string key="time_hs" name="Best Times">Default values for Best Times highscore, in order: Hard, Medium, and Easy (optional, defaults to time limit). In Switchball, three fields are required.</string>
+<string key="goal_hs" name="Fast Unlock">Default values for Fast Unlock highscore, in order: Hard, Medium, and Easy (optional, defaults to time limit). In Switchball, three fields are required.</string>
+<string key="coin_hs" name="Most Coins">Default values for Most Coins highscore, in order: Hard, Medium, and Easy (optional, defaults to required coins). In Switchball, three fields are required.</string>
 <string key="version" name="Version">Version of the level.  The format should be "X.Y", where X is incremented every time the level is changed in a way that breaks existing replays, and Y is incremented for all other changes.</string>
-<string key="author" name="Author">Name of the author.</string>
+<string key="author" name="Author">Name of the author. For all campaign maps, this field is required.</string>
 <boolean key="bonus" name="Bonus level">Marks this level as a bonus level.</boolean>
 <real key="idle" name="Idling time-out (Neverputt)">Neverputt: time to wait after the ball has stopped before starting the next shot.  Useful to ensure that moving objects won't hit the ball while the player is making the shot.</real>
 <integer key="par" name="Par (Neverputt)">Neverputt: the number of strokes required to complete the hole.</integer>

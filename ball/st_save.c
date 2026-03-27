@@ -80,6 +80,7 @@ int goto_save(struct state *ok, struct state *cancel)
 static int allow_entertext;
 static int file_id;
 static int enter_id;
+static int save_btn_action_allowed;
 
 enum
 {
@@ -106,6 +107,8 @@ static void save_update_enter_btn(void)
     gui_set_color(enter_id,
                   name_accepted ? gui_wht : gui_gry,
                   name_accepted ? gui_wht : gui_gry);
+
+    save_btn_action_allowed = name_accepted;
 }
 
 static int save_action(int tok, int val)
@@ -188,13 +191,19 @@ static int save_gui(void)
             gui_keyboard_en(jd);
             gui_filler(jd);
         }
-        gui_space(id);
 
-        if ((jd = gui_harray(id)))
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        if (current_platform == PLATFORM_PC && !console_gui_shown())
+#endif
         {
-            enter_id = gui_start(jd, _("Save"), GUI_SML, SAVE_OK, 0);
-            gui_space(jd);
-            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+            gui_space(id);
+
+            if ((jd = gui_harray(id)))
+            {
+                enter_id = gui_start(jd, _("Save"), GUI_SML, SAVE_OK, 0);
+                gui_space(jd);
+                gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+            }
         }
 
         gui_layout(id, 0, 0);
@@ -264,6 +273,7 @@ static int save_enter(struct state *st, struct state *prev, int intent)
 
     text_input_start(on_text_input);
     text_input_str(name, 0);
+    save_update_enter_btn();
 
     return transition_slide(save_gui(), 1, intent);
 }
@@ -344,14 +354,11 @@ static int save_buttn(int b, int d)
             save_action(GUI_CL, 0);
         else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R2, b) &&
                  allow_entertext)
-            save_action(SAVE_OK, 0);
-    }
-    else
-    {
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) &&
-            allow_entertext)
-            save_action(GUI_CL, 0);
-    }
+            save_action(save_btn_action_allowed ? GUI_NONE : SAVE_OK, 0);
+    } else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) &&
+               allow_entertext)
+        save_action(GUI_CL, 0);
+
     return 1;
 }
 

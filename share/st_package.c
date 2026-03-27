@@ -12,9 +12,13 @@
  * General Public License for more details.
  */
 
- /*
-  * HACK: Used with console version
-  */
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
+/*
+ * HACK: Used with console version
+ */
 #include "console_control_gui.h"
 
 #include "gui.h"
@@ -180,9 +184,6 @@ static int (*installed_action)(int pi);
 
 /* This prefix function "package_*" will be replaced into "addons_*". */
 #define package_stick      addons_stick
-
-/* This prefix function "package_*" will be replaced into "addons_*". */
-#define package_keybd      addons_keybd
 
 /* This prefix function "package_*" will be replaced into "addons_*". */
 #define package_keybd      addons_keybd
@@ -432,18 +433,20 @@ static int package_action(int tok, int val)
             break;
 
         case GUI_PREV:
-            first = MAX(first - PACKAGE_STEP, 0);
-
-            do_init = 0;
-            return exit_state(&st_package);
+            if (first > 0) {
+                first = MAX(first - PACKAGE_STEP, 0);
+                do_init = 0;
+                return exit_state(&st_package);
+            }
 
             break;
 
         case GUI_NEXT:
-            first = MIN(first + PACKAGE_STEP, total - 1);
-
-            do_init = 0;
-            return goto_state(&st_package);
+            if (first + PACKAGE_STEP < total) {
+                first = MIN(first + PACKAGE_STEP, total - 1);
+                do_init = 0;
+                return goto_state(&st_package);
+            }
 
             break;
 
@@ -530,8 +533,7 @@ static int gui_package(int id, int pi)
 {
     if (pi >= 0 && pi < package_count())
         return gui_package_button(id, pi);
-    else
-        return gui_label(id, "", GUI_SML, 0, 0);
+    else return gui_label(id, "", GUI_SML, 0, 0);
 }
 
 static int package_gui(void)
@@ -621,7 +623,7 @@ static int package_gui(void)
             if ((kd = gui_hstack(jd)))
             {
                 install_id = 0;
-                
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                 if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
@@ -664,7 +666,8 @@ static void package_select(int pi)
 {
     enum package_status status;
 
-    if (pi < first || pi >= MIN(first + PACKAGE_STEP, total))
+    if (selected == pi ||
+        pi < first || pi >= MIN(first + PACKAGE_STEP, total))
         return;
 
     status = package_get_status(pi);
@@ -787,18 +790,18 @@ static void package_paint(int id, float st)
     gui_paint(id);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (console_gui_shown())
+    if (current_platform != PLATFORM_PC || console_gui_shown())
     {
         enum package_status status = package_get_status(selected);
 
         switch (status)
         {
-        case PACKAGE_INSTALLED: console_gui_package_manageable_paint(); break;
-        case PACKAGE_UPDATE:    console_gui_package_updateable_paint(); break;
-        case PACKAGE_ERROR:
-        case PACKAGE_AVAILABLE: console_gui_package_installable_paint(); break;
+            case PACKAGE_INSTALLED: console_gui_package_manageable_paint(); break;
+            case PACKAGE_UPDATE:    console_gui_package_updateable_paint(); break;
+            case PACKAGE_ERROR:
+            case PACKAGE_AVAILABLE: console_gui_package_installable_paint(); break;
 
-        default: console_gui_list_paint(); break;
+            default: console_gui_list_paint(); break;
         }
     }
 #endif
@@ -829,7 +832,8 @@ static void package_stick(int id, int a, float v, int bump)
     if (id)
         gui_pulse(jd, 1.2f);
 
-    if (gui_token(gui_active()) == PACKAGE_SELECT)
+    if (gui_token(gui_active()) == PACKAGE_SELECT &&
+        selected != gui_value(gui_active()))
         package_select(gui_value(gui_active()));
 }
 
@@ -971,12 +975,12 @@ static int package_check_purchased_extralevels(const char *set_id)
              strcmp(config_get_s(CONFIG_LANGUAGE), "jp") != 0))
         {
 #ifdef __EMSCRIPTEN__
-            if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+            if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
 #endif
                 return 0;
         }
 #ifdef __EMSCRIPTEN__
-        else if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+        else if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
             return 0;
 #endif
     }
@@ -1128,7 +1132,8 @@ static int package_manage_gui(void)
 
         gui_space(id);
 
-        if (package_manage_can_start)
+        if (package_manage_can_start &&
+            package_check_purchased_extralevels(package_id))
         {
             if ((btn_id = gui_vstack(id)))
             {
@@ -1152,7 +1157,8 @@ static int package_manage_gui(void)
             gui_space(id);
         }
 
-        if (package_manage_can_equip)
+        if (package_manage_can_equip &&
+            package_check_purchased_online_balls())
         {
             if ((btn_id = gui_vstack(id)))
             {

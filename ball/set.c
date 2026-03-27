@@ -921,6 +921,18 @@ static void set_load_levels(void)
         "CXXXVI", "CXXXVII", "CXXXVIII", "CXIL",   "CXL",   /* 136 - 140 */
         "CXLI",   "CXLII",   "CXLIII",   "CXLIV",  "CXLV",  /* 141 - 145 */
         "CXLVI",  "CXLVII",  "CXLVIII",  "CIL",    "CL",    /* 146 - 150 */
+
+        "CLI",   "CLII",   "CLIII",   "CLIV",   "CLV",      /* 151 - 155 */
+        "CLVI",  "CLVII",  "CLVIII",  "CLIX",   "CLX",      /* 156 - 160 */
+        "CLXI",  "CLXII",  "CLXIII",  "CLXIV",  "CLXV",     /* 161 - 165 */
+        "CLXVI", "CLXVII", "CLXVIII", "CLXIX",  "CLXX",     /* 166 - 170 */
+        "CLXXI", "CLXXII", "CLXXIII", "CLXXIV", "CLXXV",    /* 171 - 175 */
+
+        "CLXXVI",  "CLXXVII",  "CLXXVIII",  "CLXXIX",  "CLXXX",  /* 176 - 180 */
+        "CLXXXI",  "CLXXXII",  "CLXXXIII",  "CLXXXIV", "CLXXXV", /* 181 - 185 */
+        "CLXXXVI", "CLXXXVII", "CLXXXVIII", "CLXXXIX", "CXC",    /* 186 - 190 */
+        "CXCI",    "CXCII",    "CXCIII",    "CXCIV",   "CXCV",   /* 191 - 195 */
+        "CXCVI",   "CXCVII",   "CXCVIII",   "CXCIX",   "CC",     /* 196 - 200 */
     };
 
     struct set *s = SET_GET(sets, curr);

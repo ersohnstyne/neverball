@@ -1171,6 +1171,47 @@ static int title_gui(void)
 
         if (!title_lockscreen)
         {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+            if ((id = gui_vstack(root_id)))
+            {
+                if ((jd = gui_hstack(id)))
+                {
+#if NB_HAVE_PB_BOTH==1
+                    const char title_social_image_paths[3][MAXSTR] = {
+                        "gui/social/ic_gitea.jpg",
+                        "gui/social/ic_github.jpg",
+                        "gui/social/ic_discord.jpg",
+                    };
+#else
+                    const char title_social_image_paths[2][MAXSTR] = {
+                        "gui/social/ic_github.jpg",
+                        "gui/social/ic_discord.jpg",
+                    };
+#endif
+
+                    for (int i = (ARRAYSIZE(title_social_image_paths) - 1);
+                         i >= 0; i--)
+                    {
+                        int btn_social = gui_image(jd, title_social_image_paths[i],
+                                                       video.device_h / 16,
+                                                       video.device_h / 16);
+
+                        gui_set_state(btn_social, TITLE_SOCIAL, i);
+
+                        gui_clr_rect(btn_social);
+                    }
+
+                    gui_space(jd);
+                    gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 1.0f, 0.05f);
+                }
+
+                gui_space(id);
+                gui_layout(id, -1, -1);
+            }
+#endif
+
 #ifdef SWITCHBALL_TITLE_BTN_V2
             if ((id = gui_varray(root_id)))
             {
@@ -1212,47 +1253,6 @@ static int title_gui(void)
                 gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 0.8f, 1.0f, 0.05f);
 
                 gui_layout(id, 0, 0);
-            }
-#endif
-
-#if !defined(__NDS__) && !defined(__3DS__) && \
-    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
-            if ((id = gui_vstack(root_id)))
-            {
-                if ((jd = gui_hstack(id)))
-                {
-#if NB_HAVE_PB_BOTH==1
-                    const char title_social_image_paths[3][MAXSTR] = {
-                        "gui/social/ic_gitea.jpg",
-                        "gui/social/ic_github.jpg",
-                        "gui/social/ic_discord.jpg",
-                    };
-#else
-                    const char title_social_image_paths[2][MAXSTR] = {
-                        "gui/social/ic_github.jpg",
-                        "gui/social/ic_discord.jpg",
-                    };
-#endif
-
-                    for (int i = (ARRAYSIZE(title_social_image_paths) - 1);
-                         i >= 0; i--)
-                    {
-                        int btn_social = gui_image(jd, title_social_image_paths[i],
-                                                       video.device_h / 16,
-                                                       video.device_h / 16);
-
-                        gui_set_state(btn_social, TITLE_SOCIAL, i);
-
-                        gui_clr_rect(btn_social);
-                    }
-
-                    gui_space(jd);
-                    gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 1.0f, 0.05f);
-                }
-
-                gui_space(id);
-                gui_layout(id, -1, -1);
             }
 #endif
 
@@ -1489,7 +1489,7 @@ static void title_paint(int id, float t)
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (!title_lockscreen && console_gui_shown())
-        console_gui_title_paint();
+        console_gui_death_paint();
 #endif
 }
 

@@ -1170,9 +1170,9 @@ static void play_loop_stick(int id, int a, float v, int bump)
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X1, a))
         {
             if (v + axis_offset[2] > 0.0f)
-                rot_set(DIR_R, -v + axis_offset[2], 1);
+                rot_set(DIR_R, +v + axis_offset[2], 1);
             else if (v + axis_offset[2] < 0.0f)
-                rot_set(DIR_L, +v + axis_offset[2], 1);
+                rot_set(DIR_L, -v + axis_offset[2], 1);
             else
                 rot_clr(DIR_R | DIR_L);
         }

@@ -1476,7 +1476,28 @@ static int loop(void)
                 text_input_str(e.text.text, 1);
                 break;
 
-#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
+//#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
+#if NB_PB_WITH_XBOX==0
+            /*case SDL_CONTROLLERAXISMOTION:
+                joy_axis(e.caxis.which, e.caxis.axis, JOY_VALUE(e.caxis.value));
+                break;
+
+            case SDL_CONTROLLERBUTTONDOWN:
+                d = joy_button(e.cbutton.which, (SDL_GameControllerButton) e.cbutton.button, 1);
+                break;
+
+            case SDL_CONTROLLERBUTTONUP:
+                d = joy_button(e.cbutton.which, (SDL_GameControllerButton) e.cbutton.button, 0);
+                break;
+
+            case SDL_CONTROLLERDEVICEADDED:
+                joy_add_gamectrlr(e.cdevice.which);
+                break;
+
+            case SDL_CONTROLLERDEVICEREMOVED:
+                joy_remove(e.cdevice.which);
+                break;*/
+
             case SDL_JOYAXISMOTION:
                 joy_axis(e.jaxis.which, e.jaxis.axis, JOY_VALUE(e.jaxis.value));
                 break;
@@ -1928,6 +1949,11 @@ static int main_init(int argc, char *argv[])
 #error Security compilation error: No Playstation HIDAPI specified!
 #endif
 #endif
+#if PENNYBALL_FAMILY_API == PENNYBALL_STEAMDECK_FAMILY_API
+#if defined(SDL_HINT_JOYSTICK_HIDAPI_STEAMDECK)
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_STEAMDECK, "1");
+#endif
+#endif
 #if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
 #if defined(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS, "1");
@@ -2020,10 +2046,10 @@ static int main_init(int argc, char *argv[])
     /* Enable joystick events. */
 
 #if !defined(__GAMECUBE__) && !defined(__WII__)
-#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
+//#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
     if (!joy_init())
         return 0;
-#endif
+//#endif
 
 #if NB_HAVE_PB_BOTH==1
 #if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
@@ -2233,9 +2259,10 @@ static void main_quit(void)
     lang_quit ();
 #endif
     activity_services_quit();
-
-#if (NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1) && \
+    
+//#if (PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
+#if !defined(__GAMECUBE__) && !defined(__WII__)
     joy_quit();
 #endif
 

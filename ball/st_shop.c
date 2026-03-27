@@ -223,7 +223,7 @@ static int shop_gui(void)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
 #if !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC
+            if (current_platform == PLATFORM_PC && !console_gui_shown()
              && !inaccept_playername
              && text_length(config_get_s(CONFIG_PLAYER)) >= 3)
 #else
@@ -1690,19 +1690,19 @@ static int shop_buy_action(int tok, int val)
                 case 1:
                     if (account_wgcl_do_buy(prodcost, 2))
                     {
-                        transition_quit();
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                         console_gui_free();
 #endif
                         hud_free();
+                        transition_quit();
                         gui_free();
                         account_set_d(ACCOUNT_PRODUCT_BALLS, 1);
                         gui_init();
+                        transition_init();
                         hud_init();
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                         console_gui_init();
 #endif
-                        transition_init();
                     }
                     else return 1;
                     break;

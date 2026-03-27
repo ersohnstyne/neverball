@@ -848,8 +848,11 @@ static void fail_paint(int id, float t)
 
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (console_gui_shown())
-        console_gui_death_paint();
+    if (console_gui_shown()) {
+        if (fail_intro_animation_phase != 1)
+            console_gui_death_paint();
+        else console_gui_putt_stop_paint();
+    }
 #endif
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {

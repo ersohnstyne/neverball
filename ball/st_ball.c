@@ -23,6 +23,9 @@
 
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
+#ifdef CONFIG_INCLUDES_ACCOUNT
+#include "account_wgcl.h"
+#endif
 #include "networking.h"
 #endif
 
@@ -350,6 +353,7 @@ static void set_curr_ball(int ball_index)
 #endif
     gui_set_label(name_id, _(ball->has_name ? ball->name :
                                               base_name(ball_file)));
+    gui_pulse(name_id, 1.2f);
 }
 
 enum
@@ -464,21 +468,25 @@ static int filter_cmd(const union cmd *cmd)
 
 static void load_ball_demo(void)
 {
-    if (model_studio)
-    {
-        if (!game_client_init("gui/model-studio.sol"))
-        {
-            if (!game_setup_process())
-                ball_action(GUI_BACK, 0);
+    model_studio = 0;
 
-            return;
+    if (!progress_replay_full("gui/ball.nbr", 0, 0, 0, 0, 0, 0)) {
+        if (game_client_init("gui/ball.sol")) {
+            //const float home_pos[3] = { 0.0f, 1.4f, 0.35f };
+            const float home_pos[3] = { 1.0f, 1.4f, -0.4f };
+
+            game_view_set_static_cam_view(1, home_pos);
+            game_client_fly(0); game_client_toggle_show_balls(1);
+            model_studio = 1;
+
+            if (!config_get_d(CONFIG_SCREEN_ANIMATIONS))
+                game_kill_fade();
         }
-        else game_client_toggle_show_balls(1);
-    }
-    else if (!progress_replay_full("gui/ball.nbr", 0, 0, 0, 0, 0, 0))
-    {
-        if (!game_setup_process())
-            ball_action(GUI_BACK, 0);
+
+#if NB_HAVE_PB_BOTH==1
+        if (super_environment == 0)
+#endif
+            back_init("back/premium.png");
 
         return;
     }
@@ -538,14 +546,16 @@ static int ball_gui(void)
             if ((account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
                  server_policy_get_d(SERVER_POLICY_EDITION) < 0) &&
                 !console_gui_shown() &&
-                !game_setup_process())
-            {
+                !game_setup_process()
+#ifdef CONFIG_INCLUDES_ACCOUNT
+             && account_wgcl_name_read_only()
+#endif
+                ) {
                 gui_space(id);
 
                 int online_id = 0;
                 if ((online_id = gui_label(id, _(more_balls_text),
-                                               GUI_SML, gui_wht, gui_grn)))
-                {
+                                               GUI_SML, gui_wht, gui_grn))) {
                     if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
                         gui_set_state(online_id, MODEL_UPGRADE_EDITION, 0);
                     else
@@ -633,10 +643,6 @@ static int ball_gui(void)
 
 static int ball_enter(struct state *st, struct state *prev, int intent)
 {
-    const float home_pos[3] = { 0.0f, 1.4f, 0.35f };
-
-    game_view_set_static_cam_view(1, home_pos);
-
     if (prev != &st_ball || ball_manual_hotreload)
         scan_balls();
 
@@ -703,8 +709,7 @@ static void ball_timer(int id, float dt)
     gui_timer(id, dt);
     game_step_fade(dt);
 
-    if (model_studio)
-        game_client_fly(1.0f);
+    if (model_studio) /* Not available in model studio */;
     else if (!demo_replay_step(dt))
     {
         demo_replay_stop(0);
@@ -725,6 +730,8 @@ static int ball_keybd(int c, int d)
     int initial_w    = config_get_d(CONFIG_WIDTH);
     int initial_h    = config_get_d(CONFIG_HEIGHT);
     int initial_refl = config_get_d(CONFIG_REFLECTION);
+
+    const float snapshot_pos[3] = { 0.0f, 1.4f, 0.35f };
 #endif
 
     if (d)
@@ -745,6 +752,7 @@ static int ball_keybd(int c, int d)
                 if (!config_cheat()) return 1;
 
 #ifndef __EMSCRIPTEN__
+                game_view_set_static_cam_view(1, snapshot_pos);
                 config_set_d(CONFIG_REFLECTION, 0);
                 demo_replay_stop(0);
                 load_ball_demo();

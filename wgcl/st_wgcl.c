@@ -565,7 +565,20 @@ static int wgcl_login_gui_keyboard(void)
             wgcl_gui_keyboard_en(jd);
             gui_filler(jd);
         }
-        gui_space(id);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        if (current_platform == PLATFORM_PC && !console_gui_shown())
+#endif
+        {
+            gui_space(id);
+
+            if ((jd = gui_harray(id)))
+            {
+                login_enter_id = gui_start(jd, _("OK"), GUI_SML, WGCL_LOGIN_SUBMIT, 0);
+                gui_space(jd);
+                gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+            }
+        }
 
         gui_set_trunc(login_field_id, TRUNC_HEAD);
 
@@ -586,26 +599,6 @@ static int wgcl_login_gui_keyboard(void)
                 }
                 gui_set_label(login_field_id, password_field_val);
                 break;
-        }
-
-        if ((jd = gui_harray(id)))
-        {
-            login_enter_id = gui_start(jd, _("OK"), GUI_SML, WGCL_LOGIN_SUBMIT, 0);
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
-#endif
-            {
-                gui_space(jd);
-                gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
-            }
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            else
-            {
-                gui_space(jd);
-                gui_space(jd);
-            }
-#endif
         }
 
         gui_layout(id, 0, 0);
@@ -727,11 +720,18 @@ static int wgcl_login_leave(struct state *st, struct state *next, int id, int in
 
 static void wgcl_login_paint(int id, float t)
 {
-    conf_common_paint(id, t);
+    video_set_perspective((float)config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+    back_draw_easy();
 
-    if ((current_platform != PLATFORM_PC || console_gui_shown()) &&
-        login_entertext_mode != 0)
-        console_gui_keybd_paint();
+    gui_paint(id);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if ((current_platform != PLATFORM_PC || console_gui_shown())) {
+        if (login_entertext_mode != 0)
+            console_gui_keybd_paint();
+        else console_gui_list_paint();
+    }
+#endif
 }
 
 static int wgcl_login_keybd(int c, int d)
@@ -766,20 +766,22 @@ static int wgcl_login_keybd(int c, int d)
     return 1;
 }
 
-static int name_buttn(int b, int d)
+static int wgcl_login_buttn(int b, int d)
 {
     if (d)
     {
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-        {
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b)) {
             int tok = gui_token(gui_active());
             int val = gui_value(gui_active());
-
+            
             if (login_entertext_mode != 0)
-                return wgcl_login_action(tok, (tok == GUI_CHAR && login_entertext_mode != 0 ?
+                return wgcl_login_action(tok, (tok == GUI_CHAR ?
                                                wgcl_gui_keyboard_char(val) :
                                                val));
+            else if (login_introduction || login_entertext_mode == 0)
+                return wgcl_login_action(tok, val);
         }
+
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             wgcl_login_action(GUI_BACK, 0);
 
@@ -792,13 +794,10 @@ static int name_buttn(int b, int d)
         else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R2, b) &&
                  login_entertext_mode != 0)
             wgcl_login_action(WGCL_LOGIN_SUBMIT, 0);
-    }
-    else
-    {
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) &&
-            login_entertext_mode != 0)
-            wgcl_login_action(GUI_CL, 0);
-    }
+    } else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) &&
+               login_entertext_mode != 0)
+        wgcl_login_action(GUI_CL, 0);
+
     return 1;
 }
 
@@ -806,7 +805,7 @@ static int name_buttn(int b, int d)
 
 /* Login result screens (with no online session active) */
 
-static int wgcl_login_result_gui_success(void)
+static int wgcl_login_result_gui_done(void)
 {
     int id;
 
@@ -840,7 +839,7 @@ static int wgcl_login_result_enter(struct state *st, struct state *prev, int int
 {
     conf_common_init(wgcl_login_action, 1);
 
-    return transition_slide(wgcl_login_result_gui_success(), 1, intent);
+    return transition_slide(wgcl_login_result_gui_done(), 1, intent);
 }
 
 /*===========================================================================*/
@@ -1114,6 +1113,11 @@ static void wgcl_addons_login_paint(int id, float t)
     back_draw_easy();
 
     gui_paint(id);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if (current_platform != PLATFORM_PC || console_gui_shown())
+        console_gui_list_paint();
+#endif
 }
 
 /*###########################################################################*/
@@ -1143,7 +1147,7 @@ struct state st_wgcl_login =
     NULL,
     common_click,
     wgcl_login_keybd,
-    common_buttn
+    wgcl_login_buttn
 };
 
 struct state st_wgcl_login_result =

@@ -110,6 +110,7 @@ enum
 
 static int name_id;
 static int enter_id;
+static int enter_btn_action_allowed;
 
 static int player_renamed = 0;
 
@@ -137,6 +138,8 @@ static void name_update_enter_btn(void)
     gui_set_color(enter_id,
                   name_accepted && !player_renamed ? gui_wht : gui_gry,
                   name_accepted && !player_renamed ? gui_wht : gui_gry);
+
+    enter_btn_action_allowed = name_accepted && !player_renamed;
 }
 
 static int name_action(int tok, int val)
@@ -155,8 +158,10 @@ static int name_action(int tok, int val)
             allow_entertext = 0;
             text_input_stop();
 
-            if (name_error)
+            if (name_error) {
+                name_error = 0;
                 return exit_state(&st_name);
+            }
 
             if (newplayers)
                 return ok_fn ? ok_fn(ok_state) : goto_state(ok_state);
@@ -178,7 +183,7 @@ static int name_action(int tok, int val)
             text_input_stop();
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-            if (text_length(text_input) < 3)
+            if (enter_btn_action_allowed)
                 name_error = 1;
             else if (player_renamed)
             {
@@ -187,7 +192,7 @@ static int name_action(int tok, int val)
                 config_set_s(CONFIG_PLAYER, text_input);
 
                 account_init();
-                if (text_length(text_input) < 3)
+                if (enter_btn_action_allowed)
                     name_error = 1;
                 else if (account_exists())
                     account_load();
@@ -206,7 +211,7 @@ static int name_action(int tok, int val)
                 account_wgcl_save();
             }
 #endif
-            config_save();
+            if (!name_error) config_save();
 
             return !name_error && !newplayers && ok_fn ? ok_fn(ok_state) :
                                                          goto_state(newplayers || name_error ? &st_name : ok_state);
@@ -259,26 +264,28 @@ static int name_gui(void)
                 gui_keyboard_en(jd);
                 gui_filler     (jd);
             }
-            gui_space(id);
 
-            if ((jd = gui_harray(id)))
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
+#endif
             {
-                enter_id = gui_start(jd, _("OK"), GUI_SML, NAME_OK, 0);
+                gui_space(id);
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-                if (current_platform == PLATFORM_PC && !game_setup_process())
-#endif
+                if ((jd = gui_harray(id)))
                 {
-                    gui_space(jd);
-                    gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+                    enter_id = gui_start(jd, _("OK"), GUI_SML, NAME_OK, 0);
+
+                    if (!game_setup_process())
+                    {
+                        gui_space(jd);
+                        gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+                    }
+                    else
+                    {
+                        gui_space(jd);
+                        gui_space(jd);
+                    }
                 }
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-                else
-                {
-                    gui_space(jd);
-                    gui_space(jd);
-                }
-#endif
             }
 
             gui_set_trunc(name_id, TRUNC_HEAD);
@@ -323,7 +330,7 @@ static int name_gui(void)
             gui_space(id);
             gui_multi(id, _(t_desc), GUI_SML, GUI_COLOR_WHT);
             gui_space(id);
-            gui_start(id, _("OK"), GUI_SML, NAME_CONTINUE, 0);
+            gui_start(id, _("OK"), GUI_SML, name_error ? GUI_BACK : NAME_CONTINUE, 0);
         }
     }
 
@@ -371,6 +378,7 @@ static int name_enter(struct state *st, struct state *prev, int intent)
     {
         text_input_start(on_text_input);
         text_input_str(config_get_s(CONFIG_PLAYER), 0);
+        name_update_enter_btn();
     }
 
     return transition_slide(name_gui(), 1, intent);
@@ -472,14 +480,11 @@ static int name_buttn(int b, int d)
             name_action(GUI_CL, 0);
         else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R2, b) &&
                  allow_entertext)
-            name_action(NAME_OK, 0);
-    }
-    else
-    {
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) &&
-            allow_entertext)
-            name_action(GUI_CL, 0);
-    }
+            name_action(enter_btn_action_allowed ? NAME_OK : GUI_NONE, 0);
+    } else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) &&
+               allow_entertext)
+        name_action(GUI_CL, 0);
+
     return 1;
 }
 

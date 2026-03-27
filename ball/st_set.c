@@ -545,7 +545,7 @@ static int set_gui(void)
                         gui_set(ld, i);
             }
 
-            if (video.aspect_ratio >= 1.0f && !console_gui_shown())
+            if (video.aspect_ratio >= 1.0f)
             {
                 gui_space(jd);
                 desc_id = gui_multi(jd, " \n \n \n \n \n", GUI_SML, gui_yel, gui_wht);

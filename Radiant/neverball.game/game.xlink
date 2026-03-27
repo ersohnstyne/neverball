@@ -1,6 +1,7 @@
 <?xml version="1.0" standalone="yes"?>
 <links>
+<item name="Entity design specifications" url="https://pennyball.stynegame.de/docs/internal/makeandplay/entitiesdesignspecifications"/>
+<item name="Developers" url="https://github.com/Neverball"/>
 <item name="Website" url="http://neverball.org/"/>
-<item name="Forum" url="http://neverforum.com/"/>
-<item name="Mapping resources" url="http://wiki.nevercorner.net/"/>
+<item name="Discord" url="http://discord.gg/HhMfr4N6H6"/>
 </links>

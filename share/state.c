@@ -360,6 +360,7 @@ void st_stick(int a, float v)
         if (config_tst_d(*axes[i].num, a) && config_get_d(*axes[i].inv))
         {
             v = -v;
+
             break;
         }
 
@@ -371,6 +372,8 @@ void st_stick(int a, float v)
 
         state->stick(state->gui_id, a, v, bump_stick(a));
     }
+
+    gui_cursor_stick_gamepad(a, v);
 }
 
 void st_angle(float x, float z)

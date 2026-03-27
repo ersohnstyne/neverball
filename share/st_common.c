@@ -215,6 +215,18 @@ int conf_state(int id, const char *label, const char *text, int token)
     return rd;
 }
 
+int conf_start(int id, const char *label, const char *text, int token)
+{
+    int jd, kd, rd = 0;
+
+    if ((jd = gui_harray(id)) && (kd = gui_harray(jd)))
+    {
+        rd = gui_start(kd, text, GUI_SML, token, 0);
+        gui_label(jd, label, GUI_SML, 0, 0);
+    }
+
+    return rd;
+}
 
 void conf_toggle_simple(int id, const char *label, int token, int value,
                         int value1, int value0)
@@ -272,7 +284,7 @@ void conf_header(int id, const char *text, int token)
         gui_space(jd);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (current_platform == PLATFORM_PC)
+        if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
         {
             if ((kd = gui_hstack(jd)))
@@ -447,6 +459,11 @@ void conf_common_paint(int id, float t)
     if (is_common_bg) back_draw_easy();
 
     gui_paint(id);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if (current_platform != PLATFORM_PC || console_gui_shown())
+        console_gui_list_paint();
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2339,8 +2356,8 @@ static int loading_leave(struct state *st, struct state *next, int id, int inten
 
 static void loading_paint(int id, float t)
 {
-    conf_common_paint(id, t);
-
+    //conf_common_paint(id, t);
+    video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
     gui_paint(id);
 }
 

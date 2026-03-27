@@ -1461,7 +1461,7 @@ static int conf_keybd_modal_key_gui(void)
 {
     int id;
 
-    if ((id = gui_label(0, _("Press any key..."), GUI_MED, GUI_COLOR_WHT)))
+    if ((id = gui_title_header(0, _("Press any key..."), GUI_MED, GUI_COLOR_WHT)))
         gui_layout(id, 0, 0);
 
     return id;
@@ -1502,13 +1502,17 @@ static void conf_keybd_paint(int id, float t)
         video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
         back_draw_easy();
     }
-    else
-        game_client_draw(0, t);
+    else game_client_draw(0, t);
 
     gui_paint(id);
 
     if (conf_keybd_modal == CONF_KEYBD_ASSIGN_KEY)
         gui_paint(conf_keybd_modal_key_id);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if (current_platform != PLATFORM_PC || console_gui_shown())
+        console_gui_list_paint();
+#endif
 }
 
 static void conf_keybd_timer(int id, float dt)
@@ -1972,7 +1976,7 @@ static int conf_controllers_modal_button_gui(void)
 {
     int id;
 
-    if ((id = gui_label(0, _("Press a button..."), GUI_MED, GUI_COLOR_WHT)))
+    if ((id = gui_title_header(0, _("Press a button..."), GUI_MED, GUI_COLOR_WHT)))
         gui_layout(id, 0, 0);
 
     return id;
@@ -1982,7 +1986,7 @@ static int conf_controllers_modal_axis_gui(void)
 {
     int id;
 
-    if ((id = gui_label(0, _("Move a stick..."), GUI_MED, GUI_COLOR_WHT)))
+    if ((id = gui_title_header(0, _("Move a stick..."), GUI_MED, GUI_COLOR_WHT)))
         gui_layout(id, 0, 0);
 
     return id;
@@ -2022,11 +2026,10 @@ static void conf_controllers_paint(int id, float t)
 {
     if (mainmenu_conf)
     {
-        video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+        video_set_perspective((float)config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
         back_draw_easy();
     }
-    else
-        game_client_draw(0, t);
+    else game_client_draw(0, t);
 
     gui_paint(id);
 
@@ -2035,6 +2038,11 @@ static void conf_controllers_paint(int id, float t)
 
     if (conf_controllers_modal == CONF_CONTROLLERS_ASSIGN_AXIS)
         gui_paint(conf_controllers_modal_axis_id);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if (current_platform != PLATFORM_PC || console_gui_shown())
+        console_gui_list_paint();
+#endif
 }
 
 static int conf_controllers_buttn(int b, int d)
@@ -2729,7 +2737,14 @@ static int conf_action(int tok, int val)
 
 static int conf_gui(void)
 {
-    int root_id;
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    int root_id = (current_platform == PLATFORM_PC && !console_gui_shown()) ?
+                  gui_root() : 0;
+#else
+    int root_id = gui_root();
+#endif
+
+    int id, rd;
 
     /*
      * Initialize the configuration GUI.
@@ -2737,13 +2752,11 @@ static int conf_gui(void)
      * In order: Game settings, video settings, audio settings, controls settings
      */
 
-    if ((root_id = gui_root()))
+    //if (root_id)
     {
-        int id, rd;
-
         if ((id = gui_vstack(root_id)))
         {
-            gui_space(id);
+            if (root_id) gui_space(id);
 
             conf_header(id, _("Options"), GUI_BACK);
 
@@ -2789,15 +2802,13 @@ static int conf_gui(void)
             conf_state(id, _("Gameplay"), _("Configure"), CONF_MANAGE_GAMEPLAY);
             gui_space(id);
 #endif
-            if (mainmenu_conf)
-            {
+            if (mainmenu_conf) {
                 conf_state(id, _("Controls"), _("Configure"), CONF_CONTROLS);
                 gui_space(id);
                 conf_state(id, _("Graphics"), _("Configure"), CONF_VIDEO);
             }
 
-            if (audio_available())
-            {
+            if (audio_available()) {
 #if NB_HAVE_PB_BOTH==1
                 conf_state(id, _("Audio"), _("Configure"), CONF_AUDIO);
 #else
@@ -2861,8 +2872,7 @@ static int conf_gui(void)
             }
 #endif
 
-            if (mainmenu_conf)
-            {
+            if (mainmenu_conf) {
 #if ENABLE_NLS==1 || _WIN32
                 gui_space(id);
 
@@ -2879,27 +2889,27 @@ static int conf_gui(void)
 #endif
             }
 
-            gui_layout(id, 0, +1);
+            gui_layout(id, 0, root_id ? +1 : 0);
         }
-
-        if ((id = gui_vstack(root_id)))
-        {
+        
+        if (root_id) {
+            if ((id = gui_vstack(root_id))) {
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-            gui_label(id, "Neverball " VERSION " (High)", GUI_TNY, GUI_COLOR_WHT);
+                gui_label(id, "Neverball " VERSION " (High)", GUI_TNY, GUI_COLOR_WHT);
 #endif
-            gui_multi(id, _("Copyright © 2026 Neverball authors\n"
-                            "Neverball is free software available under the terms of GPL v2 or later."),
-                          GUI_TNY, GUI_COLOR_WHT);
-            gui_clr_rect(id);
-            gui_layout(id, 0, -1);
+                gui_multi(id, _("Copyright © 2026 Neverball authors\n"
+                                "Neverball is free software available under the terms of GPL v2 or later."),
+                              GUI_TNY, GUI_COLOR_WHT);
+                gui_clr_rect(id);
+                gui_layout(id, 0, -1);
+            }
         }
     }
 
-    gui_layout(root_id, 0, 0);
-
-    return root_id;
+    if (root_id) gui_layout(root_id, 0, 0);
+    return root_id ? root_id : id;
 }
 
 static int conf_enter(struct state *st, struct state *prev, int intent)
@@ -2945,11 +2955,11 @@ static int null_enter(struct state *st, struct state *prev, int intent)
     video_motionblur_quit();
 #endif
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    console_gui_free();
-#endif
 #if ENABLE_DUALDISPLAY==1
     game_dualdisplay_gui_free();
+#endif
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    console_gui_free();
 #endif
     hud_free();
     transition_quit();
@@ -2994,11 +3004,11 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
     gui_init();
     transition_init();
     hud_init();
-#if ENABLE_DUALDISPLAY==1
-    game_dualdisplay_gui_init();
-#endif
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_init();
+#endif
+#if ENABLE_DUALDISPLAY==1
+    game_dualdisplay_gui_init();
 #endif
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
@@ -3032,10 +3042,14 @@ static void conf_paint(int id, float t)
         video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
         back_draw_easy();
     }
-    else
-        game_client_draw(0, t);
+    else game_client_draw(0, t);
 
     gui_paint(id);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if (current_platform != PLATFORM_PC || console_gui_shown())
+        console_gui_list_paint();
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

@@ -750,7 +750,16 @@ static void level_paint(int id, float t)
     if (console_gui_shown())
     {
         hud_cam_paint();
-        console_gui_desc_paint();
+        if ((level_master(curr_level())
+            || curr_mode() == MODE_CHALLENGE
+            || curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            || curr_mode() == MODE_HARDCORE
+#endif
+            ) &&
+            server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
+            console_gui_desc_paint();
+        else console_gui_list_paint();
     }
 #endif
 

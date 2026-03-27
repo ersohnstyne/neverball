@@ -242,6 +242,8 @@ int  gui_click(int, int);
 void gui_focus(int);
 void gui_alpha(int, float);
 
+void gui_cursor_stick_gamepad(int, float);
+
 int  gui_active(void);
 int  gui_token(int);
 int  gui_value(int);

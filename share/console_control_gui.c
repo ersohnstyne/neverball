@@ -1179,11 +1179,14 @@ static void init_xbox_keybd(void)
 
         create_controller_spacer(xbox_control_list_id);
 
-        gui_label(xbox_control_keybd_id, _("Back"),
+        gui_label(xbox_control_keybd_id, _("Cancel"),
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_keybd_id,
                         config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+
+        gui_set_rect(xbox_control_keybd_id, GUI_TOP);
+        gui_layout(xbox_control_keybd_id, 0, -1);
     }
 }
 
@@ -1362,8 +1365,16 @@ static void init_xbox_desc(void)
                         config_get_d(CONFIG_JOYSTICK_BUTTON_X));
 
         create_controller_spacer(xbox_control_desc_id);
+        
+        gui_label(xbox_control_desc_id, _("Back"),
+                  GUI_SML, gui_wht, gui_wht);
 
-        gui_label(xbox_control_desc_id, _("Start Level"),
+        console_gui_create_b_button(xbox_control_desc_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+
+        create_controller_spacer(xbox_control_desc_id);
+
+        gui_label(xbox_control_desc_id, _("Select"),
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_desc_id,
@@ -1729,6 +1740,7 @@ void console_gui_slide(int flags)
     gui_slide(xbox_control_title_id,               flags, 0, 0.3f, 0);
     gui_slide(xbox_control_keybd_id,               flags, 0, 0.3f, 0);
     gui_slide(xbox_control_list_id,                flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_levelopt_id,            flags, 0, 0.3f, 0);
     gui_slide(xbox_control_paused_id,              flags, 0, 0.3f, 0);
     gui_slide(xbox_control_package_installable_id, flags, 0, 0.3f, 0);
     gui_slide(xbox_control_package_updateable_id,  flags, 0, 0.3f, 0);
@@ -1834,7 +1846,7 @@ void console_gui_package_manageable_paint(void)
 void console_gui_desc_paint(void)
 {
     if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
-    gui_paint(xbox_control_desc_id);
+        gui_paint(xbox_control_desc_id);
 }
 
 void console_gui_preparation_paint(void)

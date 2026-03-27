@@ -24,7 +24,7 @@
 #include "vec3.h"
 
 /*
- * HACK: Have it your way on your Xbox Gamepads from Visual Studio 2022!
+ * HACK: Have it your way on your Xbox Gamepads from Visual Studio 2026!
  * - Ersohn Styne
  */
 

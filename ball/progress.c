@@ -1397,6 +1397,8 @@ int  progress_replay_full(const char *filename,
                           int *b, int *s, int *tt,
                           int in_game)
 {
+    demo_replay_stop(0);
+
     if (demo_replay_init(filename,
                          in_game && g  ? g  : (in_game ? &goal       : 0),
                          in_game && m  ? m  : (in_game ? &mode       : 0),

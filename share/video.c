@@ -114,33 +114,19 @@ void video_show_cursor(void)
 
     int cursor_visible = 0;
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (current_platform == PLATFORM_PC)
-#endif
-    {
 #ifdef SWITCHBALL_GUI
+    gui_set_cursor(1);
+    cursor_visible = SDL_DISABLE;
+#else
+    if (hmd_stat())
+    {
         gui_set_cursor(1);
         cursor_visible = SDL_DISABLE;
-#else
-        if (hmd_stat())
-        {
-            gui_set_cursor(1);
-            cursor_visible = SDL_DISABLE;
-        }
-        else
-        {
-            gui_set_cursor(0);
-            cursor_visible = SDL_ENABLE;
-        }
-#endif
     }
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     else
     {
-        /* You won't be able to use the cursor, while using the
-         * Nintendo Switch, PS4 or Xbox */
         gui_set_cursor(0);
-        cursor_visible = SDL_DISABLE;
+        cursor_visible = SDL_ENABLE;
     }
 #endif
 

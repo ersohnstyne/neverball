@@ -24,7 +24,7 @@
 
 #define BOOST_FILE "boost-rushes.txt"
 
-#define MAXLVL_SET 150
+#define MAXLVL_SET 200
 
 #define SET_UNLOCKABLE_EDITION 2
 

@@ -113,7 +113,7 @@ const GLubyte gui_wht2[4] = { 0xFF, 0xFF, 0xFF, 0x60 }; /* Transparent white */
 
 /*---------------------------------------------------------------------------*/
 
-#define WIDGET_MAX 512 /* Twice as high (previous is 256) */
+#define WIDGET_MAX 1024 /* 4x as high (previous is 256) */
 
 #define GUI_FREE   0
 #define GUI_HARRAY 1
@@ -211,6 +211,9 @@ static int digit_id[FONT_SIZE_MAX][11];
 
 /* Cursor image. */
 
+static int gui_cursor_shown_gamepad = 0;
+static float gui_cursor_x_offset_rate_gamepad = 0;
+static float gui_cursor_y_offset_rate_gamepad = 0;
 static int cursor_id = 0;
 static int cursor_st = 0;
 
@@ -755,6 +758,11 @@ void gui_resize(void)
     for (i = 1; i < WIDGET_MAX; ++i)
         if (widget[i].type != GUI_FREE && (widget[i].flags & GUI_LAYOUT))
             gui_layout(i, widget[i].layout_xd, widget[i].layout_yd);
+
+    /* Reset cursor offsets for gamepad. */
+
+    gui_cursor_x_offset_rate_gamepad = 0;
+    gui_cursor_y_offset_rate_gamepad = 0;
 }
 
 void gui_init(void)
@@ -2191,7 +2199,7 @@ static int gui_paint_hmdexperience_push(int id)
     const float uiexperience_offset_x = widget[id].offset_x / (video.device_w / 64.0f);
     const float uiexperience_offset_y = widget[id].offset_y / (video.device_h / 64.0f);
 
-    if (GUI_CONFIG_HWACCEL_DECISION && gui_hmd_experience_mode == 1)
+    if (GUI_CONFIG_HWACCEL_EXPERIENCEMODE && gui_hmd_experience_mode == 1)
     {
         glRotatef(uiexperience_pos_x + uiexperience_offset_x,
                   0.0f, -5.0f, 0.0f);
@@ -2338,6 +2346,7 @@ static void gui_paint_image(int id)
 
         glBindTexture_(GL_TEXTURE_2D, widget[id].image);
         glColor4ub(GUI_COLOR4UB);
+
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
@@ -2358,7 +2367,6 @@ static void gui_paint_image(int id)
         if (widget[id].flags & GUI_CLIP)
             glPopScissor_();
 #endif
-
 
         gui_paint_hmdexperience_pop();
     }
@@ -2826,19 +2834,17 @@ void gui_paint(int id)
     if (id && widget[id].type != GUI_FREE)
     {
 #ifndef __EMSCRIPTEN__
-        if (GUI_CONFIG_HWACCEL_DECISION)
-        {
+        if (GUI_CONFIG_HWACCEL_DECISION) {
             const float effective_fov = flerp(42.666f, 70.0f, ((video.device_h - 600) / 480.f));
             video_set_perspective(effective_fov, 0.001f, 10000);
             glTranslatef(video.device_w / -2.0f, video.device_h / -2.0f, -770.0f);
-        }
-        else
+        } else
 #endif
             video_set_ortho();
 
         glDisable(GL_DEPTH_TEST);
 
-        const float GUI_SCL = widget[id].w > video.device_w ? (float)((float)video.device_w / (float)widget[id].w) : 1.0f;
+        const float GUI_SCL = widget[id].w > video.device_w ? (float) ((float) video.device_w / (float) widget[id].w) : 1.0f;
         glScalef(GUI_SCL, GUI_SCL, GUI_SCL);
 
         gui_animate(id);
@@ -2862,24 +2868,19 @@ void gui_paint(int id)
     }
 
     /* Should be used within the split-view? */
-#ifndef __EMSCRIPTEN__
-    if (!video_get_grab() && !console_gui_shown() && cursor_st && cursor_id)
-#else
-    if (!video_get_grab() && cursor_st && cursor_id)
-#endif
+    if (!video_get_grab() && gui_cursor_shown_gamepad && cursor_st && cursor_id)
     {
 #ifndef __EMSCRIPTEN__
-        if (config_get_d(CONFIG_UI_HWACCEL))
-        {
+        if (GUI_CONFIG_HWACCEL_DECISION) {
             const float effective_fov = flerp(42.666f, 70.0f, ((video.device_h - 600) / 480.f));
             video_set_perspective(effective_fov, 0.001f, 10000);
             glTranslatef(video.device_w / -2.0f, video.device_h / -2.0f, -770.0f);
-        }
-        else
+        } else
 #endif
             video_set_ortho();
-
+        
         glDisable(GL_DEPTH_TEST);
+
         draw_enable(GL_TRUE, GL_TRUE, GL_TRUE);
         gui_paint_image(cursor_id);
         draw_disable();
@@ -3050,10 +3051,35 @@ void gui_timer(int id, float dt)
             }
         }
     }
+
+    static float cursor_x_offset_gamepad = -10000;
+    static float cursor_y_offset_gamepad = -10000;
+
+    if (cursor_x_offset_gamepad < -1 || cursor_x_offset_gamepad > video.device_w + 1) cursor_x_offset_gamepad = video.device_w / 2.0f;
+    if (cursor_y_offset_gamepad < -1 || cursor_y_offset_gamepad > video.device_h + 1) cursor_y_offset_gamepad = video.device_h / 2.0f;
+
+    if (cursor_id &&
+        (gui_cursor_x_offset_rate_gamepad != 0 ||
+         gui_cursor_y_offset_rate_gamepad != 0)) {
+        cursor_x_offset_gamepad += (gui_cursor_x_offset_rate_gamepad * dt);
+        cursor_y_offset_gamepad += (gui_cursor_y_offset_rate_gamepad * dt);
+
+        cursor_x_offset_gamepad = CLAMP(0, cursor_x_offset_gamepad, video.device_w);
+        cursor_y_offset_gamepad = CLAMP(0, cursor_y_offset_gamepad, video.device_h);
+
+        gui_point(id, cursor_x_offset_gamepad, cursor_y_offset_gamepad);
+    }
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    else if (cursor_id && gui_cursor_shown_gamepad && console_gui_shown())
+        gui_point(id, cursor_x_offset_gamepad, cursor_y_offset_gamepad);
+#endif
 }
 
 int gui_point(int id, int x, int y)
 {
+    gui_cursor_shown_gamepad = 1;
+
     static int x_cache = 0;
     static int y_cache = 0;
 
@@ -3390,8 +3416,7 @@ static int gui_wrap_D(int id, int dd)
     int jd, kd;
 
     if ((jd = gui_stick_D(id, dd)) == 0)
-        for (jd = dd; (kd = gui_stick_U(id, jd)); jd = kd)
-            ;
+        for (jd = dd; (kd = gui_stick_U(id, jd)); jd = kd);
 
     return jd;
 }
@@ -3403,6 +3428,23 @@ int gui_stick(int id, int a, float v, int bump)
     int jd = 0;
 
     if (!bump) return 0;
+
+    gui_cursor_shown_gamepad = 0;
+
+    /* If hovered widget button was not found. */
+
+    if (!gui_hot(active)) {
+        /* Find all widget buttons! */
+
+        for (int i = 0; i < WIDGET_MAX; i++)
+            if (gui_hot(i)) {
+                jd = i;
+                break;
+            }
+
+        if (jd != 0 && jd != active) audio_play("snd/focus.ogg", 1.0f);
+        return (jd != 0 && jd != active) ? active = jd : 0;
+    }
 
     /* Find a new active widget in the direction of joystick motion. */
 
@@ -3421,6 +3463,17 @@ int gui_stick(int id, int a, float v, int bump)
 
     if (jd != 0 && jd != active) audio_play("snd/focus.ogg", 1.0f);
     return (jd != 0 && jd != active) ? active = jd : 0;
+}
+
+void gui_cursor_stick_gamepad(int a, float v)
+{
+    if (config_tst_d(CONFIG_JOYSTICK_AXIS_X1, a) && (!video_get_grab() || hmd_stat()))
+        gui_cursor_x_offset_rate_gamepad = ((v + axis_offset[2]) * 10) * (video.device_w / 1920.0f);
+    else if (video_get_grab()) gui_cursor_x_offset_rate_gamepad = 0.0f;
+
+    if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y1, a) && (!video_get_grab() || hmd_stat()))
+        gui_cursor_y_offset_rate_gamepad = ((v + axis_offset[3]) * 10) * (video.device_h / 1080.0f);
+    else if (video_get_grab()) gui_cursor_y_offset_rate_gamepad = 0.0f;
 }
 
 int gui_click(int b, int d)

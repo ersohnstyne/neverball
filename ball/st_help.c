@@ -152,12 +152,12 @@ static int help_action(int tok, int val)
 
         case HELP_DEMO:
             progress_reinit(MODE_NONE);
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (progress_replay_full(current_platform == PLATFORM_PC ?
-                                     demos[val] : demos_xbox[val],
-#else
+//#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+//            if (progress_replay_full(current_platform == PLATFORM_PC && !console_gui_shown() ?
+//                                     demos[val] : demos_xbox[val],
+//#else
             if (progress_replay_full(demos[val],
-#endif
+//#endif
                                      0, 0, 0, 0, 0, 0))
 
                 return goto_state(&st_help_demo);
@@ -190,12 +190,12 @@ static int help_action(int tok, int val)
         case GUI_BACK: return exit_state(&st_title);
 
         case HELP_DEMO:
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (progress_replay_full(current_platform == PLATFORM_PC ?
-                                     demos[val] : demos_xbox[val],
-#else
+//#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+//            if (progress_replay_full(current_platform == PLATFORM_PC && !console_gui_shown() ?
+//                                     demos[val] : demos_xbox[val],
+//#else
             if (progress_replay_full(demos[val],
-#endif
+//#endif
                                      0, 0, 0, 0, 0, 0))
 
                 return goto_state(&st_help_demo);
@@ -340,12 +340,12 @@ static int page_introduction(int id)
 #else
 static int help_allow_control_demos(int id)
 {
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    return fs_exists(current_platform == PLATFORM_PC ?
-                     demos[id] : demos_xbox[id]);
-#else
+//#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+//    return fs_exists(current_platform == PLATFORM_PC ?
+//                     demos[id] : demos_xbox[id]);
+//#else
     return fs_exists(demos[id]);
-#endif
+//#endif
 }
 
 static int page_rules(int id)
@@ -374,11 +374,14 @@ static int page_rules(int id)
     const char *s_pc = _("Move the mouse or use keyboard\n"
                          "to tilt the floor causing the\n"
                          "ball to roll.\n");
+    const char *s_touch = _("Swipe to tilt the floor causing the\n"
+                            "ball to roll.\n");
 
     const char *s_xbox_notilt = _("Use the left stick to\n"
                                   "move the ball.\n");
     const char *s_pc_notilt = _("Move the mouse or use keyboard\n"
                                 "to move the ball.\n");
+    const char *s_touch_notilt = _("Swipe to move the ball.\n");
 #endif
 
     int w = video.device_w;
@@ -401,14 +404,15 @@ static int page_rules(int id)
                                                                    s_wii_notilt,
                               GUI_SML, GUI_COLOR_WHT);
 #else
-                if (opt_touch)
+                if (opt_touch && !console_gui_shown())
                     gui_multi(ld, config_get_d(CONFIG_TILTING_FLOOR) ? s_touch :
                                                                        s_touch_notilt,
                                   GUI_SML, GUI_COLOR_WHT);
-                else gui_multi(ld, current_platform == PLATFORM_PC ? (config_get_d(CONFIG_TILTING_FLOOR) ? s_pc :
-                                                                                                           s_pc_notilt) :
-                                                                     (config_get_d(CONFIG_TILTING_FLOOR) ? s_xbox :
-                                                                                                           s_xbox_notilt),
+                else gui_multi(ld, current_platform == PLATFORM_PC && !console_gui_shown() ?
+                                   (config_get_d(CONFIG_TILTING_FLOOR) ? s_pc :
+                                                                         s_pc_notilt) :
+                                   (config_get_d(CONFIG_TILTING_FLOOR) ? s_xbox :
+                                                                         s_xbox_notilt),
                                   GUI_SML, GUI_COLOR_WHT);
 #endif
 #else
@@ -519,6 +523,7 @@ static void controls_pc(int id)
     char       *ks_cam1       = strdup(SDL_GetKeyName(k_cam1));
     char       *ks_cam2       = strdup(SDL_GetKeyName(k_cam2));
     char       *ks_cam3       = strdup(SDL_GetKeyName(k_cam3));
+    char       *ks_shot       = strdup(SDL_GetKeyName(k_shot));
     char       *ks_rot_l      = strdup(SDL_GetKeyName(k_rot_l));
     char       *ks_rot_r      = strdup(SDL_GetKeyName(k_rot_r));
 
@@ -662,8 +667,8 @@ static int page_controls(int id)
 #if defined(__WII__)
     controls_console(id);
 #else
-    if (opt_touch) controls_touch(id);
-    else if (current_platform == PLATFORM_PC)
+    if (opt_touch && !console_gui_shown()) controls_touch(id);
+    else if (current_platform == PLATFORM_PC && !console_gui_shown())
         controls_pc(id);
     else controls_console(id);
 #endif
@@ -965,7 +970,7 @@ static int page_modes_special(int id)
         else
         {
             gui_label(jd, _("Hardcore Mode"), GUI_SML, gui_gry, gui_red);
-            
+
 #ifdef __EMSCRIPTEN__
             const int wgcl_account_sync_done = EM_ASM_INT({
                 return tmp_online_session_data != undefined &&
@@ -1416,6 +1421,7 @@ static int help_demo_enter(struct state *st, struct state *prev, int intent)
     smoothfix_slowdown_time = 0;
 
     game_client_fly(0.0f);
+    demo_replay_speed(SPEED_NORMAL);
     return 0;
 }
 
@@ -1437,21 +1443,21 @@ static void help_demo_timer(int id, float dt)
 {
     ST_HELP_DEMO_SMOOTH_FIX_TIMER(smoothfix_slowdown_time);
 
-    game_step_fade(dt);
+    if (time_state() < 0.1f) return;
 
-    if (!demo_freeze_all)
-    {
-        geom_step(dt);
-        game_camshake_update(dt);
+    geom_step(dt);
+    game_camshake_update(dt);
 
-        if (!demo_replay_step(dt))
-        {
+    if (!demo_freeze_all) {
+        if (!demo_replay_step(dt)) {
             demo_freeze_all = 1;
             exit_state(&st_help);
         }
 
         game_client_blend(demo_replay_blend());
     }
+
+    game_step_fade(dt);
 }
 
 static int help_demo_keybd(int c, int d)

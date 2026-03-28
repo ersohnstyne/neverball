@@ -1196,6 +1196,11 @@ int main_share(int argc, char *argv[])
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
+#if NEVERBALL_FAMILY_API == NEVERBALL_ENERGIZELAB_FAMILY_API
+        console_init_controller_type(PLATFORM_ENERGIZELAB);
+        config_set_d(CONFIG_JOYSTICK, 1);
+        config_save();
+#endif
 #endif
 
         /* Initialize accessibility. */

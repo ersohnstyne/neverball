@@ -153,6 +153,50 @@ static void create_handset_rb_button(int rb_id)
 
 /*---------------------------------------------------------------------------*/
 
+/* Energize Lab Maticontroller controllers */
+
+static void create_maticontroller_a_button(int a_id)
+{
+    gui_label(a_id, MATICONTROLLER_A_BUTTON, GUI_SML, gui_cya, gui_cya);
+}
+
+static void create_maticontroller_b_button(int b_id)
+{
+    gui_label(b_id, MATICONTROLLER_B_BUTTON, GUI_SML, gui_cya, gui_cya);
+}
+
+static void create_maticontroller_x_button(int x_id)
+{
+    gui_label(x_id, MATICONTROLLER_X_BUTTON, GUI_SML, gui_cya, gui_cya);
+}
+
+static void create_maticontroller_y_button(int y_id)
+{
+    gui_label(y_id, MATICONTROLLER_Y_BUTTON, GUI_SML, gui_cya, gui_cya);
+}
+
+static void create_maticontroller_lb_button(int lb_id)
+{
+    gui_label(lb_id, MATICONTROLLER_LB_BUTTON, GUI_SML, gui_cya, gui_wht);
+}
+
+static void create_maticontroller_rb_button(int rb_id)
+{
+    gui_label(rb_id, MATICONTROLLER_RB_BUTTON, GUI_SML, gui_cya, gui_wht);
+}
+
+static void create_maticontroller_lt_button(int lb_id)
+{
+    gui_label(lb_id, MATICONTROLLER_LT_BUTTON, GUI_SML, gui_cya, gui_wht);
+}
+
+static void create_maticontroller_rt_button(int rb_id)
+{
+    gui_label(rb_id, MATICONTROLLER_RT_BUTTON, GUI_SML, gui_cya, gui_wht);
+}
+
+/*---------------------------------------------------------------------------*/
+
 /* Xbox controllers */
 
 static void create_xbox_a_button(int a_id)
@@ -474,6 +518,9 @@ void console_gui_create_a_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_a_button(gui_id);
         break;
+        case PLATFORM_ENERGIZELAB:
+        create_maticontroller_a_button(gui_id);
+        break;
         default:
         create_xbox_a_button(gui_id);
     }
@@ -531,6 +578,9 @@ void console_gui_create_b_button(int gui_id, int btn_id)
         break;
         case PLATFORM_SWITCH:
         create_switch_b_button(gui_id);
+        break;
+        case PLATFORM_ENERGIZELAB:
+        create_maticontroller_b_button(gui_id);
         break;
         default:
         create_xbox_b_button(gui_id);
@@ -590,6 +640,9 @@ void console_gui_create_x_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_x_button(gui_id);
         break;
+        case PLATFORM_ENERGIZELAB:
+        create_maticontroller_x_button(gui_id);
+        break;
         default:
         create_xbox_x_button(gui_id);
     }
@@ -647,6 +700,9 @@ void console_gui_create_y_button(int gui_id, int btn_id)
         break;
         case PLATFORM_SWITCH:
         create_switch_y_button(gui_id);
+        break;
+        case PLATFORM_ENERGIZELAB:
+        create_maticontroller_y_button(gui_id);
         break;
         default:
         create_xbox_y_button(gui_id);
@@ -706,6 +762,9 @@ void console_gui_create_lb_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_lb_button(gui_id);
         break;
+        case PLATFORM_ENERGIZELAB:
+        create_maticontroller_lb_button(gui_id);
+        break;
         default:
         create_xbox_lb_button(gui_id);
     }
@@ -763,6 +822,9 @@ void console_gui_create_rb_button(int gui_id, int btn_id)
         break;
         case PLATFORM_SWITCH:
         create_switch_rb_button(gui_id);
+        break;
+        case PLATFORM_ENERGIZELAB:
+        create_maticontroller_rb_button(gui_id);
         break;
         default:
         create_xbox_rb_button(gui_id);
@@ -825,6 +887,9 @@ void console_gui_create_lt_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_lt_button(gui_id);
         break;
+        case PLATFORM_ENERGIZELAB:
+        create_maticontroller_lt_button(gui_id);
+        break;
         default:
         create_xbox_lt_button(gui_id);
     }
@@ -886,6 +951,9 @@ void console_gui_create_rt_button(int gui_id, int btn_id)
         case PLATFORM_SWITCH:
         create_switch_rt_button(gui_id);
         break;
+        case PLATFORM_ENERGIZELAB:
+        create_maticontroller_rt_button(gui_id);
+        break;
         default:
         create_xbox_rt_button(gui_id);
     }
@@ -893,9 +961,10 @@ void console_gui_create_rt_button(int gui_id, int btn_id)
 
 void console_gui_create_ls_button(int gui_id, int btn_id)
 {
-    if (current_platform == PLATFORM_HANDSET)
+    if (current_platform == PLATFORM_HANDSET ||
+        current_platform == PLATFORM_ENERGIZELAB)
     {
-        /* Not available in handset */
+        /* Not available in handset or Energize Lab Maticontroller */
         return;
     }
 
@@ -954,9 +1023,10 @@ void console_gui_create_ls_button(int gui_id, int btn_id)
 
 void console_gui_create_rs_button(int gui_id, int btn_id)
 {
-    if (current_platform == PLATFORM_HANDSET)
+    if (current_platform == PLATFORM_HANDSET ||
+        current_platform == PLATFORM_ENERGIZELAB)
     {
-        /* Not available in handset */
+        /* Not available in handset or Energize Lab Maticontroller */
         return;
     }
 
@@ -1015,9 +1085,10 @@ void console_gui_create_rs_button(int gui_id, int btn_id)
 
 void console_gui_create_start_button(int gui_id, int btn_id)
 {
-    if (current_platform == PLATFORM_HANDSET)
+    if (current_platform == PLATFORM_HANDSET ||
+        current_platform == PLATFORM_ENERGIZELAB)
     {
-        /* Not available in handset */
+        /* Not available in handset or Energize Lab Maticontroller */
         return;
     }
 
@@ -1064,9 +1135,10 @@ void console_gui_create_start_button(int gui_id, int btn_id)
 
 void console_gui_create_select_button(int gui_id, int btn_id)
 {
-    if (current_platform == PLATFORM_HANDSET)
+    if (current_platform == PLATFORM_HANDSET ||
+        current_platform == PLATFORM_ENERGIZELAB)
     {
-        /* Not available in handset */
+        /* Not available in handset or Energize Lab Maticontroller */
         return;
     }
 

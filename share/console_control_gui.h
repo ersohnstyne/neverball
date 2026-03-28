@@ -19,13 +19,14 @@
 enum console_platforms
 {
     PLATFORM_PC,
-    PLATFORM_XBOX,      /* Xbox Controllers        */
-    PLATFORM_PS,        /* PlayStation Controllers */
-    PLATFORM_SWITCH,    /* Switch Controllers      */
-    PLATFORM_WII,       /* Wii Controllers         */
-    PLATFORM_WIIU,      /* Wii U Controllers       */
-    PLATFORM_STEAMDECK, /* Steam Deck Controllers  */
-    PLATFORM_HANDSET    /* Etihad Handset          */
+    PLATFORM_XBOX,        /* Xbox Controllers            */
+    PLATFORM_PS,          /* PlayStation Controllers     */
+    PLATFORM_SWITCH,      /* Switch Controllers          */
+    PLATFORM_WII,         /* Wii Controllers             */
+    PLATFORM_WIIU,        /* Wii U Controllers           */
+    PLATFORM_STEAMDECK,   /* Steam Deck Controllers      */
+    PLATFORM_HANDSET,     /* Etihad Handset              */
+    PLATFORM_ENERGIZELAB  /* Energize Lab Maticontroller */
 };
 
 
@@ -37,6 +38,18 @@ enum console_platforms
 #define HANDSET_Y_BUTTON  "Y"  /* Green Y        */
 #define HANDSET_LB_BUTTON "L"  /* Left Shoulder  */
 #define HANDSET_RB_BUTTON "R"  /* Right Shoulder */
+
+
+/* Energize Lab Maticontroller */
+
+#define MATICONTROLLER_A_BUTTON  "a"
+#define MATICONTROLLER_B_BUTTON  "b"
+#define MATICONTROLLER_X_BUTTON  "e"
+#define MATICONTROLLER_Y_BUTTON  "i"
+#define MATICONTROLLER_LB_BUTTON "LB" /* Left Shoulder  */
+#define MATICONTROLLER_RB_BUTTON "RB" /* Right Shoulder */
+#define MATICONTROLLER_LT_BUTTON "LT" /* Left Trigger   */
+#define MATICONTROLLER_RT_BUTTON "RT" /* Right Trigger  */
 
 
 /* Xbox One / 360 */
@@ -141,7 +154,6 @@ void console_gui_paused_paint(void);
 void console_gui_package_installable_paint(void);
 void console_gui_package_updateable_paint(void);
 void console_gui_package_manageable_paint(void);
-
 
 /* Generic */
 

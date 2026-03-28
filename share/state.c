@@ -192,6 +192,8 @@ int goto_state_full_intent(struct state *st,
     console_gui_slide(GUI_S | GUI_EASE_BACK | GUI_BACKWARD);
 #endif
 
+    transition_age();
+
     if (state && state->leave)
     {
         prev_gui_id   = state->gui_id;

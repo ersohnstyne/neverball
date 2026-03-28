@@ -556,6 +556,13 @@ static int title_action(int tok, int val)
                                 TITLE_PLATFORM_WINDOWS);
 #endif
             }
+            else if (current_platform == PLATFORM_ENERGIZELAB)
+            {
+                sprintf(dev_env, _("%s Edition / %s"),
+                                 TITLE_PLATFORM_ENERGIZELAB, _("Developer Mode"));
+                sprintf(os_env, _("%s Edition"),
+                                TITLE_PLATFORM_ENERGIZELAB);
+            }
             else if (current_platform == PLATFORM_XBOX)
             {
 #if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
@@ -829,6 +836,13 @@ static int title_gui(void)
                         TITLE_PLATFORM_WINDOWS, _("Developer Mode"));
                 sprintf(os_env, _(editions_common[EDITION_CURRENT]), TITLE_PLATFORM_WINDOWS);
 #endif
+            }
+            else if (current_platform == PLATFORM_ENERGIZELAB)
+            {
+                sprintf(dev_env, _("%s Edition / %s"),
+                                 TITLE_PLATFORM_ENERGIZELAB, _("Developer Mode"));
+                sprintf(os_env, _("%s Edition"),
+                                TITLE_PLATFORM_ENERGIZELAB);
             }
             else if (current_platform == PLATFORM_XBOX)
             {

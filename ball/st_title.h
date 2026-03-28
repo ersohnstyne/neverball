@@ -64,6 +64,7 @@
 
 /* For Console Games */
 
+#define TITLE_PLATFORM_ENERGIZELAB _("Energize Lab")
 #define TITLE_PLATFORM_PS          _("PlayStation")
 #define TITLE_PLATFORM_STEAMDECK   _("Steam Deck")
 #define TITLE_PLATFORM_XBOX_360    _("Xbox 360")

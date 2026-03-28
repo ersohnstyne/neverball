@@ -357,8 +357,9 @@ int  joy_connected(int instance, int *battery_level, int *wired)
                 { 0x80, 0x00, 0xbf }*/
             };
 
-#if !defined (__EMSCRIPTEN__) && (NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API || \
-    NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API)
+#if !defined (__EMSCRIPTEN__) && \
+    (NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API || \
+     NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API)
             if (instance <= 4)
                 SDL_JoystickSetLED(joysticks[instance].id, 0x00, 0xbf, 0xff);
             //else

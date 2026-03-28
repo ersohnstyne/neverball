@@ -517,6 +517,11 @@ static int pause_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return pause_action(gui_token(active), gui_value(active));
 
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b) && curr_state() != &st_pause) {
+            audio_play(AUD_BACK, 1.0f);
+            PAUSED_ACTION_CONTINUE;
+        }
+
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
         {
             if (!st_global_animating())

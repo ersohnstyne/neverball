@@ -1617,11 +1617,33 @@ static const char *conf_controllers_option_names[] = {
     N_("Right Stick"),
 };
 
-static const char *conf_controllers_option_values_xbox[] = {
+static const char* conf_controllers_option_values_energizelab[] = {
     "A",
     "B",
     "X",
     "Y",
+    "LB",
+    "RB",
+    "LT",
+    "RT",
+    "",
+    "",
+
+    "",
+
+    "X (LS)",
+    "Y (LS)",
+    "",
+    "X (RS)",
+    "Y (RS)",
+    "",
+};
+
+static const char *conf_controllers_option_values_xbox[] = {
+    "a",
+    "b",
+    "e",
+    "i",
     "LB",
     "RB",
     "LT",
@@ -1822,6 +1844,16 @@ static void conf_controllers_set_label(int id, int value)
         sprintf(str,
 #endif
                 "%s", conf_controllers_option_values_wii[value % 100000]);
+    }
+#elif NEVERBALL_FAMILY_API == NEVERBALL_ENERGIZELAB_FAMILY_API
+    if (conf_controllers_option_values_energizelab[value % 100000])
+    {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(str, 20,
+#else
+        sprintf(str,
+#endif
+            "%s", conf_controllers_option_values_energizelab[value % 100000]);
     }
 #else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS

@@ -19,7 +19,7 @@ The switch does not replace your Radiant's entities, but should be a higher-fide
 * Neverball entity design specifications
 
 <target key="target" name="Target">Refers to the path that the switch controls.</target>
-<target key="target2" name="Path">Path that the switch will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
+<target key="target2" name="Path">Path that the checkpoint will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
 <target key="target3" name="Path (rotation)">An optional second path that controls the orientation of the switch, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
 <real key="radius" name="Radius" value="0.5">Switch radius in meters.  The default is "0.5".</real>
 <boolean key="state" name="State" value="0">Initial state of the switch.  "0" is off, "1" is on.  The default is off.  This parallels the state attribute of the path_corner.  An info_camp entity should always have the same initial "state" value as the path_corner it targets.</boolean>
@@ -88,8 +88,9 @@ The ball does not replace your Radiant's entities, but should be a higher-fideli
 <point name="item_health_large" color="1 0 0" box="-16 -16 -16 16 16 16">
 Defines a grow coin.
 
-The coin does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
+The grow coin does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
 * Neverball entity design specifications
+
 <target key="target" name="Path">Path that the item will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
 <target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the item, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
 </point>
@@ -98,7 +99,7 @@ The coin does not replace your Radiant's entities, but should be a higher-fideli
 <point name="item_health_small" color="0 1 0" box="-16 -16 -16 16 16 16">
 Defines a shrink coin.
 
-The coin does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
+The shrink coin does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
 * Neverball entity design specifications
 
 <target key="target" name="Path">Path that the item will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>

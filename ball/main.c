@@ -2046,10 +2046,10 @@ static int main_init(int argc, char *argv[])
     /* Enable joystick events. */
 
 #if !defined(__GAMECUBE__) && !defined(__WII__)
-//#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
+#ifndef __EMSCRIPTEN__
     if (!joy_init())
         return 0;
-//#endif
+#endif
 
 #if NB_HAVE_PB_BOTH==1
 #if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API
@@ -2267,7 +2267,7 @@ static void main_quit(void)
     
 //#if (PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
-#if !defined(__GAMECUBE__) && !defined(__WII__)
+#if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__EMSCRIPTEN__)
     joy_quit();
 #endif
 

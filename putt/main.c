@@ -1082,7 +1082,7 @@ static void main_quit()
     
 //#if (PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
-#if !defined(__GAMECUBE__) && !defined(__WII__)
+#if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__EMSCRIPTEN__)
     joy_quit();
 #endif
 
@@ -1158,9 +1158,9 @@ int main_share(int argc, char *argv[])
 
         package_init();
 
-//#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1
-        joy_init();
-//#endif
+#ifndef __EMSCRIPTEN__
+        if (!joy_init()) return 1;
+#endif
 
 #if NB_HAE_PB_BOTH==1
 #if NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API

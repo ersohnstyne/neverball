@@ -149,8 +149,16 @@ static int demo_header_read(fs_file fp, struct demo *d, int fp_ten)
 static void demo_header_write(fs_file fp, struct demo *d)
 {
     char datestr[DATELEN];
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    
+#ifdef __EMSCRIPTEN__
+    sprintf(datestr, sizeof (datestr), "%04d-%02d-%02dT%02d:%02d:%02d", 
+            EM_ASM_INT({ return new Date().getFullYear();  }),
+            EM_ASM_INT({ return new Date().getMonth() + 1; }),
+            EM_ASM_INT({ return new Date().getDate();      }),
+            EM_ASM_INT({ return new Date().getHours();     }),
+            EM_ASM_INT({ return new Date().getMinutes();   }),
+            EM_ASM_INT({ return new Date().getSeconds();   }));
+#elif _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     struct tm outputGmTime; gmtime_s(&outputGmTime, &d->date);
     strftime(datestr, sizeof (datestr), "%Y-%m-%dT%H:%M:%S", &outputGmTime);
 #else

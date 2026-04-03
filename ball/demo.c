@@ -151,7 +151,7 @@ static void demo_header_write(fs_file fp, struct demo *d)
     char datestr[DATELEN];
     
 #ifdef __EMSCRIPTEN__
-    sprintf(datestr, sizeof (datestr), "%04d-%02d-%02dT%02d:%02d:%02d", 
+    sprintf(datestr, "%04d-%02d-%02dT%02d:%02d:%02d", 
             EM_ASM_INT({ return new Date().getFullYear();  }),
             EM_ASM_INT({ return new Date().getMonth() + 1; }),
             EM_ASM_INT({ return new Date().getDate();      }),

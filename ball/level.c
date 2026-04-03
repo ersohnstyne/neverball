@@ -88,9 +88,9 @@ static int scan_level_attribs(struct level *l,
             SAFECPY(l->shot, v);
         else if (strcmp(k, "goal") == 0) {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (!campaign || config_get_d(CONFIG_LOCK_GOALS))
+            if (!campaign && (mingoal = atoi(v)) != 0)
 #else
-            if (config_get_d(CONFIG_LOCK_GOALS))
+            if ((mingoal = atoi(v)) != 0)
 #endif
             {
                 l->goal   = atoi(v);
@@ -240,23 +240,24 @@ static int scan_level_attribs(struct level *l,
      */
 
     if (base->zc == 0) {
-        l->time = 0; l->goal = 0;
-
-        maxtime = 360000; mingoal = 0;
-
 #ifndef NDEBUG
-        if (!config_cheat()) return 0;
+        if (config_cheat()) {
+            log_errorf("%s: No goals associated, so required coins and time limit will ignored.\n", l->file);
+            l->time = 0; l->goal = 0;
+            maxtime = 360000; mingoal = 0;
+        } else
 #endif
+        return 0;
     }
 
     if (have_time) {
         /* Best Time built-in limitations. */
 
         for (i = 0; i < 3; i++)
-            for (int r = RANK_HARD; r < RANK_LAST; r++)
+            for (int r = RANK_HARD; r < RANK_LAST && maxtime > 0; r++)
                 while (l->scores[i].timer[r] > maxtime) {
                     if (l->scores[i].timer[r] < 59999)
-                        log_errorf("Hard limits detected!: Limit: %d ms; Current: %d ms\n", maxtime * 10, l->scores[i].timer[r] * 10);
+                        log_errorf("%s: Hard limits detected!: Limit: %d ms; Current: %d ms\n", l->file, maxtime * 10, l->scores[i].timer[r] * 10);
 
                     l->scores[i].timer[r] = maxtime;
                 }
@@ -269,9 +270,8 @@ static int scan_level_attribs(struct level *l,
             for (int r = RANK_HARD; r < RANK_LAST; r++)
                 while (l->scores[i].coins[r] < mingoal) {
                     if (l->scores[i].coins[r] != 0)
-                        log_errorf("Hard limits detected!: Required: %d; Current: %d\n", mingoal, l->scores[i].coins[r]);
+                        log_errorf("%s: Hard limits detected!: Required: %d; Current: %d\n", l->file, mingoal, l->scores[i].coins[r]);
 
-                    log_errorf("Hard limits detected!: Required: %d; Current: %d\n", mingoal, l->scores[i].coins[r]);
                     l->scores[i].coins[r] = mingoal;
                 }
     }

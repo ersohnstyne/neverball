@@ -936,6 +936,8 @@ static void poser_paint(int id, float t)
 #else
     game_client_draw(0, t);
 #endif
+
+    video_can_swap_window = 1;
 }
 
 static void poser_timer(int id, float dt)

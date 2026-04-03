@@ -220,9 +220,20 @@ static int sol_count_geom(const struct s_base *base, int g0, int gc, int mi)
     /* indices refer to geoms. Determine how many of these geoms use the     */
     /* given material                                                        */
 
-    for (gi = 0; gi < gc; gi++)
-        if (base->gv[base->iv[g0 + gi]].mi == mi)
-            c++;
+#define FUNC_LOOP_GEOM_CHECK_LIMITS(_id, _max, _geom_fn)             \
+    if (_id < 0) {                                                   \
+        log_errorf("Geom index out of bounds!: Current: %d\n", _id); \
+        continue;                                                    \
+    } else _geom_fn
+
+    for (gi = 0; gi < gc; ++gi) {
+        FUNC_LOOP_GEOM_CHECK_LIMITS(base->iv[g0 + gi], base->ic, {
+            if (base->gv[base->iv[g0 + gi]].mi == mi)
+                c++;
+        });
+    }
+
+#undef FUNC_LOOP_GEOM_CHECK_LIMITS
 
     return c;
 }
@@ -230,14 +241,25 @@ static int sol_count_geom(const struct s_base *base, int g0, int gc, int mi)
 static int sol_count_body(const struct b_body *bp,
                           const struct s_base *base, int mi)
 {
+#define FUNC_LOOP_LUMP_CHECK_LIMITS(_id, _max, _lump_fn)             \
+    if (_id < 0) {                                                   \
+        log_errorf("Lump index out of bounds!: Current: %d\n", _id); \
+        continue;                                                    \
+    } else _lump_fn
+
     int li, c = 0;
 
     /* Count all lump geoms with the given material. */
 
-    for (li = 0; li < bp->lc; li++)
-        if (base->lv)
-            c += sol_count_geom(base, base->lv[bp->l0 + li].g0,
-                                      base->lv[bp->l0 + li].gc, mi);
+    for (li = 0; li < bp->lc; ++li)
+        if (base->lv) {
+            FUNC_LOOP_LUMP_CHECK_LIMITS(bp->l0 + li, bp->lc, {
+                c += sol_count_geom(base, base->lv[bp->l0 + li].g0,
+                                          base->lv[bp->l0 + li].gc, mi);
+            });
+        }
+
+#undef FUNC_LOOP_LUMP_CHECK_LIMITS
 
     /* Count all body geoms with the given material. */
 

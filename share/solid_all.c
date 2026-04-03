@@ -25,6 +25,8 @@
 #include "vec3.h"
 #include "geom.h"
 
+#include "log.h"
+
 /*---------------------------------------------------------------------------*/
 
 static float erp(float t)
@@ -55,6 +57,10 @@ static struct vec4 get_path_rot(const struct s_vary *vary, int pi, float dt);
 static struct vec3 get_move_pos(const struct s_vary *vary, int mi, float dt)
 {
     if (mi < 0) return POS_IDENTITY;
+    if (!vary->base->pv) {
+        log_errorf("vary->base->pv returned NULL!\n");
+        return POS_IDENTITY;
+    }
 
     const struct v_move *mp = vary->mv + mi;
 
@@ -91,6 +97,10 @@ static struct vec3 get_move_pos(const struct s_vary *vary, int mi, float dt)
 static struct vec4 get_move_rot(const struct s_vary *vary, int mi, float dt)
 {
     if (mi < 0) return ROT_IDENTITY;
+    if (!vary->base->pv) {
+        log_errorf("vary->base->pv returned NULL!\n");
+        return ROT_IDENTITY;
+    }
 
     const struct v_move *mp = vary->mv + mi;
 

@@ -841,16 +841,28 @@ const char *set_shot(int i)
 #if NB_HAVE_PB_BOTH==1
 int set_star(int i)
 {
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if (campaign_used()) return 0;
+#endif
+
     return set_exists(i) ? SET_GET(sets, i)->star : 0;
 }
 
 int set_star_curr(int i)
 {
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if (campaign_used()) return 0;
+#endif
+
     return set_exists(i) ? SET_GET(sets, i)->star_obtained : 0;
 }
 
 int set_star_gained(int i)
 {
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if (campaign_used()) return 0;
+#endif
+
     return set_exists(i) ?
            SET_GET(sets, i)->star_prev < SET_GET(sets, i)->star_obtained : 0;
 }

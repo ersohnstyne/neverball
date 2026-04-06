@@ -188,9 +188,12 @@ static void game_draw_chnk_jumps(struct s_rend *rend,
 
     for (int i = 0; i < base->jc; i++)
     {
-        float chnk_p[3];
+        float chnk_p[3], chnk_e[4], u[3], a;
 
         sol_entity_p(chnk_p, vary, vary->jv[i].mi, vary->jv[i].mj);
+        sol_entity_e(chnk_e, vary, vary->jv[i].mi, vary->jv[i].mj);
+
+        q_as_axisangle(chnk_e, u, &a);
 
         if (chnk_p[1] < Y) continue;
 
@@ -201,6 +204,7 @@ static void game_draw_chnk_jumps(struct s_rend *rend,
             glTranslatef(chnk_p[0],
                          chnk_p[1] + 0.001f,
                          chnk_p[2]);
+            glRotatef(V_DEG(a), u[0], u[1], u[2]);
             glTranslatef(base->jv[i].p[0],
                          base->jv[i].p[1],
                          base->jv[i].p[2]);
@@ -235,9 +239,12 @@ static void game_draw_chnk_goals(struct s_rend *rend,
 
     for (int i = 0; i < base->zc; i++)
     {
-        float chnk_p[3];
+        float chnk_p[3], chnk_e[4], u[3], a;
 
         sol_entity_p(chnk_p, vary, vary->zv[i].mi, vary->zv[i].mj);
+        sol_entity_e(chnk_e, vary, vary->zv[i].mi, vary->zv[i].mj);
+
+        q_as_axisangle(chnk_e, u, &a);
 
         if (chnk_p[1] < Y) continue;
 
@@ -248,6 +255,7 @@ static void game_draw_chnk_goals(struct s_rend *rend,
             glTranslatef(chnk_p[0],
                          chnk_p[1] + 0.001f,
                          chnk_p[2]);
+            glRotatef(V_DEG(a), u[0], u[1], u[2]);
             glTranslatef(base->zv[i].p[0],
                          base->zv[i].p[1],
                          base->zv[i].p[2]);
@@ -282,9 +290,12 @@ static void game_draw_chnk_swchs(struct s_rend *rend,
 
     for (int i = 0; i < base->xc; i++)
     {
-        float chnk_p[3];
+        float chnk_p[3], chnk_e[4], u[3], a;
 
         sol_entity_p(chnk_p, vary, vary->xv[i].mi, vary->xv[i].mj);
+        sol_entity_e(chnk_e, vary, vary->xv[i].mi, vary->xv[i].mj);
+
+        q_as_axisangle(chnk_e, u, &a);
 
         if (chnk_p[1] < Y) continue;
 
@@ -295,6 +306,7 @@ static void game_draw_chnk_swchs(struct s_rend *rend,
             glTranslatef(chnk_p[0],
                          chnk_p[1] + 0.001f,
                          chnk_p[2]);
+            glRotatef(V_DEG(a), u[0], u[1], u[2]);
             glTranslatef(base->xv[i].p[0],
                          base->xv[i].p[1],
                          base->xv[i].p[2]);
@@ -330,9 +342,12 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
 
     for (int i = 0; i < base->cc; i++)
     {
-        float chnk_p[3];
+        float chnk_p[3], chnk_e[4], u[3], a;
 
         sol_entity_p(chnk_p, vary, vary->cv[i].mi, vary->cv[i].mj);
+        sol_entity_e(chnk_e, vary, vary->cv[i].mi, vary->cv[i].mj);
+
+        q_as_axisangle(chnk_e, u, &a);
 
         if (chnk_p[1] < Y) continue;
 
@@ -343,6 +358,7 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
             glTranslatef(chnk_p[0],
                          chnk_p[1] + 0.001f,
                          chnk_p[2]);
+            glRotatef(V_DEG(a), u[0], u[1], u[2]);
             glTranslatef(base->cv[i].p[0],
                          base->cv[i].p[1],
                          base->cv[i].p[2]);

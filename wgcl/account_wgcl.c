@@ -1455,6 +1455,27 @@ int account_wgcl_do_buy(int w_coins_cost, int flags)
     return 1;
 }
 
+int  account_wgcl_do_finish_challenge(int coins, int gems, int balls, int total_time_ms, int stars, int daily, int hardcore)
+{
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    const int wgcl_account_sync_done = EM_ASM_INT({
+        return tmp_online_session_data != undefined &&
+               tmp_online_session_data != null;
+    });
+
+    if (!wgcl_account_sync_done) return 0;
+
+    return EM_ASM_INT({
+        const player_uuid4 = UTF8ToString($0);
+        const player_name  = UTF8ToString($1);
+
+        return Neverball.gamecore_account_try_finish_challenge(player_uuid4, player_name, $2, $3, $4, $5, $6, $7, $8);
+    }, session_uuid4, config_get_s(CONFIG_PLAYER), coins, gems, balls, total_time_ms, stars, daily, hardcore);
+#else
+    return 0;
+#endif
+}
+
 void account_wgcl_post_sync(const char *uuid4, const char *player_name)
 {
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)

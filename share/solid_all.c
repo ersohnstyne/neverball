@@ -794,7 +794,6 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
             }
             else if (xp->e)
             {
-
                 /* The ball exits. */
 
                 xp->e = 0;

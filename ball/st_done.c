@@ -61,6 +61,9 @@
 static int resume;
 static int stars_gained;
 
+static int wgcl_gamefinished_noaction;
+static int wgcl_gamefinished_nextstateaction_time;
+
 enum
 {
     DONE_SHOP = GUI_LAST,
@@ -369,6 +372,8 @@ static int done_gui_set(void)
 
 static int done_enter(struct state *st, struct state *prev, int intent)
 {
+    wgcl_gamefinished_noaction = 1;
+
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     account_wgcl_restart_attempt();
 #endif
@@ -409,22 +414,88 @@ static int done_leave(struct state *st, struct state *next, int id, int intent)
     return transition_slide(id, 0, intent);
 }
 
+static void done_paint(int id, float t)
+{
+    game_client_draw(0, t);
+
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    if (EM_ASM_INT({ return wgclgame_gamefinished_state != -1; })) {
+        video_can_swap_window = 1;
+        return;
+    }
+#else
+    if (console_gui_shown())
+        console_gui_death_paint();
+#endif
+
+    gui_paint(id);
+}
+
 static void done_timer(int id, float dt)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    if (!wgcl_gamefinished_noaction && time_state() >= wgcl_gamefinished_nextstateaction_time) {
+        wgcl_gamefinished_noaction = 1;
+        switch (EM_ASM_INT({ return wgclgame_gamefinished_state_action; })) {
+            case 0:
+                EM_ASM({ wgclgame_gamefinished_state_action = -1; });
+                done_action(GUI_BACK, 0);
+                break;
+            case 1:
+                wgcl_gamefinished_noaction = 1;
+                EM_ASM({ wgclgame_gamefinished_state_action = -1; });
+                done_action(DONE_SHOP, 0);
+                break;
+        }
+    } else {
+        wgcl_gamefinished_noaction = EM_ASM_INT({ return wgclgame_gamefinished_state_action != -1 ? 0 : 1; });
+
+        if (!wgcl_gamefinished_noaction)
+            wgcl_gamefinished_nextstateaction_time = time_state() + 0.5f;
+    }
+#endif
+
     gui_timer(id, dt);
     game_step_fade(dt);
+}
+
+static int done_click(int b, int d)
+{
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    if (EM_ASM_INT({ return wgclgame_gamefinished_state != -1; })) return 1;
+#endif
+
+    /* Activate based on GUI state. */
+
+#ifndef __EMSCRIPTEN__
+    if (d && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return st_keybd(KEY_EXIT, d);
+#endif
+
+    if (d) {
+        int active = gui_active();
+
+        return gui_click(b, d) ?
+               done_action(gui_token(active), gui_value(active)) : 1;
+    }
+
+    return 1;
 }
 
 static int done_keybd(int c, int d)
 {
     if (d)
     {
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        if (EM_ASM_INT({ return wgclgame_gamefinished_state != -1; })) return 1;
+#endif
+        
+/*#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #else
         if (c == KEY_EXIT)
 #endif
-            return done_action(GUI_BACK, 0);
+            return done_action(GUI_BACK, 0);*/
 
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c))
             return done_action(GUI_SCORE, GUI_SCORE_NEXT(gui_score_get()));
@@ -436,12 +507,16 @@ static int done_buttn(int b, int d)
 {
     if (d)
     {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        if (EM_ASM_INT({ return wgclgame_gamefinished_state != -1; })) return 1;
+#endif
+
         int active = gui_active();
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return done_action(gui_token(active), gui_value(active));
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return done_action(GUI_BACK, 0);
+        /*if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            return done_action(GUI_BACK, 0);*/
     }
     return 1;
 }
@@ -516,12 +591,12 @@ static int capital_buttn(int b, int d)
 struct state st_done = {
     done_enter,
     done_leave,
-    shared_paint,
+    done_paint,
     done_timer,
     shared_point,
     shared_stick,
     shared_angle,
-    shared_click,
+    done_click,
     done_keybd,
     done_buttn
 };

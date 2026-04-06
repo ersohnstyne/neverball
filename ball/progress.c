@@ -727,7 +727,7 @@ static int init_level(void)
 #endif
                          curr_mode() != MODE_NONE ? demo_fp : NULL);
 
-        lvl_warn_timer = curr_clock() < 1000 && curr_time_limit() > 0;
+        lvl_warn_timer = curr_clock() <= 1000 && curr_time_limit() > 0;
 
         audio_music_fade_to(1.0f, mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -887,12 +887,12 @@ void progress_step(void)
 #endif
         )
     {
-        if (curr_clock() >= 1000 && curr_time_limit() > 0 && lvl_warn_timer)
+        if (curr_clock() > 1000 && curr_time_limit() > 0 && lvl_warn_timer)
         {
             lvl_warn_timer = 0;
             audio_music_fade_to(.5f, BGM_TITLE_MAP(level_song(level)), 1);
         }
-        else if (curr_clock() < 1000 && curr_time_limit() > 0 && !lvl_warn_timer)
+        else if (curr_clock() <= 1000 && curr_time_limit() > 0 && !lvl_warn_timer)
         {
             lvl_warn_timer = 1;
             audio_music_fade_to(.1f, "bgm/time-warning.ogg", 1);
@@ -919,8 +919,7 @@ void progress_stat(int s)
     if (mode == MODE_NONE || status != GAME_NONE) return;
 
     status = s;
-
-    coins = curr_coins();
+    coins  = curr_coins();
 
     /* HACK: Each timer must be subtracted for each checkpoints! */
 
@@ -1272,8 +1271,61 @@ void progress_exit(void)
 
     activity_services_mode_update(AS_MODE_NONE);
 
-    if (done)
-    {
+    if (done) {
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+        if (server_policy_get_d(SERVER_POLICY_EDITION) > -1
+         && !CHECK_ACCOUNT_BANKRUPT) {
+            /* This gems will earn only, after competed the challenge mode. */
+
+            if ((mode == MODE_CHALLENGE ||
+                 mode == MODE_BOOST_RUSH)
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
+             && !config_cheat()
+#endif
+                )
+            {
+                int newgems_rfd = curr.balls * 5;
+#if ENABLE_RFD==1
+                newgems_rfd += curr.rfd_balls * 5;
+#endif
+#ifdef __EMSCRIPTEN__
+                account_wgcl_do_finish_challenge(coins, newgems_rfd, curr.balls, timer,
+                                                 !campaign_used() && set_star(curr_set()) > 0 && set_star_gained(curr_set()) == 0 ? set_star(curr_set()) : 0,
+                                                 0, 0);
+#else
+                account_wgcl_do_add(curr_score(), newgems_rfd, 0, 0, 0, 0);
+#endif
+            }
+            else
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            if (mode == MODE_HARDCORE
+             && !CHECK_ACCOUNT_BANKRUPT
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
+             && !config_cheat()
+#endif
+                )
+            {
+#ifdef __EMSCRIPTEN__
+                account_wgcl_do_finish_challenge(coins, ROUND(curr_score() / 10), 0, timer,
+                                                 !campaign_used() && set_star(curr_set()) > 0 && set_star_gained(curr_set()) == 0 ? set_star(curr_set()) : 0,
+                                                 0, 1);
+#else
+                account_wgcl_do_add(curr_score(), ROUND(curr_score() / 10), 0, 0, 0, 0);
+#endif
+            }
+            else
+#endif
+            if (!CHECK_ACCOUNT_BANKRUPT
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
+             && !config_cheat()
+#endif
+                )
+                account_wgcl_do_add(curr_score(), 0, 0, 0, 0, 0);
+
+            account_wgcl_save();
+        }
+#endif
+        
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         if (campaign_used() && mode == MODE_HARDCORE &&
             (!config_get_d(CONFIG_SMOOTH_FIX) && video_perf() >= NB_FRAMERATE_MIN))
@@ -1302,47 +1354,6 @@ void progress_exit(void)
             score_steam_hs_save(curr.score, curr.times);
 #endif
         }
-
-#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-        if (server_policy_get_d(SERVER_POLICY_EDITION) > -1
-         && !CHECK_ACCOUNT_BANKRUPT)
-        {
-            /* This gems will earn only, after competed the challenge mode. */
-
-            if ((mode == MODE_CHALLENGE ||
-                 mode == MODE_BOOST_RUSH)
-#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
-             && !config_cheat()
-#endif
-                )
-            {
-#if ENABLE_RFD==1
-                account_wgcl_do_add(curr_score(), (curr.balls * 5) + (curr.rfd_balls * 5), 0, 0, 0, 0);
-#else
-                account_wgcl_do_add(curr_score(), (curr.balls * 5), 0, 0, 0, 0);
-#endif
-            }
-            else
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (mode == MODE_HARDCORE
-             && !CHECK_ACCOUNT_BANKRUPT
-#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
-             && !config_cheat()
-#endif
-                )
-                account_wgcl_do_add(curr_score(), ROUND(curr_score() / 10), 0, 0, 0, 0);
-            else
-#endif
-            if (!CHECK_ACCOUNT_BANKRUPT
-#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
-             && !config_cheat()
-#endif
-                )
-                account_wgcl_do_add(curr_score(), 0, 0, 0, 0, 0);
-
-            account_wgcl_save();
-        }
-#endif
     }
 
     replay = 0;

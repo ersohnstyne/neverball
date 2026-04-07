@@ -242,7 +242,9 @@ static int scan_level_attribs(struct level *l,
     if (base->zc == 0) {
 #ifndef NDEBUG
         if (config_cheat()) {
-            log_errorf("%s: No goals associated, so required coins and time limit will ignored.\n", l->file);
+            if (l->time != 0 || l->goal != 0)
+                log_errorf("%s: No goals associated, so required coins and time limit will ignored.\n", l->file);
+
             l->time = 0; l->goal = 0;
             maxtime = 360000; mingoal = 0;
         } else

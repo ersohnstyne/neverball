@@ -964,7 +964,7 @@ static void set_load_levels(void)
     default_set_maxtimelimit    = 0;
     default_set_mincoinrequired = 0;
 
-    for (i = 0; i < 150; i++)
+    for (i = 0; i < MAXLVL_SET; i++)
         memset(&level_v[i], 0, sizeof (struct level));
 
     for (i = 0; i < s->count; i++)

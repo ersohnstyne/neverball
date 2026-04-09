@@ -591,7 +591,7 @@ void hud_update(int pulse, float animdt)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         case MODE_HARDCORE:
 #endif
-            if (gui_value(ball_id) != balls)      gui_set_count(ball_id, 0);
+            if (gui_value(ball_id) != balls)      gui_set_count(ball_id, balls);
             if (gui_value(scor_id) != live_coins) gui_set_count(scor_id, live_coins);
 
             c_id = coin_id;

@@ -337,8 +337,16 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
     float Y = -65536;
 
     if (base->vc > 0) Y = base->vv[0].p[1];
-
-    if (base->uv[0].p[1] < Y) return;
+    
+    if (base->cv[0].p[1] < Y ||
+            !(curr_balls() > 0 || (curr_mode() != MODE_CHALLENGE
+#if NB_HAVE_PB_BOTH==1
+          && curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+          && curr_mode() != MODE_HARDCORE
+#endif
+#endif
+            ))) return;
 
     for (int i = 0; i < base->cc; i++)
     {
@@ -591,7 +599,15 @@ static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
 #ifdef MAPC_INCLUDES_CHKP
     if (gd->chkp_e)
         for (int i = 0; i < base->cc; i++)
-            if (base->cv[i].p[1] >= Y)
+            if (base->cv[i].p[1] >= Y &&
+            (curr_balls() > 0 || (curr_mode() != MODE_CHALLENGE
+#if NB_HAVE_PB_BOTH==1
+          && curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+          && curr_mode() != MODE_HARDCORE
+#endif
+#endif
+            )))
             {
                 sol_entity_p(beam_p, vary, vary->cv[i].mi, vary->cv[i].mj);
                 sol_entity_e(beam_e, vary, vary->cv[i].mi, vary->cv[i].mj);
@@ -693,7 +709,15 @@ static void game_draw_chkps(struct s_rend *rend,
     float chkp_p[3], chkp_e[4], u[3], a;
 
     for (int ci = 0; ci < base->cc; ci++)
-        if (base->cv[ci].p[1] >= Y)
+        if (base->cv[ci].p[1] >= Y &&
+            (curr_balls() > 0 || (curr_mode() != MODE_CHALLENGE
+#if NB_HAVE_PB_BOTH==1
+          && curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+          && curr_mode() != MODE_HARDCORE
+#endif
+#endif
+            )))
         {
             sol_entity_p(chkp_p, vary, vary->cv[ci].mi, vary->cv[ci].mj);
             sol_entity_e(chkp_e, vary, vary->cv[ci].mi, vary->cv[ci].mj);

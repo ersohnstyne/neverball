@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#ifndef NDEBUG
+#include <assert.h>
+#endif
+
 #include "cmd.h"
 
 #include "game_common.h"
@@ -24,6 +28,7 @@
  * Thanks for the Youtuber: PlayingWithMahWii
  */
 #include "checkpoints.h"
+#include "progress.h"
 
 #if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
@@ -73,6 +78,16 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
                                  struct game_view saved_view,
                                  int ui)
 {
+    if (curr_balls() > 0 || (
+        curr_mode() != MODE_CHALLENGE
+#if NB_HAVE_PB_BOTH==1
+     && curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+     && curr_mode() != MODE_HARDCORE
+#endif
+#endif
+        )) return;
+
     /* Phase 1: Activate the checkpoints. */
 
     last_active = 1;
@@ -282,6 +297,12 @@ int checkpoints_load(void)
 
 void checkpoints_respawn(struct s_vary *vary, cmd_fn_chkp cmd_func, int *ci)
 {
+#ifndef NDEBUG
+    assert(!progress_dead());
+#endif
+
+    if (progress_dead()) return;
+
     checkpoints_busy = 1;
 
     /* Restore SOL/SOLX data's simulation from checkpoint. */

@@ -338,7 +338,7 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
 
     if (base->vc > 0) Y = base->vv[0].p[1];
     
-    if (base->cv[0].p[1] < Y ||
+    if (base->uv[0].p[1] < Y ||
             !(curr_balls() > 0 || (curr_mode() != MODE_CHALLENGE
 #if NB_HAVE_PB_BOTH==1
           && curr_mode() != MODE_BOOST_RUSH

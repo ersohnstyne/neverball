@@ -138,12 +138,25 @@ static int operator_action(int tok, int val)
 
     if (tok == 9999 && val == 9999 && operator_readytosnap)
     {
+        char datestr_incident[MAXSTR];
+        const time_t output_t = time(0);
+        struct tm output_tm;
+        localtime_s(&output_tm, &output_t);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(datestr_incident, MAXSTR,
+#else
+        sprintf(datestr_incident,
+#endif
+                "Screenshots/incidence_%04d-%02d-%02d_%02d-%02d-%02d.png",
+                output_tm.tm_year + 1900, output_tm.tm_mon + 1, output_tm.tm_mday, output_tm.tm_hour, output_tm.tm_min, output_tm.tm_sec);
+
         operator_mode = 0;
         game_kill_fade();
         video_clear();
         video_can_swap_window = 1;
         game_client_draw(0, 0.0f);
-        video_snap("Screenshots/incidence.png");
+        video_snap(datestr_incident);
         video_swap();
         operator_mode = 1;
 

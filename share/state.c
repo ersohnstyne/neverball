@@ -192,7 +192,9 @@ int goto_state_full_intent(struct state *st,
     console_gui_slide(GUI_S | GUI_EASE_BACK | GUI_BACKWARD);
 #endif
 
+#if NB_HAVE_PB_BOTH==1
     transition_age();
+#endif
 
     if (state && state->leave)
     {

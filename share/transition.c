@@ -39,6 +39,7 @@
  * exhaustion.
  */
 
+#if NB_HAVE_PB_BOTH==1
 #define TRANSITION_MAX (16)
 
 #define FORLOOP_CHECK_LIMITS(_id)                             \
@@ -55,26 +56,31 @@ static int widget_ages[TRANSITION_MAX];
 
 /* Widget flags with exit animations. */
 static int widget_flags_ids[TRANSITION_MAX];
-
+#else
 /* Widget ID with an exit animations. */
 static int out_id = 0;
+#endif
 
 /*---------------------------------------------------------------------------*/
 
 void transition_init(void)
 {
-    //memset(widget_ids, 0, sizeof (widget_ids));
-    //memset(widget_ages, 0, sizeof (widget_ages));
-
+#if NB_HAVE_PB_BOTH==1
+    memset(widget_ids,  0, sizeof (widget_ids));
+    memset(widget_ages, 0, sizeof (widget_ages));
+#else
     out_id = 0;
+#endif
 }
 
 void transition_quit(void)
 {
-    //memset(widget_ids, 0, sizeof (widget_ids));
-    //memset(widget_ages, 0, sizeof (widget_ages));
-
+#if NB_HAVE_PB_BOTH==1
+    memset(widget_ids,  0, sizeof (widget_ids));
+    memset(widget_ages, 0, sizeof (widget_ages));
+#else
     out_id = 0;
+#endif
 }
 
 void transition_add(int id)
@@ -84,8 +90,9 @@ void transition_add(int id)
 
 void transition_add_full(int id, int flags)
 {
-    /*int i;
-    int done = 0;*/
+#if NB_HAVE_PB_BOTH==1
+    int i;
+    int done = 0;
 
     /*
      * HACK: Sollte diesen alten GUI flags vor dem erstellen eines Übergang
@@ -93,7 +100,7 @@ void transition_add_full(int id, int flags)
      * - Ersohn Styne
      */
 
-    /*for (i = 0; i < ARRAYSIZE(widget_flags_ids); ++i)
+    for (i = 0; i < ARRAYSIZE(widget_flags_ids); ++i)
     {
         FORLOOP_CHECK_LIMITS(i);
 
@@ -110,9 +117,9 @@ void transition_add_full(int id, int flags)
 
         if (!widget_ids[i])
         {
-            widget_ids[i] = id;
+            widget_ids[i]       = id;
             widget_flags_ids[i] = flags;
-            widget_ages[i] = 0;
+            widget_ages[i]      = 0;
             done = 1;
             break;
         }
@@ -123,17 +130,19 @@ void transition_add_full(int id, int flags)
         log_errorf("Out of transition slots\n");
 
         gui_remove(id);
-    }*/
-
+    }
+#else
     if (out_id)
         gui_remove(out_id);
 
     out_id = id;
+#endif
 }
 
 void transition_remove(int id)
 {
-    /*int i;
+#if NB_HAVE_PB_BOTH==1
+    int i;
 
     for (i = 0; i < ARRAYSIZE(widget_ids); ++i)
     {
@@ -141,60 +150,63 @@ void transition_remove(int id)
 
         if (widget_ids[i] == id)
         {
-            widget_ids[i] = 0;
+            widget_ids[i]  = 0;
             widget_ages[i] = 0;
             break;
         }
-    }*/
-
+    }
+#else
     if (out_id == 0)
         out_id = 0;
+#endif
 }
 
+#if NB_HAVE_PB_BOTH==1
 void transition_age(void)
 {
-    /*for (int i = 0; i < ARRAYSIZE(widget_ids); ++i)
+    for (int i = 0; i < ARRAYSIZE(widget_ids); ++i)
     {
         FORLOOP_CHECK_LIMITS(i);
+        if (widget_ages[i] >= 1) continue;
 
-        if (widget_ids[i])
-        {
-            if (++widget_ages[i] >= 1)
-            {
-                gui_remove(widget_ids[i]);
-            }
-        }
-    }*/
+        if (widget_ids[i] && (++widget_ages[i] >= 1))
+            gui_remove(widget_ids[i]);
+    }
 }
+#endif
 
 void transition_timer(float dt)
 {
-    /*int i;
+#if NB_HAVE_PB_BOTH==1
+    int i;
 
     for (i = 0; i < ARRAYSIZE(widget_ids); ++i)
     {
         FORLOOP_CHECK_LIMITS(i);
 
         if (widget_ids[i]) gui_timer(widget_ids[i], dt);
-    }*/
-
+    }
+#else
     if (out_id)
         gui_timer(out_id, dt);
+#endif
 }
 
 void transition_paint(void)
 {
-    /*int i;
+#if NB_HAVE_PB_BOTH==1
+    int i;
 
     for (i = 0; i < ARRAYSIZE(widget_ids); ++i)
     {
         FORLOOP_CHECK_LIMITS(i);
 
         if (widget_ids[i]) gui_paint(widget_ids[i]);
-    }*/
-
+    }
+#else
     if (out_id)
         gui_paint(out_id);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

@@ -47,7 +47,9 @@ _CRT_NB_TRANSITION_DEPRECATED(void, (int id), transition_add, transition_add_ful
 void transition_add_full(int id, int flags);
 void transition_remove(int id);
 
+#if NB_HAVE_PB_BOTH==1
 void transition_age(void);
+#endif
 
 void transition_timer(float dt);
 void transition_paint(void);

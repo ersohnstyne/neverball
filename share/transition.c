@@ -13,9 +13,7 @@
  */
 
 #include "transition.h"
-#include "common.h"
 #include "gui.h"
-#include "log.h"
 
 #include "config.h"
 
@@ -41,6 +39,7 @@
  * exhaustion.
  */
 
+<<<<<<< HEAD
 #define TRANSITION_MAX (16)
 
 #define FORLOOP_CHECK_LIMITS(_id)                             \
@@ -60,27 +59,38 @@ static int widget_flags_ids[TRANSITION_MAX];
 
 /* Widget ID with an exit animations. */
 static int out_id = 0;
+=======
+/* Widget ID with an exit animation. */
+static int out_id;
+>>>>>>> f40f279c099c85156bf0d6cd7028c173653ce94d
 
 /*---------------------------------------------------------------------------*/
 
 void transition_init(void)
 {
+<<<<<<< HEAD
     //memset(widget_ids, 0, sizeof (widget_ids));
     //memset(widget_ages, 0, sizeof (widget_ages));
 
+=======
+>>>>>>> f40f279c099c85156bf0d6cd7028c173653ce94d
     out_id = 0;
 }
 
 void transition_quit(void)
 {
+<<<<<<< HEAD
     //memset(widget_ids, 0, sizeof (widget_ids));
     //memset(widget_ages, 0, sizeof (widget_ages));
 
+=======
+>>>>>>> f40f279c099c85156bf0d6cd7028c173653ce94d
     out_id = 0;
 }
 
 void transition_add(int id)
 {
+<<<<<<< HEAD
     transition_add_full(id, 0);
 }
 
@@ -130,11 +140,17 @@ void transition_add_full(int id, int flags)
     if (out_id)
         gui_remove(out_id);
 
+=======
+    if (out_id)
+        gui_remove(out_id);
+
+>>>>>>> f40f279c099c85156bf0d6cd7028c173653ce94d
     out_id = id;
 }
 
 void transition_remove(int id)
 {
+<<<<<<< HEAD
     /*int i;
 
     for (i = 0; i < ARRAYSIZE(widget_ids); ++i)
@@ -167,10 +183,15 @@ void transition_age(void)
             }
         }
     }
+=======
+    if (out_id == id)
+        out_id = 0;
+>>>>>>> f40f279c099c85156bf0d6cd7028c173653ce94d
 }
 
 void transition_timer(float dt)
 {
+<<<<<<< HEAD
     /*int i;
 
     for (i = 0; i < ARRAYSIZE(widget_ids); ++i)
@@ -180,12 +201,15 @@ void transition_timer(float dt)
         if (widget_ids[i]) gui_timer(widget_ids[i], dt);
     }*/
 
+=======
+>>>>>>> f40f279c099c85156bf0d6cd7028c173653ce94d
     if (out_id)
         gui_timer(out_id, dt);
 }
 
 void transition_paint(void)
 {
+<<<<<<< HEAD
     /*int i;
 
     for (i = 0; i < ARRAYSIZE(widget_ids); ++i)
@@ -195,6 +219,8 @@ void transition_paint(void)
         if (widget_ids[i]) gui_paint(widget_ids[i]);
     }*/
 
+=======
+>>>>>>> f40f279c099c85156bf0d6cd7028c173653ce94d
     if (out_id)
         gui_paint(out_id);
 }

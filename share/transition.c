@@ -153,7 +153,7 @@ void transition_remove(int id)
 
 void transition_age(void)
 {
-    for (int i = 0; i < ARRAYSIZE(widget_ids); ++i)
+    /*for (int i = 0; i < ARRAYSIZE(widget_ids); ++i)
     {
         FORLOOP_CHECK_LIMITS(i);
 
@@ -164,7 +164,7 @@ void transition_age(void)
                 gui_remove(widget_ids[i]);
             }
         }
-    }
+    }*/
 }
 
 void transition_timer(float dt)

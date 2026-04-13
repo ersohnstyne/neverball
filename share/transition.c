@@ -156,7 +156,7 @@ void transition_remove(int id)
         }
     }
 #else
-    if (out_id == 0)
+    if (out_id == id)
         out_id = 0;
 #endif
 }

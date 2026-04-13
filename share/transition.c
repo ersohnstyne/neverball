@@ -40,7 +40,7 @@
  */
 
 #if NB_HAVE_PB_BOTH==1
-#define TRANSITION_MAX (16)
+#define TRANSITION_MAX (2)
 
 #define FORLOOP_CHECK_LIMITS(_id)                             \
     do if (_id < 0 || _id > TRANSITION_MAX) {                 \

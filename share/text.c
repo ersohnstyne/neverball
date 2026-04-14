@@ -201,7 +201,7 @@ int text_input_paste(void)
             LPTSTR tmp_text = (LPTSTR) GlobalLock(clip_handle_windows);
 
             if (tmp_text && *tmp_text)
-                done = wcstombs_s(&clip_text_windows_amt, &clip_text_windows, MAXSTR, tmp_text, MAXSTR) == 0;
+                done = wcstombs_s(&clip_text_windows_amt, clip_text_windows, MAXSTR, tmp_text, MAXSTR) == 0;
 
             GlobalUnlock(clip_handle_windows);
         }

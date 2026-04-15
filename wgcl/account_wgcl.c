@@ -1455,7 +1455,9 @@ int account_wgcl_do_buy(int w_coins_cost, int flags)
     return 1;
 }
 
-int  account_wgcl_do_finish_challenge(int coins, int gems, int balls, int total_time_ms, int stars, int daily, int hardcore)
+int  account_wgcl_do_finish_challenge(int coins, int gems,
+                                      int balls, int total_time_ms,
+                                      int stars, int daily, int xppenalty, int hardcore)
 {
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     const int wgcl_account_sync_done = EM_ASM_INT({

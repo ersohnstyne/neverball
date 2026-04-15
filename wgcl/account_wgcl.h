@@ -50,7 +50,9 @@ void account_wgcl_do_set(int w_coins, int w_gems,
                          int c_hp, int c_doublecash, int c_halfgrav, int c_doublespeed);
 int  account_wgcl_do_buy(int w_coins_cost, int flags);
 
-int  account_wgcl_do_finish_challenge(int coins, int gems, int balls, int total_time_ms, int stars, int daily, int hardcore);
+int  account_wgcl_do_finish_challenge(int coins, int gems,
+                                      int balls, int total_time_ms,
+                                      int stars, int daily, int xppenalty, int hardcore);
 
 void account_wgcl_post_sync(const char *, const char *);
 

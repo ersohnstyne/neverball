@@ -54,6 +54,7 @@ static int time_id;
 static int Touch_id;
 
 static int FSLhud_id;
+static int xppenalty_hud_id;
 
 static int speedometer_id;
 
@@ -76,6 +77,7 @@ static int lvlname_id;
 
 static int speed_id;
 static int speed_ids[SPEED_MAX];
+static int xppenalty_id;
 
 /* All of the HUD texts can be used for */
 static int text_speedometer_id;
@@ -84,6 +86,7 @@ static int text_goal_id;
 static int text_balls_id;
 static int text_score_id;
 static int text_speed_id;
+static int text_xppenalty_id;
 
 static const char *speed_labels[SPEED_MAX] = {
     "", "128", "64", "32", "16", "8", "4", "2", "1",
@@ -264,6 +267,21 @@ void hud_init(void)
         gui_layout(cam_id, -1, 1);
     }
 
+    /* WGCL Operator (WIP) */
+
+    if ((xppenalty_hud_id = gui_hstack(0)))
+    {
+        if ((id = gui_vstack(xppenalty_hud_id)))
+            text_xppenalty_id = gui_label(id, _("XP Penalty"),
+                GUI_SML, GUI_COLOR_WHT);
+
+        if ((id = gui_vstack(xppenalty_hud_id)))
+            xppenalty_id = gui_label(id, "XXXXXXX", GUI_SML, GUI_COLOR_DEFAULT);
+
+        gui_set_rect(xppenalty_hud_id, GUI_LFT);
+        gui_layout(xppenalty_hud_id, +1, 0);
+    }
+
     /* This debug shows how it works */
 
     if ((fps_id = gui_label(0, "XXXXXXXXXXXXXXXXXXXXXXXXX", GUI_SML, GUI_COLOR_DEFAULT)))
@@ -319,6 +337,7 @@ void hud_free(void)
     gui_delete(Touch_id);
     gui_delete(time_id);
     gui_delete(cam_id);
+    gui_delete(xppenalty_hud_id);
     gui_delete(fps_id);
     gui_delete(lvlname_id);
 
@@ -381,6 +400,8 @@ static void hud_update_alpha(void)
                                    GUI_ANIMATION_S_CURVE | GUI_ANIMATION_W_CURVE);
     gui_set_alpha(Rhud_id,         standard_hud_alpha,
                                    GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE);
+    gui_set_alpha(xppenalty_hud_id,standard_hud_alpha,
+                                   GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE);
 }
 
 void hud_set_alpha(float alpha)
@@ -422,7 +443,15 @@ void hud_paint(void)
          || curr_mode() == MODE_HARDCORE
 #endif
             )
+        {
+            /* WGCL Operator (WIP) */
+            int xppenalty_calculated = curr_balls() - ROUND(floorf(curr_score() / 100.0f));
+
+            //if (xppenalty_calculated < 0)
+                //gui_paint(xppenalty_hud_id);
+
             gui_paint(Lhud_id);
+        }
 
         if (curr_coins() > 0 || curr_goal() > 0)
             gui_paint(Rhud_id);
@@ -450,7 +479,7 @@ void hud_update(int pulse, float animdt)
 #ifdef __EMSCRIPTEN__
     const int autoconf_units_imperial = EM_ASM_INT({
         var userLanguage = navigator.language || navigator.userLanguage;
-        return userLanguage == "en-US";
+        return userLanguage == "en-US" || userLanguage == "en-GB";
     });
 #else
     const int autoconf_units_imperial = 0;
@@ -484,6 +513,7 @@ void hud_update(int pulse, float animdt)
         gui_set_color(text_balls_id,       GUI_COLOR_WHT);
         gui_set_color(text_score_id,       GUI_COLOR_WHT);
         gui_set_color(text_speed_id,       GUI_COLOR_WHT);
+        gui_set_color(text_xppenalty_id,   GUI_COLOR_WHT);
         gui_set_color(Touch_id,            GUI_COLOR_WHT);
 
         gui_pulse(ball_id, 0.0f);
@@ -535,6 +565,7 @@ void hud_update(int pulse, float animdt)
                     gui_set_color(text_balls_id,       GUI_COLOR_RED);
                     gui_set_color(text_score_id,       GUI_COLOR_RED);
                     gui_set_color(text_speed_id,       GUI_COLOR_RED);
+                    gui_set_color(text_xppenalty_id,   GUI_COLOR_RED);
                     gui_set_color(Touch_id,            GUI_COLOR_RED);
 
                     audio_play(AUD_TICK, 1.0f);
@@ -548,6 +579,7 @@ void hud_update(int pulse, float animdt)
                     gui_set_color(text_balls_id,       GUI_COLOR_VIO);
                     gui_set_color(text_score_id,       GUI_COLOR_VIO);
                     gui_set_color(text_speed_id,       GUI_COLOR_VIO);
+                    gui_set_color(text_xppenalty_id,   GUI_COLOR_VIO);
                     gui_set_color(Touch_id,            GUI_COLOR_VIO);
 
                     audio_play(AUD_TOCK, 1.0f);
@@ -561,6 +593,7 @@ void hud_update(int pulse, float animdt)
                     gui_set_color(text_balls_id,       GUI_COLOR_WHT);
                     gui_set_color(text_score_id,       GUI_COLOR_WHT);
                     gui_set_color(text_speed_id,       GUI_COLOR_WHT);
+                    gui_set_color(text_xppenalty_id,   GUI_COLOR_WHT);
                     gui_set_color(Touch_id,            GUI_COLOR_WHT);
                 }
             }
@@ -578,7 +611,11 @@ void hud_update(int pulse, float animdt)
 
     /* balls and score + select coin widget */
 
-    int live_coins = score + coins;
+    int  live_coins = score + coins;
+    char xppenalty_text_final[7];
+
+    /* WGCL Operator (WIP) */
+    int  xppenalty_calculated = balls - ROUND(floorf(curr_score() / 100.0f));
 
     switch (curr_mode())
     {
@@ -593,6 +630,18 @@ void hud_update(int pulse, float animdt)
 #endif
             if (gui_value(ball_id) != balls)      gui_set_count(ball_id, balls);
             if (gui_value(scor_id) != live_coins) gui_set_count(scor_id, live_coins);
+
+            if (xppenalty_calculated < 0) {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(xppenalty_text_final, 7,
+#else
+                sprintf(xppenalty_text_final,
+#endif
+                        "%d", xppenalty_calculated * 5);
+                gui_set_color(xppenalty_id, GUI_COLOR_RED);
+            } else gui_set_color(xppenalty_id, GUI_COLOR_DEFAULT);
+
+            gui_set_label(xppenalty_id, xppenalty_text_final);
 
             c_id = coin_id;
             break;
@@ -717,6 +766,7 @@ void hud_timer(float dt)
     gui_timer(Lhud_id, dt);
     gui_timer(Touch_id, dt);
     gui_timer(time_id, dt);
+    gui_timer(xppenalty_hud_id, dt);
 
     gui_timer(camcompass_id, dt);
     gui_timer(lvlname_id, dt);
@@ -743,6 +793,7 @@ void hud_show(float delay)
     gui_slide(fps_id,           GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
     gui_slide(speed_percent_id, GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
     gui_slide(Rhud_id,          GUI_SE | GUI_EASE_BACK, delay + 0.2f, 0.3f, 0);
+    gui_slide(xppenalty_hud_id, GUI_E  | GUI_EASE_BACK, delay + 0.2f, 0.3f, 0);
 
     touch_timer = 0.0f;
     gui_slide(Touch_id, GUI_N | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
@@ -762,6 +813,7 @@ void hud_hide(void)
     gui_slide(fps_id,           GUI_N  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
     gui_slide(speed_percent_id, GUI_N  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
     gui_slide(Rhud_id,          GUI_SE | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+    gui_slide(xppenalty_hud_id, GUI_E  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
 
     if (touch_timer < 0.0f)
     {

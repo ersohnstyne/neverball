@@ -1285,13 +1285,16 @@ void progress_exit(void)
                 )
             {
                 int newgems_rfd = curr.balls * 5;
+
+                int xppenalty_calculated = 0;//curr.balls - ROUND(floorf(curr.score / 100));
+
 #if ENABLE_RFD==1
                 newgems_rfd += curr.rfd_balls * 5;
 #endif
 #ifdef __EMSCRIPTEN__
                 account_wgcl_do_finish_challenge(coins, newgems_rfd, curr.balls, timer,
                                                  !campaign_used() && set_star(curr_set()) > 0 && set_star_gained(curr_set()) == 0 ? set_star(curr_set()) : 0,
-                                                 0, 0);
+                                                 0, xppenalty_calculated, 0);
 #else
                 account_wgcl_do_add(curr_score(), newgems_rfd, 0, 0, 0, 0);
 #endif

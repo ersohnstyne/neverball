@@ -1506,7 +1506,7 @@ int  account_wgcl_do_finish_challenge(int coins, int gems,
             "    \"gems\":%d,"
             "    \"balls\":%d,"
             "    \"total_time_ms\":%d,"
-            "    \"xp_penalty\":%d,"
+            "    \"xp_penalty\":%d"
             "}",
             wgcl_utc_strfmt, session_uuid4,
             account_get_s(ACCOUNT_PLAYER), coins, gems, balls - 1, total_time_ms, xppenalty);

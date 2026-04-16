@@ -12,10 +12,6 @@
  * General Public License for more details.
  */
 
-#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-#include <emscripten.h>
-#endif
-
 /*
  * HACK: Used with console version
  */
@@ -1447,6 +1443,14 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
 
     int id;
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#define SDL_FINGERDOWN SDL_EVENT_FINGER_DOWN
+#define SDL_FINGERMOTION SDL_EVENT_FINGER_MOTION
+#define SDL_FINGERUP SDL_EVENT_FINGER_UP
+#define fingerId fingerID
+#define touchId touchID
+#endif
+
     if ((id = hud_touch(e)))
     {
         int token = gui_token(id);
@@ -1664,6 +1668,14 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
 #endif
     }
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#undef SDL_FINGERDOWN
+#undef SDL_FINGERMOTION
+#undef SDL_FINGERUP
+#undef fingerId
+#undef touchId
+#endif
+
     return 1;
 }
 #endif
@@ -1723,7 +1735,7 @@ void wgcl_play_devicemotion_tilt(int x, int y)
 
         devicemotion_tilt_init_x = x;
         devicemotion_tilt_init_y = y;
-        
+
 #ifdef __EMSCRIPTEN__
         EM_ASM({
             Neverball._gyroscopeRotateAxes.x = 0;

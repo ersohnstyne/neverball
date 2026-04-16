@@ -1617,11 +1617,11 @@ static const char *conf_controllers_option_names[] = {
     N_("Right Stick"),
 };
 
-static const char* conf_controllers_option_values_energizelab[] = {
-    "A",
-    "B",
-    "X",
-    "Y",
+static const char *conf_controllers_option_values_energizelab[] = {
+    "a",
+    "b",
+    "e",
+    "i",
     "LB",
     "RB",
     "LT",
@@ -1640,10 +1640,10 @@ static const char* conf_controllers_option_values_energizelab[] = {
 };
 
 static const char *conf_controllers_option_values_xbox[] = {
-    "a",
-    "b",
-    "e",
-    "i",
+    "A",
+    "B",
+    "X",
+    "Y",
     "LB",
     "RB",
     "LT",
@@ -2058,7 +2058,7 @@ static void conf_controllers_paint(int id, float t)
 {
     if (mainmenu_conf)
     {
-        video_set_perspective((float)config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+        video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
         back_draw_easy();
     }
     else game_client_draw(0, t);
@@ -2468,7 +2468,7 @@ static int conf_audio_action(int tok, int val)
             audio_volume(master, sound, music, val);
 
 #ifdef SWITCHBALL_GUI
-            conf_set_slider_v2(narrator, val);
+            conf_set_slider_v2(narrator_id, val);
             goto_state(curr_state());
 #else
             gui_toggle(narrator_id[val]);
@@ -2890,7 +2890,7 @@ static int conf_gui(void)
 
 #if NB_HAVE_PB_BOTH!=1
 #if NB_EOS_SDK==0 || NB_STEAM_API==0
-            if (account_wgcl_name_read_only() ||
+            if (account_wgcl_name_read_only() || config_playername_locked() ||
                 online_mode)
 #endif
             {
@@ -2923,7 +2923,7 @@ static int conf_gui(void)
 
             gui_layout(id, 0, root_id ? +1 : 0);
         }
-        
+
         if (root_id) {
             if ((id = gui_vstack(root_id))) {
 #if !defined(__NDS__) && !defined(__3DS__) && \

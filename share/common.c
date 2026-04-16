@@ -67,7 +67,6 @@
 /*
  * Relying on MinGW to provide, that uses from GetFileAttributes() (Windows.h).
  */
-#include <sys/stat.h> /* stat() */
 #include <unistd.h>   /* access() */
 
 #pragma message(__FILE__ ": Using code compilation: GCC + G++")
@@ -81,7 +80,7 @@
 #endif
 #endif
 
-#if ENABLE_OPENDRIVEAPI!=0
+#if _MSC_VER && ENABLE_OPENDRIVEAPI!=0
 #pragma comment(lib, "opendriveapi_ascii.lib")
 #endif
 
@@ -304,7 +303,7 @@ int file_exists(const char *path)
         file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
         file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA)
         return 0;
-
+    
     return (file_attr & FILE_ATTRIBUTE_NORMAL   ||
             file_attr & FILE_ATTRIBUTE_ARCHIVE  ||
             file_attr & FILE_ATTRIBUTE_READONLY ||

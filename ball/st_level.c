@@ -750,6 +750,7 @@ static void level_paint(int id, float t)
     if (console_gui_shown())
     {
         hud_cam_paint();
+
         if ((level_master(curr_level())
             || curr_mode() == MODE_CHALLENGE
             || curr_mode() == MODE_BOOST_RUSH
@@ -1162,7 +1163,7 @@ int goto_exit(void)
     video_clr_grab();
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    if (campaign_used())
+    if (campaign_used() && curr_mode() != MODE_STANDALONE)
     {
         if (done && !progress_dead())
         {
@@ -1188,7 +1189,7 @@ int goto_exit(void)
     }
     else
 #endif
-    if (done && !progress_dead())
+    if (done && !progress_dead() && curr_mode() != MODE_STANDALONE)
     {
         game_fade(+0.333f);
 /*#ifdef CONFIG_INCLUDES_ACCOUNT
@@ -1205,7 +1206,7 @@ int goto_exit(void)
             dst = &st_done;
         }
     }
-    else if (curr_mode() == MODE_BOOST_RUSH)
+    else if (curr_mode() == MODE_BOOST_RUSH && curr_mode() != MODE_STANDALONE)
     {
         boost_rush_stop();
 
@@ -1222,7 +1223,7 @@ int goto_exit(void)
         dst = curr_times() > 0 && progress_dead() ? &st_over :
                                                     &st_start;
     }
-    else if (curr_mode() == MODE_CHALLENGE)
+    else if (curr_mode() == MODE_CHALLENGE && curr_mode() != MODE_STANDALONE)
     {
         if (progress_dead()
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -1239,7 +1240,7 @@ int goto_exit(void)
     }
     else
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    if (!campaign_used())
+    if (!campaign_used() && curr_mode() != MODE_STANDALONE)
 #endif
         dst = curr_times() > 0 && progress_dead() ? &st_over :
                                                     &st_start;

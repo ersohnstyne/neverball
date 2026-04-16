@@ -16,16 +16,21 @@
 #include <emscripten.h>
 #endif
 
-#if _WIN32 && __MINGW32__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#include <SDL3/SDL.h>
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #elif _WIN32 && _MSC_VER
 #include <SDL.h>
-#pragma comment(lib, "glu32.lib")
-#pragma comment(lib, "opengl32.lib")
 #elif _WIN32
 #error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
+#endif
+
+#if _MSC_VER
+#pragma comment(lib, "glu32.lib")
+#pragma comment(lib, "opengl32.lib")
 #endif
 
 #include <stdio.h>
@@ -122,14 +127,13 @@ PFNGLCALLCOMMANDLISTNV_PROC              glCallCommandListNV_;
 
 /*---------------------------------------------------------------------------*/
 
-#undef glMatrixMode
-#undef glPushMatrix
-#undef glPopMatrix
-
 static unsigned int glext_matrix_mode;
 
 static int glext_curr_depth_modelview;
 static int glext_curr_depth_projection;
+
+static int glext_max_depth_modelview;
+static int glext_max_depth_projection;
 
 /*---------------------------------------------------------------------------*/
 
@@ -320,7 +324,7 @@ int glext_init(void)
     memset(&gli, 0, sizeof (struct gl_info));
 
     /* Common init. */
-    
+
     glGetIntegerv(GL_MAX_MODELVIEW_STACK_DEPTH,  &glext_max_depth_modelview);
     glGetIntegerv(GL_MAX_PROJECTION_STACK_DEPTH, &glext_max_depth_projection);
 

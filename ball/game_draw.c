@@ -52,8 +52,6 @@ static void game_draw_chnk_floor(struct s_rend *rend,
 
     if (base->vc > 0) Y = base->vv[0].p[1];
 
-    int i, j;
-
     for (int i = -4; i < 4; i++)
     {
         for (int j = -4; j < 4; j++)
@@ -335,7 +333,7 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
     /* New: Floor border damage. */
 
     float Y = -65536;
-
+    
     if (base->vc > 0) Y = base->vv[0].p[1];
     
     if (base->uv[0].p[1] < Y ||
@@ -1151,7 +1149,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
         game_shadow_conf(pose, 1);
         r_draw_enable(&rend);
-        
+
         const float effective_fov =
             MIN((fov / (gd->mojang_death_enabled_flags ? 1.25f : 1.0f)) +
                 (25 * (gd->mojang_death_time_percent / 100.f)), 110);
@@ -1187,7 +1185,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
             glTranslatef(-view->c[0], -view->c[1], -view->c[2]);
 
             /* Draw the background. */
-            
+
             if (!(view->p[1] > gd->vary.uv[0].p[1] + 100 &&
                   view->p[1] > gd->vary.base->vv[0].p[1] + 100))
             {

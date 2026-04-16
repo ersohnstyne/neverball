@@ -56,6 +56,7 @@
 #include "binary.h"
 #include "common.h"
 #include "ease.h"
+
 #include "state.h"
 
 #include "solid_sim.h"
@@ -1439,7 +1440,7 @@ void game_update_view(float dt)
 
         v_cpy(c0, vary.uv[ui].p);
         v_cpy(p0, vary.uv[ui].p);
-        
+
         v_cpy(p1, fix_cam_pos);
         v_cpy(c1, vary.uv[ui].p);
 
@@ -1675,7 +1676,7 @@ static void game_update_time(float dt, int b)
 
         if (time_limit > 0.0f && time_elapsed > time_limit)
             time_elapsed = time_limit;
-        
+
         if (time_limit > 0.0f
 #ifdef LEVELGROUPS_INCLUDES_ZEN
          && !mediation_enabled()
@@ -1770,7 +1771,7 @@ static int game_update_state(int bt)
 
         /* Increment time limits to avoid time-outs. */
 
-        else if (hp->t == ITEM_CLOCK)
+        else if (hp && hp->t == ITEM_CLOCK)
         {
             const float value = (float) hp->n;
 
@@ -1795,7 +1796,7 @@ static int game_update_state(int bt)
 #if NB_HAVE_PB_BOTH==1
         /* Pow Block: Drops all coins onto the ground after activated. */
 
-        else if (hp->t == ITEM_2_2_0_POWBLOCK)
+        else if (hp && hp->t == ITEM_2_2_0_POWBLOCK)
         {
             audio_play(AUD_2_2_0_USE_POW, 1.0f);
 
@@ -2003,7 +2004,7 @@ static int game_step(const float g[3], float dt, int bt)
 
         if (status != GAME_TIME) grow_step(CURR_PLAYER, dt);
 
-        float h[3];  game_tilt_grav(h, g, &tilt);
+        float h[3]; game_tilt_grav(h, g, &tilt);
 
         if (powblock_b > 0 && status != GAME_TIME)
         {
@@ -2117,6 +2118,7 @@ static void game_server_iter(float dt)
      * HACK: Do not allow these functions as it causes
      * incoherence problems after timer expires.
      */
+
     if (status == GAME_TIME) return;
 
     float g[3] = { 0.0f, -9.8f, 0.0f };
@@ -2144,6 +2146,12 @@ static void game_server_iter(float dt)
 #endif
                                  )) != GAME_NONE)
     {
+        /*
+         * CAUTION!: Map marker incidents for WGCL is not available
+         * in standalone mode.
+         */
+
+        if (curr_mode() != MODE_STANDALONE) {
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
         /* HACK: OK, but now, with WGCL's Emscripten first! */
 
@@ -2194,6 +2202,7 @@ static void game_server_iter(float dt)
         account_wgcl_mapmarkers_place(curr_file_name, status,
                                       ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
 #endif
+        }
         game_cmd_status();
     }
 

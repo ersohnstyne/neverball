@@ -22,7 +22,9 @@
  * - Ersohn Styne
  */
 
-#if _WIN32 && __MINGW32__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#include <SDL3/SDL.h>
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #elif _WIN32 && _MSC_VER
 #include <SDL.h>
@@ -62,8 +64,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-extern "C"
-{
+extern "C" {
 #include "accessibility.h"
 #include "account.h"
 #include "config.h"
@@ -133,8 +134,7 @@ static void NB_EOS_SDK_LogoutActionPerformed(const EOS_Auth_LogoutCallbackInfo *
 
 /*---------------------------------------------------------------------------*/
 
-extern "C"
-{
+extern "C" {
 int account_is_init = 0;
 int account_changeable = 1;
 int account_busy = 0;
@@ -166,8 +166,7 @@ int ACCOUNT_BALL_FILE_RR;
 
 /*---------------------------------------------------------------------------*/
 
-extern "C"
-{
+extern "C" {
 static struct
 {
     int curr;
@@ -345,7 +344,7 @@ extern "C" void account_load(void)
 #ifndef NDEBUG
     assert(!networking_busy && !config_busy && !accessibility_busy &&
            "This networking, accessibility or configuration is busy and cannot be edit there!");
-    SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+    assert(SDL_WasInit(SDL_INIT_VIDEO));
 #endif
 
     if (text_length(config_get_s(CONFIG_PLAYER)) < 1)
@@ -383,7 +382,6 @@ extern "C" void account_load(void)
         SDL_TriggerBreakpoint();
 #endif
 
-        exit(1);
         return;
     }
 
@@ -418,7 +416,7 @@ extern "C" void account_save(void)
 #ifndef NDEBUG
     assert(!networking_busy && !config_busy && !accessibility_busy &&
            "This networking, accessibility or configuration is busy and cannot be edit there!");
-    SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+    assert(SDL_WasInit(SDL_INIT_VIDEO));
 #endif
 
     if (text_length(config_get_s(CONFIG_PLAYER)) < 1)
@@ -468,7 +466,6 @@ extern "C" void account_save(void)
         if (fs_exists(paths))
             fs_remove(paths);
 
-        exit(1);
         return;
     }
 

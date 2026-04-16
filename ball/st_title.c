@@ -104,6 +104,16 @@ typedef SDLKey SDL_Keycode;
         game_client_sync(NULL);                      \
     } while (0)
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#define SDLK_w SDLK_W
+#define SDLK_a SDLK_A
+#define SDLK_s SDLK_S
+#define SDLK_d SDLK_D
+#define SDLK_c SDLK_C
+#define SDLK_e SDLK_E
+#define SDLK_z SDLK_Z
+#endif
+
 static int switchball_useable(void)
 {
     const SDL_Keycode k_auto = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
@@ -202,7 +212,7 @@ static const char *check_unlocked_demo(struct demo *raw_demo)
 
     const int limit = config_get_d(CONFIG_ACCOUNT_LOAD);
     const int max   = raw_demo->status == 3 ? 3 :
-                     (raw_demo->status == 1 || rawdemo->status == 0) ? 2 :
+                     (raw_demo->status == 1 || raw_demo->status == 0) ? 2 :
                      (raw_demo->status == 2) ? 1 : 0;
 
     return (max <= limit) ? raw_demo->path : NULL;
@@ -958,6 +968,8 @@ static int title_gui(void)
 #else
                 edition_id = gui_label(jd, os_env, GUI_SML, GUI_COLOR_WHT);
 #endif
+                gui_set_font(edition_id, "ttf/DejaVuSans-Bold.ttf");
+
                 gui_set_rect(jd, GUI_ALL);
                 gui_set_clip(jd);
                 gui_set_fill(jd);
@@ -1072,7 +1084,8 @@ static int title_gui(void)
                                                       video.aspect_ratio < 1.0f ? "Neverball" :
                                                                                   "  Neverball  ",
                                                       video.aspect_ratio < 1.0f ? GUI_MED :
-                                                                                  GUI_LRG, 0, 0);
+                                                                                  GUI_LRG,
+                                                                                  0, 0);
                 gui_set_font(title_id, "ttf/DejaVuSans-Bold.ttf");
 
                 if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
@@ -1105,7 +1118,10 @@ static int title_gui(void)
                         edition_id = gui_label(title_lockscreen_gamename_id, _("Nintendo Switch 2 Edition"), GUI_SML, GUI_COLOR_WHT);
                 }
 #endif
+                gui_set_font(edition_id, "ttf/DejaVuSans-Bold.ttf");
+
                 gui_set_rect(title_lockscreen_gamename_id, GUI_ALL);
+                gui_set_clip(title_lockscreen_gamename_id);
                 gui_set_fill(title_lockscreen_gamename_id);
                 gui_set_slide(title_lockscreen_gamename_id, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 1.6f, 0);
             }
@@ -1642,8 +1658,6 @@ static void title_point(int id, int x, int y, int dx, int dy)
     int jd;
 
     if ((jd = gui_point(id, x, y))) gui_pulse(jd, 1.2f);
-
-    return;
 }
 
 static void title_stick(int id, int a, float v, int bump)
@@ -1669,7 +1683,7 @@ static int title_click(int b, int d)
     else if (!title_lockscreen && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
         return st_keybd(KEY_EXIT, d);
 #endif
-    else if (gui_click(b, d) && !title_lockscreen)
+    else if (!title_lockscreen && gui_click(b, d))
         return st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 
     return 1;

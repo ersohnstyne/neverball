@@ -15,7 +15,10 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#if _WIN32 && __MINGW32__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #elif _WIN32 && _MSC_VER

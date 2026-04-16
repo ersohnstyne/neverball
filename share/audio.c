@@ -14,7 +14,10 @@
 
 #ifndef __EMSCRIPTEN__
 
-#if _WIN32 && __MINGW32__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#define SDL_ENABLE_OLD_NAMES
+#include <SDL3/SDL.h>
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #elif _WIN32 && _MSC_VER
 #include <SDL.h>
@@ -328,7 +331,7 @@ void voice_free(struct voice *V)
 #if !defined(__WII__)
 static void voice_quit(struct voice* V)
 {
-    struct voice *VP;
+    struct voice *VP, *VN;
 
     for (VP = V; VP; )
     {
@@ -412,7 +415,7 @@ static void audio_step(void *data, Uint8 *stream, int length)
 
             if (Vs[i]->play && voice_step(Vs[i], voices_vols[i], stream, length))
             {
-                /* Delete a finished voice... */
+                /* Delete a success voice... */
 
                 struct voice *VT = Vs[i];
 
@@ -469,28 +472,36 @@ void audio_init(void)
     /* Configure the audio. */
 
     memset(&device_spec, 0, sizeof (device_spec));
+    memset(&spec,        0, sizeof (spec));
+
     device_spec.format   = AUDIO_S16;
     device_spec.channels = AUDIO_CHAN;
-    device_spec.samples  = config_get_d(CONFIG_AUDIO_BUFF);
     device_spec.freq     = AUDIO_RATE * (float) (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100.0f);
-    device_spec.callback = audio_step;
 
-    memset(&spec, 0, sizeof (spec));
     spec.format   = AUDIO_S16;
     spec.channels = AUDIO_CHAN;
-    spec.samples  = config_get_d(CONFIG_AUDIO_BUFF);
     spec.freq     = AUDIO_RATE * (float) (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100.0f);
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#else
+    device_spec.samples  = config_get_d(CONFIG_AUDIO_BUFF);
+    device_spec.callback = audio_step;
+    spec.samples  = config_get_d(CONFIG_AUDIO_BUFF);
     spec.callback = audio_step;
+#endif
 
     /* Allocate an input buffer. */
 
-    if ((buffer = (short *) malloc(spec.samples * 4)))
+    if ((buffer = (short *) malloc(config_get_d(CONFIG_AUDIO_BUFF) * 4)))
     {
         /**
          * Start the audio thread.
          */
 
         audio_device_id = -1;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        if ((audio_device_id = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec)) != 0)
+#else
         if ((audio_device_id = SDL_OpenAudioDevice(
             0,
             0,
@@ -498,13 +509,17 @@ void audio_init(void)
             &device_spec,
             0
         )) > 0)
+#endif
         {
             audio_state = 1;
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            SDL_ResumeAudioDevice(audio_device_id);
+#else
             SDL_PauseAudioDevice(audio_device_id, 0);
+#endif
         }
-        else
-            log_errorf("Failure to open audio device (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
+        else log_errorf("Failure to open audio device (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
     }
 
     if (audio_state == 0)
@@ -526,6 +541,8 @@ void audio_init(void)
 void audio_free(void)
 {
     if (!audio_state) return;
+
+    struct voice *V;
 
     /* Halt the audio thread. */
 

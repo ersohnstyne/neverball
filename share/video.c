@@ -42,7 +42,10 @@
 #include <gl4esinit.h>
 #endif
 
-#if _WIN32 && __MINGW32__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#define SDL_ENABLE_OLD_NAMES
+#include <SDL3/SDL.h>
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #elif _WIN32 && _MSC_VER
 #include <SDL.h>
@@ -50,6 +53,22 @@
 #error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
+#endif
+
+#ifndef SDL_QUERY
+#define SDL_QUERY -1
+#endif
+#ifndef SDL_IGNORE
+#define SDL_IGNORE 0
+#endif
+#ifndef SDL_DISABLE
+#define SDL_DISABLE 0
+#endif
+#ifndef SDL_ENABLE
+#define SDL_ENABLE 1
+#endif
+#ifndef SDL_WINDOW_FULLSCREEN_DESKTOP
+#define SDL_WINDOW_FULLSCREEN_DESKTOP SDL_WINDOW_FULLSCREEN
 #endif
 
 #if __cplusplus
@@ -130,7 +149,11 @@ void video_show_cursor(void)
     }
 #endif
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    if (cursor_visible) SDL_ShowCursor();
+#else
     SDL_ShowCursor(cursor_visible);
+#endif
 #elif defined(__WII__) || defined(__WIIU__)
     gui_set_cursor(1);
 #endif
@@ -151,7 +174,11 @@ void video_hide_cursor(void)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_HideCursor();
+#else
     SDL_ShowCursor(SDL_DISABLE);
+#endif
 #endif
 }
 
@@ -193,8 +220,16 @@ void video_snap(const char *path)
 /*---------------------------------------------------------------------------*/
 
 #if !defined(__WII__)
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+static struct SDL_Window *window;
+#else
 static SDL_Window    *window;
+#endif
 static SDL_GLContext  context;
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+struct SDL_Window *video_get_window(void) { return window; }
+#endif
 #endif
 
 #if !_MSC_VER && !defined(__APPLE__) && !defined(__EMSCRIPTEN__) && !defined(__WII__)
@@ -324,7 +359,13 @@ void video_set_display(int dpy)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
     SDL_DisplayMode ddm;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    const SDL_DisplayMode *_tmp_ddm = SDL_GetDesktopDisplayMode(dpy);
+    assert(_tmp_ddm); ddm = *_tmp_ddm;
+    if (_tmp_ddm != 0)
+#else
     if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
+#endif
     {
         log_errorf("No display connected!: %d\n", dpy);
         return;
@@ -404,7 +445,7 @@ void video_quit(void)
     if (context)
     {
 #ifdef __EMSCRIPTEN__
-        //close_gl4es();
+        close_gl4es();
 #endif
 
         SDL_GL_DeleteContext(context);
@@ -500,7 +541,13 @@ video_mode_reconf:
 #endif
 
     SDL_DisplayMode ddm;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    const SDL_DisplayMode *_tmp_ddm = SDL_GetDesktopDisplayMode(dpy);
+    assert(_tmp_ddm); ddm = *_tmp_ddm;
+    if (_tmp_ddm != 0)
+#else
     if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
+#endif
     {
         log_errorf("No display connected!: %d\n", dpy);
         return 0;
@@ -570,11 +617,11 @@ video_mode_reconf:
     /*
      * Optional 16-bit double buffer with 16-bit depth buffer.
      *
-     * Default RGB size: 2 - Either 5 (16-bit) or 8 (32-bit)
+     * Default RGB size: 3 - Either 5 (16-bit) or 8 (32-bit)
      * Default depth size: 8 - Either 8 or 16
      */
 
-    int rgb_size_fixed   = 2;
+    int rgb_size_fixed   = 3;
     int depth_size_fixed = 8;
 
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
@@ -599,7 +646,11 @@ video_mode_reconf:
         if (w && h && TITLE)
 #endif
         {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            window = SDL_CreateWindow(TITLE, MAX(w, 320), MAX(h, 240),
+#else
             window = SDL_CreateWindow(TITLE, X, Y, MAX(w, 320), MAX(h, 240),
+#endif
                 SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI
 #ifndef __EMSCRIPTEN__
 #ifdef RESIZEABLE_WINDOW
@@ -671,7 +722,7 @@ video_mode_reconf:
             if (buffers < 0)
             {
 #ifdef __EMSCRIPTEN__
-                //close_gl4es();
+                close_gl4es();
 #endif
                 log_errorf("Buffers cannot be negative!\n");
                 SDL_GL_DeleteContext(context);
@@ -681,7 +732,7 @@ video_mode_reconf:
             if (samples < 0)
             {
 #ifdef __EMSCRIPTEN__
-                //close_gl4es();
+                close_gl4es();
 #endif
                 log_errorf("Samples cannot be negative!\n");
                 SDL_GL_DeleteContext(context);
@@ -696,7 +747,7 @@ video_mode_reconf:
             if (buf < buffers || smp < samples)
             {
 #ifdef __EMSCRIPTEN__
-                //close_gl4es();
+                close_gl4es();
 #endif
                 log_errorf("GL context does not meet minimum specifications!\n");
                 SDL_GL_DeleteContext(context);
@@ -993,7 +1044,13 @@ video_mode_auto_config_reconf:
 #endif
 
     SDL_DisplayMode ddm;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    const SDL_DisplayMode *_tmp_ddm = SDL_GetDesktopDisplayMode(dpy);
+    assert(_tmp_ddm); ddm = *_tmp_ddm;
+    if (_tmp_ddm != 0)
+#else
     if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
+#endif
     {
         log_errorf("No display connected!: %d\n", dpy);
         return 0;
@@ -1037,7 +1094,7 @@ video_mode_auto_config_reconf:
     {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  0);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     }
 #endif
 
@@ -1089,7 +1146,11 @@ video_mode_auto_config_reconf:
         if (w && h && TITLE)
 #endif
         {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            window = SDL_CreateWindow(TITLE, MAX(w, 320), MAX(h, 240),
+#else
             window = SDL_CreateWindow(TITLE, X, Y, MAX(w, 320), MAX(h, 240),
+#endif
                 SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI
 #ifndef __EMSCRIPTEN__
 #ifdef RESIZEABLE_WINDOW
@@ -1146,7 +1207,7 @@ video_mode_auto_config_reconf:
                 if (stn >= auto_stencils)
                 {
 #ifdef __EMSCRIPTEN__
-                    //close_gl4es();
+                    close_gl4es();
 #endif
                     SDL_GL_DeleteContext(context);
                     context = NULL;
@@ -1156,7 +1217,7 @@ video_mode_auto_config_reconf:
                 else if (auto_stencils != 0)
                 {
 #ifdef __EMSCRIPTEN__
-                    //close_gl4es();
+                    close_gl4es();
 #endif
                     SDL_GL_DeleteContext(context);
                     context = NULL;
@@ -1191,7 +1252,7 @@ video_mode_auto_config_reconf:
                 if (buf >= 1 && smp >= auto_samples)
                 {
 #ifdef __EMSCRIPTEN__
-                    //close_gl4es();
+                    close_gl4es();
 #endif
                     SDL_GL_DeleteContext(context);
                     context = NULL;
@@ -1201,7 +1262,7 @@ video_mode_auto_config_reconf:
                 else if (auto_samples != 0)
                 {
 #ifdef __EMSCRIPTEN__
-                    //close_gl4es();
+                    close_gl4es();
 #endif
                     SDL_GL_DeleteContext(context);
                     context = NULL;
@@ -1523,6 +1584,11 @@ void video_set_grab(int w)
 
     if (w)
     {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_PerformWarpMouseInWindow(window,
+                                     video.window_w / 2,
+                                     video.window_h / 2, 1);
+#else
         SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 
         SDL_WarpMouseInWindow(window,
@@ -1530,6 +1596,7 @@ void video_set_grab(int w)
                               video.window_h / 2);
 
         SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
+#endif
     }
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -1687,6 +1754,28 @@ void video_set_perspective(float fov, float n, float f)
                 0.0f,  0.0f, -(f + n) / (f - n),      -1.0f,
                 0.0f,  0.0f, -2.0f * n * f / (f - n),  0.0f
             };
+
+            if (a >= 2.4444)
+            {
+                /*GLint panorama_width = 2560;
+                GLint panorama_height = 1440;
+
+                GLfloat panorama_r = 45.f * V_PI / 180;
+                GLfloat panorama_s = fsinf(panorama_r);
+                GLfloat panorama_c = fcosf(panorama_r) / panorama_s;
+
+                GLfloat panorama_a = ((GLfloat) panorama_width /
+                                      (GLfloat) panorama_height);
+
+                GLfloat panorama_proj[16] = {
+                    panorama_c / panorama_a, 0.0f,        0.0f,                    0.0f,
+                    0.0f,                    panorama_c,  0.0f,                    0.0f,
+                    0.0f,                    0.0f,       -(f + n) / (f - n),      -1.0f,
+                    0.0f,                    0.0f,       -2.0f * n * f / (f - n),  0.0f
+                };
+
+                glLoadMatrixf(panorama_proj);*/
+            }
 
             glLoadMatrixf(m);
 #endif

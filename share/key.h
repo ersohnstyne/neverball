@@ -2,7 +2,9 @@
 #define KEY_H 1
 
 #if !defined(__GAMECUBE__) && !defined(__WII__)
-#if _WIN32 && __MINGW32__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#include <SDL3/SDL_keycode.h>
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL_keycode.h>
 #elif _WIN32 && _MSC_VER
 #include <SDL_keycode.h>

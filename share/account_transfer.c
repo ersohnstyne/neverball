@@ -12,7 +12,9 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __MINGW32__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#include <SDL3/SDL.h>
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #elif _WIN32 && _MSC_VER
 #include <SDL.h>
@@ -293,7 +295,7 @@ void account_transfer_load(const char *paths)
     fs_file fh;
 
 #ifndef NDEBUG
-    SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+    assert(SDL_WasInit(SDL_INIT_VIDEO));
 #endif
 
     if (!account_transfer_is_init)
@@ -366,7 +368,7 @@ void account_transfer_load_externals(const char *paths)
     fs_file fh; fh = (fs_file) calloc(1, sizeof (fh));
 
 #ifndef NDEBUG
-    SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+    assert(SDL_WasInit(SDL_INIT_VIDEO));
 #endif
 
     if (!account_transfer_is_init)
@@ -439,7 +441,7 @@ void account_transfer_save(const char *playername)
     fs_file fh;
 
 #ifndef NDEBUG
-    SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+    assert(SDL_WasInit(SDL_INIT_VIDEO));
 #endif
 
     char paths[MAXSTR];

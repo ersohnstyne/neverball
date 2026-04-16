@@ -17,6 +17,10 @@
 #include <SDL.h>
 #endif
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#define SDL_QUIT SDL_EVENT_QUIT
+#endif
+
 #include <stdio.h>
 #include <time.h>
 
@@ -318,6 +322,8 @@ static struct state *st_kick_return;
 
 static void account_wgcl_visit_browser_login()
 {
+    log_errorf("Calling URL!: pennyball.stynegame.de/login\n");
+
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__EMSCRIPTEN__)
@@ -337,7 +343,6 @@ int account_wgcl_init(void)
 {
     account_wgcl_quit();
 
-    fn_kick_returnable = 0;
     st_kick_returnable = 0;
     st_kick_return     = NULL;
 
@@ -686,7 +691,7 @@ account_wgcl_reload_fail:
     }
 
     EM_ASM({
-        Neverball.gamecore_account_try_reload() ? 1 : 0;
+        Pennyball.gamecore_account_try_reload() ? 1 : 0;
     });
 
     return 1;
@@ -1011,7 +1016,7 @@ account_wgcl_try_add_fail:
     assets_add_is_pending = 0;
 
     int r = EM_ASM_INT({
-        return Neverball.gamecore_account_try_update(UTF8ToString($0), $1, $2, $3, $4, $5, $6) ? 1 : 0;
+        return Pennyball.gamecore_account_try_update(UTF8ToString($0), $1, $2, $3, $4, $5, $6) ? 1 : 0;
     }, session_uuid4,
        w_coins_curr + w_coins, w_gems_curr + w_gems,
        c_hp_curr + c_hp,
@@ -1164,7 +1169,7 @@ account_wgcl_try_set_fail:
     assets_set_is_pending = 0;
 
     int r = EM_ASM_INT({
-        return Neverball.gamecore_account_try_update(UTF8ToString($0), $1, $2, $3, $4, $5, $6) ? 1 : 0;
+        return Pennyball.gamecore_account_try_update(UTF8ToString($0), $1, $2, $3, $4, $5, $6) ? 1 : 0;
     }, session_uuid4,
        w_coins, w_gems,
        c_hp,
@@ -1304,7 +1309,7 @@ account_wgcl_try_buy_fail:
     managed_buy_is_pending = 0;
 
     int r = EM_ASM_INT({
-        return Neverball.gamecore_account_try_buy(UTF8ToString($0), $1) ? 1 : 0;
+        return Pennyball.gamecore_account_try_buy(UTF8ToString($0), $1) ? 1 : 0;
     }, session_uuid4, managed_buy_flags_pending);
 
     return 1;
@@ -1457,9 +1462,121 @@ int account_wgcl_do_buy(int w_coins_cost, int flags)
 
 int  account_wgcl_do_finish_challenge(int coins, int gems,
                                       int balls, int total_time_ms,
-                                      int stars, int daily, int xppenalty, int hardcore)
+                                      int reward, int daily, int xppenalty, int hardcore)
 {
-#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__EMSCRIPTEN__)
+#if _WIN32 && _MSC_VER
+#if NB_HAVE_PB_BOTH==1
+
+    /* TODO: Do this for finish challenge network requests! */
+    
+    char in_url[512];
+#if !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_url, 512,
+#else
+    sprintf(in_url,
+#endif
+            hardcore ? "https://%s/api/internal/hardcorechallenge/finish" : "https://%s/api/internal/classicchallenge/finish", WGCL_URL);
+
+    struct wgcl_res_data res_data = {0};
+
+    time_t     wgcl_time_now;
+    struct tm *wgcl_utc_time;
+    char       wgcl_utc_strfmt[40];
+
+    time(&wgcl_time_now);
+    wgcl_utc_time = gmtime(&wgcl_time_now);
+    sprintf(wgcl_utc_strfmt, "%04d-%02d-%02dT%02d:%02d:%02d.000Z",
+            wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
+            wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
+
+    char json_data[512];
+#if !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(json_data, 512,
+#else
+    sprintf(json_data,
+#endif
+            "{"
+            "    \"fetch_post_date_iso\":\"%s\","
+            "    \"player_uuid4\":\"%s\","
+            "    \"player_name\":%s,"
+            "    \"coins\":%d,"
+            "    \"gems\":%d,"
+            "    \"balls\":%d,"
+            "    \"total_time_ms\":%d,"
+            "    \"xp_penalty\":%d,"
+            "}",
+            wgcl_utc_strfmt, session_uuid4,
+            account_get_s(ACCOUNT_PLAYER), coins, gems, balls - 1, total_time_ms, xppenalty);
+
+    CURL *handle = account_wgcl_curl_prepare_post(in_url, json_data, &res_data);
+    CURLcode res = account_wgcl_curl_execute(handle);
+
+    account_wgcl_curl_quit(handle);
+    if (res != CURLE_OK)
+    {
+        log_errorf("WGCL + CURL error: Finishing challenge is not possible, either offline or needs to log in again.\n");
+
+        account_wgcl_visit_browser_login();
+
+        goto account_wgcl_do_finish_challenge_fail;
+    }
+
+    /* Now, parse JSON! */
+
+    JSON_Value  *root;
+    JSON_Object *root_obj;
+
+    root = json_parse_string(res_data.data);
+
+    if (!root || json_value_get_type(root) != JSONObject)
+    {
+        log_errorf("WGCL + CURL error: Not an JSON object!\n");
+
+        account_wgcl_visit_browser_login();
+
+        goto account_wgcl_do_finish_challenge_fail;
+    }
+
+    root_obj = json_value_get_object(root);
+    if (!json_object_has_value(root_obj, "web_return_code") ||
+        !json_object_has_value(root_obj, "message_text") ||
+        !json_object_has_value(root_obj, "message_desc"))
+    {
+        log_errorf("WGCL + CURL error: Session's column values does not matched exactly!\n");
+
+        account_wgcl_visit_browser_login();
+
+        goto account_wgcl_do_finish_challenge_fail;
+    }
+    else if (json_object_get_number(root_obj, "web_return_code") != 200)
+    {
+        log_errorf("WGCL + CURL error: Finish challenge failed: %s / %s\n",
+                   json_object_get_string(root_obj, "message_text"),
+                   json_object_get_string(root_obj, "message_desc"));
+
+        account_wgcl_visit_browser_login();
+
+        goto account_wgcl_do_finish_challenge_fail;
+    }
+
+    free(res_data.data);
+
+    log_printf("WGCL + CURL info: Done!\n");
+    return 1;
+
+account_wgcl_do_finish_challenge_fail:
+    free(res_data.data);
+    return 0;
+#else
+    return 0;
+#endif
+#else
+    return 0;
+#endif
+#elif NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     const int wgcl_account_sync_done = EM_ASM_INT({
         return tmp_online_session_data != undefined &&
                tmp_online_session_data != null;
@@ -1471,8 +1588,8 @@ int  account_wgcl_do_finish_challenge(int coins, int gems,
         const player_uuid4 = UTF8ToString($0);
         const player_name  = UTF8ToString($1);
 
-        return Neverball.gamecore_account_try_finish_challenge(player_uuid4, player_name, $2, $3, $4, $5, $6, $7, $8);
-    }, session_uuid4, config_get_s(CONFIG_PLAYER), coins, gems, balls, total_time_ms, stars, daily, hardcore);
+        return Pennyball.gamecore_account_try_finish_challenge(player_uuid4, player_name, $2, $3, $4, $5, $6, $7, $8, $9);
+    }, session_uuid4, config_get_s(CONFIG_PLAYER), coins, gems, balls, total_time_ms, reward, daily, hardcore, xppenalty);
 #else
     return 0;
 #endif
@@ -1527,6 +1644,7 @@ void account_wgcl_post_sync(const char *uuid4, const char *player_name)
     else
     {
         EM_ASM({ gameoptions_systemsettings_server_available = true; });
+
         r_standalone = 3;
 
         server_policy_set_d(SERVER_POLICY_EDITION, r_server);

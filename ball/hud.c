@@ -445,10 +445,26 @@ void hud_paint(void)
             )
         {
             /* WGCL Operator (WIP) */
-            int xppenalty_calculated = curr_balls() - ROUND(floorf(curr_score() / 100.0f));
+            const int xppenalty_calculated = curr_balls() - ROUND(floorf(curr_score() / 100.0f));
 
-            //if (xppenalty_calculated < 0)
-                //gui_paint(xppenalty_hud_id);
+#ifdef __EMSCRIPTEN__
+            if (xppenalty_calculated < 0 && EM_ASM_INT({
+                    return tmp_online_session_data != undefined &&
+                           tmp_online_session_data != null;
+                }))
+#else
+            if (xppenalty_calculated < 0)
+#endif
+            {
+                /* Be careful, as these things might break! */
+
+#if NB_HAVE_PB_BOTH==1
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                if (curr_mode() != MODE_HARDCORE)
+#endif
+                    gui_paint(xppenalty_hud_id);
+#endif
+            }
 
             gui_paint(Lhud_id);
         }
@@ -494,14 +510,14 @@ void hud_update(int pulse, float animdt)
 #endif
             "%d %%", ROUND(speedpercent));
 
-    int clock       = curr_clock();
-    int coins       = curr_coins();
-    int goal        = curr_goal();
-    int balls       = curr_balls();
-    int score       = curr_score();
+    const int clock = curr_clock();
+    const int coins = curr_coins();
+    const int goal  = curr_goal();
+    const int balls = curr_balls();
+    const int score = curr_score();
+
     float ballspeed = curr_speedometer();
 
-    int c_id;
     int last;
 
     if (!pulse)
@@ -615,7 +631,9 @@ void hud_update(int pulse, float animdt)
     char xppenalty_text_final[7];
 
     /* WGCL Operator (WIP) */
-    int  xppenalty_calculated = balls - ROUND(floorf(curr_score() / 100.0f));
+    const int xppenalty_calculated = MIN(balls - ROUND(floorf(score / 100.0f)), 0);
+
+    const int c_id = coin_id;
 
     switch (curr_mode())
     {
@@ -628,27 +646,25 @@ void hud_update(int pulse, float animdt)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         case MODE_HARDCORE:
 #endif
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(xppenalty_text_final, 7,
+#else
+            sprintf(xppenalty_text_final,
+#endif
+                "%d", xppenalty_calculated * 5);
+
             if (gui_value(ball_id) != balls)      gui_set_count(ball_id, balls);
             if (gui_value(scor_id) != live_coins) gui_set_count(scor_id, live_coins);
 
-            if (xppenalty_calculated < 0) {
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(xppenalty_text_final, 7,
-#else
-                sprintf(xppenalty_text_final,
-#endif
-                        "%d", xppenalty_calculated * 5);
+            if (xppenalty_calculated < 0)
                 gui_set_color(xppenalty_id, GUI_COLOR_RED);
-            } else gui_set_color(xppenalty_id, GUI_COLOR_DEFAULT);
+            else gui_set_color(xppenalty_id, GUI_COLOR_GRN);
 
             gui_set_label(xppenalty_id, xppenalty_text_final);
 
-            c_id = coin_id;
             break;
 
-        default:
-            c_id = coin_id;
-            break;
+        default: break;
     }
 
     /* New: Speedometer */
@@ -833,6 +849,10 @@ int hud_touch(const SDL_TouchFingerEvent *e)
 
     touch_timer = 5.0f;
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#define SDL_FINGERUP SDL_EVENT_FINGER_UP
+#endif
+
     if (e->type == SDL_FINGERUP)
     {
         const int x = (int) ((float) video.device_w * e->x);
@@ -841,13 +861,17 @@ int hud_touch(const SDL_TouchFingerEvent *e)
         return gui_point(Touch_id, x, y);
     }
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#undef SDL_FINGERUP
+#endif
+
     return 0;
 }
 #endif
 
 void hud_update_camera_direction(float rot_direction)
 {
-    float hdg_area = 22.5f;
+    const float hdg_area = 22.5f;
     float hdg_num = (hdg_area / 2) - (rot_direction + (hdg_area / 2));
     hdg_num -= (hdg_area / 4);
 

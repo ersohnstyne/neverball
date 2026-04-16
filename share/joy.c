@@ -16,7 +16,12 @@
 #include "dbg_config.h"
 
 #if NB_PB_WITH_XBOX==0
-#if _WIN32 && __MINGW32__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#define SDL_ENABLE_OLD_NAMES
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_joystick.h>
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_joystick.h>
@@ -41,10 +46,10 @@
 #include "log.h"
 
 #if NB_PB_WITH_XBOX==0 && !defined(__GAMECUBE__) && !defined(__WII__)
-#define JOY_MAX 16
+#define JOY_MAX 4
 
 #if _WIN32
-static_assert(JOY_MAX == 4, "JOY_MAX: This must be set to 4");
+//static_assert(JOY_MAX == 4, "JOY_MAX: This must be set to 4");
 #endif
 
 static int joy_is_init = 0;
@@ -81,13 +86,16 @@ int joy_init(void)
             joysticks[i].joy       = NULL;
             joysticks[i].id        = -1;
         }
-
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3!=1
         joy_is_init = SDL_JoystickEventState(SDL_ENABLE) == 1;
 
         if (joy_is_init < 0)
             log_printf("Failure to enable joystick (%s)\n",
                        GAMEDBG_GETSTRERROR_CHOICES_SDL);
         else
+#else
+        joy_is_init = 1;
+#endif
             joy_active_cursor(0, 1);
     }
     else

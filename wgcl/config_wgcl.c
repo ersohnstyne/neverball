@@ -38,13 +38,14 @@
 
 #include "st_common.h"
 #include "st_package.h"
+#include "st_wgcl.h"
 
 #include "config_wgcl.h"
 
 #if ENABLE_OPENDRIVEAPI!=0
- /*
-  * https://gitea.stynegame.de/StyneGameHamburg/opendrivepi
-  */
+/*
+ * https://gitea.stynegame.de/StyneGameHamburg/opendrivepi
+ */
 #include <opendriveapi.h>
 #elif _WIN32
 #if !defined(_MSC_VER)
@@ -80,6 +81,15 @@
     } while (0)
 
 /*---------------------------------------------------------------------------*/
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#define SDLK_c SDLK_C
+#define SDLK_w SDLK_W
+#define SDLK_a SDLK_A
+#define SDLK_s SDLK_S
+#define SDLK_d SDLK_D
+#define SDLK_e SDLK_E
+#endif
 
 static int control_get_input(void)
 {
@@ -162,7 +172,7 @@ void WGCL_BackToGameOptions(const char *st_class_name)
 
 /*---------------------------------------------------------------------------*/
 
-static int wgcl_options_back_gameoptions(struct state* back)
+static int wgcl_options_back_gameoptions(struct state *back)
 {
 #ifdef __EMSCRIPTEN__
     if (WGCL_GameOptions_Exists)

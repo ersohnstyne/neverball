@@ -26,7 +26,11 @@
  * Used with c++ signal protection from events.
  */
 
-#if defined(_DEBUG) && !_WIN32
+#if defined(_DEBUG) && _WIN32
+#include <Windows.h>
+#include <DbgHelp.h>
+#pragma comment(lib, "dbghelp.lib")
+#elif defined(_DEBUG)
 #include <execinfo.h>
 #endif
 
@@ -60,15 +64,47 @@ void GameDbg_SigHandler(int signum)
     GameDbg_Check_SegPerformed();
 
 #ifdef _DEBUG
+    log_errorf("DEBUG CODE RUNTIME ERROR!\n");
 #if _WIN32
+    void *dbg_frames[20];
     int nptrs = CaptureStackBackTrace(1, 20, dbg_frames, 0);
-    __debugbreak();
+
+    HANDLE _handle = GetCurrentProcess();
+
+    if (SymInitialize(_handle, 0, 1))
+    {
+        SYMBOL_INFO *_symbol  = (SYMBOL_INFO *) calloc(sizeof (SYMBOL_INFO) + MAXSTR, 1);
+        _symbol->MaxNameLen   = MAXSTR;
+        _symbol->SizeOfStruct = sizeof (SYMBOL_INFO);
+
+        for (int i = 0; i < nptrs; i++)
+        {
+            char dbg_final_text[MAXSTR];
+
+            DWORD64 _address = (DWORD64) (dbg_frames[i]);
+            DWORD64 _displacement = 0;
+            IMAGEHLP_LINE64 _line;
+
+            if (SymFromAddr(_handle, _address, 0, _symbol))
+            {
+                if (SymGetLineFromAddr64(_handle, _address, &_displacement, &_line))
+                    sprintf_s(dbg_final_text, MAXSTR, "    %s(%u): %s (0x%16X)\n", _line.FileName, _line.LineNumber, _symbol->Name, _symbol->Address);
+                else sprintf_s(dbg_final_text, MAXSTR, "    %s (0x%16X)\n", _symbol->Name, _symbol->Address);
+
+                log_errorf(dbg_final_text);
+            }
+            else log_errorf("    [Unknown symbol] (0x%16X)\n", _symbol->Address);
+        }
+
+        free(_symbol);
+        SymCleanup(_handle);
+
+        __debugbreak();
+    }
 #else
     void *buffer[240];
     int   nptrs = backtrace(buffer, 240);
     dbg_strings = backtrace_symbols(buffer, nptrs);
-
-    log_errorf("> Backtrace:\n", strings[i]);
 
     for (int i = 0; i < nptrs; i++)
         log_errorf("    %s\n", strings[i]);

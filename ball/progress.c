@@ -1166,7 +1166,7 @@ void progress_stat(int s)
                                                                       AS_GAME_STATCODE_XT);
 
                 /* Rejects offer after end of the level. */
-                
+
                 done           = 0;
                 extended_timer = timer;
 
@@ -1286,18 +1286,17 @@ void progress_exit(void)
             {
                 int newgems_rfd = curr.balls * 5;
 
-                int xppenalty_calculated = 0;//curr.balls - ROUND(floorf(curr.score / 100));
-
 #if ENABLE_RFD==1
                 newgems_rfd += curr.rfd_balls * 5;
+                const int total_balls = curr.balls + curr.rfd_balls;
+#else
+                const int total_balls = curr.balls;
 #endif
-#ifdef __EMSCRIPTEN__
-                account_wgcl_do_finish_challenge(coins, newgems_rfd, curr.balls, timer,
+                const int xppenalty_calculated = MIN(total_balls - ROUND(floorf(curr.score / 100)), 0);
+
+                account_wgcl_do_finish_challenge(coins, newgems_rfd, total_balls, timer,
                                                  !campaign_used() && set_star(curr_set()) > 0 && set_star_gained(curr_set()) == 0 ? set_star(curr_set()) : 0,
                                                  0, xppenalty_calculated, 0);
-#else
-                account_wgcl_do_add(curr_score(), newgems_rfd, 0, 0, 0, 0);
-#endif
             }
             else
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -1308,13 +1307,9 @@ void progress_exit(void)
 #endif
                 )
             {
-#ifdef __EMSCRIPTEN__
                 account_wgcl_do_finish_challenge(coins, ROUND(curr_score() / 10), 0, timer,
                                                  !campaign_used() && set_star(curr_set()) > 0 && set_star_gained(curr_set()) == 0 ? set_star(curr_set()) : 0,
-                                                 0, 1);
-#else
-                account_wgcl_do_add(curr_score(), ROUND(curr_score() / 10), 0, 0, 0, 0);
-#endif
+                                                 0, 0, 1);
             }
             else
 #endif
@@ -1328,7 +1323,7 @@ void progress_exit(void)
             account_wgcl_save();
         }
 #endif
-        
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         if (campaign_used() && mode == MODE_HARDCORE &&
             (!config_get_d(CONFIG_SMOOTH_FIX) && video_perf() >= NB_FRAMERATE_MIN))

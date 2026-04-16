@@ -15,7 +15,11 @@
 #ifndef HUD_H
 #define HUD_H
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#include <SDL3/SDL_Events.h>
+#else
 #include "SDL_events.h"
+#endif
 
 /*---------------------------------------------------------------------------*/
 

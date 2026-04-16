@@ -12,6 +12,14 @@
  * General Public License for more details.
  */
 
+#if defined(_DEBUG) && _WIN32
+#include <Windows.h>
+#include <DbgHelp.h>
+#pragma comment(lib, "dbghelp.lib")
+#elif defined(_DEBUG)
+#include <execinfo.h>
+#endif
+
 /*
  * HACK: Used with console version
  */
@@ -128,7 +136,7 @@ static int           state_drawn;
 static struct state *state = NULL;
 
 static struct state *anim_queue_state = NULL;
-static int           anim_queue_allowskip;
+static int           anim_queue_allow_skip;
 static int           anim_queue_intent;
 static int           anim_queue_directions[2];
 
@@ -447,7 +455,7 @@ int st_touch(const SDL_TouchFingerEvent *event)
 
     if (event->type == SDL_FINGERDOWN ||
         event->type == SDL_FINGERUP)
-        d = st_click(SDL_BUTTON_LEFT, event->type == SDL_FINGERDOWN);
+    d = st_click(SDL_BUTTON_LEFT, event->type == SDL_FINGERDOWN);
 
     return d;
 }

@@ -28,7 +28,13 @@
 
 #include <curl/curl.h>
 
-#if _WIN32 && __MINGW32__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#define SDL_ENABLE_OLD_NAMES
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_mutex.h>
+#include <SDL3/SDL_thread.h>
+#include <SDL3/SDL_events.h>
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL_mutex.h>
 #include <SDL2/SDL_thread.h>
 #include <SDL2/SDL_events.h>
@@ -671,7 +677,12 @@ static int fetch_lock_mutex(void)
 
     /* Then, attempt to acquire mutex. */
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    lock_hold_mutex = 1;
+    SDL_LockMutex(fetch_mutex);
+#else
     lock_hold_mutex = fetch_mutex && SDL_LockMutex(fetch_mutex) == 0 ? 1 : 0;
+#endif
     return lock_hold_mutex;
 }
 
@@ -680,8 +691,16 @@ static int fetch_lock_mutex(void)
  */
 static int fetch_unlock_mutex(void)
 {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_UnlockMutex(fetch_mutex);
+#endif
+
     lock_hold_mutex = 0;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    return 1;
+#else
     return SDL_UnlockMutex(fetch_mutex);
+#endif
 }
 
 #endif
@@ -1010,11 +1029,7 @@ unsigned int fetch_file(const char *url,
             curl_easy_setopt(handle, CURLOPT_NOPROGRESS,       0);
 
             curl_easy_setopt(handle, CURLOPT_BUFFERSIZE,      102400L);
-#if NB_HAVE_PB_BOTH==1
-            curl_easy_setopt(handle, CURLOPT_USERAGENT,       "pennyball/" VERSION);
-#else
             curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
-#endif
             curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
             curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION,  1);
             curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT,  20L); /* In seconds. */

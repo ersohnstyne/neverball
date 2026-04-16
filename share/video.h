@@ -31,6 +31,10 @@ extern const char ICON[];
 extern int opt_touch;
 extern int video_has_touch;
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+struct SDL_Window *video_get_window(void);
+#endif
+
 struct video
 {
     int device_w, device_h;

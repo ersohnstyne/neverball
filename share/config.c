@@ -12,7 +12,10 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __MINGW32__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#define SDL_ENABLE_OLD_NAMES
+#include <SDL3/SDL.h>
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #elif _WIN32 && _MSC_VER
 #include <SDL.h>
@@ -90,7 +93,9 @@ int CONFIG_GRAPHIC_RESTORE_VAL2;
 int CONFIG_MAINMENU_PANONLY;
 
 int CONFIG_SCREEN_ANIMATIONS;
+#ifndef __EMSCRIPTEN__
 int CONFIG_UI_HWACCEL;
+#endif
 int CONFIG_SMOOTH_FIX;
 int CONFIG_FORCE_SMOOTH_FIX;
 int CONFIG_WIDESCREEN;
@@ -308,8 +313,8 @@ static struct
     { &CONFIG_FPS,              "fps",             0 },
     { &CONFIG_MASTER_VOLUME,    "master_volume",   10 },
     { &CONFIG_SOUND_VOLUME,     "sound_volume",    10 },
-    { &CONFIG_MUSIC_VOLUME,     "music_volume",    4 },  /* NB default config value: 6 */
-    { &CONFIG_NARRATOR_VOLUME,  "narrator_volume", 10 }, /* NB default config value: 6 */
+    { &CONFIG_MUSIC_VOLUME,     "music_volume",    5 },  /* Switchball default config value: 4; NB default config value: 6 */
+    { &CONFIG_NARRATOR_VOLUME,  "narrator_volume", 10 },
 
     { &CONFIG_JOYSTICK,                "joystick",                1 },
     { &CONFIG_JOYSTICK_RESPONSE,       "joystick_response",       250 },
@@ -711,7 +716,7 @@ void config_load(void)
     assert(!accessibility_busy &&
            "This accessibility data is busy and cannot be edit there!");
 #endif
-    SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+    assert(SDL_WasInit(SDL_INIT_VIDEO));
 #endif
 
     const char *filename = USER_CONFIG_FILE;
@@ -831,7 +836,7 @@ void config_save(void)
     assert(!accessibility_busy &&
            "This accessibility data is busy and cannot be edit there!");
 #endif
-    SDL_assert(SDL_WasInit(SDL_INIT_VIDEO));
+    assert(SDL_WasInit(SDL_INIT_VIDEO));
 #endif
 
     const char *filename = USER_CONFIG_FILE;

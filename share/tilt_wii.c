@@ -12,7 +12,11 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __MINGW32__
+#if (defined(__WII__) || defined(__WIIU__)) && !defined(__GAMECUBE__)
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_thread.h>
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_thread.h>
 #elif _WIN32 && _MSC_VER
@@ -23,6 +27,7 @@
 #else
 #include <SDL.h>
 #include <SDL_thread.h>
+#endif
 #endif
 
 #include <math.h>

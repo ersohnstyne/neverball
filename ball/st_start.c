@@ -236,7 +236,7 @@ static float start_play_level_state_time;
 
 static int set_level_play(int i)
 {
-    struct level *l = campaign_get_level(i);
+    struct level *l = get_level(i);
 
     if (!l) return 0;
 
@@ -452,7 +452,7 @@ static int start_action(int tok, int val)
 
         case START_LEVEL:
             if (check_handsoff())
-                return goto_handsoff(curr_state());
+                return goto_handsoff((struct state *) (curr_state()));
 
             progress_reinit(MODE_NORMAL);
             game_fade(+4.0);
@@ -1233,7 +1233,7 @@ static int start_leave(struct state *st, struct state *next, int id, int intent)
 
     if (next == &st_start)
         return transition_page(id, 0, intent);
-    
+
 #if NB_HAVE_PB_BOTH==1
     /* HACK: These two transition directions will be merged! */
 
@@ -1320,6 +1320,7 @@ static int start_keybd(int c, int d)
             ) return start_action(GUI_BACK, 0);
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3!=1
         if (c == SDLK_c && config_cheat()
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
          && current_platform == PLATFORM_PC
@@ -1331,7 +1332,9 @@ static int start_keybd(int c, int d)
             set_cheat();
             return goto_state(&st_start);
         }
-        else if (c == KEY_LEVELSHOTS && config_cheat()
+        else
+#endif
+        if (c == KEY_LEVELSHOTS && config_cheat()
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
               && current_platform == PLATFORM_PC
               && !set_star_view

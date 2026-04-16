@@ -16,7 +16,19 @@
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 
-#if _WIN32 && __MINGW32__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+# define SDL_MAIN_HANDLED
+# include <SDL3/SDL.h>
+# if _MSC_VER >= 1950 && !defined(SDL_MAIN_HANDLED)
+#  pragma comment(lib, "SDL3.lib")
+#  pragma comment(lib, "SDL3_uclibc.lib")
+#  pragma comment(lib, "SDL3_ttf.lib")
+# elif _MSC_VER >= 1950 && defined(SDL_MAIN_HANDLED)
+#  include <Windows.h>
+# else
+#  error SDL3 for Windows requires latest Visual Studio C++ Version 14.50!
+# endif
+#elif _WIN32 && __MINGW32__
 # include <SDL2/SDL.h>
 #elif _WIN32 && _MSC_VER
 # define SDL_MAIN_HANDLED

@@ -22,7 +22,12 @@
 
 #include "solid_base.h"
 
-#if _WIN32 && __MINGW32__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#include <SDL3/SDL_mutex.h>
+#include <SDL3/SDL_thread.h>
+#define SDL_mutex SDL_Mutex
+#define SDL_atomic_t SDL_AtomicInt
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL_mutex.h>
 #include <SDL2/SDL_thread.h>
 #elif _WIN32 && _MSC_VER
@@ -457,7 +462,12 @@ static int moon_taskloader_lock_mutex(void)
     while (lock_hold_mutex) {}
 
     /* Then, attempt to acquire mutex. */
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    lock_hold_mutex = 1;
+    SDL_LockMutex(moon_taskloader_mutex);
+#else
     lock_hold_mutex = moon_taskloader_mutex && SDL_LockMutex(moon_taskloader_mutex) == 0 ? 1 : 0;
+#endif
     return lock_hold_mutex;
 }
 
@@ -466,8 +476,16 @@ static int moon_taskloader_lock_mutex(void)
  */
 static int moon_taskloader_unlock_mutex(void)
 {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_UnlockMutex(moon_taskloader_mutex);
+#endif
+
     lock_hold_mutex = 0;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    return 1;
+#else
     return SDL_UnlockMutex(moon_taskloader_mutex);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

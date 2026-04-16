@@ -12,7 +12,11 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __MINGW32__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#define SDL_ENABLE_OLD_NAMES
+#include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #elif _WIN32 && _MSC_VER
@@ -248,25 +252,37 @@ GLuint make_image_from_font(int *W, int *H,
     {
         SDL_Color    col = { 0xFF, 0xFF, 0xFF, 0xFF };
         SDL_Surface *orig;
-
+        
         if ((orig = TTF_RenderUTF8_Blended(font, text, col)))
         {
-            void *p;
-            int  w2;
-            int  h2;
-            int   b = orig->format->BitsPerPixel / 8;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            SDL_PixelFormatDetails *fmt = SDL_GetPixelFormatDetails(orig->format);
 
-            SDL_Surface *src;
-            SDL_PixelFormat fmt;
+            int b = fmt->bits_per_pixel / 8;
 
-            fmt = *orig->format;
+            fmt->Rmask = RMASK;
+            fmt->Gmask = GMASK;
+            fmt->Bmask = BMASK;
+            fmt->Amask = AMASK;
+
+#else
+            int b = orig->format->BitsPerPixel / 8;
+
+            SDL_PixelFormat fmt = *orig->format;
 
             fmt.Rmask = RMASK;
             fmt.Gmask = GMASK;
             fmt.Bmask = BMASK;
             fmt.Amask = AMASK;
+#endif
 
+            SDL_Surface *src;
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            if ((src = SDL_ConvertSurface(orig, (SDL_PixelFormat) fmt->format)) == NULL)
+#else
             if ((src = SDL_ConvertSurface(orig, &fmt, orig->flags)) == NULL)
+#endif
             {
                 /* Pretend everything's just fine. */
 
@@ -276,7 +292,9 @@ GLuint make_image_from_font(int *W, int *H,
 
             /* Pad the text to power-of-two. */
 
-            p = image_next2(src->pixels, src->w, src->h, b, &w2, &h2);
+            int  w2;
+            int  h2;
+            void *p = image_next2(src->pixels, src->w, src->h, b, &w2, &h2);
 
             if (w) *w = src->w;
             if (h) *h = src->h;

@@ -12,6 +12,8 @@
  * General Public License for more details.
  */
 
+#include <assert.h>
+
 /*
  * HACK: Used with console version
  */
@@ -812,8 +814,7 @@ static int video_action(int tok, int val)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
-            if (oldF == val)
-                return 1;
+            if (oldF == val) return 1;
 
             goto_state(&st_null);
             r = video_fullscreen(val);
@@ -943,7 +944,12 @@ static int video_gui(void)
     !defined(__SWITCH__)
 #ifndef __EMSCRIPTEN__
         SDL_DisplayMode dpyMode;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        const SDL_DisplayMode *_tmp_dpyMode = SDL_GetCurrentDisplayMode(config_get_d(CONFIG_DISPLAY));
+        assert(_tmp_dpyMode); if (_tmp_dpyMode) dpyMode = *_tmp_dpyMode;
+#else
         SDL_GetCurrentDisplayMode(config_get_d(CONFIG_DISPLAY), &dpyMode);
+#endif
 
         int dpy = config_get_d(CONFIG_DISPLAY);
         const char *display;
@@ -1248,7 +1254,7 @@ static int video_advanced_action(int tok, int val)
 
         case VIDEO_ADVANCED_MOTIONBLUR:
 #if ENABLE_MOTIONBLUR!=0
-            if (oldMBlur == val)return 1;
+            if (oldMBlur == val) return 1;
 
             perf_warning_mode  = 0;
             perf_warning_value = val;
@@ -1773,7 +1779,12 @@ static int display_gui(void)
         {
             char name[MAXSTR];
             SDL_DisplayMode dpyMode;
-            SDL_GetCurrentDisplayMode(i, &dpyMode);
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            const SDL_DisplayMode *_tmp_dpyMode = SDL_GetCurrentDisplayMode(config_get_d(CONFIG_DISPLAY));
+            assert(_tmp_dpyMode); if (_tmp_dpyMode) dpyMode = *_tmp_dpyMode;
+#else
+            SDL_GetCurrentDisplayMode(config_get_d(CONFIG_DISPLAY), &dpyMode);
+#endif
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sprintf_s(name, MAXSTR,

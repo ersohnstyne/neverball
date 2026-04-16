@@ -12,7 +12,9 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && __MINGW32__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#include <SDL3/SDL.h>
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #elif _WIN32 && _MSC_VER
 #include <SDL.h>
@@ -38,6 +40,10 @@
 
 #include "common.h"
 #include "text.h"
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#include "video.h"
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -130,7 +136,11 @@ void text_input_start(void (*cb) (int))
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_StartTextInput(video_get_window());
+#else
     SDL_StartTextInput();
+#endif
 #endif
 }
 
@@ -140,7 +150,11 @@ void text_input_stop(void)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_StopTextInput(video_get_window());
+#else
     SDL_StopTextInput();
+#endif
 #endif
 }
 

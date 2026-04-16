@@ -23,6 +23,12 @@
 
 #include "log.h"
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#ifndef TTF_OpenFontRW
+#define TTF_OpenFontRW TTF_OpenFontIO
+#endif
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 static int _ft_is_init = 0;

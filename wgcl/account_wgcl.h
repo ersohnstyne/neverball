@@ -18,7 +18,7 @@
 #include "state.h"
 
 #define ACCOUNT_WGCL_RESTART_POST_ATTEMPT_THEN_GOTOSTATE(next_state, from, to)  \
-    if (account_wgcl_restart_attempt()) goto_state(next_state, from, to, 0); \
+    if (account_wgcl_restart_attempt()) goto_state(next_state); \
 
 int  account_wgcl_init(void);
 void account_wgcl_quit(void);
@@ -42,6 +42,7 @@ int account_wgcl_try_add(int w_coins, int w_gems,
                          int c_hp, int c_doublecash, int c_halfgrav, int c_doublespeed);
 int account_wgcl_try_set(int w_coins, int w_gems,
                          int c_hp, int c_doublecash, int c_halfgrav, int c_doublespeed);
+int account_wgcl_try_buy(int w_coins_cost, int flags);
 int account_wgcl_restart_attempt(void);
 
 void account_wgcl_do_add(int w_coins, int w_gems,

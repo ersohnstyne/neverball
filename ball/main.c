@@ -26,14 +26,21 @@
 
 #define DISABLE_PANORAMA
 
-#if _WIN32 && __MINGW32__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#define SDL_ENABLE_OLD_NAMES
+#include <SDL3/SDL.h>
+#define SDL_GET_KEYSYM(_e) _e->key.key
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
+#define SDL_GET_KEYSYM(_e) _e->key.keysym.sym
 #elif _WIN32 && _MSC_VER
 #include <SDL.h>
+#define SDL_GET_KEYSYM(_e) _e->key.keysym.sym
 #elif _WIN32
 #error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
+#define SDL_GET_KEYSYM(_e) _e->key.keysym.sym
 #endif
 
 #if NB_STEAM_API==1
@@ -526,12 +533,13 @@ static const float key_tilt[4] = { -1.0f, +1.0f, -1.0f, +1.0f };
 static int handle_key_dn(SDL_Event *e)
 {
     int d = 1;
-    int c = e->key.keysym.sym;
+    int c = SDL_GET_KEYSYM(e); // Was: e->key.keysym.sym
 
     int dir = -1;
 
     /* SDL made me do it. */
 #ifndef __EMSCRIPTEN__
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3!=1
 #ifdef __APPLE__
     if (c == SDLK_q  && e->key.keysym.mod & KMOD_GUI)
 #endif
@@ -541,6 +549,7 @@ static int handle_key_dn(SDL_Event *e)
     {
         return 0;
     }
+#endif
 #endif
 
     switch (c)
@@ -606,7 +615,7 @@ static int handle_key_dn(SDL_Event *e)
                 st_stick(config_get_d(*key_axis[dir]), key_tilt[dir]);
             }
             else
-                d = st_keybd(e->key.keysym.sym, 1);
+                d = st_keybd(SDL_GET_KEYSYM(e), 1); // Was: e->key.keysym.sym
     }
 
     return d;
@@ -615,7 +624,7 @@ static int handle_key_dn(SDL_Event *e)
 static int handle_key_up(SDL_Event *e)
 {
     int d = 1;
-    int c = e->key.keysym.sym;
+    int c = SDL_GET_KEYSYM(e); // Was: e->key.keysym.sym
 
     int dir = -1;
 
@@ -663,7 +672,7 @@ static int handle_key_up(SDL_Event *e)
                 else
                     st_stick(config_get_d(*key_axis[dir]), 0.0f);
             }
-            else d = st_keybd(e->key.keysym.sym, 0);
+            else d = st_keybd(SDL_GET_KEYSYM(e), 0); // Was: e->key.keysym.sym
     }
 
     return d;
@@ -1388,8 +1397,10 @@ static int loop(void)
                 break;
 #endif
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3!=1
             case SDL_WINDOWEVENT:
                 switch (e.window.event)
+#endif
                 {
                     case SDL_WINDOWEVENT_FOCUS_LOST:
 #ifndef __EMSCRIPTEN__
@@ -1949,7 +1960,7 @@ static int main_init(int argc, char *argv[])
 #error Security compilation error: No Playstation HIDAPI specified!
 #endif
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_STEAMDECK_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_STEAMDECK_FAMILY_API
 #if defined(SDL_HINT_JOYSTICK_HIDAPI_STEAMDECK)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_STEAMDECK, "1");
 #endif
@@ -2264,10 +2275,10 @@ static void main_quit(void)
     lang_quit ();
 #endif
     activity_services_quit();
-    
-//#if (PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1) && \
+
+//#if (NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
-#if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__EMSCRIPTEN__)
+#if !defined(__GAMECUBE__) && !defined(__WII__)
     joy_quit();
 #endif
 
@@ -2298,7 +2309,7 @@ static void main_quit(void)
 #endif
 
     log_quit();
-    fs_quit ();
+    fs_quit();
     opt_quit();
 
 #if _cplusplus

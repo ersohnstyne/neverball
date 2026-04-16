@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Microsoft / Neverball Authors / Jānis Rūcis
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -13,7 +13,9 @@
  */
 
 #include "transition.h"
+#include "common.h"
 #include "gui.h"
+#include "log.h"
 
 #include "config.h"
 

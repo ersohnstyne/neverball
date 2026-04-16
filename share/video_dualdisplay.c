@@ -30,7 +30,11 @@
 #include <gl4esinit.h>
 #endif
 
-#if _WIN32 && __MINGW32__
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#include <SDL3/SDL.h>
+#elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #elif _WIN32 && _MSC_VER
 #include <SDL.h>
@@ -38,6 +42,7 @@
 #error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
+#endif
 #endif
 
 #if __cplusplus
@@ -431,7 +436,7 @@ int video_dualdisplay_mode(int f, int w, int h)
 #endif
             if (w && h)
             {
-                window_ddpy = SDL_CreateWindow("Pennyball Secondary Display", X, Y, MAX(w, 320), MAX(h, 240),
+                window_ddpy = SDL_CreateWindow("Neverball Secondary Display", X, Y, MAX(w, 320), MAX(h, 240),
                     SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI
 #ifndef __EMSCRIPTEN__
 #ifdef RESIZEABLE_WINDOW

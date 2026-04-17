@@ -1509,7 +1509,7 @@ int  account_wgcl_do_finish_challenge(int coins, int gems,
             "    \"xp_penalty\":%d"
             "}",
             wgcl_utc_strfmt, session_uuid4,
-            account_get_s(ACCOUNT_PLAYER), coins, gems, balls - 1, total_time_ms, xppenalty);
+            account_get_s(ACCOUNT_PLAYER), coins, gems, balls, total_time_ms, xppenalty);
 
     CURL *handle = account_wgcl_curl_prepare_post(in_url, json_data, &res_data);
     CURLcode res = account_wgcl_curl_execute(handle);

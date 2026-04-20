@@ -24,7 +24,6 @@
 #include "console_control_gui.h"
 
 #if NB_HAVE_PB_BOTH==1
-
 #include "networking.h"
 
 #include "campaign.h" /* New: Campaign */
@@ -83,6 +82,10 @@
 #include "st_tutorial.h"
 #endif
 #include "st_name.h"
+
+#if NB_HAVE_PB_BOTH==1
+#include "st_dailychallenge.h"
+#endif
 
 #if NB_HAVE_PB_BOTH!=1 && (defined(CONFIG_INCLUDES_ACCOUNT) || defined(MAPC_INCLUDES_CHKP))
 #error Security compilation error: Preprocessor definitions can be used it, \
@@ -362,6 +365,7 @@ static int level_gui(void)
 #ifdef CONFIG_INCLUDES_ACCOUNT
         if ((level_master(curr_level())
           || curr_mode() == MODE_CHALLENGE
+          || curr_mode() == MODE_DAILY
           || curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
           || curr_mode() == MODE_HARDCORE
@@ -454,7 +458,11 @@ static int level_gui(void)
                 else if (curr_mode() == MODE_NORMAL)
                     sprintf_s(setattr, MAXSTR, "%s", curr_setname_final);
                 else if (curr_mode() != MODE_NONE)
+#if NB_HAVE_PB_BOTH==1
+                    sprintf_s(setattr, MAXSTR, _("%s: %s"), curr_setname_final, mode_to_str(dailychallenge_active_mode() ? MODE_DAILY : curr_mode(), 1));
+#else
                     sprintf_s(setattr, MAXSTR, _("%s: %s"), curr_setname_final, mode_to_str(curr_mode(), 1));
+#endif
 #else
                 if (m && curr_mode() == MODE_STANDALONE)
                     sprintf(lvlattr, _("Master Level"));
@@ -478,7 +486,11 @@ static int level_gui(void)
                 else if (curr_mode() == MODE_NORMAL)
                     sprintf(setattr, "%s", curr_setname_final);
                 else if (curr_mode() != MODE_NONE)
+#if NB_HAVE_PB_BOTH==1
+                    sprintf(setattr, _("%s: %s"), curr_setname_final, mode_to_str(dailychallenge_active_mode() ? MODE_DAILY : curr_mode(), 1));
+#else
                     sprintf(setattr, _("%s: %s"), curr_setname_final, mode_to_str(curr_mode(), 1));
+#endif
 #endif
                 gui_title_header(kd, lvlattr,
                                      m || b ? GUI_MED : GUI_LRG,
@@ -553,6 +565,7 @@ static int level_gui(void)
         if (!show_info &&
             ((level_master(curr_level())
            || curr_mode() == MODE_CHALLENGE
+           || curr_mode() == MODE_DAILY
            || curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
            || curr_mode() == MODE_HARDCORE
@@ -661,6 +674,7 @@ static int level_enter(struct state *st, struct state *prev, int intent)
     if (level_infocard_intro)
         show_info = !((level_master(curr_level())
                     || curr_mode() == MODE_CHALLENGE
+                    || curr_mode() == MODE_DAILY
                     || curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                     || curr_mode() == MODE_HARDCORE
@@ -753,6 +767,7 @@ static void level_paint(int id, float t)
 
         if ((level_master(curr_level())
             || curr_mode() == MODE_CHALLENGE
+            || curr_mode() == MODE_DAILY
             || curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             || curr_mode() == MODE_HARDCORE
@@ -829,6 +844,7 @@ static int level_keybd(int c, int d)
         {
             if ((level_master(curr_level())
               || curr_mode() == MODE_CHALLENGE
+              || curr_mode() == MODE_DAILY
               || curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
               || curr_mode() == MODE_HARDCORE
@@ -855,6 +871,7 @@ static int level_buttn(int b, int d)
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
             if ((level_master(curr_level())
               || curr_mode() == MODE_CHALLENGE
+              || curr_mode() == MODE_DAILY
               || curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
               || curr_mode() == MODE_HARDCORE
@@ -875,6 +892,7 @@ static int level_buttn(int b, int d)
         {
             if ((level_master(curr_level())
               || curr_mode() == MODE_CHALLENGE
+              || curr_mode() == MODE_DAILY
               || curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
               || curr_mode() == MODE_HARDCORE
@@ -905,6 +923,7 @@ static int level_click(int b, int d)
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
         if ((level_master(curr_level())
           || curr_mode() == MODE_CHALLENGE
+          || curr_mode() == MODE_DAILY
           || curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
           || curr_mode() == MODE_HARDCORE
@@ -1223,7 +1242,7 @@ int goto_exit(void)
         dst = curr_times() > 0 && progress_dead() ? &st_over :
                                                     &st_start;
     }
-    else if (curr_mode() == MODE_CHALLENGE && curr_mode() != MODE_STANDALONE)
+    else if (curr_mode() == MODE_CHALLENGE && curr_mode() != MODE_STANDALONE && curr_mode() != MODE_DAILY)
     {
         if (progress_dead()
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN

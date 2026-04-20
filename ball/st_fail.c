@@ -760,8 +760,9 @@ static int fail_gui(void)
 
     if (try_shatter_snd)
     {
-        if (curr_mode() != MODE_CHALLENGE &&
-            curr_mode() != MODE_BOOST_RUSH)
+        if (curr_mode() != MODE_CHALLENGE  &&
+            curr_mode() != MODE_BOOST_RUSH &&
+            curr_mode() != MODE_DAILY)
             audio_music_fade_out(0.0f);
 
         audio_play(AUD_UI_SHATTER, 1.0f);
@@ -777,6 +778,7 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      && curr_mode() != MODE_HARDCORE
 #endif
+     && curr_mode() != MODE_DAILY
         )
         audio_music_fade_out(2.0f);
 
@@ -1122,7 +1124,7 @@ static int ask_more_action(int tok, int val)
         case ASK_MORE_ACCEPT:
             video_set_grab(1);
 
-            if (curr_mode() != MODE_CHALLENGE && curr_mode() != MODE_BOOST_RUSH)
+            if (curr_mode() != MODE_CHALLENGE && curr_mode() != MODE_BOOST_RUSH && curr_mode() != MODE_DAILY)
                 audio_music_fade_in(0.5f);
 
             game_extend_time(val);
@@ -1693,8 +1695,9 @@ static int raise_gems_prepare_gui(void)
 
             SAFECPY(infoattr_full, infoattr0);
 
-            if (curr_mode() == MODE_CHALLENGE ||
-                curr_mode() == MODE_BOOST_RUSH)
+            if (curr_mode() == MODE_CHALLENGE  ||
+                curr_mode() == MODE_BOOST_RUSH ||
+                curr_mode() == MODE_DAILY)
             {
                 SAFECAT(infoattr_full, "\n");
                 SAFECAT(infoattr_full, bankrupt_str2);
@@ -1841,9 +1844,10 @@ static int raise_gems_prepare_gui(void)
                 gui_set_color(tmp_startbtn_id, GUI_COLOR_GRY);
 #endif
             }
-
-            if ((curr_mode() == MODE_CHALLENGE ||
-                 curr_mode() == MODE_BOOST_RUSH) &&
+            
+            if ((curr_mode() == MODE_CHALLENGE  ||
+                 curr_mode() == MODE_BOOST_RUSH ||
+                 curr_mode() == MODE_DAILY) &&
                 !allow_raise && !pay_debt_ready)
                 gui_state(jd, _("Bankruptcy"),
                               GUI_SML, RAISEGEMS_BANKRUPTCY, 0);

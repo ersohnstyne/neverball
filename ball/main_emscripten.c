@@ -71,6 +71,8 @@ void WGCL_CallMain(const int edition_id)
     WGCL_CallMain_Real();
 }
 
+int main(int argc, char *argv[]) { return main_share(argc, argv); }
+
 #endif
 
 /********************************************************************/

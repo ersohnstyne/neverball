@@ -86,6 +86,7 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
      && curr_mode() != MODE_HARDCORE
 #endif
 #endif
+     && curr_mode() != MODE_DAILY
         )) return;
 
     /* Phase 1: Activate the checkpoints. */

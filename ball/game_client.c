@@ -578,7 +578,7 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
 
     gd.fade_k =  1.0f;
     gd.fade_d = -2.0f;
-    
+
     /* FIXME: Let Mojang done one of these! */
 
     gd.mojang_death_enabled_flags = 0;
@@ -623,7 +623,7 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
      * bogus map compatibility warnings.  Post-1.5.0 replays will have
      * CMD_MAP override this.
      */
-    
+
     /*
      * 2.2 and later: We always trigger map compatibility warnings
      * in the future version.
@@ -692,8 +692,6 @@ int game_client_init_moon_taskloader(const char *file_name,
 #endif
 
 /*---------------------------------------------------------------------------*/
-
-static int ball_visible = 0;
 
 int  game_client_init(const char *file_name)
 {
@@ -871,7 +869,7 @@ int  game_client_init(const char *file_name)
 
 void game_client_toggle_show_balls(int visible)
 {
-    ball_visible = visible;
+    gd.ball_shown = visible;
 }
 
 void game_client_free(const char *next)
@@ -944,7 +942,7 @@ void game_client_draw(int pose, float t)
 #if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
         if (!demo_operator_activated())
 #endif
-            game_draw(&gd, ball_visible ? pose : POSE_LEVEL, t);
+            game_draw(&gd, gd.ball_shown ? pose : POSE_LEVEL, t);
     }
 }
 

@@ -1044,7 +1044,7 @@ static int wgcl_addons_login_gui(void)
         gui_title_header(id, _("Logged in"), GUI_MED, GUI_COLOR_DEFAULT);
 
         gui_space(id);
-        
+
         gui_multi(id, _("You've already logged in,\n"
                         "so you don't need it again."),
                       GUI_SML, GUI_COLOR_WHT);

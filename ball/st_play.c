@@ -331,6 +331,7 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
          || curr_mode() == MODE_HARDCORE
 #endif
+         || curr_mode() == MODE_DAILY
             )
             EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
 #endif
@@ -443,6 +444,7 @@ static int play_set_enter(struct state *st, struct state *prev, int intent)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
          || curr_mode() == MODE_HARDCORE
 #endif
+         || curr_mode() == MODE_DAILY
             )
             EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
 #endif
@@ -567,6 +569,7 @@ static void play_prep_point(int id, int x, int y, int dx, int dy)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      || curr_mode() == MODE_HARDCORE
 #endif
+     || curr_mode() == MODE_DAILY
         )
         EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
 #endif
@@ -611,6 +614,7 @@ static int play_prep_click(int b, int d)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      || curr_mode() == MODE_HARDCORE
 #endif
+     || curr_mode() == MODE_DAILY
         ) EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
 #endif
 
@@ -649,6 +653,7 @@ static int play_prep_keybd(int c, int d)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      || curr_mode() == MODE_HARDCORE
 #endif
+     || curr_mode() == MODE_DAILY
         ) EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
 #endif
 
@@ -833,6 +838,7 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      || curr_mode() == MODE_HARDCORE
 #endif
+     || curr_mode() == MODE_DAILY
         ) EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
 #endif
 

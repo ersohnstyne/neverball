@@ -62,6 +62,10 @@
 #endif
 #include "st_play.h"
 
+#if NB_HAVE_PB_BOTH==1
+#include "st_dailychallenge.h"
+#endif
+
 #if NB_STEAM_API==0 && NB_EOS_SDK==0
 #define SET_ALWAYS_UNLOCKED
 #endif
@@ -1686,6 +1690,13 @@ int goto_playgame_register(void)
 
 int goto_playmenu(int m)
 {
+#if NB_HAVE_PB_BOTH==1
+    if (dailychallenge_active_mode()) {
+        dailychallenge_exit();
+        return exit_state(&st_title);
+    }
+#endif
+
     if (m == MODE_BOOST_RUSH) return exit_state(&st_set);
 
     return exit_state(

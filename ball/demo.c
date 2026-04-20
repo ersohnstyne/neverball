@@ -596,6 +596,7 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                                                || demo_replay.mode == MODE_HARDCORE
 #endif
+                                               || demo_replay.mode == MODE_DAILY
                                                 ? "bgm/challenge_mbu.ogg" :
                                                   BGM_TITLE_MAP(level.song), 1);
                     }

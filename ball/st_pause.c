@@ -206,15 +206,14 @@ static int pause_action(int tok, int val)
 
                         campaign_hardcore_quit();
                     }
+
                     if (curr_status() == GAME_NONE)
                         progress_stat(GAME_NONE);
-                    if (curr_mode() != MODE_NONE)
-                        audio_music_stop();
+                    if (curr_mode() != MODE_NONE) audio_music_stop();
 
                     return goto_exit();
                 }
-                else
-                    return goto_state(&st_pause_quit);
+                else return goto_state(&st_pause_quit);
             }
             else
             {

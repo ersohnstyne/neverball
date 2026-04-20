@@ -36,6 +36,17 @@
 
 /*---------------------------------------------------------------------------*/
 
+static int game_draw_cam_abovemap(struct game_draw *gd, struct game_view *view)
+{
+#ifdef _DEBUG
+    return gd->vary.base->vc == 0 ? 0 : gd->vary.base->vv[0].p[1] > gd->view.p[1] ? 0 : 1;
+#else
+    return 1;
+#endif
+}
+
+/*---------------------------------------------------------------------------*/
+
 static int draw_chnk_highaltitude;
 
 static void game_draw_chnk_floor(struct s_rend *rend,
@@ -64,8 +75,8 @@ static void game_draw_chnk_floor(struct s_rend *rend,
                              (j * SCL) * (draw_chnk_highaltitude ? 800 : 400));
 
                 glColor4ub(ROUND(c[0] * 255),
-                           ROUND(c[1] * 255),
-                           ROUND(c[2] * 255),
+                           ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                           ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
                            ROUND(c[3] * 255));
                 chnk_pane_draw(rend);
             }
@@ -107,8 +118,8 @@ static void game_draw_chnk_rings(struct s_rend *rend,
                              base->zv[i].p[2] / (j * SCL));
 
                 glColor4ub(ROUND(c[0] * 255),
-                           ROUND(c[1] * 255),
-                           ROUND(c[2] * 255),
+                           ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                           ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
                            ROUND(c[3] * 255));
                 chnk_ring_draw(rend, 1);
             }
@@ -125,8 +136,8 @@ static void game_draw_chnk_rings(struct s_rend *rend,
                              base->zv[i].p[2] / (j * SCL));
 
                 glColor4ub(ROUND(c[0] * 255),
-                           ROUND(c[1] * 255),
-                           ROUND(c[2] * 255),
+                           ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                           ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
                            ROUND(c[3] * 255));
                 chnk_ring_draw(rend, 0);
             }
@@ -159,8 +170,8 @@ static void game_draw_chnk_balls(struct s_rend *rend,
                      base->uv[0].p[2]);
 
         glColor4ub(ROUND(c[0] * 255),
-                   ROUND(c[1] * 255),
-                   ROUND(c[2] * 255),
+                   ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                   ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
                    ROUND(c[3] * 255));
         chnk_ball_draw(rend);
     }
@@ -209,8 +220,8 @@ static void game_draw_chnk_jumps(struct s_rend *rend,
             glRotatef(view_angle, 0.0f, 1.0f, 0.0f);
 
             glColor4ub(ROUND(c[0] * 255),
-                       ROUND(c[1] * 255),
-                       ROUND(c[2] * 255),
+                       ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                       ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
                        ROUND(c[3] * 255));
             chnk_jump_draw(rend);
         }
@@ -260,8 +271,8 @@ static void game_draw_chnk_goals(struct s_rend *rend,
             glRotatef(view_angle, 0.0f, 1.0f, 0.0f);
 
             glColor4ub(ROUND(c[0] * 255),
-                       ROUND(c[1] * 255),
-                       ROUND(c[2] * 255),
+                       ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                       ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
                        ROUND(c[3] * 255));
             chnk_goal_draw(rend);
         }
@@ -311,8 +322,8 @@ static void game_draw_chnk_swchs(struct s_rend *rend,
             glRotatef(view_angle, 0.0f, 1.0f, 0.0f);
 
             glColor4ub(ROUND(c[0] * 255),
-                       ROUND(c[1] * 255),
-                       ROUND(c[2] * 255),
+                       ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                       ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
                        ROUND(c[3] * 255));
             chnk_swch_draw(rend);
         }
@@ -371,8 +382,8 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
             glRotatef(view_angle, 0.0f, 1.0f, 0.0f);
 
             glColor4ub(ROUND(c[0] * 255),
-                       ROUND(c[1] * 255),
-                       ROUND(c[2] * 255),
+                       ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                       ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
                        ROUND(c[3] * 255));
             chnk_chkp_draw(rend);
         }
@@ -415,8 +426,8 @@ static void game_draw_maxspeed(struct s_rend *rend,
                  vary->uv[0].r);
 
         glColor4ub(ROUND(c[0] * 255),
-                   ROUND(c[1] * 255),
-                   ROUND(c[2] * 255),
+                   ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                   ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
                    ROUND(c[3] * 255));
         maxspeed_draw(rend);
     }
@@ -911,6 +922,7 @@ static void game_draw_fore(struct s_rend *rend,
                            int d, float t, int flip)
 {
     const float *ball_p = gd->vary.uv[0].p;
+    const int draw_unlocked = gd->ball_shown && game_draw_cam_abovemap(gd);
 
     struct s_draw *draw = &gd->draw;
 
@@ -956,7 +968,7 @@ static void game_draw_fore(struct s_rend *rend,
             case POSE_NONE:
                 /* Draw the coins. */
 
-                game_draw_items(rend, draw->vary, M, t);
+                if (draw_unlocked) game_draw_items(rend, draw->vary, M, t);
 
                 /* Draw the floor. */
 
@@ -979,7 +991,7 @@ static void game_draw_fore(struct s_rend *rend,
 
             sol_bill(draw, rend, M, t);
 
-            game_draw_beams(rend, gd);
+            if (draw_unlocked) game_draw_beams(rend, gd);
             part_draw_coin(draw, rend, M, t);
             part_draw_goal(draw, rend, M, t);
 
@@ -988,7 +1000,7 @@ static void game_draw_fore(struct s_rend *rend,
             glDisable(GL_LIGHT0);
             glDisable(GL_LIGHT1);
             glEnable (GL_LIGHT2);
-            {
+            if (draw_unlocked) {
                 game_draw_goals(rend, gd, t);
                 game_draw_jumps(rend, gd, t);
 #ifdef MAPC_INCLUDES_CHKP
@@ -1283,8 +1295,8 @@ void game_draw(struct game_draw *gd, int pose, float t)
                         glColor4ub   (0, 0, 0, ROUND(c[3] * 255));
                         game_refl_all(&rend, gd);
                         glColor4ub   (ROUND(c[0] * 255),
-                                      ROUND(c[1] * 255),
-                                      ROUND(c[2] * 255),
+                                      ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                                      ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
                                       ROUND(c[3] * 255));
                     }
                     r_color_mtrl(&rend, 0);

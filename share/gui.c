@@ -2878,7 +2878,7 @@ void gui_paint(int id)
         } else
 #endif
             video_set_ortho();
-        
+
         glDisable(GL_DEPTH_TEST);
 
         draw_enable(GL_TRUE, GL_TRUE, GL_TRUE);

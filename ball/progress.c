@@ -733,6 +733,7 @@ static int init_level(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                                || mode == MODE_HARDCORE
 #endif
+                               || mode == MODE_DAILY
                                   ? "bgm/challenge_mbu.ogg" :
                                   lvl_warn_timer ? "bgm/time-warning.ogg" :
                                                    BGM_TITLE_MAP(level_song(level)), 1);
@@ -788,9 +789,10 @@ int  progress_play(struct level *l)
         {
             /* When they using level set, it will be added in the required coins. */
 
-            goal_e = (((mode != MODE_CHALLENGE &&
-                        mode != MODE_HARDCORE  &&
-                        mode != MODE_BOOST_RUSH) &&
+            goal_e = (((mode != MODE_CHALLENGE  &&
+                        mode != MODE_HARDCORE   &&
+                        mode != MODE_BOOST_RUSH &&
+                        mode != MODE_DAILY) &&
                        level_completed(level) &&
                        config_get_d(CONFIG_LOCK_GOALS) == 0) ||
                       goal == 0) ||
@@ -817,7 +819,7 @@ int  progress_play(struct level *l)
             goal_e = 1;
         }
 #else
-        goal_e = (((mode != MODE_CHALLENGE && mode != MODE_BOOST_RUSH) &&
+        goal_e = (((mode != MODE_CHALLENGE && mode != MODE_BOOST_RUSH && mode != MODE_DAILY) &&
                    level_completed(level) && config_get_d(CONFIG_LOCK_GOALS) == 0) ||
                   goal == 0)
 #ifdef LEVELGROUPS_INCLUDES_ZEN
@@ -881,6 +883,7 @@ void progress_step(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         mode != MODE_HARDCORE &&
 #endif
+        mode != MODE_DAILY &&
         level && !replay && level_time(level) != 0
 #ifdef CONFIG_INCLUDES_ACCOUNT
      && !mediation_enabled()
@@ -944,6 +947,7 @@ void progress_stat(int s)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
              || mode == MODE_HARDCORE
 #endif
+             || mode == MODE_DAILY
                 )
             {
 #ifdef MAPC_INCLUDES_CHKP
@@ -1034,6 +1038,7 @@ void progress_stat(int s)
              || mode == MODE_HARDCORE
 #endif
              || mode == MODE_BOOST_RUSH
+             || mode == MODE_DAILY
                 )
             {
                 int next_has_master = 0;
@@ -1078,6 +1083,7 @@ void progress_stat(int s)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                                  || mode == MODE_HARDCORE
 #endif
+                                 || mode == MODE_DAILY
             ;
 
             if (status == GAME_GOAL && !disable_live_earn && !CHECK_ACCOUNT_BANKRUPT &&
@@ -1132,10 +1138,12 @@ void progress_stat(int s)
                 done = mode == MODE_CAMPAIGN
                     || mode == MODE_CHALLENGE
                     || mode == MODE_BOOST_RUSH
-                    || mode == MODE_HARDCORE;
+                    || mode == MODE_HARDCORE
+                    || mode == MODE_DAILY;
 #else
                 done = mode == MODE_CHALLENGE
-                    || mode == MODE_BOOST_RUSH;
+                    || mode == MODE_BOOST_RUSH
+                    || mode == MODE_DAILY;
 #endif
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -1170,7 +1178,7 @@ void progress_stat(int s)
                 done           = 0;
                 extended_timer = timer;
 
-                if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH)
+                if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH || mode == MODE_DAILY)
                     curr.times += timer;
 
                 if (
@@ -1229,9 +1237,9 @@ void progress_stat(int s)
             config_save();
         }
     }
-    else if (mode != MODE_CAMPAIGN && mode != MODE_STANDALONE)
+    else if (mode != MODE_CAMPAIGN && mode != MODE_STANDALONE && mode != MODE_DAILY)
 #else
-    if (mode != MODE_STANDALONE)
+    if (mode != MODE_STANDALONE && mode != MODE_DAILY)
 #endif
         set_store_hs();
 }
@@ -1277,8 +1285,9 @@ void progress_exit(void)
          && !CHECK_ACCOUNT_BANKRUPT) {
             /* This gems will earn only, after competed the challenge mode. */
 
-            if ((mode == MODE_CHALLENGE ||
-                 mode == MODE_BOOST_RUSH)
+            if ((mode == MODE_CHALLENGE  ||
+                 mode == MODE_BOOST_RUSH ||
+                 mode == MODE_DAILY)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
              && !config_cheat()
 #endif
@@ -1336,8 +1345,11 @@ void progress_exit(void)
             score_steam_hs_save(curr.score, curr.times);
 #endif
         }
-        else if (!campaign_used())
+        else
 #endif
+        if (!campaign_used() && mode == MODE_DAILY)
+            /* High-scores not available in daily challenge mode! */;
+        else if (!campaign_used())
         {
 #if NB_HAVE_PB_BOTH==1
             set_star_update(done);
@@ -1708,6 +1720,9 @@ void progress_rename(int set_only)
     }
     else
 #endif
+    if (mode == MODE_DAILY)
+        /* High-scores not available in daily challenge mode! */;
+    else
     {
         if (set_only)
             set_rename_player(score_rank, times_rank, player);
@@ -1827,6 +1842,7 @@ const char *mode_to_str(int m, int l)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         case MODE_CAMPAIGN:  return l ? _("Campaign Mode")   : _("Campaign");
 #endif
+        case MODE_DAILY:     return l ? _("Daily Challenge") : _("Daily");
         default:             return l ? _("Unknown Mode")    : _("Unknown");
     }
 }

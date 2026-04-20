@@ -276,7 +276,7 @@ static int demo_action(int tok, int val)
 
             /* Make sure, that the status limit is underneath it. */
 #if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
-            if (!config_cheat() && 
+            if (!config_cheat() &&
                 (get_max_game_stat() > get_limit_game_stat() ||
                 time_max_minutes > time_limit_minutes))
 #else

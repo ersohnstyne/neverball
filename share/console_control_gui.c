@@ -1437,7 +1437,7 @@ static void init_xbox_desc(void)
                         config_get_d(CONFIG_JOYSTICK_BUTTON_X));
 
         create_controller_spacer(xbox_control_desc_id);
-        
+
         gui_label(xbox_control_desc_id, _("Back"),
                   GUI_SML, gui_wht, gui_wht);
 

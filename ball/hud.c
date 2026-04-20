@@ -442,6 +442,7 @@ void hud_paint(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
          || curr_mode() == MODE_HARDCORE
 #endif
+         || curr_mode() == MODE_DAILY
             )
         {
             /* WGCL Operator (WIP) */
@@ -642,10 +643,11 @@ void hud_update(int pulse, float animdt)
             gui_set_color(speed_percent_id, gui_yel,
                                             speedpercent >= 100.0f ? gui_red : gui_yel);
 
-        case MODE_CHALLENGE:
+        case MODE_DAILY:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         case MODE_HARDCORE:
 #endif
+        case MODE_CHALLENGE:
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sprintf_s(xppenalty_text_final, 7,
 #else

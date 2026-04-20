@@ -541,8 +541,8 @@ static void campaign_load_levels(void)
         }
         else
         {
-            SAFECPY(l->file, ""); l->file[0] = 0;
             i_retreat++;
+            memset(l->file, 0, sizeof (l->file));
             log_errorf("Could not load level file: %s / Retreated levels: %d\n", campaign_levelpath[i], i_retreat);
         }
     }

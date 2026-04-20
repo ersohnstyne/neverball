@@ -450,7 +450,7 @@ static int lockdown_enter(struct state *st, struct state *prev, int intent)
     audio_play("snd/uierror.ogg", 1.0f);
 
     int id, jd;
-    
+
     if ((id = gui_vstack(0)))
     {
         jd = gui_title_header(id, _("Locked"), GUI_MED, gui_red, gui_blk);

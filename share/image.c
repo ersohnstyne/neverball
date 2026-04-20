@@ -252,7 +252,7 @@ GLuint make_image_from_font(int *W, int *H,
     {
         SDL_Color    col = { 0xFF, 0xFF, 0xFF, 0xFF };
         SDL_Surface *orig;
-        
+
         if ((orig = TTF_RenderUTF8_Blended(font, text, col)))
         {
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1

@@ -285,6 +285,7 @@ static int goal_gui(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
              || curr_mode() == MODE_HARDCORE
 #endif
+             || curr_mode() == MODE_DAILY
                 )
             {
                 int coins = (!resume || (!resume_locked && goal_intro_animation_phase == 2)) ? curr_coins() : 0,
@@ -602,6 +603,7 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      && curr_mode() != MODE_HARDCORE
 #endif
+     && curr_mode() != MODE_DAILY
         )
         audio_music_fade_out(2.0f);
 
@@ -876,8 +878,9 @@ static void goal_timer(int id, float dt)
     }
 
     if (challenge_caught_extra && config_get_d(CONFIG_NOTIFICATION_REWARD) &&
-        (curr_mode() == MODE_CHALLENGE ||
-         curr_mode() == MODE_BOOST_RUSH))
+        (curr_mode() == MODE_CHALLENGE  ||
+         curr_mode() == MODE_BOOST_RUSH ||
+         curr_mode() == MODE_DAILY))
         goto_state(&st_goal_extraballs);
 
 #ifdef CONFIG_INCLUDES_ACCOUNT

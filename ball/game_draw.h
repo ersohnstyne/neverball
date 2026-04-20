@@ -25,6 +25,7 @@ extern float gd_rotate_roll;
 struct game_draw
 {
     int state;
+    int ball_shown;
 
     struct s_vary vary;
     struct s_draw draw;

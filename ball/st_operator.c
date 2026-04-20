@@ -336,7 +336,7 @@ static int operator_incidents_error_enter(struct state *st, struct state *prev, 
                            "and on your WGCL server online.\n"
                            "If they already online,\n"
                            "then it's already exists.");
-        
+
         const char *s1 = _("Only failure attempts with map name\n"
                            "are supported.");
 

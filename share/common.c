@@ -303,7 +303,7 @@ int file_exists(const char *path)
         file_attr & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED ||
         file_attr & FILE_ATTRIBUTE_NO_SCRUB_DATA)
         return 0;
-    
+
     return (file_attr & FILE_ATTRIBUTE_NORMAL   ||
             file_attr & FILE_ATTRIBUTE_ARCHIVE  ||
             file_attr & FILE_ATTRIBUTE_READONLY ||

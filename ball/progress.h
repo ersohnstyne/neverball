@@ -142,6 +142,7 @@ enum
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     MODE_CAMPAIGN   = 7,                 /* Campaign Mode   */
 #endif
+    MODE_DAILY = 8,                 /* Daily Mode      */
 
     MODE_MAX
 };

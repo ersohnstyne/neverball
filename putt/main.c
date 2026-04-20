@@ -1036,7 +1036,7 @@ static int main_init(int argc, char *argv[])
 #if _cplusplus
     try {
 #endif
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) == -1)
+    if (SDL_Init(SDL_INIT_VIDEO) == -1)
     {
         log_errorf("Failure to initialize SDL (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
         return 0;

@@ -49,6 +49,10 @@
 #include "progress.h"
 #include "text.h"
 
+#ifdef _DEBUG
+#include "log.h"
+#endif
+
 #include "activity_services.h"
 
 #include "game_common.h"
@@ -76,6 +80,10 @@
 #endif
 
 #define TITLE_USE_DVD_BOX
+
+#if NB_HAVE_PB_BOTH==1
+//#define TITLE_PAN_360_MODE
+#endif
 
 #ifdef SWITCHBALL_GUI
 #define SWITCHBALL_TITLE
@@ -158,8 +166,9 @@ static int title_check_balls_shown(void)
 #endif
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-    const int ball_shown = !CHECK_ACCOUNT_BANKRUPT && (output_tm.tm_hour > 5 &&
-                                                       output_tm.tm_hour < 22);
+    const int ball_shown = !CHECK_ACCOUNT_BANKRUPT &&
+                           (output_tm.tm_hour > 5 &&
+                            output_tm.tm_hour < 22);
 #else
     const int ball_shown = 1;
 #endif
@@ -214,6 +223,18 @@ static const char *check_unlocked_demo(struct demo *raw_demo)
     const int max   = raw_demo->status == 3 ? 3 :
                      (raw_demo->status == 1 || raw_demo->status == 0) ? 2 :
                      (raw_demo->status == 2) ? 1 : 0;
+    
+#ifdef _DEBUG
+    if (max > limit) {
+        if (limit == 2) switch (raw_demo->status) {
+            case 3: log_errorf("%s: Current level status exceeds level status limit!: Current: GAME_FALL; Limit: GAME_TIME\n", raw_demo->path); break;
+        } else 
+        if (limit == 1) switch (raw_demo->status) {
+            case 1: log_errorf("%s: Current level status exceeds level status limit!: Current: GAME_TIME; Limit: GAME_GOAL\n", raw_demo->path); break;
+            case 3: log_errorf("%s: Current level status exceeds level status limit!: Current: GAME_FALL; Limit: GAME_GOAL\n", raw_demo->path); break;
+        }
+    }
+#endif
 
     return (max <= limit) ? raw_demo->path : NULL;
 }
@@ -292,7 +313,8 @@ static int   title_prequit;
 static float real_time = 0.0f;
 static int   mode      = TITLE_MODE_NONE;
 
-static int   left_handed = 1;
+static int   builtin_demo_used = 0;
+static int   builtin_demo_left_handed = 1;
 
 static Array items;
 
@@ -1436,6 +1458,7 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
     if (switchball_useable() && load_title_background())
         mode = TITLE_MODE_LEVEL;
+#ifndef TITLE_PAN_360_MODE
     else if (config_get_d(CONFIG_MAINMENU_PANONLY) && load_title_background())
         mode = TITLE_MODE_LEVEL;
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
@@ -1444,8 +1467,13 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 #else
     else if (progress_replay_full("gui/title/title-l.nbr", 0, 0, 0, 0, 0, 0))
 #endif
+    {
+        builtin_demo_used = 1;
         TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
-    else if (load_title_background())
+    }
+    else
+#endif
+    if (load_title_background())
         mode = TITLE_MODE_LEVEL;
     else mode = TITLE_MODE_NONE;
 
@@ -1537,18 +1565,34 @@ static void title_timer(int id, float dt)
 
     real_time += dt;
 
+#ifdef TITLE_PAN_360_MODE
+    while (real_time >= 80.0f) real_time -= 80.0f;
+
+    const float home_pos_zoom_scl = 1.0f - (fsinf(V_PI * real_time / 80.0f) * 0.5f);
+
+    const float home_pos[3] = {
+        (switchball_useable() ? 0.0f : -1.0f) + (fsinf(V_PI * real_time / 20.0f) * (10.0f * home_pos_zoom_scl)),
+        (fcosf(V_PI * real_time / 40.0f) * (6.0f * home_pos_zoom_scl)),
+        (fcosf(V_PI * real_time / 20.0f) * (10.0f * home_pos_zoom_scl))
+    };
+
+    game_view_set_static_cam_view(1, home_pos);
+#endif
+
     switch (mode)
     {
         case TITLE_MODE_LEVEL: /* Pan across title level. */
-
+#ifdef TITLE_PAN_360_MODE
+            game_client_fly(0);
+#else
             if (real_time <= 20.0f || title_prequit)
                 game_client_fly(fcosf(V_PI * real_time / 20.0f));
-            else if (!title_prequit)
-            {
+            else if (!title_prequit) {
                 game_fade(+1.0f);
                 real_time = 0.0f;
                 mode = TITLE_MODE_LEVEL_FADE;
             }
+#endif
             break;
 
         case TITLE_MODE_LEVEL_FADE: /* Fade out.  Load demo level. */
@@ -1566,39 +1610,40 @@ static void title_timer(int id, float dt)
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                     else if (title_check_balls_shown() &&
                              !config_get_d(CONFIG_MAINMENU_PANONLY) &&
-                             progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
-                                                                "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
+                             progress_replay_full(builtin_demo_left_handed ? "gui/title/title-l.nbr" :
+                                                                             "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
 #else
                     else if (!config_get_d(CONFIG_MAINMENU_PANONLY) &&
-                             progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
-                                                                "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
+                             progress_replay_full(builtin_demo_left_handed ? "gui/title/title-l.nbr" :
+                                                                             "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
 #endif
+                    {
+                        builtin_demo_used = 1;
                         TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
-                    else if (load_title_background())
+                    } else if (load_title_background())
                         mode = TITLE_MODE_LEVEL;
                 }
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                 else if (title_check_balls_shown() &&
                          !config_get_d(CONFIG_MAINMENU_PANONLY) &&
-                         progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
-                                                            "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
+                         progress_replay_full(builtin_demo_left_handed ? "gui/title/title-l.nbr" :
+                                                                         "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
 #else
                 else if (!config_get_d(CONFIG_MAINMENU_PANONLY) &&
-                         progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
-                                                            "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
+                         progress_replay_full(builtin_demo_left_handed ? "gui/title/title-l.nbr" :
+                                                                         "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
 #endif
                 {
                     game_fade(-1.0f);
+                    builtin_demo_used = 1;
                     TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
-                }
-                else if (load_title_background())
+                } else if (load_title_background())
                     mode = TITLE_MODE_LEVEL;
                 else mode = TITLE_MODE_NONE;
 
                 /* HACK: Faster way! - Ersohn Styne */
 
-                if (items)
-                {
+                if (items) {
                     demo_dir_free(items);
                     items = NULL;
                 }
@@ -1607,15 +1652,19 @@ static void title_timer(int id, float dt)
 
         case TITLE_MODE_DEMO: /* Run demo. */
 
-            if ((!demo_replay_step(dt) || !game_compat_map) && !title_prequit)
+            if (!title_prequit && (!demo_replay_step(dt) || !game_compat_map))
             {
-                left_handed = !left_handed;
+                if (builtin_demo_used == 1)
+                {
+                    builtin_demo_used = 2;
+                    builtin_demo_left_handed = !builtin_demo_left_handed;
+                }
+
                 demo_replay_stop(0);
                 game_fade(+1.0f);
                 real_time = 0.0f;
                 if (!title_prequit) mode = TITLE_MODE_DEMO_FADE;
-            }
-            else if (!title_prequit)
+            } else if (!title_prequit)
                 game_client_blend(demo_replay_blend());
 
             break;
@@ -1629,19 +1678,23 @@ static void title_timer(int id, float dt)
                 if (switchball_useable() && load_title_background())
                     mode = TITLE_MODE_LEVEL;
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-                else if (title_check_balls_shown() &&
+                else if (builtin_demo_used == 0 && title_check_balls_shown() &&
                          !config_get_d(CONFIG_MAINMENU_PANONLY) &&
-                         progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
-                                                            "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
+                         progress_replay_full(builtin_demo_left_handed ? "gui/title/title-l.nbr" :
+                                                                         "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
 #else
-                else if (!config_get_d(CONFIG_MAINMENU_PANONLY) &&
-                         progress_replay_full(left_handed ? "gui/title/title-l.nbr" :
-                                                            "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
+                else if (builtin_demo_used == 0 && !config_get_d(CONFIG_MAINMENU_PANONLY) &&
+                         progress_replay_full(builtin_demo_left_handed ? "gui/title/title-l.nbr" :
+                                                                         "gui/title/title-r.nbr", 0, 0, 0, 0, 0, 0))
 #endif
+                {
+                    builtin_demo_used = 1;
                     TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
-                else if (load_title_background())
+                } else if (load_title_background())
                     mode = TITLE_MODE_LEVEL;
                 else mode = TITLE_MODE_NONE;
+
+                if (builtin_demo_used == 2) builtin_demo_used = 0;
             }
             break;
     }
@@ -1669,7 +1722,7 @@ static void title_stick(int id, int a, float v, int bump)
 static int title_click(int b, int d)
 {
     if (time_state() < 0.1f ||
-        (title_intro_animation && time_state() < 2.0f)) return 1;
+        (title_intro_animation && time_state() < 2.0f && config_get_d(CONFIG_SCREEN_ANIMATIONS))) return 1;
 
     if (title_lockscreen && title_can_unlock &&
         b == SDL_BUTTON_LEFT && d)
@@ -1692,7 +1745,7 @@ static int title_click(int b, int d)
 static int title_keybd(int c, int d)
 {
     if (time_state() < 0.1f ||
-        (title_intro_animation && time_state() < 2.0f)) return 1;
+        (title_intro_animation && time_state() < 2.0f && config_get_d(CONFIG_SCREEN_ANIMATIONS))) return 1;
 
     if (title_lockscreen || title_gui_wgcl_version_enabled) return 1;
 
@@ -1724,7 +1777,7 @@ static int title_keybd(int c, int d)
 static int title_buttn(int b, int d)
 {
     if (time_state() < 0.1f ||
-        (title_intro_animation && time_state() < 2.0f)) return 1;
+        (title_intro_animation && time_state() < 2.0f && config_get_d(CONFIG_SCREEN_ANIMATIONS))) return 1;
 
     if (title_gui_wgcl_version_enabled) return 1;
 

@@ -886,9 +886,12 @@ const struct score *set_score(int i, int s)
 
 /*---------------------------------------------------------------------------*/
 
-#define SET_DEFAULT_MAX_TIME_LIMIT 359999
-static int default_set_maxtimelimit;
-static int default_set_mincoinrequired;
+static int default_set_maxtimelimit_hard;
+static int default_set_maxtimelimit_medm;
+static int default_set_maxtimelimit_easy;
+static int default_set_mincoinrequired_hard;
+static int default_set_mincoinrequired_medm;
+static int default_set_mincoinrequired_easy;
 
 static void set_load_levels(void)
 {
@@ -945,6 +948,30 @@ static void set_load_levels(void)
         "CLXXXVI", "CLXXXVII", "CLXXXVIII", "CLXXXIX", "CXC",    /* 186 - 190 */
         "CXCI",    "CXCII",    "CXCIII",    "CXCIV",   "CXCV",   /* 191 - 195 */
         "CXCVI",   "CXCVII",   "CXCVIII",   "CXCIX",   "CC",     /* 196 - 200 */
+
+        "CCI",   "CCII",   "CCIII",   "CCIV",   "CCV",   /* 201 - 205 */
+        "CCVI",  "CCVII",  "CCVIII",  "CCIX",   "CCX",   /* 206 - 210 */
+        "CCXI",  "CCXII",  "CCXIII",  "CCXIV",  "CCXV",  /* 211 - 215 */
+        "CCXVI", "CCXVII", "CCXVIII", "CCXIX",  "CCXX",  /* 216 - 220 */
+        "CCXXI", "CCXXII", "CCXXIII", "CCXXIV", "CCXXV", /* 221 - 225 */
+
+        "CCXXVI",  "CCXXVII",  "CCXXVIII",  "CCXXIX",  "CCXXX",  /* 226 - 230 */
+        "CCXXXI",  "CCXXXII",  "CCXXXIII",  "CCXXXIV", "CCXXXV", /* 231 - 235 */
+        "CCXXXVI", "CCXXXVII", "CCXXXVIII", "CCXIL",   "CCXL",   /* 236 - 240 */
+        "CCXLI",   "CCXLII",   "CCXLIII",   "CCXLIV",  "CCXLV",  /* 241 - 245 */
+        "CCXLVI",  "CCXLVII",  "CCXLVIII",  "CCIL",    "CCL",    /* 246 - 250 */
+
+        "CCLI",   "CCLII",   "CCLIII",   "CCLIV",   "CCLV",      /* 251 - 255 */
+        "CCLVI",  "CCLVII",  "CCLVIII",  "CCLIX",   "CCLX",      /* 256 - 260 */
+        "CCLXI",  "CCLXII",  "CCLXIII",  "CCLXIV",  "CCLXV",     /* 261 - 265 */
+        "CCLXVI", "CCLXVII", "CCLXVIII", "CCLXIX",  "CCLXX",     /* 266 - 270 */
+        "CCLXXI", "CCLXXII", "CCLXXIII", "CCLXXIV", "CCLXXV",    /* 271 - 275 */
+
+        "CCLXXVI",  "CCLXXVII",  "CCLXXVIII",  "CCLXXIX",  "CCLXXX",  /* 276 - 280 */
+        "CCLXXXI",  "CCLXXXII",  "CCLXXXIII",  "CCLXXXIV", "CCLXXXV", /* 281 - 285 */
+        "CCLXXXVI", "CCLXXXVII", "CCLXXXVIII", "CCLXXXIX", "CCXC",    /* 286 - 290 */
+        "CCXCI",    "CCXCII",    "CCXCIII",    "CCXCIV",   "CCXCV",   /* 291 - 295 */
+        "CCXCVI",   "CCXCVII",   "CCXCVIII",   "CCXCIX",   "CCC",     /* 296 - 300 */
     };
 
     struct set *s = SET_GET(sets, curr);
@@ -961,8 +988,12 @@ static void set_load_levels(void)
     /* Atomic Elbow tried to retreat! */
     int i_retreat = 0;
 
-    default_set_maxtimelimit    = 0;
-    default_set_mincoinrequired = 0;
+    default_set_maxtimelimit_hard    = 0;
+    default_set_maxtimelimit_medm    = 0;
+    default_set_maxtimelimit_easy    = 0;
+    default_set_mincoinrequired_hard = 0;
+    default_set_mincoinrequired_medm = 0;
+    default_set_mincoinrequired_easy = 0;
 
     for (i = 0; i < MAXLVL_SET; i++)
         memset(&level_v[i], 0, sizeof (struct level));
@@ -1017,16 +1048,21 @@ static void set_load_levels(void)
                 regular++;
             }
 
-            if (l->time > 0 && !l->is_bonus)
-                default_set_maxtimelimit += l->time;
-            else if (default_set_maxtimelimit < SET_DEFAULT_MAX_TIME_LIMIT && !l->is_bonus)
-            {
-                log_printf("No time limit on this level, so time limit for level set has been lifted.\n");
-                default_set_maxtimelimit = SET_DEFAULT_MAX_TIME_LIMIT;
-            }
+            /* === BEST TIME MERGER === */
 
-            if (l->goal && !l->is_bonus)
-                default_set_mincoinrequired += l->goal;
+            default_set_maxtimelimit_hard += l->scores[SCORE_GOAL].timer[RANK_HARD];
+            default_set_maxtimelimit_medm += l->scores[SCORE_GOAL].timer[RANK_MEDM];
+            default_set_maxtimelimit_easy += l->scores[SCORE_GOAL].timer[RANK_EASY];
+
+            /* === END BEST TIME MERGER === */
+
+            /* === MOST COINS MERGER === */
+
+            default_set_mincoinrequired_hard += l->scores[SCORE_COIN].coins[RANK_HARD];
+            default_set_mincoinrequired_medm += l->scores[SCORE_COIN].coins[RANK_MEDM];
+            default_set_mincoinrequired_easy += l->scores[SCORE_COIN].coins[RANK_EASY];
+
+            /* === END MOST COINS MERGER === */
 
             if ((i - i_retreat) - 1 >= 0)
                 level_v[(i - i_retreat)].prev = &level_v[(i - i_retreat) - 1];
@@ -1036,24 +1072,26 @@ static void set_load_levels(void)
         }
         else
         {
-            SAFECPY(l->file, ""); l->file[0] = 0;
             i_retreat++;
+            memset(l->file, 0, sizeof (l->file));
             log_errorf("Could not load level file: %s / Retreated levels: %d\n", s->level_name_v[i], i_retreat);
         }
     }
 
-    for (int r = 0; r < 3; r++)
-    {
+    for (int r = 0; r < 3; r++) {
+        const int fixed_timehs[] = { default_set_maxtimelimit_hard, default_set_maxtimelimit_medm, default_set_maxtimelimit_easy };
+        const int fixed_coinhs[] = { default_set_mincoinrequired_hard, default_set_mincoinrequired_medm, default_set_mincoinrequired_easy };
+
         /* Most coins and Best Time built-in limitations. */
 
-        if (s->coin_score.coins[r] < default_set_mincoinrequired)
-            s->coin_score.coins[r] = default_set_mincoinrequired;
-        if (s->coin_score.timer[r] > default_set_maxtimelimit)
-            s->coin_score.timer[r] = default_set_maxtimelimit;
-        if (s->time_score.coins[r] < default_set_mincoinrequired)
-            s->time_score.coins[r] = default_set_mincoinrequired;
-        if (s->time_score.timer[r] > default_set_maxtimelimit)
-            s->time_score.timer[r] = default_set_maxtimelimit;
+        if (s->coin_score.coins[r] < fixed_coinhs[r])
+            s->coin_score.coins[r] = fixed_coinhs[r];
+        if (s->coin_score.timer[r] > fixed_timehs[r])
+            s->coin_score.timer[r] = fixed_timehs[r];
+        if (s->time_score.coins[r] < fixed_coinhs[r])
+            s->time_score.coins[r] = fixed_coinhs[r];
+        if (s->time_score.timer[r] > fixed_timehs[r])
+            s->time_score.timer[r] = fixed_timehs[r];
     }
 }
 

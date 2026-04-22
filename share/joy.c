@@ -349,7 +349,7 @@ int  joy_connected(int instance, int *battery_level, int *wired)
 
     if (instance >= 0 && instance < JOY_MAX)
     {
-        if (joysticks[instance].id != -1)
+        if (joysticks[instance].id != -1 && joysticks[instance].joy)
         {
             unsigned char gamepad_led[JOY_MAX][3] =
             {
@@ -369,9 +369,9 @@ int  joy_connected(int instance, int *battery_level, int *wired)
     (NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API || \
      NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API)
             if (instance <= 4)
-                SDL_JoystickSetLED(joysticks[instance].id, 0x00, 0xbf, 0xff);
+                SDL_JoystickSetLED(joysticks[instance].joy, 0x00, 0xbf, 0xff);
             //else
-                //SDL_JoystickSetLED(joysticks[instance].id, 0x80, 0x00, 0x00);
+                //SDL_JoystickSetLED(joysticks[instance].joy, 0x80, 0x00, 0x00);
 #endif
 
             if (battery_level)

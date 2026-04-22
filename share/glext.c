@@ -135,6 +135,11 @@ static int glext_curr_depth_projection;
 static int glext_max_depth_modelview;
 static int glext_max_depth_projection;
 
+static int glext_curr_depth_vfxs;
+
+static unsigned char glext_color4ub_vfxs[16][4];
+static float         glext_color4f_vfxs[16][4];
+
 /*---------------------------------------------------------------------------*/
 
 #define str_starts_with(s, h) (strncmp((s), (h), strlen(h)) == 0)
@@ -465,6 +470,8 @@ int glext_init(void)
 
     log_opengl();
 
+    glext_curr_depth_vfxs = 15;
+
     return 1;
 }
 
@@ -534,9 +541,57 @@ void glSetWireframe_(int enabled)
 
 #if !ENABLE_OPENGL_ES && !defined(__EMSCRIPTEN__)
 
+#undef glColor4ub
+#undef glColor4f
 #undef glMatrixMode
 #undef glPushMatrix
 #undef glPopMatrix
+
+void glSetColor4ub_(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+{
+    glext_color4ub_vfxs[glext_curr_depth_vfxs][0] = r;
+    glext_color4ub_vfxs[glext_curr_depth_vfxs][1] = g;
+    glext_color4ub_vfxs[glext_curr_depth_vfxs][2] = b;
+    glext_color4ub_vfxs[glext_curr_depth_vfxs][3] = a;
+
+    glext_color4f_vfxs[glext_curr_depth_vfxs][0] = r / 255.0f;
+    glext_color4f_vfxs[glext_curr_depth_vfxs][1] = g / 255.0f;
+    glext_color4f_vfxs[glext_curr_depth_vfxs][2] = b / 255.0f;
+    glext_color4f_vfxs[glext_curr_depth_vfxs][3] = a / 255.0f;
+
+    if (glext_curr_depth_vfxs != 15) {
+        for (int i = glext_curr_depth_vfxs; i < 16; i++)
+            for (int j = 0; j < 4; j++)
+                c4ub_final[j] = ROUND((float) (c4ub_final[j] * (glext_color4ub_vfxs[i][j] / 255.0f)));
+
+        glColor4ubv(c4ub_final);
+    }
+    else glColor4ub(r, g, b, a);
+}
+
+void glSetColor4f_(const float r, const float g, const float b, const float a)
+{
+    glext_color4f_vfxs[glext_curr_depth_vfxs][0] = r;
+    glext_color4f_vfxs[glext_curr_depth_vfxs][1] = g;
+    glext_color4f_vfxs[glext_curr_depth_vfxs][2] = b;
+    glext_color4f_vfxs[glext_curr_depth_vfxs][3] = a;
+
+    glext_color4ub_vfxs[glext_curr_depth_vfxs][0] = ROUND(r * 255.0f);
+    glext_color4ub_vfxs[glext_curr_depth_vfxs][1] = ROUND(g * 255.0f);
+    glext_color4ub_vfxs[glext_curr_depth_vfxs][2] = ROUND(b * 255.0f);
+    glext_color4ub_vfxs[glext_curr_depth_vfxs][3] = ROUND(a * 255.0f);
+
+    float c4f_final[4] = { r, g, b, a };
+
+    if (glext_curr_depth_vfxs != 15) {
+        for (int i = glext_curr_depth_vfxs; i < 16; i++)
+            for (int j = 0; j < 4; j++)
+                c4f_final[j] = ((float)(c4f_final[j] * glext_color4f_vfxs[i][j]));
+
+        glColor4fv(c4f_final);
+    }
+    else glColor4f(r, g, b, a);
+}
 
 void glMatrixMode_(unsigned int mode)
 {
@@ -548,6 +603,33 @@ void glMatrixMode_(unsigned int mode)
         glext_matrix_mode = mode;
         glMatrixMode(mode);
     }
+}
+
+void glPopMatrix_(void)
+{
+    if (glext_matrix_mode == GL_MODELVIEW)
+    {
+        if (glext_curr_depth_modelview > 0)
+        {
+            glext_curr_depth_modelview--;
+            glPopMatrix();
+        }
+    }
+
+    if (glext_matrix_mode == GL_PROJECTION)
+    {
+        if (glext_curr_depth_projection > 0)
+        {
+            glext_curr_depth_projection--;
+            glPopMatrix();
+        }
+    }
+}
+
+void glPopColor4_(void)
+{
+    if (glext_curr_depth_vfxs > 14) return;
+    glext_curr_depth_vfxs++;
 }
 
 void glPushMatrix_(void)
@@ -571,25 +653,10 @@ void glPushMatrix_(void)
     }
 }
 
-void glPopMatrix_(void)
+void glPushColor4_(void)
 {
-    if (glext_matrix_mode == GL_MODELVIEW)
-    {
-        if (glext_curr_depth_modelview > 0)
-        {
-            glext_curr_depth_modelview--;
-            glPopMatrix();
-        }
-    }
-
-    if (glext_matrix_mode == GL_PROJECTION)
-    {
-        if (glext_curr_depth_projection > 0)
-        {
-            glext_curr_depth_projection--;
-            glPopMatrix();
-        }
-    }
+    if (glext_curr_depth_vfxs == 0) return;
+    glext_curr_depth_vfxs--;
 }
 
 #endif

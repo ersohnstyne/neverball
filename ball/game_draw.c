@@ -1167,6 +1167,15 @@ void game_draw(struct game_draw *gd, int pose, float t)
                 (25 * (gd->mojang_death_time_percent / 100.f)), 110);
 
         video_set_perspective(effective_fov, 0.1f, FAR_DIST);
+
+#ifndef __EMSCRIPTEN__
+        if (!game_draw_cam_abovemap(gd))
+        {
+            glColor4ub(255, 0, 0, 255);
+            glPushColor4_();
+        }
+#endif
+
         glPushMatrix();
         {
             float shake_angles[3] = { 0, 0, 0 };
@@ -1317,6 +1326,10 @@ void game_draw(struct game_draw *gd, int pose, float t)
             }
         }
         glPopMatrix();
+
+#ifndef __EMSCRIPTEN__
+        if (!game_draw_cam_abovemap(gd)) glPopColor4_();
+#endif
 
         /* Draw the fade overlay. */
 

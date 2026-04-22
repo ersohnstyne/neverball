@@ -60,7 +60,17 @@
  * HACK: Tell, which windows command line options has available,
  * when using WinMain() with SDL_MAIN_HANDLED. - Ersohn Styne
  */
-int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
+int
+#if !defined(_MAC)
+#if defined(_M_CEE_PURE)
+__clrcall
+#else
+WINAPI
+#endif
+#else
+CALLBACK
+#endif
+WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 {
 #define WIN32_OUTPUTDEBUGSTRING_FILE_PREFIX_INFO \
     "[i] NB INFO: " __FILE__ ": "

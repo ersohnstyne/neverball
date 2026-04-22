@@ -376,18 +376,27 @@ int glext_get_recommended(void);
 #define glOrtho_               glOrthof
 #endif
 
+#define glPopColor4_()
+#define glPushColor4_()
+
 #define glStringMarker_(s) ((void) (s))
 
 #elif !defined(__WII__) /* No native linkage?  Define the extension API. */
 
+#define glColor4ub             glSetColor4ub_
+#define glColor4f              glSetColor4f_
 #define glOrtho_               glOrtho
 #define glMatrixMode           glMatrixMode_
-#define glPushMatrix           glPushMatrix_
 #define glPopMatrix            glPopMatrix_
+#define glPushMatrix           glPushMatrix_
 
-void glMatrixMode_(unsigned int);
-void glPushMatrix_(void);
-void glPopMatrix_ (void);
+void glSetColor4ub_(unsigned char, unsigned char, unsigned char, unsigned char);
+void glSetColor4f_ (const float, const float, const float, const float);
+void glMatrixMode_ (unsigned int);
+void glPopColor4_  (void);
+void glPopMatrix_  (void);
+void glPushColor4_ (void);
+void glPushMatrix_ (void);
 
 /*---------------------------------------------------------------------------*/
 /* ARB_multitexture                                                          */

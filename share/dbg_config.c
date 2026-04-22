@@ -88,12 +88,12 @@ void GameDbg_SigHandler(int signum)
             if (SymFromAddr(_handle, _address, 0, _symbol))
             {
                 if (SymGetLineFromAddr64(_handle, _address, &_displacement, &_line))
-                    sprintf_s(dbg_final_text, MAXSTR, "    %s(%u): %s (0x%16X)\n", _line.FileName, _line.LineNumber, _symbol->Name, _symbol->Address);
-                else sprintf_s(dbg_final_text, MAXSTR, "    %s (0x%16X)\n", _symbol->Name, _symbol->Address);
+                    sprintf_s(dbg_final_text, MAXSTR, "    %s(%u): %s (0x%llX)\n", _line.FileName, _line.LineNumber, _symbol->Name, _symbol->Address);
+                else sprintf_s(dbg_final_text, MAXSTR, "    %s (0x%llX)\n", _symbol->Name, _symbol->Address);
 
                 log_errorf(dbg_final_text);
             }
-            else log_errorf("    [Unknown symbol] (0x%16X)\n", _symbol->Address);
+            else log_errorf("    [Unknown symbol] (0x%llX)\n", _symbol->Address);
         }
 
         free(_symbol);

@@ -32,8 +32,6 @@
 #endif
 #endif
 
-#define NB_CURRDOMAIN_PREMIUM "play.neverball.org"
-
 enum package_image_status
 {
     PACKAGE_IMAGE_NONE = 0,
@@ -84,6 +82,9 @@ static int   package_curr_category = PACKAGE_CATEGORY_LEVELSET;
 /*
  * Get a download URL.
  */
+
+#define PACKAGE_BASE_URL "https://play.neverball.org/packages/"
+
 static const char *get_package_url(const char *filename, int category)
 {
     if (filename && *filename)
@@ -92,11 +93,7 @@ static const char *get_package_url(const char *filename, int category)
 
         memset(url, 0, sizeof (url));
 
-#ifdef __EMSCRIPTEN__
-        SAFECPY(url, "packages/");
-#else
-        SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/packages/");
-#endif
+        SAFECPY(url, PACKAGE_BASE_URL);
         SAFECAT(url, filename);
 
         return url;

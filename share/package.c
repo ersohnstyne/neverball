@@ -83,9 +83,17 @@ static int   package_curr_category = PACKAGE_CATEGORY_LEVELSET;
  * Get a download URL.
  */
 
+<<<<<<< HEAD
 #define PACKAGE_BASE_URL "https://play.neverball.org/packages/"
 
 static const char *get_package_url(const char *filename, int category)
+=======
+#ifndef PACKAGE_BASE_URL
+#define PACKAGE_BASE_URL "https://play.neverball.org/packages/"
+#endif
+
+static const char *get_package_url(const char *filename)
+>>>>>>> 366d1af4710d734ab343b951b362196b0fd60f4c
 {
     if (filename && *filename)
     {

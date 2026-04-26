@@ -136,6 +136,8 @@ static void dailychallenge_update_hs(void)
 
 /* === WGCL DAILY CHALLENGE FUNCTIONS === */
 
+#if NB_HAVE_PB_BOTH==1
+
 void WGCL_Goto_DailyChallenge(void) {
     goto_state(&st_dailychallenge);
 }
@@ -310,6 +312,8 @@ void WGCL_DailyChallenge_StartGame(void) {
     else goto_state(&st_title);
 }
 
+#endif
+
 /* === END WGCL DAILY CHALLENGE FUNCTIONS === */
 
 /*---------------------------------------------------------------------------*/
@@ -368,8 +372,8 @@ static int dailychallenge_start(void)
         }
 
         fs_close(handle);
-#ifdef __EMSCRIPTEN__
-        EM_ASM({ Pennyball.gamecore_try_start_daily_challenge(UTF8ToString($0)); }, s_packages_list_raw);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        EM_ASM({ Neverball.gamecore_try_start_daily_challenge(UTF8ToString($0)); }, s_packages_list_raw);
         return 1;
 #endif
     }
@@ -489,7 +493,7 @@ static void dailychallenge_timer(int id, float dt)
         }
 
 #ifdef __EMSCRIPTEN__
-        EM_ASM({ Pennyball.gamecore_try_fetch_daily_challenge(UTF8ToString($0)); }, s_packages_list_raw);
+        EM_ASM({ Neverball.gamecore_try_fetch_daily_challenge(UTF8ToString($0)); }, s_packages_list_raw);
 #endif
 #endif
     }

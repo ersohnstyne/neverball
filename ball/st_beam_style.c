@@ -196,7 +196,7 @@ static int beam_style_enter(struct state *st, struct state *prev, int intent)
         if (!config_get_d(CONFIG_SCREEN_ANIMATIONS))
             game_kill_fade();
 
-        game_client_toggle_show_balls(0);
+        game_client_toggle_show_balls(1);
 
         return transition_slide(beam_style_gui(), 1, intent);
     }

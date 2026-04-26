@@ -688,6 +688,7 @@ static int page_modes(int id)
 
     if ((jd = gui_vstack(id)))
     {
+#if NB_HAVE_PB_BOTH==1
         if (server_policy_get_d(SERVER_POLICY_EDITION) == 0 &&
             account_get_d(ACCOUNT_SET_UNLOCKS) < 1)
         {
@@ -696,6 +697,7 @@ static int page_modes(int id)
                           GUI_SML, GUI_COLOR_WHT);
         }
         else
+#endif
         {
             gui_label(jd, _("Classic Mode"), GUI_SML, 0, 0);
             gui_multi(jd, _("Finish a level before the time runs out.\n"
@@ -1386,6 +1388,31 @@ static int help_keybd(int c, int d)
     return 1;
 }
 
+static int help_buttn_gamepad(int curr_page, int b, int d)
+{
+#ifndef SWITCHBALL_HELP
+    int next_page = curr_page;
+    int done = 0;
+
+    if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b)) next_page--;
+    if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b)) next_page++;
+
+    switch (next_page) {
+        case PAGE_RULES:
+        case PAGE_CONTROLS:
+        case PAGE_MODES:
+#if NB_HAVE_PB_BOTH==1
+        case PAGE_MODES_SPECIAL:
+#endif
+        case PAGE_TRICKS:
+            done = 1; break;
+    }
+
+    if (done) return help_action(HELP_SELECT, next_page);
+#endif
+    return 0;
+}
+
 static int help_buttn(int b, int d)
 {
     if (d)
@@ -1394,8 +1421,10 @@ static int help_buttn(int b, int d)
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return help_action(gui_token(active), gui_value(active));
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+        else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return help_action(GUI_BACK, 0);
+        else if (help_buttn_gamepad(page, b, d))
+            /* Works even with gamepad scroll pages */;
     }
     return 1;
 }

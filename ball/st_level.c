@@ -671,6 +671,7 @@ static int level_enter(struct state *st, struct state *prev, int intent)
     level_infocard_ctrls_id  = 0;
     level_infocard_power_id  = 0;
 
+#if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
     if (level_infocard_intro)
         show_info = !((level_master(curr_level())
                     || curr_mode() == MODE_CHALLENGE
@@ -681,6 +682,9 @@ static int level_enter(struct state *st, struct state *prev, int intent)
 #endif
                       ) &&
                      server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES));
+#else
+    show_info = 1;
+#endif
 
     /* New: Checkpoints */
     game_client_sync(
@@ -842,6 +846,7 @@ static int level_keybd(int c, int d)
 
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c))
         {
+#if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
             if ((level_master(curr_level())
               || curr_mode() == MODE_CHALLENGE
               || curr_mode() == MODE_DAILY
@@ -856,6 +861,7 @@ static int level_keybd(int c, int d)
                 show_info = show_info == 0 ? 1 : 0;
                 show_info ? goto_state(&st_level) : exit_state(&st_level);
             }
+#endif
         }
     }
     return 1;
@@ -890,6 +896,7 @@ static int level_buttn(int b, int d)
             return goto_pause(curr_state());
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b) && curr_state() == &st_level)
         {
+#if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
             if ((level_master(curr_level())
               || curr_mode() == MODE_CHALLENGE
               || curr_mode() == MODE_DAILY
@@ -903,6 +910,7 @@ static int level_buttn(int b, int d)
                 show_info = show_info == 0 ? 1 : 0;
                 show_info ? goto_state(&st_level) : exit_state(&st_level);
             }
+#endif
         }
     }
     return 1;

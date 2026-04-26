@@ -1053,7 +1053,7 @@ static int package_manage_action(int tok, int val)
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                         account_set_s(ACCOUNT_BALL_FILE, equip_ball_path);
 #else
-                        config_set_s(BALL_FILE, equip_ball_path);
+                        config_set_s(CONFIG_BALL_FILE, equip_ball_path);
 #endif
                         ball_free();
                         ball_init();

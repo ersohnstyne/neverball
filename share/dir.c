@@ -54,7 +54,7 @@
 #if !defined(_MSC_VER)
 #error Security compilation error: This was already done with FindClose, \
        FindFirstFileA, FindNextFile and GetFileAttributesA or using OpenDriveAPI. \
-       Install Visual Studio 2022 Community or later version to build it there. \
+       Install Visual Studio 2026 Community or later version to build it there. \
        Or download the OpenDriveAPI project: \
        https://gitea.stynegame.de/StyneGameHamburg/opendrivepi
 #else

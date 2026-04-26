@@ -8,7 +8,7 @@ JSDIR = js
 # On all other platforms, this should be Ninja.
 #
 # FIXME: Change GL4ES directory path to provide
-GL4ES_DIR ?= E:/EMProjectFiles/gl4es
+GL4ES_DIR ?= ../gl4es
 
 # Emscripten fast linking: https://github.com/emscripten-core/emscripten/issues/17019
 BUILD ?= devel
@@ -27,10 +27,6 @@ EM_CFLAGS := \
 	-s USE_SDL_TTF=2 \
 	-s USE_LIBPNG=1 \
 	-s USE_LIBJPEG=1
-	
-DATA_ZIP := base-pennyball-wgcl.zip
-
-EM_PRELOAD := --preload-file $(DATA_ZIP)@/data/base-neverball.zip
 
 DATA_ZIP := base-neverball.zip
 

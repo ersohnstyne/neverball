@@ -257,9 +257,7 @@ static void gui_set(int id, int i)
     if (set_exists(i))
     {
         int set_text_name_id;
-#if defined(LEVELGROUPS_INCLUDES_CAMPAIGN) && !defined(MAPC_INCLUDES_CHKP)
         int campaign_marked = 0;
-#endif
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
         int set_name_locked = SET_CHECK_LOCKED(i);

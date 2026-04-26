@@ -986,6 +986,7 @@ enum
     CONF_CONTROL_CAMERA_ROTATE_MODE,
     CONF_CONTROL_MOUSE_SENSE,
     CONF_CONTROL_INVERT_MOUSE_Y,
+    CONF_CONTROL_INVERT_RS_Y,
     CONF_CONTROL_CHANGEKEYBD,
     CONF_CONTROL_CHANGECONTROLLERS,
     CONF_CONTROL_CALIBRATE
@@ -1100,6 +1101,8 @@ static int conf_control_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
+    int mouse = MOUSE_RANGE_MAP(config_get_d(CONFIG_MOUSE_SENSE));
+
     switch (tok)
     {
         case GUI_BACK:
@@ -1148,7 +1151,13 @@ static int conf_control_action(int tok, int val)
             config_set_d(CONFIG_MOUSE_INVERT, val);
             config_save();
             goto_state(&st_conf_control);
-        break;
+            break;
+
+        case CONF_CONTROL_INVERT_RS_Y:
+            config_set_d(CONFIG_JOYSTICK_AXIS_Y1_INVERT, val);
+            config_save();
+            goto_state(&st_conf_control);
+            break;
 
         case CONF_CONTROL_CHANGEKEYBD:
             goto_state(&st_conf_keybd);
@@ -1227,12 +1236,11 @@ static int conf_control_gui(void)
         camrot_mode_id = conf_state(id, _("Camera rotate"), camrot_mode_text,
                                     CONF_CONTROL_CAMERA_ROTATE_MODE);
 #endif
-
+        
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (current_platform == PLATFORM_PC)
+        if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
         {
-            gui_space(id);
 
 #ifdef SWITCHBALL_GUI
             mouse_id = conf_slider_v2(id, _("Mouse Sensitivity"), CONF_CONTROL_MOUSE_SENSE,
@@ -1251,11 +1259,23 @@ static int conf_control_gui(void)
                             config_get_d(CONFIG_MOUSE_INVERT),
                             _("On"), 1, _("Off"), 0);
 #endif
+            gui_space(id);
+            conf_state(id, _("Keyboard"), _("Change"), CONF_CONTROL_CHANGEKEYBD);
         }
-
-        gui_space(id);
-
-        conf_state(id, _("Keyboard"), _("Change"), CONF_CONTROL_CHANGEKEYBD);
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        else
+#endif
+        {
+#if NB_HAVE_PB_BOTH==1
+            conf_toggle_simple(id, _("Invert Y Axis (RS)"), CONF_CONTROL_INVERT_RS_Y,
+                                   config_get_d(CONFIG_JOYSTICK_AXIS_Y1_INVERT),
+                                   1, 0);
+#else
+            conf_toggle(id, _("Invert Y Axis (RS)"), CONF_CONTROL_INVERT_RS_Y,
+                            config_get_d(CONFIG_JOYSTICK_AXIS_Y1_INVERT),
+                            _("On"), 1, _("Off"), 0);
+#endif
+        }
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform != PLATFORM_PC || console_gui_shown())

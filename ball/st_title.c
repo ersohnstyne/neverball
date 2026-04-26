@@ -526,16 +526,14 @@ static int title_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://discord.gg/qnJR263Hm2"); });
+            EM_ASM({ window.open("https://pennyball.stynegame.de/"); });
 #elif _WIN32
-            SAFECPY(linkstr_cmd, "start msedge https://discord.gg/qnJR263Hm2");
+            SAFECPY(linkstr_cmd, "start msedge https://pennyball.stynegame.de/");
 #elif defined(__APPLE__)
-            SAFECPY(linkstr_cmd, "open https://discord.gg/qnJR263Hm2");
+            SAFECPY(linkstr_cmd, "open https://pennyball.stynegame.de/");
 #elif defined(__linux__)
-            SAFECPY(linkstr_cmd, "x-www-browser https://discord.gg/qnJR263Hm2");
+            SAFECPY(linkstr_cmd, "x-www-browser https://pennyball.stynegame.de/");
 #endif
-
-            SAFECAT(linkstr_cmd, linkstr_code);
 
             system(linkstr_cmd);
 #endif
@@ -828,8 +826,12 @@ static void title_play_narrator_welcome(void)
 #endif
 }
 
+static int vbuttons_id;
+
 static int title_gui(void)
 {
+    vbuttons_id = 0;
+
     int root_id, id, jd;
 
     if (title_lockscreen) video_hide_cursor(); else video_show_cursor();
@@ -1176,6 +1178,7 @@ static int title_gui(void)
 
                     if ((kd = gui_varray(jd)))
                     {
+                        vbuttons_id = kd;
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                         if (config_cheat())
                             play_id = gui_start(kd, gt_prefix("menu^Cheat"),
@@ -1267,6 +1270,8 @@ static int title_gui(void)
 #ifdef SWITCHBALL_TITLE_BTN_V2
             if ((id = gui_varray(root_id)))
             {
+                vbuttons_id = id;
+
                 int btn_size = GUI_TCH;
                 gui_space(id);
 
@@ -1338,6 +1343,7 @@ static int title_gui(void)
                     {
                         gui_space(jd);
                         gui_state(jd, _("Addons"), GUI_SML, TITLE_PACKAGES, 0);
+                        gui_filler(jd);
                     }
                 }
 #endif
@@ -1350,6 +1356,7 @@ static int title_gui(void)
                     gui_space(jd);
                     gui_state(jd, _("Unlock full game"),
                                   GUI_SML, TITLE_UNLOCK_FULL_GAME, 0);
+                    gui_filler(jd);
                 }
 #endif
                 gui_space(id);
@@ -1716,7 +1723,7 @@ static void title_point(int id, int x, int y, int dx, int dy)
 static void title_stick(int id, int a, float v, int bump)
 {
     if (!title_lockscreen && !title_gui_wgcl_version_enabled)
-        gui_pulse(gui_stick(id, a, v, bump), 1.2f);
+        gui_pulse(gui_stick(vbuttons_id ? vbuttons_id : id, a, v, bump), 1.2f);
 }
 
 static int title_click(int b, int d)

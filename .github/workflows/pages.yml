@@ -2,12 +2,18 @@ name: Deploy Neverball
 
 on:
   push:
+    # Only specific branches, that supports
+    branches:
+     - main
+     - master
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+
+  # Build the web game
   build:
     runs-on: ubuntu-latest
     concurrency:
@@ -22,6 +28,12 @@ jobs:
     steps:
       - name: Checkout Neverball
         uses: actions/checkout@v4
+      - name: Make script executable
+        run: |
+          chmod +x "./.devcontainer/install-gl4es.sh"
+          chmod +x "./scripts/install-devel-linux.sh"
+          chmod +x "./scripts/translate-desktop.sh"
+          chmod +x "./scripts/version.sh"
       - name: Build base SOLs
         run: |
           sudo apt-get update
@@ -44,6 +56,7 @@ jobs:
           name: pages-${{ github.sha }}
           path: ./js
 
+  # Download page artifact, then deploy it!
   deploy:
     needs: build
     runs-on: ubuntu-latest

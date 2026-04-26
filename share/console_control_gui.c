@@ -1618,6 +1618,7 @@ static void init_xbox_model(void)
     }
 }
 
+
 static void init_xbox_beam_style(void)
 {
     if ((xbox_control_beam_style_id = gui_hstack(0)))
@@ -1625,18 +1626,18 @@ static void init_xbox_beam_style(void)
         gui_label(xbox_control_beam_style_id, _("Change Style"),
                   GUI_SML, gui_wht, gui_wht);
 
-        console_gui_create_rb_button(xbox_control_model_id,
-                         config_get_d(CONFIG_JOYSTICK_BUTTON_R1));
-        console_gui_create_lb_button(xbox_control_model_id,
-                         config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
+        console_gui_create_rb_button(xbox_control_beam_style_id,
+                                     config_get_d(CONFIG_JOYSTICK_BUTTON_R1));
+        console_gui_create_lb_button(xbox_control_beam_style_id,
+                                     config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
 
         create_controller_spacer(xbox_control_beam_style_id);
 
         gui_label(xbox_control_beam_style_id, _("Back"),
                   GUI_SML, gui_wht, gui_wht);
 
-        console_gui_create_b_button(xbox_control_model_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+        console_gui_create_b_button(xbox_control_beam_style_id,
+                                    config_get_d(CONFIG_JOYSTICK_BUTTON_B));
 
         gui_set_rect(xbox_control_beam_style_id, GUI_TOP);
         gui_layout(xbox_control_beam_style_id, 0, -1);

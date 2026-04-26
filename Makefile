@@ -815,7 +815,7 @@ BALL_DEPS := $(BALL_OBJS:.o=.d)
 PUTT_DEPS := $(PUTT_OBJS:.o=.d)
 MAPC_DEPS := $(MAPC_OBJS:.o=.d)
 
-MAPS := $(shell find data_standard -name "*.map" \! -name "*.autosave.map")
+MAPS := $(shell find data -name "*.map" \! -name "*.autosave.map")
 CMAPS := $(shell find data_campaign -name "*.cmap")
 SOLS := $(MAPS:%.map=%.sol)
 CSOLS := $(CMAPS:%.cmap=%.csol)
@@ -839,11 +839,11 @@ WINDRES ?= windres
 	@echo "$(CXX) $<"
 
 %.sol : %.map $(MAPC_TARG)
-	$(MAPC) $< data_development --skip_verify
+	$(MAPC) $< data --skip_verify
 	@echo "$(MAPC) $<"
 
 %.csol : %.cmap $(MAPC_TARG)
-	$(MAPC) $< data_development --skip_verify --campaign
+	$(MAPC) $< data --skip_verify --campaign
 	@echo "$(MAPC) $<"
 
 %.desktop : %.desktop.in

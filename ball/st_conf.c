@@ -477,7 +477,7 @@ static int conf_account_action(int tok, int val)
             }
             else if (config_get_d(CONFIG_ACCOUNT_SAVE) == 2)
             {
-                if (conf_covid_extended)
+                if (conf_covid_extended || config_cheat())
                 {
                     gui_set_label(save_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3);
                     config_set_d(CONFIG_ACCOUNT_SAVE, 3);
@@ -532,7 +532,7 @@ static int conf_account_action(int tok, int val)
             }
             else if (config_get_d(CONFIG_ACCOUNT_LOAD) == 2)
             {
-                if (conf_covid_extended)
+                if (conf_covid_extended || config_cheat())
                 {
                     gui_set_label(load_id, CONF_ACCOUNT_DEMO_FILTER_CURR_OPTTION_3);
                     config_set_d(CONFIG_ACCOUNT_LOAD, 3);
@@ -618,8 +618,14 @@ static int conf_account_gui(void)
             );
 
 #if NB_HAVE_PB_BOTH==1
-            if (nolockdown
-                && CHECK_ACCOUNT_ENABLED)
+#if (_WIN32 && _MSC_VER)
+            if (config_cheat() && CHECK_ACCOUNT_ENABLED) {
+                gui_multi(id, "WGCL Operator enabled!\n"
+                              "Some features will temporary accessible.",
+                              GUI_SML, GUI_COLOR_RED);
+            } else
+#endif
+            if (nolockdown && CHECK_ACCOUNT_ENABLED)
             {
                 char filter_introductive_attr[MAXSTR];
 

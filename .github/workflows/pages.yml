@@ -1,11 +1,6 @@
 name: Deploy Neverball
 
 on:
-  push:
-    # Only specific branches, that supports
-    branches:
-     - main
-     - master
   workflow_dispatch:
 
 permissions:

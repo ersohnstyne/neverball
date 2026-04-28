@@ -309,10 +309,12 @@ static int   title_intro_animation;
 
 static int   title_freeze_all;
 static int   title_prequit;
+static float title_demo_shiftbeforefade = 0.0f;
 
 static float real_time = 0.0f;
 static int   mode      = TITLE_MODE_NONE;
 
+static int   builtin_demo_count = 0;
 static int   builtin_demo_used = 0;
 static int   builtin_demo_left_handed = 1;
 
@@ -750,6 +752,11 @@ static int title_action(int tok, int val)
             }
             else if (config_cheat())
             {
+                if (config_get_d(CONFIG_ACCOUNT_SAVE) > 2)
+                    config_set_d(CONFIG_ACCOUNT_SAVE, 2);
+                if (config_get_d(CONFIG_ACCOUNT_LOAD) > 2)
+                    config_set_d(CONFIG_ACCOUNT_LOAD, 2);
+
                 glSetWireframe_(0);
                 config_clr_cheat();
                 gui_set_label(play_id, gt_prefix("menu^Play"));
@@ -1439,6 +1446,11 @@ static int title_enter(struct state *st, struct state *prev, int intent)
     if (prev == &st_title)
         return title_gui_main;
 
+    TITLE_DEMO_DIR_RESCAN(items);
+    builtin_demo_count = array_len(items);
+    demo_dir_free(items);
+    items = NULL;
+
 #ifdef CONFIG_INCLUDES_ACCOUNT
     if (title_lockscreen)
         account_wgcl_restart_attempt();
@@ -1465,7 +1477,6 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
     if (switchball_useable() && load_title_background())
         mode = TITLE_MODE_LEVEL;
-#ifndef TITLE_PAN_360_MODE
     else if (config_get_d(CONFIG_MAINMENU_PANONLY) && load_title_background())
         mode = TITLE_MODE_LEVEL;
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
@@ -1478,9 +1489,7 @@ static int title_enter(struct state *st, struct state *prev, int intent)
         builtin_demo_used = 1;
         TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
     }
-    else
-#endif
-    if (load_title_background())
+    else if (load_title_background())
         mode = TITLE_MODE_LEVEL;
     else mode = TITLE_MODE_NONE;
 
@@ -1560,7 +1569,7 @@ static void title_paint(int id, float t)
 
 static void title_timer(int id, float dt)
 {
-    geom_step(dt);
+    geom_step(dt * (config_cheat() ? 4.0f : 1.0f));
 
     if (title_freeze_all)
     {
@@ -1570,36 +1579,36 @@ static void title_timer(int id, float dt)
 
     static const char *demo = NULL;
 
-    real_time += dt;
+    real_time += dt * (config_cheat() ? 4.0f : 1.0f);
 
-#ifdef TITLE_PAN_360_MODE
-    while (real_time >= 80.0f) real_time -= 80.0f;
+    if (builtin_demo_count == 0) {
+        while (real_time >= 160.0f) real_time -= 160.0f;
 
-    const float home_pos_zoom_scl = 1.0f - (fsinf(V_PI * real_time / 80.0f) * 0.5f);
+        const float home_pos_zoom_scl = 1.0f - (fsinf(V_PI * real_time / 80.0f) * 0.5f);
 
-    const float home_pos[3] = {
-        (switchball_useable() ? 0.0f : -1.0f) + (fsinf(V_PI * real_time / 20.0f) * (10.0f * home_pos_zoom_scl)),
-        (fcosf(V_PI * real_time / 40.0f) * (6.0f * home_pos_zoom_scl)),
-        (fcosf(V_PI * real_time / 20.0f) * (10.0f * home_pos_zoom_scl))
-    };
+        const float home_pos[3] = {
+            (switchball_useable() ? 0.0f : -1.0f) + (fsinf(V_PI * real_time / 20.0f) * (10.0f * home_pos_zoom_scl)),
+            (fcosf(V_PI * real_time / 40.0f) * ( 6.0f * home_pos_zoom_scl)),
+            (fcosf(V_PI * real_time / 20.0f) * (10.0f * home_pos_zoom_scl))
+        };
 
-    game_view_set_static_cam_view(1, home_pos);
-#endif
+        game_view_set_static_cam_view(1, home_pos);
+    }
 
     switch (mode)
     {
         case TITLE_MODE_LEVEL: /* Pan across title level. */
-#ifdef TITLE_PAN_360_MODE
-            game_client_fly(0);
-#else
-            if (real_time <= 20.0f || title_prequit)
-                game_client_fly(fcosf(V_PI * real_time / 20.0f));
-            else if (!title_prequit) {
-                game_fade(+1.0f);
-                real_time = 0.0f;
-                mode = TITLE_MODE_LEVEL_FADE;
-            }
-#endif
+
+            if (builtin_demo_count != 0)
+            {
+                if (real_time <= 20.0f || title_prequit)
+                    game_client_fly(fcosf(V_PI * real_time / 20.0f));
+                else if (!title_prequit) {
+                    game_fade(+1.0f * (config_cheat() ? 4.0f : 1.0f));
+                    real_time = 0.0f;
+                    mode = TITLE_MODE_LEVEL_FADE;
+                }
+            } else game_client_fly(0);
             break;
 
         case TITLE_MODE_LEVEL_FADE: /* Fade out.  Load demo level. */
@@ -1658,7 +1667,7 @@ static void title_timer(int id, float dt)
             break;
 
         case TITLE_MODE_DEMO: /* Run demo. */
-
+            
             if (!title_prequit && (!demo_replay_step(dt) || !game_compat_map))
             {
                 if (builtin_demo_used == 1)
@@ -1667,12 +1676,19 @@ static void title_timer(int id, float dt)
                     builtin_demo_left_handed = !builtin_demo_left_handed;
                 }
 
-                demo_replay_stop(0);
-                game_fade(+1.0f);
-                real_time = 0.0f;
-                if (!title_prequit) mode = TITLE_MODE_DEMO_FADE;
-            } else if (!title_prequit)
+                if (title_demo_shiftbeforefade <= 0.0f) {
+                    demo_replay_stop(0);
+                    game_fade(+1.0f * (config_cheat() ? 4.0f : 1.0f));
+                    real_time = 0.0f;
+                    if (!title_prequit) mode = TITLE_MODE_DEMO_FADE;
+                } else title_demo_shiftbeforefade -= dt;
+
+                if (curr_status() == GAME_FALL) game_client_toggle_show_balls(0);
+            } else if (!title_prequit) {
+                demo_replay_speed(config_cheat() ? SPEED_FASTEST : SPEED_NORMAL);
+                title_demo_shiftbeforefade = curr_status() == GAME_FALL ? 3.0f : 0.0f;
                 game_client_blend(demo_replay_blend());
+            }
 
             break;
 

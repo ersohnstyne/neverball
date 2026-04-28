@@ -39,6 +39,7 @@
 //#include "geom.h"
 //#include "vec3.h"
 #include "text.h"
+#include "log.h"
 
 //#include "game_common.h"
 //#include "game_client.h"
@@ -295,6 +296,21 @@ static int demo_action(int tok, int val)
 
             if (df)
             {
+#if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
+                if (config_cheat()) {
+                    const time_t date_curr_time = time(0);
+
+                    struct tm date_expected = {0};
+                    localtime_s(&date_expected, &df->date);
+
+                    struct tm date_curr = {0};
+                    localtime_s(&date_curr, &date_curr_time);
+
+                    if (date_curr.tm_year != date_expected.tm_year ||
+                        date_curr.tm_mon  != date_expected.tm_mon) return 1;
+                }
+#endif
+
                 fs_file fp;
 
                 if ((fp = fs_open_read(demo_path)))
@@ -315,12 +331,10 @@ static int demo_action(int tok, int val)
                 }
 
 #if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
-                if (config_cheat())
-                {
+                if (config_cheat()) {
                     demo_operator_init();
 
-                    if (progress_replay(demo_path))
-                    {
+                    if (progress_replay(demo_path)) {
                         last_viewed = selected;
                         return goto_operator_search();
                     }

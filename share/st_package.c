@@ -790,19 +790,17 @@ static void package_paint(int id, float st)
     gui_paint(id);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (current_platform != PLATFORM_PC || console_gui_shown())
-    {
+    if (current_platform != PLATFORM_PC || console_gui_shown()) {
         enum package_status status = package_get_status(selected);
 
-        switch (status)
-        {
+        if (curr_state() == &st_package) switch (status) {
             case PACKAGE_INSTALLED: console_gui_package_manageable_paint(); break;
             case PACKAGE_UPDATE:    console_gui_package_updateable_paint(); break;
             case PACKAGE_ERROR:
             case PACKAGE_AVAILABLE: console_gui_package_installable_paint(); break;
 
             default: console_gui_list_paint(); break;
-        }
+        } else console_gui_list_paint();
     }
 #endif
 }
@@ -813,6 +811,10 @@ static void package_timer(int id, float dt)
         package_manage_selected >= 0 &&
         time_state() > 0.5f)
         package_start_download(package_manage_selected);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    gui_set_hidden(type_id, current_platform != PLATFORM_PC || console_gui_shown());
+#endif
 
     gui_timer(id, dt);
 }
@@ -1221,9 +1223,13 @@ static int package_manage_gui(void)
             gui_set_rect(btn_id, GUI_ALL);
         }
 
-        gui_space(id);
-
-        gui_start(id, _("Back"), GUI_SML, GUI_BACK, 0);
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        if (current_platform == PLATFORM_PC && !console_gui_shown())
+#endif
+        {
+            gui_space(id);
+            gui_start(id, _("Back"), GUI_SML, GUI_BACK, 0);
+        }
 
         gui_layout(id, 0, 0);
     }

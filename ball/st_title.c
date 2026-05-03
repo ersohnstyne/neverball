@@ -1200,8 +1200,9 @@ static int title_gui(void)
                             gui_state(kd, gt_prefix("menu^Shop"),
                                           btn_size, TITLE_SHOP, 0);
 #endif
-                        gui_state(kd, gt_prefix("menu^Replay"),
-                                      btn_size, TITLE_DEMO, 0);
+                        if (builtin_demo_count != 0)
+                            gui_state(kd, gt_prefix("menu^Replay"),
+                                          btn_size, TITLE_DEMO, 0);
 
                         gui_state(kd, gt_prefix("menu^Help"),
                                       btn_size, TITLE_HELP, 0);
@@ -1296,8 +1297,9 @@ static int title_gui(void)
                     gui_state(id, gt_prefix("menu^Shop"),
                                   btn_size, TITLE_SHOP, 0);
 #endif
-                gui_state(id, gt_prefix("menu^Replay"),
-                              btn_size, TITLE_DEMO, 0);
+                if (builtin_demo_count != 0)
+                    gui_state(id, gt_prefix("menu^Replay"),
+                                  btn_size, TITLE_DEMO, 0);
 
                 gui_state(id, gt_prefix("menu^Help"),
                               btn_size, TITLE_HELP, 0);
@@ -1477,7 +1479,7 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
     if (switchball_useable() && load_title_background())
         mode = TITLE_MODE_LEVEL;
-    else if (config_get_d(CONFIG_MAINMENU_PANONLY) && load_title_background())
+    else if ((builtin_demo_count == 0 || config_get_d(CONFIG_MAINMENU_PANONLY)) && load_title_background())
         mode = TITLE_MODE_LEVEL;
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     else if (title_check_balls_shown() &&

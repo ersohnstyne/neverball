@@ -44,8 +44,12 @@
 #include "st_shared.h"
 #include "st_name.h"
 #include "st_set.h"
-#include "st_shop.h"
 #include "st_fail.h"
+
+#if NB_HAVE_PB_BOTH==1
+#include "st_dailychallenge.h"
+#include "st_shop.h"
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -77,6 +81,10 @@ static int over_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
+#if NB_HAVE_PB_BOTH==1
+            if (dailychallenge_active_mode() != 0)
+                dailychallenge_exit();
+#endif
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             campaign_hardcore_quit();
             campaign_theme_quit();
@@ -93,8 +101,7 @@ static int over_action(int tok, int val)
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         case OVER_TO_GROUP:
-            if (campaign_used())
-            {
+            if (campaign_used()) {
                 campaign_hardcore_quit();
                 campaign_theme_quit();
                 campaign_quit();
@@ -104,9 +111,10 @@ static int over_action(int tok, int val)
 
 #if NB_HAVE_PB_BOTH==1
         case OVER_SHOP:
+            if (dailychallenge_active_mode() != 0)
+                dailychallenge_exit();
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (campaign_used())
-            {
+            if (campaign_used()) {
                 campaign_hardcore_quit();
                 campaign_theme_quit();
                 campaign_quit();
@@ -120,17 +128,14 @@ static int over_action(int tok, int val)
                 const char *curr_setid = set_id(curr_set());
                 char curr_setid_final[MAXSTR];
 
-                if (!curr_setid)
-                {
+                if (!curr_setid) {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                     sprintf_s(curr_setid_final, MAXSTR,
 #else
                     sprintf(curr_setid_final,
 #endif
                             _("none_%d"), curr_set());
-                }
-                else
-                    SAFECPY(curr_setid_final, curr_setid);
+                } else SAFECPY(curr_setid_final, curr_setid);
 
                 if (str_starts_with(curr_setid_final, "anime"))
                     audio_music_fade_to(0.5f, "bgm/jp/title.ogg", 1);
@@ -275,11 +280,19 @@ static int over_gui(void)
 
         gui_layout(id, 0, 0);
     }
-
-    set_score_board(set_score(curr_set(), SCORE_COIN), progress_score_rank(),
-                    set_score(curr_set(), SCORE_TIME), progress_times_rank(),
-                    NULL, -1);
+    
+#if NB_HAVE_PB_BOTH==1
+    if (dailychallenge_active_mode() != 0)
+        set_score_board(dailychallenge_score(SCORE_COIN), progress_score_rank(),
+                        dailychallenge_score(SCORE_TIME), progress_times_rank(),
+                        NULL, -1);
+    else
 #endif
+        set_score_board(set_score(curr_set(), SCORE_COIN), progress_score_rank(),
+                        set_score(curr_set(), SCORE_TIME), progress_times_rank(),
+                        NULL, -1);
+#endif
+
     return id;
 }
 

@@ -711,7 +711,7 @@ static int shop_rename_action(int tok, int val)
 
 static int shop_rename_gui(void)
 {
-    int id, jd;
+    int id, jd, kd;
 
     if ((id = gui_vstack(0)))
     {
@@ -731,24 +731,39 @@ static int shop_rename_gui(void)
 #ifndef __EMSCRIPTEN__
         if ((jd = gui_harray(id)))
         {
-            if (current_platform == PLATFORM_PC)
-            {
-                gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
-                gui_state(jd, _("Yes"), GUI_SML, SHOP_RENAME_YES, 0);
+            if (current_platform == PLATFORM_PC && !console_gui_shown()) {
+                gui_state(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+                gui_start(jd, _("Rename"), GUI_SML, SHOP_RENAME_YES, 0);
+            } else {
+                if ((kd = gui_hstack(jd))) {
+                    gui_filler(kd);
+                    gui_label(kd, _("Back"), GUI_SML, GUI_COLOR_WHT);
+                    gui_space(kd);
+                    console_gui_create_b_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                    gui_filler(kd);
+                    gui_set_rect(kd, GUI_ALL);
+                }
+                if ((kd = gui_hstack(jd))) {
+                    gui_filler(kd);
+                    gui_label(kd, _("Rename"), GUI_SML, GUI_COLOR_WHT);
+                    gui_space(kd);
+                    console_gui_create_a_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                    gui_filler(kd);
+                    gui_set_rect(kd, GUI_ALL);
+                }
             }
-            else
-                gui_start(jd, _("Yes"), GUI_SML, SHOP_RENAME_YES, 0);
         }
 #else
         if ((jd = gui_harray(id)))
         {
-            if (current_platform == PLATFORM_PC)
-            {
-                gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
-                gui_state(jd, _("Open WGCL"), GUI_SML, SHOP_RENAME_YES, 0);
-            }
-            else
-                gui_start(jd, _("Open WGCL"), GUI_SML, SHOP_RENAME_YES, 0);
+            gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+            if (EM_ASM_INT({
+                try {
+                    return window.location.href.toLowerCase().includes("pennyball.stynegame.de") ? 0 : 1;
+                } catch (e) { return 1; }
+
+                return 1;
+            })) gui_state(jd, _("Open WGCL"), GUI_SML, SHOP_RENAME_YES, 0);
         }
 #endif
 
@@ -821,7 +836,7 @@ static int shop_rename_buttn(int b, int d)
         int active = gui_active();
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return shop_rename_action(gui_token(active), gui_value(active));
+            return shop_rename_action(SHOP_RENAME_YES, 0);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return shop_rename_action(GUI_BACK, 0);
     }
@@ -880,16 +895,32 @@ static int shop_unregistered_gui(void)
         if ((jd = gui_harray(id)))
         {
 #if !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
+            if (current_platform != PLATFORM_PC || console_gui_shown()) {
+                int kd;
+
+                if ((kd = gui_hstack(jd))) {
+                    gui_filler(kd);
+                    gui_label(kd, _("No"), GUI_SML, GUI_COLOR_WHT);
+                    gui_space(kd);
+                    console_gui_create_b_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                    gui_filler(kd);
+                    gui_set_rect(kd, GUI_ALL);
+                }
+                if ((kd = gui_hstack(jd))) {
+                    gui_filler(kd);
+                    gui_label(kd, _("Yes"), GUI_SML, GUI_COLOR_WHT);
+                    gui_space(kd);
+                    console_gui_create_a_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                    gui_filler(kd);
+                    gui_set_rect(kd, GUI_ALL);
+                }
+            } else
 #endif
             {
-                gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
-                gui_state(jd, _("Yes"), GUI_SML, SHOP_UNREGISTERED_DOIT, 0);
+                gui_state(jd, _("No"), GUI_SML, GUI_BACK, 0);
+                const int btn_id = gui_state(jd, _("Yes"), GUI_SML, SHOP_UNREGISTERED_DOIT, 0);
+                gui_focus(btn_id);
             }
-#if !defined(__EMSCRIPTEN__)
-            else
-                gui_start(jd, _("Yes"), GUI_SML, SHOP_UNREGISTERED_DOIT, 0);
-#endif
         }
 
         gui_layout(id, 0, 0);
@@ -919,7 +950,7 @@ static int shop_unregistered_buttn(int b, int d)
         int active = gui_active();
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return shop_unregistered_action(gui_token(active), gui_value(active));
+            return shop_unregistered_action(SHOP_UNREGISTERED_DOIT, 0);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return shop_unregistered_action(GUI_BACK, 0);
     }
@@ -1161,8 +1192,8 @@ static int shop_iap_gui(void)
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1 && \
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
-            if (multipage && video.aspect_ratio >= 1.0f)
+    !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
+            if (multipage && video.aspect_ratio >= 1.0f && !console_gui_shown())
             {
                 gui_space(jd);
 
@@ -1349,7 +1380,7 @@ static int shop_iap_gui(void)
                                 else
                                     SAFECPY(pChar, config_get_s(CONFIG_LANGUAGE));
 
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+#if _WIN32 && !_CRT_SECURE_NO_WARNINGS
                                 sprintf_s(iapattr, MAXSTR,
 #else
                                 sprintf(iapattr,
@@ -1374,14 +1405,13 @@ static int shop_iap_gui(void)
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1 && \
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
-        if (multipage && video.aspect_ratio < 1.0f)
-        {
+    !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
+        if (multipage && video.aspect_ratio < 1.0f && console_gui_shown()) {
             int switchbtn_id = 0;
 
             gui_space(id);
             if (iap_page) switchbtn_id = gui_state(id, _("Switch to Coins"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
-            else          switchbtn_id = gui_state(id, _("Switch to Gems"), GUI_SML, SHOP_IAP_GET_SWITCH, 0);
+            else          switchbtn_id = gui_state(id, _("Switch to Gems"),  GUI_SML, SHOP_IAP_GET_SWITCH, 0);
 
             if (shop_iap_intro_animation)
                 gui_set_slide(switchbtn_id, GUI_S | GUI_EASE_ELASTIC, 0.8f, 0.8f, 0.05f);
@@ -1389,7 +1419,8 @@ static int shop_iap_gui(void)
 #endif
 
 #if defined(CONFIG_INCLUDES_ACCOUNT) && !defined(__EMSCRIPTEN__)
-        if (server_policy_get_d(SERVER_POLICY_EDITION) >= 10000
+        if (current_platform == PLATFORM_PC && !console_gui_shown() &&
+            server_policy_get_d(SERVER_POLICY_EDITION) >= 10000
          && ((account_get_d(ACCOUNT_DATA_WALLET_COINS) / 5) >= 1
           || account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= 1)
          && curr_min == 0)
@@ -1463,6 +1494,14 @@ static int shop_iap_buttn(int b, int d)
             return shop_iap_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return shop_iap_action(GUI_BACK, 0);
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b) && multipage &&
+            (!config_get_d(CONFIG_SCREEN_ANIMATIONS) || time_state() > 0.16f)) {
+            shop_iap_intro_animation = 0;
+            iap_page = !iap_page;
+
+            if (iap_page) return goto_state(curr_state());
+            else return exit_state(curr_state());
+        }
     }
     return 1;
 }
@@ -1901,10 +1940,9 @@ static int shop_buy_gui(void)
                                 "but you can review from IAP."),
                               prodcost, prodname);
 #endif
-                else
-                    sprintf_s(prodattr, MAXSTR,
-                              _("You need at least %i gems to buy %s."),
-                              prodcost, prodname);
+                else sprintf_s(prodattr, MAXSTR,
+                               _("You need at least %i gems to buy %s."),
+                               prodcost, prodname);
             }
             else
             {
@@ -1919,10 +1957,9 @@ static int shop_buy_gui(void)
                               _("You need at least %i coins to buy %s,\n"
                                 "but you can purchase from coin shop."),
                               prodcost, prodname);
-                else
-                    sprintf_s(prodattr, MAXSTR,
-                              _("You need at least %i coins to buy %s."),
-                              prodcost, prodname);
+                else sprintf_s(prodattr, MAXSTR,
+                               _("You need at least %i coins to buy %s."),
+                               prodcost, prodname);
             }
 #else
             if (purchase_product_usegems)
@@ -1945,9 +1982,8 @@ static int shop_buy_gui(void)
                                         "but you can review from IAP."),
                                       prodcost, prodname);
 #endif
-                else
-                    sprintf(prodattr, _("You need at least %i gems to buy %s."),
-                                      prodcost, prodname);
+                else sprintf(prodattr, _("You need at least %i gems to buy %s."),
+                                       prodcost, prodname);
             }
             else
             {
@@ -1960,20 +1996,19 @@ static int shop_buy_gui(void)
                     sprintf(prodattr, _("You need at least %i coins to buy %s,\n"
                                         "but you can purchase from coin shop."),
                                       prodcost, prodname);
-                else
-                    sprintf(prodattr, _("You need at least %i coins to buy %s."),
-                                      prodcost, prodname);
+                else sprintf(prodattr, _("You need at least %i coins to buy %s."),
+                                       prodcost, prodname);
             }
 #endif
             gui_multi(id, prodattr, GUI_SML, GUI_COLOR_WHT);
 
             if (purchase_product_usegems)
             {
-                if (has_enough_gems(prodcost * 5)
+                if (has_enough_gems(prodcost * 5) && prodincomsumeable
 #if !defined(__EMSCRIPTEN__)
-                 && current_platform == PLATFORM_PC
+                 && current_platform == PLATFORM_PC && !console_gui_shown()
 #endif
-                 && prodincomsumeable)
+                    )
                 {
                     gui_space(id);
                     gui_state(id, _("Unload balance and buy!"),
@@ -1983,11 +2018,11 @@ static int shop_buy_gui(void)
                                   GUI_SML, SHOP_BUY_FIVE, prodcost);
                 }
             }
-            else if (has_enough_coins(prodcost * 5)
+            else if (has_enough_coins(prodcost * 5) && prodincomsumeable
 #if !defined(__EMSCRIPTEN__)
-               && current_platform == PLATFORM_PC
+                 && current_platform == PLATFORM_PC && !console_gui_shown()
 #endif
-               && prodincomsumeable)
+                    )
             {
                 gui_space(id);
                 gui_state(id, _("Unload balance and buy!"),
@@ -2006,7 +2041,7 @@ static int shop_buy_gui(void)
                     if (has_enough_gems(prodcost))
                     {
 #if !defined(__EMSCRIPTEN__)
-                        if (current_platform == PLATFORM_PC)
+                        if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
                         {
                             gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
@@ -2064,7 +2099,7 @@ static int shop_buy_gui(void)
                 else if (has_enough_coins(prodcost))
                 {
 #if !defined(__EMSCRIPTEN__)
-                    if (current_platform == PLATFORM_PC)
+                    if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
                     {
                         gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
@@ -2111,7 +2146,7 @@ static int shop_buy_gui(void)
                           GUI_SML, GUI_COLOR_WHT);
 
 #if !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
                 gui_start(id, _("Buy more!"), GUI_SML, GUI_BACK, 0);
         }
@@ -2177,7 +2212,7 @@ static int shop_buy_confirmmulti_gui(void)
         if ((jd = gui_harray(id)))
         {
 #if !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
             {
                 gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
@@ -2187,11 +2222,10 @@ static int shop_buy_confirmmulti_gui(void)
                           auction_value);
             }
 #if !defined(__EMSCRIPTEN__)
-            else
-                gui_start(jd, _("Yes"), GUI_SML,
-                          confirm_multiple_items == 2 ? SHOP_BUY_WHOLE :
-                                                        SHOP_BUY_FIVE,
-                          auction_value);
+            else gui_start(jd, _("Yes"), GUI_SML,
+                           confirm_multiple_items == 2 ? SHOP_BUY_WHOLE :
+                                                         SHOP_BUY_FIVE,
+                           auction_value);
 #endif
         }
     }
@@ -2338,15 +2372,33 @@ static int expenses_export_gui(void)
         else if ((jd = gui_harray(id)))
         {
 #if !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
             {
                 gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
                 gui_state(jd, _("Yes"), GUI_SML, EXPENSES_EXPORT_START, 0);
             }
 #if !defined(__EMSCRIPTEN__)
-            else
-                gui_start(jd, _("Yes"), GUI_SML, EXPENSES_EXPORT_START, 0);
+            else {
+                int kd;
+
+                if ((kd = gui_hstack(jd))) {
+                    gui_filler(kd);
+                    gui_label(kd, _("No"), GUI_SML, GUI_COLOR_WHT);
+                    gui_space(kd);
+                    console_gui_create_b_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                    gui_filler(kd);
+                    gui_set_rect(kd, GUI_ALL);
+                }
+                if ((kd = gui_hstack(jd))) {
+                    gui_filler(kd);
+                    gui_label(kd, _("Yes"), GUI_SML, GUI_COLOR_WHT);
+                    gui_space(kd);
+                    console_gui_create_a_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                    gui_filler(kd);
+                    gui_set_rect(kd, GUI_ALL);
+                }
+            }
 #endif
         }
 
@@ -2384,7 +2436,7 @@ static int expenses_export_buttn(int b, int d)
         int active = gui_active();
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return expenses_export_action(gui_token(active), gui_value(active));
+            return expenses_export_action(EXPENSES_EXPORT_START, 0);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return expenses_export_action(GUI_BACK, 0);
     }

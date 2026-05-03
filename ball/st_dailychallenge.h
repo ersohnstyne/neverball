@@ -23,4 +23,6 @@ void dailychallenge_exit(void);
 const char *dailychallenge_id(void);
 const char *dailychallenge_name(void);
 
+const struct score *dailychallenge_score(int s);
+
 #endif

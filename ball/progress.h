@@ -135,17 +135,27 @@ enum
     MODE_NORMAL     = 2,                 /* Classic Mode    */
     MODE_STANDALONE = 3,                 /* Standalone Mode */
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    MODE_HARDCORE   = 4,                 /* Hardcore Mode   */
+    MODE_HARDCORE   = 4,                 /* Hardcore Mode!  */
+#else
+    MODE_ROGUE      = 4,                 /* Roguelike: cross-set random pool, no set progression */
 #endif
     MODE_ZEN        = 5,                 /* Zen Mode        */
     MODE_BOOST_RUSH = 6,                 /* Boost Rush Mode */
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     MODE_CAMPAIGN   = 7,                 /* Campaign Mode   */
 #endif
-    MODE_DAILY = 8,                 /* Daily Mode      */
+    MODE_DAILY      = 8,                 /* Daily Mode      */
 
     MODE_MAX
 };
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+/*
+ * This enumeration token will be replaced into MODE_HARDCORE.
+ * Your token will be replaced while using campaign.
+ */
+#define MODE_ROGUE MODE_HARDCORE
+#endif
 
 const char *mode_to_str(int, int);
 

@@ -922,8 +922,16 @@ void r_color_mtrl(struct s_rend *rend, int enable)
 
         /* Keep material tracking synchronized with GL state. */
 
+#if ENABLE_MOTIONBLUR!=0
+        const float motionblur_d[4] = { 1.0f, 1.0f, 1.0f, config_get_d(CONFIG_MOTIONBLUR) ? video_motionblur_alpha_get() : 1.0f };
+        const float motionblur_a[4] = { 1.0f, 1.0f, 1.0f, config_get_d(CONFIG_MOTIONBLUR) ? video_motionblur_alpha_get() : 1.0f };
+
+        rend->curr_mtrl.d = touint(motionblur_d);
+        rend->curr_mtrl.a = touint(motionblur_a);
+#else
         rend->curr_mtrl.d = 0xffffffff;
         rend->curr_mtrl.a = 0xffffffff;
+#endif
 
         rend->color_mtrl = 0;
     }

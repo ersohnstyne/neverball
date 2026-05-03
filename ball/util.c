@@ -99,7 +99,7 @@ static void gui_scores(int id, int e)
             for (j = RANK_HARD; j < RANK_LAST; j++)
                 if ((ld = gui_hstack(kd)))
                 {
-                    score_coin[j] = gui_count(ld, 1000, GUI_SML);
+                    score_coin[j] = gui_count(ld, 100000, GUI_SML);
                     score_name[j] = gui_label(ld, s, GUI_SML, gui_yel, gui_wht);
                     score_time[j] = gui_clock(ld, 359999, GUI_SML);
 
@@ -118,7 +118,7 @@ static void gui_scores(int id, int e)
             {
                 j = RANK_LAST;
 
-                score_coin[j] = gui_count(kd, 1000, GUI_SML);
+                score_coin[j] = gui_count(kd, 100000, GUI_SML);
                 score_name[j] = gui_label(kd, s, GUI_SML, gui_yel, gui_wht);
                 score_time[j] = gui_clock(kd, 359999, GUI_SML);
 

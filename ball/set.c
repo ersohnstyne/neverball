@@ -886,15 +886,15 @@ const struct score *set_score(int i, int s)
 
 /*---------------------------------------------------------------------------*/
 
-static int default_set_maxtimelimit_hard;
-static int default_set_maxtimelimit_medm;
-static int default_set_maxtimelimit_easy;
-static int default_set_mincoinrequired_hard;
-static int default_set_mincoinrequired_medm;
-static int default_set_mincoinrequired_easy;
-
 static void set_load_levels(void)
 {
+    int default_set_maxtimelimit_hard    = 0;
+    int default_set_maxtimelimit_medm    = 0;
+    int default_set_maxtimelimit_easy    = 0;
+    int default_set_mincoinrequired_hard = 0;
+    int default_set_mincoinrequired_medm = 0;
+    int default_set_mincoinrequired_easy = 0;
+
     /*
      * Legacy roman numbers doesn't: I V X C D M
      * New roman numbers should work: Ⅰ Ⅱ Ⅲ Ⅳ Ⅴ Ⅵ Ⅶ Ⅷ Ⅸ Ⅹ Ⅺ Ⅻ Ⅼ Ⅽ Ⅾ Ⅿ
@@ -988,13 +988,6 @@ static void set_load_levels(void)
     /* Atomic Elbow tried to retreat! */
     int i_retreat = 0;
 
-    default_set_maxtimelimit_hard    = 0;
-    default_set_maxtimelimit_medm    = 0;
-    default_set_maxtimelimit_easy    = 0;
-    default_set_mincoinrequired_hard = 0;
-    default_set_mincoinrequired_medm = 0;
-    default_set_mincoinrequired_easy = 0;
-
     for (i = 0; i < MAXLVL_SET; i++)
         memset(&level_v[i], 0, sizeof (struct level));
 
@@ -1010,10 +1003,12 @@ static void set_load_levels(void)
 
         if (lvl_was_offered)
         {
+            if (l->time > 0 && l->time <= 1000)
+                log_errorf("%s: Time limit was compressed to 10 seconds or less! Current: %.2f s\n", s->level_name_v[i], l->time / 100.0f);
+
             if (strcmp(tmp_bgm_path, l->song) == 0)
                 i_num_indiv_theme++;
-            else
-            {
+            else {
                 i_num_indiv_theme = 1;
                 SAFECPY(tmp_bgm_path, l->song);
             }
@@ -1168,10 +1163,7 @@ int set_star_update(int completed)
 
     if (s->star == s->star_obtained) return 0;
 
-    if (completed)
-        s->star_obtained = s->star;
-    else
-        s->star_obtained = 0;
+    s->star_obtained = completed ? s->star : 0;
 
     return completed;
 }
@@ -1188,12 +1180,9 @@ int set_score_update(int timer, int coins, int *score_rank, int *times_rank)
 
     score_coin_insert(&s->coin_score, score_rank, player, timer, coins);
     score_time_insert(&s->time_score, times_rank, player, timer, coins);
-
-    if ((score_rank && *score_rank < RANK_LAST) ||
-        (times_rank && *times_rank < RANK_LAST))
-        return 1;
-    else
-        return 0;
+    
+    return (score_rank && *score_rank < RANK_LAST) ||
+           (times_rank && *times_rank < RANK_LAST) ? 1 : 0;
 }
 
 void set_rename_player(int score_rank, int times_rank, const char *player)
@@ -1208,6 +1197,7 @@ void set_rename_player(int score_rank, int times_rank, const char *player)
 
 void level_snap(int i, const char *path)
 {
+#ifndef NDEBUG
     char *filename;
 
     /* Convert the level name to a PNG filename. */
@@ -1243,6 +1233,7 @@ void level_snap(int i, const char *path)
 
     free(filename);
     filename = NULL;
+#endif
 }
 
 void set_cheat(void)
@@ -1257,12 +1248,10 @@ void set_cheat(void)
 void set_detect_bonus_product(void)
 {
     for (int i = 0; i < SET_GET(sets, curr)->count; i++)
-    {
         if (level_v[i].is_bonus) {
             level_v[i].is_locked    = 0;
             level_v[i].is_completed = 0;
         }
-    }
 }
 
 /*---------------------------------------------------------------------------*/

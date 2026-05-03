@@ -454,6 +454,8 @@ int conf_common_leave(struct state *st, struct state *next, int id, int intent)
     return transition_slide(id, 0, intent);
 }
 
+struct state st_perf_warning;
+
 void conf_common_paint(int id, float t)
 {
     video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
@@ -462,15 +464,15 @@ void conf_common_paint(int id, float t)
 
     gui_paint(id);
 
+    if (curr_state() != &st_perf_warning) {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (current_platform != PLATFORM_PC || console_gui_shown())
-        console_gui_list_paint();
+        if (current_platform != PLATFORM_PC || console_gui_shown())
+            console_gui_list_paint();
 #endif
+    }
 }
 
 /*---------------------------------------------------------------------------*/
-
-struct state st_perf_warning;
 
 struct state st_video;
 struct state st_video_advanced;
@@ -572,11 +574,34 @@ static int perf_warning_confirm_btns(int pd, int enabled)
     const char *s_enable  = N_("Enable");
     const char *s_disable = N_("Disable");
 
-    if ((id = gui_harray(pd)))
-    {
-        gui_start(id, _("Cancel"), GUI_SML, GUI_BACK, 0);
-        gui_state(id, _(enabled ? s_enable : s_disable),
-                      GUI_SML, PERF_WARNING_DO_IT, enabled);
+    if ((id = gui_harray(pd))) {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        if (current_platform != PLATFORM_PC || console_gui_shown()) {
+            int jd;
+
+            if ((jd = gui_hstack(id))) {
+                gui_filler(jd);
+                gui_label(jd, _("Cancel"), GUI_SML, GUI_COLOR_WHT);
+                gui_space(jd);
+                console_gui_create_b_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                gui_filler(jd);
+                gui_set_rect(jd, GUI_ALL);
+            }
+            if ((jd = gui_hstack(id))) {
+                gui_filler(jd);
+                gui_label(jd, _(enabled ? s_enable : s_disable), GUI_SML, GUI_COLOR_WHT);
+                gui_space(jd);
+                console_gui_create_a_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                gui_filler(jd);
+                gui_set_rect(jd, GUI_ALL);
+            }
+        } else
+#endif
+        {
+            gui_start(id, _("Cancel"), GUI_SML, GUI_BACK, 0);
+            gui_state(id, _(enabled ? s_enable : s_disable),
+                          GUI_SML, PERF_WARNING_DO_IT, enabled);
+        }
     }
 
     return id;
@@ -588,12 +613,35 @@ static int perf_warning_confirm_range_btns(int pd, int higher)
 
     const char *s_higher = N_("Higher");
     const char *s_lower  = N_("Lower");
+    
+    if ((id = gui_harray(pd))) {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        if (current_platform != PLATFORM_PC || console_gui_shown()) {
+            int jd;
 
-    if ((id = gui_harray(pd)))
-    {
-        gui_start(id, _("Cancel"), GUI_SML, GUI_BACK, 0);
-        gui_state(id, _(higher ? s_higher : s_lower),
-                      GUI_SML, PERF_WARNING_DO_IT, perf_warning_value);
+            if ((jd = gui_hstack(id))) {
+                gui_filler(jd);
+                gui_label(jd, _("Cancel"), GUI_SML, GUI_COLOR_WHT);
+                gui_space(jd);
+                console_gui_create_b_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                gui_filler(jd);
+                gui_set_rect(jd, GUI_ALL);
+            }
+            if ((jd = gui_hstack(id))) {
+                gui_filler(jd);
+                gui_label(jd, _(higher ? s_higher : s_lower), GUI_SML, GUI_COLOR_WHT);
+                gui_space(jd);
+                console_gui_create_a_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                gui_filler(jd);
+                gui_set_rect(jd, GUI_ALL);
+            }
+        } else
+#endif
+        {
+            gui_start(id, _("Cancel"), GUI_SML, GUI_BACK, 0);
+            gui_state(id, _(higher ? s_higher : s_lower),
+                          GUI_SML, PERF_WARNING_DO_IT, perf_warning_value);
+        }
     }
 
     return id;
@@ -633,8 +681,8 @@ static int perf_warning_motionblur_gui(int enabled)
         gui_multi(id, _(enabled ? (videocard_recommended ? s_enable_recommended : s_enable) :
                                   (videocard_recommended ? s_disable_recommended : s_disable)),
                       GUI_SML, gui_wht, gui_wht);
-        gui_space(id);
 
+        gui_space(id);
         perf_warning_confirm_btns(id, enabled);
     }
 
@@ -677,8 +725,8 @@ static int perf_warning_refl_gui(int enabled)
         gui_multi(id, _(enabled ? (videocard_recommended ? s_enable_recommended : s_enable) :
                                   (videocard_recommended ? s_disable_recommended : s_disable)),
                       GUI_SML, gui_wht, gui_wht);
-        gui_space(id);
 
+        gui_space(id);
         perf_warning_confirm_btns(id, enabled);
     }
 
@@ -711,8 +759,8 @@ static int perf_warning_sampling_gui(int value)
 
         gui_multi(id, _(can_higher ? s_higher : s_lower),
                       GUI_SML, gui_wht, gui_wht);
-        gui_space(id);
 
+        gui_space(id);
         perf_warning_confirm_range_btns(id, can_higher);
     }
 
@@ -721,6 +769,8 @@ static int perf_warning_sampling_gui(int value)
     return id;
 }
 
+static int gamepad_perf_warning_value = 0;
+
 static int perf_warning_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play("snd/warning.ogg", 1.0f);
@@ -728,21 +778,38 @@ static int perf_warning_enter(struct state *st, struct state *prev, int intent)
     conf_common_init(perf_warning_action, 1);
 
 #if ENABLE_MOTIONBLUR!=0
-    if (perf_warning_mode == 0)
+    if (perf_warning_mode == 0) {
+        gamepad_perf_warning_value = !config_get_d(CONFIG_MOTIONBLUR);
         return transition_slide(
             perf_warning_motionblur_gui(!config_get_d(CONFIG_MOTIONBLUR)),
             1, intent);
-    else
+    } else
 #endif
-    if (perf_warning_mode == 1)
+    if (perf_warning_mode == 1) {
+        gamepad_perf_warning_value = !config_get_d(CONFIG_REFLECTION);
         return transition_slide(
             perf_warning_refl_gui(!config_get_d(CONFIG_REFLECTION)),
             1, intent);
-    else if (perf_warning_mode == 2)
+    } else if (perf_warning_mode == 2) {
+        gamepad_perf_warning_value = config_get_d(CONFIG_MULTISAMPLE);
         return transition_slide(
             perf_warning_sampling_gui(config_get_d(CONFIG_MULTISAMPLE)),
             1, intent);
-    else return 0;
+    } else return 0;
+}
+
+static int perf_warning_buttn(int b, int d)
+{
+    if (d)
+    {
+        int active = gui_active();
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+            return perf_warning_action(PERF_WARNING_DO_IT, gamepad_perf_warning_value);
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            return perf_warning_action(GUI_BACK, 0);
+    }
+    return 1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2384,7 +2451,7 @@ struct state st_perf_warning = {
     NULL,
     common_click,
     common_keybd,
-    common_buttn
+    perf_warning_buttn
 };
 
 struct state st_video = {

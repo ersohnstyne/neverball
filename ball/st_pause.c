@@ -94,15 +94,11 @@ int goto_pause(struct state *returnable)
     st_continue = returnable;
 
     /* Set it up some those states? */
-    if (st_continue == &st_play_ready ||
-        st_continue == &st_play_set ||
-        st_continue == &st_play_loop ||
-        st_continue == &st_look)
+    if (st_continue == &st_play_ready || st_continue == &st_play_set ||
+        st_continue == &st_play_loop  || st_continue == &st_look)
     {
-        if (st_continue == &st_play_set)
-            st_continue = &st_play_ready;
-        if (st_continue == &st_look)
-            st_continue = &st_play_loop;
+        if (st_continue == &st_play_set) st_continue = &st_play_ready;
+        if (st_continue == &st_look)     st_continue = &st_play_loop;
     }
 
 #if ENABLE_LIVESPLIT!=0
@@ -538,7 +534,7 @@ static int pause_buttn(int b, int d)
 
 static int pause_quit_gui(void)
 {
-    int id, jd;
+    int id, jd, kd;
 
     if ((id = gui_vstack(0)))
     {
@@ -591,7 +587,7 @@ static int pause_quit_gui(void)
         if ((jd = gui_harray(id)))
         {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
             {
                 gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
@@ -601,11 +597,24 @@ static int pause_quit_gui(void)
                                                                        PAUSE_EXIT), 0);
             }
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            else
-                gui_start(jd, _("Yes"), GUI_SML,
-                          quit_uses_restart ? PAUSE_RESTART :
-                                              (quit_uses_resetpuzzle ? PAUSE_RESPAWN :
-                                                                       PAUSE_EXIT), 0);
+            else {
+                if ((kd = gui_hstack(jd))) {
+                    gui_filler(kd);
+                    gui_label(kd, _("No"), GUI_SML, GUI_COLOR_WHT);
+                    gui_space(kd);
+                    console_gui_create_b_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                    gui_filler(kd);
+                    gui_set_rect(kd, GUI_ALL);
+                }
+                if ((kd = gui_hstack(jd))) {
+                    gui_filler(kd);
+                    gui_label(kd, _("Yes"), GUI_SML, GUI_COLOR_WHT);
+                    gui_space(kd);
+                    console_gui_create_a_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                    gui_filler(kd);
+                    gui_set_rect(kd, GUI_ALL);
+                }
+            }
 #endif
         }
 
@@ -629,6 +638,35 @@ static int pause_quit_enter(struct state *st, struct state *prev, int intent)
     audio_play(AUD_WARNING, 1.0f);
 
     return transition_slide(pause_quit_gui(), 1, intent);
+}
+
+static int pause_quit_buttn(int b, int d)
+{
+    if (d)
+    {
+        int active = gui_active();
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+            return pause_action(quit_uses_restart ? PAUSE_RESTART :
+                                                    (quit_uses_resetpuzzle ? PAUSE_RESPAWN :
+                                                                             PAUSE_EXIT), 0);
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b) && curr_state() != &st_pause) {
+            audio_play(AUD_BACK, 1.0f);
+            PAUSED_ACTION_CONTINUE;
+        }
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
+        {
+            if (!st_global_animating())
+            {
+                audio_play(AUD_BACK, 1.0f);
+                PAUSED_ACTION_CONTINUE;
+            }
+            else audio_play(AUD_DISABLED, 1.0f);
+        }
+    }
+    return 1;
 }
 
 /*---------------------------------------------------------------------------*/

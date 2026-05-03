@@ -212,13 +212,19 @@ void WGCL_DailyChallenge_SetInfocard(int hardcore, int balls_needed, int reward_
     sprintf(s_rewards,
 #endif
             "%s %d", GUI_DIAMOND, reward_gems);
+    
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    const int expected_mode = hardcore ? MODE_HARDCORE : MODE_CHALLENGE;
+#else
+    const int expected_mode = MODE_CHALLENGE;
+#endif
 
     SAFECPY(dailychallenge_gui_texts[0], setname);
-    SAFECPY(dailychallenge_gui_texts[1], mode_to_str(hardcore ? MODE_HARDCORE : MODE_CHALLENGE, 0));
+    SAFECPY(dailychallenge_gui_texts[1], mode_to_str(expected_mode, 0));
     SAFECPY(dailychallenge_gui_texts[2], s_rewards);
     SAFECPY(dailychallenge_gui_texts[3], timeleft_text);
 
-    dailychallenge_mode = hardcore ? MODE_HARDCORE : MODE_CHALLENGE;
+    dailychallenge_mode = expected_mode;
 
     gui_set_label(dailychallenge_gui_ids[0], dailychallenge_gui_texts[0]);
     gui_set_label(dailychallenge_gui_ids[1], dailychallenge_gui_texts[1]);
@@ -244,9 +250,15 @@ void WGCL_DailyChallenge_SetInfocard(int hardcore, int balls_needed, int reward_
 
 void WGCL_DailyChallenge_FinishPreparing(int done, int hardcore, int error_state, int balls_needed,
                                          const char *lang_texts, const char *packages_texts, const char *compete_text) {
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    const int expected_mode = hardcore ? MODE_HARDCORE : MODE_CHALLENGE;
+#else
+    const int expected_mode = MODE_CHALLENGE;
+#endif
+
     char s_needed[MAXSTR];
-    activity_services_mode_update(hardcore ? AS_MODE_HARDCORE : AS_MODE_CHALLENGE);
-    progress_reinit(hardcore ? MODE_HARDCORE : MODE_CHALLENGE);
+    activity_services_mode_update(expected_mode);
+    progress_reinit(expected_mode);
 
     if (!done) {
         switch (error_state) {
@@ -295,7 +307,11 @@ void WGCL_DailyChallenge_FinishPreparing(int done, int hardcore, int error_state
 }
 
 void WGCL_DailyChallenge_StartGame(void) {
-    if (dailychallenge_lvlindex == 0) return;
+    if (dailychallenge_lvlindex == 0) {
+        dailychallenge_exit();
+        exit_state(&st_title);
+        return;
+    }
 
     dailychallenge_update_hs();
 
@@ -308,8 +324,49 @@ void WGCL_DailyChallenge_StartGame(void) {
         account_wgcl_autokick_state_prepare(&st_title);
 #endif
         goto_play_level();
+    } else {
+        dailychallenge_exit();
+        exit_state(&st_title);
+        return;
     }
-    else goto_state(&st_title);
+}
+
+void WGCL_DailyChallenge_LoadSetHS_Coins(int timer_first, const char *name_first, int coins_first,
+                                         int timer_sec,   const char *name_sec,   int coins_sec, 
+                                         int timer_third, const char *name_third, int coins_third) {
+    const int  hs_coins[3]      = { coins_first, coins_sec, coins_third };
+    const int  hs_timer[3]      = { timer_first, timer_sec, timer_third };
+
+    for (int i = RANK_HARD; i < RANK_LAST; i++)
+        if (dailychallenge_mincoinrequired_easy <= hs_coins[i]) {
+            challenge_data.coin_score.coins[i] = hs_coins[i];
+            challenge_data.coin_score.timer[i] = hs_timer[i];
+
+            switch (i) {
+                case 0: SAFECPY(challenge_data.coin_score.player[i], name_first); break;
+                case 1: SAFECPY(challenge_data.coin_score.player[i], name_sec);   break;
+                case 2: SAFECPY(challenge_data.coin_score.player[i], name_third); break;
+            }
+        }
+}
+
+void WGCL_DailyChallenge_LoadSetHS_Time(int timer_first, const char *name_first, int coins_first,
+                                        int timer_sec,   const char *name_sec,   int coins_sec, 
+                                        int timer_third, const char *name_third, int coins_third) {
+    const int  hs_coins[3]      = { coins_first, coins_sec, coins_third };
+    const int  hs_timer[3]      = { timer_first, timer_sec, timer_third };
+    
+    for (int i = RANK_HARD; i < RANK_LAST; i++)
+        if (dailychallenge_mincoinrequired_easy <= hs_coins[i]) {
+            challenge_data.coin_score.coins[i] = hs_coins[i];
+            challenge_data.coin_score.timer[i] = hs_timer[i];
+
+            switch (i) {
+                case 0: SAFECPY(challenge_data.coin_score.player[i], name_first); break;
+                case 1: SAFECPY(challenge_data.coin_score.player[i], name_sec);   break;
+                case 2: SAFECPY(challenge_data.coin_score.player[i], name_third); break;
+            }
+        }
 }
 
 #endif
@@ -346,6 +403,14 @@ const char *dailychallenge_name(void)
 #else
     return 0;
 #endif
+}
+
+const struct score *dailychallenge_score(int s) {
+    switch (s) {
+        case SCORE_TIME: return &challenge_data.time_score;
+        case SCORE_COIN: return &challenge_data.coin_score;
+        default: return NULL;
+    }
 }
 
 static int dailychallenge_start(void)
@@ -399,6 +464,7 @@ static int dailychallenge_action(int tok, int val)
 
             dailychallenge_mode         = 0;
             dailychallenge_readytofetch = 0;
+            dailychallenge_exit();
             progress_exit();
             exit_state(&st_title);
             break;

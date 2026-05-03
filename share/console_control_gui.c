@@ -1553,6 +1553,14 @@ static void init_xbox_shop_getcoins(void)
 {
     if ((xbox_control_shop_getcoins_id = gui_hstack(0)))
     {
+        gui_label(xbox_control_shop_getcoins_id, _("Toggle Type"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_x_button(xbox_control_shop_getcoins_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+
+        create_controller_spacer(xbox_control_shop_getcoins_id);
+
         gui_label(xbox_control_shop_getcoins_id, _("Back"),
                   GUI_SML, gui_wht, gui_wht);
 
@@ -1566,7 +1574,7 @@ static void init_xbox_shop_getcoins(void)
 
         console_gui_create_a_button(xbox_control_shop_getcoins_id,
                         config_get_d(CONFIG_JOYSTICK_BUTTON_A));
-
+        
         gui_set_rect(xbox_control_shop_getcoins_id, GUI_TOP);
         gui_layout(xbox_control_shop_getcoins_id, 0, -1);
     }
@@ -1844,6 +1852,9 @@ void console_gui_timer(float dt)
     gui_timer(xbox_control_list_id, dt);
     gui_timer(xbox_control_levelopt_id, dt);
     gui_timer(xbox_control_paused_id, dt);
+    gui_timer(xbox_control_package_installable_id, dt);
+    gui_timer(xbox_control_package_updateable_id, dt);
+    gui_timer(xbox_control_package_manageable_id, dt);
 
     /* Generic */
     gui_timer(xbox_control_desc_id, dt);

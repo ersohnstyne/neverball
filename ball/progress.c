@@ -962,6 +962,7 @@ void progress_stat(int s)
                 }
 #endif
 
+                /* Only reward extra balls if balls are meaningful in this run. */
                 for (int i = curr.score + 1; i <= curr.score + coins; i++)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                     if (progress_reward_ball(i) && mode != MODE_HARDCORE)
@@ -1837,6 +1838,8 @@ const char *mode_to_str(int m, int l)
 #endif
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         case MODE_HARDCORE:  return l ? _("Hardcore Mode")   : _("Hardcore");
+#else
+        case MODE_ROGUE:     return l ? _("Roguelike Mode")  : _("Roguelike");
 #endif
         case MODE_BOOST_RUSH:return l ? _("Boost Rush Mode") : _("Boost Rush");
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN

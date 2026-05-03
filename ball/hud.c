@@ -24,6 +24,7 @@
 
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
+#include "account_wgcl.h"
 #include "networking.h"
 #include "boost_rush.h"
 #endif
@@ -361,16 +362,12 @@ static void hud_update_alpha(void)
     float replay_hud_alpha     = (replay_speed_alpha * show_hud_alpha) *
                                  show_hud_total_alpha;
 
-    if (!config_get_d(CONFIG_SCREEN_ANIMATIONS))
-    {
-        if (speed_timer_length >= 0.1f)
-        {
+    if (!config_get_d(CONFIG_SCREEN_ANIMATIONS)) {
+        if (speed_timer_length >= 0.1f) {
             standard_hud_alpha = 0;
             cam_hud_alpha = 0;
             replay_hud_alpha = 1;
-        }
-        else
-        {
+        } else {
             standard_hud_alpha = 1;
             cam_hud_alpha = 1;
             replay_hud_alpha = 0;
@@ -422,10 +419,8 @@ void hud_paint(void)
     const int wgcl_newhud = 0;
 #endif
 
-    if (wgcl_newhud)
-    {
-        if (config_get_d(CONFIG_FPS))
-            gui_paint(fps_id);
+    if (wgcl_newhud) {
+        if (config_get_d(CONFIG_FPS)) gui_paint(fps_id);
 
         hud_cam_paint();
         return;
@@ -433,14 +428,15 @@ void hud_paint(void)
 
     if (curr_mode() == MODE_NONE) return; /* Cannot render in home room. */
 
-    if (speed_timer_length <= 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
-    {
+    if (speed_timer_length <= 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS)) {
         gui_paint(FSLhud_id);
 
         if (curr_mode() == MODE_CHALLENGE ||
             curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
          || curr_mode() == MODE_HARDCORE
+#else
+         || curr_mode() == MODE_ROGUE
 #endif
          || curr_mode() == MODE_DAILY
             )
@@ -448,24 +444,24 @@ void hud_paint(void)
             /* WGCL Operator (WIP) */
             const int xppenalty_calculated = curr_balls() - ROUND(floorf(curr_score() / 100.0f));
 
+#if NB_HAVE_PB_BOTH==1
 #ifdef __EMSCRIPTEN__
             if (xppenalty_calculated < 0 && EM_ASM_INT({
                     return tmp_online_session_data != undefined &&
                            tmp_online_session_data != null;
                 }))
 #else
-            if (xppenalty_calculated < 0)
+            if (xppenalty_calculated < 0 && account_wgcl_name_read_only())
 #endif
             {
                 /* Be careful, as these things might break! */
 
-#if NB_HAVE_PB_BOTH==1
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (curr_mode() != MODE_HARDCORE)
 #endif
                     gui_paint(xppenalty_hud_id);
-#endif
             }
+#endif
 
             gui_paint(Lhud_id);
         }
@@ -476,8 +472,7 @@ void hud_paint(void)
         gui_paint(time_id);
     }
 
-    if (config_get_d(CONFIG_FPS))
-        gui_paint(fps_id);
+    if (config_get_d(CONFIG_FPS)) gui_paint(fps_id);
 
     hud_cam_paint();
     hud_speed_paint();
@@ -703,12 +698,11 @@ void hud_update(int pulse, float animdt)
             }
 
             /* Broadband game mode */
+            if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (curr_mode() == MODE_CHALLENGE  ||
-                curr_mode() == MODE_BOOST_RUSH ||
-                curr_mode() == MODE_HARDCORE)
+             || curr_mode() == MODE_HARDCORE)
 #else
-            if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH)
+             || curr_mode() == MODE_ROGUE)
 #endif
             {
                 if      (last >= 10) gui_pulse(scor_id, 2.00f);
@@ -768,8 +762,7 @@ void hud_update(int pulse, float animdt)
         }, clock, coins, goal, balls, score, ROUND(ballspeed));
 #endif
 
-    if (config_get_d(CONFIG_FPS))
-        hud_fps();
+    if (config_get_d(CONFIG_FPS)) hud_fps();
 }
 
 void hud_timer(float dt)
@@ -958,12 +951,10 @@ void hud_speedup_pulse(void)
 
 void hud_speedup_timer(float dt)
 {
-    if (speedup_logo_timer > 0.0f)
-    {
+    if (speedup_logo_timer > 0.0f) {
         speedup_logo_timer -= dt;
 
-        if (speedup_logo_timer <= 0.0f)
-        {
+        if (speedup_logo_timer <= 0.0f) {
             speedup_logo_timer = 0.0f;
             gui_slide(speedup_logo_id, GUI_E | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.5f, 0);
         }
@@ -1002,18 +993,12 @@ void hud_lvlname_paint(void)
 {
     if (config_get_d(CONFIG_FPS)) return;
 
-    if (speed_timer_length < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
-    {
+    if (speed_timer_length < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS)) {
 #if NB_HAVE_PB_BOTH==1
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (campaign_used())
-        {
-#if ENABLE_COMPASS==1
-            gui_paint(camcompass_id);
+#if defined(LEVELGROUPS_INCLUDES_CAMPAIGN) && ENABLE_COMPASS==1
+        if (campaign_used()) gui_paint(camcompass_id); else
 #endif
-        }
-#endif
-        else if (curr_mode() == MODE_BOOST_RUSH)
+        if (curr_mode() == MODE_BOOST_RUSH)
             gui_paint(speedbar_hud_id);
         else
 #endif
@@ -1133,13 +1118,8 @@ void hud_touch_timer(float dt)
 
 void hud_touch_paint(void)
 {
-#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
-#if !defined(__NDS__) && !defined(__3DS__) && \
-    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     if (touch_timer > 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(Touch_id);
-#endif
-#endif
 }
 
 /*---------------------------------------------------------------------------*/

@@ -1835,6 +1835,7 @@ static int demo_del_gui(void)
     if ((id = gui_vstack(0)))
     {
         kd = gui_title_header(id, _("Delete Replay?"), GUI_MED, GUI_COLOR_RED);
+        gui_pulse(kd, 1.2f);
         gui_space(id);
 
         if ((jd = gui_vstack(id)))
@@ -1892,13 +1893,30 @@ static int demo_del_gui(void)
                     gui_start(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
                 }
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            } else {
+                if ((kd = gui_hstack(jd))) {
+                    gui_filler(kd);
+                    const int btn_keep_id = gui_label(kd, _("Keep"), GUI_SML, GUI_COLOR_WHT);
+                    gui_space(kd);
+                    console_gui_create_b_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                    gui_filler(kd);
+                    gui_set_rect(kd, GUI_ALL);
+
+                    if (get_max_game_stat() > get_limit_game_stat() || !allow_exact_versions)
+                        gui_set_color(btn_keep_id, GUI_COLOR_GRY);
+                }
+                if ((kd = gui_hstack(jd))) {
+                    gui_filler(kd);
+                    gui_label(kd, _("Delete"), GUI_SML, GUI_COLOR_WHT);
+                    gui_space(kd);
+                    console_gui_create_a_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                    gui_filler(kd);
+                    gui_set_rect(kd, GUI_ALL);
+                }
             }
-            else
-                gui_start(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
 #endif
         }
 
-        gui_pulse(kd, 1.2f);
         gui_layout(id, 0, 0);
     }
 
@@ -1908,16 +1926,13 @@ static int demo_del_gui(void)
 static int demo_del_enter(struct state *st, struct state *prev, int intent)
 {
     audio_music_fade_out(demo_paused ? 0.2f : 1.0f);
-
     audio_play(AUD_WARNING, 1.0f);
-
     return transition_slide(demo_del_gui(), 1, intent);
 }
 
 static int demo_del_keybd(int c, int d)
 {
-    if (d && c == KEY_EXIT)
-    {
+    if (d && c == KEY_EXIT) {
         if (!allow_exact_versions || get_max_game_stat() > get_limit_game_stat())
             audio_play(AUD_DISABLED, 1.0f);
         else return demo_del_action(DEMO_QUIT, 0);
@@ -1928,14 +1943,12 @@ static int demo_del_keybd(int c, int d)
 
 static int demo_del_buttn(int b, int d)
 {
-    if (d)
-    {
+    if (d) {
         int active = gui_active();
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return demo_del_action(gui_token(active), gui_value(active));
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-        {
+            return demo_del_action(DEMO_DEL, 0);
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b)) {
             if (!allow_exact_versions || get_max_game_stat() > get_limit_game_stat())
                 audio_play(AUD_DISABLED, 1.0f);
             else return demo_del_action(DEMO_QUIT, 0);

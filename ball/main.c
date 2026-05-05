@@ -1865,6 +1865,31 @@ static void panorama_snap_sides(void)
 }
 #endif
 
+static int main_init_checksteam(const char *filename, const char *needle) {
+    fs_file handle;
+    char *out_line, *c;
+    int found = 0;
+
+    if ((handle = fs_open_read(filename))) {
+        while (read_line(&out_line, handle)) {
+            for (c = (const char *) needle; *c && *out_line; c++, out_line++)
+                if (*c != *out_line)
+                    break;
+
+            if ((*c == 0) && (*out_line == ' ' || *out_line == '\0'))
+                found = 1;
+
+            if (found) break;
+        }
+
+        if (out_line) {
+            free(out_line); out_line = NULL;
+        }
+    }
+
+    return found;
+}
+
 static int main_init(int argc, char *argv[])
 {
     GAMEDBG_SIGFUNC_PREPARE;
@@ -1925,6 +1950,12 @@ static int main_init(int argc, char *argv[])
 
     /* Initialize SDL. */
 
+    int sdlinit_steamui = 0;
+
+    if (main_init_checksteam("/etc/os-release", "steamos") ||
+        main_init_checksteam("/etc/machine-info", "steamdeck"))
+        sdlinit_steamui = 1;
+
 #ifdef SDL_HINT_ENABLE_SCREEN_KEYBOARD
     SDL_SetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD, "0");
 #endif
@@ -1977,6 +2008,12 @@ static int main_init(int argc, char *argv[])
 #endif
 #endif
 #endif
+
+    if (sdlinit_steamui) {
+#if defined(SDL_HINT_JOYSTICK_HIDAPI_STEAMDECK)
+        SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_STEAMDECK, "1");
+#endif
+    }
 
 #if !defined(__GAMECUBE__) && !defined(__WII__)
 #if _cplusplus
@@ -2119,6 +2156,17 @@ static int main_init(int argc, char *argv[])
     config_set_d(CONFIG_JOYSTICK, 1);
     config_save();
 #endif
+
+    /*
+     * If Steam Deck or SteamOS was detected, then Steam gamepad controller
+     * will being used
+     */
+
+    if (sdlinit_steamui) {
+        console_init_controller_type(PLATFORM_STEAMDECK);
+        config_set_d(CONFIG_JOYSTICK, 1);
+        config_save();
+    }
 
 #if NB_STEAM_API==1 || NB_EOS_SDK==1
     config_set_d(CONFIG_FPS, 0);

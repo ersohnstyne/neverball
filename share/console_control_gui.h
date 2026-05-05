@@ -96,8 +96,8 @@ enum console_platforms
 #define STEAMDECK_RT_BUTTON     "R2"    /* Right Trigger  */
 #define STEAMDECK_LS_BUTTON     "L3"    /* Left Stick     */
 #define STEAMDECK_RS_BUTTON     "R3"    /* Right Stick    */
-#define STEAMDECK_START_BUTTON  "+"     /* Start */
-#define STEAMDECK_SELECT_BUTTON "-"     /* Select */
+#define STEAMDECK_START_BUTTON  "▶️"     /* Start */
+#define STEAMDECK_SELECT_BUTTON "◀️"     /* Select */
 
 
 /* Wii U / Nintendo Switch */

@@ -79,7 +79,9 @@
 #include "st_wgcl.h"
 #endif
 
+#if _WIN32 || defined(__EMSCRIPTEN__)
 #define TITLE_USE_DVD_BOX
+#endif
 
 #if NB_HAVE_PB_BOTH==1
 //#define TITLE_PAN_360_MODE

@@ -583,7 +583,7 @@ void hud_update(int pulse, float animdt)
                     audio_play(AUD_TICK, 1.0f);
                     gui_pulse(time_id, 1.50);
                 }
-                else if (clock < 500 && (last / 50) >(clock / 50))
+                else if (clock < 500 && (last / 50) > (clock / 50))
                 {
                     gui_set_color(text_speedometer_id, GUI_COLOR_VIO);
                     gui_set_color(text_coins_id,       GUI_COLOR_VIO);

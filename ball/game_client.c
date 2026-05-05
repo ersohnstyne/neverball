@@ -960,7 +960,8 @@ int curr_viewangle(void)
 
 int curr_clock(void)
 {
-    return ROUND(flerp(gl.timer[PREV], gl.timer[CURR], gl.alpha) * 100.0f);
+    return gd.jump_b ? ROUND(gl.timer[CURR] * 100.0f) :
+           ROUND(flerp(gl.timer[PREV], gl.timer[CURR], gl.alpha) * 100.0f);
 }
 
 int curr_coins(void)

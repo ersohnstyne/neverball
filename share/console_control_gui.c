@@ -389,12 +389,16 @@ static void create_steamdeck_rs_button(int rs_id)
 
 static void create_steamdeck_start_button(int start_id)
 {
-    gui_label(start_id, STEAMDECK_START_BUTTON, GUI_SML, gui_gry, gui_wht);
+    const int gamepadbtn_id = gui_label(start_id, STEAMDECK_START_BUTTON,
+                                                  GUI_SML, gui_gry, gui_wht);
+    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
 }
 
 static void create_steamdeck_select_button(int select_id)
 {
-    gui_label(select_id, STEAMDECK_SELECT_BUTTON, GUI_SML, gui_gry, gui_wht);
+    const int gamepadbtn_id = gui_label(select_id, STEAMDECK_SELECT_BUTTON,
+                                                   GUI_SML, gui_gry, gui_wht);
+    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
 }
 
 /*---------------------------------------------------------------------------*/

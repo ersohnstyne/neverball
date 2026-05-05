@@ -1296,6 +1296,7 @@ static int demo_speed_dirty;
 /* Timers needed */
 static int demo_timer_curr;
 static int demo_timer_last;
+static int demo_timer_upward = 0;
 static int demo_timer_down = -1;
 static int demo_timer_warning;
 
@@ -1466,27 +1467,29 @@ static void demo_play_timer(int id, float dt)
 
     /* Pause briefly before starting playback. */
 
-    if (time_state() < prelude || st_global_animating())
+    if (time_state() < prelude || st_global_animating()) {
+        demo_timer_upward = demo_timer_curr == 0;
+        demo_timer_down   = demo_timer_curr > 0;
         return;
-
-    if (time_state() >= prelude && (demo_timer_down != 1))
+    } else if (time_state() >= prelude) {
         demo_timer_down = demo_timer_last > demo_timer_curr        &&
                           demo_timer_last - demo_timer_curr <  200 &&
                           demo_timer_last - demo_timer_curr > -200;
-    else if (demo_timer_down != 1) demo_timer_down = 0;
+    }
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     EM_ASM({ Neverball.WGCLshowGameHUD(); });
 #endif
 
-    if (demo_timer_down && curr_status() == GAME_NONE)
+    if (demo_timer_down && !demo_timer_upward && curr_status() == GAME_NONE &&
+        (demo_timer_curr <= 1000 && (demo_timer_last / 10) > (demo_timer_curr / 10)))
     {
         int speed_old = speed;
 
         if (demo_timer_curr < 1000 && !demo_timer_warning)
         {
             demo_timer_warning = 1;
-            //audio_music_fade_to(.1f, "bgm/time-warning.ogg", 1);
+            audio_music_fade_to(.1f, "bgm/time-warning.ogg", 1);
         }
 
         if      (demo_timer_curr < 1    && speed > SPEED_SLOWESTESTEST)

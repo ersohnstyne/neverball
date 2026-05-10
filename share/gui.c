@@ -3447,16 +3447,16 @@ int gui_stick(int id, int a, float v, int bump)
     }
 
     /* Find a new active widget in the direction of joystick motion. */
-
+    
     if      (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))
     {
-        if (v + axis_offset[0] < 0) jd = gui_wrap_L(id, active);
-        if (v + axis_offset[0] > 0) jd = gui_wrap_R(id, active);
+        if (v + axis_offset_target[0] < 0) jd = gui_wrap_L(id, active);
+        if (v + axis_offset_target[0] > 0) jd = gui_wrap_R(id, active);
     }
     else if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y0, a))
     {
-        if (v + axis_offset[1] < 0) jd = gui_wrap_U(id, active);
-        if (v + axis_offset[1] > 0) jd = gui_wrap_D(id, active);
+        if (v + axis_offset_target[1] < 0) jd = gui_wrap_U(id, active);
+        if (v + axis_offset_target[1] > 0) jd = gui_wrap_D(id, active);
     }
 
     /* If the active widget has changed, return the new active id. */
@@ -3468,11 +3468,11 @@ int gui_stick(int id, int a, float v, int bump)
 void gui_cursor_stick_gamepad(int a, float v)
 {
     if (config_tst_d(CONFIG_JOYSTICK_AXIS_X1, a) && (!video_get_grab() || hmd_stat()))
-        gui_cursor_x_offset_rate_gamepad = ((v + axis_offset[2]) * 10) * (video.device_w / 1920.0f);
+        gui_cursor_x_offset_rate_gamepad = ((v + axis_offset_target[2]) * 10) * (video.device_w / 1920.0f);
     else if (video_get_grab()) gui_cursor_x_offset_rate_gamepad = 0.0f;
 
     if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y1, a) && (!video_get_grab() || hmd_stat()))
-        gui_cursor_y_offset_rate_gamepad = ((v + axis_offset[3]) * 10) * (video.device_h / 1080.0f);
+        gui_cursor_y_offset_rate_gamepad = ((v + axis_offset_target[3]) * 10) * (video.device_h / 1080.0f);
     else if (video_get_grab()) gui_cursor_y_offset_rate_gamepad = 0.0f;
 }
 

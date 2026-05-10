@@ -373,6 +373,7 @@ int glext_init(void)
     }
     else return 0;
 
+#ifndef _WIN32
     if (glext_check_ext("ARB_shader_objects"))
     {
         SDL_GL_GFPA(glGetShaderiv_,        "glGetShaderiv");
@@ -414,6 +415,11 @@ int glext_init(void)
 
         gli.string_marker = 1;
     }
+#else
+    gli.shader_objects     = 0;
+    gli.framebuffer_object = 0;
+    gli.string_marker      = 0;
+#endif
 
     /* NVIDIA init. */
 
@@ -506,9 +512,9 @@ int glext_get_recommended(void)
 
 /*---------------------------------------------------------------------------*/
 
-void glClipPlane4f_(GLenum p, GLfloat a, GLfloat b, GLfloat c, GLfloat d)
+void glClipPlane4f_(GLenum p, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat d)
 {
-    GLdouble v[4] = { a, b, c, d };
+    GLdouble v[4] = { nx, ny, nz, d };
 
     glClipPlane(p, v);
 }

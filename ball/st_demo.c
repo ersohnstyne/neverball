@@ -1542,8 +1542,8 @@ static void demo_play_stick(int id, int a, float v, int bump)
 
     if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y0, a))
     {
-        if (v + axis_offset[1] < 0) DEMO_CHANGE_SPEED(speed,  1);
-        if (v + axis_offset[1] > 0) DEMO_CHANGE_SPEED(speed, -1);
+        if (v + axis_offset_target[1] < 0) DEMO_CHANGE_SPEED(speed,  1);
+        if (v + axis_offset_target[1] > 0) DEMO_CHANGE_SPEED(speed, -1);
     }
 }
 

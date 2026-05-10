@@ -995,6 +995,7 @@ enum
     CONF_CONTROL_INVERT_RS_Y,
     CONF_CONTROL_CHANGEKEYBD,
     CONF_CONTROL_CHANGECONTROLLERS,
+    CONF_CONTROL_AUTOCALIB_AXIS,
     CONF_CONTROL_CALIBRATE
 };
 
@@ -1173,6 +1174,12 @@ static int conf_control_action(int tok, int val)
             goto_state(&st_conf_controllers);
             break;
 
+        case CONF_CONTROL_AUTOCALIB_AXIS:
+            config_set_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS, val);
+            config_save();
+            goto_state(&st_conf_control);
+            break;
+
         case CONF_CONTROL_CALIBRATE:
             goto_state(&st_conf_calibrate);
             break;
@@ -1289,9 +1296,21 @@ static int conf_control_gui(void)
         {
 #if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
             gui_space(id);
-
+            
+#if NB_HAVE_PB_BOTH==1
+            conf_toggle_simple(id, _("Auto-Calibrate Axis"), CONF_CONTROL_AUTOCALIB_AXIS,
+                                   config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS),
+                                   1, 0);
+#else
+            conf_toggle(id, _("Auto-Calibrate Axis"), CONF_CONTROL_AUTOCALIB_AXIS,
+                            config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS),
+                            _("On"), 1, _("Off"), 0);
+#endif
+            gui_space(id);
             conf_state(id, _("Gamepad"), _("Change"), CONF_CONTROL_CHANGECONTROLLERS);
-            conf_state(id, _("Axis"), _("Calibrate"), CONF_CONTROL_CALIBRATE);
+
+            if (!config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS))
+                conf_state(id, _("Axis"), _("Calibrate"), CONF_CONTROL_CALIBRATE);
 #endif
         }
 
@@ -1775,7 +1794,7 @@ static const char *conf_controllers_option_values_handset[] = {
     "",
 };
 
-static const char* conf_controllers_option_values_wii[] = {
+static const char *conf_controllers_option_values_wii[] = {
     "A",
     "B",
     "C",
@@ -2176,23 +2195,7 @@ static void conf_controllers_timer(int id, float dt)
 
 /*---------------------------------------------------------------------------*/
 
-static int calibrate_method;
-static int axis_title_id;
 static int axis_display_id;
-static float calib_x0, calib_y0, calib_x1, calib_y1;
-
-static void change_method(void)
-{
-    char titleattr[MAXSTR];
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(titleattr, MAXSTR,
-#else
-    sprintf(titleattr,
-#endif
-            _("Method %i"), calibrate_method);
-
-    gui_set_label(axis_title_id, titleattr);
-}
 
 static int conf_calibrate_action(int tok, int val)
 {
@@ -2204,20 +2207,10 @@ static int conf_calibrate_action(int tok, int val)
             return exit_state(&st_conf_control);
 
         case CONF_CONTROL_CALIBRATE:
-            if (calibrate_method == 2)
-            {
-                axis_offset[0]   = -calib_x0;
-                axis_offset[1]   = -calib_y0;
-                calibrate_method = 1;
-            }
-            else
-            {
-                axis_offset[2]   = -calib_x1;
-                axis_offset[3]   = -calib_y1;
-                calibrate_method = 2;
-            }
-
-            change_method();
+            axis_offset_target[0] = -axis_offset_current[0];
+            axis_offset_target[1] = -axis_offset_current[1];
+            axis_offset_target[2] = -axis_offset_current[2];
+            axis_offset_target[3] = -axis_offset_current[3];
             break;
     }
 
@@ -2230,25 +2223,10 @@ static int conf_calibrate_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        axis_title_id = gui_label(id, _("Method -"), GUI_SML, 0, 0);
-        gui_space(id);
-        axis_display_id = gui_label(id, "super-long-control-axis-display",
+        axis_display_id = gui_multi(id, "X0: -0.00; Y0: -0.00\nX1: -0.00; Y1: -0.00",
                                         GUI_SML, gui_wht, gui_yel);
-        gui_set_label(axis_display_id ,"X: -; Y: -");
-
-        char titleattr[MAXSTR];
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(titleattr, MAXSTR,
-#else
-        sprintf(titleattr,
-#endif
-                _("Method %i"), calibrate_method);
-
-        gui_set_label(axis_title_id, titleattr);
 
         gui_space(id);
-
         gui_start(id, _("Calibrate"), GUI_SML, CONF_CONTROL_CALIBRATE, 0);
 
         gui_layout(id, 0, 0);
@@ -2259,9 +2237,6 @@ static int conf_calibrate_gui(void)
 
 static int conf_calibrate_enter(struct state *st, struct state *prev, int intent)
 {
-    calibrate_method = 1;
-    calib_x0 = 0; calib_x1 = 0; calib_y0 = 0; calib_y1 = 0;
-
     if (mainmenu_conf)
         game_client_free(NULL);
 
@@ -2273,44 +2248,16 @@ static void conf_calibrate_stick(int id, int a, float v, int bump)
 {
     char axisattr[MAXSTR];
 
-    if (calibrate_method == 1)
-    {
-        if (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))
-            calib_x0 = v;
-        else if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y0, a))
-            calib_y0 = v;
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(axisattr, MAXSTR,
+#else
+    sprintf(axisattr,
+#endif
+            "X0: %.2f; Y0: %.2f\nX1: %.2f; Y1: %.2f",
+            (axis_offset_current[0] + axis_offset_target[0]), (axis_offset_current[1] + axis_offset_target[1]),
+            (axis_offset_current[2] + axis_offset_target[2]), (axis_offset_current[3] + axis_offset_target[3]));
 
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(axisattr, MAXSTR,
-#else
-        sprintf(axisattr,
-#endif
-                "X: %f; Y: %f",
-                (calib_x0 + axis_offset[0]), (calib_y0 + axis_offset[1]));
-    }
-    else if (calibrate_method == 2)
-    {
-        if (config_tst_d(CONFIG_JOYSTICK_AXIS_X1, a))
-            calib_x1 = v;
-        else if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y1, a))
-            calib_y1 = v;
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(axisattr, MAXSTR,
-#else
-        sprintf(axisattr,
-#endif
-                "X: %f; Y: %f",
-                (calib_x1 + axis_offset[2]), (calib_y1 + axis_offset[3]));
-    }
-    else
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(axisattr, MAXSTR,
-#else
-        sprintf(axisattr,
-#endif
-                "X: -; Y: -");
-
-    gui_set_label(axis_display_id, axisattr);
+    gui_set_multi(axis_display_id, axisattr);
 }
 
 /*---------------------------------------------------------------------------*/

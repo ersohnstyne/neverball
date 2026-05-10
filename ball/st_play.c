@@ -1168,18 +1168,18 @@ static void play_loop_stick(int id, int a, float v, int bump)
                                                        v * powerup_get_tilt_multiply());
 
         /* Camera movement */
-
+        
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X1, a))
         {
-            if (v + axis_offset[2] > 0.0f)
-                rot_set(DIR_R, +v + axis_offset[2], 1);
-            else if (v + axis_offset[2] < 0.0f)
-                rot_set(DIR_L, -v + axis_offset[2], 1);
+            if (v + axis_offset_target[2] > 0.0f)
+                rot_set(DIR_R, +v + axis_offset_target[2], 1);
+            else if (v + axis_offset_target[2] < 0.0f)
+                rot_set(DIR_L, -v + axis_offset_target[2], 1);
             else
                 rot_clr(DIR_R | DIR_L);
         }
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y1, a))
-            game_set_zoom_rate(v);
+            game_set_zoom_rate(v + axis_offset_target[3]);
 
         game_set_z(tilt_x);
         game_set_x(tilt_y);

@@ -580,7 +580,7 @@ extern PFNGLCALLCOMMANDLISTNV_PROC              glCallCommandListNV_;
 /*---------------------------------------------------------------------------*/
 #endif /* ENABLE_OPENGLES || defined(__EMSCRIPTEN__) */
 
-void glClipPlane4f_(GLenum, GLfloat, GLfloat, GLfloat, GLfloat);
+void glClipPlane4f_(GLenum p, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat d);
 void glBindTexture_(GLenum target, GLuint texture);
 
 void glToggleWireframe_(void);

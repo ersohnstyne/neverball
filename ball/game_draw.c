@@ -1139,6 +1139,7 @@ static void game_shadow_conf(int pose, int enable)
 
 void game_draw(struct game_draw *gd, int pose, float t)
 {
+    if (gd->fade_k >= 1.0f && !gd->fade_disabled) return;
     float fov = (float) config_get_d(CONFIG_VIEW_FOV);
 
     /* if (gd->jump_b) fov *= 2.0f * fabsf(gd->jump_dt - 0.5f); */

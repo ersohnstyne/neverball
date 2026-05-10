@@ -104,6 +104,7 @@ static int   score_count_anim_locked;
 
 static int shop_product_available;
 
+static int challenge_has_active_chkp;
 static int challenge_caught_extra;
 static int challenge_disable_all_buttons;
 
@@ -166,8 +167,13 @@ static int goal_action(int tok, int val)
             break;
 
         case GOAL_SAME:
-            if (progress_same())
+            if (progress_same() && !challenge_has_active_chkp)
                 return goto_play_level();
+            else {
+                /* Can't do yet, play buzzer sound. */
+
+                audio_play(AUD_DISABLED, 1.0f);
+            }
             break;
     }
 
@@ -539,11 +545,17 @@ static int goal_gui(void)
 
                 btn_ids[2] = gui_start(jd, _(next_btn_text), GUI_SML, next_btn_tok, 0);
 
+#ifdef MAPC_INCLUDES_CHKP
+                const int can_restart = !challenge_has_active_chkp;
+#else
+                const int can_restart = 1;
+#endif
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (progress_same_avail() &&
-                    (!campaign_hardcore() && curr_mode() != MODE_HARDCORE))
+                    (!campaign_hardcore() && curr_mode() != MODE_HARDCORE) && can_restart)
 #else
-                if (progress_same_avail())
+                if (progress_same_avail() && can_restart)
 #endif
                     btn_ids[1] = gui_start(jd, _("Retry Level"), GUI_SML, GOAL_SAME, 0);
 
@@ -631,6 +643,18 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
 
     if (!resume)
     {
+        if (goal_intro_animation_phase == 1)
+            challenge_has_active_chkp = 0;
+
+        if ((curr_mode() == MODE_CHALLENGE ||
+             curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+          || curr_mode() == MODE_HARDCORE
+#endif
+          || curr_mode() == MODE_DAILY
+            ) && goal_intro_animation_phase == 1)
+            challenge_has_active_chkp = last_active;
+
         goal_intro_speedmultiplier = 1.0f;
 
 #if NB_HAVE_PB_BOTH==1 && \
@@ -930,7 +954,7 @@ static int goal_keybd(int c, int d)
 #endif
             )
         {
-            if (progress_same())
+            if (progress_same() && !challenge_has_active_chkp)
             {
 #if NB_HAVE_PB_BOTH==1 && \
     defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)

@@ -93,6 +93,7 @@ extern int CONFIG_SOUND_VOLUME;
 extern int CONFIG_MUSIC_VOLUME;
 extern int CONFIG_NARRATOR_VOLUME;
 extern int CONFIG_JOYSTICK;
+extern int CONFIG_JOYSTICK_AUTOCALIB_AXIS;
 extern int CONFIG_JOYSTICK_RESPONSE;
 extern int CONFIG_JOYSTICK_AXIS_X0;
 extern int CONFIG_JOYSTICK_AXIS_Y0;
@@ -177,7 +178,8 @@ extern int CONFIG_DEDICATED_IPPORT;
 
 /*---------------------------------------------------------------------------*/
 
-extern float axis_offset[4];
+extern float axis_offset_current[4];
+extern float axis_offset_target[4];
 
 /*---------------------------------------------------------------------------*/
 

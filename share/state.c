@@ -172,6 +172,9 @@ int goto_state_full_intent(struct state *st,
     int prev_gui_id = 0;
     struct state *prev = state;
 
+    if (config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS))
+        st_autocalibrate_stick();
+
     if (!st)
     {
         log_errorf("st returned 0!\n");
@@ -369,10 +372,11 @@ void st_stick(int a, float v)
     };
 
     for (int i = 0; i < ARRAYSIZE(axes); i++)
-        if (config_tst_d(*axes[i].num, a) && config_get_d(*axes[i].inv))
-        {
-            v = -v;
+        if (config_tst_d(*axes[i].num, a)) {
+            if (config_get_d(*axes[i].inv))
+                v = -v;
 
+            axis_offset_current[i] = v;
             break;
         }
 
@@ -482,6 +486,21 @@ int st_dpad(int b, int d, int *p)
     else                    st_stick(Y,  0.0f);
 
     return 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void st_autocalibrate_stick(void)
+{
+    for (int i = 0; i < 4;) {
+        if (axis_offset_current[i] != 0.0f &&
+            fabsf(axis_offset_current[i]) < 0.2f) {
+            log_errorf("Auto-Calibrate Axis: Stick Axis %d automatically calibrated: %.2f > %.2f\n", i, axis_offset_current[i], -axis_offset_current[i]);
+            axis_offset_target[i] = -axis_offset_current[i];
+        }
+
+        i++;
+    }
 }
 
 /*---------------------------------------------------------------------------*/

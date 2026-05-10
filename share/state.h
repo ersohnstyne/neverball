@@ -135,6 +135,8 @@ int  st_touch(const SDL_TouchFingerEvent *);
 #endif
 int  st_dpad (int, int, int *);
 
+void st_autocalibrate_stick(void);
+
 /*---------------------------------------------------------------------------*/
 
 #endif

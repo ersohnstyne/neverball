@@ -1603,14 +1603,12 @@ static void title_timer(int id, float dt)
     {
         case TITLE_MODE_LEVEL: /* Pan across title level. */
 
-            if (builtin_demo_count != 0)
-            {
+            if (builtin_demo_count != 0) {
                 if (real_time <= 20.0f || title_prequit)
                     game_client_fly(fcosf(V_PI * real_time / 20.0f));
                 else if (!title_prequit) {
                     game_fade(+1.0f * (config_cheat() ? 4.0f : 1.0f));
-                    real_time = 0.0f;
-                    mode = TITLE_MODE_LEVEL_FADE;
+                    real_time = 0.0f; mode = TITLE_MODE_LEVEL_FADE;
                 }
             } else game_client_fly(0);
             break;
@@ -1671,11 +1669,10 @@ static void title_timer(int id, float dt)
             break;
 
         case TITLE_MODE_DEMO: /* Run demo. */
-            
+
             if (!title_prequit && (!demo_replay_step(dt) || !game_compat_map))
             {
-                if (builtin_demo_used == 1)
-                {
+                if (builtin_demo_used == 1) {
                     builtin_demo_used = 2;
                     builtin_demo_left_handed = !builtin_demo_left_handed;
                 }
@@ -1683,8 +1680,9 @@ static void title_timer(int id, float dt)
                 if (title_demo_shiftbeforefade <= 0.0f) {
                     demo_replay_stop(0);
                     game_fade(+1.0f * (config_cheat() ? 4.0f : 1.0f));
-                    real_time = 0.0f;
-                    if (!title_prequit) mode = TITLE_MODE_DEMO_FADE;
+                    if (!title_prequit) {
+                        real_time = 0.0f; mode = TITLE_MODE_DEMO_FADE;
+                    }
                 } else title_demo_shiftbeforefade -= dt;
 
                 if (curr_status() == GAME_FALL) game_client_toggle_show_balls(0);
@@ -1692,6 +1690,7 @@ static void title_timer(int id, float dt)
                 demo_replay_speed(config_cheat() ? SPEED_FASTEST : SPEED_NORMAL);
                 title_demo_shiftbeforefade = curr_status() == GAME_FALL ? 3.0f : 0.0f;
                 game_client_blend(demo_replay_blend());
+                game_camshake_update(dt* (config_cheat() ? 4 : 1));
             }
 
             break;
@@ -1727,7 +1726,6 @@ static void title_timer(int id, float dt)
     }
 
     gui_timer(id, dt);
-    game_camshake_update(dt);
     game_step_fade(dt);
 }
 
@@ -1752,8 +1750,7 @@ static int title_click(int b, int d)
         (title_intro_animation && time_state() < 2.0f && config_get_d(CONFIG_SCREEN_ANIMATIONS))) return 1;
 
     if (title_lockscreen && title_can_unlock &&
-        b == SDL_BUTTON_LEFT && d)
-    {
+        b == SDL_BUTTON_LEFT && d) {
         title_can_unlock = 0;
 
         title_play_narrator_welcome();
@@ -1810,10 +1807,8 @@ static int title_buttn(int b, int d)
 
     /* Lock screen menu */
 
-    if (title_lockscreen)
-    {
-        if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b) && title_can_unlock)
-        {
+    if (title_lockscreen) {
+        if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b) && title_can_unlock) {
             title_can_unlock = 0;
 
             title_play_narrator_welcome();

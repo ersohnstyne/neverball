@@ -142,6 +142,7 @@ int CONFIG_SOUND_VOLUME;
 int CONFIG_MUSIC_VOLUME;
 int CONFIG_NARRATOR_VOLUME;
 int CONFIG_JOYSTICK;
+int CONFIG_JOYSTICK_AUTOCALIB_AXIS;
 int CONFIG_JOYSTICK_RESPONSE;
 int CONFIG_JOYSTICK_AXIS_X0;
 int CONFIG_JOYSTICK_AXIS_Y0;
@@ -227,7 +228,8 @@ int CONFIG_DEDICATED_IPPORT;
 
 /*---------------------------------------------------------------------------*/
 
-float axis_offset[4];
+float axis_offset_current[4];
+float axis_offset_target[4];
 
 /*---------------------------------------------------------------------------*/
 
@@ -317,6 +319,7 @@ static struct
     { &CONFIG_NARRATOR_VOLUME,  "narrator_volume", 10 },
 
     { &CONFIG_JOYSTICK,                "joystick",                1 },
+    { &CONFIG_JOYSTICK_AUTOCALIB_AXIS, "joystick_autocalib_axis", 1 },
     { &CONFIG_JOYSTICK_RESPONSE,       "joystick_response",       250 },
     { &CONFIG_JOYSTICK_AXIS_X0,        "joystick_axis_x0",        0 },
     { &CONFIG_JOYSTICK_AXIS_Y0,        "joystick_axis_y0",        1 },

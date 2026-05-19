@@ -29,7 +29,7 @@ EM_LDFLAGS += -s ERROR_ON_WASM_CHANGES_AFTER_LINK -s WASM_BIGINT
 endif
 
 MAPC_SRCS := \
-	share/mapclib.c \
+	share/mapclib_bak.c \
 	share/mapc.c \
 	share/array.c \
 	share/base_config.c \

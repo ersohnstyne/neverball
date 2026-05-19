@@ -82,7 +82,7 @@ void GameDbg_SigHandler(int signum)
             char dbg_final_text[MAXSTR];
 
             DWORD64 _address = (DWORD64) (dbg_frames[i]);
-            DWORD64 _displacement = 0;
+            DWORD _displacement = 0;
             IMAGEHLP_LINE64 _line;
 
             if (SymFromAddr(_handle, _address, 0, _symbol))

@@ -514,7 +514,7 @@ MAPC_OBJS := \
 	share/dir.o         \
 	share/array.o       \
 	share/list.o        \
-	share/mapclib.o     \
+	share/mapclib_bak.o     \
 	share/mapc.o
 BALL_OBJS := \
 	payments/parson.o   \
@@ -563,7 +563,7 @@ BALL_OBJS := \
 	share/fs_ov.o       \
 	share/log.o         \
 	share/console_control_gui.o\
-	share/mapclib.o     \
+	share/mapclib_bak.o     \
 	ball/hud.o          \
 	ball/game_common.o  \
 	ball/game_client.o  \

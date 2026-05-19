@@ -606,7 +606,7 @@ static void sol_draw_all(const struct s_draw *draw, struct s_rend *rend, int p)
     /* Draw all meshes of all bodies matching the given material flags. */
 
     for (int bi = 0; bi < draw->bc; ++bi)
-        if (draw->bv[bi].pass[p])
+        if (draw->bv && draw->bv[bi].pass[p])
         {
             glPushMatrix();
             {

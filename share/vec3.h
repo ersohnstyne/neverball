@@ -140,6 +140,8 @@ void v_nrm_d(double n[3], const double v[3]);
     (u)[2] = (v)[0] * (w)[1] - (v)[1] * (w)[0]; \
 } while (0)
 
+#define m_inv(u, v) m_inv3d(u, v)
+
 void v_reflect(float u[3], const float v[3], const float n[3]);
 
 void   m_cpy(float *, const float *);

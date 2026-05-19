@@ -146,14 +146,14 @@ static float         glext_color4f_vfxs[16][4];
 
 /*---------------------------------------------------------------------------*/
 
-int glext_check_vendor(const char *vendor)
+int glext_check_vendor(const char* vendor)
 {
-    return strstr((const char *) glGetString(GL_VENDOR), vendor);
+    return str_starts_with((const char *)glGetString(GL_VENDOR), vendor);
 }
 
-int glext_check_renderer(const char *renderer)
+int glext_check_renderer(const char* renderer)
 {
-    return strstr((const char *) glGetString(GL_RENDERER), renderer);
+    return str_starts_with((const char *)glGetString(GL_RENDERER), renderer);
 }
 
 int glext_check_ext(const char *needle)
@@ -489,7 +489,7 @@ int glext_init(void)
 int glext_get_recommended(void)
 {
 #ifdef __EMSCRIPTEN__
-    const int r = EM_ASM_INT({
+    /*const int r = EM_ASM_INT({
         try {
             var main_canvas = document.getElementById("canvas");
             var main_gl = main_canvas.getContext("webgl", { powerPreference: "high-performance" }) || main_canvas.getContext("experimental-webgl", { powerPreference: "high-performance" });
@@ -508,7 +508,8 @@ int glext_get_recommended(void)
         return 0;
     });
 
-    return r;
+    return r;*/
+    return 0;
 #else
     return glext_check_vendor("AMD") ||
            glext_check_renderer("NVIDIA") || glext_check_renderer("AMD") ||

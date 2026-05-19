@@ -126,6 +126,9 @@
 #define MAXA    16384
 #define MAXI    262144
 
+/* FIXME: Use static assert for the best experiences! */
+static_assert (MAX_VERT_PLANES == ROUND(MAXV / 3), "Mismatch vertex plane count!");
+
 /*
  * The following is a small  symbol table data structure.  Symbols and
  * their integer  values are collected  in symv and  valv.  References

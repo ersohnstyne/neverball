@@ -23,11 +23,11 @@
 #include <stddef.h> /* offsetof */
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 #if __GNUC__ || __MINGW32__
 #include <sys/time.h>
 #endif
 #ifndef NDEBUG
-#include <assert.h>
 #elif defined(_MSC_VER) && defined(_AFXDLL)
 #include <afx.h>
 /**
@@ -127,7 +127,17 @@
 #define MAXI    262144
 
 /* FIXME: Use static assert for the best experiences! */
-static_assert (MAX_VERT_PLANES == ROUND(MAXV / 3), "Mismatch vertex plane count!");
+#ifdef _MSC_VER
+static_assert (MAX_VERT_PLANES == 21845, "Mismatch vertex plane count!");
+#else
+#define GLUE(a, b) a##b
+#define EVAL(expr, name)                                             \
+    typedef char GLUE(__assert_test_t_, name)[(expr) ? (+1) : (-1)]; \
+    static GLUE(__assert_test_t_, name) GLUE(__assert_test_var_, name) __attribute__((unused))
+#define STATIC_ASSERT(expr) EVAL(expr, __COUNTER__)
+
+STATIC_ASSERT(MAX_VERT_PLANES == 21845);
+#endif
 
 /*
  * The following is a small  symbol table data structure.  Symbols and

@@ -28,12 +28,8 @@
 
 /*---------------------------------------------------------------------------*/
 
-<<<<<<< HEAD
 /* Normalize (Vector) (float) */
 void v_nrm_f(float n[3], const float v[3])
-=======
-void v_nrm_f(float *n, const float *v)
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
 {
     float d = v_len_f(v);
 
@@ -51,28 +47,16 @@ void v_nrm_f(float *n, const float *v)
     }
 }
 
-<<<<<<< HEAD
 /* Normalize (Vector) (double) */
 void v_nrm_d(double n[3], const double v[3])
 {
     float d = v_len_d(v);
-
-    if (d == 0.0f)
-    {
-        n[0] = 0.0f;
-        n[1] = 0.0f;
-        n[2] = 0.0f;
-=======
-void v_nrm_d(double *n, const double *v)
-{
-    double d = v_len_d(v);
 
     if (d == 0.0)
     {
         n[0] = 0.0;
         n[1] = 0.0;
         n[2] = 0.0;
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
     }
     else
     {
@@ -80,7 +64,6 @@ void v_nrm_d(double *n, const double *v)
         n[1] = v[1] / d;
         n[2] = v[2] / d;
     }
-<<<<<<< HEAD
 }
 
 void v_reflect(float u[3], const float v[3], const float n[3])
@@ -91,8 +74,6 @@ void v_reflect(float u[3], const float v[3], const float n[3])
     w[0] *= -1;
     w[2] *= -1;
     v_sub(u, w, v);
-=======
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
 }
 
 /*---------------------------------------------------------------------------*/
@@ -114,10 +95,7 @@ void m_xps(float *M, const float *N)
     M[C] = N[3]; M[D] = N[7]; M[E] = N[B]; M[F] = N[F];
 }
 
-<<<<<<< HEAD
 /* Inverse (Matrix) (double) */
-=======
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
 int m_inv3d(double I[9], const double M[9])
 {
     double d;
@@ -274,10 +252,7 @@ void m_vxfm(float *v, const float *M, const float *w)
     v[2] = (w[0] * M[2] + w[1] * M[6] + w[2] * M[A]);
 }
 
-<<<<<<< HEAD
 /* Transform (Matrix) (double) */
-=======
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
 void m_vxfm3d(double v[3], const double M[9], const double w[3])
 {
     v[0] = (w[0] * M[0] + w[1] * M[3] + w[2] * M[6]);

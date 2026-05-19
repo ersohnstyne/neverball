@@ -1244,11 +1244,7 @@ static void read_obj(struct mapc_context *ctx, const char *name, int mi)
 
 static void make_plane(struct mapc_context *ctx, int   pi, double x0, double y0, double z0,
                        double x1, double y1, double z1,
-<<<<<<< HEAD
-    double x2, double y2, double z2,
-=======
                        double x2, double y2, double z2,
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
                        float tu, float tv, float r,
                        float su, float sv, int   fl, const char *s)
 {
@@ -1339,10 +1335,7 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
 
     if (fs_gets(buf, MAXSTR, fin))
     {
-<<<<<<< HEAD
         ctx->linenum += 1;
-=======
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
         double x0, y0, z0;
         double x1, y1, z1;
         double x2, y2, z2;
@@ -1402,12 +1395,8 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
 
         /* Scan a plane. */
 
-<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         if (doit == 1 && sscanf_s(buf,
-=======
-        if (sscanf(buf,
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
                    "( %lf %lf %lf ) "
                    "( %lf %lf %lf ) "
                    "( %lf %lf %lf ) "
@@ -2551,7 +2540,6 @@ static void read_map(struct mapc_context *ctx, fs_file fin)
 
 static void vert_side_add(struct mapc_context *ctx, int vi, int si)
 {
-<<<<<<< HEAD
     int i;
 
     for (i = 0; i < ctx->vert_plane_count[vi]; i++)
@@ -2582,8 +2570,6 @@ static int vert_side_test(struct mapc_context *ctx, int vi, int si)
 static int vert_lump_find(const struct s_base *fp,
                           const struct b_lump *lp, const float p[3])
 {
-=======
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
     int i;
 
     for (i = 0; i < ctx->vert_plane_count[vi]; i++)
@@ -2650,18 +2636,10 @@ static void clip_vert(struct mapc_context *ctx,
                       struct b_lump *lp, int si, int sj, int sk)
 {
     struct s_base *fp = &ctx->file;
-<<<<<<< HEAD
-
-=======
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
     int i;
     double X[9], I[9], d[3], p[3];
     float p3f[3];
 
-<<<<<<< HEAD
-    double X[9], I[9], d[3], p[3];
-    float p3f[3];
-
     d[0] = ctx->plane_d[si];
     d[1] = ctx->plane_d[sj];
     d[2] = ctx->plane_d[sk];
@@ -2670,16 +2648,6 @@ static void clip_vert(struct mapc_context *ctx,
     X[1] = ctx->plane_n[sj][0];
     X[2] = ctx->plane_n[sk][0];
 
-=======
-    d[0] = ctx->plane_d[si];
-    d[1] = ctx->plane_d[sj];
-    d[2] = ctx->plane_d[sk];
-
-    X[0] = ctx->plane_n[si][0];
-    X[1] = ctx->plane_n[sj][0];
-    X[2] = ctx->plane_n[sk][0];
-
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
     X[3] = ctx->plane_n[si][1];
     X[4] = ctx->plane_n[sj][1];
     X[5] = ctx->plane_n[sk][1];
@@ -2692,15 +2660,9 @@ static void clip_vert(struct mapc_context *ctx,
     {
         m_vxfm3d(p, I, d);
 
-<<<<<<< HEAD
-        p3f[0] = (float)p[0];
-        p3f[1] = (float)p[1];
-        p3f[2] = (float)p[2];
-=======
         p3f[0] = (float) p[0];
         p3f[1] = (float) p[1];
         p3f[2] = (float) p[2];
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
 
         /*
          * Verify that the generated vertex lies inside the convex lump by
@@ -2765,13 +2727,8 @@ static void clip_edge(struct mapc_context *ctx,
         {
             int vj = fp->iv[lp->v0 + j];
 
-<<<<<<< HEAD
-            if (vert_side_test(ctx, vi, si) &&
-                vert_side_test(ctx, vi, sj))
-=======
             if (vert_side_test(ctx, vj, si) &&
                 vert_side_test(ctx, vj, sj))
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
             {
                 fp->ev[fp->ec].vi = vi;
                 fp->ev[fp->ec].vj = vj;
@@ -2831,28 +2788,18 @@ static void clip_geom(struct mapc_context *ctx,
         {
             double vip[3], vjp[3], v0p[3];
 
-<<<<<<< HEAD
-            // Upgrade to double precision to prevent flipped windings
-=======
             // Upgrade to double precision to prevent flipped windings.
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
 
             v_cpy(vip, fp->vv[m[i]].p);
             v_cpy(vjp, fp->vv[m[j]].p);
             v_cpy(v0p, fp->vv[m[0]].p);
 
-<<<<<<< HEAD
-            v_crs(w, u, v);
-
-            if (v_dot(w, ctx->plane_n[si]) < 0.f)
-=======
             v_sub(u, vip, v0p);
             v_sub(v, vjp, v0p);
 
             v_crs(w, u, v);
 
-            if (v_dot(w, ctx->plane_n[si]) < 0.0)
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
+            if (v_dot(w, ctx->plane_n[si]) < 0.f)
             {
                 d     = m[i];
                 m[i]  = m[j];
@@ -2997,11 +2944,7 @@ static int comp_edge(const struct b_edge *ep, const struct b_edge *eq)
 static int comp_side(const struct b_side *sp, const struct b_side *sq)
 {
     if (sp->d != sq->d) return 0;
-<<<<<<< HEAD
-    if (v_dot(sp->n, sq->n) < 1.0f)  return 0;
-=======
     if (v_dot(sp->n, sq->n) < 1.0f) return 0;
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
 
     return 1;
 }

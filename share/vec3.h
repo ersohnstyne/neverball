@@ -129,13 +129,8 @@
 
 /*---------------------------------------------------------------------------*/
 
-<<<<<<< HEAD
 void v_nrm_f(float n[3], const float v[3]);
 void v_nrm_d(double n[3], const double v[3]);
-=======
-void   v_nrm_f(float *, const float *);
-void   v_nrm_d(double *, const double *);
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
 
 #define v_nrm(u, v) v_nrm_f(u, v)
 
@@ -144,20 +139,12 @@ void   v_nrm_d(double *, const double *);
     (u)[1] = (v)[2] * (w)[0] - (v)[0] * (w)[2]; \
     (u)[2] = (v)[0] * (w)[1] - (v)[1] * (w)[0]; \
 } while (0)
-<<<<<<< HEAD
 
 void v_reflect(float u[3], const float v[3], const float n[3]);
 
 void   m_cpy(float *, const float *);
 void   m_xps(float *, const float *);                  /* Transpose (Matrix) */
 int    m_inv3d(double I[9], const double M[9]);        /* Inverse (Matrix) (double) */
-=======
-
-void   m_cpy(float *, const float *);
-void   m_xps(float *, const float *);
-
-int    m_inv3d(double I[9], const double M[9]);
->>>>>>> 616f7d24a281fd7d7d9df947a578aee7ad3573bc
 
 void   m_ident(float *);                               /* Identity (Matrix)  */
 void   m_basis(float *M, const float e0[3],

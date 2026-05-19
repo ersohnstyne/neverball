@@ -265,6 +265,9 @@ static int play_ready_enter(struct state *st, struct state *prev, int intent)
 {
     devicemotion_tilt_can_autocalibrate = 1;
 
+    if (config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS))
+        st_autocalibrate_stick();
+
     prep_tilt_x = 0;
     prep_tilt_y = 0;
 
@@ -1171,15 +1174,15 @@ static void play_loop_stick(int id, int a, float v, int bump)
         
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X1, a))
         {
-            if (v + axis_offset_target[2] > 0.0f)
+            if (v + axis_offset_target[2] > 0.0f && fabsf(v + axis_offset_target[2]) >= 0.25f)
                 rot_set(DIR_R, +v + axis_offset_target[2], 1);
-            else if (v + axis_offset_target[2] < 0.0f)
+            else if (v + axis_offset_target[2] < 0.0f && fabsf(v + axis_offset_target[2]) >= 0.25f)
                 rot_set(DIR_L, -v + axis_offset_target[2], 1);
             else
                 rot_clr(DIR_R | DIR_L);
         }
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y1, a))
-            game_set_zoom_rate(v + axis_offset_target[3]);
+            game_set_zoom_rate(fabsf(v + axis_offset_target[3]) >= 0.25f ? v + axis_offset_target[3] : 0.0f);
 
         game_set_z(tilt_x);
         game_set_x(tilt_y);

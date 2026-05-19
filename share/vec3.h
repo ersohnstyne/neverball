@@ -19,8 +19,8 @@
 
 #define V_PI 3.1415927f
 
-#define V_RAD(d) (d * V_PI / 180.f)
-#define V_DEG(r) (r * 180.f / V_PI)
+#define V_RAD(d) ((d) * V_PI / 180.f)
+#define V_DEG(r) ((r) * 180.f / V_PI)
 
 #define fsinf(a)      ((float) sin((double) (a)))
 #define fcosf(a)      ((float) cos((double) (a)))
@@ -38,7 +38,9 @@
 /*---------------------------------------------------------------------------*/
 
 #define v_dot(u, v)  ((u)[0] * (v)[0] + (u)[1] * (v)[1] + (u)[2] * (v)[2])
-#define v_len(u)     fsqrtf(v_dot(u, u))
+#define v_len_f(u)   fsqrtf(v_dot(u, u))
+#define v_len_d(u)   sqrt(v_dot(u, u))
+#define v_len(u)     v_len_f(u)
 
 #define v_cpy(u, v) do { \
     (u)[0] = (v)[0];     \
@@ -127,13 +129,22 @@
 
 /*---------------------------------------------------------------------------*/
 
-void   v_nrm(float n[3], const float v[3]);            /* Normalize (Vector) */
-void   v_crs(float u[3], const float v[3], const float w[3]); /* Cross (Vector) */
-void   v_reflect(float u[3], const float v[3], const float n[3]);
+void v_nrm_f(float n[3], const float v[3]);
+void v_nrm_d(double n[3], const double v[3]);
+
+#define v_nrm(u, v) v_nrm_f(u, v)
+
+#define v_crs(u, v, w) do { \
+    (u)[0] = (v)[1] * (w)[2] - (v)[2] * (w)[1]; \
+    (u)[1] = (v)[2] * (w)[0] - (v)[0] * (w)[2]; \
+    (u)[2] = (v)[0] * (w)[1] - (v)[1] * (w)[0]; \
+} while (0)
+
+void v_reflect(float u[3], const float v[3], const float n[3]);
 
 void   m_cpy(float *, const float *);
 void   m_xps(float *, const float *);                  /* Transpose (Matrix) */
-int    m_inv(float *, const float *);                  /* Inverse (Matrix)   */
+int    m_inv3d(double I[9], const double M[9]);        /* Inverse (Matrix) (double) */
 
 void   m_ident(float *);                               /* Identity (Matrix)  */
 void   m_basis(float *M, const float e0[3],
@@ -145,7 +156,9 @@ void   m_rot(float *, const float v[3], float);        /* Rotate Axis (Matrix) *
 
 void   m_mult(float *, const float *, const float *);  /* Multiply (Matrix)  */
 void   m_pxfm(float *, const float *, const float *);
-void   m_vxfm(float *, const float *, const float *);  /* Transform (Matrix) */
+void   m_vxfm(float *, const float *, const float *);  /* Transform (Matrix) (float) */
+
+void   m_vxfm3d(double v[3], const double M[9], const double w[3]);  /* Transform (Matrix) (double) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -175,20 +188,6 @@ void q_rot(float v[3], const float r[4], const float w[3]); /* Rotate (Quaternio
 
 void q_euler(float v[3], const float q[4]);        /* Euler (Quaternion)     */
 void q_slerp(float q[4], const float a[4], const float b[4], float t); /* Spherical linear interpolation */
-
-/*---------------------------------------------------------------------------*/
-
-struct vec3
-{
-    float x, y, z;
-};
-
-struct vec4
-{
-    float w, x, y, z;
-};
-
-/*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*/
 

@@ -73,18 +73,20 @@ static int quit_uses_restart = 0;
 
 /*---------------------------------------------------------------------------*/
 
-#define PAUSED_ACTION_CONTINUE              \
-    do {                                    \
-        if (curr_state() == &st_pause) {    \
-            audio_music_fade_in(0.5f);      \
-            if (st_continue != &st_level)   \
-                video_set_grab(1);          \
-            return exit_state(st_continue); \
-        } else {                            \
-            quit_uses_resetpuzzle = 0;      \
-            quit_uses_restart     = 0;      \
-            return exit_state(&st_pause);   \
-        }                                   \
+#define PAUSED_ACTION_CONTINUE                                \
+    do {                                                      \
+        if (curr_state() == &st_pause) {                      \
+            if (config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS)) \
+                st_autocalibrate_stick();                     \
+            audio_music_fade_in(0.5f);                        \
+            if (st_continue != &st_level)                     \
+                video_set_grab(1);                            \
+            return exit_state(st_continue);                   \
+        } else {                                              \
+            quit_uses_resetpuzzle = 0;                        \
+            quit_uses_restart     = 0;                        \
+            return exit_state(&st_pause);                     \
+        }                                                     \
     } while (0)
 
 int goto_pause(struct state *returnable)

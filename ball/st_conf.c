@@ -584,7 +584,7 @@ static int conf_account_gui(void)
         const char *ball   = config_get_s(CONFIG_BALL_FILE);
 #endif
 
-        int ball_id, beam_id;
+        int ball_id = 0, beam_id = 0;
 
         int save = config_get_d(CONFIG_ACCOUNT_SAVE),
             load = config_get_d(CONFIG_ACCOUNT_LOAD);
@@ -696,15 +696,17 @@ static int conf_account_gui(void)
             if (CHECK_ACCOUNT_ENABLED)
                 conf_state(id, _("Addons"), _("Manage"), CONF_ACCOUNT_PACKAGES);
 #endif
-            gui_space(id);
-            ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX",
-                                     CONF_ACCOUNT_BALL);
+            if (server_policy_get_d(SERVER_POLICY_EDITION) != 0 ||
+                account_wgcl_name_read_only()) {
+                gui_space(id);
+                ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX",
+                                         CONF_ACCOUNT_BALL);
 #ifdef CONFIG_INCLUDES_ACCOUNT
-            beam_id = conf_state(id, _("Beam Style"), "XXXXXXXXXXXXXX",
-                                     CONF_ACCOUNT_BEAM);
+                beam_id = conf_state(id, _("Beam Style"), "XXXXXXXXXXXXXX",
+                                         CONF_ACCOUNT_BEAM);
 #endif
+            }
 #endif
-
 #ifndef __EMSCRIPTEN__
 #if NB_HAVE_PB_BOTH==1
             if (server_policy_get_d(SERVER_POLICY_EDITION) != 0 &&

@@ -837,6 +837,16 @@ static void title_play_narrator_welcome(void)
 
 static int vbuttons_id;
 
+#ifdef CONFIG_INCLUDES_ACCOUNT
+static int title_check_shopavailable(void)
+{
+    const int shop_enabled = server_policy_get_d(SERVER_POLICY_SHOP_ENABLED);
+    const int shop_nolocalaccount = server_policy_get_d(SERVER_POLICY_EDITION) == 0 && !account_wgcl_name_read_only();
+
+    return shop_enabled && !shop_nolocalaccount;
+}
+#endif
+
 static int title_gui(void)
 {
     vbuttons_id = 0;
@@ -1198,7 +1208,7 @@ static int title_gui(void)
                                                     btn_size, TITLE_PLAY, 0);
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-                        if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+                        if (title_check_shopavailable())
                             gui_state(kd, gt_prefix("menu^Shop"),
                                           btn_size, TITLE_SHOP, 0);
 #endif
@@ -1295,7 +1305,7 @@ static int title_gui(void)
                                             btn_size, TITLE_PLAY, 0);
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-                if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+                if (title_check_shopavailable())
                     gui_state(id, gt_prefix("menu^Shop"),
                                   btn_size, TITLE_SHOP, 0);
 #endif
@@ -1503,6 +1513,9 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
     if (!title_intro_animation)
         return transition_slide(title_gui_main, 1, intent);
+
+    if (config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS))
+        st_autocalibrate_stick();
 
     return title_gui_main;
 }

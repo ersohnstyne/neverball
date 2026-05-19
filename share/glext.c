@@ -146,9 +146,14 @@ static float         glext_color4f_vfxs[16][4];
 
 /*---------------------------------------------------------------------------*/
 
+int glext_check_vendor(const char *vendor)
+{
+    return strstr((const char *) glGetString(GL_VENDOR), vendor);
+}
+
 int glext_check_renderer(const char *renderer)
 {
-    return str_starts_with((const char *) glGetString(GL_RENDERER), renderer);
+    return strstr((const char *) glGetString(GL_RENDERER), renderer);
 }
 
 int glext_check_ext(const char *needle)
@@ -483,12 +488,9 @@ int glext_init(void)
 
 int glext_get_recommended(void)
 {
-#ifndef __EMSCRIPTEN__
-    return glext_check_renderer("NVIDIA") || glext_check_renderer("AMD") ||
-           glext_check_renderer("GIGABYTE") || glext_check_renderer("Radeon");
-#else
+#ifdef __EMSCRIPTEN__
     const int r = EM_ASM_INT({
-        /*try {
+        try {
             var main_canvas = document.getElementById("canvas");
             var main_gl = main_canvas.getContext("webgl", { powerPreference: "high-performance" }) || main_canvas.getContext("experimental-webgl", { powerPreference: "high-performance" });
 
@@ -501,12 +503,16 @@ int glext_get_recommended(void)
             var main_renderer = main_gl.getParameter(main_debug_info.UNMASKED_RENDERER_WEBGL).toLowerCase();
             var main_software_keywords = ["software","swiftshader","llvmpipe","microsoft basic render driver"];
             return !main_software_keywords.some(function(keyword) { return main_renderer.includes("keyword") }));
-        } catch (e) {}*/
+        } catch (e) {}
 
         return 0;
     });
 
     return r;
+#else
+    return glext_check_vendor("AMD") ||
+           glext_check_renderer("NVIDIA") || glext_check_renderer("AMD") ||
+           glext_check_renderer("GIGABYTE") || glext_check_renderer("Radeon");
 #endif
 }
 

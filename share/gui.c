@@ -3051,16 +3051,17 @@ void gui_timer(int id, float dt)
             }
         }
     }
-
+    
+#if NB_STEAM_API==1
     static float cursor_x_offset_gamepad = -10000;
     static float cursor_y_offset_gamepad = -10000;
 
-    if (cursor_x_offset_gamepad < -1 || cursor_x_offset_gamepad > video.device_w + 1) cursor_x_offset_gamepad = video.device_w / 2.0f;
-    if (cursor_y_offset_gamepad < -1 || cursor_y_offset_gamepad > video.device_h + 1) cursor_y_offset_gamepad = video.device_h / 2.0f;
-
     if (cursor_id &&
-        (gui_cursor_x_offset_rate_gamepad != 0 ||
-         gui_cursor_y_offset_rate_gamepad != 0)) {
+        (gui_cursor_x_offset_rate_gamepad != 0.0f ||
+         gui_cursor_y_offset_rate_gamepad != 0.0f)) {
+        if (cursor_x_offset_gamepad < -1 || cursor_x_offset_gamepad > video.device_w + 1) cursor_x_offset_gamepad = video.device_w / 2.0f;
+        if (cursor_y_offset_gamepad < -1 || cursor_y_offset_gamepad > video.device_h + 1) cursor_y_offset_gamepad = video.device_h / 2.0f;
+
         cursor_x_offset_gamepad += (gui_cursor_x_offset_rate_gamepad * dt);
         cursor_y_offset_gamepad += (gui_cursor_y_offset_rate_gamepad * dt);
 
@@ -3071,8 +3072,11 @@ void gui_timer(int id, float dt)
     }
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    else if (cursor_id && gui_cursor_shown_gamepad && console_gui_shown())
+    else if (cursor_id && gui_cursor_shown_gamepad && console_gui_shown() &&
+             (gui_cursor_x_offset_rate_gamepad != 0.0f ||
+              gui_cursor_y_offset_rate_gamepad != 0.0f))
         gui_point(id, cursor_x_offset_gamepad, cursor_y_offset_gamepad);
+#endif
 #endif
 }
 
@@ -3474,6 +3478,9 @@ void gui_cursor_stick_gamepad(int a, float v)
     if (config_tst_d(CONFIG_JOYSTICK_AXIS_Y1, a) && (!video_get_grab() || hmd_stat()))
         gui_cursor_y_offset_rate_gamepad = ((v + axis_offset_target[3]) * 10) * (video.device_h / 1080.0f);
     else if (video_get_grab()) gui_cursor_y_offset_rate_gamepad = 0.0f;
+
+    if (fabsf(gui_cursor_x_offset_rate_gamepad) < 0.2f) gui_cursor_x_offset_rate_gamepad = 0.0f;
+    if (fabsf(gui_cursor_y_offset_rate_gamepad) < 0.2f) gui_cursor_y_offset_rate_gamepad = 0.0f;
 }
 
 int gui_click(int b, int d)

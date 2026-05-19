@@ -34,6 +34,7 @@
 #include "transition.h"
 #include "audio.h"
 #include "score.h"
+#include "text.h"
 
 #include "st_level.h"
 #include "st_shared.h"
@@ -337,15 +338,23 @@ void WGCL_DailyChallenge_LoadSetHS_Coins(int timer_first, const char *name_first
     const int  hs_coins[3]      = { coins_first, coins_sec, coins_third };
     const int  hs_timer[3]      = { timer_first, timer_sec, timer_third };
 
-    for (int i = RANK_HARD; i < RANK_LAST; i++)
-        if (dailychallenge_mincoinrequired_easy <= hs_coins[i]) {
-            challenge_data.coin_score.coins[i] = hs_coins[i];
-            challenge_data.coin_score.timer[i] = hs_timer[i];
+    int i = RANK_HARD;
+
+    for (i = RANK_HARD; i < RANK_LAST; i++) {
+        if (hs_coins[i] < 0) return;
+        if (hs_timer[i] < 0) return;
+    }
+
+    for (i = RANK_HARD; i < RANK_LAST; i++)
+        if (dailychallenge_mincoinrequired_easy <= hs_coins[i] &&
+            dailychallenge_maxtimelimit_easy    >= hs_timer[i]) {
+            if (hs_coins[i] >= 0) challenge_data.coin_score.coins[i] = hs_coins[i];
+            if (hs_timer[i] >= 0) challenge_data.coin_score.timer[i] = hs_timer[i];
 
             switch (i) {
-                case 0: SAFECPY(challenge_data.coin_score.player[i], name_first); break;
-                case 1: SAFECPY(challenge_data.coin_score.player[i], name_sec);   break;
-                case 2: SAFECPY(challenge_data.coin_score.player[i], name_third); break;
+                case 0: if (text_length(name_first) >= 3) SAFECPY(challenge_data.coin_score.player[i], name_first); break;
+                case 1: if (text_length(name_sec)   >= 3) SAFECPY(challenge_data.coin_score.player[i], name_sec);   break;
+                case 2: if (text_length(name_third) >= 3) SAFECPY(challenge_data.coin_score.player[i], name_third); break;
             }
         }
 }
@@ -355,16 +364,24 @@ void WGCL_DailyChallenge_LoadSetHS_Time(int timer_first, const char *name_first,
                                         int timer_third, const char *name_third, int coins_third) {
     const int  hs_coins[3]      = { coins_first, coins_sec, coins_third };
     const int  hs_timer[3]      = { timer_first, timer_sec, timer_third };
-    
-    for (int i = RANK_HARD; i < RANK_LAST; i++)
-        if (dailychallenge_mincoinrequired_easy <= hs_coins[i]) {
-            challenge_data.coin_score.coins[i] = hs_coins[i];
-            challenge_data.coin_score.timer[i] = hs_timer[i];
+
+    int i = RANK_HARD;
+
+    for (i = RANK_HARD; i < RANK_LAST; i++) {
+        if (hs_coins[i] < 0) return;
+        if (hs_timer[i] < 0) return;
+    }
+
+    for (i = RANK_HARD; i < RANK_LAST; i++)
+        if (dailychallenge_mincoinrequired_easy <= hs_coins[i] &&
+            dailychallenge_maxtimelimit_easy    >= hs_timer[i]) {
+            if (hs_coins[i] >= 0) challenge_data.time_score.coins[i] = hs_coins[i];
+            if (hs_timer[i] >= 0) challenge_data.time_score.timer[i] = hs_timer[i];
 
             switch (i) {
-                case 0: SAFECPY(challenge_data.coin_score.player[i], name_first); break;
-                case 1: SAFECPY(challenge_data.coin_score.player[i], name_sec);   break;
-                case 2: SAFECPY(challenge_data.coin_score.player[i], name_third); break;
+                case 0: if (text_length(name_first) >= 3) SAFECPY(challenge_data.time_score.player[i], name_first); break;
+                case 1: if (text_length(name_sec)   >= 3) SAFECPY(challenge_data.time_score.player[i], name_sec);   break;
+                case 2: if (text_length(name_third) >= 3) SAFECPY(challenge_data.time_score.player[i], name_third); break;
             }
         }
 }

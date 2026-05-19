@@ -28,10 +28,10 @@
 
 /*---------------------------------------------------------------------------*/
 
-/* Normalize (Vector) */
-void v_nrm(float n[3], const float v[3])
+/* Normalize (Vector) (float) */
+void v_nrm_f(float n[3], const float v[3])
 {
-    float d = v_len(v);
+    float d = v_len_f(v);
 
     if (d == 0.0f)
     {
@@ -47,12 +47,23 @@ void v_nrm(float n[3], const float v[3])
     }
 }
 
-/* Cross (Vector) */
-void v_crs(float u[3], const float v[3], const float w[3])
+/* Normalize (Vector) (double) */
+void v_nrm_d(double n[3], const double v[3])
 {
-    u[0] = v[1] * w[2] - v[2] * w[1];
-    u[1] = v[2] * w[0] - v[0] * w[2];
-    u[2] = v[0] * w[1] - v[1] * w[0];
+    float d = v_len_d(v);
+
+    if (d == 0.0f)
+    {
+        n[0] = 0.0f;
+        n[1] = 0.0f;
+        n[2] = 0.0f;
+    }
+    else
+    {
+        n[0] = v[0] / d;
+        n[1] = v[1] / d;
+        n[2] = v[2] / d;
+    }
 }
 
 void v_reflect(float u[3], const float v[3], const float n[3])
@@ -84,88 +95,34 @@ void m_xps(float *M, const float *N)
     M[C] = N[3]; M[D] = N[7]; M[E] = N[B]; M[F] = N[F];
 }
 
-/* Inverse (Matrix) */
-int  m_inv(float *I, const float *N)
+/* Inverse (Matrix) (double) */
+int m_inv3d(double I[9], const double M[9])
 {
-    double T[16], M[16];
     double d;
-    int i;
 
-    for (i = 0; i < 16; i++)
-        M[i] = N[i];
+    double m00 = M[0], m10 = M[1], m20 = M[2];
+    double m01 = M[3], m11 = M[4], m21 = M[5];
+    double m02 = M[6], m12 = M[7], m22 = M[8];
 
-    T[0] = +(M[5] * (M[A] * M[F] - M[B] * M[E]) -
-             M[9] * (M[6] * M[F] - M[7] * M[E]) +
-             M[D] * (M[6] * M[B] - M[7] * M[A]));
-    T[1] = -(M[4] * (M[A] * M[F] - M[B] * M[E]) -
-             M[8] * (M[6] * M[F] - M[7] * M[E]) +
-             M[C] * (M[6] * M[B] - M[7] * M[A]));
-    T[2] = +(M[4] * (M[9] * M[F] - M[B] * M[D]) -
-             M[8] * (M[5] * M[F] - M[7] * M[D]) +
-             M[C] * (M[5] * M[B] - M[7] * M[9]));
-    T[3] = -(M[4] * (M[9] * M[E] - M[A] * M[D]) -
-             M[8] * (M[5] * M[E] - M[6] * M[D]) +
-             M[C] * (M[5] * M[A] - M[6] * M[9]));
+    double c00 = m11 * m22 - m12 * m21;
+    double c10 = m12 * m20 - m10 * m22;
+    double c20 = m10 * m21 - m11 * m20;
 
-    T[4] = -(M[1] * (M[A] * M[F] - M[B] * M[E]) -
-             M[9] * (M[2] * M[F] - M[3] * M[E]) +
-             M[D] * (M[2] * M[B] - M[3] * M[A]));
-    T[5] = +(M[0] * (M[A] * M[F] - M[B] * M[E]) -
-             M[8] * (M[2] * M[F] - M[3] * M[E]) +
-             M[C] * (M[2] * M[B] - M[3] * M[A]));
-    T[6] = -(M[0] * (M[9] * M[F] - M[B] * M[D]) -
-             M[8] * (M[1] * M[F] - M[3] * M[D]) +
-             M[C] * (M[1] * M[B] - M[3] * M[9]));
-    T[7] = +(M[0] * (M[9] * M[E] - M[A] * M[D]) -
-             M[8] * (M[1] * M[E] - M[2] * M[D]) +
-             M[C] * (M[1] * M[A] - M[2] * M[9]));
+    d = m00 * c00 + m01 * c10 + m02 * c20;
 
-    T[8] = +(M[1] * (M[6] * M[F] - M[7] * M[E]) -
-             M[5] * (M[2] * M[F] - M[3] * M[E]) +
-             M[D] * (M[2] * M[7] - M[3] * M[6]));
-    T[9] = -(M[0] * (M[6] * M[F] - M[7] * M[E]) -
-             M[4] * (M[2] * M[F] - M[3] * M[E]) +
-             M[C] * (M[2] * M[7] - M[3] * M[6]));
-    T[A] = +(M[0] * (M[5] * M[F] - M[7] * M[D]) -
-             M[4] * (M[1] * M[F] - M[3] * M[D]) +
-             M[C] * (M[1] * M[7] - M[3] * M[5]));
-    T[B] = -(M[0] * (M[5] * M[E] - M[6] * M[D]) -
-             M[4] * (M[1] * M[E] - M[2] * M[D]) +
-             M[C] * (M[1] * M[6] - M[2] * M[5]));
-
-    T[C] = -(M[1] * (M[6] * M[B] - M[7] * M[A]) -
-             M[5] * (M[2] * M[B] - M[3] * M[A]) +
-             M[9] * (M[2] * M[7] - M[3] * M[6]));
-    T[D] = +(M[0] * (M[6] * M[B] - M[7] * M[A]) -
-             M[4] * (M[2] * M[B] - M[3] * M[A]) +
-             M[8] * (M[2] * M[7] - M[3] * M[6]));
-    T[E] = -(M[0] * (M[5] * M[B] - M[7] * M[9]) -
-             M[4] * (M[1] * M[B] - M[3] * M[9]) +
-             M[8] * (M[1] * M[7] - M[3] * M[5]));
-    T[F] = +(M[0] * (M[5] * M[A] - M[6] * M[9]) -
-             M[4] * (M[1] * M[A] - M[2] * M[9]) +
-             M[8] * (M[1] * M[6] - M[2] * M[5]));
-
-    d = M[0] * T[0] + M[4] * T[4] + M[8] * T[8] + M[C] * T[C];
-
-    if (fabs(d) > TINY)
+    if (d)
     {
-        I[0] = T[0] / d;
-        I[1] = T[4] / d;
-        I[2] = T[8] / d;
-        I[3] = T[C] / d;
-        I[4] = T[1] / d;
-        I[5] = T[5] / d;
-        I[6] = T[9] / d;
-        I[7] = T[D] / d;
-        I[8] = T[2] / d;
-        I[9] = T[6] / d;
-        I[A] = T[A] / d;
-        I[B] = T[E] / d;
-        I[C] = T[3] / d;
-        I[D] = T[7] / d;
-        I[E] = T[B] / d;
-        I[F] = T[F] / d;
+        I[0] = c00 / d;
+        I[1] = c10 / d;
+        I[2] = c20 / d;
+
+        I[3] = (m02 * m21 - m01 * m22) / d;
+        I[4] = (m00 * m22 - m02 * m20) / d;
+        I[5] = (m01 * m20 - m00 * m21) / d;
+
+        I[6] = (m01 * m12 - m02 * m11) / d;
+        I[7] = (m02 * m10 - m00 * m12) / d;
+        I[8] = (m00 * m11 - m01 * m10) / d;
 
         return 1;
     }
@@ -287,12 +244,20 @@ void m_pxfm(float *v, const float *M, const float *w)
     v[2] = (w[0] * M[2] + w[1] * M[6] + w[2] * M[A] + M[E]) / d;
 }
 
-/* Transform (Matrix) */
+/* Transform (Matrix) (float) */
 void m_vxfm(float *v, const float *M, const float *w)
 {
     v[0] = (w[0] * M[0] + w[1] * M[4] + w[2] * M[8]);
     v[1] = (w[0] * M[1] + w[1] * M[5] + w[2] * M[9]);
     v[2] = (w[0] * M[2] + w[1] * M[6] + w[2] * M[A]);
+}
+
+/* Transform (Matrix) (double) */
+void m_vxfm3d(double v[3], const double M[9], const double w[3])
+{
+    v[0] = (w[0] * M[0] + w[1] * M[3] + w[2] * M[6]);
+    v[1] = (w[0] * M[1] + w[1] * M[4] + w[2] * M[7]);
+    v[2] = (w[0] * M[2] + w[1] * M[5] + w[2] * M[8]);
 }
 
 /*---------------------------------------------------------------------------*/

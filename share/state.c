@@ -157,6 +157,9 @@ float time_state(void)
 
 void init_state(struct state *st)
 {
+    for (int i = 0; i < 4; i++)
+        axis_offset_target[i] = 0.0f;
+
     state = st;
 }
 
@@ -172,8 +175,8 @@ int goto_state_full_intent(struct state *st,
     int prev_gui_id = 0;
     struct state *prev = state;
 
-    if (config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS))
-        st_autocalibrate_stick();
+    //if (config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS))
+        //st_autocalibrate_stick();
 
     if (!st)
     {
@@ -389,7 +392,9 @@ void st_stick(int a, float v)
         state->stick(state->gui_id, a, v, bump_stick(a));
     }
 
+#if NB_STEAM_API==1
     gui_cursor_stick_gamepad(a, v);
+#endif
 }
 
 void st_angle(float x, float z)
@@ -493,8 +498,8 @@ int st_dpad(int b, int d, int *p)
 void st_autocalibrate_stick(void)
 {
     for (int i = 0; i < 4;) {
-        if (axis_offset_current[i] != 0.0f &&
-            fabsf(axis_offset_current[i]) < 0.2f) {
+        if (axis_offset_target[i] - axis_offset_current[i] != 0.0f &&
+            fabsf(axis_offset_current[i]) < 0.25f) {
             log_errorf("Auto-Calibrate Axis: Stick Axis %d automatically calibrated: %.2f > %.2f\n", i, axis_offset_current[i], -axis_offset_current[i]);
             axis_offset_target[i] = -axis_offset_current[i];
         }

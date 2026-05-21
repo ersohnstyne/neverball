@@ -381,7 +381,7 @@ void *image_flip(const void *p, int w, int h, int b, int hflip, int vflip)
     else if (!hflip && !vflip)
         return (void *) p;
 
-    unsigned char* q;
+    unsigned char *q;
 
     if ((q = malloc(w * b * h)))
     {

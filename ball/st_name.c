@@ -132,20 +132,19 @@ static void name_update_enter_btn(void)
             break;
         }
     }
-
-    gui_set_state(enter_id, name_accepted &&
-                            !player_renamed ? NAME_OK : GUI_NONE, 0);
+    
+    gui_set_state(enter_id, name_accepted ? NAME_OK : GUI_NONE, 0);
     gui_set_color(enter_id,
-                  name_accepted && !player_renamed ? gui_wht : gui_gry,
-                  name_accepted && !player_renamed ? gui_wht : gui_gry);
+                  name_accepted ? gui_wht : gui_gry,
+                  name_accepted ? gui_wht : gui_gry);
 
-    enter_btn_action_allowed = name_accepted && !player_renamed;
+    enter_btn_action_allowed = name_accepted;
 }
 
 static int name_action(int tok, int val)
 {
-    if (game_setup_process() && tok == GUI_BACK)
-    {
+    if (game_setup_process() && tok == GUI_BACK &&
+        !name_error) {
         audio_play(AUD_DISABLED, 1.0f);
         return 1;
     }
@@ -183,7 +182,7 @@ static int name_action(int tok, int val)
             text_input_stop();
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
-            if (enter_btn_action_allowed)
+            if (!enter_btn_action_allowed)
                 name_error = 1;
             else if (player_renamed)
             {
@@ -192,7 +191,7 @@ static int name_action(int tok, int val)
                 config_set_s(CONFIG_PLAYER, text_input);
 
                 account_init();
-                if (enter_btn_action_allowed)
+                if (!enter_btn_action_allowed)
                     name_error = 1;
                 else if (account_exists())
                     account_load();

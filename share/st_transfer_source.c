@@ -71,7 +71,7 @@
  *     for (int i = 0; i < total; i++)
  *     {
  *         struct demo *demo_data = (
- *             (struct demo *) ((struct dir_item*) array_get(items, i))->data
+ *             (struct demo *) ((struct dir_item *) array_get(items, i))->data
  *         );
  *
  *          if (!demo_data)

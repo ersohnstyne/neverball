@@ -335,7 +335,7 @@ int file_size(const char *path)
     return 0;
 }
 
-void file_copy(FILE* fin, FILE* fout)
+void file_copy(FILE *fin, FILE *fout)
 {
     char   buff[MAXSTR];
     size_t size = 0;

@@ -574,7 +574,7 @@ int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
 
     if (draw->base->bc)
     {
-        if ((draw->bv = (struct d_body*) (calloc(draw->base->bc, sizeof (*draw->bv)))))
+        if ((draw->bv = (struct d_body *) (calloc(draw->base->bc, sizeof (*draw->bv)))))
         {
             draw->bc = draw->base->bc;
 

@@ -36,7 +36,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static int game_draw_cam_abovemap(struct game_draw *gd, struct game_view *view)
+static int game_draw_cam_abovemap(const struct game_draw *gd)
 {
 #ifdef _DEBUG
     return gd->vary.base->vc == 0 ? 0 : gd->vary.base->vv[0].p[1] > gd->view.p[1] ? 0 : 1;
@@ -1030,7 +1030,7 @@ static void game_draw_fore_chnk(struct s_rend *rend,
 {
     const float *ball_p = gd->vary.uv[0].p;
 
-    struct s_draw* draw = &gd->draw;
+    struct s_draw *draw = &gd->draw;
 
     glPushMatrix();
     {

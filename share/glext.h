@@ -548,7 +548,7 @@ typedef GLushort  (APIENTRYP PFNGLGETSTAGEINDEXNV_PROC)                (GLenum s
 typedef void      (APIENTRYP PFNGLDRAWCOMMANDSNV_PROC)                 (GLenum primitiveMode, GLuint buffer, const GLintptr *indirects, const GLsizei *sizes, GLuint count);
 typedef void      (APIENTRYP PFNGLDRAWCOMMANDSADDRESSNV_PROC)          (GLenum primitiveMode, const GLuint64 *indirects, const GLsizei *sizes, GLuint count);
 typedef void      (APIENTRYP PFNGLDRAWCOMMANDSSTATESNV_PROC)           (GLuint buffer, const GLintptr *indirects, const GLsizei *sizes, const GLuint *states, const GLuint *fbos, GLuint count);
-typedef void      (APIENTRYP PFNGLDRAWCOMMANDSSTATESADDRESSNV_PROC)    (const GLuint64* indirects, const GLsizei *sizes, const GLuint *states, const GLuint *fbos, GLuint count);
+typedef void      (APIENTRYP PFNGLDRAWCOMMANDSSTATESADDRESSNV_PROC)    (const GLuint64 *indirects, const GLsizei *sizes, const GLuint *states, const GLuint *fbos, GLuint count);
 typedef void      (APIENTRYP PFNGLCREATECOMMANDLISTSNV_PROC)           (GLsizei n, GLuint *lists);
 typedef void      (APIENTRYP PFNGLDELETECOMMANDLISTSNV_PROC)           (GLsizei n, const GLuint *lists);
 typedef GLboolean (APIENTRYP PFNGLISCOMMANDLISTNV_PROC)                (GLuint list);

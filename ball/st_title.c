@@ -390,7 +390,7 @@ static int title_goto_playgame(struct state *st)
     return goto_playgame();
 }
 
-static void title_refresh_packages_done(void* data1, void* data2)
+static void title_refresh_packages_done(void *data1, void *data2)
 {
     struct fetch_done *dn = data2;
 
@@ -1703,7 +1703,7 @@ static void title_timer(int id, float dt)
                 demo_replay_speed(config_cheat() ? SPEED_FASTEST : SPEED_NORMAL);
                 title_demo_shiftbeforefade = curr_status() == GAME_FALL ? 3.0f : 0.0f;
                 game_client_blend(demo_replay_blend());
-                game_camshake_update(dt* (config_cheat() ? 4 : 1));
+                game_camshake_update(dt * (config_cheat() ? 4 : 1));
             }
 
             break;

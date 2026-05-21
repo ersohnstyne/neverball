@@ -140,13 +140,14 @@ void v_nrm_d(double n[3], const double v[3]);
     (u)[2] = (v)[0] * (w)[1] - (v)[1] * (w)[0]; \
 } while (0)
 
-#define m_inv(u, v) m_inv3d(u, v)
+#define m_inv(u, v) m_inv3f(u, v)
 
 void v_reflect(float u[3], const float v[3], const float n[3]);
 
 void   m_cpy(float *, const float *);
 void   m_xps(float *, const float *);                  /* Transpose (Matrix) */
-int    m_inv3d(double I[9], const double M[9]);        /* Inverse (Matrix) (double) */
+int    m_inv3d(double *I, const double *M);            /* Inverse (Matrix) (double) */
+int    m_inv3f(float  *I, const float  *M);            /* Inverse (Matrix) (double) */
 
 void   m_ident(float *);                               /* Identity (Matrix)  */
 void   m_basis(float *M, const float e0[3],

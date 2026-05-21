@@ -461,7 +461,7 @@ int video_dualdisplay_mode(int f, int w, int h)
             log_errorf("Failure to create window!: Exception caught! (%s)\n", xO.what());
             return 0;
         }
-        catch (const char* xS) {
+        catch (const char *xS) {
             log_errorf("Failure to create window!: Exception caught! (%s)\n", xS);
             return 0;
         }

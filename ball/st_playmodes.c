@@ -186,7 +186,7 @@ static int playmodes_gui(void)
         const char *career_title_locked = N_("Career Mode");
         const char *career_text         = N_("Toggle career mode in the entire game.\n"
                                              "Compatible with Level Set.");
-        const char* career_text_locked  = server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER) ?
+        const char *career_text_locked  = server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CAREER) ?
                                           N_("Complete the game to unlock.") :
                                           N_("Career mode is not available\n"
                                              "with server group policy.");
@@ -225,7 +225,7 @@ static int playmodes_gui(void)
         }
         else if (server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_HARDCORE))
         {
-            const char* career_text_locked = !hardcore_requirement ?
+            const char *career_text_locked = !hardcore_requirement ?
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                                              N_("Hardcore Mode is not available\n"
                                                 "with slowdown, cheat or smooth fix.") :

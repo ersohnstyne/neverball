@@ -363,7 +363,7 @@ enum
     MODEL_SETUP_FINISH
 };
 
-static void ball_refresh_packages_done(void* data1, void* data2)
+static void ball_refresh_packages_done(void *data1, void *data2)
 {
     struct fetch_done *dn = data2;
 

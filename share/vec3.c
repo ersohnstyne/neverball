@@ -96,7 +96,7 @@ void m_xps(float *M, const float *N)
 }
 
 /* Inverse (Matrix) (double) */
-int m_inv3d(double I[9], const double M[9])
+int m_inv3d(double *I, const double *M)
 {
     double d;
 
@@ -107,6 +107,40 @@ int m_inv3d(double I[9], const double M[9])
     double c00 = m11 * m22 - m12 * m21;
     double c10 = m12 * m20 - m10 * m22;
     double c20 = m10 * m21 - m11 * m20;
+
+    d = m00 * c00 + m01 * c10 + m02 * c20;
+
+    if (d)
+    {
+        I[0] = c00 / d;
+        I[1] = c10 / d;
+        I[2] = c20 / d;
+
+        I[3] = (m02 * m21 - m01 * m22) / d;
+        I[4] = (m00 * m22 - m02 * m20) / d;
+        I[5] = (m01 * m20 - m00 * m21) / d;
+
+        I[6] = (m01 * m12 - m02 * m11) / d;
+        I[7] = (m02 * m10 - m00 * m12) / d;
+        I[8] = (m00 * m11 - m01 * m10) / d;
+
+        return 1;
+    }
+    return 0;
+}
+
+/* Inverse (Matrix) (float) */
+int m_inv3f(float *I, const float *M)
+{
+    float d;
+
+    float m00 = M[0], m10 = M[1], m20 = M[2];
+    float m01 = M[3], m11 = M[4], m21 = M[5];
+    float m02 = M[6], m12 = M[7], m22 = M[8];
+
+    float c00 = m11 * m22 - m12 * m21;
+    float c10 = m12 * m20 - m10 * m22;
+    float c20 = m10 * m21 - m11 * m20;
 
     d = m00 * c00 + m01 * c10 + m02 * c20;
 

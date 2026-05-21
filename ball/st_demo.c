@@ -1303,7 +1303,7 @@ static int demo_timer_warning;
 /* Keyboard inputs */
 static int faster;
 
-static int filter_cmd_goal(const union cmd* cmd)
+static int filter_cmd_goal(const union cmd *cmd)
 {
     return (cmd ? cmd->type != CMD_SOUND &&
                   cmd->type != CMD_TIMER    : 1);

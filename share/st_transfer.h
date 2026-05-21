@@ -30,7 +30,7 @@ void transfer_addreplay_exceeded(void);
 #endif
 
 #if ENABLE_GAME_TRANSFER==1
-int goto_game_transfer(struct state*);
+int goto_game_transfer(struct state *);
 #endif
 
 #endif

@@ -288,7 +288,7 @@ static void fetch_dispatch_init(void)
 /*
  * Push a custom SDL event on the event queue.
  */
-static void fetch_dispatch_event(struct fetch_event* fe)
+static void fetch_dispatch_event(struct fetch_event *fe)
 {
     SDL_Event e;
 
@@ -760,7 +760,7 @@ void fetch_reinit(void)
     if (curl_was_init)
         fetch_quit();
 
-    curl_version_info_data* info;
+    curl_version_info_data *info;
 
     curl_global_init(CURL_GLOBAL_ALL);
     curl_was_init = 1;

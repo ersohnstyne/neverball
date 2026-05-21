@@ -355,7 +355,7 @@ enum
     CONF_ACCOUNT_LOAD
 };
 
-static void account_set_refresh_packages_done(void* data1, void* data2)
+static void account_set_refresh_packages_done(void *data1, void *data2)
 {
     struct fetch_done *dn = data2;
 
@@ -1348,7 +1348,7 @@ static int conf_keybd_option_index;
 
 static float keybd_modal_alpha = 0.0f;
 
-static const char* conf_keybd_option_names[] = {
+static const char *conf_keybd_option_names[] = {
     N_("Auto-Camera"),
     "KEYBD_KEY_CAM_1",
     "KEYBD_KEY_CAM_2",

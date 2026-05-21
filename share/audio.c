@@ -329,7 +329,7 @@ void voice_free(struct voice *V)
 }
 
 #if !defined(__WII__)
-static void voice_quit(struct voice* V)
+static void voice_quit(struct voice *V)
 {
     struct voice *VP, *VN;
 

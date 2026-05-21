@@ -704,7 +704,7 @@ Uint32 MOON_TASKLOADER_EVENT = -1u;
 /*
  * Push a custom SDL event on the queue from another thread.
  */
-static void dispatch_moon_taskloader_event(void* data)
+static void dispatch_moon_taskloader_event(void *data)
 {
     SDL_Event e;
 
@@ -1872,7 +1872,7 @@ static int main_init_checksteam(const char *filename, const char *needle) {
 
     if ((handle = fs_open_read(filename))) {
         while (read_line(&out_line, handle)) {
-            for (c = (const char *) needle; *c && *out_line; c++, out_line++)
+            for (c = (char *) needle; *c && *out_line; c++, out_line++)
                 if (*c != *out_line)
                     break;
 
@@ -1907,7 +1907,7 @@ static int main_init(int argc, char *argv[])
      * This abomination must be corrected. */
     if (argc == 0)
     {
-        static char* argv_[1];
+        static char *argv_[1];
         argv = argv_;
         argc = 1;
     }

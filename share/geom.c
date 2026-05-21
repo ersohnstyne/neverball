@@ -780,7 +780,7 @@ void chnk_goal_draw(struct s_rend *rend)
     sol_draw(&chnk_goal.draw, rend, chnk_allow_mask, chnk_allow_depth);
 }
 
-void chnk_swch_draw(struct s_rend* rend)
+void chnk_swch_draw(struct s_rend *rend)
 {
     sol_draw(&chnk_swch.draw, rend, chnk_allow_mask, chnk_allow_depth);
 }

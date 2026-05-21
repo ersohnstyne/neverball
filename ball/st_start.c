@@ -215,14 +215,14 @@ static int set_level_options = 0;
 #if ENABLE_MOON_TASKLOADER!=0
 static int start_is_scanning_with_moon_taskloader = 0;
 
-static int start_scan_moon_taskloader(void* data, void* execute_data)
+static int start_scan_moon_taskloader(void *data, void *execute_data)
 {
     set_scan_level_files();
 
     return 1;
 }
 
-static void start_scan_done_moon_taskloader(void* data, void* done_data)
+static void start_scan_done_moon_taskloader(void *data, void *done_data)
 {
     start_is_scanning_with_moon_taskloader = 0;
 

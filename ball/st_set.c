@@ -350,7 +350,7 @@ static void gui_set(int id, int i)
 #if ENABLE_MOON_TASKLOADER!=0
 static int set_is_scanning_with_moon_taskloader = 0;
 
-static int set_scan_moon_taskloader(void* data, void* execute_data)
+static int set_scan_moon_taskloader(void *data, void *execute_data)
 {   
     if (!do_init || set_manual_hotreload)
     {
@@ -366,7 +366,7 @@ static int set_scan_moon_taskloader(void* data, void* execute_data)
     return 1;
 }
 
-static void set_scan_done_moon_taskloader(void* data, void* done_data)
+static void set_scan_done_moon_taskloader(void *data, void *done_data)
 {
     set_is_scanning_with_moon_taskloader = 0;
 
@@ -811,7 +811,7 @@ static int campaign_theme_btn_id;
 
 struct campaign_ranker
 {
-    const GLubyte* col_rank; const char *img_rank; const char *text_rank;
+    const GLubyte *col_rank; const char *img_rank; const char *text_rank;
 } campaign_ranks[] = {
     { gui_brn, "gui/ranks/rank_cadet_fhd.png",  N_("Airline Cadet")    },
     { gui_brn, "gui/ranks/rank_bronze_fhd.png", N_("Bronze Commander") },

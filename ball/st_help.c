@@ -1221,9 +1221,12 @@ static int page_tricks(int id)
 
 /*---------------------------------------------------------------------------*/
 
+static int vstack_id = 0;
+
 static int help_gui(void)
 {
 #ifdef SWITCHBALL_HELP
+    vstack_id = 0;
     int root_id, id, jd, kd;
 
     root_id = gui_root();
@@ -1330,6 +1333,7 @@ static int help_gui(void)
         gui_layout(id, 0, 0);
     }
 
+    vstack_id = id;
     return root_id;
 #else
     int id;
@@ -1375,6 +1379,11 @@ static void help_paint(int id, float t)
     if (console_gui_shown())
         console_gui_list_paint();
 #endif
+}
+
+static void help_stick(int id, int a, float v, int bump)
+{
+    shared_stick_basic(vstack_id ? vstack_id : id, a, v, bump);
 }
 
 static int help_keybd(int c, int d)
@@ -1423,8 +1432,10 @@ static int help_buttn(int b, int d)
             return help_action(gui_token(active), gui_value(active));
         else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return help_action(GUI_BACK, 0);
+#ifndef SWITCHBALL_HELP
         else if (help_buttn_gamepad(page, b, d))
             /* Works even with gamepad scroll pages */;
+#endif
     }
     return 1;
 }
@@ -1522,7 +1533,7 @@ struct state st_help = {
     help_paint,
     shared_timer,
     shared_point,
-    shared_stick,
+    help_stick,
     shared_angle,
     shared_click,
     help_keybd,

@@ -755,17 +755,17 @@ static int loop(void)
                 break;
 
 //#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
-#if NB_PB_WITH_XBOX==0
-            /*case SDL_CONTROLLERAXISMOTION:
-                joy_axis(e.caxis.which, e.caxis.axis, JOY_VALUE(e.caxis.value));
+#if NB_PB_WITH_XBOX==0 && !defined(__EMSCRIPTEN__)
+            case SDL_CONTROLLERAXISMOTION:
+                joy_axis_gamectrlr(e.caxis.which, e.caxis.axis, JOY_VALUE(e.caxis.value));
                 break;
 
             case SDL_CONTROLLERBUTTONDOWN:
-                d = joy_button(e.cbutton.which, (SDL_GameControllerButton) e.cbutton.button, 1);
+                d = joy_button_gamectrlr(e.cbutton.which, (SDL_GameControllerButton) e.cbutton.button, 1);
                 break;
 
             case SDL_CONTROLLERBUTTONUP:
-                d = joy_button(e.cbutton.which, (SDL_GameControllerButton) e.cbutton.button, 0);
+                d = joy_button_gamectrlr(e.cbutton.which, (SDL_GameControllerButton) e.cbutton.button, 0);
                 break;
 
             case SDL_CONTROLLERDEVICEADDED:
@@ -774,9 +774,9 @@ static int loop(void)
 
             case SDL_CONTROLLERDEVICEREMOVED:
                 joy_remove(e.cdevice.which);
-                break;*/
+                break;
 
-            case SDL_JOYAXISMOTION:
+            /*case SDL_JOYAXISMOTION:
                 joy_axis(e.jaxis.which, e.jaxis.axis, JOY_VALUE(e.jaxis.value));
                 break;
 
@@ -794,7 +794,7 @@ static int loop(void)
 
             case SDL_JOYDEVICEREMOVED:
                 joy_remove(e.jdevice.which);
-                break;
+                break;*/
 #endif
 
             default:

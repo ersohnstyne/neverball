@@ -75,8 +75,8 @@ int joy_init(void)
     GAMEDBG_SIGFUNC_PREPARE;
 
     size_t i = 0;
-    //unsigned int init_flags = SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER;
-    unsigned int init_flags = SDL_INIT_JOYSTICK;
+    unsigned int init_flags = SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER;
+    //unsigned int init_flags = SDL_INIT_JOYSTICK;
 
     if (SDL_InitSubSystem(init_flags) == 0)
     {
@@ -277,7 +277,7 @@ int joy_button(int instance, int b, int d)
 #endif
 
         /* Make joystick current. */
-#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API
+#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API
         joy_curr = instance;
         //log_printf("Joystick %d made current via button press\n", joy_curr);
 #endif
@@ -285,6 +285,48 @@ int joy_button(int instance, int b, int d)
 
     /* Process button event normally. */
     return st_buttn(b, d);
+}
+
+/*
+ * Handle gamepad button event.
+ */
+int joy_button_gamectrlr(int instance, int b, int d)
+{
+    if (!joy_is_init) return 1;
+
+    if (joy_curr != instance)
+    {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        console_gui_toggle(1);
+#endif
+
+        /* Make gamepad current. */
+#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API
+        joy_curr = instance;
+        //log_printf("Joystick %d made current via button press\n", joy_curr);
+#endif
+    }
+
+    static int pad[4] = { 0, 0, 0, 0 };
+
+    switch (b)
+    {
+        case SDL_CONTROLLER_BUTTON_A:             return st_buttn(0, d); break;
+        case SDL_CONTROLLER_BUTTON_B:             return st_buttn(1, d); break;
+        case SDL_CONTROLLER_BUTTON_X:             return st_buttn(2, d); break;
+        case SDL_CONTROLLER_BUTTON_Y:             return st_buttn(3, d); break;
+        case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:  return st_buttn(4, d); break;
+        case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: return st_buttn(5, d); break;
+        case SDL_CONTROLLER_BUTTON_BACK:          return st_buttn(8, d); break;
+        case SDL_CONTROLLER_BUTTON_START:         return st_buttn(9, d); break;
+
+        case SDL_CONTROLLER_BUTTON_DPAD_LEFT:  pad[0] = d; return st_dpad(8,  d, pad); break;
+        case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: pad[1] = d; return st_dpad(9,  d, pad); break;
+        case SDL_CONTROLLER_BUTTON_DPAD_UP:    pad[2] = d; return st_dpad(10, d, pad); break;
+        case SDL_CONTROLLER_BUTTON_DPAD_DOWN:  pad[3] = d; return st_dpad(11, d, pad);
+    }
+
+    return 1;
 }
 
 /*
@@ -302,6 +344,40 @@ void joy_axis(int instance, int a, float v)
 
         /* Process axis events from current joystick only. */
         st_stick(a, v);
+    }
+}
+
+/*
+ * Handle gamepad axis event.
+ */
+void joy_axis_gamectrlr(int instance, int a, float v)
+{
+    if (!joy_is_init) return;
+
+    if (joy_curr == instance)
+    {
+        int d = 1;
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        console_gui_toggle(1);
+#endif
+
+        /* Process axis events from current gamepad only. */
+        
+        switch (a)
+        {
+            case SDL_CONTROLLER_AXIS_LEFTX:            st_stick(0, v); break;
+            case SDL_CONTROLLER_AXIS_LEFTY:            st_stick(1, v); break;
+            case SDL_CONTROLLER_AXIS_RIGHTX:           st_stick(3, v); break;
+            case SDL_CONTROLLER_AXIS_RIGHTY:           st_stick(4, v); break;
+            case SDL_CONTROLLER_AXIS_TRIGGERLEFT:  d = st_buttn(6, v > 0.1f); break;
+            case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: d = st_buttn(7, v > 0.1f); break;
+        }
+
+        if (!d) {
+            SDL_Event e = { SDL_QUIT };
+            SDL_PushEvent(&e);
+        }
     }
 }
 
@@ -366,8 +442,8 @@ int  joy_connected(int instance, int *battery_level, int *wired)
             };
 
 #if !defined (__EMSCRIPTEN__) && \
-    (NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API || \
-     NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API)
+    (PENNYBALL_FAMILY_API == PENNYBALL_PC_FAMILY_API || \
+     PENNYBALL_FAMILY_API == PENNYBALL_PS_FAMILY_API)
             if (instance <= 4)
                 SDL_JoystickSetLED(joysticks[instance].joy, 0x00, 0xbf, 0xff);
             //else

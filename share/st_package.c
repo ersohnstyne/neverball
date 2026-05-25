@@ -794,7 +794,14 @@ static void package_paint(int id, float st)
         enum package_status status = package_get_status(selected);
 
         if (curr_state() == &st_package) switch (status) {
-            case PACKAGE_INSTALLED: console_gui_package_manageable_paint(); break;
+            case PACKAGE_INSTALLED: {
+                if (strcmp(package_get_type(selected), "ball") == 0)
+                    console_gui_package_equipable_paint();
+                else if (strcmp(package_get_type(selected), "set") == 0)
+                    console_gui_package_startable_paint();
+                else console_gui_package_manageable_paint();
+            } break;
+
             case PACKAGE_UPDATE:    console_gui_package_updateable_paint(); break;
             case PACKAGE_ERROR:
             case PACKAGE_AVAILABLE: console_gui_package_installable_paint(); break;

@@ -24,6 +24,9 @@ void joy_remove(int instance);
 int  joy_button(int instance, int b, int d);
 void joy_axis(int instance, int a, float v);
 
+int  joy_button_gamectrlr(int instance, int b, int d);
+void joy_axis_gamectrlr(int instance, int a, float v);
+
 void joy_active_cursor(int instance, int active);
 int  joy_get_active_cursor(int instance);
 

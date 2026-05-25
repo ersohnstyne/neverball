@@ -154,6 +154,8 @@ void console_gui_paused_paint(void);
 void console_gui_package_installable_paint(void);
 void console_gui_package_updateable_paint(void);
 void console_gui_package_manageable_paint(void);
+void console_gui_package_equipable_paint(void);
+void console_gui_package_startable_paint(void);
 
 /* Generic */
 
@@ -166,7 +168,6 @@ void console_gui_shop_getcoins_paint(void);
 void console_gui_model_paint(void);
 void console_gui_beam_style_paint(void);
 void console_gui_death_paint(void);
-
 
 /* Putt */
 

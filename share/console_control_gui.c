@@ -48,6 +48,8 @@ static int xbox_control_paused_id = 0;
 static int xbox_control_package_installable_id = 0;
 static int xbox_control_package_updateable_id = 0;
 static int xbox_control_package_manageable_id = 0;
+static int xbox_control_package_equipable_id = 0;
+static int xbox_control_package_startable_id = 0;
 
 
 /* Generic */
@@ -473,39 +475,18 @@ void console_gui_create_a_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-        case 1:
-        console_gui_create_b_button(gui_id, btn_id);
-        return;
-        case 2:
-        console_gui_create_x_button(gui_id, btn_id);
-        return;
-        case 3:
-        console_gui_create_y_button(gui_id, btn_id);
-        return;
-        case 4:
-        console_gui_create_lb_button(gui_id, btn_id);
-        return;
-        case 5:
-        console_gui_create_lt_button(gui_id, btn_id);
-        return;
-        case 6:
-        console_gui_create_rb_button(gui_id, btn_id);
-        return;
-        case 7:
-        console_gui_create_rt_button(gui_id, btn_id);
-        return;
-        case 8:
-        console_gui_create_start_button(gui_id, btn_id);
-        return;
-        case 9:
-        console_gui_create_select_button(gui_id, btn_id);
-        return;
-        case 13:
-        console_gui_create_ls_button(gui_id, btn_id);
-        return;
-        case 15:
-        console_gui_create_rs_button(gui_id, btn_id);
-        return;
+        //case 0: console_gui_create_a_button(gui_id, btn_id); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
     }
 
     switch (current_platform)
@@ -534,39 +515,18 @@ void console_gui_create_b_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-        case 0:
-        console_gui_create_a_button(gui_id, btn_id);
-        return;
-        case 2:
-        console_gui_create_x_button(gui_id, btn_id);
-        return;
-        case 3:
-        console_gui_create_y_button(gui_id, btn_id);
-        return;
-        case 4:
-        console_gui_create_lb_button(gui_id, btn_id);
-        return;
-        case 5:
-        console_gui_create_lt_button(gui_id, btn_id);
-        return;
-        case 6:
-        console_gui_create_rb_button(gui_id, btn_id);
-        return;
-        case 7:
-        console_gui_create_rt_button(gui_id, btn_id);
-        return;
-        case 8:
-        console_gui_create_start_button(gui_id, btn_id);
-        return;
-        case 9:
-        console_gui_create_select_button(gui_id, btn_id);
-        return;
-        case 13:
-        console_gui_create_ls_button(gui_id, btn_id);
-        return;
-        case 15:
-        console_gui_create_rs_button(gui_id, btn_id);
-        return;
+        case 0: console_gui_create_a_button(gui_id, btn_id); return;
+        //case 1: console_gui_create_b_button(gui_id, btn_id); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
     }
 
     switch (current_platform)
@@ -595,39 +555,18 @@ void console_gui_create_x_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-        case 0:
-        console_gui_create_a_button(gui_id, btn_id);
-        return;
-        case 1:
-        console_gui_create_b_button(gui_id, btn_id);
-        return;
-        case 3:
-        console_gui_create_y_button(gui_id, btn_id);
-        return;
-        case 4:
-        console_gui_create_lb_button(gui_id, btn_id);
-        return;
-        case 5:
-        console_gui_create_lt_button(gui_id, btn_id);
-        return;
-        case 6:
-        console_gui_create_rb_button(gui_id, btn_id);
-        return;
-        case 7:
-        console_gui_create_rt_button(gui_id, btn_id);
-        return;
-        case 8:
-        console_gui_create_start_button(gui_id, btn_id);
-        return;
-        case 9:
-        console_gui_create_select_button(gui_id, btn_id);
-        return;
-        case 13:
-        console_gui_create_ls_button(gui_id, btn_id);
-        return;
-        case 15:
-        console_gui_create_rs_button(gui_id, btn_id);
-        return;
+        case 0: console_gui_create_a_button(gui_id, btn_id); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id); return;
+        //case 2: console_gui_create_x_button(gui_id, btn_id); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
     }
 
     switch (current_platform)
@@ -656,39 +595,18 @@ void console_gui_create_y_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-        case 0:
-        console_gui_create_a_button(gui_id, btn_id);
-        return;
-        case 1:
-        console_gui_create_b_button(gui_id, btn_id);
-        return;
-        case 2:
-        console_gui_create_x_button(gui_id, btn_id);
-        return;
-        case 4:
-        console_gui_create_lb_button(gui_id, btn_id);
-        return;
-        case 5:
-        console_gui_create_lt_button(gui_id, btn_id);
-        return;
-        case 6:
-        console_gui_create_rb_button(gui_id, btn_id);
-        return;
-        case 7:
-        console_gui_create_rt_button(gui_id, btn_id);
-        return;
-        case 8:
-        console_gui_create_start_button(gui_id, btn_id);
-        return;
-        case 9:
-        console_gui_create_select_button(gui_id, btn_id);
-        return;
-        case 13:
-        console_gui_create_ls_button(gui_id, btn_id);
-        return;
-        case 15:
-        console_gui_create_rs_button(gui_id, btn_id);
-        return;
+        case 0: console_gui_create_a_button(gui_id, btn_id); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id); return;
+        //case 3: console_gui_create_y_button(gui_id, btn_id); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
     }
 
     switch (current_platform)
@@ -717,39 +635,18 @@ void console_gui_create_lb_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-        case 0:
-        console_gui_create_a_button(gui_id, btn_id);
-        return;
-        case 1:
-        console_gui_create_b_button(gui_id, btn_id);
-        return;
-        case 2:
-        console_gui_create_x_button(gui_id, btn_id);
-        return;
-        case 3:
-        console_gui_create_y_button(gui_id, btn_id);
-        return;
-        case 5:
-        console_gui_create_lt_button(gui_id, btn_id);
-        return;
-        case 6:
-        console_gui_create_rb_button(gui_id, btn_id);
-        return;
-        case 7:
-        console_gui_create_rt_button(gui_id, btn_id);
-        return;
-        case 8:
-        console_gui_create_start_button(gui_id, btn_id);
-        return;
-        case 9:
-        console_gui_create_select_button(gui_id, btn_id);
-        return;
-        case 13:
-        console_gui_create_ls_button(gui_id, btn_id);
-        return;
-        case 15:
-        console_gui_create_rs_button(gui_id, btn_id);
-        return;
+        case 0: console_gui_create_a_button(gui_id, btn_id); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id); return;
+        //case 4: console_gui_create_lb_button(gui_id, btn_id); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
     }
 
     switch (current_platform)
@@ -778,39 +675,18 @@ void console_gui_create_rb_button(int gui_id, int btn_id)
 {
     switch (btn_id)
     {
-        case 0:
-        console_gui_create_a_button(gui_id, btn_id);
-        return;
-        case 1:
-        console_gui_create_b_button(gui_id, btn_id);
-        return;
-        case 2:
-        console_gui_create_x_button(gui_id, btn_id);
-        return;
-        case 3:
-        console_gui_create_y_button(gui_id, btn_id);
-        return;
-        case 4:
-        console_gui_create_lb_button(gui_id, btn_id);
-        return;
-        case 5:
-        console_gui_create_lt_button(gui_id, btn_id);
-        return;
-        case 7:
-        console_gui_create_rt_button(gui_id, btn_id);
-        return;
-        case 8:
-        console_gui_create_start_button(gui_id, btn_id);
-        return;
-        case 9:
-        console_gui_create_select_button(gui_id, btn_id);
-        return;
-        case 13:
-        console_gui_create_ls_button(gui_id, btn_id);
-        return;
-        case 15:
-        console_gui_create_rs_button(gui_id, btn_id);
-        return;
+        case 0: console_gui_create_a_button(gui_id, btn_id); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
+        //case 5: console_gui_create_rb_button(gui_id, btn_id); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
     }
 
     switch (current_platform)
@@ -845,39 +721,18 @@ void console_gui_create_lt_button(int gui_id, int btn_id)
 
     switch (btn_id)
     {
-        case 0:
-        console_gui_create_a_button(gui_id, btn_id);
-        return;
-        case 1:
-        console_gui_create_b_button(gui_id, btn_id);
-        return;
-        case 2:
-        console_gui_create_x_button(gui_id, btn_id);
-        return;
-        case 3:
-        console_gui_create_y_button(gui_id, btn_id);
-        return;
-        case 4:
-        console_gui_create_lb_button(gui_id, btn_id);
-        return;
-        case 6:
-        console_gui_create_rb_button(gui_id, btn_id);
-        return;
-        case 7:
-        console_gui_create_rt_button(gui_id, btn_id);
-        return;
-        case 8:
-        console_gui_create_start_button(gui_id, btn_id);
-        return;
-        case 9:
-        console_gui_create_select_button(gui_id, btn_id);
-        return;
-        case 13:
-        console_gui_create_ls_button(gui_id, btn_id);
-        return;
-        case 15:
-        console_gui_create_rs_button(gui_id, btn_id);
-        return;
+        case 0: console_gui_create_a_button(gui_id, btn_id); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
+        //case 6: console_gui_create_lt_button(gui_id, btn_id); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
     }
 
     switch (current_platform)
@@ -909,39 +764,18 @@ void console_gui_create_rt_button(int gui_id, int btn_id)
 
     switch (btn_id)
     {
-        case 0:
-        console_gui_create_a_button(gui_id, btn_id);
-        return;
-        case 1:
-        console_gui_create_b_button(gui_id, btn_id);
-        return;
-        case 2:
-        console_gui_create_x_button(gui_id, btn_id);
-        return;
-        case 3:
-        console_gui_create_y_button(gui_id, btn_id);
-        return;
-        case 4:
-        console_gui_create_lb_button(gui_id, btn_id);
-        return;
-        case 5:
-        console_gui_create_lt_button(gui_id, btn_id);
-        return;
-        case 6:
-        console_gui_create_rb_button(gui_id, btn_id);
-        return;
-        case 8:
-        console_gui_create_start_button(gui_id, btn_id);
-        return;
-        case 9:
-        console_gui_create_select_button(gui_id, btn_id);
-        return;
-        case 13:
-        console_gui_create_ls_button(gui_id, btn_id);
-        return;
-        case 15:
-        console_gui_create_rs_button(gui_id, btn_id);
-        return;
+        case 0: console_gui_create_a_button(gui_id, btn_id); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
+        //case 7: console_gui_create_rt_button(gui_id, btn_id); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
     }
 
     switch (current_platform)
@@ -974,39 +808,18 @@ void console_gui_create_ls_button(int gui_id, int btn_id)
 
     switch (btn_id)
     {
-        case 0:
-        console_gui_create_a_button(gui_id, btn_id);
-        return;
-        case 1:
-        console_gui_create_b_button(gui_id, btn_id);
-        return;
-        case 2:
-        console_gui_create_x_button(gui_id, btn_id);
-        return;
-        case 3:
-        console_gui_create_y_button(gui_id, btn_id);
-        return;
-        case 4:
-        console_gui_create_lb_button(gui_id, btn_id);
-        return;
-        case 5:
-        console_gui_create_lt_button(gui_id, btn_id);
-        return;
-        case 6:
-        console_gui_create_rb_button(gui_id, btn_id);
-        return;
-        case 7:
-        console_gui_create_rt_button(gui_id, btn_id);
-        return;
-        case 8:
-        console_gui_create_start_button(gui_id, btn_id);
-        return;
-        case 9:
-        console_gui_create_select_button(gui_id, btn_id);
-        return;
-        case 15:
-        console_gui_create_rs_button(gui_id, btn_id);
-        return;
+        case 0: console_gui_create_a_button(gui_id, btn_id); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id); return;
+        //case 13: console_gui_create_ls_button(gui_id, btn_id); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
     }
 
     switch (current_platform)
@@ -1036,39 +849,18 @@ void console_gui_create_rs_button(int gui_id, int btn_id)
 
     switch (btn_id)
     {
-        case 0:
-        console_gui_create_a_button(gui_id, btn_id);
-        return;
-        case 1:
-        console_gui_create_b_button(gui_id, btn_id);
-        return;
-        case 2:
-        console_gui_create_x_button(gui_id, btn_id);
-        return;
-        case 3:
-        console_gui_create_y_button(gui_id, btn_id);
-        return;
-        case 4:
-        console_gui_create_lb_button(gui_id, btn_id);
-        return;
-        case 5:
-        console_gui_create_lt_button(gui_id, btn_id);
-        return;
-        case 6:
-        console_gui_create_rb_button(gui_id, btn_id);
-        return;
-        case 7:
-        console_gui_create_rt_button(gui_id, btn_id);
-        return;
-        case 8:
-        console_gui_create_start_button(gui_id, btn_id);
-        return;
-        case 9:
-        console_gui_create_select_button(gui_id, btn_id);
-        return;
-        case 13:
-        console_gui_create_ls_button(gui_id, btn_id);
-        return;
+        case 0: console_gui_create_a_button(gui_id, btn_id); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
+        //case 15: console_gui_create_rs_button(gui_id, btn_id); return;
     }
 
     switch (current_platform)
@@ -1098,27 +890,18 @@ void console_gui_create_start_button(int gui_id, int btn_id)
 
     switch (btn_id)
     {
-        case 0:
-        console_gui_create_a_button(gui_id, btn_id);
-        return;
-        case 1:
-        console_gui_create_b_button(gui_id, btn_id);
-        return;
-        case 2:
-        console_gui_create_x_button(gui_id, btn_id);
-        return;
-        case 3:
-        console_gui_create_y_button(gui_id, btn_id);
-        return;
-        case 4:
-        console_gui_create_lb_button(gui_id, btn_id);
-        return;
-        case 5:
-        console_gui_create_rb_button(gui_id, btn_id);
-        return;
-        case 7:
-        console_gui_create_select_button(gui_id, btn_id);
-        return;
+        case 0: console_gui_create_a_button(gui_id, btn_id); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
+        //case 9: console_gui_create_start_button(gui_id, btn_id); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
     }
 
     switch (current_platform)
@@ -1148,27 +931,18 @@ void console_gui_create_select_button(int gui_id, int btn_id)
 
     switch (btn_id)
     {
-        case 0:
-        console_gui_create_a_button(gui_id, btn_id);
-        return;
-        case 1:
-        console_gui_create_b_button(gui_id, btn_id);
-        return;
-        case 2:
-        console_gui_create_x_button(gui_id, btn_id);
-        return;
-        case 3:
-        console_gui_create_y_button(gui_id, btn_id);
-        return;
-        case 4:
-        console_gui_create_lb_button(gui_id, btn_id);
-        return;
-        case 5:
-        console_gui_create_rb_button(gui_id, btn_id);
-        return;
-        case 6:
-        console_gui_create_start_button(gui_id, btn_id);
-        return;
+        case 0: console_gui_create_a_button(gui_id, btn_id); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id); return;
+        //case 8: console_gui_create_select_button(gui_id, btn_id); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
     }
 
     switch (current_platform)
@@ -1415,16 +1189,54 @@ static void init_xbox_package_manageable()
         console_gui_create_b_button(xbox_control_package_manageable_id,
                         config_get_d(CONFIG_JOYSTICK_BUTTON_B));
 
-        create_controller_spacer(xbox_control_package_manageable_id);
-
-        gui_label(xbox_control_package_manageable_id, _("Select"),
-                  GUI_SML, gui_wht, gui_wht);
-
-        console_gui_create_a_button(xbox_control_package_manageable_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
-
         gui_set_rect(xbox_control_package_manageable_id, GUI_TOP);
         gui_layout(xbox_control_package_manageable_id, 0, -1);
+    }
+}
+
+static void init_xbox_package_equipable()
+{
+    if ((xbox_control_package_equipable_id = gui_hstack(0)))
+    {
+        gui_label(xbox_control_package_equipable_id, _("Equip/Manage"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_x_button(xbox_control_package_equipable_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+
+        create_controller_spacer(xbox_control_package_equipable_id);
+
+        gui_label(xbox_control_package_equipable_id, _("Back"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_b_button(xbox_control_package_equipable_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+        
+        gui_set_rect(xbox_control_package_equipable_id, GUI_TOP);
+        gui_layout(xbox_control_package_equipable_id, 0, -1);
+    }
+}
+
+static void init_xbox_package_startable()
+{
+    if ((xbox_control_package_startable_id = gui_hstack(0)))
+    {
+        gui_label(xbox_control_package_startable_id, _("Start/Manage"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_x_button(xbox_control_package_startable_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+
+        create_controller_spacer(xbox_control_package_startable_id);
+
+        gui_label(xbox_control_package_startable_id, _("Back"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_b_button(xbox_control_package_startable_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+
+        gui_set_rect(xbox_control_package_startable_id, GUI_TOP);
+        gui_layout(xbox_control_package_startable_id, 0, -1);
     }
 }
 
@@ -1766,6 +1578,8 @@ void console_gui_init(void)
     init_xbox_package_installable();
     init_xbox_package_updateable();
     init_xbox_package_manageable();
+    init_xbox_package_equipable();
+    init_xbox_package_startable();
 
     /* Generic */
     init_xbox_desc();
@@ -1800,6 +1614,7 @@ void console_gui_free(void)
     gui_delete(xbox_control_paused_id);
     gui_delete(xbox_control_package_installable_id);
     gui_delete(xbox_control_package_updateable_id);
+    gui_delete(xbox_control_package_equipable_id);
     gui_delete(xbox_control_package_manageable_id);
 
     /* Generic */
@@ -1830,6 +1645,8 @@ void console_gui_slide(int flags)
     gui_slide(xbox_control_package_installable_id, flags, 0, 0.3f, 0);
     gui_slide(xbox_control_package_updateable_id,  flags, 0, 0.3f, 0);
     gui_slide(xbox_control_package_manageable_id,  flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_package_equipable_id,   flags, 0, 0.3f, 0);
+    gui_slide(xbox_control_package_startable_id,   flags, 0, 0.3f, 0);
 
     /* Generic */
     gui_slide(xbox_control_desc_id,          flags, 0, 0.3f, 0);
@@ -1859,6 +1676,8 @@ void console_gui_timer(float dt)
     gui_timer(xbox_control_package_installable_id, dt);
     gui_timer(xbox_control_package_updateable_id, dt);
     gui_timer(xbox_control_package_manageable_id, dt);
+    gui_timer(xbox_control_package_equipable_id, dt);
+    gui_timer(xbox_control_package_startable_id, dt);
 
     /* Generic */
     gui_timer(xbox_control_desc_id, dt);
@@ -1927,6 +1746,18 @@ void console_gui_package_manageable_paint(void)
 {
     if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(xbox_control_package_manageable_id);
+}
+
+void console_gui_package_equipable_paint(void)
+{
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        gui_paint(xbox_control_package_equipable_id);
+}
+
+void console_gui_package_startable_paint(void)
+{
+    if (show_control_gui || config_get_d(CONFIG_SCREEN_ANIMATIONS))
+        gui_paint(xbox_control_package_startable_id);
 }
 
 /* Generic */

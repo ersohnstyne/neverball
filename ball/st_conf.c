@@ -1507,8 +1507,15 @@ static int conf_keybd_gui(void)
 static int conf_keybd_modal_key_gui(void)
 {
     int id;
-
+    
+#if NB_HAVE_PB_BOTH==1
+    if ((id = gui_multi(0,
+                        _("Press any key on the keyboard\n"
+                          "to assign. Press ESC to cancel."),
+                        GUI_SML, GUI_COLOR_WHT)))
+#else
     if ((id = gui_title_header(0, _("Press any key..."), GUI_MED, GUI_COLOR_WHT)))
+#endif
         gui_layout(id, 0, 0);
 
     return id;
@@ -1938,8 +1945,7 @@ static void conf_controllers_set_option(int index, int value)
 
         config_set_d(option, value);
 
-        conf_controllers_set_label(conf_controllers_option_ids[index], value);
-
+        conf_controllers_set_label(conf_controllers_option_ids[index], value + (conf_controllers_modal == CONF_CONTROLLERS_ASSIGN_AXIS ? 11 : 0));
         /* Focus the next button. */
 
         if (index < ARRAYSIZE(conf_controllers_options) - 1)
@@ -2055,7 +2061,14 @@ static int conf_controllers_modal_button_gui(void)
 {
     int id;
 
+#if NB_HAVE_PB_BOTH==1
+    if ((id = gui_multi(0,
+                        _("Press any button on the gamepad\n"
+                          "to assign. Press B to cancel."),
+                        GUI_SML, GUI_COLOR_WHT)))
+#else
     if ((id = gui_title_header(0, _("Press a button..."), GUI_MED, GUI_COLOR_WHT)))
+#endif
         gui_layout(id, 0, 0);
 
     return id;
@@ -2065,7 +2078,14 @@ static int conf_controllers_modal_axis_gui(void)
 {
     int id;
 
+#if NB_HAVE_PB_BOTH==1
+    if ((id = gui_multi(0,
+                        _("Move any stick on the gamepad\n"
+                          "to assign. Press B to cancel."),
+                        GUI_SML, GUI_COLOR_WHT)))
+#else
     if ((id = gui_title_header(0, _("Move a stick..."), GUI_MED, GUI_COLOR_WHT)))
+#endif
         gui_layout(id, 0, 0);
 
     return id;
@@ -2172,6 +2192,8 @@ static void conf_controllers_stick(int id, int a, float v, int bump)
 static void conf_controllers_timer(int id, float dt)
 {
     gui_timer(id, dt);
+    gui_timer(conf_controllers_modal_button_id, dt);
+    gui_timer(conf_controllers_modal_axis_id, dt);
     gui_alpha(id, 1 - controllers_modal_alpha);
 
     if (conf_controllers_modal == CONF_CONTROLLERS_ASSIGN_BUTTON)

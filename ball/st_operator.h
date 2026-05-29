@@ -17,7 +17,7 @@
 
 #if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
 
-void demo_operator_init     (void);
+void demo_operator_init     (int challenge, int balls);
 void demo_operator_quit     (void);
 int  demo_operator_activated(void);
 

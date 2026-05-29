@@ -42,6 +42,9 @@ static int operator_cansend_incidents;
 static int operator_norepeat;
 static int operator_readytosnap;
 
+static int operator_challenge;
+static int operator_curr_balls;
+
 static char operator_map_name[MAXSTR];
 
 static struct state *operator_back_state;
@@ -54,8 +57,14 @@ struct state st_operator_incidents_found;
 struct state st_operator_incidents_error;
 struct state st_operator_incidents_snap;
 
-void demo_operator_init     (void) { operator_mode = 1;    }
 int  demo_operator_activated(void) { return operator_mode; }
+
+void demo_operator_init(int challenge, int balls)
+{
+    operator_mode       = 1;
+    operator_challenge  = challenge;
+    operator_curr_balls = balls;
+}
 
 void demo_operator_quit(void)
 {
@@ -138,6 +147,9 @@ static int operator_action(int tok, int val)
 
     if (tok == 9999 && val == 9999 && operator_readytosnap)
     {
+        if (operator_challenge && operator_curr_balls == 0)
+            account_wgcl_do_add(0, 30, 0, 0, 0, 0);
+
         char datestr_incident[MAXSTR];
         const time_t output_t = time(0);
         struct tm output_tm;
@@ -366,9 +378,13 @@ static int operator_incidents_snap_enter(struct state *st, struct state *prev, i
 
         const char *s0 = _("Your screenshot incidence\n"
                            "has been saved!");
-
-        gui_multi(id, s0, GUI_SML, GUI_COLOR_WHT);
-
+        
+        const char *s1 = _("Your screenshot incidence\n"
+                           "has been saved!\n\n"
+                           "You have awarded 30 additional gems!");
+        
+        gui_multi(id, operator_challenge && operator_curr_balls == 0 ? s1 : s0,
+                      GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
 
         const int backbtn_id = gui_back_button(id);

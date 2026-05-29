@@ -34,6 +34,23 @@ enum
 #define DEMO_VERSION      DEMO_VERSION_1_6
 #endif
 
+#if _WIN32
+#define _CRT_NB_DEMO_DEPRECATED(_Type, _Params, _Func, _Replaces) \
+    __declspec(deprecated(                                        \
+        "This function or variable has been superseded by "       \
+        "newer game UI or game logic functionality. Consider "    \
+        "using " #_Replaces " instead."                           \
+    )) _Type _Func _Params
+#else
+#define _CRT_NB_DEMO_DEPRECATED(_Type, _Params, _Func, _Replaces) \
+    _Type _Func _Params                                           \
+    __attribute__ ((deprecated(                                   \
+        "This function or variable has been superseded by "       \
+        "newer game UI or game logic functionality. Consider "    \
+        "using " #_Replaces " instead."                           \
+    )))
+#endif
+
 #include <time.h>
 #include <stdio.h>
 
@@ -99,16 +116,23 @@ int  demo_replay_step(float);
 void demo_replay_stop(int);
 float demo_replay_blend(void);
 
-const char *curr_demo(void);
+const char *curr_demo_path(void);
+int curr_demo_mode(void);
+int curr_demo_curr_balls(void);
+int curr_demo_status(void);
+
+/*
+ * This replay function init will be replaced into the curr_demo_path.
+ * Your functions will be replaced using same parameters.
+ */
+_CRT_NB_DEMO_DEPRECATED(const char *, (void), curr_demo, curr_demo_path);
 
 void demo_replay_speed(int);
-
 void demo_replay_manual_speed(float);
 
 /*---------------------------------------------------------------------------*/
 
 extern int demo_requires_update;
-
 extern fs_file demo_fp;
 
 /*---------------------------------------------------------------------------*/

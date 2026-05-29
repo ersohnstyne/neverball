@@ -332,7 +332,20 @@ static int demo_action(int tok, int val)
 
 #if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
                 if (config_cheat()) {
-                    demo_operator_init();
+                    const int demo_curr_balls = df->balls == 0;
+
+                    const int demo_curr_challenge =
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                    (df->status == GAME_TIME || df->status == GAME_FALL) &&
+                    (df->mode != MODE_NORMAL && df->mode != MODE_STANDALONE ||
+                     df->mode != MODE_ZEN    && df->mode != MODE_CAMPAIGN);
+#else
+                    (df->status == GAME_TIME || df->status == GAME_FALL) &&
+                    (df->mode != MODE_NORMAL && df->mode != MODE_STANDALONE ||
+                     df->mode != MODE_ZEN);
+#endif
+
+                    demo_operator_init(demo_curr_challenge, demo_curr_balls);
 
                     if (progress_replay(demo_path)) {
                         last_viewed = selected;
@@ -480,9 +493,23 @@ static void gui_demo_update_thumbs(void)
                 gui_set_image(thumbs[i].shot_id, demo ? demo->shot : "");
                 gui_set_color(thumbs[i].name_id, GUI_COLOR_WHT);
             }
+
+            if (demo->balls == 0 &&
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                (demo->status == GAME_TIME || demo->status == GAME_FALL) &&
+                (demo->mode != MODE_NORMAL && demo->mode != MODE_STANDALONE ||
+                 demo->mode != MODE_ZEN    && demo->mode != MODE_CAMPAIGN)
+#else
+                (demo->status == GAME_TIME || demo->status == GAME_FALL) &&
+                (demo->mode != MODE_NORMAL && demo->mode != MODE_STANDALONE ||
+                 demo->mode != MODE_ZEN)
+#endif
+                ) {
+                gui_set_image(thumbs[i].shot_id, "gui/filters/bankrupted.jpg");
+                gui_set_color(thumbs[i].name_id, gui_red, gui_blk);
+            }
         }
-        else
-            gui_set_image(thumbs[i].shot_id, "gui/filters/invalid.jpg");
+        else gui_set_image(thumbs[i].shot_id, "gui/filters/invalid.jpg");
     }
 
     demo_requires_update = 0;
@@ -525,7 +552,7 @@ static int gui_demo_status(int id)
                 gui_filler(ld);
 
                 time_id   = gui_clock(ld, 35000,  GUI_SML);
-                coin_id   = gui_count(ld, 100,    GUI_SML);
+                coin_id   = gui_label(ld, "XXXXXX", GUI_SML, GUI_COLOR_DEFAULT);
                 status_id = gui_label(ld, status, GUI_SML, GUI_COLOR_RED);
 
                 gui_filler(ld);
@@ -603,8 +630,8 @@ static void gui_demo_update_status(int i)
         gui_set_label(date_id,   "01.01.2003 00:00:00");
         gui_set_label(player_id, " ");
         gui_set_label(status_id, status_to_str(GAME_MAX));
-        gui_set_count(coin_id,   0);
-        gui_set_clock(time_id,   0);
+        gui_set_label(coin_id,   "-----");
+        gui_set_clock(time_id,   -1);
 
         gui_set_color(name_id,   gui_gry, gui_red);
         gui_set_color(date_id,   gui_gry, gui_red);
@@ -630,9 +657,20 @@ static void gui_demo_update_status(int i)
     else
 #endif
         time_limit_minutes = 10;
-
+    
     const int stat_high_limit = get_max_game_stat() > get_limit_game_stat(),
-              time_high_limit = time_max_minutes > time_limit_minutes;
+              time_high_limit = time_max_minutes    > time_limit_minutes;
+
+    const int demo_status_invalid = d->status != GAME_GOAL && d->status != GAME_NONE;
+
+    char coin_id_str[MAXSTR];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(coin_id_str, MAXSTR,
+#else
+    sprintf(coin_id_str,
+#endif
+            "%d", d->coins);
 
     stat_limit_busy = 0;
 
@@ -646,9 +684,40 @@ static void gui_demo_update_status(int i)
         gui_set_color(status_id, GUI_COLOR_RED);
 
     gui_set_label(status_id, status_to_str(d->status));
-
-    gui_set_count(coin_id, d->coins);
-    gui_set_clock(time_id, d->timer);
+    
+    if (demo_status_invalid) {
+        gui_set_color(coin_id, gui_gry, gui_red);
+        gui_set_color(time_id, gui_gry, gui_red);
+    } else {
+        gui_set_color(coin_id, GUI_COLOR_DEFAULT);
+        gui_set_color(time_id, GUI_COLOR_DEFAULT);
+    }
+    
+    gui_set_label(coin_id, !demo_status_invalid ?
+                           coin_id_str : "-----");
+    gui_set_clock(time_id, !demo_status_invalid && d->status != GAME_TIME ?
+                           d->timer : -1);
+    
+    if (d->balls == 0 &&
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        (d->status == GAME_TIME || d->status == GAME_FALL) &&
+        (d->mode != MODE_NORMAL && d->mode != MODE_STANDALONE ||
+         d->mode != MODE_ZEN    && d->mode != MODE_CAMPAIGN)
+#else
+        (d->status == GAME_TIME || d->status == GAME_FALL) &&
+        (d->mode != MODE_NORMAL && d->mode != MODE_STANDALONE ||
+         d->mode != MODE_ZEN)
+#endif
+        )
+    {
+        gui_set_color(name_id,   gui_red, gui_blk);
+        gui_set_color(date_id,   gui_red, gui_blk);
+        gui_set_color(player_id, gui_red, gui_blk);
+        gui_set_color(coin_id,   gui_red, gui_blk);
+        gui_set_color(time_id,   gui_red, gui_blk);
+        gui_set_color(status_id, gui_red, gui_blk);
+        gui_set_label(status_id, _("Bankrupt"));
+    }
 
     /* Make sure, that the level status limit is underneath it. */
 
@@ -656,14 +725,14 @@ static void gui_demo_update_status(int i)
     {
         /* Max level status exceeds limits! */
 
-        gui_set_color(name_id, gui_gry, gui_red);
-        gui_set_color(date_id, gui_gry, gui_red);
+        gui_set_color(name_id,   gui_gry, gui_red);
+        gui_set_color(date_id,   gui_gry, gui_red);
         gui_set_color(player_id, gui_gry, gui_red);
     }
     else
     {
-        gui_set_color(name_id, GUI_COLOR_DEFAULT);
-        gui_set_color(date_id, GUI_COLOR_DEFAULT);
+        gui_set_color(name_id,   GUI_COLOR_DEFAULT);
+        gui_set_color(date_id,   GUI_COLOR_DEFAULT);
         gui_set_color(player_id, GUI_COLOR_DEFAULT);
     }
 }
@@ -850,8 +919,6 @@ static int demo_is_scanning_with_moon_taskloader = 0;
 
 static int demo_scan_moon_taskloader(void *data, void *execute_data)
 {
-    //while (st_global_animating());
-
     if (demo_hotreload)
     {
         if (demo_items)
@@ -894,8 +961,7 @@ static int demo_gui(void)
 
             return id;
         }
-        else
-            return 0;
+        else return 0;
     }
 #endif
 
@@ -930,8 +996,7 @@ static int demo_gui(void)
                     else
                         gui_set_color(header_id, gui_gry, gui_red);
                 }
-                else
-                    gui_label(jd, _("Select Replay"), GUI_SML, 0, 0);
+                else gui_label(jd, _("Select Replay"), GUI_SML, 0, 0);
 
                 gui_filler(jd);
                 gui_space(jd);
@@ -998,8 +1063,7 @@ static int demo_gui(void)
             gui_layout(id, 0, 0);
         }
     }
-    else
-        return exit_state(&st_title);
+    else return exit_state(&st_title);
 
     return id;
 }
@@ -1320,7 +1384,7 @@ int demo_play_goto(int s)
 {
     standalone   = s;
     check_compat = 1;
-    is_opened = 1;
+    is_opened    = 1;
 
     return goto_state(game_compat_map ? &st_demo_play :
                                         &st_demo_compat);
@@ -1437,6 +1501,21 @@ static void demo_play_paint(int id, float t)
 
 static void demo_play_timer(int id, float dt)
 {
+    const int s = curr_demo_status();
+
+    switch (s) {
+        case GAME_FALL: set_max_game_stat(3); break;
+        case GAME_NONE:
+        case GAME_TIME: set_max_game_stat(2); break;
+        case GAME_GOAL: set_max_game_stat(1); break;
+    }
+
+    if (get_max_game_stat() > get_limit_game_stat()) {
+        /* Nope! */
+        goto_state(&st_demo_restricted);
+        return;
+    }
+
     ST_PLAY_SYNC_SMOOTH_FIX_TIMER(smoothfix_slowdown_time);
 
     float timescale = 1.0f;

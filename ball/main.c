@@ -2451,7 +2451,7 @@ int main_share(int argc, char *argv[])
         fs_add_path(dir_name(opt_replay)) &&
         progress_replay(base_name(opt_replay)))
     {
-        if (config_get_d(CONFIG_ACCOUNT_LOAD) > 1 && demo_play_goto(1))
+        if (demo_play_goto(1))
             start_state = &st_demo_play;
     }
     else if (opt_level_multi)

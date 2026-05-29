@@ -555,7 +555,27 @@ static struct demo demo_replay;
 
 const char *curr_demo(void)
 {
+    return curr_demo_path();
+}
+
+const char *curr_demo(void)
+{
     return demo_replay.path;
+}
+
+int curr_demo_mode(void)
+{
+    return demo_replay.mode;
+}
+
+int curr_demo_curr_balls(void)
+{
+    return demo_replay.balls;
+}
+
+int curr_demo_status(void)
+{
+    return demo_replay.status;
 }
 
 int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, float *spp)

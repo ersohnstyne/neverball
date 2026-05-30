@@ -535,6 +535,8 @@ Array lang_dir_scan(void)
 
 void lang_dir_free(Array items)
 {
+    if (!items) return;
+
     int i;
 
     for (i = 0; i < array_len(items); i++)

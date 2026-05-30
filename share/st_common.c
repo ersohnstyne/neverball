@@ -493,7 +493,8 @@ enum
     PERF_WARNING_DO_IT = GUI_LAST,
 };
 
-static int perf_warning_mode = -1;
+static int perf_warning_autoconfig = 0;
+static int perf_warning_mode       = -1;
 static int perf_warning_value;
 
 static int perf_warning_action(int tok, int val)
@@ -505,6 +506,33 @@ static int perf_warning_action(int tok, int val)
     int h = config_get_d(CONFIG_HEIGHT);
     int r = 1;
 
+    if (tok == PERF_WARNING_DO_IT && perf_warning_autoconfig) {
+        goto_state(&st_null);
+#if ENABLE_DUALDISPLAY==1
+        r = video_mode_auto_config(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
+        r = video_mode_auto_config(f, w, h);
+#endif
+        if (r) exit_state(&st_video);
+        else
+        {
+#if ENABLE_DUALDISPLAY==1
+            r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
+#else
+            r = video_mode(f, w, h);
+#endif
+            if (r) exit_state(&st_video);
+        }
+
+        if (r) config_set_d(CONFIG_CAMERA_SHAKE, 1);
+
+        config_save();
+        
+        perf_warning_autoconfig = 0;
+        perf_warning_mode       = -1;
+        return r;
+    }
+
     if (tok == PERF_WARNING_DO_IT) switch (perf_warning_mode)
     {
 #if ENABLE_MOTIONBLUR!=0
@@ -512,6 +540,7 @@ static int perf_warning_action(int tok, int val)
 #endif
         case 1:
         {
+            goto_state(&st_null);
             config_set_d(CONFIG_REFLECTION,           perf_warning_value);
             config_set_d(CONFIG_GRAPHIC_RESTORE_ID,   5);
             config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, perf_warning_value);
@@ -533,6 +562,7 @@ static int perf_warning_action(int tok, int val)
 
         case 2:
         {
+            goto_state(&st_null);
             config_set_d(CONFIG_MULTISAMPLE,          perf_warning_value);
             config_set_d(CONFIG_GRAPHIC_RESTORE_ID,   4);
             config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, perf_warning_value);
@@ -559,12 +589,15 @@ static int perf_warning_action(int tok, int val)
         break;
     }
 
-    if (r)
-    {
+    if (r) {
+        if (perf_warning_autoconfig) {
+            perf_warning_autoconfig = 0;
+            return exit_state(&st_video);
+        }
+
         perf_warning_mode = -1;
         return exit_state(&st_video_advanced);
-    }
-    else return 0;
+    } else return 0;
 }
 
 static int perf_warning_confirm_btns(int pd, int enabled)
@@ -607,6 +640,43 @@ static int perf_warning_confirm_btns(int pd, int enabled)
     return id;
 }
 
+static int perf_warning_confirm_autoconfig_btns(int pd)
+{
+    int id;
+
+    if ((id = gui_harray(pd))) {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        if (current_platform != PLATFORM_PC || console_gui_shown()) {
+            int jd;
+
+            if ((jd = gui_hstack(id))) {
+                gui_filler(jd);
+                gui_label(jd, _("Cancel"), GUI_SML, GUI_COLOR_WHT);
+                gui_space(jd);
+                console_gui_create_b_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                gui_filler(jd);
+                gui_set_rect(jd, GUI_ALL);
+            }
+            if ((jd = gui_hstack(id))) {
+                gui_filler(jd);
+                gui_label(jd, _("Start"), GUI_SML, GUI_COLOR_WHT);
+                gui_space(jd);
+                console_gui_create_a_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                gui_filler(jd);
+                gui_set_rect(jd, GUI_ALL);
+            }
+        } else
+#endif
+        {
+            gui_start(id, _("Cancel"), GUI_SML, GUI_BACK, 0);
+            gui_state(id, _("Start"),
+                          GUI_SML, PERF_WARNING_DO_IT, 1);
+        }
+    }
+
+    return id;
+}
+
 static int perf_warning_confirm_range_btns(int pd, int higher)
 {
     int id;
@@ -643,6 +713,30 @@ static int perf_warning_confirm_range_btns(int pd, int higher)
                           GUI_SML, PERF_WARNING_DO_IT, perf_warning_value);
         }
     }
+
+    return id;
+}
+
+static int perf_warning_autoconfig_gui(void)
+{
+    int id;
+
+    if ((id = gui_vstack(0)))
+    {
+        gui_label(id, _("Warning"), GUI_MED, gui_red, gui_red);
+        gui_space(id);
+
+        const char *s0 =
+                   N_("Using Auto-Configure may take a while\n"
+                      "to calculate on your device specifications.\n"
+                      "Start Auto-Configuration for now?");
+        gui_multi(id, _(s0), GUI_SML, gui_wht, gui_wht);
+
+        gui_space(id);
+        perf_warning_confirm_autoconfig_btns(id);
+    }
+
+    gui_layout(id, 0, 0);
 
     return id;
 }
@@ -777,6 +871,9 @@ static int perf_warning_enter(struct state *st, struct state *prev, int intent)
 
     conf_common_init(perf_warning_action, 1);
 
+    if (perf_warning_autoconfig)
+        return transition_slide(perf_warning_autoconfig_gui(), 1, intent);
+    else
 #if ENABLE_MOTIONBLUR!=0
     if (perf_warning_mode == 0) {
         gamepad_perf_warning_value = !config_get_d(CONFIG_MOTIONBLUR);
@@ -963,27 +1060,8 @@ static int video_action(int tok, int val)
             break;
 
         case VIDEO_AUTO_CONFIGURE:
-            goto_state(&st_null);
-#if ENABLE_DUALDISPLAY==1
-            r = video_mode_auto_config(f, w, h) && video_dualdisplay_mode(f, w, h);
-#else
-            r = video_mode_auto_config(f, w, h);
-#endif
-            if (r) exit_state(&st_video);
-            else
-            {
-#if ENABLE_DUALDISPLAY==1
-                r = video_mode(f, w, h) && video_dualdisplay_mode(f, w, h);
-#else
-                r = video_mode(f, w, h);
-#endif
-                if (r) exit_state(&st_video);
-            }
-
-            if (r) config_set_d(CONFIG_CAMERA_SHAKE, 1);
-
-            config_save();
-
+            perf_warning_autoconfig = 1;
+            goto_state(&st_perf_warning);
             break;
         case VIDEO_ADVANCED:
             goto_state(&st_video_advanced);

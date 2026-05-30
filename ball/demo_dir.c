@@ -107,6 +107,8 @@ void demo_dir_load(Array items, int lo, int hi)
 
 void demo_dir_free(Array items)
 {
+    if (!items) return;
+
     for (int i = 0; i < array_len(items); i++)
         free_item(array_get(items, i));
 

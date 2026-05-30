@@ -527,6 +527,7 @@ Array fs_dir_scan(const char *path, int (*filter)(struct dir_item *))
  */
 void fs_dir_free(Array items)
 {
+    if (!items) return;
     dir_free(items);
 }
 

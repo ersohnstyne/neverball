@@ -67,8 +67,10 @@
 #ifndef SDL_ENABLE
 #define SDL_ENABLE 1
 #endif
+#if NB_PB_SDL3==1
 #ifndef SDL_WINDOW_FULLSCREEN_DESKTOP
 #define SDL_WINDOW_FULLSCREEN_DESKTOP SDL_WINDOW_FULLSCREEN
+#endif
 #endif
 
 #if __cplusplus
@@ -260,9 +262,12 @@ extern "C"
 int video_fullscreen(int f)
 {
 #if !defined(__WII__)
+    /* HACK: Tell which connected display amount are dependent. */
+    int fullscreen_flags = SDL_GetNumVideoDisplays() <= 1 ? SDL_WINDOW_FULLSCREEN :
+                                                            SDL_WINDOW_FULLSCREEN_DESKTOP;
+
     int code = SDL_SetWindowFullscreen(window,
-                                       f ? SDL_WINDOW_FULLSCREEN_DESKTOP :
-                                           0);
+                                       f ? fullscreen_flags : 0);
 
     if (code == 0) config_set_d(CONFIG_FULLSCREEN, f ? 1 : 0);
     else log_errorf("Failure to %s fullscreen (%s)\n", f ? "enter" : "exit",
@@ -502,7 +507,7 @@ int video_mode(int f, int w, int h)
 
     int stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
     int stencil  = config_get_d(CONFIG_REFLECTION)  ? 1 : 0;
-    int buffers  = config_get_d(CONFIG_MULTISAMPLE) ? 1 : 0;
+    int buffers  = config_get_d(CONFIG_MULTISAMPLE) > 0 ? 1 : 0;
     int samples  = config_get_d(CONFIG_MULTISAMPLE);
     int texture  = config_get_d(CONFIG_TEXTURES);
     int vsync    = config_get_d(CONFIG_VSYNC)       ? 1 : 0;
@@ -519,7 +524,7 @@ video_mode_reconf:
 
     stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
     stencil  = config_get_d(CONFIG_REFLECTION)  ? 1 : 0;
-    buffers  = config_get_d(CONFIG_MULTISAMPLE) ? 1 : 0;
+    buffers  = config_get_d(CONFIG_MULTISAMPLE) > 0 ? 1 : 0;
     samples  = config_get_d(CONFIG_MULTISAMPLE);
     texture  = config_get_d(CONFIG_TEXTURES);
     vsync    = config_get_d(CONFIG_VSYNC)       ? 1 : 0;
@@ -580,19 +585,21 @@ video_mode_reconf:
     hmd_free();
 
     video_quit();
-
+    
 #if ENABLE_OPENGLES
     if (init_gles) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  SDL_GL_CONTEXT_PROFILE_ES);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-    }
-    else
-    {
+    } else {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  0);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     }
+#else
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 #endif
 
 #ifndef ENABLE_HMD
@@ -621,8 +628,8 @@ video_mode_reconf:
      * Default depth size: 8 - Either 8 or 16
      */
 
-    int rgb_size_fixed   = 3;
-    int depth_size_fixed = 8;
+    const int rgb_size_fixed   = 3;
+    const int depth_size_fixed = 8;
 
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
@@ -635,6 +642,11 @@ video_mode_reconf:
 
     log_printf("Creating a window (%dx%d, %s)\n",
                w, h, (f ? "fullscreen" : "windowed"));
+    
+    /* HACK: Tell which connected display amount are dependent. */
+
+    int fullscreen_flags = SDL_GetNumVideoDisplays() <= 1 ? SDL_WINDOW_FULLSCREEN :
+                                                            SDL_WINDOW_FULLSCREEN_DESKTOP;
 
 #if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
     if (!window) {
@@ -657,7 +669,7 @@ video_mode_reconf:
                 | SDL_WINDOW_RESIZABLE
                 | (config_get_d(CONFIG_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0)
 #endif
-                | (f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)
+                | (f ? fullscreen_flags : 0)
 #endif
             );
         }
@@ -685,11 +697,13 @@ video_mode_reconf:
     }
     else
     {
-        SDL_SetWindowFullscreen(window, f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+        SDL_SetWindowFullscreen(window, f ? fullscreen_flags : 0);
         SDL_SetWindowPosition(window, X, Y);
         SDL_SetWindowSize(window, w, h);
     }
 #endif
+
+    int solution_buf = 0, solution_smp = 0;
 
     if (window)
     {
@@ -739,12 +753,16 @@ video_mode_reconf:
                 context = NULL;
             }
 
-            int buf, smp;
+            int buf = 0, smp = 0;
 
-            SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buf);
-            SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &smp);
+            if (context) {
+                SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buf);
+                SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &smp);
+                solution_buf = buf;
+                solution_smp = smp;
+            }
 
-            if (buf < buffers || smp < samples)
+            if ((buf < buffers || smp < samples) && context)
             {
 #ifdef __EMSCRIPTEN__
                 close_gl4es();
@@ -922,18 +940,14 @@ video_mode_failinit_window_context:
     }
 #endif
 
-#if !defined(__NDS__) && !defined(__3DS__) && \
+#if defined(ENABLE_MULTISAMPLE_SOLUTION) && \
+    !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
     /* If that mode failed, get the solution. */
 
-    if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
+    if (window)
     {
-        int solution_buf, solution_smp;
-        if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &solution_buf) != 0 ||
-            SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &solution_smp) != 0)
-            return 0;
-
         if (solution_buf < solution_smp)
             config_set_d(CONFIG_MULTISAMPLE, solution_smp);
         else if (solution_buf > solution_smp)
@@ -944,6 +958,8 @@ video_mode_failinit_window_context:
 #ifndef NDEBUG
         assert(solution_buf > -1 && solution_smp > -1);
 #endif
+
+        log_printf("Sampling buffer solution found!: Samples: %d; Buffers: %d\n", solution_smp, solution_buf);
 
         goto video_mode_reconf;
     }
@@ -954,13 +970,8 @@ video_mode_failinit_window_context:
 #if defined(ENABLE_MULTISAMPLE_SOLUTION)
     /* Get the solution first. */
 
-    if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
+    if (window)
     {
-        int solution_buf, solution_smp;
-        if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &solution_buf) != 0 ||
-            SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &solution_smp) != 0)
-            return 0;
-
         if (solution_buf < solution_smp)
             config_set_d(CONFIG_MULTISAMPLE, solution_smp);
         else if (solution_buf > solution_smp)
@@ -971,6 +982,8 @@ video_mode_failinit_window_context:
 #ifndef NDEBUG
         assert(solution_buf > -1 && solution_smp > -1);
 #endif
+
+        log_printf("Sampling buffer solution found!: Samples: %d; Buffers: %d\n", solution_smp, solution_buf);
 
         goto video_mode_reconf;
     }
@@ -1083,19 +1096,21 @@ video_mode_auto_config_reconf:
     hmd_free();
 
     video_quit();
-
+    
 #if ENABLE_OPENGLES
     if (init_gles) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  SDL_GL_CONTEXT_PROFILE_ES);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-    }
-    else
-    {
+    } else {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  0);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     }
+#else
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 #endif
 
     SDL_GL_SetAttribute(SDL_GL_STEREO,             stereo);
@@ -1123,8 +1138,8 @@ video_mode_auto_config_reconf:
      * Default depth size: 8 - Either 8 or 16
      */
 
-    int rgb_size_fixed   = 2;
-    int depth_size_fixed = 8;
+    const int rgb_size_fixed   = 2;
+    const int depth_size_fixed = 8;
 
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   rgb_size_fixed);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, rgb_size_fixed);
@@ -1135,6 +1150,11 @@ video_mode_auto_config_reconf:
 
     log_printf("Creating a window (%dx%d, %s (auto configuration))\n",
                w, h, (f ? "fullscreen" : "windowed"));
+    
+    /* HACK: Tell which connected display amount are dependent. */
+
+    int fullscreen_flags = SDL_GetNumVideoDisplays() <= 1 ? SDL_WINDOW_FULLSCREEN :
+                                                            SDL_WINDOW_FULLSCREEN_DESKTOP;
 
 #if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
     if (!window) {
@@ -1157,7 +1177,7 @@ video_mode_auto_config_reconf:
                 | SDL_WINDOW_RESIZABLE
                 | (config_get_d(CONFIG_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0)
 #endif
-                | (f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)
+                | (f ? fullscreen_flags : 0)
 #endif
             );
         }
@@ -1185,7 +1205,7 @@ video_mode_auto_config_reconf:
     }
     else
     {
-        SDL_SetWindowFullscreen(window, f ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+        SDL_SetWindowFullscreen(window, f ? fullscreen_flags : 0);
         SDL_SetWindowPosition(window, X, Y);
         SDL_SetWindowSize(window, w, h);
     }
@@ -1280,6 +1300,8 @@ video_mode_auto_config_reconf:
             return 0;
     }
 
+    int solution_buf = 0, solution_smp = 0;
+
     if (window)
     {
 #ifndef __EMSCRIPTEN__
@@ -1308,6 +1330,8 @@ video_mode_auto_config_reconf:
 
             SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buf);
             SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &smp);
+            solution_buf = buf;
+            solution_smp = smp;
 
             if (buf < (auto_samples > 0 ? 1 : 0) || smp < auto_samples)
             {
@@ -1398,6 +1422,8 @@ video_mode_auto_config_reconf:
 
         /* Set it back for recommended configurations. */
 
+        config_set_d(CONFIG_MOTIONBLUR, glext_get_recommended());
+
         config_set_d(CONFIG_TEXTURES,   1);
         config_set_d(CONFIG_SHADOW,     1);
         config_set_d(CONFIG_BACKGROUND, 1);
@@ -1442,13 +1468,8 @@ video_mode_auto_config_failinit_window_context:
     !defined(__SWITCH__)
     /* Get the solution first. */
 
-    if (config_get_d(CONFIG_MULTISAMPLE) == 0 && window)
+    if (window)
     {
-        int solution_buf, solution_smp;
-        if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &solution_buf) != 0 ||
-            SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &solution_smp) != 0)
-            return 0;
-
         if (solution_buf < solution_smp)
             config_set_d(CONFIG_MULTISAMPLE, solution_smp);
         else if (solution_buf > solution_smp)
@@ -1459,6 +1480,8 @@ video_mode_auto_config_failinit_window_context:
 #ifndef NDEBUG
         assert(solution_buf > -1 && solution_smp > -1);
 #endif
+
+        log_printf("Sampling buffer solution found!: Samples: %d; Buffers: %d\n", solution_smp, solution_buf);
 
         goto video_mode_auto_config_reconf;
     }

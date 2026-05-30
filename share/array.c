@@ -125,7 +125,7 @@ Array array_new(int elem_len)
     if ((a = malloc(sizeof (*a))))
     {
         a->elem_num = 0;
-        a->elem_len = elem_len;
+        a->elem_len = MAX(elem_len, 1);
 
         alloc_new(&a->alloc, MAX(elem_len, 1), (void **) &a->data, &a->elem_num);
     }
@@ -200,8 +200,7 @@ void array_sort(Array a, int (*cmp)(const void *, const void *))
     assert(a);
 #endif
 
-    if (a)
-        qsort(a->data, a->elem_num, a->elem_len, cmp);
+    if (a) qsort(a->data, a->elem_num, a->elem_len, cmp);
 }
 
 /*----------------------------------------------------------------------------*/

@@ -421,7 +421,7 @@ static void opt_init(int argc, char **argv)
             break;
         }*/
 
-        if (argc == 2)
+        if (argc >= 2)
         {
             if (str_ends_with(argv[i], ".nbr") ||
                 str_ends_with(argv[i], ".nbrx"))

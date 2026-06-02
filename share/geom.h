@@ -75,6 +75,7 @@ void item_draw (struct s_rend *, const struct v_item *, const GLfloat *, float);
 
 void back_init(const char *s);
 void back_free(void);
+int  back_compare_filename(const char *s);
 
 void maxspeed_draw(struct s_rend *);
 

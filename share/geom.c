@@ -346,7 +346,8 @@ static struct s_full chnk_swch;
 static struct s_full chnk_chkp;
 #endif
 
-static int back_state = 0;
+static int   back_state    = 0;
+static char *grad_filename = NULL;
 
 /*---------------------------------------------------------------------------*/
 
@@ -584,6 +585,7 @@ void back_init(const char *name)
         if (!mp->o)
             log_errorf("Failed to load background image: %s / %s\n",
                        name, fs_error());
+        else grad_filename = strdup(name);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 
@@ -594,9 +596,30 @@ void back_init(const char *name)
 void back_free(void)
 {
     if (back_state)
+    {
+        if (grad_filename) {
+            free(grad_filename);
+            grad_filename = NULL;
+        }
+
         sol_free_full(&back);
+    }
 
     back_state = 0;
+}
+
+int back_compare_filename(const char *s)
+{
+    if (!grad_filename || !s) return 0;
+
+#ifndef NDEBUG
+    const int r = strcmp(grad_filename, s) == 0;
+
+    if (!r) log_errorf("Mismatch background gradient filename!: Current: %s; Expected: %s\n", grad_filename, s);
+    return r;
+#else
+    return grad_filename ? strcmp(grad_filename, s) == 0 : 0;
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

@@ -46,10 +46,10 @@
 #include "log.h"
 
 #if NB_PB_WITH_XBOX==0 && !defined(__GAMECUBE__) && !defined(__WII__)
-#define JOY_MAX 4
+#define JOY_MAX 16
 
 #if _WIN32
-//static_assert(JOY_MAX == 4, "JOY_MAX: This must be set to 4");
+static_assert(JOY_MAX == 4, "JOY_MAX: This must be set to 4");
 #endif
 
 static int joy_is_init = 0;
@@ -163,6 +163,9 @@ void joy_add(int device)
                 log_printf("Joystick %d made current via device addition\n",
                            joy_curr);
 
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+                console_gui_toggle(1);
+#endif
                 break;
             }
         }
@@ -215,6 +218,9 @@ void joy_add_gamectrlr(int device)
                 log_printf("GameController %d made current via device addition\n",
                            joy_curr);
 
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+                console_gui_toggle(1);
+#endif
                 break;
             }
         }
@@ -270,12 +276,12 @@ int joy_button(int instance, int b, int d)
 {
     if (!joy_is_init) return 1;
 
-    if (joy_curr != instance)
-    {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        console_gui_toggle(1);
+    console_gui_toggle(1);
 #endif
 
+    if (joy_curr != instance)
+    {
         /* Make joystick current. */
 #if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API
         joy_curr = instance;
@@ -294,12 +300,12 @@ int joy_button_gamectrlr(int instance, int b, int d)
 {
     if (!joy_is_init) return 1;
 
-    if (joy_curr != instance)
-    {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        console_gui_toggle(1);
+    console_gui_toggle(1);
 #endif
 
+    if (joy_curr != instance)
+    {
         /* Make gamepad current. */
 #if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API
         joy_curr = instance;
@@ -323,7 +329,7 @@ int joy_button_gamectrlr(int instance, int b, int d)
         case SDL_CONTROLLER_BUTTON_DPAD_LEFT:  pad[0] = d; return st_dpad(8,  d, pad); break;
         case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: pad[1] = d; return st_dpad(9,  d, pad); break;
         case SDL_CONTROLLER_BUTTON_DPAD_UP:    pad[2] = d; return st_dpad(10, d, pad); break;
-        case SDL_CONTROLLER_BUTTON_DPAD_DOWN:  pad[3] = d; return st_dpad(11, d, pad);
+        case SDL_CONTROLLER_BUTTON_DPAD_DOWN:  pad[3] = d; return st_dpad(11, d, pad); break;
     }
 
     return 1;

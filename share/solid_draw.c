@@ -85,7 +85,8 @@ static void sol_transform(const struct s_vary *vary,
 
     /* Apply the shadow transform to the texture matrix. */
 
-    if (ui >= 0 && ui < vary->uc && vary->uv[ui].r > 0.0f)
+    if (ui >= 0 && ui < vary->uc &&
+        vary->uv && vary->uv[ui].r > 0.0f)
     {
         struct v_ball *up = vary->uv + ui;
 
@@ -205,9 +206,9 @@ static int sol_test_mtrl(int mi, int p)
     const struct mtrl *mp = mtrl_get(mi);
 
     /* Test whether the material flags match inclusion rules. */
-
-    return ((mp->base.fl & passes[p].in) == passes[p].in &&
-            (mp->base.fl & passes[p].ex) == 0);
+    
+    return mp && ((mp->base.fl & passes[p].in) == passes[p].in &&
+                  (mp->base.fl & passes[p].ex) == 0);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -275,7 +276,7 @@ static int sol_count_mesh(const struct d_body *bp, int p)
     /* Count the body meshes matching the given material flags. */
 
     for (mi = 0; mi < bp->mc; ++mi)
-        if (sol_test_mtrl(bp->mv[mi].mtrl, p))
+        if (bp->mv && sol_test_mtrl(bp->mv[mi].mtrl, p))
             c++;
 
     return c;
@@ -286,6 +287,9 @@ static int sol_count_mesh(const struct d_body *bp, int p)
 static void sol_mesh_vert(struct d_vert *vp,
                           const struct s_base *base, int oi)
 {
+    if (!base->tv || !base->sv || !base->vv ||
+        !base->ov) return;
+
     /* Gather all vertex attributes for the given offs. */
 
     const struct b_texc *tq = base->tv + base->ov[oi].ti;
@@ -316,6 +320,8 @@ static void sol_mesh_geom(struct d_vert *vv,   int *vn,
 
     for (gi = 0; gi < gc; gi++)
     {
+        if (!base->gv || !base->iv) continue;
+
         const struct b_geom *gq = base->gv + base->iv[g0 + gi];
 
         if (gq->mi == mi)
@@ -529,16 +535,18 @@ static void sol_load_body(struct d_body *bp,
 
 static void sol_free_body(struct d_body *bp)
 {
-    for (int  mi = 0; mi < bp->mc; ++mi)
-        sol_free_mesh(bp->mv + mi);
+    if (bp->mv) {
+        for (int mi = 0; mi < bp->mc; ++mi)
+            sol_free_mesh(bp->mv + mi);
 
-    free(bp->mv); bp->mv = NULL;
+        free(bp->mv); bp->mv = NULL;
+    }
 }
 
 static void sol_draw_body(const struct d_body *bp, struct s_rend *rend, int p)
 {
     for (int i = 0; i < bp->mc; ++i)
-        sol_draw_mesh(bp->mv + i, rend, p);
+        if (bp->mv) sol_draw_mesh(bp->mv + i, rend, p);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -555,7 +563,7 @@ int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
     /* Determine whether this file has reflective materials. */
 
     for (i = 0; i < draw->base->mc && !draw->reflective; i++)
-        if (draw->base->mv[i].fl & M_REFLECTIVE)
+        if (draw->base->mv && draw->base->mv[i].fl & M_REFLECTIVE)
         {
             draw->reflective = 1;
             break;
@@ -568,12 +576,11 @@ int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
     /* Initialize shadow state. */
 
     draw->shadow_ui = -1;
-    draw->shadowed = s;
+    draw->shadowed  = s;
 
     /* Initialize all bodies for this file. */
 
     if (draw->base->bc)
-    {
         if ((draw->bv = (struct d_body *) (calloc(draw->base->bc, sizeof (*draw->bv)))))
         {
             draw->bc = draw->base->bc;
@@ -581,7 +588,6 @@ int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
             for (i = 0; i < draw->bc; i++)
                 sol_load_body(draw->bv + i, draw->base->bv + i, draw);
         }
-    }
 
     sol_load_bill(draw);
 
@@ -592,11 +598,13 @@ void sol_free_draw(struct s_draw *draw)
 {
     mtrl_free_sol(draw->base);
     sol_free_bill(draw);
+    
+    if (draw->bv) {
+        for (int i = 0; i < draw->bc; i++)
+            sol_free_body(draw->bv + i);
 
-    for (int i = 0; i < draw->bc; i++)
-        sol_free_body(draw->bv + i);
-
-    free(draw->bv); draw->bv = NULL;
+        free(draw->bv); draw->bv = NULL;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -671,8 +679,8 @@ void sol_back(const struct s_draw *draw,
               struct s_rend *rend,
               float n, float f, float t)
 {
-    if (!(draw && draw->base && draw->base->rc))
-        return;
+    if (!(draw && draw->base &&
+          draw->base->rc && draw->base->rv)) return;
 
     glDepthMask(GL_FALSE);
 
@@ -738,8 +746,9 @@ void sol_bill(const struct s_draw *draw,
               struct s_rend *rend, const float *M, float t)
 {
     float p[3];
-
-    if (!(draw && draw->base && draw->base->rc)) return;
+    
+    if (!(draw && draw->base &&
+          draw->base->rc && draw->base->rv)) return;
 
     sol_bill_enable(draw);
     {

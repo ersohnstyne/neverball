@@ -257,9 +257,21 @@ static const char *pick_demo(Array items)
         return NULL;
 
 #if NB_HAVE_PB_BOTH==1
-    /* Classic only? */
+    /* Challenge only? */
 
-    if (demo_data->mode != MODE_NORMAL) return NULL;
+    if (demo_data->mode != MODE_NORMAL &&
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        demo_data->mode != MODE_CAMPAIGN &&
+#endif
+        demo_data->mode != MODE_ZEN) {
+        if (server_policy_get_d(SERVER_POLICY_EDITION) == 0 ||
+            !server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
+            return NULL;
+
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        if (CHECK_ACCOUNT_BANKRUPT) return NULL;
+#endif
+    }
 
     /* Less than ten minutes? */
 

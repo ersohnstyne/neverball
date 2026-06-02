@@ -106,6 +106,9 @@ void joy_add(int device)
             log_printf("XInput: Joystick opened (instance %d)\n",
                        joysticks[i].id);
 
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            console_gui_toggle(1);
+#endif
             break;
         }
     }

@@ -57,6 +57,10 @@ static struct vec4 get_path_rot(const struct s_vary *vary, int pi, float dt);
 static struct vec3 get_move_pos(const struct s_vary *vary, int mi, float dt)
 {
     if (mi < 0) return POS_IDENTITY;
+    if (!vary->mv) {
+        log_errorf("vary->mv returned NULL!\n");
+        return POS_IDENTITY;
+    }
     if (!vary->base->pv) {
         log_errorf("vary->base->pv returned NULL!\n");
         return POS_IDENTITY;
@@ -97,6 +101,10 @@ static struct vec3 get_move_pos(const struct s_vary *vary, int mi, float dt)
 static struct vec4 get_move_rot(const struct s_vary *vary, int mi, float dt)
 {
     if (mi < 0) return ROT_IDENTITY;
+    if (!vary->mv) {
+        log_errorf("vary->mv returned NULL!\n");
+        return ROT_IDENTITY;
+    }
     if (!vary->base->pv) {
         log_errorf("vary->base->pv returned NULL!\n");
         return ROT_IDENTITY;
@@ -132,6 +140,14 @@ static void get_move_transform(const struct s_vary *vary, int mi, float dt, stru
 static struct vec3 get_path_pos(const struct s_vary *vary, int pi, float dt)
 {
     if (pi < 0) return POS_IDENTITY;
+    if (!vary->pv) {
+        log_errorf("vary->pv returned NULL!\n");
+        return POS_IDENTITY;
+    }
+    if (!vary->base->pv) {
+        log_errorf("vary->base->pv returned NULL!\n");
+        return POS_IDENTITY;
+    }
 
     const struct v_path *vp = vary->pv + pi;
     const struct b_path *pp = vary->base->pv + pi;
@@ -156,6 +172,14 @@ static struct vec3 get_path_pos(const struct s_vary *vary, int pi, float dt)
 static struct vec4 get_path_rot(const struct s_vary *vary, int pi, float dt)
 {
     if (pi < 0) return ROT_IDENTITY;
+    if (!vary->pv) {
+        log_errorf("vary->pv returned NULL!\n");
+        return ROT_IDENTITY;
+    }
+    if (!vary->base->pv) {
+        log_errorf("vary->base->pv returned NULL!\n");
+        return ROT_IDENTITY;
+    }
 
     const struct v_path *vp = vary->pv + pi;
     const struct b_path *pp = vary->base->pv + pi;
@@ -185,6 +209,11 @@ static void get_move_transform(const struct s_vary *vary, int mi, float dt, stru
     if (rot_out) *rot_out = ROT_IDENTITY;
 
     if (mi < 0 || mi >= vary->mc) return;
+
+    if (!vary->mv) {
+        log_errorf("vary->mv returned NULL!\n");
+        return;
+    }
 
     if (dt != 0.0f)
     {
@@ -302,7 +331,7 @@ int sol_body_w(const struct s_vary *vary, int mi)
     {
         const struct v_move *mp = vary->mv + mi;
 
-        if (vary->pv[mp->pi].f)
+        if (mp && vary->pv && vary->pv[mp->pi].f)
         {
             const struct b_path *pp = vary->base->pv + mp->pi;
             const struct b_path *pq = vary->base->pv + pp->pi;

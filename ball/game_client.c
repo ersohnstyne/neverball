@@ -84,6 +84,8 @@ static struct cmd_state cs;             /* Command state                     */
 
 struct game_sol_version { int x, y; }
        version;                         /* Current map version               */
+       
+static char *grad_filename = NULL;
 
 static float fixed_death_position[3];
 
@@ -856,8 +858,9 @@ int  game_client_init(const char *file_name)
 
     /* Initialize background. */
 
-    back_init(grad_name);
+    grad_filename = strdup(grad_name);
 
+    back_init(grad_name);
     sol_load_full(&gd.back, back_name, 0);
 
     /* Initialize lighting. */
@@ -883,6 +886,11 @@ void game_client_free(const char *next)
 
         game_draw_set_maxspeed(0.0f, 0);
         game_proxy_clr();
+
+        if (grad_filename) {
+            free(grad_filename);
+            grad_filename = NULL;
+        }
 
         back_free();
 
@@ -914,6 +922,13 @@ void game_client_draw(int pose, float t)
 {
     if (gd.state && !progress_loading())
     {
+        /* HACK: Just compare gradient first! */
+
+        if (grad_filename && !back_compare_filename(grad_filename)) {
+            back_free();
+            back_init(grad_filename);
+        }
+
         gd.tilt_f = status != GAME_FALL;
 
         if (!gd.tilt_f)

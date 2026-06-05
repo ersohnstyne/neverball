@@ -1385,9 +1385,17 @@ int demo_play_goto(int s)
     standalone   = s;
     check_compat = 1;
     is_opened    = 1;
+    
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    const int has_campaign = curr_mode()  != MODE_CAMPAIGN ||
+                             curr_clock() == 0.0f;
 
+    return goto_state(game_compat_map && has_campaign ? &st_demo_play :
+                                                        &st_demo_compat);
+#else
     return goto_state(game_compat_map ? &st_demo_play :
                                         &st_demo_compat);
+#endif
 }
 
 static int demo_play_gui(void)
@@ -1406,7 +1414,6 @@ static int demo_play_gui(void)
 static int demo_play_enter(struct state *st, struct state *prev, int intent)
 {
     smoothfix_slowdown_time = 0;
-
     game_client_toggle_sound(1);
     video_hide_cursor();
 
@@ -2049,11 +2056,25 @@ static int demo_compat_gui(void)
     {
         gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
-
-        gui_multi(id, _("The current replay was recorded with a\n"
-                        "different (or unknown) version of this level.\n"
-                        "Be prepared to encounter visual errors.\n"),
-                  GUI_SML, GUI_COLOR_WHT);
+        
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        const int has_campaign_untimed = curr_clock() == 0.0f;
+#endif
+        
+        if (curr_mode() == MODE_CAMPAIGN && !has_campaign_untimed && game_compat_map)
+            gui_multi(id, _("The current replay was recorded with a\n"
+                            "limited time of this level on campaign.\n"),
+                      GUI_SML, GUI_COLOR_WHT);
+        else if (curr_mode() == MODE_CAMPAIGN && !has_campaign_untimed)
+            gui_multi(id, _("The current replay was recorded with a\n"
+                            "limited time and different (or unknown) version\n"
+                            "of this level on campaign.\n"
+                            "Be prepared to encounter visual errors.\n"),
+                      GUI_SML, GUI_COLOR_WHT);
+        else gui_multi(id, _("The current replay was recorded with a\n"
+                             "different (or unknown) version of this level.\n"
+                             "Be prepared to encounter visual errors.\n"),
+                       GUI_SML, GUI_COLOR_WHT);
 
         gui_layout(id, 0, 0);
     }
@@ -2066,7 +2087,7 @@ static int demo_compat_enter(struct state *st, struct state *prev, int intent)
     audio_play(AUD_WARNING, 1.0f);
 
     check_compat         = 0;
-    allow_exact_versions = 0;
+    allow_exact_versions = game_compat_map;
 
     return transition_slide(demo_compat_gui(), 1, intent);
 }
@@ -2079,8 +2100,7 @@ static void demo_compat_timer(int id, float dt)
 
 static int demo_compat_keybd(int c, int d)
 {
-    if (d && c == KEY_EXIT)
-        return demo_pause_goto(0);
+    if (d && c == KEY_EXIT) return demo_pause_goto(0);
 
     return 1;
 }

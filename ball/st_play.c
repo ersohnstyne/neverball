@@ -790,6 +790,7 @@ static float smoothfix_slowdown_time;
 
 static int play_loop_enter(struct state *st, struct state *prev, int intent)
 {
+    game_client_toggle_sound(1);
     devicemotion_tilt_can_autocalibrate = 1;
 
     smoothfix_slowdown_time = 0;

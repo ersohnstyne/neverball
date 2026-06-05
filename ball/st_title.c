@@ -1694,7 +1694,7 @@ static void title_timer(int id, float dt)
             break;
 
         case TITLE_MODE_DEMO: /* Run demo. */
-
+            game_client_toggle_sound(0);
             if (!title_prequit && (!demo_replay_step(dt) || !game_compat_map))
             {
                 if (builtin_demo_used == 1) {

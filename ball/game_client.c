@@ -258,7 +258,7 @@ static void game_run_cmd(const union cmd *cmd)
                 break;
 
             case CMD_TIMER:
-                if (!gd.jump_b)
+                if (!gd.jump_b && !cs.first_update)
                 {
                     gl.timer[PREV] = gl.timer[CURR];
                     gl.timer[CURR] = cmd->timer.t;
@@ -266,8 +266,8 @@ static void game_run_cmd(const union cmd *cmd)
 
                 if (cs.first_update)
                 {
-                    gl.timer[PREV] = gl.timer[CURR] = cmd->timer.t;
-                    game_compat_campaign = 0;
+                    game_compat_campaign = gl.timer[PREV] == 0 && gl.timer[CURR] == 0 && cmd->timer.t == 0;
+                    //gl.timer[PREV] = gl.timer[CURR] = cmd->timer.t;
                 }
 
                 break;
@@ -336,8 +336,11 @@ static void game_run_cmd(const union cmd *cmd)
                 break;
 
             case CMD_SWCH_ENTER:
-                if ((idx = cmd->swchenter.xi) >= 0 && idx < vary->xc)
+                if ((idx = cmd->swchenter.xi) >= 0 && idx < vary->xc) {
+                    if (!vary->base->xv[idx].i && game_sound_enabled)
+                        audio_play("snd/2.2/game_button_down.ogg", 1.0f);
                     vary->xv[idx].e = 1;
+                }
                 break;
 
             case CMD_SWCH_TOGGLE:
@@ -346,8 +349,11 @@ static void game_run_cmd(const union cmd *cmd)
                 break;
 
             case CMD_SWCH_EXIT:
-                if ((idx = cmd->swchexit.xi) >= 0 && idx < vary->xc)
+                if ((idx = cmd->swchexit.xi) >= 0 && idx < vary->xc) {
+                    if (!vary->base->xv[idx].i && game_sound_enabled)
+                        audio_play("snd/2.2/game_button_up.ogg", 1.0f);
                     vary->xv[idx].e = 0;
+                }
                 break;
 
             case CMD_UPDATES_PER_SECOND:
@@ -369,7 +375,7 @@ static void game_run_cmd(const union cmd *cmd)
             case CMD_BALL_POSITION:
                 sol_lerp_cmd(&gl.lerp, &cs, cmd);
 
-                /*if (vary)
+                /*if (vary && vary->uv)
                 {
                     float vx = vary->uv[cs.curr_ball].v[0];
                     float vy = vary->uv[cs.curr_ball].v[1];
@@ -617,6 +623,11 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
                  *     return (gd.state = 0);
                  */
             }
+
+        if (strcmp(k, "time") == 0) {
+            gl.timer[CURR] = atoi(v) / 100.0f;
+            gl.timer[PREV] = gl.timer[CURR];
+        }
     }
 
     /*
@@ -832,6 +843,11 @@ int  game_client_init(const char *file_name)
                  *     return (gd.state = 0);
                  */
             }
+
+        if (strcmp(k, "time") == 0) {
+            gl.timer[CURR] = atoi(v) / 100.0f;
+            gl.timer[PREV] = gl.timer[CURR];
+        }
     }
 
     /*

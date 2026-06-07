@@ -2151,56 +2151,57 @@ static void game_server_iter(float dt)
          * in standalone mode.
          */
 
-        if (curr_mode() != MODE_STANDALONE) {
+        if (curr_mode() != MODE_STANDALONE &&
+            status != GAME_GOAL) {
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-        /* HACK: OK, but now, with WGCL's Emscripten first! */
+            /* HACK: OK, but now, with WGCL's Emscripten first! */
 
-        const int r = EM_ASM_INT({
-            return Neverball.gamecore_mapmarker_try_place(UTF8ToString($0), $1, $2, $3, $4);
-        }, curr_file_name, status,
-           ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
+            const int r = EM_ASM_INT({
+                return Neverball.gamecore_mapmarker_try_place(UTF8ToString($0), $1, $2, $3, $4);
+            }, curr_file_name, status,
+               ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
 #elif defined(__EMSCRIPTEN__)
-        const int r1 = EM_ASM_INT({
-            const server_internal_url = "/api/internal/mapmarkers/place";
-            const external_url = "https://pennyball.stynegame.de/api/internal/mapmarkers/place";
+            const int r1 = EM_ASM_INT({
+                const server_internal_url = "/api/internal/mapmarkers/place";
+                const external_url = "https://pennyball.stynegame.de/api/internal/mapmarkers/place";
 
-            try {
-                const parsedUrl = new URL(window.location.href);
+                try {
+                    const parsedUrl = new URL(window.location.href);
 
-                const regexMatchURL = "/pennyball\.stynegame\.de$/";
-                if (regexMatchURL instanceof RegExp) {
-                    return regexMatchURL.test(parsedUrl.href) ? 1 : 0;
-                } else if (typeof regexMatchURL === "string") {
-                    return parsedUrl.href.toLowerCase().includes(regexMatchURL.toLowerCase()) ? 1 : 0;
-                }
-            } catch (e) { return 0; }
-        });
-
-        EM_ASM({
-            const server_internal_url = "/api/internal/mapmarkers/place";
-            const external_url = "https://pennyball.stynegame.de/api/internal/mapmarkers/place";
-
-            fetch($0 == 1 ? server_internal_url : external_url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify({
-                    fetch_post_date_iso: new Date().toISOString(),
-                    map_name: UTF8ToString($1),
-                    status_type: $2,
-                    position: {
-                        x: $3, y: $4, z: $5
+                    const regexMatchURL = "/pennyball\.stynegame\.de$/";
+                    if (regexMatchURL instanceof RegExp) {
+                        return regexMatchURL.test(parsedUrl.href) ? 1 : 0;
+                    } else if (typeof regexMatchURL === "string") {
+                        return parsedUrl.href.toLowerCase().includes(regexMatchURL.toLowerCase()) ? 1 : 0;
                     }
-                })
+                } catch (e) { return 0; }
             });
-        }, r1, curr_file_name, status, ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
-#else
-        /* HACK: OK, but now, with WGCL's standalone game network first! */
 
-        account_wgcl_mapmarkers_place(curr_file_name, status,
-                                      ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
+            EM_ASM({
+                const server_internal_url = "/api/internal/mapmarkers/place";
+                const external_url = "https://pennyball.stynegame.de/api/internal/mapmarkers/place";
+
+                fetch($0 == 1 ? server_internal_url : external_url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        fetch_post_date_iso: new Date().toISOString(),
+                        map_name: UTF8ToString($1),
+                        status_type: $2,
+                        position: {
+                            x: $3, y: $4, z: $5
+                        }
+                    })
+                });
+            }, r1, curr_file_name, status, ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
+#else
+            /* HACK: OK, but now, with WGCL's standalone game network first! */
+
+            account_wgcl_mapmarkers_place(curr_file_name, status,
+                                          ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
 #endif
         }
         game_cmd_status();

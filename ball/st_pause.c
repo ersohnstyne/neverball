@@ -431,7 +431,7 @@ static void pause_paint(int id, float t)
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_shown())
-        console_gui_death_paint();
+        console_gui_paused_paint();
 #endif
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))
     {
@@ -514,7 +514,7 @@ static int pause_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return pause_action(gui_token(active), gui_value(active));
 
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b) && curr_state() != &st_pause) {
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b)) {
             audio_play(AUD_BACK, 1.0f);
             PAUSED_ACTION_CONTINUE;
         }

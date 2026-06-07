@@ -130,17 +130,27 @@ int hud_visibility(void)
 
 static void hud_fps(void)
 {
-    char  perf_attr[MAXSTR];
-    float ms_latency = 1.f / video_perf();
+    static float last_fps = 0.0f;
+
+    char  perf_attr[32];
+    float ms_latency = 1.0f / video_perf();
+
+    last_fps = flerp(last_fps, video_perf(), ms_latency * 4);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(perf_attr, MAXSTR,
+    sprintf_s(perf_attr, 32,
 #else
     sprintf(perf_attr,
 #endif
-            "FPS: %d (%.3f ms)", video_perf(), ms_latency);
+            "FPS: %d (%.3f ms)", ROUND(last_fps), 1.0f / last_fps);
 
     gui_set_label(fps_id, perf_attr);
+
+#if NB_HAVE_PB_BOTH==1
+    if      (video_perf() >= 30) gui_set_color(fps_id, GUI_COLOR_GRN);
+    else if (video_perf() >= 20) gui_set_color(fps_id, GUI_COLOR_YEL);
+    else                         gui_set_color(fps_id, GUI_COLOR_RED);
+#endif
 }
 
 void hud_init(void)
@@ -419,18 +429,9 @@ void hud_paint(void)
     const int wgcl_newhud = 0;
 #endif
 
-    if (wgcl_newhud) {
-        if (config_get_d(CONFIG_FPS)) gui_paint(fps_id);
-
-        hud_cam_paint();
-        return;
-    }
-
     if (curr_mode() == MODE_NONE) return; /* Cannot render in home room. */
 
     if (speed_timer_length <= 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS)) {
-        gui_paint(FSLhud_id);
-
         if (curr_mode() == MODE_CHALLENGE ||
             curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -463,11 +464,13 @@ void hud_paint(void)
             }
 #endif
 
-            gui_paint(Lhud_id);
+            if (!wgcl_newhud) gui_paint(Lhud_id);
         }
 
-        if (curr_coins() > 0 || curr_goal() > 0)
+        if ((curr_coins() > 0 || curr_goal() > 0) && !wgcl_newhud)
             gui_paint(Rhud_id);
+
+        if (!wgcl_newhud) gui_paint(FSLhud_id);
 
         gui_paint(time_id);
     }
@@ -478,7 +481,7 @@ void hud_paint(void)
     hud_speed_paint();
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-    hud_touch_paint();
+    if (!wgcl_newhud) hud_touch_paint();
 #endif
 }
 
@@ -555,6 +558,19 @@ void hud_update(int pulse, float animdt)
 
     hud_set_alpha(show_hud_total_alpha);
 
+    if (config_get_d(CONFIG_FPS)) hud_fps();
+    
+#ifdef __EMSCRIPTEN__
+    if (config_get_d(CONFIG_UNITS_METRIC) || !autoconf_units_imperial)
+        EM_ASM({
+            Neverball.WGCLupdateGameHUD($0, $1, $2, $3, $4, $5);
+        }, clock, coins, goal, balls, score, ROUND(ballspeed));
+    else
+        EM_ASM({
+            Neverball.WGCLupdateGameHUD_imperial($0, $1, $2, $3, $4, $5);
+        }, clock, coins, goal, balls, score, ROUND(ballspeed));
+#endif
+
     /* time and tick-tock */
 
     if (clock != (last = gui_value(time_id)))
@@ -609,22 +625,15 @@ void hud_update(int pulse, float animdt)
                     gui_set_color(Touch_id,            GUI_COLOR_WHT);
                 }
             }
-            else
-            {
-                if (clock > last + 2950)
-                    gui_pulse(time_id, 2.00);
-                else if (clock > last + 1450)
-                    gui_pulse(time_id, 1.50);
-                else if (clock > last + 450)
-                    gui_pulse(time_id, 1.25);
-            }
+            else if (clock > last + 450)
+                gui_pulse(time_id, clock > last + 2950 ? 2.00 : (clock > last + 1450 ? 1.50 : 1.25));
         }
     }
 
     /* balls and score + select coin widget */
 
     int  live_coins = score + coins;
-    char xppenalty_text_final[7];
+    char xppenalty_text_final[9];
 
     /* WGCL Operator (WIP) */
     const int xppenalty_calculated = MIN(balls - ROUND(floorf(score / 100.0f)), 0);
@@ -641,17 +650,19 @@ void hud_update(int pulse, float animdt)
         case MODE_DAILY:
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         case MODE_HARDCORE:
+#else
+        case MODE_ROGUE:
 #endif
         case MODE_CHALLENGE:
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(xppenalty_text_final, 7,
+            sprintf_s(xppenalty_text_final, 9,
 #else
             sprintf(xppenalty_text_final,
 #endif
                 "%d", xppenalty_calculated * 5);
 
-            if (gui_value(ball_id) != balls)      gui_set_count(ball_id, balls);
-            if (gui_value(scor_id) != live_coins) gui_set_count(scor_id, live_coins);
+            if (gui_value(ball_id) != balls)      gui_set_count(ball_id, MAX(balls, 0));
+            if (gui_value(scor_id) != live_coins) gui_set_count(scor_id, MAX(live_coins, 0));
 
             if (xppenalty_calculated < 0)
                 gui_set_color(xppenalty_id, GUI_COLOR_RED);
@@ -664,24 +675,24 @@ void hud_update(int pulse, float animdt)
         default: break;
     }
 
-    /* New: Speedometer */
+    /* New: Speedometer (metric is km/h unless mph) */
+    const float ballspeed_unitconverter = config_get_d(CONFIG_UNITS_METRIC) ||
+                                          !autoconf_units_imperial ? 1000.0f : 1609.34f;
+
     ballspeed = ballspeed * UPS;
+    ballspeed = ballspeed * 3600.0f / ballspeed_unitconverter / 64.0f;  /* convert to km/h */
 
-    if (config_get_d(CONFIG_UNITS_METRIC) || !autoconf_units_imperial)
-        ballspeed = ballspeed * 3600.0f / 1000.0f / 64.0f;  /* convert to km/h */
-    else
-        ballspeed = ballspeed * 3600.0f / 1609.34f / 64.0f;  /* convert to mph */
-
-    if ((int) ballspeed != gui_value(speedometer_id))
-        gui_set_count(speedometer_id, (int) ballspeed);
+    if (ROUND(ballspeed) != gui_value(speedometer_id))
+        gui_set_count(speedometer_id, ROUND(ballspeed));
 
     /* coins and pulse */
 
-    if (coins != (last = gui_value(c_id)))
+    if (coins != MAX(last = gui_value(c_id), 0))
     {
         last = coins - last;
 
-        gui_set_count(c_id, coins);
+        gui_set_count(c_id,    MAX(coins, 0));
+        gui_set_count(scor_id, MAX(live_coins, 0));
 
         if (pulse && last > 0)
         {
@@ -710,8 +721,16 @@ void hud_update(int pulse, float animdt)
                 else                 gui_pulse(scor_id, 1.25f);
             }
         }
+    }
 
-        gui_set_count(scor_id, live_coins);
+    /* goal and pulse */
+
+    if (goal != MAX(last = gui_value(goal_id), 0))
+    {
+        gui_set_count(goal_id, MAX(goal, 0));
+
+        if (pulse && goal == 0 && last > 0)
+            gui_pulse(goal_id, 2.00f);
     }
 
     int hundred_score = ROUND(score / 100);
@@ -719,13 +738,14 @@ void hud_update(int pulse, float animdt)
 #if ENABLE_AFFECT==1
     if (hundred_score != (last = ROUND(gui_value(scor_id)) / 100))
     {
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (curr_mode() == MODE_CHALLENGE  ||
+        if (curr_mode() == MODE_CHALLENGE ||
             curr_mode() == MODE_BOOST_RUSH ||
-            curr_mode() == MODE_HARDCORE)
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            curr_mode() == MODE_HARDCORE
 #else
-        if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH)
+            curr_mode() == MODE_ROGUE
 #endif
+            )
         {
             if (hundred_score + last)
             {
@@ -740,29 +760,6 @@ void hud_update(int pulse, float animdt)
         }
     }
 #endif
-
-    /* goal and pulse */
-
-    if (goal != (last = gui_value(goal_id)))
-    {
-        gui_set_count(goal_id, goal);
-
-        if (pulse && goal == 0 && last > 0)
-            gui_pulse(goal_id, 2.00f);
-    }
-
-#ifdef __EMSCRIPTEN__
-    if (config_get_d(CONFIG_UNITS_METRIC) || !autoconf_units_imperial)
-        EM_ASM({
-            Neverball.WGCLupdateGameHUD($0, $1, $2, $3, $4, $5);
-        }, clock, coins, goal, balls, score, ROUND(ballspeed));
-    else
-        EM_ASM({
-            Neverball.WGCLupdateGameHUD_imperial($0, $1, $2, $3, $4, $5);
-        }, clock, coins, goal, balls, score, ROUND(ballspeed));
-#endif
-
-    if (config_get_d(CONFIG_FPS)) hud_fps();
 }
 
 void hud_timer(float dt)

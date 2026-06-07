@@ -1468,9 +1468,7 @@ static int help_demo_enter(struct state *st, struct state *prev, int intent)
 static int help_demo_leave(struct state *st, struct state *next, int id, int intent)
 {
     demo_replay_stop(0);
-
     if (next == &st_null) game_client_free(NULL);
-
     return 0;
 }
 
@@ -1520,7 +1518,7 @@ static int help_demo_buttn(int b, int d)
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
     {
         demo_freeze_all = 1;
-        return goto_state(&st_help);
+        return exit_state(&st_help);
     }
     return 1;
 }

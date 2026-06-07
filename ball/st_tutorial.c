@@ -276,6 +276,7 @@ static int tutorial_action(int tok, int val)
     {
         case TUTORIAL_TOGGLE:
             config_tgl_d(CONFIG_ACCOUNT_TUTORIAL);
+            audio_play(config_get_d(CONFIG_ACCOUNT_TUTORIAL) != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             gui_set_label(toggle_id, config_get_d(CONFIG_ACCOUNT_TUTORIAL) ?
                                      _("Tutorial Off") :
                                      _("Tutorial On"));
@@ -537,6 +538,7 @@ static int hint_action(int tok, int val)
     {
         case HINT_TOGGLE:
             config_tgl_d(CONFIG_ACCOUNT_HINT);
+            audio_play(config_get_d(CONFIG_ACCOUNT_HINT) != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             gui_set_label(toggle_id, config_get_d(CONFIG_ACCOUNT_HINT) ?
                                      _("Hint Off") :
                                      _("Hint On"));

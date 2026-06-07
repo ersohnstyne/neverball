@@ -740,12 +740,11 @@ static void gui_demo_update_status(int i)
 static void demo_select(int demo)
 {
     gui_set_hilite(thumbs[selected % DEMO_STEP].thumb_id, 0);
-
     selected = demo;
-
     gui_set_hilite(thumbs[selected % DEMO_STEP].thumb_id, 1);
 
     gui_demo_update_status(demo);
+    gui_focus(thumbs[selected % DEMO_STEP].thumb_id);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1572,11 +1571,13 @@ static void demo_play_timer(int id, float dt)
     {
         int speed_old = speed;
 
+#ifndef NDEBUG
         if (demo_timer_curr < 1000 && !demo_timer_warning)
         {
             demo_timer_warning = 1;
             audio_music_fade_to(.1f, "bgm/time-warning.ogg", 1);
         }
+#endif
 
         if      (demo_timer_curr < 1    && speed > SPEED_SLOWESTESTEST)
             DEMO_SET_SPEED(SPEED_SLOWESTESTEST);

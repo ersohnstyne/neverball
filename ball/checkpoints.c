@@ -84,6 +84,8 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
      && curr_mode() != MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      && curr_mode() != MODE_HARDCORE
+#else
+     && curr_mode() != MODE_ROGUE
 #endif
 #endif
      && curr_mode() != MODE_DAILY

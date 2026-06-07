@@ -499,6 +499,7 @@ static int conf_account_action(int tok, int val)
                 config_set_d(CONFIG_ACCOUNT_SAVE, 1);
             }
 #endif
+            audio_play(config_get_d(CONFIG_ACCOUNT_SAVE) != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_save();
             break;
 
@@ -544,6 +545,7 @@ static int conf_account_action(int tok, int val)
                 }
             }
 #endif
+            audio_play(config_get_d(CONFIG_ACCOUNT_LOAD) != 1 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_save();
             break;
     }
@@ -914,12 +916,14 @@ static int conf_gameplay_action(int tok, int val)
             return exit_state(&st_conf);
 
         case CONF_GAMEPLAY_TUTORIAL:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ACCOUNT_TUTORIAL, val);
             goto_state(curr_state());
             config_save();
             break;
 
         case CONF_GAMEPLAY_HINT:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ACCOUNT_HINT, val);
             goto_state(curr_state());
             config_save();
@@ -1104,6 +1108,8 @@ static void control_set_input()
         gui_set_label(preset_id, "Neverball");
         key_preset_id = CONTROL_NEVERBALL;
     }
+
+    audio_play(key_preset_id != CONTROL_NEVERBALL ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
 }
 
 static int conf_control_action(int tok, int val)
@@ -1124,6 +1130,7 @@ static int conf_control_action(int tok, int val)
             break;
 
         case CONF_CONTROL_TILTING_FLOOR:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_TILTING_FLOOR, val);
             config_save();
             goto_state(&st_conf_control);
@@ -1139,6 +1146,7 @@ static int conf_control_action(int tok, int val)
                                                 N_("Inverted") : N_("Normal");
 
                 gui_set_label(camrot_mode_id, _(cam_rot_mode_text));
+                audio_play(config_get_d(CONFIG_CAMERA_ROTATE_MODE) != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             }
 #endif
             break;
@@ -1157,12 +1165,14 @@ static int conf_control_action(int tok, int val)
             break;
 
         case CONF_CONTROL_INVERT_MOUSE_Y:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_MOUSE_INVERT, val);
             config_save();
             goto_state(&st_conf_control);
             break;
 
         case CONF_CONTROL_INVERT_RS_Y:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_JOYSTICK_AXIS_Y1_INVERT, val);
             config_save();
             goto_state(&st_conf_control);
@@ -1177,6 +1187,7 @@ static int conf_control_action(int tok, int val)
             break;
 
         case CONF_CONTROL_AUTOCALIB_AXIS:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS, val);
             config_save();
             goto_state(&st_conf_control);
@@ -2306,18 +2317,21 @@ static int conf_notification_action(int tok, int val)
             break;
 
         case CONF_NOTIFICATION_CHKP:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_NOTIFICATION_CHKP, val);
             goto_state(curr_state());
             config_save();
             break;
 
         case CONF_NOTIFICATION_REWARD:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_NOTIFICATION_REWARD, val);
             goto_state(curr_state());
             config_save();
             break;
 
         case CONF_NOTIFICATION_SHOP:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_NOTIFICATION_SHOP, val);
             goto_state(curr_state());
             config_save();

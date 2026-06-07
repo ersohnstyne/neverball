@@ -615,6 +615,8 @@ int demo_replay_init(const char *path, int *g, int *m, int *b, int *s, int *tt, 
                         audio_music_fade_to(0.5f, demo_replay.mode == MODE_CHALLENGE || demo_replay.mode == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                                                || demo_replay.mode == MODE_HARDCORE
+#else
+                                               || demo_replay.mode == MODE_ROGUE
 #endif
                                                || demo_replay.mode == MODE_DAILY
                                                 ? "bgm/challenge_mbu.ogg" :

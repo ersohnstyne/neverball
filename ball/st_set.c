@@ -940,11 +940,13 @@ static int campaign_action(int tok, int val)
         case GUI_NEXT:
             campaign_theme_index += 1;
             if (campaign_theme_index > 4) campaign_theme_index = 0;
+            gui_focus(campaign_theme_btn_id);
             break;
 
         case GUI_PREV:
             campaign_theme_index -= 1;
             if (campaign_theme_index < 0) campaign_theme_index = 4;
+            gui_focus(campaign_theme_btn_id);
             break;
 
         case 999:

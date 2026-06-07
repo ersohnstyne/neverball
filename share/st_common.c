@@ -507,6 +507,7 @@ static int perf_warning_action(int tok, int val)
     int r = 1;
 
     if (tok == PERF_WARNING_DO_IT && perf_warning_autoconfig) {
+        audio_play("snd/2.2/game_button_down.ogg", 1.0f);
         goto_state(&st_null);
 #if ENABLE_DUALDISPLAY==1
         r = video_mode_auto_config(f, w, h) && video_dualdisplay_mode(f, w, h);
@@ -959,6 +960,7 @@ static int video_action(int tok, int val)
             break;
 
         case VIDEO_SCREENANIMATIONS:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_SCREEN_ANIMATIONS, val);
             config_set_d(CONFIG_TRANSITIONS,       val);
             goto_state(&st_video);
@@ -979,7 +981,7 @@ static int video_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
             if (oldF == val) return 1;
-
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             goto_state(&st_null);
             r = video_fullscreen(val);
             if (r) exit_state(&st_video);
@@ -1019,7 +1021,7 @@ static int video_action(int tok, int val)
 
         case VIDEO_HMD:
             if (oldHmd == val) return 1;
-
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
             goto_state(&st_restart_required);
 #else
@@ -1051,6 +1053,7 @@ static int video_action(int tok, int val)
             break;
 
         case VIDEO_TEXTURES:
+            audio_play(val != 2 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             goto_state(&st_null);
             config_set_d(CONFIG_TEXTURES, val);
             exit_state(&st_video);
@@ -1327,7 +1330,7 @@ static int video_advanced_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
             if (oldF == val) return 1;
-
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
             goto_state(&st_restart_required);
@@ -1349,6 +1352,7 @@ static int video_advanced_action(int tok, int val)
             break;
 
         /*case VIDEO_ADVANCED_WIDESCREEN:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
 #if defined(__WII__)
             config_set_d(CONFIG_WIDESCREEN, val);
             w = val ? 854 : 640;
@@ -1358,6 +1362,7 @@ static int video_advanced_action(int tok, int val)
             break;*/
 
         case VIDEO_ADVANCED_CAMERA_SHAKE:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_CAMERA_SHAKE, val);
             config_save();
             goto_state(&st_video_advanced);
@@ -1365,7 +1370,7 @@ static int video_advanced_action(int tok, int val)
 
         case VIDEO_ADVANCED_HMD:
             if (oldHmd == val) return 1;
-
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
             config_set_d(CONFIG_HMD, val);
@@ -1451,18 +1456,21 @@ static int video_advanced_action(int tok, int val)
             break;
 
         case VIDEO_ADVANCED_BACKGROUND:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_BACKGROUND, val);
             config_save();
             goto_state(&st_video_advanced);
             break;
 
         case VIDEO_ADVANCED_SHADOW:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_SHADOW, val);
             config_save();
             goto_state(&st_video_advanced);
             break;
 #ifdef GL_GENERATE_MIPMAP_SGIS
         case VIDEO_ADVANCED_MIPMAP:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_MIPMAP, val);
             config_save();
             goto_state(&st_video_advanced);
@@ -1471,6 +1479,7 @@ static int video_advanced_action(int tok, int val)
 
 #ifdef GL_TEXTURE_MAX_ANISOTROPY_EXT
         case VIDEO_ADVANCED_ANISO:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ANISO, val);
             config_save();
             goto_state(&st_video_advanced);
@@ -1482,7 +1491,7 @@ static int video_advanced_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
             if (oldVsync == val) return 1;
-
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
             config_set_d(CONFIG_VSYNC, val);
@@ -1517,7 +1526,7 @@ static int video_advanced_action(int tok, int val)
 
         case VIDEO_ADVANCED_TEXTURES:
             if (oldText == val) return 1;
-
+            audio_play(val != 2 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             backups = 1;
             config_set_d(CONFIG_TEXTURES, val);
             config_save();
@@ -1567,6 +1576,7 @@ static int video_advanced_action(int tok, int val)
             break;
 
         case VIDEO_ADVANCED_TRANSITIONS:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_SCREEN_ANIMATIONS, val);
             config_set_d(CONFIG_TRANSITIONS,       val);
             config_save();
@@ -1574,12 +1584,14 @@ static int video_advanced_action(int tok, int val)
             break;
 
         case VIDEO_ADVANCED_SMOOTH_FIX:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_SMOOTH_FIX, val);
             config_save();
             goto_state(&st_video_advanced);
             break;
 
         case VIDEO_ADVANCED_FORCE_SMOOTH_FIX:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_FORCE_SMOOTH_FIX, val);
             config_save();
             goto_state(&st_video_advanced);
@@ -1650,10 +1662,11 @@ static int video_advanced_gui(void)
         conf_toggle_simple(id, _("Smooth fix"), VIDEO_ADVANCED_SMOOTH_FIX,
                                config_get_d(CONFIG_SMOOTH_FIX),
                                1, 0);
-
-        conf_toggle_simple(id, _("Force smooth fix"), VIDEO_ADVANCED_FORCE_SMOOTH_FIX,
-                               config_get_d(CONFIG_FORCE_SMOOTH_FIX),
-                               1, 0);
+        
+        if (config_get_d(CONFIG_SMOOTH_FIX))
+            conf_toggle_simple(id, _("Force smooth fix"), VIDEO_ADVANCED_FORCE_SMOOTH_FIX,
+                                   config_get_d(CONFIG_FORCE_SMOOTH_FIX),
+                                   1, 0);
 
 #ifdef GL_GENERATE_MIPMAP_SGIS
         conf_toggle_simple(id, _("Mipmap"), VIDEO_ADVANCED_MIPMAP,
@@ -1685,9 +1698,10 @@ static int video_advanced_gui(void)
                         config_get_d(CONFIG_SMOOTH_FIX),
                         _("On"), 1, _("Off"), 0);
 
-        conf_toggle(id, _("Force smooth fix"), VIDEO_ADVANCED_FORCE_SMOOTH_FIX,
-                        config_get_d(CONFIG_FORCE_SMOOTH_FIX),
-                        _("On"), 1, _("Off"), 0);
+        if (config_get_d(CONFIG_SMOOTH_FIX))
+            conf_toggle(id, _("Force smooth fix"), VIDEO_ADVANCED_FORCE_SMOOTH_FIX,
+                            config_get_d(CONFIG_FORCE_SMOOTH_FIX),
+                            _("On"), 1, _("Off"), 0);
 
 #ifdef GL_GENERATE_MIPMAP_SGIS
         conf_toggle(id, _("Mipmap"), VIDEO_ADVANCED_MIPMAP,

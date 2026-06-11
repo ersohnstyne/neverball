@@ -469,13 +469,13 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
         if ((id = gui_hstack(root_id)))
         {
-            gamepadinfo_controller_ids[3] = gui_label(id, _("P4 XXX"), GUI_SML, GUI_COLOR_GRY);
-            gamepadinfo_controller_ids[2] = gui_label(id, _("P3 XXX"), GUI_SML, GUI_COLOR_GRY);
-            gamepadinfo_controller_ids[1] = gui_label(id, _("P2 XXX"), GUI_SML, GUI_COLOR_GRY);
-            gamepadinfo_controller_ids[0] = gui_label(id, _("P1 XXX"), GUI_SML, gui_wht, gui_red);
+            gamepadinfo_controller_ids[3] = gui_label(id, _("P4 XXXXX"), GUI_SML, GUI_COLOR_GRY);
+            gamepadinfo_controller_ids[2] = gui_label(id, _("P3 XXXXX"), GUI_SML, GUI_COLOR_GRY);
+            gamepadinfo_controller_ids[1] = gui_label(id, _("P2 XXXXX"), GUI_SML, GUI_COLOR_GRY);
+            gamepadinfo_controller_ids[0] = gui_label(id, _("P1 XXXXX"), GUI_SML, gui_wht, gui_red);
 
             for (int i = 0; i < 4; i++)
-                gui_set_font(gamepadinfo_controller_ids[i], "ttf/DejaVuSans-Bold.ttf");
+                gui_set_font(gamepadinfo_controller_ids[i], "ttf/seguiemj.ttf");
 
             gui_layout(id, 0, 1);
             gui_set_rect(id, GUI_S);
@@ -560,12 +560,14 @@ static void title_timer(int id, float dt)
     {
         if (gamepad_wired)
             gui_set_label(gamepadinfo_controller_ids[1], _("P2 " GUI_GAMEPAD));
+        else if (battery_level < 2)
+            gui_set_label(gamepadinfo_controller_ids[1], _("P2 " GUI_GAMEPAD " " GUI_BATTERY_LOW));
         else
             gui_set_label(gamepadinfo_controller_ids[1], _("P2 " GUI_GAMEPAD " " GUI_BATTERY));
 
         gui_set_color(gamepadinfo_controller_ids[1],
-                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
-                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_grn);
+            battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
+            battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_grn);
     }
     else
     {
@@ -578,12 +580,14 @@ static void title_timer(int id, float dt)
     {
         if (gamepad_wired)
             gui_set_label(gamepadinfo_controller_ids[2], _("P3 " GUI_GAMEPAD));
+        else if (battery_level < 2)
+            gui_set_label(gamepadinfo_controller_ids[2], _("P3 " GUI_GAMEPAD " " GUI_BATTERY_LOW));
         else
             gui_set_label(gamepadinfo_controller_ids[2], _("P3 " GUI_GAMEPAD " " GUI_BATTERY));
 
         gui_set_color(gamepadinfo_controller_ids[2],
-                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
-                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_blu);
+            battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
+            battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_blu);
     }
     else
     {
@@ -596,12 +600,14 @@ static void title_timer(int id, float dt)
     {
         if (gamepad_wired)
             gui_set_label(gamepadinfo_controller_ids[3], _("P4 " GUI_GAMEPAD));
+        else if (battery_level < 2)
+            gui_set_label(gamepadinfo_controller_ids[3], _("P4 " GUI_GAMEPAD " " GUI_BATTERY_LOW));
         else
             gui_set_label(gamepadinfo_controller_ids[3], _("P4 " GUI_GAMEPAD " " GUI_BATTERY));
 
         gui_set_color(gamepadinfo_controller_ids[3],
-                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
-                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_yel);
+            battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
+            battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_yel);
     }
     else
     {

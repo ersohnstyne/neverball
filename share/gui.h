@@ -56,10 +56,11 @@
 #define GUI_CIRCLE_ARROW   "⟳"
 #define GUI_CROSS          "×"
 #define GUI_ROMAN_2        "Ⅱ"
-#define GUI_FISHEYE        "◉"
+#define GUI_FISHEYE        "🎥" /* Was: "◉" */
 
 #define GUI_GAMEPAD        "🎮"
 #define GUI_BATTERY        "🔋"
+#define GUI_BATTERY_LOW    "🪫"
 #define GUI_GOAL           "🏁"
 #define GUI_TIMEOUT        "⏰"
 #define GUI_HEARTBROKEN    "💔"

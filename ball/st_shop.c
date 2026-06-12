@@ -1570,7 +1570,7 @@ static int shop_buy_action(int tok, int val)
         case 5:
         case 6: prodcost = 75; break;
 
-        case 7: prodcost = 15; break;
+        case 7: prodcost = 25; break;
     }
 
     int auction_value = prodcost;
@@ -1855,7 +1855,7 @@ static int has_owned(void)
         case 4:  SAFECPY(prodname, _("Earninator"));   prodcost = 75;  prodincomsumeable = 1; break; \
         case 5:  SAFECPY(prodname, _("Floatifier"));   prodcost = 75;  prodincomsumeable = 1; break; \
         case 6:  SAFECPY(prodname, _("Speedifier"));   prodcost = 75;  prodincomsumeable = 1; break; \
-        case 7:  SAFECPY(prodname, _("Extra Balls"));  prodcost = 15;  prodincomsumeable = 1; break; \
+        case 7:  SAFECPY(prodname, _("Extra Balls"));  prodcost = 25;  prodincomsumeable = 1; break; \
         default: SAFECPY(prodname, _("Product item")); prodcost = 0;   break; \
     } while (0)
 #else
@@ -1868,7 +1868,7 @@ static int has_owned(void)
         case 4:  SAFECPY(prodname, _("Earninator"));   prodcost = 75;  prodincomsumeable = 1; break; \
         case 5:  SAFECPY(prodname, _("Floatifier"));   prodcost = 75;  prodincomsumeable = 1; break; \
         case 6:  SAFECPY(prodname, _("Speedifier"));   prodcost = 75;  prodincomsumeable = 1; break; \
-        case 7:  SAFECPY(prodname, _("Extra Balls"));  prodcost = 15;  prodincomsumeable = 1; break; \
+        case 7:  SAFECPY(prodname, _("Extra Balls"));  prodcost = 25;  prodincomsumeable = 1; break; \
         default: SAFECPY(prodname, _("Product item")); prodcost = 0;   break; \
     } while (0)
 #endif

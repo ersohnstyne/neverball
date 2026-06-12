@@ -1085,6 +1085,8 @@ static int zen_warning_buttn(int b, int d)
 
 #if NB_HAVE_PB_BOTH==1
 
+#defineST_FAIL_CHALLENGE_GEMS_COST_DEFAULT 25
+
 enum
 {
     ASK_MORE_GET_COINS = GUI_LAST,
@@ -1119,7 +1121,7 @@ static int ask_more_action(int tok, int val)
 #endif
 
         case ASK_MORE_RAISE_GEMS:
-            return goto_raise_gems(&st_fail, 15);
+            return goto_raise_gems(&st_fail, ST_FAIL_CHALLENGE_GEMS_COST_DEFAULT);
 
         case ASK_MORE_ACCEPT:
             video_set_grab(1);
@@ -1154,7 +1156,7 @@ static int ask_more_action(int tok, int val)
                 }
                 else return exit_state(&st_fail);
             }
-            else if (account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= 15 &&
+            else if (account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= ST_FAIL_CHALLENGE_GEMS_COST_DEFAULT &&
                     ask_more_target == ASK_MORE_TIME)
             {
                 audio_play("snd/buyproduct.ogg", 1.0f);
@@ -1174,12 +1176,12 @@ static int ask_more_action(int tok, int val)
                 else return exit_state(&st_fail);
             }
 #endif
-            else if (account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= 15 &&
+            else if (account_get_d(ACCOUNT_DATA_WALLET_GEMS) >= ST_FAIL_CHALLENGE_GEMS_COST_DEFAULT &&
                  ask_more_target == ASK_MORE_BALLS)
             {
                 audio_play("snd/buyproduct.ogg", 1.0f);
 
-                account_wgcl_do_add(0, -15, 0, 0, 0, 0);
+                account_wgcl_do_add(0, -ST_FAIL_CHALLENGE_GEMS_COST_DEFAULT, 0, 0, 0, 0);
                 account_wgcl_save();
 
                 progress_buy_balls(1);
@@ -1254,10 +1256,10 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
         if (ask_more_target == ASK_MORE_BALLS)
         {
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
-            if (gemswallet >= 15 ||
+            if (gemswallet >= ST_FAIL_CHALLENGE_GEMS_COST_DEFAULT ||
                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP))
 #else
-            if (gemswallet >= 15)
+            if (gemswallet >= ST_FAIL_CHALLENGE_GEMS_COST_DEFAULT)
 #endif
                 gui_title_header(id, _("Buy balls?"), GUI_MED, gui_gry, gui_red);
             else if (allow_raisegems)
@@ -1286,16 +1288,16 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
 
         if (ask_more_target == ASK_MORE_BALLS)
         {
-            if (gemswallet >= 15)
+            if (gemswallet >= ST_FAIL_CHALLENGE_GEMS_COST_DEFAULT)
             {
                 if (last_active)
                     gui_multi(id, _("You want to buy more balls\n"
                                     "and respawn from checkpoint?\n \n"
-                                    "You need 15 gems from your wallet!"),
+                                    "You need 25 gems from your wallet!"),
                                   GUI_SML, GUI_COLOR_WHT);
                 else gui_multi(id, _("You want to buy more balls\n"
                                      "and restart the level\n \n"
-                                     "You need 15 gems from your wallet!"),
+                                     "You need 25 gems from your wallet!"),
                                    GUI_SML, GUI_COLOR_WHT);
             }
             else if (allow_raisegems
@@ -1359,7 +1361,7 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
         {
             if ((jd = gui_harray(id)))
             {
-                if (gemswallet >= 15)
+                if (gemswallet >= ST_FAIL_CHALLENGE_GEMS_COST_DEFAULT)
                 {
                     gui_start(jd, _("No, thanks!"), GUI_SML, GUI_BACK, 0);
                     gui_state(jd, _("Buy now!"), GUI_SML, ASK_MORE_BUY, 0);
@@ -1375,7 +1377,7 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
                     if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED) &&
                         server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP))
                         gui_state(jd, _("Get gems!"),
-                                      GUI_SML, ASK_MORE_GET_GEMS, 15);
+                                      GUI_SML, ASK_MORE_GET_GEMS, ST_FAIL_CHALLENGE_GEMS_COST_DEFAULT);
                 }
                 else gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
             }
@@ -1490,7 +1492,7 @@ static float score_count_anim_time;
 static int   score_count_anim_index;
 static int   score_count_anim_locked;
 
-static int raisegems_dst_amount = 15;
+static int raisegems_dst_amount = ST_FAIL_CHALLENGE_GEMS_COST_DEFAULT;
 static int raisegems_working = 0;
 static int gui_count_ids[4], num_amounts_curr[4], num_amounts_dst[4];
 
@@ -1986,10 +1988,10 @@ int ask_more_purchased(struct state *ok_state)
     {
         int gemswallet = account_get_d(ACCOUNT_DATA_WALLET_GEMS);
 
-        if (gemswallet >= 15)
+        if (gemswallet >= raisegems_dst_amount)
         {
             balls_bought++;
-            account_wgcl_do_add(0, -15, 1, 0, 0, 0);
+            account_wgcl_do_add(0, -raisegems_dst_amount, 1, 0, 0, 0);
             progress_buy_balls(1);
         }
 

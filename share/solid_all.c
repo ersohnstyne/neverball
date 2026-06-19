@@ -475,11 +475,6 @@ void sol_pendulum(struct v_ball *up,
 
 /*---------------------------------------------------------------------------*/
 
-#ifdef MAPC_INCLUDES_CHKP
-int last_path_enabled_orcondition[1024];
-#endif
-int curr_path_enabled_orcondition[1024];
-
 static void sol_path_flag(struct s_vary *vary, cmd_fn cmd_func, int pi, int f)
 {
     int mi;
@@ -544,20 +539,62 @@ static void sol_path_loop(struct s_vary *vary, cmd_fn cmd_func, int p0, int f)
 
 /*---------------------------------------------------------------------------*/
 
+#ifdef SOLID_ALL_SWCH_HIGHTECH
+/*
+ * High-Tech Toggle-Sync!
+ *
+ * Sync the states for all switches.
+ */
+static void sol_swch_hightech_toggle_sync(struct s_vary *vary, cmd_fn cmd_func, int xi, int pi)
+{
+    for (int xj = 0; xj < vary->xc; xj++)
+    {
+        struct v_swch *xp = vary->xv + xi;
+        struct v_swch *xq = vary->xv + xj;
+
+        /* Skip, if index matched. */
+
+        if (xi != xj &&
+            xp->base->pi == pi &&
+            xq->base->pi == xp->base->pi)
+        {
+            if (xq->f != xp->f)
+            {
+                xq->f = xp->f;
+
+                if (cmd_func)
+                {
+                    union cmd cmd     = { CMD_SWCH_TOGGLE };
+                    cmd.swchtoggle.xi = xj;
+                    cmd_func(&cmd);
+                }
+                
+                if (xq->base->tm != 0 && xq->f != xq->base->f)
+                    while (xq->tm >= xq->base->tm)
+                    {
+                        xq->t  = MIN(xq->t  - MS_TO_TIME(xq->base->tm), MS_TO_TIME(xq->base->tm));
+                        xq->tm = MIN(xq->tm -            xq->base->tm,             xq->base->tm);
+                    }
+
+                sol_path_loop(vary, cmd_func, xq->base->pi, xq->f);
+            }
+        }
+    }
+}
+#endif
+
 /*
  * Compute the states of all switches after DT seconds have passed.
  */
 void sol_swch_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
 {
-    int xi;
-
-    for (xi = 0; xi < vary->xc; xi++)
+    for (int xi = 0; xi < vary->xc; xi++)
     {
         struct v_swch *xp = vary->xv + xi;
 
         /*
          * HACK: Timer paused after toggled to initial state
-         * before those seconds are up.
+         * by the player or other linked switch before those seconds are up.
          */
 
         if (xp->f == xp->base->f) continue;
@@ -567,14 +604,11 @@ void sol_swch_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
             xp->t  += dt;
             xp->tm += ms;
         }
-        else
+        else if (xp->base->tm != 0)
         {
-            /* First additive, then subtractive, and so on */
-
-            if (xp->base->f) curr_path_enabled_orcondition[xp->base->pi]++;
-            else             curr_path_enabled_orcondition[xp->base->pi]--;
-
-            sol_path_loop(vary, cmd_func, xp->base->pi, curr_path_enabled_orcondition[xp->base->pi] > 0);
+#ifndef SOLID_ALL_SWCH_HIGHTECH
+            sol_path_loop(vary, cmd_func, xp->base->pi, xp->base->f);
+#endif
 
             xp->f = xp->base->f;
 
@@ -584,6 +618,10 @@ void sol_swch_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
                 cmd.swchtoggle.xi = xi;
                 cmd_func(&cmd);
             }
+
+#ifdef SOLID_ALL_SWCH_HIGHTECH
+            sol_swch_hightech_toggle_sync(vary, cmd_func, xi, xp->base->pi);
+#endif
         }
     }
 }
@@ -812,10 +850,11 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
                         cmd_func(&cmd);
                     }
 
-                    if (xp->f) curr_path_enabled_orcondition[xp->base->pi]++;
-                    else       curr_path_enabled_orcondition[xp->base->pi]--;
-
-                    sol_path_loop(vary, cmd_func, xp->base->pi, curr_path_enabled_orcondition[xp->base->pi] > 0);
+#ifdef SOLID_ALL_SWCH_HIGHTECH
+                    sol_swch_hightech_toggle_sync(vary, cmd_func, xi, xp->base->pi);
+#else
+                    sol_path_loop(vary, cmd_func, xp->base->pi, xp->f);
+#endif
 
                     if (!xp->base->i)
                         rc = SWCH_INSIDE;
@@ -837,41 +876,47 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
         }
         else /* Behavior for timed switches */
         {
-            if (d <= 0 &&
+            if (d <= 0.0f &&
                 ball_p[1] > xp->base->p[1] &&
                 ball_p[1] < xp->base->p[1] + SWCH_HEIGHT / 2)
             {
                 /*
                  * HACK: Timer paused after toggled to initial state
-                 * before those seconds are up.
+                 * by the player or other linked switch before those seconds are up.
                  */
 
-                if (xp->e       == 0 &&
-                    xp->base->f == xp->f)
+                if (xp->e == 0)
                 {
                     /* The ball enters. */
 
                     xp->e = 1;
-
-                    /* Change switch state and start the timer. */
-
-                    xp->f = xp->f ? 0 : 1;
 
                     if (cmd_func)
                     {
                         union cmd cmd    = { CMD_SWCH_ENTER };
                         cmd.swchenter.xi = xi;
                         cmd_func(&cmd);
+                    }
+                }
 
-                        cmd.type          = CMD_SWCH_TOGGLE;
+                if (xp->base->f == xp->f) /* Timer is expired */
+                {
+                    /* Change switch state and start the timer. */
+
+                    xp->f = xp->f ? 0 : 1;
+
+                    if (cmd_func)
+                    {
+                        union cmd cmd     = { CMD_SWCH_TOGGLE };
                         cmd.swchtoggle.xi = xi;
                         cmd_func(&cmd);
                     }
 
-                    if (xp->f) curr_path_enabled_orcondition[xp->base->pi]++;
-                    else       curr_path_enabled_orcondition[xp->base->pi]--;
-
-                    sol_path_loop(vary, cmd_func, xp->base->pi, curr_path_enabled_orcondition[xp->base->pi] > 0);
+#ifdef SOLID_ALL_SWCH_HIGHTECH
+                    sol_swch_hightech_toggle_sync(vary, cmd_func, xi, xp->base->pi);
+#else
+                    sol_path_loop(vary, cmd_func, xp->base->pi, xp->f);
+#endif
 
                     if (!xp->base->i) rc = SWCH_INSIDE;
 
@@ -887,10 +932,10 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
                     }
                 }
             }
+            /* The ball exits. */
+
             else if (xp->e)
             {
-                /* The ball exits. */
-
                 xp->e = 0;
 
                 if (cmd_func)

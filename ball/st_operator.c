@@ -42,6 +42,8 @@ static int operator_cansend_incidents;
 static int operator_norepeat;
 static int operator_readytosnap;
 
+static int operator_searchfortoolong;
+
 static int operator_challenge;
 static int operator_curr_balls;
 
@@ -64,6 +66,8 @@ void demo_operator_init(int challenge, int balls)
     operator_mode       = 1;
     operator_challenge  = challenge;
     operator_curr_balls = balls;
+
+    operator_searchfortoolong = 0;
 }
 
 void demo_operator_quit(void)
@@ -178,22 +182,17 @@ static int operator_action(int tok, int val)
     return 1;
 }
 
-static int operator_search_enter(struct state *st, struct state *prev, int intent)
+static int operator_search_modal_start_gui(int id)
 {
-    if (!operator_back_state) operator_back_state = prev;
+    int pd, jd;
 
-    operator_mode = 1;
-    demo_replay_speed(SPEED_FASTESTESTEST);
-
-    int id, jd;
-
-    if ((id = gui_vstack(0)))
+    if ((pd = gui_vstack(id)))
     {
-        gui_title_header(id, _("Please wait..."), GUI_MED, GUI_COLOR_DEFAULT);
+        gui_title_header(pd, _("Please wait..."), GUI_MED, GUI_COLOR_DEFAULT);
 
-        gui_space(id);
+        gui_space(pd);
 
-        if ((jd = gui_hstack(id)))
+        if ((jd = gui_hstack(pd)))
         {
             gui_filler(jd);
             const int icn_id = gui_label(jd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
@@ -205,8 +204,61 @@ static int operator_search_enter(struct state *st, struct state *prev, int inten
             gui_set_state(jd, GUI_BACK, 0);
             gui_set_rect(jd, GUI_ALL);
         }
+    }
 
-        gui_layout(id, 0, 0);
+    return pd;
+}
+
+static int operator_search_modal_longscan_gui(int id)
+{
+    int pd, jd;
+
+    if ((pd = gui_vstack(id)))
+    {
+        gui_title_header(pd, _("Scan in progress..."), GUI_MED, GUI_COLOR_DEFAULT);
+
+        gui_space(pd);
+
+        gui_multi(pd, _("At one moment it might take a long time\n"
+                        "for the reported incidents to happen.\n\n"
+                        "In the meantime, you will need to continue\n"
+                        "using web browsers."),
+                      GUI_SML, GUI_COLOR_WHT);
+
+        gui_space(pd);
+
+        if ((jd = gui_hstack(pd)))
+        {
+            gui_filler(jd);
+            const int icn_id = gui_label(jd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
+            gui_label(jd, _("Cancel"), GUI_SML, GUI_COLOR_WHT);
+            gui_filler(jd);
+
+            gui_set_font(icn_id, "ttf/DejaVuSans-Bold.ttf");
+
+            gui_set_state(jd, GUI_BACK, 0);
+            gui_set_rect(jd, GUI_ALL);
+        }
+    }
+
+    return pd;
+}
+
+static int operator_search_enter(struct state *st, struct state *prev, int intent)
+{
+    if (!operator_back_state) operator_back_state = prev;
+
+    operator_mode = 1;
+    demo_replay_speed(SPEED_FASTESTESTEST);
+
+    int id = 0;
+    
+    if (operator_searchfortoolong) {
+        if ((id = operator_search_modal_longscan_gui(0)))
+            gui_layout(id, 0, 0);
+    } else {
+        if ((id = operator_search_modal_start_gui(0)))
+            gui_layout(id, 0, 0);
     }
 
     return transition_slide(id, 1, intent);
@@ -232,8 +284,11 @@ static void operator_search_timer(int id, float dt)
             demo_replay_stop(0);
             progress_replay(curr_demo());
         }
-    } else {
-        game_client_blend(demo_replay_blend());
+    } else game_client_blend(demo_replay_blend());
+
+    if (!operator_searchfortoolong && time_state() >= 10.0f) {
+        operator_searchfortoolong = 1;
+        goto_state(&st_operator_search);
     }
 }
 
@@ -272,6 +327,8 @@ static int operator_search_buttn(int b, int d)
 
 static int operator_incidents_alldone_enter(struct state *st, struct state *prev, int intent)
 {
+    operator_searchfortoolong = 0;
+
     audio_play("snd/uierror.ogg", 1.0f);
 
     int id, kd;
@@ -300,6 +357,8 @@ static int operator_incidents_alldone_enter(struct state *st, struct state *prev
 
 static int operator_incidents_found_enter(struct state *st, struct state *prev, int intent)
 {
+    operator_searchfortoolong = 0;
+
     audio_play("snd/2.2/ui_operator_spawn_incident.ogg", 1.0f);
 
     int id, kd;
@@ -333,6 +392,8 @@ static int operator_incidents_found_enter(struct state *st, struct state *prev, 
 
 static int operator_incidents_error_enter(struct state *st, struct state *prev, int intent)
 {
+    operator_searchfortoolong = 0;
+
     audio_play("snd/uierror.ogg", 1.0f);
 
     int id, kd;
@@ -382,7 +443,7 @@ static int operator_incidents_snap_enter(struct state *st, struct state *prev, i
         const char *s1 = _("Your screenshot incidence\n"
                            "has been saved!\n\n"
                            "You have awarded 30 additional gems!");
-        
+
         gui_multi(id, operator_challenge && operator_curr_balls == 0 ? s1 : s0,
                       GUI_SML, GUI_COLOR_WHT);
         gui_space(id);

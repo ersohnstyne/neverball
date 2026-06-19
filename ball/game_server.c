@@ -608,15 +608,6 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
 
     game_init_map_border(CURR_PLAYER);
 
-    for (int i = 0; i < vary.xc; i++)
-        curr_path_enabled_orcondition[i] = vary.xv[i].f;
-
-#ifdef MAPC_INCLUDES_CHKP
-    if (last_active)
-        for (int i = 0; i < vary.xc; i++)
-            curr_path_enabled_orcondition[i] = last_path_enabled_orcondition[i];
-#endif
-
     server_state = 1;
 
     /* Get SOL/SOLX version. */
@@ -1059,15 +1050,6 @@ int game_server_init(const char *file_name, int t, int e)
 
     game_init_map_border(CURR_PLAYER);
 
-    for (int i = 0; i < vary.xc; i++)
-        curr_path_enabled_orcondition[i] = vary.xv[i].f;
-
-#ifdef MAPC_INCLUDES_CHKP
-    if (last_active)
-        for (int i = 0; i < vary.xc; i++)
-            curr_path_enabled_orcondition[i] = last_path_enabled_orcondition[i];
-#endif
-
     server_state = 1;
 
     /* Get SOL/SOLX version. */
@@ -1263,6 +1245,29 @@ int game_server_init(const char *file_name, int t, int e)
         game_cmd_goalopen();
 
     game_cmd_init_balls();
+
+    /* Initialize game logics. */
+
+#ifdef MAPC_INCLUDES_CHKP
+    if (!last_active)
+#endif
+        for (int pi = 0; pi < vary.pc; pi++)
+            for (int xi = 0; xi < vary.xc; xi++)
+            {
+                struct v_path *pp = vary.pv + pi;
+                struct v_swch *xp = vary.xv + xi;
+
+                if (xp->base->pi == pi && xp->f != pp->f)
+                {
+                    {
+                        union cmd cmd     = { CMD_SWCH_TOGGLE };
+                        cmd.swchtoggle.xi = xi;
+                        game_proxy_enq(&cmd);
+                    }
+
+                    xp->f = pp->f;
+                }
+            }
 
 #ifdef MAPC_INCLUDES_CHKP
     /*
@@ -1869,9 +1874,6 @@ static int game_update_state(int bt)
 
                     checkpoints_save_spawnpoint(vary, view, CURR_PLAYER);
                     checkpoints_save_last_data(time_elapsed, time_limit, coins);
-
-                    for (int i = 0; i < vary.xc; i++)
-                        last_path_enabled_orcondition[i] = curr_path_enabled_orcondition[i];
                 }
 
                 /*

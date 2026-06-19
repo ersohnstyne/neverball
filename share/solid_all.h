@@ -17,10 +17,7 @@
 
 #include "solid_vary.h"
 
-#ifdef MAPC_INCLUDES_CHKP
-extern int last_path_enabled_orcondition[1024];
-#endif
-extern int curr_path_enabled_orcondition[1024];
+#define SOLID_ALL_SWCH_HIGHTECH
 
 typedef void (*cmd_fn)(const union cmd *);
 

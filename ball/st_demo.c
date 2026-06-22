@@ -308,6 +308,10 @@ static int demo_action(int tok, int val)
 
                     if (date_curr.tm_year != date_expected.tm_year ||
                         date_curr.tm_mon  != date_expected.tm_mon) return 1;
+
+                    if (df->status != GAME_GOAL &&
+                        df->status != GAME_TIME &&
+                        df->status != GAME_FALL) return 1;
                 }
 #endif
 
@@ -1789,10 +1793,11 @@ static int demo_end_gui(void)
             if (demo_paused || !console_gui_shown())
                 gui_state(jd, _("Exit"), GUI_SML, DEMO_QUIT, 0);
 
+#if defined(_WIN32) && defined(_MSC_VER) && !defined(__EMSCRIPTEN__)
             /* Microsoft and Windows Games can do it! */
-#ifndef _MSC_VER
+#else
             if (!standalone)
-                gui_state(kd, _("Delete"), GUI_SML, DEMO_DEL, 0);
+                gui_state(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
 #endif
 
             btn0_id = gui_state(jd, _("Repeat"), GUI_SML, DEMO_REPLAY, 0);

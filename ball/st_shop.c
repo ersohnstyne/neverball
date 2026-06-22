@@ -829,6 +829,19 @@ static int shop_rename_keybd(int c, int d)
     return 1;
 }
 
+static int shop_rename_click(int b, int d)
+{
+#ifndef __EMSCRIPTEN__
+    if (d && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return st_keybd(KEY_EXIT, d);
+#endif
+
+    int active = gui_active();
+
+    return d && gui_click(b, d) ?
+                shop_rename_action(gui_token(active), gui_value(active)) : 1;
+}
+
 static int shop_rename_buttn(int b, int d)
 {
     if (d)
@@ -2480,7 +2493,7 @@ struct state st_shop_rename = {
     shared_point,
     shared_stick,
     shared_angle,
-    shared_click,
+    shop_rename_click,
     shop_rename_keybd,
     shop_rename_buttn
 };

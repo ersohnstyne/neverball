@@ -470,9 +470,10 @@ void hud_paint(void)
         if ((curr_coins() > 0 || curr_goal() > 0) && !wgcl_newhud)
             gui_paint(Rhud_id);
 
-        if (!wgcl_newhud) gui_paint(FSLhud_id);
-
-        gui_paint(time_id);
+        if (!wgcl_newhud) {
+            gui_paint(FSLhud_id);
+            gui_paint(time_id);
+        }
     }
 
     if (config_get_d(CONFIG_FPS)) gui_paint(fps_id);

@@ -114,7 +114,7 @@ static void free_path_item(struct fs_path_item *path_item)
     !defined(__SWITCH__)
         if (path_item->type == FS_PATH_ZIP)
         {
-            mz_zip_archive *zip = path_item->data;
+            mz_zip_archive *zip = (mz_zip_archive *) path_item->data;
 
             if (zip)
             {
@@ -163,12 +163,6 @@ void fs_set_logging(int logging)
 
 int fs_quit(void)
 {
-    /* Close all files to be quitting the game! */
-
-#if _WIN32 && _MSC_VER
-    _fcloseall();
-#endif
-
     if (fs_dir_base)
     {
         free(fs_dir_base);
@@ -195,6 +189,12 @@ int fs_quit(void)
     }
 
     fs_cache_quit();
+
+    /* Close all files to be quitting the game! */
+
+#if _WIN32 && _MSC_VER
+    assert(_fcloseall() == 0);
+#endif
 
     return 1;
 }

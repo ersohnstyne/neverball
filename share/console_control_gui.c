@@ -24,6 +24,7 @@
 #include "video.h"
 #include "cmd.h"
 #include "lang.h"
+#include "log.h"
 
 #if !defined(DISABLE_ONLINE_DATA)
 #include "account.h"
@@ -33,42 +34,66 @@
 
 /*---------------------------------------------------------------------------*/
 
-enum console_platforms current_platform;
+#define GAMEPAD_MAX_BTN_GUI_IDS 64
 
+enum console_platforms current_platform;
 static int show_control_gui;
 
+static int gamepad_btn_universal;
+
+/*
+ * HACK: CONTROLE SCHEME LAYOUTS:
+ *
+ * * XBOX: gui/controllers/btn_gamepad_%BTN_NAME%_%CONTROLLER_NAME%_xbox.png
+ * * PLAYSTATION: gui/controllers/btn_gamepad_%BTN_NAME%_%CONTROLLER_NAME%_playstation.png
+ * * NINTENDO SWITCH: gui/controllers/btn_gamepad_%BTN_NAME%_%CONTROLLER_NAME%_switch.png
+ * * UNIVERSAL: gui/controllers/btn_gamepad_%BTN_NAME%_%CONTROLLER_NAME%_switch_universal.png
+ */
+struct gamepad_btn_gui_id {
+    int gui_id;
+    int btn_id;
+};
+
+static struct gamepad_btn_gui_id gamepad_btn_gui_ids_a[GAMEPAD_MAX_BTN_GUI_IDS];
+static struct gamepad_btn_gui_id gamepad_btn_gui_ids_b[GAMEPAD_MAX_BTN_GUI_IDS];
+static struct gamepad_btn_gui_id gamepad_btn_gui_ids_x[GAMEPAD_MAX_BTN_GUI_IDS];
+static struct gamepad_btn_gui_id gamepad_btn_gui_ids_y[GAMEPAD_MAX_BTN_GUI_IDS];
+static struct gamepad_btn_gui_id gamepad_btn_gui_ids_lb[GAMEPAD_MAX_BTN_GUI_IDS];
+static struct gamepad_btn_gui_id gamepad_btn_gui_ids_rb[GAMEPAD_MAX_BTN_GUI_IDS];
+static struct gamepad_btn_gui_id gamepad_btn_gui_ids_lt[GAMEPAD_MAX_BTN_GUI_IDS];
+static struct gamepad_btn_gui_id gamepad_btn_gui_ids_rt[GAMEPAD_MAX_BTN_GUI_IDS];
+static struct gamepad_btn_gui_id gamepad_btn_gui_ids_ls[GAMEPAD_MAX_BTN_GUI_IDS];
+static struct gamepad_btn_gui_id gamepad_btn_gui_ids_rs[GAMEPAD_MAX_BTN_GUI_IDS];
+static struct gamepad_btn_gui_id gamepad_btn_gui_ids_start[GAMEPAD_MAX_BTN_GUI_IDS];
+static struct gamepad_btn_gui_id gamepad_btn_gui_ids_select[GAMEPAD_MAX_BTN_GUI_IDS];
+static struct gamepad_btn_gui_id gamepad_btn_gui_ids_dpads[4][GAMEPAD_MAX_BTN_GUI_IDS];
 
 /* Shared */
-
-static int xbox_control_title_id = 0;
-static int xbox_control_keybd_id = 0;
-static int xbox_control_list_id = 0;
-static int xbox_control_levelopt_id = 0;
-static int xbox_control_paused_id = 0;
+static int xbox_control_title_id               = 0;
+static int xbox_control_keybd_id               = 0;
+static int xbox_control_list_id                = 0;
+static int xbox_control_levelopt_id            = 0;
+static int xbox_control_paused_id              = 0;
 static int xbox_control_package_installable_id = 0;
-static int xbox_control_package_updateable_id = 0;
-static int xbox_control_package_manageable_id = 0;
-static int xbox_control_package_equipable_id = 0;
-static int xbox_control_package_startable_id = 0;
-
+static int xbox_control_package_updateable_id  = 0;
+static int xbox_control_package_manageable_id  = 0;
+static int xbox_control_package_equipable_id   = 0;
+static int xbox_control_package_startable_id   = 0;
 
 /* Generic */
-
-static int xbox_control_desc_id = 0;
-static int xbox_control_preparation_id = 0;
-static int xbox_control_replay_id = 0;
-static int xbox_control_replay_eof_id = 0;
-static int xbox_control_shop_id = 0;
+static int xbox_control_desc_id          = 0;
+static int xbox_control_preparation_id   = 0;
+static int xbox_control_replay_id        = 0;
+static int xbox_control_replay_eof_id    = 0;
+static int xbox_control_shop_id          = 0;
 static int xbox_control_shop_getcoins_id = 0;
-static int xbox_control_model_id = 0;
-static int xbox_control_beam_style_id = 0;
-static int xbox_control_death_id = 0;
-
+static int xbox_control_model_id         = 0;
+static int xbox_control_beam_style_id    = 0;
+static int xbox_control_death_id         = 0;
 
 /* Putt */
-
 static int xbox_control_putt_stroke_id = 0;
-static int xbox_control_putt_stop_id = 0;
+static int xbox_control_putt_stop_id   = 0;
 static int xbox_control_putt_scores_id = 0;
 
 /*---------------------------------------------------------------------------*/
@@ -76,6 +101,45 @@ static int xbox_control_putt_scores_id = 0;
 void console_init_controller_type(const enum console_platforms new_platforms)
 {
     current_platform = new_platforms;
+
+    for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS; i++)
+        for (int j = 0; j < 4; j++) {
+            memset(&gamepad_btn_gui_ids_a[i],        0, sizeof (gamepad_btn_gui_ids_a[i]));
+            memset(&gamepad_btn_gui_ids_b[i],        0, sizeof (gamepad_btn_gui_ids_b[i]));
+            memset(&gamepad_btn_gui_ids_x[i],        0, sizeof (gamepad_btn_gui_ids_x[i]));
+            memset(&gamepad_btn_gui_ids_y[i],        0, sizeof (gamepad_btn_gui_ids_y[i]));
+            memset(&gamepad_btn_gui_ids_lb[i],       0, sizeof (gamepad_btn_gui_ids_lb[i]));
+            memset(&gamepad_btn_gui_ids_rb[i],       0, sizeof (gamepad_btn_gui_ids_rb[i]));
+            memset(&gamepad_btn_gui_ids_lt[i],       0, sizeof (gamepad_btn_gui_ids_lt[i]));
+            memset(&gamepad_btn_gui_ids_rt[i],       0, sizeof (gamepad_btn_gui_ids_rt[i]));
+            memset(&gamepad_btn_gui_ids_ls[i],       0, sizeof (gamepad_btn_gui_ids_ls[i]));
+            memset(&gamepad_btn_gui_ids_rs[i],       0, sizeof (gamepad_btn_gui_ids_rs[i]));
+            memset(&gamepad_btn_gui_ids_dpads[j][i], 0, sizeof (gamepad_btn_gui_ids_dpads[j][i]));
+
+            gamepad_btn_gui_ids_a[i].btn_id        = -1;
+            gamepad_btn_gui_ids_b[i].btn_id        = -1;
+            gamepad_btn_gui_ids_x[i].btn_id        = -1;
+            gamepad_btn_gui_ids_y[i].btn_id        = -1;
+            gamepad_btn_gui_ids_lb[i].btn_id       = -1;
+            gamepad_btn_gui_ids_rb[i].btn_id       = -1;
+            gamepad_btn_gui_ids_lt[i].btn_id       = -1;
+            gamepad_btn_gui_ids_rt[i].btn_id       = -1;
+            gamepad_btn_gui_ids_ls[i].btn_id       = -1;
+            gamepad_btn_gui_ids_rs[i].btn_id       = -1;
+            gamepad_btn_gui_ids_dpads[j][i].btn_id = -1;
+
+            gamepad_btn_gui_ids_a[i].gui_id        = -1;
+            gamepad_btn_gui_ids_b[i].gui_id        = -1;
+            gamepad_btn_gui_ids_x[i].gui_id        = -1;
+            gamepad_btn_gui_ids_y[i].gui_id        = -1;
+            gamepad_btn_gui_ids_lb[i].gui_id       = -1;
+            gamepad_btn_gui_ids_rb[i].gui_id       = -1;
+            gamepad_btn_gui_ids_lt[i].gui_id       = -1;
+            gamepad_btn_gui_ids_rt[i].gui_id       = -1;
+            gamepad_btn_gui_ids_ls[i].gui_id       = -1;
+            gamepad_btn_gui_ids_rs[i].gui_id       = -1;
+            gamepad_btn_gui_ids_dpads[j][i].gui_id = -1;
+        }
 }
 
 void console_gui_set_alpha(float alpha)
@@ -123,32 +187,32 @@ static void create_controller_spacer(int space_id)
 
 /* Etihad Handset controllers */
 
-static void create_handset_a_button(int a_id)
+static void create_handset_a_button(int a_id, int liveconfig)
 {
     gui_label(a_id, HANDSET_A_BUTTON, GUI_SML, gui_red, gui_red);
 }
 
-static void create_handset_b_button(int b_id)
+static void create_handset_b_button(int b_id, int liveconfig)
 {
     gui_label(b_id, HANDSET_B_BUTTON, GUI_SML, gui_yel, gui_yel);
 }
 
-static void create_handset_x_button(int x_id)
+static void create_handset_x_button(int x_id, int liveconfig)
 {
     gui_label(x_id, HANDSET_X_BUTTON, GUI_SML, gui_blu, gui_blu);
 }
 
-static void create_handset_y_button(int y_id)
+static void create_handset_y_button(int y_id, int liveconfig)
 {
     gui_label(y_id, HANDSET_Y_BUTTON, GUI_SML, gui_grn, gui_grn);
 }
 
-static void create_handset_lb_button(int lb_id)
+static void create_handset_lb_button(int lb_id, int liveconfig)
 {
     gui_label(lb_id, HANDSET_LB_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
 
-static void create_handset_rb_button(int rb_id)
+static void create_handset_rb_button(int rb_id, int liveconfig)
 {
     gui_label(rb_id, HANDSET_RB_BUTTON, GUI_SML, gui_gry, gui_wht);
 }
@@ -157,561 +221,1265 @@ static void create_handset_rb_button(int rb_id)
 
 /* Energize Lab Maticontroller controllers */
 
-static void create_maticontroller_a_button(int a_id)
+static void create_maticontroller_a_button(int a_id, int liveconfig)
 {
     gui_label(a_id, MATICONTROLLER_A_BUTTON, GUI_SML, gui_cya, gui_cya);
 }
 
-static void create_maticontroller_b_button(int b_id)
+static void create_maticontroller_b_button(int b_id, int liveconfig)
 {
     gui_label(b_id, MATICONTROLLER_B_BUTTON, GUI_SML, gui_cya, gui_cya);
 }
 
-static void create_maticontroller_x_button(int x_id)
+static void create_maticontroller_x_button(int x_id, int liveconfig)
 {
     gui_label(x_id, MATICONTROLLER_X_BUTTON, GUI_SML, gui_cya, gui_cya);
 }
 
-static void create_maticontroller_y_button(int y_id)
+static void create_maticontroller_y_button(int y_id, int liveconfig)
 {
     gui_label(y_id, MATICONTROLLER_Y_BUTTON, GUI_SML, gui_cya, gui_cya);
 }
 
-static void create_maticontroller_lb_button(int lb_id)
+static void create_maticontroller_lb_button(int lb_id, int liveconfig)
 {
     gui_label(lb_id, MATICONTROLLER_LB_BUTTON, GUI_SML, gui_cya, gui_wht);
 }
 
-static void create_maticontroller_rb_button(int rb_id)
+static void create_maticontroller_rb_button(int rb_id, int liveconfig)
 {
     gui_label(rb_id, MATICONTROLLER_RB_BUTTON, GUI_SML, gui_cya, gui_wht);
 }
 
-static void create_maticontroller_lt_button(int lb_id)
+static void create_maticontroller_lt_button(int lb_id, int liveconfig)
 {
     gui_label(lb_id, MATICONTROLLER_LT_BUTTON, GUI_SML, gui_cya, gui_wht);
 }
 
-static void create_maticontroller_rt_button(int rb_id)
+static void create_maticontroller_rt_button(int rb_id, int liveconfig)
 {
     gui_label(rb_id, MATICONTROLLER_RT_BUTTON, GUI_SML, gui_cya, gui_wht);
+}
+
+static void create_maticontroller_ls_button(int lb_id, int liveconfig)
+{
+    gui_label(lb_id, MATICONTROLLER_LS_BUTTON, GUI_SML, gui_cya, gui_wht);
+}
+
+static void create_maticontroller_rs_button(int rb_id, int liveconfig)
+{
+    gui_label(rb_id, MATICONTROLLER_RS_BUTTON, GUI_SML, gui_cya, gui_wht);
 }
 
 /*---------------------------------------------------------------------------*/
 
 /* Xbox controllers */
 
-static void create_xbox_a_button(int a_id)
+static void create_xbox_a_button(int a_id, int liveconfig)
 {
-    gui_label(a_id, XBOX_A_BUTTON, GUI_SML, gui_grn, gui_grn);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_a[i].gui_id == -1) {
+                gamepad_btn_gui_ids_a[i].gui_id = gui_image(a_id, "gui/controllers/btn_gamepad_a_xbox.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_a[i].btn_id = 0;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+
+        if (!found) log_errorf("Out of controller button slots! - ID: %d\n", a_id);
+
+        return;
+    }
+
+    gui_image(a_id, "gui/controllers/btn_gamepad_a_xbox.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_xbox_b_button(int b_id)
+static void create_xbox_b_button(int b_id, int liveconfig)
 {
-    gui_label(b_id, XBOX_B_BUTTON, GUI_SML, gui_red, gui_red);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_b[i].gui_id == -1) {
+                gamepad_btn_gui_ids_b[i].gui_id = gui_image(b_id, "gui/controllers/btn_gamepad_b_xbox.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_b[i].btn_id = 1;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+
+        if (!found) log_errorf("Out of controller button slots! - ID: %d\n", b_id);
+
+        return;
+    }
+
+    gui_image(b_id, "gui/controllers/btn_gamepad_b_xbox.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_xbox_x_button(int x_id)
+static void create_xbox_x_button(int x_id, int liveconfig)
 {
-    gui_label(x_id, XBOX_X_BUTTON, GUI_SML, gui_blu, gui_blu);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_x[i].gui_id == -1) {
+                gamepad_btn_gui_ids_x[i].gui_id = gui_image(x_id, "gui/controllers/btn_gamepad_x_xbox.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_x[i].btn_id = 2;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+
+        if (!found) log_errorf("Out of controller button slots! - ID: %d\n", x_id);
+
+        return;
+    }
+
+    gui_image(x_id, "gui/controllers/btn_gamepad_x_xbox.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_xbox_y_button(int y_id)
+static void create_xbox_y_button(int y_id, int liveconfig)
 {
-    gui_label(y_id, XBOX_Y_BUTTON, GUI_SML, gui_yel, gui_yel);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_y[i].gui_id == -1) {
+                gamepad_btn_gui_ids_y[i].gui_id = gui_image(y_id, "gui/controllers/btn_gamepad_y_xbox.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_y[i].btn_id = 3;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+
+        if (!found) log_errorf("Out of controller button slots! - ID: %d\n", y_id);
+
+        return;
+    }
+
+    gui_image(y_id, "gui/controllers/btn_gamepad_y_xbox.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_xbox_lb_button(int lb_id)
+static void create_xbox_lb_button(int lb_id, int liveconfig)
 {
-    gui_label(lb_id, XBOX_LB_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_lb[i].gui_id == -1) {
+                gamepad_btn_gui_ids_lb[i].gui_id = gui_image(lb_id, "gui/controllers/btn_gamepad_lb_xbox.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_lb[i].btn_id = 4;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+
+        if (!found) log_errorf("Out of controller button slots! - ID: %d\n", lb_id);
+
+        return;
+    }
+
+    gui_image(lb_id, "gui/controllers/btn_gamepad_lb_xbox.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_xbox_rb_button(int rb_id)
+static void create_xbox_rb_button(int rb_id, int liveconfig)
 {
-    gui_label(rb_id, XBOX_RB_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_rb[i].gui_id == -1) {
+                gamepad_btn_gui_ids_rb[i].gui_id = gui_image(rb_id, "gui/controllers/btn_gamepad_rb_xbox.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_rb[i].btn_id = 5;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+
+        if (!found) log_errorf("Out of controller button slots! - ID: %d\n", rb_id);
+
+        return;
+    }
+
+    gui_image(rb_id, "gui/controllers/btn_gamepad_rb_xbox.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_xbox_lt_button(int lb_id)
+static void create_xbox_lt_button(int lt_id, int liveconfig)
 {
-    gui_label(lb_id, XBOX_LT_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_lt[i].gui_id == -1) {
+                gamepad_btn_gui_ids_lt[i].gui_id = gui_image(lt_id, "gui/controllers/btn_gamepad_lt_xbox.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_lt[i].btn_id = 6;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+
+        if (!found) log_errorf("Out of controller button slots! - ID: %d\n", lt_id);
+
+        return;
+    }
+
+    gui_image(lt_id, "gui/controllers/btn_gamepad_lt_xbox.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_xbox_rt_button(int rb_id)
+static void create_xbox_rt_button(int rt_id, int liveconfig)
 {
-    gui_label(rb_id, XBOX_RT_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_rt[i].gui_id == -1) {
+                gamepad_btn_gui_ids_rt[i].gui_id = gui_image(rt_id, "gui/controllers/btn_gamepad_rt_xbox.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_rt[i].btn_id = 7;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+
+        if (!found) log_errorf("Out of controller button slots! - ID: %d\n", rt_id);
+
+        return;
+    }
+
+    gui_image(rt_id, "gui/controllers/btn_gamepad_rt_xbox.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_xbox_ls_button(int ls_id)
+static void create_xbox_ls_button(int ls_id, int liveconfig)
 {
-    gui_label(ls_id, XBOX_LS_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_ls[i].gui_id == -1) {
+                gamepad_btn_gui_ids_ls[i].gui_id = gui_image(ls_id, "gui/controllers/btn_gamepad_ls_xbox.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_ls[i].btn_id = 13;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+
+        if (!found) log_errorf("Out of controller button slots! - ID: %d\n", ls_id);
+
+        return;
+    }
+
+    gui_image(ls_id, "gui/controllers/btn_gamepad_ls_xbox.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_xbox_rs_button(int rs_id)
+static void create_xbox_rs_button(int rs_id, int liveconfig)
 {
-    gui_label(rs_id, XBOX_RS_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_rs[i].gui_id == -1) {
+                gamepad_btn_gui_ids_rs[i].gui_id = gui_image(rs_id, "gui/controllers/btn_gamepad_rs_xbox.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_rs[i].btn_id = 15;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+
+        if (!found) log_errorf("Out of controller button slots! - ID: %d\n", rs_id);
+
+        return;
+    }
+
+    gui_image(rs_id, "gui/controllers/btn_gamepad_rs_xbox.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_xbox_start_button(int start_id)
+static void create_xbox_start_button(int start_id, int liveconfig)
 {
-    const int gamepadbtn_id = gui_label(start_id, XBOX_START_BUTTON,
-                                                  GUI_SML, gui_gry, gui_wht);
-    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_start[i].gui_id == -1) {
+                gamepad_btn_gui_ids_start[i].gui_id = gui_image(start_id, "gui/controllers/btn_gamepad_start_xbox.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_start[i].btn_id = 9;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+
+        if (!found) log_errorf("Out of controller button slots! - ID: %d\n", start_id);
+
+        return;
+    }
+
+    gui_image(start_id, "gui/controllers/btn_gamepad_start_xbox.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_xbox_select_button(int select_id)
+static void create_xbox_select_button(int select_id, int liveconfig)
 {
-    const int gamepadbtn_id = gui_label(select_id, XBOX_SELECT_BUTTON,
-                                                   GUI_SML, gui_gry, gui_wht);
-    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_select[i].gui_id == -1) {
+                gamepad_btn_gui_ids_select[i].gui_id = gui_image(select_id, "gui/controllers/btn_gamepad_select_xbox.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_select[i].btn_id = 8;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+
+        if (!found) log_errorf("Out of controller button slots! - ID: %d\n", select_id);
+
+        return;
+    }
+
+    gui_image(select_id, "gui/controllers/btn_gamepad_select_xbox.png", video.device_h / 22, video.device_h / 26);
 }
 
 /*---------------------------------------------------------------------------*/
 
 /* PlayStation Controllers */
 
-static void create_ps4_a_button(int a_id)
+static void create_ps4_a_button(int a_id, int liveconfig)
 {
-    const int gamepadbtn_id = gui_label(a_id, PS4_A_BUTTON, GUI_SML, gui_blu, gui_blu);
-    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_a[i].gui_id == -1) {
+                gamepad_btn_gui_ids_a[i].gui_id = gui_image(a_id, "gui/controllers/btn_gamepad_a_playstation.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_a[i].btn_id = 0;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(a_id, "gui/controllers/btn_gamepad_a_playstation.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_ps4_b_button(int b_id)
+static void create_ps4_b_button(int b_id, int liveconfig)
 {
-    const int gamepadbtn_id = gui_label(b_id, PS4_B_BUTTON, GUI_SML, gui_red, gui_red);
-    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_b[i].gui_id == -1) {
+                gamepad_btn_gui_ids_b[i].gui_id = gui_image(b_id, "gui/controllers/btn_gamepad_b_playstation.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_b[i].btn_id = 1;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(b_id, "gui/controllers/btn_gamepad_b_playstation.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_ps4_x_button(int x_id)
+static void create_ps4_x_button(int x_id, int liveconfig)
 {
-    const int gamepadbtn_id = gui_label(x_id, PS4_X_BUTTON, GUI_SML, gui_pnk, gui_pnk);
-    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_x[i].gui_id == -1) {
+                gamepad_btn_gui_ids_x[i].gui_id = gui_image(x_id, "gui/controllers/btn_gamepad_x_playstation.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_x[i].btn_id = 2;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(x_id, "gui/controllers/btn_gamepad_x_playstation.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_ps4_y_button(int y_id)
+static void create_ps4_y_button(int y_id, int liveconfig)
 {
-    const int gamepadbtn_id = gui_label(y_id, PS4_Y_BUTTON, GUI_SML, gui_cya, gui_cya);
-    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_y[i].gui_id == -1) {
+                gamepad_btn_gui_ids_y[i].gui_id = gui_image(y_id, "gui/controllers/btn_gamepad_y_playstation.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_y[i].btn_id = 3;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(y_id, "gui/controllers/btn_gamepad_y_playstation.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_ps4_lb_button(int lb_id)
+static void create_ps4_lb_button(int lb_id, int liveconfig)
 {
-    gui_label(lb_id, PS4_LB_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_lb[i].gui_id == -1) {
+                gamepad_btn_gui_ids_lb[i].gui_id = gui_image(lb_id, "gui/controllers/btn_gamepad_lb_playstation.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_lb[i].btn_id = 4;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(lb_id, "gui/controllers/btn_gamepad_lb_playstation.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_ps4_rb_button(int rb_id)
+static void create_ps4_rb_button(int rb_id, int liveconfig)
 {
-    gui_label(rb_id, PS4_RB_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_rb[i].gui_id == -1) {
+                gamepad_btn_gui_ids_rb[i].gui_id = gui_image(rb_id, "gui/controllers/btn_gamepad_rb_playstation.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_rb[i].btn_id = 5;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(rb_id, "gui/controllers/btn_gamepad_rb_playstation.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_ps4_lt_button(int lb_id)
+static void create_ps4_lt_button(int lt_id, int liveconfig)
 {
-    gui_label(lb_id, PS4_LT_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_lt[i].gui_id == -1) {
+                gamepad_btn_gui_ids_lt[i].gui_id = gui_image(lt_id, "gui/controllers/btn_gamepad_lt_playstation.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_lt[i].btn_id = 6;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(lt_id, "gui/controllers/btn_gamepad_lt_playstation.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_ps4_rt_button(int rb_id)
+static void create_ps4_rt_button(int rt_id, int liveconfig)
 {
-    gui_label(rb_id, PS4_RT_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_rt[i].gui_id == -1) {
+                gamepad_btn_gui_ids_rt[i].gui_id = gui_image(rt_id, "gui/controllers/btn_gamepad_rt_playstation.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_rt[i].btn_id = 7;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(rt_id, "gui/controllers/btn_gamepad_rt_playstation.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_ps4_ls_button(int ls_id)
+static void create_ps4_ls_button(int ls_id, int liveconfig)
 {
-    gui_label(ls_id, PS4_LS_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_ls[i].gui_id == -1) {
+                gamepad_btn_gui_ids_ls[i].gui_id = gui_image(ls_id, "gui/controllers/btn_gamepad_ls_playstation.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_ls[i].btn_id = 13;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(ls_id, "gui/controllers/btn_gamepad_ls_playstation.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_ps4_rs_button(int rs_id)
+static void create_ps4_rs_button(int rs_id, int liveconfig)
 {
-    gui_label(rs_id, PS4_RS_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_rs[i].gui_id == -1) {
+                gamepad_btn_gui_ids_rs[i].gui_id = gui_image(rs_id, "gui/controllers/btn_gamepad_rs_playstation.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_rs[i].btn_id = 15;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(rs_id, "gui/controllers/btn_gamepad_rs_playstation.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_ps4_start_button(int start_id)
+static void create_ps4_start_button(int start_id, int liveconfig)
 {
-    const int gamepadbtn_id = gui_label(start_id, PS4_START_BUTTON,
-                                                  GUI_SML, gui_gry, gui_wht);
-    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_start[i].gui_id == -1) {
+                gamepad_btn_gui_ids_start[i].gui_id = gui_image(start_id, "gui/controllers/btn_gamepad_start_playstation.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_start[i].btn_id = 9;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(start_id, "gui/controllers/btn_gamepad_start_playstation.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_ps4_select_button(int select_id)
+static void create_ps4_select_button(int select_id, int liveconfig)
 {
-    const int gamepadbtn_id = gui_label(select_id, PS4_START_BUTTON,
-                                                   GUI_SML, gui_gry, gui_wht);
-    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_select[i].gui_id == -1) {
+                gamepad_btn_gui_ids_select[i].gui_id = gui_image(select_id, "gui/controllers/btn_gamepad_select_playstation.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_select[i].btn_id = 8;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(select_id, "gui/controllers/btn_gamepad_select_playstation.png", video.device_h / 22, video.device_h / 26);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void create_steamdeck_a_button(int a_id)
+/* Steam Controllers */
+
+static void create_steamdeck_a_button(int a_id, int liveconfig)
 {
-    gui_label(a_id, STEAMDECK_A_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_a[i].gui_id == -1) {
+                gamepad_btn_gui_ids_a[i].gui_id = gui_image(a_id, "gui/controllers/btn_gamepad_a_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_a[i].btn_id = 0;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(a_id, "gui/controllers/btn_gamepad_a_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_steamdeck_b_button(int b_id)
+static void create_steamdeck_b_button(int b_id, int liveconfig)
 {
-    gui_label(b_id, STEAMDECK_B_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_b[i].gui_id == -1) {
+                gamepad_btn_gui_ids_b[i].gui_id = gui_image(b_id, "gui/controllers/btn_gamepad_b_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_b[i].btn_id = 1;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(b_id, "gui/controllers/btn_gamepad_b_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_steamdeck_x_button(int x_id)
+static void create_steamdeck_x_button(int x_id, int liveconfig)
 {
-    gui_label(x_id, STEAMDECK_X_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_x[i].gui_id == -1) {
+                gamepad_btn_gui_ids_x[i].gui_id = gui_image(x_id, "gui/controllers/btn_gamepad_x_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_x[i].btn_id = 2;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(x_id, "gui/controllers/btn_gamepad_x_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_steamdeck_y_button(int y_id)
+static void create_steamdeck_y_button(int y_id, int liveconfig)
 {
-    gui_label(y_id, STEAMDECK_Y_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_y[i].gui_id == -1) {
+                gamepad_btn_gui_ids_y[i].gui_id = gui_image(y_id, "gui/controllers/btn_gamepad_y_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_y[i].btn_id = 3;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(y_id, "gui/controllers/btn_gamepad_y_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_steamdeck_lb_button(int lb_id)
+static void create_steamdeck_lb_button(int lb_id, int liveconfig)
 {
-    gui_label(lb_id, STEAMDECK_LB_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_lb[i].gui_id == -1) {
+                gamepad_btn_gui_ids_lb[i].gui_id = gui_image(lb_id, "gui/controllers/btn_gamepad_lb_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_lb[i].btn_id = 4;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(lb_id, "gui/controllers/btn_gamepad_lb_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_steamdeck_rb_button(int rb_id)
+static void create_steamdeck_rb_button(int rb_id, int liveconfig)
 {
-    gui_label(rb_id, STEAMDECK_RB_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_rb[i].gui_id == -1) {
+                gamepad_btn_gui_ids_rb[i].gui_id = gui_image(rb_id, "gui/controllers/btn_gamepad_rb_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_rb[i].btn_id = 5;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(rb_id, "gui/controllers/btn_gamepad_rb_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_steamdeck_lt_button(int lb_id)
+static void create_steamdeck_lt_button(int lt_id, int liveconfig)
 {
-    gui_label(lb_id, STEAMDECK_LT_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_lt[i].gui_id == -1) {
+                gamepad_btn_gui_ids_lt[i].gui_id = gui_image(lt_id, "gui/controllers/btn_gamepad_lt_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_lt[i].btn_id = 6;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(lt_id, "gui/controllers/btn_gamepad_lt_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_steamdeck_rt_button(int rb_id)
+static void create_steamdeck_rt_button(int rt_id, int liveconfig)
 {
-    gui_label(rb_id, STEAMDECK_RT_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_rt[i].gui_id == -1) {
+                gamepad_btn_gui_ids_rt[i].gui_id = gui_image(rt_id, "gui/controllers/btn_gamepad_rt_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_rt[i].btn_id = 7;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(rt_id, "gui/controllers/btn_gamepad_rt_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_steamdeck_ls_button(int ls_id)
+static void create_steamdeck_ls_button(int ls_id, int liveconfig)
 {
-    gui_label(ls_id, STEAMDECK_LS_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_ls[i].gui_id == -1) {
+                gamepad_btn_gui_ids_ls[i].gui_id = gui_image(ls_id, "gui/controllers/btn_gamepad_ls_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_ls[i].btn_id = 13;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(ls_id, "gui/controllers/btn_gamepad_ls_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_steamdeck_rs_button(int rs_id)
+static void create_steamdeck_rs_button(int rs_id, int liveconfig)
 {
-    gui_label(rs_id, STEAMDECK_RS_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_rs[i].gui_id == -1) {
+                gamepad_btn_gui_ids_rs[i].gui_id = gui_image(rs_id, "gui/controllers/btn_gamepad_rs_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_rs[i].btn_id = 15;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(rs_id, "gui/controllers/btn_gamepad_rs_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_steamdeck_start_button(int start_id)
+static void create_steamdeck_start_button(int start_id, int liveconfig)
 {
-    const int gamepadbtn_id = gui_label(start_id, STEAMDECK_START_BUTTON,
-                                                  GUI_SML, gui_gry, gui_wht);
-    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_start[i].gui_id == -1) {
+                gamepad_btn_gui_ids_start[i].gui_id = gui_image(start_id, "gui/controllers/btn_gamepad_start_xbox.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_start[i].btn_id = 9;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(start_id, "gui/controllers/btn_gamepad_start_xbox.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_steamdeck_select_button(int select_id)
+static void create_steamdeck_select_button(int select_id, int liveconfig)
 {
-    const int gamepadbtn_id = gui_label(select_id, STEAMDECK_SELECT_BUTTON,
-                                                   GUI_SML, gui_gry, gui_wht);
-    gui_set_font(gamepadbtn_id, "ttf/DejaVuSans-Bold.ttf");
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_select[i].gui_id == -1) {
+                gamepad_btn_gui_ids_select[i].gui_id = gui_image(select_id, "gui/controllers/btn_gamepad_select_xbox.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_select[i].btn_id = 8;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(select_id, "gui/controllers/btn_gamepad_select_xbox.png", video.device_h / 22, video.device_h / 26);
 }
 
 /*---------------------------------------------------------------------------*/
 
 /* Nintendo Controllers */
 
-static void create_switch_a_button(int a_id)
+static void create_switch_a_button(int a_id, int liveconfig)
 {
-    gui_label(a_id, SWITCH_A_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_a[i].gui_id == -1) {
+                gamepad_btn_gui_ids_a[i].gui_id = gui_image(a_id, "gui/controllers/btn_gamepad_a_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_a[i].btn_id = 0;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(a_id, "gui/controllers/btn_gamepad_a_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_switch_b_button(int b_id)
+static void create_switch_b_button(int b_id, int liveconfig)
 {
-    gui_label(b_id, SWITCH_B_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_b[i].gui_id == -1) {
+                gamepad_btn_gui_ids_b[i].gui_id = gui_image(b_id, "gui/controllers/btn_gamepad_b_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_b[i].btn_id = 1;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(b_id, "gui/controllers/btn_gamepad_b_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_switch_x_button(int x_id)
+static void create_switch_x_button(int x_id, int liveconfig)
 {
-    gui_label(x_id, SWITCH_X_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_x[i].gui_id == -1) {
+                gamepad_btn_gui_ids_x[i].gui_id = gui_image(x_id, "gui/controllers/btn_gamepad_x_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_x[i].btn_id = 2;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(x_id, "gui/controllers/btn_gamepad_x_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_switch_y_button(int y_id)
+static void create_switch_y_button(int y_id, int liveconfig)
 {
-    gui_label(y_id, SWITCH_Y_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_y[i].gui_id == -1) {
+                gamepad_btn_gui_ids_y[i].gui_id = gui_image(y_id, "gui/controllers/btn_gamepad_y_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_y[i].btn_id = 3;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(y_id, "gui/controllers/btn_gamepad_y_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_switch_lb_button(int lb_id)
+static void create_switch_lb_button(int lb_id, int liveconfig)
 {
-    gui_label(lb_id, SWITCH_LB_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_lb[i].gui_id == -1) {
+                gamepad_btn_gui_ids_lb[i].gui_id = gui_image(lb_id, "gui/controllers/btn_gamepad_lb_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_lb[i].btn_id = 4;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(lb_id, "gui/controllers/btn_gamepad_lb_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_switch_rb_button(int rb_id)
+static void create_switch_rb_button(int rb_id, int liveconfig)
 {
-    gui_label(rb_id, SWITCH_RB_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_rb[i].gui_id == -1) {
+                gamepad_btn_gui_ids_rb[i].gui_id = gui_image(rb_id, "gui/controllers/btn_gamepad_rb_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_rb[i].btn_id = 5;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(rb_id, "gui/controllers/btn_gamepad_rb_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_switch_lt_button(int lb_id)
+static void create_switch_lt_button(int lt_id, int liveconfig)
 {
-    gui_label(lb_id, SWITCH_LT_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_lt[i].gui_id == -1) {
+                gamepad_btn_gui_ids_lt[i].gui_id = gui_image(lt_id, "gui/controllers/btn_gamepad_lt_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_lt[i].btn_id = 6;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(lt_id, "gui/controllers/btn_gamepad_lt_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_switch_rt_button(int rb_id)
+static void create_switch_rt_button(int rt_id, int liveconfig)
 {
-    gui_label(rb_id, SWITCH_RT_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_rt[i].gui_id == -1) {
+                gamepad_btn_gui_ids_rt[i].gui_id = gui_image(rt_id, "gui/controllers/btn_gamepad_rt_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_rt[i].btn_id = 7;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(rt_id, "gui/controllers/btn_gamepad_rt_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_switch_ls_button(int ls_id)
+static void create_switch_ls_button(int ls_id, int liveconfig)
 {
-    gui_label(ls_id, SWITCH_LS_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_ls[i].gui_id == -1) {
+                gamepad_btn_gui_ids_ls[i].gui_id = gui_image(ls_id, "gui/controllers/btn_gamepad_ls_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_ls[i].btn_id = 13;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(ls_id, "gui/controllers/btn_gamepad_ls_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_switch_rs_button(int rs_id)
+static void create_switch_rs_button(int rs_id, int liveconfig)
 {
-    gui_label(rs_id, SWITCH_RS_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_rs[i].gui_id == -1) {
+                gamepad_btn_gui_ids_rs[i].gui_id = gui_image(rs_id, "gui/controllers/btn_gamepad_rs_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_rs[i].btn_id = 15;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(rs_id, "gui/controllers/btn_gamepad_rs_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_switch_start_button(int start_id)
+static void create_switch_start_button(int start_id, int liveconfig)
 {
-    gui_label(start_id, SWITCH_START_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_start[i].gui_id == -1) {
+                gamepad_btn_gui_ids_start[i].gui_id = gui_image(start_id, "gui/controllers/btn_gamepad_start_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_start[i].btn_id = 9;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(start_id, "gui/controllers/btn_gamepad_start_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
-static void create_switch_select_button(int select_id)
+static void create_switch_select_button(int select_id, int liveconfig)
 {
-    gui_label(select_id, SWITCH_SELECT_BUTTON, GUI_SML, gui_gry, gui_wht);
+    if (liveconfig) {
+        int found = 0;
+        for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS && !found; i++) {
+            if (gamepad_btn_gui_ids_select[i].gui_id == -1) {
+                gamepad_btn_gui_ids_select[i].gui_id = gui_image(select_id, "gui/controllers/btn_gamepad_select_switch.png", video.device_h / 22, video.device_h / 26);
+                gamepad_btn_gui_ids_select[i].btn_id = 8;
+                found = 1;
+            }
+
+            if (found) break;
+        }
+        return;
+    }
+
+    gui_image(select_id, "gui/controllers/btn_gamepad_select_switch.png", video.device_h / 22, video.device_h / 26);
 }
 
 /*---------------------------------------------------------------------------*/
 
 /* Generic Controllers */
 
-void console_gui_create_a_button(int gui_id, int btn_id)
+void console_gui_create_a_button(int gui_id, int btn_id, int liveconfig)
 {
     switch (btn_id)
     {
-        //case 0: console_gui_create_a_button(gui_id, btn_id); return;
-        case 1: console_gui_create_b_button(gui_id, btn_id); return;
-        case 2: console_gui_create_x_button(gui_id, btn_id); return;
-        case 3: console_gui_create_y_button(gui_id, btn_id); return;
-        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
-        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
-        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
-        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
-        case 9: console_gui_create_start_button(gui_id, btn_id); return;
-        case 8: console_gui_create_select_button(gui_id, btn_id); return;
-        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
-        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
+        //case 0: console_gui_create_a_button(gui_id, btn_id, liveconfig); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id, liveconfig); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id, liveconfig); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id, liveconfig); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id, liveconfig); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id, liveconfig); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id, liveconfig); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id, liveconfig); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id, liveconfig); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id, liveconfig); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id, liveconfig); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id, liveconfig); return;
     }
 
     switch (current_platform)
     {
         case PLATFORM_HANDSET:
-        create_handset_y_button(gui_id);
+        create_handset_y_button(gui_id, liveconfig);
         break;
         case PLATFORM_PS:
-        create_ps4_a_button(gui_id);
+        create_ps4_a_button(gui_id, liveconfig);
         break;
         case PLATFORM_STEAMDECK:
-        create_steamdeck_a_button(gui_id);
+        create_steamdeck_a_button(gui_id, liveconfig);
         break;
         case PLATFORM_SWITCH:
-        create_switch_a_button(gui_id);
+        create_switch_a_button(gui_id, liveconfig);
         break;
         case PLATFORM_ENERGIZELAB:
-        create_maticontroller_a_button(gui_id);
+        create_maticontroller_a_button(gui_id, liveconfig);
         break;
         default:
-        create_xbox_a_button(gui_id);
+        create_xbox_a_button(gui_id, liveconfig);
     }
 }
 
-void console_gui_create_b_button(int gui_id, int btn_id)
+void console_gui_create_b_button(int gui_id, int btn_id, int liveconfig)
 {
     switch (btn_id)
     {
-        case 0: console_gui_create_a_button(gui_id, btn_id); return;
-        //case 1: console_gui_create_b_button(gui_id, btn_id); return;
-        case 2: console_gui_create_x_button(gui_id, btn_id); return;
-        case 3: console_gui_create_y_button(gui_id, btn_id); return;
-        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
-        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
-        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
-        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
-        case 9: console_gui_create_start_button(gui_id, btn_id); return;
-        case 8: console_gui_create_select_button(gui_id, btn_id); return;
-        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
-        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
+        case 0: console_gui_create_a_button(gui_id, btn_id, liveconfig); return;
+        //case 1: console_gui_create_b_button(gui_id, btn_id, liveconfig); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id, liveconfig); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id, liveconfig); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id, liveconfig); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id, liveconfig); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id, liveconfig); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id, liveconfig); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id, liveconfig); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id, liveconfig); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id, liveconfig); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id, liveconfig); return;
     }
 
     switch (current_platform)
     {
         case PLATFORM_HANDSET:
-        create_handset_x_button(gui_id);
+        create_handset_x_button(gui_id, liveconfig);
         break;
         case PLATFORM_PS:
-        create_ps4_b_button(gui_id);
+        create_ps4_b_button(gui_id, liveconfig);
         break;
         case PLATFORM_STEAMDECK:
-        create_steamdeck_b_button(gui_id);
+        create_steamdeck_b_button(gui_id, liveconfig);
         break;
         case PLATFORM_SWITCH:
-        create_switch_b_button(gui_id);
+        create_switch_b_button(gui_id, liveconfig);
         break;
         case PLATFORM_ENERGIZELAB:
-        create_maticontroller_b_button(gui_id);
+        create_maticontroller_b_button(gui_id, liveconfig);
         break;
         default:
-        create_xbox_b_button(gui_id);
+        create_xbox_b_button(gui_id, liveconfig);
     }
 }
 
-void console_gui_create_x_button(int gui_id, int btn_id)
+void console_gui_create_x_button(int gui_id, int btn_id, int liveconfig)
 {
     switch (btn_id)
     {
-        case 0: console_gui_create_a_button(gui_id, btn_id); return;
-        case 1: console_gui_create_b_button(gui_id, btn_id); return;
-        //case 2: console_gui_create_x_button(gui_id, btn_id); return;
-        case 3: console_gui_create_y_button(gui_id, btn_id); return;
-        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
-        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
-        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
-        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
-        case 9: console_gui_create_start_button(gui_id, btn_id); return;
-        case 8: console_gui_create_select_button(gui_id, btn_id); return;
-        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
-        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
+        case 0: console_gui_create_a_button(gui_id, btn_id, liveconfig); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id, liveconfig); return;
+        //case 2: console_gui_create_x_button(gui_id, btn_id, liveconfig); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id, liveconfig); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id, liveconfig); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id, liveconfig); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id, liveconfig); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id, liveconfig); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id, liveconfig); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id, liveconfig); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id, liveconfig); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id, liveconfig); return;
     }
 
     switch (current_platform)
     {
         case PLATFORM_HANDSET:
-        create_handset_b_button(gui_id);
+        create_handset_b_button(gui_id, liveconfig);
         break;
         case PLATFORM_PS:
-        create_ps4_x_button(gui_id);
+        create_ps4_x_button(gui_id, liveconfig);
         break;
         case PLATFORM_STEAMDECK:
-        create_steamdeck_x_button(gui_id);
+        create_steamdeck_x_button(gui_id, liveconfig);
         break;
         case PLATFORM_SWITCH:
-        create_switch_x_button(gui_id);
+        create_switch_x_button(gui_id, liveconfig);
         break;
         case PLATFORM_ENERGIZELAB:
-        create_maticontroller_x_button(gui_id);
+        create_maticontroller_x_button(gui_id, liveconfig);
         break;
         default:
-        create_xbox_x_button(gui_id);
+        create_xbox_x_button(gui_id, liveconfig);
     }
 }
 
-void console_gui_create_y_button(int gui_id, int btn_id)
+void console_gui_create_y_button(int gui_id, int btn_id, int liveconfig)
 {
     switch (btn_id)
     {
-        case 0: console_gui_create_a_button(gui_id, btn_id); return;
-        case 1: console_gui_create_b_button(gui_id, btn_id); return;
-        case 2: console_gui_create_x_button(gui_id, btn_id); return;
-        //case 3: console_gui_create_y_button(gui_id, btn_id); return;
-        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
-        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
-        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
-        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
-        case 9: console_gui_create_start_button(gui_id, btn_id); return;
-        case 8: console_gui_create_select_button(gui_id, btn_id); return;
-        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
-        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
+        case 0: console_gui_create_a_button(gui_id, btn_id, liveconfig); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id, liveconfig); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id, liveconfig); return;
+        //case 3: console_gui_create_y_button(gui_id, btn_id, liveconfig); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id, liveconfig); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id, liveconfig); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id, liveconfig); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id, liveconfig); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id, liveconfig); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id, liveconfig); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id, liveconfig); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id, liveconfig); return;
     }
 
     switch (current_platform)
     {
         case PLATFORM_HANDSET:
-        create_handset_a_button(gui_id);
+        create_handset_a_button(gui_id, liveconfig);
         break;
         case PLATFORM_PS:
-        create_ps4_y_button(gui_id);
+        create_ps4_y_button(gui_id, liveconfig);
         break;
         case PLATFORM_STEAMDECK:
-        create_steamdeck_y_button(gui_id);
+        create_steamdeck_y_button(gui_id, liveconfig);
         break;
         case PLATFORM_SWITCH:
-        create_switch_y_button(gui_id);
+        create_switch_y_button(gui_id, liveconfig);
         break;
         case PLATFORM_ENERGIZELAB:
-        create_maticontroller_y_button(gui_id);
+        create_maticontroller_y_button(gui_id, liveconfig);
         break;
         default:
-        create_xbox_y_button(gui_id);
+        create_xbox_y_button(gui_id, liveconfig);
     }
 }
 
-void console_gui_create_lb_button(int gui_id, int btn_id)
+void console_gui_create_lb_button(int gui_id, int btn_id, int liveconfig)
 {
     switch (btn_id)
     {
-        case 0: console_gui_create_a_button(gui_id, btn_id); return;
-        case 1: console_gui_create_b_button(gui_id, btn_id); return;
-        case 2: console_gui_create_x_button(gui_id, btn_id); return;
-        case 3: console_gui_create_y_button(gui_id, btn_id); return;
-        //case 4: console_gui_create_lb_button(gui_id, btn_id); return;
-        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
-        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
-        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
-        case 9: console_gui_create_start_button(gui_id, btn_id); return;
-        case 8: console_gui_create_select_button(gui_id, btn_id); return;
-        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
-        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
+        case 0: console_gui_create_a_button(gui_id, btn_id, liveconfig); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id, liveconfig); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id, liveconfig); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id, liveconfig); return;
+        //case 4: console_gui_create_lb_button(gui_id, btn_id, liveconfig); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id, liveconfig); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id, liveconfig); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id, liveconfig); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id, liveconfig); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id, liveconfig); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id, liveconfig); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id, liveconfig); return;
     }
 
     switch (current_platform)
     {
         case PLATFORM_HANDSET:
-        create_handset_lb_button(gui_id);
+        create_handset_lb_button(gui_id, liveconfig);
         break;
         case PLATFORM_PS:
-        create_ps4_lb_button(gui_id);
+        create_ps4_lb_button(gui_id, liveconfig);
         break;
         case PLATFORM_STEAMDECK:
-        create_steamdeck_lb_button(gui_id);
+        create_steamdeck_lb_button(gui_id, liveconfig);
         break;
         case PLATFORM_SWITCH:
-        create_switch_lb_button(gui_id);
+        create_switch_lb_button(gui_id, liveconfig);
         break;
         case PLATFORM_ENERGIZELAB:
-        create_maticontroller_lb_button(gui_id);
+        create_maticontroller_lb_button(gui_id, liveconfig);
         break;
         default:
-        create_xbox_lb_button(gui_id);
+        create_xbox_lb_button(gui_id, liveconfig);
     }
 }
 
-void console_gui_create_rb_button(int gui_id, int btn_id)
+void console_gui_create_rb_button(int gui_id, int btn_id, int liveconfig)
 {
     switch (btn_id)
     {
-        case 0: console_gui_create_a_button(gui_id, btn_id); return;
-        case 1: console_gui_create_b_button(gui_id, btn_id); return;
-        case 2: console_gui_create_x_button(gui_id, btn_id); return;
-        case 3: console_gui_create_y_button(gui_id, btn_id); return;
-        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
-        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
-        //case 5: console_gui_create_rb_button(gui_id, btn_id); return;
-        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
-        case 9: console_gui_create_start_button(gui_id, btn_id); return;
-        case 8: console_gui_create_select_button(gui_id, btn_id); return;
-        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
-        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
+        case 0: console_gui_create_a_button(gui_id, btn_id, liveconfig); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id, liveconfig); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id, liveconfig); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id, liveconfig); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id, liveconfig); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id, liveconfig); return;
+        //case 5: console_gui_create_rb_button(gui_id, btn_id, liveconfig); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id, liveconfig); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id, liveconfig); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id, liveconfig); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id, liveconfig); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id, liveconfig); return;
     }
 
     switch (current_platform)
     {
         case PLATFORM_HANDSET:
-        create_handset_rb_button(gui_id);
+        create_handset_rb_button(gui_id, liveconfig);
         break;
         case PLATFORM_PS:
-        create_ps4_rb_button(gui_id);
+        create_ps4_rb_button(gui_id, liveconfig);
         break;
         case PLATFORM_STEAMDECK:
-        create_steamdeck_rb_button(gui_id);
+        create_steamdeck_rb_button(gui_id, liveconfig);
         break;
         case PLATFORM_SWITCH:
-        create_switch_rb_button(gui_id);
+        create_switch_rb_button(gui_id, liveconfig);
         break;
         case PLATFORM_ENERGIZELAB:
-        create_maticontroller_rb_button(gui_id);
+        create_maticontroller_rb_button(gui_id, liveconfig);
         break;
         default:
-        create_xbox_rb_button(gui_id);
+        create_xbox_rb_button(gui_id, liveconfig);
     }
 }
 
-void console_gui_create_lt_button(int gui_id, int btn_id)
+void console_gui_create_lt_button(int gui_id, int btn_id, int liveconfig)
 {
     if (current_platform == PLATFORM_HANDSET)
     {
@@ -721,40 +1489,40 @@ void console_gui_create_lt_button(int gui_id, int btn_id)
 
     switch (btn_id)
     {
-        case 0: console_gui_create_a_button(gui_id, btn_id); return;
-        case 1: console_gui_create_b_button(gui_id, btn_id); return;
-        case 2: console_gui_create_x_button(gui_id, btn_id); return;
-        case 3: console_gui_create_y_button(gui_id, btn_id); return;
-        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
-        //case 6: console_gui_create_lt_button(gui_id, btn_id); return;
-        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
-        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
-        case 9: console_gui_create_start_button(gui_id, btn_id); return;
-        case 8: console_gui_create_select_button(gui_id, btn_id); return;
-        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
-        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
+        case 0: console_gui_create_a_button(gui_id, btn_id, liveconfig); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id, liveconfig); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id, liveconfig); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id, liveconfig); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id, liveconfig); return;
+        //case 6: console_gui_create_lt_button(gui_id, btn_id, liveconfig); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id, liveconfig); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id, liveconfig); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id, liveconfig); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id, liveconfig); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id, liveconfig); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id, liveconfig); return;
     }
 
     switch (current_platform)
     {
         case PLATFORM_PS:
-        create_ps4_lt_button(gui_id);
+        create_ps4_lt_button(gui_id, liveconfig);
         break;
         case PLATFORM_STEAMDECK:
-        create_steamdeck_lt_button(gui_id);
+        create_steamdeck_lt_button(gui_id, liveconfig);
         break;
         case PLATFORM_SWITCH:
-        create_switch_lt_button(gui_id);
+        create_switch_lt_button(gui_id, liveconfig);
         break;
         case PLATFORM_ENERGIZELAB:
-        create_maticontroller_lt_button(gui_id);
+        create_maticontroller_lt_button(gui_id, liveconfig);
         break;
         default:
-        create_xbox_lt_button(gui_id);
+        create_xbox_lt_button(gui_id, liveconfig);
     }
 }
 
-void console_gui_create_rt_button(int gui_id, int btn_id)
+void console_gui_create_rt_button(int gui_id, int btn_id, int liveconfig)
 {
     if (current_platform == PLATFORM_HANDSET)
     {
@@ -764,40 +1532,40 @@ void console_gui_create_rt_button(int gui_id, int btn_id)
 
     switch (btn_id)
     {
-        case 0: console_gui_create_a_button(gui_id, btn_id); return;
-        case 1: console_gui_create_b_button(gui_id, btn_id); return;
-        case 2: console_gui_create_x_button(gui_id, btn_id); return;
-        case 3: console_gui_create_y_button(gui_id, btn_id); return;
-        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
-        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
-        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
-        //case 7: console_gui_create_rt_button(gui_id, btn_id); return;
-        case 9: console_gui_create_start_button(gui_id, btn_id); return;
-        case 8: console_gui_create_select_button(gui_id, btn_id); return;
-        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
-        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
+        case 0: console_gui_create_a_button(gui_id, btn_id, liveconfig); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id, liveconfig); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id, liveconfig); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id, liveconfig); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id, liveconfig); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id, liveconfig); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id, liveconfig); return;
+        //case 7: console_gui_create_rt_button(gui_id, btn_id, liveconfig); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id, liveconfig); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id, liveconfig); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id, liveconfig); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id, liveconfig); return;
     }
 
     switch (current_platform)
     {
         case PLATFORM_PS:
-        create_ps4_rt_button(gui_id);
+        create_ps4_rt_button(gui_id, liveconfig);
         break;
         case PLATFORM_STEAMDECK:
-        create_steamdeck_rt_button(gui_id);
+        create_steamdeck_rt_button(gui_id, liveconfig);
         break;
         case PLATFORM_SWITCH:
-        create_switch_rt_button(gui_id);
+        create_switch_rt_button(gui_id, liveconfig);
         break;
         case PLATFORM_ENERGIZELAB:
-        create_maticontroller_rt_button(gui_id);
+        create_maticontroller_rt_button(gui_id, liveconfig);
         break;
         default:
-        create_xbox_rt_button(gui_id);
+        create_xbox_rt_button(gui_id, liveconfig);
     }
 }
 
-void console_gui_create_ls_button(int gui_id, int btn_id)
+void console_gui_create_ls_button(int gui_id, int btn_id, int liveconfig)
 {
     if (current_platform == PLATFORM_HANDSET ||
         current_platform == PLATFORM_ENERGIZELAB)
@@ -808,37 +1576,37 @@ void console_gui_create_ls_button(int gui_id, int btn_id)
 
     switch (btn_id)
     {
-        case 0: console_gui_create_a_button(gui_id, btn_id); return;
-        case 1: console_gui_create_b_button(gui_id, btn_id); return;
-        case 2: console_gui_create_x_button(gui_id, btn_id); return;
-        case 3: console_gui_create_y_button(gui_id, btn_id); return;
-        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
-        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
-        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
-        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
-        case 9: console_gui_create_start_button(gui_id, btn_id); return;
-        case 8: console_gui_create_select_button(gui_id, btn_id); return;
-        //case 13: console_gui_create_ls_button(gui_id, btn_id); return;
-        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
+        case 0: console_gui_create_a_button(gui_id, btn_id, liveconfig); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id, liveconfig); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id, liveconfig); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id, liveconfig); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id, liveconfig); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id, liveconfig); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id, liveconfig); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id, liveconfig); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id, liveconfig); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id, liveconfig); return;
+        //case 13: console_gui_create_ls_button(gui_id, btn_id, liveconfig); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id, liveconfig); return;
     }
 
     switch (current_platform)
     {
         case PLATFORM_PS:
-        create_ps4_ls_button(gui_id);
+        create_ps4_ls_button(gui_id, liveconfig);
         break;
         case PLATFORM_STEAMDECK:
-        create_steamdeck_ls_button(gui_id);
+        create_steamdeck_ls_button(gui_id, liveconfig);
         break;
         case PLATFORM_SWITCH:
-        create_switch_ls_button(gui_id);
+        create_switch_ls_button(gui_id, liveconfig);
         break;
         default:
-        create_xbox_ls_button(gui_id);
+        create_xbox_ls_button(gui_id, liveconfig);
     }
 }
 
-void console_gui_create_rs_button(int gui_id, int btn_id)
+void console_gui_create_rs_button(int gui_id, int btn_id, int liveconfig)
 {
     if (current_platform == PLATFORM_HANDSET ||
         current_platform == PLATFORM_ENERGIZELAB)
@@ -849,37 +1617,37 @@ void console_gui_create_rs_button(int gui_id, int btn_id)
 
     switch (btn_id)
     {
-        case 0: console_gui_create_a_button(gui_id, btn_id); return;
-        case 1: console_gui_create_b_button(gui_id, btn_id); return;
-        case 2: console_gui_create_x_button(gui_id, btn_id); return;
-        case 3: console_gui_create_y_button(gui_id, btn_id); return;
-        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
-        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
-        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
-        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
-        case 9: console_gui_create_start_button(gui_id, btn_id); return;
-        case 8: console_gui_create_select_button(gui_id, btn_id); return;
-        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
-        //case 15: console_gui_create_rs_button(gui_id, btn_id); return;
+        case 0: console_gui_create_a_button(gui_id, btn_id, liveconfig); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id, liveconfig); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id, liveconfig); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id, liveconfig); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id, liveconfig); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id, liveconfig); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id, liveconfig); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id, liveconfig); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id, liveconfig); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id, liveconfig); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id, liveconfig); return;
+        //case 15: console_gui_create_rs_button(gui_id, btn_id, liveconfig); return;
     }
 
     switch (current_platform)
     {
         case PLATFORM_PS:
-        create_ps4_rs_button(gui_id);
+        create_ps4_rs_button(gui_id, liveconfig);
         break;
         case PLATFORM_STEAMDECK:
-        create_steamdeck_rs_button(gui_id);
+        create_steamdeck_rs_button(gui_id, liveconfig);
         break;
         case PLATFORM_SWITCH:
-        create_switch_rs_button(gui_id);
+        create_switch_rs_button(gui_id, liveconfig);
         break;
         default:
-        create_xbox_rs_button(gui_id);
+        create_xbox_rs_button(gui_id, liveconfig);
     }
 }
 
-void console_gui_create_start_button(int gui_id, int btn_id)
+void console_gui_create_start_button(int gui_id, int btn_id, int liveconfig)
 {
     if (current_platform == PLATFORM_HANDSET ||
         current_platform == PLATFORM_ENERGIZELAB)
@@ -890,37 +1658,37 @@ void console_gui_create_start_button(int gui_id, int btn_id)
 
     switch (btn_id)
     {
-        case 0: console_gui_create_a_button(gui_id, btn_id); return;
-        case 1: console_gui_create_b_button(gui_id, btn_id); return;
-        case 2: console_gui_create_x_button(gui_id, btn_id); return;
-        case 3: console_gui_create_y_button(gui_id, btn_id); return;
-        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
-        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
-        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
-        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
-        //case 9: console_gui_create_start_button(gui_id, btn_id); return;
-        case 8: console_gui_create_select_button(gui_id, btn_id); return;
-        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
-        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
+        case 0: console_gui_create_a_button(gui_id, btn_id, liveconfig); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id, liveconfig); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id, liveconfig); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id, liveconfig); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id, liveconfig); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id, liveconfig); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id, liveconfig); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id, liveconfig); return;
+        //case 9: console_gui_create_start_button(gui_id, btn_id, liveconfig); return;
+        case 8: console_gui_create_select_button(gui_id, btn_id, liveconfig); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id, liveconfig); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id, liveconfig); return;
     }
 
     switch (current_platform)
     {
         case PLATFORM_PS:
-        create_ps4_start_button(gui_id);
+        create_ps4_start_button(gui_id, liveconfig);
         break;
         case PLATFORM_STEAMDECK:
-        create_steamdeck_start_button(gui_id);
+        create_steamdeck_start_button(gui_id, liveconfig);
         break;
         case PLATFORM_SWITCH:
-        create_switch_start_button(gui_id);
+        create_switch_start_button(gui_id, liveconfig);
         break;
         default:
-        create_xbox_start_button(gui_id);
+        create_xbox_start_button(gui_id, liveconfig);
     }
 }
 
-void console_gui_create_select_button(int gui_id, int btn_id)
+void console_gui_create_select_button(int gui_id, int btn_id, int liveconfig)
 {
     if (current_platform == PLATFORM_HANDSET ||
         current_platform == PLATFORM_ENERGIZELAB)
@@ -931,33 +1699,33 @@ void console_gui_create_select_button(int gui_id, int btn_id)
 
     switch (btn_id)
     {
-        case 0: console_gui_create_a_button(gui_id, btn_id); return;
-        case 1: console_gui_create_b_button(gui_id, btn_id); return;
-        case 2: console_gui_create_x_button(gui_id, btn_id); return;
-        case 3: console_gui_create_y_button(gui_id, btn_id); return;
-        case 4: console_gui_create_lb_button(gui_id, btn_id); return;
-        case 6: console_gui_create_lt_button(gui_id, btn_id); return;
-        case 5: console_gui_create_rb_button(gui_id, btn_id); return;
-        case 7: console_gui_create_rt_button(gui_id, btn_id); return;
-        case 9: console_gui_create_start_button(gui_id, btn_id); return;
-        //case 8: console_gui_create_select_button(gui_id, btn_id); return;
-        case 13: console_gui_create_ls_button(gui_id, btn_id); return;
-        case 15: console_gui_create_rs_button(gui_id, btn_id); return;
+        case 0: console_gui_create_a_button(gui_id, btn_id, liveconfig); return;
+        case 1: console_gui_create_b_button(gui_id, btn_id, liveconfig); return;
+        case 2: console_gui_create_x_button(gui_id, btn_id, liveconfig); return;
+        case 3: console_gui_create_y_button(gui_id, btn_id, liveconfig); return;
+        case 4: console_gui_create_lb_button(gui_id, btn_id, liveconfig); return;
+        case 6: console_gui_create_lt_button(gui_id, btn_id, liveconfig); return;
+        case 5: console_gui_create_rb_button(gui_id, btn_id, liveconfig); return;
+        case 7: console_gui_create_rt_button(gui_id, btn_id, liveconfig); return;
+        case 9: console_gui_create_start_button(gui_id, btn_id, liveconfig); return;
+        //case 8: console_gui_create_select_button(gui_id, btn_id, liveconfig); return;
+        case 13: console_gui_create_ls_button(gui_id, btn_id, liveconfig); return;
+        case 15: console_gui_create_rs_button(gui_id, btn_id, liveconfig); return;
     }
 
     switch (current_platform)
     {
         case PLATFORM_PS:
-        create_ps4_select_button(gui_id);
+        create_ps4_select_button(gui_id, liveconfig);
         break;
         case PLATFORM_STEAMDECK:
-        create_steamdeck_select_button(gui_id);
+        create_steamdeck_select_button(gui_id, liveconfig);
         break;
         case PLATFORM_SWITCH:
-        create_switch_select_button(gui_id);
+        create_switch_select_button(gui_id, liveconfig);
         break;
         default:
-        create_xbox_select_button(gui_id);
+        create_xbox_select_button(gui_id, liveconfig);
     }
 }
 
@@ -985,7 +1753,7 @@ static void init_xbox_title(void)
 #endif
 
             console_gui_create_b_button(xbox_control_title_id,
-                            config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                            config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
 
             create_controller_spacer(xbox_control_title_id);
         }
@@ -994,7 +1762,7 @@ static void init_xbox_title(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_title_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 
         gui_set_rect(xbox_control_title_id, GUI_TOP);
         gui_layout(xbox_control_title_id, 0, -1);
@@ -1009,7 +1777,7 @@ static void init_xbox_keybd(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_x_button(xbox_control_keybd_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_R2));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_R2), 1);
 
         create_controller_spacer(xbox_control_list_id);
 
@@ -1017,7 +1785,7 @@ static void init_xbox_keybd(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_x_button(xbox_control_keybd_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_L2));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_L2), 1);
 
         create_controller_spacer(xbox_control_list_id);
 
@@ -1025,7 +1793,7 @@ static void init_xbox_keybd(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_x_button(xbox_control_keybd_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X), 1);
 
         create_controller_spacer(xbox_control_list_id);
 
@@ -1033,7 +1801,7 @@ static void init_xbox_keybd(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_keybd_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
 
         gui_set_rect(xbox_control_keybd_id, GUI_TOP);
         gui_layout(xbox_control_keybd_id, 0, -1);
@@ -1048,7 +1816,7 @@ static void init_xbox_list(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_list_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
 
         create_controller_spacer(xbox_control_list_id);
 
@@ -1056,7 +1824,7 @@ static void init_xbox_list(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_list_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 
         gui_set_rect(xbox_control_list_id, GUI_TOP);
         gui_layout(xbox_control_list_id, 0, -1);
@@ -1071,7 +1839,7 @@ static void init_xbox_levelopt(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_y_button(xbox_control_levelopt_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_Y));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_Y), 1);
 
         create_controller_spacer(xbox_control_levelopt_id);
 
@@ -1079,7 +1847,7 @@ static void init_xbox_levelopt(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_levelopt_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
 
         create_controller_spacer(xbox_control_levelopt_id);
 
@@ -1087,7 +1855,7 @@ static void init_xbox_levelopt(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_levelopt_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 
         gui_set_rect(xbox_control_levelopt_id, GUI_TOP);
         gui_layout(xbox_control_levelopt_id, 0, -1);
@@ -1102,7 +1870,7 @@ static void init_xbox_paused(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_paused_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
 
         create_controller_spacer(xbox_control_paused_id);
 
@@ -1110,7 +1878,7 @@ static void init_xbox_paused(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_paused_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 
         gui_set_rect(xbox_control_paused_id, GUI_TOP);
         gui_layout(xbox_control_paused_id, 0, -1);
@@ -1125,7 +1893,7 @@ static void init_xbox_package_installable()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_package_installable_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
 
         create_controller_spacer(xbox_control_package_installable_id);
 
@@ -1133,7 +1901,7 @@ static void init_xbox_package_installable()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_package_installable_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 
         gui_set_rect(xbox_control_package_installable_id, GUI_TOP);
         gui_layout(xbox_control_package_installable_id, 0, -1);
@@ -1148,7 +1916,7 @@ static void init_xbox_package_updateable()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_x_button(xbox_control_package_updateable_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X), 1);
 
         create_controller_spacer(xbox_control_package_updateable_id);
 
@@ -1156,7 +1924,7 @@ static void init_xbox_package_updateable()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_package_updateable_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
 
         create_controller_spacer(xbox_control_package_updateable_id);
 
@@ -1164,7 +1932,7 @@ static void init_xbox_package_updateable()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_package_updateable_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 
         gui_set_rect(xbox_control_package_updateable_id, GUI_TOP);
         gui_layout(xbox_control_package_updateable_id, 0, -1);
@@ -1179,7 +1947,7 @@ static void init_xbox_package_manageable()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_x_button(xbox_control_package_manageable_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X), 1);
 
         create_controller_spacer(xbox_control_package_manageable_id);
 
@@ -1187,7 +1955,7 @@ static void init_xbox_package_manageable()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_package_manageable_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
 
         gui_set_rect(xbox_control_package_manageable_id, GUI_TOP);
         gui_layout(xbox_control_package_manageable_id, 0, -1);
@@ -1202,7 +1970,7 @@ static void init_xbox_package_equipable()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_x_button(xbox_control_package_equipable_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X), 1);
 
         create_controller_spacer(xbox_control_package_equipable_id);
 
@@ -1210,7 +1978,7 @@ static void init_xbox_package_equipable()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_package_equipable_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
         
         gui_set_rect(xbox_control_package_equipable_id, GUI_TOP);
         gui_layout(xbox_control_package_equipable_id, 0, -1);
@@ -1225,7 +1993,7 @@ static void init_xbox_package_startable()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_x_button(xbox_control_package_startable_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X), 1);
 
         create_controller_spacer(xbox_control_package_startable_id);
 
@@ -1233,8 +2001,8 @@ static void init_xbox_package_startable()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_package_startable_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
-
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
+        
         gui_set_rect(xbox_control_package_startable_id, GUI_TOP);
         gui_layout(xbox_control_package_startable_id, 0, -1);
     }
@@ -1250,7 +2018,7 @@ static void init_xbox_desc(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_x_button(xbox_control_desc_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X), 1);
 
         create_controller_spacer(xbox_control_desc_id);
 
@@ -1258,7 +2026,7 @@ static void init_xbox_desc(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_desc_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
 
         create_controller_spacer(xbox_control_desc_id);
 
@@ -1266,7 +2034,7 @@ static void init_xbox_desc(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_desc_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 
         gui_set_rect(xbox_control_desc_id, GUI_TOP);
         gui_layout(xbox_control_desc_id, 0, -1);
@@ -1281,7 +2049,7 @@ static void init_xbox_preparation(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_x_button(xbox_control_preparation_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X), 1);
 
         create_controller_spacer(xbox_control_preparation_id);
 
@@ -1289,7 +2057,7 @@ static void init_xbox_preparation(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_preparation_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 
         gui_set_rect(xbox_control_preparation_id, GUI_TOP);
         gui_layout(xbox_control_preparation_id, 0, -1);
@@ -1304,7 +2072,7 @@ static void init_xbox_replay(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_replay_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
 
         gui_set_rect(xbox_control_replay_id, GUI_TOP);
         gui_layout(xbox_control_replay_id, 0, -1);
@@ -1319,7 +2087,7 @@ static void init_xbox_replay_eof(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_replay_eof_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
 
         create_controller_spacer(xbox_control_replay_eof_id);
 
@@ -1327,7 +2095,7 @@ static void init_xbox_replay_eof(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_replay_eof_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 
         gui_set_rect(xbox_control_replay_eof_id, GUI_TOP);
         gui_layout(xbox_control_replay_eof_id, 0, -1);
@@ -1342,7 +2110,7 @@ static void init_xbox_shop(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_y_button(xbox_control_shop_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_Y));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_Y), 1);
 
         create_controller_spacer(xbox_control_shop_id);
 
@@ -1350,7 +2118,7 @@ static void init_xbox_shop(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_shop_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
 
         create_controller_spacer(xbox_control_shop_id);
 
@@ -1358,7 +2126,7 @@ static void init_xbox_shop(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_shop_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 
         gui_set_rect(xbox_control_shop_id, GUI_TOP);
         gui_layout(xbox_control_shop_id, 0, -1);
@@ -1373,7 +2141,7 @@ static void init_xbox_shop_getcoins(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_x_button(xbox_control_shop_getcoins_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X), 1);
 
         create_controller_spacer(xbox_control_shop_getcoins_id);
 
@@ -1381,7 +2149,7 @@ static void init_xbox_shop_getcoins(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_shop_getcoins_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
 
         create_controller_spacer(xbox_control_shop_getcoins_id);
 
@@ -1389,7 +2157,7 @@ static void init_xbox_shop_getcoins(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_shop_getcoins_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
         
         gui_set_rect(xbox_control_shop_getcoins_id, GUI_TOP);
         gui_layout(xbox_control_shop_getcoins_id, 0, -1);
@@ -1415,7 +2183,7 @@ static void init_xbox_model(void)
             gui_label(xbox_control_model_id, _(more_balls_text),
                       GUI_SML, gui_wht, gui_wht);
             console_gui_create_y_button(xbox_control_model_id,
-                            config_get_d(CONFIG_JOYSTICK_BUTTON_Y));
+                            config_get_d(CONFIG_JOYSTICK_BUTTON_Y), 1);
 
             create_controller_spacer(xbox_control_model_id);
         }
@@ -1425,9 +2193,9 @@ static void init_xbox_model(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_rb_button(xbox_control_model_id,
-                         config_get_d(CONFIG_JOYSTICK_BUTTON_R1));
+                         config_get_d(CONFIG_JOYSTICK_BUTTON_R1), 1);
         console_gui_create_lb_button(xbox_control_model_id,
-                         config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
+                         config_get_d(CONFIG_JOYSTICK_BUTTON_L1), 1);
 
         create_controller_spacer(xbox_control_model_id);
 
@@ -1435,13 +2203,12 @@ static void init_xbox_model(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_model_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
 
         gui_set_rect(xbox_control_model_id, GUI_TOP);
         gui_layout(xbox_control_model_id, 0, -1);
     }
 }
-
 
 static void init_xbox_beam_style(void)
 {
@@ -1451,9 +2218,9 @@ static void init_xbox_beam_style(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_rb_button(xbox_control_beam_style_id,
-                                     config_get_d(CONFIG_JOYSTICK_BUTTON_R1));
+                                     config_get_d(CONFIG_JOYSTICK_BUTTON_R1), 1);
         console_gui_create_lb_button(xbox_control_beam_style_id,
-                                     config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
+                                     config_get_d(CONFIG_JOYSTICK_BUTTON_L1), 1);
 
         create_controller_spacer(xbox_control_beam_style_id);
 
@@ -1461,7 +2228,7 @@ static void init_xbox_beam_style(void)
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_b_button(xbox_control_beam_style_id,
-                                    config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                                    config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
 
         gui_set_rect(xbox_control_beam_style_id, GUI_TOP);
         gui_layout(xbox_control_beam_style_id, 0, -1);
@@ -1476,7 +2243,7 @@ static void init_xbox_death()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_death_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 
         gui_set_rect(xbox_control_death_id, GUI_TOP);
         gui_layout(xbox_control_death_id, 0, -1);
@@ -1492,15 +2259,15 @@ static void init_xbox_putt_stroke()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_lt_button(xbox_control_putt_stroke_id,
-                         config_get_d(CONFIG_JOYSTICK_BUTTON_L2));
+                         config_get_d(CONFIG_JOYSTICK_BUTTON_L2), 1);
         console_gui_create_lb_button(xbox_control_putt_stroke_id,
-                         config_get_d(CONFIG_JOYSTICK_BUTTON_L1));
+                         config_get_d(CONFIG_JOYSTICK_BUTTON_L1), 1);
 
         gui_label(xbox_control_putt_stroke_id, _("Shot"),
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_putt_stroke_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 
         create_controller_spacer(xbox_control_putt_stroke_id);
 
@@ -1508,7 +2275,7 @@ static void init_xbox_putt_stroke()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_x_button(xbox_control_putt_stroke_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_X), 1);
 
         gui_set_rect(xbox_control_putt_stroke_id, GUI_TOP);
         gui_layout(xbox_control_putt_stroke_id, 0, -1);
@@ -1523,7 +2290,7 @@ static void init_xbox_putt_stop()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_putt_stop_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 
         gui_set_rect(xbox_control_putt_stop_id, GUI_TOP);
         gui_layout(xbox_control_putt_stop_id, 0, -1);
@@ -1538,7 +2305,7 @@ static void init_xbox_putt_scores()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_a_button(xbox_control_putt_scores_id,
-                        config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
 
         gui_set_rect(xbox_control_putt_scores_id, GUI_TOP);
         gui_layout(xbox_control_putt_scores_id, 0, -1);
@@ -1614,8 +2381,9 @@ void console_gui_free(void)
     gui_delete(xbox_control_paused_id);
     gui_delete(xbox_control_package_installable_id);
     gui_delete(xbox_control_package_updateable_id);
-    gui_delete(xbox_control_package_equipable_id);
     gui_delete(xbox_control_package_manageable_id);
+    gui_delete(xbox_control_package_equipable_id);
+    gui_delete(xbox_control_package_startable_id);
 
     /* Generic */
     gui_delete(xbox_control_desc_id);
@@ -1632,6 +2400,45 @@ void console_gui_free(void)
     gui_delete(xbox_control_putt_stroke_id);
     gui_delete(xbox_control_putt_stop_id);
     gui_delete(xbox_control_putt_scores_id);
+
+    for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS; i++)
+        for (int j = 0; j < 4; j++) {
+            memset(&gamepad_btn_gui_ids_a[i],        0, sizeof (gamepad_btn_gui_ids_a[i]));
+            memset(&gamepad_btn_gui_ids_b[i],        0, sizeof (gamepad_btn_gui_ids_b[i]));
+            memset(&gamepad_btn_gui_ids_x[i],        0, sizeof (gamepad_btn_gui_ids_x[i]));
+            memset(&gamepad_btn_gui_ids_y[i],        0, sizeof (gamepad_btn_gui_ids_y[i]));
+            memset(&gamepad_btn_gui_ids_lb[i],       0, sizeof (gamepad_btn_gui_ids_lb[i]));
+            memset(&gamepad_btn_gui_ids_rb[i],       0, sizeof (gamepad_btn_gui_ids_rb[i]));
+            memset(&gamepad_btn_gui_ids_lt[i],       0, sizeof (gamepad_btn_gui_ids_lt[i]));
+            memset(&gamepad_btn_gui_ids_rt[i],       0, sizeof (gamepad_btn_gui_ids_rt[i]));
+            memset(&gamepad_btn_gui_ids_ls[i],       0, sizeof (gamepad_btn_gui_ids_ls[i]));
+            memset(&gamepad_btn_gui_ids_rs[i],       0, sizeof (gamepad_btn_gui_ids_rs[i]));
+            memset(&gamepad_btn_gui_ids_dpads[j][i], 0, sizeof (gamepad_btn_gui_ids_dpads[j][i]));
+
+            gamepad_btn_gui_ids_a[i].btn_id        = -1;
+            gamepad_btn_gui_ids_b[i].btn_id        = -1;
+            gamepad_btn_gui_ids_x[i].btn_id        = -1;
+            gamepad_btn_gui_ids_y[i].btn_id        = -1;
+            gamepad_btn_gui_ids_lb[i].btn_id       = -1;
+            gamepad_btn_gui_ids_rb[i].btn_id       = -1;
+            gamepad_btn_gui_ids_lt[i].btn_id       = -1;
+            gamepad_btn_gui_ids_rt[i].btn_id       = -1;
+            gamepad_btn_gui_ids_ls[i].btn_id       = -1;
+            gamepad_btn_gui_ids_rs[i].btn_id       = -1;
+            gamepad_btn_gui_ids_dpads[j][i].btn_id = -1;
+
+            gamepad_btn_gui_ids_a[i].gui_id        = -1;
+            gamepad_btn_gui_ids_b[i].gui_id        = -1;
+            gamepad_btn_gui_ids_x[i].gui_id        = -1;
+            gamepad_btn_gui_ids_y[i].gui_id        = -1;
+            gamepad_btn_gui_ids_lb[i].gui_id       = -1;
+            gamepad_btn_gui_ids_rb[i].gui_id       = -1;
+            gamepad_btn_gui_ids_lt[i].gui_id       = -1;
+            gamepad_btn_gui_ids_rt[i].gui_id       = -1;
+            gamepad_btn_gui_ids_ls[i].gui_id       = -1;
+            gamepad_btn_gui_ids_rs[i].gui_id       = -1;
+            gamepad_btn_gui_ids_dpads[j][i].gui_id = -1;
+        }
 }
 
 void console_gui_slide(int flags)

@@ -2184,10 +2184,6 @@ static int main_init(int argc, char *argv[])
     if (!opt_panorama)
     {
 #endif
-        /* Initialize audio. */
-
-        audio_init();
-
 #if NB_HAVE_PB_BOTH==1
         /* Initialize account. */
 
@@ -2211,6 +2207,10 @@ static int main_init(int argc, char *argv[])
 
         account_wgcl_save();
 #endif
+
+        /* Initialize audio. */
+
+        audio_init();
 
 #if ENABLE_NLS==1 || _MSC_VER
         /* Initialize localization. */
@@ -2298,9 +2298,8 @@ static void main_quit(void)
         accessibility_save();
 #endif
 #ifdef CONFIG_INCLUDES_ACCOUNT
-        account_wgcl_save ();
+        account_wgcl_save();
 #endif
-        tilt_free         ();
     }
 
     config_save();
@@ -2318,11 +2317,12 @@ static void main_quit(void)
     video_dualdisplay_quit();
 #endif
     video_quit();
-    audio_free();
-#if ENABLE_NLS==1
-    lang_quit ();
-#endif
     activity_services_quit();
+    tilt_free();
+#if ENABLE_NLS==1
+    lang_quit();
+#endif
+    audio_free();
 
 //#if (NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
@@ -2357,8 +2357,6 @@ static void main_quit(void)
 #endif
 
     log_quit();
-    fs_quit();
-    opt_quit();
 
 #if _cplusplus
     try {
@@ -2371,6 +2369,9 @@ static void main_quit(void)
 #if NB_EOS_SDK==1
     /* TODO: Add the EOS SDK shutdown! */
 #endif
+
+    opt_quit();
+    fs_quit();
 
 #if NB_STEAM_API==1
     /* We're done here */

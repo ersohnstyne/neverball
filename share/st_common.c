@@ -617,7 +617,7 @@ static int perf_warning_confirm_btns(int pd, int enabled)
                 gui_filler(jd);
                 gui_label(jd, _("Cancel"), GUI_SML, GUI_COLOR_WHT);
                 gui_space(jd);
-                console_gui_create_b_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                console_gui_create_b_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
                 gui_filler(jd);
                 gui_set_rect(jd, GUI_ALL);
             }
@@ -625,7 +625,7 @@ static int perf_warning_confirm_btns(int pd, int enabled)
                 gui_filler(jd);
                 gui_label(jd, _(enabled ? s_enable : s_disable), GUI_SML, GUI_COLOR_WHT);
                 gui_space(jd);
-                console_gui_create_a_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                console_gui_create_a_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
                 gui_filler(jd);
                 gui_set_rect(jd, GUI_ALL);
             }
@@ -654,7 +654,7 @@ static int perf_warning_confirm_autoconfig_btns(int pd)
                 gui_filler(jd);
                 gui_label(jd, _("Cancel"), GUI_SML, GUI_COLOR_WHT);
                 gui_space(jd);
-                console_gui_create_b_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                console_gui_create_b_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
                 gui_filler(jd);
                 gui_set_rect(jd, GUI_ALL);
             }
@@ -662,7 +662,7 @@ static int perf_warning_confirm_autoconfig_btns(int pd)
                 gui_filler(jd);
                 gui_label(jd, _("Start"), GUI_SML, GUI_COLOR_WHT);
                 gui_space(jd);
-                console_gui_create_a_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                console_gui_create_a_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
                 gui_filler(jd);
                 gui_set_rect(jd, GUI_ALL);
             }
@@ -694,7 +694,7 @@ static int perf_warning_confirm_range_btns(int pd, int higher)
                 gui_filler(jd);
                 gui_label(jd, _("Cancel"), GUI_SML, GUI_COLOR_WHT);
                 gui_space(jd);
-                console_gui_create_b_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                console_gui_create_b_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
                 gui_filler(jd);
                 gui_set_rect(jd, GUI_ALL);
             }
@@ -702,7 +702,7 @@ static int perf_warning_confirm_range_btns(int pd, int higher)
                 gui_filler(jd);
                 gui_label(jd, _(higher ? s_higher : s_lower), GUI_SML, GUI_COLOR_WHT);
                 gui_space(jd);
-                console_gui_create_a_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                console_gui_create_a_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
                 gui_filler(jd);
                 gui_set_rect(jd, GUI_ALL);
             }

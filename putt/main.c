@@ -1062,12 +1062,6 @@ static void main_quit()
 {
     goto_state(&st_null);
 
-    mtrl_quit();
-#if ENABLE_DUALDISPLAY==1
-    video_dualdisplay_quit();
-#endif
-    video_quit();
-
     /* Restore Neverball's camera setting. */
 
     config_set_d(CONFIG_CAMERA, em_cached_cam);
@@ -1078,26 +1072,26 @@ static void main_quit()
     account_save();
 #endif
 
+    mtrl_quit();
+
+#if ENABLE_DUALDISPLAY==1
+    video_dualdisplay_quit();
+#endif
+    video_quit();
+
     lang_quit();
-    
+    audio_free();
+
 //#if (PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
-#if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__EMSCRIPTEN__)
+#if !defined(__GAMECUBE__) && !defined(__WII__)
     joy_quit();
 #endif
 
-    config_quit();
-
     package_quit();
-    fetch_quit();
-
-    audio_free();
-
+    fetch_enable(0);
     networking_quit();
-
-    log_quit();
-    fs_quit ();
-    opt_quit();
+    config_quit();
 
 #if _cplusplus
     try {
@@ -1106,6 +1100,10 @@ static void main_quit()
 #if _cplusplus
     } catch (...) {}
 #endif
+
+    log_quit();
+    opt_quit();
+    fs_quit();
 
 #if NB_STEAM_API==1
     /* We're done here */

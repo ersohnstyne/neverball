@@ -50,6 +50,8 @@ enum console_platforms
 #define MATICONTROLLER_RB_BUTTON "RB" /* Right Shoulder */
 #define MATICONTROLLER_LT_BUTTON "LT" /* Left Trigger   */
 #define MATICONTROLLER_RT_BUTTON "RT" /* Right Trigger  */
+#define MATICONTROLLER_LS_BUTTON "LS" /* Left Stick     */
+#define MATICONTROLLER_RS_BUTTON "RS" /* Right Stick    */
 
 
 /* Xbox One / 360 */
@@ -122,18 +124,18 @@ extern enum console_platforms current_platform;
 void console_init_controller_type(const enum console_platforms);
 void console_gui_set_alpha(float);
 
-void console_gui_create_a_button(int, int);
-void console_gui_create_b_button(int, int);
-void console_gui_create_x_button(int, int);
-void console_gui_create_y_button(int, int);
-void console_gui_create_lb_button(int, int);
-void console_gui_create_rb_button(int, int);
-void console_gui_create_lt_button(int, int);
-void console_gui_create_rt_button(int, int);
-void console_gui_create_ls_button(int, int);
-void console_gui_create_rs_button(int, int);
-void console_gui_create_start_button(int, int);
-void console_gui_create_select_button(int, int);
+void console_gui_create_a_button(int, int, int);
+void console_gui_create_b_button(int, int, int);
+void console_gui_create_x_button(int, int, int);
+void console_gui_create_y_button(int, int, int);
+void console_gui_create_lb_button(int, int, int);
+void console_gui_create_rb_button(int, int, int);
+void console_gui_create_lt_button(int, int, int);
+void console_gui_create_rt_button(int, int, int);
+void console_gui_create_ls_button(int, int, int);
+void console_gui_create_rs_button(int, int, int);
+void console_gui_create_start_button(int, int, int);
+void console_gui_create_select_button(int, int, int);
 
 int console_gui_shown(void);
 

@@ -1427,7 +1427,7 @@ static int title_gui(void)
                     if (current_platform != PLATFORM_PC || console_gui_shown())
                     {
                         gui_space(jd);
-                        console_gui_create_start_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_START));
+                        console_gui_create_start_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_START), 0);
                     }
 #endif
                     gui_set_rect(jd, GUI_ALL);
@@ -1462,6 +1462,11 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
     title_lockscreen = title_can_unlock;
 
+    TITLE_DEMO_DIR_RESCAN(items);
+    builtin_demo_count = array_len(items);
+    demo_dir_free(items);
+    items = NULL;
+
     /* Start the title screen music. */
 
     audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
@@ -1471,11 +1476,6 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
     if (prev == &st_title)
         return title_gui_main;
-
-    TITLE_DEMO_DIR_RESCAN(items);
-    builtin_demo_count = array_len(items);
-    demo_dir_free(items);
-    items = NULL;
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
     if (title_lockscreen)

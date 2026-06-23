@@ -1993,7 +1993,7 @@ static int demo_del_gui(void)
                     gui_filler(kd);
                     const int btn_keep_id = gui_label(kd, _("Keep"), GUI_SML, GUI_COLOR_WHT);
                     gui_space(kd);
-                    console_gui_create_b_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+                    console_gui_create_b_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_B), 0);
                     gui_filler(kd);
                     gui_set_rect(kd, GUI_ALL);
 
@@ -2004,7 +2004,7 @@ static int demo_del_gui(void)
                     gui_filler(kd);
                     gui_label(kd, _("Delete"), GUI_SML, GUI_COLOR_WHT);
                     gui_space(kd);
-                    console_gui_create_a_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_A));
+                    console_gui_create_a_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
                     gui_filler(kd);
                     gui_set_rect(kd, GUI_ALL);
                 }

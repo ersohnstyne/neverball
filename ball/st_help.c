@@ -551,34 +551,34 @@ static void controls_pc(int id)
 
     if ((jd = gui_vstack(id)))
     {
-        if ((kd = gui_harray(jd))) {
+        if ((kd = gui_hstack(jd))) {
             gui_label(kd, s_exit, GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, ks_exit && *ks_exit ? ks_exit : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
 #if NB_HAVE_PB_BOTH==1
-        if ((kd = gui_harray(jd))) {
+        if ((kd = gui_hstack(jd))) {
             gui_label(kd, s_restart, GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, ks_restart && *ks_restart ? ks_restart : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
 #endif
-        if ((kd = gui_harray(jd))) {
+        if ((kd = gui_hstack(jd))) {
             gui_label(kd, s_camAuto, GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, ks_auto && *ks_auto ? ks_auto : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
-        if ((kd = gui_harray(jd))) {
+        if ((kd = gui_hstack(jd))) {
             gui_label(kd, s_camera1, GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, ks_cam1 && *ks_cam1 ? ks_cam1 : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
-        if ((kd = gui_harray(jd))) {
+        if ((kd = gui_hstack(jd))) {
             gui_label(kd, s_camera2, GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, ks_cam2 && *ks_cam2 ? ks_cam2 : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
-        if ((kd = gui_harray(jd))) {
+        if ((kd = gui_hstack(jd))) {
             gui_label(kd, s_camera3, GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, ks_cam3 && *ks_cam3 ? ks_cam3 : ks_unassigned, GUI_SML, GUI_COLOR_YEL);
         }
 
-        if ((kd = gui_harray(jd))) {
+        if ((kd = gui_hstack(jd))) {
             gui_label(kd, _("Max Speed"), GUI_SML, GUI_COLOR_WHT);
             gui_label(kd, _("LMB"), GUI_SML, GUI_COLOR_YEL);
         }
@@ -635,17 +635,17 @@ static void controls_console(int id)
 
     if ((jd = gui_vstack(id)))
     {
-        if ((kd = gui_harray(jd))) {
+        if ((kd = gui_hstack(jd))) {
             gui_label(kd, s_exit, GUI_SML, GUI_COLOR_WHT);
-            console_gui_create_b_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_B));
+            console_gui_create_b_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_B), 0);
         }
-        if ((kd = gui_harray(jd))) {
+        if ((kd = gui_hstack(jd))) {
             gui_label(kd, s_pause, GUI_SML, GUI_COLOR_WHT);
-            console_gui_create_start_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_START));
+            console_gui_create_start_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_START), 0);
         }
-        if ((kd = gui_harray(jd))) {
+        if ((kd = gui_hstack(jd))) {
             gui_label(kd, s_camToggle, GUI_SML, GUI_COLOR_WHT);
-            console_gui_create_x_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_X));
+            console_gui_create_x_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_X), 0);
         }
 
         gui_set_rect(jd, GUI_ALL);

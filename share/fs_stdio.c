@@ -193,7 +193,7 @@ int fs_quit(void)
     /* Close all files to be quitting the game! */
 
 #if _WIN32 && _MSC_VER
-    assert(_fcloseall() == 0);
+    assert(_fcloseall() != EOF);
 #endif
 
     return 1;

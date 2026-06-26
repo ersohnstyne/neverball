@@ -114,6 +114,7 @@ BALL_SRCS := \
 	share/log.c \
 	share/mtrl.c \
 	share/package.c \
+	share/package_superwaifu.c \
 	share/part.c \
 	share/queue.c \
 	share/solid_all.c \

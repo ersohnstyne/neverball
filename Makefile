@@ -762,8 +762,10 @@ endif
 
 ifneq ($(FS_VERSION),1)
 BALL_OBJS += share/package.o
+BALL_OBJS += share/package_superwaifu.o
 BALL_OBJS += share/st_package.o
 PUTT_OBJS += share/package.o
+PUTT_OBJS += share/package_superwaifu.o
 PUTT_OBJS += share/st_package.o
 endif
 

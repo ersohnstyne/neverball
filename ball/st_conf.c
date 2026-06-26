@@ -52,6 +52,8 @@
 #endif
 #include "lang.h"
 
+#include "package_superwaifu.h"
+
 #if ENABLE_DUALDISPLAY==1
 #include "game_dualdisplay.h"
 #endif
@@ -2994,6 +2996,8 @@ static int null_enter(struct state *st, struct state *prev, int intent)
 {
     if (prev == &st_null) return 0;
 
+    package_superwaifu_quit();
+
 #if ENABLE_MOTIONBLUR!=0
     video_motionblur_quit();
 #endif
@@ -3072,6 +3076,8 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
 #if ENABLE_MOTIONBLUR!=0
     video_motionblur_init();
 #endif
+
+    package_superwaifu_init();
 
     return 0;
 }

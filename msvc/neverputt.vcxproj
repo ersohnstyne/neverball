@@ -331,6 +331,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\share\networking_srv_essentials.c" />
     <ClCompile Include="..\share\networking_srv_standard.c" />
     <ClCompile Include="..\share\package.c" />
+    <ClInclude Include="..\share\package_superwaifu.c" />
     <ClCompile Include="..\share\part.c" />
     <ClCompile Include="..\share\queue.c" />
     <ClCompile Include="..\share\rfd.c" />
@@ -423,6 +424,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\share\mtrl.h" />
     <ClInclude Include="..\share\networking.h" />
     <ClInclude Include="..\share\package.h" />
+    <ClInclude Include="..\share\package_superwaifu.h" />
     <ClInclude Include="..\share\part.h" />
     <ClInclude Include="..\share\queue.h" />
     <ClInclude Include="..\share\rfd.h" />

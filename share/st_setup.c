@@ -35,6 +35,8 @@
 #include "fetch.h"
 #include "networking.h"
 
+#include "package_superwaifu.h"
+
 #include "st_common.h"
 
 #if _WIN32 && _MSC_VER && NB_HAVE_PB_BOTH==1
@@ -227,12 +229,20 @@ int game_setup_process(void)
 
 /*---------------------------------------------------------------------------*/
 
+static int extgame_installed_count = 0;
+static int extgame_installed_max   = 0;
+static int extgame_noinstalled_warning = 0;
+
 enum
 {
     SETUP_LANG_DEFAULT = GUI_LAST,
     SETUP_LANG_SELECT,
 
     SETUP_CONTROLS_SELECT,
+
+    SETUP_EXTGAMES_GETIT_STORE_EPIC,
+    SETUP_EXTGAMES_GETIT_STORE_STEAM,
+    SETUP_EXTGAMES_CONFIRMSKIP_DOIT,
 
     SETUP_TERMS_TOGGLE,
     SETUP_TERMS_TOGGLE_ALL,
@@ -249,9 +259,11 @@ static int setup_gamedeps_card(int pd,
                                const int install_id,
                                const char *install_path_classic,
                                const char *install_path_epic,
-                               const char *install_path_steam)
+                               const char *install_path_steam,
+                               const char *url_store_epic,
+                               const char *url_store_steam)
 {
-    int id;
+    int id, jd;
 
     const int h = video.device_h;
 
@@ -272,6 +284,10 @@ static int setup_gamedeps_card(int pd,
             SAFECPY(img_path_uninstalled, "gui/setup/game_switchball_0.png");
             SAFECPY(img_path_installed,   "gui/setup/game_switchball_1.png");
             break;
+        case 1:
+            SAFECPY(img_path_uninstalled, "gui/setup/game_superwaifuball_0.png");
+            SAFECPY(img_path_installed,   "gui/setup/game_superwaifuball_1.png");
+            break;
     }
 
 #if _WIN32
@@ -279,7 +295,7 @@ static int setup_gamedeps_card(int pd,
 #else
     SAFECPY(program_path, "/");
 #endif
-    
+
     SAFECPY(gameapp_path_classic, program_path);
     SAFECPY(gameapp_path_epic,    program_path);
     SAFECPY(gameapp_path_steam,   program_path);
@@ -292,19 +308,34 @@ static int setup_gamedeps_card(int pd,
     SAFECAT(gameapp_path_steam, "Steam\\steamapps\\common\\");
     SAFECAT(gameapp_path_steam, install_path_steam);
 
-    if ((id = gui_vstack(pd)))
-    {
-        const int is_installed = file_exists(gameapp_path_classic) ||
-                                 file_exists(gameapp_path_epic) ||
-                                 file_exists(gameapp_path_steam);
+    if ((id = gui_vstack(pd))) {
+        if ((jd = gui_vstack(id))) {
+            const int is_installed = (str_ends_with(gameapp_path_classic, ".exe") ? file_exists(gameapp_path_classic) : 0) ||
+                                     (str_ends_with(gameapp_path_epic, ".exe") ? file_exists(gameapp_path_epic) : 0) ||
+                                     (str_ends_with(gameapp_path_steam, ".exe") ? file_exists(gameapp_path_steam) : 0);
 
-        gui_image(id, is_installed ? img_path_installed :
-                                     img_path_uninstalled,
-                      h / 5, h / 5);
+            gui_image(jd, is_installed ? img_path_installed :
+                                         img_path_uninstalled,
+                          h / 5, h / 5);
+            gui_label(jd, _(is_installed ? s1 : s0), GUI_TNY, GUI_COLOR_WHT);
+            gui_set_rect(jd, GUI_ALL);
 
-        gui_label(id, _(is_installed ? s1 : s0), GUI_TNY, GUI_COLOR_WHT);
+            if (!is_installed) {
+                if (str_starts_with(url_store_epic, "https://store.epicgames.com/p/") ||
+                    str_starts_with(url_store_steam, "https://store.steampowered.com/app/"))
+                    gui_space(id);
 
-        gui_set_rect(id, GUI_ALL);
+                if (str_starts_with(url_store_epic, "https://store.epicgames.com/p/"))
+                    gui_state(id, _("Get it (EGS)"), GUI_TNY, SETUP_EXTGAMES_GETIT_STORE_EPIC, install_id);
+
+                if (str_starts_with(url_store_steam, "https://store.steampowered.com/app/"))
+                    gui_state(id, _("Get it (Steam)"), GUI_TNY, SETUP_EXTGAMES_GETIT_STORE_STEAM, install_id);
+            } else extgame_installed_count++;
+
+            extgame_installed_max++;
+        }
+
+        gui_filler(id);
     }
 
     return id;
@@ -387,7 +418,7 @@ static void game_setup_terms_checkmark_update_all(void)
  * Premium: appdownload.stynegame.de
  * Legacy downloads: play.neverball.org
  */
-#define NB_CURRDOMAIN_PREMIUM "appdownload.stynegame.de"
+#define PACKAGE_BASE_URL "appdownload.stynegame.de"
 
 static const char *get_updated_url(const char *filename)
 {
@@ -397,7 +428,7 @@ static const char *get_updated_url(const char *filename)
         memset(url, 0, sizeof (url));
 
 #if NB_HAVE_PB_BOTH==1
-        SAFECPY(url, "https://" NB_CURRDOMAIN_PREMIUM "/app/");
+        SAFECPY(url, "https://" PACKAGE_BASE_URL "/app/");
 #else
         SAFECPY(url, "https://play.neverball.org/update/");
 #endif
@@ -659,15 +690,19 @@ static unsigned int fetch_available_updates(int gdrive_support)
 
 /*---------------------------------------------------------------------------*/
 
+#define URL_EPICGAMESSTORE_SWITCHBALLHD "https://store.epicgames.com/p/switchball-hd-6d3802"
+#define URL_STEAMSTORE_SWITCHBALLHD     "https://store.steampowered.com/app/1588760/Switchball_HD/"
+#define URL_STEAMSTORE_SUPERWAIFUBALL   "https://store.steampowered.com/app/3196530/Super_Waifu_Ball/"
+
 static Array setup_langs;
 static int   setup_langs_first;
 
-static void game_setup_terms_openlink(const char *link)
+static void game_setup_openlink(const char *link)
 {
     char buf[MAXSTR];
 
 #ifdef __EMSCRIPTEN__
-    EM_ASM({ window.open(UTF8ToString($0)); }, link);
+    EM_ASM({ window.open(UTF8ToString($0));}, link);
 #elif _WIN32
     SAFECPY(buf, "explorer ");
 #elif defined(__APPLE__)
@@ -683,10 +718,36 @@ static void game_setup_terms_openlink(const char *link)
 #endif
 }
 
+static int game_setup_call_browser(int store_category_id, int card_id)
+{
+    switch (store_category_id) {
+        case 0: {
+            switch (card_id) {
+                case 0: game_setup_openlink(URL_EPICGAMESSTORE_SWITCHBALLHD); break;
+                case 1: break;
+            }
+        } break;
+
+        case 1: {
+            switch (card_id) {
+                case 0: game_setup_openlink(URL_STEAMSTORE_SWITCHBALLHD); break;
+                case 1: game_setup_openlink(URL_STEAMSTORE_SUPERWAIFUBALL); break;
+            }
+        } break;
+    }
+
+    return 1;
+}
+
 static int game_setup_action(int tok, int val)
 {
-    if (tok == GUI_BACK)
-    {
+    if (tok == GUI_BACK) {
+        if (extgame_noinstalled_warning) {
+            extgame_noinstalled_warning = 0;
+            audio_play(AUD_BACK, 1.0f);
+            return exit_state(&st_game_setup);
+        }
+
         audio_play(AUD_DISABLED, 1.0f);
         return 1;
     }
@@ -743,6 +804,14 @@ static int game_setup_action(int tok, int val)
 
         int i = 0;
 
+        if (extgame_noinstalled_warning) {
+            if (tok == SETUP_EXTGAMES_CONFIRMSKIP_DOIT) {
+                extgame_noinstalled_warning = 0;
+                setup_page = 3;
+                return goto_state(&st_game_setup);
+            }
+        }
+
         switch (setup_page)
         {
             case 1:
@@ -758,13 +827,16 @@ static int game_setup_action(int tok, int val)
                                 SETUP_CONTROL_SET_PRESET_KEYS(SDLK_c, SDLK_3, SDLK_1, SDLK_2,
                                                               SDLK_d, SDLK_a,
                                                               SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT);
+                            else
+                                SETUP_CONTROL_SET_PRESET_KEYS(SDLK_e, SDLK_1, SDLK_2, SDLK_3,
+                                                              SDLK_s, SDLK_d,
+                                                              SDLK_UP, SDLK_LEFT, SDLK_DOWN, SDLK_RIGHT);
 
 #if _WIN32
-                            if (val != 0)
-                                setup_page++;
-                            else
+                            setup_page++;
+#else
+                            setup_page = 3;
 #endif
-                                setup_page = 3;
 
                             return goto_state(&st_game_setup);
                     }
@@ -775,8 +847,18 @@ static int game_setup_action(int tok, int val)
                 {
                     switch (tok)
                     {
+                        case SETUP_EXTGAMES_GETIT_STORE_EPIC:
+                            return game_setup_call_browser(0, val);
+                            break;
+
+                        case SETUP_EXTGAMES_GETIT_STORE_STEAM:
+                            return game_setup_call_browser(1, val);
+                            break;
+
                         case GUI_NEXT:
-                            setup_page++;
+                            if (extgame_installed_count == 0) {
+                                extgame_noinstalled_warning = 1;
+                            } else setup_page++;
 
                             return goto_state(&st_game_setup);
                     }
@@ -835,11 +917,11 @@ static int game_setup_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
                             if (val == 0)
-                                game_setup_terms_openlink("https://pennyball.stynegame.de/terms");
+                                game_setup_openlink("https://pennyball.stynegame.de/terms");
                             else if (val == 1)
-                                game_setup_terms_openlink("https://discord.com/terms");
+                                game_setup_openlink("https://discord.com/terms");
                             else if (val == 2)
-                                game_setup_terms_openlink("https://aka.ms/servicesagreement");
+                                game_setup_openlink("https://aka.ms/servicesagreement");
 #endif
                             break;
 
@@ -1134,13 +1216,40 @@ static int game_setup_preexisting_gui(void)
 
             gui_layout(id, 0, +1);
         }
+        
+        extgame_installed_count = 0;
+        extgame_installed_max   = 0;
 
-        if ((id = gui_hstack(root_id)))
-        {
-            setup_gamedeps_card(id, 0,
-                                "Switchball\\switchball.exe",
-                                "SwitchballHD\\switchball.exe",
-                                "Switchball HD\\switchball.exe");
+        if ((id = gui_vstack(root_id))) {
+            if ((jd = gui_hstack(id))) {
+                setup_gamedeps_card(jd, 1,
+                                        "-",
+                                        "-",
+                                        "Super Waifu Ball\\SuperWaifuBall.exe",
+                                        /* Steam Store only */
+                                        "-", URL_STEAMSTORE_SUPERWAIFUBALL);
+
+                gui_space(jd);
+
+                setup_gamedeps_card(jd, 0,
+                                        "Switchball\\switchball.exe",
+                                        "SwitchballHD\\switchball.exe",
+                                        "Switchball HD\\switchball.exe",
+                                        /* Steam and Epic Games Store */
+                                        URL_EPICGAMESSTORE_SWITCHBALLHD, URL_STEAMSTORE_SWITCHBALLHD);
+            }
+
+            if (extgame_installed_count == extgame_installed_max) {
+                gui_space(id);
+                if ((jd = gui_hstack(id))) {
+                    gui_filler(jd);
+                    gui_label(jd, _("Perfect!"), GUI_SML, GUI_COLOR_WHT);
+                    const int kd = gui_label(jd, GUI_CHECKMARK, GUI_SML, GUI_COLOR_GRN);
+                    gui_set_font(kd, "ttf/DejaVuSans-Bold.ttf");
+                    gui_filler(jd);
+                    gui_set_rect(jd, GUI_ALL);
+                }
+            }
 
             gui_layout(id, 0, 0);
         }
@@ -1164,6 +1273,30 @@ static int game_setup_preexisting_gui(void)
     }
 
     return root_id;
+}
+
+static int game_setup_preexisting_warning_gui(void)
+{
+    audio_play("snd/warning.ogg", 1.0f);
+
+    int id = 0, jd = 0;
+
+    if ((id = gui_vstack(0))) {
+        gui_title_header(id, _("Games not installed"), GUI_MED, gui_red, gui_blk);
+        gui_space(id);
+        gui_multi(id, _("Are you sure do not want to install?\n"
+                        "You won't be able to link external games."), GUI_MED, gui_wht, gui_wht);
+        gui_space(id);
+
+        if ((jd = gui_harray(id))) {
+            gui_state(jd, _("Don't install"), GUI_SML, SETUP_EXTGAMES_CONFIRMSKIP_DOIT, 0);
+            gui_state(jd, _("Install"), GUI_SML, GUI_BACK, 0);
+        }
+    }
+
+    gui_layout(id, 0, 0);
+
+    return id;
 }
 
 /*
@@ -1519,7 +1652,7 @@ static int game_setup_enter(struct state *st, struct state *prev, int intent)
         case 0: return transition_slide(game_setup_lang_gui(),        1, intent);
         case 1: return transition_slide(game_setup_controls_gui(),    1, intent);
 #if _WIN32
-        case 2: return transition_slide(game_setup_preexisting_gui(), 1, intent);
+        case 2: return transition_slide(extgame_noinstalled_warning ? game_setup_preexisting_warning_gui() : game_setup_preexisting_gui(), 1, intent);
 #endif
         case 3: return transition_slide(game_setup_terms_gui(),       1, intent);
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -1569,6 +1702,16 @@ static void game_setup_timer(int id, float dt)
     }
 }
 
+static int game_setup_keybd(int c, int d)
+{
+    if (d && setup_page == 2 && c == KEY_LOOKAROUND) {
+        package_superwaifu_init();
+        return goto_state_full_intent(&st_game_setup, 0, 0, 1, INTENT_FORWARD);
+    }
+
+    return common_keybd(c, d);
+}
+
 /*---------------------------------------------------------------------------*/
 
 struct state st_game_setup = {
@@ -1580,6 +1723,6 @@ struct state st_game_setup = {
     common_stick,
     NULL,
     common_click,
-    common_keybd,
+    game_setup_keybd,
     common_buttn
 };

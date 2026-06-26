@@ -386,7 +386,7 @@ static int start_action(int tok, int val)
 #if NB_HAVE_PB_BOTH==1
                 if (CHECK_ACCOUNT_ENABLED)
                 {
-                    if (set_balls_needed(curr_set()) > curr_balls);
+                    if (set_balls_needed(curr_set()) > curr_balls + 2);
 #ifdef __EMSCRIPTEN__
                     else if (!have_online_session_data)
                         return goto_state(&st_start_signinrequired);

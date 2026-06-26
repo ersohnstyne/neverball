@@ -35,6 +35,8 @@
 #include "log.h"
 #include "lang.h"
 
+#include "package_superwaifu.h"
+
 #include "game_server.h"
 #include "game_client.h"
 #include "game_proxy.h"
@@ -499,10 +501,11 @@ static int set_load(struct set *s, const char *filename)
 #endif
     }
 
-    /* Limited offered region only */
+    /* Limited offered game dependencies or region only */
 
     if (str_starts_with(filename, "set-anime") &&
         str_ends_with(filename, ".txt") &&
+        !package_superwaifu_game_installed() &&
         !config_cheat())
     {
         if (server_policy_get_d(SERVER_POLICY_EDITION) < 3)

@@ -37,6 +37,8 @@
 #include "ball.h"
 #include "log.h"
 
+#include "package_superwaifu.h"
+
 #include "st_package.h"
 #include "st_common.h"
 
@@ -971,9 +973,10 @@ static int package_check_purchased_extralevels(const char *set_id)
 #endif
     }
 
-    /* Limited offered region only */
+    /* Limited offered game dependencies or region only */
 
     if (str_starts_with(set_id, "set-anime") &&
+        !package_superwaifu_game_installed() &&
         !config_cheat())
     {
         if (server_policy_get_d(SERVER_POLICY_EDITION) < 3)

@@ -568,7 +568,7 @@ static void sol_swch_hightech_toggle_sync(struct s_vary *vary, cmd_fn cmd_func, 
                     cmd.swchtoggle.xi = xj;
                     cmd_func(&cmd);
                 }
-                
+
                 if (xq->base->tm != 0 && xq->f != xq->base->f)
                     while (xq->tm >= xq->base->tm)
                     {
@@ -606,9 +606,7 @@ void sol_swch_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
         }
         else if (xp->base->tm != 0)
         {
-#ifndef SOLID_ALL_SWCH_HIGHTECH
             sol_path_loop(vary, cmd_func, xp->base->pi, xp->base->f);
-#endif
 
             xp->f = xp->base->f;
 
@@ -852,12 +850,10 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
 
 #ifdef SOLID_ALL_SWCH_HIGHTECH
                     sol_swch_hightech_toggle_sync(vary, cmd_func, xi, xp->base->pi);
-#else
-                    sol_path_loop(vary, cmd_func, xp->base->pi, xp->f);
 #endif
+                    sol_path_loop(vary, cmd_func, xp->base->pi, xp->f);
 
-                    if (!xp->base->i)
-                        rc = SWCH_INSIDE;
+                    if (!xp->base->i) rc = SWCH_INSIDE;
                 }
             }
             else if (xp->e)
@@ -868,7 +864,7 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
 
                 if (cmd_func)
                 {
-                    union cmd cmd = { CMD_SWCH_EXIT };
+                    union cmd cmd   = { CMD_SWCH_EXIT };
                     cmd.swchexit.xi = xi;
                     cmd_func(&cmd);
                 }
@@ -914,9 +910,8 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
 
 #ifdef SOLID_ALL_SWCH_HIGHTECH
                     sol_swch_hightech_toggle_sync(vary, cmd_func, xi, xp->base->pi);
-#else
-                    sol_path_loop(vary, cmd_func, xp->base->pi, xp->f);
 #endif
+                    sol_path_loop(vary, cmd_func, xp->base->pi, xp->f);
 
                     if (!xp->base->i) rc = SWCH_INSIDE;
 

@@ -252,7 +252,7 @@ static int operator_search_enter(struct state *st, struct state *prev, int inten
     demo_replay_speed(SPEED_FASTESTESTEST);
 
     int id = 0;
-    
+
     if (operator_searchfortoolong) {
         if ((id = operator_search_modal_longscan_gui(0)))
             gui_layout(id, 0, 0);
@@ -439,7 +439,7 @@ static int operator_incidents_snap_enter(struct state *st, struct state *prev, i
 
         const char *s0 = _("Your screenshot incidence\n"
                            "has been saved!");
-        
+
         const char *s1 = _("Your screenshot incidence\n"
                            "has been saved!\n\n"
                            "You have awarded 30 additional gems!");

@@ -811,7 +811,7 @@ static int start_gui(void)
 
                 gui_filler(kd);
             }
-            
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             const int scoreboard_flags = (GUI_SCORE_COIN | GUI_SCORE_TIME |
                                           (curr_mode() == MODE_HARDCORE ? 0 : GUI_SCORE_GOAL));

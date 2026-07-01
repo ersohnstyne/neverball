@@ -548,7 +548,7 @@ static void controls_pc(int id)
     int jd, kd;
 
     gui_space(id);
-    
+
     if ((jd = gui_vstack(id)))
     {
         if ((kd = gui_harray(jd))) {

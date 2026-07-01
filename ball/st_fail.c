@@ -191,6 +191,47 @@ static int WGCL_fail_call_incident(void)
     }
 }
 
+static int fail_call_autoretry_level(int forcedby_inputactions)
+{
+    const int   autoretry_fasterreset = config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET);
+    const float restart_delay         = (autoretry_fasterreset ? 2.0f : 0.5f),
+                restart_state_time    = time_state();
+
+    /* Waiting... (time_state() < 2 or 4 seconds and not input buttons pressed) */
+
+    if (restart_state_time < restart_delay && !forcedby_inputactions)
+        return 1;
+
+    int restart_done = 0;
+
+    WGCL_fail_call_incident();
+
+    if (progress_same_avail() && !progress_dead()) {
+#if NB_HAVE_PB_BOTH==1 && \
+    defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
+        powerup_stop();
+#endif
+
+        restart_done = progress_same();
+
+        if (restart_done) {
+            const int classicmode =
+                curr_mode() != MODE_CHALLENGE &&
+                curr_mode() != MODE_BOOST_RUSH &&
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                curr_mode() != MODE_HARDCORE &&
+#endif
+                curr_mode() != MODE_DAILY;
+
+            return classicmode ? goto_state(&st_play_ready) : goto_play_level();
+        }
+    }
+
+    /* DIDN'T WORK! */
+
+    return goto_exit();
+}
+
 static int fail_action(int tok, int val)
 {
     if (time_state() < 2 && config_get_d(CONFIG_SCREEN_ANIMATIONS))
@@ -773,14 +814,20 @@ static int fail_gui(void)
 
 static int fail_enter(struct state *st, struct state *prev, int intent)
 {
-    if (curr_mode() != MODE_CHALLENGE &&
-        curr_mode() != MODE_BOOST_RUSH
+    /*
+     * HACK: Auto-Retry and Faster Reset.
+     */
+
+    const int advancedconfig_autoretry   = config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY),
+              advancedconfig_fasterreset = config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET);
+
+    if (curr_mode() != MODE_CHALLENGE  &&
+        curr_mode() != MODE_BOOST_RUSH &&
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-     && curr_mode() != MODE_HARDCORE
+        curr_mode() != MODE_HARDCORE   &&
 #endif
-     && curr_mode() != MODE_DAILY
-        )
-        audio_music_fade_out(2.0f);
+        curr_mode() != MODE_DAILY)
+        audio_music_fade_out(advancedconfig_autoretry && advancedconfig_fasterreset ? 0.5f : 2.0f);
 
     video_clr_grab();
 
@@ -865,6 +912,12 @@ static void fail_paint(int id, float t)
 
 static void fail_timer(int id, float dt)
 {
+    /*
+     * HACK: Auto-Retry only.
+     */
+
+    const int advancedconfig_autoretry = config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY);
+
     const float fail_time_state = time_state();
 
     if (fail_intro_animation_phase == 1)
@@ -874,7 +927,8 @@ static void fail_timer(int id, float dt)
 
         fail_intro_lock_now = 1;
 
-        if (fail_time_state >= 2.0f)
+        if (advancedconfig_autoretry) fail_call_autoretry_level(0);
+        else if (fail_time_state >= 2.0f)
         {
             fail_intro_animation_phase = 2;
             goto_state(&st_fail); return;
@@ -967,11 +1021,20 @@ static int fail_keybd(int c, int d)
 
 static int fail_buttn(int b, int d)
 {
+    /*
+     * HACK: Auto-Retry only.
+     */
+
+    const int advancedconfig_autoretry = config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY);
+
     if (d)
     {
         if (fail_intro_animation_phase == 1 &&
             config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
         {
+            if (advancedconfig_autoretry)
+                return fail_call_autoretry_level(1);
+
             fail_intro_animation_phase = 2;
             return goto_state(&st_fail);
         }
@@ -1846,7 +1909,7 @@ static int raise_gems_prepare_gui(void)
                 gui_set_color(tmp_startbtn_id, GUI_COLOR_GRY);
 #endif
             }
-            
+
             if ((curr_mode() == MODE_CHALLENGE  ||
                  curr_mode() == MODE_BOOST_RUSH ||
                  curr_mode() == MODE_DAILY) &&

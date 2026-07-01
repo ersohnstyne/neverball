@@ -560,7 +560,7 @@ void hud_update(int pulse, float animdt)
     hud_set_alpha(show_hud_total_alpha);
 
     if (config_get_d(CONFIG_FPS)) hud_fps();
-    
+
 #ifdef __EMSCRIPTEN__
     if (config_get_d(CONFIG_UNITS_METRIC) || !autoconf_units_imperial)
         EM_ASM({

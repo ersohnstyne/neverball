@@ -300,7 +300,7 @@ static int wgcl_error_offline_enter(struct state *st, struct state *prev, int in
 
         gui_layout(id, 0, 0);
     }
-    
+
 #ifdef __EMSCRIPTEN__
     EM_ASM({
         if (navigator.userAgent.includes("Windows") || navigator.platform.startsWith("Win")) {
@@ -773,7 +773,7 @@ static int wgcl_login_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b)) {
             int tok = gui_token(gui_active());
             int val = gui_value(gui_active());
-            
+
             if (login_entertext_mode != 0)
                 return wgcl_login_action(tok, (tok == GUI_CHAR ?
                                                wgcl_gui_keyboard_char(val) :
@@ -1038,7 +1038,7 @@ static int wgcl_addons_login_action(int tok, int val)
 static int wgcl_addons_login_gui(void)
 {
     int id, jd;
-    
+
     if (account_wgcl_name_read_only() && (id = gui_vstack(0)))
     {
         gui_title_header(id, _("Logged in"), GUI_MED, GUI_COLOR_DEFAULT);

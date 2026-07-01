@@ -225,12 +225,12 @@ static const char *check_unlocked_demo(struct demo *raw_demo)
     const int max   = raw_demo->status == 3 ? 3 :
                      (raw_demo->status == 1 || raw_demo->status == 0) ? 2 :
                      (raw_demo->status == 2) ? 1 : 0;
-    
+
 #ifdef _DEBUG
     if (max > limit) {
         if (limit == 2) switch (raw_demo->status) {
             case 3: log_errorf("%s: Current level status exceeds level status limit!: Current: GAME_FALL; Limit: GAME_TIME\n", raw_demo->path); break;
-        } else 
+        } else
         if (limit == 1) switch (raw_demo->status) {
             case 1: log_errorf("%s: Current level status exceeds level status limit!: Current: GAME_TIME; Limit: GAME_GOAL\n", raw_demo->path); break;
             case 3: log_errorf("%s: Current level status exceeds level status limit!: Current: GAME_FALL; Limit: GAME_GOAL\n", raw_demo->path); break;

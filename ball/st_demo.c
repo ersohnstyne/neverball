@@ -661,7 +661,7 @@ static void gui_demo_update_status(int i)
     else
 #endif
         time_limit_minutes = 10;
-    
+
     const int stat_high_limit = get_max_game_stat() > get_limit_game_stat(),
               time_high_limit = time_max_minutes    > time_limit_minutes;
 
@@ -688,7 +688,7 @@ static void gui_demo_update_status(int i)
         gui_set_color(status_id, GUI_COLOR_RED);
 
     gui_set_label(status_id, status_to_str(d->status));
-    
+
     if (demo_status_invalid) {
         gui_set_color(coin_id, gui_gry, gui_red);
         gui_set_color(time_id, gui_gry, gui_red);
@@ -696,12 +696,12 @@ static void gui_demo_update_status(int i)
         gui_set_color(coin_id, GUI_COLOR_DEFAULT);
         gui_set_color(time_id, GUI_COLOR_DEFAULT);
     }
-    
+
     gui_set_label(coin_id, !demo_status_invalid ?
                            coin_id_str : "-----");
     gui_set_clock(time_id, !demo_status_invalid && d->status != GAME_TIME ?
                            d->timer : -1);
-    
+
     if (d->balls == 0 &&
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         (d->status == GAME_TIME || d->status == GAME_FALL) &&
@@ -1388,7 +1388,7 @@ int demo_play_goto(int s)
     standalone   = s;
     check_compat = 1;
     is_opened    = 1;
-    
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     const int has_campaign = curr_mode()  != MODE_CAMPAIGN ||
                              curr_clock() == 0.0f;
@@ -2062,11 +2062,11 @@ static int demo_compat_gui(void)
     {
         gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
         gui_space(id);
-        
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         const int has_campaign_untimed = curr_clock() == 0.0f;
 #endif
-        
+
         if (curr_mode() == MODE_CAMPAIGN && !has_campaign_untimed && game_compat_map)
             gui_multi(id, _("The current replay was recorded with a\n"
                             "limited time of this level on campaign.\n"),

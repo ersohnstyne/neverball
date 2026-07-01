@@ -904,7 +904,9 @@ static void conf_account_timer(int id, float dt)
 
 enum
 {
-    CONF_GAMEPLAY_TUTORIAL = GUI_LAST,
+    CONF_GAMEPLAY_AUTORETRY = GUI_LAST,
+    CONF_GAMEPLAY_FASTERRESET,
+    CONF_GAMEPLAY_TUTORIAL,
     CONF_GAMEPLAY_HINT
 };
 
@@ -916,6 +918,20 @@ static int conf_gameplay_action(int tok, int val)
     {
         case GUI_BACK:
             return exit_state(&st_conf);
+
+        case CONF_GAMEPLAY_AUTORETRY:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
+            config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY, val);
+            goto_state(curr_state());
+            config_save();
+            break;
+
+        case CONF_GAMEPLAY_FASTERRESET:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
+            config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET, val);
+            goto_state(curr_state());
+            config_save();
+            break;
 
         case CONF_GAMEPLAY_TUTORIAL:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
@@ -945,7 +961,25 @@ static int conf_gameplay_gui(void)
     {
         conf_header(id, _("Gameplay"), GUI_BACK);
 
-        #if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1
+        conf_toggle_simple(id, _("Auto-Retry"), CONF_GAMEPLAY_AUTORETRY,
+                               config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY), 1, 0);
+
+        if (config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY))
+            conf_toggle_simple(id, _("Faster Reset"), CONF_GAMEPLAY_FASTERRESET,
+                                   config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET), 1, 0);
+#else
+        conf_toggle(id, _("Auto-Retry"), CONF_GAMEPLAY_AUTORETRY,
+                        config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY), _("On"), 1, _("Off"), 0);
+
+        if (config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY))
+            conf_toggle(id, _("Faster Reset"), CONF_GAMEPLAY_FASTERRESET,
+                            config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET), _("On"), 1, _("Off"), 0);
+#endif
+
+        gui_space(id);
+
+#if NB_HAVE_PB_BOTH==1
         conf_toggle_simple(id, _("Show Tutorial"), CONF_GAMEPLAY_TUTORIAL,
                                config_get_d(CONFIG_ACCOUNT_TUTORIAL), 1, 0);
         conf_toggle_simple(id, _("Show Hint"), CONF_GAMEPLAY_HINT,
@@ -1264,7 +1298,7 @@ static int conf_control_gui(void)
         camrot_mode_id = conf_state(id, _("Camera rotate"), camrot_mode_text,
                                     CONF_CONTROL_CAMERA_ROTATE_MODE);
 #endif
-        
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
@@ -1311,7 +1345,7 @@ static int conf_control_gui(void)
         {
 #if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
             gui_space(id);
-            
+
 #if NB_HAVE_PB_BOTH==1
             conf_toggle_simple(id, _("Auto-Calibrate Axis"), CONF_CONTROL_AUTOCALIB_AXIS,
                                    config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS),
@@ -1520,7 +1554,7 @@ static int conf_keybd_gui(void)
 static int conf_keybd_modal_key_gui(void)
 {
     int id;
-    
+
 #if NB_HAVE_PB_BOTH==1
     if ((id = gui_multi(0,
                         _("Press any key on the keyboard\n"

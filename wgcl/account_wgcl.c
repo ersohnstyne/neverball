@@ -1471,7 +1471,7 @@ int  account_wgcl_do_finish_challenge(int coins, int gems,
 #if NB_HAVE_PB_BOTH==1
 
     /* TODO: Do this for finish challenge network requests! */
-    
+
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
     sprintf_s(in_url, 512,

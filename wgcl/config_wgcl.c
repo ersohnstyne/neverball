@@ -598,6 +598,8 @@ void WGCL_LoadGameSystemSettings(void)
     /* FIXME: Just send EM_ASM to the WGCL System Settings. */
 
 #ifdef __EMSCRIPTEN__
+    EM_ASM({ systemsettings_conf_game_autoretry        = $0; }, config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY));
+    EM_ASM({ systemsettings_conf_game_fasterreset      = $0; }, config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET));
     EM_ASM({ systemsettings_conf_game_tutorial         = $0; }, config_get_d(CONFIG_ACCOUNT_TUTORIAL));
     EM_ASM({ systemsettings_conf_game_hint             = $0; }, config_get_d(CONFIG_ACCOUNT_HINT));
     EM_ASM({ systemsettings_conf_screenanimations      = $0; }, config_get_d(CONFIG_SCREEN_ANIMATIONS) && config_get_d(CONFIG_TRANSITIONS));
@@ -628,6 +630,9 @@ void WGCL_SaveGameSystemSettings(void)
     /* FIXME: Just call EM_ASM_INT from the WGCL System Settings. */
 
 #ifdef __EMSCRIPTEN__
+    config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY,   EM_ASM_INT({ return systemsettings_conf_game_autoretry;   }));
+    config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET, EM_ASM_INT({ return systemsettings_conf_game_fasterreset; }));
+
     config_set_d(CONFIG_ACCOUNT_TUTORIAL,    EM_ASM_INT({ return systemsettings_conf_game_tutorial;                        }));
     config_set_d(CONFIG_ACCOUNT_HINT,        EM_ASM_INT({ return systemsettings_conf_game_hint;                            }));
     config_set_d(CONFIG_SCREEN_ANIMATIONS,   EM_ASM_INT({ return systemsettings_conf_screenanimations;                     }));

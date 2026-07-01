@@ -26,6 +26,13 @@ If the Account folder is missing in the user data directory, this will hop you s
 * Player Account (Local, Online Login (optional except home edition))
 * Model Selection
 
+### Linked another Games
+
+Under Windows after selecting "input preset", there's an linked game associated. To finish continue setup, install any one of these from In-Game, that meets the requirement.
+
+* Switchball HD
+* Super Waifu Ball
+
 ## Instructions
 
 Click **Play** to begin. Mouse motion tilts the floor. Mouse buttons rotate the viewpoint. The following keyboard controls are defined by default; most of them can be changed in a configuration file. See below for details.
@@ -171,6 +178,20 @@ If you want to buy more balls before playing Challenge mode, go to Shop.
 ℹ️ *The game will parse the configuration text file. If it's not listed in the settings file, then the game system config will be reset by default.*
 
 Game settings are stored in the file neverballrc in the user data directory. This file is created when it changes from in-game settings or the game exits. It consists of key/value pairs. Other meaningful keys and their default values follow.
+
+## Gameplay Settings
+
+```
+advanced_gameplay_autoretry 1
+```
+
+Restarts level upon death automatically. May cause thrown errors, if no more balls left in challenge mode.
+
+```
+advanced_gameplay_fasterreset 1
+```
+
+Restarts in 0.5s instead of 2.0s upon death. Available only, if Auto-Retry is enabled.
 
 ## Online Services Settings
 
@@ -511,6 +532,7 @@ multisample 0
 ```
 
 This key enables multisample full-screen antialiasing. Values can be `2`, `4`, `8`, etc., and can be overspecified; in such case the game will search for the highest level of multisampling supported by your hardware. (The best value eventually gets written to the config file.)
+
 ```
 mipmap 1
 aniso  0
@@ -525,5 +547,19 @@ With mipmapping, smaller versions of each texture are kept in video memory, and 
 Related to mipmapping is anisotropic filtering. "Anisotropic" basically means "not the same from all directions". It refers to cases where a texture might need to be compressed more vertically than horizontally. For example, if a texture is applied to a flat surface and seen from far away then it appears much wider than high. Anisotropic filtering takes care of this. Its level is expressed as a small power of two.
 
 - *To disable anisotropic, set aniso to `0`.*
+
+## Performance Settings (Linked installed game)
+
+```
+advanced_performance_env_tilt 1
+```
+
+This key tilts the scene environment when trying to tilt the floor in any direction with owned game "Super Waifu Ball" installed (Windows 10 and later only).
+
+```
+advanced_performance_env_tilt_warning 1
+```
+
+This key shows the alert when trying to tilt scene environment from tilting the floor in any direction with owned game "Super Waifu Ball" installed (Windows 10 and later only).
 
 🌐 *Web: https://neverball.org/*

@@ -448,7 +448,7 @@ int campaign_load(const char *filename)
               &tmp_hs_coins[RANK_HARD],
               &tmp_hs_coins[RANK_MEDM],
               &tmp_hs_coins[RANK_EASY]);
-        
+
         for (int i = 0; i < 3; i++)
         {
             if (tmp_hs_timer[i] != 0) time_trials.timer[i] = tmp_hs_timer[i];

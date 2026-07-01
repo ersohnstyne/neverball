@@ -84,7 +84,7 @@ static struct cmd_state cs;             /* Command state                     */
 
 struct game_sol_version { int x, y; }
        version;                         /* Current map version               */
-       
+
 static char *grad_filename = NULL;
 
 static float fixed_death_position[3];
@@ -873,6 +873,11 @@ int  game_client_init(const char *file_name)
     cmd_state_init(&cs);
 
     /* Initialize background. */
+
+    if (grad_filename) {
+        free(grad_filename);
+        grad_filename = NULL;
+    }
 
     grad_filename = strdup(grad_name);
 

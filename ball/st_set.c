@@ -351,7 +351,7 @@ static void gui_set(int id, int i)
 static int set_is_scanning_with_moon_taskloader = 0;
 
 static int set_scan_moon_taskloader(void *data, void *execute_data)
-{   
+{
     if (!do_init || set_manual_hotreload)
     {
         first = 0;

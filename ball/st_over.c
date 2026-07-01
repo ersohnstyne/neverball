@@ -280,7 +280,7 @@ static int over_gui(void)
 
         gui_layout(id, 0, 0);
     }
-    
+
 #if NB_HAVE_PB_BOTH==1
     if (dailychallenge_active_mode() != 0)
         set_score_board(dailychallenge_score(SCORE_COIN), progress_score_rank(),

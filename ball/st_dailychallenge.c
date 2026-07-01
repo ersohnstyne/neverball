@@ -213,7 +213,7 @@ void WGCL_DailyChallenge_SetInfocard(int hardcore, int balls_needed, int reward_
     sprintf(s_rewards,
 #endif
             "%s %d", GUI_DIAMOND, reward_gems);
-    
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     const int expected_mode = hardcore ? MODE_HARDCORE : MODE_CHALLENGE;
 #else
@@ -333,7 +333,7 @@ void WGCL_DailyChallenge_StartGame(void) {
 }
 
 void WGCL_DailyChallenge_LoadSetHS_Coins(int timer_first, const char *name_first, int coins_first,
-                                         int timer_sec,   const char *name_sec,   int coins_sec, 
+                                         int timer_sec,   const char *name_sec,   int coins_sec,
                                          int timer_third, const char *name_third, int coins_third) {
     const int  hs_coins[3]      = { coins_first, coins_sec, coins_third };
     const int  hs_timer[3]      = { timer_first, timer_sec, timer_third };
@@ -360,7 +360,7 @@ void WGCL_DailyChallenge_LoadSetHS_Coins(int timer_first, const char *name_first
 }
 
 void WGCL_DailyChallenge_LoadSetHS_Time(int timer_first, const char *name_first, int coins_first,
-                                        int timer_sec,   const char *name_sec,   int coins_sec, 
+                                        int timer_sec,   const char *name_sec,   int coins_sec,
                                         int timer_third, const char *name_third, int coins_third) {
     const int  hs_coins[3]      = { coins_first, coins_sec, coins_third };
     const int  hs_timer[3]      = { timer_first, timer_sec, timer_third };

@@ -18,6 +18,14 @@
 void package_superwaifu_init(void);
 void package_superwaifu_quit(void);
 
+/*
+ * HACK: Should be redirected, if any other among things instead of
+ * package_superwaifu_game_installed():
+ *
+ * * game_common_superwaifu_game_installed()
+ */
 int package_superwaifu_game_installed(void);
+
+#define game_common_superwaifu_game_installed package_superwaifu_game_installed
 
 #endif

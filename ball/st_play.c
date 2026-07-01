@@ -1172,7 +1172,7 @@ static void play_loop_stick(int id, int a, float v, int bump)
                                                        v * powerup_get_tilt_multiply());
 
         /* Camera movement */
-        
+
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X1, a))
         {
             if (v + axis_offset_target[2] > 0.0f && fabsf(v + axis_offset_target[2]) >= 0.25f)

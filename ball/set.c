@@ -1183,7 +1183,7 @@ int set_score_update(int timer, int coins, int *score_rank, int *times_rank)
 
     score_coin_insert(&s->coin_score, score_rank, player, timer, coins);
     score_time_insert(&s->time_score, times_rank, player, timer, coins);
-    
+
     return (score_rank && *score_rank < RANK_LAST) ||
            (times_rank && *times_rank < RANK_LAST) ? 1 : 0;
 }

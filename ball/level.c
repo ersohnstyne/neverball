@@ -55,7 +55,7 @@ static int scan_level_attribs(struct level *l,
     int need_time_medm = 0, need_time_easy = 0;
     int need_goal_medm = 0, need_goal_easy = 0;
     int need_coin_medm = 0, need_coin_easy = 0;
-    
+
     for (i = 0; i < base->dc; i++)
     {
         char *k = base->av + base->dv[i].ai;
@@ -323,7 +323,7 @@ static int scan_campaign_level(const struct s_base *base,
         "bgm/track-SB4.ogg", /* clouds = cloud world */
         "bgm/track-SB5.ogg"  /* volcano = lava world */
     };
-    
+
     for (int i = 0; i < base->dc; i++) {
         char *k = base->av + base->dv[i].ai;
         char *v = base->av + base->dv[i].aj;

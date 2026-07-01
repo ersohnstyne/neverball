@@ -56,6 +56,7 @@
 #include "key.h"
 #include "geom.h"
 #include "text.h"
+#include "package_superwaifu.h"
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
 #include "powerup.h"
@@ -101,6 +102,7 @@ struct state st_nodemo;
 
 struct state st_poser;
 struct state st_level_signin_required;
+struct state st_level_superwaifu;
 
 /*---------------------------------------------------------------------------*/
 
@@ -1126,18 +1128,103 @@ static int level_signin_required_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
+enum {
+    LEVEL_SUPERWAIFU_START = GUI_LAST,
+    LEVEL_SUPERWAIFU_TOGGLETILT_SCENE
+};
+
+static int level_superwaifu_action(int tok, int val) {
+    GENERIC_GAMEMENU_ACTION;
+
+    switch (tok) {
+        case GUI_BACK:
+            return goto_exit(); break;
+
+        case LEVEL_SUPERWAIFU_TOGGLETILT_SCENE:
+            audio_play("snd/2.2/game_button_up.ogg", 1.0f);
+            config_set_d(CONFIG_ADVANCEDGAMING_PERFORMANCE_SUPERWAIFU_ENVTILT, 0);
+
+        case LEVEL_SUPERWAIFU_START:
+            return goto_play_level(); break;
+    }
+
+    return 1;
+}
+
+static int level_superwaifu_enter(struct state* st, struct state* prev, int intent)
+{
+    audio_play(AUD_WARNING, 1.0f);
+
+    //game_lerp_pose_point_reset();
+    game_client_fly(1.0f);
+
+    int id, jd;
+
+    if ((id = gui_vstack(0)))
+    {
+        gui_title_header(id, _("Warning!"), GUI_MED, GUI_COLOR_RED);
+        gui_space(id);
+        gui_multi(id, _("This level has an Super Waifu's scene tilt.\n"
+                        "This may pilot performance, action movies, etc."),
+                      GUI_SML, GUI_COLOR_WHT);
+        gui_space(id);
+        gui_state(id, _("Disable Scene Tilt"), GUI_SML, LEVEL_SUPERWAIFU_TOGGLETILT_SCENE, 0);
+        gui_space(id);
+
+        if ((jd = gui_harray(id))) {
+            gui_start(jd, _("Start"),  GUI_SML, LEVEL_SUPERWAIFU_START, 0);
+            gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
+        }
+
+        gui_layout(id, 0, 0);
+    }
+
+    return transition_slide(id, 1, intent);
+}
+
+static int level_superwaifu_keybd(int c, int d)
+{
+    if (d && c == KEY_EXIT)
+        return level_superwaifu_action(GUI_BACK, d);
+
+    return 1;
+}
+
+static int level_superwaifu_buttn(int b, int d)
+{
+    if (d) {
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            return level_superwaifu_action(GUI_BACK, d);
+
+        int active = gui_active();
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+            return level_superwaifu_action(gui_token(active), gui_value(active));
+    }
+    return 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static int check_perf_superwaifu_tilt_scenes = 1;
+
 int goto_play_level(void)
 {
     struct state *curr_st = curr_state();
     int         (*fn_state)(struct state *);
 
-    if (curr_st == &st_pause)
-        fn_state = exit_state;
-    else fn_state = goto_state;
+    fn_state = curr_st == &st_pause ? exit_state : goto_state;
 
 #if NB_HAVE_PB_BOTH==1
     account_wgcl_autokick_func_prepare(goto_exit);
 #endif
+
+    if (check_perf_superwaifu_tilt_scenes &&
+        game_common_superwaifu_game_installed() &&
+        config_get_d(CONFIG_ADVANCEDGAMING_PERFORMANCE_SUPERWAIFU_ENVTILT_WARNING)) {
+        check_perf_superwaifu_tilt_scenes = 0;
+        return fn_state(&st_level_superwaifu);
+    }
 
 #if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
     if (level_loading_with_moon_taskloader)
@@ -1272,6 +1359,7 @@ int goto_exit(void)
         dst = curr_times() > 0 && progress_dead() ? &st_over :
                                                     &st_start;
 
+    check_perf_superwaifu_tilt_scenes = 1;
     progress_exit();
 
     if (dst)
@@ -1354,4 +1442,17 @@ struct state st_level_signin_required = {
     shared_click_basic,
     level_signin_required_keybd,
     level_signin_required_buttn
+};
+
+struct state st_level_superwaifu = {
+    level_superwaifu_enter,
+    level_leave,
+    shared_paint,
+    nodemo_timer,
+    shared_point,
+    shared_stick,
+    shared_angle,
+    shared_click,
+    level_superwaifu_keybd,
+    level_superwaifu_buttn
 };

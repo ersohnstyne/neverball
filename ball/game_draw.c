@@ -22,6 +22,8 @@
 #include "config.h"
 #include "video.h"
 
+#include "package_superwaifu.h"
+
 #if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
 #endif
@@ -344,9 +346,9 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
     /* New: Floor border damage. */
 
     float Y = -65536;
-    
+
     if (base->vc > 0) Y = base->vv[0].p[1];
-    
+
     if (base->uv[0].p[1] < Y ||
             !(curr_balls() > 0 || (curr_mode() != MODE_CHALLENGE
 #if NB_HAVE_PB_BOTH==1
@@ -838,30 +840,37 @@ static void game_draw_back(struct s_rend *rend,
     glPushMatrix();
     {
         const struct game_view *view = &gd->view;
+        const struct game_tilt *tilt = &gd->tilt;
+        static const float      Y[3] = { 0.0f, 1.0f, 0.0f };
+        float                   axis[3], angle = 1;
 
-        if (d < 0)
-        {
-            const struct game_tilt *tilt = &gd->tilt;
-            static const float Y[3] = { 0.0f, 1.0f, 0.0f };
-            float axis[3], angle = 1;
-
-            q_as_axisangle(tilt->q, axis, &angle);
-
-            if (flip)
-                v_reflect(axis, axis, Y);
-
-            /* See Git-issues #167, which you don't include tilting the floor. */
-            if (config_get_d(CONFIG_TILTING_FLOOR)
+        /* See Git-issues #167, which you don't include tilting the floor. */
+        const int have_tilt =
+            config_get_d(CONFIG_TILTING_FLOOR)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
              && !(campaign_used()
                || (curr_mode() == MODE_CAMPAIGN
                 || curr_mode() == MODE_HARDCORE))
 #endif
-                )
-                glRotatef(V_DEG(-angle), axis[0], axis[1], axis[2]);
+            ;
+
+        const int have_tilt_superwaifu = game_common_superwaifu_game_installed() &&
+                                         config_get_d(CONFIG_ADVANCEDGAMING_PERFORMANCE_SUPERWAIFU_ENVTILT);
+
+        q_as_axisangle(tilt->q, axis, &angle);
+
+        if (flip) v_reflect(axis, axis, Y);
+
+        if (have_tilt) {
+            const int angle_multiplier = have_tilt_superwaifu ? 2.0f : 1.0f;
+
+            if (d < 0) glRotatef(V_DEG(-angle * angle_multiplier), axis[0], axis[1], axis[2]);
         }
 
         glTranslatef(view->p[0], view->p[1] * d, view->p[2]);
+
+        if (have_tilt && have_tilt_superwaifu)
+            game_draw_tilt(gd, d, flip);
 
         back_draw(rend);
 

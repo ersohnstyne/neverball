@@ -132,7 +132,7 @@ static void name_update_enter_btn(void)
             break;
         }
     }
-    
+
     gui_set_state(enter_id, name_accepted ? NAME_OK : GUI_NONE, 0);
     gui_set_color(enter_id,
                   name_accepted ? gui_wht : gui_gry,

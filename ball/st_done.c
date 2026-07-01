@@ -126,7 +126,7 @@ static int done_action(int tok, int val)
             {
                 const char *curr_setid = set_id(curr_set());
                 char curr_setid_final[MAXSTR];
-                
+
                 if (!curr_setid) {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                     sprintf_s(curr_setid_final, MAXSTR,
@@ -365,7 +365,7 @@ static int done_gui_set(void)
     }
 
     /* View the file in st_over.c */
-    
+
 #if NB_HAVE_PB_BOTH==1
     if (dailychallenge_active_mode() != 0)
         set_score_board(dailychallenge_score(SCORE_COIN), progress_score_rank(),
@@ -499,7 +499,7 @@ static int done_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
         if (EM_ASM_INT({ return wgclgame_gamefinished_state != -1; })) return 1;
 #endif
-        
+
 /*#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
 #else

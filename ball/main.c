@@ -2290,6 +2290,8 @@ static int main_init(int argc, char *argv[])
 
 static void main_quit(void)
 {
+    game_client_free(NULL);
+
 #ifndef DISABLE_PANORAMA
     if (!opt_panorama)
 #endif

@@ -229,7 +229,11 @@ int account_transfer_init(void)
 
     for (int i = 0; i < ARRAYSIZE(account_transfer_s); i++)
     {
-        steam_account_s[i].curr = account_transfer_s[i].cur;
+        if (steam_account_s[i].curr) {
+            free(steam_account_s[i].curr);
+            steam_account_s[i].curr = NULL;
+        }
+        steam_account_s[i].curr = strdup(account_transfer_s[i].def);
     }
 #endif
 

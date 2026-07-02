@@ -83,8 +83,7 @@ void *alloc_add(struct alloc *alloc)
             *alloc->data = new_data;
             alloc->size  = new_size;
         }
-        else
-            return NULL;
+        else return NULL;
     }
 
     return (((unsigned char *) *alloc->data) +

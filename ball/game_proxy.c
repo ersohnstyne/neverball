@@ -89,4 +89,14 @@ void game_proxy_clr(void)
 
     while ((cmdp = game_proxy_deq()))
         cmd_free(cmdp);
+
+    /*
+     * HACK: Just free queue,
+     * you'll need to escape from program after that.
+     */
+
+    if (cmd_queue) {
+        queue_free(cmd_queue);
+        cmd_queue = NULL;
+    }
 }

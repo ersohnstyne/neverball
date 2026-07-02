@@ -176,13 +176,17 @@ int account_init(void)
 
     for (int i = 0; i < ARRAYSIZE(account_d); i++)
     {
-        steam_account_d[i].curr = account_d[i].cur;
+        steam_account_d[i].curr = account_d[i].def;
         dirty = 1;
     }
 
     for (int i = 0; i < ARRAYSIZE(account_s); i++)
     {
-        steam_account_s[i].curr = strdup(account_s[i].cur);
+        if (steam_account_s[i].curr) {
+            free(steam_account_s[i].curr);
+            steam_account_s[i].curr = NULL;
+        }
+        steam_account_s[i].curr = strdup(account_s[i].def);
         dirty = 1;
     }
 

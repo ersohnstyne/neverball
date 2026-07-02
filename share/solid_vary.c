@@ -271,21 +271,31 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
     return 1;
 }
 
+#define SOL_VARY_SAFE_FREE_DATA(_p) \
+    do if (_p) {                    \
+        free(_p); _p = NULL;        \
+    } while (0)
+
 void sol_free_vary(struct s_vary *fp)
 {
-    free(fp->pv); fp->pv = NULL;
-    free(fp->bv); fp->bv = NULL;
-    free(fp->mv); fp->mv = NULL;
-    free(fp->hv); fp->hv = NULL;
-    free(fp->xv); fp->xv = NULL;
-    free(fp->zv); fp->zv = NULL;
-    free(fp->uv); fp->uv = NULL;
+    SOL_VARY_SAFE_FREE_DATA(fp->pv);
+    SOL_VARY_SAFE_FREE_DATA(fp->bv);
+    SOL_VARY_SAFE_FREE_DATA(fp->mv);
+    SOL_VARY_SAFE_FREE_DATA(fp->hv);
+    SOL_VARY_SAFE_FREE_DATA(fp->zv);
+    SOL_VARY_SAFE_FREE_DATA(fp->jv);
+    SOL_VARY_SAFE_FREE_DATA(fp->xv);
+    SOL_VARY_SAFE_FREE_DATA(fp->rv);
+    SOL_VARY_SAFE_FREE_DATA(fp->uv);
+
 #ifdef MAPC_INCLUDES_CHKP
-    free(fp->cv); fp->cv = NULL;
+    SOL_VARY_SAFE_FREE_DATA(fp->cv);
 #endif
 
     memset(fp, 0, sizeof (*fp));
 }
+
+#undef SOL_VARY_SAFE_FREE_DATA
 
 /*---------------------------------------------------------------------------*/
 

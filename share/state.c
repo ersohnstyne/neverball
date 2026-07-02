@@ -267,6 +267,10 @@ int goto_state_full_intent(struct state *st,
         anim_queue_intent        = -1;
     }
 
+#ifndef NDEBUG
+    if (!(r && r1 && state)) log_errorf("(r && r1 && state) returned 0!\n");
+#endif
+
     return r && r1 && state;
 }
 

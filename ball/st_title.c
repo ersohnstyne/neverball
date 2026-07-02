@@ -462,6 +462,9 @@ static int title_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (support_exit)
 #endif
@@ -472,6 +475,7 @@ static int title_action(int tok, int val)
 
                 return 0;
             }
+#endif
             break;
 
         case TITLE_SOCIAL:
@@ -1233,12 +1237,15 @@ static int title_gui(void)
 
                         gui_state(kd, gt_prefix("menu^Options"),
                                       btn_size, TITLE_CONF, 0);
-
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #ifndef __EMSCRIPTEN__
                         if (support_exit)
 #endif
                             gui_state(kd, gt_prefix("menu^Exit"),
                                           btn_size, GUI_BACK, 0);
+#endif
 
                         /* Hilight the start button. */
 
@@ -1330,12 +1337,15 @@ static int title_gui(void)
 
                 gui_state(id, gt_prefix("menu^Options"),
                               btn_size, TITLE_CONF, 0);
-
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #ifndef __EMSCRIPTEN__
                 if (support_exit)
 #endif
                     gui_state(id, gt_prefix("menu^Exit"),
                                   btn_size, GUI_BACK, 0);
+#endif
 
                 /* Highlight the start button. */
 
@@ -1800,6 +1810,9 @@ static int title_keybd(int c, int d)
 
     if (d)
     {
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if NB_HAVE_PB_BOTH!=1
 #ifndef __EMSCRIPTEN__
         if (c == KEY_EXIT && support_exit)
@@ -1813,6 +1826,7 @@ static int title_keybd(int c, int d)
 
             return title_gui_wgcl_version_enabled;
         }
+#endif
 #endif
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
@@ -1851,6 +1865,9 @@ static int title_buttn(int b, int d)
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return title_action(gui_token(active), gui_value(active));
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
 #if NB_HAVE_PB_BOTH!=1
 #ifndef __EMSCRIPTEN__
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b) && support_exit)
@@ -1864,6 +1881,7 @@ static int title_buttn(int b, int d)
 
             return 0;
         }
+#endif
 #endif
     }
     return 1;

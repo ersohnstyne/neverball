@@ -192,8 +192,10 @@ int fs_quit(void)
 
     /* Close all files to be quitting the game! */
 
-#if _WIN32 && _MSC_VER
+#if _WIN32 && _MSC_VER && !defined(NDEBBUG)
     assert(_fcloseall() != EOF);
+#elif _WIN32 && _MSC_VER
+    _fcloseall();
 #endif
 
     return 1;

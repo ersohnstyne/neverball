@@ -836,10 +836,12 @@ static int shop_rename_click(int b, int d)
         return st_keybd(KEY_EXIT, d);
 #endif
 
-    int active = gui_active();
-
-    return d && gui_click(b, d) ?
-                shop_rename_action(gui_token(active), gui_value(active)) : 1;
+    if (gui_click(b, d))
+    {
+        int active = gui_active();
+        return shop_rename_action(gui_token(active), gui_value(active));
+    }
+    return 1;
 }
 
 static int shop_rename_buttn(int b, int d)

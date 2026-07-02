@@ -226,13 +226,13 @@ char *concat_string(const char *first, ...)
 
         while ((part = va_arg(ap, const char *)))
         {
-            char *new;
-
             if (!part) continue;
 
-            if ((new = (char *) realloc(full, strlen(full) + strlen(part) + 1)))
+            char *new_replaces;
+
+            if ((new_replaces = (char *) realloc(full, strlen(full) + strlen(part) + 1)))
             {
-                full = new;
+                full = new_replaces;
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 strcat_s(full, strlen(full) + strlen(part) + 1, part);
 #else

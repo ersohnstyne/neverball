@@ -1651,7 +1651,7 @@ static int demo_play_click(int b, int d)
         if (config_tst_d(CONFIG_MOUSE_CAMERA_R, b))
         {
             demo_replay_manual_speed(2.0f); speed_manual = 1;
-            game_proxy_filter(filter_cmd);
+            //game_proxy_filter(filter_cmd);
             audio_music_fade_out(0.2f);
         }
 #ifndef __EMSCRIPTEN__

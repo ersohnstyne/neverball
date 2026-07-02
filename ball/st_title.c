@@ -1465,7 +1465,7 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 #endif
 
     game_client_toggle_sound(0);
-    game_proxy_filter(filter_cmd);
+    //game_proxy_filter(filter_cmd);
 
     if (title_load_lockscreen)
         title_load_lockscreen = 0;

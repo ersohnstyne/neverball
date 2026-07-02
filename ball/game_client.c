@@ -235,9 +235,9 @@ static void game_run_cmd(const union cmd *cmd)
                 /* Play the sound. */
 
 #if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
-                if (!game_status_goal && cmd->sound.n && !demo_operator_activated())
+                if (!game_status_goal && cmd->sound.n && game_sound_enabled && !demo_operator_activated())
 #else
-                if (!game_status_goal && cmd->sound.n)
+                if (!game_status_goal && cmd->sound.n && game_sound_enabled)
 #endif
                 {
 #if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)

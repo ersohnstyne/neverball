@@ -947,14 +947,14 @@ static int goal_keybd(int c, int d)
 #endif
             )
             return goal_action(GUI_SCORE, GUI_SCORE_NEXT(gui_score_get()));
-
+        
         if (config_tst_d(CONFIG_KEY_RESTART, c)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
          && current_platform == PLATFORM_PC
 #endif
-            )
+         && !challenge_has_active_chkp)
         {
-            if (progress_same() && !challenge_has_active_chkp)
+            if (progress_same())
             {
 #if NB_HAVE_PB_BOTH==1 && \
     defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)

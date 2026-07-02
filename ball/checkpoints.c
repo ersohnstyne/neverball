@@ -78,17 +78,17 @@ void checkpoints_save_spawnpoint(struct s_vary saved_vary,
                                  struct game_view saved_view,
                                  int ui)
 {
-    if (curr_balls() > 0 || (
-        curr_mode() != MODE_CHALLENGE
+    if (curr_balls() == 0 && (
+        curr_mode() == MODE_CHALLENGE
 #if NB_HAVE_PB_BOTH==1
-     && curr_mode() != MODE_BOOST_RUSH
+     || curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-     && curr_mode() != MODE_HARDCORE
+     || curr_mode() == MODE_HARDCORE
 #else
-     && curr_mode() != MODE_ROGUE
+     || curr_mode() == MODE_ROGUE
 #endif
 #endif
-     && curr_mode() != MODE_DAILY
+     || curr_mode() == MODE_DAILY
         )) return;
 
     /* Phase 1: Activate the checkpoints. */

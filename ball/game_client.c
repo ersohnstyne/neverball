@@ -273,9 +273,12 @@ static void game_run_cmd(const union cmd *cmd)
                 status = cmd->status.t;
 
                 /*
-                 * Don't spawn the particles and don't start camera shake
-                 * at first update!
+                 * Don't spawn the particles, start camera shake
+                 * and start sounds at first update!
                  */
+
+                if (status == GAME_FALL && !cs.first_update && game_sound_enabled)
+                    audio_play("snd/2.2/border_death.ogg", 1.0f);
 
                 if (status == GAME_GOAL && !cs.first_update) {
                     part_goal(gl.lerp.uv[0][0].p);
@@ -953,18 +956,15 @@ void game_client_draw(int pose, float t)
 
         if (!gd.tilt_f)
         {
-            if (gd.mojang_death_enabled_flags)
-            {
+            if (gd.mojang_death_enabled_flags) {
                 const float mojang_death_time_dt = t - gd.mojang_death_time_now;
 
                 if (mojang_death_time_dt < 1.f)
                     gd.mojang_death_time_percent =
                         MIN(100, gd.mojang_death_time_percent + (mojang_death_time_dt * 2.5f));
-                else if (game_sound_enabled) audio_play("snd/2.2/border_death.ogg", 1.0f);
 
                 gd.mojang_death_time_now = t;
-            }
-            else v_cpy(client_view_center_fixed, fixed_death_position); // Was: gd.vary.uv[0].p
+            } else v_cpy(client_view_center_fixed, fixed_death_position); // Was: gd.vary.uv[0].p
 
             gd.mojang_death_enabled_flags = 1;
         } else gd.mojang_death_view_angle = V_DEG(fatan2f(gd.view.e[2][0], gd.view.e[2][2]));

@@ -785,6 +785,20 @@ void gui_init(void)
                   NULL, GL_STATIC_DRAW);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+    /* Initialize everything. */
+
+    for (int id = 1; id < WIDGET_MAX; id++) {
+        if (widget[id].init_text) {
+            free(widget[id].init_text);
+            widget[id].init_text = NULL;
+        }
+
+        if (widget[id].text) {
+            free(widget[id].text);
+            widget[id].text = NULL;
+        }
+    }
+
     /* Initialize window size-dependent resources. */
 
     gui_resize();
@@ -802,22 +816,18 @@ void gui_free(void)
     glDeleteBuffers_(1, &vert_ebo);
 
     /* Release any remaining widget texture and display list indices. */
-
+    
     for (id = 1; id < WIDGET_MAX; id++)
-    {
-        if (widget[id].type != GUI_FREE)
-        {
+        if (widget[id].type != GUI_FREE) {
             if (widget[id].image)
                 glDeleteTextures(1, &widget[id].image);
 
-            if (widget[id].init_text)
-            {
+            if (widget[id].init_text) {
                 free(widget[id].init_text);
                 widget[id].init_text = NULL;
             }
 
-            if (widget[id].text)
-            {
+            if (widget[id].text) {
                 free(widget[id].text);
                 widget[id].text = NULL;
             }
@@ -828,7 +838,6 @@ void gui_free(void)
             widget[id].cdr   = 0;
             widget[id].car   = 0;
         }
-    }
 
     /* Release all loaded fonts and finalize font rendering. */
 

@@ -1177,8 +1177,7 @@ int game_server_init(const char *file_name, int t, int e)
             game_view_set_static_cam_view(1, fix_cam_pos);
 #pragma endregion
         }
-        else
-            game_view_fly(&view, &vary, ui, 0.0f);
+        else game_view_fly(&view, &vary, ui, 0.0f);
     }
 
     view.a = V_DEG(fatan2f(view.e[2][0], view.e[2][2]));

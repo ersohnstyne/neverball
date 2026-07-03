@@ -71,7 +71,7 @@
 #define TIME_TRIAL_VERSION  2
 #define MAX_CAM_BOX_TRIGGER 512
 
-static char *campaign_name;
+static char *campaign_name = NULL;
 
 /*
  * Switchball levels can be found the levels by Badinfos.
@@ -99,7 +99,7 @@ static int theme_used = 0;
 
 static struct score coin_trials;
 static struct score time_trials;
-static char        *time_trial_leaderboard;
+static char        *time_trial_leaderboard = NULL;
 static int          time_trial_version;
 
 static struct campaign_hardcore_mode   hardcores;
@@ -656,25 +656,26 @@ int campaign_init(void)
 void campaign_quit(void)
 {
     theme_used = 0;
-    used = 0;
-    exists = 0;
+    used       = 0;
+    exists     = 0;
 
     /* Once the campaign is left off, remove this. */
 
-    if (time_trial_leaderboard)
-    {
+    if (campaign_name) {
+        free(campaign_name);
+        campaign_name = NULL;
+    }
+
+    if (time_trial_leaderboard) {
         free(time_trial_leaderboard);
         time_trial_leaderboard = NULL;
     }
 
     for (int i = 0; i < campaign_count; i++)
-    {
-        if (campaign_levelpath[i])
-        {
+        if (campaign_levelpath[i]) {
             free(campaign_levelpath[i]);
             campaign_levelpath[i] = NULL;
         }
-    }
 }
 
 /* Initialize campaign theme */

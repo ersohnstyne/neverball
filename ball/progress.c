@@ -1271,7 +1271,7 @@ void progress_exit(void)
 {
     if (!is_init) return;
 
-    progress_stop(); game_server_free(NULL);
+    progress_stop();
 
 #if ENABLE_LIVESPLIT!=0
     if (!done)

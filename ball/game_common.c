@@ -541,7 +541,7 @@ void lockstep_scl(struct lockstep *ls, float ts)
 /* See checkpoints.c */
 
 struct s_base  game_base;
-static char   *base_path;
+static char   *base_path = NULL;
 
 int game_base_load(const char *path)
 {

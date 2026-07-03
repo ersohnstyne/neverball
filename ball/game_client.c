@@ -265,10 +265,7 @@ static void game_run_cmd(const union cmd *cmd)
                 }
 
                 if (cs.first_update)
-                {
-                    game_compat_campaign = gl.timer[PREV] == 0 && gl.timer[CURR] == 0 && cmd->timer.t == 0;
                     gl.timer[PREV] = gl.timer[CURR] = cmd->timer.t;
-                }
 
                 break;
 
@@ -847,6 +844,8 @@ int  game_client_init(const char *file_name)
         if (strcmp(k, "time") == 0) {
             gl.timer[CURR] = atoi(v) / 100.0f;
             gl.timer[PREV] = gl.timer[CURR];
+
+            game_compat_campaign = gl.timer[CURR] == 0 && gl.timer[PREV] == 0;
         }
     }
 

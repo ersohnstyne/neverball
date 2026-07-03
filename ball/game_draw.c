@@ -600,7 +600,8 @@ static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
             {
                 glTranslatef(beam_p[0], beam_p[1], beam_p[2]);
                 glRotatef(V_DEG(a), u[0], u[1], u[2]);
-                beam_draw(rend, base->xv[i].p, swch_c[vary->xv[i].f][vary->xv[i].e], base->xv[i].r, 2.0f);
+                if ((vary->xv[i].f == 1 || vary->xv[i].f == 0) && (vary->xv[i].e == 1 || vary->xv[i].e == 0))
+                    beam_draw(rend, base->xv[i].p, swch_c[vary->xv[i].f][vary->xv[i].e], base->xv[i].r, 2.0f);
             }
             glPopMatrix();
         }
@@ -629,7 +630,8 @@ static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
                 {
                     glTranslatef(beam_p[0], beam_p[1], beam_p[2]);
                     glRotatef(V_DEG(a), u[0], u[1], u[2]);
-                    beam_draw(rend, base->cv[i].p, chkp_c[vary->cv[i].f][vary->cv[i].e], base->cv[i].r, 2.0f);
+                    if ((vary->cv[i].f == 1 || vary->cv[i].f == 0) && (vary->cv[i].e == 1 || vary->cv[i].e == 0))
+                        beam_draw(rend, base->cv[i].p, chkp_c[vary->cv[i].f][vary->cv[i].e], base->cv[i].r, 2.0f);
                 }
                 glPopMatrix();
             }

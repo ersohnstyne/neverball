@@ -76,7 +76,7 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
     struct alloc mover_alloc;
     int i;
 
-    memset(fp, 0, sizeof (*fp));
+    sol_free_vary(fp); //memset(fp, 0, sizeof (*fp));
 
     fp->base = base;
 
@@ -251,8 +251,8 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 #ifdef MAPC_INCLUDES_CHKP
     if (fp->base->cc)
     {
+        fp->cv = calloc(fp->base->cc, sizeof(*fp->cv));
         fp->cc = fp->base->cc;
-        fp->cv = calloc(fp->cc, sizeof (*fp->cv));
         if (fp->cv == 0) return 0;
 
         for (i = 0; i < fp->base->cc; i++)

@@ -165,25 +165,7 @@
     <ClCompile Include="..\share\networking_dedicated.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\networking_education.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\networking_enterprise.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\networking_home.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
     <ClCompile Include="..\share\networking_opensource.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\networking_pro.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\networking_srv_datacenter.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\networking_srv_standard.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\package.c">
@@ -288,6 +270,9 @@
     <ClCompile Include="..\ball\game_server.c">
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
+    <ClCompile Include="..\ball\game_transitions.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
     <ClCompile Include="..\ball\hud.c">
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
@@ -316,9 +301,6 @@
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
     <ClCompile Include="..\ball\st_beam_style.c">
-      <Filter>Quelldateien\ball</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ball\st_campaign_setup.c">
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
     <ClCompile Include="..\ball\st_conf.c">
@@ -402,17 +384,11 @@
     <ClCompile Include="..\share\lang_msvc.cpp">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\networking_srv_essentials.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
     <ClCompile Include="..\share\joy_xbox.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\payments\game_payment_curl.c">
       <Filter>Quelldateien\payments</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ball\st_shop_activate.c">
-      <Filter>Quelldateien\ball</Filter>
     </ClCompile>
     <ClCompile Include="..\payments\currency_curl.c">
       <Filter>Quelldateien\payments</Filter>
@@ -647,6 +623,9 @@
     <ClInclude Include="..\ball\game_server.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
+    <ClInclude Include="..\ball\game_transitions.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
     <ClInclude Include="..\ball\hud.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
@@ -675,9 +654,6 @@
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
     <ClInclude Include="..\ball\st_beam_style.h">
-      <Filter>Headerdateien\ball</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ball\st_campaign_setup.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
     <ClInclude Include="..\ball\st_conf.h">
@@ -799,6 +775,12 @@
     </ClInclude>
     <ClInclude Include="..\share\strbuf\strbuf.h">
       <Filter>Quelldateien\share\strbuf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\package_superwaifu.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\package_superwaifu.c">
+      <Filter>Quelldateien\share</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

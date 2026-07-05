@@ -46,6 +46,10 @@
 #include "game_proxy.h"
 #include "game_draw.h"
 
+#if NB_HAVE_PB_BOTH==1
+#include "game_transitions.h"
+#endif
+
 #include "progress.h"
 #include "state.h"
 #include "st_level.h"
@@ -587,6 +591,10 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
     gd.fade_k =  1.0f;
     gd.fade_d = -2.0f;
 
+#if NB_HAVE_PB_BOTH==1
+    game_transitions_fade_in(-2.0f);
+#endif
+
     /* FIXME: Let Mojang done one of these! */
 
     gd.mojang_death_enabled_flags = 0;
@@ -807,6 +815,10 @@ int  game_client_init(const char *file_name)
     gd.fade_k =  1.0f;
     gd.fade_d = -2.0f;
 
+#if NB_HAVE_PB_BOTH==1
+    game_transitions_fade_in(-2.0f);
+#endif
+
     /* FIXME: Let Mojang done one of these! */
 
     gd.mojang_death_enabled_flags = 0;
@@ -945,6 +957,10 @@ void game_client_draw(int pose, float t)
 {
     if (gd.state && !progress_loading())
     {
+#if NB_HAVE_PB_BOTH==1
+        game_transitions_prep_scene();
+#endif
+
         /* HACK: Just compare gradient first! */
 
         if (grad_filename && !back_compare_filename(grad_filename)) {
@@ -978,6 +994,10 @@ void game_client_draw(int pose, float t)
         if (!demo_operator_activated())
 #endif
             game_draw(&gd, gd.ball_shown ? pose : POSE_LEVEL, t);
+
+#if NB_HAVE_PB_BOTH==1
+        game_transitions_post_scene();
+#endif
     }
 }
 
@@ -1059,12 +1079,22 @@ void game_kill_fade(void)
 void game_step_fade(float dt)
 {
     gd.fade_k = CLAMP(0.0f, gd.fade_k + gd.fade_d * dt, 1.0f);
+
+#if NB_HAVE_PB_BOTH==1
+    game_transitions_step_fade(dt);
+#endif
 }
 
 void game_fade(float d)
 {
     gd.fade_disabled = 0;
     gd.fade_d        = d;
+
+#if NB_HAVE_PB_BOTH==1
+    /* FIXME: Didn't work just for me? */
+
+    /*game_transitions_fade(d);*/
+#endif
 }
 
 void game_fade_color(float r, float g, float b)

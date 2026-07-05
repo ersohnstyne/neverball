@@ -645,7 +645,8 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
     {
         if (goal_intro_animation_phase == 1)
             challenge_has_active_chkp = 0;
-
+        
+#ifdef MAPC_INCLUDES_CHKP
         if ((curr_mode() == MODE_CHALLENGE ||
              curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -654,6 +655,7 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
           || curr_mode() == MODE_DAILY
             ) && goal_intro_animation_phase == 1)
             challenge_has_active_chkp = last_active;
+#endif
 
         goal_intro_speedmultiplier = 1.0f;
 

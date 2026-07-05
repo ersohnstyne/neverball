@@ -61,6 +61,10 @@
 #include "game_client.h"
 #include "game_server.h"
 
+#if NB_HAVE_PB_BOTH==1
+#include "game_transitions.h"
+#endif
+
 #ifndef ENABLE_GAME_TRANSFER
 #include "st_transfer.h"
 #endif
@@ -3030,6 +3034,10 @@ static int null_enter(struct state *st, struct state *prev, int intent)
 {
     if (prev == &st_null) return 0;
 
+#if NB_HAVE_PB_BOTH==1
+    game_transitions_quit();
+#endif
+
     package_superwaifu_quit();
 
 #if ENABLE_MOTIONBLUR!=0
@@ -3112,6 +3120,10 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
 #endif
 
     package_superwaifu_init();
+
+#if NB_HAVE_PB_BOTH==1
+    game_transitions_init();
+#endif
 
     return 0;
 }

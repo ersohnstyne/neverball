@@ -570,6 +570,7 @@ BALL_OBJS := \
 	ball/game_server.o  \
 	ball/game_proxy.o   \
 	ball/game_draw.o    \
+	ball/game_transitions.o \
 	ball/score.o        \
 	ball/level.o        \
 	ball/progress.o     \

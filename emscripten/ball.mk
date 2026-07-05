@@ -60,6 +60,7 @@ BALL_SRCS := \
 	ball/game_draw.c \
 	ball/game_proxy.c \
 	ball/game_server.c \
+	ball/game_transitions.c \
 	ball/hud.c \
 	ball/level.c \
 	ball/main.c \

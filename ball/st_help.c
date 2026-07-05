@@ -1466,6 +1466,7 @@ static int help_demo_enter(struct state *st, struct state *prev, int intent)
     demo_freeze_all         = 0;
     smoothfix_slowdown_time = 0;
 
+    game_client_toggle_sound(0);
     game_client_fly(0.0f);
     demo_replay_speed(SPEED_NORMAL);
     return 0;

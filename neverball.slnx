@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="msvc/neverball.vcxproj" Id="b864ebd5-0a35-49b8-a9c8-7a7fcccd7ce4" />
+</Solution>

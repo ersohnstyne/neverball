@@ -259,6 +259,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\ball\game_dualdisplay.c" />
     <ClCompile Include="..\ball\game_proxy.c" />
     <ClCompile Include="..\ball\game_server.c" />
+    <ClCompile Include="..\ball\game_transitions.c" />
     <ClCompile Include="..\ball\hud.c" />
     <ClCompile Include="..\ball\level.c" />
     <ClCompile Include="..\ball\main.c" />
@@ -271,12 +272,6 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\ball\shop_steam.cpp" />
     <ClCompile Include="..\ball\st_ball.c" />
     <ClCompile Include="..\ball\st_beam_style.c" />
-    <ClCompile Include="..\ball\st_campaign_setup.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\ball\st_conf.c" />
     <ClCompile Include="..\ball\st_demo.c" />
     <ClCompile Include="..\ball\st_done.c" />
@@ -374,14 +369,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\share\moon_taskloader.c" />
     <ClCompile Include="..\share\mtrl.c" />
     <ClCompile Include="..\share\networking_dedicated.c" />
-    <ClCompile Include="..\share\networking_education.c" />
-    <ClCompile Include="..\share\networking_enterprise.c" />
-    <ClCompile Include="..\share\networking_home.c" />
     <ClCompile Include="..\share\networking_opensource.c" />
-    <ClCompile Include="..\share\networking_pro.c" />
-    <ClCompile Include="..\share\networking_srv_datacenter.c" />
-    <ClCompile Include="..\share\networking_srv_essentials.c" />
-    <ClCompile Include="..\share\networking_srv_standard.c" />
     <ClCompile Include="..\share\package.c" />
     <ClInclude Include="..\share\package_superwaifu.c" />
     <ClCompile Include="..\share\part.c" />
@@ -446,6 +434,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\ball\game_dualdisplay.h" />
     <ClInclude Include="..\ball\game_proxy.h" />
     <ClInclude Include="..\ball\game_server.h" />
+    <ClInclude Include="..\ball\game_transitions.h" />
     <ClInclude Include="..\ball\hud.h" />
     <ClInclude Include="..\ball\lang_switchball.h" />
     <ClInclude Include="..\ball\level.h" />
@@ -457,7 +446,6 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\ball\set.h" />
     <ClInclude Include="..\ball\st_ball.h" />
     <ClInclude Include="..\ball\st_beam_style.h" />
-    <ClInclude Include="..\ball\st_campaign_setup.h" />
     <ClInclude Include="..\ball\st_conf.h" />
     <ClInclude Include="..\ball\st_demo.h" />
     <ClInclude Include="..\ball\st_done.h" />

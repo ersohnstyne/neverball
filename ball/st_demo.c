@@ -2065,7 +2065,6 @@ static int demo_compat_gui(void)
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         const int has_campaign_untimed = curr_clock() == 0.0f;
-#endif
 
         if (curr_mode() == MODE_CAMPAIGN && !has_campaign_untimed && game_compat_map)
             gui_multi(id, _("The current replay was recorded with a\n"
@@ -2077,7 +2076,9 @@ static int demo_compat_gui(void)
                             "of this level on campaign.\n"
                             "Be prepared to encounter visual errors.\n"),
                       GUI_SML, GUI_COLOR_WHT);
-        else gui_multi(id, _("The current replay was recorded with a\n"
+        else
+#endif
+             gui_multi(id, _("The current replay was recorded with a\n"
                              "different (or unknown) version of this level.\n"
                              "Be prepared to encounter visual errors.\n"),
                        GUI_SML, GUI_COLOR_WHT);

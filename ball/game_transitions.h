@@ -12,12 +12,36 @@
  * General Public License for more details.
  */
 
-#include "mediation.h"
+#ifndef GAME_TRANSITIONS_H
+#define GAME_TRANSITIONS_H
 
 /*---------------------------------------------------------------------------*/
 
-static int mediation = 0;
+int  game_transitions_init(void);
+void game_transitions_quit(void);
 
-void mediation_init(void)    { mediation = 1;    }
-void mediation_stop(void)    { mediation = 0;    }
-int  mediation_enabled(void) { return mediation; }
+/*
+ * Step alpha fade for each ticks: 1000ms = 1s
+ */
+void game_transitions_step_fade(float);
+
+void game_transitions_fade(float);
+void game_transitions_fade_in(float);
+
+void game_transitions_draw(struct s_rend *);
+
+int game_transitions_fadeout_finished(void);
+
+/*
+ * Set z-order overlay for game transition
+ *
+ * 0 = Game Scene Only
+ * 1 = All
+ */
+void game_transitions_set_zorder(int);
+int  game_transitions_get_zorder(void);
+
+void game_transitions_prep_scene(void);
+void game_transitions_post_scene(void);
+
+#endif

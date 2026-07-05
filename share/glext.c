@@ -572,6 +572,8 @@ void glSetColor4ub_(unsigned char r, unsigned char g, unsigned char b, unsigned 
     glext_color4f_vfxs[glext_curr_depth_vfxs][2] = b / 255.0f;
     glext_color4f_vfxs[glext_curr_depth_vfxs][3] = a / 255.0f;
 
+    unsigned char c4ub_final[4] = { r, g, b, a };
+
     if (glext_curr_depth_vfxs != 15) {
         for (int i = glext_curr_depth_vfxs; i < 16; i++)
             for (int j = 0; j < 4; j++)

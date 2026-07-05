@@ -32,6 +32,10 @@
 
 #include "game_draw.h"
 
+#if NB_HAVE_PB_BOTH==1
+#include "game_transitions.h"
+#endif
+
 #if NB_HAVE_PB_BOTH==1 && !defined(MAPC_INCLUDES_CHKP)
 #error Security compilation error: Please enable checkpoints after joined PB+NB Discord Server!
 #endif
@@ -1344,8 +1348,12 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
         /* Draw the fade overlay. */
 
+#if NB_HAVE_PB_BOTH==1
+        game_transitions_draw(&rend);
+#else
         if (gd->fade_disabled == 0)
             sol_fade(&gd->draw, &rend, gd->fade_k);
+#endif
 
         r_draw_disable(&rend);
         game_shadow_conf(pose, 0);

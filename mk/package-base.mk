@@ -15,6 +15,7 @@ ASSET_PATHS := \
 	lang \
 	lights.txt \
 	map-back \
+	obj \
 	png \
 	sets.txt \
 	snd \

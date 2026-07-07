@@ -17,9 +17,9 @@ BUILD ?= devel
 VERSION := $(shell sh scripts/version.sh)
 
 ifeq ($(BUILD), devel)
-CFLAGS := -O1 -g -fsanitize=undefined -fsanitize=address -std=gnu99 -Wall -Ishare -DNDEBUG -DENABLE_FETCH=1 -I$(GL4ES_DIR)/include
+CFLAGS := -O1 -g -fsanitize=undefined -fsanitize=address -std=gnu99 -Wall -Ishare -DNDEBUG -DENABLE_FETCH=1 -DENABLE_MOTION_BLUR=0 -I$(GL4ES_DIR)/include
 else
-CFLAGS := -O3 -std=gnu99 -Wall -Ishare -DNDEBUG -DENABLE_FETCH=1 -I$(GL4ES_DIR)/include
+CFLAGS := -O3 -std=gnu99 -Wall -Ishare -DNDEBUG -DENABLE_FETCH=1 -DENABLE_MOTION_BLUR=0 -I$(GL4ES_DIR)/include
 endif
 
 EM_CFLAGS := \

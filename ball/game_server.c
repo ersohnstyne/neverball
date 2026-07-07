@@ -760,6 +760,15 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
 #endif
     }
 
+    /* HACK: Make sure that works! */
+
+    if (vary.base->vc == 0 || !vary.base->vv ||
+        !game_check_map_border(CURR_PLAYER, 0.5f)) {
+        sol_free_vary(&vary);
+        game_base_free(NULL);
+        return (server_state = 0);
+    }
+
     /* Send initial update. */
 
     game_cmd_map(curr_file_name, version.x, version.y);
@@ -1232,6 +1241,15 @@ int game_server_init(const char *file_name, int t, int e)
 #else
         sol_init_sim(&vary);
 #endif
+    }
+
+    /* HACK: Make sure that works! */
+
+    if (vary.base->vc == 0 || !vary.base->vv ||
+        !game_check_map_border(CURR_PLAYER, 0.5f)) {
+        sol_free_vary(&vary);
+        game_base_free(NULL);
+        return (server_state = 0);
     }
 
     /* Send initial update. */

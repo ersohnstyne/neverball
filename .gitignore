@@ -1,9 +1,8 @@
 # Microsoft Visual Studio Community / Code
 *.VC.*db*
-/neverball/*
-!/neverball/*.vcxproj
-!/neverball/*.vcxproj.filters
-!/neverball/*.vcxproj.user
+/msvc/*
+!/msvc/*.vcxproj
+!/msvc/*.vcxproj.filters
 .vs
 .vscode
 

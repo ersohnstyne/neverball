@@ -491,7 +491,9 @@ int level_load(const char *filename, struct level *level)
         return 0;
     }
 
-    if (!sol_load_meta(&base, filename)) {
+    /* HACK: Make sure that works! */
+
+    if (!sol_load_meta(&base, filename) || base.vc <= 0) {
         log_errorf("Failure to load level file: %s / %s\n",
                    filename, fs_error());
         return 0;

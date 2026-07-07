@@ -1260,14 +1260,14 @@ static void read_obj(struct mapc_context *ctx, const char *name, int mi)
     struct s_base *fp = &ctx->file;
     char line[MAXSTR];
     char mtrl[MAXSTR];
+    char stderr_buf[512];
     fs_file fin;
 
     int v0 = fp->vc;
     int t0 = fp->tc;
     int s0 = fp->sc;
-
-    if ((fin = fs_open_read(name)))
-    {
+    
+    if ((fin = fs_open_read(name))) {
         while (fs_gets(line, MAXSTR, fin))
         {
             if (strncmp(line, "usemtl", 6) == 0)
@@ -1291,6 +1291,14 @@ static void read_obj(struct mapc_context *ctx, const char *name, int mi)
             else if (strncmp(line, "v",  1) == 0) read_v (ctx, line + 1);
         }
         fs_close(fin);
+    } else {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(stderr_buf, 512,
+#else
+        sprintf(stderr_buf,
+#endif
+                "Failure to load OBJ file: %s - %s\n", name, fs_error());
+        MAPC_LOG_ERROR(ctx, stderr_buf);
     }
 }
 

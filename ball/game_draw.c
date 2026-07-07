@@ -1348,12 +1348,15 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
         /* Draw the fade overlay. */
 
-#if NB_HAVE_PB_BOTH==1
-        game_transitions_draw(&rend);
-#else
         if (gd->fade_disabled == 0)
-            sol_fade(&gd->draw, &rend, gd->fade_k);
+        {
+#if NB_HAVE_PB_BOTH==1
+            if (fs_exists("gui/transitions/transition_superwaifuball.png"))
+                game_transitions_draw(&rend);
+            else
 #endif
+                sol_fade(&gd->draw, &rend, gd->fade_k);
+        }
 
         r_draw_disable(&rend);
         game_shadow_conf(pose, 0);

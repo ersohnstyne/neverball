@@ -60,7 +60,7 @@
 #include "game_client.h"
 #include "game_proxy.h"
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "game_transitions.h"
 #endif
 
@@ -1646,7 +1646,7 @@ static void title_timer(int id, float dt)
                 if (real_time <= 20.0f || title_prequit)
                     game_client_fly(fcosf(V_PI * real_time / 20.0f));
                 else if (!title_prequit) {
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                     game_transitions_fade(+1.0f * (config_cheat() ? 4.0f : 1.0f));
 #else
                     game_fade(+1.0f * (config_cheat() ? 4.0f : 1.0f));
@@ -1658,8 +1658,8 @@ static void title_timer(int id, float dt)
 
         case TITLE_MODE_LEVEL_FADE: /* Fade out.  Load demo level. */
 
-#if NB_HAVE_PB_BOTH==1
-            if (game_transitions_fadeout_finished() && !title_prequit && !st_global_animating())
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            if ((game_transitions_available() ? game_transitions_fadeout_finished() : real_time > 1.0f) && !title_prequit && !st_global_animating())
 #else
             if (real_time > 1.0f && !title_prequit && !st_global_animating())
 #endif
@@ -1726,7 +1726,7 @@ static void title_timer(int id, float dt)
 
                 if (title_demo_shiftbeforefade <= 0.0f) {
                     demo_replay_stop(0);
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
                     game_transitions_fade(+1.0f * (config_cheat() ? 4.0f : 1.0f));
 #else
                     game_fade(+1.0f * (config_cheat() ? 4.0f : 1.0f));
@@ -1748,8 +1748,8 @@ static void title_timer(int id, float dt)
 
         case TITLE_MODE_DEMO_FADE: /* Fade out.  Load build-in demo level or load title level. */
 
-#if NB_HAVE_PB_BOTH==1
-            if (game_transitions_fadeout_finished() && !title_prequit && !st_global_animating())
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            if ((game_transitions_available() ? game_transitions_fadeout_finished() : real_time > 1.0f) && !title_prequit && !st_global_animating())
 #else
             if (real_time > 1.0f && !title_prequit && !st_global_animating())
 #endif

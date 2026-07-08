@@ -30,7 +30,7 @@
 #include <Windows.h>
 #include <DbgHelp.h>
 #pragma comment(lib, "dbghelp.lib")
-#elif defined(_DEBUG)
+#elif defined(_DEBUG) && !defined(_WIN32) && defined(__linux__) && !defined(__EMSCRIPTEN__)
 #include <execinfo.h>
 #endif
 
@@ -68,8 +68,6 @@ const char *GameDbg_GetError(void)  { return dbg_strerror; }
 void GameDbg_SigHandler(int signum)
 {
     dbg_signum = signum;
-
-    GameDbg_Check_SegPerformed();
 
 #ifdef _DEBUG
     log_errorf("DEBUG CODE RUNTIME ERROR!\n");
@@ -109,7 +107,7 @@ void GameDbg_SigHandler(int signum)
 
         __debugbreak();
     }
-#else
+#elif !defined(_WIN32) && defined(__linux__) && !defined(__EMSCRIPTEN__)
     void *buffer[240];
     int   nptrs = backtrace(buffer, 240);
     dbg_strings = backtrace_symbols(buffer, nptrs);
@@ -120,6 +118,8 @@ void GameDbg_SigHandler(int signum)
     free(dbg_strings);
 #endif
 #endif
+
+    GameDbg_Check_SegPerformed();
 
     exit((signum == 2 || signum == 21) ? 0 : 1);
 }

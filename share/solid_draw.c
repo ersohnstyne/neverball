@@ -867,7 +867,91 @@ void sol_free_full(struct s_full *full)
 
 /*---------------------------------------------------------------------------*/
 
-#if DEBUG_MTRL
+#if _MSC_VER && _DEBUG
+static void check_mtrl(const char *name, GLenum pname, GLuint curr)
+{
+    static char buff[64];
+
+    GLuint  real;
+    GLfloat v[4];
+
+    glGetMaterialfv(GL_FRONT, pname, v);
+
+    if (pname != GL_SHININESS)
+        real = ((GLuint) tobyte(v[0])       |
+                         tobyte(v[1]) << 8  |
+                         tobyte(v[2]) << 16 |
+                         tobyte(v[3]) << 24);
+    else
+        real = (tobyte(v[0]));
+
+    if (real != curr)
+    {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(buff, MAXSTR,
+#else
+        sprintf(buff,
+#endif
+                "[!] PB+NB WGCL DEBUG MTRL ERROR: %s mismatch (0x%08X -> 0x%08X)\n", name, real, curr);
+
+        OutputDebugStringA(buff);
+    }
+}
+
+static void assert_mtrl_devenv(const struct mtrl* mp)
+{
+    if (glIsEnabled(GL_COLOR_MATERIAL))
+        return;
+
+    check_mtrl("ambient",   GL_AMBIENT,   mp->a);
+    check_mtrl("diffuse",   GL_DIFFUSE,   mp->d);
+    check_mtrl("specular",  GL_SPECULAR,  mp->s);
+    check_mtrl("emission",  GL_EMISSION,  mp->e);
+    //check_mtrl("shininess", GL_SHININESS, mp->h);
+}
+
+#define assert_mtrl assert_mtrl_devenv
+#elif defined(__EMSCRIPTEN__) && _DEBUG
+static void check_mtrl(const char *name, GLenum pname, GLuint curr)
+{
+    static char buff[64];
+
+    GLuint  real;
+    GLfloat v[4];
+
+    glGetMaterialfv(GL_FRONT, pname, v);
+
+    if (pname != GL_SHININESS)
+        real = ((GLuint) tobyte(v[0])       |
+                         tobyte(v[1]) << 8  |
+                         tobyte(v[2]) << 16 |
+                         tobyte(v[3]) << 24);
+    else
+        real = (tobyte(v[0]));
+
+    if (real != curr)
+    {
+        sprintf(buff,
+                "MTRL ERROR: %s mismatch (0x%08X -> 0x%08X)\n", name, real, curr);
+
+        log_errorf(buff);
+    }
+}
+
+static void assert_mtrl_emsdk(const struct mtrl* mp)
+{
+    if (glIsEnabled(GL_COLOR_MATERIAL))
+        return;
+
+    check_mtrl("ambient",   GL_AMBIENT,   mp->a);
+    check_mtrl("diffuse",   GL_DIFFUSE,   mp->d);
+    check_mtrl("specular",  GL_SPECULAR,  mp->s);
+    check_mtrl("emission",  GL_EMISSION,  mp->e);
+    //check_mtrl("shininess", GL_SHININESS, mp->h);
+}
+
+#define assert_mtrl assert_mtrl_emsdk
+#elif DEBUG_MTRL
 static void check_mtrl(const char *name, GLenum pname, GLuint curr)
 {
     static char buff[64];
@@ -908,7 +992,7 @@ static void assert_mtrl(const struct mtrl *mp)
     check_mtrl("diffuse",   GL_DIFFUSE,   mp->d);
     check_mtrl("specular",  GL_SPECULAR,  mp->s);
     check_mtrl("emission",  GL_EMISSION,  mp->e);
-    check_mtrl("shininess", GL_SHININESS, mp->h);
+    //check_mtrl("shininess", GL_SHININESS, mp->h);
 }
 #endif
 
@@ -956,7 +1040,7 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
     int mp_flags = mp->base.fl & ~rend->skip_flags;
     int mq_flags = mq->base.fl;
 
-#if DEBUG_MTRL
+#if DEBUG_MTRL || (_MSC_VER && _DEBUG) || (defined(__EMSCRIPTEN__) && _DEBUG)
     assert_mtrl(&rend->curr_mtrl);
 #endif
 

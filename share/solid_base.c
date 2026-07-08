@@ -797,7 +797,7 @@ int sol_load_meta(struct s_base *fp, const char *filename)
         {
             log_errorf("Invalid SOL file, migrating to SOLX: %s\n", filename);
 
-            res = sol_load_file(fin_x, fp, 1);
+            res = sol_load_head(fin_x, fp, 1);
             fs_close(fin_x);
         }
     }

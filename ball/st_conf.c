@@ -61,7 +61,7 @@
 #include "game_client.h"
 #include "game_server.h"
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "game_transitions.h"
 #endif
 
@@ -3034,7 +3034,7 @@ static int null_enter(struct state *st, struct state *prev, int intent)
 {
     if (prev == &st_null) return 0;
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     game_transitions_quit();
 #endif
 
@@ -3121,7 +3121,7 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
 
     package_superwaifu_init();
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     game_transitions_init();
 #endif
 

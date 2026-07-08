@@ -161,14 +161,42 @@ static void load_mtrl(struct mtrl *mp, const struct b_mtrl *base)
     /* Copy the base material. */
 
     memcpy(&mp->base, base, sizeof (struct b_mtrl));
+    
+    /* Clamp the float values. */
+
+    float clamped_d[4] = {0.8f, 0.8f, 0.8f, 1.0f},
+          clamped_a[4] = {0.2f, 0.2f, 0.2f, 1.0f},
+          clamped_s[4] = {0.0f, 0.0f, 0.0f, 1.0f},
+          clamped_e[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+
+    for (int i = 0; i < 3; i++) {
+        clamped_d[i] = CLAMP(0.0f, base->d[i], 1.0f);
+        clamped_a[i] = CLAMP(0.0f, base->a[i], 1.0f);
+        clamped_s[i] = CLAMP(0.0f, base->s[i], 1.0f);
+        clamped_e[i] = CLAMP(0.0f, base->e[i], 1.0f);
+    }
+
+    /* Validate alpha values. */
+
+#define MTRL_ALPHA_VALIDATE(_v_out, _v_in) \
+    if (_v_in[3] < 0.0f && _v_in[3] > 1.0f) \
+        log_errorf(#_v_in "[3]: Alpha value out of range!: %f -> 0.0 - 1.0\n", _v_in[3]); \
+    _v_out[3] = _v_in[3] >= 0.0f && _v_in[3] <= 1.0f ? _v_in[3] : 1.0f;
+
+    MTRL_ALPHA_VALIDATE(clamped_d, base->d);
+    MTRL_ALPHA_VALIDATE(clamped_a, base->a);
+    MTRL_ALPHA_VALIDATE(clamped_s, base->s);
+    MTRL_ALPHA_VALIDATE(clamped_e, base->e);
+
+#undef MTRL_ALPHA_VALIDATE
 
     /* Cache the 32-bit material values for quick comparison. */
 
-    mp->d = touint(base->d);
-    mp->a = touint(base->a);
-    mp->s = touint(base->s);
-    mp->e = touint(base->e);
-    mp->h = toushort(base->h[0]);
+    mp->d = touint(clamped_d);
+    mp->a = touint(clamped_a);
+    mp->s = touint(clamped_s);
+    mp->e = touint(clamped_e);
+    mp->h = toushort(MAX(base->h[0], 0.0f));
 
     /* Load GL resources. */
 

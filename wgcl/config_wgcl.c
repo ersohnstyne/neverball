@@ -682,6 +682,13 @@ void WGCL_SaveGameSystemSettings(void)
 
 /*---------------------------------------------------------------------------*/
 
+void WGCL_TryPrepareSystemUpdate(void)
+{
+#ifdef __EMSCRIPTEN__
+    package_quit();
+#endif
+}
+
 void WGCL_TryFormatUserData(void)
 {
 #ifdef __EMSCRIPTEN__

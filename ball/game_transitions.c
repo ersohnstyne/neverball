@@ -21,6 +21,7 @@
 
 /*---------------------------------------------------------------------------*/
 
+#ifndef __EMSCRIPTEN__
 struct game_transition {
     int state;
 
@@ -29,6 +30,8 @@ struct game_transition {
     float transition_k;
     float transition_d;
 };
+
+static int game_transitions_state = 0;
 
 static GLuint game_transitions_vbo;
 static GLuint game_transitions_ebo;
@@ -44,7 +47,8 @@ static struct b_mtrl game_transition_base_mtrl = {
     "gui/transitions/transition_superwaifuball"
 };
 
-static int game_transition_mtrl;
+static int game_transition_mtrl = 0;
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -52,6 +56,7 @@ static int game_transition_mtrl;
 
 int game_transitions_init(void)
 {
+#ifndef __EMSCRIPTEN__
     /*static const GLfloat verts[4][5] = {
         { -0.5f, -0.5f, 0.0f, 0.0f, 0.0f },
         { +0.5f, -0.5f, 0.0f, 1.0f, 0.0f },
@@ -82,37 +87,69 @@ int game_transitions_init(void)
     glBufferData_(GL_ELEMENT_ARRAY_BUFFER, sizeof (elems), elems, GL_STATIC_DRAW);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    return 1;
+    game_transitions_state = (game_transitions_vbo != 0 && game_transitions_ebo != 0);
+
+    if (!game_transitions_state) {
+        if (game_transitions_vbo != 0) glDeleteBuffers_(1, &game_transitions_vbo);
+        if (game_transitions_ebo != 0) glDeleteBuffers_(1, &game_transitions_ebo);
+    }
+
+    return game_transitions_state;
+#else
+    /* Not available in Emscripten! */
+
+    return 0;
+#endif
 }
 
 void game_transitions_quit(void)
 {
+#ifndef __EMSCRIPTEN__
     glDeleteBuffers_(1, &game_transitions_vbo);
     glDeleteBuffers_(1, &game_transitions_ebo);
 
     mtrl_free(game_transition_mtrl); game_transition_mtrl = 0;
+#endif
+}
+
+int game_transitions_available(void)
+{
+#ifndef __EMSCRIPTEN__
+    return fs_exists("gui/transitions/transition_superwaifuball.png") && game_transitions_state;
+#else
+    /* Not available in Emscripten! */
+
+    return 0;
+#endif
 }
 
 void game_transitions_step_fade(float dt)
 {
+#ifndef __EMSCRIPTEN__
     transitions.transition_k = CLAMP(0.0f,
                                      transitions.transition_k + transitions.transition_d * dt,
                                      1.0f);
+#endif
 }
 
 void game_transitions_fade(float d)
 {
+#ifndef __EMSCRIPTEN__
     transitions.transition_d = d * 0.5f;
+#endif
 }
 
 void game_transitions_fade_in(float d)
 {
+#ifndef __EMSCRIPTEN__
     transitions.transition_k = 1.0f;
     transitions.transition_d = d * 0.5f;
+#endif
 }
 
 void game_transitions_draw(struct s_rend *rend)
 {
+#ifndef __EMSCRIPTEN__
     if (transitions.transition_k <= 0.0f) return;
 
     const float transition_icon_scale = video.device_w < video.device_h ?
@@ -123,11 +160,8 @@ void game_transitions_draw(struct s_rend *rend)
                                   21 + (20 * (-fsinf(transitions.transition_k * V_PI))) :
                                   fsinf(transitions.transition_k * V_PI));
 
-    glMatrixMode(GL_PROJECTION);
     video_set_ortho();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
+
     glBindBuffer_(GL_ARRAY_BUFFER,         game_transitions_vbo);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, game_transitions_ebo);
 
@@ -153,26 +187,42 @@ void game_transitions_draw(struct s_rend *rend)
 
     glBindBuffer_(GL_ARRAY_BUFFER,         0);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
+#endif
 }
 
 int game_transitions_fadeout_finished(void)
 {
+#ifndef __EMSCRIPTEN__
     return transitions.transition_d > 0.0f &&
            transitions.transition_k >= 1.0f;
+#else
+    /* Not available in Emscripten! */
+
+    return 0;
+#endif
 }
 
 void game_transitions_set_zorder(int order)
 {
+#ifndef __EMSCRIPTEN__
     transitions.z_order = order;
+#endif
 }
 
 int  game_transitions_get_zorder(void)
 {
+#ifndef __EMSCRIPTEN__
     return transitions.z_order;
+#else
+    /* Not available in Emscripten! */
+
+    return 0;
+#endif
 }
 
 void game_transitions_prep_scene(void)
 {
+#ifndef __EMSCRIPTEN__
     if (transitions.transition_k <= 0.0f) return;
 
     const int   center_x = ROUND(video.device_w / 2.0f);
@@ -180,13 +230,16 @@ void game_transitions_prep_scene(void)
 
     glPushScissor_(MAX(center_x - (video.device_h * max_aspect_ratio), 0), 0,
                    MIN((video.device_h * max_aspect_ratio), video.device_w), video.device_h);
+#endif
 }
 
 void game_transitions_post_scene(void)
 {
+#ifndef __EMSCRIPTEN__
     if (transitions.transition_k <= 0.0f) return;
 
     glPopScissor_();
+#endif
 }
 
 #undef GAME_TRANSITION_VERTEX_SCALE

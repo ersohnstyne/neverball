@@ -4264,7 +4264,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #else
                 sprintf(tmp_buf,
 #endif
-                        "Compile timed out after %d seconds!\n"
+                        "Compile timed out after %lf seconds!\n"
                         "\tCurrently, they exceeds 30 minute compile time, which has slow and old devices.\n"
                         "\tSimplify more structural lumps, or buy the brand new PC!", ctx->compile_time_limit);
             else
@@ -4283,7 +4283,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #else
                 sprintf(tmp_buf,
 #endif
-                        "Compile timed out after %d seconds!\n"
+                        "Compile timed out after %lf seconds!\n"
                         "\tRaise compilation time limit to %d seconds (--timelimit %d)",
                         ctx->compile_time_limit, timelimit_canset_seconds, timelimit_canset_seconds);
             }

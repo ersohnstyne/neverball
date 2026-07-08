@@ -20,6 +20,8 @@
 int  game_transitions_init(void);
 void game_transitions_quit(void);
 
+int  game_transitions_available(void);
+
 /*
  * Step alpha fade for each ticks: 1000ms = 1s
  */

@@ -32,7 +32,7 @@
 
 #include "game_draw.h"
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #include "game_transitions.h"
 #endif
 
@@ -1331,7 +1331,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
 #endif
 
                 /* Draw the mirrors and the rest of the foreground. */
-
+                
                 game_refl_all (&rend, gd);
                 game_draw_fore(&rend, gd, pose, T, +1, t, 0);
 
@@ -1350,8 +1350,8 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
         if (gd->fade_disabled == 0)
         {
-#if NB_HAVE_PB_BOTH==1
-            if (fs_exists("gui/transitions/transition_superwaifuball.png"))
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            if (game_transitions_available())
                 game_transitions_draw(&rend);
             else
 #endif

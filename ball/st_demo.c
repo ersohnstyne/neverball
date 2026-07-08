@@ -1391,7 +1391,7 @@ int demo_play_goto(int s)
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     const int has_campaign = curr_mode()  != MODE_CAMPAIGN ||
-                             curr_clock() == 0.0f;
+                             game_compat_campaign;
 
     return goto_state(game_compat_map && has_campaign ? &st_demo_play :
                                                         &st_demo_compat);
@@ -2064,13 +2064,11 @@ static int demo_compat_gui(void)
         gui_space(id);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        const int has_campaign_untimed = curr_clock() == 0.0f;
-
-        if (curr_mode() == MODE_CAMPAIGN && !has_campaign_untimed && game_compat_map)
+        if (curr_mode() == MODE_CAMPAIGN && !game_compat_campaign && game_compat_map)
             gui_multi(id, _("The current replay was recorded with a\n"
                             "limited time of this level on campaign.\n"),
                       GUI_SML, GUI_COLOR_WHT);
-        else if (curr_mode() == MODE_CAMPAIGN && !has_campaign_untimed)
+        else if (curr_mode() == MODE_CAMPAIGN && !game_compat_campaign)
             gui_multi(id, _("The current replay was recorded with a\n"
                             "limited time and different (or unknown) version\n"
                             "of this level on campaign.\n"

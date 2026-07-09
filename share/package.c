@@ -502,7 +502,7 @@ static Array load_packages_from_file(const char *filename)
                 }
 #endif
 
-                if (!str_starts_with(line + 8, "base-"))
+                if (str_starts_with(line + 8, "base-"))
                     available_packages_kicked = 1;
 
                 if (!available_packages_kicked)

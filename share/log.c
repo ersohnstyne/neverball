@@ -63,6 +63,7 @@ void log_printf(const char *fmt, ...)
         fputs(str, stdout);
         fflush(stdout);
 
+#ifndef __EMSCRIPTEN__
         if (log_fp)
         {
             /* These are printfs to get us CRLF conversion. */
@@ -75,20 +76,19 @@ void log_printf(const char *fmt, ...)
 
             fs_printf(log_fp, TEMP_LOG_INFO, str);
             fs_flush(log_fp);
-        }
-#if !defined(_CONSOLE) && !defined(__EMSCRIPTEN__)
+        } else
+#ifndef _CONSOLE
 #if _WIN32 && !_CRT_SECURE_NO_WARNINGS
-        else
         {
             fprintf_s(stdout, TEMP_LOG_INFO, str);
             printf_s(TEMP_LOG_INFO, str);
         }
 #else
-        else
         {
             fprintf(stdout, TEMP_LOG_INFO, str);
             printf(TEMP_LOG_INFO, str);
         }
+#endif
 #endif
 #endif
 
@@ -124,6 +124,7 @@ void log_errorf(const char *fmt, ...)
         fputs(str, stderr);
         fflush(stderr);
 
+#ifndef __EMSCRIPTEN__
         if (log_fp)
         {
             /* These are printfs to get us CRLF conversion. */
@@ -136,20 +137,19 @@ void log_errorf(const char *fmt, ...)
 
             fs_printf(log_fp, TEMP_LOG_ERROR, str);
             fs_flush(log_fp);
-        }
-#if !defined(_CONSOLE) && !defined(__EMSCRIPTEN__)
+        } else
+#ifndef _CONSOLE
 #if _WIN32 && !_CRT_SECURE_NO_WARNINGS
-        else
         {
-            fprintf_s(stderr, TEMP_LOG_INFO, str);
-            printf_s(TEMP_LOG_INFO, str);
+            fprintf_s(stderr, TEMP_LOG_ERROR, str);
+            printf_s(TEMP_LOG_ERROR, str);
         }
 #else
-        else
         {
-            fprintf(stderr, TEMP_LOG_INFO, str);
-            printf(TEMP_LOG_INFO, str);
+            fprintf(stderr, TEMP_LOG_ERROR, str);
+            printf(TEMP_LOG_ERROR, str);
         }
+#endif
 #endif
 #endif
 
@@ -169,6 +169,7 @@ void log_errorf(const char *fmt, ...)
 
 void log_init(const char *name, const char *path)
 {
+#ifndef __EMSCRIPTEN__
     if (!log_fp)
     {
         log_fp = fs_open_write(path);
@@ -177,7 +178,7 @@ void log_init(const char *name, const char *path)
         {
             /* Printed on first message. */
 
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+#if _WIN32 && !_CRT_SECURE_NO_WARNINGS
             sprintf_s(log_header, MAXSTR,
 #else
             sprintf(log_header,
@@ -198,7 +199,7 @@ void log_init(const char *name, const char *path)
             OutputDebugStringA("\n");
 #endif
 #endif
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+#if _WIN32 && !_CRT_SECURE_NO_WARNINGS
             fprintf_s(stderr, "Failure to open %s!: %s\n", path, fs_error());
             printf_s("Failure to open %s!: %s\n", path, fs_error());
 #else
@@ -207,15 +208,18 @@ void log_init(const char *name, const char *path)
 #endif
         }
     }
+#endif
 }
 
 void log_quit(void)
 {
+#ifndef __EMSCRIPTEN__
     if (log_fp)
     {
         fs_close(log_fp);
         log_header[0] = 0;
     }
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

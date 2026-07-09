@@ -613,16 +613,16 @@ void sol_free_draw(struct s_draw *draw)
 static void sol_draw_all(const struct s_draw *draw, struct s_rend *rend, int p)
 {
     /* Draw all meshes of all bodies matching the given material flags. */
-
-    for (int bi = 0; bi < draw->bc; ++bi)
-        if (draw->bv && draw->bv[bi].pass[p]) {
-            glPushMatrix();
-            {
+    
+    if (draw->bv) {
+        for (int bi = 0; bi < draw->bc; ++bi)
+            if (draw->bv[bi].pass[p]) {
+                glPushMatrix();
                 sol_transform(draw->vary, draw->vary->bv + bi, draw->shadow_ui);
                 sol_draw_body(draw->bv + bi, rend, p);
+                glPopMatrix();
             }
-            glPopMatrix();
-        } else if (!draw->bv) log_errorf("draw->bv returned NULL!\n");
+    } else if (draw->bc) log_errorf("draw->bv returned NULL!\n");
 }
 
 /*---------------------------------------------------------------------------*/

@@ -592,8 +592,8 @@ static int pause_quit_gui(void)
             if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
             {
-                gui_start(jd, _("No"), GUI_SML, GUI_BACK, 0);
-                gui_state(jd, _("Yes"), GUI_SML,
+                gui_state(jd, _("No"), GUI_SML, GUI_BACK, 0);
+                gui_start(jd, _("Yes"), GUI_SML,
                           quit_uses_restart ? PAUSE_RESTART :
                                               (quit_uses_resetpuzzle ? PAUSE_RESPAWN :
                                                                        PAUSE_EXIT), 0);
@@ -647,11 +647,24 @@ static int pause_quit_buttn(int b, int d)
     if (d)
     {
         int active = gui_active();
-
+        
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return pause_action(quit_uses_restart ? PAUSE_RESTART :
-                                                    (quit_uses_resetpuzzle ? PAUSE_RESPAWN :
-                                                                             PAUSE_EXIT), 0);
+        {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
+#endif
+            {
+                return pause_action(gui_token(active) == GUI_BACK ? GUI_BACK :
+                                    (quit_uses_restart ? PAUSE_RESTART :
+                                     (quit_uses_resetpuzzle ? PAUSE_RESPAWN :
+                                      PAUSE_EXIT)), 0);
+            }
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            else return pause_action((quit_uses_restart ? PAUSE_RESTART :
+                                      (quit_uses_resetpuzzle ? PAUSE_RESPAWN :
+                                       PAUSE_EXIT)), 0);
+#endif
+        }
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b) && curr_state() != &st_pause) {
             audio_play(AUD_BACK, 1.0f);
@@ -696,5 +709,5 @@ struct state st_pause_quit = {
     shared_angle,
     shared_click,
     pause_keybd,
-    pause_buttn
+    pause_quit_buttn
 };

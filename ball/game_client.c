@@ -664,7 +664,11 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
 
     back_init(grad_name);
 
-    sol_load_full(&gd.back, back_name, 0);
+    if (!sol_load_full(&gd.back, back_name, 0)) {
+        sol_free_vary(&gd.vary);
+        game_base_free(NULL);
+        return (gd.state = 0);
+    }
 
     /* Initialize lighting. */
 
@@ -896,7 +900,12 @@ int  game_client_init(const char *file_name)
     grad_filename = strdup(grad_name);
 
     back_init(grad_name);
-    sol_load_full(&gd.back, back_name, 0);
+
+    if (!sol_load_full(&gd.back, back_name, 0)) {
+        sol_free_vary(&gd.vary);
+        game_base_free(NULL);
+        return (gd.state = 0);
+    }
 
     /* Initialize lighting. */
 

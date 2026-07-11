@@ -725,7 +725,7 @@ static void gui_demo_update_status(int i)
 
     /* Make sure, that the level status limit is underneath it. */
 
-    if (stat_high_limit || time_high_limit)
+    else if (stat_high_limit || time_high_limit)
     {
         /* Max level status exceeds limits! */
 
@@ -1974,8 +1974,7 @@ static int demo_del_gui(void)
         if ((jd = gui_harray(id)))
         {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC)
-            {
+            //if (current_platform == PLATFORM_PC) {
 #endif
                 if (get_max_game_stat() <= get_limit_game_stat() && allow_exact_versions)
                 {
@@ -1987,7 +1986,7 @@ static int demo_del_gui(void)
                     gui_label(jd, _("Keep"), GUI_SML, GUI_COLOR_GRY);
                     gui_start(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
                 }
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+/*#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             } else {
                 if ((kd = gui_hstack(jd))) {
                     gui_filler(kd);
@@ -2009,7 +2008,7 @@ static int demo_del_gui(void)
                     gui_set_rect(kd, GUI_ALL);
                 }
             }
-#endif
+#endif*/
         }
 
         gui_layout(id, 0, 0);
@@ -2042,7 +2041,7 @@ static int demo_del_buttn(int b, int d)
         int active = gui_active();
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return demo_del_action(DEMO_DEL, 0);
+            return demo_del_action(gui_token(active), gui_value(active));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b)) {
             if (!allow_exact_versions || get_max_game_stat() > get_limit_game_stat())
                 audio_play(AUD_DISABLED, 1.0f);

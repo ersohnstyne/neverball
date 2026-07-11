@@ -288,11 +288,7 @@ struct mtrl *mtrl_get(int mi)
  */
 void mtrl_cache_sol(struct s_base *fp)
 {
-    if (fp->mtrls)
-    {
-        free(fp->mtrls);
-        fp->mtrls = NULL;
-    }
+    mtrl_free_sol(fp);
 
     if ((fp->mtrls = calloc(fp->mc, sizeof (*fp->mtrls))))
     {

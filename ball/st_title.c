@@ -172,9 +172,10 @@ static int title_check_balls_shown(void)
 #endif
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-    const int ball_shown = !CHECK_ACCOUNT_BANKRUPT &&
-                           (output_tm.tm_hour > 5 &&
-                            output_tm.tm_hour < 22);
+    const int ball_shown = (!CHECK_ACCOUNT_BANKRUPT &&
+                            (output_tm.tm_hour > 5 &&
+                             output_tm.tm_hour < 22)) ||
+                           config_cheat();
 #else
     const int ball_shown = 1;
 #endif
@@ -768,6 +769,7 @@ static int title_action(int tok, int val)
             if (strcmp(queue, keyphrase) == 0)
             {
                 config_set_cheat();
+                title_check_balls_shown();
                 gui_set_label(play_id, gt_prefix("menu^Cheat"));
                 gui_pulse(play_id, 1.2f);
                 if (edition_id) gui_set_label(edition_id, dev_env);
@@ -781,6 +783,7 @@ static int title_action(int tok, int val)
 
                 glSetWireframe_(0);
                 config_clr_cheat();
+                title_check_balls_shown();
                 gui_set_label(play_id, gt_prefix("menu^Play"));
                 gui_pulse(play_id, 1.2f);
                 if (edition_id) gui_set_label(edition_id, os_env);

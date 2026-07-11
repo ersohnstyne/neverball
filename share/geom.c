@@ -73,22 +73,21 @@ static void tex_env_conf_default(int stage, int enable)
 {
     switch (stage)
     {
-        case TEX_STAGE_TEXTURE:
-            if (enable)
-            {
-                glEnable(GL_TEXTURE_2D);
+    case TEX_STAGE_TEXTURE:
+        if (enable)
+        {
+            glEnable(GL_TEXTURE_2D);
 
-                /* Modulate is the default mode. */
+            /* Modulate is the default mode. */
 
-                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-                glMatrixMode  (GL_TEXTURE);
-                glLoadIdentity();
-                glMatrixMode  (GL_MODELVIEW);
-            }
-            else
-                glDisable(GL_TEXTURE_2D);
-            break;
+            glMatrixMode(GL_TEXTURE);
+            glLoadIdentity();
+            glMatrixMode(GL_MODELVIEW);
+        }
+        else glDisable(GL_TEXTURE_2D);
+        break;
     }
 }
 
@@ -96,67 +95,67 @@ static void tex_env_conf_shadow(int stage, int enable)
 {
     switch (stage)
     {
-        case TEX_STAGE_SHADOW:
-            glDisable(GL_TEXTURE_2D);
-
-            if (enable)
-            {
+    case TEX_STAGE_SHADOW:
+        if (enable)
+        {
             glDisable(GL_TEXTURE_2D);
 
             /* Modulate primary color and shadow alpha. */
 
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
-            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB,  GL_MODULATE);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB,     GL_PREVIOUS);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB,     GL_TEXTURE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_TEXTURE);
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_ONE_MINUS_SRC_ALPHA);
 
             /* Copy incoming alpha. */
 
-            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA,  GL_REPLACE);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA,     GL_PREVIOUS);
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 
             glMatrixMode(GL_TEXTURE);
             glLoadIdentity();
             glMatrixMode(GL_MODELVIEW);
-            }
-            break;
+        }
+        else glDisable(GL_TEXTURE_2D);
+        break;
 
-        case TEX_STAGE_CLIP:
+    case TEX_STAGE_CLIP:
+        if (enable)
+        {
             glDisable(GL_TEXTURE_2D);
 
-            if (enable)
-            {
             /* Interpolate shadowed and non-shadowed primary color. */
 
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
-            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB,  GL_INTERPOLATE);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB,     GL_PREVIOUS);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB,     GL_PRIMARY_COLOR);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SRC2_RGB,     GL_TEXTURE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_PRIMARY_COLOR);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SRC2_RGB, GL_TEXTURE);
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);
 
             /* Copy incoming alpha. */
 
-            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA,  GL_REPLACE);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA,     GL_PREVIOUS);
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 
             glMatrixMode(GL_TEXTURE);
             glLoadIdentity();
             glMatrixMode(GL_MODELVIEW);
-            }
-            break;
+        }
+        else glDisable(GL_TEXTURE_2D);
+        break;
 
-        case TEX_STAGE_TEXTURE:
-            tex_env_conf_default(TEX_STAGE_TEXTURE, enable);
-            break;
+    case TEX_STAGE_TEXTURE:
+        tex_env_conf_default(TEX_STAGE_TEXTURE, enable);
+        break;
     }
 }
 
@@ -170,20 +169,21 @@ static void tex_env_conf_pose(int stage, int enable)
 
     switch (stage)
     {
-        case TEX_STAGE_SHADOW:
+    case TEX_STAGE_SHADOW:
+        if (enable)
+        {
             glDisable(GL_TEXTURE_2D);
 
-            if (enable)
-            {
-                /* Make shadow texture override everything else. */
+            /* Make shadow texture override everything else. */
 
-                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-            }
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+        }
+        else glDisable(GL_TEXTURE_2D);
         break;
 
-        case TEX_STAGE_TEXTURE:
-            tex_env_conf_default(stage, enable);
-            break;
+    case TEX_STAGE_TEXTURE:
+        tex_env_conf_default(stage, enable);
+        break;
     }
 }
 
@@ -557,9 +557,7 @@ void item_draw(struct s_rend *rend,
         glScalef(s, s, s);
 
         glDepthMask(GL_FALSE);
-        {
-            sol_bill(draw, rend, M, t);
-        }
+        sol_bill(draw, rend, M, t);
         glDepthMask(GL_TRUE);
 
         sol_draw(draw, rend, 0, 1);
@@ -626,7 +624,7 @@ int back_compare_filename(const char *s)
 
 /* Draw max speed indicator with position (p) and angle (a) */
 
-void maxspeed_draw(struct s_rend* rend)
+void maxspeed_draw(struct s_rend *rend)
 {
     sol_draw(&maxspeed.draw, rend, 0, 1);
 }
@@ -644,7 +642,7 @@ void beam_draw(struct s_rend *rend, const GLfloat *p,
 
         glTranslatef(p[0], p[1], p[2]);
         glScalef(r, h, r);
-        glColor4ub(ROUND(c[0] * motionblur_c[0]),
+        glColor4ub_(ROUND(c[0] * motionblur_c[0]),
                    ROUND(c[1] * motionblur_c[1]),
                    ROUND(c[2] * motionblur_c[2]),
                    ROUND(c[3] * motionblur_c[3]));
@@ -723,7 +721,7 @@ void flag_draw(struct s_rend *rend, const GLfloat *p)
         unsigned char motionblur_c[4] = DRAW_COLOR4UBV_CNF_MOTIONBLUR;
 
         glTranslatef(p[0], p[1], p[2]);
-        glColor4ub(motionblur_c[0], motionblur_c[1], motionblur_c[2],
+        glColor4ub_(motionblur_c[0], motionblur_c[1], motionblur_c[2],
                    motionblur_c[3]);
         sol_draw(&flag.draw, rend, 1, 1);
     }
@@ -943,16 +941,16 @@ static const struct light default_lights[LIGHT_MAX] = {
     {
         { -8.0f, +32.0f, -8.0f, 0.0f },
 
-        {  1.0f,   0.8f,  0.8f, 1.0f },
-        {  0.7f,   0.7f,  0.7f, 1.0f },
-        {  1.0f,   0.8f,  0.8f, 1.0f }
+        { 1.0f, 0.8f, 0.8f, 1.0f },
+        { 0.7f, 0.7f, 0.7f, 1.0f },
+        { 1.0f, 0.8f, 0.8f, 1.0f }
     },
     {
         { +8.0f, +32.0f, +8.0f, 0.0f },
 
-        {  0.8f,   1.0f,  0.8f, 1.0f },
-        {  0.7f,   0.7f,  0.7f, 1.0f },
-        {  0.8f,   1.0f,  0.8f, 1.0f },
+        { 0.8f, 1.0f, 0.8f, 1.0f },
+        { 0.7f, 0.7f, 0.7f, 1.0f },
+        { 0.8f, 1.0f, 0.8f, 1.0f },
     },
     {
         { 0.0f, 0.0f, 1.0f, 0.0f },

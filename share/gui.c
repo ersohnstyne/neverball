@@ -2354,7 +2354,7 @@ static void gui_paint_image(int id)
             glTranslatef(0, 0, (widget[id].pulse_scale - 1.0f) * (video.device_h / 2.0f));
 
         glBindTexture_(GL_TEXTURE_2D, widget[id].image);
-        glColor4ub(GUI_COLOR4UB);
+        glColor4ub_(GUI_COLOR4UB);
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -2424,7 +2424,7 @@ static void gui_paint_count(int id)
                 int jd = digit_id[i][j % 10];
 
                 glBindTexture_(GL_TEXTURE_2D, widget[jd].image);
-                glColor4ub(GUI_COLOR4UB);
+                glColor4ub_(GUI_COLOR4UB);
                 draw_text(jd);
 
                 glTranslatef((GLfloat) -widget[jd].text_w, 0.0f, 0.0f);
@@ -2435,7 +2435,7 @@ static void gui_paint_count(int id)
             /* If the value is zero, just display a zero in place. */
 
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][0]].image);
-            glColor4ub(GUI_COLOR4UB);
+            glColor4ub_(GUI_COLOR4UB);
             draw_text(digit_id[i][0]);
         }
 
@@ -2514,7 +2514,7 @@ static void gui_paint_clock(int id)
         /*if (dyh > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][dyh]].image);
-            glColor4ub(GUI_COLOR4UB);
+            glColor4ub_(GUI_COLOR4UB);
             draw_text(digit_id[i][dyh]);
             glTranslatef(dx_large, 0.0f, 0.0f);
         }
@@ -2522,7 +2522,7 @@ static void gui_paint_clock(int id)
         if (dyt > 0 || dyh > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][dyt]].image);
-            glColor4ub(GUI_COLOR4UB);
+            glColor4ub_(GUI_COLOR4UB);
             draw_text(digit_id[i][dyt]);
             glTranslatef(dx_large, 0.0f, 0.0f);
         }
@@ -2530,7 +2530,7 @@ static void gui_paint_clock(int id)
         if (dyo > 0 || dyt > 0 || dyh > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][dyo]].image);
-            glColor4ub(GUI_COLOR4UB);
+            glColor4ub_(GUI_COLOR4UB);
             draw_text(digit_id[i][dyo]);
             glTranslatef(dx_small, 0.0f, 0.0f);
         }*/
@@ -2540,7 +2540,7 @@ static void gui_paint_clock(int id)
         /*if (dyo > 0 || dyt > 0 || dyh > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][10]].image);
-            glColor4ub(GUI_COLOR4UB);
+            glColor4ub_(GUI_COLOR4UB);
             draw_text(digit_id[i][11]);
             glTranslatef(dx_small, 0.0f, 0.0f);
         }*/
@@ -2550,7 +2550,7 @@ static void gui_paint_clock(int id)
         if (hrt > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][hrt]].image);
-            glColor4ub(GUI_COLOR4UB);
+            glColor4ub_(GUI_COLOR4UB);
             draw_text(digit_id[i][hrt]);
             glTranslatef(dx_large, 0.0f, 0.0f);
         }
@@ -2558,7 +2558,7 @@ static void gui_paint_clock(int id)
         if (hro > 0 || hrt > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][hro]].image);
-            glColor4ub(GUI_COLOR4UB);
+            glColor4ub_(GUI_COLOR4UB);
             draw_text(digit_id[i][hro]);
             glTranslatef(dx_small, 0.0f, 0.0f);
         }
@@ -2568,7 +2568,7 @@ static void gui_paint_clock(int id)
         if (hro > 0 || hrt > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][10]].image);
-            glColor4ub(GUI_COLOR4UB);
+            glColor4ub_(GUI_COLOR4UB);
             draw_text(digit_id[i][10]);
             glTranslatef(dx_small, 0.0f, 0.0f);
         }
@@ -2578,32 +2578,32 @@ static void gui_paint_clock(int id)
         if (mt > 0 || hro > 0)
         {
             glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][mt]].image);
-            glColor4ub(GUI_COLOR4UB);
+            glColor4ub_(GUI_COLOR4UB);
             draw_text(digit_id[i][mt]);
             glTranslatef(dx_large, 0.0f, 0.0f);
         }
 
         glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][mo]].image);
-        glColor4ub(GUI_COLOR4UB);
+        glColor4ub_(GUI_COLOR4UB);
         draw_text(digit_id[i][mo]);
         glTranslatef(dx_small, 0.0f, 0.0f);
 
         /* Render the colon (before seconds). */
 
         glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][10]].image);
-        glColor4ub(GUI_COLOR4UB);
+        glColor4ub_(GUI_COLOR4UB);
         draw_text(digit_id[i][10]);
         glTranslatef(dx_small, 0.0f, 0.0f);
 
         /* Render the seconds counter. */
 
         glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][st]].image);
-        glColor4ub(GUI_COLOR4UB);
+        glColor4ub_(GUI_COLOR4UB);
         draw_text(digit_id[i][st]);
         glTranslatef(dx_large, 0.0f, 0.0f);
 
         glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][so]].image);
-        glColor4ub(GUI_COLOR4UB);
+        glColor4ub_(GUI_COLOR4UB);
         draw_text(digit_id[i][so]);
         glTranslatef(dx_small, 0.0f, 0.0f);
 
@@ -2612,12 +2612,12 @@ static void gui_paint_clock(int id)
         glScalef(0.5f, 0.5f, 1.0f);
 
         glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][ht]].image);
-        glColor4ub(GUI_COLOR4UB);
+        glColor4ub_(GUI_COLOR4UB);
         draw_text(digit_id[i][ht]);
         glTranslatef(dx_large, 0.0f, 0.0f);
 
         glBindTexture_(GL_TEXTURE_2D, widget[digit_id[i][ho]].image);
-        glColor4ub(GUI_COLOR4UB);
+        glColor4ub_(GUI_COLOR4UB);
         draw_text(digit_id[i][ho]);
 
         gui_paint_hmdexperience_pop();
@@ -2650,7 +2650,7 @@ static void gui_paint_label(int id)
             glTranslatef(0, 0, (widget[id].pulse_scale - 1.0f) * (video.device_h / 2.0f));
 
         glBindTexture_(GL_TEXTURE_2D, widget[id].image);
-        glColor4ub(GUI_COLOR4UB);
+        glColor4ub_(GUI_COLOR4UB);
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -2859,15 +2859,15 @@ void gui_paint(int id)
         gui_animate(id);
 
         draw_enable(GL_FALSE, GL_TRUE, GL_TRUE);
-        glColor4ub(GUI_COLOR4UB);
+        glColor4ub_(GUI_COLOR4UB);
         gui_paint_rect(id, 0, 0);
 
         draw_enable(GL_TRUE, GL_TRUE, GL_TRUE);
-        glColor4ub(GUI_COLOR4UB);
+        glColor4ub_(GUI_COLOR4UB);
         gui_paint_text(id);
 
         draw_disable();
-        glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2],
+        glColor4ub_(gui_wht[0], gui_wht[1], gui_wht[2],
 #if ENABLE_MOTIONBLUR!=0
                    ROUND(gui_wht[3] * video_motionblur_alpha_get()));
 #else
@@ -2894,7 +2894,7 @@ void gui_paint(int id)
         gui_paint_image(cursor_id);
         draw_disable();
 
-        glColor4ub(gui_wht[0], gui_wht[1], gui_wht[2],
+        glColor4ub_(gui_wht[0], gui_wht[1], gui_wht[2],
 #if ENABLE_MOTIONBLUR!=0
                    ROUND(gui_wht[3] * video_motionblur_alpha_get()));
 #else

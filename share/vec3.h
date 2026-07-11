@@ -140,14 +140,14 @@ void v_nrm_d(double n[3], const double v[3]);
     (u)[2] = (v)[0] * (w)[1] - (v)[1] * (w)[0]; \
 } while (0)
 
-#define m_inv(u, v) m_inv3f(u, v)
-
 void v_reflect(float u[3], const float v[3], const float n[3]);
 
 void   m_cpy(float *, const float *);
 void   m_xps(float *, const float *);                  /* Transpose (Matrix) */
-int    m_inv3d(double *I, const double *M);            /* Inverse (Matrix) (double) */
-int    m_inv3f(float  *I, const float  *M);            /* Inverse (Matrix) (double) */
+
+int    m_inv(float *I, const float *N);                /* Inverse (Matrix) */
+int    m_inv3d(double *I, const double *M);            /* Inverse (Matrix) (3-double) */
+int    m_inv3f(float  *I, const float  *M);            /* Inverse (Matrix) (3-double) */
 
 void   m_ident(float *);                               /* Identity (Matrix)  */
 void   m_basis(float *M, const float e0[3],
@@ -162,8 +162,6 @@ void   m_pxfm(float *, const float *, const float *);
 void   m_vxfm(float *, const float *, const float *);  /* Transform (Matrix) (float) */
 
 void   m_vxfm3d(double v[3], const double M[9], const double w[3]);  /* Transform (Matrix) (double) */
-
-void   m_vxfm3d(double v[3], const double M[9], const double w[3]);
 
 /*---------------------------------------------------------------------------*/
 

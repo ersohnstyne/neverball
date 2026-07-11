@@ -217,8 +217,9 @@ struct s_lerp
 
 #include "cmd.h"
 
+#define sol_respawn_lerp sol_load_lerp
+
 int  sol_load_lerp(struct s_lerp *, struct s_vary *);
-int  sol_respawn_lerp(struct s_lerp *, struct s_vary *);
 void sol_free_lerp(struct s_lerp *);
 
 void sol_lerp_copy(struct s_lerp *);

@@ -18,6 +18,8 @@
 #include "common.h"
 #include "vec3.h"
 
+#include "log.h"
+
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
 #pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
@@ -493,6 +495,11 @@ void sol_lerp_apply(struct s_lerp *fp, float a)
 
     for (i = 0; i < fp->mc; i++)
     {
+        if (!fp->vary->mv) {
+            log_errorf("fp->vary->mv returned NULL!\n");
+            continue;
+        }
+
         const float old_t  = fp->vary->mv[i].t;
         const int   old_pi = fp->vary->mv[i].pi;
 
@@ -523,43 +530,8 @@ void sol_lerp_apply(struct s_lerp *fp, float a)
 
 int sol_load_lerp(struct s_lerp *fp, struct s_vary *vary)
 {
-    int i;
+    sol_free_lerp(fp);
 
-    fp->vary = vary;
-
-    if (fp->vary->mc)
-    {
-        fp->mv = calloc(fp->vary->mc, sizeof (*fp->mv));
-        if (fp->mv == 0) return 0;
-        fp->mc = fp->vary->mc;
-
-        for (i = 0; i < fp->vary->mc; i++)
-            fp->mv[i][CURR].pi = fp->vary->mv[i].pi;
-    }
-
-    if (fp->vary->uc)
-    {
-        fp->uv = calloc(fp->vary->uc, sizeof (*fp->uv));
-        if (fp->uv == 0) return 0;
-        fp->uc = fp->vary->uc;
-
-        for (i = 0; i < fp->vary->uc; i++)
-        {
-            e_cpy(fp->uv[i][CURR].e, fp->vary->uv[i].e);
-            v_cpy(fp->uv[i][CURR].p, fp->vary->uv[i].p);
-            e_cpy(fp->uv[i][CURR].E, fp->vary->uv[i].E);
-
-            fp->uv[i][CURR].r = fp->vary->uv[i].r;
-        }
-    }
-
-    sol_lerp_copy(fp);
-
-    return 1;
-}
-
-int  sol_respawn_lerp(struct s_lerp *fp, struct s_vary *vary)
-{
     int i;
 
     fp->vary = vary;

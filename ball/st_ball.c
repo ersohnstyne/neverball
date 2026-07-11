@@ -46,6 +46,7 @@
 #include "key.h"
 #include "progress.h"
 #include "text.h"
+#include "log.h"
 
 #include "game_server.h"
 #include "game_proxy.h"
@@ -466,7 +467,7 @@ static int filter_cmd(const union cmd *cmd)
     return (cmd ? cmd->type != CMD_MAKE_ITEM : 1);
 }
 
-static void load_ball_demo(void)
+static int load_ball_demo(void)
 {
     model_studio = 0;
 
@@ -481,16 +482,15 @@ static void load_ball_demo(void)
 
             if (!config_get_d(CONFIG_SCREEN_ANIMATIONS))
                 game_kill_fade();
-        }
+        } else return 0;
 
 #if NB_HAVE_PB_BOTH==1
         if (super_environment == 0)
 #endif
             back_init("back/premium.png");
 
-        return;
-    }
-    else game_client_toggle_show_balls(1);
+        return 1;
+    } else game_client_toggle_show_balls(1);
 
 #if NB_HAVE_PB_BOTH==1
     demo_replay_speed(super_environment ? SPEED_SLOWER : SPEED_NORMAL);
@@ -505,6 +505,8 @@ static void load_ball_demo(void)
     if (super_environment == 0)
 #endif
         back_init("back/premium.png");
+
+    return 1;
 }
 
 static int ball_gui(void)

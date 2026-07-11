@@ -141,6 +141,8 @@ void sol_refl(const struct s_draw *, struct s_rend *);
 void sol_draw(const struct s_draw *, struct s_rend *, int, int);
 void sol_bill(const struct s_draw *, struct s_rend *, const float *, float);
 
+void sol_draw_debug(const struct s_draw *, struct s_rend *);
+
 /*---------------------------------------------------------------------------*/
 
 void sol_fade_color(float, float, float);

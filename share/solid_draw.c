@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -85,8 +89,7 @@ static void sol_transform(const struct s_vary *vary,
 
     /* Apply the shadow transform to the texture matrix. */
 
-    if (ui >= 0 && ui < vary->uc &&
-        vary->uv && vary->uv[ui].r > 0.0f)
+    if (ui >= 0 && ui < vary->uc && vary->uv[ui].r > 0.0f)
     {
         struct v_ball *up = vary->uv + ui;
 
@@ -185,7 +188,6 @@ static void sol_bill_enable(const struct s_draw *draw)
     const size_t s = sizeof (GLfloat);
 
     glBindBuffer_(GL_ARRAY_BUFFER, draw->bill);
-
     glDisableClientState(GL_NORMAL_ARRAY);
 
     glTexCoordPointer(2, GL_FLOAT, s * 4, (GLvoid *) (    0));
@@ -195,7 +197,6 @@ static void sol_bill_enable(const struct s_draw *draw)
 static void sol_bill_disable(void)
 {
     glEnableClientState(GL_NORMAL_ARRAY);
-
     glBindBuffer_(GL_ARRAY_BUFFER, 0);
 }
 
@@ -206,7 +207,7 @@ static int sol_test_mtrl(int mi, int p)
     const struct mtrl *mp = mtrl_get(mi);
 
     /* Test whether the material flags match inclusion rules. */
-    
+
     return mp && ((mp->base.fl & passes[p].in) == passes[p].in &&
                   (mp->base.fl & passes[p].ex) == 0);
 }
@@ -288,7 +289,8 @@ static void sol_mesh_vert(struct d_vert *vp,
                           const struct s_base *base, int oi)
 {
     if (!base->tv || !base->sv || !base->vv ||
-        !base->ov) return;
+        !base->ov)
+        return;
 
     /* Gather all vertex attributes for the given offs. */
 
@@ -320,7 +322,8 @@ static void sol_mesh_geom(struct d_vert *vv,   int *vn,
 
     for (gi = 0; gi < gc; gi++)
     {
-        if (!base->gv || !base->iv) continue;
+        if (!base->gv || !base->iv)
+            continue;
 
         const struct b_geom *gq = base->gv + base->iv[g0 + gi];
 
@@ -362,28 +365,14 @@ static void sol_mesh_geom(struct d_vert *vv,   int *vn,
             gv[*gn].j = iv[gq->oj];
             gv[*gn].k = iv[gq->ok];
 
-            mp->vp[0][0] = vv[gq->oi].p[0];
-            mp->vp[0][1] = vv[gq->oi].p[1];
-            mp->vp[0][2] = vv[gq->oi].p[2];
-
-            mp->vp[1][0] = vv[gq->oj].p[0];
-            mp->vp[1][1] = vv[gq->oj].p[1];
-            mp->vp[1][2] = vv[gq->oj].p[2];
-
-            mp->vp[2][0] = vv[gq->ok].p[0];
-            mp->vp[2][1] = vv[gq->ok].p[1];
-            mp->vp[2][2] = vv[gq->ok].p[2];
-
-            v_cpy(mp->vn, vv[gq->oi].n);
-
             (*gn)++;
         }
     }
 }
 
-static void sol_load_mesh(struct d_mesh *mp,
-                          const struct b_body *bp,
-                          const struct s_draw *draw, int mi)
+static int sol_load_mesh(struct d_mesh *mp,
+                         const struct b_body *bp,
+                         const struct s_draw *draw, int mi)
 {
     struct d_vert *vv = 0;
     struct d_geom *gv = 0;
@@ -415,25 +404,55 @@ static void sol_load_mesh(struct d_mesh *mp,
                 sol_mesh_geom(vv, &vn, gv, &gn, draw->base, iv,
                               draw->base->lv[bp->l0 + li].g0,
                               draw->base->lv[bp->l0 + li].gc, mi, mp);
+            else log_errorf("draw->base->lv returned NULL!\n");
         }
 
         /* Include all matching body geoms in the arrays. */
 
         sol_mesh_geom(vv, &vn, gv, &gn, draw->base, iv, bp->g0, bp->gc, mi, mp);
 
+        /* HACK: Just before rendering. */
+
+        int curr_size_vbo = 0,
+            curr_size_ebo = 0,
+            expected_size_vbo = vn * sizeof (*vv),
+            expected_size_ebo = gn * sizeof (*gv);
+
         /* Initialize buffer objects for all data. */
 
-        glGenBuffers_(1, &mp->vbo);
+        glGenBuffers_(1,                      &mp->vbo);
         glBindBuffer_(GL_ARRAY_BUFFER,         mp->vbo);
-        glBufferData_(GL_ARRAY_BUFFER,         vn * sizeof (*vv), vv,
+        glBufferData_(GL_ARRAY_BUFFER,         expected_size_vbo, vv,
                       GL_STATIC_DRAW);
+
+        glGetBufferParameteriv_(GL_ARRAY_BUFFER,
+                                GL_BUFFER_SIZE, &curr_size_vbo);
+
         glBindBuffer_(GL_ARRAY_BUFFER,         0);
 
-        glGenBuffers_(1, &mp->ebo);
+        glGenBuffers_(1,                      &mp->ebo);
         glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, mp->ebo);
-        glBufferData_(GL_ELEMENT_ARRAY_BUFFER, gn * sizeof (*gv), gv,
+        glBufferData_(GL_ELEMENT_ARRAY_BUFFER, expected_size_ebo, gv,
                       GL_STATIC_DRAW);
+
+        glGetBufferParameteriv_(GL_ELEMENT_ARRAY_BUFFER,
+                                GL_BUFFER_SIZE, &curr_size_ebo);
+
         glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+        if (curr_size_vbo != expected_size_vbo)
+            log_errorf("Mismatched VBO data size!: %d -> %d\n", curr_size_vbo, expected_size_vbo);
+        if (curr_size_ebo != expected_size_ebo)
+            log_errorf("Mismatched EBO data size!: %d -> %d\n", curr_size_ebo, expected_size_ebo);
+
+        if (curr_size_vbo != expected_size_vbo ||
+            curr_size_ebo != expected_size_ebo) {
+            if (iv) { free(iv); iv = NULL; }
+            if (gv) { free(gv); gv = NULL; }
+            if (vv) { free(vv); vv = NULL; }
+
+            return 0;
+        }
 
         /* Note cached material index. */
 
@@ -441,11 +460,19 @@ static void sol_load_mesh(struct d_mesh *mp,
 
         mp->ebc = gn * 3;
         mp->vbc = vn;
+    } else {
+        if (iv) { free(iv); iv = NULL; }
+        if (gv) { free(gv); gv = NULL; }
+        if (vv) { free(vv); vv = NULL; }
+
+        return 0;
     }
 
     free(iv); iv = NULL;
     free(gv); gv = NULL;
     free(vv); vv = NULL;
+
+    return 1;
 }
 
 static void sol_free_mesh(struct d_mesh *mp)
@@ -457,7 +484,6 @@ static void sol_free_mesh(struct d_mesh *mp)
 static void sol_draw_mesh(const struct d_mesh *mp,
                           struct s_rend *rend, int p)
 {
-
     /* If this mesh has material matching the given flags... */
 
     if (sol_test_mtrl(mp->mtrl, p))
@@ -496,11 +522,46 @@ static void sol_draw_mesh(const struct d_mesh *mp,
     }
 }
 
+static void sol_draw_mesh_debug(const struct d_mesh *mp,
+                                struct s_rend *rend, int top)
+{
+    glDisable(GL_TEXTURE_2D);
+    {
+        const size_t s = sizeof (struct d_vert);
+        const GLenum T = GL_FLOAT;
+
+        if (!gli.wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        if (top) glColor4f_(0, 255, 255, 192);
+        else     glColor4f_(0, 128, 255, 192);
+
+        glBindBuffer_(GL_ARRAY_BUFFER, mp->vbo);
+        glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, mp->ebo);
+
+        glVertexPointer  (3, T, s, (GLvoid *) offsetof (struct d_vert, p));
+        glNormalPointer  (   T, s, (GLvoid *) offsetof (struct d_vert, n));
+
+        /* Draw the mesh. */
+
+        if (rend && rend->curr_mtrl.base.fl & M_PARTICLE)
+            glDrawArrays(GL_POINTS, 0, mp->vbc);
+        else glDrawElements(GL_TRIANGLES, mp->ebc, GL_UNSIGNED_SHORT, 0);
+
+        glBindBuffer_(GL_ARRAY_BUFFER,         0);
+        glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+        glColor4f_(255, 255, 255, 255);
+
+        if (!gli.wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+    glEnable(GL_TEXTURE_2D);
+}
+
 /*---------------------------------------------------------------------------*/
 
-static void sol_load_body(struct d_body *bp,
-                          const struct b_body *bq,
-                          const struct s_draw *draw)
+static int sol_load_body(struct d_body *bp,
+                         const struct b_body *bq,
+                         const struct s_draw *draw)
 {
     int mi;
 
@@ -521,16 +582,16 @@ static void sol_load_body(struct d_body *bp,
 
         for (mi = 0; mi < draw->base->mc; ++mi)
             if (sol_count_body(bq, draw->base, mi))
-                sol_load_mesh(bp->mv + mj++, bq, draw, mi);
+                if (!sol_load_mesh(bp->mv + mj++, bq, draw, mi))
+                    return 0;
     }
 
     /* Cache a mesh count for each pass. */
 
-    bp->pass[0] = sol_count_mesh(bp, 0);
-    bp->pass[1] = sol_count_mesh(bp, 1);
-    bp->pass[2] = sol_count_mesh(bp, 2);
-    bp->pass[3] = sol_count_mesh(bp, 3);
-    bp->pass[4] = sol_count_mesh(bp, 4);
+    for (mi = 0; mi < 5; ++mi)
+        if (mi >= 0 && mi <= 4) bp->pass[mi] = sol_count_mesh(bp, mi);
+
+    return 1;
 }
 
 static void sol_free_body(struct d_body *bp)
@@ -545,20 +606,30 @@ static void sol_free_body(struct d_body *bp)
 
 static void sol_draw_body(const struct d_body *bp, struct s_rend *rend, int p)
 {
-    for (int i = 0; i < bp->mc; ++i)
-        if (bp->mv) sol_draw_mesh(bp->mv + i, rend, p);
+    if (bp->mv) {
+        for (int i = 0; i < bp->mc; ++i)
+            sol_draw_mesh(bp->mv + i, rend, p);
+    } else if (bp->mc) log_errorf("bp->mv returned NULL!\n");
+}
+
+static void sol_draw_body_debug(const struct d_body *bp, struct s_rend *rend)
+{
+    if (bp->mv) {
+        for (int i = 0; i < bp->mc; ++i)
+            sol_draw_mesh_debug(bp->mv + i, rend, i == 0);
+    } else if (bp->mc) log_errorf("DEBUG: bp->mv returned NULL!\n");
 }
 
 /*---------------------------------------------------------------------------*/
 
 int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
 {
-    int i;
-
     memset(draw, 0, sizeof (struct s_draw));
 
     draw->vary = vary;
     draw->base = vary->base;
+
+    int i;
 
     /* Determine whether this file has reflective materials. */
 
@@ -580,14 +651,20 @@ int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
 
     /* Initialize all bodies for this file. */
 
-    if (draw->base->bc)
-        if ((draw->bv = (struct d_body *) (calloc(draw->base->bc, sizeof (*draw->bv)))))
-        {
+    if (draw->base->bc) {
+        if ((draw->bv = (struct d_body *) (calloc(draw->base->bc, sizeof (*draw->bv))))) {
             draw->bc = draw->base->bc;
 
             for (i = 0; i < draw->bc; i++)
-                sol_load_body(draw->bv + i, draw->base->bv + i, draw);
+                if (!sol_load_body(draw->bv + i, draw->base->bv + i, draw)) {
+                    sol_free_draw(draw);
+                    return 0;
+                }
+        } else {
+            sol_free_draw(draw);
+            return 0;
         }
+    }
 
     sol_load_bill(draw);
 
@@ -596,6 +673,8 @@ int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
 
 void sol_free_draw(struct s_draw *draw)
 {
+    mtrl_free_sol(draw->base);
+
     sol_free_bill(draw);
 
     if (draw->bv) {
@@ -604,8 +683,6 @@ void sol_free_draw(struct s_draw *draw)
 
         free(draw->bv); draw->bv = NULL;
     }
-
-    mtrl_free_sol(draw->base);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -613,7 +690,7 @@ void sol_free_draw(struct s_draw *draw)
 static void sol_draw_all(const struct s_draw *draw, struct s_rend *rend, int p)
 {
     /* Draw all meshes of all bodies matching the given material flags. */
-    
+
     if (draw->bv) {
         for (int bi = 0; bi < draw->bc; ++bi)
             if (draw->bv[bi].pass[p]) {
@@ -623,6 +700,20 @@ static void sol_draw_all(const struct s_draw *draw, struct s_rend *rend, int p)
                 glPopMatrix();
             }
     } else if (draw->bc) log_errorf("draw->bv returned NULL!\n");
+}
+
+static void sol_draw_all_debug(const struct s_draw *draw, struct s_rend *rend)
+{
+    /* Draw all meshes of all bodies matching the given material flags. */
+
+    if (draw->bv) {
+        for (int bi = 0; bi < draw->bc; ++bi) {
+            glPushMatrix();
+            sol_transform(draw->vary, draw->vary->bv + bi, draw->shadow_ui);
+            sol_draw_body_debug(draw->bv + bi, rend);
+            glPopMatrix();
+        }
+    } else if (draw->bc) log_errorf("DEBUG: draw->bv returned NULL!\n");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -657,6 +748,38 @@ void sol_draw(const struct s_draw *draw, struct s_rend *rend, int mask, int test
     if (rend) rend->skip_flags = 0;
 }
 
+void sol_draw_debug(const struct s_draw *draw, struct s_rend *rend)
+{
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    const int isindevmode = EM_ASM_INT({
+        if (tmp_online_session_data != undefined && tmp_online_session_data != null &&
+            tmp_online_session_data.data_session != undefined && tmp_online_session_data.data_session != null &&
+            tmp_online_session_data.data_session.player_devrole_flags != undefined &&
+            tmp_online_session_data.data_session.player_devrole_flags != null) {
+            if      ((tmp_online_session_data.data_session.player_devrole_flags & 128) == 128) return 1;
+            else if ((tmp_online_session_data.data_session.player_devrole_flags & 64)  == 64)  return 1;
+            else if ((tmp_online_session_data.data_session.player_devrole_flags & 32)  == 32)  return 1;
+            else if ((tmp_online_session_data.data_session.player_devrole_flags & 8)   == 8)   return 1;
+        }
+
+        return 0;
+    });
+#else
+    const int isindevmode = config_cheat();
+#endif
+
+    if (isindevmode && rend) rend->skip_flags |= (draw->shadowed ? 0 : M_SHADOWED);
+
+    if (isindevmode) sol_draw_all_debug(draw, rend);
+
+    /* Revert the buffer object state. */
+
+    if (isindevmode) glBindBuffer_(GL_ARRAY_BUFFER,         0);
+    if (isindevmode) glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    if (isindevmode && rend) rend->skip_flags = 0;
+}
+
 void sol_refl(const struct s_draw *draw, struct s_rend *rend)
 {
     /* Disable shadowed material setup if not requested. */
@@ -681,14 +804,16 @@ void sol_back(const struct s_draw *draw,
 {
     if (!(draw && draw->base &&
           draw->base->rc && draw->base->rv)) return;
-
+    
     glDepthMask(GL_FALSE);
 
     sol_bill_enable(draw);
     {
+        int ri;
+
         /* Consider each billboard. */
 
-        if (draw->base) for (int ri = 0; ri < draw->base->rc; ri++)
+        for (ri = 0; ri < draw->base->rc; ri++)
         {
             const struct b_bill *rp = draw->base->rv + ri;
 
@@ -746,13 +871,15 @@ void sol_bill(const struct s_draw *draw,
               struct s_rend *rend, const float *M, float t)
 {
     float p[3];
-    
+
     if (!(draw && draw->base &&
           draw->base->rc && draw->base->rv)) return;
 
     sol_bill_enable(draw);
     {
-        for (int ri = 0; ri < draw->base->rc; ++ri)
+        int ri;
+
+        for (ri = 0; ri < draw->base->rc; ++ri)
         {
             const struct b_bill *rp = draw->base->rv + ri;
 
@@ -816,7 +943,7 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
             glDisable(GL_DEPTH_TEST);
             glDisable(GL_TEXTURE_2D);
 
-            glColor4ub(ROUND(fade_color[0] * 255),
+            glColor4ub_(ROUND(fade_color[0] * 255),
                        ROUND(fade_color[1] * 255),
                        ROUND(fade_color[2] * 255),
                        ROUND(k * 255));
@@ -827,7 +954,7 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
             sol_draw_bill(GL_FALSE);
             sol_bill_disable();
 
-            glColor4ub(motionblur_c[0], motionblur_c[1], motionblur_c[2],
+            glColor4ub_(motionblur_c[0], motionblur_c[1], motionblur_c[2],
                        motionblur_c[3]);
 
             glEnable(GL_TEXTURE_2D);
@@ -847,9 +974,7 @@ int sol_load_full(struct s_full *full, const char *filename, int s)
         if (sol_load_base(&full->base, filename))
         {
             sol_load_vary(&full->vary, &full->base);
-            sol_load_draw(&full->draw, &full->vary, s);
-
-            return 1;
+            return sol_load_draw(&full->draw, &full->vary, s);
         }
     }
 
@@ -998,6 +1123,8 @@ static void assert_mtrl(const struct mtrl *mp)
 
 void r_color_mtrl(struct s_rend *rend, int enable)
 {
+    int changed = rend->color_mtrl != enable;
+
     if (enable)
     {
         glEnable(GL_COLOR_MATERIAL);
@@ -1008,13 +1135,15 @@ void r_color_mtrl(struct s_rend *rend, int enable)
     {
         unsigned char motionblur_c[4] = DRAW_COLOR4UBV_CNF_MOTIONBLUR;
 
-        glColor4ub(motionblur_c[0], motionblur_c[1], motionblur_c[2],
+        glColor4ub_(motionblur_c[0], motionblur_c[1], motionblur_c[2],
                    motionblur_c[3]);
 
         glDisable(GL_COLOR_MATERIAL);
 
-        /* Keep material tracking synchronized with GL state. */
+        rend->color_mtrl = 0;
+    }
 
+    if (changed && !enable) {
 #if ENABLE_MOTIONBLUR!=0
         const float motionblur_d[4] = { 1.0f, 1.0f, 1.0f, config_get_d(CONFIG_MOTIONBLUR) ? video_motionblur_alpha_get() : 1.0f };
         const float motionblur_a[4] = { 1.0f, 1.0f, 1.0f, config_get_d(CONFIG_MOTIONBLUR) ? video_motionblur_alpha_get() : 1.0f };
@@ -1025,8 +1154,6 @@ void r_color_mtrl(struct s_rend *rend, int enable)
         rend->curr_mtrl.d = 0xffffffff;
         rend->curr_mtrl.a = 0xffffffff;
 #endif
-
-        rend->color_mtrl = 0;
     }
 }
 
@@ -1058,9 +1185,13 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
         float s_blur[4]; v_cpy(s_blur, mp->base.s); s_blur[3] = mp->base.s[3] * video_motionblur_alpha_get();
         float e_blur[4]; v_cpy(e_blur, mp->base.e); e_blur[3] = mp->base.e[3] * video_motionblur_alpha_get();
 
-        if (mp->d != mq->d && !rend->color_mtrl)
+        if (!config_get_d(CONFIG_REFLECTION) && (mp_flags & M_REFLECTIVE))
+            glColor4f_(d_blur[0] * d_blur[3], d_blur[1] * d_blur[3], d_blur[2] * d_blur[3], 1.0f);
+        else glColor4f_(d_blur[0], d_blur[1], d_blur[2], d_blur[3]);
+
+        if (mp->d != mq->d)
             glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   d_blur);
-        if (mp->a != mq->a && !rend->color_mtrl)
+        if (mp->a != mq->a)
             glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,   a_blur);
         if (mp->s != mq->s)
             glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  s_blur);
@@ -1072,9 +1203,13 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
     else
 #endif
     {
-        if (mp->d != mq->d && !rend->color_mtrl)
+        if (!config_get_d(CONFIG_REFLECTION) && (mp_flags & M_REFLECTIVE))
+            glColor4f_(mp->base.d[0] * mp->base.d[3], mp->base.d[1] * mp->base.d[3], mp->base.d[2] * mp->base.d[3], 1.0f);
+        glColor4f_(mp->base.d[0], mp->base.d[1], mp->base.d[2], mp->base.d[3]);
+
+        if (mp->d != mq->d)
             glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   mp->base.d);
-        if (mp->a != mq->a && !rend->color_mtrl)
+        if (mp->a != mq->a)
             glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,   mp->base.a);
         if (mp->s != mq->s)
             glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  mp->base.s);
@@ -1092,7 +1227,7 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
             shad_draw_set();
         else shad_draw_clr();
     }
-
+    
     /* Environment mapping. */
 
 #if !ENABLE_OPENGLES
@@ -1117,26 +1252,18 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
     /* Additive blending. */
 
     if ((mp_flags & M_ADDITIVE) ^ (mq_flags & M_ADDITIVE))
-    {
-        if (mp_flags & M_ADDITIVE)
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        else glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
+        glBlendFunc(GL_SRC_ALPHA, mp_flags & M_ADDITIVE ?
+                                  GL_ONE : GL_ONE_MINUS_SRC_ALPHA);
 
     /* Visibility-from-behind. */
 
     if ((mp_flags & M_TWO_SIDED) ^ (mq_flags & M_TWO_SIDED))
     {
         if (mp_flags & M_TWO_SIDED)
-        {
             glDisable(GL_CULL_FACE);
-            glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 1);
-        }
-        else
-        {
-            glEnable(GL_CULL_FACE);
-            glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 0);
-        }
+        else glEnable(GL_CULL_FACE);
+
+        glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, mp_flags & M_TWO_SIDED ? 1 : 0);
     }
 
     /* Decal offset. */
@@ -1158,7 +1285,6 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
         if (mp_flags & M_ALPHA_TEST)
         {
             glAlphaFunc(mtrl_func(mp->base.alpha_func), mp->base.alpha_ref);
-
             glEnable(GL_ALPHA_TEST);
         }
         else glDisable(GL_ALPHA_TEST);

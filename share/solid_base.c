@@ -193,8 +193,8 @@ static void sol_load_geom(fs_file fin, struct b_geom *gp, struct s_base *fp)
     else
     {
         struct b_offs ov[3];
-        int           i, j, iv[3], oc;
-        void         *p;
+        int i, j, iv[3], oc;
+        void *p;
 
         oc = 0;
 
@@ -215,7 +215,8 @@ static void sol_load_geom(fs_file fin, struct b_geom *gp, struct s_base *fp)
                     break;
                 }
 
-            if (j == fp->oc) oc++;
+            if (j == fp->oc)
+                oc++;
         }
 
         if (oc && (p = realloc(fp->ov, sizeof (struct b_offs) * (fp->oc + oc))))
@@ -278,7 +279,8 @@ static void sol_load_path(fs_file fin, struct b_path *pp)
     pp->e[2] = 0.0f;
     pp->e[3] = 0.0f;
 
-    if (pp->fl & P_ORIENTED) get_array(fin, pp->e, 4);
+    if (pp->fl & P_ORIENTED)
+        get_array(fin, pp->e, 4);
 
     if (pp->fl & P_PARENTED)
     {
@@ -357,7 +359,7 @@ static void sol_load_goal(fs_file fin, struct b_goal *zp)
 static void sol_load_swch(fs_file fin, struct b_swch *xp)
 {
     get_array(fin, xp->p, 3);
-
+    
     xp->r  = get_float(fin);
     xp->pi = get_index(fin);
     xp->t  = get_float(fin);
@@ -505,6 +507,7 @@ static void sol_load_indx(fs_file fin, struct s_base *fp)
     /* New: Checkpoints */
     if (sol_version >= SOL_VERSION_CHKP)
         fp->cc = get_index(fin);
+    else fp->cc = 0;
 #endif
     fp->wc = get_index(fin);
     fp->ic = get_index(fin);
@@ -564,8 +567,7 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
 {
     int i;
 
-    if (!sol_file(fin, fp_ten))
-        return 0;
+    if (!sol_file(fin, fp_ten)) return 0;
 
     sol_load_indx(fin, fp);
 
@@ -625,8 +627,7 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
 
     SOL_BASE_CHECK_LOAD;
 
-    if (fp->ac)
-        fs_read(fp->av, fp->ac, fin);
+    if (fp->ac) fs_read(fp->av, fp->ac, fin);
 
     for (i = 0; i < fp->dc; i++) sol_load_dict(fin, fp->dv + i);
     for (i = 0; i < fp->mc; i++) sol_load_mtrl(fin, fp->mv + i);
@@ -656,7 +657,7 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
 
     /* Magically "fix" all of our code. */
 
-    if (!fp->uc)
+    if (fp->uc < 1)
     {
         fp->uc = 1;
         fp->uv = (struct b_ball *) calloc(fp->uc, sizeof (*fp->uv));
@@ -737,7 +738,7 @@ int sol_load_base(struct s_base *fp, const char *filename)
         }
 
         if (res != 0) return res;
-        
+
         /* *.csolx / *.solx = SOL version > 9 */
 
         char filename_x[256];
@@ -807,38 +808,38 @@ int sol_load_meta(struct s_base *fp, const char *filename)
 
 void sol_free_base(struct s_base *fp)
 {
-    if (fp->av) free(fp->av);
-    if (fp->mv) free(fp->mv);
-    if (fp->vv) free(fp->vv);
-    if (fp->ev) free(fp->ev);
-    if (fp->sv) free(fp->sv);
-    if (fp->tv) free(fp->tv);
-    if (fp->ov) free(fp->ov);
-    if (fp->gv) free(fp->gv);
-    if (fp->lv) free(fp->lv);
-    if (fp->nv) free(fp->nv);
-    if (fp->pv) free(fp->pv);
-    if (fp->bv) free(fp->bv);
-    if (fp->hv) free(fp->hv);
-    if (fp->zv) free(fp->zv);
-    if (fp->jv) free(fp->jv);
-    if (fp->xv) free(fp->xv);
-    if (fp->rv) free(fp->rv);
-    if (fp->uv) free(fp->uv);
+    if (fp->av) { free(fp->av); fp->av = NULL; }
+    if (fp->mv) { free(fp->mv); fp->mv = NULL; }
+    if (fp->vv) { free(fp->vv); fp->vv = NULL; }
+    if (fp->ev) { free(fp->ev); fp->ev = NULL; }
+    if (fp->sv) { free(fp->sv); fp->sv = NULL; }
+    if (fp->tv) { free(fp->tv); fp->tv = NULL; }
+    if (fp->ov) { free(fp->ov); fp->ov = NULL; }
+    if (fp->gv) { free(fp->gv); fp->gv = NULL; }
+    if (fp->lv) { free(fp->lv); fp->lv = NULL; }
+    if (fp->nv) { free(fp->nv); fp->nv = NULL; }
+    if (fp->pv) { free(fp->pv); fp->pv = NULL; }
+    if (fp->bv) { free(fp->bv); fp->bv = NULL; }
+    if (fp->hv) { free(fp->hv); fp->hv = NULL; }
+    if (fp->zv) { free(fp->zv); fp->zv = NULL; }
+    if (fp->jv) { free(fp->jv); fp->jv = NULL; }
+    if (fp->xv) { free(fp->xv); fp->xv = NULL; }
+    if (fp->rv) { free(fp->rv); fp->rv = NULL; }
+    if (fp->uv) { free(fp->uv); fp->uv = NULL; }
 #ifdef MAPC_INCLUDES_CHKP
     /* New: Checkpoints */
-    if (fp->cv) free(fp->cv);
+    if (fp->cv) { free(fp->cv); fp->cv = NULL; }
 #endif
-    if (fp->wv) free(fp->wv);
-    if (fp->dv) free(fp->dv);
-    if (fp->iv) free(fp->iv);
+    if (fp->wv) { free(fp->wv); fp->wv = NULL; }
+    if (fp->dv) { free(fp->dv); fp->dv = NULL; }
+    if (fp->iv) { free(fp->iv); fp->iv = NULL; }
 
     memset(fp, 0, sizeof (*fp));
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void sol_stor_mtrl(fs_file fout, struct b_mtrl *mp)
+static void sol_stor_mtrl(fs_file fout, struct b_mtrl* mp)
 {
     put_array(fout, mp->d, 4);
     put_array(fout, mp->a, 4);
@@ -1262,58 +1263,112 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
         if (fp)
         {
             char str[16] = "";
+            int curr_line = 0;
 
             while (fs_gets(line, sizeof (line), fp))
             {
-                char *p = strip_newline(line);
+                const float default_d[4]  = { 0.8f, 0.8f, 0.8f, 1.0f };
+                const float default_a[4]  = { 0.2f, 0.2f, 0.2f, 1.0f };
+                const float default_s[4]  = { 0.0f, 0.0f, 0.0f, 1.0f };
+                const float default_e[4]  = { 0.0f, 0.0f, 0.0f, 1.0f };
+                const float default_angle = 45.0f;
 
-#if _MSC_VER && !_CRT_SECURE_NO_WARNINGS
+                char *p = strip_newline(line);
+                curr_line++;
+
+                int i;
+
+#if _MSC_VER && !_CRT_SECURE_NO_WARNINGS && !defined(__EMSCRIPTEN__)
                 if (sscanf_s(p, "diffuse %f %f %f %f",
-                    &mp->d[0], &mp->d[1],
-                    &mp->d[2], &mp->d[3]) == 4)
+                             &mp->d[0], &mp->d[1],
+                             &mp->d[2], &mp->d[3]) == 4)
                 {
+                    for (i = 0; i < 4; i++)
+                        if (!(mp->d[i] >= 0.0f && mp->d[i] <= 1.0f)) {
+                            mp->d[i] = default_d[i];
+                            log_errorf("%s(%d): error: Diffuse value out of range! (0.0 - 1.0)", name, curr_line);
+                        }
                 }
                 else if (sscanf_s(p, "ambient %f %f %f %f",
-                    &mp->a[0], &mp->a[1],
-                    &mp->a[2], &mp->a[3]) == 4)
+                                  &mp->a[0], &mp->a[1],
+                                  &mp->a[2], &mp->a[3]) == 4)
                 {
+                    for (i = 0; i < 4; i++)
+                        if (!(mp->a[i] >= 0.0f && mp->a[i] <= 1.0f)) {
+                            mp->a[i] = default_a[i];
+                            log_errorf("%s(%d): error: Ambient value out of range! (0.0 - 1.0)", name, curr_line);
+                        }
                 }
                 else if (sscanf_s(p, "specular %f %f %f %f",
-                    &mp->s[0], &mp->s[1],
-                    &mp->s[2], &mp->s[3]) == 4)
+                                  &mp->s[0], &mp->s[1],
+                                  &mp->s[2], &mp->s[3]) == 4)
                 {
+                    for (i = 0; i < 4; i++)
+                        if (!(mp->s[i] >= 0.0f && mp->s[i] <= 1.0f)) {
+                            mp->s[i] = default_s[i];
+                            log_errorf("%s(%d): error: Specular value out of range! (0.0 - 1.0)", name, curr_line);
+                        }
                 }
                 else if (sscanf_s(p, "emissive %f %f %f %f",
-                    &mp->e[0], &mp->e[1],
-                    &mp->e[2], &mp->e[3]) == 4)
+                                  &mp->e[0], &mp->e[1],
+                                  &mp->e[2], &mp->e[3]) == 4)
                 {
+                    for (i = 0; i < 4; i++) {
+                        if (!(mp->e[i] >= 0.0f && mp->e[i] <= 1.0f)) {
+                            mp->e[i] = default_e[i];
+                            log_errorf("%s(%d): error: Emmisive value out of range! (0.0 - 1.0)", name, curr_line);
+                        }
+                    }
                 }
                 else if (sscanf_s(p, "shininess %f", &mp->h[0]) == 1)
                 {
+                    if (mp->h[0] >= 0.0f) mp->h[0] = 0.0f;
                 }
 #else
                 if (sscanf(p, "diffuse %f %f %f %f",
                            &mp->d[0], &mp->d[1],
                            &mp->d[2], &mp->d[3]) == 4)
                 {
+                    for (i = 0; i < 4; i++)
+                        if (!(mp->d[i] >= 0.0f && mp->d[i] <= 1.0f)) {
+                            mp->d[i] = default_d[i];
+                            log_errorf("%s(%d): error: Diffuse value out of range! (0.0 - 1.0)", name, curr_line);
+                        }
                 }
                 else if (sscanf(p, "ambient %f %f %f %f",
                                 &mp->a[0], &mp->a[1],
                                 &mp->a[2], &mp->a[3]) == 4)
                 {
+                    for (i = 0; i < 4; i++)
+                        if (!(mp->a[i] >= 0.0f && mp->a[i] <= 1.0f)) {
+                            mp->a[i] = default_a[i];
+                            log_errorf("%s(%d): error: Ambient value out of range! (0.0 - 1.0)", name, curr_line);
+                        }
                 }
                 else if (sscanf(p, "specular %f %f %f %f",
                                 &mp->s[0], &mp->s[1],
                                 &mp->s[2], &mp->s[3]) == 4)
                 {
+                    for (i = 0; i < 4; i++)
+                        if (!(mp->s[i] >= 0.0f && mp->s[i] <= 1.0f)) {
+                            mp->s[i] = default_s[i];
+                            log_errorf("%s(%d): error: Specular value out of range! (0.0 - 1.0)", name, curr_line);
+                        }
                 }
                 else if (sscanf(p, "emissive %f %f %f %f",
                                 &mp->e[0], &mp->e[1],
                                 &mp->e[2], &mp->e[3]) == 4)
                 {
+                    for (i = 0; i < 4; i++) {
+                        if (!(mp->e[i] >= 0.0f && mp->e[i] <= 1.0f)) {
+                            mp->e[i] = default_e[i];
+                            log_errorf("%s(%d): error: Emmisive value out of range! (0.0 - 1.0)", name, curr_line);
+                        }
+                    }
                 }
                 else if (sscanf(p, "shininess %f", &mp->h[0]) == 1)
                 {
+                    if (mp->h[0] >= 0.0f) mp->h[0] = 0.0f;
                 }
 #endif
                 else if (strncmp(p, "flags ", 6) == 0)
@@ -1322,7 +1377,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     int n;
 
                     p += 6;
-#if _MSC_VER && !_CRT_SECURE_NO_WARNINGS
+#if _MSC_VER && !_CRT_SECURE_NO_WARNINGS && !defined(__EMSCRIPTEN__)
                     while (sscanf_s(p, "%s%n", word, &n) > 0)
 #else
                     while (sscanf(p, "%s%n", word, &n) > 0)
@@ -1341,14 +1396,16 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     mp->fl = f;
                 }
 #if _MSC_VER && !_CRT_SECURE_NO_WARNINGS
-                else if (sscanf_s(p, "angle %f", &mp->angle) == 1)
+                else if (sscanf_s(p, "angle %f", &curr_angle) == 1)
                 {
+                    if (curr_angle >= 0.0f) mp->angle = curr_angle;
                 }
                 else if (sscanf_s(p, "alpha-test %15s %f",
                                   str, &mp->alpha_ref) == 2)
 #else
                 else if (sscanf(p, "angle %f", &mp->angle) == 1)
                 {
+                    if (mp->angle < 0.0f) mp->angle = default_angle;
                 }
                 else if (sscanf(p, "alpha-test %15s %f",
                                 str, &mp->alpha_ref) == 2)
@@ -1363,13 +1420,13 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                             break;
                         }
                 }
-                else /* Unknown directive */;
+                else log_errorf("%s(%d): error: Unknown directive\n", name, curr_line);
             }
 
             fs_close(fp);
             return 1;
         }
-        else /* Unknown material */;
+        else log_errorf("%s: error: Unknown material\n");
     }
     return 0;
 }

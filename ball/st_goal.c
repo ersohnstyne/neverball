@@ -12,6 +12,8 @@
  * General Public License for more details.
  */
 
+#include <stdio.h>
+
 #ifndef NDEBUG
 #include <assert.h>
 #elif defined(_MSC_VER) && defined(_AFXDLL)
@@ -24,8 +26,6 @@
 #else
 #define assert(_x) (_x)
 #endif
-
-#include <stdio.h>
 
 #if NB_HAVE_PB_BOTH==1
 #include "solid_chkp.h"
@@ -628,7 +628,7 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
     goal_intro_animation_phase =  stat_allow_intro && prev != &st_goal ? 1 :
                                  !stat_allow_intro && prev == &st_goal ? 2 : 0;
 
-    resume        = !stat_allow_intro;
+    resume = !stat_allow_intro;
 
     if (resume_locked)
         resume_locked = !stat_allow_intro;
@@ -645,7 +645,7 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
     {
         if (goal_intro_animation_phase == 1)
             challenge_has_active_chkp = 0;
-        
+
 #ifdef MAPC_INCLUDES_CHKP
         if ((curr_mode() == MODE_CHALLENGE ||
              curr_mode() == MODE_BOOST_RUSH
@@ -949,7 +949,7 @@ static int goal_keybd(int c, int d)
 #endif
             )
             return goal_action(GUI_SCORE, GUI_SCORE_NEXT(gui_score_get()));
-        
+
         if (config_tst_d(CONFIG_KEY_RESTART, c)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
          && current_platform == PLATFORM_PC
@@ -1045,9 +1045,8 @@ static int goal_extraballs_buttn(int b, int d)
 {
     if (d)
     {
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return exit_state(&st_goal);
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) ||
+            config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return exit_state(&st_goal);
     }
     return 1;
@@ -1139,9 +1138,8 @@ static int goal_shop_buttn(int b, int d)
 {
     if (d)
     {
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return exit_state(&st_goal);
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) ||
+            config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return exit_state(&st_goal);
     }
     return 1;

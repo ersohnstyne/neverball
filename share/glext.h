@@ -75,6 +75,9 @@
 #define GL_TEXTURE2                   0x84C2
 #endif
 
+#ifndef GL_BUFFER_SIZE
+#define GL_BUFFER_SIZE                0x8764
+#endif
 #ifndef GL_ARRAY_BUFFER
 #define GL_ARRAY_BUFFER               0x8892
 #endif
@@ -354,21 +357,30 @@ int glext_get_recommended(void);
 #define glPopScissor_() \
     glDisable(GL_SCISSOR_TEST)
 
+void glSetColor4ub_(unsigned char, unsigned char, unsigned char, unsigned char);
+void glSetColor4f_(const float, const float, const float, const float);
+void glPushColor4_(void);
+void glPopColor4_ (void);
+
+#define glColor4ub_ glSetColor4ub_
+#define glColor4f_  glSetColor4f_
+
 #if ENABLE_OPENGL_ES || \
     defined(__EMSCRIPTEN__)
 
 #define ENABLE_OPENGLES 1
 
-#define glClientActiveTexture_ glClientActiveTexture
-#define glActiveTexture_       glActiveTexture
-#define glGenBuffers_          glGenBuffers
-#define glBindBuffer_          glBindBuffer
-#define glBufferData_          glBufferData
-#define glBufferSubData_       glBufferSubData
-#define glDeleteBuffers_       glDeleteBuffers
-#define glIsBuffer_            glIsBuffer
-#define glPointParameterfv_    glPointParameterfv
-#define glPointParameterf_     glPointParameterf
+#define glClientActiveTexture_  glClientActiveTexture
+#define glActiveTexture_        glActiveTexture
+#define glGenBuffers_           glGenBuffers
+#define glBindBuffer_           glBindBuffer
+#define glBufferData_           glBufferData
+#define glBufferSubData_        glBufferSubData
+#define glDeleteBuffers_        glDeleteBuffers
+#define glIsBuffer_             glIsBuffer
+#define glGetBufferParameteriv_ glGetBufferParameteriv
+#define glPointParameterfv_     glPointParameterfv
+#define glPointParameterf_      glPointParameterf
 
 #ifdef __EMSCRIPTEN__
 #define glOrtho_               glOrtho
@@ -376,27 +388,18 @@ int glext_get_recommended(void);
 #define glOrtho_               glOrthof
 #endif
 
-#define glPopColor4_()
-#define glPushColor4_()
-
 #define glStringMarker_(s) ((void) (s))
 
 #elif !defined(__WII__) /* No native linkage?  Define the extension API. */
 
-#define glColor4ub             glSetColor4ub_
-#define glColor4f              glSetColor4f_
 #define glOrtho_               glOrtho
 #define glMatrixMode           glMatrixMode_
 #define glPopMatrix            glPopMatrix_
 #define glPushMatrix           glPushMatrix_
 
-void glSetColor4ub_(unsigned char, unsigned char, unsigned char, unsigned char);
-void glSetColor4f_ (const float, const float, const float, const float);
 void glMatrixMode_ (unsigned int);
-void glPopColor4_  (void);
-void glPopMatrix_  (void);
-void glPushColor4_ (void);
 void glPushMatrix_ (void);
+void glPopMatrix_  (void);
 
 /*---------------------------------------------------------------------------*/
 /* ARB_multitexture                                                          */
@@ -410,19 +413,21 @@ extern PFNGLACTIVETEXTURE_PROC       glActiveTexture_;
 /*---------------------------------------------------------------------------*/
 /* ARB_vertex_buffer_object                                                  */
 
-typedef void      (APIENTRYP PFNGLGENBUFFERS_PROC)    (GLsizei, GLuint *);
-typedef void      (APIENTRYP PFNGLBINDBUFFER_PROC)    (GLenum, GLuint);
-typedef void      (APIENTRYP PFNGLBUFFERDATA_PROC)    (GLenum, long, const GLvoid *, GLenum);
-typedef void      (APIENTRYP PFNGLBUFFERSUBDATA_PROC) (GLenum, long, long, const GLvoid *);
-typedef void      (APIENTRYP PFNGLDELETEBUFFERS_PROC) (GLsizei, const GLuint *);
-typedef GLboolean (APIENTRYP PFNGLISBUFFER_PROC)      (GLuint);
+typedef void      (APIENTRYP PFNGLGENBUFFERS_PROC)           (GLsizei, GLuint *);
+typedef void      (APIENTRYP PFNGLBINDBUFFER_PROC)           (GLenum, GLuint);
+typedef void      (APIENTRYP PFNGLBUFFERDATA_PROC)           (GLenum, long, const GLvoid *, GLenum);
+typedef void      (APIENTRYP PFNGLBUFFERSUBDATA_PROC)        (GLenum, long, long, const GLvoid *);
+typedef void      (APIENTRYP PFNGLDELETEBUFFERS_PROC)        (GLsizei, const GLuint *);
+typedef void      (APIENTRYP PFNGLGETBUFFERPARAMETERIV_PROC) (GLenum, GLenum, GLint *);
+typedef GLboolean (APIENTRYP PFNGLISBUFFER_PROC)             (GLuint);
 
-extern PFNGLGENBUFFERS_PROC    glGenBuffers_;
-extern PFNGLBINDBUFFER_PROC    glBindBuffer_;
-extern PFNGLBUFFERDATA_PROC    glBufferData_;
-extern PFNGLBUFFERSUBDATA_PROC glBufferSubData_;
-extern PFNGLDELETEBUFFERS_PROC glDeleteBuffers_;
-extern PFNGLISBUFFER_PROC      glIsBuffer_;
+extern PFNGLGENBUFFERS_PROC           glGenBuffers_;
+extern PFNGLBINDBUFFER_PROC           glBindBuffer_;
+extern PFNGLBUFFERDATA_PROC           glBufferData_;
+extern PFNGLBUFFERSUBDATA_PROC        glBufferSubData_;
+extern PFNGLDELETEBUFFERS_PROC        glDeleteBuffers_;
+extern PFNGLGETBUFFERPARAMETERIV_PROC glGetBufferParameteriv_;
+extern PFNGLISBUFFER_PROC             glIsBuffer_;
 
 /*---------------------------------------------------------------------------*/
 /* ARB_point_parameters                                                      */

@@ -465,12 +465,14 @@ static int scan_campaign_level(const struct s_base *base,
         return 1;
     }
 
+//#ifdef NDEBUG
     if (campaign || pre_campaign) {
         log_errorf("%s:\n    Switchball requires background environment and gradient"
                    "\n    with matched filename!\n",
                    filename);
         return 0;
     }
+//#endif
 
     return 1;
 }
@@ -530,8 +532,7 @@ int level_load(const char *filename, struct level *level)
 
         if (level_offered)
             level_offered = scan_campaign_level(&base, filename, level, 1, 0, campaign_werror);
-    }
-    else
+    } else
 #endif
     {
         level_offered = scan_level_attribs(level, &base, 0,
@@ -558,6 +559,14 @@ int level_load(const char *filename, struct level *level)
             !level_offered)
             log_errorf("%s:\n    Switchball level creation map was disqualified!\n", filename);
     }
+
+    if (base.vc == 0)
+        log_errorf("%s: No vertex associated on this SOL file!\n");
+    if (base.sc == 0)
+        log_errorf("%s: No side associated on this SOL file!\n");
+
+    if (base.vc == 0 || base.sc == 0)
+        level_offered = 0;
 
     sol_free_base(&base);
 

@@ -443,7 +443,7 @@ void part_draw_coin(const struct s_draw *draw, struct s_rend *rend, const float 
 
                 part_fade_alpha = MIN(part_fade_alpha_out, part_fade_alpha);
 
-                glColor4f(coin_part[i].c[0],
+                glColor4f_(coin_part[i].c[0],
                           coin_part[i].c[1],
                           coin_part[i].c[2],
 #if ENABLE_MOTIONBLUR!=0
@@ -471,7 +471,7 @@ void part_draw_coin(const struct s_draw *draw, struct s_rend *rend, const float 
     glBindBuffer_(GL_ARRAY_BUFFER,         0);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    glColor4f(1.0f, 1.0f, 1.0f,
+    glColor4f_(1.0f, 1.0f, 1.0f,
 #if ENABLE_MOTIONBLUR!=0
               config_get_d(CONFIG_MOTIONBLUR) ? (1.0f * video_motionblur_alpha_get()) : 1.0f);
 #else
@@ -510,7 +510,7 @@ void part_draw_goal(const struct s_draw *draw, struct s_rend *rend, const float 
 
                 part_fade_alpha = MIN(part_fade_alpha_out, part_fade_alpha);
 
-                glColor4f(goal_part[i].c[0],
+                glColor4f_(goal_part[i].c[0],
                           goal_part[i].c[1],
                           goal_part[i].c[2],
 #if ENABLE_MOTIONBLUR!=0
@@ -538,7 +538,7 @@ void part_draw_goal(const struct s_draw *draw, struct s_rend *rend, const float 
     glBindBuffer_(GL_ARRAY_BUFFER,         0);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    glColor4f(1.0f, 1.0f, 1.0f,
+    glColor4f_(1.0f, 1.0f, 1.0f,
 #if ENABLE_MOTIONBLUR!=0
               config_get_d(CONFIG_MOTIONBLUR) ? (1.0f * video_motionblur_alpha_get()) : 1.0f);
 #else

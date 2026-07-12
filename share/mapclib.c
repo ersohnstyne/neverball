@@ -3312,14 +3312,15 @@ static void smth_file(struct mapc_context *ctx)
     struct s_base *fp = &ctx->file;
     struct b_trip temp, *T;
 
+    
     if (ctx->opt_debug == 0)
     {
         /* Built vertex equivalence map by position. */
 
-        int *canoncial_verts = (int *) malloc(fp->vc * sizeof (int));
+        int *canonical_verts = (int *) malloc(fp->vc * sizeof (int));
         int idx;
 
-        if (canoncial_verts)
+        if (canonical_verts)
         {
             for (idx = 0; idx < fp->vc; idx++)
             {
@@ -3331,12 +3332,12 @@ static void smth_file(struct mapc_context *ctx)
                         fabsf(fp->vv[idx].p[2] - fp->vv[jdx].p[2]) < SMALL_VERT)
                         break;
 
-                canoncial_verts[idx] = jdx;
+                canonical_verts[idx] = jdx;
             }
         }
         else
         {
-            overflow(ctx, "canoncial verts");
+            overflow(ctx, "canonical vertices");
             return;
         }
 
@@ -3354,21 +3355,21 @@ static void smth_file(struct mapc_context *ctx)
                 T[c].si = fp->ov[gp->oi].si;
                 T[c].mi = gp->mi;
                 T[c].gi = gi;
-                T[c].ci = canoncial_verts[T[c].vi];
+                T[c].ci = canonical_verts[T[c].vi];
                 c++;
 
                 T[c].vi = fp->ov[gp->oj].vi;
                 T[c].si = fp->ov[gp->oj].si;
                 T[c].mi = gp->mi;
                 T[c].gi = gi;
-                T[c].ci = canoncial_verts[T[c].vi];
+                T[c].ci = canonical_verts[T[c].vi];
                 c++;
 
                 T[c].vi = fp->ov[gp->ok].vi;
                 T[c].si = fp->ov[gp->ok].si;
                 T[c].mi = gp->mi;
                 T[c].gi = gi;
-                T[c].ci = canoncial_verts[T[c].vi];
+                T[c].ci = canonical_verts[T[c].vi];
                 c++;
             }
 
@@ -3464,7 +3465,7 @@ static void smth_file(struct mapc_context *ctx)
             T = NULL;
         }
 
-        free(canoncial_verts);
+        free(canonical_verts);
 
         uniq_side(ctx);
         uniq_offs(ctx);

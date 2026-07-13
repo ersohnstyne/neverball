@@ -18,6 +18,7 @@
 #include "video.h"
 
 #include "game_transitions.h"
+#include "package_superwaifu.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -115,7 +116,8 @@ void game_transitions_quit(void)
 int game_transitions_available(void)
 {
 #ifndef __EMSCRIPTEN__
-    return fs_exists("gui/transitions/transition_superwaifuball.png") && game_transitions_state;
+    return fs_exists("gui/transitions/transition_superwaifuball.png") &&
+           game_transitions_state && game_common_superwaifu_game_installed();
 #else
     /* Not available in Emscripten! */
 

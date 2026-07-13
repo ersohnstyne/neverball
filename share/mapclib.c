@@ -472,6 +472,8 @@ int mapc_init(struct mapc_context **ctx_ptr)
     return 1;
 }
 
+static void free_file(struct s_base *fp);
+
 void mapc_quit(struct mapc_context **ctx_ptr)
 {
     struct mapc_context *ctx = NULL;
@@ -484,6 +486,8 @@ void mapc_quit(struct mapc_context **ctx_ptr)
 
     if (!ctx)
         return;
+
+    free_file(&ctx->file);
 
     if (ctx->imagedata)
     {
@@ -3309,12 +3313,11 @@ static int comp_trip(const void *p, const void *q)
 
 static void smth_file(struct mapc_context *ctx)
 {
-    struct s_base *fp = &ctx->file;
-    struct b_trip temp, *T;
-
-    
     if (ctx->opt_debug == 0)
     {
+        struct s_base *fp = &ctx->file;
+        struct b_trip temp, *T;
+
         /* Built vertex equivalence map by position. */
 
         int *canonical_verts = (int *) malloc(fp->vc * sizeof (int));
@@ -3466,6 +3469,7 @@ static void smth_file(struct mapc_context *ctx)
         }
 
         free(canonical_verts);
+        canonical_verts = NULL;
 
         uniq_side(ctx);
         uniq_offs(ctx);
@@ -4485,11 +4489,6 @@ int mapc_compile(struct mapc_context *ctx)
     if (setjmp(ctx->jmpbuf) == MAPC_SUCCESS)
     {
         mapc_compile_internal(ctx);
-
-#if _WIN32 && _MSC_VER && _DEBUG && defined(_CRTDBG_MAP_ALLOC)
-        _CrtDumpMemoryLeaks();
-#endif
-
         return 1;
     }
 

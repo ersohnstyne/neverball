@@ -902,9 +902,9 @@ int  game_client_init(const char *file_name)
     back_init(grad_name);
 
     if (!sol_load_full(&gd.back, back_name, 0)) {
-        sol_free_vary(&gd.vary);
-        game_base_free(NULL);
-        return (gd.state = 0);
+        //sol_free_vary(&gd.vary);
+        //game_base_free(NULL);
+        //return (gd.state = 0);
     }
 
     /* Initialize lighting. */

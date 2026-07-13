@@ -34,6 +34,14 @@
 #include <setjmp.h>
 #include <stdlib.h>
 
+#if _DEBUG && _MSC_VER
+#ifndef _CRTDBG_MAP_ALLOC
+#pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+#endif
+
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
@@ -82,6 +90,12 @@ int main(int argc, char *argv[])
 
     mapc_dump(ctx);
     mapc_quit(&ctx);
+
+    fs_quit();
+
+#if _WIN32 && _MSC_VER && _DEBUG && defined(_CRTDBG_MAP_ALLOC)
+    _CrtDumpMemoryLeaks();
+#endif
 
     return 0;
 }

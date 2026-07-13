@@ -452,6 +452,8 @@ int mapc_init(struct mapc_context **ctx_ptr)
     return 1;
 }
 
+static void free_file(struct s_base *fp);
+
 void mapc_quit(struct mapc_context **ctx_ptr)
 {
     struct mapc_context *ctx = NULL;
@@ -464,6 +466,8 @@ void mapc_quit(struct mapc_context **ctx_ptr)
 
     if (!ctx)
         return;
+
+    free_file(&ctx->file);
 
     if (ctx->imagedata)
     {
@@ -3224,6 +3228,7 @@ static void uniq_file(struct mapc_context *ctx)
 
 struct b_trip
 {
+    int ci;
     int vi;
     int mi;
     int si;
@@ -3235,8 +3240,8 @@ static int comp_trip(const void *p, const void *q)
     const struct b_trip *tp = (const struct b_trip *) p;
     const struct b_trip *tq = (const struct b_trip *) q;
 
-    if (tp->vi < tq->vi) return -1;
-    if (tp->vi > tq->vi) return +1;
+    if (tp->ci < tq->ci) return -1;
+    if (tp->ci > tq->ci) return +1;
     if (tp->mi < tq->mi) return -1;
     if (tp->mi > tq->mi) return +1;
 
@@ -3245,11 +3250,37 @@ static int comp_trip(const void *p, const void *q)
 
 static void smth_file(struct mapc_context *ctx)
 {
-    struct s_base *fp = &ctx->file;
-    struct b_trip temp, *T;
-
     if (ctx->opt_debug == 0)
     {
+        struct s_base *fp = &ctx->file;
+        struct b_trip temp, *T;
+
+        /* Built vertex equivalence map by position. */
+
+        int *canonical_verts = (int *) malloc(fp->vc * sizeof (int));
+        int idx;
+
+        if (canonical_verts)
+        {
+            for (idx = 0; idx < fp->vc; idx++)
+            {
+                int jdx;
+
+                for (jdx = 0; jdx < idx; jdx++)
+                    if (fabsf(fp->vv[idx].p[0] - fp->vv[jdx].p[0]) < SMALL_VERT &&
+                        fabsf(fp->vv[idx].p[1] - fp->vv[jdx].p[1]) < SMALL_VERT &&
+                        fabsf(fp->vv[idx].p[2] - fp->vv[jdx].p[2]) < SMALL_VERT)
+                        break;
+
+                canonical_verts[idx] = jdx;
+            }
+        }
+        else
+        {
+            overflow(ctx, "canonical vertices");
+            return;
+        }
+
         if ((T = (struct b_trip *) malloc(fp->gc * 3 * sizeof (struct b_trip))))
         {
             int gi, i, j, k, l, c = 0;
@@ -3264,18 +3295,21 @@ static void smth_file(struct mapc_context *ctx)
                 T[c].si = fp->ov[gp->oi].si;
                 T[c].mi = gp->mi;
                 T[c].gi = gi;
+                T[c].ci = canonical_verts[T[c].vi];
                 c++;
 
                 T[c].vi = fp->ov[gp->oj].vi;
                 T[c].si = fp->ov[gp->oj].si;
                 T[c].mi = gp->mi;
                 T[c].gi = gi;
+                T[c].ci = canonical_verts[T[c].vi];
                 c++;
 
                 T[c].vi = fp->ov[gp->ok].vi;
                 T[c].si = fp->ov[gp->ok].si;
                 T[c].mi = gp->mi;
                 T[c].gi = gi;
+                T[c].ci = canonical_verts[T[c].vi];
                 c++;
             }
 
@@ -3294,16 +3328,16 @@ static void smth_file(struct mapc_context *ctx)
 
                 /* Sort the set by side similarity to the first. */
 
-                for (j = i + 1; j < c && (T[j].vi == T[i].vi &&
+                for (j = i + 1; j < c && (T[j].ci == T[i].ci &&
                                           T[j].mi == T[i].mi); ++j)
                 {
-                    for (k = j + 1; k < c && (T[k].vi == T[i].vi &&
+                    for (k = j + 1; k < c && (T[k].ci == T[i].ci &&
                                               T[k].mi == T[i].mi); ++k)
                     {
                         const float *Nj = fp->sv[T[j].si].n;
                         const float *Nk = fp->sv[T[k].si].n;
 
-                        if (T[j].si != T[k].si && v_dot(Nk, Ni) > v_dot(Nj, Ni))
+                        if (v_dot(Nk, Ni) > v_dot(Nj, Ni))
                         {
                             temp = T[k];
                             T[k] = T[j];
@@ -3318,9 +3352,9 @@ static void smth_file(struct mapc_context *ctx)
                 N[1] = Ni[1];
                 N[2] = Ni[2];
 
-                for (l = i + 1; l < c && (T[l].vi == T[i].vi &&
+                for (l = i + 1; l < c && (T[l].ci == T[i].ci &&
                                           T[l].mi == T[i].mi); ++l)
-                    if (T[l].si != T[i].si)
+                    if (v_dot(fp->sv[T[l].si].n, Ni) < 1.0f)
                     {
                         const float *Nl = fp->sv[T[l].si].n;
                         float deg = V_DEG(facosf(v_dot(Ni, Nl)));
@@ -3358,17 +3392,21 @@ static void smth_file(struct mapc_context *ctx)
             for (i = 0; i < c; ++i)
             {
                 struct b_geom *gp = fp->gv + T[i].gi;
-                struct b_offs *op = fp->ov + gp->oi;
-                struct b_offs *oq = fp->ov + gp->oj;
-                struct b_offs *or = fp->ov + gp->ok;
+                struct b_offs *o0 = fp->ov + gp->oi;
+                struct b_offs *o1 = fp->ov + gp->oj;
+                struct b_offs *o2 = fp->ov + gp->ok;
 
-                if (op->vi == T[i].vi) op->si = T[i].si;
-                if (oq->vi == T[i].vi) oq->si = T[i].si;
-                if (or->vi == T[i].vi) or->si = T[i].si;
+                if (o0->vi == T[i].vi) o0->si = T[i].si;
+                if (o1->vi == T[i].vi) o1->si = T[i].si;
+                if (o2->vi == T[i].vi) o2->si = T[i].si;
             }
 
             free(T);
+            T = NULL;
         }
+
+        free(canonical_verts);
+        canonical_verts = NULL;
 
         uniq_side(ctx);
         uniq_offs(ctx);
@@ -4375,11 +4413,6 @@ int mapc_compile(struct mapc_context *ctx)
     if (setjmp(ctx->jmpbuf) == MAPC_SUCCESS)
     {
         mapc_compile_internal(ctx);
-
-#if _WIN32 && _MSC_VER && _DEBUG && defined(_CRTDBG_MAP_ALLOC)
-        _CrtDumpMemoryLeaks();
-#endif
-
         return 1;
     }
 

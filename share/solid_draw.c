@@ -525,6 +525,7 @@ static void sol_draw_mesh(const struct d_mesh *mp,
 static void sol_draw_mesh_debug(const struct d_mesh *mp,
                                 struct s_rend *rend, int top)
 {
+#if !ENABLE_OPENGLES
     glDisable(GL_TEXTURE_2D);
     {
         const size_t s = sizeof (struct d_vert);
@@ -555,6 +556,7 @@ static void sol_draw_mesh_debug(const struct d_mesh *mp,
         if (!gli.wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
     glEnable(GL_TEXTURE_2D);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -614,10 +616,12 @@ static void sol_draw_body(const struct d_body *bp, struct s_rend *rend, int p)
 
 static void sol_draw_body_debug(const struct d_body *bp, struct s_rend *rend)
 {
+#if !ENABLE_OPENGLES
     if (bp->mv) {
         for (int i = 0; i < bp->mc; ++i)
             sol_draw_mesh_debug(bp->mv + i, rend, i == 0);
     } else if (bp->mc) log_errorf("DEBUG: bp->mv returned NULL!\n");
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -704,6 +708,7 @@ static void sol_draw_all(const struct s_draw *draw, struct s_rend *rend, int p)
 
 static void sol_draw_all_debug(const struct s_draw *draw, struct s_rend *rend)
 {
+#if !ENABLE_OPENGLES
     /* Draw all meshes of all bodies matching the given material flags. */
 
     if (draw->bv) {
@@ -714,6 +719,7 @@ static void sol_draw_all_debug(const struct s_draw *draw, struct s_rend *rend)
             glPopMatrix();
         }
     } else if (draw->bc) log_errorf("DEBUG: draw->bv returned NULL!\n");
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -750,34 +756,20 @@ void sol_draw(const struct s_draw *draw, struct s_rend *rend, int mask, int test
 
 void sol_draw_debug(const struct s_draw *draw, struct s_rend *rend)
 {
-#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-    const int isindevmode = EM_ASM_INT({
-        if (tmp_online_session_data != undefined && tmp_online_session_data != null &&
-            tmp_online_session_data.data_session != undefined && tmp_online_session_data.data_session != null &&
-            tmp_online_session_data.data_session.player_devrole_flags != undefined &&
-            tmp_online_session_data.data_session.player_devrole_flags != null) {
-            if      ((tmp_online_session_data.data_session.player_devrole_flags & 128) == 128) return 1;
-            else if ((tmp_online_session_data.data_session.player_devrole_flags & 64)  == 64)  return 1;
-            else if ((tmp_online_session_data.data_session.player_devrole_flags & 32)  == 32)  return 1;
-            else if ((tmp_online_session_data.data_session.player_devrole_flags & 8)   == 8)   return 1;
-        }
+#if !ENABLE_OPENGLES
+    if (config_cheat()) {
+        if (rend) rend->skip_flags |= (draw->shadowed ? 0 : M_SHADOWED);
 
-        return 0;
-    });
-#else
-    const int isindevmode = config_cheat();
+        sol_draw_all_debug(draw, rend);
+
+        /* Revert the buffer object state. */
+
+        glBindBuffer_(GL_ARRAY_BUFFER,         0);
+        glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+        if (rend) rend->skip_flags = 0;
+    }
 #endif
-
-    if (isindevmode && rend) rend->skip_flags |= (draw->shadowed ? 0 : M_SHADOWED);
-
-    if (isindevmode) sol_draw_all_debug(draw, rend);
-
-    /* Revert the buffer object state. */
-
-    if (isindevmode) glBindBuffer_(GL_ARRAY_BUFFER,         0);
-    if (isindevmode) glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    if (isindevmode && rend) rend->skip_flags = 0;
 }
 
 void sol_refl(const struct s_draw *draw, struct s_rend *rend)
@@ -942,20 +934,24 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
 
             glDisable(GL_DEPTH_TEST);
             glDisable(GL_TEXTURE_2D);
-
+            
             glColor4ub_(ROUND(fade_color[0] * 255),
-                       ROUND(fade_color[1] * 255),
-                       ROUND(fade_color[2] * 255),
-                       ROUND(k * 255));
+                        ROUND(fade_color[1] * 255),
+                        ROUND(fade_color[2] * 255),
+                        ROUND(k * 255));
 
             sol_bill_enable(draw);
             r_apply_mtrl(rend, default_mtrl);
+            glColor4f_(fade_color[0], fade_color[1], fade_color[2], k);
+            glPushColor4_();
             glScalef(2.0f, 2.0f, 1.0f);
             sol_draw_bill(GL_FALSE);
+            glPopColor4_();
+            glColor4f_(1.0f, 1.0f, 1.0f, 1.0f);
             sol_bill_disable();
 
             glColor4ub_(motionblur_c[0], motionblur_c[1], motionblur_c[2],
-                       motionblur_c[3]);
+                        motionblur_c[3]);
 
             glEnable(GL_TEXTURE_2D);
             glEnable(GL_DEPTH_TEST);

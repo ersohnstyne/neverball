@@ -1192,8 +1192,15 @@ void game_draw(struct game_draw *gd, int pose, float t)
         struct s_rend rend;
 
         gd->draw.shadow_ui = 0;
-
+        
         game_draw_fog();
+
+        if (!game_draw_cam_abovemap(gd))
+        {
+            glColor4ub_(255, 0, 0, 255);
+            glPushColor4_();
+        }
+        else glColor4ub_(255, 255, 255, 255);
 
         game_shadow_conf(pose, 1);
         r_draw_enable(&rend);
@@ -1203,12 +1210,6 @@ void game_draw(struct game_draw *gd, int pose, float t)
                 (25 * (gd->mojang_death_time_percent / 100.f)), 110);
 
         video_set_perspective(effective_fov, 0.1f, FAR_DIST);
-
-        if (!game_draw_cam_abovemap(gd))
-        {
-            glColor4ub_(255, 0, 0, 255);
-            glPushColor4_();
-        }
 
         glPushMatrix();
         if (gd->fade_k < 1.0f || gd->fade_disabled) {
@@ -1360,9 +1361,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
             }
         }
         glPopMatrix();
-
-        if (!game_draw_cam_abovemap(gd)) glPopColor4_();
-
+        
         /* Draw the fade overlay. */
 
         if (gd->fade_disabled == 0)
@@ -1377,6 +1376,8 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
         r_draw_disable(&rend);
         game_shadow_conf(pose, 0);
+
+        if (!game_draw_cam_abovemap(gd)) glPopColor4_();
     }
 }
 

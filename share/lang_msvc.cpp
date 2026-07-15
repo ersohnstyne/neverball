@@ -66,6 +66,19 @@ extern "C" {
 
 #if _WIN32 && _MSC_VER && NLS_GETTEXT!=1
 
+static std::vector<std::string> lang_split_by_caret(const std::string & input)
+{
+    std::vector<std::string> result;
+    std::stringstream        ss(input);
+    std::string              item;
+
+    // getline can take any char as a delimiter, including '^'
+    while (std::getline(ss, item, '^'))
+        result.push_back(item);
+
+    return result;
+}
+
 static std::ostringstream lang_splitstr(std::string str, std::string delim = "\n")
 {
     std::ostringstream final_res;
@@ -415,7 +428,11 @@ const char *ms_nls_gettext(const char *s)
 
 const char *gt_prefix(const char *msgid)
 {
-    const char *msgval = ms_nls_gettext(msgid);
+#if ENABLE_NLS
+    const char *msgval = gettext(msgid);
+#else
+    const char *msgval = msgid;
+#endif
 
     if (msgval == msgid)
     {
@@ -424,6 +441,31 @@ const char *gt_prefix(const char *msgid)
         else msgval = msgid;
     }
     return msgval;
+
+    /*
+     * HACK: Single text will go first without prefix caret.
+     * Select this option only, before use in production.
+     */
+
+    /*bool first = true, second = false;
+    int i = 0;
+
+    std::string text = ms_nls_gettext(msgid);
+    std::vector<std::string> msgvals = lang_split_by_caret(text);
+
+    std::string msgval = "";
+
+    for (const auto& msgval_out : msgvals) {
+        if (i != 0) {
+            if (i != 1) msgval.append("^");
+
+            msgval.append(msgval_out);
+        }
+
+        i++;
+    }
+
+    return msgval.c_str();*/
 }
 
 /*---------------------------------------------------------------------------*/

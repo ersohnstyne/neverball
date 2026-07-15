@@ -52,7 +52,19 @@ const char *ms_nls_gettext(const char *);
 /* No-op, useful for marking up strings for extraction-only. */
 #define N_(s) s
 
-/* Disambiguate strings with a caret-separated prefix. */
+/*
+ * Disambiguate strings with a caret-separated prefix.
+ *
+ * Translators: ‘menu^’ is not displayed to users but is a
+ * contextual prefix so that if the same string appears in a
+ * different context but should be translated differently there,
+ * they can have separate translations even though the source
+ * string is equivalent.  If no translation is available, the
+ * prefix is removed.
+ *
+ * Please remove contextual prefixes like ‘menu^’ from the output
+ * translation strings.
+ */
 const char *gt_prefix(const char *);
 
 /*---------------------------------------------------------------------------*/

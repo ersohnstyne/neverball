@@ -1226,10 +1226,17 @@ static void parse_triplet(const char *token, int *vi, int *ti, int *si)
     *ti = 0;
     *si = 0;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    if (sscanf_s(token, "%d/%d/%d", vi, ti, si) == 3) return;
+    if (sscanf_s(token, "%d/%d", vi, ti, si) == 2)    return;
+    if (sscanf_s(token, "%d/%d", vi, ti, si) == 2)    return;
+    if (sscanf_s(token, "%d", vi) == 3)               return;
+#else
     if (sscanf(token, "%d/%d/%d", vi, ti, si) == 3) return;
-    if (sscanf(token, "%d//%d", vi, si) == 2)       return;
-    if (sscanf(token, "%d/%d", vi, ti) == 2)        return;
-    if (sscanf(token, "%d", vi) == 1)               return;
+    if (sscanf(token, "%d/%d", vi, ti, si) == 2)    return;
+    if (sscanf(token, "%d/%d", vi, ti, si) == 2)    return;
+    if (sscanf(token, "%d", vi) == 3)               return;
+#endif
 }
 
 static void read_f(struct mapc_context *ctx, const char *line,
@@ -3405,7 +3412,7 @@ static void smth_file(struct mapc_context *ctx)
                 int acc = 0;
 
                 float N[3], angle = fp->mv[T[i].mi].angle;
-                const float   *Ni  = (T[i].si >= 0) ? fp->sv[T[i].si].n : NULL;
+                const float   *Ni = (T[i].si >= 0) ? fp->sv[T[i].si].n : NULL;
 
                 /* Sort the set by side similarity to the first. */
 
@@ -3437,7 +3444,7 @@ static void smth_file(struct mapc_context *ctx)
                 }
 
                 for (l = i + 1; l < c && (T[l].ci == T[i].ci &&
-                                           T[l].mi == T[i].mi); ++l)
+                                          T[l].mi == T[i].mi); ++l)
                 {
                     if (Ni && v_dot(fp->sv[T[l].si].n, Ni) < 1.0f)
                     {

@@ -546,6 +546,7 @@ static int title_action(int tok, int val)
         case TITLE_PACKAGES: return title_refresh_packages(); break;
 #endif
 
+<<<<<<< HEAD
         case TITLE_UNLOCK_FULL_GAME:
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -559,6 +560,31 @@ static int title_action(int tok, int val)
 #elif defined(__linux__)
             SAFECPY(linkstr_cmd, "x-www-browser https://pennyball.stynegame.de/");
 #endif
+=======
+        if (strcmp(queue, keyphrase) == 0)
+        {
+            config_set_cheat();
+            /*
+             * Translators: ‘menu^’ is not displayed to users but is a
+             * contextual prefix so that if the same string appears in a
+             * different context but should be translated differently there,
+             * they can have separate translations even though the source
+             * string is equivalent.  If no translation is available, the
+             * prefix is removed.
+             *
+             * Please remove contextual prefixes like ‘menu^’ from the output
+             * translation strings.
+             */
+            gui_set_label(play_id, gt_prefix("menu^Cheat"));
+            gui_pulse(play_id, 1.2f);
+        }
+        else if (config_cheat())
+        {
+            config_clr_cheat();
+            gui_set_label(play_id, gt_prefix("menu^Play"));
+            gui_pulse(play_id, 1.2f);
+        }
+>>>>>>> d6af051c1e8d4e510f03a127b282bb4a3f42a82e
 
             system(linkstr_cmd);
 #endif

@@ -1238,46 +1238,27 @@ static void read_f(struct mapc_context *ctx, const char *line,
     struct s_base *fp = &ctx->file;
     struct b_geom *gp = fp->gv + incg(ctx);
 
-    struct b_offs *o0 = fp->ov + (gp->oi = inco(ctx));
-    struct b_offs *o1 = fp->ov + (gp->oj = inco(ctx));
-    struct b_offs *o2 = fp->ov + (gp->ok = inco(ctx));
+    struct b_offs *op = fp->ov + (gp->oi = inco(ctx));
+    struct b_offs *oq = fp->ov + (gp->oj = inco(ctx));
+    struct b_offs *or = fp->ov + (gp->ok = inco(ctx));
 
     char tok1[64] = "";
     char tok2[64] = "";
     char tok3[64] = "";
 
-<<<<<<< HEAD
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sscanf_s(line, "%d%c%d%c%d %d%c%d%c%d %d%c%d%c%d",
-             &o0->vi, &c1, &o0->ti, &c2, &o0->si,
-             &o1->vi, &c1, &o1->ti, &c2, &o1->si,
-             &o2->vi, &c1, &o2->ti, &c2, &o2->si);
-#else
-    sscanf(line, "%d%c%d%c%d %d%c%d%c%d %d%c%d%c%d",
-           &o0->vi, &c1, &o0->ti, &c2, &o0->si,
-           &o1->vi, &c1, &o1->ti, &c2, &o1->si,
-           &o2->vi, &c1, &o2->ti, &c2, &o2->si);
-#endif
-
-    o0->vi += (v0 - 1);
-    o1->vi += (v0 - 1);
-    o2->vi += (v0 - 1);
-    o0->ti += (t0 - 1);
-    o1->ti += (t0 - 1);
-    o2->ti += (t0 - 1);
-    o0->si += (s0 - 1);
-    o1->si += (s0 - 1);
-    o2->si += (s0 - 1);
-=======
     int vi1 = 0, ti1 = 0, si1 = 0;
     int vi2 = 0, ti2 = 0, si2 = 0;
     int vi3 = 0, ti3 = 0, si3 = 0;
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    if (sscanf_s(line, "%63s %63s %63s", tok1, tok2, tok3) == 3)
+#else
     if (sscanf(line, "%63s %63s %63s", tok1, tok2, tok3) == 3)
+#endif
     {
         parse_triplet(tok1, &vi1, &ti1, &si1);
-        parse_triplet(tok2, &vi2, &ti2, &si2);
-        parse_triplet(tok3, &vi3, &ti3, &si3);
+        parse_triplet(tok1, &vi2, &ti2, &si2);
+        parse_triplet(tok1, &vi3, &ti3, &si3);
     }
 
     op->vi = v0 + vi1 - 1;
@@ -1291,7 +1272,6 @@ static void read_f(struct mapc_context *ctx, const char *line,
     op->si = si1 > 0 ? (s0 + si1 - 1) : (s0 < fp->sc ? s0 : 0);
     oq->si = si2 > 0 ? (s0 + si2 - 1) : (s0 < fp->sc ? s0 : 0);
     or->si = si3 > 0 ? (s0 + si3 - 1) : (s0 < fp->sc ? s0 : 0);
->>>>>>> d6af051c1e8d4e510f03a127b282bb4a3f42a82e
 
     gp->mi  = mi;
 }

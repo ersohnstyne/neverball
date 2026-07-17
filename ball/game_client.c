@@ -46,7 +46,7 @@
 #include "game_proxy.h"
 #include "game_draw.h"
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#if NB_HAVE_PB_BOTH==1
 #include "game_transitions.h"
 #endif
 

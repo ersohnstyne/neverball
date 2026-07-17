@@ -61,7 +61,7 @@
 #include "game_client.h"
 #include "game_server.h"
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#if NB_HAVE_PB_BOTH==1
 #include "game_transitions.h"
 #endif
 

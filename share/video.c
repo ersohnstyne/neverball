@@ -585,7 +585,7 @@ video_mode_reconf:
     hmd_free();
 
     video_quit();
-    
+
 #if ENABLE_OPENGLES
     if (init_gles) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  SDL_GL_CONTEXT_PROFILE_ES);
@@ -642,7 +642,7 @@ video_mode_reconf:
 
     log_printf("Creating a window (%dx%d, %s)\n",
                w, h, (f ? "fullscreen" : "windowed"));
-    
+
     /* HACK: Tell which connected display amount are dependent. */
 
     int fullscreen_flags = SDL_GetNumVideoDisplays() <= 1 ? SDL_WINDOW_FULLSCREEN :
@@ -703,7 +703,7 @@ video_mode_reconf:
     }
 #endif
 
-    int solution_buf = 0, solution_smp = 0;
+    int solution_buf = 0, solution_smp = 0, solution_stencil_size = 0;
 
     if (window)
     {
@@ -753,16 +753,18 @@ video_mode_reconf:
                 context = NULL;
             }
 
-            int buf = 0, smp = 0;
+            int buf = 0, smp = 0, stencil_size = 0;
 
             if (context) {
                 SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buf);
                 SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &smp);
+                SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE,       &stencil_size);
                 solution_buf = buf;
                 solution_smp = smp;
+                solution_stencil_size = stencil_size;
             }
 
-            if ((buf < buffers || smp < samples) && context)
+            if ((buf < buffers || smp < samples || stencil_size < stencil) && context)
             {
 #ifdef __EMSCRIPTEN__
                 close_gl4es();
@@ -1096,7 +1098,7 @@ video_mode_auto_config_reconf:
     hmd_free();
 
     video_quit();
-    
+
 #if ENABLE_OPENGLES
     if (init_gles) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  SDL_GL_CONTEXT_PROFILE_ES);
@@ -1150,7 +1152,7 @@ video_mode_auto_config_reconf:
 
     log_printf("Creating a window (%dx%d, %s (auto configuration))\n",
                w, h, (f ? "fullscreen" : "windowed"));
-    
+
     /* HACK: Tell which connected display amount are dependent. */
 
     int fullscreen_flags = SDL_GetNumVideoDisplays() <= 1 ? SDL_WINDOW_FULLSCREEN :
@@ -1300,7 +1302,7 @@ video_mode_auto_config_reconf:
             return 0;
     }
 
-    int solution_buf = 0, solution_smp = 0;
+    int solution_buf = 0, solution_smp = 0, solution_stencil_size = 0;
 
     if (window)
     {
@@ -1326,14 +1328,16 @@ video_mode_auto_config_reconf:
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-            int buf, smp;
+            int buf = 0, smp = 0, stencil_size = 0;
 
             SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buf);
             SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &smp);
+            SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE,       &stencil_size);
             solution_buf = buf;
             solution_smp = smp;
+            solution_stencil_size = stencil_size;
 
-            if (buf < (auto_samples > 0 ? 1 : 0) || smp < auto_samples)
+            if (buf < (auto_samples > 0 ? 1 : 0) || smp < auto_samples || stencil_size < auto_stencils)
             {
                 log_errorf("GL context does not meet minimum specifications!\n");
                 SDL_GL_DeleteContext(context);

@@ -566,7 +566,7 @@ void glSetColor4ub_(unsigned char r, unsigned char g, unsigned char b, unsigned 
     glext_color4f_vfxs[glext_curr_depth_vfxs][2] = b / 255.0f;
     glext_color4f_vfxs[glext_curr_depth_vfxs][3] = a / 255.0f;
 
-    unsigned char c4ub_final[4] = { r, g, b, a };
+    unsigned char c4ub_final[4] = { 255, 255, 255, 255 };
 
     if (glext_curr_depth_vfxs != 15) {
         for (int i = glext_curr_depth_vfxs; i < 16; i++)
@@ -590,7 +590,7 @@ void glSetColor4f_(const float r, const float g, const float b, const float a)
     glext_color4ub_vfxs[glext_curr_depth_vfxs][2] = ROUND(b * 255.0f);
     glext_color4ub_vfxs[glext_curr_depth_vfxs][3] = ROUND(a * 255.0f);
 
-    float c4f_final[4] = { r, g, b, a };
+    float c4f_final[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
     if (glext_curr_depth_vfxs != 15) {
         for (int i = glext_curr_depth_vfxs; i < 16; i++)
@@ -611,6 +611,9 @@ void glPushColor4_(void)
 {
     if (glext_curr_depth_vfxs == 0) return;
     glext_curr_depth_vfxs--;
+
+    glSetColor4f_(1.0f, 1.0f, 1.0f, 1.0f);
+    glSetColor4ub_(255, 255, 255, 255);
 }
 
 #if !ENABLE_OPENGL_ES && !defined(__EMSCRIPTEN__)

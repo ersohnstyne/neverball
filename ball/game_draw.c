@@ -32,7 +32,7 @@
 
 #include "game_draw.h"
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#if NB_HAVE_PB_BOTH==1
 #include "game_transitions.h"
 #endif
 
@@ -81,9 +81,13 @@ static void game_draw_chnk_floor(struct s_rend *rend,
                              (j * SCL) * (draw_chnk_highaltitude ? 800 : 400));
 
                 glColor4ub_(ROUND(c[0] * 255),
-                           ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
-                           ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
-                           ROUND(c[3] * 255));
+                            ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                            ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
+                            ROUND(c[3] * 255));
+                glColor4f_(c[0],
+                           c[1] * game_draw_cam_abovemap(gd),
+                           c[2] * game_draw_cam_abovemap(gd),
+                           c[3]);
                 chnk_pane_draw(rend);
             }
             glPopMatrix();
@@ -124,9 +128,13 @@ static void game_draw_chnk_rings(struct s_rend *rend,
                              base->zv[i].p[2] / (j * SCL));
 
                 glColor4ub_(ROUND(c[0] * 255),
-                           ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
-                           ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
-                           ROUND(c[3] * 255));
+                            ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                            ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
+                            ROUND(c[3] * 255));
+                glColor4f_(c[0],
+                           c[1] * game_draw_cam_abovemap(gd),
+                           c[2] * game_draw_cam_abovemap(gd),
+                           c[3]);
                 chnk_ring_draw(rend, 1);
             }
             glPopMatrix();
@@ -142,9 +150,13 @@ static void game_draw_chnk_rings(struct s_rend *rend,
                              base->zv[i].p[2] / (j * SCL));
 
                 glColor4ub_(ROUND(c[0] * 255),
-                           ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
-                           ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
-                           ROUND(c[3] * 255));
+                            ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                            ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
+                            ROUND(c[3] * 255));
+                glColor4f_(c[0],
+                           c[1] * game_draw_cam_abovemap(gd),
+                           c[2] * game_draw_cam_abovemap(gd),
+                           c[3]);
                 chnk_ring_draw(rend, 0);
             }
             glPopMatrix();
@@ -176,9 +188,13 @@ static void game_draw_chnk_balls(struct s_rend *rend,
                      base->uv[0].p[2]);
 
         glColor4ub_(ROUND(c[0] * 255),
-                   ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
-                   ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
-                   ROUND(c[3] * 255));
+                    ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                    ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
+                    ROUND(c[3] * 255));
+        glColor4f_(c[0],
+                   c[1] * game_draw_cam_abovemap(gd),
+                   c[2] * game_draw_cam_abovemap(gd),
+                   c[3]);
         chnk_ball_draw(rend);
     }
     glPopMatrix();
@@ -226,9 +242,13 @@ static void game_draw_chnk_jumps(struct s_rend *rend,
             glRotatef(view_angle, 0.0f, 1.0f, 0.0f);
 
             glColor4ub_(ROUND(c[0] * 255),
-                       ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
-                       ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
-                       ROUND(c[3] * 255));
+                        ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                        ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
+                        ROUND(c[3] * 255));
+            glColor4f_(c[0],
+                       c[1] * game_draw_cam_abovemap(gd),
+                       c[2] * game_draw_cam_abovemap(gd),
+                       c[3]);
             chnk_jump_draw(rend);
         }
         glPopMatrix();
@@ -277,9 +297,13 @@ static void game_draw_chnk_goals(struct s_rend *rend,
             glRotatef(view_angle, 0.0f, 1.0f, 0.0f);
 
             glColor4ub_(ROUND(c[0] * 255),
-                       ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
-                       ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
-                       ROUND(c[3] * 255));
+                        ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                        ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
+                        ROUND(c[3] * 255));
+            glColor4f_(c[0],
+                       c[1] * game_draw_cam_abovemap(gd),
+                       c[2] * game_draw_cam_abovemap(gd),
+                       c[3]);
             chnk_goal_draw(rend);
         }
         glPopMatrix();
@@ -328,9 +352,13 @@ static void game_draw_chnk_swchs(struct s_rend *rend,
             glRotatef(view_angle, 0.0f, 1.0f, 0.0f);
 
             glColor4ub_(ROUND(c[0] * 255),
-                       ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
-                       ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
-                       ROUND(c[3] * 255));
+                        ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                        ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
+                        ROUND(c[3] * 255));
+            glColor4f_(c[0],
+                       c[1] * game_draw_cam_abovemap(gd),
+                       c[2] * game_draw_cam_abovemap(gd),
+                       c[3]);
             chnk_swch_draw(rend);
         }
         glPopMatrix();
@@ -388,9 +416,13 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
             glRotatef(view_angle, 0.0f, 1.0f, 0.0f);
 
             glColor4ub_(ROUND(c[0] * 255),
-                       ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
-                       ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
-                       ROUND(c[3] * 255));
+                        ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                        ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
+                        ROUND(c[3] * 255));
+            glColor4f_(c[0],
+                       c[1] * game_draw_cam_abovemap(gd),
+                       c[2] * game_draw_cam_abovemap(gd),
+                       c[3]);
             chnk_chkp_draw(rend);
         }
         glPopMatrix();
@@ -432,9 +464,13 @@ static void game_draw_maxspeed(struct s_rend *rend,
                  vary->uv[0].r);
 
         glColor4ub_(ROUND(c[0] * 255),
-                   ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
-                   ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
-                   ROUND(c[3] * 255));
+                    ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),
+                    ROUND(c[2] * 255) * game_draw_cam_abovemap(gd),
+                    ROUND(c[3] * 255));
+        glColor4f_(c[0],
+                   c[1] * game_draw_cam_abovemap(gd),
+                   c[2] * game_draw_cam_abovemap(gd),
+                   c[3]);
         maxspeed_draw(rend);
     }
 
@@ -465,9 +501,10 @@ static void game_draw_balls(struct s_rend *rend,
                  vary->uv[0].r);
 
         glColor4ub_(ROUND(c[0] * 255),
-                   ROUND(c[1] * 255),
-                   ROUND(c[2] * 255),
-                   ROUND(c[3] * 255));
+                    ROUND(c[1] * 255),
+                    ROUND(c[2] * 255),
+                    ROUND(c[3] * 255));
+        glColor4f_(c[0], c[1], c[2], c[3]);
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_MULTIBALLS)
         ball_multi_draw_single(0, rend, ball_M, pend_M, bill_M, t);
 #else
@@ -567,7 +604,11 @@ static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
                 {
                     glTranslatef(beam_p[0], beam_p[1], beam_p[2]);
                     glRotatef(V_DEG(a), u[0], u[1], u[2]);
-                    glColor4f_(goal_c[0], goal_c[1], goal_c[2], goal_c[3]);
+                    glColor4ub_(ROUND(goal_c[0] * 255),
+                                ROUND(goal_c[1] * 255) * game_draw_cam_abovemap(gd),
+                                ROUND(goal_c[2] * 255) * game_draw_cam_abovemap(gd),
+                                ROUND(goal_c[3] * 255));
+                    glColor4f_(goal_c[0], goal_c[1] * game_draw_cam_abovemap(gd), goal_c[2] * game_draw_cam_abovemap(gd), goal_c[3]);
                     glPushColor4_();
                     beam_draw(rend, base->zv[i].p, goal_c, base->zv[i].r, gd->goal_k * 3.0f);
                     glPopColor4_();
@@ -589,7 +630,11 @@ static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
             {
                 glTranslatef(beam_p[0], beam_p[1], beam_p[2]);
                 glRotatef(V_DEG(a), u[0], u[1], u[2]);
-                glColor4f_(jump_c[gd->jump_e ? 0 : 1][0], jump_c[gd->jump_e ? 0 : 1][1], jump_c[gd->jump_e ? 0 : 1][2], jump_c[gd->jump_e ? 0 : 1][3]);
+                glColor4ub_(ROUND(jump_c[gd->jump_e ? 0 : 1][0] * 255),
+                            ROUND(jump_c[gd->jump_e ? 0 : 1][1] * 255) * game_draw_cam_abovemap(gd),
+                            ROUND(jump_c[gd->jump_e ? 0 : 1][2] * 255) * game_draw_cam_abovemap(gd),
+                            ROUND(jump_c[gd->jump_e ? 0 : 1][3] * 255));
+                glColor4f_(jump_c[gd->jump_e ? 0 : 1][0], jump_c[gd->jump_e ? 0 : 1][1] * game_draw_cam_abovemap(gd), jump_c[gd->jump_e ? 0 : 1][2] * game_draw_cam_abovemap(gd), jump_c[gd->jump_e ? 0 : 1][3]);
                 glPushColor4_();
                 beam_draw(rend, base->jv[i].p, jump_c[gd->jump_e ? 0 : 1], base->jv[i].r, 2.0f);
                 glPopColor4_();
@@ -613,7 +658,11 @@ static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
                 glRotatef(V_DEG(a), u[0], u[1], u[2]);
                 if ((vary->xv[i].f == 1 || vary->xv[i].f == 0) && (vary->xv[i].e == 1 || vary->xv[i].e == 0))
                 {
-                    glColor4f_(swch_c[vary->xv[i].f][vary->xv[i].e][0], swch_c[vary->xv[i].f][vary->xv[i].e][1], swch_c[vary->xv[i].f][vary->xv[i].e][2], swch_c[vary->xv[i].f][vary->xv[i].e][3]);
+                    glColor4ub_(ROUND(swch_c[vary->xv[i].f][vary->xv[i].e][0] * 255),
+                                ROUND(swch_c[vary->xv[i].f][vary->xv[i].e][1] * 255) * game_draw_cam_abovemap(gd),
+                                ROUND(swch_c[vary->xv[i].f][vary->xv[i].e][2] * 255) * game_draw_cam_abovemap(gd),
+                                ROUND(swch_c[vary->xv[i].f][vary->xv[i].e][3] * 255));
+                    glColor4f_(swch_c[vary->xv[i].f][vary->xv[i].e][0], swch_c[vary->xv[i].f][vary->xv[i].e][1] * game_draw_cam_abovemap(gd), swch_c[vary->xv[i].f][vary->xv[i].e][2] * game_draw_cam_abovemap(gd), swch_c[vary->xv[i].f][vary->xv[i].e][3]);
                     glPushColor4_();
                     beam_draw(rend, base->xv[i].p, swch_c[vary->xv[i].f][vary->xv[i].e], base->xv[i].r, 2.0f);
                     glPopColor4_();
@@ -648,7 +697,11 @@ static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
                     glRotatef(V_DEG(a), u[0], u[1], u[2]);
                     if ((vary->cv[i].f == 1 || vary->cv[i].f == 0) && (vary->cv[i].e == 1 || vary->cv[i].e == 0))
                     {
-                        glColor4f_(chkp_c[vary->cv[i].f][vary->cv[i].e][0], chkp_c[vary->cv[i].f][vary->cv[i].e][1], chkp_c[vary->cv[i].f][vary->cv[i].e][2], chkp_c[vary->cv[i].f][vary->cv[i].e][3]);
+                        glColor4ub_(ROUND(chkp_c[vary->cv[i].f][vary->cv[i].e][0] * 255),
+                                    ROUND(chkp_c[vary->cv[i].f][vary->cv[i].e][1] * 255) * game_draw_cam_abovemap(gd),
+                                    ROUND(chkp_c[vary->cv[i].f][vary->cv[i].e][2] * 255) * game_draw_cam_abovemap(gd),
+                                    ROUND(chkp_c[vary->cv[i].f][vary->cv[i].e][3] * 255));
+                        glColor4f_(chkp_c[vary->cv[i].f][vary->cv[i].e][0], chkp_c[vary->cv[i].f][vary->cv[i].e][1] * game_draw_cam_abovemap(gd), chkp_c[vary->cv[i].f][vary->cv[i].e][2] * game_draw_cam_abovemap(gd), chkp_c[vary->cv[i].f][vary->cv[i].e][3]);
                         glPushColor4_();
                         beam_draw(rend, base->cv[i].p, chkp_c[vary->cv[i].f][vary->cv[i].e], base->cv[i].r, 2.0f);
                         glPopColor4_();
@@ -1192,15 +1245,12 @@ void game_draw(struct game_draw *gd, int pose, float t)
         struct s_rend rend;
 
         gd->draw.shadow_ui = 0;
-        
+
         game_draw_fog();
 
-        if (!game_draw_cam_abovemap(gd))
-        {
-            glColor4ub_(255, 0, 0, 255);
-            glPushColor4_();
-        }
-        else glColor4ub_(255, 255, 255, 255);
+        glColor4f_(1.0f - gd->fade_k, (1.0f - gd->fade_k) * game_draw_cam_abovemap(gd), (1.0f - gd->fade_k) * game_draw_cam_abovemap(gd), 1.0f);
+        glColor4ub_(255 - ROUND(gd->fade_k * 255), (255 - ROUND(gd->fade_k * 255)) * game_draw_cam_abovemap(gd), (255 - ROUND(gd->fade_k * 255)) * game_draw_cam_abovemap(gd), 255);
+        glPushColor4_();
 
         game_shadow_conf(pose, 1);
         r_draw_enable(&rend);
@@ -1262,9 +1312,9 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
                 r_color_mtrl(&rend, 1);
                 {
-                    glColor4ub   (0, 0, 0, ROUND(c[3] * 255));
+                    glColor4ub_  (0, 0, 0, ROUND(c[3] * 255));
                     game_refl_all(&rend, gd);
-                    glColor4ub   (ROUND(c[0] * 255),
+                    glColor4ub_  (ROUND(c[0] * 255),
                                   ROUND(c[1] * 255),
                                   ROUND(c[2] * 255),
                                   ROUND(c[3] * 255));
@@ -1336,9 +1386,9 @@ void game_draw(struct game_draw *gd, int pose, float t)
                 {
                     r_color_mtrl(&rend, 1);
                     {
-                        glColor4ub   (0, 0, 0, ROUND(c[3] * 255));
+                        glColor4ub_  (0, 0, 0, ROUND(c[3] * 255));
                         game_refl_all(&rend, gd);
-                        glColor4ub   (ROUND(c[0] * 255),
+                        glColor4ub_  (ROUND(c[0] * 255),
                                       ROUND(c[1] * 255),
                                       ROUND(c[2] * 255),
                                       ROUND(c[3] * 255));
@@ -1361,7 +1411,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
             }
         }
         glPopMatrix();
-        
+
         /* Draw the fade overlay. */
 
         if (gd->fade_disabled == 0)
@@ -1369,15 +1419,19 @@ void game_draw(struct game_draw *gd, int pose, float t)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (game_transitions_available())
                 game_transitions_draw(&rend);
-            else
+            else sol_fade(&gd->draw, &rend, gd->fade_k);
+#else
+            if (game_transitions_available())
+                game_transitions_draw(&rend);
+            sol_fade(&gd->draw, &rend, gd->fade_k);
 #endif
-                sol_fade(&gd->draw, &rend, gd->fade_k);
         }
 
         r_draw_disable(&rend);
         game_shadow_conf(pose, 0);
 
-        if (!game_draw_cam_abovemap(gd)) glPopColor4_();
+        /* if (!game_draw_cam_abovemap(gd)) glPopColor4_(); */
+        glPopColor4_();
     }
 }
 

@@ -1155,23 +1155,46 @@ static void read_v(struct mapc_context *ctx, const char *line)
 #endif
 }
 
-static void parse_triplet(const char *token, int *vi, int *ti, int *si)
+static int parse_triplet(const char* token, int* vi, int* ti, int* si)
 {
     *vi = 0;
     *ti = 0;
     *si = 0;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    if (sscanf_s(token, "%d/%d/%d", vi, ti, si) == 3) return;
-    if (sscanf_s(token, "%d/%d", vi, ti, si) == 2)    return;
-    if (sscanf_s(token, "%d/%d", vi, ti, si) == 2)    return;
-    if (sscanf_s(token, "%d", vi) == 3)               return;
+    if (sscanf_s(token, "%d/%d/%d", vi, ti, si) == 3) return 1;
+    if (sscanf_s(token, "%d/%d", vi, ti) == 2)        return 1;
+    if (sscanf_s(token, "%d/%d", vi, si) == 2)        return 1;
+    if (sscanf_s(token, "%d", vi) == 1)               return 1;
 #else
-    if (sscanf(token, "%d/%d/%d", vi, ti, si) == 3) return;
-    if (sscanf(token, "%d/%d", vi, ti, si) == 2)    return;
-    if (sscanf(token, "%d/%d", vi, ti, si) == 2)    return;
-    if (sscanf(token, "%d", vi) == 3)               return;
+    if (sscanf(token, "%d/%d/%d", vi, ti, si) == 3) return 1;
+    if (sscanf(token, "%d/%d", vi, ti) == 2)        return 1;
+    if (sscanf(token, "%d/%d", vi, si) == 2)        return 1;
+    if (sscanf(token, "%d", vi) == 1)               return 1;
 #endif
+
+    return 0;
+}
+
+static int parse_triplet(const char *token, int *vi, int *ti, int *si)
+{
+    *vi = 0;
+    *ti = 0;
+    *si = 0;
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    if (sscanf_s(token, "%d/%d/%d", vi, ti, si) == 3) return 1;
+    if (sscanf_s(token, "%d/%d", vi, ti) == 2)        return 1;
+    if (sscanf_s(token, "%d/%d", vi, si) == 2)        return 1;
+    if (sscanf_s(token, "%d", vi) == 1)               return 1;
+#else
+    if (sscanf(token, "%d/%d/%d", vi, ti, si) == 3) return 1;
+    if (sscanf(token, "%d/%d", vi, ti) == 2)        return 1;
+    if (sscanf(token, "%d/%d", vi, si) == 2)        return 1;
+    if (sscanf(token, "%d", vi) == 1)               return 1;
+#endif
+
+    return 0;
 }
 
 static void read_f(struct mapc_context *ctx, const char *line,
@@ -1198,9 +1221,21 @@ static void read_f(struct mapc_context *ctx, const char *line,
     if (sscanf(line, "%63s %63s %63s", tok1, tok2, tok3) == 3)
 #endif
     {
-        parse_triplet(tok1, &vi1, &ti1, &si1);
-        parse_triplet(tok1, &vi2, &ti2, &si2);
-        parse_triplet(tok1, &vi3, &ti3, &si3);
+        if (!parse_triplet(tok1, &vi1, &ti1, &si1)) {
+            MAPC_LOG_ERROR(ctx, "Parse triplet error\n");
+            longjmp(ctx->jmpbuf, MAPC_ERROR);
+            return;
+        }
+        if (!parse_triplet(tok2, &vi2, &ti2, &si2)) {
+            MAPC_LOG_ERROR(ctx, "Parse triplet error\n");
+            longjmp(ctx->jmpbuf, MAPC_ERROR);
+            return;
+        }
+        if (!parse_triplet(tok3, &vi3, &ti3, &si3)) {
+            MAPC_LOG_ERROR(ctx, "Parse triplet error\n");
+            longjmp(ctx->jmpbuf, MAPC_ERROR);
+            return;
+        }
     }
 
     op->vi = v0 + vi1 - 1;

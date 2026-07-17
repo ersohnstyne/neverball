@@ -930,18 +930,18 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         {
-            unsigned char motionblur_c[4] = DRAW_COLOR4UBV_CNF_MOTIONBLUR;
+            unsigned char motionblur_cfv[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
+            unsigned char motionblur_cubv[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
 
             glDisable(GL_DEPTH_TEST);
             glDisable(GL_TEXTURE_2D);
-            
-            glColor4ub_(ROUND(fade_color[0] * 255),
-                        ROUND(fade_color[1] * 255),
-                        ROUND(fade_color[2] * 255),
-                        ROUND(k * 255));
 
             sol_bill_enable(draw);
             r_apply_mtrl(rend, default_mtrl);
+            glColor4ub_(ROUND(((motionblur_cubv[3] / 255.0f) * fade_color[0]) * 255),
+                        ROUND(((motionblur_cubv[3] / 255.0f) * fade_color[1]) * 255),
+                        ROUND(((motionblur_cubv[3] / 255.0f) * fade_color[2]) * 255),
+                        ROUND(((motionblur_cubv[3] / 255.0f) * k) * 255));
             glColor4f_(fade_color[0], fade_color[1], fade_color[2], k);
             glPushColor4_();
             glScalef(2.0f, 2.0f, 1.0f);
@@ -950,8 +950,10 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
             glColor4f_(1.0f, 1.0f, 1.0f, 1.0f);
             sol_bill_disable();
 
-            glColor4ub_(motionblur_c[0], motionblur_c[1], motionblur_c[2],
-                        motionblur_c[3]);
+            glColor4ub_(motionblur_cubv[0], motionblur_cubv[1], motionblur_cubv[2],
+                        motionblur_cubv[3]);
+            glColor4f_(motionblur_cfv[0], motionblur_cfv[1], motionblur_cfv[2],
+                       motionblur_cfv[3]);
 
             glEnable(GL_TEXTURE_2D);
             glEnable(GL_DEPTH_TEST);
@@ -1132,7 +1134,11 @@ void r_color_mtrl(struct s_rend *rend, int enable)
         unsigned char motionblur_c[4] = DRAW_COLOR4UBV_CNF_MOTIONBLUR;
 
         glColor4ub_(motionblur_c[0], motionblur_c[1], motionblur_c[2],
-                   motionblur_c[3]);
+                    motionblur_c[3]);
+        glColor4f_((motionblur_c[0] / 255.0f),
+                   (motionblur_c[1] / 255.0f),
+                   (motionblur_c[2] / 255.0f),
+                   (motionblur_c[3] / 255.0f));
 
         glDisable(GL_COLOR_MATERIAL);
 
@@ -1164,7 +1170,7 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
     int mq_flags = mq->base.fl;
 
 #if DEBUG_MTRL || (_MSC_VER && _DEBUG) || (defined(__EMSCRIPTEN__) && _DEBUG)
-    assert_mtrl(&rend->curr_mtrl);
+    //assert_mtrl(&rend->curr_mtrl);
 #endif
 
     /* Bind the texture. */
@@ -1201,7 +1207,7 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
     {
         if (!config_get_d(CONFIG_REFLECTION) && (mp_flags & M_REFLECTIVE))
             glColor4f_(mp->base.d[0] * mp->base.d[3], mp->base.d[1] * mp->base.d[3], mp->base.d[2] * mp->base.d[3], 1.0f);
-        glColor4f_(mp->base.d[0], mp->base.d[1], mp->base.d[2], mp->base.d[3]);
+        else glColor4f_(mp->base.d[0], mp->base.d[1], mp->base.d[2], mp->base.d[3]);
 
         if (mp->d != mq->d)
             glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   mp->base.d);

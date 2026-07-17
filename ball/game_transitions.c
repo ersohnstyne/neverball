@@ -22,7 +22,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-#ifndef __EMSCRIPTEN__
 struct game_transition {
     int state;
 
@@ -49,7 +48,6 @@ static struct b_mtrl game_transition_base_mtrl = {
 };
 
 static int game_transition_mtrl = 0;
-#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -57,14 +55,6 @@ static int game_transition_mtrl = 0;
 
 int game_transitions_init(void)
 {
-#ifndef __EMSCRIPTEN__
-    /*static const GLfloat verts[4][5] = {
-        { -0.5f, -0.5f, 0.0f, 0.0f, 0.0f },
-        { +0.5f, -0.5f, 0.0f, 1.0f, 0.0f },
-        { -0.5f, +0.5f, 0.0f, 0.0f, 1.0f },
-        { +0.5f, +0.5f, 0.0f, 1.0f, 1.0f },
-    };*/
-
     static const GLfloat verts[4][5] = {
         { -GAME_TRANSITION_VERTEX_SCALE, -GAME_TRANSITION_VERTEX_SCALE, 0.0f, -GAME_TRANSITION_VERTEX_SCALE + 1, -GAME_TRANSITION_VERTEX_SCALE + 1 },
         { +GAME_TRANSITION_VERTEX_SCALE, -GAME_TRANSITION_VERTEX_SCALE, 0.0f, +GAME_TRANSITION_VERTEX_SCALE,     -GAME_TRANSITION_VERTEX_SCALE + 1 },
@@ -96,11 +86,6 @@ int game_transitions_init(void)
     }
 
     return game_transitions_state;
-#else
-    /* Not available in Emscripten! */
-
-    return 0;
-#endif
 }
 
 void game_transitions_quit(void)
@@ -115,43 +100,33 @@ void game_transitions_quit(void)
 
 int game_transitions_available(void)
 {
-#ifndef __EMSCRIPTEN__
-    return fs_exists("gui/transitions/transition_superwaifuball.png") &&
-           game_transitions_state && game_common_superwaifu_game_installed();
-#else
-    /* Not available in Emscripten! */
+    /*return fs_exists("gui/transitions/transition_superwaifuball.png") &&
+           game_transitions_state && game_common_superwaifu_game_installed();*/
 
-    return 0;
-#endif
+    return fs_exists("gui/transitions/transition_superwaifuball.png") &&
+           game_transitions_state;
 }
 
 void game_transitions_step_fade(float dt)
 {
-#ifndef __EMSCRIPTEN__
     transitions.transition_k = CLAMP(0.0f,
                                      transitions.transition_k + transitions.transition_d * dt,
                                      1.0f);
-#endif
 }
 
 void game_transitions_fade(float d)
 {
-#ifndef __EMSCRIPTEN__
     transitions.transition_d = d * 0.5f;
-#endif
 }
 
 void game_transitions_fade_in(float d)
 {
-#ifndef __EMSCRIPTEN__
     transitions.transition_k = 1.0f;
     transitions.transition_d = d * 0.5f;
-#endif
 }
 
 void game_transitions_draw(struct s_rend *rend)
 {
-#ifndef __EMSCRIPTEN__
     if (transitions.transition_k <= 0.0f) return;
 
     const float transition_icon_scale = video.device_w < video.device_h ?
@@ -189,42 +164,26 @@ void game_transitions_draw(struct s_rend *rend)
 
     glBindBuffer_(GL_ARRAY_BUFFER,         0);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
-#endif
 }
 
 int game_transitions_fadeout_finished(void)
 {
-#ifndef __EMSCRIPTEN__
     return transitions.transition_d > 0.0f &&
            transitions.transition_k >= 1.0f;
-#else
-    /* Not available in Emscripten! */
-
-    return 0;
-#endif
 }
 
 void game_transitions_set_zorder(int order)
 {
-#ifndef __EMSCRIPTEN__
     transitions.z_order = order;
-#endif
 }
 
 int  game_transitions_get_zorder(void)
 {
-#ifndef __EMSCRIPTEN__
     return transitions.z_order;
-#else
-    /* Not available in Emscripten! */
-
-    return 0;
-#endif
 }
 
 void game_transitions_prep_scene(void)
 {
-#ifndef __EMSCRIPTEN__
     if (transitions.transition_k <= 0.0f) return;
 
     const int   center_x = ROUND(video.device_w / 2.0f);
@@ -232,16 +191,13 @@ void game_transitions_prep_scene(void)
 
     glPushScissor_(MAX(center_x - (video.device_h * max_aspect_ratio), 0), 0,
                    MIN((video.device_h * max_aspect_ratio), video.device_w), video.device_h);
-#endif
 }
 
 void game_transitions_post_scene(void)
 {
-#ifndef __EMSCRIPTEN__
     if (transitions.transition_k <= 0.0f) return;
 
     glPopScissor_();
-#endif
 }
 
 #undef GAME_TRANSITION_VERTEX_SCALE

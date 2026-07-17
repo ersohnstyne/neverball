@@ -731,6 +731,8 @@ General Public License for more details.
 
       isRunning: false,
       pauseOnPointerRelease: true,
+      ignoreNextMouseMove: false,
+      ignoreNextPointerMove: false,
       arguments: [],
 
       _canvas: document.getElementById('canvas'),
@@ -795,6 +797,13 @@ General Public License for more details.
             if (Neverball.pauseOnPointerRelease) {
               Neverball.pushEvent(Neverball.EVENT_PAUSE);
             }
+          } else {
+            // Firefox Android workaround: Flag that pointer lock was just acquired
+            // so that we can ignore the first buggy movement event with massive delta.
+            if (navigator.userAgent.toLowerCase().includes('firefox')) {
+              Neverball.ignoreNextMouseMove = true;
+              Neverball.ignoreNextPointerMove = true;
+            }
           }
         },
 
@@ -808,6 +817,13 @@ General Public License for more details.
           if (Neverball.pauseOnPointerRelease) {
             console.log('Disable pause on pointer release (Firefox workaround).')
             Neverball.pauseOnPointerRelease = false;
+          }
+
+          // Firefox Android workaround: Flag that a touch gesture started,
+          // so we can ignore the next relative move event.
+          if (navigator.userAgent.toLowerCase().includes('firefox')) {
+            Neverball.ignoreNextMouseMove = true;
+            Neverball.ignoreNextPointerMove = true;
           }
         }
       },
@@ -1526,6 +1542,35 @@ General Public License for more details.
         document.addEventListener('pointerlockchange', this.events.pointerLockChange);
 
         this._canvas.addEventListener('touchstart', this.events.canvasTouchStart);
+
+        // Firefox Android workaround: capturing event listener to discard the first
+        // mousemove/pointermove event right after pointer lock is acquired or a touch starts.
+        const discardBuggyMove = event => {
+          const isPointer = event.type === 'pointermove';
+          const ignore = isPointer ? Neverball.ignoreNextPointerMove : Neverball.ignoreNextMouseMove;
+
+          if (ignore) {
+            if (isPointer) {
+              Neverball.ignoreNextPointerMove = false;
+            } else {
+              Neverball.ignoreNextMouseMove = false;
+            }
+            event.stopImmediatePropagation();
+            console.log('Workaround: Discarded first ' + event.type + ' after pointer lock on Firefox (dx=' + event.movementX + ', dy=' + event.movementY + ')');
+          }
+        };
+
+        const handlePointerDown = event => {
+          if (navigator.userAgent.toLowerCase().includes('firefox')) {
+            Neverball.ignoreNextMouseMove = true;
+            Neverball.ignoreNextPointerMove = true;
+          }
+        };
+
+        window.addEventListener('mousedown', handlePointerDown, true);
+        window.addEventListener('pointerdown', handlePointerDown, true);
+        window.addEventListener('mousemove', discardBuggyMove, true);
+        window.addEventListener('pointermove', discardBuggyMove, true);
 
         this.updateVersionText();
       },

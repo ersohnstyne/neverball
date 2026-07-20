@@ -420,6 +420,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\share\video_dualdisplay.c" />
     <ClCompile Include="..\share\zip.c" />
     <ClCompile Include="..\wgcl\account_wgcl.c" />
+    <ClCompile Include="..\wgcl\mapmarkers_wgcl.cpp" />
     <ClCompile Include="..\wgcl\st_wgcl.c" />
   </ItemGroup>
   <ItemGroup>
@@ -537,6 +538,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\share\video_dualdisplay.h" />
     <ClInclude Include="..\share\zip.h" />
     <ClInclude Include="..\wgcl\account_wgcl.h" />
+    <ClInclude Include="..\wgcl\mapmarkers.h" />
     <ClInclude Include="..\wgcl\st_wgcl.h" />
     <ClInclude Include="..\share\strbuf\joinstr.h" />
     <ClInclude Include="..\share\strbuf\strbuf.h" />

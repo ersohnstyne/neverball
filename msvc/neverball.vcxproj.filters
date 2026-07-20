@@ -420,6 +420,9 @@
     <ClCompile Include="..\payments\parson.c">
       <Filter>Quelldateien\payments</Filter>
     </ClCompile>
+    <ClCompile Include="..\wgcl\mapmarkers_wgcl.cpp">
+      <Filter>Quelldateien\wgcl</Filter>
+    </ClCompile>
     <ClCompile Include="..\wgcl\st_wgcl.c">
       <Filter>Quelldateien\wgcl</Filter>
     </ClCompile>
@@ -763,6 +766,9 @@
     </ClInclude>
     <ClInclude Include="..\payments\parson.h">
       <Filter>Headerdateien\payments</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\mapmarkers.h">
+      <Filter>Headerdateien\wgcl</Filter>
     </ClInclude>
     <ClInclude Include="..\wgcl\st_wgcl.h">
       <Filter>Headerdateien\wgcl</Filter>

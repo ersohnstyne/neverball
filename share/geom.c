@@ -750,6 +750,11 @@ void vect_draw(struct s_rend *rend)
 
 void back_draw(struct s_rend *rend)
 {
+    glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHT0);
+    glDisable(GL_LIGHT1);
+    glDisable(GL_LIGHT2);
+
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     glDepthMask(GL_FALSE);

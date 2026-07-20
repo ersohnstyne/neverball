@@ -614,12 +614,12 @@ static void sol_draw_body(const struct d_body *bp, struct s_rend *rend, int p)
     } else if (bp->mc) log_errorf("bp->mv returned NULL!\n");
 }
 
-static void sol_draw_body_debug(const struct d_body *bp, struct s_rend *rend)
+static void sol_draw_body_debug(const struct d_body *bp, struct s_rend *rend, int top)
 {
 #if !ENABLE_OPENGLES
     if (bp->mv) {
         for (int i = 0; i < bp->mc; ++i)
-            sol_draw_mesh_debug(bp->mv + i, rend, i == 0);
+            sol_draw_mesh_debug(bp->mv + i, rend, top);
     } else if (bp->mc) log_errorf("DEBUG: bp->mv returned NULL!\n");
 #endif
 }
@@ -715,7 +715,7 @@ static void sol_draw_all_debug(const struct s_draw *draw, struct s_rend *rend)
         for (int bi = 0; bi < draw->bc; ++bi) {
             glPushMatrix();
             sol_transform(draw->vary, draw->vary->bv + bi, draw->shadow_ui);
-            sol_draw_body_debug(draw->bv + bi, rend);
+            sol_draw_body_debug(draw->bv + bi, rend, bi == 0);
             glPopMatrix();
         }
     } else if (draw->bc) log_errorf("DEBUG: draw->bv returned NULL!\n");
@@ -760,7 +760,9 @@ void sol_draw_debug(const struct s_draw *draw, struct s_rend *rend)
     if (config_cheat()) {
         if (rend) rend->skip_flags |= (draw->shadowed ? 0 : M_SHADOWED);
 
+        glDisable(GL_DEPTH_TEST);
         sol_draw_all_debug(draw, rend);
+        glEnable(GL_DEPTH_TEST);
 
         /* Revert the buffer object state. */
 
@@ -796,7 +798,11 @@ void sol_back(const struct s_draw *draw,
 {
     if (!(draw && draw->base &&
           draw->base->rc && draw->base->rv)) return;
-    
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHT0);
+    glDisable(GL_LIGHT1);
+    glDisable(GL_LIGHT2);
     glDepthMask(GL_FALSE);
 
     sol_bill_enable(draw);
@@ -932,7 +938,8 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
         {
             unsigned char motionblur_cfv[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
             unsigned char motionblur_cubv[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
-
+            
+            glDepthMask(GL_FALSE);
             glDisable(GL_DEPTH_TEST);
             glDisable(GL_TEXTURE_2D);
 
@@ -947,7 +954,6 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
             glScalef(2.0f, 2.0f, 1.0f);
             sol_draw_bill(GL_FALSE);
             glPopColor4_();
-            glColor4f_(1.0f, 1.0f, 1.0f, 1.0f);
             sol_bill_disable();
 
             glColor4ub_(motionblur_cubv[0], motionblur_cubv[1], motionblur_cubv[2],
@@ -957,6 +963,7 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
 
             glEnable(GL_TEXTURE_2D);
             glEnable(GL_DEPTH_TEST);
+            glDepthMask(GL_TRUE);
         }
     }
 }
@@ -1178,7 +1185,7 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
     if (mp->o != mq->o) glBindTexture_(GL_TEXTURE_2D, mp->o);
 
     /* Set material properties. */
-
+    
 #if ENABLE_MOTIONBLUR!=0
     if (config_get_d(CONFIG_MOTIONBLUR))
     {
@@ -1187,9 +1194,18 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
         float s_blur[4]; v_cpy(s_blur, mp->base.s); s_blur[3] = mp->base.s[3] * video_motionblur_alpha_get();
         float e_blur[4]; v_cpy(e_blur, mp->base.e); e_blur[3] = mp->base.e[3] * video_motionblur_alpha_get();
 
+        /* HACK: Force set texture color filter from diffuse material color! */
+
         if (!config_get_d(CONFIG_REFLECTION) && (mp_flags & M_REFLECTIVE))
+        {
+            glColor4ub_(ROUND((d_blur[0] * d_blur[3]) * 255), ROUND((d_blur[1] * d_blur[3]) * 255), ROUND((d_blur[2] * d_blur[3]) * 255), 255);
             glColor4f_(d_blur[0] * d_blur[3], d_blur[1] * d_blur[3], d_blur[2] * d_blur[3], 1.0f);
-        else glColor4f_(d_blur[0], d_blur[1], d_blur[2], d_blur[3]);
+        }
+        else
+        {
+            glColor4ub_(ROUND(d_blur[0] * 255), ROUND(d_blur[1] * 255), ROUND(d_blur[2] * 255), ROUND(d_blur[3] * 255));
+            glColor4f_(d_blur[0], d_blur[1], d_blur[2], d_blur[3]);
+        }
 
         if (mp->d != mq->d)
             glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   d_blur);
@@ -1205,9 +1221,18 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
     else
 #endif
     {
+        /* HACK: Force set texture color filter from diffuse material color! */
+
         if (!config_get_d(CONFIG_REFLECTION) && (mp_flags & M_REFLECTIVE))
+        {
+            glColor4ub_(ROUND((mp->base.d[0] * mp->base.d[3]) * 255), ROUND((mp->base.d[1] * mp->base.d[3]) * 255), ROUND((mp->base.d[2] * mp->base.d[3]) * 255), 255);
             glColor4f_(mp->base.d[0] * mp->base.d[3], mp->base.d[1] * mp->base.d[3], mp->base.d[2] * mp->base.d[3], 1.0f);
-        else glColor4f_(mp->base.d[0], mp->base.d[1], mp->base.d[2], mp->base.d[3]);
+        }
+        else
+        {
+            glColor4ub_(ROUND(mp->base.d[0] * 255), ROUND(mp->base.d[1] * 255), ROUND(mp->base.d[2] * 255), ROUND(mp->base.d[3] * 255));
+            glColor4f_(mp->base.d[0], mp->base.d[1], mp->base.d[2], mp->base.d[3]);
+        }
 
         if (mp->d != mq->d)
             glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   mp->base.d);
@@ -1229,7 +1254,7 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
             shad_draw_set();
         else shad_draw_clr();
     }
-    
+
     /* Environment mapping. */
 
 #if !ENABLE_OPENGLES

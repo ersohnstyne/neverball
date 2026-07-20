@@ -29,6 +29,8 @@ struct game_transition {
 
     float transition_k;
     float transition_d;
+
+    float transition_c[3];
 };
 
 static int game_transitions_state = 0;
@@ -114,6 +116,13 @@ void game_transitions_step_fade(float dt)
                                      1.0f);
 }
 
+void game_transitions_fade_color(float r, float g, float b)
+{
+    transitions.transition_c[0] = r;
+    transitions.transition_c[1] = g;
+    transitions.transition_c[2] = b;
+}
+
 void game_transitions_fade(float d)
 {
     transitions.transition_d = d * 0.5f;
@@ -132,7 +141,7 @@ void game_transitions_draw(struct s_rend *rend)
     const float transition_icon_scale = video.device_w < video.device_h ?
                                         video.device_w * 0.75f :
                                         video.device_h * 0.75f;
-    
+
     const float animated_scale = ((transitions.transition_k) < 0.5f ?
                                   21 + (20 * (-fsinf(transitions.transition_k * V_PI))) :
                                   fsinf(transitions.transition_k * V_PI));
@@ -144,6 +153,7 @@ void game_transitions_draw(struct s_rend *rend)
 
     glDisableClientState(GL_NORMAL_ARRAY);
     {
+        glDepthMask(GL_FALSE);
         glDisable(GL_DEPTH_TEST);
 
         glVertexPointer  (3, GL_FLOAT, sizeof (GLfloat) * 5, (GLvoid *) (                   0u));
@@ -151,14 +161,21 @@ void game_transitions_draw(struct s_rend *rend)
 
         r_apply_mtrl(rend, game_transition_mtrl);
 
+        glColor4ub_(0, 0, 0, 255);
+        glColor4f_(0, 0, 0, 1.0f);
+
         glPushMatrix();
-        glTranslatef(video.device_w / 2, video.device_h / 2, 0.0f);
+        glTranslatef(video.device_w / 2.0f, video.device_h / 2.0f, 0.0f);
         glScalef(transition_icon_scale * MAX(animated_scale, 0.01f),
                  transition_icon_scale * MAX(animated_scale, 0.01f), 1.0f);
         glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, (GLvoid*) 0u);
         glPopMatrix();
 
+        glColor4ub_(255, 255, 255, 255);
+        glColor4f_(1.0f, 1.0f, 1.0f, 1.0f);
+
         glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_TRUE);
     }
     glEnableClientState(GL_NORMAL_ARRAY);
 

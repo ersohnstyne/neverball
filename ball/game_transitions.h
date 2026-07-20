@@ -27,6 +27,7 @@ int  game_transitions_available(void);
  */
 void game_transitions_step_fade(float);
 
+void game_transitions_fade_color(float, float, float);
 void game_transitions_fade(float);
 void game_transitions_fade_in(float);
 

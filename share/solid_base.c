@@ -359,7 +359,7 @@ static void sol_load_goal(fs_file fin, struct b_goal *zp)
 static void sol_load_swch(fs_file fin, struct b_swch *xp)
 {
     get_array(fin, xp->p, 3);
-    
+
     xp->r  = get_float(fin);
     xp->pi = get_index(fin);
     xp->t  = get_float(fin);

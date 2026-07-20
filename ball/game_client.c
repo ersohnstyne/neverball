@@ -56,6 +56,7 @@
 
 #if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
 #include "st_operator.h"
+#include "mapmarkers.h"
 #endif
 
 #include "cmd.h"
@@ -911,6 +912,10 @@ int  game_client_init(const char *file_name)
 
     light_reset();
 
+#if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
+    mapmarkers_load_map(file_name);
+#endif
+
     return gd.state;
 }
 
@@ -1087,9 +1092,9 @@ void game_kill_fade(void)
 
 void game_step_fade(float dt)
 {
-    gd.fade_k = CLAMP(0.0f, gd.fade_k + gd.fade_d * dt, 1.0f);
+    gd.fade_k = CLAMP(0.0f, gd.fade_k + (gd.fade_d * dt), 1.0f);
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#if NB_HAVE_PB_BOTH==1
     game_transitions_step_fade(dt);
 #endif
 }
@@ -1098,17 +1103,15 @@ void game_fade(float d)
 {
     gd.fade_disabled = 0;
     gd.fade_d        = d;
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    /* FIXME: Didn't work just for me? */
-
-    /*game_transitions_fade(d);*/
-#endif
 }
 
 void game_fade_color(float r, float g, float b)
 {
     sol_fade_color(r, g, b);
+
+#if NB_HAVE_PB_BOTH==1
+    game_transitions_fade_color(r, g, b);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

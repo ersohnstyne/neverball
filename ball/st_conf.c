@@ -27,6 +27,9 @@
 #include "st_intro_covid.h"
 #include "st_beam_style.h"
 #include "networking.h"
+#if _WIN32 && _MSC_VER
+#include "mapmarkers.h"
+#endif
 #endif
 
 #include "log.h"
@@ -3034,6 +3037,10 @@ static int null_enter(struct state *st, struct state *prev, int intent)
 {
     if (prev == &st_null) return 0;
 
+#if NB_HAVE_PB_BOTH==1 && _WIN32 && _MSC_VER
+    mapmarkers_quit();
+#endif
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     game_transitions_quit();
 #endif
@@ -3123,6 +3130,10 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     game_transitions_init();
+#endif
+
+#if NB_HAVE_PB_BOTH==1 && _WIN32 && _MSC_VER
+    mapmarkers_init();
 #endif
 
     return 0;

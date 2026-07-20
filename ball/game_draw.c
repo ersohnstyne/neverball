@@ -34,6 +34,9 @@
 
 #if NB_HAVE_PB_BOTH==1
 #include "game_transitions.h"
+#if _WIN32 && _MSC_VER
+#include "mapmarkers.h"
+#endif
 #endif
 
 #if NB_HAVE_PB_BOTH==1 && !defined(MAPC_INCLUDES_CHKP)
@@ -1098,6 +1101,10 @@ static void game_draw_fore(struct s_rend *rend,
             glDisable(GL_LIGHT2);
             glEnable (GL_LIGHT1);
             glEnable (GL_LIGHT0);
+
+#if _WIN32 && _MSC_VER
+            mapmarkers_draw(rend);
+#endif
         }
 
         glDepthMask(GL_TRUE);
@@ -1171,6 +1178,9 @@ static void game_draw_fore_chnk(struct s_rend *rend,
             game_draw_chnk_swchs(rend, gd, M, t);
 #ifdef MAPC_INCLUDES_CHKP
             game_draw_chnk_chkps(rend, gd, M, t);
+#endif
+#if _WIN32 && _MSC_VER
+            mapmarkers_draw(rend);
 #endif
         }
 
@@ -1363,7 +1373,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
                         glScalef(+1.0f, -1.0f, +1.0f);
 
                         game_draw_light(gd, -1, t);
-
+                        
                         game_draw_back(&rend, gd, pose,    -1, t, 1);
                         game_draw_fore(&rend, gd, pose, U, -1, t, 1);
                     }
@@ -1408,30 +1418,26 @@ void game_draw(struct game_draw *gd, int pose, float t)
 #if !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
                 //if (!config_cheat()) glDisable(GL_FOG);
 #endif
+                glDisable(GL_LIGHT0);
+                glDisable(GL_LIGHT1);
             }
         }
         glPopMatrix();
+
+        /* if (!game_draw_cam_abovemap(gd)) glPopColor4_(); */
+        glPopColor4_();
 
         /* Draw the fade overlay. */
 
         if (gd->fade_disabled == 0)
         {
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (game_transitions_available())
-                game_transitions_draw(&rend);
-            else sol_fade(&gd->draw, &rend, gd->fade_k);
-#else
             if (game_transitions_available())
                 game_transitions_draw(&rend);
             sol_fade(&gd->draw, &rend, gd->fade_k);
-#endif
         }
 
         r_draw_disable(&rend);
         game_shadow_conf(pose, 0);
-
-        /* if (!game_draw_cam_abovemap(gd)) glPopColor4_(); */
-        glPopColor4_();
     }
 }
 

@@ -151,6 +151,12 @@ extern "C" {
 #include "rfd.h"
 #endif
 #include "log.h"
+<<<<<<< HEAD
+=======
+#include "game_client.h"
+#include "game_server.h"
+#include "game_proxy.h"
+>>>>>>> 0673b6ea3957554a53733be17f39f02eca0c2d39
 #include "strbuf/substr.h"
 #include "strbuf/joinstr.h"
 #include "lang.h"
@@ -2320,10 +2326,14 @@ static void main_quit(void)
     game_server_free(NULL);
     game_proxy_clr();
 
+<<<<<<< HEAD
     mtrl_quit ();
 #if ENABLE_DUALDISPLAY==1
     video_dualdisplay_quit();
 #endif
+=======
+    mtrl_quit();
+>>>>>>> 0673b6ea3957554a53733be17f39f02eca0c2d39
     video_quit();
     activity_services_quit();
     tilt_free();

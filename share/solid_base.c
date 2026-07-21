@@ -1286,7 +1286,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++)
                         if (!(mp->d[i] >= 0.0f && mp->d[i] <= 1.0f)) {
                             mp->d[i] = default_d[i];
-                            log_errorf("%s(%d): error: Diffuse value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Diffuse value out of range! (0.0 - 1.0)", name, curr_line);
                         }
                 }
                 else if (sscanf_s(p, "ambient %f %f %f %f",
@@ -1296,7 +1296,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++)
                         if (!(mp->a[i] >= 0.0f && mp->a[i] <= 1.0f)) {
                             mp->a[i] = default_a[i];
-                            log_errorf("%s(%d): error: Ambient value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Ambient value out of range! (0.0 - 1.0)", name, curr_line);
                         }
                 }
                 else if (sscanf_s(p, "specular %f %f %f %f",
@@ -1306,7 +1306,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++)
                         if (!(mp->s[i] >= 0.0f && mp->s[i] <= 1.0f)) {
                             mp->s[i] = default_s[i];
-                            log_errorf("%s(%d): error: Specular value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Specular value out of range! (0.0 - 1.0)", name, curr_line);
                         }
                 }
                 else if (sscanf_s(p, "emissive %f %f %f %f",
@@ -1316,7 +1316,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++) {
                         if (!(mp->e[i] >= 0.0f && mp->e[i] <= 1.0f)) {
                             mp->e[i] = default_e[i];
-                            log_errorf("%s(%d): error: Emmisive value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Emmisive value out of range! (0.0 - 1.0)", name, curr_line);
                         }
                     }
                 }
@@ -1332,7 +1332,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++)
                         if (!(mp->d[i] >= 0.0f && mp->d[i] <= 1.0f)) {
                             mp->d[i] = default_d[i];
-                            log_errorf("%s(%d): error: Diffuse value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Diffuse value out of range! (0.0 - 1.0)", name, curr_line);
                         }
                 }
                 else if (sscanf(p, "ambient %f %f %f %f",
@@ -1342,7 +1342,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++)
                         if (!(mp->a[i] >= 0.0f && mp->a[i] <= 1.0f)) {
                             mp->a[i] = default_a[i];
-                            log_errorf("%s(%d): error: Ambient value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Ambient value out of range! (0.0 - 1.0)", name, curr_line);
                         }
                 }
                 else if (sscanf(p, "specular %f %f %f %f",
@@ -1352,7 +1352,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++)
                         if (!(mp->s[i] >= 0.0f && mp->s[i] <= 1.0f)) {
                             mp->s[i] = default_s[i];
-                            log_errorf("%s(%d): error: Specular value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Specular value out of range! (0.0 - 1.0)", name, curr_line);
                         }
                 }
                 else if (sscanf(p, "emissive %f %f %f %f",
@@ -1362,7 +1362,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++) {
                         if (!(mp->e[i] >= 0.0f && mp->e[i] <= 1.0f)) {
                             mp->e[i] = default_e[i];
-                            log_errorf("%s(%d): error: Emmisive value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Emmisive value out of range! (0.0 - 1.0)", name, curr_line);
                         }
                     }
                 }
@@ -1373,27 +1373,35 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
 #endif
                 else if (strncmp(p, "flags ", 6) == 0)
                 {
-                    int f = 0;
-                    int n;
-
-                    p += 6;
-#if _MSC_VER && !_CRT_SECURE_NO_WARNINGS && !defined(__EMSCRIPTEN__)
-                    while (sscanf_s(p, "%s%n", word, &n) > 0)
-#else
-                    while (sscanf(p, "%s%n", word, &n) > 0)
-#endif
+                    //if (!str_ends_with(p, " \n") && !str_ends_with(p, " \n"))
+                        //log_errorf("%s(%d) : error MTRLE: Spacing expected after word flags at their end of the line!:\n\t%s\n", name, curr_line, p);
+                    //else
                     {
-                        for (i = 0; i < ARRAYSIZE(mtrl_flags); i++)
-                            if (strcmp(word, mtrl_flags[i].name) == 0)
-                            {
-                                f |= mtrl_flags[i].flag;
-                                break;
-                            }
+                        int f = 0, n, flags_found = 0;
 
-                        p += n;
+                        p += 6;
+#if _MSC_VER && !_CRT_SECURE_NO_WARNINGS && !defined(__EMSCRIPTEN__)
+                        while (sscanf_s(p, "%s%n", word, &n) > 0)
+#else
+                        while (sscanf(p, "%s%n", word, &n) > 0)
+#endif
+                        {
+                            for (i = 0; i < ARRAYSIZE(mtrl_flags); i++)
+                                if (strcmp(word, mtrl_flags[i].name) == 0)
+                                {
+                                    f |= mtrl_flags[i].flag;
+                                    flags_found = 1;
+                                    break;
+                                }
+
+                            if (!flags_found)
+                                log_errorf("%s(%d) : error MTRLE: Unknown material flags: %s\n", name, curr_line, word);
+
+                            p += n;
+                        }
+
+                        mp->fl = f;
                     }
-
-                    mp->fl = f;
                 }
 #if _MSC_VER && !_CRT_SECURE_NO_WARNINGS
                 else if (sscanf_s(p, "angle %f", &curr_angle) == 1)
@@ -1420,13 +1428,19 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                             break;
                         }
                 }
-                else log_errorf("%s(%d): error: Unknown directive\n", name, curr_line);
+                else
+                {
+                    int n = 0;
+
+                    if (sscanf(p, "%s%n", word, &n) > 0)
+                        log_errorf("%s(%d) : error MTRLE: Unknown directive: %s\n", name, curr_line, word);
+                }
             }
 
             fs_close(fp);
             return 1;
         }
-        else log_errorf("%s: error: Unknown material\n");
+        else log_errorf("%s : error MTRLE: Unknown material\n");
     }
     return 0;
 }

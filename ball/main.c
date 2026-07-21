@@ -93,6 +93,8 @@ extern "C" {
 #endif
 #include "game_common.h"
 #include "game_client.h"
+#include "game_server.h"
+#include "game_proxy.h"
 
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
@@ -2313,6 +2315,10 @@ static void main_quit(void)
     /* Free everything else. */
 
     goto_state(&st_null);
+
+    game_client_free(NULL);
+    game_server_free(NULL);
+    game_proxy_clr();
 
     mtrl_quit ();
 #if ENABLE_DUALDISPLAY==1

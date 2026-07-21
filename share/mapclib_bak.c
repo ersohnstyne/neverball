@@ -506,7 +506,13 @@ static int overflow(struct mapc_context *ctx, const char s[64u - sizeof (" overf
     sprintf(buf, "%s overflow\n", s);
 #endif
 
+#if _MSC_VER
+    fprintf_s(stderr, "%s: error MAPCE: %s overflow\n",
+        ctx->src_path.buf, s);
+#else
     MAPC_LOG_ERROR(ctx, buf);
+#endif
+
     longjmp(ctx->jmpbuf, MAPC_ERROR);
     return 0;
 }
@@ -909,16 +915,16 @@ static int read_mtrl(struct mapc_context *ctx, const char *name)
     int mi;
 
     for (mi = 0; mi < fp->mc; mi++)
-        if (strncmp(name, fp->mv[mi].f, MAXSTR) == 0)
+        if (strncmp(name && name[0] ? name : "mtrl/default", fp->mv[mi].f, MAXSTR) == 0)
             return mi;
 
     mp = fp->mv + incm(ctx);
 
-    if (!mtrl_read(mp, name))
+    if (!mtrl_read(mp, name && name[0] ? name : "mtrl/default"))
     {
         SAFECPY(buf, ctx->opt_file);
         SAFECAT(buf, ": unknown material \"");
-        SAFECAT(buf, name);
+        SAFECAT(buf, name && name[0] ? name : "mtrl/default");
         SAFECAT(buf, "\"\n");
         MAPC_LOG_WARNING(ctx, buf);
     }
@@ -1155,27 +1161,6 @@ static void read_v(struct mapc_context *ctx, const char *line)
 #endif
 }
 
-static int parse_triplet(const char* token, int* vi, int* ti, int* si)
-{
-    *vi = 0;
-    *ti = 0;
-    *si = 0;
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    if (sscanf_s(token, "%d/%d/%d", vi, ti, si) == 3) return 1;
-    if (sscanf_s(token, "%d/%d", vi, ti) == 2)        return 1;
-    if (sscanf_s(token, "%d/%d", vi, si) == 2)        return 1;
-    if (sscanf_s(token, "%d", vi) == 1)               return 1;
-#else
-    if (sscanf(token, "%d/%d/%d", vi, ti, si) == 3) return 1;
-    if (sscanf(token, "%d/%d", vi, ti) == 2)        return 1;
-    if (sscanf(token, "%d/%d", vi, si) == 2)        return 1;
-    if (sscanf(token, "%d", vi) == 1)               return 1;
-#endif
-
-    return 0;
-}
-
 static int parse_triplet(const char *token, int *vi, int *ti, int *si)
 {
     *vi = 0;
@@ -1214,7 +1199,7 @@ static void read_f(struct mapc_context *ctx, const char *line,
     int vi1 = 0, ti1 = 0, si1 = 0;
     int vi2 = 0, ti2 = 0, si2 = 0;
     int vi3 = 0, ti3 = 0, si3 = 0;
-
+    
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     if (sscanf_s(line, "%63s %63s %63s", tok1, tok2, tok3) == 3)
 #else
@@ -1222,17 +1207,32 @@ static void read_f(struct mapc_context *ctx, const char *line,
 #endif
     {
         if (!parse_triplet(tok1, &vi1, &ti1, &si1)) {
+#if _MSC_VER
+            fprintf_s(stderr, "%s: error MAPCE: Parse triplet error\n",
+                              ctx->src_path.buf);
+#else
             MAPC_LOG_ERROR(ctx, "Parse triplet error\n");
+#endif
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return;
         }
         if (!parse_triplet(tok2, &vi2, &ti2, &si2)) {
+#if _MSC_VER
+            fprintf_s(stderr, "%s: error MAPCE: Parse triplet error\n",
+                              ctx->src_path.buf);
+#else
             MAPC_LOG_ERROR(ctx, "Parse triplet error\n");
+#endif
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return;
         }
         if (!parse_triplet(tok3, &vi3, &ti3, &si3)) {
+#if _MSC_VER
+            fprintf_s(stderr, "%s: error MAPCE: Parse triplet error\n",
+                              ctx->src_path.buf);
+#else
             MAPC_LOG_ERROR(ctx, "Parse triplet error\n");
+#endif
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return;
         }
@@ -1403,7 +1403,12 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
             if (ctx->bracket_stack > 10)
             {
                 sprintf(stderr_buf, "Stack overflow!\n\t%s / Line: %d\n", buf, ctx->linenum);
+#if _MSC_VER
+                fprintf_s(stderr, "%s(%d): error MAPCE: Stack overflow!: %s\n",
+                                  ctx->src_path.buf, ctx->linenum, buf);
+#else
                 MAPC_LOG_ERROR(ctx, stderr_buf);
+#endif
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
             }
 
@@ -1418,7 +1423,12 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
             if (ctx->bracket_stack - 1 < 0)
             {
                 sprintf(stderr_buf, "Expected: {\n\t%s / Line: %d\n", buf, ctx->linenum);
+#if _MSC_VER
+                fprintf_s(stderr, "%s(%d): error MAPCE: Expected: {\n",
+                                  ctx->src_path.buf, ctx->linenum);
+#else
                 MAPC_LOG_ERROR(ctx, stderr_buf);
+#endif
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
             }
             if (ctx->bracket_linenum[ctx->bracket_stack - 1] != 0)
@@ -2765,7 +2775,11 @@ static void clip_geom(struct mapc_context *ctx,
 
             if (++n >= ARRAYSIZE(m))
             {
+#if _MSC_VER
+                fprintf_s(stderr, "%s: error MAPCE: Over 256 vertices on one side, skipping the rest\n", ctx->src_path.buf);
+#else
                 MAPC_LOG_ERROR(ctx, "Over 256 vertices on one side, skipping the rest\n");
+#endif
                 break;
             }
         }
@@ -4299,7 +4313,11 @@ static int mapc_compile_internal(struct mapc_context *ctx)
                 sprintf(tmp_buf,
 #endif
                         "Failure to open file! Only Campaign Level Maps (.CMAP) is supported!: %s\n", src);
+#if _MSC_VER
+                fprintf_s(stderr, "%s: error MAPCE: Failure to open file! Only Campaign Level Maps (.CMAP) is supported!", src);
+#else
                 MAPC_LOG_ERROR(ctx, tmp_buf);
+#endif
 #else
                 MAPC_LOG_ERROR(ctx, "Failure to open file! Only Campaign Level Maps (.CMAP) is supported!\n");
 #endif
@@ -4324,7 +4342,11 @@ static int mapc_compile_internal(struct mapc_context *ctx)
             sprintf(tmp_buf,
 #endif
                     "Failure to open file: %s - %s\n", src, fs_error());
+#if _MSC_VER
+            fprintf_s(stderr, "%s: error MAPCE: Failure to open file: %s\n", src, fs_error());
+#else
             MAPC_LOG_ERROR(ctx, tmp_buf);
+#endif
 #else
             MAPC_LOG_ERROR(ctx, "Failure to open file\n");
 #endif
@@ -4337,7 +4359,11 @@ static int mapc_compile_internal(struct mapc_context *ctx)
             char stderr_buf[MAXSTR];
 
             sprintf(stderr_buf, "Expected: }\n\t{ / Line: %d\n", ctx->linenum);
+#if _MSC_VER
+            fprintf_s(stderr, "%s(%d): error MAPCE: Expected: }\n", src, ctx->linenum);
+#else
             MAPC_LOG_ERROR(ctx, stderr_buf);
+#endif
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return 0;
         }
@@ -4346,7 +4372,11 @@ static int mapc_compile_internal(struct mapc_context *ctx)
         {
             if (!ctx->campaign_use_author_encrypt)
             {
+#if _MSC_VER
+                fprintf_s(stderr, "%s: error MAPCE: Failure to compile level map! You need to sign the campaign map first!\n\tWithout that, this can be dangerous!\n", src);
+#else
                 MAPC_LOG_ERROR(ctx, "Failure to compile level map! You need to sign the campaign map first!\n\tWithout that, this can be dangerous!\n");
+#endif
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
                 return 0;
             }
@@ -4374,13 +4404,42 @@ static int mapc_compile_internal(struct mapc_context *ctx)
         if (ctx->compile_time >= ctx->compile_time_limit)
         {
             char tmp_buf[MAXSTR];
+
+            if (ctx->compile_time >= 1800)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(tmp_buf, MAXSTR,
+                sprintf_s(tmp_buf, MAXSTR,
 #else
-            sprintf(tmp_buf,
+                sprintf(tmp_buf,
 #endif
-                    "Compile timed out after 60 seconds!\n", ctx->compile_time_limit);
+                        "Compile timed out after %lf seconds!\n"
+                        "\tCurrently, they exceeds 30 minute compile time, which has slow and old devices.\n"
+                        "\tSimplify more structural lumps, or buy the brand new PC!", ctx->compile_time_limit);
+            else
+            {
+                const int timelimits_available[] = {
+                    120, 180, 240, 300, 600, 900, 1200, 1800
+                };
+
+                int timelimit_canset_seconds = 0;
+
+                for (int i = 0; i < 8; i++)
+                    timelimit_canset_seconds = timelimits_available[i];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(tmp_buf, MAXSTR,
+#else
+                sprintf(tmp_buf,
+#endif
+                        "Compile timed out after %lf seconds!\n"
+                        "\tRaise compilation time limit to %d seconds (--timelimit %d)",
+                        ctx->compile_time_limit, timelimit_canset_seconds, timelimit_canset_seconds);
+            }
+
+#if _MSC_VER
+            fprintf_s(stderr, "%s: error MAPCE: %s\n", src, tmp_buf);
+#else
             MAPC_LOG_ERROR(ctx, tmp_buf);
+#endif
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return 0;
         }
@@ -4397,14 +4456,18 @@ static int mapc_compile_internal(struct mapc_context *ctx)
                 sprintf(tmp_buf,
 #endif
                         "Failure to save file! Only SOL extension for model profile is supported!: %s\n", src);
+#if _MSC_VER
+                fprintf_s(stderr, "%s: error MAPCE: Failure to save file! Only SOL extension for model profile is supported!\n", src);
+#else
                 MAPC_LOG_ERROR(ctx, tmp_buf);
+#endif
 #else
                 MAPC_LOG_ERROR(ctx, "Failure to save file! Only SOL extension for model profile is supported!\n");
 #endif
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
                 return 0;
             }
-
+            
             if (!campaign_check_budget(ctx))
             {
 #if NB_HAVE_PB_BOTH==1
@@ -4416,7 +4479,11 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #endif
                         "Failure to save file! Overbudget!: %s\n\tLump cost: %d; Lump budget: %d\n",
                         src, ctx->campaign_cost, ctx->campaign_budget);
+#if _MSC_VER
+                fprintf_s(stderr, "%s: error MAPCE: Failure to save file! Overbudget!\n", src);
+#else
                 MAPC_LOG_ERROR(ctx, tmp_buf);
+#endif
 #else
                 MAPC_LOG_ERROR(ctx, "Failure to save file! Overbudget!\n");
 #endif
@@ -4434,7 +4501,11 @@ static int mapc_compile_internal(struct mapc_context *ctx)
         {
             if (!sol_stor_base(&ctx->file, dst_solx))
             {
+#if _MSC_VER
+                fprintf_s(stderr, "%s: error MAPCE: Failure to save SOLX!: %s\n", src, fs_error());
+#else
                 MAPC_LOG_ERROR(ctx, "Failure to save SOLX!\n");
+#endif
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
                 return 0;
             }
@@ -4443,14 +4514,22 @@ static int mapc_compile_internal(struct mapc_context *ctx)
         {
             if (!sol_stor_base(&ctx->file, dst))
             {
+#if _MSC_VER
+                fprintf_s(stderr, "%s: error MAPCE: Failure to save SOL!: %s\n", src, fs_error());
+#else
                 MAPC_LOG_ERROR(ctx, "Failure to save SOL!\n");
+#endif
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
                 return 0;
             }
         }
         else
         {
+#if _MSC_VER
+            fprintf_s(stderr, "%s: error MAPCE: Failure to parse save path!\n", src);
+#else
             MAPC_LOG_ERROR(ctx, "Failure to parse save path!\n");
+#endif
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return 0;
         }

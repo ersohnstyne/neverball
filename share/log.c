@@ -82,13 +82,22 @@ void log_printf(const char *fmt, ...)
         {
             fprintf_s(stdout, TEMP_LOG_INFO, str);
             printf_s(TEMP_LOG_INFO, str);
+            fflush(stdout);
         }
 #else
         {
             fprintf(stdout, TEMP_LOG_INFO, str);
             printf(TEMP_LOG_INFO, str);
+            fflush(stdout);
         }
 #endif
+#else
+#if _WIN32
+        fprintf_s(stdout, str);
+#else
+        fprintf(stdout, str);
+#endif
+        fflush(stdout);
 #endif
 #endif
 
@@ -143,13 +152,22 @@ void log_errorf(const char *fmt, ...)
         {
             fprintf_s(stderr, TEMP_LOG_ERROR, str);
             printf_s(TEMP_LOG_ERROR, str);
+            fflush(stderr);
         }
 #else
         {
             fprintf(stderr, TEMP_LOG_ERROR, str);
             printf(TEMP_LOG_ERROR, str);
+            fflush(stderr);
         }
 #endif
+#else
+#if _WIN32
+        fprintf_s(stderr, str);
+#else
+        fprintf(stderr, str);
+#endif
+        fflush(stderr);
 #endif
 #endif
 

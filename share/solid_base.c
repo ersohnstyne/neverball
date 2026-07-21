@@ -1440,7 +1440,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
             fs_close(fp);
             return 1;
         }
-        else log_errorf("%s : error MTRLE: Unknown material\n");
+        else log_errorf("%s: error MTRLE: Unknown material\n", name);
     }
     return 0;
 }

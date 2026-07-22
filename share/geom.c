@@ -643,14 +643,10 @@ void beam_draw(struct s_rend *rend, const GLfloat *p,
 
         glTranslatef(p[0], p[1], p[2]);
         glScalef(r, h, r);
-        glColor4ub_(ROUND(c[0] * motionblur_cubv[0]),
-                    ROUND(c[1] * motionblur_cubv[1]),
-                    ROUND(c[2] * motionblur_cubv[2]),
-                    ROUND(c[3] * motionblur_cubv[3]));
-        glColor4ub_((c[0] * (motionblur_cfv[0] / 255.0f)),
-                    (c[1] * (motionblur_cfv[1] / 255.0f)),
-                    (c[2] * (motionblur_cfv[2] / 255.0f)),
-                    (c[3] * (motionblur_cfv[3] / 255.0f)));
+        glColor4f_((c[0] * motionblur_cfv[0]),
+                   (c[1] * motionblur_cfv[1]),
+                   (c[2] * motionblur_cfv[2]),
+                   (c[3] * motionblur_cfv[3]));
         sol_draw(&beam.draw, rend, 1, 1);
     }
     glPopMatrix();
@@ -667,12 +663,12 @@ void goal_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h, GLfl
         glTranslatef(p[0], p[1], p[2]);
         glScalef(r, h, r);
 
-        if (goal.base.rc)
+        /*if (goal.base.rc)
         {
             float M[16];
             m_ident(M);
             sol_bill(&goal.draw, rend, M, t);
-        }
+        }*/
 
         sol_draw(&goal.draw, rend, 1, 1);
     }
@@ -690,12 +686,12 @@ void jump_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h, GLfl
         glTranslatef(p[0], p[1], p[2]);
         glScalef(r, h, r);
 
-        if (jump.base.rc)
+        /*if (jump.base.rc)
         {
             float M[16];
             m_ident(M);
             sol_bill(&jump.draw, rend, M, t);
-        }
+        }*/
 
         sol_draw(&jump.draw, rend, 1, 1);
     }
@@ -726,8 +722,6 @@ void flag_draw(struct s_rend *rend, const GLfloat *p)
         unsigned char motionblur_c[4] = DRAW_COLOR4UBV_CNF_MOTIONBLUR;
 
         glTranslatef(p[0], p[1], p[2]);
-        glColor4ub_(motionblur_c[0], motionblur_c[1], motionblur_c[2],
-                    motionblur_c[3]);
         glColor4f_((motionblur_c[0] / 255.0f),
                    (motionblur_c[1] / 255.0f),
                    (motionblur_c[2] / 255.0f),
@@ -750,10 +744,10 @@ void vect_draw(struct s_rend *rend)
 
 void back_draw(struct s_rend *rend)
 {
-    glDisable(GL_LIGHTING);
-    glDisable(GL_LIGHT0);
-    glDisable(GL_LIGHT1);
-    glDisable(GL_LIGHT2);
+    //glDisable(GL_LIGHTING);
+    //glDisable(GL_LIGHT0);
+    //glDisable(GL_LIGHT1);
+    //glDisable(GL_LIGHT2);
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
@@ -982,17 +976,31 @@ void light_reset(void)
 {
     memcpy(lights,        default_lights,  sizeof (lights));
     memcpy(light_ambient, default_ambient, sizeof (light_ambient));
+
+    for (int i = 0; i < ARRAYSIZE(lights); i++)
+    {
+        /* HACK: Buff diffuse color multiply! */
+
+        v_scl(lights[i].d, lights[i].d, 2.0f);
+
+        /* HACK: Nerf specular color multiply! */
+
+        v_scl(lights[i].s, lights[i].s, (1.0f / 8.0f));
+    }
 }
 
 void light_conf(void)
 {
-    int i;
-
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, light_ambient);
 
-    for (i = 0; i < ARRAYSIZE(lights); i++)
+    for (int i = 0; i < ARRAYSIZE(lights); i++)
     {
         GLenum light = GL_LIGHT0 + i;
+
+        if (lights[i].p[0] < -1.0f || lights[i].p[0] > 1.0f ||
+            lights[i].p[1] < -1.0f || lights[i].p[1] > 1.0f ||
+            lights[i].p[2] < -1.0f || lights[i].p[2] > 1.0f)
+            v_nrm(lights[i].p, lights[i].p);
 
         glLightfv(light, GL_POSITION, lights[i].p);
         glLightfv(light, GL_DIFFUSE,  lights[i].d);

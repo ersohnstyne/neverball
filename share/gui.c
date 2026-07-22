@@ -816,7 +816,7 @@ void gui_free(void)
     glDeleteBuffers_(1, &vert_ebo);
 
     /* Release any remaining widget texture and display list indices. */
-    
+
     for (id = 1; id < WIDGET_MAX; id++)
         if (widget[id].type != GUI_FREE) {
             if (widget[id].image)
@@ -3060,7 +3060,7 @@ void gui_timer(int id, float dt)
             }
         }
     }
-    
+
 #if NB_STEAM_API==1
     static float cursor_x_offset_gamepad = -10000;
     static float cursor_y_offset_gamepad = -10000;
@@ -3460,7 +3460,7 @@ int gui_stick(int id, int a, float v, int bump)
     }
 
     /* Find a new active widget in the direction of joystick motion. */
-    
+
     if      (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))
     {
         if (v + axis_offset_target[0] < 0) jd = gui_wrap_L(id, active);

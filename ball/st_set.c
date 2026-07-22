@@ -1379,7 +1379,6 @@ static void campaign_timer(int id, float dt)
 #endif
 
     gui_timer(id, dt);
-    game_step_fade(dt);
 }
 
 static int campaign_keybd(int c, int d)

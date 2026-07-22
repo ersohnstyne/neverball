@@ -533,8 +533,8 @@ static void sol_draw_mesh_debug(const struct d_mesh *mp,
 
         if (!gli.wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-        if (top) glColor4f_(0, 255, 255, 192);
-        else     glColor4f_(0, 128, 255, 192);
+        if (top) glColor4f_(0, 0.25f, 1.0f, 0.75f);
+        else     glColor4f_(0, 0.5f, 1.0f, 0.75f);
 
         glBindBuffer_(GL_ARRAY_BUFFER, mp->vbo);
         glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, mp->ebo);
@@ -551,7 +551,7 @@ static void sol_draw_mesh_debug(const struct d_mesh *mp,
         glBindBuffer_(GL_ARRAY_BUFFER,         0);
         glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-        glColor4f_(255, 255, 255, 255);
+        glColor4f_(1.0f, 1.0f, 1.0f, 1.0f);
 
         if (!gli.wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
@@ -799,10 +799,11 @@ void sol_back(const struct s_draw *draw,
     if (!(draw && draw->base &&
           draw->base->rc && draw->base->rv)) return;
 
-    glDisable(GL_LIGHTING);
-    glDisable(GL_LIGHT0);
-    glDisable(GL_LIGHT1);
-    glDisable(GL_LIGHT2);
+    //glDisable(GL_LIGHTING);
+    //glDisable(GL_LIGHT0);
+    //glDisable(GL_LIGHT1);
+    //glDisable(GL_LIGHT2);
+
     glDepthMask(GL_FALSE);
 
     sol_bill_enable(draw);
@@ -938,17 +939,16 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
         {
             unsigned char motionblur_cfv[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
             unsigned char motionblur_cubv[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
-            
-            glDepthMask(GL_FALSE);
+
             glDisable(GL_DEPTH_TEST);
             glDisable(GL_TEXTURE_2D);
 
             sol_bill_enable(draw);
             r_apply_mtrl(rend, default_mtrl);
-            glColor4ub_(ROUND(((motionblur_cubv[3] / 255.0f) * fade_color[0]) * 255),
+            /*glColor4ub_(ROUND(((motionblur_cubv[3] / 255.0f) * fade_color[0]) * 255),
                         ROUND(((motionblur_cubv[3] / 255.0f) * fade_color[1]) * 255),
                         ROUND(((motionblur_cubv[3] / 255.0f) * fade_color[2]) * 255),
-                        ROUND(((motionblur_cubv[3] / 255.0f) * k) * 255));
+                        ROUND(((motionblur_cubv[3] / 255.0f) * k) * 255));*/
             glColor4f_(fade_color[0], fade_color[1], fade_color[2], k);
             glPushColor4_();
             glScalef(2.0f, 2.0f, 1.0f);
@@ -956,14 +956,13 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
             glPopColor4_();
             sol_bill_disable();
 
-            glColor4ub_(motionblur_cubv[0], motionblur_cubv[1], motionblur_cubv[2],
-                        motionblur_cubv[3]);
+            /*glColor4ub_(motionblur_cubv[0], motionblur_cubv[1], motionblur_cubv[2],
+                        motionblur_cubv[3]);*/
             glColor4f_(motionblur_cfv[0], motionblur_cfv[1], motionblur_cfv[2],
                        motionblur_cfv[3]);
 
             glEnable(GL_TEXTURE_2D);
             glEnable(GL_DEPTH_TEST);
-            glDepthMask(GL_TRUE);
         }
     }
 }
@@ -1037,7 +1036,7 @@ static void assert_mtrl_devenv(const struct mtrl* mp)
     check_mtrl("diffuse",   GL_DIFFUSE,   mp->d);
     check_mtrl("specular",  GL_SPECULAR,  mp->s);
     check_mtrl("emission",  GL_EMISSION,  mp->e);
-    //check_mtrl("shininess", GL_SHININESS, mp->h);
+    check_mtrl("shininess", GL_SHININESS, mp->h);
 }
 
 #define assert_mtrl assert_mtrl_devenv
@@ -1077,7 +1076,7 @@ static void assert_mtrl_emsdk(const struct mtrl* mp)
     check_mtrl("diffuse",   GL_DIFFUSE,   mp->d);
     check_mtrl("specular",  GL_SPECULAR,  mp->s);
     check_mtrl("emission",  GL_EMISSION,  mp->e);
-    //check_mtrl("shininess", GL_SHININESS, mp->h);
+    check_mtrl("shininess", GL_SHININESS, mp->h);
 }
 
 #define assert_mtrl assert_mtrl_emsdk
@@ -1122,7 +1121,7 @@ static void assert_mtrl(const struct mtrl *mp)
     check_mtrl("diffuse",   GL_DIFFUSE,   mp->d);
     check_mtrl("specular",  GL_SPECULAR,  mp->s);
     check_mtrl("emission",  GL_EMISSION,  mp->e);
-    //check_mtrl("shininess", GL_SHININESS, mp->h);
+    check_mtrl("shininess", GL_SHININESS, mp->h);
 }
 #endif
 
@@ -1138,14 +1137,15 @@ void r_color_mtrl(struct s_rend *rend, int enable)
     }
     else
     {
-        unsigned char motionblur_c[4] = DRAW_COLOR4UBV_CNF_MOTIONBLUR;
+        unsigned char motionblur_cubv[4] = DRAW_COLOR4UBV_CNF_MOTIONBLUR;
+        float motionblur_cfv[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
 
-        glColor4ub_(motionblur_c[0], motionblur_c[1], motionblur_c[2],
-                    motionblur_c[3]);
-        glColor4f_((motionblur_c[0] / 255.0f),
-                   (motionblur_c[1] / 255.0f),
-                   (motionblur_c[2] / 255.0f),
-                   (motionblur_c[3] / 255.0f));
+        /*glColor4ub_(motionblur_cubv[0], motionblur_cubv[1], motionblur_cubv[2],
+                    motionblur_cubv[3]);*/
+        glColor4f_((motionblur_cfv[0]),
+                   (motionblur_cfv[1]),
+                   (motionblur_cfv[2]),
+                   (motionblur_cfv[3]));
 
         glDisable(GL_COLOR_MATERIAL);
 
@@ -1185,7 +1185,7 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
     if (mp->o != mq->o) glBindTexture_(GL_TEXTURE_2D, mp->o);
 
     /* Set material properties. */
-    
+
 #if ENABLE_MOTIONBLUR!=0
     if (config_get_d(CONFIG_MOTIONBLUR))
     {
@@ -1198,13 +1198,13 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
 
         if (!config_get_d(CONFIG_REFLECTION) && (mp_flags & M_REFLECTIVE))
         {
-            glColor4ub_(ROUND((d_blur[0] * d_blur[3]) * 255), ROUND((d_blur[1] * d_blur[3]) * 255), ROUND((d_blur[2] * d_blur[3]) * 255), 255);
-            glColor4f_(d_blur[0] * d_blur[3], d_blur[1] * d_blur[3], d_blur[2] * d_blur[3], 1.0f);
+            //glColor4ub_(ROUND((d_blur[0] * d_blur[3]) * 255), ROUND((d_blur[1] * d_blur[3]) * 255), ROUND((d_blur[2] * d_blur[3]) * 255), 255);
+            //glColor4f_(d_blur[0] * d_blur[3], d_blur[1] * d_blur[3], d_blur[2] * d_blur[3], 1.0f);
         }
         else
         {
-            glColor4ub_(ROUND(d_blur[0] * 255), ROUND(d_blur[1] * 255), ROUND(d_blur[2] * 255), ROUND(d_blur[3] * 255));
-            glColor4f_(d_blur[0], d_blur[1], d_blur[2], d_blur[3]);
+            //glColor4ub_(ROUND(d_blur[0] * 255), ROUND(d_blur[1] * 255), ROUND(d_blur[2] * 255), ROUND(d_blur[3] * 255));
+            //glColor4f_(d_blur[0], d_blur[1], d_blur[2], d_blur[3]);
         }
 
         if (mp->d != mq->d)
@@ -1225,13 +1225,13 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
 
         if (!config_get_d(CONFIG_REFLECTION) && (mp_flags & M_REFLECTIVE))
         {
-            glColor4ub_(ROUND((mp->base.d[0] * mp->base.d[3]) * 255), ROUND((mp->base.d[1] * mp->base.d[3]) * 255), ROUND((mp->base.d[2] * mp->base.d[3]) * 255), 255);
-            glColor4f_(mp->base.d[0] * mp->base.d[3], mp->base.d[1] * mp->base.d[3], mp->base.d[2] * mp->base.d[3], 1.0f);
+            //glColor4ub_(ROUND((mp->base.d[0] * mp->base.d[3]) * 255), ROUND((mp->base.d[1] * mp->base.d[3]) * 255), ROUND((mp->base.d[2] * mp->base.d[3]) * 255), 255);
+            //glColor4f_(mp->base.d[0] * mp->base.d[3], mp->base.d[1] * mp->base.d[3], mp->base.d[2] * mp->base.d[3], 1.0f);
         }
         else
         {
-            glColor4ub_(ROUND(mp->base.d[0] * 255), ROUND(mp->base.d[1] * 255), ROUND(mp->base.d[2] * 255), ROUND(mp->base.d[3] * 255));
-            glColor4f_(mp->base.d[0], mp->base.d[1], mp->base.d[2], mp->base.d[3]);
+            //glColor4ub_(ROUND(mp->base.d[0] * 255), ROUND(mp->base.d[1] * 255), ROUND(mp->base.d[2] * 255), ROUND(mp->base.d[3] * 255));
+            //glColor4f_(mp->base.d[0], mp->base.d[1], mp->base.d[2], mp->base.d[3]);
         }
 
         if (mp->d != mq->d)

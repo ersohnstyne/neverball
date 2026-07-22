@@ -103,8 +103,12 @@ void log_printf(const char *fmt, ...)
 
 #ifndef NDEBUG
 #if _WIN32 && _MSC_VER
+#ifndef _CONSOLE
         OutputDebugStringA("[i] NB INFO: ");
         OutputDebugStringA(str);
+#else
+        OutputDebugStringA(str);
+#endif
 #endif
 #endif
 
@@ -173,8 +177,12 @@ void log_errorf(const char *fmt, ...)
 
 #ifndef NDEBUG
 #if _WIN32 && _MSC_VER
+#ifndef _CONSOLE
         OutputDebugStringA("[!] NB ERROR: ");
         OutputDebugStringA(str);
+#else
+        OutputDebugStringA(str);
+#endif
 #endif
 #endif
 

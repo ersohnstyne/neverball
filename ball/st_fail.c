@@ -713,12 +713,14 @@ static int fail_gui(void)
 #ifdef MAPC_INCLUDES_CHKP
                     respawnable = 0;
 #endif
-
                     /*
                      * Some buttons were removed by Mojang in this future!
                      * (e.g. death_screen.json in Minecraft Android, iOS or Windows)
                      */
-                    gui_start(jd, _("Back To Menu"), GUI_SML, FAIL_OVER, 0);
+                    const char *quit_btn_text = (curr_mode() == MODE_STANDALONE || progress_dead() ?
+                                                 N_("Exit") : N_("Back To Menu"));
+
+                    gui_start(jd, _(quit_btn_text), GUI_SML, FAIL_OVER, 0);
 
 #if NB_HAVE_PB_BOTH==1
                     if (!progress_dead())

@@ -94,6 +94,23 @@ static int sol_file(fs_file fin, int fp_ten)
     return 1;
 }
 
+#if defined(_DEBUG) && _WIN32 && _MSC_VER
+#define SOL_BASE_LOAD_MTRL_DEBUG_COMPARE(_curr, _expected) \
+    do { \
+        if ((_curr) != (_expected)) { \
+            log_errorf("%s (%d): Current SOL's MTRL value \"%s\" does not matched by filesystem's MTRL value \"%s\" [MTRLFILE_SOL_MTRL_VALUE_MISMATCH]\n", __FILE__, __LINE__, #_curr, #_expected); \
+            _curr = _expected; \
+        } \
+    } while (0)
+#else
+#define SOL_BASE_LOAD_MTRL_DEBUG_COMPARE(_curr, _expected) \
+    do { \
+        if ((_curr) != (_expected)) { \
+            _curr = _expected; \
+        } \
+    } while (0)
+#endif
+
 static void sol_load_mtrl(fs_file fin, struct b_mtrl *mp)
 {
     get_array(fin, mp->d, 4);
@@ -147,6 +164,28 @@ static void sol_load_mtrl(fs_file fin, struct b_mtrl *mp)
             mp->fl = M_TRANSPARENT;
             mp->d[3] = 0.0f;
         }
+    }
+
+    /* HACK: Start compare MTRL file! */
+
+    struct b_mtrl *mq = calloc(1, sizeof (* mq));
+
+    if (mq)
+    {
+        if (mtrl_read(mq, mp->f)) {
+            for (int i = 0; i < 4; i++) {
+                SOL_BASE_LOAD_MTRL_DEBUG_COMPARE(mp->d[i], mq->d[i]);
+                SOL_BASE_LOAD_MTRL_DEBUG_COMPARE(mp->a[i], mq->a[i]);
+                SOL_BASE_LOAD_MTRL_DEBUG_COMPARE(mp->s[i], mq->s[i]);
+                SOL_BASE_LOAD_MTRL_DEBUG_COMPARE(mp->e[i], mq->e[i]);
+            }
+
+            SOL_BASE_LOAD_MTRL_DEBUG_COMPARE(mp->h[0], mq->h[0]);
+            SOL_BASE_LOAD_MTRL_DEBUG_COMPARE(mp->angle, mq->angle);
+            SOL_BASE_LOAD_MTRL_DEBUG_COMPARE(mp->fl, mq->fl);
+        }
+
+        free(mq); mq = NULL;
     }
 }
 
@@ -1377,6 +1416,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                         //log_errorf("%s(%d) : error MTRLE: Spacing expected after word flags at their end of the line!:\n\t%s\n", name, curr_line, p);
                     //else
                     {
+                        int f_id = 0, mtrl_unlit = 1;
                         int f = 0, n, flags_found = 0;
 
                         p += 6;
@@ -1386,10 +1426,22 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                         while (sscanf(p, "%s%n", word, &n) > 0)
 #endif
                         {
+                            flags_found = 0;
+
                             for (i = 0; i < ARRAYSIZE(mtrl_flags); i++)
                                 if (strcmp(word, mtrl_flags[i].name) == 0)
                                 {
-                                    f |= mtrl_flags[i].flag;
+                                    if (strcmp(mtrl_flags[i].name, "lit") == 0 && mtrl_unlit)
+                                    {
+                                        if (f_id != 0)
+                                            log_errorf("%s(%d) : error MTRLE: Lit flags must enabled first!\n", name, curr_line, word);
+                                        else mtrl_unlit = 0;
+
+                                        f |= mtrl_flags[i].flag;
+                                    }
+                                    else if (strcmp(mtrl_flags[i].name, "lit") != 0)
+                                        f |= mtrl_flags[i].flag;
+
                                     flags_found = 1;
                                     break;
                                 }
@@ -1398,6 +1450,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                                 log_errorf("%s(%d) : error MTRLE: Unknown material flags: %s\n", name, curr_line, word);
 
                             p += n;
+                            f_id++;
                         }
 
                         mp->fl = f;
@@ -1406,14 +1459,20 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
 #if _MSC_VER && !_CRT_SECURE_NO_WARNINGS
                 else if (sscanf_s(p, "angle %f", &curr_angle) == 1)
                 {
-                    if (curr_angle >= 0.0f) mp->angle = curr_angle;
+                    if (curr_angle < 0.0f) {
+                        log_errorf("%s(%d) : error MTRLE: Angle out of range! (min 0.0)\n", name, curr_line, word);
+                        mp->angle = default_angle;
+                    }
                 }
                 else if (sscanf_s(p, "alpha-test %15s %f",
                                   str, &mp->alpha_ref) == 2)
 #else
                 else if (sscanf(p, "angle %f", &mp->angle) == 1)
                 {
-                    if (mp->angle < 0.0f) mp->angle = default_angle;
+                    if (mp->angle < 0.0f) {
+                        log_errorf("%s(%d) : error MTRLE: Angle out of range! (min 0.0)\n", name, curr_line, word);
+                        mp->angle = default_angle;
+                    }
                 }
                 else if (sscanf(p, "alpha-test %15s %f",
                                 str, &mp->alpha_ref) == 2)
@@ -1440,7 +1499,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
             fs_close(fp);
             return 1;
         }
-        else log_errorf("%s: error MTRLE: Unknown material\n", name);
+        //else log_errorf("%s: error MTRLE: Unknown material\n", name);
     }
     return 0;
 }

@@ -147,14 +147,14 @@ static float         glext_color4f_vfxs[16][4];
 
 /*---------------------------------------------------------------------------*/
 
-int glext_check_vendor(const char* vendor)
+int glext_check_vendor(const char *vendor)
 {
-    return str_starts_with((const char *)glGetString(GL_VENDOR), vendor);
+    return str_starts_with((const char *) glGetString(GL_VENDOR), vendor);
 }
 
-int glext_check_renderer(const char* renderer)
+int glext_check_renderer(const char *renderer)
 {
-    return str_starts_with((const char *)glGetString(GL_RENDERER), renderer);
+    return str_starts_with((const char *) glGetString(GL_RENDERER), renderer);
 }
 
 int glext_check_ext(const char *needle)
@@ -292,7 +292,7 @@ static void log_opengl(void)
 int glext_fail(const char *title, const char *message)
 {
 #if _WIN32
-    /* Let's do Windows message box stuff, because it's already in there. */
+    /* HACK: Use Windows message box, because it's already in there. */
 
     MessageBoxA(0, message, title, MB_ICONERROR);
 #elif defined(__WII__)
@@ -574,8 +574,7 @@ void glSetColor4ub_(unsigned char r, unsigned char g, unsigned char b, unsigned 
                 c4ub_final[j] = ROUND((float) (c4ub_final[j] * (glext_color4ub_vfxs[i][j] / 255.0f)));
 
         glColor4ub(c4ub_final[0], c4ub_final[1], c4ub_final[2], c4ub_final[3]);
-    }
-    else glColor4ub(r, g, b, a);
+    } else glColor4ub(r, g, b, a);
 }
 
 void glSetColor4f_(const float r, const float g, const float b, const float a)
@@ -603,6 +602,9 @@ void glSetColor4f_(const float r, const float g, const float b, const float a)
 
 void glPopColor4_(void)
 {
+    glSetColor4f_(0.0f, 0.0f, 0.0f, 0.0f);
+    glSetColor4ub_(0, 0, 0, 0);
+
     if (glext_curr_depth_vfxs > 14) return;
     glext_curr_depth_vfxs++;
 }

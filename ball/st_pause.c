@@ -260,9 +260,9 @@ static int pause_button_width(int allow_zen, int reset_puzzle)
     if (btn_width > target_width) target_width = btn_width;
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    const char *quit_btn_text = campaign_used() ? N_("Quit") : N_("Give Up");
+    const char *quit_btn_text = campaign_used() ? N_("Quit") : (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
 #else
-    const char *quit_btn_text = N_("Give Up");
+    const char *quit_btn_text = (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
 #endif
 
     btn_width = gui_measure(_(quit_btn_text), GUI_SML).w;
@@ -339,9 +339,9 @@ static int pause_gui(void)
         if ((jd = gui_harray(id)))
         {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            const char *quit_btn_text = campaign_used() ? N_("Quit") : N_("Give Up");
+            const char *quit_btn_text = campaign_used() ? N_("Quit") : (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
 #else
-            const char *quit_btn_text = N_("Give Up");
+            const char *quit_btn_text = (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
 #endif
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -540,10 +540,11 @@ static int pause_quit_gui(void)
 
     if ((id = gui_vstack(0)))
     {
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        const char *quit_header_text = campaign_used() ? N_("Quit") : N_("Give Up");
+        const char *quit_header_text = campaign_used() ? N_("Quit") : (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
 #else
-        const char *quit_header_text = N_("Give Up");
+        const char *quit_header_text = (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
 #endif
 
         int warn_title_id = gui_label(id, _(quit_header_text), GUI_MED, GUI_COLOR_RED);

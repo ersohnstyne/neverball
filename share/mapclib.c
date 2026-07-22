@@ -4468,9 +4468,9 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #else
                 sprintf(tmp_buf,
 #endif
-                        "Compile timed out after %lf seconds!\n"
+                        "Compile timed out after %d seconds!\n"
                         "\tCurrently, they exceeds 30 minute compile time, which has slow and old devices.\n"
-                        "\tSimplify more structural lumps, or buy the brand new PC!", ctx->compile_time_limit);
+                        "\tSimplify more structural lumps, or buy the brand new PC!", ROUND(ctx->compile_time_limit));
             else
             {
                 const int timelimits_available[] = {
@@ -4479,7 +4479,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 
                 int timelimit_canset_seconds = 0;
 
-                for (int i = 0; i < 8; i++)
+                for (int i = 0; i < 8 && ctx->compile_time >= timelimit_canset_seconds; i++)
                     timelimit_canset_seconds = timelimits_available[i];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -4487,9 +4487,9 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #else
                 sprintf(tmp_buf,
 #endif
-                        "Compile timed out after %lf seconds!\n"
+                        "Compile timed out after %%d seconds!\n"
                         "\tRaise compilation time limit to %d seconds (--timelimit %d)",
-                        ctx->compile_time_limit, timelimit_canset_seconds, timelimit_canset_seconds);
+                        ROUND(ctx->compile_time_limit), ROUND(timelimit_canset_seconds), ROUND(timelimit_canset_seconds));
             }
 
 #if _MSC_VER

@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -1020,12 +1024,28 @@ static void set_load_levels(void)
 
             if (l->is_master)
             {
+                if (master >= 200) {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(l->name, MAXSTR,
+                    sprintf_s(l->name, MAXSTR,
 #else
-                sprintf(l->name,
+                    sprintf(l->name,
 #endif
-                        "M%d", master);
+                            "M ✯✯ %d", master - 199);
+                } else if (master >= 100) {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sprintf_s(l->name, MAXSTR,
+#else
+                    sprintf(l->name,
+#endif
+                            "M ✯ %d", master - 99);
+                } else {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sprintf_s(l->name, MAXSTR,
+#else
+                    sprintf(l->name,
+#endif
+                            "M%d", master);
+                }
 
                 master++;
             }
@@ -1036,12 +1056,28 @@ static void set_load_levels(void)
             }
             else
             {
+                if (regular >= 200) {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(l->name, MAXSTR,
+                    sprintf_s(l->name, MAXSTR,
 #else
-                sprintf(l->name,
+                    sprintf(l->name,
 #endif
-                       "%d", regular);
+                            "✯✯ %d", regular - 199);
+                } else if (regular >= 100) {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sprintf_s(l->name, MAXSTR,
+#else
+                    sprintf(l->name,
+#endif
+                            "✯ %d", regular - 99);
+                } else {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sprintf_s(l->name, MAXSTR,
+#else
+                    sprintf(l->name,
+#endif
+                            "%d", regular);
+                }
 
                 regular++;
             }

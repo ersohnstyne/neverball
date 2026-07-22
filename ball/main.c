@@ -2332,28 +2332,20 @@ static void main_quit(void)
 #endif
     audio_free();
 
+#ifdef CONFIG_INCLUDES_ACCOUNT
+    account_wgcl_quit();
+#endif
+
 //#if (NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
 #if !defined(__GAMECUBE__) && !defined(__WII__)
     joy_quit();
 #endif
 
-#ifdef CONFIG_INCLUDES_ACCOUNT
-    account_wgcl_quit();
-#endif
-
-#if ENABLE_RFD==1
-    rfd_quit();
-#endif
-
-    config_quit();
-
 #ifndef DISABLE_PANORAMA
     if (!opt_panorama)
     {
 #endif
-        package_quit();
-        fetch_enable(0);
 #if ENABLE_MOON_TASKLOADER!=0
         moon_taskloader_quit();
 #endif
@@ -2364,7 +2356,21 @@ static void main_quit(void)
     }
 #endif
 
-    log_quit();
+#if ENABLE_RFD==1
+    rfd_quit();
+#endif
+
+#ifndef DISABLE_PANORAMA
+    if (!opt_panorama)
+    {
+#endif
+        package_quit();
+        fetch_enable(0);
+#ifndef DISABLE_PANORAMA
+    }
+#endif
+
+    config_quit();
 
 #if _cplusplus
     try {
@@ -2378,6 +2384,7 @@ static void main_quit(void)
     /* TODO: Add the EOS SDK shutdown! */
 #endif
 
+    log_quit();
     opt_quit();
     fs_quit();
 

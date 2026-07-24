@@ -1105,9 +1105,8 @@ static int campaign_worldselect_carousel_gui(int id)
                 }
 
                 gui_space(kd);
-
+                
                 if ((ld = gui_harray(kd)))
-                {
                     for (int i = 5; i > -1; i--)
                     {
                         /* Classic campaign levels are needed in the level group system */
@@ -1137,13 +1136,11 @@ static int campaign_worldselect_carousel_gui(int id)
                                 gui_set_state(md, CAMPAIGN_SELECT_LEVEL,
                                                   (campaign_theme_index * 6) + i);
 
-                                if (i == 0)
-                                    gui_focus(md);
+                                if (i == 0) gui_focus(md);
                             }
                         }
                         else gui_label(ld, " ", GUI_SML, GUI_COLOR_BLK);
                     }
-                }
             }
         }
 
@@ -1530,7 +1527,7 @@ static int levelgroup_gui(void)
                     if      (i > 23) campaign_level_unlocks[4] = 1;
                     else if (i > 17) campaign_level_unlocks[3] = 1;
                     else if (i > 11) campaign_level_unlocks[2] = 1;
-                    else if (i > 5)  campaign_level_unlocks[1] = 1;
+                    else if (i >  5) campaign_level_unlocks[1] = 1;
                     else             campaign_level_unlocks[0] = 1;
                 }
             }

@@ -208,25 +208,30 @@ static void start_over(int id, int pulse)
 
 /*---------------------------------------------------------------------------*/
 
-static int set_star_view = 0;
-
+static int set_long_loading  = 0;
+static int set_star_view     = 0;
 static int set_level_options = 0;
+
+static int set_long_loading_cancel_all = 0;
 
 #if ENABLE_MOON_TASKLOADER!=0
 static int start_is_scanning_with_moon_taskloader = 0;
 
-static int start_scan_moon_taskloader(void *data, void *execute_data)
+static int start_scan_moon_taskloader(void* data, void* execute_data)
 {
+    set_long_loading = 0;
     set_scan_level_files();
 
     return 1;
 }
 
-static void start_scan_done_moon_taskloader(void *data, void *done_data)
+static void start_scan_done_moon_taskloader(void* data, void* done_data)
 {
     start_is_scanning_with_moon_taskloader = 0;
+    set_long_loading = 0;
 
-    goto_state(curr_state());
+    if (!set_long_loading_cancel_all)
+        goto_state(curr_state());
 }
 #endif
 
@@ -303,6 +308,7 @@ static int start_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
+            set_long_loading_cancel_all = 1;
             if (set_star_view || set_level_options)
             {
                 set_level_options = 0;
@@ -601,6 +607,42 @@ static int start_star_view_gui(void)
     return id;
 }
 
+static int start_longload_gui(int id)
+{
+    int pd, jd;
+
+    if ((pd = gui_vstack(id)))
+    {
+        gui_title_header(pd, _("Loading levels in progress..."), GUI_MED, GUI_COLOR_DEFAULT);
+
+        gui_space(pd);
+        
+        gui_multi(pd, _("Sometimes, it can take a long time\n"
+                        "for the levels to load completely.\n\n"
+                        "In the meantime, you will need to\n"
+                        "continue using web browsers."),
+                      GUI_SML, GUI_COLOR_WHT);
+
+        gui_space(pd);
+
+        if ((jd = gui_hstack(pd)))
+        {
+            gui_filler(jd);
+            const int icn_id = gui_label(jd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
+            gui_label(jd, _("Cancel"), GUI_SML, GUI_COLOR_WHT);
+            gui_filler(jd);
+
+            gui_set_font(icn_id, "ttf/DejaVuSans-Bold.ttf");
+
+            gui_set_state(jd, GUI_BACK, 0);
+            gui_set_rect(jd, GUI_ALL);
+            gui_focus(jd);
+        }
+    }
+
+    return pd;
+}
+
 static int start_gui(void)
 {
     int w = video.device_w;
@@ -611,6 +653,12 @@ static int start_gui(void)
 #if ENABLE_MOON_TASKLOADER!=0
     if (start_is_scanning_with_moon_taskloader)
     {
+        if (set_long_loading)
+        {
+            if ((id = start_longload_gui(0)))
+                gui_layout(id, 0, 0);
+            return id;
+        }
         if ((id = gui_vstack(0)))
         {
             gui_title_header(id, _("Loading..."), GUI_MED, GUI_COLOR_DEFAULT);
@@ -618,7 +666,6 @@ static int start_gui(void)
             gui_multi(id, _("Scanning Levels from Level Set..."), GUI_SML, GUI_COLOR_WHT);
 
             gui_layout(id, 0, 0);
-
             return id;
         }
         else return 0;
@@ -692,8 +739,7 @@ static int start_gui(void)
 #endif
                         _("Untitled set name (%d)"), curr_set());
             }
-            else
-                SAFECPY(curr_setname_final, curr_setname);
+            else SAFECPY(curr_setname_final, curr_setname);
 
             int set_title_id = gui_label(jd, "XXXXXXXXXXXXXXXXXX", GUI_SML, GUI_COLOR_DEFAULT);
 
@@ -1097,6 +1143,8 @@ static int start_compat_gui()
 
 static int start_compat_enter(struct state *st, struct state *prev, int intent)
 {
+    set_long_loading_cancel_all = 0;
+
     progress_reinit(MODE_BOOST_RUSH);
 
 #if NB_HAVE_PB_BOTH==1
@@ -1116,7 +1164,12 @@ static void start_paint(int id, float t)
 
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#if ENABLE_MOON_TASKLOADER!=0
+    if (!start_is_scanning_with_moon_taskloader &&
+        console_gui_shown())
+#else
     if (console_gui_shown())
+#endif
     {
         if (!set_star_view && !set_level_options)
             console_gui_levelopt_paint();
@@ -1128,6 +1181,15 @@ static void start_paint(int id, float t)
 
 static void start_timer(int id, float dt)
 {
+#if ENABLE_MOON_TASKLOADER!=0
+    if (start_is_scanning_with_moon_taskloader &&
+        time_state() > 5.0f && !set_long_loading)
+    {
+        set_long_loading = 1;
+        goto_state(&st_start);
+    }
+#endif
+
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     set_level_play_timer(dt);
 #endif
@@ -1158,6 +1220,8 @@ static int start_howmany()
 
 static int start_enter(struct state *st, struct state *prev, int intent)
 {
+    set_long_loading_cancel_all = 0;
+
 #if NB_HAVE_PB_BOTH==1
     if (str_starts_with(set_id(curr_set()), "anime"))
         audio_music_fade_to(0.5f, "bgm/jp/title.ogg", 1);
@@ -1375,7 +1439,12 @@ static int start_keybd(int c, int d)
 static int start_compat_keybd(int c, int d)
 {
 #if ENABLE_MOON_TASKLOADER
-    if (start_is_scanning_with_moon_taskloader) return 1;
+    if (start_is_scanning_with_moon_taskloader)
+    {
+        if (set_long_loading && d && c == KEY_EXIT)
+            return start_action(GUI_BACK, 0);
+        return 1;
+    }
 #endif
 
     if (d && (c == KEY_EXIT
@@ -1390,7 +1459,13 @@ static int start_compat_keybd(int c, int d)
 static int start_buttn(int b, int d)
 {
 #if ENABLE_MOON_TASKLOADER
-    if (start_is_scanning_with_moon_taskloader) return 1;
+    if (start_is_scanning_with_moon_taskloader)
+    {
+        if (set_long_loading &&
+            d && config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            start_action(GUI_BACK, 0);
+        return 1;
+    }
 #endif
 
     if (d)

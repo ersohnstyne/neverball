@@ -677,9 +677,9 @@ static void gui_demo_update_status(int i)
             "%d", d->coins);
 
     stat_limit_busy = 0;
-
-    gui_set_label(name_id, d->name);
-    gui_set_label(date_id, date_to_str(d->date));
+    
+    gui_set_label(name_id,   d->name);
+    gui_set_label(date_id,   date_to_str(d->date));
     gui_set_label(player_id, d->player);
 
     if (d->status == GAME_GOAL)

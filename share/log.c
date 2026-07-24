@@ -204,14 +204,40 @@ void log_init(const char *name, const char *path)
         {
             /* Printed on first message. */
 
-#if _WIN32 && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(log_header, MAXSTR,
+            const char *curr_date = date_to_str(time(NULL));
+
+            int date_dd = 1, date_mm = 1, date_yyyy = 1900,
+                date_h = 0, date_m = 0, date_s = 0;
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            if (sscanf_s(curr_date,
 #else
-            sprintf(log_header,
+            if (sscanf(curr_date,
 #endif
-                    "%s - %s",
-                    date_to_str(time(NULL)),
-                    name);
+                "%d.%d.%d %d:%d:%d",
+                &date_dd, &date_mm, &date_yyyy, &date_h, &date_m, &date_s) == 6)
+            {
+#if _WIN32 && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(log_header, MAXSTR,
+#else
+                sprintf(log_header,
+#endif
+                        "%s - %s",
+                        curr_date,
+                        name);
+            }
+            else
+            {
+#if _WIN32 && _MSC_VER
+                OutputDebugStringA("[!] NB ERROR: Invalid date format!\n");
+#endif
+#if _WIN32 && !_CRT_SECURE_NO_WARNINGS
+                sprintf_s(log_header, MAXSTR,
+#else
+                sprintf(log_header,
+#endif
+                        "%s", name);
+            }
         }
         else
         {

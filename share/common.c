@@ -281,7 +281,7 @@ time_t make_time_from_utc(struct tm *tm)
 const char *date_to_str(time_t i)
 {
     char str[sizeof ("dd.mm.YYYY HH:MM:SS")];
-#if _MSC_VER
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS && _MSC_VER
     struct tm output_tm;
     localtime_s(&output_tm, &i);
     strftime   (str, sizeof (str), "%d.%m.%Y %H:%M:%S", &output_tm);

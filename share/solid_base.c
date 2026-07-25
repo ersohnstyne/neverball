@@ -696,6 +696,15 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
 
     /* Magically "fix" all of our code. */
 
+    for (i = 0; i < fp->zc; i++)
+        if (fp->zv[i].r < 0.0f) fp->zv[i].r = 0.75f;
+
+    for (i = 0; i < fp->xc; i++)
+        if (fp->xv[i].r < 0.0f) fp->xv[i].r = 0.5f;
+
+    for (i = 0; i < fp->jc; i++)
+        if (fp->jv[i].r < 0.0f) fp->jv[i].r = 0.5f;
+
     if (fp->uc < 1)
     {
         fp->uc = 1;
@@ -703,6 +712,13 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
 
         if (fp->uv == NULL) return 0;
     }
+    else for (i = 0; i < fp->uc; i++)
+        if (fp->uv[i].r < 0.0f) fp->uv[i].r = 0.25f;
+
+#ifdef MAPC_INCLUDES_CHKP
+    for (i = 0; i < fp->cc; i++)
+        if (fp->cv[i].r < 0.0f) fp->cv[i].r = 0.5f;
+#endif
 
     /* Add lit flag to old materials. */
 

@@ -740,6 +740,9 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
             last_diraxis = vary.base->uv[ui].a;
 #endif
 #endif
+
+        if (vary.base->uv[ui].r < 0.0f)
+            vary.base->uv[ui].r = 0.25f;
     }
 
     /* Initialize simulation. */
@@ -1223,6 +1226,9 @@ int game_server_init(const char *file_name, int t, int e)
             last_diraxis = vary.base->uv[ui].a;
 #endif
 #endif
+
+        if (vary.base->uv[ui].r < 0.0f)
+            vary.base->uv[ui].r = 0.25f;
     }
 
     /* Initialize simulation. */

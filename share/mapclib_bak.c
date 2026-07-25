@@ -1575,11 +1575,17 @@ static int request_legacy(char k[][MAXSTR],
     for (leg = 0; leg < c; leg++)
     {
         if (strcmp(k[leg], "radius") == 0)
+        {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(v[leg], "%f", &specification_radius);
+            if (sscanf_s(v[leg], "%f", &specification_radius) == 1)
 #else
-            sscanf(v[leg], "%f", &specification_radius);
+            if (sscanf(v[leg], "%f", &specification_radius) == 1)
 #endif
+            {
+                if (specification_radius < 0.0f)
+                    specification_radius = 0.25f;
+            }
+        }
     }
     for (leg = 0; leg < c; leg++)
     {
@@ -1588,9 +1594,8 @@ static int request_legacy(char k[][MAXSTR],
             if (strcmp(specification_type, "ball") == 0)
             {
                 if ((strcmp(v[leg], "vehicle") == 0
-                    || strcmp(v[leg], "electricity") == 0
-                    || strcmp(v[leg], "platform") == 0)
-                    || specification_radius < 0.25f)
+                  || strcmp(v[leg], "electricity") == 0
+                  || strcmp(v[leg], "platform") == 0))
                     return 0;
             }
         }
@@ -2006,10 +2011,13 @@ static void make_goal(struct mapc_context *ctx,
     {
         if (strcmp(k[i], "radius") == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(v[i], "%f", &zp->r);
+            if (sscanf_s(v[i], "%f", &zp->r) == 1)
 #else
-            sscanf(v[i], "%f", &zp->r);
+            if (sscanf(v[i], "%f", &zp->r) == 1)
 #endif
+            {
+                if (zp->r < 0.0f) zp->r = 0.75;
+            }
 
         if (strcmp(k[i], "origin") == 0)
         {
@@ -2101,10 +2109,13 @@ static void make_jump(struct mapc_context *ctx,
     {
         if (strcmp(k[i], "radius") == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(v[i], "%f", &jp->r);
+            if (sscanf_s(v[i], "%f", &jp->r) == 1)
 #else
-            sscanf(v[i], "%f", &jp->r);
+            if (sscanf(v[i], "%f", &jp->r) == 1)
 #endif
+            {
+                if (jp->r < 0.0f) jp->r = 0.5f;
+            }
 
         if (strcmp(k[i], "target") == 0)
             make_ref(ctx, SYM_TARG, v[i], ctx->targ_ji + ji);
@@ -2159,10 +2170,13 @@ static void make_swch(struct mapc_context *ctx,
     {
         if (strcmp(k[i], "radius") == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(v[i], "%f", &xp->r);
+            if (sscanf_s(v[i], "%f", &xp->r) == 1)
 #else
-            sscanf(v[i], "%f", &xp->r);
+            if (sscanf(v[i], "%f", &xp->r) == 1)
 #endif
+            {
+                if (xp->r < 0.0f) xp->r = 0.5f;
+            }
 
         if (strcmp(k[i], "target") == 0)
             make_ref(ctx, SYM_PATH, v[i], &xp->pi);
@@ -2266,10 +2280,14 @@ static void make_ball(struct mapc_context *ctx,
     {
         if (strcmp(k[i], "radius") == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(v[i], "%f", &up->r);
+            if (sscanf_s(v[i], "%f", &up->r) == 1)
 #else
-            sscanf(v[i], "%f", &up->r);
+            if (sscanf(v[i], "%f", &up->r) == 1)
 #endif
+            {
+                if (up->r < 0.0f) up->r = 0.25f;
+            }
+
 #if defined(START_POS_ANGULAR_BETA)
         if (strcmp(k[i], "angle") == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -2341,10 +2359,14 @@ static void make_chkp(struct mapc_context *ctx,
     {
         if (strcmp(k[i], "radius") == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(v[i], "%f", &cp->r);
+            if (sscanf_s(v[i], "%f", &cp->r) == 1)
 #else
-            sscanf(v[i], "%f", &cp->r);
+            if (sscanf_s(v[i], "%f", &cp->r) == 1)
 #endif
+            {
+                if (cp->r < 0.0f) cp->r = 0.5f;
+            }
+
         if (strcmp(k[i], "origin") == 0)
         {
             float x = 0.f, y = 0.f, z = 0.f;
@@ -2377,28 +2399,30 @@ static void make_legacy(struct mapc_context *ctx,
                         const char *modelname, const char *materialname)
 {
     struct s_base *fp = &ctx->file;
-    int i;
+    int leg;
 
-    for (i = 0; i < c; i++)
+    for (leg = 0; leg < c; leg++)
     {
-        if (strcmp(k[i], "radius") == 0)
+        if (strcmp(k[leg], "radius") == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(v[i], "%f", &specification_radius);
+            if (sscanf_s(v[leg], "%f", &specification_radius) == 1)
 #else
-            sscanf(v[i], "%f", &specification_radius);
+            if (sscanf(v[leg], "%f", &specification_radius) == 1)
 #endif
+            {
+                if (specification_radius < 0.0f) specification_radius = 0.25f;
+            }
     }
 
-    for (i = 0; i < c; i++)
+    for (leg = 0; leg < c; leg++)
     {
-        if (strcmp(k[i], "type") == 0)
+        if (strcmp(k[leg], "type") == 0)
         {
             if (strcmp(specification_type, "ball") == 0)
             {
-                if ((strcmp(v[i], "vehicle") == 0
-                  || strcmp(v[i], "electricity") == 0
-                  || strcmp(v[i], "platform") == 0)
-                  || specification_radius != .25f)
+                if ((strcmp(v[leg], "vehicle") == 0
+                    || strcmp(v[leg], "electricity") == 0
+                    || strcmp(v[leg], "platform") == 0))
                     return;
             }
         }
@@ -2411,7 +2435,7 @@ static void make_legacy(struct mapc_context *ctx,
     SAFECAT(buf, ")\n");
     MAPC_LOG_WARNING(ctx, buf);
 
-    int mi = 0, bi = incb(ctx);
+    int i, mi = 0, bi = incb(ctx);
 
     int g0 = fp->gc;
     int v0 = fp->vc;

@@ -222,6 +222,8 @@ static void game_draw_balls(struct s_rend *rend,
 
     for (ui = curr_party(); ui > 0; ui--)
     {
+        const float clamped_radius = MAX(fp->uv[ui].r, 0.01f);
+
         if (ui == ball)
         {
             float ball_M[16];
@@ -235,9 +237,9 @@ static void game_draw_balls(struct s_rend *rend,
                 glTranslatef(fp->uv[ui].p[0],
                              fp->uv[ui].p[1] + BALL_FUDGE,
                              fp->uv[ui].p[2]);
-                glScalef(fp->uv[ui].r,
-                         fp->uv[ui].r,
-                         fp->uv[ui].r);
+                glScalef(clamped_radius,
+                         clamped_radius,
+                         clamped_radius);
 
                 glColor4f(color[ui][0],
                           color[ui][1],
@@ -258,9 +260,9 @@ static void game_draw_balls(struct s_rend *rend,
                 glTranslatef(fp->uv[ui].p[0],
                              fp->uv[ui].p[1] - fp->uv[ui].r + BALL_FUDGE,
                              fp->uv[ui].p[2]);
-                glScalef(fp->uv[ui].r,
-                         fp->uv[ui].r,
-                         fp->uv[ui].r);
+                glScalef(clamped_radius,
+                         clamped_radius,
+                         clamped_radius);
 
                 glColor4f(color[ui][0],
                           color[ui][1],

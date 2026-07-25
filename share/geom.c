@@ -636,13 +636,15 @@ void maxspeed_draw(struct s_rend *rend)
 void beam_draw(struct s_rend *rend, const GLfloat *p,
                                     const GLfloat *c, GLfloat r, GLfloat h)
 {
+    const float clamped_radius = MAX(r, 0.01f);
+
     glPushMatrix();
     {
         unsigned char motionblur_cubv[4] = DRAW_COLOR4UBV_CNF_MOTIONBLUR;
         float motionblur_cfv[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
 
         glTranslatef(p[0], p[1], p[2]);
-        glScalef(r, h, r);
+        glScalef(clamped_radius, h, clamped_radius);
         glColor4f_((c[0] * motionblur_cfv[0]),
                    (c[1] * motionblur_cfv[1]),
                    (c[2] * motionblur_cfv[2]),
@@ -655,13 +657,14 @@ void beam_draw(struct s_rend *rend, const GLfloat *p,
 void goal_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h, GLfloat t)
 {
     GLfloat height = (hmd_stat() ? 0.3f : 1.0f) * video.device_h;
+    const float clamped_radius = MAX(r, 0.01f);
 
     glPointSize(height / 6);
 
     glPushMatrix();
     {
         glTranslatef(p[0], p[1], p[2]);
-        glScalef(r, h, r);
+        glScalef(clamped_radius, h, clamped_radius);
 
         /*if (goal.base.rc)
         {
@@ -678,13 +681,14 @@ void goal_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h, GLfl
 void jump_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h, GLfloat t)
 {
     GLfloat height = (hmd_stat() ? 0.3f : 1.0f) * video.device_h;
+    const float clamped_radius = MAX(r, 0.01f);
 
     glPointSize(height / 12);
 
     glPushMatrix();
     {
         glTranslatef(p[0], p[1], p[2]);
-        glScalef(r, h, r);
+        glScalef(clamped_radius, h, clamped_radius);
 
         /*if (jump.base.rc)
         {
@@ -702,13 +706,14 @@ void jump_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h, GLfl
 void chkp_draw(struct s_rend *rend, const GLfloat *p, GLfloat r, GLfloat h)
 {
     GLfloat height = (hmd_stat() ? 0.3f : 1.0f) * video.device_h;
+    const float clamped_radius = MAX(r, 0.01f);
 
     glPointSize(height / 12);
 
     glPushMatrix();
     {
         glTranslatef(p[0], p[1], p[2]);
-        glScalef(r, h, r);
+        glScalef(clamped_radius, h, clamped_radius);
         sol_draw(&chkp.draw, rend, 1, 1);
     }
     glPopMatrix();

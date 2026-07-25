@@ -457,14 +457,16 @@ static void game_draw_maxspeed(struct s_rend *rend,
 
     if (max_speed_enabled)
     {
+        const float clamped_radius = MAX(vary->uv[0].r, 0.01f);
+
         glTranslatef(vary->uv[0].p[0],
                      vary->uv[0].p[1] + BALL_FUDGE,
                      vary->uv[0].p[2]);
         glRotatef(max_speed_angle + view_angle,
                   0.0f, 90.0f, 0.0f);
-        glScalef(vary->uv[0].r,
-                 vary->uv[0].r,
-                 vary->uv[0].r);
+        glScalef(clamped_radius,
+                 clamped_radius,
+                 clamped_radius);
 
         /*glColor4ub_(ROUND(c[0] * 255),
                     ROUND(c[1] * 255) * game_draw_cam_abovemap(gd),

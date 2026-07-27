@@ -981,17 +981,6 @@ void light_reset(void)
 {
     memcpy(lights,        default_lights,  sizeof (lights));
     memcpy(light_ambient, default_ambient, sizeof (light_ambient));
-
-    for (int i = 0; i < ARRAYSIZE(lights); i++)
-    {
-        /* HACK: Buff diffuse color multiply! */
-
-        v_scl(lights[i].d, lights[i].d, 2.0f);
-
-        /* HACK: Nerf specular color multiply! */
-
-        v_scl(lights[i].s, lights[i].s, (1.0f / 8.0f));
-    }
 }
 
 void light_conf(void)

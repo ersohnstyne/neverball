@@ -1368,16 +1368,15 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                                   &mp->e[0], &mp->e[1],
                                   &mp->e[2], &mp->e[3]) == 4)
                 {
-                    for (i = 0; i < 4; i++) {
+                    for (i = 0; i < 4; i++)
                         if (!(mp->e[i] >= 0.0f && mp->e[i] <= 1.0f)) {
                             mp->e[i] = default_e[i];
                             log_errorf("%s(%d) : error MTRLE: Emmisive value out of range! (0.0 - 1.0)", name, curr_line);
                         }
-                    }
                 }
                 else if (sscanf_s(p, "shininess %f", &mp->h[0]) == 1)
                 {
-                    if (mp->h[0] >= 0.0f) mp->h[0] = 0.0f;
+                    if (mp->h[0] < 0.0f) mp->h[0] = 0.0f;
                 }
 #else
                 if (sscanf(p, "diffuse %f %f %f %f",
@@ -1414,16 +1413,15 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                                 &mp->e[0], &mp->e[1],
                                 &mp->e[2], &mp->e[3]) == 4)
                 {
-                    for (i = 0; i < 4; i++) {
+                    for (i = 0; i < 4; i++)
                         if (!(mp->e[i] >= 0.0f && mp->e[i] <= 1.0f)) {
                             mp->e[i] = default_e[i];
                             log_errorf("%s(%d) : error MTRLE: Emmisive value out of range! (0.0 - 1.0)", name, curr_line);
                         }
-                    }
                 }
                 else if (sscanf(p, "shininess %f", &mp->h[0]) == 1)
                 {
-                    if (mp->h[0] >= 0.0f) mp->h[0] = 0.0f;
+                    if (mp->h[0] < 0.0f) mp->h[0] = 0.0f;
                 }
 #endif
                 else if (strncmp(p, "flags ", 6) == 0)

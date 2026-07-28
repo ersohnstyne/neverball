@@ -206,6 +206,133 @@ static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
                     V->amp = CLAMP(0, V->amp + V->damp, 1);
                 }
 
+            /* Mix 2.1 surround audio. */
+
+            if (V->chan == 3)
+                for (i = 0; i < n / 2; i += 3)
+                {
+                    /*
+                     * 2.1 SURROUND CHANNEL MAPPING ORDER
+                     *
+                     * 1: Left
+                     * 2: Right
+                     * 3: LFE (Low Frequency Effects)
+                     */
+
+                    short FL  = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 0]);
+                    short FR  = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 1]);
+                    short LFE = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 2]);
+
+                    /* quad to stereo. */
+
+                    short L = 0, R = 0;
+
+                    MIX(L, FL);
+                    MIX(R, FR);
+
+                    MIX(obuf[c], L); c++;
+                    MIX(obuf[c], R); c++;
+
+                    V->amp += V->damp;
+                    V->amp = CLAMP(0, V->amp + V->damp, 1);
+                }
+
+            /* Mix quad audio. */
+
+            if (V->chan == 4)
+                for (i = 0; i < n / 2; i += 4)
+                {
+                    short FL = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 0]);
+                    short FR = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 1]);
+                    short BL = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 2]);
+                    short BR = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 3]);
+
+                    /* quad to stereo. */
+
+                    short L = 0, R = 0;
+
+                    MIX(L, FL + BL);
+                    MIX(R, FR + BR);
+
+                    MIX(obuf[c], L); c++;
+                    MIX(obuf[c], R); c++;
+
+                    V->amp += V->damp;
+                    V->amp = CLAMP(0, V->amp + V->damp, 1);
+                }
+
+            /* Mix 4.1 surround audio. */
+
+            if (V->chan == 5)
+                for (i = 0; i < n / 2; i += 5)
+                {
+                    /*
+                     * 4.1 SURROUND CHANNEL MAPPING ORDER
+                     *
+                     * 1: Left
+                     * 2: Right
+                     * 3: Left Back
+                     * 4: Right Back
+                     * 5: LFE (Low Frequency Effects)
+                     */
+
+                    short FL  = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 0]);
+                    short FR  = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 1]);
+                    short BL  = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 2]);
+                    short BR  = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 3]);
+                    short LFE = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 4]);
+
+                    /* 4.1 surround to stereo. */
+
+                    short L = 0, R = 0;
+
+                    MIX(L, FL + BL);
+                    MIX(R, FR + BR);
+
+                    MIX(obuf[c], L); c++;
+                    MIX(obuf[c], R); c++;
+
+                    V->amp += V->damp;
+                    V->amp = CLAMP(0, V->amp + V->damp, 1);
+                }
+
+            /* Mix 5.1 surround audio. */
+
+            if (V->chan == 6)
+                for (i = 0; i < n / 2; i += 6)
+                {
+                    /*
+                     * 5.1 SURROUND CHANNEL MAPPING ORDER
+                     *
+                     * 1: Left
+                     * 2: Center
+                     * 3: Right
+                     * 4: Left Surround
+                     * 5: Right Surround
+                     * 6: LFE (Low Frequency Effects)
+                     */
+
+                    short FL  = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 0]);
+                    short FC  = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 1]);
+                    short FR  = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 2]);
+                    short SL  = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 3]);
+                    short SR  = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 4]);
+                    short LFE = (short) (LOGF_VOLUME(V->amp) * volume * buffer[i + 5]);
+
+                    /* 5.1 surround to stereo. */
+
+                    short L = 0, R = 0;
+
+                    MIX(L, FC + FL + SL);
+                    MIX(R, FC + FR + SR);
+
+                    MIX(obuf[c], L); c++;
+                    MIX(obuf[c], R); c++;
+
+                    V->amp += V->damp;
+                    V->amp = CLAMP(0, V->amp + V->damp, 1);
+                }
+
             r -= n;
         }
         else

@@ -108,7 +108,6 @@ void audio_play(const char *filename, float a)
         STRBUF mp3 = joinstr(CSTR(name_part), "mp3");
 
         data = fs_load_cache(CSTR(mp3), &size);
-<<<<<<< HEAD
     }
 
     if (data)
@@ -174,8 +173,6 @@ void audio_narrator_play(const char *filename)
         STRBUF mp3 = joinstr(CSTR(name_part), "mp3");
 
         data = fs_load_cache(CSTR(mp3), &size);
-=======
->>>>>>> e5b432cba6c61866704c6ea7bbcacbc0730edd87
     }
 
     if (data)

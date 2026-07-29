@@ -198,19 +198,12 @@ struct mapc_context
     int campaign_budget;
     int campaign_use_author_encrypt;
 
-<<<<<<< HEAD
     int linenum;
     int bracket_linenum[256];
     int bracket_stack;
 
     STRBUF src_path;
     STRBUF dst_path;
-
-=======
-    STRBUF src_path;
-    STRBUF dst_path;
-
->>>>>>> e5b432cba6c61866704c6ea7bbcacbc0730edd87
     STRBUF full_dst_path;
 
 #if ENABLE_RADIANT_CONSOLE
@@ -4232,7 +4225,6 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
 
             ctx->full_dst_path = ctx->dst_path;
 
-<<<<<<< HEAD
             int src_absolute_path = 0;
             int dst_absolute_path = 0;
 
@@ -4269,10 +4261,6 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
 
             if (!dst_absolute_path)
                 ctx->dst_path = base_name_strbuf(CSTR(ctx->dst_path));
-=======
-            ctx->src_path = base_name_strbuf(CSTR(ctx->src_path));
-            ctx->dst_path = base_name_strbuf(CSTR(ctx->dst_path));
->>>>>>> e5b432cba6c61866704c6ea7bbcacbc0730edd87
         }
         else if (!ctx->opt_data) {
             ctx->opt_data = argv[argi];

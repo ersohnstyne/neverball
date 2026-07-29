@@ -853,10 +853,6 @@ static int link_handle(const char *link)
             {
                 /* Search for the given level. */
 
-<<<<<<< HEAD
-=======
-                STRBUF sol_basename = joinstr(CSTR(map_part), ".sol");
->>>>>>> e5b432cba6c61866704c6ea7bbcacbc0730edd87
                 struct level *level;
                 STRBUF sol_basename  = joinstr(CSTR(map_part), ".sol");
                 STRBUF solx_basename = joinstr(CSTR(map_part), ".solx");
@@ -906,12 +902,9 @@ static int link_handle(const char *link)
         else if ((index = package_search(CSTR(set_file))) >= 0)
         {
             log_printf("Link: found package match for %s\n", CSTR(set_file));
-<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1
             goto_wgcl_addons_login(index, &st_title, 0);
 #else
-=======
->>>>>>> e5b432cba6c61866704c6ea7bbcacbc0730edd87
             goto_package(index, &st_title);
 #endif
             processed = 1;

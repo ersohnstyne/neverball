@@ -323,40 +323,41 @@ static int link_handle(const char *link)
 
         const size_t prefix_len = strcspn(link, "/");
 
-        const char *set_part = SUBSTR(link, 0, prefix_len);
-        const char *map_part = SUBSTR(link, prefix_len + 1, 64);
-        const char *set_file = JOINSTR(set_part, ".txt");
+        STRBUF set_part = substr(link, 0, prefix_len);
+        STRBUF map_part = substr(link, prefix_len + 1, 64);
+        STRBUF set_file = joinstr(set_part, ".txt");
 
         int index;
         int found_level = 0;
 
-        log_printf("Link: searching for course %s\n", set_file);
+        //log_printf("Link: searching for course %s\n", CSTR(set_file));
 
         course_init();
 
-        if ((index = set_find(set_file)) >= 0)
+        /*if ((index = course_find(CSTR(set_file))) >= 0)
         {
-            log_printf("Link: found course match for %s\n", set_file);
+            log_printf("Link: found course match for %s\n", CSTR(set_file));
 
             course_goto(index);
 
-            /*if (map_part && *map_part)
+            if (*CSTR(map_part))
             {
-                const char *sol_basename = JOINSTR(map_part, ".sol");
                 struct level *level;
+                STRBUF sol_basename  = joinstr(CSTR(map_part), ".sol");
+                STRBUF solx_basename = joinstr(CSTR(map_part), ".solx");
 
-                log_printf("Link: searching for hole %s\n", sol_basename);
+                log_printf("Link: searching for hole %s\n", CSTR(sol_basename));
 
-                if ((level = set_find_level(sol_basename)))
+                if ((level = course_find_hole(CSTR(sol_basename))))
                 {
-                    log_printf("Link: found hole match for %s\n", sol_basename);
+                    log_printf("Link: found hole match for %s\n", CSTR(sol_basename));
 
                     goto_state(&st_next);
                     found_level = 1;
                     processed = 1;
                 }
                 else log_errorf("Link: no such hole\n");
-            }*/
+            }
 
             if (!found_level)
             {
@@ -365,17 +366,18 @@ static int link_handle(const char *link)
                 processed = 1;
             }
         }
-        else if ((index = package_search(set_file)) >= 0)
+        else if ((index = package_search(CSTR(set_file))) >= 0)
         {
-            log_printf("Link: found package match for %s\n", set_file);
+            log_printf("Link: found package match for %s\n", CSTR(set_file));
             goto_package(index, &st_title);
             processed = 1;
         }
-        else log_errorf("Link: no such course or package\n", link);
+        else log_errorf("Link: no such course or package\n", link);*/
     }
 
     return processed;
 }
+
 
 /*---------------------------------------------------------------------------*/
 

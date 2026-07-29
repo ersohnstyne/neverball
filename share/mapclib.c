@@ -202,10 +202,10 @@ struct mapc_context
     int bracket_linenum[256];
     int bracket_stack;
 
-    struct strbuf src_path;
-    struct strbuf dst_path;
+    STRBUF src_path;
+    STRBUF dst_path;
 
-    struct strbuf full_dst_path;
+    STRBUF full_dst_path;
 
 #if ENABLE_RADIANT_CONSOLE
     TCPsocket bcast_socket;
@@ -4012,11 +4012,11 @@ static void dump_init(struct s_base *fp)
 
 void mapc_dump(struct mapc_context *ctx)
 {
-    const char *name = STR(ctx->dst_path);
+    const char *name = CSTR(ctx->dst_path);
     double t = ctx->compile_time;
 
     char name_solx[MAXSTR];
-    SAFECPY(name_solx, STR(ctx->dst_path));
+    SAFECPY(name_solx, CSTR(ctx->dst_path));
     SAFECAT(name_solx, "x");
 
     struct s_base *p = &ctx->file;
@@ -4210,17 +4210,17 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
 
             if (str_ends_with(ctx->opt_file, ".map"))
             {
-                ctx->dst_path = joinstr(
-                    SUBSTR(ctx->opt_file, 0, strlen(ctx->opt_file) - 4u),
-                    ".sol"
-                );
+                STRBUF name_part = substr(ctx->opt_file, 0, strlen(ctx->opt_file) - 4u);
+                ctx->dst_path = joinstr(CSTR(name_part), ".sol");
             }
             else
                 ctx->dst_path = joinstr(ctx->opt_file, ".sol");
 
-            fs_add_path(DIR_NAME(STR(ctx->src_path)));
+            STRBUF src_dir = dir_name_strbuf(CSTR(ctx->src_path));
+            fs_add_path(CSTR(src_dir));
 
-            fs_set_write_dir(DIR_NAME(STR(ctx->dst_path)));
+            STRBUF dst_dir = dir_name_strbuf(CSTR(ctx->dst_path));
+            fs_set_write_dir(CSTR(dst_dir));
 
             // Save the full path for the dump.
 
@@ -4233,14 +4233,14 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
             /* HACK: Absolute path only, if there's colon for Windows! */
 
             for (int i = 1; i < argc && !src_absolute_path; i++)
-                if (argc == 1) for (int j = 0; j < strnlen_s(ctx->src_path.buf, 128); j++)
+                if (argc == 1) for (int j = 0; j < strnlen_s(ctx->src_path.buf, 256); j++)
                 {
                     if (ctx->src_path.buf[j] == ':')
                         src_absolute_path = 1;
                 }
 
             for (int i = 1; i < argc && !dst_absolute_path; i++)
-                if (argc == 2) for (int j = 0; j < strnlen_s(ctx->dst_path.buf, 128); j++)
+                if (argc == 2) for (int j = 0; j < strnlen_s(ctx->dst_path.buf, 256); j++)
                 {
                     if (ctx->dst_path.buf[j] == ':')
                         dst_absolute_path = 1;
@@ -4258,10 +4258,10 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
 #endif
 
             if (!src_absolute_path)
-                ctx->src_path = base_name_strbuf(STR(ctx->src_path));
+                ctx->src_path = base_name_strbuf(CSTR(ctx->src_path));
 
             if (!dst_absolute_path)
-                ctx->dst_path = base_name_strbuf(STR(ctx->dst_path));
+                ctx->dst_path = base_name_strbuf(CSTR(ctx->dst_path));
         }
         else if (!ctx->opt_data) {
             ctx->opt_data = argv[argi];
@@ -4350,11 +4350,11 @@ static void interactive_web(void)
 
 static int mapc_compile_internal(struct mapc_context *ctx)
 {
-    const char *src = STR(ctx->src_path);
-    const char *dst = STR(ctx->dst_path);
+    const char *src = CSTR(ctx->src_path);
+    const char *dst = CSTR(ctx->dst_path);
 
     char dst_solx[MAXSTR];
-    SAFECPY(dst_solx, STR(ctx->dst_path));
+    SAFECPY(dst_solx, CSTR(ctx->dst_path));
     SAFECAT(dst_solx, "x");
 
 #if _MSC_VER

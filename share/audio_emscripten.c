@@ -104,9 +104,10 @@ void audio_play(const char *filename, float a)
 #endif
     if (len > 3)
     {
-        const char *mp3 = JOINSTR(SUBSTR(filename, 0, len - 3), "mp3");
+        STRBUF name_part = substr(filename, 0, len - 3);
+        STRBUF mp3 = joinstr(CSTR(name_part), "mp3");
 
-        data = fs_load_cache(mp3, &size);
+        data = fs_load_cache(CSTR(mp3), &size);
     }
 
     if (data)
@@ -168,9 +169,10 @@ void audio_narrator_play(const char *filename)
 #endif
     if (len > 3)
     {
-        const char *mp3 = JOINSTR(SUBSTR(filename, 0, len - 3), "mp3");
+        STRBUF name_part = substr(filename, 0, len - 3);
+        STRBUF mp3 = joinstr(CSTR(name_part), "mp3");
 
-        data = fs_load_cache(mp3, &size);
+        data = fs_load_cache(CSTR(mp3), &size);
     }
 
     if (data)
@@ -257,9 +259,10 @@ void audio_music_fade_to(float t, const char *filename, int loop)
 #endif
     if (len > 3)
     {
-        const char *mp3 = JOINSTR(SUBSTR(filename, 0, len - 3), "mp3");
+        STRBUF name_part = substr(filename, 0, len - 3);
+        STRBUF mp3 = joinstr(CSTR(name_part), "mp3");
 
-        data = fs_load_cache(mp3, &size);
+        data = fs_load_cache(CSTR(mp3), &size);
     }
 
     if (data)

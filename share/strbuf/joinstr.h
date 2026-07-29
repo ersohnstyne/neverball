@@ -19,9 +19,9 @@
 #include "common.h"
 #include "strbuf.h"
 
-static inline struct strbuf joinstr(const char *head, const char *tail)
+static inline STRBUF joinstr(const char *head, const char *tail)
 {
-    struct strbuf sb = { "" };
+    STRBUF sb = { "" };
 
     const size_t max_len = sizeof (sb.buf) - 1u;
     const size_t head_len = head ? MIN(strlen(head), max_len) : 0u;
@@ -37,10 +37,5 @@ static inline struct strbuf joinstr(const char *head, const char *tail)
 
     return sb;
 }
-
-/*
- * Allocate a fixed-size buffer on the stack and join two strings into it.
- */
-#define JOINSTR(head, tail) (joinstr((head), (tail)).buf)
 
 #endif

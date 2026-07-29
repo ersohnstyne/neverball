@@ -378,7 +378,6 @@ static int link_handle(const char *link)
     return processed;
 }
 
-
 /*---------------------------------------------------------------------------*/
 
 static void refresh_packages_done(void *data, void *extra_data)

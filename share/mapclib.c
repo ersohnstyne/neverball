@@ -204,6 +204,7 @@ struct mapc_context
 
     STRBUF src_path;
     STRBUF dst_path;
+
     STRBUF full_dst_path;
 
 #if ENABLE_RADIANT_CONSOLE
@@ -4283,14 +4284,9 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
 
 static int campaign_check_budget(struct mapc_context *ctx)
 {
-<<<<<<< HEAD
     struct s_base *fp = &ctx->file;
     int i;
     int n = 0;
-=======
-    const char *src = CSTR(ctx->src_path);
-    const char *dst = CSTR(ctx->dst_path);
->>>>>>> e5b432cba6c61866704c6ea7bbcacbc0730edd87
 
     for (i = 0; i < fp->lc; i++)
         if ((fp->lv[i].fl & 1) == 0)

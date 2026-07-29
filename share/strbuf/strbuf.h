@@ -48,6 +48,15 @@ static inline STRBUF strbuf(const char *input)
     return sb;
 }
 
+<<<<<<< HEAD
+=======
+/*
+ * Convert a STRBUF to a char pointer.
+ * The address-of operator &(sb) forces a compilation error if sb is an rvalue
+ * temporary (e.g. returned by value from a function), preventing use-after-scope
+ * dangling pointer bugs.
+ */
+>>>>>>> e5b432cba6c61866704c6ea7bbcacbc0730edd87
 #define CSTR(sb) ((void)&(sb), (sb).buf)
 
 #endif

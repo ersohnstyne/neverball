@@ -853,6 +853,10 @@ static int link_handle(const char *link)
             {
                 /* Search for the given level. */
 
+<<<<<<< HEAD
+=======
+                STRBUF sol_basename = joinstr(CSTR(map_part), ".sol");
+>>>>>>> e5b432cba6c61866704c6ea7bbcacbc0730edd87
                 struct level *level;
                 STRBUF sol_basename  = joinstr(CSTR(map_part), ".sol");
                 STRBUF solx_basename = joinstr(CSTR(map_part), ".solx");
@@ -902,9 +906,12 @@ static int link_handle(const char *link)
         else if ((index = package_search(CSTR(set_file))) >= 0)
         {
             log_printf("Link: found package match for %s\n", CSTR(set_file));
+<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1
             goto_wgcl_addons_login(index, &st_title, 0);
 #else
+=======
+>>>>>>> e5b432cba6c61866704c6ea7bbcacbc0730edd87
             goto_package(index, &st_title);
 #endif
             processed = 1;
@@ -1670,12 +1677,12 @@ static int handle_installed_action(int pi)
     if (pi >= 0 && strcmp(package_get_type(pi), "set") == 0)
     {
         const char *package_id = package_get_id(pi);
-        const char *file = JOINSTR(package_id, ".txt");
+        STRBUF file = joinstr(package_id, ".txt");
         int index = -1;
 
         set_init(0);
 
-        index = set_find(file);
+        index = set_find(CSTR(file));
 
         if (!(index >= 0))
             log_errorf("Failure to find level set from package ID: %s / %s\n",

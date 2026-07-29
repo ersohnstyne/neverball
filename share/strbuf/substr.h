@@ -19,6 +19,7 @@
 #include "common.h"
 #include "strbuf.h"
 
+<<<<<<< HEAD
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
 #pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
@@ -27,6 +28,8 @@
 #endif
 #endif
 
+=======
+>>>>>>> e5b432cba6c61866704c6ea7bbcacbc0730edd87
 static inline STRBUF substr(const char *str, size_t start, size_t count)
 {
     STRBUF sb = { "" };

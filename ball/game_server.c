@@ -1398,18 +1398,21 @@ void game_update_view(float dt)
 
     const float SCL = vary.uv->r / vary.uv->sizes[1];
 
+    /*  Read per-camera configuration parameters. */
+
+    int cam = input_get_c() == CAM_AUTO ? automode : input_get_c();
+    float spd = (float) input_get_c() == CAM_AUTO ? (automode == CAM_1 ? 0.25f : (automode == CAM_2 ? 0.0f : -0.001)) : cam_speed(cam) / 1000.0f;
+    int torque = input_get_c() == CAM_AUTO ? 1 : cam_torque(cam);
+    int free_rotate = input_get_c() == CAM_AUTO ? 1 : cam_free_rotate(cam);
+    int velocity_xz = input_get_c() == CAM_AUTO ? 1 : cam_velocity_xz(cam);
+    float rotate_max = input_get_c() == CAM_AUTO ? 150.0f : cam_rotate_max(cam);
+
     struct game_view multiview1 = view;
     struct game_view multiview2; game_view_init(&multiview2);
 
     for (int ui = 0; ui < vary.base->uc && ui < MAX_PLAYERS; ui++)
     {
         if (ui != CURR_PLAYER) continue;
-
-        /*
-         * Switchball uses an automatic camera.
-         */
-
-        float spd = -1.0f;
 
         if (input_get_c() == CAM_AUTO)
         {
@@ -1422,12 +1425,29 @@ void game_update_view(float dt)
 
             /* If camera speed value does not matched by the Switchball, reset it. */
 
-            if (config_get_d(CONFIG_CAMERA_1_SPEED) != 250)
-                config_set_d(CONFIG_CAMERA_1_SPEED, 250);
-            if (config_get_d(CONFIG_CAMERA_2_SPEED) != 0)
-                config_set_d(CONFIG_CAMERA_2_SPEED, 0);
-            if (config_get_d(CONFIG_CAMERA_3_SPEED) != -1)
-                config_set_d(CONFIG_CAMERA_3_SPEED, -1);
+#define GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(_conf_key, _value) \
+    if (config_get_d(_conf_key) != _value) \
+        config_set_d(_conf_key, _value)
+
+            GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(CONFIG_CAMERA_1_SPEED,       250);
+            GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(CONFIG_CAMERA_1_TORQUE,      1);
+            GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(CONFIG_CAMERA_1_FREE_ROTATE, 1);
+            GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(CONFIG_CAMERA_1_VELOCITY_XZ, 1);
+            GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(CONFIG_CAMERA_1_ROTATE_MAX,  150);
+            
+            GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(CONFIG_CAMERA_2_SPEED,       0);
+            GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(CONFIG_CAMERA_2_TORQUE,      1);
+            GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(CONFIG_CAMERA_2_FREE_ROTATE, 1);
+            GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(CONFIG_CAMERA_2_VELOCITY_XZ, 1);
+            GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(CONFIG_CAMERA_2_ROTATE_MAX,  150);
+            
+            GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(CONFIG_CAMERA_3_SPEED,       -1);
+            GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(CONFIG_CAMERA_3_TORQUE,      1);
+            GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(CONFIG_CAMERA_3_FREE_ROTATE, 1);
+            GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(CONFIG_CAMERA_3_VELOCITY_XZ, 1);
+            GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT(CONFIG_CAMERA_3_ROTATE_MAX,  150);
+
+#undef GAME_SERVER_UPDATE_VIEW_LOCKED_DEFAULT
 
             config_save();
         }
@@ -1435,8 +1455,6 @@ void game_update_view(float dt)
         {
             if (automode != input_get_c())
                 automode = input_get_c();
-
-            spd = (float) cam_speed(input_get_c()) / 1000.0f;
         }
 
 #pragma region Camera Modes
@@ -1497,7 +1515,10 @@ void game_update_view(float dt)
 
         float dc = (multiview1.dc - flerp(0.25f, 0, zoom_diff)) *
                    (jump_b > 0 ? 2.0f * fabsf(jump_dt - 0.5f) : 1.0f);
-        float da = (90.0f * input_get_r() * dt) * (config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? -1 : 1);
+        float ball_spd = v_len(vary.uv[ui].v);
+        float rot_mult = torque ? CLAMP(1.0f, 1.0f + ball_spd / 24.0f, rotate_max) : 1.0f;
+        float da = (90.0f * input_get_r() * rot_mult * dt) * (config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? -1 : 1);
+        float dx = (!velocity_xz && spd >= 0.0f) ? (input_get_r() * rot_mult * dt * 5.0f) : 0.0f;
         float k;
 
         float M[16], Y[3] = { 0.0f, 1.0f, 0.0f };
@@ -1536,42 +1557,47 @@ void game_update_view(float dt)
 
         v_cpy(multiview1.c, vary.uv[ui].p);
 
-        view_v[0] = -vary.uv[ui].v[0];
-        view_v[1] =  0.0f;
-        view_v[2] = -vary.uv[ui].v[2];
-
-        /* Compute view vector. */
-
-        if (spd >= 0.0f)
+        if (velocity_xz)
         {
-            /*
-             * Viewpoint chases ball position.
-             * Camera rotation must be freeze: jump_b == 0
-             */
+            view_v[0] = -vary.uv[ui].v[0];
+            view_v[1] = 0.0f;
+            view_v[2] = -vary.uv[ui].v[2];
+        }
+        else v_inv(view_v, vary.uv[ui].v);
 
-            if (da == 0.0f && jump_b == 0)
+        /* Compute chase vector update. */
+
+        if (!free_rotate || spd >= 0.0f)
+        {
+            float s = 1.0f;
+
+            if (free_rotate)
             {
-                float s;
-
-                v_sub(multiview1.e[2], multiview1.p, multiview1.c);
-                v_nrm(multiview1.e[2], multiview1.e[2]);
-
-                /* Gradually restore view vector convergence rate. */
-
                 s = fpowf(view_time, 3.0f) / fpowf(view_fade, 3.0f);
                 s = CLAMP(0.0f, s, 1.0f);
+            }
 
-                v_mad(multiview1.e[2], multiview1.e[2],
-                      view_v, v_len(view_v) * spd * s * dt);
+            v_sub(multiview1.e[2], multiview1.p, multiview1.c);
+
+            if (torque)
+            {
+                /* Quadratic velocity torque pull ($k = |v|^25) */
+                k = v_dot(view_v, view_v);
+                v_mad(multiview1.e[2], multiview1.e[2], view_v, k * (spd * 4.0f) * s * dt / 4.0f);
+            }
+            else
+            {
+                /* Linear vector chase */
+                v_nrm(multiview1.e[2], multiview1.e[2]);
+                v_mad(multiview1.e[2], multiview1.e[2], view_v, v_len(view_v) * spd * s * dt);
             }
         }
         else
         {
-            /* View vector is given by view angle. */
-
             multiview1.e[2][0] = fsinf(V_RAD(multiview1.a));
-            multiview1.e[2][1] = 0.0;
+            multiview1.e[2][1] = 0.0f;
             multiview1.e[2][2] = fcosf(V_RAD(multiview1.a));
+            dx = 0.0f;
         }
 
         if (spd > 0.1f)
@@ -1636,6 +1662,7 @@ void game_update_view(float dt)
 
         v_scl(v,    multiview1.e[1], SCL * (multiview1.dp + flerp(3.25f, 0, zoom_diff)) * view_k);
         v_mad(v, v, multiview1.e[2], SCL * (multiview1.dz + flerp(4.0f,  0, zoom_diff)) * view_k);
+        v_mad(v, v, multiview1.e[0], SCL * dx * view_k);
         v_add(multiview1.p, v, vary.uv[ui].p);
 
         multiview1.p[1] -= view_alt_velocity;

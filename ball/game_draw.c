@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -498,12 +498,14 @@ static void game_draw_balls(struct s_rend *rend,
 
     glPushMatrix();
     {
+        const float clamped_radius = MAX(vary->uv[0].r, 0.01f);
+
         glTranslatef(vary->uv[0].p[0],
                      vary->uv[0].p[1] + BALL_FUDGE,
                      vary->uv[0].p[2]);
-        glScalef(vary->uv[0].r,
-                 vary->uv[0].r,
-                 vary->uv[0].r);
+        glScalef(clamped_radius,
+                 clamped_radius,
+                 clamped_radius);
 
         /*glColor4ub_(ROUND(c[0] * 255),
                     ROUND(c[1] * 255),
@@ -863,6 +865,11 @@ static void game_draw_light(const struct game_draw *gd, int d, float t)
 
     GLfloat p[4] = { cosf(t), 0.0f, sinf(t), 0.0f };
 
+    if (p[0] < -1.0f || p[0] > 1.0f ||
+        p[1] < -1.0f || p[1] > 1.0f ||
+        p[2] < -1.0f || p[2] > 1.0f)
+        v_nrm(p, p);
+
     glLightfv(GL_LIGHT2, GL_POSITION, p);
 
     /* Enable scene lights. */
@@ -1019,9 +1026,9 @@ static void game_draw_fore(struct s_rend *rend,
                      * level geometry visible, and we don't want that.
                      */
 
-                    glDepthMask(GL_FALSE);
+                    //glDepthMask(GL_FALSE);
                     sol_draw   (draw, rend, 0, 1);
-                    glDepthMask(GL_TRUE);
+                    //glDepthMask(GL_TRUE);
                 }
                 game_draw_balls(rend, draw->vary, M, t);
                 break;
@@ -1395,9 +1402,9 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
         if (gd->fade_disabled == 0)
         {
-            if (game_transitions_available())
-                game_transitions_draw(&rend);
-            sol_fade(&gd->draw, &rend, gd->fade_k);
+            //if (game_transitions_available())
+                //game_transitions_draw(&rend);
+            //sol_fade(&gd->draw, &rend, gd->fade_k);
         }
 
         r_draw_disable(&rend);

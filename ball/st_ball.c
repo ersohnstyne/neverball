@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -46,7 +46,6 @@
 #include "key.h"
 #include "progress.h"
 #include "text.h"
-#include "log.h"
 
 #include "game_server.h"
 #include "game_proxy.h"
@@ -361,6 +360,7 @@ enum
 {
     MODEL_ONLINE = GUI_LAST,
     MODEL_UPGRADE_EDITION,
+    MODEL_TAKESNAPSHOT,
     MODEL_SETUP_FINISH
 };
 
@@ -400,6 +400,17 @@ static int ball_action(int tok, int val)
     }
 
     GENERIC_GAMEMENU_ACTION;
+
+#ifndef __EMSCRIPTEN__
+    int initial_fov  = config_get_d(CONFIG_VIEW_FOV);
+    int initial_dc   = config_get_d(CONFIG_VIEW_DC);
+    int initial_dp   = config_get_d(CONFIG_VIEW_DP);
+    int initial_w    = config_get_d(CONFIG_WIDTH);
+    int initial_h    = config_get_d(CONFIG_HEIGHT);
+    int initial_refl = config_get_d(CONFIG_REFLECTION);
+
+    const float snapshot_pos[3] = { 0.0f, 1.4f, 0.35f };
+#endif
 
     switch (tok)
     {
@@ -457,6 +468,57 @@ static int ball_action(int tok, int val)
 
             break;
 #endif
+        case MODEL_TAKESNAPSHOT:
+#if !defined(NDEBUG) && NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            if (config_cheat())
+            {
+                game_view_set_static_cam_view(1, snapshot_pos);
+                config_set_d(CONFIG_REFLECTION, 0);
+                demo_replay_stop(0);
+                load_ball_demo();
+                game_kill_fade();
+
+                video_set_window_size(400 / video.device_scale, 300 / video.device_scale);
+                video_resize         (400 / video.device_scale, 300 / video.device_scale);
+
+                game_client_fly(0.0f);
+
+                /* Zoom in the camera. */
+
+                config_set_d(CONFIG_VIEW_FOV, 17);
+
+                /* Take screenshots. */
+
+                {
+                    static char filename[64];
+
+                    sprintf(filename, "Screenshots/ball-%s.png",
+                                      base_name(MODEL_BALL_GET(balls, curr_ball)->path));
+
+                    video_clear();
+                    video_can_swap_window = 1;
+                    video_set_perspective((float) initial_fov, 0.1f, FAR_DIST);
+                    back_draw_easy();
+
+                    game_client_draw(POSE_BALL, 0);
+                    video_snap(filename);
+                    video_swap();
+                }
+
+                /* Restore config. */
+
+                config_set_d(CONFIG_VIEW_FOV,   initial_fov);
+                config_set_d(CONFIG_REFLECTION, initial_refl);
+
+                video_set_window_size(initial_w, initial_h);
+                video_resize         (initial_w, initial_h);
+
+                set_curr_ball(curr_ball);
+            } else log_errorf("Take screenshot is not available without dev-mode!\n");
+#else
+            log_errorf("Take screenshot is not available with release or other Pennyball builds!\n");
+#endif
+            break;
     }
 
     return 1;
@@ -638,6 +700,28 @@ static int ball_gui(void)
                 gui_layout(id, 0, -1);
             }
         }
+#if !defined(NDEBUG) && NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        else if (config_cheat() && !console_gui_shown())
+        {
+            if ((id = gui_vstack(root_id)))
+            {
+                if ((jd = gui_hstack(id)))
+                {
+                    const int cambtn_id = gui_label(jd, GUI_FISHEYE, GUI_SML, GUI_COLOR_GRN);
+                    gui_set_font(cambtn_id, "ttf/seguiemj.ttf");
+                    gui_label(jd, _("Take Screenshot"), GUI_SML, GUI_COLOR_WHT);
+
+                    gui_set_state(jd, MODEL_TAKESNAPSHOT, 0);
+                    gui_set_rect(jd, GUI_ALL);
+                    gui_focus(jd);
+                }
+
+                gui_space(id);
+
+                gui_layout(id, 0, -1);
+            }
+        }
+#endif
     }
 
     return root_id;

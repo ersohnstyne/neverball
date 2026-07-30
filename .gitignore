@@ -30,6 +30,10 @@ autosave
 # Localizations
 /locale
 
+# Legacy documentation files
+doc/manual.txt
+!doc/manual.md
+
 # Compiled campaign and custom mappers
 *.sol
 *.csol

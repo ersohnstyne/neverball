@@ -22,7 +22,7 @@
 
 struct conf_option
 {
-    char text[8];
+    char text[16];
     int  value;
 };
 

@@ -128,35 +128,137 @@ const char *cam_to_str(int c)
     int s = -1000;
     if (c == CAM_AUTO) return _("Automatic");
 
-    s = cam_speed(c);
+    int spd = cam_speed(c);
 
-    if (s <    0) return _("Manual Camera");
-    if (s ==   0) return _("Static Camera");
-    if (s <= 100) return _("Lazy Camera");
-    if (s <= 500) return _("Chase Camera");
+    if (spd < 0)
+        return _("Manual Camera");
+    if (spd == 0)
+        return _("Static Camera");
+    if (spd >= 0)
+        return _("Lazy Camera");
 
+    switch (cam_preset_get(c))
+    {
+    case CAM_PRESET_1_4:     return _("1.4 Classic");
+    case CAM_PRESET_1_5:     return _("1.5 Classic");
+    case CAM_PRESET_DEFAULT: return _("Chase Camera");
+    }
+
+    /* Custom configuration fallback */
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(str, 64,
 #else
     sprintf(str,
 #endif
             _("Camera %d"), c + 1);
-
     return str;
 }
 
 int cam_speed(int c)
 {
-    static const int *cfgs[] = {
-        &CONFIG_CAMERA_1_SPEED,
-        &CONFIG_CAMERA_2_SPEED,
-        &CONFIG_CAMERA_3_SPEED
-    };
+    switch (c)
+    {
+    case CAM_1: return config_get_d(CONFIG_CAMERA_1_SPEED);
+    case CAM_2: return config_get_d(CONFIG_CAMERA_2_SPEED);
+    case CAM_3: return config_get_d(CONFIG_CAMERA_3_SPEED);
+    default:    return 250;
+    }
+}
 
-    if (c >= 0 && c < ARRAYSIZE(cfgs))
-        return config_get_d(*cfgs[c]);
+int cam_torque(int c)
+{
+    switch (c)
+    {
+    case CAM_1: return config_get_d(CONFIG_CAMERA_1_TORQUE);
+    case CAM_2: return config_get_d(CONFIG_CAMERA_2_TORQUE);
+    case CAM_3: return config_get_d(CONFIG_CAMERA_3_TORQUE);
+    default:    return 250;
+    }
+}
 
-    return 250;
+int cam_free_rotate(int c)
+{
+    switch (c)
+    {
+    case CAM_1: return config_get_d(CONFIG_CAMERA_1_FREE_ROTATE);
+    case CAM_2: return config_get_d(CONFIG_CAMERA_2_FREE_ROTATE);
+    case CAM_3: return config_get_d(CONFIG_CAMERA_3_FREE_ROTATE);
+    default:    return 1;
+    }
+}
+
+int cam_velocity_xz(int c)
+{
+    switch (c)
+    {
+    case CAM_1: return config_get_d(CONFIG_CAMERA_1_VELOCITY_XZ);
+    case CAM_2: return config_get_d(CONFIG_CAMERA_2_VELOCITY_XZ);
+    case CAM_3: return config_get_d(CONFIG_CAMERA_3_VELOCITY_XZ);
+    default:    return 1;
+    }
+}
+
+int cam_rotate_max(int c)
+{
+    switch (c)
+    {
+    case CAM_1: return config_get_d(CONFIG_CAMERA_1_ROTATE_MAX);
+    case CAM_2: return config_get_d(CONFIG_CAMERA_2_ROTATE_MAX);
+    case CAM_3: return config_get_d(CONFIG_CAMERA_3_ROTATE_MAX);
+    default:    return 150;
+    }
+}
+
+int cam_preset_get(int c)
+{
+    int torque   = cam_torque(c);
+    int free_rot = cam_free_rotate(c);
+    int vxz      = cam_velocity_xz(c);
+    int rot_max  = cam_rotate_max(c);
+
+    if (torque == 1 && free_rot == 0 && vxz == 0 && rot_max == 100)
+        return CAM_PRESET_1_4;
+
+    if (torque == 0 && free_rot == 1 && vxz == 1)
+        return CAM_PRESET_1_5;
+
+    if (torque == 1 && free_rot == 1 && vxz == 1 && rot_max == 150)
+        return CAM_PRESET_DEFAULT;
+
+    return CAM_PRESET_CUSTOM;
+}
+
+int cam_preset_set(int c, int preset)
+{
+    if (c != CAM_1)
+        return;
+
+    switch (c)
+    {
+    case CAM_PRESET_1_4:
+        config_set_d(CONFIG_CAMERA_1_SPEED,       250);
+        config_set_d(CONFIG_CAMERA_1_TORQUE,      1);
+        config_set_d(CONFIG_CAMERA_1_FREE_ROTATE, 0);
+        config_set_d(CONFIG_CAMERA_1_VELOCITY_XZ, 0);
+        config_set_d(CONFIG_CAMERA_1_ROTATE_MAX,  100);
+        break;
+        
+    case CAM_PRESET_1_5:
+        config_set_d(CONFIG_CAMERA_1_SPEED,       250);
+        config_set_d(CONFIG_CAMERA_1_TORQUE,      0);
+        config_set_d(CONFIG_CAMERA_1_FREE_ROTATE, 1);
+        config_set_d(CONFIG_CAMERA_1_VELOCITY_XZ, 1);
+        config_set_d(CONFIG_CAMERA_1_ROTATE_MAX,  150);
+        break;
+
+    default:
+        config_set_d(CONFIG_CAMERA_1_SPEED,       250);
+        config_set_d(CONFIG_CAMERA_1_TORQUE,      1);
+        config_set_d(CONFIG_CAMERA_1_FREE_ROTATE, 1);
+        config_set_d(CONFIG_CAMERA_1_VELOCITY_XZ, 1);
+        config_set_d(CONFIG_CAMERA_1_ROTATE_MAX,  150);
+        break;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -253,9 +355,9 @@ void game_camshake_update(float dt)
 
 void game_camshake_update_view(struct game_view *view)
 {
-    const float dx = view->p[0] - view->c[0] / 100;
-    const float dy = view->p[1] - view->c[1] / 100;
-    const float dz = view->p[2] - view->c[2] / 100;
+    const float dx = view->p[0] - view->c[0];
+    const float dy = view->p[1] - view->c[1];
+    const float dz = view->p[2] - view->c[2];
 
     const float collate_distance = sqrtf(dx * dx + dy * dy + dz * dz) / 3;
     camshake_multiplier = collate_distance >= 0 ? (collate_distance >= 1.1431f ? CLAMP(0.0f, (2 / collate_distance) - 0.75f, 1.0f) : 1.0f) * CLAMP(0.0f, flerp(8.0f, 0.0f, camshake_time), 1.0f) : 0.0f;

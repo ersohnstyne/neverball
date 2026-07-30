@@ -21,6 +21,10 @@
 #include <emscripten.h>
 #endif
 
+#ifdef _DEBUG
+#include <assert.h>
+#endif
+
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
 #include "account_wgcl.h"
@@ -914,8 +918,17 @@ enum
     CONF_GAMEPLAY_AUTORETRY = GUI_LAST,
     CONF_GAMEPLAY_FASTERRESET,
     CONF_GAMEPLAY_TUTORIAL,
-    CONF_GAMEPLAY_HINT
+    CONF_GAMEPLAY_HINT,
+
+    /* Increased gameplay settings logic! */
+
+    CONF_GAMEPLAY_CAMERA_DEFAULT,
+    CONF_GAMEPLAY_CAMERA_1_4,
+    CONF_GAMEPLAY_CAMERA_1_5
 };
+
+static int conf_gameplay_settings_entered = 0;
+static int cam_preset_expected = CONF_GAMEPLAY_CAMERA_DEFAULT;
 
 static int conf_gameplay_action(int tok, int val)
 {
@@ -924,6 +937,7 @@ static int conf_gameplay_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
+            conf_gameplay_settings_entered = 0;
             return exit_state(&st_conf);
 
         case CONF_GAMEPLAY_AUTORETRY:
@@ -943,15 +957,36 @@ static int conf_gameplay_action(int tok, int val)
         case CONF_GAMEPLAY_TUTORIAL:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ACCOUNT_TUTORIAL, val);
-            goto_state(curr_state());
             config_save();
+            goto_state(curr_state());
             break;
 
         case CONF_GAMEPLAY_HINT:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ACCOUNT_HINT, val);
-            goto_state(curr_state());
             config_save();
+            goto_state(curr_state());
+            break;
+
+        case CONF_GAMEPLAY_CAMERA_DEFAULT:
+            cam_preset_expected = CAM_PRESET_DEFAULT;
+            cam_preset_set(CAM_1, CAM_PRESET_DEFAULT);
+            config_save();
+            goto_state(&st_conf_gameplay);
+            break;
+
+        case CONF_GAMEPLAY_CAMERA_1_4:
+            cam_preset_expected = CAM_PRESET_1_4;
+            cam_preset_set(CAM_1, CAM_PRESET_1_4);
+            config_save();
+            goto_state(curr_state());
+            break;
+
+        case CONF_GAMEPLAY_CAMERA_1_5:
+            cam_preset_expected = CAM_PRESET_1_5;
+            cam_preset_set(CAM_1, CAM_PRESET_1_5);
+            config_save();
+            goto_state(curr_state());
             break;
     }
 
@@ -960,7 +995,16 @@ static int conf_gameplay_action(int tok, int val)
 
 static int conf_gameplay_gui(void)
 {
-    int id;
+    int id, jd, kd, ld;
+    int curr = cam_preset_get(CAM_1);
+
+    if (curr != cam_preset_expected)
+        while (curr != cam_preset_expected)
+        {
+            curr = cam_preset_expected;
+            cam_preset_set(CAM_1, cam_preset_expected);
+            config_save();
+        }
 
     /* Initialize the configuration GUI. */
 
@@ -998,6 +1042,22 @@ static int conf_gameplay_gui(void)
                         config_get_d(CONFIG_ACCOUNT_HINT), _("On"), 1, _("Off"), 0);
 #endif
 
+        gui_space(id);
+        
+        if ((jd = gui_harray(id)) && (kd = gui_vstack(jd)) && (ld = gui_vstack(jd)))
+        {
+            int btn0 = gui_state(kd, _("Default"),     GUI_SML, CONF_GAMEPLAY_CAMERA_DEFAULT, 0);
+            int btn1 = gui_state(kd, _("1.4 Classic"), GUI_SML, CONF_GAMEPLAY_CAMERA_1_4,     0);
+            int btn2 = gui_state(kd, _("1.5 Classic"), GUI_SML, CONF_GAMEPLAY_CAMERA_1_5,     0);
+
+            gui_set_hilite(btn0, (curr == CAM_PRESET_DEFAULT));
+            gui_set_hilite(btn1, (curr == CAM_PRESET_1_4));
+            gui_set_hilite(btn2, (curr == CAM_PRESET_1_5));
+
+            gui_label(ld, _("Camera Preset"), GUI_SML, 0, 0);
+            gui_filler(ld);
+        }
+
         gui_layout(id, 0, 0);
     }
 
@@ -1006,6 +1066,14 @@ static int conf_gameplay_gui(void)
 
 static int conf_gameplay_enter(struct state *st, struct state *prev, int intent)
 {
+    if (!conf_gameplay_settings_entered) {
+        cam_preset_expected = cam_preset_get(CAM_1);
+        conf_gameplay_settings_entered = 1;
+    }
+#ifdef _DEBUG
+    //else assert(cam_preset_expected == cam_preset_get(CAM_1));
+#endif
+
     if (mainmenu_conf)
         game_client_free(NULL);
 
@@ -1305,6 +1373,8 @@ static int conf_control_gui(void)
         camrot_mode_id = conf_state(id, _("Camera rotate"), camrot_mode_text,
                                     CONF_CONTROL_CAMERA_ROTATE_MODE);
 #endif
+
+        gui_space(id);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform == PLATFORM_PC && !console_gui_shown())
@@ -2000,6 +2070,7 @@ static void conf_controllers_set_option(int index, int value)
         config_set_d(option, value);
 
         conf_controllers_set_label(conf_controllers_option_ids[index], value + (conf_controllers_modal == CONF_CONTROLLERS_ASSIGN_AXIS ? 11 : 0));
+
         /* Focus the next button. */
 
         if (index < ARRAYSIZE(conf_controllers_options) - 1)
@@ -2958,7 +3029,7 @@ static int conf_gui(void)
             }
 #endif
 
-            if (mainmenu_conf) {
+            /*if (mainmenu_conf) {
 #if ENABLE_NLS==1 || _WIN32
                 gui_space(id);
 
@@ -2973,7 +3044,7 @@ static int conf_gui(void)
                 else
                     gui_set_label(lang_id, _("Default"));
 #endif
-            }
+            }*/
 
             gui_layout(id, 0, root_id ? +1 : 0);
         }
@@ -2985,9 +3056,15 @@ static int conf_gui(void)
     !defined(__SWITCH__)
                 gui_label(id, "Neverball " VERSION " (High)", GUI_TNY, GUI_COLOR_WHT);
 #endif
+#if NB_HAVE_PB_BOTH==1
+                gui_multi(id, _("Copyright © 2008, 2026 PennyGames\n"
+                                "Neverball is free software available under the terms of GPL v2 or later."),
+                              GUI_TNY, GUI_COLOR_WHT);
+#else
                 gui_multi(id, _("Copyright © 2026 Neverball authors\n"
                                 "Neverball is free software available under the terms of GPL v2 or later."),
                               GUI_TNY, GUI_COLOR_WHT);
+#endif
                 gui_clr_rect(id);
                 gui_layout(id, 0, -1);
             }

@@ -22,10 +22,23 @@ BALL_FILE := $(DATA_DIR)/$(BALL_DIR)/ball.txt
 BALL_SHOT := $(DATA_DIR)/$(BALL_DIR)/screenshot.png
 BALL_NAME := $(shell sed -n '/^name / s/^name //p' < $(BALL_FILE))
 
+RENAMED_SRC_FILE := $(DATA_DIR)/$(BALL_DIR)/ball-$(BALL_DIR).txt
+RENAMED_SRC_SHOT := $(DATA_DIR)/$(BALL_DIR)/ball-$(BALL_DIR).png
+
 PACKAGE_MANIFEST := $(OUTPUT_DIR)/$(PACKAGE_ID).manifest.txt
 PACKAGE_SCREENSHOT := $(OUTPUT_DIR)/$(PACKAGE_ID)-$(shell md5sum $(BALL_SHOT) | cut -c -32)$(suffix $(BALL_SHOT))
 
-all: package manifest screenshot
+all: rename package manifest screenshot
+
+rename:
+	@if [ -f "$(RENAMED_SRC_SHOT)" ]; then \
+		echo "Renaming from $(RENAMED_SRC_SHOT) to $(BALL_SHOT)"; \
+		mv "$(RENAMED_SRC_SHOT)" "$(BALL_SHOT)"; \
+	fi
+	@if [ -f "$(RENAMED_SRC_FILE)" ]; then \
+		echo "Renaming from $(RENAMED_SRC_FILE) to $(BALL_FILE)"; \
+		mv "$(RENAMED_SRC_FILE)" "$(BALL_FILE)"; \
+	fi
 
 package:
 	$(MAKE) -f mk/package.mk PACKAGE_ID=$(PACKAGE_ID) DATA_DIR=$(DATA_DIR) ASSET_PATHS="$(BALL_DIR)" OUTPUT_DIR=$(OUTPUT_DIR)

@@ -215,13 +215,8 @@ int cam_free_rotate(int);
 int cam_velocity_xz(int);
 int cam_rotate_max(int);
 
-<<<<<<< HEAD
-int cam_preset_get(int);
-int cam_preset_set(int, int);
-=======
 int  cam_preset_get(int);
 void cam_preset_set(int, int);
->>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
 
 /*---------------------------------------------------------------------------*/
 

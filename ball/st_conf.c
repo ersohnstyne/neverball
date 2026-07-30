@@ -915,7 +915,6 @@ static void conf_account_timer(int id, float dt)
 
 enum
 {
-<<<<<<< HEAD
     CONF_GAMEPLAY_AUTORETRY = GUI_LAST,
     CONF_GAMEPLAY_FASTERRESET,
     CONF_GAMEPLAY_TUTORIAL,
@@ -926,17 +925,6 @@ enum
     CONF_GAMEPLAY_CAMERA_DEFAULT,
     CONF_GAMEPLAY_CAMERA_1_4,
     CONF_GAMEPLAY_CAMERA_1_5
-=======
-    CONF_VIDEO = GUI_LAST,
-    CONF_GAMEPLAY,
-    CONF_LANGUAGE,
-    CONF_MOUSE_SENSE,
-    CONF_JOYSTICK,
-    CONF_SOUND_VOLUME,
-    CONF_MUSIC_VOLUME,
-    CONF_PLAYER,
-    CONF_BALL
->>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
 };
 
 static int conf_gameplay_settings_entered = 0;
@@ -1252,22 +1240,12 @@ static int conf_control_action(int tok, int val)
             config_save();
             break;
 
-<<<<<<< HEAD
         case CONF_CONTROL_TILTING_FLOOR:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_TILTING_FLOOR, val);
             config_save();
             goto_state(&st_conf_control);
             break;
-=======
-    case CONF_GAMEPLAY:
-        goto_state(&st_conf_gameplay);
-        break;
-
-    case CONF_JOYSTICK:
-        goto_state(&st_joystick);
-        break;
->>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
 
         case CONF_CONTROL_CAMERA_ROTATE_MODE:
 #ifdef SWITCHBALL_GUI
@@ -2939,7 +2917,6 @@ static int conf_gui(void)
 
             conf_header(id, _("Options"), GUI_BACK);
 
-<<<<<<< HEAD
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
@@ -2960,10 +2937,6 @@ static int conf_gui(void)
 
             rd = conf_state(id, _("Community (Discord)"), _("Join"), CONF_SOCIAL);
             gui_set_color(rd, gui_wht, gui_cya);
-=======
-            conf_state(id, _("Graphics"), _("Configure"), CONF_VIDEO);
-            conf_state(id, _("Gameplay"), _("Configure"), CONF_GAMEPLAY);
->>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
 
             gui_space(id);
 #endif

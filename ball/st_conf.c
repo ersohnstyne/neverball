@@ -915,6 +915,7 @@ static void conf_account_timer(int id, float dt)
 
 enum
 {
+<<<<<<< HEAD
     CONF_GAMEPLAY_AUTORETRY = GUI_LAST,
     CONF_GAMEPLAY_FASTERRESET,
     CONF_GAMEPLAY_TUTORIAL,
@@ -925,6 +926,17 @@ enum
     CONF_GAMEPLAY_CAMERA_DEFAULT,
     CONF_GAMEPLAY_CAMERA_1_4,
     CONF_GAMEPLAY_CAMERA_1_5
+=======
+    CONF_VIDEO = GUI_LAST,
+    CONF_GAMEPLAY,
+    CONF_LANGUAGE,
+    CONF_MOUSE_SENSE,
+    CONF_JOYSTICK,
+    CONF_SOUND_VOLUME,
+    CONF_MUSIC_VOLUME,
+    CONF_PLAYER,
+    CONF_BALL
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
 };
 
 static int conf_gameplay_settings_entered = 0;
@@ -1240,12 +1252,22 @@ static int conf_control_action(int tok, int val)
             config_save();
             break;
 
+<<<<<<< HEAD
         case CONF_CONTROL_TILTING_FLOOR:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_TILTING_FLOOR, val);
             config_save();
             goto_state(&st_conf_control);
             break;
+=======
+    case CONF_GAMEPLAY:
+        goto_state(&st_conf_gameplay);
+        break;
+
+    case CONF_JOYSTICK:
+        goto_state(&st_joystick);
+        break;
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
 
         case CONF_CONTROL_CAMERA_ROTATE_MODE:
 #ifdef SWITCHBALL_GUI
@@ -2917,6 +2939,7 @@ static int conf_gui(void)
 
             conf_header(id, _("Options"), GUI_BACK);
 
+<<<<<<< HEAD
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
@@ -2937,6 +2960,10 @@ static int conf_gui(void)
 
             rd = conf_state(id, _("Community (Discord)"), _("Join"), CONF_SOCIAL);
             gui_set_color(rd, gui_wht, gui_cya);
+=======
+            conf_state(id, _("Graphics"), _("Configure"), CONF_VIDEO);
+            conf_state(id, _("Gameplay"), _("Configure"), CONF_GAMEPLAY);
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
 
             gui_space(id);
 #endif
@@ -3369,4 +3396,98 @@ struct state st_conf = {
 struct state st_null = {
     null_enter,
     null_leave
+};
+
+/*---------------------------------------------------------------------------*/
+
+enum
+{
+    GAMEPLAY_CAMERA_DEFAULT = GUI_LAST,
+    GAMEPLAY_CAMERA_1_4,
+    GAMEPLAY_CAMERA_1_5
+};
+
+static struct state *gameplay_back;
+
+static int gameplay_action(int tok, int val)
+{
+    int r = 1;
+
+    audio_play(AUD_MENU, 1.0f);
+
+    switch (tok)
+    {
+    case GUI_BACK:
+        exit_state(gameplay_back);
+        gameplay_back = NULL;
+        break;
+
+    case GAMEPLAY_CAMERA_DEFAULT:
+        cam_preset_set(CAM_1, CAM_PRESET_DEFAULT);
+        goto_state(&st_conf_gameplay);
+        break;
+
+    case GAMEPLAY_CAMERA_1_4:
+        cam_preset_set(CAM_1, CAM_PRESET_1_4);
+        goto_state(&st_conf_gameplay);
+        break;
+
+    case GAMEPLAY_CAMERA_1_5:
+        cam_preset_set(CAM_1, CAM_PRESET_1_5);
+        goto_state(&st_conf_gameplay);
+        break;
+    }
+
+    return r;
+}
+
+static int gameplay_gui(void)
+{
+    int id, jd, kd, ld;
+    int curr = cam_preset_get(CAM_1);
+
+    if ((id = gui_vstack(0)))
+    {
+        conf_header(id, _("Gameplay"), GUI_BACK);
+
+        if ((jd = gui_harray(id)) && (kd = gui_vstack(jd)) && (ld = gui_vstack(jd)))
+        {
+            int btn0 = gui_state(kd, _("Default"),     GUI_SML, GAMEPLAY_CAMERA_DEFAULT, 0);
+            int btn1 = gui_state(kd, _("1.4 Classic"), GUI_SML, GAMEPLAY_CAMERA_1_4,     0);
+            int btn2 = gui_state(kd, _("1.5 Classic"), GUI_SML, GAMEPLAY_CAMERA_1_5,     0);
+
+            gui_set_hilite(btn0, (curr == CAM_PRESET_DEFAULT));
+            gui_set_hilite(btn1, (curr == CAM_PRESET_1_4));
+            gui_set_hilite(btn2, (curr == CAM_PRESET_1_5));
+
+            gui_label(ld, _("Camera Preset"), GUI_SML, 0, 0);
+            gui_filler(ld);
+        }
+
+        gui_layout(id, 0, 0);
+    }
+
+    return id;
+}
+
+static int gameplay_enter(struct state *st, struct state *prev, int intent)
+{
+    if (!gameplay_back)
+        gameplay_back = prev;
+
+    conf_common_init(gameplay_action);
+    return transition_slide(gameplay_gui(), 1, intent);
+}
+
+struct state st_conf_gameplay = {
+    gameplay_enter,
+    conf_common_leave,
+    conf_common_paint,
+    common_timer,
+    common_point,
+    common_stick,
+    NULL,
+    common_click,
+    common_keybd,
+    common_buttn
 };

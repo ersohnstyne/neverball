@@ -125,6 +125,7 @@ const char *cam_to_str(int c)
 {
     static char str[64];
 
+<<<<<<< HEAD
     int s = -1000;
     if (c == CAM_AUTO) return _("Automatic");
 
@@ -137,6 +138,15 @@ const char *cam_to_str(int c)
     if (spd >= 0)
         return _("Lazy Camera");
 
+=======
+    int spd = cam_speed(c);
+
+    if (spd < 0)
+        return _("Manual Camera");
+    if (spd == 0)
+        return _("Lazy Camera");
+
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
     switch (cam_preset_get(c))
     {
     case CAM_PRESET_1_4:     return _("1.4 Classic");
@@ -145,12 +155,16 @@ const char *cam_to_str(int c)
     }
 
     /* Custom configuration fallback */
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(str, 64,
 #else
     sprintf(str,
 #endif
             _("Camera %d"), c + 1);
+=======
+    sprintf(str, _("Camera %d"), c + 1);
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
     return str;
 }
 
@@ -172,7 +186,11 @@ int cam_torque(int c)
     case CAM_1: return config_get_d(CONFIG_CAMERA_1_TORQUE);
     case CAM_2: return config_get_d(CONFIG_CAMERA_2_TORQUE);
     case CAM_3: return config_get_d(CONFIG_CAMERA_3_TORQUE);
+<<<<<<< HEAD
     default:    return 250;
+=======
+    default:    return 1;
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
     }
 }
 
@@ -228,12 +246,20 @@ int cam_preset_get(int c)
     return CAM_PRESET_CUSTOM;
 }
 
+<<<<<<< HEAD
 int cam_preset_set(int c, int preset)
+=======
+void cam_preset_set(int c, int preset)
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
 {
     if (c != CAM_1)
         return;
 
+<<<<<<< HEAD
     switch (c)
+=======
+    switch (preset)
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
     {
     case CAM_PRESET_1_4:
         config_set_d(CONFIG_CAMERA_1_SPEED,       250);
@@ -242,7 +268,11 @@ int cam_preset_set(int c, int preset)
         config_set_d(CONFIG_CAMERA_1_VELOCITY_XZ, 0);
         config_set_d(CONFIG_CAMERA_1_ROTATE_MAX,  100);
         break;
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
     case CAM_PRESET_1_5:
         config_set_d(CONFIG_CAMERA_1_SPEED,       250);
         config_set_d(CONFIG_CAMERA_1_TORQUE,      0);
@@ -251,6 +281,10 @@ int cam_preset_set(int c, int preset)
         config_set_d(CONFIG_CAMERA_1_ROTATE_MAX,  150);
         break;
 
+<<<<<<< HEAD
+=======
+    case CAM_PRESET_DEFAULT:
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
     default:
         config_set_d(CONFIG_CAMERA_1_SPEED,       250);
         config_set_d(CONFIG_CAMERA_1_TORQUE,      1);

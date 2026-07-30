@@ -509,7 +509,10 @@ static void controls_pc(int id)
     const char *s_rotate = _("Left and right mouse buttons rotate the view.\n"
                              "Hold Shift for faster view rotation.");
     const char *s_exit    = _("Exit / Pause");
+<<<<<<< HEAD
     const char *s_camAuto = _("Auto-Camera");
+=======
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
     const char *s_camera1 = cam_to_str(CAM_1);
     const char *s_camera2 = cam_to_str(CAM_2);
     const char *s_camera3 = cam_to_str(CAM_3);

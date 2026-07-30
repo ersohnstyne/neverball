@@ -1396,9 +1396,29 @@ void game_update_view(float dt)
         }
     }
 
+<<<<<<< HEAD
     const float SCL = vary.uv->r / vary.uv->sizes[1];
 
     /*  Read per-camera configuration parameters. */
+=======
+    float SCL = view_zoom_curr;
+    
+    /* Read per-camera configuration parameters. */
+    
+    int cam = input_get_c();
+    float spd = (float) cam_speed(cam) / 1000.0f;
+    int torque = cam_torque(cam);
+    int free_rotate = cam_free_rotate(cam);
+    int velocity_xz = cam_velocity_xz(cam);
+    float rotate_max = (float) cam_rotate_max(cam) / 100.0f;
+
+    float dc = view.dc * (jump_b > 0 ? 2.0f * fabsf(jump_dt - 0.5f) : 1.0f);
+    float ball_spd = v_len(vary.uv->v);
+    float rot_mult = torque ? CLAMP(1.0f, 1.0f + ball_spd / 24.0f, rotate_max) : 1.0f;
+    float da = 90.0f * input_get_r() * rot_mult * dt;
+    float dx = (!velocity_xz && spd >= 0.0f) ? (input_get_r() * rot_mult * dt * 5.0f) : 0.0f;
+    float k;
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
 
     int cam = input_get_c() == CAM_AUTO ? automode : input_get_c();
     float spd = (float) input_get_c() == CAM_AUTO ? (automode == CAM_1 ? 0.25f : (automode == CAM_2 ? 0.0f : -0.001)) : cam_speed(cam) / 1000.0f;
@@ -1407,10 +1427,16 @@ void game_update_view(float dt)
     int velocity_xz = input_get_c() == CAM_AUTO ? 1 : cam_velocity_xz(cam);
     float rotate_max = input_get_c() == CAM_AUTO ? 150.0f : cam_rotate_max(cam);
 
+<<<<<<< HEAD
     struct game_view multiview1 = view;
     struct game_view multiview2; game_view_init(&multiview2);
 
     for (int ui = 0; ui < vary.base->uc && ui < MAX_PLAYERS; ui++)
+=======
+    /* Track manual rotation time. */
+
+    if (da == 0.0f)
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
     {
         if (ui != CURR_PLAYER) continue;
 
@@ -1490,6 +1516,7 @@ void game_update_view(float dt)
         v_cpy(p1, fix_cam_pos);
         v_cpy(c1, vary.uv[ui].p);
 
+<<<<<<< HEAD
         /* Interpolate the views. */
 
         v_sub(v, p1, p0);
@@ -1539,6 +1566,49 @@ void game_update_view(float dt)
             /* Inactivity. */
 
             view_time += dt;
+=======
+    /* Construct velocity vector. */
+
+    if (velocity_xz)
+    {
+        view_v[0] = -vary.uv->v[0];
+        view_v[1] =  0.0f;
+        view_v[2] = -vary.uv->v[2];
+    }
+    else
+    {
+        v_inv(view_v, vary.uv->v);
+    }
+
+    /* Compute chase vector update. */
+
+    if (spd >= 0.0f)
+    {
+        if (!free_rotate || da == 0.0f)
+        {
+            float s = 1.0f;
+
+            if (free_rotate)
+            {
+                s = fpowf(view_time, 3.0f) / fpowf(view_fade, 3.0f);
+                s = CLAMP(0.0f, s, 1.0f);
+            }
+
+            v_sub(view.e[2], view.p, view.c);
+
+            if (torque)
+            {
+                /* Quadratic velocity torque pull ($k = |v|^2$) */
+                k = v_dot(view_v, view_v);
+                v_mad(view.e[2], view.e[2], view_v, k * (spd * 4.0f) * s * dt / 4.0f);
+            }
+            else
+            {
+                /* Linear vector chase */
+                v_nrm(view.e[2], view.e[2]);
+                v_mad(view.e[2], view.e[2], view_v, v_len(view_v) * spd * s * dt);
+            }
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
         }
         else
         {
@@ -1692,6 +1762,57 @@ void game_update_view(float dt)
                           (-cosf(V_PI * fix_cam_alpha[ui]) / 2) + 0.5f);
 #pragma endregion
     }
+<<<<<<< HEAD
+=======
+    else
+    {
+        view.e[2][0] = fsinf(V_RAD(view.a));
+        view.e[2][1] = 0.0f;
+        view.e[2][2] = fcosf(V_RAD(view.a));
+        dx = 0.0f;
+    }
+
+    if (spd < 0.0f)
+        dx = 0.0f;
+
+    /* Apply manual rotation. */
+
+    if (da != 0.0f)
+    {
+        m_rot(M, Y, V_RAD(da));
+        m_vxfm(v, M, view.e[2]);
+        v_cpy(view.e[2], v);
+    }
+
+    /* Orthonormalize the new view reference frame. */
+
+    v_crs(view.e[0], view.e[1], view.e[2]);
+    v_crs(view.e[2], view.e[0], view.e[1]);
+    v_nrm(view.e[0], view.e[0]);
+    v_nrm(view.e[2], view.e[2]);
+
+    /* Compute the new view position. */
+
+    k = 1.0f + v_dot(view.e[2], view_v) / 10.0f;
+
+    view_k = view_k + (k - view_k) * dt;
+
+    if (view_k < 0.5f) view_k = 0.5;
+
+    v_scl(v,    view.e[1], SCL * view.dp * view_k);
+    v_mad(v, v, view.e[2], SCL * view.dz * view_k);
+    v_mad(v, v, view.e[0], SCL * dx      * view_k);
+    v_add(view.p, v, vary.uv->p);
+
+    /* Compute the new view center. */
+
+    v_cpy(view.c, vary.uv->p);
+    v_mad(view.c, view.c, view.e[1], SCL * dc);
+
+    /* Note the current view angle. */
+
+    view.a = V_DEG(fatan2f(view.e[2][0], view.e[2][2]));
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
 
     game_cmd_updview();
 }

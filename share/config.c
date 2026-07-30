@@ -402,7 +402,10 @@ static struct
     { &CONFIG_LOCK_GOALS,  "lock_goals",  0 },
     { &CONFIG_UNITS_METRIC, "units_metric", 0 },
 
+<<<<<<< HEAD
     { &CONFIG_CAMERA_SHAKE,         "camera_shake",   1 },
+=======
+>>>>>>> 01ab984ba37ec69cba5876ad1d8a442d80ea4cf9
     { &CONFIG_CAMERA_1_SPEED,       "camera_1_speed",       250 },
     { &CONFIG_CAMERA_1_TORQUE,      "camera_1_torque",      1 },
     { &CONFIG_CAMERA_1_FREE_ROTATE, "camera_1_free_rotate", 1 },

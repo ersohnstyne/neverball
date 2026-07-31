@@ -168,7 +168,7 @@ Exceeded level status above the limits, which unsuccessful level plays, will als
 
 Coins are the currency with which you buy everything that is sold in the Shop. They can NOT be acquired with real money in any way, they are the games functioning in game currency like gold, coins etc. found in other games.
 
-New balls can be purchased for 15 gems in Challenge mode, not Hardcore. To earn the gems for free, you must complete the Challenge mode in the Level Set.
+New balls can be purchased for 25 gems in Challenge mode, not Hardcore. To earn the gems for free, you must complete the Challenge mode in the Level Set.
 
 If you want to buy more balls before playing Challenge mode, go to Shop.
 
@@ -377,6 +377,7 @@ key_camera_toggle c
 ### Camera physics / behaviour
 
 ```
+camera_N_speed
 camera_N_torque
 camera_N_free_rotate
 camera_N_velocity_xz

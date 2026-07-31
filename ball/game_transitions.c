@@ -27,6 +27,7 @@ struct game_transition {
 
     int z_order;
 
+    int transition_disabled;
     float transition_k;
     float transition_d;
 
@@ -125,18 +126,26 @@ void game_transitions_fade_color(float r, float g, float b)
 
 void game_transitions_fade(float d)
 {
+    transitions.transition_disabled = 0;
     transitions.transition_d = d * 0.5f;
 }
 
 void game_transitions_fade_in(float d)
 {
+    transitions.transition_disabled = 0;
     transitions.transition_k = 1.0f;
     transitions.transition_d = d * 0.5f;
 }
 
+void game_transitions_kill(void)
+{
+    transitions.transition_disabled = 1;
+}
+
 void game_transitions_draw(struct s_rend *rend)
 {
-    if (transitions.transition_k <= 0.0f) return;
+    if (transitions.transition_k <= 0.0f ||
+        transitions.transition_disabled) return;
 
     const float transition_icon_scale = video.device_w < video.device_h ?
                                         video.device_w * 0.75f :

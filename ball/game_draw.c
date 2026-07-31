@@ -1402,9 +1402,9 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
         if (gd->fade_disabled == 0)
         {
-            //if (game_transitions_available())
-                //game_transitions_draw(&rend);
-            //sol_fade(&gd->draw, &rend, gd->fade_k);
+            if (game_transitions_available())
+                game_transitions_draw(&rend);
+            sol_fade(&gd->draw, &rend, gd->fade_k);
         }
 
         r_draw_disable(&rend);

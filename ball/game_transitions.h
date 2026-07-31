@@ -30,6 +30,7 @@ void game_transitions_step_fade(float);
 void game_transitions_fade_color(float, float, float);
 void game_transitions_fade(float);
 void game_transitions_fade_in(float);
+void game_transitions_kill(void);
 
 void game_transitions_draw(struct s_rend *);
 

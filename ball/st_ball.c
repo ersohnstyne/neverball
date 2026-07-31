@@ -51,6 +51,7 @@
 #include "game_proxy.h"
 #include "game_client.h"
 #include "game_common.h"
+#include "game_transitions.h"
 
 #include "st_package.h"
 #include "st_ball.h"
@@ -477,6 +478,7 @@ static int ball_action(int tok, int val)
                 demo_replay_stop(0);
                 load_ball_demo();
                 game_kill_fade();
+                game_transitions_kill();
 
                 video_set_window_size(400 / video.device_scale, 300 / video.device_scale);
                 video_resize         (400 / video.device_scale, 300 / video.device_scale);
@@ -843,6 +845,7 @@ static int ball_keybd(int c, int d)
                 demo_replay_stop(0);
                 load_ball_demo();
                 game_kill_fade();
+                game_transitions_kill();
 
                 video_set_window_size(400 / video.device_scale, 300 / video.device_scale);
                 video_resize         (400 / video.device_scale, 300 / video.device_scale);

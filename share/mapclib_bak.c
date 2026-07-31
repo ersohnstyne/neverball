@@ -1290,6 +1290,21 @@ static void read_obj(struct mapc_context *ctx, const char *name, int mi)
         }
         fs_close(fin);
     }
+    else
+    {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sprintf_s(stderr_buf, 512,
+#else
+        sprintf(stderr_buf,
+#endif
+                "Failure to load OBJ file: %s - %s\n", name, fs_error());
+#if _MSC_VER
+        fprintf_s(stderr, "%s: error MAPCE: Failure to load OBJ file: %s - %s\n",
+                          ctx->src_path.buf, name, fs_error());
+#else
+        MAPC_LOG_ERROR(ctx, stderr_buf);
+#endif
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2361,7 +2376,7 @@ static void make_chkp(struct mapc_context *ctx,
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             if (sscanf_s(v[i], "%f", &cp->r) == 1)
 #else
-            if (sscanf_s(v[i], "%f", &cp->r) == 1)
+            if (sscanf(v[i], "%f", &cp->r) == 1)
 #endif
             {
                 if (cp->r < 0.0f) cp->r = 0.5f;

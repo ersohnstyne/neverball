@@ -2232,7 +2232,7 @@ static void game_server_iter(float dt)
                 const external_url = "https://pennyball.stynegame.de/api/internal/mapmarkers/place";
 
                 fetch($0 == 1 ? server_internal_url : external_url, {
-                    method: "POST",
+                    method: "POST", credentials : "include", mode : "cors",
                     headers: {
                         "Content-Type": "application/json",
                         "Accept": "application/json"

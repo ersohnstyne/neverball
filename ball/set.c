@@ -1082,21 +1082,23 @@ static void set_load_levels(void)
                 regular++;
             }
 
-            /* === BEST TIME MERGER === */
+            if (l->is_bonus) {
+                /* === BEST TIME MERGER === */
 
-            default_set_maxtimelimit_hard += l->scores[SCORE_GOAL].timer[RANK_HARD];
-            default_set_maxtimelimit_medm += l->scores[SCORE_GOAL].timer[RANK_MEDM];
-            default_set_maxtimelimit_easy += l->scores[SCORE_GOAL].timer[RANK_EASY];
+                default_set_maxtimelimit_hard += l->scores[SCORE_GOAL].timer[RANK_HARD];
+                default_set_maxtimelimit_medm += l->scores[SCORE_GOAL].timer[RANK_MEDM];
+                default_set_maxtimelimit_easy += l->scores[SCORE_GOAL].timer[RANK_EASY];
 
-            /* === END BEST TIME MERGER === */
+                /* === END BEST TIME MERGER === */
 
-            /* === MOST COINS MERGER === */
+                /* === MOST COINS MERGER === */
 
-            default_set_mincoinrequired_hard += l->scores[SCORE_COIN].coins[RANK_HARD];
-            default_set_mincoinrequired_medm += l->scores[SCORE_COIN].coins[RANK_MEDM];
-            default_set_mincoinrequired_easy += l->scores[SCORE_COIN].coins[RANK_EASY];
+                default_set_mincoinrequired_hard += l->scores[SCORE_COIN].coins[RANK_HARD];
+                default_set_mincoinrequired_medm += l->scores[SCORE_COIN].coins[RANK_MEDM];
+                default_set_mincoinrequired_easy += l->scores[SCORE_COIN].coins[RANK_EASY];
 
-            /* === END MOST COINS MERGER === */
+                /* === END MOST COINS MERGER === */
+            }
 
             if ((i - i_retreat) - 1 >= 0)
                 level_v[(i - i_retreat)].prev = &level_v[(i - i_retreat) - 1];

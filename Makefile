@@ -571,6 +571,7 @@ BALL_OBJS := \
 	ball/game_proxy.o   \
 	ball/game_draw.o    \
 	ball/game_transitions.o \
+	ball/game_switchball.o \
 	ball/score.o        \
 	ball/level.o        \
 	ball/progress.o     \
@@ -583,6 +584,7 @@ BALL_OBJS := \
 	ball/demo.o         \
 	ball/demo_dir.o     \
 	ball/util.o         \
+	ball/st_switchball.o \
 	ball/st_intro.o     \
 	ball/st_tutorial.o  \
 	ball/st_campaign_setup.o\

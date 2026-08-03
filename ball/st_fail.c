@@ -68,6 +68,7 @@
 #include "game_common.h"
 #include "game_server.h"
 #include "game_client.h"
+#include "game_switchball.h"
 
 #include "st_common.h"
 #include "st_play.h"
@@ -941,7 +942,8 @@ static void fail_timer(int id, float dt)
     if (fail_time_state >= 2.0f)
         WGCL_fail_call_incident();
 
-    if (status == GAME_FALL && !resume && fail_intro_lock_now)
+    if (status == GAME_FALL && !resume && fail_intro_lock_now &&
+        game_switchball_haveticks())
     {
         /*
          * HACK: Reworked Minecraft Bedrock Edition!:

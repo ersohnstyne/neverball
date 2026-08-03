@@ -259,6 +259,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\ball\game_dualdisplay.c" />
     <ClCompile Include="..\ball\game_proxy.c" />
     <ClCompile Include="..\ball\game_server.c" />
+    <ClCompile Include="..\ball\game_switchball.c" />
     <ClCompile Include="..\ball\game_transitions.c" />
     <ClCompile Include="..\ball\hud.c" />
     <ClCompile Include="..\ball\level.c" />
@@ -291,6 +292,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\ball\st_shared.c" />
     <ClCompile Include="..\ball\st_shop.c" />
     <ClCompile Include="..\ball\st_start.c" />
+    <ClCompile Include="..\ball\st_switchball.c" />
     <ClCompile Include="..\ball\st_title.c" />
     <ClCompile Include="..\ball\st_tutorial.c" />
     <ClCompile Include="..\ball\util.c" />
@@ -435,6 +437,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\ball\game_dualdisplay.h" />
     <ClInclude Include="..\ball\game_proxy.h" />
     <ClInclude Include="..\ball\game_server.h" />
+    <ClInclude Include="..\ball\game_switchball.h" />
     <ClInclude Include="..\ball\game_transitions.h" />
     <ClInclude Include="..\ball\hud.h" />
     <ClInclude Include="..\ball\lang_switchball.h" />
@@ -468,6 +471,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\ball\st_shared.h" />
     <ClInclude Include="..\ball\st_shop.h" />
     <ClInclude Include="..\ball\st_start.h" />
+    <ClInclude Include="..\ball\st_switchball.h" />
     <ClInclude Include="..\ball\st_title.h" />
     <ClInclude Include="..\ball\st_tutorial.h" />
     <ClInclude Include="..\ball\util.h" />

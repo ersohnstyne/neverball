@@ -270,6 +270,9 @@
     <ClCompile Include="..\ball\game_server.c">
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
+    <ClCompile Include="..\ball\game_switchball.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
     <ClCompile Include="..\ball\game_transitions.c">
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
@@ -358,6 +361,9 @@
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
     <ClCompile Include="..\ball\st_start.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_switchball.c">
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
     <ClCompile Include="..\ball\st_title.c">
@@ -626,6 +632,9 @@
     <ClInclude Include="..\ball\game_server.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
+    <ClInclude Include="..\ball\game_switchball.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
     <ClInclude Include="..\ball\game_transitions.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
@@ -714,6 +723,9 @@
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
     <ClInclude Include="..\ball\st_start.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_switchball.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
     <ClInclude Include="..\ball\st_title.h">

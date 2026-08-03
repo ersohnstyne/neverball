@@ -192,6 +192,12 @@ advanced_gameplay_fasterreset 1
 
 Restarts in 0.5s instead of 2.0s upon death. Available only, if Auto-Retry is enabled.
 
+```
+advanced_gameplay_drop_speeding 1
+```
+
+This key shows alert when trying to drop too far while inside or above except below the map with owned game "Switchball" installed (Windows 11 Exclusive).
+
 ## Online Services Settings
 
 ```

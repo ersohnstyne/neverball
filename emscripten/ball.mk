@@ -60,6 +60,7 @@ BALL_SRCS := \
 	ball/game_draw.c \
 	ball/game_proxy.c \
 	ball/game_server.c \
+	ball/game_switchball.c \
 	ball/game_transitions.c \
 	ball/hud.c \
 	ball/level.c \
@@ -83,6 +84,7 @@ BALL_SRCS := \
 	ball/st_set.c \
 	ball/st_shared.c \
 	ball/st_start.c \
+	ball/st_switchball.c \
 	ball/st_title.c \
 	ball/util.c \
 	share/array.c \

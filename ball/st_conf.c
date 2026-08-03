@@ -63,6 +63,7 @@
 #include "game_common.h"
 #include "game_client.h"
 #include "game_server.h"
+#include "game_switchball.h"
 
 #if NB_HAVE_PB_BOTH==1
 #include "game_transitions.h"
@@ -915,6 +916,7 @@ enum
     CONF_GAMEPLAY_FASTERRESET,
     CONF_GAMEPLAY_TUTORIAL,
     CONF_GAMEPLAY_HINT,
+    CONF_GAMEPLAY_SWITCHBALL_DROPSPEEDING,
 
     /* Increased gameplay settings logic! */
 
@@ -960,6 +962,13 @@ static int conf_gameplay_action(int tok, int val)
         case CONF_GAMEPLAY_HINT:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ACCOUNT_HINT, val);
+            config_save();
+            goto_state(curr_state());
+            break;
+
+        case CONF_GAMEPLAY_SWITCHBALL_DROPSPEEDING:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
+            config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING, val);
             config_save();
             goto_state(curr_state());
             break;
@@ -1029,8 +1038,20 @@ static int conf_gameplay_gui(void)
         conf_toggle(id, _("Show Hint"), CONF_GAMEPLAY_HINT,
                         config_get_d(CONFIG_ACCOUNT_HINT), _("On"), 1, _("Off"), 0);
 #endif
-
+        
         gui_space(id);
+
+        if (game_switchball_installed())
+        {
+#if NB_HAVE_PB_BOTH==1
+            conf_toggle_simple(id, _("Drop Speeding Alert"), CONF_GAMEPLAY_SWITCHBALL_DROPSPEEDING,
+                                   config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING), 1, 0);
+#else
+            conf_toggle(id, _("Drop Speeding Alert"), CONF_GAMEPLAY_SWITCHBALL_DROPSPEEDING,
+                            config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING), _("On"), 1, _("Off"), 0);
+#endif
+            gui_space(id);
+        }
 
         if ((jd = gui_harray(id)) && (kd = gui_vstack(jd)) && (ld = gui_vstack(jd)))
         {

@@ -61,6 +61,7 @@
 #include "st_pause.h"
 #include "st_level.h"
 #include "st_shared.h"
+#include "st_switchball.h"
 #include "st_tutorial.h"
 
 /*---------------------------------------------------------------------------*/
@@ -1083,6 +1084,9 @@ static void play_loop_timer(int id, float dt)
     /* Cannot update state in home room. */
 
     if (curr_mode() == MODE_NONE) return;
+
+    if (game_switchball_speeding())
+        goto_switchball_speeding(&st_play_loop);
 
     if (curr_status() == GAME_NONE && !play_freeze_all)
     {

@@ -41,6 +41,8 @@
 #include "game_server.h"
 #include "game_proxy.h"
 #include "game_client.h"
+#include "game_server.h"
+#include "game_switchball.h"
 
 #define ST_PLAY_SYNC_SMOOTH_FIX_TIMER(time_total) \
     if (config_get_d(CONFIG_SMOOTH_FIX) &&        \

@@ -77,6 +77,7 @@
 #include "game_common.h"
 #include "game_client.h"
 #include "game_server.h"
+#include "game_switchball.h"
 
 #include "st_level.h"
 
@@ -618,6 +619,7 @@ static void init_level_moon_taskloader_done(void *data, void *done_data)
 
                 lvl_warn_timer = curr_clock() < 1000 && curr_time_limit() > 0;
                 loading = 0;
+                game_switchball_toggle_ticks(1);
             }
         }
 
@@ -738,6 +740,7 @@ static int init_level(void)
                                   lvl_warn_timer ? "bgm/time-warning.ogg" :
                                                    BGM_TITLE_MAP(level_song(level)), 1);
         loading = 0;
+        game_switchball_toggle_ticks(1);
         return 1;
     }
 #endif

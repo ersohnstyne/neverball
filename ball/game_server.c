@@ -67,6 +67,7 @@
 #include "game_draw.h"
 #include "game_server.h"
 #include "game_proxy.h"
+#include "game_switchball.h"
 
 #include "cmd.h"
 
@@ -2125,7 +2126,7 @@ static int game_step(const float g[3], float dt, int bt)
         {
             /* Run the sim. */
 
-            float b = 0;
+            float b = 0.0f;
 
 #if _WIN32 && _MSC_VER && ENABLE_NVIDIA_PHYSX==1
             if (vary.sim_uses_px)
@@ -2133,6 +2134,12 @@ static int game_step(const float g[3], float dt, int bt)
             else
 #endif
                 b = sol_step(&vary, game_proxy_enq, h, dt, CURR_PLAYER, NULL);
+
+            if (b != 0.0f)
+                game_switchball_set_fixed_altitude(vary.uv[CURR_PLAYER].p[1]);
+
+            else if (vary.uv[CURR_PLAYER].p[1] < game_switchball_altitude() - 2.0f)
+                game_switchball_set_speeding(1);
 
             /* Mix the sound of a ball bounce. */
 

@@ -1783,7 +1783,7 @@ static int game_update_state(int bt)
 
     /* Test for an item. */
 
-    if (bt && (hi = sol_item_test(&vary, NULL, ITEM_RADIUS)) != -1)
+    if (bt && (hi = sol_item_test(&vary, NULL, ITEM_RADIUS, CURR_PLAYER)) != -1)
     {
         struct v_item *hp = vary.hv + hi;
 

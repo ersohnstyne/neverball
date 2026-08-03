@@ -222,20 +222,26 @@ static int sol_count_geom(const struct s_base *base, int g0, int gc, int mi)
     /* indices refer to geoms. Determine how many of these geoms use the     */
     /* given material                                                        */
 
-#define FUNC_LOOP_GEOM_CHECK_LIMITS(_id, _max, _geom_fn)             \
-    if (_id < 0) {                                                   \
-        log_errorf("Geom index out of bounds!: Current: %d\n", _id); \
-        continue;                                                    \
-    } else _geom_fn
+    for (gi = 0; gi < gc; gi++)
+    {
+        if (g0 + gi < 0 || g0 + gi >= base->ic)
+        {
+            log_errorf("Geom vertex index out of bounds!: Current: %d\n", g0 + gi);
+            continue;
+        }
 
-    for (gi = 0; gi < gc; ++gi) {
-        FUNC_LOOP_GEOM_CHECK_LIMITS(base->iv[g0 + gi], base->ic, {
+        if (base->iv[g0 + gi] < 0 || base->iv[g0 + gi] >= base->gc)
+        {
+            log_errorf("Geom index out of bounds!: Current: %d\n", base->iv[g0 + gi]);
+            continue;
+        }
+
+        if (base->gv) {
             if (base->gv[base->iv[g0 + gi]].mi == mi)
                 c++;
-        });
+        } else
+            log_errorf("base->gv returned NULL!\n");
     }
-
-#undef FUNC_LOOP_GEOM_CHECK_LIMITS
 
     return c;
 }
@@ -243,25 +249,22 @@ static int sol_count_geom(const struct s_base *base, int g0, int gc, int mi)
 static int sol_count_body(const struct b_body *bp,
                           const struct s_base *base, int mi)
 {
-#define FUNC_LOOP_LUMP_CHECK_LIMITS(_id, _max, _lump_fn)             \
-    if (_id < 0) {                                                   \
-        log_errorf("Lump index out of bounds!: Current: %d\n", _id); \
-        continue;                                                    \
-    } else _lump_fn
-
     int li, c = 0;
 
     /* Count all lump geoms with the given material. */
 
-    for (li = 0; li < bp->lc; ++li)
+    for (li = 0; li < bp->lc; li++)
         if (base->lv) {
-            FUNC_LOOP_LUMP_CHECK_LIMITS(bp->l0 + li, bp->lc, {
-                c += sol_count_geom(base, base->lv[bp->l0 + li].g0,
-                                          base->lv[bp->l0 + li].gc, mi);
-            });
-        }
+            if (bp->l0 + li < 0 || bp->l0 + li >= base->lc)
+            {
+                log_errorf("Lump index out of bounds!: Current: %d\n", bp->l0 + li);
+                continue;
+            }
 
-#undef FUNC_LOOP_LUMP_CHECK_LIMITS
+            c += sol_count_geom(base, base->lv[bp->l0 + li].g0,
+                                      base->lv[bp->l0 + li].gc, mi);
+        } else
+            log_errorf("base->lv returned NULL!\n");
 
     /* Count all body geoms with the given material. */
 
@@ -277,8 +280,12 @@ static int sol_count_mesh(const struct d_body *bp, int p)
     /* Count the body meshes matching the given material flags. */
 
     for (mi = 0; mi < bp->mc; ++mi)
-        if (bp->mv && sol_test_mtrl(bp->mv[mi].mtrl, p))
-            c++;
+        if (bp->mv)
+        {
+            if (sol_test_mtrl(bp->mv[mi].mtrl, p))
+                c++;
+        } else
+            log_errorf("bp->mv returned NULL!\n");
 
     return c;
 }
@@ -291,6 +298,12 @@ static void sol_mesh_vert(struct d_vert *vp,
     if (!base->tv || !base->sv || !base->vv ||
         !base->ov)
         return;
+
+    if (oi < 0 || oi >= base->oc)
+    {
+        log_errorf("Offset index out of bounds!: Current: %d\n", oi);
+        return;
+    }
 
     /* Gather all vertex attributes for the given offs. */
 
@@ -324,6 +337,18 @@ static void sol_mesh_geom(struct d_vert *vv,   int *vn,
     {
         if (!base->gv || !base->iv)
             continue;
+
+        if (g0 + gi < 0 || g0 + gi >= base->ic)
+        {
+            log_errorf("Geom vertex index out of bounds!: Current: %d\n", g0 + gi);
+            continue;
+        }
+
+        if (base->iv[g0 + gi] < 0 || base->iv[g0 + gi] >= base->gc)
+        {
+            log_errorf("Geom index out of bounds!: Current: %d\n", base->iv[g0 + gi]);
+            continue;
+        }
 
         const struct b_geom *gq = base->gv + base->iv[g0 + gi];
 
@@ -398,12 +423,16 @@ static int sol_load_mesh(struct d_mesh *mp,
 
         /* Include all matching lump geoms in the arrays. */
 
-        for (li = 0; li < bp->lc; li++)
-        {
+        for (li = 0; li < bp->lc; li++) {
+            if (bp->l0 + li < 0 || bp->l0 + li >= draw->base->lc) {
+                log_errorf("Lump index out of bounds!: Current: %d\n", bp->l0 + li);
+                continue;
+            }
+
             if (draw->base->lv)
                 sol_mesh_geom(vv, &vn, gv, &gn, draw->base, iv,
-                              draw->base->lv[bp->l0 + li].g0,
-                              draw->base->lv[bp->l0 + li].gc, mi, mp);
+                    draw->base->lv[bp->l0 + li].g0,
+                    draw->base->lv[bp->l0 + li].gc, mi, mp);
             else log_errorf("draw->base->lv returned NULL!\n");
         }
 

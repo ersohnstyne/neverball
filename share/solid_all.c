@@ -66,7 +66,17 @@ static struct vec3 get_move_pos(const struct s_vary *vary, int mi, float dt)
         return POS_IDENTITY;
     }
 
+    if (mi >= vary->mc) {
+        log_errorf("Move index out of bounds!: Current: %d\n", mi);
+        return POS_IDENTITY;
+    }
+
     const struct v_move *mp = vary->mv + mi;
+
+    if (mp->pi < 0 || mp->pi >= vary->base->pc) {
+        log_errorf("Path index out of bounds!: Current: %d\n", mp->pi);
+        return POS_IDENTITY;
+    }
 
     int curr_pi = mp->pi;
     int next_pi = vary->base->pv[curr_pi].pi;
@@ -110,7 +120,17 @@ static struct vec4 get_move_rot(const struct s_vary *vary, int mi, float dt)
         return ROT_IDENTITY;
     }
 
+    if (mi >= vary->mc) {
+        log_errorf("Move index out of bounds!: Current: %d\n", mi);
+        return ROT_IDENTITY;
+    }
+
     const struct v_move *mp = vary->mv + mi;
+
+    if (mp->pi < 0 || mp->pi >= vary->base->pc) {
+        log_errorf("Path index out of bounds!: Current: %d\n", mp->pi);
+        return ROT_IDENTITY;
+    }
 
     int curr_pi = mp->pi;
     int next_pi = vary->base->pv[curr_pi].pi;
@@ -149,6 +169,11 @@ static struct vec3 get_path_pos(const struct s_vary *vary, int pi, float dt)
         return POS_IDENTITY;
     }
 
+    if (pi >= vary->base->pc || pi >= vary->pc) {
+        log_errorf("Path index out of bounds!: Current: %d\n", pi);
+        return POS_IDENTITY;
+    }
+
     const struct v_path *vp = vary->pv + pi;
     const struct b_path *pp = vary->base->pv + pi;
 
@@ -178,6 +203,11 @@ static struct vec4 get_path_rot(const struct s_vary *vary, int pi, float dt)
     }
     if (!vary->base->pv) {
         log_errorf("vary->base->pv returned NULL!\n");
+        return ROT_IDENTITY;
+    }
+
+    if (pi >= vary->base->pc || pi >= vary->pc) {
+        log_errorf("Path index out of bounds!: Current: %d\n", pi);
         return ROT_IDENTITY;
     }
 
@@ -329,7 +359,17 @@ int sol_body_w(const struct s_vary *vary, int mi)
 {
     if (mi >= 0)
     {
+        if (mi >= vary->mc) {
+            log_errorf("Move index out of bounds!: Current: %d\n", mi);
+            return 0;
+        }
+
         const struct v_move *mp = vary->mv + mi;
+
+        if (mp->pi >= vary->pc) {
+            log_errorf("Path index out of bounds!: Current: %d\n", mp->pi);
+            return 0;
+        }
 
         if (mp && vary->pv && vary->pv[mp->pi].f)
         {
@@ -635,6 +675,11 @@ void sol_move_step(struct s_vary *vary, cmd_fn cmd_func, float dt, int ms)
     {
         struct v_move *mp = vary->mv + i;
 
+        if (mp->pi >= vary->pc) {
+            log_errorf("Path index out of bounds!: Current: %d\n", mp->pi);
+            continue;
+        }
+
         if (vary->pv[mp->pi].f)
         {
             struct v_path *pp = vary->pv + mp->pi;
@@ -686,9 +731,11 @@ void sol_ball_step(struct s_vary *vary, cmd_fn cmd_func, float dt)
 
 /*---------------------------------------------------------------------------*/
 
-int sol_item_test(struct s_vary *vary, float *p, float item_r)
+int sol_item_test(struct s_vary *vary, float *p, float item_r, int ui)
 {
-    float ball_r = vary->uv[0].r;
+    if (ui < 0 || ui >= vary->uc) return -1;
+
+    float ball_r = vary->uv[ui].r;
     float ball_p[3];
 
     int hi;
@@ -700,7 +747,7 @@ int sol_item_test(struct s_vary *vary, float *p, float item_r)
 
         /* Transform ball position into item space. */
 
-        sol_entity_local(ball_p, vary, hp->mi, hp->mj, vary->uv[0].p);
+        sol_entity_local(ball_p, vary, hp->mi, hp->mj, vary->uv[ui].p);
 
         v_sub(r, ball_p, hp->p);
 
@@ -711,6 +758,8 @@ int sol_item_test(struct s_vary *vary, float *p, float item_r)
 
 struct b_goal *sol_goal_test(struct s_vary *vary, float *p, int ui)
 {
+    if (ui < 0 || ui >= vary->uc) return NULL;
+
     float ball_r = vary->uv[ui].r;
     float ball_p[3];
 
@@ -743,6 +792,8 @@ struct b_goal *sol_goal_test(struct s_vary *vary, float *p, int ui)
  */
 int sol_jump_test(struct s_vary *vary, float *p, int ui)
 {
+    if (ui < 0 || ui >= vary->uc) return JUMP_OUTSIDE;
+
     float ball_r = vary->uv[ui].r;
     float ball_p[3];
 
@@ -795,6 +846,8 @@ int sol_jump_test(struct s_vary *vary, float *p, int ui)
  */
 int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
 {
+    if (ui < 0 || ui >= vary->uc) return SWCH_OUTSIDE;
+
     float ball_r = vary->uv[ui].r;
     float ball_p[3];
 
@@ -951,6 +1004,8 @@ int sol_swch_test(struct s_vary *vary, cmd_fn cmd_func, int ui)
 int sol_chkp_test(struct s_vary *vary, cmd_fn cmd_func, int ui, int *o_ci)
 {
 #ifdef MAPC_INCLUDES_CHKP
+    if (ui < 0 || ui >= vary->uc) return CHKP_OUTSIDE;
+
     float ball_r = vary->uv[ui].r;
     float ball_p[3];
 

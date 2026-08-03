@@ -728,7 +728,11 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
             fp->mv[i].fl |= M_LIT;
 
         for (i = 0; i < fp->rc; ++i)
-            fp->mv[fp->rv[i].mi].fl &= ~M_LIT;
+        {
+            if (fp->rv[i].mi >= 0 && fp->rv[i].mi < fp->mc)
+                fp->mv[fp->rv[i].mi].fl &= ~M_LIT;
+            else log_errorf("Material index out of bounds!: %d\n", fp->rv[i].mi);
+        }
     }
 
     return 1;

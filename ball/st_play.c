@@ -133,7 +133,8 @@ static void set_lvlinfo(void)
             hud_lvlname_campaign(lvlname, level_bonus(curr_level()));
         else
 #endif
-        if (str_starts_with(curr_setid_final, "anime"))
+        if (str_starts_with(curr_setid_final, "anime") ||
+            str_starts_with(curr_setid_final, "RF-anime"))
             hud_lvlname_set_ana(lvlname, level_bonus(curr_level()));
         else
             hud_lvlname_set(lvlname, level_bonus(curr_level()));

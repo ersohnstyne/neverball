@@ -352,7 +352,8 @@ static int level_gui(void)
             set_special_lbl = 1;
         }
 
-        if (str_starts_with(curr_setid_final, "anime"))
+        if (str_starts_with(curr_setid_final, "anime") ||
+            str_starts_with(curr_setid_final, "RF-anime"))
         {
             SAFECPY(set_special_txt, _("ANA-Exclusive"));
             set_special_lbl = 1;

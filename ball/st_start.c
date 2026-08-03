@@ -127,7 +127,8 @@ static void gui_level(int id, int i)
             fore = level_completed(l) ? gui_grn : gui_red;
             back = level_completed(l) ? fore    : gui_blu;
         }
-        else if (str_starts_with(set_id(curr_set()), "anime"))
+        else if (str_starts_with(set_id(curr_set()), "anime") ||
+                 str_starts_with(set_id(curr_set()), "RF-anime"))
         {
             /* ANA levels in this set. */
 
@@ -1223,7 +1224,8 @@ static int start_enter(struct state *st, struct state *prev, int intent)
     set_long_loading_cancel_all = 0;
 
 #if NB_HAVE_PB_BOTH==1
-    if (str_starts_with(set_id(curr_set()), "anime"))
+    if (str_starts_with(set_id(curr_set()), "anime") ||
+        str_starts_with(set_id(curr_set()), "RF-anime"))
         audio_music_fade_to(0.5f, "bgm/jp/title.ogg", 1);
     else
         audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :

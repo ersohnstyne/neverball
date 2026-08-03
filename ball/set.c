@@ -507,7 +507,8 @@ static int set_load(struct set *s, const char *filename)
 
     /* Limited offered game dependencies or region only */
 
-    if (str_starts_with(filename, "set-anime") &&
+    if ((str_starts_with(filename, "set-anime") ||
+         str_starts_with(filename, "set-RF-anime")) &&
         str_ends_with(filename, ".txt") &&
         !package_superwaifu_game_installed() &&
         !config_cheat())

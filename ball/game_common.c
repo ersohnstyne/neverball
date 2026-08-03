@@ -134,7 +134,7 @@ const char *cam_to_str(int c)
         return _("Manual Camera");
     if (spd == 0)
         return _("Static Camera");
-    if (spd >= 0)
+    if (spd >= 0 && spd <= 0.01f)
         return _("Lazy Camera");
 
     switch (cam_preset_get(c))

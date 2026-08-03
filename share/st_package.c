@@ -974,8 +974,9 @@ static int package_check_purchased_extralevels(const char *set_id)
     }
 
     /* Limited offered game dependencies or region only */
-
-    if (str_starts_with(set_id, "set-anime") &&
+    
+    if ((str_starts_with(set_id, "set-anime") ||
+         str_starts_with(set_id, "set-RF-anime")) &&
         !package_superwaifu_game_installed() &&
         !config_cheat())
     {

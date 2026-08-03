@@ -308,7 +308,8 @@ static void gui_set(int id, int i)
             gui_set_color(set_text_name_id, gui_red, gui_yel);
         else if (str_starts_with(curr_setid_final, "christmas"))
             gui_set_color(set_text_name_id, gui_red, gui_grn);
-        else if (str_starts_with(curr_setid_final, "anime"))
+        else if (str_starts_with(curr_setid_final, "anime") ||
+                 str_starts_with(curr_setid_final, "RF-anime"))
             gui_set_color(set_text_name_id, gui_cya, gui_blu);
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         else if (str_starts_with(curr_setid_final, "SB")

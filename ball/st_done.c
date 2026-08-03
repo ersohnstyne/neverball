@@ -136,7 +136,8 @@ static int done_action(int tok, int val)
                             _("none_%d"), curr_set());
                 } else SAFECPY(curr_setid_final, curr_setid);
 
-                if (str_starts_with(curr_setid_final, "anime"))
+                if (str_starts_with(curr_setid_final, "anime") ||
+                    str_starts_with(curr_setid_final, "RF-anime"))
                     audio_music_fade_to(0.5f, "bgm/jp/title.ogg", 1);
                 else audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
                                                                "bgm/inter_world.ogg", 1);

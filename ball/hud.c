@@ -1036,10 +1036,10 @@ void hud_cam_timer(float dt)
 
 void hud_cam_paint(void)
 {
-#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
+//#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
     if ((cam_timer > 0.0f && cam_timer < 2.0f) || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(cam_id);
-#endif
+//#endif
 }
 
 /*---------------------------------------------------------------------------*/

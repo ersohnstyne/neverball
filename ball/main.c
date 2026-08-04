@@ -1741,13 +1741,13 @@ static void step(void *data)
 #endif
 
 #if ENABLE_MOTIONBLUR!=0
-        if (config_get_d(CONFIG_MOTIONBLUR))
+        if (config_get_d(CONFIG_MOTIONBLUR) && video_perf() < UPS)
         {
             /* TODO: Do we have 90 FPS? */
 
             int first_frame = 1;
 
-            const float expected_dt = (1.0f / 90) * 1000.f;
+            const float expected_dt = DT * 1000.f;
             mainloop->motionblur_leftover += config_get_d(CONFIG_SMOOTH_FIX) ?
                                              MIN(frame_smooth, dt) : MIN(100.0f, dt);
 
@@ -1792,7 +1792,9 @@ static void step(void *data)
 #if ENABLE_MOTIONBLUR!=0
         }
 #endif
+
         if (curr_state() == &st_null && time_state() >= 3.0f) video_clear();
+        video_can_swap_window = 1;
         video_swap();
 
 #if ENABLE_DUALDISPLAY==1
@@ -1806,7 +1808,7 @@ static void step(void *data)
         mainloop->now = now;
 
         if (config_get_d(CONFIG_NICE))
-            SDL_Delay((1.0f / 45.0f) * 1000);
+            SDL_Delay((1.0f / 60.0f) * 1000);
     }
 
     mainloop->done = !running;

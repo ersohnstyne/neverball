@@ -527,6 +527,14 @@ This key enables the menu screen animations.
 ## Performance Settings
 
 ```
+motionblur 1
+```
+
+⚠️ *This option is not available with more than +90 FPS (In Neverputt: +60 FPS).*
+
+This key enables an on-screen motion blur, when camera or model object is moving.
+
+```
 fps 0
 ```
 

@@ -27,9 +27,9 @@
 
 #if ENABLE_MOTIONBLUR!=0
 #define DRAW_COLOR4UBV_CNF_MOTIONBLUR \
-        { 255, 255, 255, config_get_d(CONFIG_MOTIONBLUR) ? ROUND(255 * video_motionblur_alpha_get()) : 255 }
+        { 255, 255, 255, config_motionblur() ? ROUND(255 * video_motionblur_alpha_get()) : 255 }
 #define DRAW_COLOR4FV_CNF_MOTIONBLUR \
-        { 1.0f, 1.0f, 1.0f, config_get_d(CONFIG_MOTIONBLUR) ? (1.0f * video_motionblur_alpha_get()) : 1.0f }
+        { 1.0f, 1.0f, 1.0f, config_motionblur() ? (1.0f * video_motionblur_alpha_get()) : 1.0f }
 #else
 #define DRAW_COLOR4UBV_CNF_MOTIONBLUR \
         { 255, 255, 255, 255 }

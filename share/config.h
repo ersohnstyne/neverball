@@ -21,6 +21,10 @@
  */
 #define LOG_NO_STATS
 
+ /* HACK: How about motion blur macro function? */
+#define config_motionblur() \
+	(config_get_d(CONFIG_MOTIONBLUR) && video_perf() < 90)
+
 /*---------------------------------------------------------------------------*/
 
 extern int config_busy;

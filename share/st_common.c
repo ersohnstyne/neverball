@@ -1681,8 +1681,9 @@ static int video_advanced_gui(void)
         gui_space(id);
 
 #if ENABLE_MOTIONBLUR!=0
-        conf_toggle_simple(id, _("Motion Blur"),  VIDEO_ADVANCED_MOTIONBLUR,
-                               config_get_d(CONFIG_MOTIONBLUR), 1, 0);
+        if (video_perf() < 90)
+            conf_toggle_simple(id, _("Motion Blur"),  VIDEO_ADVANCED_MOTIONBLUR,
+                                   config_get_d(CONFIG_MOTIONBLUR), 1, 0);
 #endif
         conf_toggle_simple(id, _("Reflection"),   VIDEO_ADVANCED_REFLECTION,
                                config_get_d(CONFIG_REFLECTION), 1, 0);
@@ -1716,8 +1717,9 @@ static int video_advanced_gui(void)
         gui_space(id);
 
 #if ENABLE_MOTIONBLUR!=0
-        conf_toggle(id, _("Motion Blur"),  VIDEO_ADVANCED_MOTIONBLUR,
-                        config_get_d(CONFIG_MOTIONBLUR), _("On"), 1, _("Off"), 0);
+        if (video_perf() < 90)
+            conf_toggle(id, _("Motion Blur"),  VIDEO_ADVANCED_MOTIONBLUR,
+                            config_get_d(CONFIG_MOTIONBLUR), _("On"), 1, _("Off"), 0);
 #endif
         conf_toggle(id, _("Reflection"),   VIDEO_ADVANCED_REFLECTION,
                         config_get_d(CONFIG_REFLECTION), _("On"), 1, _("Off"), 0);

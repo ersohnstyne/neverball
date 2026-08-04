@@ -1183,8 +1183,8 @@ void r_color_mtrl(struct s_rend *rend, int enable)
 
     if (changed && !enable) {
 #if ENABLE_MOTIONBLUR!=0
-        const float motionblur_d[4] = { 1.0f, 1.0f, 1.0f, config_get_d(CONFIG_MOTIONBLUR) ? video_motionblur_alpha_get() : 1.0f };
-        const float motionblur_a[4] = { 1.0f, 1.0f, 1.0f, config_get_d(CONFIG_MOTIONBLUR) ? video_motionblur_alpha_get() : 1.0f };
+        const float motionblur_d[4] = { 1.0f, 1.0f, 1.0f, config_motionblur() < 90 ? video_motionblur_alpha_get() : 1.0f };
+        const float motionblur_a[4] = { 1.0f, 1.0f, 1.0f, config_motionblur() < 90 ? video_motionblur_alpha_get() : 1.0f };
 
         rend->curr_mtrl.d = touint(motionblur_d);
         rend->curr_mtrl.a = touint(motionblur_a);
@@ -1216,7 +1216,7 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
     /* Set material properties. */
 
 #if ENABLE_MOTIONBLUR!=0
-    if (config_get_d(CONFIG_MOTIONBLUR))
+    if (config_get_d(CONFIG_MOTIONBLUR) && video_perf() < 90)
     {
         float d_blur[4]; v_cpy(d_blur, mp->base.d); d_blur[3] = mp->base.d[3] * video_motionblur_alpha_get();
         float a_blur[4]; v_cpy(a_blur, mp->base.a); a_blur[3] = mp->base.a[3] * video_motionblur_alpha_get();
@@ -1225,16 +1225,16 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
 
         /* HACK: Force set texture color filter from diffuse material color! */
 
-        if (!config_get_d(CONFIG_REFLECTION) && (mp_flags & M_REFLECTIVE))
+        /*if (!config_get_d(CONFIG_REFLECTION) && (mp_flags & M_REFLECTIVE))
         {
-            //glColor4ub_(ROUND((d_blur[0] * d_blur[3]) * 255), ROUND((d_blur[1] * d_blur[3]) * 255), ROUND((d_blur[2] * d_blur[3]) * 255), 255);
-            //glColor4f_(d_blur[0] * d_blur[3], d_blur[1] * d_blur[3], d_blur[2] * d_blur[3], 1.0f);
+            glColor4ub_(ROUND((d_blur[0] * d_blur[3]) * 255), ROUND((d_blur[1] * d_blur[3]) * 255), ROUND((d_blur[2] * d_blur[3]) * 255), 255);
+            glColor4f_(d_blur[0] * d_blur[3], d_blur[1] * d_blur[3], d_blur[2] * d_blur[3], 1.0f);
         }
         else
         {
-            //glColor4ub_(ROUND(d_blur[0] * 255), ROUND(d_blur[1] * 255), ROUND(d_blur[2] * 255), ROUND(d_blur[3] * 255));
-            //glColor4f_(d_blur[0], d_blur[1], d_blur[2], d_blur[3]);
-        }
+            glColor4ub_(ROUND(d_blur[0] * 255), ROUND(d_blur[1] * 255), ROUND(d_blur[2] * 255), ROUND(d_blur[3] * 255));
+            glColor4f_(d_blur[0], d_blur[1], d_blur[2], d_blur[3]);
+        }*/
 
         if (mp->d != mq->d)
             glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   d_blur);
@@ -1252,16 +1252,16 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
     {
         /* HACK: Force set texture color filter from diffuse material color! */
 
-        if (!config_get_d(CONFIG_REFLECTION) && (mp_flags & M_REFLECTIVE))
+        /*if (!config_get_d(CONFIG_REFLECTION) && (mp_flags & M_REFLECTIVE))
         {
-            //glColor4ub_(ROUND((mp->base.d[0] * mp->base.d[3]) * 255), ROUND((mp->base.d[1] * mp->base.d[3]) * 255), ROUND((mp->base.d[2] * mp->base.d[3]) * 255), 255);
-            //glColor4f_(mp->base.d[0] * mp->base.d[3], mp->base.d[1] * mp->base.d[3], mp->base.d[2] * mp->base.d[3], 1.0f);
+            glColor4ub_(ROUND((mp->base.d[0] * mp->base.d[3]) * 255), ROUND((mp->base.d[1] * mp->base.d[3]) * 255), ROUND((mp->base.d[2] * mp->base.d[3]) * 255), 255);
+            glColor4f_(mp->base.d[0] * mp->base.d[3], mp->base.d[1] * mp->base.d[3], mp->base.d[2] * mp->base.d[3], 1.0f);
         }
         else
         {
-            //glColor4ub_(ROUND(mp->base.d[0] * 255), ROUND(mp->base.d[1] * 255), ROUND(mp->base.d[2] * 255), ROUND(mp->base.d[3] * 255));
-            //glColor4f_(mp->base.d[0], mp->base.d[1], mp->base.d[2], mp->base.d[3]);
-        }
+            glColor4ub_(ROUND(mp->base.d[0] * 255), ROUND(mp->base.d[1] * 255), ROUND(mp->base.d[2] * 255), ROUND(mp->base.d[3] * 255));
+            glColor4f_(mp->base.d[0], mp->base.d[1], mp->base.d[2], mp->base.d[3]);
+        }*/
 
         if (mp->d != mq->d)
             glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   mp->base.d);

@@ -300,7 +300,7 @@ void st_paint(float t, int allow_clear)
         if (allow_clear) video_clear();
 
 #if ENABLE_MOTIONBLUR!=0
-        if (config_get_d(CONFIG_MOTIONBLUR))
+        if (config_motionblur())
             video_motionblur_prep();
 #endif
 

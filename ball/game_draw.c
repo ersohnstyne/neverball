@@ -883,7 +883,7 @@ static void game_draw_back(struct s_rend *rend,
                            int pose, int d, float t, int flip)
 {
 #if ENABLE_MOTIONBLUR==1
-    if (config_get_d(CONFIG_MOTIONBLUR))
+    if (config_get_d(CONFIG_MOTIONBLUR) && video_perf() < UPS)
     {
         if (video_can_swap_window && !motionblur_refl_allow_draw_back)
             return;
@@ -1321,7 +1321,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
                 if (gd->draw.reflective && config_get_d(CONFIG_REFLECTION))
                 {
 #if ENABLE_MOTIONBLUR==1
-                    if (config_get_d(CONFIG_MOTIONBLUR))
+                    if (config_get_d(CONFIG_MOTIONBLUR) && video_perf() < UPS)
                         motionblur_refl_allow_draw_back = 1;
 #endif
 

@@ -1335,7 +1335,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                 char *p = strip_newline(line);
                 curr_line++;
 
-                int i;
+                int i; const char rgbachars[4][5] = { "Red", "Green", "Blue", "Alpha" };
 
 #if _MSC_VER && !_CRT_SECURE_NO_WARNINGS && !defined(__EMSCRIPTEN__)
                 if (sscanf_s(p, "diffuse %f %f %f %f",
@@ -1345,7 +1345,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++)
                         if (!(mp->d[i] >= 0.0f && mp->d[i] <= 1.0f)) {
                             mp->d[i] = default_d[i];
-                            log_errorf("%s(%d) : error MTRLE: Diffuse value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Diffuse value (%s) out of range! (0.0 - 1.0)\n", name, curr_line, rgbachars[i]);
                         }
                 }
                 else if (sscanf_s(p, "ambient %f %f %f %f",
@@ -1355,7 +1355,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++)
                         if (!(mp->a[i] >= 0.0f && mp->a[i] <= 1.0f)) {
                             mp->a[i] = default_a[i];
-                            log_errorf("%s(%d) : error MTRLE: Ambient value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Ambient value (%s) out of range! (0.0 - 1.0)\n", name, curr_line, rgbachars[i]);
                         }
                 }
                 else if (sscanf_s(p, "specular %f %f %f %f",
@@ -1365,7 +1365,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++)
                         if (!(mp->s[i] >= 0.0f && mp->s[i] <= 1.0f)) {
                             mp->s[i] = default_s[i];
-                            log_errorf("%s(%d) : error MTRLE: Specular value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Specular value (%s) out of range! (0.0 - 1.0)\n", name, curr_line, rgbachars[i]);
                         }
                 }
                 else if (sscanf_s(p, "emissive %f %f %f %f",
@@ -1375,7 +1375,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++)
                         if (!(mp->e[i] >= 0.0f && mp->e[i] <= 1.0f)) {
                             mp->e[i] = default_e[i];
-                            log_errorf("%s(%d) : error MTRLE: Emmisive value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Emmisive value (%s) out of range! (0.0 - 1.0)\n", name, curr_line, rgbachars[i]);
                         }
                 }
                 else if (sscanf_s(p, "shininess %f", &mp->h[0]) == 1)
@@ -1390,7 +1390,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++)
                         if (!(mp->d[i] >= 0.0f && mp->d[i] <= 1.0f)) {
                             mp->d[i] = default_d[i];
-                            log_errorf("%s(%d) : error MTRLE: Diffuse value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Diffuse value (%s) out of range! (0.0 - 1.0)\n", name, curr_line, rgbachars[i]);
                         }
                 }
                 else if (sscanf(p, "ambient %f %f %f %f",
@@ -1400,7 +1400,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++)
                         if (!(mp->a[i] >= 0.0f && mp->a[i] <= 1.0f)) {
                             mp->a[i] = default_a[i];
-                            log_errorf("%s(%d) : error MTRLE: Ambient value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Ambient value (%s) out of range! (0.0 - 1.0)\n", name, curr_line, rgbachars[i]);
                         }
                 }
                 else if (sscanf(p, "specular %f %f %f %f",
@@ -1410,7 +1410,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++)
                         if (!(mp->s[i] >= 0.0f && mp->s[i] <= 1.0f)) {
                             mp->s[i] = default_s[i];
-                            log_errorf("%s(%d) : error MTRLE: Specular value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Specular value (%s) out of range! (0.0 - 1.0)\n", name, curr_line, rgbachars[i]);
                         }
                 }
                 else if (sscanf(p, "emissive %f %f %f %f",
@@ -1420,7 +1420,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                     for (i = 0; i < 4; i++)
                         if (!(mp->e[i] >= 0.0f && mp->e[i] <= 1.0f)) {
                             mp->e[i] = default_e[i];
-                            log_errorf("%s(%d) : error MTRLE: Emmisive value out of range! (0.0 - 1.0)", name, curr_line);
+                            log_errorf("%s(%d) : error MTRLE: Emmisive value (%s) out of range! (0.0 - 1.0)\n", name, curr_line, rgbachars[i]);
                         }
                 }
                 else if (sscanf(p, "shininess %f", &mp->h[0]) == 1)
@@ -1430,9 +1430,6 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
 #endif
                 else if (strncmp(p, "flags ", 6) == 0)
                 {
-                    //if (!str_ends_with(p, " \n") && !str_ends_with(p, " \n"))
-                        //log_errorf("%s(%d) : error MTRLE: Spacing expected after word flags at their end of the line!:\n\t%s\n", name, curr_line, p);
-                    //else
                     {
                         int f_id = 0, mtrl_unlit = 1;
                         int f = 0, n, flags_found = 0;

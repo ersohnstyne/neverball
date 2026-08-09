@@ -1457,7 +1457,7 @@ void game_update_view(float dt)
         }
 
 #pragma region Camera Modes
-        fix_cam_used[ui] = cam_speed(input_get_c()) == 0;
+        fix_cam_used[ui] = cam_speed(automode) == 0;
 
         if (fix_cam_lock[ui])
             fix_cam_alpha[ui] = 1;
@@ -1474,7 +1474,7 @@ void game_update_view(float dt)
 #pragma endregion
 
 #pragma region Static camera
-        if (cam_speed(input_get_c()) == 0)
+        if (cam_speed(automode) == 0)
             v_lerp(fix_cam_pos, fix_cam_pos, fix_cam_pos_targ[ui], dt);
 
         float c0[3] = { 0.0f, 0.0f, 0.0f };

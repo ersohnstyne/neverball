@@ -363,6 +363,8 @@ void progress_livesplit_init(int m)
      || mode == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      || mode == MODE_HARDCORE
+#else
+     || mode == MODE_ROGUE
 #endif
         )
         curr_livesplit.level = 1;
@@ -394,6 +396,8 @@ void progress_livesplit_stat(int s)
       || mode == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
       || mode == MODE_HARDCORE
+#else
+      || mode == MODE_ROGUE
 #endif
         ))
     {
@@ -414,6 +418,8 @@ void progress_livesplit_pause(int paused)
       || mode == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
       || mode == MODE_HARDCORE
+#else
+      || mode == MODE_ROGUE
 #endif
         ))
     {
@@ -431,6 +437,8 @@ void progress_livesplit_next(void)
       || mode == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
       || mode == MODE_HARDCORE
+#else
+      || mode == MODE_ROGUE
 #endif
         )) curr_livesplit.reseted = 0;
 }
@@ -734,6 +742,8 @@ static int init_level(void)
         audio_music_fade_to(1.0f, mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                                || mode == MODE_HARDCORE
+#else
+                               || mode == MODE_ROGUE
 #endif
                                || mode == MODE_DAILY
                                   ? "bgm/challenge_mbu.ogg" :
@@ -822,7 +832,7 @@ int  progress_play(struct level *l)
             goal_e = 1;
         }
 #else
-        goal_e = (((mode != MODE_CHALLENGE && mode != MODE_BOOST_RUSH && mode != MODE_DAILY) &&
+        goal_e = (((mode != MODE_CHALLENGE && mode != MODE_ROGUE && mode != MODE_BOOST_RUSH && mode != MODE_DAILY) &&
                    level_completed(level) && config_get_d(CONFIG_LOCK_GOALS) == 0) ||
                   goal == 0)
 #ifdef LEVELGROUPS_INCLUDES_ZEN
@@ -885,6 +895,8 @@ void progress_step(void)
     if (mode != MODE_CHALLENGE && mode != MODE_BOOST_RUSH &&
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         mode != MODE_HARDCORE &&
+#else
+        mode != MODE_ROGUE &&
 #endif
         mode != MODE_DAILY &&
         level && !replay && level_time(level) != 0
@@ -949,6 +961,8 @@ void progress_stat(int s)
             if (mode == MODE_CHALLENGE || mode == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
              || mode == MODE_HARDCORE
+#else
+             || mode == MODE_ROGUE
 #endif
              || mode == MODE_DAILY
                 )
@@ -1040,6 +1054,8 @@ void progress_stat(int s)
             if (mode == MODE_CHALLENGE
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
              || mode == MODE_HARDCORE
+#else
+             || mode == MODE_ROGUE
 #endif
              || mode == MODE_BOOST_RUSH
              || mode == MODE_DAILY
@@ -1086,6 +1102,8 @@ void progress_stat(int s)
                                  || mode == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                                  || mode == MODE_HARDCORE
+#else
+                                 || mode == MODE_ROGUE
 #endif
                                  || mode == MODE_DAILY
             ;
@@ -1147,6 +1165,7 @@ void progress_stat(int s)
 #else
                 done = mode == MODE_CHALLENGE
                     || mode == MODE_BOOST_RUSH
+                    || mode == MODE_ROGUE
                     || mode == MODE_DAILY;
 #endif
 
@@ -1195,6 +1214,8 @@ void progress_stat(int s)
 #endif
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                  && mode != MODE_HARDCORE
+#else
+                 && mode != MODE_ROGUE
 #endif
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                  && !config_cheat()
@@ -1565,6 +1586,9 @@ int  progress_same_avail(void)
     {
         case GAME_NONE:
             return (mode != MODE_CHALLENGE &&
+#ifndef LEVELGROUPS_INCLUDES_CAMPAIGN
+                    mode != MODE_ROGUE &&
+#endif
                     mode != MODE_BOOST_RUSH) ||
                    config_cheat();
 
@@ -1692,6 +1716,8 @@ int  progress_last(void)
     return (mode != MODE_CHALLENGE
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
          && mode != MODE_HARDCORE
+#else
+         && mode != MODE_ROGUE
 #endif
          && mode != MODE_BOOST_RUSH)
         && status == GAME_GOAL && !next;

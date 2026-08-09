@@ -213,17 +213,25 @@ static int intro_gui(void)
         /* Developer and publisher logos */
 
         int image_id;
-
+        
         const char intro_logo_image_path[2][MAXSTR] =
         {
             "gui/intro/pg_logo.jpg",
             "gui/intro/ae_logo.jpg"
         };
 
+        const char intro_logo_image_hatsunemiku_path[2][MAXSTR] =
+        {
+            "gui/intro/pg_hatsunemiku_logo.jpg",
+            "gui/intro/ae_logo.jpg"
+        };
+
         int image_width  = video.device_w >= video.device_h * 1.7 ? video.device_h * 1.7 : video.device_w ;
         int image_height = video.device_w >= video.device_h * 1.7 ? video.device_h       : video.device_w / 1.7;
 
-        if ((image_id = gui_image(root_id, intro_logo_image_path[intro_page - 1],
+        if ((image_id = gui_image(root_id, glext_get_hatsune_miku() ? 
+                                           intro_logo_image_hatsunemiku_path[intro_page - 1] :
+                                           intro_logo_image_path[intro_page - 1],
                                            image_width, image_height)))
         {
             gui_clr_rect(image_id);
@@ -247,8 +255,10 @@ static int intro_enter(struct state *st, struct state *prev, int intent)
     {
         intro_init = 1;
         intro_page = 1;
-
-        audio_play(AUD_INTRO_LOGO, 1.0f);
+        
+        audio_play(glext_get_hatsune_miku() ?
+                   AUD_INTRO_HATSUNEMIKU_LOGO :
+                   AUD_INTRO_LOGO, 1.0f);
     }
     else intro_page = 2;
 

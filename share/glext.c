@@ -353,7 +353,6 @@ int glext_init(void)
     /* Desktop init. */
 
 #if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
-
     if (glext_assert("ARB_multitexture"))
     {
         SDL_GL_GFPA(glClientActiveTexture_, "glClientActiveTextureARB");
@@ -475,10 +474,12 @@ int glext_init(void)
         SDL_GL_GFPA(glGetOcclusionQueryivNV_,    "glGetOcclusionQueryivNV");
         SDL_GL_GFPA(glGetOcclusionQueryuivNV_,   "glGetOcclusionQueryuivNV");
     }
-
+#endif
 #endif
 
-#endif
+    gli.hatsunemiku = (glext_check_renderer("hatsune") || glext_check_renderer("Hatsune") || glext_check_renderer("HATSUNE")) &&
+                      (glext_check_renderer("miku") || glext_check_renderer("Miku") || glext_check_renderer("MIKU"));
+
 #endif
 
     log_opengl();
@@ -508,14 +509,23 @@ int glext_get_recommended(void)
         } catch (e) {}
 
         return 0;
-    });
+    });*/
 
-    return r;*/
     return 0;
 #else
-    return glext_check_vendor("AMD") ||
+    return gli.hatsunemiku ||
+           glext_check_vendor("AMD") ||
            glext_check_renderer("NVIDIA") || glext_check_renderer("AMD") ||
            glext_check_renderer("GIGABYTE") || glext_check_renderer("Radeon");
+#endif
+}
+
+int glext_get_hatsune_miku(void)
+{
+#ifndef __EMSCRIPTEN__
+    return gli.hatsunemiku;
+#else
+    return 0;
 #endif
 }
 
@@ -545,10 +555,7 @@ void glSetWireframe_(int enabled)
     gli.wireframe = enabled;
 
 #if !ENABLE_OPENGLES
-    if (enabled)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    else
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glPolygonMode(GL_FRONT_AND_BACK, enabled ? GL_LINE : GL_FILL);
 #endif
 }
 

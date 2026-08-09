@@ -843,18 +843,23 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
     if (curr_mode() == MODE_CHALLENGE || curr_mode() == MODE_BOOST_RUSH
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      || curr_mode() == MODE_HARDCORE
+#else
+     || curr_mode() == MODE_ROGUE
 #endif
      || curr_mode() == MODE_DAILY
         ) EM_ASM({ Neverball.WGCLshowChallengeHUD(); });
 #endif
 
-    if ((prev != &st_play_ready &&
-         prev != &st_play_set &&
-         prev != &st_tutorial) ||
-        prev == &st_play_loop)
-        return 0;
-
     play_loop_touch_init();
+
+    if ((prev != &st_play_ready &&
+         prev != &st_play_set) ||
+        prev == &st_play_loop) {
+        if (config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS))
+            st_autocalibrate_stick();
+
+        return 0;
+    }
 
     audio_play("snd/2.2/game_countdown_go.ogg", 1.0f);
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)

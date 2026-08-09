@@ -459,6 +459,8 @@ void hud_paint(void)
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (curr_mode() != MODE_HARDCORE)
+#else
+                if (curr_mode() != MODE_ROGUE)
 #endif
                     gui_paint(xppenalty_hud_id);
             }

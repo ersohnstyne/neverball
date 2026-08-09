@@ -27,8 +27,9 @@
 
 /* Game UI SFX */
 
-#define AUD_INTRO_LOGO "snd/pennygames_sign.ogg"
-#define AUD_UI_SHATTER "snd/intro-shatter.ogg"
+#define AUD_INTRO_LOGO             "snd/pennygames_sign.ogg"
+#define AUD_INTRO_HATSUNEMIKU_LOGO "snd/pennygames_hatsunemiku_sign.ogg"
+#define AUD_UI_SHATTER             "snd/intro-shatter.ogg"
 
 #define AUD_CLOCK    "snd/clock.ogg"
 #define AUD_DISABLED "snd/disabled.ogg"

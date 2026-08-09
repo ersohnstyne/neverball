@@ -345,6 +345,10 @@ int glext_check_ext(const char *);
 int glext_init(void);
 int glext_get_recommended(void);
 
+/* HACK: HATSUNE MIKU! - Ersohn Styne */
+
+int glext_get_hatsune_miku(void);
+
 /*---------------------------------------------------------------------------*/
 
 /* Exercise extreme paranoia in defining a cross-platform OpenGL interface.  */
@@ -604,6 +608,10 @@ struct gl_info
     unsigned int string_marker              : 1;
 
     unsigned int wireframe:1;
+
+    /* HACK: HATSUNE MIKU! - Ersohn Styne */
+
+    unsigned int hatsunemiku : 1;
 };
 
 extern struct gl_info gli;

@@ -991,12 +991,12 @@ static int package_check_purchased_extralevels(const char *set_id)
             !glext_get_hatsune_miku())
         {
 #ifdef __EMSCRIPTEN__
-            if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+            if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
 #endif
                 return 0;
         }
 #ifdef __EMSCRIPTEN__
-        else if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+        else if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
             return 0;
 #endif
     }

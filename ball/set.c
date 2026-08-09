@@ -523,12 +523,12 @@ static int set_load(struct set *s, const char *filename)
             !glext_get_hatsune_miku())
         {
 #ifdef __EMSCRIPTEN__
-            if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+            if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
 #endif
                 return 0;
         }
 #ifdef __EMSCRIPTEN__
-        else if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+        else if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
             return 0;
 #endif
     }

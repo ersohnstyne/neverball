@@ -30,6 +30,8 @@
 
 /*---------------------------------------------------------------------------*/
 
+int  set_check_id(const unsigned char *name, const char *needle);
+
 int  set_init(int);
 void set_quit(void);
 

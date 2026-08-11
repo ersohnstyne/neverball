@@ -766,7 +766,9 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
 
     /* HACK: Make sure that works! */
 
-    if (vary.base->vc == 0 || !vary.base->vv ||
+    if (vary.base->vc < 1 || !vary.base->vv ||
+        vary.base->uc < 1 || !vary.base->uv ||
+        ((vary.base->zc < 1 || !vary.base->zv) && !config_cheat()) ||
         !game_check_map_border(CURR_PLAYER, 0.5f)) {
         sol_free_vary(&vary);
         game_base_free(NULL);
@@ -1252,7 +1254,9 @@ int game_server_init(const char *file_name, int t, int e)
 
     /* HACK: Make sure that works! */
 
-    if (vary.base->vc == 0 || !vary.base->vv ||
+    if (vary.base->vc < 1 || !vary.base->vv ||
+        vary.base->uc < 1 || !vary.base->uv ||
+        ((vary.base->zc < 1 || !vary.base->zv) && !config_cheat()) ||
         !game_check_map_border(CURR_PLAYER, 0.5f)) {
         sol_free_vary(&vary);
         game_base_free(NULL);
@@ -1986,7 +1990,7 @@ static int game_update_state(int bt)
     /* Border controls (Was: 0.875f * 2.0f) */
 
     if (bt && !timer_hold &&
-        (vary.base->vc == 0 ||
+        (vary.base->vc < 1 ||
          !game_check_map_border(CURR_PLAYER, 0.5f)))
     {
         v_cpy(fix_cam_pos, view.p);

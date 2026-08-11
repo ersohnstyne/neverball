@@ -123,18 +123,16 @@ static void set_lvlinfo(void)
         }
         else
             SAFECPY(curr_setid_final, curr_setid);
-
-
+        
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (str_starts_with(curr_setid_final, "SB") ||
-            str_starts_with(curr_setid_final, "sb") ||
-            str_starts_with(curr_setid_final, "Sb") ||
-            str_starts_with(curr_setid_final, "sB"))
+        if (set_check_id(curr_setid_final, "SB") ||
+            set_check_id(curr_setid_final, "sb") ||
+            set_check_id(curr_setid_final, "Sb") ||
+            set_check_id(curr_setid_final, "sB"))
             hud_lvlname_campaign(lvlname, level_bonus(curr_level()));
         else
 #endif
-        if (str_starts_with(curr_setid_final, "anime") ||
-            str_starts_with(curr_setid_final, "RF-anime"))
+        if (set_check_id(curr_setid_final, "anime"))
             hud_lvlname_set_ana(lvlname, level_bonus(curr_level()));
         else
             hud_lvlname_set(lvlname, level_bonus(curr_level()));

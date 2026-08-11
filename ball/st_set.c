@@ -299,23 +299,22 @@ static void gui_set(int id, int i)
                                              GUI_SML, SET_SELECT, i);
         else set_text_name_id = gui_state(id, "XXXXXXXXXXXXXXXXXX",
                                               GUI_SML, SET_SELECT, i);
-
-        if (str_starts_with(curr_setid_final, "valentine"))
+        
+        if (set_check_id(curr_setid_final, "valentine"))
             gui_set_color(set_text_name_id, gui_pnk, gui_red);
-        else if (str_starts_with(curr_setid_final, "freeland"))
+        else if (set_check_id(curr_setid_final, "freeland"))
             gui_set_color(set_text_name_id, gui_grn, gui_cya);
-        else if (str_starts_with(curr_setid_final, "halloween"))
+        else if (set_check_id(curr_setid_final, "halloween"))
             gui_set_color(set_text_name_id, gui_red, gui_yel);
-        else if (str_starts_with(curr_setid_final, "christmas"))
+        else if (set_check_id(curr_setid_final, "christmas"))
             gui_set_color(set_text_name_id, gui_red, gui_grn);
-        else if (str_starts_with(curr_setid_final, "anime") ||
-                 str_starts_with(curr_setid_final, "RF-anime"))
+        else if (set_check_id(curr_setid_final, "anime"))
             gui_set_color(set_text_name_id, gui_cya, gui_blu);
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        else if (str_starts_with(curr_setid_final, "SB")
-            || str_starts_with(curr_setid_final, "sb")
-            || str_starts_with(curr_setid_final, "Sb")
-            || str_starts_with(curr_setid_final, "sB"))
+        else if (set_check_id(curr_setid_final, "SB") ||
+                 set_check_id(curr_setid_final, "sb") ||
+                 set_check_id(curr_setid_final, "Sb") ||
+                 set_check_id(curr_setid_final, "sB"))
         {
 #ifndef MAPC_INCLUDES_CHKP
             campaign_marked = 1;

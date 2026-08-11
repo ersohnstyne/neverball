@@ -343,17 +343,16 @@ static int level_gui(void)
         else
             SAFECPY(curr_setid_final, curr_setid);
 
-        if (str_starts_with(curr_setid_final, "SB") ||
-            str_starts_with(curr_setid_final, "sb") ||
-            str_starts_with(curr_setid_final, "Sb") ||
-            str_starts_with(curr_setid_final, "sB"))
+        if (set_check_id(curr_setid_final, "SB") ||
+            set_check_id(curr_setid_final, "sb") ||
+            set_check_id(curr_setid_final, "Sb") ||
+            set_check_id(curr_setid_final, "sB"))
         {
             SAFECPY(set_special_txt, _("Pre-Classic Campaign"));
             set_special_lbl = 1;
         }
 
-        if (str_starts_with(curr_setid_final, "anime") ||
-            str_starts_with(curr_setid_final, "RF-anime"))
+        if (set_check_id(curr_setid_final, "anime"))
         {
             SAFECPY(set_special_txt, _("ANA-Exclusive"));
             set_special_lbl = 1;

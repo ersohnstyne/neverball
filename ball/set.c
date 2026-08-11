@@ -446,6 +446,21 @@ static void set_load_hs(void)
 
 /*---------------------------------------------------------------------------*/
 
+int set_check_id(const unsigned char *name, const char *needle)
+{
+    /* Validate inputs */
+
+    if (name == NULL || needle == NULL)
+        return 0; /* Invalid input */
+
+    if (*needle == '\0')
+        return 1; /* Empty substring is always "found" */
+
+    /* Search for the given string in set ID name (just omnit prefix "set-"). */
+    
+    return (int) (strstr(name + 4, needle) != 0);
+}
+
 static int set_load(struct set *s, const char *filename)
 {
     fs_file  fin;
@@ -507,9 +522,7 @@ static int set_load(struct set *s, const char *filename)
 
     /* Limited offered game dependencies or region only */
 
-    if ((str_starts_with(filename, "set-anime") ||
-         str_starts_with(filename, "set-RF-anime")) &&
-        str_ends_with(filename, ".txt") &&
+    if (set_check_id(filename, "anime")    &&
         !package_superwaifu_game_installed() &&
         !config_cheat())
     {
@@ -523,44 +536,40 @@ static int set_load(struct set *s, const char *filename)
             !glext_get_hatsune_miku())
         {
 #ifdef __EMSCRIPTEN__
-            if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+            if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
 #endif
                 return 0;
         }
 #ifdef __EMSCRIPTEN__
-        else if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+        else if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
             return 0;
 #endif
     }
 
     /* Limited special offers only */
 
-    if ((str_starts_with(filename, "set-valentine") &&
-         str_ends_with  (filename, ".txt")) &&
+    if (set_check_id(filename, "valentine") &&
         curr_date_month != 2 &&
         !config_cheat()){
         log_errorf("Valentine is not available outside month February. (Current month: %d)\n", curr_date_month);
         return 0;
     }
 
-    if ((str_starts_with(filename, "set-freeland") &&
-        str_ends_with(filename, ".txt")) &&
+    if (set_check_id(filename, "freeland") &&
         curr_date_month != 5 &&
         !config_cheat()){
         log_errorf("Freeland is not available outside month May. (Current month: %d)\n", curr_date_month);
         return 0;
     }
 
-    if ((str_starts_with(filename, "set-halloween") &&
-         str_ends_with  (filename, ".txt")) &&
+    if (set_check_id(filename, "halloween") &&
         curr_date_month != 10 &&
         !config_cheat()){
         log_errorf("Halloween is not available outside month October. (Current month: %d)\n", curr_date_month);
         return 0;
     }
 
-    if ((str_starts_with(filename, "set-christmas") &&
-         str_ends_with  (filename, ".txt")) &&
+    if (set_check_id(filename, "christmas") &&
         curr_date_month != 12 &&
         !config_cheat()){
         log_errorf("Christmas is not available outside month December. (Current month: %d)\n", curr_date_month);

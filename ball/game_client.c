@@ -529,6 +529,14 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
         return (gd.state = 0);
     }
 
+    /* HACK: Make sure that works! */
+
+    if (gd.vary.base->vc < 1 || !gd.vary.base->vv)
+    {
+        game_base_free(NULL);
+        return (gd.state = 0);
+    }
+
 #if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
     if (last_active)
     {
@@ -747,6 +755,14 @@ int  game_client_init(const char *file_name)
         return (gd.state = 0);
 
     if (!sol_load_vary(&gd.vary, &game_base))
+    {
+        game_base_free(NULL);
+        return (gd.state = 0);
+    }
+
+    /* HACK: Make sure that works! */
+
+    if (gd.vary.base->vc < 1 || !gd.vary.base->vv)
     {
         game_base_free(NULL);
         return (gd.state = 0);

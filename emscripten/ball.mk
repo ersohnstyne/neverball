@@ -39,7 +39,7 @@ EM_LDFLAGS := \
 	-s INVOKE_RUN=0 \
 	-s NO_EXIT_RUNTIME=1 \
 	-s EXPORTED_FUNCTIONS=_main,_push_user_event,_account_wgcl_post_sync,_config_set,_st_init_emscripten,_st_stick_emscripten,_st_buttn_emscripten,_st_dpad_emscripten \
-	-s EXPORTED_RUNTIME_METHODS=callMain,ccall,cwrap,FS,IDBFS \
+	-s EXPORTED_RUNTIME_METHODS=callMain,ccall,cwrap,FS,IDBFS,pauseMainLoop,resumeMainLoop \
 	-s HTML5_SUPPORT_DEFERRING_USER_SENSITIVE_REQUESTS=0 \
 	-s LLD_REPORT_UNDEFINED \
 	-s FETCH=1 \

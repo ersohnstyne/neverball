@@ -426,6 +426,14 @@ General Public License for more details.
       display: inline-flex !important;
     }
 
+    .is-installed .is-installed\:hidden {
+      display: none !important;
+    }
+
+    .is-installed .is-installed\:block {
+      display: block !important;
+    }
+
     .no-js .no-js\:hidden {
       display: none;
     }
@@ -614,7 +622,8 @@ General Public License for more details.
           <video src="anim.mp4" poster="anim.jpg" width="640" height="360" loop muted autoplay playsinline></video>
         </div>
 
-        <p>Play Neverball in your browser!</p>
+        <p class="is-installed:hidden">Play Neverball in your browser!</p>
+        <p class="hidden is-installed:block">Welcome back to Neverball!</p>
 
         <noscript>
           <p>
@@ -740,11 +749,11 @@ General Public License for more details.
       </div>
     </div>
 
-    <div class="text-center text-xs in-game:hidden in-app:hidden">
+    <div class="text-center text-xs in-game:hidden">
       <p>
-        <span id="version-indicator"></span>This version of Neverball is built with <a href="https://emscripten.org/">Emscripten</a> and <a href="https://github.com/ptitSeb/gl4es">gl4es</a>.
+        <span id="version-indicator"></span><span class="in-app:hidden">This version of Neverball is built with <a href="https://emscripten.org/">Emscripten</a> and <a href="https://github.com/ptitSeb/gl4es">gl4es</a>.
 
-        You have the freedom to run, study, modify, and distribute Neverball and its modified versions. Grab the source code here: <a href="./neverball-source.zip" download="neverball-source.zip">neverball-source.zip</a>
+        You have the freedom to run, study, modify, and distribute Neverball and its modified versions. Grab the source code here: <a href="./neverball-source.zip" download="neverball-source.zip">neverball-source.zip</a></span>
       </p>
     </div>
   </main>
@@ -1632,9 +1641,16 @@ General Public License for more details.
         }
       },
 
+      initInstalledState: function () {
+        if (window.localStorage.getItem('isAppInstalled') === '1' || ('serviceWorker' in navigator && navigator.serviceWorker.controller)) {
+          document.body.classList.add('is-installed');
+        }
+      },
+
       initPage: function () {
         const launchInFullscreen = (window.localStorage.getItem('launchInFullscreen') === '1');
 
+        this.initInstalledState();
         this.initLinks();
         this.initBackButton();
 
@@ -1875,13 +1891,13 @@ General Public License for more details.
             if (!isNaN(timestamp)) {
               const date = new Date(timestamp * 1000);
               const pad = (num) => String(num).padStart(2, '0');
-              const yyyy = date.getFullYear();
-              const mm = pad(date.getMonth() + 1);
-              const dd = pad(date.getDate());
-              const hh = pad(date.getHours());
-              const min = pad(date.getMinutes());
-              const ss = pad(date.getSeconds());
-              const dateString = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+              const yyyy = date.getUTCFullYear();
+              const mm = pad(date.getUTCMonth() + 1);
+              const dd = pad(date.getUTCDate());
+              const hh = pad(date.getUTCHours());
+              const min = pad(date.getUTCMinutes());
+              const ss = pad(date.getUTCSeconds());
+              const dateString = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss} UTC`;
               const indicator = document.getElementById('version-indicator');
               if (indicator) {
                 indicator.textContent = 'You are running Neverball build ' + dateString + '. ';

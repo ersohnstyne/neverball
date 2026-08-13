@@ -1248,7 +1248,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
             MIN((fov / (gd->mojang_death_enabled_flags ? 1.25f : 1.0f)) +
                 (25 * (gd->mojang_death_time_percent / 100.f)), 110);
 
-        video_set_perspective(effective_fov, 0.1f, FAR_DIST);
+        video_set_perspective(fabsf(effective_fov), 0.1f, FAR_DIST);
 
         glPushMatrix();
         if (gd->fade_k < 1.0f || gd->fade_disabled) {

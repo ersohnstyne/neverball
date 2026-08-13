@@ -169,6 +169,7 @@ static int operator_action(int tok, int val)
 
         operator_mode = 0;
         game_kill_fade();
+        game_transitions_kill();
         video_clear();
         video_can_swap_window = 1;
         game_client_draw(0, 0.0f);
@@ -286,7 +287,7 @@ static void operator_search_timer(int id, float dt)
         }
     } else game_client_blend(demo_replay_blend());
 
-    if (!operator_searchfortoolong && time_state() >= 10.0f) {
+    if (!operator_searchfortoolong && time_state() >= 10.0f && !operator_norepeat) {
         operator_searchfortoolong = 1;
         goto_state(&st_operator_search);
     }

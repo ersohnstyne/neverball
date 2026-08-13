@@ -58,7 +58,11 @@ doc/manual.txt
 /share/*.c.txt
 /share/*.cpp.txt
 
-# Runtime
+# Runtime paths
+/bin/*/*/*
+/out/*/*/*
+
+# Runtime files
 /*.bat
 /*.dll
 /*.exe
@@ -70,7 +74,7 @@ doc/manual.txt
 /mapc
 /contrib/curve
 
-# Emscripten Runtime
+# Emscripten Runtime files
 /js/neverball.data
 /js/neverball.js
 /js/neverball.wasm

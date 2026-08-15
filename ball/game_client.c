@@ -1005,7 +1005,7 @@ void game_client_draw(int pose, float t)
             if (gd.mojang_death_enabled_flags) {
                 const float mojang_death_time_dt = t - gd.mojang_death_time_now;
 
-                if (mojang_death_time_dt < 1.f)
+                if (mojang_death_time_dt >= 0.0f && mojang_death_time_dt < 1.0f)
                     gd.mojang_death_time_percent =
                         MIN(100, gd.mojang_death_time_percent + (mojang_death_time_dt * 2.5f));
 

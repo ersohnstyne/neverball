@@ -127,7 +127,11 @@ static void load_mtrl_objects(struct mtrl *mp)
 
     /* Load the texture. */
 
+<<<<<<< HEAD
     if ((mp->o = find_texture(tex_filename, fl)))
+=======
+    if ((mp->o = find_texture(_(mp->base.f), fl)))
+>>>>>>> b38ec9ee82f3d4b1e5651c9ceaff6458e4639275
     {
         /* Set the texture to clamp or repeat based on material type. */
 
@@ -137,7 +141,12 @@ static void load_mtrl_objects(struct mtrl *mp)
 
         if (mp->base.fl & M_CLAMP_T)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+<<<<<<< HEAD
         else glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+=======
+        else
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+>>>>>>> b38ec9ee82f3d4b1e5651c9ceaff6458e4639275
 
         if (mp->base.fl & M_FILTER_NEAREST)
         {

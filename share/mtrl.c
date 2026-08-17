@@ -90,7 +90,7 @@ static int find_mtrl(const char *name)
 /*
  * Load a material texture.
  */
-static GLuint find_texture(const char *name)
+static GLuint find_texture(const char *name, int fl)
 {
     char path[MAXSTR];
     GLuint o;
@@ -100,7 +100,7 @@ static GLuint find_texture(const char *name)
     {
         CONCAT_PATH(path, &tex_paths[i], name);
 
-        if ((o = make_image_from_file(path, IF_MIPMAP)))
+        if ((o = make_image_from_file(path, fl)))
             return o;
     }
     return 0;
@@ -111,6 +111,8 @@ static GLuint find_texture(const char *name)
  */
 static void load_mtrl_objects(struct mtrl *mp)
 {
+    int fl = (mp->base.fl & M_FILTER_NEAREST) ? 0 : IF_MIPMAP;
+
     /* Make sure not to leak an already loaded object. */
 
     if (mp->o || !mp->base.f[0]) return;
@@ -125,7 +127,7 @@ static void load_mtrl_objects(struct mtrl *mp)
 
     /* Load the texture. */
 
-    if ((mp->o = find_texture(tex_filename)))
+    if ((mp->o = find_texture(tex_filename, fl)))
     {
         /* Set the texture to clamp or repeat based on material type. */
 
@@ -136,6 +138,12 @@ static void load_mtrl_objects(struct mtrl *mp)
         if (mp->base.fl & M_CLAMP_T)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         else glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        if (mp->base.fl & M_FILTER_NEAREST)
+        {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        }
     }
     else log_errorf("Failed to load texture: %s / %s\n",
                     tex_filename, fs_error());
@@ -161,7 +169,7 @@ static void load_mtrl(struct mtrl *mp, const struct b_mtrl *base)
     /* Copy the base material. */
 
     memcpy(&mp->base, base, sizeof (struct b_mtrl));
-    
+
     /* Clamp the float values. */
 
     float clamped_d[4] = {0.8f, 0.8f, 0.8f, 1.0f},
@@ -307,9 +315,7 @@ void mtrl_free_sol(struct s_base *fp)
     if (fp)
         if (fp->mtrls)
         {
-            int mi;
-
-            for (mi = 0; mi < fp->mc; mi++)
+            for (int mi = 0; mi < fp->mc; mi++)
                 mtrl_free(fp->mtrls[mi]);
 
             free(fp->mtrls);

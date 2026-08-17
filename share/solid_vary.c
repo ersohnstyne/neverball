@@ -286,6 +286,7 @@ void sol_free_vary(struct s_vary *fp)
     SOL_VARY_SAFE_FREE_DATA(fp->hv);
     SOL_VARY_SAFE_FREE_DATA(fp->zv);
     SOL_VARY_SAFE_FREE_DATA(fp->jv);
+    SOL_VARY_SAFE_FREE_DATA(fp->rv);
     SOL_VARY_SAFE_FREE_DATA(fp->xv);
     SOL_VARY_SAFE_FREE_DATA(fp->rv);
     SOL_VARY_SAFE_FREE_DATA(fp->uv);

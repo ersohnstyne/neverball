@@ -339,13 +339,13 @@ void gui_levelgroup_stats(const struct level *l)
     char buffer[4][12];
 
     /* Calculate the clear rate per levels. */
-
-    const int total_attempts         = l->stats.completed + l->stats.timeout + l->stats.fallout;
-    const int total_attempts_cleared = l->stats.completed;
-
-    float clr_rate_val = 0.0f;
-    if (total_attempts >= 1)
-        clr_rate_val = ROUND((total_attempts_cleared / total_attempts) * 10000.0f) / 100.0f;
+    
+    const float total_attempts         = (float) (l->stats.completed + l->stats.timeout + l->stats.fallout);
+    const float total_attempts_cleared = (float) (l->stats.completed);
+    
+    const float clr_rate_val = total_attempts >= 1 ?
+                               ((total_attempts_cleared / total_attempts) * 10000.0f) / 100.0f :
+                               100.0f;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(buffer[0], 12, "%d",   l->stats.completed);

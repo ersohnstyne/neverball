@@ -33,6 +33,8 @@ void mapmarkers_draw(struct s_rend*);
 
 int mapmarkers_load_map(const char*);
 
+void mapmarkers_count_status(const char *filename, int *xt, int *xf);
+
 #endif
 
 #endif

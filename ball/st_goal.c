@@ -65,6 +65,10 @@
 #include "key.h"
 #include "geom.h"
 
+#if NB_HAVE_PB_BOTH==1 && _WIN32 && _MSC_VER
+#include "mapmarkers.h"
+#endif
+
 #include "game_common.h"
 #include "game_server.h"
 #include "game_client.h"
@@ -185,6 +189,7 @@ static int goal_gui(void)
     const char *s1 = _("New Record");
     const char *s2 = _("GOAL");
     const char *s3 = _("Master complete");
+    const char *s4 = _("First Finish");
 
     struct level *l = curr_level();
 
@@ -193,6 +198,19 @@ static int goal_gui(void)
 
     int high   = progress_lvl_high();
     int master = l ? l->is_master : 0;
+
+#if NB_HAVE_PB_BOTH==1 && _WIN32 && _MSC_VER
+    int mapmarker_count_xf = 0, mapmarker_count_xt = 0;
+
+    if (l) mapmarkers_count_status(l->file, &mapmarker_count_xt, &mapmarker_count_xf);
+
+    const int first_finish = l ? l->stats.completed == 1 &&
+                                (l->stats.timeout != 0 || l->stats.fallout != 0 ||
+                                    mapmarker_count_xt != 0 || mapmarker_count_xf != 0) : 0;
+#else
+    const int first_finish = l ? l->stats.completed == 1 &&
+                                (l->stats.timeout != 0 || l->stats.fallout != 0) : 0;
+#endif
 
     shop_product_available = 0;
 
@@ -253,9 +271,9 @@ static int goal_gui(void)
         {
             int gid;
 #ifdef CONFIG_INCLUDES_ACCOUNT
-            int save = config_get_d(CONFIG_ACCOUNT_SAVE);
+            const int save = config_get_d(CONFIG_ACCOUNT_SAVE);
 #else
-            int save = 2;
+            const int save = 2;
 #endif
 
             if ((jd = gui_vstack(id)))
@@ -270,10 +288,10 @@ static int goal_gui(void)
                       !config_cheat() &&
 #endif
                       (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN))))
-                    gid = gui_title_header(jd, s1, GUI_MED, GUI_COLOR_GRN);
+                    gid = gui_title_header(jd, first_finish ? s4 : s1, GUI_MED, first_finish ? gui_blu : gui_grn, gui_grn);
                 else
-                    gid = gui_title_header(jd, master ? s3 : s2, GUI_MED,
-                                               gui_blu, gui_grn);
+                    gid = gui_title_header(jd, first_finish ? s4 : (master ? s3 : s2),
+                                           GUI_MED, gui_blu, gui_grn);
 
                 if (!resume) gui_pulse(gid, 1.2f);
 

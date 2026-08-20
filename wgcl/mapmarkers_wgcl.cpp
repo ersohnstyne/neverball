@@ -312,6 +312,29 @@ extern "C" int mapmarkers_load_map(const char *filename)
     return mapmarkers_map_name ? mapmarkers_map_name[0] : 0;
 }
 
+void mapmarkers_count_status(const char *filename, int *xt, int *xf)
+{
+    int count_xf = 0, count_xt = 0;
+
+    for (List p1 = markers_map_data, p2 = markers_map_name; p1; ) {
+        struct mapmarker *pData = (struct mapmarker *) p1->data;
+        char *pDataText = (char *) p2->data;
+
+        if (pData && pDataText && filename)
+            if (strcmp(pDataText, filename) == 0)
+                switch (pData->s) {
+                    case 1: count_xt++; break;
+                    case 3: count_xf++; break;
+                }
+
+        p1 = p1->next;
+        p2 = p2->next;
+    }
+
+    if (xf) *xf = count_xf;
+    if (xt) *xt = count_xt;
+}
+
 /*---------------------------------------------------------------------------*/
 
 #endif

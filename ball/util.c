@@ -34,6 +34,10 @@
 #include "util.h"
 #include "config.h"
 
+#if NB_HAVE_PB_BOTH==1 && _WIN32 && _MSC_VER
+#include "mapmarkers.h"
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 static int is_special_name(const char *n)
@@ -337,9 +341,30 @@ void gui_set_stats(const struct level *l)
 void gui_levelgroup_stats(const struct level *l)
 {
     char buffer[4][12];
-
-    /* Calculate the clear rate per levels. */
     
+#if NB_HAVE_PB_BOTH==1 && _WIN32 && _MSC_VER
+    /* Gather all map markers (MSVC++ exclusive only) */
+    
+    int mapmarker_count_xf = 0, mapmarker_count_xt = 0;
+
+    mapmarkers_count_status(l->file, &mapmarker_count_xt, &mapmarker_count_xf);
+
+    /* Calculate the clear rate per levels (Internal only) */
+
+    const float total_attempts         = (float) (l->stats.completed + l->stats.timeout + l->stats.fallout + mapmarker_count_xf + mapmarker_count_xt);
+    const float total_attempts_cleared = (float) (l->stats.completed);
+    
+    const float clr_rate_val = total_attempts >= 1 ?
+                               ((total_attempts_cleared / total_attempts) * 10000.0f) / 100.0f :
+                               100.0f;
+
+    sprintf_s(buffer[0], 12, "%d", l->stats.completed);
+    sprintf_s(buffer[1], 12, "%d", l->stats.timeout + mapmarker_count_xt);
+    sprintf_s(buffer[2], 12, "%d", l->stats.fallout + mapmarker_count_xf);
+    sprintf_s(buffer[3], 12, "%.2f%%", CLAMP(0, clr_rate_val, 100));
+#else
+    /* Calculate the clear rate per levels (Internal only) */
+
     const float total_attempts         = (float) (l->stats.completed + l->stats.timeout + l->stats.fallout);
     const float total_attempts_cleared = (float) (l->stats.completed);
     
@@ -357,6 +382,7 @@ void gui_levelgroup_stats(const struct level *l)
     sprintf(buffer[1], "%d",   l->stats.timeout);
     sprintf(buffer[2], "%d",   l->stats.fallout);
     sprintf(buffer[3], "%.2f%%", CLAMP(0, clr_rate_val, 100));
+#endif
 #endif
 
     gui_set_label(stats_labels.completed, buffer[0]);

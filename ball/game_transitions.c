@@ -103,11 +103,13 @@ void game_transitions_quit(void)
 
 int game_transitions_available(void)
 {
-    /*return fs_exists("gui/transitions/transition_superwaifuball.png") &&
-           game_transitions_state && game_common_superwaifu_game_installed();*/
-
+#if _DEBUG && _MSC_VER
     return fs_exists("gui/transitions/transition_superwaifuball.png") &&
            game_transitions_state;
+#else
+    return fs_exists("gui/transitions/transition_superwaifuball.png") &&
+           game_transitions_state && game_common_superwaifu_game_installed();
+#endif
 }
 
 void game_transitions_step_fade(float dt)
@@ -169,7 +171,6 @@ void game_transitions_draw(struct s_rend *rend)
 
         r_apply_mtrl(rend, game_transition_mtrl);
 
-        //glColor4ub_(0, 0, 0, 255);
         glColor4f_(0, 0, 0, 1.0f);
 
         glPushMatrix();
@@ -179,7 +180,6 @@ void game_transitions_draw(struct s_rend *rend)
         glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, (GLvoid *) 0u);
         glPopMatrix();
 
-        //glColor4ub_(255, 255, 255, 255);
         glColor4f_(1.0f, 1.0f, 1.0f, 1.0f);
 
         glEnable(GL_DEPTH_TEST);

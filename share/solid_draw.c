@@ -967,17 +967,12 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
         glLoadIdentity();
         {
             unsigned char motionblur_cfv[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
-            unsigned char motionblur_cubv[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
 
             glDisable(GL_DEPTH_TEST);
             glDisable(GL_TEXTURE_2D);
 
             sol_bill_enable(draw);
             r_apply_mtrl(rend, default_mtrl);
-            /*glColor4ub_(ROUND(((motionblur_cubv[3] / 255.0f) * fade_color[0]) * 255),
-                        ROUND(((motionblur_cubv[3] / 255.0f) * fade_color[1]) * 255),
-                        ROUND(((motionblur_cubv[3] / 255.0f) * fade_color[2]) * 255),
-                        ROUND(((motionblur_cubv[3] / 255.0f) * k) * 255));*/
             glColor4f_(fade_color[0], fade_color[1], fade_color[2], k);
             glPushColor4_();
             glScalef(2.0f, 2.0f, 1.0f);
@@ -985,8 +980,6 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
             glPopColor4_();
             sol_bill_disable();
 
-            /*glColor4ub_(motionblur_cubv[0], motionblur_cubv[1], motionblur_cubv[2],
-                        motionblur_cubv[3]);*/
             glColor4f_(motionblur_cfv[0], motionblur_cfv[1], motionblur_cfv[2],
                        motionblur_cfv[3]);
 
@@ -1166,15 +1159,10 @@ void r_color_mtrl(struct s_rend *rend, int enable)
     }
     else
     {
-        unsigned char motionblur_cubv[4] = DRAW_COLOR4UBV_CNF_MOTIONBLUR;
         float motionblur_cfv[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
-
-        /*glColor4ub_(motionblur_cubv[0], motionblur_cubv[1], motionblur_cubv[2],
-                    motionblur_cubv[3]);*/
-        glColor4f_((motionblur_cfv[0]),
-                   (motionblur_cfv[1]),
-                   (motionblur_cfv[2]),
-                   (motionblur_cfv[3]));
+        
+        glColor4f_(motionblur_cfv[0], motionblur_cfv[1], motionblur_cfv[2],
+                   motionblur_cfv[3]);
 
         glDisable(GL_COLOR_MATERIAL);
 
@@ -1226,15 +1214,9 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
         /* HACK: Force set texture color filter from diffuse material color! */
 
         /*if (!config_get_d(CONFIG_REFLECTION) && (mp_flags & M_REFLECTIVE))
-        {
-            glColor4ub_(ROUND((d_blur[0] * d_blur[3]) * 255), ROUND((d_blur[1] * d_blur[3]) * 255), ROUND((d_blur[2] * d_blur[3]) * 255), 255);
             glColor4f_(d_blur[0] * d_blur[3], d_blur[1] * d_blur[3], d_blur[2] * d_blur[3], 1.0f);
-        }
         else
-        {
-            glColor4ub_(ROUND(d_blur[0] * 255), ROUND(d_blur[1] * 255), ROUND(d_blur[2] * 255), ROUND(d_blur[3] * 255));
-            glColor4f_(d_blur[0], d_blur[1], d_blur[2], d_blur[3]);
-        }*/
+            glColor4f_(d_blur[0], d_blur[1], d_blur[2], d_blur[3]);*/
 
         if (mp->d != mq->d)
             glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   d_blur);
@@ -1253,15 +1235,9 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
         /* HACK: Force set texture color filter from diffuse material color! */
 
         /*if (!config_get_d(CONFIG_REFLECTION) && (mp_flags & M_REFLECTIVE))
-        {
-            glColor4ub_(ROUND((mp->base.d[0] * mp->base.d[3]) * 255), ROUND((mp->base.d[1] * mp->base.d[3]) * 255), ROUND((mp->base.d[2] * mp->base.d[3]) * 255), 255);
             glColor4f_(mp->base.d[0] * mp->base.d[3], mp->base.d[1] * mp->base.d[3], mp->base.d[2] * mp->base.d[3], 1.0f);
-        }
         else
-        {
-            glColor4ub_(ROUND(mp->base.d[0] * 255), ROUND(mp->base.d[1] * 255), ROUND(mp->base.d[2] * 255), ROUND(mp->base.d[3] * 255));
-            glColor4f_(mp->base.d[0], mp->base.d[1], mp->base.d[2], mp->base.d[3]);
-        }*/
+            glColor4f_(mp->base.d[0], mp->base.d[1], mp->base.d[2], mp->base.d[3]);*/
 
         if (mp->d != mq->d)
             glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   mp->base.d);

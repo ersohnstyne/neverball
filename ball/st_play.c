@@ -121,14 +121,17 @@ static void set_lvlinfo(void)
 #endif
                     _("none_%d"), curr_set());
         }
-        else
-            SAFECPY(curr_setid_final, curr_setid);
+        else SAFECPY(curr_setid_final, curr_setid);
         
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (set_check_id(curr_setid_final, "SB") ||
-            set_check_id(curr_setid_final, "sb") ||
-            set_check_id(curr_setid_final, "Sb") ||
-            set_check_id(curr_setid_final, "sB"))
+        if ((set_check_id(curr_setid_final, "SB") ||
+             set_check_id(curr_setid_final, "sb") ||
+             set_check_id(curr_setid_final, "Sb") ||
+             set_check_id(curr_setid_final, "sB")) &&
+            (str_starts_with(curr_setid_final, "SB") ||
+             str_starts_with(curr_setid_final, "sb") ||
+             str_starts_with(curr_setid_final, "Sb") ||
+             str_starts_with(curr_setid_final, "sB")))
             hud_lvlname_campaign(lvlname, level_bonus(curr_level()));
         else
 #endif

@@ -340,17 +340,22 @@ static int level_gui(void)
 #endif
                     _("none_%d"), curr_set());
         }
-        else
-            SAFECPY(curr_setid_final, curr_setid);
-
-        if (set_check_id(curr_setid_final, "SB") ||
-            set_check_id(curr_setid_final, "sb") ||
-            set_check_id(curr_setid_final, "Sb") ||
-            set_check_id(curr_setid_final, "sB"))
+        else SAFECPY(curr_setid_final, curr_setid);
+        
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        if ((set_check_id(curr_setid_final, "SB") ||
+             set_check_id(curr_setid_final, "sb") ||
+             set_check_id(curr_setid_final, "Sb") ||
+             set_check_id(curr_setid_final, "sB")) &&
+            (str_starts_with(curr_setid_final, "SB") ||
+             str_starts_with(curr_setid_final, "sb") ||
+             str_starts_with(curr_setid_final, "Sb") ||
+             str_starts_with(curr_setid_final, "sB")))
         {
             SAFECPY(set_special_txt, _("Pre-Classic Campaign"));
             set_special_lbl = 1;
         }
+#endif
 
         if (set_check_id(curr_setid_final, "anime"))
         {

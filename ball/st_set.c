@@ -311,10 +311,14 @@ static void gui_set(int id, int i)
         else if (set_check_id(curr_setid_final, "anime"))
             gui_set_color(set_text_name_id, gui_cya, gui_blu);
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        else if (set_check_id(curr_setid_final, "SB") ||
-                 set_check_id(curr_setid_final, "sb") ||
-                 set_check_id(curr_setid_final, "Sb") ||
-                 set_check_id(curr_setid_final, "sB"))
+        else if ((set_check_id(curr_setid_final, "SB") ||
+                  set_check_id(curr_setid_final, "sb") ||
+                  set_check_id(curr_setid_final, "Sb") ||
+                  set_check_id(curr_setid_final, "sB")) &&
+                 (str_starts_with(curr_setid_final, "SB") ||
+                  str_starts_with(curr_setid_final, "sb") ||
+                  str_starts_with(curr_setid_final, "Sb") ||
+                  str_starts_with(curr_setid_final, "sB")))
         {
 #ifndef MAPC_INCLUDES_CHKP
             campaign_marked = 1;

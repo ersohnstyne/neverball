@@ -456,9 +456,12 @@ int set_check_id(const unsigned char *name, const char *needle)
     if (*needle == '\0')
         return 1; /* Empty substring is always "found" */
 
-    /* Search for the given string in set ID name (just omnit prefix "set-"). */
-    
-    return (int) (strstr(name + 4, needle) != 0);
+    /*
+     * Search for the given string in set ID name
+     * (just omnit prefix "set-", if necessary).
+     */
+
+    return (int) (strstr(str_starts_with(name, "set-") ? name + 4 : name, needle) != 0);
 }
 
 static int set_load(struct set *s, const char *filename)

@@ -1197,7 +1197,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
         game_draw_fog();
 
-        const float color4f_fade_multiply = gd->fade_disabled ? 1.0f - gd->fade_k : 1.0f;
+        const float color4f_fade_multiply = !gd->fade_disabled ? 1.0f - gd->fade_k : 1.0f;
 
         glColor4f_(color4f_fade_multiply, color4f_fade_multiply * game_draw_cam_abovemap(gd), color4f_fade_multiply * game_draw_cam_abovemap(gd), 1.0f);
         glPushColor4_();

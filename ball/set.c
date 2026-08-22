@@ -71,8 +71,8 @@ struct set
     char *user_scores;                  /* User high-score file              */
     char *cheat_scores;                 /* Cheat mode score file             */
 
-    struct score coin_score;            /* Challenge score                   */
-    struct score time_score;            /* Challenge score                   */
+    struct score coin_score;            /* Challenge score (most coins)      */
+    struct score time_score;            /* Challenge score (best time)       */
 
     /* Level info                                                            */
 

@@ -1631,7 +1631,7 @@ void account_wgcl_post_sync(const char *uuid4, const char *player_name)
                 tmp_online_session_data.data_session.player_game_edition_flags != null) {
                 if      ((tmp_online_session_data.data_session.player_game_edition_flags & 4) == 4) return 3;
                 else if ((tmp_online_session_data.data_session.player_game_edition_flags & 2) == 2) return 2;
-                else if ((tmp_online_session_data.data_session.player_game_edition_flags & 1) == 3) return 1;
+                else if ((tmp_online_session_data.data_session.player_game_edition_flags & 1) == 1) return 1;
                 else return 0;
             }
 

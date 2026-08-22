@@ -721,7 +721,7 @@ void fetch_init(void)
     curl_was_init = 1;
 
     info = curl_version_info(CURLVERSION_NOW);
-    log_printf("libcurl %s\n", info->version);
+    log_printf("libcurl %s\n", (info) ? info->version : "(unknown)");
 
     multi_handle = curl_multi_init();
 
@@ -769,7 +769,7 @@ void fetch_reinit(void)
     curl_was_init = 1;
 
     info = curl_version_info(CURLVERSION_NOW);
-    log_printf("libcurl %s\n", info->version);
+    log_printf("libcurl %s\n", (info) ? info->version : "(unknown)");
 
     multi_handle = curl_multi_init();
 

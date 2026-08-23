@@ -898,6 +898,7 @@ void fetch_quit(void)
         CURL_CONVERT_EXT_TMP(str, ".png");  \
         CURL_CONVERT_EXT_TMP(str, ".tga");  \
         CURL_CONVERT_EXT_TMP(str, ".tiff"); \
+        CURL_CONVERT_EXT_TMP(str, ".webp"); \
     } while (0)
 
 #define CURL_CONVERT_EXT_TMP_MCPACK(str)       \
@@ -917,6 +918,7 @@ void fetch_quit(void)
         CURL_CONVERT_EXT_TMP(str, ".nbrx"); \
         CURL_CONVERT_EXT_TMP(str, ".ogg");  \
         CURL_CONVERT_EXT_TMP(str, ".wav");  \
+        CURL_CONVERT_EXT_TMP(str, ".webm"); \
         CURL_CONVERT_EXT_TMP(str, ".wma");  \
     } while (0)
 

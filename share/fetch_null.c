@@ -21,12 +21,14 @@ int fetch_enable(int enable)
     return 0;
 }
 
-void fetch_init(void)
+int fetch_init(void)
 {
+    return 0;
 }
 
-void fetch_reinit(void)
+int fetch_reinit(void)
 {
+    return 0;
 }
 
 void fetch_handle_event(void *data)

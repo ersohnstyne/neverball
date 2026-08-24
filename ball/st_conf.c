@@ -705,7 +705,7 @@ static int conf_account_gui(void)
 #if ENABLE_FETCH==1 && \
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-            if (CHECK_ACCOUNT_ENABLED)
+            if (CHECK_ACCOUNT_ENABLED && config_get_d(CONFIG_ONLINE))
                 conf_state(id, _("Addons"), _("Manage"), CONF_ACCOUNT_PACKAGES);
 #endif
             if (server_policy_get_d(SERVER_POLICY_EDITION) != 0 ||

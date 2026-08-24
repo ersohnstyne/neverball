@@ -380,6 +380,8 @@ static int link_handle(const char *link)
 
 /*---------------------------------------------------------------------------*/
 
+static int fetch_packages_offline = 0;
+
 static void refresh_packages_done(void *data, void *extra_data)
 {
     struct state *start_state = (struct state *) data;
@@ -403,30 +405,33 @@ static void refresh_packages_done(void *data, void *extra_data)
  */
 static void main_preload(struct state *start_state, int (*start_fn)(struct state *))
 {
-    struct fetch_callback callback = { 0 };
-
-    callback.data = start_state;
-    callback.done = refresh_packages_done;
-
-    goto_state(&st_loading);
-
-    /* Link processing works best with a package list. */
-
-    if (package_refresh(callback))
+    if (config_get_d(CONFIG_ONLINE))
     {
-        /* Callback takes care of link processing and starting screen. */
-        return;
+        struct fetch_callback callback = {0};
+
+        callback.data = start_state;
+        callback.done = refresh_packages_done;
+
+        goto_state(&st_loading);
+
+        /* Link processing works best with a package list. */
+
+        if (package_refresh(callback))
+        {
+            /* Callback takes care of link processing and starting screen. */
+            return;
+        }
+
+        /* But attempt it even without a package list. */
+
+        if (opt_link && link_handle(opt_link))
+        {
+            /* Link processing navigates to the appropriate screen. */
+            return;
+        }
     }
 
-    /* But attempt it even without a package list. */
-
-    if (opt_link && link_handle(opt_link))
-    {
-        /* Link processing navigates to the appropriate screen. */
-        return;
-    }
-
-    /* Otherwise, go to the starting screen. */
+    /* Go to the starting screen. */
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (!check_game_setup())
@@ -799,7 +804,7 @@ static int loop(void)
 #endif
 
             default:
-#if ENABLE_FETCH!=0 && !defined(__EMSCRIPTEN__)
+#if ENABLE_FETCH!=0
                 if (e.type == FETCH_EVENT)
                     fetch_handle_event(e.user.data1);
 #endif
@@ -848,7 +853,7 @@ static void step_primary_screen(Uint32 now, Uint32 dt, int allow_clear)
 
     /* Render. */
 
-    st_paint(0.001f * now, 1);
+    st_paint(0.001f * now, allow_clear);
 }
 
 static void step(void *data)
@@ -865,7 +870,6 @@ static void step(void *data)
 #if ENABLE_DUALDISPLAY==1
         video_set_current();
 #endif
-        
         
 #if ENABLE_MOTIONBLUR!=0
         if (config_get_d(CONFIG_MOTIONBLUR) && video_perf() < 60.0f)
@@ -1063,6 +1067,9 @@ static int main_init(int argc, char *argv[])
 
 static void main_quit()
 {
+    if (fetch_packages_offline)
+        config_set_d(CONFIG_ONLINE, 1);
+
     goto_state(&st_null);
 
     /* Restore Neverball's camera setting. */
@@ -1085,7 +1092,7 @@ static void main_quit()
     lang_quit();
     audio_free();
 
-//#if (PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1) && \
+//#if (NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || NB_PB_WITH_XBOX==1) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
 #if !defined(__GAMECUBE__) && !defined(__WII__)
     joy_quit();
@@ -1132,6 +1139,14 @@ int main_share(int argc, char *argv[])
     {
         config_init();
         config_load();
+
+        if (!fetch_enable(config_get_d(CONFIG_ONLINE)))
+        {
+            if (config_get_d(CONFIG_ONLINE))
+                fetch_packages_offline = 1;
+
+            config_set_d(CONFIG_ONLINE, 0);
+        }
 
 #if NB_HAVE_PB_BOTH==1
         /* Initialize account. */
@@ -1182,7 +1197,7 @@ int main_share(int argc, char *argv[])
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();
 #endif
-#if PENNYBALL_FAMILY_API == PENNYBALL_STEAMDECK_FAMILY_API
+#if NEVERBALL_FAMILY_API == NEVERBALL_STEAMDECK_FAMILY_API
         init_controller_type(PLATFORM_STEAMDECK);
         config_set_d(CONFIG_JOYSTICK, 1);
         config_save();

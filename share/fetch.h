@@ -46,8 +46,8 @@ struct fetch_callback
 
 extern unsigned long FETCH_EVENT;
 
-void fetch_init(void);
-void fetch_reinit(void);
+int  fetch_init(void);
+int  fetch_reinit(void);
 void fetch_handle_event(void *);
 void fetch_quit(void);
 
@@ -61,6 +61,6 @@ unsigned int fetch_file(const char *url,
                         const char *dst,
                         struct fetch_callback);
 
-void fetch_enable(int enable);
+int fetch_enable(int enable);
 
 #endif

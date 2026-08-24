@@ -424,33 +424,34 @@ static int set_gui(void)
         {
             gui_label(id, _("No Level Sets"), GUI_MED, GUI_COLOR_DEFAULT);
             gui_space(id);
-            gui_back_button(id);
 
 #if NB_HAVE_PB_BOTH==1
             if (server_policy_get_d(SERVER_POLICY_EDITION) >= 0)
             {
                 if (boost_on)
                     gui_state(id, _("Revert to standard"), GUI_SML,
-                                  SET_TOGGLE_BOOST, 0);
-                else
+                        SET_TOGGLE_BOOST, 0);
+                else if (config_get_d(CONFIG_ONLINE))
                 {
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 #if NB_STEAM_API==1
                     gui_state(id, _("Get Level Sets from Steam Workshop!"),
-                                  GUI_SML, SET_GET_MORE, 0);
+                        GUI_SML, SET_GET_MORE, 0);
 #elif NB_EOS_SDK==1
                     gui_state(id, _("Get Level Sets from Epic Games Store!"),
-                                  GUI_SML, SET_GET_MORE, 0);
+                        GUI_SML, SET_GET_MORE, 0);
 #else
                     gui_state(id, _("Get Level Sets from Addons!"),
-                                  GUI_SML, SET_GET_MORE, 0);
+                        GUI_SML, SET_GET_MORE, 0);
 #endif
 #endif
                 }
             }
 #endif
+            gui_back_button(id);
+
             gui_layout(id, 0, 0);
         }
 
@@ -469,8 +470,8 @@ static int set_gui(void)
     !defined(__SWITCH__)
 #if NB_STEAM_API==1
                 if (account_get_d(ACCOUNT_PRODUCT_LEVELS) == 1 &&
-                    server_policy_get_d(SERVER_POLICY_EDITION) > -1)
-                {
+                    server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                    config_get_d(CONFIG_ONLINE)) {
                     /*if (!CHECK_ACCOUNT_BANKRUPT)
                     {
                         boost_id = gui_state(jd, _("Boost Rush"),
@@ -501,7 +502,8 @@ static int set_gui(void)
             {
 #if NB_STEAM_API==1
                 if (account_get_d(ACCOUNT_PRODUCT_LEVELS) == 1 &&
-                    server_policy_get_d(SERVER_POLICY_EDITION) > 0) {
+                    server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                    config_get_d(CONFIG_ONLINE)) {
                     gui_filler(jd);
 
                     /*if (!CHECK_ACCOUNT_BANKRUPT) {

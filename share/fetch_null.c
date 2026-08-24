@@ -16,8 +16,9 @@
 
 #include "fetch.h"
 
-void fetch_enable(int enable)
+int fetch_enable(int enable)
 {
+    return 0;
 }
 
 void fetch_init(void)

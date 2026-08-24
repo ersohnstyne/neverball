@@ -616,6 +616,7 @@ static int ball_gui(void)
 #ifdef CONFIG_INCLUDES_ACCOUNT
              && account_wgcl_name_read_only()
 #endif
+             && config_get_d(CONFIG_ONLINE)
                 ) {
                 gui_space(id);
 
@@ -915,7 +916,7 @@ static int ball_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_Y, b) &&
             (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
              server_policy_get_d(SERVER_POLICY_EDITION) < 0) &&
-            !game_setup_process())
+            !game_setup_process() && config_get_d(CONFIG_ONLINE))
             return ball_action(server_policy_get_d(SERVER_POLICY_EDITION) < 0 ?
                                MODEL_UPGRADE_EDITION : MODEL_ONLINE, 0);
 #endif

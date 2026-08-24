@@ -24,7 +24,7 @@
 
 static int fetch_enabled = 0;
 
-void fetch_enable(int enable)
+int fetch_enable(int enable)
 {
     int old_value = fetch_enabled;
 
@@ -39,6 +39,7 @@ void fetch_enable(int enable)
     }
 
     log_printf("Fetch is %s\n", fetch_enabled ? "enabled" : "disabled");
+    return 1;
 }
 
 static unsigned int last_fetch_id = 0;
@@ -148,14 +149,18 @@ static void unlink_and_free_fetch_info(struct fetch_info *fi)
     }
 }
 
-void fetch_init(void)
+int fetch_init(void)
 {
     /* Just compile with -s FETCH=1 */
+
+    return 1;
 }
 
-void fetch_reinit(void)
+int fetch_reinit(void)
 {
     /* No possible, compile with -s FETCH=1! */
+
+    return 1;
 }
 
 unsigned long FETCH_EVENT = (unsigned long) -1;

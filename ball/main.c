@@ -917,6 +917,8 @@ static int link_handle(const char *link)
 
 /*---------------------------------------------------------------------------*/
 
+static int fetch_packages_offline = 0;
+
 static void refresh_packages_done(void *data, void *extra_data)
 {
     struct state *start_state = (struct state *) data;
@@ -945,30 +947,33 @@ static void refresh_packages_done(void *data, void *extra_data)
  */
 static void main_preload(struct state *start_state, int (*start_fn)(struct state *))
 {
-    struct fetch_callback callback = {0};
-
-    callback.data = start_state;
-    callback.done = refresh_packages_done;
-
-    goto_state(&st_loading);
-
-    /* Link processing works best with a package list. */
-
-    if (package_refresh(callback))
+    if (config_get_d(CONFIG_ONLINE))
     {
-        /* Callback takes care of link processing and starting screen. */
-        return;
+        struct fetch_callback callback = {0};
+
+        callback.data = start_state;
+        callback.done = refresh_packages_done;
+
+        goto_state(&st_loading);
+
+        /* Link processing works best with a package list. */
+
+        if (package_refresh(callback))
+        {
+            /* Callback takes care of link processing and starting screen. */
+            return;
+        }
+
+        /* But attempt it even without a package list. */
+
+        if (opt_link && link_handle(opt_link))
+        {
+            /* Link processing navigates to the appropriate screen. */
+            return;
+        }
     }
 
-    /* But attempt it even without a package list. */
-
-    if (opt_link && link_handle(opt_link))
-    {
-        /* Link processing navigates to the appropriate screen. */
-        return;
-    }
-
-    /* Otherwise, go to the starting screen. */
+    /* Go to the starting screen. */
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (!check_game_setup())
@@ -2048,7 +2053,13 @@ static int main_init(int argc, char *argv[])
     config_init();
     config_load();
 
-    fetch_enable(config_get_d(CONFIG_ONLINE));
+    if (!fetch_enable(config_get_d(CONFIG_ONLINE)))
+    {
+        if (config_get_d(CONFIG_ONLINE))
+            fetch_packages_offline = 1;
+
+        config_set_d(CONFIG_ONLINE, 0);
+    }
 
     package_init();
 
@@ -2295,6 +2306,9 @@ static int main_init(int argc, char *argv[])
 static void main_quit(void)
 {
     game_client_free(NULL);
+
+    if (fetch_packages_offline)
+        config_set_d(CONFIG_ONLINE, 1);
 
 #ifndef DISABLE_PANORAMA
     if (!opt_panorama)

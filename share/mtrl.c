@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 
@@ -225,8 +229,54 @@ static void free_mtrl(struct mtrl *mp)
 int mtrl_cache(const struct b_mtrl *base)
 {
     struct mtrl *mp;
+    
+#ifdef __EMSCRIPTEN__
+    const char coin_mtrls[9][32] = {
+        "item/coin/coin",        /* Default: en-US */
+        "item/coin/coin-no",     /* no-NR */
+        "item/coin/euro_coin",   /* European */
+        "item/coin/forint_coin", /* hu-* */
+        "item/coin/pound_coin",  /* en-GB */
+        "item/coin/ruble_coin",  /* ru-* */
+        "item/coin/won_coin",    /* ko-KR */
+        "item/coin/yen_coin",    /* ja-* */
+        "item/coin/zloty_coin"   /* pl-PL */
+    };
 
+    int mi = 0;
+
+    if (strcmp(base->f, "item/coin/coin") == 0) {
+        int coin_region_index = EM_ASM_INT({
+            if (navigator.language.startsWith("pl")) return 8;
+            if (navigator.language.startsWith("ja")) return 7;
+            if (navigator.language.startsWith("ko")) return 6;
+            if (navigator.language.startsWith("ru")) return 5;
+            if (navigator.language.startsWith("en-GB")) return 4;
+            if (navigator.language.startsWith("hu")) return 3;
+            if (navigator.language.startsWith("bg") ||
+                navigator.language.startsWith("cs") ||
+                navigator.language.startsWith("de") ||
+                navigator.language.startsWith("el") ||
+                navigator.language.startsWith("es") ||
+                navigator.language.startsWith("fr") ||
+                navigator.language.startsWith("hr") ||
+                navigator.language.startsWith("it") ||
+                navigator.language.startsWith("lv") ||
+                navigator.language.startsWith("nl") ||
+                navigator.language.startsWith("pt-PT") ||
+                navigator.language.startsWith("sl") ||
+                navigator.language.startsWith("sv")) return 2;
+            if (navigator.language.startsWith("no") ||
+                navigator.language.startsWith("nb") ||
+                navigator.language.startsWith("nn")) return 1;
+            return 0;
+        });
+
+        mi = find_mtrl(coin_mtrls[coin_region_index]);
+    } else mi = find_mtrl(base->f);
+#else
     int mi = find_mtrl(base->f);
+#endif
 
     if (mi < 0)
     {

@@ -2,6 +2,7 @@ $gameProjectPath_wgcl = ".\wgcl\"
 $gameProjectPath_ball = ".\ball\"
 $gameProjectPath_putt = ".\putt\"
 $gameProjectPath_share = ".\share\"
+$gameProjectPath_tests = ".\tests\"
 
 # ===================================================================================================================================================
 
@@ -27,6 +28,9 @@ $gameProjectPath_share = ".\share\"
 
 [int]$lineCount_share_c_total   = 0
 [int]$lineCount_share_cpp_total = 0
+
+[int]$lineCount_tests_c_total   = 0
+[int]$lineCount_tests_cpp_total = 0
 
 Get-ChildItem $gameProjectPath_wgcl -Filter ".\*.c" | ForEach-Object {
 	$fileName_wgcl_c = $_
@@ -76,12 +80,24 @@ Get-ChildItem $gameProjectPath_share -Filter ".\*.cpp" | ForEach-Object {
 	$lineCount_share_cpp_total = $lineCount_share_cpp_total + $lineCount_share_cpp_current
 }
 
+Get-ChildItem $gameProjectPath_tests -Filter ".\*.c" | ForEach-Object {
+	$fileName_tests_c = $_
+	$lineCount_tests_c_current = (Get-Content "tests\$fileName_tests_c" | Measure-Object -Line).Lines
+	$lineCount_tests_c_total = $lineCount_tests_c_total + $lineCount_tests_c_current
+}
+
+Get-ChildItem $gameProjectPath_tests -Filter ".\*.cpp" | ForEach-Object {
+	$fileName_tests_cpp = $_
+	$lineCount_tests_cpp_current = (Get-Content "tests\$fileName_tests_cpp" | Measure-Object -Line).Lines
+	$lineCount_tests_cpp_total = $lineCount_tests_cpp_total + $lineCount_tests_cpp_current
+}
+
 # ===================================================================================================================================================
 
 Write-Host "===== Zusammenfassung für Neverball-Quellcode ====="
 Write-Host ""
 
-if (($lineCount_ball_c_total + $lineCount_wgcl_c_total + $lineCount_putt_c_total + $lineCount_share_c_total + $lineCount_ball_cpp_total + $lineCount_wgcl_cpp_total + $lineCount_putt_cpp_total + $lineCount_share_cpp_total) -gt $linecount_limit_high_g)
+if (($lineCount_ball_c_total + $lineCount_wgcl_c_total + $lineCount_putt_c_total + $lineCount_share_c_total + $lineCount_tests_c_total + $lineCount_ball_cpp_total + $lineCount_wgcl_cpp_total + $lineCount_putt_cpp_total + $lineCount_share_cpp_total + $lineCount_tests_cpp_total) -gt $linecount_limit_high_g)
 {
 	Write-Host "(!) HOHE CODEZEILEN"
 	Write-Host "    Sie können nich mehr als $linecount_limit_high_g zeilen in einem einziges Projekt."
@@ -89,7 +105,7 @@ if (($lineCount_ball_c_total + $lineCount_wgcl_c_total + $lineCount_putt_c_total
 	exit 1
 }
 
-if (($lineCount_ball_c_total + $lineCount_wgcl_c_total + $lineCount_putt_c_total + $lineCount_share_c_total + $lineCount_ball_cpp_total + $lineCount_wgcl_cpp_total + $lineCount_putt_cpp_total + $lineCount_share_cpp_total) -gt $linecount_limit_normal)
+if (($lineCount_ball_c_total + $lineCount_wgcl_c_total + $lineCount_putt_c_total + $lineCount_share_c_total + $lineCount_tests_c_total + $lineCount_ball_cpp_total + $lineCount_wgcl_cpp_total + $lineCount_putt_cpp_total + $lineCount_share_cpp_total + $lineCount_tests_cpp_total) -gt $linecount_limit_normal)
 {
 	Write-Host "(!) HOHE CODEZEILEN"
 	Write-Host "    Sie haben die gesamte maximale Grenze von $linecount_limit_normal Zeilen erreicht."
@@ -98,16 +114,23 @@ if (($lineCount_ball_c_total + $lineCount_wgcl_c_total + $lineCount_putt_c_total
 	Write-Host ""
 }
 
+[int]$tests_final_total_c = $lineCount_tests_c_total + $lineCount_share_c_total
+[int]$tests_final_total_cpp = $lineCount_tests_cpp_total + $lineCount_share_cpp_total
+
 [int]$ball_final_total_c = $lineCount_ball_c_total + $lineCount_wgcl_c_total + $lineCount_share_c_total
 [int]$ball_final_total_cpp = $lineCount_ball_cpp_total + $lineCount_wgcl_cpp_total + $lineCount_share_cpp_total
 
 [int]$putt_final_total_c = $lineCount_putt_c_total + $lineCount_share_c_total
 [int]$putt_final_total_cpp = $lineCount_putt_cpp_total + $lineCount_share_cpp_total
 
-[int]$entire_final_total_c = $lineCount_ball_c_total + $lineCount_wgcl_c_total + $lineCount_putt_c_total + $lineCount_share_c_total
-[int]$entire_final_total_cpp = $lineCount_ball_cpp_total + $lineCount_wgcl_cpp_total + $lineCount_putt_cpp_total + $lineCount_share_cpp_total
+[int]$entire_final_total_c = $lineCount_ball_c_total + $lineCount_wgcl_c_total + $lineCount_putt_c_total + $lineCount_share_c_total + $lineCount_tests_c_total
+[int]$entire_final_total_cpp = $lineCount_ball_cpp_total + $lineCount_wgcl_cpp_total + $lineCount_putt_cpp_total + $lineCount_share_cpp_total + $lineCount_tests_cpp_total
 [int]$entire_final_total = $entire_final_total_c + $entire_final_total_cpp
 
+Write-Host "- Pennyball + Neverball WGCL Tests"
+Write-Host "  C-Codezeilen (Aktuell / Gesamt): $lineCount_tests_c_total / $tests_final_total_c"
+Write-Host "  C++-Codezeilen (Aktuell / Gesamt): $lineCount_tests_cpp_total / $tests_final_total_cpp"
+Write-Host ""
 Write-Host "- Pennyball + Neverball WGCL"
 Write-Host "  C-Codezeilen (Aktuell / Gesamt): $lineCount_wgcl_c_total / $ball_final_total_c"
 Write-Host "  C++-Codezeilen (Aktuell / Gesamt): $lineCount_wgcl_cpp_total / $ball_final_total_cpp"

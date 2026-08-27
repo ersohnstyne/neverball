@@ -1094,13 +1094,9 @@ unsigned int fetch_file(const char *url,
 
         if (fi)
         {
-<<<<<<< HEAD
-            log_printf("URL: Starting transfer %u\n", fi->fetch_id);
-=======
             CURLMcode res;
 
-            log_printf("Starting transfer %u\n", fi->fetch_id);
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
+            log_printf("URL: Starting transfer %u\n", fi->fetch_id);
 
             log_printf("     Downloading from %s\n",  url);
             log_printf("     Saving to %s\n",         filename);

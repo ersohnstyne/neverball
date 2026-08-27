@@ -587,12 +587,12 @@ void back_init(const char *name)
             if (!mp->o)
                 log_errorf("Failed to load background image: \"%s\" / %s\n",
                            name, fs_error());
+            else grad_filename = strdup(name);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         }
+        back_state = 1;
     }
-
-    grad_filename = strdup(name);
 }
 
 void back_free(void)

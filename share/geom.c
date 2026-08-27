@@ -584,6 +584,8 @@ void back_init(const char *name)
 
         if (mp)
         {
+            mp->o = make_image_from_file(name, IF_MIPMAP);
+
             if (!mp->o)
                 log_errorf("Failed to load background image: \"%s\" / %s\n",
                            name, fs_error());

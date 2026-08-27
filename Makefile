@@ -953,15 +953,9 @@ test : $(TEST_TARG)
 	./$(TEST_TARG)
 
 clean-src :
-<<<<<<< HEAD
 	@$(RM) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG)
-	@find ball share putt \( -name '*.o' -o -name '*.d' \) -delete
+	@find ball share putt tests \( -name '*.o' -o -name '*.d' \) -delete
 	@$(RM) neverball.ico.o neverputt.ico.o
-=======
-	$(RM) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) $(TEST_TARG)
-	find ball share putt tests \( -name '*.o' -o -name '*.d' \) -delete
-	$(RM) neverball.ico.o neverputt.ico.o
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
 clean-sols :
 	@$(RM) $(SOLS)
@@ -973,12 +967,8 @@ clean : clean-src clean-sols
 
 #------------------------------------------------------------------------------
 
-<<<<<<< HEAD
 .PHONY : ball putt mapc publish test sols csols locales desktops clean-src \
 	clean-sols clean
-=======
-.PHONY : all sols locales desktops clean-src clean test
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
 -include $(BALL_DEPS) $(PUTT_DEPS) $(MAPC_DEPS) $(wildcard tests/*.d)
 

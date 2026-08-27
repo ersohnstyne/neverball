@@ -231,7 +231,6 @@ int mtrl_cache(const struct b_mtrl *base)
     struct mtrl *mp;
     int mi;
 
-<<<<<<< HEAD
     if (base)
         return -1;
 
@@ -280,12 +279,6 @@ int mtrl_cache(const struct b_mtrl *base)
 #else
     mi = find_mtrl(base->f);
 #endif
-=======
-    if (!base)
-        return -1;
-
-    mi = find_mtrl(base->f);
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
     if (mi < 0)
     {
@@ -365,11 +358,6 @@ void mtrl_cache_sol(struct s_base *fp)
 {
     if (!fp)
         return;
-<<<<<<< HEAD
-
-    mtrl_free_sol(fp);
-
-=======
 
     if (fp->mtrls)
     {
@@ -377,7 +365,6 @@ void mtrl_cache_sol(struct s_base *fp)
         fp->mtrls = NULL;
     }
 
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     if (fp->mc > 0 && (fp->mtrls = calloc(fp->mc, sizeof (*fp->mtrls))))
     {
         int mi;

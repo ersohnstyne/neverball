@@ -173,11 +173,7 @@ static struct dir_item *add_item(Array items, const char *dir, const char *name)
 {
     struct dir_item *item;
 
-<<<<<<< HEAD
     if (!items || !name || !*name)
-=======
-    if (!items || !name)
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         return NULL;
 
     item = array_add(items);
@@ -185,11 +181,7 @@ static struct dir_item *add_item(Array items, const char *dir, const char *name)
     if (!item)
         return NULL;
 
-<<<<<<< HEAD
     item->path = path_join(dir && *dir ? dir : "", name);
-=======
-    item->path = path_join(dir ? dir : "", name);
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     item->data = NULL;
 
     return item;
@@ -202,11 +194,7 @@ static void del_item(Array items)
 {
     struct dir_item *item;
 
-<<<<<<< HEAD
-    if (items || array_len(items) <= 0)
-=======
     if (!items || array_len(items) <= 0)
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         return;
 
     item = array_get(items, array_len(items) - 1);

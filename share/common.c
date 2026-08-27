@@ -126,11 +126,7 @@ int read_line(char **dst, fs_file fin)
         if (len1 != len0)
         {
             /* We hit a newline, clean up and break. */
-<<<<<<< HEAD
             new = (char *) realloc(line, len1 + 1);
-=======
-            new = realloc(line, len1 + 1);
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
             if (new)
                 line = new;
             break;
@@ -394,15 +390,11 @@ char *path_join(const char *head, const char *tail)
         return tail ? strdup(tail) : NULL;
     if (!tail || !*tail)
         return strdup(head);
-<<<<<<< HEAD
 #ifdef _WIN32
     return concat_string(head, "\\", tail, NULL);
 #else
     return concat_string(head, "/", tail, NULL);
 #endif
-=======
-    return concat_string(head, "/", tail, NULL);
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 }
 
 const char *path_last_sep(const char *path)

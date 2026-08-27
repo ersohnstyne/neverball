@@ -393,17 +393,9 @@ static struct voice *voice_init(const char *filename, float a)
 
     if ((V = (struct voice *) calloc(1, sizeof (struct voice))))
     {
-<<<<<<< HEAD
-        /* Note the name. */
-
         if (!(V->name = strdup(filename)))
         {
             free(V->name); V->name = NULL;
-=======
-        if (!(V->name = strdup(filename)))
-        {
-            free(V);
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
             return NULL;
         }
 
@@ -435,7 +427,6 @@ static struct voice *voice_init(const char *filename, float a)
         free(V->name);
         free(V);
     }
-<<<<<<< HEAD
 
 #if defined(__WII__)
     /* Put it in the cache */
@@ -462,8 +453,6 @@ static struct voice *voice_init(const char *filename, float a)
     }
 #endif
 
-=======
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     return NULL;
 }
 
@@ -807,13 +796,8 @@ void audio_play(const char *filename, float a)
 
         lock_hold = 1;
         {
-<<<<<<< HEAD
             for (VSFX = voices_sfx; VSFX; VSFX = VSFX->next)
                 if (VSFX->name && strcmp(VSFX->name, filename) == 0)
-=======
-            for (V = voices; V; V = V->next)
-                if (V->name && strcmp(V->name, filename) == 0)
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
                 {
                     ov_raw_seek(&VSFX->vf, 0);
 
@@ -830,7 +814,6 @@ void audio_play(const char *filename, float a)
 
         /* Create a new voice structure. */
 
-<<<<<<< HEAD
         if ((VSFX = voice_init(filename, a)))
         {
             /* Add it to the list of sounding voices. */
@@ -911,19 +894,6 @@ void audio_narrator_play(const char *filename)
 #if _DEBUG
         SDL_TriggerBreakpoint();
 #endif
-=======
-        if ((V = voice_init(filename, a)))
-        {
-            /* Add it to the list of sounding voices. */
-
-            SDL_LockAudio();
-            {
-                V->next = voices;
-                voices  = V;
-            }
-            SDL_UnlockAudio();
-        }
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     }
 }
 
@@ -1043,11 +1013,7 @@ void audio_music_fade_to(float t, const char *filename, int loop)
 
     if (voices_music)
     {
-<<<<<<< HEAD
-        if (!voices_music->name)
-=======
-        if (!music->name || strcmp(filename, music->name) != 0)
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
+        if (!voices_music->name && strcmp(filename, voices_music->name) == 0)
         {
             audio_music_stop();
             audio_music_play(filename, loop);

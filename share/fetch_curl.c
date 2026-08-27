@@ -599,10 +599,7 @@ static void fetch_step(void)
 
 /*
  * Thread stuff.
-<<<<<<< HEAD
-=======
  *
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
  * Mutual exclusion between the main thread and the background fetch thread is
  * coordinated using two mutexes:
  *
@@ -615,15 +612,9 @@ static void fetch_step(void)
  *   while the main thread wakes it and waits for fetch_curl_mutex.
  */
 
-<<<<<<< HEAD
 static SDL_mutex   *fetch_curl_mutex;
 static SDL_mutex   *fetch_sync_mutex;
 static SDL_Thread  *fetch_thread;
-=======
-static SDL_mutex *fetch_curl_mutex;
-static SDL_mutex *fetch_sync_mutex;
-static SDL_Thread *fetch_thread;
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
 static SDL_atomic_t fetch_thread_running;
 
@@ -647,7 +638,6 @@ static int fetch_thread_main(void *data)
          * waiting to acquire fetch_curl_mutex, then lock fetch_curl_mutex
          * for the duration of polling and stepping.
          */
-<<<<<<< HEAD
 
         while (lock_hold_mutex &&
                SDL_AtomicGet(&fetch_thread_running)) {}
@@ -656,37 +646,21 @@ static int fetch_thread_main(void *data)
         SDL_LockMutex(fetch_sync_mutex);
         SDL_LockMutex(fetch_curl_mutex);
         SDL_UnlockMutex(fetch_sync_mutex);
-=======
-        SDL_LockMutex(fetch_sync_mutex);
-        SDL_LockMutex(fetch_curl_mutex);
-        SDL_UnlockMutex(fetch_sync_mutex);
-
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         code = curl_multi_poll(multi_handle, NULL, 0u, 1000 / 30, NULL);
 
         if (code == CURLM_OK)
         {
-<<<<<<< HEAD
             if (SDL_AtomicGet(&fetch_thread_running))
                 fetch_step();
-=======
-            fetch_step();
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         }
         else
         {
             log_errorf("libcurl poll failure: %s\n", curl_multi_strerror(code));
             SDL_AtomicSet(&fetch_thread_running, 0);
         }
-<<<<<<< HEAD
         SDL_UnlockMutex(fetch_curl_mutex);
         lock_hold_mutex = 0;
-    };
-=======
-
-        SDL_UnlockMutex(fetch_curl_mutex);
     }
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
     log_printf("Stopping fetch thread\n");
 
@@ -703,11 +677,7 @@ static int fetch_thread_init(void)
 
     if (!fetch_curl_mutex || !fetch_sync_mutex)
     {
-<<<<<<< HEAD
         log_errorf("Failure to create fetch mutexes\n");
-=======
-        log_printf("Failure to create fetch mutexes\n");
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
         if (fetch_curl_mutex)
         {
@@ -725,15 +695,10 @@ static int fetch_thread_init(void)
     }
 
     SDL_AtomicSet(&fetch_thread_running, 1);
-<<<<<<< HEAD
-
-=======
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     fetch_thread = SDL_CreateThread(fetch_thread_main, "fetch", NULL);
 
     if (!fetch_thread)
     {
-<<<<<<< HEAD
         log_errorf("Failure to create fetch thread\n");
 
         SDL_AtomicSet(&fetch_thread_running, 0);
@@ -749,17 +714,6 @@ static int fetch_thread_init(void)
             SDL_DestroyMutex(fetch_sync_mutex);
             fetch_sync_mutex = NULL;
         }
-=======
-        log_printf("Failure to create fetch thread\n");
-
-        SDL_AtomicSet(&fetch_thread_running, 0);
-
-        SDL_DestroyMutex(fetch_curl_mutex);
-        fetch_curl_mutex = NULL;
-
-        SDL_DestroyMutex(fetch_sync_mutex);
-        fetch_sync_mutex = NULL;
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
         return 0;
     }
@@ -806,13 +760,10 @@ static void fetch_lock_mutex(void)
      * iteration, wake the fetch thread from curl_multi_poll, and acquire
      * fetch_curl_mutex once the fetch thread finishes its current step.
      */
-<<<<<<< HEAD
 
     while (lock_hold_mutex) {}
 
     lock_hold_mutex = 1;
-=======
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     SDL_LockMutex(fetch_sync_mutex);
 
     if (multi_handle)
@@ -830,15 +781,10 @@ static void fetch_unlock_mutex(void)
      * Release fetch_curl_mutex and fetch_sync_mutex in reverse order so the
      * fetch thread can resume its polling loop.
      */
-<<<<<<< HEAD
 
     SDL_UnlockMutex(fetch_curl_mutex);
     SDL_UnlockMutex(fetch_sync_mutex);
     lock_hold_mutex = 0;
-=======
-    SDL_UnlockMutex(fetch_curl_mutex);
-    SDL_UnlockMutex(fetch_sync_mutex);
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 }
 
 #endif
@@ -869,7 +815,6 @@ int fetch_init(void)
 
     if (!multi_handle)
     {
-<<<<<<< HEAD
         log_errorf("Failure to create a CURL multi handle\n");
         curl_global_cleanup();
         fetch_enabled = 0;
@@ -881,12 +826,6 @@ int fetch_init(void)
 #endif
 #endif
         return 0;
-=======
-        log_printf("Failure to create a CURL multi handle\n");
-        curl_global_cleanup();
-        fetch_enabled = 0;
-        return;
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     }
 
     /*
@@ -902,7 +841,6 @@ int fetch_init(void)
 
     if (!fetch_thread_init())
     {
-<<<<<<< HEAD
         curl_multi_wakeup(multi_handle);
         multi_handle = NULL;
         curl_global_cleanup();
@@ -921,13 +859,6 @@ int fetch_init(void)
 int fetch_reinit(void)
 {
     return fetch_reinit();
-=======
-        curl_multi_cleanup(multi_handle);
-        multi_handle = NULL;
-        curl_global_cleanup();
-        fetch_enabled = 0;
-    }
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 }
 
 /*
@@ -1201,13 +1132,12 @@ unsigned int fetch_file(const char *url,
 
             /* curl_easy_setopt(handle, CURLOPT_VERBOSE, 1); */
 
-<<<<<<< HEAD
             if (!multi_handle)
                 fetch_reinit();
 
             if (multi_handle)
             {
-                CURLMcode res = curl_multi_add_handle(multi_handle, handle);
+                res = curl_multi_add_handle(multi_handle, handle);
 
                 if (res == CURLM_OK)
                 {
@@ -1242,19 +1172,6 @@ unsigned int fetch_file(const char *url,
                 raise(SIGTRAP);
 #endif
 #endif
-=======
-            res = curl_multi_add_handle(multi_handle, handle);
-
-            if (res == CURLM_OK)
-            {
-                fetch_id = fi->fetch_id;
-            }
-            else
-            {
-                log_printf("curl_multi_add_handle failed: %s\n",
-                           curl_multi_strerror(res));
-                unlink_and_free_fetch_info(fi);
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
             }
         }
         else curl_easy_cleanup(handle);

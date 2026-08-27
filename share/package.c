@@ -249,18 +249,10 @@ static int mount_local_package(struct local_package *lpkg)
     {
         if (!list_push(&installed_packages, lpkg))
         {
-<<<<<<< HEAD
             log_errorf("Warning: Failed to allocate package entry for '%s'\n", lpkg->filename);
             return 0;
         }
 
-        installed_packages = list_cons(lpkg, installed_packages);
-=======
-            log_printf("Warning: Failed to allocate package entry for '%s'\n", lpkg->filename);
-            return 0;
-        }
-
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         unmount_duplicate_local_packages(lpkg);
         save_installed_packages();
         return 1;
@@ -300,11 +292,7 @@ static int load_installed_packages(void)
                     SAFECPY(lpkg->id, line + 8);
                 }
                 else
-<<<<<<< HEAD
-                    log_errorf("Warning: Failed to allocate installed slot for '%s'\n", line + 8);
-=======
-                    log_printf("Warning: Failed to allocate installed package slot for '%s'\n", line + 8);
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
+                    log_errorf("Warning: Failed to allocate installed package slot for '%s'\n", line + 8);
             }
             else if (strncmp(line, "filename ", 9) == 0)
             {
@@ -333,11 +321,7 @@ static int load_installed_packages(void)
                     lpkg = NULL;
                 }
                 else
-<<<<<<< HEAD
-                    log_errorf("Warning: Failed to allocate installed slot for '%s'\n", line + 8);
-=======
-                    log_printf("Warning: Failed to allocate installed package slot for '%s'\n", line);
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
+                    log_errorf("Warning: Failed to allocate installed package slot for '%s'\n", line);
             }
         }
 

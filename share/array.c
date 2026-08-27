@@ -100,15 +100,9 @@ void alloc_del(struct alloc *alloc)
         {
             void *data;
 
-<<<<<<< HEAD
-            if (data = realloc(*alloc->data, alloc->size / 4))
-            {
-                if (alloc->data) *alloc->data = data;
-=======
             if ((data = realloc(*alloc->data, alloc->size / 4)))
             {
                 *alloc->data = data;
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
                 alloc->size /= 4;
             }
         }
@@ -159,11 +153,7 @@ void array_free(Array a)
 
 void *array_add(Array a)
 {
-<<<<<<< HEAD
-    if (a)
-=======
     if (!a)
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         return NULL;
 
     return alloc_add(&a->alloc);
@@ -196,11 +186,7 @@ void *array_rnd(Array a)
 
 int array_len(Array a)
 {
-<<<<<<< HEAD
-    if (a)
-=======
     if (!a)
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         return 0;
 
     return a->elem_num;

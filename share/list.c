@@ -79,8 +79,4 @@ int list_push(List *head, void *first)
     }
 
     return 0;
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27

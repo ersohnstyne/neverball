@@ -82,15 +82,11 @@ doc/manual.txt
 /js/mapc.js
 /js/mapc.wasm
 /js/packages
-<<<<<<< HEAD
 
 # ZIP archives
 /*.tar
 /*.zip
 /packages
-=======
-/base-neverball.zip
->>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 /.worktrees
 /build
 /.ast-cache

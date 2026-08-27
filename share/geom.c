@@ -584,6 +584,7 @@ void back_init(const char *name)
 
         if (mp)
         {
+<<<<<<< HEAD
             if (!mp->o)
                 log_errorf("Failed to load background image: \"%s\" / %s\n",
                            name, fs_error());
@@ -591,6 +592,16 @@ void back_init(const char *name)
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         }
+=======
+            mp->o = make_image_from_file(name, IF_MIPMAP);
+
+            if (!mp->o)
+                log_printf("Failed to load background image \"%s\"\n", name);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        }
+        back_state = 1;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     }
 }
 

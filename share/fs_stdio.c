@@ -275,7 +275,10 @@ int fs_add_path(const char *path)
 
                 free(path_item->path);
                 mz_zip_reader_end(zip);
+<<<<<<< HEAD
                 return 0;
+=======
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
             }
             else if (fs_logging)
             {
@@ -285,12 +288,14 @@ int fs_add_path(const char *path)
             }
 
             free(zip);
-            zip = NULL;
         }
 
         free(path_item);
     }
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
     return 0;
 }

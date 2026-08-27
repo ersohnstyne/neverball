@@ -315,7 +315,10 @@ GLuint make_image_from_font(int *W, int *H,
                 o = make_texture(p, w2, h2, b, fl);
 
                 free(p);
+<<<<<<< HEAD
                 p = NULL;
+=======
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
             }
             SDL_FreeSurface(src);
         }
@@ -383,11 +386,16 @@ SDL_Surface *load_surface(const char *filename)
         {
             srf = SDL_CreateRGBSurfaceFrom(q, w, h, b * 8, w * b,
                                            RMASK, GMASK, BMASK, AMASK);
+<<<<<<< HEAD
 
             if (!srf) {
                 free(q);
                 q = NULL;
             }
+=======
+            if (!srf)
+                free(q);
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         }
         free(p);
         p = NULL;

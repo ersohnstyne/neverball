@@ -618,8 +618,12 @@ static int sol_load_body(struct d_body *bp,
 
             for (mi = 0; mi < draw->base->mc; ++mi)
                 if (sol_count_body(bq, draw->base, mi))
+<<<<<<< HEAD
                     if (!sol_load_mesh(bp->mv + mj++, bq, draw, mi))
                         return 0;
+=======
+                    sol_load_mesh(bp->mv + mj++, bq, draw, mi);
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         }
         else
             bp->mc = 0;
@@ -670,6 +674,14 @@ static void sol_draw_body_debug(const struct d_body *bp, struct s_rend *rend, in
 
 int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
 {
+<<<<<<< HEAD
+=======
+    int i;
+
+    if (!draw || !vary || !vary->base)
+        return 0;
+
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     memset(draw, 0, sizeof (struct s_draw));
 
     draw->vary = vary;
@@ -700,8 +712,15 @@ int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
 
     /* Initialize all bodies for this file. */
 
+<<<<<<< HEAD
     if (draw->base->bc) {
         if (!(draw->bv = (struct d_body *) (calloc(draw->base->bc, sizeof (*draw->bv))))) {
+=======
+    if (draw->base->bc)
+    {
+        if (!(draw->bv = calloc(draw->base->bc, sizeof (*draw->bv))))
+        {
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
             sol_free_draw(draw);
             return 0;
         }
@@ -709,10 +728,14 @@ int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
         draw->bc = draw->base->bc;
 
         for (i = 0; i < draw->bc; i++)
+<<<<<<< HEAD
             if (!sol_load_body(draw->bv + i, draw->base->bv + i, draw)) {
                 sol_free_draw(draw);
                 return 0;
             }
+=======
+            sol_load_body(draw->bv + i, draw->base->bv + i, draw);
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     }
 
     sol_load_bill(draw);
@@ -725,6 +748,12 @@ void sol_free_draw(struct s_draw *draw)
     if (!draw)
         return;
 
+<<<<<<< HEAD
+=======
+    if (!draw)
+        return;
+
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     if (draw->base)
         mtrl_free_sol(draw->base);
 
@@ -734,9 +763,13 @@ void sol_free_draw(struct s_draw *draw)
         for (int i = 0; i < draw->bc; i++)
             sol_free_body(draw->bv + i);
 
+<<<<<<< HEAD
         free(draw->bv); draw->bv = NULL;
     }
 
+=======
+    free(draw->bv);
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     memset(draw, 0, sizeof (*draw));
 }
 
@@ -1015,7 +1048,11 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
 
 int sol_load_full(struct s_full *full, const char *filename, int s)
 {
+<<<<<<< HEAD
     if (full && filename && *filename)
+=======
+    if (full && filename)
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     {
         memset(full, 0, sizeof (*full));
 
@@ -1218,9 +1255,12 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
     if (!mp)
         return;
 
+<<<<<<< HEAD
     if (!mq)
         return;
 
+=======
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     /* Mask ignored flags. */
 
     int mp_flags = mp->base.fl & ~rend->skip_flags;

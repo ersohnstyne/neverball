@@ -260,7 +260,11 @@ static void sol_load_geom(fs_file fin, struct b_geom *gp, struct s_base *fp)
 
         if (oc)
         {
+<<<<<<< HEAD
             if ((p = realloc(fp->ov, sizeof(struct b_offs) * (fp->oc + oc))))
+=======
+            if ((p = realloc(fp->ov, sizeof (struct b_offs) * (fp->oc + oc))))
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
             {
                 fp->ov = p;
 
@@ -569,6 +573,7 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
 
     sol_load_indx(fin, fp);
 
+<<<<<<< HEAD
     if (fp->ac && !(fp->av = (char *)          calloc(fp->ac, sizeof (*fp->av)))) goto sol_load_file_fail;
     if (fp->mc && !(fp->mv = (struct b_mtrl *) calloc(fp->mc, sizeof (*fp->mv)))) goto sol_load_file_fail;
     if (fp->vc && !(fp->vv = (struct b_vert *) calloc(fp->vc, sizeof (*fp->vv)))) goto sol_load_file_fail;
@@ -598,6 +603,29 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
     if (fp->wc && !(fp->wv = (struct b_view *) calloc(fp->wc, sizeof (*fp->wv)))) goto sol_load_file_fail;
     if (fp->dc && !(fp->dv = (struct b_dict *) calloc(fp->dc, sizeof (*fp->dv)))) goto sol_load_file_fail;
     if (fp->ic && !(fp->iv = (int *)           calloc(fp->ic, sizeof (*fp->iv)))) goto sol_load_file_fail;
+=======
+    if (fp->ac && !(fp->av = (char *)          calloc(fp->ac, sizeof (*fp->av)))) goto fail;
+    if (fp->mc && !(fp->mv = (struct b_mtrl *) calloc(fp->mc, sizeof (*fp->mv)))) goto fail;
+    if (fp->vc && !(fp->vv = (struct b_vert *) calloc(fp->vc, sizeof (*fp->vv)))) goto fail;
+    if (fp->ec && !(fp->ev = (struct b_edge *) calloc(fp->ec, sizeof (*fp->ev)))) goto fail;
+    if (fp->sc && !(fp->sv = (struct b_side *) calloc(fp->sc, sizeof (*fp->sv)))) goto fail;
+    if (fp->tc && !(fp->tv = (struct b_texc *) calloc(fp->tc, sizeof (*fp->tv)))) goto fail;
+    if (fp->oc && !(fp->ov = (struct b_offs *) calloc(fp->oc, sizeof (*fp->ov)))) goto fail;
+    if (fp->gc && !(fp->gv = (struct b_geom *) calloc(fp->gc, sizeof (*fp->gv)))) goto fail;
+    if (fp->lc && !(fp->lv = (struct b_lump *) calloc(fp->lc, sizeof (*fp->lv)))) goto fail;
+    if (fp->nc && !(fp->nv = (struct b_node *) calloc(fp->nc, sizeof (*fp->nv)))) goto fail;
+    if (fp->pc && !(fp->pv = (struct b_path *) calloc(fp->pc, sizeof (*fp->pv)))) goto fail;
+    if (fp->bc && !(fp->bv = (struct b_body *) calloc(fp->bc, sizeof (*fp->bv)))) goto fail;
+    if (fp->hc && !(fp->hv = (struct b_item *) calloc(fp->hc, sizeof (*fp->hv)))) goto fail;
+    if (fp->zc && !(fp->zv = (struct b_goal *) calloc(fp->zc, sizeof (*fp->zv)))) goto fail;
+    if (fp->jc && !(fp->jv = (struct b_jump *) calloc(fp->jc, sizeof (*fp->jv)))) goto fail;
+    if (fp->xc && !(fp->xv = (struct b_swch *) calloc(fp->xc, sizeof (*fp->xv)))) goto fail;
+    if (fp->rc && !(fp->rv = (struct b_bill *) calloc(fp->rc, sizeof (*fp->rv)))) goto fail;
+    if (fp->uc && !(fp->uv = (struct b_ball *) calloc(fp->uc, sizeof (*fp->uv)))) goto fail;
+    if (fp->wc && !(fp->wv = (struct b_view *) calloc(fp->wc, sizeof (*fp->wv)))) goto fail;
+    if (fp->dc && !(fp->dv = (struct b_dict *) calloc(fp->dc, sizeof (*fp->dv)))) goto fail;
+    if (fp->ic && !(fp->iv = (int *)           calloc(fp->ic, sizeof (*fp->iv)))) goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
     /* HACK: Well, do check some... */
 
@@ -643,8 +671,13 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
     if (fp->uc < 1)
     {
         fp->uc = 1;
+<<<<<<< HEAD
         if (!(fp->uv = (struct b_ball*)calloc(fp->uc, sizeof(*fp->uv))))
             goto sol_load_file_fail;
+=======
+        if (!(fp->uv = (struct b_ball *) calloc(fp->uc, sizeof (*fp->uv))))
+            goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     }
     else for (i = 0; i < fp->uc; i++)
         if (fp->uv[i].r < 0.0f) fp->uv[i].r = 0.25f;
@@ -671,7 +704,11 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
 
     return 1;
 
+<<<<<<< HEAD
 sol_load_file_fail:
+=======
+fail:
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     sol_free_base(fp);
     return 0;
 }
@@ -685,7 +722,11 @@ static int sol_load_head(fs_file fin, struct s_base *fp, int fp_ten)
     if (fp->ac)
     {
         if (!(fp->av = (char *) calloc(fp->ac, sizeof (*fp->av))))
+<<<<<<< HEAD
             goto sol_load_head_fail;
+=======
+            goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         fs_read(fp->av, fp->ac, fin);
     }
 
@@ -694,7 +735,11 @@ static int sol_load_head(fs_file fin, struct s_base *fp, int fp_ten)
         int i;
 
         if (!(fp->dv = (struct b_dict *) calloc(fp->dc, sizeof (*fp->dv))))
+<<<<<<< HEAD
             goto sol_load_head_fail;
+=======
+            goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
         for (i = 0; i < fp->dc; i++)
             sol_load_dict(fin, fp->dv + i);
@@ -702,7 +747,11 @@ static int sol_load_head(fs_file fin, struct s_base *fp, int fp_ten)
 
     return 1;
 
+<<<<<<< HEAD
 sol_load_head_fail:
+=======
+fail:
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     sol_free_base(fp);
     return 0;
 }
@@ -711,6 +760,9 @@ int sol_load_base(struct s_base *fp, const char *filename)
 {
     fs_file fin, fin_x;
     int res = 0;
+
+    if (!fp || !filename)
+        return 0;
 
     memset(fp, 0, sizeof (*fp));
 
@@ -761,7 +813,11 @@ int sol_load_meta(struct s_base *fp, const char *filename)
     fs_file fin, fin_x;
     int res = 0;
 
+<<<<<<< HEAD
     if (!fp || !filename || !*filename)
+=======
+    if (!fp || !filename)
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         return 0;
 
     memset(fp, 0, sizeof (*fp));
@@ -813,6 +869,7 @@ void sol_free_base(struct s_base *fp)
     if (!fp)
         return;
 
+<<<<<<< HEAD
     if (fp->av) { free(fp->av); fp->av = NULL; }
     if (fp->mv) { free(fp->mv); fp->mv = NULL; }
     if (fp->vv) { free(fp->vv); fp->vv = NULL; }
@@ -838,6 +895,29 @@ void sol_free_base(struct s_base *fp)
     if (fp->wv) { free(fp->wv); fp->wv = NULL; }
     if (fp->dv) { free(fp->dv); fp->dv = NULL; }
     if (fp->iv) { free(fp->iv); fp->iv = NULL; }
+=======
+    if (fp->av) free(fp->av);
+    if (fp->mv) free(fp->mv);
+    if (fp->vv) free(fp->vv);
+    if (fp->ev) free(fp->ev);
+    if (fp->sv) free(fp->sv);
+    if (fp->tv) free(fp->tv);
+    if (fp->ov) free(fp->ov);
+    if (fp->gv) free(fp->gv);
+    if (fp->lv) free(fp->lv);
+    if (fp->nv) free(fp->nv);
+    if (fp->pv) free(fp->pv);
+    if (fp->bv) free(fp->bv);
+    if (fp->hv) free(fp->hv);
+    if (fp->zv) free(fp->zv);
+    if (fp->jv) free(fp->jv);
+    if (fp->xv) free(fp->xv);
+    if (fp->rv) free(fp->rv);
+    if (fp->uv) free(fp->uv);
+    if (fp->wv) free(fp->wv);
+    if (fp->dv) free(fp->dv);
+    if (fp->iv) free(fp->iv);
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
     memset(fp, 0, sizeof (*fp));
 }

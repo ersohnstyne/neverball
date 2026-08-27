@@ -49,7 +49,11 @@ static int setup_mover(struct alloc *alloc, const struct s_vary *fp, int pi, int
         *mi = -1;
 
     if (pi < 0)
+<<<<<<< HEAD
         return 0;
+=======
+        return 1;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
     if (!alloc || !fp)
         return 0;
@@ -78,7 +82,10 @@ static int setup_mover(struct alloc *alloc, const struct s_vary *fp, int pi, int
         set_move_dirty(fp, fp->mc - 1, 1u);
         return 1;
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     return 0;
 }
 
@@ -90,7 +97,11 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
     if (!fp || !base)
         return 0;
 
+<<<<<<< HEAD
     sol_free_vary(fp); //memset(fp, 0, sizeof (*fp));
+=======
+    memset(fp, 0, sizeof (*fp));
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
     fp->base = base;
 
@@ -99,7 +110,11 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
     if (fp->base->pc)
     {
         if (!(fp->pv = calloc(fp->base->pc, sizeof (*fp->pv))))
+<<<<<<< HEAD
             goto sol_load_vary_fail;
+=======
+            goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         fp->pc = fp->base->pc;
 
         for (i = 0; i < fp->base->pc; i++)
@@ -111,15 +126,24 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
             pp->f    = pq->f;
 
             if (!setup_mover(&mover_alloc, fp, pq->p0, &pp->mi) ||
+<<<<<<< HEAD
                  setup_mover(&mover_alloc, fp, pq->p1, &pp->mj))
                 goto sol_load_vary_fail;
+=======
+                !setup_mover(&mover_alloc, fp, pq->p1, &pp->mj))
+                goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         }
     }
 
     if (fp->base->bc)
     {
         if (!(fp->bv = calloc(fp->base->bc, sizeof (*fp->bv))))
+<<<<<<< HEAD
             goto sol_load_vary_fail;
+=======
+            goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         fp->bc = fp->base->bc;
 
         for (i = 0; i < fp->base->bc; i++)
@@ -131,14 +155,22 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 
             if (!setup_mover(&mover_alloc, fp, bq->p0, &bp->mi) ||
                 !setup_mover(&mover_alloc, fp, bq->p1, &bp->mj))
+<<<<<<< HEAD
                 goto sol_load_vary_fail;
+=======
+                goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         }
     }
 
     if (fp->base->hc)
     {
         if (!(fp->hv = calloc(fp->base->hc, sizeof (*fp->hv))))
+<<<<<<< HEAD
             goto sol_load_vary_fail;
+=======
+            goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         fp->hc = fp->base->hc;
 
         for (i = 0; i < fp->base->hc; i++)
@@ -153,14 +185,22 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 
             if (!setup_mover(&mover_alloc, fp, hq->p0, &hp->mi) ||
                 !setup_mover(&mover_alloc, fp, hq->p1, &hp->mj))
+<<<<<<< HEAD
                 goto sol_load_vary_fail;
+=======
+                goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         }
     }
 
     if (fp->base->zc)
     {
         if (!(fp->zv = calloc(fp->base->zc, sizeof (*fp->zv))))
+<<<<<<< HEAD
             goto sol_load_vary_fail;
+=======
+            goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         fp->zc = fp->base->zc;
 
         for (i = 0; i < fp->base->zc; i++)
@@ -170,14 +210,22 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 
             if (!setup_mover(&mover_alloc, fp, zq->p0, &zp->mi) ||
                 !setup_mover(&mover_alloc, fp, zq->p1, &zp->mj))
+<<<<<<< HEAD
                 goto sol_load_vary_fail;
+=======
+                goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         }
     }
 
     if (fp->base->jc)
     {
         if (!(fp->jv = calloc(fp->base->jc, sizeof (*fp->jv))))
+<<<<<<< HEAD
             goto sol_load_vary_fail;
+=======
+            goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         fp->jc = fp->base->jc;
 
         for (i = 0; i < fp->base->jc; i++)
@@ -187,14 +235,22 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 
             if (!setup_mover(&mover_alloc, fp, jq->p0, &jp->mi) ||
                 !setup_mover(&mover_alloc, fp, jq->p1, &jp->mj))
+<<<<<<< HEAD
                 goto sol_load_vary_fail;
+=======
+                goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         }
     }
 
     if (fp->base->xc)
     {
         if (!(fp->xv = calloc(fp->base->xc, sizeof (*fp->xv))))
+<<<<<<< HEAD
             goto sol_load_vary_fail;
+=======
+            goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         fp->xc = fp->base->xc;
 
         for (i = 0; i < fp->base->xc; i++)
@@ -209,14 +265,22 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 
             if (!setup_mover(&mover_alloc, fp, xq->p0, &xp->mi) ||
                 !setup_mover(&mover_alloc, fp, xq->p1, &xp->mj))
+<<<<<<< HEAD
                 goto sol_load_vary_fail;
+=======
+                goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         }
     }
 
     if (fp->base->rc)
     {
         if (!(fp->rv = calloc(fp->base->rc, sizeof (*fp->rv))))
+<<<<<<< HEAD
             goto sol_load_vary_fail;
+=======
+            goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         fp->rc = fp->base->rc;
 
         for (i = 0; i < fp->base->rc; i++)
@@ -226,14 +290,22 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 
             if (!setup_mover(&mover_alloc, fp, rq->p0, &rp->mi) ||
                 !setup_mover(&mover_alloc, fp, rq->p1, &rp->mj))
+<<<<<<< HEAD
                 goto sol_load_vary_fail;
+=======
+                goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         }
     }
 
     if (fp->base->uc)
     {
         if (!(fp->uv = calloc(fp->base->uc, sizeof (*fp->uv))))
+<<<<<<< HEAD
             goto sol_load_vary_fail;
+=======
+            goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         fp->uc = fp->base->uc;
 
         for (i = 0; i < fp->base->uc; i++)
@@ -293,7 +365,11 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 
     return 1;
 
+<<<<<<< HEAD
 sol_load_vary_fail:
+=======
+fail:
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     sol_free_vary(fp);
     return 0;
 }
@@ -570,7 +646,11 @@ int sol_load_lerp(struct s_lerp *fp, struct s_vary *vary)
     if (fp->vary->mc)
     {
         if (!(fp->mv = calloc(fp->vary->mc, sizeof (*fp->mv))))
+<<<<<<< HEAD
             goto sol_load_lerp_fail;
+=======
+            goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         fp->mc = fp->vary->mc;
 
         for (i = 0; i < fp->vary->mc; i++)
@@ -580,7 +660,11 @@ int sol_load_lerp(struct s_lerp *fp, struct s_vary *vary)
     if (fp->vary->uc)
     {
         if (!(fp->uv = calloc(fp->vary->uc, sizeof (*fp->uv))))
+<<<<<<< HEAD
             goto sol_load_lerp_fail;
+=======
+            goto fail;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         fp->uc = fp->vary->uc;
 
         for (i = 0; i < fp->vary->uc; i++)
@@ -599,7 +683,11 @@ int sol_load_lerp(struct s_lerp *fp, struct s_vary *vary)
 
     return 1;
 
+<<<<<<< HEAD
 sol_load_lerp_fail:
+=======
+fail:
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     sol_free_lerp(fp);
     return 0;
 }
@@ -609,6 +697,7 @@ void sol_free_lerp(struct s_lerp *fp)
     if (!fp)
         return;
 
+<<<<<<< HEAD
     if (fp->mv)
     {
         free(fp->mv);
@@ -620,6 +709,10 @@ void sol_free_lerp(struct s_lerp *fp)
         free(fp->uv);
         fp->uv = NULL;
     }
+=======
+    if (fp->mv) free(fp->mv);
+    if (fp->uv) free(fp->uv);
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
     memset(fp, 0, sizeof (*fp));
 }

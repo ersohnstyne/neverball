@@ -1034,6 +1034,7 @@ int config_get_d(int i)
 
 void config_set_s(int i, const char *src)
 {
+<<<<<<< HEAD
 #ifndef NDEBUG
 #if NB_HAVE_PB_BOTH==1
     assert(!networking_busy && !accessibility_busy && !account_busy &&
@@ -1049,6 +1050,12 @@ void config_set_s(int i, const char *src)
         config_busy = 1;
 
         char *dup = src ? strdup(src) : NULL;
+=======
+    char *dup = src ? strdup(src) : NULL;
+
+    free(option_s[i].cur);
+    option_s[i].cur = dup;
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
         if (option_s[i].cur)
         {

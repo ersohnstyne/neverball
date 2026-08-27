@@ -931,10 +931,37 @@ endif
 
 desktops : $(DESKTOPS)
 
+#------------------------------------------------------------------------------
+
+TEST_TARG := tests/test$(X)
+
+TEST_SRCS := \
+	tests/test_main.c \
+	tests/test_array.c \
+	tests/test_list.c \
+	tests/test_queue.c \
+	tests/test_common.c \
+	share/array.c \
+	share/common.c \
+	share/queue.c \
+	share/list.c
+
+$(TEST_TARG) : $(TEST_SRCS)
+	$(CC) $(ALL_CFLAGS) -Ishare -UNDEBUG -o $@ $^ $(LDFLAGS)
+
+test : $(TEST_TARG)
+	./$(TEST_TARG)
+
 clean-src :
+<<<<<<< HEAD
 	@$(RM) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG)
 	@find ball share putt \( -name '*.o' -o -name '*.d' \) -delete
 	@$(RM) neverball.ico.o neverputt.ico.o
+=======
+	$(RM) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) $(TEST_TARG)
+	find ball share putt tests \( -name '*.o' -o -name '*.d' \) -delete
+	$(RM) neverball.ico.o neverputt.ico.o
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
 clean-sols :
 	@$(RM) $(SOLS)
@@ -946,9 +973,13 @@ clean : clean-src clean-sols
 
 #------------------------------------------------------------------------------
 
+<<<<<<< HEAD
 .PHONY : ball putt mapc publish test sols csols locales desktops clean-src \
 	clean-sols clean
+=======
+.PHONY : all sols locales desktops clean-src clean test
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
--include $(BALL_DEPS) $(PUTT_DEPS) $(MAPC_DEPS)
+-include $(BALL_DEPS) $(PUTT_DEPS) $(MAPC_DEPS) $(wildcard tests/*.d)
 
 #------------------------------------------------------------------------------

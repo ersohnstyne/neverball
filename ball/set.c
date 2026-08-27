@@ -446,6 +446,7 @@ static void set_load_hs(void)
 
 /*---------------------------------------------------------------------------*/
 
+<<<<<<< HEAD
 int set_check_id(const unsigned char *name, const char *needle)
 {
     const unsigned char *haystack, *c;
@@ -466,6 +467,8 @@ int set_check_id(const unsigned char *name, const char *needle)
     return (int) (strstr(str_starts_with(name, "set-") ? name + 4 : name, needle) != 0);
 }
 
+=======
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 static void set_free(struct set *s);
 
 static int set_load(struct set *s, const char *filename)
@@ -475,6 +478,14 @@ static int set_load(struct set *s, const char *filename)
     int      curr_date_month = 0;
 
     if (!s || !filename || !*filename)
+<<<<<<< HEAD
+=======
+        return 0;
+
+    /* Skip "Misc" set when not in dev mode. */
+
+    if (strcmp(filename, SET_MISC) == 0 && !config_cheat())
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         return 0;
 
     time_t     curr_date = time(NULL);
@@ -682,6 +693,7 @@ static int set_load(struct set *s, const char *filename)
     log_errorf("Failure to load set file: %s / %s\n",
                filename, fs_error());
 
+<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1
     s->balls_needed = 0;
     s->star = 0;
@@ -692,6 +704,8 @@ static int set_load(struct set *s, const char *filename)
     s->id   = NULL;
     s->shot = NULL;
 
+=======
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
     fs_close(fin);
     set_free(s);
 
@@ -700,6 +714,9 @@ static int set_load(struct set *s, const char *filename)
 
 static void set_free(struct set *s)
 {
+    if (!s)
+        return;
+
     if (!s)
         return;
 
@@ -727,8 +744,11 @@ static void set_free(struct set *s)
     for (int i = 0; i < s->count; i++)
     {
         free(s->level_name_v[i]);
+<<<<<<< HEAD
         s->level_name_v[i] = NULL;
     }
+=======
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
     memset(s, 0, sizeof (*s));
 }
@@ -787,12 +807,21 @@ int set_init(int boost_active)
         {
             struct set *s = array_add(sets);
 
+<<<<<<< HEAD
             if (s) {
+=======
+            if (s)
+            {
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
                 if (!set_load(s, name))
                     array_del(sets);
             }
             else
+<<<<<<< HEAD
                 log_errorf("Warning: Failed to allocate set slot for '%s'\n", name);
+=======
+                log_printf("Warning: Failed to allocate set slot for '%s'\n", name);
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
 
             free(name);
             name = NULL;
@@ -813,13 +842,21 @@ int set_init(int boost_active)
         {
             struct set *s = array_add(sets);
 
+<<<<<<< HEAD
             if (!s)
+=======
+            if (s)
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
             {
                 if (!set_load(s, DIR_ITEM_GET(items, i)->path))
                     array_del(sets);
             }
             else
+<<<<<<< HEAD
                 log_errorf("Warning: Failed to allocate set slot for '%s'\n",
+=======
+                log_printf("Warning: Failed to allocate set slot for '%s'\n",
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
                            DIR_ITEM_GET(items, i)->path);
         }
 

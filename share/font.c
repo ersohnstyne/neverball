@@ -43,6 +43,7 @@ int font_load(struct font *ft, const char *path, int sizes[FONT_SIZE_MAX])
         {
             memset(ft, 0, sizeof (*ft));
 
+<<<<<<< HEAD
             if ((ft->data = fs_load(path, &ft->datalen)))
             {
                 int i;
@@ -64,6 +65,26 @@ int font_load(struct font *ft, const char *path, int sizes[FONT_SIZE_MAX])
                         return 1;
                 }
             }
+=======
+            SAFECPY(ft->path, path);
+
+            if ((ft->rwops = SDL_RWFromConstMem(ft->data, ft->datalen)))
+            {
+                int opened = 0;
+
+                for (i = 0; i < ARRAYSIZE(ft->ttf); i++)
+                {
+                    SDL_RWseek(ft->rwops, 0, SEEK_SET);
+                    if ((ft->ttf[i] = TTF_OpenFontRW(ft->rwops, 0, sizes[i])))
+                        opened++;
+                }
+
+                if (opened > 0)
+                    return 1;
+            }
+
+            font_free(ft);
+>>>>>>> 329a96e40fcc28c8f6d30d3fcc0d2ca03914ee27
         }
     }
     else

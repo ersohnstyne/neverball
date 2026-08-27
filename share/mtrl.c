@@ -231,7 +231,7 @@ int mtrl_cache(const struct b_mtrl *base)
     struct mtrl *mp;
     int mi;
 
-    if (base)
+    if (!base)
         return -1;
 
 #ifdef __EMSCRIPTEN__

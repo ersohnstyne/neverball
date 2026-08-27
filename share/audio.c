@@ -357,8 +357,11 @@ void voice_free(struct voice *V);
 
 static struct voice *voice_init(const char *filename, float a)
 {
-    struct voice *VP = NULL;
+    struct voice *V = NULL;
     fs_file       fp;
+
+    if (!filename || !*filename)
+        return NULL;
 
 #if defined(__WII__)
     int i;
@@ -371,13 +374,13 @@ static struct voice *voice_init(const char *filename, float a)
         {
             if (strcmp(filename, voice_cache[i]->name) == 0)
             {
-                VP = voice_cache[i];
-                VP->amp  = a;
-                VP->damp = 0;
-                VP->play = 1;
-                VP->loop = 0;
-                ov_raw_seek(&VP->vf, 0);
-                return VP;
+                V = voice_cache[i];
+                V->amp  = a;
+                V->damp = 0;
+                V->play = 1;
+                V->loop = 0;
+                ov_raw_seek(&V->vf, 0);
+                return V;
             }
         }
     }
@@ -385,32 +388,37 @@ static struct voice *voice_init(const char *filename, float a)
 
     /* Allocate and initialize a new voice structure. */
 
-    if ((VP = (struct voice *) calloc(1, sizeof (struct voice))))
+    if ((V = (struct voice *) calloc(1, sizeof (struct voice))))
     {
         /* Note the name. */
 
-        VP->name = strdup(filename);
+        if (!(V->name = strdup(filename)))
+        {
+            free(V->name); V->name = NULL;
+            return NULL;
+        }
 
         /* Attempt to open the named Ogg stream. */
 
         if ((fp = fs_open_read(filename)))
         {
-            if (ov_open_callbacks(fp, &VP->vf, NULL, 0, callbacks) == 0)
+            if (ov_open_callbacks(fp, &V->vf, NULL, 0, callbacks) == 0)
             {
-                vorbis_info *info = ov_info(&VP->vf, -1);
+                vorbis_info *info = ov_info(&V->vf, -1);
 
                 /* On success, configure the voice. */
 
-                VP->amp  = a;
-                VP->damp = 0;
-                VP->chan = info->channels;
-                VP->play = 1;
-                VP->loop = 0;
+                V->amp  = a;
+                V->damp = 0;
+                V->chan = info->channels;
+                V->play = 1;
+                V->loop = 0;
 
-                if (VP->amp > 1.0f) VP->amp = 1.0;
-                if (VP->amp < 0.0f) VP->amp = 0.0;
+                if (V->amp > 1.0f) V->amp = 1.0;
+                if (V->amp < 0.0f) V->amp = 0.0;
 
                 /* The file will be closed when the Ogg is cleared. */
+                return V;
             }
             else fs_close(fp);
         }
@@ -423,8 +431,8 @@ static struct voice *voice_init(const char *filename, float a)
     {
         if (voice_cache[i] == NULL)
         {
-            voice_cache[i] = VP;
-            return VP;
+            voice_cache[i] = V;
+            return V;
         }
     }
 
@@ -435,13 +443,13 @@ static struct voice *voice_init(const char *filename, float a)
         if (voice_cache[i] != NULL && !voice_cache[i]->play)
         {
             voice_free(voice_cache[i]);
-            voice_cache[i] = VP;
-            return VP;
+            voice_cache[i] = V;
+            return V;
         }
     }
 #endif
 
-    return VP;
+    return NULL;
 }
 
 void voice_free(struct voice *V)
@@ -785,7 +793,7 @@ void audio_play(const char *filename, float a)
         lock_hold = 1;
         {
             for (VSFX = voices_sfx; VSFX; VSFX = VSFX->next)
-                if (strcmp(VSFX->name, filename) == 0)
+                if (VSFX->name && strcmp(VSFX->name, filename) == 0)
                 {
                     ov_raw_seek(&VSFX->vf, 0);
 
@@ -802,16 +810,17 @@ void audio_play(const char *filename, float a)
 
         /* Create a new voice structure. */
 
-        VSFX = voice_init(filename, a);
-
-        /* Add it to the list of sounding voices. */
-
-        lock_hold = 1;
+        if ((VSFX = voice_init(filename, a)))
         {
-            VSFX->next = voices_sfx;
-            voices_sfx = VSFX;
+            /* Add it to the list of sounding voices. */
+
+            lock_hold = 1;
+            {
+                VSFX->next = voices_sfx;
+                voices_sfx = VSFX;
+            }
+            lock_hold = 0;
         }
-        lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
     {
@@ -845,7 +854,7 @@ void audio_narrator_play(const char *filename)
         lock_hold = 1;
         {
             for (VNFX = voices_narrators; VNFX; VNFX = VNFX->next)
-                if (strcmp(VNFX->name, filename) == 0)
+                if (VNFX->name && strcmp(VNFX->name, filename) == 0)
                 {
                     ov_raw_seek(&VNFX->vf, 0);
 
@@ -862,16 +871,17 @@ void audio_narrator_play(const char *filename)
 
         /* Create a new voice structure. */
 
-        VNFX = voice_init(filename, 1.0f);
-
-        /* Add it to the list of sounding voices. */
-
-        lock_hold = 1;
+        if ((VNFX = voice_init(filename, 1.0f)))
         {
-            VNFX->next = voices_narrators;
-            voices_narrators = VNFX;
+            /* Add it to the list of sounding voices. */
+
+            lock_hold = 1;
+            {
+                VNFX->next = voices_narrators;
+                voices_narrators = VNFX;
+            }
+            lock_hold = 0;
         }
-        lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
     {
@@ -1007,7 +1017,7 @@ void audio_music_fade_to(float t, const char *filename, int loop)
             return;
         }
 
-        if (strcmp(filename, voices_music->name) == 0)
+        if (!voices_music->name && strcmp(filename, voices_music->name) == 0)
         {
             /*
              * We're fading to the current track.  Chances are,

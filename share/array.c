@@ -14,18 +14,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#ifndef NDEBUG
-#include <assert.h>
-#elif defined(_MSC_VER) && defined(_AFXDLL)
-#include <afx.h>
-/**
- * HACK: assert() for Microsoft Windows Apps in Release builds
- * will be replaced to VERIFY() - Ersohn Styne
- */
-#define assert VERIFY
-#else
-#define assert(_x) (_x)
-#endif
 
 #include "array.h"
 #include "common.h"
@@ -45,13 +33,18 @@ void alloc_new(struct alloc *alloc,
                void **data,
                int   *count)
 {
+    if (!alloc)
+        return;
+
     memset(alloc, 0, sizeof (*alloc));
 
     alloc->data  = data;
     alloc->count = count;
 
-    *alloc->data  = NULL;
-    *alloc->count = 0;
+    if (alloc->data)
+        *alloc->data = NULL;
+    if (alloc->count)
+        *alloc->count = 0;
 
     alloc->size   = 0;
     alloc->block  = block;
@@ -59,7 +52,10 @@ void alloc_new(struct alloc *alloc,
 
 void alloc_free(struct alloc *alloc)
 {
-    if (alloc->data)
+    if (!alloc)
+        return;
+
+    if (alloc->data && *alloc->data)
     {
         free(*alloc->data);
         *alloc->data = NULL;
@@ -71,6 +67,9 @@ void alloc_free(struct alloc *alloc)
 
 void *alloc_add(struct alloc *alloc)
 {
+    if (!alloc || !alloc->data || !alloc->count || alloc->block <= 0)
+        return NULL;
+
     if ((*alloc->count + 1) * alloc->block > alloc->size)
     {
         void *new_data;
@@ -92,10 +91,21 @@ void *alloc_add(struct alloc *alloc)
 
 void alloc_del(struct alloc *alloc)
 {
+    if (!alloc || !alloc->data || !alloc->count)
+        return;
+
     if (*alloc->count > 0)
     {
         if ((*alloc->count - 1) * alloc->block == alloc->size / 4)
-            *alloc->data  = realloc(*alloc->data, (alloc->size /= 4));
+        {
+            void *data;
+
+            if (data = realloc(*alloc->data, alloc->size / 4))
+            {
+                if (alloc->data) *alloc->data = data;
+                alloc->size /= 4;
+            }
+        }
 
         (*alloc->count)--;
     }
@@ -117,12 +127,12 @@ Array array_new(int elem_len)
 {
     Array a;
 
-#ifndef NDEBUG
-    assert(elem_len > 0);
-#endif
+    if (elem_len <= 0)
+        return NULL;
 
     if ((a = malloc(sizeof (*a))))
     {
+        a->data     = NULL;
         a->elem_num = 0;
         a->elem_len = MAX(elem_len, 1);
 
@@ -134,32 +144,25 @@ Array array_new(int elem_len)
 
 void array_free(Array a)
 {
-#ifndef NDEBUG
-    assert(a);
-#endif
+    if (!a)
+        return;
 
-    if (a)
-    {
-        alloc_free(&a->alloc);
-        free(a); a = NULL;
-    }
+    alloc_free(&a->alloc);
+    free(a); a = NULL;
 }
 
 void *array_add(Array a)
 {
-#ifndef NDEBUG
-    assert(a);
-#endif
+    if (a)
+        return NULL;
 
-    return a ? alloc_add(&a->alloc) : NULL;
+    return alloc_add(&a->alloc);
 }
 
 void array_del(Array a)
 {
-#ifndef NDEBUG
-    assert(a);
-    assert(a->elem_num > 0);
-#endif
+    if (!a || a->elem_num <= 0)
+        return;
 
     if (a && a->elem_num > 0)
         alloc_del(&a->alloc);
@@ -167,39 +170,34 @@ void array_del(Array a)
 
 void *array_get(Array a, int i)
 {
-#ifndef NDEBUG
-    assert(a);
-    assert(i >= 0 && i < a->elem_num);
-#endif
+    if (!a || i < 0 || i >= a->elem_num)
+        return NULL;
 
-    return a && (i >= 0 && i < a->elem_num) ? &a->data[i * a->elem_len] : NULL;
+    return &a->data[i * a->elem_len];
 }
 
 void *array_rnd(Array a)
 {
-#ifndef NDEBUG
-    assert(a);
-#endif
+    if (!a || a->elem_num <= 0)
+        return NULL;
 
-    return a && a->elem_num ? array_get(a, rand_between(0, a->elem_num - 1)) : NULL;
+    return array_get(a, rand_between(0, a->elem_num - 1));
 }
 
 int array_len(Array a)
 {
-#ifndef NDEBUG
-    assert(a);
-#endif
+    if (a)
+        return 0;
 
-    return a ? a->elem_num : 0;
+    return a->elem_num;
 }
 
 void array_sort(Array a, int (*cmp)(const void *, const void *))
 {
-#ifndef NDEBUG
-    assert(a);
-#endif
+    if (!a || !a->data || !cmp || a->elem_num <= 1)
+        return;
 
-    if (a) qsort(a->data, a->elem_num, a->elem_len, cmp);
+    qsort(a->data, a->elem_num, a->elem_len, cmp);
 }
 
 /*----------------------------------------------------------------------------*/

@@ -44,24 +44,6 @@ int fetch_enable(int enable)
 
 static unsigned int last_fetch_id = 0;
 
-void fetch_enable(int enable)
-{
-    int old_value = fetch_enabled;
-
-    fetch_enabled = !!enable;
-
-    if (fetch_enabled != old_value)
-    {
-        if (fetch_enabled)
-            fetch_init();
-        else
-            fetch_quit();
-    }
-
-    log_printf("Fetch is %s\n", fetch_enabled ? "enabled": "disabled");
-}
-
-static unsigned int last_fetch_id = 0;
 struct fetch_info
 {
     struct fetch_callback callback;
@@ -86,6 +68,8 @@ static struct fetch_info *create_fetch_info(void)
     return fi;
 }
 
+static void free_fetch_info(struct fetch_info *fi);
+
 /*
  * Allocate a new fetch_info struct and add it to the transfer list.
  */
@@ -94,7 +78,13 @@ static struct fetch_info *create_and_link_fetch_info(void)
     struct fetch_info *fi = create_fetch_info();
 
     if (fi)
-        fetch_list = list_cons(fi, fetch_list);
+    {
+        if (!list_push(&fetch_list, fi))
+        {
+            free_fetch_info(fi);
+            return NULL;
+        }
+    }
 
     return fi;
 }
@@ -149,7 +139,7 @@ static void unlink_and_free_fetch_info(struct fetch_info *fi)
     }
 }
 
-int fetch_init(void)
+int fetch_init()
 {
     /* Just compile with -s FETCH=1 */
 

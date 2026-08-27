@@ -82,10 +82,7 @@ static int   package_curr_category = PACKAGE_CATEGORY_LEVELSET;
 /*
  * Get a download URL.
  */
-
-#ifndef PACKAGE_BASE_URL
 #define PACKAGE_BASE_URL "https://play.neverball.org/packages/"
-#endif
 
 static const char *get_package_url(const char *filename, int category)
 {
@@ -249,6 +246,12 @@ static int mount_local_package(struct local_package *lpkg)
 {
     if (lpkg && mount_package_file(lpkg->filename))
     {
+        if (!list_push(&installed_packages, lpkg))
+        {
+            log_errorf("Warning: Failed to allocate package entry for '%s'\n", lpkg->filename);
+            return 0;
+        }
+
         installed_packages = list_cons(lpkg, installed_packages);
         unmount_duplicate_local_packages(lpkg);
         save_installed_packages();
@@ -284,7 +287,12 @@ static int load_installed_packages(void)
                 lpkg = array_add(pkgs);
 
                 if (lpkg)
+                {
+                    memset(lpkg, 0, sizeof (*lpkg));
                     SAFECPY(lpkg->id, line + 8);
+                }
+                else
+                    log_errorf("Warning: Failed to allocate installed slot for '%s'\n", line + 8);
             }
             else if (strncmp(line, "filename ", 9) == 0)
             {
@@ -299,6 +307,7 @@ static int load_installed_packages(void)
                 {
                     char *delim;
 
+                    memset(lpkg, 0, sizeof (*lpkg));
                     SAFECPY(lpkg->filename, line);
 
                     /* Extract package ID from the filename. */
@@ -311,6 +320,8 @@ static int load_installed_packages(void)
 
                     lpkg = NULL;
                 }
+                else
+                    log_errorf("Warning: Failed to allocate installed slot for '%s'\n", line + 8);
             }
         }
 
@@ -818,7 +829,7 @@ void package_change_category(const enum package_category pkg_category)
  */
 void package_init(void)
 {
-    if (package_is_init)package_quit();
+    if (package_is_init) package_quit();
 
     const char *write_dir;
 

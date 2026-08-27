@@ -448,6 +448,8 @@ static void set_load_hs(void)
 
 int set_check_id(const unsigned char *name, const char *needle)
 {
+    const unsigned char *haystack, *c;
+
     /* Validate inputs */
 
     if (name == NULL || needle == NULL)
@@ -464,11 +466,16 @@ int set_check_id(const unsigned char *name, const char *needle)
     return (int) (strstr(str_starts_with(name, "set-") ? name + 4 : name, needle) != 0);
 }
 
+static void set_free(struct set *s);
+
 static int set_load(struct set *s, const char *filename)
 {
     fs_file  fin;
     char    *scores, *level_name;
     int      curr_date_month = 0;
+
+    if (!s || !filename || !*filename)
+        return 0;
 
     time_t     curr_date = time(NULL);
     struct tm *curr_date_localtime = localtime(&curr_date);
@@ -539,12 +546,12 @@ static int set_load(struct set *s, const char *filename)
             !glext_get_hatsune_miku())
         {
 #ifdef __EMSCRIPTEN__
-            if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+            if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
 #endif
                 return 0;
         }
 #ifdef __EMSCRIPTEN__
-        else if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+        else if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
             return 0;
 #endif
     }
@@ -675,11 +682,6 @@ static int set_load(struct set *s, const char *filename)
     log_errorf("Failure to load set file: %s / %s\n",
                filename, fs_error());
 
-    free(s->name);
-    free(s->desc);
-    free(s->id);
-    free(s->shot);
-
 #if NB_HAVE_PB_BOTH==1
     s->balls_needed = 0;
     s->star = 0;
@@ -691,12 +693,16 @@ static int set_load(struct set *s, const char *filename)
     s->shot = NULL;
 
     fs_close(fin);
+    set_free(s);
 
     return 0;
 }
 
 static void set_free(struct set *s)
 {
+    if (!s)
+        return;
+
     free(s->name);
     free(s->desc);
     free(s->id);
@@ -723,6 +729,8 @@ static void set_free(struct set *s)
         free(s->level_name_v[i]);
         s->level_name_v[i] = NULL;
     }
+
+    memset(s, 0, sizeof (*s));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -764,6 +772,9 @@ int set_init(int boost_active)
     sets = array_new(sizeof (struct set));
     curr = 0;
 
+    if (!sets)
+        return 0;
+
     /*
      * First, load the sets listed in the set file, preserving order.
      */
@@ -776,8 +787,12 @@ int set_init(int boost_active)
         {
             struct set *s = array_add(sets);
 
-            if (!set_load(s, name))
-                array_del(sets);
+            if (s) {
+                if (!set_load(s, name))
+                    array_del(sets);
+            }
+            else
+                log_errorf("Warning: Failed to allocate set slot for '%s'\n", name);
 
             free(name);
             name = NULL;
@@ -798,8 +813,14 @@ int set_init(int boost_active)
         {
             struct set *s = array_add(sets);
 
-            if (!set_load(s, DIR_ITEM_GET(items, i)->path))
-                array_del(sets);
+            if (!s)
+            {
+                if (!set_load(s, DIR_ITEM_GET(items, i)->path))
+                    array_del(sets);
+            }
+            else
+                log_errorf("Warning: Failed to allocate set slot for '%s'\n",
+                           DIR_ITEM_GET(items, i)->path);
         }
 
         fs_dir_free(items);

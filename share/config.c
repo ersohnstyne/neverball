@@ -427,8 +427,8 @@ static struct
 
     { &CONFIG_ONLINE, "online", 1 },
 
-    { &CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY,   "advanced_gameplay_autoretry",   1 },
-    { &CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET, "advanced_gameplay_fasterreset", 0 },
+    { &CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY,    "advanced_gameplay_autoretry",   1 },
+    { &CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET,  "advanced_gameplay_fasterreset", 0 },
 
     { &CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING, "advanced_gameplay_drop_speeding", 1 },
 
@@ -1048,13 +1048,15 @@ void config_set_s(int i, const char *src)
     {
         config_busy = 1;
 
+        char *dup = src ? strdup(src) : NULL;
+
         if (option_s[i].cur)
         {
             free(option_s[i].cur);
             option_s[i].cur = NULL;
         }
 
-        option_s[i].cur = strdup(src);
+        option_s[i].cur = dup;
 
         dirty = 1;
         config_busy = 0;

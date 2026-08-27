@@ -90,8 +90,11 @@ int read_line(char **dst, fs_file fin)
 {
     char buff[MAXSTR];
 
-    char *line, *newLine;
+    char *line, *new;
     size_t len0, len1;
+
+    if (!dst || !fin)
+        return 0;
 
     line = NULL;
 
@@ -101,12 +104,15 @@ int read_line(char **dst, fs_file fin)
 
         if (line)
         {
-            newLine = concat_string(line, buff, NULL);
+            new = concat_string(line, buff, NULL);
             free(line);
-            line = newLine;
+            line = new;
         }
         else
             line = strdup(buff);
+
+        if (!line)
+            break;
 
         /* Strip newline, if any. */
 
@@ -117,12 +123,15 @@ int read_line(char **dst, fs_file fin)
         if (len1 != len0)
         {
             /* We hit a newline, clean up and break. */
-            line = (char *) realloc(line, len1 + 1);
+            new = (char *) realloc(line, len1 + 1);
+            if (new)
+                line = new;
             break;
         }
     }
 
-    return (*dst = line) ? 1 : 0;
+    *dst = line;
+    return line ? 1 : 0;
 }
 
 #if UNICODE
@@ -374,10 +383,14 @@ int path_is_abs(const char *path)
 
 char *path_join(const char *head, const char *tail)
 {
+    if (!head || !*head)
+        return tail ? strdup(tail) : NULL;
+    if (!tail || !*tail)
+        return strdup(head);
 #ifdef _WIN32
-    return (head && *head) ? concat_string(head, "\\", tail, NULL) : strdup(tail);
+    return concat_string(head, "\\", tail, NULL);
 #else
-    return (head && *head) ? concat_string(head, "/", tail, NULL) : strdup(tail);
+    return concat_string(head, "/", tail, NULL);
 #endif
 }
 

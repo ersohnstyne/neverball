@@ -263,22 +263,6 @@ extern "C" int account_init(void)
         account_set_s(i, account_s[i].def);
     }
 
-    for (int i = 0; i < ARRAYSIZE(account_d); i++)
-    {
-        steam_account_d[i].curr = account_d[i].def;
-        dirty = 1;
-    }
-
-    for (int i = 0; i < ARRAYSIZE(account_s); i++)
-    {
-        if (steam_account_s[i].curr) {
-            free(steam_account_s[i].curr);
-            steam_account_s[i].curr = NULL;
-        }
-        steam_account_s[i].curr = strdup(account_s[i].def);
-        dirty = 1;
-    }
-
     account_busy = 0;
     account_is_init = 1;
 
@@ -576,6 +560,9 @@ extern "C" void account_set_s(int i, const char *src)
     if (!networking_busy && !config_busy && !accessibility_busy)
     {
         account_busy = 1;
+        
+        char *dup       = src ? strdup(src) : NULL;
+        char *dup_steam = src ? strdup(src) : NULL;
 
         if (account_s[i].cur)
         {
@@ -589,8 +576,8 @@ extern "C" void account_set_s(int i, const char *src)
             steam_account_s[i].curr = NULL;
         }
 
-        account_s[i].cur = strdup(src);
-        steam_account_s[i].curr = strdup(src);
+        account_s[i].cur        = dup;
+        steam_account_s[i].curr = dup_steam;
 
         dirty = 1;
         account_busy = 0;

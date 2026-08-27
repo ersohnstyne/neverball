@@ -156,11 +156,6 @@ void fs_set_logging(int logging)
     fs_logging = logging;
 }
 
-void fs_set_logging(int logging)
-{
-    fs_logging = logging;
-}
-
 int fs_quit(void)
 {
     if (fs_dir_base)
@@ -248,9 +243,12 @@ int fs_add_path(const char *path)
         path_item->path = strdup(path);
         path_item->data = NULL;
 
-        fs_path = list_cons(path_item, fs_path);
+        if (list_push(&fs_path, path_item))
+            return 1;
 
-        return 1;
+        free(path_item->path);
+        free(path_item);
+        return 0;
     }
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -272,9 +270,12 @@ int fs_add_path(const char *path)
                 path_item->path = strdup(path);
                 path_item->data = zip;
 
-                fs_path = list_cons(path_item, fs_path);
+                if (list_push(&fs_path, path_item))
+                    return 1;
 
-                return 1;
+                free(path_item->path);
+                mz_zip_reader_end(zip);
+                return 0;
             }
             else if (fs_logging)
             {
@@ -286,11 +287,10 @@ int fs_add_path(const char *path)
             free(zip);
             zip = NULL;
         }
+
+        free(path_item);
     }
 #endif
-
-    free_path_item(path_item);
-    path_item = NULL;
 
     return 0;
 }
@@ -389,7 +389,11 @@ static List zip_list_files(mz_zip_archive *zip, const char *path)
                 if (strcmp(path, dn) == 0)
                 {
                     char *copy = strdup(base_name(file_stat.m_filename));
-                    files = list_cons(copy, files);
+                    if (copy)
+                    {
+                        if (!list_push(&files, copy))
+                            free(copy);
+                    }
                 }
             }
     }
@@ -441,14 +445,19 @@ static void insert_strings_into_list(List *items, List strings)
 
         if (!skip)
         {
-            if (p)
-                p->next = list_cons(str->data, p->next);
-            else
-                *items = list_cons(str->data, *items);
+            List node = list_cons(str->data, p ? p->next : *items);
 
-            /* We will free the string data ourselves. */
+            if (node)
+            {
+                if (p)
+                    p->next = node;
+                else
+                    *items = node;
 
-            str->data = NULL;
+                /* We will free the string data ourselves. */
+
+                str->data = NULL;
+            }
         }
     }
 }

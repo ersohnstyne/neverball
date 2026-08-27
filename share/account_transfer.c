@@ -221,21 +221,6 @@ int account_transfer_init(void)
         *account_transfer_s[i].sym = i;
         account_transfer_set_s(i, account_transfer_s[i].def);
     }
-#if ENABLE_ACCOUNT_BINARY
-    for (int i = 0; i < ARRAYSIZE(account_transfer_d); i++)
-    {
-        steam_account_d[i].curr = account_transfer_d[i].cur;
-    }
-
-    for (int i = 0; i < ARRAYSIZE(account_transfer_s); i++)
-    {
-        if (steam_account_s[i].curr) {
-            free(steam_account_s[i].curr);
-            steam_account_s[i].curr = NULL;
-        }
-        steam_account_s[i].curr = strdup(account_transfer_s[i].def);
-    }
-#endif
 
     account_transfer_busy = 0;
     account_transfer_is_init = 1;
@@ -537,13 +522,15 @@ void account_transfer_set_s(int i, const char *src)
 {
     account_transfer_busy = 1;
 
+    char *dup = src ? strdup(src) : NULL;
+
     if (account_transfer_s[i].cur)
     {
         free(account_transfer_s[i].cur);
         account_transfer_s[i].cur = NULL;
     }
 
-    account_transfer_s[i].cur = strdup(src);
+    account_transfer_s[i].cur = dup;
 
     account_transfer_busy = 0;
 }

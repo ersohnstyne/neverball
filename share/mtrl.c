@@ -229,7 +229,11 @@ static void free_mtrl(struct mtrl *mp)
 int mtrl_cache(const struct b_mtrl *base)
 {
     struct mtrl *mp;
-    
+    int mi;
+
+    if (base)
+        return -1;
+
 #ifdef __EMSCRIPTEN__
     const char coin_mtrls[9][32] = {
         "item/coin/coin",        /* Default: en-US */
@@ -242,8 +246,6 @@ int mtrl_cache(const struct b_mtrl *base)
         "item/coin/yen_coin",    /* ja-* */
         "item/coin/zloty_coin"   /* pl-PL */
     };
-
-    int mi = 0;
 
     if (strcmp(base->f, "item/coin/coin") == 0) {
         int coin_region_index = EM_ASM_INT({
@@ -275,7 +277,7 @@ int mtrl_cache(const struct b_mtrl *base)
         mi = find_mtrl(coin_mtrls[coin_region_index]);
     } else mi = find_mtrl(base->f);
 #else
-    int mi = find_mtrl(base->f);
+    mi = find_mtrl(base->f);
 #endif
 
     if (mi < 0)
@@ -288,7 +290,7 @@ int mtrl_cache(const struct b_mtrl *base)
         {
             mp = array_get(mtrls, i);
 
-            if (mp->refc == 0)
+            if (mp && mp->refc == 0)
             {
                 load_mtrl(mp, base);
                 mp->refc++;
@@ -309,7 +311,8 @@ int mtrl_cache(const struct b_mtrl *base)
     else if (mi >= 0 && mi < array_len(mtrls))
     {
         mp = array_get(mtrls, mi);
-        mp->refc++;
+        if (mp)
+            mp->refc++;
     }
 
     return mi;
@@ -324,7 +327,7 @@ void mtrl_free(int mi)
     {
         struct mtrl *mp = array_get(mtrls, mi);
 
-        if (mp->refc > 0)
+        if (mp && mp->refc > 0)
         {
             mp->refc--;
 
@@ -338,7 +341,14 @@ void mtrl_free(int mi)
  */
 struct mtrl *mtrl_get(int mi)
 {
-    return mtrls && mi >= 0 && mi < array_len(mtrls) ? array_get(mtrls, mi) : NULL;
+    if (mtrls)
+    {
+        if (mi >= 0 && mi < array_len(mtrls))
+            return array_get(mtrls, mi);
+        if (default_mtrl >= 0 && default_mtrl < array_len(mtrls))
+            return array_get(mtrls, default_mtrl);
+    }
+    return NULL;
 }
 
 /*
@@ -346,9 +356,12 @@ struct mtrl *mtrl_get(int mi)
  */
 void mtrl_cache_sol(struct s_base *fp)
 {
+    if (!fp)
+        return;
+
     mtrl_free_sol(fp);
 
-    if ((fp->mtrls = calloc(fp->mc, sizeof (*fp->mtrls))))
+    if (fp->mc > 0 && (fp->mtrls = calloc(fp->mc, sizeof (*fp->mtrls))))
     {
         int mi;
 

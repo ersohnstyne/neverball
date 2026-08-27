@@ -206,6 +206,9 @@ static int sol_test_mtrl(int mi, int p)
 {
     const struct mtrl *mp = mtrl_get(mi);
 
+    if (!mp)
+        return 0;
+
     /* Test whether the material flags match inclusion rules. */
 
     return mp && ((mp->base.fl & passes[p].in) == passes[p].in &&
@@ -431,8 +434,8 @@ static int sol_load_mesh(struct d_mesh *mp,
 
             if (draw->base->lv)
                 sol_mesh_geom(vv, &vn, gv, &gn, draw->base, iv,
-                    draw->base->lv[bp->l0 + li].g0,
-                    draw->base->lv[bp->l0 + li].gc, mi, mp);
+                              draw->base->lv[bp->l0 + li].g0,
+                              draw->base->lv[bp->l0 + li].gc, mi, mp);
             else log_errorf("draw->base->lv returned NULL!\n");
         }
 
@@ -607,14 +610,19 @@ static int sol_load_body(struct d_body *bp,
 
     /* Allocate and initialize a mesh for each material. */
 
-    if ((bp->mv = (struct d_mesh *) calloc(bp->mc, sizeof (struct d_mesh))))
+    if (bp->mc > 0)
     {
-        int mj = 0;
+        if ((bp->mv = (struct d_mesh *) calloc(bp->mc, sizeof (struct d_mesh))))
+        {
+            int mj = 0;
 
-        for (mi = 0; mi < draw->base->mc; ++mi)
-            if (sol_count_body(bq, draw->base, mi))
-                if (!sol_load_mesh(bp->mv + mj++, bq, draw, mi))
-                    return 0;
+            for (mi = 0; mi < draw->base->mc; ++mi)
+                if (sol_count_body(bq, draw->base, mi))
+                    if (!sol_load_mesh(bp->mv + mj++, bq, draw, mi))
+                        return 0;
+        }
+        else
+            bp->mc = 0;
     }
 
     /* Cache a mesh count for each pass. */
@@ -627,12 +635,17 @@ static int sol_load_body(struct d_body *bp,
 
 static void sol_free_body(struct d_body *bp)
 {
-    if (bp->mv) {
-        for (int mi = 0; mi < bp->mc; ++mi)
-            sol_free_mesh(bp->mv + mi);
+    int mi;
 
-        free(bp->mv); bp->mv = NULL;
-    }
+    if (!bp)
+        return;
+
+    for (mi = 0; mi < bp->mc; ++mi)
+        sol_free_mesh(bp->mv + mi);
+
+    free(bp->mv);
+    bp->mv = NULL;
+    bp->mc = 0;
 }
 
 static void sol_draw_body(const struct d_body *bp, struct s_rend *rend, int p)
@@ -664,6 +677,9 @@ int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
 
     int i;
 
+    if (!draw || !vary || !vary->base)
+        return 0;
+
     /* Determine whether this file has reflective materials. */
 
     for (i = 0; i < draw->base->mc && !draw->reflective; i++)
@@ -685,18 +701,18 @@ int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
     /* Initialize all bodies for this file. */
 
     if (draw->base->bc) {
-        if ((draw->bv = (struct d_body *) (calloc(draw->base->bc, sizeof (*draw->bv))))) {
-            draw->bc = draw->base->bc;
-
-            for (i = 0; i < draw->bc; i++)
-                if (!sol_load_body(draw->bv + i, draw->base->bv + i, draw)) {
-                    sol_free_draw(draw);
-                    return 0;
-                }
-        } else {
+        if (!(draw->bv = (struct d_body *) (calloc(draw->base->bc, sizeof (*draw->bv))))) {
             sol_free_draw(draw);
             return 0;
         }
+
+        draw->bc = draw->base->bc;
+
+        for (i = 0; i < draw->bc; i++)
+            if (!sol_load_body(draw->bv + i, draw->base->bv + i, draw)) {
+                sol_free_draw(draw);
+                return 0;
+            }
     }
 
     sol_load_bill(draw);
@@ -706,7 +722,11 @@ int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
 
 void sol_free_draw(struct s_draw *draw)
 {
-    mtrl_free_sol(draw->base);
+    if (!draw)
+        return;
+
+    if (draw->base)
+        mtrl_free_sol(draw->base);
 
     sol_free_bill(draw);
 
@@ -716,6 +736,8 @@ void sol_free_draw(struct s_draw *draw)
 
         free(draw->bv); draw->bv = NULL;
     }
+
+    memset(draw, 0, sizeof (*draw));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -993,14 +1015,17 @@ void sol_fade(const struct s_draw *draw, struct s_rend *rend, float k)
 
 int sol_load_full(struct s_full *full, const char *filename, int s)
 {
-    if (full)
+    if (full && filename && *filename)
     {
         memset(full, 0, sizeof (*full));
 
         if (sol_load_base(&full->base, filename))
         {
-            sol_load_vary(&full->vary, &full->base);
-            return sol_load_draw(&full->draw, &full->vary, s);
+            if (sol_load_vary(&full->vary, &full->base) &&
+                sol_load_draw(&full->draw, &full->vary, s))
+                return 1;
+
+            sol_free_full(full);
         }
     }
 
@@ -1009,11 +1034,13 @@ int sol_load_full(struct s_full *full, const char *filename, int s)
 
 void sol_free_full(struct s_full *full)
 {
-    if (!full) return;
+    if (!full)
+        return;
 
     sol_free_draw(&full->draw);
     sol_free_vary(&full->vary);
     sol_free_base(&full->base);
+    memset(full, 0, sizeof (*full));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1160,7 +1187,7 @@ void r_color_mtrl(struct s_rend *rend, int enable)
     else
     {
         float motionblur_cfv[4] = DRAW_COLOR4FV_CNF_MOTIONBLUR;
-        
+
         glColor4f_(motionblur_cfv[0], motionblur_cfv[1], motionblur_cfv[2],
                    motionblur_cfv[3]);
 
@@ -1171,8 +1198,8 @@ void r_color_mtrl(struct s_rend *rend, int enable)
 
     if (changed && !enable) {
 #if ENABLE_MOTIONBLUR!=0
-        const float motionblur_d[4] = { 1.0f, 1.0f, 1.0f, config_motionblur() < 90 ? video_motionblur_alpha_get() : 1.0f };
-        const float motionblur_a[4] = { 1.0f, 1.0f, 1.0f, config_motionblur() < 90 ? video_motionblur_alpha_get() : 1.0f };
+        const float motionblur_d[4] = { 1.0f, 1.0f, 1.0f, config_motionblur() ? video_motionblur_alpha_get() : 1.0f };
+        const float motionblur_a[4] = { 1.0f, 1.0f, 1.0f, config_motionblur() ? video_motionblur_alpha_get() : 1.0f };
 
         rend->curr_mtrl.d = touint(motionblur_d);
         rend->curr_mtrl.a = touint(motionblur_a);
@@ -1187,6 +1214,12 @@ void r_apply_mtrl(struct s_rend *rend, int mi)
 {
     struct mtrl *mp = mtrl_get(mi);
     struct mtrl *mq = &rend->curr_mtrl;
+
+    if (!mp)
+        return;
+
+    if (!mq)
+        return;
 
     /* Mask ignored flags. */
 
@@ -1376,7 +1409,9 @@ void r_draw_enable(struct s_rend *rend)
 
     glBindTexture_(GL_TEXTURE_2D, 0);
 
-    rend->curr_mtrl = *mtrl_get(default_mtrl);
+    const struct mtrl *def = mtrl_get(default_mtrl);
+    if (def)
+        rend->curr_mtrl = *def;
 }
 
 void r_draw_disable(struct s_rend *rend)

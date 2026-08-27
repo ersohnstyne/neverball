@@ -258,16 +258,25 @@ static void sol_load_geom(fs_file fin, struct b_geom *gp, struct s_base *fp)
                 oc++;
         }
 
-        if (oc && (p = realloc(fp->ov, sizeof (struct b_offs) * (fp->oc + oc))))
+        if (oc)
         {
-            fp->ov = p;
+            if ((p = realloc(fp->ov, sizeof(struct b_offs) * (fp->oc + oc))))
+            {
+                fp->ov = p;
 
-            for (i = 0; i < 3; i++)
-                if (iv[i] < 0)
-                {
-                    fp->ov[fp->oc] = ov[i];
-                    iv[i] = fp->oc++;
-                }
+                for (i = 0; i < 3; i++)
+                    if (iv[i] < 0)
+                    {
+                        fp->ov[fp->oc] = ov[i];
+                        iv[i] = fp->oc++;
+                    }
+            }
+            else
+            {
+                for (i = 0; i < 3; i++)
+                    if (iv[i] < 0)
+                        iv[i] = 0;
+            }
         }
 
         gp->oi = iv[0];
@@ -552,56 +561,6 @@ static void sol_load_indx(fs_file fin, struct s_base *fp)
     fp->ic = get_index(fin);
 }
 
-#ifdef MAPC_INCLUDES_CHKP
-#define SOL_BASE_CHECK_LOAD \
-    if (fp->ac && fp->av == NULL) return 0; \
-    if (fp->mc && fp->mv == NULL) return 0; \
-    if (fp->vc && fp->vv == NULL) return 0; \
-    if (fp->ec && fp->ev == NULL) return 0; \
-    if (fp->sc && fp->sv == NULL) return 0; \
-    if (fp->tc && fp->tv == NULL) return 0; \
-    if (fp->oc && fp->ov == NULL) return 0; \
-    if (fp->gc && fp->gv == NULL) return 0; \
-    if (fp->lc && fp->lv == NULL) return 0; \
-    if (fp->nc && fp->nv == NULL) return 0; \
-    if (fp->pc && fp->pv == NULL) return 0; \
-    if (fp->bc && fp->bv == NULL) return 0; \
-    if (fp->hc && fp->hv == NULL) return 0; \
-    if (fp->zc && fp->zv == NULL) return 0; \
-    if (fp->jc && fp->jv == NULL) return 0; \
-    if (fp->xc && fp->xv == NULL) return 0; \
-    if (fp->rc && fp->rv == NULL) return 0; \
-    if (fp->uc && fp->uv == NULL) return 0; \
-    if (sol_version >= SOL_VERSION_CHKP && fp->cc && fp->cv == NULL) return 0; \
-    if (fp->wc && fp->wv == NULL) return 0; \
-    if (fp->dc && fp->dv == NULL) return 0; \
-    if (fp->ic && fp->iv == NULL) return 0
-#else
-
-#define SOL_BASE_CHECK_LOAD \
-    if (fp->ac && fp->av == NULL) return 0; \
-    if (fp->mc && fp->mv == NULL) return 0; \
-    if (fp->vc && fp->vv == NULL) return 0; \
-    if (fp->ec && fp->ev == NULL) return 0; \
-    if (fp->sc && fp->sv == NULL) return 0; \
-    if (fp->tc && fp->tv == NULL) return 0; \
-    if (fp->oc && fp->ov == NULL) return 0; \
-    if (fp->gc && fp->gv == NULL) return 0; \
-    if (fp->lc && fp->lv == NULL) return 0; \
-    if (fp->nc && fp->nv == NULL) return 0; \
-    if (fp->pc && fp->pv == NULL) return 0; \
-    if (fp->bc && fp->bv == NULL) return 0; \
-    if (fp->hc && fp->hv == NULL) return 0; \
-    if (fp->zc && fp->zv == NULL) return 0; \
-    if (fp->jc && fp->jv == NULL) return 0; \
-    if (fp->xc && fp->xv == NULL) return 0; \
-    if (fp->rc && fp->rv == NULL) return 0; \
-    if (fp->uc && fp->uv == NULL) return 0; \
-    if (fp->wc && fp->wv == NULL) return 0; \
-    if (fp->dc && fp->dv == NULL) return 0; \
-    if (fp->ic && fp->iv == NULL) return 0
-#endif
-
 static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
 {
     int i;
@@ -610,61 +569,37 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
 
     sol_load_indx(fin, fp);
 
-    if (fp->ac)
-        fp->av = (char *)          calloc(fp->ac, sizeof (*fp->av));
-    if (fp->mc)
-        fp->mv = (struct b_mtrl *) calloc(fp->mc, sizeof (*fp->mv));
-    if (fp->vc)
-        fp->vv = (struct b_vert *) calloc(fp->vc, sizeof (*fp->vv));
-    if (fp->ec)
-        fp->ev = (struct b_edge *) calloc(fp->ec, sizeof (*fp->ev));
-    if (fp->sc)
-        fp->sv = (struct b_side *) calloc(fp->sc, sizeof (*fp->sv));
-    if (fp->tc)
-        fp->tv = (struct b_texc *) calloc(fp->tc, sizeof (*fp->tv));
-    if (fp->oc)
-        fp->ov = (struct b_offs *) calloc(fp->oc, sizeof (*fp->ov));
-    if (fp->gc)
-        fp->gv = (struct b_geom *) calloc(fp->gc, sizeof (*fp->gv));
-    if (fp->lc)
-        fp->lv = (struct b_lump *) calloc(fp->lc, sizeof (*fp->lv));
-    if (fp->nc)
-        fp->nv = (struct b_node *) calloc(fp->nc, sizeof (*fp->nv));
-    if (fp->pc)
-        fp->pv = (struct b_path *) calloc(fp->pc, sizeof (*fp->pv));
-    if (fp->bc)
-        fp->bv = (struct b_body *) calloc(fp->bc, sizeof (*fp->bv));
-    if (fp->hc)
-        fp->hv = (struct b_item *) calloc(fp->hc, sizeof (*fp->hv));
-    if (fp->zc)
-        fp->zv = (struct b_goal *) calloc(fp->zc, sizeof (*fp->zv));
-    if (fp->jc)
-        fp->jv = (struct b_jump *) calloc(fp->jc, sizeof (*fp->jv));
-    if (fp->xc)
-        fp->xv = (struct b_swch *) calloc(fp->xc, sizeof (*fp->xv));
-    if (fp->rc)
-        fp->rv = (struct b_bill *) calloc(fp->rc, sizeof (*fp->rv));
-    if (fp->uc)
-        fp->uv = (struct b_ball *) calloc(fp->uc, sizeof (*fp->uv));
+    if (fp->ac && !(fp->av = (char *)          calloc(fp->ac, sizeof (*fp->av)))) goto sol_load_file_fail;
+    if (fp->mc && !(fp->mv = (struct b_mtrl *) calloc(fp->mc, sizeof (*fp->mv)))) goto sol_load_file_fail;
+    if (fp->vc && !(fp->vv = (struct b_vert *) calloc(fp->vc, sizeof (*fp->vv)))) goto sol_load_file_fail;
+    if (fp->ec && !(fp->ev = (struct b_edge *) calloc(fp->ec, sizeof (*fp->ev)))) goto sol_load_file_fail;
+    if (fp->sc && !(fp->sv = (struct b_side *) calloc(fp->sc, sizeof (*fp->sv)))) goto sol_load_file_fail;
+    if (fp->tc && !(fp->tv = (struct b_texc *) calloc(fp->tc, sizeof (*fp->tv)))) goto sol_load_file_fail;
+    if (fp->oc && !(fp->ov = (struct b_offs *) calloc(fp->oc, sizeof (*fp->ov)))) goto sol_load_file_fail;
+    if (fp->gc && !(fp->gv = (struct b_geom *) calloc(fp->gc, sizeof (*fp->gv)))) goto sol_load_file_fail;
+    if (fp->lc && !(fp->lv = (struct b_lump *) calloc(fp->lc, sizeof (*fp->lv)))) goto sol_load_file_fail;
+    if (fp->nc && !(fp->nv = (struct b_node *) calloc(fp->nc, sizeof (*fp->nv)))) goto sol_load_file_fail;
+    if (fp->pc && !(fp->pv = (struct b_path *) calloc(fp->pc, sizeof (*fp->pv)))) goto sol_load_file_fail;
+    if (fp->bc && !(fp->bv = (struct b_body *) calloc(fp->bc, sizeof (*fp->bv)))) goto sol_load_file_fail;
+    if (fp->hc && !(fp->hv = (struct b_item *) calloc(fp->hc, sizeof (*fp->hv)))) goto sol_load_file_fail;
+    if (fp->zc && !(fp->zv = (struct b_goal *) calloc(fp->zc, sizeof (*fp->zv)))) goto sol_load_file_fail;
+    if (fp->jc && !(fp->jv = (struct b_jump *) calloc(fp->jc, sizeof (*fp->jv)))) goto sol_load_file_fail;
+    if (fp->xc && !(fp->xv = (struct b_swch *) calloc(fp->xc, sizeof (*fp->xv)))) goto sol_load_file_fail;
+    if (fp->rc && !(fp->rv = (struct b_bill *) calloc(fp->rc, sizeof (*fp->rv)))) goto sol_load_file_fail;
+    if (fp->uc && !(fp->uv = (struct b_ball *) calloc(fp->uc, sizeof (*fp->uv)))) goto sol_load_file_fail;
 #ifdef MAPC_INCLUDES_CHKP
     if (sol_version >= SOL_VERSION_CHKP)
     {
         /* New: Checkpoints */
-        if (fp->cc)
-            fp->cv = (struct b_chkp *) calloc(fp->cc, sizeof (*fp->cv));
+        if (fp->cc && !(fp->cv = (struct b_chkp *) calloc(fp->cc, sizeof (*fp->cv)))) goto sol_load_file_fail;
     }
     else fp->cc = 0;
 #endif
-    if (fp->wc)
-        fp->wv = (struct b_view *) calloc(fp->wc, sizeof (*fp->wv));
-    if (fp->dc)
-        fp->dv = (struct b_dict *) calloc(fp->dc, sizeof (*fp->dv));
-    if (fp->ic)
-        fp->iv = (int *)           calloc(fp->ic, sizeof (*fp->iv));
+    if (fp->wc && !(fp->wv = (struct b_view *) calloc(fp->wc, sizeof (*fp->wv)))) goto sol_load_file_fail;
+    if (fp->dc && !(fp->dv = (struct b_dict *) calloc(fp->dc, sizeof (*fp->dv)))) goto sol_load_file_fail;
+    if (fp->ic && !(fp->iv = (int *)           calloc(fp->ic, sizeof (*fp->iv)))) goto sol_load_file_fail;
 
     /* HACK: Well, do check some... */
-
-    SOL_BASE_CHECK_LOAD;
 
     if (fp->ac) fs_read(fp->av, fp->ac, fin);
 
@@ -708,9 +643,8 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
     if (fp->uc < 1)
     {
         fp->uc = 1;
-        fp->uv = (struct b_ball *) calloc(fp->uc, sizeof (*fp->uv));
-
-        if (fp->uv == NULL) return 0;
+        if (!(fp->uv = (struct b_ball*)calloc(fp->uc, sizeof(*fp->uv))))
+            goto sol_load_file_fail;
     }
     else for (i = 0; i < fp->uc; i++)
         if (fp->uv[i].r < 0.0f) fp->uv[i].r = 0.25f;
@@ -736,6 +670,10 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
     }
 
     return 1;
+
+sol_load_file_fail:
+    sol_free_base(fp);
+    return 0;
 }
 
 static int sol_load_head(fs_file fin, struct s_base *fp, int fp_ten)
@@ -746,10 +684,8 @@ static int sol_load_head(fs_file fin, struct s_base *fp, int fp_ten)
 
     if (fp->ac)
     {
-        fp->av = (char *) calloc(fp->ac, sizeof (*fp->av));
-
-        if (fp->av == NULL) return 0;
-
+        if (!(fp->av = (char *) calloc(fp->ac, sizeof (*fp->av))))
+            goto sol_load_head_fail;
         fs_read(fp->av, fp->ac, fin);
     }
 
@@ -757,14 +693,18 @@ static int sol_load_head(fs_file fin, struct s_base *fp, int fp_ten)
     {
         int i;
 
-        fp->dv = (struct b_dict *) calloc(fp->dc, sizeof (*fp->dv));
+        if (!(fp->dv = (struct b_dict *) calloc(fp->dc, sizeof (*fp->dv))))
+            goto sol_load_head_fail;
 
-        if (fp->dv == NULL) return 0;
-
-        for (i = 0; i < fp->dc; i++) sol_load_dict(fin, fp->dv + i);
+        for (i = 0; i < fp->dc; i++)
+            sol_load_dict(fin, fp->dv + i);
     }
 
     return 1;
+
+sol_load_head_fail:
+    sol_free_base(fp);
+    return 0;
 }
 
 int sol_load_base(struct s_base *fp, const char *filename)
@@ -821,6 +761,9 @@ int sol_load_meta(struct s_base *fp, const char *filename)
     fs_file fin, fin_x;
     int res = 0;
 
+    if (!fp || !filename || !*filename)
+        return 0;
+
     memset(fp, 0, sizeof (*fp));
 
     if (str_ends_with(filename, ".csolx") ||
@@ -867,6 +810,9 @@ int sol_load_meta(struct s_base *fp, const char *filename)
 
 void sol_free_base(struct s_base *fp)
 {
+    if (!fp)
+        return;
+
     if (fp->av) { free(fp->av); fp->av = NULL; }
     if (fp->mv) { free(fp->mv); fp->mv = NULL; }
     if (fp->vv) { free(fp->vv); fp->vv = NULL; }

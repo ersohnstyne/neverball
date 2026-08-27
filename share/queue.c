@@ -47,14 +47,23 @@ Queue queue_new(void)
 {
     Queue new;
 
-    if ((new = malloc(sizeof (*new))))
-        new->head = new->tail = list_cons(NULL, NULL);
+    if ((new = malloc(sizeof(*new))))
+    {
+        if (!(new->head = new->tail = list_cons(NULL, NULL)))
+        {
+            free(new);
+            return NULL;
+        }
+    }
 
     return new;
 }
 
 void queue_free(Queue q)
 {
+    if (!q)
+        return;
+
 #ifndef NDEBUG
     assert(queue_empty(q));
 #endif
@@ -68,24 +77,23 @@ void queue_free(Queue q)
 
 int queue_empty(Queue q)
 {
-#ifndef NDEBUG
-    assert(q);
-#endif
+    if (!q || !q->head)
+        return 1;
     return q ? q->head == q->tail : 0;
 }
 
 void queue_enq(Queue q, void *data)
 {
-#ifndef NDEBUG
-    assert(q);
-#endif
+    List next_node;
 
-    if (q)
+    if (!q || !q->tail)
+        return;
+
+    if ((next_node = list_cons(NULL, NULL)))
     {
         q->tail->data = data;
-        q->tail->next = list_cons(NULL, NULL);
-
-        q->tail = q->tail->next;
+        q->tail->next = next_node;
+        q->tail = next_node;
     }
 }
 
@@ -93,7 +101,7 @@ void *queue_deq(Queue q)
 {
     void *data = NULL;
 
-    if (!queue_empty(q))
+    if (!queue_empty(q) && !q->head)
     {
         data    = q->head->data;
         q->head = list_rest(q->head);

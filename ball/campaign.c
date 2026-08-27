@@ -400,6 +400,9 @@ int campaign_load(const char *filename)
     fs_file fin;
     char *scores, *level_name;
 
+    if (!filename || !*filename)
+        return 0;
+
     if (!(fin = fs_open_read(filename)))
     {
         log_errorf("Failure to load campaign file: %s / %s\n",
@@ -482,6 +485,7 @@ int campaign_load(const char *filename)
     campaign_name = NULL;
 
     fs_close(fin);
+    campaign_quit();
 
     return 0;
 }

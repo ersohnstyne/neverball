@@ -49,17 +49,21 @@ int font_load(struct font *ft, const char *path, int sizes[FONT_SIZE_MAX])
 
                 SAFECPY(ft->path, path);
 
-                ft->rwops = SDL_RWFromConstMem(ft->data, ft->datalen);
-
-                for (i = 0; i < ARRAYSIZE(ft->ttf); i++)
+                if ((ft->rwops = SDL_RWFromConstMem(ft->data, ft->datalen)))
                 {
-                    SDL_RWseek(ft->rwops, 0, SEEK_SET);
-                    ft->ttf[i] = TTF_OpenFontRW(ft->rwops, 0, sizes[i]);
+                    int opened = 0;
+
+                    for (i = 0; i < ARRAYSIZE(ft->ttf); i++)
+                    {
+                        SDL_RWseek(ft->rwops, 0, SEEK_SET);
+                        if ((ft->ttf[i] = TTF_OpenFontRW(ft->rwops, 0, sizes[i])))
+                            opened++;
+                    }
+
+                    if (opened > 0)
+                        return 1;
                 }
-                return 1;
             }
-            else log_errorf("Failure to load font: %s / %s\n",
-                            path, fs_error());
         }
     }
     else

@@ -806,123 +806,13 @@ static int goto_level(const List level_multi)
 
 /*---------------------------------------------------------------------------*/
 
-/*
- * Handle the link option.
- *
- * This navigates to the appropriate screen, if the asset was found.
- *
- * Supported link types:
- *
- * --link set-easy
- * --link set-easy/peasy
- */
-static int link_handle(const char *link)
-{
-    int processed = 0;
-
-    if (!(link && *link))
-        return 0;
-
-    log_printf("Link: handling %s\n", link);
-
-    if (str_starts_with(link, "set-"))
-    {
-        /* Search installed sets and package list. */
-
-        const size_t prefix_len = strcspn(link, "/");
-
-        STRBUF set_part = substr(link, 0, prefix_len);
-        STRBUF map_part = substr(link, prefix_len + 1, 64);
-        STRBUF set_file = joinstr(CSTR(set_part), ".txt");
-
-        int index;
-        int found_level = 0;
-
-        log_printf("Link: searching for set %s\n", CSTR(set_file));
-
-        set_init(0);
-
-        if ((index = set_find(CSTR(set_file))) >= 0)
-        {
-            log_printf("Link: found set match for %s\n", CSTR(set_file));
-
-            set_goto(index);
-
-            if (*CSTR(map_part))
-            {
-                /* Search for the given level. */
-
-                struct level *level;
-                STRBUF sol_basename  = joinstr(CSTR(map_part), ".sol");
-                STRBUF solx_basename = joinstr(CSTR(map_part), ".solx");
-
-                log_printf("Link: searching for level %s\n", CSTR(sol_basename));
-
-                if ((level = set_find_level(CSTR(sol_basename))))
-                {
-                    log_printf("Link: found level match for %s\n", CSTR(sol_basename));
-
-                    progress_init(MODE_NORMAL);
-
-                    if (progress_play(level))
-                    {
-                        goto_state(&st_level);
-                        found_level = 1;
-                        processed = 1;
-                    }
-                }
-                else
-                {
-                    if ((level = set_find_level(CSTR(solx_basename))))
-                    {
-                        log_printf("Link: found level match for %s\n", CSTR(solx_basename));
-
-                        progress_init(MODE_NORMAL);
-
-                        if (progress_play(level))
-                        {
-                            goto_state(&st_level);
-                            found_level = 1;
-                            processed = 1;
-                        }
-                    }
-                    else log_errorf("Link: no such level\n");
-                }
-            }
-
-            if (!found_level)
-            {
-                load_title_background();
-                game_kill_fade();
-                goto_state(&st_start);
-                processed = 1;
-            }
-        }
-        else if ((index = package_search(CSTR(set_file))) >= 0)
-        {
-            log_printf("Link: found package match for %s\n", CSTR(set_file));
-#if NB_HAVE_PB_BOTH==1
-            goto_wgcl_addons_login(index, &st_title, 0);
-#else
-            goto_package(index, &st_title);
-#endif
-            processed = 1;
-        }
-        else log_errorf("Link: no such set or package\n", link);
-    }
-
-    return processed;
-}
-
-/*---------------------------------------------------------------------------*/
-
 static int fetch_packages_offline = 0;
 
 static void refresh_packages_done(void *data, void *extra_data)
 {
     struct state *start_state = (struct state *) data;
 
-    if (opt_link && link_handle(opt_link))
+    if (opt_link && game_link_handle(opt_link))
         return;
 
 #if NB_HAVE_PB_BOTH==1
@@ -965,7 +855,7 @@ static void main_preload(struct state *start_state, int (*start_fn)(struct state
 
         /* But attempt it even without a package list. */
 
-        if (opt_link && link_handle(opt_link))
+        if (opt_link && game_link_handle(opt_link))
         {
             /* Link processing navigates to the appropriate screen. */
             return;

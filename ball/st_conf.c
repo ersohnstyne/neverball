@@ -117,8 +117,6 @@ struct state st_conf_audio;
 
 /*---------------------------------------------------------------------------*/
 
-struct state st_game_link;
-
 static struct state *conf_back;
 
 static int ingame_demo = 0;

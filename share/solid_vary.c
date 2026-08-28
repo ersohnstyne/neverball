@@ -89,7 +89,7 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 
     if (!fp || !base)
         return 0;
-    
+
     sol_free_vary(fp);
     memset(fp, 0, sizeof (*fp));
 

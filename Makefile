@@ -607,12 +607,9 @@ BALL_OBJS := \
 	ball/st_shop.o      \
 	ball/st_pause.o     \
 	ball/st_ball.o      \
-<<<<<<< HEAD
 	ball/st_beam_style.o\
 	ball/st_malfunction.o\
-=======
 	ball/st_game_link.o \
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 	ball/main.o
 PUTT_OBJS := \
 	share/accessibility.o\

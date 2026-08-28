@@ -63,17 +63,10 @@
 
 /*---------------------------------------------------------------------------*/
 
-<<<<<<< HEAD
 int  game_init(const char *);
 void game_free(void);
 void game_free_objects(void);
 int  game_load_objects(void);
-=======
-int   game_init(const char *);
-void  game_free(void);
-void  game_free_objects(void);
-void  game_load_objects(void);
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
 void game_kill_fade(void);
 void game_step_fade(float);

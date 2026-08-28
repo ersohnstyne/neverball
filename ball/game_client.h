@@ -38,11 +38,7 @@ void  game_client_toggle_show_balls(int);
 void  game_client_free(const char *);
 int   game_client_state(void);
 void  game_client_free_objects(void);
-<<<<<<< HEAD
 int   game_client_load_objects(void);
-=======
-void  game_client_load_objects(void);
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 void  game_client_sync(fs_file);
 void  game_client_draw(int, float);
 void  game_client_blend(float);

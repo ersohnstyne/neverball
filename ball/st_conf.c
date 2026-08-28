@@ -1168,13 +1168,7 @@ static int mouse_id[11];
 #define MOUSE_RANGE_UNMAP(i) \
     (MOUSE_RANGE_MAX - (i * MOUSE_RANGE_INC))
 
-<<<<<<< HEAD
 static int control_get_input(void)
-=======
-static struct state *conf_back;
-
-static int conf_action(int tok, int val)
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 {
     const SDL_Keycode k_auto    = config_get_d(CONFIG_KEY_CAMERA_TOGGLE);
     const SDL_Keycode k_cam1    = config_get_d(CONFIG_KEY_CAMERA_1);
@@ -1246,16 +1240,9 @@ static int conf_control_action(int tok, int val)
 
     switch (tok)
     {
-<<<<<<< HEAD
         case GUI_BACK:
             exit_state(&st_null);
             return exit_state(&st_conf);
-=======
-    case GUI_BACK:
-        exit_state(conf_back ? conf_back : &st_title);
-        conf_back = NULL;
-        break;
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
         case CONF_CONTROL_INPUT_PRESET:
             control_set_input();
@@ -2777,7 +2764,7 @@ static int conf_action(int tok, int val)
             if (mainmenu_conf)
                 game_fade(+6.0f);
 
-            return exit_state(conf_back);
+            return exit_state(conf_back ? conf_back : &st_title)
 
 #if ENABLE_GAME_TRANSFER==1 && \
     !defined(__NDS__) && !defined(__3DS__) && \
@@ -3133,13 +3120,8 @@ static int conf_enter(struct state *st, struct state *prev, int intent)
 
     if (!game_server_state())
     {
-<<<<<<< HEAD
         if (mainmenu_conf && prev == &st_title)
             game_fade(-6.0f);
-
-=======
-        audio_music_fade_to(0.5f, "bgm/inter.ogg");
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
         back_push("back/gui.png");
     }
 
@@ -3161,7 +3143,6 @@ static int conf_leave(struct state *st, struct state *next, int id, int intent)
         conf_common_bg_paint(NULL);
     }
 
-<<<<<<< HEAD
     if (next == &st_null)
     {
         progress_exit();
@@ -3184,16 +3165,10 @@ static void conf_shared_timer(int id, float dt)
     gui_timer(id, dt);
 }
 
-=======
-    return transition_slide(id, 0, intent);
-}
-
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 /*---------------------------------------------------------------------------*/
 
 static int null_enter(struct state *st, struct state *prev, int intent)
 {
-<<<<<<< HEAD
     if (prev == &st_null) return 0;
 
 #if NB_HAVE_PB_BOTH==1 && _WIN32 && _MSC_VER
@@ -3219,11 +3194,7 @@ static int null_enter(struct state *st, struct state *prev, int intent)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_free();
 #endif
-=======
-    game_client_free_objects();
-    back_free_objects();
 
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
     hud_free();
     transition_quit();
     gui_free();
@@ -3267,20 +3238,16 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
     gui_init();
     transition_init();
     hud_init();
-<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_init();
 #endif
 #if ENABLE_DUALDISPLAY==1
     game_dualdisplay_gui_init();
 #endif
-=======
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
     back_load_objects();
     game_client_load_objects();
 
-<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
     const char *ball;
 
@@ -3310,14 +3277,11 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
     mapmarkers_init();
 #endif
 
-=======
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
     return 0;
 }
 
 /*---------------------------------------------------------------------------*/
 
-<<<<<<< HEAD
 static void conf_paint(int id, float t)
 {
     if (mainmenu_conf)
@@ -3453,8 +3417,6 @@ struct state st_conf_audio = {
     common_buttn
 };
 
-=======
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 struct state st_conf = {
     conf_enter,
     conf_leave,

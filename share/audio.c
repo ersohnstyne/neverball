@@ -386,13 +386,12 @@ static struct voice *voice_init(const char *filename, float a)
     }
 #endif
 
-    if (!filename)
-        return NULL;
-
     /* Allocate and initialize a new voice structure. */
 
     if ((V = (struct voice *) calloc(1, sizeof (struct voice))))
     {
+        /* Note the name. */
+
         if (!(V->name = strdup(filename)))
         {
             free(V->name); V->name = NULL;
@@ -423,9 +422,6 @@ static struct voice *voice_init(const char *filename, float a)
             }
             else fs_close(fp);
         }
-
-        free(V->name);
-        free(V);
     }
 
 #if defined(__WII__)
@@ -1013,7 +1009,7 @@ void audio_music_fade_to(float t, const char *filename, int loop)
 
     if (voices_music)
     {
-        if (!voices_music->name && strcmp(filename, voices_music->name) == 0)
+        if (!voices_music->name && strcmp(filename, voices_music->name) != 0)
         {
             audio_music_stop();
             audio_music_play(filename, loop);

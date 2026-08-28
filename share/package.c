@@ -21,7 +21,6 @@
 #include "fetch.h"
 #include "fs.h"
 #include "lang.h"
-#include "log.h"
 
 #include "log.h"
 
@@ -546,8 +545,6 @@ static Array load_packages_from_file(const char *filename)
 #endif
                     }
                 }
-                else
-                    log_printf("Warning: Failed to allocate available package slot for '%s'\n", line + 8);
             }
 #if NB_HAVE_PB_BOTH==1
             else if (str_starts_with(line, "category ") && !available_packages_kicked)

@@ -1252,7 +1252,6 @@ int goto_exit(void)
     if (curr_mode() != MODE_NONE)
         audio_play(AUD_QUITGAME, 1.0f);
 
-<<<<<<< HEAD
     activity_services_powerup_update(AS_POWERUP_NONE);
 
     struct state *curr = curr_state();
@@ -1308,16 +1307,6 @@ int goto_exit(void)
         }
         else return goto_playmenu(curr_mode());
     }
-=======
-    game_server_free(NULL);
-
-    if (progress_done())
-        dst = &st_done;
-    else if (curr_mode() == MODE_CHALLENGE)
-        dst = &st_over;
-    else if (curr_mode() == MODE_STANDALONE)
-        dst = NULL;
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
     else
 #endif
     if (done && !progress_dead() && curr_mode() != MODE_STANDALONE)

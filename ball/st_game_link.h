@@ -23,14 +23,6 @@
 
 #include "state.h"
 
-<<<<<<< HEAD
 int game_link_handle(const char *link);
 
 #endif
-=======
-extern struct state st_game_link;
-
-int game_link_handle(const char *link);
-
-#endif
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57

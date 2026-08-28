@@ -806,7 +806,6 @@ static int goto_level(const List level_multi)
 
 /*---------------------------------------------------------------------------*/
 
-<<<<<<< HEAD
 /*
  * Handle the link option.
  *
@@ -919,17 +918,11 @@ static int link_handle(const char *link)
 
 static int fetch_packages_offline = 0;
 
-=======
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 static void refresh_packages_done(void *data, void *extra_data)
 {
     struct state *start_state = (struct state *) data;
 
-<<<<<<< HEAD
     if (opt_link && link_handle(opt_link))
-=======
-    if (game_link_handle(opt_link))
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
         return;
 
 #if NB_HAVE_PB_BOTH==1
@@ -981,12 +974,8 @@ static void main_preload(struct state *start_state, int (*start_fn)(struct state
 
     /* Go to the starting screen. */
 
-<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (!check_game_setup())
-=======
-    if (game_link_handle(opt_link))
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
     {
         goto_game_setup(start_state, start_fn,
                         goto_name_setup,

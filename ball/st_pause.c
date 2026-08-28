@@ -118,19 +118,9 @@ static int pause_action(int tok, int val)
 
     switch (tok)
     {
-<<<<<<< HEAD
         case PAUSE_OPTIONS:
             return goto_conf(&st_pause, 1, 0);
             break;
-=======
-    case PAUSE_OPTIONS:
-        return goto_state(&st_conf);
-
-    case PAUSE_CONTINUE:
-        audio_music_fade_in(1.0f);
-        video_set_grab(0);
-        return goto_state(st_continue);
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
         case GUI_BACK:
         case PAUSE_CONTINUE:
@@ -397,12 +387,9 @@ static int pause_gui(void)
 
 static int pause_enter(struct state *st, struct state *prev, int intent)
 {
-<<<<<<< HEAD
-=======
-    if (prev != &st_conf)
+    if (prev != &st_conf && !st_continue)
         st_continue = prev;
 
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
     video_clr_grab();
 
     /* Cannot pause the game in home room. */

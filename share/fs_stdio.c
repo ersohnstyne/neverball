@@ -284,6 +284,7 @@ int fs_add_path(const char *path)
             }
 
             free(zip);
+            zip = NULL;
         }
 
         free(path_item);

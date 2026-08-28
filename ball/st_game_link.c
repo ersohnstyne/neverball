@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <string.h>
 
-<<<<<<< HEAD
 /*
  * HACK: Used with console version
  */
@@ -34,8 +33,6 @@
 #include "campaign.h" /* New: Campaign */
 #endif
 
-=======
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 #include "gui.h"
 #include "transition.h"
 #include "audio.h"
@@ -61,7 +58,6 @@
 #include "st_title.h"
 #include "st_common.h"
 
-<<<<<<< HEAD
 #include "st_set.h"
 
 #define AUD_MENU     "snd/menu.ogg"
@@ -110,9 +106,6 @@
         } else if (tok == tok_enter) {                 \
             audio_play(AUD_2_2_0_KEYBD_ENTER, 1.0f);   \
         } else GENERIC_GAMEMENU_ACTION
-=======
-#define AUD_MENU "snd/menu.ogg"
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
 static struct {
     char link[MAXSTR];
@@ -127,19 +120,11 @@ static struct {
 /*
  * Launch a level or level set once installed.
  */
-<<<<<<< HEAD
-
-=======
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 static int game_link_launch_target(void)
 {
     int index;
 
-<<<<<<< HEAD
     set_init(0);
-=======
-    set_init();
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
     if ((index = set_find(game_link_ctx.set_file)) >= 0)
     {
@@ -147,19 +132,14 @@ static int game_link_launch_target(void)
 
         if (*game_link_ctx.map_part)
         {
-<<<<<<< HEAD
             STRBUF sol_basename = str_ends_with(game_link_ctx.map_part, ".sol") ||
                                   str_ends_with(game_link_ctx.map_part, ".solx") ?
-=======
-            STRBUF sol_basename = str_ends_with(game_link_ctx.map_part, ".sol") ?
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
                                   strbuf(game_link_ctx.map_part) :
                                   joinstr(game_link_ctx.map_part, ".sol");
             struct level *level = set_find_level(CSTR(sol_basename));
 
             if (level)
             {
-<<<<<<< HEAD
                 progress_reinit(MODE_NORMAL);
                 if (progress_play(level))
                     return goto_state(&st_level);
@@ -193,22 +173,6 @@ static int game_link_launch_target(void)
         return goto_state(&st_start);
 #endif
     }
-
-=======
-                progress_init(MODE_NORMAL);
-                if (progress_play(level))
-                    return goto_state(&st_level);
-            }
-            log_printf("Game Link: level %s not found in set, opening set menu\n", CSTR(sol_basename));
-        }
-
-        load_title_background();
-        game_kill_fade();
-        return goto_state(&st_start);
-    }
-
-    log_printf("Game Link: failed to find set %s after installation\n", game_link_ctx.set_file);
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
     return goto_state(&st_title);
 }
 
@@ -217,11 +181,7 @@ static int game_link_launch_target(void)
  */
 static void game_link_download_progress(void *data1, void *data2)
 {
-<<<<<<< HEAD
     struct fetch_progress *pr = (struct fetch_progress *) data2;
-=======
-    struct fetch_progress *pr = data2;
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
     if (game_link_ctx.status_id)
     {
@@ -229,17 +189,12 @@ static void game_link_download_progress(void *data1, void *data2)
 
         if (pr->total > 0)
         {
-<<<<<<< HEAD
             int pct = (int) (pr->now * 100 / pr->total) % 1000;
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sprintf_s(label, MAXSTR, _("Loading (%d%%)..."), pct);
 #else
             sprintf(label, _("Loading (%d%%)..."), pct);
 #endif
-=======
-            int pct = (int) (pr->now * 100.0 / pr->total) % 1000;
-            sprintf(label, _("Loading (%d%%)..."), pct);
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
         }
         else
         {
@@ -256,11 +211,7 @@ static void game_link_download_progress(void *data1, void *data2)
 
 static void game_link_download_done(void *data1, void *data2)
 {
-<<<<<<< HEAD
     struct fetch_done *dn = (struct fetch_done *) data2;
-=======
-    struct fetch_done *dn = data2;
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
     game_link_ctx.downloading = 0;
 
@@ -270,11 +221,7 @@ static void game_link_download_done(void *data1, void *data2)
     }
     else
     {
-<<<<<<< HEAD
-        log_errorf("Game Link: download failed for package %d", game_link_ctx.package_id);
-=======
-        log_printf("Game Link: download failed for package %d\n", game_link_ctx.package_id);
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
+        log_errorf("Game Link: download failed for package %d\n", game_link_ctx.package_id);
         goto_state(&st_title);
     }
 }
@@ -287,17 +234,10 @@ static int game_link_start_download(void)
     SAFECPY(game_link_ctx.progress_label, _("Loading..."));
 
     callback.progress = game_link_download_progress;
-<<<<<<< HEAD
     callback.done     = game_link_download_done;
     callback.data     = &game_link_ctx;
 
     if (!package_fetch(game_link_ctx.package_id, callback, 0))
-=======
-    callback.done = game_link_download_done;
-    callback.data = &game_link_ctx;
-
-    if (!package_fetch(game_link_ctx.package_id, callback))
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
     {
         game_link_download_done(NULL, NULL);
         return 0;
@@ -308,11 +248,7 @@ static int game_link_start_download(void)
 
 static int game_link_action(int tok, int val)
 {
-<<<<<<< HEAD
     GENERIC_GAMEMENU_ACTION;
-=======
-    audio_play(AUD_MENU, 1.0f);
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
     switch (tok)
     {
@@ -330,11 +266,7 @@ static int game_link_gui(void)
     if ((id = gui_vstack(0)))
     {
         /* Dimension label box large enough to hold 100% progress. */
-<<<<<<< HEAD
         game_link_ctx.status_id = gui_label(id, _("Loading (100%)..."), GUI_SML, GUI_COLOR_WHT);
-=======
-        game_link_ctx.status_id = gui_label(id, _("Loading (100%)..."), GUI_SML, gui_wht, gui_wht);
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
         gui_layout(id, 0, 0);
 
@@ -358,11 +290,7 @@ static int game_link_enter(struct state *st, struct state *prev, int intent)
     return id;
 }
 
-<<<<<<< HEAD
-static int game_link_leave(struct state *st, struct state *prev, int id, int intent)
-=======
 static int game_link_leave(struct state *st, struct state *next, int id, int intent)
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 {
     gui_delete(id);
     return 0;
@@ -407,16 +335,10 @@ int game_link_handle(const char *link)
         SAFECPY(game_link_ctx.set_file, CSTR(set_file));
         SAFECPY(game_link_ctx.map_part, CSTR(map_part));
 
-<<<<<<< HEAD
         /* If already installed, launch immediately. */
         set_init(0);
 
-        if (set_find(CSTR(set_file)))
-=======
-        /* If already installed, launch immediately */
-        set_init();
         if (set_find(CSTR(set_file)) >= 0)
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
         {
             return game_link_launch_target();
         }
@@ -429,7 +351,6 @@ int game_link_handle(const char *link)
             game_link_ctx.downloading = 0;
             SAFECPY(game_link_ctx.progress_label, _("Loading..."));
 
-<<<<<<< HEAD
             return goto_state(&st_game_link);
         }
 
@@ -438,14 +359,3 @@ int game_link_handle(const char *link)
 
     return 0;
 }
-=======
-            goto_state(&st_game_link);
-            return 1;
-        }
-
-        log_printf("Game Link: set '%s' not found locally or in package catalog\n", CSTR(set_file));
-    }
-
-    return 0;
-}
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57

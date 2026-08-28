@@ -114,9 +114,6 @@ int read_line(char **dst, fs_file fin)
         if (!line)
             break;
 
-        if (!line)
-            break;
-
         /* Strip newline, if any. */
 
         len0 = strlen(line);

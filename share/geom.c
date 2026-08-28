@@ -434,7 +434,12 @@ void geom_free(void)
 {
     int i;
 
-<<<<<<< HEAD
+    if (back_state)
+    {
+        sol_free_full(&back);
+        back_state = 0;
+    }
+
 #ifdef MAPC_INCLUDES_CHKP
     sol_free_full(&chnk_chkp);
 #endif
@@ -451,13 +456,6 @@ void geom_free(void)
 #endif
     for (i = 0; i < GEOM_MAX; i++)
         sol_free_full(&item[i]);
-=======
-    if (back_state)
-    {
-        sol_free_full(&back);
-        back_state = 0;
-    }
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
     sol_free_full(&vect);
     sol_free_full(&mark);
@@ -587,17 +585,21 @@ static struct
 
 static int back_depth = 0;
 
-static GLuint back_load_texture(const char *name)
+static int back_load_texture(const char *name)
 {
     GLuint tex = make_image_from_file(name, IF_MIPMAP);
 
     if (tex)
+    {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    else
-        log_printf("Failed to load background image \"%s\"\n", name);
+        grad_filename = strdup(name);
+    }
+    else log_errorf("Failed to load background image: \"%s\" / %s\n",
+                    name, fs_error());
 
     return tex;
 }
+
 
 void back_push(const char *name)
 {
@@ -630,81 +632,12 @@ void back_pop(void)
 
 void back_init(const char *name)
 {
-<<<<<<< HEAD
-    if (!name || !*name)
-        return;
-
-    if (back_state)
-        back_free();
-
-    /* Load the background SOL/SOLX and modify its material in-place to use  */
-    /* the named gradient texture.                                           */
-
-    if (sol_load_full(&back, "geom/back/back.sol", 0))
-    {
-        struct mtrl *mp = mtrl_get(back.base.mtrls ? back.base.mtrls[0] : -1);
-
-        if (mp)
-        {
-            mp->o = make_image_from_file(name, IF_MIPMAP);
-
-            if (!mp->o)
-                log_errorf("Failed to load background image: \"%s\" / %s\n",
-                           name, fs_error());
-            else grad_filename = strdup(name);
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        }
-        back_state = 1;
-    }
-=======
     back_push(name);
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 }
 
 void back_free(void)
 {
-<<<<<<< HEAD
-    if (back_state)
-    {
-        if (grad_filename) {
-            free(grad_filename);
-            grad_filename = NULL;
-        }
-
-        sol_free_full(&back);
-    }
-=======
     back_pop();
-}
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
-
-void back_free_objects(void)
-{
-    int i;
-
-    for (i = 0; i < back_depth; i++)
-    {
-        if (back_stack[i].tex)
-        {
-            glDeleteTextures(1, &back_stack[i].tex);
-            back_stack[i].tex = 0;
-        }
-    }
-
-    if (back_state)
-        sol_free_draw(&back.draw);
-}
-
-void back_load_objects(void)
-{
-    int i;
-
-    if (back_state)
-        sol_load_draw(&back.draw, &back.vary, 0);
-
-    for (i = 0; i < back_depth; i++)
-        back_stack[i].tex = back_load_texture(back_stack[i].name);
 }
 
 int back_compare_filename(const char *s)
@@ -719,6 +652,30 @@ int back_compare_filename(const char *s)
 #else
     return grad_filename ? strcmp(grad_filename, s) == 0 : 0;
 #endif
+}
+
+void back_free_objects(void)
+{
+    for (int i = 0; i < back_depth; i++)
+    {
+        if (back_stack[back_depth].tex)
+        {
+            glDeleteTextures(1, &back_stack[back_depth].tex);
+            back_stack[back_depth].tex = 0;
+        }
+    }
+
+    if (back_state)
+        sol_free_draw(&back.draw);
+}
+
+void back_load_objects(void)
+{
+    if (back_state)
+        sol_load_draw(&back.draw, &back.vary, 0);
+
+    for (int i = 0; i < back_depth; i++)
+        back_stack[i].tex = back_load_texture(back_stack[i].name);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -850,41 +807,25 @@ void vect_draw(struct s_rend *rend)
 
 void back_draw(struct s_rend *rend)
 {
-<<<<<<< HEAD
-    //glDisable(GL_LIGHTING);
-    //glDisable(GL_LIGHT0);
-    //glDisable(GL_LIGHT1);
-    //glDisable(GL_LIGHT2);
+    struct mtrl *mp = mtrl_get(back.base.mtrls ? back.base.mtrls[0] : -1);
+
+    if (mp)
+        mp->o = back_stack[back_depth - 1].tex;
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     glDepthMask(GL_FALSE);
 
     glPushMatrix();
-=======
-    if (back_depth > 0 && back_state)
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
     {
-        struct mtrl *mp = mtrl_get(back.base.mtrls ? back.base.mtrls[0] : -1);
-
-        if (mp)
-            mp->o = back_stack[back_depth - 1].tex;
-
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_CULL_FACE);
-        glDepthMask(GL_FALSE);
-
-        glPushMatrix();
-        {
-            glScalef(-BACK_DIST, BACK_DIST, -BACK_DIST);
-            sol_draw(&back.draw, rend, 1, 1);
-        }
-        glPopMatrix();
-
-        glDepthMask(GL_TRUE);
-        glEnable(GL_CULL_FACE);
-        glEnable(GL_DEPTH_TEST);
+        glScalef(-BACK_DIST, BACK_DIST, -BACK_DIST);
+        sol_draw(&back.draw, rend, 1, 1);
     }
+    glPopMatrix();
+
+    glDepthMask(GL_TRUE);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
 }
 
 void back_draw_easy(void)

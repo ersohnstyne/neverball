@@ -87,17 +87,10 @@ static int conf_action(int i)
 
     switch (i)
     {
-<<<<<<< HEAD
         case CONF_BACK:
-            exit_state(conf_back);
+            exit_state(conf_back ? conf_back : &st_title);
             conf_back = NULL;
             break;
-=======
-    case CONF_BACK:
-        exit_state(conf_back ? conf_back : &st_title);
-        conf_back = NULL;
-        break;
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
         case CONF_VIDEO:
             goto_video(&st_conf);
@@ -313,15 +306,11 @@ static int conf_enter(struct state *st, struct state *prev, int intent)
     }
 
     if (!curr_party())
-<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1
         audio_music_fade_to(0.5f, _("bgm/title.ogg"), 1);
 #else
         audio_music_fade_to(0.5f, "gui/bgm/inter.ogg", 1);
 #endif
-=======
-        audio_music_fade_to(0.5f, "bgm/inter.ogg");
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
     return transition_slide(root_id, 1, intent);
 }
@@ -389,7 +378,6 @@ static int conf_buttn(int b, int d)
 
 static int null_enter(struct state *st, struct state *prev, int intent)
 {
-<<<<<<< HEAD
     if (prev == &st_null) return 0;
 
 #if ENABLE_MOTIONBLUR!=0
@@ -402,11 +390,6 @@ static int null_enter(struct state *st, struct state *prev, int intent)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     xbox_control_gui_free();
 #endif
-=======
-    game_free_objects();
-    back_free_objects();
-
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
     transition_quit();
     gui_free();
     geom_free();
@@ -427,7 +410,6 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
     geom_init();
     gui_init();
     transition_init();
-<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     xbox_control_gui_init();
 #endif
@@ -438,12 +420,6 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
 #if ENABLE_MOTIONBLUR!=0
     video_motionblur_init();
 #endif
-=======
-
-    back_load_objects();
-    game_load_objects();
-
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
     return 0;
 }
 

@@ -415,17 +415,16 @@ int common_buttn(int b, int d)
 
 static void (*conf_bg_paint_fn)(float) = NULL;
 
+static int common_allowfade;
+static int is_common_bg;
+
 void conf_common_bg_paint(void (*fn)(float))
 {
     conf_bg_paint_fn = fn;
 }
 
-static int common_allowfade;
-static int is_common_bg;
-
 void conf_common_init(int (*action_fn)(int, int), int allowfade)
 {
-<<<<<<< HEAD
     common_allowfade = allowfade;
 
     if (common_allowfade)
@@ -442,8 +441,6 @@ void conf_common_init(int (*action_fn)(int, int), int allowfade)
 #endif
     }
 
-=======
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
     common_init(action_fn);
 }
 
@@ -451,15 +448,12 @@ int conf_common_leave(struct state *st, struct state *next, int id, int intent)
 {
     config_save();
 
-<<<<<<< HEAD
     if (common_allowfade && is_common_bg)
     {
         is_common_bg = 0;
         back_free();
     }
 
-=======
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
     return transition_slide(id, 0, intent);
 }
 
@@ -467,24 +461,17 @@ struct state st_perf_warning;
 
 void conf_common_paint(int id, float t)
 {
-<<<<<<< HEAD
-    video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-
-    if (is_common_bg) back_draw_easy();
-=======
     if (conf_bg_paint_fn)
     {
         conf_bg_paint_fn(t);
     }
     else
     {
-        video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-        {
-            back_draw_easy();
-        }
-        video_pop_matrix();
+        video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+        back_draw_easy();
     }
->>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
+
+    if (is_common_bg) back_draw_easy();
 
     gui_paint(id);
 
@@ -552,7 +539,7 @@ static int perf_warning_action(int tok, int val)
         if (r) config_set_d(CONFIG_CAMERA_SHAKE, 1);
 
         config_save();
-        
+
         perf_warning_autoconfig = 0;
         perf_warning_mode       = -1;
         return r;
@@ -641,7 +628,7 @@ static int perf_warning_confirm_btns(int pd, int enabled)
                 gui_filler(jd);
                 gui_label(jd, _("Cancel"), GUI_SML, GUI_COLOR_WHT);
                 gui_space(jd);
-                console_gui_create_b_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
+                console_gui_create_b_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_B), 0);
                 gui_filler(jd);
                 gui_set_rect(jd, GUI_ALL);
             }
@@ -678,7 +665,7 @@ static int perf_warning_confirm_autoconfig_btns(int pd)
                 gui_filler(jd);
                 gui_label(jd, _("Cancel"), GUI_SML, GUI_COLOR_WHT);
                 gui_space(jd);
-                console_gui_create_b_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
+                console_gui_create_b_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_B), 0);
                 gui_filler(jd);
                 gui_set_rect(jd, GUI_ALL);
             }
@@ -708,7 +695,7 @@ static int perf_warning_confirm_range_btns(int pd, int higher)
 
     const char *s_higher = N_("Higher");
     const char *s_lower  = N_("Lower");
-    
+
     if ((id = gui_harray(pd))) {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (current_platform != PLATFORM_PC || console_gui_shown()) {
@@ -718,7 +705,7 @@ static int perf_warning_confirm_range_btns(int pd, int higher)
                 gui_filler(jd);
                 gui_label(jd, _("Cancel"), GUI_SML, GUI_COLOR_WHT);
                 gui_space(jd);
-                console_gui_create_b_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
+                console_gui_create_b_button(jd, config_get_d(CONFIG_JOYSTICK_BUTTON_B), 0);
                 gui_filler(jd);
                 gui_set_rect(jd, GUI_ALL);
             }
@@ -1686,7 +1673,7 @@ static int video_advanced_gui(void)
         conf_toggle_simple(id, _("Smooth fix"), VIDEO_ADVANCED_SMOOTH_FIX,
                                config_get_d(CONFIG_SMOOTH_FIX),
                                1, 0);
-        
+
         if (config_get_d(CONFIG_SMOOTH_FIX))
             conf_toggle_simple(id, _("Force smooth fix"), VIDEO_ADVANCED_FORCE_SMOOTH_FIX,
                                    config_get_d(CONFIG_FORCE_SMOOTH_FIX),

@@ -1075,6 +1075,7 @@ static int demo_enter(struct state *st, struct state *prev, int intent)
 {
     game_server_free(NULL);
 
+<<<<<<< HEAD
 #if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
     demo_operator_quit();
 #endif
@@ -1088,6 +1089,9 @@ static int demo_enter(struct state *st, struct state *prev, int intent)
     demo_manual_hotreload = 0;
 
     if (demo_hotreload)
+=======
+    if (!items || (prev == &st_demo_del))
+>>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
     {
 #if ENABLE_MOON_TASKLOADER!=0
         demo_is_scanning_with_moon_taskloader = 1;
@@ -1781,8 +1785,15 @@ static int demo_end_gui(void)
 
     if ((id = gui_vstack(0)))
     {
+<<<<<<< HEAD
         kd = gui_title_header(id, demo_paused ? _("Replay Paused") : _("Replay Ends"),
                                   GUI_LRG, gui_gry, gui_red);
+=======
+        if (demo_paused)
+            kd = gui_label(id, _("Replay Paused"), GUI_MED, gui_gry, gui_red);
+        else
+            kd = gui_label(id, _("Replay Ends"),   GUI_MED, gui_gry, gui_red);
+>>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
         gui_space(id);
         gui_state(id, _("Options"), GUI_SML, DEMO_CONF, 0);

@@ -256,7 +256,12 @@ int part_load(void)
 
 void part_free(void)
 {
+<<<<<<< HEAD
     part_reset();
+=======
+    glDeleteBuffers_(1, &coin_ebo);
+    glDeleteBuffers_(1, &coin_vbo);
+>>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
     glDeleteBuffers_(1, &part_vbo);
     glDeleteBuffers_(1, &part_ebo);

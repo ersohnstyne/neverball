@@ -413,15 +413,19 @@ int common_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-/*
- * Code shared by conf screens.
- */
+static void (*conf_bg_paint_fn)(float) = NULL;
+
+void conf_common_bg_paint(void (*fn)(float))
+{
+    conf_bg_paint_fn = fn;
+}
 
 static int common_allowfade;
 static int is_common_bg;
 
 void conf_common_init(int (*action_fn)(int, int), int allowfade)
 {
+<<<<<<< HEAD
     common_allowfade = allowfade;
 
     if (common_allowfade)
@@ -438,6 +442,8 @@ void conf_common_init(int (*action_fn)(int, int), int allowfade)
 #endif
     }
 
+=======
+>>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
     common_init(action_fn);
 }
 
@@ -445,12 +451,15 @@ int conf_common_leave(struct state *st, struct state *next, int id, int intent)
 {
     config_save();
 
+<<<<<<< HEAD
     if (common_allowfade && is_common_bg)
     {
         is_common_bg = 0;
         back_free();
     }
 
+=======
+>>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
     return transition_slide(id, 0, intent);
 }
 
@@ -458,9 +467,24 @@ struct state st_perf_warning;
 
 void conf_common_paint(int id, float t)
 {
+<<<<<<< HEAD
     video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
 
     if (is_common_bg) back_draw_easy();
+=======
+    if (conf_bg_paint_fn)
+    {
+        conf_bg_paint_fn(t);
+    }
+    else
+    {
+        video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+        {
+            back_draw_easy();
+        }
+        video_pop_matrix();
+    }
+>>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
     gui_paint(id);
 

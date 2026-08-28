@@ -354,7 +354,12 @@ static void on_text_input(int typing)
 
 static int name_enter(struct state *st, struct state *prev, int intent)
 {
+<<<<<<< HEAD
     player_renamed = 0;
+=======
+    if (draw_back)
+        back_push("back/gui.png");
+>>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
     name_lockedby_systemos = config_playername_locked();
 

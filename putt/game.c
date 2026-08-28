@@ -152,6 +152,18 @@ void game_free(void)
     sol_free_full(&file);
 }
 
+void game_free_objects(void)
+{
+    if (state)
+        sol_free_draw(&file.draw);
+}
+
+void game_load_objects(void)
+{
+    if (state)
+        sol_load_draw(&file.draw, &file.vary, config_get_d(CONFIG_SHADOW));
+}
+
 /*---------------------------------------------------------------------------*/
 
 void game_kill_fade(void)

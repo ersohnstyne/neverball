@@ -63,7 +63,14 @@ void conf_common_paint(int id, float t);
 
 /*---------------------------------------------------------------------------*/
 
+<<<<<<< HEAD
 int goto_video(struct state *);
+=======
+void conf_common_init(int (*action_fn)(int, int));
+int  conf_common_leave(struct state *st, struct state *next, int id, int intent);
+void conf_common_paint(int id, float t);
+void conf_common_bg_paint(void (*)(float));
+>>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
 /*---------------------------------------------------------------------------*/
 

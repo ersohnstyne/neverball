@@ -1485,6 +1485,7 @@ static int filter_cmd(const union cmd *cmd)
 
 static int title_enter(struct state *st, struct state *prev, int intent)
 {
+<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1
     account_wgcl_autokick_state_ignore();
 #endif
@@ -1502,6 +1503,10 @@ static int title_enter(struct state *st, struct state *prev, int intent)
     builtin_demo_count = array_len(items);
     demo_dir_free(items);
     items = NULL;
+=======
+    game_server_free(NULL);
+    game_proxy_filter(filter_cmd);
+>>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 
     /* Start the title screen music. */
 

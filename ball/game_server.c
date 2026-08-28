@@ -1370,6 +1370,11 @@ void game_server_free(const char *next)
     server_state = 0;
 }
 
+int game_server_state(void)
+{
+    return server_state;
+}
+
 /*---------------------------------------------------------------------------*/
 
 int game_server_state(void)

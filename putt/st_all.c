@@ -1229,7 +1229,15 @@ static int paused = 0;
 static struct state *st_continue;
 static struct state *st_quit;
 
+<<<<<<< HEAD
 enum
+=======
+#define PAUSE_CONTINUE 1
+#define PAUSE_QUIT     2
+#define PAUSE_OPTIONS  3
+
+int goto_pause(struct state *s)
+>>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 {
     PAUSE_CONTINUE = 1,
     PAUSE_QUIT,
@@ -1332,11 +1340,15 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
         if ((jd = gui_harray(id)))
         {
             gui_state(jd, _("Quit"), GUI_SML, PAUSE_QUIT, 0);
+<<<<<<< HEAD
             gui_state(jd, _("Skip"), GUI_SML, PAUSE_SKIP, 0);
 
             if (!stroke_allowed && hole_retry_avail(stroke_allowed))
                 gui_state(jd, _("Retry"), GUI_SML, PAUSE_RESHOT, 0);
 
+=======
+            gui_state(jd, _("Options"), GUI_SML, PAUSE_OPTIONS, 0);
+>>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
             gui_start(jd, _("Continue"), GUI_SML, PAUSE_CONTINUE, 1);
         }
 
@@ -1349,11 +1361,17 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
 
 static int pause_leave(struct state *st, struct state *next, int id, int intent)
 {
+<<<<<<< HEAD
     paused_indiv_ctrl_index = -1;
 
     if (next == &st_null)
         course_free();
     else if (next != &st_conf)
+=======
+    hud_free();
+
+    if (next != &st_conf)
+>>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
         audio_music_fade_in(0.5f);
 
     return transition_slide(id, 0, intent);

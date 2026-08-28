@@ -193,8 +193,8 @@ def parse_transcript(transcript_path: Path) -> Optional[Dict]:
                         "raw_args": args,
                     })
 
-                    # Check for plan artifact creation
-                    if "plan" in target_file.lower() and fname == "write_to_file":
+                    # Check for plan/walkthrough artifact creation
+                    if ("plan" in target_file.lower() or "walkthrough" in target_file.lower()) and fname == "write_to_file":
                         code_content = args.get("CodeContent", "")
                         if code_content:
                             bname = os.path.basename(target_file).strip('\"\'')
@@ -220,7 +220,7 @@ def parse_transcript(transcript_path: Path) -> Optional[Dict]:
     cid_dir = transcript_path.parent.parent.parent
     if cid_dir.exists():
         for md_file in cid_dir.glob("*.md"):
-            if not md_file.name.endswith(".metadata.json") and "walkthrough" not in md_file.name.lower():
+            if not md_file.name.endswith(".metadata.json"):
                 try:
                     content = md_file.read_text(encoding="utf-8", errors="replace")
                     bname = md_file.name.strip('\"\'')
@@ -794,7 +794,23 @@ def main():
             date_prefix = dt.strftime("%Y_%m_%d_%H%M%S")
 
             slug_raw = args.title or (commit_info["commits"][0]["message"] if commit_info and commit_info.get("commits") else "provenance")
-            slug = re.sub(r"[^a-zA-Z0-9_]+", "_", slug_raw.lower()).strip("_")[:40]
+            if ":" in slug_raw:
+                slug_raw = slug_raw.split(":", 1)[1].strip()
+            slug_raw = re.sub(r"^(/plan|/goal|/task)\s*", "", slug_raw, flags=re.IGNORECASE)
+            slug_clean = re.sub(r"[^a-zA-Z0-9_]+", "_", slug_raw.lower()).strip("_")
+            words = [w for w in slug_clean.split("_") if w]
+            shortened = []
+            cur_len = 0
+            for w in words:
+                next_len = cur_len + len(w) + (1 if shortened else 0)
+                if next_len <= 45:
+                    shortened.append(w)
+                    cur_len = next_len
+                else:
+                    break
+            slug = "_".join(shortened) if shortened else slug_clean[:40].rstrip("_")
+            if not slug:
+                slug = "provenance"
 
             prompts_dir = repo_root / "prompts"
             prompts_dir.mkdir(parents=True, exist_ok=True)

@@ -33,6 +33,41 @@
 
 /*---------------------------------------------------------------------------*/
 
+<<<<<<< HEAD
+=======
+void geom_init(void);
+void geom_free(void);
+void geom_step(float);
+
+void beam_draw(struct s_rend *, const GLfloat *, const GLfloat *, GLfloat, GLfloat);
+void goal_draw(struct s_rend *, const GLfloat *, GLfloat, GLfloat, GLfloat);
+void jump_draw(struct s_rend *, const GLfloat *, GLfloat, GLfloat);
+void flag_draw(struct s_rend *, const GLfloat *);
+void mark_draw(struct s_rend *);
+void vect_draw(struct s_rend *);
+void back_draw(struct s_rend *);
+
+void item_color(const struct v_item *, float *);
+void item_draw(struct s_rend *, const struct v_item *, const GLfloat *, float);
+
+void back_push(const char *);
+void back_pop(void);
+void back_init(const char *);
+void back_free(void);
+void back_draw_easy(void);
+void back_free_objects(void);
+void back_load_objects(void);
+
+/*---------------------------------------------------------------------------*/
+
+void shad_init(void);
+void shad_free(void);
+void shad_draw_set(void);
+void shad_draw_clr(void);
+
+/*---------------------------------------------------------------------------*/
+
+>>>>>>> 36ff995f095995c97e388f87c35c52e6648bfe57
 enum
 {
     TEX_STAGE_TEXTURE,

@@ -1778,15 +1778,22 @@ static int demo_end_action(int tok, int val)
 static int demo_end_gui(void)
 {
     int id, jd, kd;
-
+    
     if ((id = gui_vstack(0)))
     {
         kd = gui_title_header(id, demo_paused ? _("Replay Paused") : _("Replay Ends"),
-                                  GUI_MED, gui_gry, gui_red);
+                                  GUI_LRG, gui_gry, gui_red);
 
         gui_space(id);
-        gui_state(id, _("Options"), GUI_SML, DEMO_CONF, 0);
-        gui_space(id);
+        
+#if defined(_WIN32) && defined(_MSC_VER) && !defined(__EMSCRIPTEN__)
+#else
+        if (demo_paused)
+        {
+            gui_state(id, _("Options"), GUI_SML, DEMO_CONF, 0);
+            gui_space(id);
+        }
+#endif
 
         if ((jd = gui_harray(id)))
         {
@@ -1797,7 +1804,11 @@ static int demo_end_gui(void)
 
 #if defined(_WIN32) && defined(_MSC_VER) && !defined(__EMSCRIPTEN__)
             /* Microsoft and Windows Games can do it! */
+
+            gui_state(jd, _("Options"), GUI_SML, DEMO_CONF, 0);
 #else
+            if (!demo_paused)
+                gui_state(jd, _("Options"), GUI_SML, DEMO_CONF, 0);
             if (!standalone)
                 gui_state(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
 #endif
@@ -1810,6 +1821,8 @@ static int demo_end_gui(void)
             if (demo_paused)
 #endif
                 btn1_id = gui_start(jd, _("Continue"), GUI_SML, DEMO_CONTINUE, 0);
+            else
+                gui_focus(btn0_id);
 
             /* Only that is limit underneath it */
             if (!(get_max_game_stat() <= get_limit_game_stat() &&

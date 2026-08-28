@@ -593,10 +593,13 @@ static void sol_draw_mesh_debug(const struct d_mesh *mp,
 
 /*---------------------------------------------------------------------------*/
 
+static void sol_free_body(struct d_body *bp);
+
 static int sol_load_body(struct d_body *bp,
                          const struct b_body *bq,
                          const struct s_draw *draw)
 {
+    sol_free_body(bp);
     int mi;
 
     bp->base = bq;
@@ -619,7 +622,10 @@ static int sol_load_body(struct d_body *bp,
             for (mi = 0; mi < draw->base->mc; ++mi)
                 if (sol_count_body(bq, draw->base, mi))
                     if (!sol_load_mesh(bp->mv + mj++, bq, draw, mi))
+                    {
+                        sol_free_body(bp);
                         return 0;
+                    }
         }
         else
             bp->mc = 0;
@@ -640,11 +646,15 @@ static void sol_free_body(struct d_body *bp)
     if (!bp)
         return;
 
-    for (mi = 0; mi < bp->mc; ++mi)
-        sol_free_mesh(bp->mv + mi);
+    if (bp->mv)
+    {
+        for (mi = 0; mi < bp->mc; ++mi)
+            sol_free_mesh(bp->mv + mi);
 
-    free(bp->mv);
-    bp->mv = NULL;
+        free(bp->mv);
+        bp->mv = NULL;
+    }
+
     bp->mc = 0;
 }
 
@@ -675,6 +685,7 @@ int sol_load_draw(struct s_draw *draw, struct s_vary *vary, int s)
     if (!draw || !vary || !vary->base)
         return 0;
 
+    sol_free_draw(draw);
     memset(draw, 0, sizeof (struct s_draw));
 
     draw->vary = vary;

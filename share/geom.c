@@ -347,7 +347,6 @@ static struct s_full chnk_chkp;
 #endif
 
 static int   back_state    = 0;
-static char *grad_filename = NULL;
 
 /*---------------------------------------------------------------------------*/
 
@@ -585,6 +584,8 @@ static struct
 
 static int back_depth = 0;
 
+static char *grad_filename = NULL;
+
 static int back_load_texture(const char *name)
 {
     GLuint tex = make_image_from_file(name, IF_MIPMAP);
@@ -592,6 +593,13 @@ static int back_load_texture(const char *name)
     if (tex)
     {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+
+        if (grad_filename)
+        {
+            free(grad_filename);
+            grad_filename = NULL;
+        }
+
         grad_filename = strdup(name);
     }
     else log_errorf("Failed to load background image: \"%s\" / %s\n",
@@ -667,6 +675,12 @@ void back_free_objects(void)
 
     if (back_state)
         sol_free_draw(&back.draw);
+
+    if (grad_filename)
+    {
+        free(grad_filename);
+        grad_filename = NULL;
+    }
 }
 
 void back_load_objects(void)

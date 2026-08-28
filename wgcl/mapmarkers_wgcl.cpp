@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 Microsoft / Neverball authors / Ersohn Styne
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -268,7 +268,11 @@ extern "C" void mapmarkers_quit(void)
 
 extern "C" void mapmarkers_draw(struct s_rend *rend)
 {
+#ifdef _DEBUG
+    if (!mapmarkers_state || !markers_map_data || !markers_map_name) return;
+#else
     if (!mapmarkers_state || !markers_map_data || !markers_map_name || !config_cheat()) return;
+#endif
 
     for (List p1 = markers_map_data, p2 = markers_map_name; p1; ) {
         struct mapmarker *pData = (struct mapmarker *) p1->data;

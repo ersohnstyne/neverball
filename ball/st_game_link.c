@@ -164,8 +164,8 @@ static int game_link_launch_target(void)
         }
         else
         {
-            log_errorf("Game Link: Level set is locked due to missing conditions \"game completed\"!");
-            return goto_state(&st_start);
+            log_errorf("Game Link: Level set is locked due to missing conditions \"game completed\"!\n");
+            return goto_state(&st_title);
         }
 #else
         load_title_background();

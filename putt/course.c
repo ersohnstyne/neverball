@@ -21,6 +21,7 @@
 #include "course.h"
 #include "hole.h"
 #include "fs.h"
+#include "lang.h"
 
 #include "log.h"
 
@@ -104,7 +105,7 @@ void course_score_init_hs(struct course_score *s)
 
         /* MAXHOL * 30 = 840 */
 
-        course_score_insert(s, i, i == 0 ? MAXHOL * -30 : MAXHOL * 30);
+        course_score_insert(s, i /*, i == 0 ? MAXHOL * -30 : MAXHOL * 30*/);
     }
 }
 

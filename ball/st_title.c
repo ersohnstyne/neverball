@@ -88,7 +88,7 @@
 #endif
 
 #if NB_HAVE_PB_BOTH==1
-//#define TITLE_PAN_360_MODE
+#define TITLE_PAN_360_MODE
 #endif
 
 #ifdef SWITCHBALL_GUI
@@ -466,6 +466,7 @@ static int title_action(int tok, int val)
 
     switch (tok)
     {
+
         case GUI_BACK:
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -559,6 +560,7 @@ static int title_action(int tok, int val)
 #elif defined(__linux__)
             SAFECPY(linkstr_cmd, "x-www-browser https://pennyball.stynegame.de/");
 #endif
+
             system(linkstr_cmd);
 #endif
             break;
@@ -875,7 +877,7 @@ static int vbuttons_id;
 #ifdef CONFIG_INCLUDES_ACCOUNT
 static int title_check_shopavailable(void)
 {
-    const int shop_enabled = server_policy_get_d(SERVER_POLICY_SHOP_ENABLED);
+    const int shop_enabled        = server_policy_get_d(SERVER_POLICY_SHOP_ENABLED);
     const int shop_nolocalaccount = server_policy_get_d(SERVER_POLICY_EDITION) == 0 && !account_wgcl_name_read_only();
 
     return shop_enabled && !shop_nolocalaccount;
@@ -1488,6 +1490,7 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 #endif
 
     game_client_toggle_sound(0);
+    game_server_free(NULL);
     //game_proxy_filter(filter_cmd);
 
     if (title_load_lockscreen)

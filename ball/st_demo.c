@@ -677,7 +677,7 @@ static void gui_demo_update_status(int i)
             "%d", d->coins);
 
     stat_limit_busy = 0;
-    
+
     gui_set_label(name_id,   d->name);
     gui_set_label(date_id,   date_to_str(d->date));
     gui_set_label(player_id, d->player);
@@ -1073,6 +1073,8 @@ static int demo_gui(void)
 
 static int demo_enter(struct state *st, struct state *prev, int intent)
 {
+    game_server_free(NULL);
+
 #if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
     demo_operator_quit();
 #endif

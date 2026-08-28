@@ -368,10 +368,7 @@ static int name_enter(struct state *st, struct state *prev, int intent)
         audio_play("snd/uierror.ogg", 1.0f);
 
     if (draw_back)
-    {
-        game_client_free(NULL);
-        back_init("back/gui.png");
-    }
+        back_push("back/gui.png");
 
     if (!newplayers && !name_readonly && !name_lockedby_systemos)
     {

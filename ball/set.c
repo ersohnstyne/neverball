@@ -703,9 +703,6 @@ static void set_free(struct set *s)
     if (!s)
         return;
 
-    if (!s)
-        return;
-
     free(s->name);
     free(s->desc);
     free(s->id);

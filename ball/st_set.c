@@ -16,7 +16,7 @@
 #include <emscripten.h>
 #endif
 
-/*
+ /*
  * HACK: Used with console version
  */
 #include "console_control_gui.h"
@@ -64,10 +64,6 @@
 
 #if NB_HAVE_PB_BOTH==1
 #include "st_dailychallenge.h"
-#endif
-
-#if NB_STEAM_API==0 && NB_EOS_SDK==0
-#define SET_ALWAYS_UNLOCKED
 #endif
 
 #if defined(__WII__)
@@ -162,7 +158,7 @@ enum
     SET_GET_MORE
 };
 
-static void set_refresh_packages_done(void* data1, void* data2)
+static void set_refresh_packages_done(void *data1, void *data2)
 {
     struct fetch_done *dn = data2;
 
@@ -181,7 +177,7 @@ static unsigned int set_refresh_packages(void)
 {
     package_change_category(PACKAGE_CATEGORY_LEVELSET);
 
-    struct fetch_callback callback = { 0 };
+    struct fetch_callback callback = {0};
 
     callback.data = NULL;
     callback.done = set_refresh_packages_done;
@@ -299,7 +295,7 @@ static void gui_set(int id, int i)
                                              GUI_SML, SET_SELECT, i);
         else set_text_name_id = gui_state(id, "XXXXXXXXXXXXXXXXXX",
                                               GUI_SML, SET_SELECT, i);
-        
+
         if (set_check_id(curr_setid_final, "valentine"))
             gui_set_color(set_text_name_id, gui_pnk, gui_red);
         else if (set_check_id(curr_setid_final, "freeland"))
@@ -430,7 +426,7 @@ static int set_gui(void)
             {
                 if (boost_on)
                     gui_state(id, _("Revert to standard"), GUI_SML,
-                        SET_TOGGLE_BOOST, 0);
+                                  SET_TOGGLE_BOOST, 0);
                 else if (config_get_d(CONFIG_ONLINE))
                 {
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -438,13 +434,13 @@ static int set_gui(void)
     !defined(__SWITCH__)
 #if NB_STEAM_API==1
                     gui_state(id, _("Get Level Sets from Steam Workshop!"),
-                        GUI_SML, SET_GET_MORE, 0);
+                                  GUI_SML, SET_GET_MORE, 0);
 #elif NB_EOS_SDK==1
                     gui_state(id, _("Get Level Sets from Epic Games Store!"),
-                        GUI_SML, SET_GET_MORE, 0);
+                                  GUI_SML, SET_GET_MORE, 0);
 #else
                     gui_state(id, _("Get Level Sets from Addons!"),
-                        GUI_SML, SET_GET_MORE, 0);
+                                  GUI_SML, SET_GET_MORE, 0);
 #endif
 #endif
                 }
@@ -636,9 +632,6 @@ static int set_enter(struct state *st, struct state *prev, int intent)
         const int transition_direction_upward = curr_mode() == MODE_BOOST_RUSH;
         return transition_slide_full(set_gui(), 1, !transition_direction_upward ? GUI_NW : GUI_SW, !transition_direction_upward ? GUI_NW : GUI_SW);
     }
-
-    if (next == &st_campaign)
-        return transition_slide_full(id, 0, 0, 0);
 #endif
 
     if (prev == &st_set)
@@ -910,6 +903,9 @@ static int campaign_level_play_timer(float dt)
         {
             activity_services_mode_update(AS_MODE_CAMPAIGN);
 
+#if NB_HAVE_PB_BOTH==1
+            account_wgcl_autokick_state_prepare(&st_campaign);
+#endif
             return goto_play_level();
         }
     }
@@ -1111,7 +1107,7 @@ static int campaign_worldselect_carousel_gui(int id)
                 }
 
                 gui_space(kd);
-                
+
                 if ((ld = gui_harray(kd)))
                     for (int i = 5; i > -1; i--)
                     {
@@ -1359,9 +1355,9 @@ static int campaign_leave(struct state *st, struct state *next, int id, int inte
         return transition_slide_full(id, 0, GUI_NW, GUI_NW);
 
     return transition_slide_full(id, 0, 0, 0);
-#endif
-
+#else
     return transition_slide(id, 0, intent);
+#endif
 }
 
 static void campaign_paint(int id, float t)
@@ -1651,11 +1647,48 @@ static int levelgroup_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
+static int goto_playgame_nintendoswitch(void)
+{
+#ifdef __EMSCRIPTEN__
+    const int r = EM_ASM_INT({
+        if (tmp_online_session_data != undefined &&
+            tmp_online_session_data != null &&
+            tmp_online_session_data.data_session != undefined &&
+            tmp_online_session_data.data_session != null) {
+            if (navigator.userAgent != undefined && navigator.userAgent != null &&
+                navigator.userAgent.includes("NintendoBrowser") &&
+                navigator.userAgent.includes("Nintendo Switch") &&
+                tmp_online_session_data.data_session.player_dlc_nintendoswitch != undefined &&
+                tmp_online_session_data.data_session.player_dlc_nintendoswitch != null &&
+                tmp_online_session_data.data_session.player_dlc_nintendoswitch != 1) {
+                const r = Neverball.gamecore_account_postlogin_nintendoswitch(tmp_online_session_data.data_session.player_uuid4, navigator.userAgent);
+                return r ? 1 : 0;
+            } else if (navigator.userAgent != undefined && navigator.userAgent != null &&
+                       navigator.userAgent.includes("NintendoBrowser") &&
+                       navigator.userAgent.includes("Nintendo Switch") &&
+                       tmp_online_session_data.data_session.player_dlc_nintendoswitch != undefined &&
+                       tmp_online_session_data.data_session.player_dlc_nintendoswitch != null &&
+                       tmp_online_session_data.data_session.player_dlc_nintendoswitch == 1) {
+                return 1;
+            }
+        }
+
+        return 0;
+    });
+
+    return r;
+#else
+    return 0;
+#endif
+}
+
 static int goto_playgame_param(struct state *next_st)
 {
 #ifdef CONFIG_INCLUDES_ACCOUNT
     if (!account_wgcl_restart_attempt()) return 1;
 #endif
+
+    goto_playgame_nintendoswitch();
 
     return goto_state(next_st);
 }
@@ -1665,6 +1698,8 @@ int goto_playgame(void)
 #ifdef CONFIG_INCLUDES_ACCOUNT
     if (!account_wgcl_restart_attempt()) return 1;
 #endif
+
+    goto_playgame_nintendoswitch();
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))

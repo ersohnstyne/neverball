@@ -1372,6 +1372,11 @@ void game_server_free(const char *next)
 
 /*---------------------------------------------------------------------------*/
 
+int game_server_state(void)
+{
+    return server_state;
+}
+
 void game_update_view(float dt)
 {
     /* Current view scale. */
@@ -1402,6 +1407,8 @@ void game_update_view(float dt)
     }
 
     const float SCL = vary.uv->r / vary.uv->sizes[1]; /* Was: view_zoom_curr */
+
+    /*  Read per-camera configuration parameters. */
 
     int cam = input_get_c() == CAM_AUTO ? automode : input_get_c();
     float spd = (float) input_get_c() == CAM_AUTO ? (automode == CAM_1 ? 0.25f : (automode == CAM_2 ? 0.0f : -0.001)) : cam_speed(cam) / 1000.0f;
@@ -2243,7 +2250,7 @@ static void game_server_iter(float dt)
                 const external_url = "https://pennyball.stynegame.de/api/internal/mapmarkers/place";
 
                 fetch($0 == 1 ? server_internal_url : external_url, {
-                    method: "POST", credentials : "include", mode : "cors",
+                    method: "POST", credentials: "include", mode : "cors",
                     headers: {
                         "Content-Type": "application/json",
                         "Accept": "application/json"

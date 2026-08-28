@@ -45,6 +45,7 @@ int   game_server_load_moon_taskloader(void *, void *);
 #endif
 int   game_server_init(const char *, int, int);
 void  game_server_free(const char *);
+int   game_server_state(void);
 void  game_server_step(float);
 float game_server_blend(void);
 

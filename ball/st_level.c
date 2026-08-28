@@ -341,7 +341,7 @@ static int level_gui(void)
                     _("none_%d"), curr_set());
         }
         else SAFECPY(curr_setid_final, curr_setid);
-        
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         if ((set_check_id(curr_setid_final, "SB") ||
              set_check_id(curr_setid_final, "sb") ||
@@ -1255,6 +1255,7 @@ int goto_exit(void)
     activity_services_powerup_update(AS_POWERUP_NONE);
 
     struct state *curr = curr_state();
+    struct state *dst  = NULL;
 
     show_info = 0;
 
@@ -1277,7 +1278,7 @@ int goto_exit(void)
 
     int done = progress_done();
 
-    struct state *dst = NULL;
+    game_server_free(NULL);
 
     video_clr_grab();
 

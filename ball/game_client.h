@@ -36,6 +36,9 @@ int game_client_init_moon_taskloader(const char *,
 
 void  game_client_toggle_show_balls(int);
 void  game_client_free(const char *);
+int   game_client_state(void);
+void  game_client_free_objects(void);
+int   game_client_load_objects(void);
 void  game_client_sync(fs_file);
 void  game_client_draw(int, float);
 void  game_client_blend(float);

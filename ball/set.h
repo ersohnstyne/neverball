@@ -28,6 +28,10 @@
 
 #define SET_UNLOCKABLE_EDITION 2
 
+#if NB_STEAM_API==0 && NB_EOS_SDK==0
+#define SET_ALWAYS_UNLOCKED
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 int  set_check_id(const unsigned char *name, const char *needle);

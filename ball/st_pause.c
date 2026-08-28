@@ -12,7 +12,7 @@
  * General Public License for more details.
  */
 
- /*
+/*
  * HACK: Used with console version
  */
 #include "console_control_gui.h"
@@ -58,11 +58,11 @@ struct state st_pause_quit;
 
 enum
 {
-    PAUSE_CONF = GUI_LAST,
-    PAUSE_ZEN_SWITCH,
+    PAUSE_ZEN_SWITCH = GUI_LAST,
     PAUSE_RESPAWN,
     PAUSE_CONTINUE,
     PAUSE_RESTART,
+    PAUSE_OPTIONS,
     PAUSE_EXIT
 };
 
@@ -93,7 +93,8 @@ int goto_pause(struct state *returnable)
 {
     audio_play("snd/2.2/game_pause.ogg", 1.0f);
 
-    st_continue = returnable;
+    if (!st_continue)
+        st_continue = returnable;
 
     /* Set it up some those states? */
     if (st_continue == &st_play_ready || st_continue == &st_play_set ||
@@ -116,13 +117,13 @@ static int pause_action(int tok, int val)
 
     switch (tok)
     {
+        case PAUSE_OPTIONS:
+            return goto_conf(&st_pause, 1, 0);
+            break;
+
         case GUI_BACK:
         case PAUSE_CONTINUE:
             PAUSED_ACTION_CONTINUE;
-            break;
-
-        case PAUSE_CONF:
-            return goto_conf(&st_pause, 1, 0);
             break;
 
         case PAUSE_RESPAWN:
@@ -288,27 +289,24 @@ static int pause_gui(void)
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
         if      (curr_mode() == MODE_NORMAL &&
                  account_get_d(ACCOUNT_PRODUCT_MEDIATION) && last_active)
-            drastic = pause_button_width(1, 1) * 5 > config_get_d(CONFIG_WIDTH);
+            drastic = pause_button_width(1, 1) * 6 > config_get_d(CONFIG_WIDTH);
         else if (curr_mode() == MODE_NORMAL &&
                  account_get_d(ACCOUNT_PRODUCT_MEDIATION))
-            drastic = pause_button_width(1, 0) * 4 > config_get_d(CONFIG_WIDTH);
+            drastic = pause_button_width(1, 0) * 5 > config_get_d(CONFIG_WIDTH);
         else
 #endif
         if      (last_active)
-            drastic = pause_button_width(0, 1) * 4 > config_get_d(CONFIG_WIDTH);
+            drastic = pause_button_width(0, 1) * 5 > config_get_d(CONFIG_WIDTH);
 #else
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
         if      (curr_mode() == MODE_NORMAL &&
                  account_get_d(ACCOUNT_PRODUCT_MEDIATION) && last_active)
-            drastic = pause_button_width(1, 1) * 4 > config_get_d(CONFIG_WIDTH);
+            drastic = pause_button_width(1, 1) * 5 > config_get_d(CONFIG_WIDTH);
         else if (curr_mode() == MODE_NORMAL &&
                  account_get_d(ACCOUNT_PRODUCT_MEDIATION))
-            drastic = pause_button_width(1, 0) * 3 > config_get_d(CONFIG_WIDTH);
+            drastic = pause_button_width(1, 0) * 4 > config_get_d(CONFIG_WIDTH);
 #endif
 #endif
-
-        gui_state(id, _("Options"), GUI_SML, PAUSE_CONF, 0);
-        gui_space(id);
 
         /*
          * If the wide button is drastic from width pixels,
@@ -334,6 +332,14 @@ static int pause_gui(void)
             }
 
             gui_space(id);
+
+            if ((jd = gui_harray(id)))
+            {
+                gui_state(jd, _("Continue"), GUI_SML, PAUSE_CONTINUE, 0);
+                gui_state(jd, _("Options"),  GUI_SML, PAUSE_OPTIONS, 0);
+            }
+
+            gui_space(id);
         }
 
         if ((jd = gui_harray(id)))
@@ -344,25 +350,14 @@ static int pause_gui(void)
             const char *quit_btn_text = (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
 #endif
 
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC && !console_gui_shown())
-#endif
-            {
-                gui_state(jd, _(quit_btn_text), GUI_SML, PAUSE_EXIT, 0);
+            gui_state(jd, _(quit_btn_text), GUI_SML, PAUSE_EXIT, 0);
 
-                if (progress_same_avail())
-                    gui_state(jd, _("Restart"), GUI_SML, PAUSE_RESTART, 0);
+            if (progress_same_avail())
+                gui_state(jd, _("Restart"), GUI_SML, PAUSE_RESTART, 0);
 
-                gui_start(jd, _("Continue"), GUI_SML, PAUSE_CONTINUE, 0);
-            }
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            else
-            {
-                gui_state(jd, _(quit_btn_text), GUI_SML, PAUSE_EXIT, 0);
-                if (progress_same_avail())
-                    gui_start(jd, _("Restart"), GUI_SML, PAUSE_RESTART, 0);
-            }
-#endif
+            gui_state(jd, _("Options"), GUI_SML, PAUSE_OPTIONS, 0);
+
+            gui_start(jd, _("Continue"), GUI_SML, PAUSE_CONTINUE, 0);
 
             /* If the wide button is not drastic, give more wide grid. */
 
@@ -540,7 +535,6 @@ static int pause_quit_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         const char *quit_header_text = campaign_used() ? N_("Quit") : (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
 #else
@@ -648,7 +642,7 @@ static int pause_quit_buttn(int b, int d)
     if (d)
     {
         int active = gui_active();
-        
+
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
         {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)

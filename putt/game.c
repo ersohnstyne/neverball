@@ -72,6 +72,8 @@ static float personal_respawnable_view_p[3];
 
 static int path_enabled_orcondition[1024];
 
+static float fade_k, fade_d;
+
 /*---------------------------------------------------------------------------*/
 
 static void view_init(void)
@@ -152,8 +154,6 @@ void game_free(void)
 
 /*---------------------------------------------------------------------------*/
 
-static float fade_k, fade_d;
-
 void game_kill_fade(void)
 {
     fade_k = 0.0f;
@@ -184,6 +184,19 @@ void game_fade(float d)
 }
 
 /*---------------------------------------------------------------------------*/
+
+void game_free_objects(void)
+{
+    if (state)
+        sol_free_draw(&file.draw);
+}
+
+int game_load_objects(void)
+{
+    if (state)
+        sol_load_draw(&file.draw, &file.vary, config_get_d(CONFIG_SHADOW));
+    return 1;
+}
 
 static void game_draw_vect(struct s_rend *rend, const struct s_vary *fp)
 {

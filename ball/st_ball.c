@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -392,6 +392,8 @@ static unsigned int ball_refresh_packages(void)
     return package_refresh(callback);
 }
 
+static struct state *ball_back;
+
 static int ball_action(int tok, int val)
 {
     if (game_setup_process() && tok == GUI_BACK)
@@ -455,11 +457,8 @@ static int ball_action(int tok, int val)
 
         case GUI_BACK:
             game_fade(+4.0);
-#if NB_HAVE_PB_BOTH==1
-            exit_state(&st_conf_account);
-#else
-            exit_state(&st_conf);
-#endif
+            exit_state(ball_back);
+            ball_back = NULL;
             break;
 
 #if NB_HAVE_PB_BOTH==1
@@ -732,13 +731,18 @@ static int ball_gui(void)
 
 static int ball_enter(struct state *st, struct state *prev, int intent)
 {
+    if (!ball_back)
+        ball_back = prev;
+
     if (prev != &st_ball || ball_manual_hotreload)
         scan_balls();
 
     if (prev != &st_ball)
     {
         game_proxy_filter(filter_cmd);
-        load_ball_demo();
+
+        if (!game_server_state())
+            load_ball_demo();
     }
 
     if (ball_manual_hotreload)
@@ -752,7 +756,7 @@ static int ball_enter(struct state *st, struct state *prev, int intent)
 
 static int ball_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if (next != &st_ball)
+    if (next != &st_ball && !game_server_state())
     {
         back_free();
 
@@ -773,17 +777,20 @@ static int ball_leave(struct state *st, struct state *next, int id, int intent)
 
 static void ball_paint(int id, float t)
 {
-    video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-
 #if NB_HAVE_PB_BOTH==1
-    if (super_environment == 0)
-#endif
-        back_draw_easy();
-
-#if NB_HAVE_PB_BOTH==1
-    game_client_draw(super_environment ? 0 : POSE_BALL, t);
+    if (!(game_server_state() || super_environment != 0))
 #else
-    game_client_draw(POSE_BALL, t);
+    if (!game_server_state())
+#endif
+    {
+        video_set_perspective((float)config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+        back_draw_easy();
+    }
+
+#if NB_HAVE_PB_BOTH==1
+    game_client_draw(game_server_state() || super_environment ? 0 : POSE_BALL, t);
+#else
+    game_client_draw(game_server_state() ? 0 : POSE_BALL, t);
 #endif
 
     gui_paint(id);
@@ -796,17 +803,21 @@ static void ball_paint(int id, float t)
 static void ball_timer(int id, float dt)
 {
     gui_timer(id, dt);
-    game_step_fade(dt);
 
-    if (model_studio) /* Not available in model studio */;
-    else if (!demo_replay_step(dt))
+    if (!game_server_state())
     {
-        demo_replay_stop(0);
-        load_ball_demo();
+        game_step_fade(dt);
+
+        if (model_studio) /* Not available in model studio */;
+        else if (!demo_replay_step(dt))
+        {
+            demo_replay_stop(0);
+            load_ball_demo();
 #if NB_HAVE_PB_BOTH==1
-        demo_replay_speed(super_environment ? SPEED_SLOWER : SPEED_NORMAL);
+            demo_replay_speed(super_environment ? SPEED_SLOWER : SPEED_NORMAL);
 #endif
-        game_client_blend(demo_replay_blend());
+            game_client_blend(demo_replay_blend());
+        }
     }
 }
 

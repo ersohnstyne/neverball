@@ -65,6 +65,8 @@
 
 int  game_init(const char *);
 void game_free(void);
+void game_free_objects(void);
+int  game_load_objects(void);
 
 void game_kill_fade(void);
 void game_step_fade(float);

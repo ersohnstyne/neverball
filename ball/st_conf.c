@@ -117,13 +117,16 @@ struct state st_conf_audio;
 
 /*---------------------------------------------------------------------------*/
 
+struct state st_game_link;
+
+static struct state *conf_back;
+
 static int ingame_demo = 0;
 static int mainmenu_conf = 1;
-static struct state *conf_back_state;
 
 int goto_conf(struct state *back_state, int using_game, int demo)
 {
-    conf_back_state = back_state;
+    conf_back = back_state;
 
     ingame_demo = demo;
     mainmenu_conf = !using_game;
@@ -1038,7 +1041,7 @@ static int conf_gameplay_gui(void)
         conf_toggle(id, _("Show Hint"), CONF_GAMEPLAY_HINT,
                         config_get_d(CONFIG_ACCOUNT_HINT), _("On"), 1, _("Off"), 0);
 #endif
-        
+
         gui_space(id);
 
         if (game_switchball_installed())
@@ -2761,7 +2764,7 @@ static int conf_action(int tok, int val)
             if (mainmenu_conf)
                 game_fade(+6.0f);
 
-            return exit_state(conf_back_state);
+            return exit_state(conf_back);
 
 #if ENABLE_GAME_TRANSFER==1 && \
     !defined(__NDS__) && !defined(__3DS__) && \
@@ -3081,17 +3084,50 @@ static int conf_gui(void)
     return root_id ? root_id : id;
 }
 
+static void conf_bg_paint(float t)
+{
+    if (game_server_state())
+    {
+        game_client_draw(0, t);
+    }
+    else
+    {
+        video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+        back_draw_easy();
+    }
+}
+
 static int conf_enter(struct state *st, struct state *prev, int intent)
 {
-    if (mainmenu_conf && prev == &st_title)
-        game_fade(-6.0f);
+    if (!conf_back)
+        conf_back = prev;
 
-    conf_common_init(conf_action, mainmenu_conf);
+    if (!game_server_state())
+    {
+        if (mainmenu_conf && prev == &st_title)
+            game_fade(-6.0f);
+
+        back_push("back/gui.png");
+    }
+
+    conf_common_bg_paint(conf_bg_paint);
+    common_init(conf_action);
+
     return transition_slide(conf_gui(), 1, intent);
 }
 
 static int conf_leave(struct state *st, struct state *next, int id, int intent)
 {
+    config_save();
+
+    if (next == conf_back)
+    {
+        if (!game_server_state())
+            back_pop();
+
+        conf_common_bg_paint(NULL);
+    }
+
     if (next == &st_null)
     {
         progress_exit();
@@ -3103,7 +3139,7 @@ static int conf_leave(struct state *st, struct state *next, int id, int intent)
         game_client_free(NULL);
     }
 
-    return conf_common_leave(st, next, id, intent);
+    return transition_slide(id, 0, intent);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -3133,6 +3169,9 @@ static int null_enter(struct state *st, struct state *prev, int intent)
 #if ENABLE_MOTIONBLUR!=0
     video_motionblur_quit();
 #endif
+
+    game_client_free_objects();
+    back_free_objects();
 
 #if ENABLE_DUALDISPLAY==1
     game_dualdisplay_gui_free();
@@ -3189,6 +3228,9 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
 #if ENABLE_DUALDISPLAY==1
     game_dualdisplay_gui_init();
 #endif
+
+    back_load_objects();
+    game_client_load_objects();
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
     const char *ball;
@@ -3376,5 +3418,3 @@ struct state st_null = {
     null_enter,
     null_leave
 };
-
-/*---------------------------------------------------------------------------*/

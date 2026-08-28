@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
- * PENNYBALL is  free software; you can redistribute  it and/or modify
+ * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -1204,7 +1204,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
 
         game_shadow_conf(pose, 1);
         r_draw_enable(&rend);
-        
+
         const float effective_fov = MIN((fov / (gd->mojang_death_enabled_flags ? 1.25f : 1.0f)) +
                                         (25 * (gd->mojang_death_time_percent / 100.f)), 110);
 

@@ -440,7 +440,7 @@ static int title_enter(struct state *st, struct state *prev, int intent)
                         play_id = gui_start(kd, gt_prefix("menu^Play"),
                                                 GUI_MED, TITLE_PLAY, 1);
 
-                    gui_state(kd, gt_prefix("menu^Help"),    GUI_MED, TITLE_HELP, 0);
+                    gui_state(kd, gt_prefix("menu^Help"), GUI_MED, TITLE_HELP, 0);
                     gui_state(kd, gt_prefix("menu^Options"), GUI_MED, TITLE_CONF, 0);
 
                     if (support_exit && config_get_d(CONFIG_FULLSCREEN))
@@ -542,6 +542,8 @@ static void title_timer(int id, float dt)
     {
         if (gamepad_wired)
             gui_set_label(gamepadinfo_controller_ids[0], _("P1 " GUI_GAMEPAD));
+        else if (battery_level < 2)
+            gui_set_label(gamepadinfo_controller_ids[0], _("P1 " GUI_GAMEPAD " " GUI_BATTERY_LOW));
         else
             gui_set_label(gamepadinfo_controller_ids[0], _("P1 " GUI_GAMEPAD " " GUI_BATTERY));
 
@@ -566,8 +568,8 @@ static void title_timer(int id, float dt)
             gui_set_label(gamepadinfo_controller_ids[1], _("P2 " GUI_GAMEPAD " " GUI_BATTERY));
 
         gui_set_color(gamepadinfo_controller_ids[1],
-            battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
-            battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_grn);
+                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
+                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_grn);
     }
     else
     {
@@ -586,8 +588,8 @@ static void title_timer(int id, float dt)
             gui_set_label(gamepadinfo_controller_ids[2], _("P3 " GUI_GAMEPAD " " GUI_BATTERY));
 
         gui_set_color(gamepadinfo_controller_ids[2],
-            battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
-            battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_blu);
+                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
+                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_blu);
     }
     else
     {
@@ -606,8 +608,8 @@ static void title_timer(int id, float dt)
             gui_set_label(gamepadinfo_controller_ids[3], _("P4 " GUI_GAMEPAD " " GUI_BATTERY));
 
         gui_set_color(gamepadinfo_controller_ids[3],
-            battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
-            battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_yel);
+                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_wht,
+                      battery_level < 2 && !gamepad_wired && fcosf(V_PI * time_state() * 2) > 0 ? gui_red : gui_yel);
     }
     else
     {
@@ -1231,6 +1233,7 @@ enum
 {
     PAUSE_CONTINUE = 1,
     PAUSE_QUIT,
+    PAUSE_OPTIONS,
     PAUSE_SKIP,
     PAUSE_RESHOT
 };
@@ -1260,6 +1263,9 @@ static int pause_action(int i)
 
     switch(i)
     {
+    case PAUSE_OPTIONS:
+        return goto_state(&st_conf);
+
     case PAUSE_CONTINUE:
         return exit_state(st_continue ? st_continue : &st_title);
 
@@ -1317,6 +1323,12 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
             gui_space(id);
         }
 
+        if (paused_indiv_ctrl_index)
+        {
+            gui_state(id, _("Options"), GUI_SML, PAUSE_OPTIONS, 0);
+            gui_space(id);
+        }
+
         if ((jd = gui_harray(id)))
         {
             gui_state(jd, _("Quit"), GUI_SML, PAUSE_QUIT, 0);
@@ -1341,7 +1353,7 @@ static int pause_leave(struct state *st, struct state *next, int id, int intent)
 
     if (next == &st_null)
         course_free();
-    else
+    else if (next != &st_conf)
         audio_music_fade_in(0.5f);
 
     return transition_slide(id, 0, intent);

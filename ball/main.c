@@ -192,8 +192,6 @@ const char TITLE[] = "Neverball";
 #endif
 const char ICON[] = "icon/neverball.png";
 
-#define SET_ALWAYS_UNLOCKED
-
 /* This fixes some malfunctions instead */
 #define SDL_EVENT_ANTI_MALFUNCTIONS(events) do { events.type = 0; } while (0)
 

@@ -48,7 +48,7 @@
 static int game_draw_cam_abovemap(const struct game_draw *gd)
 {
 #ifdef _DEBUG
-    return gd->vary.base->vc == 0 ? 0 : gd->vary.base->vv[0].p[1] > gd->view.p[1] ? 0 : 1;
+    return gd->draw.base->vc == 0 ? 0 : gd->draw.base->vv[0].p[1] > gd->view.p[1] ? 0 : 1;
 #else
     return 1;
 #endif

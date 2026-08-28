@@ -568,17 +568,28 @@ static int goal_gui(void)
 #else
                 const int can_restart = 1;
 #endif
+                
+                btn_ids[1] = gui_start(jd, _("Retry Level"), GUI_SML, GOAL_SAME, 0);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (progress_same_avail() &&
-                    (!campaign_hardcore() && curr_mode() != MODE_HARDCORE) && can_restart)
+                if (!progress_same_avail() ||
+                    (campaign_hardcore() || curr_mode() == MODE_HARDCORE) ||
+                    !can_restart)
 #else
-                if (progress_same_avail() && can_restart)
+                if (!progress_same_avail() || !can_restart)
 #endif
-                    btn_ids[1] = gui_start(jd, _("Retry Level"), GUI_SML, GOAL_SAME, 0);
+                {
+                    gui_set_color(btn_ids[1], GUI_COLOR_GRY);
+                    gui_set_state(btn_ids[1], GUI_NONE, 0);
+                }
 
-                if (demo_saved() && save >= 1)
-                    btn_ids[0] = gui_state(jd, _("Save Replay"), GUI_SML, GOAL_SAVE, 0);
+                btn_ids[0] = gui_state(jd, _("Save Replay"), GUI_SML, GOAL_SAVE, 0);
+
+                if (!demo_saved() || save < 1)
+                {
+                    gui_set_color(btn_ids[0], GUI_COLOR_GRY);
+                    gui_set_state(btn_ids[0], GUI_NONE, 0);
+                }
 
                 if (btns_disabled)
                     for (int i = 0; i < 3; i++)

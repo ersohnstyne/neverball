@@ -766,12 +766,14 @@ static int fail_gui(void)
 #endif
                     }
 #endif
-
                     /* We're just reverted back for you! */
-                    if (demo_saved())
+
+                    const int save_btn_id = gui_state(jd, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
+
+                    if (!demo_saved() || !((save == 3 && status == GAME_FALL) || (save >= 2 && status == GAME_TIME)))
                     {
-                        if ((save == 3 && status == GAME_FALL) || (save >= 2 && status == GAME_TIME))
-                            gui_state(jd, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
+                        gui_set_state(save_btn_id, GUI_NONE, 0);
+                        gui_set_color(save_btn_id, GUI_COLOR_GRY);
                     }
                 }
 

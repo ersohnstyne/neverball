@@ -238,25 +238,19 @@ static int pause_action(int tok, int val)
 
 /*---------------------------------------------------------------------------*/
 
-static int pause_button_width(int allow_zen, int reset_puzzle)
+static int pause_button_width(int reset_puzzle)
 {
     int target_width = 0;
     int btn_width;
 
-    if (allow_zen)
-    {
-        btn_width = gui_measure(_("Switch to Zen"), GUI_SML).w;
-        if (btn_width > target_width) target_width = btn_width;
-    }
+    btn_width = gui_measure(_("Continue"), GUI_SML).w;
+    if (btn_width > target_width) target_width = btn_width;
 
     if (reset_puzzle)
     {
         btn_width = gui_measure(_("Reset Puzzle"), GUI_SML).w;
         if (btn_width > target_width) target_width = btn_width;
     }
-
-    btn_width = gui_measure(_("Continue"), GUI_SML).w;
-    if (btn_width > target_width) target_width = btn_width;
 
     btn_width = gui_measure(_("Restart"), GUI_SML).w;
     if (btn_width > target_width) target_width = btn_width;
@@ -287,95 +281,62 @@ static int pause_gui(void)
         gui_space(id);
 
 #ifdef MAPC_INCLUDES_CHKP
-#if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
-        if      (curr_mode() == MODE_NORMAL &&
-                 account_get_d(ACCOUNT_PRODUCT_MEDIATION) && last_active)
-            drastic = pause_button_width(1, 1) * 6 > config_get_d(CONFIG_WIDTH);
-        else if (curr_mode() == MODE_NORMAL &&
-                 account_get_d(ACCOUNT_PRODUCT_MEDIATION))
-            drastic = pause_button_width(1, 0) * 5 > config_get_d(CONFIG_WIDTH);
+        if (last_active)
+            drastic = pause_button_width(0) * 5 > config_get_d(CONFIG_WIDTH);
         else
 #endif
-        if      (last_active)
-            drastic = pause_button_width(0, 1) * 5 > config_get_d(CONFIG_WIDTH);
+            drastic = pause_button_width(0) * 4 > config_get_d(CONFIG_WIDTH);
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        const char *quit_btn_text = campaign_used() ? N_("Quit") : (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
 #else
-#if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
-        if      (curr_mode() == MODE_NORMAL &&
-                 account_get_d(ACCOUNT_PRODUCT_MEDIATION) && last_active)
-            drastic = pause_button_width(1, 1) * 5 > config_get_d(CONFIG_WIDTH);
-        else if (curr_mode() == MODE_NORMAL &&
-                 account_get_d(ACCOUNT_PRODUCT_MEDIATION))
-            drastic = pause_button_width(1, 0) * 4 > config_get_d(CONFIG_WIDTH);
-#endif
+        const char *quit_btn_text = (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
 #endif
 
         /*
-         * If the wide button is drastic from width pixels,
-         * stack more buttons.
+         * If the wide button is drastic from width pixels by display,
+         * use vertical instead.
          */
 
         if (drastic)
         {
-            if ((jd = gui_harray(id)))
-            {
+            gui_start(id, _("Continue"), GUI_SML, PAUSE_CONTINUE, 0);
+
 #ifdef MAPC_INCLUDES_CHKP
-                if (progress_same_avail() && last_active)
-                    gui_state(jd, _("Reset Puzzle"), GUI_SML, PAUSE_RESPAWN, 0);
+            if (progress_same_avail() && last_active)
+                gui_state(id, _("Reset Puzzle"), GUI_SML, PAUSE_RESPAWN, 0);
 #endif
 
-#if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
-                if (curr_mode() == MODE_NORMAL &&
-                    account_get_d(ACCOUNT_PRODUCT_MEDIATION) &&
-                    !mediation_enabled()
-                    )
-                    gui_state(jd, _("Switch to Zen"), GUI_SML, PAUSE_ZEN_SWITCH, 0);
-#endif
-            }
+            const int restart_btn_id = gui_state(id, _("Restart"), GUI_SML,
+                                                     progress_same_avail() ? PAUSE_RESTART :
+                                                                             GUI_NONE, 0);
+            if (!progress_same_avail())
+                gui_set_color(restart_btn_id, GUI_COLOR_GRY);
 
-            gui_space(id);
+            gui_state(id, _("Options"), GUI_SML, PAUSE_OPTIONS, 0);
 
-            if ((jd = gui_harray(id)))
-            {
-                gui_state(jd, _("Continue"), GUI_SML, PAUSE_CONTINUE, 0);
-                gui_state(jd, _("Options"),  GUI_SML, PAUSE_OPTIONS, 0);
-            }
-
-            gui_space(id);
+            const int quit_btn_id = gui_state(id, _(quit_btn_text), GUI_SML, PAUSE_EXIT, 0);
+            gui_set_color(quit_btn_id, GUI_COLOR_RED);
         }
 
-        if ((jd = gui_harray(id)))
+        else if ((jd = gui_harray(id)))
         {
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            const char *quit_btn_text = campaign_used() ? N_("Quit") : (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
-#else
-            const char *quit_btn_text = (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
-#endif
-
-            gui_state(jd, _(quit_btn_text), GUI_SML, PAUSE_EXIT, 0);
-
-            if (progress_same_avail())
-                gui_state(jd, _("Restart"), GUI_SML, PAUSE_RESTART, 0);
+            const int quit_btn_id = gui_state(jd, _(quit_btn_text), GUI_SML, PAUSE_EXIT, 0);
+            gui_set_color(quit_btn_id, GUI_COLOR_RED);
 
             gui_state(jd, _("Options"), GUI_SML, PAUSE_OPTIONS, 0);
+            const int restart_btn_id = gui_state(jd, _("Restart"), GUI_SML,
+                                                     progress_same_avail() ? PAUSE_RESTART :
+                                                                             GUI_NONE, 0);
+            if (!progress_same_avail())
+                gui_set_color(restart_btn_id, GUI_COLOR_GRY);
+
+#ifdef MAPC_INCLUDES_CHKP
+            if (progress_same_avail() && last_active)
+                gui_state(jd, _("Reset Puzzle"), GUI_SML, PAUSE_RESPAWN, 0);
+#endif
 
             gui_start(jd, _("Continue"), GUI_SML, PAUSE_CONTINUE, 0);
-
-            /* If the wide button is not drastic, give more wide grid. */
-
-            if (!drastic)
-            {
-#ifdef MAPC_INCLUDES_CHKP
-                if (progress_same_avail() && last_active)
-                    gui_state(jd, _("Reset Puzzle"), GUI_SML, PAUSE_RESPAWN, 0);
-#endif
-
-#if defined(CONFIG_INCLUDES_ACCOUNT) && defined(LEVELGROUPS_INCLUDES_ZEN)
-                if (curr_mode() == MODE_NORMAL &&
-                    account_get_d(ACCOUNT_PRODUCT_MEDIATION) &&
-                    !mediation_enabled())
-                    gui_state(jd, _("Switch to Zen"), GUI_SML, PAUSE_ZEN_SWITCH, 0);
-#endif
-            }
         }
 
         gui_pulse(title_id, 1.2f);

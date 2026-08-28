@@ -435,6 +435,9 @@
     <ClCompile Include="..\wgcl\account_wgcl.c">
       <Filter>Quelldateien\wgcl</Filter>
     </ClCompile>
+    <ClCompile Include="..\ball\st_game_link.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\share\zip.h">
@@ -799,6 +802,9 @@
     </ClInclude>
     <ClInclude Include="..\share\package_superwaifu.c">
       <Filter>Quelldateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_game_link.h">
+      <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

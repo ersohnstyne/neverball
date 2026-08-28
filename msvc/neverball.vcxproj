@@ -277,6 +277,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\ball\st_demo.c" />
     <ClCompile Include="..\ball\st_done.c" />
     <ClCompile Include="..\ball\st_fail.c" />
+    <ClCompile Include="..\ball\st_game_link.c" />
     <ClCompile Include="..\ball\st_goal.c" />
     <ClCompile Include="..\ball\st_help.c" />
     <ClCompile Include="..\ball\st_intro.c" />
@@ -373,6 +374,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\share\networking_dedicated.c" />
     <ClCompile Include="..\share\networking_opensource.c" />
     <ClCompile Include="..\share\package.c" />
+    <ClInclude Include="..\ball\st_game_link.h" />
     <ClInclude Include="..\share\package_superwaifu.c" />
     <ClCompile Include="..\share\part.c" />
     <ClCompile Include="..\share\queue.c" />

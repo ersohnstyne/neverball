@@ -1009,7 +1009,7 @@ void audio_music_fade_to(float t, const char *filename, int loop)
 
     if (voices_music)
     {
-        if (!voices_music->name && strcmp(filename, voices_music->name) != 0)
+        if (voices_music->name && strcmp(filename, voices_music->name) != 0)
         {
             audio_music_stop();
             audio_music_play(filename, loop);
@@ -1017,7 +1017,7 @@ void audio_music_fade_to(float t, const char *filename, int loop)
             return;
         }
 
-        if (!voices_music->name && strcmp(filename, voices_music->name) == 0)
+        if (voices_music->name && strcmp(filename, voices_music->name) == 0)
         {
             /*
              * We're fading to the current track.  Chances are,

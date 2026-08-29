@@ -683,8 +683,6 @@ static int fail_gui(void)
                     const char *quit_btn_text = (curr_mode() == MODE_STANDALONE || progress_dead() ?
                                                  N_("Exit") : N_("Back To Menu"));
 
-                    const GLubyte *btn_color = can_restart ? gui_red : gui_gry;
-
                     gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, GUI_COLOR_RED);
 
                     ld = gui_label(kd, _(quit_btn_text), GUI_SML, GUI_COLOR_RED);

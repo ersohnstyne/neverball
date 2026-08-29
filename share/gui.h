@@ -57,6 +57,7 @@
 #define GUI_CROSS          "×"
 #define GUI_ROMAN_2        "Ⅱ"
 #define GUI_FISHEYE        "🎥" /* Was: "◉" */
+#define GUI_GEAR           "⚙️"
 
 #define GUI_GAMEPAD        "🎮"
 #define GUI_BATTERY        "🔋"

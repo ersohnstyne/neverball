@@ -51,6 +51,7 @@
 #include "progress.h"
 #include "audio.h"
 #include "config.h"
+#include "video.h"
 #include "demo.h"
 #include "lang.h"
 #include "key.h"
@@ -87,6 +88,7 @@
 #if NB_HAVE_PB_BOTH==1
 #include "st_dailychallenge.h"
 #endif
+#include "strbuf/strbuf.h"
 
 #if NB_HAVE_PB_BOTH!=1 && (defined(CONFIG_INCLUDES_ACCOUNT) || defined(MAPC_INCLUDES_CHKP))
 #error Security compilation error: Preprocessor definitions can be used it, \
@@ -247,7 +249,7 @@ static int level_action(int tok, int val)
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     /* HACK: Do not attempt, when the level is loading. */
 
-    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading ? 1 : 0; })) return 1;
+    if (EM_ASM_INT({ return Pennyball.wgclIsLevelLoading ? 1 : 0; })) return 1;
 #endif
 
     GENERIC_GAMEMENU_ACTION;
@@ -315,12 +317,15 @@ static int level_gui(void)
 #endif
 
     int id, jd, kd;
+    STRBUF title = level_title(curr_level());
 
 #ifdef MAPC_INCLUDES_CHKP
-    const char *message = last_active ? LEVEL_MESSAGE_CHKP_POST_RESPAWN :
-                                        level_msg(curr_level());
+    const char *desc = last_active ? LEVEL_MESSAGE_CHKP_POST_RESPAWN :
+                                     level_desc(curr_level());
+    const char *t    = last_active ? _("Checkpoint") : CSTR(title);
 #else
-    const char *message = level_msg(curr_level());
+    const char *desc = level_desc(curr_level());
+    const char *t    = CSTR(title);
 #endif
 
     if ((id = gui_vstack(0)))
@@ -424,81 +429,135 @@ static int level_gui(void)
                 const char *ln = level_name(curr_level());
                 int b = level_bonus(curr_level());
                 int m = level_master(curr_level());
+                const char* hp = (ln && *ln >= '0' && *ln <= 9) ? "#" : "";
 
-                const char *curr_setname = set_name(curr_set());
-                char curr_setname_final[MAXSTR];
-
-                if (!curr_setname)
-                {
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(curr_setname_final, MAXSTR,
-#else
-                    sprintf(curr_setname_final,
-#endif
-                            _("Untitled set name (%d)"), curr_set());
-                }
-                else
-                        SAFECPY(curr_setname_final, curr_setname);
+                /* vvv AFTER REPLACE vvv */
 
                 char setattr[MAXSTR], lvlattr[MAXSTR];
 
+                if (t && *t && t[0])
+                {
+                    SAFECPY(lvlattr, t);
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                    if (curr_mode() == MODE_CAMPAIGN)
+                        
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                if (m && curr_mode() == MODE_STANDALONE)
-                    sprintf_s(lvlattr, MAXSTR, _("Master Level"));
-                else if (m)
-                    sprintf_s(lvlattr, MAXSTR, _("Master Level %s"), ln);
-                else if (b && curr_mode() == MODE_STANDALONE)
-                    sprintf_s(lvlattr, MAXSTR, _("Bonus Level"));
-                else if (b)
-                    sprintf_s(lvlattr, MAXSTR, _("Bonus Level %s"), ln);
-                else if (curr_mode() == MODE_STANDALONE)
-                    sprintf_s(lvlattr, MAXSTR, _("Level ---"));
-                else sprintf_s(lvlattr, MAXSTR, _("Level %s"), ln);
-
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (curr_mode() == MODE_CAMPAIGN)
-                    sprintf_s(setattr, MAXSTR, "%s", mode_to_str(curr_mode(), 1));
+                        sprintf_s(setattr, MAXSTR, "%s%s: %s",
+                                                   hp, ln, mode_to_str(MODE_CAMPAIGN, 1));
+#else
+                        sprintf(setattr, "%s%s: %s",
+                                         hp, ln, mode_to_str(MODE_CAMPAIGN, 1));
+#endif
+                    else if (curr_mode() == MODE_HARDCORE)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
+                                                   hp, ln, mode_to_str(MODE_HARDCORE, 1));
+#else
+                        sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
+                                         hp, ln, mode_to_str(MODE_HARDCORE, 1));
+#endif
+#endif
+                    if (curr_mode() == MODE_CHALLENGE)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
+                                                   hp, ln, mode_to_str(MODE_CHALLENGE, 1));
+#else
+                        sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
+                                         hp, ln, mode_to_str(MODE_CHALLENGE, 1));
+#endif
+                    else if (curr_mode() == MODE_ZEN)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
+                                                   hp, ln, mode_to_str(MODE_ZEN, 1));
+#else
+                        sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
+                                         hp, ln, mode_to_str(MODE_ZEN, 1));
+#endif
+                    else if (curr_mode() == MODE_STANDALONE)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
+                                         hp, ln);
+#else
+                        sprintf(setattr, "%s %s%s", set_name(curr_set()),
+                                         hp, ln);
+#endif
+                }
                 else
-#endif
-                if (curr_mode() == MODE_STANDALONE)
-                    sprintf_s(setattr, MAXSTR, _("Standalone level"));
-                else if (curr_mode() == MODE_NORMAL)
-                    sprintf_s(setattr, MAXSTR, "%s", curr_setname_final);
-                else if (curr_mode() != MODE_NONE)
-#if NB_HAVE_PB_BOTH==1
-                    sprintf_s(setattr, MAXSTR, _("%s: %s"), curr_setname_final, mode_to_str(dailychallenge_active_mode() ? MODE_DAILY : curr_mode(), 1));
+                {
+                    if (m)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        sprintf_s(lvlattr, MAXSTR, _("Master Level %s"), ln);
 #else
-                    sprintf_s(setattr, MAXSTR, _("%s: %s"), curr_setname_final, mode_to_str(curr_mode(), 1));
+                        sprintf(lvlattr, _("Master Level %s"), ln);
 #endif
+                    else if (b)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        sprintf_s(lvlattr, MAXSTR, _("Bonus Level %s"), ln);
 #else
-                if (m && curr_mode() == MODE_STANDALONE)
-                    sprintf(lvlattr, _("Master Level"));
-                else if (m)
-                    sprintf(lvlattr, _("Master Level %s"), ln);
-                else if (b && curr_mode() == MODE_STANDALONE)
-                    sprintf(lvlattr, _("Bonus Level"));
-                else if (b)
-                    sprintf(lvlattr, _("Bonus Level %s"), ln);
-                else if (curr_mode() == MODE_STANDALONE)
-                    sprintf(lvlattr, _("Level ---"));
-                else sprintf(lvlattr, _("Level %s"), ln);
+                        sprintf(lvlattr, _("Bonus Level %s"), ln);
+#endif
+                    else
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        sprintf_s(lvlattr, MAXSTR, _("Level %s"), ln);
+#else
+                        sprintf(lvlattr, _("Level %s"), ln);
+#endif
 
+                    
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (curr_mode() == MODE_CAMPAIGN)
-                    sprintf(setattr, "%s", mode_to_str(curr_mode(), 1));
-                else
-#endif
-                if (curr_mode() == MODE_STANDALONE)
-                    sprintf(setattr, _("Standalone level"));
-                else if (curr_mode() == MODE_NORMAL)
-                    sprintf(setattr, "%s", curr_setname_final);
-                else if (curr_mode() != MODE_NONE)
-#if NB_HAVE_PB_BOTH==1
-                    sprintf(setattr, _("%s: %s"), curr_setname_final, mode_to_str(dailychallenge_active_mode() ? MODE_DAILY : curr_mode(), 1));
+                    if (curr_mode() == MODE_CAMPAIGN)
+                        
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        sprintf_s(setattr, MAXSTR, "%s", mode_to_str(MODE_CAMPAIGN, 1));
 #else
-                    sprintf(setattr, _("%s: %s"), curr_setname_final, mode_to_str(curr_mode(), 1));
+                        sprintf(setattr, "%s", mode_to_str(MODE_CAMPAIGN, 1));
 #endif
+                    else if (curr_mode() == MODE_HARDCORE)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
+                                                   hp, ln, mode_to_str(MODE_HARDCORE, 1));
+#else
+                        sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
+                                         hp, ln, mode_to_str(MODE_HARDCORE, 1));
 #endif
+                    else
+#endif
+                    if (curr_mode() == MODE_CHALLENGE)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
+                                                   hp, ln, mode_to_str(MODE_CHALLENGE, 1));
+#else
+                        sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
+                                         hp, ln, mode_to_str(MODE_CHALLENGE, 1));
+#endif
+                    else if (curr_mode() == MODE_ZEN)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
+                                                   hp, ln, mode_to_str(MODE_ZEN, 1));
+#else
+                        sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
+                                         hp, ln, mode_to_str(MODE_ZEN, 1));
+#endif
+                    else if (curr_mode() == MODE_STANDALONE)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
+                                         hp, ln);
+#else
+                        sprintf(setattr, "%s %s%s", set_name(curr_set()),
+                                         hp, ln);
+#endif
+                }
+
+                int font_size = (!*t && b) ? GUI_MED : GUI_LRG;
+                const int max_w = video.device_w;
+
+                if (gui_measure(lvlattr, font_size).w > max_w)
+                    font_size = font_size == GUI_LRG && gui_measure(lvlattr, font_size).w <= max_w ? GUI_MED :
+                                                                                                     GUI_SML;
+
+                /* ^^^ AFTER REPLACE ^^^ */
+
                 gui_title_header(kd, lvlattr,
                                      m || b ? GUI_MED : GUI_LRG,
                                      m ? gui_wht : (b ? gui_wht : 0),
@@ -529,9 +588,9 @@ static int level_gui(void)
     defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
         if (show_info)
 #endif
-            if (message && *message)
+            if (desc && *desc)
             {
-                level_infocard_msg_id = gui_multi(id, message, GUI_SML, GUI_COLOR_WHT);
+                level_infocard_msg_id = gui_multi(id, desc, GUI_SML, GUI_COLOR_WHT);
                 gui_space(id);
 
                 if (level_infocard_intro)
@@ -798,7 +857,7 @@ static void level_timer(int id, float dt)
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     /* HACK: Do not attempt, when the level is loading. */
 
-    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading ? 1 : 0; })) return;
+    if (EM_ASM_INT({ return Pennyball.wgclIsLevelLoading ? 1 : 0; })) return;
 #endif
 
     /* HACK: This shouldn't have a bug. This has been fixed. */

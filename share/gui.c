@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <limits.h>
 
-#if !_MSC_VER
+#if defined(__linux__) || defined(__MINGW__)
 #include <unistd.h>
 #endif
 

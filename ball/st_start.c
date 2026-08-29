@@ -898,7 +898,7 @@ static int start_gui(void)
 
                     gui_space(kd);
 
-                    ld = gui_label(kd, _("Goal State in Completed Levels"),
+                    ld = gui_label(kd, _("Completed Levels"),
                                        GUI_SML, 0, 0);
 
                     gui_set_trunc(ld, TRUNC_TAIL);

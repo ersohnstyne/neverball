@@ -994,6 +994,12 @@ static int conf_gameplay_action(int tok, int val)
             config_save();
             goto_state(curr_state());
             break;
+
+        case CONF_GAMEPLAY_LOCK_GOALS:
+            config_set_d(CONFIG_LOCK_GOALS, val);
+            config_save();
+            goto_state(curr_state());
+            break;
     }
 
     return 1;
@@ -1053,6 +1059,15 @@ static int conf_gameplay_gui(void)
 #endif
             gui_space(id);
         }
+
+#if NB_HAVE_PB_BOTH==1
+        conf_toggle_simple(id, _("Completed Levels"), CONF_GAMEPLAY_LOCK_GOALS,
+                               config_get_d(CONFIG_LOCK_GOALS), 0, 1);
+#else
+        conf_toggle(id, _("Completed Levels"), CONF_GAMEPLAY_SWITCHBALL_DROPSPEEDING,
+                        config_get_d(CONFIG_LOCK_GOALS), _("Locked"), 1, _("Unlocked"), 0);
+#endif
+        gui_space(id);
 
         if ((jd = gui_harray(id)) && (kd = gui_vstack(jd)) && (ld = gui_vstack(jd)))
         {

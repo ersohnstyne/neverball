@@ -269,23 +269,30 @@ static int pause_button_width(int reset_puzzle)
 
 static int pause_gui(void)
 {
-    int id, jd, title_id;
+    int id, jd, kd, ld, title_id;
 
     /* Build the pause GUI. */
 
     if ((id = gui_vstack(0)))
     {
-        int drastic = gui_measure(_("Paused"), GUI_LRG).w >= video.device_w;
-        title_id = gui_title_header(id, _("Paused"), GUI_LRG, gui_gry, gui_red);
+        if ((jd = gui_hstack(id)))
+        {
+            if ((kd = gui_hstack(jd)))
+            {
+                gui_label(kd, GUI_GEAR, GUI_SML, GUI_COLOR_WHT);
+                gui_label(kd, _("Options"), GUI_SML, GUI_COLOR_WHT);
+
+                gui_set_state(kd, PAUSE_OPTIONS, 0);
+                gui_set_rect(kd, GUI_ALL);
+            }
+            gui_filler(jd);
+        }
 
         gui_space(id);
 
-#ifdef MAPC_INCLUDES_CHKP
-        if (last_active)
-            drastic = pause_button_width(0) * 5 > config_get_d(CONFIG_WIDTH);
-        else
-#endif
-            drastic = pause_button_width(0) * 4 > config_get_d(CONFIG_WIDTH);
+        title_id = gui_title_header(id, _("Paused"), GUI_LRG, gui_gry, gui_red);
+
+        gui_space(id);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         const char *quit_btn_text = campaign_used() ? N_("Quit") : (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
@@ -298,45 +305,66 @@ static int pause_gui(void)
          * use vertical instead.
          */
 
-        if (drastic)
+        if ((jd = gui_harray(id)))
         {
-            gui_start(id, _("Continue"), GUI_SML, PAUSE_CONTINUE, 0);
+            if ((kd = gui_hstack(jd)))
+            {
+                gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
 
+                ld = gui_label(kd, _(quit_btn_text), GUI_SML, GUI_COLOR_RED);
+                gui_set_fill(ld);
+
+                gui_set_state(kd, PAUSE_EXIT, 0);
+                gui_set_rect(kd, GUI_ALL);
+            }
+
+            if ((kd = gui_hstack(jd)))
+            {
+                const int restartable = (progress_same_avail());
+
+                gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, GUI_COLOR_GRN);
+
+                ld = gui_label(kd, _("Restart"), GUI_SML, GUI_COLOR_WHT);
+                gui_set_fill(ld);
+
+                gui_set_state(kd, restartable ? PAUSE_RESTART : GUI_NONE, 0);
+                gui_set_rect(kd, GUI_ALL);
+
+                if (!restartable)
+                    gui_set_color(ld, GUI_COLOR_GRY);
+            }
+            
 #ifdef MAPC_INCLUDES_CHKP
-            if (progress_same_avail() && last_active)
-                gui_state(id, _("Reset Puzzle"), GUI_SML, PAUSE_RESPAWN, 0);
+            if (last_active)
+                if ((kd = gui_hstack(jd)))
+                {
+                    const int resetable = progress_same_avail();
+
+                    gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, GUI_COLOR_GRN);
+
+                    ld = gui_label(kd, _("Reset Puzzle"), GUI_SML, GUI_COLOR_WHT);
+                    gui_set_fill(ld);
+
+                    gui_set_state(kd, resetable ? PAUSE_RESPAWN : GUI_NONE, 0);
+                    gui_set_rect(kd, GUI_ALL);
+
+                    if (!resetable)
+                        gui_set_color(ld, GUI_COLOR_GRY);
+                }
 #endif
 
-            const int restart_btn_id = gui_state(id, _("Restart"), GUI_SML,
-                                                     progress_same_avail() ? PAUSE_RESTART :
-                                                                             GUI_NONE, 0);
-            if (!progress_same_avail())
-                gui_set_color(restart_btn_id, GUI_COLOR_GRY);
+            if ((kd = gui_hstack(jd)))
+            {
+                gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
 
-            gui_state(id, _("Options"), GUI_SML, PAUSE_OPTIONS, 0);
+                ld = gui_label(kd, _("Continue"), GUI_SML, GUI_COLOR_WHT);
+                gui_set_fill(ld);
 
-            const int quit_btn_id = gui_state(id, _(quit_btn_text), GUI_SML, PAUSE_EXIT, 0);
-            gui_set_color(quit_btn_id, GUI_COLOR_RED);
-        }
+                gui_set_state(kd, PAUSE_CONTINUE, 0);
+                gui_set_rect(kd, GUI_ALL);
 
-        else if ((jd = gui_harray(id)))
-        {
-            const int quit_btn_id = gui_state(jd, _(quit_btn_text), GUI_SML, PAUSE_EXIT, 0);
-            gui_set_color(quit_btn_id, GUI_COLOR_RED);
-
-            gui_state(jd, _("Options"), GUI_SML, PAUSE_OPTIONS, 0);
-            const int restart_btn_id = gui_state(jd, _("Restart"), GUI_SML,
-                                                     progress_same_avail() ? PAUSE_RESTART :
-                                                                             GUI_NONE, 0);
-            if (!progress_same_avail())
-                gui_set_color(restart_btn_id, GUI_COLOR_GRY);
-
-#ifdef MAPC_INCLUDES_CHKP
-            if (progress_same_avail() && last_active)
-                gui_state(jd, _("Reset Puzzle"), GUI_SML, PAUSE_RESPAWN, 0);
-#endif
-
-            gui_start(jd, _("Continue"), GUI_SML, PAUSE_CONTINUE, 0);
+                gui_focus(kd);
+            }
         }
 
         gui_pulse(title_id, 1.2f);

@@ -17,6 +17,7 @@
 
 #include "base_config.h"
 #include "score.h"
+#include "strbuf/strbuf.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -94,6 +95,8 @@ const char *level_file(const struct level *);
 const char *level_song(const struct level *);
 const char *level_name(const struct level *);
 const char *level_msg(const struct level *);
+STRBUF      level_title(const struct level *level);
+const char *level_desc(const struct level *level);
 
 const struct score *level_score(struct level *, int);
 

@@ -648,23 +648,15 @@ const char *level_name(const struct level *level)
 
 const char *level_msg(const struct level *level)
 {
-<<<<<<< HEAD
-    if (level && text_length(level->message) > 0)
-=======
-    if (level && strlen(level->message) > 0)
->>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
+    if (level && text_length(level->message) > 0 && strlen(level->message) > 0)
         return _(level->message);
     return "";
 }
 
-<<<<<<< HEAD
-=======
 /*
  * Level title conventions originated in Nevermania (=Title=)
  * and expanded with chmod's levels (delimiters, brackets, prefixes).
  */
-
->>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
 static int is_bracket_open(char c)
 {
     return c == '(' || c == '[' || c == '{' || c == '<' || c == '>';
@@ -685,11 +677,7 @@ STRBUF level_title(const struct level *level)
 {
     const char *msg = level_msg(level);
 
-<<<<<<< HEAD
     if (!msg || !*msg || !msg[0])
-=======
-    if (!msg || !*msg)
->>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
         return strbuf("");
 
     if (strncmp(msg, "Name:", 5) == 0)
@@ -722,11 +710,7 @@ STRBUF level_title(const struct level *level)
                 while (p <= q && (is_bracket_open(*p) || *p == ' '))
                     p++;
                 while (q >= p && (is_bracket_close(*q) || *q == ' '))
-<<<<<<< HEAD
-                    q++;
-=======
                     q--;
->>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
 
                 if (p <= q)
                     return substr(p, 0, q - p + 1);
@@ -739,22 +723,15 @@ STRBUF level_title(const struct level *level)
                 while (p <= q && (*p == wrap || *p == ' '))
                     p++;
                 while (q >= p && (*q == wrap || *q == ' '))
-<<<<<<< HEAD
-                    q++;
-=======
                     q--;
->>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
 
                 if (p <= q)
                     return substr(p, 0, q - p + 1);
             }
         }
     }
-<<<<<<< HEAD
-=======
 
     return strbuf("");
->>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
 }
 
 const char *level_desc(const struct level *level)

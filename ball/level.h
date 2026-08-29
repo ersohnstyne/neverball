@@ -95,13 +95,8 @@ const char *level_file(const struct level *);
 const char *level_song(const struct level *);
 const char *level_name(const struct level *);
 const char *level_msg(const struct level *);
-<<<<<<< HEAD
 STRBUF      level_title(const struct level *level);
 const char *level_desc(const struct level *level);
-=======
-STRBUF      level_title(const struct level *);
-const char *level_desc(const struct level *);
->>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
 
 const struct score *level_score(struct level *, int);
 

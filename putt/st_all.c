@@ -1288,18 +1288,13 @@ static int stroke_allowed = 0;
 
 static int pause_enter(struct state *st, struct state *prev, int intent)
 {
-<<<<<<< HEAD
     int pdid;
     int id, jd, kd, ld, md, td;
-=======
-    int id, jd, kd, td;
->>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
 
     audio_music_fade_out(0.2f);
 
     if ((id = gui_vstack(0)))
     {
-<<<<<<< HEAD
         if (paused_indiv_ctrl_index == 0)
         {
             if ((jd = gui_hstack(id)))
@@ -1319,24 +1314,6 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
         }
 
         td = gui_title_header(id, _("Paused"), GUI_LRG, gui_gry, gui_red);
-=======
-        if ((jd = gui_hstack(id)))
-        {
-            if ((kd = gui_hstack(jd)))
-            {
-                gui_label(kd, GUI_GEAR, GUI_SML, 0, 0);
-                gui_label(kd, _("Options"), GUI_SML, gui_wht, gui_wht);
-
-                gui_set_state(kd, PAUSE_OPTIONS, 0);
-                gui_set_rect(kd, GUI_ALL);
-            }
-            gui_filler(jd);
-        }
-
-        gui_space(id);
-
-        td = gui_label(id, _("Paused"), GUI_LRG, 0, 0);
->>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
         gui_space(id);
 
         if (curr_party() > 1)

@@ -304,8 +304,8 @@ static int pause_gui(void)
          * If the wide button is drastic from width pixels by display,
          * use vertical instead.
          */
-
-        if ((jd = gui_harray(id)))
+        
+        if ((jd = video.device_w <= video.device_h ? gui_vstack(id) : gui_harray(id)))
         {
             if ((kd = gui_hstack(jd)))
             {
@@ -320,11 +320,13 @@ static int pause_gui(void)
 
             if ((kd = gui_hstack(jd)))
             {
-                const int restartable = (progress_same_avail());
+                const int restartable = progress_same_avail();
+                const GLubyte *btn_color      = restartable ? gui_grn : gui_gry;
+                const GLubyte *btn_color_text = restartable ? gui_wht : gui_gry;
 
-                gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, GUI_COLOR_GRN);
+                gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
 
-                ld = gui_label(kd, _("Restart"), GUI_SML, GUI_COLOR_WHT);
+                ld = gui_label(kd, _("Restart"), GUI_SML, btn_color_text, btn_color_text);
                 gui_set_fill(ld);
 
                 gui_set_state(kd, restartable ? PAUSE_RESTART : GUI_NONE, 0);
@@ -332,17 +334,24 @@ static int pause_gui(void)
 
                 if (!restartable)
                     gui_set_color(ld, GUI_COLOR_GRY);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+                if (current_platform != PLATFORM_PC || console_gui_shown())
+                    gui_focus(kd);
+#endif
             }
-            
+
 #ifdef MAPC_INCLUDES_CHKP
             if (last_active)
                 if ((kd = gui_hstack(jd)))
                 {
                     const int resetable = progress_same_avail();
+                    const GLubyte *btn_color      = resetable ? gui_grn : gui_gry;
+                    const GLubyte *btn_color_text = resetable ? gui_wht : gui_gry;
 
-                    gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, GUI_COLOR_GRN);
+                    gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
 
-                    ld = gui_label(kd, _("Reset Puzzle"), GUI_SML, GUI_COLOR_WHT);
+                    ld = gui_label(kd, _("Reset Puzzle"), GUI_SML, btn_color_text, btn_color_text);
                     gui_set_fill(ld);
 
                     gui_set_state(kd, resetable ? PAUSE_RESPAWN : GUI_NONE, 0);
@@ -353,18 +362,21 @@ static int pause_gui(void)
                 }
 #endif
 
-            if ((kd = gui_hstack(jd)))
-            {
-                gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
+#endif
+                if ((kd = gui_hstack(jd)))
+                {
+                    gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
 
-                ld = gui_label(kd, _("Continue"), GUI_SML, GUI_COLOR_WHT);
-                gui_set_fill(ld);
+                    ld = gui_label(kd, _("Continue"), GUI_SML, GUI_COLOR_WHT);
+                    gui_set_fill(ld);
 
-                gui_set_state(kd, PAUSE_CONTINUE, 0);
-                gui_set_rect(kd, GUI_ALL);
+                    gui_set_state(kd, PAUSE_CONTINUE, 0);
+                    gui_set_rect(kd, GUI_ALL);
 
-                gui_focus(kd);
-            }
+                    gui_focus(kd);
+                }
         }
 
         gui_pulse(title_id, 1.2f);

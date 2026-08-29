@@ -171,13 +171,13 @@ static int done_gui_campaign(void)
         /* FIXME: WGCL Narrator can do it! */
 
         EM_ASM({
-            if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+            if (Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
                 CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_finished_campaign.mp3");
         });
 #endif
     }
 
-    int id, jd;
+    int id, jd, kd, ld;
 
     if ((id = gui_vstack(0)))
     {
@@ -206,7 +206,17 @@ static int done_gui_campaign(void)
 
         if ((jd = gui_harray(id)))
         {
-            gui_start(jd, _("Return to group"), GUI_SML, DONE_TO_GROUP, 0);
+            if ((kd = gui_hstack(jd)))
+            {
+                gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
+
+                ld = gui_label(kd, _("Return to group"), GUI_SML, GUI_COLOR_RED);
+                gui_set_fill(ld);
+
+                gui_set_state(kd, DONE_TO_GROUP, 0);
+                gui_set_rect(kd, GUI_ALL);
+            }
+
 #ifdef CONFIG_INCLUDES_ACCOUNT
             if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
                 gui_state(jd, _("Shop"), GUI_SML, DONE_SHOP, 0);
@@ -225,7 +235,7 @@ static int done_gui_set(void)
     const char *s1 = _("New Set Record");
     const char *s2 = _("Set Complete");
 
-    int id, jd, kd;
+    int id, jd, kd, ld;
     const int high = progress_set_high();
 
     if (high && !resume)
@@ -235,7 +245,7 @@ static int done_gui_set(void)
         /* FIXME: WGCL Narrator can do it! */
 
         EM_ASM({
-            if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+            if (Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
                 CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_finished_levelset_hs.mp3");
         });
 #elif NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
@@ -248,7 +258,7 @@ static int done_gui_set(void)
         /* FIXME: WGCL Narrator can do it! */
 
         EM_ASM({
-            if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+            if (Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
                 CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_finished_levelset.mp3");
         });
 #endif
@@ -353,7 +363,17 @@ static int done_gui_set(void)
 
         if ((jd = gui_harray(id)))
         {
-            gui_start(jd, _("Select Level"), GUI_SML, GUI_BACK, 0);
+            if ((kd = gui_hstack(jd)))
+            {
+                gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
+
+                ld = gui_label(kd, _("Select Level"), GUI_SML, GUI_COLOR_RED);
+                gui_set_fill(ld);
+
+                gui_set_state(kd, GUI_BACK, 0);
+                gui_set_rect(kd, GUI_ALL);
+            }
+
 #ifdef CONFIG_INCLUDES_ACCOUNT
             if (server_policy_get_d(SERVER_POLICY_EDITION) > -1
              && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))

@@ -413,7 +413,7 @@ static int fail_gui(void)
     const int wgcl_account_sync_done = 0;
 #endif
 
-    int fid = 0, id = 0, jd = 0, nosaveid = 0;
+    int fid = 0, id = 0, jd = 0, kd = 0, ld = 0, nosaveid = 0;
     int root_id;
 
     const char *label = "";
@@ -578,7 +578,7 @@ static int fail_gui(void)
                     }
 #endif
                     else if (progress_dead() &&
-                             server_policy_get_d(SERVER_POLICY_EDITION) == -1)
+                             server_policy_get_d(SERVER_POLICY_EDITION) < 0)
                     {
                         try_shatter_snd = 1;
                         gui_multi(jd, FAIL_UPGRADE_EDITION_2, GUI_SML, GUI_COLOR_RED);
@@ -612,7 +612,7 @@ static int fail_gui(void)
                 {
                     gui_space(id);
                     gui_state(id, _("Ask for more time!"),
-                        GUI_SML, FAIL_ASK_MORE, ASK_MORE_TIME);
+                                  GUI_SML, FAIL_ASK_MORE, ASK_MORE_TIME);
                 }
                 else if (curr_mode() == MODE_NORMAL &&
 #ifdef LEVELGROUPS_INCLUDES_ZEN
@@ -625,7 +625,7 @@ static int fail_gui(void)
                 {
                     gui_space(id);
                     gui_state(id, _("Buy Mediation!"),
-                        GUI_SML, FAIL_ASK_MORE, ASK_MORE_TIME);
+                                  GUI_SML, FAIL_ASK_MORE, ASK_MORE_TIME);
                 }
             }
 #endif
@@ -634,148 +634,108 @@ static int fail_gui(void)
 
             if ((jd = gui_harray(id)))
             {
-#if NB_HAVE_PB_BOTH==1
-#if defined(LEVELGROUPS_INCLUDES_CAMPAIGN) && defined(MAPC_INCLUDES_CHKP)
-                if ((respawnable && progress_same_avail()) && curr_mode() != MODE_HARDCORE)
-                {
-                    gui_start(jd, _("Cancel"), GUI_SML, FAIL_CHECKPOINT_CANCEL, 0);
+                /*
+                 * Some buttons were removed by Mojang in this future version!
+                 * (e.g. death_screen.json in Minecraft Windows, Android, iOS,
+                 * Xbox, Playstation, Nintendo Switch, etc.)
+                 */
 
-                    /* New: Checkpoints; An optional can be respawn from last location */
-                    if ((progress_same_avail() && last_active) &&
-                        (((checkpoints_last_time_limit() - checkpoints_last_time_elapsed()) > 60.0f ||
-                          checkpoints_last_time_limit() == 0.0f)))
-                        gui_state(jd, _("Respawn"),
-                                      GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
-#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-                    else if (progress_dead() && !wgcl_account_sync_done)
-                        gui_state(jd, _("Login"),
-                                      GUI_SML, FAIL_LOGIN_WGCL, 0);
+#ifdef MAPC_INCLUDES_CHKP
+                const int can_respawn = progress_same_avail() && !progress_dead() && respawnable;
 #endif
-                    else if (progress_dead() &&
-                             (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                              server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
-                        gui_state(jd, _("Buy balls!"),
-                                      GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
-                    else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                             progress_dead())
-#if !defined(__NDS__) && !defined(__3DS__) && \
-    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
-                        gui_state(jd, _("Upgrade edition!"),
-                                      GUI_SML, FAIL_UPGRADE_EDITION, 0);
-#else
-                    {
-                        int rd;
-                        if ((rd = gui_state(jd, _("Respawn"), GUI_SML, GUI_NONE, 0)))
-                            gui_set_color(rd, GUI_COLOR_GRY);
-                    }
-#endif
-                }
-#elif defined(MAPC_INCLUDES_CHKP)
-                if (respawnable && progress_same_avail())
-                {
-                    gui_start(jd, _("Cancel"), GUI_SML, FAIL_CHECKPOINT_CANCEL, 0);
+                const int can_restart = progress_same_avail() && !progress_dead();
 
-                    /* New: Checkpoints; An optional can be respawn last location */
-                    if ((progress_same_avail() && last_active) &&
-                        ((last_timer > 60.0f && last_timer_down) ||
-                         !last_timer_down))
-                        gui_state(jd, _("Respawn"),
-                                      GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0);
-#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-                    else if (progress_dead() && !wgcl_account_sync_done)
-                        gui_state(jd, _("Login"),
-                                      GUI_SML, FAIL_LOGIN_WGCL, 0);
-#endif
-                    else if (progress_dead() &&
-                             (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                              server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)))
-                        gui_state(jd, _("Buy balls!"),
-                                      GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
-                    else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                             progress_dead())
-#if !defined(__NDS__) && !defined(__3DS__) && \
-    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
-    !defined(__SWITCH__)
-                        gui_state(jd, _("Upgrade edition!"),
-                                      GUI_SML, FAIL_UPGRADE_EDITION, 0);
-#else
+#if NB_HAVE_PB_BOTH==1 && defined(MAPC_INCLUDES_CHKP)
+                if (can_respawn)
+                {
+                    if ((kd = gui_hstack(jd)))
                     {
-                        int rd;
-                        if ((rd = gui_state(jd, _("Respawn"), GUI_SML, GUI_NONE, 0)))
-                            gui_set_color(rd, GUI_COLOR_GRY);
+                        gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
+
+                        ld = gui_label(kd, _("Cancel"), GUI_SML, GUI_COLOR_RED);
+                        gui_set_fill(ld);
+
+                        gui_set_state(kd, FAIL_CHECKPOINT_CANCEL, 0);
+                        gui_set_rect(kd, GUI_ALL);
                     }
-#endif
+
+                    if ((kd = gui_hstack(jd)))
+                    {
+                        const GLubyte *btn_color      = can_respawn ? gui_grn : gui_gry;
+                        const GLubyte *btn_color_text = can_respawn ? gui_wht : gui_gry;
+
+                        gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
+
+                        ld = gui_label(kd, _("Respawn"), GUI_SML, btn_color_text, btn_color_text);
+                        gui_set_fill(ld);
+
+                        gui_set_state(kd, can_respawn ? FAIL_CHECKPOINT_RESPAWN : GUI_NONE, 0);
+                        gui_set_rect(kd, GUI_ALL);
+                    }
+
+                    if (demo_saved() && ((save == 3 && status == GAME_FALL) || (save >= 2 && status == GAME_TIME)))
+                        gui_state(jd, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
                 }
-#endif
                 else
 #endif
+                if ((kd = gui_hstack(jd)))
                 {
-#ifdef MAPC_INCLUDES_CHKP
-                    respawnable = 0;
-#endif
-                    /*
-                     * Some buttons were removed by Mojang in this future!
-                     * (e.g. death_screen.json in Minecraft Android, iOS or Windows)
-                     */
                     const char *quit_btn_text = (curr_mode() == MODE_STANDALONE || progress_dead() ?
                                                  N_("Exit") : N_("Back To Menu"));
 
-                    gui_start(jd, _(quit_btn_text), GUI_SML, FAIL_OVER, 0);
+                    const GLubyte *btn_color = can_restart ? gui_red : gui_gry;
 
-#if NB_HAVE_PB_BOTH==1
-                    if (!progress_dead())
-                    {
-                        gui_state(jd, _("Retry Level"), GUI_SML, FAIL_SAME, 0);
+                    gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, GUI_COLOR_RED);
 
-#ifdef CONFIG_INCLUDES_ACCOUNT
-                        if (account_get_d(ACCOUNT_PRODUCT_MEDIATION) == 1 &&
-                            status == GAME_TIME && curr_mode() == MODE_NORMAL)
-                            gui_state(jd, _("Switch to Zen"),
-                                          GUI_SML, FAIL_ZEN_SWITCH, 0);
-#endif
-                    }
-#ifdef __EMSCRIPTEN__
-                    else if (!wgcl_account_sync_done)
-                        gui_state(jd, _("Login"),
-                                      GUI_SML, FAIL_LOGIN_WGCL, 0);
-#endif
-                    else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                             server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-                        gui_state(jd, _("Buy balls!"),
-                                      GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
-                    else if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                        gui_state(jd, _("Upgrade edition!"),
-                                      GUI_SML, FAIL_UPGRADE_EDITION, 0);
-#else
-                    if (!progress_dead())
-                        gui_state(jd, _("Retry Level"), GUI_SML, FAIL_SAME, 0);
-                    else
-                    {
-#if !defined(__NDS__) && !defined(__3DS__) && \
+                    ld = gui_label(kd, _(quit_btn_text), GUI_SML, GUI_COLOR_RED);
+                    gui_set_fill(ld);
+
+                    gui_set_state(kd, FAIL_OVER, 0);
+                    gui_set_rect(kd, GUI_ALL);
+                }
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-                        gui_state(jd, _("Join PB"),
-                                      GUI_SML, FAIL_TRANSFER_MEMBER, 0);
-#else
-                        {
-                            int rd;
-                            if ((rd = gui_state(jd, _("Retry Level"), GUI_SML, GUI_NONE, 0)))
-                                gui_set_color(rd, GUI_COLOR_GRY);
-                        }
+                if (!progress_same_avail() && progress_dead())
+                {
+#if defined(__EMSCRIPTEN__)
+                    if (!wgcl_account_sync_done)
+                        gui_state(jd, _("Login"), GUI_SML, FAIL_LOGIN_WGCL, 0);
+                    else
 #endif
-                    }
-#endif
-                    /* We're just reverted back for you! */
-
-                    const int save_btn_id = gui_state(jd, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
-
-                    if (!demo_saved() || !((save == 3 && status == GAME_FALL) || (save >= 2 && status == GAME_TIME)))
-                    {
-                        gui_set_state(save_btn_id, GUI_NONE, 0);
-                        gui_set_color(save_btn_id, GUI_COLOR_GRY);
-                    }
+                    if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                        server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+                        gui_state(jd, _("Buy balls!"),
+                                      GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
+                    else if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
+                        gui_state(jd, _("Upgrade edition!"),
+                                        GUI_SML, FAIL_UPGRADE_EDITION, 0);
                 }
+                else
+#endif
+                if ((kd = gui_hstack(jd)))
+                {
+                    const GLubyte *btn_color      = can_restart ? gui_grn : gui_gry;
+                    const GLubyte *btn_color_text = can_restart ? gui_wht : gui_gry;
+
+                    gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
+
+                    ld = gui_label(kd, _("Retry Level"), GUI_SML, btn_color_text, btn_color_text);
+                    gui_set_fill(ld);
+
+                    gui_set_state(kd, can_restart ? FAIL_SAME : GUI_NONE, 0);
+                    gui_set_rect(kd, GUI_ALL);
+                }
+
+                if (demo_saved() && ((save == 3 && status == GAME_FALL) || (save >= 2 && status == GAME_TIME)))
+                    gui_state(jd, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
+
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+                if (account_get_d(ACCOUNT_PRODUCT_MEDIATION) == 1 &&
+                    status == GAME_TIME && curr_mode() == MODE_NORMAL)
+                    gui_state(jd, _("Switch to Zen"), GUI_SML, FAIL_ZEN_SWITCH, 0);
+#endif
 
                 if (fail_intro_animation_phase == 2)
                     gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.6, 0.8f, 0.05f);

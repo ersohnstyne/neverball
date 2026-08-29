@@ -552,8 +552,6 @@ static int goal_gui(void)
                                           ((config_get_d(CONFIG_NOTIFICATION_REWARD) && challenge_disable_all_buttons) ||
                                            (config_get_d(CONFIG_NOTIFICATION_SHOP) && shop_product_available));
 
-                int btn_ids[3] = { 0, 0, 0 };
-
                 const char *next_btn_text = progress_next_avail() ? N_("Next Level") :
                                                                     N_("Finish");
 
@@ -561,44 +559,42 @@ static int goal_gui(void)
                                                            progress_next_avail() ? GOAL_NEXT :
                                                                                    GOAL_LAST;
 
-                btn_ids[2] = gui_start(jd, _(next_btn_text), GUI_SML, next_btn_tok, 0);
-
 #ifdef MAPC_INCLUDES_CHKP
                 const int can_restart = !challenge_has_active_chkp;
 #else
                 const int can_restart = 1;
 #endif
-                
-                btn_ids[1] = gui_start(jd, _("Retry Level"), GUI_SML, GOAL_SAME, 0);
 
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                if (!progress_same_avail() ||
-                    (campaign_hardcore() || curr_mode() == MODE_HARDCORE) ||
-                    !can_restart)
-#else
-                if (!progress_same_avail() || !can_restart)
-#endif
+                if ((kd = gui_hstack(jd)))
                 {
-                    gui_set_color(btn_ids[1], GUI_COLOR_GRY);
-                    gui_set_state(btn_ids[1], GUI_NONE, 0);
+                    const GLubyte *btn_color      = !btns_disabled ? gui_grn : gui_gry;
+                    const GLubyte *btn_color_text = !btns_disabled ? gui_wht : gui_gry;
+
+                    gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, btn_color, btn_color);
+
+                    ld = gui_label(kd, _(next_btn_text), GUI_SML, btn_color_text, btn_color_text);
+                    gui_set_fill(ld);
+
+                    gui_set_state(kd, !btns_disabled ? next_btn_tok : GUI_NONE, 0);
+                    gui_set_rect(kd, GUI_ALL);
                 }
 
-                btn_ids[0] = gui_state(jd, _("Save Replay"), GUI_SML, GOAL_SAVE, 0);
-
-                if (!demo_saved() || save < 1)
+                if ((kd = gui_hstack(jd)))
                 {
-                    gui_set_color(btn_ids[0], GUI_COLOR_GRY);
-                    gui_set_state(btn_ids[0], GUI_NONE, 0);
+                    const GLubyte *btn_color      = !btns_disabled && can_restart ? gui_grn : gui_gry;
+                    const GLubyte *btn_color_text = !btns_disabled && can_restart ? gui_wht : gui_gry;
+
+                    gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
+
+                    ld = gui_label(kd, _("Retry Level"), GUI_SML, btn_color_text, btn_color_text);
+                    gui_set_fill(ld);
+
+                    gui_set_state(kd, !btns_disabled && can_restart ? GOAL_SAME : GUI_NONE, 0);
+                    gui_set_rect(kd, GUI_ALL);
                 }
 
-                if (btns_disabled)
-                    for (int i = 0; i < 3; i++)
-                    {
-                        if (!btn_ids[i]) continue;
-
-                        gui_set_color(btn_ids[i], GUI_COLOR_GRY);
-                        gui_set_state(btn_ids[i], GUI_NONE, 0);
-                    }
+                if (demo_saved() && save >= 1)
+                    gui_state(jd, _("Save Replay"), GUI_SML, GOAL_SAVE, 0);
 
                 if (!resume_locked && goal_intro_animation_phase == 2)
                     gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.6, 0.8f, 0.05f);

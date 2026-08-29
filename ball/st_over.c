@@ -157,7 +157,7 @@ static int over_action(int tok, int val)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
 static int over_gui_hardcore(void)
 {
-    int id, jd;
+    int id, jd, kd, ld;
 
     if ((id = gui_vstack(0)))
     {
@@ -217,7 +217,17 @@ static int over_gui_hardcore(void)
 
         if ((jd = gui_harray(id)))
         {
-            gui_start(jd, _("Return to group"), GUI_SML, OVER_TO_GROUP, 0);
+            if ((kd = gui_hstack(jd)))
+            {
+                gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
+
+                ld = gui_label(kd, _("Return to group"), GUI_SML, GUI_COLOR_RED);
+                gui_set_fill(ld);
+
+                gui_set_state(kd, OVER_TO_GROUP, 0);
+                gui_set_rect(kd, GUI_ALL);
+            }
+
 #if NB_HAVE_PB_BOTH==1
             if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
@@ -245,7 +255,7 @@ static int over_gui(void)
 #else
     /* Do this for now! */
 
-    int id, jd;
+    int id, jd, kd, ld;
     int high = progress_set_high();
 
     if ((id = gui_vstack(0)))
@@ -273,7 +283,17 @@ static int over_gui(void)
         gui_space(id);
 
         if ((jd = gui_harray(id)))
-            gui_start(jd, _("Select Level"), GUI_SML, GUI_BACK, 0);
+            if ((kd = gui_hstack(jd)))
+            {
+                gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
+
+                ld = gui_label(kd, _("Select Level"), GUI_SML, GUI_COLOR_RED);
+                gui_set_fill(ld);
+
+                gui_set_state(kd, GUI_BACK, 0);
+                gui_set_rect(kd, GUI_ALL);
+            }
+
 
         if (!resume)
             gui_pulse(gid, 1.2f);

@@ -1777,60 +1777,90 @@ static int demo_end_action(int tok, int val)
 
 static int demo_end_gui(void)
 {
-    int id, jd, kd;
+    int id, jd, kd, ld;
     
     if ((id = gui_vstack(0)))
     {
+        if ((jd = gui_hstack(id)))
+        {
+            if ((kd = gui_hstack(jd)))
+            {
+                gui_label(kd, GUI_GEAR, GUI_SML, GUI_COLOR_WHT);
+                gui_label(kd, _("Options"), GUI_SML, GUI_COLOR_WHT);
+
+                gui_set_state(kd, DEMO_CONF, 0);
+                gui_set_rect(kd, GUI_ALL);
+            }
+            gui_filler(jd);
+        }
+
+        gui_space(id);
+
         kd = gui_title_header(id, demo_paused ? _("Replay Paused") : _("Replay Ends"),
                                   GUI_LRG, gui_gry, gui_red);
 
         gui_space(id);
-        
-#if defined(_WIN32) && defined(_MSC_VER) && !defined(__EMSCRIPTEN__)
-#else
-        if (demo_paused)
-        {
-            gui_state(id, _("Options"), GUI_SML, DEMO_CONF, 0);
-            gui_space(id);
-        }
-#endif
 
+        /* Only that is limit underneath it */
+        const int continue_allowed = (get_max_game_stat() <= get_limit_game_stat() &&
+                                      allow_exact_versions);
+        
         if ((jd = gui_harray(id)))
         {
-            int btn0_id = 0, btn1_id = 0;
-
             if (demo_paused || !console_gui_shown())
-                gui_state(jd, _("Exit"), GUI_SML, DEMO_QUIT, 0);
+                if ((kd = gui_hstack(jd)))
+                {
+                    gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
+
+                    ld = gui_label(kd, _("Exit"), GUI_SML, GUI_COLOR_RED);
+                    gui_set_fill(ld);
+
+                    gui_set_state(kd, DEMO_QUIT, 0);
+                    gui_set_rect(kd, GUI_ALL);
+                }
 
 #if defined(_WIN32) && defined(_MSC_VER) && !defined(__EMSCRIPTEN__)
             /* Microsoft and Windows Games can do it! */
-
-            gui_state(jd, _("Options"), GUI_SML, DEMO_CONF, 0);
 #else
-            if (!demo_paused)
-                gui_state(jd, _("Options"), GUI_SML, DEMO_CONF, 0);
             if (!standalone)
                 gui_state(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
 #endif
 
-            btn0_id = gui_state(jd, _("Repeat"), GUI_SML, DEMO_REPLAY, 0);
+            if ((kd = gui_hstack(jd)))
+            {
+                const GLubyte *btn_color      = continue_allowed ? gui_grn : gui_gry;
+                const GLubyte *btn_color_text = continue_allowed ? gui_wht : gui_gry;
+                gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
+
+                ld = gui_label(kd, _("Repeat"), GUI_SML, btn_color_text, btn_color_text);
+                gui_set_fill(ld);
+
+                gui_set_state(kd, continue_allowed ? DEMO_REPLAY : GUI_NONE, 0);
+                gui_set_rect(kd, GUI_ALL);
+
+                gui_focus(kd);
+            }
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (demo_paused && current_platform == PLATFORM_PC && !console_gui_shown())
 #else
             if (demo_paused)
 #endif
-                btn1_id = gui_start(jd, _("Continue"), GUI_SML, DEMO_CONTINUE, 0);
-            else
-                gui_focus(btn0_id);
+            {
+                if ((kd = gui_hstack(jd)))
+                {
+                    const GLubyte *btn_color      = continue_allowed ? gui_grn : gui_gry;
+                    const GLubyte *btn_color_text = continue_allowed ? gui_wht : gui_gry;
+                    gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, btn_color, btn_color);
 
-            /* Only that is limit underneath it */
-            if (!(get_max_game_stat() <= get_limit_game_stat() &&
-                  allow_exact_versions)) {
-                gui_set_color(btn0_id, GUI_COLOR_GRY);
-                gui_set_color(btn1_id, GUI_COLOR_GRY);
-                gui_set_state(btn0_id, GUI_NONE, 0);
-                gui_set_state(btn1_id, GUI_NONE, 0);
+                    ld = gui_label(kd, _("Continue"), GUI_SML, btn_color_text, btn_color_text);
+                    gui_set_fill(ld);
+
+                    gui_set_state(kd, continue_allowed ? DEMO_CONTINUE : GUI_NONE, 0);
+                    gui_set_rect(kd, GUI_ALL);
+
+                    if (continue_allowed) gui_focus(kd);
+                }
             }
         }
 

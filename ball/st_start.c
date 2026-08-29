@@ -77,6 +77,7 @@ static int first = 0;
 enum
 {
     START_CHALLENGE = GUI_LAST,
+<<<<<<< HEAD
     START_BOOST_RUSH,
     START_LOCK_GOALS,
     START_HARDCORE,
@@ -84,6 +85,9 @@ enum
     START_CHECKSTARS,
     START_STARVIEWER_SHOP,
     START_OPTIONS
+=======
+    START_LEVEL
+>>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
 };
 
 static int shot_id;
@@ -456,6 +460,7 @@ static int start_action(int tok, int val)
             config_save();
             return goto_state(&st_start);
 
+<<<<<<< HEAD
         case START_LEVEL:
             if (check_handsoff())
                 return goto_handsoff((struct state *) (curr_state()));
@@ -474,6 +479,11 @@ static int start_action(int tok, int val)
 #endif
                 return goto_play_level();
             }
+=======
+    case START_LEVEL:
+        if (progress_play(get_level(val)))
+            return goto_state(&st_level);
+>>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
 
         break;
 
@@ -752,6 +762,7 @@ static int start_gui(void)
             gui_space(jd);
             gui_navig(jd, total, first, LEVEL_STEP);
         }
+<<<<<<< HEAD
 
         if ((jd = gui_vstack(id)))
         {
@@ -974,6 +985,12 @@ static int start_gui_options(void)
             gui_set_trunc(kd, TRUNC_TAIL);
             gui_set_fill(kd);
         }
+=======
+        gui_space(id);
+        gui_score_board(id, (GUI_SCORE_COIN |
+                             GUI_SCORE_TIME |
+                             GUI_SCORE_GOAL), 0, 0);
+>>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         /* OK, how about hardcore mode? */

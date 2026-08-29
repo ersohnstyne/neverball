@@ -279,14 +279,26 @@ static int pause_gui(void)
         {
             if ((kd = gui_hstack(jd)))
             {
+<<<<<<< HEAD
                 gui_label(kd, GUI_GEAR, GUI_SML, GUI_COLOR_WHT);
                 gui_label(kd, _("Options"), GUI_SML, GUI_COLOR_WHT);
+=======
+                gui_label(kd, GUI_GEAR, GUI_SML, 0, 0);
+                gui_label(kd, _("Options"), GUI_SML, gui_wht, gui_wht);
+>>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
 
                 gui_set_state(kd, PAUSE_OPTIONS, 0);
                 gui_set_rect(kd, GUI_ALL);
             }
             gui_filler(jd);
         }
+<<<<<<< HEAD
+=======
+
+        gui_space(id);
+
+        title_id = gui_label(id, _("Paused"), GUI_LRG, 0, 0);
+>>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
 
         gui_space(id);
 
@@ -309,6 +321,7 @@ static int pause_gui(void)
         {
             if ((kd = gui_hstack(jd)))
             {
+<<<<<<< HEAD
                 gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
 
                 ld = gui_label(kd, _(quit_btn_text), GUI_SML, GUI_COLOR_RED);
@@ -358,6 +371,34 @@ static int pause_gui(void)
                 gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
 
                 ld = gui_label(kd, _("Continue"), GUI_SML, GUI_COLOR_WHT);
+=======
+                gui_label(kd, GUI_CROSS, GUI_SML, gui_red, gui_red);
+
+                ld = gui_label(kd, _("Give Up"), GUI_SML, gui_wht, gui_wht);
+                gui_set_fill(ld);
+
+                gui_set_state(kd, PAUSE_EXIT, 0);
+                gui_set_rect(kd, GUI_ALL);
+            }
+
+            if (progress_same_avail())
+                if ((kd = gui_hstack(jd)))
+                {
+                    gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, gui_yel, gui_yel);
+
+                    ld = gui_label(kd, _("Restart"), GUI_SML, gui_wht, gui_wht);
+                    gui_set_fill(ld);
+
+                    gui_set_state(kd, PAUSE_RESTART, 0);
+                    gui_set_rect(kd, GUI_ALL);
+                }
+
+            if ((kd = gui_hstack(jd)))
+            {
+                gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, gui_grn, gui_grn);
+
+                ld = gui_label(kd, _("Continue"), GUI_SML, gui_wht, gui_wht);
+>>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
                 gui_set_fill(ld);
 
                 gui_set_state(kd, PAUSE_CONTINUE, 0);

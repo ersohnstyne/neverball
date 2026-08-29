@@ -177,6 +177,21 @@ enum trunc
     TRUNC_TAIL
 };
 
+<<<<<<< HEAD
+=======
+#define GUI_ELLIPSIS "…"
+#define GUI_ARROW_DN "⬇"
+#define GUI_CHECKMARK "✔"
+#define GUI_BALLOT_X "✘"
+#define GUI_TRIANGLE_RIGHT "▶"
+#define GUI_TRIANGLE_LEFT "◀"
+#define GUI_CIRCLE_ARROW "⟳"
+#define GUI_CROSS "×"
+#define GUI_ROMAN_2 "Ⅱ"
+#define GUI_FISHEYE "◉"
+#define GUI_GEAR "⚙"
+
+>>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
 /*---------------------------------------------------------------------------*/
 
 void gui_init(void);

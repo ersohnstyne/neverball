@@ -234,4 +234,8 @@ int test_level_all(void)
     RUN_TEST("test_level_desc_empty_or_null", test_level_desc_empty_or_null, pass);
 
     return pass;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1

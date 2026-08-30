@@ -56,17 +56,17 @@ static struct vec4 get_path_rot(const struct s_vary *vary, int pi, float dt);
 
 static struct vec3 get_move_pos(const struct s_vary *vary, int mi, float dt)
 {
-    if (mi < 0) return POS_IDENTITY;
-    if (!vary->mv) {
+    if (mi < 0 || !vary->base || !vary->base->pv)
+        return POS_IDENTITY;
+
+    if (!vary->mv)
+    {
         log_errorf("vary->mv returned NULL!\n");
         return POS_IDENTITY;
     }
-    if (!vary->base->pv) {
-        log_errorf("vary->base->pv returned NULL!\n");
-        return POS_IDENTITY;
-    }
 
-    if (mi >= vary->mc) {
+    if (mi >= vary->mc)
+    {
         log_errorf("Move index out of bounds!: Current: %d\n", mi);
         return POS_IDENTITY;
     }
@@ -110,17 +110,17 @@ static struct vec3 get_move_pos(const struct s_vary *vary, int mi, float dt)
 
 static struct vec4 get_move_rot(const struct s_vary *vary, int mi, float dt)
 {
-    if (mi < 0) return ROT_IDENTITY;
-    if (!vary->mv) {
+    if (mi < 0 || !vary->base || !vary->base->pv)
+        return ROT_IDENTITY;
+
+    if (!vary->mv)
+    {
         log_errorf("vary->mv returned NULL!\n");
         return ROT_IDENTITY;
     }
-    if (!vary->base->pv) {
-        log_errorf("vary->base->pv returned NULL!\n");
-        return ROT_IDENTITY;
-    }
 
-    if (mi >= vary->mc) {
+    if (mi >= vary->mc)
+    {
         log_errorf("Move index out of bounds!: Current: %d\n", mi);
         return ROT_IDENTITY;
     }
@@ -159,13 +159,11 @@ static void get_move_transform(const struct s_vary *vary, int mi, float dt, stru
 
 static struct vec3 get_path_pos(const struct s_vary *vary, int pi, float dt)
 {
-    if (pi < 0) return POS_IDENTITY;
+    if (pi < 0 || !vary->base || !vary->base->pv)
+        return POS_IDENTITY;
+
     if (!vary->pv) {
         log_errorf("vary->pv returned NULL!\n");
-        return POS_IDENTITY;
-    }
-    if (!vary->base->pv) {
-        log_errorf("vary->base->pv returned NULL!\n");
         return POS_IDENTITY;
     }
 
@@ -196,13 +194,11 @@ static struct vec3 get_path_pos(const struct s_vary *vary, int pi, float dt)
 
 static struct vec4 get_path_rot(const struct s_vary *vary, int pi, float dt)
 {
-    if (pi < 0) return ROT_IDENTITY;
+    if (pi < 0 || !vary->base || !vary->base->pv)
+        return ROT_IDENTITY;
+
     if (!vary->pv) {
         log_errorf("vary->pv returned NULL!\n");
-        return ROT_IDENTITY;
-    }
-    if (!vary->base->pv) {
-        log_errorf("vary->base->pv returned NULL!\n");
         return ROT_IDENTITY;
     }
 
@@ -357,7 +353,7 @@ void sol_body_e(float e[4],
  */
 int sol_body_w(const struct s_vary *vary, int mi)
 {
-    if (mi >= 0)
+    if (mi >= 0 && vary->base && vary->base->pv)
     {
         if (mi >= vary->mc) {
             log_errorf("Move index out of bounds!: Current: %d\n", mi);

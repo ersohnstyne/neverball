@@ -1359,6 +1359,8 @@ void game_server_free(const char *next)
 {
     if (server_state)
     {
+        server_state = 0;
+
 #if _WIN32 && _MSC_VER && ENABLE_NVIDIA_PHYSX==1
         sol_quit_sim_physx(&vary);
 #endif
@@ -1366,8 +1368,6 @@ void game_server_free(const char *next)
 
         game_base_free(next);
     }
-
-    server_state = 0;
 }
 
 int game_server_state(void)

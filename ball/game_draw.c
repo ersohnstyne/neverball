@@ -48,7 +48,7 @@
 static int game_draw_cam_abovemap(const struct game_draw *gd)
 {
 #ifdef _DEBUG
-    return gd->draw.base->vc == 0 ? 0 : gd->draw.base->vv[0].p[1] > gd->view.p[1] ? 0 : 1;
+    return gd->draw.base->vv && gd->draw.base->vv[0].p[1] > gd->view.p[1] ? 0 : 1;
 #else
     return 1;
 #endif
@@ -70,7 +70,7 @@ static void game_draw_chnk_floor(struct s_rend *rend,
 
     float Y = vary->uv[0].p[1] - vary->uv[0].r;
 
-    if (base->vc > 0) Y = base->vv[0].p[1];
+    if (base->vc > 0 && base->vv) Y = base->vv[0].p[1];
 
     for (int i = -4; i < 4; i++)
     {
@@ -106,7 +106,7 @@ static void game_draw_chnk_rings(struct s_rend *rend,
 
     float Y = vary->uv[0].p[1] - vary->uv[0].r;
 
-    if (base->vc > 0) Y = base->vv[0].p[1];
+    if (base->vc > 0 && base->vv) Y = base->vv[0].p[1];
 
     for (int i = 0; i < base->zc; i++)
     {
@@ -168,9 +168,9 @@ static void game_draw_chnk_balls(struct s_rend *rend,
 
     float Y = -65536;
 
-    if (base->vc > 0) Y = base->vv[0].p[1];
+    if (base->vc > 0 && base->vv) Y = base->vv[0].p[1];
 
-    if (base->uv[0].p[1] < Y) return;
+    if (!base->uv || base->uv[0].p[1] < Y) return;
 
     glPushMatrix();
     {
@@ -200,9 +200,9 @@ static void game_draw_chnk_jumps(struct s_rend *rend,
 
     float Y = -65536;
 
-    if (base->vc > 0) Y = base->vv[0].p[1];
+    if (base->vc > 0 && base->vv) Y = base->vv[0].p[1];
 
-    if (base->uv[0].p[1] < Y) return;
+    if (!base->uv || base->uv[0].p[1] < Y) return;
 
     for (int i = 0; i < base->jc; i++)
     {
@@ -251,9 +251,9 @@ static void game_draw_chnk_goals(struct s_rend *rend,
 
     float Y = -65536;
 
-    if (base->vc > 0) Y = base->vv[0].p[1];
+    if (base->vc > 0 && base->vv) Y = base->vv[0].p[1];
 
-    if (base->uv[0].p[1] < Y) return;
+    if (!base->uv || base->uv[0].p[1] < Y) return;
 
     for (int i = 0; i < base->zc; i++)
     {
@@ -302,9 +302,9 @@ static void game_draw_chnk_swchs(struct s_rend *rend,
 
     float Y = -65536;
 
-    if (base->vc > 0) Y = base->vv[0].p[1];
+    if (base->vc > 0 && base->vv) Y = base->vv[0].p[1];
 
-    if (base->uv[0].p[1] < Y) return;
+    if (!base->uv || base->uv[0].p[1] < Y) return;
 
     for (int i = 0; i < base->xc; i++)
     {
@@ -354,9 +354,9 @@ static void game_draw_chnk_chkps(struct s_rend *rend,
 
     float Y = -65536;
 
-    if (base->vc > 0) Y = base->vv[0].p[1];
+    if (base->vc > 0 && base->vv) Y = base->vv[0].p[1];
 
-    if (base->uv[0].p[1] < Y ||
+    if (!base->uv || base->uv[0].p[1] < Y ||
             !(curr_balls() > 0 || (curr_mode() != MODE_CHALLENGE
 #if NB_HAVE_PB_BOTH==1
           && curr_mode() != MODE_BOOST_RUSH
@@ -491,7 +491,7 @@ static void game_draw_items(struct s_rend *rend,
 
     float Y = -65536;
 
-    if (base->vc > 0) Y = base->vv[0].p[1];
+    if (base->vc > 0 && base->vv) Y = base->vv[0].p[1];
 
     for (int hi = 0; hi < vary->hc; hi++)
     {
@@ -551,7 +551,7 @@ static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
     /* New: Floor border damage. */
 
     float Y = -65536;
-    if (base->vc > 0) Y = base->vv[0].p[1];
+    if (base->vc > 0 && base->vv) Y = base->vv[0].p[1];
 
     /* Goal beams */
 
@@ -658,7 +658,7 @@ static void game_draw_goals(struct s_rend *rend,
 
     float Y = -65536;
 
-    if (base->vc > 0) Y = base->vv[0].p[1];
+    if (base->vc > 0 && base->vv) Y = base->vv[0].p[1];
 
     const struct s_vary *vary = &gd->vary;
 
@@ -692,7 +692,7 @@ static void game_draw_jumps(struct s_rend *rend,
 
     float Y = -65536;
 
-    if (base->vc > 0) Y = base->vv[0].p[1];
+    if (base->vc > 0 && base->vv) Y = base->vv[0].p[1];
 
     const struct s_vary *vary = &gd->vary;
 
@@ -726,7 +726,7 @@ static void game_draw_chkps(struct s_rend *rend,
 
     float Y = -65536;
 
-    if (base->vc > 0) Y = base->vv[0].p[1];
+    if (base->vc > 0 && base->vv) Y = base->vv[0].p[1];
 
     const struct s_vary *vary = &gd->vary;
 
@@ -1242,7 +1242,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
             /* Draw the background. */
 
             if (!(view->p[1] > gd->vary.uv[0].p[1] + 100 &&
-                  view->p[1] > gd->vary.base->vv[0].p[1] + 100))
+                  view->p[1] > (gd->vary.base->vc != 0 && gd->vary.base->vv ? gd->vary.base->vv[0].p[1] + 100 : 0)))
             {
                 game_draw_back(&rend, gd, pose, +1, t, 0);
                 draw_chnk_highaltitude = 0;
@@ -1253,7 +1253,7 @@ void game_draw(struct game_draw *gd, int pose, float t)
             /* map chunk must be rendered from their overview.               */
 
             if (view->p[1] > gd->vary.uv[0].p[1] + 15 &&
-                view->p[1] > gd->vary.base->vv[0].p[1] + 15)
+                view->p[1] > (gd->vary.base->vc != 0 && gd->vary.base->vv ? gd->vary.base->vv[0].p[1] + 15 : 0))
             {
                 game_draw_light(gd, 1, t);
 

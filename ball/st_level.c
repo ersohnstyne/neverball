@@ -429,7 +429,7 @@ static int level_gui(void)
                 const char *ln = level_name(curr_level());
                 int b = level_bonus(curr_level());
                 int m = level_master(curr_level());
-                const char* hp = (ln && *ln >= '0' && *ln <= 9) ? "#" : "";
+                const char *hp = (ln && *ln >= '0' && *ln <= 9) ? "#" : "";
 
                 /* vvv AFTER REPLACE vvv */
 
@@ -474,13 +474,19 @@ static int level_gui(void)
                         sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
                                          hp, ln, mode_to_str(MODE_ZEN, 1));
 #endif
-                    else if (curr_mode() == MODE_STANDALONE)
+                    else if (curr_mode() != MODE_STANDALONE)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                         sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
                                          hp, ln);
 #else
                         sprintf(setattr, "%s %s%s", set_name(curr_set()),
                                          hp, ln);
+#endif
+                    else
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        sprintf_s(setattr, MAXSTR, _("Standalone Level"));
+#else
+                        sprintf(setattr, _("Standalone Level"));
 #endif
                 }
                 else
@@ -539,13 +545,19 @@ static int level_gui(void)
                         sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
                                          hp, ln, mode_to_str(MODE_ZEN, 1));
 #endif
-                    else if (curr_mode() == MODE_STANDALONE)
+                    else if (curr_mode() != MODE_STANDALONE)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                         sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
                                          hp, ln);
 #else
                         sprintf(setattr, "%s %s%s", set_name(curr_set()),
                                          hp, ln);
+#endif
+                    else
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        sprintf_s(setattr, MAXSTR, _("Standalone Level"));
+#else
+                        sprintf(setattr, _("Standalone Level"));
 #endif
                 }
 

@@ -949,10 +949,7 @@ void game_client_free(const char *next)
     {
         gd.state = 0;
 
-<<<<<<< HEAD
         game_draw_set_maxspeed(0.0f, 0);
-=======
->>>>>>> b78153022528a2ab269138ec2eaa0890edb93387
         game_proxy_clr();
 
         if (grad_filename) {
@@ -970,7 +967,6 @@ void game_client_free(const char *next)
 
         game_base_free(next);
     }
-<<<<<<< HEAD
 }
 
 int game_client_state(void)
@@ -1007,8 +1003,6 @@ int game_client_load_objects(void)
 int game_client_get_jump_b(void)
 {
     return gd.jump_b;
-=======
->>>>>>> b78153022528a2ab269138ec2eaa0890edb93387
 }
 
 int game_client_state(void)
@@ -1045,7 +1039,6 @@ void game_client_blend(float a)
 
 void game_client_draw(int pose, float t)
 {
-<<<<<<< HEAD
     if (gd.state && !progress_loading())
     {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -1095,13 +1088,6 @@ void game_client_draw(int pose, float t)
 void game_client_maxspeed(float a, int f)
 {
     game_draw_set_maxspeed(a, f);
-=======
-    if (gd.state)
-    {
-        game_lerp_apply(&gl, &gd);
-        game_draw(&gd, pose, t);
-    }
->>>>>>> b78153022528a2ab269138ec2eaa0890edb93387
 }
 
 /*---------------------------------------------------------------------------*/

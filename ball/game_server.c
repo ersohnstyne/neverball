@@ -1361,9 +1361,13 @@ void game_server_free(const char *next)
     {
         server_state = 0;
 
+<<<<<<< HEAD
 #if _WIN32 && _MSC_VER && ENABLE_NVIDIA_PHYSX==1
         sol_quit_sim_physx(&vary);
 #endif
+=======
+        sol_quit_sim();
+>>>>>>> b78153022528a2ab269138ec2eaa0890edb93387
         sol_free_vary(&vary);
 
         game_base_free(next);

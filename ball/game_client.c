@@ -507,11 +507,17 @@ void game_client_sync(fs_file demo_fp)
 
 /*---------------------------------------------------------------------------*/
 
+<<<<<<< HEAD
 #if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
 
 static struct game_base client_base;
 
 int game_client_load_moon_taskloader(void *data, void *execute_data)
+=======
+static struct game_base client_base;
+
+int  game_client_init(const char *file_name)
+>>>>>>> 448d3d0f5d823461282ad5fb297cba21bfdae022
 {
     struct game_moon_taskloader_info *mtli = (struct game_moon_taskloader_info *) execute_data;
 
@@ -523,7 +529,15 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
 
     /* Load SOL/SOLX data. */
 
+<<<<<<< HEAD
     if (!game_base_load(&client_base, mtli->filename))
+=======
+    game_client_free(file_name);
+
+    /* Load SOL data. */
+
+    if (!game_base_load(&client_base, file_name))
+>>>>>>> 448d3d0f5d823461282ad5fb297cba21bfdae022
         return (gd.state = 0);
 
     if (!sol_load_vary(&gd.vary, &client_base.base))
@@ -973,6 +987,12 @@ void game_client_free(const char *next)
         sol_free_vary(&gd.vary);
 
         game_base_free(&client_base, next);
+<<<<<<< HEAD
+=======
+
+        sol_free_full(&gd.back);
+        back_free();
+>>>>>>> 448d3d0f5d823461282ad5fb297cba21bfdae022
     }
 }
 

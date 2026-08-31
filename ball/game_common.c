@@ -642,42 +642,45 @@ void lockstep_scl(struct lockstep *ls, float ts)
 
 /* See checkpoints.c */
 
-struct s_base  game_base;
-static char   *base_path = NULL;
-
-int game_base_load(const char *path)
+int  game_base_load(struct game_base *gb, const char *path)
 {
-    if (base_path)
+    if (!gb || !path || !*path || !path[0])
+        return 0;
+
+    if (gb->path && *gb->path && gb->path[0])
     {
-        if (strcmp(base_path, path) == 0)
+        if (strcmp(gb->path, path) == 0)
             return 1;
 
-        sol_free_base(&game_base);
+        sol_free_base(&gb->base);
 
-        free(base_path);
-        base_path = NULL;
+        free(gb->path);
+        gb->path = NULL;
     }
 
-    if (sol_load_base(&game_base, path))
+    if (sol_load_base(&gb->base, path))
     {
-        base_path = strdup(path);
+        gb->path = strdup(path);
         return 1;
     }
 
     return 0;
 }
 
-void game_base_free(const char *next)
+void game_base_free(struct game_base *gb, const char *next)
 {
-    if (base_path)
+    if (!gb)
+        return;
+
+    if (gb->path && *gb->path && gb->path[0])
     {
-        if (next && strcmp(base_path, next) == 0)
+        if (next && strcmp(gb->path, next) == 0)
             return;
 
-        sol_free_base(&game_base);
+        sol_free_base(&gb->base);
 
-        free(base_path);
-        base_path = NULL;
+        free(gb->path);
+        gb->path = NULL;
     }
 }
 

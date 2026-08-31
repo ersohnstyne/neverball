@@ -508,6 +508,9 @@ void game_client_sync(fs_file demo_fp)
 /*---------------------------------------------------------------------------*/
 
 #if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
+
+static struct game_base client_base;
+
 int game_client_load_moon_taskloader(void *data, void *execute_data)
 {
     struct game_moon_taskloader_info *mtli = (struct game_moon_taskloader_info *) execute_data;
@@ -520,12 +523,12 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
 
     /* Load SOL/SOLX data. */
 
-    if (!game_base_load(mtli->filename))
+    if (!game_base_load(&client_base, mtli->filename))
         return (gd.state = 0);
 
-    if (!sol_load_vary(&gd.vary, &game_base))
+    if (!sol_load_vary(&gd.vary, &client_base.base))
     {
-        game_base_free(NULL);
+        game_base_free(&client_base, NULL);
         return (gd.state = 0);
     }
 
@@ -533,7 +536,7 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
 
     if (gd.vary.base->vc < 1 || !gd.vary.base->vv)
     {
-        game_base_free(NULL);
+        game_base_free(&client_base, NULL);
         return (gd.state = 0);
     }
 
@@ -552,7 +555,7 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
     if (!sol_load_draw(&gd.draw, &gd.vary, config_get_d(CONFIG_SHADOW)))
     {
         sol_free_vary(&gd.vary);
-        game_base_free(NULL);
+        game_base_free(&client_base, NULL);
         return (gd.state = 0);
     }
 
@@ -636,7 +639,7 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
                  * Was:
                  *     log_errorf("SOL/SOLX key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
                  *     sol_free_vary(&vary);
-                 *     game_base_free(NULL);
+                 *     game_base_free(&client_base, NULL);
                  *     return (gd.state = 0);
                  */
             }
@@ -675,7 +678,7 @@ int game_client_load_moon_taskloader(void *data, void *execute_data)
 
     if (!sol_load_full(&gd.back, back_name, 0)) {
         sol_free_vary(&gd.vary);
-        game_base_free(NULL);
+        game_base_free(&client_base, NULL);
         return (gd.state = 0);
     }
 
@@ -727,7 +730,11 @@ int game_client_init_moon_taskloader(const char *file_name,
 
 /*---------------------------------------------------------------------------*/
 
-int  game_client_init(const char *file_name)
+#if ENABLE_MOON_TASKLOADER==0 || defined(SKIP_MOON_TASKLOADER)
+static struct game_base client_base;
+#endif
+
+int game_client_init(const char *file_name)
 {
     char *back_name = "", *grad_name = "";
 
@@ -751,12 +758,12 @@ int  game_client_init(const char *file_name)
 
     /* Load SOL/SOLX data. */
 
-    if (!game_base_load(file_name))
+    if (!game_base_load(&client_base, file_name))
         return (gd.state = 0);
 
-    if (!sol_load_vary(&gd.vary, &game_base))
+    if (!sol_load_vary(&gd.vary, &client_base.base))
     {
-        game_base_free(NULL);
+        game_base_free(&client_base, NULL);
         return (gd.state = 0);
     }
 
@@ -764,7 +771,7 @@ int  game_client_init(const char *file_name)
 
     if (gd.vary.base->vc < 1 || !gd.vary.base->vv)
     {
-        game_base_free(NULL);
+        game_base_free(&client_base, NULL);
         return (gd.state = 0);
     }
 
@@ -783,7 +790,7 @@ int  game_client_init(const char *file_name)
     if (!sol_load_draw(&gd.draw, &gd.vary, config_get_d(CONFIG_SHADOW)))
     {
         sol_free_vary(&gd.vary);
-        game_base_free(NULL);
+        game_base_free(&client_base, NULL);
         return (gd.state = 0);
     }
 
@@ -872,7 +879,7 @@ int  game_client_init(const char *file_name)
                  * Was:
                  *     log_errorf("SOL/SOLX key parameter \"version\" (%s) is not an valid version format!\n", v ? v : "unknown");
                  *     sol_free_vary(&vary);
-                 *     game_base_free(NULL);
+                 *     game_base_free(&client_base, NULL);
                  *     return (gd.state = 0);
                  */
             }
@@ -920,7 +927,7 @@ int  game_client_init(const char *file_name)
 
     if (!sol_load_full(&gd.back, back_name, 0)) {
         //sol_free_vary(&gd.vary);
-        //game_base_free(NULL);
+        //game_base_free(&client_base, NULL);
         //return (gd.state = 0);
     }
 
@@ -965,44 +972,8 @@ void game_client_free(const char *next)
         sol_free_draw(&gd.draw);
         sol_free_vary(&gd.vary);
 
-        game_base_free(next);
+        game_base_free(&client_base, next);
     }
-}
-
-int game_client_state(void)
-{
-    return gd.state != 0;
-}
-
-void game_client_free_objects(void)
-{
-    if (gd.state)
-    {
-        sol_free_draw(&gd.draw);
-        sol_free_draw(&gd.back.draw);
-    }
-}
-
-int game_client_load_objects(void)
-{
-    if (gd.state)
-    {
-        const int load_draw_done      = sol_load_draw(&gd.draw, &gd.vary, config_get_d(CONFIG_SHADOW));
-        const int load_draw_back_done = sol_load_draw(&gd.back.draw, &gd.back.vary, 0);
-
-        if (!load_draw_done || !load_draw_back_done)
-        {
-            game_client_free_objects();
-            return 0;
-        }
-    }
-
-    return 1;
-}
-
-int game_client_get_jump_b(void)
-{
-    return gd.jump_b;
 }
 
 int game_client_state(void)

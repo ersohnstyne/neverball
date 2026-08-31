@@ -495,7 +495,8 @@ static void grow_step(int ui, float dt)
 
 /*---------------------------------------------------------------------------*/
 
-static struct lockstep server_step;
+static struct game_base server_base;
+static struct lockstep  server_step;
 
 void game_update_view(float dt);
 
@@ -598,10 +599,10 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
 
     /* Load SOL/SOLX data. */
 
-    if (!game_base_load(curr_file_name))
+    if (!game_base_load(&server_base, curr_file_name))
         return (server_state = 0);
 
-    if (!sol_load_vary(&vary, &game_base))
+    if (!sol_load_vary(&vary, &server_base.base))
     {
         game_base_free(NULL);
         return (server_state = 0);
@@ -771,7 +772,7 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
         ((vary.base->zc < 1 || !vary.base->zv) && !config_cheat()) ||
         !game_check_map_border(CURR_PLAYER, 0.5f)) {
         sol_free_vary(&vary);
-        game_base_free(NULL);
+        game_base_free(&server_base, NULL);
         return (server_state = 0);
     }
 
@@ -1054,12 +1055,12 @@ int game_server_init(const char *file_name, int t, int e)
 
     /* Load SOL/SOLX data. */
 
-    if (!game_base_load(file_name))
+    if (!game_base_load(&server_base, file_name))
         return (server_state = 0);
 
-    if (!sol_load_vary(&vary, &game_base))
+    if (!sol_load_vary(&vary, &server_base.base))
     {
-        game_base_free(NULL);
+        game_base_free(&server_base, NULL);
         return (server_state = 0);
     }
 
@@ -1259,7 +1260,7 @@ int game_server_init(const char *file_name, int t, int e)
         ((vary.base->zc < 1 || !vary.base->zv) && !config_cheat()) ||
         !game_check_map_border(CURR_PLAYER, 0.5f)) {
         sol_free_vary(&vary);
-        game_base_free(NULL);
+        game_base_free(&server_base, NULL);
         return (server_state = 0);
     }
 
@@ -1366,13 +1367,8 @@ void game_server_free(const char *next)
 #endif
         sol_free_vary(&vary);
 
-        game_base_free(next);
+        game_base_free(&server_base, next);
     }
-}
-
-int game_server_state(void)
-{
-    return server_state;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1785,12 +1781,12 @@ static int game_update_state(int bt)
 
     /* New: Hold timer mode */
 
-    if (vary.uv[CURR_PLAYER].p[0] < game_base.uv[CURR_PLAYER].p[0] - .01f ||
-        vary.uv[CURR_PLAYER].p[0] > game_base.uv[CURR_PLAYER].p[0] + .01f ||
-        vary.uv[CURR_PLAYER].p[1] < game_base.uv[CURR_PLAYER].p[1] - .25f ||
-        vary.uv[CURR_PLAYER].p[1] > game_base.uv[CURR_PLAYER].p[1] + .01f ||
-        vary.uv[CURR_PLAYER].p[2] < game_base.uv[CURR_PLAYER].p[2] - .01f ||
-        vary.uv[CURR_PLAYER].p[2] > game_base.uv[CURR_PLAYER].p[2] + .01f)
+    if (vary.uv[CURR_PLAYER].p[0] < server_base.base.uv[CURR_PLAYER].p[0] - .01f ||
+        vary.uv[CURR_PLAYER].p[0] > server_base.base.uv[CURR_PLAYER].p[0] + .01f ||
+        vary.uv[CURR_PLAYER].p[1] < server_base.base.uv[CURR_PLAYER].p[1] - .25f ||
+        vary.uv[CURR_PLAYER].p[1] > server_base.base.uv[CURR_PLAYER].p[1] + .01f ||
+        vary.uv[CURR_PLAYER].p[2] < server_base.base.uv[CURR_PLAYER].p[2] - .01f ||
+        vary.uv[CURR_PLAYER].p[2] > server_base.base.uv[CURR_PLAYER].p[2] + .01f)
         timer_hold = 0;
 
     /* Cannot update state in home room. */
@@ -2231,7 +2227,7 @@ static void game_server_iter(float dt)
 
             const int r = EM_ASM_INT({
                 return Neverball.gamecore_mapmarker_try_place(UTF8ToString($0), $1, $2, $3, $4);
-            }, curr_file_name, status,
+            }, server_base.path, status,
                ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
 #elif defined(__EMSCRIPTEN__)
             const int r1 = EM_ASM_INT({
@@ -2269,11 +2265,11 @@ static void game_server_iter(float dt)
                         }
                     })
                 });
-            }, r1, curr_file_name, status, ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
+            }, r1, server_base.path, status, ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
 #else
             /* HACK: OK, but now, with WGCL's standalone game network first! */
 
-            account_wgcl_mapmarkers_place(curr_file_name, status,
+            account_wgcl_mapmarkers_place(server_base.path, status,
                                           ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
 #endif
         }

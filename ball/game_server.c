@@ -568,7 +568,6 @@ static void game_init_map_border(int ui)
             player_max_area[2] = vary.base->hv[i].p[2];
     }
 
-<<<<<<< HEAD
     for (i = 0; i < vary.base->uc; i++)
     {
         if (vary.uv[i].p[0] < player_min_area[0])
@@ -601,9 +600,6 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
     /* Load SOL/SOLX data. */
 
     if (!game_base_load(&server_base, curr_file_name))
-=======
-    if (!game_base_load(&server_base, file_name))
->>>>>>> 448d3d0f5d823461282ad5fb297cba21bfdae022
         return (server_state = 0);
 
     if (!sol_load_vary(&vary, &server_base.base))

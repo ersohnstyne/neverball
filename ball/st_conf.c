@@ -1082,16 +1082,16 @@ static int conf_gameplay_gui(void)
 #endif
             gui_space(id);
         }
-
-        if (game_server_state() &&
-            (curr_mode() == MODE_CHALLENGE ||
+        
+        if (!game_server_state() ||
+            (curr_mode() != MODE_CHALLENGE &&
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-             curr_mode() == MODE_HARDCORE ||
+             curr_mode() != MODE_HARDCORE &&
 #else
-             curr_mode() == MODE_ROGUE ||
+             curr_mode() != MODE_ROGUE &&
 #endif
-             curr_mode() == MODE_BOOST_RUSH ||
-             curr_mode() == MODE_DAILY
+             curr_mode() != MODE_BOOST_RUSH &&
+             curr_mode() != MODE_DAILY
              ))
         {
 #if NB_HAVE_PB_BOTH==1

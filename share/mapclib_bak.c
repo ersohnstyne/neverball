@@ -531,7 +531,7 @@ void mapc_quit(struct mapc_context **ctx_ptr)
 
 /*---------------------------------------------------------------------------*/
 
-/*static void mapc_printstacktrace_then_exiterror(struct mapc_context* ctx)
+/*static void mapc_printstacktrace_then_exiterror(struct mapc_context *ctx)
 {
 #if _WIN32
     void *dbg_frames[20];
@@ -1701,7 +1701,7 @@ static int newspecification_request_legacy(char k[][MAXSTR],
 
 #pragma region Generic entities
 
-static void parse_angles(const char* val, float out_e[4])
+static void parse_angles(const char *val, float out_e[4])
 {
     static const float X[3] = { 1.0f, 0.0f, 0.0f };
     static const float Y[3] = { 0.0f, 1.0f, 0.0f };
@@ -4068,7 +4068,7 @@ static void lump_bounding_sphere(struct s_base *fp,
 
 static void node_file(struct mapc_context *ctx)
 {
-    struct s_base* fp = &ctx->file;
+    struct s_base *fp = &ctx->file;
     static float bsphere[MAXL][4];
     int i;
 
@@ -4692,8 +4692,8 @@ static void interactive_web(void)
 
 static int mapc_compile_internal(struct mapc_context *ctx)
 {
-    const char* src = CSTR(ctx->src_path);
-    const char* dst = CSTR(ctx->dst_path);
+    const char *src = CSTR(ctx->src_path);
+    const char *dst = CSTR(ctx->dst_path);
 
     char dst_solx[MAXSTR];
     SAFECPY(dst_solx, CSTR(ctx->dst_path));

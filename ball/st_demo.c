@@ -1772,7 +1772,7 @@ static int demo_end_gui(void)
             if ((kd = gui_hstack(jd)))
             {
                 gui_label(kd, GUI_GEAR, GUI_SML, GUI_COLOR_DEFAULT);
-                gui_label(kd, _("Options"), GUI_SML, GUI_COLOR_DEFAULT);
+                gui_label(kd, _("Options"), GUI_SML, GUI_COLOR_WHT);
 
                 gui_set_state(kd, DEMO_CONF, 0);
                 gui_set_rect(kd, GUI_ALL);

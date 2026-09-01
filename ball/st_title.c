@@ -1601,12 +1601,10 @@ static int title_leave(struct state *st, struct state *next, int id, int intent)
 
     game_proxy_filter(NULL);
 
-    if (next == &st_null ||
-        next == &st_conf)
+    if (next == &st_conf)
     {
         game_client_free(NULL);
-
-        if (next == &st_null) game_server_free(NULL);
+        game_server_free(NULL);
     }
 
     progress_exit();

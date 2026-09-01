@@ -289,18 +289,8 @@ static int playmodes_enter(struct state *st, struct state *prev, int intent)
 
 static int playmodes_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if (next == &st_null)
-    {
-        progress_exit();
-
-        campaign_quit();
-        set_quit();
-
-        game_server_free(NULL);
-        game_client_free(NULL);
-    }
-
-    if (next == &st_playmodes)
+    if (next == &st_null ||
+        next == &st_playmodes)
     {
         gui_delete(id);
         return 0;

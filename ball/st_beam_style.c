@@ -208,9 +208,6 @@ static int beam_style_enter(struct state *st, struct state *prev, int intent)
 
 static int beam_style_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if (next == &st_null)
-        game_client_free(NULL);
-
     return transition_slide(id, 0, intent);
 }
 

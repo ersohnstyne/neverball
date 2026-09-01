@@ -322,9 +322,10 @@ static int times_rank = RANK_LAST;
 
 static int lvl_warn_timer;
 
-static int status       = GAME_NONE;
-static int coins        = 0;
-static int timer_offset = 0;
+static int status        = GAME_NONE;
+static int status_oneuse = 0;
+static int coins         = 0;
+static int timer_offset  = 0;
 #ifdef MAPC_INCLUDES_CHKP
 /*
  * Precalculated total timer for each levels with checkpoints.
@@ -892,6 +893,9 @@ void progress_buy_balls(int amount)
 
 void progress_step(void)
 {
+    if (!replay && status == GAME_NONE)
+        status_oneuse = 1;
+
     if (mode != MODE_CHALLENGE && mode != MODE_BOOST_RUSH &&
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         mode != MODE_HARDCORE &&
@@ -930,12 +934,16 @@ void progress_step(void)
 
 void progress_stat(int s)
 {
-    PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_VOID;
+    //PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_VOID;
+    if (!is_init) return;
 
     /* Cannot save high score in home room. */
 
     if (mode == MODE_NONE || status != GAME_NONE) return;
 
+    if (!status_oneuse) return;
+
+    status_oneuse = 0;
     status = s;
     coins  = curr_coins();
 
@@ -952,6 +960,14 @@ void progress_stat(int s)
 #if ENABLE_LIVESPLIT!=0
     progress_livesplit_stat(s);
 #endif
+
+    if (status == GAME_NONE && s == GAME_NONE)
+    {
+        /* No scoreboard update, when quitting level. */
+
+        demo_play_stat(s, coins, timer);
+        return;
+    }
 
     switch (status)
     {
@@ -1248,8 +1264,6 @@ void progress_stat(int s)
     }
 
     demo_play_stat(status, coins, timer);
-
-    if (status == GAME_NONE) return;
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (campaign_used())

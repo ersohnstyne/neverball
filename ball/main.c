@@ -2194,7 +2194,12 @@ static int main_init(int argc, char *argv[])
 
 static void main_quit(void)
 {
+    progress_stat(GAME_NONE);
+    progress_exit();
+
     game_client_free(NULL);
+    game_server_free(NULL);
+    game_proxy_clr();
 
     if (fetch_packages_offline)
         config_set_d(CONFIG_ONLINE, 1);
@@ -2215,6 +2220,7 @@ static void main_quit(void)
 
     /* Free loaded sets, in case of link processing. */
 
+    campaign_quit();
     set_quit();
 
     /* Free everything else. */

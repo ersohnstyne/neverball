@@ -283,17 +283,6 @@ static int save_leave(struct state *st, struct state *next, int id, int intent)
     allow_entertext = 1;
     text_input_stop();
 
-    if (next == &st_null)
-    {
-        progress_exit();
-
-        campaign_quit();
-        set_quit();
-
-        game_server_free(NULL);
-        game_client_free(NULL);
-    }
-
     return transition_slide(id, 0, intent);
 }
 

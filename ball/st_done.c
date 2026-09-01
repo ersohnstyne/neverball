@@ -425,21 +425,8 @@ static int done_enter(struct state *st, struct state *prev, int intent)
 
 static int done_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if (next == &st_null)
-    {
-        progress_exit();
-
-        campaign_quit();
-        set_quit();
-
-        game_server_free(NULL);
-        game_client_free(NULL);
-
-        gui_delete(id);
-        return 0;
-    }
-
-    if (next == &st_done)
+    if (next == &st_null ||
+        next == &st_done)
     {
         gui_delete(id);
         return 0;

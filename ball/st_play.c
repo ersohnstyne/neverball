@@ -511,18 +511,6 @@ static void play_set_timer(int id, float dt)
 
 static int play_prep_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if (next == &st_null)
-    {
-        progress_stat(GAME_NONE);
-        progress_exit();
-
-        campaign_quit();
-        set_quit();
-
-        game_server_free(NULL);
-        game_client_free(NULL);
-    }
-
     if (next == &st_pause)
     {
         hud_hide();
@@ -911,18 +899,6 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
 static int play_loop_leave(struct state *st, struct state *next, int id, int intent)
 {
     game_client_maxspeed(0.0f, 0);
-
-    if (next == &st_null)
-    {
-        progress_stat(GAME_NONE);
-        progress_exit();
-
-        campaign_quit();
-        set_quit();
-
-        game_server_free(NULL);
-        game_client_free(NULL);
-    }
 
     hud_hide();
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
@@ -1798,18 +1774,6 @@ static int look_enter(struct state *st, struct state *prev, int intent)
 
 static int look_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if (next == &st_null)
-    {
-        progress_stat(GAME_NONE);
-        progress_exit();
-
-        campaign_quit();
-        set_quit();
-
-        game_server_free(NULL);
-        game_client_free(NULL);
-    }
-
     return 0;
 }
 

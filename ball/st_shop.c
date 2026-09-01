@@ -795,17 +795,6 @@ static int shop_rename_leave(struct state *st, struct state *next, int id, int i
     if (draw_back)
         back_free();
 
-    if (next == &st_null)
-    {
-        progress_exit();
-
-        campaign_quit();
-        set_quit();
-
-        game_server_free(NULL);
-        game_client_free(NULL);
-    }
-
     return transition_slide(id, 0, intent);
 }
 

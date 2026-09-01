@@ -760,12 +760,7 @@ static int ball_leave(struct state *st, struct state *next, int id, int intent)
     if (next != &st_ball && !game_server_state())
     {
         back_free();
-
         demo_replay_stop(0);
-
-        if (next == &st_null)
-            game_client_free(NULL);
-
         free_balls();
     }
 

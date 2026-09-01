@@ -782,17 +782,6 @@ static int level_enter(struct state *st, struct state *prev, int intent)
 
 static int level_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if (next == &st_null)
-    {
-        progress_exit();
-
-        campaign_quit();
-        set_quit();
-
-        game_server_free(NULL);
-        game_client_free(NULL);
-    }
-
     if (next != &st_level)
     {
         if (config_get_d(CONFIG_SCREEN_ANIMATIONS))

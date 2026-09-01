@@ -1475,7 +1475,6 @@ static int help_demo_enter(struct state *st, struct state *prev, int intent)
 static int help_demo_leave(struct state *st, struct state *next, int id, int intent)
 {
     demo_replay_stop(0);
-    if (next == &st_null) game_client_free(NULL);
     return 0;
 }
 

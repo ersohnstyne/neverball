@@ -1287,17 +1287,6 @@ static int start_enter(struct state *st, struct state *prev, int intent)
 
 static int start_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if (next == &st_null)
-    {
-        progress_exit();
-
-        campaign_quit();
-        set_quit();
-
-        game_server_free(NULL);
-        game_client_free(NULL);
-    }
-
     if (next == &st_start)
         return transition_page(id, 0, intent);
 

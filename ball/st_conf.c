@@ -3153,17 +3153,6 @@ static int conf_leave(struct state *st, struct state *next, int id, int intent)
         conf_common_bg_paint(NULL);
     }
 
-    if (next == &st_null)
-    {
-        progress_exit();
-
-        campaign_quit();
-        set_quit();
-
-        game_server_free(NULL);
-        game_client_free(NULL);
-    }
-
     return transition_slide(id, 0, intent);
 }
 

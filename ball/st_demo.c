@@ -859,9 +859,6 @@ static int demo_restricted_leave(struct state *st, struct state *next, int id, i
     {
         demo_dir_free(demo_items);
         demo_items = NULL;
-
-        game_server_free(NULL);
-        game_client_free(NULL);
     }
 
     if (reported_status)
@@ -1196,12 +1193,6 @@ static int demo_leave(struct state *st, struct state *next, int id, int intent)
     {
         demo_dir_free(demo_items);
         demo_items = NULL;
-
-        if (next == &st_null)
-        {
-            game_server_free(NULL);
-            game_client_free(NULL);
-        }
     }
 
     if (demo_manual_hotreload)
@@ -1477,9 +1468,6 @@ static int demo_play_leave(struct state *st, struct state *next, int id, int int
 
         demo_dir_free(demo_items);
         demo_items = NULL;
-
-        game_server_free(NULL);
-        game_client_free(NULL);
     }
 
     prelude = 0.0f;
@@ -2195,9 +2183,6 @@ static int demo_look_leave(struct state *st, struct state *next, int id, int int
 
         demo_dir_free(demo_items);
         demo_items = NULL;
-
-        game_server_free(NULL);
-        game_client_free(NULL);
     }
 
     return 0;

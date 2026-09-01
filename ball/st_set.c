@@ -648,12 +648,6 @@ static int set_leave(struct state *st, struct state *next, int id, int intent)
         next == &st_levelgroup)
         activity_services_group_update(AS_GROUP_NONE);
 
-    if (next == &st_null)
-    {
-        set_quit();
-        game_client_free(NULL);
-    }
-
 #if NB_HAVE_PB_BOTH==1
     /* HACK: These two transition directions will be merged! */
 
@@ -1341,12 +1335,8 @@ static int campaign_leave(struct state *st, struct state *next, int id, int inte
     if (next == &st_title || next == &st_levelgroup)
         activity_services_group_update(AS_GROUP_NONE);
 
-    if (next == &st_levelgroup || next == &st_null)
-    {
+    if (next == &st_levelgroup)
         campaign_quit();
-
-        if (next == &st_null) game_client_free(NULL);
-    }
 
 #if NB_HAVE_PB_BOTH==1
     /* HACK: These two transition directions will be merged! */

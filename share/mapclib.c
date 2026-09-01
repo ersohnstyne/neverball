@@ -1639,7 +1639,6 @@ static void read_lump(struct mapc_context *ctx, fs_file fin)
 
 /*---------------------------------------------------------------------------*/
 
-<<<<<<< HEAD
 /*
  * New design specifications for entities in Neverball
  *
@@ -1706,31 +1705,6 @@ static int request_legacy(char k[][MAXSTR],
 #endif
 
 #pragma region Generic entities
-=======
-static void parse_angles(const char *val, float out_e[4])
-{
-    static const float X[3] = { 1.0f, 0.0f, 0.0f };
-    static const float Y[3] = { 0.0f, 1.0f, 0.0f };
-    static const float Z[3] = { 0.0f, 0.0f, 1.0f };
-
-    float x = 0.0f, y = 0.0f, z = 0.0f;
-    float d[4], e[4];
-
-    /* Pitch, yaw and roll. */
-
-    sscanf(val, "%f %f %f", &x, &y, &z);
-
-    q_by_axisangle(out_e, Y, V_RAD(+y));
-
-    q_by_axisangle(d, Z, V_RAD(-x));
-    q_mul(e, out_e, d);
-    q_nrm(out_e, e);
-
-    q_by_axisangle(d, X, V_RAD(+z));
-    q_mul(e, out_e, d);
-    q_nrm(out_e, e);
-}
->>>>>>> 8dd014767106e182a3ace35a1feb5c33b49a4d8e
 
 static void make_path(struct mapc_context *ctx,
                       char k[][MAXSTR],

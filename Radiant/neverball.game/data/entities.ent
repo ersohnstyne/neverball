@@ -37,16 +37,11 @@ The switch does not replace your Radiant's entities, but should be a higher-fide
 <angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the switch (pitch, yaw, and roll).</angles>
 </point>
 
-<<<<<<< HEAD
 <point name="info_camp" color="0 0.5 0" box="-8 -8 -8 8 8 8">
 Defines a switch.  This entity exists for backward compatibility; game_switch is preferable.
 
 The switch does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
 * Neverball entity design specifications
-=======
-<point name="game_switch" color="0 0.5 0" box="-8 -8 -8 8 8 8">
-Defines a switch.
->>>>>>> 8dd014767106e182a3ace35a1feb5c33b49a4d8e
 
 It is preferable to use this entity in place of info_camp.
 
@@ -125,29 +120,13 @@ Defines a goal.
 
 It is preferable to use this entity in place of info_player_deathmatch.
 
-<<<<<<< HEAD
 The goal does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
 * Neverball entity design specifications
 
-=======
->>>>>>> 8dd014767106e182a3ace35a1feb5c33b49a4d8e
 <real key="radius" name="Radius" value="0.75">Goal radius in meters.  The default radius is "0.75".  The ball must fall entirely within this radius to trigger a goal.</real>
 <target key="target" name="Path">Path that the goal will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
 <target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the goal, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
 <angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the goal (pitch, yaw, and roll).</angles>
-<<<<<<< HEAD
-=======
-</point>
-
-
-<point name="info_player_deathmatch" color="1 0 1" box="-16 -16 -24 16 16 32">
-Defines a goal.  This entity exists for backward compatibility; game_goal is preferable.
-
-<real key="radius" name="Radius" value="0.75">Goal radius in meters.  The default radius is "0.75".  The ball must fall entirely within this radius to trigger a goal.</real>
-<target key="target" name="Path">Path that the goal will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
-<target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the goal, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
-<angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the goal (pitch, yaw, and roll).</angles>
->>>>>>> 8dd014767106e182a3ace35a1feb5c33b49a4d8e
 </point>
 
 <point name="info_player_deathmatch" color="1 0 1" box="-16 -16 -24 16 16 32">
@@ -171,7 +150,6 @@ Defines the camera position at the beginning of a level fly-in
 </point>
 
 
-<<<<<<< HEAD
 <list name="playerdecotype">
   <item name="Vehicle" value="vehicle"/>
   <item name="Electricity" value="electricity"/>
@@ -193,23 +171,6 @@ The ball does not replace your Radiant's entities, but should be a higher-fideli
 <real key="radius" name="Radius" value="0.25">Ball radius in meters.  The default radius is "0.25".  In Neverputt, this should be set to "0.0625".</real>
 <angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the initial ball / tee launch orientation (pitch, yaw, and roll).</angles>
 <playerdecotype key="type" name="Decoration type">Name of the player start decoration type.</playerdecotype>
-=======
-<point name="game_ball" color="1 0 0" box="-16 -16 -16 16 16 16">
-Defines a ball spawn.
-
-It is preferable to use this entity in place of info_player_start.
-
-<real key="radius" name="Radius" value="0.25">Ball radius in meters.  The default radius is "0.25".  In Neverputt, this should be set to "0.0625".</real>
-<angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the initial ball / tee launch orientation (pitch, yaw, and roll).</angles>
-</point>
-
-
-<point name="info_player_start" color="1 0 0" box="-16 -16 -24 16 16 32">
-Defines a ball.  This entity exists for backward compatibility; game_ball is preferable.  While multiple balls may be defined, Neverball uses only the first of them.  Neverputt requires an info_player_start entity for each player slot plus one.
-
-<real key="radius" name="Radius" value="0.25">Ball radius in meters.  The default radius is "0.25".  In Neverputt, this should be set to "0.0625".</real>
-<angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the ball / tee direction (pitch, yaw, and roll).</angles>
->>>>>>> 8dd014767106e182a3ace35a1feb5c33b49a4d8e
 </point>
 
 <point name="info_player_start" color="1 0 0" box="-16 -16 -24 16 16 32">
@@ -297,11 +258,7 @@ To display the model first, set "modelscale" to "64" and "angles" to "0 0 90" be
 <model key="model" name="Model">Path to the model file.  The model must be in OBJ format.  It must have triangular tessellation.  All vertices must have normals and texture coordinates.</model>
 <target key="target" name="Path">Path that the model will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
 <target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the model, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
-<<<<<<< HEAD
-<angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the ,odel (pitch, yaw, and roll).</angles>
-=======
 <angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the model (pitch, yaw, and roll).</angles>
->>>>>>> 8dd014767106e182a3ace35a1feb5c33b49a4d8e
 </point>
 
 
@@ -327,23 +284,16 @@ Defines the initial view direction of a level fly-in, as well as the destination
 </point>
 
 
-<<<<<<< HEAD
 <!-- TELEPORTER -->
 
-<point name="game_teleporter" color="0 0.5 0" box="-8 -8 -8 8 8 8">
-=======
 <point name="game_jump" color="0 0.5 0" box="-8 -8 -8 8 8 8">
->>>>>>> 8dd014767106e182a3ace35a1feb5c33b49a4d8e
 Defines a teleporter.
 
 It is preferable to use this entity in place of target_teleporter.
 
-<<<<<<< HEAD
 The teleport does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines: 
 * Neverball entity design specifications
 
-=======
->>>>>>> 8dd014767106e182a3ace35a1feb5c33b49a4d8e
 <target key="target" name="Target">Refers to a target_position entity defining the destination of the teleporter.</target>
 <target key="target2" name="Path">Path that the teleporter will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
 <target key="target3" name="Path (rotation)">An optional second path that controls the orientation of the teleporter, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>

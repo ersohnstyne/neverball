@@ -3,7 +3,7 @@
  * Copyright (C) 2003 Robert Kooima
  * Copyright (C) 2026 Jānis Rūcis
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -38,18 +38,18 @@
 #include <assert.h>
 #elif defined(_MSC_VER) && defined(_AFXDLL)
 #include <afx.h>
-/**
- * HACK: assert() for Microsoft Windows Apps in Release builds
- * will be replaced to VERIFY() - Ersohn Styne
- */
+ /**
+  * HACK: assert() for Microsoft Windows Apps in Release builds
+  * will be replaced to VERIFY() - Ersohn Styne
+  */
 #define assert VERIFY
 #else
 #define assert(_x) (_x)
 #endif
 #include <setjmp.h>
 
-/* Uncomment and try this out with COMPLEX SOL */
-//#define ENABLE_COMPLEX_SOL_ONLY 1
+ /* Uncomment and try this out with COMPLEX SOL */
+ //#define ENABLE_COMPLEX_SOL_ONLY 1
 
 #if ENABLE_RADIANT_CONSOLE
 /*
@@ -91,8 +91,9 @@
 #define GOAL_HALF_EXTENT 48.f
 #define SWCH_HALF_EXTENT 32.f
 #define JUMP_HALF_EXTENT 32.f
+#define CHKP_HALF_EXTENT 32.f
 
-/* Epsilon used for vertex merging within lumps. */
+ /* Epsilon used for vertex merging within lumps. */
 #define SMALL_VERT 1e-4f
 /* Epsilon used for plane intersection checks during vertex clipping. */
 #define SMALL_CLIP 1e-7 /* double */
@@ -109,9 +110,9 @@
  * the process is terribly inefficient.
  */
 
-/*---------------------------------------------------------------------------*/
+ /*---------------------------------------------------------------------------*/
 
-/* Ohhhh... arbitrary! */
+ /* Ohhhh... arbitrary! */
 
 #define MAXM    1024
 #define MAXV    65536
@@ -242,6 +243,10 @@ struct mapc_context
     int   swch_has_e[MAXX];
     int   swch_is_legacy[MAXX];
 
+    float chkp_e[MAXC][4];
+    int   chkp_has_e[MAXC];
+    int   chkp_is_legacy[MAXC];
+
     float bill_e[MAXR][4];
     int   bill_has_e[MAXR];
 
@@ -317,8 +322,8 @@ static void bcast_write_len(struct mapc_context *ctx, size_t len)
 
     if (ctx->bcast_msg_len + 4u < sizeof (ctx->bcast_msg))
     {
-        p[0] =  len        & 0xff;
-        p[1] = (len >> 8)  & 0xff;
+        p[0] = len & 0xff;
+        p[1] = (len >> 8) & 0xff;
         p[2] = (len >> 16) & 0xff;
         p[3] = (len >> 24) & 0xff;
 
@@ -332,7 +337,7 @@ static void bcast_write_str(struct mapc_context *ctx, const char *str)
     {
         unsigned char *p = &ctx->bcast_msg[ctx->bcast_msg_len];
         size_t         n = MIN(strlen(str), (sizeof (ctx->bcast_msg) -
-                                             ctx->bcast_msg_len - 1));
+            ctx->bcast_msg_len - 1));
 
         memcpy(p, str, n);
         p[n] = 0;
@@ -364,8 +369,8 @@ static void bcast_send_str(struct mapc_context *ctx, const char *str)
 
     if (ctx->bcast_socket &&
         SDLNet_TCP_Send(ctx->bcast_socket,
-                        ctx->bcast_msg,
-                        ctx->bcast_msg_len) < ctx->bcast_msg_len)
+            ctx->bcast_msg,
+            ctx->bcast_msg_len) < ctx->bcast_msg_len)
         bcast_error(ctx);
 }
 
@@ -406,7 +411,7 @@ static int bcast_init(struct mapc_context *ctx)
         return bcast_error(ctx);
 
     bcast_send_str(ctx, "<?xml version=\"1.0\"?>"
-                   "<q3map_feedback version=\"1\">");
+        "<q3map_feedback version=\"1\">");
     return 1;
 }
 
@@ -459,12 +464,12 @@ int mapc_init(struct mapc_context **ctx_ptr)
     if (!ctx_ptr)
         return 0;
 
-    ctx = malloc(sizeof(*ctx));
+    ctx = malloc(sizeof (*ctx));
 
     if (!ctx)
         return 0;
 
-    memset(ctx, 0, sizeof(*ctx));
+    memset(ctx, 0, sizeof (*ctx));
 
     ctx->opt_debug = 0;
     ctx->opt_csv = 0;
@@ -545,15 +550,15 @@ static void mapc_printstacktrace_then_exiterror(struct mapc_context *ctx)
 
     if (SymInitialize(_handle, 0, 1))
     {
-        SYMBOL_INFO *_symbol  = (SYMBOL_INFO *) calloc(sizeof (SYMBOL_INFO) + MAXSTR, 1);
-        _symbol->MaxNameLen   = MAXSTR;
+        SYMBOL_INFO *_symbol = (SYMBOL_INFO *) calloc(sizeof (SYMBOL_INFO) + MAXSTR, 1);
+        _symbol->MaxNameLen = MAXSTR;
         _symbol->SizeOfStruct = sizeof (SYMBOL_INFO);
 
         for (int i = 0; i < nptrs; i++)
         {
             char dbg_final_text[MAXSTR];
 
-            DWORD64 _address = (DWORD64) (dbg_frames[i]);
+            DWORD64 _address = (DWORD64)(dbg_frames[i]);
             DWORD _displacement = 0;
             IMAGEHLP_LINE64 _line;
 
@@ -590,7 +595,7 @@ static int overflow(struct mapc_context *ctx, const char s[64u - sizeof (" overf
 
 #if _MSC_VER
     fprintf_s(stderr, "%s: error MAPCE: %s overflow\n",
-                      ctx->src_path.buf, s);
+        ctx->src_path.buf, s);
 #else
     MAPC_LOG_ERROR(ctx, buf);
 #endif
@@ -792,8 +797,8 @@ static void init_file(struct s_base *fp)
 #endif
     MAPCLIB_INIT_FILE_ENSURE_INIT_POINTER_ARRAY(fp->wv, struct b_view *, MAXW);
     MAPCLIB_INIT_FILE_ENSURE_INIT_POINTER_ARRAY(fp->dv, struct b_dict *, MAXD);
-    MAPCLIB_INIT_FILE_ENSURE_INIT_POINTER_ARRAY(fp->av, char *         , MAXA);
-    MAPCLIB_INIT_FILE_ENSURE_INIT_POINTER_ARRAY(fp->iv, int *          , MAXI);
+    MAPCLIB_INIT_FILE_ENSURE_INIT_POINTER_ARRAY(fp->av, char *, MAXA);
+    MAPCLIB_INIT_FILE_ENSURE_INIT_POINTER_ARRAY(fp->iv, int *, MAXI);
 #else
     fp->mv = (struct b_mtrl *) calloc(MAXM, sizeof (*fp->mv));
     fp->vv = (struct b_vert *) calloc(MAXV, sizeof (*fp->vv));
@@ -817,8 +822,8 @@ static void init_file(struct s_base *fp)
 #endif
     fp->wv = (struct b_view *) calloc(MAXW, sizeof (*fp->wv));
     fp->dv = (struct b_dict *) calloc(MAXD, sizeof (*fp->dv));
-    fp->av = (char *)          calloc(MAXA, sizeof (*fp->av));
-    fp->iv = (int *)           calloc(MAXI, sizeof (*fp->iv));
+    fp->av = (char *) calloc(MAXA, sizeof (*fp->av));
+    fp->iv = (int *) calloc(MAXI, sizeof (*fp->iv));
 #endif
 }
 
@@ -962,7 +967,7 @@ static void size_image(struct mapc_context *ctx, const char *name, int *w, int *
             {
 #if _MSC_VER
                 fprintf_s(stderr, "%s: error MAPCE: malloc error\n",
-                                  ctx->src_path.buf);
+                    ctx->src_path.buf);
 #else
                 MAPC_LOG_ERROR(ctx, "malloc error\n");
 #endif
@@ -970,7 +975,7 @@ static void size_image(struct mapc_context *ctx, const char *name, int *w, int *
             }
             if (ctx->imagedata)
             {
-                (void) memcpy(tmp, ctx->imagedata, sizeof (struct _imagedata) * ctx->image_alloc);
+                (void)memcpy(tmp, ctx->imagedata, sizeof (struct _imagedata) * ctx->image_alloc);
                 free(ctx->imagedata);
                 ctx->imagedata = NULL;
             }
@@ -978,7 +983,7 @@ static void size_image(struct mapc_context *ctx, const char *name, int *w, int *
             ctx->image_alloc += IMAGE_REALLOC;
         }
 
-        ctx->imagedata[ctx->image_n].s = (char *) calloc(strlen(name) + 1, 1);
+        ctx->imagedata[ctx->image_n].s = (char *)calloc(strlen(name) + 1, 1);
         ctx->imagedata[ctx->image_n].w = *w;
         ctx->imagedata[ctx->image_n].h = *h;
 
@@ -998,7 +1003,7 @@ static void size_image(struct mapc_context *ctx, const char *name, int *w, int *
 
 static int read_mtrl(struct mapc_context *ctx, const char *name)
 {
-    static char buf [MAXSTR];
+    static char buf[MAXSTR];
     struct s_base *fp = &ctx->file;
 
     struct b_mtrl *mp;
@@ -1045,7 +1050,7 @@ static void move_vert(struct b_vert *vp, const float p[3])
 }
 
 static void move_lump(struct mapc_context *ctx,
-                      struct b_lump *lp, const float p[3])
+    struct b_lump *lp, const float p[3])
 {
     struct s_base *fp = &ctx->file;
     int i;
@@ -1057,10 +1062,10 @@ static void move_lump(struct mapc_context *ctx,
 }
 
 static void move_body(struct mapc_context *ctx,
-                      struct b_body *bp)
+    struct b_body *bp)
 {
     struct s_base *fp = &ctx->file;
-    int i, *b;
+    int i, * b;
 
     /* Move the lumps. */
 
@@ -1069,7 +1074,7 @@ static void move_body(struct mapc_context *ctx,
 
     /* Create an array to mark any verts referenced by moved geoms. */
 
-    if (bp->gc > 0 && (b = (int *) calloc(fp->vc, sizeof (int))))
+    if (bp->gc > 0 && (b = (int*)calloc(fp->vc, sizeof (int))))
     {
         /* Mark the verts. */
 
@@ -1094,35 +1099,35 @@ static void move_body(struct mapc_context *ctx,
 }
 
 static void move_item(struct mapc_context *ctx,
-                      struct b_item *hp)
+    struct b_item *hp)
 {
     struct s_base *fp = &ctx->file;
     v_sub(hp->p, hp->p, fp->pv[hp->p0].p);
 }
 
 static void move_goal(struct mapc_context *ctx,
-                      struct b_goal *zp)
+    struct b_goal *zp)
 {
     struct s_base *fp = &ctx->file;
     v_sub(zp->p, zp->p, fp->pv[zp->p0].p);
 }
 
 static void move_jump(struct mapc_context *ctx,
-                      struct b_jump *jp)
+    struct b_jump *jp)
 {
     struct s_base *fp = &ctx->file;
     v_sub(jp->p, jp->p, fp->pv[jp->p0].p);
 }
 
 static void move_swch(struct mapc_context *ctx,
-                      struct b_swch *xp)
+    struct b_swch *xp)
 {
     struct s_base *fp = &ctx->file;
     v_sub(xp->p, xp->p, fp->pv[xp->p0].p);
 }
 
 static void move_bill(struct mapc_context *ctx,
-                      struct b_bill *rp)
+    struct b_bill *rp)
 {
     struct s_base *fp = &ctx->file;
     v_sub(rp->p, rp->p, fp->pv[rp->p0].p);
@@ -1130,7 +1135,7 @@ static void move_bill(struct mapc_context *ctx,
 
 #ifdef MAPC_INCLUDES_CHKP
 static void move_chkp(struct mapc_context *ctx,
-                      struct b_chkp *cp)
+    struct b_chkp *cp)
 {
     struct s_base *fp = &ctx->file;
     v_sub(cp->p, cp->p, fp->pv[cp->p0].p);
@@ -1252,7 +1257,7 @@ static void read_v(struct mapc_context *ctx, const char *line)
 #endif
 }
 
-static int parse_triplet(const char *token, int *vi, int *ti, int *si)
+static int parse_triplet(const char *token, int* vi, int* ti, int* si)
 {
     *vi = 0;
     *ti = 0;
@@ -1274,7 +1279,7 @@ static int parse_triplet(const char *token, int *vi, int *ti, int *si)
 }
 
 static void read_f(struct mapc_context *ctx, const char *line,
-                   int v0, int t0, int s0, int mi)
+    int v0, int t0, int s0, int mi)
 {
     struct s_base *fp = &ctx->file;
     struct b_geom *gp = fp->gv + incg(ctx);
@@ -1300,7 +1305,7 @@ static void read_f(struct mapc_context *ctx, const char *line,
         if (!parse_triplet(tok1, &vi1, &ti1, &si1)) {
 #if _MSC_VER
             fprintf_s(stderr, "%s: error MAPCE: Parse triplet error\n",
-                              ctx->src_path.buf);
+                ctx->src_path.buf);
 #else
             MAPC_LOG_ERROR(ctx, "Parse triplet error\n");
 #endif
@@ -1310,7 +1315,7 @@ static void read_f(struct mapc_context *ctx, const char *line,
         if (!parse_triplet(tok2, &vi2, &ti2, &si2)) {
 #if _MSC_VER
             fprintf_s(stderr, "%s: error MAPCE: Parse triplet error\n",
-                              ctx->src_path.buf);
+                ctx->src_path.buf);
 #else
             MAPC_LOG_ERROR(ctx, "Parse triplet error\n");
 #endif
@@ -1320,7 +1325,7 @@ static void read_f(struct mapc_context *ctx, const char *line,
         if (!parse_triplet(tok3, &vi3, &ti3, &si3)) {
 #if _MSC_VER
             fprintf_s(stderr, "%s: error MAPCE: Parse triplet error\n",
-                              ctx->src_path.buf);
+                ctx->src_path.buf);
 #else
             MAPC_LOG_ERROR(ctx, "Parse triplet error\n");
 #endif
@@ -1341,7 +1346,7 @@ static void read_f(struct mapc_context *ctx, const char *line,
     oq->si = si2 > 0 ? (s0 + si2 - 1) : (s0 < fp->sc ? s0 : 0);
     or->si = si3 > 0 ? (s0 + si3 - 1) : (s0 < fp->sc ? s0 : 0);
 
-    gp->mi  = mi;
+    gp->mi = mi;
 }
 
 static void read_obj(struct mapc_context *ctx, const char *name, int mi)
@@ -1377,7 +1382,7 @@ static void read_obj(struct mapc_context *ctx, const char *name, int mi)
 
             else if (strncmp(line, "vt", 2) == 0) read_vt(ctx, line + 2);
             else if (strncmp(line, "vn", 2) == 0) read_vn(ctx, line + 2);
-            else if (strncmp(line, "v",  1) == 0) read_v (ctx, line + 1);
+            else if (strncmp(line, "v", 1) == 0) read_v(ctx, line + 1);
         }
         fs_close(fin);
     }
@@ -1388,10 +1393,10 @@ static void read_obj(struct mapc_context *ctx, const char *name, int mi)
 #else
         sprintf(stderr_buf,
 #endif
-                "Failure to load OBJ file: %s - %s\n", name, fs_error());
+            "Failure to load OBJ file: %s - %s\n", name, fs_error());
 #if _MSC_VER
         fprintf_s(stderr, "%s: error MAPCE: Failure to load OBJ file: %s - %s\n",
-                          ctx->src_path.buf, name, fs_error());
+            ctx->src_path.buf, name, fs_error());
 #else
         MAPC_LOG_ERROR(ctx, stderr_buf);
 #endif
@@ -1401,10 +1406,10 @@ static void read_obj(struct mapc_context *ctx, const char *name, int mi)
 /*---------------------------------------------------------------------------*/
 
 static void make_plane(struct mapc_context *ctx, int   pi, double x0, double y0, double z0,
-                       double x1, double y1, double z1,
-                       double x2, double y2, double z2,
-                       float tu, float tv, float r,
-                       float su, float sv, int   fl, const char *s)
+    double x1, double y1, double z1,
+    double x2, double y2, double z2,
+    float tu, float tv, float r,
+    float su, float sv, int   fl, const char *s)
 {
     static const float base[6][3][3] = {
         {{  0,  0,  1 }, {  1,  0,  0 }, {  0,  1,  0 }},
@@ -1427,17 +1432,17 @@ static void make_plane(struct mapc_context *ctx, int   pi, double x0, double y0,
 
     ctx->plane_f[pi] = fl ? L_DETAIL : 0;
 
-    p0[0] = +x0 / (double) SCALE;
-    p0[1] = +z0 / (double) SCALE;
-    p0[2] = -y0 / (double) SCALE;
+    p0[0] = +x0 / (double)SCALE;
+    p0[1] = +z0 / (double)SCALE;
+    p0[2] = -y0 / (double)SCALE;
 
-    p1[0] = +x1 / (double) SCALE;
-    p1[1] = +z1 / (double) SCALE;
-    p1[2] = -y1 / (double) SCALE;
+    p1[0] = +x1 / (double)SCALE;
+    p1[1] = +z1 / (double)SCALE;
+    p1[2] = -y1 / (double)SCALE;
 
-    p2[0] = +x2 / (double) SCALE;
-    p2[1] = +z2 / (double) SCALE;
-    p2[2] = -y2 / (double) SCALE;
+    p2[0] = +x2 / (double)SCALE;
+    p2[1] = +z2 / (double)SCALE;
+    p2[2] = -y2 / (double)SCALE;
 
     v_sub(u, p0, p1);
     v_sub(v, p2, p1);
@@ -1510,7 +1515,7 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
                 sprintf(stderr_buf, "Stack overflow!\n\t%s / Line: %d\n", buf, ctx->linenum);
 #if _MSC_VER
                 fprintf_s(stderr, "%s(%d): error MAPCE: Stack overflow!: %s\n",
-                                  ctx->src_path.buf, ctx->linenum, buf);
+                    ctx->src_path.buf, ctx->linenum, buf);
 #else
                 MAPC_LOG_ERROR(ctx, stderr_buf);
 #endif
@@ -1530,7 +1535,7 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
                 sprintf(stderr_buf, "Expected: {\n\t%s / Line: %d\n", buf, ctx->linenum);
 #if _MSC_VER
                 fprintf_s(stderr, "%s(%d): error MAPCE: Expected: {\n",
-                                  ctx->src_path.buf, ctx->linenum);
+                    ctx->src_path.buf, ctx->linenum);
 #else
                 MAPC_LOG_ERROR(ctx, stderr_buf);
 #endif
@@ -1548,12 +1553,12 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
         if (doit == 1 && buf[0] == '\"')
         {
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
-            strcpy_s(key, strlen(key), strtok(buf,  "\""));
-            (void)                     strtok(NULL, "\"");
+            strcpy_s(key, strlen(key), strtok(buf, "\""));
+            (void)strtok(NULL, "\"");
             strcpy_s(val, strlen(val), strtok(NULL, "\""));
 #else
-            strcpy(key, strtok(buf,  "\""));
-            (void)      strtok(NULL, "\"");
+            strcpy(key, strtok(buf, "\""));
+            (void)strtok(NULL, "\"");
             strcpy(val, strtok(NULL, "\""));
 #endif
 
@@ -1565,30 +1570,30 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         if (doit == 1 && sscanf_s(buf,
-                   "( %lf %lf %lf ) "
-                   "( %lf %lf %lf ) "
-                   "( %lf %lf %lf ) "
-                   "%s %f %f %f %f %f %d",
-                   &x0, &y0, &z0,
-                   &x1, &y1, &z1,
-                   &x2, &y2, &z2,
-                   key, &tu, &tv, &r, &su, &sv, &fl) >= 15)
+            "( %lf %lf %lf ) "
+            "( %lf %lf %lf ) "
+            "( %lf %lf %lf ) "
+            "%s %f %f %f %f %f %d",
+            &x0, &y0, &z0,
+            &x1, &y1, &z1,
+            &x2, &y2, &z2,
+            key, &tu, &tv, &r, &su, &sv, &fl) >= 15)
 #else
         if (doit == 1 && sscanf(buf,
-                   "( %lf %lf %lf ) "
-                   "( %lf %lf %lf ) "
-                   "( %lf %lf %lf ) "
-                   "%s %f %f %f %f %f %d",
-                   &x0, &y0, &z0,
-                   &x1, &y1, &z1,
-                   &x2, &y2, &z2,
-                   key, &tu, &tv, &r, &su, &sv, &fl) >= 15)
+            "( %lf %lf %lf ) "
+            "( %lf %lf %lf ) "
+            "( %lf %lf %lf ) "
+            "%s %f %f %f %f %f %d",
+            &x0, &y0, &z0,
+            &x1, &y1, &z1,
+            &x2, &y2, &z2,
+            key, &tu, &tv, &r, &su, &sv, &fl) >= 15)
 #endif
         {
             make_plane(ctx, pi, x0, y0, z0,
-                       x1, y1, z1,
-                       x2, y2, z2,
-                       tu, tv, r, su, sv, fl, key);
+                x1, y1, z1,
+                x2, y2, z2,
+                tu, tv, r, su, sv, fl, key);
             doit = 0;
             return T_CLP;
         }
@@ -1620,10 +1625,10 @@ static void read_lump(struct mapc_context *ctx, fs_file fin)
     {
         if (t == T_CLP)
         {
-            fp->sv[fp->sc].n[0] = (float) ctx->plane_n[fp->sc][0];
-            fp->sv[fp->sc].n[1] = (float) ctx->plane_n[fp->sc][1];
-            fp->sv[fp->sc].n[2] = (float) ctx->plane_n[fp->sc][2];
-            fp->sv[fp->sc].d    = (float) ctx->plane_d[fp->sc];
+            fp->sv[fp->sc].n[0] = (float)ctx->plane_n[fp->sc][0];
+            fp->sv[fp->sc].n[1] = (float)ctx->plane_n[fp->sc][1];
+            fp->sv[fp->sc].n[2] = (float)ctx->plane_n[fp->sc][2];
+            fp->sv[fp->sc].d = (float)ctx->plane_d[fp->sc];
 
             ctx->plane_m[fp->sc] = read_mtrl(ctx, k);
 
@@ -1648,25 +1653,25 @@ static void read_lump(struct mapc_context *ctx, fs_file fin)
  * new electricity before the level is compiled.
  */
 
-/*
- * Disable legacy mode to use the old specifications (make LEGACY_MODE=0).
- * We will migrated to legacy mode automatically on June 20, 2020.
- *
- * To enable it back, use make LEGACY_MODE=1
- */
-#define LEGACY_MODE 1
+ /*
+  * Disable legacy mode to use the old specifications (make SPECIFICATION_LEGACY_MODE=0).
+  * We will migrated to legacy mode automatically on June 20, 2020.
+  *
+  * To enable it back, use make SPECIFICATION_LEGACY_MODE=1
+  */
+#define SPECIFICATION_LEGACY_MODE 1
 
-#if LEGACY_MODE
-/* This variables uses legacy mode */
-#define LEGACY_Z_OFFSET 1
+#if SPECIFICATION_LEGACY_MODE
+  /* This variables uses legacy mode */
+#define SPECIFICATION_LEGACY_Z_OFFSET 1
 
 //const char  *switch_material = "mtrl/info-camp-switch-specifications";
 static char  specification_type[MAXSTR];
 
 static float specification_radius = 0.0f;
 
-static int request_legacy(char k[][MAXSTR],
-                          char v[][MAXSTR], int c)
+static int newspecification_request_legacy(char k[][MAXSTR],
+    char v[][MAXSTR], int c)
 {
     specification_radius = 0.25f;
 
@@ -1693,8 +1698,8 @@ static int request_legacy(char k[][MAXSTR],
             if (strcmp(specification_type, "ball") == 0)
             {
                 if ((strcmp(v[leg], "vehicle") == 0
-                  || strcmp(v[leg], "electricity") == 0
-                  || strcmp(v[leg], "platform") == 0))
+                    || strcmp(v[leg], "electricity") == 0
+                    || strcmp(v[leg], "platform") == 0))
                     return 0;
             }
         }
@@ -1705,6 +1710,34 @@ static int request_legacy(char k[][MAXSTR],
 #endif
 
 #pragma region Generic entities
+
+static void parse_angles(const char* val, float out_e[4])
+{
+    static const float X[3] = { 1.0f, 0.0f, 0.0f };
+    static const float Y[3] = { 0.0f, 1.0f, 0.0f };
+    static const float Z[3] = { 0.0f, 0.0f, 1.0f };
+
+    float x = 0.0f, y = 0.0f, z = 0.0f;
+    float d[4], e[4];
+
+    /* Pitch, yaw and roll. */
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sscanf_s(val, "%f %f %f", &x, &y, &z);
+#else
+    sscanf(val, "%f %f %f", &x, &y, &z);
+#endif
+
+    q_by_axisangle(out_e, Y, V_RAD(+y));
+
+    q_by_axisangle(d, Z, V_RAD(-x));
+    q_mul(e, out_e, d);
+    q_nrm(out_e, e);
+
+    q_by_axisangle(d, X, V_RAD(+z));
+    q_mul(e, out_e, d);
+    q_nrm(out_e, e);
+}
 
 static void make_path(struct mapc_context *ctx,
                       char k[][MAXSTR],
@@ -1721,10 +1754,10 @@ static void make_path(struct mapc_context *ctx,
     pp->p[0] = 0.f;
     pp->p[1] = 0.f;
     pp->p[2] = 0.f;
-    pp->t    = 1.f;
-    pp->pi   = pi;
-    pp->f    = 1;
-    pp->s    = 1;
+    pp->t = 1.f;
+    pp->pi = pi;
+    pp->f = 1;
+    pp->s = 1;
 
     pp->p0 = pp->p1 = -1;
 
@@ -1801,35 +1834,7 @@ static void make_path(struct mapc_context *ctx,
 
         if (strcmp(k[i], "angles") == 0)
         {
-<<<<<<< HEAD
-            static const float X[3] = { 1.0f, 0.0f, 0.0f };
-            static const float Y[3] = { 0.0f, 1.0f, 0.0f };
-            static const float Z[3] = { 0.0f, 0.0f, 1.0f };
-
-            float x = 0.0f, y = 0.0f, z = 0.0f;
-            float d[4], e[4];
-
-            /* Pitch, yaw and roll. */
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sscanf_s(v[i], "%f %f %f", &x, &y, &z);
-#else
-            sscanf(v[i], "%f %f %f", &x, &y, &z);
-#endif
-
-            q_by_axisangle(pp->e, Y, V_RAD(+y));
-
-            q_by_axisangle(d, Z, V_RAD(-x));
-            q_mul(e, pp->e, d);
-            q_nrm(pp->e, e);
-
-            q_by_axisangle(d, X, V_RAD(+z));
-            q_mul(e, pp->e, d);
-            q_nrm(pp->e, e);
-
-=======
             parse_angles(v[i], pp->e);
->>>>>>> 8dd014767106e182a3ace35a1feb5c33b49a4d8e
             pp->fl |= P_ORIENTED;
         }
     }
@@ -1844,7 +1849,7 @@ static void make_dict(struct mapc_context *ctx,
 
     struct b_dict *dp = fp->dv + di;
 
-    space_left   = MAXA - fp->ac;
+    space_left = MAXA - fp->ac;
     space_needed = strlen(k) + 1 + strlen(v) + 1;
 
     if (space_needed > space_left)
@@ -2118,7 +2123,7 @@ static void make_goal(struct mapc_context *ctx,
     zp->p[0] = 0.f;
     zp->p[1] = 0.f;
     zp->p[2] = 0.f;
-    zp->r    = 0.75;
+    zp->r = 0.75;
 
     zp->p0 = zp->p1 = -1;
     ctx->goal_is_legacy[zi] = is_legacy;
@@ -2145,9 +2150,9 @@ static void make_goal(struct mapc_context *ctx,
             sscanf(v[i], "%f %f %f", &x, &y, &z);
 #endif
 
-            zp->p[0] = +(x)                     / SCALE;
+            zp->p[0] = +(x) / SCALE;
             zp->p[1] = +(is_legacy ? z - 24 : z) / SCALE;
-            zp->p[2] = -(y)                     / SCALE;
+            zp->p[2] = -(y) / SCALE;
         }
 
         if (strcmp(k[i], "target") == 0 || strcmp(k[i], "target1") == 0)
@@ -2228,7 +2233,7 @@ static void make_jump(struct mapc_context *ctx,
     jp->q[0] = 0.f;
     jp->q[1] = 0.f;
     jp->q[2] = 0.f;
-    jp->r    = 0.5;
+    jp->r = 0.5;
 
     jp->p0 = jp->p1 = -1;
     ctx->jump_is_legacy[ji] = is_legacy;
@@ -2269,7 +2274,7 @@ static void make_jump(struct mapc_context *ctx,
         if (strcmp(k[i], "target3") == 0)
             make_ref(ctx, SYM_PATH, v[i], &jp->p1);
 
-        if (strcmp(k[i], "angles") == 0)
+        else if (strcmp(k[i], "angles") == 0)
         {
             parse_angles(v[i], ctx->jump_e[ji]);
             ctx->jump_has_e[ji] = 1;
@@ -2297,11 +2302,11 @@ static void make_swch(struct mapc_context *ctx,
     xp->p[0] = 0.f;
     xp->p[1] = 0.f;
     xp->p[2] = 0.f;
-    xp->r    = 0.5;
-    xp->pi   = 0;
-    xp->t    = 0;
-    xp->f    = 0;
-    xp->i    = 0;
+    xp->r = 0.5;
+    xp->pi = 0;
+    xp->t = 0;
+    xp->f = 0;
+    xp->i = 0;
 
     xp->p0 = xp->p1 = -1;
     ctx->swch_is_legacy[xi] = is_legacy;
@@ -2364,7 +2369,7 @@ static void make_swch(struct mapc_context *ctx,
 
     if (!is_legacy && !ctx->swch_has_e[xi])
     {
-        xp->p[1] -= SWCH_HALF_EXTENT / SCALE;
+        xp->p[1] -= JUMP_HALF_EXTENT / SCALE;
     }
 }
 
@@ -2421,10 +2426,10 @@ static void make_ball(struct mapc_context *ctx,
     up->p[0] = 0.0f;
     up->p[1] = 0.0f;
     up->p[2] = 0.0f;
-    up->r    = 0.25f;
+    up->r = 0.25f;
 
 #if defined(START_POS_ANGULAR_BETA)
-    up->a    = 0.0f;
+    up->a = 0.0f;
 #endif
 
     for (i = 0; i < c; i++)
@@ -2457,11 +2462,10 @@ static void make_ball(struct mapc_context *ctx,
             sscanf(v[i], "%f %f %f", &x, &y, &z);
 #endif
 
-<<<<<<< HEAD
-#if LEGACY_MODE
-            up->p[0] = +(x)      / SCALE;
-            up->p[1] = +(z - (24 - LEGACY_Z_OFFSET)) / SCALE;
-            up->p[2] = -(y)      / SCALE;
+#if SPECIFICATION_LEGACY_MODE
+            up->p[0] = +(x) / SCALE;
+            up->p[1] = +(is_legacy ? z - (24 - SPECIFICATION_LEGACY_Z_OFFSET) : z - SPECIFICATION_LEGACY_Z_OFFSET) / SCALE;
+            up->p[2] = -(y) / SCALE;
             int leg;
             for (leg = 0; leg < c; leg++)
             {
@@ -2476,15 +2480,10 @@ static void make_ball(struct mapc_context *ctx,
                 }
             }
 #else
-            up->p[0] = +(x)      / SCALE;
-            up->p[1] = +(z - 24) / SCALE;
-            up->p[2] = -(y)      / SCALE;
-#endif
-=======
-            up->p[0] = +(x)                     / SCALE;
+            up->p[0] = +(x) / SCALE;
             up->p[1] = +(is_legacy ? z - 24 : z) / SCALE;
-            up->p[2] = -(y)                     / SCALE;
->>>>>>> 8dd014767106e182a3ace35a1feb5c33b49a4d8e
+            up->p[2] = -(y) / SCALE;
+#endif
         }
     }
 
@@ -2496,7 +2495,7 @@ static void make_ball(struct mapc_context *ctx,
 // New: Checkpoints
 static void make_chkp(struct mapc_context *ctx,
                       char k[][MAXSTR],
-                      char v[][MAXSTR], int c)
+                      char v[][MAXSTR], int c, int is_legacy)
 {
 #ifndef NDEBUG
     //MAPC_LOG_MESSAGE(ctx, "Creating chkp...\n");
@@ -2509,9 +2508,10 @@ static void make_chkp(struct mapc_context *ctx,
     cp->p[0] = 0.f;
     cp->p[1] = 0.f;
     cp->p[2] = 0.f;
-    cp->r    = 0.5;
+    cp->r = 0.5;
 
     cp->p0 = cp->p1 = -1;
+    ctx->chkp_is_legacy[ci] = is_legacy;
 
     for (i = 0; i < c; i++)
     {
@@ -2545,16 +2545,27 @@ static void make_chkp(struct mapc_context *ctx,
 
         else if (strcmp(k[i], "target3") == 0)
             make_ref(ctx, SYM_PATH, v[i], &cp->p1);
+
+        else if (strcmp(k[i], "angles") == 0)
+        {
+            parse_angles(v[i], ctx->chkp_e[ci]);
+            ctx->chkp_has_e[ci] = 1;
+        }
+    }
+
+    if (!is_legacy && !ctx->chkp_has_e[ci])
+    {
+        cp->p[1] -= CHKP_HALF_EXTENT / SCALE;
     }
 }
 #endif
 #pragma endregion
 
-#ifdef LEGACY_MODE
+#ifdef SPECIFICATION_LEGACY_MODE
 static void make_legacy(struct mapc_context *ctx,
-                        char k[][MAXSTR],
-                        char v[][MAXSTR], int c, int l0,
-                        const char *modelname, const char *materialname)
+    char k[][MAXSTR],
+    char v[][MAXSTR], int c, int l0,
+    const char *modelname, const char *materialname, int is_legacy)
 {
     struct s_base *fp = &ctx->file;
     int leg;
@@ -2639,8 +2650,8 @@ static void make_legacy(struct mapc_context *ctx,
     p[2] = -y / SCALE;
 
     if (strcmp(specification_type, "ball") == 0
-     || strcmp(specification_type, "goal") == 0)
-        p[1] = +(z - 24) / SCALE;
+        || strcmp(specification_type, "goal") == 0)
+        p[1] = +(is_legacy ? z - 24 : z) / SCALE;
 
     for (i = v0; i < fp->vc; i++)
         v_add(fp->vv[i].p, fp->vv[i].p, p);
@@ -2677,24 +2688,45 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
     }
 
     /* New design specifications for entity */
-    if (!strcmp(v[i], "info_camp"))              {
+    if (!strcmp(v[i], "info_camp")) {
         if (ctx->campaign_output) ctx->campaign_cost += 5;
-        make_swch(ctx, k, v, c);
+        make_swch(ctx, k, v, c, 1);
+    }
+    if (!strcmp(v[i], "game_switch") ||
+        !strcmp(v[i], "info_switch")) {
+        if (ctx->campaign_output) ctx->campaign_cost += 5;
+        make_swch(ctx, k, v, c, 0);
     }
     if (!strcmp(v[i], "info_player_start")) {
         if (ctx->campaign_output) ctx->campaign_cost += 408;
 
-#if LEGACY_MODE
+#if SPECIFICATION_LEGACY_MODE
         memset(&specification_type, 0, sizeof (specification_type));
         SAFECPY(specification_type, "ball");
 
-        if (request_legacy(k, v, c))
+        if (newspecification_request_legacy(k, v, c))
         {
             ctx->read_dict_entries = 1;
-            make_legacy(ctx, k, v, c, l0, "obj/player-start-specification.obj", "mtrl/player-start-specification");
+            make_legacy(ctx, k, v, c, l0, "obj/player-start-specification.obj", "mtrl/player-start-specification", 1);
         }
 #endif
-        make_ball(ctx, k, v, c);
+        make_ball(ctx, k, v, c, 1);
+    }
+    if (!strcmp(v[i], "game_ball") ||
+        !strcmp(v[i], "info_ball")) {
+        if (ctx->campaign_output) ctx->campaign_cost += 408;
+
+#if SPECIFICATION_LEGACY_MODE
+        memset(&specification_type, 0, sizeof (specification_type));
+        SAFECPY(specification_type, "ball");
+
+        if (newspecification_request_legacy(k, v, c))
+        {
+            ctx->read_dict_entries = 1;
+            make_legacy(ctx, k, v, c, l0, "obj/player-start-specification.obj", "mtrl/player-start-specification", 0);
+        }
+#endif
+        make_ball(ctx, k, v, c, 0);
     }
 #ifdef MAPC_INCLUDES_CHKP
     if (!strcmp(v[i], "info_player_checkpoint")) {
@@ -2702,7 +2734,15 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
         if (ctx->campaign_output)
 #endif
             ctx->campaign_cost += 66;
-        make_chkp(ctx, k, v, c);
+        make_chkp(ctx, k, v, c, 1);
+    }
+    if (!strcmp(v[i], "game_checkpoint") ||
+        !strcmp(v[i], "info_checkpoint")) {
+#ifndef ENABLE_COMPLEX_SOL_ONLY
+        if (ctx->campaign_output)
+#endif
+            ctx->campaign_cost += 66;
+        make_chkp(ctx, k, v, c, 0);
     }
 #endif
     if (!strcmp(v[i], "info_player_deathmatch")) {
@@ -2710,15 +2750,32 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
         if (ctx->campaign_output)
 #endif
             ctx->campaign_cost += 413;
-        make_goal(ctx, k, v, c);
+        make_goal(ctx, k, v, c, 1);
     }
-    if (!strcmp(v[i], "target_teleporter"))      {
+    if (!strcmp(v[i], "game_goal") ||
+        !strcmp(v[i], "info_goal")) {
+#ifndef ENABLE_COMPLEX_SOL_ONLY
+        if (ctx->campaign_output)
+#endif
+            ctx->campaign_cost += 413;
+        make_goal(ctx, k, v, c, 0);
+    }
+    if (!strcmp(v[i], "target_teleporter")) {
 
 #ifndef ENABLE_COMPLEX_SOL_ONLY
         if (ctx->campaign_output)
 #endif
             ctx->campaign_cost += 5;
-        make_jump(ctx, k, v, c);
+        make_jump(ctx, k, v, c, 1);
+    }
+    if (!strcmp(v[i], "game_jump") ||
+        !strcmp(v[i], "info_jump")) {
+
+#ifndef ENABLE_COMPLEX_SOL_ONLY
+        if (ctx->campaign_output)
+#endif
+            ctx->campaign_cost += 5;
+        make_jump(ctx, k, v, c, 0);
     }
 
     /* Electricity */
@@ -2761,29 +2818,8 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
 
     /* Others */
     if (!strcmp(v[i], "light"))                    make_item(ctx, k, v, c);
-<<<<<<< HEAD
     if (!strcmp(v[i], "info_null"))                make_bill(ctx, k, v, c);
     if (!strcmp(v[i], "info_player_intermission")) make_view(ctx, k, v, c);
-=======
-    if (!strcmp(v[i], "item_health_large"))        make_item(ctx, k, v, c);
-    if (!strcmp(v[i], "item_health_small"))        make_item(ctx, k, v, c);
-    if (!strcmp(v[i], "item_clock"))               make_item(ctx, k, v, c);
-    if (!strcmp(v[i], "info_camp"))                make_swch(ctx, k, v, c, 1);
-    if (!strcmp(v[i], "game_switch") ||
-        !strcmp(v[i], "info_switch"))              make_swch(ctx, k, v, c, 0);
-    if (!strcmp(v[i], "info_null"))                make_bill(ctx, k, v, c);
-    if (!strcmp(v[i], "path_corner"))              make_path(ctx, k, v, c);
-    if (!strcmp(v[i], "info_player_start"))        make_ball(ctx, k, v, c, 1);
-    if (!strcmp(v[i], "game_ball") ||
-        !strcmp(v[i], "info_ball"))                make_ball(ctx, k, v, c, 0);
-    if (!strcmp(v[i], "info_player_intermission")) make_view(ctx, k, v, c);
-    if (!strcmp(v[i], "info_player_deathmatch"))   make_goal(ctx, k, v, c, 1);
-    if (!strcmp(v[i], "game_goal") ||
-        !strcmp(v[i], "info_goal"))                make_goal(ctx, k, v, c, 0);
-    if (!strcmp(v[i], "target_teleporter"))        make_jump(ctx, k, v, c, 1);
-    if (!strcmp(v[i], "game_jump") ||
-        !strcmp(v[i], "info_jump"))                make_jump(ctx, k, v, c, 0);
->>>>>>> 8dd014767106e182a3ace35a1feb5c33b49a4d8e
     if (!strcmp(v[i], "target_position"))          make_targ(ctx, k, v, c);
     if (!strcmp(v[i], "worldspawn"))
     {
@@ -2843,13 +2879,13 @@ static int vert_side_test(struct mapc_context *ctx, int vi, int si)
 }
 
 static int vert_lump_find(const struct s_base *fp,
-                          const struct b_lump *lp, const float p[3])
+    const struct b_lump *lp, const float p[3])
 {
     int i;
     for (i = 0; i < lp->vc; i++)
     {
         int vi = fp->iv[lp->v0 + i];
-        float *q = fp->vv[vi].p;
+        float* q = fp->vv[vi].p;
 
         /* Component-wise testing provides an axis-aligned neighborhood for merging. */
         if (fabsf(p[0] - q[0]) < SMALL_VERT &&
@@ -2872,13 +2908,13 @@ static int vert_lump_find(const struct s_base *fp,
  * error.
  */
 
-/*
- * Given 3  side planes,  compute the point  of intersection,  if any.
- * Confirm that this point falls  within the current lump, and that it
- * is unique.  Add it as a vert of the solid.
- */
+ /*
+  * Given 3  side planes,  compute the point  of intersection,  if any.
+  * Confirm that this point falls  within the current lump, and that it
+  * is unique.  Add it as a vert of the solid.
+  */
 static void clip_vert(struct mapc_context *ctx,
-                      struct b_lump *lp, int si, int sj, int sk)
+    struct b_lump *lp, int si, int sj, int sk)
 {
     struct s_base *fp = &ctx->file;
 
@@ -2906,9 +2942,9 @@ static void clip_vert(struct mapc_context *ctx,
     {
         m_vxfm3d(p, I, d);
 
-        p3f[0] = (float) p[0];
-        p3f[1] = (float) p[1];
-        p3f[2] = (float) p[2];
+        p3f[0] = (float)p[0];
+        p3f[1] = (float)p[1];
+        p3f[2] = (float)p[2];
 
         /*
          * Verify that the generated vertex lies inside the convex lump by
@@ -2956,7 +2992,7 @@ static void clip_vert(struct mapc_context *ctx,
 }
 
 static void clip_edge(struct mapc_context *ctx,
-                      struct b_lump *lp, int si, int sj)
+    struct b_lump *lp, int si, int sj)
 {
     struct s_base *fp = &ctx->file;
     int i, j;
@@ -2995,7 +3031,7 @@ static void clip_edge(struct mapc_context *ctx,
  * Create geoms to tessellate the resulting convex polygon.
  */
 static void clip_geom(struct mapc_context *ctx,
-                      struct b_lump *lp, int si)
+    struct b_lump *lp, int si)
 {
     struct s_base *fp = &ctx->file;
     int   m[256], t[256], d, i, j, n = 0;
@@ -3051,13 +3087,13 @@ static void clip_geom(struct mapc_context *ctx,
 
             if (v_dot(w, ctx->plane_n[si]) < 0.0)
             {
-                d     = m[i];
-                m[i]  = m[j];
-                m[j]  =    d;
+                d = m[i];
+                m[i] = m[j];
+                m[j] = d;
 
-                d     = t[i];
-                t[i]  = t[j];
-                t[j]  =    d;
+                d = t[i];
+                t[i] = t[j];
+                t[j] = d;
             }
         }
 
@@ -3110,9 +3146,9 @@ static void clip_lump(struct mapc_context *ctx, struct b_lump *lp)
         for (j = 1; j < i; j++)
             for (k = 0; k < j; k++)
                 clip_vert(ctx, lp,
-                          fp->iv[lp->s0 + i],
-                          fp->iv[lp->s0 + j],
-                          fp->iv[lp->s0 + k]);
+                    fp->iv[lp->s0 + i],
+                    fp->iv[lp->s0 + j],
+                    fp->iv[lp->s0 + k]);
 
     lp->e0 = fp->ic;
     lp->ec = 0;
@@ -3120,8 +3156,8 @@ static void clip_lump(struct mapc_context *ctx, struct b_lump *lp)
     for (i = 1; i < lp->sc; i++)
         for (j = 0; j < i; j++)
             clip_edge(ctx, lp,
-                      fp->iv[lp->s0 + i],
-                      fp->iv[lp->s0 + j]);
+                fp->iv[lp->s0 + i],
+                fp->iv[lp->s0 + j]);
 
     lp->g0 = fp->ic;
     lp->gc = 0;
@@ -3260,7 +3296,7 @@ static void swap_vert(struct s_base *fp, int vi, int vj)
     for (i = 0; i < fp->lc; i++)
         for (j = 0; j < fp->lv[i].vc; j++)
             if (fp->iv[fp->lv[i].v0 + j] == vi)
-                fp->iv[fp->lv[i].v0 + j]  = vj;
+                fp->iv[fp->lv[i].v0 + j] = vj;
 }
 
 static void apply_mtrl_swaps(struct mapc_context *ctx, struct s_base *fp)
@@ -3512,10 +3548,10 @@ struct b_trip
     int gi;
 };
 
-static int comp_trip(const void *p, const void *q)
+static int comp_trip(const void* p, const void* q)
 {
-    const struct b_trip *tp = (const struct b_trip *) p;
-    const struct b_trip *tq = (const struct b_trip *) q;
+    const struct b_trip* tp = (const struct b_trip*)p;
+    const struct b_trip* tq = (const struct b_trip*)q;
 
     if (tp->ci < tq->ci) return -1;
     if (tp->ci > tq->ci) return +1;
@@ -3530,11 +3566,11 @@ static void smth_file(struct mapc_context *ctx)
     if (ctx->opt_debug == 0)
     {
         struct s_base *fp = &ctx->file;
-        struct b_trip temp, *T;
+        struct b_trip temp, * T;
 
         /* Built vertex equivalence map by position. */
 
-        int *canonical_verts = (int *) malloc(fp->vc * sizeof (int));
+        int* canonical_verts = (int*)malloc(fp->vc * sizeof (int));
         int idx;
 
         if (canonical_verts)
@@ -3558,7 +3594,7 @@ static void smth_file(struct mapc_context *ctx)
             return;
         }
 
-        if ((T = (struct b_trip *) malloc(fp->gc * 3 * sizeof (struct b_trip))))
+        if ((T = (struct b_trip*)malloc(fp->gc * 3 * sizeof (struct b_trip))))
         {
             int gi, i, j, k, l, c = 0;
 
@@ -3601,20 +3637,20 @@ static void smth_file(struct mapc_context *ctx)
                 int acc = 0;
 
                 float N[3], angle = fp->mv[T[i].mi].angle;
-                const float   *Ni = (T[i].si >= 0) ? fp->sv[T[i].si].n : NULL;
+                const float* Ni = (T[i].si >= 0) ? fp->sv[T[i].si].n : NULL;
 
                 /* Sort the set by side similarity to the first. */
 
                 if (Ni)
                 {
                     for (j = i + 1; j < c && (T[j].ci == T[i].ci &&
-                                              T[j].mi == T[i].mi); ++j)
+                        T[j].mi == T[i].mi); ++j)
                     {
                         for (k = j + 1; k < c && (T[k].ci == T[i].ci &&
-                                                  T[k].mi == T[i].mi); ++k)
+                            T[k].mi == T[i].mi); ++k)
                         {
-                            const float *Nj = fp->sv[T[j].si].n;
-                            const float *Nk = fp->sv[T[k].si].n;
+                            const float* Nj = fp->sv[T[j].si].n;
+                            const float* Nk = fp->sv[T[k].si].n;
 
                             if (v_dot(Nk, Ni) > v_dot(Nj, Ni))
                             {
@@ -3633,11 +3669,11 @@ static void smth_file(struct mapc_context *ctx)
                 }
 
                 for (l = i + 1; l < c && (T[l].ci == T[i].ci &&
-                                          T[l].mi == T[i].mi); ++l)
+                    T[l].mi == T[i].mi); ++l)
                 {
                     if (Ni && v_dot(fp->sv[T[l].si].n, Ni) < 1.0f)
                     {
-                        const float *Nl = fp->sv[T[l].si].n;
+                        const float* Nl = fp->sv[T[l].si].n;
                         float deg = V_DEG(facosf(v_dot(Ni, Nl)));
 
                         if (ROUND(deg * 1000.0f) > ROUND(angle * 1000.0f))
@@ -3710,28 +3746,28 @@ static void sort_file(struct mapc_context *ctx)
             {
                 struct b_mtrl t;
 
-                t         = fp->mv[j];
+                t = fp->mv[j];
                 fp->mv[j] = fp->mv[k];
-                fp->mv[k] =         t;
+                fp->mv[k] = t;
 
-                swap_mtrl(fp,  j, -1);
-                swap_mtrl(fp,  k,  j);
-                swap_mtrl(fp, -1,  k);
+                swap_mtrl(fp, j, -1);
+                swap_mtrl(fp, k, j);
+                swap_mtrl(fp, -1, k);
             }
 
     /* Sort billboards by material within distance. */
 
     for (i = 0; i < fp->rc; i++)
         for (j = i + 1; j < fp->rc; j++)
-            if ((fp->rv[j].d  > fp->rv[i].d) ||
+            if ((fp->rv[j].d > fp->rv[i].d) ||
                 (fp->rv[j].d == fp->rv[i].d &&
-                 fp->rv[j].mi > fp->rv[i].mi))
+                    fp->rv[j].mi > fp->rv[i].mi))
             {
                 struct b_bill t;
 
-                t         = fp->rv[i];
+                t = fp->rv[i];
                 fp->rv[i] = fp->rv[j];
-                fp->rv[j] =         t;
+                fp->rv[j] = t;
             }
 
     /* Sort items by type and value. */
@@ -3740,13 +3776,13 @@ static void sort_file(struct mapc_context *ctx)
         for (j = i + 1; j < fp->hc; j++)
             if ((fp->hv[j].t > fp->hv[i].t) ||
                 (fp->hv[j].t == fp->hv[i].t &&
-                 fp->hv[j].n > fp->hv[i].n))
+                    fp->hv[j].n > fp->hv[i].n))
             {
                 struct b_item t;
 
-                t         = fp->hv[i];
+                t = fp->hv[i];
                 fp->hv[i] = fp->hv[j];
-                fp->hv[j] =         t;
+                fp->hv[j] = t;
             }
 
     /* Sort body lumps by flags. */
@@ -3776,22 +3812,22 @@ static void sort_file(struct mapc_context *ctx)
         {
             struct b_vert t;
 
-            t         = fp->vv[0];
+            t = fp->vv[0];
             fp->vv[0] = fp->vv[i];
-            fp->vv[i] =         t;
+            fp->vv[i] = t;
 
-            swap_vert(fp,  0, -1);
-            swap_vert(fp,  i,  0);
-            swap_vert(fp, -1,  i);
+            swap_vert(fp, 0, -1);
+            swap_vert(fp, i, 0);
+            swap_vert(fp, -1, i);
         }
 }
 
 /*---------------------------------------------------------------------------*/
 
 static int test_lump_side(const struct s_base *fp,
-                          const struct b_lump *lp,
-                          const struct b_side *sp,
-                          float bsphere[4])
+    const struct b_lump *lp,
+    const struct b_side *sp,
+    float bsphere[4])
 {
     int si;
     int vi;
@@ -3855,7 +3891,7 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
     }
     else
     {
-        int sj  = 0;
+        int sj = 0;
         int sjd = lc;
         int sjo = lc;
         int si;
@@ -3881,9 +3917,9 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
 
             for (li = 0; li < lc; li++)
                 if ((k = test_lump_side(fp,
-                                        fp->lv + l0 + li,
-                                        fp->sv + si,
-                                        bsphere[l0 + li])))
+                    fp->lv + l0 + li,
+                    fp->sv + si,
+                    bsphere[l0 + li])))
                     d += k;
                 else
                     o++;
@@ -3892,7 +3928,7 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
 
             if ((d < sjd) || (d == sjd && o < sjo))
             {
-                sj  = si;
+                sj = si;
                 sjd = d;
                 sjo = o;
             }
@@ -3910,25 +3946,25 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
             }
 
             if (ctx->opt_debug)
-                fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x20;
+                fp->lv[l0 + li].fl = (fp->lv[l0 + li].fl & 1) | 0x20;
             else
             {
                 switch (test_lump_side(fp,
-                                       fp->lv + l0 + li,
-                                       fp->sv + sj,
-                                       bsphere[l0 + li]))
+                    fp->lv + l0 + li,
+                    fp->sv + sj,
+                    bsphere[l0 + li]))
                 {
-                    case +1:
-                        fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x10;
-                        break;
+                case +1:
+                    fp->lv[l0 + li].fl = (fp->lv[l0 + li].fl & 1) | 0x10;
+                    break;
 
-                    case  0:
-                        fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x20;
-                        break;
+                case  0:
+                    fp->lv[l0 + li].fl = (fp->lv[l0 + li].fl & 1) | 0x20;
+                    break;
 
-                    case -1:
-                        fp->lv[l0+li].fl = (fp->lv[l0+li].fl & 1) | 0x40;
-                        break;
+                case -1:
+                    fp->lv[l0 + li].fl = (fp->lv[l0 + li].fl & 1) | 0x40;
+                    break;
                 }
             }
         }
@@ -3953,14 +3989,14 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
 
                     for (i = 0; i < 4; i++)
                     {
-                        f                   = bsphere[l0 + li][i];
+                        f = bsphere[l0 + li][i];
                         bsphere[l0 + li][i] = bsphere[l0 + lj][i];
-                        bsphere[l0 + lj][i] =                   f;
+                        bsphere[l0 + lj][i] = f;
                     }
 
-                    l               = fp->lv[l0 + li];
+                    l = fp->lv[l0 + li];
                     fp->lv[l0 + li] = fp->lv[l0 + lj];
-                    fp->lv[l0 + lj] =               l;
+                    fp->lv[l0 + lj] = l;
                 }
         }
 
@@ -3973,9 +4009,9 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
         for (i = lc - 1; i >= 0; i--)
             switch (fp->lv[l0 + i].fl & 0xf0)
             {
-                case 0x10: li = l0 + i; lic++; break;
-                case 0x20: lj = l0 + i; ljc++; break;
-                case 0x40: lk = l0 + i; lkc++; break;
+            case 0x10: li = l0 + i; lic++; break;
+            case 0x20: lj = l0 + i; ljc++; break;
+            case 0x40: lk = l0 + i; lkc++; break;
             }
 
         /* Add the lumps on the side to the node. */
@@ -3997,8 +4033,8 @@ static int node_node(struct mapc_context *ctx, int l0, int lc, float bsphere[][4
  * Compute a bounding sphere for a lump (not optimal)
  */
 static void lump_bounding_sphere(struct s_base *fp,
-                                 struct b_lump *lp,
-                                 float bsphere[4])
+    struct b_lump *lp,
+    float bsphere[4])
 {
     float bbox[6];
     float r;
@@ -4073,37 +4109,37 @@ struct dump_stats
     size_t off;
     char name[5];
     char desc[32];
-    int *ptr;
+    int* ptr;
 };
 
 /*
  * This initializer looked a lot better in the C99 version.
  */
 static struct dump_stats stats[] = {
-    { offsetof (struct s_base, mc), "mtrl", "materials" },
-    { offsetof (struct s_base, vc), "vert", "vertices" },
-    { offsetof (struct s_base, ec), "edge", "edges" },
-    { offsetof (struct s_base, sc), "side", "sides" },
-    { offsetof (struct s_base, tc), "texc", "texcoords" },
-    { offsetof (struct s_base, oc), "offs", "offsets" },
-    { offsetof (struct s_base, gc), "geom", "geoms" },
-    { offsetof (struct s_base, lc), "lump", "lumps" },
-    { offsetof (struct s_base, pc), "path", "paths" },
-    { offsetof (struct s_base, nc), "node", "nodes" },
-    { offsetof (struct s_base, bc), "body", "bodies" },
-    { offsetof (struct s_base, hc), "item", "items" },
-    { offsetof (struct s_base, zc), "goal", "goals" },
-    { offsetof (struct s_base, wc), "view", "viewpoints" },
-    { offsetof (struct s_base, jc), "jump", "teleports" },
-    { offsetof (struct s_base, xc), "swch", "switches" },
-    { offsetof (struct s_base, rc), "bill", "billboards" },
-    { offsetof (struct s_base, uc), "ball", "balls" },
+    { offsetof(struct s_base, mc), "mtrl", "materials" },
+    { offsetof(struct s_base, vc), "vert", "vertices" },
+    { offsetof(struct s_base, ec), "edge", "edges" },
+    { offsetof(struct s_base, sc), "side", "sides" },
+    { offsetof(struct s_base, tc), "texc", "texcoords" },
+    { offsetof(struct s_base, oc), "offs", "offsets" },
+    { offsetof(struct s_base, gc), "geom", "geoms" },
+    { offsetof(struct s_base, lc), "lump", "lumps" },
+    { offsetof(struct s_base, pc), "path", "paths" },
+    { offsetof(struct s_base, nc), "node", "nodes" },
+    { offsetof(struct s_base, bc), "body", "bodies" },
+    { offsetof(struct s_base, hc), "item", "items" },
+    { offsetof(struct s_base, zc), "goal", "goals" },
+    { offsetof(struct s_base, wc), "view", "viewpoints" },
+    { offsetof(struct s_base, jc), "jump", "teleports" },
+    { offsetof(struct s_base, xc), "swch", "switches" },
+    { offsetof(struct s_base, rc), "bill", "billboards" },
+    { offsetof(struct s_base, uc), "ball", "balls" },
 #if defined(MAPC_INCLUDES_CHKP)
-    { offsetof (struct s_base, cc), "chkp", "checkpoints" }, /* New: Checkpoints */
+    { offsetof(struct s_base, cc), "chkp", "checkpoints" }, /* New: Checkpoints */
 #endif
-    { offsetof (struct s_base, ac), "char", "chars" },
-    { offsetof (struct s_base, dc), "dict", "dicts" },
-    { offsetof (struct s_base, ic), "indx", "indices" }
+    { offsetof(struct s_base, ac), "char", "chars" },
+    { offsetof(struct s_base, dc), "dict", "dicts" },
+    { offsetof(struct s_base, ic), "indx", "indices" }
 };
 
 static void dump_init(struct s_base *fp)
@@ -4111,7 +4147,7 @@ static void dump_init(struct s_base *fp)
     int i;
 
     for (i = 0; i < ARRAYSIZE(stats); i++)
-        stats[i].ptr = (int *) &((unsigned char *) fp)[stats[i].off];
+        stats[i].ptr = (int*) &((unsigned char *) fp)[stats[i].off];
 }
 
 void mapc_dump(struct mapc_context *ctx)
@@ -4123,7 +4159,7 @@ void mapc_dump(struct mapc_context *ctx)
     SAFECPY(name_solx, CSTR(ctx->dst_path));
     SAFECAT(name_solx, "x");
 
-    struct s_base *p = &ctx->file;
+    struct s_base* p = &ctx->file;
     int i, j;
     int c = 0;
     int n = 0;
@@ -4166,12 +4202,12 @@ void mapc_dump(struct mapc_context *ctx)
 
         for (i = 0; i < ARRAYSIZE(stats); i++)
             printf("%s%s", stats[i].name, (i + 1 < ARRAYSIZE(stats) ?
-                                           "," : "\n"));
+                "," : "\n"));
         printf("%s,%d,%d,%.3f,", sol_check_solx(&ctx->file) ? name_solx : name, n, c, t);
 
         for (i = 0; i < ARRAYSIZE(stats); i++)
             printf("%d%s", *stats[i].ptr, (i + 1 < ARRAYSIZE(stats) ?
-                                           "," : "\n"));
+                "," : "\n"));
     }
     else
     {
@@ -4208,7 +4244,7 @@ void mapc_set_dst(struct mapc_context *ctx, const char *dst)
     ctx->dst_path = strbuf(dst);
 }
 
-struct s_base *mapc_get_base(struct mapc_context *ctx)
+struct s_base* mapc_get_base(struct mapc_context *ctx)
 {
     return &ctx->file;
 }
@@ -4258,7 +4294,7 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
 
     for (argi = 1; argi < argc; ++argi)
     {
-        if      (strcmp(argv[argi], "--skip_verify") == 0)  skip_verify = 1;
+        if (strcmp(argv[argi], "--skip_verify") == 0)  skip_verify = 1;
         else if (strcmp(argv[argi], "--debug") == 0)        ctx->opt_debug = 1;
         else if (strcmp(argv[argi], "--csv") == 0)
         {
@@ -4399,7 +4435,7 @@ static void calc_cylinder_pos(float p[3], const float e[4], float extent)
  * position into the local reference frame of the parent body.
  */
 static void make_parented_path(struct mapc_context *ctx,
-                               float p[3], int p0, int *p1, const float e[4])
+    float p[3], int p0, int* p1, const float e[4])
 {
     struct s_base *fp = &ctx->file;
     float inv_e[4], d[3];
@@ -4408,9 +4444,9 @@ static void make_parented_path(struct mapc_context *ctx,
     struct b_path *pp = fp->pv + pi;
     memset(pp, 0, sizeof (*pp));
     pp->pi = pi;
-    pp->t  = 1.0f;
-    pp->f  = 1;
-    pp->s  = 1;
+    pp->t = 1.0f;
+    pp->f = 1;
+    pp->s = 1;
     pp->p0 = p0;
     pp->p1 = p0;
     pp->fl |= P_PARENTED | P_ORIENTED;
@@ -4426,10 +4462,9 @@ static void make_parented_path(struct mapc_context *ctx,
     }
 }
 
-static const char *get_sym_name(const struct mapc_context *ctx, int type, int val)
+static const char *get_sym_name(struct mapc_context *ctx, int type, int val)
 {
-    int i;
-    for (i = 0; i < ctx->symc; i++)
+    for (int i = 0; i < ctx->symc; i++)
         if (ctx->syms[i].type == type && ctx->syms[i].val == val)
             return ctx->syms[i].name;
     return NULL;
@@ -4457,7 +4492,7 @@ static void check_oriented_path(struct mapc_context *ctx, int p0, int has_angles
             SAFECAT(buf, "\"");
         }
         SAFECAT(buf, " (in-game orientation will differ from editor)\n");
-        WARNING(ctx, buf);
+        MAPC_LOG_WARNING(ctx, buf);
     }
 }
 
@@ -4466,7 +4501,7 @@ static void check_oriented_path(struct mapc_context *ctx, int p0, int has_angles
  * holding a constant orientation e for an unmoving entity.
  */
 static void make_stationary_path(struct mapc_context *ctx,
-                                 const float p[3], int *p0, int *p1, const float e[4])
+    const float p[3], int* p0, int* p1, const float e[4])
 {
     struct s_base *fp = &ctx->file;
 
@@ -4474,9 +4509,9 @@ static void make_stationary_path(struct mapc_context *ctx,
     struct b_path *pp = fp->pv + pi;
     memset(pp, 0, sizeof (*pp));
     pp->pi = pi;
-    pp->t  = 1.0f;
-    pp->f  = 1;
-    pp->s  = 1;
+    pp->t = 1.0f;
+    pp->f = 1;
+    pp->s = 1;
     pp->p0 = -1;
     pp->p1 = -1;
     pp->fl |= P_ORIENTED;
@@ -4491,7 +4526,7 @@ static void make_stationary_path(struct mapc_context *ctx,
  * rotation path (p1) was already assigned.
  */
 static void turn_entity(struct mapc_context *ctx,
-                        float p[3], int *p0, int *p1, const float e[4])
+    const float p[3], int* p0, int* p1, const float e[4])
 {
     if (*p0 >= 0 && *p1 < 0)
         make_parented_path(ctx, p, *p0, p1, e);
@@ -4504,7 +4539,7 @@ static void turn_file(struct mapc_context *ctx)
     struct s_base *fp = &ctx->file;
     int i;
 
-    /* Bodies (func_train) */
+    /* Bodys (func_train) */
     for (i = 0; i < fp->bc; i++)
         if (fp->bv[i].p0 >= 0)
             check_oriented_path(ctx, fp->bv[i].p0, 0);
@@ -4528,7 +4563,7 @@ static void turn_file(struct mapc_context *ctx)
             if (!ctx->goal_is_legacy[i])
                 calc_cylinder_pos(fp->zv[i].p, ctx->goal_e[i], GOAL_HALF_EXTENT);
 
-            turn_entity(ctx, fp->zv[i].p, &fp->zv[i].p0, &fp->zv[i].p1, ctx->goal_e[i]);
+            turn_entity(ctx, fp->zv[i].p, &fp->zv[i].p0, &fp->zv[i].p1, ctx->item_e[i]);
         }
     }
 
@@ -4540,13 +4575,13 @@ static void turn_file(struct mapc_context *ctx)
         if (ctx->jump_has_e[i])
         {
             if (!ctx->jump_is_legacy[i])
-                calc_cylinder_pos(fp->jv[i].p, ctx->jump_e[i], JUMP_HALF_EXTENT);
+                calc_cylinder_pos(fp->jv[i].p, ctx->jump_e[i], GOAL_HALF_EXTENT);
 
-            turn_entity(ctx, fp->jv[i].p, &fp->jv[i].p0, &fp->jv[i].p1, ctx->jump_e[i]);
+            turn_entity(ctx, fp->jv[i].p, &fp->jv[i].p0, &fp->jv[i].p1, ctx->item_e[i]);
         }
     }
 
-    /* Switches */
+    /* Switchs */
     for (i = 0; i < fp->xc; i++)
     {
         if (fp->xv[i].p0 >= 0)
@@ -4554,11 +4589,27 @@ static void turn_file(struct mapc_context *ctx)
         if (ctx->swch_has_e[i])
         {
             if (!ctx->swch_is_legacy[i])
-                calc_cylinder_pos(fp->xv[i].p, ctx->swch_e[i], SWCH_HALF_EXTENT);
+                calc_cylinder_pos(fp->xv[i].p, ctx->swch_e[i], GOAL_HALF_EXTENT);
 
-            turn_entity(ctx, fp->xv[i].p, &fp->xv[i].p0, &fp->xv[i].p1, ctx->swch_e[i]);
+            turn_entity(ctx, fp->xv[i].p, &fp->xv[i].p0, &fp->xv[i].p1, ctx->item_e[i]);
         }
     }
+
+#ifdef MAPC_INCLUDES_CHKP
+    /* Checkpoints */
+    for (i = 0; i < fp->cc; i++)
+    {
+        if (fp->cv[i].p0 >= 0)
+            check_oriented_path(ctx, fp->cv[i].p0, ctx->chkp_has_e[i]);
+        if (ctx->chkp_has_e[i])
+        {
+            if (!ctx->chkp_is_legacy[i])
+                calc_cylinder_pos(fp->cv[i].p, ctx->chkp_e[i], GOAL_HALF_EXTENT);
+
+            turn_entity(ctx, fp->cv[i].p, &fp->cv[i].p0, &fp->cv[i].p1, ctx->item_e[i]);
+        }
+    }
+#endif
 
     /* Billboards */
     for (i = 0; i < fp->rc; i++)
@@ -4591,17 +4642,17 @@ static int campaign_check_budget(struct mapc_context *ctx)
 static int check_profile_balls(const char *filename)
 {
     return strcmp(filename + strlen(filename) - 11, "-solid.csol") == 0 ||
-           strcmp(filename + strlen(filename) - 11, "-inner.csol") == 0 ||
-           strcmp(filename + strlen(filename) - 11, "-outer.csol") == 0 ||
-           strcmp(filename + strlen(filename) - 11, "-solid.sol")  == 0 ||
-           strcmp(filename + strlen(filename) - 11, "-inner.sol")  == 0 ||
-           strcmp(filename + strlen(filename) - 11, "-outer.sol")  == 0 ||
-           strcmp(filename + strlen(filename) - 11, "-solid.cxol") == 0 ||
-           strcmp(filename + strlen(filename) - 11, "-inner.cxol") == 0 ||
-           strcmp(filename + strlen(filename) - 11, "-outer.cxol") == 0 ||
-           strcmp(filename + strlen(filename) - 11, "-solid.xol")  == 0 ||
-           strcmp(filename + strlen(filename) - 11, "-inner.xol")  == 0 ||
-           strcmp(filename + strlen(filename) - 11, "-outer.xol")  == 0;
+        strcmp(filename + strlen(filename) - 11, "-inner.csol") == 0 ||
+        strcmp(filename + strlen(filename) - 11, "-outer.csol") == 0 ||
+        strcmp(filename + strlen(filename) - 11, "-solid.sol") == 0 ||
+        strcmp(filename + strlen(filename) - 11, "-inner.sol") == 0 ||
+        strcmp(filename + strlen(filename) - 11, "-outer.sol") == 0 ||
+        strcmp(filename + strlen(filename) - 11, "-solid.cxol") == 0 ||
+        strcmp(filename + strlen(filename) - 11, "-inner.cxol") == 0 ||
+        strcmp(filename + strlen(filename) - 11, "-outer.cxol") == 0 ||
+        strcmp(filename + strlen(filename) - 11, "-solid.xol") == 0 ||
+        strcmp(filename + strlen(filename) - 11, "-inner.xol") == 0 ||
+        strcmp(filename + strlen(filename) - 11, "-outer.xol") == 0;
 }
 
 static int check_campaign_level(const char *filename)
@@ -4627,7 +4678,7 @@ static void interactive_web(void)
 #else
     sprintf(buf_url,
 #endif
-            "explorer %s", target_url);
+        "explorer %s", target_url);
 #elif defined(__APPLE__)
     sprintf(buf_url, "open %s", target_url);
 #elif defined(__linux__)
@@ -4672,7 +4723,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #else
         sprintf(tmp_buf_loading,
 #endif
-                "Loading file...: %s\n", src);
+            "Loading file...: %s\n", src);
         MAPC_LOG_MESSAGE(ctx, tmp_buf_loading);
 
         if (ctx->campaign_output)
@@ -4686,7 +4737,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #else
                 sprintf(tmp_buf,
 #endif
-                        "Failure to open file! Only Campaign Level Maps (.CMAP) is supported!: %s\n", src);
+                    "Failure to open file! Only Campaign Level Maps (.CMAP) is supported!: %s\n", src);
 #if _MSC_VER
                 fprintf_s(stderr, "%s: error MAPCE: Failure to open file! Only Campaign Level Maps (.CMAP) is supported!", src);
 #else
@@ -4715,7 +4766,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #else
             sprintf(tmp_buf,
 #endif
-                    "Failure to open file: %s - %s\n", src, fs_error());
+                "Failure to open file: %s - %s\n", src, fs_error());
 #if _MSC_VER
             fprintf_s(stderr, "%s: error MAPCE: Failure to open file: %s\n", src, fs_error());
 #else
@@ -4773,7 +4824,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #else
         gettimeofday(&time1, 0);
         ctx->compile_time = (time1.tv_sec - time0.tv_sec) +
-                            (time1.tv_usec - time0.tv_usec) / 1000000.0;
+            (time1.tv_usec - time0.tv_usec) / 1000000.0;
 #endif
 
         if (ctx->compile_time >= ctx->compile_time_limit)
@@ -4784,7 +4835,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 sprintf_s(tmp_buf, MAXSTR,
 #else
-                sprintf(tmp_buf,
+                    sprintf(tmp_buf,
 #endif
                         "Compile timed out after %d seconds!\n"
                         "\tCurrently, they exceeds 30 minute compile time, which has slow and old devices.\n"
@@ -4805,9 +4856,9 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #else
                 sprintf(tmp_buf,
 #endif
-                        "Compile timed out after %%d seconds!\n"
-                        "\tRaise compilation time limit to %d seconds (--timelimit %d)",
-                        ROUND(ctx->compile_time_limit), ROUND(timelimit_canset_seconds), ROUND(timelimit_canset_seconds));
+                    "Compile timed out after %%d seconds!\n"
+                    "\tRaise compilation time limit to %d seconds (--timelimit %d)",
+                    ROUND(ctx->compile_time_limit), ROUND(timelimit_canset_seconds), ROUND(timelimit_canset_seconds));
             }
 
 #if _MSC_VER
@@ -4830,7 +4881,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #else
                 sprintf(tmp_buf,
 #endif
-                        "Failure to save file! Only SOL extension for model profile is supported!: %s\n", src);
+                    "Failure to save file! Only SOL extension for model profile is supported!: %s\n", src);
 #if _MSC_VER
                 fprintf_s(stderr, "%s: error MAPCE: Failure to save file! Only SOL extension for model profile is supported!\n", src);
 #else
@@ -4852,8 +4903,8 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #else
                 sprintf(tmp_buf,
 #endif
-                        "Failure to save file! Overbudget!: %s\n\tLump cost: %d; Lump budget: %d\n",
-                        src, ctx->campaign_cost, ctx->campaign_budget);
+                    "Failure to save file! Overbudget!: %s\n\tLump cost: %d; Lump budget: %d\n",
+                    src, ctx->campaign_cost, ctx->campaign_budget);
 #if _MSC_VER
                 fprintf_s(stderr, "%s: error MAPCE: Failure to save file! Overbudget!\n", src);
 #else
@@ -4920,8 +4971,8 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #else
             sprintf(tmp_buf,
 #endif
-                    "Transaction success!: %s\n\tLump cost: %d; Lump budget: %d\n",
-                    src, ctx->campaign_cost, ctx->campaign_budget);
+                "Transaction success!: %s\n\tLump cost: %d; Lump budget: %d\n",
+                src, ctx->campaign_cost, ctx->campaign_budget);
             MAPC_LOG_MESSAGE(ctx, tmp_buf);
 #endif
         }

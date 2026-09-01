@@ -739,22 +739,14 @@ const char *level_desc(const struct level *level)
     const char *msg = level_msg(level);
     STRBUF title = level_title(level);
 
-<<<<<<< HEAD
     if (msg && *msg && msg[0] && *CSTR(title))
-=======
-    if (msg && *CSTR(title))
->>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
     {
         const char *d = msg + strcspn(msg, "\\\r\n");
         while (*d == '\r' || *d == '\n' || *d == '\\')
             d++;
         return d;
     }
-<<<<<<< HEAD
     return msg && *msg && msg[0] ? msg : "";
-=======
-    return msg ? msg : "";
->>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
 }
 
 const struct score *level_score(struct level *level, int s)

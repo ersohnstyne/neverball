@@ -212,7 +212,7 @@ static void scan_balls(void)
     int i, j;
 
     balls = array_new(sizeof (struct model_ball));
-
+    
     /*
      * First, load the model listed in the model file, preserving order.
      */
@@ -225,17 +225,23 @@ static void scan_balls(void)
         {
             struct model_ball *ball = array_add(balls);
 
-            char tmp_path[MAX_PATH];
-            SAFECPY(tmp_path, path);
+            if (ball)
+            {
+                char tmp_path[MAX_PATH];
+                SAFECPY(tmp_path, path);
 
-            for (j = 0; j < MAX_PATH; j++)
-                if (tmp_path[j] == '\\')
-                    tmp_path[j] = '/';
+                for (j = 0; j < MAX_PATH; j++)
+                    if (tmp_path[j] == '\\')
+                        tmp_path[j] = '/';
 
-            if (!has_ball_sols(tmp_path))
-                array_del(balls);
-            else
-                load_ball_name_real(ball, path);
+                if (!has_ball_sols(tmp_path))
+                    array_del(balls);
+                else
+                    load_ball_name_real(ball, path);
+            }
+
+            free(path);
+            path = NULL;
         }
         fs_close(fin);
     }
@@ -255,33 +261,36 @@ static void scan_balls(void)
         {
             struct model_ball *ball = array_add(balls);
 
-            char tmp_path[MAX_PATH];
-            SAFECPY(tmp_path, DIR_ITEM_GET(items, i)->path);
-
-            for (j = 0; j < MAX_PATH; j++)
-                if (tmp_path[j] == '\\')
-                    tmp_path[j] = '/';
-
-            if (!has_ball_sols(tmp_path)) array_del(balls);
-            else
+            if (ball)
             {
-                skip_scan = 0;
+                char tmp_path[MAX_PATH];
+                SAFECPY(tmp_path, DIR_ITEM_GET(items, i)->path);
 
-                for (j = 0; j < array_len(balls) && !skip_scan; j++)
-                {
-                    const struct model_ball *tmp_ball = MODEL_BALL_GET(balls, j);
+                for (j = 0; j < MAX_PATH; j++)
+                    if (tmp_path[j] == '\\')
+                        tmp_path[j] = '/';
 
-                    if (strcmp(tmp_ball->path, tmp_path) == 0)
-                    {
-                        skip_scan = 1;
-                        break;
-                    }
-                }
-
-                if (!skip_scan)
-                    load_ball_name_real(ball, tmp_path);
+                if (!has_ball_sols(tmp_path)) array_del(balls);
                 else
-                    array_del(balls);
+                {
+                    skip_scan = 0;
+
+                    for (j = 0; j < array_len(balls) && !skip_scan; j++)
+                    {
+                        const struct model_ball *tmp_ball = MODEL_BALL_GET(balls, j);
+
+                        if (strcmp(tmp_ball->path, tmp_path) == 0)
+                        {
+                            skip_scan = 1;
+                            break;
+                        }
+                    }
+
+                    if (!skip_scan)
+                        load_ball_name_real(ball, tmp_path);
+                    else
+                        array_del(balls);
+                }
             }
         }
 

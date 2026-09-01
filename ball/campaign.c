@@ -421,8 +421,7 @@ int campaign_load(const char *filename)
 
     if (strcmp(campaign_name, "Campaign") != 0)
     {
-        free(campaign_name);
-        campaign_name = NULL;
+        free(campaign_name); campaign_name = NULL;
 
         return 0;
     }
@@ -464,25 +463,22 @@ int campaign_load(const char *filename)
             }
         }
 
-        free(scores);
-        scores = NULL;
+        free(scores); scores = NULL;
 
-        time_trial_leaderboard = strdup("Campaign/time-trial.txt");
+        time_trial_leaderboard = strdup(config_cheat() ?
+                                        "Campaign/time-trial.txt" :
+                                        "Campaign/time-trial-cheat.txt");
 
         campaign_count = 0;
 
-        while (campaign_count < MAXLVL && read_line(&level_name, fin))
-        {
-            campaign_levelpath[campaign_count] = level_name;
+        while (campaign_count < MAXLVL && read_line(&campaign_levelpath[campaign_count], fin))
             campaign_count++;
-        }
 
         fs_close(fin);
         return 1;
     }
 
-    free(campaign_name);
-    campaign_name = NULL;
+    free(campaign_name); campaign_name = NULL;
 
     fs_close(fin);
     campaign_quit();
@@ -663,22 +659,17 @@ void campaign_quit(void)
     used       = 0;
     exists     = 0;
 
-    /* Once the campaign is left off, remove this. */
-
     if (campaign_name) {
-        free(campaign_name);
-        campaign_name = NULL;
+        free(campaign_name); campaign_name = NULL;
     }
 
     if (time_trial_leaderboard) {
-        free(time_trial_leaderboard);
-        time_trial_leaderboard = NULL;
+        free(time_trial_leaderboard); time_trial_leaderboard = NULL;
     }
 
     for (int i = 0; i < campaign_count; i++)
         if (campaign_levelpath[i]) {
-            free(campaign_levelpath[i]);
-            campaign_levelpath[i] = NULL;
+            free(campaign_levelpath[i]); campaign_levelpath[i] = NULL;
         }
 }
 

@@ -995,7 +995,7 @@ static int conf_gameplay_action(int tok, int val)
             break;
 
         case CONF_GAMEPLAY_LOCK_GOALS:
-            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
+            audio_play(val == 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_LOCK_GOALS, val);
             config_save();
             goto_state(curr_state());

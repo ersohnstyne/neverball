@@ -238,35 +238,6 @@ static int pause_action(int tok, int val)
 
 /*---------------------------------------------------------------------------*/
 
-static int pause_button_width(int reset_puzzle)
-{
-    int target_width = 0;
-    int btn_width;
-
-    btn_width = gui_measure(_("Continue"), GUI_SML).w;
-    if (btn_width > target_width) target_width = btn_width;
-
-    if (reset_puzzle)
-    {
-        btn_width = gui_measure(_("Reset Puzzle"), GUI_SML).w;
-        if (btn_width > target_width) target_width = btn_width;
-    }
-
-    btn_width = gui_measure(_("Restart"), GUI_SML).w;
-    if (btn_width > target_width) target_width = btn_width;
-
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    const char *quit_btn_text = campaign_used() ? N_("Quit") : (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
-#else
-    const char *quit_btn_text = (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
-#endif
-
-    btn_width = gui_measure(_(quit_btn_text), GUI_SML).w;
-    if (btn_width > target_width) target_width = btn_width;
-
-    return target_width;
-}
-
 static int pause_gui(void)
 {
     int id, jd, kd, ld, title_id;
@@ -279,7 +250,7 @@ static int pause_gui(void)
         {
             if ((kd = gui_hstack(jd)))
             {
-                gui_label(kd, GUI_GEAR, GUI_SML, GUI_COLOR_WHT);
+                gui_label(kd, GUI_GEAR, GUI_SML, GUI_COLOR_DEFAULT);
                 gui_label(kd, _("Options"), GUI_SML, GUI_COLOR_WHT);
 
                 gui_set_state(kd, PAUSE_OPTIONS, 0);
@@ -321,7 +292,11 @@ static int pause_gui(void)
             if ((kd = gui_hstack(jd)))
             {
                 const int restartable = progress_same_avail();
-                const GLubyte *btn_color      = restartable ? gui_grn : gui_gry;
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                const GLubyte *btn_color      = restartable ? (campaign_used() ? gui_red : gui_yel) : gui_gry;
+#else
+                const GLubyte *btn_color      = restartable ? gui_yel : gui_gry;
+#endif
                 const GLubyte *btn_color_text = restartable ? gui_wht : gui_gry;
 
                 gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
@@ -346,7 +321,7 @@ static int pause_gui(void)
                 if ((kd = gui_hstack(jd)))
                 {
                     const int resetable = progress_same_avail();
-                    const GLubyte *btn_color      = resetable ? gui_grn : gui_gry;
+                    const GLubyte *btn_color      = resetable ? gui_vio : gui_gry;
                     const GLubyte *btn_color_text = resetable ? gui_wht : gui_gry;
 
                     gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);

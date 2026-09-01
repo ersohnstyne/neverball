@@ -577,11 +577,13 @@ static int goal_gui(void)
 
                     gui_set_state(kd, !btns_disabled ? next_btn_tok : GUI_NONE, 0);
                     gui_set_rect(kd, GUI_ALL);
+
+                    gui_focus(kd);
                 }
 
                 if ((kd = gui_hstack(jd)))
                 {
-                    const GLubyte *btn_color      = !btns_disabled && can_restart ? gui_grn : gui_gry;
+                    const GLubyte *btn_color      = !btns_disabled && can_restart ? gui_yel : gui_gry;
                     const GLubyte *btn_color_text = !btns_disabled && can_restart ? gui_wht : gui_gry;
 
                     gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);

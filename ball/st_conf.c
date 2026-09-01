@@ -693,86 +693,85 @@ static int conf_account_gui(void)
             gui_space(id);
 #endif
 #endif
-
+        }
+        
 #ifndef __EMSCRIPTEN__
 #if NB_HAVE_PB_BOTH==1
-            if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
+        if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
 #endif
-                name_id = conf_state(id, _("Player Name"), "XXXXXXXXXXXXXX",
-                                         CONF_ACCOUNT_PLAYER);
-#endif
-
-#if NB_HAVE_PB_BOTH==1
-#if ENABLE_FETCH==1 && \
-    !defined(__NDS__) && !defined(__3DS__) && \
-    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-            if (CHECK_ACCOUNT_ENABLED && config_get_d(CONFIG_ONLINE))
-                conf_state(id, _("Addons"), _("Manage"), CONF_ACCOUNT_PACKAGES);
-#endif
-            if (server_policy_get_d(SERVER_POLICY_EDITION) != 0 ||
-                account_wgcl_name_read_only()) {
-                gui_space(id);
-                ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX",
-                                         CONF_ACCOUNT_BALL);
-#ifdef CONFIG_INCLUDES_ACCOUNT
-                beam_id = conf_state(id, _("Beam Style"), "XXXXXXXXXXXXXX",
-                                         CONF_ACCOUNT_BEAM);
-#endif
-            }
-#endif
-#ifndef __EMSCRIPTEN__
-#if NB_HAVE_PB_BOTH==1
-            if (server_policy_get_d(SERVER_POLICY_EDITION) != 0 &&
-                name_id)
-#else
-            if (name_id)
-#endif
+            if ((name_id = conf_state(id, _("Player Name"), "XXXXXXXXXXXXXX",
+                                          CONF_ACCOUNT_PLAYER)))
             {
                 gui_set_trunc(name_id, TRUNC_TAIL);
                 gui_set_label(name_id, player);
-            }
-#endif
 
 #if NB_HAVE_PB_BOTH==1
-            gui_set_trunc(ball_id, TRUNC_TAIL);
-#ifdef CONFIG_INCLUDES_ACCOUNT
-            gui_set_trunc(beam_id, TRUNC_TAIL);
-#endif
-
 #if NB_EOS_SDK==0 || NB_STEAM_API==0
-            if (account_wgcl_name_read_only() ||
+                if (account_wgcl_name_read_only() ||
 #ifndef __EMSCRIPTEN__
-                config_playername_locked() ||
+                    config_playername_locked() ||
 #endif
-                online_mode || !account_changeable)
+                    online_mode || !account_changeable)
 #endif
-            {
-                /*
-                 * If the account is signed in e.g. PB+NB WGCL or Steam,
-                 * you cannot change the player name.
-                 */
+                {
+                    /*
+                     * If the account is signed in e.g. PB+NB WGCL or Steam,
+                     * you cannot change the player name.
+                     */
 
 #ifndef __EMSCRIPTEN__
-                if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
-                {
-                    gui_set_state(name_id, GUI_NONE, 0);
-                    gui_set_color(name_id, GUI_COLOR_GRY);
+                    if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
+                    {
+                        gui_set_state(name_id, GUI_NONE, 0);
+                        gui_set_color(name_id, GUI_COLOR_GRY);
+                    }
+#endif
                 }
 #endif
             }
 
+#endif
+#if NB_HAVE_PB_BOTH==1
+        if ((ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX",
+                                      CONF_ACCOUNT_BALL)))
+        {
+            gui_set_trunc(ball_id, TRUNC_TAIL);
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
             gui_set_label(ball_id, _("Manage"));
 #else
             gui_set_label(ball_id, base_name(ball));
 #endif
+        }
 #endif
 
-            const char *beam_version_name = "";
+        gui_space(id);
 
-#ifdef CONFIG_INCLUDES_ACCOUNT
-            switch (config_get_d(CONFIG_ACCOUNT_BEAM_STYLE))
+        if (mainmenu_conf)
+        {
+#if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH==1 && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
+            if (CHECK_ACCOUNT_ENABLED && config_get_d(CONFIG_ONLINE))
             {
+                conf_state(id, _("Addons"), _("Manage"), CONF_ACCOUNT_PACKAGES);
+                gui_space(id);
+            }
+#endif
+        }
+
+#if NB_HAVE_PB_BOTH==1
+        if (mainmenu_conf && (server_policy_get_d(SERVER_POLICY_EDITION) != 0 ||
+                              account_wgcl_name_read_only())) {
+#ifdef CONFIG_INCLUDES_ACCOUNT
+            if ((beam_id = conf_state(id, _("Beam Style"), "XXXXXXXXXXXXXX",
+                                          CONF_ACCOUNT_BEAM)))
+            {
+                gui_set_trunc(beam_id, TRUNC_TAIL);
+
+                const char* beam_version_name = "";
+
+                switch (config_get_d(CONFIG_ACCOUNT_BEAM_STYLE))
+                {
                 case 0:
                     beam_version_name = "Remastered (1.7)";
                     break;
@@ -785,15 +784,14 @@ static int conf_account_gui(void)
                 case 3:
                     beam_version_name = "Standard (1.5.3)";
                     break;
+                }
+
+                gui_set_label(beam_id, beam_version_name);
+                gui_space(id);
             }
 #endif
-
-#if NB_HAVE_PB_BOTH==1
-            gui_set_label(beam_id, beam_version_name);
-#endif
-
-            gui_space(id);
         }
+#endif
 
         /* Those filters will use some replays */
         const char *savefilter = _("None");
@@ -923,7 +921,8 @@ enum
 
     CONF_GAMEPLAY_CAMERA_DEFAULT,
     CONF_GAMEPLAY_CAMERA_1_4,
-    CONF_GAMEPLAY_CAMERA_1_5
+    CONF_GAMEPLAY_CAMERA_1_5,
+    CONF_GAMEPLAY_LOCK_GOALS
 };
 
 static int conf_gameplay_settings_entered = 0;
@@ -996,6 +995,7 @@ static int conf_gameplay_action(int tok, int val)
             break;
 
         case CONF_GAMEPLAY_LOCK_GOALS:
+            audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_LOCK_GOALS, val);
             config_save();
             goto_state(curr_state());
@@ -2777,7 +2777,7 @@ static int conf_action(int tok, int val)
             if (mainmenu_conf)
                 game_fade(+6.0f);
 
-            return exit_state(conf_back ? conf_back : &st_title)
+            return exit_state(conf_back ? conf_back : &st_title);
 
 #if ENABLE_GAME_TRANSFER==1 && \
     !defined(__NDS__) && !defined(__3DS__) && \
@@ -3118,11 +3118,8 @@ static void conf_bg_paint(float t)
     }
     else
     {
-        video_push_persp((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-        {
-            back_draw_easy();
-        }
-        video_pop_matrix();
+        video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+        back_draw_easy();
     }
 }
 

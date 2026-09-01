@@ -1785,8 +1785,8 @@ static int demo_end_gui(void)
         {
             if ((kd = gui_hstack(jd)))
             {
-                gui_label(kd, GUI_GEAR, GUI_SML, GUI_COLOR_WHT);
-                gui_label(kd, _("Options"), GUI_SML, GUI_COLOR_WHT);
+                gui_label(kd, GUI_GEAR, GUI_SML, GUI_COLOR_DEFAULT);
+                gui_label(kd, _("Options"), GUI_SML, GUI_COLOR_DEFAULT);
 
                 gui_set_state(kd, DEMO_CONF, 0);
                 gui_set_rect(kd, GUI_ALL);
@@ -1828,7 +1828,7 @@ static int demo_end_gui(void)
 
             if ((kd = gui_hstack(jd)))
             {
-                const GLubyte *btn_color      = continue_allowed ? gui_grn : gui_gry;
+                const GLubyte *btn_color      = continue_allowed ? gui_yel : gui_gry;
                 const GLubyte *btn_color_text = continue_allowed ? gui_wht : gui_gry;
                 gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
 

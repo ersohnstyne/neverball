@@ -226,6 +226,8 @@ static int over_gui_hardcore(void)
 
                 gui_set_state(kd, OVER_TO_GROUP, 0);
                 gui_set_rect(kd, GUI_ALL);
+
+                gui_focus(kd);
             }
 
 #if NB_HAVE_PB_BOTH==1
@@ -292,8 +294,15 @@ static int over_gui(void)
 
                 gui_set_state(kd, GUI_BACK, 0);
                 gui_set_rect(kd, GUI_ALL);
+
+                gui_focus(kd);
             }
 
+#if NB_HAVE_PB_BOTH==1
+        if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+            server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+            gui_state(jd, _("Shop"), GUI_SML, OVER_SHOP, 0);
+#endif
 
         if (!resume)
             gui_pulse(gid, 1.2f);

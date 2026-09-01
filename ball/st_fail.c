@@ -661,7 +661,7 @@ static int fail_gui(void)
 
                     if ((kd = gui_hstack(jd)))
                     {
-                        const GLubyte *btn_color      = can_respawn ? gui_grn : gui_gry;
+                        const GLubyte *btn_color      = can_respawn ? gui_vio : gui_gry;
                         const GLubyte *btn_color_text = can_respawn ? gui_wht : gui_gry;
 
                         gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
@@ -671,6 +671,8 @@ static int fail_gui(void)
 
                         gui_set_state(kd, can_respawn ? FAIL_CHECKPOINT_RESPAWN : GUI_NONE, 0);
                         gui_set_rect(kd, GUI_ALL);
+
+                        gui_focus(kd);
                     }
 
                     if (demo_saved() && ((save == 3 && status == GAME_FALL) || (save >= 2 && status == GAME_TIME)))
@@ -683,7 +685,7 @@ static int fail_gui(void)
                     const char *quit_btn_text = (curr_mode() == MODE_STANDALONE || progress_dead() ?
                                                  N_("Exit") : N_("Back To Menu"));
 
-                    gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, GUI_COLOR_RED);
+                    gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
 
                     ld = gui_label(kd, _(quit_btn_text), GUI_SML, GUI_COLOR_RED);
                     gui_set_fill(ld);
@@ -714,7 +716,7 @@ static int fail_gui(void)
 #endif
                 if ((kd = gui_hstack(jd)))
                 {
-                    const GLubyte *btn_color      = can_restart ? gui_grn : gui_gry;
+                    const GLubyte *btn_color      = can_restart ? gui_yel : gui_gry;
                     const GLubyte *btn_color_text = can_restart ? gui_wht : gui_gry;
 
                     gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
@@ -724,6 +726,8 @@ static int fail_gui(void)
 
                     gui_set_state(kd, can_restart ? FAIL_SAME : GUI_NONE, 0);
                     gui_set_rect(kd, GUI_ALL);
+
+                    gui_focus(kd);
                 }
 
                 if (demo_saved() && ((save == 3 && status == GAME_FALL) || (save >= 2 && status == GAME_TIME)))

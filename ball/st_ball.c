@@ -608,7 +608,8 @@ static int ball_gui(void)
 #endif
                                           N_("Upgrade to Home Edition!");
 
-            if ((account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
+            if (!game_server_state() &&
+                (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
                  server_policy_get_d(SERVER_POLICY_EDITION) < 0) &&
                 !console_gui_shown() &&
                 !game_setup_process()
@@ -628,7 +629,7 @@ static int ball_gui(void)
                         gui_set_state(online_id, MODEL_ONLINE, 0);
                 }
             }
-            else if (!console_gui_shown() && !game_setup_process())
+            else if (!game_server_state() && !console_gui_shown() && !game_setup_process())
             {
                 gui_space(id);
                 gui_label(id, _(more_balls_text), GUI_SML, GUI_COLOR_GRY);
@@ -675,7 +676,7 @@ static int ball_gui(void)
 #endif
             }
 
-            gui_layout(id, 0, +1);
+            gui_layout(id, 0, game_server_state() ? 0 : +1);
 
             const struct model_ball *ball = MODEL_BALL_GET(balls, curr_ball);
 

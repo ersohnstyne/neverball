@@ -215,6 +215,8 @@ static int done_gui_campaign(void)
 
                 gui_set_state(kd, DONE_TO_GROUP, 0);
                 gui_set_rect(kd, GUI_ALL);
+
+                gui_focus(kd);
             }
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -372,6 +374,8 @@ static int done_gui_set(void)
 
                 gui_set_state(kd, GUI_BACK, 0);
                 gui_set_rect(kd, GUI_ALL);
+
+                gui_focus(kd);
             }
 
 #ifdef CONFIG_INCLUDES_ACCOUNT

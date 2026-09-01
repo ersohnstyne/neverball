@@ -1016,23 +1016,46 @@ static int conf_gameplay_gui(void)
     {
         conf_header(id, _("Gameplay"), GUI_BACK);
 
-#if NB_HAVE_PB_BOTH==1
-        conf_toggle_simple(id, _("Auto-Retry"), CONF_GAMEPLAY_AUTORETRY,
-                               config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY), 1, 0);
-
-        if (config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY))
-            conf_toggle_simple(id, _("Faster Reset"), CONF_GAMEPLAY_FASTERRESET,
-                                   config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET), 1, 0);
+        if (game_server_state() &&
+            (curr_mode() == MODE_CHALLENGE ||
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+             curr_mode() == MODE_HARDCORE ||
 #else
-        conf_toggle(id, _("Auto-Retry"), CONF_GAMEPLAY_AUTORETRY,
-                        config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY), _("On"), 1, _("Off"), 0);
+             curr_mode() == MODE_ROGUE ||
+#endif
+             curr_mode() == MODE_BOOST_RUSH ||
+             curr_mode() == MODE_DAILY
+             ))
+        {
+            gui_multi(id, _("Some options are disabled\nbecause you've selected this mode."),
+                          GUI_SML, GUI_COLOR_RED);
+            gui_space(id);
+        }
 
-        if (config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY))
-            conf_toggle(id, _("Faster Reset"), CONF_GAMEPLAY_FASTERRESET,
-                            config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET), _("On"), 1, _("Off"), 0);
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        if (!game_server_state() || (curr_mode() != MODE_HARDCORE && curr_balls() > 0))
+#else
+        if (!game_server_state() || curr_balls() > 0)
+#endif
+        {
+#if NB_HAVE_PB_BOTH==1
+            conf_toggle_simple(id, _("Auto-Retry"), CONF_GAMEPLAY_AUTORETRY,
+                                   config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY), 1, 0);
+
+            if (config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY))
+                conf_toggle_simple(id, _("Faster Reset"), CONF_GAMEPLAY_FASTERRESET,
+                                       config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET), 1, 0);
+#else
+            conf_toggle(id, _("Auto-Retry"), CONF_GAMEPLAY_AUTORETRY,
+                            config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY), _("On"), 1, _("Off"), 0);
+
+            if (config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY))
+                conf_toggle(id, _("Faster Reset"), CONF_GAMEPLAY_FASTERRESET,
+                                config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET), _("On"), 1, _("Off"), 0);
 #endif
 
-        gui_space(id);
+            gui_space(id);
+        }
 
 #if NB_HAVE_PB_BOTH==1
         conf_toggle_simple(id, _("Show Tutorial"), CONF_GAMEPLAY_TUTORIAL,
@@ -1060,14 +1083,26 @@ static int conf_gameplay_gui(void)
             gui_space(id);
         }
 
-#if NB_HAVE_PB_BOTH==1
-        conf_toggle_simple(id, _("Completed Levels"), CONF_GAMEPLAY_LOCK_GOALS,
-                               config_get_d(CONFIG_LOCK_GOALS), 0, 1);
+        if (game_server_state() &&
+            (curr_mode() == MODE_CHALLENGE ||
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+             curr_mode() == MODE_HARDCORE ||
 #else
-        conf_toggle(id, _("Completed Levels"), CONF_GAMEPLAY_SWITCHBALL_DROPSPEEDING,
-                        config_get_d(CONFIG_LOCK_GOALS), _("Locked"), 1, _("Unlocked"), 0);
+             curr_mode() == MODE_ROGUE ||
 #endif
-        gui_space(id);
+             curr_mode() == MODE_BOOST_RUSH ||
+             curr_mode() == MODE_DAILY
+             ))
+        {
+#if NB_HAVE_PB_BOTH==1
+            conf_toggle_simple(id, _("Completed Levels"), CONF_GAMEPLAY_LOCK_GOALS,
+                                   config_get_d(CONFIG_LOCK_GOALS), 0, 1);
+#else
+            conf_toggle(id, _("Completed Levels"), CONF_GAMEPLAY_SWITCHBALL_DROPSPEEDING,
+                            config_get_d(CONFIG_LOCK_GOALS), _("Locked"), 1, _("Unlocked"), 0);
+#endif
+            gui_space(id);
+        }
 
         if ((jd = gui_harray(id)) && (kd = gui_vstack(jd)) && (ld = gui_vstack(jd)))
         {

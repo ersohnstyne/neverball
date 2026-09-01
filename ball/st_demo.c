@@ -1276,14 +1276,12 @@ static int demo_buttn(int b, int d)
             {
                 int token = gui_token(active);
                 int value = gui_value(active);
-
-                if (token == DEMO_SELECT && value == selected)
-                    return demo_action(DEMO_PLAY, value);
-                else
-                    return demo_action(token, value);
+                
+                return demo_action(token == DEMO_SELECT && value == selected ? DEMO_PLAY :
+                                                                               token,
+                                   value);
             }
-            else
-                return demo_action(GUI_BACK, 0);
+            else return demo_action(GUI_BACK, 0);
         }
 
         if (total)

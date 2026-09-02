@@ -544,6 +544,12 @@ static int goal_gui(void)
             if ((jd = gui_harray(id)))
             {
                 /*
+                 * HACK: Bottom buttons for st_goal won't touch from st_fail, until decides
+                 * to use WGCL's game logic expansion. It will always change periodically
+                 * on modernized UI systems.
+                 */
+
+                /*
                  * Waiting for extra balls by collecting 100 coins
                  * --- OR ---
                  * check, if products is still available
@@ -596,7 +602,22 @@ static int goal_gui(void)
                 }
 
                 if (demo_saved() && save >= 1)
-                    gui_state(jd, _("Save Replay"), GUI_SML, GOAL_SAVE, 0);
+                {
+                    if ((kd = gui_hstack(jd)))
+                    {
+                        const GLubyte *btn_color      = !btns_disabled ? gui_grn : gui_gry;
+                        const GLubyte *btn_color_text = !btns_disabled ? gui_wht : gui_gry;
+
+                        const int icn_id = gui_label(kd, GUI_SAVETODISK, GUI_SML, btn_color, btn_color);
+                        gui_set_font(icn_id, "ttf/seguiemj.ttf");
+
+                        ld = gui_label(kd, _("Save Replay"), GUI_SML, btn_color_text, btn_color_text);
+                        gui_set_fill(ld);
+
+                        gui_set_state(kd, !btns_disabled ? GOAL_SAVE : GUI_NONE, 0);
+                        gui_set_rect(kd, GUI_ALL);
+                    }
+                }
 
                 if (!resume_locked && goal_intro_animation_phase == 2)
                     gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.6, 0.8f, 0.05f);

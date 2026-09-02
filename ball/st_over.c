@@ -230,10 +230,22 @@ static int over_gui_hardcore(void)
                 gui_focus(kd);
             }
 
-#if NB_HAVE_PB_BOTH==1
-            if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-                gui_state(jd, _("Shop"), GUI_SML, OVER_SHOP, 0);
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+            if (server_policy_get_d(SERVER_POLICY_EDITION) > -1
+             && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+            {
+                if ((kd = gui_hstack(jd)))
+                {
+                    const int icn_id = gui_label(kd, GUI_SHOPCART, GUI_SML, GUI_COLOR_GRN);
+                    gui_set_font(icn_id, "ttf/seguiemj.ttf");
+
+                    ld = gui_label(kd, _("Shop"), GUI_SML, GUI_COLOR_WHT);
+                    gui_set_fill(ld);
+
+                    gui_set_state(kd, OVER_SHOP, 0);
+                    gui_set_rect(kd, GUI_ALL);
+                }
+            }
 #endif
         }
 
@@ -285,6 +297,7 @@ static int over_gui(void)
         gui_space(id);
 
         if ((jd = gui_harray(id)))
+        {
             if ((kd = gui_hstack(jd)))
             {
                 gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
@@ -298,11 +311,24 @@ static int over_gui(void)
                 gui_focus(kd);
             }
 
-#if NB_HAVE_PB_BOTH==1
-        if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-            server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-            gui_state(jd, _("Shop"), GUI_SML, OVER_SHOP, 0);
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+            if (server_policy_get_d(SERVER_POLICY_EDITION) > -1
+             && server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+            {
+                if ((kd = gui_hstack(jd)))
+                {
+                    const int icn_id = gui_label(kd, GUI_SHOPCART, GUI_SML, GUI_COLOR_GRN);
+                    gui_set_font(icn_id, "ttf/seguiemj.ttf");
+
+                    ld = gui_label(kd, _("Shop"), GUI_SML, GUI_COLOR_WHT);
+                    gui_set_fill(ld);
+
+                    gui_set_state(kd, OVER_SHOP, 0);
+                    gui_set_rect(kd, GUI_ALL);
+                }
+            }
 #endif
+        }
 
         if (!resume)
             gui_pulse(gid, 1.2f);

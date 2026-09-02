@@ -65,6 +65,8 @@
 #define GUI_GOAL           "🏁"
 #define GUI_TIMEOUT        "⏰"
 #define GUI_HEARTBROKEN    "💔"
+#define GUI_SHOPCART       "🛒"
+#define GUI_SAVETODISK     "💾"
 
 /*
  * DejaVu Sans V1: DejaVuSans-Bold.ttf

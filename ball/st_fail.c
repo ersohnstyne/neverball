@@ -659,6 +659,32 @@ static int fail_gui(void)
                         gui_set_rect(kd, GUI_ALL);
                     }
 
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+                    /*
+                     * HACK: This is essentialy same as the previous one, but let's assume:
+                     * Using Mojang version will be also copied to the respawnable screen.
+                     * - Ersohn Styne
+                     */
+
+                    if (!progress_same_avail() && progress_dead())
+                    {
+#if defined(__EMSCRIPTEN__)
+                        if (!wgcl_account_sync_done)
+                            gui_state(jd, _("Login"), GUI_SML, FAIL_LOGIN_WGCL, 0);
+                        else
+#endif
+                            if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
+                                server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
+                                gui_state(jd, _("Buy balls!"),
+                                    GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
+                            else if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
+                                gui_state(jd, _("Upgrade edition!"),
+                                    GUI_SML, FAIL_UPGRADE_EDITION, 0);
+                    }
+                    else
+#endif
                     if ((kd = gui_hstack(jd)))
                     {
                         const GLubyte *btn_color      = can_respawn ? gui_vio : gui_gry;
@@ -676,7 +702,19 @@ static int fail_gui(void)
                     }
 
                     if (demo_saved() && ((save == 3 && status == GAME_FALL) || (save >= 2 && status == GAME_TIME)))
-                        gui_state(jd, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
+                    {
+                        if ((kd = gui_hstack(jd)))
+                        {
+                            const int icn_id = gui_label(kd, GUI_SAVETODISK, GUI_SML, GUI_COLOR_YEL);
+                            gui_set_font(icn_id, "ttf/seguiemj.ttf");
+
+                            ld = gui_label(kd, _("Save Replay"), GUI_SML, GUI_COLOR_WHT);
+                            gui_set_fill(ld);
+
+                            gui_set_state(kd, FAIL_SAVE, 0);
+                            gui_set_rect(kd, GUI_ALL);
+                        }
+                    }
                 }
                 else
 #endif
@@ -697,6 +735,18 @@ static int fail_gui(void)
 #if NB_HAVE_PB_BOTH==1 && !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
+                /*
+                 * HACK: Works like Minecraft Bedrock for all Platform devices
+                 * except Mac and Linux by following:
+                 * * Windows / Xbox
+                 * * Android
+                 * * iOS
+                 * * Nintendo Switch / Switch 2
+                 * * PlayStation 5 Digital Edition
+                 *
+                 * - Ersohn Styne
+                 */
+
                 if (!progress_same_avail() && progress_dead())
                 {
 #if defined(__EMSCRIPTEN__)
@@ -731,7 +781,19 @@ static int fail_gui(void)
                 }
 
                 if (demo_saved() && ((save == 3 && status == GAME_FALL) || (save >= 2 && status == GAME_TIME)))
-                    gui_state(jd, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
+                {
+                    if ((kd = gui_hstack(jd)))
+                    {
+                        const int icn_id = gui_label(kd, GUI_SAVETODISK, GUI_SML, GUI_COLOR_YEL);
+                        gui_set_font(icn_id, "ttf/seguiemj.ttf");
+
+                        ld = gui_label(kd, _("Save Replay"), GUI_SML, GUI_COLOR_WHT);
+                        gui_set_fill(ld);
+
+                        gui_set_state(kd, FAIL_SAVE, 0);
+                        gui_set_rect(kd, GUI_ALL);
+                    }
+                }
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                 if (account_get_d(ACCOUNT_PRODUCT_MEDIATION) == 1 &&

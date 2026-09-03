@@ -62,7 +62,7 @@ struct level
     int  num_indiv_theme;
 
     /* String representation of the number (eg. "IV") */
-    char name[MAXSTR];
+    char name[12];
 
     int is_locked;
     int is_bonus;

@@ -1063,21 +1063,21 @@ static void set_load_levels(void)
             {
                 if (master >= 200) {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(l->name, MAXSTR,
+                    sprintf_s(l->name, 12,
 #else
                     sprintf(l->name,
 #endif
                             "M ✯✯ %d", master - 199);
                 } else if (master >= 100) {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(l->name, MAXSTR,
+                    sprintf_s(l->name, 12,
 #else
                     sprintf(l->name,
 #endif
                             "M ✯ %d", master - 99);
                 } else {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(l->name, MAXSTR,
+                    sprintf_s(l->name, 12,
 #else
                     sprintf(l->name,
 #endif
@@ -1095,21 +1095,21 @@ static void set_load_levels(void)
             {
                 if (regular >= 200) {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(l->name, MAXSTR,
+                    sprintf_s(l->name, 12,
 #else
                     sprintf(l->name,
 #endif
                             "✯✯ %d", regular - 199);
                 } else if (regular >= 100) {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(l->name, MAXSTR,
+                    sprintf_s(l->name, 12,
 #else
                     sprintf(l->name,
 #endif
                             "✯ %d", regular - 99);
                 } else {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(l->name, MAXSTR,
+                    sprintf_s(l->name, 12,
 #else
                     sprintf(l->name,
 #endif

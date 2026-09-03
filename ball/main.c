@@ -769,7 +769,7 @@ static int goto_level(const List level_multi)
                     }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(lvl->name, MAXSTR,
+                    sprintf_s(lvl->name, 12,
 #else
                     sprintf(lvl->name,
 #endif

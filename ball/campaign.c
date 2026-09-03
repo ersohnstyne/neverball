@@ -527,7 +527,7 @@ static void campaign_load_levels(void)
             l->num_indiv_theme = i_num_indiv_theme;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(l->name, MAXSTR,
+            sprintf_s(l->name, 12,
 #else
             sprintf(l->name,
 #endif

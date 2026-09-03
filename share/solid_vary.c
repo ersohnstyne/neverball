@@ -354,7 +354,45 @@ int is_move_dirty(const struct s_vary *vary, int mi)
 
 void set_move_dirty(const struct s_vary *vary, int mi, unsigned int dirty)
 {
+    int mj, pi;
+
+    if (vary->mc && !vary->mv)
+    {
+        log_errorf("vary->mv returned NULL!\n");
+        return;
+    }
+
     vary->mv[mi].dirty = !!dirty;
+
+    if (dirty) {
+        for (mj = 0; mj < vary->mc; mj++) {
+            if (mi == mj)
+                continue;
+
+            pi = vary->mv[mj].pi;
+
+            if (vary->pv && (vary->pv[pi].mi == mi || vary->pv[pi].mj == mi))
+            {
+                /*
+                 * HACK: Recursive functions with same function name
+                 * and same parameters is not recommended, so I'll have to
+                 * use alternative versions in the future version.
+                 * - Ersohn Styne
+                 */
+
+                set_move_dirty(vary, mj, 1u);
+
+                /*
+                 * HACK: Usable in a single shot in the future version.
+                 * - Ersohn Styne
+                 */
+
+                // vary->mv[mj].dirty = 1u;
+            }
+            else if (vary->pc)
+                log_errorf("vary->pv returned NULL!\n");
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -512,8 +550,27 @@ void sol_lerp_copy(struct s_lerp *fp)
 {
     int i;
 
-    for (i = 0; i < fp->mc; i++) fp->mv[i][PREV] = fp->mv[i][CURR];
-    for (i = 0; i < fp->uc; i++) fp->uv[i][PREV] = fp->uv[i][CURR];
+    for (i = 0; i < fp->mc; i++)
+    {
+        if (!fp->mv)
+        {
+            log_errorf("fp->mv returned NULL!\n");
+            continue;
+        }
+
+        fp->mv[i][PREV] = fp->mv[i][CURR];
+    }
+
+    for (i = 0; i < fp->uc; i++)
+    {
+        if (!fp->uv)
+        {
+            log_errorf("fp->uv returned NULL!\n");
+            continue;
+        }
+
+        fp->uv[i][PREV] = fp->uv[i][CURR];
+    }
 }
 
 void sol_lerp_apply(struct s_lerp *fp, float a)

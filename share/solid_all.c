@@ -611,8 +611,6 @@ static void sol_swch_hightech_toggle_sync(struct s_vary *vary, cmd_fn cmd_func, 
                         xq->t  = MIN(xq->t  - MS_TO_TIME(xq->base->tm), MS_TO_TIME(xq->base->tm));
                         xq->tm = MIN(xq->tm -            xq->base->tm,             xq->base->tm);
                     }
-
-                sol_path_loop(vary, cmd_func, xq->base->pi, xq->f);
             }
         }
     }

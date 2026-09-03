@@ -389,7 +389,7 @@ void set_move_dirty(const struct s_vary *vary, int mi, unsigned int dirty)
 
                 // vary->mv[mj].dirty = 1u;
             }
-            else if (vary->pc)
+            else if (vary->pc && !vary->pv)
                 log_errorf("vary->pv returned NULL!\n");
         }
     }

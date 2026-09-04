@@ -424,7 +424,7 @@ static void title_refresh_packages_done(void *data1, void *data2)
 
 static unsigned int title_refresh_packages(void)
 {
-    package_change_category(PACKAGE_CATEGORY_LEVELSET);
+    package_change_category(PACKAGE_CATEGORY_ALL);
 
     struct fetch_callback callback = {0};
 

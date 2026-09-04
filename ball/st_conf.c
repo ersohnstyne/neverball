@@ -366,7 +366,7 @@ enum
     CONF_ACCOUNT_LOAD
 };
 
-static void account_set_refresh_packages_done(void *data1, void *data2)
+static void account_refresh_packages_done(void *data1, void *data2)
 {
     struct fetch_done *dn = data2;
 
@@ -381,14 +381,14 @@ static void account_set_refresh_packages_done(void *data1, void *data2)
     else audio_play("snd/uierror.ogg", 1.0f);
 }
 
-static unsigned int account_set_refresh_packages(void)
+static unsigned int account_refresh_packages(void)
 {
-    package_change_category(PACKAGE_CATEGORY_LEVELSET);
+    package_change_category(PACKAGE_CATEGORY_ALL);
 
     struct fetch_callback callback = { 0 };
 
     callback.data = NULL;
-    callback.done = account_set_refresh_packages_done;
+    callback.done = account_refresh_packages_done;
 
     return package_refresh(callback);
 }
@@ -425,7 +425,7 @@ static int conf_account_action(int tok, int val)
             break;
 
         case CONF_ACCOUNT_PACKAGES:
-            account_set_refresh_packages();
+            account_refresh_packages();
             break;
 #endif
 

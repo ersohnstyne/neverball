@@ -509,6 +509,10 @@ static Array load_packages_from_file(const char *filename)
                         if (!str_starts_with(line + 8, "set-"))
                             available_packages_kicked = 1;
                         break;
+                    case PACKAGE_CATEGORY_COURSE:
+                        if (!str_starts_with(line + 8, "course-"))
+                            available_packages_kicked = 1;
+                        break;
                 }
 #endif
 
@@ -811,6 +815,8 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
  */
 void package_change_category(const enum package_category pkg_category)
 {
+    if (pkg_category < 0) return;
+
     if (package_is_init &&
         package_curr_category != pkg_category)
     {

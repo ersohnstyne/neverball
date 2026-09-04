@@ -186,6 +186,7 @@ void WGCL_CallClassicPackagesUI(void)
 {
     if (WGCL_GameOptions_Exists)
     {
+        package_change_category(PACKAGE_CATEGORY_ALL);
 #ifdef __EMSCRIPTEN__
         goto_wgcl_addons_login(0, &st_null, wgcl_options_back_gameoptions);
 #else

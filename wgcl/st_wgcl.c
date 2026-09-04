@@ -985,7 +985,7 @@ static void wgcl_addons_login_refresh_packages_done(void *data1, void *data2)
 
 int wgcl_addons_login_refresh_packages(struct state *next)
 {
-    package_change_category(0);
+    package_change_category(-1);
 
     struct fetch_callback callback = { 0 };
 

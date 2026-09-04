@@ -650,6 +650,12 @@ static int start_gui(void)
 
     int id, jd, kd, ld, md;
 
+    shot_id = 0;
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
+    file_id = 0;
+#endif
+    challenge_id = 0;
+
 #if ENABLE_MOON_TASKLOADER!=0
     if (start_is_scanning_with_moon_taskloader)
     {

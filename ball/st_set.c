@@ -395,6 +395,9 @@ static int set_gui(void)
 
     int id, jd, kd, ld;
 
+    shot_id = 0;
+    desc_id = 0;
+
     int i = 0;
 
 #if ENABLE_MOON_TASKLOADER!=0
@@ -1029,6 +1032,9 @@ static int campaign_worldselect_carousel_gui(int id)
 
     int jd, kd, ld, md;
 
+    campaign_theme_image_id = 0;
+    campaign_theme_text_id = 0;
+
     if ((jd = gui_hstack(id)))
     {
         gui_filler(jd);
@@ -1168,6 +1174,8 @@ static int campaign_gui(void)
     const int h = video.device_h;
 
     int id, jd, kd;
+
+    campaign_rank_btn_id = 0;
 
     if (campaign_show_rank)
     {
